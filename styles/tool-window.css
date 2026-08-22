@@ -34,7 +34,7 @@
 body.tw-page:not(#_) {
   --tw-ink:#20202C;
   --tw-ink-2:#50505C;
-  --tw-ink-3:#85858F;
+  --tw-ink-3:#5E5E6A;
   --tw-line:rgba(23,23,25,.10);
   --tw-line-2:rgba(32,32,44,.16);
   --tw-accent:#8B42FD;
@@ -155,7 +155,7 @@ body.tw-page:not(#_) .side-title {
   font-weight:700 !important;
   letter-spacing:.14em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
   margin:16px 8px 6px !important;
 }
 body.tw-page:not(#_) .side-title:first-child { margin-top:2px !important; }
@@ -184,7 +184,11 @@ body.tw-page:not(#_) .side-ic {
   width:20px !important; height:20px !important;
   border-radius:6px !important;
   background:rgba(139,66,253,.10) !important;
-  color:var(--tw-accent) !important;
+  /* Not --tw-accent: at 10px/700 on this tinted chip the full accent violet
+     only reaches ~3.2:1, short of the 4.5:1 small text needs. This is the
+     same violet scaled to ~70% toward black - reads as the same colour,
+     clears 5.4:1. */
+  color:#612EB1 !important;
   font-size:10px !important;
   font-weight:700 !important;
 }
@@ -253,7 +257,7 @@ body.tw-page:not(#_) :is(.eyebrow,.page-eyebrow,.hero-eyebrow) {
   font-weight:700 !important;
   letter-spacing:.14em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
   margin:0 0 5px !important;
 }
 body.tw-page:not(#_) :is(.hero h1,.hero-card h1,.page-title,.homework-hero h1) {
@@ -359,7 +363,7 @@ body.tw-page:not(#_) .panel-body>.panel-title {
   font-weight:700 !important;
   letter-spacing:.14em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
   margin:18px 0 8px !important;
 }
 
@@ -401,7 +405,7 @@ body.tw-page:not(#_) :is(.stat span,.hw-metric span,.quality-card span,.hero-sta
   font-weight:700 !important;
   letter-spacing:.12em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .stage-time {
   border-radius:10px !important;
@@ -554,7 +558,7 @@ body.tw-page:not(#_) :is(.label,.form-label,.field label) {
   font-weight:700 !important;
   letter-spacing:.14em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.44) !important;
+  color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .field { gap:6px !important; margin-bottom:11px !important; }
 
@@ -608,7 +612,7 @@ body.tw-page:not(#_) .hw-focus-kicker {
   font-weight:700 !important;
   letter-spacing:.14em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .hw-focus-title { font-size:14px !important; font-weight:700 !important; color:var(--tw-ink) !important; }
 body.tw-page:not(#_) .hw-focus-detail { font-size:12px !important; color:var(--tw-ink-2) !important; }
@@ -672,16 +676,23 @@ body.tw-page:not(#_) #sidebar {
   border-right:1px solid var(--tw-line) !important;
   background:var(--tw-rail) !important;
 }
-body.tw-page:not(#_) :is(.sb-label,.sb-title,.side-section-title) {
+/* Anchored through `#sidebar`, not just `body.tw-page:not(#_)`: unify.css
+   has its own late "make the sidebar chip legible" pass scoped to
+   `body:not(.board-page):not(.admin-page) #sidebar .sb-label` - a real id
+   plus three class-level terms, !important. That beat the body-level ballast
+   alone (id count tied at one, and unify had more classes). Repeating its own
+   `#sidebar` anchor is what actually wins - a second real id outranks class
+   count outright. */
+body.tw-page:not(#_) #sidebar :is(.sb-label,.sb-title,.side-section-title) {
   font-family:var(--te-font-mono,ui-monospace,monospace) !important;
   font-size:10px !important;
   font-weight:700 !important;
   letter-spacing:.14em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
   margin:16px 8px 6px !important;
 }
-body.tw-page:not(#_) .sb-item {
+body.tw-page:not(#_) #sidebar .sb-item {
   min-height:32px !important;
   padding:6px 10px !important;
   border-radius:10px !important;
@@ -690,16 +701,16 @@ body.tw-page:not(#_) .sb-item {
   color:var(--tw-ink-2) !important;
   background:transparent !important;
 }
-body.tw-page:not(#_) .sb-item:hover {
+body.tw-page:not(#_) #sidebar .sb-item:hover {
   background:rgba(255,255,255,.72) !important;
   color:var(--tw-ink) !important;
 }
-body.tw-page:not(#_) .sb-item.active {
+body.tw-page:not(#_) #sidebar .sb-item.active {
   background:#fff !important;
   color:var(--tw-ink) !important;
   box-shadow:0 1px 2px rgba(32,32,44,.10) !important;
 }
-body.tw-page:not(#_) :is(.sb-badge,.side-count) {
+body.tw-page:not(#_) #sidebar :is(.sb-badge,.side-count) {
   background:rgba(32,32,44,.07) !important;
   color:var(--tw-ink-3) !important;
   border-radius:999px !important;
@@ -707,7 +718,7 @@ body.tw-page:not(#_) :is(.sb-badge,.side-count) {
   font-size:10px !important;
   font-weight:700 !important;
 }
-body.tw-page:not(#_) .sb-build {
+body.tw-page:not(#_) #sidebar .sb-build {
   min-height:32px !important;
   border-radius:999px !important;
   border:1px solid var(--tw-ink) !important;
@@ -716,9 +727,24 @@ body.tw-page:not(#_) .sb-build {
   font-size:12.5px !important;
   font-weight:650 !important;
 }
-body.tw-page:not(#_) .sb-build:hover {
+body.tw-page:not(#_) #sidebar .sb-build:hover {
   background:var(--tw-accent) !important;
   border-color:var(--tw-accent) !important;
+}
+
+/* courses.html's own `#sidebar` text (headings, "pro"/"+ New" labels, the
+   empty-state note) is coloured through the app's shared `--text3`/`--text2`
+   tokens - #6E6E5C / #3A3A2E, unify.css :root, !important. Those read fine on
+   plain white, which is what they were tuned for, but this sidebar's own
+   background is the desktop's tinted rail (`--tw-rail`), and #6E6E5C drops to
+   3.87:1 against it. Rather than override every id individually, the tokens
+   are redefined for the one subtree that repaints its background: same
+   custom-property names, values recalibrated for the rail. */
+body.tw-page:not(#_) #sidebar {
+  --text3:var(--tw-ink-3) !important;
+  --text-3:var(--tw-ink-3) !important;
+  --text2:var(--tw-ink-2) !important;
+  --text-2:var(--tw-ink-2) !important;
 }
 
 /* ── Stat tiles ────────────────────────────────────────────────────────────
@@ -746,7 +772,7 @@ body.tw-page:not(#_) :is(.stat-lbl,.stat-label,.insight-label) {
   font-weight:700 !important;
   letter-spacing:.12em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) :is(.insight-hint,.stat-hint) {
   font-size:11px !important;
@@ -780,7 +806,7 @@ body.tw-page:not(#_) .sec-kicker {
   font-weight:700 !important;
   letter-spacing:.14em !important;
   text-transform:uppercase !important;
-  color:rgba(32,32,44,.42) !important;
+  color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .sec-body { padding:14px 16px !important; }
 body.tw-page:not(#_) .section { overflow:hidden !important; }
@@ -971,11 +997,11 @@ body.tw-page:not(#_) .auto-gen {
   box-shadow:none !important;
 }
 body.tw-page:not(#_) .auto-gen-head { color:var(--tw-ink) !important; font-size:12.5px !important; font-weight:700 !important; }
-body.tw-page:not(#_) .auto-gen-meta { color:rgba(32,32,44,.42) !important; }
+body.tw-page:not(#_) .auto-gen-meta { color:var(--tw-ink-3) !important; }
 /* Its labels were white-on-black; on a white card they had to be re-inked, or
    they simply vanish. */
 body.tw-page:not(#_) :is(.auto-gen-row label,.auto-gen-row .half>span) {
-  color:rgba(32,32,44,.44) !important;
+  color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .auto-gen-go {
   border-radius:999px !important;

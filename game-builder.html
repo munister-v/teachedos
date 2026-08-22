@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=399">
-<link rel="preload" as="style" href="styles/unify.css?v=399">
-<link rel="manifest" href="manifest.json?v=399">
+<link rel="preload" as="style" href="styles/harmony.css?v=417">
+<link rel="preload" as="style" href="styles/unify.css?v=417">
+<link rel="manifest" href="manifest.json?v=417">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -51,7 +51,7 @@ h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-widt
 .btn.lime{background:var(--lime);color:var(--accent);box-shadow:0 4px 14px rgba(205,242,79,.28)}.btn.lime:hover{background:#b8d62e}
 .btn.ghost{background:#fff;color:var(--text);border:1px solid var(--border)}.btn.ghost:hover{border-color:rgba(205,242,79,.5);background:rgba(205,242,79,.06)}
 .btn.pink{background:var(--pink);color:#fff}.btn.pink:hover{background:#d4267f}
-.btn.danger{background:#fff;color:#ef4444;border:1px solid rgba(239,68,68,.3)}.btn.danger:hover{background:rgba(239,68,68,.06)}
+.btn.danger{background:#fff;color:#B81C1C;border:1px solid rgba(239,68,68,.3)}.btn.danger:hover{background:rgba(239,68,68,.06)}
 .btn.sm{padding:7px 12px;font-size:12px;border-radius:10px}
 .btn.blue{background:var(--blue);color:#fff}.btn.blue:hover{background:#2563eb}
 .tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
@@ -81,7 +81,7 @@ textarea{min-height:60px;resize:vertical}
 .pair-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .pair-row{display:grid;grid-template-columns:24px 1fr 1fr auto;gap:8px;align-items:center}
 .pair-row input{margin:0}
-.pair-remove{width:32px;height:32px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.04);color:#ef4444;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+.pair-remove{width:32px;height:32px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.04);color:#B81C1C;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
 .pair-remove:hover{background:rgba(239,68,68,.12)}
 .pair-row-num{font:800 10px var(--mono);color:var(--text3);text-align:center}
 .preset-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;padding:12px 16px;background:rgba(200,230,50,.06);border:1.5px solid rgba(200,230,50,.2);border-radius:14px}
@@ -247,13 +247,13 @@ textarea{min-height:60px;resize:vertical}
 }
 
 </style>
-<script src="theme.js?v=399" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=399">
-<link rel="stylesheet" href="styles/harmony.css?v=399">
-<link rel="stylesheet" href="styles/unify.css?v=399">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=399">
-<link rel="stylesheet" href="styles/teached-brand.css?v=399">
-<link rel="stylesheet" href="styles/tool-window.css?v=399">
+<script src="theme.js?v=417" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=417">
+<link rel="stylesheet" href="styles/harmony.css?v=417">
+<link rel="stylesheet" href="styles/unify.css?v=417">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=417">
+<link rel="stylesheet" href="styles/teached-brand.css?v=417">
+<link rel="stylesheet" href="styles/tool-window.css?v=417">
 </head>
 <body class="tools-workbench tw-page">
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -522,9 +522,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=399"></script>
-<script src="scripts/vocab-loader.js?v=399"></script>
-<script src="scripts/game-builder-app.js?v=399"></script>
+<script src="scripts/app-core.js?v=417"></script>
+<script src="scripts/vocab-loader.js?v=417"></script>
+<script src="scripts/game-builder-app.js?v=417"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -538,10 +538,10 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=399" defer></script>
-<script src="scripts/mobile-nav.js?v=399"></script>
-<script src="scripts/mobile-zoom-guard.js?v=399" defer></script>
-<script src="scripts/autogrow.js?v=399" defer></script>
-<script src="pwa-boot.js?v=399" defer></script>
+<script src="scripts/mobile-perf.js?v=417" defer></script>
+<script src="scripts/mobile-nav.js?v=417"></script>
+<script src="scripts/mobile-zoom-guard.js?v=417" defer></script>
+<script src="scripts/autogrow.js?v=417" defer></script>
+<script src="pwa-boot.js?v=417" defer></script>
 </body>
 </html>

@@ -926,7 +926,7 @@ function renderPresetPacks(){
   list.sort((a,b)=>(levelOrder[a.p.level]||9)-(levelOrder[b.p.level]||9) || a.p.title.localeCompare(b.p.title));
   wrap.innerHTML=list.map(({p,i})=>{
     const lv=(p.level||'').toUpperCase();
-    const lvColor={A1:'#22c55e',A2:'#0891B2',B1:'#0E0E10',B2:'#7C3AED',C1:'#EC2D8C'}[lv]||'#0E0E10';
+    const lvColor={A1:'#0F7B3D',A2:'#066B84',B1:'#0E0E10',B2:'#7C3AED',C1:'#C71477'}[lv]||'#0E0E10';
     return `<button class="preset-card" type="button" onclick="applyPresetPack(${i})" style="border-left:3px solid ${lvColor};padding:11px 14px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
         <span style="font:900 9px var(--mono);letter-spacing:.06em;background:${lvColor}22;color:${lvColor};padding:2px 7px;border-radius:5px;">${esc(p.level||'')}</span>

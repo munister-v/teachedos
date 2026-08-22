@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=399">
+<link rel="manifest" href="manifest.json?v=417">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=399">
-<link rel="preload" as="style" href="styles/unify.css?v=399">
+<link rel="preload" as="style" href="styles/harmony.css?v=417">
+<link rel="preload" as="style" href="styles/unify.css?v=417">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -156,7 +156,7 @@ button{font-family:var(--font);cursor:pointer;}
 .btn-primary:hover{background:var(--accent);color:#F5F0E8;}
 .btn-ghost{background:rgba(200,230,50,.08);color:var(--accent);border:1.5px solid var(--border2);}
 .btn-ghost:hover{background:rgba(94,94,74,.16);}
-.btn-danger{background:rgba(239,68,68,.08);color:#ef4444;border:1.5px solid rgba(239,68,68,.2);}
+.btn-danger{background:rgba(239,68,68,.08);color:#B81C1C;border:1.5px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:rgba(239,68,68,.15);}
 .btn-soft{background:rgba(99,102,241,.1);color:var(--blue);border:1.5px solid rgba(99,102,241,.26);}
 .btn-soft:hover{background:rgba(99,102,241,.18);}
@@ -233,7 +233,7 @@ button{font-family:var(--font);cursor:pointer;}
   background:rgba(200,230,50,.08);color:var(--accent);transition:.15s;
 }
 .mod-btn:hover{background:rgba(200,230,50,.18);}
-.mod-btn.red{background:rgba(239,68,68,.08);color:#ef4444;}
+.mod-btn.red{background:rgba(239,68,68,.08);color:#B81C1C;}
 .mod-btn.red:hover{background:rgba(239,68,68,.18);}
 
 .lessons-grid{
@@ -265,7 +265,7 @@ button{font-family:var(--font);cursor:pointer;}
   transition:.15s;
 }
 .lesson-card:hover .lc-remove{display:flex;}
-.lc-remove:hover{background:rgba(239,68,68,.12);color:#ef4444;}
+.lc-remove:hover{background:rgba(239,68,68,.12);color:#B81C1C;}
 
 .add-lesson-btn{
   border:2px dashed var(--border2);border-radius:12px;padding:20px 14px;
@@ -355,10 +355,10 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=399" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=399">
-<link rel="stylesheet" href="styles/harmony.css?v=399">
-<link rel="stylesheet" href="styles/unify.css?v=399">
+<script src="theme.js?v=417" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=417">
+<link rel="stylesheet" href="styles/harmony.css?v=417">
+<link rel="stylesheet" href="styles/unify.css?v=417">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -422,8 +422,8 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=399">
-<link rel="stylesheet" href="styles/tool-window.css?v=399">
+<link rel="stylesheet" href="styles/teached-brand.css?v=417">
+<link rel="stylesheet" href="styles/tool-window.css?v=417">
 </head>
 <body class="tw-page mp-shell">
 
@@ -540,7 +540,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=399"></script>
+<script src="scripts/app-core.js?v=417"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -1474,11 +1474,11 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=399" defer></script>
-<script src="scripts/mobile-perf.js?v=399" defer></script>
-<script src="scripts/mobile-nav.js?v=399"></script>
-<script src="scripts/mobile-zoom-guard.js?v=399" defer></script>
-<script src="scripts/autogrow.js?v=399" defer></script>
-<script src="pwa-boot.js?v=399" defer></script>
+<script src="scripts/nav-boost.js?v=417" defer></script>
+<script src="scripts/mobile-perf.js?v=417" defer></script>
+<script src="scripts/mobile-nav.js?v=417"></script>
+<script src="scripts/mobile-zoom-guard.js?v=417" defer></script>
+<script src="scripts/autogrow.js?v=417" defer></script>
+<script src="pwa-boot.js?v=417" defer></script>
 </body>
 </html>

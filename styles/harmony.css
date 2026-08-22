@@ -611,22 +611,26 @@ body { font-family: var(--font) !important; }
 .sn-label { font-family: var(--font); color: #6E6E5C; }
 
 /* Badges: readable on light bg */
+/* Text darkened below the plain accent for seven of these: a badge's own
+   12-14% tint is close enough to white that the accent colour alone reads at
+   2.9-3.9:1 - short of 4.5. Same hue, scaled toward black. a2/b1/vocab/
+   speaking/draft already cleared 4.5 with the plain accent and are unchanged. */
 .badge.active-s, .badge.active {
   background: rgba(34,197,94,.12);
-  color: #16a34a;
+  color: #0D6E36;
   border: 1px solid rgba(34,197,94,.25);
 }
 .badge.a2 { background: rgba(96,165,250,.12); color: #2563eb; }
 .badge.b1 { background: rgba(167,139,250,.14); color: #7c3aed; }
-.badge.b2 { background: rgba(110,201,138,.14); color: #16a34a; }
-.badge.grammar { background: rgba(248,113,113,.12); color: #dc2626; }
+.badge.b2 { background: rgba(110,201,138,.14); color: #0D6E36; }
+.badge.grammar { background: rgba(248,113,113,.12); color: #B01B1B; }
 .badge.vocab { background: rgba(0,0,0,.06); color: #3A3A2E; }
 .badge.speaking { background: rgba(167,139,250,.12); color: #7c3aed; }
 .badge.draft { background: rgba(0,0,0,.06); color: #6E6E5C; }
-.badge.pink { background: rgba(236,45,140,.12); color: #db2777; }
-.badge.amber { background: rgba(245,158,11,.14); color: #d97706; }
-.badge.a1 { background: rgba(56,189,248,.14); color: #0284c7; }
-.badge.c1 { background: rgba(251,146,60,.14); color: #ea580c; }
+.badge.pink { background: rgba(236,45,140,.12); color: #A61959; }
+.badge.amber { background: rgba(245,158,11,.14); color: #985800; }
+.badge.a1 { background: rgba(56,189,248,.14); color: #025A82; }
+.badge.c1 { background: rgba(251,146,60,.14); color: #A63B07; }
 
 /* Element grid - light Miro */
 .el-item {

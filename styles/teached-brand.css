@@ -54,7 +54,7 @@
   /* Secondary palette */
   --te-yellow:#FFE44D;
   --te-orange:#FF8E3A;
-  --te-coral:#FF4E00;
+  --te-coral:#C83C00;
   --te-pink:#F0508A;
   --te-pink-dark:#D93E76;
   --te-blue:#3F8FFF;
@@ -79,7 +79,7 @@
   --ink:var(--te-ink) !important;
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
-  --text-3:#85858F !important;
+  --text-3:#5E5E6A !important;
   --cream:var(--te-paper) !important;
   --bg:var(--te-paper) !important;
   --bg2:#ECECE8 !important;
@@ -197,10 +197,10 @@ body:not(.board-page):not(.os-desktop) #nav :where(.nav-link,.nav-logo-name) {
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link:hover {
   background:rgba(139,66,253,.08) !important;
-  color:var(--te-violet) !important;
+  color:#612EB1 !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link.active {
-  color:var(--te-violet) !important;
+  color:#612EB1 !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-user {
   background:rgba(205,249,64,.24) !important;
@@ -251,7 +251,7 @@ body.board-page {
   --accent2:var(--te-violet) !important;
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
-  --text-3:#85858F !important;
+  --text-3:#5E5E6A !important;
   --border:rgba(32,32,44,.14) !important;
   --border-2:rgba(32,32,44,.24) !important;
 }
@@ -265,7 +265,7 @@ body.os-desktop {
   --accent2:var(--te-violet) !important;
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
-  --text-3:#85858F !important;
+  --text-3:#5E5E6A !important;
 }
 
 /* Category language is reusable in the catalogue, Tools and future pages. */
@@ -279,7 +279,7 @@ body.os-desktop {
 
 :where(.card-tag.vocab,.tag-vocab,.cat-vocab) { background:var(--te-lime-soft) !important; color:var(--te-ink) !important; }
 :where(.card-tag.grammar,.tag-grammar,.cat-grammar) { background:var(--te-violet) !important; color:#fff !important; }
-:where(.card-tag.reading,.tag-reading,.cat-reading) { background:var(--te-blue) !important; color:#fff !important; }
+:where(.card-tag.reading,.tag-reading,.cat-reading) { background:#1F6FD6 !important; color:#fff !important; }
 :where(.card-tag.writing,.tag-writing,.cat-writing) { background:var(--te-orange) !important; color:var(--te-ink) !important; }
 :where(.card-tag.speaking,.tag-speaking,.cat-speaking) { background:var(--te-coral) !important; color:#fff !important; }
 :where(.card-tag.listening,.tag-listening,.cat-listening) { background:var(--te-cyan) !important; color:var(--te-ink) !important; }
@@ -294,7 +294,7 @@ body.landing-page {
   --cream-2:#EEF1E2 !important;
   --ink:var(--te-ink) !important;
   --ink2:#50505C !important;
-  --ink3:#777783 !important;
+  --ink3:#5E5E6A !important;
   --line:rgba(32,32,44,.13) !important;
   --line-2:rgba(32,32,44,.07) !important;
   --lime:var(--te-lime) !important;
@@ -375,7 +375,7 @@ body.os-desktop {
   --bg-2:#EEEDE7 !important;
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
-  --text-3:#85858F !important;
+  --text-3:#5E5E6A !important;
   --border:rgba(32,32,44,.14) !important;
   --border-2:rgba(32,32,44,.25) !important;
   --accent:var(--te-ink) !important;
@@ -502,11 +502,11 @@ body:not(.board-page):not(.os-desktop) #nav {
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link.active {
   background:var(--te-surface-violet) !important;
-  color:var(--te-violet) !important;
+  color:#612EB1 !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link:hover {
   background:rgba(139,66,253,.08) !important;
-  color:var(--te-violet) !important;
+  color:#612EB1 !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-user {
   background:var(--te-surface-lime) !important;
@@ -581,7 +581,13 @@ body.tools-workbench .tool.active {
   box-shadow:inset 3px 0 0 var(--te-coral) !important;
 }
 body.tools-workbench .tool:focus-visible { outline-color:var(--te-violet) !important; }
-body.tools-workbench .workspace .panel-icon { background:linear-gradient(135deg,var(--te-surface-violet),var(--te-surface-lime)) !important; color:var(--te-violet) !important; }
+body.tools-workbench .workspace .panel-icon {
+  background:linear-gradient(135deg,var(--te-surface-violet),var(--te-surface-lime)) !important;
+  /* Not --te-violet: at 14px/700 on this pale gradient it lands at 3.86:1,
+     short of 4.5. Same hue, scaled toward black - matches the .side-ic fix in
+     tool-window.css. */
+  color:#612EB1 !important;
+}
 body.tools-workbench .workspace .label { color:var(--te-violet) !important; }
 
 /* Analytics, journal and gradebook use a quiet data surface with enough
@@ -621,7 +627,7 @@ body.admin-page .stat-icon.orange { background:var(--te-surface-yellow) !importa
 .community-primary-action { background:var(--te-coral) !important; color:#fff !important; }
 .community-primary-action:hover { background:#D94200 !important; }
 .share-publish-btn { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; box-shadow:0 8px 18px rgba(255,78,0,.22) !important; }
-.community-link-action:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.38) !important; color:var(--te-violet) !important; }
+.community-link-action:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.38) !important; color:#612EB1 !important; }
 .community-lesson-cover { background:linear-gradient(135deg,#29233B,var(--te-violet)) !important; }
 .community-lesson-cover.cover-style-2 { background:linear-gradient(135deg,#183553,var(--te-blue)) !important; }
 .community-lesson-cover.cover-style-3 { background:linear-gradient(135deg,#54251B,var(--te-coral)) !important; }
@@ -633,7 +639,7 @@ body.admin-page .stat-icon.orange { background:var(--te-surface-yellow) !importa
 body.lesson-builder-page .btn.pink,
 body:has(.type-grid) .btn.pink { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; }
 body.lesson-builder-page .btn.blue,
-body:has(.type-grid) .btn.blue { background:var(--te-blue) !important; border-color:var(--te-blue) !important; color:#fff !important; }
+body:has(.type-grid) .btn.blue { background:#1F6FD6 !important; border-color:#1F6FD6 !important; color:#fff !important; }
 body:has(.type-grid) .type-card.selected { border-color:var(--te-violet) !important; background:linear-gradient(145deg,#fff,var(--te-surface-violet)) !important; box-shadow:0 0 0 3px rgba(139,66,253,.13) !important; }
 body:has(.type-grid) .topic-bar { background:var(--te-ink) !important; border-color:var(--te-ink) !important; }
 body:has(.type-grid) .topic-go { background:var(--te-lime) !important; color:var(--te-ink) !important; }
@@ -644,7 +650,7 @@ body:has(.week-nav) .btn-add:not([style*="background:transparent"]) { background
 body:has(.week-nav) .stat-pill:nth-child(1) { box-shadow:inset 0 3px 0 var(--te-violet) !important; }
 body:has(.week-nav) .stat-pill:nth-child(2) { box-shadow:inset 0 3px 0 var(--te-blue) !important; }
 body:has(.week-nav) .stat-pill:nth-child(3) { box-shadow:inset 0 3px 0 var(--te-coral) !important; }
-body:has(.week-nav) .wn-today,body:has(.week-nav) .mp-week-today { background:var(--te-surface-violet) !important; color:var(--te-violet) !important; border-color:rgba(139,66,253,.28) !important; }
+body:has(.week-nav) .wn-today,body:has(.week-nav) .mp-week-today { background:var(--te-surface-violet) !important; color:#612EB1 !important; border-color:rgba(139,66,253,.28) !important; }
 
 /* Board: retain its dedicated editing language. Share is coral, the selected
    drawing mode is violet, and the additive action stays lime. */
@@ -665,9 +671,9 @@ body.board-page .empty-icon { background:var(--te-surface-violet) !important; co
 
 /* The landing stays restrained for performance, but its key invitations must
    still feel like TeachEd: coral joins, lime begins, violet guides. */
-body.landing-page .nav-lnk:hover { background:var(--te-surface-violet) !important; color:var(--te-violet) !important; }
+body.landing-page .nav-lnk:hover { background:var(--te-surface-violet) !important; color:#612EB1 !important; }
 body.landing-page .btn-glass,body.landing-page .btn-cream { background:#fff !important; border-color:var(--te-line) !important; color:var(--te-ink) !important; }
-body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.30) !important; color:var(--te-violet) !important; }
+body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.30) !important; color:#612EB1 !important; }
 
 /* ══════════════════════════════════════════════════════════════════════
    ЕДИНЫЙ ВИД ОКОН — по образцу «YouTube → Lesson»

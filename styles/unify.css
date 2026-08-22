@@ -1407,7 +1407,11 @@ body.os-desktop .wg-vocab-word {
 body.os-desktop .wg-clock-time em,
 body.os-desktop .wg-streak-n,
 body.os-desktop .wg-vocab-trans {
-  color: #A5C900 !important;
+  /* Not #A5C900: at the 13px weight .wg-vocab-trans uses, that lime reads at
+     1.77:1 on the widget's near-white card - only .wg-streak-n's 42px digits
+     were ever large enough to earn the lighter 3:1 bar. Darkened to clear
+     4.5:1 for all three sizes that share this rule. */
+  color: #566602 !important;
   text-shadow: none !important;
 }
 
@@ -3319,6 +3323,11 @@ body.os-desktop .studio-copy {
 }
 body.os-desktop .studio-actions {
   margin-top: 12px !important;
+}
+/* notes-save-hint sits beside the primary chip in .studio-actions, painted
+   white for the dark hero above - invisible once the hero went transparent. */
+body.os-desktop .notes-save-hint {
+  color: var(--text-3, #737A72) !important;
 }
 
 /* One action reads as the action; the rest are links, not competing pills. */

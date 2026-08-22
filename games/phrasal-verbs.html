@@ -13,22 +13,22 @@
 body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
+.subtitle{color:#6E6E6E;font-size:.9rem;margin-bottom:20px}
 .card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:460px;text-align:center}
-.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#888;font-size:.9rem}
+.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#5E5E5E;font-size:.9rem}
 .top span{color:var(--accent)}
 .sentence{font-size:1.2rem;font-weight:700;color:#333;min-height:60px;display:flex;align-items:center;justify-content:center;line-height:1.6;margin-bottom:8px}
 .blank{color:var(--accent);font-size:1.4rem;border-bottom:3px solid var(--accent);padding:0 8px}
-.meaning{font-size:.85rem;color:#bbb;margin-bottom:20px;font-style:italic}
+.meaning{font-size:.85rem;color:#6E6E6E;margin-bottom:20px;font-style:italic}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .choice{padding:12px;border:2.5px solid #eee;border-radius:12px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;background:#fff;transition:.15s;color:#555}
 .choice:hover{border-color:var(--accent);color:var(--accent)}
 .choice.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
 .choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
-.feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:20px;color:#888}
+.feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:20px;color:#5E5E5E}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=399">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=399">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=417">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=417">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -100,6 +100,6 @@ function endGame(){
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=399"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=417"></script>
 </body>
 </html>

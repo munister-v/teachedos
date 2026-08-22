@@ -9,7 +9,7 @@
 body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
 .back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem;cursor:pointer;background:none;border:none}
 h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
-.subtitle{color:#888;font-size:.85rem;margin-bottom:12px}
+.subtitle{color:#5E5E5E;font-size:.85rem;margin-bottom:12px}
 .progress-wrap{width:100%;max-width:440px;background:#E0D9CE;border-radius:99px;height:8px;margin-bottom:8px;overflow:hidden}
 .progress-bar{height:8px;background:#CDF24F;border-radius:99px;transition:width .4s}
 .score-label{font-size:.85rem;color:#555;margin-bottom:14px;align-self:flex-start;width:100%;max-width:440px}
@@ -20,8 +20,8 @@ h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .front{background:#fff}
 .back-face{background:#fff;transform:rotateY(180deg)}
 .word{font-size:2rem;font-weight:800;color:#0E0E10;text-align:center;margin-bottom:8px}
-.tap-hint{font-size:.8rem;color:#bbb;margin-top:12px}
-.phonetic{font-size:.9rem;color:#888;margin-bottom:6px}
+.tap-hint{font-size:.8rem;color:#6E6E6E;margin-top:12px}
+.phonetic{font-size:.9rem;color:#5E5E5E;margin-bottom:6px}
 .translation{font-size:1.3rem;font-weight:700;color:#EC2D8C;margin-bottom:10px}
 .example{font-size:.85rem;color:#555;text-align:center;line-height:1.5;font-style:italic}
 .btn-row{display:flex;gap:12px;width:100%;max-width:440px}
@@ -37,7 +37,7 @@ h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .final .big{font-size:3.5rem;margin-bottom:8px}
 .btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=399">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=417">
 </head>
 <body>
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>
@@ -69,8 +69,8 @@ h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
   <button class="btn-play" onclick="restart()">Play Again</button>
 </div>
 
-<script src="../scripts/vocabulary.js?v=399"></script>
-<script src="../scripts/custom-sets.js?v=399"></script>
+<script src="../scripts/vocabulary.js?v=417"></script>
+<script src="../scripts/custom-sets.js?v=417"></script>
 <script>
 let VOCAB=[
   {word:"comfortable",ph:"/ˈkʌmftəbl/",tr:"comfortable (adj)",ex:"The new sofa is really comfortable to sit on."},

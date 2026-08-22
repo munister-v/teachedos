@@ -13,8 +13,8 @@
 body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#aaa;font-size:.9rem;margin-bottom:20px}
-.hud{display:flex;gap:24px;margin-bottom:14px;font-weight:700;color:#888;font-size:.95rem}
+.subtitle{color:#6E6E6E;font-size:.9rem;margin-bottom:20px}
+.hud{display:flex;gap:24px;margin-bottom:14px;font-weight:700;color:#5E5E5E;font-size:.95rem}
 .hud span{color:var(--accent)}
 .timer-bar{width:100%;max-width:500px;height:8px;background:#f0e0e8;border-radius:4px;margin-bottom:16px;overflow:hidden}
 .timer-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .1s linear}
@@ -26,8 +26,8 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .word-card.wrong{border-color:#f44336;background:#fff0f0}
 .msg{margin-top:14px;font-size:1rem;font-weight:700;color:var(--accent);min-height:22px;text-align:center}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=399">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=399">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=417">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=417">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -131,6 +131,6 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=399"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=417"></script>
 </body>
 </html>
