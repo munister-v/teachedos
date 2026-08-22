@@ -36,6 +36,17 @@ function normalizeCommunityBoardData(raw, title) {
       source_board_id: clip(raw.source_board_id || raw.sourceBoardId, 64) || null,
       source_board_name: clip(raw.source_board_name || raw.sourceBoardName, 255) || null,
       duration: Number.isFinite(rawDuration) && rawDuration > 0 && rawDuration <= 600 ? Math.round(rawDuration) : null,
+      /* Это белый список: всё, чего здесь нет, до базы не доезжает. Поля
+         публикации приходится заводить и тут, иначе форма их спрашивает, а
+         страница урока не получает — настройка выглядит рабочей и молча
+         никуда не сохраняется.
+
+         allowCopy пишется только когда автор явно снял галочку. Отсутствие
+         поля читается на клиенте как «копировать можно», и уроки, изданные
+         до его появления, остаются копируемыми. */
+      language: clip(raw.language, 40) || null,
+      audience: clip(raw.audience, 40) || null,
+      allowCopy: raw.allowCopy === false ? false : undefined,
       snapshot: { ...snapshot, name: clip(snapshot.name || title, 255) || 'Community lesson' },
     }
   };
@@ -183,14 +194,22 @@ router.post('/', async (req, res) => {
       if (ownershipError) return res.status(ownershipError.status).json({ error: ownershipError.error });
     }
     const { rows } = await pool.query(
-      /* `$10::text` в CASE — не украшение. Тот же параметр стоит в позиции
-         колонки visibility (она VARCHAR(16)), и оттуда Postgres выводит для
-         него varchar, а из сравнения с литералом 'community' — text. Для
-         ОДНОГО параметра это два разных вывода, и запрос падает целиком:
-         «inconsistent types deduced for parameter $10». Явный каст снимает
-         спор: в колонку идёт varchar, в сравнение — text. */
+      /* Один и тот же параметр стоял и в позиции колонки visibility
+         (VARCHAR(16)), и внутри CASE. Postgres выводит тип параметра из ВСЕХ
+         его вхождений сразу, получал varchar из одного и text из другого и
+         отказывался готовить запрос целиком: «inconsistent types deduced for
+         parameter $10». Публикация в Community падала на этом всегда.
+
+         Приписать `::text` внутри CASE, как было раньше, спор не решает —
+         каст не отменяет вывод типа для самого параметра, он только добавляет
+         ещё одно требование к нему. Ошибка оставалась ровно та же.
+
+         Поэтому у сравнения теперь свой параметр: $10 идёт в колонку и
+         выводится из неё, $11 участвует только в CASE. Каждый выводится из
+         одного места, спорить не о чем. Значение одно и то же — visibility
+         передаётся дважды осознанно. */
       `INSERT INTO assignments (user_id, kind, title, description, level, skill, tags, data, image, visibility, published_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,CASE WHEN $10::text = 'community' THEN NOW() ELSE NULL END)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,CASE WHEN $11 = 'community' THEN NOW() ELSE NULL END)
        RETURNING ${LIST_COLS}`,
       [
         req.user.id,
@@ -203,6 +222,7 @@ router.post('/', async (req, res) => {
         data,
         b.image ? String(b.image).slice(0, 2_000_000) : null,
         visibility,
+        visibility,   // $11 — только для CASE, см. комментарий к запросу
       ]
     );
     res.status(201).json({ assignment: rows[0] });
