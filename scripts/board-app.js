@@ -12298,11 +12298,23 @@ function _ttPackedCols(heights, cellW, colGap, rowGap, top, maxCols = 3, targetR
   /* A column holding ONE card is not a column, it is a ribbon with a hole under
      it - and the hole is exactly the difference between that card and the
      tallest one. The shape score cannot see this: it reads a 2x1 lesson as a
-     pleasingly landscape frame that happens to be half empty. So no more
-     columns than can be given two cards each; pagination is what earns a
-     lesson its third column, by giving it enough cards to fill one. */
+     pleasingly landscape frame that happens to be half empty.
+
+     Hence a ceiling on the columns - but floor(n/2) set it one column too low
+     and made the cure worse than the disease. Three cards were pinned to a
+     single 920x1868 column: ratio 0.41 against a target of 1.3, a strip taller
+     than two screens for a video and two exercises. Two columns score 0.14
+     against that shape's 2.32, and the only thing wrong with them is the very
+     hole this cap was written to avoid - a far smaller price than the strip.
+     Five cards had the same story one size up (0.87 for the allowed two columns
+     against 0.05 for the three it was not allowed to consider).
+
+     ceil(n/2) lets the LAST column be the short one while every column before
+     it still gets its two cards, so a lesson can no longer be all ribbons. What
+     to do with the remaining hole is already answered further down: the stretch
+     pass hands the leftover height to the cards in the short column. */
   let best = 1, bestScore = Infinity;
-  for (let c = 1, hi = Math.min(maxCols, Math.max(1, Math.floor(n / 2))); c <= hi; c++) {
+  for (let c = 1, hi = Math.min(maxCols, Math.max(1, Math.ceil(n / 2))); c <= hi; c++) {
     const h = _ttPackColumns(heights, c, top, rowGap).height;
     const w = c * cellW + (c - 1) * colGap;
     // Symmetric in log space: too tall and too wide are both penalised, but a
