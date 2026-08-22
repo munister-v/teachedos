@@ -1013,9 +1013,14 @@ async function createTemplateModules(courseId) {
         method:'POST',
         body:{ name: moduleTemplate.name }
       })).module;
+      const existingBoards = (existing || module).boards || [];
       for (let i = 0; i < moduleTemplate.lessons.length; i += 1) {
         const lessonTemplate = moduleTemplate.lessons[i];
         const boardName = `${template.level} · ${lessonTemplate.title}`;
+        // Re-running "Import" (e.g. re-creating the same level's course) used to
+        // POST a brand new board for every lesson every time, piling up exact
+        // duplicates in the module. Skip lessons that already have a board here.
+        if (existingBoards.some(b => b.name === boardName)) continue;
         const { board } = await api('/api/boards', { method:'POST', body:{ name: boardName } });
         await api('/api/boards/' + board.id, {
           method:'PATCH',
