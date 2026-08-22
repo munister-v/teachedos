@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=380">
-<link rel="preload" as="style" href="styles/unify.css?v=380">
+<link rel="preload" as="style" href="styles/harmony.css?v=381">
+<link rel="preload" as="style" href="styles/unify.css?v=381">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=380">
+<link rel="manifest" href="manifest.json?v=381">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -63,8 +63,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=380">
-<link rel="stylesheet" href="styles/main.css?v=380">
+<link rel="stylesheet" href="styles/tokens.css?v=381">
+<link rel="stylesheet" href="styles/main.css?v=381">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -281,41 +281,32 @@ html,body {
   box-shadow: 0 14px 36px rgba(14,14,16,0.14);
   border-color: var(--border-2, rgba(94,94,74,.3));
 }
+.widget.wg-dragging { transform:translateY(-2px) scale(1.02); box-shadow: 0 20px 46px rgba(14,14,16,0.20); transition:none; cursor:grabbing; z-index:60; }
+.widget-close {
+  position:absolute; top:6px; right:6px; z-index:2;
+  width:20px; height:20px; border-radius:7px; border:none;
+  background: rgba(94,94,74,.10); color: var(--text-3, #7A7A6A);
+  font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; opacity:0; transition:opacity .15s, background .15s, color .15s;
+}
+.widget:hover .widget-close { opacity:1; }
+.widget-close:hover { background: rgba(94,94,74,.22); color: var(--text, #1C1C1E); }
+#wg-restore {
+  position:fixed; right:24px; bottom:88px; z-index:998;
+  display:none; align-items:center; gap:8px;
+  padding:9px 14px; border-radius:999px; border:1px solid var(--border, rgba(94,94,74,.16));
+  background: var(--bg-2, #F7F3EC); box-shadow:0 10px 28px rgba(14,14,16,0.10);
+  font-size:12px; font-family: var(--font-mono); color: var(--text-3, #7A7A6A);
+  cursor:pointer;
+}
+#wg-restore:hover { color: var(--text, #1C1C1E); border-color: var(--border-2, rgba(94,94,74,.3)); }
 
 /* Clock widget. Left-aligned with an eyebrow label instead of Big Sur's
    centered giant digits, so the shape reads as a TeachEd stat tile rather
    than a cloned system clock. */
-#wg-clock {
-  top:48px; right:24px;
-  width:176px; padding:16px 18px 18px;
-  text-align:left;
-}
-.wg-clock-eyebrow {
-  font-size:9px; font-weight:700; color: var(--text-3);
-  font-family: var(--font-mono); letter-spacing:0.12em; text-transform:uppercase;
-  margin-bottom:6px;
-}
-.wg-clock-time {
-  font-family: var(--font-ui); font-size:38px; font-weight:700;
-  color: var(--text); line-height:1; letter-spacing:-0.02em;
-  border-left: 3px solid var(--accent); padding-left:10px;
-}
-.wg-clock-time em { color: var(--accent); font-style:normal; }
-.wg-clock-date {
-  font-size:11px; color: var(--text-3); margin-top:8px;
-  font-family: var(--font-mono); letter-spacing:0.06em; text-transform:uppercase;
-  padding-left:13px;
-}
-.wg-clock-lang {
-  margin-top:10px; margin-left:13px; font-size:11px; color: var(--accent);
-  font-family: var(--font-ui); font-weight:600; letter-spacing:0.02em;
-  background: var(--accent-2); border: 1px solid var(--accent-3);
-  border-radius:8px; padding:4px 10px; display:inline-block;
-}
-
 /* Streak widget */
 #wg-streak {
-  top:262px; right:24px;
+  top:48px; right:24px;
   width:176px; padding:18px;
 }
 .wg-streak-n {
@@ -331,7 +322,7 @@ html,body {
 
 /* Today widget */
 #wg-today {
-  top:398px; right:24px;
+  top:184px; right:24px;
   width:176px; padding:16px 18px;
 }
 .wg-today-label {
@@ -364,7 +355,7 @@ html,body {
 
 /* Vocab widget */
 #wg-vocab {
-  top:552px; right:24px;
+  top:338px; right:24px;
   width:176px; padding:18px;
 }
 .wg-vocab-label {
@@ -1574,10 +1565,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=380" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=380">
-<link rel="stylesheet" href="styles/harmony.css?v=380">
-<link rel="stylesheet" href="styles/unify.css?v=380">
+<script src="theme.js?v=381" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=381">
+<link rel="stylesheet" href="styles/harmony.css?v=381">
+<link rel="stylesheet" href="styles/unify.css?v=381">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1585,7 +1576,7 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=380">
+<link rel="stylesheet" href="styles/teached-brand.css?v=381">
 </head>
 <body class="os-desktop">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1715,10 +1706,6 @@ html,body {
          merged into one account chip: plan tag and name now read as two
          fields of one control, not two unrelated buttons that happen to sit
          next to each other. -->
-    <a id="mb-account-chip" class="mb-account-chip" href="profile.html" style="display:none;">
-      <span id="mb-plan-badge"></span>
-      <span id="mb-account-name"></span>
-    </a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
       <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:650;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
@@ -1742,13 +1729,6 @@ html,body {
 </div>
 
 <!-- WIDGETS -->
-<div class="widget" id="wg-clock">
-  <div class="wg-clock-eyebrow">Local time</div>
-  <div class="wg-clock-time" id="wg-time">10<em>:</em>42</div>
-  <div class="wg-clock-date" id="wg-date">wednesday · may 7</div>
-  <div class="wg-clock-lang">Teacher</div>
-</div>
-
 <div class="widget" id="wg-streak">
   <div style="display:flex;align-items:baseline;gap:6px;">
     <div class="wg-streak-n">-</div>
@@ -2276,7 +2256,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=380"></script>
+<script src="scripts/desktop-app.js?v=381"></script>
 
 <script>
 
@@ -2296,8 +2276,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=380" defer></script>
-<script src="pwa-boot.js?v=380" defer></script>
+<script src="scripts/autogrow.js?v=381" defer></script>
+<script src="pwa-boot.js?v=381" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2517,10 +2497,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=380" defer></script>
-<script src="scripts/nav-boost.js?v=380" defer></script>
-<script src="scripts/mobile-perf.js?v=380" defer></script>
-<script src="scripts/mobile-nav.js?v=380" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=380" defer></script>
+<script src="pwa.js?v=381" defer></script>
+<script src="scripts/nav-boost.js?v=381" defer></script>
+<script src="scripts/mobile-perf.js?v=381" defer></script>
+<script src="scripts/mobile-nav.js?v=381" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=381" defer></script>
 </body>
 </html>

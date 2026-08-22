@@ -18,13 +18,7 @@ function updateClock() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2,'0');
   const m = now.getMinutes().toString().padStart(2,'0');
-  document.getElementById('wg-time').innerHTML = h + '<em>:</em>' + m;
   document.getElementById('mb-clock').textContent = h + ':' + m;
-  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('wg-date').textContent =
-    days[now.getDay()].toLowerCase() + ' · ' +
-    months[now.getMonth()].toLowerCase() + ' ' + now.getDate();
 }
 updateClock(); setInterval(updateClock, 30000);
 
@@ -547,6 +541,131 @@ const WM = (function () {
   }
 
   return { open, close, minimize, maximize, focus, attachHandles };
+})();
+
+/* ════════════════════════════════════════════════════════════════
+   Widget Manager - drag-to-reposition and hide/restore for the
+   right-column desktop widgets (streak, next class, boards).
+   Windows already had this (WM above); widgets never did.
+   ════════════════════════════════════════════════════════════════ */
+const WGM = (function () {
+  const STORE_KEY = 'teachedos_widgets_v1';
+  const DRAG_THRESHOLD = 4; // px before a mousedown counts as a drag, not a click
+  const state = (() => {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+    catch { return {}; }
+  })();
+  function persist() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+  }
+
+  function ensureRestoreChip() {
+    let chip = document.getElementById('wg-restore');
+    if (chip) return chip;
+    chip = document.createElement('div');
+    chip.id = 'wg-restore';
+    chip.innerHTML = '<span id="wg-restore-count">0</span> widgets hidden · restore';
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.widget[data-wg-hidden="1"]').forEach(w => showWidget(w));
+    });
+    document.body.appendChild(chip);
+    return chip;
+  }
+
+  function updateRestoreChip() {
+    const hidden = document.querySelectorAll('.widget[data-wg-hidden="1"]');
+    const chip = ensureRestoreChip();
+    chip.style.display = hidden.length ? 'flex' : 'none';
+    const n = document.getElementById('wg-restore-count');
+    if (n) n.textContent = hidden.length;
+  }
+
+  function hideWidget(w) {
+    w.dataset.wgHidden = '1';
+    w.style.display = 'none';
+    state[w.id] = state[w.id] || {};
+    state[w.id].hidden = true;
+    persist();
+    updateRestoreChip();
+  }
+
+  function showWidget(w) {
+    delete w.dataset.wgHidden;
+    w.style.display = '';
+    if (state[w.id]) state[w.id].hidden = false;
+    persist();
+    updateRestoreChip();
+  }
+
+  function applyPosition(w) {
+    const s = state[w.id];
+    if (!s || s.left == null) return;
+    w.style.left = s.left + 'px';
+    w.style.top = s.top + 'px';
+    w.style.right = 'auto';
+  }
+
+  function attach(w) {
+    if (w._wgmAttached) return;
+    w._wgmAttached = true;
+
+    const s = state[w.id];
+    if (s && s.hidden) { w.dataset.wgHidden = '1'; w.style.display = 'none'; }
+    applyPosition(w);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'widget-close';
+    closeBtn.type = 'button';
+    closeBtn.title = 'Hide widget';
+    closeBtn.setAttribute('aria-label', 'Hide widget');
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', e => { e.stopPropagation(); hideWidget(w); });
+    w.appendChild(closeBtn);
+
+    let drag = null;
+    w.addEventListener('mousedown', e => {
+      if (e.target === closeBtn || e.target.closest('button:not(.widget-close)')) return;
+      const r = w.getBoundingClientRect();
+      drag = { ox: e.clientX, oy: e.clientY, wx: r.left, wy: r.top, moved: false };
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!drag) return;
+      const dx = e.clientX - drag.ox, dy = e.clientY - drag.oy;
+      if (!drag.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+      drag.moved = true;
+      w.classList.add('wg-dragging');
+      const maxX = window.innerWidth - w.offsetWidth;
+      const maxY = window.innerHeight - w.offsetHeight;
+      const x = Math.max(0, Math.min(drag.wx + dx, maxX));
+      const y = Math.max(0, Math.min(drag.wy + dy, maxY));
+      w.style.left = x + 'px';
+      w.style.top = y + 'px';
+      w.style.right = 'auto';
+    });
+    document.addEventListener('mouseup', () => {
+      if (!drag) return;
+      if (drag.moved) {
+        w.classList.remove('wg-dragging');
+        state[w.id] = state[w.id] || {};
+        state[w.id].left = parseFloat(w.style.left);
+        state[w.id].top = parseFloat(w.style.top);
+        persist();
+      }
+      drag = null;
+    });
+  }
+
+  function init() {
+    document.querySelectorAll('.widget').forEach(attach);
+    updateRestoreChip();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  return { hideWidget, showWidget };
 })();
 
 function openApp(id) {
@@ -1453,26 +1572,6 @@ function applyUserToDesktop(user) {
   const avatarEls = document.querySelectorAll('.user-display-avatar');
   avatarEls.forEach(el => el.textContent = user.avatar || '🧑‍🏫');
   document.getElementById('desktop-admin-badge')?.remove();
-  // Plan tag + name used to be two separate pills, each carrying its own
-  // border/radius/background - two unrelated buttons that happened to sit
-  // next to each other. #mb-plan-badge and #mb-account-name now live inside
-  // one #mb-account-chip shell (single border, single hover state in CSS);
-  // this just colors the plan segment's text and divider tint per tier.
-  const planColors = { free:'#6b7280', pro:'#7c3aed', school:'#059669' };
-  const planBadge = document.getElementById('mb-plan-badge');
-  const plan = user.plan || 'free';
-  if (planBadge) {
-    planBadge.textContent = plan === 'free' ? 'Free' : plan === 'pro' ? '🚀 Pro' : '🏫 School';
-    planBadge.style.color = planColors[plan] || '#6b7280';
-  }
-  const chip = document.getElementById('mb-account-chip');
-  if (chip) {
-    chip.style.setProperty('--mb-plan-color', planColors[plan] || '#6b7280');
-    chip.title = 'Open subscription settings';
-    chip.style.display = 'flex';
-  }
-  const nameEl = document.getElementById('mb-account-name');
-  if (nameEl) nameEl.innerHTML = `<span>${user.avatar || '🧑‍🏫'}</span> ${user.name.split(' ')[0]}`;
   updateMobileTeacherOverview();
   // Load calls + billing data
 
@@ -2074,12 +2173,6 @@ setInterval(loadNotifications, 120000);
     // Students are handled by checkAuthAndRoute - skip widget wiring for them
     if (d.user.role === 'student') return;
     writeTeacherDashboardCache({ user: d.user });
-    const nameEl = document.getElementById('mb-account-name');
-    if (nameEl) nameEl.innerHTML = `<span>${d.user.avatar || '🧑‍🏫'}</span> ${d.user.name.split(' ')[0]}`;
-    const chip = document.getElementById('mb-account-chip');
-    if (chip) chip.style.display = 'flex';
-    const wgClockLang = document.querySelector('.wg-clock-lang');
-    if (wgClockLang) wgClockLang.innerHTML = `${d.user.avatar || '🧑‍🏫'} ${d.user.name.split(' ')[0]}`;
   }).catch(() => {
     if (cachedDash?.user) applyTeacherDashboardCache({ user: cachedDash.user }, { offlineNotice: true });
   });
