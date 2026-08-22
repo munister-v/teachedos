@@ -55,6 +55,8 @@
   --te-yellow:#FFE44D;
   --te-orange:#FF8E3A;
   --te-coral:#FF4E00;
+  --te-pink:#F0508A;
+  --te-pink-dark:#D93E76;
   --te-blue:#3F8FFF;
   --te-cyan:#4FC6E0;
   --te-violet:#8B42FD;
@@ -306,8 +308,8 @@ body.landing-page {
      снижен настолько, чтобы обе стороны прошли AA: 4.63:1 в обе стороны. */
   --lime-dark:#6C7C1D !important;
   --lime-text:var(--te-ink) !important;
-  --pink:var(--te-coral) !important;
-  --pink-soft:#FFE6D9 !important;
+  --pink:var(--te-pink) !important;
+  --pink-soft:#FCE3EE !important;
   --lavender:#EEE8FF !important;
   --peach:#FFE3C8 !important;
   --cyan:#DDF7FA !important;
@@ -318,14 +320,14 @@ body.landing-page nav.ln {
   border-bottom-color:rgba(32,32,44,.10) !important;
 }
 body.landing-page .btn-pink {
-  background:var(--te-coral) !important;
-  border-color:var(--te-coral) !important;
+  background:var(--te-pink) !important;
+  border-color:var(--te-pink) !important;
   color:#fff !important;
-  box-shadow:0 9px 22px rgba(255,78,0,.24) !important;
+  box-shadow:0 9px 22px rgba(240,80,138,.28) !important;
 }
 body.landing-page .btn-pink:hover {
-  background:#D94200 !important;
-  border-color:#D94200 !important;
+  background:var(--te-pink-dark) !important;
+  border-color:var(--te-pink-dark) !important;
 }
 body.landing-page .btn-lime {
   background:var(--te-lime) !important;
@@ -340,27 +342,27 @@ body.landing-page .btn-lime:hover {
 body.landing-page .hero-bg {
   background:
     radial-gradient(ellipse 60% 58% at 7% 88%,rgba(205,249,64,.40),transparent 64%),
-    radial-gradient(ellipse 56% 50% at 96% 72%,rgba(255,78,0,.26),transparent 66%),
+    radial-gradient(ellipse 56% 50% at 96% 72%,rgba(240,80,138,.22),transparent 66%),
     radial-gradient(ellipse 52% 44% at 52% -8%,rgba(139,66,253,.14),transparent 70%),
-    linear-gradient(160deg,#FFF 0%,var(--te-paper) 54%,#FFF1E9 100%) !important;
+    linear-gradient(160deg,#FFF 0%,var(--te-paper) 54%,#FFF0F5 100%) !important;
   background-image:
     radial-gradient(circle,rgba(32,32,44,.065) 1px,transparent 1px),
     radial-gradient(ellipse 60% 58% at 7% 88%,rgba(205,249,64,.40),transparent 64%),
-    radial-gradient(ellipse 56% 50% at 96% 72%,rgba(255,78,0,.26),transparent 66%),
+    radial-gradient(ellipse 56% 50% at 96% 72%,rgba(240,80,138,.22),transparent 66%),
     radial-gradient(ellipse 52% 44% at 52% -8%,rgba(139,66,253,.14),transparent 70%),
-    linear-gradient(160deg,#FFF 0%,var(--te-paper) 54%,#FFF1E9 100%) !important;
+    linear-gradient(160deg,#FFF 0%,var(--te-paper) 54%,#FFF0F5 100%) !important;
   background-size:28px 28px,100% 100%,100% 100%,100% 100%,100% 100% !important;
 }
 body.landing-page :where(.brand-wordmark em,.hero-h em,.sec-h em,.feat-h em,.stat-n em,.footer-brand em) {
-  color:var(--te-coral) !important;
+  color:var(--te-pink) !important;
 }
-body.landing-page .hero-badge .dot { background:var(--te-coral) !important; }
+body.landing-page .hero-badge .dot { background:var(--te-pink) !important; }
 body.landing-page .hero-trust .dot2 { background:var(--te-lime-dark) !important; }
 body.landing-page .preview-shell {
   border-color:rgba(32,32,44,.16) !important;
   box-shadow:0 22px 54px rgba(32,32,44,.12) !important;
 }
-body.landing-page .pv-card::before { background:linear-gradient(180deg,var(--te-coral),var(--te-lime)) !important; }
+body.landing-page .pv-card::before { background:linear-gradient(180deg,var(--te-pink),var(--te-lime)) !important; }
 body.landing-page .final {
   background:
     radial-gradient(ellipse 52% 62% at 16% 8%,rgba(205,249,64,.31),transparent 66%),

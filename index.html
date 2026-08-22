@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=383">
-<link rel="preload" as="style" href="styles/unify.css?v=383">
+<link rel="preload" as="style" href="styles/harmony.css?v=384">
+<link rel="preload" as="style" href="styles/unify.css?v=384">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=383">
+<link rel="manifest" href="manifest.json?v=384">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -63,8 +63,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=383">
-<link rel="stylesheet" href="styles/main.css?v=383">
+<link rel="stylesheet" href="styles/tokens.css?v=384">
+<link rel="stylesheet" href="styles/main.css?v=384">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1565,10 +1565,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=383" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=383">
-<link rel="stylesheet" href="styles/harmony.css?v=383">
-<link rel="stylesheet" href="styles/unify.css?v=383">
+<script src="theme.js?v=384" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=384">
+<link rel="stylesheet" href="styles/harmony.css?v=384">
+<link rel="stylesheet" href="styles/unify.css?v=384">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1576,7 +1576,7 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=383">
+<link rel="stylesheet" href="styles/teached-brand.css?v=384">
 </head>
 <body class="os-desktop">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1688,7 +1688,6 @@ html,body {
   <a class="mb-apple" href="index.html" title="Desktop" style="text-decoration:none;color:inherit;"><img src="logo-sm.png" alt="TeachEd"></a>
   <span class="mb-app-name" id="mb-app-name">TeachEd</span>
   <nav class="mb-menu">
-    <a class="mb-item" href="index.html">Home</a>
     <a class="mb-item" href="board.html">Board</a>
     <a class="mb-item" href="courses.html">Courses</a>
     <a class="mb-item" href="community.html">Community</a>
@@ -1765,7 +1764,6 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('plans')"></div>
       <div class="tl min"    onclick="minWin('plans')"></div>
-      <div class="tl max"    onclick="maxWin('plans')"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg>Lesson Plans</div>
   </div>
@@ -1911,7 +1909,6 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('students')"></div>
       <div class="tl min"    onclick="minWin('students')"></div>
-      <div class="tl max"    onclick="maxWin('students')"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Students</div>
   </div>
@@ -1943,7 +1940,6 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('schedule')"></div>
       <div class="tl min"    onclick="minWin('schedule')"></div>
-      <div class="tl max"    onclick="maxWin('schedule')"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Schedule</div>
   </div>
@@ -1982,7 +1978,6 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('notes')"></div>
       <div class="tl min"    onclick="minWin('notes')"></div>
-      <div class="tl max"    onclick="maxWin('notes')"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg>Notes</div>
   </div>
@@ -2032,7 +2027,6 @@ html,body {
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('tools')"></div>
       <div class="tl min"    onclick="minWin('tools')"></div>
-      <div class="tl max"    onclick="maxWin('tools')"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg>Teaching Tools</div>
   </div>
@@ -2076,7 +2070,6 @@ html,body {
     <div class="win-controls">
       <div class="tl close" onclick="closeWin('pricing')"></div>
       <div class="tl min" onclick="minWin('pricing')"></div>
-      <div class="tl max" onclick="maxWin('pricing')"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Pricing &amp; Plans</div>
   </div>
@@ -2256,7 +2249,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=383"></script>
+<script src="scripts/desktop-app.js?v=384"></script>
 
 <script>
 
@@ -2276,8 +2269,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=383" defer></script>
-<script src="pwa-boot.js?v=383" defer></script>
+<script src="scripts/autogrow.js?v=384" defer></script>
+<script src="pwa-boot.js?v=384" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2497,10 +2490,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=383" defer></script>
-<script src="scripts/nav-boost.js?v=383" defer></script>
-<script src="scripts/mobile-perf.js?v=383" defer></script>
-<script src="scripts/mobile-nav.js?v=383" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=383" defer></script>
+<script src="pwa.js?v=384" defer></script>
+<script src="scripts/nav-boost.js?v=384" defer></script>
+<script src="scripts/mobile-perf.js?v=384" defer></script>
+<script src="scripts/mobile-nav.js?v=384" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=384" defer></script>
 </body>
 </html>
