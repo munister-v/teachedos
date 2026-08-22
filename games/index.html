@@ -188,6 +188,7 @@ body {
 .card-tag.spelling { background: rgba(200,230,50,0.18); color: #5E6E1A; border-color: rgba(200,230,50,0.40); }
 .card-tag.speed    { background: rgba(245,158,11,0.10);  color: #D97706; border-color: rgba(245,158,11,0.22); }
 .card-tag.ai       { background: rgba(94,94,74,0.08);    color: #5E5E4A; border-color: rgba(94,94,74,0.18); }
+.card-tag.speaking { background: rgba(236,45,140,0.10);  color: #EC2D8C; border-color: rgba(236,45,140,0.22); }
 .card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 12px;}
 .card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(94,94,74,.08);color:var(--text-3);border:1px solid var(--border);}
 
@@ -240,8 +241,8 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=371">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=371">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=372">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=372">
 </head>
 <body>
 
@@ -269,6 +270,7 @@ body {
   <button class="filter-btn" onclick="filterCards('grammar', this)">Grammar</button>
   <button class="filter-btn" onclick="filterCards('spelling', this)">Spelling</button>
   <button class="filter-btn" onclick="filterCards('speed', this)">Speed</button>
+  <button class="filter-btn" onclick="filterCards('speaking', this)">Speaking</button>
   <button class="filter-btn" onclick="filterCards('ai', this)">AI-Powered</button>
 </div>
 
@@ -521,17 +523,100 @@ body {
       </div>
     </a>
 
+    <!-- These 8 existed as finished files in games/ but were never linked from
+         the hub grid - the only way to reach them was typing the URL by hand.
+         Same card markup/tag system as everything above, nothing new to learn. -->
+    <a class="card" href="flashcards.html" data-tag="vocab">
+      <span class="card-icon">🎴</span>
+      <div class="card-title">Flashcards</div>
+      <div class="card-desc">Classic flip-to-reveal deck - tap Got it to move on</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="fill-blank.html" data-tag="vocab">
+      <span class="card-icon">✏️</span>
+      <div class="card-title">Fill in the Blank</div>
+      <div class="card-desc">Type the missing word and press Enter</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="speed-quiz.html" data-tag="speed">
+      <span class="card-icon">⏩</span>
+      <div class="card-title">Speed Quiz</div>
+      <div class="card-desc">6 seconds per question - beat the clock, not just the quiz</div>
+      <div class="card-footer">
+        <span class="card-tag speed">Speed</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="spin-wheel.html" data-tag="vocab">
+      <span class="card-icon">🎡</span>
+      <div class="card-title">Spin the Wheel</div>
+      <div class="card-desc">Spin to pick a random word for warm-ups and cold-calling</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="word-image-match.html" data-tag="vocab">
+      <span class="card-icon">📷</span>
+      <div class="card-title">Word-Image Match</div>
+      <div class="card-desc">Match each word to the correct photo</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="word-search.html" data-tag="vocab">
+      <span class="card-icon">🔍</span>
+      <div class="card-title">Word Search</div>
+      <div class="card-desc">Find hidden vocabulary words in a letter grid</div>
+      <div class="card-footer">
+        <span class="card-tag vocab">Vocabulary</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="four-opinions-uk.html" data-tag="speaking">
+      <span class="card-icon">💬</span>
+      <div class="card-title">Four Opinions</div>
+      <div class="card-desc">Four discussion prompts on one topic to launch a speaking round</div>
+      <div class="card-footer">
+        <span class="card-tag speaking">Speaking</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="linguaquiz-ai-uk.html" data-tag="ai">
+      <span class="card-icon">📖</span>
+      <div class="card-title">LinguaQuiz: ABCD from a Text</div>
+      <div class="card-desc">Paste any text and AI builds a multiple-choice reading quiz from it</div>
+      <div class="card-footer">
+        <span class="card-tag ai">AI-Powered</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
   </div>
 </div>
 
 <footer class="page-footer">
-  <a href="../index.html">← Back to TeachedOS</a> &nbsp;·&nbsp; 24 games available
+  <a href="../index.html">← Back to TeachedOS</a> &nbsp;·&nbsp; <span id="footer-game-count">games available</span>
 </footer>
 
 <script>
 let activeGameTag = 'all';
-const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', ai:'Creator'};
-const tagPace = {vocab:'5-8 min', grammar:'4-7 min', spelling:'3-6 min', speed:'2-4 min', ai:'setup'};
+const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', speaking:'Speaking', ai:'Creator'};
+const tagPace = {vocab:'5-8 min', grammar:'4-7 min', spelling:'3-6 min', speed:'2-4 min', speaking:'8-12 min', ai:'setup'};
 
 function enhanceGameCards(){
   const cards = [...document.querySelectorAll('.card')];
@@ -552,6 +637,12 @@ function enhanceGameCards(){
     }, { once: true });
   });
   document.querySelector('.nav-count').textContent = cards.length + ' games';
+  // Was a hand-typed "24 games available" in the footer - drifted from the
+  // real count the moment a card was added or removed (as it had: this page
+  // shipped 30 game files but linked only 22 of them). Derived from the same
+  // cards.length the nav badge already uses, so the two can't disagree again.
+  const footerCount = document.getElementById('footer-game-count');
+  if (footerCount) footerCount.textContent = cards.length + ' games available';
   updateLastGame();
 }
 
@@ -613,6 +704,6 @@ function initGameFilters(){
 enhanceGameCards();
 initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=371"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=372"></script>
 </body>
 </html>
