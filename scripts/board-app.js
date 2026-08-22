@@ -12936,7 +12936,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '377';
+const TEACHEDOS_ASSET_VERSION = '378';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14665,12 +14665,32 @@ renderMinimap();
 window.__pendingCommunityImport = null;
 let _communityImportApplied = false;
 
+/* Снимок урока приезжает через sessionStorage, а в адресе остаётся только
+   метка. Раньше в адрес клали сам base64, и обычный урок из видео давал
+   ссылку под 16 КБ: nginx отвечал на такую 414 ещё до страницы, навигация
+   падала, а service worker показывал «You are offline» — при полностью живом
+   интернете. Копирование урока к себе не работало ни на одном уроке крупнее
+   игрушечного.
+
+   Адрес для этого и не нужен: обе страницы одного происхождения и переход
+   происходит в той же вкладке, так что sessionStorage доносит данные без
+   ограничений на длину. Старые ссылки с base64 в адресе продолжают работать —
+   их могли сохранить в закладки. */
+const COMMUNITY_IMPORT_KEY = 'teachedos_community_import';
+
 (function checkCommunityImport() {
   const params = new URLSearchParams(location.search);
   const raw = params.get('communityImport');
   if (!raw) return;
   let snapshot;
-  try { snapshot = JSON.parse(decodeURIComponent(escape(atob(raw)))); } catch { return; }
+  if (raw === 'session') {
+    try {
+      snapshot = JSON.parse(sessionStorage.getItem(COMMUNITY_IMPORT_KEY) || 'null');
+      sessionStorage.removeItem(COMMUNITY_IMPORT_KEY);
+    } catch { return; }
+  } else {
+    try { snapshot = JSON.parse(decodeURIComponent(escape(atob(raw)))); } catch { return; }
+  }
   if (!snapshot?.cards?.length) return;
 
   // Pre-process IDs now so the click handler is instant
