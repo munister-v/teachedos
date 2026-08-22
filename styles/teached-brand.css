@@ -429,36 +429,14 @@ body.os-desktop .widget {
   border-color:rgba(255,255,255,.92) !important;
   box-shadow:0 12px 30px rgba(32,32,44,.12),0 2px 8px rgba(32,32,44,.07),inset 0 1px 0 #fff !important;
 }
-body.os-desktop .wg-vocab-next {
-  background:linear-gradient(135deg,var(--te-lime),var(--te-lime-soft)) !important;
-  color:var(--te-ink) !important;
-  box-shadow:0 9px 20px rgba(205,249,64,.28) !important;
-}
-body.os-desktop .wg-vocab-next:hover { box-shadow:0 12px 26px rgba(205,249,64,.38) !important; }
-body.os-desktop .sb-item:hover { background:rgba(205,249,64,.15) !important; }
-body.os-desktop .sb-item.active { background:var(--te-ink) !important; color:var(--te-lime) !important; }
-body.os-desktop .studio-hero {
-  background:var(--te-ink) !important;
-  color:#fff !important;
-  border:0 !important;
-  border-radius:26px !important;
-  box-shadow:0 20px 60px rgba(32,32,44,.20) !important;
-  margin:18px 20px 14px !important;
-  padding:22px 24px !important;
-}
-body.os-desktop .studio-hero::after {
-  display:block !important;
-  background:radial-gradient(circle,rgba(205,249,64,.38),transparent 68%) !important;
-}
-body.os-desktop .studio-hero.pink::after { background:radial-gradient(circle,rgba(255,78,0,.38),transparent 68%) !important; }
-body.os-desktop .studio-eyebrow { color:var(--te-lime) !important; }
-body.os-desktop .studio-title { color:#fff !important; font-weight:800 !important; }
-body.os-desktop .studio-title em { color:var(--te-lime) !important; }
-body.os-desktop .studio-copy { color:rgba(255,255,255,.72) !important; }
-body.os-desktop .studio-chip { color:rgba(255,255,255,.84) !important; text-decoration:none !important; }
-body.os-desktop .studio-chip.primary { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; }
-body.os-desktop .studio-chip.hot { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; }
-body.os-desktop .notes-new-btn { background:var(--te-lime) !important; color:var(--te-ink) !important; }
+/* .wg-vocab-next left to index.html too - same lime override problem. */
+/* Same story as .studio-hero below: index.html paints the sidebar in sage,
+   this repainted it ink+lime from the last stylesheet in the chain. */
+/* The desktop hero is styled in index.html (calm graphite + sage). This file
+   used to repaint it in the old ink+lime brand, and because it loads last and
+   used !important it won that fight on every window - the reason the old
+   desktop kept coming back after the calm pass. Left to index.html now. */
+/* .notes-new-btn left to index.html too - same lime override problem. */
 body.os-desktop .note-item.active,
 body.os-desktop .note-item.active .note-item-title { background:#EEE8FF !important; color:var(--te-ink) !important; }
 
