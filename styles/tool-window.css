@@ -1,0 +1,627 @@
+/*
+  TeachEd tool pages: the desktop-window skin
+  ===========================================
+
+  lesson-builder / game-builder / homework were built as standalone marketing-ish
+  pages: cream+lime gradients, 34-72px display headlines, a black promo hero.
+  Next to index.html - where the same product speaks in calm cream windows with
+  46px title bars - they read as a different app.
+
+  This layer is loaded LAST on those three pages (after teached-brand.css) and
+  restates them in the window language of the desktop. Nothing here is page
+  specific: every rule keys off `body.tw-page` plus the classes those pages
+  already ship, so the HTML stays as it is.
+
+  Reference values were measured on the live desktop (index.html):
+    window      rgba(255,255,255,.94) - radius 18 - border rgba(23,23,25,.10)
+                shadow 0 24px 72px rgba(0,0,0,.12), 0 8px 24px rgba(0,0,0,.06)
+    title bar   46px - rgba(234,228,216,.98) - title 13/700 - inset white 1px
+    sidebar     rgba(228,222,210,.92) - items 13/600 - radius 10
+    menubar     44px - rgba(32,32,44,.84) - blurred, white text
+    accent      --te-violet #8B42FD, soft #EEE8FF
+
+  Specificity note: harmony.css paints every input through
+  `:is(input:not([type=…])x6, textarea, select, …)` with !important - that is
+  (0,6,1). The form rules below repeat that same :is() list behind
+  `body.tw-page`, which is the only way to reach (0,7,2) and win. Do not try to
+  simplify them to `.tw-page input`; that loses silently.
+
+  Everything here groups with :is(), never :where(): teached-brand.css guards
+  the old lime button skin with `body:not(.board-page) :where(…)` !important,
+  and a :where() group of my own would score below it and lose in silence.
+*/
+
+body.tw-page {
+  --tw-ink:#20202C;
+  --tw-ink-2:#50505C;
+  --tw-ink-3:#85858F;
+  --tw-line:rgba(23,23,25,.10);
+  --tw-line-2:rgba(32,32,44,.16);
+  --tw-accent:#8B42FD;
+  --tw-accent-soft:#EEE8FF;
+  --tw-win:rgba(255,255,255,.96);
+  --tw-bar:rgba(234,228,216,.98);
+  --tw-rail:rgba(228,222,210,.92);
+  --tw-radius:18px;
+  --tw-shadow:0 24px 72px rgba(0,0,0,.12), 0 8px 24px rgba(0,0,0,.06), 0 1px 0 rgba(255,255,255,.72) inset;
+  --tw-shadow-hover:0 28px 80px rgba(0,0,0,.15), 0 10px 28px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.8) inset;
+}
+
+/* ── Wallpaper ─────────────────────────────────────────────────────────────
+   The same three-stop cream the desktop stands on, with the two ambient
+   tints. The old lime/blue radials went with the old headline scale. */
+body.tw-page {
+  background:
+    radial-gradient(ellipse 70% 55% at 18% 14%, rgba(139,66,253,.07) 0%, transparent 62%),
+    radial-gradient(ellipse 58% 46% at 88% 76%, rgba(194,180,138,.16) 0%, transparent 60%),
+    linear-gradient(160deg, #FBF8F2 0%, #F6F2EA 48%, #EFEBE1 100%) !important;
+  color: var(--tw-ink) !important;
+}
+body.tw-page::before { content:none !important; }
+
+/* ── Menubar ───────────────────────────────────────────────────────────────
+   One dark strip across the top, exactly as on the desktop. It is the single
+   loudest "same product" signal these pages were missing. */
+body.tw-page .nav:not(#_),
+body.tw-page #nav:not(#_) {
+  height:44px !important;
+  min-height:44px !important;
+  padding:0 12px !important;
+  gap:2px !important;
+  background:rgba(32,32,44,.84) !important;
+  backdrop-filter:blur(24px) saturate(1.7) !important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.7) !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset !important;
+}
+body.tw-page :is(.nav,#nav) :is(.logo,.nav-logo):not(#_) {
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  color:#fff !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  letter-spacing:-.02em !important;
+}
+body.tw-page :is(.nav,#nav) :is(.logo,.nav-logo) img {
+  width:20px !important; height:20px !important; border-radius:6px !important;
+}
+body.tw-page :is(.nav,#nav) .nav-sep {
+  background:rgba(255,255,255,.16) !important;
+  height:16px !important;
+}
+body.tw-page :is(.nav,#nav) .nav-link:not(#_) {
+  height:28px !important;
+  padding:0 10px !important;
+  border-radius:8px !important;
+  font-size:12.5px !important;
+  font-weight:600 !important;
+  color:rgba(255,255,255,.72) !important;
+  background:transparent !important;
+}
+body.tw-page :is(.nav,#nav) .nav-link:not(#_):hover {
+  background:rgba(255,255,255,.10) !important;
+  color:#fff !important;
+}
+body.tw-page :is(.nav,#nav) .nav-link.active:not(#_) {
+  background:rgba(255,255,255,.16) !important;
+  color:#fff !important;
+}
+body.tw-page :is(.nav,#nav) :is(.nav-pill,.nav-user):not(#_) {
+  height:28px !important;
+  padding:0 10px !important;
+  border-radius:999px !important;
+  background:rgba(255,255,255,.12) !important;
+  border:0 !important;
+  color:rgba(255,255,255,.86) !important;
+  font-size:11.5px !important;
+  font-weight:600 !important;
+}
+body.tw-page :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
+  background:var(--tw-accent) !important;
+  color:#fff !important;
+}
+
+/* ── Page frame ────────────────────────────────────────────────────────── */
+body.tw-page :is(.wrap,#page) {
+  padding:22px 22px 64px !important;
+  max-width:1560px !important;
+  margin:0 auto !important;
+}
+
+/* ── Left rail = window sidebar ────────────────────────────────────────── */
+body.tw-page .side {
+  width:200px !important;
+  flex:0 0 200px !important;
+  top:44px !important;
+  align-self:stretch !important;
+  padding:14px 10px 28px !important;
+  margin:22px 0 0 22px !important;
+  border:1px solid var(--tw-line) !important;
+  border-radius:var(--tw-radius) !important;
+  background:var(--tw-rail) !important;
+  box-shadow:var(--tw-shadow) !important;
+}
+body.tw-page .side-title {
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  color:rgba(32,32,44,.42) !important;
+  margin:16px 8px 6px !important;
+}
+body.tw-page .side-title:first-child { margin-top:2px !important; }
+body.tw-page .side-btn {
+  min-height:32px !important;
+  padding:6px 10px !important;
+  border-radius:10px !important;
+  font-size:13px !important;
+  font-weight:600 !important;
+  color:var(--tw-ink-2) !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  gap:8px !important;
+}
+body.tw-page .side-btn:hover {
+  background:rgba(255,255,255,.72) !important;
+  color:var(--tw-ink) !important;
+}
+body.tw-page .side-btn.active,
+body.tw-page .side-btn.pane-tab.active {
+  background:#fff !important;
+  color:var(--tw-ink) !important;
+  box-shadow:0 1px 2px rgba(32,32,44,.10) !important;
+}
+body.tw-page .side-ic {
+  width:20px !important; height:20px !important;
+  border-radius:6px !important;
+  background:rgba(139,66,253,.10) !important;
+  color:var(--tw-accent) !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+}
+body.tw-page .side-btn.active .side-ic {
+  background:var(--tw-accent) !important;
+  color:#fff !important;
+}
+body.tw-page .side-library-link {
+  font-size:12px !important;
+  font-weight:600 !important;
+  color:var(--tw-ink-3) !important;
+  border-radius:10px !important;
+}
+body.tw-page .side-library-link:hover {
+  background:rgba(255,255,255,.72) !important;
+  color:var(--tw-ink) !important;
+}
+
+/* ── Header strip ──────────────────────────────────────────────────────────
+   The heroes sold the tool to a person already standing inside it: a 34-72px
+   headline, a paragraph of copy, and (on homework) a black promo panel with a
+   pull quote. What a window needs is its name and its actions, so that is all
+   that is left. */
+body.tw-page :is(.hero,.page-head,.homework-hero) {
+  border:0 !important;
+  background:none !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin:0 0 14px !important;
+  border-radius:0 !important;
+  overflow:visible !important;
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  flex-wrap:wrap !important;
+  min-height:0 !important;
+  color:var(--tw-ink) !important;
+}
+body.tw-page :is(.hero,.page-head)::after,
+body.tw-page :is(.hero,.page-head)::before { content:none !important; }
+body.tw-page .hero-in {
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  flex-wrap:wrap !important;
+  width:100% !important;
+}
+body.tw-page :is(.eyebrow,.page-eyebrow) {
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  color:rgba(32,32,44,.42) !important;
+  margin:0 0 5px !important;
+}
+body.tw-page :is(.hero h1,.page-title,.homework-hero h1) {
+  font-size:23px !important;
+  line-height:1.15 !important;
+  font-weight:700 !important;
+  letter-spacing:-.03em !important;
+  color:var(--tw-ink) !important;
+  max-width:none !important;
+}
+body.tw-page :is(.hero h1 em,.homework-hero h1 em) {
+  font-style:normal !important;
+  color:var(--tw-accent) !important;
+}
+body.tw-page :is(.hero p,.page-sub,.homework-hero p) {
+  margin:5px 0 0 !important;
+  font-size:13px !important;
+  line-height:1.5 !important;
+  font-weight:500 !important;
+  color:var(--tw-ink-2) !important;
+  max-width:640px !important;
+}
+/* The promo furniture has no job inside an application window. Homework goes
+   further: its `.page-head` already names the page, so the hero underneath was
+   the same title said a second time in marketing voice. */
+body.tw-page :is(.hero-side,.hero-score,.hero-chips) { display:none !important; }
+body.tw-page .homework-hero { display:none !important; }
+body.tw-page .actions { margin-top:12px !important; gap:8px !important; }
+
+/* ── Windows ───────────────────────────────────────────────────────────────
+   Every panel/card on these pages becomes a desktop window: same radius, same
+   border, same three-part shadow with the white inset highlight on top. */
+body.tw-page :is(.panel,.hw-focus,.hw-toolbar,.section,.topic-bar,.preset-bar,.tabs) {
+  border:1px solid var(--tw-line) !important;
+  border-radius:var(--tw-radius) !important;
+  background:var(--tw-win) !important;
+  box-shadow:var(--tw-shadow) !important;
+}
+body.tw-page .panel { overflow:hidden !important; }
+body.tw-page .panel:hover { box-shadow:var(--tw-shadow-hover) !important; }
+
+/* Title bar. 46px, cream, one hairline, the inset highlight that makes the
+   bar sit slightly proud of the body - the desktop's signature. */
+body.tw-page .panel-head {
+  min-height:46px !important;
+  padding:9px 16px !important;
+  gap:10px !important;
+  background:var(--tw-bar) !important;
+  border-bottom:1px solid rgba(94,94,74,.10) !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset !important;
+  border-radius:0 !important;
+}
+body.tw-page .panel-title {
+  font-size:13px !important;
+  font-weight:700 !important;
+  letter-spacing:-.01em !important;
+  color:var(--tw-ink) !important;
+}
+body.tw-page .panel-sub {
+  font-size:11px !important;
+  font-weight:500 !important;
+  line-height:1.35 !important;
+  color:var(--tw-ink-3) !important;
+  margin-top:1px !important;
+}
+body.tw-page .panel-body { padding:14px 16px !important; }
+
+/* `.section-head` on game-builder is a heading standing on the page, not a
+   window's title bar - giving it the cream bar left a lone strip above an
+   unrelated grid. It stays a heading, just at window scale. */
+body.tw-page .section-head {
+  margin:22px 0 10px !important;
+  background:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+body.tw-page .section-title {
+  font-size:15px !important;
+  font-weight:700 !important;
+  letter-spacing:-.02em !important;
+  color:var(--tw-ink) !important;
+}
+body.tw-page .section-sub {
+  font-size:12px !important;
+  font-weight:500 !important;
+  color:var(--tw-ink-2) !important;
+  margin-top:2px !important;
+}
+
+/* Section headings written inline inside a body (Smart templates, Activity
+   bank) are labels, not title bars - keep them quiet. */
+body.tw-page .panel-body>.panel-title {
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  color:rgba(32,32,44,.42) !important;
+  margin:18px 0 8px !important;
+}
+
+/* ── Inner cards ───────────────────────────────────────────────────────────
+   Inside a window, content sits flat: one hairline, small radius, no second
+   drop shadow. Stacked shadows were most of the "heavy" look. */
+body.tw-page :is(
+  .stat,.stage,.preset,.lib-item,.activity-btn,.quality-card,.doc-stage,
+  .lesson-doc,.hw-card,.hw-metric,.tpl-card,.type-card,.library-item,.warning
+) {
+  border:1px solid var(--tw-line) !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+body.tw-page :is(.stage,.preset,.lib-item,.activity-btn,.hw-card,.tpl-card,.type-card,.library-item):hover {
+  border-color:rgba(139,66,253,.32) !important;
+  background:#fff !important;
+  box-shadow:0 4px 14px rgba(32,32,44,.06) !important;
+  transform:none !important;
+}
+body.tw-page .warning {
+  border-color:rgba(255,142,58,.30) !important;
+  background:rgba(255,142,58,.08) !important;
+  color:#8A560F !important;
+}
+
+/* Numbers: the stat blocks were set at 22-26px display weight and competed
+   with the headline. In a window they are read alongside their label. */
+body.tw-page :is(.stat b,.hw-metric b,.stat-num,.hero-stat b,.quality-card b) {
+  font-size:19px !important;
+  font-weight:700 !important;
+  letter-spacing:-.03em !important;
+  color:var(--tw-ink) !important;
+}
+body.tw-page :is(.stat span,.hw-metric span,.quality-card span,.hero-stat span) {
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:9.5px !important;
+  font-weight:700 !important;
+  letter-spacing:.12em !important;
+  text-transform:uppercase !important;
+  color:rgba(32,32,44,.42) !important;
+}
+body.tw-page .stage-time {
+  border-radius:10px !important;
+  background:var(--tw-accent-soft) !important;
+  color:var(--tw-ink) !important;
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+}
+body.tw-page .stage-title { font-size:14px !important; letter-spacing:-.02em !important; }
+
+/* Specificity ballast: `:not(#_)` is not a filter - `#_` is an id nothing on
+   these pages carries, so the selector still matches exactly the same buttons.
+   It is there to outscore unify.css, which paints the default button through
+   `button.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):not(.btn-pink-soft):not(.btn-ink)`
+   - (0,7,1) with !important. Any plain `body.tw-page .btn…` rule scores below
+   that and loses without a warning; this is the whole reason the buttons on
+   these three pages kept coming back ink. */
+/* ── Buttons ───────────────────────────────────────────────────────────────
+   A window's action is a compact pill, not a 42px marketing CTA. Ink for the
+   primary move, white for everything beside it, violet only on hover - the
+   same three states the desktop uses. */
+body.tw-page :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn):not(#_) {
+  min-height:32px !important;
+  height:auto !important;
+  padding:6px 13px !important;
+  border-radius:999px !important;
+  font-size:12.5px !important;
+  font-weight:650 !important;
+  letter-spacing:0 !important;
+  box-shadow:none !important;
+  transition:background .14s, border-color .14s, color .14s !important;
+}
+body.tw-page :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.mini-btn):not(#_):hover {
+  transform:none !important;
+  box-shadow:none !important;
+}
+body.tw-page .btn.sm:not(#_) { min-height:28px !important; padding:4px 11px !important; font-size:12px !important; }
+
+/* Primary */
+body.tw-page :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn.blue):not(#_) {
+  background:var(--tw-ink) !important;
+  color:#fff !important;
+  border:1px solid var(--tw-ink) !important;
+  box-shadow:none !important;
+}
+body.tw-page :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn.blue):not(#_):hover {
+  background:var(--tw-accent) !important;
+  border-color:var(--tw-accent) !important;
+  color:#fff !important;
+  box-shadow:none !important;
+}
+/* Secondary */
+body.tw-page :is(
+  .btn.ghost,.btn.soft,.btn-ghost,.btn.btn-ghost,.tool-btn,.mdo-btn,.smart-pill,.mini-btn,.filter-btn
+):not(#_) {
+  background:#fff !important;
+  color:var(--tw-ink) !important;
+  border:1px solid var(--tw-line-2) !important;
+  box-shadow:none !important;
+}
+body.tw-page :is(
+  .btn.ghost:hover,.btn.soft:hover,.btn-ghost:hover,.btn.btn-ghost:hover,
+  .tool-btn:hover,.mdo-btn:hover,.smart-pill:hover,.mini-btn:hover,.filter-btn:hover
+):not(#_) {
+  background:var(--tw-accent-soft) !important;
+  border-color:rgba(139,66,253,.34) !important;
+  color:var(--tw-ink) !important;
+}
+/* Selected state inside a group of pills */
+body.tw-page :is(.filter-btn.active,.smart-pill.active,.tool-btn.active,.view-toggle .active):not(#_) {
+  background:var(--tw-ink) !important;
+  border-color:var(--tw-ink) !important;
+  color:#fff !important;
+}
+body.tw-page .btn.pink:not(#_),
+body.tw-page .btn-danger:not(#_) { background:#FF4E00 !important; border-color:#FF4E00 !important; color:#fff !important; }
+body.tw-page .icon-btn {
+  width:24px !important; height:24px !important;
+  border-radius:7px !important;
+  color:var(--tw-ink-3) !important;
+}
+body.tw-page .icon-btn:hover { background:rgba(32,32,44,.07) !important; color:var(--tw-ink) !important; }
+
+/* Pane switcher (narrow layouts) reads as a segmented control on the bar. */
+body.tw-page .pane-switcher {
+  top:44px !important;
+  padding:4px !important;
+  gap:4px !important;
+  border-radius:12px !important;
+  border:1px solid var(--tw-line) !important;
+  background:var(--tw-bar) !important;
+  box-shadow:var(--tw-shadow) !important;
+}
+body.tw-page .pane-tab {
+  min-height:32px !important;
+  border-radius:9px !important;
+  background:transparent !important;
+  border:0 !important;
+  color:var(--tw-ink-2) !important;
+}
+body.tw-page .pane-tab.active {
+  background:#fff !important;
+  color:var(--tw-ink) !important;
+  box-shadow:0 1px 2px rgba(32,32,44,.12) !important;
+}
+
+/* ── Fields ────────────────────────────────────────────────────────────────
+   harmony.css paints these with a lime-tinted gradient, a 1.5px border, a
+   17px radius and a pink+lime double focus ring. That treatment is the single
+   biggest reason the old pages looked unrelated to the desktop, and it is
+   guarded with !important at (0,6,1) - hence the repeated :is() list. */
+body.tw-page :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea, select, .form-input, .form-textarea, .form-select
+) {
+  min-height:38px !important;
+  padding:9px 12px !important;
+  border:1px solid var(--tw-line-2) !important;
+  border-radius:11px !important;
+  background:#fff !important;
+  color:var(--tw-ink) !important;
+  font-size:13.5px !important;
+  font-weight:550 !important;
+  line-height:1.45 !important;
+  box-shadow:none !important;
+}
+body.tw-page :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea, select, .form-input, .form-textarea, .form-select
+):hover {
+  border-color:rgba(32,32,44,.26) !important;
+  box-shadow:none !important;
+}
+body.tw-page :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea, select, .form-input, .form-textarea, .form-select
+):focus,
+body.tw-page :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  textarea, select, .form-input, .form-textarea, .form-select
+):focus-visible {
+  border-color:var(--tw-accent) !important;
+  background:#fff !important;
+  box-shadow:0 0 0 3px rgba(139,66,253,.16) !important;
+}
+body.tw-page textarea { min-height:74px !important; }
+body.tw-page :is(.label,.form-label,.field label) {
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:9.5px !important;
+  font-weight:700 !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  color:rgba(32,32,44,.44) !important;
+}
+body.tw-page .field { gap:6px !important; margin-bottom:11px !important; }
+
+/* ── Chips and pills ───────────────────────────────────────────────────── */
+body.tw-page :is(.chip,.pill,.hw-stat,.hw-kind) {
+  border-radius:999px !important;
+  background:rgba(32,32,44,.06) !important;
+  color:var(--tw-ink-2) !important;
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+  letter-spacing:.06em !important;
+  border:0 !important;
+}
+body.tw-page :is(.chip.ok,.pill.submitted,.pill.graded) {
+  background:var(--tw-accent-soft) !important;
+  color:#5B26AE !important;
+}
+
+/* ── Modals ────────────────────────────────────────────────────────────────
+   teached-brand.css already gives .modal-overlay the shared window language;
+   only the accent on the confirming action needs to follow this page. */
+body.tw-page .modal-overlay .modal-actions .btn-primary:not(#_) {
+  background:var(--tw-ink) !important;
+  border-color:var(--tw-ink) !important;
+  color:#fff !important;
+}
+body.tw-page .modal-overlay .modal-actions .btn-primary:not(#_):hover {
+  background:var(--tw-accent) !important;
+  border-color:var(--tw-accent) !important;
+}
+
+/* ── Homework: the black promo panel ───────────────────────────────────────
+   `.homework-hero` is reduced to a header strip above, so its inner grid must
+   stop reserving a second column for the score card that is now hidden. */
+body.tw-page .homework-hero-in {
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  width:100% !important;
+  padding:0 !important;
+  background:none !important;
+}
+body.tw-page .hw-dashboard { gap:10px !important; margin:0 0 12px !important; }
+body.tw-page .hw-metric { padding:11px 13px !important; }
+body.tw-page :is(.hw-focus,.hw-toolbar) { padding:11px 14px !important; margin:0 0 12px !important; }
+body.tw-page .hw-focus-kicker {
+  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
+  font-size:9.5px !important;
+  font-weight:700 !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  color:rgba(32,32,44,.42) !important;
+}
+body.tw-page .hw-focus-title { font-size:14px !important; font-weight:700 !important; color:var(--tw-ink) !important; }
+body.tw-page .hw-focus-detail { font-size:12px !important; color:var(--tw-ink-2) !important; }
+body.tw-page .hw-card { padding:13px !important; }
+body.tw-page .hw-card .hw-title { font-size:14px !important; }
+body.tw-page .hw-search {
+  border-radius:11px !important;
+  border:1px solid var(--tw-line-2) !important;
+  background:#fff !important;
+}
+
+/* ── Narrow screens ────────────────────────────────────────────────────── */
+@media (max-width:1180px) {
+  body.tw-page .side { display:none !important; }
+}
+@media (max-width:760px) {
+  body.tw-page :is(.nav,#nav) { height:44px !important; overflow:auto hidden !important; }
+  body.tw-page :is(.wrap,#page) { padding:14px 12px 48px !important; }
+  body.tw-page :is(.hero h1,.page-title) { font-size:20px !important; }
+  /* The links are hidden at this width by the pages' own media queries; the
+     divider that separated them from the logo would be left hanging. */
+  body.tw-page :is(.nav,#nav) .nav-sep { display:none !important; }
+  body.tw-page .panel { border-radius:14px !important; }
+}
+
+/* Printing a lesson should give paper, not a screenshot of a window. */
+@media print {
+  body.tw-page { background:#fff !important; }
+  body.tw-page :is(.panel,.lesson-doc) { border:0 !important; box-shadow:none !important; background:#fff !important; }
+}
+
+/* ── Homework: status stays readable ───────────────────────────────────────
+   The card rules above set `border` wholesale, which also flattened the
+   status tints homework.css puts on the edge of a card. They are the only
+   colour on that list, so they come back explicitly. */
+body.tw-page .hw-card.overdue { border-color:rgba(255,78,0,.34) !important; }
+body.tw-page .hw-card.submitted { border-color:rgba(35,191,114,.32) !important; }
+body.tw-page .hw-card.graded { border-color:rgba(139,66,253,.32) !important; }
+body.tw-page :is(.pill.overdue,.pill.in_progress) {
+  background:rgba(255,142,58,.16) !important;
+  color:#8A560F !important;
+}
