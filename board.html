@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=384">
+<link rel="manifest" href="manifest.json?v=385">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=384">
-<link rel="stylesheet" href="styles/auth.css?v=384">
-<link rel="stylesheet" href="styles/mobile.css?v=384">
-<link rel="stylesheet" href="styles/harmony.css?v=384">
-<link rel="stylesheet" href="styles/unify.css?v=384">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=384">
+<link rel="stylesheet" href="styles/board.css?v=385">
+<link rel="stylesheet" href="styles/auth.css?v=385">
+<link rel="stylesheet" href="styles/mobile.css?v=385">
+<link rel="stylesheet" href="styles/harmony.css?v=385">
+<link rel="stylesheet" href="styles/unify.css?v=385">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=385">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -274,7 +274,7 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=384">
+<link rel="stylesheet" href="styles/teached-brand.css?v=385">
 </head>
 <body class="board-page">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1329,6 +1329,7 @@ polite request</textarea>
        text cards have no header, so the header toggle cannot reach them. -->
   <div class="ctx-item" id="ctx-student-hide" style="display:none;">🙈 Hide from students</div>
   <div class="ctx-sep"  id="ctx-student-sep"  style="display:none;"></div>
+  <div class="ctx-item danger" id="ctx-delete-card" style="display:none;" title="Alt-click a frame to keep its contents">🗑 Delete</div>
   <div class="ctx-item" id="ctx-delete-arrow" style="display:none;">🗑 Delete Arrow</div>
   <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;">🔗 Toggle Prereq Arrow</div>
   <div class="ctx-item" id="ctx-label-arrow" style="display:none;">🏷 Label Arrow</div>
@@ -1993,12 +1994,12 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=384"></script>
-<script src="scripts/tt-text-core.js?v=384"></script>
-<script src="scripts/board-app.js?v=384"></script>
-<script src="js/board-vocab.js?v=384"></script>
-<script src="js/board-reveal.js?v=384"></script>
-<script src="js/teacher-tool-board-composer.js?v=384"></script>
+<script src="js/teacher-tools-data.js?v=385"></script>
+<script src="scripts/tt-text-core.js?v=385"></script>
+<script src="scripts/board-app.js?v=385"></script>
+<script src="js/board-vocab.js?v=385"></script>
+<script src="js/board-reveal.js?v=385"></script>
+<script src="js/teacher-tool-board-composer.js?v=385"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2006,8 +2007,8 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=384" defer></script>
-<script src="pwa-boot.js?v=384" defer></script>
+<script src="scripts/autogrow.js?v=385" defer></script>
+<script src="pwa-boot.js?v=385" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2089,11 +2090,11 @@ polite request</textarea>
     </section>
   </div>
 </div>
-<script src="pwa.js?v=384"></script>
-<script src="scripts/nav-boost.js?v=384" defer></script>
-<script src="scripts/mobile-perf.js?v=384" defer></script>
-<script src="scripts/mobile-nav.js?v=384"></script>
-<script src="scripts/mobile-zoom-guard.js?v=384" defer></script>
+<script src="pwa.js?v=385"></script>
+<script src="scripts/nav-boost.js?v=385" defer></script>
+<script src="scripts/mobile-perf.js?v=385" defer></script>
+<script src="scripts/mobile-nav.js?v=385"></script>
+<script src="scripts/mobile-zoom-guard.js?v=385" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

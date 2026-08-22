@@ -5358,13 +5358,29 @@ function deleteSelected() {
   }
   [...state.selectedArrows].forEach(id => removeArrowById(id, false));
   let deletedFrame = false;
-  [...state.selected].forEach(id => {
+  // Deleting a frame used to only remove its border and detach the children,
+  // leaving every worksheet/video/stage card it held scattered loose on the
+  // board - "delete" on a whole Lesson Pack never actually removed the
+  // lesson pack. A frame the user selects and deletes is asking to remove
+  // what's inside it too (Miro/Figma convention), so pull the children into
+  // the same deletion pass instead. Hold Alt while deleting to keep the old
+  // detach-only behaviour for a plain organizational frame.
+  const toDelete = new Set(state.selected);
+  if (!window.__ttKeepFrameContents) {
+    toDelete.forEach(id => {
+      const card = state.cards.find(c => c.id === id);
+      if (card?.type === 'frame' && Array.isArray(card.data?.childIds)) {
+        card.data.childIds.forEach(cid => toDelete.add(cid));
+      }
+    });
+  }
+  [...toDelete].forEach(id => {
     const card = state.cards.find(c => c.id === id);
     if (!card) return;
     if (card.type === 'frame') {
       deletedFrame = true;
-      // Detach children rather than delete them
-      if (card.data && Array.isArray(card.data.childIds)) {
+      if (window.__ttKeepFrameContents && card.data && Array.isArray(card.data.childIds)) {
+        // Detach children rather than delete them
         card.data.childIds.forEach(cid => {
           const ch = state.cards.find(c => c.id === cid);
           if (ch && ch.data) delete ch.data.parentFrame;
@@ -5430,7 +5446,7 @@ function ensureLayerPopover() {
     <button class="layer-btn" data-layer="lock" title="Lock movement">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>
     </button>
-    <button class="layer-btn danger" data-action="delete" title="Delete (Del)">
+    <button class="layer-btn danger" data-action="delete" title="Delete (Del) — Alt to keep a frame's contents">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M5 4V2h6v2M6 4v9h4V4M4 4l1 11h6l1-11"/></svg>
     </button>`;
   pop.addEventListener('mousedown', e => e.stopPropagation());
@@ -5457,7 +5473,9 @@ function ensureLayerPopover() {
         state.selected.add(cardId);
       }
       hideLayerPopover();
+      window.__ttKeepFrameContents = e.altKey;
       typeof deleteSelected === 'function' && deleteSelected();
+      window.__ttKeepFrameContents = false;
     } else if (btn.dataset.layer === 'lock') {
       toggleCardLocked(cardId);
     } else {
@@ -6689,7 +6707,11 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key === 'g' && !e.shiftKey) { e.preventDefault(); groupSelected(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'g' && e.shiftKey)  { e.preventDefault(); ungroupSelected(); return; }
 
-  if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    window.__ttKeepFrameContents = e.altKey;
+    deleteSelected();
+    window.__ttKeepFrameContents = false;
+  }
   // Miro-style: Enter → enter edit mode on selected card
   if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && state.selected.size === 1) {
     const [selId] = state.selected;
@@ -7969,6 +7991,18 @@ document.getElementById('ctx-delete-arrow').addEventListener('click', () => {
   document.getElementById('ctx-arrow-sep').style.display = 'none';
 });
 
+document.getElementById('ctx-delete-card').addEventListener('click', e => {
+  const cardId = document.getElementById('ctx-delete-card').dataset.cardId;
+  if (!cardId) return;
+  if (!state.selected.has(cardId)) {
+    state.selected.clear();
+    state.selected.add(cardId);
+  }
+  window.__ttKeepFrameContents = e.altKey;
+  deleteSelected();
+  window.__ttKeepFrameContents = false;
+});
+
 /* Arrow target - finish connection when clicking anchor on another card */
 document.addEventListener('mousedown', e => {
   if (!connectPending) return;
@@ -8003,6 +8037,18 @@ boardWrap.addEventListener('contextmenu', e => {
   const cardEl = e.target.closest('.board-card');
   // Hold-back item: only over a real card, only for whoever owns the board.
   if (typeof syncStudentHideCtxItem === 'function') syncStudentHideCtxItem(cardEl);
+  // Right-click has never had a generic "delete this" item - the only way to
+  // remove a card was to select it first, then press Del or open the layer
+  // popover. A frame in particular (a Lesson Pack's outer container) has no
+  // click target of its own to select without hitting a child card, so
+  // there was effectively no click-driven way to delete one at all.
+  const delItem = document.getElementById('ctx-delete-card');
+  if (cardEl) {
+    delItem.style.display = '';
+    delItem.dataset.cardId = cardEl.dataset.id;
+  } else {
+    delItem.style.display = 'none';
+  }
   const onImageCard = cardEl && state.cards.find(c => c.id === cardEl.dataset.id)?.type === 'image';
   const copyItem  = document.getElementById('ctx-copy-image');
   const pasteItem = document.getElementById('ctx-paste-image');
@@ -12948,7 +12994,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '384';
+const TEACHEDOS_ASSET_VERSION = '385';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
