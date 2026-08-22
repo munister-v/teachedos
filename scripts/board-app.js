@@ -882,12 +882,6 @@ function toggleCardPrivate(cardId) {
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
-/* Filter helper used during render: should this card be visible to me? */
-function _cardVisible(card) {
-  if (!card.data || !card.data.private) return true;
-  return card.data.private === _currentUserId();
-}
-
 function renderSticky(el, card) {
   el.style.backgroundColor = card.color || STICKY_COLORS[0];
   const body = document.createElement('div');
@@ -1647,6 +1641,7 @@ function _mtMoreDo(action) {
   else if (action === 'video')         toolbarOpenModal('video');
   else if (action === 'voting')        toolbarQuickAdd('voting');
   else if (action === 'games')         openGamesModal?.();
+  else if (action === 'lesson-collector') openLessonCollectorModal?.();
   else if (action === 'practice-all')  quickPracticeAllVocab?.();
   else if (action === 'clear-strokes') eraseDrawing?.();
 }
@@ -4637,6 +4632,7 @@ async function loadCardComments(cardId) {
     const r = await apiFetch(`/api/boards/${currentBoardId}/cards/${cardId}/comments`);
     if (!r.ok) { list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;">Failed to load</div>'; return; }
     const { comments } = await r.json();
+    setCardCommentCount(cardId, comments.length);
     if (!comments.length) {
       list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:8px;">No comments yet</div>';
       return;
@@ -8901,10 +8897,6 @@ function toolMaterialText(tool) {
 
 let activeTeacherToolBuilder = null;
 let lastTeacherToolBuilderOutput = null;
-
-function addTeacherToolToBoard(toolId) {
-  openTeacherToolBuilder(toolId);
-}
 
 /* ── field configs per tool ──────────────────────────────────────── */
 const TT_NEEDS_SOURCE_SET = new Set([
@@ -15223,11 +15215,6 @@ function boardHasFeature(flag) {
   return !!BOARD_PACKAGE_FLAGS[currentPlanKey()]?.[flag];
 }
 
-function boardUpgradeMessage(flag) {
-  if (flag === 'exports') return 'Board exports are available on Teacher Pro or School.';
-  return 'This feature is not available on your current package.';
-}
-
 /* ── Upgrade / paywall modal ── */
 const UPGRADE_COPY = {
   exports: { emoji:'📤', badge:'🔒 Pro export', title:'Export your board', sub:"Free boards can't be exported. Upgrade to download PDF, PNG, CSV & JSON." },
@@ -19580,20 +19567,6 @@ function selectStickerForPlacement(glyph) {
   closeStickerModal();
   enterPlaceMode('sticker', { glyph });
   toast('Click the board to place ' + glyph);
-}
-function addStickerCard(glyph, opts = {}) {
-  if (!opts.instant) {
-    selectStickerForPlacement(glyph);
-    return null;
-  }
-  const point = opts.point || getBoardViewportCenter?.() || { x: 200, y: 200 };
-  const card = addCard('sticker', point.x - 48, point.y - 48, { glyph });
-  rememberSticker(glyph);
-  buildStickerTabs();
-  if (card?.id) { clearSelection(); selectCard(card.id); }
-  if (opts.close) closeStickerModal();
-  scheduleSave && scheduleSave(); saveLocal && saveLocal();
-  return card;
 }
 
 // Drop handler for stickers
