@@ -16137,27 +16137,47 @@ async function spLoadMembers() {
       list.innerHTML = '<div class="sp-empty">No students yet. Invite them above.</div>';
       return;
     }
+    /* Идентификатор уходит в data-атрибут, а не внутрь onclick.
+       users.id - это UUID, и `onclick="spRemoveMember(550e8400-e29b-...)"`
+       для браузера не вызов функции, а синтаксическая ошибка: дефисы
+       читаются как вычитание. Кнопка «убрать ученика» молча не работала -
+       клик не делал ничего, и доступ у человека оставался. Через data- и
+       делегирование подставлять данные в исполняемый код вообще не нужно. */
     list.innerHTML = members.map(m => `
       <div class="sp-member-row">
-        <div class="sp-member-avatar">${m.avatar || '🎓'}</div>
+        <div class="sp-member-avatar">${esc(m.avatar || '🎓')}</div>
         <div class="sp-member-info">
           <div class="sp-member-name">${esc(m.name)}</div>
           <div class="sp-member-email">${esc(m.email)}</div>
         </div>
-        <button class="sp-member-remove" title="Remove" onclick="spRemoveMember(${m.user_id})">✕</button>
+        <button class="sp-member-remove" type="button" title="Remove"
+          data-remove-member="${esc(m.user_id)}" data-member-name="${esc(m.name)}">✕</button>
       </div>`).join('');
   } catch {
     list.innerHTML = '<div class="sp-empty">Failed to load</div>';
   }
 }
 
-async function spRemoveMember(userId) {
-  if (!confirm('Remove this student from the board?')) return;
+/* Слушатель на документе, а не на #sp-members-list: этот скрипт подключён
+   выше самой панели в board.html, так что на момент разбора файла её узла
+   ещё нет и повесить обработчик было бы не на что. */
+document.addEventListener('click', event => {
+  const button = event.target.closest?.('[data-remove-member]');
+  if (!button) return;
+  spRemoveMember(button.getAttribute('data-remove-member'), button.getAttribute('data-member-name'));
+});
+
+async function spRemoveMember(userId, name) {
+  if (!userId) return;
+  if (!confirm(`Remove ${name || 'this student'} from the board?`)) return;
   try {
-    await apiFetch(`/api/members/${currentBoardId}/${userId}`, { method: 'DELETE' });
+    const response = await apiFetch(`/api/members/${currentBoardId}/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+    // Раньше ответ не проверялся: отказ сервера всё равно показывал
+    // «Student removed», а ученик оставался на доске.
+    if (!response.ok) throw new Error('remove failed');
     await spLoadMembers();
     toast('Student removed');
-  } catch { toast('Failed to remove'); }
+  } catch { toast('Could not remove — the student still has access'); }
 }
 
 // Close panel when clicking outside
