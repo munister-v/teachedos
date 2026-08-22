@@ -189,6 +189,7 @@ body {
 .card-tag.speed    { background: rgba(245,158,11,0.10);  color: #D97706; border-color: rgba(245,158,11,0.22); }
 .card-tag.ai       { background: rgba(94,94,74,0.08);    color: #5E5E4A; border-color: rgba(94,94,74,0.18); }
 .card-tag.speaking { background: rgba(236,45,140,0.10);  color: #EC2D8C; border-color: rgba(236,45,140,0.22); }
+.card-tag.create   { background: rgba(59,130,246,0.10);  color: #2563EB; border-color: rgba(59,130,246,0.22); }
 .card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 12px;}
 .card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(94,94,74,.08);color:var(--text-3);border:1px solid var(--border);}
 
@@ -241,8 +242,8 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=372">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=372">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=373">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=373">
 </head>
 <body>
 
@@ -272,6 +273,7 @@ body {
   <button class="filter-btn" onclick="filterCards('speed', this)">Speed</button>
   <button class="filter-btn" onclick="filterCards('speaking', this)">Speaking</button>
   <button class="filter-btn" onclick="filterCards('ai', this)">AI-Powered</button>
+  <button class="filter-btn" onclick="filterCards('create', this)">Create &amp; Share</button>
 </div>
 
 <div class="game-search-wrap">
@@ -289,6 +291,32 @@ body {
       <div class="card-desc">Type your own words or generate them with AI, then play them in any vocab game</div>
       <div class="card-footer">
         <span class="card-tag ai">AI-Powered</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <!-- This hub only ever listed the fixed built-in games - no path out to
+         either the full custom game builder or to games other teachers have
+         published, even though both already exist and work. Two cards, not
+         a rebuild: linking out is enough, no need to re-fetch and render the
+         same community data a second time on a page that otherwise makes no
+         API calls at all. -->
+    <a class="card" href="../game-builder.html" data-tag="create">
+      <span class="card-icon">🛠️</span>
+      <div class="card-title">Build Your Own Game</div>
+      <div class="card-desc">Design a brand-new game type from scratch in the full Game Builder</div>
+      <div class="card-footer">
+        <span class="card-tag create">Create &amp; Share</span>
+        <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
+      </div>
+    </a>
+
+    <a class="card" href="../community.html?tab=games" data-tag="create">
+      <span class="card-icon">🌍</span>
+      <div class="card-title">Community Games</div>
+      <div class="card-desc">Browse and add games other teachers built and published</div>
+      <div class="card-footer">
+        <span class="card-tag create">Create &amp; Share</span>
         <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
       </div>
     </a>
@@ -615,8 +643,8 @@ body {
 
 <script>
 let activeGameTag = 'all';
-const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', speaking:'Speaking', ai:'Creator'};
-const tagPace = {vocab:'5-8 min', grammar:'4-7 min', spelling:'3-6 min', speed:'2-4 min', speaking:'8-12 min', ai:'setup'};
+const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', speaking:'Speaking', ai:'Creator', create:'Create & Share'};
+const tagPace = {vocab:'5-8 min', grammar:'4-7 min', spelling:'3-6 min', speed:'2-4 min', speaking:'8-12 min', ai:'setup', create:'setup'};
 
 function enhanceGameCards(){
   const cards = [...document.querySelectorAll('.card')];
@@ -704,6 +732,6 @@ function initGameFilters(){
 enhanceGameCards();
 initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=372"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=373"></script>
 </body>
 </html>
