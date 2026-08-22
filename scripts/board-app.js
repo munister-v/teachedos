@@ -1353,6 +1353,18 @@ function renderVideo(el, card) {
     iframe.allowFullscreen = true;
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
     body.appendChild(iframe);
+    // Trackpad pinch (and ctrl/cmd+wheel) over the iframe never reaches our
+    // document - it's a different origin's page, so the browser does a real
+    // native zoom of the whole tab that our board-zoom handlers can neither
+    // catch nor undo (layout looks "broken" after and never recovers).
+    // A transparent guard on top intercepts wheel/gesture there instead;
+    // a click drops it so the video's own controls still work, and leaving
+    // the card re-arms it for the next scroll-past.
+    const guard = document.createElement('div');
+    guard.className = 'video-scroll-guard';
+    guard.addEventListener('click', () => { guard.classList.add('is-open'); }, { once: false });
+    body.addEventListener('mouseleave', () => guard.classList.remove('is-open'));
+    body.appendChild(guard);
   } else {
     body.innerHTML = `<div class="video-placeholder">
       <div class="video-placeholder-icon">🎬</div>
@@ -12936,7 +12948,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '379';
+const TEACHEDOS_ASSET_VERSION = '380';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
