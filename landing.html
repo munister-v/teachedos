@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=387">
+<link rel="manifest" href="manifest.json?v=388">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -1799,7 +1799,7 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=387">
+<link rel="stylesheet" href="styles/teached-brand.css?v=388">
 </head>
 <body class="landing-page">
 
@@ -2677,7 +2677,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=387">
+<link rel="stylesheet" href="styles/auth.css?v=388">
 <style>
 /* Landing-page auth: map old lp-* classes → auth.css tokens */
 #lp-auth { position:fixed;inset:0;z-index:9999;display:flex;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .24s cubic-bezier(.22,.61,.36,1),visibility 0s linear .24s; }
@@ -2892,6 +2892,35 @@ window.toggleFaq = function(trigger){
   };
 
   function renderFields(){
+    // Toggling Sign in <-> Register adds/removes the role picker and the
+    // name field with nothing in between, so the card used to just snap to
+    // a different height on every toggle. Measure before/after and glide
+    // between them instead - skipped on first open (modal starts invisible,
+    // nothing to see jump yet).
+    const card = $('lp-auth').querySelector('.auth-card');
+    const wasOpen = $('lp-auth').classList.contains('open');
+    const fromHeight = wasOpen ? card.getBoundingClientRect().height : null;
+    _renderFieldsInner();
+    if (wasOpen && fromHeight != null) {
+      const toHeight = card.getBoundingClientRect().height;
+      if (Math.abs(toHeight - fromHeight) > 1) {
+        card.style.height = fromHeight + 'px';
+        card.style.overflow = 'hidden';
+        card.offsetHeight;
+        card.style.transition = 'height .26s cubic-bezier(.22,.61,.36,1)';
+        card.style.height = toHeight + 'px';
+        const done = () => {
+          card.style.transition = '';
+          card.style.height = '';
+          card.style.overflow = '';
+          card.removeEventListener('transitionend', done);
+        };
+        card.addEventListener('transitionend', done);
+      }
+    }
+  }
+
+  function _renderFieldsInner(){
     const isLogin = mode === 'login';
     $('lp-auth-sub').textContent = isLogin ? 'Sign in to your workspace' : 'Create your account';
     const btn = $('lp-auth-submit');
