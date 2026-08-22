@@ -8206,33 +8206,6 @@ document.getElementById('ctx-text').addEventListener('click', () =>
   addCard('text', ctxPos.x-100, ctxPos.y-45, defaultTextData({ text:'Text' })));
 document.getElementById('ctx-shape').addEventListener('click', () =>
   addCard('shape', ctxPos.x-100, ctxPos.y-80, { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 }));
-document.getElementById('ctx-mindmap').addEventListener('click', () => {
-  const cols = ['#4262FF','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA'];
-  addCard('mindmap', ctxPos.x-90, ctxPos.y-32, { text:'Topic', color:cols[Math.floor(Math.random()*cols.length)] });
-});
-document.getElementById('ctx-table').addEventListener('click', () =>
-  addCard('table', ctxPos.x-160, ctxPos.y-100, { title:'Table', rows:[['Header 1','Header 2','Header 3'],['','',''],['','','']] }));
-document.getElementById('ctx-plan').addEventListener('click', () =>
-  addCard('plan', ctxPos.x-140, ctxPos.y-100, { title:'New Plan', level:'A2', type:'Grammar', dur:'60 min', status:'draft', desc:'Add description…' }));
-
-document.getElementById('ctx-lesson').addEventListener('click', () => {
-  const card = addCard('lesson', ctxPos.x-130, ctxPos.y-105, { title:'New Lesson', status:'available', level:'B1', skill:'Grammar', duration:'45 min', desc:'', objectives:[], attachments:[], notes:'' });
-  setTimeout(() => openCardEditor(card.id), 80);
-});
-document.getElementById('ctx-assignment').addEventListener('click', () => {
-  const card = addCard('assignment', ctxPos.x-120, ctxPos.y-100, { title:'New Assignment', type:'Quiz', maxScore:100, deadline:'', desc:'', submitted:0, total:0 });
-  setTimeout(() => openCardEditor(card.id), 80);
-});
-document.getElementById('ctx-milestone').addEventListener('click', () =>
-  addCard('milestone', ctxPos.x-105, ctxPos.y-110, { title:'Milestone', desc:'' }));
-
-document.getElementById('ctx-vocab').addEventListener('click', () =>
-  quickAddCard('vocab', ctxPos.x, ctxPos.y));
-document.getElementById('ctx-checklist').addEventListener('click', () =>
-  quickAddCard('checklist', ctxPos.x, ctxPos.y));
-document.getElementById('ctx-timer').addEventListener('click', () =>
-  quickAddCard('timer', ctxPos.x, ctxPos.y));
-
 document.getElementById('ctx-video').addEventListener('click', () => {
   ctxMenu.style.display = 'none';
   pendingVideoPos = ctxPos;
@@ -12994,7 +12967,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '385';
+const TEACHEDOS_ASSET_VERSION = '386';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
