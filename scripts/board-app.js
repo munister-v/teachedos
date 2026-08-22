@@ -12967,7 +12967,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '386';
+const TEACHEDOS_ASSET_VERSION = '387';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15303,8 +15303,8 @@ function openAuthModal(mode = 'login') {
   const ov = document.getElementById('auth-overlay');
   // Remember what to hand focus back to, so dismissing the dialog does not
   // dump the caret at the top of the document.
-  if (ov.style.display === 'none' || !ov.style.display) _authReturnFocus = document.activeElement;
-  ov.style.display = 'flex';
+  if (!ov.classList.contains('open')) _authReturnFocus = document.activeElement;
+  ov.classList.add('open');
   document.addEventListener('keydown', _authKeydown, true);
   setTimeout(() => document.querySelector('.auth-inp')?.focus(), 50);
   document.getElementById('auth-err').style.display = 'none';
@@ -15323,7 +15323,7 @@ function openAuthModal(mode = 'login') {
   }
 }
 function closeAuthModal() {
-  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('auth-overlay').classList.remove('open');
   document.removeEventListener('keydown', _authKeydown, true);
   try { _authReturnFocus?.focus?.(); } catch {}
   _authReturnFocus = null;
@@ -15447,6 +15447,40 @@ function _authPasswordHint(value) {
 }
 
 function renderAuthFields() {
+  // Switching Sign in <-> Register swaps the Google button block and the
+  // role picker in opposite directions with nothing in between, so the card
+  // used to just snap to a very different height - the "jitter" this is
+  // fixing. Measure before/after and let the card glide between them
+  // instead of jumping. Skipped on first open (modal starts invisible, so
+  // there's nothing to see jump) and while the tab is hidden (no layout to
+  // measure).
+  const card = document.getElementById('auth-modal');
+  const wasOpen = card && document.getElementById('auth-overlay')?.classList.contains('open');
+  const fromHeight = wasOpen ? card.getBoundingClientRect().height : null;
+  _renderAuthFieldsInner();
+  if (wasOpen && fromHeight != null) {
+    const toHeight = card.getBoundingClientRect().height;
+    if (Math.abs(toHeight - fromHeight) > 1) {
+      card.style.height = fromHeight + 'px';
+      card.style.overflow = 'hidden';
+      // Force layout so the browser registers the start height before the
+      // transition target is applied - otherwise both writes coalesce and
+      // there's nothing to animate from.
+      card.offsetHeight;
+      card.style.transition = 'height .26s cubic-bezier(.22,.61,.36,1)';
+      card.style.height = toHeight + 'px';
+      const done = () => {
+        card.style.transition = '';
+        card.style.height = '';
+        card.style.overflow = '';
+        card.removeEventListener('transitionend', done);
+      };
+      card.addEventListener('transitionend', done);
+    }
+  }
+}
+
+function _renderAuthFieldsInner() {
   const isLogin = authMode === 'login';
   const isForgot = authMode === 'forgot';
   document.getElementById('auth-subtitle').textContent = isForgot ? 'Reset your password' : (isLogin ? 'Welcome back' : 'Create your account');

@@ -4177,6 +4177,16 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Shared auth surface used by the landing page and the board. Keep the board
    modal on the same visual system instead of maintaining a second inline UI. */
 .board-auth-overlay{z-index:3000!important;}
+/* The landing page's own copy of this modal fades and scales in on open
+   (#lp-auth.open); this one just snapped to display:flex with nothing in
+   between. Matching that entrance here instead of leaving it a hard cut. */
+.board-auth-overlay{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility 0s linear .22s;}
+.board-auth-overlay.open{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;}
+.board-auth-card{opacity:0;transform:translateY(14px) scale(.975);transition:opacity .24s cubic-bezier(.22,.61,.36,1),transform .3s cubic-bezier(.22,.61,.36,1);}
+.board-auth-overlay.open .board-auth-card{opacity:1;transform:none;}
+@media (prefers-reduced-motion:reduce){
+  .board-auth-overlay,.board-auth-card{transition:none!important;}
+}
 .board-auth-card{width:min(420px,calc(100vw - 32px));}
 .board-auth-card #auth-role-row{display:none;}
 .board-auth-card .auth-head{margin-bottom:24px;}
