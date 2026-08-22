@@ -32,7 +32,7 @@
   @media(max-width:820px){.lesson-nav{height:58px;padding:0 14px;gap:9px}.lesson-brand span{display:none}.lesson-nav-sep{display:none}.lesson-back{min-height:44px;padding:0 7px}.lesson-link-action{min-height:42px;padding:0 10px}.lesson-shell{padding:16px 14px 36px}.lesson-breadcrumb{margin-bottom:11px}.lesson-hero{grid-template-columns:1fr;gap:18px;padding:22px 20px;border-radius:22px}.lesson-title{font-size:clamp(32px,9vw,42px);line-height:1}.lesson-description{font-size:15px;line-height:1.5}.lesson-summary{grid-template-columns:1fr auto;align-items:center;padding:13px 14px}.lesson-summary-note{display:none}.lesson-layout{grid-template-columns:1fr;gap:14px;margin-top:14px}.lesson-board-panel,.lesson-details{border-radius:21px}.board-panel-head{padding:15px}.board-panel-state{font-size:9px}.lesson-stage{min-height:0;padding:10px;border-radius:0 0 21px 21px}.board-panel-note{padding:11px 14px}.lesson-details{padding:18px}.detail-row{grid-template-columns:82px minmax(0,1fr)}.copy-board{min-height:50px;font-size:14px}.detail-link{min-height:46px}.lesson-frame-card{padding:9px}.lesson-frame-card-text{font-size:13px}.lesson-frame-card-type{font-size:8px}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=376">
+<link rel="stylesheet" href="styles/teached-brand.css?v=377">
 </head>
 <body>
 <header class="lesson-nav">
@@ -86,6 +86,8 @@
           <div class="detail-row"><dt>Level</dt><dd id="detail-level"></dd></div>
           <div class="detail-row"><dt>Focus</dt><dd id="detail-skill"></dd></div>
           <div class="detail-row"><dt>Duration</dt><dd id="detail-duration"></dd></div>
+          <div class="detail-row" id="detail-row-language" hidden><dt>Language</dt><dd id="detail-language"></dd></div>
+          <div class="detail-row" id="detail-row-audience" hidden><dt>Learners</dt><dd id="detail-audience"></dd></div>
           <div class="detail-row"><dt>Contents</dt><dd id="detail-contents"></dd></div>
         </dl>
         <div class="lesson-tags" id="lesson-tags" aria-label="Lesson tags"></div>
@@ -98,7 +100,7 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=376"></script>
+<script src="scripts/app-core.js?v=377"></script>
 <script>
   const FALLBACK_COLORS = ['#fef3c7','#d1fae5','#dbeafe','#fce7f3','#ede9fe','#ffe4d2'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -260,11 +262,37 @@
     setText('detail-level', level);
     setText('detail-skill', skill);
     setText('detail-duration', duration);
+    // Показываем строку, только если автор её заполнил: пустое «Language: —»
+    // ничего не сообщает и занимает место в и без того плотном списке.
+    const optionalRow = (rowId, valueId, value) => {
+      const row = document.getElementById(rowId);
+      if (!row) return;
+      if (value) { setText(valueId, value); row.hidden = false; } else { row.hidden = true; }
+    };
+    optionalRow('detail-row-language', 'detail-language', data.language);
+    optionalRow('detail-row-audience', 'detail-audience', data.audience);
     setText('detail-contents', `${cardCount} activity card${cardCount === 1 ? '' : 's'}`);
+    applyCopyPermission(data);
     renderTags(data.tags);
     renderCanvas(snapshot);
     document.getElementById('lesson-loading').hidden = true;
     document.getElementById('lesson-content').hidden = false;
+  }
+
+  /* Автор мог опубликовать урок «только посмотреть». Кнопку тогда убираем, а не
+     прячем снимок: сам снимок всё равно уезжает клиенту, и притворяться, что он
+     защищён, было бы враньём. Это просьба автора, которую интерфейс уважает, —
+     не замок. Уроки, опубликованные до появления флага, копируются как раньше:
+     undefined читается как «можно». */
+  function applyCopyPermission(data) {
+    const allowed = data?.allowCopy !== false;
+    const button = document.getElementById('copy-board-btn');
+    const explainer = document.getElementById('copy-explainer');
+    if (!button) return;
+    button.hidden = !allowed;
+    if (!allowed && explainer) {
+      explainer.textContent = 'The author shared this lesson to read, not to copy. You can still open it here and take ideas from it.';
+    }
   }
 
   function copyToMyBoard() {
@@ -308,6 +336,11 @@
       level: assignment.level,
       skill: assignment.skill,
       duration: data.duration,
+      language: data.language || '',
+      audience: data.audience || '',
+      // Отсутствие флага — это «можно»: уроки, опубликованные до его появления,
+      // не должны внезапно перестать копироваться.
+      allowCopy: data.allowCopy !== false,
       tags: assignment.tags || [],
       author: assignment.author_name || 'Teacher',
       createdAt: assignment.published_at,

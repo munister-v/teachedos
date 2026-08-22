@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=376">
+<link rel="manifest" href="manifest.json?v=377">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -66,10 +66,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.side{display:none}.shell{display:block}.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=376" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=376">
-<link rel="stylesheet" href="styles/harmony.css?v=376">
-<link rel="stylesheet" href="styles/unify.css?v=376">
+<script src="theme.js?v=377" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=377">
+<link rel="stylesheet" href="styles/harmony.css?v=377">
+<link rel="stylesheet" href="styles/unify.css?v=377">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -120,6 +120,30 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .publisher-scope-copy small{color:#71668d;font-size:10px;line-height:1.35;}
   body .publisher-scope-clear{min-height:30px;padding:0 9px;border:1px solid rgba(139,66,253,.2);border-radius:9px;background:#fff;color:#5730a7;font:750 10px var(--font);cursor:pointer;}
   body .publisher-scope-clear:hover{background:#f8f3ff;border-color:rgba(139,66,253,.4);}
+  body .publisher-toggles{display:grid;gap:7px;margin:2px 0 12px;}
+  body .publisher-toggle{display:grid;grid-template-columns:16px minmax(0,1fr);gap:9px;align-items:start;padding:9px 10px;border:1px solid rgba(28,28,30,.11);border-radius:12px;background:#fcfcfa;cursor:pointer;}
+  body .publisher-toggle:hover{border-color:rgba(28,28,30,.2);}
+  body .publisher-toggle input{margin:1px 0 0;width:16px;height:16px;accent-color:#8B42FD;cursor:pointer;}
+  body .publisher-toggle span{display:grid;gap:2px;min-width:0;}
+  body .publisher-toggle strong{color:#25251f;font-size:11.5px;line-height:1.25;}
+  body .publisher-toggle small{color:#77776a;font-size:10px;line-height:1.4;}
+  /* Тот же приём, что и у .publisher-scope выше: правило в два селектора
+     иначе перебивает [hidden] и пустой аудит остаётся на экране. */
+  body .publisher-audit[hidden]{display:none;}
+  body .publisher-audit{margin:2px 0 12px;padding:10px 11px;border:1px solid rgba(28,28,30,.12);border-radius:13px;background:#fcfcfa;}
+  body .publisher-audit.has-block{border-color:rgba(185,28,28,.28);background:#fff5f5;}
+  body .publisher-audit.all-clear{border-color:rgba(101,163,13,.3);background:#f7fee7;}
+  body .publisher-audit-head{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:7px;}
+  body .publisher-audit-title{color:#25251f;font:800 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;}
+  body .publisher-audit-count{color:#77776a;font-size:10px;font-weight:700;}
+  body .publisher-audit-list{display:grid;gap:6px;margin:0;padding:0;list-style:none;}
+  body .publisher-audit-item{display:grid;grid-template-columns:15px minmax(0,1fr);gap:8px;align-items:start;font-size:11px;line-height:1.4;}
+  body .publisher-audit-item b{display:block;color:#25251f;font-size:11px;font-weight:750;}
+  body .publisher-audit-item small{color:#77776a;font-size:10.5px;line-height:1.4;}
+  body .publisher-audit-mark{display:grid;place-items:center;width:15px;height:15px;border-radius:50%;font-size:9px;font-weight:900;}
+  body .publisher-audit-item.block .publisher-audit-mark{background:#fee2e2;color:#991b1b;}
+  body .publisher-audit-item.warn .publisher-audit-mark{background:#ffedd5;color:#9a3412;}
+  body .publisher-audit-item.ok .publisher-audit-mark{background:#ecfccb;color:#4d7c0f;}
   body .publisher-note{display:flex;gap:7px;align-items:flex-start;margin:10px 1px 0;color:#777765;font-size:11px;line-height:1.42;}
   body .publisher-note-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:16px;border-radius:50%;background:rgba(200,230,50,.28);color:#4e6100;font-size:10px;font-weight:900;}
   body .community-lesson-card{min-height:0;padding:0;gap:0;border-color:rgba(28,28,30,.1);background:#fff;}
@@ -238,7 +262,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .game-level-filters .level-pill{flex:0 0 auto;}
   }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=376">
+<link rel="stylesheet" href="styles/teached-brand.css?v=377">
 </head>
 <body>
 <nav id="nav">
@@ -321,6 +345,21 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         <textarea id="share-desc" placeholder="Shortly explain what is inside this board and how to use it."></textarea>
       </div>
       <div class="field"><div class="label">Tags <span style="font-weight:600;text-transform:none;letter-spacing:0">(optional)</span></div><input id="share-tags" placeholder="speaking, grammar"></div>
+      <div class="publisher-meta-fields">
+        <div class="field"><div class="label">Language</div><select id="share-language" onchange="updatePublisherPreview()"><option value="">Not set</option><option selected>English</option><option>Ukrainian</option><option>Polish</option><option>German</option><option>French</option><option>Spanish</option><option>Other</option></select></div>
+        <div class="field"><div class="label">Learners</div><select id="share-audience" onchange="updatePublisherPreview()"><option value="">Any age</option><option>Kids</option><option>Teens</option><option>Adults</option></select></div>
+      </div>
+      <div class="publisher-toggles">
+        <label class="publisher-toggle"><input type="checkbox" id="share-allow-copy" checked><span><strong>Let others copy it</strong><small>Off publishes it read-only — teachers can open the lesson but not take it to their own board.</small></span></label>
+        <label class="publisher-toggle"><input type="checkbox" id="share-include-keys" checked onchange="runPublisherAudit()"><span><strong>Include answer keys</strong><small>Off strips teacher-key cards from the snapshot before it is published.</small></span></label>
+      </div>
+      <div class="publisher-audit" id="publisher-audit" hidden>
+        <div class="publisher-audit-head">
+          <span class="publisher-audit-title">Before you publish</span>
+          <span class="publisher-audit-count" id="publisher-audit-count"></span>
+        </div>
+        <ul class="publisher-audit-list" id="publisher-audit-list"></ul>
+      </div>
       <button class="btn share-publish-btn" id="publish-board-btn" style="width:100%;margin-top:4px" aria-describedby="publisher-note" onclick="publishBoard()">Publish lesson</button>
       <p class="publisher-note" id="publisher-note"><span class="publisher-note-mark" aria-hidden="true">✓</span><span>This publishes a snapshot. Your original board stays private and editable.</span></p>
     </aside>
@@ -406,8 +445,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=376"></script>
-<script src="scripts/vocab-loader.js?v=376"></script>
+<script src="scripts/app-core.js?v=377"></script>
+<script src="scripts/vocab-loader.js?v=377"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -579,6 +618,134 @@ function getPublisherScopeCards(cards) {
   return publisherFrameId ? getFrameDescendants(cards, publisherFrameId) : cards;
 }
 
+/* ── ПРОВЕРКА ПЕРЕД ПУБЛИКАЦИЕЙ ──────────────────────────────────────────────
+
+   Публикация — это снимок, который дальше живёт своей жизнью: автор его больше
+   не видит, а открывший не может починить. Значит единственный момент, когда
+   поломку ещё можно заметить, — до нажатия кнопки.
+
+   Проверяется то, что уже ломалось на живых уроках, а не гипотезы: пустой
+   снимок (публиковался как белая доска при честном счётчике карточек рядом),
+   листы без единого вопроса, видео без ссылки. Блокирует ровно одно — пустой
+   урок; всё остальное показывает и пускает дальше, потому что «мало карточек»
+   бывает и осознанным решением, а запрет на публикацию по вкусовому поводу
+   раздражает сильнее, чем помогает. */
+let publisherCardsCache = { boardId:'', cards:null };
+let publisherAuditState = { blocking:false, ran:false };
+
+/* Заголовки берутся из карточек доски, то есть из пользовательского текста, и
+   уходят в innerHTML списка находок. Без экранирования урок с "<" в названии
+   сломал бы разметку панели. Своя, локальная: в community.html такой функции
+   не было, а тянуть её из board-app.js эта страница не может. */
+function publisherEsc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function getPublisherCards(boardId) {
+  if (!boardId) return null;
+  if (publisherCardsCache.boardId === boardId && publisherCardsCache.cards) return publisherCardsCache.cards;
+  const response = await api('/api/boards/' + encodeURIComponent(boardId));
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Could not load the selected board');
+  const boardData = result.board?.data || result.board || {};
+  const cards = Array.isArray(boardData.cards) ? boardData.cards : [];
+  publisherCardsCache = { boardId, cards };
+  return cards;
+}
+
+function isTeacherKeyCard(card) {
+  if (card?.data?._lessonFull) return true;
+  const text = String(card?.data?.text || card?.data?.title || '');
+  return /^\s*(teacher key|answer key|ответы|відповіді)\b/i.test(text);
+}
+
+function auditPublisherSnapshot(scopedCards) {
+  const findings = [];
+  const cards = (scopedCards || []).filter(card => card && card.type !== 'frame');
+  const keepKeys = document.getElementById('share-include-keys')?.checked !== false;
+  const shown = keepKeys ? cards : cards.filter(card => !isTeacherKeyCard(card));
+
+  if (!shown.length) {
+    findings.push({ level:'block', title:'Nothing to publish',
+      detail:'The snapshot has no cards outside the frame, so it would open as an empty board.' });
+    return findings;
+  }
+
+  const emptySheets = shown.filter(card => card.type === 'worksheet' && !(
+    (Array.isArray(card.data?.questions) && card.data.questions.length) ||
+    (Array.isArray(card.data?.items) && card.data.items.length) ||
+    (Array.isArray(card.data?.cards) && card.data.cards.length)
+  ));
+  if (emptySheets.length) {
+    findings.push({ level:'warn', title:`${emptySheets.length} worksheet${emptySheets.length > 1 ? 's have' : ' has'} no questions`,
+      detail:'They will publish as blank sheets. Fill or delete them on the board first.' });
+  }
+
+  const deadVideo = shown.filter(card => card.type === 'video' && !(card.data?.embedUrl || card.data?.url));
+  if (deadVideo.length) {
+    findings.push({ level:'warn', title:`${deadVideo.length} video card${deadVideo.length > 1 ? 's have' : ' has'} no link`,
+      detail:'Whoever opens the lesson will see an empty player.' });
+  }
+
+  if (!document.getElementById('share-skill')?.value) {
+    findings.push({ level:'warn', title:'No skill chosen',
+      detail:'Lessons without a skill are hard to find in Community search.' });
+  }
+  if (!document.getElementById('share-desc')?.value.trim()) {
+    findings.push({ level:'warn', title:'No description',
+      detail:'The card falls back to generic text, so nobody can tell what is inside.' });
+  }
+
+  if (!findings.length) {
+    findings.push({ level:'ok', title:`Ready to publish — ${shown.length} card${shown.length > 1 ? 's' : ''}`,
+      detail:keepKeys ? 'Answer keys are included.' : 'Answer keys will be stripped from the snapshot.' });
+  }
+  return findings;
+}
+
+function renderPublisherAudit(findings) {
+  const box = document.getElementById('publisher-audit');
+  const list = document.getElementById('publisher-audit-list');
+  if (!box || !list) return;
+  if (!findings || !findings.length) { box.hidden = true; return; }
+  const blocking = findings.some(f => f.level === 'block');
+  const clear = findings.every(f => f.level === 'ok');
+  box.hidden = false;
+  box.classList.toggle('has-block', blocking);
+  box.classList.toggle('all-clear', clear);
+  const problems = findings.filter(f => f.level !== 'ok').length;
+  setText('publisher-audit-count', problems ? `${problems} to look at` : 'All clear');
+  const mark = { block:'!', warn:'!', ok:'✓' };
+  list.innerHTML = findings.map(f => `<li class="publisher-audit-item ${f.level}">
+    <span class="publisher-audit-mark" aria-hidden="true">${mark[f.level] || '!'}</span>
+    <span><b>${publisherEsc(f.title)}</b><small>${publisherEsc(f.detail)}</small></span>
+  </li>`).join('');
+  publisherAuditState = { blocking, ran:true };
+  const btn = document.getElementById('publish-board-btn');
+  if (btn) btn.disabled = blocking;
+}
+
+async function runPublisherAudit() {
+  const { id:boardId } = getSelectedPublisherBoard();
+  const box = document.getElementById('publisher-audit');
+  if (!boardId) { if (box) box.hidden = true; publisherAuditState = { blocking:false, ran:false }; return; }
+  try {
+    const cards = await getPublisherCards(boardId);
+    const scoped = getPublisherScopeCards(cards);
+    if (!scoped) throw new Error('The selected lesson frame is no longer available.');
+    renderPublisherAudit(auditPublisherSnapshot(scoped));
+  } catch (error) {
+    // Не удалось проверить — не повод запрещать публикацию: сама публикация
+    // грузит доску заново и упадёт с внятной ошибкой, если она правда пропала.
+    renderPublisherAudit([{ level:'warn', title:'Could not check the board',
+      detail:error?.message || 'Publishing still works — the snapshot is re-read at that point.' }]);
+    publisherAuditState = { blocking:false, ran:false };
+    const btn = document.getElementById('publish-board-btn');
+    if (btn) btn.disabled = false;
+  }
+}
+
 async function loadPublisherFrameMeta(boardId) {
   publisherFrameMeta = null;
   const scope = document.getElementById('publisher-scope');
@@ -643,7 +810,14 @@ function updatePublisherPreview() {
   setText('lesson-preview-kicker', isSpace ? 'Community space' : 'Community lesson');
   const publishBtn = document.getElementById('publish-board-btn');
   if (publishBtn) publishBtn.textContent = isSpace ? 'Publish Space' : 'Publish lesson';
+
+  /* Проверка ходит за доской по сети, а превью пересчитывается на каждое
+     нажатие клавиши в заголовке — поэтому с задержкой. Сама доска кэшируется
+     по id, так что правка описания перепроверяет уже загруженные карточки. */
+  clearTimeout(_publisherAuditTimer);
+  _publisherAuditTimer = setTimeout(runPublisherAudit, 400);
 }
+let _publisherAuditTimer = null;
 
 function focusCommunityPublisher() {
   const publisher = document.querySelector('.share-card');
@@ -747,6 +921,12 @@ async function publishBoard() {
     const duration = Number(document.getElementById('share-duration').value) || null;
     const tags  = document.getElementById('share-tags').value.split(',').map(x=>x.trim()).filter(Boolean);
     const author = document.getElementById('nav-name').textContent || 'Teacher';
+    const language = document.getElementById('share-language')?.value || '';
+    const audience = document.getElementById('share-audience')?.value || '';
+    const allowCopy = document.getElementById('share-allow-copy')?.checked !== false;
+    const includeKeys = document.getElementById('share-include-keys')?.checked !== false;
+
+    if (publisherAuditState.blocking) { toast('Fix what is flagged above before publishing'); return; }
 
     // A community lesson is always an exact snapshot of the selected server board,
     // never a live reference or whichever board happens to be cached locally.
@@ -758,10 +938,15 @@ async function publishBoard() {
     const allCards = Array.isArray(boardData.cards) ? boardData.cards : [];
     const scopedCards = getPublisherScopeCards(allCards);
     if (!scopedCards) throw new Error('The selected lesson frame is no longer available.');
-    const allowedIds = new Set(scopedCards.map(card => card.id));
+    /* Ключи вырезаются из снимка, а не прячутся на странице урока: снимок
+       уезжает целиком и читается кем угодно, так что «скрытый» ответ в данных
+       остаётся ответом. allowedIds считается уже после отсева, иначе стрелка
+       на вырезанную карточку осталась бы висеть в никуда. */
+    const publishedCards = includeKeys ? scopedCards : scopedCards.filter(card => !isTeacherKeyCard(card));
+    const allowedIds = new Set(publishedCards.map(card => card.id));
     const snapshot = {
       name: title,
-      cards: scopedCards,
+      cards: publishedCards,
       links: (Array.isArray(boardData.links) ? boardData.links : (boardData.arrows || [])).filter(link => {
         const from = link.from || link.fromId || link.source || link.startId;
         const to = link.to || link.toId || link.target || link.endId;
@@ -769,7 +954,7 @@ async function publishBoard() {
       }),
     };
 
-    const post = { id:'post-'+Date.now(), title, desc, level, skill, duration, tags, author, sourceBoardId:boardId, sourceBoardName:selectedName, sourceFrameId:publisherFrameId || null, snapshot, createdAt:new Date().toISOString() };
+    const post = { id:'post-'+Date.now(), title, desc, level, skill, duration, tags, author, language, audience, allowCopy, sourceBoardId:boardId, sourceBoardName:selectedName, sourceFrameId:publisherFrameId || null, snapshot, createdAt:new Date().toISOString() };
     let publishedPost = post;
     if (token) {
       const response = await api('/api/library', {
@@ -788,6 +973,9 @@ async function publishBoard() {
             sourceBoardName:selectedName,
             sourceFrameId:publisherFrameId || null,
             duration,
+            language,
+            audience,
+            allowCopy,
             snapshot,
           },
         },
@@ -1380,10 +1568,10 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=376" defer></script>
-<script src="scripts/mobile-nav.js?v=376"></script>
-<script src="scripts/mobile-zoom-guard.js?v=376" defer></script>
-<script src="scripts/autogrow.js?v=376" defer></script>
-<script src="pwa-boot.js?v=376" defer></script>
+<script src="scripts/mobile-perf.js?v=377" defer></script>
+<script src="scripts/mobile-nav.js?v=377"></script>
+<script src="scripts/mobile-zoom-guard.js?v=377" defer></script>
+<script src="scripts/autogrow.js?v=377" defer></script>
+<script src="pwa-boot.js?v=377" defer></script>
 </body>
 </html>
