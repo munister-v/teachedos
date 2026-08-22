@@ -1813,8 +1813,14 @@ body.alt-duplicating *{cursor:copy!important;}
 .card-priv-toggle.is-private{opacity:1!important;}
 .card-close:hover{background:rgba(239,68,68,.12);color:#ef4444;}
 .card-body{flex:1;overflow:hidden;font-size:12px;color:var(--text);}
-.user-menu-item{padding:7px 10px;cursor:pointer;font-weight:500;color:var(--text);transition:background .1s;border-radius:6px;font-size:13px;text-decoration:none;display:block;}
-.user-menu-item:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--accent-text);}
+/* Stale duplicate of the .user-menu-item rule further up (from before the
+   "one dash-icon set" pass documented there) used to live here with
+   display:block instead of flex - same class, same specificity, so this
+   later declaration silently won the `display` property alone and dropped
+   align-items out of effect. The icon (.umi-ic, an inline <svg>) then sat on
+   the text baseline instead of centered on the row - a few px high, exactly
+   the "иконки выше чем надо" report. Nothing here that the earlier block
+   doesn't already declare, so just deleted rather than re-fixed twice. */
 /* More-menu account header + phone-only nav + sign-out */
 .more-phone-nav{display:none;}            /* desktop: avatar menu covers these */
 .more-sep{height:1px;background:var(--border);margin:4px 0;}
