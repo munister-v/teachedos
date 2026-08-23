@@ -3266,7 +3266,9 @@ function _ttPlayStepHeight(q, w) {
      height on exactly the prompts that overflowed in the first place. */
   const qRows = String(q.text || '').split('\n')
     .reduce((n, line) => n + Math.max(1, Math.ceil(line.length / perRow)), 0);
-  let h = PLAY_QPAD + qRows * 32 + 18 + 24;   // prompt + its margin + tap hint
+  let h = PLAY_QPAD + qRows * 32 + 18;        // prompt + its margin (the
+  // tap-to-reveal hint that used to sit under it is gone - controls show up
+  // with the question now)
   if (q.type === 'mcq' && Array.isArray(q.options)) {
     // Options are a grid here (auto-fit minmax(120px,1fr)), not a column.
     const cols = Math.max(1, Math.floor((usable + 10) / 130));
@@ -3402,7 +3404,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       const [t1, t2] = TILE_GRADIENTS[qi % TILE_GRADIENTS.length];
       return `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}" style="--t1:${t1};--t2:${t2}" onclick="this.querySelector('input').focus()">
         <span class="iw-gap-num">${qi+1}</span>
-        <input type="text" class="iw-gap-input" placeholder="?" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()" onkeydown="iwGapEnter(event,this)">
+        <input type="text" class="iw-gap-input" placeholder="?" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()" onkeydown="iwGapEnter(event,this)" onblur="iwGapBlur(this)">
       </div>`;
     }).join('');
     contentHtml = `<div class="iw-stepper"><div class="iw-step-track"><div class="iw-gapgrid-card">
@@ -3421,8 +3423,8 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       } else if (q.type === 'truefalse') {
         const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
         inner = `<div class="iw-tf" data-qi="${qi}" data-answer="${correct}">
-          <button class="iw-tf-btn" data-val="true" onclick="pickTF(this)">✅ True</button>
-          <button class="iw-tf-btn" data-val="false" onclick="pickTF(this)">❌ False</button>
+          <button class="iw-tf-btn" data-val="true" onclick="pickTF(this)">True</button>
+          <button class="iw-tf-btn" data-val="false" onclick="pickTF(this)">False</button>
         </div>`;
       } else if (q.type === 'gap-fill') {
         inner = `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}">
@@ -3469,10 +3471,11 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
         inner = `<textarea class="iw-open-input" data-qi="${qi}" placeholder="Write your answer…" rows="2"></textarea>`;
       }
       const hasInner = !!inner;
-      // Card starts showing only the question; tapping it either reveals the
-      // answer controls (interactive types) or advances straight to the next
-      // card (a bare prompt with nothing to answer) - see iwCardTap.
-      return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${md(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div><div class="iw-tap-hint">👆 tap to reveal</div>` : ''}</div></div>`;
+      // The answer controls are on the card from the start: a question the
+      // student cannot answer without first tapping the card is one extra tap
+      // per question and nothing else. Tapping a card that has no controls at
+      // all (a bare prompt) still advances to the next one - see iwCardTap.
+      return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${md(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div>` : ''}</div></div>`;
     }).join('');
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
       `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
@@ -3500,10 +3503,45 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
     }
 
     scriptHtml = `
-function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); setTimeout(function(){ if(typeof iwNext==='function') iwNext(); }, 1200); }
-function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); setTimeout(function(){ if(typeof iwNext==='function') iwNext(); }, 1200); }
+/* Instant feedback. A pick used to do nothing visible until Check Answers at
+   the bottom of the deck, so a student answering eight questions found out
+   about the first one seven questions later. The answer is graded the moment
+   it is made: the pick turns green or red, the right one is marked, and the
+   question locks. Check Answers still exists for the drag activities and for
+   the running total - and fires by itself once nothing is left unanswered. */
+function iwGrade(w){
+  if(!w || w.dataset.locked) return null;
+  const sel=w.querySelector('.iw-opt.selected,.iw-tf-btn.selected');
+  if(!sel) return null;
+  const ans=w.dataset.answer;
+  w.dataset.locked='1';
+  w.querySelectorAll('.iw-opt,.iw-tf-btn').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); });
+  return sel.dataset.val===ans;
+}
+/* A wrong answer gets longer on screen than a right one: the point of showing
+   the correct option is that it is read before the card slides away. */
+function iwAfterPick(ok){
+  iwSave(); if(ok!==null) iwBeep(ok);
+  setTimeout(function(){ if(typeof iwNext==='function') iwNext(); iwMaybeFinish(); }, ok===false ? 2400 : 1400);
+}
+/* Everything gradable answered → score the sheet without waiting to be asked. */
+function iwMaybeFinish(){
+  const el=document.getElementById('iw-score');
+  if(el && el.style.display==='block') return;
+  if(document.querySelector('.iw-opts:not([data-locked]),.iw-tf:not([data-locked])')) return;
+  if(document.querySelector('.iw-match,.iw-sort')) return;
+  const openGap=[...document.querySelectorAll('.iw-gap')].some(w=>!w.dataset.locked);
+  if(openGap) return;
+  if(!document.querySelector('.iw-opts,.iw-tf,.iw-gap')) return;
+  checkAll();
+}
+function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
+function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
 function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
-function checkGap(w){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; inp.readOnly=true; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.remove('wrong');inp.classList.add('correct');}else{inp.classList.remove('correct');inp.classList.add('wrong');} iwSave(); }
+function checkGap(w,silent){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; w.dataset.locked='1'; inp.readOnly=true; const ok=inp.value.trim().toLowerCase()===String(ans||'').trim().toLowerCase(); inp.classList.remove(ok?'wrong':'correct'); inp.classList.add(ok?'correct':'wrong'); if(silent) return; iwSave(); iwBeep(ok); iwMaybeFinish(); }
+/* Same instant grading for the combined gap-fill grid, where the tiles have no
+   Check button of their own: leaving a filled tile marks it. */
+function iwGapBlur(inp){ const w=inp.closest('.iw-gap'); if(!w||w.dataset.locked||!inp.value.trim()) return; checkGap(w); }
 function iwGapEnter(e, inp){
   if(e.key!=='Enter') return;
   e.preventDefault();
@@ -3566,6 +3604,7 @@ function iwConfetti(){
 function iwReset(){
   document.querySelectorAll('.iw-opts').forEach(w=>{ delete w.dataset.locked; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=false; b.classList.remove('selected','correct','wrong'); }); });
   document.querySelectorAll('.iw-tf').forEach(w=>{ delete w.dataset.locked; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=false; b.classList.remove('selected','correct','wrong'); }); });
+  document.querySelectorAll('.iw-gap').forEach(w=>{ delete w.dataset.locked; });
   document.querySelectorAll('.iw-gap-input').forEach(inp=>{ inp.value=''; inp.readOnly=false; inp.classList.remove('correct','wrong'); });
   document.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelectorAll('.iw-open-input').forEach(t=>t.value='');
@@ -3576,7 +3615,6 @@ function iwReset(){
   const el=document.getElementById('iw-score'); if(el){ el.style.display='none'; el.textContent=''; }
   const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='inline-block';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='none';
-  document.querySelectorAll('.iw-q.iw-revealed').forEach(q=>q.classList.remove('iw-revealed'));
   if(typeof iwGoto==='function') iwGoto(0);
   iwSave();
 }
@@ -3590,7 +3628,8 @@ function iwSnapshot(){
   document.querySelectorAll('.iw-ooo').forEach(w=>{ const sel=w.querySelector('.iw-ooo-btn.selected'); if(sel) s.odd[w.dataset.qi]=sel.dataset.word; });
   document.querySelectorAll('.iw-match').forEach(m=>{ const qi=m.dataset.qi, o={}; m.querySelectorAll('.iw-target').forEach((t,i)=>{ const v=t.querySelector('.iw-slot').textContent.trim(); if(v) o[i]=v; }); if(Object.keys(o).length) s.match[qi]=o; });
   document.querySelectorAll('.iw-sort').forEach(w=>{ const qi=w.dataset.qi, o={}; w.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ const col=d.closest('.iw-sort-col'); if(col) o[d.dataset.left]=col.dataset.cat; }); if(Object.keys(o).length) s.sort[qi]=o; });
-  s.checked=!!document.querySelector('.iw-opts[data-locked], .iw-tf[data-locked]') || (document.getElementById('iw-score')||{}).style && document.getElementById('iw-score').style.display==='block';
+  const scoreEl=document.getElementById('iw-score');
+  s.checked=!!(scoreEl && scoreEl.style.display==='block');
   return s;
 }
 let _iwSaveT=null;
@@ -3605,13 +3644,11 @@ function iwRestore(s){
     Object.keys(s.odd||{}).forEach(qi=>{ const w=document.querySelector('.iw-ooo[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-ooo-btn[data-word="'+CSS.escape(s.odd[qi])+'"]'); if(b) b.classList.add('selected'); });
     Object.keys(s.match||{}).forEach(qi=>{ const m=document.querySelector('.iw-match[data-qi="'+qi+'"]'); if(!m) return; const targets=m.querySelectorAll('.iw-target'); const o=s.match[qi]; Object.keys(o).forEach(i=>{ const t=targets[i]; if(!t) return; const slot=t.querySelector('.iw-slot'); slot.textContent=o[i]; slot.classList.add('filled'); const chip=m.querySelector('.iw-drag[data-left="'+CSS.escape(o[i])+'"]'); if(chip) chip.classList.add('placed'); }); });
     Object.keys(s.sort||{}).forEach(qi=>{ const w=document.querySelector('.iw-sort[data-qi="'+qi+'"]'); if(!w) return; const o=s.sort[qi]; Object.keys(o).forEach(left=>{ const chip=w.querySelector('.iw-drag[data-left="'+CSS.escape(left)+'"]'); const col=w.querySelector('.iw-sort-col[data-cat="'+CSS.escape(o[left])+'"]'); if(chip&&col) col.querySelector('.iw-sort-drop').appendChild(chip); }); });
-    // Re-reveal any stepper card that already has a saved answer, so
-    // reopening a worksheet doesn't hide work behind an unrevealed tap.
-    document.querySelectorAll('.iw-q').forEach(q=>{
-      const hasAnswer = q.querySelector('.iw-opt.selected,.iw-tf-btn.selected,.iw-ooo-btn.selected,.iw-slot.filled,.iw-sort-drop .iw-drag')
-        || Array.from(q.querySelectorAll('.iw-gap-input,.iw-open-input')).some(inp=>inp.value);
-      if(hasAnswer) q.classList.add('iw-revealed');
-    });
+    // Reopening the sheet has to bring the marks back with the answers -
+    // re-grade what was already answered, and only what was answered, so an
+    // untouched question is still open rather than pre-revealed.
+    document.querySelectorAll('.iw-opts,.iw-tf').forEach(w=>{ if(w.querySelector('.selected')) iwGrade(w); });
+    document.querySelectorAll('.iw-gap').forEach(w=>{ const inp=w.querySelector('.iw-gap-input'); if(inp&&inp.value.trim()) checkGap(w,true); });
     if(s.checked) checkAll(true);
   }catch(e){}
 }
@@ -3661,10 +3698,10 @@ function iwGoto(i){
 }
 function iwNext(){ iwGoto(iwCur+1); }
 function iwPrev(){ iwGoto(iwCur-1); }
+/* A card with answer controls handles its own clicks; one with nothing to
+   answer (a bare prompt) advances when tapped anywhere. */
 function iwCardTap(el){
-  if(el.classList.contains('iw-revealed')) return;
-  if(el.querySelector('.iw-qreveal')){ el.classList.add('iw-revealed'); }
-  else { iwNext(); }
+  if(!el.querySelector('.iw-qreveal')) iwNext();
 }
 function iwFlipOrNext(el){
   if(el.classList.contains('flipped')){ iwNext(); }
@@ -3707,6 +3744,11 @@ strong{font-weight:650}
 .iw-tf-btn.correct{border-color:#16a34a;background:#dcfce7;color:#15803d}
 .iw-tf-btn.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
 .iw-tf-btn[disabled]{pointer-events:none}
+/* Once a question is graded, the options that were neither picked nor right
+   step back - a palette tile that happens to be green should not read as the
+   answer next to the one that actually is. */
+.iw-opts[data-locked] .iw-opt:not(.correct):not(.wrong),
+.iw-tf[data-locked] .iw-tf-btn:not(.correct):not(.wrong){opacity:.4;filter:grayscale(.85)}
 /* Gap-fill */
 .iw-gap{display:flex;gap:8px;align-items:center}
 .iw-gap-input{flex:1;border:none;border-bottom:2px solid ${accent};padding:5px 4px;font:14px system-ui;outline:none;background:transparent}
@@ -3802,11 +3844,8 @@ strong{font-weight:650}
 .iw-stepper .iw-q{border:none;box-shadow:0 2px 22px rgba(0,0,0,.08);border-radius:18px;border-left:5px solid ${accent};padding:30px 26px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
 .iw-stepper .iw-qnum{display:none}
 .iw-stepper .iw-qtext{font-size:23px;font-weight:650;line-height:1.4;margin-bottom:18px;text-align:center;white-space:pre-line}
-.iw-qreveal{display:none;animation:iwreveal .25s ease}
-.iw-q.iw-revealed .iw-qreveal{display:block}
+.iw-qreveal{display:block;animation:iwreveal .25s ease}
 @keyframes iwreveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.iw-tap-hint{text-align:center;font:700 12px system-ui;color:#aaa;margin-top:6px}
-.iw-q.iw-revealed .iw-tap-hint{display:none}
 .iw-stepper .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
 .iw-stepper .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
 .iw-stepper .iw-opt:hover{background:linear-gradient(135deg,var(--t1),var(--t2));opacity:.92}
