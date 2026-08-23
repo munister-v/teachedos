@@ -3237,15 +3237,75 @@ function _wsHasInteractive(d) {
   return false;
 }
 
+/* HOW BIG A PLAY CARD HAS TO BE.
+
+   Play mode was a hardcoded 480x460 for every worksheet ever generated,
+   which is where "нажал Play - получается фигня" came from, on every tool
+   at once. The stepper shows one question at a time, so 460px sounds
+   generous - but it renders the prompt at 23px (.iw-stepper .iw-qtext),
+   not the 16px the static sheet uses. A transformation prompt ("Complete
+   the second sentence... ALTHOUGH ______" - around 230 characters) wraps
+   to eight or nine lines at that size, needs roughly 530px, and got 460:
+   the tail of every such question was simply cut off the bottom of the
+   card.
+
+   Measured here instead, at the sizes Play actually renders, and sized to
+   the TALLEST step so moving through the deck never resizes the card. */
+const PLAY_CHROME = 176;   // body padding 40 + step HUD ~50 + Check/Try again ~86
+const PLAY_QPAD = 60;      // .iw-stepper .iw-q padding 30px top+bottom
+function _ttPlayStepHeight(q, w) {
+  // Characters per line at 23px, from the 58-per-row measured at 16px on a
+  // 440px sheet: scale by usable width, then down for the bigger type.
+  const usable = Math.max(160, w - 52);
+  const perRow = Math.max(12, 58 * (usable / 440) * (16 / 23));
+  /* Per line, not over the whole string: .iw-stepper .iw-qtext is
+     white-space:pre-line, so the blank lines these prompts are built from
+     ("...do NOT change it.\n\n"sentence"\n\nALTHOUGH ___") are hard breaks -
+     three paragraphs that wrap separately, plus the empty lines themselves.
+     Measuring the flat character count instead loses about a quarter of the
+     height on exactly the prompts that overflowed in the first place. */
+  const qRows = String(q.text || '').split('\n')
+    .reduce((n, line) => n + Math.max(1, Math.ceil(line.length / perRow)), 0);
+  let h = PLAY_QPAD + qRows * 32 + 18 + 24;   // prompt + its margin + tap hint
+  if (q.type === 'mcq' && Array.isArray(q.options)) {
+    // Options are a grid here (auto-fit minmax(120px,1fr)), not a column.
+    const cols = Math.max(1, Math.floor((usable + 10) / 130));
+    h += Math.ceil(q.options.length / cols) * 74;
+  } else if (q.type === 'truefalse') h += 56;
+  else if (q.type === 'match' && Array.isArray(q.pairs)) h += 60 + q.pairs.length * 46;
+  else if (q.type === 'open') h += 64;
+  else h += 52;                                // gap-fill and anything else
+  return Math.max(220 + PLAY_QPAD, h);         // .iw-q min-height:220
+}
+function _ttPlayCardSize(d) {
+  const qs = Array.isArray(d.questions) ? d.questions : [];
+  const steps = Array.isArray(d.items) && d.items.length ? d.items.length
+              : Array.isArray(d.cards) && d.cards.length ? d.cards.length : qs.length;
+  // Long prompts read badly in a narrow column at 23px, so the card widens
+  // with the text it has to hold - within bounds, since a stepper that fills
+  // the board stops reading as a card being presented.
+  const longest = qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0);
+  const w = Math.max(480, Math.min(720, 480 + Math.round((longest - 90) / 4)));
+  if (!qs.length) {
+    // Flashcards / lesson-pack stages: fixed flip box, no per-item measuring.
+    return { w: 480, h: PLAY_CHROME + 240 + (steps > 1 ? 0 : -50) };
+  }
+  const tallest = qs.reduce((m, q) => Math.max(m, _ttPlayStepHeight(q, w)), 0);
+  const chrome = PLAY_CHROME - (steps > 1 ? 0 : 50);   // no step HUD on a single step
+  return { w, h: Math.max(420, Math.min(900, Math.round(chrome + tallest))) };
+}
+
 function activateWorksheet(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || !card.data) return;
   card.data._interactive = true;
   // The static list is sized tall to fit every question at once; the Play-mode
-  // stepper only ever shows one card, so give it a compact, fixed footprint
-  // and restore the original size on exit instead of staying oversized.
+  // stepper only ever shows one card, so it gets its own smaller footprint -
+  // measured from the content (see _ttPlayCardSize), not a constant - and the
+  // original size is restored on exit.
   if (!card.data._preInteractiveSize) card.data._preInteractiveSize = { w: card.w, h: card.h };
-  card.w = 480; card.h = 460;
+  const size = _ttPlayCardSize(card.data);
+  card.w = size.w; card.h = size.h;
   reRenderCard(card);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
@@ -10443,9 +10503,13 @@ function _relayoutLessonFrameNow(frame) {
   const { grid, full } = _lessonFrameChildren(frame.id);
   const play = frame.data._mode === 'play';
   const { CARD_W, PLAY_CARD_W, COL_GAP, ROW_GAP, PAD, HEAD } = LESSON_GRID;
+  // Как и в setLessonFrameMode: колонка показа шириной с самую широкую
+  // карточку, а не с константу - иначе широкий степпер налезет на соседний.
+  const playColW = !play ? PLAY_CARD_W : [...grid, ...full].reduce(
+    (m, c) => (c.type === 'worksheet' && c.data?._interactive ? Math.max(m, c.w) : m), PLAY_CARD_W);
   _relayoutLessonFrame(frame.id, (play ? [...grid, ...full] : grid).map(c => c.id), {
     x0: frame.x, y0: frame.y,
-    CARD_W: play ? PLAY_CARD_W : CARD_W,
+    CARD_W: play ? playColW : CARD_W,
     COL_GAP, ROW_GAP, PAD, HEAD,
     pack: true, stretch: !play,
     fullIds: play ? [] : full.map(c => c.id),
@@ -10490,19 +10554,33 @@ function setLessonFrameMode(frameId, mode) {
   const VIDEO_HEADER_H = 34;
 
   snapshot(); _suppressSnapshot++;
+  /* Ширина колонки показа - по факту, а не по константе. Пока все степперы
+     были 480, колонка тоже была 480; теперь карточка меряется по своему
+     тексту (_ttPlayCardSize) и может выйти шире, а колонка шага 480+COL_GAP
+     положила бы соседнюю прямо на неё. Считаем после активации, когда
+     ширины уже известны, и по самой широкой. */
+  let playColW = PLAY_CARD_W;
   try {
     frame.data._mode = next;
+    if (next === 'play') {
+      [...grid, ...full].forEach(card => {
+        if (card.type === 'worksheet' && _wsHasInteractive(card.data || {})) activateWorksheet(card.id);
+      });
+      playColW = [...grid, ...full].reduce(
+        (m, c) => (c.type === 'worksheet' && c.data?._interactive ? Math.max(m, c.w) : m), PLAY_CARD_W);
+    }
     [...grid, ...full].forEach(card => {
       if (card.type === 'worksheet') {
-        if (next === 'play') { if (_wsHasInteractive(card.data || {})) activateWorksheet(card.id); }
-        else deactivateWorksheet(card.id);
+        if (next !== 'play') deactivateWorksheet(card.id);
         return;
       }
       if (card.type === 'video') {
         if (next === 'play') {
           if (!card.data._preplaySize) card.data._preplaySize = { w: card.w, h: card.h };
-          card.w = PLAY_CARD_W;
-          card.h = Math.round(PLAY_CARD_W * 9 / 16) + VIDEO_HEADER_H;
+          // Видео - первая карточка урока и стоит в той же колонке: его
+          // ширина следует за колонкой, иначе оно уже или шире остальных.
+          card.w = playColW;
+          card.h = Math.round(playColW * 9 / 16) + VIDEO_HEADER_H;
         } else if (card.data._preplaySize) {
           card.w = card.data._preplaySize.w;
           card.h = card.data._preplaySize.h;
@@ -10530,7 +10608,7 @@ function setLessonFrameMode(frameId, mode) {
     done = true;
     _relayoutLessonFrame(frameId, (next === 'play' ? [...grid, ...full] : grid).map(c => c.id), {
       x0: frame.x, y0: frame.y,
-      CARD_W: next === 'play' ? PLAY_CARD_W : CARD_W,
+      CARD_W: next === 'play' ? playColW : CARD_W,
       COL_GAP, ROW_GAP, PAD, HEAD,
       pack: true,
       // В режиме показа карточка - окно фиксированного размера, растягивать её
@@ -13066,7 +13144,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '449';
+const TEACHEDOS_ASSET_VERSION = '450';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
