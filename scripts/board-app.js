@@ -9995,7 +9995,16 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
     if (n) {
       frame = addCard('frame', x0, y0, {
         title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
-        _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video', _mode: 'play',
+        /* Built as 'plan' even though every generated lesson is meant to open
+           in Play by default - the packing above (CARD_W, cols, the overlap-safe
+           re-measure pass below) is written and tested for the plan grid.
+           Claiming 'play' here without running setLessonFrameMode's actual
+           transition (activateWorksheet per card, PLAY_CARD_W relayout) left the
+           flag saying play while every card stayed a full plan-width static
+           sheet - the exact mismatch that read on the board as cards colliding
+           and packing "not working". Transitioned for real once plan has
+           settled, below. */
+        _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video', _mode: 'plan',
         /* Из чего собран урок - на кадре. Без этого блок нельзя пересобрать:
            карточка знает СВОИ вопросы, но не текст, из которого они сделаны.
            Тот же слепок транскрипта, что уходил в генерацию, поэтому «сделать
@@ -10106,6 +10115,13 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
     };
     requestAnimationFrame(relayout);
     setTimeout(relayout, 180);
+    /* Every generated lesson opens in Play by default (a standing request -
+       teachers open a fresh lesson to run it, not to edit it). Switched only
+       after the plan grid above has packed and settled: setLessonFrameMode
+       activates each worksheet and relays the frame out at PLAY_CARD_W, and
+       doing that against unsettled/estimated heights would just move the
+       overlap bug into the play layout instead of fixing it. */
+    if (frame) setTimeout(() => { try { setLessonFrameMode(frame.id, 'play'); } catch (e) {} }, 260);
   }
   scheduleSave?.(); saveLocal?.();
   // The toast fades after 1.8s, so it is the nudge, not the record - the frame
@@ -12999,7 +13015,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '439';
+const TEACHEDOS_ASSET_VERSION = '440';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
