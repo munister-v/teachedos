@@ -431,6 +431,23 @@ body.os-desktop #menubar {
 }
 body.os-desktop #menubar :where(.mb-app-name,.mb-item,#mb-clock,.mb-icon) { color:var(--te-ink) !important; }
 body.os-desktop #menubar .mb-item:hover { background:rgba(32,32,44,.10) !important; color:var(--te-ink) !important; }
+body.os-desktop #menubar .nav-user {
+  background:rgba(255,255,255,.55) !important;
+  border-color:rgba(32,32,44,.16) !important;
+  color:var(--te-ink) !important;
+}
+body.os-desktop #menubar .nav-user:hover {
+  background:rgba(255,255,255,.75) !important;
+}
+body.os-desktop #menubar #nav-avatar,
+body.os-desktop #menubar .mb-account-chip #mb-account-name,
+body.os-desktop #menubar #mb-account-name {
+  color:var(--te-ink) !important;
+}
+body.os-desktop #menubar #nav-avatar {
+  background:var(--te-ink) !important;
+  color:var(--te-lime) !important;
+}
 body.os-desktop .widget {
   background:
     radial-gradient(circle at 88% 0%,rgba(205,249,64,.20),transparent 34%),
