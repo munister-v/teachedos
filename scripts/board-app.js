@@ -8072,9 +8072,15 @@ boardWrap.addEventListener('contextmenu', e => {
   pasteItem.dataset.boardY = ctxPos.y;
   copyItem.dataset.cardId  = onImageCard ? cardEl.dataset.id : '';
 
-  ctxMenu.style.left = e.clientX+'px';
-  ctxMenu.style.top  = e.clientY+'px';
+  // Positioning before measuring would clamp against last frame's size (or
+  // 0 on first open) - show first so offsetWidth/Height reflect this open's
+  // actual item list, then clamp into the viewport so a right-click near an
+  // edge doesn't push items (Clear Board, in particular) off-screen and out
+  // of reach.
   ctxMenu.style.display = 'block';
+  const mw = ctxMenu.offsetWidth || 230, mh = ctxMenu.offsetHeight || 320;
+  ctxMenu.style.left = Math.max(8, Math.min(e.clientX, window.innerWidth  - mw - 12)) + 'px';
+  ctxMenu.style.top  = Math.max(8, Math.min(e.clientY, window.innerHeight - mh - 12)) + 'px';
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 });
 
@@ -12993,7 +12999,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '437';
+const TEACHEDOS_ASSET_VERSION = '438';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
