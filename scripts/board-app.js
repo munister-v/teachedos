@@ -9955,7 +9955,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
     if (n) {
       frame = addCard('frame', x0, y0, {
         title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
-        _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video',
+        _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video', _mode: 'play',
         /* Из чего собран урок - на кадре. Без этого блок нельзя пересобрать:
            карточка знает СВОИ вопросы, но не текст, из которого они сделаны.
            Тот же слепок транскрипта, что уходил в генерацию, поэтому «сделать
@@ -12959,7 +12959,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '417';
+const TEACHEDOS_ASSET_VERSION = '431';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

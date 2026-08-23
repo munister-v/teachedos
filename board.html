@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=417">
+<link rel="manifest" href="manifest.json?v=431">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=417">
-<link rel="stylesheet" href="styles/auth.css?v=417">
-<link rel="stylesheet" href="styles/mobile.css?v=417">
-<link rel="stylesheet" href="styles/harmony.css?v=417">
-<link rel="stylesheet" href="styles/unify.css?v=417">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=417">
+<link rel="stylesheet" href="styles/board.css?v=431">
+<link rel="stylesheet" href="styles/auth.css?v=431">
+<link rel="stylesheet" href="styles/mobile.css?v=431">
+<link rel="stylesheet" href="styles/harmony.css?v=431">
+<link rel="stylesheet" href="styles/unify.css?v=431">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=431">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -274,7 +274,7 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=417">
+<link rel="stylesheet" href="styles/teached-brand.css?v=431">
 </head>
 <body class="board-page">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1322,12 +1322,12 @@ polite request</textarea>
 
   <!-- Per-card, shown only when the right-click landed on one. Stickies and
        text cards have no header, so the header toggle cannot reach them. -->
-  <div class="ctx-item" id="ctx-student-hide" style="display:none;">🙈 Hide from students</div>
+  <div class="ctx-item" id="ctx-student-hide" style="display:none;"><svg class="ctx-ic"><use href="#bi-eye-off"/></svg>Hide from students</div>
   <div class="ctx-sep"  id="ctx-student-sep"  style="display:none;"></div>
-  <div class="ctx-item danger" id="ctx-delete-card" style="display:none;" title="Alt-click a frame to keep its contents">🗑 Delete</div>
-  <div class="ctx-item" id="ctx-delete-arrow" style="display:none;">🗑 Delete Arrow</div>
-  <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;">🔗 Toggle Prereq Arrow</div>
-  <div class="ctx-item" id="ctx-label-arrow" style="display:none;">🏷 Label Arrow</div>
+  <div class="ctx-item danger" id="ctx-delete-card" style="display:none;" title="Alt-click a frame to keep its contents"><svg class="ctx-ic"><use href="#bi-trash"/></svg>Delete</div>
+  <div class="ctx-item" id="ctx-delete-arrow" style="display:none;"><svg class="ctx-ic"><use href="#bi-trash"/></svg>Delete Arrow</div>
+  <div class="ctx-item" id="ctx-toggle-prereq" style="display:none;"><svg class="ctx-ic" id="ctx-toggle-prereq-ic"><use href="#bi-link"/></svg><span id="ctx-toggle-prereq-label">Toggle Prereq Arrow</span></div>
+  <div class="ctx-item" id="ctx-label-arrow" style="display:none;"><svg class="ctx-ic"><use href="#bi-tag"/></svg>Label Arrow</div>
   <div class="ctx-arrow-style" id="ctx-arrow-style-wrap">
     <div class="ctx-arrow-style-row">
       <span class="ctx-arrow-style-lbl">Line</span>
@@ -1359,7 +1359,7 @@ polite request</textarea>
     </div>
   </div>
   <div class="ctx-sep" id="ctx-arrow-sep" style="display:none;"></div>
-  <div class="ctx-item danger ctx-board-only" id="ctx-clear">🗑 Clear Board</div>
+  <div class="ctx-item danger ctx-board-only" id="ctx-clear"><svg class="ctx-ic"><use href="#bi-trash"/></svg>Clear Board</div>
 </div>
 <!-- Minimap -->
 <div id="minimap"><canvas id="minimap-canvas"></canvas><div id="minimap-label">Board</div></div>
@@ -1989,12 +1989,12 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=417"></script>
-<script src="scripts/tt-text-core.js?v=417"></script>
-<script src="scripts/board-app.js?v=417"></script>
-<script src="js/board-vocab.js?v=417"></script>
-<script src="js/board-reveal.js?v=417"></script>
-<script src="js/teacher-tool-board-composer.js?v=417"></script>
+<script src="js/teacher-tools-data.js?v=431"></script>
+<script src="scripts/tt-text-core.js?v=431"></script>
+<script src="scripts/board-app.js?v=431"></script>
+<script src="js/board-vocab.js?v=431"></script>
+<script src="js/board-reveal.js?v=431"></script>
+<script src="js/teacher-tool-board-composer.js?v=431"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2002,8 +2002,8 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=417" defer></script>
-<script src="pwa-boot.js?v=417" defer></script>
+<script src="scripts/autogrow.js?v=431" defer></script>
+<script src="pwa-boot.js?v=431" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2085,11 +2085,11 @@ polite request</textarea>
     </section>
   </div>
 </div>
-<script src="pwa.js?v=417"></script>
-<script src="scripts/nav-boost.js?v=417" defer></script>
-<script src="scripts/mobile-perf.js?v=417" defer></script>
-<script src="scripts/mobile-nav.js?v=417"></script>
-<script src="scripts/mobile-zoom-guard.js?v=417" defer></script>
+<script src="pwa.js?v=431"></script>
+<script src="scripts/nav-boost.js?v=431" defer></script>
+<script src="scripts/mobile-perf.js?v=431" defer></script>
+<script src="scripts/mobile-nav.js?v=431"></script>
+<script src="scripts/mobile-zoom-guard.js?v=431" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
