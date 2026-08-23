@@ -646,16 +646,15 @@ body.admin-page .stat-icon.blue { background:var(--te-surface-blue) !important; 
 body.admin-page .stat-icon.green { background:var(--te-surface-lime) !important; color:#278646 !important; }
 body.admin-page .stat-icon.orange { background:var(--te-surface-yellow) !important; color:#A96000 !important; }
 
-/* Community: the act of publishing is coral, the lesson itself stays the
-   focal point. Cover variants make shared material recognisable at a glance. */
-.community-primary-action { background:var(--te-coral) !important; color:#fff !important; }
-.community-primary-action:hover { background:#D94200 !important; }
-.share-publish-btn { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; box-shadow:0 8px 18px rgba(255,78,0,.22) !important; }
-.community-link-action:hover { background:var(--te-surface-violet) !important; border-color:rgba(139,66,253,.38) !important; color:#612EB1 !important; }
-.community-lesson-cover { background:linear-gradient(135deg,#29233B,var(--te-violet)) !important; }
-.community-lesson-cover.cover-style-2 { background:linear-gradient(135deg,#183553,var(--te-blue)) !important; }
-.community-lesson-cover.cover-style-3 { background:linear-gradient(135deg,#54251B,var(--te-coral)) !important; }
-.community-lesson-cover.cover-style-4 { background:linear-gradient(135deg,#174348,#28A9B5) !important; }
+/* Community: "View lesson" is the primary action on each card - standard
+   lime treatment, matching every other primary control in the app. The four
+   cover gradients are left to community.html's own calm graphite variants
+   (each with its own quiet accent glow) instead of overriding them into a
+   violet/blue/coral/teal rainbow - the same "traffic light" problem already
+   fixed on generated worksheets, just reintroduced here in a separate file. */
+.community-primary-action { background:var(--te-lime) !important; color:var(--te-ink) !important; }
+.community-primary-action:hover { background:var(--te-lime-soft) !important; }
+.share-publish-btn { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; box-shadow:0 8px 18px rgba(205,249,64,.30) !important; }
 .community-cover-level,.lesson-preview-level { background:var(--te-lime) !important; color:var(--te-ink) !important; }
 
 /* Lesson and game creation: semantic actions remain distinct after the
