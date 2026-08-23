@@ -878,10 +878,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   transform:translateY(-2px) scale(1.015);
 }
 .tool-snippet:active{opacity:.85;}
-.tool-snippet::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:var(--ts-color,var(--accent));border-radius:3px 0 0 3px;opacity:.7;
-}
 /* Header row: icon + title */
 .tool-snippet .ts-row1{
   display:flex;align-items:center;gap:7px;min-width:0;
@@ -951,10 +947,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   transform:translateY(-1px) translateZ(0);
 }
 .lesson-pack-snippet:active{cursor:grabbing;}
-.lesson-pack-snippet::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
-  background:var(--lp-color,var(--accent));
-}
 .lesson-pack-snippet .lps-head{display:flex;align-items:flex-start;gap:11px;}
 .lesson-pack-snippet .lps-icon{
   width:44px;height:44px;border-radius:12px;flex-shrink:0;
@@ -2756,6 +2748,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;
   transition:background .08s;letter-spacing:-.005em;
 }
+.ctx-ic{width:15px;height:15px;flex:0 0 auto;color:currentColor;opacity:.7;}
+.ctx-item:hover .ctx-ic,.ctx-item.danger .ctx-ic{opacity:1;}
 [data-theme="dark"] .ctx-item{color:var(--text);}
 .ctx-item:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--accent-text);}
 .ctx-item.danger{color:#ef4444;}
@@ -5485,10 +5479,6 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   border:1px solid rgba(94,94,74,.14) !important;
   box-shadow:0 18px 54px rgba(28,28,30,.10),0 1px 0 rgba(255,255,255,.88) inset !important;
   backdrop-filter:blur(18px) saturate(1.35) !important;
-}
-#empty-state::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:inherit;
-  background:linear-gradient(180deg,#C8E632,#EC2D8C);
 }
 .empty-icon{font-family:var(--font-mono,ui-monospace,monospace) !important;color:#EC2D8C !important;background:rgba(236,45,140,.08) !important;border:1px solid rgba(236,45,140,.16) !important;box-shadow:0 1px 0 rgba(255,255,255,.8) inset !important;}
 .empty-text{letter-spacing:-.035em !important;}

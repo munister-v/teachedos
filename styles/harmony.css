@@ -2376,10 +2376,6 @@ html[data-theme="dark"] .board-shell #sidebar .sb-search input {
     radial-gradient(circle at 90% 10%,rgba(205,242,79,.22),transparent 34%),
     linear-gradient(135deg,#111214 0%,#171817 100%) !important;
 }
-.mp-featured::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:5px;
-  background:linear-gradient(180deg,#CDF24F,#EC2D8C);
-}
 .mp-featured-title{max-width:82% !important;}
 .mp-featured-meta{max-width:92% !important;line-height:1.55 !important;}
 .mp-stat,.mp-quick,.mp-board-card{
