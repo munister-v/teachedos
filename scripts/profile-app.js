@@ -256,7 +256,7 @@ async function renderOverview(forceOffline = false) {
   if (existingPlanBadge) existingPlanBadge.remove();
   if (planBadge) {
     const el = document.getElementById('profile-role-badge');
-    el.insertAdjacentHTML('afterend', `<span id="profile-plan-badge" style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(94,94,74,.12),rgba(94,94,74,.06));border:1px solid rgba(200,230,50,.25);font-size:12px;font-weight:650;color:var(--accent);margin-top:6px;">${planBadge}</span>`);
+    el.insertAdjacentHTML('afterend', `<span id="profile-plan-badge" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(200,230,50,.28),rgba(200,230,50,.14));border:1px solid rgba(200,230,50,.4);font-size:12px;font-weight:650;color:#5a6b00;">${planBadge}</span>`);
   }
 
   if (me.created_at) {
