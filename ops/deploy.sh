@@ -93,3 +93,13 @@ if [[ "$ready" != 1 ]]; then
 fi
 printf '%s\n' "$REMOTE" > "$MARKER"
 log "deployed $REMOTE OK; backup=$BACKUP_DIR"
+
+# Keep only the newest N pre-deploy snapshots - nothing pruned this before,
+# and autopull runs every ~2 min, so BACKUPS grew by one dir per deploy
+# forever (187 dirs / 443M after one week).
+BACKUP_KEEP=${BACKUP_KEEP:-20}
+mapfile -t OLD_BACKUPS < <(find "$BACKUPS" -maxdepth 1 -type d -name 'pre-*' -printf '%T@ %p\n' 2>/dev/null | sort -rn | awk -v keep="$BACKUP_KEEP" 'NR>keep { $1=""; sub(/^ /, ""); print }')
+if [[ ${#OLD_BACKUPS[@]} -gt 0 ]]; then
+  rm -rf -- "${OLD_BACKUPS[@]}"
+  log "pruned ${#OLD_BACKUPS[@]} old pre-deploy backups, kept newest $BACKUP_KEEP"
+fi
