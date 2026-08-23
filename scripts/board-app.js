@@ -13030,7 +13030,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '443';
+const TEACHEDOS_ASSET_VERSION = '444';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14993,8 +14993,18 @@ function runPendingToolMaterialImport() {
         _ttToolId: material.toolId || '',
         _ttSource: String(material.source || '').slice(0, 6000),
       };
+      /* Fixed 520px meant a question list could never reach the 2-up column
+         split _ttQuestionCols already knows how to do - it only kicks in
+         past WS_QCOL_MIN*2+gaps (~670px), so an 8-question quiz from a
+         single tool always rendered as one long single-column ribbon, while
+         the same questions inside a video lesson (built at CARD_W=720) came
+         out compact. Matching that width here instead of guessing a new one
+         puts every generated worksheet - lesson or single tool - through the
+         same column logic. */
       const w = (struct.boardKind === 'cards' && typeof _packWidth === 'function' && struct.cards)
         ? _packWidth(struct.cards.length)
+        : (Array.isArray(struct.questions) && struct.questions.length >= 3)
+        ? LESSON_GRID.CARD_W
         : 520;
       const h = (typeof _ttEstWorksheetHeight === 'function')
         ? _ttEstWorksheetHeight(wsData, w)
