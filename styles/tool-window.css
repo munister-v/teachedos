@@ -444,18 +444,32 @@ body.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.mini-b
 }
 body.tw-page:not(#_) .btn.sm { min-height:28px !important; padding:4px 11px !important; font-size:12px !important; }
 
-/* Primary */
-body.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn.blue,.btn-new-course) {
-  background:var(--tw-ink) !important;
-  color:#fff !important;
-  border:1px solid var(--tw-ink) !important;
+/* Primary - the "lime" class name lied: this used to render every primary
+   CTA (Create course, Add event, Go to topic...) in plain --tw-ink black,
+   turning violet on hover. Lime is this app's actual "do the next thing"
+   colour everywhere else, so bring these in line with that. */
+body.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course) {
+  background:var(--te-lime,#CDF940) !important;
+  color:var(--te-ink,#20202C) !important;
+  border:1px solid var(--te-lime,#CDF940) !important;
   box-shadow:none !important;
 }
-body.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn.blue,.btn-new-course):hover {
+body.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course):hover {
+  background:var(--te-lime-soft,#D3F36B) !important;
+  border-color:var(--te-lime-soft,#D3F36B) !important;
+  color:var(--te-ink,#20202C) !important;
+  box-shadow:none !important;
+}
+body.tw-page:not(#_) .btn.blue {
+  background:var(--te-blue,#3F8FFF) !important;
+  color:#fff !important;
+  border:1px solid var(--te-blue,#3F8FFF) !important;
+  box-shadow:none !important;
+}
+body.tw-page:not(#_) .btn.blue:hover {
   background:var(--tw-accent) !important;
   border-color:var(--tw-accent) !important;
   color:#fff !important;
-  box-shadow:none !important;
 }
 /* Secondary */
 body.tw-page:not(#_) :is(
@@ -582,13 +596,13 @@ body.tw-page:not(#_) :is(.chip.ok,.pill.submitted,.pill.graded) {
    teached-brand.css already gives .modal-overlay the shared window language;
    only the accent on the confirming action needs to follow this page. */
 body.tw-page:not(#_) .modal-overlay .modal-actions .btn-primary {
-  background:var(--tw-ink) !important;
-  border-color:var(--tw-ink) !important;
-  color:#fff !important;
+  background:var(--te-lime,#CDF940) !important;
+  border-color:var(--te-lime,#CDF940) !important;
+  color:var(--te-ink,#20202C) !important;
 }
 body.tw-page:not(#_) .modal-overlay .modal-actions .btn-primary:hover {
-  background:var(--tw-accent) !important;
-  border-color:var(--tw-accent) !important;
+  background:var(--te-lime-soft,#D3F36B) !important;
+  border-color:var(--te-lime-soft,#D3F36B) !important;
 }
 
 /* ── Homework: the black promo panel ───────────────────────────────────────
@@ -721,15 +735,15 @@ body.tw-page:not(#_) #sidebar :is(.sb-badge,.side-count) {
 body.tw-page:not(#_) #sidebar .sb-build {
   min-height:32px !important;
   border-radius:999px !important;
-  border:1px solid var(--tw-ink) !important;
-  background:var(--tw-ink) !important;
-  color:#fff !important;
+  border:1px solid var(--te-lime,#CDF940) !important;
+  background:var(--te-lime,#CDF940) !important;
+  color:var(--te-ink,#20202C) !important;
   font-size:12.5px !important;
   font-weight:650 !important;
 }
 body.tw-page:not(#_) #sidebar .sb-build:hover {
-  background:var(--tw-accent) !important;
-  border-color:var(--tw-accent) !important;
+  background:var(--te-lime-soft,#D3F36B) !important;
+  border-color:var(--te-lime-soft,#D3F36B) !important;
 }
 
 /* courses.html's own `#sidebar` text (headings, "pro"/"+ New" labels, the
@@ -861,14 +875,14 @@ body.tw-page:not(#_) .empty-icon { opacity:.5 !important; }
 /* `.btn-lime` and `.btn-soft` are the same primary/secondary pair under other
    names - unify.css and teached-brand.css both had their own idea of them. */
 body.tw-page:not(#_) :is(.btn-lime,.btn.btn-lime) {
-  background:var(--tw-ink) !important;
-  border:1px solid var(--tw-ink) !important;
-  color:#fff !important;
+  background:var(--te-lime,#CDF940) !important;
+  border:1px solid var(--te-lime,#CDF940) !important;
+  color:var(--te-ink,#20202C) !important;
   box-shadow:none !important;
 }
 body.tw-page:not(#_) :is(.btn-lime:hover,.btn.btn-lime:hover) {
-  background:var(--tw-accent) !important;
-  border-color:var(--tw-accent) !important;
+  background:var(--te-lime-soft,#D3F36B) !important;
+  border-color:var(--te-lime-soft,#D3F36B) !important;
 }
 body.tw-page:not(#_) :is(.btn-soft,.btn.btn-soft) {
   background:#fff !important;
@@ -890,16 +904,16 @@ body.tw-page:not(#_) :is(.btn-soft:hover,.btn.btn-soft:hover) {
 body.tw-page:not(#_) .btn-add {
   min-height:32px !important;
   border-radius:999px !important;
-  border:1px solid var(--tw-ink) !important;
-  background:var(--tw-ink) !important;
-  color:#fff !important;
+  border:1px solid var(--te-lime,#CDF940) !important;
+  background:var(--te-lime,#CDF940) !important;
+  color:var(--te-ink,#20202C) !important;
   font-size:12.5px !important;
   font-weight:650 !important;
   box-shadow:none !important;
 }
 body.tw-page:not(#_) .btn-add:hover {
-  background:var(--tw-accent) !important;
-  border-color:var(--tw-accent) !important;
+  background:var(--te-lime-soft,#D3F36B) !important;
+  border-color:var(--te-lime-soft,#D3F36B) !important;
   transform:none !important;
   box-shadow:none !important;
 }
@@ -1005,16 +1019,16 @@ body.tw-page:not(#_) :is(.auto-gen-row label,.auto-gen-row .half>span) {
 }
 body.tw-page:not(#_) .auto-gen-go {
   border-radius:999px !important;
-  background:var(--tw-ink) !important;
-  color:#fff !important;
-  border:1px solid var(--tw-ink) !important;
+  background:var(--te-lime,#CDF940) !important;
+  color:var(--te-ink,#20202C) !important;
+  border:1px solid var(--te-lime,#CDF940) !important;
   box-shadow:none !important;
   font-size:12.5px !important;
   font-weight:650 !important;
 }
 body.tw-page:not(#_) .auto-gen-go:hover {
-  background:var(--tw-accent) !important;
-  border-color:var(--tw-accent) !important;
+  background:var(--te-lime-soft,#D3F36B) !important;
+  border-color:var(--te-lime-soft,#D3F36B) !important;
   box-shadow:none !important;
 }
 body.tw-page:not(#_) .q-item {
