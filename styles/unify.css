@@ -1448,13 +1448,14 @@ body.os-desktop .wg-today-prog {
 }
 
 body.os-desktop .wg-vocab-next {
-  background: linear-gradient(135deg, #5F6B5E, #556056) !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 10px 22px rgba(59,69,60,0.20) !important;
+  background: var(--te-lime, #CDF940) !important;
+  color: var(--te-ink, #20202C) !important;
+  box-shadow: 0 10px 22px rgba(205,249,64,0.28) !important;
 }
 
 body.os-desktop .wg-vocab-next:hover {
-  box-shadow: 0 14px 28px rgba(59,69,60,0.26) !important;
+  background: var(--te-lime-soft, #D3F36B) !important;
+  box-shadow: 0 14px 28px rgba(205,249,64,0.34) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3346,19 +3347,19 @@ body.os-desktop .studio-chip:hover {
   background: transparent !important;
 }
 body.os-desktop .studio-chip.primary {
-  background: #556056 !important;
-  color: #fff !important;
-  border: 1px solid #556056 !important;
+  background: var(--te-lime, #CDF940) !important;
+  color: var(--te-ink, #20202C) !important;
+  border: 1px solid var(--te-lime, #CDF940) !important;
   border-radius: 999px !important;
   padding: 8px 14px !important;
   margin-right: 6px !important;
   text-decoration: none !important;
-  box-shadow: 0 4px 12px rgba(59, 69, 60, .16) !important;
+  box-shadow: 0 4px 12px rgba(205, 249, 64, .30) !important;
 }
 body.os-desktop .studio-chip.primary:hover {
-  background: #465047 !important;
-  border-color: #465047 !important;
-  color: #fff !important;
+  background: var(--te-lime-soft, #D3F36B) !important;
+  border-color: var(--te-lime-soft, #D3F36B) !important;
+  color: var(--te-ink, #20202C) !important;
 }
 
 /* Notes app: harmony paints the "New note" button and the notes sidebar in
