@@ -12496,7 +12496,30 @@ function _ttQuestionCols(count, cardW = 440){
   // this only reshapes the wide cards a generated lesson builds - not every
   // worksheet a teacher already has on a board.
   const fits = Math.floor((cardW - 8 + 12) / (WS_QCOL_MIN + 12));
-  return Math.max(1, Math.min(2, fits));
+  /* No longer capped at 2 - a wide enough card (see _ttOrganicWorksheetWidth)
+     earns as many columns as it can hold, because minimizing HEIGHT beats a
+     fixed column count. Still bounded by the count itself (a column with
+     under ~2 questions in it reads as a scattered sliver, not a grid) and by
+     a flat ceiling of 4 - past that a worksheet stops reading as one sheet a
+     teacher can scan and starts reading as a spreadsheet. */
+  // Matches _ttOrganicWorksheetWidth's own floor: count>=3 already committed
+  // to multi-column, so byCount bottoms out at 2 rather than 1 - otherwise a
+  // count of 3 or 4 asks _ttOrganicWorksheetWidth for a 2-column-wide sheet
+  // and then gets told back here that only 1 column fits it.
+  const byCount = Math.max(2, Math.floor(count / 2));
+  return Math.max(1, Math.min(4, fits, byCount));
+}
+/* How wide a question-list worksheet should be, chosen to minimize the
+   sheet's HEIGHT rather than defaulting to one fixed width regardless of how
+   much content it holds. More questions earn more columns (each
+   WS_QCOL_MIN+gap wide) up to the same count/readability limits
+   _ttQuestionCols enforces - width is derived FROM the column count this
+   picks, so the two never disagree about how many columns fit. */
+function _ttOrganicWorksheetWidth(count) {
+  if (count < 3) return 520;
+  const colUnit = WS_QCOL_MIN + 12;
+  const cols = Math.max(2, Math.min(4, Math.floor(count / 2)));
+  return cols * colUnit - 12 + 8;
 }
 function _ttPlaceWorksheetOnBoard(output){
   const isCards = Array.isArray(output.cards) && output.cards.length > 0;
@@ -13030,7 +13053,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '444';
+const TEACHEDOS_ASSET_VERSION = '445';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14993,18 +15016,18 @@ function runPendingToolMaterialImport() {
         _ttToolId: material.toolId || '',
         _ttSource: String(material.source || '').slice(0, 6000),
       };
-      /* Fixed 520px meant a question list could never reach the 2-up column
-         split _ttQuestionCols already knows how to do - it only kicks in
-         past WS_QCOL_MIN*2+gaps (~670px), so an 8-question quiz from a
-         single tool always rendered as one long single-column ribbon, while
-         the same questions inside a video lesson (built at CARD_W=720) came
-         out compact. Matching that width here instead of guessing a new one
-         puts every generated worksheet - lesson or single tool - through the
-         same column logic. */
+      /* Fixed 520px meant a question list could never reach the column split
+         _ttQuestionCols already knows how to do - it only kicks in past
+         WS_QCOL_MIN*2+gaps (~670px), so an 8-question quiz from a single
+         tool always rendered as one long single-column ribbon. Width now
+         comes from _ttOrganicWorksheetWidth, which sizes the sheet to
+         however many columns the QUESTION COUNT earns (2 to 4) rather than
+         a single guessed width - a short quiz stays narrow, a long one goes
+         wide instead of tall. */
       const w = (struct.boardKind === 'cards' && typeof _packWidth === 'function' && struct.cards)
         ? _packWidth(struct.cards.length)
-        : (Array.isArray(struct.questions) && struct.questions.length >= 3)
-        ? LESSON_GRID.CARD_W
+        : (Array.isArray(struct.questions))
+        ? _ttOrganicWorksheetWidth(struct.questions.length)
         : 520;
       const h = (typeof _ttEstWorksheetHeight === 'function')
         ? _ttEstWorksheetHeight(wsData, w)
