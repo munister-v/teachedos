@@ -12524,8 +12524,14 @@ function _ttOrganicWorksheetWidth(count) {
 function _ttPlaceWorksheetOnBoard(output){
   const isCards = Array.isArray(output.cards) && output.cards.length > 0;
   // Landscape width for Lesson Packs so stages sit in columns instead of one
-  // long vertical scroll; everything else keeps the narrower reading width.
-  const W = isCards ? _packWidth(output.cards.length) : 640;
+  // long vertical scroll; a question list gets however many columns its count
+  // earns (see _ttOrganicWorksheetWidth) instead of a flat 640 that could
+  // never reach _ttQuestionCols' 670px 2-column threshold - a 9-question
+  // "rewrite the sentence" set stayed one narrow column, paginated into
+  // several tall sheets, no matter how many questions it had.
+  const W = isCards ? _packWidth(output.cards.length)
+    : Array.isArray(output.questions) ? _ttOrganicWorksheetWidth(output.questions.length)
+    : 640;
   // Output taller than one card becomes consecutive sheets. Anything that fits
   // comes back as a single-element array holding the original object, so the
   // ordinary case runs exactly the path it always did.
@@ -13053,7 +13059,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '445';
+const TEACHEDOS_ASSET_VERSION = '446';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
