@@ -2402,22 +2402,25 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .card-text .card-body.text-interactive-wrap,
 .card-worksheet .card-body.text-interactive-wrap{padding:0;overflow:hidden;display:flex;flex-direction:column;gap:0;}
 .text-interactive-wrap iframe{flex:1;width:100%;border:none;display:block;min-height:0;}
-/* Interactive card: green left accent border */
+/* Interactive card: a leftover dark teal accent, independent of the brand
+   lime every other generated worksheet uses (renderWorksheet/_buildInteractive-
+   WSHtml both default to WS_ACCENT_LIME) - a card that looked lime on the
+   board opened teal the moment a student pressed Play. */
 .card-text[data-interactive],
-.card-worksheet[data-interactive]{border:1.5px solid #447C6F !important;border-radius:14px;}
+.card-worksheet[data-interactive]{border:1.5px solid #A9C52C !important;border-radius:14px;}
 /* Drag strip - the only grabbable area on an interactive card */
 .ws-drag-strip{
   height:26px;padding:0 10px 0 12px;flex-shrink:0;
   display:flex;align-items:center;
   font:700 11px var(--font);letter-spacing:.05em;
-  color:#fff;background:#447C6F;
+  color:#0E0E10;background:#CDF24F;
   border-radius:12px 12px 0 0;
   cursor:grab;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.ws-drag-strip::before{content:'⠿';margin-right:6px;opacity:.7;font-size:12px;}
+.ws-drag-strip::before{content:'⠿';margin-right:6px;opacity:.6;font-size:12px;}
 .ws-drag-strip span{flex:1;overflow:hidden;text-overflow:ellipsis}
-.ws-back-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:2px 8px;font:700 9px var(--font);cursor:pointer;margin-left:8px;flex-shrink:0}
-.ws-back-btn:hover{background:rgba(255,255,255,.35)}
+.ws-back-btn{background:rgba(14,14,16,.10);border:1px solid rgba(14,14,16,.18);color:#0E0E10;border-radius:6px;padding:2px 8px;font:700 9px var(--font);cursor:pointer;margin-left:8px;flex-shrink:0}
+.ws-back-btn:hover{background:rgba(14,14,16,.18)}
 .ws-play-btn{background:var(--ws-on-accent,var(--accent))!important;color:var(--ws-lime,var(--on-accent))!important;border-color:var(--ws-on-accent,var(--accent))!important}
 .ws-play-btn:hover{opacity:.88}
 /* Регулятор уровня: «−  B1  +» одним блоком, чтобы читалось как одна шкала,

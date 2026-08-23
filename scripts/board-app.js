@@ -3293,7 +3293,14 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const items = Array.isArray(d.items) ? d.items : [];
   const cards = Array.isArray(d.cards) ? d.cards : [];
-  const accent = d.accent || (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]?.color) || '#0E0E10';
+  // Matches renderWorksheet's static view: one shared brand accent (lime),
+  // not BOARD_TOOL_META's per-category rainbow (reading/vocab/writing/
+  // speaking each their own hue) - that system is for the tools sidebar
+  // picker. Play mode building its own accent independently of the static
+  // render is why the two disagreed: a card generated lime on the board
+  // opened teal/orange/whatever its category happened to be once a student
+  // pressed Play.
+  const accent = d.accent || WS_ACCENT_LIME;
   const kind = String(d.kind || '').toLowerCase();
   // Teacher key is only shown to the board owner (students just get correct/wrong
   // feedback after Check). Persisted student state is injected for restore.
@@ -3621,7 +3628,7 @@ strong{font-weight:650}
 /* ── Questions ── */
 .iw-q{display:flex;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid #eaeaf0;border-radius:12px;border-left:3.5px solid ${accent};transition:box-shadow .2s}
 .iw-q:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.iw-qnum{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:${accent};color:#fff;display:flex;align-items:center;justify-content:center;font:800 12px monospace}
+.iw-qnum{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:${accent};color:${WS_ACCENT_INK};display:flex;align-items:center;justify-content:center;font:800 12px monospace}
 .iw-qbody{flex:1;min-width:0}
 .iw-qtext{font-size:13.5px;font-weight:650;margin-bottom:8px;line-height:1.5;white-space:pre-line}
 /* MCQ */
@@ -3650,11 +3657,11 @@ strong{font-weight:650}
 /* Matching D&D */
 .iw-match{display:flex;gap:16px;flex-wrap:wrap}
 .iw-match-bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:8px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;flex:1}
-.iw-drag{padding:6px 14px;border-radius:8px;background:${accent};color:#fff;font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
+.iw-drag{padding:6px 14px;border-radius:8px;background:${accent};color:${WS_ACCENT_INK};font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
 .iw-drag:active{cursor:grabbing;transform:scale(1.06)}
 .iw-drag.placed{opacity:.35;pointer-events:none}
-.iw-drag.sort-correct{background:#16a34a!important;opacity:1!important}
-.iw-drag.sort-wrong{background:#dc2626!important;opacity:1!important}
+.iw-drag.sort-correct{background:#16a34a!important;color:#fff!important;opacity:1!important}
+.iw-drag.sort-wrong{background:#dc2626!important;color:#fff!important;opacity:1!important}
 .iw-match-targets{flex:1.2;display:flex;flex-direction:column;gap:6px}
 .iw-target{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1.5px solid #e4e5ec;border-radius:10px;min-height:38px;transition:all .2s}
 .iw-target.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff);box-shadow:0 0 0 2px color-mix(in srgb,${accent} 20%,transparent)}
@@ -3684,7 +3691,7 @@ strong{font-weight:650}
 .iw-flash-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
 .iw-flash.flipped .iw-flash-inner{transform:rotateY(180deg)}
 .iw-flash-front,.iw-flash-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center}
-.iw-flash-front{background:linear-gradient(135deg,${accent},#6366f1);color:#fff;border:none}
+.iw-flash-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#0E0E10));color:${WS_ACCENT_INK};border:none}
 .iw-flash-num{font:800 10px monospace;opacity:.6;margin-bottom:4px}
 .iw-flash-word{font:800 16px system-ui;letter-spacing:-.02em}
 .iw-flash-back{background:#f0fdf4;border:1.5px solid #a7e3bd;transform:rotateY(180deg)}
@@ -3694,7 +3701,7 @@ strong{font-weight:650}
 .iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
 .iw-card-flip.flipped .iw-card-inner{transform:rotateY(180deg)}
 .iw-card-front,.iw-card-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.iw-card-front{background:linear-gradient(135deg,#f97316,#f59e0b);color:#fff}
+.iw-card-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#0E0E10));color:${WS_ACCENT_INK}}
 .iw-card-num{font:800 10px monospace;opacity:.5;margin-bottom:4px}
 .iw-card-title{font:800 15px system-ui}
 .iw-card-hint{font:11px system-ui;opacity:.6;margin-top:6px}
@@ -13059,7 +13066,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '446';
+const TEACHEDOS_ASSET_VERSION = '447';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
