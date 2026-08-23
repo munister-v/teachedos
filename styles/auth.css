@@ -113,7 +113,7 @@
 /* ── Input fields ────────────────────────────────────────────── */
 .auth-field-wrap { position: relative; margin-bottom: 11px; }
 .auth-inp {
-  width: 100%; padding: 13px 16px; padding-right: 44px;
+  width: 100%; padding: 13px 16px;
   border: 1.5px solid var(--auth-border); border-radius: var(--auth-radius);
   font-family: inherit; font-size: .95rem; font-weight: 600; color: var(--auth-ink);
   outline: none; background: var(--auth-bg-field);
@@ -125,14 +125,23 @@
   box-shadow: 0 0 0 3px rgba(205,242,79,.28);
 }
 .auth-inp::placeholder { color: var(--auth-ink3); font-weight: 500; }
-/* No eye button for non-password fields */
-.auth-field-wrap:not(.has-toggle) .auth-inp { padding-right: 16px; }
+/* Only the password field's own input needs room for the eye button - the
+   markup never actually adds a "has-toggle" class the old selector here
+   was keyed on, so that rule never matched and every field (including the
+   password one) got the same 16px, letting long input text run under the
+   eye icon. */
+.auth-password-field .auth-inp { padding-right: 44px; }
 .auth-field-label{display:block;margin:0 0 5px;color:var(--auth-ink2);font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;text-transform:uppercase;}
 .auth-password-help{margin:6px 1px 0;color:var(--auth-ink2);font-size:11px;font-weight:650;line-height:1.4;}
 .auth-password-help.needs-input{color:#9A5B12;}
 .auth-password-help.ready{color:#166534;}
 
 /* ── Password eye toggle ─────────────────────────────────────── */
+/* Positioned against .auth-pass-wrap (just the input), not the outer
+   .auth-field-wrap (label + input + help text below it) - centering
+   against the taller wrapper is what pushed the button down into the
+   Forgot-password link underneath it. */
+.auth-pass-wrap { position: relative; }
 .auth-eye {
   position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
   width: 44px; height: 44px; border: none; background: none; cursor: pointer;
@@ -141,7 +150,6 @@
 }
 .auth-eye:hover { color: var(--auth-ink2); background: rgba(14,14,16,.06); }
 .auth-eye svg { width: 18px; height: 18px; pointer-events: none; }
-.auth-field-wrap.has-toggle > .auth-eye{top:39px;}
 
 /* ── Submit button ───────────────────────────────────────────── */
 .auth-btn {
