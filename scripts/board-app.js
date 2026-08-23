@@ -10102,6 +10102,12 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
        simply repacks once every card has settled; without it the generated
        lesson kept the estimate's empty tails under the shorter cards. */
     const relayout = () => {
+      // The Play switch below can beat this to the punch if the tab is busy
+      // (both are macrotask timers; expiry order is normally enough, but
+      // "normally" is not a guarantee). Bail rather than re-pack an already
+      // play-mode frame at the plan width - that would resize every card back
+      // toward 720px under cards that are now the fixed 480px stepper size.
+      if (frame && (frame.data._mode === 'play' ? 'play' : 'plan') !== 'plan') return;
       let below = null;
       if (frame && gridCardIds.length) {
         below = _relayoutLessonFrame(frame.id, gridCardIds,
@@ -10120,8 +10126,17 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
        after the plan grid above has packed and settled: setLessonFrameMode
        activates each worksheet and relays the frame out at PLAY_CARD_W, and
        doing that against unsettled/estimated heights would just move the
-       overlap bug into the play layout instead of fixing it. */
-    if (frame) setTimeout(() => { try { setLessonFrameMode(frame.id, 'play'); } catch (e) {} }, 260);
+       overlap bug into the play layout instead of fixing it. Comfortably
+       after the last plan-relayout timer (180ms) rather than right on top of
+       it, so ordering does not depend on both timers firing in the same tick. */
+    if (frame) setTimeout(() => {
+      try { setLessonFrameMode(frame.id, 'play'); } catch (e) {}
+      // The 80ms zoom-to-fit above framed the plan-size frame (720px cards) -
+      // right after this call it shrinks to the play grid (480px cards), which
+      // would leave the view zoomed out around a frame that no longer fills
+      // it. Re-fit once the mode switch's own relayout (rAF + 140ms) settles.
+      setTimeout(() => { try { zoomToCard?.(frame.id, true); } catch (e) {} }, 200);
+    }, 420);
   }
   scheduleSave?.(); saveLocal?.();
   // The toast fades after 1.8s, so it is the nudge, not the record - the frame
@@ -13015,7 +13030,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '440';
+const TEACHEDOS_ASSET_VERSION = '441';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
