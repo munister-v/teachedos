@@ -623,15 +623,15 @@ const WGM = (function () {
     w.appendChild(closeBtn);
 
     let drag = null;
-    w.addEventListener('mousedown', e => {
-      if (e.target === closeBtn || e.target.closest('button:not(.widget-close)')) return;
+    const dragStart = (cx, cy, target) => {
+      if (target === closeBtn || target.closest?.('button:not(.widget-close)')) return false;
       const r = w.getBoundingClientRect();
-      drag = { ox: e.clientX, oy: e.clientY, wx: r.left, wy: r.top, moved: false };
-      e.preventDefault();
-    });
-    document.addEventListener('mousemove', e => {
+      drag = { ox: cx, oy: cy, wx: r.left, wy: r.top, moved: false };
+      return true;
+    };
+    const dragMove = (cx, cy) => {
       if (!drag) return;
-      const dx = e.clientX - drag.ox, dy = e.clientY - drag.oy;
+      const dx = cx - drag.ox, dy = cy - drag.oy;
       if (!drag.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
       drag.moved = true;
       w.classList.add('wg-dragging');
@@ -642,8 +642,8 @@ const WGM = (function () {
       w.style.left = x + 'px';
       w.style.top = y + 'px';
       w.style.right = 'auto';
-    });
-    document.addEventListener('mouseup', () => {
+    };
+    const dragEnd = () => {
       if (!drag) return;
       if (drag.moved) {
         w.classList.remove('wg-dragging');
@@ -653,7 +653,33 @@ const WGM = (function () {
         persist();
       }
       drag = null;
+    };
+
+    w.addEventListener('mousedown', e => {
+      if (dragStart(e.clientX, e.clientY, e.target)) e.preventDefault();
     });
+    document.addEventListener('mousemove', e => dragMove(e.clientX, e.clientY));
+    document.addEventListener('mouseup', dragEnd);
+
+    // Touch: same free left/top drag as mouse, so widgets are repositionable
+    // on tablets/touchscreens too (previously mouse-only - touch did nothing).
+    w.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      if (!t) return;
+      if (dragStart(t.clientX, t.clientY, e.target)) {
+        // Only claim the gesture once it turns into an actual drag - matches
+        // the mouse threshold so a plain tap still lets buttons/links work.
+      }
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (!drag) return;
+      const t = e.touches[0];
+      if (!t) return;
+      dragMove(t.clientX, t.clientY);
+      if (drag.moved) e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchend', dragEnd);
+    document.addEventListener('touchcancel', dragEnd);
   }
 
   function init() {
