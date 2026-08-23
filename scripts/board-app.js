@@ -451,6 +451,13 @@ function fitAll(animate) {
   const pw=boardWrap.clientWidth, ph=boardWrap.clientHeight;
   const cw=maxX-minX, ch=maxY-minY;
   if (cw <= 0 || ch <= 0) return;
+  /* Не считать по неизмеренному вьюпорту. Пока #board-wrap не разложен
+     (вкладка в фоне, элемент ещё скрыт, вызов до первого layout), clientWidth
+     равен нулю - и тогда (0 - PAD*2)/cw уходит в минус, Math.max ниже
+     подставляет floor 0.08, и весь холст ужимается до 8%: карточки на месте,
+     но выглядят пылью, а доска - пустой. Ровно так и сломалось открытие
+     досок. Лучше не двигать камеру вовсе, чем увести её в никуда. */
+  if (pw < 50 || ph < 50) return;
   const maxScale = phone ? 1.18 : 2;
   const targetScale = Math.min(maxScale, Math.max(0.08, Math.min((pw-PAD*2)/cw, (ph-PAD*2)/ch)));
   const targetPanX = (pw-cw*targetScale)/2 - minX*targetScale;
@@ -13183,7 +13190,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '451';
+const TEACHEDOS_ASSET_VERSION = '452';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14590,8 +14597,10 @@ function loadBoard() {
     applyTransform();
     // Same recovery as loadBoardData: a saved camera framed for a different
     // viewport (desktop board opened on a phone) can leave every card off
-    // whatever direction the narrower screen doesn't reach.
-    if (state.cards.length) {
+    // whatever direction the narrower screen doesn't reach. Только по
+    // измеренному вьюпорту: при нулевой ширине ни одна карточка не попадает
+    // в «видимое», и спасение срабатывало там, где спасать нечего.
+    if (state.cards.length && boardWrap.clientWidth > 50 && boardWrap.clientHeight > 50) {
       const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
       const onScreen = state.cards.some(c => {
         const x = c.x * state.scale + state.pan.x, y = c.y * state.scale + state.pan.y;
@@ -15901,8 +15910,14 @@ function loadBoardData(data) {
      Recover once, right after restoring the saved camera: if literally
      nothing on the board falls inside the viewport, the saved position
      cannot be useful regardless of why it drifted, so refit instead of
-     leaving the teacher staring at blank canvas. */
-  if (state.cards.length) {
+     leaving the teacher staring at blank canvas.
+
+     ТОЛЬКО по измеренному вьюпорту. Без этой проверки на неразложенном
+     #board-wrap (clientWidth = 0) условие «не видно ни одной карточки»
+     истинно всегда, fitAll получал отрицательный масштаб, упирался в floor
+     0.08 - и доска с карточками открывалась как пустой холст. Именно так
+     это и сломалось в проде. */
+  if (state.cards.length && boardWrap.clientWidth > 50 && boardWrap.clientHeight > 50) {
     const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
     const onScreen = state.cards.some(c => {
       const x = c.x * state.scale + state.pan.x, y = c.y * state.scale + state.pan.y;
