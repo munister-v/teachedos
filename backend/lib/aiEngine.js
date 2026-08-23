@@ -649,6 +649,21 @@ function shapeSpec(input) {
     };
   }
 
+  /* АНТИ-ШАБЛОННІСТЬ ДЛЯ КАРТКОВИХ ІНСТРУМЕНТІВ.
+
+     ~20 інструментів нижче мають форму «поверни N карток із такими
+     заголовками» - і саме тому, на відміну від quiz/matching вище, у них
+     ніколи не було жодного правила проти узагальненого наповнення. Модель
+     охоче писала вступ, який годиться для будь-якої теми ("This is an
+     interesting topic to discuss", "Let's explore this further") замість
+     контенту, прив'язаного до "${topic}" - і картка технічно відповідала
+     схемі, лишаючись порожньою по суті. Один спільний рядок замість
+     дублювання того самого застереження в кожному з 20 промптів; де
+     інструмент уже має власні детальні вимоги (lesson-pack, worksheet-builder),
+     цей рядок лише підсилює те, що там і так вимагається. */
+  const CARDS_DEPTH = 'Every card must be concretely about the topic - a fact, phrase, example or detail specific to it, never a generic sentence that could describe any topic. Do not open with throat-clearing ("This is an interesting topic...", "Let\'s explore..."); start each card with real content.';
+  const cardsHead = `${head} ${CARDS_DEPTH}`;
+
   // boardKind === 'cards' (lesson packs, worksheets, texts, dialogues, etc.)
   if (toolId === 'simplify-text') {
     const mode = input.action === 'upgrade' ? 'rewrite at a higher level with richer vocabulary and connectors'
@@ -661,50 +676,50 @@ function shapeSpec(input) {
   }
   if (toolId === 'text-topic-vocab') {
     return {
-      task: `${head} Write a leveled reading text (about ${words} words, 2-4 natural paragraphs) at ${level} level that NATURALLY uses EVERY target word/phrase from the vocabulary list in context - mark each target word in **bold** the first time it appears, and do not force them awkwardly.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - every target word, one per line as "word - short ${level} definition"; 3) "Before reading" - 2 prediction/lead-in questions; 4) "After reading" - 3 comprehension questions that check the target words in context. Put all target words in "vocab".${context}`,
+      task: `${cardsHead} Write a leveled reading text (about ${words} words, 2-4 natural paragraphs) at ${level} level that NATURALLY uses EVERY target word/phrase from the vocabulary list in context - mark each target word in **bold** the first time it appears, and do not force them awkwardly.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - every target word, one per line as "word - short ${level} definition"; 3) "Before reading" - 2 prediction/lead-in questions; 4) "After reading" - 3 comprehension questions that check the target words in context. Put all target words in "vocab".${context}`,
       schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word - definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …\\n3. …"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'summary-task') {
     return {
-      task: `${head} Read the source text and build a summarising worksheet at ${level} level. Return cards in this order: 1) "🎯 Main idea" - ONE sentence capturing the central point; 2) "🔑 Key details" - 4-6 of the most important supporting points, one per line as "• …"; 3) "✍️ Your summary" - a guided frame for the student to write a 40-60 word summary, with 2-3 sentence starters (one per line); 4) "✅ Model summary" - a teacher model summary of 40-60 words. Put key words in "vocab".${context}`,
+      task: `${cardsHead} Read the source text and build a summarising worksheet at ${level} level. Return cards in this order: 1) "🎯 Main idea" - ONE sentence capturing the central point; 2) "🔑 Key details" - 4-6 of the most important supporting points, one per line as "• …"; 3) "✍️ Your summary" - a guided frame for the student to write a 40-60 word summary, with 2-3 sentence starters (one per line); 4) "✅ Model summary" - a teacher model summary of 40-60 words. Put key words in "vocab".${context}`,
       schema: '{"cards":[{"title":"🎯 Main idea","text":"…"},{"title":"🔑 Key details","text":"• …\\n• …"},{"title":"✍️ Your summary","text":"Write 40-60 words.\\nStart: \\"The text is about…\\"\\n…"},{"title":"✅ Model summary","text":"…"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'generate-text') {
     return {
-      task: `${head} Write an original, engaging reading text on this topic at ${level} level (about ${words} words, 2-4 natural paragraphs). Use vocabulary and grammar appropriate to ${level}.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - 6-8 key words from the text, one per line as "word - short ${level} definition"; 3) "Before reading" - 2-3 prediction/lead-in questions; 4) "After reading" - 3-4 comprehension + discussion questions. Put the glossary words in "vocab".${context}`,
+      task: `${cardsHead} Write an original, engaging reading text on this topic at ${level} level (about ${words} words, 2-4 natural paragraphs). Use vocabulary and grammar appropriate to ${level}.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - 6-8 key words from the text, one per line as "word - short ${level} definition"; 3) "Before reading" - 2-3 prediction/lead-in questions; 4) "After reading" - 3-4 comprehension + discussion questions. Put the glossary words in "vocab".${context}`,
       schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word - definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'sentences-vocab') {
     return {
-      task: `${head} For EACH target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return exactly one card per target word - do NOT invent extra words: "title" = the word, "text" = the example sentence with the target word in **bold**. Put all target words in "vocab".${context}`,
+      task: `${cardsHead} For EACH target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return exactly one card per target word - do NOT invent extra words: "title" = the word, "text" = the example sentence with the target word in **bold**. Put all target words in "vocab".${context}`,
       schema: '{"cards":[{"title":"target word","text":"Example sentence with **word**."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'comm-situations') {
     return {
-      task: `${head} Create ${count} short communicative situations that show the target vocabulary in use. Return one card per situation: "title" = the real-life situation, "text" = a natural 2-line mini-dialogue formatted "A: ...\\nB: ..." that uses a target word at ${level} level. Put the target words in "vocab".${context}`,
+      task: `${cardsHead} Create ${count} short communicative situations that show the target vocabulary in use. Return one card per situation: "title" = the real-life situation, "text" = a natural 2-line mini-dialogue formatted "A: ...\\nB: ..." that uses a target word at ${level} level. Put the target words in "vocab".${context}`,
       schema: '{"cards":[{"title":"situation","text":"A: ...\\nB: ..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'rephrase-word') {
     return {
-      task: `${head} Create ${count} rephrasing tasks: give a sentence and ONE key word the student must use to rewrite it keeping the same meaning. Return one card per task: "title" = "Use: KEYWORD", "text" = the original sentence. End with ONE extra card titled "Answer key" listing the model rewrites, numbered. Keep everything at ${level} level.${context}`,
+      task: `${cardsHead} Create ${count} rephrasing tasks: give a sentence and ONE key word the student must use to rewrite it keeping the same meaning. Return one card per task: "title" = "Use: KEYWORD", "text" = the original sentence. End with ONE extra card titled "Answer key" listing the model rewrites, numbered. Keep everything at ${level} level.${context}`,
       schema: '{"cards":[{"title":"Use: KEYWORD","text":"Original sentence."},{"title":"Answer key","text":"1. ... 2. ..."}],"vocab":["KEYWORD"]}',
     };
   }
   if (toolId === 'grammar-rules') {
     return {
-      task: `${head} Explain the target grammar point clearly for a ${level} learner as 4 cards in this order: "Rule" (concise explanation + form), "Examples" (3-5 model sentences), "Common mistakes" (typical errors + the fix), "Practice" (3-5 short practice prompts with answers). Put key terms in "vocab".${context}`,
+      task: `${cardsHead} Explain the target grammar point clearly for a ${level} learner as 4 cards in this order: "Rule" (concise explanation + form), "Examples" (3-5 model sentences), "Common mistakes" (typical errors + the fix), "Practice" (3-5 short practice prompts with answers). Put key terms in "vocab".${context}`,
       schema: '{"cards":[{"title":"Rule","text":"..."},{"title":"Examples","text":"..."},{"title":"Common mistakes","text":"..."},{"title":"Practice","text":"..."}],"vocab":["term"]}',
     };
   }
   // ── Listening ────────────────────────────────────────────────────────────────
   if (toolId === 'transcript-helper') {
     return {
-      task: `${head} From the transcript / notes create exactly 4 classroom cards in this order: 1) "Pre-listening vocab" - 5-6 key words with short student-friendly definitions; 2) "While-listening task" - one clear focus task to do while listening; 3) "Post-listening questions" - 4-5 comprehension questions; 4) "Speaking follow-up" - 2-3 open discussion prompts. Include a "vocab" list of the key words.${context}`,
+      task: `${cardsHead} From the transcript / notes create exactly 4 classroom cards in this order: 1) "Pre-listening vocab" - 5-6 key words with short student-friendly definitions; 2) "While-listening task" - one clear focus task to do while listening; 3) "Post-listening questions" - 4-5 comprehension questions; 4) "Speaking follow-up" - 2-3 open discussion prompts. Include a "vocab" list of the key words.${context}`,
       schema: '{"cards":[{"title":"Pre-listening vocab","text":"word - definition\\n..."},{"title":"While-listening task","text":"..."},{"title":"Post-listening questions","text":"1. ...\\n2. ..."},{"title":"Speaking follow-up","text":"1. ...\\n2. ..."}],"vocab":["word"]}',
     };
   }
@@ -712,25 +727,25 @@ function shapeSpec(input) {
   // ── Speaking ─────────────────────────────────────────────────────────────────
   if (toolId === 'dialogue') {
     return {
-      task: `${head} Write a natural 8-12 line conversation between Speaker A and Speaker B at ${level} level. Use target vocabulary (mark key phrases in **bold**). Return 3 cards: 1) "Dialogue" - full conversation formatted "A: ...\\nB: ..."; 2) "Useful language" - 5-6 key phrases with brief explanations (one per line: phrase - meaning); 3) "Extension task" - a speaking or writing follow-up activity. Include "vocab" list.${context}`,
+      task: `${cardsHead} Write a natural 8-12 line conversation between Speaker A and Speaker B at ${level} level. Use target vocabulary (mark key phrases in **bold**). Return 3 cards: 1) "Dialogue" - full conversation formatted "A: ...\\nB: ..."; 2) "Useful language" - 5-6 key phrases with brief explanations (one per line: phrase - meaning); 3) "Extension task" - a speaking or writing follow-up activity. Include "vocab" list.${context}`,
       schema: '{"cards":[{"title":"Dialogue","text":"A: ...\\nB: ..."},{"title":"Useful language","text":"phrase - meaning\\n..."},{"title":"Extension task","text":"..."}],"vocab":["phrase"]}',
     };
   }
   if (toolId === 'lead-in') {
     return {
-      task: `${head} Design 3-4 warm-up activities (5-7 min total) to introduce the topic. One card per activity, variety required: brainstorm / picture description / quick poll / personal connection / prediction. Each card "title" = activity type + number, "text" = clear teacher instruction + expected student output. Include "vocab" of useful preview words.${context}`,
+      task: `${cardsHead} Design 3-4 warm-up activities (5-7 min total) to introduce the topic. One card per activity, variety required: brainstorm / picture description / quick poll / personal connection / prediction. Each card "title" = activity type + number, "text" = clear teacher instruction + expected student output. Include "vocab" of useful preview words.${context}`,
       schema: '{"cards":[{"title":"Activity 1: Brainstorm","text":"..."},{"title":"Activity 2: Quick poll","text":"..."},{"title":"Activity 3: Prediction","text":"..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'interesting-facts') {
     return {
-      task: `${head} Generate 5-6 surprising, engaging facts about the topic suitable for ${level} learners. Each card: "title" = "Fact N: [short hook]", "text" = the fact in 2-3 sentences followed by "💬 Discussion: [open question]". Make facts real or plausible. Include "vocab" of interesting topic words.${context}`,
+      task: `${cardsHead} Generate 5-6 surprising, engaging facts about the topic suitable for ${level} learners. Each card: "title" = "Fact N: [short hook]", "text" = the fact in 2-3 sentences followed by "💬 Discussion: [open question]". Make facts real or plausible. Include "vocab" of interesting topic words.${context}`,
       schema: '{"cards":[{"title":"Fact 1: ...","text":"Interesting fact text.\\n💬 Discussion: open question?"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'pros-cons') {
     return {
-      task: `${head} Produce 3 cards for debate/writing: 1) "Pros" - 5 arguments in favour, each on its own line starting "N. ..."; 2) "Cons" - 5 arguments against, same format; 3) "Discussion starter" - 2-3 nuanced questions to open debate. Language at ${level} level. Include "vocab" of useful discourse markers and opinion phrases.${context}`,
+      task: `${cardsHead} Produce 3 cards for debate/writing: 1) "Pros" - 5 arguments in favour, each on its own line starting "N. ..."; 2) "Cons" - 5 arguments against, same format; 3) "Discussion starter" - 2-3 nuanced questions to open debate. Language at ${level} level. Include "vocab" of useful discourse markers and opinion phrases.${context}`,
       schema: '{"cards":[{"title":"Pros","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Cons","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Discussion starter","text":"1. ...\\n2. ..."}],"vocab":["discourse marker"]}',
     };
   }
@@ -738,31 +753,31 @@ function shapeSpec(input) {
   // ── Writing ──────────────────────────────────────────────────────────────────
   if (toolId === 'link-words') {
     return {
-      task: `${head} Choose 5-7 target words/phrases from the topic. Return 3 cards: 1) "Task" - instruction to write sentences or a short paragraph using ALL the words; 2) "Word list" - each word with a one-line usage note; 3) "Model answer" - a short model paragraph using all words (target words in **bold**) plus 2-3 writing tips. Include "vocab" list.${context}`,
+      task: `${cardsHead} Choose 5-7 target words/phrases from the topic. Return 3 cards: 1) "Task" - instruction to write sentences or a short paragraph using ALL the words; 2) "Word list" - each word with a one-line usage note; 3) "Model answer" - a short model paragraph using all words (target words in **bold**) plus 2-3 writing tips. Include "vocab" list.${context}`,
       schema: '{"cards":[{"title":"Task","text":"..."},{"title":"Word list","text":"word - usage note\\n..."},{"title":"Model answer","text":"Model paragraph.\\n\\nTips:\\n1. ..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'creative-writing') {
     return {
-      task: `${head} Create a creative writing task at ${level} level. Return 4 cards: 1) "Writing prompt" - an engaging scenario or question; 2) "Requirements" - 3 clear requirements (text type, length, vocabulary to include); 3) "Useful phrases" - 5-6 phrases with brief usage notes; 4) "Model opener" - first 2-3 sentences as a model. Include "vocab" list.${context}`,
+      task: `${cardsHead} Create a creative writing task at ${level} level. Return 4 cards: 1) "Writing prompt" - an engaging scenario or question; 2) "Requirements" - 3 clear requirements (text type, length, vocabulary to include); 3) "Useful phrases" - 5-6 phrases with brief usage notes; 4) "Model opener" - first 2-3 sentences as a model. Include "vocab" list.${context}`,
       schema: '{"cards":[{"title":"Writing prompt","text":"..."},{"title":"Requirements","text":"1. ...\\n2. ...\\n3. ..."},{"title":"Useful phrases","text":"phrase - use\\n..."},{"title":"Model opener","text":"..."}],"vocab":["phrase"]}',
     };
   }
   if (toolId === 'four-opinions') {
     return {
-      task: `${head} Write 4 contrasting opinions on the topic for debate or response writing at ${level} level. Return one card per opinion: 1) "Strongly agree" - confident, direct; 2) "Partially agree" - nuanced, with a concession; 3) "Disagree" - clear counterargument; 4) "Provocative" - surprising or extreme view to spark debate. Include "vocab" of opinion/hedging phrases.${context}`,
+      task: `${cardsHead} Write 4 contrasting opinions on the topic for debate or response writing at ${level} level. Return one card per opinion: 1) "Strongly agree" - confident, direct; 2) "Partially agree" - nuanced, with a concession; 3) "Disagree" - clear counterargument; 4) "Provocative" - surprising or extreme view to spark debate. Include "vocab" of opinion/hedging phrases.${context}`,
       schema: '{"cards":[{"title":"Strongly agree","text":"..."},{"title":"Partially agree","text":"..."},{"title":"Disagree","text":"..."},{"title":"Provocative","text":"..."}],"vocab":["opinion phrase"]}',
     };
   }
   if (toolId === 'find-quotes') {
     return {
-      task: `${head} Select or compose 5-6 quotes on the topic (real or plausible, varied viewpoints). Each card: "title" = "Author Name", "text" = the quote in quotation marks + a blank line + "💬 " + an open discussion question. Include "vocab" of key concepts from the quotes.${context}`,
+      task: `${cardsHead} Select or compose 5-6 quotes on the topic (real or plausible, varied viewpoints). Each card: "title" = "Author Name", "text" = the quote in quotation marks + a blank line + "💬 " + an open discussion question. Include "vocab" of key concepts from the quotes.${context}`,
       schema: '{"cards":[{"title":"Author Name","text":"\\"Quote text.\\"\\n\\n💬 Discussion question?"}],"vocab":["concept"]}',
     };
   }
   if (toolId === 'essay-topics') {
     return {
-      task: `${head} Generate 5-6 essay prompts for ${level} learners covering different essay types. Each card: "title" = essay type (Argumentative / Discursive / Opinion / Problem-solution / Compare & contrast), "text" = the full prompt + "\\n\\n📋 Structure: " + 3-point outline + "\\n📝 Key vocabulary: " + 4-5 useful terms. Include "vocab" list.${context}`,
+      task: `${cardsHead} Generate 5-6 essay prompts for ${level} learners covering different essay types. Each card: "title" = essay type (Argumentative / Discursive / Opinion / Problem-solution / Compare & contrast), "text" = the full prompt + "\\n\\n📋 Structure: " + 3-point outline + "\\n📝 Key vocabulary: " + 4-5 useful terms. Include "vocab" list.${context}`,
       schema: '{"cards":[{"title":"Argumentative","text":"Essay prompt.\\n\\n📋 Structure: Introduction → Main arguments (2-3) → Conclusion\\n📝 Key vocabulary: term1, term2, term3"}],"vocab":["term"]}',
     };
   }
@@ -770,13 +785,13 @@ function shapeSpec(input) {
   // ── Writing ──────────────────────────────────────────────────────────────────
   if (toolId === 'essay-outline') {
     return {
-      task: `${head} Build a complete essay outline at ${level} level. Return cards: 1) "Essay question" - a clear prompt; 2) "Thesis statement" - a model thesis; 3) "Introduction" - hook + background + thesis plan; 4) "Body paragraph 1/2/3" - one card each with topic sentence + supporting points + example; 5) "Conclusion" - restate + final thought. Include "vocab" of useful linking/academic phrases.${context}`,
+      task: `${cardsHead} Build a complete essay outline at ${level} level. Return cards: 1) "Essay question" - a clear prompt; 2) "Thesis statement" - a model thesis; 3) "Introduction" - hook + background + thesis plan; 4) "Body paragraph 1/2/3" - one card each with topic sentence + supporting points + example; 5) "Conclusion" - restate + final thought. Include "vocab" of useful linking/academic phrases.${context}`,
       schema: '{"cards":[{"title":"Essay question","text":"..."},{"title":"Thesis statement","text":"..."},{"title":"Introduction","text":"..."},{"title":"Body paragraph 1","text":"Topic sentence: ...\\nSupport: ...\\nExample: ..."},{"title":"Conclusion","text":"..."}],"vocab":["linking phrase"]}',
     };
   }
   if (toolId === 'email-reply') {
     return {
-      task: `${head} Create an email-writing task at ${level} level. Return cards: 1) "The email" - a short prompt email the student must reply to; 2) "Your task" - what to include in the reply + register (formal/informal); 3) "Useful phrases" - opening, body and closing phrases for this register; 4) "Model reply" - a complete sample answer. Include "vocab" of functional phrases.${context}`,
+      task: `${cardsHead} Create an email-writing task at ${level} level. Return cards: 1) "The email" - a short prompt email the student must reply to; 2) "Your task" - what to include in the reply + register (formal/informal); 3) "Useful phrases" - opening, body and closing phrases for this register; 4) "Model reply" - a complete sample answer. Include "vocab" of functional phrases.${context}`,
       schema: '{"cards":[{"title":"The email","text":"..."},{"title":"Your task","text":"..."},{"title":"Useful phrases","text":"Opening: ...\\nBody: ...\\nClosing: ..."},{"title":"Model reply","text":"..."}],"vocab":["phrase"]}',
     };
   }
@@ -784,13 +799,13 @@ function shapeSpec(input) {
   // ── Speaking ─────────────────────────────────────────────────────────────────
   if (toolId === 'roleplay-cards') {
     return {
-      task: `${head} Create a role-play at ${level} level. Return cards: 1) "Situation" - the scenario + goal; 2) "Role A" - who they are, their aim and 2-3 things to say; 3) "Role B" - the contrasting role, aim and 2-3 things to say; 4) "Useful language" - functional phrases for this interaction; 5) "Extension" - a follow-up speaking task. Include "vocab".${context}`,
+      task: `${cardsHead} Create a role-play at ${level} level. Return cards: 1) "Situation" - the scenario + goal; 2) "Role A" - who they are, their aim and 2-3 things to say; 3) "Role B" - the contrasting role, aim and 2-3 things to say; 4) "Useful language" - functional phrases for this interaction; 5) "Extension" - a follow-up speaking task. Include "vocab".${context}`,
       schema: '{"cards":[{"title":"Situation","text":"..."},{"title":"Role A","text":"..."},{"title":"Role B","text":"..."},{"title":"Useful language","text":"..."},{"title":"Extension","text":"..."}],"vocab":["phrase"]}',
     };
   }
   if (toolId === 'debate-cards') {
     return {
-      task: `${head} Create debate material at ${level} level. Return cards: 1) "Motion" - a clear debate statement; 2) "For - arguments" - 4-5 supporting points with brief evidence; 3) "Against - arguments" - 4-5 opposing points; 4) "Rebuttals" - how each side answers the other; 5) "Useful language" - phrases for arguing, conceding and rebutting. Include "vocab".${context}`,
+      task: `${cardsHead} Create debate material at ${level} level. Return cards: 1) "Motion" - a clear debate statement; 2) "For - arguments" - 4-5 supporting points with brief evidence; 3) "Against - arguments" - 4-5 opposing points; 4) "Rebuttals" - how each side answers the other; 5) "Useful language" - phrases for arguing, conceding and rebutting. Include "vocab".${context}`,
       schema: '{"cards":[{"title":"Motion","text":"..."},{"title":"For - arguments","text":"1. ...\\n2. ..."},{"title":"Against - arguments","text":"1. ...\\n2. ..."},{"title":"Rebuttals","text":"..."},{"title":"Useful language","text":"..."}],"vocab":["phrase"]}',
     };
   }
@@ -840,39 +855,39 @@ function shapeSpec(input) {
   }
   if (toolId === 'homework-set') {
     return {
-      task: `${head} Create a homework assignment at ${level} level. Return cards: "Brief" - what to do and why; "Tasks" - 3-4 numbered tasks of increasing challenge; "Success criteria" - what a good answer includes; "Self-check" - a short checklist. Include "vocab".${context}`,
+      task: `${cardsHead} Create a homework assignment at ${level} level. Return cards: "Brief" - what to do and why; "Tasks" - 3-4 numbered tasks of increasing challenge; "Success criteria" - what a good answer includes; "Self-check" - a short checklist. Include "vocab".${context}`,
       schema: '{"cards":[{"title":"Brief","text":"..."},{"title":"Tasks","text":"1. ...\\n2. ..."},{"title":"Success criteria","text":"..."},{"title":"Self-check","text":"✅ ...\\n✅ ..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'rubric-maker') {
     return {
-      task: `${head} Create an assessment rubric for this task at ${level} level. Return one card per criterion (e.g. Task achievement, Coherence, Vocabulary, Grammar, Pronunciation/Spelling). Each card "text" describes what Excellent / Good / Needs work looks like for that criterion. End with a "How to use" card.${context}`,
+      task: `${cardsHead} Create an assessment rubric for this task at ${level} level. Return one card per criterion (e.g. Task achievement, Coherence, Vocabulary, Grammar, Pronunciation/Spelling). Each card "text" describes what Excellent / Good / Needs work looks like for that criterion. End with a "How to use" card.${context}`,
       schema: '{"cards":[{"title":"Task achievement","text":"Excellent: ...\\nGood: ...\\nNeeds work: ..."},{"title":"How to use","text":"..."}],"vocab":["criterion"]}',
     };
   }
   if (toolId === 'answer-key') {
     return {
-      task: `${head} Produce a teacher answer key for the exercise in the source text. Return cards: "Answers" - numbered correct answers; "Distractor notes" - why common wrong options are wrong; "Common errors" - mistakes to watch for and how to fix them.${context}`,
+      task: `${cardsHead} Produce a teacher answer key for the exercise in the source text. Return cards: "Answers" - numbered correct answers; "Distractor notes" - why common wrong options are wrong; "Common errors" - mistakes to watch for and how to fix them.${context}`,
       schema: '{"cards":[{"title":"Answers","text":"1. ...\\n2. ..."},{"title":"Distractor notes","text":"..."},{"title":"Common errors","text":"..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'cefr-checker') {
     return {
-      task: `${head} Analyse the source text's difficulty. Return cards: "Estimated level" - the CEFR level + a one-line justification; "Why" - features driving the level (sentence length, tenses, vocabulary); "To simplify" - concrete moves to lower it one level; "To upgrade" - moves to raise it one level. Include "vocab" of the hardest words found.${context}`,
+      task: `${cardsHead} Analyse the source text's difficulty. Return cards: "Estimated level" - the CEFR level + a one-line justification; "Why" - features driving the level (sentence length, tenses, vocabulary); "To simplify" - concrete moves to lower it one level; "To upgrade" - moves to raise it one level. Include "vocab" of the hardest words found.${context}`,
       schema: '{"cards":[{"title":"Estimated level","text":"B1 - ..."},{"title":"Why","text":"..."},{"title":"To simplify","text":"..."},{"title":"To upgrade","text":"..."}],"vocab":["hard word"]}',
     };
   }
   if (toolId === 'add-text' || toolId === 'add-images' || toolId === 'add-video') {
     const media = toolId === 'add-images' ? 'image' : toolId === 'add-video' ? 'video' : 'text';
     return {
-      task: `${head} Build a ${media}-based activity at ${level} level. Return cards: "Before" - prediction / lead-in questions; "While" - a focus task to do during reading/viewing; "After" - comprehension + discussion questions; "Speaking follow-up" - a personal-response task. Include "vocab".${context}`,
+      task: `${cardsHead} Build a ${media}-based activity at ${level} level. Return cards: "Before" - prediction / lead-in questions; "While" - a focus task to do during reading/viewing; "After" - comprehension + discussion questions; "Speaking follow-up" - a personal-response task. Include "vocab".${context}`,
       schema: '{"cards":[{"title":"Before","text":"..."},{"title":"While","text":"..."},{"title":"After","text":"..."},{"title":"Speaking follow-up","text":"..."}],"vocab":["word"]}',
     };
   }
 
   // ── Default cards fallback ────────────────────────────────────────────────────
   return {
-    task: `${head} Produce a complete, ready-to-teach set of ${Math.max(4, count)} cards. Each card has a clear stage/section "title" and rich classroom "text" (instructions, examples, teacher moves) at ${level} level. End with a "Teacher flow" card. Include a "vocab" list of useful target words.${context}`,
+    task: `${cardsHead} Produce a complete, ready-to-teach set of ${Math.max(4, count)} cards. Each card has a clear stage/section "title" and rich classroom "text" (instructions, examples, teacher moves) at ${level} level. End with a "Teacher flow" card. Include a "vocab" list of useful target words.${context}`,
     schema: '{"cards":[{"title":"...","text":"..."}],"vocab":["word"]}',
   };
 }
