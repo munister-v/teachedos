@@ -378,7 +378,19 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 @media (prefers-reduced-motion:reduce) {
   .tools-workbench *,
   .tools-workbench *::before,
-  .tools-workbench *::after { transition-duration:.001ms !important; }
+  .tools-workbench *::after { transition-duration:.001ms !important; animation-duration:.001ms !important; }
+}
+
+/* Selecting a tool used to pop the whole workspace (form + result) into place
+   with a flat display:none -> grid swap, no transition. Animation still runs
+   from display:none since the moment .show flips display, the keyframes
+   start fresh - no JS change needed. */
+@keyframes ttWorkspaceIn {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.tools-workbench .workspace.show {
+  animation:ttWorkspaceIn .32s cubic-bezier(.16,1,.3,1);
 }
 
 /* ── Active tool studio ───────────────────────────────────────────────────

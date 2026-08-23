@@ -354,6 +354,13 @@ button{font-family:var(--font);cursor:pointer;}
   .lessons-grid{grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
+/* Opening a course used to flip #welcome/#course-view via a flat
+   style.display swap with no transition. */
+@keyframes courseViewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+#course-view{animation:courseViewIn .26s cubic-bezier(.16,1,.3,1)}
+@media (prefers-reduced-motion:reduce){
+  #course-view{animation-duration:.001ms}
+}
 </style>
 <script src="theme.js?v=417" defer></script>
 <link rel="stylesheet" href="styles/mobile.css?v=417">
