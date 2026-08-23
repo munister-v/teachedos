@@ -196,28 +196,28 @@ body:not(.board-page) :where(
    lesson material remain the focal point. */
 body:not(.board-page):not(.os-desktop) #nav,
 body.mp-shell #nav {
-  background:rgba(246,246,242,.94) !important;
-  border-bottom-color:rgba(32,32,44,.12) !important;
-  box-shadow:0 1px 0 rgba(255,255,255,.76) inset !important;
+  background:var(--te-lime) !important;
+  border-bottom-color:rgba(32,32,44,.18) !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset !important;
 }
 body:not(.board-page):not(.os-desktop) #nav :where(.nav-link,.nav-logo-name) {
   color:var(--te-ink) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link:hover {
-  background:rgba(139,66,253,.08) !important;
-  color:#612EB1 !important;
+  background:rgba(32,32,44,.08) !important;
+  color:var(--te-ink) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link.active {
-  color:#612EB1 !important;
+  color:var(--te-ink) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-user {
-  background:rgba(205,249,64,.24) !important;
-  border-color:rgba(32,32,44,.12) !important;
+  background:rgba(255,255,255,.55) !important;
+  border-color:rgba(32,32,44,.14) !important;
   color:var(--te-ink) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav #nav-avatar {
-  background:var(--te-lime) !important;
-  color:var(--te-ink) !important;
+  background:var(--te-ink) !important;
+  color:var(--te-lime) !important;
 }
 
 /* Shared course/app tiles: coloured details carry grouping, instead of a wall
@@ -505,20 +505,24 @@ body:not(.board-page):not(.os-desktop):not(.landing-page) :where(input,textarea,
 /* App chrome: the active location is visible at a glance without adding a
    second dark navigation strip. */
 body:not(.board-page):not(.os-desktop) #nav {
-  background:rgba(255,252,248,.94) !important;
-  border-bottom-color:var(--te-line) !important;
+  background:var(--te-lime) !important;
+  border-bottom-color:rgba(32,32,44,.18) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link.active {
-  background:var(--te-surface-violet) !important;
-  color:#612EB1 !important;
+  background:rgba(32,32,44,.12) !important;
+  color:var(--te-ink) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link:hover {
-  background:rgba(139,66,253,.08) !important;
-  color:#612EB1 !important;
+  background:rgba(32,32,44,.08) !important;
+  color:var(--te-ink) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-user {
-  background:var(--te-surface-lime) !important;
-  border-color:rgba(205,249,64,.72) !important;
+  background:rgba(255,255,255,.55) !important;
+  border-color:rgba(32,32,44,.14) !important;
+}
+body:not(.board-page):not(.os-desktop) #nav #nav-avatar {
+  background:var(--te-ink) !important;
+  color:var(--te-lime) !important;
 }
 
 /* Reusable state language for pills, filters and small actions. It restores
