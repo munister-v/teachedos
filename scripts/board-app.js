@@ -13190,7 +13190,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '452';
+const TEACHEDOS_ASSET_VERSION = '453';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14430,7 +14430,19 @@ function saveLocal() {
 /* ════ CLOUD SAVE with retry ════ */
 async function saveToCloud(retryCount = 0) {
   if (!currentUser || !authToken || !currentBoardId) return;
-  if (isOffline) { pendingCloudSave = true; return; }
+  /* isOffline — подсказка, а не приговор. Флаг взводится от неудачного
+     запроса или от рестарта API при деплое (тот занимает секунды и роняет
+     открытые сокеты), а снимается только браузерным событием `online`,
+     которого может не быть никогда: сеть-то не падала. Сессия оставалась
+     «офлайн» навсегда и тихо переставала сохранять на сервер — доска писалась
+     лишь в localStorage, а учитель узнавал об этом, открыв её на другом
+     устройстве. Поэтому: если браузер считает, что связь есть, пробуем всё
+     равно. Успешный запрос — единственное надёжное доказательство. */
+  if (isOffline) {
+    if (!navigator.onLine) { pendingCloudSave = true; return; }
+    isOffline = false;
+    hideOfflineBanner && hideOfflineBanner();
+  }
   setSaveUI('saving');
   try {
     const data = serializeBoard();
@@ -14790,6 +14802,17 @@ function handleOnline() {
     toast('Back online - syncing…');
     saveToCloud();
   }
+}
+/* Этой функции не существовало, а tryReconnect() вызывал её без всякой
+   защиты — и падал с ReferenceError ровно в момент успешного восстановления
+   связи. Всё, что шло следом, не выполнялось никогда: отложенное сохранение
+   не досылалось, currentBoardId не восстанавливался, сокет не поднимался.
+   Ошибку глотал соседний catch, поэтому попытка считалась неудачной и цикл
+   повторялся вечно, спотыкаясь на одной и той же строке. Сессия, разорванная
+   на секунду (например, рестартом API при деплое), уже не могла вернуться. */
+function hideOfflineBanner() {
+  const el = document.getElementById('offline-banner');
+  if (el) el.classList.remove('show');
 }
 function handleOffline() {
   isOffline = true;
@@ -15272,9 +15295,19 @@ async function ensureFreshBoardForLessonFlow(lesson) {
       return true;
     } catch (err) {
       console.warn('Cloud board creation failed, building local lesson board', err);
-      isOffline = true;
+      /* НЕ объявляем сессию офлайновой из-за одного отказа. Ошибка тут — это
+         с тем же успехом квота, 500 или перезапуск API на деплое; сеть при
+         этом цела, а флаг снимается только событием `online`, которого не
+         будет. Одна неудача навсегда выключала сохранение в облако. */
+      if (!navigator.onLine) isOffline = true;
     }
   }
+  /* Раньше здесь безусловно обнулялся currentBoardId и на холст грузилась
+     ПУСТАЯ доска — то есть неудачная попытка завести доску под урок стирала
+     с экрана то, над чем человек уже работал, и заодно отвязывала сессию от
+     доски, так что дальше ничего не сохранялось. Если доска уже открыта,
+     оставляем её: урок ляжет на неё, а не в никуда. */
+  if (currentBoardId) return false;
   currentBoardId = null;
   loadBoardData(emptyBoardData());
   document.title = name + ' · TeachEd';
@@ -18871,7 +18904,10 @@ function startReconnectLoop() {
         updateAuthUI();
         wsEnabled = true;
         isOffline = false;
-        hideOfflineBanner();
+        /* Косметика — отдельно и под защитой. Восстановление связи не должно
+           зависеть от того, найдётся ли функция, прячущая плашку: именно так
+           недостающий hideOfflineBanner и обрывал весь путь ниже. */
+        try { hideOfflineBanner(); } catch {}
         if (banner) banner.classList.remove('show');
         if (pendingCloudSave) saveToCloud();
         if (window.__pendingLessonFlowImport) {
