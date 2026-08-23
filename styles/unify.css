@@ -3365,12 +3365,12 @@ body.os-desktop .studio-chip.primary:hover {
 /* Notes app: harmony paints the "New note" button and the notes sidebar in
    pink. Creating a note is the most ordinary action in the window. */
 body.os-desktop .notes-new-btn {
-  background: #556056 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(59, 69, 60, .18) !important;
+  background: var(--te-lime, #CDF940) !important;
+  color: var(--te-ink, #20202C) !important;
+  box-shadow: 0 4px 12px rgba(205, 249, 64, .30) !important;
 }
 body.os-desktop .notes-new-btn:hover {
-  background: #465047 !important;
+  background: var(--te-lime-soft, #D3F36B) !important;
 }
 body.os-desktop .note-item.active,
 body.os-desktop .note-item.active .note-item-title {
