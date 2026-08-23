@@ -13066,7 +13066,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '448';
+const TEACHEDOS_ASSET_VERSION = '449';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14471,6 +14471,18 @@ function loadBoard() {
     state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
     state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
     applyTransform();
+    // Same recovery as loadBoardData: a saved camera framed for a different
+    // viewport (desktop board opened on a phone) can leave every card off
+    // whatever direction the narrower screen doesn't reach.
+    if (state.cards.length) {
+      const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
+      const onScreen = state.cards.some(c => {
+        const x = c.x * state.scale + state.pan.x, y = c.y * state.scale + state.pan.y;
+        const w = c.w * state.scale, h = c.h * state.scale;
+        return x < pw && x + w > 0 && y < ph && y + h > 0;
+      });
+      if (!onScreen) fitAll(false);
+    }
     updateEmpty();
     updateGroupOutlines();
     if (typeof renderAllStrokes === 'function') renderAllStrokes();
@@ -15763,6 +15775,25 @@ function loadBoardData(data) {
   // Bug fix: assign frame numbers if missing (legacy frames)
   if (typeof renumberFrames === 'function') renumberFrames();
   applyTransform();
+  /* Saved pan/scale is an absolute camera position, computed for whatever
+     viewport was open when it was last saved - typically a desktop board
+     open on a phone the next day, restoring a camera framed for a screen
+     roughly four times as wide. Every card ends up off in some direction the
+     narrow phone screen never reaches, and the board looks empty even though
+     it has content: the reported "board is unusable on mobile" symptom.
+     Recover once, right after restoring the saved camera: if literally
+     nothing on the board falls inside the viewport, the saved position
+     cannot be useful regardless of why it drifted, so refit instead of
+     leaving the teacher staring at blank canvas. */
+  if (state.cards.length) {
+    const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
+    const onScreen = state.cards.some(c => {
+      const x = c.x * state.scale + state.pan.x, y = c.y * state.scale + state.pan.y;
+      const w = c.w * state.scale, h = c.h * state.scale;
+      return x < pw && x + w > 0 && y < ph && y + h > 0;
+    });
+    if (!onScreen) fitAll(false);
+  }
   renderAllArrows();
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
   renderAllAnnotations();
