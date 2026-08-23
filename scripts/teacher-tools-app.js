@@ -705,6 +705,17 @@ const PRESET_PACKS = [
 
 const CATS = ['all','favorites','reading','vocabulary','writing','speaking','grammar','listening','utility'];
 const CAT_NAMES = {all:'All',favorites:'Favorites',reading:'Reading',vocabulary:'Vocabulary',writing:'Writing',speaking:'Speaking',grammar:'Grammar',listening:'Listening',utility:'Utility'};
+// Same palette as the desktop "Teaching Tools" preview window's TAG_COLORS -
+// kept in sync on purpose so a card looks the same whichever surface it's on.
+const CAT_TAG_COLORS = {
+  reading:    { bg:'rgba(96,165,250,.12)',  color:'#3b7ad4' },
+  writing:    { bg:'rgba(110,201,138,.14)', color:'#3f9a63' },
+  listening:  { bg:'rgba(245,158,11,.14)',  color:'#b5720a' },
+  speaking:   { bg:'rgba(167,139,250,.14)', color:'#7c5cd6' },
+  vocabulary: { bg:'rgba(200,230,50,.20)',  color:'#5a6b00' },
+  grammar:    { bg:'rgba(248,113,113,.14)', color:'#c23f3f' },
+  utility:    { bg:'rgba(24,24,24,.08)',    color:'#4a4b55' },
+};
 let currentCat = 'all';
 let activeTool = null;
 let lastOutput = null;
@@ -975,7 +986,9 @@ function renderTools(){
        как открыв его и упершись в замок. Значок ничего не блокирует - это чистая
        видимость, доступ к инструментам не менялся. */
     const badgeHtml = t.badge ? `<span class="tag ${t.badge.toLowerCase()}" aria-label="${esc(t.badge)} tool">${esc(t.badge)}</span>` : '';
-    div.innerHTML=`<button class="star ${_favSet.has(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.8 2.5 5.1 5.6.8-4 3.9.9 5.5-5-2.7-5 2.7.9-5.5-4-3.9 5.6-.8Z"/></svg></button><div class="tool-visual" aria-hidden="true">${esc(t.icon)}</div><div class="tool-copy"><h3>${esc(t.title)}</h3>${badgeHtml}<p>${esc(t.desc)}</p></div>`;
+    const catColor = CAT_TAG_COLORS[t.cat] || {};
+    const catTagHtml = `<span class="tag cat" style="background:${catColor.bg};color:${catColor.color};" aria-hidden="true">${esc(CAT_NAMES[t.cat]||t.cat)}</span>`;
+    div.innerHTML=`<button class="star ${_favSet.has(t.id)?'on':''}" type="button" onclick="toggleFav('${t.id}',event)" aria-label="Favorite ${esc(t.title)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.8 2.5 5.1 5.6.8-4 3.9.9 5.5-5-2.7-5 2.7.9-5.5-4-3.9 5.6-.8Z"/></svg></button><div class="tool-visual" aria-hidden="true">${esc(t.icon)}</div><div class="tool-copy"><h3>${esc(t.title)}</h3><div class="tool-tags">${catTagHtml}${badgeHtml}</div><p>${esc(t.desc)}</p><span class="tool-use">Use tool →</span></div>`;
     div.addEventListener('click',()=>selectTool(t.id));
     div.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')selectTool(t.id);});
     frag.appendChild(div);
