@@ -3286,6 +3286,13 @@ function _ttPlayStepHeight(q, w) {
   else h += 52;                                // gap-fill and anything else
   return Math.max(220 + PLAY_QPAD, h);         // .iw-q min-height:220
 }
+// Заголовок карточки (.iw-title) есть на КАЖДОМ типе степпера, а PLAY_CHROME
+// его не считал вовсе - расчёт ниже держал это в уме только благодаря
+// щедрому запасу у вопросов (min-height 220 у .iw-q), поэтому недостача не
+// была видна. У флешкарт и card-flip такого запаса нет: их картинка/бокс
+// имеет ТОЧНУЮ min-height 240px без единого пикселя воздуха. Titla своей
+// строки не считалось - ЗАГОЛОВОК ОБРЕЗАЛСЯ ПОЛНОСТЬЮ.
+const PLAY_TITLE = 40;   // margin-bottom 14 + padding-bottom 8 + border 2 + строка текста
 function _ttPlayCardSize(d) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const steps = Array.isArray(d.items) && d.items.length ? d.items.length
@@ -3296,11 +3303,18 @@ function _ttPlayCardSize(d) {
   const longest = qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0);
   const w = Math.max(480, Math.min(720, 480 + Math.round((longest - 90) / 4)));
   if (!qs.length) {
-    // Flashcards / lesson-pack stages: fixed flip box, no per-item measuring.
-    return { w: 480, h: PLAY_CHROME + 240 + (steps > 1 ? 0 : -50) };
+    /* Flashcards / lesson-pack stages: fixed flip box, no per-item measuring.
+       PLAY_CHROME was written for a question card's ONE "Check Answers"
+       button (~71px with its margin); flashcards end in TWO stacked buttons
+       ("Reveal All" + "Reset", ~131px) instead. Reusing PLAY_CHROME here
+       under-measured by about a title's worth of height plus the extra
+       button - the title and the bottom of the flip box both got cut off
+       by the card's own overflow:hidden. */
+    const body = 40, hud = steps > 1 ? 50 : 0, bottom = 131, box = 240;
+    return { w: 480, h: body + PLAY_TITLE + hud + box + bottom };
   }
   const tallest = qs.reduce((m, q) => Math.max(m, _ttPlayStepHeight(q, w)), 0);
-  const chrome = PLAY_CHROME - (steps > 1 ? 0 : 50);   // no step HUD on a single step
+  const chrome = PLAY_CHROME - (steps > 1 ? 0 : 50) + PLAY_TITLE;   // no step HUD on a single step
   return { w, h: Math.max(420, Math.min(900, Math.round(chrome + tallest))) };
 }
 
@@ -13190,7 +13204,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '453';
+const TEACHEDOS_ASSET_VERSION = '454';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
