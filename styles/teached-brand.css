@@ -262,6 +262,12 @@ body.board-page {
   --text-3:#5E5E6A !important;
   --border:rgba(32,32,44,.14) !important;
   --border-2:rgba(32,32,44,.24) !important;
+  /* board.css's own --on-accent:#FFFFFF is paired with ITS default --accent
+     (a dark sage green) - correct there, but this block repoints --accent to
+     lime without a matching --on-accent, so every "background:var(--accent);
+     color:var(--on-accent)" control on the board (Follow Me's ON state among
+     them) silently became white text on lime: unreadable. */
+  --on-accent:var(--te-ink) !important;
 }
 body.board-page :where(.mq-btn.primary,.tb-btn.primary,.ed-btn.primary) {
   background:var(--te-lime) !important;
@@ -670,8 +676,10 @@ body:has(.week-nav) .stat-pill:nth-child(2) { box-shadow:inset 0 3px 0 var(--te-
 body:has(.week-nav) .stat-pill:nth-child(3) { box-shadow:inset 0 3px 0 var(--te-coral) !important; }
 body:has(.week-nav) .wn-today,body:has(.week-nav) .mp-week-today { background:var(--te-surface-violet) !important; color:#612EB1 !important; border-color:rgba(139,66,253,.28) !important; }
 
-/* Board: retain its dedicated editing language. Share is coral, the selected
-   drawing mode is violet, and the additive action stays lime. */
+/* Board: retain its dedicated editing language. The selected drawing mode is
+   violet, and the additive action stays lime. Share used to be its own coral
+   - a third accent competing with lime for the same "primary action" job on
+   the same toolbar - folded into the standard lime treatment instead. */
 body.board-page {
   --board-calm-ink:var(--te-violet) !important;
   --board-calm-ink-hover:#6D2BD7 !important;
@@ -680,8 +688,8 @@ body.board-page {
 }
 body.board-page #toolbar,
 body.board-page #miro-toolbar { background:#FFFCF8 !important; border-color:var(--te-line) !important; }
-body.board-page #toolbar #btn-share.tb-btn-primary { background:var(--te-coral) !important; border-color:var(--te-coral) !important; color:#fff !important; box-shadow:0 7px 16px rgba(255,78,0,.20) !important; }
-body.board-page #toolbar #btn-share.tb-btn-primary:hover { background:#D94200 !important; border-color:#D94200 !important; }
+body.board-page #toolbar #btn-share.tb-btn-primary { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; box-shadow:0 7px 16px rgba(205,249,64,.30) !important; }
+body.board-page #toolbar #btn-share.tb-btn-primary:hover { background:var(--te-lime-soft) !important; border-color:var(--te-lime-soft) !important; }
 body.board-page #miro-toolbar .mt-btn.active { background:var(--te-violet) !important; border-color:var(--te-violet) !important; color:#fff !important; }
 body.board-page #miro-toolbar .mt-btn.mt-add { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; }
 body.board-page .empty-action.primary { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; }
