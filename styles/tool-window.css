@@ -1042,16 +1042,18 @@ body.tw-page:not(#_) .q-item.active {
   background:var(--tw-accent-soft) !important;
 }
 
-/* ── Menubar text that hid on the dark bar ─────────────────────────────────
+/* ── Menubar text that hid on the bar ───────────────────────────────────────
    `.nav-logo-name` and `#nav-name` are painted ink by unify.css/teached-brand
    through `#nav #nav-name` and `#nav :where(.nav-link,.nav-logo-name)` -
    id-anchored, so a plain class rule on the parent loses even with the
    `:not(#_)` ballast (ids simply outrank classes; ballast only buys back what
    !important took, not what an id-selector already had). Both spans get their
-   own id-anchored override here. */
+   own id-anchored override here. #nav is lime now (not dark glass), so this
+   goes to ink too - it used to be white for the old dark bar and had gone
+   invisible on lime ever since that changed. */
 body.tw-page:not(#_) #nav .nav-logo-name {
-  color:#fff !important;
+  color:var(--te-ink,#20202C) !important;
 }
 body.tw-page:not(#_) #nav #nav-name {
-  color:rgba(255,255,255,.86) !important;
+  color:var(--te-ink,#20202C) !important;
 }
