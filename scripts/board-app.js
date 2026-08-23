@@ -7726,10 +7726,11 @@ function renderAllArrows() {
     hit.addEventListener('contextmenu', e => {
       e.preventDefault(); e.stopPropagation();
       ctxArrowId = arrow.id;
-      // Compact arrow menu: hide every board-creation item + image clipboard
-      // items so only the arrow actions show, right at the cursor (otherwise the
-      // tall add-card list pushes "Delete Arrow" below the viewport).
-      ctxMenu.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = 'none');
+      // Compact arrow menu: hide every board-creation item + card item +
+      // image clipboard item so only the arrow actions show, right at the
+      // cursor (otherwise the tall add-card list pushes "Delete Arrow" below
+      // the viewport).
+      ctxMenu.querySelectorAll('.ctx-board-only, .ctx-card-only').forEach(el => el.style.display = 'none');
       ['ctx-paste-image','ctx-copy-image','ctx-image-sep'].forEach(id => {
         const el = document.getElementById(id); if (el) el.style.display = 'none';
       });
@@ -7737,8 +7738,11 @@ function renderAllArrows() {
       document.getElementById('ctx-toggle-prereq').style.display = '';
       document.getElementById('ctx-label-arrow').style.display = '';
       document.getElementById('ctx-arrow-sep').style.display = '';
-      document.getElementById('ctx-toggle-prereq').textContent =
-        arrow.type === 'prereq' ? '🔗 Make Regular Arrow' : '🔒 Make Prereq Arrow';
+      const isPrereq = arrow.type === 'prereq';
+      document.getElementById('ctx-toggle-prereq-label').textContent =
+        isPrereq ? 'Make Regular Arrow' : 'Make Prereq Arrow';
+      document.getElementById('ctx-toggle-prereq-ic').querySelector('use')
+        .setAttribute('href', isPrereq ? '#bi-unlock' : '#bi-link');
       // Show style controls for regular arrows
       const styleWrap = document.getElementById('ctx-arrow-style-wrap');
       if (styleWrap) {
@@ -8020,8 +8024,6 @@ boardWrap.addEventListener('contextmenu', e => {
   // Right-click always cancels a pending connection - intuitive escape hatch.
   if (connectPending) { cancelConnection(); setMode('select'); setMiroTool('select'); return; }
   ctxPos = screenToBoard(e.clientX, e.clientY);
-  // Restore board-creation items (a prior arrow right-click hides them).
-  ctxMenu.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = '');
   document.getElementById('ctx-delete-arrow').style.display = 'none';
   document.getElementById('ctx-toggle-prereq').style.display = 'none';
   document.getElementById('ctx-label-arrow').style.display = 'none';
@@ -8031,6 +8033,12 @@ boardWrap.addEventListener('contextmenu', e => {
 
   // Image clipboard ctx items: show only when relevant
   const cardEl = e.target.closest('.board-card');
+  // The "add new" list only makes sense on empty canvas; the per-card list
+  // (Duplicate/layer order/Lock) only makes sense over an existing card -
+  // they used to show together, so right-clicking a card offered to drop a
+  // fresh Sticky Note on top of it right next to Delete.
+  ctxMenu.querySelectorAll('.ctx-board-only').forEach(el => el.style.display = cardEl ? 'none' : '');
+  ctxMenu.querySelectorAll('.ctx-card-only').forEach(el => el.style.display = cardEl ? '' : 'none');
   // Hold-back item: only over a real card, only for whoever owns the board.
   if (typeof syncStudentHideCtxItem === 'function') syncStudentHideCtxItem(cardEl);
   // Right-click has never had a generic "delete this" item - the only way to
@@ -8042,6 +8050,13 @@ boardWrap.addEventListener('contextmenu', e => {
   if (cardEl) {
     delItem.style.display = '';
     delItem.dataset.cardId = cardEl.dataset.id;
+    ['ctx-duplicate','ctx-front','ctx-back','ctx-lock'].forEach(id => {
+      document.getElementById(id).dataset.cardId = cardEl.dataset.id;
+    });
+    const cardData = state.cards.find(c => c.id === cardEl.dataset.id);
+    const locked = !!cardData?.data?.locked;
+    document.getElementById('ctx-lock-label').textContent = locked ? 'Unlock' : 'Lock';
+    document.getElementById('ctx-lock').querySelector('use').setAttribute('href', locked ? '#bi-unlock' : '#bi-lock');
   } else {
     delItem.style.display = 'none';
   }
@@ -8194,6 +8209,25 @@ async function _copyImageToSystemClipboard(cardId) {
 document.addEventListener('click', () => {
   ctxMenu.style.display = 'none';
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
+});
+
+document.getElementById('ctx-duplicate').addEventListener('click', () => {
+  const cardId = document.getElementById('ctx-duplicate').dataset.cardId;
+  if (!cardId) return;
+  if (!state.selected.has(cardId)) { state.selected.clear(); state.selected.add(cardId); }
+  duplicateSelected();
+});
+document.getElementById('ctx-front').addEventListener('click', () => {
+  const cardId = document.getElementById('ctx-front').dataset.cardId;
+  if (cardId) moveCardLayer(cardId, 'front');
+});
+document.getElementById('ctx-back').addEventListener('click', () => {
+  const cardId = document.getElementById('ctx-back').dataset.cardId;
+  if (cardId) moveCardLayer(cardId, 'back');
+});
+document.getElementById('ctx-lock').addEventListener('click', () => {
+  const cardId = document.getElementById('ctx-lock').dataset.cardId;
+  if (cardId) toggleCardLocked(cardId);
 });
 
 document.getElementById('ctx-sticky').addEventListener('click', () =>
@@ -12959,7 +12993,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '432';
+const TEACHEDOS_ASSET_VERSION = '433';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15190,10 +15224,6 @@ let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 // of issuing a second sequential request, saving one full round trip.
 let _boardPrefetch = null;
 function _settleP(p) { return p.then(v => ({ ok: true, v })).catch(e => ({ ok: false, e })); }
-let authMode = 'login'; // 'login' | 'register'
-let selectedRole = 'teacher';
-let _boardGoogleInitialized = false;
-let _boardGoogleClientId = null;
 let _cachedBoardCount = null;
 const BOARD_PACKAGE_FLAGS = {
   free:   { exports: false, ai: false, follow: false, maxBoards: 3 },
@@ -15266,150 +15296,9 @@ function apiFetch(path, opts = {}) {
 }
 
 // ── Auth UI ──────────────────────────────────────────────────
-let _authReturnFocus = null;
-
-/* Keep Tab inside the dialog while it is open, and let Escape out.
-   Without this, tabbing past the last field walks into the board behind the
-   overlay - you keep tabbing through cards you cannot see - and the only way
-   to dismiss was the mouse. */
-function _authKeydown(e) {
-  if (e.key === 'Escape') { e.preventDefault(); closeAuthModal(); return; }
-  if (e.key !== 'Tab') return;
-  const ov = document.getElementById('auth-overlay');
-  const f = [...ov.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])')]
-    .filter(el => !el.disabled && el.offsetParent !== null);
-  if (!f.length) return;
-  const first = f[0], last = f[f.length - 1];
-  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-}
-
-function openAuthModal(mode = 'login') {
-  authMode = mode;
-  renderAuthFields();
-  const ov = document.getElementById('auth-overlay');
-  // Remember what to hand focus back to, so dismissing the dialog does not
-  // dump the caret at the top of the document.
-  if (!ov.classList.contains('open')) _authReturnFocus = document.activeElement;
-  ov.classList.add('open');
-  document.addEventListener('keydown', _authKeydown, true);
-  setTimeout(() => document.querySelector('.auth-inp')?.focus(), 50);
-  document.getElementById('auth-err').style.display = 'none';
-  if (authMode === 'login') setupBoardGoogle();
-  /* A shared lesson waiting to land on this board (see checkCommunityImport
-     above) used to get its own floating banner on top of this modal. Now the
-     modal explains it instead: one message, not two overlapping ones. It
-     clears itself the moment the import is consumed, so a later, unrelated
-     sign-in (session expiry, etc.) sees the ordinary subtitle again. */
-  const subtitle = document.getElementById('auth-subtitle');
-  if (subtitle) {
-    const pending = window.__pendingCommunityImport;
-    subtitle.textContent = pending
-      ? `Sign in to add "${pending.name}" (${pending.count} card${pending.count === 1 ? '' : 's'}) to your board`
-      : 'Sign in to sync your boards';
-  }
-}
-function closeAuthModal() {
-  document.getElementById('auth-overlay').classList.remove('open');
-  document.removeEventListener('keydown', _authKeydown, true);
-  try { _authReturnFocus?.focus?.(); } catch {}
-  _authReturnFocus = null;
-}
-function toggleAuthMode() { openAuthModal(authMode === 'login' ? 'register' : 'login'); }
-
-function setAuthSubmitLabel(label) {
-  const button = document.getElementById('auth-submit');
-  if (!button) return;
-  const labelEl = button.querySelector('.auth-btn-lbl');
-  if (labelEl) labelEl.textContent = label;
-  else button.textContent = label;
-}
-
-function loadBoardGoogleScript() {
-  return new Promise((resolve, reject) => {
-    if (window.google?.accounts?.id) return resolve();
-    const existing = document.getElementById('board-gsi-script');
-    if (existing) {
-      existing.addEventListener('load', resolve, { once: true });
-      existing.addEventListener('error', reject, { once: true });
-      return;
-    }
-    const script = document.createElement('script');
-    script.id = 'board-gsi-script';
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-async function setupBoardGoogle() {
-  const area = document.getElementById('auth-google-area');
-  const button = document.getElementById('auth-google-btn');
-  if (!area || !button || authMode !== 'login') return;
-  try {
-    if (!_boardGoogleInitialized) {
-      const configResponse = await fetch(API + '/api/auth/config');
-      const config = await configResponse.json();
-      if (!config.googleClientId) return;
-      _boardGoogleClientId = config.googleClientId;
-      await loadBoardGoogleScript();
-      google.accounts.id.initialize({
-        client_id: _boardGoogleClientId,
-        callback: handleBoardGoogle,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        context: 'signin',
-        itp_support: true,
-      });
-      _boardGoogleInitialized = true;
-    }
-    area.style.display = 'block';
-    button.innerHTML = '';
-    requestAnimationFrame(() => {
-      try {
-        const width = Math.min(336, Math.max(240, (document.getElementById('auth-modal')?.clientWidth || 400) - 60));
-        google.accounts.id.renderButton(button, {
-          type: 'standard', theme: 'outline', size: 'large', shape: 'pill',
-          text: 'continue_with', width, logo_alignment: 'center', locale: 'en',
-        });
-      } catch (error) { console.warn('[board-gsi] render failed', error); }
-    });
-  } catch (error) {
-    console.warn('[board-gsi] init failed', error);
-  }
-}
-
-async function handleBoardGoogle(response) {
-  const errorEl = document.getElementById('auth-err');
-  const button = document.getElementById('auth-submit');
-  if (errorEl) errorEl.style.display = 'none';
-  try {
-    google.accounts.id.cancel();
-    button.disabled = true;
-    button.setAttribute('aria-busy', 'true');
-    setAuthSubmitLabel('Signing in…');
-    const result = await apiFetch('/api/auth/google', {
-      method: 'POST',
-      body: { credential: response.credential, role: selectedRole },
-    });
-    const data = await result.json();
-    if (!result.ok) throw new Error(data.error || 'Google sign-in failed');
-    await finishBoardAuth(data);
-  } catch (error) {
-    if (errorEl) {
-      errorEl.textContent = error.message || 'Google sign-in failed';
-      errorEl.style.display = 'block';
-    }
-  } finally {
-    button.disabled = false;
-    button.removeAttribute('aria-busy');
-    setAuthSubmitLabel('Sign in');
-  }
-}
-
+// Modal itself (open/close/render/validate/Google Sign-In) now lives in
+// scripts/auth-modal.js, shared with landing.html - see
+// TEACHED_AUTH_CONFIG below for the board-specific bits this page still owns.
 
 function markOnboardingPendingFromBoard(user) {
   try {
@@ -15419,121 +15308,8 @@ function markOnboardingPendingFromBoard(user) {
   } catch {}
 }
 
-const AUTH_EYE_OPEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-const AUTH_EYE_CLOSED_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2"/><path d="M6.1 6.1A18.4 18.4 0 0 0 1 12s4 8 11 8a10 10 0 0 0 5.9-2.1"/></svg>';
-
-function _authPasswordHint(value) {
-  const help = document.getElementById('auth-password-help');
-  if (!help) return;
-  const length = String(value || '').length;
-  help.classList.toggle('ready', length >= 10);
-  help.classList.toggle('needs-input', length > 0 && length < 10);
-  help.textContent = length >= 10
-    ? 'Length looks good. A memorable multi-word passphrase is best.'
-    : `Use at least 10 characters${length ? ` · ${Math.max(0, 10 - length)} more needed` : ''}.`;
-}
-
-function renderAuthFields() {
-  // Switching Sign in <-> Register swaps the Google button block and the
-  // role picker in opposite directions with nothing in between, so the card
-  // used to just snap to a very different height - the "jitter" this is
-  // fixing. Measure before/after and let the card glide between them
-  // instead of jumping. Skipped on first open (modal starts invisible, so
-  // there's nothing to see jump) and while the tab is hidden (no layout to
-  // measure).
-  const card = document.getElementById('auth-modal');
-  const wasOpen = card && document.getElementById('auth-overlay')?.classList.contains('open');
-  const fromHeight = wasOpen ? card.getBoundingClientRect().height : null;
-  _renderAuthFieldsInner();
-  if (wasOpen && fromHeight != null) {
-    const toHeight = card.getBoundingClientRect().height;
-    if (Math.abs(toHeight - fromHeight) > 1) {
-      card.style.height = fromHeight + 'px';
-      card.style.overflow = 'hidden';
-      // Force layout so the browser registers the start height before the
-      // transition target is applied - otherwise both writes coalesce and
-      // there's nothing to animate from.
-      card.offsetHeight;
-      card.style.transition = 'height .26s cubic-bezier(.22,.61,.36,1)';
-      card.style.height = toHeight + 'px';
-      const done = () => {
-        card.style.transition = '';
-        card.style.height = '';
-        card.style.overflow = '';
-        card.removeEventListener('transitionend', done);
-      };
-      card.addEventListener('transitionend', done);
-    }
-  }
-}
-
-function _renderAuthFieldsInner() {
-  const isLogin = authMode === 'login';
-  const isForgot = authMode === 'forgot';
-  document.getElementById('auth-subtitle').textContent = isForgot ? 'Reset your password' : (isLogin ? 'Welcome back' : 'Create your account');
-  setAuthSubmitLabel(isForgot ? 'Send reset link' : (isLogin ? 'Sign in' : 'Create account'));
-  document.getElementById('auth-toggle-text').textContent = isForgot ? 'Remember your password?' : (isLogin ? "Don't have an account?" : 'Already have an account?');
-  document.getElementById('auth-toggle-link').textContent = isForgot ? 'Sign in' : (isLogin ? 'Register' : 'Sign in');
-  document.getElementById('auth-role-row').style.display = (!isLogin && !isForgot) ? 'block' : 'none';
-  const googleArea = document.getElementById('auth-google-area');
-  if (googleArea) googleArea.style.display = isLogin ? 'block' : 'none';
-  const securityNote = document.getElementById('auth-security-note');
-  if (securityNote) securityNote.textContent = isForgot
-    ? 'For privacy, we only confirm that a reset message may have been sent.'
-    : (isLogin ? 'Protected sign-in · you can end active sessions from your profile.' : 'Use 10 or more characters. You can manage active sessions after sign-in.');
-  const f = document.getElementById('auth-fields');
-  if (isForgot) {
-    f.innerHTML = `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-inp" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="you@example.com" autocomplete="email"></div>`;
-  } else {
-    f.innerHTML = (!isLogin ? `<div class="auth-field-wrap"><label class="auth-field-label" for="af-name">Your name</label><input class="auth-inp" id="af-name" name="name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name"></div>` : '') +
-      `<div class="auth-field-wrap"><label class="auth-field-label" for="af-email">Email address</label><input class="auth-inp" id="af-email" name="email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="you@example.com" autocomplete="email"></div>
-       <div class="auth-field-wrap auth-password-field"><label class="auth-field-label" for="af-pass">Password</label><div class="auth-pass-wrap">
-         <input class="auth-inp" id="af-pass" name="password" type="password" maxlength="72" enterkeyhint="${isLogin?'go':'done'}" placeholder="${isLogin ? 'Your password' : '10 or more characters'}" autocomplete="${isLogin?'current':'new'}-password">
-         <button type="button" class="auth-eye" onclick="togglePassVis()" aria-label="Show password" aria-pressed="false">${AUTH_EYE_OPEN_ICON}</button>
-       </div>${!isLogin ? '<p class="auth-password-help" id="auth-password-help">Use at least 10 characters.</p>' : ''}</div>
-       ${isLogin ? `<div class="auth-forgot"><button type="button" onclick="openAuthModal('forgot')">Forgot password?</button></div>` : ''}`;
-  }
-  /* A real <form>: password managers and mobile autofill key off form
-     structure and a submit button, not a set of inputs in a div. The manual
-     Enter handler stays for the fields, but submit now also fires natively. */
-  const form = document.createElement('form');
-  form.id = 'auth-form';
-  form.noValidate = true;
-  form.addEventListener('submit', e => { e.preventDefault(); submitAuth(); });
-  while (f.firstChild) form.appendChild(f.firstChild);
-  f.appendChild(form);
-  document.getElementById('auth-submit')?.setAttribute('form', form.id);
-  f.querySelectorAll('.auth-inp').forEach(i => {
-    i.addEventListener('keydown', e => { if (e.key === 'Enter' && i.id !== 'af-email') { e.preventDefault(); submitAuth(); } });
-  });
-  document.getElementById('af-pass')?.addEventListener('input', e => _authPasswordHint(e.target.value));
-}
-
-function togglePassVis() {
-  const inp = document.getElementById('af-pass');
-  if (!inp) return;
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  const eye = inp.parentElement?.querySelector('.auth-eye');
-  if (eye) {
-    const visible = inp.type === 'text';
-    eye.innerHTML = visible ? AUTH_EYE_CLOSED_ICON : AUTH_EYE_OPEN_ICON;
-    eye.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
-    eye.setAttribute('aria-pressed', visible ? 'true' : 'false');
-  }
-}
-
-function selectAuthRole(role) {
-  selectedRole = role;
-  document.querySelectorAll('.auth-role-btn').forEach(b => {
-    const active = b.dataset.role === role;
-    b.classList.toggle('active', active);
-    b.classList.toggle('sel', active);
-    b.setAttribute('aria-pressed', active ? 'true' : 'false');
-  });
-}
-
 async function finishBoardAuth(data) {
-  if (authMode === 'register' || data.isNewUser) markOnboardingPendingFromBoard(data.user);
+  if (data.isNewUser) markOnboardingPendingFromBoard(data.user);
   setToken(data.token);
   currentUser = data.user;
   try { localStorage.setItem('teachedos_user', JSON.stringify(data.user)); } catch {}
@@ -15550,90 +15326,6 @@ async function finishBoardAuth(data) {
     await initUserBoard();
   }
   if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
-}
-
-async function submitAuth() {
-  const email = document.getElementById('af-email')?.value.trim();
-  const pass  = document.getElementById('af-pass')?.value;
-  const name  = document.getElementById('af-name')?.value?.trim();
-  const errEl = document.getElementById('auth-err');
-  errEl.style.display = 'none';
-  const btn = document.getElementById('auth-submit');
-
-  // ── Client-side validation ──
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errEl.textContent = 'Please enter a valid email address.';
-    errEl.style.display = 'block'; errEl.style.color = '';
-    document.getElementById('af-email')?.focus();
-    return;
-  }
-  if (authMode === 'forgot') {
-    let sent = false;
-    btn.disabled = true; setAuthSubmitLabel('Sending…'); btn.setAttribute('aria-busy', 'true');
-    try {
-      await apiFetch('/api/auth/forgot-password', { method: 'POST', body: { email } });
-      errEl.style.color = '#179955';
-      errEl.textContent = '✓ If that email is registered, a reset link is on its way.';
-      errEl.style.display = 'block';
-      setAuthSubmitLabel('Check your inbox');
-      document.getElementById('auth-fields').innerHTML = '';
-      sent = true;
-    } catch {
-      errEl.style.color = '';
-      errEl.textContent = 'Something went wrong. Please try again.';
-      errEl.style.display = 'block';
-    } finally {
-      btn.removeAttribute('aria-busy');
-      btn.disabled = sent;
-      if (!sent) setAuthSubmitLabel('Send reset link');
-    }
-    return;
-  }
-  if (!pass) {
-    errEl.textContent = 'Please enter your password.';
-    errEl.style.display = 'block'; errEl.style.color = '';
-    document.getElementById('af-pass')?.focus();
-    return;
-  }
-  if (authMode === 'register' && pass.length < 10) {
-    errEl.textContent = 'Password must be at least 10 characters.';
-    errEl.style.display = 'block'; errEl.style.color = '';
-    document.getElementById('af-pass')?.focus();
-    return;
-  }
-  if (pass.length > 72) {
-    errEl.textContent = 'Password is too long. Use 72 characters or fewer.';
-    errEl.style.display = 'block'; errEl.style.color = '';
-    document.getElementById('af-pass')?.focus();
-    return;
-  }
-  if (authMode === 'register' && !name) {
-    errEl.textContent = 'Please enter your name.';
-    errEl.style.display = 'block'; errEl.style.color = '';
-    document.getElementById('af-name')?.focus();
-    return;
-  }
-
-  btn.disabled = true;
-  setAuthSubmitLabel(authMode === 'login' ? 'Signing in…' : 'Creating account…');
-  btn.setAttribute('aria-busy', 'true');
-
-  try {
-    const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-    const body = authMode === 'login' ? { email, password: pass } : { email, password: pass, name, role: selectedRole };
-    const r = await apiFetch(endpoint, { method: 'POST', body });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Error');
-    await finishBoardAuth(d);
-  } catch (err) {
-    errEl.style.color = '';
-    errEl.textContent = err.message;
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.removeAttribute('aria-busy');
-    setAuthSubmitLabel(authMode === 'login' ? 'Sign in' : 'Create account');
-  }
 }
 
 function updateAuthUI() {
@@ -18961,7 +18653,6 @@ function startReconnectLoop() {
 
 // ── Init auth on load ────────────────────────────────────────
 (async () => {
-  renderAuthFields();
   if (authToken) {
     const loginBtn = document.getElementById('auth-login-btn');
     if (loginBtn) { loginBtn.textContent = '⟳'; loginBtn.style.pointerEvents = 'none'; }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=432">
+<link rel="manifest" href="manifest.json?v=433">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=432">
-<link rel="stylesheet" href="styles/auth.css?v=432">
-<link rel="stylesheet" href="styles/mobile.css?v=432">
-<link rel="stylesheet" href="styles/harmony.css?v=432">
-<link rel="stylesheet" href="styles/unify.css?v=432">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=432">
+<link rel="stylesheet" href="styles/board.css?v=433">
+<link rel="stylesheet" href="styles/auth.css?v=433">
+<link rel="stylesheet" href="styles/mobile.css?v=433">
+<link rel="stylesheet" href="styles/harmony.css?v=433">
+<link rel="stylesheet" href="styles/unify.css?v=433">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=433">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -274,7 +274,7 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=432">
+<link rel="stylesheet" href="styles/teached-brand.css?v=433">
 </head>
 <body class="board-page">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1369,40 +1369,9 @@ polite request</textarea>
 <!-- Undo toast -->
 <div id="undo-toast"></div>
 
-<!-- ── AUTH MODAL ─────────────────────────────────────────────── -->
-<div id="auth-overlay" class="auth-overlay board-auth-overlay">
-  <div id="auth-modal" class="auth-card board-auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-    <div class="auth-head">
-      <img class="auth-logo" src="logo-sm.png" alt="TeachEd" width="64" height="64">
-      <div id="auth-title" class="auth-title">Teach<em>Ed</em></div>
-      <div id="auth-subtitle" class="auth-sub">Sign in to sync your boards</div>
-    </div>
-    <div id="auth-err" class="auth-err" role="alert" aria-live="assertive"></div>
-    <div id="auth-google-area" class="auth-google-area">
-      <div class="auth-google-btn" id="auth-google-btn"></div>
-      <div class="auth-or"><span class="auth-or-line"></span><span>OR</span><span class="auth-or-line"></span></div>
-    </div>
-    <div id="auth-role-row" class="auth-role-row">
-      <div class="auth-role-lbl">I am a…</div>
-      <div class="auth-role-grid">
-        <button type="button" class="auth-role auth-role-btn active sel" data-role="teacher" onclick="selectAuthRole('teacher')" aria-pressed="true">
-          <div class="auth-role-ic">🧑‍🏫</div><div class="auth-role-name">Teacher</div><div class="auth-role-desc">Create boards &amp; courses</div>
-        </button>
-        <button type="button" class="auth-role auth-role-btn" data-role="student" onclick="selectAuthRole('student')" aria-pressed="false">
-          <div class="auth-role-ic">🎓</div><div class="auth-role-name">Student</div><div class="auth-role-desc">Follow &amp; collaborate</div>
-        </button>
-      </div>
-    </div>
-    <div id="auth-fields"></div>
-    <button id="auth-submit" class="auth-btn" type="submit" aria-describedby="auth-security-note"><span class="auth-btn-spinner"></span><span class="auth-btn-lbl">Sign in</span></button>
-    <p class="auth-security-note" id="auth-security-note">Protected sign-in · you can end active sessions from your profile.</p>
-    <div class="auth-toggle">
-      <span id="auth-toggle-text">Don't have an account?</span>
-      <button type="button" onclick="toggleAuthMode()" id="auth-toggle-link">Register</button>
-    </div>
-    <button type="button" class="auth-close" aria-label="Close sign-in" onclick="closeAuthModal()">×</button>
-  </div>
-</div>
+<!-- Auth modal markup is injected by scripts/auth-modal.js (see
+     TEACHED_AUTH_CONFIG below) - one shared implementation instead of a
+     hand-kept copy per page. -->
 
 <!-- UPGRADE / PAYWALL MODAL -->
 <div id="upgrade-overlay" onclick="if(event.target===this)closeUpgradeModal()">
@@ -1989,12 +1958,22 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="js/teacher-tools-data.js?v=432"></script>
-<script src="scripts/tt-text-core.js?v=432"></script>
-<script src="scripts/board-app.js?v=432"></script>
-<script src="js/board-vocab.js?v=432"></script>
-<script src="js/board-reveal.js?v=432"></script>
-<script src="js/teacher-tool-board-composer.js?v=432"></script>
+<script>
+window.TEACHED_AUTH_CONFIG = {
+  onSuccess: (data) => finishBoardAuth(data),
+  subtitle: () => window.__pendingCommunityImport ? 'Sign in to save this to your boards' : 'Sign in to sync your boards',
+  overlayClass: 'board-auth-overlay',
+  cardClass: 'board-auth-card',
+  focusTrap: true,
+};
+</script>
+<script src="scripts/auth-modal.js?v=433"></script>
+<script src="js/teacher-tools-data.js?v=433"></script>
+<script src="scripts/tt-text-core.js?v=433"></script>
+<script src="scripts/board-app.js?v=433"></script>
+<script src="js/board-vocab.js?v=433"></script>
+<script src="js/board-reveal.js?v=433"></script>
+<script src="js/teacher-tool-board-composer.js?v=433"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2002,8 +1981,8 @@ polite request</textarea>
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=432" defer></script>
-<script src="pwa-boot.js?v=432" defer></script>
+<script src="scripts/autogrow.js?v=433" defer></script>
+<script src="pwa-boot.js?v=433" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2085,11 +2064,11 @@ polite request</textarea>
     </section>
   </div>
 </div>
-<script src="pwa.js?v=432"></script>
-<script src="scripts/nav-boost.js?v=432" defer></script>
-<script src="scripts/mobile-perf.js?v=432" defer></script>
-<script src="scripts/mobile-nav.js?v=432"></script>
-<script src="scripts/mobile-zoom-guard.js?v=432" defer></script>
+<script src="pwa.js?v=433"></script>
+<script src="scripts/nav-boost.js?v=433" defer></script>
+<script src="scripts/mobile-perf.js?v=433" defer></script>
+<script src="scripts/mobile-nav.js?v=433"></script>
+<script src="scripts/mobile-zoom-guard.js?v=433" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
