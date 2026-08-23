@@ -125,6 +125,26 @@
   box-shadow: 0 0 0 3px rgba(205,242,79,.28);
 }
 .auth-inp::placeholder { color: var(--auth-ink3); font-weight: 500; }
+/* Pages that embed this modal (board.html in particular) also load a generic
+   "every plain <input> on the page" form theme (harmony.css) that paints a
+   pink/coral focus ring and border with !important - it's meant for the
+   app's ordinary forms, not this modal, but a bare <input> matches it same
+   as any other. !important can only be out-beaten by !important, and only
+   an ID selector reliably wins the specificity fight that follows - #auth-
+   overlay is the one thing on this markup guaranteed present on every host
+   page (auth-modal.js always gives the overlay this id), so it anchors the
+   override without needing to know what page embedded the modal. */
+#auth-overlay .auth-inp {
+  border-color: var(--auth-border) !important;
+  background: var(--auth-bg-field) !important;
+  box-shadow: none !important;
+}
+#auth-overlay .auth-inp:focus {
+  border-color: var(--auth-lime-dark) !important;
+  box-shadow: 0 0 0 3px rgba(205,242,79,.28) !important;
+  background: var(--auth-bg-field) !important;
+}
+#auth-overlay .auth-inp::placeholder { color: var(--auth-ink3) !important; font-weight: 500 !important; }
 /* Only the password field's own input needs room for the eye button - the
    markup never actually adds a "has-toggle" class the old selector here
    was keyed on, so that rule never matched and every field (including the
