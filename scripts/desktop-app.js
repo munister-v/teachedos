@@ -1116,15 +1116,82 @@ studentsRender();
 
 /* ══════════════════════ TOOLS ══════════════════════ */
 const TOOLS_DATA = [
-  { id:'teacher-tools-hub', name:'Teacher Tools Hub', desc:'Full TeachEd studio for worksheets, vocabulary extraction, reading tasks, grammar drills, speaking prompts and Game Builder exports.', tags:['Utility','New'], badge:'New', icon:'✦', group:'utility', url:'teacher-tools.html' },
+  // Generated from the real teacher-tools-app.js TOOLS catalog (51 tools) -
+  // this used to be its own hand-kept list that fell behind as that catalog
+  // grew, so this window kept showing an old 20-tool subset with a stale
+  // "14 tools" hint years after the real hub reached 51. Regenerate this
+  // block whenever teacher-tools-app.js's TOOLS array changes.
+  // UTILITY
+  { id:'lesson-pack', name:'Complete Lesson Pack Builder', desc:'Create a warm-up, presentation, practice, production and homework plan from one topic.', tags:['Utility','New'], badge:'New', icon:'✦', group:'utility', url:'teacher-tools.html?tool=lesson-pack' },
+  { id:'worksheet-builder', name:'ESL Worksheet Builder', desc:'Turn a topic or text into a printable worksheet with teacher notes and answer key.', tags:['Utility','New'], badge:'New', icon:'✦', group:'utility', url:'teacher-tools.html?tool=worksheet-builder' },
+  { id:'homework-set', name:'Homework Assignment Builder', desc:'Create clear homework instructions, tasks, deadlines and success criteria.', tags:['Utility'], badge:null, icon:'✦', group:'utility', url:'teacher-tools.html?tool=homework-set' },
+  // VOCABULARY
+  { id:'word-image-match', name:'Word-Image Matching', desc:'Create a visual matching exercise with uploadable images and target words.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=word-image-match' },
+  { id:'word-definition-match', name:'Word-Definition Matching', desc:'Turn vocabulary into matching pairs for cards, worksheets or memory games.', tags:['Vocabulary'], badge:null, icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=word-definition-match' },
+  { id:'word-translation-match', name:'Word-Translation Matching', desc:'Translate target words and build matching pairs for bilingual vocabulary practice.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=word-translation-match' },
+  { id:'extract-vocab', name:'Extract Vocabulary From a Text', desc:'Pull useful keywords from a text and create a study list.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=extract-vocab' },
+  { id:'essential-vocab', name:'Essential Vocabulary on a Topic', desc:'Generate a practical topic vocabulary set with teacher-friendly definitions.', tags:['Vocabulary'], badge:null, icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=essential-vocab' },
+  { id:'odd-one-out', name:'Odd One Out', desc:'Create groups where students identify the word that does not belong.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=odd-one-out' },
+  { id:'word-sorting', name:'Words Sorting', desc:'Group vocabulary into categories for drag-and-drop sorting practice.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=word-sorting' },
+  { id:'sentences-vocab', name:'Create Sentences with Vocabulary', desc:'Produce example sentences for each target word.', tags:['Vocabulary','Pro'], badge:'Pro', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=sentences-vocab' },
   // READING
-  { id:'true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
+  { id:'text-topic-vocab', name:'Create a Text with Your Vocabulary', desc:'Write a short leveled reading text that uses selected target vocabulary.', tags:['Reading'], badge:null, icon:'📖', group:'reading', url:'teacher-tools.html?tool=text-topic-vocab' },
+  { id:'abcd-text', name:'Create ABCD Questions for a Text', desc:'Generate multiple-choice comprehension questions from a source text.', tags:['Reading'], badge:null, icon:'📖', group:'reading', url:'teacher-tools.html?tool=abcd-text' },
+  { id:'open-questions', name:'Create Open Questions for a Text', desc:'Generate open-ended questions for comprehension and discussion.', tags:['Reading'], badge:null, icon:'📖', group:'reading', url:'teacher-tools.html?tool=open-questions' },
+  { id:'true-false', name:'Create True/False Statements', desc:'Create true and false statements from a text for quick reading checks.', tags:['Reading','Pro'], badge:'Pro', icon:'📖', group:'reading', url:'teacher-tools.html?tool=true-false' },
+  { id:'three-titles', name:'Create Three Titles for a Text', desc:'Make one correct title and two plausible distractors.', tags:['Reading'], badge:null, icon:'📖', group:'reading', url:'teacher-tools.html?tool=three-titles' },
+  // UTILITY
+  { id:'cefr', name:'CEFR Level Checker', desc:'Estimate text difficulty and receive simplification tips.', tags:['Utility','Pro'], badge:'Pro', icon:'✦', group:'utility', url:'teacher-tools.html?tool=cefr' },
   // WRITING
+  { id:'link-words', name:'Link Words into Sentences', desc:'Ask students to connect target words into meaningful sentences.', tags:['Writing'], badge:null, icon:'✍️', group:'writing', url:'teacher-tools.html?tool=link-words' },
+  { id:'creative-writing', name:'Creative Writing with Target Vocabulary', desc:'Generate writing prompts that require using a vocabulary set.', tags:['Writing'], badge:null, icon:'✍️', group:'writing', url:'teacher-tools.html?tool=creative-writing' },
+  { id:'sentence-translation', name:'Sentence Translation Exercises', desc:'Create translation prompts around target vocabulary or grammar.', tags:['Writing','New'], badge:'New', icon:'✍️', group:'writing', url:'teacher-tools.html?tool=sentence-translation' },
+  // GRAMMAR
+  { id:'word-order', name:'Word Order / Unscramble', desc:'Shuffle sentence words for students to put back in the correct order.', tags:['Grammar','New'], badge:'New', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=word-order' },
+  { id:'matching-halves', name:'Matching Halves', desc:'Split collocations or sentences into two halves for students to match.', tags:['Grammar','New'], badge:'New', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=matching-halves' },
+  { id:'rewrite', name:'Rewrite the Sentence', desc:'Rewrite prompts focused on a grammar structure.', tags:['Grammar','Pro'], badge:'Pro', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=rewrite' },
+  { id:'gap', name:'Fill in the Gap', desc:'Replace target words with blanks and provide the answer key.', tags:['Grammar'], badge:null, icon:'📐', group:'grammar', url:'teacher-tools.html?tool=gap' },
+  { id:'gaps-abcd', name:'Gaps with ABCD', desc:'Create multiple-choice gap-fill grammar tasks.', tags:['Grammar','Pro'], badge:'Pro', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=gaps-abcd' },
+  { id:'two-options', name:'Two Options with a Slash', desc:'Create choose-the-correct-option sentence pairs.', tags:['Grammar','Pro'], badge:'Pro', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=two-options' },
+  { id:'error-correction', name:'Error Correction Exercise', desc:'Create sentences with mistakes for students to correct.', tags:['Grammar','Pro'], badge:'Pro', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=error-correction' },
+  { id:'grammar-rules', name:'Grammar Rules', desc:'Generate concise rules, examples and practice prompts.', tags:['Grammar','Pro'], badge:'Pro', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=grammar-rules' },
+  // SPEAKING
+  { id:'discussion', name:'Find Discussion Questions', desc:'Create warm-up, deeper and follow-up questions for a topic.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'teacher-tools.html?tool=discussion' },
+  { id:'dialogue', name:'Create a Dialogue on Any Topic', desc:'Build a role-play dialogue with target vocabulary.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'teacher-tools.html?tool=dialogue' },
+  { id:'warmup-listening', name:'Warm-Up Before Listening', desc:'Prepare prediction questions before an audio or video lesson.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'teacher-tools.html?tool=warmup-listening' },
+  // LISTENING
+  { id:'audio-video-questions', name:'Audio & Video Question Creator', desc:'Use a transcript or notes to create listening questions.', tags:['Listening','Pro'], badge:'Pro', icon:'🎧', group:'listening', url:'teacher-tools.html?tool=audio-video-questions' },
+  { id:'transcript-helper', name:'Convert Audio/Video Notes to Text Task', desc:'Paste or type a transcript, then turn it into classroom tasks.', tags:['Listening','Pro'], badge:'Pro', icon:'🎧', group:'listening', url:'teacher-tools.html?tool=transcript-helper' },
+  // UTILITY
+  { id:'add-text', name:'Add Your Text', desc:'Create a clean text block for a lesson or worksheet.', tags:['Utility'], badge:null, icon:'✦', group:'utility', url:'teacher-tools.html?tool=add-text' },
+  { id:'add-images', name:'Add Your Images', desc:'Upload classroom images and attach teaching notes.', tags:['Utility'], badge:null, icon:'✦', group:'utility', url:'teacher-tools.html?tool=add-images' },
+  { id:'add-video', name:'Add Your Video', desc:'Attach a video link and create viewing tasks around it.', tags:['Utility'], badge:null, icon:'✦', group:'utility', url:'teacher-tools.html?tool=add-video' },
+  // READING
+  { id:'simplify-text', name:'Simplify / Upgrade Text', desc:'Rewrite a text at an easier or a more advanced level.', tags:['Reading','New'], badge:'New', icon:'📖', group:'reading', url:'teacher-tools.html?tool=simplify-text' },
+  { id:'reading-bits', name:'Reading Bits and Pieces', desc:'Split a text into jumbled pieces for students to reorder.', tags:['Reading','New'], badge:'New', icon:'📖', group:'reading', url:'teacher-tools.html?tool=reading-bits' },
+  // VOCABULARY
+  { id:'comm-situations', name:'Communicative Situations', desc:'Generate role-play situation cards that use the target vocabulary.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=comm-situations' },
+  { id:'rephrase-word', name:'Rephrase Using Word Given', desc:'Rewrite sentences keeping the meaning, using a given key word.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=rephrase-word' },
+  // WRITING
+  { id:'four-opinions', name:'Four Opinions', desc:'Present four contrasting opinions on a topic for response writing.', tags:['Writing','New'], badge:'New', icon:'✍️', group:'writing', url:'teacher-tools.html?tool=four-opinions' },
+  { id:'find-quotes', name:'Find Quotes', desc:'Collect relevant quotes about a topic for discussion and writing.', tags:['Writing','New'], badge:'New', icon:'✍️', group:'writing', url:'teacher-tools.html?tool=find-quotes' },
+  { id:'essay-topics', name:'Essay Topics', desc:'Generate essay prompts and questions on any topic.', tags:['Writing','New'], badge:'New', icon:'✍️', group:'writing', url:'teacher-tools.html?tool=essay-topics' },
+  // SPEAKING
+  { id:'lead-in', name:'Lead-in Activities', desc:'Create quick warm-up activities to introduce a topic.', tags:['Speaking','New'], badge:'New', icon:'🗣️', group:'speaking', url:'teacher-tools.html?tool=lead-in' },
+  { id:'interesting-facts', name:'Interesting Facts', desc:'Generate fact-based discussion starters about a topic.', tags:['Speaking','New'], badge:'New', icon:'🗣️', group:'speaking', url:'teacher-tools.html?tool=interesting-facts' },
+  { id:'pros-cons', name:'Pros and Cons', desc:'List arguments for and against a topic for debate practice.', tags:['Speaking','New'], badge:'New', icon:'🗣️', group:'speaking', url:'teacher-tools.html?tool=pros-cons' },
+  // GRAMMAR
+  { id:'type-gap', name:'Type Anything into Gap', desc:'Create open cloze gaps where students type a suitable word.', tags:['Grammar','New'], badge:'New', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=type-gap' },
+  { id:'gaps-brackets', name:'Gaps with Brackets', desc:'Gap-fill with the base word in brackets for students to transform.', tags:['Grammar','New'], badge:'New', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=gaps-brackets' },
+  { id:'word-bank', name:'Fill from Word Bank', desc:'Gap-fill where students choose answers from a provided word bank.', tags:['Grammar','New'], badge:'New', icon:'📐', group:'grammar', url:'teacher-tools.html?tool=word-bank' },
+  // LISTENING
+  { id:'summary-gapfill', name:'Summary GapFill', desc:'Create a gapped summary of a transcript for listening practice.', tags:['Listening','New'], badge:'New', icon:'🎧', group:'listening', url:'teacher-tools.html?tool=summary-gapfill' },
+  { id:'choose-summary', name:'Choose Right Summary', desc:'Offer several summaries so students pick the correct one.', tags:['Listening','New'], badge:'New', icon:'🎧', group:'listening', url:'teacher-tools.html?tool=choose-summary' },  // STANDALONE GAMES (playable pages under games/, separate from the
+  // generator tools above)
+  { id:'game-true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
   { id:'sentence-builder', name:'Sentence Builder', desc:'Drag scrambled words into the correct order to form a grammatically correct sentence. Works for any level.', tags:['Writing','Grammar'], badge:null, icon:'🧩', group:'writing', url:'games/sentence-builder.html' },
   { id:'twee-module-studio', name:'Twee Module Studio', desc:'A studio for building Twee-style interactive text modules - useful for branching writing tasks and lesson scenarios.', tags:['Writing'], badge:'Beta', icon:'📝', group:'writing', url:'games/twee-module-studio.html' },
-  // SPEAKING
   { id:'four-opinions-uk', name:'Four Opinions (UK)', desc:'Cards with four opinions on a topic - students discuss, agree, disagree, and justify. UK English version.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'games/four-opinions-uk.html' },
-  // VOCABULARY
   { id:'false-friends', name:'False Friends', desc:'Trip up the cognates trap - Магазин ≠ magazine. Quick rounds to drill the most common Slavic-English false friends.', tags:['Vocabulary'], badge:null, icon:'🤝', group:'vocabulary', url:'games/false-friends.html' },
   { id:'hangman', name:'Hangman', desc:'Classic word-guessing game. Configurable word lists by level and topic.', tags:['Vocabulary'], badge:null, icon:'🪢', group:'vocabulary', url:'games/hangman.html' },
   { id:'memory-match', name:'Memory Match', desc:'Pair word ↔ image (or word ↔ definition) cards. Fun warm-up that boosts retention.', tags:['Vocabulary'], badge:null, icon:'🧠', group:'vocabulary', url:'games/memory-match.html' },
@@ -1133,14 +1200,12 @@ const TOOLS_DATA = [
   { id:'synonym-snap', name:'Synonym Snap', desc:'Tap pairs that share a meaning. Fast-paced synonym recognition drill.', tags:['Vocabulary'], badge:null, icon:'⚡', group:'vocabulary', url:'games/synonym-snap.html' },
   { id:'typing-rain', name:'Typing Rain', desc:'Words fall from the top - type them before they hit the ground. Builds typing speed + recall.', tags:['Vocabulary'], badge:null, icon:'🌧️', group:'vocabulary', url:'games/typing-rain.html' },
   { id:'word-categories', name:'Word Categories', desc:'Sort words into the right category (food, animals, jobs, etc.). Great for theme-based vocab.', tags:['Vocabulary'], badge:null, icon:'🗂️', group:'vocabulary', url:'games/word-categories.html' },
-  { id:'word-definition-match', name:'Word ↔ Definition', desc:'Match each word to its correct definition. Flexible - load any word list.', tags:['Vocabulary'], badge:null, icon:'🔍', group:'vocabulary', url:'games/word-definition-match.html' },
+  { id:'game-word-definition-match', name:'Word ↔ Definition', desc:'Match each word to its correct definition. Flexible - load any word list.', tags:['Vocabulary'], badge:null, icon:'🔍', group:'vocabulary', url:'games/word-definition-match.html' },
   { id:'word-scramble', name:'Word Scramble', desc:'Unscramble the letters to find the hidden word. Quick and addictive.', tags:['Vocabulary'], badge:null, icon:'🔤', group:'vocabulary', url:'games/word-scramble.html' },
-  // GRAMMAR
   { id:'article-rush', name:'Article Rush', desc:'Tap a / an / the / Ø as fast as possible. Drill articles for Slavic learners.', tags:['Grammar'], badge:null, icon:'⏱️', group:'grammar', url:'games/article-rush.html' },
   { id:'grammar-fix', name:'Grammar Fix', desc:'Spot and fix the grammar mistake in each sentence. Levels A2-C1.', tags:['Grammar'], badge:null, icon:'🔧', group:'grammar', url:'games/grammar-fix.html' },
   { id:'prepositions', name:'Prepositions', desc:'Pick the right preposition for each gap - at / in / on / by / with…', tags:['Grammar'], badge:null, icon:'📍', group:'grammar', url:'games/prepositions.html' },
   { id:'tense-picker', name:'Tense Picker', desc:'Choose the correct tense for the context. Covers all 12 tenses with timeline hints.', tags:['Grammar'], badge:null, icon:'⏳', group:'grammar', url:'games/tense-picker.html' },
-  // UTILITY
   { id:'linguaquiz-ai-uk', name:'LinguaQuiz AI', desc:'AI-powered adaptive quiz - generates questions on the fly for any topic. UK English.', tags:['Utility'], badge:'AI', icon:'🤖', group:'utility', url:'games/linguaquiz-ai-uk.html' },
 ];
 
@@ -1212,7 +1277,8 @@ function updateToolSidebarCounts() {
   const counts = { all: TOOLS_DATA.length };
   TOOLS_DATA.forEach(t => { counts[t.group] = (counts[t.group] || 0) + 1; });
   const map = { all:'tg-all', reading:'tg-reading', writing:'tg-writing',
-                speaking:'tg-speaking', vocabulary:'tg-vocabulary', grammar:'tg-grammar', utility:'tg-utility' };
+                speaking:'tg-speaking', vocabulary:'tg-vocabulary', grammar:'tg-grammar',
+                listening:'tg-listening', utility:'tg-utility' };
   Object.entries(map).forEach(([g, id]) => {
     const el = document.getElementById(id);
     if (!el) return;
