@@ -620,16 +620,11 @@ body.tools-workbench .workspace .panel-icon {
 body.tools-workbench .workspace .label { color:var(--te-violet) !important; }
 
 /* Analytics, journal and gradebook use a quiet data surface with enough
-   chroma to scan metrics without relying on a generic green icon. */
+   chroma to scan metrics without relying on a generic green icon. No edge
+   stripes here on purpose - a cycling nth-child border-left is the exact
+   "traffic light" effect flagged and removed elsewhere in the app; colour
+   lives on the icon chip only, never the card edge. */
 body.suite-page .suite-tab.active { background:var(--te-violet) !important; color:#fff !important; }
-body.suite-page :is(.stats-row,.stats-grid) .stat-card { position:relative; overflow:hidden; }
-body.suite-page :is(.stats-row,.stats-grid) .stat-card::before {
-  content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--te-violet);
-}
-body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+2)::before { background:var(--te-blue); }
-body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+3)::before { background:var(--te-lime); }
-body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+4)::before { background:var(--te-orange); }
-body.suite-page :is(.stats-row,.stats-grid) .stat-card.primary::before { background:var(--te-coral); }
 body.suite-page :is(.stats-row,.stats-grid) .stat-card .stat-icon {
   background:var(--te-surface-violet) !important;
   color:var(--te-violet) !important;
@@ -637,15 +632,9 @@ body.suite-page :is(.stats-row,.stats-grid) .stat-card .stat-icon {
 body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+2) .stat-icon { background:var(--te-surface-blue) !important; color:var(--te-blue) !important; }
 body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+3) .stat-icon { background:var(--te-surface-lime) !important; color:#4C6800 !important; }
 body.suite-page :is(.stats-row,.stats-grid) .stat-card:nth-child(4n+4) .stat-icon { background:var(--te-surface-yellow) !important; color:#A35D00 !important; }
-body.journal-suite .stat-card.attention::before { background:var(--te-orange) !important; }
-body.journal-suite .stat-card.good::before { background:#35B96E !important; }
 
-/* Profile/admin cards already carry plenty of information. Colour the icon
-   and the metric edge, never the whole tile. */
-body:is(.profile-page,.admin-page) .stat-card { position:relative; overflow:hidden; }
-body:is(.profile-page,.admin-page) .stat-card::before { content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--te-violet); }
-body:is(.profile-page,.admin-page) .stat-card:nth-child(3n+2)::before { background:var(--te-blue); }
-body:is(.profile-page,.admin-page) .stat-card:nth-child(3n)::before { background:var(--te-coral); }
+/* Profile/admin cards already carry plenty of information. Colour lives on
+   the icon chip only - see the note above. */
 body.admin-page .stat-icon.pink { background:var(--te-surface-coral) !important; color:var(--te-coral) !important; }
 body.admin-page .stat-icon.blue { background:var(--te-surface-blue) !important; color:var(--te-blue) !important; }
 body.admin-page .stat-icon.green { background:var(--te-surface-lime) !important; color:#278646 !important; }
