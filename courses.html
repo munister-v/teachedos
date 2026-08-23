@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=447">
+<link rel="manifest" href="manifest.json?v=448">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=447">
-<link rel="preload" as="style" href="styles/unify.css?v=447">
+<link rel="preload" as="style" href="styles/harmony.css?v=448">
+<link rel="preload" as="style" href="styles/unify.css?v=448">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -320,6 +320,20 @@ button{font-family:var(--font);cursor:pointer;}
 .color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.15s;flex-shrink:0;}
 .color-dot.active{border-color:var(--text);transform:scale(1.18);}
 #form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+/* preview (replaces the plain-text alert() the "Contents" button used to
+   show - same overlay language as picker/form, but read-only content). */
+#preview-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px;}
+#preview-overlay.open{display:flex;}
+#preview-modal{background:var(--card);border-radius:20px;padding:28px;width:520px;max-width:100%;max-height:82vh;box-shadow:0 24px 70px rgba(0,0,0,.22);display:flex;flex-direction:column;gap:18px;}
+#preview-head{display:flex;flex-direction:column;gap:4px;}
+#preview-level{display:inline-flex;align-self:flex-start;padding:3px 10px;border-radius:999px;background:rgba(200,230,50,.28);color:#4C6800;font-size:11px;font-weight:800;letter-spacing:.03em;}
+#preview-title{font-size:19px;font-weight:750;color:var(--text);letter-spacing:-.02em;}
+#preview-modules{overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px;}
+.preview-module-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:7px;}
+.preview-lesson-list{display:flex;flex-direction:column;gap:6px;}
+.preview-lesson{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;color:var(--text);}
+.preview-lesson-num{flex-shrink:0;width:20px;height:20px;border-radius:6px;background:var(--bg2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;font-family:var(--mono,monospace);}
+#preview-actions{display:flex;justify-content:flex-end;}
 
 /* Toast */
 #toast{
@@ -362,10 +376,10 @@ button{font-family:var(--font);cursor:pointer;}
   #course-view{animation-duration:.001ms}
 }
 </style>
-<script src="theme.js?v=447" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=447">
-<link rel="stylesheet" href="styles/harmony.css?v=447">
-<link rel="stylesheet" href="styles/unify.css?v=447">
+<script src="theme.js?v=448" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=448">
+<link rel="stylesheet" href="styles/harmony.css?v=448">
+<link rel="stylesheet" href="styles/unify.css?v=448">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -429,8 +443,8 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=447">
-<link rel="stylesheet" href="styles/tool-window.css?v=447">
+<link rel="stylesheet" href="styles/teached-brand.css?v=448">
+<link rel="stylesheet" href="styles/tool-window.css?v=448">
 </head>
 <body class="tw-page mp-shell">
 
@@ -505,6 +519,20 @@ button{font-family:var(--font);cursor:pointer;}
 
 </div>
 
+<!-- Ready-made course preview modal -->
+<div id="preview-overlay" onclick="if(event.target===this)closePreview()">
+  <div id="preview-modal">
+    <div id="preview-head">
+      <div id="preview-level"></div>
+      <div id="preview-title"></div>
+    </div>
+    <div id="preview-modules"></div>
+    <div id="preview-actions">
+      <button class="btn btn-ghost" onclick="closePreview()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Board picker modal -->
 <div id="picker-overlay" onclick="if(event.target===this)closePicker()">
   <div id="picker-modal">
@@ -547,7 +575,7 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=447"></script>
+<script src="scripts/app-core.js?v=448"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -1102,8 +1130,20 @@ async function createReadyCourse(level) {
 
 function previewReadyTemplate(level) {
   const template = COURSE_TEMPLATES[level] || COURSE_TEMPLATES.B1;
-  const lines = template.modules.map(m => `${m.name}: ${m.lessons.map(l => l.title).join(', ')}`).join('\n');
-  alert(`${template.title}\n\n${lines}`);
+  document.getElementById('preview-level').textContent = level;
+  document.getElementById('preview-title').textContent = template.title;
+  document.getElementById('preview-modules').innerHTML = template.modules.map(m => `
+    <div>
+      <div class="preview-module-name">${escAttr(m.name)}</div>
+      <div class="preview-lesson-list">${m.lessons.map((l, i) => `
+        <div class="preview-lesson"><span class="preview-lesson-num">${i + 1}</span>${escAttr(l.title)}</div>
+      `).join('')}</div>
+    </div>
+  `).join('');
+  document.getElementById('preview-overlay').classList.add('open');
+}
+function closePreview() {
+  document.getElementById('preview-overlay').classList.remove('open');
 }
 
 function buildReadyLessonBoard(template, moduleTemplate, lessonTemplate) {
@@ -1486,11 +1526,11 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=447" defer></script>
-<script src="scripts/mobile-perf.js?v=447" defer></script>
-<script src="scripts/mobile-nav.js?v=447"></script>
-<script src="scripts/mobile-zoom-guard.js?v=447" defer></script>
-<script src="scripts/autogrow.js?v=447" defer></script>
-<script src="pwa-boot.js?v=447" defer></script>
+<script src="scripts/nav-boost.js?v=448" defer></script>
+<script src="scripts/mobile-perf.js?v=448" defer></script>
+<script src="scripts/mobile-nav.js?v=448"></script>
+<script src="scripts/mobile-zoom-guard.js?v=448" defer></script>
+<script src="scripts/autogrow.js?v=448" defer></script>
+<script src="pwa-boot.js?v=448" defer></script>
 </body>
 </html>
