@@ -116,6 +116,12 @@ a{text-decoration:none;color:inherit;}
 
 /* Section */
 .section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
+/* overflow:hidden на .section нужен, чтобы содержимое обрезалось по скруглённым
+   углам. Но секция с выпадающим списком обрезает и его: панель «Boards /
+   Students» на 282px выходит за низ секции и срезалась по её границе. z-index
+   тут бессилен — обрезка предка сильнее любого слоя. Клипинг снимается только
+   пока список открыт, поэтому углы остальное время работают как прежде. */
+.section.analytics-context:has(.board-switcher.open){overflow:visible;}
 .sec-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .sec-title{font-size:15px;font-weight:650;flex:1;}
 .sec-body{padding:18px 20px;}
@@ -310,12 +316,12 @@ a{text-decoration:none;color:inherit;}
 }
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=454" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=454">
-<link rel="stylesheet" href="styles/harmony.css?v=454">
-<link rel="stylesheet" href="styles/unify.css?v=454">
-<link rel="stylesheet" href="styles/teached-brand.css?v=454">
-<link rel="stylesheet" href="styles/tool-window.css?v=454">
+<script src="theme.js?v=455" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=455">
+<link rel="stylesheet" href="styles/harmony.css?v=455">
+<link rel="stylesheet" href="styles/unify.css?v=455">
+<link rel="stylesheet" href="styles/teached-brand.css?v=455">
+<link rel="stylesheet" href="styles/tool-window.css?v=455">
 </head>
 <body class="tw-page suite-page analytics-suite">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -504,7 +510,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=454"></script>
+<script src="scripts/app-core.js?v=455"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
@@ -1178,11 +1184,11 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=454" defer></script>
-<script src="scripts/mobile-perf.js?v=454" defer></script>
-<script src="scripts/mobile-nav.js?v=454"></script>
-<script src="scripts/mobile-zoom-guard.js?v=454" defer></script>
-<script src="scripts/autogrow.js?v=454" defer></script>
-<script src="pwa-boot.js?v=454" defer></script>
+<script src="scripts/nav-boost.js?v=455" defer></script>
+<script src="scripts/mobile-perf.js?v=455" defer></script>
+<script src="scripts/mobile-nav.js?v=455"></script>
+<script src="scripts/mobile-zoom-guard.js?v=455" defer></script>
+<script src="scripts/autogrow.js?v=455" defer></script>
+<script src="pwa-boot.js?v=455" defer></script>
 </body>
 </html>

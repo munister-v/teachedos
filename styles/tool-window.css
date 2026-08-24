@@ -141,7 +141,24 @@ body.tw-page:not(#_) .side {
   width:200px !important;
   flex:0 0 200px !important;
   top:44px !important;
-  align-self:stretch !important;
+  /* Было align-self:stretch — рейка тянулась на всю высоту страницы. На
+     коротком экране это читалось как боковина окна, ради чего и делалось, но
+     в «Сообществе» страница длиной 2400px, а содержимого в рейке на 224px:
+     получалась бежевая полоса с двумя тысячами пикселей пустоты.
+
+     Хуже другое: sticky-элемент высотой во всю прокручиваемую область
+     прилипать не может — прокручивать внутри него нечего. Рейка уезжала
+     вверх вместе со страницей, хотя top:44px рядом обещает обратное.
+
+     Высота задаётся через height:fit-content, а не align-self:start: .shell
+     на этих страницах то flex («Сообщество»), то grid (teacher-tools), и в
+     grid значение start растяжку не сняло — рейка осталась во весь экран при
+     содержимом на 419px. fit-content однозначен в обоих режимах.
+
+     Потолок в один экран оставляет sticky работать и там, где меню длинное. */
+  height:fit-content !important;
+  max-height:calc(100vh - 60px) !important;
+  overflow-y:auto !important;
   padding:14px 10px 28px !important;
   margin:22px 0 0 22px !important;
   border:1px solid var(--tw-line) !important;
@@ -824,6 +841,12 @@ body.tw-page:not(#_) .sec-kicker {
 }
 body.tw-page:not(#_) .sec-body { padding:14px 16px !important; }
 body.tw-page:not(#_) .section { overflow:hidden !important; }
+/* Обрезка по скруглённым углам не должна съедать выпадающие списки: панель
+   переключателя досок выходит за низ своей секции, и обрезка предка срезала
+   её независимо от z-index. Снимается только на время открытия — в остальном
+   углы работают как прежде. Правило здесь, а не только на странице, потому
+   что !important выше перебил бы страничный overflow:visible. */
+body.tw-page:not(#_) .section:has(.board-switcher.open) { overflow:visible !important; }
 
 /* ── Tab strips ────────────────────────────────────────────────────────────
    Four different names for the same segmented control. */
