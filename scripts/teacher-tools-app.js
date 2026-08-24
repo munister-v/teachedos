@@ -1750,6 +1750,22 @@ const TT_API_BASE = (window.TEACHED_API_BASE || ((location.hostname==='localhost
 // the board uses, so the hub no longer relies on local templates for quality.
 // A couple of hub tool IDs differ from the server's catalog IDs.
 const TT_SERVER_ID_MAP={cefr:'cefr-checker'};
+function renderHubAiQuota(quota){
+  const el=document.getElementById('tt-ai-quota');
+  if(!el||!quota)return;
+  el.style.display='';
+  el.textContent=`AI allowance: ${quota.requests_remaining} requests left this month`;
+}
+async function loadHubAiQuota(){
+  const token=localStorage.getItem('teachedos_token');
+  if(!token)return;
+  try{
+    const r=await fetch(`${TT_API_BASE}/api/ai/quota`,{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json().catch(()=>null);
+    if(r.ok&&d?.quota)renderHubAiQuota(d.quota);
+  }catch(_){ }
+}
+loadHubAiQuota();
 async function requestServerHubAI(){
   const token=localStorage.getItem('teachedos_token');
   if(!token)return null;
@@ -1763,6 +1779,7 @@ async function requestServerHubAI(){
     clearTimeout(timer);
     if(!r.ok)return null;
     const d=await r.json().catch(()=>null);
+    if(d?.quota)renderHubAiQuota(d.quota);
     return (d&&d.output)?d.output:null;
   }catch(e){if(e.name!=='AbortError')console.warn('[hub-ai-server]',e.message);return null;}
 }
