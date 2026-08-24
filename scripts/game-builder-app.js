@@ -888,9 +888,14 @@ function openBuilder() {
   document.getElementById('builder-sub').textContent = selectedType.desc;
   document.getElementById('game-title').value = '';
   document.getElementById('game-level').value = 'B1';
-  document.getElementById('game-tags').value = selectedType.tag;
+  document.getElementById('game-tags').value = '';
+  ['game-title', 'game-tags'].forEach(id => {
+    const input = document.getElementById(id);
+    input.oninput = clearGameGenerationNotice;
+  });
   document.getElementById('save-btn').textContent = 'Save Game to Library';
   bulkMode = false;
+  document.getElementById('smart-row').style.display = 'flex';
   renderTopicBar();
   renderTemplateSwitcher();
   renderPresetBar();
@@ -902,6 +907,8 @@ function openBuilder() {
 
 function closeBuilder() {
   document.getElementById('builder').classList.remove('show');
+  document.getElementById('smart-row').style.display = 'none';
+  clearGameGenerationNotice();
   selectedType = null;
   editingId = null;
   bulkMode = false;
@@ -1511,20 +1518,11 @@ function shuffleArray(items) {
 
 function _gbRegEscape(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-/* ── ГЕНЕРАЦИЯ ИГРЫ НАШИМИ МОДЕЛЯМИ ────────────────────────────────────────
+/* ── ГЕНЕРАЦИЯ ИГРЫ ───────────────────────────────────────────────────────
 
-   «Smart fill» ниже - это подстановка из локальной библиотеки тем, а когда её
-   не хватает - скелет из десяти общих слов («challenge», «solution»…). Для
-   игры по конкретной теме и конкретному уровню это заметно: слова верные, но
-   не про то. При этом у нас есть движок, который умеет ровно это - с
-   ограничениями CEFR (длина, частотная полоса, грамматика) и проверкой
-   пригодности заданий.
-
-   Здесь тот же endpoint, что и у конструктора уроков, и тот же уровень из
-   формы. Инструмент выбирается по тому, ЧТО игре нужно: пары «слово -
-   перевод», список слов, предложения с пропуском, утверждения или вопросы с
-   вариантами. Если модель недоступна, ничего не ломается - остаётся прежняя
-   подстановка из библиотеки.                                                */
+   ИИ и Smart fill работают только с темой, которую задал преподаватель.
+   Нельзя подменять неудачную генерацию случайным шаблоном: такой материал
+   выглядит готовым, но не относится к уроку.                                 */
 const GB_TOOL_FOR_FIELDS = {
   pairs:      'word-translation-match',
   words:      'extract-vocab',
@@ -1546,17 +1544,58 @@ function _gbApiBase() {
     : 'https://teached.tech')));
 }
 
+function clearGameGenerationNotice() {
+  document.getElementById('gb-generation-status')?.classList.remove('show');
+  document.querySelectorAll('#builder [aria-invalid="true"]').forEach(el => el.removeAttribute('aria-invalid'));
+  document.querySelectorAll('#builder .gb-field-error').forEach(el => el.remove());
+}
+
+function showGameGenerationNotice(message, targetId = '') {
+  clearGameGenerationNotice();
+  const status = document.getElementById('gb-generation-status');
+  if (status) {
+    status.textContent = message;
+    status.classList.add('show');
+  }
+  const target = targetId ? document.getElementById(targetId) : null;
+  if (target) {
+    target.setAttribute('aria-invalid', 'true');
+    const field = target.closest('.field');
+    if (field) {
+      const note = document.createElement('div');
+      note.className = 'gb-field-error';
+      note.textContent = message;
+      field.appendChild(note);
+    }
+    target.focus({ preventScroll: false });
+  }
+  return false;
+}
+
+function gameGenerationTopic() {
+  const tags = document.getElementById('game-tags')?.value.trim() || '';
+  const title = document.getElementById('game-title')?.value.trim() || '';
+  return tags || title;
+}
+
+function validateGameGenerationIntent() {
+  const topic = gameGenerationTopic();
+  if (topic) return topic;
+  showGameGenerationNotice('Add a topic or tags before generating a game.', 'game-tags');
+  return '';
+}
+
 async function aiFillGame() {
   if (!selectedType) { toast('Choose a game type first'); return; }
   const toolId = GB_TOOL_FOR_FIELDS[selectedType.fields];
   if (!toolId) { toast('AI fill is not available for this game type yet'); return; }
+  const topic = validateGameGenerationIntent();
+  if (!topic) return;
   const token = localStorage.getItem('teachedos_token');
   if (!token) { toast('Sign in to generate with AI'); return; }
 
   const levelSel = document.getElementById('game-level').value;
   const level = ['A1','A2','B1','B2','C1','C2'].includes(levelSel) ? levelSel : 'B1';
-  const topic = (document.getElementById('game-tags').value || document.getElementById('game-title').value || '')
-    .split(',')[0].trim() || 'general English';
   const count = Math.max(4, Math.min(20, Number(document.getElementById('game-items')?.value) || 8));
 
   const btn = document.getElementById('gb-ai-btn');
@@ -1572,18 +1611,17 @@ async function aiFillGame() {
     if (!r.ok) throw new Error('server ' + r.status);
     const data = await r.json();
     const out = data && data.output;
+    if (out?.engine === 'rules' || out?.engine === 'archive') {
+      throw new Error('fallback response');
+    }
     const content = _gbContentFromAI(selectedType.fields, out);
     if (!content) throw new Error('empty result');
     renderContentFields(); populateContent({ content }); updateItemCounter(); refreshLivePreview(true);
-    /* Честно говорим, чем собрано: страховочная модель и локальные шаблоны
-       пишут заметно проще, и учитель должен видеть это до урока, а не на нём. */
-    const note = out.engine === 'rules' ? ' (offline templates - regenerate later)'
-      : out.engine === 'archive' ? ' (reused an earlier lesson - the model is unavailable)'
-      : out.engine === 'backup' ? ' (backup engine - regenerate later for sharper items)' : '';
+    const note = out.engine === 'backup' ? ' (backup model)' : '';
     toast(`Filled ${level} content for “${topic}”${note}`);
   } catch (e) {
-    toast('AI is unavailable right now - using the topic library instead');
-    autoFillGame();
+    showGameGenerationNotice('AI could not create this material. Your current draft was not changed. Try again or use a named dictionary or template.');
+    toast('AI generation did not change your draft');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = label || 'Generate with AI'; }
   }
@@ -1660,9 +1698,11 @@ function _gbContentFromAI(fields, out) {
 
 async function autoFillGame() {
   if (!selectedType) { toast('Choose a game type first'); return; }
+  const topicHint = validateGameGenerationIntent();
+  if (!topicHint) return;
   const levelSel = document.getElementById('game-level').value;
   const lvl = ['A1','A2','B1','B2','C1'].includes(levelSel) ? levelSel : 'B1';
-  const hint = (document.getElementById('game-title').value + ' ' + document.getElementById('game-tags').value).toLowerCase();
+  const hint = topicHint.toLowerCase();
 
   // Prefer REAL vocabulary from the topic library so smart-fill produces
   // teachable content (word + genuine translation + example sentence) instead
@@ -1672,7 +1712,7 @@ async function autoFillGame() {
     if (window.ensureVocab) await window.ensureVocab();
     if (window.TEACHEDOS_VOCAB) {
       const topics = window.TEACHEDOS_VOCAB.listTopics();
-      const match = topics.find(t => hint.includes(t.id) || hint.includes(String(t.name).toLowerCase())) || topics[0];
+      const match = topics.find(t => hint.includes(String(t.id).toLowerCase()) || hint.includes(String(t.name).toLowerCase()));
       if (match) {
         vocab = window.TEACHEDOS_VOCAB.pick(match.id, lvl, 10);
         if (!vocab || !vocab.length) vocab = window.TEACHEDOS_VOCAB.pick(match.id, 'mix', 10);
@@ -1697,22 +1737,13 @@ async function autoFillGame() {
     }) };
   }
 
-  // Fallback (no library, or a field the library can't fill): clean scaffold.
   if (!content) {
-    const topic = (document.getElementById('game-tags').value || document.getElementById('game-title').value || 'English practice').split(',')[0].trim();
-    const tl = topic.toLowerCase();
-    const words = ['challenge','solution','feedback','practice','confidence','routine','progress','mistake','example','conversation'];
-    const cap = w => w.charAt(0).toUpperCase() + w.slice(1);
-    if (selectedType.fields === 'pairs') content = { pairs: words.slice(0,8).map(w => ({ a:w, b:`a key idea when discussing ${tl}` })) };
-    else if (selectedType.fields === 'words') content = { words: words.slice(0,10) };
-    else if (selectedType.fields === 'sentences') content = { sentences: words.slice(0,6).map(w => `Students need regular ___ to improve their ${tl}.|${w}`) };
-    else if (selectedType.fields === 'statements') content = { statements: words.slice(0,6).map((w,i) => ({ text:`${cap(w)} is useful when learning ${tl}.`, answer:i % 2 === 0 })) };
-    else if (selectedType.fields === 'mcq') content = { questions: words.slice(0,5).map((w,i) => ({ q:`Which word best fits the topic of ${tl}?`, opts:[w, words[(i+1)%words.length], words[(i+2)%words.length], words[(i+3)%words.length]], correct:0 })) };
-    else if (selectedType.fields === 'categories') content = { categories:[{name:'Learning',words:['practice','feedback','progress','mistake']},{name:'Communication',words:['conversation','example','confidence','solution']},{name:'Mindset',words:['challenge','routine','focus','goal']}] };
+    showGameGenerationNotice('No matching vocabulary pack was found for this topic. Pick a named dictionary or template, or add your own items.');
+    toast('Smart fill needs a matching vocabulary pack');
+    return;
   }
-  if (!content) { toast('Smart fill is not available for this game type'); return; }
   renderContentFields(); populateContent({ content }); updateItemCounter(); refreshLivePreview(true);
-  toast(vocab && vocab.length ? '✨ Filled with real vocabulary' : 'Smart content generated');
+  toast('Filled with the ' + topicHint + ' vocabulary pack');
 }
 function upgradeDifficulty() {
   transformCurrentContent(content => {

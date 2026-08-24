@@ -123,6 +123,9 @@ textarea{min-height:60px;resize:vertical}
 .smart-pill.primary{background:#0E0E10;border-color:#0E0E10;color:#fff}
 .smart-pill.primary:hover{background:#1b1b20;border-color:#1b1b20;color:#CDF24F;transform:translateY(-1px)}
 .smart-pill.primary[disabled]{opacity:.55;cursor:default;transform:none}
+.gb-generation-status{display:none;margin:-4px 0 14px;padding:9px 11px;border:1px solid rgba(239,68,68,.24);border-radius:12px;background:rgba(239,68,68,.07);color:#9F1239;font:700 12px/1.4 var(--font)}
+.gb-generation-status.show{display:block}
+.gb-field-error{margin-top:6px;color:#9F1239;font:700 11px/1.4 var(--font)}
 .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .game-card{background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
 .game-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(94,94,74,.12);border-color:rgba(205,242,79,.35)}
@@ -452,6 +455,7 @@ textarea{min-height:60px;resize:vertical}
       <button class="smart-pill" type="button" onclick="makeStudentFriendly()">Student-friendly wording</button>
       <button class="smart-pill" type="button" onclick="exportCurrentGameDraft()">Export draft</button>
     </div>
+    <div class="gb-generation-status" id="gb-generation-status" role="status" aria-live="polite"></div>
     <div class="builder-tools" id="builder-tools">
       <button class="tool-btn" type="button" onclick="smartCleanContent()">Clean duplicates</button>
       <button class="tool-btn" type="button" onclick="sortContent()">Sort A-Z</button>
@@ -522,7 +526,7 @@ textarea{min-height:60px;resize:vertical}
 
 <script src="scripts/app-core.js?v=470"></script>
 <script src="scripts/vocab-loader.js?v=470"></script>
-<script src="scripts/game-builder-app.js?v=470"></script>
+<script src="scripts/game-builder-app.js?v=471"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
