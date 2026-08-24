@@ -5,7 +5,6 @@ const aiEngine = require('../lib/aiEngine');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
-const genArchive = require('../lib/genArchive');
 const { effectivePlanKey } = require('../lib/billing');
 
 // A real per-user monthly budget, kept independently from the process so a
@@ -63,6 +62,20 @@ async function reserveAiQuota(user, input) {
     throw error;
   }
   return { quota, reserved, ...rows[0] };
+}
+
+// A provider failure must never consume a teacher's personal allowance. The
+// reservation protects the ceiling while a request is in flight; if no model
+// response was produced, return that reservation before surfacing the error.
+async function releaseAiQuota(user, reservation) {
+  if (!user?.id || !reservation?.reserved) return;
+  await pool.query(
+    `UPDATE ai_usage_monthly
+     SET reserved_usd = GREATEST(0, reserved_usd - $2),
+         requests = GREATEST(0, requests - 1)
+     WHERE user_id=$1 AND month=date_trunc('month', CURRENT_DATE)::date`,
+    [user.id, Number(reservation.reserved)]
+  );
 }
 
 async function readAiQuota(user) {
@@ -251,9 +264,17 @@ function limitText(value, max = 12000) {
   return clean(value).slice(0, max);
 }
 
+function invalidInput(message) {
+  const error = new Error(message);
+  error.status = 422;
+  error.code = 'AI_INPUT_REQUIRED';
+  return error;
+}
+
 function normaliseInput(body) {
   const raw = body?.input || body || {};
-  const toolId = clean(body?.toolId || raw.toolId || raw.tool?.id || 'lesson-pack', 'lesson-pack');
+  const toolId = clean(body?.toolId || raw.toolId || raw.tool?.id || '');
+  if (!toolId) throw invalidInput('Choose a tool before creating material.');
   const meta = TOOL_META[toolId] || ['utility', 'Task'];
   const count = Math.max(3, Math.min(MAX_ITEMS, parseInt(raw.count || body?.count || 12, 10) || 12));
   const action = ['simplify', 'upgrade', 'keep'].includes(raw.action) ? raw.action : 'simplify';
@@ -261,16 +282,22 @@ function normaliseInput(body) {
   // engine choose" (length then defaults by CEFR level).
   const genre = ['article', 'story', 'email', 'report', 'blog', 'dialogue', 'review'].includes(raw.genre) ? raw.genre : '';
   const length = ['short', 'medium', 'long'].includes(raw.length) ? raw.length : '';
+  const source = limitText(raw.source, 18000);
+  const vocab = limitText(raw.vocab, 8000);
+  const topic = clean(raw.topic, '').slice(0, 160);
+  if (!topic && !source && !vocab) {
+    throw invalidInput('Add a topic, source text, or target vocabulary before creating material.');
+  }
   return {
     toolId,
     level: clean(raw.level, 'B1').slice(0, 8),
     count,
-    topic: clean(raw.topic, 'Practical English').slice(0, 160),
+    topic,
     action,
     genre,
     length,
-    source: limitText(raw.source, 18000),
-    vocab: limitText(raw.vocab, 8000),
+    source,
+    vocab,
     extra: clean(raw.extra, '').slice(0, 600),
     /* Что уже собрано в этом уроке и сколько он длится. Нужно только плану:
        без этого он планирует НЕ те материалы, которые лежат на доске рядом. */
@@ -1354,7 +1381,7 @@ function assembleFromLLM(input, data) {
 const METRICS = {
   total: 0,        // teacher-tool requests served
   llmOk: 0,        // produced by the cloud LLM
-  fallback: 0,     // LLM failed → rule engine used
+  fallback: 0,     // LLM failed; no material was returned
   cacheHits: 0,    // served from cache
   lastError: null, // last LLM error message
   lastModel: null, // model that produced the last LLM generation
@@ -1451,42 +1478,29 @@ function recordTokens(usage) {
   return usd;
 }
 
-/* Primary entry: try the LLM, fall back to the local rule engine on any error.
+/* Primary entry: return model-built material only.
 
-   The fallback used to be silent to the caller, and that silence was its own
-   problem: the rule engine writes noticeably flatter material, so a teacher who
-   got it had no way to tell whether the tool is simply like this or whether
-   today it could not reach the model. `engine` now travels with every output -
-   and into the cache with it, which is right, since a cached result really was
-   made by whatever produced it - so the board can label what it is showing. */
+   A rule-generated or archived lesson can look finished while being unrelated
+   to this teacher's source. It is safer to leave the current draft untouched
+   and make the temporary AI failure explicit. */
 async function generate(input, quotaUser) {
-  /* Отказ модели раньше означал шаблоны. Сначала смотрим в архив: такой же
-     урок мог собираться раньше настоящей моделью, и прошлый живой лист
-     полезнее сегодняшней заглушки. Помечаем честно - вместе с датой, чтобы
-     учитель понимал, что видит вчерашнюю работу, а не свежую. */
-  const local = (reason) => {
-    const kept = genArchive.get(input);
-    if (kept) {
-      const out = kept.output;
-      out.engine = 'archive';
-      out.engineReason = reason;
-      out.engineNote = `built earlier by the model on ${new Date(kept.at).toISOString().slice(0, 10)} - reused because the model is unavailable`;
-      return out;
-    }
-    const out = generateLocal(input);
-    out.engine = 'rules';
-    out.engineReason = reason;
-    return out;
+  const unavailable = (reason, cause = null) => {
+    const error = new Error('AI is temporarily unavailable. Your current draft was not changed.');
+    error.status = 503;
+    error.code = 'AI_UNAVAILABLE';
+    error.reason = reason;
+    error.cause = cause || undefined;
+    return error;
   };
 
-  if (!aiEngine.enabled()) return local('not-configured');
+  if (!aiEngine.enabled()) throw unavailable('not-configured');
 
   /* Расходы решают, КАК спрашивать, а не только сколько это стоило потом.
      За суточным порогом тяжёлые задания уходят на лёгкую модель, а вдвое за
-     ним мы к модели не обращаемся вовсе: лучше честные шаблоны с причиной
-     'budget', чем счёт, которого никто не ждал. */
+     ним мы к модели не обращаемся вовсе: лучше явная пауза сервиса, чем счёт,
+     которого никто не ждал. */
   const budget = budgetState();
-  if (budget.level === 'red') return local('budget');
+  if (budget.level === 'red') throw unavailable('service-budget');
   if (budget.level === 'amber') input.preferLight = true;
 
   try {
@@ -1506,21 +1520,19 @@ async function generate(input, quotaUser) {
     recordActualAiCost(quotaUser?.id, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
     METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
     recordUsage('llm_ok');
-    genArchive.put(input, out);
     return out;
   } catch (err) {
     METRICS.fallback++;
     METRICS.lastError = err.message;
     METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
     recordUsage('fallback');
-    console.error('[ai/llm] falling back to rule engine:', err.message);
-    // Coarse reason only. The raw error can name the provider, the model and
-    // occasionally part of the request, none of which belongs on a teacher's
-    // screen; the detail stays in METRICS.lastError for /status.
-    return local(
+    console.error('[ai/llm] generation unavailable:', err.message);
+    throw unavailable(
       /timeout|abort|ETIMEDOUT/i.test(err.message) ? 'timeout'
       : /429|rate|quota|limit/i.test(err.message) ? 'busy'
-      : 'error');
+      : 'error',
+      err
+    );
   }
 }
 
@@ -1540,8 +1552,16 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
       recordQuality(input, hit);
       return res.json({ output: hit });
     }
-    await reserveAiQuota(req.user, input);
-    const output = await generate(input, req.user);
+    const reservation = await reserveAiQuota(req.user, input);
+    let output;
+    try {
+      output = await generate(input, req.user);
+    } catch (err) {
+      await releaseAiQuota(req.user, reservation).catch(releaseErr => {
+        console.error('[ai/quota] could not release failed request:', releaseErr.message);
+      });
+      throw err;
+    }
     output.cached = false;
     output.processingMs = Date.now() - started;
     cacheSet(key, output);
@@ -1572,7 +1592,7 @@ router.get('/status', requireAuth, requireAdmin, (_req, res) => {
     baseUrl: llm ? aiEngine.BASE_URL : null,
     chain: llm ? aiEngine.listModels() : [],
     lastTrace: llm && aiEngine.getLastTrace ? aiEngine.getLastTrace() : null,
-    mode: llm ? 'cloud-llm-with-rule-fallback' : 'server-cache-rule-engine',
+    mode: llm ? 'cloud-llm-only' : 'unavailable-without-provider',
     llmEnabled: llm,
     cacheSize: cache.size,
     maxItems: MAX_ITEMS,
@@ -1588,7 +1608,6 @@ router.get('/status', requireAuth, requireAdmin, (_req, res) => {
       // Светофор расходов рядом с самими расходами: цифра без порога ничего
       // не значит, а порог без цифры не проверяется.
       budget: budgetState(),
-      archive: genArchive.stats(),
     },
   });
 });

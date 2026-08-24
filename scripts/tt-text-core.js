@@ -30,17 +30,10 @@ function teacherToolActionLabel(action) {
 }
 
 function teacherToolTopicSeeds(_topic, count = 50) {
-  // Generic last-resort filler words (used only when there is no real vocab and
-  // no source text). Returned as clean headwords - never with a "(topic)"
-  // suffix, which read as junk (e.g. "problem (travel problems)") on flashcards.
-  const words = [
-    'problem','reason','example','solution','opinion','evidence','summary','question','answer','detail','choice','result',
-    'benefit','challenge','risk','change','habit','goal','plan','step','mistake','feedback','context','connection',
-    'comparison','contrast','cause','effect','purpose','support','argument','decision','experience','prediction',
-    'reaction','preference','advice','request','offer','complaint','agreement','disagreement','priority','routine',
-    'process','feature','pattern','rule','exception','keyword','phrase','collocation','revision'
-  ];
-  return words.slice(0, count);
+  // A topic label is not a vocabulary list. Callers must either use teacher
+  // supplied terms, extract from supplied source, or ask the model. Returning
+  // a generic word bank here made unrelated drills look complete.
+  return [];
 }
 
 function teacherToolSourceSentences(text, topic, count = 6) {
@@ -49,26 +42,9 @@ function teacherToolSourceSentences(text, topic, count = 6) {
     .split(/(?<=[.!?])\s+/)
     .map(x => x.trim())
     .filter(Boolean);
-  const fallback = [
-    `${topic} can be easy to understand when students see a clear example.`,
-    `Students often need useful language, controlled practice and time to produce their own answer.`,
-    `A good task gives a reason to communicate, not only a gap to complete.`,
-    `Teacher feedback should focus on one strong point and one next improvement.`,
-    `The final activity should help students reuse the target language in a personal way.`,
-    `Homework should recycle the same language with a small new challenge.`,
-    `A useful lesson about ${topic} should include examples, practice and reflection.`,
-    `Students can compare different opinions about ${topic} and explain their reasons.`,
-    `The teacher can turn common mistakes into a short review task.`,
-    `A final speaking task helps students use the new language naturally.`
-  ];
-  // Real source text: return only the genuine sentences (never inflate the
-  // count with generic filler - better 8 relevant items than 20 with 12 junk).
-  if (s.length) return s.slice(0, count);
-  // No source at all (only reached by text-adaptation, since source-based
-  // tools are gated behind a "paste text" check): use the pedagogical fallback.
-  const out = fallback.slice(0, count);
-  for (let i = out.length; i < count; i++) out.push(fallback[i % fallback.length]);
-  return out;
+  // Never manufacture source sentences. A shorter activity from real material
+  // is better than a polished-looking exercise about a different lesson.
+  return s.slice(0, count);
 }
 
 function adaptTeacherToolText(input) {

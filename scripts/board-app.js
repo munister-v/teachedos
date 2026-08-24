@@ -9118,6 +9118,7 @@ const TT_REQUIRE_VOCAB_SET = new Set([
   // Asking for the words is the honest branch: "Give a synonym for ___" has
   // nothing to be about otherwise. Same pattern as word-definition-match above.
   'collocations','synonyms-antonyms','word-families','phrasal-verbs','idioms',
+  'flashcards',
 ]);
 // Listening / video tools - offer a YouTube link that auto-fills the transcript.
 const TT_MEDIA_SET = new Set([
@@ -9431,13 +9432,16 @@ function _ttSyncFormReadiness(opts = {}) {
   if (!tool) return true;
   const needsSource = TT_NEEDS_SOURCE_SET.has(tool.id);
   const needsVocab = TT_REQUIRE_VOCAB_SET.has(tool.id);
+  const topic = String(document.getElementById('tbuilder-topic')?.value || '').trim();
   const source = String(document.getElementById('tbuilder-source')?.value || '').trim();
   const vocab = String(document.getElementById('tbuilder-vocab')?.value || '').trim();
   const missing = [];
+  if (!topic) missing.push({ wrap:'tb-wrap-topic', input:'tbuilder-topic', label:'topic' });
   if (needsSource && !source) missing.push({ wrap:'tb-wrap-source', input:'tbuilder-source', label:'source text' });
   if (needsVocab && !vocab) missing.push({ wrap:'tb-wrap-vocab', input:'tbuilder-vocab', label:'target vocabulary' });
   if (opts.attempted) missing.forEach(item => { const wrap = document.getElementById(item.wrap); if (wrap) wrap.dataset.ttAttempted = '1'; });
 
+  _ttSetRequiredFieldState('tb-wrap-topic', 'tbuilder-topic', true, !!topic);
   _ttSetRequiredFieldState('tb-wrap-source', 'tbuilder-source', needsSource, !!source);
   _ttSetRequiredFieldState('tb-wrap-vocab', 'tbuilder-vocab', needsVocab, !!vocab);
   const ready = missing.length === 0;
@@ -11848,7 +11852,7 @@ function readTeacherToolBuilderInput() {
     tool: activeTeacherToolBuilder,
     level: getVal('tbuilder-level') || 'B1',
     count: Math.max(3, Math.min(100, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
-    topic: getVal('tbuilder-topic') || 'Practical English',
+    topic: getVal('tbuilder-topic'),
     action: document.getElementById('tbuilder-action')?.dataset.action || 'simplify',
     genre: getVal('tbuilder-genre'),
     length: getVal('tbuilder-length'),
@@ -12012,9 +12016,12 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
       console.warn('[tt-ai-server] unavailable', data?.error || response.status);
       return null;
     }
-    return _ttSanitizeOutput(data.output);
+    const output = _ttSanitizeOutput(data.output);
+    // Defence in depth: only model output can replace a teacher's draft.
+    if (output?.engine === 'rules' || output?.engine === 'archive') return null;
+    return output;
   } catch (err) {
-    if (err.name !== 'AbortError') console.warn('[tt-ai-server] fallback:', err.message);
+    if (err.name !== 'AbortError') console.warn('[tt-ai-server] unavailable:', err.message);
     return null;
   } finally {
     clearTimeout(timer);
@@ -13324,7 +13331,7 @@ function buildLessonFromSelected(){
 // TT_REQUIRE_VOCAB_SET, so the empty-field case asks for words instead of
 // falling through to the generic scaffold.
 const TT_LOCAL_QUALITY_SET = new Set([
-  'extract-vocab','gap','word-definition-match','error-correction','essential-vocab',
+  'extract-vocab','gap','word-definition-match','error-correction',
   'flashcards','sentences-vocab','gaps-brackets','two-options',
   'rewrite','tense-contrast',
   'collocations','synonyms-antonyms','word-families','phrasal-verbs','idioms',
@@ -13335,7 +13342,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '470';
+const TEACHEDOS_ASSET_VERSION = '471';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -13425,7 +13432,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
 
   // ── Fast local path: default for speed and high item counts ─────────
   if (!wantsAI) {
-    const local = isPilot ? generateTeacherToolLocal(input) : null;
+    const local = TT_LOCAL_QUALITY_SET.has(toolId) ? generateTeacherToolLocal(input) : null;
     if (local) {
       lastTeacherToolBuilderOutput = local;
       _ttCacheRemember(cacheKey, local);
@@ -13438,44 +13445,27 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       _ttSetGenerating(false);
       return;
     }
-    lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
-    _ttCacheRemember(cacheKey, lastTeacherToolBuilderOutput);
-    renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
-    if (chip) chip.textContent = `fast · ${input.count} items`;
+    lastTeacherToolBuilderOutput = null;
+    if (chip) chip.textContent = 'AI needed';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">This activity needs AI to create material from your topic. Sign in and choose Refine with AI, or use a named template or vocabulary pack.</div>';
     _ttSetGenerating(false);
     return;
   }
 
-  // ── Fast AI-enhance path: no giant model download by default ────────
+  // ── Cloud AI path: never put a generic local draft in front of a model ──
   if (!wantsWebLLM) {
-    const instantBase = (isPilot ? generateTeacherToolLocal(input) : null) || generateTeacherToolOutput(input);
-    const instant = enhanceTeacherToolOutputFast(instantBase, input);
-    lastTeacherToolBuilderOutput = instant;
-    // NB: do NOT cache the draft under the AI key - only the real server result
-    // is cached below, so a failed AI call retries instead of returning a draft.
-    if (instant.boardKind === 'quiz' || instant.boardKind === 'vocab' || instant.boardKind === 'cards') {
-      renderTeacherToolLocalPreview(instant);
-    } else {
-      renderTeacherToolBuilderOutput(instant);
-    }
-    // The instant result is a local draft; show it immediately so the teacher
-    // sees something, then upgrade to the real server LLM when it arrives.
-    if (chip) {
-      const n = _ttCountItems(instant) ?? input.count;
-      chip.textContent = `draft · ${n} · ✨ AI improving…`;
-    }
-    _ttSetGenerating(false);
+    lastTeacherToolBuilderOutput = null;
+    if (chip) chip.textContent = 'AI creating…';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Creating material from your inputs…</div>';
     _ttSetImproving(true);
-    // The cloud LLM (Groq 70B/8B → OpenRouter) usually answers in 0.5-2 s but
-    // can take longer under load; give it a realistic window before giving up.
     requestServerTeacherTool(input, 20000).then(serverOutput => {
       if (_ttActiveGenerationKey !== cacheKey) return;          // superseded
       _ttSetImproving(false);
-      if (!serverOutput) {                                       // AI failed → keep draft
-        if (chip) {
-          const n = _ttCountItems(lastTeacherToolBuilderOutput) ?? input.count;
-          chip.textContent = `fast · ${n} items · AI busy`;
-        }
+      if (!serverOutput) {
+        lastTeacherToolBuilderOutput = null;
+        if (chip) chip.textContent = 'AI unavailable';
+        if (body) body.innerHTML = '<div class="tbuilder-empty">AI could not create this material. Your draft was not changed. Try again or add more source material.</div>';
+        _ttSetGenerating(false);
         return;
       }
       lastTeacherToolBuilderOutput = serverOutput;
@@ -13490,6 +13480,7 @@ async function generateTeacherToolBuilder(mode = 'fast') {
         const model = /^llm:(.+)$/.exec(serverOutput.engine || '');
         chip.textContent = model ? `AI · ${n} items · ${model[1].split('-').slice(0,2).join(' ')}` : `AI · ${n} items`;
       }
+      _ttSetGenerating(false);
     });
     return;
   }
@@ -13525,20 +13516,22 @@ async function generateTeacherToolBuilder(mode = 'fast') {
         _ttSetGenerating(false);
         return;
       }
-      // JSON parsed but couldn't map → warn and fall through to heuristics
-      console.warn('[tt-ai] response parsed but mapping failed - falling back');
-      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">⚠ AI відповів не в тому форматі - використовую локальну генерацію.</div>';
+      // JSON parsed but could not be mapped to this tool. A quality local
+      // generator may still use the teacher's source or vocab below.
+      console.warn('[tt-ai] response parsed but mapping failed');
+      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">AI returned an unusable result. Your draft was not changed.</div>';
     } catch (err) {
-      console.warn('[tt-ai] generation error, falling back:', err.message);
-      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">⚠ AI помилка - використовую локальну генерацію.</div>';
+      console.warn('[tt-ai] generation error:', err.message);
+      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">AI is unavailable. Your draft was not changed.</div>';
     }
   } else if (wantsAI) {
     if (chip) chip.textContent = 'AI unavailable';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">AI зараз недоступний у цьому браузері - використовую швидку локальну генерацію.</div>';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">AI is unavailable in this browser. Your draft was not changed.</div>';
   }
 
-  // ── Local heuristic fallback ───────────────────────────────────
-  const local = isPilot ? generateTeacherToolLocal(input) : null;
+  // A local result is allowed only for the explicitly reviewed mechanical
+  // tools. It must derive from the teacher's source or vocabulary.
+  const local = TT_LOCAL_QUALITY_SET.has(toolId) ? generateTeacherToolLocal(input) : null;
   if (local) {
     lastTeacherToolBuilderOutput = local;
     _ttCacheRemember(cacheKey, local);
@@ -13551,10 +13544,9 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     _ttSetGenerating(false);
     return;
   }
-  lastTeacherToolBuilderOutput = generateTeacherToolOutput(input);
-  _ttCacheRemember(cacheKey, lastTeacherToolBuilderOutput);
-  renderTeacherToolBuilderOutput(lastTeacherToolBuilderOutput);
-  if (chip) chip.textContent = `local · ${input.count} items`;
+  lastTeacherToolBuilderOutput = null;
+  if (chip) chip.textContent = 'AI unavailable';
+  if (body) body.innerHTML = '<div class="tbuilder-empty">No reliable local material can be created from these inputs. Try AI again or provide source text or vocabulary.</div>';
   _ttSetGenerating(false);
 }
 

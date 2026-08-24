@@ -123,8 +123,7 @@ function _ttGenAbcd(input){
     const distract = [];
     const top = candidates.slice(0, 8);
     while (distract.length < 3 && top.length) distract.push(top.splice(Math.floor(Math.random()*top.length),1)[0]);
-    const fb = ['information','example','process','reason','result','idea'];
-    while (distract.length < 3) { const w = fb.shift(); if (w && w !== target && !distract.includes(w)) distract.push(w); }
+    if (distract.length < 3) continue;
     const options = _ttShuffle([target, ...distract].map(_ttCap));
     questions.push({ type:'mcq', text:'Complete from the text: ' + _ttBlank(s, target), options, answer:_ttCap(target), points:1 });
   }
@@ -249,8 +248,7 @@ function _ttGenGapsAbcd(input){
     const distract = [];
     const top = cands.slice(0,8);
     while (distract.length < 3 && top.length) distract.push(top.splice(Math.floor(Math.random()*top.length),1)[0]);
-    const fb = ['form','tense','structure','pattern','word','phrase'];
-    while (distract.length < 3){ const w=fb.shift(); if(w&&w!==target&&!distract.includes(w)) distract.push(w); }
+    if (distract.length < 3) continue;
     const options = _ttShuffle([target,...distract].map(_ttCap));
     questions.push({ type:'mcq', text:'Choose the correct word: '+_ttBlank(s,target), options, answer:_ttCap(target), points:1 });
   }
@@ -474,8 +472,7 @@ function _ttVocabLines(input){
     }
     return lines;
   }
-  const fromSource = _ttContentWords(input.source).slice(0, count);
-  return fromSource.length ? fromSource : teacherToolTopicSeeds(input.topic, count);
+  return _ttContentWords(input.source).slice(0, count);
 }
 
 /* ── content pool: target vocabulary ∪ source content words ──────────
@@ -693,9 +690,12 @@ function _ttGenGistDetail(input){
   const questions = [];
   const gt = pool.sort((a,b)=>b.length-a.length)[0] || input.topic;
   const gDistract = _ttShuffle(pool.filter(w=>w!==gt)).slice(0,3).map(_ttCap);
-  while (gDistract.length < 3) gDistract.push(['topic','idea','theme'][gDistract.length]||'concept');
-  questions.push({ type:'mcq', text:'What is the main topic of this text?',
-    options:_ttShuffle([_ttCap(gt),...gDistract]), answer:_ttCap(gt), points:1 });
+  if (gDistract.length >= 3) {
+    questions.push({ type:'mcq', text:'What is the main topic of this text?',
+      options:_ttShuffle([_ttCap(gt),...gDistract]), answer:_ttCap(gt), points:1 });
+  } else {
+    questions.push({ type:'open', text:'What is the main topic of this text? Use one detail from the source in your answer.', points:2 });
+  }
   // Detail questions scaled to the requested count (a short text shouldn't yield
   // only 2 questions). This is an instant local DRAFT - the AI upgrade turns most
   // of these into detail MCQs; here they are open prompts cycling the key words.

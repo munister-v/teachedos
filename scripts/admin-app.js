@@ -280,7 +280,7 @@ async function loadAIStatus() {
       chainEl.textContent = parts.join('  ·  ');
     }
     const errEl = document.getElementById('ai-lasterror');
-    errEl.textContent = m.lastError ? `Last fallback reason: ${m.lastError}` : '';
+    errEl.textContent = m.lastError ? `Last unavailable reason: ${m.lastError}` : '';
     loadAIUsage();
     loadAIAllowances();
   } catch(e) {
