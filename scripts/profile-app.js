@@ -242,13 +242,13 @@ async function init() {
 }
 
 async function renderOverview(forceOffline = false) {
-  document.getElementById('profile-avatar-big').textContent = me.avatar || '🧑‍🏫';
+  document.getElementById('profile-avatar-big').textContent = me.avatar || 'T';
   document.getElementById('profile-name-big').textContent = me.name;
   document.getElementById('profile-email-big').textContent = me.email;
-  document.getElementById('profile-timezone-big').textContent = `🕒 ${describeTimeZone(effectiveTimeZoneLabel())}`;
-  document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? '🛡 Admin' : '🎓 Teacher');
+  document.getElementById('profile-timezone-big').textContent = describeTimeZone(effectiveTimeZoneLabel());
+  document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? 'Admin' : 'Teacher');
 
-  const planBadges = { free:'', pro:'🚀 Pro', school:'🏫 School' };
+  const planBadges = { free:'', pro:'Pro', school:'School' };
   const planBadge = planBadges[me.plan];
   // Remove any existing plan badge first to prevent duplicates (function may be called
   // twice: once from cache, once from API response).
@@ -630,11 +630,11 @@ function renderPlanCardFromOverview(overview) {
   const current = overview?.current || {};
   const plan = current.plan || me?.plan || 'free';
   const billedPlan = current.billing_plan || plan;
-  const planIcons = { free: '⭐', pro: '🚀', school: '🏫' };
+  const planIcons = { free: 'i-card', pro: 'i-rocket', school: 'i-cap' };
   const planName = current.name || PLAN_NAMES[plan] || 'Free';
   const badge = current.badge ? ` · ${current.badge}` : '';
   const expiry = current.plan_expires_at ? ` · active until ${formatBillingDate(current.plan_expires_at)}` : '';
-  document.getElementById('plan-icon').textContent = planIcons[plan] || '⭐';
+  document.getElementById('plan-icon').innerHTML = `<svg class="ic" aria-hidden="true"><use href="#${planIcons[plan] || 'i-card'}"/></svg>`;
   document.getElementById('plan-name-display').textContent = planName;
   document.getElementById('plan-desc-display').textContent = plan === billedPlan
     ? `${billingCycleLabel(current.cycle || 'monthly')} billing${badge}${expiry}`
