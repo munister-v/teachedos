@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "a1-daily-routine-topic",
+      "toolId": "gaps-abcd",
+      "level": "A1",
+      "topic": "A morning routine before school",
+      "vocab": "wake up\npack a bag\ncatch the bus\nhave breakfast",
+      "expects": ["concrete scenario", "one correct option", "A1 language"]
+    },
+    {
+      "id": "b1-travel-source",
+      "toolId": "abcd-text",
+      "level": "B1",
+      "topic": "A delayed train journey",
+      "source": "Maya missed her morning train after a signal failure near Bristol. She called her manager, booked a later service and arrived forty minutes late. The rail company refunded part of her ticket, but Maya still missed the client meeting. On her way home, she decided to check the service app before leaving the house next time.",
+      "anchors": ["Maya", "signal failure", "manager", "refunded", "service app"],
+      "expects": ["gist plus detail", "plausible distractors", "source-grounded items"]
+    },
+    {
+      "id": "b1-workplace-worksheet",
+      "toolId": "worksheet-builder",
+      "level": "B1",
+      "topic": "Hybrid work and team communication",
+      "source": "The design team now meets in the office on Tuesdays and works remotely for the rest of the week. Some staff say the arrangement saves commuting time, while new employees find it harder to ask quick questions. The manager introduced a daily ten-minute video check-in and a shared project board to make responsibilities clear.",
+      "anchors": ["Tuesdays", "remote", "new employees", "video check-in", "project board"],
+      "expects": ["valid answer indexes", "no duplicate stems", "source-grounded worksheet parts"]
+    },
+    {
+      "id": "c1-ethics-discussion",
+      "toolId": "discussion",
+      "level": "C1",
+      "topic": "Facial recognition in public spaces",
+      "vocab": "consent\nproportionality\npublic safety\nmisidentification\nindependent oversight",
+      "expects": ["nuanced trade-offs", "C1 register", "specific real-world scenarios"]
+    }
+  ]
+}

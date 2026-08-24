@@ -142,6 +142,22 @@ const _PROMPTS = {
     `You are an EFL teacher. The game "Word-Image Match" needs highly visual search queries to fetch correct photos for words. Generate exactly ${Math.min(i.count, 6)} pairs for the vocabulary: ${i.vocab||i.topic}. The "left" is the exact word. The "right" is a short, vivid, descriptive visual search query (e.g. "person sleeping on office desk" for "exhausted", or "student raising hand" for "ask").\nReturn ONLY a JSON array:\n[{"left":"word","right":"visual search query"}]`,
 };
 
+/* The browser model is used when the signed-in server route is unavailable.
+   It must follow the same quality bar as the backend model, otherwise a teacher
+   gets noticeably flatter work simply because they generated offline. */
+function _qualityRules(input) {
+  const sourceRule = String(input.source || '').trim()
+    ? 'Use only details supported by the supplied source. Each question or example must point to a different fact, action, person, place, phrase, or decision from it. Do not invent supporting facts.'
+    : `Choose one concrete setting, people and situation for "${input.topic}" before writing. Reuse those anchors so the material cannot be relabelled for an unrelated topic.`;
+  return [
+    'Quality rules:',
+    'Every item must be distinct, natural and ready to use in class.',
+    sourceRule,
+    'Never use vague filler such as "this topic is important", "students will learn about", or "let us explore".',
+    'For multiple choice, include exactly one correct answer and plausible, same-type distractors. Never use random words, "all of the above", "none of these", or meta options.',
+  ].join('\n');
+}
+
 function _parseJSON(raw) {
   const m = raw.match(/\[[\s\S]*\]/);
   if (!m) return null;
@@ -153,6 +169,7 @@ window._ttAI = {
   generate: async function(toolId, input, onProgress) {
     const mkPrompt = _PROMPTS[toolId];
     if (!mkPrompt) return null;
+    const prompt = `${mkPrompt(input)}\n\n${_qualityRules(input)}`;
     const cacheKey = JSON.stringify({
       toolId,
       level: input.level,
@@ -185,7 +202,7 @@ window._ttAI = {
           },
           body: JSON.stringify({
             model: model,
-            messages: [{ role: 'user', content: mkPrompt(input) }],
+            messages: [{ role: 'user', content: prompt }],
             temperature: 0.35,
             max_tokens: maxTokens,
           })
@@ -205,7 +222,7 @@ window._ttAI = {
       const engine = await _loadEngine(onProgress);
       onProgress?.('Generating locally…', 0.5);
       const resp = await engine.chat.completions.create({
-        messages: [{ role: 'user', content: mkPrompt(input) }],
+        messages: [{ role: 'user', content: prompt }],
         temperature: 0.35,
         max_tokens: maxTokens,
       });

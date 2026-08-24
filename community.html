@@ -151,6 +151,17 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .publisher-audit-item.ok .publisher-audit-mark{background:#ecfccb;color:#4d7c0f;}
   body .publisher-note{display:flex;gap:7px;align-items:flex-start;margin:10px 1px 0;color:#777765;font-size:11px;line-height:1.42;}
   body .publisher-note-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:16px;border-radius:50%;background:rgba(200,230,50,.28);color:#4e6100;font-size:10px;font-weight:900;}
+  body .publisher-success{display:grid;gap:10px;margin-top:14px;padding:14px;border:1px solid rgba(64,112,48,.2);border-radius:16px;background:linear-gradient(135deg,#f5fbe8,#fff);}
+  body .publisher-success-head{display:flex;align-items:center;gap:8px;color:#365414;font-size:13px;font-weight:850;}
+  body .publisher-success-mark{display:grid;place-items:center;width:23px;height:23px;border-radius:8px;background:#c8e632;color:#263400;font-size:13px;font-weight:950;}
+  body .publisher-success-copy{margin:0;color:#68745a;font-size:11px;line-height:1.4;}
+  body .publisher-success-link{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;}
+  body .publisher-success-link input{min-width:0;min-height:38px;padding:9px 10px;border-color:rgba(64,112,48,.18);background:#fff;color:#53604b;font-size:11px;}
+  body .publisher-success-link button,.publisher-success-open,.publisher-success-again{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 11px;border:1px solid rgba(64,112,48,.18);border-radius:10px;background:#fff;color:#3e5b2c;font-size:11px;font-weight:800;cursor:pointer;}
+  body .publisher-success-link button:hover,.publisher-success-open:hover,.publisher-success-again:hover{border-color:rgba(64,112,48,.4);background:#f7fbe9;}
+  body .publisher-success-actions{display:flex;gap:7px;flex-wrap:wrap;}
+  body .publisher-success-open{border-color:#3d5b38;background:#3d5b38;color:#fff;}
+  body .publisher-success-open:hover{background:#304b2d;color:#fff;}
   body .community-lesson-card{min-height:0;padding:0;gap:0;border-color:rgba(28,28,30,.1);background:#fff;}
   body .community-lesson-card::before{display:none;}
   body .community-lesson-cover{position:relative;isolation:isolate;min-height:178px;overflow:hidden;padding:14px;background:linear-gradient(135deg,#28332a,#5d6e5e);}
@@ -360,6 +371,12 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
       </div>
       <button class="btn share-publish-btn" id="publish-board-btn" style="width:100%;margin-top:4px" aria-describedby="publisher-note" onclick="publishBoard()">Publish lesson</button>
       <p class="publisher-note" id="publisher-note"><span class="publisher-note-mark" aria-hidden="true">✓</span><span>This publishes a snapshot. Your original board stays private and editable.</span></p>
+      <section class="publisher-success" id="publisher-success" hidden aria-live="polite">
+        <div class="publisher-success-head"><span class="publisher-success-mark" aria-hidden="true">✓</span><span>Lesson published</span></div>
+        <p class="publisher-success-copy">The lesson is ready to share. The link was copied when possible.</p>
+        <div class="publisher-success-link"><input id="publisher-success-link" readonly aria-label="Published lesson link"><button type="button" onclick="copyPublisherSuccessLink()">Copy link</button></div>
+        <div class="publisher-success-actions"><a class="publisher-success-open" id="publisher-success-open" href="lesson-view.html">Open lesson</a><button class="publisher-success-again" type="button" onclick="resetPublisherSuccess()">Publish another</button></div>
+      </section>
     </aside>
   </section>
 
@@ -778,6 +795,33 @@ function clearPublisherFrame() {
   updatePublisherPreview();
 }
 
+function showPublisherSuccess(post, link) {
+  const panel = document.getElementById('publisher-success');
+  const input = document.getElementById('publisher-success-link');
+  const open = document.getElementById('publisher-success-open');
+  if (!panel || !input || !open) return;
+  input.value = link;
+  open.href = link;
+  panel.hidden = false;
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function copyPublisherSuccessLink() {
+  const value = document.getElementById('publisher-success-link')?.value || '';
+  if (!value) return;
+  navigator.clipboard?.writeText(value)
+    .then(() => toast('✓ Lesson link copied'))
+    .catch(() => window.prompt('Copy this lesson link:', value));
+}
+
+function resetPublisherSuccess() {
+  const panel = document.getElementById('publisher-success');
+  if (panel) panel.hidden = true;
+  ['share-title','share-desc','share-tags'].forEach(id => { const field = document.getElementById(id); if (field) field.value = ''; });
+  updatePublisherPreview();
+  document.getElementById('share-title')?.focus({ preventScroll:true });
+}
+
 function updatePublisherPreview() {
   const board = getSelectedPublisherBoard();
   const level = document.getElementById('share-level')?.value || 'Mixed';
@@ -1000,6 +1044,7 @@ async function publishBoard() {
 
     const link = buildShareLink(publishedPost);
     navigator.clipboard?.writeText(link).catch(()=>{});
+    showPublisherSuccess(publishedPost, link);
     toast(token ? '✓ Published to Community - lesson link copied' : '✓ Saved on this device - sign in to publish it for teachers');
   } catch (error) {
     toast(error?.message || 'Could not publish this lesson');
@@ -1160,6 +1205,7 @@ function renderCommunity() {
           ? `<a class="community-primary-action" href="${esc(buildLessonUrl(p))}">View lesson →</a>`
           : `<a class="community-primary-action" href="board.html">Open board</a>`
         }
+        <button class="community-link-action" type="button" aria-label="Share lesson" title="Share lesson" onclick='shareCommunityPost(${JSON.stringify(p.id)})'>Share</button>
         </div>
       </div>
     </article>`;
@@ -1180,6 +1226,20 @@ function copyPostLink(postId) {
   navigator.clipboard?.writeText(link)
     .then(() => toast('✓ Share link copied - paste it to any teacher'))
     .catch(() => { prompt('Copy this link:', link); });
+}
+
+async function shareCommunityPost(postId) {
+  const post = findPost(postId);
+  if (!post) { toast('Lesson not found'); return; }
+  const url = buildShareLink(post);
+  if (navigator.share) {
+    try { await navigator.share({ title: post.title || 'TeachEd lesson', text: post.desc || 'Shared lesson from TeachEd Community.', url }); return; } catch {}
+  }
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(url);
+    else throw new Error('clipboard unavailable');
+    toast('✓ Lesson link copied');
+  } catch { window.prompt('Copy this lesson link:', url); }
 }
 
 // ── Import board snapshot → open board.html with data ─────────

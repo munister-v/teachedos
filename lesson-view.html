@@ -40,6 +40,7 @@
   <span class="lesson-nav-sep" aria-hidden="true"></span>
   <a class="lesson-back" href="community.html">← Community</a>
   <span class="lesson-nav-space"></span>
+  <button class="lesson-link-action" id="lesson-share-btn" type="button" onclick="shareLesson()" hidden>Share</button>
   <button class="lesson-link-action" type="button" onclick="copyLessonLink()">Copy link</button>
 </header>
 
@@ -345,6 +346,11 @@
       .catch(() => window.prompt('Copy this lesson link:', location.href));
   }
 
+  async function shareLesson() {
+    if (!navigator.share) { copyLessonLink(); return; }
+    try { await navigator.share({ title: lessonData?.title || 'TeachEd lesson', text: lessonData?.desc || 'Shared lesson from TeachEd Community.', url: location.href }); } catch {}
+  }
+
   async function loadStoredLesson(id) {
     /* Опубликованный урок открывается по ссылке без входа: ею делятся с
        коллегами, и требовать регистрацию до того, как человек увидел
@@ -385,6 +391,8 @@
   async function initializeLesson() {
     reflectGuestState();
     const query = new URLSearchParams(location.search);
+    const shareButton = document.getElementById('lesson-share-btn');
+    if (shareButton && navigator.share) shareButton.hidden = false;
     try {
       let normalized = null;
       if (query.get('id')) {

@@ -220,6 +220,9 @@ const SYSTEM = [
   '  plausible but clearly wrong distractors (real misconceptions, not random words), all the same',
   '  type/length as the answer. The "answer" field MUST be the full text of the correct option, copied verbatim.',
   '• For anything built from a source text/transcript, base every item strictly on that text.',
+  '• Never use empty teaching language or vague filler (for example "this topic is important",',
+  '  "students will learn about...", or "let’s explore..."). Start with a concrete fact, situation,',
+  '  phrase, decision, person, place, or action that belongs to this exact lesson.',
   'You always return ONLY a single valid JSON object that exactly matches the requested shape -',
   'no markdown, no commentary, no code fences, no trailing text.',
 ].join(' ');
@@ -307,6 +310,31 @@ function cefrBrief(level) {
   ].join('\n');
 }
 
+/* A raw transcript is necessary evidence, but long inputs make weaker models
+   overuse their opening. This compact map selects sentences across the whole
+   source, so a task writer can deliberately cover the beginning, middle and
+   end without inventing facts or losing access to the original text. */
+function sourceEvidenceMap(source) {
+  const sentences = String(source || '')
+    .replace(/\s+/g, ' ')
+    .split(/(?<=[.!?])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length >= 24)
+    .slice(0, 80);
+  if (sentences.length < 3) return '';
+  const picks = 6;
+  const seen = new Set();
+  const chosen = [];
+  for (let i = 0; i < picks; i++) {
+    const index = Math.round(i * (sentences.length - 1) / (picks - 1));
+    const item = sentences[index];
+    if (item && !seen.has(item)) { seen.add(item); chosen.push(item.slice(0, 220)); }
+  }
+  return chosen.length >= 3
+    ? `Source checkpoints to cover across the set:\n${chosen.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
+    : '';
+}
+
 // Describe the target JSON shape per board kind. The model fills these in;
 // the route then wraps them in the shared `base()` envelope.
 function shapeSpec(input) {
@@ -328,7 +356,11 @@ function shapeSpec(input) {
   }
 
   const ctx = [];
-  if (input.source) ctx.push(`Source text / transcript:\n"""${input.source}"""`);
+  if (input.source) {
+    ctx.push(`Source text / transcript:\n"""${input.source}"""`);
+    const evidenceMap = sourceEvidenceMap(input.source);
+    if (evidenceMap) ctx.push(evidenceMap);
+  }
   if (input.vocab) ctx.push(`Target vocabulary: ${input.vocab}`);
   if (input.extra) ctx.push(`Extra teacher note: ${input.extra}`);
   /* Транскрипт іде ПЕРШИМ, а не в кінці - заради кешу префікса у провайдера.
@@ -346,7 +378,10 @@ function shapeSpec(input) {
      саме так і рекомендують будувати промпт під кешування. */
   const prefix = ctx.length ? `${ctx.join('\n\n')}\n\n` : '';
   const context = '';
-  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}".`;
+  const evidenceRule = input.source
+    ? 'Evidence rule: every question, example and answer must be traceable to a distinct detail in the source. Spread a multi-item set across the source checkpoints, not only its opening. Do not invent facts to make an item easier.'
+    : `Topic rule: before writing, choose a concrete setting, people and situation for "${topic}". Reuse those anchors across the material so it could not be relabelled for another topic.`;
+  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}". ${evidenceRule}`;
 
   // ── Reading text controls (genre + length) ──────────────────────────────────
   // Optional input.genre / input.length from the UI; otherwise sensible defaults

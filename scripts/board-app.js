@@ -3005,7 +3005,7 @@ function renderWorksheet(el, card) {
         <h2 class="ws-strip-title">${esc(_wsHeading(d))}</h2>
       </div>
       <div class="ws-strip-side">
-        ${_wsQualityPill(d)}
+        ${_wsQualityPill(d, card.id)}
         ${_wsPlanTotal(cards)}<span class="ws-pill level">${n} ${unit}</span>
       </div>
       ${stepper}
@@ -3015,6 +3015,7 @@ function renderWorksheet(el, card) {
           <b class="ws-level-now">${d._levelBusy ? '…' : esc(String(d.level || 'B1'))}</b>
           <button class="ws-btn ws-level-btn" ${d._levelBusy ? 'disabled' : ''} onclick="regenerateWorksheetAtLevel('${card.id}',1)" aria-label="One level harder">+</button>
         </span>` : ''}
+        ${_wsLevelOrigin(card) ? `<button class="ws-btn" ${d._itemBusy ? 'disabled' : ''} onclick="regenerateWorksheetItem('${card.id}')" title="Replace one question, word or lesson card">${d._itemBusy ? '…' : '↻ Replace'}</button>` : ''}
         ${_wsHasInteractive(d) ? `<button class="ws-btn ws-play-btn" onclick="activateWorksheet('${card.id}')" title="Students can interact with this worksheet">▶ Play</button>` : ''}
         ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
@@ -3219,11 +3220,11 @@ function _wsPlanTotal(cards) {
   return end ? `<span class="ws-pill level">${end} min</span>` : '';
 }
 
-function _wsQualityPill(d) {
+function _wsQualityPill(d, cardId = '') {
   const q = d && d._quality;
   const note = d && d._engineNote;
   if (!q || q.level === 'green') {
-    return note ? `<span class="ws-pill sem sem-amber" title="${esc(note)}">!</span>` : '';
+    return note ? `<button class="ws-pill sem sem-amber" style="border:0;cursor:pointer" onclick="openWorksheetQualityReview('${cardId}')" title="${esc(note)}">!</button>` : '';
   }
   const dropped = (q.dropped || []).map(x => x.why).filter(Boolean);
   const why = [
@@ -3233,7 +3234,26 @@ function _wsQualityPill(d) {
     note || '',
   ].filter(Boolean).join(' · ');
   const label = q.level === 'red' ? 'check' : 'note';
-  return `<span class="ws-pill sem sem-${q.level === 'red' ? 'red' : 'amber'}" title="${esc(why)}">${label}</span>`;
+  return `<button class="ws-pill sem sem-${q.level === 'red' ? 'red' : 'amber'}" style="border:0;cursor:pointer" onclick="openWorksheetQualityReview('${cardId}')" title="${esc(why)}">${label}</button>`;
+}
+
+/* A quality flag should lead straight to a remedy, not a tooltip a teacher has
+   to decode. Keep this menu deliberately compact: the three actions match the
+   three safe edits that preserve the rest of the prepared lesson. */
+function openWorksheetQualityReview(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card?.data) return;
+  const q = card.data._quality;
+  const reasons = [
+    ...(q?.dropped || []).map(x => x.why),
+    ...(q?.notes || []),
+    card.data._engineNote || '',
+  ].filter(Boolean);
+  const intro = reasons.length ? `Check: ${[...new Set(reasons)].join('; ')}\n\n` : '';
+  const action = prompt(`${intro}1 Replace one item\n2 Make this block easier\n3 Make this block harder`, '1');
+  if (action === '1') regenerateWorksheetItem(cardId);
+  else if (action === '2') regenerateWorksheetAtLevel(cardId, -1);
+  else if (action === '3') regenerateWorksheetAtLevel(cardId, 1);
 }
 
 function _wsHasInteractive(d) {
@@ -10556,6 +10576,60 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
   }
 }
 
+/* Replace one weak item without disturbing the rest of the generated block.
+   Asking for a number is intentional: it keeps this compact on a dense board
+   and works for questions, vocabulary and lesson-stage cards alike. The model
+   receives the existing item as a brief, so the replacement keeps the same
+   teaching purpose while using fresh wording and evidence from the source. */
+async function regenerateWorksheetItem(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card?.data) return;
+  const d = card.data;
+  const org = _wsLevelOrigin(card);
+  if (!org) {
+    toast('This block does not remember its source. Open its tool to rebuild it.', 'error');
+    return;
+  }
+  const key = Array.isArray(d.questions) ? 'questions'
+    : Array.isArray(d.items) ? 'items'
+      : Array.isArray(d.cards) ? 'cards' : '';
+  const list = key ? d[key] : null;
+  if (!list?.length) return;
+  const raw = prompt(`Replace which ${key === 'questions' ? 'question' : key === 'items' ? 'word' : 'lesson card'}?`, '1');
+  if (raw == null) return;
+  const index = Number.parseInt(raw, 10) - 1;
+  if (!Number.isInteger(index) || index < 0 || index >= list.length) {
+    toast(`Enter a number from 1 to ${list.length}.`, 'error');
+    return;
+  }
+  if (d._itemBusy) return;
+  d._itemBusy = true;
+  reRenderCard(card);
+  const existing = JSON.stringify(list[index]).slice(0, 1200);
+  try {
+    const out = await requestServerTeacherTool({
+      tool: { id: org.toolId }, level: d.level || org.level, count: 1, topic: org.topic, source: org.source,
+      extra: `Replace one existing ${key.slice(0, -1)}. Keep the same teaching purpose and level, but make it specific, fresh and source-grounded. Existing item: ${existing}`,
+    }, 35000);
+    const replacement = out?.[key]?.[0];
+    if (!replacement) {
+      toast('No usable replacement came back. The original item is unchanged.', 'error');
+      return;
+    }
+    snapshot();
+    d[key][index] = replacement;
+    if (out.quality) d._quality = out.quality;
+    toast(`Replaced ${key === 'questions' ? 'question' : key === 'items' ? 'word' : 'card'} ${index + 1}.`);
+  } catch {
+    toast('Could not replace this item right now.', 'error');
+  } finally {
+    d._itemBusy = false;
+    reRenderCard(card);
+    _wsFitToContent(card.id, { shrink: true });
+    scheduleSave?.(); saveLocal?.();
+  }
+}
+
 /* Пересборка кадра его же геометрией - после того как один блок изменился в
    размере. Отдельная обёртка, потому что вызывать это приходится из мест, у
    которых нет под рукой параметров постановки. */
@@ -13204,7 +13278,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '455';
+const TEACHEDOS_ASSET_VERSION = '458';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14883,78 +14957,7 @@ renderSidebar();
 });
 
 const loaded = loadBoard();
-const WELCOME_KEY = 'teachedos_welcome_shown_v1';
-let _welcomeSeen = false;
-try { _welcomeSeen = localStorage.getItem(WELCOME_KEY) === '1'; } catch {}
-function seedMobileWelcomeBoard() {
-  const fx = 40, fy = 40, fw = 390, fh = 844;
-  const frame = addCard('frame', fx, fy, {
-    title: 'Phone lesson board',
-    num: 1,
-    bg: 'rgba(255,255,255,1)',
-    border: 'rgba(28,28,30,.22)',
-    childIds: [],
-    mobileFormat: true,
-  }, fw, fh);
-  const children = [
-    addCard('sticky', fx + 24, fy + 74, {
-      text: 'Welcome to Board on phone.\n\nThis is a focused read + light-edit view. Pan, zoom, move cards, edit text, and tap Fit anytime.',
-      color: '#FFF4B8',
-    }, 342, 142),
-    addCard('plan', fx + 24, fy + 246, {
-      ...PLANS[0],
-      title: 'Today\'s lesson flow',
-      desc: 'Warm-up, presentation, practice, speaking and homework in one phone-sized board.',
-    }, 342, 204),
-    addCard('checklist', fx + 24, fy + 480, {
-      title: 'Class checklist',
-      items: [
-        { text: 'Open with a quick speaking prompt', done: false },
-        { text: 'Use desktop when you need to add new cards', done: false },
-        { text: 'Send board as homework when ready', done: false },
-      ],
-    }, 342, 188),
-    addCard('text', fx + 24, fy + 702, {
-      text: 'Tip: Phone boards work best as a focused vertical lesson strip. Use desktop for huge mind maps.',
-      bgColor: 'rgba(200,230,50,.16)',
-      textColor: '#1C1C1E',
-      fontSize: 18,
-    }, 342, 92),
-  ].filter(Boolean);
-  if (frame) {
-    frame.z = 0;
-    frame.data.childIds = children.map(c => c.id);
-    applyCardLayer && applyCardLayer(frame);
-    children.forEach((child, index) => {
-      child.data.parentFrame = frame.id;
-      child.z = index + 2;
-      applyCardLayer && applyCardLayer(child);
-    });
-  }
-  if (children[0] && children[1]) {
-    state.arrows.push({ id:'a'+(state.nextId++), fromCard:children[0].id, fromAnchor:'bottom', toCard:children[1].id, toAnchor:'top' });
-  }
-  renderAllArrows();
-  scheduleSave();
-  setTimeout(() => { try { zoomToCard(frame?.id || children[0]?.id, false); } catch {} }, 70);
-}
-if (!loaded && !_welcomeSeen) {
-  // Welcome board - only on a fresh user, never re-seeded after "Clear board"
-  if (isBoardPhone()) {
-    seedMobileWelcomeBoard();
-  } else {
-    addCard('sticky',  80,  40, { text:'👋 Welcome!\n\nPress L for the lesson library, or right-click anywhere to add a card.', color:'#FFF9C4' }, 230, 130);
-    addCard('plan',   380,  40, { ...PLANS[0] });
-    addCard('student',380, 280, { ...STUDENTS[0] });
-    addCard('note',   680,  40, { ...NOTES[0] });
-    // Auto-connect plan → student
-    const pid = state.cards[1].id, sid = state.cards[2].id;
-    state.arrows.push({ id:'a'+(state.nextId++), fromCard:pid, fromAnchor:'bottom', toCard:sid, toAnchor:'top' });
-    renderAllArrows();
-    scheduleSave();
-  }
-  try { localStorage.setItem(WELCOME_KEY, '1'); } catch {}
-}
+// Fresh boards stay empty. The empty state presents the first real actions instead of demo content.
 // On phones, auto-fit all cards into view on first paint so users see content
 // instead of an off-canvas blank corner.
 if (isBoardPhone() && state.cards.length) {
@@ -15034,7 +15037,7 @@ const COMMUNITY_IMPORT_KEY = 'teachedos_community_import';
   banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
-      <div style="font-weight:600;font-size:14px;margin-bottom:3px;">📥 Community board ready to import</div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:3px;">📥 Shared board ready to import</div>
       <div style="font-size:12px;opacity:.7;">"${(snapshot.name||'Board').replace(/</g,'&lt;')}" · ${newCards.length} cards - import to a new board?</div>
     </div>
     <button id="comm-import-btn" style="background:var(--accent);color:var(--on-accent);border:none;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;">Import →</button>
@@ -15996,8 +15999,18 @@ let _shareFrameId = '';
 
 function getShareUrl() {
   if (currentBoardId) return location.origin + location.pathname + '?id=' + currentBoardId;
-  forceSave && forceSave();
-  return location.origin + location.pathname + '?local=1';
+  const boardName = document.getElementById('board-name-display')?.textContent?.trim() || 'Shared board';
+  const snapshot = { name: boardName, cards: state.cards, links: state.arrows };
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(snapshot))));
+    if (encoded.length > 240000) {
+      toast('This local board is too large for a share link. Sync it first.');
+      return location.origin + location.pathname + '?local=1';
+    }
+    return location.origin + location.pathname + '?communityImport=' + encodeURIComponent(encoded);
+  } catch {
+    return location.origin + location.pathname + '?local=1';
+  }
 }
 
 function spUpdateBoardContext() {
@@ -16107,7 +16120,7 @@ function openSharePanel() {
     : 'Sync a board you own to publish it.';
   const nativeBtn = document.getElementById('sp-native-share-btn');
   if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
-  if (!currentBoardId) toast('This board is local. Sign in or sync to make a student link.');
+  if (!currentBoardId) toast('This local board link includes a snapshot. Invite and Community publishing require sync.');
   document.getElementById('btn-share')?.setAttribute('aria-expanded', 'true');
   spShowView('home');
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
