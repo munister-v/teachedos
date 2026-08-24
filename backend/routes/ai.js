@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
-const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { requireAuth, requireTeacher, requireAdmin } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
@@ -63,6 +63,30 @@ async function reserveAiQuota(user, input) {
     throw error;
   }
   return { quota, reserved, ...rows[0] };
+}
+
+async function readAiQuota(user) {
+  const quota = monthlyQuota(user);
+  const { rows } = await pool.query(
+    `SELECT reserved_usd, actual_usd, requests
+     FROM ai_usage_monthly
+     WHERE user_id=$1 AND month=date_trunc('month', CURRENT_DATE)::date`,
+    [user.id],
+  );
+  const usage = rows[0] || {};
+  const reserved = Number(usage.reserved_usd || 0);
+  const actual = Number(usage.actual_usd || 0);
+  const requests = Number(usage.requests || 0);
+  return {
+    month: new Date().toISOString().slice(0, 7),
+    limit_usd: quota.usd,
+    reserved_usd: reserved,
+    actual_usd: actual,
+    remaining_usd: Number(Math.max(0, quota.usd - reserved).toFixed(4)),
+    request_limit: quota.requests,
+    requests,
+    requests_remaining: Math.max(0, quota.requests - requests),
+  };
 }
 
 function recordActualAiCost(userId, usd) {
@@ -1522,14 +1546,24 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
     output.processingMs = Date.now() - started;
     cacheSet(key, output);
     recordQuality(input, output);
-    res.json({ output });
+    res.json({ output, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/teacher-tool]', err.message);
     res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
   }
 });
 
-router.get('/status', requireAuth, requireTeacher, (_req, res) => {
+router.get('/quota', requireAuth, requireTeacher, async (req, res) => {
+  try {
+    res.json({ quota: await readAiQuota(req.user) });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not load AI allowance' });
+  }
+});
+
+// Provider topology, traces and global spend are operational data, not a
+// teacher-facing endpoint. Teachers get only their own /quota above.
+router.get('/status', requireAuth, requireAdmin, (_req, res) => {
   const llm = aiEngine.enabled();
   res.json({
     ok: true,
@@ -1560,7 +1594,7 @@ router.get('/status', requireAuth, requireTeacher, (_req, res) => {
 });
 
 // ── GET /api/ai/usage - persistent daily counters (last N days) ──────────────
-router.get('/usage', requireAuth, requireTeacher, async (req, res) => {
+router.get('/usage', requireAuth, requireAdmin, async (req, res) => {
   const days = Math.max(1, Math.min(60, parseInt(req.query.days, 10) || 14));
   try {
     const { rows } = await pool.query(
@@ -1577,7 +1611,7 @@ router.get('/usage', requireAuth, requireTeacher, async (req, res) => {
 });
 
 // ── GET /api/ai/quality - aggregate quality signals, no lesson content ─────
-router.get('/quality', requireAuth, requireTeacher, async (req, res) => {
+router.get('/quality', requireAuth, requireAdmin, async (req, res) => {
   const days = Math.max(1, Math.min(60, parseInt(req.query.days, 10) || 14));
   try {
     const { rows } = await pool.query(
@@ -1738,12 +1772,19 @@ ${source ? `- Source material: ${source}` : ''}
 Rules: 5 stages that sum to ${duration}. All activities must be practical and ready to use in class. vocabulary: 6-8 words. warmupPrompts: 3 items. assessmentCriteria: 3 items. modeAddons: 4-6 items. teacherScript: 3 lines.`;
 
     const result = await aiEngine.rawGenerate(prompt);
+    METRICS.total++;
+    METRICS.llmOk++;
+    METRICS.lastAt = new Date().toISOString();
+    METRICS.lastModel = aiEngine.getLastModel() || aiEngine.MODEL;
+    METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
+    recordActualAiCost(req.user.id, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
+    recordUsage('llm_ok');
     result.provider = 'backend-ai';
     result.mode = mode;
-    res.json({ result });
+    res.json({ result, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/lesson-board]', err.message);
-    res.status(500).json({ error: err.message || 'AI engine error' });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
   }
 });
 
