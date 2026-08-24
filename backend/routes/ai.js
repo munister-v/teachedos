@@ -6,6 +6,74 @@ const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
 const genArchive = require('../lib/genArchive');
+const { effectivePlanKey } = require('../lib/billing');
+
+// A real per-user monthly budget, kept independently from the process so a
+// restart cannot erase the guardrail. The paid ceiling is deliberately fixed
+// at $1.40: provider/model changes must never make one account unbounded.
+pool.query(`
+  CREATE TABLE IF NOT EXISTS ai_usage_monthly (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    month DATE NOT NULL,
+    reserved_usd NUMERIC(10,6) NOT NULL DEFAULT 0,
+    actual_usd NUMERIC(10,6) NOT NULL DEFAULT 0,
+    requests INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, month)
+  )
+`).catch(() => {});
+
+const AI_MONTHLY_LIMITS = {
+  free: { usd: 0.10, requests: 10 },
+  pro: { usd: 1.40, requests: 90 },
+  school: { usd: 1.40, requests: 90 },
+};
+
+function monthlyQuota(user) {
+  return AI_MONTHLY_LIMITS[effectivePlanKey(user)] || AI_MONTHLY_LIMITS.free;
+}
+
+function estimateAiCost(input = {}) {
+  const sourceLength = String(input.source || input.text || input.teacherMemory || '').length;
+  const items = Math.min(100, Math.max(0, Number(input.count || input.items || 0)));
+  const heavy = new Set(['lesson-pack', 'worksheet-builder', 'homework-set', 'generate-text', 'lesson-board']).has(input.toolId || input.mode);
+  // Reservation is intentionally higher than the usual mini-model bill. It
+  // protects the cap before the provider reports its final token accounting.
+  return Number(Math.min(.045, .010 + (heavy ? .010 : 0) + Math.ceil(sourceLength / 3000) * .004 + items * .00015).toFixed(4));
+}
+
+async function reserveAiQuota(user, input) {
+  const quota = monthlyQuota(user);
+  const reserved = estimateAiCost(input);
+  const { rows } = await pool.query(
+    `INSERT INTO ai_usage_monthly (user_id, month, reserved_usd, requests)
+     VALUES ($1, date_trunc('month', CURRENT_DATE)::date, $2, 1)
+     ON CONFLICT (user_id, month) DO UPDATE
+       SET reserved_usd = ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd,
+           requests = ai_usage_monthly.requests + 1
+       WHERE ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd <= $3
+         AND ai_usage_monthly.requests < $4
+     RETURNING reserved_usd, actual_usd, requests`,
+    [user.id, reserved, quota.usd, quota.requests],
+  );
+  if (!rows.length) {
+    const error = new Error('Monthly AI allowance reached. Your local tools and saved materials remain available.');
+    error.status = 429;
+    error.code = 'AI_MONTHLY_BUDGET_REACHED';
+    error.quota = quota;
+    throw error;
+  }
+  return { quota, reserved, ...rows[0] };
+}
+
+function recordActualAiCost(userId, usd) {
+  if (!userId || !usd) return;
+  pool.query(
+    `UPDATE ai_usage_monthly
+     SET actual_usd = actual_usd + $2
+     WHERE user_id=$1 AND month=date_trunc('month', CURRENT_DATE)::date`,
+    [userId, usd],
+  ).catch(() => {});
+}
 
 // Persistent daily usage counters (survive restarts; power the dashboard chart).
 pool.query(`
@@ -1333,7 +1401,7 @@ function budgetState() {
    whichever is present, and never let a missing field throw - this is
    bookkeeping, not the request. */
 function recordTokens(usage) {
-  if (!usage || typeof usage !== 'object') return;
+  if (!usage || typeof usage !== 'object') return 0;
   const cached = Number(
     usage.prompt_tokens_details?.cached_tokens
     ?? usage.cache_read_input_tokens
@@ -1356,6 +1424,7 @@ function recordTokens(usage) {
   METRICS.spend.usd = Number((METRICS.spend.usd + usd).toFixed(6));
   METRICS.spend.calls++;
   METRICS.spend.byModel[model] = Number(((METRICS.spend.byModel[model] || 0) + usd).toFixed(6));
+  return usd;
 }
 
 /* Primary entry: try the LLM, fall back to the local rule engine on any error.
@@ -1366,7 +1435,7 @@ function recordTokens(usage) {
    today it could not reach the model. `engine` now travels with every output -
    and into the cache with it, which is right, since a cached result really was
    made by whatever produced it - so the board can label what it is showing. */
-async function generate(input) {
+async function generate(input, quotaUser) {
   /* Отказ модели раньше означал шаблоны. Сначала смотрим в архив: такой же
      урок мог собираться раньше настоящей моделью, и прошлый живой лист
      полезнее сегодняшней заглушки. Помечаем честно - вместе с датой, чтобы
@@ -1410,7 +1479,7 @@ async function generate(input) {
     const m = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastModel = m;
     METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
-    recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage);
+    recordActualAiCost(quotaUser?.id, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
     METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
     recordUsage('llm_ok');
     genArchive.put(input, out);
@@ -1447,7 +1516,8 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
       recordQuality(input, hit);
       return res.json({ output: hit });
     }
-    const output = await generate(input);
+    await reserveAiQuota(req.user, input);
+    const output = await generate(input, req.user);
     output.cached = false;
     output.processingMs = Date.now() - started;
     cacheSet(key, output);
@@ -1455,7 +1525,7 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
     res.json({ output });
   } catch (err) {
     console.error('[ai/teacher-tool]', err.message);
-    res.status(500).json({ error: err.message || 'AI engine error' });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
   }
 });
 
@@ -1635,12 +1705,14 @@ const lessonBoardLimiter = rateLimit({
   message: { error: 'Lesson generation limit reached. Try again in an hour.' },
 });
 
-router.post('/lesson-board', lessonBoardLimiter, async (req, res) => {
+router.post('/lesson-board', requireAuth, requireTeacher, lessonBoardLimiter, async (req, res) => {
   try {
     const { level='B1', skill='Writing', duration='45 min', audience='Teens',
             goal='confidence', tone='supportive', mode='lesson-board',
             topic='A practical English lesson',
             teacherMemory='', studentMemory='', mistakes='', source='' } = req.body || {};
+
+    await reserveAiQuota(req.user, { mode, source: `${source}\n${teacherMemory}\n${studentMemory}\n${mistakes}` });
 
     if (!aiEngine.enabled()) {
       return res.status(503).json({ error: 'AI not configured on this server' });

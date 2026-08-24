@@ -9,7 +9,7 @@ const PLAN_CATALOG = {
       boards: 3,
       studentsPerBoard: 5,
       courses: 1,
-      storageMb: 75,
+      storageMb: 10,
       historySnapshots: 2,
     },
     flags: {
@@ -37,7 +37,7 @@ const PLAN_CATALOG = {
       boards: -1,
       studentsPerBoard: 30,
       courses: 20,
-      storageMb: 1500,
+      storageMb: 75,
       historySnapshots: 13,
     },
     flags: {
@@ -65,7 +65,7 @@ const PLAN_CATALOG = {
       boards: -1,
       studentsPerBoard: -1,
       courses: -1,
-      storageMb: 6000,
+      storageMb: 300,
       historySnapshots: 40,
     },
     flags: {

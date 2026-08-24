@@ -5,19 +5,19 @@
     free: {
       key: 'free',
       name: 'Free',
-      limits: { boards: 3, studentsPerBoard: 5, courses: 1, storageMb: 75, historySnapshots: 2 },
+      limits: { boards: 3, studentsPerBoard: 5, courses: 1, storageMb: 10, historySnapshots: 2 },
       flags: { analytics: false, adminPanel: false, realtime: false, exports: false, customBranding: false, bulkInvite: false }
     },
     pro: {
       key: 'pro',
       name: 'Teacher Pro',
-      limits: { boards: -1, studentsPerBoard: 30, courses: 20, storageMb: 1500, historySnapshots: 13 },
+      limits: { boards: -1, studentsPerBoard: 30, courses: 20, storageMb: 75, historySnapshots: 13 },
       flags: { analytics: true, adminPanel: false, realtime: true, exports: true, customBranding: false, bulkInvite: false }
     },
     school: {
       key: 'school',
       name: 'School',
-      limits: { boards: -1, studentsPerBoard: -1, courses: -1, storageMb: 6000, historySnapshots: 40 },
+      limits: { boards: -1, studentsPerBoard: -1, courses: -1, storageMb: 300, historySnapshots: 40 },
       flags: { analytics: true, adminPanel: true, realtime: true, exports: true, customBranding: true, bulkInvite: true }
     }
   };
