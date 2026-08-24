@@ -3005,7 +3005,7 @@ function renderWorksheet(el, card) {
         <h2 class="ws-strip-title">${esc(_wsHeading(d))}</h2>
       </div>
       <div class="ws-strip-side">
-        ${_wsQualityPill(d)}
+        ${_wsQualityPill(d, card.id)}
         ${_wsPlanTotal(cards)}<span class="ws-pill level">${n} ${unit}</span>
       </div>
       ${stepper}
@@ -3220,11 +3220,11 @@ function _wsPlanTotal(cards) {
   return end ? `<span class="ws-pill level">${end} min</span>` : '';
 }
 
-function _wsQualityPill(d) {
+function _wsQualityPill(d, cardId = '') {
   const q = d && d._quality;
   const note = d && d._engineNote;
   if (!q || q.level === 'green') {
-    return note ? `<span class="ws-pill sem sem-amber" title="${esc(note)}">!</span>` : '';
+    return note ? `<button class="ws-pill sem sem-amber" style="border:0;cursor:pointer" onclick="openWorksheetQualityReview('${cardId}')" title="${esc(note)}">!</button>` : '';
   }
   const dropped = (q.dropped || []).map(x => x.why).filter(Boolean);
   const why = [
@@ -3234,7 +3234,26 @@ function _wsQualityPill(d) {
     note || '',
   ].filter(Boolean).join(' · ');
   const label = q.level === 'red' ? 'check' : 'note';
-  return `<span class="ws-pill sem sem-${q.level === 'red' ? 'red' : 'amber'}" title="${esc(why)}">${label}</span>`;
+  return `<button class="ws-pill sem sem-${q.level === 'red' ? 'red' : 'amber'}" style="border:0;cursor:pointer" onclick="openWorksheetQualityReview('${cardId}')" title="${esc(why)}">${label}</button>`;
+}
+
+/* A quality flag should lead straight to a remedy, not a tooltip a teacher has
+   to decode. Keep this menu deliberately compact: the three actions match the
+   three safe edits that preserve the rest of the prepared lesson. */
+function openWorksheetQualityReview(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card?.data) return;
+  const q = card.data._quality;
+  const reasons = [
+    ...(q?.dropped || []).map(x => x.why),
+    ...(q?.notes || []),
+    card.data._engineNote || '',
+  ].filter(Boolean);
+  const intro = reasons.length ? `Check: ${[...new Set(reasons)].join('; ')}\n\n` : '';
+  const action = prompt(`${intro}1 Replace one item\n2 Make this block easier\n3 Make this block harder`, '1');
+  if (action === '1') regenerateWorksheetItem(cardId);
+  else if (action === '2') regenerateWorksheetAtLevel(cardId, -1);
+  else if (action === '3') regenerateWorksheetAtLevel(cardId, 1);
 }
 
 function _wsHasInteractive(d) {
@@ -13259,7 +13278,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '456';
+const TEACHEDOS_ASSET_VERSION = '457';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
