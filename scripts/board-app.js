@@ -13335,7 +13335,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '463';
+const TEACHEDOS_ASSET_VERSION = '464';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15575,22 +15575,23 @@ function boardHasFeature(flag) {
 
 /* ── Upgrade / paywall modal ── */
 const UPGRADE_COPY = {
-  exports: { emoji:'📤', badge:'🔒 Pro export', title:'Export your board', sub:"Free boards can't be exported. Upgrade to download PDF, PNG, CSV & JSON." },
-  ai:      { emoji:'🤖', badge:'🔒 Pro AI', title:'Generate lessons with AI', sub:'AI plans, tasks and games are part of Teacher Pro.' },
-  boards:  { emoji:'♾️', badge:'🔒 Board limit', title:'You\'ve hit the Free board limit', sub:'Free includes 3 boards. Go Pro for unlimited boards & cards.' },
-  follow:  { emoji:'👥', badge:'🔒 Pro live', title:'Teach the class live', sub:'Live student follow & co-editing are part of Teacher Pro.' },
-  packs:   { emoji:'🎁', badge:'🔒 Pro library', title:'Unlock 200+ ready lessons', sub:'Drop complete, ready-made lessons and packs straight onto your board.' },
-  default: { emoji:'🚀', badge:'🔒 Pro feature', title:'Unlock the full TeachEd Board', sub:"You're on the Free plan. Upgrade to keep your lessons moving." },
+  exports: { icon:'bi-export', badge:'Pro export', title:'Export your board', sub:"Free boards can't be exported. Upgrade to download PDF, PNG, CSV & JSON." },
+  ai:      { icon:'bi-spark', badge:'Pro AI', title:'Generate lessons with AI', sub:'AI plans, tasks and games are part of Teacher Pro.' },
+  boards:  { icon:'bi-infinity', badge:'Board limit', title:'You\'ve hit the Free board limit', sub:'Free includes 3 boards. Go Pro for unlimited boards & cards.' },
+  follow:  { icon:'bi-users', badge:'Pro live', title:'Teach the class live', sub:'Live student follow & co-editing are part of Teacher Pro.' },
+  packs:   { icon:'bi-box', badge:'Pro library', title:'Unlock 200+ ready lessons', sub:'Drop complete, ready-made lessons and packs straight onto your board.' },
+  default: { icon:'bi-spark', badge:'Pro feature', title:'Unlock the full TeachEd Board', sub:"You're on the Free plan. Upgrade to keep your lessons moving." },
 };
 let _upgradeReason = 'default';
 function showUpgradeModal(flag) {
   _upgradeReason = UPGRADE_COPY[flag] ? flag : 'default';
   const pendingAccess = currentUser?.plan && currentUser.plan !== 'free' && currentUser.plan_status === 'pending';
   const c = pendingAccess
-    ? { emoji:'⏳', badge:'Payment pending', title:'Payment is under review', sub:'Your paid access will unlock automatically after the transfer is approved. You can keep using Free features meanwhile.' }
+    ? { icon:'bi-clock', badge:'Payment pending', title:'Payment is under review', sub:'Your paid access will unlock automatically after the transfer is approved. You can keep using Free features meanwhile.' }
     : UPGRADE_COPY[_upgradeReason];
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  set('upgrade-emoji', c.emoji);
+  const icon = document.getElementById('upgrade-emoji');
+  if (icon) icon.innerHTML = `<svg aria-hidden="true"><use href="#${c.icon}"/></svg>`;
   set('upgrade-flag-badge', c.badge);
   set('upgrade-title', c.title);
   set('upgrade-sub', c.sub);
@@ -15662,11 +15663,11 @@ function updateAuthUI() {
   if (currentUser) {
     chip.style.display = 'flex';
     loginBtn.style.display = 'none';
-    document.getElementById('auth-avatar').textContent = currentUser.avatar || '🧑‍🏫';
+    document.getElementById('auth-avatar').textContent = currentUser.avatar || 'T';
     document.getElementById('auth-name').textContent = currentUser.name.split(' ')[0];
     document.getElementById('user-menu-email').textContent = currentUser.email;
     // More-menu account header (mobile sign-out path)
-    const _av = document.getElementById('more-account-av'); if (_av) _av.textContent = currentUser.avatar || '🧑‍🏫';
+    const _av = document.getElementById('more-account-av'); if (_av) _av.textContent = currentUser.avatar || 'T';
     const _nm = document.getElementById('more-account-name'); if (_nm) _nm.textContent = currentUser.name || 'Account';
     const _em = document.getElementById('more-account-email'); if (_em) _em.textContent = currentUser.email || '';
     document.getElementById('btn-members').style.display = '';
