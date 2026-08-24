@@ -34,6 +34,7 @@ const backendRoute = read('backend/routes/ai.js');
 const browserPrompt = read('js/teacher-tool-ai.js');
 const contracts = [
   [backendPrompt, 'Evidence rule:', 'server prompt evidence rule'],
+  [backendPrompt, 'Source checkpoints to cover across the set:', 'server source coverage map'],
   [backendPrompt, 'Topic rule:', 'server prompt scenario rule'],
   [backendRoute, 'sourceAlignmentNotes', 'server source-alignment audit'],
   [backendRoute, 'auditWorksheetParts', 'worksheet answer audit'],
