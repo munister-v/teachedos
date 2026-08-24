@@ -868,11 +868,6 @@ router.post('/users', async (req, res) => {
     );
     const user = rows[0];
 
-    await pool.query(
-      `INSERT INTO boards (user_id, name) VALUES ($1, $2)`,
-      [user.id, 'My First Board']
-    );
-
     logAdminAction(req, 'user.create', { targetId: user.id, targetLabel: user.email, detail: `role=${user.role}` });
     res.status(201).json({ user });
   } catch (err) {

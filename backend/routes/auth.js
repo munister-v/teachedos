@@ -257,12 +257,6 @@ async function upsertLegacyUser(email, password, legacyUser, existingUser = null
     [normalizedEmail, hash, safeName, safeRole, safeAvatar, safePlan, safePlanStatus, safeBillingCycle, safeTimezone, safeTimezoneMode]
   );
   const user = rows[0];
-  await pool.query(
-    `INSERT INTO boards (user_id, name)
-     VALUES ($1, $2)
-     ON CONFLICT DO NOTHING`,
-    [user.id, 'My First Board']
-  );
   return user;
 }
 
@@ -326,12 +320,6 @@ router.post('/register', authLimiter, async (req, res) => {
       ]
     );
     const user  = rows[0];
-    // Create a default board for the new user
-    await pool.query(
-      `INSERT INTO boards (user_id, name) VALUES ($1, $2)`,
-      [user.id, 'My First Board']
-    );
-
     const payload = await issueLoginSession(req, user);
     logAuthEvent(user.id, user.email, 'signup', req);
     res.status(201).json({ ...payload, isNewUser: true });
@@ -423,10 +411,6 @@ router.post('/invites/:token/accept', authLimiter, async (req, res) => {
       ]
     );
     const user = created.rows[0];
-    await client.query(
-      `INSERT INTO boards (user_id, name) VALUES ($1, $2)`,
-      [user.id, 'My First Board']
-    );
     const token = await createLoginSession(req, user, client);
     await client.query(
       `UPDATE invites
@@ -584,10 +568,6 @@ router.post('/google', authLimiter, async (req, res) => {
       );
       user = inserted.rows[0];
       isNewUser = true;
-      await pool.query(
-        `INSERT INTO boards (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-        [user.id, 'My First Board']
-      );
     }
 
     await pool.query(`UPDATE users SET last_login_at=NOW(), failed_login_count=0, locked_at=NULL WHERE id=$1`, [user.id]).catch(() => {});

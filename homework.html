@@ -6,13 +6,13 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=465">
-<link rel="preload" as="style" href="styles/unify.css?v=465">
+<link rel="preload" as="style" href="styles/harmony.css?v=466">
+<link rel="preload" as="style" href="styles/unify.css?v=466">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=465">
+<link rel="stylesheet" href="styles/fonts.css?v=466">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -256,12 +256,12 @@ button{font-family:var(--font);cursor:pointer;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=465" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=465">
-<link rel="stylesheet" href="styles/harmony.css?v=465">
-<link rel="stylesheet" href="styles/unify.css?v=465">
-<link rel="stylesheet" href="styles/teached-brand.css?v=465">
-<link rel="stylesheet" href="styles/tool-window.css?v=465">
+<script src="theme.js?v=466" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=466">
+<link rel="stylesheet" href="styles/harmony.css?v=466">
+<link rel="stylesheet" href="styles/unify.css?v=466">
+<link rel="stylesheet" href="styles/teached-brand.css?v=466">
+<link rel="stylesheet" href="styles/tool-window.css?v=466">
 </head>
 <body class="mp-shell tw-page">
 
@@ -471,17 +471,17 @@ function assignment(id, studentId, status, score=null){
 function readLocal(key, fallback){ try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch { return fallback; } }
 function writeLocal(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
 function ensureLocalData(){
-  if (!localStorage.getItem(LOCAL_BOARDS_KEY)) writeLocal(LOCAL_BOARDS_KEY, seedBoards());
-  if (!localStorage.getItem(LOCAL_STUDENTS_KEY)) writeLocal(LOCAL_STUDENTS_KEY, seedStudents());
-  if (!localStorage.getItem(LOCAL_KEY)) writeLocal(LOCAL_KEY, seedHomework());
+  if (!localStorage.getItem(LOCAL_BOARDS_KEY)) writeLocal(LOCAL_BOARDS_KEY, []);
+  if (!localStorage.getItem(LOCAL_STUDENTS_KEY)) writeLocal(LOCAL_STUDENTS_KEY, []);
+  if (!localStorage.getItem(LOCAL_KEY)) writeLocal(LOCAL_KEY, []);
 }
 function loadLocal(){
   offlineMode = true;
   ensureLocalData();
-  boards = readLocal(LOCAL_BOARDS_KEY, seedBoards());
-  students = readLocal(LOCAL_STUDENTS_KEY, seedStudents());
-  homeworkList = readLocal(LOCAL_KEY, seedHomework());
-  updateUser({ name:'Vyacheslav Munister', avatar:'V' });
+  boards = readLocal(LOCAL_BOARDS_KEY, []);
+  students = readLocal(LOCAL_STUDENTS_KEY, []);
+  homeworkList = readLocal(LOCAL_KEY, []);
+  updateUser({ name:'Teacher', avatar:'T' });
   renderList();
 }
 
@@ -741,7 +741,7 @@ async function openCreateModal() {
   document.getElementById('f-instructions').value = '';
   document.getElementById('f-pass').value = 60;
   document.getElementById('f-due').value = '';
-  if (!boards.length) boards = readLocal(LOCAL_BOARDS_KEY, seedBoards());
+  if (!boards.length) boards = readLocal(LOCAL_BOARDS_KEY, []);
   const boardSel = document.getElementById('f-board');
   boardSel.innerHTML = '<option value="">- Choose a board -</option>' + boards.map(b => '<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>').join('');
   document.getElementById('f-cards').innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);">Pick a board first</div>';
@@ -755,7 +755,7 @@ async function openCreateModal() {
 }
 function closeCreateModal() { document.getElementById('create-overlay').classList.remove('open'); }
 async function loadStudents() {
-  if (offlineMode || !token) { students = readLocal(LOCAL_STUDENTS_KEY, seedStudents()); renderStudentList(); return; }
+  if (offlineMode || !token) { students = readLocal(LOCAL_STUDENTS_KEY, []); renderStudentList(); return; }
   try {
     const seen = new Map();
     await Promise.all(boards.map(async b => {
@@ -767,9 +767,9 @@ async function loadStudents() {
       } catch {}
     }));
     students = Array.from(seen.values());
-    if (!students.length) students = readLocal(LOCAL_STUDENTS_KEY, seedStudents());
+    if (!students.length) students = readLocal(LOCAL_STUDENTS_KEY, []);
     renderStudentList();
-  } catch { students = readLocal(LOCAL_STUDENTS_KEY, seedStudents()); renderStudentList(); }
+  } catch { students = readLocal(LOCAL_STUDENTS_KEY, []); renderStudentList(); }
 }
 function renderStudentList() {
   const el = document.getElementById('f-students');
@@ -841,11 +841,11 @@ function toast(msg) { const t = document.getElementById('toast'); t.textContent 
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=465" defer></script>
-<script src="scripts/mobile-perf.js?v=465" defer></script>
-<script src="scripts/mobile-nav.js?v=465"></script>
-<script src="scripts/mobile-zoom-guard.js?v=465" defer></script>
-<script src="scripts/autogrow.js?v=465" defer></script>
-<script src="pwa-boot.js?v=465" defer></script>
+<script src="scripts/nav-boost.js?v=466" defer></script>
+<script src="scripts/mobile-perf.js?v=466" defer></script>
+<script src="scripts/mobile-nav.js?v=466"></script>
+<script src="scripts/mobile-zoom-guard.js?v=466" defer></script>
+<script src="scripts/autogrow.js?v=466" defer></script>
+<script src="pwa-boot.js?v=466" defer></script>
 </body>
 </html>
