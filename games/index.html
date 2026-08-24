@@ -189,6 +189,7 @@ body {
 .card-tag.speed    { background: rgba(245,158,11,0.10);  color: #D97706; border-color: rgba(245,158,11,0.22); }
 .card-tag.ai       { background: rgba(94,94,74,0.08);    color: #5E5E4A; border-color: rgba(94,94,74,0.18); }
 .card-tag.speaking { background: rgba(236,45,140,0.10);  color: #EC2D8C; border-color: rgba(236,45,140,0.22); }
+.card-tag.local    { background: rgba(53,109,255,0.10);  color: #2458cb; border-color: rgba(53,109,255,0.22); }
 .card-tag.create   { background: rgba(59,130,246,0.10);  color: #2563EB; border-color: rgba(59,130,246,0.22); }
 .card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 12px;}
 .card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(94,94,74,.08);color:var(--text-3);border:1px solid var(--border);}
@@ -620,21 +621,21 @@ body {
     </a>
 
     <a class="card" href="four-opinions-uk.html" data-tag="speaking" data-lang="uk">
-      <span class="card-icon">💬</span>
+      <span class="card-icon">4OP</span>
       <div class="card-title">Four Opinions</div>
-      <div class="card-desc">Four discussion prompts on one topic to launch a speaking round</div>
+      <div class="card-desc">Send a topic and lesson context to Teacher Tools for four contrastive AI perspectives</div>
       <div class="card-footer">
-        <span class="card-tag speaking">Speaking</span>
+        <span class="card-tag ai">AI workflow</span>
         <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
       </div>
     </a>
 
-    <a class="card" href="linguaquiz-ai-uk.html" data-tag="ai" data-lang="uk">
-      <span class="card-icon">📖</span>
-      <div class="card-title">LinguaQuiz: ABCD from a Text</div>
-      <div class="card-desc">Paste any text and AI builds a multiple-choice reading quiz from it</div>
+    <a class="card" href="linguaquiz-ai-uk.html" data-tag="reading" data-lang="uk">
+      <span class="card-icon">CLO</span>
+      <div class="card-title">Text Cloze Quiz</div>
+      <div class="card-desc">Make ABCD cloze practice where every option is taken from the source text</div>
       <div class="card-footer">
-        <span class="card-tag ai">AI-Powered</span>
+        <span class="card-tag local">Local transform</span>
         <span class="card-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span>
       </div>
     </a>

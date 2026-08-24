@@ -1173,7 +1173,7 @@ const TOOLS_DATA = [
   { id:'comm-situations', name:'Communicative Situations', desc:'Generate role-play situation cards that use the target vocabulary.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=comm-situations' },
   { id:'rephrase-word', name:'Rephrase Using Word Given', desc:'Rewrite sentences keeping the meaning, using a given key word.', tags:['Vocabulary','New'], badge:'New', icon:'📗', group:'vocabulary', url:'teacher-tools.html?tool=rephrase-word' },
   // WRITING
-  { id:'four-opinions', name:'Four Opinions', desc:'Present four contrasting opinions on a topic for response writing.', tags:['Writing','New'], badge:'New', icon:'✍️', group:'writing', url:'teacher-tools.html?tool=four-opinions' },
+  { id:'four-opinions', name:'Four Opinions', desc:'Create four contrasting AI perspectives from a specific topic and classroom context.', tags:['Writing','AI'], badge:'AI', icon:'4OP', group:'writing', url:'teacher-tools.html?tool=four-opinions' },
   { id:'find-quotes', name:'Find Quotes', desc:'Collect relevant quotes about a topic for discussion and writing.', tags:['Writing','New'], badge:'New', icon:'✍️', group:'writing', url:'teacher-tools.html?tool=find-quotes' },
   { id:'essay-topics', name:'Essay Topics', desc:'Generate essay prompts and questions on any topic.', tags:['Writing','New'], badge:'New', icon:'✍️', group:'writing', url:'teacher-tools.html?tool=essay-topics' },
   // SPEAKING
@@ -1191,7 +1191,7 @@ const TOOLS_DATA = [
   { id:'game-true-false', name:'True / False', desc:'Read short statements and decide if they are true or false. Great for comprehension warm-ups and quick checks.', tags:['Reading'], badge:null, icon:'✅', group:'reading', url:'games/true-false.html' },
   { id:'sentence-builder', name:'Sentence Builder', desc:'Drag scrambled words into the correct order to form a grammatically correct sentence. Works for any level.', tags:['Writing','Grammar'], badge:null, icon:'🧩', group:'writing', url:'games/sentence-builder.html' },
   { id:'twee-module-studio', name:'Twee Module Studio', desc:'A studio for building Twee-style interactive text modules - useful for branching writing tasks and lesson scenarios.', tags:['Writing'], badge:'Beta', icon:'📝', group:'writing', url:'games/twee-module-studio.html' },
-  { id:'four-opinions-uk', name:'Four Opinions (UK)', desc:'Cards with four opinions on a topic - students discuss, agree, disagree, and justify. UK English version.', tags:['Speaking'], badge:null, icon:'🗣️', group:'speaking', url:'games/four-opinions-uk.html' },
+  { id:'four-opinions-uk', name:'Four Opinions', desc:'Add a specific topic and classroom context, then continue in Teacher Tools for four contrastive AI perspectives.', tags:['Speaking','AI'], badge:'AI', icon:'4OP', group:'speaking', url:'games/four-opinions-uk.html' },
   { id:'false-friends', name:'False Friends', desc:'Trip up the cognates trap - Магазин ≠ magazine. Quick rounds to drill the most common Slavic-English false friends.', tags:['Vocabulary'], badge:null, icon:'🤝', group:'vocabulary', url:'games/false-friends.html' },
   { id:'hangman', name:'Hangman', desc:'Classic word-guessing game. Configurable word lists by level and topic.', tags:['Vocabulary'], badge:null, icon:'🪢', group:'vocabulary', url:'games/hangman.html' },
   { id:'memory-match', name:'Memory Match', desc:'Pair word ↔ image (or word ↔ definition) cards. Fun warm-up that boosts retention.', tags:['Vocabulary'], badge:null, icon:'🧠', group:'vocabulary', url:'games/memory-match.html' },
@@ -1206,7 +1206,7 @@ const TOOLS_DATA = [
   { id:'grammar-fix', name:'Grammar Fix', desc:'Spot and fix the grammar mistake in each sentence. Levels A2-C1.', tags:['Grammar'], badge:null, icon:'🔧', group:'grammar', url:'games/grammar-fix.html' },
   { id:'prepositions', name:'Prepositions', desc:'Pick the right preposition for each gap - at / in / on / by / with…', tags:['Grammar'], badge:null, icon:'📍', group:'grammar', url:'games/prepositions.html' },
   { id:'tense-picker', name:'Tense Picker', desc:'Choose the correct tense for the context. Covers all 12 tenses with timeline hints.', tags:['Grammar'], badge:null, icon:'⏳', group:'grammar', url:'games/tense-picker.html' },
-  { id:'linguaquiz-ai-uk', name:'LinguaQuiz AI', desc:'AI-powered adaptive quiz - generates questions on the fly for any topic. UK English.', tags:['Utility'], badge:'AI', icon:'🤖', group:'utility', url:'games/linguaquiz-ai-uk.html' },
+  { id:'linguaquiz-ai-uk', name:'Text Cloze Quiz', desc:'Build source-bound ABCD cloze questions from a teacher-supplied text. No filler options.', tags:['Reading'], badge:'Local', icon:'CLO', group:'reading', url:'games/linguaquiz-ai-uk.html' },
 ];
 
 const TAG_COLORS = {

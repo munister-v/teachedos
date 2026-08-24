@@ -1079,7 +1079,9 @@ function renderForm(){
     html=baseFields(textArea('source','Source text','','Paste the text you want to transform.','Paste your text here...'));
   }else if(['lesson-pack','worksheet','homework'].includes(m)){
     html=baseFields(`${textArea('source','Source text / lesson brief','','Paste a text, a class goal, or a short idea.','e.g. A2 travel lesson about checking into a hotel')}${textArea('vocab','Target vocabulary','','One per line. Add a definition after a hyphen if you need it.','e.g. reservation - a booking made in advance')}`);
-  }else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){
+  }else if(m==='four-opinions'){
+    html=baseFields(textArea('vocab','Lesson context and boundaries','','Describe the class, situation and desired angle. The AI uses this to make four genuinely different perspectives.','e.g. B1 teens, pair discussion about the school phone policy. Include one practical compromise.'));
+  }else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){
     html=baseFields(textArea('vocab','Target vocabulary','','One per line. Add a meaning after a hyphen if you need it.','e.g. delay - a period of waiting\nreservation - a booking'));
   }else if(m==='word-order'){
     html=baseFields(textArea('source','Sentences to scramble','','Paste sentences, one per line, or a full text.','e.g. Students practise useful phrases every day.'));

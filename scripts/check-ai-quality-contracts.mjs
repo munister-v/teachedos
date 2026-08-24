@@ -38,6 +38,10 @@ const boardMarkup = read('board.html');
 const teacherToolsHub = read('scripts/teacher-tools-app.js');
 const moduleStudio = read('scripts/games/twee-module-studio.js');
 const moduleStudioCatalogue = read('scripts/teachedos-data.js');
+const clozeQuiz = read('scripts/games/linguaquiz-ai-uk.js');
+const opinionsHandoff = read('scripts/games/four-opinions-uk.js');
+const desktopTools = read('scripts/desktop-app.js');
+const gamesHub = read('games/index.html');
 const contracts = [
   [backendPrompt, 'Evidence rule:', 'server prompt evidence rule'],
   [backendPrompt, 'Source checkpoints to cover across the set:', 'server source coverage map'],
@@ -56,6 +60,12 @@ const contracts = [
   [moduleStudio, 'Порожня форма не перетворюється на шаблонний урок.', 'module studio no-fallback state'],
   [teacherToolsHub, "m==='error-correction'", 'proofreading source form'],
   [backendPrompt, 'preserve one supplied sentence verbatim', 'source-bound proofreading rule'],
+  [clozeQuiz, 'Every option comes from the text you provided.', 'source-only cloze explanation'],
+  [clozeQuiz, 'function escapeHtml', 'source-only cloze output escaping'],
+  [opinionsHandoff, 'const FOUR_OPINIONS_TOOL_ID', 'four-opinions AI handoff id'],
+  [opinionsHandoff, 'window.location.assign', 'four-opinions authenticated handoff'],
+  [teacherToolsHub, "m==='four-opinions'", 'four-opinions context form'],
+  [teacherToolsHub, 'Lesson context and boundaries', 'four-opinions context label'],
 ];
 for (const [text, needle, label] of contracts) if (!text.includes(needle)) fail(`missing ${label}`);
 
@@ -86,8 +96,23 @@ if (moduleStudio.includes('const fixes = [')) {
 if (!moduleStudio.includes('if (AI_HANDOFFS[activeModuleId])')) {
   fail('module studio semantic generators must use the authenticated AI handoff');
 }
+if (clozeQuiz.includes('const fallback =') || clozeQuiz.includes('globalPool.concat(fallback)') || clozeQuiz.includes('|| "answer"')) {
+  fail('source-only cloze must not manufacture generic distractors or answers');
+}
+if (!clozeQuiz.includes('globalPool.length < 4')) {
+  fail('source-only cloze must require enough source vocabulary for four honest choices');
+}
+if (opinionsHandoff.includes('generateOpinions') || opinionsHandoff.includes('LEVEL_LIBRARY') || opinionsHandoff.includes('opinionPersonas')) {
+  fail('four-opinions must not ship a generic local opinion template');
+}
+if (!opinionsHandoff.includes('Lesson context: ') || !opinionsHandoff.includes('count: "4"')) {
+  fail('four-opinions handoff must preserve lesson context and fixed response count');
+}
 for (const staleLabel of ['Topic + Vocabulary · Local Mode', 'Comprehension Questions · Local Mode', 'Statement Builder · Local Mode', 'Dialogue Draft · Local Mode', 'Correction Drill · Local Mode']) {
   if (moduleStudioCatalogue.includes(staleLabel)) fail(`module studio catalogue must not claim AI material is local: ${staleLabel}`);
+}
+for (const staleClaim of ['LinguaQuiz AI', 'AI-powered adaptive quiz']) {
+  if ((moduleStudioCatalogue + desktopTools + gamesHub).includes(staleClaim)) fail(`legacy game metadata must not make a false AI claim: ${staleClaim}`);
 }
 
 if (!process.exitCode) console.log(`AI quality contract passed for ${fixtures.cases.length} fixtures.`);

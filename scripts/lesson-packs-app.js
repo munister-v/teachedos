@@ -1132,7 +1132,7 @@ DEBATE TOPICS (choose one)
 📌 TEACHER NOTES
   ▸ Assign positions randomly - great for pushing beyond comfort zone
   ▸ Give a language feedback sheet: note phrases students missed
-  ▸ Four Opinions Generator tool works perfectly as a warm-up
+  ▸ Use Four Opinions with a concrete class context to start the warm-up
 `
 },
 

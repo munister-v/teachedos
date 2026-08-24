@@ -114,29 +114,6 @@ textarea {
   gap: 14px;
 }
 
-.focus-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.focus-chip {
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 10px 12px;
-  background: #fff;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.focus-chip.active {
-  background: var(--accent-2);
-  color: var(--accent);
-  border-color: rgba(53, 109, 255, 0.28);
-}
-
 .primary-btn,
 .ghost-btn,
 .option-btn {
@@ -338,11 +315,11 @@ body.embed-mode .back-link {
   <a class="back-link" href="index.html">← Games</a>
   <section class="topbar">
     <div>
-      <div class="eyebrow">LinguaQuiz AI · локальний режим</div>
-      <h1>ABCD-питання до тексту</h1>
-      <p>Оригінальний модуль працював через Gemini API. Для GitHub Pages я інтегрував автономну версію: вона створює вправи локально на основі вставленого тексту без ключів і бекенду.</p>
+      <div class="eyebrow">Text Cloze Quiz · локальне перетворення</div>
+      <h1>ABCD cloze із вашого тексту</h1>
+      <p>Цей інструмент не імітує AI-comprehension. Він приховує одне слово в кожному реченні та бере правильну відповідь і всі distractors тільки з вашого тексту.</p>
     </div>
-    <div class="pill">Offline ready</div>
+    <div class="pill">Source only</div>
   </section>
 
   <section class="layout">
@@ -376,17 +353,7 @@ body.embed-mode .back-link {
         </div>
       </div>
 
-      <div>
-        <span class="section-label">Фокус</span>
-        <div class="focus-grid" id="focus-grid"></div>
-      </div>
-
-      <div>
-        <label class="section-label" for="instructions">Додаткові вказівки</label>
-        <input id="instructions" type="text" placeholder="Напр.: British spelling only, avoid negative questions...">
-      </div>
-
-      <button class="primary-btn" id="generate-btn" type="submit">Створити запитання</button>
+      <button class="primary-btn" id="generate-btn" type="submit">Створити cloze-завдання</button>
     </form>
 
     <section class="panel results-panel">
@@ -398,16 +365,16 @@ body.embed-mode .back-link {
         <button class="ghost-btn" id="copy-btn" type="button" disabled>Скопіювати текст</button>
       </div>
       <div class="empty" id="empty-state">
-        Вставте текст зліва і натисніть «Створити запитання».<br>Модуль збере ключові слова з речень і перетворить їх на локальні multiple-choice вправи.
+        Вставте текст зліва і натисніть «Створити cloze-завдання».<br>Локальний режим прибирає слово з речення та бере всі чотири варіанти лише з вашого тексту.
       </div>
       <div class="questions" id="questions" hidden></div>
     </section>
   </section>
 </div>
 
-<script src="../scripts/games-embed.js?v=470"></script>
-<script src="../scripts/games-data.js?v=470"></script>
-<script src="../scripts/games/linguaquiz-ai-uk.js?v=470"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=470"></script>
+<script src="../scripts/games-embed.js?v=471"></script>
+<script src="../scripts/games-data.js?v=471"></script>
+<script src="../scripts/games/linguaquiz-ai-uk.js?v=471"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=471"></script>
 </body>
 </html>
