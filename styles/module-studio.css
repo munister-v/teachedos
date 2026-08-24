@@ -91,6 +91,18 @@ body {
   line-height: 1.65;
 }
 
+.module-form-error {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(190, 58, 73, 0.30);
+  border-radius: 14px;
+  background: rgba(255, 234, 236, 0.88);
+  color: #9a2637;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
 .module-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -118,6 +130,12 @@ body {
   color: var(--text);
   background: #fff;
   outline: none;
+}
+
+.module-field[aria-invalid="true"],
+.module-select[aria-invalid="true"] {
+  border-color: rgba(190, 58, 73, 0.70);
+  box-shadow: 0 0 0 4px rgba(190, 58, 73, 0.10);
 }
 
 .module-field.textarea {

@@ -51,7 +51,7 @@ const MODULES = {
   "discussion-questions": {
     title: "Find Discussion Questions",
     eyebrow: "Speaking · warm-up bank",
-    desc: "Генерує набір discussion questions на тему для warm-up, pair work, circles або freer speaking.",
+    desc: "Створює набір discussion questions для конкретної теми й формату уроку. Без теми та контексту матеріал не підставляється.",
     pill: "Speaking warm-up",
     accent: "#9a67f6",
     meta: "Speaking · Discussion · A1-C2",
@@ -66,9 +66,9 @@ const MODULES = {
     ]
   },
   "sentence-list": {
-    title: "Create a List of Sentences",
+    title: "Vocabulary Sentence Prompts",
     eyebrow: "Vocabulary · sentence builder",
-    desc: "Створює приклади речень із цільовою лексикою, щоб потім використати їх у gap-fill, discussion або vocabulary review.",
+    desc: "Створює конкретні prompts для речень із вашою цільовою лексикою. Це чесний локальний draft, а не вигадані приклади з шаблону.",
     pill: "Vocabulary set",
     accent: "#f08d54",
     meta: "Vocabulary · Sentence bank · A1-C2",
@@ -113,7 +113,7 @@ const MODULES = {
   "writing-prompts": {
     title: "Writing Prompts",
     eyebrow: "Writing · prompt generator",
-    desc: "Створює серію writing prompts на тему з урахуванням рівня і жанру. Підходить для classwork, homework або exam-style writing warm-up.",
+    desc: "Створює writing prompts на основі конкретної теми й ситуації уроку. Підходить для classwork, homework або exam-style writing warm-up.",
     pill: "Writing set",
     accent: "#6bc18a",
     meta: "Writing · Prompt bank · A1-C2",
@@ -123,7 +123,8 @@ const MODULES = {
       { type: "row", fields: [
         { type: "select", id: "level", label: "Рівень", options: ["A1", "A2", "B1", "B2", "C1", "C2"], value: "B1" },
         { type: "select", id: "genre", label: "Жанр", options: ["Paragraph", "Email", "Opinion Essay", "Story", "Article"], value: "Paragraph" }
-      ] }
+      ] },
+      { type: "text", id: "context", label: "Ситуація або аудиторія", placeholder: "Напр.: new students write for a school blog" }
     ]
   },
   "dialogue-creator": {
@@ -146,13 +147,14 @@ const MODULES = {
   "role-play": {
     title: "Role-Play Scenarios",
     eyebrow: "Speaking · pair task builder",
-    desc: "Створює role-play scenario з ролями, цілями й tension points для pair work або speaking club.",
+    desc: "Створює role-play scenario з конкретною ситуацією та ролями для pair work або speaking club.",
     pill: "Pair-work ready",
     accent: "#a96ff5",
     meta: "Speaking · Role-play · A1-C2",
     copyLabel: "Скопіювати сценарій",
     fields: [
       { type: "textarea", id: "topic", label: "Сюжет", placeholder: "Напр.: planning a school event with limited budget" },
+      { type: "text", id: "roles", label: "Ролі", placeholder: "Напр.: event organiser, student representative" },
       { type: "row", fields: [
         { type: "select", id: "level", label: "Рівень", options: ["A1", "A2", "B1", "B2", "C1", "C2"], value: "B1" },
         { type: "select", id: "format", label: "Формат", options: ["Pair", "Small Group", "Exam-style"], value: "Pair" }
@@ -160,15 +162,16 @@ const MODULES = {
     ]
   },
   "error-correction": {
-    title: "Error Correction",
+    title: "Build a Proofreading Exercise",
     eyebrow: "Grammar · correction set",
-    desc: "Будує набір речень з навмисними помилками, щоб учні виправляли grammar, vocabulary або word order.",
+    desc: "Перетворює ваші речення на proofreading exercise. Модуль не вигадує помилки чи відповідь з повітря.",
     pill: "Correction drill",
     accent: "#ef7b67",
     meta: "Grammar · Accuracy · A1-C2",
     copyLabel: "Скопіювати вправу",
     fields: [
       { type: "textarea", id: "topic", label: "Тема або граматичний фокус", placeholder: "Напр.: present perfect vs past simple" },
+      { type: "textarea", id: "text", label: "Речення для перевірки", placeholder: "Вставте речення, які учні мають перевірити. Один або кілька рядків." },
       { type: "row", fields: [
         { type: "select", id: "level", label: "Рівень", options: ["A1", "A2", "B1", "B2", "C1"], value: "B1" },
         { type: "select", id: "count", label: "Кількість", options: ["4", "5", "6", "8"], value: "5" }
@@ -176,6 +179,58 @@ const MODULES = {
     ]
   }
 };
+
+/* This studio is intentionally a local, deterministic tool. It must only
+   transform a real teaching brief or source material, never fill an empty
+   form with a plausible-looking lesson. Keep each requirement beside the
+   module catalogue so new modules cannot quietly reintroduce blank defaults. */
+const MODULE_INPUT_RULES = {
+  "text-vocab": [
+    { id: "topic", message: "Додайте конкретну тему або brief для тексту." },
+    { id: "vocabulary", message: "Додайте хоча б одне цільове слово або словосполучення." }
+  ],
+  "open-questions": [{ id: "text", minWords: 6, message: "Вставте змістовний текст, з якого можна взяти питання." }],
+  "true-false": [{ id: "text", minWords: 6, message: "Вставте змістовний текст, з якого можна взяти твердження." }],
+  "discussion-questions": [
+    { id: "topic", message: "Додайте конкретну тему для обговорення." },
+    { id: "context", message: "Вкажіть формат уроку або комунікативну ситуацію." }
+  ],
+  "sentence-list": [{ id: "vocabulary", message: "Додайте цільову лексику для sentence prompts." }],
+  "fill-gap": [{ id: "text", minWords: 6, message: "Вставте текст, який потрібно перетворити на gap-fill." }],
+  "cefr-checker": [{ id: "text", minWords: 6, message: "Вставте текст для оцінки рівня." }],
+  "writing-prompts": [
+    { id: "topic", message: "Додайте конкретну тему для writing task." },
+    { id: "context", message: "Вкажіть ситуацію, аудиторію або мету письма." }
+  ],
+  "dialogue-creator": [
+    { id: "topic", message: "Додайте конкретну ситуацію для діалогу." },
+    { id: "roles", minItems: 2, message: "Вкажіть дві ролі через кому." }
+  ],
+  "role-play": [
+    { id: "topic", message: "Додайте конкретний сюжет для role-play." },
+    { id: "roles", minItems: 2, message: "Вкажіть дві ролі через кому." }
+  ],
+  "error-correction": [
+    { id: "topic", message: "Додайте граматичний фокус для перевірки." },
+    { id: "text", minWords: 4, message: "Вставте речення, які учні мають перевірити." }
+  ]
+};
+
+/* Semantic material needs the authenticated AI workflow and its quality checks.
+   The old local templates remain in the file only for backward compatibility
+   with saved sessions, but the form never calls them. The handoff retains the
+   teacher's concrete input in the main hub's ordinary draft store. */
+const AI_HANDOFFS = {
+  "text-vocab": { toolId: "text-topic-vocab", fields: (values) => ({ topic: values.topic, vocab: values.vocabulary }) },
+  "open-questions": { toolId: "open-questions", fields: (values) => ({ topic: "Comprehension questions", source: values.text }) },
+  "true-false": { toolId: "true-false", fields: (values) => ({ topic: "True / false check", source: values.text }) },
+  "discussion-questions": { toolId: "discussion", fields: (values) => ({ topic: values.topic, vocab: values.context }) },
+  "writing-prompts": { toolId: "creative-writing", fields: (values) => ({ topic: values.topic, vocab: values.context }) },
+  "dialogue-creator": { toolId: "dialogue", fields: (values) => ({ topic: values.topic, vocab: `Roles: ${values.roles}` }) },
+  "role-play": { toolId: "comm-situations", fields: (values) => ({ topic: values.topic, vocab: `Roles: ${values.roles}` }) },
+  "error-correction": { toolId: "error-correction", fields: (values) => ({ topic: values.topic, vocab: values.text }) }
+};
+const TEACHER_TOOLS_DRAFT_STORE = "teachedos_teacher_tools_drafts";
 
 const query = new URLSearchParams(window.location.search);
 const activeModuleId = query.get("module") || "open-questions";
@@ -193,6 +248,19 @@ function slugWords(input) {
     .split(/[\n,;]+/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function inputWordCount(value) {
+  return String(value || "").trim().split(/\s+/).filter(Boolean).length;
 }
 
 function tokenizeSentences(text) {
@@ -269,15 +337,69 @@ function initModuleChrome() {
 }
 
 function renderForm() {
+  const needsAi = Boolean(AI_HANDOFFS[activeModuleId]);
   formEl.innerHTML = `
     <div class="module-stack">
       ${activeModule.fields.map(renderField).join("")}
+      <p class="module-form-error" id="studio-form-error" role="alert" hidden></p>
       <div class="module-actions">
-        <button class="module-button" type="submit">Згенерувати</button>
+        <button class="module-button" type="submit">${needsAi ? "Продовжити в Teacher Tools" : "Згенерувати"}</button>
       </div>
-      <div class="module-help">Локальний режим: усе працює у статичному проєкті без зовнішнього API. Це адаптація під GitHub Pages і TeachedOS.</div>
+      <div class="module-help">${needsAi ? "Матеріал створюється в Teacher Tools з AI-перевіркою якості. Ваші поля буде перенесено туди без шаблонної підстановки." : "Локальний режим: матеріал створюється лише з вашого brief, лексики або source text. Порожня форма не перетворюється на шаблонний урок."}</div>
     </div>
   `;
+}
+
+function handoffToTeacherTools(values) {
+  const handoff = AI_HANDOFFS[activeModuleId];
+  if (!handoff) return false;
+  let drafts = {};
+  try {
+    drafts = JSON.parse(localStorage.getItem(TEACHER_TOOLS_DRAFT_STORE) || "{}") || {};
+  } catch (_) {
+    drafts = {};
+  }
+  drafts[handoff.toolId] = {
+    updatedAt: new Date().toISOString(),
+    fields: handoff.fields(values)
+  };
+  localStorage.setItem(TEACHER_TOOLS_DRAFT_STORE, JSON.stringify(drafts));
+  window.location.href = `../teacher-tools.html?tool=${encodeURIComponent(handoff.toolId)}`;
+  return true;
+}
+
+function clearModuleInputError() {
+  const errorEl = document.getElementById("studio-form-error");
+  if (errorEl) {
+    errorEl.hidden = true;
+    errorEl.textContent = "";
+  }
+  formEl.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute("aria-invalid"));
+}
+
+function showModuleInputError(issue) {
+  const errorEl = document.getElementById("studio-form-error");
+  const target = document.getElementById(issue.id);
+  if (errorEl) {
+    errorEl.textContent = issue.message;
+    errorEl.hidden = false;
+  }
+  if (target) {
+    target.setAttribute("aria-invalid", "true");
+    target.focus({ preventScroll: false });
+  }
+  return false;
+}
+
+function validateModuleInput(values) {
+  const rules = MODULE_INPUT_RULES[activeModuleId] || [];
+  for (const rule of rules) {
+    const value = String(values[rule.id] || "").trim();
+    if (!value) return rule;
+    if (rule.minWords && inputWordCount(value) < rule.minWords) return rule;
+    if (rule.minItems && slugWords(value).length < rule.minItems) return rule;
+  }
+  return null;
 }
 
 function showResult(meta, html, copyText) {
@@ -303,7 +425,7 @@ function levelIntro(level, topic) {
 }
 
 function generateTextWithVocab(values) {
-  const topic = values.topic.trim() || "modern learning habits";
+  const topic = values.topic.trim();
   const words = slugWords(values.vocabulary);
   const level = values.level;
   const length = values.length;
@@ -336,8 +458,8 @@ function generateTextWithVocab(values) {
   const html = `
     <div class="module-card">
       <h3>Generated text</h3>
-      <p>${text}</p>
-      ${words.length ? `<div class="module-tags">${words.map(word => `<span class="module-chip active">${word}</span>`).join("")}</div>` : ""}
+      <p>${escapeHtml(text)}</p>
+      ${words.length ? `<div class="module-tags">${words.map(word => `<span class="module-chip active">${escapeHtml(word)}</span>`).join("")}</div>` : ""}
     </div>
   `;
   return {
@@ -358,7 +480,7 @@ function generateOpenQuestions(values) {
   const html = `
     <div class="module-card">
       <h3>Open questions</h3>
-      <ol>${questions.map(item => `<li>${item}</li>`).join("")}</ol>
+      <ol>${questions.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
     </div>
   `;
   return {
@@ -395,7 +517,7 @@ function generateTrueFalse(values) {
   const html = `
     <div class="module-card">
       <h3>True / False exercise</h3>
-      <ol>${rows.map(item => `<li>${item.text}</li>`).join("")}</ol>
+      <ol>${rows.map(item => `<li>${escapeHtml(item.text)}</li>`).join("")}</ol>
     </div>
     <div class="module-card">
       <h4>Answer key</h4>
@@ -416,7 +538,7 @@ function generateTrueFalse(values) {
 }
 
 function generateDiscussion(values) {
-  const topic = values.topic.trim() || "everyday habits";
+  const topic = values.topic.trim();
   const context = values.context.trim();
   const count = Number(values.count || 6);
   const templates = [
@@ -433,7 +555,7 @@ function generateDiscussion(values) {
   const html = `
     <div class="module-card">
       <h3>Discussion questions</h3>
-      <ol>${questions.map(item => `<li>${item}</li>`).join("")}</ol>
+      <ol>${questions.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
     </div>
   `;
   return {
@@ -446,25 +568,25 @@ function generateDiscussion(values) {
 function generateSentenceList(values) {
   const words = slugWords(values.vocabulary);
   const tone = values.tone.toLowerCase();
-  const questions = words.map((word, index) => {
+  const prompts = words.map((word, index) => {
     const contexts = {
-      general: `People often use the word "${word}" when they describe change, plans, or everyday situations.`,
-      school: `In school, a student might use "${word}" while talking about a project, lesson, or teacher feedback.`,
-      work: `At work, "${word}" can appear in a sentence about deadlines, teamwork, or solving a problem.`,
-      travel: `While travelling, "${word}" may be useful when discussing directions, plans, or unexpected situations.`
+      general: `Write one specific sentence with "${word}" about a person, action, or real situation.`,
+      school: `Write one school-based sentence with "${word}" about a project, lesson, or teacher feedback.`,
+      work: `Write one work-based sentence with "${word}" about a deadline, teamwork, or a problem to solve.`,
+      travel: `Write one travel-based sentence with "${word}" about directions, plans, or an unexpected situation.`
     };
     return `${index + 1}. ${contexts[tone] || contexts.general}`;
   });
   const html = `
     <div class="module-card">
-      <h3>Sentence list</h3>
-      <ol>${questions.map(item => `<li>${item.replace(/^\d+\.\s*/, "")}</li>`).join("")}</ol>
+      <h3>Vocabulary sentence prompts</h3>
+      <ol>${prompts.map(item => `<li>${escapeHtml(item.replace(/^\d+\.\s*/, ""))}</li>`).join("")}</ol>
     </div>
   `;
   return {
     meta: `${values.level} · ${words.length} target words · ${values.tone}`,
     html,
-    copyText: questions.join("\n")
+    copyText: prompts.join("\n")
   };
 }
 
@@ -482,11 +604,11 @@ function generateGapFill(values) {
   const html = `
     <div class="module-card">
       <h3>Gap-fill text</h3>
-      <p>${gappedText}</p>
+      <p>${escapeHtml(gappedText)}</p>
     </div>
     <div class="module-card">
       <h4>Word bank</h4>
-      <div class="module-tags">${selected.map(word => `<span class="module-chip active">${word}</span>`).join("")}</div>
+      <div class="module-tags">${selected.map(word => `<span class="module-chip active">${escapeHtml(word)}</span>`).join("")}</div>
     </div>
   `;
   return {
@@ -542,14 +664,15 @@ function generateCefr(values) {
 }
 
 function generateWritingPrompts(values) {
-  const topic = values.topic.trim() || "everyday decisions";
+  const topic = values.topic.trim();
+  const context = values.context.trim();
   const prompts = [
-    `Write a short ${values.genre.toLowerCase()} about ${topic} and explain why it matters to you.`,
-    `Describe a situation connected to ${topic} and show what someone learned from it.`,
-    `Give two advantages and one difficulty related to ${topic}.`,
-    `Add a personal example that would make your text more realistic.`
+    `Write a short ${values.genre.toLowerCase()} about ${topic} for this context: ${context}.`,
+    `Describe a situation connected to ${topic} that would matter in ${context}.`,
+    `Give two advantages and one difficulty related to ${topic} in ${context}.`,
+    `Add one concrete detail that makes the situation in ${context} believable.`
   ];
-  const html = `<div class="module-card"><h3>Writing prompts</h3><ol>${prompts.map(item => `<li>${item}</li>`).join("")}</ol></div>`;
+  const html = `<div class="module-card"><h3>Writing prompts</h3><ol>${prompts.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div>`;
   return {
     meta: `${values.level} · ${values.genre} · ${prompts.length} prompts`,
     html,
@@ -558,10 +681,10 @@ function generateWritingPrompts(values) {
 }
 
 function generateDialogue(values) {
-  const roleList = slugWords(values.roles || "Speaker A, Speaker B");
-  const left = roleList[0] || "Speaker A";
-  const right = roleList[1] || "Speaker B";
-  const topic = values.topic.trim() || "solving a lesson problem";
+  const roleList = slugWords(values.roles);
+  const left = roleList[0];
+  const right = roleList[1];
+  const topic = values.topic.trim();
   const lines = [
     `${left}: Hi, can we talk about ${topic}?`,
     `${right}: Yes, of course. What exactly is the main issue?`,
@@ -570,7 +693,7 @@ function generateDialogue(values) {
     `${left}: Good idea. We should also think about how this affects other people.`,
     `${right}: Agreed. Then we can make a final plan and explain it clearly.`
   ];
-  const html = `<div class="module-card"><h3>Dialogue</h3><pre>${lines.join("\n")}</pre></div>`;
+  const html = `<div class="module-card"><h3>Dialogue</h3><pre>${escapeHtml(lines.join("\n"))}</pre></div>`;
   return {
     meta: `${values.level} · ${values.tone} · 2 speakers`,
     html,
@@ -579,17 +702,18 @@ function generateDialogue(values) {
 }
 
 function generateRolePlay(values) {
-  const topic = values.topic.trim() || "a classroom decision";
+  const topic = values.topic.trim();
+  const roles = slugWords(values.roles);
   const cards = [
-    { role: "Role A", goal: `You want to support a plan related to ${topic}. Give clear reasons and examples.` },
-    { role: "Role B", goal: `You are unsure about ${topic}. Ask questions, challenge details, and suggest alternatives.` }
+    { role: roles[0], goal: `You want to support a plan related to ${topic}. Give clear reasons and examples.` },
+    { role: roles[1], goal: `You are unsure about ${topic}. Ask questions, challenge details, and suggest alternatives.` }
   ];
   const html = `
     <div class="module-card">
       <h3>Role-play scenario</h3>
-      <p><strong>Situation:</strong> ${topic}</p>
+      <p><strong>Situation:</strong> ${escapeHtml(topic)}</p>
       <div class="module-output">
-        ${cards.map(card => `<div class="module-card"><h4>${card.role}</h4><p>${card.goal}</p></div>`).join("")}
+        ${cards.map(card => `<div class="module-card"><h4>${escapeHtml(card.role)}</h4><p>${escapeHtml(card.goal)}</p></div>`).join("")}
       </div>
     </div>
   `;
@@ -601,37 +725,22 @@ function generateRolePlay(values) {
 }
 
 function generateErrorCorrection(values) {
-  const topic = values.topic.trim() || "present perfect vs past simple";
+  const topic = values.topic.trim();
   const count = Number(values.count || 5);
-  const bank = [
-    `I am agree that ${topic} is important for learners.`,
-    `She have finished the task yesterday, so there is no need to repeat it.`,
-    `We discussed about the problem and found a better direction.`,
-    `He go to school every day since September.`,
-    `They made a homework exercise before dinner.`,
-    `This information are useful for the next lesson.`
-  ].slice(0, count);
-  const fixes = [
-    `I agree that ${topic} is important for learners.`,
-    `She finished the task yesterday, so there is no need to repeat it.`,
-    `We discussed the problem and found a better direction.`,
-    `He has gone to school every day since September.`,
-    `They did a homework exercise before dinner.`,
-    `This information is useful for the next lesson.`
-  ].slice(0, count);
+  const bank = tokenizeSentences(values.text).length
+    ? tokenizeSentences(values.text).slice(0, count)
+    : values.text.split(/\n+/).map((item) => item.trim()).filter(Boolean).slice(0, count);
   const html = `
-    <div class="module-card"><h3>Error correction</h3><ol>${bank.map(item => `<li>${item}</li>`).join("")}</ol></div>
-    <div class="module-card"><h4>Answer key</h4><ol>${fixes.map(item => `<li>${item}</li>`).join("")}</ol></div>
+    <div class="module-card"><h3>Proofreading exercise</h3><p>Check each sentence for the focus: ${escapeHtml(topic)}.</p><ol>${bank.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div>
+    <div class="module-card"><h4>Teacher note</h4><p>Review the source sentences before sharing. This local module preserves your wording and does not invent a correction key.</p></div>
   `;
   return {
-    meta: `${values.level} · ${count} correction items`,
+    meta: `${values.level} · ${bank.length} source sentences · proofreading`,
     html,
     copyText: [
-      "Correct the mistakes:",
+      `Proofreading focus: ${topic}`,
+      "Check each sentence:",
       ...bank.map((item, index) => `${index + 1}. ${item}`),
-      "",
-      "Answer key:",
-      ...fixes.map((item, index) => `${index + 1}. ${item}`)
     ].join("\n")
   };
 }
@@ -672,9 +781,22 @@ function generateModule(values) {
 formEl.addEventListener("submit", (event) => {
   event.preventDefault();
   const values = readValues();
+  clearModuleInputError();
+  const issue = validateModuleInput(values);
+  if (issue) {
+    showModuleInputError(issue);
+    return;
+  }
+  if (AI_HANDOFFS[activeModuleId]) {
+    handoffToTeacherTools(values);
+    return;
+  }
   const result = generateModule(values);
   showResult(result.meta, result.html, result.copyText);
 });
+
+formEl.addEventListener("input", clearModuleInputError);
+formEl.addEventListener("change", clearModuleInputError);
 
 copyBtn.addEventListener("click", () => {
   if (!lastCopyText) return;

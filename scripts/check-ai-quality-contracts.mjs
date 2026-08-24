@@ -36,6 +36,7 @@ const boardBuilder = read('scripts/board-app.js');
 const localTextCore = read('scripts/tt-text-core.js');
 const boardMarkup = read('board.html');
 const teacherToolsHub = read('scripts/teacher-tools-app.js');
+const moduleStudio = read('scripts/games/twee-module-studio.js');
 const contracts = [
   [backendPrompt, 'Evidence rule:', 'server prompt evidence rule'],
   [backendPrompt, 'Source checkpoints to cover across the set:', 'server source coverage map'],
@@ -49,6 +50,9 @@ const contracts = [
   [boardBuilder, 'AI could not create this material. Your draft was not changed.', 'board AI failure state'],
   [teacherToolsHub, 'const TT_LOCAL_TRANSFORM_TOOLS', 'hub local-transform allowlist'],
   [teacherToolsHub, 'AI could not create this material', 'hub AI failure state'],
+  [moduleStudio, 'const MODULE_INPUT_RULES', 'module studio input contract'],
+  [moduleStudio, 'const AI_HANDOFFS', 'module studio AI handoff contract'],
+  [moduleStudio, 'Порожня форма не перетворюється на шаблонний урок.', 'module studio no-fallback state'],
 ];
 for (const [text, needle, label] of contracts) if (!text.includes(needle)) fail(`missing ${label}`);
 
@@ -69,6 +73,15 @@ if (localTextCore.includes('Generic last-resort filler words')) {
 }
 if (boardMarkup.includes('value="Travel problems"') || boardMarkup.includes('boarding pass\ncomplaint')) {
   fail('board tool form must not ship with demo lesson content');
+}
+for (const filler of ['"modern learning habits"', '"everyday habits"', '"everyday decisions"', '"solving a lesson problem"', '"a classroom decision"']) {
+  if (moduleStudio.includes(filler)) fail(`module studio must not ship with generic fallback: ${filler}`);
+}
+if (moduleStudio.includes('const fixes = [')) {
+  fail('module studio must not manufacture an answer key unrelated to teacher source material');
+}
+if (!moduleStudio.includes('if (AI_HANDOFFS[activeModuleId])')) {
+  fail('module studio semantic generators must use the authenticated AI handoff');
 }
 
 if (!process.exitCode) console.log(`AI quality contract passed for ${fixtures.cases.length} fixtures.`);

@@ -2215,12 +2215,17 @@ renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();render
   let wanted='';
   try{ wanted=new URLSearchParams(location.search).get('tool')||''; }catch(_){ return; }
   if(!wanted) return;
-  const target=TOOLS.find(t=>t.id===wanted);
-  if(!target) return;
-  selectTool(target.id);
-  try{
-    const p=new URLSearchParams(location.search); p.delete('tool');
-    const q=p.toString();
-    history.replaceState({},'',location.pathname+(q?'?'+q:''));
-  }catch(_){}
+  /* Let the browser finish parsing the complete workbench before selecting the
+     tool. Direct links from a board or Module Studio previously cleared the
+     query string but could leave the form closed on a cold page load. */
+  window.setTimeout(()=>{
+    const target=TOOLS.find(t=>t.id===wanted);
+    if(!target) return;
+    selectTool(target.id);
+    try{
+      const p=new URLSearchParams(location.search); p.delete('tool');
+      const q=p.toString();
+      history.replaceState({},'',location.pathname+(q?'?'+q:''));
+    }catch(_){}
+  },0);
 })();
