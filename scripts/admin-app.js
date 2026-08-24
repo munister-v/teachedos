@@ -282,9 +282,26 @@ async function loadAIStatus() {
     const errEl = document.getElementById('ai-lasterror');
     errEl.textContent = m.lastError ? `Last fallback reason: ${m.lastError}` : '';
     loadAIUsage();
+    loadAIAllowances();
   } catch(e) {
     badge.textContent = '⚠️ unavailable';
     badge.className = 'badge badge-student';
+  }
+}
+
+async function loadAIAllowances() {
+  const el = document.getElementById('ai-allowance-summary');
+  if (!el) return;
+  try {
+    const data = await api('GET', '/api/ai/admin/allowances');
+    const plans = data.plans || [];
+    if (!plans.length) { el.textContent = 'Monthly allowances: no paid AI usage yet.'; return; }
+    const reserved = plans.reduce((sum, row) => sum + Number(row.reserved_usd || 0), 0);
+    const actual = plans.reduce((sum, row) => sum + Number(row.actual_usd || 0), 0);
+    const requests = plans.reduce((sum, row) => sum + Number(row.requests || 0), 0);
+    el.textContent = `Monthly allowances: ${requests} requests · $${actual.toFixed(3)} actual · $${reserved.toFixed(3)} reserved`;
+  } catch (_) {
+    el.textContent = 'Monthly allowance summary unavailable.';
   }
 }
 

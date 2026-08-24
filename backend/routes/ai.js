@@ -1610,6 +1610,40 @@ router.get('/usage', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// Admin-only monthly accounting. This is deliberately grouped by effective
+// billing plan: operations can manage unit economics without seeing a single
+// teacher's prompts, generated material or identity.
+router.get('/admin/allowances', requireAuth, requireAdmin, async (req, res) => {
+  const month = /^\d{4}-\d{2}$/.test(String(req.query.month || ''))
+    ? String(req.query.month)
+    : new Date().toISOString().slice(0, 7);
+  try {
+    const { rows } = await pool.query(
+      `SELECT COALESCE(u.plan, 'free') AS plan,
+              COUNT(*)::int AS accounts,
+              COALESCE(SUM(a.requests), 0)::int AS requests,
+              COALESCE(SUM(a.reserved_usd), 0)::numeric AS reserved_usd,
+              COALESCE(SUM(a.actual_usd), 0)::numeric AS actual_usd
+       FROM ai_usage_monthly a
+       JOIN users u ON u.id=a.user_id
+       WHERE a.month=to_date($1 || '-01', 'YYYY-MM-DD')
+       GROUP BY COALESCE(u.plan, 'free')
+       ORDER BY plan ASC`,
+      [month],
+    );
+    const plans = rows.map(row => ({
+      plan: row.plan,
+      accounts: Number(row.accounts || 0),
+      requests: Number(row.requests || 0),
+      reserved_usd: Number(row.reserved_usd || 0),
+      actual_usd: Number(row.actual_usd || 0),
+    }));
+    res.json({ month, plans });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not load AI allowance summary' });
+  }
+});
+
 // ── GET /api/ai/quality - aggregate quality signals, no lesson content ─────
 router.get('/quality', requireAuth, requireAdmin, async (req, res) => {
   const days = Math.max(1, Math.min(60, parseInt(req.query.days, 10) || 14));
