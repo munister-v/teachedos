@@ -3648,6 +3648,18 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .yt-url-hint{font-size:11px;font-weight:600;min-height:14px;margin:5px 2px 0;line-height:1.3;color:transparent;}
 .yt-url-hint.ok{color:#16a34a;}
 .yt-url-hint.bad{color:#dc2626;}
+.yt-source-preview{display:flex;align-items:center;gap:10px;min-height:68px;margin-top:10px;padding:8px;border:1px solid rgba(24,24,24,.1);border-radius:14px;background:rgba(247,245,237,.72);overflow:hidden;}
+.yt-source-preview-empty{padding:4px 5px;color:#6E6A5C;font-size:12px;font-weight:600;line-height:1.4;}
+.yt-source-preview img{width:84px;height:52px;flex:0 0 84px;object-fit:cover;border-radius:9px;background:#e9e7e1;}
+.yt-source-preview-copy{min-width:0;display:grid;gap:3px;}
+.yt-source-preview-copy b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#171420;font-size:12.5px;font-weight:700;}
+.yt-source-preview-copy span{color:#6E6A5C;font-size:11px;font-weight:600;}
+.yt-visual-toggle{display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:10px 11px;border:1px solid color-mix(in srgb,var(--accent) 20%,rgba(24,24,24,.1));border-radius:12px;background:color-mix(in srgb,var(--accent) 6%,#fff);cursor:pointer;}
+.yt-visual-toggle input{width:17px;height:17px;flex:0 0 17px;margin:1px 0 0;accent-color:var(--accent);}
+.yt-visual-toggle span{display:grid;gap:2px;}
+.yt-visual-toggle b{font-size:12.5px;font-weight:700;color:#171420;}
+.yt-visual-toggle small{font-size:11px;font-weight:600;color:#6E6A5C;line-height:1.35;}
+@media(max-width:420px){.yt-source-preview img{width:76px;flex-basis:76px;height:48px;}}
 /* Exercise list header with All / Clear shortcuts */
 .yt-tools-head{display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px;}
 .yt-tools-actions{display:flex;gap:6px;}

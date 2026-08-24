@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=460">
+<link rel="manifest" href="manifest.json?v=461">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=460">
-<link rel="stylesheet" href="styles/auth.css?v=460">
-<link rel="stylesheet" href="styles/mobile.css?v=460">
-<link rel="stylesheet" href="styles/harmony.css?v=460">
-<link rel="stylesheet" href="styles/unify.css?v=460">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=460">
+<link rel="stylesheet" href="styles/board.css?v=461">
+<link rel="stylesheet" href="styles/auth.css?v=461">
+<link rel="stylesheet" href="styles/mobile.css?v=461">
+<link rel="stylesheet" href="styles/harmony.css?v=461">
+<link rel="stylesheet" href="styles/unify.css?v=461">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=461">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -274,7 +274,7 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=460">
+<link rel="stylesheet" href="styles/teached-brand.css?v=461">
 </head>
 <body class="board-page">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1152,6 +1152,9 @@ polite request</textarea>
     <label class="yt-modal-label" for="yt-lesson-url">Video link</label>
     <input id="yt-lesson-url" type="url" placeholder="https://www.youtube.com/watch?v=…" oninput="_ytSyncUrlState()">
     <div class="yt-url-hint" id="yt-url-hint"></div>
+    <div class="yt-source-preview" id="yt-source-preview" aria-live="polite">
+      <div class="yt-source-preview-empty">Paste a valid YouTube link to preview the lesson source.</div>
+    </div>
     <div class="yt-modal-row">
       <div><label class="yt-modal-label" for="yt-lesson-level">Level</label>
       <select id="yt-lesson-level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option></select></div>
@@ -1175,6 +1178,7 @@ polite request</textarea>
       <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="true-false" onchange="_ytSyncRunBtn()"> True / False statements</label>
       <label class="yt-tool"><input type="checkbox" class="yt-tool-cb" value="open-questions" onchange="_ytSyncRunBtn()"> Discussion questions</label>
     </div>
+    <label class="yt-visual-toggle"><input id="yt-lesson-visual-vocab" type="checkbox" checked> <span><b>Visual vocabulary</b><small>Add editable images to vocabulary cards when available.</small></span></label>
     <div class="yt-progress" id="yt-progress" style="display:none;"><div class="yt-progress-fill" id="yt-progress-fill"></div></div>
     <div class="yt-prog-list" id="yt-prog-list" style="display:none;"></div>
     <div class="yt-modal-status" id="yt-lesson-status"></div>
@@ -1993,13 +1997,13 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=460"></script>
-<script src="js/teacher-tools-data.js?v=460"></script>
-<script src="scripts/tt-text-core.js?v=460"></script>
-<script src="scripts/board-app.js?v=460"></script>
-<script src="js/board-vocab.js?v=460"></script>
-<script src="js/board-reveal.js?v=460"></script>
-<script src="js/teacher-tool-board-composer.js?v=460"></script>
+<script src="scripts/auth-modal.js?v=461"></script>
+<script src="js/teacher-tools-data.js?v=461"></script>
+<script src="scripts/tt-text-core.js?v=461"></script>
+<script src="scripts/board-app.js?v=461"></script>
+<script src="js/board-vocab.js?v=461"></script>
+<script src="js/board-reveal.js?v=461"></script>
+<script src="js/teacher-tool-board-composer.js?v=461"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2007,8 +2011,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=460" defer></script>
-<script src="pwa-boot.js?v=460" defer></script>
+<script src="scripts/autogrow.js?v=461" defer></script>
+<script src="pwa-boot.js?v=461" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2090,11 +2094,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=460"></script>
-<script src="scripts/nav-boost.js?v=460" defer></script>
-<script src="scripts/mobile-perf.js?v=460" defer></script>
-<script src="scripts/mobile-nav.js?v=460"></script>
-<script src="scripts/mobile-zoom-guard.js?v=460" defer></script>
+<script src="pwa.js?v=461"></script>
+<script src="scripts/nav-boost.js?v=461" defer></script>
+<script src="scripts/mobile-perf.js?v=461" defer></script>
+<script src="scripts/mobile-nav.js?v=461"></script>
+<script src="scripts/mobile-zoom-guard.js?v=461" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
