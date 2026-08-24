@@ -18,6 +18,23 @@ pool.query(`
   )
 `).catch(() => {});
 
+// Aggregated quality telemetry only. It deliberately has no user id, topic,
+// source text or generated content: the purpose is to see where the product
+// needs work, not to inspect a teacher's lesson materials.
+pool.query(`
+  CREATE TABLE IF NOT EXISTS ai_quality_daily (
+    day                 DATE NOT NULL,
+    tool_id             TEXT NOT NULL,
+    engine              TEXT NOT NULL,
+    quality_level       TEXT NOT NULL,
+    total               INTEGER NOT NULL DEFAULT 0,
+    flagged             INTEGER NOT NULL DEFAULT 0,
+    source_anchor_notes INTEGER NOT NULL DEFAULT 0,
+    dropped_items       INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, tool_id, engine, quality_level)
+  )
+`).catch(() => {});
+
 // Fire-and-forget daily upsert. kind ∈ {'llm_ok','fallback','cache_hits'}.
 function recordUsage(kind) {
   const col = ['llm_ok', 'fallback', 'cache_hits'].includes(kind) ? kind : null;
@@ -28,6 +45,26 @@ function recordUsage(kind) {
      ON CONFLICT (day) DO UPDATE
        SET total = ai_usage_daily.total + 1,
            ${col} = ai_usage_daily.${col} + 1`
+  ).catch(() => {});
+}
+
+function recordQuality(input, output) {
+  const quality = output?.quality || {};
+  const notes = Array.isArray(quality.notes) ? quality.notes : [];
+  const dropped = Array.isArray(quality.dropped) ? quality.dropped : [];
+  const level = ['green', 'amber', 'red'].includes(quality.level) ? quality.level : 'green';
+  const engine = ['ai', 'backup', 'archive', 'rules'].includes(output?.engine) ? output.engine : 'unknown';
+  const flagged = level === 'green' ? 0 : 1;
+  const sourceAnchors = notes.filter(note => /source-based item.*source anchor/i.test(String(note))).length;
+  pool.query(
+    `INSERT INTO ai_quality_daily (day, tool_id, engine, quality_level, total, flagged, source_anchor_notes, dropped_items)
+     VALUES (CURRENT_DATE, $1, $2, $3, 1, $4, $5, $6)
+     ON CONFLICT (day, tool_id, engine, quality_level) DO UPDATE
+       SET total = ai_quality_daily.total + 1,
+           flagged = ai_quality_daily.flagged + EXCLUDED.flagged,
+           source_anchor_notes = ai_quality_daily.source_anchor_notes + EXCLUDED.source_anchor_notes,
+           dropped_items = ai_quality_daily.dropped_items + EXCLUDED.dropped_items`,
+    [String(input?.toolId || 'unknown').slice(0, 80), engine, level, flagged, sourceAnchors, dropped.length],
   ).catch(() => {});
 }
 
@@ -1407,12 +1444,14 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
       recordUsage('cache_hits');
       hit.cached = true;
       hit.processingMs = Date.now() - started;
+      recordQuality(input, hit);
       return res.json({ output: hit });
     }
     const output = await generate(input);
     output.cached = false;
     output.processingMs = Date.now() - started;
     cacheSet(key, output);
+    recordQuality(input, output);
     res.json({ output });
   } catch (err) {
     console.error('[ai/teacher-tool]', err.message);
@@ -1459,6 +1498,28 @@ router.get('/usage', requireAuth, requireTeacher, async (req, res) => {
        FROM ai_usage_daily
        WHERE day >= CURRENT_DATE - ($1::int - 1)
        ORDER BY day ASC`,
+      [days]
+    );
+    res.json({ days, rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/ai/quality - aggregate quality signals, no lesson content ─────
+router.get('/quality', requireAuth, requireTeacher, async (req, res) => {
+  const days = Math.max(1, Math.min(60, parseInt(req.query.days, 10) || 14));
+  try {
+    const { rows } = await pool.query(
+      `SELECT tool_id, engine, quality_level,
+              SUM(total)::int AS total,
+              SUM(flagged)::int AS flagged,
+              SUM(source_anchor_notes)::int AS source_anchor_notes,
+              SUM(dropped_items)::int AS dropped_items
+       FROM ai_quality_daily
+       WHERE day >= CURRENT_DATE - ($1::int - 1)
+       GROUP BY tool_id, engine, quality_level
+       ORDER BY flagged DESC, total DESC, tool_id ASC`,
       [days]
     );
     res.json({ days, rows });
