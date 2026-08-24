@@ -220,6 +220,9 @@ const SYSTEM = [
   '  plausible but clearly wrong distractors (real misconceptions, not random words), all the same',
   '  type/length as the answer. The "answer" field MUST be the full text of the correct option, copied verbatim.',
   '• For anything built from a source text/transcript, base every item strictly on that text.',
+  '• Never use empty teaching language or vague filler (for example "this topic is important",',
+  '  "students will learn about...", or "let’s explore..."). Start with a concrete fact, situation,',
+  '  phrase, decision, person, place, or action that belongs to this exact lesson.',
   'You always return ONLY a single valid JSON object that exactly matches the requested shape -',
   'no markdown, no commentary, no code fences, no trailing text.',
 ].join(' ');
@@ -346,7 +349,10 @@ function shapeSpec(input) {
      саме так і рекомендують будувати промпт під кешування. */
   const prefix = ctx.length ? `${ctx.join('\n\n')}\n\n` : '';
   const context = '';
-  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}".`;
+  const evidenceRule = input.source
+    ? 'Evidence rule: every question, example and answer must be traceable to a distinct detail in the source. Do not invent facts to make an item easier.'
+    : `Topic rule: before writing, choose a concrete setting, people and situation for "${topic}". Reuse those anchors across the material so it could not be relabelled for another topic.`;
+  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}". ${evidenceRule}`;
 
   // ── Reading text controls (genre + length) ──────────────────────────────────
   // Optional input.genre / input.length from the UI; otherwise sensible defaults

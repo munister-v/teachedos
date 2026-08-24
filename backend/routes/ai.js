@@ -967,6 +967,61 @@ function auditItems(items) {
   return { kept, dropped, notes };
 }
 
+/* Cards and worksheets are structured differently from quiz questions, but
+   deserve the same editorial gate. We only reject unmistakable boilerplate or
+   broken answer wiring. Substantive judgement remains with the teacher and is
+   surfaced as an amber note rather than silently rewriting their material. */
+const GENERIC_CARD_OPEN = /^(this (lesson|topic|activity)|let'?s explore|in this (lesson|activity)|students will (learn|practi[cs]e) (about|how))/i;
+
+function auditCards(cards) {
+  const kept = [];
+  const dropped = [];
+  const notes = [];
+  const seen = new Set();
+  for (const card of cards) {
+    const key = `${normStem(card.title)}|${normStem(card.text)}`;
+    if (seen.has(key)) { dropped.push({ why: 'duplicate card', text: card.title }); continue; }
+    seen.add(key);
+    if (GENERIC_CARD_OPEN.test(String(card.text || '').trim())) {
+      dropped.push({ why: 'generic opening', text: card.title });
+      continue;
+    }
+    if (String(card.text || '').trim().length < 18) notes.push('a card is too short to be classroom-ready');
+    kept.push(card);
+  }
+  return { kept, dropped, notes };
+}
+
+function auditWorksheetParts(parts) {
+  const kept = [];
+  const dropped = [];
+  const notes = [];
+  const seen = new Set();
+  for (const part of parts) {
+    const items = [];
+    for (const item of part.items || []) {
+      const stem = String(item.stem || item.prompt || '').trim();
+      const key = normStem(stem);
+      if (!stem) { dropped.push({ why: 'empty worksheet item', text: part.title || part.type }); continue; }
+      if (key && seen.has(key)) { dropped.push({ why: 'duplicate worksheet item', text: stem.slice(0, 90) }); continue; }
+      if (key) seen.add(key);
+      if (Array.isArray(item.options)) {
+        const answer = Number(item.answer);
+        if (!Number.isInteger(answer) || answer < 0 || answer >= item.options.length) {
+          dropped.push({ why: 'worksheet answer is outside its options', text: stem.slice(0, 90) });
+          continue;
+        }
+      }
+      if (part.type === 'fill_blank' && item.answer && Array.isArray(part.word_bank) && part.word_bank.length && !part.word_bank.includes(item.answer)) {
+        notes.push('a fill-blank answer is missing from its word bank');
+      }
+      items.push(item);
+    }
+    if (items.length) kept.push({ ...part, items });
+  }
+  return { kept, dropped, notes };
+}
+
 /* Семафор. Зелёный - брать и вести урок. Жёлтый - годится, но стоит взглянуть:
    что-то выброшено или замечено. Красный - материал неполный, лучше пересобрать.
    Порог в две трети выбран по смыслу: если из десяти заданий уцелело шесть,
@@ -1007,7 +1062,10 @@ function assembleFromLLM(input, data) {
       }));
       if (p.word_bank) p.word_bank = p.word_bank.map(line).filter(Boolean);
     });
-    return { ...env, parts };
+    const audit = auditWorksheetParts(parts);
+    if (!audit.kept.length) throw new Error('LLM returned no usable worksheet items');
+    env.quality = qualitySignal({ ...audit, asked: parts.reduce((total, part) => total + part.items.length, 0) });
+    return { ...env, parts: audit.kept };
   }
 
   if (kind === 'wordset') {
@@ -1105,12 +1163,19 @@ function assembleFromLLM(input, data) {
   }
 
   // cards (lesson packs, worksheets, texts, dialogues, …)
-  const cards = (data.cards || [])
+  const rawCards = (data.cards || [])
     .map(c => ({ title: line(c.title) || 'Card', text: block(c.text) }))
     .filter(c => c.text);
+  const cardAudit = auditCards(rawCards);
+  const cards = cardAudit.kept;
   if (!cards.length) throw new Error('LLM returned no cards');
   const vocab = Array.isArray(data.vocab) ? data.vocab.map(line).filter(Boolean).slice(0, 16) : [];
-  const out = { ...env, cards, vocab };
+  const out = {
+    ...env,
+    cards,
+    vocab,
+    quality: qualitySignal({ ...cardAudit, asked: rawCards.length }),
+  };
   if (input.toolId === 'simplify-text') {
     const label = actionLabel(input.action);
     out.kind = label;
