@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=464">
+<link rel="manifest" href="manifest.json?v=465">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=464">
-<link rel="preload" as="style" href="styles/unify.css?v=464">
+<link rel="preload" as="style" href="styles/harmony.css?v=465">
+<link rel="preload" as="style" href="styles/unify.css?v=465">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -116,9 +116,17 @@ button{font-family:var(--font);cursor:pointer;}
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:14px;padding:40px;text-align:center;color:var(--text3);
 }
-#welcome .w-icon{font-size:56px;}
+#welcome .w-icon{width:48px;height:48px;border-radius:16px;background:rgba(200,230,50,.18);color:#526d00;display:grid;place-items:center;}
+#welcome .w-icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 #welcome .w-title{font-size:20px;font-weight:700;color:var(--text2);}
 #welcome .w-sub{font-size:14px;line-height:1.6;max-width:360px;}
+.welcome-actions{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.starter-library{width:min(760px,100%);margin-top:16px;border-top:1px solid var(--border);padding-top:14px;text-align:left;}
+.starter-library summary{cursor:pointer;list-style:none;font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;justify-content:space-between;}
+.starter-library summary::-webkit-details-marker{display:none;}
+.starter-library summary::after{content:'+';font-size:18px;font-weight:400;color:var(--text3);}
+.starter-library[open] summary::after{content:'−';}
+.starter-library .ready-library{margin:12px 0 0!important;width:100%!important;}
 
 /* ── COURSE HEADER ── */
 #course-header{
@@ -376,10 +384,10 @@ button{font-family:var(--font);cursor:pointer;}
   #course-view{animation-duration:.001ms}
 }
 </style>
-<script src="theme.js?v=464" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=464">
-<link rel="stylesheet" href="styles/harmony.css?v=464">
-<link rel="stylesheet" href="styles/unify.css?v=464">
+<script src="theme.js?v=465" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=465">
+<link rel="stylesheet" href="styles/harmony.css?v=465">
+<link rel="stylesheet" href="styles/unify.css?v=465">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -443,8 +451,8 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=464">
-<link rel="stylesheet" href="styles/tool-window.css?v=464">
+<link rel="stylesheet" href="styles/teached-brand.css?v=465">
+<link rel="stylesheet" href="styles/tool-window.css?v=465">
 </head>
 <body class="tw-page mp-shell">
 
@@ -498,12 +506,17 @@ button{font-family:var(--font);cursor:pointer;}
   <!-- MAIN -->
   <div id="main">
     <div id="welcome">
-      <div class="w-icon" aria-hidden="true"></div>
-      <div class="w-title">Organize your lessons into courses</div>
-      <div class="w-sub">Create a course → add modules (topics) → assign lesson boards.<br>Students see only their current module - no more chaos.</div>
-      <button class="btn btn-primary" style="margin-top:8px;" onclick="openCourseForm()">+ Create your first course</button>
-      <div class="ready-empty-head">Ready-made courses & lessons</div>
-      <div class="ready-library" id="welcome-ready-library" style="width:min(920px,100%);margin-top:18px;"></div>
+      <div class="w-icon" aria-hidden="true"><svg><use href="#i-courses"/></svg></div>
+      <div class="w-title">Build a course around your lessons</div>
+      <div class="w-sub">Start with a blank course, add a few modules, then place your existing lesson boards where they belong.</div>
+      <div class="welcome-actions">
+        <button class="btn btn-primary" onclick="openCourseForm()">Create course</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('starter-library').open=true;document.getElementById('starter-library').scrollIntoView({behavior:'smooth',block:'nearest'})">Browse starters</button>
+      </div>
+      <details class="starter-library" id="starter-library">
+        <summary>Ready-made course starters</summary>
+        <div class="ready-library" id="welcome-ready-library"></div>
+      </details>
     </div>
     <div id="course-view" style="display:none;flex-direction:column;flex:1;">
       <div id="course-header"></div>
@@ -575,7 +588,11 @@ button{font-family:var(--font);cursor:pointer;}
 
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=464"></script>
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;overflow:hidden">
+  <symbol id="i-courses" viewBox="0 0 24 24"><path d="M4 6.5c2.5-1 5-1 7 .5v11c-2-1.5-4.5-1.5-7-.5zM20 6.5c-2.5-1-5-1-7 .5v11c2-1.5 4.5-1.5 7-.5z"/><path d="M12 7v11"/></symbol>
+</svg>
+
+<script src="scripts/app-core.js?v=465"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -826,8 +843,8 @@ function applyCoursePlanUI() {
   const meta = courseLimitMeta();
   if (note) {
     note.innerHTML = meta.limit === -1
-      ? `Package: <strong>${meta.plan}</strong> · unlimited course workspaces`
-      : `Package: <strong>${meta.plan}</strong> · ${courses.length}/${meta.limit} course workspace${meta.limit === 1 ? '' : 's'} used`;
+      ? `${courses.length} course${courses.length === 1 ? '' : 's'} · no workspace limit`
+      : `${courses.length} of ${meta.limit} course workspace${meta.limit === 1 ? '' : 's'} used`;
   }
   document.querySelectorAll('.btn-new-course').forEach(btn => {
     btn.disabled = meta.reached;
@@ -857,6 +874,7 @@ async function loadAll() {
   applyCoursePlanUI();
   renderSidebar();
   if (activeCourse && cd.status === 'fulfilled') await openCourse(activeCourse.id);
+  else if (!activeCourse && courses.length) await openCourse(courses[0].id);
 
   try {
     const sd = await api('/api/courses/shared/list');
@@ -941,7 +959,7 @@ function renderCourseView({ course, modules, unassigned }) {
       </details>
     </div>`;
   renderCourseInsights(modules, unassigned);
-  renderReadyLibrary(course.level);
+  document.getElementById('course-ready-library').innerHTML = '';
 
   // Modules
   const area = document.getElementById('modules-area');
@@ -1526,11 +1544,11 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=464" defer></script>
-<script src="scripts/mobile-perf.js?v=464" defer></script>
-<script src="scripts/mobile-nav.js?v=464"></script>
-<script src="scripts/mobile-zoom-guard.js?v=464" defer></script>
-<script src="scripts/autogrow.js?v=464" defer></script>
-<script src="pwa-boot.js?v=464" defer></script>
+<script src="scripts/nav-boost.js?v=465" defer></script>
+<script src="scripts/mobile-perf.js?v=465" defer></script>
+<script src="scripts/mobile-nav.js?v=465"></script>
+<script src="scripts/mobile-zoom-guard.js?v=465" defer></script>
+<script src="scripts/autogrow.js?v=465" defer></script>
+<script src="pwa-boot.js?v=465" defer></script>
 </body>
 </html>
