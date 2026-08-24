@@ -1065,6 +1065,63 @@ function bindToolDraftAutosave(){
   form.addEventListener('change',scheduleDraftSave);
 }
 function renderForm(){const m=activeTool.mode;let html='';if(m==='images'){html=`<div class="hint" style="margin-bottom:14px;background:#fff2d6;border:1px solid #ffd891;padding:12px;border-radius:16px;">Upload images or paste links to them.</div>${baseFields('')}<div class="field full"><label class="label">Image + word rows</label><div class="rows" id="image-rows"></div><button class="btn sm ghost" type="button" onclick="addImageRow()">+ Add image row</button></div>`}else if(m==='pairs'){html=baseFields(textArea('vocab','Vocabulary pairs',SAMPLE_VOCAB,'Use one pair per line: word - definition / translation.'))}else if(m==='translation-match'){html=baseFields(`<div class="field"><label class="label" for="target-lang">Translate into</label><select id="target-lang"><option>Ukrainian</option><option>Russian</option><option>Spanish</option><option>French</option><option>German</option><option>Polish</option><option>Italian</option><option>Turkish</option><option>Portuguese</option><option>Arabic</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Other</option></select></div>${textArea('vocab','Target words','apple\nbook\nhouse\nfriend\nwater\nschool\nhappy\nwork','One word per line. Add your own translation after " - " (e.g. apple - яблуко), or leave just the word and TeachEd fills common ones.')}`)}else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary'].includes(m)){html=baseFields(textArea('source','Source text',SAMPLE_TEXT,'Paste the text you want to transform.'))}else if(['lesson-pack','worksheet','homework'].includes(m)){html=baseFields(`${textArea('source','Source text / lesson brief',SAMPLE_TEXT,'Paste a text, a class goal, or a short idea.')}${textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'One per line. Add a definition after a dash if you need it.')}`)}else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){html=baseFields(textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'One per line. Add a meaning after a dash if you need it.'))}else if(m==='word-order'){html=baseFields(textArea('source','Sentences to scramble',SAMPLE_TEXT,'Paste sentences - one per line or a full text. TeachEd will split and shuffle each one.'))}else if(m==='matching-halves'){html=baseFields(textArea('vocab','Collocations or sentences',`make a decision\ntake an exam\ndo homework\ngive advice\nhave a conversation\nkeep in touch\nrun a business\nbreak a record`,'One collocation or sentence per line. Split point is the middle word.'))}else if(['sorting','odd'].includes(m)){html=baseFields(textArea('vocab','Word groups', 'Food: apple, bread, cheese, milk\nTravel: airport, ticket, luggage, hotel\nEmotions: happy, nervous, proud, bored','Use Category: word, word, word.'))}else if(['media-questions','transcript'].includes(m)){html=baseFields(`<div class="field full"><label class="label" for="yt-link">YouTube link</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><input id="yt-link" placeholder="https://www.youtube.com/watch?v=..." style="flex:1;min-width:200px;"><button class="btn sm ghost" type="button" onclick="fetchYouTube()">Fetch transcript</button></div><div class="hint" id="yt-status">Paste a YouTube link — the transcript fills in below.</div></div><div class="field full"><label class="label" for="media-file">…or upload audio/video</label><input id="media-file" type="file" accept="audio/*,video/*" onchange="transcribeUpload(this)"><div class="hint" id="stt-status">Upload a file — the transcript fills in below. Nothing leaves your device.</div></div>${textArea('source','Transcript / notes','Speaker 1: I have never tried online lessons before.\nSpeaker 2: They can be flexible if you plan your schedule carefully.','')}`)}else if(m==='add-images'){html=baseFields(`<div class="field full"><label class="label" for="media-file">Images</label><input id="media-file" type="file" accept="image/*" multiple></div>${textArea('source','Teaching notes','Ask students to describe what they can see, predict the story, then compare answers in pairs.','')}`)}else if(m==='add-video'){html=baseFields(`<div class="field full"><label class="label" for="video-link">Video link</label><input id="video-link" placeholder="https://..."></div>${textArea('source','Viewing focus','Watch once for gist. Watch again and write three useful expressions.','')}`)}else{html=baseFields(textArea('source','Text block','Add your classroom text here.',''))}document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Create draft</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;if(m==='images'){addImageRow();addImageRow();addImageRow()}restoreToolDraft();bindToolDraftAutosave();}
+/* Large materials benefit from a short route before the generator starts.
+   It keeps the teacher in charge of the lesson arc, while the later AI request
+   receives the same route as an explicit instruction. Small one-shot tools
+   stay direct: adding a planning screen to a vocab list would only slow work. */
+let activeLessonRoute=null;
+function needsLessonRoute(){return ['lesson-pack','worksheet','homework'].includes(activeTool?.mode)}
+function lessonRouteFromInputs(){
+  const source=get('source');
+  const words=lines(get('vocab')).map(row=>row.split(/\s[-:]\s/)[0].trim()).filter(Boolean).slice(0,5);
+  const subject=topic();
+  const inputStep=source.length>80
+    ? 'Use the supplied source for gist, detail and language noticing.'
+    : 'Model the target language with a short teacher example.';
+  const vocabStep=words.length
+    ? 'Recycle '+words.join(', ')+'.'
+    : 'Elicit and clarify the core language for '+subject+'.';
+  const steps=[
+    {time:'5 min',title:'Open',text:'Activate prior knowledge and set a clear question about '+subject+'.'},
+    {time:'10 min',title:'Notice',text:inputStep},
+    {time:'12 min',title:'Practise',text:vocabStep},
+    {time:'13 min',title:'Use it',text:'Students produce a short spoken or written response for a real audience.'},
+    {time:'5 min',title:'Check',text:'Finish with one observable success check and a next step.'}
+  ];
+  return {topic:subject,level:level(),steps,text:steps.map(step=>`${step.time} ${step.title}: ${step.text}`).join('\n')};
+}
+function lessonRouteContext(){return activeLessonRoute?`Lesson route to follow:\n${activeLessonRoute.text}`:''}
+function renderLessonRoute(){
+  const form=document.getElementById('tool-form');
+  const actions=form?.querySelector('.hero-actions');
+  if(!form||!actions||!activeLessonRoute)return;
+  document.getElementById('tt-lesson-route')?.remove();
+  const route=document.createElement('section');
+  route.id='tt-lesson-route';route.className='lesson-route';route.setAttribute('aria-label','Lesson route');
+  route.innerHTML=`<div class="lesson-route-head"><div><div class="lesson-route-title">Lesson route for ${esc(activeLessonRoute.topic)}</div><div class="lesson-route-sub">${esc(activeLessonRoute.level)} level, 45 minutes. This route guides the full draft.</div></div><span class="lesson-route-badge">Ready</span></div><div class="lesson-route-steps">${activeLessonRoute.steps.map(step=>`<div class="lesson-route-step"><span class="lesson-route-time">${esc(step.time)}</span><div><b>${esc(step.title)}</b>${esc(step.text)}</div></div>`).join('')}</div>`;
+  actions.before(route);
+}
+function prepareLessonRoute(){
+  if(!needsLessonRoute())return generateSmart();
+  activeLessonRoute=lessonRouteFromInputs();
+  renderLessonRoute();
+  const primary=document.querySelector('#tool-form .hero-actions .btn.lime');
+  if(primary){primary.textContent='Create full draft';primary.setAttribute('onclick','generateSmart()');}
+  const secondary=document.querySelector('#tool-form .hero-actions .btn.ghost');
+  if(secondary){secondary.textContent='Update route';secondary.setAttribute('onclick','prepareLessonRoute()');}
+  saveActiveDraft();
+  toast('Route ready. Review it, then create the full draft.');
+}
+const renderFormBase=renderForm;
+renderForm=function(){
+  renderFormBase();
+  activeLessonRoute=null;
+  if(!needsLessonRoute())return;
+  const primary=document.querySelector('#tool-form .hero-actions .btn.lime');
+  if(primary){primary.textContent='Plan lesson';primary.setAttribute('onclick','prepareLessonRoute()');}
+  const secondary=document.querySelector('#tool-form .hero-actions .btn.ghost');
+  if(secondary){secondary.textContent='Create without plan';secondary.setAttribute('onclick','generateSmart(true)');}
+};
 function get(id){return document.getElementById(id)?.value?.trim()||''}
 function lines(text){return String(text||'').split(/\n+/).map(s=>s.trim()).filter(Boolean)}
 function vocabItems(text){return lines(text).flatMap(line=>line.split(/[,;]/).map(s=>s.trim()).filter(Boolean)).map(raw=>{const parts=raw.split(/\s[-:]\s/);return {word:(parts[0]||raw).trim(),def:(parts[1]||'teacher definition / translation').trim()}}).filter(x=>x.word)}
@@ -1197,8 +1254,9 @@ function setToolBusy(on,label){
     }
   });
 }
-async function generateSmart(){
+async function generateSmart(skipLessonRoute=false){
   if(ttGenerating){toast('Already preparing this draft…');return;}
+  if(needsLessonRoute()&&!activeLessonRoute&&!skipLessonRoute){prepareLessonRoute();return;}
   setToolBusy(true,localStorage.getItem('teachedos_token')?'Creating draft…':'Creating local draft…');
   try{
     if(localStorage.getItem('teachedos_token')) return await generateWithAI();
@@ -1701,7 +1759,7 @@ async function requestServerHubAI(){
     const r=await fetch(`${TT_API_BASE}/api/ai/teacher-tool`,{method:'POST',signal:ctrl.signal,
       headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
       body:JSON.stringify({toolId:serverId,input:{level:level(),count:count(),topic:topic(),
-        action:get('action'),source:get('source'),vocab:get('vocab'),extra:get('extra')}})});
+        action:get('action'),source:get('source'),vocab:get('vocab'),extra:[get('extra'),lessonRouteContext()].filter(Boolean).join('\n\n')}})});
     clearTimeout(timer);
     if(!r.ok)return null;
     const d=await r.json().catch(()=>null);

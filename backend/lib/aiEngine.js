@@ -362,7 +362,7 @@ function shapeSpec(input) {
     if (evidenceMap) ctx.push(evidenceMap);
   }
   if (input.vocab) ctx.push(`Target vocabulary: ${input.vocab}`);
-  if (input.extra) ctx.push(`Extra teacher note: ${input.extra}`);
+  if (input.extra) ctx.push(`Teacher direction. Follow it where it applies: ${input.extra}`);
   /* Транскрипт іде ПЕРШИМ, а не в кінці - заради кешу префікса у провайдера.
 
      Один YouTube-урок - це окремий запит на КОЖНУ вправу, і в кожному лежить
