@@ -1188,7 +1188,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
 </div><!-- #layout -->
 
 <script src="scripts/app-core.js?v=454"></script>
-<script src="scripts/profile-app.js?v=454"></script>
+<script src="scripts/profile-app.js?v=455"></script>
 <script src="scripts/autogrow.js?v=454" defer></script>
 <script src="pwa-boot.js?v=454" defer></script>
 
@@ -1199,15 +1199,14 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
       <div style="font-size:18px;font-weight:700;"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> New board</div>
       <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">×</button>
     </div>
-    <div style="margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board Name</div>
+    <div style="margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
       <input id="tpl-name" type="text" placeholder="My Board"
         style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--font);outline:none;"
         onkeydown="if(event.key==='Enter')confirmNewBoard()">
     </div>
-    <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Start from a template</div>
-    <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;max-height:360px;overflow-y:auto;padding-right:4px;"></div>
-    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create Board ➜</button>
+    <div style="font-size:13px;line-height:1.5;color:var(--text-2);margin-bottom:20px;">Start blank, then add a lesson, a source or an activity when you are ready.</div>
+    <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
 <script src="pwa.js?v=454"></script>
