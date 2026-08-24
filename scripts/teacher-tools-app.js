@@ -1337,9 +1337,10 @@ function applyMap(text,from,to){let out=String(text||'');WORD_LEVELS.forEach(([a
 function simplifyText(text){let out=applyMap(text,'adv','simp');out=out.replace(/,\s+(which|who|that)\b/gi,'. It ').replace(/\s+;\s+/g,'. ');return out}
 function upgradeText(text){let out=applyMap(text,'simp','adv');const starters=['In addition, ','Moreover, ','As a result, ','Interestingly, '];const parts=sentenceParts(out);return parts.map((s,i)=>i>0&&i%2===0?starters[(i/2)%starters.length]+s[0].toLowerCase()+s.slice(1):s).join(' ')}
 const QUOTE_BANK=[{q:'The only way to do great work is to love what you do.',a:'Steve Jobs'},{q:'Education is the most powerful weapon which you can use to change the world.',a:'Nelson Mandela'},{q:'Tell me and I forget, teach me and I may remember, involve me and I learn.',a:'Benjamin Franklin'},{q:'The future belongs to those who believe in the beauty of their dreams.',a:'Eleanor Roosevelt'},{q:'Success is not final, failure is not fatal: it is the courage to continue that counts.',a:'Winston Churchill'},{q:'A person who never made a mistake never tried anything new.',a:'Albert Einstein'},{q:'It always seems impossible until it is done.',a:'Nelson Mandela'},{q:'The beautiful thing about learning is that no one can take it away from you.',a:'B.B. King'},{q:'Do what you can, with what you have, where you are.',a:'Theodore Roosevelt'},{q:'Change is the end result of all true learning.',a:'Leo Buscaglia'}];
-// Primary "Generate" button: signed-in teachers get the real cloud engine
-// (which falls back to local on any failure); signed-out users get instant
-// local templates. Mirrors the board's AI-first behaviour.
+// Primary "Generate" button: signed-in teachers receive a server-built result.
+// Offline mode remains available only for deterministic transformations of the
+// text or vocabulary the teacher actually supplied. It must never invent a
+// presentable lesson from a generic template.
 let ttGenerating=false;
 function setToolBusy(on,label){
   ttGenerating=!!on;
@@ -1355,12 +1356,16 @@ async function generateSmart(skipLessonRoute=false){
   if(ttGenerating){toast('Already preparing this draft…');return;}
   if(!validateToolInput())return;
   if(needsLessonRoute()&&!activeLessonRoute&&!skipLessonRoute){prepareLessonRoute();return;}
-  setToolBusy(true,localStorage.getItem('teachedos_token')?'Creating draft…':'Creating local draft…');
+  setToolBusy(true,localStorage.getItem('teachedos_token')?'Creating material…':'Creating exercise…');
   try{
     if(localStorage.getItem('teachedos_token')) return await generateWithAI();
     const shared=await ttTryEngine();
     if(shared){lastOutput=shared;renderResult(shared);return;}
-    return generate();
+    showHubGenerationState(
+      'This activity needs AI',
+      'Sign in to create material from this topic. Offline tools can only transform text or vocabulary that you provide.'
+    );
+    toast('Add source material or sign in to use AI');
   }finally{
     setToolBusy(false);
   }
@@ -1390,7 +1395,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=471';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1402,7 +1407,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js';
+    el.src='scripts/board-gen.js?v=471';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);
@@ -1491,22 +1496,17 @@ function ttEngineOutput(tool,res){
     struct:{boardKind:res.boardKind||'quiz',questions:res.questions||null,items:res.items||null,cards:res.cards||null},
     ...knowledgeBaseMeta(),
   };
+  // Only the shared generator's own structured result may be sent to a game.
+  // The retired hub generator contained generic scaffolds, so using it merely
+  // to fill a missing game payload could quietly reintroduce fake material.
   out.gameContent=ttGameContentFromStruct(out.gameType,out.struct);
-  /* Рушій дає структуру, але не завжди гру: odd-one-out і sentences-vocab -
-     відкриті питання без єдиної відповіді, word-bank віддає словник без
-     речень. Хаб для них гру будує, тож беремо звідти, а структуру лишаємо
-     рушієву. Інакше share-посилання на ці три втратило б інтерактив. */
-  if(out.gameType&&!out.gameContent){
-    try{const hub=buildHubOutput();if(hub&&hub.gameContent)out.gameContent=hub.gameContent;}
-    catch(err){console.warn('[tools] hub game content unavailable',err);}
-  }
   out.text=ttOutputPlainText(out);
   return out.text||out.struct.questions||out.struct.items||out.struct.cards?out:null;
 }
 
 function ttEngineInput(){
   return {
-    tool:{id:activeTool.id},
+    tool:{id:TT_ENGINE_ID_MAP[activeTool.id]||activeTool.id},
     source:get('source'),
     vocab:get('vocab'),
     topic:topic(),
@@ -1515,52 +1515,42 @@ function ttEngineInput(){
   };
 }
 
-/* Синхронний прогін рушія - тільки якщо він УЖЕ в памʼяті, нічого не вантажить.
-   Потрібен для першого малюнка: `selectTool` гріє board-gen.js префетчем, тож
-   на момент «Generate» він зазвичай уже тут, і чернетку можна одразу малювати
-   правильну. Доти було так: хаб малює свою версію, вчитель кілька секунд
-   дивиться на неї, поки відвалюється хмара, і аж тоді вміст підмінюється
-   рушієвим. Підміна на очах гірша за секунду очікування.
-
-   Віддає результат ЛИШЕ зі структурою - там, де рушій має саму прозу, у хаба
-   лишаються свої заточені шаблони (те саме правило, що і в фолбеку). */
+/* A synchronous draft is allowed only for reviewed mechanical generators.
+   These generators can derive their result directly from the teacher's source
+   text or vocabulary and never need a generic topic scaffold. */
 function ttEngineDraftSync(){
-  if(!activeTool||typeof generateTeacherToolLocal!=='function')return null;
+  if(!ttCanGenerateLocal()||typeof generateTeacherToolLocal!=='function')return null;
   try{
     const out=ttEngineOutput(activeTool,generateTeacherToolLocal(ttEngineInput()));
     const st=out&&out.struct;
     return st&&(st.questions||st.items||st.cards)?out:null;
   }catch(err){
-    console.warn('[tools] engine draft failed, using hub branch',err);
+    console.warn('[tools] local generator failed',err);
     return null;
   }
 }
 
-/* Локальна чернетка одним рішенням: рушій, якщо готовий, інакше гілка хаба. */
+/* Render a local draft only when it is a direct transformation of user input. */
 function ttLocalDraft(){
   const shared=ttEngineDraftSync();
   if(shared){lastOutput=shared;renderResult(shared);return true;}
-  generate();
   return false;
 }
 
 async function ttTryEngine(){
-  if(!activeTool)return null;
+  if(!ttCanGenerateLocal())return null;
   if(!await ttEnsureEngine())return null;
   try{
     return ttEngineOutput(activeTool,generateTeacherToolLocal(ttEngineInput()));
   }catch(err){
-    console.warn('[tools] shared engine failed, using hub branch',err);
+    console.warn('[tools] local generator failed',err);
     return null;
   }
 }
 
-/* Обчислення хабової чернетки, БЕЗ показу. Розділено, бо вміст практичної гри
-   іноді треба взяти звідси, не малюючи нічого на екрані: рушій дає структуру,
-   але для трьох інструментів (odd-one-out, sentences-vocab, word-bank) не має
-   з чого зібрати гру, а хаб має. Раніше `generate()` наприкінці і присвоював
-   lastOutput, і рендерив, і скролив, тож «просто дізнатися результат» було
-   неможливо. */
+/* Retired hub generator. It remains in the source temporarily to keep older
+   saved drafts readable, but no production action may call it: it contains
+   generic teaching scaffolds that are not trustworthy material. */
 function buildHubOutput(){if(!activeTool)return null;const m=activeTool.mode;const n=count();const src=get('source');const voc=get('vocab');const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()],...knowledgeBaseMeta()};
   if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
   else if(m==='lesson-pack'){const ws=wordsForCount(voc,n);const t=topic()||'Everyday English';const lv=level()||'B1';const tl=t.toLowerCase();const stageCards=[{title:'🎯 Lesson aims & objectives',text:'Topic: '+t+' · Level: '+lv+'\nEstimated duration: 60 min\n\nBy the end of this lesson, SWBAT:\n• Recognise and use the target vocabulary naturally in context\n• Identify gist, main ideas and specific details in the input\n• Complete controlled practice accurately (80%+ score target)\n• Communicate ideas on "'+tl+'" fluently for 2+ minutes\n\n📌 Key vocabulary: '+(ws.slice(0,6).join(', ')||'see vocab list')+'\n📌 Target structure / skill: ________________________________\n📌 Materials needed: ________________________________'},{title:'🔥 Warm-up & lead-in (7 min)',text:'Option A - Word association (3 min)\nWrite "'+t+'" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2-3 unknown words from their lists.\n\nOption B - Two Truths and a Lie (4 min)\nSay 3 statements about '+tl+'  - students guess which is false. Then students do the same in pairs.\n\nOption C - Picture / image prompt (3 min)\nShow an image related to '+tl+'. Students describe what they see and predict the lesson topic.\n\n💡 Aim: activate prior knowledge + create curiosity.'},{title:'📖 Vocabulary presentation (8 min)',text:'Target words: '+(ws.slice(0,8).join(' · ')||'target vocabulary')+'.\n\nStep-by-step procedure:\n1. Context - show each word in a sentence (not isolated)\n2. Meaning - elicit, then confirm with a clear definition\n3. CCQ - ask 1-2 concept check questions per word\n4. Pronunciation - model → choral drill → individual drill\n5. Record - students write in vocab notebook: word / definition / example\n\n⏱ Timing: ~1 min per word. Don\'t rush - quality over quantity.\n💡 Use the Flashcards tool to create a drill activity.'},{title:'📄 Input & reading/listening (12 min)',text:'Procedure:\n\n1. PRE-TASK (2 min): Set gist question - "What is the main idea?"\n2. FIRST READ/LISTEN (3 min): Students find the answer to the gist question only.\n3. FEEDBACK (1 min): Quick whole-class check.\n4. SECOND READ/LISTEN (4 min): Detail questions -\n   a) Find three specific facts about '+tl+'.\n   b) Find how target vocabulary is used in context.\n   c) Identify the writer\'s/speaker\'s opinion.\n5. PEER CHECK (2 min): Compare answers in pairs before whole-class.\n\n💡 Differentiation: stronger students write a 2-sentence summary after step 4.'},{title:'✏️ Controlled practice (10 min)',text:'Activity type: gap-fill / matching / MCQ / error correction (choose one).\n\nProcedure:\n1. Demo one example together as a class.\n2. Students work individually (5 min). Remind them to use context clues.\n3. Peer check in pairs (2 min) - discuss any differences.\n4. Whole-class feedback (3 min) - address common errors.\n\nMonitoring tips:\n• Circulate - do NOT sit at your desk.\n• Note 2-3 errors anonymously for feedback stage.\n• Give quiet support to students who are stuck; avoid giving answers directly.\n\n✦ Fast finishers: write one more gap-fill sentence for a partner.'},{title:'🗣 Freer practice & production (12 min)',text:'Communicative task: "Discuss with your partner - '+['what do you personally think about','how has','what is your experience with','would you recommend'][Math.floor(Math.random()*4)]+' '+tl+'?"\n\nStructure the task:\n• 30 sec: individual think time (write 3 bullet points)\n• 3 min: pair discussion (both speak roughly equally)\n• 1 min: report back - "My partner said that…"\n\nExpect students to use at least 4 target words. Monitor and note:\n✅ 2 strong examples of language to praise\n❌ 2-3 errors to work on in feedback\n\n💡 If a pair finishes early: "Now disagree with each other - argue the opposite point."'},{title:'📋 Feedback & delayed error correction (5 min)',text:'Structure:\n1. PRAISE (1 min) - write 2 strong examples from student output on the board. Ask the class what is good about them.\n2. ERRORS (2 min) - write 2-3 anonymous errors. Students identify and correct as a class.\n3. LANGUAGE FOCUS (2 min) - clarify any remaining confusion about today\'s target language.\n\nAnonymous error board template:\n   ✗ "_______________"\n   ✓ "_______________" - because _______________\n\n📌 Note errors you heard - revisit them at the start of the NEXT lesson (great for recycling).'},{title:'📚 Homework (set in final 2 min)',text:'TASK: Write 80-100 words on the topic "'+t+'".\nUse at least 5 target words naturally.\n\nTopic prompt: Describe your own experience with '+tl+', your opinion, and one recommendation for others.\n\nDifferentiation:\n✦ Support (weaker): Use these starters -\n   "In my experience, '+tl+' is…"\n   "One thing I have noticed is…"\n   "I would suggest that…"\n✦ Extension (stronger): Add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check before submitting: vocabulary ☐ · opinion ☐ · spelling ☐'},{title:'🔄 Fast finishers & extension tasks',text:'If students finish early at any stage:\n\n📖 After vocabulary stage:\n→ Write a short paragraph using 5 target words. Make it surprising or funny.\n\n✏️ After controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\n🗣 After freer practice:\n→ "Now teach your partner - explain the key ideas as if they missed the lesson."\n\n🏆 Challenge task (top students):\n→ Find one real-world example of '+tl+' (news, video, website) and present it in 60 seconds at the start of the next lesson.\n\n📌 Extension tasks keep faster students engaged without disrupting the main pace.'},{title:'📊 Assessment & success criteria',text:'How will you know the lesson was successful?\n\n✅ Vocabulary: students can define/use '+Math.min(ws.length,5)+' target words without prompting.\n✅ Comprehension: students answer gist + 2 detail questions correctly.\n✅ Practice: 80% accuracy on the controlled exercise.\n✅ Production: students use target language for 90+ seconds in the speaking task.\n\nObservation checklist (teacher):\n☐ All students participated in the warm-up.\n☐ Vocabulary was drilled enough (3+ exposures).\n☐ Errors were corrected anonymously and constructively.\n☐ Homework was set with clear instructions and a deadline.\n\nNext lesson: revisit errors from the board + 5-min vocabulary quiz.'},{title:'🗒 Teacher notes & differentiation',text:'📌 TIMING ADJUSTMENTS:\n• Short class (45 min): cut freer practice to 8 min, skip extension.\n• Long class (90 min): double controlled practice + add a writing task.\n\n📌 DIFFERENTIATION:\n• Lower level: pre-teach vocabulary before class; provide sentence starters throughout.\n• Higher level: remove scaffolding, require longer production, add research task.\n• Mixed level: pair stronger + weaker for the speaking task; give different roles.\n\n📌 ADAPTING THE INPUT:\n• No text available? Use a short audio clip, image set, or infographic.\n• Text too hard? Simplify with the TeachEd Simplify tool first.\n\n📌 NEXT STEPS: revisit weak vocabulary → error correction board → homework feedback.'}];out.text=stageCards.map((c,i)=>`${i+1}. ${c.title}\n${c.text}`).join('\n\n');out.struct={boardKind:'cards',cards:stageCards,items:null,questions:null};}
@@ -1612,9 +1602,12 @@ function buildHubOutput(){if(!activeTool)return null;const m=activeTool.mode;con
   else {out.text=src;}
   return out;}
 function generate(){
-  const out=buildHubOutput();
-  if(!out)return;
-  lastOutput=out;renderResult(out);if(window.innerWidth<=820){document.querySelector('.result').scrollIntoView({behavior:'smooth',block:'start'})}}
+  showHubGenerationState(
+    'This legacy generator is unavailable',
+    'Use AI, or provide text or vocabulary for a supported offline transformation.'
+  );
+  return null;
+}
 function parseGroups(text){return lines(text).map((line,i)=>{const [name,rest]=line.includes(':')?line.split(/:(.+)/):[`Group ${i+1}`,line];const words=(rest||'').split(',').map(s=>s.trim()).filter(Boolean);return {name:name.trim(),words:words.slice(0,8),odd:['umbrella','banana','airport','winter','keyboard'][i%5]}}).filter(g=>g.words.length)}
 // True when the structured result has answers worth hiding for a student copy.
 function ttHubHasKey(out){const s=out&&out.struct;if(!s||!Array.isArray(s.questions))return false;return s.questions.some(q=>q.type==='mcq'||q.type==='truefalse'||(q.type==='gap-fill'&&q.answer));}
@@ -1847,7 +1840,45 @@ const TT_API_BASE = (window.TEACHED_API_BASE || ((location.hostname==='localhost
 // teacher isn't signed in / the engine is unavailable - same AI-first contract
 // the board uses, so the hub no longer relies on local templates for quality.
 // A couple of hub tool IDs differ from the server's catalog IDs.
-const TT_SERVER_ID_MAP={cefr:'cefr-checker'};
+// The original hub predates the board catalog, so a few display IDs need an
+// explicit translation before they reach the strict server endpoint.
+const TT_SERVER_ID_MAP={
+  cefr:'cefr-checker',
+  pairs:'word-definition-match',
+  'translation-match':'word-translation-match',
+  'text-vocab':'extract-vocab',
+  'text-with-vocab':'text-topic-vocab',
+  translation:'sentence-translation',
+  warmup:'warmup-listening',
+  'media-questions':'audio-video-questions',
+  transcript:'transcript-helper',
+  simplify:'simplify-text',
+};
+const TT_ENGINE_ID_MAP={
+  pairs:'word-definition-match',
+  'translation-match':'word-translation-match',
+  'text-vocab':'extract-vocab',
+  'text-with-vocab':'text-topic-vocab',
+  translation:'sentence-translation',
+  warmup:'warmup-listening',
+  'media-questions':'audio-video-questions',
+  transcript:'transcript-helper',
+  simplify:'simplify-text',
+};
+// These paths are mechanical transformations. Every item comes from the text
+// or vocabulary currently in the form, so no topic-only template is allowed.
+const TT_LOCAL_TRANSFORM_TOOLS=new Set([
+  'extract-vocab','word-definition-match','flashcards','sentences-vocab',
+  'gap','word-order','matching-halves','word-bank','reading-bits',
+  'summary-gapfill','type-gap','abcd-text','true-false','open-questions',
+  'gaps-abcd','link-words',
+]);
+function ttCanGenerateLocal(){
+  if(!activeTool)return false;
+  const toolId=TT_ENGINE_ID_MAP[activeTool.id]||activeTool.id;
+  if(!TT_LOCAL_TRANSFORM_TOOLS.has(toolId))return false;
+  return Boolean(get('source')||get('vocab'));
+}
 function renderHubAiQuota(quota){
   const el=document.getElementById('tt-ai-quota');
   if(!el||!quota)return;
@@ -1866,20 +1897,40 @@ async function loadHubAiQuota(){
 loadHubAiQuota();
 async function requestServerHubAI(){
   const token=localStorage.getItem('teachedos_token');
-  if(!token)return null;
+  if(!token)throw new Error('Sign in to create AI material.');
   const serverId=TT_SERVER_ID_MAP[activeTool.id]||activeTool.id;
+  let timer;
   try{
-    const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),20000);
+    const ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),20000);
     const r=await fetch(`${TT_API_BASE}/api/ai/teacher-tool`,{method:'POST',signal:ctrl.signal,
       headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
       body:JSON.stringify({toolId:serverId,input:{level:level(),count:count(),topic:topic(),
         action:get('action'),source:get('source'),vocab:get('vocab'),extra:[get('extra'),lessonRouteContext()].filter(Boolean).join('\n\n')}})});
-    clearTimeout(timer);
-    if(!r.ok)return null;
     const d=await r.json().catch(()=>null);
+    if(!r.ok)throw new Error(d?.error||'AI could not create this material right now.');
     if(d?.quota)renderHubAiQuota(d.quota);
-    return (d&&d.output)?d.output:null;
-  }catch(e){if(e.name!=='AbortError')console.warn('[hub-ai-server]',e.message);return null;}
+    if(!d?.output)throw new Error('AI returned no usable material.');
+    return d.output;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+function showHubGenerationState(title,message){
+  const body=document.getElementById('result-body');
+  if(!body||lastOutput)return;
+  body.innerHTML='';
+  const state=document.createElement('div');
+  state.className='result-empty';
+  state.setAttribute('role','status');
+  const copy=document.createElement('div');
+  const heading=document.createElement('b');
+  const detail=document.createElement('span');
+  heading.textContent=title;
+  detail.textContent=message;
+  copy.append(heading,detail);
+  state.appendChild(copy);
+  body.appendChild(state);
 }
 
 // Reshape a server envelope into the flat item array aiResultToOutput() expects,
@@ -1905,65 +1956,22 @@ function serverEnvelopeToArr(env){
 
 async function generateWithAI(){
   if(!activeTool)return;
-  const body=document.getElementById('result-body');
-  /* Спільний рушій стартує ПАРАЛЕЛЬНО з хмарою і нікого не затримує: він
-     потрібен лише тоді, коли AI не відповів. Доти ця гілка лишала вчителя на
-     чернетці з generate() - стара mode-based гілка, плоский текст, а отже на
-     дошку вправа їхала звичайною text-карткою замість worksheet. Free-тарифи
-     впираються в ліміт регулярно (Groq 12k TPM, OpenRouter 429), тож це був не
-     рідкісний випадок, а типовий; і саме через це 41 інструмент зі структурою
-     бачив досі лише розлогінений гість. */
-  const enginePromise=ttTryEngine().catch(()=>null);
-  let engineDraftShown=false;
-  /* Рушій перемагає ЛИШЕ коли приносить структуру. Там, де він віддає самий
-     текст (18 інструментів: pros-cons, essay-topics, lead-in, dialogue…), у
-     хаба є власні заточені під тему шаблони, і підміняти їх універсальним
-     скафолдом означало б погіршити те, що працює. Тож зміна суто додаткова:
-     22 інструменти отримують структуру, решта лишається як була. */
-  const useEngineDraft=async()=>{
-    const shared=await enginePromise;
-    const st=shared&&shared.struct;
-    if(!st||!(st.questions||st.items||st.cards))return false;
-    lastOutput=shared;renderResult(shared);
-    return true;
-  };
   try{
-    // ── Step 1: show local draft instantly (same two-pass approach as the board) ──
-    // Рушій, якщо вже прогрітий префетчем; інакше гілка хаба, а рушій наздожене нижче.
-    engineDraftShown=ttLocalDraft(); // sets lastOutput + renders result immediately
-    // Overlay a shimmer badge so teacher sees it's being upgraded
-    const improveNote=document.createElement('div');
-    improveNote.id='tt-ai-improving';
-    improveNote.style.cssText='position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#0E0E10,#3A3A2E);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:650;margin-bottom:10px;display:flex;align-items:center;gap:8px;animation:ttShimmerSweep 1.8s linear infinite;';
-    improveNote.innerHTML='Polishing the draft…';
-    body.insertBefore(improveNote,body.firstChild);
-    // ── Step 2: cloud Groq in background ──
     const env=await requestServerHubAI();
-    if(document.getElementById('tt-ai-improving'))document.getElementById('tt-ai-improving').remove();
-    if(env){
-      const arr=serverEnvelopeToArr(env);
-      if(arr.length){
-        const input={level:env.level||level(),count:count(),topic:topic()};
-        const out=aiResultToOutput(activeTool,arr,input);
-        out.aiGenerated=true;if(env.title)out.title=env.title;
-        out.struct={boardKind:env.boardKind,questions:env.questions||null,items:env.items||null,cards:env.cards||null};
-        lastOutput=out;renderResult(out);toast('✨ AI result ready');return;
-      }
-    }
-    // ── Step 3: cloud unavailable - local draft already shown, just notify ──
-    // WebLLM only if user explicitly enables it (Settings → Use in-browser AI model).
-    if(localStorage.getItem('teachedos_use_webllm')==='1'&&window._ttAI&&_ttAI.supported()){
-      const input={level:level(),count:count(),topic:topic(),source:get('source')||'',vocab:get('vocab')||''};
-      const arr=await _ttAI.generate(activeTool.id,input,()=>{});
-      if(arr&&arr.length){const out=aiResultToOutput(activeTool,arr,input);out.aiGenerated=true;lastOutput=out;renderResult(out);toast('Generated with AI ✨');return;}
-    }
-    if(engineDraftShown||await useEngineDraft()){toast('Draft ready — edit it as you like');return;}
-    toast('AI is busy right now - showing a fast local draft you can edit');
+    const arr=serverEnvelopeToArr(env);
+    if(!arr.length)throw new Error('AI returned no usable material.');
+    const input={level:env.level||level(),count:count(),topic:topic()};
+    const out=aiResultToOutput(activeTool,arr,input);
+    out.aiGenerated=true;if(env.title)out.title=env.title;
+    out.struct={boardKind:env.boardKind,questions:env.questions||null,items:env.items||null,cards:env.cards||null};
+    lastOutput=out;renderResult(out);toast('AI material ready');
   }catch(err){
     console.warn('[ai-generate]',err);
-    const n=document.getElementById('tt-ai-improving');if(n)n.remove();
-    if(engineDraftShown||await useEngineDraft()){toast('Draft ready — edit it as you like');return;}
-    toast('Draft ready — edit it as you like');
+    showHubGenerationState(
+      'AI could not create this material',
+      'Your inputs are still here. Add more concrete source material and try again.'
+    );
+    toast('AI is unavailable. Your draft was not changed.');
   }
 }
 function aiResultToOutput(tool,arr,input){

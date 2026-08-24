@@ -35,6 +35,7 @@ const browserPrompt = read('js/teacher-tool-ai.js');
 const boardBuilder = read('scripts/board-app.js');
 const localTextCore = read('scripts/tt-text-core.js');
 const boardMarkup = read('board.html');
+const teacherToolsHub = read('scripts/teacher-tools-app.js');
 const contracts = [
   [backendPrompt, 'Evidence rule:', 'server prompt evidence rule'],
   [backendPrompt, 'Source checkpoints to cover across the set:', 'server source coverage map'],
@@ -46,6 +47,8 @@ const contracts = [
   [browserPrompt, 'function _qualityRules', 'offline AI quality rules'],
   [browserPrompt, 'Do not invent supporting facts.', 'offline source evidence rule'],
   [boardBuilder, 'AI could not create this material. Your draft was not changed.', 'board AI failure state'],
+  [teacherToolsHub, 'const TT_LOCAL_TRANSFORM_TOOLS', 'hub local-transform allowlist'],
+  [teacherToolsHub, 'AI could not create this material', 'hub AI failure state'],
 ];
 for (const [text, needle, label] of contracts) if (!text.includes(needle)) fail(`missing ${label}`);
 
@@ -54,6 +57,12 @@ if ((backendRoute.match(/generateLocal\(input\)/g) || []).length !== 1) {
 }
 if ((boardBuilder.match(/generateTeacherToolOutput\(input\)/g) || []).length !== 1) {
   fail('board builder must not replace AI output with a generic scaffold');
+}
+if ((teacherToolsHub.match(/buildHubOutput\(\)/g) || []).length !== 1) {
+  fail('teacher-tools hub must not execute its retired generic generator');
+}
+if (teacherToolsHub.includes('engineDraftShown=ttLocalDraft') || teacherToolsHub.includes('return generate();')) {
+  fail('teacher-tools hub must not display a generic draft when AI is unavailable');
 }
 if (localTextCore.includes('Generic last-resort filler words')) {
   fail('shared text helpers must not contain a generic vocabulary fallback');
