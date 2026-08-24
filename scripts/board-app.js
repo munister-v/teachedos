@@ -9610,7 +9610,9 @@ function _ytSavePrefs() {
     const picks = [...document.querySelectorAll('.yt-tool-cb:checked')].map(cb => cb.value);
     const level = document.getElementById('yt-lesson-level')?.value || 'B1';
     const visualVocabulary = document.getElementById('yt-lesson-visual-vocab')?.checked !== false;
-    localStorage.setItem(YT_PREFS_KEY, JSON.stringify({ picks, level, visualVocabulary }));
+    const start = document.getElementById('yt-lesson-start')?.value || '';
+    const end = document.getElementById('yt-lesson-end')?.value || '';
+    localStorage.setItem(YT_PREFS_KEY, JSON.stringify({ picks, level, visualVocabulary, start, end }));
   } catch {}
 }
 function _ytLoadPrefs() {
@@ -9637,6 +9639,9 @@ function openYtLesson() {
   if (prefs?.level) { const sel = document.getElementById('yt-lesson-level'); if (sel) sel.value = prefs.level; }
   const visualVocabulary = document.getElementById('yt-lesson-visual-vocab');
   if (visualVocabulary) visualVocabulary.checked = prefs?.visualVocabulary !== false;
+  const start = document.getElementById('yt-lesson-start'), end = document.getElementById('yt-lesson-end');
+  if (start && prefs?.start) start.value = prefs.start;
+  if (end && prefs?.end) end.value = prefs.end;
   m.style.display = 'flex';
   requestAnimationFrame(() => m.classList.add('open'));
   _ytSyncUrlState();
@@ -9690,6 +9695,18 @@ function _ytSyncUrlState() {
   _ytSyncRunBtn();
 }
 
+function _ytTime(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  if (/^\d+$/.test(raw)) return Number(raw);
+  const parts = raw.split(':').map(Number);
+  return parts.length > 1 && parts.length <= 3 && parts.every(Number.isFinite) ? parts.reduce((total, part) => total * 60 + part, 0) : NaN;
+}
+function _ytFragment() {
+  return { start: _ytTime(document.getElementById('yt-lesson-start')?.value), end: _ytTime(document.getElementById('yt-lesson-end')?.value) };
+}
+function _ytSourceKey(url, fragment) { return [url, fragment?.start ?? '', fragment?.end ?? ''].join('|'); }
+
 function _ytVideoId(url) {
   const match = String(url || '').match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/) || String(url || '').match(/^([\w-]{11})$/);
   return match ? match[1] : '';
@@ -9702,8 +9719,9 @@ function _ytRenderSourcePreview(url) {
     box.innerHTML = '<div class="yt-source-preview-empty">Paste a valid YouTube link to preview the lesson source.</div>';
     return;
   }
-  const title = _ytLastUrl === url && _ytLastTitle ? _ytLastTitle : 'YouTube video';
-  const source = _ytLastUrl === url && _ytLastTranscript ? `${_ytLastTranscript.length.toLocaleString()} transcript characters ready` : 'Transcript will be checked before the lesson is built';
+  const hasCachedSource = _ytLastUrl === url || _ytLastUrl.startsWith(url + '|');
+  const title = hasCachedSource && _ytLastTitle ? _ytLastTitle : 'YouTube video';
+  const source = hasCachedSource && _ytLastTranscript ? `${_ytLastTranscript.length.toLocaleString()} transcript characters ready` : 'Transcript will be checked before the lesson is built';
   box.innerHTML = `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg" alt="Preview thumbnail for ${esc(title)}" referrerpolicy="no-referrer"><div class="yt-source-preview-copy"><b>${esc(title)}</b><span>${esc(source)}</span></div>`;
 }
 function _ytSyncRunBtn() {
@@ -9723,12 +9741,14 @@ async function runYtLesson() {
   const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
   const level = document.getElementById('yt-lesson-level')?.value || 'B1';
   const visualVocabulary = document.getElementById('yt-lesson-visual-vocab')?.checked !== false;
+  const fragment = _ytFragment();
   const picks = [...document.querySelectorAll('.yt-tool-cb:checked')].map(cb => cb.value);
   if (!_ytValidUrl(url)) { _ytStatus('⚠ Paste a valid YouTube link first.'); return; }
   if (!picks.length)     { _ytStatus('⚠ Pick at least one exercise.'); return; }
+  if (Number.isNaN(fragment.start) || Number.isNaN(fragment.end) || (fragment.start != null && fragment.end != null && fragment.end <= fragment.start)) { _ytStatus('⚠ Use times like 0:45 and make sure end is after start.'); return; }
   if (!authToken)        { _ytStatus('🔒 Sign in to build a lesson with AI.'); return; }
   _ytSavePrefs();
-  await _ytGenerate(url, level, picks, null, { visualVocabulary });
+  await _ytGenerate(url, level, picks, null, { visualVocabulary, fragment });
 }
 
 // Core build: fetch transcript (cached per-URL) → generate exercises in a
@@ -9859,6 +9879,8 @@ function _ytDuration() {
 
 async function _ytGenerate(url, level, picks, transcriptOverride, options = {}) {
   const visualVocabulary = options.visualVocabulary !== false;
+  const fragment = options.fragment || { start:null, end:null };
+  const sourceKey = _ytSourceKey(url, fragment);
   const runBtn = document.getElementById('yt-lesson-run');
   const cancelBtn = document.getElementById('yt-lesson-cancel');
   _ytAbort = new AbortController();
@@ -9870,17 +9892,20 @@ async function _ytGenerate(url, level, picks, transcriptOverride, options = {}) 
   try {
     // 1) Transcript - reuse the cached one when the URL is unchanged.
     let transcript = transcriptOverride
-      || (_ytLastUrl === url ? _ytLastTranscript : '') || '';
-    let videoTitle = (_ytLastUrl === url ? _ytLastTitle : '') || '';
+      || (_ytLastUrl === sourceKey ? _ytLastTranscript : '') || '';
+    let videoTitle = (_ytLastUrl === sourceKey ? _ytLastTitle : '') || '';
     if (!transcript) {
       _ytStatus('⏳ Fetching transcript…');
       _ytSetProgress(6);
       try {
-        const r = await apiFetch('/api/ai/youtube-transcript?url=' + encodeURIComponent(url), { signal });
+        const params = new URLSearchParams({ url });
+        if (fragment.start != null) params.set('start', String(fragment.start));
+        if (fragment.end != null) params.set('end', String(fragment.end));
+        const r = await apiFetch('/api/ai/youtube-transcript?' + params.toString(), { signal });
         const d = await r.json().catch(() => null);
         if (!r.ok || !d?.transcript) throw new Error(d?.error || 'No transcript available');
         transcript = d.transcript; videoTitle = (d.title || '').trim();
-        _ytLastUrl = url; _ytLastTranscript = transcript; _ytLastTitle = videoTitle;
+        _ytLastUrl = sourceKey; _ytLastTranscript = transcript; _ytLastTitle = videoTitle;
         _ytRenderSourcePreview(url);
       } catch (e) {
         if (signal.aborted) { _ytStatus('⏹ Stopped.'); return; }
@@ -9989,7 +10014,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride, options = {}) 
     }
 
     _ytSetProgress(100);
-    _placeLessonOnBoard(results, videoTitle, url, { source: sampled[YT_SOURCE_BUDGET], level, visualVocabulary });
+    _placeLessonOnBoard(results, videoTitle, url, { source: sampled[YT_SOURCE_BUDGET], level, visualVocabulary, start: fragment.start, end: fragment.end });
 
     if (failed.length) {
       // Partial success - keep the modal open and let the user retry the misses.
@@ -10023,7 +10048,7 @@ function _ytRetryFailed() {
   const picks = _ytFailedPicks.slice();
   _ytFailedPicks = [];
   const visualVocabulary = document.getElementById('yt-lesson-visual-vocab')?.checked !== false;
-  _ytGenerate(url, level, picks, _ytLastTranscript, { visualVocabulary });
+  _ytGenerate(url, level, picks, _ytLastTranscript, { visualVocabulary, fragment:_ytFragment() });
 }
 
 // Lay the generated worksheets out in a grid (≤3 per row) inside one titled frame.
@@ -10076,7 +10101,14 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
      could move, print or export without, and it broke the frame's rectangle -
      the lesson read as "a frame, and also a video". First cell, top-left: the
      thing the lesson is made from is the first thing in it. */
-  const embedUrl = videoUrl ? parseVideoEmbed(videoUrl) : null;
+  let embedUrl = videoUrl ? parseVideoEmbed(videoUrl) : null;
+  if (embedUrl && (ctx.start != null || ctx.end != null)) {
+    const join = embedUrl.includes('?') ? '&' : '?';
+    const query = new URLSearchParams();
+    if (ctx.start != null) query.set('start', String(ctx.start));
+    if (ctx.end != null) query.set('end', String(ctx.end));
+    embedUrl += join + query.toString();
+  }
   // True 16:9 for the player area itself, plus the card header's own height -
   // sizing the WHOLE card to 16:9 left the actual video letterboxed.
   const VIDEO_HEADER_H = 34, VIDEO_H = Math.round(CARD_W * 9 / 16) + VIDEO_HEADER_H;
@@ -13303,7 +13335,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '461';
+const TEACHEDOS_ASSET_VERSION = '462';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
