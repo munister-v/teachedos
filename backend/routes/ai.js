@@ -887,6 +887,23 @@ const GAP_MARK = /_{2,}|\[\s*\.{3,}\s*\]|\.{4,}/;
 // Вопросы, на которые отвечают «да» или «нет»: как открытые они бессмысленны.
 const YES_NO_START = /^(is|are|was|were|do|does|did|has|have|had|can|could|will|would|should|may|might)\b/i;
 
+/* A source-based task can be grammatically perfect yet float above the text.
+   This is deliberately a signal, not a hard rejection: a valid inference can
+   paraphrase the source and need not repeat its wording. When several items
+   have no visible lexical anchor, the teacher gets a compact note to inspect
+   them instead of a silent quality downgrade. */
+function sourceAlignmentNotes(entries, input) {
+  if (clean(input?.source).length < 120) return [];
+  const anchors = derive.contentWords(input.source, 36).map(x => x.word.toLowerCase());
+  if (anchors.length < 3) return [];
+  const unanchored = entries.filter(entry => {
+    const text = String(entry || '').toLowerCase();
+    return !anchors.some(word => new RegExp(`\\b${escapeRegExp(word)}(?:s|es|ed|ing)?\\b`, 'i').test(text));
+  });
+  if (!unanchored.length) return [];
+  return [`${unanchored.length} source-based item${unanchored.length === 1 ? '' : 's'} ha${unanchored.length === 1 ? 's' : 've'} no visible source anchor`];
+}
+
 function auditQuestions(questions, input) {
   const kept = [];
   const dropped = [];
@@ -939,11 +956,16 @@ function auditQuestions(questions, input) {
     if (trues === tf.length || trues === 0) notes.push('every true/false statement has the same answer');
   }
 
+  notes.push(...sourceAlignmentNotes(
+    kept.map(q => [q.text, q.answer, ...(q.options || [])].filter(Boolean).join(' ')),
+    input,
+  ));
+
   const asked = Number(input.count) || questions.length || 0;
   return { kept, dropped, notes, asked };
 }
 
-function auditItems(items) {
+function auditItems(items, input) {
   const kept = [];
   const dropped = [];
   const notes = [];
@@ -964,6 +986,10 @@ function auditItems(items) {
     }
     kept.push(it);
   }
+  notes.push(...sourceAlignmentNotes(
+    kept.map(item => [item.word, item.definition, item.example].filter(Boolean).join(' ')),
+    input,
+  ));
   return { kept, dropped, notes };
 }
 
@@ -973,7 +999,7 @@ function auditItems(items) {
    surfaced as an amber note rather than silently rewriting their material. */
 const GENERIC_CARD_OPEN = /^(this (lesson|topic|activity)|let'?s explore|in this (lesson|activity)|students will (learn|practi[cs]e) (about|how))/i;
 
-function auditCards(cards) {
+function auditCards(cards, input) {
   const kept = [];
   const dropped = [];
   const notes = [];
@@ -989,10 +1015,14 @@ function auditCards(cards) {
     if (String(card.text || '').trim().length < 18) notes.push('a card is too short to be classroom-ready');
     kept.push(card);
   }
+  notes.push(...sourceAlignmentNotes(
+    kept.map(card => `${card.title} ${card.text}`),
+    input,
+  ));
   return { kept, dropped, notes };
 }
 
-function auditWorksheetParts(parts) {
+function auditWorksheetParts(parts, input) {
   const kept = [];
   const dropped = [];
   const notes = [];
@@ -1019,6 +1049,10 @@ function auditWorksheetParts(parts) {
     }
     if (items.length) kept.push({ ...part, items });
   }
+  notes.push(...sourceAlignmentNotes(
+    kept.flatMap(part => part.items || []).map(item => [item.stem, item.prompt, item.answer, ...(item.options || [])].filter(Boolean).join(' ')),
+    input,
+  ));
   return { kept, dropped, notes };
 }
 
@@ -1062,7 +1096,7 @@ function assembleFromLLM(input, data) {
       }));
       if (p.word_bank) p.word_bank = p.word_bank.map(line).filter(Boolean);
     });
-    const audit = auditWorksheetParts(parts);
+    const audit = auditWorksheetParts(parts, input);
     if (!audit.kept.length) throw new Error('LLM returned no usable worksheet items');
     env.quality = qualitySignal({ ...audit, asked: parts.reduce((total, part) => total + part.items.length, 0) });
     return { ...env, parts: audit.kept };
@@ -1086,7 +1120,7 @@ function assembleFromLLM(input, data) {
         .filter(x => x.word),
       x => x.word.toLowerCase(),
     );
-    const vAudit = auditItems(cleanItems);
+    const vAudit = auditItems(cleanItems, input);
     const items = vAudit.kept.slice(0, input.count);
     if (!items.length) throw new Error('LLM returned no vocab items');
     env.quality = qualitySignal({ ...vAudit, kept: items, asked: Number(input.count) || items.length });
@@ -1166,7 +1200,7 @@ function assembleFromLLM(input, data) {
   const rawCards = (data.cards || [])
     .map(c => ({ title: line(c.title) || 'Card', text: block(c.text) }))
     .filter(c => c.text);
-  const cardAudit = auditCards(rawCards);
+  const cardAudit = auditCards(rawCards, input);
   const cards = cardAudit.kept;
   if (!cards.length) throw new Error('LLM returned no cards');
   const vocab = Array.isArray(data.vocab) ? data.vocab.map(line).filter(Boolean).slice(0, 16) : [];
