@@ -1073,11 +1073,13 @@ function renderForm(){
     html=baseFields(textArea('vocab','Vocabulary pairs','','Use one pair per line: word - definition / translation.','e.g. routine - a regular way of doing things'));
   }else if(m==='translation-match'){
     html=baseFields(`<div class="field"><label class="label" for="target-lang">Translate into</label><select id="target-lang"><option>Ukrainian</option><option>Russian</option><option>Spanish</option><option>French</option><option>German</option><option>Polish</option><option>Italian</option><option>Turkish</option><option>Portuguese</option><option>Arabic</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Other</option></select></div>${textArea('vocab','Target words','','One word per line. Add a translation after a hyphen if you need it.','e.g. apple\nbook\nhouse')}`);
+  }else if(m==='error-correction'){
+    html=baseFields(textArea('source','Sentences to proofread','','Paste the exact sentences students should correct. The AI keeps their context and returns a correction key.','e.g. She go to school every day.\nI have saw this film.'));
   }else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary'].includes(m)){
     html=baseFields(textArea('source','Source text','','Paste the text you want to transform.','Paste your text here...'));
   }else if(['lesson-pack','worksheet','homework'].includes(m)){
     html=baseFields(`${textArea('source','Source text / lesson brief','','Paste a text, a class goal, or a short idea.','e.g. A2 travel lesson about checking into a hotel')}${textArea('vocab','Target vocabulary','','One per line. Add a definition after a hyphen if you need it.','e.g. reservation - a booking made in advance')}`);
-  }else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){
+  }else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){
     html=baseFields(textArea('vocab','Target vocabulary','','One per line. Add a meaning after a hyphen if you need it.','e.g. delay - a period of waiting\nreservation - a booking'));
   }else if(m==='word-order'){
     html=baseFields(textArea('source','Sentences to scramble','','Paste sentences, one per line, or a full text.','e.g. Students practise useful phrases every day.'));
@@ -1158,7 +1160,7 @@ renderForm=function(){
   if(secondary){secondary.textContent='Create without plan';secondary.setAttribute('onclick','generateSmart(true)');}
 };
 function get(id){return document.getElementById(id)?.value?.trim()||''}
-const TEXT_REQUIRED_MODES=new Set(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary','word-order','add-text']);
+const TEXT_REQUIRED_MODES=new Set(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary','word-order','add-text','error-correction']);
 const VOCAB_REQUIRED_MODES=new Set(['pairs','translation-match','odd','sorting','matching-halves','sentences-vocab','text-with-vocab','link-words','creative-writing','translation','comm-situations','rephrase-word','word-bank']);
 
 function clearToolInputError(){
@@ -2215,10 +2217,10 @@ renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();render
   let wanted='';
   try{ wanted=new URLSearchParams(location.search).get('tool')||''; }catch(_){ return; }
   if(!wanted) return;
-  /* Let the browser finish parsing the complete workbench before selecting the
-     tool. Direct links from a board or Module Studio previously cleared the
-     query string but could leave the form closed on a cold page load. */
-  window.setTimeout(()=>{
+  /* Let all deferred scripts finish booting before selecting the tool. Direct
+     links from a board or Module Studio previously cleared the query string
+     but could leave the form closed on a cold page load. */
+  const openRequestedTool=()=>{
     const target=TOOLS.find(t=>t.id===wanted);
     if(!target) return;
     selectTool(target.id);
@@ -2227,5 +2229,7 @@ renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();render
       const q=p.toString();
       history.replaceState({},'',location.pathname+(q?'?'+q:''));
     }catch(_){}
-  },0);
+  };
+  if(document.readyState==='complete')window.setTimeout(openRequestedTool,0);
+  else window.addEventListener('load',openRequestedTool,{once:true});
 })();

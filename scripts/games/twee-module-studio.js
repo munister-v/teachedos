@@ -1,9 +1,9 @@
 const MODULES = {
   "text-vocab": {
     title: "Create a Text on Any Topic",
-    eyebrow: "Reading + Vocabulary · local generator",
-    desc: "Створює короткий текст на тему з урахуванням вашої лексики та рівня. Функціонально близько до Twee-модуля для швидкої підготовки reading materials.",
-    pill: "CEFR-aligned",
+    eyebrow: "Reading + Vocabulary · AI quality",
+    desc: "Передає тему й цільову лексику в Teacher Tools, де AI створює текст з перевіркою конкретного контексту.",
+    pill: "AI quality",
     accent: "#5f7bff",
     meta: "Reading · Vocabulary · A1-C1",
     copyLabel: "Скопіювати текст",
@@ -18,9 +18,9 @@ const MODULES = {
   },
   "open-questions": {
     title: "Create Open Questions",
-    eyebrow: "Reading · comprehension builder",
-    desc: "Створює відкриті питання до тексту, щоб перевірити розуміння змісту, деталей і висновків.",
-    pill: "Question bank",
+    eyebrow: "Reading · AI comprehension",
+    desc: "Передає вихідний текст у Teacher Tools для створення питань, прив'язаних до його фактів і деталей.",
+    pill: "AI quality",
     accent: "#4d91ff",
     meta: "Reading · Open-ended · A1-C2",
     copyLabel: "Скопіювати питання",
@@ -34,9 +34,9 @@ const MODULES = {
   },
   "true-false": {
     title: "Create True/False Statements",
-    eyebrow: "Reading · fast check module",
-    desc: "Будує true/false твердження для швидкої перевірки розуміння тексту. Частина тверджень навмисно модифікується для перевірки деталей.",
-    pill: "Fast assessment",
+    eyebrow: "Reading · AI assessment",
+    desc: "Передає вихідний текст у Teacher Tools, щоб true/false твердження перевіряли його реальні факти.",
+    pill: "AI quality",
     accent: "#4fb58b",
     meta: "Reading · T/F · A1-C2",
     copyLabel: "Скопіювати вправу",
@@ -50,9 +50,9 @@ const MODULES = {
   },
   "discussion-questions": {
     title: "Find Discussion Questions",
-    eyebrow: "Speaking · warm-up bank",
-    desc: "Створює набір discussion questions для конкретної теми й формату уроку. Без теми та контексту матеріал не підставляється.",
-    pill: "Speaking warm-up",
+    eyebrow: "Speaking · AI prompts",
+    desc: "Передає тему й формат уроку в Teacher Tools для контекстних discussion questions без шаблонних підстановок.",
+    pill: "AI quality",
     accent: "#9a67f6",
     meta: "Speaking · Discussion · A1-C2",
     copyLabel: "Скопіювати питання",
@@ -112,9 +112,9 @@ const MODULES = {
   },
   "writing-prompts": {
     title: "Writing Prompts",
-    eyebrow: "Writing · prompt generator",
-    desc: "Створює writing prompts на основі конкретної теми й ситуації уроку. Підходить для classwork, homework або exam-style writing warm-up.",
-    pill: "Writing set",
+    eyebrow: "Writing · AI prompts",
+    desc: "Передає тему, жанр і ситуацію в Teacher Tools для конкретних writing tasks.",
+    pill: "AI quality",
     accent: "#6bc18a",
     meta: "Writing · Prompt bank · A1-C2",
     copyLabel: "Скопіювати prompts",
@@ -129,9 +129,9 @@ const MODULES = {
   },
   "dialogue-creator": {
     title: "Dialogue Creator",
-    eyebrow: "Writing + Speaking · dialogue builder",
-    desc: "Створює короткий діалог між двома персонажами на тему. Добре працює для reading aloud, role-play і comprehension follow-up.",
-    pill: "Dialogue mode",
+    eyebrow: "Writing + Speaking · AI dialogue",
+    desc: "Передає ситуацію, ролі, рівень і тон у Teacher Tools для природного діалогу без готового filler-тексту.",
+    pill: "AI quality",
     accent: "#59b3c5",
     meta: "Writing · Speaking · A1-C1",
     copyLabel: "Скопіювати діалог",
@@ -146,9 +146,9 @@ const MODULES = {
   },
   "role-play": {
     title: "Role-Play Scenarios",
-    eyebrow: "Speaking · pair task builder",
-    desc: "Створює role-play scenario з конкретною ситуацією та ролями для pair work або speaking club.",
-    pill: "Pair-work ready",
+    eyebrow: "Speaking · AI role-play",
+    desc: "Передає сюжет, ролі й формат у Teacher Tools для role-play із конкретною комунікативною метою.",
+    pill: "AI quality",
     accent: "#a96ff5",
     meta: "Speaking · Role-play · A1-C2",
     copyLabel: "Скопіювати сценарій",
@@ -163,9 +163,9 @@ const MODULES = {
   },
   "error-correction": {
     title: "Build a Proofreading Exercise",
-    eyebrow: "Grammar · correction set",
-    desc: "Перетворює ваші речення на proofreading exercise. Модуль не вигадує помилки чи відповідь з повітря.",
-    pill: "Correction drill",
+    eyebrow: "Grammar · AI proofreading",
+    desc: "Передає граматичний фокус і ваші речення в Teacher Tools. AI повертає виправлення лише для наданого матеріалу.",
+    pill: "AI quality",
     accent: "#ef7b67",
     meta: "Grammar · Accuracy · A1-C2",
     copyLabel: "Скопіювати вправу",
@@ -220,21 +220,29 @@ const MODULE_INPUT_RULES = {
    The old local templates remain in the file only for backward compatibility
    with saved sessions, but the form never calls them. The handoff retains the
    teacher's concrete input in the main hub's ordinary draft store. */
+function handoffDraftFields(values, fields) {
+  const draft = { ...fields };
+  if (values.level) draft.level = values.level;
+  if (!draft.count && values.count) draft.count = values.count;
+  return draft;
+}
+
 const AI_HANDOFFS = {
-  "text-vocab": { toolId: "text-topic-vocab", fields: (values) => ({ topic: values.topic, vocab: values.vocabulary }) },
-  "open-questions": { toolId: "open-questions", fields: (values) => ({ topic: "Comprehension questions", source: values.text }) },
-  "true-false": { toolId: "true-false", fields: (values) => ({ topic: "True / false check", source: values.text }) },
-  "discussion-questions": { toolId: "discussion", fields: (values) => ({ topic: values.topic, vocab: values.context }) },
-  "writing-prompts": { toolId: "creative-writing", fields: (values) => ({ topic: values.topic, vocab: values.context }) },
-  "dialogue-creator": { toolId: "dialogue", fields: (values) => ({ topic: values.topic, vocab: `Roles: ${values.roles}` }) },
-  "role-play": { toolId: "comm-situations", fields: (values) => ({ topic: values.topic, vocab: `Roles: ${values.roles}` }) },
-  "error-correction": { toolId: "error-correction", fields: (values) => ({ topic: values.topic, vocab: values.text }) }
+  "text-vocab": { toolId: "text-topic-vocab", fields: (values) => handoffDraftFields(values, { topic: values.topic, vocab: values.vocabulary, count: ({ Short: "4", Medium: "8", Long: "12" })[values.length] || "8" }) },
+  "open-questions": { toolId: "open-questions", fields: (values) => handoffDraftFields(values, { topic: "Comprehension questions", source: values.text }) },
+  "true-false": { toolId: "true-false", fields: (values) => handoffDraftFields(values, { topic: "True / false check", source: values.text }) },
+  "discussion-questions": { toolId: "discussion", fields: (values) => handoffDraftFields(values, { topic: values.topic, vocab: values.context }) },
+  "writing-prompts": { toolId: "creative-writing", fields: (values) => handoffDraftFields(values, { topic: values.topic, vocab: `Context: ${values.context}\nGenre: ${values.genre}` }) },
+  "dialogue-creator": { toolId: "dialogue", fields: (values) => handoffDraftFields(values, { topic: values.topic, vocab: `Roles: ${values.roles}\nTone: ${values.tone}` }) },
+  "role-play": { toolId: "comm-situations", fields: (values) => handoffDraftFields(values, { topic: values.topic, vocab: `Roles: ${values.roles}\nFormat: ${values.format}` }) },
+  "error-correction": { toolId: "error-correction", fields: (values) => handoffDraftFields(values, { topic: values.topic, source: values.text }) }
 };
 const TEACHER_TOOLS_DRAFT_STORE = "teachedos_teacher_tools_drafts";
 
 const query = new URLSearchParams(window.location.search);
-const activeModuleId = query.get("module") || "open-questions";
-const activeModule = MODULES[activeModuleId] || MODULES["open-questions"];
+const requestedModuleId = query.get("module") || "open-questions";
+const activeModuleId = MODULES[requestedModuleId] ? requestedModuleId : "open-questions";
+const activeModule = MODULES[activeModuleId];
 const outputEl = document.getElementById("studio-output");
 const emptyEl = document.getElementById("studio-empty");
 const metaEl = document.getElementById("studio-meta");

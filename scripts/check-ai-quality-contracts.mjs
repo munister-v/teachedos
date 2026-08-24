@@ -37,6 +37,7 @@ const localTextCore = read('scripts/tt-text-core.js');
 const boardMarkup = read('board.html');
 const teacherToolsHub = read('scripts/teacher-tools-app.js');
 const moduleStudio = read('scripts/games/twee-module-studio.js');
+const moduleStudioCatalogue = read('scripts/teachedos-data.js');
 const contracts = [
   [backendPrompt, 'Evidence rule:', 'server prompt evidence rule'],
   [backendPrompt, 'Source checkpoints to cover across the set:', 'server source coverage map'],
@@ -53,6 +54,8 @@ const contracts = [
   [moduleStudio, 'const MODULE_INPUT_RULES', 'module studio input contract'],
   [moduleStudio, 'const AI_HANDOFFS', 'module studio AI handoff contract'],
   [moduleStudio, 'Порожня форма не перетворюється на шаблонний урок.', 'module studio no-fallback state'],
+  [teacherToolsHub, "m==='error-correction'", 'proofreading source form'],
+  [backendPrompt, 'preserve one supplied sentence verbatim', 'source-bound proofreading rule'],
 ];
 for (const [text, needle, label] of contracts) if (!text.includes(needle)) fail(`missing ${label}`);
 
@@ -82,6 +85,9 @@ if (moduleStudio.includes('const fixes = [')) {
 }
 if (!moduleStudio.includes('if (AI_HANDOFFS[activeModuleId])')) {
   fail('module studio semantic generators must use the authenticated AI handoff');
+}
+for (const staleLabel of ['Topic + Vocabulary · Local Mode', 'Comprehension Questions · Local Mode', 'Statement Builder · Local Mode', 'Dialogue Draft · Local Mode', 'Correction Drill · Local Mode']) {
+  if (moduleStudioCatalogue.includes(staleLabel)) fail(`module studio catalogue must not claim AI material is local: ${staleLabel}`);
 }
 
 if (!process.exitCode) console.log(`AI quality contract passed for ${fixtures.cases.length} fixtures.`);

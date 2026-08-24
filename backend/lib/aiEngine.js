@@ -536,6 +536,12 @@ function shapeSpec(input) {
       };
     }
     if (toolId === 'error-correction') {
+      if (input.source) {
+        return {
+          task: `${head} Build exactly ${count} proofreading items ONLY from the teacher's source sentences. For each item, "text" must preserve one supplied sentence verbatim, and "answer" must be that same sentence corrected. Do not invent new situations, facts, names, or sentences. If a supplied sentence is already correct, keep it unchanged as the answer and use it only if there are not enough other source sentences. Use type "gap-fill".${context}`,
+          schema: '{"questions":[{"type":"gap-fill","text":"teacher-provided sentence","answer":"corrected version of that sentence","points":1}]}',
+        };
+      }
       return {
         task: `${head} Produce exactly ${count} sentences that each contain exactly ONE natural grammar or vocabulary mistake a ${level} learner would make. "text" = the incorrect sentence; "answer" = the fully corrected sentence. Use type "gap-fill".${context}`,
         schema: '{"questions":[{"type":"gap-fill","text":"incorrect sentence","answer":"corrected sentence","points":1}]}',
