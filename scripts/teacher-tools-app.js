@@ -8,8 +8,6 @@ const FAV_STORE = 'teachedos_teacher_tools_favorites';
 const DRAFT_STORE = 'teachedos_teacher_tools_drafts';
 const RECENT_TOOL_STORE = 'teachedos_teacher_tools_recent';
 const KNOWLEDGE_BASE_STORE = 'teachedos_teacher_knowledge_bases';
-const SAMPLE_TEXT = 'Many students want to improve their English, but they often need short daily routines. A good routine includes reading, speaking practice, useful vocabulary, and quick feedback from a teacher.';
-const SAMPLE_VOCAB = 'routine - a regular way of doing things\nfeedback - advice about how well you did\nimprove - to become better\npractice - repeated work to get better\nuseful - helpful in a real situation';
 const TOOLS = [
   {id:'lesson-pack',cat:'utility',badge:'New',icon:'PLAN',title:'Complete Lesson Pack Builder',desc:'Create a warm-up, presentation, practice, production and homework plan from one topic.',mode:'lesson-pack'},
   {id:'worksheet-builder',cat:'utility',badge:'New',icon:'PDF',title:'ESL Worksheet Builder',desc:'Turn a topic or text into a printable worksheet with teacher notes and answer key.',mode:'worksheet'},
@@ -1024,7 +1022,7 @@ function selectTool(id){
   document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function baseFields(extra=''){return `<div class="form-grid"><div class="field"><label class="label" for="level">Level</label><select id="level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div><div class="field"><label class="label" for="count">How many items</label><input id="count" type="number" min="3" max="50" value="12"><div class="hint">Between 3 and 50.</div></div><div class="field full"><label class="label" for="topic">Topic / grammar focus</label><input id="topic" placeholder="e.g. travel problems, present perfect, job interview"></div>${extra}</div>`}
-function textArea(id,label,value,help){return `<div class="field full"><label class="label" for="${id}">${label}</label><textarea id="${id}">${esc(value||'')}</textarea>${help?`<div class="hint">${help}</div>`:''}</div>`}
+function textArea(id,label,value='',help='',placeholder=''){return `<div class="field full"><label class="label" for="${id}">${label}</label><textarea id="${id}" placeholder="${esc(placeholder)}">${esc(value)}</textarea>${help?`<div class="hint">${help}</div>`:''}</div>`}
 function readDrafts(){return readJson(DRAFT_STORE,{})||{}}
 function saveActiveDraft(){
   if(!activeTool)return;
@@ -1063,8 +1061,44 @@ function bindToolDraftAutosave(){
   if(!form)return;
   form.addEventListener('input',scheduleDraftSave);
   form.addEventListener('change',scheduleDraftSave);
+  form.addEventListener('input',clearToolInputError);
+  form.addEventListener('change',clearToolInputError);
 }
-function renderForm(){const m=activeTool.mode;let html='';if(m==='images'){html=`<div class="hint" style="margin-bottom:14px;background:#fff2d6;border:1px solid #ffd891;padding:12px;border-radius:16px;">Upload images or paste links to them.</div>${baseFields('')}<div class="field full"><label class="label">Image + word rows</label><div class="rows" id="image-rows"></div><button class="btn sm ghost" type="button" onclick="addImageRow()">+ Add image row</button></div>`}else if(m==='pairs'){html=baseFields(textArea('vocab','Vocabulary pairs',SAMPLE_VOCAB,'Use one pair per line: word - definition / translation.'))}else if(m==='translation-match'){html=baseFields(`<div class="field"><label class="label" for="target-lang">Translate into</label><select id="target-lang"><option>Ukrainian</option><option>Russian</option><option>Spanish</option><option>French</option><option>German</option><option>Polish</option><option>Italian</option><option>Turkish</option><option>Portuguese</option><option>Arabic</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Other</option></select></div>${textArea('vocab','Target words','apple\nbook\nhouse\nfriend\nwater\nschool\nhappy\nwork','One word per line. Add your own translation after " - " (e.g. apple - яблуко), or leave just the word and TeachEd fills common ones.')}`)}else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary'].includes(m)){html=baseFields(textArea('source','Source text',SAMPLE_TEXT,'Paste the text you want to transform.'))}else if(['lesson-pack','worksheet','homework'].includes(m)){html=baseFields(`${textArea('source','Source text / lesson brief',SAMPLE_TEXT,'Paste a text, a class goal, or a short idea.')}${textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'One per line. Add a definition after a dash if you need it.')}`)}else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){html=baseFields(textArea('vocab','Target vocabulary',SAMPLE_VOCAB,'One per line. Add a meaning after a dash if you need it.'))}else if(m==='word-order'){html=baseFields(textArea('source','Sentences to scramble',SAMPLE_TEXT,'Paste sentences - one per line or a full text. TeachEd will split and shuffle each one.'))}else if(m==='matching-halves'){html=baseFields(textArea('vocab','Collocations or sentences',`make a decision\ntake an exam\ndo homework\ngive advice\nhave a conversation\nkeep in touch\nrun a business\nbreak a record`,'One collocation or sentence per line. Split point is the middle word.'))}else if(['sorting','odd'].includes(m)){html=baseFields(textArea('vocab','Word groups', 'Food: apple, bread, cheese, milk\nTravel: airport, ticket, luggage, hotel\nEmotions: happy, nervous, proud, bored','Use Category: word, word, word.'))}else if(['media-questions','transcript'].includes(m)){html=baseFields(`<div class="field full"><label class="label" for="yt-link">YouTube link</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><input id="yt-link" placeholder="https://www.youtube.com/watch?v=..." style="flex:1;min-width:200px;"><button class="btn sm ghost" type="button" onclick="fetchYouTube()">Fetch transcript</button></div><div class="hint" id="yt-status">Paste a YouTube link — the transcript fills in below.</div></div><div class="field full"><label class="label" for="media-file">…or upload audio/video</label><input id="media-file" type="file" accept="audio/*,video/*" onchange="transcribeUpload(this)"><div class="hint" id="stt-status">Upload a file — the transcript fills in below. Nothing leaves your device.</div></div>${textArea('source','Transcript / notes','Speaker 1: I have never tried online lessons before.\nSpeaker 2: They can be flexible if you plan your schedule carefully.','')}`)}else if(m==='add-images'){html=baseFields(`<div class="field full"><label class="label" for="media-file">Images</label><input id="media-file" type="file" accept="image/*" multiple></div>${textArea('source','Teaching notes','Ask students to describe what they can see, predict the story, then compare answers in pairs.','')}`)}else if(m==='add-video'){html=baseFields(`<div class="field full"><label class="label" for="video-link">Video link</label><input id="video-link" placeholder="https://..."></div>${textArea('source','Viewing focus','Watch once for gist. Watch again and write three useful expressions.','')}`)}else{html=baseFields(textArea('source','Text block','Add your classroom text here.',''))}document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Create draft</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;if(m==='images'){addImageRow();addImageRow();addImageRow()}restoreToolDraft();bindToolDraftAutosave();}
+function renderForm(){
+  const m=activeTool.mode;
+  let html='';
+  if(m==='images'){
+    html=`<div class="hint" style="margin-bottom:14px;background:#fff2d6;border:1px solid #ffd891;padding:12px;border-radius:16px;">Add an image and its target word for every matching pair.</div>${baseFields('')}<div class="field full"><label class="label">Image + word rows</label><div class="rows" id="image-rows"></div><button class="btn sm ghost" type="button" onclick="addImageRow()">+ Add image row</button></div>`;
+  }else if(m==='pairs'){
+    html=baseFields(textArea('vocab','Vocabulary pairs','','Use one pair per line: word - definition / translation.','e.g. routine - a regular way of doing things'));
+  }else if(m==='translation-match'){
+    html=baseFields(`<div class="field"><label class="label" for="target-lang">Translate into</label><select id="target-lang"><option>Ukrainian</option><option>Russian</option><option>Spanish</option><option>French</option><option>German</option><option>Polish</option><option>Italian</option><option>Turkish</option><option>Portuguese</option><option>Arabic</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Other</option></select></div>${textArea('vocab','Target words','','One word per line. Add a translation after a hyphen if you need it.','e.g. apple\nbook\nhouse')}`);
+  }else if(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary'].includes(m)){
+    html=baseFields(textArea('source','Source text','','Paste the text you want to transform.','Paste your text here...'));
+  }else if(['lesson-pack','worksheet','homework'].includes(m)){
+    html=baseFields(`${textArea('source','Source text / lesson brief','','Paste a text, a class goal, or a short idea.','e.g. A2 travel lesson about checking into a hotel')}${textArea('vocab','Target vocabulary','','One per line. Add a definition after a hyphen if you need it.','e.g. reservation - a booking made in advance')}`);
+  }else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','error-correction','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','four-opinions','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){
+    html=baseFields(textArea('vocab','Target vocabulary','','One per line. Add a meaning after a hyphen if you need it.','e.g. delay - a period of waiting\nreservation - a booking'));
+  }else if(m==='word-order'){
+    html=baseFields(textArea('source','Sentences to scramble','','Paste sentences, one per line, or a full text.','e.g. Students practise useful phrases every day.'));
+  }else if(m==='matching-halves'){
+    html=baseFields(textArea('vocab','Collocations or sentences','','One collocation or sentence per line. The tool splits each item into two halves.','e.g. make a decision\ntake an exam'));
+  }else if(['sorting','odd'].includes(m)){
+    html=baseFields(textArea('vocab','Word groups','','Use Category: word, word, word.','e.g. Food: apple, bread, cheese\nTravel: airport, ticket, luggage'));
+  }else if(['media-questions','transcript'].includes(m)){
+    html=baseFields(`<div class="field full"><label class="label" for="yt-link">YouTube link</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><input id="yt-link" placeholder="https://www.youtube.com/watch?v=..." style="flex:1;min-width:200px;"><button class="btn sm ghost" type="button" onclick="fetchYouTube()">Fetch transcript</button></div><div class="hint" id="yt-status">Paste a YouTube link and the transcript will appear below.</div></div><div class="field full"><label class="label" for="media-file">Or upload audio/video</label><input id="media-file" type="file" accept="audio/*,video/*" onchange="transcribeUpload(this)"><div class="hint" id="stt-status">Upload a file and its transcript will appear below. Nothing leaves your device.</div></div>${textArea('source','Transcript / notes','','Paste a transcript or use one of the options above.','Paste the transcript or notes here...')}`);
+  }else if(m==='add-images'){
+    html=baseFields(`<div class="field full"><label class="label" for="media-file">Images</label><input id="media-file" type="file" accept="image/*" multiple></div>${textArea('source','Teaching notes','','Describe the task students should do with these images.','e.g. Students describe what they see, then compare answers in pairs.')}`);
+  }else if(m==='add-video'){
+    html=baseFields(`<div class="field full"><label class="label" for="video-link">Video link</label><input id="video-link" placeholder="https://..."></div>${textArea('source','Viewing focus','','Add the learning goal or viewing task.','e.g. Watch once for gist, then note three useful expressions.')}`);
+  }else{
+    html=baseFields(textArea('source','Text block','','Add the classroom text you want to place on the lesson or worksheet.','Paste your classroom text here...'));
+  }
+  document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Create draft</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;
+  if(m==='images'){addImageRow();addImageRow();addImageRow()}
+  restoreToolDraft();
+  bindToolDraftAutosave();
+}
 /* Large materials benefit from a short route before the generator starts.
    It keeps the teacher in charge of the lesson arc, while the later AI request
    receives the same route as an explicit instruction. Small one-shot tools
@@ -1102,6 +1136,7 @@ function renderLessonRoute(){
   actions.before(route);
 }
 function prepareLessonRoute(){
+  if(!validateToolInput())return;
   if(!needsLessonRoute())return generateSmart();
   activeLessonRoute=lessonRouteFromInputs();
   renderLessonRoute();
@@ -1123,6 +1158,62 @@ renderForm=function(){
   if(secondary){secondary.textContent='Create without plan';secondary.setAttribute('onclick','generateSmart(true)');}
 };
 function get(id){return document.getElementById(id)?.value?.trim()||''}
+const TEXT_REQUIRED_MODES=new Set(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary','word-order','add-text']);
+const VOCAB_REQUIRED_MODES=new Set(['pairs','translation-match','odd','sorting','matching-halves','sentences-vocab','text-with-vocab','link-words','creative-writing','translation','comm-situations','rephrase-word','word-bank']);
+
+function clearToolInputError(){
+  document.getElementById('tool-input-error')?.remove();
+  document.querySelectorAll('#tool-form [aria-invalid="true"]').forEach(el=>el.removeAttribute('aria-invalid'));
+}
+function showToolInputError(targetId,message){
+  clearToolInputError();
+  const target=document.getElementById(targetId);
+  const form=document.getElementById('tool-form');
+  if(!form)return false;
+  const note=document.createElement('div');
+  note.id='tool-input-error';
+  note.className='hint tt-input-error';
+  note.setAttribute('role','alert');
+  note.textContent=message;
+  const field=target?.closest('.field');
+  if(field)field.appendChild(note);else form.prepend(note);
+  if(target){
+    target.setAttribute('aria-invalid','true');
+    target.focus({preventScroll:false});
+  }
+  return false;
+}
+function validateToolInput(){
+  if(!activeTool)return false;
+  const m=activeTool.mode;
+  const source=get('source');
+  const vocab=get('vocab');
+  const topicValue=get('topic');
+  const hasFile=id=>Boolean(document.getElementById(id)?.files?.length);
+  if(m==='images'){
+    const complete=imageRows.some(row=>row.word.trim()&&row.image);
+    return complete||showToolInputError('image-rows','Add at least one image and its target word before creating a draft.');
+  }
+  if(['media-questions','transcript'].includes(m)){
+    return source||showToolInputError('source','Fetch or paste the transcript before creating tasks from it.');
+  }
+  if(m==='add-images'){
+    return hasFile('media-file')||showToolInputError('media-file','Choose at least one image to add.');
+  }
+  if(m==='add-video'){
+    return get('video-link')||showToolInputError('video-link','Paste a video link before creating viewing tasks.');
+  }
+  if(TEXT_REQUIRED_MODES.has(m)){
+    return source||showToolInputError('source','Paste the source text you want this tool to transform.');
+  }
+  if(VOCAB_REQUIRED_MODES.has(m)){
+    return vocab||showToolInputError('vocab','Add the vocabulary or sentence material you want to use.');
+  }
+  if(m==='topic-vocab'){
+    return topicValue||showToolInputError('topic','Add a topic before creating a vocabulary set.');
+  }
+  return (topicValue||source||vocab)||showToolInputError('topic','Add a topic, source text, or target vocabulary to create your draft.');
+}
 function lines(text){return String(text||'').split(/\n+/).map(s=>s.trim()).filter(Boolean)}
 function vocabItems(text){return lines(text).flatMap(line=>line.split(/[,;]/).map(s=>s.trim()).filter(Boolean)).map(raw=>{const parts=raw.split(/\s[-:]\s/);return {word:(parts[0]||raw).trim(),def:(parts[1]||'teacher definition / translation').trim()}}).filter(x=>x.word)}
 function wordsOnly(text){return vocabItems(text).map(x=>x.word)}
@@ -1231,7 +1322,13 @@ function repeatToCount(arr,n){return Array.from({length:n},(_,i)=>arr[i%arr.leng
 function sentencesForCount(text,n){const base=sentenceParts(text);const fallback=topicSeeds(topic(),n).map(w=>`Students discuss ${w} in the context of ${topic().toLowerCase()}.`);return [...base,...fallback].slice(0,n)}
 function pick(arr,n){return [...arr].sort(()=>Math.random()-.5).slice(0,n)}
 function count(){return Math.max(3,Math.min(50,parseInt(get('count')||'12',10)||12))}
-function topic(){return get('topic')||'Everyday English'}
+function topic(){
+  const explicit=get('topic');
+  if(explicit)return explicit;
+  const source=get('source').replace(/\s+/g,' ').trim();
+  if(source)return source.slice(0,80);
+  return lines(get('vocab')).slice(0,3).map(row=>row.split(/\s[-:]\s/)[0].trim()).filter(Boolean).join(', ');
+}
 function level(){return get('level')||'B1'}
 function makeDefinitions(items){return items.map(x=>({a:x.word,b:(x.def&&x.def!=='teacher definition / translation')?x.def:defFor(x.word)}))}
 function extractKeywords(text,n){const stop=new Set('the a an and or but if then with from into about this that these those many often they their your have has had can could would should are was were been being for not you she he it its our his her them student students teacher english good short daily includes includes'.split(' '));const freq={};String(text||'').toLowerCase().match(/[a-z][a-z'-]{3,}/g)?.forEach(w=>{if(!stop.has(w))freq[w]=(freq[w]||0)+1});return Object.entries(freq).sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length).slice(0,n).map(([w])=>w)}
@@ -1256,6 +1353,7 @@ function setToolBusy(on,label){
 }
 async function generateSmart(skipLessonRoute=false){
   if(ttGenerating){toast('Already preparing this draft…');return;}
+  if(!validateToolInput())return;
   if(needsLessonRoute()&&!activeLessonRoute&&!skipLessonRoute){prepareLessonRoute();return;}
   setToolBusy(true,localStorage.getItem('teachedos_token')?'Creating draft…':'Creating local draft…');
   try{
@@ -1409,8 +1507,8 @@ function ttEngineOutput(tool,res){
 function ttEngineInput(){
   return {
     tool:{id:activeTool.id},
-    source:get('source')||SAMPLE_TEXT,
-    vocab:get('vocab')||SAMPLE_VOCAB,
+    source:get('source'),
+    vocab:get('vocab'),
     topic:topic(),
     level:level(),
     count:count(),
@@ -1463,7 +1561,7 @@ async function ttTryEngine(){
    з чого зібрати гру, а хаб має. Раніше `generate()` наприкінці і присвоював
    lastOutput, і рендерив, і скролив, тож «просто дізнатися результат» було
    неможливо. */
-function buildHubOutput(){if(!activeTool)return null;const m=activeTool.mode;const n=count();const src=get('source')||SAMPLE_TEXT;const voc=get('vocab')||SAMPLE_VOCAB;const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()],...knowledgeBaseMeta()};
+function buildHubOutput(){if(!activeTool)return null;const m=activeTool.mode;const n=count();const src=get('source');const voc=get('vocab');const items=itemsForCount(voc,n);let out={title:activeTool.title,type:m,text:'',cards:[],gameType:activeTool.game||null,gameContent:null,level:level(),tags:[activeTool.cat,topic()],...knowledgeBaseMeta()};
   if(m==='images'){const cards=imageRows.filter(r=>r.word||r.image).map((r,i)=>({word:r.word||`word ${i+1}`,image:r.image||'',note:r.note||''}));out.cards=cards;out.text=cards.map((c,i)=>`${i+1}. ${c.word} -> ${c.image?'image attached':'image needed'}`).join('\n');out.gameType='memory-match';out.gameContent={pairs:cards.map(c=>({a:c.word,b:c.note||'match the picture'}))};}
   else if(m==='lesson-pack'){const ws=wordsForCount(voc,n);const t=topic()||'Everyday English';const lv=level()||'B1';const tl=t.toLowerCase();const stageCards=[{title:'🎯 Lesson aims & objectives',text:'Topic: '+t+' · Level: '+lv+'\nEstimated duration: 60 min\n\nBy the end of this lesson, SWBAT:\n• Recognise and use the target vocabulary naturally in context\n• Identify gist, main ideas and specific details in the input\n• Complete controlled practice accurately (80%+ score target)\n• Communicate ideas on "'+tl+'" fluently for 2+ minutes\n\n📌 Key vocabulary: '+(ws.slice(0,6).join(', ')||'see vocab list')+'\n📌 Target structure / skill: ________________________________\n📌 Materials needed: ________________________________'},{title:'🔥 Warm-up & lead-in (7 min)',text:'Option A - Word association (3 min)\nWrite "'+t+'" on the board. Students brainstorm 8 connected words in pairs, then share. Teach 2-3 unknown words from their lists.\n\nOption B - Two Truths and a Lie (4 min)\nSay 3 statements about '+tl+'  - students guess which is false. Then students do the same in pairs.\n\nOption C - Picture / image prompt (3 min)\nShow an image related to '+tl+'. Students describe what they see and predict the lesson topic.\n\n💡 Aim: activate prior knowledge + create curiosity.'},{title:'📖 Vocabulary presentation (8 min)',text:'Target words: '+(ws.slice(0,8).join(' · ')||'target vocabulary')+'.\n\nStep-by-step procedure:\n1. Context - show each word in a sentence (not isolated)\n2. Meaning - elicit, then confirm with a clear definition\n3. CCQ - ask 1-2 concept check questions per word\n4. Pronunciation - model → choral drill → individual drill\n5. Record - students write in vocab notebook: word / definition / example\n\n⏱ Timing: ~1 min per word. Don\'t rush - quality over quantity.\n💡 Use the Flashcards tool to create a drill activity.'},{title:'📄 Input & reading/listening (12 min)',text:'Procedure:\n\n1. PRE-TASK (2 min): Set gist question - "What is the main idea?"\n2. FIRST READ/LISTEN (3 min): Students find the answer to the gist question only.\n3. FEEDBACK (1 min): Quick whole-class check.\n4. SECOND READ/LISTEN (4 min): Detail questions -\n   a) Find three specific facts about '+tl+'.\n   b) Find how target vocabulary is used in context.\n   c) Identify the writer\'s/speaker\'s opinion.\n5. PEER CHECK (2 min): Compare answers in pairs before whole-class.\n\n💡 Differentiation: stronger students write a 2-sentence summary after step 4.'},{title:'✏️ Controlled practice (10 min)',text:'Activity type: gap-fill / matching / MCQ / error correction (choose one).\n\nProcedure:\n1. Demo one example together as a class.\n2. Students work individually (5 min). Remind them to use context clues.\n3. Peer check in pairs (2 min) - discuss any differences.\n4. Whole-class feedback (3 min) - address common errors.\n\nMonitoring tips:\n• Circulate - do NOT sit at your desk.\n• Note 2-3 errors anonymously for feedback stage.\n• Give quiet support to students who are stuck; avoid giving answers directly.\n\n✦ Fast finishers: write one more gap-fill sentence for a partner.'},{title:'🗣 Freer practice & production (12 min)',text:'Communicative task: "Discuss with your partner - '+['what do you personally think about','how has','what is your experience with','would you recommend'][Math.floor(Math.random()*4)]+' '+tl+'?"\n\nStructure the task:\n• 30 sec: individual think time (write 3 bullet points)\n• 3 min: pair discussion (both speak roughly equally)\n• 1 min: report back - "My partner said that…"\n\nExpect students to use at least 4 target words. Monitor and note:\n✅ 2 strong examples of language to praise\n❌ 2-3 errors to work on in feedback\n\n💡 If a pair finishes early: "Now disagree with each other - argue the opposite point."'},{title:'📋 Feedback & delayed error correction (5 min)',text:'Structure:\n1. PRAISE (1 min) - write 2 strong examples from student output on the board. Ask the class what is good about them.\n2. ERRORS (2 min) - write 2-3 anonymous errors. Students identify and correct as a class.\n3. LANGUAGE FOCUS (2 min) - clarify any remaining confusion about today\'s target language.\n\nAnonymous error board template:\n   ✗ "_______________"\n   ✓ "_______________" - because _______________\n\n📌 Note errors you heard - revisit them at the start of the NEXT lesson (great for recycling).'},{title:'📚 Homework (set in final 2 min)',text:'TASK: Write 80-100 words on the topic "'+t+'".\nUse at least 5 target words naturally.\n\nTopic prompt: Describe your own experience with '+tl+', your opinion, and one recommendation for others.\n\nDifferentiation:\n✦ Support (weaker): Use these starters -\n   "In my experience, '+tl+' is…"\n   "One thing I have noticed is…"\n   "I would suggest that…"\n✦ Extension (stronger): Add a counter-argument and respond to it.\n\nDeadline: _______________\nSelf-check before submitting: vocabulary ☐ · opinion ☐ · spelling ☐'},{title:'🔄 Fast finishers & extension tasks',text:'If students finish early at any stage:\n\n📖 After vocabulary stage:\n→ Write a short paragraph using 5 target words. Make it surprising or funny.\n\n✏️ After controlled practice:\n→ Write 3 new gap-fill sentences for a partner to solve.\n\n🗣 After freer practice:\n→ "Now teach your partner - explain the key ideas as if they missed the lesson."\n\n🏆 Challenge task (top students):\n→ Find one real-world example of '+tl+' (news, video, website) and present it in 60 seconds at the start of the next lesson.\n\n📌 Extension tasks keep faster students engaged without disrupting the main pace.'},{title:'📊 Assessment & success criteria',text:'How will you know the lesson was successful?\n\n✅ Vocabulary: students can define/use '+Math.min(ws.length,5)+' target words without prompting.\n✅ Comprehension: students answer gist + 2 detail questions correctly.\n✅ Practice: 80% accuracy on the controlled exercise.\n✅ Production: students use target language for 90+ seconds in the speaking task.\n\nObservation checklist (teacher):\n☐ All students participated in the warm-up.\n☐ Vocabulary was drilled enough (3+ exposures).\n☐ Errors were corrected anonymously and constructively.\n☐ Homework was set with clear instructions and a deadline.\n\nNext lesson: revisit errors from the board + 5-min vocabulary quiz.'},{title:'🗒 Teacher notes & differentiation',text:'📌 TIMING ADJUSTMENTS:\n• Short class (45 min): cut freer practice to 8 min, skip extension.\n• Long class (90 min): double controlled practice + add a writing task.\n\n📌 DIFFERENTIATION:\n• Lower level: pre-teach vocabulary before class; provide sentence starters throughout.\n• Higher level: remove scaffolding, require longer production, add research task.\n• Mixed level: pair stronger + weaker for the speaking task; give different roles.\n\n📌 ADAPTING THE INPUT:\n• No text available? Use a short audio clip, image set, or infographic.\n• Text too hard? Simplify with the TeachEd Simplify tool first.\n\n📌 NEXT STEPS: revisit weak vocabulary → error correction board → homework feedback.'}];out.text=stageCards.map((c,i)=>`${i+1}. ${c.title}\n${c.text}`).join('\n\n');out.struct={boardKind:'cards',cards:stageCards,items:null,questions:null};}
   else if(m==='worksheet'){const ws=wordsForCount(voc,n);const t=topic()||'English';const lv=level()||'B1';const tl=t.toLowerCase();const defs=makeDefinitions(items).slice(0,Math.min(ws.length,8));const shuffledWs=[...ws.slice(0,6)].sort(()=>Math.random()-.5);const wsCards=[{title:'📝 Student information',text:'Student name: ____________________   Date: __________\nClass: ____________________   Teacher: __________\nLevel: '+lv+'   Topic: '+t+'\n\n📌 Read all instructions carefully before you start.\n📌 Check your work when you finish each section.'},{title:'A. Vocabulary - match & define',text:'Part 1: Match each word with its meaning.\n\n'+ws.slice(0,6).map((w,i)=>`${i+1}. ${w}  → ___________________________`).join('\n')+'\n\nWord bank: '+shuffledWs.join(' · ')+'\n\nPart 2: Choose 2 words from above. Write your own sentence for each.\na) _______________________________________________\nb) _______________________________________________'},{title:'B. Vocabulary in context - gap fill',text:'Fill the gaps with the correct form of a word from section A.\n\n'+ws.slice(0,5).map((w,i)=>`${i+1}. Without a good understanding of _____, it is hard to make progress in ${tl}.`).join('\n')+'\n\n★ Challenge: Which sentence is closest to your own experience? Underline it and explain why.'},{title:'C. Reading comprehension',text:'Read the text carefully. Answer in full sentences where possible.\n\n1. Main idea: What is the text mainly about?\n   → ____________________________________________\n\n2. Detail A: Give one specific fact or statistic from the text.\n   → ____________________________________________\n\n3. Detail B: Give one example the writer uses.\n   → ____________________________________________\n\n4. Inference: What does the writer think about '+tl+'? How do you know?\n   → ____________________________________________\n\n5. Vocabulary: Find a word in the text that means "important" or "difficult".\n   → The word is: ___________  (line/paragraph: ___)'},{title:'D. Grammar in context',text:'Look at the target language in the text. Complete the tasks:\n\nTask 1: Find one example of the target grammar structure and write it here:\n   → ____________________________________________\n\nTask 2: Write two more examples using the same structure:\n   a) ____________________________________________\n   b) ____________________________________________\n\nTask 3: Write one INCORRECT version of your sentence b) - swap with a partner to correct each other\'s mistake:\n   ✗ ____________________________________________'},{title:'E. Speaking / discussion task',text:'Work with a partner. You have 5 minutes.\n\n🗣 Question 1: How does '+tl+' affect everyday life? Give a real example.\n🗣 Question 2: Do you think '+tl+' is important for your future? Why / why not?\n🗣 Question 3: What is one thing you would like to know more about '+tl+'?\n\nTry to use at least 3 words from Section A.\n\nUseful phrases:\n• "In my experience…"\n• "I think this is important because…"\n• "On the other hand…"'},{title:'F. Writing task',text:'Write 80-100 words on ONE of these prompts:\n\n✍️ Option 1 (opinion): "Is '+tl+' important in today\'s world? Give your opinion with at least 2 reasons."\n\n✍️ Option 2 (narrative): "Describe a time when '+tl+' made a difference to you or someone you know."\n\nChecklist before you finish:\n☐ I used at least 4 words from Section A.\n☐ My sentences are complete (subject + verb + idea).\n☐ I included my own opinion.\n☐ I checked my spelling and punctuation.'},{title:'G. Reflection - how did I do?',text:'Rate yourself honestly (✗ / ✦ / ✅):\n\nVocabulary: I can explain 4+ words without looking.           ___\nReading: I found the main idea and 2 details.                 ___\nGrammar: I formed the structure correctly.                    ___\nSpeaking: I spoke for 2+ minutes without stopping.           ___\nWriting: My paragraph is clear and uses target language.      ___\n\nMy strongest skill today: ________________________________\nWhat I need more practice with: ________________________________\nOne word I will definitely use this week: ________________________________'},{title:'🔑 Answer key & teacher notes',text:'Vocabulary:\n'+defs.map((p,i)=>`${i+1}. ${p.a} - ${p.b}`).join('\n')+'\n\n📌 Timing guide:\n  A (Vocabulary) ......... 8 min\n  B (Gap fill) ........... 8 min\n  C (Comprehension) ...... 12 min\n  D (Grammar) ............ 8 min\n  E (Speaking) ........... 6 min\n  F (Writing) ............ 12 min\n  G (Reflection) ......... 3 min\n  Total .................. ~57 min\n\n📌 Differentiation:\n  ✦ Weaker: give sentence starters for F; allow dictionary for A.\n  ✦ Stronger: write a paragraph response to Section E questions.'}];out.text=wsCards.map(c=>c.title+'\n'+c.text).join('\n\n');out.struct={boardKind:'cards',cards:wsCards,items:null,questions:null};}
@@ -1471,7 +1569,7 @@ function buildHubOutput(){if(!activeTool)return null;const m=activeTool.mode;con
   else if(m==='pairs'){const pairs=makeDefinitions(items).slice(0,n);out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} - ${p.b}`).join('\n');out.gameContent={pairs};}
   else if(m==='translation-match'){const lang=get('target-lang')||'Ukrainian';const userPairs=vocabItems(voc);const ws=wordsForCount(voc,n);const pairs=ws.map(w=>{const u=userPairs.find(x=>x.word.toLowerCase()===w.toLowerCase());const given=(u&&u.def&&u.def!=='teacher definition / translation')?u.def:'';const tr=given||translateWord(w,lang)||`(${lang} translation)`;return {a:w,b:tr};});out.cards=pairs;out.text=`Word-Translation Matching - English ↔ ${lang} (${level()})\n\n`+pairs.map((p,i)=>`${i+1}. ${p.a} - ${p.b}`).join('\n')+`\n\nTeacher note: edit any "(${lang} translation)" placeholders for words not in the built-in dictionary.`;out.gameContent={pairs};out.tags=[activeTool.cat,lang,topic()];}
   else if(m==='text-vocab'){const kws=[...new Set([...extractKeywords(src,n),...topicSeeds(topic(),n)])].slice(0,n);const pairs=kws.map(w=>({a:w,b:defFor(w)}));out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} - ${p.b}`).join('\n');out.gameContent={pairs};}
-  else if(m==='topic-vocab'){const typed=get('vocab').trim();const bi=topicBankItems();const items=typed?itemsForCount(typed,n):(bi.length?Array.from({length:n},(_,i)=>bi[i%bi.length]):itemsForCount(SAMPLE_VOCAB,n));const pairs=items.map(x=>({a:x.word,b:(x.def&&x.def!=='teacher definition / translation')?x.def:defFor(x.word)}));out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} - ${p.b}`).join('\n');out.gameContent={pairs};}
+  else if(m==='topic-vocab'){const typed=get('vocab').trim();const bi=topicBankItems();const items=typed?itemsForCount(typed,n):(bi.length?Array.from({length:n},(_,i)=>bi[i%bi.length]):[]);const pairs=items.map(x=>({a:x.word,b:(x.def&&x.def!=='teacher definition / translation')?x.def:defFor(x.word)}));out.cards=pairs;out.text=pairs.map((p,i)=>`${i+1}. ${p.a} - ${p.b}`).join('\n');out.gameContent={pairs};}
   else if(m==='odd'){const groups=parseGroups(voc);out.text=groups.slice(0,n).map((g,i)=>`${i+1}. ${pick(g.words,3).join(', ')}, ${g.odd||'different word'}\nAnswer: ${g.odd||'different word'}`).join('\n\n');out.gameType='speed-quiz';out.gameContent={questions:groups.slice(0,n).map(g=>({q:`Which word is the odd one out: ${pick(g.words,3).concat(g.odd||'umbrella').join(', ')}?`,opts:pick(g.words,3).concat(g.odd||'umbrella'),correct:3}))};}
   else if(m==='sorting'){const groups=parseGroups(voc);out.cards=groups;out.text=groups.map(g=>`${g.name}: ${g.words.join(', ')}`).join('\n');out.gameType='word-categories';out.gameContent={categories:groups.map(g=>({name:g.name,words:g.words}))};}
   else if(m==='sentences-vocab'){const items=itemsForCount(voc,n);const t=topic().toLowerCase();const frames=[(w,d)=>`Write a sentence using "${w}" (meaning: ${d}).`,(w,d)=>`How does ${w} connect to the topic of ${t}? Use it in one sentence.`,(w,d)=>`Complete: "In ${t}, _____ is important because _____ ." (use: ${w})`,(w,d)=>`Translate this idea into your own words: "${w} matters in ${t}." `,(w,d)=>`Challenge: use "${w}" and one other word from today's list in one sentence.`,(w,d)=>`Give a real-life example of ${w} - one sentence is enough.`,(w,d)=>`How would you explain "${w}" to a friend who has never studied ${t}?`,(w,d)=>`Write a question using the word "${w}".`];out.text=items.map((x,i)=>`${i+1}. ${frames[i%frames.length](x.word,defFor(x.word))}`).join('\n\n');out.gameType='fill-blank';out.gameContent={sentences:items.map(x=>`In ${t}, _____ plays an important role.|${x.word}`)};}
@@ -1738,7 +1836,7 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 function addImageRow(){const id='img-'+Date.now()+'-'+Math.random().toString(36).slice(2,5);imageRows.push({id,word:'',image:'',note:''});renderImageRows()}
 function removeImageRow(id){imageRows=imageRows.filter(r=>r.id!==id);renderImageRows()}
 function updateImageRow(id,key,val){const r=imageRows.find(x=>x.id===id);if(r)r[key]=val}
-function handleImageFile(id,input){const file=input.files&&input.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{updateImageRow(id,'image',reader.result);renderImageRows()};reader.readAsDataURL(file)}
+function handleImageFile(id,input){const file=input.files&&input.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{updateImageRow(id,'image',reader.result);clearToolInputError();renderImageRows()};reader.readAsDataURL(file)}
 function renderImageRows(){const wrap=document.getElementById('image-rows');if(!wrap)return;wrap.innerHTML=imageRows.map((r,i)=>`<div class="img-row"><label class="thumb" for="file-${r.id}">${r.image?`<img src="${esc(r.image)}" alt="${esc(r.word||'uploaded image')}">`:'Upload image'}<input class="sr-only" id="file-${r.id}" type="file" accept="image/*" onchange="handleImageFile('${r.id}',this)"></label><div style="display:grid;gap:8px"><input placeholder="Word" value="${esc(r.word)}" oninput="updateImageRow('${r.id}','word',this.value)"><input placeholder="Image URL or note" value="${esc(r.note)}" oninput="updateImageRow('${r.id}','note',this.value)"></div><button class="mini" type="button" onclick="removeImageRow('${r.id}')">×</button></div>`).join('')}
 /* ════════════ Twee-style mechanics: AI engine, YouTube, export, assign ════════════ */
 const TT_API_BASE = (window.TEACHED_API_BASE || ((location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:4000':((location.hostname==='teached.tech'||location.hostname.endsWith('.teached.tech'))?location.origin:'https://teached.tech')));
@@ -1925,6 +2023,7 @@ async function fetchYouTube(){
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Could not fetch transcript');
     const ta=document.getElementById('source');if(ta)ta.value=d.transcript;
+    clearToolInputError();scheduleDraftSave();
     if(status)status.textContent=`Transcript loaded (${(d.transcript||'').split(/\s+/).length} words). Now choose how many items and Generate.`;
   }catch(err){if(status)status.textContent='Could not fetch transcript: '+err.message+'. You can paste it manually below.';}
 }
@@ -1939,6 +2038,7 @@ async function transcribeUpload(input){
     const text=await _ttSTT.transcribe(file,(t,p)=>{if(status)status.textContent=t;});
     if(!text){if(status)status.textContent='No speech detected. Try another file or paste the transcript.';return;}
     const ta=document.getElementById('source');if(ta)ta.value=text;
+    clearToolInputError();scheduleDraftSave();
     if(status)status.textContent=`Transcribed locally (${text.split(/\s+/).length} words). Now choose how many items and Generate.`;
   }catch(err){console.warn('[stt]',err);if(status)status.textContent='Could not transcribe this file: '+err.message+'. You can paste the transcript below.';}
 }
