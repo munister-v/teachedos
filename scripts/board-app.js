@@ -13278,7 +13278,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '457';
+const TEACHEDOS_ASSET_VERSION = '458';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14957,78 +14957,7 @@ renderSidebar();
 });
 
 const loaded = loadBoard();
-const WELCOME_KEY = 'teachedos_welcome_shown_v1';
-let _welcomeSeen = false;
-try { _welcomeSeen = localStorage.getItem(WELCOME_KEY) === '1'; } catch {}
-function seedMobileWelcomeBoard() {
-  const fx = 40, fy = 40, fw = 390, fh = 844;
-  const frame = addCard('frame', fx, fy, {
-    title: 'Phone lesson board',
-    num: 1,
-    bg: 'rgba(255,255,255,1)',
-    border: 'rgba(28,28,30,.22)',
-    childIds: [],
-    mobileFormat: true,
-  }, fw, fh);
-  const children = [
-    addCard('sticky', fx + 24, fy + 74, {
-      text: 'Welcome to Board on phone.\n\nThis is a focused read + light-edit view. Pan, zoom, move cards, edit text, and tap Fit anytime.',
-      color: '#FFF4B8',
-    }, 342, 142),
-    addCard('plan', fx + 24, fy + 246, {
-      ...PLANS[0],
-      title: 'Today\'s lesson flow',
-      desc: 'Warm-up, presentation, practice, speaking and homework in one phone-sized board.',
-    }, 342, 204),
-    addCard('checklist', fx + 24, fy + 480, {
-      title: 'Class checklist',
-      items: [
-        { text: 'Open with a quick speaking prompt', done: false },
-        { text: 'Use desktop when you need to add new cards', done: false },
-        { text: 'Send board as homework when ready', done: false },
-      ],
-    }, 342, 188),
-    addCard('text', fx + 24, fy + 702, {
-      text: 'Tip: Phone boards work best as a focused vertical lesson strip. Use desktop for huge mind maps.',
-      bgColor: 'rgba(200,230,50,.16)',
-      textColor: '#1C1C1E',
-      fontSize: 18,
-    }, 342, 92),
-  ].filter(Boolean);
-  if (frame) {
-    frame.z = 0;
-    frame.data.childIds = children.map(c => c.id);
-    applyCardLayer && applyCardLayer(frame);
-    children.forEach((child, index) => {
-      child.data.parentFrame = frame.id;
-      child.z = index + 2;
-      applyCardLayer && applyCardLayer(child);
-    });
-  }
-  if (children[0] && children[1]) {
-    state.arrows.push({ id:'a'+(state.nextId++), fromCard:children[0].id, fromAnchor:'bottom', toCard:children[1].id, toAnchor:'top' });
-  }
-  renderAllArrows();
-  scheduleSave();
-  setTimeout(() => { try { zoomToCard(frame?.id || children[0]?.id, false); } catch {} }, 70);
-}
-if (!loaded && !_welcomeSeen) {
-  // Welcome board - only on a fresh user, never re-seeded after "Clear board"
-  if (isBoardPhone()) {
-    seedMobileWelcomeBoard();
-  } else {
-    addCard('sticky',  80,  40, { text:'👋 Welcome!\n\nPress L for the lesson library, or right-click anywhere to add a card.', color:'#FFF9C4' }, 230, 130);
-    addCard('plan',   380,  40, { ...PLANS[0] });
-    addCard('student',380, 280, { ...STUDENTS[0] });
-    addCard('note',   680,  40, { ...NOTES[0] });
-    // Auto-connect plan → student
-    const pid = state.cards[1].id, sid = state.cards[2].id;
-    state.arrows.push({ id:'a'+(state.nextId++), fromCard:pid, fromAnchor:'bottom', toCard:sid, toAnchor:'top' });
-    renderAllArrows();
-    scheduleSave();
-  }
-  try { localStorage.setItem(WELCOME_KEY, '1'); } catch {}
-}
+// Fresh boards stay empty. The empty state presents the first real actions instead of demo content.
 // On phones, auto-fit all cards into view on first paint so users see content
 // instead of an off-canvas blank corner.
 if (isBoardPhone() && state.cards.length) {
