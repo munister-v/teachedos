@@ -3015,6 +3015,7 @@ function renderWorksheet(el, card) {
           <b class="ws-level-now">${d._levelBusy ? '…' : esc(String(d.level || 'B1'))}</b>
           <button class="ws-btn ws-level-btn" ${d._levelBusy ? 'disabled' : ''} onclick="regenerateWorksheetAtLevel('${card.id}',1)" aria-label="One level harder">+</button>
         </span>` : ''}
+        ${_wsLevelOrigin(card) ? `<button class="ws-btn" ${d._itemBusy ? 'disabled' : ''} onclick="regenerateWorksheetItem('${card.id}')" title="Replace one question, word or lesson card">${d._itemBusy ? '…' : '↻ Replace'}</button>` : ''}
         ${_wsHasInteractive(d) ? `<button class="ws-btn ws-play-btn" onclick="activateWorksheet('${card.id}')" title="Students can interact with this worksheet">▶ Play</button>` : ''}
         ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
@@ -10556,6 +10557,60 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
   }
 }
 
+/* Replace one weak item without disturbing the rest of the generated block.
+   Asking for a number is intentional: it keeps this compact on a dense board
+   and works for questions, vocabulary and lesson-stage cards alike. The model
+   receives the existing item as a brief, so the replacement keeps the same
+   teaching purpose while using fresh wording and evidence from the source. */
+async function regenerateWorksheetItem(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card?.data) return;
+  const d = card.data;
+  const org = _wsLevelOrigin(card);
+  if (!org) {
+    toast('This block does not remember its source. Open its tool to rebuild it.', 'error');
+    return;
+  }
+  const key = Array.isArray(d.questions) ? 'questions'
+    : Array.isArray(d.items) ? 'items'
+      : Array.isArray(d.cards) ? 'cards' : '';
+  const list = key ? d[key] : null;
+  if (!list?.length) return;
+  const raw = prompt(`Replace which ${key === 'questions' ? 'question' : key === 'items' ? 'word' : 'lesson card'}?`, '1');
+  if (raw == null) return;
+  const index = Number.parseInt(raw, 10) - 1;
+  if (!Number.isInteger(index) || index < 0 || index >= list.length) {
+    toast(`Enter a number from 1 to ${list.length}.`, 'error');
+    return;
+  }
+  if (d._itemBusy) return;
+  d._itemBusy = true;
+  reRenderCard(card);
+  const existing = JSON.stringify(list[index]).slice(0, 1200);
+  try {
+    const out = await requestServerTeacherTool({
+      tool: { id: org.toolId }, level: d.level || org.level, count: 1, topic: org.topic, source: org.source,
+      extra: `Replace one existing ${key.slice(0, -1)}. Keep the same teaching purpose and level, but make it specific, fresh and source-grounded. Existing item: ${existing}`,
+    }, 35000);
+    const replacement = out?.[key]?.[0];
+    if (!replacement) {
+      toast('No usable replacement came back. The original item is unchanged.', 'error');
+      return;
+    }
+    snapshot();
+    d[key][index] = replacement;
+    if (out.quality) d._quality = out.quality;
+    toast(`Replaced ${key === 'questions' ? 'question' : key === 'items' ? 'word' : 'card'} ${index + 1}.`);
+  } catch {
+    toast('Could not replace this item right now.', 'error');
+  } finally {
+    d._itemBusy = false;
+    reRenderCard(card);
+    _wsFitToContent(card.id, { shrink: true });
+    scheduleSave?.(); saveLocal?.();
+  }
+}
+
 /* Пересборка кадра его же геометрией - после того как один блок изменился в
    размере. Отдельная обёртка, потому что вызывать это приходится из мест, у
    которых нет под рукой параметров постановки. */
@@ -13204,7 +13259,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '455';
+const TEACHEDOS_ASSET_VERSION = '456';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
