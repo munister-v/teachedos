@@ -1728,9 +1728,15 @@ html,html.auth-ready{
   opacity:1!important;
   scroll-behavior:auto!important;
 }
-*:not(#lp-auth):not(#lp-auth *),
-*:not(#lp-auth):not(#lp-auth *)::before,
-*:not(#lp-auth):not(#lp-auth *)::after{
+/* Исключение писалось под модалку #lp-auth. Её потом пересобрали в общий
+   #auth-overlay/.auth-card, id исчез, исключение перестало совпадать — и этот
+   рубильник начал глушить саму форму входа: поля появляются анимацией, а с
+   animation:none!important они навсегда остаются на opacity:0. Пользователь
+   видел карточку без полей ввода, без тени и без размытия фона.
+   Исключаем по классу оверлея, а не по id: класс переживает переименования. */
+*:not(#lp-auth):not(#lp-auth *):not(.auth-overlay):not(.auth-overlay *),
+*:not(#lp-auth):not(#lp-auth *):not(.auth-overlay):not(.auth-overlay *)::before,
+*:not(#lp-auth):not(#lp-auth *):not(.auth-overlay):not(.auth-overlay *)::after{
   animation:none!important;
   transition:none!important;
   filter:none!important;
@@ -2695,6 +2701,10 @@ section{scroll-margin-top:64px;}
   opacity:0;
   transform:translateY(8px);
 }
+/* Статическая подстраховка: поле обязано быть видимым и тогда, когда анимация
+   не отработала — отключена настройками системы, глушилкой на странице или
+   просто не запустилась. Форма входа не имеет права зависеть от анимации. */
+#auth-overlay.open .auth-field-wrap{opacity:1;transform:none;}
 #auth-overlay.open .auth-field-wrap{animation:lp-auth-field-in .28s cubic-bezier(.22,.61,.36,1) both;}
 #auth-overlay.open .auth-field-wrap:nth-child(2){animation-delay:.035s;}
 #auth-overlay.open .auth-field-wrap:nth-child(3){animation-delay:.07s;}
