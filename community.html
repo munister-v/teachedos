@@ -149,6 +149,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .publisher-audit-item.block .publisher-audit-mark{background:#fee2e2;color:#991b1b;}
   body .publisher-audit-item.warn .publisher-audit-mark{background:#ffedd5;color:#9a3412;}
   body .publisher-audit-item.ok .publisher-audit-mark{background:#ecfccb;color:#4d7c0f;}
+  body .publisher-form-error{margin:2px 0 10px;color:#a52b20;font-size:11px;font-weight:700;line-height:1.4;}
+  body .publisher-form-error[hidden]{display:none;}
   body .publisher-note{display:flex;gap:7px;align-items:flex-start;margin:10px 1px 0;color:#777765;font-size:11px;line-height:1.42;}
   body .publisher-note-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:16px;border-radius:50%;background:rgba(200,230,50,.28);color:#4e6100;font-size:10px;font-weight:900;}
   body .publisher-success{display:grid;gap:10px;margin-top:14px;padding:14px;border:1px solid rgba(64,112,48,.2);border-radius:16px;background:linear-gradient(135deg,#f5fbe8,#fff);}
@@ -333,7 +335,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
       </div>
       <div class="field">
         <div class="label">Source board</div>
-        <select id="share-board" onchange="updatePublisherPreview()"><option value="">Loading your boards…</option></select>
+        <select id="share-board" onchange="onPublisherBoardChange()"><option value="">Loading your boards…</option></select>
       </div>
       <div class="publisher-scope" id="publisher-scope" hidden>
         <span class="publisher-scope-mark" aria-hidden="true">FR</span>
@@ -341,8 +343,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         <button class="publisher-scope-clear" type="button" onclick="clearPublisherFrame()">Whole board</button>
       </div>
       <div class="field">
-        <div class="label">Lesson title</div>
-        <input id="share-title" placeholder="B1 Speaking: Travel Problems" oninput="updatePublisherPreview()">
+        <div class="label">Lesson title <span aria-hidden="true">*</span></div>
+        <input id="share-title" required aria-required="true" placeholder="B1 Speaking: Travel Problems" oninput="updatePublisherPreview()">
       </div>
       <div class="publisher-meta-fields">
         <div class="field"><div class="label">Level</div><select id="share-level" onchange="updatePublisherPreview()"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div>
@@ -350,10 +352,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         <div class="field"><div class="label">Duration</div><select id="share-duration" onchange="updatePublisherPreview()"><option value="">Not set</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
       </div>
       <div class="field">
-        <div class="label">Description</div>
-        <textarea id="share-desc" placeholder="Shortly explain what is inside this board and how to use it."></textarea>
+        <div class="label">Description <span aria-hidden="true">*</span></div>
+        <textarea id="share-desc" required aria-required="true" placeholder="Say what learners practise and how you use this lesson." oninput="updatePublisherPreview()"></textarea>
       </div>
-      <div class="field"><div class="label">Tags <span style="font-weight:600;text-transform:none;letter-spacing:0">(optional)</span></div><input id="share-tags" placeholder="speaking, grammar"></div>
+      <div class="field"><div class="label">Tags <span style="font-weight:600;text-transform:none;letter-spacing:0">(optional)</span></div><input id="share-tags" placeholder="speaking, grammar" oninput="updatePublisherPreview()"></div>
       <div class="publisher-meta-fields">
         <div class="field"><div class="label">Language</div><select id="share-language" onchange="updatePublisherPreview()"><option value="">Not set</option><option selected>English</option><option>Ukrainian</option><option>Polish</option><option>German</option><option>French</option><option>Spanish</option><option>Other</option></select></div>
         <div class="field"><div class="label">Learners</div><select id="share-audience" onchange="updatePublisherPreview()"><option value="">Any age</option><option>Kids</option><option>Teens</option><option>Adults</option></select></div>
@@ -369,6 +371,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         </div>
         <ul class="publisher-audit-list" id="publisher-audit-list"></ul>
       </div>
+      <p class="publisher-form-error" id="publisher-form-error" role="alert" hidden></p>
       <button class="btn share-publish-btn" id="publish-board-btn" style="width:100%;margin-top:4px" aria-describedby="publisher-note" onclick="publishBoard()">Publish lesson</button>
       <p class="publisher-note" id="publisher-note"><span class="publisher-note-mark" aria-hidden="true">✓</span><span>This publishes a snapshot. Your original board stays private and editable.</span></p>
       <section class="publisher-success" id="publisher-success" hidden aria-live="polite">
@@ -563,7 +566,7 @@ function assignmentToCommunityPost(assignment, dataOverride) {
        -> это «Lesson»; пусто -> опубликована вся доска -> «Space». Локальные
        демо-посты (SAMPLE_POSTS) не задают это поле и по умолчанию считаются
        уроками - это и есть их смысл. */
-    isSpace: !(assignment.sourceFrameId || assignment.source_frame_id || data.sourceFrameId),
+    isSpace: !(assignment.sourceFrameId || assignment.source_frame_id || data.sourceFrameId || data.source_frame_id),
     createdAt: assignment.published_at || assignment.created_at || new Date().toISOString(),
   };
 }
@@ -646,6 +649,118 @@ function getPublisherScopeCards(cards) {
    раздражает сильнее, чем помогает. */
 let publisherCardsCache = { boardId:'', cards:null };
 let publisherAuditState = { blocking:false, ran:false };
+const PUBLISHER_DRAFT_KEY = 'teachedos_community_publisher_draft_v1';
+let publisherFrameBoardId = '';
+let publisherDraftTimer = null;
+let publisherDraftsPaused = false;
+
+function publisherDraftId(boardId = getSelectedPublisherBoard().id) {
+  return boardId ? `${boardId}:${publisherFrameId || 'whole-board'}` : '';
+}
+
+function readPublisherDrafts() {
+  try {
+    const drafts = JSON.parse(localStorage.getItem(PUBLISHER_DRAFT_KEY) || '{}');
+    return drafts && typeof drafts === 'object' && !Array.isArray(drafts) ? drafts : {};
+  } catch {
+    return {};
+  }
+}
+
+function writePublisherDrafts(drafts) {
+  try { localStorage.setItem(PUBLISHER_DRAFT_KEY, JSON.stringify(drafts)); } catch {}
+}
+
+function savePublisherDraft() {
+  const key = publisherDraftId();
+  if (!key) return;
+  const getValue = id => document.getElementById(id)?.value ?? '';
+  const drafts = readPublisherDrafts();
+  drafts[key] = {
+    title: getValue('share-title'),
+    desc: getValue('share-desc'),
+    tags: getValue('share-tags'),
+    level: getValue('share-level'),
+    skill: getValue('share-skill'),
+    duration: getValue('share-duration'),
+    language: getValue('share-language'),
+    audience: getValue('share-audience'),
+    allowCopy: document.getElementById('share-allow-copy')?.checked !== false,
+    includeKeys: document.getElementById('share-include-keys')?.checked !== false,
+  };
+  writePublisherDrafts(drafts);
+}
+
+function schedulePublisherDraft() {
+  if (publisherDraftsPaused) return;
+  clearTimeout(publisherDraftTimer);
+  publisherDraftTimer = setTimeout(savePublisherDraft, 220);
+}
+
+document.addEventListener('input', event => {
+  if (event.target?.matches('#share-title, #share-desc, #share-tags')) schedulePublisherDraft();
+});
+document.addEventListener('change', event => {
+  if (event.target?.matches('#share-level, #share-skill, #share-duration, #share-language, #share-audience, #share-allow-copy, #share-include-keys')) schedulePublisherDraft();
+});
+
+function restorePublisherDraft() {
+  const draft = readPublisherDrafts()[publisherDraftId()];
+  if (!draft) return false;
+  const fields = ['title', 'desc', 'tags', 'level', 'skill', 'duration', 'language', 'audience'];
+  fields.forEach(name => {
+    const field = document.getElementById(`share-${name}`);
+    if (field && Object.prototype.hasOwnProperty.call(draft, name)) field.value = draft[name];
+  });
+  const allowCopy = document.getElementById('share-allow-copy');
+  const includeKeys = document.getElementById('share-include-keys');
+  if (allowCopy && Object.prototype.hasOwnProperty.call(draft, 'allowCopy')) allowCopy.checked = draft.allowCopy !== false;
+  if (includeKeys && Object.prototype.hasOwnProperty.call(draft, 'includeKeys')) includeKeys.checked = draft.includeKeys !== false;
+  return true;
+}
+
+function clearPublisherDraft(boardId = getSelectedPublisherBoard().id) {
+  const key = publisherDraftId(boardId);
+  if (!key) return;
+  const drafts = readPublisherDrafts();
+  delete drafts[key];
+  writePublisherDrafts(drafts);
+}
+
+function setPublisherFormError(message, fieldId) {
+  const messageNode = document.getElementById('publisher-form-error');
+  if (messageNode) { messageNode.textContent = message; messageNode.hidden = false; }
+  const field = fieldId ? document.getElementById(fieldId) : null;
+  if (field) { field.setAttribute('aria-invalid', 'true'); field.focus({ preventScroll:true }); }
+}
+
+function clearPublisherFormError() {
+  const messageNode = document.getElementById('publisher-form-error');
+  if (messageNode) { messageNode.textContent = ''; messageNode.hidden = true; }
+  ['share-title', 'share-desc'].forEach(id => document.getElementById(id)?.removeAttribute('aria-invalid'));
+}
+
+function validatePublisherDetails() {
+  clearPublisherFormError();
+  const title = document.getElementById('share-title')?.value.trim() || '';
+  const description = document.getElementById('share-desc')?.value.trim() || '';
+  if (title.length < 4) {
+    setPublisherFormError('Add a clear lesson title before publishing.', 'share-title');
+    return false;
+  }
+  if (description.length < 20) {
+    setPublisherFormError('Add one short sentence about what learners will practise.', 'share-desc');
+    return false;
+  }
+  return true;
+}
+
+function syncPublisherButton() {
+  const button = document.getElementById('publish-board-btn');
+  if (!button) return;
+  button.disabled = !canPublishCommunityLesson() || publisherAuditState.blocking;
+  button.textContent = publisherFrameId ? 'Publish lesson' : 'Publish Space';
+}
 
 /* Заголовки берутся из карточек доски, то есть из пользовательского текста, и
    уходят в innerHTML списка находок. Без экранирования урок с "<" в названии
@@ -736,27 +851,33 @@ function renderPublisherAudit(findings) {
     <span><b>${publisherEsc(f.title)}</b><small>${publisherEsc(f.detail)}</small></span>
   </li>`).join('');
   publisherAuditState = { blocking, ran:true };
-  const btn = document.getElementById('publish-board-btn');
-  if (btn) btn.disabled = blocking;
+  syncPublisherButton();
 }
 
 async function runPublisherAudit() {
   const { id:boardId } = getSelectedPublisherBoard();
+  const frameId = publisherFrameId;
   const box = document.getElementById('publisher-audit');
-  if (!boardId) { if (box) box.hidden = true; publisherAuditState = { blocking:false, ran:false }; return; }
+  if (!boardId) {
+    if (box) box.hidden = true;
+    publisherAuditState = { blocking:false, ran:false };
+    syncPublisherButton();
+    return;
+  }
   try {
     const cards = await getPublisherCards(boardId);
+    if (boardId !== getSelectedPublisherBoard().id || frameId !== publisherFrameId) return;
     const scoped = getPublisherScopeCards(cards);
     if (!scoped) throw new Error('The selected lesson frame is no longer available.');
     renderPublisherAudit(auditPublisherSnapshot(scoped));
   } catch (error) {
+    if (boardId !== getSelectedPublisherBoard().id || frameId !== publisherFrameId) return;
     // Не удалось проверить — не повод запрещать публикацию: сама публикация
     // грузит доску заново и упадёт с внятной ошибкой, если она правда пропала.
     renderPublisherAudit([{ level:'warn', title:'Could not check the board',
       detail:error?.message || 'Publishing still works — the snapshot is re-read at that point.' }]);
     publisherAuditState = { blocking:false, ran:false };
-    const btn = document.getElementById('publish-board-btn');
-    if (btn) btn.disabled = false;
+    syncPublisherButton();
   }
 }
 
@@ -790,8 +911,10 @@ async function loadPublisherFrameMeta(boardId) {
 function clearPublisherFrame() {
   publisherFrameId = '';
   publisherFrameMeta = null;
+  publisherFrameBoardId = '';
   const scope = document.getElementById('publisher-scope');
   if (scope) scope.hidden = true;
+  restorePublisherDraft();
   updatePublisherPreview();
 }
 
@@ -817,7 +940,9 @@ function copyPublisherSuccessLink() {
 function resetPublisherSuccess() {
   const panel = document.getElementById('publisher-success');
   if (panel) panel.hidden = true;
+  clearPublisherDraft();
   ['share-title','share-desc','share-tags'].forEach(id => { const field = document.getElementById(id); if (field) field.value = ''; });
+  clearPublisherFormError();
   updatePublisherPreview();
   document.getElementById('share-title')?.focus({ preventScroll:true });
 }
@@ -880,11 +1005,28 @@ function updatePublisherAvailability() {
   const allowed = canPublishCommunityLesson();
   const button = document.getElementById('publish-board-btn');
   const note = document.getElementById('publisher-note')?.lastElementChild;
-  if (button) button.disabled = !allowed;
+  if (button) button.disabled = !allowed || publisherAuditState.blocking;
   if (note) note.textContent = allowed
     ? 'This publishes a snapshot. Your original board stays private and editable.'
     : (token ? 'Only teacher accounts can publish lessons to Community.' : 'Sign in as a teacher to publish a lesson to Community.');
   return allowed;
+}
+
+function onPublisherBoardChange() {
+  const { id:boardId, name } = getSelectedPublisherBoard();
+  if (publisherFrameId && publisherFrameBoardId && boardId !== publisherFrameBoardId) {
+    publisherFrameId = '';
+    publisherFrameMeta = null;
+    publisherFrameBoardId = '';
+    const scope = document.getElementById('publisher-scope');
+    if (scope) scope.hidden = true;
+  }
+  publisherCardsCache = { boardId:'', cards:null };
+  const restored = restorePublisherDraft();
+  const title = document.getElementById('share-title');
+  if (!restored && title && !title.value.trim() && name) title.value = name;
+  clearPublisherFormError();
+  updatePublisherPreview();
 }
 
 // ── Load boards list from API ──────────────────────────────────
@@ -920,7 +1062,7 @@ async function loadBoards() {
   openCommunityPublisherFromBoard();
 }
 
-function openCommunityPublisherFromBoard() {
+async function openCommunityPublisherFromBoard() {
   const boardId = new URLSearchParams(location.search).get('publishBoard');
   if (!boardId) return;
   const sel = document.getElementById('share-board');
@@ -930,10 +1072,16 @@ function openCommunityPublisherFromBoard() {
     return;
   }
   sel.value = boardId;
+  publisherFrameBoardId = publisherFrameId ? boardId : '';
   const title = document.getElementById('share-title');
   if (title && !title.value.trim()) title.value = publisherFrameMeta?.title || option.dataset.name || option.textContent.split(' · ')[0];
+  clearTimeout(publisherDraftTimer);
+  publisherDraftsPaused = true;
   updatePublisherPreview();
-  loadPublisherFrameMeta(boardId);
+  await loadPublisherFrameMeta(boardId);
+  restorePublisherDraft();
+  publisherDraftsPaused = false;
+  updatePublisherPreview();
   focusCommunityPublisher();
   history.replaceState({}, '', location.pathname);
 }
@@ -955,8 +1103,9 @@ async function publishBoard() {
     if (!canPublishCommunityLesson()) { toast(token ? 'Teacher account required to publish' : 'Sign in as a teacher to publish'); return; }
     const { id:boardId, name:selectedName } = getSelectedPublisherBoard();
     if (!boardId) { toast('Choose a board to publish first'); return; }
-    const title = document.getElementById('share-title').value.trim() || publisherFrameMeta?.title || selectedName || 'Untitled';
-    const desc  = document.getElementById('share-desc').value.trim() || 'Ready-to-use board from TeachEd.';
+    if (!validatePublisherDetails()) return;
+    const title = document.getElementById('share-title').value.trim();
+    const desc  = document.getElementById('share-desc').value.trim();
     const level = document.getElementById('share-level').value;
     const skill = document.getElementById('share-skill').value;
     const duration = Number(document.getElementById('share-duration').value) || null;
@@ -1033,6 +1182,9 @@ async function publishBoard() {
            секунду показать себя «Space» до следующей перезагрузки ленты. */
         sourceFrameId:publisherFrameId || null,
         duration,
+        language,
+        audience,
+        allowCopy,
         snapshot,
       });
       _serverCommunityLessons = [publishedPost, ..._serverCommunityLessons.filter(item => item.serverId !== publishedPost.serverId)];
@@ -1045,11 +1197,12 @@ async function publishBoard() {
     const link = buildShareLink(publishedPost);
     navigator.clipboard?.writeText(link).catch(()=>{});
     showPublisherSuccess(publishedPost, link);
+    clearPublisherDraft(boardId);
     toast(token ? '✓ Published to Community - lesson link copied' : '✓ Saved on this device - sign in to publish it for teachers');
   } catch (error) {
     toast(error?.message || 'Could not publish this lesson');
   } finally {
-    if (publishBtn) { publishBtn.disabled = !canPublishCommunityLesson(); publishBtn.textContent = 'Publish lesson'; }
+    syncPublisherButton();
   }
 }
 
@@ -1070,6 +1223,9 @@ function buildLessonUrl(post) {
     level: post.level,
     skill: post.skill,
     duration: post.duration,
+    language: post.language || '',
+    audience: post.audience || '',
+    allowCopy: post.allowCopy !== false,
     tags: post.tags || [],
     author: post.author,
     createdAt: post.createdAt,

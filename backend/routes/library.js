@@ -35,6 +35,10 @@ function normalizeCommunityBoardData(raw, title) {
       snapshot_version: Math.max(1, Math.floor(Number(raw.snapshot_version) || 1)),
       source_board_id: clip(raw.source_board_id || raw.sourceBoardId, 64) || null,
       source_board_name: clip(raw.source_board_name || raw.sourceBoardName, 255) || null,
+      // A non-empty frame means the author published one lesson from a board.
+      // Keep it beside the source board id so list views can distinguish a
+      // Lesson from a whole-board Space after a reload.
+      source_frame_id: clip(raw.source_frame_id || raw.sourceFrameId, 64) || null,
       duration: Number.isFinite(rawDuration) && rawDuration > 0 && rawDuration <= 600 ? Math.round(rawDuration) : null,
       /* Это белый список: всё, чего здесь нет, до базы не доезжает. Поля
          публикации приходится заводить и тут, иначе форма их спрашивает, а
@@ -85,10 +89,8 @@ router.get('/community', optionalAuth, async (req, res) => {
     if (level)                        { params.push(level);  where += ` AND a.level = $${params.length}`; }
     if (skill)                        { params.push(skill);  where += ` AND a.skill = $${params.length}`; }
     if (q && q.trim())                { params.push(`%${q.trim()}%`); where += ` AND (a.title ILIKE $${params.length} OR a.description ILIKE $${params.length})`; }
-    /* Публикация помнит, был ли выбран кадр урока при отправке (поле
-       sourceFrameId в publishBoard() на community.html): пусто - опубликована
-       вся доска целиком ("Space"), заполнено - один кадр ("Lesson"). Значение
-       нужно клиенту, чтобы подписать карточку в ленте тем или иным словом. */
+    /* A selected frame means one Lesson; an empty value means a whole-board
+       Space. The camelCase fallback keeps older published records readable. */
     const { rows } = await pool.query(
       `SELECT a.id, a.kind, a.title, a.description, a.level, a.skill, a.tags,
               (a.image IS NOT NULL) AS has_image, a.clone_count, a.published_at,
@@ -97,7 +99,8 @@ router.get('/community', optionalAuth, async (req, res) => {
                    ELSE 0 END AS card_count,
               NULLIF(a.data->>'duration', '') AS duration,
               NULLIF(a.data->>'snapshot_version', '') AS snapshot_version,
-              (a.data->>'sourceFrameId') AS source_frame_id,
+              COALESCE(NULLIF(a.data->>'source_frame_id', ''),
+                       NULLIF(a.data->>'sourceFrameId', '')) AS source_frame_id,
               u.name AS author_name, u.avatar AS author_avatar
        FROM assignments a JOIN users u ON u.id = a.user_id
        WHERE ${where}
@@ -126,7 +129,9 @@ router.get('/by-board/:boardId', optionalAuth, async (req, res) => {
     if (!UUID_RE.test(String(req.params.boardId || ''))) return res.status(404).json({ error: 'Not found' });
     const { rows } = await pool.query(
       `SELECT id FROM assignments
-       WHERE visibility = 'community' AND data->>'source_board_id' = $1
+       WHERE visibility = 'community'
+         AND COALESCE(NULLIF(data->>'source_board_id', ''),
+                      NULLIF(data->>'sourceBoardId', '')) = $1
        ORDER BY published_at DESC NULLS LAST LIMIT 1`,
       [req.params.boardId]
     );
@@ -214,6 +219,12 @@ router.post('/', async (req, res) => {
     }
     let data = b.data || {};
     if (visibility === 'community' && kind === 'board') {
+      if (clip(b.title, 255).length < 4) {
+        return res.status(400).json({ error: 'Add a clear lesson title before publishing' });
+      }
+      if (clip(b.description, 2000).length < 20) {
+        return res.status(400).json({ error: 'Add a short description of what learners will practise' });
+      }
       const normalized = normalizeCommunityBoardData(data, b.title);
       if (normalized.error) return res.status(400).json({ error: normalized.error });
       data = normalized.value;
