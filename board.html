@@ -16,7 +16,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=470">
+<link rel="stylesheet" href="styles/board.css?v=472">
 <link rel="stylesheet" href="styles/auth.css?v=470">
 <link rel="stylesheet" href="styles/mobile.css?v=470">
 <link rel="stylesheet" href="styles/harmony.css?v=470">
@@ -127,11 +127,8 @@
   outline-offset:2px!important;
 }
 @media (max-width:860px){
-  #miro-toolbar{width:52px!important;}
-  #board-wrap{left:52px!important;background-size:26px 26px!important;}
   .mt-btn{width:44px!important;height:44px!important;}
   #board .card-frame .frame-title{max-width:calc(100vw - 80px)!important;overflow:hidden;text-overflow:ellipsis;}
-  body.board-phone-shell #mq-pen{display:none!important;}
 }
 @media (prefers-reduced-motion:reduce){
   #board .board-card,
@@ -282,6 +279,7 @@
 <symbol id="bi-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="17.5" cy="6" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18" r="2.5"/><path d="M8.8 10.8l6.4-3.5M8.8 13.2l6.4 3.5"/></symbol>
 <symbol id="bi-fit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4.5h4.5M20 9V4.5h-4.5M4 15v4.5h4.5M20 15v4.5h-4.5"/></symbol>
 <symbol id="bi-cursor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 7-5.2 1.6L10 19z"/></symbol>
+<symbol id="bi-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19l3.8-.9L19 7.9a2.1 2.1 0 0 0-3-3L5.9 15.1z"/><path d="M13.8 7.1l3 3"/></symbol>
 <symbol id="bi-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/></symbol>
 <symbol id="bi-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.6h16M9.3 4v16M14.6 4v16"/></symbol>
 <symbol id="bi-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a8 8 0 1 0 0 16c1.2 0 1.8-.8 1.8-1.6 0-1.4-1.4-1.6-1.4-2.8 0-.9.7-1.6 1.6-1.6H16a4 4 0 0 0 4-4c0-3.3-3.6-6-8-6z"/><circle cx="8.5" cy="10.5" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="15.5" cy="10.5" r="1"/></symbol>
@@ -494,11 +492,11 @@
       </span>
     </div>
     <div class="user-menu-item" id="more-teacher-tools" onclick="openToolsSidebar();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-tools"/></svg>Teacher tools</div>
-    <div class="user-menu-item" onclick="openSharePanel();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-share"/></svg>Share board</div>
+    <div class="user-menu-item" id="more-share-board" onclick="openSharePanel();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-share"/></svg>Share board</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <div class="user-menu-item mobile-board-action" onclick="document.getElementById('btn-fit').click();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-fit"/></svg>Fit to screen</div>
     <div class="user-menu-item mobile-board-action" onclick="resetBoardPointer&&resetBoardPointer(true);toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-cursor"/></svg>Reset tool</div>
-    <div class="user-menu-item mobile-board-action" onclick="toggleDrawTool&&toggleDrawTool('pen');toggleMoreMenu()"><span class="umi-ic" aria-hidden="true">✎</span>Pen</div>
+    <div class="user-menu-item mobile-board-action mobile-board-action-duplicate" onclick="toggleDrawTool&&toggleDrawTool('pen');toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-pen"/></svg>Pen</div>
     <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-search"/></svg>Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:monospace;">Ctrl+F</span></div>
     <div class="user-menu-item" onclick="toggleSnap();toggleMoreMenu()" id="snap-menu-item"><svg class="umi-ic" aria-hidden="true"><use href="#bi-grid"/></svg>Snap to grid</div>
     <div class="user-menu-item" id="more-bg" onclick="openBgModal();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-palette"/></svg>Background</div>
@@ -523,15 +521,11 @@
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a5 5 0 1 1 .5 4"/><path d="M3 3v4h4"/></svg>
     <span>Undo</span>
   </button>
-  <button class="mq-btn ghost" type="button" onclick="document.getElementById('btn-fit').click()" aria-label="Fit board to screen">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
-    <span>Fit</span>
-  </button>
   <button class="mq-btn active" type="button" id="mq-select" onclick="typeof resetBoardPointer==='function'&&resetBoardPointer(true)" aria-label="Select tool" title="Select tool">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2l7 11 1-5 4-2z"/></svg>
     <span>Select</span>
   </button>
-  <button class="mq-btn primary" type="button" onclick="openMobileAddSheet()" aria-label="Add a card">
+  <button class="mq-btn primary" type="button" id="mq-add" onclick="openMobileAddSheet()" aria-label="Add a card" aria-haspopup="dialog" aria-expanded="false">
     <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
     <span>Add</span>
   </button>
@@ -546,15 +540,30 @@
 </div>
 
 <!-- Mobile Add action sheet: shown when tapping the primary + button -->
-<div id="mq-add-sheet" class="mq-add-sheet" role="dialog" aria-hidden="true">
+<div id="mq-add-sheet" class="mq-add-sheet" role="dialog" aria-modal="true" aria-labelledby="mq-add-title" aria-hidden="true" tabindex="-1">
+  <div class="mq-add-sheet-head">
+    <div>
+      <p class="mq-add-kicker">Add to board</p>
+      <h2 id="mq-add-title">Choose a block</h2>
+    </div>
+    <button class="mq-sheet-close" type="button" onclick="closeMobileAddSheet()" aria-label="Close add menu">
+      <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
   <div class="mq-add-grid">
     <button class="mq-add-tile" onclick="_mqAdd('sticky')">  <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-sticky"/></svg></span><span>Sticky</span></button>
     <button class="mq-add-tile" onclick="_mqAdd('text')">    <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-text"/></svg></span><span>Text</span></button>
-    <button class="mq-add-tile" onclick="_mqAdd('shape')">   <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-shape"/></svg></span><span>Shape</span></button>
     <button class="mq-add-tile" onclick="_mqAdd('frame')">   <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-frame"/></svg></span><span>Frame</span></button>
+    <button class="mq-add-tile" onclick="_mqAdd('lessons')"> <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-library"/></svg></span><span>Library</span></button>
+  </div>
+  <button class="mq-add-secondary-toggle" type="button" id="mq-add-secondary-toggle" onclick="toggleMobileAddExtras()" aria-expanded="false" aria-controls="mq-add-secondary">
+    <span>More card types</span>
+    <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+  </button>
+  <div class="mq-add-grid mq-add-secondary" id="mq-add-secondary" hidden>
+    <button class="mq-add-tile" onclick="_mqAdd('shape')">   <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-shape"/></svg></span><span>Shape</span></button>
     <button class="mq-add-tile" onclick="_mqAdd('connect')"> <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-arrow"/></svg></span><span>Arrow</span></button>
     <button class="mq-add-tile" onclick="_mqAdd('sticker')"> <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-sticker"/></svg></span><span>Sticker</span></button>
-    <button class="mq-add-tile" onclick="_mqAdd('lessons')"> <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-library"/></svg></span><span>Library</span></button>
     <button class="mq-add-tile" onclick="_mqAdd('comment')"> <span class="mqa-ic"><svg aria-hidden="true"><use href="#bi-comment"/></svg></span><span>Comment</span></button>
   </div>
 </div>
@@ -2006,7 +2015,7 @@ window.TEACHED_AUTH_CONFIG = {
 <script src="scripts/auth-modal.js?v=470"></script>
 <script src="js/teacher-tools-data.js?v=470"></script>
 <script src="scripts/tt-text-core.js?v=471"></script>
-<script src="scripts/board-app.js?v=471"></script>
+<script src="scripts/board-app.js?v=472"></script>
 <script src="js/board-vocab.js?v=470"></script>
 <script src="js/board-reveal.js?v=470"></script>
 <script src="js/teacher-tool-board-composer.js?v=470"></script>

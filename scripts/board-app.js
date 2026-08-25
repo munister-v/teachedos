@@ -7213,22 +7213,43 @@ function resetBoardPointer(announce = false) {
 }
 
 /* ─── Mobile Add action sheet ─── */
+let _mobileAddTrigger = null;
 function openMobileAddSheet() {
   const sheet = document.getElementById('mq-add-sheet');
   if (!sheet) return;
+  _mobileAddTrigger = document.getElementById('mq-add');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
   document.body.classList.add('mq-sheet-open');
+  document.getElementById('mq-add')?.setAttribute('aria-expanded', 'true');
+  requestAnimationFrame(() => sheet.querySelector('.mq-add-tile')?.focus());
 }
-function closeMobileAddSheet() {
+function closeMobileAddSheet(restoreFocus = true) {
   const sheet = document.getElementById('mq-add-sheet');
   if (!sheet) return;
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('mq-sheet-open');
+  document.getElementById('mq-add')?.setAttribute('aria-expanded', 'false');
+  const extra = document.getElementById('mq-add-secondary');
+  const extraToggle = document.getElementById('mq-add-secondary-toggle');
+  if (extra) extra.hidden = true;
+  if (extraToggle) extraToggle.setAttribute('aria-expanded', 'false');
+  if (restoreFocus && _mobileAddTrigger?.isConnected) {
+    requestAnimationFrame(() => _mobileAddTrigger.focus());
+  }
+  _mobileAddTrigger = null;
+}
+function toggleMobileAddExtras() {
+  const extra = document.getElementById('mq-add-secondary');
+  const trigger = document.getElementById('mq-add-secondary-toggle');
+  if (!extra || !trigger) return;
+  const opening = extra.hidden;
+  extra.hidden = !opening;
+  trigger.setAttribute('aria-expanded', String(opening));
 }
 function _mqAdd(action) {
-  closeMobileAddSheet();
+  closeMobileAddSheet(false);
   // Defer slightly so the sheet animates out before the new card lands
   setTimeout(() => {
     if (action === 'sticky' || action === 'text' || action === 'shape') {
@@ -7252,6 +7273,12 @@ document.addEventListener('click', e => {
   if (!document.body.classList.contains('mq-sheet-open')) return;
   if (e.target.closest('#mq-add-sheet, #mobile-quickbar')) return;
   closeMobileAddSheet();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.body.classList.contains('mq-sheet-open')) {
+    e.preventDefault();
+    closeMobileAddSheet();
+  }
 });
 
 /* ─── Comments layer toggle (bottom-right zoom cluster) ─── */

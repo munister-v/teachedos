@@ -5886,3 +5886,181 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .vimg-opt:hover{border-color:var(--accent);}
 .vimg-none{grid-column:1/-1;aspect-ratio:auto;padding:7px;font:800 10px/1 var(--font);color:#6E6E5C;}
 .vimg-none:hover{color:var(--accent-text);}
+
+/* Mobile Board has one navigation pattern: a compact header for context and
+   sharing, then a five-action dock for editing. This deliberately overrides
+   older phone rules which kept desktop controls and duplicate actions alive. */
+@media(max-width:860px){
+  body.board-phone-shell{
+    --phone-toolbar-h:56px;
+    --phone-dock-h:74px;
+  }
+
+  body.board-phone-shell #toolbar{
+    gap:6px!important;
+    padding:calc(env(safe-area-inset-top,0px) + 6px) 8px 6px!important;
+  }
+  body.board-phone-shell #tb-hamburger,
+  body.board-phone-shell .tb-board-chip-menu,
+  body.board-phone-shell #auth-chip,
+  body.board-phone-shell #auth-login-btn{
+    display:none!important;
+  }
+  body.board-phone-shell .tb-logo{
+    flex:0 0 38px;
+    width:38px!important;
+    height:38px!important;
+    border-radius:12px!important;
+  }
+  body.board-phone-shell .tb-board-chip{
+    flex:1 1 auto!important;
+    min-width:0!important;
+    height:40px!important;
+    border-radius:13px!important;
+  }
+  body.board-phone-shell .tb-board-chip-title{
+    height:38px!important;
+    max-width:100%!important;
+    padding:0 11px!important;
+    font-size:14px!important;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  body.board-phone-shell #btn-share{
+    display:grid!important;
+    place-items:center;
+    flex:0 0 40px;
+    width:40px!important;
+    min-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0!important;
+    border-radius:13px!important;
+    background:#1C1C1E!important;
+    color:#CDF24F!important;
+    box-shadow:0 6px 16px rgba(28,28,30,.16)!important;
+  }
+  body.board-phone-shell #btn-share span{display:none!important;}
+  body.board-phone-shell #btn-share .tb-share-icon{
+    width:18px!important;
+    height:18px!important;
+    margin:0!important;
+  }
+  body.board-phone-shell #btn-more{
+    display:grid!important;
+    place-items:center;
+    flex:0 0 40px;
+    width:40px!important;
+    min-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0!important;
+    border-radius:13px!important;
+    background:#fff!important;
+    border:1px solid rgba(94,94,74,.12)!important;
+  }
+
+  /* The instructional pill duplicated the interaction vocabulary and covered
+     material at the top of a small canvas. The dock already shows the active
+     tool, so the canvas can remain visually quiet. */
+  body.board-phone-shell #board-wrap::after{display:none!important;}
+
+  body.board-phone-shell #mobile-quickbar{
+    min-height:56px;
+    padding:5px!important;
+    gap:4px!important;
+    border-radius:20px!important;
+  }
+  body.board-phone-shell .mq-btn{
+    height:46px!important;
+    min-width:0!important;
+    padding:4px 2px!important;
+    border-radius:14px!important;
+    font-size:10px!important;
+  }
+  body.board-phone-shell .mq-btn.primary{
+    background:#1C1C1E!important;
+    color:#CDF24F!important;
+  }
+  body.board-phone-shell #more-share-board,
+  body.board-phone-shell #more-menu .mobile-board-action-duplicate{
+    display:none!important;
+  }
+
+  body.board-phone-shell .mq-add-sheet{
+    max-height:min(76dvh,560px);
+    overflow-y:auto;
+    padding:17px 16px calc(18px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.board-phone-shell .mq-add-sheet-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin:0 0 14px;
+  }
+  body.board-phone-shell .mq-add-kicker{
+    margin:0 0 4px;
+    color:#7A786B;
+    font:700 10px/1 var(--mono,monospace);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+  }
+  body.board-phone-shell .mq-add-sheet h2{
+    margin:0;
+    color:#1C1C1E;
+    font:700 18px/1.1 var(--font,system-ui,sans-serif);
+    letter-spacing:-.025em;
+  }
+  body.board-phone-shell .mq-sheet-close{
+    display:grid;
+    place-items:center;
+    flex:0 0 40px;
+    width:40px;
+    height:40px;
+    padding:0;
+    border:1px solid rgba(94,94,74,.12);
+    border-radius:13px;
+    background:#fff;
+    color:#3A3A2E;
+    cursor:pointer;
+  }
+  body.board-phone-shell .mq-sheet-close svg{width:17px;height:17px;}
+  body.board-phone-shell .mq-add-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+  body.board-phone-shell .mq-add-tile{
+    min-height:60px;
+    padding:11px;
+    border-radius:15px;
+    font-size:13px;
+  }
+  body.board-phone-shell .mq-add-secondary-toggle{
+    width:100%;
+    min-height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:11px;
+    padding:0 13px;
+    border:1px solid rgba(94,94,74,.12);
+    border-radius:14px;
+    background:rgba(94,94,74,.05);
+    color:#3A3A2E;
+    font:650 13px/1 var(--font,system-ui,sans-serif);
+    cursor:pointer;
+  }
+  body.board-phone-shell .mq-add-secondary-toggle svg{
+    width:16px;
+    height:16px;
+    transition:transform .16s ease;
+  }
+  body.board-phone-shell .mq-add-secondary-toggle[aria-expanded="true"] svg{transform:rotate(180deg);}
+  body.board-phone-shell .mq-add-secondary[hidden]{display:none!important;}
+  body.board-phone-shell .mq-add-secondary:not([hidden]){
+    display:grid;
+    margin-top:9px;
+  }
+}
