@@ -110,10 +110,12 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .lesson-preview-level{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:3px 8px;border-radius:999px;background:#C8E632;color:#1C1C1E;font:900 10px var(--mono);letter-spacing:.05em;}
   body .lesson-preview-title{max-width:92%;margin-top:15px;font-size:20px;font-weight:750;line-height:1.05;letter-spacing:-.04em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
   body .lesson-preview-meta{min-height:17px;margin-top:7px;color:rgba(255,255,255,.74);font:650 10px var(--mono);letter-spacing:.025em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  body .lesson-preview-canvas{display:grid;grid-template-columns:1.35fr .9fr .7fr;gap:5px;height:31px;margin-top:16px;}
-  body .lesson-preview-card{display:block;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:rgba(255,255,255,.15);box-shadow:0 1px 0 rgba(255,255,255,.16) inset;}
-  body .lesson-preview-card:nth-child(2){background:rgba(200,230,50,.65);}
-  body .lesson-preview-card:nth-child(3){background:rgba(255,255,255,.28);}
+  body .lesson-preview-canvas{position:relative;height:46px;margin-top:15px;overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(255,255,255,.055);}
+  body .lesson-preview-canvas.is-loading::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 15%,rgba(255,255,255,.16) 45%,transparent 75%);transform:translateX(-100%);animation:publisher-preview-shimmer 1.2s ease-in-out infinite;}
+  body .publisher-preview-map{position:absolute;inset:5px;}
+  body .publisher-preview-node{position:absolute;border:1px solid rgba(255,255,255,.28);border-radius:4px;background:rgba(255,255,255,.15);box-shadow:0 1px 0 rgba(255,255,255,.14) inset;}
+  body .publisher-preview-placeholder{position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.58);font:750 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;}
+  @keyframes publisher-preview-shimmer{to{transform:translateX(100%);}}
   body .publisher-meta-fields{display:grid;grid-template-columns:.75fr 1.2fr .9fr;gap:10px;}
   /* Правило ниже весит два селектора и перебивает [hidden]: без явного
      сброса блок «выбранный кадр» оставался на экране даже скрытым. */
@@ -132,6 +134,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
   body .publisher-toggle span{display:grid;gap:2px;min-width:0;}
   body .publisher-toggle strong{color:#25251f;font-size:11.5px;line-height:1.25;}
   body .publisher-toggle small{color:#6E6E60;font-size:10px;line-height:1.4;}
+  body .publisher-visibility-hint{margin:1px 1px 0;color:#747465;font-size:10.5px;line-height:1.42;}
   /* Тот же приём, что и у .publisher-scope выше: правило в два селектора
      иначе перебивает [hidden] и пустой аудит остаётся на экране. */
   body .publisher-audit[hidden]{display:none;}
@@ -226,6 +229,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .share-card input,body .share-card select{min-height:46px!important;font-size:16px!important;}
     body .share-card textarea{min-height:104px!important;font-size:16px!important;}
     body .lesson-preview{min-height:158px!important;}
+    body .lesson-preview-canvas{height:50px!important;}
     body .publisher-meta-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
     body .publisher-meta-fields .field:last-child{grid-column:1/-1;}
     body .share-publish-btn{min-height:48px!important;}
@@ -322,15 +326,15 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     <aside class="share-card" aria-labelledby="publisher-heading">
       <div class="share-title" id="publisher-heading">Publish a lesson</div>
       <p class="publisher-intro" id="publisher-intro">Share a clean, copyable lesson snapshot with other teachers.</p>
-      <div class="lesson-preview" aria-label="Auto-generated lesson cover preview">
+      <div class="lesson-preview" aria-label="Lesson card preview">
         <div class="lesson-preview-top">
           <span class="lesson-preview-kicker" id="lesson-preview-kicker">Community lesson</span>
           <span class="lesson-preview-level" id="share-preview-level">B1</span>
         </div>
         <div class="lesson-preview-title" id="share-preview-title">Your lesson title</div>
         <div class="lesson-preview-meta" id="share-preview-meta">Choose a board to start</div>
-        <div class="lesson-preview-canvas" aria-hidden="true">
-          <span class="lesson-preview-card"></span><span class="lesson-preview-card"></span><span class="lesson-preview-card"></span>
+        <div class="lesson-preview-canvas is-loading" id="publisher-preview-canvas" aria-hidden="true">
+          <span class="publisher-preview-placeholder">Board layout</span>
         </div>
       </div>
       <div class="field">
@@ -355,6 +359,14 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         <div class="label">Description <span aria-hidden="true">*</span></div>
         <textarea id="share-desc" required aria-required="true" placeholder="Say what learners practise and how you use this lesson." oninput="updatePublisherPreview()"></textarea>
       </div>
+      <div class="field">
+        <div class="label">Share with</div>
+        <select id="share-visibility" onchange="updatePublisherPreview()">
+          <option value="community">TeachEd Community</option>
+          <option value="unlisted">Anyone with the link</option>
+        </select>
+        <p class="publisher-visibility-hint" id="share-visibility-hint">Teachers can discover this lesson in Community and open its public link.</p>
+      </div>
       <div class="field"><div class="label">Tags <span style="font-weight:600;text-transform:none;letter-spacing:0">(optional)</span></div><input id="share-tags" placeholder="speaking, grammar" oninput="updatePublisherPreview()"></div>
       <div class="publisher-meta-fields">
         <div class="field"><div class="label">Language</div><select id="share-language" onchange="updatePublisherPreview()"><option value="">Not set</option><option selected>English</option><option>Ukrainian</option><option>Polish</option><option>German</option><option>French</option><option>Spanish</option><option>Other</option></select></div>
@@ -362,7 +374,7 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
       </div>
       <div class="publisher-toggles">
         <label class="publisher-toggle"><input type="checkbox" id="share-allow-copy" checked><span><strong>Let others copy it</strong><small>Off publishes it read-only — teachers can open the lesson but not take it to their own board.</small></span></label>
-        <label class="publisher-toggle"><input type="checkbox" id="share-include-keys" checked onchange="runPublisherAudit()"><span><strong>Include answer keys</strong><small>Off strips teacher-key cards from the snapshot before it is published.</small></span></label>
+        <label class="publisher-toggle"><input type="checkbox" id="share-include-keys" checked onchange="refreshPublisherSource()"><span><strong>Include answer keys</strong><small>Off strips teacher-key cards from the snapshot before it is published.</small></span></label>
       </div>
       <div class="publisher-audit" id="publisher-audit" hidden>
         <div class="publisher-audit-head">
@@ -375,8 +387,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
       <button class="btn share-publish-btn" id="publish-board-btn" style="width:100%;margin-top:4px" aria-describedby="publisher-note" onclick="publishBoard()">Publish lesson</button>
       <p class="publisher-note" id="publisher-note"><span class="publisher-note-mark" aria-hidden="true">✓</span><span>This publishes a snapshot. Your original board stays private and editable.</span></p>
       <section class="publisher-success" id="publisher-success" hidden aria-live="polite">
-        <div class="publisher-success-head"><span class="publisher-success-mark" aria-hidden="true">✓</span><span>Lesson published</span></div>
-        <p class="publisher-success-copy">The lesson is ready to share. The link was copied when possible.</p>
+        <div class="publisher-success-head"><span class="publisher-success-mark" aria-hidden="true">✓</span><span id="publisher-success-title">Lesson published</span></div>
+        <p class="publisher-success-copy" id="publisher-success-copy">The lesson is ready to share. The link was copied when possible.</p>
         <div class="publisher-success-link"><input id="publisher-success-link" readonly aria-label="Published lesson link"><button type="button" onclick="copyPublisherSuccessLink()">Copy link</button></div>
         <div class="publisher-success-actions"><a class="publisher-success-open" id="publisher-success-open" href="lesson-view.html">Open lesson</a><button class="publisher-success-again" type="button" onclick="resetPublisherSuccess()">Publish another</button></div>
       </section>
@@ -561,6 +573,8 @@ function assignmentToCommunityPost(assignment, dataOverride) {
     avatar: assignment.author_avatar || '',
     cardCount,
     snapshot: data.snapshot || null,
+    preview: assignment.preview || data.preview || null,
+    visibility: assignment.visibility || data.visibility || 'community',
     cloneCount: Number(assignment.clone_count) || 0,
     /* Кадр урока был выбран при публикации (sourceFrameId в publishBoard())
        -> это «Lesson»; пусто -> опубликована вся доска -> «Space». Локальные
@@ -647,7 +661,7 @@ function getPublisherScopeCards(cards) {
    урок; всё остальное показывает и пускает дальше, потому что «мало карточек»
    бывает и осознанным решением, а запрет на публикацию по вкусовому поводу
    раздражает сильнее, чем помогает. */
-let publisherCardsCache = { boardId:'', cards:null };
+let publisherCardsCache = { boardId:'', cards:null, pending:null };
 let publisherAuditState = { blocking:false, ran:false };
 const PUBLISHER_DRAFT_KEY = 'teachedos_community_publisher_draft_v1';
 let publisherFrameBoardId = '';
@@ -685,6 +699,7 @@ function savePublisherDraft() {
     duration: getValue('share-duration'),
     language: getValue('share-language'),
     audience: getValue('share-audience'),
+    visibility: getValue('share-visibility'),
     allowCopy: document.getElementById('share-allow-copy')?.checked !== false,
     includeKeys: document.getElementById('share-include-keys')?.checked !== false,
   };
@@ -701,13 +716,13 @@ document.addEventListener('input', event => {
   if (event.target?.matches('#share-title, #share-desc, #share-tags')) schedulePublisherDraft();
 });
 document.addEventListener('change', event => {
-  if (event.target?.matches('#share-level, #share-skill, #share-duration, #share-language, #share-audience, #share-allow-copy, #share-include-keys')) schedulePublisherDraft();
+  if (event.target?.matches('#share-level, #share-skill, #share-duration, #share-language, #share-audience, #share-visibility, #share-allow-copy, #share-include-keys')) schedulePublisherDraft();
 });
 
 function restorePublisherDraft() {
   const draft = readPublisherDrafts()[publisherDraftId()];
   if (!draft) return false;
-  const fields = ['title', 'desc', 'tags', 'level', 'skill', 'duration', 'language', 'audience'];
+  const fields = ['title', 'desc', 'tags', 'level', 'skill', 'duration', 'language', 'audience', 'visibility'];
   fields.forEach(name => {
     const field = document.getElementById(`share-${name}`);
     if (field && Object.prototype.hasOwnProperty.call(draft, name)) field.value = draft[name];
@@ -755,11 +770,20 @@ function validatePublisherDetails() {
   return true;
 }
 
+function getPublisherVisibility() {
+  return document.getElementById('share-visibility')?.value === 'unlisted' ? 'unlisted' : 'community';
+}
+
+function publisherActionLabel() {
+  const item = publisherFrameId ? 'lesson' : 'Space';
+  return getPublisherVisibility() === 'unlisted' ? `Create ${item} link` : `Publish ${item}`;
+}
+
 function syncPublisherButton() {
   const button = document.getElementById('publish-board-btn');
   if (!button) return;
   button.disabled = !canPublishCommunityLesson() || publisherAuditState.blocking;
-  button.textContent = publisherFrameId ? 'Publish lesson' : 'Publish Space';
+  button.textContent = publisherActionLabel();
 }
 
 /* Заголовки берутся из карточек доски, то есть из пользовательского текста, и
@@ -774,13 +798,90 @@ function publisherEsc(value) {
 async function getPublisherCards(boardId) {
   if (!boardId) return null;
   if (publisherCardsCache.boardId === boardId && publisherCardsCache.cards) return publisherCardsCache.cards;
-  const response = await api('/api/boards/' + encodeURIComponent(boardId));
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result.error || 'Could not load the selected board');
-  const boardData = result.board?.data || result.board || {};
-  const cards = Array.isArray(boardData.cards) ? boardData.cards : [];
-  publisherCardsCache = { boardId, cards };
-  return cards;
+  if (publisherCardsCache.boardId === boardId && publisherCardsCache.pending) return publisherCardsCache.pending;
+  const pending = api('/api/boards/' + encodeURIComponent(boardId))
+    .then(response => response.json().catch(() => ({})).then(result => ({ response, result })))
+    .then(({ response, result }) => {
+      if (!response.ok) throw new Error(result.error || 'Could not load the selected board');
+      const boardData = result.board?.data || result.board || {};
+      const cards = Array.isArray(boardData.cards) ? boardData.cards : [];
+      publisherCardsCache = { boardId, cards, pending:null };
+      return cards;
+    });
+  publisherCardsCache = { boardId, cards:null, pending };
+  try {
+    return await pending;
+  } catch (error) {
+    if (publisherCardsCache.boardId === boardId) publisherCardsCache = { boardId:'', cards:null, pending:null };
+    throw error;
+  }
+}
+
+function publisherPreviewNodes(cards) {
+  const usable = (cards || []).filter(card => card && card.type !== 'frame');
+  const columns = Math.max(1, Math.ceil(Math.sqrt(Math.min(usable.length, 12))));
+  return usable.slice(0, 12).map((card, index) => ({
+    x: Number.isFinite(Number(card.x)) ? Number(card.x) : (index % columns) * 220,
+    y: Number.isFinite(Number(card.y)) ? Number(card.y) : Math.floor(index / columns) * 130,
+    w: Math.max(Number(card.w) || 170, 40),
+    h: Math.max(Number(card.h) || 96, 30),
+    color: previewColor(card.data?.color, 'rgba(255,255,255,.16)'),
+  }));
+}
+
+function publisherPreviewMarkup(nodes) {
+  if (!nodes.length) return '<span class="publisher-preview-placeholder">No activity cards</span>';
+  const minX = Math.min(...nodes.map(node => node.x));
+  const minY = Math.min(...nodes.map(node => node.y));
+  const maxX = Math.max(...nodes.map(node => node.x + node.w));
+  const maxY = Math.max(...nodes.map(node => node.y + node.h));
+  const spanX = Math.max(maxX - minX, 1);
+  const spanY = Math.max(maxY - minY, 1);
+  const blocks = nodes.map(node => {
+    const left = ((node.x - minX) / spanX) * 100;
+    const top = ((node.y - minY) / spanY) * 100;
+    const width = Math.max((node.w / spanX) * 100, 5);
+    const height = Math.max((node.h / spanY) * 100, 8);
+    return `<span class="publisher-preview-node" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${Math.min(width, 100 - left).toFixed(2)}%;height:${Math.min(height, 100 - top).toFixed(2)}%;background:${esc(node.color)}"></span>`;
+  }).join('');
+  return `<div class="publisher-preview-map">${blocks}</div>`;
+}
+
+function renderPublisherBoardPreview(cards) {
+  const canvas = document.getElementById('publisher-preview-canvas');
+  if (!canvas) return;
+  const keepKeys = document.getElementById('share-include-keys')?.checked !== false;
+  const shown = keepKeys ? cards : cards.filter(card => !isTeacherKeyCard(card));
+  canvas.classList.remove('is-loading');
+  canvas.innerHTML = publisherPreviewMarkup(publisherPreviewNodes(shown));
+}
+
+async function loadPublisherBoardPreview() {
+  const { id:boardId } = getSelectedPublisherBoard();
+  const frameId = publisherFrameId;
+  const canvas = document.getElementById('publisher-preview-canvas');
+  if (!canvas) return;
+  if (!boardId) {
+    canvas.classList.remove('is-loading');
+    canvas.innerHTML = '<span class="publisher-preview-placeholder">Choose a board</span>';
+    return;
+  }
+  canvas.classList.add('is-loading');
+  try {
+    const cards = await getPublisherCards(boardId);
+    if (boardId !== getSelectedPublisherBoard().id || frameId !== publisherFrameId) return;
+    const scoped = getPublisherScopeCards(cards);
+    renderPublisherBoardPreview(scoped || []);
+  } catch {
+    if (boardId !== getSelectedPublisherBoard().id || frameId !== publisherFrameId) return;
+    canvas.classList.remove('is-loading');
+    canvas.innerHTML = '<span class="publisher-preview-placeholder">Preview unavailable</span>';
+  }
+}
+
+function refreshPublisherSource() {
+  runPublisherAudit();
+  loadPublisherBoardPreview();
 }
 
 function isTeacherKeyCard(card) {
@@ -815,15 +916,6 @@ function auditPublisherSnapshot(scopedCards) {
   if (deadVideo.length) {
     findings.push({ level:'warn', title:`${deadVideo.length} video card${deadVideo.length > 1 ? 's have' : ' has'} no link`,
       detail:'Whoever opens the lesson will see an empty player.' });
-  }
-
-  if (!document.getElementById('share-skill')?.value) {
-    findings.push({ level:'warn', title:'No skill chosen',
-      detail:'Lessons without a skill are hard to find in Community search.' });
-  }
-  if (!document.getElementById('share-desc')?.value.trim()) {
-    findings.push({ level:'warn', title:'No description',
-      detail:'The card falls back to generic text, so nobody can tell what is inside.' });
   }
 
   if (!findings.length) {
@@ -886,10 +978,7 @@ async function loadPublisherFrameMeta(boardId) {
   const scope = document.getElementById('publisher-scope');
   if (!publisherFrameId || !boardId || !scope) { if (scope) scope.hidden = true; updatePublisherPreview(); return; }
   try {
-    const response = await api('/api/boards/' + encodeURIComponent(boardId));
-    const result = await response.json().catch(() => ({}));
-    const boardData = result.board?.data || result.board || {};
-    const cards = Array.isArray(boardData.cards) ? boardData.cards : [];
+    const cards = await getPublisherCards(boardId);
     const frame = cards.find(card => card.id === publisherFrameId && card.type === 'frame');
     const scopedCards = getFrameDescendants(cards, publisherFrameId);
     if (!frame || !scopedCards) throw new Error('The selected lesson frame is no longer available.');
@@ -900,10 +989,12 @@ async function loadPublisherFrameMeta(boardId) {
     if (titleInput && (!titleInput.value.trim() || titleInput.value.trim() === boardName)) titleInput.value = publisherFrameMeta.title;
     scope.hidden = false;
     updatePublisherPreview();
+    refreshPublisherSource();
   } catch (error) {
     publisherFrameId = '';
     if (scope) scope.hidden = true;
     updatePublisherPreview();
+    refreshPublisherSource();
     toast(error?.message || 'Could not load the selected lesson frame');
   }
 }
@@ -916,15 +1007,20 @@ function clearPublisherFrame() {
   if (scope) scope.hidden = true;
   restorePublisherDraft();
   updatePublisherPreview();
+  refreshPublisherSource();
 }
 
-function showPublisherSuccess(post, link) {
+function showPublisherSuccess(post, link, visibility = 'community') {
   const panel = document.getElementById('publisher-success');
   const input = document.getElementById('publisher-success-link');
   const open = document.getElementById('publisher-success-open');
   if (!panel || !input || !open) return;
   input.value = link;
   open.href = link;
+  setText('publisher-success-title', visibility === 'unlisted' ? 'Share link created' : 'Lesson published');
+  setText('publisher-success-copy', visibility === 'unlisted'
+    ? 'Only people with this link can open the lesson. The link was copied when possible.'
+    : 'The lesson is visible in Community and ready to share. The link was copied when possible.');
   panel.hidden = false;
   panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
@@ -953,6 +1049,7 @@ function updatePublisherPreview() {
   const skill = document.getElementById('share-skill')?.value || '';
   const duration = document.getElementById('share-duration')?.value || '';
   const title = document.getElementById('share-title')?.value.trim() || publisherFrameMeta?.title || board.name || 'Your lesson title';
+  const visibility = getPublisherVisibility();
   const scopedCount = publisherFrameMeta ? publisherFrameMeta.cardCount : board.cardCount;
   const detail = [
     skill,
@@ -969,21 +1066,19 @@ function updatePublisherPreview() {
      Заголовок, вступление, значок предпросмотра и подпись кнопки следуют за
      этим выбором, а не остаются подписаны «lesson» для обоих случаев. */
   const isSpace = !publisherFrameId;
-  setText('publisher-heading', isSpace ? 'Publish a Space' : 'Publish a lesson');
-  setText('publisher-intro', isSpace
-    ? 'Share this whole board as a reusable Space other teachers can open and build on.'
-    : 'Share a clean, copyable lesson snapshot with other teachers.');
-  setText('lesson-preview-kicker', isSpace ? 'Community space' : 'Community lesson');
-  const publishBtn = document.getElementById('publish-board-btn');
-  if (publishBtn) publishBtn.textContent = isSpace ? 'Publish Space' : 'Publish lesson';
-
-  /* Проверка ходит за доской по сети, а превью пересчитывается на каждое
-     нажатие клавиши в заголовке — поэтому с задержкой. Сама доска кэшируется
-     по id, так что правка описания перепроверяет уже загруженные карточки. */
-  clearTimeout(_publisherAuditTimer);
-  _publisherAuditTimer = setTimeout(runPublisherAudit, 400);
+  const isUnlisted = visibility === 'unlisted';
+  setText('publisher-heading', isUnlisted ? 'Create a share link' : (isSpace ? 'Publish a Space' : 'Publish a lesson'));
+  setText('publisher-intro', isUnlisted
+    ? 'This lesson stays out of Community and opens only for people with its link.'
+    : (isSpace
+      ? 'Share this whole board as a reusable Space other teachers can open and build on.'
+      : 'Share a clean, copyable lesson snapshot with other teachers.'));
+  setText('lesson-preview-kicker', isUnlisted ? `Unlisted ${isSpace ? 'space' : 'lesson'}` : (isSpace ? 'Community space' : 'Community lesson'));
+  setText('share-visibility-hint', isUnlisted
+    ? 'It will not appear in Community. Anyone with this link can open it.'
+    : 'Teachers can discover this lesson in Community and open its public link.');
+  syncPublisherButton();
 }
-let _publisherAuditTimer = null;
 
 function focusCommunityPublisher() {
   const publisher = document.querySelector('.share-card');
@@ -1021,12 +1116,13 @@ function onPublisherBoardChange() {
     const scope = document.getElementById('publisher-scope');
     if (scope) scope.hidden = true;
   }
-  publisherCardsCache = { boardId:'', cards:null };
+  publisherCardsCache = { boardId:'', cards:null, pending:null };
   const restored = restorePublisherDraft();
   const title = document.getElementById('share-title');
   if (!restored && title && !title.value.trim() && name) title.value = name;
   clearPublisherFormError();
   updatePublisherPreview();
+  refreshPublisherSource();
 }
 
 // ── Load boards list from API ──────────────────────────────────
@@ -1050,6 +1146,7 @@ async function loadBoards() {
     }
   }
   updatePublisherPreview();
+  refreshPublisherSource();
   await loadCommunityLessons();
   renderCommunity();
   updateCommunityStats();
@@ -1082,6 +1179,7 @@ async function openCommunityPublisherFromBoard() {
   restorePublisherDraft();
   publisherDraftsPaused = false;
   updatePublisherPreview();
+  refreshPublisherSource();
   focusCommunityPublisher();
   history.replaceState({}, '', location.pathname);
 }
@@ -1113,6 +1211,7 @@ async function publishBoard() {
     const author = document.getElementById('nav-name').textContent || 'Teacher';
     const language = document.getElementById('share-language')?.value || '';
     const audience = document.getElementById('share-audience')?.value || '';
+    const visibility = getPublisherVisibility();
     const allowCopy = document.getElementById('share-allow-copy')?.checked !== false;
     const includeKeys = document.getElementById('share-include-keys')?.checked !== false;
 
@@ -1144,7 +1243,7 @@ async function publishBoard() {
       }),
     };
 
-    const post = { id:'post-'+Date.now(), title, desc, level, skill, duration, tags, author, language, audience, allowCopy, sourceBoardId:boardId, sourceBoardName:selectedName, sourceFrameId:publisherFrameId || null, snapshot, createdAt:new Date().toISOString() };
+    const post = { id:'post-'+Date.now(), title, desc, level, skill, duration, tags, author, language, audience, visibility, allowCopy, sourceBoardId:boardId, sourceBoardName:selectedName, sourceFrameId:publisherFrameId || null, snapshot, createdAt:new Date().toISOString() };
     let publishedPost = post;
     if (token) {
       const response = await api('/api/library', {
@@ -1156,7 +1255,7 @@ async function publishBoard() {
           level,
           skill,
           tags,
-          visibility:'community',
+          visibility,
           data:{
             snapshot_version:1,
             sourceBoardId:boardId,
@@ -1187,7 +1286,9 @@ async function publishBoard() {
         allowCopy,
         snapshot,
       });
-      _serverCommunityLessons = [publishedPost, ..._serverCommunityLessons.filter(item => item.serverId !== publishedPost.serverId)];
+      if (visibility === 'community') {
+        _serverCommunityLessons = [publishedPost, ..._serverCommunityLessons.filter(item => item.serverId !== publishedPost.serverId)];
+      }
     } else {
       writePosts([post, ...readPosts()]);
     }
@@ -1196,9 +1297,11 @@ async function publishBoard() {
 
     const link = buildShareLink(publishedPost);
     navigator.clipboard?.writeText(link).catch(()=>{});
-    showPublisherSuccess(publishedPost, link);
+    showPublisherSuccess(publishedPost, link, visibility);
     clearPublisherDraft(boardId);
-    toast(token ? '✓ Published to Community - lesson link copied' : '✓ Saved on this device - sign in to publish it for teachers');
+    toast(token
+      ? (visibility === 'community' ? '✓ Published to Community - lesson link copied' : '✓ Share link created and copied')
+      : '✓ Saved on this device - sign in to share it with teachers');
   } catch (error) {
     toast(error?.message || 'Could not publish this lesson');
   } finally {
@@ -1274,6 +1377,32 @@ function lessonMiniMapHtml(cards) {
   return `<div class="community-cover-map">${blocks}</div>`;
 }
 
+function communityPreviewMapHtml(preview) {
+  const nodes = (Array.isArray(preview?.nodes) ? preview.nodes : [])
+    .filter(node => Number.isFinite(Number(node?.x)) && Number.isFinite(Number(node?.y)))
+    .slice(0, 12)
+    .map(node => ({
+      x: Number(node.x), y: Number(node.y),
+      w: Math.max(Number(node.w) || 160, 40), h: Math.max(Number(node.h) || 90, 30),
+      color: previewColor(node.color, '#ffffff66'),
+    }));
+  if (!nodes.length) return '';
+  const minX = Math.min(...nodes.map(node => node.x));
+  const minY = Math.min(...nodes.map(node => node.y));
+  const maxX = Math.max(...nodes.map(node => node.x + node.w));
+  const maxY = Math.max(...nodes.map(node => node.y + node.h));
+  const spanX = Math.max(maxX - minX, 1);
+  const spanY = Math.max(maxY - minY, 1);
+  const blocks = nodes.map(node => {
+    const left = ((node.x - minX) / spanX) * 100;
+    const top = ((node.y - minY) / spanY) * 100;
+    const width = Math.max((node.w / spanX) * 100, 4);
+    const height = Math.max((node.h / spanY) * 100, 5);
+    return `<span class="community-cover-node" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;width:${Math.min(width, 100 - left).toFixed(2)}%;height:${Math.min(height, 100 - top).toFixed(2)}%;background:${esc(node.color)}"></span>`;
+  }).join('');
+  return `<div class="community-cover-map">${blocks}</div>`;
+}
+
 function pluralizeCoverType(type) {
   if (/z$/.test(type)) return `${type}zes`;
   return /[sx]$|[cs]h$/.test(type) ? `${type}es` : `${type}s`;
@@ -1300,13 +1429,24 @@ function coverSummaryText(cards) {
     : parts[0];
 }
 
+function coverPreviewSummary(preview) {
+  const types = Array.isArray(preview?.types) ? preview.types : [];
+  if (!types.length) return 'Lesson snapshot';
+  const parts = types.slice(0, 3).map(item => {
+    const type = String(item?.type || 'activity');
+    const count = Number(item?.count) || 1;
+    return count > 1 ? `${count} ${pluralizeCoverType(type)}` : type;
+  });
+  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0];
+}
+
 function lessonCoverHtml(post, cardCount) {
   const seed = Array.from(String(post.id || post.title || '')).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const style = (seed % 4) + 1;
   const caption = cardCount ? `${cardCount} activity cards` : 'Lesson snapshot';
-  const map = lessonMiniMapHtml(post.snapshot?.cards);
+  const map = lessonMiniMapHtml(post.snapshot?.cards) || communityPreviewMapHtml(post.preview);
   const cards = Array.isArray(post.snapshot?.cards) ? post.snapshot.cards.filter(card => card.type !== 'frame') : [];
-  const body = map || `<div class="community-cover-summary">${esc(coverSummaryText(cards))}</div>`;
+  const body = map || `<div class="community-cover-summary">${esc(cards.length ? coverSummaryText(cards) : coverPreviewSummary(post.preview))}</div>`;
   return `<div class="community-lesson-cover cover-style-${style}" aria-hidden="true">
     <div class="community-cover-head">
       <span class="community-cover-kind">${post.isSpace ? 'Space' : 'Lesson'}</span>

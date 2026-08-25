@@ -250,7 +250,7 @@ CREATE TABLE IF NOT EXISTS assignments (
   tags          JSONB        NOT NULL DEFAULT '[]',
   data          JSONB        NOT NULL DEFAULT '{}',          -- full payload (lesson plan, quiz config, etc.)
   image         TEXT,                                        -- optional cover (data URL or URL)
-  visibility    VARCHAR(16)  NOT NULL DEFAULT 'private',     -- private | community
+  visibility    VARCHAR(16)  NOT NULL DEFAULT 'private',     -- private | community | unlisted
   cloned_from   UUID         REFERENCES assignments(id) ON DELETE SET NULL,
   clone_count   INTEGER      NOT NULL DEFAULT 0,
   published_at  TIMESTAMPTZ,

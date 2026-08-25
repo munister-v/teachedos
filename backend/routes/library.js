@@ -6,6 +6,7 @@ const KINDS = ['lesson', 'quiz', 'game', 'board', 'other'];
 const COMMUNITY_SNAPSHOT_MAX_BYTES = 10 * 1024 * 1024;
 const COMMUNITY_SNAPSHOT_MAX_CARDS = 1200;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PUBLIC_VISIBILITIES = new Set(['community', 'unlisted']);
 const cleanKind = k => (KINDS.includes(k) ? k : 'other');
 const clip = (s, n) => String(s ?? '').trim().slice(0, n);
 const cleanTags = t => {
@@ -13,6 +14,30 @@ const cleanTags = t => {
   if (typeof t === 'string') return t.split(',').map(x => x.trim()).filter(Boolean).slice(0, 12);
   return [];
 };
+
+function buildCommunityBoardPreview(snapshot) {
+  const cards = snapshot.cards.filter(card => card && card.type !== 'frame');
+  const columns = Math.max(1, Math.ceil(Math.sqrt(Math.min(cards.length, 12))));
+  const validColor = value => /^#[0-9a-f]{3,8}$/i.test(String(value || '')) ? String(value) : null;
+  const nodes = cards.slice(0, 12).map((card, index) => ({
+    x: Number.isFinite(Number(card.x)) ? Math.round(Number(card.x)) : (index % columns) * 220,
+    y: Number.isFinite(Number(card.y)) ? Math.round(Number(card.y)) : Math.floor(index / columns) * 130,
+    w: Math.max(40, Math.min(1200, Math.round(Number(card.w) || 170))),
+    h: Math.max(30, Math.min(900, Math.round(Number(card.h) || 96))),
+    color: validColor(card.data?.color),
+  }));
+  const types = new Map();
+  cards.forEach(card => {
+    const type = clip(String(card.type || 'activity').replace(/[-_]/g, ' '), 32) || 'activity';
+    types.set(type, (types.get(type) || 0) + 1);
+  });
+  return {
+    cardCount: cards.length,
+    nodes,
+    types: Array.from(types.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .map(([type, count]) => ({ type, count })),
+  };
+}
 
 function normalizeCommunityBoardData(raw, title) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -51,6 +76,7 @@ function normalizeCommunityBoardData(raw, title) {
       language: clip(raw.language, 40) || null,
       audience: clip(raw.audience, 40) || null,
       allowCopy: raw.allowCopy === false ? false : undefined,
+      preview: buildCommunityBoardPreview(snapshot),
       snapshot: { ...snapshot, name: clip(snapshot.name || title, 255) || 'Community lesson' },
     }
   };
@@ -99,6 +125,7 @@ router.get('/community', optionalAuth, async (req, res) => {
                    ELSE 0 END AS card_count,
               NULLIF(a.data->>'duration', '') AS duration,
               NULLIF(a.data->>'snapshot_version', '') AS snapshot_version,
+              a.data->'preview' AS preview,
               COALESCE(NULLIF(a.data->>'source_frame_id', ''),
                        NULLIF(a.data->>'sourceFrameId', '')) AS source_frame_id,
               u.name AS author_name, u.avatar AS author_avatar
@@ -153,7 +180,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
       `SELECT a.*, ($2::uuid IS NOT NULL AND a.user_id = $2) AS is_owner,
               u.name AS author_name, u.avatar AS author_avatar
        FROM assignments a JOIN users u ON u.id = a.user_id
-       WHERE a.id = $1 AND (a.visibility = 'community' OR ($2::uuid IS NOT NULL AND a.user_id = $2))`,
+       WHERE a.id = $1 AND (a.visibility IN ('community', 'unlisted') OR ($2::uuid IS NOT NULL AND a.user_id = $2))`,
       [req.params.id, viewerId]
     );
     if (!rows.length) return res.status(404).json({ error: 'Not found' });
@@ -177,7 +204,7 @@ router.post('/:id/track-copy', async (req, res) => {
     if (!UUID_RE.test(String(req.params.id || ''))) return res.status(204).end();
     const { rows } = await pool.query(
       `UPDATE assignments SET clone_count = clone_count + 1
-       WHERE id = $1 AND visibility = 'community' RETURNING clone_count`,
+       WHERE id = $1 AND visibility IN ('community', 'unlisted') RETURNING clone_count`,
       [req.params.id]
     );
     res.json({ ok: true, cloneCount: rows[0]?.clone_count ?? null });
@@ -213,12 +240,12 @@ router.post('/', async (req, res) => {
   const b = req.body || {};
   try {
     const kind = cleanKind(b.kind);
-    const visibility = b.visibility === 'community' ? 'community' : 'private';
-    if (visibility === 'community' && (req.user.role !== 'teacher' && req.user.role !== 'admin')) {
+    const visibility = PUBLIC_VISIBILITIES.has(b.visibility) ? b.visibility : 'private';
+    if (PUBLIC_VISIBILITIES.has(visibility) && (req.user.role !== 'teacher' && req.user.role !== 'admin')) {
       return res.status(403).json({ error: 'Teacher access required to publish to Community' });
     }
     let data = b.data || {};
-    if (visibility === 'community' && kind === 'board') {
+    if (PUBLIC_VISIBILITIES.has(visibility) && kind === 'board') {
       if (clip(b.title, 255).length < 4) {
         return res.status(400).json({ error: 'Add a clear lesson title before publishing' });
       }
@@ -247,7 +274,7 @@ router.post('/', async (req, res) => {
          одного места, спорить не о чем. Значение одно и то же — visibility
          передаётся дважды осознанно. */
       `INSERT INTO assignments (user_id, kind, title, description, level, skill, tags, data, image, visibility, published_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,CASE WHEN $11 = 'community' THEN NOW() ELSE NULL END)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,CASE WHEN $11 IN ('community', 'unlisted') THEN NOW() ELSE NULL END)
        RETURNING ${LIST_COLS}`,
       [
         req.user.id,
@@ -292,7 +319,7 @@ router.patch('/:id', async (req, res) => {
         [req.params.id, req.user.id]
       );
       if (!current.rows.length) return res.status(404).json({ error: 'Not found or not owner' });
-      if (current.rows[0].kind === 'board' && current.rows[0].visibility === 'community') {
+      if (current.rows[0].kind === 'board' && PUBLIC_VISIBILITIES.has(current.rows[0].visibility)) {
         return res.status(409).json({ error: 'Published board lessons keep their snapshot and type. Unpublish and create a new version instead.' });
       }
     }
@@ -367,11 +394,12 @@ router.post('/:id/unpublish', async (req, res) => {
 router.post('/:id/clone', async (req, res) => {
   try {
     const src = await pool.query(
-      `SELECT * FROM assignments WHERE id = $1 AND (user_id = $2 OR visibility = 'community')`,
+      `SELECT * FROM assignments WHERE id = $1 AND (user_id = $2 OR visibility IN ('community', 'unlisted'))`,
       [req.params.id, req.user.id]
     );
     if (!src.rows.length) return res.status(404).json({ error: 'Not found' });
     const s = src.rows[0];
+    if (s.data?.allowCopy === false) return res.status(403).json({ error: 'The author does not allow copies of this lesson' });
     const { rows } = await pool.query(
       `INSERT INTO assignments (user_id, kind, title, description, level, skill, tags, data, image, cloned_from, visibility)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'private')
