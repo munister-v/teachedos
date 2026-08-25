@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=470">
+<link rel="manifest" href="manifest.json?v=471">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#F5F0E8">
@@ -32,7 +32,6 @@ a{text-decoration:none;color:inherit}
 .side-btn:hover{background:rgba(28,28,30,.05)}
 .side-btn.comm-tab.active{background:rgba(200,230,50,.18);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(200,230,50,.42)}
 .side-ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:rgba(94,94,74,.08);color:var(--accent);font-size:11px;font-weight:800;flex:0 0 auto}
-@media(min-width:901px){.comm-tabs{display:none}}
 /* align-items было stretch: короткая левая карточка растягивалась под высоту
    формы «Publish a Space» справа. Форма длинная — источник, название, уровень,
    навык, длительность, описание, теги, язык, — и левая карточка получала 915px
@@ -56,6 +55,14 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 .board-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:18px;min-height:214px;display:flex;flex-direction:column;position:relative;overflow:hidden;will-change:transform,box-shadow;transform:translateZ(0);transition:transform .22s cubic-bezier(.34,1.3,.64,1),box-shadow .22s ease,border-color .18s ease}.board-card:hover{transform:translateY(-3px) translateZ(0);box-shadow:0 14px 36px rgba(94,94,74,.12),0 4px 12px rgba(94,94,74,.05);border-color:rgba(205,242,79,.35)}.board-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--lime),#1C1C1E)}.board-top{display:flex;gap:10px;align-items:center;margin-bottom:14px}.board-ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font:950 13px var(--mono);color:var(--accent)}.board-name{font-size:16px;font-weight:700;line-height:1.2}.board-meta{font-size:11px;color:var(--text3);margin-top:3px}.board-desc{font-size:13px;line-height:1.55;color:var(--text2);flex:1}.tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2);transition:background .15s ease,color .15s ease}.tag:hover{background:rgba(205,242,79,.18);color:var(--accent)}.card-actions{display:flex;gap:8px;margin-top:auto}.mini-btn{flex:1;text-align:center;border-radius:12px;padding:10px 10px;font-size:12px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer;border:none;transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .15s ease,opacity .15s ease}.mini-btn:hover{transform:translateY(-1px)}.mini-btn:active{transform:scale(.97)}.mini-btn.alt{background:rgba(200,230,50,.18);color:var(--accent)}.mini-btn.alt:hover{background:rgba(200,230,50,.28)}
 .empty{grid-column:1/-1;text-align:center;padding:34px;color:var(--text3);background:#fff;border:1px dashed var(--border);border-radius:20px}
 .comm-tabs{display:flex;gap:6px;margin:0 0 18px;border-bottom:1px solid var(--border);padding-bottom:0;overflow:auto;scrollbar-width:none}.comm-tabs::-webkit-scrollbar{display:none}
+/* ДВЕ НАВИГАЦИИ ОДНОВРЕМЕННО.
+   Строка вкладок дублирует боковое меню и должна показываться только тогда,
+   когда меню спрятано. Правило стояло ВЫШЕ базового .comm-tabs{display:flex},
+   а медиазапрос не добавляет веса селектору — побеждала более поздняя строка,
+   и вкладки висели всегда. Плюс порог был взят 900px, тогда как боковое меню
+   прячет tool-window.css на 1180px: в полосе 901-1180 навигации не осталось бы
+   вовсе. Один порог с меню, и правило после базового. */
+@media(min-width:1181px){.comm-tabs{display:none!important}}
 .comm-tab{background:none;border:none;border-bottom:3px solid transparent;padding:12px 18px;font:900 14px var(--font);color:var(--text3);cursor:pointer;margin-bottom:-1px;transition:color .15s,border-color .15s,background .15s;white-space:nowrap;border-radius:12px 12px 0 0}
 .comm-tab:hover{color:var(--text);background:rgba(255,255,255,.5)}
 .comm-tab.active{color:var(--accent);border-bottom-color:var(--lime);background:rgba(200,230,50,.1)}
@@ -71,10 +78,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.side{display:none}.shell{display:block}.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=470" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=470">
-<link rel="stylesheet" href="styles/harmony.css?v=470">
-<link rel="stylesheet" href="styles/unify.css?v=470">
+<script src="theme.js?v=471" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=471">
+<link rel="stylesheet" href="styles/harmony.css?v=471">
+<link rel="stylesheet" href="styles/unify.css?v=471">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -276,8 +283,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .game-level-filters .level-pill{flex:0 0 auto;}
   }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=470">
-<link rel="stylesheet" href="styles/tool-window.css?v=470">
+<link rel="stylesheet" href="styles/teached-brand.css?v=471">
+<link rel="stylesheet" href="styles/tool-window.css?v=471">
 </head>
 <body class="tw-page">
 <nav id="nav">
@@ -474,8 +481,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=470"></script>
-<script src="scripts/vocab-loader.js?v=470"></script>
+<script src="scripts/app-core.js?v=471"></script>
+<script src="scripts/vocab-loader.js?v=471"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -1929,10 +1936,10 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=470" defer></script>
-<script src="scripts/mobile-nav.js?v=470"></script>
-<script src="scripts/mobile-zoom-guard.js?v=470" defer></script>
-<script src="scripts/autogrow.js?v=470" defer></script>
-<script src="pwa-boot.js?v=470" defer></script>
+<script src="scripts/mobile-perf.js?v=471" defer></script>
+<script src="scripts/mobile-nav.js?v=471"></script>
+<script src="scripts/mobile-zoom-guard.js?v=471" defer></script>
+<script src="scripts/autogrow.js?v=471" defer></script>
+<script src="pwa-boot.js?v=471" defer></script>
 </body>
 </html>

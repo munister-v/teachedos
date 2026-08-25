@@ -2946,10 +2946,18 @@ body.board-page .empty-action.primary {
 
 /* Иконки в подписях карточек и боковом меню профиля: размер от текста, чтобы
    строка не рвалась, и выравнивание по базовой линии. */
+/* БАЗОВЫЙ РАЗМЕР ИКОНКИ.
+   <svg> без width/height — это не «размер по умолчанию», а 300x150: ровно так
+   ракета на карточке подписки вылезла поверх названия тарифа. Размеры ниже
+   раздаются по местам, но у класса обязан быть свой пол, иначе любая новая
+   вставка иконки в незнакомый контейнер снова даст плакат вместо значка. */
+.ic { width: 1.15em; height: 1.15em; flex: 0 0 auto; }
+
 .card-title .ic, .st-icon .ic, .form-label .ic, .setting-btn .ic, .plan-option-icon .ic,
 .mobile-profile-action-ic .ic, .mp-icon-btn .ic {
   width: 1.15em; height: 1.15em; vertical-align: -.2em;
 }
+#plan-icon .ic { width: 22px; height: 22px; }
 .st-icon { display: inline-flex; align-items: center; }
 .plan-option-icon .ic, .mobile-profile-action-ic .ic { width: 22px; height: 22px; }
 
