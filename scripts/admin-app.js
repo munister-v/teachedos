@@ -239,6 +239,7 @@ async function refreshStats() {
     ).join('');
 
     renderSignals(system, health);
+    window.renderPriorityQueue?.(stats, system, health);
     renderOps(system);
     renderRecentUsers(system.recentUsers || []);
     renderRecentBoards(system.recentBoards || []);
@@ -1232,7 +1233,7 @@ async function loadBillingPayments() {
   const tbody = document.getElementById('billing-tbody');
   if (!tbody) return;
   const status = document.getElementById('billing-status-filter')?.value || '';
-  tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="skel skel-line" style="width:180px"></div></td></tr>';
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="8"><div class="skel skel-line" style="width:180px"></div></td></tr>';
   try {
     const d = await api('GET', `/api/admin/billing/payments?status=${encodeURIComponent(status)}`);
     if (!d.payments.length) {
@@ -1347,7 +1348,7 @@ async function loadBoards() {
     document.getElementById('boards-next').disabled = boardsOffset + boardsLimit >= boardsTotal;
 
     if (!d.boards.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No boards found</div><div class="empty-state-sub">Try adjusting your search</div></div></td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="8"><div class="empty-state"><div class="empty-state-title">No boards found</div><div class="empty-state-sub">Try adjusting your search</div></div></td></tr>';
       return;
     }
     tbody.innerHTML = d.boards.map(b => `
@@ -1357,14 +1358,16 @@ async function loadBoards() {
           <div style="font-size:13px;font-weight:600">${esc(b.owner_name)}</div>
           <div class="ip-text">${esc(b.owner_email)}</div>
         </td>
+        <td data-label="Health"><span class="board-health ${boardHealthClass(b)}">${boardHealthLabel(b)}</span></td>
         <td data-label="Cards" style="text-align:center">${b.cards_count ?? '-'}</td>
         <td data-label="Size" class="ip-text">${fmtBytes(b.data_bytes)}</td>
         <td data-label="Updated" class="time-text">${fmtDate(b.updated_at)}</td>
         <td data-label="Created" class="time-text">${fmtDate(b.created_at)}</td>
         <td data-label="Actions">
           <div class="action-group">
-            <button class="btn-sm btn-edit" onclick="openBoard('${b.id}')">↗ Open</button>
-            <button class="btn-sm btn-danger" onclick="deleteBoard('${b.id}','${esc(b.name)}')">🗑 Delete</button>
+            <button class="btn-sm btn-edit" onclick="openBoardReview('${b.id}')">Review</button>
+            <button class="btn-sm btn-edit" onclick="openBoard('${b.id}')">Open</button>
+            <button class="btn-sm btn-danger" onclick="deleteBoard('${b.id}','${esc(b.name)}')">Delete</button>
           </div>
         </td>
       </tr>
@@ -1384,8 +1387,20 @@ async function loadBoards() {
       });
     }
   } catch(e) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Error: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Error: ${e.message}</td></tr>`;
   }
+}
+
+function boardHealthClass(board) {
+  if (board.health === 'empty' || Number(board.cards_count || 0) === 0) return 'is-risk';
+  if (board.health === 'stale') return 'is-watch';
+  return 'is-healthy';
+}
+
+function boardHealthLabel(board) {
+  if (board.health === 'empty' || Number(board.cards_count || 0) === 0) return 'Empty';
+  if (board.health === 'stale') return 'Needs review';
+  return 'Healthy';
 }
 
 function openBoard(id) {

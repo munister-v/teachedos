@@ -1066,7 +1066,14 @@ router.get('/boards', async (req, res) => {
       `SELECT b.id, b.name, b.updated_at, b.created_at,
               u.name AS owner_name, u.email AS owner_email,
               pg_column_size(b.data) AS data_bytes,
-              jsonb_array_length(b.data->'cards') AS cards_count
+              COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array'
+                THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0)::int AS cards_count,
+              CASE
+                WHEN COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array'
+                  THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) = 0 THEN 'empty'
+                WHEN b.updated_at < NOW() - INTERVAL '30 days' THEN 'stale'
+                ELSE 'healthy'
+              END AS health
        FROM boards b
        JOIN users u ON u.id = b.user_id
        WHERE (b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1)
@@ -1082,6 +1089,75 @@ router.get('/boards', async (req, res) => {
       [like, ownerFilter]
     );
     res.json({ boards: rows, total: parseInt(total[0].count) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/admin/boards/:id/inspection ──────────────────────────────────
+// A compact board summary for the control center. The full board payload stays
+// in the editor path so this administrative view cannot accidentally load a
+// multi-megabyte canvas.
+router.get('/boards/:id/inspection', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT b.id, b.name, b.updated_at, b.created_at,
+              u.id AS owner_id, u.name AS owner_name, u.email AS owner_email,
+              pg_column_size(b.data) AS data_bytes,
+              COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array'
+                THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0)::int AS cards_count,
+              CASE
+                WHEN COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array'
+                  THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) = 0 THEN 'empty'
+                WHEN b.updated_at < NOW() - INTERVAL '30 days' THEN 'stale'
+                ELSE 'healthy'
+              END AS health
+       FROM boards b
+       JOIN users u ON u.id = b.user_id
+       WHERE b.id = $1`,
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+    res.json({ board: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/admin/boards/:id/transfer ───────────────────────────────────
+router.post('/boards/:id/transfer', async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Enter a valid new owner email' });
+  }
+  try {
+    const [boardResult, recipientResult] = await Promise.all([
+      pool.query(
+        `SELECT b.id, b.name, b.user_id, u.email AS owner_email
+         FROM boards b JOIN users u ON u.id = b.user_id
+         WHERE b.id = $1`,
+        [req.params.id]
+      ),
+      pool.query('SELECT id, email, name FROM users WHERE email = $1', [email]),
+    ]);
+    const board = boardResult.rows[0];
+    const recipient = recipientResult.rows[0];
+    if (!board) return res.status(404).json({ error: 'Board not found' });
+    if (!recipient) return res.status(404).json({ error: 'No TeachEd account exists for this email' });
+    if (recipient.id === board.user_id) return res.status(400).json({ error: 'This person already owns the board' });
+
+    const { rows } = await pool.query(
+      `UPDATE boards SET user_id = $2, updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, name, user_id, updated_at`,
+      [board.id, recipient.id]
+    );
+    logAdminAction(req, 'board.transfer', {
+      targetId: board.id,
+      targetLabel: board.name,
+      detail: `${board.owner_email} -> ${recipient.email}`,
+    });
+    res.json({ ok: true, board: rows[0], owner: recipient });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

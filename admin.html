@@ -682,6 +682,7 @@ html{scroll-behavior:smooth}
 <link rel="stylesheet" href="styles/unify.css?v=471">
 <link rel="stylesheet" href="styles/teached-brand.css?v=471">
 <link rel="stylesheet" href="styles/admin-refresh.css?v=477">
+<link rel="stylesheet" href="styles/admin-control.css?v=1">
 </head>
 <body class="admin-page">
 
@@ -719,38 +720,39 @@ html{scroll-behavior:smooth}
     <div><div class="sb-logo-title">TeachEd</div><div class="sb-logo-sub">Control center</div></div>
   </div>
   <nav class="sb-nav">
-    <div class="sb-section">Operations</div>
+    <div class="sb-section">Overview</div>
     <div class="sb-item active" onclick="showPage('dashboard')">
-      <span class="sb-icon">📊</span>Dashboard
+      <span class="sb-icon" aria-hidden="true"></span>Overview
     </div>
+    <div class="sb-section">Manage</div>
     <div class="sb-item" onclick="showPage('users')">
-      <span class="sb-icon">👥</span>Users
+      <span class="sb-icon" aria-hidden="true"></span>People
     </div>
     <div class="sb-item" onclick="showPage('boards')">
-      <span class="sb-icon">📋</span>Boards
+      <span class="sb-icon" aria-hidden="true"></span>Boards
     </div>
     <div class="sb-item" onclick="showPage('sessions')">
-      <span class="sb-icon">🔑</span>Sessions<span class="sb-notif yellow" id="sb-sessions-badge" style="display:none"></span>
+      <span class="sb-icon" aria-hidden="true"></span>Sessions<span class="sb-notif yellow" id="sb-sessions-badge" style="display:none"></span>
     </div>
-    <div class="sb-section">Governance</div>
+    <div class="sb-section">Govern</div>
     <div class="sb-item" onclick="showPage('security')">
-      <span class="sb-icon">🛡️</span>Security<span class="sb-notif red" id="sb-security-badge" style="display:none"></span>
+      <span class="sb-icon" aria-hidden="true"></span>Security<span class="sb-notif red" id="sb-security-badge" style="display:none"></span>
     </div>
     <div class="sb-item" onclick="showPage('audit')">
-      <span class="sb-icon">🧭</span>Audit
+      <span class="sb-icon" aria-hidden="true"></span>Audit
     </div>
     <div class="sb-item" onclick="showPage('billing')">
-      <span class="sb-icon">💳</span>Billing<span class="sb-notif" id="sb-billing-badge" style="display:none"></span>
+      <span class="sb-icon" aria-hidden="true"></span>Billing<span class="sb-notif" id="sb-billing-badge" style="display:none"></span>
     </div>
     <div class="sb-item" onclick="showPage('packages')">
-      <span class="sb-icon">📦</span>Packages
+      <span class="sb-icon" aria-hidden="true"></span>Packages
     </div>
     <div class="sb-section">Platform</div>
     <div class="sb-item" onclick="showPage('settings')">
-      <span class="sb-icon">⚙️</span>Settings
+      <span class="sb-icon" aria-hidden="true"></span>Settings
     </div>
     <div class="sb-item" onclick="showPage('api-tester')">
-      <span class="sb-ic">🔌</span> API Tester
+      <span class="sb-ic" aria-hidden="true"></span> Developer
     </div>
   </nav>
   <div class="sb-footer">
@@ -773,8 +775,8 @@ html{scroll-behavior:smooth}
   <div id="page-dashboard" class="page active">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
       <div>
-        <div class="page-title" style="margin-bottom:4px">Dashboard</div>
-        <div class="page-sub" style="margin-bottom:0">System overview and key metrics</div>
+        <div class="page-title" style="margin-bottom:4px">Overview</div>
+        <div class="page-sub" style="margin-bottom:0">The few things that need a decision right now.</div>
       </div>
       <div id="refresh-indicator" onclick="manualRefresh()" title="Click to refresh now">
         <div id="refresh-ring"></div>
@@ -782,7 +784,20 @@ html{scroll-behavior:smooth}
       </div>
     </div>
 
-    <div class="stats-grid">
+    <section class="priority-queue" aria-labelledby="priority-queue-title">
+      <div class="priority-queue-head">
+        <div>
+          <div class="control-kicker">Operating queue</div>
+          <h2 id="priority-queue-title">Priority actions</h2>
+        </div>
+        <div class="priority-queue-state" id="priority-queue-state">Updating</div>
+      </div>
+      <div class="priority-queue-list" id="priority-queue-list">
+        <div class="priority-item is-loading">Reviewing platform signals.</div>
+      </div>
+    </section>
+
+    <div class="stats-grid control-metrics">
       <div class="stat-card">
         <div class="stat-icon pink">👥</div>
         <div><div class="stat-num" id="stat-users">-</div><div class="stat-label">Total Users</div></div>
@@ -1094,15 +1109,15 @@ html{scroll-behavior:smooth}
 
   <!-- ── Users ──────────────────────────────────────────────────────────── -->
   <div id="page-users" class="page">
-    <div class="page-title">Users</div>
-    <div class="page-sub">Manage all registered users</div>
+    <div class="page-title">People</div>
+    <div class="page-sub">Accounts, access, plans and support history.</div>
 
     <div class="table-card">
       <div class="table-header">
         <div class="table-header-title">All Users</div>
-        <input class="search-box" id="users-search" placeholder="🔍 Search by name or email…" oninput="debounceUsersSearch()"/>
+        <input class="search-box" id="users-search" placeholder="Search by name or email" oninput="debounceUsersSearch()"/>
         <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="exportAdminData('users')">Export CSV</button>
-        <button class="btn-sm btn-green" style="padding:8px 16px" onclick="openAddUser()">➕ Add User</button>
+        <button class="btn-sm btn-green" style="padding:8px 16px" onclick="openAddUser()">Add person</button>
       </div>
       <div class="filter-row" id="users-role-filters">
         <button class="filter-chip active" onclick="setUsersRoleFilter('', this)">All</button>
@@ -1133,12 +1148,12 @@ html{scroll-behavior:smooth}
   <!-- ── Boards ─────────────────────────────────────────────────────────── -->
   <div id="page-boards" class="page">
     <div class="page-title">Boards</div>
-    <div class="page-sub">View and manage all user boards</div>
+    <div class="page-sub">Review content health, open workspaces and transfer ownership safely.</div>
 
     <div class="table-card">
       <div class="table-header">
         <div class="table-header-title">All Boards</div>
-        <input class="search-box" id="boards-search" placeholder="🔍 Search by name or owner…" oninput="debounceBoardsSearch()"/>
+        <input class="search-box" id="boards-search" placeholder="Search by board or owner" oninput="debounceBoardsSearch()"/>
         <select class="search-box" id="boards-owner-filter" onchange="boardsOffset=0;loadBoards()" style="width:auto;min-width:140px">
           <option value="">All owners</option>
         </select>
@@ -1148,11 +1163,11 @@ html{scroll-behavior:smooth}
         <table class="responsive-mobile">
           <thead>
             <tr>
-              <th>Board Name</th><th>Owner</th><th>Cards</th><th>Size</th>
+              <th>Board Name</th><th>Owner</th><th>Health</th><th>Cards</th><th>Size</th>
               <th>Updated</th><th>Created</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="boards-tbody"><tr class="empty-row"><td colspan="7"><div class="skel skel-line" style="width:200px"></div></td></tr></tbody>
+          <tbody id="boards-tbody"><tr class="empty-row"><td colspan="8"><div class="skel skel-line" style="width:200px"></div></td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
@@ -1997,13 +2012,44 @@ html{scroll-behavior:smooth}
   </div>
 </div>
 
+<!-- Board review panel -->
+<div class="modal-overlay" id="modal-board-review" onclick="closeBoardReview(event)">
+  <section class="modal board-review-modal" aria-labelledby="board-review-title">
+    <div class="board-review-head">
+      <div>
+        <div class="control-kicker">Board review</div>
+        <h2 class="modal-title" id="board-review-title">Loading board</h2>
+      </div>
+      <button class="drawer-close" type="button" aria-label="Close board review" onclick="closeBoardReview()">Close</button>
+    </div>
+    <div class="board-review-meta" id="board-review-meta">Loading details.</div>
+    <div class="board-review-grid" id="board-review-grid"></div>
+    <div class="board-review-transfer">
+      <div>
+        <div class="board-review-label">Transfer ownership</div>
+        <p>Moves this board to another existing TeachEd account. The previous owner loses owner-level access.</p>
+      </div>
+      <div class="board-review-transfer-form">
+        <input class="form-input" id="board-transfer-email" type="email" placeholder="New owner's email" autocomplete="off">
+        <button class="btn-sm btn-edit" type="button" onclick="transferBoardOwnership()">Transfer</button>
+      </div>
+    </div>
+    <div class="modal-footer board-review-foot">
+      <button class="btn-cancel" type="button" onclick="closeBoardReview()">Close</button>
+      <button class="btn-save" type="button" id="board-review-open" onclick="openReviewedBoard()">Open board</button>
+    </div>
+  </section>
+</div>
+
 <!-- Bulk Action Bar -->
 <div id="bulk-bar">
   <span id="bulk-count">0 selected</span>
-  <button class="bulk-btn orange" onclick="bulkKick()">🔑 Kick all</button>
+  <button class="bulk-btn orange" onclick="bulkKick()">End sessions</button>
+  <button class="bulk-btn orange" onclick="bulkSetAccess('suspend')">Suspend</button>
+  <button class="bulk-btn dim" onclick="bulkSetAccess('unsuspend')">Restore access</button>
   <button class="bulk-btn green" onclick="bulkGrantPlan('free',0)">Free plan</button>
   <button class="bulk-btn green" onclick="bulkGrantPlan('pro',1)">Grant Pro 1m</button>
-  <button class="bulk-btn red" onclick="bulkDelete()">🗑 Delete all</button>
+  <button class="bulk-btn red" onclick="bulkDelete()">Delete</button>
   <button class="bulk-btn dim" onclick="clearBulk()">Cancel</button>
 </div>
 
@@ -2036,6 +2082,7 @@ html{scroll-behavior:smooth}
 <script src="scripts/admin-app.js?v=471"></script>
 <script src="scripts/admin-refresh.js?v=476" defer></script>
 <script src="scripts/admin-security.js?v=478" defer></script>
+<script src="scripts/admin-control.js?v=1" defer></script>
 <script src="pwa.js?v=471"></script>
 <script src="scripts/autogrow.js?v=471" defer></script>
 <script src="pwa-boot.js?v=471" defer></script>
