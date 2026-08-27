@@ -1,0 +1,55 @@
+@font-face{font-family:"TeachEd UI";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/manrope-400-normal-latin-ext.woff2") format("woff2")}
+@font-face{font-family:"TeachEd UI";font-style:normal;font-weight:600;font-display:swap;src:url("/fonts/manrope-600-normal-latin-ext.woff2") format("woff2")}
+@font-face{font-family:"TeachEd UI";font-style:normal;font-weight:800;font-display:swap;src:url("/fonts/manrope-800-normal-latin-ext.woff2") format("woff2")}
+@font-face{font-family:"TeachEd Display";font-style:normal;font-weight:400 900;font-display:swap;src:url("/fonts/manrope-800-normal-latin-ext.woff2") format("woff2")}
+:root{
+  color-scheme:light;
+  --gate-ink:#20202c;
+  --gate-muted:#6c6c77;
+  --gate-line:rgba(32,32,44,.14);
+  --gate-surface:#ffffff;
+  --gate-canvas:#f6f6f2;
+  --gate-accent:#cdf940;
+  --gate-accent-ink:#56621a;
+  --gate-pink:#f0508a;
+  --gate-violet:#8b42fd;
+  --gate-danger:#c83c00;
+  --gate-focus:rgba(139,66,253,.24);
+}
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0}
+body.admin-gate-page{min-height:100dvh;background:var(--gate-canvas);color:var(--gate-ink);font-family:"TeachEd UI","Product Sans","Google Sans",Manrope,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;text-rendering:optimizeLegibility}
+body.admin-gate-page::before{position:fixed;inset:0;z-index:-1;content:"";opacity:.62;background-image:radial-gradient(circle,rgba(32,32,44,.065) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.45),transparent 74%);pointer-events:none}
+.admin-gate-shell{display:grid;min-height:100dvh;place-items:center;padding:clamp(20px,4vw,56px)}
+.admin-gate-card{display:grid;grid-template-columns:minmax(260px,.94fr) minmax(330px,1.06fr);width:min(100%,820px);min-height:488px;overflow:hidden;border:1px solid var(--gate-line);border-radius:16px;background:var(--gate-surface);box-shadow:0 22px 54px rgba(32,32,44,.12),0 2px 4px rgba(32,32,44,.06)}
+.admin-gate-context{display:flex;flex-direction:column;min-width:0;padding:34px;background:var(--gate-ink);color:#f6f6f2;border-right:4px solid var(--gate-pink)}
+.admin-gate-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:760;letter-spacing:0}
+.admin-gate-mark{display:grid;width:34px;height:34px;place-items:center;border-radius:10px;background:var(--gate-accent);color:var(--gate-ink);font-size:10px;font-weight:850;letter-spacing:.04em}
+.admin-gate-context-copy{margin:auto 0 28px}
+.admin-gate-eyebrow{margin:0 0 10px;color:var(--gate-accent-ink);font-size:11px;font-weight:760;letter-spacing:.08em;line-height:1.3;text-transform:uppercase}
+.admin-gate-context .admin-gate-eyebrow{color:var(--gate-accent)}
+.admin-gate-context h1{max-width:330px;margin:0;font-family:"TeachEd Display","TeachEd UI",sans-serif;font-size:clamp(29px,3.3vw,39px);font-weight:800;letter-spacing:-.04em;line-height:1.02}
+.admin-gate-context-copy>p:last-child{max-width:340px;margin:18px 0 0;color:rgba(248,248,243,.66);font-size:14px;line-height:1.55}
+.admin-gate-context-note{display:flex;align-items:center;gap:8px;width:max-content;max-width:100%;padding-top:15px;border-top:1px solid rgba(255,255,255,.14);color:rgba(248,248,243,.67);font-size:12px;line-height:1.4}
+.admin-gate-status-dot{width:8px;height:8px;border-radius:50%;background:var(--gate-accent);box-shadow:0 0 0 4px rgba(205,249,64,.13)}
+.admin-gate-form-panel{display:flex;flex-direction:column;justify-content:center;padding:48px clamp(28px,5vw,58px)}
+.admin-gate-form-panel h2{margin:0;color:var(--gate-ink);font-family:"TeachEd Display","TeachEd UI",sans-serif;font-size:31px;font-weight:800;letter-spacing:-.035em;line-height:1.12}
+.admin-gate-copy{margin:8px 0 30px;color:var(--gate-muted);font-size:14px;line-height:1.55}
+label{display:block;margin:0 0 8px;color:var(--gate-ink);font-size:12px;font-weight:700;line-height:1.35}
+input{width:100%;height:48px;margin:0 0 18px;padding:0 14px;border:1px solid var(--gate-line);border-radius:12px;background:#fff;color:var(--gate-ink);font:inherit;font-size:16px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+input:hover{border-color:#b7bcb2}
+input:focus{border-color:var(--gate-violet);box-shadow:0 0 0 3px var(--gate-focus)}
+.admin-gate-password{position:relative}
+.admin-gate-password input{padding-right:72px}
+#admin-gate-toggle{position:absolute;top:6px;right:6px;min-width:58px;height:36px;border:0;border-radius:9px;background:transparent;color:#5e5e6a;font:inherit;font-size:12px;font-weight:740;cursor:pointer;transition:background .18s ease,color .18s ease}
+#admin-gate-toggle:hover{background:#eee8ff;color:var(--gate-violet)}
+#admin-gate-error{min-height:20px;margin:0 0 12px;color:var(--gate-danger);font-size:12px;font-weight:600;line-height:1.45}
+#admin-gate-submit{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:48px;border:1px solid var(--gate-accent);border-radius:12px;background:var(--gate-accent);color:var(--gate-ink);font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:background .18s ease,transform .18s ease,box-shadow .18s ease}
+#admin-gate-submit:hover{background:#d3f36b;box-shadow:0 9px 22px rgba(205,249,64,.30)}
+#admin-gate-submit:active{transform:translateY(1px);box-shadow:none}
+#admin-gate-submit:disabled{cursor:wait;opacity:.7}
+.admin-gate-form-note{margin:17px 0 0;color:var(--gate-muted);font-size:11px;line-height:1.5;text-align:center}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gate-focus);outline-offset:2px}
+@media(max-width:700px){.admin-gate-shell{place-items:start center;padding:16px}.admin-gate-card{grid-template-columns:1fr;min-height:0;margin-top:max(14px,4dvh);border-radius:14px}.admin-gate-context{min-height:208px;padding:24px;border-right:0;border-bottom:4px solid var(--gate-pink)}.admin-gate-context-copy{margin:32px 0 0}.admin-gate-context h1{max-width:500px;font-size:29px}.admin-gate-context-copy>p:last-child{display:none}.admin-gate-context-note{display:none}.admin-gate-form-panel{padding:28px 24px 30px}.admin-gate-copy{margin-bottom:24px}}
+@media(max-width:380px){.admin-gate-context{padding:20px}.admin-gate-form-panel{padding:24px 20px}.admin-gate-context h1{font-size:27px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}

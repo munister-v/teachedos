@@ -1,6 +1,7 @@
 const router  = require('express').Router();
 const bcrypt  = require('bcryptjs');
 const crypto  = require('crypto');
+const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
@@ -78,6 +79,8 @@ const MAX_ACTIVE_SESSIONS = 8;
 const EMAIL_MAX_LENGTH = 254;
 const NAME_MAX_LENGTH = 120;
 const AUTH_TOKEN_MAX_LENGTH = 256;
+const ADMIN_GATE_COOKIE = 'teached_admin_gate';
+const ADMIN_GATE_PATH = process.env.ADMIN_GATE_PATH || '/control/nOHDIgkSDWHFjEOKxW9fpZLq/';
 
 // Throttle credential-guessing: 20 attempts / 15 min per IP on auth endpoints.
 const authLimiter = rateLimit({
@@ -96,6 +99,14 @@ const adminSecretLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many privileged requests. Please try again later.' },
+});
+
+const adminGateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many control-center attempts. Please wait a few minutes and try again.' },
 });
 
 function passwordProblem(password) {
@@ -133,6 +144,34 @@ function secretsMatch(received, expected) {
 function tokenCandidates(token) {
   const raw = String(token || '');
   return [hashSessionToken(raw), raw];
+}
+
+function readCookie(req, name) {
+  const source = String(req.headers?.cookie || '');
+  for (const part of source.split(';')) {
+    const [key, ...value] = part.trim().split('=');
+    if (key === name) return decodeURIComponent(value.join('='));
+  }
+  return null;
+}
+
+function setAdminGateCookie(res, token) {
+  res.cookie(ADMIN_GATE_COOKIE, token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: ADMIN_GATE_PATH,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+}
+
+function clearAdminGateCookie(res) {
+  res.clearCookie(ADMIN_GATE_COOKIE, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: ADMIN_GATE_PATH,
+  });
 }
 
 function defaultAvatarForRole(role) {
@@ -198,6 +237,90 @@ async function createLoginSession(req, user, db = pool) {
   ).catch(() => {});
   return token;
 }
+
+// The Nginx auth_request subrequest calls this endpoint before returning the
+// control center HTML. The cookie holds a signed session token, but the
+// database session and the current administrator role remain authoritative.
+router.get('/admin-gate/check', async (req, res) => {
+  const token = readCookie(req, ADMIN_GATE_COOKIE);
+  if (!token || token.length > 4096) return res.sendStatus(401);
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (!payload?.sub || !payload?.sid) return res.sendStatus(401);
+    const { rows } = await pool.query(
+      `SELECT s.id
+       FROM sessions s
+       JOIN users u ON u.id=s.user_id
+       WHERE s.id=$1 AND s.user_id=$2 AND s.token=$3 AND s.expires_at > NOW()
+         AND u.role='admin' AND COALESCE(u.is_suspended,FALSE)=FALSE
+       LIMIT 1`,
+      [payload.sid, payload.sub, hashSessionToken(token)]
+    );
+    return rows.length ? res.sendStatus(204) : res.sendStatus(401);
+  } catch {
+    return res.sendStatus(401);
+  }
+});
+
+// This is the normal browser entry point for the control center. It creates
+// one server-side session that is used both by the Nginx gate and the admin
+// application, so the operator enters credentials only once.
+router.post('/admin-gate/login', adminGateLimiter, async (req, res) => {
+  const { email, password } = req.body || {};
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail || typeof password !== 'string' || !password) {
+    return res.status(400).json({ error: 'Enter your administrator email and password.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, email, password_hash, name, role, avatar, plan, plan_status, billing_cycle,
+              plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at,
+              is_suspended, locked_at, failed_login_count
+       FROM users WHERE email=$1 LIMIT 1`,
+      [normalizedEmail]
+    );
+    const user = rows[0];
+    if (!user || user.role !== 'admin' || user.is_suspended || !user.password_hash) {
+      logAuthEvent(user?.id, normalizedEmail, 'admin.gate.fail', req, 'access denied');
+      return res.status(401).json({ error: 'Invalid administrator email or password.' });
+    }
+    if (user.locked_at) {
+      const lockAge = Date.now() - new Date(user.locked_at).getTime();
+      if (Number.isFinite(lockAge) && lockAge < ACCOUNT_LOCK_MS) {
+        logAuthEvent(user.id, user.email, 'admin.gate.blocked', req, 'temporary account lock');
+        return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      }
+      await pool.query('UPDATE users SET failed_login_count=0, locked_at=NULL WHERE id=$1', [user.id]);
+      user.failed_login_count = 0;
+    }
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) {
+      const failed = Number(user.failed_login_count || 0) + 1;
+      const lockNow = failed >= 10;
+      await pool.query(
+        `UPDATE users SET failed_login_count=$1 ${lockNow ? ', locked_at=NOW()' : ''} WHERE id=$2`,
+        [failed, user.id]
+      );
+      logAuthEvent(user.id, user.email, 'admin.gate.fail', req, `attempt ${failed}`);
+      return res.status(lockNow ? 429 : 401).json({
+        error: lockNow ? 'Too many attempts. Try again in 15 minutes.' : 'Invalid administrator email or password.',
+      });
+    }
+    await pool.query('UPDATE users SET failed_login_count=0, locked_at=NULL, last_login_at=NOW() WHERE id=$1', [user.id]);
+    const login = await issueLoginSession(req, user);
+    setAdminGateCookie(res, login.token);
+    logAuthEvent(user.id, user.email, 'admin.gate.login', req);
+    return res.json(login);
+  } catch (err) {
+    console.error('[auth/admin-gate]', err.message);
+    return res.status(500).json({ error: 'Control center sign-in is temporarily unavailable.' });
+  }
+});
+
+router.post('/admin-gate/logout', (_req, res) => {
+  clearAdminGateCookie(res);
+  res.status(204).end();
+});
 
 async function authenticateLegacyUser(email, password) {
   // Never forward a password to a legacy service unless an operator has

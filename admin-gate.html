@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#151713">
+  <title>TeachEd Control Center</title>
+  <link rel="stylesheet" href="/styles/admin-gate.css?v=3">
+</head>
+<body class="admin-gate-page">
+  <main class="admin-gate-shell">
+    <section class="admin-gate-card" aria-labelledby="admin-gate-title">
+      <aside class="admin-gate-context" aria-label="TeachEd control center">
+        <div class="admin-gate-brand">
+          <span class="admin-gate-mark" aria-hidden="true">TE</span>
+          <span>TeachEd</span>
+        </div>
+        <div class="admin-gate-context-copy">
+          <p class="admin-gate-eyebrow">Control center</p>
+          <h1>Run TeachEd from here.</h1>
+          <p>Manage people, boards, billing and platform settings from one protected workspace.</p>
+        </div>
+        <div class="admin-gate-context-note">
+          <span class="admin-gate-status-dot" aria-hidden="true"></span>
+          <span>Protected server session</span>
+        </div>
+      </aside>
+      <div class="admin-gate-form-panel">
+        <p class="admin-gate-eyebrow">Sign in</p>
+        <h2 id="admin-gate-title">Welcome back</h2>
+        <p class="admin-gate-copy">Use your TeachEd administrator account.</p>
+        <form id="admin-gate-form" novalidate>
+          <label for="admin-gate-email">Email address</label>
+          <input id="admin-gate-email" name="email" type="email" autocomplete="username" inputmode="email" required>
+          <label for="admin-gate-password">Password</label>
+          <div class="admin-gate-password">
+            <input id="admin-gate-password" name="password" type="password" autocomplete="current-password" required>
+            <button id="admin-gate-toggle" type="button" aria-label="Show password">Show</button>
+          </div>
+          <p id="admin-gate-error" role="alert" aria-live="polite"></p>
+          <button id="admin-gate-submit" type="submit">Continue to control center</button>
+        </form>
+        <p class="admin-gate-form-note">Your access is verified before the dashboard is opened.</p>
+      </div>
+    </section>
+  </main>
+  <script src="/scripts/admin-gate.js?v=2" defer></script>
+</body>
+</html>
