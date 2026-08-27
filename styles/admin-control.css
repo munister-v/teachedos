@@ -152,7 +152,8 @@
   font-weight: 800;
   letter-spacing: .02em;
 }
-.control-access-filters { margin-top: -3px; }
+.control-access-filters,
+.control-board-filters { margin-top: -3px; }
 .control-filter-label {
   align-self: center;
   color: var(--control-muted);

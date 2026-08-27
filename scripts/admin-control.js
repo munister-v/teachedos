@@ -111,6 +111,13 @@
     if (reviewedBoard?.id) openBoard(reviewedBoard.id);
   };
 
+  window.openReviewedOwner = function openReviewedOwner() {
+    if (!reviewedBoard?.owner_email) return;
+    closeBoardReview();
+    showPage('users');
+    resetPeopleFilters(reviewedBoard.owner_email);
+  };
+
   window.transferBoardOwnership = function transferBoardOwnership() {
     if (!reviewedBoard?.id) return;
     const emailInput = document.getElementById('board-transfer-email');

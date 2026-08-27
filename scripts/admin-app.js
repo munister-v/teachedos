@@ -831,6 +831,18 @@ function setUsersAccessFilter(access, el) {
   loadUsers();
 }
 
+function resetPeopleFilters(search = '') {
+  usersRoleFilter = '';
+  usersAccessFilter = '';
+  usersOffset = 0;
+  document.querySelectorAll('#users-role-filters .filter-chip, #users-access-filters .filter-chip').forEach(chip => chip.classList.remove('active'));
+  document.querySelector('#users-role-filters .filter-chip')?.classList.add('active');
+  document.querySelector('#users-access-filters .filter-chip')?.classList.add('active');
+  const input = document.getElementById('users-search');
+  if (input) input.value = search;
+  loadUsers();
+}
+
 function personInitials(user) {
   const source = String(user?.name || user?.email || 'U').trim();
   return source.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'U';
@@ -1336,6 +1348,7 @@ function rejectPayment(id, name) {
 
 // ── Boards ────────────────────────────────────────────────────────────────
 let boardsOffset = 0, boardsTotal = 0, boardsLimit = 20;
+let boardsHealthFilter = '';
 let boardsSearchTimer;
 
 function debounceBoardsSearch() {
@@ -1348,13 +1361,22 @@ function boardsPage(dir) {
   loadBoards();
 }
 
+function setBoardsHealthFilter(health, el) {
+  boardsHealthFilter = health;
+  boardsOffset = 0;
+  document.querySelectorAll('#boards-health-filters .filter-chip').forEach(chip => chip.classList.remove('active'));
+  (el || [...document.querySelectorAll('#boards-health-filters .filter-chip')]
+    .find(chip => chip.getAttribute('onclick')?.includes(`'${health}'`)))?.classList.add('active');
+  loadBoards();
+}
+
 async function loadBoards() {
   const search = document.getElementById('boards-search').value;
   const owner = document.getElementById('boards-owner-filter')?.value || '';
   const tbody  = document.getElementById('boards-tbody');
   tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="skel skel-line" style="width:180px"></div></td></tr>';
   try {
-    const d = await api('GET', `/api/admin/boards?search=${encodeURIComponent(search)}&owner=${encodeURIComponent(owner)}&limit=${boardsLimit}&offset=${boardsOffset}`);
+    const d = await api('GET', `/api/admin/boards?search=${encodeURIComponent(search)}&owner=${encodeURIComponent(owner)}&health=${encodeURIComponent(boardsHealthFilter)}&limit=${boardsLimit}&offset=${boardsOffset}`);
     boardsTotal = d.total;
     document.getElementById('boards-page-info').textContent = boardsTotal
       ? `${boardsOffset+1}-${Math.min(boardsOffset+boardsLimit,boardsTotal)} of ${boardsTotal}`

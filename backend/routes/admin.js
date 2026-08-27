@@ -1074,9 +1074,12 @@ router.delete('/users/:id', async (req, res) => {
 // ── GET /api/admin/boards ──────────────────────────────────────────────────
 router.get('/boards', async (req, res) => {
   try {
-    const { search = '', owner = '', limit = 50, offset = 0 } = req.query;
+    const { search = '', owner = '', health = '', limit = 50, offset = 0 } = req.query;
     const like = `%${search}%`;
     const ownerFilter = owner ? `%${owner}%` : '%';
+    const healthFilter = ['empty', 'stale', 'healthy'].includes(health) ? health : null;
+    const safeLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const { rows } = await pool.query(
       `SELECT b.id, b.name, b.updated_at, b.created_at,
               u.name AS owner_name, u.email AS owner_email,
@@ -1093,17 +1096,29 @@ router.get('/boards', async (req, res) => {
        JOIN users u ON u.id = b.user_id
        WHERE (b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1)
          AND u.email ILIKE $4
+         AND (
+           $5::text IS NULL
+           OR ($5 = 'empty' AND COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) = 0)
+           OR ($5 = 'stale' AND COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) > 0 AND b.updated_at < NOW() - INTERVAL '30 days')
+           OR ($5 = 'healthy' AND COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) > 0 AND b.updated_at >= NOW() - INTERVAL '30 days')
+         )
        ORDER BY b.updated_at DESC
        LIMIT $2 OFFSET $3`,
-      [like, parseInt(limit), parseInt(offset), ownerFilter]
+      [like, safeLimit, safeOffset, ownerFilter, healthFilter]
     );
     const { rows: total } = await pool.query(
       `SELECT COUNT(*) FROM boards b JOIN users u ON u.id=b.user_id
        WHERE (b.name ILIKE $1 OR u.name ILIKE $1 OR u.email ILIKE $1)
-         AND u.email ILIKE $2`,
-      [like, ownerFilter]
+         AND u.email ILIKE $2
+         AND (
+           $3::text IS NULL
+           OR ($3 = 'empty' AND COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) = 0)
+           OR ($3 = 'stale' AND COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) > 0 AND b.updated_at < NOW() - INTERVAL '30 days')
+           OR ($3 = 'healthy' AND COALESCE(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN jsonb_array_length(b.data->'cards') ELSE 0 END, 0) > 0 AND b.updated_at >= NOW() - INTERVAL '30 days')
+         )`,
+      [like, ownerFilter, healthFilter]
     );
-    res.json({ boards: rows, total: parseInt(total[0].count) });
+    res.json({ boards: rows, total: parseInt(total[0].count), filters: { owner: owner || null, health: healthFilter } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
