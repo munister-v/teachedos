@@ -817,9 +817,12 @@ router.get('/audit-log', async (req, res) => {
 // ── GET /api/admin/users ───────────────────────────────────────────────────
 router.get('/users', async (req, res) => {
   try {
-    const { search = '', role = '', limit = 50, offset = 0 } = req.query;
+    const { search = '', role = '', access = '', limit = 50, offset = 0 } = req.query;
     const like = `%${search}%`;
     const roleFilter = role ? role : null;
+    const accessFilter = ['suspended', 'locked', 'attention'].includes(access) ? access : null;
+    const safeLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const { rows } = await pool.query(
       `SELECT u.id, u.email, u.name, u.role, u.avatar, u.plan, u.plan_status, u.billing_cycle,
               u.plan_started_at, u.plan_expires_at, u.plan_source, u.created_at,
@@ -829,18 +832,30 @@ router.get('/users', async (req, res) => {
        LEFT JOIN boards b ON b.user_id = u.id
        WHERE (u.email ILIKE $1 OR u.name ILIKE $1)
          AND ($2::text IS NULL OR u.role = $2)
+         AND (
+           $3::text IS NULL
+           OR ($3 = 'suspended' AND u.is_suspended = TRUE)
+           OR ($3 = 'locked' AND u.locked_at IS NOT NULL)
+           OR ($3 = 'attention' AND (u.is_suspended = TRUE OR u.locked_at IS NOT NULL OR COALESCE(u.failed_login_count, 0) > 0))
+         )
        GROUP BY u.id
        ORDER BY u.created_at DESC
-       LIMIT $3 OFFSET $4`,
-      [like, roleFilter, parseInt(limit), parseInt(offset)]
+       LIMIT $4 OFFSET $5`,
+      [like, roleFilter, accessFilter, safeLimit, safeOffset]
     );
     const { rows: total } = await pool.query(
       `SELECT COUNT(*) FROM users
        WHERE (email ILIKE $1 OR name ILIKE $1)
-         AND ($2::text IS NULL OR role = $2)`,
-      [like, roleFilter]
+         AND ($2::text IS NULL OR role = $2)
+         AND (
+           $3::text IS NULL
+           OR ($3 = 'suspended' AND is_suspended = TRUE)
+           OR ($3 = 'locked' AND locked_at IS NOT NULL)
+           OR ($3 = 'attention' AND (is_suspended = TRUE OR locked_at IS NOT NULL OR COALESCE(failed_login_count, 0) > 0))
+         )`,
+      [like, roleFilter, accessFilter]
     );
-    res.json({ users: rows, total: parseInt(total[0].count) });
+    res.json({ users: rows, total: parseInt(total[0].count), filters: { role: roleFilter, access: accessFilter } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

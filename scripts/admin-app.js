@@ -800,6 +800,7 @@ function _openCachedUser(id, mode) {
   else openUserDrawer(u);
 }
 let usersSearchTimer;
+let usersAccessFilter = '';
 
 function debounceUsersSearch() {
   clearTimeout(usersSearchTimer);
@@ -821,12 +822,26 @@ function setUsersRoleFilter(role, el) {
   loadUsers();
 }
 
+function setUsersAccessFilter(access, el) {
+  usersAccessFilter = access;
+  usersOffset = 0;
+  document.querySelectorAll('#users-access-filters .filter-chip').forEach(chip => chip.classList.remove('active'));
+  (el || [...document.querySelectorAll('#users-access-filters .filter-chip')]
+    .find(chip => chip.getAttribute('onclick')?.includes(`'${access}'`)))?.classList.add('active');
+  loadUsers();
+}
+
+function personInitials(user) {
+  const source = String(user?.name || user?.email || 'U').trim();
+  return source.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'U';
+}
+
 async function loadUsers() {
   const search = document.getElementById('users-search').value;
   const tbody  = document.getElementById('users-tbody');
   tbody.innerHTML = '<tr class="empty-row"><td colspan="9"><div class="skel skel-line" style="width:180px"></div></td></tr>';
   try {
-    const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(usersRoleFilter)}&limit=${usersLimit}&offset=${usersOffset}`);
+    const d = await api('GET', `/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(usersRoleFilter)}&access=${encodeURIComponent(usersAccessFilter)}&limit=${usersLimit}&offset=${usersOffset}`);
     usersTotal = d.total;
     document.getElementById('users-page-info').textContent = usersTotal
       ? `${usersOffset+1}-${Math.min(usersOffset+usersLimit, usersTotal)} of ${usersTotal}`
@@ -851,7 +866,7 @@ async function loadUsers() {
           : '';
       return `<tr${u.is_suspended ? ' style="opacity:.65"' : ''}>
         <td><input type="checkbox" class="row-check" data-id="${u.id}" onchange="toggleRowCheck(this)" ${isSelected?'checked':''} style="accent-color:var(--lime);cursor:pointer"></td>
-        <td class="avatar-cell" data-label="Avatar" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')">${u.avatar}</td>
+        <td class="avatar-cell" data-label="Person" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')"><span class="person-mark">${personInitials(u)}</span></td>
         <td data-label="Name" style="cursor:pointer" onclick="_openCachedUser('${u.id}','drawer')"><strong>${esc(u.name)}</strong>${statusBadge ? '<br>' + statusBadge : ''}</td>
         <td data-label="Email" style="color:var(--muted);font-size:13px">${esc(u.email)}</td>
         <td data-label="Role"><span class="badge badge-${u.role}">${u.role}</span></td>
@@ -865,11 +880,11 @@ async function loadUsers() {
         <td data-label="Joined" class="time-text">${fmtDate(u.created_at)}</td>
         <td data-label="Actions">
           <div class="action-group">
-            <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','drawer')">👤 View</button>
-            <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','edit')">✏️ Edit</button>
-            <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${esc(u.name)}')">🔑 Kick</button>
-            ${u.locked_at ? `<button class="btn-sm" style="background:#ea580c;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer" onclick="unlockUser('${u.id}','${esc(u.name)}')">🔓</button>` : ''}
-            <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${esc(u.name)}')">🗑</button>
+            <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','drawer')">View</button>
+            <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','edit')">Edit</button>
+            <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${esc(u.name)}')">End session</button>
+            ${u.locked_at ? `<button class="btn-sm" style="background:#ea580c;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer" onclick="unlockUser('${u.id}','${esc(u.name)}')">Unlock</button>` : ''}
+            <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${esc(u.name)}')">Delete</button>
           </div>
         </td>
       </tr>`;
@@ -908,11 +923,10 @@ async function loadUserHistory(userId) {
     const d = await api('GET', `/api/admin/users/${userId}/history`);
     const items = [];
     (d.payments || []).forEach(p => {
-      const badge = p.status === 'approved' ? '🟢' : p.status === 'rejected' ? '🔴' : p.status === 'pending' ? '🟡' : '⚪';
-      items.push({ t: new Date(p.created_at), html: `${badge} <strong>${esc(p.invoice_no || '#'+p.id)}</strong> · ${esc(p.plan)} · ${Number(p.amount||0).toFixed(2)} ${esc(p.currency||'usd')} · <em>${esc(p.status)}</em>${p.admin_note ? ' · '+esc(p.admin_note) : ''}` });
+      items.push({ t: new Date(p.created_at), html: `<span class="history-status">${esc(p.status || 'record')}</span> <strong>${esc(p.invoice_no || '#'+p.id)}</strong> · ${esc(p.plan)} · ${Number(p.amount||0).toFixed(2)} ${esc(p.currency||'usd')}${p.admin_note ? ' · '+esc(p.admin_note) : ''}` });
     });
     (d.audit || []).forEach(a => {
-      items.push({ t: new Date(a.created_at), html: `📋 <strong>${esc(a.action)}</strong> · ${esc(a.detail || '')} ${a.admin_email ? '· by '+esc(a.admin_email) : ''}` });
+      items.push({ t: new Date(a.created_at), html: `<span class="history-status">change</span> <strong>${esc(a.action)}</strong> · ${esc(a.detail || '')} ${a.admin_email ? '· by '+esc(a.admin_email) : ''}` });
     });
     items.sort((a,b) => b.t - a.t);
     if (!items.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted)">No plan changes or payments recorded yet.</div>'; return; }
@@ -1985,7 +1999,7 @@ let drawerUser = null;
 
 async function openUserDrawer(u) {
   drawerUser = u;
-  document.getElementById('drawer-avatar').textContent = u.avatar || 'U';
+  document.getElementById('drawer-avatar').textContent = personInitials(u);
   document.getElementById('drawer-name').textContent = u.name;
   document.getElementById('drawer-email').textContent = u.email;
   document.getElementById('drawer-boards-n').textContent = u.boards_count ?? '-';
@@ -2180,18 +2194,18 @@ async function loadSuspendedUsers() {
   const el = document.getElementById('sec-suspended-list');
   if (!el) return;
   try {
-    const d = await api('GET', '/api/admin/users?limit=50&offset=0&search=');
-    const suspended = (d.users || []).filter(u => u.is_suspended);
+    const d = await api('GET', '/api/admin/users?access=suspended&limit=100&offset=0&search=');
+    const suspended = d.users || [];
     if (!suspended.length) { el.innerHTML = '<div class="empty-note" style="padding:12px;font-size:13px;color:var(--muted)">No suspended accounts.</div>'; return; }
     el.innerHTML = suspended.map(u => `
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="font-size:22px">${u.avatar}</div>
+        <div class="person-mark">${personInitials(u)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:13px">${esc(u.name)}</div>
           <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>
           ${u.suspended_reason ? `<div style="font-size:11px;color:#dc2626">${esc(u.suspended_reason)}</div>` : ''}
         </div>
-        <button class="btn-sm btn-green" onclick="unsuspendUser('${u.id}','${esc(u.name)}').then(loadSecurityPage).then(loadUsers)">Unsuspend</button>
+        <button class="btn-sm btn-green" onclick="unsuspendUser('${u.id}','${esc(u.name)}').then(loadSecurityPage).then(loadUsers)">Restore access</button>
       </div>`).join('');
   } catch(e) { el.innerHTML = `<div style="color:var(--red);font-size:13px;padding:12px">${esc(e.message)}</div>`; }
 }
@@ -2200,12 +2214,12 @@ async function loadLockedAccounts() {
   const el = document.getElementById('sec-locked-list');
   if (!el) return;
   try {
-    const d = await api('GET', '/api/admin/users?limit=50&offset=0&search=');
-    const locked = (d.users || []).filter(u => u.locked_at);
+    const d = await api('GET', '/api/admin/users?access=locked&limit=100&offset=0&search=');
+    const locked = d.users || [];
     if (!locked.length) { el.innerHTML = '<div class="empty-note" style="padding:12px;font-size:13px;color:var(--muted)">No locked accounts.</div>'; return; }
     el.innerHTML = locked.map(u => `
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="font-size:22px">${u.avatar}</div>
+        <div class="person-mark">${personInitials(u)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:13px">${esc(u.name)}</div>
           <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>

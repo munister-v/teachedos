@@ -152,6 +152,39 @@
   font-weight: 800;
   letter-spacing: .02em;
 }
+.control-access-filters { margin-top: -3px; }
+.control-filter-label {
+  align-self: center;
+  color: var(--control-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.person-mark {
+  align-items: center;
+  background: #eef5cf;
+  border: 1px solid #d5e68b;
+  border-radius: 8px;
+  color: #3d4711;
+  display: inline-flex;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  letter-spacing: .02em;
+  min-width: 28px;
+  padding: 0 6px;
+}
+.history-status {
+  color: var(--control-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
 .confirm-mark {
   align-items: center;
   background: #fff3f6;

@@ -1125,12 +1125,19 @@ html{scroll-behavior:smooth}
         <button class="filter-chip" onclick="setUsersRoleFilter('student', this)">Students</button>
         <button class="filter-chip" onclick="setUsersRoleFilter('admin', this)">Admins</button>
       </div>
+      <div class="filter-row control-access-filters" id="users-access-filters" aria-label="Account access filter">
+        <span class="control-filter-label">Access</span>
+        <button class="filter-chip active" onclick="setUsersAccessFilter('', this)">All</button>
+        <button class="filter-chip" onclick="setUsersAccessFilter('attention', this)">Needs attention</button>
+        <button class="filter-chip" onclick="setUsersAccessFilter('locked', this)">Locked</button>
+        <button class="filter-chip" onclick="setUsersAccessFilter('suspended', this)">Suspended</button>
+      </div>
       <div style="overflow-x:auto">
         <table class="responsive-mobile">
           <thead>
             <tr>
               <th style="width:36px"><input type="checkbox" id="bulk-select-all" onchange="toggleSelectAll(this.checked)" style="accent-color:var(--lime);cursor:pointer"></th>
-              <th>Avatar</th><th>Name</th><th>Email</th><th>Role</th>
+              <th>Person</th><th>Name</th><th>Email</th><th>Role</th>
               <th>Plan</th><th>Boards</th><th>Last Login</th><th>Joined</th><th>Actions</th>
             </tr>
           </thead>
@@ -1186,10 +1193,10 @@ html{scroll-behavior:smooth}
     <div class="table-card">
       <div class="table-header">
         <div class="table-header-title">Sessions</div>
-        <input class="search-box" id="sessions-search" placeholder="🔍 Filter by user or IP…" oninput="filterSessions()" style="max-width:220px"/>
+        <input class="search-box" id="sessions-search" placeholder="Filter by user or IP" oninput="filterSessions()" style="max-width:220px"/>
         <label id="sessions-autorefresh"><input type="checkbox" id="sessions-ar-check" onchange="toggleSessionsAutoRefresh(this.checked)"> Auto-refresh 30s</label>
-        <button class="btn-sm btn-danger" style="padding:8px 16px" onclick="revokeAllSessions()">🗑 Revoke All</button>
-        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadSessions()">🔄 Refresh</button>
+        <button class="btn-sm btn-danger" style="padding:8px 16px" onclick="revokeAllSessions()">Revoke all</button>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadSessions()">Refresh</button>
       </div>
       <div style="overflow-x:auto">
         <table class="responsive-mobile">
@@ -1247,8 +1254,8 @@ html{scroll-behavior:smooth}
 
     <div class="table-card" style="margin-bottom:18px">
       <div class="table-header">
-        <div class="table-header-title">🔐 Auth Event Log</div>
-        <input class="search-box" id="sec-search" placeholder="🔍 email or IP…" oninput="debounceSecSearch()" style="max-width:200px"/>
+        <div class="table-header-title">Auth event log</div>
+        <input class="search-box" id="sec-search" placeholder="Email or IP" oninput="debounceSecSearch()" style="max-width:200px"/>
         <select class="search-box" id="sec-event-filter" onchange="secOffset=0;loadAuthEvents()" style="width:auto;min-width:160px">
           <option value="">All events</option>
           <option value="login.ok">login.ok</option>
@@ -1259,7 +1266,7 @@ html{scroll-behavior:smooth}
           <option value="google.login">google.login</option>
           <option value="google.signup">google.signup</option>
         </select>
-        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAuthEvents()">🔄 Refresh</button>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAuthEvents()">Refresh</button>
       </div>
       <div style="overflow-x:auto">
         <table class="responsive-mobile">
@@ -1276,11 +1283,11 @@ html{scroll-behavior:smooth}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
       <div class="table-card">
-        <div class="table-header" style="padding:16px 18px"><div class="table-header-title">🚫 Suspended Accounts</div></div>
+        <div class="table-header" style="padding:16px 18px"><div class="table-header-title">Suspended accounts</div></div>
         <div id="sec-suspended-list" style="padding:0 18px 16px"><div class="empty-note">Loading…</div></div>
       </div>
       <div class="table-card">
-        <div class="table-header" style="padding:16px 18px"><div class="table-header-title">🔒 Locked Accounts</div></div>
+        <div class="table-header" style="padding:16px 18px"><div class="table-header-title">Locked accounts</div></div>
         <div id="sec-locked-list" style="padding:0 18px 16px"><div class="empty-note">Loading…</div></div>
       </div>
     </div>
