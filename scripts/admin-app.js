@@ -70,7 +70,8 @@ async function verifyToken() {
 
 function enterPanel() {
   document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('sb-avatar').textContent = currentAdminUser.avatar;
+  document.getElementById('sb-avatar').textContent = (currentAdminUser.name || 'TE')
+    .trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'TE';
   document.getElementById('sb-name').textContent   = currentAdminUser.name;
   document.getElementById('sb-email').textContent  = currentAdminUser.email;
   document.getElementById('api-url-display').textContent = API;
@@ -184,7 +185,7 @@ function toast(msg, type='') {
 function confirm(title, desc, icon, onOk, opts) {
   document.getElementById('confirm-title').textContent = title;
   document.getElementById('confirm-desc').textContent  = desc;
-  document.getElementById('confirm-icon').textContent  = icon || '⚠️';
+  document.getElementById('confirm-icon').textContent  = '!';
   document.getElementById('modal-confirm').classList.add('open');
   const btn = document.getElementById('confirm-ok');
   btn.textContent = (opts && opts.label) || 'Delete';
@@ -215,7 +216,7 @@ async function refreshStats() {
     document.getElementById('stat-cards').textContent    = stats.cards ?? '-';
     document.getElementById('stat-new-users').textContent = stats.newUsers7d ?? '-';
     document.getElementById('stat-storage').textContent  = fmtBytes(stats.storageBytes);
-    document.getElementById('stat-health').textContent   = health?.ok ? '✅ OK' : '❌ Down';
+    document.getElementById('stat-health').textContent   = health?.ok ? 'Online' : 'Offline';
     document.getElementById('stat-invites').textContent  = system?.invites?.active ?? 0;
     document.getElementById('stat-payments').textContent = stats.pendingPayments ?? 0;
 
@@ -264,7 +265,7 @@ async function loadAIStatus() {
   try {
     const d = await api('GET', '/api/ai/status');
     const m = d.metrics || {};
-    badge.textContent = d.llmEnabled ? '🟢 LLM active' : '🟡 Rule engine';
+    badge.textContent = d.llmEnabled ? 'LLM active' : 'Rule engine';
     badge.className = 'badge badge-' + (d.llmEnabled ? 'teacher' : 'student');
     document.getElementById('ai-model').textContent    = d.model || 'vps-fast-v1';
     document.getElementById('ai-llmok').textContent    = m.llmOk ?? 0;
@@ -285,7 +286,7 @@ async function loadAIStatus() {
     loadAIUsage();
     loadAIAllowances();
   } catch(e) {
-    badge.textContent = '⚠️ unavailable';
+    badge.textContent = 'Unavailable';
     badge.className = 'badge badge-student';
   }
 }
@@ -625,7 +626,7 @@ function renderTimeline() {
 }
 
 function timelineIcon(type) {
-  return { user:'👤', board:'📋', session:'🔑', invite:'📩' }[type] || '•';
+  return { user:'U', board:'B', session:'S', invite:'I' }[type] || '·';
 }
 
 // ── Admin Spotlight ───────────────────────────────────────────────────────
@@ -769,7 +770,7 @@ function renderAuditWarnings(warnings) {
     return;
   }
   el.innerHTML = warnings.map(w =>
-    `<div class="audit-warning ${w.level === 'medium' ? 'medium' : ''}">⚠️ <span>${esc(w.text)}</span></div>`
+    `<div class="audit-warning ${w.level === 'medium' ? 'medium' : ''}"><span>${esc(w.text)}</span></div>`
   ).join('');
 }
 
@@ -951,7 +952,7 @@ async function saveUser() {
   try {
     await api('PATCH', `/api/admin/users/${editingUserId}`, body);
     closeUserModal();
-    toast('User updated ✅', 'success');
+    toast('User updated', 'success');
     loadUsers();
   } catch(e) { toast(e.message, 'error'); }
 }
@@ -968,7 +969,7 @@ async function createUser() {
   try {
     await api('POST', '/api/admin/users', { name, email, password: pass, role });
     document.getElementById('modal-add-user').classList.remove('open');
-    toast('User created ✅', 'success');
+    toast('User created', 'success');
     ['au-name','au-email','au-pass'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('au-role').value = 'teacher';
     loadUsers();
@@ -991,7 +992,7 @@ function kickUser(userId, name) {
   confirm(`Kick "${name}"?`, 'All active sessions for this user will be revoked.', '🔑', async () => {
     try {
       await api('DELETE', `/api/admin/sessions/user/${userId}`);
-      toast('Sessions revoked ✅', 'success');
+      toast('Sessions revoked', 'success');
     } catch(e) { toast(e.message, 'error'); }
   }, { label: 'Revoke sessions', color: '#f97316' });
 }
@@ -1087,7 +1088,7 @@ async function grantSubscription() {
           billing_cycle: payload.billing_cycle,
           plan_expires_at: payload.plan_expires_at,
         });
-        toast('Subscription updated ✅', 'success');
+        toast('Subscription updated', 'success');
         loadPackageControl();
         refreshStats();
         if (document.getElementById('page-users').classList.contains('active')) loadUsers();
@@ -1513,7 +1514,7 @@ async function copyProductionReport() {
   const report = productionReportText();
   try {
     await navigator.clipboard.writeText(report);
-    toast('Production report copied ✅', 'success');
+    toast('Production report copied', 'success');
   } catch {
     toast('Clipboard unavailable - select the status manually', 'error');
   }
@@ -1578,7 +1579,7 @@ async function promoteUser() {
   if (!email) { toast('Enter email','error'); return; }
   try {
     await api('PATCH', `/api/admin/users/${await userIdByEmail(email)}`, { role: 'admin' });
-    toast(`${email} promoted to admin ✅`, 'success');
+    toast(`${email} promoted to admin`, 'success');
     document.getElementById('promote-email').value = '';
   } catch(e) { toast(e.message,'error'); }
 }
@@ -1608,7 +1609,7 @@ async function changeMyPassword() {
   if (p1.length < 10) { toast('Min 10 characters','error'); return; }
   try {
     await api('PATCH', `/api/admin/users/${currentAdminUser.id}`, { password: p1 });
-    toast('Password updated ✅', 'success');
+    toast('Password updated', 'success');
     document.getElementById('new-pass').value = '';
     document.getElementById('new-pass2').value = '';
   } catch(e) { toast(e.message,'error'); }
@@ -1632,13 +1633,13 @@ async function loadSysInfo() {
       api('GET', '/api/admin/system'),
     ]);
     document.getElementById('sys-info').innerHTML = `
-      <div>🟢 API: <strong>${h?.ok ? 'Online' : 'Offline'}</strong></div>
-      <div>🕐 Server time: <strong>${system?.serverTime ? fmtDate(system.serverTime) : '-'}</strong></div>
-      <div>⏱ Uptime: <strong>${fmtDuration(system?.uptimeSec)}</strong></div>
-      <div>🧠 Node: <strong>${esc(system?.nodeVersion || '-')}</strong></div>
-      <div>🧹 Expired sessions: <strong>${system?.expiredSessions ?? '-'}</strong></div>
-      <div>🌐 Endpoint: <strong>${API}</strong></div>
-      <div>👤 Admin: <strong>${currentAdminUser?.name || '-'}</strong></div>
+      <div>API: <strong>${h?.ok ? 'Online' : 'Offline'}</strong></div>
+      <div>Server time: <strong>${system?.serverTime ? fmtDate(system.serverTime) : '-'}</strong></div>
+      <div>Uptime: <strong>${fmtDuration(system?.uptimeSec)}</strong></div>
+      <div>Node: <strong>${esc(system?.nodeVersion || '-')}</strong></div>
+      <div>Expired sessions: <strong>${system?.expiredSessions ?? '-'}</strong></div>
+      <div>Endpoint: <strong>${API}</strong></div>
+      <div>Administrator: <strong>${currentAdminUser?.name || '-'}</strong></div>
     `;
   } catch(e) {
     document.getElementById('sys-info').textContent = 'Could not load system info';
@@ -1655,7 +1656,7 @@ async function createInvite() {
     const d = await api('POST', '/api/admin/invites', { email, role, expiresInDays, note });
     const inviteUrl = buildInviteUrl(d.invite.token);
     await navigator.clipboard.writeText(inviteUrl).catch(() => {});
-    toast('Invite created and copied ✅', 'success');
+    toast('Invite created and copied', 'success');
     document.getElementById('invite-email').value = '';
     document.getElementById('invite-note').value = '';
     document.getElementById('invite-role').value = 'teacher';
@@ -1984,7 +1985,7 @@ let drawerUser = null;
 
 async function openUserDrawer(u) {
   drawerUser = u;
-  document.getElementById('drawer-avatar').textContent = u.avatar || '🧑';
+  document.getElementById('drawer-avatar').textContent = u.avatar || 'U';
   document.getElementById('drawer-name').textContent = u.name;
   document.getElementById('drawer-email').textContent = u.email;
   document.getElementById('drawer-boards-n').textContent = u.boards_count ?? '-';
@@ -2001,7 +2002,7 @@ async function openUserDrawer(u) {
   // Suspend button label
   const suspBtn = document.getElementById('drawer-suspend-btn');
   if (suspBtn) {
-    suspBtn.textContent = u.is_suspended ? '✅ Unsuspend' : '🚫 Suspend';
+    suspBtn.textContent = u.is_suspended ? 'Restore access' : 'Suspend';
     suspBtn.style.background = u.is_suspended ? 'var(--green)' : 'var(--orange)';
   }
   document.getElementById('drawer-plan-detail').innerHTML = `
@@ -2043,10 +2044,9 @@ async function loadUserAuthEventsDrawer(userId) {
   try {
     const d = await api('GET', `/api/admin/users/${userId}/auth-events`);
     if (!d.events?.length) { el.innerHTML = '<div style="color:var(--muted)">No auth events recorded yet.</div>'; return; }
-    const icons = { 'login.ok':'🟢','login.fail':'🔴','login.blocked':'🚫','logout':'👋','password.reset':'🔑','google.login':'🔵','google.signup':'🔵' };
     el.innerHTML = d.events.slice(0, 12).map(e => `
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:11.5px">
-        <span>${icons[e.event] || '⚪'}</span>
+        <span class="auth-event-mark">${authEventMark(e.event)}</span>
         <span style="font-weight:600;min-width:100px">${esc(e.event)}</span>
         <span style="color:var(--muted);flex:1">${esc(e.ip || '-')}</span>
         ${e.detail ? `<span style="color:var(--muted)">${esc(e.detail)}</span>` : ''}
@@ -2159,10 +2159,9 @@ async function loadAuthEvents() {
     const prev = document.getElementById('sec-prev'); if (prev) prev.disabled = secOffset === 0;
     const next = document.getElementById('sec-next'); if (next) next.disabled = secOffset + secLimit >= secTotal;
     if (!d.events?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><div class="empty-note">No auth events found.</div></td></tr>'; return; }
-    const icons = { 'login.ok':'🟢','login.fail':'🔴','login.blocked':'🚫','logout':'👋','password.reset':'🔑','google.login':'🔵','google.signup':'🔵' };
     tbody.innerHTML = d.events.map(e => `<tr>
       <td class="time-text">${fmtRelative(e.created_at)}</td>
-      <td><span style="font-weight:600">${icons[e.event]||'⚪'} ${esc(e.event)}</span></td>
+      <td><span style="font-weight:600"><span class="auth-event-mark">${authEventMark(e.event)}</span> ${esc(e.event)}</span></td>
       <td style="font-size:12px">${esc(e.user_name || e.email || '-')}<br><span style="color:var(--muted);font-size:11px">${esc(e.email||'')}</span></td>
       <td style="font-size:12px;font-family:monospace">${esc(e.ip||'-')}</td>
       <td style="font-size:12px;color:var(--muted)">${esc(e.detail||'-')}</td>
@@ -2171,6 +2170,10 @@ async function loadAuthEvents() {
   } catch(e) {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Error: ${esc(e.message)}</td></tr>`;
   }
+}
+
+function authEventMark(event) {
+  return { 'login.ok': 'OK', 'login.fail': '!', 'login.blocked': 'X', logout: 'OUT', 'password.reset': 'PW', 'google.login': 'G', 'google.signup': 'G' }[event] || '·';
 }
 
 async function loadSuspendedUsers() {

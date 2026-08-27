@@ -113,6 +113,59 @@
 }
 .priority-action:hover { color: var(--control-violet); }
 
+/* Operational notation replaces decorative emoji, keeping the interface quiet. */
+.sb-avatar,
+.stat-icon,
+.command-ico,
+.timeline-icon,
+.confirm-mark {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.stat-icon {
+  align-items: center;
+  color: var(--control-ink);
+  display: inline-flex;
+  font-size: 14px;
+  justify-content: center;
+}
+.command-ico {
+  align-items: center;
+  background: var(--control-paper);
+  border: 1px solid var(--control-line);
+  border-radius: 7px;
+  color: var(--control-ink);
+  display: inline-flex;
+  font-size: 11px;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+.timeline-icon { font-size: 11px; }
+.auth-event-mark {
+  display: inline-flex;
+  min-width: 20px;
+  color: var(--control-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.confirm-mark {
+  align-items: center;
+  background: #fff3f6;
+  border: 1px solid #f3bed0;
+  border-radius: 50%;
+  color: #b72e61;
+  display: inline-flex;
+  font-size: 20px;
+  height: 42px;
+  justify-content: center;
+  margin: 0 auto 12px;
+  width: 42px;
+}
+
 /* Keep system telemetry present but subordinate to the operational work. */
 #page-dashboard > .control-metrics > .stat-card:nth-child(4),
 #page-dashboard > .control-metrics > .stat-card:nth-child(5),

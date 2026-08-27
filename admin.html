@@ -757,7 +757,7 @@ html{scroll-behavior:smooth}
   </nav>
   <div class="sb-footer">
     <div class="sb-user">
-      <div class="sb-avatar" id="sb-avatar">🧑‍💻</div>
+      <div class="sb-avatar" id="sb-avatar">TE</div>
       <div>
         <div class="sb-uname" id="sb-name">-</div>
         <div class="sb-uemail" id="sb-email">-</div>
@@ -799,15 +799,15 @@ html{scroll-behavior:smooth}
 
     <div class="stats-grid control-metrics">
       <div class="stat-card">
-        <div class="stat-icon pink">👥</div>
+        <div class="stat-icon pink">U</div>
         <div><div class="stat-num" id="stat-users">-</div><div class="stat-label">Total Users</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon blue">📋</div>
+        <div class="stat-icon blue">B</div>
         <div><div class="stat-num" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon green">🟢</div>
+        <div class="stat-icon green">S</div>
         <div>
           <div class="stat-num" id="stat-sessions">-</div>
           <div class="stat-label">Active Sessions</div>
@@ -857,21 +857,21 @@ html{scroll-behavior:smooth}
     </div>
 
     <div class="table-card admin-quick-card" style="padding:22px">
-      <div style="font-size:16px;font-weight:650;margin-bottom:14px">👤 Users by Role</div>
+      <div style="font-size:16px;font-weight:650;margin-bottom:14px">Users by role</div>
       <div class="roles-list" id="roles-list">Loading…</div>
     </div>
 
     <div class="table-card" style="padding:22px">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-        <div style="font-size:16px;font-weight:650">🤖 AI Engine</div>
+        <div style="font-size:16px;font-weight:650">AI engine</div>
         <span class="badge" id="ai-engine-badge" style="font-size:12px">checking…</span>
       </div>
       <div class="stats-grid" style="margin-bottom:0">
-        <div class="stat-card"><div class="stat-icon blue">📦</div><div><div class="stat-num" id="ai-model" style="font-size:15px">-</div><div class="stat-label">Active model</div></div></div>
-        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-num" id="ai-llmok">-</div><div class="stat-label">LLM generations</div></div></div>
-        <div class="stat-card"><div class="stat-icon orange">↩️</div><div><div class="stat-num" id="ai-fallback">-</div><div class="stat-label">Unavailable AI requests</div></div></div>
-        <div class="stat-card"><div class="stat-icon pink">⚡</div><div><div class="stat-num" id="ai-cache">-</div><div class="stat-label">Cache hits</div></div></div>
-        <div class="stat-card"><div class="stat-icon blue">📊</div><div><div class="stat-num" id="ai-total">-</div><div class="stat-label">Total requests</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">M</div><div><div class="stat-num" id="ai-model" style="font-size:15px">-</div><div class="stat-label">Active model</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">L</div><div><div class="stat-num" id="ai-llmok">-</div><div class="stat-label">LLM generations</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">F</div><div><div class="stat-num" id="ai-fallback">-</div><div class="stat-label">Unavailable AI requests</div></div></div>
+        <div class="stat-card"><div class="stat-icon pink">C</div><div><div class="stat-num" id="ai-cache">-</div><div class="stat-label">Cache hits</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">R</div><div><div class="stat-num" id="ai-total">-</div><div class="stat-label">Total requests</div></div></div>
       </div>
       <div class="time-text" id="ai-chain" style="margin-top:10px;color:var(--muted)"></div>
       <div class="time-text" id="ai-lasterror" style="margin-top:4px;color:var(--muted)"></div>
@@ -923,7 +923,7 @@ html{scroll-behavior:smooth}
     </div>
 
     <div class="table-card" style="padding:22px">
-      <div style="font-size:16px;font-weight:650;margin-bottom:14px">⚡ Quick Actions</div>
+      <div style="font-size:16px;font-weight:650;margin-bottom:14px">Quick actions</div>
       <div class="admin-quick-actions" style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="admin-quick-primary btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="showPage('users')">Manage Users</button>
         <button class="admin-quick-primary btn-sm btn-green" style="padding:10px 18px;font-size:14px" onclick="showPage('boards')">View Boards</button>
@@ -933,7 +933,7 @@ html{scroll-behavior:smooth}
           <summary>More</summary>
           <div class="admin-quick-more-menu">
             <button class="btn-sm btn-green" style="padding:10px 18px;font-size:14px" onclick="exportAdminData('users')">Export Users CSV</button>
-            <button class="btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="refreshStats()">🔄 Refresh Stats</button>
+            <button class="btn-sm btn-edit" style="padding:10px 18px;font-size:14px" onclick="refreshStats()">Refresh stats</button>
           </div>
         </details>
       </div>
@@ -944,16 +944,16 @@ html{scroll-behavior:smooth}
       <div class="page-sub" style="margin-bottom:0">Common admin moves without hunting through every section</div>
       <div class="command-grid">
         <button class="command-btn" type="button" onclick="showPage('settings');setTimeout(()=>document.getElementById('invite-email')?.focus(),50)">
-          <span class="command-ico">📩</span><span><span class="command-title">Invite someone</span><span class="command-copy">Create a one-time onboarding link.</span></span>
+          <span class="command-ico">I</span><span><span class="command-title">Invite someone</span><span class="command-copy">Create a one-time onboarding link.</span></span>
         </button>
         <button class="command-btn" type="button" onclick="showPage('users');setUsersRoleFilter('admin')">
-          <span class="command-ico">🛡️</span><span><span class="command-title">Review admins</span><span class="command-copy">Filter users down to admin accounts.</span></span>
+          <span class="command-ico">A</span><span><span class="command-title">Review admins</span><span class="command-copy">Filter users down to admin accounts.</span></span>
         </button>
         <button class="command-btn" type="button" onclick="exportAdminData('boards')">
-          <span class="command-ico">📋</span><span><span class="command-title">Export boards</span><span class="command-copy">Download a CSV snapshot of all boards.</span></span>
+          <span class="command-ico">E</span><span><span class="command-title">Export boards</span><span class="command-copy">Download a CSV snapshot of all boards.</span></span>
         </button>
         <button class="command-btn" type="button" onclick="purgeExpiredSessions()">
-          <span class="command-ico">🧹</span><span><span class="command-title">Clean sessions</span><span class="command-copy">Remove expired auth sessions from DB.</span></span>
+          <span class="command-ico">C</span><span><span class="command-title">Clean sessions</span><span class="command-copy">Remove expired auth sessions from DB.</span></span>
         </button>
       </div>
     </div>
@@ -1294,7 +1294,7 @@ html{scroll-behavior:smooth}
     <div class="table-card" style="padding:22px">
       <div class="table-header" style="padding:0 0 16px;border-bottom:none">
         <div class="table-header-title">Audit Warnings</div>
-        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAudit()">🔄 Refresh</button>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAudit()">Refresh</button>
       </div>
       <div id="audit-warnings"><div class="empty-note">Loading…</div></div>
       <div class="audit-actions">
@@ -1307,8 +1307,8 @@ html{scroll-behavior:smooth}
 
     <div class="table-card" style="padding:22px">
       <div class="table-header" style="padding:0 0 16px;border-bottom:none">
-        <div class="table-header-title">🛡️ Admin Action Log</div>
-        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAdminAuditLog()">🔄 Refresh</button>
+        <div class="table-header-title">Admin action log</div>
+        <button class="btn-sm btn-edit" style="padding:8px 16px" onclick="loadAdminAuditLog()">Refresh</button>
       </div>
       <div style="overflow-x:auto">
         <table class="responsive-mobile">
@@ -1969,7 +1969,7 @@ html{scroll-behavior:smooth}
 <!-- ══ CONFIRM MODAL ════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-confirm" onclick="closeModal(event)">
   <div class="modal" style="text-align:center">
-    <div style="font-size:48px;margin-bottom:12px" id="confirm-icon">⚠️</div>
+    <div class="confirm-mark" id="confirm-icon">!</div>
     <div class="modal-title" id="confirm-title" style="text-align:center">Are you sure?</div>
     <div style="color:var(--muted);font-size:14px;margin-bottom:24px" id="confirm-desc"></div>
     <div class="modal-footer" style="justify-content:center">
