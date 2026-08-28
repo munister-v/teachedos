@@ -8,6 +8,7 @@ const pool    = require('../db/pool');
 const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth');
 const { ensureBillingSchema } = require('../lib/billing');
 const { sendEmail, resetPasswordEmail } = require('../lib/email');
+const { recordTelemetry } = require('../lib/telemetry');
 
 pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
 // Auth monitoring columns
@@ -38,6 +39,13 @@ function logAuthEvent(userId, email, event, req, detail) {
     `INSERT INTO auth_events (user_id, email, event, ip, user_agent, detail) VALUES ($1,$2,$3,$4,$5,$6)`,
     [userId || null, email || null, String(event).slice(0,40), req?.ip || null, String(req?.headers?.['user-agent'] || '').slice(0,300), detail ? String(detail).slice(0,200) : null]
   ).catch(() => {});
+  recordTelemetry({
+    category: 'security',
+    eventType: `auth.${String(event || 'unknown').replace(/[^a-z0-9_.-]/gi, '').toLowerCase() || 'unknown'}`,
+    outcome: /fail|blocked/i.test(String(event)) ? 'client_error' : 'ok',
+    actorId: userId,
+    metadata: { source: 'auth', operation: String(event || 'unknown').slice(0, 80) },
+  });
 }
 
 pool.query(`

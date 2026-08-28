@@ -282,6 +282,33 @@ CREATE TABLE IF NOT EXISTS shared_materials (
 );
 CREATE INDEX IF NOT EXISTS idx_shared_materials_owner ON shared_materials(owner_id, created_at DESC);
 
+-- ── Monitoring telemetry (no board content or visitor fingerprints) ─────────
+CREATE TABLE IF NOT EXISTS telemetry_events (
+  id          BIGSERIAL PRIMARY KEY,
+  category    VARCHAR(24) NOT NULL,
+  event_type  VARCHAR(80) NOT NULL,
+  outcome     VARCHAR(24) NOT NULL DEFAULT 'ok',
+  actor_id    UUID REFERENCES users(id) ON DELETE SET NULL,
+  board_id    UUID REFERENCES boards(id) ON DELETE SET NULL,
+  duration_ms INTEGER,
+  metadata    JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_telemetry_events_created ON telemetry_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_telemetry_events_category_created ON telemetry_events(category, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_telemetry_events_type_created ON telemetry_events(event_type, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS telemetry_hourly (
+  hour_start        TIMESTAMPTZ NOT NULL,
+  category          VARCHAR(24) NOT NULL,
+  event_type        VARCHAR(80) NOT NULL,
+  outcome           VARCHAR(24) NOT NULL,
+  event_count       INTEGER NOT NULL DEFAULT 0,
+  total_duration_ms BIGINT NOT NULL DEFAULT 0,
+  PRIMARY KEY (hour_start, category, event_type, outcome)
+);
+CREATE INDEX IF NOT EXISTS idx_telemetry_hourly_category_hour ON telemetry_hourly(category, hour_start DESC);
+
 -- ── Подготовка к нагрузке ────────────────────────────────────────────────────
 -- Размер доски хранится рядом с доской. Раньше лимит хранилища считался на
 -- каждом автосохранении запросом SUM(pg_column_size(data)) по всем доскам

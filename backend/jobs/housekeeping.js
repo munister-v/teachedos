@@ -12,10 +12,13 @@
    она уже недействительна), журнал входов нужен для разбора инцидентов и
    держится 90 дней, прочитанные уведомления после месяца не читает никто. */
 const pool = require('../db/pool');
+const { recordTelemetry } = require('../lib/telemetry');
 
 const TASKS = [
   ['expired sessions',   `DELETE FROM sessions WHERE expires_at <= NOW() - INTERVAL '1 day'`],
   ['old auth events',    `DELETE FROM auth_events WHERE created_at < NOW() - INTERVAL '90 days'`],
+  ['raw telemetry',      `DELETE FROM telemetry_events WHERE created_at < NOW() - INTERVAL '45 days'`],
+  ['hourly telemetry',   `DELETE FROM telemetry_hourly WHERE hour_start < NOW() - INTERVAL '18 months'`],
   ['read notifications', `DELETE FROM notifications WHERE read = TRUE AND created_at < NOW() - INTERVAL '30 days'`],
   ['used email tokens',  `DELETE FROM email_tokens WHERE expires_at <= NOW() - INTERVAL '7 days'`],
 ];
@@ -35,6 +38,12 @@ async function runHousekeeping() {
     }
   }
   console.log(`[housekeeping] ${done.length ? done.join(', ') : 'nothing to remove'}`);
+  recordTelemetry({
+    category: 'system',
+    eventType: 'system.housekeeping',
+    outcome: 'ok',
+    metadata: { job: 'housekeeping', operation: done.length ? 'cleaned' : 'checked' },
+  });
 }
 
 function scheduleHousekeeping() {

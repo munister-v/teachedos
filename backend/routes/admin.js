@@ -5,6 +5,7 @@ const path = require('path');
 const pool   = require('../db/pool');
 const bcrypt = require('bcryptjs');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { ensureTelemetrySchema } = require('../lib/telemetry');
 const {
   ensureBillingSchema,
   normalizePlanKey,
@@ -438,6 +439,179 @@ router.get('/production-status', async (req, res) => {
     checks,
     release: { deployedSha, version, deployedAt },
   });
+});
+
+// ── GET /api/admin/monitor ─────────────────────────────────────────────────
+// The control center reads aggregates and redacted technical events only.
+// It must not turn monitoring into a back door to board content or personal data.
+router.get('/monitor', async (req, res) => {
+  const requestedHours = Number.parseInt(req.query.hours, 10);
+  const hours = [24, 168].includes(requestedHours) ? requestedHours : 24;
+  const windowStart = new Date(Date.now() - hours * 60 * 60 * 1000);
+  const checkedAt = new Date().toISOString();
+  const dbStartedAt = Date.now();
+
+  try {
+    await ensureTelemetrySchema();
+    const [dbProbe, traffic, products, heatmap, errors, housekeeping, aiUsage] = await Promise.all([
+      pool.query('SELECT 1 AS ok'),
+      pool.query(
+        `SELECT
+           COUNT(*)::int AS requests,
+           COUNT(*) FILTER (WHERE outcome='client_error')::int AS client_errors,
+           COUNT(*) FILTER (WHERE outcome='server_error')::int AS server_errors,
+           COALESCE(percentile_cont(.5) WITHIN GROUP (ORDER BY duration_ms)
+             FILTER (WHERE duration_ms IS NOT NULL), 0)::float AS p50_ms,
+           COALESCE(percentile_cont(.95) WITHIN GROUP (ORDER BY duration_ms)
+             FILTER (WHERE duration_ms IS NOT NULL), 0)::float AS p95_ms
+         FROM telemetry_events
+         WHERE category='request' AND created_at >= $1`,
+        [windowStart],
+      ),
+      pool.query(
+        `SELECT event_type, SUM(event_count)::int AS count
+         FROM telemetry_hourly
+         WHERE category='product' AND hour_start >= $1
+         GROUP BY event_type
+         ORDER BY count DESC, event_type ASC
+         LIMIT 12`,
+        [windowStart],
+      ),
+      pool.query(
+        `WITH activity AS (
+           SELECT created_at AS occurred_at FROM users WHERE created_at >= $1
+           UNION ALL
+           SELECT updated_at FROM boards WHERE updated_at >= $1
+           UNION ALL
+           SELECT created_at FROM auth_events
+             WHERE created_at >= $1 AND event IN ('login.ok', 'google.login', 'google.signup')
+           UNION ALL
+           SELECT created_at FROM telemetry_events
+             WHERE created_at >= $1
+               AND category='product'
+               AND event_type NOT LIKE 'board.%'
+         )
+         SELECT
+           EXTRACT(ISODOW FROM occurred_at AT TIME ZONE 'Europe/Kyiv')::int AS weekday,
+           EXTRACT(HOUR FROM occurred_at AT TIME ZONE 'Europe/Kyiv')::int AS hour,
+           to_char(
+             date_trunc('hour', occurred_at AT TIME ZONE 'Europe/Kyiv') AT TIME ZONE 'Europe/Kyiv',
+             'YYYY-MM-DD"T"HH24:00:00OF'
+           ) AS bucket,
+           COUNT(*)::int AS count
+         FROM activity
+         GROUP BY weekday, hour, bucket
+         ORDER BY bucket ASC`,
+        [windowStart],
+      ),
+      pool.query(
+        `SELECT event_type, outcome, metadata->>'route' AS route,
+                MAX(created_at) AS last_seen, COUNT(*)::int AS count
+         FROM telemetry_events
+         WHERE created_at >= $1 AND outcome IN ('server_error', 'fallback')
+         GROUP BY event_type, outcome, metadata->>'route'
+         ORDER BY last_seen DESC
+         LIMIT 8`,
+        [windowStart],
+      ),
+      pool.query(
+        `SELECT created_at, outcome, metadata->>'operation' AS operation
+         FROM telemetry_events
+         WHERE event_type='system.housekeeping'
+         ORDER BY created_at DESC
+         LIMIT 1`,
+      ),
+      pool.query(
+        `SELECT COALESCE(SUM(total), 0)::int AS total,
+                COALESCE(SUM(llm_ok), 0)::int AS llm_ok,
+                COALESCE(SUM(fallback), 0)::int AS fallback
+         FROM ai_usage_daily
+         WHERE day >= CURRENT_DATE - (($1::int - 1) / 24) * INTERVAL '1 day'`,
+        [hours],
+      ).catch(() => ({ rows: [{ total: 0, llm_ok: 0, fallback: 0 }] })),
+    ]);
+
+    const trafficRow = traffic.rows[0] || {};
+    const requestCount = Number(trafficRow.requests || 0);
+    const serverErrors = Number(trafficRow.server_errors || 0);
+    const clientErrors = Number(trafficRow.client_errors || 0);
+    const errorRate = requestCount ? Number(((serverErrors / requestCount) * 100).toFixed(2)) : 0;
+    const lastHousekeeping = housekeeping.rows[0] || null;
+    const housekeepingAgeHours = lastHousekeeping
+      ? (Date.now() - new Date(lastHousekeeping.created_at).getTime()) / 3_600_000
+      : null;
+    const ai = aiUsage.rows[0] || { total: 0, llm_ok: 0, fallback: 0 };
+
+    const checks = [
+      { key: 'api', label: 'Application', tone: 'good', detail: `Running for ${Math.round(process.uptime() / 60)} min` },
+      { key: 'database', label: 'Database', tone: dbProbe.rows.length ? 'good' : 'risk', detail: `${Date.now() - dbStartedAt} ms probe` },
+      {
+        key: 'housekeeping', label: 'Housekeeping',
+        tone: housekeepingAgeHours === null ? 'watch' : housekeepingAgeHours <= 7 ? 'good' : 'risk',
+        detail: housekeepingAgeHours === null
+          ? 'No completed run recorded yet'
+          : `${Math.round(housekeepingAgeHours * 10) / 10}h since last run`,
+      },
+      {
+        key: 'ai', label: 'AI delivery',
+        tone: Number(ai.fallback || 0) > 0 ? 'watch' : 'good',
+        detail: Number(ai.total || 0)
+          ? `${ai.llm_ok || 0}/${ai.total} model responses`
+          : 'No requests in this window',
+      },
+    ];
+
+    const signals = [];
+    if (errorRate >= 5) signals.push({ tone: 'risk', title: 'Elevated server errors', detail: `${serverErrors} server errors out of ${requestCount} requests.` });
+    else if (serverErrors > 0) signals.push({ tone: 'watch', title: 'Server errors recorded', detail: `${serverErrors} request(s) need a quick review.` });
+    if (Number(ai.fallback || 0) > 0) signals.push({ tone: 'watch', title: 'AI used fallback', detail: `${ai.fallback} request(s) did not receive a model response.` });
+    if (housekeepingAgeHours === null || housekeepingAgeHours > 7) signals.push({ tone: 'watch', title: 'Housekeeping needs confirmation', detail: 'The cleanup job has not reported a recent completed run.' });
+    if (!signals.length) signals.push({ tone: 'good', title: 'No active reliability signals', detail: 'The monitored window has no server-error or job-freshness warning.' });
+
+    res.json({
+      checkedAt,
+      hours,
+      checks,
+      traffic: {
+        requests: requestCount,
+        clientErrors,
+        serverErrors,
+        errorRate,
+        p50Ms: Math.round(Number(trafficRow.p50_ms || 0)),
+        p95Ms: Math.round(Number(trafficRow.p95_ms || 0)),
+      },
+      productEvents: products.rows,
+      heatmap: heatmap.rows,
+      errors: errors.rows,
+      signals,
+      freshness: {
+        telemetryStarted: true,
+        housekeepingAt: lastHousekeeping?.created_at || null,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Monitor data is temporarily unavailable' });
+  }
+});
+
+// ── GET /api/admin/monitor/events ─────────────────────────────────────────
+router.get('/monitor/events', async (req, res) => {
+  const start = new Date(String(req.query.start || ''));
+  if (Number.isNaN(start.getTime())) return res.status(400).json({ error: 'A valid hour start is required' });
+  try {
+    await ensureTelemetrySchema();
+    const { rows } = await pool.query(
+      `SELECT event_type, outcome, duration_ms, metadata, created_at
+       FROM telemetry_events
+       WHERE created_at >= $1 AND created_at < $1 + INTERVAL '1 hour'
+       ORDER BY created_at DESC
+       LIMIT 30`,
+      [start.toISOString()],
+    );
+    res.json({ events: rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not load this activity slice' });
+  }
 });
 
 // ── GET /api/admin/analytics ───────────────────────────────────────────────

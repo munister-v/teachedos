@@ -682,7 +682,7 @@ html{scroll-behavior:smooth}
 <link rel="stylesheet" href="styles/unify.css?v=471">
 <link rel="stylesheet" href="styles/teached-brand.css?v=471">
 <link rel="stylesheet" href="styles/admin-refresh.css?v=477">
-  <link rel="stylesheet" href="styles/admin-control.css?v=4">
+<link rel="stylesheet" href="styles/admin-control.css?v=5">
 </head>
 <body class="admin-page">
 
@@ -723,6 +723,9 @@ html{scroll-behavior:smooth}
     <div class="sb-section">Overview</div>
     <div class="sb-item active" onclick="showPage('dashboard')">
       <span class="sb-icon" aria-hidden="true"></span>Overview
+    </div>
+    <div class="sb-item" onclick="showPage('monitor')">
+      <span class="sb-icon" aria-hidden="true"></span>Monitor<span class="sb-notif red" id="sb-monitor-badge" style="display:none"></span>
     </div>
     <div class="sb-section">Manage</div>
     <div class="sb-item" onclick="showPage('users')">
@@ -1105,6 +1108,120 @@ html{scroll-behavior:smooth}
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ── Monitor ─────────────────────────────────────────────────────────── -->
+  <div id="page-monitor" class="page">
+    <div class="monitor-head">
+      <div>
+        <div class="page-title" style="margin-bottom:4px">Monitor</div>
+        <div class="page-sub" style="margin-bottom:0">Live service health, measured activity and reliability signals.</div>
+      </div>
+      <div class="monitor-head-actions">
+        <div class="monitor-range" role="tablist" aria-label="Monitoring range">
+          <button type="button" class="monitor-range-btn active" data-monitor-hours="24" onclick="setMonitorRange(24)">24h</button>
+          <button type="button" class="monitor-range-btn" data-monitor-hours="168" onclick="setMonitorRange(168)">7d</button>
+        </div>
+        <button type="button" class="btn-sm btn-edit" onclick="loadMonitor(true)">Refresh</button>
+      </div>
+    </div>
+
+    <section class="monitor-state" aria-live="polite">
+      <div class="monitor-state-copy">
+        <div class="control-kicker">Service state</div>
+        <strong id="monitor-state-title">Checking monitored services</strong>
+        <span id="monitor-state-detail">Pulling the current operational snapshot.</span>
+      </div>
+      <div class="monitor-state-meta" id="monitor-checked-at">Not checked</div>
+    </section>
+
+    <section class="monitor-section" aria-labelledby="monitor-checks-title">
+      <div class="monitor-section-head">
+        <div>
+          <div class="control-kicker">Dependencies</div>
+          <h2 id="monitor-checks-title">Service checks</h2>
+        </div>
+        <p>Each status is calculated from a current probe or a recorded run.</p>
+      </div>
+      <div class="monitor-check-grid" id="monitor-check-grid">
+        <div class="monitor-placeholder">Checking dependencies.</div>
+      </div>
+    </section>
+
+    <div class="monitor-kpi-grid" aria-label="Request health">
+      <div class="monitor-kpi"><span>Requests</span><strong id="monitor-requests">-</strong><small id="monitor-request-window">Selected window</small></div>
+      <div class="monitor-kpi"><span>Server error rate</span><strong id="monitor-error-rate">-</strong><small id="monitor-server-errors">No measured errors yet</small></div>
+      <div class="monitor-kpi"><span>p50 response</span><strong id="monitor-p50">-</strong><small>Median measured request</small></div>
+      <div class="monitor-kpi"><span>p95 response</span><strong id="monitor-p95">-</strong><small>Slowest 5% of requests</small></div>
+    </div>
+
+    <div class="monitor-grid monitor-grid--wide">
+      <section class="monitor-section">
+        <div class="monitor-section-head">
+          <div>
+            <div class="control-kicker">Activity</div>
+            <h2>Weekly activity map</h2>
+          </div>
+          <p>Kyiv time. Select a recorded hour to inspect its technical event slice.</p>
+        </div>
+        <div class="monitor-heatmap-scroll">
+          <div class="monitor-heatmap" id="monitor-heatmap" aria-label="Activity heatmap"></div>
+        </div>
+        <div class="monitor-heatmap-legend"><span>Lower activity</span><i></i><i></i><i></i><i></i><span>Higher activity</span></div>
+      </section>
+
+      <section class="monitor-section">
+        <div class="monitor-section-head">
+          <div>
+            <div class="control-kicker">Product</div>
+            <h2>Measured actions</h2>
+          </div>
+          <p>New product events appear here from this release onward.</p>
+        </div>
+        <div class="monitor-event-list" id="monitor-product-events">
+          <div class="monitor-placeholder">Waiting for product activity.</div>
+        </div>
+      </section>
+    </div>
+
+    <div class="monitor-grid">
+      <section class="monitor-section">
+        <div class="monitor-section-head">
+          <div>
+            <div class="control-kicker">Attention</div>
+            <h2>Reliability signals</h2>
+          </div>
+          <p>Warnings are evidence-led, not automatic incidents.</p>
+        </div>
+        <div class="monitor-signal-list" id="monitor-signal-list">
+          <div class="monitor-placeholder">Checking current signals.</div>
+        </div>
+      </section>
+
+      <section class="monitor-section">
+        <div class="monitor-section-head">
+          <div>
+            <div class="control-kicker">Errors</div>
+            <h2>Recent failures</h2>
+          </div>
+          <p>Only route-level technical context is shown.</p>
+        </div>
+        <div class="monitor-error-list" id="monitor-error-list">
+          <div class="monitor-placeholder">No failures loaded yet.</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="monitor-slice" id="monitor-slice" aria-live="polite">
+      <div class="monitor-slice-head">
+        <div>
+          <div class="control-kicker">Hour detail</div>
+          <h2 id="monitor-slice-title">Select an activity cell</h2>
+        </div>
+        <span id="monitor-slice-meta">No hour selected</span>
+      </div>
+      <div class="monitor-slice-list" id="monitor-slice-list">The selected hour will show its newest technical events here.</div>
+    </section>
   </div>
 
   <!-- ── Users ──────────────────────────────────────────────────────────── -->
@@ -2094,7 +2211,7 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=474"></script>
+<script src="scripts/admin-app.js?v=479"></script>
 <script src="scripts/admin-refresh.js?v=476" defer></script>
 <script src="scripts/admin-security.js?v=478" defer></script>
   <script src="scripts/admin-control.js?v=3" defer></script>

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { filterBoardData } = require('../lib/boardVisibility');
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { recordTelemetry } = require('../lib/telemetry');
 const { PLAN_CATALOG, normalizePlanKey, getPlanLimit } = require('../lib/billing');
 
 async function enforceBoardStorageLimit({ userId, boardId, boardData, plan }) {
@@ -79,6 +80,7 @@ router.post('/', requireTeacher, async (req, res) => {
      RETURNING id, name, data, thumbnail, updated_at, created_at`,
     [req.user.id, name.trim().slice(0, 255)]
   );
+  recordTelemetry({ category: 'product', eventType: 'board.created', actorId: req.user.id, boardId: rows[0].id, metadata: { surface: 'board' } });
   res.status(201).json({ board: rows[0] });
 });
 
@@ -130,6 +132,13 @@ router.put('/:id', requireAuth, async (req, res) => {
     params
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+  recordTelemetry({
+    category: 'product',
+    eventType: boardData ? 'board.updated' : name !== undefined ? 'board.renamed' : 'board.thumbnail_updated',
+    actorId: req.user.id,
+    boardId: rows[0].id,
+    metadata: { surface: 'board' },
+  });
   res.json({ board: rows[0] });
 });
 
@@ -164,6 +173,13 @@ router.patch('/:id', requireAuth, async (req, res) => {
     params
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found or not owner' });
+  recordTelemetry({
+    category: 'product',
+    eventType: boardData !== undefined ? 'board.updated' : name !== undefined ? 'board.renamed' : 'board.thumbnail_updated',
+    actorId: req.user.id,
+    boardId: rows[0].id,
+    metadata: { surface: 'board' },
+  });
   res.json({ board: rows[0] });
 });
 
@@ -176,6 +192,7 @@ router.patch('/:id/name', requireAuth, async (req, res) => {
     [req.params.id, req.user.id, name.trim().slice(0, 255)]
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+  recordTelemetry({ category: 'product', eventType: 'board.renamed', actorId: req.user.id, boardId: rows[0].id, metadata: { surface: 'board' } });
   res.json({ board: rows[0] });
 });
 
@@ -186,6 +203,7 @@ router.delete('/:id', async (req, res) => {
     [req.params.id, req.user.id]
   );
   if (!rowCount) return res.status(404).json({ error: 'Board not found' });
+  recordTelemetry({ category: 'product', eventType: 'board.deleted', actorId: req.user.id, metadata: { surface: 'board' } });
   res.json({ ok: true });
 });
 
@@ -225,6 +243,7 @@ router.post('/:id/progress', async (req, res) => {
       ON CONFLICT (board_id, user_id, card_id) DO UPDATE SET status='done', updated_at=NOW()`,
       [req.params.id, req.user.id, cardId]
     ).catch(() => {});
+    recordTelemetry({ category: 'product', eventType: 'lesson.progress_submitted', actorId: req.user.id, boardId: req.params.id, metadata: { surface: 'board' } });
     res.json({ ok: true });
   } catch (err) {
     console.error('[boards] quiz progress error:', err.message);

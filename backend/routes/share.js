@@ -2,6 +2,7 @@ const router = require('express').Router();
 const crypto = require('crypto');
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { recordTelemetry } = require('../lib/telemetry');
 
 // Defensive create (matches the migrate-on-startup pattern used elsewhere).
 pool.query(`CREATE TABLE IF NOT EXISTS shared_materials (
@@ -38,6 +39,7 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
         JSON.stringify(Array.isArray(tags) ? tags.map(t => clip(t, 40)).slice(0, 12) : []),
       ]
     );
+    recordTelemetry({ category: 'product', eventType: 'share.created', actorId: req.user.id, metadata: { surface: 'teacher_tools', kind: gameType || 'material' } });
     res.status(201).json({ token: rows[0].token });
   } catch (err) {
     console.error('[share/create]', err.message);
@@ -54,6 +56,7 @@ router.get('/:token', async (req, res) => {
       [req.params.token]
     );
     if (!rows.length) return res.status(404).json({ error: 'This link does not exist or was removed' });
+    recordTelemetry({ category: 'product', eventType: 'share.viewed', metadata: { surface: 'public_share', kind: rows[0].gameType || 'material' } });
     res.json({ material: rows[0] });
   } catch (err) {
     console.error('[share/get]', err.message);

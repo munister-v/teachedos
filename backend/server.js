@@ -6,6 +6,8 @@ const express  = require('express');
 const cors     = require('cors');
 const http     = require('http');
 const migrate  = require('./db/migrate');
+const pool     = require('./db/pool');
+const { ensureTelemetrySchema, recordTelemetry } = require('./lib/telemetry');
 
 const app = express();
 app.disable('x-powered-by');
@@ -69,7 +71,52 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.set('trust proxy', 1);
 
 // ── Health ─────────────────────────────────────────────────────────────────
-app.get('/health', (_, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+// This is intentionally dependency-aware. A live Node process with an
+// unavailable database is not a healthy TeachEd API.
+app.get('/health', async (_req, res) => {
+  const startedAt = Date.now();
+  let database = { ok: false, latencyMs: null };
+  try {
+    if (process.env.DATABASE_URL) {
+      await pool.query('SELECT 1');
+      database = { ok: true, latencyMs: Date.now() - startedAt };
+    }
+  } catch (_) {
+    database = { ok: false, latencyMs: Date.now() - startedAt };
+  }
+  const ok = database.ok;
+  return res.status(ok ? 200 : 503).json({
+    ok,
+    ts: new Date().toISOString(),
+    uptimeSec: Math.round(process.uptime()),
+    dependencies: { database },
+  });
+});
+
+// Record route-level reliability without retaining bodies or visitor details.
+// Board saves are represented separately as product events, so the monitor can
+// distinguish demand from raw HTTP traffic.
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  res.on('finish', () => {
+    if (!req.path.startsWith('/api/') || req.path.startsWith('/api/admin/monitor')) return;
+    const status = Number(res.statusCode || 0);
+    const outcome = status >= 500 ? 'server_error' : status >= 400 ? 'client_error' : 'ok';
+    let route = String(req.path || '');
+    route = route.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, ':id');
+    if (/^\/api\/share\/[^/]+$/.test(route)) route = '/api/share/:token';
+    route = route.slice(0, 120);
+    recordTelemetry({
+      category: 'request',
+      eventType: 'request.completed',
+      outcome,
+      actorId: req.user?.id,
+      durationMs: Date.now() - startedAt,
+      metadata: { method: req.method, route, status },
+    });
+  });
+  next();
+});
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/auth',   require('./routes/auth'));
@@ -122,6 +169,8 @@ async function main() {
   if (process.env.DATABASE_URL) {
     try { await migrate(); }
     catch (err) { console.error('[startup] migration error (continuing):', err.message); }
+    try { await ensureTelemetrySchema(); }
+    catch (err) { console.error('[startup] telemetry schema error (continuing):', err.message); }
   } else {
     console.warn('[startup] DATABASE_URL not set - DB features disabled until env var is added');
   }

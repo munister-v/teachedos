@@ -11,6 +11,7 @@ let timelineEvents = [];
 let timelineFilter = '';
 const pageMeta = {
   dashboard: ['Dashboard', 'System overview and key metrics'],
+  monitor: ['Monitor', 'Service health and recorded activity'],
   users: ['Users', 'Manage all registered users'],
   boards: ['Boards', 'View and manage all user boards'],
   sessions: ['Active Sessions', 'Review live login activity'],
@@ -160,6 +161,7 @@ function showPage(name) {
   closeSidebar();
 
   if (name === 'dashboard') refreshStats();
+  if (name === 'monitor')   loadMonitor();
   if (name === 'users')     loadUsers();
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
@@ -257,6 +259,210 @@ async function refreshStats() {
   } catch(e) {
     toast('Failed to load stats: ' + e.message, 'error');
   }
+}
+
+// ── Monitor ────────────────────────────────────────────────────────────────
+let monitorHours = 24;
+let monitorRequestId = 0;
+
+function setMonitorRange(hours) {
+  monitorHours = hours === 168 ? 168 : 24;
+  document.querySelectorAll('[data-monitor-hours]').forEach(button => {
+    button.classList.toggle('active', Number(button.dataset.monitorHours) === monitorHours);
+  });
+  loadMonitor(true);
+}
+
+async function loadMonitor(force = false) {
+  const requestId = ++monitorRequestId;
+  const stateTitle = document.getElementById('monitor-state-title');
+  const stateDetail = document.getElementById('monitor-state-detail');
+  if (!stateTitle || !stateDetail) return;
+  if (force) {
+    stateTitle.textContent = 'Refreshing monitored services';
+    stateDetail.textContent = 'Recalculating the selected operational window.';
+  }
+  try {
+    const data = await api('GET', `/api/admin/monitor?hours=${monitorHours}`);
+    if (requestId !== monitorRequestId) return;
+    renderMonitor(data);
+  } catch (error) {
+    if (requestId !== monitorRequestId) return;
+    stateTitle.textContent = 'Monitor data is unavailable';
+    stateDetail.textContent = error.message || 'The API did not return a monitoring snapshot.';
+    document.getElementById('monitor-checked-at').textContent = 'Check failed';
+  }
+}
+
+function renderMonitor(data) {
+  const traffic = data?.traffic || {};
+  const checks = data?.checks || [];
+  const signals = data?.signals || [];
+  const risks = signals.filter(signal => signal.tone === 'risk').length;
+  const watches = signals.filter(signal => signal.tone === 'watch').length;
+  const stateTitle = document.getElementById('monitor-state-title');
+  const stateDetail = document.getElementById('monitor-state-detail');
+  const checked = document.getElementById('monitor-checked-at');
+  const rangeLabel = data.hours === 168 ? 'Last 7 days' : 'Last 24 hours';
+
+  stateTitle.textContent = risks ? 'Reliability needs attention' : watches ? 'Platform is stable with items to review' : 'All monitored services are stable';
+  stateDetail.textContent = risks
+    ? `${risks} high-priority signal${risks === 1 ? '' : 's'} require review.`
+    : watches
+      ? `${watches} operational signal${watches === 1 ? '' : 's'} should be checked.`
+      : 'No server-error or job-freshness warning in the selected window.';
+  checked.textContent = data.checkedAt ? `Checked ${fmtRelative(data.checkedAt)}` : 'Just checked';
+
+  document.getElementById('monitor-requests').textContent = fmtMonitorNumber(traffic.requests);
+  document.getElementById('monitor-request-window').textContent = rangeLabel;
+  document.getElementById('monitor-error-rate').textContent = `${Number(traffic.errorRate || 0).toFixed(2)}%`;
+  document.getElementById('monitor-server-errors').textContent = `${traffic.serverErrors || 0} server / ${traffic.clientErrors || 0} client errors`;
+  document.getElementById('monitor-p50').textContent = fmtMonitorMs(traffic.p50Ms);
+  document.getElementById('monitor-p95').textContent = fmtMonitorMs(traffic.p95Ms);
+
+  renderMonitorChecks(checks);
+  renderMonitorHeatmap(data.heatmap || []);
+  renderMonitorProductEvents(data.productEvents || []);
+  renderMonitorSignals(signals);
+  renderMonitorErrors(data.errors || []);
+
+  const badge = document.getElementById('sb-monitor-badge');
+  if (badge) {
+    badge.style.display = risks ? '' : 'none';
+    badge.textContent = risks;
+  }
+}
+
+function renderMonitorChecks(checks) {
+  const root = document.getElementById('monitor-check-grid');
+  if (!root) return;
+  root.innerHTML = checks.map(check => `
+    <article class="monitor-check is-${escAttr(check.tone || 'watch')}">
+      <span class="monitor-check-dot" aria-hidden="true"></span>
+      <div><strong>${esc(check.label)}</strong><small>${esc(check.detail)}</small></div>
+    </article>
+  `).join('') || '<div class="monitor-placeholder">No service checks returned.</div>';
+}
+
+function renderMonitorHeatmap(rows) {
+  const root = document.getElementById('monitor-heatmap');
+  if (!root) return;
+  const entries = new Map((rows || []).map(row => [`${row.weekday}-${row.hour}`, row]));
+  const max = Math.max(1, ...(rows || []).map(row => Number(row.count || 0)));
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const headers = Array.from({ length: 24 }, (_, hour) => `<span class="monitor-heatmap-hour">${hour % 3 === 0 ? String(hour).padStart(2, '0') : ''}</span>`).join('');
+  const body = days.map((day, index) => {
+    const weekday = index + 1;
+    const cells = Array.from({ length: 24 }, (_, hour) => {
+      const row = entries.get(`${weekday}-${hour}`);
+      const count = Number(row?.count || 0);
+      const level = count ? Math.min(4, Math.max(1, Math.ceil((count / max) * 4))) : 0;
+      const title = `${day} ${String(hour).padStart(2, '0')}:00: ${count} recorded activity signal${count === 1 ? '' : 's'}`;
+      const bucket = row?.bucket ? ` data-bucket="${escAttr(row.bucket)}"` : '';
+      return `<button type="button" class="monitor-heatmap-cell level-${level}"${bucket} title="${escAttr(title)}" ${row?.bucket ? `onclick="openMonitorSlice('${escAttr(row.bucket)}')"` : 'disabled'} aria-label="${escAttr(title)}"></button>`;
+    }).join('');
+    return `<span class="monitor-heatmap-day">${day}</span>${cells}`;
+  }).join('');
+  root.innerHTML = `<span></span>${headers}${body}`;
+}
+
+function renderMonitorProductEvents(rows) {
+  const root = document.getElementById('monitor-product-events');
+  if (!root) return;
+  if (!rows.length) {
+    root.innerHTML = '<div class="monitor-empty">No measured product action yet. Events will appear as people create, update, share and complete work.</div>';
+    return;
+  }
+  const total = rows.reduce((sum, row) => sum + Number(row.count || 0), 0) || 1;
+  root.innerHTML = rows.slice(0, 8).map(row => {
+    const count = Number(row.count || 0);
+    return `<div class="monitor-event-row">
+      <div><strong>${esc(monitorEventLabel(row.event_type))}</strong><span>${esc(row.event_type)}</span></div>
+      <div class="monitor-event-count"><b>${fmtMonitorNumber(count)}</b><i style="--event-width:${Math.max(6, Math.round((count / total) * 100))}%"></i></div>
+    </div>`;
+  }).join('');
+}
+
+function renderMonitorSignals(signals) {
+  const root = document.getElementById('monitor-signal-list');
+  if (!root) return;
+  root.innerHTML = signals.map(signal => `
+    <article class="monitor-signal is-${escAttr(signal.tone || 'watch')}">
+      <span aria-hidden="true"></span>
+      <div><strong>${esc(signal.title)}</strong><small>${esc(signal.detail)}</small></div>
+    </article>
+  `).join('') || '<div class="monitor-empty">No reliability signals in this window.</div>';
+}
+
+function renderMonitorErrors(rows) {
+  const root = document.getElementById('monitor-error-list');
+  if (!root) return;
+  if (!rows.length) {
+    root.innerHTML = '<div class="monitor-empty">No server errors or provider fallbacks were recorded in this window.</div>';
+    return;
+  }
+  root.innerHTML = rows.map(row => `
+    <article class="monitor-error-row">
+      <div><strong>${esc(monitorEventLabel(row.event_type))}</strong><small>${esc(row.route || row.outcome || 'Technical event')}</small></div>
+      <div><b>${fmtMonitorNumber(row.count)}</b><span>${fmtRelative(row.last_seen)}</span></div>
+    </article>
+  `).join('');
+}
+
+async function openMonitorSlice(bucket) {
+  const title = document.getElementById('monitor-slice-title');
+  const meta = document.getElementById('monitor-slice-meta');
+  const root = document.getElementById('monitor-slice-list');
+  const panel = document.getElementById('monitor-slice');
+  if (!title || !root) return;
+  title.textContent = 'Loading selected hour';
+  meta.textContent = bucket;
+  root.textContent = 'Retrieving the newest recorded technical events.';
+  panel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  try {
+    const data = await api('GET', `/api/admin/monitor/events?start=${encodeURIComponent(bucket)}`);
+    const events = data.events || [];
+    title.textContent = `Activity at ${fmtMonitorHour(bucket)}`;
+    meta.textContent = `${events.length} technical event${events.length === 1 ? '' : 's'} shown`;
+    root.innerHTML = events.length ? events.map(event => `
+      <div class="monitor-slice-row">
+        <span class="monitor-slice-time">${fmtRelative(event.created_at)}</span>
+        <strong>${esc(monitorEventLabel(event.event_type))}</strong>
+        <span>${esc(event.metadata?.route || event.metadata?.operation || event.outcome || 'recorded')}</span>
+        <em>${event.duration_ms ? `${event.duration_ms} ms` : ''}</em>
+      </div>
+    `).join('') : '<div class="monitor-empty">This heatmap cell includes historic aggregate activity. No raw technical events were retained for this hour.</div>';
+  } catch (error) {
+    title.textContent = 'Could not load this hour';
+    root.textContent = error.message || 'The activity slice is unavailable.';
+  }
+}
+
+function monitorEventLabel(type) {
+  const labels = {
+    'board.created': 'Board created', 'board.updated': 'Board updated', 'board.renamed': 'Board renamed',
+    'board.deleted': 'Board deleted', 'share.created': 'Share link created', 'share.viewed': 'Shared material opened',
+    'lesson.progress_submitted': 'Lesson progress submitted', 'request.completed': 'API request',
+    'system.housekeeping': 'Housekeeping run',
+  };
+  return labels[type] || String(type || 'Recorded event').replace(/[._]/g, ' ');
+}
+
+function fmtMonitorNumber(value) {
+  return new Intl.NumberFormat('en-US').format(Number(value || 0));
+}
+
+function fmtMonitorMs(value) {
+  const ms = Number(value || 0);
+  return ms ? `${Math.round(ms)} ms` : 'No data';
+}
+
+function fmtMonitorHour(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Kyiv', weekday: 'short', hour: '2-digit', minute: '2-digit',
+  }).format(date);
 }
 
 // ── AI engine status ───────────────────────────────────────────────────────
