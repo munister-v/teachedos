@@ -309,6 +309,41 @@ CREATE TABLE IF NOT EXISTS telemetry_hourly (
 );
 CREATE INDEX IF NOT EXISTS idx_telemetry_hourly_category_hour ON telemetry_hourly(category, hour_start DESC);
 
+-- ── Operational incidents (human response, separate from telemetry) ─────────
+CREATE TABLE IF NOT EXISTS incidents (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title           VARCHAR(160) NOT NULL,
+  severity        VARCHAR(8) NOT NULL DEFAULT 's3',
+  status          VARCHAR(16) NOT NULL DEFAULT 'open',
+  affected_scope  VARCHAR(160) NOT NULL DEFAULT '',
+  summary         TEXT NOT NULL DEFAULT '',
+  source          VARCHAR(32) NOT NULL DEFAULT 'manual',
+  owner_id        UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_by      UUID REFERENCES users(id) ON DELETE SET NULL,
+  updated_by      UUID REFERENCES users(id) ON DELETE SET NULL,
+  acknowledged_at TIMESTAMPTZ,
+  resolved_at     TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (severity IN ('s1', 's2', 's3', 's4')),
+  CHECK (status IN ('open', 'acknowledged', 'mitigating', 'resolved'))
+);
+CREATE INDEX IF NOT EXISTS idx_incidents_status_updated ON incidents(status, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_incidents_owner_status ON incidents(owner_id, status, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS incident_updates (
+  id          BIGSERIAL PRIMARY KEY,
+  incident_id UUID NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+  author_id   UUID REFERENCES users(id) ON DELETE SET NULL,
+  kind        VARCHAR(24) NOT NULL DEFAULT 'note',
+  body        TEXT NOT NULL DEFAULT '',
+  from_status VARCHAR(16),
+  to_status   VARCHAR(16),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (kind IN ('created', 'note', 'status', 'assignment', 'metadata'))
+);
+CREATE INDEX IF NOT EXISTS idx_incident_updates_incident_created ON incident_updates(incident_id, created_at ASC);
+
 -- ── Подготовка к нагрузке ────────────────────────────────────────────────────
 -- Размер доски хранится рядом с доской. Раньше лимит хранилища считался на
 -- каждом автосохранении запросом SUM(pg_column_size(data)) по всем доскам

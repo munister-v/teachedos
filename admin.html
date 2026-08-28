@@ -682,7 +682,7 @@ html{scroll-behavior:smooth}
 <link rel="stylesheet" href="styles/unify.css?v=471">
 <link rel="stylesheet" href="styles/teached-brand.css?v=471">
 <link rel="stylesheet" href="styles/admin-refresh.css?v=477">
-<link rel="stylesheet" href="styles/admin-control.css?v=5">
+<link rel="stylesheet" href="styles/admin-control.css?v=6">
 </head>
 <body class="admin-page">
 
@@ -726,6 +726,9 @@ html{scroll-behavior:smooth}
     </div>
     <div class="sb-item" onclick="showPage('monitor')">
       <span class="sb-icon" aria-hidden="true"></span>Monitor<span class="sb-notif red" id="sb-monitor-badge" style="display:none"></span>
+    </div>
+    <div class="sb-item" onclick="showPage('incidents')">
+      <span class="sb-icon" aria-hidden="true"></span>Incidents<span class="sb-notif red" id="sb-incidents-badge" style="display:none"></span>
     </div>
     <div class="sb-section">Manage</div>
     <div class="sb-item" onclick="showPage('users')">
@@ -1222,6 +1225,64 @@ html{scroll-behavior:smooth}
       </div>
       <div class="monitor-slice-list" id="monitor-slice-list">The selected hour will show its newest technical events here.</div>
     </section>
+  </div>
+
+  <!-- ── Incidents ───────────────────────────────────────────────────────── -->
+  <div id="page-incidents" class="page">
+    <div class="incident-head">
+      <div>
+        <div class="page-title" style="margin-bottom:4px">Incidents</div>
+        <div class="page-sub" style="margin-bottom:0">A shared response record for real platform issues. Monitoring informs it, people own it.</div>
+      </div>
+      <div class="incident-head-actions">
+        <button type="button" class="btn-sm btn-edit" onclick="loadIncidents(true)">Refresh</button>
+        <button type="button" class="btn-primary incident-create-button" onclick="toggleIncidentCreate()">Open incident</button>
+      </div>
+    </div>
+
+    <section class="incident-summary" aria-label="Active incident summary">
+      <div><span>Active</span><strong id="incident-summary-active">-</strong><small>Unresolved incidents</small></div>
+      <div class="is-s1"><span>S1</span><strong id="incident-summary-s1">-</strong><small>Critical</small></div>
+      <div class="is-s2"><span>S2</span><strong id="incident-summary-s2">-</strong><small>Major</small></div>
+      <div><span>Response</span><strong id="incident-summary-response">-</strong><small id="incident-summary-response-copy">No active response yet</small></div>
+    </section>
+
+    <section class="incident-create" id="incident-create" hidden aria-labelledby="incident-create-title">
+      <div class="incident-section-head">
+        <div>
+          <div class="control-kicker">New response record</div>
+          <h2 id="incident-create-title">Open an incident</h2>
+        </div>
+        <button type="button" class="incident-close" aria-label="Close incident form" onclick="toggleIncidentCreate(false)">Close</button>
+      </div>
+      <div class="incident-create-grid">
+        <label>Title<input id="incident-title" maxlength="160" placeholder="What needs attention?"/></label>
+        <label>Severity<select id="incident-severity"><option value="s1">S1 · Critical</option><option value="s2">S2 · Major</option><option value="s3" selected>S3 · Moderate</option><option value="s4">S4 · Minor</option></select></label>
+        <label>Affected area<input id="incident-scope" maxlength="160" placeholder="e.g. Board sharing, sign-in, AI tools"/></label>
+        <label>Owner<select id="incident-owner"></select></label>
+        <label class="incident-create-wide">What is known<textarea id="incident-description" maxlength="4000" rows="4" placeholder="Observed impact, first evidence and the next check."></textarea></label>
+      </div>
+      <div class="incident-create-actions"><span id="incident-create-error" role="alert"></span><button type="button" class="btn-primary" onclick="createIncident()">Create incident</button></div>
+    </section>
+
+    <div class="incident-filter" role="tablist" aria-label="Incident status filter">
+      <button type="button" class="active" data-incident-status="active" onclick="setIncidentFilter('active')">Active</button>
+      <button type="button" data-incident-status="open" onclick="setIncidentFilter('open')">Open</button>
+      <button type="button" data-incident-status="mitigating" onclick="setIncidentFilter('mitigating')">Mitigating</button>
+      <button type="button" data-incident-status="resolved" onclick="setIncidentFilter('resolved')">Resolved</button>
+      <button type="button" data-incident-status="all" onclick="setIncidentFilter('all')">All</button>
+    </div>
+
+    <div class="incident-workspace">
+      <section class="incident-list-panel" aria-labelledby="incident-list-title">
+        <div class="incident-section-head"><div><div class="control-kicker">Response queue</div><h2 id="incident-list-title">Active work</h2></div><span id="incident-list-count">Loading</span></div>
+        <div id="incident-list" class="incident-list" aria-live="polite"><div class="monitor-placeholder">Loading incidents.</div></div>
+      </section>
+
+      <section class="incident-detail-panel" aria-live="polite" id="incident-detail">
+        <div class="incident-detail-empty"><div class="control-kicker">Incident record</div><strong>Select an incident</strong><span>Its status, ownership and response timeline will appear here.</span></div>
+      </section>
+    </div>
   </div>
 
   <!-- ── Users ──────────────────────────────────────────────────────────── -->
@@ -2211,7 +2272,7 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=479"></script>
+<script src="scripts/admin-app.js?v=480"></script>
 <script src="scripts/admin-refresh.js?v=476" defer></script>
 <script src="scripts/admin-security.js?v=478" defer></script>
   <script src="scripts/admin-control.js?v=3" defer></script>

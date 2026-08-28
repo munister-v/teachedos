@@ -12,6 +12,7 @@ let timelineFilter = '';
 const pageMeta = {
   dashboard: ['Dashboard', 'System overview and key metrics'],
   monitor: ['Monitor', 'Service health and recorded activity'],
+  incidents: ['Incidents', 'Response ownership and operational timeline'],
   users: ['Users', 'Manage all registered users'],
   boards: ['Boards', 'View and manage all user boards'],
   sessions: ['Active Sessions', 'Review live login activity'],
@@ -162,6 +163,7 @@ function showPage(name) {
 
   if (name === 'dashboard') refreshStats();
   if (name === 'monitor')   loadMonitor();
+  if (name === 'incidents') loadIncidents();
   if (name === 'users')     loadUsers();
   if (name === 'boards')    loadBoards();
   if (name === 'sessions')  loadSessions();
@@ -386,12 +388,23 @@ function renderMonitorProductEvents(rows) {
 function renderMonitorSignals(signals) {
   const root = document.getElementById('monitor-signal-list');
   if (!root) return;
-  root.innerHTML = signals.map(signal => `
+  window.monitorSignals = signals;
+  root.innerHTML = signals.map((signal, index) => `
     <article class="monitor-signal is-${escAttr(signal.tone || 'watch')}">
       <span aria-hidden="true"></span>
-      <div><strong>${esc(signal.title)}</strong><small>${esc(signal.detail)}</small></div>
+      <div><strong>${esc(signal.title)}</strong><small>${esc(signal.detail)}</small><button type="button" class="monitor-signal-action" onclick="openIncidentFromSignal(${index})">Open response record</button></div>
     </article>
   `).join('') || '<div class="monitor-empty">No reliability signals in this window.</div>';
+}
+
+function openIncidentFromSignal(index) {
+  const signal = Array.isArray(window.monitorSignals) ? window.monitorSignals[index] : null;
+  if (!signal) return;
+  showPage('incidents');
+  toggleIncidentCreate(true);
+  document.getElementById('incident-title').value = signal.title || '';
+  document.getElementById('incident-scope').value = 'Platform monitoring';
+  document.getElementById('incident-description').value = signal.detail || '';
 }
 
 function renderMonitorErrors(rows) {
@@ -463,6 +476,222 @@ function fmtMonitorHour(value) {
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/Kyiv', weekday: 'short', hour: '2-digit', minute: '2-digit',
   }).format(date);
+}
+
+// ── Incident response ─────────────────────────────────────────────────────
+let incidentFilter = 'active';
+let incidentOwners = [];
+let selectedIncidentId = null;
+let incidentRequestId = 0;
+
+function incidentSeverityLabel(value) {
+  return ({ s1: 'S1 critical', s2: 'S2 major', s3: 'S3 moderate', s4: 'S4 minor' }[value] || 'S3 moderate');
+}
+
+function incidentStatusLabel(value) {
+  return ({ open: 'Open', acknowledged: 'Acknowledged', mitigating: 'Mitigating', resolved: 'Resolved' }[value] || 'Open');
+}
+
+function incidentOwnerOptions(selected) {
+  const options = ['<option value="">Unassigned</option>'];
+  incidentOwners.forEach(owner => {
+    options.push(`<option value="${escAttr(owner.id)}" ${owner.id === selected ? 'selected' : ''}>${esc(owner.name || owner.email || 'Administrator')}</option>`);
+  });
+  return options.join('');
+}
+
+async function loadIncidentOwners() {
+  if (incidentOwners.length) return incidentOwners;
+  const data = await api('GET', '/api/admin/incidents/owners');
+  incidentOwners = Array.isArray(data.owners) ? data.owners : [];
+  const field = document.getElementById('incident-owner');
+  if (field) field.innerHTML = incidentOwnerOptions(currentAdminUser?.id || '');
+  return incidentOwners;
+}
+
+function setIncidentFilter(status) {
+  incidentFilter = ['active', 'open', 'mitigating', 'resolved', 'all'].includes(status) ? status : 'active';
+  document.querySelectorAll('[data-incident-status]').forEach(button => {
+    button.classList.toggle('active', button.dataset.incidentStatus === incidentFilter);
+  });
+  selectedIncidentId = null;
+  loadIncidents(true);
+}
+
+async function loadIncidents(force = false) {
+  const requestId = ++incidentRequestId;
+  try {
+    const [data] = await Promise.all([
+      api('GET', `/api/admin/incidents?status=${encodeURIComponent(incidentFilter)}`),
+      loadIncidentOwners(),
+    ]);
+    if (requestId !== incidentRequestId) return;
+    renderIncidents(data);
+    const incidents = data.incidents || [];
+    if (selectedIncidentId && incidents.some(incident => incident.id === selectedIncidentId)) {
+      loadIncident(selectedIncidentId, true);
+    } else if (incidents.length) {
+      selectedIncidentId = incidents[0].id;
+      renderIncidents(data);
+      loadIncident(selectedIncidentId, true);
+    } else {
+      selectedIncidentId = null;
+      document.getElementById('incident-detail').innerHTML = '<div class="incident-detail-empty"><div class="control-kicker">Incident record</div><strong>No incidents in this view</strong><span>Open an incident only when a person needs to own and document a real response.</span></div>';
+    }
+  } catch (error) {
+    if (requestId !== incidentRequestId) return;
+    document.getElementById('incident-list').innerHTML = `<div class="monitor-empty">${esc(error.message || 'Could not load incidents.')}</div>`;
+    document.getElementById('incident-list-count').textContent = 'Unavailable';
+  }
+}
+
+function renderIncidents(data) {
+  const incidents = data.incidents || [];
+  const summary = data.summary || {};
+  document.getElementById('incident-summary-active').textContent = summary.active || 0;
+  document.getElementById('incident-summary-s1').textContent = summary.s1 || 0;
+  document.getElementById('incident-summary-s2').textContent = summary.s2 || 0;
+  const responded = incidents.filter(incident => ['acknowledged', 'mitigating'].includes(incident.status)).length;
+  document.getElementById('incident-summary-response').textContent = responded;
+  document.getElementById('incident-summary-response-copy').textContent = responded ? 'Acknowledged or mitigating' : 'No active response yet';
+  document.getElementById('incident-list-count').textContent = `${incidents.length} shown`;
+  const badge = document.getElementById('sb-incidents-badge');
+  if (badge) {
+    badge.style.display = Number(summary.active || 0) ? '' : 'none';
+    badge.textContent = Number(summary.active || 0);
+  }
+  const root = document.getElementById('incident-list');
+  if (!incidents.length) {
+    root.innerHTML = '<div class="incident-empty-list">No incidents match this view.</div>';
+    return;
+  }
+  root.innerHTML = incidents.map(incident => `
+    <button type="button" class="incident-row is-${escAttr(incident.severity)} ${incident.id === selectedIncidentId ? 'selected' : ''}" onclick="openIncident('${escAttr(incident.id)}')">
+      <span class="incident-row-severity">${esc(incident.severity.toUpperCase())}</span>
+      <span class="incident-row-copy"><strong>${esc(incident.title)}</strong><small>${esc(incident.affected_scope || 'Scope not set')} · ${esc(incident.owner_name || 'Unassigned')}</small></span>
+      <span class="incident-row-meta"><em>${esc(incidentStatusLabel(incident.status))}</em><small>${fmtRelative(incident.updated_at)}</small></span>
+    </button>
+  `).join('');
+}
+
+async function openIncident(id) {
+  selectedIncidentId = id;
+  document.querySelectorAll('.incident-row').forEach(row => row.classList.toggle('selected', row.getAttribute('onclick')?.includes(id)));
+  await loadIncident(id, false);
+}
+
+async function loadIncident(id, background = false) {
+  const root = document.getElementById('incident-detail');
+  if (!background) root.innerHTML = '<div class="incident-detail-empty"><div class="control-kicker">Incident record</div><strong>Loading incident</strong><span>Retrieving the latest response timeline.</span></div>';
+  try {
+    const data = await api('GET', `/api/admin/incidents/${encodeURIComponent(id)}`);
+    if (selectedIncidentId !== id) return;
+    renderIncidentDetail(data.incident, data.updates || []);
+  } catch (error) {
+    if (selectedIncidentId !== id) return;
+    root.innerHTML = `<div class="incident-detail-empty"><strong>Could not load this incident</strong><span>${esc(error.message || 'Try refreshing the incident queue.')}</span></div>`;
+  }
+}
+
+function renderIncidentDetail(incident, updates) {
+  const root = document.getElementById('incident-detail');
+  root.innerHTML = `
+    <div class="incident-detail-head">
+      <div><div class="control-kicker">${esc(incidentSeverityLabel(incident.severity))} · ${esc(incidentStatusLabel(incident.status))}</div><h2>${esc(incident.title)}</h2><p>${esc(incident.summary || 'No summary was recorded.')}</p></div>
+      <span class="incident-updated">Updated ${fmtRelative(incident.updated_at)}</span>
+    </div>
+    <div class="incident-detail-fields">
+      <label>Status<select id="incident-detail-status"><option value="open" ${incident.status === 'open' ? 'selected' : ''}>Open</option><option value="acknowledged" ${incident.status === 'acknowledged' ? 'selected' : ''}>Acknowledged</option><option value="mitigating" ${incident.status === 'mitigating' ? 'selected' : ''}>Mitigating</option><option value="resolved" ${incident.status === 'resolved' ? 'selected' : ''}>Resolved</option></select></label>
+      <label>Severity<select id="incident-detail-severity"><option value="s1" ${incident.severity === 's1' ? 'selected' : ''}>S1 · Critical</option><option value="s2" ${incident.severity === 's2' ? 'selected' : ''}>S2 · Major</option><option value="s3" ${incident.severity === 's3' ? 'selected' : ''}>S3 · Moderate</option><option value="s4" ${incident.severity === 's4' ? 'selected' : ''}>S4 · Minor</option></select></label>
+      <label>Owner<select id="incident-detail-owner">${incidentOwnerOptions(incident.owner_id || '')}</select></label>
+      <label>Affected area<input id="incident-detail-scope" maxlength="160" value="${escAttr(incident.affected_scope || '')}" placeholder="Affected system or journey"/></label>
+    </div>
+    <div class="incident-detail-actions"><button type="button" class="btn-primary" onclick="saveIncident('${escAttr(incident.id)}')">Save response state</button><span id="incident-detail-feedback"></span></div>
+    <div class="incident-timeline">
+      <div class="incident-section-head"><div><div class="control-kicker">Timeline</div><h2>Response log</h2></div><span>${updates.length} entries</span></div>
+      <div class="incident-update-compose"><textarea id="incident-note" maxlength="4000" rows="3" placeholder="Record what changed, what was checked, or what happens next."></textarea><button type="button" class="btn-sm btn-edit" onclick="addIncidentUpdate('${escAttr(incident.id)}')">Add update</button></div>
+      <div class="incident-timeline-list">${updates.map(renderIncidentUpdate).join('') || '<div class="incident-empty-list">The response timeline is empty.</div>'}</div>
+    </div>
+  `;
+}
+
+function renderIncidentUpdate(update) {
+  const author = update.author_name || 'Control center';
+  let title = 'Update added';
+  let body = update.body || '';
+  if (update.kind === 'created') title = 'Incident opened';
+  if (update.kind === 'status') {
+    title = `Status changed to ${incidentStatusLabel(update.to_status)}`;
+    body = update.from_status ? `Previous status: ${incidentStatusLabel(update.from_status)}` : '';
+  }
+  if (update.kind === 'assignment') title = 'Ownership updated';
+  return `<article class="incident-timeline-row is-${escAttr(update.kind || 'note')}"><span></span><div><strong>${esc(title)}</strong><small>${esc(author)} · ${fmtDate(update.created_at)}</small>${body ? `<p>${esc(body)}</p>` : ''}</div></article>`;
+}
+
+function toggleIncidentCreate(force) {
+  const panel = document.getElementById('incident-create');
+  const willOpen = force === undefined ? panel.hidden : Boolean(force);
+  panel.hidden = !willOpen;
+  if (willOpen) {
+    loadIncidentOwners().catch(() => {});
+    document.getElementById('incident-title')?.focus();
+  }
+}
+
+async function createIncident() {
+  const error = document.getElementById('incident-create-error');
+  error.textContent = '';
+  const body = {
+    title: document.getElementById('incident-title').value,
+    severity: document.getElementById('incident-severity').value,
+    affectedScope: document.getElementById('incident-scope').value,
+    ownerId: document.getElementById('incident-owner').value,
+    summary: document.getElementById('incident-description').value,
+  };
+  try {
+    const data = await api('POST', '/api/admin/incidents', body);
+    ['incident-title', 'incident-scope', 'incident-description'].forEach(id => { document.getElementById(id).value = ''; });
+    incidentFilter = 'active';
+    document.querySelectorAll('[data-incident-status]').forEach(button => button.classList.toggle('active', button.dataset.incidentStatus === 'active'));
+    selectedIncidentId = data.incident.id;
+    toggleIncidentCreate(false);
+    toast('Incident opened', 'success');
+    loadIncidents(true);
+  } catch (e) {
+    error.textContent = e.message || 'Could not create incident';
+  }
+}
+
+async function saveIncident(id) {
+  const feedback = document.getElementById('incident-detail-feedback');
+  feedback.textContent = 'Saving…';
+  try {
+    await api('PATCH', `/api/admin/incidents/${encodeURIComponent(id)}`, {
+      status: document.getElementById('incident-detail-status').value,
+      severity: document.getElementById('incident-detail-severity').value,
+      ownerId: document.getElementById('incident-detail-owner').value,
+      affectedScope: document.getElementById('incident-detail-scope').value,
+    });
+    feedback.textContent = 'Saved';
+    toast('Incident response state saved', 'success');
+    loadIncidents(true);
+  } catch (e) {
+    feedback.textContent = e.message || 'Could not save';
+  }
+}
+
+async function addIncidentUpdate(id) {
+  const field = document.getElementById('incident-note');
+  const body = field.value.trim();
+  if (!body) { field.focus(); return; }
+  try {
+    await api('POST', `/api/admin/incidents/${encodeURIComponent(id)}/updates`, { body });
+    field.value = '';
+    toast('Timeline update added', 'success');
+    loadIncidents(true);
+  } catch (e) {
+    toast(e.message || 'Could not add the update', 'error');
+  }
 }
 
 // ── AI engine status ───────────────────────────────────────────────────────

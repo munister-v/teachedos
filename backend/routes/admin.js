@@ -7,6 +7,16 @@ const bcrypt = require('bcryptjs');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { ensureTelemetrySchema } = require('../lib/telemetry');
 const {
+  cleanLongText,
+  cleanText,
+  ensureIncidentSchema,
+  isUuid,
+  normalizeSeverity,
+  normalizeStatus,
+  SEVERITIES,
+  STATUSES,
+} = require('../lib/incidents');
+const {
   ensureBillingSchema,
   normalizePlanKey,
   normalizeCycleKey,
@@ -611,6 +621,222 @@ router.get('/monitor/events', async (req, res) => {
     res.json({ events: rows });
   } catch (err) {
     res.status(500).json({ error: 'Could not load this activity slice' });
+  }
+});
+
+// ── Incident response ─────────────────────────────────────────────────────
+// Incidents are deliberately kept separate from telemetry. Monitoring only
+// supplies evidence; the response record is a human-owned operational log.
+router.get('/incidents', async (req, res) => {
+  const requestedStatus = String(req.query.status || 'active');
+  const status = requestedStatus === 'all' || requestedStatus === 'active' || STATUSES.has(requestedStatus)
+    ? requestedStatus
+    : 'active';
+  try {
+    await ensureIncidentSchema();
+    const { rows } = await pool.query(
+      `SELECT i.id, i.title, i.severity, i.status, i.affected_scope, i.source,
+              i.owner_id, i.acknowledged_at, i.resolved_at, i.created_at, i.updated_at,
+              owner.name AS owner_name,
+              COUNT(u.id)::int AS update_count,
+              MAX(u.created_at) AS last_update_at
+         FROM incidents i
+         LEFT JOIN users owner ON owner.id = i.owner_id
+         LEFT JOIN incident_updates u ON u.incident_id = i.id
+        WHERE ($1 = 'all')
+           OR ($1 = 'active' AND i.status <> 'resolved')
+           OR i.status = $1
+        GROUP BY i.id, owner.name
+        ORDER BY
+          CASE i.status WHEN 'open' THEN 0 WHEN 'acknowledged' THEN 1 WHEN 'mitigating' THEN 2 ELSE 3 END,
+          CASE i.severity WHEN 's1' THEN 0 WHEN 's2' THEN 1 WHEN 's3' THEN 2 ELSE 3 END,
+          i.updated_at DESC
+        LIMIT 100`,
+      [status],
+    );
+    const summaryResult = await pool.query(
+      `SELECT severity, COUNT(*)::int AS count
+         FROM incidents
+        WHERE status <> 'resolved'
+        GROUP BY severity`,
+    );
+    const summary = { s1: 0, s2: 0, s3: 0, s4: 0, active: 0 };
+    summaryResult.rows.forEach(row => {
+      summary[row.severity] = Number(row.count || 0);
+      summary.active += Number(row.count || 0);
+    });
+    res.json({ incidents: rows, summary, status });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not load incidents' });
+  }
+});
+
+router.get('/incidents/owners', async (_req, res) => {
+  try {
+    await ensureIncidentSchema();
+    const { rows } = await pool.query(
+      `SELECT id, name, email
+         FROM users
+        WHERE role='admin'
+        ORDER BY name ASC, email ASC`,
+    );
+    res.json({ owners: rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not load incident owners' });
+  }
+});
+
+router.get('/incidents/:id', async (req, res) => {
+  if (!isUuid(req.params.id)) return res.status(400).json({ error: 'Invalid incident id' });
+  try {
+    await ensureIncidentSchema();
+    const incidentResult = await pool.query(
+      `SELECT i.*, owner.name AS owner_name, creator.name AS created_by_name
+         FROM incidents i
+         LEFT JOIN users owner ON owner.id = i.owner_id
+         LEFT JOIN users creator ON creator.id = i.created_by
+        WHERE i.id=$1`,
+      [req.params.id],
+    );
+    if (!incidentResult.rows.length) return res.status(404).json({ error: 'Incident not found' });
+    const updates = await pool.query(
+      `SELECT u.id, u.kind, u.body, u.from_status, u.to_status, u.created_at,
+              author.name AS author_name
+         FROM incident_updates u
+         LEFT JOIN users author ON author.id = u.author_id
+        WHERE u.incident_id=$1
+        ORDER BY u.created_at ASC, u.id ASC`,
+      [req.params.id],
+    );
+    res.json({ incident: incidentResult.rows[0], updates: updates.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not load incident detail' });
+  }
+});
+
+router.post('/incidents', async (req, res) => {
+  const title = cleanText(req.body?.title, 160);
+  const requestedSeverity = req.body?.severity;
+  const severity = normalizeSeverity(req.body?.severity);
+  const affectedScope = cleanText(req.body?.affectedScope, 160);
+  const summary = cleanLongText(req.body?.summary, 4000);
+  const requestedOwner = req.body?.ownerId;
+  if (title.length < 4) return res.status(400).json({ error: 'Use a clear incident title of at least 4 characters' });
+  if (requestedSeverity !== undefined && !SEVERITIES.has(String(requestedSeverity).toLowerCase())) return res.status(400).json({ error: 'Invalid severity' });
+  if (requestedOwner !== undefined && requestedOwner !== null && requestedOwner !== '' && !isUuid(requestedOwner)) return res.status(400).json({ error: 'Invalid incident owner' });
+  try {
+    await ensureIncidentSchema();
+    let ownerId = req.user.id;
+    if (requestedOwner && isUuid(requestedOwner)) {
+      const owner = await pool.query("SELECT id FROM users WHERE id=$1 AND role='admin'", [requestedOwner]);
+      if (!owner.rows.length) return res.status(400).json({ error: 'Incident owner must be an administrator' });
+      ownerId = requestedOwner;
+    }
+    const created = await pool.query(
+      `INSERT INTO incidents (title, severity, affected_scope, summary, source, owner_id, created_by, updated_by)
+       VALUES ($1, $2, $3, $4, 'manual', $5, $6, $6)
+       RETURNING *`,
+      [title, severity, affectedScope, summary, ownerId, req.user.id],
+    );
+    await pool.query(
+      `INSERT INTO incident_updates (incident_id, author_id, kind, body)
+       VALUES ($1, $2, 'created', $3)`,
+      [created.rows[0].id, req.user.id, summary || 'Incident opened.'],
+    );
+    logAdminAction(req, 'incident.created', {
+      targetId: created.rows[0].id,
+      targetLabel: title,
+      detail: `${severity} incident opened`,
+    });
+    res.status(201).json({ incident: created.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not create incident' });
+  }
+});
+
+router.patch('/incidents/:id', async (req, res) => {
+  if (!isUuid(req.params.id)) return res.status(400).json({ error: 'Invalid incident id' });
+  const requestedStatus = req.body?.status;
+  const requestedSeverity = req.body?.severity;
+  const requestedScope = req.body?.affectedScope;
+  const requestedOwner = req.body?.ownerId;
+  if (requestedStatus !== undefined && !STATUSES.has(String(requestedStatus).toLowerCase())) return res.status(400).json({ error: 'Invalid incident status' });
+  if (requestedSeverity !== undefined && !SEVERITIES.has(String(requestedSeverity).toLowerCase())) return res.status(400).json({ error: 'Invalid incident severity' });
+  if (requestedOwner !== undefined && requestedOwner !== null && requestedOwner !== '' && !isUuid(requestedOwner)) return res.status(400).json({ error: 'Invalid incident owner' });
+  try {
+    await ensureIncidentSchema();
+    const currentResult = await pool.query('SELECT * FROM incidents WHERE id=$1', [req.params.id]);
+    if (!currentResult.rows.length) return res.status(404).json({ error: 'Incident not found' });
+    const current = currentResult.rows[0];
+    let ownerId = requestedOwner === '' || requestedOwner === null ? null : current.owner_id;
+    if (requestedOwner && isUuid(requestedOwner)) {
+      const owner = await pool.query("SELECT id FROM users WHERE id=$1 AND role='admin'", [requestedOwner]);
+      if (!owner.rows.length) return res.status(400).json({ error: 'Incident owner must be an administrator' });
+      ownerId = requestedOwner;
+    }
+    const status = requestedStatus === undefined ? current.status : normalizeStatus(requestedStatus, current.status);
+    const severity = requestedSeverity === undefined ? current.severity : normalizeSeverity(requestedSeverity, current.severity);
+    const affectedScope = requestedScope === undefined ? current.affected_scope : cleanText(requestedScope, 160);
+    const acknowledgement = ['acknowledged', 'mitigating', 'resolved'].includes(status)
+      ? (current.acknowledged_at || new Date())
+      : null;
+    const resolvedAt = status === 'resolved' ? (current.resolved_at || new Date()) : null;
+    const updated = await pool.query(
+      `UPDATE incidents
+          SET status=$2, severity=$3, affected_scope=$4, owner_id=$5,
+              acknowledged_at=$6, resolved_at=$7, updated_by=$8, updated_at=NOW()
+        WHERE id=$1
+      RETURNING *`,
+      [req.params.id, status, severity, affectedScope, ownerId, acknowledgement, resolvedAt, req.user.id],
+    );
+    if (status !== current.status) {
+      await pool.query(
+        `INSERT INTO incident_updates (incident_id, author_id, kind, from_status, to_status)
+         VALUES ($1, $2, 'status', $3, $4)`,
+        [req.params.id, req.user.id, current.status, status],
+      );
+    }
+    if (ownerId !== current.owner_id) {
+      await pool.query(
+        `INSERT INTO incident_updates (incident_id, author_id, kind, body)
+         VALUES ($1, $2, 'assignment', $3)`,
+        [req.params.id, req.user.id, ownerId ? 'Incident owner updated.' : 'Incident owner cleared.'],
+      );
+    }
+    logAdminAction(req, 'incident.updated', {
+      targetId: req.params.id,
+      targetLabel: current.title,
+      detail: `status ${current.status} to ${status}`,
+    });
+    res.json({ incident: updated.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not update incident' });
+  }
+});
+
+router.post('/incidents/:id/updates', async (req, res) => {
+  if (!isUuid(req.params.id)) return res.status(400).json({ error: 'Invalid incident id' });
+  const body = cleanLongText(req.body?.body, 4000);
+  if (!body) return res.status(400).json({ error: 'Write an update before adding it to the timeline' });
+  try {
+    await ensureIncidentSchema();
+    const incident = await pool.query('SELECT id, title FROM incidents WHERE id=$1', [req.params.id]);
+    if (!incident.rows.length) return res.status(404).json({ error: 'Incident not found' });
+    const update = await pool.query(
+      `INSERT INTO incident_updates (incident_id, author_id, kind, body)
+       VALUES ($1, $2, 'note', $3)
+       RETURNING id, kind, body, created_at`,
+      [req.params.id, req.user.id, body],
+    );
+    await pool.query('UPDATE incidents SET updated_by=$2, updated_at=NOW() WHERE id=$1', [req.params.id, req.user.id]);
+    logAdminAction(req, 'incident.note_added', {
+      targetId: req.params.id,
+      targetLabel: incident.rows[0].title,
+      detail: 'Timeline update added',
+    });
+    res.status(201).json({ update: update.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not add incident update' });
   }
 });
 
