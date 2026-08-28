@@ -804,6 +804,10 @@ router.patch('/incidents/:id', async (req, res) => {
     const status = requestedStatus === undefined ? current.status : normalizeStatus(requestedStatus, current.status);
     const severity = requestedSeverity === undefined ? current.severity : normalizeSeverity(requestedSeverity, current.severity);
     const affectedScope = requestedScope === undefined ? current.affected_scope : cleanText(requestedScope, 160);
+    // Acknowledged work must have a named responder. Keep explicit owner edits authoritative.
+    if (!ownerId && requestedOwner === undefined && ['acknowledged', 'mitigating'].includes(status)) {
+      ownerId = req.user.id;
+    }
     const acknowledgement = ['acknowledged', 'mitigating', 'resolved'].includes(status)
       ? (current.acknowledged_at || new Date())
       : null;

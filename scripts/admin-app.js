@@ -596,6 +596,10 @@ async function loadIncident(id, background = false) {
 
 function renderIncidentDetail(incident, updates) {
   const root = document.getElementById('incident-detail');
+  const quickActions = [];
+  if (incident.status === 'open') quickActions.push(`<button type="button" class="btn-sm btn-edit" onclick="advanceIncident('${escAttr(incident.id)}', 'acknowledged')">Acknowledge and take ownership</button>`);
+  if (incident.status === 'acknowledged') quickActions.push(`<button type="button" class="btn-sm btn-edit" onclick="advanceIncident('${escAttr(incident.id)}', 'mitigating')">Start mitigation</button>`);
+  if (['open', 'acknowledged', 'mitigating'].includes(incident.status)) quickActions.push(`<button type="button" class="btn-sm incident-resolve" onclick="advanceIncident('${escAttr(incident.id)}', 'resolved')">Resolve incident</button>`);
   root.innerHTML = `
     <div class="incident-detail-head">
       <div><div class="control-kicker">${esc(incidentSeverityLabel(incident.severity))} · ${esc(incidentStatusLabel(incident.status))}</div><h2>${esc(incident.title)}</h2><p>${esc(incident.summary || 'No summary was recorded.')}</p></div>
@@ -607,7 +611,7 @@ function renderIncidentDetail(incident, updates) {
       <label>Owner<select id="incident-detail-owner">${incidentOwnerOptions(incident.owner_id || '')}</select></label>
       <label>Affected area<input id="incident-detail-scope" maxlength="160" value="${escAttr(incident.affected_scope || '')}" placeholder="Affected system or journey"/></label>
     </div>
-    <div class="incident-detail-actions"><button type="button" class="btn-primary" onclick="saveIncident('${escAttr(incident.id)}')">Save response state</button><span id="incident-detail-feedback"></span></div>
+    <div class="incident-detail-actions"><div class="incident-quick-actions">${quickActions.join('')}</div><div class="incident-detail-save"><span id="incident-detail-feedback" aria-live="polite"></span><button type="button" class="btn-primary" onclick="saveIncident('${escAttr(incident.id)}')">Save response state</button></div></div>
     <div class="incident-timeline">
       <div class="incident-section-head"><div><div class="control-kicker">Timeline</div><h2>Response log</h2></div><span>${updates.length} entries</span></div>
       <div class="incident-update-compose"><textarea id="incident-note" maxlength="4000" rows="3" placeholder="Record what changed, what was checked, or what happens next."></textarea><button type="button" class="btn-sm btn-edit" onclick="addIncidentUpdate('${escAttr(incident.id)}')">Add update</button></div>
@@ -678,6 +682,18 @@ async function saveIncident(id) {
     loadIncidents(true);
   } catch (e) {
     feedback.textContent = e.message || 'Could not save';
+  }
+}
+
+async function advanceIncident(id, status) {
+  const feedback = document.getElementById('incident-detail-feedback');
+  if (feedback) feedback.textContent = 'Updating...';
+  try {
+    await api('PATCH', `/api/admin/incidents/${encodeURIComponent(id)}`, { status });
+    toast(status === 'resolved' ? 'Incident resolved' : `Incident marked ${incidentStatusLabel(status).toLowerCase()}`, 'success');
+    await loadIncidents(true);
+  } catch (error) {
+    if (feedback) feedback.textContent = error.message || 'Could not update incident';
   }
 }
 
