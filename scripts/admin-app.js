@@ -430,13 +430,13 @@ async function openMonitorSlice(bucket) {
   if (!title || !root) return;
   title.textContent = 'Loading selected hour';
   meta.textContent = bucket;
-  root.textContent = 'Retrieving the newest recorded technical events.';
+  root.textContent = 'Retrieving the selected operational activity.';
   panel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   try {
     const data = await api('GET', `/api/admin/monitor/events?start=${encodeURIComponent(bucket)}`);
     const events = data.events || [];
     title.textContent = `Activity at ${fmtMonitorHour(bucket)}`;
-    meta.textContent = `${events.length} technical event${events.length === 1 ? '' : 's'} shown`;
+    meta.textContent = `${events.length} recorded event${events.length === 1 ? '' : 's'} shown`;
     root.innerHTML = events.length ? events.map(event => `
       <div class="monitor-slice-row">
         <span class="monitor-slice-time">${fmtRelative(event.created_at)}</span>
@@ -444,7 +444,7 @@ async function openMonitorSlice(bucket) {
         <span>${esc(event.metadata?.route || event.metadata?.operation || event.outcome || 'recorded')}</span>
         <em>${event.duration_ms ? `${event.duration_ms} ms` : ''}</em>
       </div>
-    `).join('') : '<div class="monitor-empty">This heatmap cell includes historic aggregate activity. No raw technical events were retained for this hour.</div>';
+    `).join('') : '<div class="monitor-empty">No raw event remains for the latest matching hour. The heatmap still reflects activity across the selected time window.</div>';
   } catch (error) {
     title.textContent = 'Could not load this hour';
     root.textContent = error.message || 'The activity slice is unavailable.';
@@ -453,6 +453,7 @@ async function openMonitorSlice(bucket) {
 
 function monitorEventLabel(type) {
   const labels = {
+    'account.created': 'Account created', 'login.ok': 'Password sign-in', 'google.login': 'Google sign-in', 'google.signup': 'Google sign-up',
     'board.created': 'Board created', 'board.updated': 'Board updated', 'board.renamed': 'Board renamed',
     'board.deleted': 'Board deleted', 'share.created': 'Share link created', 'share.viewed': 'Shared material opened',
     'lesson.progress_submitted': 'Lesson progress submitted', 'request.completed': 'API request',

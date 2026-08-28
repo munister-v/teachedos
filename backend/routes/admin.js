@@ -504,14 +504,11 @@ router.get('/monitor', async (req, res) => {
          SELECT
            EXTRACT(ISODOW FROM occurred_at AT TIME ZONE 'Europe/Kyiv')::int AS weekday,
            EXTRACT(HOUR FROM occurred_at AT TIME ZONE 'Europe/Kyiv')::int AS hour,
-           to_char(
-             date_trunc('hour', occurred_at AT TIME ZONE 'Europe/Kyiv') AT TIME ZONE 'Europe/Kyiv',
-             'YYYY-MM-DD"T"HH24:00:00OF'
-           ) AS bucket,
+           MAX(date_trunc('hour', occurred_at)) AS bucket,
            COUNT(*)::int AS count
          FROM activity
-         GROUP BY weekday, hour, bucket
-         ORDER BY bucket ASC`,
+         GROUP BY 1, 2
+         ORDER BY 1, 2`,
         [windowStart],
       ),
       pool.query(
@@ -612,8 +609,38 @@ router.get('/monitor/events', async (req, res) => {
     await ensureTelemetrySchema();
     const { rows } = await pool.query(
       `SELECT event_type, outcome, duration_ms, metadata, created_at
-       FROM telemetry_events
-       WHERE created_at >= $1 AND created_at < $1 + INTERVAL '1 hour'
+       FROM (
+         SELECT 'account.created'::text AS event_type,
+                'ok'::text AS outcome,
+                NULL::int AS duration_ms,
+                '{}'::jsonb AS metadata,
+                created_at
+           FROM users
+          WHERE created_at >= $1 AND created_at < $1 + INTERVAL '1 hour'
+         UNION ALL
+         SELECT 'board.updated'::text AS event_type,
+                'ok'::text AS outcome,
+                NULL::int AS duration_ms,
+                '{}'::jsonb AS metadata,
+                updated_at AS created_at
+           FROM boards
+          WHERE updated_at >= $1 AND updated_at < $1 + INTERVAL '1 hour'
+         UNION ALL
+         SELECT event AS event_type,
+                'ok'::text AS outcome,
+                NULL::int AS duration_ms,
+                '{}'::jsonb AS metadata,
+                created_at
+           FROM auth_events
+          WHERE created_at >= $1 AND created_at < $1 + INTERVAL '1 hour'
+            AND event IN ('login.ok', 'google.login', 'google.signup')
+         UNION ALL
+         SELECT event_type, outcome, duration_ms, metadata, created_at
+           FROM telemetry_events
+          WHERE created_at >= $1 AND created_at < $1 + INTERVAL '1 hour'
+            AND category = 'product'
+            AND event_type NOT LIKE 'board.%'
+       ) AS activity
        ORDER BY created_at DESC
        LIMIT 30`,
       [start.toISOString()],
