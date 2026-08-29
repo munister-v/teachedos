@@ -380,3 +380,79 @@ body.fx:not(#_) .hero-point {
 body.fx:not(#_) .hero :is(p,li,span,div,small):not([class*="btn"]):not([class*="badge"]) {
   color:var(--fx-ink-2) !important;
 }
+
+/* ── Наследие старой палитры на живых страницах ─────────────────────────── */
+/* Цветных декоративных плит в макете нет: цветом выделено действие, всё
+   остальное - чернила на стекле. Ниже три места, где такие плиты остались,
+   и в каждом белый текст на цветном фоне спорит с песочным окружением. */
+
+/* Доска, панель инструментов: баннер «YouTube → Lesson» был фиолетовым
+   градиентом. */
+body.fx:not(#_) .yt-lesson-cta {
+  background:var(--fx-lime) !important;
+  color:var(--fx-ink) !important;
+  box-shadow:none !important;
+  border-radius:var(--fx-r-card) !important;
+}
+body.fx:not(#_) .yt-lesson-cta:hover { background:var(--fx-lime-deep) !important; filter:none !important; }
+
+/* Сообщество, превью публикуемого урока: тёмно-зелёный градиент. */
+body.fx:not(#_) .lesson-preview {
+  background:rgba(255,253,246,.62) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  color:var(--fx-ink) !important;
+  box-shadow:none !important;
+  border-radius:var(--fx-r-card) !important;
+}
+body.fx:not(#_) .lesson-preview :is(.lesson-preview-title,.lesson-preview-meta,.lesson-preview-badge) {
+  color:var(--fx-ink) !important;
+}
+body.fx:not(#_) .lesson-preview .lesson-preview-badge {
+  background:var(--fx-lime) !important;
+}
+/* Кнопка выбора доски внутри превью. */
+body.fx:not(#_) .lesson-preview :is(button,.lesson-preview-canvas) {
+  background:rgba(255,255,255,.6) !important;
+  border:1px dashed rgba(22,22,22,.18) !important;
+  color:var(--fx-ink-2) !important;
+}
+
+/* Профиль: полоса под шапкой карточки смешивала лайм с фиолетовым. */
+body.fx:not(#_) .profile-hero-band {
+  background:rgba(203,240,60,.22) !important;
+  border-bottom:1px solid rgba(22,22,22,.07) !important;
+}
+
+/* ── Активное состояние ─────────────────────────────────────────────────── */
+/* В макете активное - лаймовая пилюля с чернильным текстом. Чёрные плашки
+   остались от прошлой темы: пункт меню профиля, выбранный фильтр. */
+body.fx:not(#_) :is(.st-item.active,.chip.active,.filter-btn.active,.tab.active,.pill.active,.cat.active) {
+  background:var(--fx-lime) !important;
+  color:var(--fx-ink) !important;
+  border-color:var(--fx-lime) !important;
+  box-shadow:none !important;
+}
+body.fx:not(#_) :is(.st-item.active,.chip.active,.filter-btn.active) :is(.st-icon,svg,.ic) {
+  color:var(--fx-ink) !important;
+}
+/* Пункты рейки в макете без рамок. */
+body.fx:not(#_) :is(.side-btn,.sb-item,.st-item) { border:none !important; }
+
+/* Панель инструментов доски: выбранный фильтр и основная ссылка блока были
+   чёрными плашками из прошлой темы. */
+body.fx:not(#_) .tool-skill-chip.active {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  border-color:var(--fx-lime) !important;
+}
+body.fx:not(#_) .tools-mini-actions a {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  border-radius:999px !important; box-shadow:none !important;
+}
+
+/* Расписание: основная кнопка блока «Teaching load» была чёрной плашкой.
+   Действие в макете лаймовое, чернила остаются тексту. */
+body.fx:not(#_) .wb-btn.primary {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  border:none !important; border-radius:999px !important; box-shadow:none !important;
+}
+body.fx:not(#_) .wb-btn { border-radius:999px !important; }
