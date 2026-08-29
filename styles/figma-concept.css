@@ -167,7 +167,9 @@ body.fx .curr-grid > *:not(.plans-empty-state) {
 }
 
 /* ── Карточки-счётчики справа сверху ────────────────────────────────────── */
-body.fx #wg-today { display:none !important; }
+/* «Next class» я сначала спрятал, потому что в макете справа сверху ровно
+   две карточки. Это была потеря функции, а не решение по дизайну: виджет
+   показывает ближайший урок. Возвращаю третьей карточкой в том же языке. */
 body.fx .widget {
   border-radius:24px !important;
   background:var(--fx-glass-strong) !important;
@@ -177,6 +179,7 @@ body.fx .widget {
   box-shadow:0 18px 40px rgba(90,70,55,.14) !important;
   padding:18px !important;
 }
+body.fx #wg-today  { top:88px !important; right:432px !important; width:206px !important; }
 body.fx #wg-streak { top:88px !important; right:226px !important; width:186px !important; }
 body.fx #wg-vocab  { top:88px !important; right:20px  !important; width:186px !important; }
 
@@ -190,8 +193,25 @@ body.fx .wg-streak-label, body.fx .wg-vocab-label {
   text-transform:lowercase !important; letter-spacing:0 !important;
   font-family:inherit !important; margin:10px 0 0 !important;
 }
-body.fx .wg-streak-sub, body.fx .wg-vocab-lang,
-body.fx .wg-vocab-trans, body.fx .wg-vocab-ex { display:none !important; }
+/* Подписи под числом несут содержание (расписание, число карточек, свежие
+   доски) - их нельзя прятать ради формы. Оставляю мелкими и приглушёнными. */
+body.fx :is(.wg-streak-sub,.wg-vocab-lang,.wg-vocab-trans,.wg-vocab-ex) {
+  font-size:12px !important; font-family:inherit !important;
+  letter-spacing:0 !important; text-transform:none !important;
+  color:var(--fx-mute) !important; font-style:normal !important;
+  margin-top:4px !important;
+}
+body.fx .wg-vocab-trans { color:var(--fx-ink-2) !important; }
+/* Карточка ближайшего урока: заголовок, время, прогресс. */
+body.fx .wg-today-label { font-family:inherit !important; font-size:13px !important;
+  letter-spacing:0 !important; text-transform:lowercase !important; color:var(--fx-mute) !important; }
+body.fx .wg-today-title { font-size:19px !important; font-weight:800 !important;
+  letter-spacing:-.02em !important; color:var(--fx-ink) !important; }
+body.fx .wg-today-meta { font-family:inherit !important; font-size:12px !important;
+  color:var(--fx-mute) !important; }
+body.fx .wg-today-badge { font-family:inherit !important; font-size:12px !important;
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important; border:none !important; }
+body.fx .wg-today-prog-fill { background:var(--fx-lime) !important; }
 
 /* Лаймовая кнопка-капсула */
 body.fx .fx-btn, body.fx .wg-vocab-next {
@@ -290,7 +310,10 @@ body.fx.board-page #miro-toolbar .mt-sep { display:none !important; }
 body.fx #wg-vocab { display:flex !important; flex-direction:column !important; }
 body.fx #wg-vocab .wg-vocab-word  { order:1; }
 body.fx #wg-vocab .wg-vocab-label { order:2; }
-body.fx #wg-vocab .wg-vocab-next  { order:3; }
+body.fx #wg-vocab .wg-vocab-lang  { order:3; }
+body.fx #wg-vocab .wg-vocab-trans { order:4; }
+body.fx #wg-vocab .wg-vocab-ex    { order:5; }
+body.fx #wg-vocab .wg-vocab-next  { order:6; margin-top:auto !important; }
 
 /* ── Правки после сверки со скриншотом макета ───────────────────────────── */
 
@@ -511,3 +534,29 @@ body.fx.board-page #miro-toolbar .mt-btn:focus-visible {
 body.fx.board-page #miro-toolbar .mt-btn.active {
   background:var(--fx-lime) !important; border-color:var(--fx-lime) !important;
 }
+
+/* ── Правки после отчёта об окнах и доске ───────────────────────────────── */
+
+/* Окна перестали перетаскиваться. Полоса заголовка - это ручка перетаскивания
+   (на ней висит обработчик), а я сжал её до кнопки закрытия 26×26: тянуть
+   стало не за что, а единственное нажатие в этой зоне закрывало окно.
+   Возвращаю полосу во всю ширину - прозрачную, без фона и рамки, как в
+   макете, - и отвожу ей место сверху, чтобы она ничего не накрывала. */
+body.fx .win-titlebar {
+  position:absolute !important; top:0 !important; left:0 !important; right:0 !important;
+  height:46px !important; padding:0 !important; z-index:5;
+  background:none !important; border:none !important; box-shadow:none !important;
+  cursor:grab;
+}
+body.fx .win-titlebar:active { cursor:grabbing; }
+body.fx .win-controls { position:absolute; top:20px; left:20px; }
+body.fx .win-main { padding-top:34px !important; }
+
+/* Доска: холст начинался за рейкой, и слева оставалась песочная полоса
+   страницы. В макете рейка лежит поверх холста, поэтому холст во всю ширину,
+   а отступ --mt-w остаётся панелям, которые не должны под неё заезжать. */
+body.fx.board-page #board-wrap { left:0 !important; }
+
+/* Пилюля с названием доски была раздута под панель 56px. */
+body.fx.board-page .tb-board-chip { padding:6px 14px !important; }
+body.fx.board-page .tb-board-chip-title { font-size:14px !important; }
