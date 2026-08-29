@@ -35,7 +35,12 @@ function parseEnv(source) {
 }
 
 function present(values, ...keys) {
-  return keys.some((key) => typeof values[key] === 'string' && values[key].trim().length > 0);
+  return keys.some((key) => {
+    if (typeof values[key] !== 'string') return false;
+    const value = values[key].trim();
+    if (!value || /^<[^>]+>$/.test(value)) return false;
+    return !/^(change[-_ ]?me|replace[-_ ]?me|your[-_ ].*key)$/i.test(value);
+  });
 }
 
 function strongSecret(values, key, minLength = 32) {
@@ -66,6 +71,7 @@ const checks = [
   { key: 'ai', label: 'AI provider', ready: present(values, 'AI_API_KEY', 'AI_API_KEY_2'), required: false },
   { key: 'stripe', label: 'Stripe billing', ready: present(values, 'STRIPE_SECRET_KEY'), required: false },
   { key: 'email', label: 'Transactional email', ready: present(values, 'RESEND_API_KEY') || (present(values, 'GMAIL_USER') && present(values, 'GMAIL_APP_PASSWORD')), required: false },
+  { key: 'push', label: 'Web push notifications', ready: present(values, 'VAPID_PUBLIC_KEY') && present(values, 'VAPID_PRIVATE_KEY'), required: false },
   { key: 'imageSearch', label: 'Image search', ready: present(values, 'UNSPLASH_ACCESS_KEY', 'PIXABAY_API_KEY'), required: false },
   { key: 'google', label: 'Google sign-in override', ready: present(values, 'GOOGLE_CLIENT_ID'), required: false }
 ];

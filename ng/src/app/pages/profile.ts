@@ -1,13 +1,12 @@
 import { Component, signal, computed, inject, OnInit, ViewEncapsulation } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { BillingService } from '../services/billing.service';
-import { BottomTabs } from '../shared/bottom-tabs';
 import { Session } from '../models/user';
 
 @Component({
   selector: 'app-profile',
-  imports: [RouterLink, RouterLinkActive, BottomTabs],
+  imports: [RouterLink],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
   encapsulation: ViewEncapsulation.None

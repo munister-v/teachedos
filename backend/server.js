@@ -23,26 +23,26 @@ app.use((req, res, next) => {
 });
 
 // ── CORS ───────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+const isProduction = process.env.NODE_ENV === 'production';
+const configuredOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
   .map(s => s.trim())
-  .filter(Boolean)
-  .concat([
+  .filter(Boolean);
+const ALLOWED_ORIGINS = new Set([
+  ...configuredOrigins,
+  'https://teached.tech',
+  'https://www.teached.tech',
+  ...(!isProduction ? [
     'http://localhost:3000',
+    'http://localhost:4000',
     'http://localhost:5500',
     'http://127.0.0.1:5500',
-    'https://munister-v.github.io',
-    'https://munister.com.ua',
-    'http://munister.com.ua',
-    'https://www.munister.com.ua',
-    'http://www.munister.com.ua',
-    'https://teached.tech',
-    'https://www.teached.tech',
-  ]);
+  ] : []),
+]);
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    if (!origin || ALLOWED_ORIGINS.has(origin)) return cb(null, true);
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -167,10 +167,18 @@ require('./ws').setup(server);
 
 async function main() {
   if (process.env.DATABASE_URL) {
-    try { await migrate(); }
-    catch (err) { console.error('[startup] migration error (continuing):', err.message); }
-    try { await ensureTelemetrySchema(); }
-    catch (err) { console.error('[startup] telemetry schema error (continuing):', err.message); }
+    try {
+      await migrate();
+      await ensureTelemetrySchema();
+    } catch (err) {
+      // Serving requests against a partially migrated schema creates data loss
+      // and misleading green process checks. Leave the port closed so systemd
+      // and the dependency-aware health probe can treat startup as failed.
+      console.error('[startup] database initialization failed:', err.message);
+      process.exitCode = 1;
+      await pool.end().catch(() => {});
+      return;
+    }
   } else {
     console.warn('[startup] DATABASE_URL not set - DB features disabled until env var is added');
   }
@@ -188,4 +196,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((err) => {
+  console.error('[startup] fatal:', err.message);
+  process.exitCode = 1;
+});

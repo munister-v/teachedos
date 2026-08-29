@@ -28,6 +28,13 @@ async function existingCollaborator(boardId, userId) {
   return !!rows.length;
 }
 
+function normalizeBoardRole(role) {
+  // Collaborative clients currently synchronize full board snapshots. Until
+  // writes are object-scoped, a non-owner editor could overwrite cards that
+  // were intentionally redacted from their view.
+  return ['student', 'viewer'].includes(role) ? role : 'student';
+}
+
 async function enforceStudentLimit({ boardId, ownerPlan, inviteeId }) {
   const limit = getPlanLimit(ownerPlan, 'studentsPerBoard');
   if (limit === -1) return null;
@@ -93,6 +100,7 @@ router.get('/:boardId', requireAuth, async (req, res) => {
 router.post('/:boardId/invite', requireAuth, async (req, res) => {
   const { boardId } = req.params;
   const { email, role = 'student' } = req.body;
+  const safeRole = normalizeBoardRole(role);
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   try {
@@ -124,9 +132,9 @@ router.post('/:boardId/invite', requireAuth, async (req, res) => {
       INSERT INTO board_collaborators (board_id, user_id, role)
       VALUES ($1, $2, $3)
       ON CONFLICT (board_id, user_id) DO UPDATE SET role = EXCLUDED.role
-    `, [boardId, invitee.id, role]);
+    `, [boardId, invitee.id, safeRole]);
 
-    res.json({ member: { ...invitee, role } });
+    res.json({ member: { ...invitee, role: safeRole } });
   } catch (err) {
     console.error('[members] invite error:', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -162,6 +170,7 @@ router.delete('/:boardId/:userId', requireAuth, async (req, res) => {
 router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
   const { boardId } = req.params;
   const { emails = [], role = 'student' } = req.body;
+  const safeRole = normalizeBoardRole(role);
   if (!Array.isArray(emails) || !emails.length) return res.status(400).json({ error: 'emails array required' });
 
   try {
@@ -216,7 +225,7 @@ router.post('/:boardId/bulk-invite', requireAuth, async (req, res) => {
         const insert = await pool.query(`
           INSERT INTO board_collaborators (board_id, user_id, role)
           VALUES ($1,$2,$3) ON CONFLICT (board_id, user_id) DO NOTHING`,
-          [boardId, invitee.id, role]
+          [boardId, invitee.id, safeRole]
         );
         if (insert.rowCount) results.added.push({ email: invitee.email, name: invitee.name });
         else results.alreadyMember.push(email);
@@ -313,18 +322,6 @@ router.patch('/:boardId/progress', requireAuth, async (req, res) => {
       SELECT 1 FROM board_collaborators WHERE board_id=$1 AND user_id=$2
     `, [boardId, req.user.id]);
     if (!acc.length) return res.status(403).json({ error: 'No access' });
-
-    // ensure table exists
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS student_progress (
-        board_id  UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-        user_id   UUID NOT NULL REFERENCES users(id)  ON DELETE CASCADE,
-        card_id   TEXT NOT NULL,
-        status    VARCHAR(20) NOT NULL DEFAULT 'available',
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        PRIMARY KEY (board_id, user_id, card_id)
-      )
-    `);
 
     await pool.query(`
       INSERT INTO student_progress (board_id, user_id, card_id, status, updated_at)

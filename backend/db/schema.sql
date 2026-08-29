@@ -21,6 +21,20 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_source VARCHAR(24) NOT NULL DEFAULT 'free';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS meeting_url TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS zoom_url TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_reason TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(20);
+ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
 
 -- ── Boards ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS boards (
@@ -47,8 +61,33 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_sessions_token   ON sessions(token);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+
+-- ── Authentication audit and one-time email tokens ────────────────────────
+CREATE TABLE IF NOT EXISTS auth_events (
+  id         BIGSERIAL PRIMARY KEY,
+  user_id    UUID REFERENCES users(id) ON DELETE SET NULL,
+  email      TEXT,
+  event      TEXT NOT NULL,
+  ip         TEXT,
+  user_agent TEXT,
+  detail     TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_auth_events_user ON auth_events(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_auth_events_created ON auth_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_auth_events_email ON auth_events(email, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS email_tokens (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID REFERENCES users(id) ON DELETE CASCADE,
+  email      TEXT NOT NULL,
+  token      TEXT NOT NULL UNIQUE,
+  type       TEXT NOT NULL DEFAULT 'reset',
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at    TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 -- ── Invites ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS invites (
@@ -106,6 +145,35 @@ CREATE TABLE IF NOT EXISTS schedule (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_schedule_user ON schedule(user_id);
+ALTER TABLE schedule ADD COLUMN IF NOT EXISTS meeting_url TEXT;
+ALTER TABLE schedule ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE schedule ADD COLUMN IF NOT EXISTS specific_date DATE;
+ALTER TABLE schedule ADD COLUMN IF NOT EXISTS board_id TEXT;
+
+-- ── Notes and notifications ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notes (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      VARCHAR(255) NOT NULL DEFAULT 'Untitled',
+  body       TEXT NOT NULL DEFAULT '',
+  color      VARCHAR(20) DEFAULT '#FFFFFF',
+  pinned     BOOLEAN NOT NULL DEFAULT FALSE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_notes_user ON notes(user_id);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type       VARCHAR(50) NOT NULL DEFAULT 'info',
+  title      VARCHAR(255) NOT NULL,
+  body       TEXT,
+  read       BOOLEAN NOT NULL DEFAULT FALSE,
+  link       TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read);
 
 -- ── Student Progress ─────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS student_progress (
@@ -118,6 +186,148 @@ CREATE TABLE IF NOT EXISTS student_progress (
 );
 CREATE INDEX IF NOT EXISTS idx_sp_board ON student_progress(board_id);
 CREATE INDEX IF NOT EXISTS idx_sp_user  ON student_progress(user_id);
+
+-- ── Teacher journal, attendance and vocabulary ─────────────────────────────
+CREATE TABLE IF NOT EXISTS student_journal (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  student_id   UUID REFERENCES users(id) ON DELETE SET NULL,
+  name         VARCHAR(255) NOT NULL,
+  email        VARCHAR(255),
+  level        VARCHAR(20) DEFAULT 'A2',
+  lessons_left INTEGER NOT NULL DEFAULT 0,
+  notes        TEXT DEFAULT '',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_student_journal_teacher ON student_journal(teacher_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS attendance (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  journal_id UUID NOT NULL REFERENCES student_journal(id) ON DELETE CASCADE,
+  date       DATE NOT NULL DEFAULT CURRENT_DATE,
+  status     VARCHAR(20) DEFAULT 'present',
+  note       TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_attendance_journal ON attendance(journal_id, date DESC);
+
+CREATE TABLE IF NOT EXISTS vocabulary (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  word        VARCHAR(255) NOT NULL,
+  translation VARCHAR(255) DEFAULT '',
+  example     TEXT DEFAULT '',
+  learned     BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_vocabulary_user ON vocabulary(user_id, created_at DESC);
+
+-- ── Quiz results, card comments and web-push subscriptions ──────────────────
+-- Some early builds created these lazily with INTEGER user ids. Preserve such
+-- tables for forensic recovery and create the canonical UUID-backed versions.
+DO $$
+DECLARE
+  legacy_table RECORD;
+  schema_object RECORD;
+  renamed_to TEXT;
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema='public' AND table_name='quiz_results'
+       AND column_name='user_id' AND data_type='integer'
+  ) AND to_regclass('public.quiz_results_legacy_integer') IS NULL THEN
+    ALTER TABLE quiz_results RENAME TO quiz_results_legacy_integer;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema='public' AND table_name='card_comments'
+       AND column_name='user_id' AND data_type='integer'
+  ) AND to_regclass('public.card_comments_legacy_integer') IS NULL THEN
+    ALTER TABLE card_comments RENAME TO card_comments_legacy_integer;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema='public' AND table_name='push_subscriptions'
+       AND column_name='user_id' AND data_type='integer'
+  ) AND to_regclass('public.push_subscriptions_legacy_integer') IS NULL THEN
+    ALTER TABLE push_subscriptions RENAME TO push_subscriptions_legacy_integer;
+  END IF;
+
+  -- Table renames do not rename their constraints or standalone indexes.
+  -- Move those names out of the way before the canonical tables are created.
+  FOR legacy_table IN
+    SELECT * FROM (VALUES
+      ('quiz_results_legacy_integer'),
+      ('card_comments_legacy_integer'),
+      ('push_subscriptions_legacy_integer')
+    ) AS legacy(name)
+  LOOP
+    IF to_regclass('public.' || legacy_table.name) IS NULL THEN CONTINUE; END IF;
+
+    FOR schema_object IN
+      SELECT conname AS name
+        FROM pg_constraint
+       WHERE conrelid=to_regclass('public.' || legacy_table.name)
+         AND conname NOT LIKE legacy_table.name || '%'
+    LOOP
+      renamed_to := left(legacy_table.name || '_' || schema_object.name, 63);
+      EXECUTE format('ALTER TABLE %I RENAME CONSTRAINT %I TO %I',
+        legacy_table.name, schema_object.name, renamed_to);
+    END LOOP;
+
+    FOR schema_object IN
+      SELECT index_class.relname AS name
+        FROM pg_index index_meta
+        JOIN pg_class index_class ON index_class.oid=index_meta.indexrelid
+       WHERE index_meta.indrelid=to_regclass('public.' || legacy_table.name)
+         AND NOT EXISTS (
+           SELECT 1 FROM pg_constraint constraint_meta
+            WHERE constraint_meta.conindid=index_meta.indexrelid
+         )
+         AND index_class.relname NOT LIKE legacy_table.name || '%'
+    LOOP
+      renamed_to := left(legacy_table.name || '_' || schema_object.name, 63);
+      EXECUTE format('ALTER INDEX %I RENAME TO %I', schema_object.name, renamed_to);
+    END LOOP;
+  END LOOP;
+END $$;
+
+CREATE TABLE IF NOT EXISTS quiz_results (
+  id           BIGSERIAL PRIMARY KEY,
+  board_id     UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  card_id      TEXT NOT NULL,
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  score        INTEGER NOT NULL DEFAULT 0,
+  max_score    INTEGER NOT NULL DEFAULT 0,
+  pct          INTEGER NOT NULL DEFAULT 0 CHECK (pct BETWEEN 0 AND 100),
+  answers      JSONB NOT NULL DEFAULT '[]'::jsonb,
+  submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (board_id, card_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_quiz_results_board_submitted ON quiz_results(board_id, submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_quiz_results_user_submitted ON quiz_results(user_id, submitted_at DESC);
+
+CREATE TABLE IF NOT EXISTS card_comments (
+  id         BIGSERIAL PRIMARY KEY,
+  board_id   UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  card_id    TEXT NOT NULL,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body       TEXT NOT NULL CHECK (char_length(body) BETWEEN 1 AND 2000),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_card_comments_card ON card_comments(board_id, card_id, created_at);
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  subscription JSONB NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, subscription)
+);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
 
 -- ── Courses ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS courses (
@@ -278,9 +488,55 @@ CREATE TABLE IF NOT EXISTS shared_materials (
   game_content  JSONB,
   tags          JSONB        NOT NULL DEFAULT '[]',
   views         INTEGER      NOT NULL DEFAULT 0,
+  expires_at    TIMESTAMPTZ,
+  revoked_at    TIMESTAMPTZ,
   created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+ALTER TABLE shared_materials ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+ALTER TABLE shared_materials ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS idx_shared_materials_owner ON shared_materials(owner_id, created_at DESC);
+
+-- ── AI quota and quality aggregates ────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS ai_usage_monthly (
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  month        DATE NOT NULL,
+  reserved_usd NUMERIC(10,6) NOT NULL DEFAULT 0,
+  actual_usd   NUMERIC(10,6) NOT NULL DEFAULT 0,
+  requests     INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, month)
+);
+CREATE TABLE IF NOT EXISTS ai_usage_daily (
+  day DATE PRIMARY KEY,
+  total INTEGER NOT NULL DEFAULT 0,
+  llm_ok INTEGER NOT NULL DEFAULT 0,
+  fallback INTEGER NOT NULL DEFAULT 0,
+  cache_hits INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS ai_quality_daily (
+  day DATE NOT NULL,
+  tool_id TEXT NOT NULL,
+  engine TEXT NOT NULL,
+  quality_level TEXT NOT NULL,
+  total INTEGER NOT NULL DEFAULT 0,
+  flagged INTEGER NOT NULL DEFAULT 0,
+  source_anchor_notes INTEGER NOT NULL DEFAULT 0,
+  dropped_items INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, tool_id, engine, quality_level)
+);
+
+-- ── Privileged admin action audit ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS admin_audit (
+  id BIGSERIAL PRIMARY KEY,
+  admin_id UUID,
+  admin_email TEXT,
+  action TEXT NOT NULL,
+  target_id TEXT,
+  target_label TEXT,
+  detail TEXT,
+  ip TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit(created_at DESC);
 
 -- ── Monitoring telemetry (no board content or visitor fingerprints) ─────────
 CREATE TABLE IF NOT EXISTS telemetry_events (

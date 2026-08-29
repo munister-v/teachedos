@@ -1,13 +1,12 @@
 import { Component, signal, OnInit, ViewEncapsulation } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { ScheduleService } from '../services/schedule.service';
 import { AuthService } from '../services/auth.service';
 import { ScheduleEntry } from '../models/schedule';
-import { BottomTabs } from '../shared/bottom-tabs';
 
 @Component({
   selector: 'app-schedule',
-  imports: [RouterLink, RouterLinkActive, BottomTabs],
+  imports: [RouterLink],
   templateUrl: './schedule.html',
   styleUrl: './schedule.scss',
   encapsulation: ViewEncapsulation.None

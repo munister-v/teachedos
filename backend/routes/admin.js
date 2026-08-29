@@ -37,22 +37,6 @@ async function ensureIbanPaymentsTable() {
   await ensureBillingSchema(pool);
 }
 
-// ── Admin action audit log ─────────────────────────────────────────────────
-pool.query(`
-  CREATE TABLE IF NOT EXISTS admin_audit (
-    id           BIGSERIAL    PRIMARY KEY,
-    admin_id     UUID,
-    admin_email  TEXT,
-    action       TEXT         NOT NULL,
-    target_id    TEXT,
-    target_label TEXT,
-    detail       TEXT,
-    ip           TEXT,
-    created_at   TIMESTAMPTZ  DEFAULT NOW()
-  )
-`).catch(() => {});
-pool.query(`CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit(created_at DESC)`).catch(() => {});
-
 // Fire-and-forget: record a sensitive admin action. Never blocks the response.
 function logAdminAction(req, action, opts = {}) {
   pool.query(

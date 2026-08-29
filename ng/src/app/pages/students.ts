@@ -1,11 +1,10 @@
 import { Component, signal, OnInit, ViewEncapsulation } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MembersService } from '../services/members.service';
-import { BottomTabs } from '../shared/bottom-tabs';
 
 @Component({
   selector: 'app-students',
-  imports: [RouterLink, RouterLinkActive, BottomTabs],
+  imports: [RouterLink],
   templateUrl: './students.html',
   styleUrl: './students.scss',
   encapsulation: ViewEncapsulation.None

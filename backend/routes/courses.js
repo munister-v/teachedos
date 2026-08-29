@@ -100,15 +100,30 @@ router.patch('/:id', async (req, res) => {
 
 /* ── DELETE /api/courses/:id - delete course (boards stay, unlinked) ─── */
 router.delete('/:id', async (req, res) => {
-  await pool.query(
-    'UPDATE boards SET course_id=NULL, module_id=NULL WHERE course_id=$1',
-    [req.params.id]
-  );
-  const { rowCount } = await pool.query(
-    'DELETE FROM courses WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]
-  );
-  if (!rowCount) return res.status(404).json({ error: 'Course not found' });
-  res.json({ ok: true });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: owned } = await client.query(
+      'SELECT id FROM courses WHERE id=$1 AND user_id=$2 FOR UPDATE',
+      [req.params.id, req.user.id]
+    );
+    if (!owned.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    await client.query(
+      'UPDATE boards SET course_id=NULL, module_id=NULL WHERE course_id=$1',
+      [req.params.id]
+    );
+    await client.query('DELETE FROM courses WHERE id=$1', [req.params.id]);
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
+  }
 });
 
 /* ── POST /api/courses/:id/modules - add module ──────────────────────── */
@@ -128,12 +143,15 @@ router.post('/:id/modules', requireTeacher, async (req, res) => {
 /* ── PATCH /api/courses/:id/modules/:mid - rename / reorder module ───── */
 router.patch('/:id/modules/:mid', async (req, res) => {
   const { name, ord } = req.body;
-  const sets = [], params = [req.params.mid, req.params.id];
+  const sets = [], params = [req.params.mid, req.params.id, req.user.id];
   if (name !== undefined) { params.push(name.trim().slice(0,255)); sets.push(`name=$${params.length}`); }
   if (ord  !== undefined) { params.push(ord);                      sets.push(`ord=$${params.length}`); }
   if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
   const { rows } = await pool.query(
-    `UPDATE course_modules SET ${sets.join(',')} WHERE id=$1 AND course_id=$2 RETURNING *`, params
+    `UPDATE course_modules m SET ${sets.join(',')}
+      WHERE m.id=$1 AND m.course_id=$2
+        AND EXISTS (SELECT 1 FROM courses c WHERE c.id=m.course_id AND c.user_id=$3)
+      RETURNING m.*`, params
   );
   if (!rows.length) return res.status(404).json({ error: 'Module not found' });
   res.json({ module: rows[0] });
@@ -141,28 +159,79 @@ router.patch('/:id/modules/:mid', async (req, res) => {
 
 /* ── DELETE /api/courses/:id/modules/:mid - delete module ────────────── */
 router.delete('/:id/modules/:mid', async (req, res) => {
-  await pool.query(
-    'UPDATE boards SET module_id=NULL WHERE module_id=$1', [req.params.mid]
-  );
-  const { rowCount } = await pool.query(
-    'DELETE FROM course_modules WHERE id=$1 AND course_id=$2', [req.params.mid, req.params.id]
-  );
-  if (!rowCount) return res.status(404).json({ error: 'Module not found' });
-  res.json({ ok: true });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: moduleRows } = await client.query(`
+      SELECT m.id FROM course_modules m
+      JOIN courses c ON c.id=m.course_id
+      WHERE m.id=$1 AND m.course_id=$2 AND c.user_id=$3
+      FOR UPDATE
+    `, [req.params.mid, req.params.id, req.user.id]);
+    if (!moduleRows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Module not found' });
+    }
+    await client.query(
+      'UPDATE boards SET module_id=NULL WHERE module_id=$1 AND course_id=$2',
+      [req.params.mid, req.params.id]
+    );
+    await client.query('DELETE FROM course_modules WHERE id=$1', [req.params.mid]);
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
+  }
 });
 
 /* ── PATCH /api/courses/:id/boards/:bid - assign board to module/order ─ */
 router.patch('/:id/boards/:bid', async (req, res) => {
   const { module_id, board_order } = req.body;
-  const sets = [`course_id=$3`], params = [req.params.bid, req.user.id, req.params.id];
-  if (module_id   !== undefined) { params.push(module_id);    sets.push(`module_id=$${params.length}`); }
-  if (board_order !== undefined) { params.push(board_order);  sets.push(`board_order=$${params.length}`); }
-  const { rows } = await pool.query(
-    `UPDATE boards SET ${sets.join(',')} WHERE id=$1 AND user_id=$2 RETURNING id,name,course_id,module_id,board_order`,
-    params
-  );
-  if (!rows.length) return res.status(404).json({ error: 'Board not found' });
-  res.json({ board: rows[0] });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: owned } = await client.query(
+      'SELECT id FROM courses WHERE id=$1 AND user_id=$2 FOR UPDATE',
+      [req.params.id, req.user.id]
+    );
+    if (!owned.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    if (module_id) {
+      const { rows: modules } = await client.query(
+        'SELECT id FROM course_modules WHERE id=$1 AND course_id=$2',
+        [module_id, req.params.id]
+      );
+      if (!modules.length) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Module does not belong to this course' });
+      }
+    }
+    const sets = ['course_id=$3'];
+    const params = [req.params.bid, req.user.id, req.params.id];
+    if (module_id !== undefined) { params.push(module_id || null); sets.push(`module_id=$${params.length}`); }
+    if (board_order !== undefined) { params.push(board_order); sets.push(`board_order=$${params.length}`); }
+    const { rows } = await client.query(
+      `UPDATE boards SET ${sets.join(',')} WHERE id=$1 AND user_id=$2
+       RETURNING id,name,course_id,module_id,board_order`,
+      params
+    );
+    if (!rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Board not found' });
+    }
+    await client.query('COMMIT');
+    res.json({ board: rows[0] });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
+  }
 });
 
 /* ── DELETE /api/courses/:id/boards/:bid - remove board from course ──── */
@@ -196,27 +265,32 @@ router.get('/shared/list', async (req, res) => {
 /* ── GET /api/courses/:id/boards - boards in a course (student-accessible) */
 router.get('/:id/boards', async (req, res) => {
   try {
-    // Allow owner OR enrolled student
-    const { rows: access } = await pool.query(
-      `SELECT 1 FROM courses WHERE id=$1 AND user_id=$2
-       UNION
-       SELECT 1 FROM board_collaborators bc
-       JOIN boards b ON b.id=bc.board_id
-       WHERE b.course_id=$1 AND bc.user_id=$2`,
-      [req.params.id, req.user.id]
-    );
-    if (!access.length) return res.status(403).json({ error: 'No access' });
-
     const { rows } = await pool.query(
       `SELECT id, name, thumbnail, updated_at, board_order,
               jsonb_array_length(data->'cards') AS card_count
-       FROM boards WHERE course_id=$1
+       FROM boards b
+       WHERE b.course_id=$1
+         AND (
+           b.user_id=$2
+           OR EXISTS (
+             SELECT 1 FROM board_collaborators bc
+              WHERE bc.board_id=b.id AND bc.user_id=$2
+           )
+         )
        ORDER BY board_order, updated_at DESC`,
-      [req.params.id]
+      [req.params.id, req.user.id]
     );
+    if (!rows.length) {
+      const { rows: course } = await pool.query(
+        'SELECT 1 FROM courses WHERE id=$1 AND user_id=$2',
+        [req.params.id, req.user.id]
+      );
+      if (!course.length) return res.status(403).json({ error: 'No access' });
+    }
     res.json({ boards: rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[courses] accessible boards error:', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

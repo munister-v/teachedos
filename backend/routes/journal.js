@@ -2,45 +2,6 @@ const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 
-// Auto-create tables
-pool.query(`
-  CREATE TABLE IF NOT EXISTS student_journal (
-    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    student_id UUID REFERENCES users(id) ON DELETE SET NULL,
-    name       VARCHAR(255) NOT NULL,
-    email      VARCHAR(255),
-    level      VARCHAR(20) DEFAULT 'A2',
-    lessons_left INTEGER NOT NULL DEFAULT 0,
-    notes      TEXT DEFAULT '',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  )
-`).catch(()=>{});
-
-pool.query(`
-  CREATE TABLE IF NOT EXISTS attendance (
-    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    journal_id UUID NOT NULL REFERENCES student_journal(id) ON DELETE CASCADE,
-    date       DATE NOT NULL DEFAULT CURRENT_DATE,
-    status     VARCHAR(20) DEFAULT 'present',
-    note       TEXT DEFAULT '',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  )
-`).catch(()=>{});
-
-pool.query(`
-  CREATE TABLE IF NOT EXISTS vocabulary (
-    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    word       VARCHAR(255) NOT NULL,
-    translation VARCHAR(255) DEFAULT '',
-    example    TEXT DEFAULT '',
-    learned    BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  )
-`).catch(()=>{});
-
 router.use(requireAuth);
 
 /* ── JOURNAL ── */

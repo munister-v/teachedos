@@ -1277,6 +1277,26 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
      become flaky on mobile. */
   touch-action:none;
 }
+
+/* Collaborators without edit rights keep navigation, lessons and comments,
+   but the canvas no longer advertises controls that cannot be persisted. */
+body.board-readonly #miro-toolbar,
+body.board-readonly #mobile-quickbar .mq-btn.primary,
+body.board-readonly #mobile-quickbar #mq-pen,
+body.board-readonly #more-teacher-tools,
+body.board-readonly #more-export-board,
+body.board-readonly .resize-handle,
+body.board-readonly .anchor-dot,
+body.board-readonly .card-close,
+body.board-readonly .sticky-toolbar,
+body.board-readonly .text-format-toolbar,
+body.board-readonly .generated-panel-actionbar,
+body.board-readonly .frame-add-activity,
+body.board-readonly .card-priv-toggle { display:none!important; }
+body.board-readonly #board-wrap { left:0; }
+body.board-readonly .board-card { cursor:default!important; }
+body.board-readonly .text-rich-editor,
+body.board-readonly .sticky-text { cursor:text!important; }
 /* …but real text fields inside cards must keep native touch scrolling/caret. */
 #board-wrap [contenteditable="true"],
 #board-wrap textarea,

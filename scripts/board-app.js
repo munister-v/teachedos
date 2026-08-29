@@ -676,6 +676,10 @@ function defaultTextData(data={}) {
 /* ════════════════════════ ADD CARD ════════════════════════ */
 let _suppressSnapshot = 0; // > 0 → addCard skips its internal snapshot
 function addCard(type, x, y, data={}, w, h) {
+  if (currentUser && currentBoardId && !boardCanEdit) {
+    toast('This board is view only');
+    return null;
+  }
   if (!_suppressSnapshot) snapshot();
   const def = getDefaults(type);
   const cardData = type === 'text' ? defaultTextData(data) : { ...data };
@@ -764,6 +768,7 @@ function renderCard(card) {
     dot.title = 'Connect from ' + anchor;
     dot.addEventListener('mousedown', e => {
       e.stopPropagation();
+      if (!boardCanEdit) return;
       startConnection({ card, anchor });
     });
     el.appendChild(dot);
@@ -776,6 +781,7 @@ function renderCard(card) {
     h.dataset.dir = dir;
     h.addEventListener('mousedown', e => {
       e.stopPropagation();
+      if (!boardCanEdit) return;
       if (card.data && card.data.locked) { toast('Locked card'); return; }
       startResize(e, card, el, dir);
     });
@@ -803,6 +809,7 @@ function renderCard(card) {
       if (!e.shiftKey) clearSelection();
       selectCard(card.id);
     }
+    if (!boardCanEdit) return;
     if (card.data && card.data.locked) { toast('Locked card'); return; }
     startCardDrag(e, card);
   });
@@ -922,6 +929,7 @@ function renderSticky(el, card) {
   text.setAttribute('contenteditable', 'false');
   let _stickyEditOriginal = null;
   text.addEventListener('dblclick', e => {
+    if (!boardCanEdit) return;
     e.stopPropagation();
     // Switch to raw text for editing so the user sees/edits plain source
     text.textContent = card.data.text || '';
@@ -1007,9 +1015,9 @@ function renderText(el, card) {
     body.className = 'card-body text-generated-panel-wrap';
     const content = document.createElement('div');
     content.className = 'generated-panel-content';
-    content.innerHTML = card.data.html
+    content.innerHTML = _ttSanitizeRichHtml(card.data.html
       ? _ttUpgradeStoredMarkdown(card.data.html)
-      : textToHtml(card.data.text || card.data.title || '');
+      : textToHtml(card.data.text || card.data.title || ''));
     content.addEventListener('mousedown', e => {
       if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
       e.stopPropagation();
@@ -1100,16 +1108,16 @@ function renderText(el, card) {
 
   const editor = document.createElement('div');
   editor.className = 'text-rich-editor';
-  editor.contentEditable = 'true';
+  editor.contentEditable = boardCanEdit ? 'true' : 'false';
   editor.spellcheck = true;
   editor.dataset.placeholder = 'Text';
   // Heal legacy cards: text generated before the markdown pass stored raw
   // **target words** in the html. Convert any leftover markers to <strong> at
   // render (no-op for new cards - _ttMdToHtml already stripped them). The
   // [^*\n] guard keeps each match inside one word/phrase so it can't gobble.
-  editor.innerHTML = card.data.html
+  editor.innerHTML = _ttSanitizeRichHtml(card.data.html
     ? _ttUpgradeStoredMarkdown(card.data.html)
-    : textToHtml(card.data.text || card.data.title || 'Text');
+    : textToHtml(card.data.text || card.data.title || 'Text'));
   applyTextStyles(card, editor);
 
   // Single undo entry per edit session: capture original on focus,
@@ -1126,7 +1134,7 @@ function renderText(el, card) {
   });
   editor.addEventListener('blur', () => {
     if (_textEditOrigHtml === null) return;
-    const upgradedHtml = _ttUpgradeStoredMarkdown(editor.innerHTML);
+    const upgradedHtml = _ttSanitizeRichHtml(_ttUpgradeStoredMarkdown(editor.innerHTML));
     if (upgradedHtml !== editor.innerHTML) editor.innerHTML = upgradedHtml;
     card.data.html = editor.innerHTML;
     card.data.text = editor.innerText;
@@ -1145,6 +1153,14 @@ function renderText(el, card) {
         if (state.selected.has(card.id)) getCardEl(card.id)?.classList.add('selected');
       }, 120);
     }
+  });
+  editor.addEventListener('paste', e => {
+    if (!boardCanEdit) return;
+    e.preventDefault();
+    const html = e.clipboardData?.getData('text/html');
+    const text = e.clipboardData?.getData('text/plain') || '';
+    document.execCommand(html ? 'insertHTML' : 'insertText', false,
+      html ? _ttSanitizeRichHtml(html) : text);
   });
   editor.addEventListener('mousedown', e => {
     if (!state.selected.has(card.id)) {
@@ -4208,6 +4224,69 @@ function _ttUpgradeStoredMarkdown(s){
   return String(s || '')
     .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
     .replace(/__([^_\n]+?)__/g, '<strong>$1</strong>');
+}
+
+const _TT_RICH_TAGS = new Set([
+  'P','BR','STRONG','B','EM','I','U','S','STRIKE','SPAN','DIV','UL','OL','LI',
+  'H1','H2','H3','H4','H5','H6','BLOCKQUOTE','CODE','PRE','A','MARK','SMALL',
+  'SUB','SUP','TABLE','THEAD','TBODY','TR','TH','TD','HR','IMG',
+]);
+const _TT_DROP_TAGS = new Set([
+  'SCRIPT','STYLE','TEMPLATE','IFRAME','OBJECT','EMBED','SVG','MATH','FORM',
+  'INPUT','BUTTON','TEXTAREA','SELECT','OPTION','META','LINK','BASE',
+]);
+
+function _ttSafeRichUrl(value, image = false) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (image && /^data:image\/(?:png|jpe?g|gif|webp);base64,/i.test(raw)) return raw;
+  try {
+    const url = new URL(raw, location.origin);
+    if (url.protocol === 'http:' || url.protocol === 'https:' || (!image && url.protocol === 'mailto:')) {
+      return raw;
+    }
+  } catch {}
+  return '';
+}
+
+// Defence in depth for old cached boards and live collaboration. The API also
+// sanitizes stored payloads, but the client must never trust a peer message.
+function _ttSanitizeRichHtml(value) {
+  const template = document.createElement('template');
+  template.innerHTML = String(value || '');
+  const cleanNode = node => {
+    [...node.children].forEach(child => {
+      cleanNode(child);
+      if (_TT_DROP_TAGS.has(child.tagName)) {
+        child.remove();
+        return;
+      }
+      if (!_TT_RICH_TAGS.has(child.tagName)) {
+        child.replaceWith(...child.childNodes);
+        return;
+      }
+      [...child.attributes].forEach(attr => {
+        const name = attr.name.toLowerCase();
+        const tag = child.tagName;
+        const allowed = name === 'class'
+          || (tag === 'A' && ['href','target','rel','title'].includes(name))
+          || (tag === 'IMG' && ['src','alt','title','width','height'].includes(name));
+        if (!allowed) child.removeAttribute(attr.name);
+      });
+      if (child.tagName === 'A') {
+        const href = _ttSafeRichUrl(child.getAttribute('href'), false);
+        if (href) child.setAttribute('href', href); else child.removeAttribute('href');
+        child.setAttribute('rel', 'noopener noreferrer');
+        if (child.getAttribute('target') !== '_blank') child.removeAttribute('target');
+      }
+      if (child.tagName === 'IMG') {
+        const src = _ttSafeRichUrl(child.getAttribute('src'), true);
+        if (src) child.setAttribute('src', src); else child.remove();
+      }
+    });
+  };
+  cleanNode(template.content);
+  return template.innerHTML;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -13369,7 +13448,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '472';
+const TEACHEDOS_ASSET_VERSION = '473';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14593,7 +14672,7 @@ function saveLocal() {
 
 /* ════ CLOUD SAVE with retry ════ */
 async function saveToCloud(retryCount = 0) {
-  if (!currentUser || !authToken || !currentBoardId) return;
+  if (!currentUser || !authToken || !currentBoardId || !boardCanEdit) return;
   /* isOffline — подсказка, а не приговор. Флаг взводится от неудачного
      запроса или от рестарта API при деплое (тот занимает секунды и роняет
      открытые сокеты), а снимается только браузерным событием `online`,
@@ -14694,6 +14773,7 @@ async function captureThumb() {
 
 /* ════ SCHEDULED SAVE (debounced) ════ */
 function scheduleSave() {
+  if (currentUser && currentBoardId && !boardCanEdit) return;
   sessionEdits++;
   setSaveUI('saving');
   clearTimeout(saveTimer);
@@ -14723,6 +14803,10 @@ function scheduleSave() {
 
 /* ════ FORCE SAVE (Ctrl+S) ════ */
 function forceSave() {
+  if (currentUser && currentBoardId && !boardCanEdit) {
+    toast('This board is view only');
+    return;
+  }
   clearTimeout(saveTimer); clearTimeout(cloudSaveTimer);
   const ok = saveLocal();
   const canCloudSave = currentUser && currentBoardId && !isOffline;
@@ -15566,6 +15650,8 @@ const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || l
 let authToken = localStorage.getItem('teachedos_token') || null;
 let currentUser = null;
 let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
+let boardAccessRole = 'owner';
+let boardCanEdit = true;
 // Board fetch kicked off in parallel with the /api/auth/me check on boot
 // (see the init IIFE near the bottom) - initUserBoard() consumes it instead
 // of issuing a second sequential request, saving one full round trip.
@@ -15758,16 +15844,16 @@ async function checkBoardLive() {
 // Show/hide editing controls based on ownership
 function applyRoleUI() {
   const editTools = ['btn-clear','btn-snap','btn-undo','btn-redo','btn-export'];
-  const ownerOnly = ['btn-members','btn-share','board-name-display'];
   editTools.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     // Keep export visible for owners even on Free - clicking it shows the
     // upgrade modal, which is a key conversion entry point.
-    el.style.display = isOwner ? '' : 'none';
+    el.style.display = boardCanEdit ? '' : 'none';
   });
   const moreExport = document.getElementById('more-export-board');
   if (moreExport) moreExport.style.display = isOwner ? '' : 'none';
+  document.body.classList.toggle('board-readonly', !boardCanEdit);
   // Upgrade pill: show for signed-in free users
   const upBtn = document.getElementById('btn-upgrade');
   if (upBtn) upBtn.classList.toggle('show', !!currentUser && currentPlanKey() === 'free');
@@ -15788,7 +15874,10 @@ function applyRoleUI() {
       return b;
     })();
     if (isOwner) { badge.textContent = ''; badge.style.display = 'none'; }
-    else { badge.textContent = '🎓 student'; badge.style.cssText += 'background:#ede9fe;color:#7c3aed;display:inline;'; }
+    else {
+      badge.textContent = boardCanEdit ? 'Editor' : 'View only';
+      badge.style.cssText += 'background:#edf1e8;color:#4f5d4f;display:inline;';
+    }
   }
   // Students: poll for live session
   if (!isOwner) {
@@ -15876,6 +15965,8 @@ async function initUserBoard() {
         // Set ownership correctly - collaborators are not owners
         boardOwnerId = board.user_id || currentUser.id;
         isOwner = board.user_id === currentUser.id;
+        boardAccessRole = board.access_role || (isOwner ? 'owner' : 'viewer');
+        boardCanEdit = board.can_edit !== false;
         updateFollowUI();
         applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
@@ -15919,6 +16010,8 @@ async function initUserBoard() {
           const { board } = await r3.json();
           boardOwnerId = board.user_id || currentUser.id;
           isOwner = board.user_id === currentUser.id;
+          boardAccessRole = board.access_role || (isOwner ? 'owner' : 'viewer');
+          boardCanEdit = board.can_edit !== false;
           updateFollowUI();
           applyRoleUI();
           if (!_communityImportApplied) loadBoardData(board.data);
@@ -16520,7 +16613,10 @@ function wsConnect() {
   if (!currentBoardId || !authToken || !wsEnabled) return;
   wsDisconnect();
   try {
-    ws = new WebSocket(`${WS_BASE}/ws?boardId=${currentBoardId}&token=${authToken}`);
+    ws = new WebSocket(
+      `${WS_BASE}/ws?boardId=${encodeURIComponent(currentBoardId)}`,
+      ['teached-v1', 'teached.jwt.' + authToken]
+    );
   } catch { return; }
 
   ws.onopen = () => {
@@ -16554,12 +16650,19 @@ function wsConnect() {
     } else if (msg.type === 'connected') {
       boardOwnerId = msg.boardOwnerId;
       isOwner = currentUser?.id === boardOwnerId;
+      boardAccessRole = msg.accessRole || boardAccessRole;
+      boardCanEdit = msg.canEdit !== false;
+      applyRoleUI();
       if (msg.followMode && !isOwner) {
         isFollowingTeacher = true;
         showFollowBanner(true);
       }
       updateFollowUI();
       updatePresenceBar();
+    } else if (msg.type === 'permission_denied') {
+      boardCanEdit = false;
+      applyRoleUI();
+      toast('This board is view only');
     } else if (msg.type === 'follow_mode') {
       if (!isOwner) {
         isFollowingTeacher = msg.enabled;
@@ -16593,7 +16696,7 @@ function wsDisconnect() {
 }
 
 function wsBroadcastState() {
-  if (!ws || ws.readyState !== 1 || wsIgnoreNext) return;
+  if (!boardCanEdit || !ws || ws.readyState !== 1 || wsIgnoreNext) return;
   clearTimeout(wsBroadcastTimer);
   wsBroadcastTimer = setTimeout(() => {
     if (ws?.readyState === 1) ws.send(JSON.stringify({
@@ -16605,7 +16708,7 @@ function wsBroadcastState() {
 
 let _strokeBroadcastTimer = null;
 function _broadcastStrokesSoon() {
-  if (!ws || ws.readyState !== 1 || wsIgnoreNext) return;
+  if (!boardCanEdit || !ws || ws.readyState !== 1 || wsIgnoreNext) return;
   clearTimeout(_strokeBroadcastTimer);
   _strokeBroadcastTimer = setTimeout(() => {
     if (ws?.readyState === 1) ws.send(JSON.stringify({

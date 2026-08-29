@@ -1,14 +1,11 @@
 const express       = require('express');
 const router        = express.Router();
 const pool          = require('../db/pool');
-const webpush       = require('web-push');
-const { requireAuth } = require('../middleware/auth');
-
-const VAPID_PUBLIC  = process.env.VAPID_PUBLIC  || 'BDe-b9CJHHOlgRqh3KVniRiKikLAv97s5UYZYJy1Ki4a4DrUh1UACHEwEVK4iCpImJ5iBkurjIx6GqZxL_uTaKs';
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE || 'szfQ1osNlnRticn_GKsmhN0N-QYmwrKFSJXDmFH8AvY';
-webpush.setVapidDetails('mailto:support@teachedos.com', VAPID_PUBLIC, VAPID_PRIVATE);
+const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { webpush, pushConfigured } = require('../lib/pushConfig');
 
 async function notifyStudentsLive(slot) {
+  if (!pushConfigured) return;
   try {
     // Find all students enrolled in any board of this teacher
     const { rows: subs } = await pool.query(`
@@ -33,67 +30,6 @@ async function notifyStudentsLive(slot) {
     console.error('[push live notify]', err.message);
   }
 }
-
-// Add new columns if not present
-pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS meeting_url TEXT`).catch(() => {});
-pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS is_live BOOLEAN DEFAULT FALSE`).catch(() => {});
-pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS specific_date DATE`).catch(() => {});
-pool.query(`ALTER TABLE schedule ADD COLUMN IF NOT EXISTS board_id TEXT`).catch(() => {});
-
-// Fix quiz_results and push_subscriptions to use UUID user_id (not INTEGER)
-pool.query(`
-  DO $$ BEGIN
-    IF EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name='quiz_results' AND column_name='user_id' AND data_type='integer'
-    ) THEN
-      ALTER TABLE quiz_results ALTER COLUMN user_id TYPE UUID USING user_id::text::uuid;
-    END IF;
-  END $$;
-`).catch(() => {});
-
-pool.query(`
-  DO $$ BEGIN
-    IF EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name='push_subscriptions' AND column_name='user_id' AND data_type='integer'
-    ) THEN
-      ALTER TABLE push_subscriptions ALTER COLUMN user_id TYPE UUID USING user_id::text::uuid;
-    END IF;
-  END $$;
-`).catch(() => {});
-
-// Notes table
-pool.query(`
-  CREATE TABLE IF NOT EXISTS notes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL DEFAULT 'Untitled',
-    body TEXT NOT NULL DEFAULT '',
-    color VARCHAR(20) DEFAULT '#FFFFFF',
-    pinned BOOLEAN DEFAULT FALSE,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )
-`).catch(() => {});
-
-pool.query(`CREATE INDEX IF NOT EXISTS idx_notes_user ON notes(user_id)`).catch(() => {});
-
-// Notifications table
-pool.query(`
-  CREATE TABLE IF NOT EXISTS notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL DEFAULT 'info',
-    title VARCHAR(255) NOT NULL,
-    body TEXT,
-    read BOOLEAN DEFAULT FALSE,
-    link TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )
-`).catch(() => {});
-
-pool.query(`CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read)`).catch(() => {});
 
 // GET /api/schedule/student-zones - distinct timezones of all students connected to this teacher
 router.get('/student-zones', requireAuth, async (req, res) => {
@@ -147,7 +83,17 @@ router.get('/live', requireAuth, async (req, res) => {
        FROM schedule s
        JOIN users u ON u.id = s.user_id
        WHERE s.is_live = TRUE
-       ORDER BY s.start_time`
+         AND (
+           s.user_id=$1 OR EXISTS (
+             SELECT 1
+               FROM boards b
+               JOIN board_collaborators bc ON bc.board_id=b.id
+              WHERE b.user_id=s.user_id AND bc.user_id=$1
+                AND (s.board_id IS NULL OR b.id::text=s.board_id)
+           )
+         )
+       ORDER BY s.start_time`,
+      [req.user.id]
     );
     // Use teacher's profile meeting_url as fallback if slot has none
     const sessions = rows.map(r => ({
@@ -162,7 +108,7 @@ router.get('/live', requireAuth, async (req, res) => {
 });
 
 // POST /api/schedule - create or update a class slot
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requireTeacher, async (req, res) => {
   const { id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date, board_id } = req.body;
   try {
     if (id) {
@@ -187,7 +133,7 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // PATCH /api/schedule/:id - update a slot
-router.patch('/:id', requireAuth, async (req, res) => {
+router.patch('/:id', requireAuth, requireTeacher, async (req, res) => {
   if (req.params.id === 'live') return res.status(404).json({ error: 'Not found' });
   const { day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date, board_id } = req.body;
   try {
@@ -208,7 +154,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
 });
 
 // PATCH /api/schedule/:id/live - toggle live status (owner only)
-router.patch('/:id/live', requireAuth, async (req, res) => {
+router.patch('/:id/live', requireAuth, requireTeacher, async (req, res) => {
   const { is_live, meeting_url } = req.body;
   try {
     const { rows } = await pool.query(
@@ -226,7 +172,7 @@ router.patch('/:id/live', requireAuth, async (req, res) => {
 });
 
 // DELETE /api/schedule/:id - delete a slot
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requireTeacher, async (req, res) => {
   try {
     const { rowCount } = await pool.query(
       'DELETE FROM schedule WHERE id=$1 AND user_id=$2',

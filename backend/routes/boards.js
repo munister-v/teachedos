@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { filterBoardData } = require('../lib/boardVisibility');
+const { sanitizeBoardData } = require('../lib/boardSanitize');
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { recordTelemetry } = require('../lib/telemetry');
@@ -32,6 +33,27 @@ async function enforceBoardStorageLimit({ userId, boardId, boardData, plan }) {
     };
   }
   return null;
+}
+
+async function loadBoardAccess(boardId, userId) {
+  const { rows } = await pool.query(`
+    SELECT b.user_id AS owner_id, b.data,
+           CASE WHEN b.user_id=$2 THEN 'owner' ELSE bc.role END AS access_role
+      FROM boards b
+      LEFT JOIN board_collaborators bc
+        ON bc.board_id=b.id AND bc.user_id=$2
+     WHERE b.id=$1 AND (b.user_id=$2 OR bc.user_id=$2)
+     LIMIT 1
+  `, [boardId, userId]);
+  return rows[0] || null;
+}
+
+function boardHasVisibleCard(access, cardId, viewerId) {
+  const visible = filterBoardData(access?.data, viewerId, access?.owner_id);
+  const card = Array.isArray(visible?.cards)
+    ? visible.cards.find(item => String(item?.id) === String(cardId))
+    : null;
+  return !!card && card.data?.hiddenForViewer !== true;
 }
 
 // All board routes require auth
@@ -88,12 +110,12 @@ router.post('/', requireTeacher, async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { rows } = await pool.query(
     `SELECT b.id, b.name, b.data, b.thumbnail, b.updated_at, b.created_at,
-            b.user_id, u.name AS owner_name
+            b.user_id, u.name AS owner_name,
+            CASE WHEN b.user_id=$2 THEN 'owner' ELSE bc.role END AS access_role
      FROM boards b
      JOIN users u ON u.id = b.user_id
-     WHERE b.id = $1 AND (b.user_id = $2 OR EXISTS (
-       SELECT 1 FROM board_collaborators WHERE board_id = $1 AND user_id = $2
-     ))`,
+     LEFT JOIN board_collaborators bc ON bc.board_id=b.id AND bc.user_id=$2
+     WHERE b.id = $1 AND (b.user_id = $2 OR bc.user_id=$2)`,
     [req.params.id, req.user.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });
@@ -102,14 +124,17 @@ router.get('/:id', async (req, res) => {
   // arrive as empty placeholders. Filtering here rather than in the client is
   // the point - the payload itself must not carry what the viewer may not read.
   const board = rows[0];
-  board.data = filterBoardData(board.data, req.user.id, board.user_id);
+  board.data = filterBoardData(sanitizeBoardData(board.data), req.user.id, board.user_id);
+  // Full-board saves cannot safely be merged from a redacted collaborator
+  // view. Editors remain view-only until the client uses object-level writes.
+  board.can_edit = board.access_role === 'owner';
   res.json({ board });
 });
 
 // PUT /api/boards/:id - save board state (legacy)
 router.put('/:id', requireAuth, async (req, res) => {
   const { data, state: stateBody, name, thumbnail } = req.body;
-  const boardData = data || stateBody;
+  const boardData = sanitizeBoardData(data || stateBody);
   if (!boardData) return res.status(400).json({ error: 'data or state is required' });
   const plan = normalizePlanKey(req.user.plan);
   const storageError = await enforceBoardStorageLimit({
@@ -145,7 +170,8 @@ router.put('/:id', requireAuth, async (req, res) => {
 // PATCH /api/boards/:id - update board (state, name, or thumbnail)
 router.patch('/:id', requireAuth, async (req, res) => {
   const { data, state: stateBody, name, thumbnail } = req.body;
-  const boardData = data || stateBody;
+  const rawBoardData = data || stateBody;
+  const boardData = rawBoardData === undefined ? undefined : sanitizeBoardData(rawBoardData);
   const sets   = [];
   const params = [req.params.id, req.user.id];
   const plan = normalizePlanKey(req.user.plan);
@@ -212,22 +238,9 @@ router.post('/:id/progress', async (req, res) => {
   const { cardId, score, maxScore, pct, answers } = req.body;
   if (!cardId) return res.status(400).json({ error: 'cardId required' });
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS quiz_results (
-        id SERIAL PRIMARY KEY,
-        board_id TEXT NOT NULL,
-        card_id TEXT NOT NULL,
-        user_id INTEGER NOT NULL,
-        score INTEGER DEFAULT 0,
-        max_score INTEGER DEFAULT 0,
-        pct INTEGER DEFAULT 0,
-        answers JSONB,
-        submitted_at TIMESTAMPTZ DEFAULT NOW(),
-        UNIQUE(board_id, card_id, user_id)
-      )`);
-    // The ON CONFLICT upsert below needs the unique constraint; add it for
-    // legacy tables created before it existed (no-op if already present).
-    await pool.query(`ALTER TABLE quiz_results ADD CONSTRAINT quiz_results_board_card_user_key UNIQUE (board_id, card_id, user_id)`).catch(() => {});
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (!boardHasVisibleCard(access, cardId, req.user.id)) return res.status(404).json({ error: 'Card not found' });
     // upsert - one result per student per card
     await pool.query(`
       INSERT INTO quiz_results (board_id, card_id, user_id, score, max_score, pct, answers)
@@ -254,11 +267,10 @@ router.post('/:id/progress', async (req, res) => {
 // GET /api/boards/:id/quiz-results - teacher views all student quiz results
 router.get('/:id/quiz-results', async (req, res) => {
   try {
-    await pool.query(`CREATE TABLE IF NOT EXISTS quiz_results (
-      id SERIAL PRIMARY KEY, board_id TEXT, card_id TEXT, user_id INTEGER,
-      score INTEGER DEFAULT 0, max_score INTEGER DEFAULT 0, pct INTEGER DEFAULT 0,
-      answers JSONB, submitted_at TIMESTAMPTZ DEFAULT NOW(),
-      UNIQUE(board_id, card_id, user_id))`);
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access || access.access_role !== 'owner') {
+      return res.status(403).json({ error: 'Board owner access required' });
+    }
     const { rows } = await pool.query(`
       SELECT qr.*, u.name as student_name, u.email as student_email
       FROM quiz_results qr
@@ -275,22 +287,12 @@ router.get('/:id/quiz-results', async (req, res) => {
 
 // ── Card Comments ───────────────────────────────────────────────────────────────
 
-async function ensureCommentsTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS card_comments (
-      id SERIAL PRIMARY KEY,
-      board_id TEXT NOT NULL,
-      card_id TEXT NOT NULL,
-      user_id INTEGER NOT NULL,
-      body TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )`);
-}
-
 // GET /api/boards/:id/cards/:cardId/comments
 router.get('/:id/cards/:cardId/comments', requireAuth, async (req, res) => {
   try {
-    await ensureCommentsTable();
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (!boardHasVisibleCard(access, req.params.cardId, req.user.id)) return res.status(404).json({ error: 'Card not found' });
     const { rows } = await pool.query(`
       SELECT cc.id, cc.body, cc.created_at, u.name, u.avatar, u.role
       FROM card_comments cc
@@ -310,7 +312,9 @@ router.post('/:id/cards/:cardId/comments', requireAuth, async (req, res) => {
   const { body } = req.body;
   if (!body?.trim()) return res.status(400).json({ error: 'body required' });
   try {
-    await ensureCommentsTable();
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (!boardHasVisibleCard(access, req.params.cardId, req.user.id)) return res.status(404).json({ error: 'Card not found' });
     const { rows } = await pool.query(`
       INSERT INTO card_comments (board_id, card_id, user_id, body)
       VALUES ($1,$2,$3,$4) RETURNING id, body, created_at`,
@@ -326,12 +330,15 @@ router.post('/:id/cards/:cardId/comments', requireAuth, async (req, res) => {
 // DELETE /api/boards/:id/cards/:cardId/comments/:commentId - author or board owner
 router.delete('/:id/cards/:cardId/comments/:commentId', requireAuth, async (req, res) => {
   try {
-    await ensureCommentsTable();
-    await pool.query(
-      `DELETE FROM card_comments WHERE id=$1 AND (user_id=$2 OR
-        EXISTS(SELECT 1 FROM boards WHERE id=$3 AND user_id=$2))`,
-      [req.params.commentId, req.user.id, req.params.id]
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    const { rowCount } = await pool.query(
+      `DELETE FROM card_comments
+        WHERE id=$1 AND board_id=$3 AND card_id=$4
+          AND (user_id=$2 OR $5='owner')`,
+      [req.params.commentId, req.user.id, req.params.id, req.params.cardId, access.access_role]
     );
+    if (!rowCount) return res.status(404).json({ error: 'Comment not found' });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });

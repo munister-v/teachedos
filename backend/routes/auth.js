@@ -6,33 +6,8 @@ const rateLimit = require('express-rate-limit');
 const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
 const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth');
-const { ensureBillingSchema } = require('../lib/billing');
 const { sendEmail, resetPasswordEmail } = require('../lib/email');
 const { recordTelemetry } = require('../lib/telemetry');
-
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
-// Auth monitoring columns
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN NOT NULL DEFAULT FALSE`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_reason TEXT`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INT NOT NULL DEFAULT 0`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_at TIMESTAMPTZ`).catch(() => {});
-pool.query(`
-  CREATE TABLE IF NOT EXISTS auth_events (
-    id           BIGSERIAL    PRIMARY KEY,
-    user_id      UUID         REFERENCES users(id) ON DELETE SET NULL,
-    email        TEXT,
-    event        TEXT         NOT NULL,
-    ip           TEXT,
-    user_agent   TEXT,
-    detail       TEXT,
-    created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
-  )
-`).catch(() => {});
-pool.query(`CREATE INDEX IF NOT EXISTS idx_auth_events_user    ON auth_events(user_id, created_at DESC)`).catch(() => {});
-pool.query(`CREATE INDEX IF NOT EXISTS idx_auth_events_created ON auth_events(created_at DESC)`).catch(() => {});
-pool.query(`CREATE INDEX IF NOT EXISTS idx_auth_events_email   ON auth_events(email, created_at DESC)`).catch(() => {});
 
 function logAuthEvent(userId, email, event, req, detail) {
   pool.query(
@@ -47,26 +22,6 @@ function logAuthEvent(userId, email, event, req, detail) {
     metadata: { source: 'auth', operation: String(event || 'unknown').slice(0, 80) },
   });
 }
-
-pool.query(`
-  CREATE TABLE IF NOT EXISTS email_tokens (
-    id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id    UUID        REFERENCES users(id) ON DELETE CASCADE,
-    email      TEXT        NOT NULL,
-    token      TEXT        NOT NULL UNIQUE,
-    type       TEXT        NOT NULL DEFAULT 'reset',
-    expires_at TIMESTAMPTZ NOT NULL,
-    used_at    TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  )
-`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
-// OAuth support: password becomes optional, track the external identity.
-pool.query(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(20)`).catch(() => {});
-pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL`).catch(() => {});
-ensureBillingSchema(pool).catch(() => {});
 
 // Public OAuth 2.0 Web client ID (not a secret - it is exposed in browser code
 // by design). Hardcoded as the default so Google Sign-In works without setting

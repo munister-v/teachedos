@@ -50,7 +50,7 @@
   .foot a{color:#5C8500;font-weight:600;text-decoration:none}
   .state{padding:40px 0;text-align:center;color:var(--muted)}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=472">
+<link rel="stylesheet" href="styles/teached-brand.css?v=473">
 </head>
 <body>
 <div class="wrap">
@@ -99,7 +99,12 @@ function render(m){
 
 /* ---- interactive renderers ---- */
 function renderQuiz(qs){
-  return qs.map((q,i)=>`<div class="q" data-correct="${q.correct||0}"><div class="qt">${i+1}. ${esc(q.q||'')}</div>${(q.opts||[]).map((o,j)=>`<button class="opt" data-i="${j}">${esc(o)}</button>`).join('')}</div>`).join('')+scoreBar('quiz');
+  return qs.map((q,i)=>{
+    const opts=Array.isArray(q.opts)?q.opts:[];
+    const raw=Number(q.correct);
+    const correct=Number.isInteger(raw)&&raw>=0&&raw<opts.length?raw:0;
+    return `<div class="q" data-correct="${correct}"><div class="qt">${i+1}. ${esc(q.q||'')}</div>${opts.map((o,j)=>`<button class="opt" data-i="${j}">${esc(o)}</button>`).join('')}</div>`;
+  }).join('')+scoreBar('quiz');
 }
 function renderGaps(sentences){
   return sentences.map((s,i)=>{

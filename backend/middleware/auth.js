@@ -1,7 +1,6 @@
 const jwt  = require('jsonwebtoken');
 const crypto = require('crypto');
 const pool = require('../db/pool');
-const { ensureBillingSchema } = require('../lib/billing');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const JWT_SECRET = process.env.JWT_SECRET || (isProduction ? '' : 'dev-secret-change-in-prod');
@@ -16,12 +15,35 @@ function hashSessionToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
 }
 
-// Add new columns if they don't exist yet
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS meeting_url TEXT`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS zoom_url TEXT`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Europe/Kyiv'`).catch(() => {});
-pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone_mode VARCHAR(16) DEFAULT 'auto'`).catch(() => {});
-ensureBillingSchema(pool).catch(() => {});
+async function authenticateToken(token) {
+  if (!token || token.length > 4096) throw new Error('Invalid token');
+
+  const payload = jwt.verify(token, JWT_SECRET);
+  if (!payload?.sub) throw new Error('Invalid token');
+
+  const tokenHash = hashSessionToken(token);
+  const sessionWhere = payload.sid
+    ? { text: 's.id=$1 AND s.user_id=$2 AND s.token=$3', values: [payload.sid, payload.sub, tokenHash] }
+    : { text: 's.user_id=$1 AND s.token=ANY($2::text[])', values: [payload.sub, [tokenHash, token]] };
+
+  const joined = await pool.query({
+    text: `SELECT s.id AS session_id, u.id, u.email, u.name, u.role, u.avatar, u.plan,
+                  u.plan_status, u.billing_cycle, u.plan_started_at, u.plan_expires_at,
+                  u.plan_source, u.meeting_url, u.zoom_url, u.timezone, u.timezone_mode,
+                  u.created_at, COALESCE(u.is_suspended, FALSE) AS is_suspended
+             FROM sessions s
+             JOIN users u ON u.id=s.user_id
+            WHERE ${sessionWhere.text} AND s.expires_at > NOW()
+            LIMIT 1`,
+    values: sessionWhere.values,
+  });
+  if (!joined.rows.length || !joined.rows[0].id || joined.rows[0].is_suspended) {
+    throw new Error('Session is not active');
+  }
+
+  const { session_id: sessionId, is_suspended: _suspended, ...user } = joined.rows[0];
+  return { sessionId, user };
+}
 
 // Verify JWT, attach req.user with billing, room, and timezone fields.
 async function requireAuth(req, res, next) {
@@ -34,47 +56,12 @@ async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    if (!payload?.sub) return res.status(401).json({ error: 'Invalid or expired token' });
-    const tokenHash = hashSessionToken(token);
-    // Every signed JWT must also have a live server-side session. This makes
-    // logout, password-reset invalidation and session revocation effective
-    // immediately instead of waiting for the JWT's seven-day expiry.
-    const sessionQuery = payload.sid
-      ? {
-          text: `SELECT id FROM sessions
-                 WHERE id = $1 AND user_id = $2 AND token = $3 AND expires_at > NOW()`,
-          values: [payload.sid, payload.sub, tokenHash],
-        }
-      : {
-          // Brief compatibility window for pre-hardening sessions, which
-          // stored raw JWTs and carried no session id. New sessions never use
-          // this branch and only token fingerprints are persisted.
-          text: `SELECT id FROM sessions
-                 WHERE user_id = $1 AND token = ANY($2::text[]) AND expires_at > NOW()`,
-          values: [payload.sub, [tokenHash, token]],
-        };
-    /* Сессия и пользователь - одним запросом.
-
-       Раньше это были два последовательных обращения к базе, и они висели на
-       КАЖДОМ запросе к API: открытие доски, автосохранение, опрос уведомлений.
-       На одном учителе разницы не видно, на сотне одновременно это удвоенное
-       число round-trip'ов и вдвое больше занятых соединений из пула в десять.
-       Проверки те же самые, порядок ответов сохранён: нет живой сессии -
-       401 про токен, нет пользователя - 401 про пользователя. */
-    const joined = await pool.query({
-      text: `SELECT s.id AS session_id, u.id, u.email, u.name, u.role, u.avatar, u.plan,
-                    u.plan_status, u.billing_cycle, u.plan_started_at, u.plan_expires_at,
-                    u.plan_source, u.meeting_url, u.zoom_url, u.timezone, u.timezone_mode, u.created_at
-               FROM (${sessionQuery.text} LIMIT 1) s
-               LEFT JOIN users u ON u.id = $${sessionQuery.values.length + 1}`,
-      values: [...sessionQuery.values, payload.sub],
-    });
-    if (!joined.rows.length) return res.status(401).json({ error: 'Invalid or expired token' });
-    if (!joined.rows[0].id) return res.status(401).json({ error: 'User not found' });
-    const { session_id: sessionId, ...userRow } = joined.rows[0];
-    req.user = userRow;
-    req.authSessionId = sessionId;
+    // HTTP and WebSocket authentication share this exact server-side session
+    // check, so logout, reset, suspension and admin revocation take effect on
+    // both transports immediately.
+    const authenticated = await authenticateToken(token);
+    req.user = authenticated.user;
+    req.authSessionId = authenticated.sessionId;
     // Auto-revert expired plans - but NOT if plan_status='pending' (IBAN
     // payment awaiting admin review: plan may still be 'free' but user should
     // see the pending badge, not get silently reverted).
@@ -140,4 +127,12 @@ function optionalAuth(req, res, next) {
   Promise.resolve(requireAuth(req, shim, proceed)).catch(asGuest);
 }
 
-module.exports = { requireAuth, optionalAuth, requireAdmin, requireTeacher, signToken, hashSessionToken };
+module.exports = {
+  requireAuth,
+  optionalAuth,
+  requireAdmin,
+  requireTeacher,
+  signToken,
+  hashSessionToken,
+  authenticateToken,
+};

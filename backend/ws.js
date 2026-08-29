@@ -1,11 +1,45 @@
 // Real-time board collaboration via WebSocket
-// ws://api/ws?boardId=xxx&token=JWT
+// ws://api/ws?boardId=xxx with the JWT carried in Sec-WebSocket-Protocol.
 const { WebSocketServer } = require('ws');
-const jwt  = require('jsonwebtoken');
 const pool = require('./db/pool');
 const { filterBoardData } = require('./lib/boardVisibility');
+const { sanitizeBoardData } = require('./lib/boardSanitize');
+const { authenticateToken } = require('./middleware/auth');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
+const APP_PROTOCOL = 'teached-v1';
+const TOKEN_PROTOCOL_PREFIX = 'teached.jwt.';
+// The current client syncs complete board snapshots. Non-owner snapshots may
+// be redacted (private / unrevealed cards), so accepting one would erase data
+// the collaborator never received. Keep collaboration read-only until edits
+// are expressed as per-object operations that can be merged server-side.
+const EDIT_ROLES = new Set(['owner']);
+const MUTATION_TYPES = new Set([
+  'board_patch', 'strokes_patch', 'card_update', 'card_add', 'card_delete',
+  'arrow_add', 'arrow_update', 'arrow_delete', 'stroke_add', 'stroke_delete',
+]);
+
+function tokenFromProtocols(req) {
+  const protocols = String(req.headers['sec-websocket-protocol'] || '')
+    .split(',')
+    .map(value => value.trim());
+  const authProtocol = protocols.find(value => value.startsWith(TOKEN_PROTOCOL_PREFIX));
+  return authProtocol ? authProtocol.slice(TOKEN_PROTOCOL_PREFIX.length) : '';
+}
+
+function safeBoardPatch(msg) {
+  if (!msg?.state || typeof msg.state !== 'object' || !Array.isArray(msg.state.cards)) return null;
+  if (msg.state.cards.length > 5000) return null;
+  return {
+    type: 'board_patch',
+    state: sanitizeBoardData({
+      cards: msg.state.cards,
+      arrows: Array.isArray(msg.state.arrows) ? msg.state.arrows : [],
+      annotations: Array.isArray(msg.state.annotations) ? msg.state.annotations : [],
+      strokes: Array.isArray(msg.state.strokes) ? msg.state.strokes : [],
+      nextId: Number.isFinite(Number(msg.state.nextId)) ? Number(msg.state.nextId) : 1,
+    }),
+  };
+}
 
 // boardId → Set<ws>
 const rooms = new Map();
@@ -51,37 +85,51 @@ function broadcast(boardId, msg, exclude) {
 }
 
 function setup(server) {
-  const wss = new WebSocketServer({ server, path: '/ws' });
+  const wss = new WebSocketServer({
+    server,
+    path: '/ws',
+    maxPayload: 12 * 1024 * 1024,
+    perMessageDeflate: false,
+    handleProtocols(protocols) {
+      return protocols.has(APP_PROTOCOL) ? APP_PROTOCOL : false;
+    },
+  });
 
   wss.on('connection', async (ws, req) => {
     const url    = new URL(req.url, 'http://localhost');
-    const token  = url.searchParams.get('token');
+    const token  = tokenFromProtocols(req);
     const boardId = url.searchParams.get('boardId');
 
     if (!token || !boardId) { ws.close(4001, 'Missing params'); return; }
 
-    // Verify JWT
-    let userId;
+    let authenticated;
     try {
-      const payload = jwt.verify(token, JWT_SECRET);
-      userId = payload.sub;
+      authenticated = await authenticateToken(token);
     } catch {
       ws.close(4001, 'Unauthorized'); return;
     }
+    const userId = authenticated.user.id;
 
-    // Verify board access (owner or collaborator)
-    const { rows } = await pool.query(`
-      SELECT 1 FROM boards WHERE id = $1 AND user_id = $2
-      UNION
-      SELECT 1 FROM board_collaborators WHERE board_id = $1 AND user_id = $2
-    `, [boardId, userId]);
-    if (!rows.length) { ws.close(4003, 'Forbidden'); return; }
+    let access;
+    try {
+      const { rows } = await pool.query(`
+        SELECT b.user_id AS owner_id,
+               CASE WHEN b.user_id=$2 THEN 'owner' ELSE bc.role END AS access_role
+          FROM boards b
+          LEFT JOIN board_collaborators bc
+            ON bc.board_id=b.id AND bc.user_id=$2
+         WHERE b.id=$1 AND (b.user_id=$2 OR bc.user_id=$2)
+         LIMIT 1
+      `, [boardId, userId]);
+      access = rows[0];
+    } catch {
+      ws.close(1011, 'Access check failed'); return;
+    }
+    if (!access) { ws.close(4003, 'Forbidden'); return; }
 
-    // Get board owner
-    const { rows: ownerRows } = await pool.query(
-      'SELECT user_id FROM boards WHERE id=$1', [boardId]
-    );
-    const boardOwnerId = ownerRows[0]?.user_id;
+    const boardOwnerId = access.owner_id;
+    const accessRole = access.access_role || 'viewer';
+    const canEdit = EDIT_ROLES.has(accessRole);
 
     // Join room
     if (!rooms.has(boardId)) {
@@ -92,19 +140,41 @@ function setup(server) {
 
     ws.boardId = boardId;
     ws.userId  = userId;
+    ws.accessRole = accessRole;
+    ws.canEdit = canEdit;
 
     // Notify others
     broadcast(boardId, { type: 'peer_joined', userId }, ws);
 
+    let messageWindowStartedAt = Date.now();
+    let messagesInWindow = 0;
     ws.on('message', (raw) => {
+      const now = Date.now();
+      if (now - messageWindowStartedAt >= 10_000) {
+        messageWindowStartedAt = now;
+        messagesInWindow = 0;
+      }
+      messagesInWindow += 1;
+      if (messagesInWindow > 600) {
+        ws.close(4008, 'Rate limit exceeded');
+        return;
+      }
+
       let msg;
       try { msg = JSON.parse(raw); } catch { return; }
+      if (!msg || typeof msg !== 'object' || typeof msg.type !== 'string') return;
+      if (MUTATION_TYPES.has(msg.type) && !canEdit) {
+        ws.send(JSON.stringify({ type: 'permission_denied', action: msg.type }));
+        return;
+      }
 
       switch (msg.type) {
         // Client sends full board patch after any local change
-        case 'board_patch':
-          broadcast(boardId, { ...msg, userId }, ws);
+        case 'board_patch': {
+          const patch = safeBoardPatch(msg);
+          if (patch) broadcast(boardId, { ...patch, userId }, ws);
           break;
+        }
         // Drawing strokes - fan out as-is (state.strokes carries the latest set)
         case 'strokes_patch':
           if (Array.isArray(msg.strokes)) {
@@ -124,14 +194,25 @@ function setup(server) {
           break;
         // Cursor / presence
         case 'cursor':
-          broadcast(boardId, { type: 'cursor', userId, x: msg.x, y: msg.y, name: msg.name, avatar: msg.avatar }, ws);
+          broadcast(boardId, {
+            type: 'cursor', userId, x: Number(msg.x) || 0, y: Number(msg.y) || 0,
+            name: authenticated.user.name, avatar: authenticated.user.avatar,
+          }, ws);
           break;
         // Selection awareness (who has what selected)
         case 'selection':
-          broadcast(boardId, { type: 'selection', userId, cardIds: msg.cardIds || [], name: msg.name }, ws);
+          broadcast(boardId, {
+            type: 'selection', userId,
+            cardIds: Array.isArray(msg.cardIds) ? msg.cardIds.slice(0, 500) : [],
+            name: authenticated.user.name,
+          }, ws);
           break;
         // Teacher toggles Follow Me mode
         case 'follow_mode': {
+          if (accessRole !== 'owner') {
+            ws.send(JSON.stringify({ type: 'permission_denied', action: msg.type }));
+            break;
+          }
           const meta = roomMeta.get(boardId);
           if (meta) meta.followMode = !!msg.enabled;
           broadcast(boardId, { type: 'follow_mode', enabled: !!msg.enabled, userId }, ws);
@@ -142,7 +223,7 @@ function setup(server) {
           broadcast(boardId, {
             type: 'viewport', userId,
             pan: msg.pan, scale: msg.scale,
-            name: msg.name, avatar: msg.avatar,
+            name: authenticated.user.name, avatar: authenticated.user.avatar,
           }, ws);
           break;
         default:
@@ -165,6 +246,7 @@ function setup(server) {
     const meta = roomMeta.get(boardId);
     ws.send(JSON.stringify({
       type: 'connected', boardId, userId, boardOwnerId,
+      accessRole, canEdit,
       followMode: meta?.followMode || false,
     }));
   });

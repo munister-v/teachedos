@@ -7,20 +7,6 @@ const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
 const { effectivePlanKey } = require('../lib/billing');
 
-// A real per-user monthly budget, kept independently from the process so a
-// restart cannot erase the guardrail. The paid ceiling is deliberately fixed
-// at $1.40: provider/model changes must never make one account unbounded.
-pool.query(`
-  CREATE TABLE IF NOT EXISTS ai_usage_monthly (
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    month DATE NOT NULL,
-    reserved_usd NUMERIC(10,6) NOT NULL DEFAULT 0,
-    actual_usd NUMERIC(10,6) NOT NULL DEFAULT 0,
-    requests INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (user_id, month)
-  )
-`).catch(() => {});
-
 const AI_MONTHLY_LIMITS = {
   free: { usd: 0.10, requests: 10 },
   pro: { usd: 1.40, requests: 90 },
@@ -111,34 +97,6 @@ function recordActualAiCost(userId, usd) {
     [userId, usd],
   ).catch(() => {});
 }
-
-// Persistent daily usage counters (survive restarts; power the dashboard chart).
-pool.query(`
-  CREATE TABLE IF NOT EXISTS ai_usage_daily (
-    day        DATE PRIMARY KEY,
-    total      INTEGER NOT NULL DEFAULT 0,
-    llm_ok     INTEGER NOT NULL DEFAULT 0,
-    fallback   INTEGER NOT NULL DEFAULT 0,
-    cache_hits INTEGER NOT NULL DEFAULT 0
-  )
-`).catch(() => {});
-
-// Aggregated quality telemetry only. It deliberately has no user id, topic,
-// source text or generated content: the purpose is to see where the product
-// needs work, not to inspect a teacher's lesson materials.
-pool.query(`
-  CREATE TABLE IF NOT EXISTS ai_quality_daily (
-    day                 DATE NOT NULL,
-    tool_id             TEXT NOT NULL,
-    engine              TEXT NOT NULL,
-    quality_level       TEXT NOT NULL,
-    total               INTEGER NOT NULL DEFAULT 0,
-    flagged             INTEGER NOT NULL DEFAULT 0,
-    source_anchor_notes INTEGER NOT NULL DEFAULT 0,
-    dropped_items       INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (day, tool_id, engine, quality_level)
-  )
-`).catch(() => {});
 
 // Fire-and-forget daily upsert. kind ∈ {'llm_ok','fallback','cache_hits'}.
 function recordUsage(kind) {

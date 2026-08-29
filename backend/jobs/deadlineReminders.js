@@ -1,11 +1,8 @@
 const pool    = require('../db/pool');
-const webpush = require('web-push');
-
-const VAPID_PUBLIC  = process.env.VAPID_PUBLIC  || 'BDe-b9CJHHOlgRqh3KVniRiKikLAv97s5UYZYJy1Ki4a4DrUh1UACHEwEVK4iCpImJ5iBkurjIx6GqZxL_uTaKs';
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE || 'szfQ1osNlnRticn_GKsmhN0N-QYmwrKFSJXDmFH8AvY';
-webpush.setVapidDetails('mailto:support@teachedos.com', VAPID_PUBLIC, VAPID_PRIVATE);
+const { webpush, pushConfigured } = require('../lib/pushConfig');
 
 async function sendDeadlineReminders() {
+  if (!pushConfigured) return;
   try {
     // Find all boards with saved JSON state and scan for assignment cards with deadlines in ~24h.
     // Older code called this payload "state"; the current schema stores it in boards.data.
