@@ -543,3 +543,21 @@ body.fx:not(#_) .new-board-btn.secondary {
   border:1px solid rgba(255,255,255,.7) !important;
 }
 body.fx:not(#_) .new-board-btn.secondary:hover { background:rgba(255,255,255,.85) !important; }
+
+
+/* ── Логотип ────────────────────────────────────────────────────────────── */
+/* В макете кот чёрный и без подложки, а в проекте лежит растровая иконка -
+   лаймовый скруглённый квадрат с котом. Растр стилями не перекрасить.
+   Подмена через `content` на самом <img> в Chrome не сработала, поэтому
+   картинку прячу, а вектор рисую фоном родительской ссылки: правки в
+   разметке шести десятков страниц при этом не нужны. Форма снята с кадра -
+   голова с двумя ушами и прорезанные глаза (fill-rule:evenodd). */
+body.fx:not(#_) :is(.nav-logo,.mb-apple,.tb-logo,.logo) {
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23161616' fill-rule='evenodd' d='M3.6 4.2 7.4 7.6c1.4-.6 2.9-.9 4.6-.9s3.2.3 4.6.9l3.8-3.4-.8 5.9c.9 1.2 1.4 2.6 1.4 4.1 0 3.9-4.1 7.1-9 7.1s-9-3.2-9-7.1c0-1.5.5-2.9 1.4-4.1zM9 12.3a1.15 1.65 0 1 0 0 3.3 1.15 1.65 0 1 0 0-3.3zm6 0a1.15 1.65 0 1 0 0 3.3 1.15 1.65 0 1 0 0-3.3z'/></svg>") !important;
+  background-repeat:no-repeat !important;
+  background-position:left center !important;
+  background-size:26px 26px !important;
+  padding-left:32px !important;
+  min-height:26px !important;
+}
+body.fx:not(#_) :is(.nav-logo,.mb-apple,.tb-logo,.logo) img { display:none !important; }
