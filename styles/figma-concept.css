@@ -41,7 +41,8 @@ body.fx .blob1, body.fx .blob2, body.fx .blob3, body.fx .blob4 { display:none !i
 
 /* ── Верхняя панель ─────────────────────────────────────────────────────── */
 body.fx #menubar {
-  height:56px !important;
+  /* Полоса на кадре 70px при ширине 1920, то есть 52 в нашем масштабе. */
+  height:52px !important;
   background:#FFFFFF !important;
   border-bottom:none !important;
   box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
@@ -54,9 +55,10 @@ body.fx #menubar .mb-app-name { display:none !important; }
 body.fx #menubar .mb-menu { display:flex !important; align-items:center; gap:4px; margin-left:14px; }
 body.fx #menubar .mb-item {
   color:var(--fx-ink) !important;
+  /* Пилюля на кадре 36 высотой при 1920, то есть 27 у нас; кегль 15. */
   font-size:15px !important; font-weight:500 !important;
   letter-spacing:-.01em !important;
-  padding:8px 14px !important; border-radius:999px !important;
+  padding:5px 12px !important; border-radius:999px !important;
   background:transparent !important;
 }
 body.fx #menubar .mb-item:hover { background:rgba(22,22,22,.06) !important; }
@@ -116,12 +118,12 @@ body.fx .win-sidebar {
   padding:8px 18px 18px !important; width:210px !important;
 }
 body.fx .sb-section-label {
-  font-size:12px !important; font-weight:400 !important;
+  font-size:11px !important; font-weight:400 !important;
   color:var(--fx-mute) !important; text-transform:lowercase !important;
   letter-spacing:0 !important; margin:18px 0 8px !important;
 }
 body.fx .sb-item {
-  font-size:15px !important; font-weight:450 !important;
+  font-size:13.5px !important; font-weight:450 !important;
   color:var(--fx-ink) !important; background:transparent !important;
   border:none !important; border-radius:10px !important;
   padding:7px 8px !important; gap:8px !important;
@@ -137,17 +139,19 @@ body.fx .studio-hero {
   background:none !important; border:none !important; box-shadow:none !important;
   padding:0 4px 18px !important; margin:0 !important;
 }
+/* Кегли тоже сняты с кадра: заголовок ~43px при 1920 (32 у нас), надзаголовок
+   15 (11), подпись 17 (12.5). Было 38/13/14 - крупнее макета. */
 body.fx .studio-eyebrow {
-  font-size:13px !important; font-weight:400 !important; color:var(--fx-mute) !important;
+  font-size:11px !important; font-weight:400 !important; color:var(--fx-mute) !important;
   text-transform:lowercase !important; letter-spacing:0 !important; margin-bottom:6px !important;
 }
 body.fx .studio-title {
-  font-size:38px !important; font-weight:800 !important; letter-spacing:-.03em !important;
+  font-size:32px !important; font-weight:800 !important; letter-spacing:-.03em !important;
   color:var(--fx-ink) !important; line-height:1.05 !important;
   text-transform:lowercase !important; margin:0 0 8px !important;
 }
 body.fx .studio-copy {
-  font-size:14px !important; color:var(--fx-ink-2) !important; opacity:.75 !important;
+  font-size:12.5px !important; color:var(--fx-ink-2) !important; opacity:.75 !important;
   text-transform:lowercase !important; margin:0 !important;
 }
 /* Чипы под заголовком: «Open board» дублирует сайдбар, а «Community boards»
@@ -158,7 +162,13 @@ body.fx .studio-chip {
   border-radius:999px !important; font-size:14px !important; font-weight:600 !important;
   padding:9px 16px !important; box-shadow:none !important; border:none !important;
 }
-body.fx .studio-chip.primary { background:var(--fx-lime) !important; color:var(--fx-ink) !important; }
+/* На кадре внутри панели лайма нет вовсе: он только на активном разделе,
+   на плитке дока и на кнопках карточек-счётчиков. Чип оставляю действием,
+   но в тихом виде. */
+body.fx .studio-chip.primary {
+  background:rgba(255,255,255,.62) !important; color:var(--fx-ink) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+}
 body.fx .studio-chip.secondary {
   background:rgba(255,255,255,.6) !important; color:var(--fx-ink) !important;
   border:1px solid rgba(255,255,255,.7) !important;
@@ -167,6 +177,7 @@ body.fx .studio-chip.secondary {
 /* Поиск: в макете отдельного поля нет, но убирать функцию нельзя -
    свожу его к неброской капсуле в тон панели. */
 body.fx .curr-search {
+  font-size:12.5px !important;
   background:rgba(255,255,255,.5) !important; border:1px solid rgba(255,255,255,.6) !important;
   border-radius:999px !important; box-shadow:none !important;
   margin:0 4px 14px !important; padding:8px 14px !important;
@@ -200,17 +211,22 @@ body.fx .widget {
    скрытие - inline display:none. С !important координаты игнорировались
    (виджет не двигался), а «скрыть» не срабатывало вовсе. Специфики
    `body.fx #id` и так хватает, чтобы перебить исходные правила. */
-body.fx #wg-today  { top:88px; right:432px; width:206px; }
-body.fx #wg-streak { top:88px; right:226px; width:186px; }
-body.fx #wg-vocab  { top:88px; right:20px;  width:186px; }
+/* Карточки-счётчики: на кадре 267×169 при 1920 и отступ справа 21 - в нашем
+   масштабе 200×127 и 16. Были 186 шириной и 178 высотой: узкие и заметно
+   выше макета. */
+body.fx #wg-today  { top:84px; right:452px; width:200px; }
+body.fx #wg-streak { top:84px; right:236px; width:200px; }
+body.fx #wg-vocab  { top:84px; right:20px;  width:200px; }
+body.fx .widget { padding:14px !important; }
 
 body.fx .widget .ic { position:absolute; top:18px; right:18px; width:20px; height:20px; opacity:.85; }
+/* Цифра на кадре ~56px при 1920 - в нашем масштабе 42. */
 body.fx .wg-streak-n, body.fx .wg-vocab-word {
-  font-size:56px !important; font-weight:800 !important; line-height:1 !important;
+  font-size:42px !important; font-weight:800 !important; line-height:1 !important;
   letter-spacing:-.045em !important; color:var(--fx-ink) !important; margin:0 !important;
 }
 body.fx .wg-streak-label, body.fx .wg-vocab-label {
-  font-size:13px !important; font-weight:400 !important; color:var(--fx-mute) !important;
+  font-size:12px !important; font-weight:400 !important; color:var(--fx-mute) !important;
   text-transform:lowercase !important; letter-spacing:0 !important;
   font-family:inherit !important; margin:10px 0 0 !important;
 }
@@ -238,10 +254,10 @@ body.fx .wg-today-prog-fill { background:var(--fx-lime) !important; }
 /* Кнопка в карточке-счётчике: на кадре её радиус ~0.3 высоты, то есть
    скруглённый прямоугольник, а не капсула, как я сделал сначала. */
 body.fx .fx-btn, body.fx .wg-vocab-next {
-  display:block; width:100%; margin-top:14px !important;
+  display:block; width:100%; margin-top:10px !important;
   background:var(--fx-lime) !important; border:none !important;
   border-radius:var(--fx-r-btn,11px) !important; padding:9px 14px !important;
-  font-size:14px !important; font-weight:600 !important;
+  font-size:13px !important; font-weight:600 !important;
   color:var(--fx-ink) !important; cursor:pointer; text-align:center;
   box-shadow:none !important; transition:background .15s;
 }
@@ -262,8 +278,9 @@ body.fx #dock {
   align-items:center !important;
 }
 body.fx .di-label, body.fx .di-dot { display:none !important; }
+/* Плитка дока на кадре 84 при 1920 - в нашем масштабе 63. */
 body.fx .di-icon {
-  width:60px !important; height:60px !important;
+  width:63px !important; height:63px !important;
   border-radius:var(--fx-r-tile) !important;
   background:rgba(255,255,255,.55) !important;
   color:var(--fx-ink) !important;
@@ -492,11 +509,13 @@ body.fx.os-desktop .curr-grid .lesson-card .lc-lang {
    внутри панели, со своим скруглением и полем вокруг. */
 body.fx .win-body { padding:8px !important; padding-top:8px !important; }
 body.fx .win-sidebar {
+  /* Ширина карточки-сайдбара на кадре 259 при 1920 - у нас 194. */
   background:rgba(255,253,247,.55) !important;
   border:1px solid rgba(255,255,255,.5) !important;
   border-radius:14px !important;
-  padding:44px 16px 16px !important;
+  padding:40px 14px 14px !important;
   margin-right:8px !important;
+  width:194px !important;
 }
 /* Кнопка закрытия лежит в углу этой карточки. */
 body.fx .win-titlebar { top:26px; left:26px; }

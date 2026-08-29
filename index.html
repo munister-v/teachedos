@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=491">
-<link rel="preload" as="style" href="styles/unify.css?v=491">
+<link rel="preload" as="style" href="styles/harmony.css?v=494">
+<link rel="preload" as="style" href="styles/unify.css?v=494">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=491">
+<link rel="manifest" href="manifest.json?v=494">
 <meta name="theme-color" content="#F5F0E8">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -63,8 +63,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=491">
-<link rel="stylesheet" href="styles/main.css?v=491">
+<link rel="stylesheet" href="styles/tokens.css?v=494">
+<link rel="stylesheet" href="styles/main.css?v=494">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1565,10 +1565,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=491" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=491">
-<link rel="stylesheet" href="styles/harmony.css?v=491">
-<link rel="stylesheet" href="styles/unify.css?v=491">
+<script src="theme.js?v=494" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=494">
+<link rel="stylesheet" href="styles/harmony.css?v=494">
+<link rel="stylesheet" href="styles/unify.css?v=494">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1576,11 +1576,11 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=491">
+<link rel="stylesheet" href="styles/teached-brand.css?v=494">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=491">
+<link rel="stylesheet" href="styles/figma-theme.css?v=494">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=491">
+<link rel="stylesheet" href="styles/figma-concept.css?v=494">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1770,7 +1770,7 @@ html,body {
 <!-- ════ WINDOWS ════ -->
 
 <!-- LESSON PLANS -->
-<div class="win open appear" id="win-plans" style="top:88px;left:60px;width:780px;height:560px;">
+<div class="win open appear" id="win-plans" style="top:98px;left:50px;width:620px;height:500px;">
   <div class="win-titlebar" id="tb-plans">
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('plans')"></div>
@@ -2261,7 +2261,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=491"></script>
+<script src="scripts/desktop-app.js?v=494"></script>
 
 <script>
 
@@ -2281,8 +2281,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=491" defer></script>
-<script src="pwa-boot.js?v=491" defer></script>
+<script src="scripts/autogrow.js?v=494" defer></script>
+<script src="pwa-boot.js?v=494" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2502,10 +2502,10 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=491" defer></script>
-<script src="scripts/nav-boost.js?v=491" defer></script>
-<script src="scripts/mobile-perf.js?v=491" defer></script>
-<script src="scripts/mobile-nav.js?v=491" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=491" defer></script>
+<script src="pwa.js?v=494" defer></script>
+<script src="scripts/nav-boost.js?v=494" defer></script>
+<script src="scripts/mobile-perf.js?v=494" defer></script>
+<script src="scripts/mobile-nav.js?v=494" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=494" defer></script>
 </body>
 </html>
