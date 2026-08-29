@@ -17,32 +17,43 @@
    двум отрисованным экранам. */
 
 /* ── Фон рабочего стола ─────────────────────────────────────────────────── */
+/* Из CSS, скопированного в Figma, выяснилось главное: фон в макете - не
+   градиент, а фотография (magicpattern с Unsplash, автор MagicPattern,
+   лицензия Unsplash - свободная). Отсюда и зерно, которое я до сих пор
+   подделывал шумом поверх градиента: оно есть в самом снимке.
+
+   Слой подписан как 1920×1004 при top:76 и border-radius:60px 60px 0 0 -
+   то есть полоса меню занимает верхние 76px (57 у нас), а рабочий стол
+   лежит под ней со скруглёнными верхними углами (45 у нас).
+
+   Снимок показан левой частью: справа он уходит в голубой, которого в
+   макете нет, поэтому масштаб 154% по ширине и привязка к левому краю. */
 body.fx #desktop {
+  top:57px !important;
+  border-radius:45px 45px 0 0 !important;
+  /* Снимок показан целиком (как в макете - слой во всю ширину кадра), но
+     приглушён тёплой заливкой: в оригинале правый край уходит в голубой,
+     а в макете он читается как зеленовато-серый. Полупрозрачный тёплый слой
+     поверх даёт ровно это и заодно вытягивает песочный тон слева. */
   background:
-    radial-gradient(ellipse 60% 55% at 12% 6%,  var(--fx-bg-1) 0%, transparent 62%),
-    radial-gradient(ellipse 70% 60% at 92% 34%, var(--fx-bg-3) 0%, transparent 66%),
-    radial-gradient(ellipse 80% 70% at 8% 96%,  var(--fx-bg-4) 0%, transparent 70%),
-    linear-gradient(150deg, #EBD9CC 0%, #E6DBCB 45%, #DED9C8 100%) !important;
+    linear-gradient(rgba(226,199,178,.52), rgba(226,199,178,.52)),
+    url("../img/desktop-bg.jpg") center / cover no-repeat,
+    #E3C9B6 !important;
+  overflow:hidden;
 }
-/* Плёночное зерно поверх градиента - в макете фон заметно шумный. */
-body.fx #desktop::after {
-  content:''; position:absolute; inset:0; display:block !important;
-  pointer-events:none; z-index:0; opacity:.5; mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
-<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/>\
-<feColorMatrix type='saturate' values='0'/></filter>\
-<rect width='160' height='160' filter='url(%23n)' opacity='.55'/></svg>");
-  background-size:160px 160px;
-}
+/* Зерно больше не рисуем: оно в снимке. */
+body.fx #desktop::after { display:none !important; }
+
 /* Декоративные карточки-обои и блобы старой темы в макете отсутствуют. */
 body.fx #wallpaper-deco,
 body.fx .blob1, body.fx .blob2, body.fx .blob3, body.fx .blob4 { display:none !important; }
 
 /* ── Верхняя панель ─────────────────────────────────────────────────────── */
 body.fx #menubar {
-  /* Полоса на кадре 70px при ширине 1920, то есть 52 в нашем масштабе. */
-  height:52px !important;
+  /* Слой фона начинается с top:76 при ширине кадра 1920, значит полоса
+     занимает ровно эти 76px - в нашем масштабе 57. Раньше стояло 52,
+     измеренные по картинке. */
+  height:57px !important;
   background:#FFFFFF !important;
   border-bottom:none !important;
   box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
@@ -214,9 +225,9 @@ body.fx .widget {
 /* Карточки-счётчики: на кадре 267×169 при 1920 и отступ справа 21 - в нашем
    масштабе 200×127 и 16. Были 186 шириной и 178 высотой: узкие и заметно
    выше макета. */
-body.fx #wg-today  { top:84px; right:452px; width:200px; }
-body.fx #wg-streak { top:84px; right:236px; width:200px; }
-body.fx #wg-vocab  { top:84px; right:20px;  width:200px; }
+body.fx #wg-today  { top:73px; right:452px; width:200px; }
+body.fx #wg-streak { top:73px; right:236px; width:200px; }
+body.fx #wg-vocab  { top:73px; right:20px;  width:200px; }
 body.fx .widget { padding:14px !important; }
 
 body.fx .widget .ic { position:absolute; top:18px; right:18px; width:20px; height:20px; opacity:.85; }
@@ -386,14 +397,7 @@ body.fx .sb-item.active {
    без явного слоя оно легло бы поверх карточек-счётчиков. */
 body.fx .widget { z-index:2; }
 
-/* Фон: в макете розовое пятно слева сверху заметно теплее и плотнее. */
-body.fx #desktop {
-  background:
-    radial-gradient(ellipse 55% 50% at 10% 4%,  #E8C9B9 0%, transparent 60%),
-    radial-gradient(ellipse 65% 55% at 96% 30%, #D3D1BC 0%, transparent 64%),
-    radial-gradient(ellipse 75% 65% at 4% 98%,  #F6F0DB 0%, transparent 68%),
-    linear-gradient(150deg, #E9D5C6 0%, #E4D9C7 45%, #DCD8C4 100%) !important;
-}
+/* Прежние подборы градиента убраны: фон теперь снимок из макета выше. */
 
 /* Лаймовую заливку активного фильтра ставит правило с более длинным
    селектором - добиваю специфику, а не порядком подключения. */
@@ -401,17 +405,6 @@ body.fx.os-desktop .win-sidebar .sb-item.active,
 body.fx.os-desktop #sidebar-plans .sb-item.active {
   background:rgba(255,255,255,.66) !important;
 }
-
-/* Фон макета: тёплый песочно-розовый по всему полю, зеленоватый оттенок
-   только справа сверху. Зерно приглушено, иначе оно вымывает цвет. */
-body.fx #desktop {
-  background:
-    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
-    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
-    radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
-    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
-}
-body.fx #desktop::after { opacity:.24 !important; mix-blend-mode:soft-light !important; }
 
 /* Пустая доска. В макете это белая карточка со скруглением 28: крупный
    строчный заголовок в две строки, серые подсказки с пилюлями-клавишами

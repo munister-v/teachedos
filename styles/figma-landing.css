@@ -41,25 +41,15 @@ body.fx.landing-page {
 /* ── Фон ────────────────────────────────────────────────────────────────── */
 html:has(body.fx.landing-page),
 body.fx.landing-page {
+  /* Тот же снимок из макета, что и в приложении. */
   background:
-    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
-    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
-    radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
-    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+    linear-gradient(rgba(226,199,178,.52), rgba(226,199,178,.52)),
+    url("../img/desktop-bg.jpg") center / cover no-repeat,
+    #E3C9B6 !important;
   background-attachment:fixed !important;
   color:var(--fx-ink) !important;
 }
-body.fx.landing-page::before {
-  content:'' !important; display:block !important;
-  position:fixed; inset:0; z-index:0; pointer-events:none;
-  opacity:.4; mix-blend-mode:soft-light;
-  background-image:url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
-<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/>\
-<feColorMatrix type='saturate' values='0'/></filter>\
-<rect width='160' height='160' filter='url(%23n)' opacity='.55'/></svg>");
-  background-size:160px 160px;
-}
+body.fx.landing-page::before { content:none !important; }
 body.fx.landing-page > * { position:relative; z-index:1; }
 /* Секции красились кремом и белым - на песке это читалось как заплатки. */
 body.fx.landing-page section { background:transparent !important; }
