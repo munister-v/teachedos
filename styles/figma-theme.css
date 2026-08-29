@@ -238,9 +238,19 @@ body.fx.tw-page:not(#_) #sidebar {
   border-right:none !important;
 }
 body.fx.tw-page:not(#_) #layout { background:transparent !important; }
-/* Корневой фон: без него внизу длинной страницы вылезала кремовая полоса
-   старой темы. */
-html:has(body.fx) { background:#E0D0BC !important; }
+/* Корневой фон повторяет градиент: у короткой страницы фон body занимает
+   только её высоту, а ниже проступал корневой цвет - на share.html это
+   читалось как шов поперёк экрана. */
+html:has(body.fx) {
+  background:
+    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
+    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
+    radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
+    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+  background-attachment:fixed !important;
+}
+/* Тогда фон body только дублировал бы корневой. */
+body.fx:not(#_) { min-height:100dvh !important; }
 
 /* ── Остальной словарь страниц ──────────────────────────────────────────── */
 /* Рейка на lesson-packs и профиле собрана не на .side-btn, а на .sb-item и
@@ -293,4 +303,80 @@ body.fx:not(#_) {
   --control-violet:#161616;
   --lime:#CBF03C;
   --te-lime:#CBF03C;
+}
+
+/* ── Страницы входа и приглашения ───────────────────────────────────────── */
+/* auth.css обслуживает и отдельные страницы (сброс пароля), и оверлей входа
+   внутри приложения, поэтому одна правка приводит к языку макета оба места. */
+body.fx:not(#_) .auth-page {
+  background:
+    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
+    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
+    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+}
+body.fx:not(#_) .auth-card {
+  background:var(--fx-glass-strong) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  border-radius:var(--fx-r-panel) !important;
+  box-shadow:var(--fx-shadow) !important;
+}
+body.fx:not(#_) .auth-title {
+  font-weight:800 !important; letter-spacing:-.03em !important; color:var(--fx-ink) !important;
+}
+body.fx:not(#_) :is(.auth-sub,.auth-field-label) {
+  color:var(--fx-mute) !important; font-family:inherit !important; letter-spacing:0 !important;
+}
+body.fx:not(#_) .auth-inp {
+  background:rgba(255,255,255,.7) !important;
+  border:1px solid rgba(255,255,255,.8) !important;
+  border-radius:14px !important; color:var(--fx-ink) !important;
+}
+/* Кнопка входа была тёмно-зелёной плитой из прошлой темы. Действие в макете
+   всегда лаймовая капсула. */
+body.fx:not(#_) :is(.auth-btn,button[type="submit"].btn,.btn#submit-btn) {
+  background:var(--fx-lime) !important;
+  color:var(--fx-ink) !important;
+  border:none !important; border-radius:999px !important;
+  font-weight:650 !important; box-shadow:none !important;
+}
+body.fx:not(#_) :is(.auth-btn,button[type="submit"].btn,.btn#submit-btn):hover {
+  background:var(--fx-lime-deep) !important; transform:none !important;
+}
+body.fx:not(#_) .auth-back { color:var(--fx-ink-2) !important; }
+
+/* invite.html держит свои стили в <style> страницы: те же элементы, свои имена. */
+body.fx:not(#_) .input {
+  background:rgba(255,255,255,.7) !important;
+  border:1px solid rgba(255,255,255,.8) !important;
+  border-radius:14px !important; color:var(--fx-ink) !important;
+}
+body.fx:not(#_) .label {
+  color:var(--fx-mute) !important; font-family:inherit !important; letter-spacing:0 !important;
+}
+
+/* Левая колонка приглашения была залита градиентом «лайм → чёрный» с белым
+   текстом: на лаймовой половине белое по светло-зелёному не читается, да и
+   больших цветных плит в макете нет. Делаю её такой же стеклянной панелью с
+   чернильным текстом, лайм остаётся на кнопке. */
+body.fx:not(#_) .hero {
+  background:rgba(255,253,247,.55) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx:not(#_) :is(.hero-title,.panel-title) {
+  color:var(--fx-ink) !important; font-weight:800 !important; letter-spacing:-.03em !important;
+}
+body.fx:not(#_) :is(.hero-sub,.panel-sub,.helper,.meta-line) { color:var(--fx-ink-2) !important; }
+body.fx:not(#_) .hero-badge {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+}
+body.fx:not(#_) .hero-point {
+  background:rgba(255,255,255,.5) !important; color:var(--fx-ink-2) !important;
+  border-radius:var(--fx-r-card) !important;
+}
+
+/* В светлой шапке остался текст, унаследовавший белый цвет от прежней
+   тёмной заливки: абзац без класса, поэтому по имени его не поймать. Кнопки
+   исключены - у чернильной кнопки текст белый по делу. */
+body.fx:not(#_) .hero :is(p,li,span,div,small):not([class*="btn"]):not([class*="badge"]) {
+  color:var(--fx-ink-2) !important;
 }
