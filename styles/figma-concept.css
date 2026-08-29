@@ -293,9 +293,8 @@ body.fx .di:hover .di-icon { background:rgba(255,255,255,.8) !important; }
 body.fx .di.open .di-icon { background:var(--fx-lime) !important; border-color:var(--fx-lime) !important; }
 
 /* ══ Экран 2: редактор досок (board.html) ═══════════════════════════════ */
-body.fx.board-page { --tb-h:56px; }
 body.fx.board-page #toolbar {
-  height:56px !important;
+  height:36px !important;
   background:#FFFFFF !important;
   box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
   padding:0 22px !important;
@@ -572,7 +571,18 @@ body.fx.os-desktop .di.open .di-icon :is(svg,.ic) { color:var(--fx-ink) !importa
       выбранный инструмент.
    3. С плиток снят ободок: box-shadow из старой темы читался как двойная
       рамка. Фокус с клавиатуры остаётся - он рисуется отдельно. */
-body.fx.board-page { --mt-w:110px; }
+/* Figma подписывает верхнюю панель кадра Boards как 1860×36 при ширине
+   кадра 1920 - в нашем масштабе это 27px, вдвое ниже наших 54. Ставлю 36:
+   27 - это ниже комфортной цели для мыши (у macOS менюбар 24 и он системный,
+   а здесь живые кнопки), а 36 уже держит пропорцию макета, а не прежнюю
+   полосу вдвое выше. Пилюля с названием доски и кнопки ужимаются под неё. */
+body.fx.board-page { --mt-w:110px; --tb-h:36px; }
+body.fx.board-page #toolbar { height:36px !important; padding:0 16px !important; }
+body.fx.board-page .tb-board-chip { padding:2px 10px !important; }
+body.fx.board-page .tb-board-chip-title { font-size:13px !important; }
+body.fx.board-page :is(.tb-btn,.tb-icon-btn,.tb-auth-chip) {
+  min-height:26px !important; height:26px !important; padding:0 10px !important;
+}
 body.fx.board-page #miro-toolbar :is(.mt-btn.mt-tools,.mt-btn.mt-add,.mt-btn.mt-ai) {
   background:rgba(255,255,255,.6) !important;
   border:1px solid rgba(255,255,255,.7) !important;
