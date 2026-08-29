@@ -933,9 +933,12 @@ body { font-family: var(--font) !important; }
   }
 
   /* Classes Today - second column, top */
+  /* Координаты без !important: виджеты перетаскиваются, а перетаскивание
+     пишет left/top инлайном - !important делал их неподвижными по вертикали.
+     Ширина остаётся жёсткой, её никто не двигает. */
   #wg-streak {
-    top: 48px !important;
-    right: 232px !important;
+    top: 48px;
+    right: 232px;
     width: 192px !important;
   }
   .wg-streak-n {
@@ -969,9 +972,12 @@ body { font-family: var(--font) !important; }
   }
 
   /* Next Class - below clock */
+  /* Координаты без !important: виджеты перетаскиваются, а перетаскивание
+     пишет left/top инлайном - !important делал их неподвижными по вертикали.
+     Ширина остаётся жёсткой, её никто не двигает. */
   #wg-today {
-    top: 260px !important;
-    right: 24px !important;
+    top: 260px;
+    right: 24px;
     width: 192px !important;
   }
   .wg-today-label {
@@ -1022,9 +1028,12 @@ body { font-family: var(--font) !important; }
   }
 
   /* My Boards - second column, below classes */
+  /* Координаты без !important: виджеты перетаскиваются, а перетаскивание
+     пишет left/top инлайном - !important делал их неподвижными по вертикали.
+     Ширина остаётся жёсткой, её никто не двигает. */
   #wg-vocab {
-    top: 260px !important;
-    right: 232px !important;
+    top: 260px;
+    right: 232px;
     width: 192px !important;
   }
   .wg-vocab-label {

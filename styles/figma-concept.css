@@ -188,7 +188,7 @@ body.fx .curr-grid > *:not(.plans-empty-state) {
    две карточки. Это была потеря функции, а не решение по дизайну: виджет
    показывает ближайший урок. Возвращаю третьей карточкой в том же языке. */
 body.fx .widget {
-  border-radius:24px !important;
+  border-radius:13px !important;
   background:var(--fx-glass-strong) !important;
   border:1px solid var(--fx-glass-line) !important;
   backdrop-filter:blur(30px) saturate(1.3) !important;
@@ -196,9 +196,13 @@ body.fx .widget {
   box-shadow:0 18px 40px rgba(90,70,55,.14) !important;
   padding:18px !important;
 }
-body.fx #wg-today  { top:88px !important; right:432px !important; width:206px !important; }
-body.fx #wg-streak { top:88px !important; right:226px !important; width:186px !important; }
-body.fx #wg-vocab  { top:88px !important; right:20px  !important; width:186px !important; }
+/* Без !important: перетаскивание виджета пишет left/top инлайном, а
+   скрытие - inline display:none. С !important координаты игнорировались
+   (виджет не двигался), а «скрыть» не срабатывало вовсе. Специфики
+   `body.fx #id` и так хватает, чтобы перебить исходные правила. */
+body.fx #wg-today  { top:88px; right:432px; width:206px; }
+body.fx #wg-streak { top:88px; right:226px; width:186px; }
+body.fx #wg-vocab  { top:88px; right:20px;  width:186px; }
 
 body.fx .widget .ic { position:absolute; top:18px; right:18px; width:20px; height:20px; opacity:.85; }
 body.fx .wg-streak-n, body.fx .wg-vocab-word {
@@ -231,10 +235,12 @@ body.fx .wg-today-badge { font-family:inherit !important; font-size:12px !import
 body.fx .wg-today-prog-fill { background:var(--fx-lime) !important; }
 
 /* Лаймовая кнопка-капсула */
+/* Кнопка в карточке-счётчике: на кадре её радиус ~0.3 высоты, то есть
+   скруглённый прямоугольник, а не капсула, как я сделал сначала. */
 body.fx .fx-btn, body.fx .wg-vocab-next {
   display:block; width:100%; margin-top:14px !important;
   background:var(--fx-lime) !important; border:none !important;
-  border-radius:999px !important; padding:9px 14px !important;
+  border-radius:var(--fx-r-btn,11px) !important; padding:9px 14px !important;
   font-size:14px !important; font-weight:600 !important;
   color:var(--fx-ink) !important; cursor:pointer; text-align:center;
   box-shadow:none !important; transition:background .15s;
@@ -247,7 +253,7 @@ body.fx .fx-btn:hover, body.fx .wg-vocab-next:hover {
 body.fx #dock-wrap { bottom:28px !important; }
 body.fx #dock {
   gap:8px !important; padding:10px !important;
-  border-radius:26px !important;
+  border-radius:var(--fx-r-dock,19px) !important;
   background:rgba(255,253,247,.55) !important;
   border:1px solid rgba(255,255,255,.6) !important;
   backdrop-filter:blur(40px) saturate(1.4) !important;
@@ -324,7 +330,7 @@ body.fx.board-page #miro-toolbar .mt-sep { display:none !important; }
 
 /* В разметке у карточки досок подпись стоит перед числом, а в макете
    наоборот - переставляю порядком флекса, чтобы не трогать DOM и JS. */
-body.fx #wg-vocab { display:flex !important; flex-direction:column !important; }
+body.fx #wg-vocab { display:flex; flex-direction:column; }
 body.fx #wg-vocab .wg-vocab-word  { order:1; }
 body.fx #wg-vocab .wg-vocab-label { order:2; }
 body.fx #wg-vocab .wg-vocab-lang  { order:3; }
@@ -362,7 +368,7 @@ body.fx .sb-item.active {
 
 /* Зерно фона рисуется псевдоэлементом, то есть последним ребёнком #desktop:
    без явного слоя оно легло бы поверх карточек-счётчиков. */
-body.fx .widget { z-index:2 !important; }
+body.fx .widget { z-index:2; }
 
 /* Фон: в макете розовое пятно слева сверху заметно теплее и плотнее. */
 body.fx #desktop {
@@ -484,13 +490,13 @@ body.fx.os-desktop .curr-grid .lesson-card .lc-lang {
 
 /* Сайдбар в макете - не прозрачная колонка, а отдельная светлая карточка
    внутри панели, со своим скруглением и полем вокруг. */
-body.fx .win-body { padding:14px !important; padding-top:14px !important; }
+body.fx .win-body { padding:8px !important; padding-top:8px !important; }
 body.fx .win-sidebar {
   background:rgba(255,253,247,.55) !important;
   border:1px solid rgba(255,255,255,.5) !important;
-  border-radius:24px !important;
+  border-radius:14px !important;
   padding:44px 16px 16px !important;
-  margin-right:14px !important;
+  margin-right:8px !important;
 }
 /* Кнопка закрытия лежит в углу этой карточки. */
 body.fx .win-titlebar { top:26px; left:26px; }
@@ -514,7 +520,7 @@ body.fx.os-desktop .win-sidebar .sb-item.active::after { display:none !important
 #fx-ghost-panel { display:none; }
 body.fx #fx-ghost-panel {
   display:block; position:fixed; z-index:1; pointer-events:none;
-  left:445px; top:211px; width:693px; height:518px;
+  left:500px; top:196px; width:430px; height:430px;
   border-radius:var(--fx-r-panel);
   background:rgba(255,252,246,.34);
   border:1px solid rgba(255,255,255,.42);
@@ -663,3 +669,14 @@ body.fx.board-page :is(.ai-hero,.ai-preview,.ai-memory-note) {
 body.fx.board-page :is(.ai-hero,.ai-preview,.ai-memory-note) :is(h1,h2,h3,p,span,div,small,b) {
   color:var(--fx-ink) !important;
 }
+
+/* Кнопка «скрыть» стояла в том же углу, что и иконка карточки, и они
+   налезали друг на друга. Переношу её в левый верхний угол - туда же, где
+   кнопка закрытия у панели. */
+body.fx .widget-close {
+  top:12px; right:auto; left:12px;
+  width:22px; height:22px; border-radius:50%;
+  background:rgba(255,255,255,.72); border:1px solid rgba(22,22,22,.10);
+  color:var(--fx-ink);
+}
+body.fx .widget-close:hover { background:#fff; }
