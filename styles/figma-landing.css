@@ -1,0 +1,140 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   figma-landing.css — лендинг в языке макета «ТИЧ.ЭД».
+
+   Макета лендинга в файле Figma нет: там нарисованы два экрана приложения.
+   Поэтому здесь не копия кадра, а перенос того же языка на существующую
+   страницу: песочный фон с зерном, чернильный текст, стекло вместо белых
+   плит, лайм только на действии.
+
+   Одна содержательная замена: розовый был фирменным акцентом лендинга и
+   стоял на главной кнопке, на слове в заголовке и на подписях. В палитре
+   макета розового нет вовсе, поэтому действие уходит в лайм, а акцент в
+   тексте - в чернила. Это редакторское решение, а не подгонка токенов.
+
+   Файл подключается последним и работает только при классе fx на body.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.fx.landing-page {
+  --fx-lime:#CBF03C;
+  --fx-lime-deep:#BCE22A;
+  --fx-ink:#161616;
+  --fx-ink-2:#4A4A46;
+  --fx-mute:#9A968C;
+  --fx-glass:rgba(255,252,246,.55);
+  --fx-glass-line:rgba(255,255,255,.62);
+  --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
+
+  /* Собственные токены страницы переводятся на палитру макета - так
+     перекрашиваются разом все места, где они использованы. */
+  --cream:#E4D6C4; --cream-2:#DCD3BF; --paper:#E4D6C4;
+  --card:rgba(255,252,246,.55); --white:rgba(255,252,246,.72);
+  --ink:#161616; --ink2:#4A4A46; --ink3:#9A968C;
+  --line:rgba(255,255,255,.55); --line-2:rgba(22,22,22,.07);
+  --pink:#161616; --pink-soft:rgba(203,240,60,.22);
+  --lime:#CBF03C; --lime-dark:#BCE22A; --lime-text:#161616;
+  /* Пастельные подложки категорий были четырьмя разными цветами; в макете
+     их роль играет один тёплый тон. */
+  --lavender:rgba(255,255,255,.5); --peach:rgba(255,255,255,.5);
+  --cyan:rgba(255,255,255,.5); --yellow:rgba(255,255,255,.5);
+}
+
+/* ── Фон ────────────────────────────────────────────────────────────────── */
+html:has(body.fx.landing-page),
+body.fx.landing-page {
+  background:
+    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
+    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
+    radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
+    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+  background-attachment:fixed !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.landing-page::before {
+  content:'' !important; display:block !important;
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:.4; mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/>\
+<feColorMatrix type='saturate' values='0'/></filter>\
+<rect width='160' height='160' filter='url(%23n)' opacity='.55'/></svg>");
+  background-size:160px 160px;
+}
+body.fx.landing-page > * { position:relative; z-index:1; }
+/* Секции красились кремом и белым - на песке это читалось как заплатки. */
+body.fx.landing-page section { background:transparent !important; }
+
+/* ── Верхняя панель ─────────────────────────────────────────────────────── */
+body.fx.landing-page nav.ln {
+  background:#FFFFFF !important;
+  border-bottom:none !important;
+  box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+body.fx.landing-page .nav-inner { height:56px !important; }
+body.fx.landing-page .nav-lnk {
+  color:var(--fx-ink) !important; font-weight:500 !important; font-size:15px !important;
+  border-radius:999px !important; padding:8px 14px !important;
+}
+body.fx.landing-page .nav-lnk:hover { background:rgba(22,22,22,.06) !important; }
+
+/* ── Кнопки ─────────────────────────────────────────────────────────────── */
+body.fx.landing-page .btn { border-radius:999px !important; box-shadow:none !important; }
+body.fx.landing-page :is(.btn-pink,.btn-lime) {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important; border:none !important;
+}
+body.fx.landing-page :is(.btn-pink,.btn-lime):hover { background:var(--fx-lime-deep) !important; }
+body.fx.landing-page :is(.btn-glass,.btn-cream) {
+  background:rgba(255,255,255,.62) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  color:var(--fx-ink) !important;
+}
+
+/* ── Заголовок ──────────────────────────────────────────────────────────── */
+body.fx.landing-page :is(h1,h2,h3,.sec-h) { color:var(--fx-ink) !important; }
+/* Розовое слово в заголовке - чернила: лайм на песке не читается в тексте,
+   он остаётся языком действия. */
+body.fx.landing-page .hero h1 em {
+  color:var(--fx-ink) !important; font-style:normal !important;
+}
+body.fx.landing-page :is(.hero-sub,.sec-p,.cap,.bc-p) { color:var(--fx-ink-2) !important; }
+body.fx.landing-page :is(.sec-eye,.stat-l,.fp-cap,.bento-tag) {
+  color:var(--fx-mute) !important; letter-spacing:0 !important;
+}
+
+/* ── Карточки и панели ──────────────────────────────────────────────────── */
+body.fx.landing-page :is(.bc,.cat,.pv-card,.pv-tool,.faq-item,.plan,.fp-shot,.stat-c,.fp-gtile,.sw,.hchip) {
+  background:var(--fx-glass) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  box-shadow:none !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.landing-page :is(.bc,.plan,.faq-item) { border-radius:var(--fx-r-panel,28px) !important; }
+body.fx.landing-page :is(.cat,.pv-card,.fp-shot,.stat-c,.fp-gtile) { border-radius:20px !important; }
+/* Плитки категорий несли по своему акцентному цвету на каждую тему. */
+body.fx.landing-page .cat { --acc:#161616 !important; --acc-bg:rgba(203,240,60,.22) !important; }
+body.fx.landing-page :is(.cat-tag,.cat-count) {
+  background:rgba(255,255,255,.6) !important; color:var(--fx-ink-2) !important;
+}
+
+/* Декоративные слои героя: сетка точек, «аврора» и белое пятно под
+   заголовком. Вместе они давали розово-белую подложку, из-за которой песка
+   не было видно вовсе. Оставляю только едва заметное тёплое свечение. */
+body.fx.landing-page :is(.hero-bg,.hero-aurora) { display:none !important; }
+body.fx.landing-page .hero-spot {
+  background:radial-gradient(520px at 50% 26%, rgba(255,255,255,.34), transparent 70%) !important;
+}
+/* Логотип: вторая половина слова была розовой. */
+body.fx.landing-page .logo :is(em,span,b) { color:var(--fx-ink) !important; }
+
+/* Вторая половина логотипа была розовой в шапке и в подвале. */
+body.fx.landing-page .brand-wordmark em { color:var(--fx-ink) !important; font-style:normal !important; }
+
+/* Мелочь в макете-мокапе внутри героя: точка «Live», маркеры выделения и
+   каретка были розовыми - последние следы прежнего акцента. */
+body.fx.landing-page :is(.ld,.sp) { background:var(--fx-lime) !important; color:var(--fx-ink) !important; }
+body.fx.landing-page .ld { border-color:var(--fx-lime) !important; }
+body.fx.landing-page :is(.hndl,.car) {
+  background:var(--fx-ink) !important; border-color:var(--fx-ink) !important;
+}
+body.fx.landing-page .tb.r { color:var(--fx-ink) !important; border-color:var(--fx-ink) !important; }
