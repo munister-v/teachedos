@@ -219,38 +219,44 @@ body.fx:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
   position:relative; z-index:1;
 }
 
-/* ── Рабочая область как панель ─────────────────────────────────────────── */
-/* На страницах с рейкой (#sidebar + #main) правая колонка залита сплошным
-   кремовым и закрывает фон целиком - страница выглядела просто белой. В
-   макете рабочая область это стеклянная панель с полем вокруг, а не фон. */
-body.fx.tw-page:not(#_) #main {
-  background:var(--fx-glass) !important;
-  border:1px solid var(--fx-glass-line) !important;
-  border-radius:var(--fx-r-panel) !important;
-  backdrop-filter:blur(42px) saturate(1.35) !important;
-  -webkit-backdrop-filter:blur(42px) saturate(1.35) !important;
-  box-shadow:var(--fx-shadow) !important;
-  margin:14px 14px 14px 0 !important;
+/* Блок про #main / #sidebar / #layout - только для широких экранов: на
+   телефоне рейка не колонка рядом с содержимым, а отдельный экран, и
+   поля со скруглением превращали её в плавающую карточку поверх
+   мобильной раскладки. */
+@media (min-width:861px) {
+  /* ── Рабочая область как панель ─────────────────────────────────────────── */
+  /* На страницах с рейкой (#sidebar + #main) правая колонка залита сплошным
+     кремовым и закрывает фон целиком - страница выглядела просто белой. В
+     макете рабочая область это стеклянная панель с полем вокруг, а не фон. */
+  body.fx.tw-page:not(#_) #main {
+    background:var(--fx-glass) !important;
+    border:1px solid var(--fx-glass-line) !important;
+    border-radius:var(--fx-r-panel) !important;
+    backdrop-filter:blur(42px) saturate(1.35) !important;
+    -webkit-backdrop-filter:blur(42px) saturate(1.35) !important;
+    box-shadow:var(--fx-shadow) !important;
+    margin:14px 14px 14px 0 !important;
+  }
+  body.fx.tw-page:not(#_) #sidebar {
+    margin:14px !important;
+    padding-top:14px !important;
+    border-right:none !important;
+  }
+  body.fx.tw-page:not(#_) #layout { background:transparent !important; }
+  /* Корневой фон повторяет градиент: у короткой страницы фон body занимает
+     только её высоту, а ниже проступал корневой цвет - на share.html это
+     читалось как шов поперёк экрана. */
+  html:has(body.fx) {
+    background:
+      radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
+      radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
+      radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
+      linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+    background-attachment:fixed !important;
+  }
+  /* Тогда фон body только дублировал бы корневой. */
+  body.fx:not(#_) { min-height:100dvh !important; }
 }
-body.fx.tw-page:not(#_) #sidebar {
-  margin:14px !important;
-  padding-top:14px !important;
-  border-right:none !important;
-}
-body.fx.tw-page:not(#_) #layout { background:transparent !important; }
-/* Корневой фон повторяет градиент: у короткой страницы фон body занимает
-   только её высоту, а ниже проступал корневой цвет - на share.html это
-   читалось как шов поперёк экрана. */
-html:has(body.fx) {
-  background:
-    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
-    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
-    radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
-    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
-  background-attachment:fixed !important;
-}
-/* Тогда фон body только дублировал бы корневой. */
-body.fx:not(#_) { min-height:100dvh !important; }
 
 /* ── Остальной словарь страниц ──────────────────────────────────────────── */
 /* Рейка на lesson-packs и профиле собрана не на .side-btn, а на .sb-item и

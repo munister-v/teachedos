@@ -614,3 +614,52 @@ body.fx.board-page #miro-toolbar {
   max-height:calc(100vh - var(--tb-h) - 28px) !important;
   overflow-y:auto !important;
 }
+
+/* ── Мобильная раскладка дашборда ───────────────────────────────────────── */
+/* Макет мобильный экран не покрывает, но язык у продукта должен быть один:
+   на телефоне оставались чёрная карточка-промо, пастельные плитки трёх
+   разных цветов и лавандовый чип у пунктов - всё из прошлой темы. */
+body.fx .mp-featured {
+  background:var(--fx-glass-strong) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  color:var(--fx-ink) !important;
+  box-shadow:none !important;
+}
+body.fx .mp-featured :is(.mp-featured-title,.mp-featured-meta,.mp-eyebrow-dark) {
+  color:var(--fx-ink) !important;
+}
+body.fx .mp-featured .mp-featured-meta { color:var(--fx-ink-2) !important; }
+body.fx .mp-btn-lime {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important; box-shadow:none !important;
+}
+body.fx .mp-btn-ghost-dark {
+  background:rgba(255,255,255,.6) !important; color:var(--fx-ink) !important;
+  border:1px solid rgba(22,22,22,.10) !important;
+}
+body.fx :is(.mp-stat,.mp-stat-lavender,.mp-stat-cyan,.mp-stat-peach) {
+  background:rgba(255,253,246,.72) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx .mp-quick-ic2 { background:rgba(203,240,60,.22) !important; color:var(--fx-ink) !important; }
+
+/* Подсказка пустого дня была кремовой по белому - буквально невидимой,
+   читалось только слово, набранное жирным. */
+body.fx .mp-today-empty { color:var(--fx-mute) !important; }
+body.fx .mp-today-empty b { color:var(--fx-ink) !important; }
+
+/* Мобильная доска: нижняя панель быстрых действий держала чёрные плитки
+   выбранного инструмента и «Add», а панель ИИ - тёмные блоки прошлой темы. */
+body.fx.board-page :is(.mq-btn.active,.mq-btn.primary) {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  border:none !important; box-shadow:none !important;
+}
+body.fx.board-page :is(.mq-btn.active,.mq-btn.primary) :is(svg,span) { color:var(--fx-ink) !important; }
+body.fx.board-page :is(.ai-hero,.ai-preview,.ai-memory-note) {
+  background:var(--fx-glass-strong) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.board-page :is(.ai-hero,.ai-preview,.ai-memory-note) :is(h1,h2,h3,p,span,div,small,b) {
+  color:var(--fx-ink) !important;
+}
