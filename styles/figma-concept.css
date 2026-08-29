@@ -12,31 +12,9 @@
    бессмысленно - выигрывает порядок подключения плюс тот же вес.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-body.fx {
-  /* Палитра макета */
-  --fx-lime:#CBF03C;
-  --fx-lime-deep:#BCE22A;
-  --fx-ink:#161616;
-  --fx-ink-2:#4A4A46;
-  --fx-mute:#9A968C;
-
-  /* Тёплый песочный фон: розовое слева сверху, зеленовато-серое справа,
-     кремовое снизу слева - ровно те три пятна, что есть в макете. */
-  --fx-bg-1:#EBD4C7;
-  --fx-bg-2:#E4DCCC;
-  --fx-bg-3:#D9D6C6;
-  --fx-bg-4:#F4EEDC;
-
-  /* Стекло панелей */
-  --fx-glass:rgba(255,252,246,.52);
-  --fx-glass-strong:rgba(255,253,248,.72);
-  --fx-glass-line:rgba(255,255,255,.62);
-  --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
-
-  --fx-r-panel:28px;
-  --fx-r-card:20px;
-  --fx-r-tile:20px;
-}
+/* Палитра, скругления и тени живут в figma-theme.css - он подключается
+   раньше на каждой странице приложения. Здесь только то, что относится к
+   двум отрисованным экранам. */
 
 /* ── Фон рабочего стола ─────────────────────────────────────────────────── */
 body.fx #desktop {
@@ -498,4 +476,38 @@ body.fx #fx-ghost-panel {
 /* На узких экранах плашка налезала бы на карточки-счётчики и док. */
 @media (max-width:1280px), (max-height:760px) {
   body.fx #fx-ghost-panel { display:none; }
+}
+
+/* ── Баги, пойманные на живой странице ──────────────────────────────────── */
+
+/* Док: иконки оставались белыми (их красили правила старой темы, где плитка
+   была тёмной), и на светлой плитке пропадали. */
+body.fx.os-desktop .di .di-icon :is(svg,.ic) {
+  color:var(--fx-ink) !important;
+  stroke:currentColor !important;
+  fill:none !important;
+}
+body.fx.os-desktop .di.open .di-icon :is(svg,.ic) { color:var(--fx-ink) !important; }
+
+/* Рейка доски.
+   1. Панели и холст отступают от рейки на --mt-w. Рейка стала шире и уехала
+      от края, а переменная осталась 56 - панель инструментов открывалась
+      прямо под рейкой.
+   2. Лаймовыми были сразу три плитки: активная плюс mt-tools и mt-add,
+      которым старая тема давала тот же фон. В макете лайм ровно один -
+      выбранный инструмент.
+   3. С плиток снят ободок: box-shadow из старой темы читался как двойная
+      рамка. Фокус с клавиатуры остаётся - он рисуется отдельно. */
+body.fx.board-page { --mt-w:110px; }
+body.fx.board-page #miro-toolbar :is(.mt-btn.mt-tools,.mt-btn.mt-add,.mt-btn.mt-ai) {
+  background:rgba(255,255,255,.6) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.board-page #miro-toolbar .mt-btn { box-shadow:none !important; outline:none !important; }
+body.fx.board-page #miro-toolbar .mt-btn:focus-visible {
+  outline:2px solid var(--fx-ink) !important; outline-offset:2px !important;
+}
+body.fx.board-page #miro-toolbar .mt-btn.active {
+  background:var(--fx-lime) !important; border-color:var(--fx-lime) !important;
 }

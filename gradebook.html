@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=477">
+<link rel="manifest" href="manifest.json?v=478">
 <meta name="theme-color" content="#F5F0E8"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=477">
-<link rel="preload" as="style" href="styles/unify.css?v=477">
+<link rel="preload" as="style" href="styles/harmony.css?v=478">
+<link rel="preload" as="style" href="styles/unify.css?v=478">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -403,10 +403,10 @@ a{text-decoration:none;color:inherit;}
   .gb-mobile-progress{grid-template-columns:1fr 1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=477" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=477">
-<link rel="stylesheet" href="styles/harmony.css?v=477">
-<link rel="stylesheet" href="styles/unify.css?v=477">
+<script src="theme.js?v=478" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=478">
+<link rel="stylesheet" href="styles/harmony.css?v=478">
+<link rel="stylesheet" href="styles/unify.css?v=478">
 <style>
 /* harmony.css's .mp-shell dark dashboard background + light text ("identity
    polish 198") load after this page's own <style> block, so they win with
@@ -416,10 +416,12 @@ a{text-decoration:none;color:inherit;}
    media query - both come back here regardless of viewport.) */
 #page.mp-shell{background:var(--bg) !important;color:var(--text) !important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=477">
-<link rel="stylesheet" href="styles/tool-window.css?v=477">
+<link rel="stylesheet" href="styles/teached-brand.css?v=478">
+<link rel="stylesheet" href="styles/tool-window.css?v=478">
+<!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
+<link rel="stylesheet" href="styles/figma-theme.css?v=478">
 </head>
-<body class="tw-page suite-page gradebook-suite">
+<body class="tw-page suite-page gradebook-suite fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
 <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="8.5" r="3"/><path d="M4 19c.6-3 2.8-4.5 5.5-4.5S14.4 16 15 19"/><path d="M16 6.2a3 3 0 0 1 0 5.6M17.5 14.8c1.7.6 2.9 2 3.3 4.2"/></symbol>
 <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h6a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2h-6z"/><path d="M19.5 5.5h-6a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h6z"/></symbol>
@@ -617,7 +619,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=477"></script>
+<script src="scripts/app-core.js?v=478"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
@@ -1402,12 +1404,12 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 
 init();
 </script>
-<script src="pwa.js?v=477"></script>
-<script src="scripts/nav-boost.js?v=477" defer></script>
-<script src="scripts/mobile-perf.js?v=477" defer></script>
-<script src="scripts/mobile-nav.js?v=477"></script>
-<script src="scripts/autogrow.js?v=477" defer></script>
-<script src="pwa-boot.js?v=477" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=477" defer></script>
+<script src="pwa.js?v=478"></script>
+<script src="scripts/nav-boost.js?v=478" defer></script>
+<script src="scripts/mobile-perf.js?v=478" defer></script>
+<script src="scripts/mobile-nav.js?v=478"></script>
+<script src="scripts/autogrow.js?v=478" defer></script>
+<script src="pwa-boot.js?v=478" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=478" defer></script>
 </body>
 </html>

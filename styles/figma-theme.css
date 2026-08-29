@@ -1,0 +1,296 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   figma-theme.css — язык макета «ТИЧ.ЭД» из Figma для всего приложения.
+
+   Тот же язык, что на двух отрисованных экранах (index.html, board.html),
+   разложенный на примитивы, которые есть на всех страницах приложения:
+   тёплый песочный фон с зерном, белая верхняя панель с лаймовой пилюлей
+   активного раздела, стеклянные панели со скруглением 28, карточки 20,
+   лаймовые кнопки-капсулы, лайм только на активном и на действии.
+
+   Подключается ПОСЛЕДНИМ и работает только при классе fx на body, поэтому
+   страницу можно вернуть к прежнему виду, сняв один класс.
+
+   Про специфику: tool-window.css целится в `body.tw-page:not(#_)` — это
+   (1,1,1) плюс !important. Ниже везде `body.fx.tw-page:not(#_)` — (1,2,1),
+   то есть на один класс выше. Балласт `:not(#_)` убирать нельзя, иначе
+   правила проигрывают молча.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.fx {
+  --fx-lime:#CBF03C;
+  --fx-lime-deep:#BCE22A;
+  --fx-ink:#161616;
+  --fx-ink-2:#4A4A46;
+  --fx-mute:#9A968C;
+
+  --fx-bg-1:#EBD4C7;
+  --fx-bg-2:#E4DCCC;
+  --fx-bg-3:#D9D6C6;
+  --fx-bg-4:#F4EEDC;
+
+  --fx-glass:rgba(255,252,246,.52);
+  --fx-glass-strong:rgba(255,253,248,.72);
+  --fx-glass-line:rgba(255,255,255,.62);
+  --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
+
+  --fx-r-panel:28px;
+  --fx-r-card:20px;
+  --fx-r-tile:20px;
+}
+
+/* Зерно фона общее для всех страниц: полупрозрачный шум поверх градиента.
+   Вынесено в переменную, чтобы не дублировать data-URI по файлу. */
+body.fx {
+  --fx-grain:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/>\
+<feColorMatrix type='saturate' values='0'/></filter>\
+<rect width='160' height='160' filter='url(%23n)' opacity='.55'/></svg>");
+}
+
+/* ── Фон страницы ───────────────────────────────────────────────────────── */
+body.fx.tw-page:not(#_) {
+  background:
+    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
+    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
+    radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
+    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+  background-attachment:fixed !important;
+  color:var(--fx-ink) !important;
+  /* Фиолетовый акцент старой темы в макете не встречается: лайм на действии,
+     чернила на всём остальном. Подмена переменной перекрашивает разом все
+     правила tool-window.css, которые на неё ссылаются. */
+  --tw-accent:#161616;
+  --tw-accent-soft:rgba(203,240,60,.28);
+  --tw-ink:#161616;
+  --tw-ink-2:#4A4A46;
+  --tw-ink-3:#9A968C;
+}
+body.fx.tw-page:not(#_)::before {
+  content:'' !important;
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:.4; mix-blend-mode:soft-light;
+  background-image:var(--fx-grain); background-size:160px 160px;
+}
+
+/* ── Верхняя панель ─────────────────────────────────────────────────────── */
+body.fx.tw-page:not(#_) :is(.nav,#nav) {
+  height:56px !important; min-height:56px !important;
+  padding:0 26px !important; gap:4px !important;
+  background:#FFFFFF !important;
+  border-bottom:none !important;
+  box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+body.fx.tw-page:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) { color:var(--fx-ink) !important; }
+body.fx.tw-page:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) img {
+  width:26px !important; height:26px !important;
+}
+/* Слово «TeachEd» рядом с котом в макете не набрано - остаётся один знак. */
+body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-logo-name { display:none !important; }
+body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-sep { display:none !important; }
+body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-link {
+  height:36px !important; padding:0 14px !important;
+  border-radius:999px !important;
+  font-size:15px !important; font-weight:500 !important;
+  letter-spacing:-.01em !important;
+  color:var(--fx-ink) !important; background:transparent !important;
+}
+body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-link:hover {
+  background:rgba(22,22,22,.06) !important;
+}
+body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-link.active {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  font-weight:650 !important;
+}
+body.fx.tw-page:not(#_) :is(.nav,#nav) :is(.nav-pill,.nav-user) {
+  height:36px !important; padding:0 14px !important; border-radius:999px !important;
+  background:rgba(22,22,22,.05) !important; color:var(--fx-ink) !important;
+  font-size:13px !important;
+}
+body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
+  background:var(--fx-ink) !important; color:var(--fx-lime) !important;
+}
+
+/* ── Левая рейка ────────────────────────────────────────────────────────── */
+body.fx.tw-page:not(#_) :is(.side,#sidebar) {
+  top:56px !important;
+  background:rgba(255,253,247,.55) !important;
+  border:1px solid rgba(255,255,255,.5) !important;
+  border-radius:24px !important;
+  box-shadow:none !important;
+}
+body.fx.tw-page:not(#_) .side-title {
+  font-family:inherit !important; font-size:12px !important; font-weight:400 !important;
+  letter-spacing:0 !important; text-transform:lowercase !important;
+  color:var(--fx-mute) !important;
+}
+body.fx.tw-page:not(#_) .side-btn {
+  font-size:15px !important; font-weight:450 !important; color:var(--fx-ink) !important;
+  border-radius:10px !important;
+}
+body.fx.tw-page:not(#_) .side-btn:hover { background:rgba(255,255,255,.5) !important; }
+body.fx.tw-page:not(#_) :is(.side-btn.active,.side-btn.pane-tab.active) {
+  background:rgba(255,255,255,.72) !important; color:var(--fx-ink) !important;
+  font-weight:600 !important; box-shadow:none !important;
+}
+/* Фиолетовый чип иконки в рейке - из старой темы. */
+body.fx.tw-page:not(#_) .side-ic {
+  background:rgba(22,22,22,.06) !important; color:var(--fx-ink) !important;
+}
+body.fx.tw-page:not(#_) .side-btn.active .side-ic {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+}
+
+/* ── Панели ─────────────────────────────────────────────────────────────── */
+body.fx.tw-page:not(#_) :is(.panel,.hero-card,.share-card,.hw-focus,.hw-toolbar,.section,.topic-bar,.preset-bar,.tabs) {
+  border:1px solid var(--fx-glass-line) !important;
+  border-radius:var(--fx-r-panel) !important;
+  background:var(--fx-glass) !important;
+  backdrop-filter:blur(42px) saturate(1.35) !important;
+  -webkit-backdrop-filter:blur(42px) saturate(1.35) !important;
+  box-shadow:var(--fx-shadow) !important;
+}
+body.fx.tw-page:not(#_) .panel:hover { box-shadow:var(--fx-shadow) !important; }
+/* Кремовая полоса заголовка - примета старой темы окон; в макете шапка
+   панели ничем не залита, отделена только волоском. */
+body.fx.tw-page:not(#_) .panel-head {
+  background:transparent !important;
+  border-bottom:1px solid rgba(22,22,22,.07) !important;
+  box-shadow:none !important;
+}
+body.fx.tw-page:not(#_) .panel-title {
+  font-size:15px !important; font-weight:700 !important;
+  letter-spacing:-.02em !important; color:var(--fx-ink) !important;
+}
+
+/* ── Карточки ───────────────────────────────────────────────────────────── */
+body.fx.tw-page:not(#_) :is(
+  .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
+  .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item,
+  .stat,.stage,.preset,.lib-item,.activity-btn,.quality-card,
+  .hw-card,.hw-metric,.tpl-card,.type-card,.library-item,
+  .stat-card,.insight-card,.stat-pill,.side-section
+):not(.dark):not(.ink):not(.lime):not(.featured) {
+  background:rgba(255,253,246,.55) !important;
+  border:1px solid rgba(255,255,255,.6) !important;
+  border-radius:var(--fx-r-card) !important;
+  box-shadow:none !important;
+}
+body.fx.tw-page:not(#_) :is(
+  .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
+  .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item
+):not(.dark):not(.ink):not(.lime):not(.featured):hover {
+  background:rgba(255,255,255,.78) !important;
+}
+/* Полоска-градиент поверх карточки из unify.css в макете отсутствует. */
+body.fx.tw-page:not(#_) :is(.card,.tool-card,.board-card,.pack-card,.community-card)::before {
+  display:none !important;
+}
+
+/* ── Кнопки ─────────────────────────────────────────────────────────────── */
+body.fx.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn) {
+  border-radius:999px !important;
+  font-weight:600 !important;
+}
+body.fx.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course) {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  border:none !important; box-shadow:none !important;
+}
+body.fx.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course):hover {
+  background:var(--fx-lime-deep) !important;
+}
+body.fx.tw-page:not(#_) :is(.btn.ghost,.btn.soft,.btn-ghost,.btn.btn-ghost) {
+  background:rgba(255,255,255,.6) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  color:var(--fx-ink) !important; box-shadow:none !important;
+}
+
+/* ── Поля ввода ─────────────────────────────────────────────────────────── */
+body.fx.tw-page:not(#_) :is(input[type="text"],input[type="search"],input[type="email"],textarea,select) {
+  background:rgba(255,255,255,.6) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  border-radius:14px !important;
+  color:var(--fx-ink) !important;
+}
+
+/* Содержимое должно лежать над зерном: оно нарисовано на ::before страницы. */
+body.fx.tw-page:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
+  position:relative; z-index:1;
+}
+
+/* ── Рабочая область как панель ─────────────────────────────────────────── */
+/* На страницах с рейкой (#sidebar + #main) правая колонка залита сплошным
+   кремовым и закрывает фон целиком - страница выглядела просто белой. В
+   макете рабочая область это стеклянная панель с полем вокруг, а не фон. */
+body.fx.tw-page:not(#_) #main {
+  background:var(--fx-glass) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  border-radius:var(--fx-r-panel) !important;
+  backdrop-filter:blur(42px) saturate(1.35) !important;
+  -webkit-backdrop-filter:blur(42px) saturate(1.35) !important;
+  box-shadow:var(--fx-shadow) !important;
+  margin:14px 14px 14px 0 !important;
+}
+body.fx.tw-page:not(#_) #sidebar {
+  margin:14px !important;
+  padding-top:14px !important;
+  border-right:none !important;
+}
+body.fx.tw-page:not(#_) #layout { background:transparent !important; }
+/* Корневой фон: без него внизу длинной страницы вылезала кремовая полоса
+   старой темы. */
+html:has(body.fx) { background:#E0D0BC !important; }
+
+/* ── Остальной словарь страниц ──────────────────────────────────────────── */
+/* Рейка на lesson-packs и профиле собрана не на .side-btn, а на .sb-item и
+   .setting-btn - те же элементы, другие имена. */
+body.fx.tw-page:not(#_) :is(.sb-item,.ltab,.setting-btn) {
+  border-radius:10px !important; font-weight:500 !important;
+  color:var(--fx-ink) !important; background:transparent !important;
+  border:none !important; box-shadow:none !important;
+}
+body.fx.tw-page:not(#_) :is(.sb-item,.ltab,.setting-btn):hover {
+  background:rgba(255,255,255,.5) !important;
+}
+body.fx.tw-page:not(#_) :is(.sb-item.active,.ltab.active) {
+  background:rgba(255,255,255,.72) !important; color:var(--fx-ink) !important;
+  font-weight:600 !important;
+}
+body.fx.tw-page:not(#_) .sb-label {
+  font-family:inherit !important; font-size:12px !important; font-weight:400 !important;
+  letter-spacing:0 !important; text-transform:lowercase !important;
+  color:var(--fx-mute) !important;
+}
+
+/* Поля форм на расписании, журнале и в профиле - свои классы. */
+body.fx.tw-page:not(#_) :is(.form-input,.setting-input,.field input,.field textarea,.field select) {
+  background:rgba(255,255,255,.6) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  border-radius:14px !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.tw-page:not(#_) :is(.form-label,.setting-label,.stat-lbl,.side-title,.sec-eyebrow) {
+  font-family:inherit !important; letter-spacing:0 !important;
+  text-transform:lowercase !important; color:var(--fx-mute) !important;
+}
+body.fx.tw-page:not(#_) :is(.card-title,.sec-title,.stat-val,.stat-num) {
+  color:var(--fx-ink) !important; letter-spacing:-.02em !important;
+}
+body.fx.tw-page:not(#_) :is(.btn-outline,.btn-sm,.setting-btn) { border-radius:999px !important; }
+
+/* ── Акцент ─────────────────────────────────────────────────────────────── */
+/* Фиолетовый акцент старой темы в макете не встречается ни разу: цветом
+   выделено только действие (лайм), остальное - чернила. Правлю на уровне
+   переменных, иначе пришлось бы гоняться за каждым местом, где он всплывает
+   (линия «сейчас» в расписании, чипы иконок, ссылки). */
+body.fx.tw-page:not(#_) {
+  --accent:#161616;
+  --accent-2:rgba(203,240,60,.28);
+  --accent-3:rgba(22,22,22,.14);
+  --te-violet:#161616;
+  --te-surface-violet:rgba(203,240,60,.20);
+  --control-violet:#161616;
+  --lime:#CBF03C;
+  --te-lime:#CBF03C;
+}
