@@ -43,7 +43,7 @@ html:has(body.fx.landing-page),
 body.fx.landing-page {
   /* Тот же снимок из макета, что и в приложении. */
   background:
-    linear-gradient(rgba(226,199,178,.52), rgba(226,199,178,.52)),
+    linear-gradient(rgba(237,217,198,.64), rgba(237,217,198,.64)),
     url("../img/desktop-bg.jpg") center / cover no-repeat,
     #E3C9B6 !important;
   background-attachment:fixed !important;
