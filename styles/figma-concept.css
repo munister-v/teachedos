@@ -452,3 +452,31 @@ body.fx.os-desktop .curr-grid .lesson-card .lc-lang {
   background:none !important; border:none !important; padding:0 !important;
   box-shadow:none !important; border-radius:0 !important;
 }
+
+/* ── Сверка с макетом в масштабе 1:1 (правая половина кадра) ─────────────── */
+
+/* Сайдбар в макете - не прозрачная колонка, а отдельная светлая карточка
+   внутри панели, со своим скруглением и полем вокруг. */
+body.fx .win-body { padding:14px !important; padding-top:14px !important; }
+body.fx .win-sidebar {
+  background:rgba(255,253,247,.55) !important;
+  border:1px solid rgba(255,255,255,.5) !important;
+  border-radius:24px !important;
+  padding:44px 16px 16px !important;
+  margin-right:14px !important;
+}
+/* Кнопка закрытия лежит в углу этой карточки. */
+body.fx .win-titlebar { top:26px; left:26px; }
+body.fx .win-main { padding-top:6px !important; }
+
+/* Зерно фона в макете заметное, а не едва различимое. */
+body.fx #desktop::after { opacity:.4 !important; }
+
+/* У активного пункта осталась лаймовая полоска слева (border-left из общей
+   темы) - в макете её нет. */
+body.fx.os-desktop .win-sidebar .sb-item.active,
+body.fx.os-desktop #sidebar-plans .sb-item.active {
+  border-left:none !important; box-shadow:none !important;
+}
+body.fx.os-desktop .win-sidebar .sb-item.active::before,
+body.fx.os-desktop .win-sidebar .sb-item.active::after { display:none !important; }
