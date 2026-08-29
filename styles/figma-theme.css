@@ -456,3 +456,28 @@ body.fx:not(#_) .wb-btn.primary {
   border:none !important; border-radius:999px !important; box-shadow:none !important;
 }
 body.fx:not(#_) .wb-btn { border-radius:999px !important; }
+
+/* Переключатели разделов и фильтров на страницах-сюитах остались чёрными
+   плашками: у каждой страницы своё имя класса, а у журнала оценок состояние
+   выражено через aria-pressed, а не классом. Приводлю к общему виду -
+   лаймовая пилюля с чернильным текстом. */
+body.fx:not(#_) :is(
+  .suite-tab.active,
+  .journal-filter.active,
+  .gb-filter[aria-pressed="true"],
+  .seg-btn.active,
+  .switch-tab.active
+) {
+  background:var(--fx-lime) !important;
+  border-color:var(--fx-lime) !important;
+  color:var(--fx-ink) !important;
+  box-shadow:none !important;
+}
+body.fx:not(#_) :is(.suite-tab,.journal-filter,.gb-filter,.seg-btn) {
+  border-radius:999px !important;
+}
+/* Красный остаётся у фильтра «нужно внимание»: это предупреждение, а не
+   выбранное состояние. */
+body.fx:not(#_) .gb-filter.attention[aria-pressed="true"] {
+  background:#B91C1C !important; border-color:#B91C1C !important; color:#fff !important;
+}
