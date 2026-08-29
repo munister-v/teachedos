@@ -142,7 +142,6 @@ app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
 // ── Error handler ──────────────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
-  console.error('[error]', err.message);
   if (err.message === 'Not allowed by CORS') {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(403).json({ error: 'Origin is not allowed.' });
@@ -155,6 +154,7 @@ app.use((err, req, res, _next) => {
       error: 'Board payload is too large. Compress or remove a few images and try again.',
     });
   }
+  console.error('[error]', err.message);
   res.status(500).json({ error: 'Server error' });
 });
 
