@@ -699,3 +699,7 @@ body.fx .widget-close {
   color:var(--fx-ink);
 }
 body.fx .widget-close:hover { background:#fff; }
+
+/* Пилюля с названием доски оставалась заметно выше пилюли раздела в меню -
+   на кадре они одного роста. */
+body.fx.board-page .tb-board-chip { padding:4px 12px !important; }
