@@ -701,11 +701,21 @@ body.tw-page:not(#_) :is(.pill.overdue,.pill.in_progress) {
    nouns - only the values were the old ones. */
 
 /* ── Left rails ────────────────────────────────────────────────────────── */
+/* Ширина только на широком экране. Без ограничения это правило (id + класс +
+   балласт, !important) перебивало собственную мобильную раскладку страницы,
+   где рейка занимает всю ширину: на телефоне она оставалась колонкой 200px и
+   налезала на содержимое. Остальное оформление рейки от ширины не зависит и
+   применяется везде. */
+@media (min-width:861px) {
+  body.tw-page:not(#_) #sidebar { width:200px !important; }
+}
 body.tw-page:not(#_) #sidebar {
-  width:200px !important;
   padding:12px 8px !important;
   border-right:1px solid var(--tw-line) !important;
   background:var(--tw-rail) !important;
+}
+@media (max-width:860px) {
+  body.tw-page:not(#_) #sidebar { border-right:none !important; }
 }
 /* Anchored through `#sidebar`, not just `body.tw-page:not(#_)`: unify.css
    has its own late "make the sidebar chip legible" pass scoped to
