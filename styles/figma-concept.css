@@ -88,12 +88,18 @@ body.fx .win-titlebar {
   background:none !important; border:none !important; box-shadow:none !important;
 }
 body.fx .win-title { display:none !important; }
-body.fx .win-controls .tl.min { display:none !important; }
-body.fx .win-controls .tl.close {
+/* Кнопка сворачивания: в макете у панели один круглый элемент, но свернуть
+   окно - это функция, а не украшение (окно уходит в док). Оставляю вторым
+   кружком того же вида. */
+body.fx .win-controls :is(.tl.close,.tl.min) {
   width:26px !important; height:26px !important; border-radius:50% !important;
   background:rgba(255,255,255,.72) !important;
   border:1px solid rgba(22,22,22,.10) !important;
   position:relative;
+}
+body.fx .win-controls .tl.min::before {
+  content:''; position:absolute; left:7px; top:12px; width:11px; height:1.6px;
+  background:var(--fx-ink); border-radius:2px; opacity:.85;
 }
 body.fx .win-controls .tl.close::before,
 body.fx .win-controls .tl.close::after {
@@ -144,8 +150,19 @@ body.fx .studio-copy {
   font-size:14px !important; color:var(--fx-ink-2) !important; opacity:.75 !important;
   text-transform:lowercase !important; margin:0 !important;
 }
-/* Кнопки-чипы дублируют «Open board» в сайдбаре, в макете их нет. */
-body.fx .studio-actions { display:none !important; }
+/* Чипы под заголовком: «Open board» дублирует сайдбар, а «Community boards»
+   больше нигде на этом экране не встречается - прятать их целиком значило
+   убрать переход. Свожу к неброским капсулам. */
+body.fx .studio-actions { display:flex !important; gap:8px !important; margin-top:14px !important; }
+body.fx .studio-chip {
+  border-radius:999px !important; font-size:14px !important; font-weight:600 !important;
+  padding:9px 16px !important; box-shadow:none !important; border:none !important;
+}
+body.fx .studio-chip.primary { background:var(--fx-lime) !important; color:var(--fx-ink) !important; }
+body.fx .studio-chip.secondary {
+  background:rgba(255,255,255,.6) !important; color:var(--fx-ink) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+}
 
 /* Поиск: в макете отдельного поля нет, но убирать функцию нельзя -
    свожу его к неброской капсуле в тон панели. */
@@ -404,11 +421,20 @@ body.fx.board-page #empty-state .empty-key {
   border-radius:999px !important; color:var(--fx-ink-2) !important;
   font-family:inherit !important; padding:2px 10px !important;
 }
-/* Вторая кнопка («Add text») в макете отсутствует, первая - лаймовая капсула. */
-body.fx.board-page #empty-state .empty-actions { display:block !important; margin-top:16px !important; }
-body.fx.board-page #empty-state .empty-action:not(.primary) { display:none !important; }
+/* В макете у карточки одна кнопка, но «Add text» - это действие, а не
+   украшение. Оставляю обе: лаймовая капсула и призрачная рядом. */
+body.fx.board-page #empty-state .empty-actions {
+  display:flex !important; gap:8px !important; margin-top:16px !important;
+}
+body.fx.board-page #empty-state .empty-action:not(.primary) {
+  flex:0 0 auto !important;
+  background:rgba(255,255,255,.7) !important;
+  border:1px solid rgba(22,22,22,.10) !important;
+  border-radius:999px !important; padding:11px 16px !important;
+  font-size:15px !important; font-weight:600 !important; color:var(--fx-ink) !important;
+}
 body.fx.board-page #empty-state .empty-action.primary {
-  display:block !important; width:100% !important;
+  display:block !important; flex:1 1 auto !important;
   background:var(--fx-lime) !important; border:none !important;
   border-radius:999px !important; padding:11px !important;
   font-size:15px !important; font-weight:650 !important;
@@ -560,3 +586,31 @@ body.fx.board-page #board-wrap { left:0 !important; }
 /* Пилюля с названием доски была раздута под панель 56px. */
 body.fx.board-page .tb-board-chip { padding:6px 14px !important; }
 body.fx.board-page .tb-board-chip-title { font-size:14px !important; }
+
+/* Окно тарифов: шапка, шапка таблицы сравнения и кнопка плана были чёрными
+   плитами прошлой темы - в макете такого нет. */
+body.fx :is(.pricing-hero,.compare-head) {
+  background:var(--fx-glass-strong) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  color:var(--fx-ink) !important;
+  border-radius:var(--fx-r-card) !important;
+}
+body.fx :is(.pricing-hero,.compare-head) :is(h1,h2,h3,p,span,em,div,th,td) {
+  color:var(--fx-ink) !important;
+}
+body.fx :is(.pricing-hero,.compare-head) :is(.chip,.tag,button,.pill) {
+  background:rgba(255,255,255,.6) !important; color:var(--fx-ink) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+}
+body.fx .price-btn.dark {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  border:none !important; border-radius:999px !important;
+}
+
+/* Рейка перестала растягиваться до низа экрана (bottom:auto), поэтому на
+   невысоком окне её нижние инструменты уезжали за край без возможности
+   прокрутить. Потолок в экран плюс прокрутка внутри. */
+body.fx.board-page #miro-toolbar {
+  max-height:calc(100vh - var(--tb-h) - 28px) !important;
+  overflow-y:auto !important;
+}
