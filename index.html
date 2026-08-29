@@ -1577,8 +1577,10 @@ html,body {
 }
 </style>
 <link rel="stylesheet" href="styles/teached-brand.css?v=473">
+<!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
+<link rel="stylesheet" href="styles/figma-concept.css?v=473">
 </head>
-<body class="os-desktop">
+<body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
      Свой набор иконок вместо эмодзи.
 
@@ -1688,7 +1690,7 @@ html,body {
   <a class="mb-apple" href="index.html" title="Desktop" style="text-decoration:none;color:inherit;"><img src="logo-sm.png" alt="TeachEd"></a>
   <span class="mb-app-name" id="mb-app-name">TeachEd</span>
   <nav class="mb-menu">
-    <a class="mb-item" href="board.html">Board</a>
+    <a class="mb-item fx-active" href="board.html">Boards</a>
     <a class="mb-item" href="courses.html">Courses</a>
     <a class="mb-item" href="community.html">Community</a>
     <a class="mb-item" href="homework.html">Homework</a>
@@ -1733,8 +1735,9 @@ html,body {
     <div class="wg-streak-n">-</div>
     <svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>
   </div>
-  <div class="wg-streak-label">Classes today</div>
+  <div class="wg-streak-label">classes today</div>
   <div class="wg-streak-sub">Loading schedule…</div>
+  <button class="fx-btn" onclick="location.href='schedule.html'">Add class</button>
 </div>
 
 <div class="widget" id="wg-today">
@@ -1748,18 +1751,19 @@ html,body {
 </div>
 
 <div class="widget" id="wg-vocab">
-  <div class="wg-vocab-label">My boards</div>
+  <svg class="ic" aria-hidden="true"><use href="#i-board"/></svg>
+  <div class="wg-vocab-label">all boards</div>
   <div class="wg-vocab-word">-</div>
   <div class="wg-vocab-lang">Loading…</div>
   <div class="wg-vocab-trans"></div>
   <div class="wg-vocab-ex"></div>
-  <button class="wg-vocab-next" onclick="openApp('students')">View Students →</button>
+  <button class="wg-vocab-next" onclick="location.href='board.html'">Add board</button>
 </div>
 
 <!-- ════ WINDOWS ════ -->
 
 <!-- LESSON PLANS -->
-<div class="win open appear" id="win-plans" style="top:48px;left:60px;width:780px;height:560px;">
+<div class="win open appear" id="win-plans" style="top:88px;left:60px;width:780px;height:560px;">
   <div class="win-titlebar" id="tb-plans">
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('plans')"></div>
@@ -1904,7 +1908,7 @@ html,body {
 </div>
 
 <!-- STUDENTS -->
-<div class="win" id="win-students" style="top:80px;left:680px;width:600px;height:520px;">
+<div class="win" id="win-students" style="top:96px;left:680px;width:600px;height:520px;">
   <div class="win-titlebar" id="tb-students">
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('students')"></div>
@@ -2022,7 +2026,7 @@ html,body {
 
 
 <!-- TOOLS WINDOW -->
-<div class="win" id="win-tools" style="top:60px;left:80px;width:860px;height:600px;">
+<div class="win" id="win-tools" style="top:96px;left:80px;width:860px;height:600px;">
   <div class="win-titlebar" id="tb-tools">
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('tools')"></div>
@@ -2066,7 +2070,7 @@ html,body {
 
 
 <!-- PRICING -->
-<div class="win" id="win-pricing" style="top:72px;left:170px;width:960px;height:650px;">
+<div class="win" id="win-pricing" style="top:96px;left:170px;width:960px;height:650px;">
   <div class="win-titlebar" id="tb-pricing">
     <div class="win-controls">
       <div class="tl close" onclick="closeWin('pricing')"></div>

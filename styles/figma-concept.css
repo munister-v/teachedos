@@ -1,0 +1,416 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   figma-concept.css — «Концепт главной стр» из Figma (файл ТИЧ.ЭД).
+
+   Два экрана макета: дашборд «your lesson boards» (index.html) и оболочка
+   редактора досок (board.html). Файл подключается ПОСЛЕДНИМ и только на этих
+   двух страницах, поэтому остальные 50+ страниц не затронуты. Область
+   действия дополнительно ограничена классом body.fx: без него ни одно
+   правило не срабатывает.
+
+   Почему !important почти везде: teached-brand.css и unify.css красят те же
+   узлы через !important и id-балласт. Спорить с ними спецификой селектора
+   бессмысленно - выигрывает порядок подключения плюс тот же вес.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.fx {
+  /* Палитра макета */
+  --fx-lime:#CBF03C;
+  --fx-lime-deep:#BCE22A;
+  --fx-ink:#161616;
+  --fx-ink-2:#4A4A46;
+  --fx-mute:#9A968C;
+
+  /* Тёплый песочный фон: розовое слева сверху, зеленовато-серое справа,
+     кремовое снизу слева - ровно те три пятна, что есть в макете. */
+  --fx-bg-1:#EBD4C7;
+  --fx-bg-2:#E4DCCC;
+  --fx-bg-3:#D9D6C6;
+  --fx-bg-4:#F4EEDC;
+
+  /* Стекло панелей */
+  --fx-glass:rgba(255,252,246,.52);
+  --fx-glass-strong:rgba(255,253,248,.72);
+  --fx-glass-line:rgba(255,255,255,.62);
+  --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
+
+  --fx-r-panel:28px;
+  --fx-r-card:20px;
+  --fx-r-tile:20px;
+}
+
+/* ── Фон рабочего стола ─────────────────────────────────────────────────── */
+body.fx #desktop {
+  background:
+    radial-gradient(ellipse 60% 55% at 12% 6%,  var(--fx-bg-1) 0%, transparent 62%),
+    radial-gradient(ellipse 70% 60% at 92% 34%, var(--fx-bg-3) 0%, transparent 66%),
+    radial-gradient(ellipse 80% 70% at 8% 96%,  var(--fx-bg-4) 0%, transparent 70%),
+    linear-gradient(150deg, #EBD9CC 0%, #E6DBCB 45%, #DED9C8 100%) !important;
+}
+/* Плёночное зерно поверх градиента - в макете фон заметно шумный. */
+body.fx #desktop::after {
+  content:''; position:absolute; inset:0; display:block !important;
+  pointer-events:none; z-index:0; opacity:.5; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/>\
+<feColorMatrix type='saturate' values='0'/></filter>\
+<rect width='160' height='160' filter='url(%23n)' opacity='.55'/></svg>");
+  background-size:160px 160px;
+}
+/* Декоративные карточки-обои и блобы старой темы в макете отсутствуют. */
+body.fx #wallpaper-deco,
+body.fx .blob1, body.fx .blob2, body.fx .blob3, body.fx .blob4 { display:none !important; }
+
+/* ── Верхняя панель ─────────────────────────────────────────────────────── */
+body.fx #menubar {
+  height:56px !important;
+  background:#FFFFFF !important;
+  border-bottom:none !important;
+  box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
+  padding:0 26px !important;
+  gap:2px !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+body.fx #menubar .mb-apple img { width:26px !important; height:26px !important; }
+body.fx #menubar .mb-app-name { display:none !important; }
+body.fx #menubar .mb-menu { display:flex !important; align-items:center; gap:4px; margin-left:14px; }
+body.fx #menubar .mb-item {
+  color:var(--fx-ink) !important;
+  font-size:15px !important; font-weight:500 !important;
+  letter-spacing:-.01em !important;
+  padding:8px 14px !important; border-radius:999px !important;
+  background:transparent !important;
+}
+body.fx #menubar .mb-item:hover { background:rgba(22,22,22,.06) !important; }
+/* Активный раздел - лаймовая пилюля. */
+body.fx #menubar .mb-item.fx-active {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important; font-weight:650 !important;
+}
+body.fx #menubar .mb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+body.fx #menubar .mb-icon { color:var(--fx-ink) !important; opacity:.75; }
+body.fx #menubar #mb-clock {
+  color:var(--fx-ink) !important; font-size:14px !important; font-weight:500 !important;
+  font-family:inherit !important; letter-spacing:-.01em;
+}
+
+/* ── Окно-панель ────────────────────────────────────────────────────────── */
+body.fx .win {
+  border-radius:var(--fx-r-panel) !important;
+  background:var(--fx-glass) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  backdrop-filter:blur(42px) saturate(1.35) !important;
+  -webkit-backdrop-filter:blur(42px) saturate(1.35) !important;
+  box-shadow:var(--fx-shadow) !important;
+}
+/* В макете у панели нет полосы заголовка - только круглая кнопка закрытия
+   в левом верхнем углу, поверх содержимого. */
+body.fx .win-titlebar {
+  position:absolute !important; top:14px; left:14px; z-index:5;
+  height:auto !important; padding:0 !important;
+  background:none !important; border:none !important; box-shadow:none !important;
+}
+body.fx .win-title { display:none !important; }
+body.fx .win-controls .tl.min { display:none !important; }
+body.fx .win-controls .tl.close {
+  width:26px !important; height:26px !important; border-radius:50% !important;
+  background:rgba(255,255,255,.72) !important;
+  border:1px solid rgba(22,22,22,.10) !important;
+  position:relative;
+}
+body.fx .win-controls .tl.close::before,
+body.fx .win-controls .tl.close::after {
+  content:''; position:absolute; left:7px; top:12px; width:11px; height:1.6px;
+  background:var(--fx-ink); border-radius:2px; opacity:.85;
+}
+body.fx .win-controls .tl.close::before { transform:rotate(45deg); }
+body.fx .win-controls .tl.close::after  { transform:rotate(-45deg); }
+body.fx .win-body { padding-top:48px !important; background:transparent !important; }
+
+/* Сайдбар окна */
+body.fx .win-sidebar {
+  background:transparent !important; border-right:none !important;
+  padding:8px 18px 18px !important; width:210px !important;
+}
+body.fx .sb-section-label {
+  font-size:12px !important; font-weight:400 !important;
+  color:var(--fx-mute) !important; text-transform:lowercase !important;
+  letter-spacing:0 !important; margin:18px 0 8px !important;
+}
+body.fx .sb-item {
+  font-size:15px !important; font-weight:450 !important;
+  color:var(--fx-ink) !important; background:transparent !important;
+  border:none !important; border-radius:10px !important;
+  padding:7px 8px !important; gap:8px !important;
+}
+body.fx .sb-item .ic { display:none !important; }
+body.fx .sb-item:hover { background:rgba(255,255,255,.45) !important; }
+body.fx .sb-item.active { background:rgba(255,255,255,.62) !important; font-weight:600 !important; }
+
+/* Заголовок рабочей области. Разметка уже есть (.studio-hero), макет только
+   меняет ей вид: строчные буквы, крупный жирный заголовок, никакого фона. */
+body.fx .win-main { background:transparent !important; }
+body.fx .studio-hero {
+  background:none !important; border:none !important; box-shadow:none !important;
+  padding:0 4px 18px !important; margin:0 !important;
+}
+body.fx .studio-eyebrow {
+  font-size:13px !important; font-weight:400 !important; color:var(--fx-mute) !important;
+  text-transform:lowercase !important; letter-spacing:0 !important; margin-bottom:6px !important;
+}
+body.fx .studio-title {
+  font-size:38px !important; font-weight:800 !important; letter-spacing:-.03em !important;
+  color:var(--fx-ink) !important; line-height:1.05 !important;
+  text-transform:lowercase !important; margin:0 0 8px !important;
+}
+body.fx .studio-copy {
+  font-size:14px !important; color:var(--fx-ink-2) !important; opacity:.75 !important;
+  text-transform:lowercase !important; margin:0 !important;
+}
+/* Кнопки-чипы дублируют «Open board» в сайдбаре, в макете их нет. */
+body.fx .studio-actions { display:none !important; }
+
+/* Поиск: в макете отдельного поля нет, но убирать функцию нельзя -
+   свожу его к неброской капсуле в тон панели. */
+body.fx .curr-search {
+  background:rgba(255,255,255,.5) !important; border:1px solid rgba(255,255,255,.6) !important;
+  border-radius:999px !important; box-shadow:none !important;
+  margin:0 4px 14px !important; padding:8px 14px !important;
+}
+body.fx .curr-search input { font-size:14px !important; color:var(--fx-ink) !important; }
+
+/* Карточки досок */
+body.fx .curr-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:14px !important; }
+body.fx .curr-grid > *:not(.plans-empty-state) {
+  border-radius:var(--fx-r-card) !important;
+  background:rgba(255,253,246,.55) !important;
+  border:1px solid rgba(255,255,255,.55) !important;
+  box-shadow:none !important;
+  min-height:158px;
+}
+
+/* ── Карточки-счётчики справа сверху ────────────────────────────────────── */
+body.fx #wg-today { display:none !important; }
+body.fx .widget {
+  border-radius:24px !important;
+  background:var(--fx-glass-strong) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  backdrop-filter:blur(30px) saturate(1.3) !important;
+  -webkit-backdrop-filter:blur(30px) saturate(1.3) !important;
+  box-shadow:0 18px 40px rgba(90,70,55,.14) !important;
+  padding:18px !important;
+}
+body.fx #wg-streak { top:88px !important; right:226px !important; width:186px !important; }
+body.fx #wg-vocab  { top:88px !important; right:20px  !important; width:186px !important; }
+
+body.fx .widget .ic { position:absolute; top:18px; right:18px; width:20px; height:20px; opacity:.85; }
+body.fx .wg-streak-n, body.fx .wg-vocab-word {
+  font-size:56px !important; font-weight:800 !important; line-height:1 !important;
+  letter-spacing:-.045em !important; color:var(--fx-ink) !important; margin:0 !important;
+}
+body.fx .wg-streak-label, body.fx .wg-vocab-label {
+  font-size:13px !important; font-weight:400 !important; color:var(--fx-mute) !important;
+  text-transform:lowercase !important; letter-spacing:0 !important;
+  font-family:inherit !important; margin:10px 0 0 !important;
+}
+body.fx .wg-streak-sub, body.fx .wg-vocab-lang,
+body.fx .wg-vocab-trans, body.fx .wg-vocab-ex { display:none !important; }
+
+/* Лаймовая кнопка-капсула */
+body.fx .fx-btn, body.fx .wg-vocab-next {
+  display:block; width:100%; margin-top:14px !important;
+  background:var(--fx-lime) !important; border:none !important;
+  border-radius:999px !important; padding:9px 14px !important;
+  font-size:14px !important; font-weight:600 !important;
+  color:var(--fx-ink) !important; cursor:pointer; text-align:center;
+  box-shadow:none !important; transition:background .15s;
+}
+body.fx .fx-btn:hover, body.fx .wg-vocab-next:hover {
+  background:var(--fx-lime-deep) !important; opacity:1 !important;
+}
+
+/* ── Док ────────────────────────────────────────────────────────────────── */
+body.fx #dock-wrap { bottom:28px !important; }
+body.fx #dock {
+  gap:8px !important; padding:10px !important;
+  border-radius:26px !important;
+  background:rgba(255,253,247,.55) !important;
+  border:1px solid rgba(255,255,255,.6) !important;
+  backdrop-filter:blur(40px) saturate(1.4) !important;
+  -webkit-backdrop-filter:blur(40px) saturate(1.4) !important;
+  box-shadow:0 18px 44px rgba(90,70,55,.16) !important;
+  align-items:center !important;
+}
+body.fx .di-label, body.fx .di-dot { display:none !important; }
+body.fx .di-icon {
+  width:60px !important; height:60px !important;
+  border-radius:var(--fx-r-tile) !important;
+  background:rgba(255,255,255,.55) !important;
+  color:var(--fx-ink) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  box-shadow:none !important;
+}
+body.fx .di-icon .ic { width:24px; height:24px; }
+body.fx .di:hover .di-icon { background:rgba(255,255,255,.8) !important; }
+/* Активное приложение - лаймовая плитка. */
+body.fx .di.open .di-icon { background:var(--fx-lime) !important; border-color:var(--fx-lime) !important; }
+
+/* ══ Экран 2: редактор досок (board.html) ═══════════════════════════════ */
+body.fx.board-page { --tb-h:56px; }
+body.fx.board-page #toolbar {
+  height:56px !important;
+  background:#FFFFFF !important;
+  box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
+  padding:0 22px !important;
+}
+body.fx.board-page .tb-logo-mark, body.fx.board-page .tb-slash { display:none !important; }
+body.fx.board-page .tb-board-chip {
+  background:var(--fx-lime) !important; border:none !important;
+  border-radius:999px !important; padding:8px 16px !important;
+  box-shadow:none !important;
+}
+body.fx.board-page .tb-board-chip-title {
+  font-size:15px !important; font-weight:650 !important; color:var(--fx-ink) !important;
+}
+body.fx.board-page #board-wrap {
+  background-color:#F7F7EF !important;
+  background-image:none !important;
+}
+body.fx.board-page #miro-toolbar {
+  top:calc(var(--tb-h) + 14px) !important; bottom:auto !important;
+  left:14px !important; width:auto !important;
+  padding:10px !important; gap:8px !important;
+  background:rgba(255,255,255,.55) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  border-right:1px solid rgba(255,255,255,.7) !important;
+  border-radius:26px !important;
+  backdrop-filter:blur(40px) saturate(1.4) !important;
+  -webkit-backdrop-filter:blur(40px) saturate(1.4) !important;
+  box-shadow:0 18px 44px rgba(90,70,55,.14) !important;
+}
+body.fx.board-page #miro-toolbar .mt-btn {
+  width:60px !important; height:60px !important;
+  border-radius:var(--fx-r-tile) !important;
+  background:rgba(255,255,255,.6) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.board-page #miro-toolbar .mt-btn svg { width:22px !important; height:22px !important; }
+body.fx.board-page #miro-toolbar .mt-btn:hover { background:rgba(255,255,255,.85) !important; }
+body.fx.board-page #miro-toolbar .mt-btn.active {
+  background:var(--fx-lime) !important; border-color:var(--fx-lime) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.board-page #miro-toolbar .mt-sep { display:none !important; }
+
+/* Мобильная раскладка макетом не покрыта - там остаётся текущая тема. */
+@media (max-width:900px) {
+  body.fx #menubar { height:auto !important; padding:0 12px !important; }
+}
+
+/* В разметке у карточки досок подпись стоит перед числом, а в макете
+   наоборот - переставляю порядком флекса, чтобы не трогать DOM и JS. */
+body.fx #wg-vocab { display:flex !important; flex-direction:column !important; }
+body.fx #wg-vocab .wg-vocab-word  { order:1; }
+body.fx #wg-vocab .wg-vocab-label { order:2; }
+body.fx #wg-vocab .wg-vocab-next  { order:3; }
+
+/* ── Правки после сверки со скриншотом макета ───────────────────────────── */
+
+/* Плитки дока красятся в teached-brand.css селекторами вида
+   `body.os-desktop .di-icon.schedule` - это выше по специфике, чем
+   `body.fx .di-icon`. Поднимаю вес, иначе в доке остаются синяя и
+   фиолетовая плитки из старой темы. */
+body.fx.os-desktop .di-icon[class],
+body.fx.os-desktop .di .di-icon[style] {
+  background:rgba(255,255,255,.55) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.os-desktop .di:hover .di-icon[class],
+body.fx.os-desktop .di:hover .di-icon[style] { background:rgba(255,255,255,.85) !important; }
+body.fx.os-desktop .di.open .di-icon[class],
+body.fx.os-desktop .di.open .di-icon[style] {
+  background:var(--fx-lime) !important; border-color:var(--fx-lime) !important;
+}
+
+/* Подписи в сайдбаре шли моношрифтом с разрядкой - в макете обычный текст. */
+body.fx .sb-section-label, body.fx .wg-streak-label, body.fx .wg-vocab-label {
+  font-family:inherit !important;
+}
+/* Активный пункт фильтра в макете просто светлее, без лаймовой заливки. */
+body.fx .sb-item.active {
+  background:rgba(255,255,255,.66) !important; color:var(--fx-ink) !important;
+  border:none !important; box-shadow:none !important;
+}
+
+/* Зерно фона рисуется псевдоэлементом, то есть последним ребёнком #desktop:
+   без явного слоя оно легло бы поверх карточек-счётчиков. */
+body.fx .widget { z-index:2 !important; }
+
+/* Фон: в макете розовое пятно слева сверху заметно теплее и плотнее. */
+body.fx #desktop {
+  background:
+    radial-gradient(ellipse 55% 50% at 10% 4%,  #E8C9B9 0%, transparent 60%),
+    radial-gradient(ellipse 65% 55% at 96% 30%, #D3D1BC 0%, transparent 64%),
+    radial-gradient(ellipse 75% 65% at 4% 98%,  #F6F0DB 0%, transparent 68%),
+    linear-gradient(150deg, #E9D5C6 0%, #E4D9C7 45%, #DCD8C4 100%) !important;
+}
+
+/* Лаймовую заливку активного фильтра ставит правило с более длинным
+   селектором - добиваю специфику, а не порядком подключения. */
+body.fx.os-desktop .win-sidebar .sb-item.active,
+body.fx.os-desktop #sidebar-plans .sb-item.active {
+  background:rgba(255,255,255,.66) !important;
+}
+
+/* Фон макета: тёплый песочно-розовый по всему полю, зеленоватый оттенок
+   только справа сверху. Зерно приглушено, иначе оно вымывает цвет. */
+body.fx #desktop {
+  background:
+    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
+    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
+    radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
+    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+}
+body.fx #desktop::after { opacity:.24 !important; mix-blend-mode:soft-light !important; }
+
+/* Пустая доска. В макете это белая карточка со скруглением 28: крупный
+   строчный заголовок в две строки, серые подсказки с пилюлями-клавишами
+   и одна лаймовая кнопка во всю ширину. */
+body.fx.board-page #empty-state {
+  background:rgba(255,255,255,.82) !important;
+  border:1px solid rgba(255,255,255,.9) !important;
+  border-radius:var(--fx-r-panel) !important;
+  box-shadow:0 24px 60px rgba(90,70,55,.14) !important;
+  padding:28px 26px !important; width:min(360px,88vw) !important;
+  backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);
+}
+body.fx.board-page #empty-state .empty-icon { display:none !important; }
+body.fx.board-page #empty-state .empty-text {
+  font-size:27px !important; font-weight:800 !important; line-height:1.12 !important;
+  letter-spacing:-.03em !important; color:var(--fx-ink) !important;
+  text-transform:lowercase !important; text-align:center !important;
+  margin:0 0 18px !important;
+}
+body.fx.board-page #empty-state .empty-hint {
+  background:rgba(240,238,232,.75) !important; border:none !important;
+  border-radius:999px !important; padding:9px 14px !important;
+  font-size:12px !important; color:var(--fx-mute) !important;
+  justify-content:flex-start !important; gap:8px !important;
+  margin-bottom:8px !important;
+}
+body.fx.board-page #empty-state .empty-key {
+  background:rgba(255,255,255,.9) !important; border:none !important;
+  border-radius:999px !important; color:var(--fx-ink-2) !important;
+  font-family:inherit !important; padding:2px 10px !important;
+}
+/* Вторая кнопка («Add text») в макете отсутствует, первая - лаймовая капсула. */
+body.fx.board-page #empty-state .empty-actions { display:block !important; margin-top:16px !important; }
+body.fx.board-page #empty-state .empty-action:not(.primary) { display:none !important; }
+body.fx.board-page #empty-state .empty-action.primary {
+  display:block !important; width:100% !important;
+  background:var(--fx-lime) !important; border:none !important;
+  border-radius:999px !important; padding:11px !important;
+  font-size:15px !important; font-weight:650 !important;
+  color:var(--fx-ink) !important; box-shadow:none !important;
+}
+body.fx.board-page #empty-state .empty-action.primary:hover { background:var(--fx-lime-deep) !important; }

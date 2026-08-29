@@ -18,7 +18,16 @@ function updateClock() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2,'0');
   const m = now.getMinutes().toString().padStart(2,'0');
-  document.getElementById('mb-clock').textContent = h + ':' + m;
+  // В макете в правом верхнем углу стоит дата и время («Sun, 12 march 2026 12:45»),
+  // а не одни часы. Полная форма - только на страницах с концептом (body.fx).
+  const el = document.getElementById('mb-clock');
+  if (document.body.classList.contains('fx')) {
+    const wd = now.toLocaleDateString('en-US', { weekday: 'short' });
+    const mo = now.toLocaleDateString('en-US', { month: 'long' }).toLowerCase();
+    el.textContent = `${wd}, ${now.getDate()} ${mo} ${now.getFullYear()}  ${h}:${m}`;
+  } else {
+    el.textContent = h + ':' + m;
+  }
 }
 updateClock(); setInterval(updateClock, 30000);
 
@@ -2289,7 +2298,7 @@ setInterval(loadNotifications, 120000);
     const streakLabel = document.querySelector('#wg-streak .wg-streak-label');
     const streakSub = document.querySelector('#wg-streak .wg-streak-sub');
     if (streakN) streakN.textContent = todays.length;
-    if (streakLabel) streakLabel.textContent = todays.length === 1 ? 'Class today' : 'Classes today';
+    if (streakLabel) streakLabel.textContent = todays.length === 1 ? 'class today' : 'classes today';
     if (streakSub) {
       if (!todays.length) streakSub.innerHTML = `Nothing scheduled today<br><a href="schedule.html" style="color:var(--accent);">Add class →</a>`;
       else if (next) streakSub.innerHTML = `${done} done · ${upcoming.length} upcoming<br>Next: <span style="color:var(--accent)">${next.group_name || next.title} ${next.start_time.slice(0,5)}</span>`;
@@ -2353,7 +2362,7 @@ setInterval(loadNotifications, 120000);
       ex:    document.querySelector('#wg-vocab .wg-vocab-ex'),
       btn:   document.querySelector('#wg-vocab .wg-vocab-next'),
     };
-    if (v.label) v.label.textContent = 'My boards';
+    if (v.label) v.label.textContent = 'all boards';
     if (v.n)     v.n.textContent = boards.length;
     if (v.lang)  v.lang.textContent = boards.length === 1 ? 'visual board' : 'visual boards';
     const totalCards = boards.reduce((s, b) => s + (b.card_count || 0), 0);
@@ -2362,7 +2371,7 @@ setInterval(loadNotifications, 120000);
       const recent = boards.slice(0, 3).map(b => b.name).join(' · ') || 'Nothing yet';
       v.ex.innerHTML = recent;
     }
-    if (v.btn) { v.btn.textContent = 'Open Board →'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
+    if (v.btn) { v.btn.textContent = 'Add board'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
     writeTeacherDashboardCache({ boards });
     updateMobileTeacherOverview();
   }).catch(() => {
