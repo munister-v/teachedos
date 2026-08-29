@@ -414,3 +414,41 @@ body.fx.board-page #empty-state .empty-action.primary {
   color:var(--fx-ink) !important; box-shadow:none !important;
 }
 body.fx.board-page #empty-state .empty-action.primary:hover { background:var(--fx-lime-deep) !important; }
+
+/* Карточки досок красит правило с более высокой специфкой (.lesson-card из
+   общей темы), поэтому целюсь в них прямо, а не через `.curr-grid > *`:
+   в макете карточка - полупрозрачный кремовый прямоугольник в тон панели,
+   а не белый блок с серой рамкой. */
+body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime) {
+  background:rgba(255,253,246,.55) !important;
+  border:1px solid rgba(255,255,255,.6) !important;
+  border-radius:var(--fx-r-card) !important;
+  box-shadow:none !important;
+}
+body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime):hover {
+  background:rgba(255,255,255,.75) !important;
+}
+body.fx.os-desktop .curr-grid .lc-lang {
+  font-size:12px !important; color:var(--fx-mute) !important;
+  text-transform:lowercase !important; letter-spacing:0 !important;
+  font-family:inherit !important;
+}
+body.fx.os-desktop .curr-grid .lc-title {
+  font-size:17px !important; font-weight:700 !important;
+  letter-spacing:-.02em !important; color:var(--fx-ink) !important;
+}
+body.fx.os-desktop .curr-grid .lc-meta,
+body.fx.os-desktop .curr-grid .lc-dur {
+  font-size:12px !important; color:var(--fx-mute) !important; font-family:inherit !important;
+}
+
+/* unify.css вешает на карточку лаймово-чёрную полоску сверху через ::before -
+   в макете её нет. */
+body.fx.os-desktop .curr-grid .lesson-card::before { display:none !important; }
+
+/* Метка типа карточки шла лаймовым чипом - в палитре макета лайм только у
+   активных состояний и кнопок, поэтому здесь это обычная серая подпись. */
+body.fx.os-desktop .curr-grid .lesson-card .lc-lang {
+  background:none !important; border:none !important; padding:0 !important;
+  box-shadow:none !important; border-radius:0 !important;
+}

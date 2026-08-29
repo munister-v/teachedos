@@ -820,7 +820,7 @@ function boardsRender() {
     const updated = b.updated_at ? new Date(b.updated_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
     const owner = b.owner_name ? `<div class="lc-desc">Shared by ${b.owner_name}</div>` : '';
     return `<div class="lesson-card" onclick="location.href='board.html?id=${b.id}'" style="cursor:pointer;">
-      <div class="lc-lang">📌 Board</div>
+      <div class="lc-lang">board</div>
       <div class="lc-title">${(b.name || 'Untitled').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</div>
       ${owner}
       <div class="lc-meta">
