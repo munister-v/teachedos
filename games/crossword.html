@@ -39,10 +39,12 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .clues{grid-template-columns:1fr}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=478">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=478">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=479">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=479">
+<!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
+<link rel="stylesheet" href="../styles/figma-theme.css?v=479">
 </head>
-<body>
+<body class="fx">
 <a class="back" href="index.html">← Games</a>
 <h1>📝 Crossword</h1>
 <p class="subtitle">Fill in the words from the clues below</p>
@@ -265,6 +267,6 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=478"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=479"></script>
 </body>
 </html>

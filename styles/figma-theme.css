@@ -11,7 +11,7 @@
    страницу можно вернуть к прежнему виду, сняв один класс.
 
    Про специфику: tool-window.css целится в `body.tw-page:not(#_)` — это
-   (1,1,1) плюс !important. Ниже везде `body.fx.tw-page:not(#_)` — (1,2,1),
+   (1,1,1) плюс !important. Ниже везде `body.fx:not(#_)` — (1,2,1),
    то есть на один класс выше. Балласт `:not(#_)` убирать нельзя, иначе
    правила проигрывают молча.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -49,7 +49,7 @@ body.fx {
 }
 
 /* ── Фон страницы ───────────────────────────────────────────────────────── */
-body.fx.tw-page:not(#_) {
+body.fx:not(#_) {
   background:
     radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
     radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
@@ -66,7 +66,7 @@ body.fx.tw-page:not(#_) {
   --tw-ink-2:#4A4A46;
   --tw-ink-3:#9A968C;
 }
-body.fx.tw-page:not(#_)::before {
+body.fx:not(#_)::before {
   content:'' !important;
   position:fixed; inset:0; z-index:0; pointer-events:none;
   opacity:.4; mix-blend-mode:soft-light;
@@ -74,7 +74,7 @@ body.fx.tw-page:not(#_)::before {
 }
 
 /* ── Верхняя панель ─────────────────────────────────────────────────────── */
-body.fx.tw-page:not(#_) :is(.nav,#nav) {
+body.fx:not(#_) :is(.nav,#nav) {
   height:56px !important; min-height:56px !important;
   padding:0 26px !important; gap:4px !important;
   background:#FFFFFF !important;
@@ -82,68 +82,68 @@ body.fx.tw-page:not(#_) :is(.nav,#nav) {
   box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
 }
-body.fx.tw-page:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) { color:var(--fx-ink) !important; }
-body.fx.tw-page:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) img {
+body.fx:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) { color:var(--fx-ink) !important; }
+body.fx:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) img {
   width:26px !important; height:26px !important;
 }
 /* Слово «TeachEd» рядом с котом в макете не набрано - остаётся один знак. */
-body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-logo-name { display:none !important; }
-body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-sep { display:none !important; }
-body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-link {
+body.fx:not(#_) :is(.nav,#nav) .nav-logo-name { display:none !important; }
+body.fx:not(#_) :is(.nav,#nav) .nav-sep { display:none !important; }
+body.fx:not(#_) :is(.nav,#nav) .nav-link {
   height:36px !important; padding:0 14px !important;
   border-radius:999px !important;
   font-size:15px !important; font-weight:500 !important;
   letter-spacing:-.01em !important;
   color:var(--fx-ink) !important; background:transparent !important;
 }
-body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-link:hover {
+body.fx:not(#_) :is(.nav,#nav) .nav-link:hover {
   background:rgba(22,22,22,.06) !important;
 }
-body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-link.active {
+body.fx:not(#_) :is(.nav,#nav) .nav-link.active {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important;
   font-weight:650 !important;
 }
-body.fx.tw-page:not(#_) :is(.nav,#nav) :is(.nav-pill,.nav-user) {
+body.fx:not(#_) :is(.nav,#nav) :is(.nav-pill,.nav-user) {
   height:36px !important; padding:0 14px !important; border-radius:999px !important;
   background:rgba(22,22,22,.05) !important; color:var(--fx-ink) !important;
   font-size:13px !important;
 }
-body.fx.tw-page:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
+body.fx:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
   background:var(--fx-ink) !important; color:var(--fx-lime) !important;
 }
 
 /* ── Левая рейка ────────────────────────────────────────────────────────── */
-body.fx.tw-page:not(#_) :is(.side,#sidebar) {
+body.fx:not(#_) :is(.side,#sidebar) {
   top:56px !important;
   background:rgba(255,253,247,.55) !important;
   border:1px solid rgba(255,255,255,.5) !important;
   border-radius:24px !important;
   box-shadow:none !important;
 }
-body.fx.tw-page:not(#_) .side-title {
+body.fx:not(#_) .side-title {
   font-family:inherit !important; font-size:12px !important; font-weight:400 !important;
   letter-spacing:0 !important; text-transform:lowercase !important;
   color:var(--fx-mute) !important;
 }
-body.fx.tw-page:not(#_) .side-btn {
+body.fx:not(#_) .side-btn {
   font-size:15px !important; font-weight:450 !important; color:var(--fx-ink) !important;
   border-radius:10px !important;
 }
-body.fx.tw-page:not(#_) .side-btn:hover { background:rgba(255,255,255,.5) !important; }
-body.fx.tw-page:not(#_) :is(.side-btn.active,.side-btn.pane-tab.active) {
+body.fx:not(#_) .side-btn:hover { background:rgba(255,255,255,.5) !important; }
+body.fx:not(#_) :is(.side-btn.active,.side-btn.pane-tab.active) {
   background:rgba(255,255,255,.72) !important; color:var(--fx-ink) !important;
   font-weight:600 !important; box-shadow:none !important;
 }
 /* Фиолетовый чип иконки в рейке - из старой темы. */
-body.fx.tw-page:not(#_) .side-ic {
+body.fx:not(#_) .side-ic {
   background:rgba(22,22,22,.06) !important; color:var(--fx-ink) !important;
 }
-body.fx.tw-page:not(#_) .side-btn.active .side-ic {
+body.fx:not(#_) .side-btn.active .side-ic {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important;
 }
 
 /* ── Панели ─────────────────────────────────────────────────────────────── */
-body.fx.tw-page:not(#_) :is(.panel,.hero-card,.share-card,.hw-focus,.hw-toolbar,.section,.topic-bar,.preset-bar,.tabs) {
+body.fx:not(#_) :is(.panel,.hero-card,.share-card,.hw-focus,.hw-toolbar,.section,.topic-bar,.preset-bar,.tabs) {
   border:1px solid var(--fx-glass-line) !important;
   border-radius:var(--fx-r-panel) !important;
   background:var(--fx-glass) !important;
@@ -151,21 +151,21 @@ body.fx.tw-page:not(#_) :is(.panel,.hero-card,.share-card,.hw-focus,.hw-toolbar,
   -webkit-backdrop-filter:blur(42px) saturate(1.35) !important;
   box-shadow:var(--fx-shadow) !important;
 }
-body.fx.tw-page:not(#_) .panel:hover { box-shadow:var(--fx-shadow) !important; }
+body.fx:not(#_) .panel:hover { box-shadow:var(--fx-shadow) !important; }
 /* Кремовая полоса заголовка - примета старой темы окон; в макете шапка
    панели ничем не залита, отделена только волоском. */
-body.fx.tw-page:not(#_) .panel-head {
+body.fx:not(#_) .panel-head {
   background:transparent !important;
   border-bottom:1px solid rgba(22,22,22,.07) !important;
   box-shadow:none !important;
 }
-body.fx.tw-page:not(#_) .panel-title {
+body.fx:not(#_) .panel-title {
   font-size:15px !important; font-weight:700 !important;
   letter-spacing:-.02em !important; color:var(--fx-ink) !important;
 }
 
 /* ── Карточки ───────────────────────────────────────────────────────────── */
-body.fx.tw-page:not(#_) :is(
+body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
   .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item,
   .stat,.stage,.preset,.lib-item,.activity-btn,.quality-card,
@@ -177,37 +177,37 @@ body.fx.tw-page:not(#_) :is(
   border-radius:var(--fx-r-card) !important;
   box-shadow:none !important;
 }
-body.fx.tw-page:not(#_) :is(
+body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
   .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item
 ):not(.dark):not(.ink):not(.lime):not(.featured):hover {
   background:rgba(255,255,255,.78) !important;
 }
 /* Полоска-градиент поверх карточки из unify.css в макете отсутствует. */
-body.fx.tw-page:not(#_) :is(.card,.tool-card,.board-card,.pack-card,.community-card)::before {
+body.fx:not(#_) :is(.card,.tool-card,.board-card,.pack-card,.community-card)::before {
   display:none !important;
 }
 
 /* ── Кнопки ─────────────────────────────────────────────────────────────── */
-body.fx.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn) {
+body.fx:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn) {
   border-radius:999px !important;
   font-weight:600 !important;
 }
-body.fx.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course) {
+body.fx:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course) {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important;
   border:none !important; box-shadow:none !important;
 }
-body.fx.tw-page:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course):hover {
+body.fx:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course):hover {
   background:var(--fx-lime-deep) !important;
 }
-body.fx.tw-page:not(#_) :is(.btn.ghost,.btn.soft,.btn-ghost,.btn.btn-ghost) {
+body.fx:not(#_) :is(.btn.ghost,.btn.soft,.btn-ghost,.btn.btn-ghost) {
   background:rgba(255,255,255,.6) !important;
   border:1px solid rgba(255,255,255,.7) !important;
   color:var(--fx-ink) !important; box-shadow:none !important;
 }
 
 /* ── Поля ввода ─────────────────────────────────────────────────────────── */
-body.fx.tw-page:not(#_) :is(input[type="text"],input[type="search"],input[type="email"],textarea,select) {
+body.fx:not(#_) :is(input[type="text"],input[type="search"],input[type="email"],textarea,select) {
   background:rgba(255,255,255,.6) !important;
   border:1px solid rgba(255,255,255,.7) !important;
   border-radius:14px !important;
@@ -215,7 +215,7 @@ body.fx.tw-page:not(#_) :is(input[type="text"],input[type="search"],input[type="
 }
 
 /* Содержимое должно лежать над зерном: оно нарисовано на ::before страницы. */
-body.fx.tw-page:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
+body.fx:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
   position:relative; z-index:1;
 }
 
@@ -245,46 +245,46 @@ html:has(body.fx) { background:#E0D0BC !important; }
 /* ── Остальной словарь страниц ──────────────────────────────────────────── */
 /* Рейка на lesson-packs и профиле собрана не на .side-btn, а на .sb-item и
    .setting-btn - те же элементы, другие имена. */
-body.fx.tw-page:not(#_) :is(.sb-item,.ltab,.setting-btn) {
+body.fx:not(#_) :is(.sb-item,.ltab,.setting-btn) {
   border-radius:10px !important; font-weight:500 !important;
   color:var(--fx-ink) !important; background:transparent !important;
   border:none !important; box-shadow:none !important;
 }
-body.fx.tw-page:not(#_) :is(.sb-item,.ltab,.setting-btn):hover {
+body.fx:not(#_) :is(.sb-item,.ltab,.setting-btn):hover {
   background:rgba(255,255,255,.5) !important;
 }
-body.fx.tw-page:not(#_) :is(.sb-item.active,.ltab.active) {
+body.fx:not(#_) :is(.sb-item.active,.ltab.active) {
   background:rgba(255,255,255,.72) !important; color:var(--fx-ink) !important;
   font-weight:600 !important;
 }
-body.fx.tw-page:not(#_) .sb-label {
+body.fx:not(#_) .sb-label {
   font-family:inherit !important; font-size:12px !important; font-weight:400 !important;
   letter-spacing:0 !important; text-transform:lowercase !important;
   color:var(--fx-mute) !important;
 }
 
 /* Поля форм на расписании, журнале и в профиле - свои классы. */
-body.fx.tw-page:not(#_) :is(.form-input,.setting-input,.field input,.field textarea,.field select) {
+body.fx:not(#_) :is(.form-input,.setting-input,.field input,.field textarea,.field select) {
   background:rgba(255,255,255,.6) !important;
   border:1px solid rgba(255,255,255,.7) !important;
   border-radius:14px !important;
   color:var(--fx-ink) !important;
 }
-body.fx.tw-page:not(#_) :is(.form-label,.setting-label,.stat-lbl,.side-title,.sec-eyebrow) {
+body.fx:not(#_) :is(.form-label,.setting-label,.stat-lbl,.side-title,.sec-eyebrow) {
   font-family:inherit !important; letter-spacing:0 !important;
   text-transform:lowercase !important; color:var(--fx-mute) !important;
 }
-body.fx.tw-page:not(#_) :is(.card-title,.sec-title,.stat-val,.stat-num) {
+body.fx:not(#_) :is(.card-title,.sec-title,.stat-val,.stat-num) {
   color:var(--fx-ink) !important; letter-spacing:-.02em !important;
 }
-body.fx.tw-page:not(#_) :is(.btn-outline,.btn-sm,.setting-btn) { border-radius:999px !important; }
+body.fx:not(#_) :is(.btn-outline,.btn-sm,.setting-btn) { border-radius:999px !important; }
 
 /* ── Акцент ─────────────────────────────────────────────────────────────── */
 /* Фиолетовый акцент старой темы в макете не встречается ни разу: цветом
    выделено только действие (лайм), остальное - чернила. Правлю на уровне
    переменных, иначе пришлось бы гоняться за каждым местом, где он всплывает
    (линия «сейчас» в расписании, чипы иконок, ссылки). */
-body.fx.tw-page:not(#_) {
+body.fx:not(#_) {
   --accent:#161616;
   --accent-2:rgba(203,240,60,.28);
   --accent-3:rgba(22,22,22,.14);
