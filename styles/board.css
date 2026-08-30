@@ -2220,7 +2220,8 @@ body.board-dragging .board-card{will-change:transform,left,top;}
   background:#fff;border:1px solid rgba(0,0,0,.10);
   box-shadow:0 4px 16px rgba(5,5,23,.12),0 1px 3px rgba(0,0,0,.06);
   opacity:0;transition:opacity .15s,transform .15s;pointer-events:none;
-  z-index:30;align-items:center;flex-wrap:nowrap;max-width:none;
+  z-index:30;align-items:center;flex-wrap:wrap;max-width:min(320px,86vw);
+  justify-content:center;row-gap:5px;
 }
 .card-sticky:hover .sticky-toolbar,
 .card-sticky.selected .sticky-toolbar{
@@ -2234,12 +2235,16 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 .sticky-close:hover{background:rgba(239,68,68,.10);color:#ef4444;}
 /* Miro-style color swatches in popover */
+/* Крапки кольору тепер <button>: скидаємо системні стилі, щоб коло
+   лишилось таким самим, як було в <div>, і додаємо фокус з клавіатури. */
 .color-dot{
+  appearance:none;-webkit-appearance:none;padding:0;margin:0;font:inherit;line-height:0;
   width:18px;height:18px;border-radius:50%;cursor:pointer;
   border:2px solid transparent;transition:transform .12s,border-color .12s;
   box-shadow:0 0 0 1px rgba(0,0,0,.10) inset;
 }
 .color-dot:hover{transform:scale(1.10);}
+.color-dot:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .color-dot.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(0,0,0,.06) inset,0 0 0 1px #fff inset;}
 
 /* ── PLAN ── */
@@ -2686,10 +2691,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 [data-theme="dark"] .layer-sep{background:rgba(255,255,255,.10);}
 /* Inline color swatch row inside the layer popover (sticky/note) */
 .layer-popover .card-color-row{
-  display:flex;align-items:center;gap:6px;
-  padding:0 6px;margin:0 2px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  max-width:216px;padding:0 6px;margin:0 2px;
 }
 .layer-popover .card-color-swatch{
+  appearance:none;-webkit-appearance:none;padding:0;
   width:20px;height:20px;border-radius:8px;cursor:pointer;
   border:1.5px solid rgba(70,55,38,.14);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 1px 2px rgba(17,24,39,.05);

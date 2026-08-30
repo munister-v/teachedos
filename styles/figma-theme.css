@@ -167,13 +167,18 @@ body.fx:not(#_) .panel-title {
 }
 
 /* ── Карточки ───────────────────────────────────────────────────────────── */
+/* Стикеры, заметки и фреймы красит сам пользователь, и цвет лежит в
+   inline-стиле карточки. Пока они попадали в этот общий набор, !important
+   перебивал inline: палитра исправно меняла card.color, а на экране все
+   стикеры оставались одинаково кремовыми - это и был «баг со сменой цвета».
+   Поэтому они исключены и здесь, и в hover-правиле ниже. */
 body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
   .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item,
   .stat,.stage,.preset,.lib-item,.activity-btn,.quality-card,
   .hw-card,.hw-metric,.tpl-card,.type-card,.library-item,
   .stat-card,.insight-card,.stat-pill,.side-section
-):not(.dark):not(.ink):not(.lime):not(.featured) {
+):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame) {
   background:rgba(255,253,246,.55) !important;
   border:1px solid rgba(255,255,255,.6) !important;
   border-radius:var(--fx-r-card) !important;
@@ -182,7 +187,7 @@ body.fx:not(#_) :is(
 body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
   .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item
-):not(.dark):not(.ink):not(.lime):not(.featured):hover {
+):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame):hover {
   background:rgba(255,255,255,.78) !important;
 }
 /* Полоска-градиент поверх карточки из unify.css в макете отсутствует. */

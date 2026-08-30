@@ -896,6 +896,55 @@ function toggleCardPrivate(cardId) {
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
+/* ── Колір стікера: один шлях для обох палітр ────────────────────────────
+   Було два незалежних обробники (кольорові крапки на самій картці і ряд
+   зразків у поповері шарів), і вони розходились:
+
+   1. Крапки на картці міняли колір, але НЕ звали scheduleSave — після
+      перезавантаження дошки стікер повертав старий колір.
+   2. Стікери з лівої палітри створюються кольорами STICKY_PALETTE_COLORS,
+      а редагуються списком STICKY_COLORS. Набори не перетинаються, тож
+      поточний колір не підсвічувався ніде: жодна крапка не «активна».
+
+   Тепер колір міняється тільки через applyStickyColor: він пише в модель,
+   малює, синхронізує обидві палітри і зберігає. А stickyPaletteFor додає
+   поточний колір першим, якщо його немає в списку, щоб користувач бачив,
+   на чому стоїть.                                                        */
+function sameColor(a, b) {
+  return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+}
+
+function stickyPaletteFor(card, limit) {
+  const base = STICKY_COLORS.slice(0, limit || STICKY_COLORS.length);
+  const current = card && card.color;
+  if (current && !base.some(c => sameColor(c, current))) return [current, ...base];
+  return base;
+}
+
+function syncStickyColorUI(card) {
+  const el = getCardEl(card.id);
+  if (el) {
+    el.querySelectorAll('.color-dot').forEach(d =>
+      d.classList.toggle('active', sameColor(d.dataset.color, card.color)));
+  }
+  const pop = document.querySelector('.layer-popover');
+  if (pop && pop.dataset.cardId === String(card.id)) {
+    pop.querySelectorAll('.card-color-row .card-color-swatch').forEach(sw =>
+      sw.classList.toggle('active', sameColor(sw.dataset.color, card.color)));
+  }
+}
+
+function applyStickyColor(card, color) {
+  if (!card || sameColor(card.color, color)) return;
+  snapshot();
+  card.color = color;
+  const el = getCardEl(card.id);
+  if (el) el.style.backgroundColor = color;
+  syncStickyColorUI(card);
+  scheduleSave && scheduleSave();
+  saveLocal && saveLocal();
+}
+
 function renderSticky(el, card) {
   el.style.backgroundColor = card.color || STICKY_COLORS[0];
   const body = document.createElement('div');
@@ -903,16 +952,17 @@ function renderSticky(el, card) {
 
   const tb = document.createElement('div');
   tb.className = 'sticky-toolbar';
-  STICKY_COLORS.forEach(c => {
-    const dot = document.createElement('div');
-    dot.className = 'color-dot' + (c === card.color ? ' active' : '');
+  stickyPaletteFor(card).forEach(c => {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'color-dot' + (sameColor(c, card.color) ? ' active' : '');
+    dot.dataset.color = c;
     dot.style.background = c;
+    dot.title = 'Colour ' + c;
+    dot.setAttribute('aria-label', 'Sticker colour ' + c);
     dot.addEventListener('click', e => {
       e.stopPropagation();
-      snapshot();
-      card.color = c; el.style.backgroundColor = c;
-      el.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-      dot.classList.add('active');
+      applyStickyColor(card, c);
     });
     tb.appendChild(dot);
   });
@@ -5748,22 +5798,18 @@ function showLayerPopover(cardId) {
       }
     }
     cardColorRow.innerHTML = '';
-    const palette = STICKY_COLORS.slice(0, 8);
-    palette.forEach(c => {
+    stickyPaletteFor(card, 8).forEach(c => {
       const sw = document.createElement('button');
+      sw.type = 'button';
       sw.className = 'card-color-swatch';
+      sw.dataset.color = c;
       sw.style.background = c;
       sw.title = c;
-      if ((card.color || '').toLowerCase() === c.toLowerCase()) sw.classList.add('active');
+      sw.setAttribute('aria-label', 'Card colour ' + c);
+      if (sameColor(card.color, c)) sw.classList.add('active');
       sw.addEventListener('click', e => {
         e.stopPropagation();
-        snapshot();
-        card.color = c;
-        const el = getCardEl(card.id);
-        if (el) el.style.backgroundColor = c;
-        cardColorRow.querySelectorAll('.card-color-swatch').forEach(s => s.classList.remove('active'));
-        sw.classList.add('active');
-        scheduleSave && scheduleSave();
+        applyStickyColor(card, c);
       });
       cardColorRow.appendChild(sw);
     });
@@ -13448,7 +13494,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '510';
+const TEACHEDOS_ASSET_VERSION = '511';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14538,10 +14584,31 @@ let localSaveQuotaWarned = false;
 let cloudSaveSizeWarned  = false;
 
 /* ── Lightweight hash to detect actual changes ── */
+/* Отпечаток доски для ответа на вопрос «что-нибудь изменилось?».
+   Раньше он складывался из количества карточек, стрелок, штрихов и суммы
+   координат - то есть видел только добавление, удаление и перемещение.
+   Любая правка «на месте» (цвет стикера, текст, размер, замок, кегль)
+   давала тот же отпечаток, saveLocal выходил по раннему return, и правка
+   не доезжала до localStorage: после перезагрузки цвет возвращался старый.
+   Теперь считаем 32-битный FNV-1a по тому же payload, который и пишем,
+   так что stringify остаётся один на сохранение - ради чего дешёвый
+   отпечаток и заводился. */
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h.toString(36);
+}
+
+function hashPayload(payload) {
+  return payload.length + ':' + fnv1a(payload);
+}
+
 function boardHash() {
-  return state.cards.length + ':' + state.arrows.length + ':' +
-    ((state.strokes||[]).length) + ':' +
-    (state.cards.reduce((s,c)=>s+c.x+c.y,0)|0);
+  try { return hashPayload(JSON.stringify(serializeBoard())); }
+  catch { return String(Date.now()); }   // не молчим: считаем «изменилось»
 }
 
 /* ── Update the save-status chip ── */
@@ -14645,12 +14712,11 @@ function serializeBoard() {
 
 /* ════ LOCAL SAVE ════ */
 function saveLocal() {
-  // Skip write if nothing has changed since last save - avoids redundant
-  // JSON.stringify + localStorage write on every scheduleSave() call.
-  const h = boardHash();
+  // Один stringify: из него же считаем отпечаток и его же пишем.
+  const payload = JSON.stringify(serializeBoard());
+  const h = hashPayload(payload);
   if (h === lastSavedHash) return true;
 
-  const payload = JSON.stringify(serializeBoard());
   try {
     localStorage.setItem(SAVE_KEY, payload);
     lastSavedHash = h;
