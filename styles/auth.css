@@ -17,62 +17,81 @@
   --auth-radius:    14px;
 }
 
-/* ── Overlay / backdrop ──────────────────────────────────────── */
+/* ── Overlay / backdrop ──────────────────────────────────────────
+   Розові й бузкові радіальні плями під карткою були найпомітнішим, що є
+   у вікні входу. Тепер підкладка така сама, як в еталонної модалки
+   «YouTube → Lesson» на дошці: спокійна темна плюс легке розмиття.      */
 .auth-overlay {
   position: fixed; inset: 0; z-index: 9998;
   display: flex; align-items: center; justify-content: center;
   padding: 20px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  background:
-    radial-gradient(ellipse 70% 55% at 18% 16%, rgba(236,45,140,.10) 0%, transparent 62%),
-    radial-gradient(ellipse 58% 46% at 86% 78%, rgba(216,197,251,.20) 0%, transparent 60%),
-    rgba(16,14,22,.48);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(17,16,24,.52);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
-/* ── Card ────────────────────────────────────────────────────── */
+/* ── Card: вікно робочого столу ──────────────────────────────────
+   Метрики зняті з живого index.html (див. пам'ятку про мову вікон):
+   біле тіло, радіус 18, рамка rgba(23,23,25,.10) і триярусна тінь.      */
 .auth-card {
-  background: var(--auth-card-bg);
-  backdrop-filter: blur(44px) saturate(1.9);
-  -webkit-backdrop-filter: blur(44px) saturate(1.9);
-  border-radius: 28px;
-  padding: 36px 36px 28px;
+  background: rgba(255,255,255,.98);
+  border-radius: 18px;
+  padding: 0;                       /* відступи тепер у .auth-body */
+  overflow: hidden;                 /* титульна смуга ріжеться по радіусу */
   width: min(420px, calc(100vw - 32px));
   position: relative; margin: auto;
+  border: 1px solid rgba(23,23,25,.10);
   box-shadow:
-    0 52px 120px rgba(14,14,16,.44),
-    0 0 0 1px rgba(255,255,255,.55),
-    inset 0 1.5px 0 rgba(255,255,255,.85);
-  border: 1px solid rgba(255,255,255,.62);
+    0 24px 72px rgba(0,0,0,.22),
+    0 8px 24px rgba(0,0,0,.10),
+    0 1px 0 rgba(255,255,255,.72) inset;
 }
 
-/* ── Close button ────────────────────────────────────────────── */
-.auth-close {
-  position: absolute; top: 16px; right: 16px;
-  width: 44px; height: 44px; border-radius: 12px;
-  background: rgba(14,14,16,.06); color: var(--auth-ink2);
-  font-size: 18px; font-weight: 650; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; border: none; transition: background .15s;
+/* ── Титульна смуга ─────────────────────────────────────────────── */
+.auth-titlebar {
+  display: flex; align-items: center; gap: 8px;
+  height: 46px; padding: 0 10px 0 14px;
+  background: rgba(234,228,216,.98);
+  border-bottom: 1px solid rgba(23,23,25,.08);
 }
-.auth-close:hover { background: rgba(14,14,16,.13); }
+.auth-tb-logo { width: 20px; height: 20px; display: block; flex: 0 0 auto; }
+.auth-tb-name {
+  font-size: 13px; font-weight: 700; letter-spacing: -.01em;
+  color: var(--auth-ink);
+}
+.auth-body { padding: 26px 26px 22px; }
+
+/* ── Close button: віконна кнопка у смузі, а не хрестик поверх картки ── */
+.auth-close {
+  margin-left: auto;
+  width: 28px; height: 28px; border-radius: 9px;
+  background: rgba(17,24,39,.06); color: var(--auth-ink2);
+  font-size: 16px; font-weight: 650; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none; transition: background .15s, color .15s;
+  flex: 0 0 auto; padding: 0;
+}
+.auth-close:hover { background: rgba(239,68,68,.12); color: #d63b3b; }
 .auth-close:focus-visible,.auth-eye:focus-visible,.auth-role:focus-visible,.auth-forgot button:focus-visible,.auth-toggle button:focus-visible{outline:3px solid rgba(141,184,0,.58);outline-offset:2px;}
 
-/* ── Header ──────────────────────────────────────────────────── */
-.auth-head { text-align: center; margin-bottom: 26px; }
+/* ── Header ──────────────────────────────────────────────────────
+   Було три рівні одного й того самого: лого з лаймовим світінням,
+   вордмарк 2rem і підпис. Назва станції переїхала в титульну смугу,
+   тут лишився заголовок режиму — кегль модалки-еталона (19/600).      */
+.auth-head { text-align: left; margin-bottom: 20px; }
 .auth-logo {
-  width: 64px; height: 64px; border-radius: 16px;
-  margin: 0 auto 14px; display: block;
-  filter: drop-shadow(0 4px 18px rgba(160,200,20,.42));
+  width: 44px; height: 44px; border-radius: 0;
+  margin: 0 0 12px; display: block;
+  filter: none;
 }
 .auth-title {
-  font-size: 2rem; font-weight:600; letter-spacing: -.055em; line-height: 1;
-  color: var(--auth-ink); margin-bottom: 5px;
+  font-size: 19px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2;
+  color: var(--auth-ink); margin-bottom: 4px;
 }
 .auth-title em { font-style: normal; color: #7C8A7B; }
 .auth-sub {
-  font-size: 13px; color: var(--auth-ink2); font-weight: 600; margin-top: 0;
-  letter-spacing: .005em;
+  font-size: 12px; color: #6B7280; font-weight: 500; margin-top: 0;
+  letter-spacing: 0; line-height: 1.45;
 }
 
 /* ── Error / success banners ─────────────────────────────────── */
@@ -95,14 +114,14 @@
 }
 .auth-role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .auth-role {
-  padding: 14px 10px 12px; border-radius: 14px;
-  border: 2px solid var(--auth-border); background: rgba(255,255,255,.62);
+  padding: 14px 10px 12px; border-radius: 13px;
+  border: 1px solid rgba(24,24,24,.14); background: #FFFFFF;
   min-height:86px;color:inherit;font:inherit;cursor: pointer; text-align: center; transition: border-color .18s, background .18s, transform .12s;
   user-select: none;
 }
 .auth-role:hover { border-color: rgba(141,184,0,.4); background: rgba(205,242,79,.10); transform: translateY(-1px); }
 .auth-role.sel {
-  border-color: var(--auth-lime-dark);
+  border-color: rgba(141,184,0,.65);
   background: rgba(205,242,79,.18);
   box-shadow: 0 2px 12px rgba(141,184,0,.18);
 }
@@ -113,16 +132,16 @@
 /* ── Input fields ────────────────────────────────────────────── */
 .auth-field-wrap { position: relative; margin-bottom: 11px; }
 .auth-inp {
-  width: 100%; padding: 13px 16px;
-  border: 1.5px solid var(--auth-border); border-radius: var(--auth-radius);
-  font-family: inherit; font-size: .95rem; font-weight: 600; color: var(--auth-ink);
-  outline: none; background: var(--auth-bg-field);
+  width: 100%; padding: 11px 13px;
+  border: 1px solid rgba(24,24,24,.14); border-radius: 13px;
+  font-family: inherit; font-size: 14px; font-weight: 650; color: var(--auth-ink);
+  outline: none; background: #FFFFFF;
   transition: border-color .18s, box-shadow .18s;
   box-sizing: border-box; -webkit-appearance: none;
 }
 .auth-inp:focus {
-  border-color: var(--auth-lime-dark);
-  box-shadow: 0 0 0 3px rgba(205,242,79,.28);
+  border-color: rgba(141,184,0,.55);
+  box-shadow: 0 0 0 4px rgba(205,242,79,.24);
 }
 .auth-inp::placeholder { color: var(--auth-ink3); font-weight: 500; }
 /* Pages that embed this modal (board.html in particular) also load a generic
@@ -135,14 +154,14 @@
    page (auth-modal.js always gives the overlay this id), so it anchors the
    override without needing to know what page embedded the modal. */
 #auth-overlay .auth-inp {
-  border-color: var(--auth-border) !important;
-  background: var(--auth-bg-field) !important;
+  border-color: rgba(24,24,24,.14) !important;
+  background: #FFFFFF !important;
   box-shadow: none !important;
 }
 #auth-overlay .auth-inp:focus {
-  border-color: var(--auth-lime-dark) !important;
-  box-shadow: 0 0 0 3px rgba(205,242,79,.28) !important;
-  background: var(--auth-bg-field) !important;
+  border-color: rgba(141,184,0,.55) !important;
+  box-shadow: 0 0 0 4px rgba(205,242,79,.24) !important;
+  background: #FFFFFF !important;
 }
 #auth-overlay .auth-inp::placeholder { color: var(--auth-ink3) !important; font-weight: 500 !important; }
 /* Only the password field's own input needs room for the eye button - the
@@ -151,7 +170,7 @@
    password one) got the same 16px, letting long input text run under the
    eye icon. */
 .auth-password-field .auth-inp { padding-right: 44px; }
-.auth-field-label{display:block;margin:0 0 5px;color:var(--auth-ink2);font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;text-transform:uppercase;}
+.auth-field-label{display:block;margin:0 0 6px;color:#8A8A80;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;}
 .auth-password-help{margin:6px 1px 0;color:var(--auth-ink2);font-size:11px;font-weight:650;line-height:1.4;}
 .auth-password-help.needs-input{color:#9A5B12;}
 .auth-password-help.ready{color:#166534;}
@@ -173,7 +192,7 @@
 
 /* ── Submit button ───────────────────────────────────────────── */
 .auth-btn {
-  width: 100%; padding: 14px; border: none; border-radius: var(--auth-radius);
+  width: 100%; padding: 13px; border: none; border-radius: 12px;
   /* Calm pass: a near-black slab with lime type was the loudest thing on the
      screen, and sign-in is a routine action, not an alarm. */
   background: linear-gradient(140deg, #556056 0%, #48524A 100%);

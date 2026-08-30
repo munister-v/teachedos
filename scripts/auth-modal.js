@@ -56,11 +56,18 @@
     wrap.innerHTML = `
 <div id="auth-overlay" class="${overlayClass}">
   <div id="auth-modal" class="${cardClass}" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-    <button type="button" class="auth-close" aria-label="Close sign-in" onclick="closeAuthModal()">×</button>
+    <!-- Титульная полоса как у окон рабочего стола: вход перестал быть
+         «ещё одной карточкой по центру» и читается как окно TeachEd. -->
+    <div class="auth-titlebar">
+      <img class="auth-tb-logo" src="logo-sm.png" alt="" width="20" height="20" aria-hidden="true">
+      <span class="auth-tb-name">TeachEd</span>
+      <button type="button" class="auth-close" aria-label="Close sign-in" onclick="closeAuthModal()">×</button>
+    </div>
+    <div class="auth-body">
     <div class="auth-head">
-      <img class="auth-logo" src="logo-sm.png" alt="TeachEd" width="64" height="64">
-      <div id="auth-title" class="auth-title">Teach<em>Ed</em></div>
-      <div id="auth-subtitle" class="auth-sub">Sign in to your workspace</div>
+      <img class="auth-logo" src="logo-sm.png" alt="TeachEd" width="48" height="48">
+      <div id="auth-title" class="auth-title">Sign in to your workspace</div>
+      <div id="auth-subtitle" class="auth-sub">Lessons, boards and games in one place</div>
     </div>
     <div id="auth-err" class="auth-err" role="alert" aria-live="assertive"></div>
     <div id="auth-google-area" class="auth-google-area">
@@ -86,6 +93,7 @@
     <div class="auth-toggle">
       <span id="auth-toggle-text">Don't have an account?</span>
       <button type="button" onclick="toggleAuthMode()" id="auth-toggle-link">Register</button>
+    </div>
     </div>
   </div>
 </div>`;
@@ -166,8 +174,8 @@
     setTimeout(() => document.querySelector('.auth-inp')?.focus(), 50);
     if (mode === 'login') setupGoogle();
     if (typeof cfg.subtitle === 'function') {
-      const s = $('auth-subtitle');
-      if (s) s.textContent = cfg.subtitle();
+      const sub = $('auth-subtitle');
+      if (sub) sub.textContent = cfg.subtitle();
     }
   };
   // Back-compat name used by a couple of older call sites.
@@ -257,7 +265,12 @@
   function renderFieldsInner() {
     const isLogin = mode === 'login';
     const isForgot = mode === 'forgot';
-    $('auth-subtitle').textContent = isForgot ? 'Reset your password' : (typeof cfg.subtitle === 'function' ? cfg.subtitle() : (isLogin ? 'Sign in to your workspace' : 'Create your account'));
+    const title = $('auth-title');
+    if (title) title.textContent = isForgot ? 'Reset your password' : (isLogin ? 'Sign in to your workspace' : 'Create your account');
+    $('auth-subtitle').textContent = isForgot
+      ? 'We will email you a link to set a new one'
+      : (typeof cfg.subtitle === 'function' ? cfg.subtitle()
+        : (isLogin ? 'Lessons, boards and games in one place' : 'Free while you are getting started'));
     const btn = $('auth-submit');
     const lbl = btn.querySelector('.auth-btn-lbl');
     if (lbl) lbl.textContent = isForgot ? 'Send reset link' : (isLogin ? 'Sign in' : 'Create account');
@@ -388,12 +401,17 @@
     const ok = await initGsi(); if (!ok) return;
     const area = $('auth-google-area'), wrap = $('auth-google-btn');
     if (!area || !wrap) return;
-    area.style.display = 'block'; wrap.innerHTML = '';
+    // Показываем блок только когда кнопка Google действительно отрисовалась.
+    // Раньше область раскрывалась до вызова renderButton, и если GSI не
+    // поднялся (нет сети, заблокирован скрипт), в окне оставалась пустая
+    // полоса с одиноким разделителем «OR».
+    wrap.innerHTML = '';
     requestAnimationFrame(() => {
       try {
         const width = Math.min(336, Math.max(240, ($('auth-modal')?.clientWidth || 400) - 60));
         google.accounts.id.renderButton(wrap, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', width, logo_alignment: 'center', locale: 'en' });
       } catch (e) { console.warn('[auth-modal] gsi renderButton', e); }
+      area.style.display = wrap.childElementCount ? 'block' : 'none';
     });
   }
   async function onGoogle(resp) {
