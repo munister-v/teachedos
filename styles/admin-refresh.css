@@ -3,7 +3,8 @@
   --admin-surface:#fff;
   --admin-surface-2:#f8f8f6;
   --admin-ink:#1d201d;
-  --admin-muted:#70766f;
+  /* На песочном фоне темы прежний #70766F давал 3.3:1 в подписях разделов. */
+  --admin-muted:#4E4E48 !important;
   --admin-line:#dfe2dc;
   --admin-accent:#596759;
   --admin-accent-soft:#e7ece5;

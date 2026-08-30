@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=531">
-<link rel="preload" as="style" href="styles/unify.css?v=531">
-<link rel="manifest" href="manifest.json?v=531">
+<link rel="preload" as="style" href="styles/harmony.css?v=534">
+<link rel="preload" as="style" href="styles/unify.css?v=534">
+<link rel="manifest" href="manifest.json?v=534">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -208,7 +208,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 }
 .bc-btn:active { transform: scale(.96); }
 .bc-btn:hover { background: var(--accent-2); border-color: var(--accent); color: var(--accent); }
-.bc-btn.danger:hover { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.3); color:#B81C1C; }
+.bc-btn.danger:hover { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.3); color:#A61919; }
 .bc-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 .bc-btn.primary:hover { background: #2e2e34; border-color: #2e2e34; }
 
@@ -246,7 +246,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .setting-btn:active { transform: scale(.97); }
 .setting-btn.secondary { background: var(--bg); border: 1.5px solid var(--border); color: var(--text-2); }
 .setting-btn.secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-2); }
-.setting-btn.danger { background: rgba(239,68,68,.08); border: 1.5px solid rgba(239,68,68,.25); color:#B81C1C; }
+.setting-btn.danger { background: rgba(239,68,68,.08); border: 1.5px solid rgba(239,68,68,.25); color:#A61919; }
 .setting-btn.danger:hover { background: rgba(239,68,68,.15); }
 
 #plan-card .plan-option {
@@ -298,7 +298,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
 /* ── Danger zone ── */
 .danger-zone { border: 1.5px solid rgba(239,68,68,.25); border-radius: 14px; padding: 20px; }
-.danger-zone-title { font-size: 14px; font-weight:650; color:#B81C1C; margin-bottom: 12px; }
+.danger-zone-title { font-size: 14px; font-weight:650; color:#A61919; margin-bottom: 12px; }
 
 /* ── Toast ── */
 #toast {
@@ -351,7 +351,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     transition: background .15s, color .15s, border-color .15s;
   }
   .st-item.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .st-item[data-tab="logout"] { margin-top: 0 !important; margin-left: 4px; color:#B81C1C; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+  .st-item[data-tab="logout"] { margin-top: 0 !important; margin-left: 4px; color:#A61919; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
   .st-icon { display: inline; font-size: 14px; margin-right: 4px; }
   .card { padding: 18px; margin-bottom: 16px; }
   .mobile-profile-shell { display: block; }
@@ -429,10 +429,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=531" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=531">
-<link rel="stylesheet" href="styles/harmony.css?v=531">
-<link rel="stylesheet" href="styles/unify.css?v=531">
+<script src="theme.js?v=534" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=534">
+<link rel="stylesheet" href="styles/harmony.css?v=534">
+<link rel="stylesheet" href="styles/unify.css?v=534">
 <style>
 @media (max-width: 860px) {
   body{background:#F5F0E8;}
@@ -731,10 +731,10 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=531">
-<link rel="stylesheet" href="styles/tool-window.css?v=531">
+<link rel="stylesheet" href="styles/teached-brand.css?v=534">
+<link rel="stylesheet" href="styles/tool-window.css?v=534">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=531">
+<link rel="stylesheet" href="styles/figma-theme.css?v=534">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -825,7 +825,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <div class="st-item" data-tab="plans" onclick="openPlansSection()">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></span> Tariffs
     </div>
-    <div class="st-item" data-tab="logout" onclick="doLogout()" style="margin-top:auto;color:#B81C1C;">
+    <div class="st-item" data-tab="logout" onclick="doLogout()" style="margin-top:auto;color:#A61919;">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-exit"/></svg></span> Sign out
     </div>
   </div>
@@ -1177,7 +1177,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
 
       <!-- Danger zone -->
       <div class="card">
-        <div class="card-title" style="color:#B81C1C;">⚠️ Danger Zone</div>
+        <div class="card-title" style="color:#A61919;">⚠️ Danger Zone</div>
         <div class="danger-zone">
           <div class="danger-zone-title">Delete All Boards</div>
           <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">This will permanently delete all your boards and their data. This cannot be undone.</p>
@@ -1189,10 +1189,10 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=531"></script>
-<script src="scripts/profile-app.js?v=531"></script>
-<script src="scripts/autogrow.js?v=531" defer></script>
-<script src="pwa-boot.js?v=531" defer></script>
+<script src="scripts/app-core.js?v=534"></script>
+<script src="scripts/profile-app.js?v=534"></script>
+<script src="scripts/autogrow.js?v=534" defer></script>
+<script src="pwa-boot.js?v=534" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1211,11 +1211,11 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=531"></script>
-<script src="scripts/nav-boost.js?v=531" defer></script>
-<script src="scripts/mobile-perf.js?v=531" defer></script>
-<script src="scripts/mobile-nav.js?v=531"></script>
-<script src="scripts/mobile-zoom-guard.js?v=531" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=531" defer></script>
+<script src="pwa.js?v=534"></script>
+<script src="scripts/nav-boost.js?v=534" defer></script>
+<script src="scripts/mobile-perf.js?v=534" defer></script>
+<script src="scripts/mobile-nav.js?v=534"></script>
+<script src="scripts/mobile-zoom-guard.js?v=534" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=534" defer></script>
 </body>
 </html>

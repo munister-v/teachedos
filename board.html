@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=531">
+<link rel="manifest" href="manifest.json?v=534">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=531">
-<link rel="stylesheet" href="styles/auth.css?v=531">
-<link rel="stylesheet" href="styles/mobile.css?v=531">
-<link rel="stylesheet" href="styles/harmony.css?v=531">
-<link rel="stylesheet" href="styles/unify.css?v=531">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=531">
+<link rel="stylesheet" href="styles/board.css?v=534">
+<link rel="stylesheet" href="styles/auth.css?v=534">
+<link rel="stylesheet" href="styles/mobile.css?v=534">
+<link rel="stylesheet" href="styles/harmony.css?v=534">
+<link rel="stylesheet" href="styles/unify.css?v=534">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=534">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -271,11 +271,11 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=531">
+<link rel="stylesheet" href="styles/teached-brand.css?v=534">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=531">
+<link rel="stylesheet" href="styles/figma-theme.css?v=534">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=531">
+<link rel="stylesheet" href="styles/figma-concept.css?v=534">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -434,7 +434,7 @@
     <a class="user-menu-item" href="gradebook.html"><svg class="umi-ic" aria-hidden="true"><use href="#bi-gradebook"/></svg>Gradebook</a>
     <a class="user-menu-item" href="profile.html"><svg class="umi-ic" aria-hidden="true"><use href="#bi-user"/></svg>Profile</a>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-    <div class="user-menu-item" style="color:#B81C1C;" onclick="logout()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-exit"/></svg>Sign out</div>
+    <div class="user-menu-item" style="color:#A61919;" onclick="logout()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-exit"/></svg>Sign out</div>
   </div>
 
   <!-- Miro-style Board menu (cascading) -->
@@ -1725,7 +1725,7 @@
 
       <!-- Reset -->
       <div style="padding-top:4px;border-top:1px solid var(--border);">
-        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#B81C1C;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
+        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#A61919;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
       </div>
 
     </div>
@@ -2016,13 +2016,13 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=531"></script>
-<script src="js/teacher-tools-data.js?v=531"></script>
-<script src="scripts/tt-text-core.js?v=531"></script>
-<script src="scripts/board-app.js?v=531"></script>
-<script src="js/board-vocab.js?v=531"></script>
-<script src="js/board-reveal.js?v=531"></script>
-<script src="js/teacher-tool-board-composer.js?v=531"></script>
+<script src="scripts/auth-modal.js?v=534"></script>
+<script src="js/teacher-tools-data.js?v=534"></script>
+<script src="scripts/tt-text-core.js?v=534"></script>
+<script src="scripts/board-app.js?v=534"></script>
+<script src="js/board-vocab.js?v=534"></script>
+<script src="js/board-reveal.js?v=534"></script>
+<script src="js/teacher-tool-board-composer.js?v=534"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2030,8 +2030,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=531" defer></script>
-<script src="pwa-boot.js?v=531" defer></script>
+<script src="scripts/autogrow.js?v=534" defer></script>
+<script src="pwa-boot.js?v=534" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2113,11 +2113,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=531"></script>
-<script src="scripts/nav-boost.js?v=531" defer></script>
-<script src="scripts/mobile-perf.js?v=531" defer></script>
-<script src="scripts/mobile-nav.js?v=531"></script>
-<script src="scripts/mobile-zoom-guard.js?v=531" defer></script>
+<script src="pwa.js?v=534"></script>
+<script src="scripts/nav-boost.js?v=534" defer></script>
+<script src="scripts/mobile-perf.js?v=534" defer></script>
+<script src="scripts/mobile-nav.js?v=534"></script>
+<script src="scripts/mobile-zoom-guard.js?v=534" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

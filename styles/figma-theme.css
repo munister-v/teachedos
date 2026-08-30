@@ -158,6 +158,20 @@ body.fx:not(#_) .side-title {
   letter-spacing:0 !important; text-transform:lowercase !important;
   color:var(--fx-mute) !important;
 }
+/* Рейка админки рисовалась тёмной плитой, и весь текст в ней белый с разной
+   альфой. Правило выше переводит рейку на светлое стекло - значит, надписи
+   («TeachEd», имя, почта, «Sign out», пункты меню) исчезали: 1.2:1. */
+body.fx:not(#_) #sidebar :is(.sb-logo-title,.sb-uname,.sb-item.active,.sb-item:hover) {
+  color:var(--fx-ink) !important;
+}
+body.fx:not(#_) #sidebar :is(.sb-logo-sub,.sb-uemail,.sb-item,.sb-logout,.sb-back-link) {
+  color:var(--fx-ink-2) !important;
+}
+body.fx:not(#_) #sidebar :is(.sb-logo,.sb-footer) { border-color:rgba(22,22,22,.10) !important; }
+body.fx:not(#_) #sidebar .sb-logout {
+  background:rgba(22,22,22,.05) !important; border:1px solid rgba(22,22,22,.10) !important;
+}
+body.fx:not(#_) #sidebar .sb-item:hover { background:rgba(22,22,22,.05) !important; }
 body.fx:not(#_) .side-btn {
   font-size:15px !important; font-weight:450 !important; color:var(--fx-ink) !important;
   border-radius:10px !important;
