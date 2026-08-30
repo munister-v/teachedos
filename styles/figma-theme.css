@@ -21,7 +21,9 @@ body.fx {
   --fx-lime-deep:#BCE22A;
   --fx-ink:#161616;
   --fx-ink-2:#4A4A46;
-  --fx-mute:#9A968C;
+  /* Тот же тон, что на лендинге: прежний #9A968C давал 2.63:1 на светлых
+     панелях - под ним подсказки пустого состояния доски и .sb-label. */
+  --fx-mute:#5A5750;
 
   --fx-bg-1:#EBD4C7;
   --fx-bg-2:#E4DCCC;
@@ -56,11 +58,18 @@ body.fx {
 }
 
 /* ── Фон страницы ───────────────────────────────────────────────────────── */
+/* teached-brand.css держит фон страницы на `body:not(.board-page):not(.os-desktop)
+   :not(.landing-page)` = (0,3,1) плюс !important, то есть перебивает (0,2,1)
+   без важности. Без !important сандовый фон доезжал только до index (os-desktop)
+   и board (board-page), а остальные 59 страниц с темой - игры, инструменты,
+   юридические - оставались на белом с фиолетовым свечением старой темы.
+   Свойство background-attachment при этом применялось, поэтому в инспекторе
+   выглядело так, будто правило работает. */
 body.fx:not(#_) {
   background:
     linear-gradient(rgba(237,217,198,.64), rgba(237,217,198,.64)),
     url("../img/desktop-bg.jpg") center / cover no-repeat,
-    #E3C9B6;
+    #E3C9B6 !important;
   background-attachment:fixed !important;
   color:var(--fx-ink) !important;
   /* Фиолетовый акцент старой темы в макете не встречается: лайм на действии,
@@ -70,7 +79,18 @@ body.fx:not(#_) {
   --tw-accent-soft:rgba(203,240,60,.28);
   --tw-ink:#161616;
   --tw-ink-2:#4A4A46;
-  --tw-ink-3:#9A968C;
+  /* tool-window.css держал здесь #5E5E6A (6.5:1 на белом); тема опускала
+     тон до 2.6:1 разом на всех тринадцати страницах инструментов. */
+  --tw-ink-3:#5A5750;
+
+  /* Фон страницы уехал с белого (#FFFCF8, яркость 0.98) на песок (0.61),
+     а вторичный текст этих страниц подбирался под белое. Тона, которые на
+     белом давали 4.6-5.0, на песке падают до 2.9-3.2, поэтому приглушённые
+     токены опускаются здесь на те же 4.7:1 по песку. Оттенок и температура
+     сохранены, меняется только лайтнес. */
+  --te-muted:#55555E !important;
+  --calm-muted:#55555E !important;
+  --muted:#55555E !important;
 }
 body.fx:not(#_)::before { content:none !important; }
 
@@ -332,6 +352,17 @@ body.fx:not(#_) .auth-card {
   border:1px solid var(--fx-glass-line) !important;
   border-radius:var(--fx-r-panel) !important;
   box-shadow:var(--fx-shadow) !important;
+  /* Стекло на 72% без размытия читается как стекло только поверх ровного
+     градиента страницы входа. Поверх живого холста доски сквозь форму лезли
+     карточки и текст пустого состояния. */
+  backdrop-filter:blur(22px) saturate(1.15) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.15) !important;
+}
+/* Safari до 18 и любой браузер без backdrop-filter оставят форму прозрачной,
+   поэтому оверлей на доске (единственное место поверх содержимого) делаем
+   непрозрачным явно. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  body.fx:not(#_) .board-auth-card { background:#FBF7F0 !important; }
 }
 body.fx:not(#_) .auth-title {
   font-weight:800 !important; letter-spacing:-.03em !important; color:var(--fx-ink) !important;
@@ -555,3 +586,7 @@ body.fx:not(#_) :is(.nav-logo,.mb-apple,.tb-logo,.logo) img {
   width:26px !important; height:26px !important;
   border-radius:0 !important; background:none !important;
 }
+
+/* teacher-tools-refined.css красит описание инструмента литералом #74756d:
+   на белом это 4.6:1, на песке 3.0:1. */
+body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !important; }

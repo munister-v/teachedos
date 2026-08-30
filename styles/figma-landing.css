@@ -19,7 +19,11 @@ body.fx.landing-page {
   --fx-lime-deep:#BCE22A;
   --fx-ink:#161616;
   --fx-ink-2:#4A4A46;
-  --fx-mute:#9A968C;
+  /* #9A968C давал 1.87:1 на песке и 2.63:1 на светлом стекле: под ним ходят
+     все надзаголовки секций, подписи счётчиков, .bento-tag и .fp-cap, то есть
+     весь мелкий текст лендинга разом не проходил AA. Тон и температура те же,
+     лайтнес опущен до 4.7:1 на песке и 6.2:1 на стекле. */
+  --fx-mute:#5A5750;
   --fx-glass:rgba(255,252,246,.55);
   --fx-glass-line:rgba(255,255,255,.62);
   --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
@@ -30,8 +34,16 @@ body.fx.landing-page {
   --card:rgba(255,252,246,.55); --white:rgba(255,252,246,.72);
   --ink:#161616; --ink2:#4A4A46; --ink3:#9A968C;
   --line:rgba(255,255,255,.55); --line-2:rgba(22,22,22,.07);
-  --pink:#161616; --pink-soft:rgba(203,240,60,.22);
-  --lime:#CBF03C; --lime-dark:#BCE22A; --lime-text:#161616;
+  /* teached-brand.css переопределяет эти же токены на `body.landing-page`
+     с !important, поэтому объявление без важности проигрывало и розовый
+     возвращался целиком: заголовки, счётчики, нумерация, бейджи. */
+  --pink:#161616 !important; --pink-soft:rgba(203,240,60,.22) !important;
+  --lime:#CBF03C !important; --lime-text:#161616 !important;
+  /* --lime-dark намеренно НЕ перебивается: teached-brand.css держит там
+     #6C7C1D, специально опущенный до 4.63:1, а лендинг красит этим токеном
+     текст - звёзды отзывов, «done · 92%», заполненные пропуски. Светлый
+     лайм на этих местах даёт 1.3:1. */
+  --lime-dark:#BCE22A;
   /* Пастельные подложки категорий были четырьмя разными цветами; в макете
      их роль играет один тёплый тон. */
   --lavender:rgba(255,255,255,.5); --peach:rgba(255,255,255,.5);
@@ -128,3 +140,67 @@ body.fx.landing-page :is(.hndl,.car) {
   background:var(--fx-ink) !important; border-color:var(--fx-ink) !important;
 }
 body.fx.landing-page .tb.r { color:var(--fx-ink) !important; border-color:var(--fx-ink) !important; }
+
+
+/* ── Остатки розового мимо токенов ──────────────────────────────────────── */
+/* landing.html держит одиннадцать розовых литералов прямо в разметке и в
+   собственном <style>: подмена --pink их не достаёт по определению. */
+
+/* Слово-акцент в заголовках секций. У героя оно уже чернильное выше, но
+   .hero-h em красится градиентным шиммером, а он рисуется через
+   -webkit-text-fill-color: одного color мало. */
+body.fx.landing-page :is(.hero-h,.sec-h,.feat-h,.stat-n,.final-h,.footer-brand,.brand-wordmark,h1,h2,h3) em {
+  background:none !important;
+  -webkit-background-clip:border-box !important; background-clip:border-box !important;
+  color:var(--fx-ink) !important;
+  -webkit-text-fill-color:var(--fx-ink) !important;
+  animation:none !important;
+  font-style:normal !important;
+}
+
+/* Чип статуса «Live» в мокапе героя. */
+body.fx.landing-page .tb.r { background:rgba(22,22,22,.07) !important; }
+body.fx.landing-page .tb.r .ld { background:var(--fx-lime) !important; }
+
+/* Категория «Listening» была единственной розовой из четырёх. */
+body.fx.landing-page .cat.c-listen {
+  --acc:#161616 !important; --acc-bg:rgba(22,22,22,.08) !important;
+}
+
+/* Розовые заливки в inline-SVG иллюстраций. Презентационный атрибут fill
+   имеет наименьший приоритет, поэтому обычного правила достаточно. */
+body.fx.landing-page :is(svg [fill="#E11D74"],svg [fill="#EC2D8C"]) { fill:var(--fx-ink) !important; }
+body.fx.landing-page :is(svg [stroke="#E11D74"],svg [stroke="#EC2D8C"]) { stroke:var(--fx-ink) !important; }
+
+
+/* ── Карточки, оставшиеся от тёмного варианта ───────────────────────────── */
+/* .bc.ink была чернильной плитой со светлым текстом. Тема перевела все
+   карточки на светлое стекло, а текст остался прежним: заголовок давал
+   1.09:1, чипы под ним 1.04:1, то есть были не видны вовсе. Заголовок задан
+   ещё и инлайновым style, поэтому нужен !important. */
+body.fx.landing-page .bc.ink :is(.bc-h,.bc-p,.bento-tag) { color:var(--fx-ink) !important; }
+body.fx.landing-page .bc.ink .bc-p { color:var(--fx-ink-2) !important; }
+body.fx.landing-page .bc.ink .bento-tag {
+  background:rgba(22,22,22,.06) !important; border-color:rgba(22,22,22,.12) !important;
+  color:var(--fx-mute) !important;
+}
+body.fx.landing-page .bc.ink .bc-points span {
+  background:rgba(22,22,22,.06) !important;
+  border-color:rgba(22,22,22,.12) !important;
+  color:var(--fx-ink-2) !important;
+}
+
+/* Розовые подложки и свечения, заданные литералами rgba: подмена токена их
+   не видит, а на песке они читались как пятна чужого цвета. */
+body.fx.landing-page :is(.bc.pink-soft,.ic-pink,.gen .bar,.final-blob.b,i.vp) {
+  background:rgba(22,22,22,.07) !important;
+  border-color:rgba(22,22,22,.12) !important;
+}
+body.fx.landing-page .bc.pink-soft .bento-tag {
+  background:rgba(22,22,22,.06) !important;
+  border-color:rgba(22,22,22,.12) !important;
+  color:var(--fx-mute) !important;
+}
+body.fx.landing-page svg :is([stroke^="#E11D74"],[stroke^="#EC2D8C"],[stroke*="225,29,116"],[stroke*="236,45,140"]) {
+  stroke:rgba(22,22,22,.35) !important;
+}
