@@ -590,3 +590,18 @@ body.fx:not(#_) :is(.nav-logo,.mb-apple,.tb-logo,.logo) img {
 /* teacher-tools-refined.css красит описание инструмента литералом #74756d:
    на белом это 4.6:1, на песке 3.0:1. */
 body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !important; }
+
+/* ── Окно входа на телефоне ─────────────────────────────────────────────── */
+/* Ниже 540px auth.css разворачивает окно в полноэкранный лист и снимает с
+   него рамку и скругления. Правила темы специфичнее (0,2,1 против 0,1,0),
+   поэтому возвращали и то и другое: у листа размером ровно в экран
+   оставались скруглённые углы с полосками холста под ними и рамка в пиксель
+   по краю. */
+@media (max-width:540px) {
+  body.fx:not(#_) .auth-card {
+    border:none !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+  body.fx:not(#_) .auth-titlebar { border-radius:0 !important; }
+}

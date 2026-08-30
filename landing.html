@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=513">
+<link rel="manifest" href="manifest.json?v=520">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -665,8 +665,30 @@ h1,h2,h3,h4,.hero-h,.sec-h,.feat-h,.final-h{animation:none!important;}
   .sticky-mob{display:none!important;}
   .preview-body{grid-template-columns:180px 1fr 1fr;}
 }
+/* Бургер и выпадающее меню. До этого на телефоне .nav-links просто гасились,
+   бургера не было, а .sticky-mob (полоса с действием внизу) осталась только в
+   стилях - в разметке её нет ни одной. Итог: с телефона до разделов Features,
+   Tools, How it works, Pricing и FAQ нельзя было добраться вовсе. */
+.nav-burger{
+  display:none;width:40px;height:40px;padding:0;border:none;background:transparent;
+  border-radius:12px;cursor:pointer;flex-direction:column;gap:4px;
+  align-items:center;justify-content:center;flex-shrink:0;
+}
+.nav-burger span{display:block;width:18px;height:2px;border-radius:2px;background:currentColor;transition:transform .18s,opacity .18s;}
+nav.nav-open .nav-burger span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+nav.nav-open .nav-burger span:nth-child(2){opacity:0;}
+nav.nav-open .nav-burger span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+@media(prefers-reduced-motion:reduce){.nav-burger span{transition:none;}}
+
 @media(max-width:860px){
-  .nav-links{display:none!important;}
+  .nav-burger{display:flex;}
+  /* Меню разворачивается панелью под полосой, а не прячется насовсем. */
+  .nav-links{
+    display:none;position:absolute;left:0;right:0;top:100%;
+    flex-direction:column;gap:2px;margin:0;padding:8px;
+  }
+  nav.nav-open .nav-links{display:flex;}
+  .nav-links .nav-lnk{display:block;padding:12px 14px;font-size:15px;min-height:44px;}
   .cats{grid-template-columns:1fr;}
   .bento{grid-template-columns:1fr 1fr;grid-auto-rows:auto;}
   .span2,.span3,.span4{grid-column:span 2;}
@@ -1340,11 +1362,27 @@ body.pwa-standalone .hero{
 .pv-cursor span{position:absolute;left:2.6cqw;top:2.4cqw;white-space:nowrap;background:var(--pink);color:#fff;font-size:1.2cqw;font-weight:650;padding:.4cqw 1cqw;border-radius:99px;font-family:var(--font);}
 @keyframes pvCursor{0%,100%{transform:translate(0,0);}25%{transform:translate(-4cqw,3cqw);}50%{transform:translate(2cqw,6cqw);}75%{transform:translate(-2cqw,1cqw);}}
 
+/* Мокап доски свёрстан в контейнерных единицах cqw, то есть весь его текст
+   привязан к ширине самого мокапа. На телефоне контейнер около 305px, и
+   подписи внутри выходили по 3.2-5.6px - тридцать три текстовых узла мельче
+   семи пикселей. Уменьшать нечего: чтобы текст стал читаемым, надо показывать
+   не весь холст, а его часть. Поэтому на телефоне мокап приближается к
+   листу-заготовке, а не ужимается целиком. */
 @media(max-width:540px){
   .pv-board{aspect-ratio:16/13;}
-  .pv-ws{width:50cqw;top:6%;left:8%;}
-  .pv-sticky{width:30cqw;}
   .pv-cursor{display:none;}
+  /* Прежние мобильные правки геометрии (.pv-ws шире, .pv-sticky уже) были
+     сделаны для ужатого целиком холста. После приближения они спорят с
+     раскладкой и стикер налезал на лист, поэтому геометрия берётся общая. */
+
+  .pv-board{ overflow:hidden; }
+  .pv-board > *{
+    transform:scale(2.6);
+    transform-origin:22% 16%;
+  }
+  /* Мелочь по краям после приближения всё равно оказывается за кадром,
+     а вместе с ней уезжает и смысл: убираем, чтобы не резалось наполовину. */
+  .pv-tools,.pv-zoom,.pv-timer,.pv-match{ display:none !important; }
 }
 
 /* ═══════════ Bento feature cards → realistic component mini-previews ═══════════ */
@@ -1801,9 +1839,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=513">
+<link rel="stylesheet" href="styles/teached-brand.css?v=520">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=513">
+<link rel="stylesheet" href="styles/figma-landing.css?v=520">
 </head>
 <body class="landing-page fx">
 
@@ -1814,7 +1852,7 @@ section{scroll-margin-top:64px;}
       <img src="logo-sm.png" alt="TeachEd">
       <span class="brand-wordmark">Teach<em>Ed</em></span>
     </a>
-    <div class="nav-links">
+    <div class="nav-links" id="nav-links" onclick="this.closest('nav').classList.remove('nav-open')">
       <a class="nav-lnk" href="#features">Features</a>
       <a class="nav-lnk" href="#tools">Tools</a>
       <a class="nav-lnk" href="#how">How it works</a>
@@ -1824,6 +1862,10 @@ section{scroll-margin-top:64px;}
     <div class="nav-space"></div>
     <div class="nav-ctas">
       <button class="btn btn-pink" type="button" onclick="openAuth('login')" style="padding:10px 18px;font-size:13px;">Sign in</button>
+      <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links"
+              onclick="var n=this.closest('nav');var o=n.classList.toggle('nav-open');this.setAttribute('aria-expanded',o);">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
 </nav>
@@ -2681,7 +2723,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=513">
+<link rel="stylesheet" href="styles/auth.css?v=520">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*

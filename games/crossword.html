@@ -34,15 +34,24 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .actions button{padding:12px 22px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:.9rem;cursor:pointer;background:var(--accent);color:#fff}
 .actions button.secondary{background:#FBF8F3;color:var(--accent);border:2px solid #eee2d8}
 @media (max-width:480px){
-  .cell{width:26px;height:26px}
+  /* Клетка меряется от ширины экрана, а не константой: сетка кроссворда
+     бывает и в 15 столбцов, а при фиксированных 26px такая уезжала на 414px
+     в экран шириной 375. Правый край с несколькими клетками оказывался за
+     кадром, и добраться до него было нельзя - mobile-guard.css держит на
+     body overflow-x:hidden, то есть страница не прокручивалась вбок. */
+  .grid{--cell:clamp(18px,calc((100vw - 84px) / 15),26px);}
+  .cell{width:var(--cell);height:var(--cell)}
   .cell input{font-size:.85rem}
   .clues{grid-template-columns:1fr}
+  /* Запасной ход для сеток шире пятнадцати столбцов: тогда сама сетка
+     становится областью с горизонтальной прокруткой, а не обрезается. */
+  .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=513">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=513">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=520">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=520">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=513">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=520">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -171,7 +180,11 @@ function render(){
   const cols=maxC-minC+1, rows=maxR-minR+1;
   const grid=document.createElement('div');
   grid.className='grid';
-  grid.style.gridTemplateColumns=`repeat(${cols},32px)`;
+  // Ширина колонки берётся из переменной --cell: на телефоне её задаёт
+  // медиа-запрос по ширине экрана, на десктопе остаются прежние 32px.
+  // Раньше здесь стояла константа, и она перебивала любую правку .cell -
+  // клетки послушно уменьшались, а дорожки сетки оставались широкими.
+  grid.style.gridTemplateColumns=`repeat(${cols},var(--cell,32px))`;
   grid.style.gridTemplateRows=`repeat(${rows},32px)`;
 
   let filledCount=0;
@@ -267,6 +280,6 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=513"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=520"></script>
 </body>
 </html>

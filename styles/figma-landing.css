@@ -62,7 +62,11 @@ body.fx.landing-page {
   color:var(--fx-ink) !important;
 }
 body.fx.landing-page::before { content:none !important; }
-body.fx.landing-page > * { position:relative; z-index:1; }
+/* Правило поднимает содержимое над фоновым слоем страницы, но `> *` цепляло
+   и верхнюю панель: nav.ln из position:fixed становился relative, а z-index
+   с 1000 падал до 1. С раскатки темы панель переставала быть закреплённой и
+   уезжала вверх при прокрутке, а мобильное меню рисовалось под героем. */
+body.fx.landing-page > *:not(nav) { position:relative; z-index:1; }
 /* Секции красились кремом и белым - на песке это читалось как заплатки. */
 body.fx.landing-page section { background:transparent !important; }
 
@@ -203,4 +207,20 @@ body.fx.landing-page .bc.pink-soft .bento-tag {
 }
 body.fx.landing-page svg :is([stroke^="#E11D74"],[stroke^="#EC2D8C"],[stroke*="225,29,116"],[stroke*="236,45,140"]) {
   stroke:rgba(22,22,22,.35) !important;
+}
+
+/* ── Мобильное меню ─────────────────────────────────────────────────────── */
+/* Панель выпадает из-под белой полосы, поэтому и красится так же, как полоса,
+   а не стеклом: под ней сразу песок с зерном, на нём текст ссылок терялся. */
+body.fx.landing-page .nav-burger { color:var(--fx-ink) !important; }
+body.fx.landing-page .nav-burger:hover { background:rgba(22,22,22,.06) !important; }
+@media (max-width:860px) {
+  body.fx.landing-page nav.ln .nav-links {
+    background:#FFFFFF !important;
+    border-bottom:1px solid rgba(22,22,22,.08) !important;
+    box-shadow:0 12px 28px rgba(90,70,55,.14) !important;
+  }
+  body.fx.landing-page nav.ln .nav-links .nav-lnk {
+    color:var(--fx-ink) !important; border-radius:12px !important;
+  }
 }

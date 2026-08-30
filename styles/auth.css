@@ -296,27 +296,51 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Card fills the whole screen - no card frame visible */
+  /* Card fills the whole screen - no card frame visible.
+     mobile-guard.css кладёт на .auth-card max-width:calc(100vw - 20px)
+     важным правилом: без снятия лимита «полноэкранный» лист получал по 10px
+     полей с каждой стороны и читался как обрезанная плита, а не как лист. */
   .auth-card {
     width: 100% !important;
+    max-width: none !important;
     min-height: 100dvh !important;
     border-radius: 0 !important;
     border: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    padding: calc(env(safe-area-inset-top, 16px) + 28px) 24px
-             calc(env(safe-area-inset-bottom, 16px) + 32px) !important;
+    /* Отступы ушли на .auth-body: раньше они лежали на карточке и вдавливали
+       полосу окна внутрь на 24px с каждой стороны, из-за чего шапка окна
+       висела оторванной серой лентой вместо того, чтобы идти по краю. */
+    padding: 0 !important;
     margin: 0 !important;
     display: flex;
     flex-direction: column;
   }
+  /* Полоса окна прижата к верхнему краю листа и держится при прокрутке. */
+  .auth-titlebar {
+    position: sticky !important;
+    top: 0; z-index: 5;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    height: auto !important;
+    min-height: calc(env(safe-area-inset-top, 0px) + 46px) !important;
+  }
+  /* Колонкой должно быть тело листа, а не карточка: содержимое лежит внутри
+     .auth-body, поэтому margin-top:auto на .auth-toggle прежде ни на что не
+     влиял и под «Register» оставалось до 270px пустоты. */
+  .auth-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 20px calc(env(safe-area-inset-bottom, 16px) + 28px) !important;
+  }
 
-  /* Close button styled as a back/dismiss row at the very top */
+  /* Кнопка закрытия живёт в полосе окна последним элементом флекс-ряда.
+     Прежний position:fixed выдёргивал её из полосы и прибивал к окну
+     браузера: на телефоне она оказывалась выше самой полосы. */
   .auth-close {
-    position: fixed !important;
-    top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
-    right: 16px !important;
+    position: static !important;
+    margin-left: auto !important;
     z-index: 10;
     background: rgba(14,14,16,.07) !important;
     width: 34px !important;

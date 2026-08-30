@@ -4233,6 +4233,12 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .board-auth-card .auth-google-btn{min-height:42px;}
 .board-auth-card .auth-btn{min-height:50px;}
 .board-auth-card .auth-toggle{margin-top:20px;}
+/* На полноэкранном листе строка «Don't have an account?» прижимается к низу
+   (margin-top:auto в auth.css). Правило выше специфичнее и держало её на
+   20px от кнопки, оставляя под ней до 226px пустоты. */
+@media(max-width:540px){
+  .board-auth-card .auth-toggle{margin-top:auto;}
+}
 /* ══════════════ VERSION HISTORY PANEL ══════════════ */
 #vh-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
@@ -4694,7 +4700,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   /* Auth window: keep off the screen edges and scrollable when the on-screen
      keyboard shrinks the viewport (otherwise inputs/submit get clipped). */
   #auth-overlay{padding:16px;align-items:flex-start!important;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  #auth-modal{margin:max(24px,env(safe-area-inset-top,0px)) auto 24px!important;max-height:none!important;}
+  /* Ниже 540px auth.css разворачивает окно входа в полноэкранный лист без
+     рамки. Поля от краёв нужны только на планшетном промежутке, где окно
+     остаётся карточкой: на телефоне тот же отступ сдвигал лист на 24px вниз
+     и ровно настолько же его нижний край уходил за экран. */
+  @media(min-width:541px){
+    #auth-modal{margin:max(24px,env(safe-area-inset-top,0px)) auto 24px!important;max-height:none!important;}
+  }
   #auth-modal > div[onclick*="closeAuthModal"]{width:40px!important;height:40px!important;}
   #student-quiz-overlay .quiz-card{border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:90vh;}
   #toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;}
