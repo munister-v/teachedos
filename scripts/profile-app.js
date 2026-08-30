@@ -343,7 +343,7 @@ async function loadBoards(forceOffline = false) {
     const cachedBoards = readProfileCache()?.boards || [];
     boardsCache = cachedBoards;
     if (cachedBoards.length) renderBoardsGrid(cachedBoards);
-    else grid.innerHTML = '<div style="color:#e55;grid-column:1/-1;">Failed to load boards</div>';
+    else grid.innerHTML = '<div style="color:#D01414;grid-column:1/-1;">Failed to load boards</div>';
   }
   updateMobileProfileSummary({ offline: forceOffline });
 }
@@ -458,7 +458,7 @@ async function loadSharedBoards(forceOffline = false) {
     const cachedBoards = readProfileCache()?.sharedBoards || [];
     sharedBoardsCache = cachedBoards;
     if (!cachedBoards.length) {
-      wrap.innerHTML = `<div style="color:${forceOffline ? 'var(--text-3)' : '#e55'};text-align:center;padding:20px;">${forceOffline ? 'Offline mode: no saved shared boards yet.' : 'Failed to load shared boards'}</div>`;
+      wrap.innerHTML = `<div style="color:${forceOffline ? 'var(--text-3)' : '#D01414'};text-align:center;padding:20px;">${forceOffline ? 'Offline mode: no saved shared boards yet.' : 'Failed to load shared boards'}</div>`;
       return;
     }
     wrap.innerHTML = cachedBoards.map(b => `

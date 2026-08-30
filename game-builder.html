@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=534">
-<link rel="preload" as="style" href="styles/unify.css?v=534">
-<link rel="manifest" href="manifest.json?v=534">
+<link rel="preload" as="style" href="styles/harmony.css?v=537">
+<link rel="preload" as="style" href="styles/unify.css?v=537">
+<link rel="manifest" href="manifest.json?v=537">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -233,9 +233,11 @@ textarea{min-height:60px;resize:vertical}
 .pm-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .pm-thumb:hover{border-color:#CDF24F;transform:scale(1.03)}
 .pm-thumb.selected{border-color:#CDF24F;box-shadow:0 0 0 3px rgba(205,242,79,.3)}
-.pm-credit{font-size:10px;color:#555;text-align:center}
-.pm-empty{grid-column:1/-1;text-align:center;padding:32px;color:#555;font-size:.9rem}
-.pm-spinner{grid-column:1/-1;text-align:center;padding:32px;color:#777;font-size:.85rem}
+/* Плита модалки чернильная (#111116): #555 и #777 на ней — тёмное по
+   тёмному, 2,5–4,2:1. Подписи в тёмном окне светлые. */
+.pm-credit{font-size:10px;color:#A9A9A9;text-align:center}
+.pm-empty{grid-column:1/-1;text-align:center;padding:32px;color:#B4B4B4;font-size:.9rem}
+.pm-spinner{grid-column:1/-1;text-align:center;padding:32px;color:#B4B4B4;font-size:.85rem}
 
 /* ── Mobile hand-off ─────────────────────────────────────────────────────── */
 @media(max-width:860px){
@@ -250,15 +252,15 @@ textarea{min-height:60px;resize:vertical}
 }
 
 </style>
-<script src="theme.js?v=534" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=534">
-<link rel="stylesheet" href="styles/harmony.css?v=534">
-<link rel="stylesheet" href="styles/unify.css?v=534">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=534">
-<link rel="stylesheet" href="styles/teached-brand.css?v=534">
-<link rel="stylesheet" href="styles/tool-window.css?v=534">
+<script src="theme.js?v=537" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=537">
+<link rel="stylesheet" href="styles/harmony.css?v=537">
+<link rel="stylesheet" href="styles/unify.css?v=537">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=537">
+<link rel="stylesheet" href="styles/teached-brand.css?v=537">
+<link rel="stylesheet" href="styles/tool-window.css?v=537">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=534">
+<link rel="stylesheet" href="styles/figma-theme.css?v=537">
 </head>
 <body class="tools-workbench tw-page fx">
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -526,9 +528,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=534"></script>
-<script src="scripts/vocab-loader.js?v=534"></script>
-<script src="scripts/game-builder-app.js?v=534"></script>
+<script src="scripts/app-core.js?v=537"></script>
+<script src="scripts/vocab-loader.js?v=537"></script>
+<script src="scripts/game-builder-app.js?v=537"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -542,10 +544,10 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=534" defer></script>
-<script src="scripts/mobile-nav.js?v=534"></script>
-<script src="scripts/mobile-zoom-guard.js?v=534" defer></script>
-<script src="scripts/autogrow.js?v=534" defer></script>
-<script src="pwa-boot.js?v=534" defer></script>
+<script src="scripts/mobile-perf.js?v=537" defer></script>
+<script src="scripts/mobile-nav.js?v=537"></script>
+<script src="scripts/mobile-zoom-guard.js?v=537" defer></script>
+<script src="scripts/autogrow.js?v=537" defer></script>
+<script src="pwa-boot.js?v=537" defer></script>
 </body>
 </html>

@@ -295,6 +295,8 @@ function sample(list, count) {
 function setTheme(color) {
   document.body.style.setProperty("--accent", color);
   document.body.style.setProperty("--accent-2", `color-mix(in srgb, ${color} 14%, white 86%)`);
+  // Тот же тон, но пригодный для текста на светлом тинте (>=4,5:1).
+  document.body.style.setProperty("--accent-ink", `color-mix(in srgb, ${color} 52%, #111)`);
   document.body.style.setProperty("--border", `color-mix(in srgb, ${color} 22%, transparent 78%)`);
   document.body.style.setProperty("--shadow", `0 24px 48px color-mix(in srgb, ${color} 12%, transparent 88%)`);
 }

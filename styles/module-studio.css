@@ -8,6 +8,9 @@ body {
   --panel: rgba(255, 255, 255, 0.96);
   --border: rgba(94, 94, 74, 0.16);
   --accent: #1C1C1E;
+  /* Акцент модуля — цвет заливки. Как ТЕКСТ на своём же светлом тинте он
+     давал 2,9:1, поэтому у надписей отдельный, затемнённый вариант. */
+  --accent-ink: #1C1C1E;
   --accent-2: rgba(232, 93, 117, 0.10);
   --shadow: 0 24px 48px rgba(5, 5, 23, 0.08);
   --radius: 24px;
@@ -170,7 +173,7 @@ body {
   padding: 12px 16px;
   border-radius: 16px;
   background: var(--accent-2);
-  color: var(--accent);
+  color: var(--accent-ink, var(--accent));
   font-weight:650;
 }
 
@@ -266,7 +269,7 @@ body {
 
 .module-chip.active {
   background: var(--accent-2);
-  color: var(--accent);
+  color: var(--accent-ink, var(--accent));
   border-color: color-mix(in srgb, var(--accent) 30%, transparent 70%);
 }
 
@@ -277,7 +280,7 @@ body {
   border-radius: 999px;
   padding: 10px 14px;
   background: var(--accent-2);
-  color: var(--accent);
+  color: var(--accent-ink, var(--accent));
   font-weight:650;
 }
 

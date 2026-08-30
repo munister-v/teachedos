@@ -71,7 +71,9 @@ h1 {
   padding: 10px 14px;
   border-radius: 999px;
   background: var(--accent-2);
-  color: var(--accent);
+  /* Акцент модуля тут стоит текстом на своём же светлом тинте: у голубого
+     это 2,9:1. Затемнённый вариант приходит из --accent-ink. */
+  color: var(--accent-ink, var(--accent));
   font-size: 13px;
   font-weight:650;
   white-space: nowrap;

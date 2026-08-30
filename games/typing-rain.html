@@ -11,11 +11,14 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#1C1C1E}
 body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#1a0a12;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;color:#fff}
-.back{align-self:flex-start;color:#C8E632;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem}
-h1{font-size:1.6rem;font-weight:800;color:#C8E632;margin-bottom:2px}
-.subtitle{color:#886;font-size:.85rem;margin-bottom:16px}
-.hud{display:flex;gap:24px;margin-bottom:12px;font-weight:700;font-size:.95rem;color:#C8E632}
-.hud span{color:#fff}
+.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem}
+h1{font-size:1.6rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
+.subtitle{color:#525252;font-size:.85rem;margin-bottom:16px}
+/* Шапка игры была рассчитана на тёмный фон, а тема ставит страницу на песок:
+   лаймовые счётчики и белые цифры на нём не читались (1,1–1,4:1).
+   Арена ниже остаётся тёмной — это поле игры, там лайм на месте. */
+.hud{display:flex;gap:24px;margin-bottom:12px;font-weight:700;font-size:.95rem;color:#525252}
+.hud span{color:#0E0E10}
 #arena{width:100%;max-width:520px;height:340px;background:#120008;border-radius:18px;position:relative;overflow:hidden;border:2px solid #3a0020}
 .falling{position:absolute;font-weight:800;font-size:1rem;color:#C8E632;white-space:nowrap;text-shadow:0 0 8px #C8E63288;transition:color .1s}
 .falling.active{color:#fff;text-shadow:0 0 12px #C8E632}
@@ -26,8 +29,8 @@ input:focus{border-color:var(--accent)}
 .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#120008cc;border-radius:18px;font-size:1.3rem;font-weight:800;gap:16px}
 button.play-btn{padding:12px 28px;border:none;border-radius:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=534">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=534">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=537">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=537">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -134,6 +137,6 @@ function endGame(){
   ov.innerHTML=`<div>Game Over!</div><div style="font-size:1rem;color:#C8E632">Score: ${score} | Level: ${level}</div><button class="play-btn" onclick="startGame()">▶ Play Again</button>`;
 }
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=534"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=537"></script>
 </body>
 </html>
