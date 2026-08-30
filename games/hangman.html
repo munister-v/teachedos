@@ -13,13 +13,13 @@
 body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#6E6E6E;font-size:.9rem;margin-bottom:20px}
+.subtitle{color:#525252;font-size:.9rem;margin-bottom:20px}
 .card{background:#fff;border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:460px;text-align:center}
-.score-row{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#5E5E5E;font-size:.9rem}
+.score-row{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#525252;font-size:.9rem}
 .score-row span{color:var(--accent)}
 svg.gallows{width:160px;height:140px}
 .lives{font-size:1.4rem;letter-spacing:4px;margin:8px 0}
-.hint-label{font-size:.82rem;color:#6E6E6E;margin-bottom:6px}
+.hint-label{font-size:.82rem;color:#525252;margin-bottom:6px}
 .word-display{font-size:1.9rem;font-weight:800;letter-spacing:10px;color:#333;margin:14px 0;min-height:44px}
 .keyboard{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
 .key{width:36px;height:36px;border:none;border-radius:8px;background:#f5f5f5;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
@@ -29,10 +29,10 @@ svg.gallows{width:160px;height:140px}
 .key.right{background:#d4f7e0;color:#2e7d32}
 .msg{margin-top:16px;font-size:1.1rem;font-weight:700;min-height:24px;color:var(--accent)}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=520">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=520">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=531">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=531">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=520">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=531">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -58,7 +58,7 @@ svg.gallows{width:160px;height:140px}
   <div class="msg" id="msg"></div>
 </div>
 
-<script src="../scripts/vocabulary.js?v=520"></script>
+<script src="../scripts/vocabulary.js?v=531"></script>
 <script>
 let WORDS=[
   {w:'apple',h:'a fruit (яблуко)'},
@@ -191,6 +191,6 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=520"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=531"></script>
 </body>
 </html>

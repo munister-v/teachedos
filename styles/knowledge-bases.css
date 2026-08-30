@@ -3,7 +3,7 @@
 .knowledge-bases-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
 .knowledge-bases-title{font-size:24px;letter-spacing:-.04em}
 .knowledge-bases-sub{max-width:640px;margin-top:4px;color:var(--muted);font-size:13px;line-height:1.5}
-.knowledge-bases-status{margin-top:8px;color:#5E5E6A;font:900 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.knowledge-bases-status{margin-top:8px;color:#53535E;font:900 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .knowledge-bases-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .knowledge-bases-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .knowledge-bases-search{width:min(310px,100%);height:40px;border:1px solid rgba(24,24,24,.12);border-radius:13px;background:#fff;padding:0 12px;color:var(--ink);font-size:13px;font-weight:600;outline:none}

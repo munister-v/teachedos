@@ -705,14 +705,17 @@ const CATS = ['all','favorites','reading','vocabulary','writing','speaking','gra
 const CAT_NAMES = {all:'All',favorites:'Favorites',reading:'Reading',vocabulary:'Vocabulary',writing:'Writing',speaking:'Speaking',grammar:'Grammar',listening:'Listening',utility:'Utility'};
 // Same palette as the desktop "Teaching Tools" preview window's TAG_COLORS -
 // kept in sync on purpose so a card looks the same whichever surface it's on.
+/* Цвета подбирались под белую карточку. Фон приложения стал песочным
+   (тема из макета), тинт чипа полупрозрачный - и текст сел до 2.1-3.8:1.
+   Тон оставлен прежним, светлота опущена до >=4.5:1 на песке. */
 const CAT_TAG_COLORS = {
-  reading:    { bg:'rgba(96,165,250,.12)',  color:'#3b7ad4' },
-  writing:    { bg:'rgba(110,201,138,.14)', color:'#3f9a63' },
-  listening:  { bg:'rgba(245,158,11,.14)',  color:'#b5720a' },
-  speaking:   { bg:'rgba(167,139,250,.14)', color:'#7c5cd6' },
-  vocabulary: { bg:'rgba(200,230,50,.20)',  color:'#5a6b00' },
-  grammar:    { bg:'rgba(248,113,113,.14)', color:'#c23f3f' },
-  utility:    { bg:'rgba(24,24,24,.08)',    color:'#4a4b55' },
+  reading:    { bg:'rgba(96,165,250,.12)',  color:'#225399' },
+  writing:    { bg:'rgba(110,201,138,.14)', color:'#275E3D' },
+  listening:  { bg:'rgba(245,158,11,.14)',  color:'#764A07' },
+  speaking:   { bg:'rgba(167,139,250,.14)', color:'#5932C8' },
+  vocabulary: { bg:'rgba(200,230,50,.20)',  color:'#4F5E00' },
+  grammar:    { bg:'rgba(248,113,113,.14)', color:'#932F2F' },
+  utility:    { bg:'rgba(24,24,24,.08)',    color:'#4A4B55' },
 };
 let currentCat = 'all';
 let activeTool = null;
@@ -935,7 +938,9 @@ function renderPresetPacks(){
   list.sort((a,b)=>(levelOrder[a.p.level]||9)-(levelOrder[b.p.level]||9) || a.p.title.localeCompare(b.p.title));
   wrap.innerHTML=list.map(({p,i})=>{
     const lv=(p.level||'').toUpperCase();
-    const lvColor={A1:'#0F7B3D',A2:'#066B84',B1:'#0E0E10',B2:'#7C3AED',C1:'#C71477'}[lv]||'#0E0E10';
+    /* Тот же тон, но читаемый на песке: чип красится этим цветом и своим
+       же тинтом 13%, на белом фоне цвета давали 2.9-3.3:1. */
+    const lvColor={A1:'#0A5429',A2:'#054E61',B1:'#0E0E10',B2:'#5311C3',C1:'#890E51'}[lv]||'#0E0E10';
     return `<button class="preset-card" type="button" onclick="applyPresetPack(${i})" style="border-left:3px solid ${lvColor};padding:11px 14px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
         <span style="font:900 9px var(--mono);letter-spacing:.06em;background:${lvColor}22;color:${lvColor};padding:2px 7px;border-radius:5px;">${esc(p.level||'')}</span>

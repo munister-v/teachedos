@@ -9,7 +9,7 @@
 body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;overflow-x:hidden}
 .back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
 h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
-.subtitle{color:#5E5E5E;font-size:.85rem;margin-bottom:14px}
+.subtitle{color:#525252;font-size:.85rem;margin-bottom:14px}
 .wheel-wrap{position:relative;width:300px;height:300px;margin:0 auto 10px}
 .needle{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:24px solid #0E0E10;z-index:10;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 canvas{border-radius:50%;box-shadow:0 4px 24px rgba(0,0,0,.15)}
@@ -27,9 +27,9 @@ canvas{border-radius:50%;box-shadow:0 4px 24px rgba(0,0,0,.15)}
 .editor textarea:focus{border-color:#CDF24F}
 .btn-save{background:#CDF24F;color:#0E0E10;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer;margin-top:8px}
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=520">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=531">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=520">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=531">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>

@@ -23,7 +23,9 @@ body.fx.landing-page {
      все надзаголовки секций, подписи счётчиков, .bento-tag и .fp-cap, то есть
      весь мелкий текст лендинга разом не проходил AA. Тон и температура те же,
      лайтнес опущен до 4.7:1 на песке и 6.2:1 на стекле. */
-  --fx-mute:#5A5750;
+  /* Приглушённый тон стоит и на тёплых тинтах карточек, где песок под
+     полупрозрачной подложкой темнее белого: 3.6:1. Опущен до 4.8:1. */
+  --fx-mute:#47443F;
   --fx-glass:rgba(255,252,246,.55);
   --fx-glass-line:rgba(255,255,255,.62);
   --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
@@ -32,7 +34,12 @@ body.fx.landing-page {
      перекрашиваются разом все места, где они использованы. */
   --cream:#E4D6C4; --cream-2:#DCD3BF; --paper:#E4D6C4;
   --card:rgba(255,252,246,.55); --white:rgba(255,252,246,.72);
-  --ink:#161616; --ink2:#4A4A46; --ink3:#9A968C;
+  --ink:#161616; --ink2:#4A4A46;
+  /* --ink3 отдаёт подписи футера и мелкие метки. teached-brand.css держит
+     его на :root с !important (#5E5E6A), var() там резолвится в контексте
+     :root, поэтому переопределение --text-3 на body до него не доходит:
+     нужен свой важный тон, читаемый на песке. */
+  --ink3:#57544D !important;
   --line:rgba(255,255,255,.55); --line-2:rgba(22,22,22,.07);
   /* teached-brand.css переопределяет эти же токены на `body.landing-page`
      с !important, поэтому объявление без важности проигрывало и розовый
@@ -106,6 +113,14 @@ body.fx.landing-page .hero h1 em {
 body.fx.landing-page :is(.hero-sub,.sec-p,.cap,.bc-p) { color:var(--fx-ink-2) !important; }
 body.fx.landing-page :is(.sec-eye,.stat-l,.fp-cap,.bento-tag) {
   color:var(--fx-mute) !important; letter-spacing:0 !important;
+}
+/* Чернильная полоса «Lesson builders» осталась тёмной, а правило выше красит
+   её чипы в приглушённый серый поверх инлайнового светлого цвета: 1.65:1 для
+   бейджа и 3.7:1 для тегов. На тёмной подложке чипы остаются светлыми. */
+body.fx.landing-page .ink-row :is(.bento-tag,.cat-tag,.cat-count) {
+  background:rgba(255,255,255,.12) !important;
+  border-color:rgba(255,255,255,.24) !important;
+  color:#F5F0E8 !important;
 }
 
 /* ── Карточки и панели ──────────────────────────────────────────────────── */

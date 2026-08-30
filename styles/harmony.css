@@ -582,7 +582,7 @@ body { font-family: var(--font) !important; }
   border-right: 1px solid rgba(0,0,0,.08);
 }
 .sb-tabs { border-bottom-color: rgba(0,0,0,.06); }
-.sb-tab { color: #6E6E5C; }
+.sb-tab { color: #64645D; }
 .sb-tab:hover { color: #0E0E10; background: rgba(14,14,16,.05); }
 .sb-tab.active { color: #0E0E10; border-bottom-color: #0E0E10; }
 .sb-tab-lbl { color: inherit; }
@@ -591,11 +591,11 @@ body { font-family: var(--font) !important; }
   border-color: rgba(0,0,0,.10);
   color: #0E0E10;
 }
-.sb-search input::placeholder { color: #6E6E5C; }
+.sb-search input::placeholder { color: #64645D; }
 .sb-search input:focus { border-color: #0E0E10; background: #fff; box-shadow: 0 0 0 3px rgba(14,14,16,.10); }
 .sb-body { scrollbar-color: rgba(0,0,0,.12) transparent; }
 .sb-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); }
-.sb-label { color: #6E6E5C; }
+.sb-label { color: #64645D; }
 .sb-sep { background: rgba(0,0,0,.06); }
 
 /* Snippet cards - light Miro */
@@ -608,7 +608,7 @@ body { font-family: var(--font) !important; }
   box-shadow: 0 4px 14px rgba(14,14,16,.10);
 }
 .sn-title { font-family: var(--font); font-weight: 600; color: #0E0E10; }
-.sn-label { font-family: var(--font); color: #6E6E5C; }
+.sn-label { font-family: var(--font); color: #64645D; }
 
 /* Badges: readable on light bg */
 /* Text darkened below the plain accent for seven of these: a badge's own
@@ -626,7 +626,7 @@ body { font-family: var(--font) !important; }
 .badge.grammar { background: rgba(248,113,113,.12); color: #B01B1B; }
 .badge.vocab { background: rgba(0,0,0,.06); color: #3A3A2E; }
 .badge.speaking { background: rgba(167,139,250,.12); color: #7c3aed; }
-.badge.draft { background: rgba(0,0,0,.06); color: #6E6E5C; }
+.badge.draft { background: rgba(0,0,0,.06); color: #64645D; }
 .badge.pink { background: rgba(236,45,140,.12); color: #A61959; }
 .badge.amber { background: rgba(245,158,11,.14); color: #985800; }
 .badge.a1 { background: rgba(56,189,248,.14); color: #025A82; }

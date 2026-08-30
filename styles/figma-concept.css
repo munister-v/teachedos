@@ -695,6 +695,16 @@ body.fx.board-page :is(.ai-hero,.ai-preview,.ai-memory-note) {
 body.fx.board-page :is(.ai-hero,.ai-preview,.ai-memory-note) :is(h1,h2,h3,p,span,div,small,b) {
   color:var(--fx-ink) !important;
 }
+/* Курсив в заголовке и надзаголовок были лаймовыми - под тёмную плиту.
+   Плита стала светлым стеклом, а эти два места остались лаймом: 1.3:1,
+   то есть слово «teaching memory» просто исчезало. Чипы там же держали
+   белую полупрозрачную заливку, невидимую на светлом. */
+body.fx.board-page .ai-hero :is(h2 em,.ai-kicker) { color:var(--fx-ink) !important; }
+body.fx.board-page .ai-hero .ai-chip {
+  background:rgba(22,22,22,.05) !important;
+  border-color:rgba(22,22,22,.12) !important;
+  color:var(--fx-ink-2) !important;
+}
 
 /* Кнопка «скрыть» стояла в том же углу, что и иконка карточки, и они
    налезали друг на друга. Переношу её в левый верхний угол - туда же, где

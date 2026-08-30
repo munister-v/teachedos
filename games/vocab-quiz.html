@@ -13,26 +13,26 @@
 body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#6E6E6E;font-size:.9rem;margin-bottom:20px;text-align:center}
+.subtitle{color:#525252;font-size:.9rem;margin-bottom:20px;text-align:center}
 .card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:460px;text-align:center}
-.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#5E5E5E;font-size:.9rem}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#525252;font-size:.9rem}
 .top span{color:var(--accent)}
 .progress{width:100%;height:6px;background:#f0e0e8;border-radius:3px;margin-bottom:22px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
 .prompt{font-size:1.15rem;font-weight:700;color:#333;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.5;margin-bottom:24px;gap:6px}
-.prompt .ex{font-size:.85rem;font-style:italic;color:#6E6E6E}
+.prompt .ex{font-size:.85rem;font-style:italic;color:#525252}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .choice{padding:16px 8px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;transition:.15s;background:#FBF8F3;color:var(--accent);border:2px solid #eee2d8}
 .choice:hover{border-color:var(--lime)}
 .choice.correct-flash{background:#e8f5e9;border-color:#4caf50;color:#2e7d32}
 .choice.wrong-flash{background:#fce4ec;border-color:#f44336;color:#c62828}
-.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#5E5E5E}
+.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#525252}
 .play-again{margin-top:12px;padding:14px 24px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=520">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=520">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=531">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=531">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=520">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=531">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -47,8 +47,8 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   <button class="play-again" id="again" onclick="start()">▶ Play Again</button>
 </div>
 
-<script src="../scripts/vocabulary.js?v=520"></script>
-<script src="../scripts/custom-sets.js?v=520"></script>
+<script src="../scripts/vocabulary.js?v=531"></script>
+<script src="../scripts/custom-sets.js?v=531"></script>
 <script>
 let words=[], questions=[], idx=0, score=0, customWords=null;
 
@@ -179,6 +179,6 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=520"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=531"></script>
 </body>
 </html>

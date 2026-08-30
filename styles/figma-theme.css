@@ -91,6 +91,12 @@ body.fx:not(#_) {
   --te-muted:#55555E !important;
   --calm-muted:#55555E !important;
   --muted:#55555E !important;
+  /* Третий уровень чернил остался на #5E5E6A - на песке это 4.05:1, то есть
+     подписи, счётчики и статусы не дотягивали до AA. Оттенок тот же. */
+  --text-3:#4E4E58 !important;
+  --text3:#4E4E58 !important;
+  --soft:#4E4E58 !important;
+  --ink3:#4E4E58 !important;
 }
 body.fx:not(#_)::before { content:none !important; }
 
@@ -105,6 +111,11 @@ body.fx:not(#_) :is(.nav,#nav) {
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
 }
 body.fx:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) { color:var(--fx-ink) !important; }
+/* Конструкторы игры и квиза держат в шапке свою пару «.nav-brand + .nav-title»,
+   и на прежней тёмной панели они были белыми. Панель стала белой - надпись
+   «TeachEd · Quiz Builder» пропала совсем (1:1). */
+body.fx:not(#_) :is(.nav,#nav) .nav-brand { color:var(--fx-ink) !important; }
+body.fx:not(#_) :is(.nav,#nav) .nav-title { color:var(--fx-ink-2) !important; }
 body.fx:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) img {
   width:26px !important; height:26px !important;
 }

@@ -10,7 +10,9 @@
   --auth-lime-dark: #8DB800;
   --auth-ink:       #1C1C1E;
   --auth-ink2:      #5A5A6A;
-  --auth-ink3:      #9A9AAA;
+  /* Третій рівень: на теплій картці входу давав 1.9:1 - розділювач «OR»
+     і «Forgot password?» практично не читались. Тон той самий, темніше. */
+  --auth-ink3:      #575768;
   --auth-border:    rgba(94,94,74,.16);
   --auth-bg-field:  rgba(255,255,255,.70);
   --auth-card-bg:   rgba(247,244,238,.96);

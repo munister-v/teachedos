@@ -98,7 +98,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
   font:720 10px/1 var(--mono);
 }
 .tools-workbench .side-btn.active .side-ic { color:#4b550d; background:rgba(200,230,50,.42); }
-.tools-workbench .side-count { color:#a1a199; font-size:9px; }
+.tools-workbench .side-count { color:#64645D; font-size:9px; }
 .tools-workbench .side-library-link {
   display:flex;
   align-items:center;
@@ -192,7 +192,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 }
 .tools-workbench .presets-summary:hover { color:var(--tt-ink); background:transparent; }
 .tools-workbench .kb-summary-title { font-weight:700; }
-.tools-workbench .kb-summary-hint { color:#5E5E6A; opacity:1; }
+.tools-workbench .kb-summary-hint { color:#53535E; opacity:1; }
 .tools-workbench .kb-summary-count { padding:0; border:0; background:transparent; color:inherit; }
 
 .tools-workbench .bar {
@@ -218,7 +218,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
   background:#fff;
   box-shadow:0 0 0 3px rgba(200,230,50,.22);
 }
-.tools-workbench .search span { color:#5E5E6A; }
+.tools-workbench .search span { color:#53535E; }
 .tools-workbench .chips { gap:3px; }
 .tools-workbench .chip {
   min-height:34px;
@@ -541,7 +541,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 }
 .tools-workbench .result-empty span {
   margin:5px 0 0;
-  color:#5E5E6A;
+  color:#53535E;
   font-size:13px;
 }
 .tools-workbench .result-actions {
@@ -825,27 +825,27 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 }
 .tools-workbench .tool[data-catkey="reading"] .tool-visual {
   background:rgba(91,108,255,.16);
-  color:#4256e1;
+  color:#2137CF;
 }
 .tools-workbench .tool[data-catkey="vocabulary"] .tool-visual {
   background:rgba(66,200,120,.16);
-  color:#0F743B;
+  color:#0C6031;
 }
 .tools-workbench .tool[data-catkey="writing"] .tool-visual {
   background:rgba(255,181,70,.2);
-  color:#9C5704;
+  color:#814803;
 }
 .tools-workbench .tool[data-catkey="speaking"] .tool-visual {
   background:rgba(236,45,140,.15);
-  color:#c9156d;
+  color:#961051;
 }
 .tools-workbench .tool[data-catkey="grammar"] .tool-visual {
   background:rgba(139,92,246,.15);
-  color:#7540d8;
+  color:#5E28C2;
 }
 .tools-workbench .tool[data-catkey="listening"] .tool-visual {
   background:rgba(115,220,226,.2);
-  color:#177b86;
+  color:#125F68;
 }
 .tools-workbench .workspace .panel-icon {
   background:linear-gradient(135deg,rgba(91,108,255,.2),rgba(200,230,50,.5));

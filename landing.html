@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=520">
+<link rel="manifest" href="manifest.json?v=531">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -309,7 +309,7 @@ nav.ln{
   font-family:var(--mono,-apple-system,monospace);
 }
 .tb.r{background:rgba(236,45,140,.12);color:#EC2D8C;}
-.tb.y{background:rgba(200,230,50,.16);color:#6b8800;}
+.tb.y{background:rgba(200,230,50,.16);color:#5E7800;}
 .tb.g{background:rgba(14,14,16,.07);color:var(--ink3,#6a6a7a);}
 .preview-bar-title{
   flex:1;text-align:center;font-size:12px;font-weight:600;color:var(--ink3);
@@ -1586,8 +1586,8 @@ body.pwa-standalone .hero{
 .hp-avatars{display:flex;}
 .hp-avatars span{width:30px;height:30px;border-radius:50%;margin-left:-9px;border:2.5px solid var(--cream);display:grid;place-items:center;font-size:10.5px;font-weight:650;color:#fff;font-family:var(--font);box-shadow:0 1px 3px rgba(11,11,12,.12);}
 .hp-avatars span:first-child{margin-left:0;}
-.hp-avatars span:nth-child(1){background:#7C5CE0;} .hp-avatars span:nth-child(2){background:#DB6B4B;}
-.hp-avatars span:nth-child(3){background:#159B9B;} .hp-avatars span:nth-child(4){background:var(--ink);font-size:12px;}
+.hp-avatars span:nth-child(1){background:#7C5CE0;} .hp-avatars span:nth-child(2){background:#C94C28;}
+.hp-avatars span:nth-child(3){background:#128282;} .hp-avatars span:nth-child(4){background:var(--ink);font-size:12px;}
 .hp-text{text-align:left;font-size:13px;color:var(--ink2);font-weight:600;line-height:1.25;}
 .hp-text b{color:var(--ink);font-weight:650;}
 .hp-stars{color:#A96F10;font-size:12px;letter-spacing:1.5px;margin-bottom:1px;}
@@ -1839,9 +1839,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=520">
+<link rel="stylesheet" href="styles/teached-brand.css?v=531">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=520">
+<link rel="stylesheet" href="styles/figma-landing.css?v=531">
 </head>
 <body class="landing-page fx">
 
@@ -2393,7 +2393,7 @@ section{scroll-margin-top:64px;}
     </div>
 
     <!-- Utility row -->
-    <div style="margin-top:14px;background:var(--ink);color:#F5F0E8;border-radius:var(--radius);padding:26px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;justify-content:space-between;">
+    <div class="ink-row" style="margin-top:14px;background:var(--ink);color:#F5F0E8;border-radius:var(--radius);padding:26px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;justify-content:space-between;">
       <div style="max-width:520px;">
         <div class="bento-tag" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#F5F0E8;">Lesson builders</div>
         <div style="font-family:var(--serif);font-size:22px;font-weight:600;margin-top:10px;">Assemble a whole lesson, then export it</div>
@@ -2479,7 +2479,7 @@ section{scroll-margin-top:64px;}
         <div class="testi-stars">★★★★★</div>
         <p class="testi-q">"The games alone are worth it. My students beg to play False Friends and Word Scramble at the end of every class. Engagement is night and day compared to before."</p>
         <div class="testi-author">
-          <div class="testi-avatar" style="background:#DB6B4B;">MR</div>
+          <div class="testi-avatar" style="background:#C94C28;">MR</div>
           <div>
             <div class="testi-name">Marco R.</div>
             <div class="testi-role">Business English · Milan</div>
@@ -2491,7 +2491,7 @@ section{scroll-margin-top:64px;}
         <div class="testi-stars">★★★★★</div>
         <p class="testi-q">"Offline mode is the killer feature for me - I teach in a village with patchy Wi-Fi. The whole app works from cache. Grade book, boards, everything."</p>
         <div class="testi-author">
-          <div class="testi-avatar" style="background:#159B9B;">OP</div>
+          <div class="testi-avatar" style="background:#128282;">OP</div>
           <div>
             <div class="testi-name">Olena P.</div>
             <div class="testi-role">Private tutor · Kyiv</div>
@@ -2723,7 +2723,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=520">
+<link rel="stylesheet" href="styles/auth.css?v=531">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
