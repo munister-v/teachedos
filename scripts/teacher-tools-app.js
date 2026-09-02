@@ -1436,7 +1436,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=546';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=547';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1448,7 +1448,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=546';
+    el.src='scripts/board-gen.js?v=547';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);
@@ -2377,23 +2377,37 @@ function workoutTranslateLang(){return get('wk-lang')||readJson(WORKOUT_LANG_STO
    набори, що читають ігри за ?set=<id> (custom-sets.js). Порожній перелік
    наборів мовчить: показувати запит на порожнє сховище нема сенсу. */
 function workoutSavedSetsHtml(){
-  if(!window.TEACHEDOS_CUSTOM)return '';
-  const sets=window.TEACHEDOS_CUSTOM.list();
-  if(!sets.length)return '';
-  const opts=sets.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.icon||'📚')+' '+esc(s.name)+' ('+s.words.length+')</option>').join('');
-  return '<div class="field full" style="margin-bottom:10px;"><label class="label" for="wk-load-set">Load a saved word set</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><select id="wk-load-set" style="flex:1;min-width:200px;"><option value="">Choose a saved set…</option>'+opts+'</select><button class="btn sm ghost" type="button" onclick="workoutLoadSavedSet()">Load into the list</button></div></div>';
+  const sets=window.TEACHEDOS_CUSTOM?window.TEACHEDOS_CUSTOM.list():[];
+  const kbs=allKnowledgeBases().filter(b=>b.entries&&b.entries.length);
+  if(!sets.length&&!kbs.length)return '';
+  const setOpts=sets.map(s=>'<option value="set:'+esc(s.id)+'">'+esc(s.icon||'📚')+' '+esc(s.name)+' ('+s.words.length+' words)</option>').join('');
+  const kbOpts=kbs.map(b=>'<option value="kb:'+esc(b.id)+'">'+esc(b.icon||'KB')+' '+esc(b.title)+' ('+b.entries.length+' terms)</option>').join('');
+  return '<div class="field full" style="margin-bottom:10px;"><label class="label" for="wk-load-set">Load an existing list</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><select id="wk-load-set" style="flex:1;min-width:200px;"><option value="">Choose a saved set or knowledge base…</option>'+setOpts+kbOpts+'</select><button class="btn sm ghost" type="button" onclick="workoutLoadSavedSet()">Load into the list</button></div></div>';
 }
 function workoutLoadSavedSet(){
-  const id=get('wk-load-set');
-  if(!id||!window.TEACHEDOS_CUSTOM)return;
-  const rec=window.TEACHEDOS_CUSTOM.get(id);
-  if(!rec){toast('Could not find that set');return}
+  const picked=get('wk-load-set');
+  if(!picked)return;
+  const [kind,id]=picked.split(/:(.+)/);
   const vocab=document.getElementById('vocab');
   if(!vocab)return;
-  vocab.value=rec.words.map(w=>w.uk?(w.en+' - '+w.uk):w.en).join('\n');
-  if(!get('topic'))document.getElementById('topic').value=rec.name;
+  if(kind==='set'){
+    const rec=window.TEACHEDOS_CUSTOM&&window.TEACHEDOS_CUSTOM.get(id);
+    if(!rec){toast('Could not find that set');return}
+    vocab.value=rec.words.map(w=>w.uk?(w.en+' - '+w.uk):w.en).join('\n');
+    if(!get('topic'))document.getElementById('topic').value=rec.name;
+    toast('Loaded "'+rec.name+'" - '+rec.words.length+' words');
+  }else if(kind==='kb'){
+    const base=allKnowledgeBases().find(b=>b.id===id);
+    if(!base){toast('Could not find that knowledge base');return}
+    /* НЕ kbVocabText(): той формат кладе приклад на власний рядок
+       («  Example: …»), а рушій ділить список рядками - приклад став би
+       окремим псевдословом. Тут кожен термін лишається одним рядком: переклад
+       у дужках, приклад відкинуто (він живе в самій базі, не в списку слів). */
+    vocab.value=base.entries.map(e=>e.term+' - '+e.definition+(e.translation?' ('+e.translation+')':'')).join('\n');
+    if(!get('topic'))document.getElementById('topic').value=base.title;
+    toast('Loaded "'+base.title+'" - '+base.entries.length+' terms');
+  }
   scheduleDraftSave();
-  toast('Loaded "'+rec.name+'" - '+rec.words.length+' words');
 }
 
 /* Метадані інструмента для ttEngineOutput/aiResultToOutput. Вони чекають на
@@ -2492,6 +2506,7 @@ function renderWorkout(pendingTitle){
       +'<button class="btn sm ghost" type="button" onclick="workoutAddCustom()">+ Add block</button>'
       +'<details class="result-more-actions"><summary class="btn sm ghost">More</summary><div class="result-more-menu" role="menu">'
         +'<button class="result-menu-item" type="button" onclick="workoutPrint()">Print / PDF the set</button>'
+        +'<button class="result-menu-item" type="button" onclick="workoutDownloadWord()">Word document</button>'
         +'<button class="result-menu-item" type="button" onclick="workoutSaveLibrary()">Save to library</button>'
         +'<button class="result-menu-item" type="button" onclick="saveWorkoutWordSet()">Save word set for games</button>'
       +'</div></details>'
@@ -2507,6 +2522,7 @@ function renderWorkout(pendingTitle){
       +'<button class="btn sm ghost" type="button" onclick="workoutEdit('+i+')">Edit</button>'
       +(ttHubHasKey(out)?'<button class="btn sm ghost" type="button" onclick="workoutToggleKey('+i+')">'+(showAnswers?'Hide key':'Show key')+'</button>':'')
       +(out.gameType&&out.gameContent?'<button class="btn sm ghost" type="button" onclick="workoutPlay('+i+')">Play</button>':'')
+      +(workoutActivity(out.workoutKey)?'<button class="btn sm ghost" type="button" onclick="workoutRegenerate('+i+')" title="Rebuild this activity from the current word list">Refresh</button>':'')
       +'<button class="btn sm ghost" type="button" onclick="workoutMove('+i+',-1)" aria-label="Move up">↑</button>'
       +'<button class="btn sm ghost" type="button" onclick="workoutMove('+i+',1)" aria-label="Move down">↓</button>'
       +'<button class="btn sm ghost danger-text" type="button" onclick="workoutRemove('+i+')" aria-label="Remove">×</button>'
@@ -2573,6 +2589,33 @@ function workoutSaveEdit(i){
   out.text=ta.value;out.edited=true;out.struct=null;out.gameContent=null;out.gameType=null;
   renderWorkout();toast('Saved - this activity now travels as your edited text');
 }
+/* Оновити одну картку набору, не перезбираючи весь список. Учитель часто
+   править слова ПІСЛЯ першої збірки - додав приклад, прибрав зайве слово - і
+   раніше єдиним способом побачити це в конкретній вправі було видалити її і
+   натиснути «Build the set» заново, що перебудовує ВЕСЬ набір і губить ручні
+   правки в інших блоках. Кнопка є лише там, де активність досі впізнавана
+   (workoutActivity знаходить її за workoutKey) - у власного текстового блоку
+   такого ключа немає, і оновлювати там нічого. */
+async function workoutRegenerate(i){
+  const out=workoutBlocks[i];
+  const a=out&&workoutActivity(out.workoutKey);
+  if(!a)return;
+  if(a.ai&&!workoutSignedIn()){toast('Sign in to rebuild this activity');return}
+  const vocab=get('vocab');
+  if(!vocab){showToolInputError('vocab','Add the word list first');return}
+  setToolBusy(true,'Rebuilding "'+a.title+'"…');
+  try{
+    const input={level:level(),count:count(),topic:topic(),vocab};
+    const fresh=a.ai?await workoutRunAi(a,input):(await ttEnsureEngine())&&workoutRunOffline(a,input);
+    if(!fresh){toast('Could not rebuild this activity');return}
+    workoutBlocks[i]=fresh;
+    renderWorkout();
+    toast('"'+a.title+'" refreshed');
+  }finally{
+    setToolBusy(false);
+  }
+}
+
 function workoutPlay(i){
   const out=workoutBlocks[i];
   if(!out||!out.gameType||!out.gameContent){toast('This activity has no linked game');return}
@@ -2590,6 +2633,16 @@ function workoutPrint(){
   if(!w){toast('Allow pop-ups to print the set');return}
   w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;max-width:820px;margin:36px auto;padding:0 22px;color:#181818;line-height:1.6}h1{letter-spacing:-.03em}h2{font-size:16px;margin:22px 0 8px}pre{white-space:pre-wrap;font:inherit}.task{border-top:1px solid #e6e6e6;padding-top:6px}@media print{body{margin:0}}</style></head><body><h1>'+esc(title)+'</h1>'+parts+'</body></html>');
   w.document.close();w.focus();w.print();
+}
+/* Той самий .doc-прийом, що й у downloadWord() для одиночного драфта, тільки
+   на весь набір: кожен блок - свій заголовок і своя таблиця/список, зібрані в
+   один документ замість дванадцяти окремих файлів. */
+function workoutDownloadWord(){
+  if(!workoutBlocks.length){toast('Build the set first');return}
+  const title=topic()||'Vocabulary workout';
+  const sections=workoutBlocks.map((out,i)=>`<h2>${i+1}. ${esc(out.title||'Activity')}</h2>${htmlForExport(out)}`).join('<hr style="margin:22px 0;border:none;border-top:1px solid #ddd;">');
+  const html=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>${esc(title)}</title></head><body style="font-family:Calibri,Arial,sans-serif;"><h1>${esc(title)}</h1><p style="color:#666">TeachEd / ${esc(level())}</p>${sections}</body></html>`;
+  const blob=new Blob(['﻿',html],{type:'application/msword'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${slug(title)}.doc`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),400);toast('Word document downloaded');
 }
 function workoutSaveLibrary(){
   if(!workoutBlocks.length){toast('Build the set first');return}
