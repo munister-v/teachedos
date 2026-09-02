@@ -358,6 +358,25 @@
   /* Input fields: iOS-safe 16px to prevent auto-zoom */
   .auth-inp { font-size: 16px !important; }
 
+  /* Пальцу нужны 44px. Крестик был 34px, «Forgot password?» и «Register» -
+     полосками в 17-18px высотой: попасть в них на ходу почти нельзя, а
+     промах по «Register» это второй заход на весь экран входа. Размер
+     шрифта не трогаем - растёт только площадь нажатия. */
+  .auth-close { width: 44px !important; height: 44px !important; }
+  .auth-forgot button,
+  .auth-toggle button {
+    min-height: 44px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .auth-forgot { margin-top: 0; }
+
+  /* 10-11px подписи на телефоне читаются хуже, чем кажется на макете. */
+  .auth-field-label { font-size: 12px; }
+  .auth-security-note { font-size: 12px; }
+  .auth-role-desc { font-size: 11px; }
+
   /* Taller role cards on phones */
   .auth-role { padding: 16px 10px 14px !important; }
   .auth-role-ic { font-size: 2rem !important; margin-bottom: 6px !important; }
