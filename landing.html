@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=537">
+<link rel="manifest" href="manifest.json?v=538">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -481,7 +481,7 @@ nav.ln{
 .step-h{font-size:18px;font-weight:650;letter-spacing:-.02em;margin-bottom:8px;color:var(--ink);}
 .step-p{font-size:13px;color:var(--ink2);line-height:1.65;}
 .step-connector{
-  position:absolute;top:54px;right:-28px;z-index:1;
+  position:absolute;top:54px;right:-13px;z-index:1;
   color:rgba(14,14,16,.20);font-size:18px;
 }
 
@@ -1382,7 +1382,7 @@ body.pwa-standalone .hero{
   }
   /* Мелочь по краям после приближения всё равно оказывается за кадром,
      а вместе с ней уезжает и смысл: убираем, чтобы не резалось наполовину. */
-  .pv-tools,.pv-zoom,.pv-timer,.pv-match{ display:none !important; }
+  .pv-tools,.pv-zoom,.pv-timer,.pv-match,.pv-sticky{ display:none !important; }
 }
 
 /* ═══════════ Bento feature cards → realistic component mini-previews ═══════════ */
@@ -1512,7 +1512,11 @@ body.pwa-standalone .hero{
 .cat.c-speak{--acc:#128282;--acc-bg:rgba(143,230,230,.32);}
 .cat.c-write{--acc:#9F6B07;--acc-bg:rgba(255,201,74,.28);}
 .cat.c-listen{--acc:#E11D74;--acc-bg:rgba(225,29,116,.12);}
-.cat::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--acc);opacity:.9;}
+/* Полоса шла от края до края поверх скруглённого угла: на песке она читалась
+   отдельной чёрточкой, висящей над карточкой. Убираем её под радиус. */
+.cat::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--acc);opacity:.9;
+  border-radius:var(--radius) var(--radius) 0 0;}
+.cat{overflow:hidden;}
 .cat:hover{box-shadow:0 14px 34px color-mix(in srgb,var(--acc) 17%,transparent);border-color:color-mix(in srgb,var(--acc) 32%,var(--line));}
 .cat .cat-ic{background:var(--acc-bg)!important;}
 .cat .cat-count{color:var(--acc);}
@@ -1780,7 +1784,12 @@ html,html.auth-ready{
   filter:none!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
-  box-shadow:none!important;
+  /* Тень из этого рубильника убрана. Дорогая здесь только размывающая пара
+     (filter/backdrop-filter): она заставляет браузер держать отдельные слои.
+     box-shadow же стоил ничего, а глушил всю страницу разом - селектор с
+     :not(#id) весит больше любого правила тем, поэтому карточки оставались
+     плоскими даже там, где тень задана с !important. Без неё светлое стекло
+     темы теряло край на песчаном фоне. */
 }
 body::after,body::before{display:none!important;}
 nav.ln{background:var(--cream)!important;}
@@ -1839,9 +1848,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=537">
+<link rel="stylesheet" href="styles/teached-brand.css?v=538">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=537">
+<link rel="stylesheet" href="styles/figma-landing.css?v=538">
 </head>
 <body class="landing-page fx">
 
@@ -2091,7 +2100,7 @@ section{scroll-margin-top:64px;}
       </div>
 
       <!-- Reading -->
-      <div class="bc span2">
+      <div class="bc span3">
         <div class="ic ic-lime">📖</div>
         <div>
           <div class="bc-h">Reading &amp; comprehension</div>
@@ -2203,7 +2212,7 @@ section{scroll-margin-top:64px;}
       </div>
 
       <!-- Manage studio -->
-      <div class="bc span2 peach">
+      <div class="bc span3 peach">
         <div class="ic" style="font-size:22px;">📊</div>
         <div>
           <div class="bc-h">Run your studio</div>
@@ -2220,7 +2229,7 @@ section{scroll-margin-top:64px;}
       </div>
 
       <!-- PWA / offline -->
-      <div class="bc span2 lav">
+      <div class="bc span3 lav">
         <div class="ic" style="font-size:22px;">⚡</div>
         <div>
           <div class="bento-tag" style="background:rgba(14,14,16,.08);border-color:rgba(14,14,16,.18);color:var(--ink2);">PWA</div>
@@ -2723,7 +2732,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=537">
+<link rel="stylesheet" href="styles/auth.css?v=538">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*

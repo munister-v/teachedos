@@ -239,3 +239,39 @@ body.fx.landing-page .nav-burger:hover { background:rgba(22,22,22,.06) !importan
     color:var(--fx-ink) !important; border-radius:12px !important;
   }
 }
+
+/* ── Полировка раскладки и материала ───────────────────────────────────── */
+
+/* teached-brand.css держит --card белым на :root с !important, поэтому
+   .step, .testi и блок поддержки var()-ом брали белый, а не стекло темы:
+   посреди стеклянных карточек стояли плотные белые плиты. Тот же трюк с
+   контекстом :root, что описан выше для --ink3. */
+body.fx.landing-page :is(.step,.testi,.support-card,.support-row,.fp-paper) {
+  background:var(--fx-glass) !important;
+  border:1px solid var(--fx-glass-line) !important;
+  color:var(--fx-ink) !important;
+}
+body.fx.landing-page :is(.step,.testi,.support-card) { border-radius:var(--fx-r-panel,28px) !important; }
+body.fx.landing-page :is(.support-row,.fp-paper) { border-radius:18px !important; }
+
+/* Тень была снята со всех карточек разом, а фон под ними - фотография песка
+   с зерном: без подложки светлое стекло на светлых участках кадра теряло
+   край, а на тёмных читалось грязным серым. Возвращаю мягкую тёплую тень
+   внешним карточкам. Размытия здесь нет намеренно:
+   landing-static-performance глушит backdrop-filter по всей странице, и это
+   единственная действительно дорогая часть стекла. */
+body.fx.landing-page :is(.bc,.cat,.plan,.faq-item,.step,.testi,.support-card) {
+  box-shadow:0 1px 2px rgba(90,70,55,.06), 0 10px 30px rgba(90,70,55,.10) !important;
+}
+
+/* Три шага - три разной длины абзаца, а панель-скриншот шла сразу за текстом:
+   нижние края внутренних панелей расходились на 35px при ровных карточках.
+   Панель прижимается к низу, как в bento (там это делает space-between). */
+body.fx.landing-page .step { display:flex; flex-direction:column; }
+body.fx.landing-page .step .step-shot { margin-top:auto; }
+
+/* Тот же случай в плитках категорий: мини-панель у каждой темы своей высоты,
+   и списки тегов начинались на разной высоте при ровных карточках. Теги
+   прижимаются к низу, панели остаются под общей шапкой. */
+body.fx.landing-page .cat { display:flex; flex-direction:column; }
+body.fx.landing-page .cat .cat-tags { margin-top:auto; padding-top:14px; }
