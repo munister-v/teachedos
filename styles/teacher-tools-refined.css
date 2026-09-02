@@ -1074,3 +1074,71 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
   text-transform:uppercase;
 }
 .tools-workbench .tool .tag.new { background:#2f5c1c; }
+
+/* ── Phone pass ───────────────────────────────────────────────────────────
+   Three things the desktop layer cannot cover: there is no hover on a
+   phone, the list starts below the fold, and a two-line clamp on a narrow
+   column cuts most descriptions mid-word. */
+@media (max-width:820px) {
+  /* The hero pushed the first tool off the screen. Same type scale, less
+     air around it. */
+  .tools-workbench .hero { padding:24px 0 20px; }
+  .tools-workbench .hero p { margin-top:12px; }
+  .tools-workbench .hero-actions { margin-top:16px; }
+
+  /* min-height was a constant fighting text that wraps: a two-line title
+     already outgrew it, so cells came out at two different heights for no
+     reason. Padding sets the rhythm instead. */
+  .tools-workbench .tool { min-height:0; padding:14px 38px 15px 0; gap:12px; }
+  .tools-workbench .tool p { -webkit-line-clamp:3; }
+
+  /* Touch has no hover state, so the press itself has to answer. */
+  .tools-workbench .tool:active { background:#f1f1eb; box-shadow:inset 2px 0 0 var(--tt-accent); }
+  .tools-workbench .tool:active .tool-visual { background:#dfe0d6; }
+
+  /* 28px is under the 44px touch minimum, and the star sits next to the
+     cell's own tap target - easy to miss, easy to hit by accident. */
+  .tools-workbench .star {
+    top:8px;
+    right:0;
+    width:44px;
+    height:44px;
+    padding:11px;
+    border-radius:10px;
+  }
+}
+
+/* Opening a tool on a phone used to leave the catalog on screen and scroll
+   the workspace up from below fifty cards. One column can only show one of
+   the two, so the phone treats them as two screens with a back link between
+   them; nothing is reset when you go back, the form keeps its content. */
+.tools-workbench .tt-back { display:none; }
+@media (max-width:820px) {
+  /* :not(#_) matches the id-weight ballast tool-window.css uses on
+     body.tw-page - without it that layer's display:flex wins. */
+  body.tools-workbench:not(#_):not(.tt-browsing) .main:has(.workspace.show) > :is(
+    .hero, .recent-tools-section, .presets-block, .bar, .grid,
+    .knowledge-bases, .library) { display:none !important; }
+  body.tools-workbench.tt-browsing .workspace.show { display:none; }
+  /* With the catalog gone the workspace starts the screen: its top rule and
+     the gap that separated it from the grid have nothing left to separate. */
+  body.tools-workbench:not(.tt-browsing) .workspace.show { margin-top:6px; border-top:0; }
+
+  .tools-workbench .tt-back {
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    min-height:44px;
+    margin:14px 0 2px;
+    padding:0 14px 0 10px;
+    border:1px solid var(--tt-line);
+    border-radius:999px;
+    background:#fff;
+    color:#3f403a;
+    font:700 12px var(--mono);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .tools-workbench .tt-back::before { content:'←'; font-size:15px; }
+  .tools-workbench .tt-back:active { background:#f1f1eb; }
+}

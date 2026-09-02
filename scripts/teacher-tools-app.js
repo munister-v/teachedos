@@ -1030,7 +1030,16 @@ function selectTool(id){
   document.getElementById('active-title').textContent=activeTool.title;
   document.getElementById('active-desc').textContent=activeTool.desc;
   document.getElementById('result-body').innerHTML='<div class="result-empty"><div><b>Ready when you are</b><span>Fill the fields and generate the task.</span></div></div>';
+  document.body.classList.remove('tt-browsing');
   document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});
+}
+/* Phone-only: the catalog and the open tool share one column, so the back
+   link just flips which of the two is on screen. It is a class on <body> and
+   not a state reset on purpose - the form keeps everything typed into it. */
+function backToCatalog(){
+  document.body.classList.add('tt-browsing');
+  const el=activeTool&&document.querySelector(`.tool[data-id="${activeTool.id}"]`);
+  if(el)el.scrollIntoView({block:'center'});
 }
 function baseFields(extra=''){return `<div class="form-grid"><div class="field"><label class="label" for="level">Level</label><select id="level"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option></select></div><div class="field"><label class="label" for="count">How many items</label><input id="count" type="number" min="3" max="50" value="12"><div class="hint">Between 3 and 50.</div></div><div class="field full"><label class="label" for="topic">Topic / grammar focus</label><input id="topic" placeholder="e.g. travel problems, present perfect, job interview"></div>${extra}</div>`}
 function textArea(id,label,value='',help='',placeholder=''){return `<div class="field full"><label class="label" for="${id}">${label}</label><textarea id="${id}" placeholder="${esc(placeholder)}">${esc(value)}</textarea>${help?`<div class="hint">${help}</div>`:''}</div>`}
@@ -1436,7 +1445,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=548';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=551';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1448,7 +1457,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=548';
+    el.src='scripts/board-gen.js?v=551';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);
@@ -2253,6 +2262,7 @@ function viewSaved(id){
   const item=readJson(TOOL_STORE,[]).find(entry=>entry.id===id);
   if(!item)return;
   lastOutput=item;
+  document.body.classList.remove('tt-browsing');
   document.getElementById('workspace').classList.add('show');
   renderResult(lastOutput);
   document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});
