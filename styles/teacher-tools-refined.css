@@ -1030,3 +1030,47 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
   color: #14140F;
 }
 .tools-workbench .panel.result .panel-sub { color: rgba(14, 14, 16, .6); }
+
+/* Tool cells: baseline-aligned action row, calmer accents.
+   The cells are stretched by the grid, but the copy was top-aligned, so the
+   "Use tool" line landed at a different height in every column depending on
+   how the title wrapped. Bottom-align it with margin-top:auto (no fixed
+   heights: the title still wraps freely). */
+.tools-workbench .tool { align-items:stretch; }
+.tools-workbench .tool-visual { align-self:start; }
+.tools-workbench .tool-copy {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+.tools-workbench .tool-use {
+  margin-top:auto;
+  padding-top:12px;
+  gap:6px;
+  color:#5c5d54;
+  font:700 10px/1 var(--mono);
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  transition:color .16s ease,gap .16s ease;
+}
+.tools-workbench .tool:hover .tool-use,
+.tools-workbench .tool:focus-within .tool-use { color:#252620; gap:10px; }
+.tools-workbench .tool.active .tool-use { color:#4c5410; }
+
+/* Hovered cell reads as one target: a lime edge instead of a colour change
+   fighting the hairline grid. */
+.tools-workbench .tool { box-shadow:inset 0 0 0 0 var(--tt-accent); }
+.tools-workbench .tool:hover { box-shadow:inset 2px 0 0 var(--tt-accent); }
+.tools-workbench .tool:hover .tool-visual { background:#dfe0d6; }
+
+/* Tags: the category chip comes with an inline colour from the hub script,
+   so only shape and weight are set here. */
+.tools-workbench .tool-tags { gap:5px; margin:0 0 7px; }
+.tools-workbench .tool .tag {
+  min-height:19px;
+  padding:0 7px;
+  font:700 9px var(--mono);
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.tools-workbench .tool .tag.new { background:#2f5c1c; }
