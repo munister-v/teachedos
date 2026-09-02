@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=559">
-<link rel="preload" as="style" href="styles/unify.css?v=559">
-<link rel="manifest" href="manifest.json?v=559">
+<link rel="preload" as="style" href="styles/harmony.css?v=560">
+<link rel="preload" as="style" href="styles/unify.css?v=560">
+<link rel="manifest" href="manifest.json?v=560">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -249,23 +249,18 @@ textarea{min-height:60px;resize:vertical}
   .mdo-actions{display:grid;gap:8px}
   .mdo-btn{display:flex;align-items:center;justify-content:center;min-height:44px;padding:11px 14px;border-radius:13px;background:var(--accent);color:#fff;font:800 13px var(--font)}
   .mdo-btn.secondary{background:rgba(200,230,50,.2);color:var(--accent);border:1px solid rgba(168,208,43,.45)}
-  /* На телефоне это единственные кнопки, до которых вообще можно
-     дотянуться: остальной конструктор закрыт этой заглушкой. Свои 44px
-     они теряли - tool-window.css сжимает .mdo-btn до 32px важным
-     правилом с весом id (body.tw-page:not(#_)), поэтому здесь тот же вес. */
-  body.tw-page:not(#_):not(#__) .mdo-btn{min-height:44px!important;padding:11px 14px!important}
 }
 
 </style>
-<script src="theme.js?v=559" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=559">
-<link rel="stylesheet" href="styles/harmony.css?v=559">
-<link rel="stylesheet" href="styles/unify.css?v=559">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=559">
-<link rel="stylesheet" href="styles/teached-brand.css?v=559">
-<link rel="stylesheet" href="styles/tool-window.css?v=559">
+<script src="theme.js?v=560" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=560">
+<link rel="stylesheet" href="styles/harmony.css?v=560">
+<link rel="stylesheet" href="styles/unify.css?v=560">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=560">
+<link rel="stylesheet" href="styles/teached-brand.css?v=560">
+<link rel="stylesheet" href="styles/tool-window.css?v=560">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=559">
+<link rel="stylesheet" href="styles/figma-theme.css?v=560">
 </head>
 <body class="tools-workbench tw-page fx">
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -533,9 +528,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=559"></script>
-<script src="scripts/vocab-loader.js?v=559"></script>
-<script src="scripts/game-builder-app.js?v=559"></script>
+<script src="scripts/app-core.js?v=560"></script>
+<script src="scripts/vocab-loader.js?v=560"></script>
+<script src="scripts/game-builder-app.js?v=560"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -549,10 +544,10 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=559" defer></script>
-<script src="scripts/mobile-nav.js?v=559"></script>
-<script src="scripts/mobile-zoom-guard.js?v=559" defer></script>
-<script src="scripts/autogrow.js?v=559" defer></script>
-<script src="pwa-boot.js?v=559" defer></script>
+<script src="scripts/mobile-perf.js?v=560" defer></script>
+<script src="scripts/mobile-nav.js?v=560"></script>
+<script src="scripts/mobile-zoom-guard.js?v=560" defer></script>
+<script src="scripts/autogrow.js?v=560" defer></script>
+<script src="pwa-boot.js?v=560" defer></script>
 </body>
 </html>

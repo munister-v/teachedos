@@ -1090,3 +1090,16 @@ body.tw-page:not(#_) #nav .nav-logo-name {
 body.tw-page:not(#_) #nav #nav-name {
   color:var(--te-ink,#20202C) !important;
 }
+
+/* Заглушка «откройте на компьютере» (game-builder, quiz-builder) - не часть
+   рабочего интерфейса окна: на телефоне это единственная кнопка, до которой
+   пользователь может дотянуться, а общее правило выше жало её до 32px.
+   Свои 44px страницы задают сами, здесь только снимается сжатие. */
+@media (max-width:860px) {
+  body.tw-page:not(#_) .mdo-btn {
+    min-height:44px !important;
+    padding:11px 14px !important;
+    border-radius:13px !important;
+    font-size:13px !important;
+  }
+}
