@@ -68,7 +68,12 @@ body.fx.landing-page {
   background-attachment:fixed !important;
   color:var(--fx-ink) !important;
 }
-body.fx.landing-page::before { content:none !important; }
+/* Собственные слои страницы под фоном: точечная сетка (::before) и плёнка
+   зерна (::after). У песка из макета своё зерно, вторая плёнка поверх
+   только мутит его. Раньше обе гасил блок движения - решение
+   декоративное, поэтому живёт здесь. */
+body.fx.landing-page::before,
+body.fx.landing-page::after { content:none !important; display:none !important; }
 /* Правило поднимает содержимое над фоновым слоем страницы, но `> *` цепляло
    и верхнюю панель: nav.ln из position:fixed становился relative, а z-index
    с 1000 падал до 1. С раскатки темы панель переставала быть закреплённой и
@@ -258,7 +263,7 @@ body.fx.landing-page :is(.support-row,.fp-paper) { border-radius:18px !important
    с зерном: без подложки светлое стекло на светлых участках кадра теряло
    край, а на тёмных читалось грязным серым. Возвращаю мягкую тёплую тень
    внешним карточкам. Размытия здесь нет намеренно:
-   landing-static-performance глушит backdrop-filter по всей странице, и это
+   блок движения глушит backdrop-filter по всей странице, и это
    единственная действительно дорогая часть стекла. */
 body.fx.landing-page :is(.bc,.cat,.plan,.faq-item,.step,.testi,.support-card) {
   box-shadow:0 1px 2px rgba(90,70,55,.06), 0 10px 30px rgba(90,70,55,.10) !important;
@@ -275,3 +280,11 @@ body.fx.landing-page .step .step-shot { margin-top:auto; }
    прижимаются к низу, панели остаются под общей шапкой. */
 body.fx.landing-page .cat { display:flex; flex-direction:column; }
 body.fx.landing-page .cat .cat-tags { margin-top:auto; padding-top:14px; }
+
+/* Насыщенность крупного текста осталась от «спокойного» прохода лендинга и
+   пережила его палитру: 600 вместо 650 у логотипа и дисплейных заголовков.
+   Решение живое и чисто внешнее, поэтому переезжает из блока движения сюда,
+   к слою, который владеет видом. Вес селектора темы (0,3,0) перекрывает
+   .sec-h из «редакторского» прохода без !important. */
+body.fx.landing-page :is(.nav-logo,.brand-wordmark) { font-weight:600; }
+body.fx.landing-page :is(.hero-h,.sec-h,.final-h) { font-weight:600; }
