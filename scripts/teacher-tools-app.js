@@ -1425,7 +1425,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=544';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=545';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1437,7 +1437,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=544';
+    el.src='scripts/board-gen.js?v=545';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);
@@ -2323,7 +2323,7 @@ function workoutActivity(key){return VOCAB_WORKOUT_ACTIVITIES.find(a=>a.key===ke
 function workoutSavedPicks(){
   const stored=readJson(WORKOUT_PICK_STORE,null);
   if(Array.isArray(stored)&&stored.length)return stored.filter(k=>workoutActivity(k));
-  return ['match','sentences','wordbank'];
+  return ['match','flashcards','sentences'];
 }
 function vocabWorkoutPickerHtml(){
   const picked=new Set(workoutSavedPicks());
