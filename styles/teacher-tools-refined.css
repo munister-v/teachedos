@@ -1142,3 +1142,29 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
   .tools-workbench .tt-back::before { content:'←'; font-size:15px; }
   .tools-workbench .tt-back:active { background:#f1f1eb; }
 }
+
+/* Строка действий у блока черновика на телефоне.
+   Edit / Play / Refresh / ↑ / ↓ / × шли подряд кнопками в 28px высотой, и
+   последняя из них удаляет блок. Промах здесь стоит дороже, чем экономия
+   места, поэтому на узком экране у них полноценное поле нажатия, а
+   удаление отделено от стрелок. */
+@media (max-width:820px) {
+  .tools-workbench .wk-block-bar { gap:8px; }
+  /* tool-window.css держит .btn.sm на 28px правилом
+     body.tw-page:not(#_) .btn.sm{min-height:28px !important} - важное с
+     весом id. Перебить его можно только важным с весом не ниже, отсюда
+     свой :not(#_) и !important на размерах. */
+  body.tools-workbench:not(#_) .wk-block-bar .btn.sm {
+    min-height:40px !important;
+    padding:0 14px !important;
+    border-radius:11px;
+  }
+  body.tools-workbench:not(#_) .wk-block-bar .btn.sm[aria-label] {
+    min-width:44px;
+    padding:0 !important;
+  }
+  .tools-workbench .wk-block-bar .btn.sm.danger-text { margin-left:8px; }
+  /* Подпись уровня и списка слов шла 9px - на телефоне это уже не текст. */
+  .tools-workbench .worksheet-meta,
+  .tools-workbench .wk-block-tag { font-size:11px; }
+}
