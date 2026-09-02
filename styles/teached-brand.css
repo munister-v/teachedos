@@ -825,3 +825,16 @@ body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { backgrou
     max-height: 60vh;
   }
 }
+
+/* Кнопка «← Games» в играх: у каждой игры свой инлайновый .back без
+   отступов, и получалась полоска ~65x19 - единственный выход из игры на
+   телефоне. Класс общий для 29 игр, поэтому поле нажатия задаётся здесь
+   один раз; вид (цвет, шрифт) остаётся за игрой. */
+@media (max-width: 860px) {
+  .back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 4px;
+  }
+}
