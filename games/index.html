@@ -243,15 +243,49 @@ body {
   .card-desc { display: none; }
   .card-meta{margin:0 0 10px;}
   .last-game{justify-content:center;}
+
+  /* Восемь фильтров переносами занимали три ряда - треть первого экрана
+     уходила на органы управления вместо самих игр. На телефоне это одна
+     прокручиваемая полоса, как в любом сторе, с полем под палец. */
+  .filters {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0 16px 14px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 16px;
+    scroll-snap-align: start;
+  }
+
+  /* 9-10px в подписях плитки - это на грани читаемости на телефоне. */
+  .card-tag { font-size: 11px; }
+  .card-pill { font-size: 10px; padding: 3px 8px; }
+
+  /* Единственная ссылка в подвале была полоской в 14px высотой. */
+  .page-footer a { display: inline-flex; align-items: center; min-height: 44px; }
+
+  /* min-height был константой против заголовка, который переносится: с
+     скрытым описанием плитки с двухстрочным названием выпадали из ряда.
+     Ряды сетки и так тянут плитки до общей высоты. */
+  .card { min-height: 0; }
 }
 @media (max-width: 380px) {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=552">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=552">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=553">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=553">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=552">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=553">
 </head>
 <body class="fx">
 
@@ -741,6 +775,6 @@ function initGameFilters(){
 enhanceGameCards();
 initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=552"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=553"></script>
 </body>
 </html>
