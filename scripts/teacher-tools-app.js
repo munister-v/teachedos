@@ -1096,7 +1096,12 @@ function renderForm(){
     html=baseFields(textArea('vocab','Target vocabulary','','One per line. Add a meaning after a hyphen if you need it.','e.g. delay - a period of waiting\nreservation - a booking'));
   }else if(m==='vocab-workout'){
     html=baseFields(
-      textArea('vocab','Your word list','','One item per line. A meaning after a hyphen makes every activity sharper: `journey - a long trip`.','journey - a long trip\nto hoard - to keep far more than you need\nvicious cycle - a bad situation that keeps repeating')
+      /* Список наперед заповнювати нема чим - у вчителя вже може лежати
+         збережений набір (з ігор або з попередньої студії), і передруковувати
+         його заново безглуздо. Список зʼявляється лише коли є що показати:
+         порожня випадайка - зайвий шум у формі. */
+      workoutSavedSetsHtml()
+      +textArea('vocab','Your word list','','One item per line. A meaning after a hyphen makes every activity sharper: `journey - a long trip`.','journey - a long trip\nto hoard - to keep far more than you need\nvicious cycle - a bad situation that keeps repeating')
       /* Обгортка НЕ .field навмисно: у спільному шарі стилів живе правило
          `.field label` з !important, яке робить будь-який <label> усередині
          поля мікропідписом - моно, капсом, 10px. Рядки активностей самі є
@@ -1104,6 +1109,11 @@ function renderForm(){
          вони перетворювалися на нечитабельний капс. */
       +'<div class="wk-section"><span class="label">Activities</span><div class="hint">Tick everything you want built from this list. You can edit or drop any of them afterwards.</div>'
       +vocabWorkoutPickerHtml()
+      /* Мова перекладу ховається за галочкою «Word-translation pairs», а не
+         займає місце завжди: вона потрібна лише одній активності з дванадцяти,
+         і показувати її постійно означало б поле, яке 11 разів із 12 нікому не
+         потрібне. */
+      +workoutTranslateLangHtml()
       +'</div>'
     );
   }else if(m==='word-order'){
@@ -1126,6 +1136,7 @@ function renderForm(){
     :`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Create draft</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;
   document.getElementById('tool-form').innerHTML=html+actions;
   if(m==='images'){addImageRow();addImageRow();addImageRow()}
+  if(m==='vocab-workout')workoutSyncTranslateLang();
   restoreToolDraft();
   bindToolDraftAutosave();
 }
@@ -1425,7 +1436,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=545';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=546';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1437,7 +1448,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=545';
+    el.src='scripts/board-gen.js?v=546';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);
@@ -1952,7 +1963,7 @@ async function requestServerHubAI(toolIdOverride,inputOverride){
         action:get('action'),
         source:inp?(inp.source||''):get('source'),
         vocab:inp?(inp.vocab||''):get('vocab'),
-        extra:inp?'':[get('extra'),lessonRouteContext()].filter(Boolean).join('\n\n')}})});
+        extra:inp?(inp.extra||''):[get('extra'),lessonRouteContext()].filter(Boolean).join('\n\n')}})});
     const d=await r.json().catch(()=>null);
     if(!r.ok)throw new Error(d?.error||'AI could not create this material right now.');
     if(d?.quota)renderHubAiQuota(d.quota);
@@ -2332,7 +2343,7 @@ function vocabWorkoutPickerHtml(){
     const on=picked.has(a.key)&&(!a.ai||online);
     const locked=a.ai&&!online;
     return '<label class="wk-pick'+(locked?' locked':'')+'">'
-      +'<input type="checkbox" value="'+a.key+'"'+(on?' checked':'')+(locked?' disabled':'')+' onchange="rememberWorkoutPicks()">'
+      +'<input type="checkbox" value="'+a.key+'"'+(on?' checked':'')+(locked?' disabled':'')+' onchange="rememberWorkoutPicks();workoutSyncTranslateLang()">'
       +'<span class="wk-pick-body"><b>'+esc(a.title)+'</b><span>'+esc(a.hint)+'</span></span>'
       +'<span class="wk-pick-tag">'+(a.ai?'AI':'offline')+'</span>'
       +'</label>';
@@ -2344,6 +2355,46 @@ function workoutSelectedKeys(){
   return [...document.querySelectorAll('#wk-picks input[type=checkbox]:checked')].map(el=>el.value);
 }
 function rememberWorkoutPicks(){writeJson(WORKOUT_PICK_STORE,workoutSelectedKeys())}
+
+/* Мова перекладу для активності «Word-translation pairs». Поле сховане, доки
+   активність не позначена: показувати його завжди означало б займати місце
+   заради однієї галочки з дванадцяти. */
+const WORKOUT_LANG_STORE='teachedos_vocab_workout_lang';
+const WORKOUT_LANGS=['Ukrainian','Russian','Spanish','French','German','Polish','Italian','Turkish','Portuguese','Arabic','Chinese','Japanese','Korean'];
+function workoutTranslateLangHtml(){
+  const saved=readJson(WORKOUT_LANG_STORE,'Ukrainian');
+  const opts=WORKOUT_LANGS.map(l=>'<option'+(l===saved?' selected':'')+'>'+esc(l)+'</option>').join('');
+  return '<div class="field" id="wk-lang-field" style="display:none;margin-top:10px;"><label class="label" for="wk-lang">Translate into</label><select id="wk-lang" onchange="writeJson(\'teachedos_vocab_workout_lang\',this.value)">'+opts+'</select></div>';
+}
+function workoutSyncTranslateLang(){
+  const field=document.getElementById('wk-lang-field');
+  if(!field)return;
+  field.style.display=workoutSelectedKeys().includes('translate')?'':'none';
+}
+function workoutTranslateLang(){return get('wk-lang')||readJson(WORKOUT_LANG_STORE,'Ukrainian')}
+
+/* Список слів наперед заповнювати випадайкою збережених наборів - ті самі
+   набори, що читають ігри за ?set=<id> (custom-sets.js). Порожній перелік
+   наборів мовчить: показувати запит на порожнє сховище нема сенсу. */
+function workoutSavedSetsHtml(){
+  if(!window.TEACHEDOS_CUSTOM)return '';
+  const sets=window.TEACHEDOS_CUSTOM.list();
+  if(!sets.length)return '';
+  const opts=sets.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.icon||'📚')+' '+esc(s.name)+' ('+s.words.length+')</option>').join('');
+  return '<div class="field full" style="margin-bottom:10px;"><label class="label" for="wk-load-set">Load a saved word set</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><select id="wk-load-set" style="flex:1;min-width:200px;"><option value="">Choose a saved set…</option>'+opts+'</select><button class="btn sm ghost" type="button" onclick="workoutLoadSavedSet()">Load into the list</button></div></div>';
+}
+function workoutLoadSavedSet(){
+  const id=get('wk-load-set');
+  if(!id||!window.TEACHEDOS_CUSTOM)return;
+  const rec=window.TEACHEDOS_CUSTOM.get(id);
+  if(!rec){toast('Could not find that set');return}
+  const vocab=document.getElementById('vocab');
+  if(!vocab)return;
+  vocab.value=rec.words.map(w=>w.uk?(w.en+' - '+w.uk):w.en).join('\n');
+  if(!get('topic'))document.getElementById('topic').value=rec.name;
+  scheduleDraftSave();
+  toast('Loaded "'+rec.name+'" - '+rec.words.length+' words');
+}
 
 /* Метадані інструмента для ttEngineOutput/aiResultToOutput. Вони чекають на
    об'єкт із title/mode/game/cat - у каталозі TOOLS такого рядка немає, бо
@@ -2403,7 +2454,12 @@ function workoutRunOffline(a,input){
 
 async function workoutRunAi(a,input){
   try{
-    const env=await requestServerHubAI(a.server,input);
+    /* Мова перекладу їде як «teacher note» - той самий канал, який читає
+       промт на бекенді («translate into the language named in the teacher
+       note»). Без цього AI-переклад завжди падав в українську за замовчуванням,
+       і поле «Translate into» у формі не могло на нього вплинути. */
+    const reqInput=(a.key==='translate')?{...input,extra:'Translate into '+workoutTranslateLang()+'.'}:input;
+    const env=await requestServerHubAI(a.server,reqInput);
     const arr=serverEnvelopeToArr(env);
     if(!arr.length)return null;
     const out=aiResultToOutput(workoutToolMeta(a),arr,input);
@@ -2422,13 +2478,18 @@ function renderWorkout(pendingTitle){
   const body=document.getElementById('result-body');
   if(!body)return;
   if(!workoutBlocks.length&&!pendingTitle){
-    body.innerHTML='<div class="result-empty"><div><b>Nothing built yet</b><span>Paste the list, tick the activities and press "Build the set".</span></div></div>';
+    /* Порожній стан теж дає «Add your own block» - набір не мусить починатися
+       з тікнутих активностей: інколи вчителю потрібен лише один свій текстовий
+       блок, і змушувати спершу натиснути «Build the set» без жодної галочки
+       безглуздо. */
+    body.innerHTML='<div class="result-empty"><div><b>Nothing built yet</b><span>Paste the list, tick the activities and press "Build the set" - or add your own block below.</span><button class="btn sm ghost" type="button" style="margin-top:14px;" onclick="workoutAddCustom()">+ Add your own block</button></div></div>';
     return;
   }
   const head='<div class="result-actions">'
     +'<div class="result-autosave"><span aria-hidden="true"></span>'+workoutBlocks.length+' in this set</div>'
     +'<div class="result-actions-controls">'
       +'<button class="btn sm lime result-primary" type="button" onclick="workoutToBoard()">Add all to board</button>'
+      +'<button class="btn sm ghost" type="button" onclick="workoutAddCustom()">+ Add block</button>'
       +'<details class="result-more-actions"><summary class="btn sm ghost">More</summary><div class="result-more-menu" role="menu">'
         +'<button class="result-menu-item" type="button" onclick="workoutPrint()">Print / PDF the set</button>'
         +'<button class="result-menu-item" type="button" onclick="workoutSaveLibrary()">Save to library</button>'
@@ -2454,6 +2515,25 @@ function renderWorkout(pendingTitle){
   }).join('');
   const pending=pendingTitle?'<div class="wk-pending">Building "'+esc(pendingTitle)+'" with AI…</div>':'';
   body.innerHTML=head+blocks+pending;
+}
+
+/* Набір не обмежений дванадцятьма активностями зі списку. Довільний текстовий
+   блок - завдання, інструкція, посилання, що завгодно - стає карткою в тому
+   самому наборі, тим самим шляхом (edit/move/remove/board/print). Це і є
+   гнучкість: список активностей задає ЗВИЧНИЙ шлях, а не єдиний. */
+function workoutAddCustom(){
+  const title=window.prompt('Name this block','Custom task');
+  if(title===null)return;
+  const out={
+    title:(title||'Custom task').trim()||'Custom task',
+    text:'',
+    workoutKey:'custom-'+Date.now().toString(36),
+    level:level(),tags:['vocabulary',topic()],topic:topic(),cat:'vocabulary',
+    showAnswers:true,edited:true,struct:null,gameType:null,gameContent:null,
+  };
+  workoutBlocks.push(out);
+  renderWorkout();
+  workoutEdit(workoutBlocks.length-1);
 }
 
 function workoutRemove(i){
