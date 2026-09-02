@@ -288,10 +288,13 @@ function _ttGenWordDefinitionMatch(input){
   if (words.length < 2) return null;
   const sents = input.source ? teacherToolSourceSentences(input.source, input.topic, 80) : [];
   const lib = _ttVocabLibIndex();
+  /* Пояснення вчителя стоїть ПЕРШИМ. Воно написане під цей клас і цей рівень,
+     тоді як речення з тексту і стаття з бібліотеки - здогади. */
+  const gloss = _ttVocabGlossIndex(input);
   const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pairs = words.map(w => {
-    let right = '';
-    if (sents.length) {
+    let right = gloss[String(w).toLowerCase()] || '';
+    if (!right && sents.length) {
       const ex = sents.find(s => new RegExp('\\b' + reEsc(w) + '\\b', 'i').test(s));
       if (ex) right = ex.length > 100 ? ex.slice(0, 100) + '…' : ex;
     }
@@ -453,8 +456,52 @@ function _ttCountItems(out){
 }
 
 /* ── vocab-field helper ─────────────────────────────────────────── */
+/* Рядок словника - це слово ПЛЮС пояснення.
+
+   Форма хаба прямо просить писати «journey - a long trip», але рушій брав увесь
+   рядок за слово. У матчингу ліворуч стояло «Journey - a long trip», а праворуч
+   порожньо; флешкартка несла визначення на лицьовому боці; завдання «складіть
+   речення зі словом» називало словом цілий рядок разом із перекладом. Тобто
+   варто було вчителю зробити те, про що просить підказка під полем, - і вправа
+   ламалася. Тепер рядок розбирається, а пояснення вчителя стає визначенням: воно
+   точніше і за здогад із бібліотеки, і за речення, вибране з тексту.
+
+   Кома ділить рядок на окремі слова ЛИШЕ там, де пояснення немає. Інакше
+   «frugal - careful with money, not wasteful» розпалося б на два слова, і
+   друге з них не було б словом узагалі. */
+/* Пробіли навколо дефіса обовʼязкові: інакше розбирався б «e-mail» і
+   «vis-a-vis». Двокрапка теж роздільник, але з умовою нижче. */
+const _TT_GLOSS_SPLIT = /\s+[-–—|]\s+|\t+/;
+function _ttVocabEntries(input){
+  const rows = String(input.vocab||'').split(/\n+/).map(x => x.trim()).filter(Boolean);
+  const out = [];
+  const push = (word, gloss) => { if (word) out.push({ word, gloss: gloss || '' }); };
+  rows.forEach(row => {
+    const parts = row.split(_TT_GLOSS_SPLIT);
+    if (parts.length > 1 && parts[0].trim() && parts.slice(1).join('').trim()) {
+      push(parts[0].trim(), parts.slice(1).join(' - ').trim());
+      return;
+    }
+    /* Двокрапка означає різне в двох полях однієї сторінки. У списку слів
+       «vertigo: запаморочення» - це пояснення. У полі «Word groups»
+       «Food: apple, bread, cheese» - це категорія, і після двокрапки стоять
+       самі слова, а не пояснення. Розрізняє їх кома: перелік після двокрапки
+       - завжди перелік. */
+    const colon = row.match(/^([^:]{1,60}):\s+(.+)$/);
+    if (colon && !/,/.test(colon[2])) { push(colon[1].trim(), colon[2].trim()); return; }
+    row.split(/[,;]+/).map(x => x.trim()).filter(Boolean).forEach(word => push(word, ''));
+  });
+  return out;
+}
+/* word (у нижньому регістрі) → пояснення вчителя. Порожні не потрапляють:
+   генератори мають відрізняти «пояснення немає» від «пояснення порожнє». */
+function _ttVocabGlossIndex(input){
+  const idx = Object.create(null);
+  _ttVocabEntries(input).forEach(e => { if (e.gloss) idx[e.word.toLowerCase()] = e.gloss; });
+  return idx;
+}
 function _ttVocabLines(input){
-  const lines = String(input.vocab||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
+  const lines = _ttVocabEntries(input).map(e => e.word);
   const count = Math.max(1, input.count || 0);
   if (lines.length) {
     // If the teacher's own vocab list is shorter than the requested count, top
@@ -523,8 +570,12 @@ function _ttGenEssentialVocab(input){
   const words = _ttVocabLines(input).slice(0, input.count);
   if (!words.length) return null;
   const sents = teacherToolSourceSentences(input.source||'', input.topic, 80);
+  /* Зворот картки: спершу пояснення вчителя, і лише як запасний варіант -
+     речення з тексту. Порожній зворот - це картка, з якою нічого не зробиш. */
+  const gloss = _ttVocabGlossIndex(input);
   const items = words.map(w => ({
     word: _ttCap(w),
+    definition: gloss[String(w).toLowerCase()] || '',
     example: sents.find(s => new RegExp('\\b'+w+'\\b','i').test(s)) || '',
   }));
   return { boardKind:'vocab', kind:'Essential', cat:'vocabulary', level:input.level, topic:input.topic,
@@ -1447,14 +1498,13 @@ function _ttBuildFromAI(toolId, input, items) {
    викликів. Ця віддає пари {word, def} - я спершу назвав її так само і
    перекрив оригінал, після чого word-image-match впав на `w.toLowerCase is not
    a function`, а чотири інструменти тихо з'їхали на гілку хаба. */
+/* Другий розбір того самого поля. Був свій, і він не вимагав пробілів навколо
+   роздільника: «e-mail» ставав словом «e» з поясненням «mail». Тепер обидва
+   шляхи читають список однаково; назви полів лишаються різні (тут def, там
+   gloss), бо на них зав'язані виклики. */
 function _ttVocabPairs(input){
-  const raw = String(input.vocab || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
-  if (raw.length) {
-    return raw.map(line => {
-      const m = line.split(/\s*[-:|]\s*/);
-      return { word: (m[0] || line).trim(), def: (m[1] || '').trim() };
-    });
-  }
+  const entries = _ttVocabEntries(input);
+  if (entries.length) return entries.map(e => ({ word: e.word, def: e.gloss }));
   return _ttContentWords(input.source || '', 4).slice(0, 40).map(w => ({ word: w, def: '' }));
 }
 
@@ -1479,12 +1529,19 @@ function _ttGenWordOrder(input){
 function _ttGenMatchingHalves(input){
   const items = _ttVocabPairs(input).filter(x => x.word.split(/\s+/).length > 1 || x.def);
   if (!items.length) return null;
+  /* Ділити навпіл можна словосполучення, а не будь-який рядок із пробілом.
+     «to hoard» давало пару «to | hoard»: ліва половина - службове слово, і
+     вправа з неї не виходить, бо до «to» пасує будь-яка права половина. Такі
+     позиції беруть за другу половину пояснення вчителя, а якщо його немає -
+     випадають зовсім. */
+  const PARTICLE = /^(to|a|an|the|in|on|at|of|for|be|get|go)$/i;
   const pairs = items.slice(0, input.count).map(x => {
     const words = x.word.split(/\s+/);
     const mid = Math.ceil(words.length / 2);
     const left = words.slice(0, mid).join(' ');
-    const right = words.slice(mid).join(' ') || x.def;
-    return { left, right };
+    const tail = words.slice(mid).join(' ');
+    const splittable = tail && !PARTICLE.test(left);
+    return splittable ? { left, right: tail } : { left: x.word, right: x.def };
   }).filter(p => p.left && p.right);
   return pairs.length
     ? { boardKind:'quiz', kind:'Matching halves', cat:'vocabulary', level:input.level, topic:input.topic,

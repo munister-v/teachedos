@@ -13494,7 +13494,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '539';
+const TEACHEDOS_ASSET_VERSION = '544';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15351,6 +15351,107 @@ window.__pendingToolMaterialImport = null;
   }
 })();
 
+/* Одна вправа - одна картка на дошці.
+
+   Винесено з runPendingToolMaterialImport, бо тим самим шляхом тепер їде НАБІР
+   вправ зі студії «Vocabulary Workout»: розкладка worksheet- і text-картки в
+   них спільна, і другий примірник цієї логіки розійшовся б з першим на першій
+   же правці. Повертає створену картку.
+
+   pos - бажане місце в координатах дошки: центр картки, а при anchor
+   'topleft' - її лівий верхній кут. Набір розкладається саме за кутом: картки
+   в ряду мають різну висоту, і центрування по одній осі підіймало високу
+   вправу вище за сусідні, тобто ряд переставав читатися рядом. */
+function ttPlaceMaterialCard(material, pos, anchor) {
+  const originX = w => anchor === 'topleft' ? Math.round(pos.x) : Math.round(pos.x - w / 2);
+  const originY = h => anchor === 'topleft' ? Math.round(pos.y) : Math.round(pos.y - h / 2);
+  const title = material.title || 'Teacher Tool Material';
+  const meta = [material.level, ...(material.tags || [])].filter(Boolean).join(' / ');
+  const originKey = material.materialKey || '';
+  const origin = originKey ? {
+    key: originKey,
+    toolId: material.toolId || '',
+    toolTitle: material.toolTitle || '',
+    at: material.createdAt || new Date().toISOString(),
+  } : null;
+
+  const struct = material.struct;
+  const hasStruct = struct && (
+    (Array.isArray(struct.questions) && struct.questions.length) ||
+    (Array.isArray(struct.items) && struct.items.length) ||
+    (Array.isArray(struct.cards) && struct.cards.length)
+  );
+
+  if (hasStruct) {
+    const wsData = {
+      title,
+      topic: material.topic || title,
+      kind: material.kind || '',
+      cat: material.cat || 'utility',
+      level: material.level || 'B1',
+      boardKind: struct.boardKind || 'quiz',
+      questions: struct.questions || null,
+      items: struct.items || null,
+      cards: struct.cards || null,
+      /* Ключ відповідей - властивість картки, а не тексту: кнопка
+         «🔑 Key on / 👁 Key off» на картці тепер працює і для матеріалу
+         з інструментів. */
+      showAnswers: material.showAnswers !== false,
+      _ttSrc: 1,
+      _ttOrigin: origin,
+      /* Из чего и чем сделано - чтобы регулятор уровня работал и здесь, а не
+         только у видео-уроков. Инструмент лежит в _ttOrigin, но материал -
+         нет, а без него «сделать проще» пришлось бы выдумывать содержание. */
+      _ttToolId: material.toolId || '',
+      _ttSource: String(material.source || '').slice(0, 6000),
+    };
+    /* Fixed 520px meant a question list could never reach the column split
+       _ttQuestionCols already knows how to do - it only kicks in past
+       WS_QCOL_MIN*2+gaps (~670px), so an 8-question quiz from a single
+       tool always rendered as one long single-column ribbon. Width now
+       comes from _ttOrganicWorksheetWidth, which sizes the sheet to
+       however many columns the QUESTION COUNT earns (2 to 4) rather than
+       a single guessed width - a short quiz stays narrow, a long one goes
+       wide instead of tall. */
+    const w = (struct.boardKind === 'cards' && typeof _packWidth === 'function' && struct.cards)
+      ? _packWidth(struct.cards.length)
+      : (Array.isArray(struct.questions))
+      ? _ttOrganicWorksheetWidth(struct.questions.length)
+      : 520;
+    const h = (typeof _ttEstWorksheetHeight === 'function')
+      ? _ttEstWorksheetHeight(wsData, w)
+      : 420;
+    /* Структурована картка більша за колишній текстовий прямоугольник, тож
+       падати рівно в центр екрана вона стала частіше поверх уже наявної.
+       findFreePlacement - той самий помічник, яким користується решта дошки. */
+    const spot = (typeof findFreePlacement === 'function')
+      ? findFreePlacement(originX(w), originY(h), w, h)
+      : { x: originX(w), y: originY(h) };
+    return addCard('worksheet', spot.x, spot.y, wsData, w, h);
+  }
+  const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
+  const tc = addCard('text', originX(520), originY(420), defaultTextData({
+    text,
+    fontFamily: 'var(--font)',
+    textColor: '#111111',
+    bgColor: '#ffffff',
+    align: 'left',
+  }), 520, 420);
+  if (tc && origin) tc.data._ttOrigin = origin;
+  return tc;
+}
+
+/* Обидва імпорти зі студії інструментів - одиночний матеріал і набір - живуть
+   в одних і тих самих сімох точках завантаження дошки (гість, свій кабінет,
+   чужа дошка, офлайн-кеш і так далі). Один вхід замість двох умов у кожній:
+   інакше набір довелося б дописувати сімома правками і в одній з них забути. */
+function runPendingToolImports() {
+  let done = false;
+  if (window.__pendingToolMaterialImport) done = runPendingToolMaterialImport() || done;
+  if (window.__pendingToolMaterialSetImport) done = runPendingToolMaterialSetImport() || done;
+  return done;
+}
+
 function runPendingToolMaterialImport() {
   const material = window.__pendingToolMaterialImport;
   if (!material) return false;
@@ -15358,8 +15459,6 @@ function runPendingToolMaterialImport() {
   try {
     const r = boardWrap.getBoundingClientRect();
     const pos = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 240, y: 240 };
-    const title = material.title || 'Teacher Tool Material';
-    const meta = [material.level, ...(material.tags || [])].filter(Boolean).join(' / ');
     /* Матеріал зі студії інструментів приходить структурою (struct із
        boardKind/questions/items/cards) - тими самими полями, які чекає
        worksheet-картка. Раніше все, що завгодно, ставало одним text-блоком
@@ -15396,77 +15495,8 @@ function runPendingToolMaterialImport() {
         return true;
       }
     }
-    const origin = originKey ? {
-      key: originKey,
-      toolId: material.toolId || '',
-      toolTitle: material.toolTitle || '',
-      at: material.createdAt || new Date().toISOString(),
-    } : null;
-
-    const struct = material.struct;
-    const hasStruct = struct && (
-      (Array.isArray(struct.questions) && struct.questions.length) ||
-      (Array.isArray(struct.items) && struct.items.length) ||
-      (Array.isArray(struct.cards) && struct.cards.length)
-    );
-
-    if (hasStruct) {
-      const wsData = {
-        title,
-        topic: material.topic || title,
-        kind: material.kind || '',
-        cat: material.cat || 'utility',
-        level: material.level || 'B1',
-        boardKind: struct.boardKind || 'quiz',
-        questions: struct.questions || null,
-        items: struct.items || null,
-        cards: struct.cards || null,
-        /* Ключ відповідей - властивість картки, а не тексту: кнопка
-           «🔑 Key on / 👁 Key off» на картці тепер працює і для матеріалу
-           з інструментів. */
-        showAnswers: material.showAnswers !== false,
-        _ttSrc: 1,
-        _ttOrigin: origin,
-        /* Из чего и чем сделано - чтобы регулятор уровня работал и здесь, а не
-           только у видео-уроков. Инструмент лежит в _ttOrigin, но материал -
-           нет, а без него «сделать проще» пришлось бы выдумывать содержание. */
-        _ttToolId: material.toolId || '',
-        _ttSource: String(material.source || '').slice(0, 6000),
-      };
-      /* Fixed 520px meant a question list could never reach the column split
-         _ttQuestionCols already knows how to do - it only kicks in past
-         WS_QCOL_MIN*2+gaps (~670px), so an 8-question quiz from a single
-         tool always rendered as one long single-column ribbon. Width now
-         comes from _ttOrganicWorksheetWidth, which sizes the sheet to
-         however many columns the QUESTION COUNT earns (2 to 4) rather than
-         a single guessed width - a short quiz stays narrow, a long one goes
-         wide instead of tall. */
-      const w = (struct.boardKind === 'cards' && typeof _packWidth === 'function' && struct.cards)
-        ? _packWidth(struct.cards.length)
-        : (Array.isArray(struct.questions))
-        ? _ttOrganicWorksheetWidth(struct.questions.length)
-        : 520;
-      const h = (typeof _ttEstWorksheetHeight === 'function')
-        ? _ttEstWorksheetHeight(wsData, w)
-        : 420;
-      /* Структурована картка більша за колишній текстовий прямоугольник, тож
-         падати рівно в центр екрана вона стала частіше поверх уже наявної.
-         findFreePlacement - той самий помічник, яким користується решта дошки. */
-      const spot = (typeof findFreePlacement === 'function')
-        ? findFreePlacement(Math.round(pos.x - w / 2), Math.round(pos.y - h / 2), w, h)
-        : { x: Math.round(pos.x - w / 2), y: Math.round(pos.y - h / 2) };
-      addCard('worksheet', spot.x, spot.y, wsData, w, h);
-    } else {
-      const text = title + (meta ? '\n' + meta : '') + '\n\n' + material.text;
-      const tc = addCard('text', pos.x - 260, pos.y - 210, defaultTextData({
-        text,
-        fontFamily: 'var(--font)',
-        textColor: '#111111',
-        bgColor: '#ffffff',
-        align: 'left',
-      }), 520, 420);
-      if (tc && origin) tc.data._ttOrigin = origin;
-    }
+    const card = ttPlaceMaterialCard(material, pos);
+    const hasStruct = !!(card && card.type === 'worksheet');
     scheduleSave && scheduleSave(); saveLocal && saveLocal();
     toast && toast(hasStruct ? '✦ Exercise added as a worksheet card' : '✦ Teacher tool material added to board');
     const params = new URLSearchParams(location.search);
@@ -15477,6 +15507,102 @@ function runPendingToolMaterialImport() {
   } catch (err) {
     console.warn('Tool material import failed', err);
     toast && toast('Could not add material to board');
+    return false;
+  }
+}
+
+/* ═══════════════ НАБІР ВПРАВ ЗІ СТУДІЇ «VOCABULARY WORKOUT» ═══════════════
+
+   Одна відправка - кілька карток. Раніше кожна вправа їхала окремим переходом
+   на дошку і назад: сім вправ означали сім переходів, і кожна лягала в центр
+   екрана поверх попередньої.
+
+   Розкладка рядком зліва направо з переносом: набір читається як послідовність
+   завдань уроку, а не як стос. Висоту рядка задає найвища картка в ньому, тож
+   низька вправа не тягне за собою порожнечу.                               */
+window.__pendingToolMaterialSetImport = null;
+
+(function captureToolMaterialSetImport() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('addToolMaterialSet')) return;
+  try {
+    const raw = sessionStorage.getItem('teachedos_pending_tool_material_set');
+    if (!raw) return;
+    const set = JSON.parse(raw);
+    sessionStorage.removeItem('teachedos_pending_tool_material_set');
+    if (!set || !Array.isArray(set.materials) || !set.materials.length) return;
+    window.__pendingToolMaterialSetImport = set;
+  } catch (err) {
+    console.warn('Tool material set capture failed', err);
+  }
+})();
+
+function runPendingToolMaterialSetImport() {
+  const set = window.__pendingToolMaterialSetImport;
+  if (!set) return false;
+  window.__pendingToolMaterialSetImport = null;
+  try {
+    const r = boardWrap.getBoundingClientRect();
+    const centre = screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || { x: 240, y: 240 };
+    const GAP = 40;
+    const PER_ROW = 3;
+    let placed = 0;
+    let skipped = 0;
+    const rowStartX = Math.round(centre.x - 700);
+    let rowTop = Math.round(centre.y - 240);
+    let cursorX = rowStartX;
+    let rowHeight = 0;
+    let inRow = 0;
+    set.materials.forEach(material => {
+      const hasBody = material && (material.text || (material.struct && (
+        (material.struct.questions || []).length ||
+        (material.struct.items || []).length ||
+        (material.struct.cards || []).length
+      )));
+      if (!hasBody) return;
+      /* Та сама перевірка близнюка, що й для одиночного матеріалу: вчитель, який
+         поправив вправу на дошці й надіслав набір ще раз, має побачити свою
+         правку, а не копію поруч із нею. */
+      const key = material.materialKey || '';
+      if (key && state.cards.some(c => c.data && c.data._ttOrigin && c.data._ttOrigin.key === key)) {
+        skipped++;
+        return;
+      }
+      /* ttPlaceMaterialCard рахує вільне місце сам (findFreePlacement), тож
+         курсор тут - лише бажаний центр. Наступний крок беремо з РЕАЛЬНОЇ
+         геометрії покладеної картки, а не з припущення: ширина worksheet-картки
+         залежить від кількості питань і буває від 520 до 1110, тож крок «на
+         520» розкидав би набір навсібіч руками самої дошки. */
+      const card = ttPlaceMaterialCard(material, { x: cursorX, y: rowTop }, 'topleft');
+      if (!card) return;
+      placed++;
+      rowHeight = Math.max(rowHeight, (card.y + card.h) - rowTop);
+      cursorX = card.x + card.w + GAP;
+      inRow++;
+      if (inRow >= PER_ROW) {
+        inRow = 0;
+        cursorX = rowStartX;
+        rowTop += rowHeight + GAP;
+        rowHeight = 0;
+      }
+    });
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    if (placed) {
+      const tail = skipped ? ' (' + skipped + ' already on the board)' : '';
+      toast && toast('✦ ' + placed + ' activities added' + tail);
+    } else if (skipped) {
+      toast && toast('This set is already on the board');
+    } else {
+      toast && toast('Nothing in this set could be added');
+    }
+    const params = new URLSearchParams(location.search);
+    params.delete('addToolMaterialSet');
+    const q = params.toString();
+    history.replaceState({}, '', location.pathname + (q ? '?' + q : ''));
+    return true;
+  } catch (err) {
+    console.warn('Tool material set import failed', err);
+    toast && toast('Could not add this set to the board');
     return false;
   }
 }
@@ -15825,7 +15951,7 @@ async function finishBoardAuth(data) {
   } else {
     await initUserBoard();
   }
-  if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+  runPendingToolImports();
 }
 
 function updateAuthUI() {
@@ -16044,7 +16170,7 @@ async function initUserBoard() {
         history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         updateBreadcrumb(board);
         if (window.__pendingCommunityImport) runPendingCommunityImport();
-        else if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+        else runPendingToolImports();
         return;
       } else if (URL_BOARD_ID) {
         // Not this account's board - but it may be the very lesson published
@@ -16088,7 +16214,7 @@ async function initUserBoard() {
           history.replaceState(null, '', `board.html?id=${currentBoardId}`);
           _cachedBoardCount = boards.length;
           if (window.__pendingCommunityImport) runPendingCommunityImport();
-          else if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+          else runPendingToolImports();
         }
       } else if (currentUser.role === 'student') {
         // Student with no owned boards - redirect to student dashboard
@@ -19196,7 +19322,7 @@ function startReconnectLoop() {
         } else if (!currentBoardId) {
           await initUserBoard();
         }
-        if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+        runPendingToolImports();
         wsConnect();
         toast('✓ Connected');
         return;
@@ -19239,7 +19365,7 @@ function startReconnectLoop() {
         } else {
           await initUserBoard();
         }
-        if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+        runPendingToolImports();
         wsConnect();
         return;
       }
@@ -19255,7 +19381,7 @@ function startReconnectLoop() {
       updateAuthUI();
       loadBoard();
       if (window.__pendingLessonFlowImport) await runPendingLessonFlowImport();
-      if (window.__pendingToolMaterialImport) runPendingToolMaterialImport();
+      runPendingToolImports();
       showOfflineBanner();
       toast('⚠️ Server starting up - reconnecting…');
       startReconnectLoop();
@@ -19272,7 +19398,7 @@ function startReconnectLoop() {
   if (!authToken && window.__pendingLessonFlowImport) {
     toast('Sign in to create a shareable lesson board');
   }
-  if (!authToken && window.__pendingToolMaterialImport) {
+  if (!authToken && (window.__pendingToolMaterialImport || window.__pendingToolMaterialSetImport)) {
     toast('Sign in to add teacher tool material to your board');
   }
   updateAuthUI();

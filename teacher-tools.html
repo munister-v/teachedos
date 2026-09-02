@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=539">
+<link rel="manifest" href="manifest.json?v=544">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -254,16 +254,40 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
   .tt-mobile-more-menu .btn{width:100%;justify-content:flex-start;white-space:nowrap}
 }
 
+
+/* ── Vocabulary Workout: список активностей і набір готових вправ ──────────
+   Галочки стоять у формі поруч зі списком слів, тому вони мусять читатися як
+   частина форми, а не як окрема панель: та сама рамка, той самий радіус, що в
+   полів вводу. Активність, недоступна без входу, лишається видимою і
+   притлумленою - інакше вчитель не знає, що взагалі існує. */
+.wk-section{grid-column:1/-1;display:grid;gap:7px;margin-bottom:13px}
+.wk-picks{display:grid;gap:8px;margin-top:2px}
+.wk-pick{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid rgba(24,24,24,.12);border-radius:15px;background:#fff;cursor:pointer;transition:border-color .16s,background .16s}
+.wk-pick:hover{border-color:rgba(91,108,255,.42)}
+.wk-pick:has(input:checked){border-color:rgba(91,108,255,.55);background:rgba(91,108,255,.06)}
+.wk-pick.locked{opacity:.55;cursor:not-allowed}
+.wk-pick input{width:18px;height:18px;flex:0 0 18px;margin-top:2px;accent-color:var(--blue,#5B6CFF)}
+.wk-pick-body{display:grid;gap:2px;min-width:0}
+.wk-pick-body b{font-size:14px;line-height:1.25}
+.wk-pick-body span{font-size:12px;color:var(--muted);line-height:1.4}
+.wk-pick-tag{margin-left:auto;align-self:center;font:900 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft);border:1px solid rgba(24,24,24,.12);border-radius:999px;padding:3px 7px;white-space:nowrap}
+.wk-block{margin-bottom:16px}
+.wk-block-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.wk-block-bar b{font-size:14px;letter-spacing:-.02em}
+.wk-block-n{width:22px;height:22px;border-radius:8px;display:grid;place-items:center;background:var(--lime,#C8E632);font:950 11px var(--mono);color:#151515}
+.wk-block-tag{font:900 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#fff;background:#1F6FD6;border-radius:999px;padding:3px 7px}
+.wk-pending{padding:14px;border:1px dashed rgba(24,24,24,.18);border-radius:16px;text-align:center;color:var(--muted);font-size:13px}
+@media print{.wk-block-bar{display:none!important}}
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=539">
-<link rel="stylesheet" href="styles/unify.css?v=539">
-<link rel="stylesheet" href="styles/knowledge-bases.css?v=539">
-<link rel="stylesheet" href="styles/mobile.css?v=539">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=539">
-<link rel="stylesheet" href="styles/teached-brand.css?v=539">
-<link rel="stylesheet" href="styles/tool-window.css?v=539">
+<link rel="stylesheet" href="styles/harmony.css?v=544">
+<link rel="stylesheet" href="styles/unify.css?v=544">
+<link rel="stylesheet" href="styles/knowledge-bases.css?v=544">
+<link rel="stylesheet" href="styles/mobile.css?v=544">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=544">
+<link rel="stylesheet" href="styles/teached-brand.css?v=544">
+<link rel="stylesheet" href="styles/tool-window.css?v=544">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=539">
+<link rel="stylesheet" href="styles/figma-theme.css?v=544">
 </head>
 <body class="tools-workbench tw-page fx">
 <nav class="nav">
@@ -407,11 +431,12 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="scripts/knowledge-bases.js?v=539"></script>
-<script src="scripts/tt-text-core.js?v=539"></script>
-<script src="scripts/teacher-tools-app.js?v=539"></script>
-<script src="js/teacher-tool-stt.js?v=539" defer></script>
-<script src="scripts/autogrow.js?v=539" defer></script>
-<script src="pwa-boot.js?v=539" defer></script>
+<script src="scripts/custom-sets.js?v=544"></script>
+<script src="scripts/knowledge-bases.js?v=544"></script>
+<script src="scripts/tt-text-core.js?v=544"></script>
+<script src="scripts/teacher-tools-app.js?v=544"></script>
+<script src="js/teacher-tool-stt.js?v=544" defer></script>
+<script src="scripts/autogrow.js?v=544" defer></script>
+<script src="pwa-boot.js?v=544" defer></script>
 </body>
 </html>

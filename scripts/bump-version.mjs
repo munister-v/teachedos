@@ -58,6 +58,34 @@ function listStaticHtml(dir = '.') {
   return files;
 }
 
+/* Той самий пін, але вписаний рядком усередині скрипта, а не тегом у HTML:
+   `scripts/board-gen.js?v=471` у хабі інструментів і `scripts/vocabulary.js?v=375`
+   у лінивовантаженому словнику. Обхід вище дивиться лише в .html, тож обидва стояли
+   на своїх числах роками: у vocabulary.js - з 375 при сайті на 539. Тобто
+   будь-яка правка в цих двох файлах не доїжджала до вчителя, який уже відкривав
+   сторінку: браузер віддавав закешоване за тим самим URL. Це рівно та біда,
+   заради якої цей файл і написаний, тому такі рядки теж переписуються. */
+function listVersionedScripts() {
+  const files = [];
+  for (const dir of ['scripts', 'js']) {
+    let entries = [];
+    try { entries = readdirSync(dir, { withFileTypes:true }); } catch { continue; }
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith('.js')) continue;
+      files.push(join(dir, entry.name));
+    }
+  }
+  return files;
+}
+let pins = 0;
+for (const file of listVersionedScripts()) {
+  const before = readFileSync(file, 'utf8');
+  const after = before.replace(/(\.(?:css|js|json))\?v=\d+/g, `$1?v=${next}`);
+  if (after === before) continue;
+  writeFileSync(file, after);
+  pins += (before.match(/\.(?:css|js|json)\?v=\d+/g) || []).length;
+}
+
 let touched = 0, links = 0;
 for (const file of listStaticHtml()) {
   const before = readFileSync(file, 'utf8');
@@ -70,4 +98,5 @@ for (const file of listStaticHtml()) {
 }
 
 console.log(`v${next} - sw.js, version.json, ${links} asset links across ${touched} pages`
+  + (pins ? `, ${pins} in-script pins` : '')
   + (assetConstBumped ? ', TEACHEDOS_ASSET_VERSION' : ''));

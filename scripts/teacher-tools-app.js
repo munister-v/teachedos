@@ -12,6 +12,7 @@ const TOOLS = [
   {id:'lesson-pack',cat:'utility',badge:'New',icon:'PLAN',title:'Complete Lesson Pack Builder',desc:'Create a warm-up, presentation, practice, production and homework plan from one topic.',mode:'lesson-pack'},
   {id:'worksheet-builder',cat:'utility',badge:'New',icon:'PDF',title:'ESL Worksheet Builder',desc:'Turn a topic or text into a printable worksheet with teacher notes and answer key.',mode:'worksheet'},
   {id:'homework-set',cat:'utility',icon:'HW',title:'Homework Assignment Builder',desc:'Create clear homework instructions, tasks, deadlines and success criteria.',mode:'homework'},
+  {id:'vocab-workout',cat:'vocabulary',badge:'New',icon:'SET',title:'Vocabulary Workout',desc:'Paste one word list and build a whole practice set: tick the activities you need, edit each one, send them to the board together.',mode:'vocab-workout'},
   {id:'word-image-match',cat:'vocabulary',badge:'New',icon:'IMG',title:'Word-Image Matching',desc:'Create a visual matching exercise with uploadable images and target words.',mode:'images',game:'memory-match'},
   {id:'word-definition-match',cat:'vocabulary',icon:'DEF',title:'Word-Definition Matching',desc:'Turn vocabulary into matching pairs for cards, worksheets or memory games.',mode:'pairs',game:'memory-match'},
   {id:'word-translation-match',cat:'vocabulary',badge:'New',icon:'WT',title:'Word-Translation Matching',desc:'Translate target words and build matching pairs for bilingual vocabulary practice.',mode:'translation-match',game:'memory-match'},
@@ -721,6 +722,11 @@ let currentCat = 'all';
 let activeTool = null;
 let lastOutput = null;
 let imageRows = [];
+/* Стан студії «Vocabulary Workout» стоїть тут, поруч з рештою стану сторінки:
+   selectTool() скидає його при зміні інструмента, а сама студія оголошена в
+   кінці файла - звідти оголошення не встигло б до першого виклику. */
+let workoutBlocks = [];
+let workoutBusy = false;
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch{return fallback;}}
 function writeJson(key,val){localStorage.setItem(key,JSON.stringify(val));}
@@ -1008,7 +1014,7 @@ function selectTool(id){
   if(!activeTool) return;
   ttPrefetchEngine();
   rememberRecentTool(id);
-  lastOutput=null; imageRows=[];
+  lastOutput=null; imageRows=[]; workoutBlocks=[];
   // Perf: swap .active class on existing cards without rebuilding the grid
   if(prev&&prev.id!==id){
     const oldEl=document.querySelector(`.tool[data-id="${prev.id}"]`);
@@ -1088,6 +1094,18 @@ function renderForm(){
     html=baseFields(textArea('vocab','Lesson context and boundaries','','Describe the class, situation and desired angle. The AI uses this to make four genuinely different perspectives.','e.g. B1 teens, pair discussion about the school phone policy. Include one practical compromise.'));
   }else if(['topic-vocab','discussion','dialogue','warmup','grammar-rules','rewrite','translation','creative-writing','link-words','sentences-vocab','text-with-vocab','comm-situations','rephrase-word','find-quotes','essay-topics','lead-in','facts','pros-cons','gaps-brackets','word-bank'].includes(m)){
     html=baseFields(textArea('vocab','Target vocabulary','','One per line. Add a meaning after a hyphen if you need it.','e.g. delay - a period of waiting\nreservation - a booking'));
+  }else if(m==='vocab-workout'){
+    html=baseFields(
+      textArea('vocab','Your word list','','One item per line. A meaning after a hyphen makes every activity sharper: `journey - a long trip`.','journey - a long trip\nto hoard - to keep far more than you need\nvicious cycle - a bad situation that keeps repeating')
+      /* Обгортка НЕ .field навмисно: у спільному шарі стилів живе правило
+         `.field label` з !important, яке робить будь-який <label> усередині
+         поля мікропідписом - моно, капсом, 10px. Рядки активностей самі є
+         <label> (щоб клік по тексту перемикав галочку), і всередині .field
+         вони перетворювалися на нечитабельний капс. */
+      +'<div class="wk-section"><span class="label">Activities</span><div class="hint">Tick everything you want built from this list. You can edit or drop any of them afterwards.</div>'
+      +vocabWorkoutPickerHtml()
+      +'</div>'
+    );
   }else if(m==='word-order'){
     html=baseFields(textArea('source','Sentences to scramble','','Paste sentences, one per line, or a full text.','e.g. Students practise useful phrases every day.'));
   }else if(m==='matching-halves'){
@@ -1103,7 +1121,10 @@ function renderForm(){
   }else{
     html=baseFields(textArea('source','Text block','','Add the classroom text you want to place on the lesson or worksheet.','Paste your classroom text here...'));
   }
-  document.getElementById('tool-form').innerHTML=html+`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Create draft</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;
+  const actions=(m==='vocab-workout')
+    ?`<div class="hero-actions"><button class="btn lime" type="button" onclick="buildVocabWorkout()">Build the set</button><button class="btn ghost" type="button" onclick="saveWorkoutWordSet()">Save word set for games</button></div>`
+    :`<div class="hero-actions"><button class="btn lime" type="button" onclick="generateSmart()">Create draft</button><button class="btn ghost" type="button" onclick="copyInputs()">Copy inputs</button></div>`;
+  document.getElementById('tool-form').innerHTML=html+actions;
   if(m==='images'){addImageRow();addImageRow();addImageRow()}
   restoreToolDraft();
   bindToolDraftAutosave();
@@ -1168,7 +1189,7 @@ renderForm=function(){
 };
 function get(id){return document.getElementById(id)?.value?.trim()||''}
 const TEXT_REQUIRED_MODES=new Set(['text-vocab','abcd','open-questions','true-false','three-titles','cefr','gap','gaps-abcd','two-options','simplify','reading-bits','type-gap','summary-gapfill','choose-summary','word-order','add-text','error-correction']);
-const VOCAB_REQUIRED_MODES=new Set(['pairs','translation-match','odd','sorting','matching-halves','sentences-vocab','text-with-vocab','link-words','creative-writing','translation','comm-situations','rephrase-word','word-bank']);
+const VOCAB_REQUIRED_MODES=new Set(['pairs','translation-match','odd','sorting','matching-halves','sentences-vocab','text-with-vocab','link-words','creative-writing','translation','comm-situations','rephrase-word','word-bank','vocab-workout']);
 
 function clearToolInputError(){
   document.getElementById('tool-input-error')?.remove();
@@ -1404,7 +1425,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=471';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=544';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1416,7 +1437,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=471';
+    el.src='scripts/board-gen.js?v=544';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);
@@ -1455,7 +1476,12 @@ function ttGameContentFromStruct(gameType,struct){
     return out;
   };
   if(gameType==='memory-match'||gameType==='flashcards'){
-    const pairs=[...matchPairs(),...items.map(i=>({a:String(i&&i.word||'').trim(),b:String(i&&(i.def||i.example)||'').trim()})).filter(p=>p.a&&p.b)];
+    /* Рушій кладе визначення в `definition`, а тут читалося лише `def` - поля
+       з такою назвою в його items немає взагалі. Через це набір слів із
+       поясненнями вчителя не давав вмісту для гри: зворот пари був порожній і
+       пара відсіювалась. Порядок - визначення, потім приклад: на картці
+       потрібне значення, а речення лише ілюструє. */
+    const pairs=[...matchPairs(),...items.map(i=>({a:String(i&&i.word||'').trim(),b:String(i&&(i.definition||i.def||i.example)||'').trim()})).filter(p=>p.a&&p.b)];
     return pairs.length?{pairs}:null;
   }
   if(gameType==='speed-quiz'){
@@ -1904,17 +1930,29 @@ async function loadHubAiQuota(){
   }catch(_){ }
 }
 loadHubAiQuota();
-async function requestServerHubAI(){
+/* Виклик приймає інструмент і поля явно, бо студія «Vocabulary Workout» шле
+   кілька різних інструментів з ОДНІЄЇ форми: activeTool там один на весь набір
+   і сказати за конкретну вправу не може. Без аргументів усе працює як раніше -
+   значення беруться з форми. */
+async function requestServerHubAI(toolIdOverride,inputOverride){
   const token=localStorage.getItem('teachedos_token');
   if(!token)throw new Error('Sign in to create AI material.');
-  const serverId=TT_SERVER_ID_MAP[activeTool.id]||activeTool.id;
+  const baseId=toolIdOverride||(activeTool&&activeTool.id);
+  const serverId=TT_SERVER_ID_MAP[baseId]||baseId;
+  const inp=inputOverride||null;
   let timer;
   try{
     const ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),20000);
     const r=await fetch(`${TT_API_BASE}/api/ai/teacher-tool`,{method:'POST',signal:ctrl.signal,
       headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
-      body:JSON.stringify({toolId:serverId,input:{level:level(),count:count(),topic:topic(),
-        action:get('action'),source:get('source'),vocab:get('vocab'),extra:[get('extra'),lessonRouteContext()].filter(Boolean).join('\n\n')}})});
+      body:JSON.stringify({toolId:serverId,input:{
+        level:(inp&&inp.level)||level(),
+        count:(inp&&inp.count)||count(),
+        topic:(inp&&inp.topic)||topic(),
+        action:get('action'),
+        source:inp?(inp.source||''):get('source'),
+        vocab:inp?(inp.vocab||''):get('vocab'),
+        extra:inp?'':[get('extra'),lessonRouteContext()].filter(Boolean).join('\n\n')}})});
     const d=await r.json().catch(()=>null);
     if(!r.ok)throw new Error(d?.error||'AI could not create this material right now.');
     if(d?.quota)renderHubAiQuota(d.quota);
@@ -2240,3 +2278,289 @@ renderCounts();renderChips();renderPresetLevelChips();renderPresetPacks();render
   if(document.readyState==='complete')window.setTimeout(openRequestedTool,0);
   else window.addEventListener('load',openRequestedTool,{once:true});
 })();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   VOCABULARY WORKOUT - один список слів, набір вправ
+
+   Досі кожна вправа була окремим інструментом: щоб відпрацювати список із
+   уроку, вчитель відкривав «Word-Definition Matching», вставляв слова,
+   генерував, відправляв на дошку - і повторював те саме шість разів, щоразу
+   вставляючи той самий список наново. Тут список вставляється один раз, а
+   галочки кажуть, що з нього зібрати.
+
+   Своїх генераторів ця студія НЕ має - і не повинна мати. Кожна активність
+   вказує на вже наявний інструмент, а зміст робить той самий спільний рушій
+   (board-gen.js), яким живе решта хаба. Через це правило про якість лишається
+   в силі: офлайн збираються тільки механічні перетворення списку (він у
+   TT_LOCAL_TRANSFORM_TOOLS), а все, що вимагає вигадати зміст, іде через AI і
+   без входу просто не пропонується як готове.                              */
+
+/* engine: id для generateTeacherToolLocal (board-gen.js).
+   server: id інструмента для /api/ai/teacher-tool.
+   Активність або механічна (engine), або AI - третього не дано, і саме це
+   визначає, чи потрібен вчителю вхід. */
+const VOCAB_WORKOUT_ACTIVITIES=[
+  {key:'match',      engine:'word-definition-match', title:'Match word to meaning', hint:'Pairs for matching, cards or a memory game.', game:'memory-match', cat:'vocabulary'},
+  {key:'flashcards', engine:'flashcards',            title:'Flashcards',            hint:'Word on one side, meaning and an example on the other.', game:'flashcards', cat:'vocabulary'},
+  {key:'sentences',  engine:'sentences-vocab',       title:'Example sentences',     hint:'One sentence per word, gap ready for practice.', game:'fill-blank', cat:'vocabulary'},
+  /* «Fill from Word Bank» тут немає навмисно: його генератор без вихідного
+     тексту віддає той самий список слово-значення, що й флешкартки, тільки під
+     іншою назвою. Обіцяти вчителю пропуски і дати список - гірше, ніж не
+     пропонувати вправу взагалі. */
+  {key:'halves',     engine:'matching-halves',       title:'Matching halves',       hint:'Phrases split in two for students to rejoin; single words pair with their meaning.', game:'memory-match', cat:'grammar'},
+  {key:'link',       engine:'link-words',            title:'Link words into sentences', hint:'Students connect two or three items in one sentence.', cat:'writing'},
+  {key:'odd',        server:'odd-one-out',           title:'Odd one out',           hint:'Groups where one word does not belong.', game:'speed-quiz', cat:'vocabulary', ai:true},
+  {key:'sorting',    server:'word-sorting',          title:'Word sorting',          hint:'Categories for drag-and-drop sorting.', game:'word-categories', cat:'vocabulary', ai:true},
+  {key:'translate',  server:'word-translation-match',title:'Word-translation pairs',hint:'Bilingual pairs for matching.', game:'memory-match', cat:'vocabulary', ai:true},
+  {key:'situations', server:'comm-situations',       title:'Communicative situations',hint:'Role-play cards that force the words into speech.', cat:'speaking', ai:true},
+  {key:'writing',    server:'creative-writing',      title:'Writing prompt',        hint:'A task that requires the whole list.', cat:'writing', ai:true},
+  {key:'discussion', server:'discussion',            title:'Discussion questions',  hint:'Questions built around the topic of the list.', cat:'speaking', ai:true},
+];
+const WORKOUT_PICK_STORE='teachedos_vocab_workout_picks';
+
+function workoutSignedIn(){return Boolean(localStorage.getItem('teachedos_token'))}
+function workoutActivity(key){return VOCAB_WORKOUT_ACTIVITIES.find(a=>a.key===key)||null}
+function workoutSavedPicks(){
+  const stored=readJson(WORKOUT_PICK_STORE,null);
+  if(Array.isArray(stored)&&stored.length)return stored.filter(k=>workoutActivity(k));
+  return ['match','sentences','wordbank'];
+}
+function vocabWorkoutPickerHtml(){
+  const picked=new Set(workoutSavedPicks());
+  const online=workoutSignedIn();
+  const row=a=>{
+    const on=picked.has(a.key)&&(!a.ai||online);
+    const locked=a.ai&&!online;
+    return '<label class="wk-pick'+(locked?' locked':'')+'">'
+      +'<input type="checkbox" value="'+a.key+'"'+(on?' checked':'')+(locked?' disabled':'')+' onchange="rememberWorkoutPicks()">'
+      +'<span class="wk-pick-body"><b>'+esc(a.title)+'</b><span>'+esc(a.hint)+'</span></span>'
+      +'<span class="wk-pick-tag">'+(a.ai?'AI':'offline')+'</span>'
+      +'</label>';
+  };
+  const note=online?'':'<div class="hint" style="margin-top:8px;">Activities marked AI need you to be signed in - the rest are built from your list right here, offline.</div>';
+  return '<div class="wk-picks" id="wk-picks">'+VOCAB_WORKOUT_ACTIVITIES.map(row).join('')+'</div>'+note;
+}
+function workoutSelectedKeys(){
+  return [...document.querySelectorAll('#wk-picks input[type=checkbox]:checked')].map(el=>el.value);
+}
+function rememberWorkoutPicks(){writeJson(WORKOUT_PICK_STORE,workoutSelectedKeys())}
+
+/* Метадані інструмента для ttEngineOutput/aiResultToOutput. Вони чекають на
+   об'єкт із title/mode/game/cat - у каталозі TOOLS такого рядка немає, бо
+   активність не є окремим інструментом хаба. */
+function workoutToolMeta(a){return {id:'vocab-workout-'+a.key,title:a.title,mode:'vocab-workout',game:a.game||null,cat:a.cat||'vocabulary'}}
+
+async function buildVocabWorkout(){
+  if(workoutBusy){toast('Still building this set…');return}
+  const vocab=get('vocab');
+  if(!vocab){showToolInputError('vocab','Paste the word list first - every activity here is built from it.');return}
+  const keys=workoutSelectedKeys();
+  if(!keys.length){toast('Tick at least one activity');return}
+  const activities=keys.map(workoutActivity).filter(Boolean);
+  const offline=activities.filter(a=>!a.ai);
+  const online=activities.filter(a=>a.ai);
+  if(online.length&&!workoutSignedIn()){toast('Sign in to build the AI activities');}
+  workoutBusy=true;setToolBusy(true,'Building the set…');
+  workoutBlocks=[];
+  const input={level:level(),count:count(),topic:topic(),vocab};
+  try{
+    if(offline.length&&await ttEnsureEngine()){
+      offline.forEach(a=>{
+        const block=workoutRunOffline(a,input);
+        if(block)workoutBlocks.push(block);
+      });
+    }
+    renderWorkout();
+    /* AI-активності йдуть по одній і домальовуються по мірі готовності:
+       кожна - окремий запит із власною квотою, і чекати всі мовчки означало б
+       тримати вчителя перед порожнім екраном по 20 секунд на вправу. */
+    if(online.length&&workoutSignedIn()){
+      for(const a of online){
+        renderWorkout(a.title);
+        const block=await workoutRunAi(a,input);
+        if(block)workoutBlocks.push(block);
+        renderWorkout(a===online[online.length-1]?'':a.title);
+      }
+    }
+  }finally{
+    workoutBusy=false;setToolBusy(false);
+    renderWorkout();
+  }
+  if(!workoutBlocks.length)toast('Nothing could be built from this list - add meanings after a hyphen and try again');
+  else toast(workoutBlocks.length+' '+(workoutBlocks.length===1?'activity':'activities')+' ready');
+}
+
+function workoutRunOffline(a,input){
+  try{
+    const out=ttEngineOutput(workoutToolMeta(a),generateTeacherToolLocal({
+      tool:{id:a.engine},source:'',vocab:input.vocab,topic:input.topic,level:input.level,count:input.count,
+    }));
+    if(!out)return null;
+    out.title=a.title;out.workoutKey=a.key;out.showAnswers=true;
+    return out;
+  }catch(err){console.warn('[workout] local activity failed',a.key,err);return null}
+}
+
+async function workoutRunAi(a,input){
+  try{
+    const env=await requestServerHubAI(a.server,input);
+    const arr=serverEnvelopeToArr(env);
+    if(!arr.length)return null;
+    const out=aiResultToOutput(workoutToolMeta(a),arr,input);
+    out.struct={boardKind:env.boardKind,questions:env.questions||null,items:env.items||null,cards:env.cards||null};
+    out.aiGenerated=true;out.title=a.title;out.workoutKey=a.key;out.showAnswers=true;
+    if(!out.gameContent)out.gameContent=ttGameContentFromStruct(out.gameType,out.struct);
+    return out;
+  }catch(err){
+    console.warn('[workout] AI activity failed',a.key,err);
+    toast('AI could not build "'+a.title+'" - the rest of the set is untouched');
+    return null;
+  }
+}
+
+function renderWorkout(pendingTitle){
+  const body=document.getElementById('result-body');
+  if(!body)return;
+  if(!workoutBlocks.length&&!pendingTitle){
+    body.innerHTML='<div class="result-empty"><div><b>Nothing built yet</b><span>Paste the list, tick the activities and press "Build the set".</span></div></div>';
+    return;
+  }
+  const head='<div class="result-actions">'
+    +'<div class="result-autosave"><span aria-hidden="true"></span>'+workoutBlocks.length+' in this set</div>'
+    +'<div class="result-actions-controls">'
+      +'<button class="btn sm lime result-primary" type="button" onclick="workoutToBoard()">Add all to board</button>'
+      +'<details class="result-more-actions"><summary class="btn sm ghost">More</summary><div class="result-more-menu" role="menu">'
+        +'<button class="result-menu-item" type="button" onclick="workoutPrint()">Print / PDF the set</button>'
+        +'<button class="result-menu-item" type="button" onclick="workoutSaveLibrary()">Save to library</button>'
+        +'<button class="result-menu-item" type="button" onclick="saveWorkoutWordSet()">Save word set for games</button>'
+      +'</div></details>'
+    +'</div></div>';
+  const blocks=workoutBlocks.map((out,i)=>{
+    const showAnswers=out.showAnswers!==false;
+    const sheet=out.struct?richWorksheetHtml(out,showAnswers):worksheetHtml(out);
+    const tools='<div class="wk-block-bar">'
+      +'<span class="wk-block-n">'+(i+1)+'</span>'
+      +'<b>'+esc(out.title||'Activity')+'</b>'
+      +(out.aiGenerated?'<span class="wk-block-tag">AI</span>':'')
+      +'<span style="flex:1"></span>'
+      +'<button class="btn sm ghost" type="button" onclick="workoutEdit('+i+')">Edit</button>'
+      +(ttHubHasKey(out)?'<button class="btn sm ghost" type="button" onclick="workoutToggleKey('+i+')">'+(showAnswers?'Hide key':'Show key')+'</button>':'')
+      +(out.gameType&&out.gameContent?'<button class="btn sm ghost" type="button" onclick="workoutPlay('+i+')">Play</button>':'')
+      +'<button class="btn sm ghost" type="button" onclick="workoutMove('+i+',-1)" aria-label="Move up">↑</button>'
+      +'<button class="btn sm ghost" type="button" onclick="workoutMove('+i+',1)" aria-label="Move down">↓</button>'
+      +'<button class="btn sm ghost danger-text" type="button" onclick="workoutRemove('+i+')" aria-label="Remove">×</button>'
+      +'</div>';
+    return '<section class="wk-block" id="wk-block-'+i+'">'+tools+sheet+'</section>';
+  }).join('');
+  const pending=pendingTitle?'<div class="wk-pending">Building "'+esc(pendingTitle)+'" with AI…</div>':'';
+  body.innerHTML=head+blocks+pending;
+}
+
+function workoutRemove(i){
+  if(!workoutBlocks[i])return;
+  workoutBlocks.splice(i,1);renderWorkout();toast('Activity removed');
+}
+function workoutMove(i,dir){
+  const j=i+dir;
+  if(!workoutBlocks[i]||!workoutBlocks[j])return;
+  const t=workoutBlocks[i];workoutBlocks[i]=workoutBlocks[j];workoutBlocks[j]=t;
+  renderWorkout();
+}
+function workoutToggleKey(i){
+  const out=workoutBlocks[i];if(!out)return;
+  out.showAnswers=out.showAnswers===false;renderWorkout();
+}
+function workoutEdit(i){
+  const out=workoutBlocks[i];if(!out)return;
+  const host=document.getElementById('wk-block-'+i);if(!host)return;
+  const current=out.text||ttOutputPlainText(out);
+  const sheet=host.querySelector('.worksheet');if(sheet)sheet.remove();
+  if(host.querySelector('.wk-editor'))return;
+  const editor=document.createElement('div');
+  editor.className='wk-editor';
+  editor.innerHTML='<textarea id="wk-edit-'+i+'" style="width:100%;min-height:240px;padding:14px;border:1.5px solid var(--line,#ddd);border-radius:16px;font:inherit;font-size:.95rem;line-height:1.6;resize:vertical;box-sizing:border-box;">'+esc(current)+'</textarea>'
+    +'<div class="hero-actions" style="margin-top:10px;"><button class="btn sm lime" type="button" onclick="workoutSaveEdit('+i+')">Save changes</button><button class="btn sm ghost" type="button" onclick="renderWorkout()">Cancel</button></div>';
+  host.appendChild(editor);
+  const ta=document.getElementById('wk-edit-'+i);if(ta)ta.focus();
+}
+/* Правка тексту знімає структуру навмисно. Поки картка їде structом, на дошці
+   малюються ПИТАННЯ, а не текст: збережеш правку - і вона нікуди не потрапить,
+   бо дошка візьме старі questions. Відредагована вправа їде текстом - тим,
+   що вчитель бачить перед собою. */
+function workoutSaveEdit(i){
+  const ta=document.getElementById('wk-edit-'+i);const out=workoutBlocks[i];
+  if(!ta||!out)return;
+  out.text=ta.value;out.edited=true;out.struct=null;out.gameContent=null;out.gameType=null;
+  renderWorkout();toast('Saved - this activity now travels as your edited text');
+}
+function workoutPlay(i){
+  const out=workoutBlocks[i];
+  if(!out||!out.gameType||!out.gameContent){toast('This activity has no linked game');return}
+  sessionStorage.setItem('teachedos_pending_game_material',JSON.stringify({
+    title:out.title,gameType:out.gameType,gameContent:out.gameContent,
+    level:out.level,tags:out.tags,createdAt:new Date().toISOString(),
+  }));
+  location.href=practiceGameUrl(out.gameType)+'?from=tools';
+}
+function workoutPrint(){
+  if(!workoutBlocks.length){toast('Build the set first');return}
+  const title=(topic()||'Vocabulary workout');
+  const parts=workoutBlocks.map((out,i)=>'<section class="task"><h2>'+(i+1)+'. '+esc(out.title||'Activity')+'</h2><pre>'+esc(out.text||ttOutputPlainText(out))+'</pre></section>').join('');
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to print the set');return}
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;max-width:820px;margin:36px auto;padding:0 22px;color:#181818;line-height:1.6}h1{letter-spacing:-.03em}h2{font-size:16px;margin:22px 0 8px}pre{white-space:pre-wrap;font:inherit}.task{border-top:1px solid #e6e6e6;padding-top:6px}@media print{body{margin:0}}</style></head><body><h1>'+esc(title)+'</h1>'+parts+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function workoutSaveLibrary(){
+  if(!workoutBlocks.length){toast('Build the set first');return}
+  const lib=readJson(TOOL_STORE,[]);
+  const stamp=new Date().toISOString();
+  const items=workoutBlocks.map((out,i)=>({
+    id:'wk-'+Date.now().toString(36)+'-'+i,
+    toolId:'vocab-workout',
+    title:(topic()?topic()+' · ':'')+(out.title||'Activity'),
+    text:out.text||ttOutputPlainText(out),
+    level:out.level,tags:out.tags,struct:out.struct||null,createdAt:stamp,
+  }));
+  writeJson(TOOL_STORE,[...items,...lib].slice(0,160));
+  renderLibrary();
+  toast('Saved '+items.length+' activities to the library');
+}
+/* Список як набір для ігор: усі games/*.html читають ?set=<id> з цього ж
+   сховища, тож збережений набір відкривається в будь-якій грі каталогу, а не
+   лише в тих, куди його передає ця студія. */
+function saveWorkoutWordSet(){
+  const words=vocabItems(get('vocab')).map(x=>({en:x.word,uk:(x.def&&x.def!=='teacher definition / translation')?x.def:''}));
+  if(!words.length){showToolInputError('vocab','Add the word list before saving it as a set.');return}
+  if(!window.TEACHEDOS_CUSTOM){toast('Word sets are unavailable on this page');return}
+  const rec=window.TEACHEDOS_CUSTOM.save({name:topic()||'Word set '+new Date().toLocaleDateString(),words});
+  toast('Saved as a word set - open it in any game');
+  return rec;
+}
+/* Увесь набір їде на дошку однією посилкою. Кожна вправа лишається окремою
+   карткою (дошка вміє розкладати їх сама), але переходів між сторінками рівно
+   один - інакше сім вправ означали б сім разів «на дошку» і назад. */
+function workoutToBoard(){
+  if(!workoutBlocks.length){toast('Build the set first');return}
+  const payload={
+    title:(topic()||'Vocabulary workout'),
+    level:level(),
+    topic:topic(),
+    createdAt:new Date().toISOString(),
+    materials:workoutBlocks.map(out=>({
+      materialKey:'workout:'+(out.workoutKey||'')+':'+ttMaterialKey(out),
+      toolId:'vocab-workout',
+      toolTitle:'Vocabulary Workout',
+      title:out.title,
+      text:(out.showAnswers===false)?ttOutputPlainText(out):(out.text||ttOutputPlainText(out)),
+      level:out.level,tags:out.tags,topic:out.topic||topic(),
+      kind:out.kind||'',cat:out.cat||'vocabulary',
+      source:'',
+      struct:out.struct||null,
+      showAnswers:out.showAnswers!==false,
+      createdAt:new Date().toISOString(),
+    })),
+  };
+  sessionStorage.setItem('teachedos_pending_tool_material_set',JSON.stringify(payload));
+  location.href='board.html?addToolMaterialSet=1';
+}
