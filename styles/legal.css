@@ -91,4 +91,15 @@ a:hover{text-decoration:underline;text-underline-offset:2px;}
 @media(max-width:560px){
   .doc-toc ol{grid-template-columns:1fr;}
 }
+
+/* Зоны нажатия: тот же порог 44px, что и в приложении (styles/mobile-chrome.css).
+   Замер на 375px: ссылки оглавления шли по 31px, «назад» 39px, логотип 28px.
+   Строчные ссылки внутри абзацев намеренно не трогаю - под правило попадают
+   элементы навигации, а не слова в предложении. */
+@media(max-width:860px){
+  .doc-toc a{min-height:44px;align-items:center;padding:0;}
+  .doc-back{min-height:44px;display:inline-flex;align-items:center;}
+  .doc-logo{min-height:44px;}
+  .doc-foot-links a{min-height:44px;display:inline-flex;align-items:center;}
+}
 @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
