@@ -1518,7 +1518,7 @@ function renderImage(el, card) {
     drop.className = 'image-empty';
     drop.innerHTML = `<span class="image-empty-ic">🖼️</span>
       <span class="image-empty-title">Add an image</span>
-      <span class="image-empty-sub">Click to upload, paste, or set a URL</span>`;
+      <span class="image-empty-sub">Upload, paste, or set a URL</span>`;
     drop.addEventListener('click', ev => { ev.stopPropagation(); openCardEditor(card.id); });
     body.appendChild(drop);
   }
@@ -13574,7 +13574,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '646';
+const TEACHEDOS_ASSET_VERSION = '647';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14394,7 +14394,7 @@ function renderToolsTab(sec) {
   if (activeToolsSubTab === 'tools') {
     hero.innerHTML = `
       <b>Teacher Tools</b>
-      <p>${toolsCount} ready-to-use constructors. Click to open the builder, or drag any tool onto the board as a draft card.</p>
+      <p>${toolsCount} ready-to-use constructors. Open the builder, or drag any tool onto the board as a draft card.</p>
       <div class="tools-mini-actions">
         <a href="teacher-tools.html">Open full hub →</a>
         <button type="button" onclick="openAiAssistantPanel()">✦ AI lesson flow</button>
@@ -14554,7 +14554,7 @@ function _renderEmptyToolsState() {
 }
 
 function renderPlansTab(sec) {
-  sec.appendChild(makeLegend('Drag or click → add to board'));
+  sec.appendChild(makeLegend('Pick or drag → add to board'));
   PLANS.forEach(d => {
     const lc=(d.level||'').toLowerCase(), tc=(d.type||'').toLowerCase();
     const el = makeSnippet('📋 Lesson Plan', d.title,
@@ -14693,7 +14693,7 @@ function renderGamesTab(sec) {
       ${t === 'all' ? 'All' : t}
     </button>`).join('');
   sec.appendChild(filters);
-  sec.appendChild(makeLegend('Click → drop game on board · drag → place exactly'));
+  sec.appendChild(makeLegend('Pick → drop game on board · drag → place exactly'));
 
   const list = GAMES.filter(g => {
     if (window._activeGameTag !== 'all' && g.tag !== window._activeGameTag) return false;

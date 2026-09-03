@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=646">
+<link rel="manifest" href="manifest.json?v=647">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=646">
-<link rel="stylesheet" href="styles/auth.css?v=646">
-<link rel="stylesheet" href="styles/mobile.css?v=646">
-<link rel="stylesheet" href="styles/harmony.css?v=646">
-<link rel="stylesheet" href="styles/unify.css?v=646">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=646">
+<link rel="stylesheet" href="styles/board.css?v=647">
+<link rel="stylesheet" href="styles/auth.css?v=647">
+<link rel="stylesheet" href="styles/mobile.css?v=647">
+<link rel="stylesheet" href="styles/harmony.css?v=647">
+<link rel="stylesheet" href="styles/unify.css?v=647">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=647">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -271,13 +271,13 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=646">
+<link rel="stylesheet" href="styles/teached-brand.css?v=647">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=646">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=646">
-<link rel="stylesheet" href="styles/controls.css?v=646">
+<link rel="stylesheet" href="styles/figma-theme.css?v=647">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=647">
+<link rel="stylesheet" href="styles/controls.css?v=647">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=646">
+<link rel="stylesheet" href="styles/figma-concept.css?v=647">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1899,7 +1899,7 @@
       <div style="font-size:1.25rem;font-weight:600;color:var(--text);letter-spacing:-.01em;">🎮 Games Hub</div>
       <div onclick="closeGamesModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;font-size:18px;cursor:pointer;color:#9999AA;transition:.12s;" onmouseover="this.style.background='rgba(0,0,0,.06)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='#9999AA'">×</div>
     </div>
-    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Click to drop on the board · drag the tile to position it exactly</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Choose a game to drop it on the board · drag the tile to position it exactly</div>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="games-tabs"></div>
     <input id="games-search" class="cfg-input" type="text" placeholder="Search games…" oninput="filterGames(this.value)" style="margin-bottom:12px;">
     <div id="games-grid" style="overflow-y:auto;flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:2px;"></div>
@@ -1934,7 +1934,7 @@
   <input id="sticker-search" class="cfg-input sp-search" type="text" placeholder="Search emoji…" oninput="filterStickers(this.value)">
   <div id="sticker-tabs" class="sp-tabs"></div>
   <div id="sticker-grid" class="sp-grid-body"></div>
-  <div class="sp-hint">Click to add many · drag onto the board · Esc closes</div>
+  <div class="sp-hint">Add several in a row · drag onto the board · Esc closes</div>
 </div>
 <!-- Legacy overlay kept hidden for JS that may still reference it -->
 <div id="sticker-overlay" style="display:none;" aria-hidden="true"></div>
@@ -2027,13 +2027,13 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=646"></script>
-<script src="js/teacher-tools-data.js?v=646"></script>
-<script src="scripts/tt-text-core.js?v=646"></script>
-<script src="scripts/board-app.js?v=646"></script>
-<script src="js/board-vocab.js?v=646"></script>
-<script src="js/board-reveal.js?v=646"></script>
-<script src="js/teacher-tool-board-composer.js?v=646"></script>
+<script src="scripts/auth-modal.js?v=647"></script>
+<script src="js/teacher-tools-data.js?v=647"></script>
+<script src="scripts/tt-text-core.js?v=647"></script>
+<script src="scripts/board-app.js?v=647"></script>
+<script src="js/board-vocab.js?v=647"></script>
+<script src="js/board-reveal.js?v=647"></script>
+<script src="js/teacher-tool-board-composer.js?v=647"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2041,8 +2041,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=646" defer></script>
-<script src="pwa-boot.js?v=646" defer></script>
+<script src="scripts/autogrow.js?v=647" defer></script>
+<script src="pwa-boot.js?v=647" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2124,11 +2124,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=646"></script>
-<script src="scripts/nav-boost.js?v=646" defer></script>
-<script src="scripts/mobile-perf.js?v=646" defer></script>
-<script src="scripts/mobile-nav.js?v=646"></script>
-<script src="scripts/mobile-zoom-guard.js?v=646" defer></script>
+<script src="pwa.js?v=647"></script>
+<script src="scripts/nav-boost.js?v=647" defer></script>
+<script src="scripts/mobile-perf.js?v=647" defer></script>
+<script src="scripts/mobile-nav.js?v=647"></script>
+<script src="scripts/mobile-zoom-guard.js?v=647" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
