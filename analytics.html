@@ -316,15 +316,15 @@ a{text-decoration:none;color:inherit;}
 }
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=571" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=571">
-<link rel="stylesheet" href="styles/harmony.css?v=571">
-<link rel="stylesheet" href="styles/unify.css?v=571">
-<link rel="stylesheet" href="styles/teached-brand.css?v=571">
-<link rel="stylesheet" href="styles/tool-window.css?v=571">
+<script src="theme.js?v=572" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=572">
+<link rel="stylesheet" href="styles/harmony.css?v=572">
+<link rel="stylesheet" href="styles/unify.css?v=572">
+<link rel="stylesheet" href="styles/teached-brand.css?v=572">
+<link rel="stylesheet" href="styles/tool-window.css?v=572">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=571">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=571">
+<link rel="stylesheet" href="styles/figma-theme.css?v=572">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=572">
 </head>
 <body class="tw-page suite-page analytics-suite fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -357,7 +357,19 @@ a{text-decoration:none;color:inherit;}
   </a>
 </nav>
 
-<div id="page">
+<div id="page" class="mp-shell">
+
+  <!-- Mobile pro topbar -->
+  <header class="mp-topbar mp-mobile-only">
+    <div class="mp-greeting">
+      <div class="mp-greeting-meta">CLASS PROGRESS</div>
+      <div class="mp-greeting-name">Analytics</div>
+    </div>
+    <div class="mp-topbar-actions">
+      <button class="mp-icon-btn" onclick="loadData()" aria-label="Refresh analytics">↻</button>
+      <button class="mp-icon-btn js-export" onclick="exportCSV()" aria-label="Export CSV" style="display:none">⤓</button>
+    </div>
+  </header>
 
   <!-- Header -->
   <div class="page-head">
@@ -367,7 +379,7 @@ a{text-decoration:none;color:inherit;}
     </div>
     <div class="head-spacer"></div>
     <button class="btn btn-ghost analytics-refresh" onclick="loadData()" aria-label="Refresh analytics" title="Refresh analytics">Refresh</button>
-    <button class="btn btn-ghost analytics-export" id="btn-export" onclick="exportCSV()" style="display:none">Export CSV</button>
+    <button class="btn btn-ghost analytics-export js-export" id="btn-export" onclick="exportCSV()" style="display:none">Export CSV</button>
   </div>
   <nav class="suite-switcher" aria-label="Progress sections">
     <a class="suite-tab active" href="analytics.html">Analytics</a>
@@ -513,7 +525,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=571"></script>
+<script src="scripts/app-core.js?v=572"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
@@ -617,12 +629,14 @@ function applyAnalyticsGateUI() {
       lock.innerHTML = `${upgradeMessage('analytics')} <a href="profile.html#plans" style="color:#9a3412;font-weight:700;">Upgrade package →</a>`;
     }
   }
-  const exportBtn = document.getElementById('btn-export');
-  if (exportBtn) {
+  /* Кнопок экспорта теперь две: десктопная в .page-head и иконка в мобильном
+     топбаре. Состояние у них одно, поэтому оно ставится по классу, а не по id. */
+  const exportBtns = document.querySelectorAll('.js-export');
+  exportBtns.forEach(exportBtn => {
     exportBtn.disabled = !exportsOn;
     exportBtn.style.opacity = exportsOn ? '1' : '.55';
     exportBtn.title = exportsOn ? 'Export CSV' : upgradeMessage('exports');
-  }
+  });
   const exportAllBtn = document.querySelector('button[onclick="exportAllCSV()"]');
   if (exportAllBtn) {
     exportAllBtn.disabled = !exportsOn;
@@ -946,7 +960,7 @@ function analyzeBoard(boardId, cards, boardName) {
 
   // Insights + export button
   buildInsights(boardId, cards, lessons, done, inProgress, assignments);
-  document.getElementById('btn-export').style.display = total ? '' : 'none';
+  document.querySelectorAll('.js-export').forEach(b => { b.style.display = total ? '' : 'none'; });
 
   // Assignments
   const grid = document.getElementById('assign-grid');
@@ -1187,11 +1201,11 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=571" defer></script>
-<script src="scripts/mobile-perf.js?v=571" defer></script>
-<script src="scripts/mobile-nav.js?v=571"></script>
-<script src="scripts/mobile-zoom-guard.js?v=571" defer></script>
-<script src="scripts/autogrow.js?v=571" defer></script>
-<script src="pwa-boot.js?v=571" defer></script>
+<script src="scripts/nav-boost.js?v=572" defer></script>
+<script src="scripts/mobile-perf.js?v=572" defer></script>
+<script src="scripts/mobile-nav.js?v=572"></script>
+<script src="scripts/mobile-zoom-guard.js?v=572" defer></script>
+<script src="scripts/autogrow.js?v=572" defer></script>
+<script src="pwa-boot.js?v=572" defer></script>
 </body>
 </html>
