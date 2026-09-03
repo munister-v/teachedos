@@ -1224,34 +1224,35 @@ body.tools-workbench.fx:not(#_) .shell {
   overflow:hidden;
 }
 
-/* Рейка внутри панели - снова колонка каталога, а не плавающий остров.
-   Тема делает её fixed-стеклом со скруглением 24px и собственной тенью; на
-   ширине 1600px это выглядело как забытая карточка слева от текста. */
+/* Рейка внутри панели.
+   Тянуть её на всю высоту нельзя, и это не догадка: в tool-window.css рядом с
+   правилом рейки написано, почему там стоит height:fit-content - на длинной
+   странице растянутая рейка даёт полосу заливки с тысячами пикселей пустоты, и
+   sticky в ней перестаёт работать, потому что прокручивать внутри нечего.
+   Здесь панель высотой 3775px, так что растяни я её - получил бы ровно это.
+
+   Значит убирать надо не высоту, а ЗАЛИВКУ. Остров получался из-за того, что
+   рейка несла собственный фон и скругление поверх чужой земли. На бумаге
+   панели фон ей не нужен вовсе: колонка ссылок лежит на той же поверхности,
+   что и каталог, а разделяет их вертикальная линия. Линию вешаем на .main,
+   чтобы она шла во всю высоту панели, а не обрывалась вместе с содержимым
+   рейки. Это и есть «одна поверхность», под которую рисовался верстак. */
 body.tools-workbench.fx:not(#_) .side {
-  position:static;
-  top:auto;
-  /* align-self:stretch и width:auto - потому что тема давала рейке поля и
-     высоту по содержимому: колонка обрывалась на «Saved materials», а ниже до
-     низа панели шла белая пустота, и снова получался остров, только теперь
-     внутри бумаги. */
-  align-self:stretch;
-  width:auto;
-  height:auto;
-  margin:0;
-  border:0;
-  border-right:1px solid var(--tt-line);
-  border-radius:0;
-  background:#FBFBF8;
-  box-shadow:none;
-  backdrop-filter:none;
-  -webkit-backdrop-filter:none;
+  margin:0 !important;
+  width:auto !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  padding:26px 14px 28px !important;
 }
 
-/* Поля внутри панели. Тема держала 57.6px с каждой стороны - они имели смысл,
-   пока каталог шёл во всю ширину экрана и краёв у него не было. Теперь края
-   даёт сама панель, а эти поля резали колонку до 301px: названия ломались на
-   две строки, описания обрывались на «homewo…». 30px возвращают колонке 361. */
-body.tools-workbench.fx:not(#_) .main { padding:26px 30px 64px; }
+body.tools-workbench.fx:not(#_) .main {
+  padding:26px 30px 64px;
+  border-left:1px solid var(--tt-line);
+}
 
 /* Панель уже держит поля - внешние отступы страницы больше не нужны. */
 body.tools-workbench.fx:not(#_) .shell + * { margin-top:0; }
