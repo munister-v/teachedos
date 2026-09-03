@@ -2238,7 +2238,7 @@ body.board-dragging .board-card{will-change:transform,left,top;}
    доска уже пользуется: pointer:coarse в headless не выставляется, и такое
    правило нельзя было бы проверить замером. */
 body.board-phone-shell .card-sticky .sticky-text:empty::before{
-  content:"Tap, then \270F to write";
+  content:"Tap, then ✏ to write";
 }
 /* delete icon on hover only */
 .card-sticky .sticky-close{
