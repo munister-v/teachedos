@@ -266,9 +266,12 @@ body {
     scroll-snap-align: start;
   }
 
-  /* 9-10px в подписях плитки - это на грани читаемости на телефоне. */
+  /* 9-10px в подписях плитки - это на грани читаемости на телефоне.
+     Пилюля осталась на 10px и была самой мелкой строкой на экране: она
+     набрана капителью в моно, где строчных букв нет вовсе, и опознавать
+     слово приходится по одной высоте прописных. Поднята к тем же 11px. */
   .card-tag { font-size: 11px; }
-  .card-pill { font-size: 10px; padding: 3px 8px; }
+  .card-pill { font-size: 11px; padding: 3px 8px; }
 
   /* Единственная ссылка в подвале была полоской в 14px высотой. */
   .page-footer a { display: inline-flex; align-items: center; min-height: 44px; }
@@ -282,10 +285,10 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=565">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=565">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=566">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=566">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=565">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=566">
 </head>
 <body class="fx">
 
@@ -775,6 +778,6 @@ function initGameFilters(){
 enhanceGameCards();
 initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=565"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=566"></script>
 </body>
 </html>
