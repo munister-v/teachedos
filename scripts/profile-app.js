@@ -370,8 +370,7 @@ function renderBoardsGrid(boards) {
     grid.innerHTML = `<div class="pf-empty">
       <div class="pf-empty-icon" aria-hidden="true">\ud83d\udccc</div>
       <div class="pf-empty-title">No boards yet</div>
-      <div class="pf-empty-text">A board is where a lesson lives: drag in tasks, games and notes, then share it with a student.</div>
-      <button class="pf-empty-btn" onclick="createNewBoard()">+ New Board</button>
+      <div class="pf-empty-text">A board is where a lesson lives: drag in tasks, games and notes, then share it with a student. Press <b>+ New Board</b> above to make your first one.</div>
     </div>`;
     return;
   }
