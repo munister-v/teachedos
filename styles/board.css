@@ -1233,7 +1233,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 [data-theme="dark"] #zoom-controls{background:#252540;border-color:rgba(255,255,255,.10);}
 /* ── BG SHORTCUT BUTTON ── */
-#bg-shortcut-btn {
+/* :not([hidden]) - потому что в разметке эта кнопка стоит с атрибутом hidden
+   и aria-hidden, то есть по замыслу её нет. Правило `#id{display:flex}`
+   перебивает браузерное `[hidden]{display:none}` специфичностью, и скрытая
+   кнопка всё равно рисовалась: пустой белый квадрат 36x36 без содержимого,
+   висящий ровно на углу мини-карты (у него bottom:56px - тот же слот, где
+   раньше стояла она). На снимке это читалось как обломок чужого элемента.
+
+   Кнопка при этом рабочая: JS снимает hidden, когда она нужна. Правилу
+   достаточно не спорить с атрибутом. */
+#bg-shortcut-btn:not([hidden]) {
   position:fixed;
   right:12px;
   bottom:56px;
