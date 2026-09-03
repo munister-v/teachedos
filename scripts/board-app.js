@@ -5948,10 +5948,26 @@ function showLayerPopover(cardId) {
 function hideLayerPopover() {
   const pop = document.getElementById('layer-popover');
   if (pop) pop.classList.remove('show');
+  _syncMqStatusLift();
+}
+
+/* На телефоне полоса выделения прижата к низу, и плашка сохранения ложилась
+   прямо на ряд цветов. Высота полосы зависит от типа карточки, поэтому подъём
+   считаем по факту, а не константой. */
+function _syncMqStatusLift() {
+  const root = document.documentElement;
+  const pop = document.getElementById('layer-popover');
+  const наТелефоне = document.body.classList.contains('board-phone-shell');
+  if (наТелефоне && pop && pop.classList.contains('show')) {
+    root.style.setProperty('--mq-status-lift', Math.round(pop.getBoundingClientRect().height) + 12 + 'px');
+  } else {
+    root.style.removeProperty('--mq-status-lift');
+  }
 }
 
 function positionLayerPopover() {
   const pop = document.getElementById('layer-popover');
+  _syncMqStatusLift();
   if (!pop || !pop.classList.contains('show')) return;
   const el = getCardEl(pop.dataset.cardId);
   if (!el) { hideLayerPopover(); return; }
@@ -13558,7 +13574,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '642';
+const TEACHEDOS_ASSET_VERSION = '643';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
