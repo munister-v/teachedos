@@ -90,14 +90,7 @@ body.tw-page:not(#_) :is(.nav,#nav) .nav-sep {
   background:rgba(32,32,44,.18) !important;
   height:16px !important;
 }
-body.tw-page:not(#_) :is(.nav,#nav) .nav-link {
-  height:28px !important;
-  padding:0 10px !important;
-  border-radius:8px !important;
-  font-size:12.5px !important;
-  font-weight:600 !important;
-  color:var(--te-ink,#20202C) !important;
-  background:transparent !important;
+body.tw-page:not(#_) :is(.nav,#nav) .nav-link {padding:0 10px !important;border-radius:8px !important;font-size:12.5px !important;font-weight:600 !important;color:var(--te-ink,#20202C) !important;background:transparent !important;
 }
 body.tw-page:not(#_) :is(.nav,#nav) .nav-link:hover {
   background:rgba(32,32,44,.10) !important;
@@ -107,15 +100,7 @@ body.tw-page:not(#_) :is(.nav,#nav) .nav-link.active {
   background:rgba(32,32,44,.16) !important;
   color:var(--te-ink,#20202C) !important;
 }
-body.tw-page:not(#_) :is(.nav,#nav) :is(.nav-pill,.nav-user) {
-  height:28px !important;
-  padding:0 10px !important;
-  border-radius:999px !important;
-  background:rgba(255,255,255,.55) !important;
-  border:0 !important;
-  color:var(--te-ink,#20202C) !important;
-  font-size:11.5px !important;
-  font-weight:600 !important;
+body.tw-page:not(#_) :is(.nav,#nav) :is(.nav-pill,.nav-user) {padding:0 10px !important;border-radius:999px !important;background:rgba(255,255,255,.55) !important;border:0 !important;color:var(--te-ink,#20202C) !important;font-size:11.5px !important;font-weight:600 !important;
 }
 body.tw-page:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
   background:var(--te-ink,#20202C) !important;
@@ -166,26 +151,10 @@ body.tw-page:not(#_) .side {
   background:var(--tw-rail) !important;
   box-shadow:var(--tw-shadow) !important;
 }
-body.tw-page:not(#_) .side-title {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:10px !important;
-  font-weight:700 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
-  margin:16px 8px 6px !important;
+body.tw-page:not(#_) .side-title {font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;margin:16px 8px 6px !important;
 }
 body.tw-page:not(#_) .side-title:first-child { margin-top:2px !important; }
-body.tw-page:not(#_) .side-btn {
-  min-height:32px !important;
-  padding:6px 10px !important;
-  border-radius:10px !important;
-  font-size:13px !important;
-  font-weight:600 !important;
-  color:var(--tw-ink-2) !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  gap:8px !important;
+body.tw-page:not(#_) .side-btn {padding:6px 10px !important;border-radius:10px !important;font-size:13px !important;font-weight:600 !important;color:var(--tw-ink-2) !important;background:transparent !important;box-shadow:none !important;gap:8px !important;
 }
 body.tw-page:not(#_) .side-btn:hover {
   background:rgba(255,255,255,.72) !important;
@@ -246,7 +215,9 @@ body.tw-page:not(#_) .homework-hero {
   margin:0 0 14px !important;
   border-radius:0 !important;
   overflow:visible !important;
-  display:flex !important;
+  /* display:flex уехал в десктопный блок в конце файла: на телефоне
+     .page-head должна оставаться скрытой (её заменяет .mp-topbar), а
+     здешний !important воскрешал её и давал две шапки подряд. */
   align-items:flex-end !important;
   justify-content:space-between !important;
   gap:14px !important;
@@ -268,14 +239,7 @@ body.tw-page:not(#_) .hero-in {
   flex-wrap:wrap !important;
   width:100% !important;
 }
-body.tw-page:not(#_) :is(.eyebrow,.page-eyebrow,.hero-eyebrow) {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:10px !important;
-  font-weight:700 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
-  margin:0 0 5px !important;
+body.tw-page:not(#_) :is(.eyebrow,.page-eyebrow,.hero-eyebrow) {font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;margin:0 0 5px !important;
 }
 body.tw-page:not(#_) :is(.hero h1,.hero-card h1,.page-title,.homework-hero h1) {
   font-size:23px !important;
@@ -370,18 +334,9 @@ body.tw-page:not(#_) .section-sub {
   font-weight:500 !important;
   color:var(--tw-ink-2) !important;
   margin-top:2px !important;
-}
-
-/* Section headings written inline inside a body (Smart templates, Activity
+}/* Section headings written inline inside a body (Smart templates, Activity
    bank) are labels, not title bars - keep them quiet. */
-body.tw-page:not(#_) .panel-body>.panel-title {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:10px !important;
-  font-weight:700 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
-  margin:18px 0 8px !important;
+body.tw-page:not(#_) .panel-body>.panel-title{font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;margin:18px 0 8px !important;
 }
 
 /* ── Inner cards ───────────────────────────────────────────────────────────
@@ -416,13 +371,7 @@ body.tw-page:not(#_) :is(.stat b,.hw-metric b,.stat-num,.hero-stat b,.quality-ca
   letter-spacing:-.03em !important;
   color:var(--tw-ink) !important;
 }
-body.tw-page:not(#_) :is(.stat span,.hw-metric span,.quality-card span,.hero-stat span) {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:9.5px !important;
-  font-weight:700 !important;
-  letter-spacing:.12em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
+body.tw-page:not(#_) :is(.stat span,.hw-metric span,.quality-card span,.hero-stat span) {font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.12em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .stage-time {
   border-radius:10px !important;
@@ -432,34 +381,23 @@ body.tw-page:not(#_) .stage-time {
   font-size:12px !important;
   font-weight:700 !important;
 }
-body.tw-page:not(#_) .stage-title { font-size:14px !important; letter-spacing:-.02em !important; }
-
-/* Buttons are where the ballast described at the top of this file earns its
+body.tw-page:not(#_) .stage-title { font-size:14px !important; letter-spacing:-.02em !important; }/* Buttons are where the ballast described at the top of this file earns its
    keep: unify.css paints the default button through
    `button.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):not(.btn-pink-soft):not(.btn-ink)`
    - (0,7,1) with !important - so a plain `body.tw-page .btn…` rule loses
    without a warning. This is the reason the buttons on these pages kept
-   coming back ink. */
-/* ── Buttons ───────────────────────────────────────────────────────────────
+   coming back ink. *//* ── Buttons ───────────────────────────────────────────────────────────────
    A window's action is a compact pill, not a 42px marketing CTA. Ink for the
    primary move, white for everything beside it, violet only on hover - the
    same three states the desktop uses. */
-body.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn) {
-  min-height:32px !important;
-  height:auto !important;
-  padding:6px 13px !important;
-  border-radius:999px !important;
-  font-size:12.5px !important;
-  font-weight:650 !important;
-  letter-spacing:0 !important;
-  box-shadow:none !important;
-  transition:background .14s, border-color .14s, color .14s !important;
+body.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn){height:auto !important;padding:6px 13px !important;border-radius:999px !important;font-size:12.5px !important;font-weight:650 !important;letter-spacing:0 !important;box-shadow:none !important;transition:background .14s, border-color .14s, color .14s !important;
 }
 body.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.mini-btn):hover {
   transform:none !important;
   box-shadow:none !important;
 }
-body.tw-page:not(#_) .btn.sm { min-height:28px !important; padding:4px 11px !important; font-size:12px !important; }
+body.tw-page:not(#_) .btn.sm {padding:4px 11px !important;font-size:12px !important;
+}
 
 /* Primary - the "lime" class name lied: this used to render every primary
    CTA (Create course, Add event, Go to topic...) in plain --tw-ink black,
@@ -513,10 +451,7 @@ body.tw-page:not(#_) :is(.filter-btn.active,.smart-pill.active,.tool-btn.active,
 }
 body.tw-page:not(#_) .btn.pink,
 body.tw-page:not(#_) .btn-danger { background:#FF4E00 !important; border-color:#FF4E00 !important; color:#fff !important; }
-body.tw-page:not(#_) .icon-btn {
-  width:24px !important; height:24px !important;
-  border-radius:7px !important;
-  color:var(--tw-ink-3) !important;
+body.tw-page:not(#_) .icon-btn {width:24px !important;border-radius:7px !important;color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .icon-btn:hover { background:rgba(32,32,44,.07) !important; color:var(--tw-ink) !important; }
 
@@ -530,38 +465,18 @@ body.tw-page:not(#_) .pane-switcher {
   background:var(--tw-bar) !important;
   box-shadow:var(--tw-shadow) !important;
 }
-body.tw-page:not(#_) .pane-tab {
-  min-height:32px !important;
-  border-radius:9px !important;
-  background:transparent !important;
-  border:0 !important;
-  color:var(--tw-ink-2) !important;
+body.tw-page:not(#_) .pane-tab {border-radius:9px !important;background:transparent !important;border:0 !important;color:var(--tw-ink-2) !important;
 }
 body.tw-page:not(#_) .pane-tab.active {
   background:#fff !important;
   color:var(--tw-ink) !important;
   box-shadow:0 1px 2px rgba(32,32,44,.12) !important;
-}
-
-/* ── Fields ────────────────────────────────────────────────────────────────
+}/* ── Fields ────────────────────────────────────────────────────────────────
    harmony.css paints these with a lime-tinted gradient, a 1.5px border, a
    17px radius and a pink+lime double focus ring. That treatment is the single
    biggest reason the old pages looked unrelated to the desktop, and it is
    guarded with !important at (0,6,1) - hence the repeated :is() list. */
-body.tw-page:not(#_) :is(
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
-  textarea, select, .form-input, .form-textarea, .form-select
-) {
-  min-height:38px !important;
-  padding:9px 12px !important;
-  border:1px solid var(--tw-line-2) !important;
-  border-radius:11px !important;
-  background:#fff !important;
-  color:var(--tw-ink) !important;
-  font-size:13.5px !important;
-  font-weight:550 !important;
-  line-height:1.45 !important;
-  box-shadow:none !important;
+body.tw-page:not(#_) :is( input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]), textarea, select, .form-input, .form-textarea, .form-select ){padding:9px 12px !important;border:1px solid var(--tw-line-2) !important;border-radius:11px !important;background:#fff !important;color:var(--tw-ink) !important;font-size:13.5px !important;font-weight:550 !important;line-height:1.45 !important;box-shadow:none !important;
 }
 body.tw-page:not(#_) :is(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
@@ -583,26 +498,10 @@ body.tw-page:not(#_) :is(
   box-shadow:0 0 0 3px rgba(139,66,253,.16) !important;
 }
 body.tw-page:not(#_) textarea { min-height:74px !important; }
-body.tw-page:not(#_) :is(.label,.form-label,.field label) {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:9.5px !important;
-  font-weight:700 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
+body.tw-page:not(#_) :is(.label,.form-label,.field label) {font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;
 }
-body.tw-page:not(#_) .field { gap:6px !important; margin-bottom:11px !important; }
-
-/* ── Chips and pills ───────────────────────────────────────────────────── */
-body.tw-page:not(#_) :is(.chip,.pill,.hw-stat,.hw-kind) {
-  border-radius:999px !important;
-  background:rgba(32,32,44,.06) !important;
-  color:var(--tw-ink-2) !important;
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:10px !important;
-  font-weight:700 !important;
-  letter-spacing:.06em !important;
-  border:0 !important;
+body.tw-page:not(#_) .field { gap:6px !important; margin-bottom:11px !important; }/* ── Chips and pills ───────────────────────────────────────────────────── */
+body.tw-page:not(#_) :is(.chip,.pill,.hw-stat,.hw-kind){border-radius:999px !important;background:rgba(32,32,44,.06) !important;color:var(--tw-ink-2) !important;font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.06em !important;border:0 !important;
 }
 body.tw-page:not(#_) :is(.chip.ok,.pill.submitted,.pill.graded) {
   background:var(--tw-accent-soft) !important;
@@ -637,13 +536,7 @@ body.tw-page:not(#_) .homework-hero-in {
 body.tw-page:not(#_) .hw-dashboard { gap:10px !important; margin:0 0 12px !important; }
 body.tw-page:not(#_) .hw-metric { padding:11px 13px !important; }
 body.tw-page:not(#_) :is(.hw-focus,.hw-toolbar) { padding:11px 14px !important; margin:0 0 12px !important; }
-body.tw-page:not(#_) .hw-focus-kicker {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:9.5px !important;
-  font-weight:700 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
+body.tw-page:not(#_) .hw-focus-kicker {font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .hw-focus-title { font-size:14px !important; font-weight:700 !important; color:var(--tw-ink) !important; }
 body.tw-page:not(#_) .hw-focus-detail { font-size:12px !important; color:var(--tw-ink-2) !important; }
@@ -716,31 +609,16 @@ body.tw-page:not(#_) #sidebar {
 }
 @media (max-width:860px) {
   body.tw-page:not(#_) #sidebar { border-right:none !important; }
-}
-/* Anchored through `#sidebar`, not just `body.tw-page:not(#_)`: unify.css
+}/* Anchored through `#sidebar`, not just `body.tw-page:not(#_)`: unify.css
    has its own late "make the sidebar chip legible" pass scoped to
    `body:not(.board-page):not(.admin-page) #sidebar .sb-label` - a real id
    plus three class-level terms, !important. That beat the body-level ballast
    alone (id count tied at one, and unify had more classes). Repeating its own
    `#sidebar` anchor is what actually wins - a second real id outranks class
    count outright. */
-body.tw-page:not(#_) #sidebar :is(.sb-label,.sb-title,.side-section-title) {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:10px !important;
-  font-weight:700 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
-  margin:16px 8px 6px !important;
+body.tw-page:not(#_) #sidebar :is(.sb-label,.sb-title,.side-section-title){font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;margin:16px 8px 6px !important;
 }
-body.tw-page:not(#_) #sidebar .sb-item {
-  min-height:32px !important;
-  padding:6px 10px !important;
-  border-radius:10px !important;
-  font-size:13px !important;
-  font-weight:600 !important;
-  color:var(--tw-ink-2) !important;
-  background:transparent !important;
+body.tw-page:not(#_) #sidebar .sb-item {padding:6px 10px !important;border-radius:10px !important;font-size:13px !important;font-weight:600 !important;color:var(--tw-ink-2) !important;background:transparent !important;
 }
 body.tw-page:not(#_) #sidebar .sb-item:hover {
   background:rgba(255,255,255,.72) !important;
@@ -751,22 +629,9 @@ body.tw-page:not(#_) #sidebar .sb-item.active {
   color:var(--tw-ink) !important;
   box-shadow:0 1px 2px rgba(32,32,44,.10) !important;
 }
-body.tw-page:not(#_) #sidebar :is(.sb-badge,.side-count) {
-  background:rgba(32,32,44,.07) !important;
-  color:var(--tw-ink-3) !important;
-  border-radius:999px !important;
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:10px !important;
-  font-weight:700 !important;
+body.tw-page:not(#_) #sidebar :is(.sb-badge,.side-count) {background:rgba(32,32,44,.07) !important;color:var(--tw-ink-3) !important;border-radius:999px !important;font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;
 }
-body.tw-page:not(#_) #sidebar .sb-build {
-  min-height:32px !important;
-  border-radius:999px !important;
-  border:1px solid var(--te-lime,#CDF940) !important;
-  background:var(--te-lime,#CDF940) !important;
-  color:var(--te-ink,#20202C) !important;
-  font-size:12.5px !important;
-  font-weight:650 !important;
+body.tw-page:not(#_) #sidebar .sb-build {border-radius:999px !important;border:1px solid var(--te-lime,#CDF940) !important;background:var(--te-lime,#CDF940) !important;color:var(--te-ink,#20202C) !important;font-size:12.5px !important;font-weight:650 !important;
 }
 body.tw-page:not(#_) #sidebar .sb-build:hover {
   background:var(--te-lime-soft,#D3F36B) !important;
@@ -807,13 +672,7 @@ body.tw-page:not(#_) :is(.stat-val,.stat-num,.insight-value) {
   letter-spacing:-.03em !important;
   color:var(--tw-ink) !important;
 }
-body.tw-page:not(#_) :is(.stat-lbl,.stat-label,.insight-label) {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:9.5px !important;
-  font-weight:700 !important;
-  letter-spacing:.12em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
+body.tw-page:not(#_) :is(.stat-lbl,.stat-label,.insight-label) {font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.12em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) :is(.insight-hint,.stat-hint) {
   font-size:11px !important;
@@ -841,13 +700,7 @@ body.tw-page:not(#_) .sec-title {
   letter-spacing:-.01em !important;
   color:var(--tw-ink) !important;
 }
-body.tw-page:not(#_) .sec-kicker {
-  font-family:var(--te-font-mono,ui-monospace,monospace) !important;
-  font-size:9.5px !important;
-  font-weight:700 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-  color:var(--tw-ink-3) !important;
+body.tw-page:not(#_) .sec-kicker {font-family:var(--te-font-mono,ui-monospace,monospace) !important;font-weight:700 !important;letter-spacing:.14em !important;text-transform:uppercase !important;color:var(--tw-ink-3) !important;
 }
 body.tw-page:not(#_) .sec-body { padding:14px 16px !important; }
 body.tw-page:not(#_) .section { overflow:hidden !important; }
@@ -856,19 +709,9 @@ body.tw-page:not(#_) .section { overflow:hidden !important; }
    её независимо от z-index. Снимается только на время открытия — в остальном
    углы работают как прежде. Правило здесь, а не только на странице, потому
    что !important выше перебил бы страничный overflow:visible. */
-body.tw-page:not(#_) .section:has(.board-switcher.open) { overflow:visible !important; }
-
-/* ── Tab strips ────────────────────────────────────────────────────────────
+body.tw-page:not(#_) .section:has(.board-switcher.open) { overflow:visible !important; }/* ── Tab strips ────────────────────────────────────────────────────────────
    Four different names for the same segmented control. */
-body.tw-page:not(#_) :is(.ltab,.suite-tab,.comm-tab,.journal-filter,.un-btn,.mod-btn) {
-  min-height:30px !important;
-  padding:5px 12px !important;
-  border-radius:999px !important;
-  border:1px solid var(--tw-line-2) !important;
-  background:#fff !important;
-  color:var(--tw-ink-2) !important;
-  font-size:12.5px !important;
-  font-weight:600 !important;
+body.tw-page:not(#_) :is(.ltab,.suite-tab,.comm-tab,.journal-filter,.un-btn,.mod-btn){padding:5px 12px !important;border-radius:999px !important;border:1px solid var(--tw-line-2) !important;background:#fff !important;color:var(--tw-ink-2) !important;font-size:12.5px !important;font-weight:600 !important;
 }
 body.tw-page:not(#_) :is(.ltab,.suite-tab,.comm-tab,.journal-filter,.un-btn,.mod-btn):hover {
   background:var(--tw-accent-soft) !important;
@@ -926,23 +769,13 @@ body.tw-page:not(#_) :is(.btn-soft,.btn.btn-soft) {
 body.tw-page:not(#_) :is(.btn-soft:hover,.btn.btn-soft:hover) {
   background:var(--tw-accent-soft) !important;
   border-color:rgba(139,66,253,.34) !important;
-}
-
-/* ── Schedule's own button name ────────────────────────────────────────────
+}/* ── Schedule's own button name ────────────────────────────────────────────
    `.btn-add` is schedule.html's primary. Its two secondary buttons carry
    inline `background:transparent`, but harmony.css lists `.btn-add` among the
    controls it paints !important, so the inline style lost and Export / Open
    board were being drawn as loud as Add Class. Here the pair is told apart by
    the container they already sit in. */
-body.tw-page:not(#_) .btn-add {
-  min-height:32px !important;
-  border-radius:999px !important;
-  border:1px solid var(--te-lime,#CDF940) !important;
-  background:var(--te-lime,#CDF940) !important;
-  color:var(--te-ink,#20202C) !important;
-  font-size:12.5px !important;
-  font-weight:650 !important;
-  box-shadow:none !important;
+body.tw-page:not(#_) .btn-add{border-radius:999px !important;border:1px solid var(--te-lime,#CDF940) !important;background:var(--te-lime,#CDF940) !important;color:var(--te-ink,#20202C) !important;font-size:12.5px !important;font-weight:650 !important;box-shadow:none !important;
 }
 body.tw-page:not(#_) .btn-add:hover {
   background:var(--te-lime-soft,#D3F36B) !important;
@@ -958,21 +791,11 @@ body.tw-page:not(#_) .schedule-secondary-actions .btn-add {
 body.tw-page:not(#_) .schedule-secondary-actions .btn-add:hover {
   background:var(--tw-accent-soft) !important;
   border-color:rgba(139,66,253,.34) !important;
-}
-
-/* ── Gradebook / analytics leftovers ───────────────────────────────────────
+}/* ── Gradebook / analytics leftovers ───────────────────────────────────────
    `.gb-filter` marks its selection with `aria-pressed`, not a class, so the
    tab-strip rules above never reached it. The lime disc bleeding off the
    corner of the pulse panel is the last of the old decoration. */
-body.tw-page:not(#_) .gb-filter {
-  min-height:30px !important;
-  padding:5px 12px !important;
-  border-radius:999px !important;
-  border:1px solid var(--tw-line-2) !important;
-  background:#fff !important;
-  color:var(--tw-ink-2) !important;
-  font-size:12.5px !important;
-  font-weight:600 !important;
+body.tw-page:not(#_) .gb-filter{padding:5px 12px !important;border-radius:999px !important;border:1px solid var(--tw-line-2) !important;background:#fff !important;color:var(--tw-ink-2) !important;font-size:12.5px !important;font-weight:600 !important;
 }
 body.tw-page:not(#_) .gb-filter:hover {
   background:var(--tw-accent-soft) !important;
@@ -1101,5 +924,102 @@ body.tw-page:not(#_) #nav #nav-name {
     padding:11px 14px !important;
     border-radius:13px !important;
     font-size:13px !important;
+  }
+}
+
+
+/* ── Размеры только для десктопа ───────────────────────────────────────────
+   Этот файл описывает ОБЛИК окон, и облик уместен на любом экране: цвета,
+   радиусы, рамки, шрифты остаются глобальными. А вот РАЗМЕРЫ здесь взяты с
+   десктопа, где курсор попадает в цель 30px и капитель 9.5px читается с
+   полуметра. На телефоне это не так: палец требует 44px, а порог кегля в
+   проекте 11px.
+
+   Раньше эти значения приезжали на телефон и выигрывали у мобильных правил
+   специфичностью (1,2,1) - балласт `:not(#_)`, ради которого файл и написан
+   так. Мобильному слою приходилось перебивать их ещё большим балластом.
+   Теперь размеры просто не доезжают, и перебивать нечего.
+
+   Прецедент в этом же файле выше: ширина рейки #sidebar так же ограничена
+   min-width:861px, потому что без ограничения ломала мобильную раскладку.
+
+   Здесь только размеры, вынесенные из правил выше; селекторы повторены
+   один в один, порядок в файле гарантирует победу на десктопе. */
+@media (min-width:861px) {
+  body.tw-page:not(#_) :is(.nav,#nav) .nav-link {
+    height:28px !important;
+  }
+  body.tw-page:not(#_) :is(.nav,#nav) :is(.nav-pill,.nav-user) {
+    height:28px !important;
+  }
+  body.tw-page:not(#_) .side-title {
+    font-size:10px !important;
+  }
+  body.tw-page:not(#_) .side-btn {
+    min-height:32px !important;
+  }
+  body.tw-page:not(#_) :is(.eyebrow,.page-eyebrow,.hero-eyebrow) {
+    font-size:10px !important;
+  }
+  body.tw-page:not(#_) :is(.stat span,.hw-metric span,.quality-card span,.hero-stat span) {
+    font-size:9.5px !important;
+  }
+  body.tw-page:not(#_) .btn.sm {
+    min-height:28px !important;
+  }
+  body.tw-page:not(#_) .icon-btn {
+    height:24px !important;
+  }
+  body.tw-page:not(#_) .pane-tab {
+    min-height:32px !important;
+  }
+  body.tw-page:not(#_) :is(.label,.form-label,.field label) {
+    font-size:9.5px !important;
+  }
+  body.tw-page:not(#_) .hw-focus-kicker {
+    font-size:9.5px !important;
+  }
+  body.tw-page:not(#_) #sidebar .sb-item {
+    min-height:32px !important;
+  }
+  body.tw-page:not(#_) #sidebar :is(.sb-badge,.side-count) {
+    font-size:10px !important;
+  }
+  body.tw-page:not(#_) #sidebar .sb-build {
+    min-height:32px !important;
+  }
+  body.tw-page:not(#_) :is(.stat-lbl,.stat-label,.insight-label) {
+    font-size:9.5px !important;
+  }
+  body.tw-page:not(#_) .sec-kicker {
+    font-size:9.5px !important;
+  }
+  body.tw-page:not(#_) .panel-body>.panel-title {
+    font-size:10px !important;
+  }
+  body.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn) {
+    min-height:32px !important;
+  }
+  body.tw-page:not(#_) :is( input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]), textarea, select, .form-input, .form-textarea, .form-select ) {
+    min-height:38px !important;
+  }
+  body.tw-page:not(#_) :is(.chip,.pill,.hw-stat,.hw-kind) {
+    font-size:10px !important;
+  }
+  body.tw-page:not(#_) #sidebar :is(.sb-label,.sb-title,.side-section-title) {
+    font-size:10px !important;
+  }
+  body.tw-page:not(#_) :is(.ltab,.suite-tab,.comm-tab,.journal-filter,.un-btn,.mod-btn) {
+    min-height:30px !important;
+  }
+  body.tw-page:not(#_) .btn-add {
+    min-height:32px !important;
+  }
+  body.tw-page:not(#_) .gb-filter {
+    min-height:30px !important;
+  }
+  body.tw-page:not(#_) .page-head,
+  body.tw-page:not(#_) .homework-hero {
+    display:flex !important;
   }
 }
