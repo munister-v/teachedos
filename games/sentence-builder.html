@@ -35,11 +35,19 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 .feedback{margin-top:14px;font-size:1rem;font-weight:700;text-align:center;min-height:22px}
 .feedback.ok{color:#4caf50}
 .feedback.err{color:#f44336}
+
+/* Телефон: слово, из которого собирают предложение, было 41px высотой при
+   пороге 44 - не хватало трёх пикселей. */
+@media (max-width:600px){
+  /* min-width нужен из-за односложных слов: «I» выходило 36,6px шириной. */
+  .word-chip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;}
+  .btn-check,.btn-clear,.play-again{min-height:44px;}
+}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=648">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=648">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=649">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=649">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=648">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=649">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -169,7 +177,7 @@ function endGame(){
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=648"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=648"></script>
+<script src="../scripts/game-handoff.js?v=649"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=649"></script>
 </body>
 </html>

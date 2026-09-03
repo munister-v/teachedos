@@ -39,7 +39,15 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
      в экран шириной 375. Правый край с несколькими клетками оказывался за
      кадром, и добраться до него было нельзя - mobile-guard.css держит на
      body overflow-x:hidden, то есть страница не прокручивалась вбок. */
-  .grid{--cell:clamp(18px,calc((100vw - 84px) / 15),26px);}
+  /* Делим на реальное число колонок этой сетки (--cols ставит render), а не
+     на 15. Верхняя граница поднята с 26 до 44px: клетка кроссворда - это
+     цель нажатия, и у неширокой сетки она наконец до неё дотягивается.
+     Запасные 15 в var() оставлены на случай, если разметка пришла раньше
+     скрипта. */
+  .grid{--cell:clamp(18px,calc((100vw - 48px) / var(--cols,15)),44px);}
+  /* Поля страницы на телефоне съедали 32px, которые нужнее сетке. Вычитаемые
+     48px = поля тела (16) + поле самой сетки (8) + дорожки между клетками. */
+  body{padding-left:8px;padding-right:8px;}
   .cell{width:var(--cell);height:var(--cell)}
   .cell input{font-size:.85rem}
   .clues{grid-template-columns:1fr}
@@ -48,10 +56,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=648">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=648">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=649">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=649">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=648">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=649">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -185,7 +193,14 @@ function render(){
   // Раньше здесь стояла константа, и она перебивала любую правку .cell -
   // клетки послушно уменьшались, а дорожки сетки оставались широкими.
   grid.style.gridTemplateColumns=`repeat(${cols},var(--cell,32px))`;
-  grid.style.gridTemplateRows=`repeat(${rows},32px)`;
+  // Ряды тоже по --cell, иначе на телефоне клетка ужимается, а дорожка ряда
+  // остаётся в 32px, и сетка расползается пустотой по вертикали.
+  grid.style.gridTemplateRows=`repeat(${rows},var(--cell,32px))`;
+  // Сколько колонок в этой конкретной сетке. Телефонный расчёт клетки делил
+  // ширину экрана на 15 - размер поля генератора, худший случай. Но сетка
+  // обрезается по занятым клеткам и обычно уже: делить на реальное число
+  // колонок значит отдать клетке всю доступную ширину.
+  grid.style.setProperty('--cols', cols);
 
   let filledCount=0;
   for(let r=minR;r<=maxR;r++){
@@ -280,7 +295,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=648"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=648"></script>
+<script src="../scripts/game-handoff.js?v=649"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=649"></script>
 </body>
 </html>

@@ -34,11 +34,19 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 .btn-next{background:#4caf50;color:#fff;display:none}
 .btn-clear{background:#f5f5f5;color:#525252}
 .feedback{margin-top:12px;font-size:.95rem;font-weight:700;color:var(--accent);text-align:center;min-height:20px}
+
+/* Телефон: слово для раскладки было 37px высотой при пороге 44. Высота тут
+   вся из padding, поэтому задаём нижнюю границу и центрируем текст. */
+@media (max-width:600px){
+  .chip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;}
+  /* Кнопкам под полем не хватало ровно пикселя до порога. */
+  .btn-check,.btn-clear,.play-again{min-height:44px;}
+}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=648">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=648">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=649">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=649">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=648">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=649">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -243,7 +251,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=648"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=649"></script>
 <script src="../scripts/game-handoff.js"></script>
 </body>
 </html>
