@@ -145,13 +145,24 @@ body.fx:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
   background:var(--fx-ink) !important; color:var(--fx-lime) !important;
 }
 
-/* ── Левая рейка ────────────────────────────────────────────────────────── */
-body.fx:not(#_) :is(.side,#sidebar) {
-  top:56px !important;
-  background:rgba(255,253,247,.55) !important;
-  border:1px solid rgba(255,255,255,.5) !important;
-  border-radius:24px !important;
-  box-shadow:none !important;
+/* ── Левая рейка ──────────────────────────────────────────────────────────
+   Только десктоп. Здесь описана именно РЕЙКА: она висит на top:56px, скруглена
+   и сделана стеклом - 55% прозрачности поверх спокойной страницы.
+
+   На телефоне этот же #sidebar - не рейка, а нижний лист со списком уроков
+   поверх живого холста, и backdrop-filter тут не задан. Те же 55% давали не
+   стекло, а две картинки одна поверх другой: сквозь список читались доска,
+   карточка и чип с названием. Своё оформление листа задаёт board.css в блоке
+   body.board-phone-shell, но дотянуться до (2,1,1) этого правила оно не может
+   и загружается раньше - поэтому ограничение стоит здесь, у источника. */
+@media (min-width:861px) {
+  body.fx:not(#_) :is(.side,#sidebar) {
+    top:56px !important;
+    background:rgba(255,253,247,.55) !important;
+    border:1px solid rgba(255,255,255,.5) !important;
+    border-radius:24px !important;
+    box-shadow:none !important;
+  }
 }
 body.fx:not(#_) .side-title {
   font-family:inherit !important; font-size:12px !important; font-weight:400 !important;
@@ -572,7 +583,9 @@ body.fx:not(#_) :is(.side-btn.active,.comm-tab.active,.sb-item.active) {
   background:rgba(255,255,255,.72) !important;
 }
 /* Скругление рейки по кадру - 14, а не 24. */
-body.fx:not(#_) :is(.side,#sidebar) { border-radius:14px !important; }
+@media (min-width:861px) {
+  body.fx:not(#_) :is(.side,#sidebar) { border-radius:14px !important; }
+}
 
 /* Поле поиска рисовалось дважды: рамка с фоном была и у обёртки, и у самого
    input внутри неё - получалась коробка в коробке. */

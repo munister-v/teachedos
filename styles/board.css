@@ -4919,11 +4919,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
      Считаем от строки, а не константой: три строки для коротких полей и
      шесть для того, куда вставляют текст урока. */
-  body.board-phone-shell .tbuilder-form textarea{
+  body.board-phone-shell #tool-builder-panel .tbuilder-form textarea{
     min-height:calc(3 * 1.45em + 26px) !important;
     resize:vertical !important;
   }
-  body.board-phone-shell .tbuilder-form textarea#tbuilder-source{
+  body.board-phone-shell #tool-builder-panel .tbuilder-form textarea#tbuilder-source{
     min-height:calc(6 * 1.45em + 26px) !important;
   }
 
