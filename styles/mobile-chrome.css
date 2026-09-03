@@ -89,6 +89,50 @@
   /* Граница полей и светлых кнопок переехала в styles/controls.css: тот же
      дефект оказался и на десктопе, значит правило не про телефон. */
 
+  /* Цели, у которых не хватало ШИРИНЫ, а не высоты. Каждой нужен свой
+     ответ, потому что ограничивает их разное. */
+
+  /* Две иконки в шапке и кнопка меню: контейнер растёт по содержимому,
+     достаточно порога. */
+  body:not(#_) :is(.mp-icon-btn, .nav-menu) {
+    min-width: 44px !important;
+  }
+
+  /* Неделя на расписании: семь ячеек в 338px. При зазоре 6px на ячейку
+     остаётся 43, при 4px - 44,9. Уменьшаем зазор, ячейки дорастают сами. */
+  body:not(#_) .mp-daypicker { gap: 4px !important; }
+  body:not(#_) .mp-day { min-width: 44px !important; }
+
+  /* Уровни базы знаний: восемь фильтров в 332px в одну строку по 44px не
+     помещаются никак. Значит не сжимать их, а листать - тем же приёмом, что
+     и остальные полосы. */
+  body:not(#_) .knowledge-bases-levels {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none;
+    padding-right: 28px !important;
+  }
+  body:not(#_) .knowledge-bases-levels::-webkit-scrollbar { display: none; }
+  body:not(#_) .kb-level { flex: 0 0 auto !important; min-width: 44px !important; }
+
+  /* Иконка в мобильной шапке набора уроков. */
+  body:not(#_) .lp-mob-top > a {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Логотип в шапке: сам знак остаётся 26px, растёт только область нажатия -
+     поэтому min-height, а не height, и внешне ничего не меняется. */
+  body:not(#_) :is(.logo, .nav-logo) {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
   /* ── 3 · Порог кегля ──────────────────────────────────────────────────
      11px, тот же порог, что уже принят для хаба игр и хаба инструментов. */
   body:not(#_) :is(.mob-nav-label, .page-eyebrow, .eyebrow, .stat-lbl,
