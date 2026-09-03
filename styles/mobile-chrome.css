@@ -197,7 +197,7 @@
       /* счётчики и подписи в листе инструментов на доске */
       .tst-n, .tsc-n, .tgh-count, .tool-open-dot, .ts-kind, .ts-cat,
       /* ученические и тарифные страницы */
-      .save,
+      .save, .p-lessons-label,
       .lesson-preview-kicker, .lesson-preview-level, .lesson-preview-meta,
       .community-cover-kind, .community-cover-level, .community-cover-caption,
       .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
