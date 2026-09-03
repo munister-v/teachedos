@@ -4896,6 +4896,37 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
      28px вместо 18, удаление - корзина вместо крестика 22px. */
   body.board-phone-shell .sticky-toolbar{ display:none !important; }
 
+  /* ── Лист «Plans/Tools» ────────────────────────────────────────────────
+     Фон панели - rgba(255,253,247,.55) при `backdrop-filter:none`, то есть
+     просто 55% прозрачности над живым холстом. Сквозь список уроков читались
+     доска, жёлтая карточка, чип с названием и полоса действий: не «стекло»,
+     а две картинки одна поверх другой. Делаем непрозрачной. */
+  body.board-phone-shell #sidebar{
+    background:#FFFDF7 !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+
+  /* ── Поля конструктора инструментов ────────────────────────────────────
+     Текстовые поля показывали одну-две строки и резали подсказку по половине
+     букв: «Paste a reading text - we'll generate MCQ comprehension questions
+     from it» обрывалась на середине второй строки.
+
+     Десктопные 86px высоты (`.tbuilder-form textarea`) на телефоне
+     перебиваются мобильным правилом полей с min-height:48px, а кегль здесь
+     16px - он обязателен, иначе iOS зумит страницу при фокусе. Строка выходит
+     23.2px, и в 48px минус отступы влезает ровно одна.
+
+     Считаем от строки, а не константой: три строки для коротких полей и
+     шесть для того, куда вставляют текст урока. */
+  body.board-phone-shell .tbuilder-form textarea{
+    min-height:calc(3 * 1.45em + 26px) !important;
+    resize:vertical !important;
+  }
+  body.board-phone-shell .tbuilder-form textarea#tbuilder-source{
+    min-height:calc(6 * 1.45em + 26px) !important;
+  }
+
   body.board-phone-shell #board-wrap::after{
     content:"Double-tap a card to open";
     position:fixed;

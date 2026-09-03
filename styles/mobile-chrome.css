@@ -116,16 +116,35 @@
      панель. Плюс запас снизу: полоса плавающая (высота 64 + отступ 8), а
      клиренс контента считался только по высоте, и последняя карточка
      уходила под неё. */
+  /* Панель была плавающей пилюлей: отступ 12px по бокам и
+     `bottom: max(8px, env(safe-area-inset-bottom))` снизу. На айфоне с
+     полосой home этот нижний отступ равен 34px, и всё это время под панелью
+     жила полоса живого контента в треть её высоты - на снимке из-под таб-бара
+     полностью читался ряд «All students / Needs attention». По бокам то же
+     самое, только уже.
+
+     Заливкой это не лечится: земля страницы - градиент, любая плашка под
+     панелью дала бы полосу другого оттенка. Поэтому панель прижата к краям
+     экрана и закрывает зону home-полосы своим нижним внутренним отступом.
+     Скруглённый верх остаётся, форма узнаётся, а показаться из-под неё
+     больше нечему. */
   .mob-nav:not(#_) {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 5px 12px calc(5px + env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: 22px 22px 0 0 !important;
     background: #FFFFFF !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    box-shadow: 0 -10px 24px rgba(28, 28, 30, .10) !important;
   }
   body:not(#_):has(.mob-nav) {
-    padding-bottom: calc(64px + 8px + 16px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(64px + 16px + env(safe-area-inset-bottom, 0px)) !important;
   }
   body:not(#_):has(.mob-nav) :is(.mp-shell, #page, #layout, main.page-wrap) {
-    padding-bottom: calc(64px + 8px + 16px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(64px + 16px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* ── 5 · Горизонтальные полосы вкладок ────────────────────────────────
