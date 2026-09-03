@@ -4927,6 +4927,34 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     min-height:calc(6 * 1.45em + 26px) !important;
   }
 
+  /* «Уровень» и «Количество» читались как обычный текст, а не как выбор:
+     figma-theme.css одевает все поля в стекло концепта - фон
+     rgba(255,255,255,.6) и БЕЛАЯ рамка rgba(255,255,255,.7). На тонированной
+     земле десктопного концепта это стекло, на светлом листе инструмента -
+     белое по белому. Заодно его `background` затирает стрелку, которую
+     board.css рисует фоновой картинкой, а `appearance:none` уже снял
+     системную. Получался выбор без единого признака выбора.
+
+     Специфичность того правила (2,1,1), поэтому здесь нужен `:not(#_)`:
+     (2,2,2). Правим только внутри конструктора, поля остальных страниц не
+     трогаем. */
+  body.board-phone-shell:not(#_) #tool-builder-panel .tbuilder-form select{
+    background-color:#F3F3EE !important;
+    border:1.5px solid rgba(14,14,16,.14) !important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%236E6E5C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-repeat:no-repeat !important;
+    background-position:right 12px center !important;
+    background-size:11px 7px !important;
+    padding-right:34px !important;
+  }
+
+  /* Полоса «Create draft / More» прилипшая к низу, а у прокручиваемой части
+     не было запаса снизу: последнее поле уезжало под кнопки и читалось
+     сквозь них. Даём запас на высоту полосы. */
+  body.board-phone-shell #tool-builder-panel .tbuilder-box{
+    padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;
+  }
+
   body.board-phone-shell #board-wrap::after{
     content:"Double-tap a card to open";
     position:fixed;
