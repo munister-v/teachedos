@@ -263,16 +263,35 @@ body.fx:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.
 body.fx:not(#_) :is(.btn.lime,.btn.btn-primary,.btn-primary,.topic-go,.tool-btn.primary,.btn-new-course):hover {
   background:var(--fx-lime-deep) !important;
 }
+/* Светлые кнопки - тоже элементы управления с опознаваемой границей, и
+   стекло делает с ними то же самое, что с полями. */
+@media (min-width:861px) {
+  body.fx:not(#_) :is(.btn.ghost,.btn.soft,.btn-ghost,.btn.btn-ghost) {
+    background:rgba(255,255,255,.6) !important;
+    border:1px solid rgba(255,255,255,.7) !important;
+  }
+}
 body.fx:not(#_) :is(.btn.ghost,.btn.soft,.btn-ghost,.btn.btn-ghost) {
-  background:rgba(255,255,255,.6) !important;
-  border:1px solid rgba(255,255,255,.7) !important;
   color:var(--fx-ink) !important; box-shadow:none !important;
 }
 
-/* ── Поля ввода ─────────────────────────────────────────────────────────── */
+/* ── Поля ввода ───────────────────────────────────────────────────────────
+   Стекло - только десктоп. Фон rgba(255,255,255,.6) и БЕЛАЯ рамка
+   rgba(255,255,255,.7) читаются как поле на тонированной земле концепта. На
+   телефоне те же поля лежат на белых карточках, и получается белое по
+   белому: замер границы к поверхности даёт 1.37:1 при требуемых 3:1 для
+   границ элементов управления. Поле опознаётся только по подсказке внутри,
+   а у заполненного поля не опознаётся вовсе. */
+@media (min-width:861px) {
+  body.fx:not(#_) :is(input[type="text"],input[type="search"],input[type="email"],textarea,select) {
+    background:rgba(255,255,255,.6) !important;
+    border:1px solid rgba(255,255,255,.7) !important;
+    border-radius:14px !important;
+    color:var(--fx-ink) !important;
+  }
+}
+/* Радиус и цвет текста от ширины не зависят и остаются везде. */
 body.fx:not(#_) :is(input[type="text"],input[type="search"],input[type="email"],textarea,select) {
-  background:rgba(255,255,255,.6) !important;
-  border:1px solid rgba(255,255,255,.7) !important;
   border-radius:14px !important;
   color:var(--fx-ink) !important;
 }
@@ -342,10 +361,15 @@ body.fx:not(#_) .sb-label {
   color:var(--fx-mute) !important;
 }
 
-/* Поля форм на расписании, журнале и в профиле - свои классы. */
+/* Поля форм на расписании, журнале и в профиле - свои классы.
+   Стекло по той же причине только на десктопе, см. выше. */
+@media (min-width:861px) {
+  body.fx:not(#_) :is(.form-input,.setting-input,.field input,.field textarea,.field select) {
+    background:rgba(255,255,255,.6) !important;
+    border:1px solid rgba(255,255,255,.7) !important;
+  }
+}
 body.fx:not(#_) :is(.form-input,.setting-input,.field input,.field textarea,.field select) {
-  background:rgba(255,255,255,.6) !important;
-  border:1px solid rgba(255,255,255,.7) !important;
   border-radius:14px !important;
   color:var(--fx-ink) !important;
 }
@@ -425,11 +449,13 @@ body.fx:not(#_) :is(.auth-btn,button[type="submit"].btn,.btn#submit-btn):hover {
 body.fx:not(#_) .auth-back { color:var(--fx-ink-2) !important; }
 
 /* invite.html держит свои стили в <style> страницы: те же элементы, свои имена. */
-body.fx:not(#_) .input {
-  background:rgba(255,255,255,.7) !important;
-  border:1px solid rgba(255,255,255,.8) !important;
-  border-radius:14px !important; color:var(--fx-ink) !important;
+@media (min-width:861px) {
+  body.fx:not(#_) .input {
+    background:rgba(255,255,255,.7) !important;
+    border:1px solid rgba(255,255,255,.8) !important;
+  }
 }
+body.fx:not(#_) .input { border-radius:14px !important; color:var(--fx-ink) !important; }
 body.fx:not(#_) .label {
   color:var(--fx-mute) !important; font-family:inherit !important; letter-spacing:0 !important;
 }
