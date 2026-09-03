@@ -205,6 +205,8 @@
       .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
       .pc-eyebrow, .pc-level, .pc-dur, .tag, .dict-hot, .field label,
       .knowledge-bases-status, .side-title, .sb-badge, .side-count,
+      /* статус задания на ученическом экране шёл 10px */
+      .pill,
       .sb-tab-lbl, .sn-label, .badge, .mq-status, .tb-field-meta,
       .tb-field-meta-actions, .publisher-scope-copy, .community-lesson-meta) {
     font-size: 11px !important;
