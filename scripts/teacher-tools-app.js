@@ -901,7 +901,15 @@ function renderRecentTools(){
   wrap.innerHTML=ids.map(id=>{
     const t=TOOLS.find(x=>x.id===id);
     if(!t)return '';
-    return `<button class="recent-tool" type="button" onclick="selectTool('${t.id}')"><span>${esc(t.icon)}</span><b>${esc(t.title)}</b><small>${esc(CAT_NAMES[t.cat])}</small></button>`;
+    /* Плитка была одна лаймовая заливка на всё, вне зависимости от предмета -
+       ряд из шести карточек читался как один нерасчленённый блок и не был
+       похож на карточки основной сетки чуть ниже, у которых своя заливка на
+       категорию. Берём ТУ ЖЕ палитру CAT_TAG_COLORS, которой уже покрашены
+       категорийные чипы под названием: недавние инструменты визуально
+       привязываются к своим карточкам в сетке, а не выглядят отдельным,
+       недоделанным виджетом. */
+    const c=CAT_TAG_COLORS[t.cat]||{};
+    return `<button class="recent-tool" type="button" onclick="selectTool('${t.id}')"><span style="background:${c.bg||''};color:${c.color||''}">${esc(t.icon)}</span><b>${esc(t.title)}</b><small>${esc(CAT_NAMES[t.cat])}</small></button>`;
   }).join('');
 }
 let activePresetLevel = 'All';
@@ -1445,7 +1453,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=601';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=602';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1457,7 +1465,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=601';
+    el.src='scripts/board-gen.js?v=602';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);
