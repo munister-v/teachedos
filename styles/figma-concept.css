@@ -606,6 +606,13 @@ body.fx .win-titlebar {
   background:none !important; border:none !important; box-shadow:none !important;
   cursor:grab;
 }
+/* У полосы заголовка в index.html свой backdrop-filter, а окно уже фильтрует
+   фон само. Вложенный фильтр повторно осветлял верхние 46px и обрывался ровно
+   под кнопками - через всё окно шёл горизонтальный шов (замер: 254,243,231
+   сверху против 253,233,220 ниже). Фон я тут снял, а фильтр оставался. */
+body.fx .win-titlebar {
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
 body.fx .win-titlebar:active { cursor:grabbing; }
 body.fx .win-controls { position:absolute; top:20px; left:20px; }
 /* Кнопки лежат в 20-46px от верха (top:20px + их 26px высоты). win-body даёт
