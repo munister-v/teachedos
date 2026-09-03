@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TeachEd · mobile-chrome.css
+   ---------------------------------------------------------------------------
+   Один интерфейс на телефоне.
+
+   Причина файла. Страницы кабинета несут две шапки сразу: мобильную
+   (.mp-topbar, её ставит страница) и старую десктопную (.page-head).
+   mobile.css честно прячет вторую правилом
+       body:has(.mp-topbar, …) .page-head { display:none !important }
+   но оконный скин tool-window.css возвращает её обратно селектором
+       body.tw-page:not(#_) .page-head { display:flex !important }
+   у которого из-за балласта :not(#_) специфичность (1,2,1) против (0,2,1).
+   Скин десктопный, а применялся и на телефоне. Отсюда дубли заголовков на
+   gradebook/homework и дубли действий (иконка в топбаре и кнопка ниже).
+
+   Файл грузится ПОСЛЕДНИМ и владеет ровно одним вопросом: что из хрома
+   показывать на экране ≤860px. Балласт :not(#_):not(#__) здесь не украшение,
+   а способ перебить (1,2,1) не трогая сам оконный скин, которым живёт
+   десктоп. Всё, что не про хром, остаётся в mobile.css.
+═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 860px) {
+
+  /* ── 1 · Одна шапка ───────────────────────────────────────────────────
+     Прячем старую .page-head только там, где страница действительно даёт
+     mp-замену: на analytics.html шапка mp-* не ставится, и без этой
+     проверки страница осталась бы вовсе без заголовка. */
+  body:not(#_):not(#__):has(.mp-topbar, .mp-hero-head, .mp-page-head, .mp-greeting) .page-head,
+  body:not(#_):not(#__):has(.mp-topbar, .mp-hero-head, .mp-page-head, .mp-greeting) .page-head + .head-spacer {
+    display: none !important;
+  }
+
+  /* ── 2 · Зоны нажатия ─────────────────────────────────────────────────
+     Десктопный .btn приходил на телефон высотой 28-32px. Источник тот же
+     оконный скин: tool-window.css задаёт кнопке min-height:32px селектором
+     специфичности (1,2,1), и мобильные 44px из unify.css (0,2,1) до неё не
+     доставали. Балласт из двух :not(#_) даёт (2,1,1) и перебивает по первому
+     разряду, не трогая десктоп.
+
+     Порог 44px это нижняя граница и у Apple, и у Google. Высоту не
+     фиксируем, задаём min-height: в этом проекте константы высоты уже
+     несколько раз резали текст, который переносится. */
+  body:not(#_):not(#__) :is(.btn, .suite-tab, .comm-tab, .gb-filter, .filter-btn,
+      .lesson-preset, .board-switcher-trigger, .mp-day, .tool-btn, .mini-btn, .pane-tab,
+      .journal-filter, .insight-action) {
+    min-height: 44px !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* ── 3 · Порог кегля ──────────────────────────────────────────────────
+     11px, тот же порог, что уже принят для хаба игр и хаба инструментов.
+     Подписи таб-бара и служебные надписи шли по 9-10px, и здесь тот же
+     оконный скин: он опускает .stat-lbl до 9.5px поверх honest 11px из
+     harmony.css. Балласт по той же причине, что и выше. */
+  body:not(#_):not(#__) :is(.mob-nav-label, .page-eyebrow, .eyebrow, .stat-lbl,
+      .stat-label, .insight-label, .gp-kicker, .hw-focus-kicker, .label,
+      .form-label, .lesson-preset-sub, .ready-chip, .publisher-audit-count,
+      .mp-topbar-eyebrow, .mp-greeting-meta, .mobile-profile-eyebrow,
+      .wb-status, .wb-day-label, .publisher-audit-title, .publisher-audit-mark,
+      .publisher-note-mark, .publisher-preview-placeholder,
+      .lesson-preview-kicker, .lesson-preview-level, .lesson-preview-meta,
+      .community-cover-kind, .community-cover-level, .community-cover-caption,
+      .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
+      .pc-eyebrow, .pc-level, .pc-dur) {
+    font-size: 11px !important;
+  }
+
+  /* Подписи счётчиков набраны безымянными <span> прямо внутри плиток, класса
+     на них нет, поэтому их приходится называть через родителя. Иконочные
+     глифы (аватар-эмодзи в .nav-user, галочки в кружках) намеренно не
+     трогаем: там кегль держит форму, а не читаемость. */
+  body:not(#_):not(#__) :is(.hw-metric, .hero-score, .stat-card, .gp-stat) > span:not([class]),
+  body:not(#_):not(#__) :is(.hw-metric, .hero-score, .stat-card, .gp-stat) > small {
+    font-size: 11px !important;
+  }
+
+  /* ── 4 · Нижняя навигация непрозрачна ─────────────────────────────────
+     Оставшиеся 4% прозрачности давали текст страницы, читаемый сквозь
+     панель. Плюс запас снизу: полоса плавающая (высота 64 + отступ 8), а
+     клиренс контента считался только по высоте, и последняя карточка
+     уходила под неё. */
+  .mob-nav:not(#_) {
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  body:not(#_):not(#__):has(.mob-nav) {
+    padding-bottom: calc(64px + 8px + 16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  body:not(#_):not(#__):has(.mob-nav) :is(.mp-shell, #page, #layout, main.page-wrap) {
+    padding-bottom: calc(64px + 8px + 16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* ── 5 · Горизонтальные полосы вкладок ────────────────────────────────
+     На profile полоса вкладок обрезалась по краю экрана на слове
+     «Shared wit» без единого признака того, что её можно листать.
+     Уводим полосу в край экрана и оставляем последней вкладке воздух,
+     чтобы обрез читался как продолжение, а не как поломка. */
+  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row):not(#_) {
+    display: flex !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding-right: 28px !important;
+  }
+  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row):not(#_)::-webkit-scrollbar { display: none; }
+  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row):not(#_) > * {
+    flex: 0 0 auto !important;
+    scroll-snap-align: start;
+  }
+}
