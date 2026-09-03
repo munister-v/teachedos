@@ -3597,8 +3597,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
    же вид: «MATCH WORD TO MEANING» вместо названия активности. Поэтому правила
    ниже привязаны к .tbuilder-form: тот же вес по классам, но позже в файле,
    а вложенные b и small названы явно - иначе они наследуют моно и капслок от
-   родителя. */
+   родителя.
+
+   Поля пункта пришлось якорить ещё и на #tool-builder-panel: правило
+   `#tool-builder-panel .tbuilder-form label{margin:17px 0 7px}` из
+   tool-builder-refined.css весит (1,2,1) и перебивало мой margin:0. Пункты
+   расходились на 30px вместо заданных 6 - на одиннадцати активностях это
+   264 лишних пикселя прокрутки, и на телефоне список уезжал за экран. */
 .tb-workout-list{display:flex;flex-direction:column;gap:6px;}
+#tool-builder-panel .tbuilder-form .tb-workout-item,
 .tbuilder-form .tb-workout-item{display:flex;font-family:var(--font);text-transform:none;letter-spacing:0;margin:0;align-items:flex-start;gap:9px;padding:9px 11px;border:1px solid rgba(14,14,16,.10);border-radius:12px;background:#fff;cursor:pointer;transition:border-color .12s,background .12s;}
 .tbuilder-form .tb-workout-item:hover{border-color:rgba(14,14,16,.22);}
 .tbuilder-form .tb-workout-item input{margin:2px 0 0;flex:0 0 auto;width:16px;height:16px;accent-color:#556056;cursor:pointer;}
