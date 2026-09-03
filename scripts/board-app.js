@@ -8609,12 +8609,22 @@ function clearAll() {
 /* ════════════════════════ MINIMAP ════════════════════════ */
 let _minimapInited = false;
 function renderMinimap() {
-  const MW = 160, MH = 110;
-  if (!_minimapInited) {
-    minimapCanvas.width = MW * devicePixelRatio;
-    minimapCanvas.height = MH * devicePixelRatio;
-    minimapCanvas.style.width = MW+'px';
-    minimapCanvas.style.height = MH+'px';
+  /* Размер брался константами 160x110 и ставился ИНЛАЙНОВЫМ стилем, хотя
+     board.css велит канве занять весь бокс: `#minimap canvas{width:100%}`.
+     Инлайн сильнее таблицы, поэтому канва рисовалась 160x110 внутри
+     контейнера 180x120 - справа оставалась белая полоса в 20px и снизу в 10,
+     и угол мини-карты читался как обрывок постороннего элемента.
+
+     Теперь размер берётся с самого элемента, то есть от CSS, а константы
+     остались только запасными на случай вызова до первой раскладки. Тот же
+     размер идёт и в арифметику ниже, так что рисунок совпадает с боксом. */
+  const MW = minimapCanvas.clientWidth  || 160;
+  const MH = minimapCanvas.clientHeight || 110;
+  const needW = Math.round(MW * devicePixelRatio);
+  const needH = Math.round(MH * devicePixelRatio);
+  if (!_minimapInited || minimapCanvas.width !== needW || minimapCanvas.height !== needH) {
+    minimapCanvas.width = needW;
+    minimapCanvas.height = needH;
     _minimapInited = true;
   }
   const ctx = minimapCtx;
@@ -13508,7 +13518,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '608';
+const TEACHEDOS_ASSET_VERSION = '609';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
