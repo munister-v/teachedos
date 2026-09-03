@@ -1214,7 +1214,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 ═══════════════════════════════════════════════════════════════════════════ */
 
 body.tools-workbench.fx:not(#_) .shell {
-  max-width:1240px;
+  max-width:1360px;
   margin:18px auto 28px;
   min-height:calc(100dvh - 56px - 46px);
   border:1px solid var(--tt-line);
@@ -1230,7 +1230,14 @@ body.tools-workbench.fx:not(#_) .shell {
 body.tools-workbench.fx:not(#_) .side {
   position:static;
   top:auto;
+  /* align-self:stretch и width:auto - потому что тема давала рейке поля и
+     высоту по содержимому: колонка обрывалась на «Saved materials», а ниже до
+     низа панели шла белая пустота, и снова получался остров, только теперь
+     внутри бумаги. */
+  align-self:stretch;
+  width:auto;
   height:auto;
+  margin:0;
   border:0;
   border-right:1px solid var(--tt-line);
   border-radius:0;
@@ -1240,7 +1247,11 @@ body.tools-workbench.fx:not(#_) .side {
   -webkit-backdrop-filter:none;
 }
 
-body.tools-workbench.fx:not(#_) .main { padding-top:26px; }
+/* Поля внутри панели. Тема держала 57.6px с каждой стороны - они имели смысл,
+   пока каталог шёл во всю ширину экрана и краёв у него не было. Теперь края
+   даёт сама панель, а эти поля резали колонку до 301px: названия ломались на
+   две строки, описания обрывались на «homewo…». 30px возвращают колонке 361. */
+body.tools-workbench.fx:not(#_) .main { padding:26px 30px 64px; }
 
 /* Панель уже держит поля - внешние отступы страницы больше не нужны. */
 body.tools-workbench.fx:not(#_) .shell + * { margin-top:0; }
