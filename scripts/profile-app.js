@@ -280,7 +280,12 @@ async function renderOverview(forceOffline = false) {
     const recentBoards = boards.slice(0, 5);
     const rbl = document.getElementById('recent-boards-list');
     if (!recentBoards.length) {
-      rbl.innerHTML = '<div style="color:var(--text-3);font-size:14px;">No boards yet. <a href="board.html" style="color:var(--accent);">Create one!</a></div>';
+      rbl.innerHTML = `<div class="pf-empty compact">
+        <div class="pf-empty-icon" aria-hidden="true">\ud83d\udccc</div>
+        <div class="pf-empty-title">No boards yet</div>
+        <div class="pf-empty-text">Your lesson boards will show up here once you make one.</div>
+        <a class="pf-empty-btn" href="board.html">Create your first board</a>
+      </div>`;
     } else {
       rbl.innerHTML = recentBoards.map(b => `
         <a class="recent-board-item" href="board.html?id=${esc(b.id)}">
@@ -298,7 +303,18 @@ async function renderOverview(forceOffline = false) {
     document.getElementById('stat-cards').textContent = cachedBoards.reduce((a, b) => a + (parseInt(b.card_count) || 0), 0);
     const rbl = document.getElementById('recent-boards-list');
     if (!cachedBoards.length) {
-      rbl.innerHTML = `<div style="color:var(--text-3);font-size:14px;">${forceOffline ? 'Offline mode: no saved boards yet.' : 'No boards yet. <a href="board.html" style="color:var(--accent);">Create one!</a>'}</div>`;
+      rbl.innerHTML = forceOffline
+        ? `<div class="pf-empty compact">
+        <div class="pf-empty-icon" aria-hidden="true">\ud83d\udcf4</div>
+        <div class="pf-empty-title">Offline</div>
+        <div class="pf-empty-text">No saved boards on this device yet. Reconnect to load your boards.</div>
+      </div>`
+        : `<div class="pf-empty compact">
+        <div class="pf-empty-icon" aria-hidden="true">\ud83d\udccc</div>
+        <div class="pf-empty-title">No boards yet</div>
+        <div class="pf-empty-text">Your lesson boards will show up here once you make one.</div>
+        <a class="pf-empty-btn" href="board.html">Create your first board</a>
+      </div>`;
     } else {
       rbl.innerHTML = cachedBoards.slice(0, 5).map(b => `
         <a class="recent-board-item" href="board.html?id=${esc(b.id)}">
@@ -351,7 +367,12 @@ async function loadBoards(forceOffline = false) {
 function renderBoardsGrid(boards) {
   const grid = document.getElementById('boards-grid');
   if (!boards.length) {
-    grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;grid-column:1/-1;">No boards yet. Click "New Board" to create one.</div>';
+    grid.innerHTML = `<div class="pf-empty">
+      <div class="pf-empty-icon" aria-hidden="true">\ud83d\udccc</div>
+      <div class="pf-empty-title">No boards yet</div>
+      <div class="pf-empty-text">A board is where a lesson lives: drag in tasks, games and notes, then share it with a student.</div>
+      <button class="pf-empty-btn" onclick="createNewBoard()">+ New Board</button>
+    </div>`;
     return;
   }
   grid.innerHTML = boards.map(b => `
@@ -442,7 +463,11 @@ async function loadSharedBoards(forceOffline = false) {
     sharedBoardsCache = boards;
     writeProfileCache({ sharedBoards: boards });
     if (!boards.length) {
-      wrap.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">No shared boards yet.<br>Ask your teacher to invite you to a board.</div>';
+      wrap.innerHTML = `<div class="pf-empty">
+        <div class="pf-empty-icon" aria-hidden="true">\ud83e\udd1d</div>
+        <div class="pf-empty-title">No shared boards yet</div>
+        <div class="pf-empty-text">Boards other people invite you to will appear here.</div>
+      </div>`;
       return;
     }
     wrap.innerHTML = boards.map(b => `
