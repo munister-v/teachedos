@@ -2257,6 +2257,12 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 .card-sticky.selected .sticky-toolbar{
   opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0);
 }
+/* У выделенного стикера цвета уже показывает плавающая полоса
+   (.layer-popover) - вместе с дублем, замком и удалением. Показывать рядом
+   вторую палитру внутри карточки незачем: два набора цветов на одну карточку,
+   и внутренний вдобавок закрывает текст стикера ровно тогда, когда с ним
+   работают. Наведение без выделения по-прежнему даёт быстрый доступ к цвету. */
+.card-sticky.selected .sticky-toolbar{ display:none; }
 .sticky-close{
   width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;
   background:transparent;color:#64645D;font-size:14px;line-height:1;
