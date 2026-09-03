@@ -112,6 +112,15 @@
     min-width: 44px !important;
   }
 
+  /* Крестик закрытия модалки. Размер ему задавал только глиф - «✕» при
+     font-size:20px даёт кнопку 15px шириной, и это единственный способ
+     закрыть диалог пальцем. Ширину и высоту задаём явно; display не трогаем,
+     потому что кнопка позиционируется float'ом в углу окна. */
+  body:not(#_) :is(.modal-close, .sp-close, .ai-close, .cm-cancel) {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
   /* Неделя на расписании: семь ячеек в 338px. При зазоре 6px на ячейку
      остаётся 43, при 4px - 44,9. Уменьшаем зазор, ячейки дорастают сами. */
   body:not(#_) .mp-daypicker { gap: 4px !important; }
@@ -158,7 +167,7 @@
       .lesson-preview-kicker, .lesson-preview-level, .lesson-preview-meta,
       .community-cover-kind, .community-cover-level, .community-cover-caption,
       .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
-      .pc-eyebrow, .pc-level, .pc-dur, .tag, .dict-hot,
+      .pc-eyebrow, .pc-level, .pc-dur, .tag, .dict-hot, .field label,
       .knowledge-bases-status, .side-title, .sb-badge, .side-count,
       .sb-tab-lbl, .sn-label, .badge, .mq-status, .tb-field-meta,
       .tb-field-meta-actions, .publisher-scope-copy, .community-lesson-meta) {
