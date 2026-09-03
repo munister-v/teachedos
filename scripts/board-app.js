@@ -2361,8 +2361,20 @@ function renderGame(el, card) {
   // So we (a) deliver when the game announces `game-ready`, and (b) fall back to
   // the load event + two short retries. `_delivered` keeps it idempotent so the
   // game never restarts more than once.
-  iframe._deliverGameContent = function () {
-    if (iframe._delivered || !card.data.customContent) return;
+  iframe._deliverGameContent = function (force) {
+    if (!card.data.customContent) return;
+    if (iframe._delivered && !force) return;
+    /* Пустой about:blank. Источник у iframe вешается ЛЕНИВО
+       (lazyBoardMediaSrc, IntersectionObserver), поэтому кадр рождается
+       пустым, и событие `load` первым срабатывает именно на нём. Отправка
+       уходила в пустой документ, взводила `_delivered` - и ни повторы через
+       200/600мс, ни рукопожатие `game-ready` от настоящей игры уже ничего не
+       посылали. Игра оставалась со своим содержимым по умолчанию, хотя на
+       карточке лежало нужное. Проверяем, что документ настоящий. */
+    try {
+      const href = iframe.contentWindow.location.href;
+      if (!href || href === 'about:blank') return;
+    } catch (_) { /* кросс-доменный доступ - документ точно не пустой */ }
     try {
       iframe.contentWindow.postMessage({
         type: 'teachedos-custom-game-content',
@@ -13530,7 +13542,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '615';
+const TEACHEDOS_ASSET_VERSION = '616';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17364,7 +17376,10 @@ window.addEventListener('message', e => {
   if (!e.data || e.data.type !== 'game-ready') return;
   document.querySelectorAll('iframe[data-card-id]').forEach(iframe => {
     if (iframe.contentWindow === e.source && typeof iframe._deliverGameContent === 'function') {
-      iframe._deliverGameContent();
+      /* force: `game-ready` присылает сама игра, и это единственный надёжный
+         признак, что слушатель у неё уже стоит. Если ранняя отправка успела
+         взвести флаг впустую, здесь она обязана повториться. */
+      iframe._deliverGameContent(true);
     }
   });
 });
