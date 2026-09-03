@@ -110,7 +110,7 @@
      «Shared wit» без единого признака того, что её можно листать.
      Уводим полосу в край экрана и оставляем последней вкладке воздух,
      чтобы обрез читался как продолжение, а не как поломка. */
-  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row):not(#_) {
+  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row, .journal-filter-row):not(#_) {
     display: flex !important;
     overflow-x: auto !important;
     flex-wrap: nowrap !important;
@@ -120,8 +120,8 @@
     scrollbar-width: none;
     padding-right: 28px !important;
   }
-  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row):not(#_)::-webkit-scrollbar { display: none; }
-  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row):not(#_) > * {
+  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row, .journal-filter-row):not(#_)::-webkit-scrollbar { display: none; }
+  :is(#sidebar-tabs, .profile-tabs, .suite-switcher, .comm-tabs, .st-row, .journal-filter-row):not(#_) > * {
     flex: 0 0 auto !important;
     scroll-snap-align: start;
   }
