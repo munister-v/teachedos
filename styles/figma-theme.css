@@ -156,7 +156,10 @@ body.fx:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
    body.board-phone-shell, но дотянуться до (2,1,1) этого правила оно не может
    и загружается раньше - поэтому ограничение стоит здесь, у источника. */
 @media (min-width:861px) {
-  body.fx:not(#_) :is(.side,#sidebar) {
+  /* :not(.board-page) - на доске эта же панель лежит поверх ХОЛСТА с
+     карточками, а не поверх спокойной страницы. 55% прозрачности там дают не
+     стекло, а список уроков, сквозь который читаются карточки доски. */
+  body.fx:not(#_):not(.board-page) :is(.side,#sidebar) {
     top:56px !important;
     background:rgba(255,253,247,.55) !important;
     border:1px solid rgba(255,255,255,.5) !important;

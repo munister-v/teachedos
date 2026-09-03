@@ -49,7 +49,7 @@ body:not(#_):not(#__) :is(
     .form-input,
     .setting-input,
     .input
-) {
+):not(.curr-search input):not(.sb-search input):not(.bs-search) {
   border-width: 1px !important;
   border-style: solid !important;
   border-color: rgba(32, 32, 44, .58) !important;
@@ -57,6 +57,14 @@ body:not(#_):not(#__) :is(
 
 body:not(#_):not(#__) :is(.btn.ghost, .btn.soft, .btn-ghost, .btn.btn-ghost) {
   border: 1px solid rgba(32, 32, 44, .34) !important;
+}
+
+/* Составные поля: прозрачный input лежит ВНУТРИ пилюли с иконкой, и границу
+   несёт пилюля. Порог на самом поле рисовал жёсткий прямоугольник внутри
+   скруглённой пилюли - две рамки, одна поверх другой. Поле исключено выше,
+   порог перенесён на обёртку. */
+body:not(#_):not(#__) :is(.curr-search, .sb-search) {
+  border: 1px solid rgba(32, 32, 44, .40) !important;
 }
 
 /* Фокус остаётся заметнее покоя: иначе поднятая граница покоя съедает

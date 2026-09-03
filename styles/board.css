@@ -6254,3 +6254,6 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     margin-top:9px;
   }
 }
+
+/* Панель уроков непрозрачна на любой ширине: она всегда лежит над холстом. */
+body.board-page:not(#_) #sidebar{ background:#FFFDF7 !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
