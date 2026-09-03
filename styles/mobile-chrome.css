@@ -96,6 +96,14 @@
      текстовой ссылкой: на аналитике «Go to board →» это 85x18, попасть
      пальцем негде. Правило узкое, только про ссылку внутри пустого блока,
      чтобы не разносить строчные ссылки в обычном тексте. */
+  /* Ссылка в подвале страницы «поделиться»: 54x18, а это единственная ссылка
+     на странице, которую видит приглашённый. */
+  body:not(#_) .foot > a {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
   body:not(#_) :is(.empty, .course-empty-state, .bs-empty) > a {
     min-height: 44px !important;
     display: inline-flex !important;
@@ -188,6 +196,8 @@
       .publisher-note-mark, .publisher-preview-placeholder,
       /* счётчики и подписи в листе инструментов на доске */
       .tst-n, .tsc-n, .tgh-count, .tool-open-dot, .ts-kind, .ts-cat,
+      /* ученические и тарифные страницы */
+      .save,
       .lesson-preview-kicker, .lesson-preview-level, .lesson-preview-meta,
       .community-cover-kind, .community-cover-level, .community-cover-caption,
       .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
@@ -204,7 +214,7 @@
      как подписи счётчиков выше. */
   body:not(#_) :is(.mq-btn, .form-label, .user-menu-item, .community-lesson-meta,
       .chip, .kb-card-tags, .dict-foot, .topic-ctl, .kb-card-meta,
-      .tool-skill-chip, .tool-group-head) > span,
+      .tool-skill-chip, .tool-group-head, .u-top) > span,
   body:not(#_) .preset-card span,
   body:not(#_) small {
     font-size: 11px !important;
