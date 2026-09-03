@@ -101,7 +101,18 @@
       .community-cover-kind, .community-cover-level, .community-cover-caption,
       .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
       .pc-eyebrow, .pc-level, .pc-dur, .tag, .dict-hot,
-      .knowledge-bases-status, .side-title, .sb-badge, .side-count) {
+      .knowledge-bases-status, .side-title, .sb-badge, .side-count,
+      .sb-tab-lbl, .sn-label, .badge, .mq-status, .tb-field-meta,
+      .tb-field-meta-actions, .publisher-scope-copy, .community-lesson-meta) {
+    font-size: 11px !important;
+  }
+
+  /* Подписи набраны безымянными span внутри именованного родителя: подписи
+     нижней панели доски («Undo», «Select», «Add», «Pen», «More»), пояснение
+     в скобках у метки поля, хинты в меню. Называем их через родителя - так же,
+     как подписи счётчиков выше. */
+  body:not(#_) :is(.mq-btn, .form-label, .user-menu-item) > span,
+  body:not(#_) small {
     font-size: 11px !important;
   }
 
