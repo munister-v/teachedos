@@ -6,27 +6,36 @@
 
   if (!isMobile && !isStandalone) return;
 
-  var page = location.pathname.split('/').pop() || 'index.html';
-  if (page === '' || page === 'teachedos' || page === 'teachedos/') page = 'index.html';
+  /* Имя страницы без расширения: часть хостов отдаёт /board вместо
+     /board.html, и раньше это лечилось двумя записями в карте на каждый
+     такой адрес. Нормализуем один раз здесь. */
+  var page = (location.pathname.split('/').pop() || 'index').replace(/\.html$/, '');
+  if (page === '' || page === 'teachedos') page = 'index';
 
-  var PAGE_MAP = {
-    'index.html': 'home',
-    'board.html': 'board',
-    'board': 'board',
-    'schedule.html': 'schedule',
-    'courses.html': 'home',
-    'community.html': 'home',
-    'homework.html': 'courses',
-    'student.html': 'progress',
-    'gradebook.html': 'progress',
-    'lesson-packs.html': 'home',
-    'profile.html': 'profile',
-    'analytics.html': 'progress',
-    'journal.html': 'progress',
+  /* Раздел владеет несколькими страницами, и это надо записывать разделами,
+     а не строчкой на страницу. Плоская карта разъезжалась: courses,
+     community и lesson-packs подсвечивали «Home», а homework указывал на id
+     `courses`, которого среди вкладок нет, поэтому на домашних заданиях
+     активной вкладки не было вообще - человек не понимал, где он.
+
+     Раскладка: доска и курсы это то, из чего собран урок; расписание это
+     когда; успеваемость собирает всё про работу учеников, включая домашние
+     задания и журнал; главная держит витрины, с которых начинают. */
+  var SECTIONS = {
+    home:     ['index', 'community', 'lesson-packs'],
+    board:    ['board', 'courses', 'game-builder'],
+    schedule: ['schedule'],
+    progress: ['gradebook', 'analytics', 'journal', 'student', 'homework'],
+    profile:  ['profile'],
   };
+
+  var PAGE_MAP = {};
+  Object.keys(SECTIONS).forEach(function (id) {
+    SECTIONS[id].forEach(function (name) { PAGE_MAP[name] = id; });
+  });
+
   // board.html has its own bottom quickbar - skip the global mob-nav there.
-  // Accept both /board and /board.html (some hosts strip extension).
-  if (page === 'board.html' || page === 'board') return;
+  if (page === 'board') return;
   var activeId = PAGE_MAP[page] || '';
 
   var TABS = [
@@ -95,7 +104,7 @@
     '.mob-nav-icon{line-height:1;display:flex;align-items:center;justify-content:center;}',
     '.mob-nav-icon svg{width:20px;height:20px;stroke-width:2.1;}',
     '.mob-nav-label{',
-    '  font-size:10px;font-weight:650;letter-spacing:0;',
+    '  font-size:11px;font-weight:650;letter-spacing:0;',
     '  font-family:inherit;line-height:1;',
     '}',
     /* body padding so content isn't hidden behind nav */
