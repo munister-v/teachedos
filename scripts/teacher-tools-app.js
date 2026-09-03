@@ -1453,7 +1453,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=613';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=614';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1465,7 +1465,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=613';
+    el.src='scripts/board-gen.js?v=614';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);

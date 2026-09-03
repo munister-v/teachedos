@@ -13530,7 +13530,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '613';
+const TEACHEDOS_ASSET_VERSION = '614';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -13961,7 +13961,9 @@ async function runBoardWorkout() {
   for (let i = 0; i < acts.length; i++) {
     const a = acts[i];
     if (chip) chip.textContent = `building ${i + 1} of ${acts.length}…`;
-    if (body) body.innerHTML = `<div class="tbuilder-empty">Building <strong>${esc(a.title)}</strong> — ${i + 1} of ${acts.length}.</div>`;
+    /* Без <strong>: в .tbuilder-empty этот тег занят под слот иконки и скрыт
+       правилом display:none - название активности внутри него пропадало. */
+    if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(a.title)}” — ${i + 1} of ${acts.length}.</div>`;
     const input = { ...base, tool: { id: a.tool } };
     let out = null;
     try {
@@ -13986,7 +13988,7 @@ async function runBoardWorkout() {
 
   if (chip) chip.textContent = `${built.length} on board`;
   if (body) {
-    body.innerHTML = `<div class="tbuilder-empty"><strong>${built.length}</strong> ${built.length === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc(failed.join(', '))}.</span>` : ''}</div>`;
+    body.innerHTML = `<div class="tbuilder-empty">${built.length} ${built.length === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc(failed.join(', '))}.</span>` : ''}</div>`;
   }
   toast(built.length + (built.length === 1 ? ' activity added' : ' activities added'));
 }
