@@ -1538,14 +1538,20 @@ const STICKER_KEYWORDS = {
    Поле `tool` - это id инструмента В РЕЕСТРЕ ДОСКИ: студия просто прогоняет
    тот же конвейер, которым панель строит одиночный инструмент, по одному
    разу на каждую отмеченную активность. `ai:true` означает, что офлайнового
-   генератора у неё нет и нужен сервер. */
+   генератора у неё нет и нужен сервер.
+
+   `game` - в какую игру активность ложится естественнее всего. Доска умеет
+   класть результат инструмента играбельной карточкой, и для этих пяти игра
+   и есть нормальная форма: пары слово-значение это Memory Match, предложения
+   с пропуском - Fill the Blank, категории - Word Categories. У остальных
+   игры нет, они ложатся стилизованным листом. */
 const BOARD_WORKOUT_ACTIVITIES = [
-  {key:'match',      tool:'word-definition-match', title:'Match word to meaning',      hint:'Pairs for matching, cards or a memory game.'},
-  {key:'flashcards', tool:'flashcards',            title:'Flashcards',                 hint:'Word on one side, meaning and an example on the other.'},
-  {key:'sentences',  tool:'sentences-vocab',       title:'Example sentences',          hint:'One sentence per word, gap ready for practice.'},
+  {key:'match',      tool:'word-definition-match', title:'Match word to meaning',      hint:'Pairs for matching, cards or a memory game.', game:'memory-match'},
+  {key:'flashcards', tool:'flashcards',            title:'Flashcards',                 hint:'Word on one side, meaning and an example on the other.', game:'flashcards'},
+  {key:'sentences',  tool:'sentences-vocab',       title:'Example sentences',          hint:'One sentence per word, gap ready for practice.', game:'fill-blank'},
   {key:'link',       tool:'link-words',            title:'Link words into sentences',  hint:'Students connect two or three items in one sentence.'},
-  {key:'odd',        tool:'odd-one-out',           title:'Odd one out',                hint:'Groups where one word does not belong.',        ai:true},
-  {key:'sorting',    tool:'word-sorting',          title:'Word sorting',               hint:'Categories for drag-and-drop sorting.',         ai:true},
+  {key:'odd',        tool:'odd-one-out',           title:'Odd one out',                hint:'Groups where one word does not belong.',        ai:true, game:'speed-quiz'},
+  {key:'sorting',    tool:'word-sorting',          title:'Word sorting',               hint:'Categories for drag-and-drop sorting.',         ai:true, game:'word-categories'},
   {key:'writing',    tool:'creative-writing',      title:'Creative writing task',      hint:'A short writing prompt built around the words.', ai:true},
   {key:'discussion', tool:'discussion',            title:'Discussion questions',       hint:'Speaking prompts that force the words out.',     ai:true},
 ];

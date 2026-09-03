@@ -13530,7 +13530,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '614';
+const TEACHEDOS_ASSET_VERSION = '615';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -13993,17 +13993,72 @@ async function runBoardWorkout() {
   toast(built.length + (built.length === 1 ? ' activity added' : ' activities added'));
 }
 
-/* Складываем набор в тот же формат, который доска принимает из хаба, и зовём
-   её собственный приёмник - раскладка, отступы и центрирование достаются
-   даром и совпадают с приходом набора со стороны хаба. */
+/* Укладка набора. Каждая активность ложится в СВОЕЙ форме, а не текстовой
+   плиткой: доска умеет класть результат инструмента и играбельной карточкой, и
+   стилизованным листом, и структурированной карточкой - незачем сводить всё к
+   плоскому тексту.
+
+   Порядок выбора формы:
+     1. игра - если у активности есть естественная игра (пары слово-значение →
+        Memory Match, предложения с пропуском → Fill the Blank, категории →
+        Word Categories) И результат даёт для неё содержимое. Это интерактив:
+        ученик играет прямо на доске;
+     2. стилизованный лист - для результатов вида quiz / vocab / cards, у
+        которых игры нет: тот же вид, что даёт «Add to board → As worksheet»;
+     3. материальная карточка - последний запасной вариант, чтобы результат не
+        пропал молча, если он не подошёл ни под что.
+
+   Место ищется через findFreePlacement внутри самих укладчиков, поэтому
+   карточки не ложатся стопкой. */
 function placeBoardWorkoutSet(base, built) {
+  const leftovers = [];
+
+  built.forEach(({ activity, out }) => {
+    /* Игровые payload'ы считаются из того же результата, что и в меню
+       «Add to board → Play as game». Берём игру, названную у активности, а
+       если конкретно её собрать не вышло - любую, которую результат потянул. */
+    let games = [];
+    try { games = _ttGamePayloads(out) || []; } catch (err) { console.warn('[workout] game payloads failed', activity.key, err); }
+    const g = games.find(x => x.gameType === activity.game) || games[0];
+    if (g) {
+      const meta = _gameMetaFor(g.gameType);
+      addGameCard(meta.src, activity.title, meta.w, meta.h, {
+        customContent: g.content,
+        level: out.level || base.level,
+      });
+      return;
+    }
+
+    if (['quiz', 'vocab', 'cards'].includes(out.boardKind)) {
+      const prev = lastTeacherToolBuilderOutput;
+      try {
+        /* Укладчики листа читают активный результат панели, поэтому на время
+           вызова подставляем именно этот, а потом возвращаем прежний. */
+        out.title = activity.title;
+        lastTeacherToolBuilderOutput = out;
+        _ttPlaceWorksheetOnBoard(out);
+        return;
+      } catch (err) {
+        console.warn('[workout] worksheet placement failed', activity.key, err);
+      } finally {
+        lastTeacherToolBuilderOutput = prev;
+      }
+    }
+
+    leftovers.push({ activity, out });
+  });
+
+  if (!leftovers.length) return;
+
+  /* Всё, что не стало ни игрой, ни листом, кладём тем же приёмником наборов,
+     которым доска принимает набор из хаба - раскладка сеткой достаётся даром. */
   const now = new Date().toISOString();
   window.__pendingToolMaterialSetImport = {
     title: base.topic || 'Vocabulary workout',
     level: base.level,
     topic: base.topic,
     createdAt: now,
-    materials: built.map(({ activity, out }) => ({
+    materials: leftovers.map(({ activity, out }) => ({
       materialKey: 'workout:' + activity.key + ':' + Date.now(),
       toolId: 'vocab-workout',
       toolTitle: 'Vocabulary Workout',
