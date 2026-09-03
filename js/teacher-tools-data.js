@@ -1529,11 +1529,18 @@ const STICKER_KEYWORDS = {
 
 // Expose each on `window`.
 /* ── Vocabulary Workout: активности, которые доска умеет сама ─────────────
-   Студия в хабе предлагает 11 активностей, но три из них доска запустить не
-   может: matching-halves и comm-situations в её реестре отсутствуют вовсе, а
-   word-translation-match есть только в хабе. Показывать вчителю галочку,
-   которая ничего не построит, хуже, чем её не показывать - поэтому здесь
-   лежат ровно те восемь, под которыми на доске есть настоящий движок.
+   Студия в хабе предлагает 11 активностей, здесь их 10.
+
+   Нет только `word-translation-match`, и по существу, а не из-за движка:
+   офлайновый генератор без указанного языка выдаёт «Journey → a long trip»,
+   то есть английское слово к английскому определению. Это не перевод, а
+   дубль «Match word to meaning» под чужим именем. В хабе активность работает
+   через сервер и получает язык отдельным полем «Translate into»; на доске
+   такого поля нет, и пока его нет, честнее не предлагать галочку, которая
+   построит не то, что обещает.
+
+   Остальные проверены прогоном: у каждой на доске есть настоящий генератор
+   (scripts/board-gen.js) и осмысленный результат.
 
    Поле `tool` - это id инструмента В РЕЕСТРЕ ДОСКИ: студия просто прогоняет
    тот же конвейер, которым панель строит одиночный инструмент, по одному
@@ -1550,6 +1557,8 @@ const BOARD_WORKOUT_ACTIVITIES = [
   {key:'flashcards', tool:'flashcards',            title:'Flashcards',                 hint:'Word on one side, meaning and an example on the other.', game:'flashcards'},
   {key:'sentences',  tool:'sentences-vocab',       title:'Example sentences',          hint:'One sentence per word, gap ready for practice.', game:'fill-blank'},
   {key:'link',       tool:'link-words',            title:'Link words into sentences',  hint:'Students connect two or three items in one sentence.'},
+  {key:'halves',     tool:'matching-halves',       title:'Matching halves',            hint:'Phrases split in two for students to rejoin; single words pair with their meaning.', game:'memory-match'},
+  {key:'situations', tool:'comm-situations',       title:'Speaking situations',        hint:'Paired role-play scenarios that force the words into a real conversation.'},
   {key:'odd',        tool:'odd-one-out',           title:'Odd one out',                hint:'Groups where one word does not belong.',        ai:true, game:'speed-quiz'},
   {key:'sorting',    tool:'word-sorting',          title:'Word sorting',               hint:'Categories for drag-and-drop sorting.',         ai:true, game:'word-categories'},
   {key:'writing',    tool:'creative-writing',      title:'Creative writing task',      hint:'A short writing prompt built around the words.', ai:true},
