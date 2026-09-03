@@ -4837,6 +4837,47 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     will-change:transform;
   }
 
+  /* ── Панель выделенной карточки ────────────────────────────────────────
+     `.layer-popover` (цвета, дубль, замок, удалить) - десктопный поповер:
+     JS ставит его рядом с карточкой, ширина по содержимому. На 390px он
+     получался 402px шириной и вылезал за ОБА края (left:-12), половина
+     кнопок оказывалась за экраном. Плюс z-index:9500 держал его поверх
+     всего, включая лист «Plans» (z:900) и нижнюю панель (z:1200): открыв
+     список уроков, ты видел его сквозь эту полосу.
+
+     На телефоне это не поповер у карточки, а полоса над нижней панелью:
+     во всю ширину за вычетом полей, с переносом, цели 44px. z:850 ставит
+     её ниже листов и меню, поэтому открытый «Plans» её просто закрывает и
+     знать про его состояние не нужно. */
+  body.board-phone-shell .layer-popover.show{
+    position:fixed !important;
+    left:10px !important;
+    right:10px !important;
+    top:auto !important;
+    /* над нижней панелью: её высота 64 + её отступ 10 + зазор 8 */
+    bottom:calc(82px + env(safe-area-inset-bottom,0px)) !important;
+    width:auto !important;
+    max-width:none !important;
+    z-index:850 !important;
+    flex-wrap:wrap !important;
+    justify-content:center !important;
+    row-gap:6px !important;
+    padding:8px !important;
+  }
+  body.board-phone-shell .layer-popover .card-color-row{
+    max-width:none !important;
+    justify-content:center !important;
+  }
+  body.board-phone-shell .layer-btn{
+    min-width:44px !important;
+    height:44px !important;
+  }
+  body.board-phone-shell .layer-popover .card-color-swatch{
+    width:28px !important;
+    height:28px !important;
+  }
+  body.board-phone-shell .layer-sep{ display:none !important; }
+
   body.board-phone-shell #board-wrap::after{
     content:"Double-tap a card to open";
     position:fixed;

@@ -42,6 +42,25 @@
     padding-top: 0 !important;
   }
 
+  /* Главная: шапка прилипала не к верху, а на 40px ниже, и в этот просвет
+     проезжал контент - над строкой «Hi, …» повисал кусок карточки. 40px это
+     фора под кнопки окна (.win-controls лежат в 20-46px от верха), которую
+     figma-concept.css задаёт `.win-main{padding-top:40px}` без ограничения по
+     ширине. На телефоне окна нет: .mob-win-header скрыт, кнопок нет, фора
+     пустая, а sticky-смещение считается от padding-края скроллера - отсюда
+     ровно эти 40px просвета. */
+  .win-main:not(#_) { padding-top: 0 !important; }
+
+  /* Та же шапка была уже скроллера на 14px с каждой стороны (боковые поля
+     оболочки), и в этих полосках контент тоже проезжал мимо. Выражение
+     повторяет то, которым unify.css задаёт сами поля. */
+  .mob-home-shell > .mp-topbar {
+    margin-left: calc(-1 * max(14px, env(safe-area-inset-left, 0px))) !important;
+    margin-right: calc(-1 * max(14px, env(safe-area-inset-right, 0px))) !important;
+    padding-left: calc(18px + max(14px, env(safe-area-inset-left, 0px))) !important;
+    padding-right: calc(18px + max(14px, env(safe-area-inset-right, 0px))) !important;
+  }
+
   /* ── 2 · Зоны нажатия ─────────────────────────────────────────────────
      Порог 44px это нижняя граница и у Apple, и у Google. Высоту не
      фиксируем, задаём min-height: в этом проекте константы высоты уже
