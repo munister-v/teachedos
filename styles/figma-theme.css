@@ -159,7 +159,7 @@ body.fx:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
   /* :not(.board-page) - на доске эта же панель лежит поверх ХОЛСТА с
      карточками, а не поверх спокойной страницы. 55% прозрачности там дают не
      стекло, а список уроков, сквозь который читаются карточки доски. */
-  body.fx:not(#_):not(.board-page) :is(.side,#sidebar) {
+  body.fx:not(#_):not(.board-page):not(.tools-workbench) :is(.side,#sidebar) {
     top:56px !important;
     background:rgba(255,253,247,.55) !important;
     border:1px solid rgba(255,255,255,.5) !important;
@@ -613,7 +613,7 @@ body.fx:not(#_) :is(.side-btn.active,.comm-tab.active,.sb-item.active) {
 }
 /* Скругление рейки по кадру - 14, а не 24. */
 @media (min-width:861px) {
-  body.fx:not(#_) :is(.side,#sidebar) { border-radius:14px !important; }
+  body.fx:not(#_):not(.tools-workbench) :is(.side,#sidebar) { border-radius:14px !important; }
 }
 
 /* Поле поиска рисовалось дважды: рамка с фоном была и у обёртки, и у самого
