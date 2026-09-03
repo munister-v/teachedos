@@ -9,6 +9,17 @@
 
 /* ─── BOARD_TEACHER_TOOLS ─── */
 const BOARD_TEACHER_TOOLS = [
+  /* Студия «Vocabulary Workout» живёт в хабе, а не здесь: её конвейер
+     (ttEngineOutput, requestServerHubAI, aiResultToOutput) объявлен в
+     scripts/teacher-tools-app.js, который доска не грузит. Поэтому карточка
+     на доске не открывает встроенный конструктор, а уводит в студию - поле
+     `studio` этим и отличает её от остальных инструментов.
+
+     Обратная дорога уже была: студия складывает готовый набор в
+     sessionStorage и возвращается на board.html?addToolMaterialSet=1, а
+     приёмник доски раскладывает материалы сеткой по три в ряд. Не хватало
+     ровно входа с доски, его и добавляем. */
+  {id:'vocab-workout',cat:'vocabulary',title:'Vocabulary Workout',desc:'One word list becomes a whole practice set: tick the activities you need, edit each one and send them to the board together.',kind:'Activity set',studio:'teacher-tools.html?tool=vocab-workout'},
   {id:'lesson-pack',cat:'utility',title:'Complete Lesson Pack Builder',desc:'Warm-up, input, practice, production, homework and teacher notes from one topic.',kind:'Lesson Flow'},
   {id:'worksheet-builder',cat:'utility',title:'ESL Worksheet Builder',desc:'Printable worksheet with tasks, answer key and teacher notes.',kind:'Worksheet'},
   {id:'homework-set',cat:'utility',title:'Homework Assignment Builder',desc:'Trackable homework brief, success criteria and self-check.',kind:'Homework'},

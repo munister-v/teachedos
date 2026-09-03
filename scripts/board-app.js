@@ -13518,7 +13518,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '610';
+const TEACHEDOS_ASSET_VERSION = '611';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -13857,6 +13857,19 @@ async function copyTeacherToolBuilderOutput() {
   }
 }
 
+/* Уход в студию, которая живёт на отдельной странице.
+   Доска сохраняется перед переходом: студия возвращается сюда же с готовым
+   набором (board.html?addToolMaterialSet=1), и терять несохранённые карточки
+   на этом круге нельзя. */
+function openToolStudio(tool) {
+  /* saveLocal() пишет доску синхронно, в отличие от scheduleSave(), который
+     ставит отложенный таймер - а мы через мгновение уходим со страницы, и
+     таймер бы не сработал. Облачное сохранение штатно догонит при возврате. */
+  try { if (typeof saveLocal === 'function') saveLocal(); } catch (err) { console.warn('[studio] save before leaving failed', err); }
+  toast('Opening ' + tool.title + '…');
+  setTimeout(() => { location.href = tool.studio; }, 120);
+}
+
 function makeTeacherToolSnippet(tool) {
   const q = searchQ.trim().toLowerCase();
   const hay = `${tool.title} ${tool.desc} ${tool.cat} ${tool.kind}`.toLowerCase();
@@ -13869,7 +13882,7 @@ function makeTeacherToolSnippet(tool) {
   el.style.setProperty('--ts-bg', meta.bg);
   el.setAttribute('draggable','false');
   el.innerHTML = `
-    <div class="tool-open-dot" title="Open builder">↗</div>
+    <div class="tool-open-dot" title="${tool.studio ? 'Open the studio' : 'Open builder'}">↗</div>
     <div class="ts-row1">
       <div class="ts-icon">${icon}</div>
       <div class="ts-title">${esc(tool.title)}</div>
@@ -13895,6 +13908,10 @@ function makeTeacherToolSnippet(tool) {
     e.preventDefault();
   }
   el.addEventListener('mousedown', e => {
+    /* Студию нельзя перетащить: перетаскивание кладёт на доску готовый
+       Frame-шаблон инструмента, а у студии его нет - она сама собирает набор
+       и присылает его целиком. Тянуть было бы обещанием, которого нет. */
+    if (tool.studio) return;
     if (e.button !== 0 || e.target.closest('.tool-open-dot')) return;
     const sx = e.clientX, sy = e.clientY;
     let armed = true;
@@ -13920,6 +13937,7 @@ function makeTeacherToolSnippet(tool) {
       return;
     }
     if (isSidebarDrag) return;
+    if (tool.studio) { openToolStudio(tool); return; }
     openTeacherToolBuilder(tool.id);
   });
   return el;
