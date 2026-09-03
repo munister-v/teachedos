@@ -29,6 +29,26 @@
     try { window.applyCustomContent(material.gameContent, material.title || ''); }
     catch (e) { console.warn('[game-handoff] could not apply material', e); }
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
-  else apply();
+  /* Возврат на доску.
+
+     На телефоне доска не играет игру в карточке - там вход, который ведёт
+     сюда целой страницей (см. renderGameLaunchPanel в scripts/board-app.js).
+     Переход обычный, поэтому системная кнопка «назад» и так работает; но
+     единственная видимая ссылка на экране - «← Games» - уводила бы в хаб, то
+     есть мимо урока, с которого учитель пришёл. Когда в адресе from=board,
+     эта ссылка возвращает на доску. */
+  function fixBackLink() {
+    try {
+      if (!/[?&]from=board\b/.test(location.search)) return;
+      var back = document.querySelector('a.back, .back[href]');
+      if (!back) return;
+      back.setAttribute('href', '../board.html');
+      var label = (back.textContent || '').trim();
+      if (/games/i.test(label)) back.textContent = '← Board';
+    } catch (e) {}
+  }
+
+  function boot() { apply(); fixBackLink(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();

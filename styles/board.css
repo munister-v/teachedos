@@ -1907,6 +1907,29 @@ body.alt-duplicating *{cursor:copy!important;}
   display:none;background:transparent;cursor:move;
 }
 body.board-dragging .game-iframe-overlay{display:block;}
+
+/* Карточка игры на телефоне - вход в игру, а не её уменьшенная копия.
+   Кегли здесь заданы с запасом к порогу 11px: содержимое карточки лежит
+   внутри зума доски, а он бывает и меньше единицы. */
+.card-body.game-launch{background:#fff;}
+.game-launch-icon{font-size:34px;line-height:1;}
+.game-launch-title{
+  font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--text,#1C1C1E);
+  line-height:1.2;max-width:100%;
+}
+.game-launch-sub{
+  font-size:12px;font-weight:600;color:var(--text-3,#7A7A6A);
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.game-launch-btn{
+  margin-top:4px;min-height:44px;padding:0 20px;border:none;border-radius:14px;
+  background:var(--accent,#1C1C1E);color:#fff;
+  font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;
+  touch-action:manipulation;
+}
+.game-launch-btn:active{transform:scale(.98);}
+.game-launch-note{font-size:12px;color:var(--text-3,#7A7A6A);}
+
 /* Game cards: iframe fills the card, no beige background visible */
 .board-card.card-game{background:transparent!important;box-shadow:0 4px 18px rgba(5,5,23,.13),0 0 0 1px rgba(0,0,0,.06);}
 .board-card.card-game > .card-body{background:transparent!important;}

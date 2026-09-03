@@ -208,6 +208,18 @@ function syncBoardPhoneMode() {
     try { closeStickyPalette && closeStickyPalette(); } catch {}
     try { _closeMoreShapes && _closeMoreShapes(); } catch {}
     if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
+    /* Карточки игр на телефоне и на столе устроены по-разному: там вход в
+       игру, здесь сама игра в кадре. Вид выбирается при отрисовке, поэтому
+       на переходе через границу их нужно пересобрать - иначе после поворота
+       экрана остаётся вид от другого режима. */
+    try {
+      if (state && state.cards) {
+        state.cards.filter(c => c.type === 'game').forEach(c => {
+          const el = document.querySelector(`.board-card[data-id="${c.id}"]`);
+          if (el && el.parentElement) { el.remove(); renderCard(c); }
+        });
+      }
+    } catch {}
     // Re-fit so content is framed correctly for the new viewport.
     try { if (state && state.cards && state.cards.length) setTimeout(() => fitAll(false), 80); } catch {}
   }
@@ -2351,6 +2363,24 @@ function renderGame(el, card) {
   const naturalW = card.data.naturalW || 460;
   const naturalH = card.data.naturalH || 560;
 
+  /* На телефоне игра не помещается в карточку, и вид «уменьшенная копия» врёт.
+     Замеры на 375px: карточка выходит 0,72 ширины доски, игра сжимается в
+     0,45-0,62 (все 28 игр реестра), и на экране остаётся кегль 4,8-8,8px при
+     413 целях нажатия мельче 44px. Отдать кадру настоящую ширину нельзя:
+     мобильной вёрстки нет у 22 игр из 28, они просто вылезут за край. Зумом
+     тоже не спастись - чтобы вывести игру к порогам, нужен зум 1,5-6,4, и
+     тогда её ширина становится 480-1731px на экране в 375.
+
+     Поэтому на телефоне карточка честно говорит, что это за игра, и ведёт в
+     неё целой страницей, где игра занимает весь экран, а не 28% его площади.
+     Учительский материал уезжает вместе с переходом - через тот же ключ
+     sessionStorage, что читает scripts/game-handoff.js. */
+  if (isBoardPhone()) {
+    renderGameLaunchPanel(body, card);
+    el.appendChild(body);
+    return;
+  }
+
   const iframe = document.createElement('iframe');
   lazyBoardMediaSrc(iframe, card.data.src);
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
@@ -2427,6 +2457,75 @@ function applyGameScale(el, card) {
   iframe.style.width  = naturalW + 'px';
   iframe.style.height = naturalH + 'px';
   iframe.style.transform = `scale(${scale})`;
+}
+
+/* Имя файла игры без расширения - оно же тип игры в договоре передачи
+   материала (см. scripts/game-handoff.js). */
+function gameTypeFromSrc(src) {
+  return String(src || '').split('/').pop().replace(/\.html.*$/, '');
+}
+
+/* Карточка игры на телефоне: не уменьшенная копия, а вход в игру. */
+function renderGameLaunchPanel(body, card) {
+  const type = gameTypeFromSrc(card.data.src);
+  const meta = (window.GAMES || []).find(g => gameTypeFromSrc(g.src) === type) || {};
+
+  body.classList.add('game-launch');
+  body.style.cssText = 'padding:14px 14px 16px;overflow:hidden;flex:1;display:flex;flex-direction:column;'
+    + 'align-items:center;justify-content:center;gap:8px;text-align:center;'
+    + 'border-radius:0 0 var(--card-radius,14px) var(--card-radius,14px);';
+
+  const icon = document.createElement('div');
+  icon.className = 'game-launch-icon';
+  icon.textContent = meta.icon || '🎮';
+  body.appendChild(icon);
+
+  const name = document.createElement('div');
+  name.className = 'game-launch-title';
+  name.textContent = card.data.title || meta.title || 'Game';
+  body.appendChild(name);
+
+  if (meta.tag || meta.level) {
+    const sub = document.createElement('div');
+    sub.className = 'game-launch-sub';
+    sub.textContent = [meta.tag, meta.level].filter(Boolean).join(' · ');
+    body.appendChild(sub);
+  }
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'game-launch-btn';
+  btn.textContent = 'Open game';
+  btn.addEventListener('click', e => { e.stopPropagation(); openGameFullPage(card); });
+  body.appendChild(btn);
+
+  if (card.data.customContent) {
+    const note = document.createElement('div');
+    note.className = 'game-launch-note';
+    note.textContent = 'Your set opens with it';
+    body.appendChild(note);
+  }
+}
+
+/* Переход в игру целой страницей. Материал учителя уезжает через тот же ключ
+   sessionStorage, который читает scripts/game-handoff.js на стороне игры -
+   postMessage тут не годится, кадра больше нет. Переход обычный, в той же
+   вкладке, поэтому системная кнопка «назад» возвращает на доску; ссылка
+   «← Games» внутри игры тоже уводит на доску, когда пришли отсюда. */
+function openGameFullPage(card) {
+  const src = card.data.src;
+  if (!src) return;
+  if (card.data.customContent) {
+    try {
+      sessionStorage.setItem('teachedos_pending_game_material', JSON.stringify({
+        gameType: gameTypeFromSrc(src),
+        title: card.data.title || '',
+        gameContent: card.data.customContent,
+      }));
+    } catch {}
+  }
+  try { scheduleSave && scheduleSave(); saveLocal && saveLocal(); } catch {}
+  location.href = src + (src.includes('?') ? '&' : '?') + 'from=board';
 }
 
 /* ══════════════════════ LESSON RENDERER ══════════════════════ */
@@ -13574,7 +13673,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '647';
+const TEACHEDOS_ASSET_VERSION = '648';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
