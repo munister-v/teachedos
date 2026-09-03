@@ -2234,9 +2234,11 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 /* На касании двойного клика нет, а двойной тап по карточке приближает её,
    а не открывает ввод. Писать на телефоне можно так: тап по карточке,
-   затем карандаш в полосе выделения. */
-@media (hover: none) and (pointer: coarse) {
-  .card-sticky .sticky-text:empty::before{ content:"Tap, then \270F to write"; }
+   затем карандаш в полосе выделения. Признак телефона беру классом, которым
+   доска уже пользуется: pointer:coarse в headless не выставляется, и такое
+   правило нельзя было бы проверить замером. */
+body.board-phone-shell .card-sticky .sticky-text:empty::before{
+  content:"Tap, then \270F to write";
 }
 /* delete icon on hover only */
 .card-sticky .sticky-close{
@@ -5111,7 +5113,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   body.board-phone-shell #mq-pen{display:flex!important;}
 
   body.board-phone-shell .mq-status{
-    bottom:calc(100% + 9px);
+    /* + подъём над полосой выделения, её высота приходит из JS */
+    bottom:calc(100% + 9px + var(--mq-status-lift, 0px));
     background:#1C1C1E;
     color:#CDF24F;
     border-color:#1C1C1E;
