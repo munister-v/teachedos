@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=611">
+<link rel="manifest" href="manifest.json?v=612">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=611">
-<link rel="stylesheet" href="styles/auth.css?v=611">
-<link rel="stylesheet" href="styles/mobile.css?v=611">
-<link rel="stylesheet" href="styles/harmony.css?v=611">
-<link rel="stylesheet" href="styles/unify.css?v=611">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=611">
+<link rel="stylesheet" href="styles/board.css?v=612">
+<link rel="stylesheet" href="styles/auth.css?v=612">
+<link rel="stylesheet" href="styles/mobile.css?v=612">
+<link rel="stylesheet" href="styles/harmony.css?v=612">
+<link rel="stylesheet" href="styles/unify.css?v=612">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=612">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -271,13 +271,13 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=611">
+<link rel="stylesheet" href="styles/teached-brand.css?v=612">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=611">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=611">
-<link rel="stylesheet" href="styles/controls.css?v=611">
+<link rel="stylesheet" href="styles/figma-theme.css?v=612">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=612">
+<link rel="stylesheet" href="styles/controls.css?v=612">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=611">
+<link rel="stylesheet" href="styles/figma-concept.css?v=612">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1120,6 +1120,11 @@
           <label for="tbuilder-extra">Teacher notes (optional)</label>
           <textarea id="tbuilder-extra" spellcheck="true" placeholder="e.g. weak grammar point, key structures, student level notes..."></textarea>
           <div class="tb-field-meta"><span>Constraints, learner needs, or a desired classroom outcome.</span><span id="tbuilder-extra-meta">0 characters</span></div>
+        </div>
+        <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-workout">
+          <label>Activities</label>
+          <div id="tbuilder-workout-list" class="tb-workout-list"></div>
+          <div class="tb-field-meta"><span>Tick what to build from this list. Each activity lands as its own card.</span><span id="tbuilder-workout-meta">0 chosen</span></div>
         </div>
         <div class="tbuilder-actions">
           <button class="tbuilder-btn lime" id="tbuilder-gen-btn" onclick="generateTeacherToolBuilder('fast')">Create draft</button>
@@ -2018,13 +2023,13 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=611"></script>
-<script src="js/teacher-tools-data.js?v=611"></script>
-<script src="scripts/tt-text-core.js?v=611"></script>
-<script src="scripts/board-app.js?v=611"></script>
-<script src="js/board-vocab.js?v=611"></script>
-<script src="js/board-reveal.js?v=611"></script>
-<script src="js/teacher-tool-board-composer.js?v=611"></script>
+<script src="scripts/auth-modal.js?v=612"></script>
+<script src="js/teacher-tools-data.js?v=612"></script>
+<script src="scripts/tt-text-core.js?v=612"></script>
+<script src="scripts/board-app.js?v=612"></script>
+<script src="js/board-vocab.js?v=612"></script>
+<script src="js/board-reveal.js?v=612"></script>
+<script src="js/teacher-tool-board-composer.js?v=612"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2032,8 +2037,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=611" defer></script>
-<script src="pwa-boot.js?v=611" defer></script>
+<script src="scripts/autogrow.js?v=612" defer></script>
+<script src="pwa-boot.js?v=612" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2115,11 +2120,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=611"></script>
-<script src="scripts/nav-boost.js?v=611" defer></script>
-<script src="scripts/mobile-perf.js?v=611" defer></script>
-<script src="scripts/mobile-nav.js?v=611"></script>
-<script src="scripts/mobile-zoom-guard.js?v=611" defer></script>
+<script src="pwa.js?v=612"></script>
+<script src="scripts/nav-boost.js?v=612" defer></script>
+<script src="scripts/mobile-perf.js?v=612" defer></script>
+<script src="scripts/mobile-nav.js?v=612"></script>
+<script src="scripts/mobile-zoom-guard.js?v=612" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

@@ -3590,6 +3590,14 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-choice-row button{border:0;border-radius:11px;background:transparent;color:#64645D;font:950 12px/1 var(--font);padding:11px 8px;cursor:pointer;transition:background .14s,color .14s,box-shadow .14s;}
 .tbuilder-choice-row button:hover{background:color-mix(in srgb,var(--accent) 7%,transparent);color:var(--accent-text);}
 .tbuilder-choice-row button.active{background:#556056;color:#fff;box-shadow:0 6px 16px rgba(59,69,60,.16);}
+/* Чек-лист активностей студии Vocabulary Workout внутри конструктора. */
+.tb-workout-list{display:flex;flex-direction:column;gap:6px;}
+.tb-workout-item{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border:1px solid rgba(14,14,16,.10);border-radius:12px;background:#fff;cursor:pointer;transition:border-color .12s,background .12s;}
+.tb-workout-item:hover{border-color:rgba(14,14,16,.22);}
+.tb-workout-item input{margin:2px 0 0;flex:0 0 auto;width:16px;height:16px;accent-color:#556056;cursor:pointer;}
+.tb-workout-item b{display:block;font-size:13px;font-weight:650;color:#0E0E10;}
+.tb-workout-item small{display:block;margin-top:1px;font-size:11px;color:#64645D;line-height:1.35;}
+.tb-workout-ai{flex:0 0 auto;align-self:center;font:700 9px/1 var(--mono,ui-monospace,monospace);letter-spacing:.08em;text-transform:uppercase;color:#6E6E5C;background:rgba(14,14,16,.06);border-radius:999px;padding:4px 7px;}
 .tbuilder-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;}
 .tbuilder-btn{border:0;border-radius:14px;background:#556056;color:#fff;font-weight:600;padding:11px 14px;cursor:pointer;}
 .tbuilder-btn.lime{background:#C8E632;color:#0E0E10;}

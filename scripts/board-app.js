@@ -9275,6 +9275,7 @@ const TT_NEEDS_SOURCE_SET = new Set([
   'match-headings','sentence-insertion','reading-bits',
 ]);
 const TT_NEEDS_VOCAB_SET = new Set([
+  'vocab-workout',
   'sentences-vocab','odd-one-out','word-sorting','essential-vocab',
   'flashcards','collocations','word-families','word-image-match','word-definition-match',
   'synonyms-antonyms','phrasal-verbs','idioms',
@@ -9283,6 +9284,9 @@ const TT_NEEDS_VOCAB_SET = new Set([
 ]);
 // Tools that are pointless without target words → block generation until given.
 const TT_REQUIRE_VOCAB_SET = new Set([
+  // vocab-workout строит ВСЕ активности вокруг списка слов - без него нечего
+  // прогонять ни одним движком.
+  'vocab-workout',
   'text-topic-vocab','link-words','sentence-translation',
   'sentences-vocab','odd-one-out','word-sorting',
   // word-definition-match works from a word list - definitions are auto-filled,
@@ -11360,6 +11364,14 @@ function _ttAdaptFields(tool) {
 
   if (actionWrap) actionWrap.classList.toggle('tb-field-hidden', !needsAction);
   if (needsAction) setTeacherToolAction(document.querySelector('#tbuilder-action .active')?.dataset.ttAction || 'simplify');
+
+  /* Студия «Vocabulary Workout» - единственный инструмент, который строит не
+     один материал, а набор: вместо одного движка у него чек-лист активностей,
+     и каждая отмеченная ложится на доску своей карточкой. */
+  const isWorkout = tool.id === 'vocab-workout';
+  const workoutWrap = document.getElementById('tb-wrap-workout');
+  if (workoutWrap) workoutWrap.classList.toggle('tb-field-hidden', !isWorkout);
+  if (isWorkout) renderBoardWorkoutPicks();
 
   // Hide the "Items" count for tools that produce a single artifact / scaffold.
   const countWrap = document.getElementById('tb-wrap-count');
@@ -13518,7 +13530,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '611';
+const TEACHEDOS_ASSET_VERSION = '612';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -13553,6 +13565,9 @@ function _ensureTTAILoaded() {
 
 async function generateTeacherToolBuilder(mode = 'fast') {
   if (!activeTeacherToolBuilder) return;
+  /* Студия строит набор, а не один материал, поэтому уходит своей дорогой -
+     до проверок и кеша одиночного инструмента, которые ей не подходят. */
+  if (activeTeacherToolBuilder.id === 'vocab-workout') { await runBoardWorkout(); return; }
   if (!_ttSyncFormReadiness({ attempted: true })) return;
   await _ensureGenLoaded();   // pull in board-gen.js on first generation
   const input = readTeacherToolBuilderInput();
@@ -13857,17 +13872,167 @@ async function copyTeacherToolBuilderOutput() {
   }
 }
 
-/* Уход в студию, которая живёт на отдельной странице.
-   Доска сохраняется перед переходом: студия возвращается сюда же с готовым
-   набором (board.html?addToolMaterialSet=1), и терять несохранённые карточки
-   на этом круге нельзя. */
-function openToolStudio(tool) {
-  /* saveLocal() пишет доску синхронно, в отличие от scheduleSave(), который
-     ставит отложенный таймер - а мы через мгновение уходим со страницы, и
-     таймер бы не сработал. Облачное сохранение штатно догонит при возврате. */
-  try { if (typeof saveLocal === 'function') saveLocal(); } catch (err) { console.warn('[studio] save before leaving failed', err); }
-  toast('Opening ' + tool.title + '…');
-  setTimeout(() => { location.href = tool.studio; }, 120);
+/* ══════════════════ VOCABULARY WORKOUT НА ДОСКЕ ══════════════════
+   Студия отличается от остальных инструментов панели одним: она строит не
+   один материал, а набор. Поэтому здесь нет ни своего генератора, ни своей
+   укладки карточек - оба конца берутся у доски как есть:
+
+   генерация  - тот же путь, которым панель строит одиночный инструмент
+                (generateTeacherToolLocal офлайн, requestServerTeacherTool для
+                активностей с ai:true), просто вызванный по разу на каждую
+                отмеченную активность;
+   укладка    - тот же приёмник наборов, которым доска принимает набор из
+                хаба (runPendingToolMaterialSetImport). Он уже умеет ставить
+                карточки сеткой по три в ряд от центра вида, и переиспользовать
+                его надёжнее, чем писать вторую раскладку.
+
+   Список активностей - BOARD_WORKOUT_ACTIVITIES в js/teacher-tools-data.js:
+   там ровно те, под которыми на доске есть настоящий движок. */
+
+const WORKOUT_PICKS_STORE = 'teachedos_board_workout_picks';
+
+function boardWorkoutActivities() {
+  return (typeof BOARD_WORKOUT_ACTIVITIES !== 'undefined' && Array.isArray(BOARD_WORKOUT_ACTIVITIES))
+    ? BOARD_WORKOUT_ACTIVITIES : [];
+}
+
+function boardWorkoutSavedPicks() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(WORKOUT_PICKS_STORE) || 'null');
+    if (Array.isArray(raw) && raw.length) return raw;
+  } catch (_) {}
+  // По умолчанию три офлайновые: они строятся мгновенно и без сети, поэтому
+  // первый прогон даёт результат даже без входа в аккаунт.
+  return ['match', 'flashcards', 'sentences'];
+}
+
+function boardWorkoutPickedKeys() {
+  return [...document.querySelectorAll('#tbuilder-workout-list input:checked')].map(i => i.value);
+}
+
+function renderBoardWorkoutPicks() {
+  const list = document.getElementById('tbuilder-workout-list');
+  if (!list) return;
+  const picked = new Set(boardWorkoutSavedPicks());
+  list.innerHTML = boardWorkoutActivities().map(a => `
+    <label class="tb-workout-item">
+      <input type="checkbox" value="${esc(a.key)}" ${picked.has(a.key) ? 'checked' : ''} onchange="onBoardWorkoutPickChange()">
+      <span style="min-width:0">
+        <b>${esc(a.title)}</b>
+        <small>${esc(a.hint)}</small>
+      </span>
+      ${a.ai ? '<span class="tb-workout-ai">AI</span>' : ''}
+    </label>`).join('');
+  onBoardWorkoutPickChange();
+}
+
+function onBoardWorkoutPickChange() {
+  const keys = boardWorkoutPickedKeys();
+  try { localStorage.setItem(WORKOUT_PICKS_STORE, JSON.stringify(keys)); } catch (_) {}
+  const meta = document.getElementById('tbuilder-workout-meta');
+  if (meta) meta.textContent = keys.length + (keys.length === 1 ? ' chosen' : ' chosen');
+}
+
+/* Прогон набора. Активности идут последовательно, а не Promise.all: серверные
+   вызовы делят одну квоту, и веер из пяти запросов упирался бы в неё разом. */
+async function runBoardWorkout() {
+  const keys = boardWorkoutPickedKeys();
+  const chip = document.getElementById('tbuilder-chip');
+  const body = document.getElementById('tbuilder-output');
+  if (!keys.length) {
+    if (chip) chip.textContent = 'pick activities';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Tick at least one activity - each ticked one becomes its own card.</div>';
+    return;
+  }
+
+  await _ensureGenLoaded();
+  const base = readTeacherToolBuilderInput();
+  if (!String(base.vocab || '').trim()) {
+    if (chip) chip.textContent = 'needs vocab';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">Add your target words - every activity here is built around that list.</div>';
+    return;
+  }
+
+  const acts = boardWorkoutActivities().filter(a => keys.includes(a.key));
+  _ttSetGenerating(true);
+  const built = [];
+  const failed = [];
+
+  for (let i = 0; i < acts.length; i++) {
+    const a = acts[i];
+    if (chip) chip.textContent = `building ${i + 1} of ${acts.length}…`;
+    if (body) body.innerHTML = `<div class="tbuilder-empty">Building <strong>${esc(a.title)}</strong> — ${i + 1} of ${acts.length}.</div>`;
+    const input = { ...base, tool: { id: a.tool } };
+    let out = null;
+    try {
+      out = a.ai ? await requestServerTeacherTool(input, 25000)
+                 : generateTeacherToolLocal(input);
+    } catch (err) {
+      console.warn('[workout] activity failed', a.key, err);
+    }
+    if (out) { out.title = a.title; built.push({ activity: a, out }); }
+    else failed.push(a.title);
+  }
+
+  _ttSetGenerating(false);
+
+  if (!built.length) {
+    if (chip) chip.textContent = 'nothing built';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">None of the ticked activities could be built. AI ones need you to be signed in; the offline ones need a longer word list.</div>';
+    return;
+  }
+
+  placeBoardWorkoutSet(base, built);
+
+  if (chip) chip.textContent = `${built.length} on board`;
+  if (body) {
+    body.innerHTML = `<div class="tbuilder-empty"><strong>${built.length}</strong> ${built.length === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc(failed.join(', '))}.</span>` : ''}</div>`;
+  }
+  toast(built.length + (built.length === 1 ? ' activity added' : ' activities added'));
+}
+
+/* Складываем набор в тот же формат, который доска принимает из хаба, и зовём
+   её собственный приёмник - раскладка, отступы и центрирование достаются
+   даром и совпадают с приходом набора со стороны хаба. */
+function placeBoardWorkoutSet(base, built) {
+  const now = new Date().toISOString();
+  window.__pendingToolMaterialSetImport = {
+    title: base.topic || 'Vocabulary workout',
+    level: base.level,
+    topic: base.topic,
+    createdAt: now,
+    materials: built.map(({ activity, out }) => ({
+      materialKey: 'workout:' + activity.key + ':' + Date.now(),
+      toolId: 'vocab-workout',
+      toolTitle: 'Vocabulary Workout',
+      title: activity.title,
+      text: out.text || _ttWorkoutPlainText(out),
+      level: out.level || base.level,
+      tags: out.tags || [],
+      topic: out.topic || base.topic,
+      kind: out.kind || '',
+      cat: out.cat || 'vocabulary',
+      source: '',
+      struct: out.struct || null,
+      showAnswers: true,
+      createdAt: now,
+    })),
+  };
+  runPendingToolMaterialSetImport();
+}
+
+/* Запасной текст, если у результата нет готового .text: приёмник кладёт на
+   карточку именно текст, и пустая карточка была бы хуже отсутствующей. */
+function _ttWorkoutPlainText(out) {
+  if (!out) return '';
+  if (out.text) return out.text;
+  if (Array.isArray(out.items) && out.items.length) {
+    return out.items.map(i => [i.word, i.definition || i.example].filter(Boolean).join(' - ')).join('\n');
+  }
+  if (Array.isArray(out.questions) && out.questions.length) {
+    return out.questions.map((q, i) => `${i + 1}. ${q.q || q.text || q.prompt || ''}`).join('\n');
+  }
+  return '';
 }
 
 function makeTeacherToolSnippet(tool) {
@@ -13909,8 +14074,8 @@ function makeTeacherToolSnippet(tool) {
   }
   el.addEventListener('mousedown', e => {
     /* Студию нельзя перетащить: перетаскивание кладёт на доску готовый
-       Frame-шаблон инструмента, а у студии его нет - она сама собирает набор
-       и присылает его целиком. Тянуть было бы обещанием, которого нет. */
+       Frame-шаблон инструмента, а у студии его нет - она собирает набор из
+       нескольких карточек. Тянуть было бы обещанием, которого нет. */
     if (tool.studio) return;
     if (e.button !== 0 || e.target.closest('.tool-open-dot')) return;
     const sx = e.clientX, sy = e.clientY;
@@ -13937,7 +14102,6 @@ function makeTeacherToolSnippet(tool) {
       return;
     }
     if (isSidebarDrag) return;
-    if (tool.studio) { openToolStudio(tool); return; }
     openTeacherToolBuilder(tool.id);
   });
   return el;

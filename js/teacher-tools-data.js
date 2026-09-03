@@ -12,14 +12,12 @@ const BOARD_TEACHER_TOOLS = [
   /* Студия «Vocabulary Workout» живёт в хабе, а не здесь: её конвейер
      (ttEngineOutput, requestServerHubAI, aiResultToOutput) объявлен в
      scripts/teacher-tools-app.js, который доска не грузит. Поэтому карточка
-     на доске не открывает встроенный конструктор, а уводит в студию - поле
-     `studio` этим и отличает её от остальных инструментов.
+     `studio:true` помечает инструмент, который строит НАБОР материалов, а не
+     один: панель показывает ему чек-лист активностей вместо полей одиночного
+     движка, а перетаскивание отключено - у набора нет Frame-шаблона.
 
-     Обратная дорога уже была: студия складывает готовый набор в
-     sessionStorage и возвращается на board.html?addToolMaterialSet=1, а
-     приёмник доски раскладывает материалы сеткой по три в ряд. Не хватало
-     ровно входа с доски, его и добавляем. */
-  {id:'vocab-workout',cat:'vocabulary',title:'Vocabulary Workout',desc:'One word list becomes a whole practice set: tick the activities you need, edit each one and send them to the board together.',kind:'Activity set',studio:'teacher-tools.html?tool=vocab-workout'},
+     Сами активности лежат ниже, в BOARD_WORKOUT_ACTIVITIES. */
+  {id:'vocab-workout',cat:'vocabulary',title:'Vocabulary Workout',desc:'One word list becomes a whole practice set: tick the activities you need and they all land on the board.',kind:'Activity set',studio:true},
   {id:'lesson-pack',cat:'utility',title:'Complete Lesson Pack Builder',desc:'Warm-up, input, practice, production, homework and teacher notes from one topic.',kind:'Lesson Flow'},
   {id:'worksheet-builder',cat:'utility',title:'ESL Worksheet Builder',desc:'Printable worksheet with tasks, answer key and teacher notes.',kind:'Worksheet'},
   {id:'homework-set',cat:'utility',title:'Homework Assignment Builder',desc:'Trackable homework brief, success criteria and self-check.',kind:'Homework'},
@@ -1530,6 +1528,29 @@ const STICKER_KEYWORDS = {
 };
 
 // Expose each on `window`.
+/* ── Vocabulary Workout: активности, которые доска умеет сама ─────────────
+   Студия в хабе предлагает 11 активностей, но три из них доска запустить не
+   может: matching-halves и comm-situations в её реестре отсутствуют вовсе, а
+   word-translation-match есть только в хабе. Показывать вчителю галочку,
+   которая ничего не построит, хуже, чем её не показывать - поэтому здесь
+   лежат ровно те восемь, под которыми на доске есть настоящий движок.
+
+   Поле `tool` - это id инструмента В РЕЕСТРЕ ДОСКИ: студия просто прогоняет
+   тот же конвейер, которым панель строит одиночный инструмент, по одному
+   разу на каждую отмеченную активность. `ai:true` означает, что офлайнового
+   генератора у неё нет и нужен сервер. */
+const BOARD_WORKOUT_ACTIVITIES = [
+  {key:'match',      tool:'word-definition-match', title:'Match word to meaning',      hint:'Pairs for matching, cards or a memory game.'},
+  {key:'flashcards', tool:'flashcards',            title:'Flashcards',                 hint:'Word on one side, meaning and an example on the other.'},
+  {key:'sentences',  tool:'sentences-vocab',       title:'Example sentences',          hint:'One sentence per word, gap ready for practice.'},
+  {key:'link',       tool:'link-words',            title:'Link words into sentences',  hint:'Students connect two or three items in one sentence.'},
+  {key:'odd',        tool:'odd-one-out',           title:'Odd one out',                hint:'Groups where one word does not belong.',        ai:true},
+  {key:'sorting',    tool:'word-sorting',          title:'Word sorting',               hint:'Categories for drag-and-drop sorting.',         ai:true},
+  {key:'writing',    tool:'creative-writing',      title:'Creative writing task',      hint:'A short writing prompt built around the words.', ai:true},
+  {key:'discussion', tool:'discussion',            title:'Discussion questions',       hint:'Speaking prompts that force the words out.',     ai:true},
+];
+window.BOARD_WORKOUT_ACTIVITIES = BOARD_WORKOUT_ACTIVITIES;
+
 window.BOARD_TEACHER_TOOLS = BOARD_TEACHER_TOOLS;
 window.STICKER_KEYWORDS     = STICKER_KEYWORDS;
 window.TOOL_SEED_CONTENT   = TOOL_SEED_CONTENT;
