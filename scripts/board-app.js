@@ -2411,9 +2411,19 @@ function applyGameScale(el, card) {
   const naturalH = card.data.naturalH || 560;
   const bw = body.clientWidth  || card.w;
   const bh = body.clientHeight || (card.h - 42);
-  // Cover: scale to fill the entire body (no empty background visible).
-  // Overflow is clipped by the body's overflow:hidden + border-radius.
-  const scale = Math.max(bw / naturalW, bh / naturalH);
+  /* Contain, а не cover. Раньше здесь стоял Math.max - «заполнить карточку
+     целиком, лишнее обрежется». Для декоративной вставки это разумно, но в
+     карточке лежит ИГРА, и обрезка съедает поле, по которому играют: на
+     телефоне карточка выходит 280px при натуральных 520, cover давал масштаб
+     0.91 вместо нужных 0.54, и почти двести пикселей игрового поля уходили за
+     край - в Memory Match отрезало крайние столбцы плиток.
+
+     На широком экране разницы почти нет: карточка там создаётся по
+     натуральному размеру игры, и оба множителя близки к единице. Обрезка
+     кусалась ровно там, где карточка уже игры - на телефоне и после ручного
+     уменьшения карточки. Пусть лучше по краям будет фон, чем недоступная
+     половина упражнения. */
+  const scale = Math.min(bw / naturalW, bh / naturalH);
   iframe.style.width  = naturalW + 'px';
   iframe.style.height = naturalH + 'px';
   iframe.style.transform = `scale(${scale})`;
@@ -13548,7 +13558,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '621';
+const TEACHEDOS_ASSET_VERSION = '622';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
