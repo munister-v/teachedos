@@ -1204,10 +1204,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 
 /* ── ZOOM CONTROLS (bottom-right, Miro horizontal) ── */
+/* Правый нижний угол холста делят две панели, и раньше их отступы жили
+   врозь: панель зума на bottom:12, мини-карта на bottom:56. Пока панель была
+   44px высотой, 12+44=56 давало ровный стык. Панель выросла до 52 - и
+   мини-карта оказалась внутри неё, наезд на 8px: у мини-карты срезало низ, а
+   её угол торчал из-под панели обрывком.
+
+   Держим обе на общих величинах, чтобы следующее изменение высоты панели
+   двигало мини-карту само. */
+:root {
+  --board-corner-gap:12px;
+  --board-zoombar-h:52px;
+}
 #zoom-controls {
   position:fixed;
-  right:12px;
-  bottom:12px;
+  right:var(--board-corner-gap);
+  bottom:var(--board-corner-gap);
   z-index:950;
   display:flex;
   flex-direction:row;
@@ -2790,7 +2802,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 /* ── Minimap (Miro-style bottom-right above zoom) ── */
 #minimap{
-  position:fixed;bottom:56px;right:12px;z-index:900;
+  position:fixed;
+  bottom:calc(var(--board-corner-gap) + var(--board-zoombar-h) + 10px);
+  right:var(--board-corner-gap);
+  z-index:900;
   width:180px;height:120px;
   background:#fff;
   border:1px solid rgba(0,0,0,.10);border-radius:8px;
