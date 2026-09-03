@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=606">
+<link rel="manifest" href="manifest.json?v=607">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=606">
-<link rel="preload" as="style" href="styles/unify.css?v=606">
+<link rel="preload" as="style" href="styles/harmony.css?v=607">
+<link rel="preload" as="style" href="styles/unify.css?v=607">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -92,7 +92,11 @@ a{text-decoration:none;color:inherit;}
 .btn-add:active{transform:scale(.97);}
 
 /* Week nav */
-.week-nav{display:flex;align-items:center;gap:6px;padding:14px 14px 8px;}
+/* «31 Aug - 6 Sept» ломалось на две строки: четыре элемента с полями 14 и
+   зазором 6 не помещались в 275px рейки. Строка недели не переносится, а
+   место под неё освобождают зазоры. */
+.week-nav{display:flex;align-items:center;gap:4px;padding:14px 10px 8px;}
+.wn-label{white-space:nowrap;}
 .wn-btn{
   width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--card);
   cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;
@@ -252,7 +256,10 @@ a{text-decoration:none;color:inherit;}
 .wb-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:13px;}
 .wb-metric{min-width:0;padding:9px 7px;border-radius:10px;background:#fff;border:1px solid rgba(94,94,74,.1);text-align:center;}
 .wb-num{font-size:16px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
-.wb-lbl{font-size:9px;font-weight:600;color:var(--text3);margin-top:2px;white-space:nowrap;}
+/* Было white-space:nowrap: «Boards linked» шире плитки на 7px и обрезалось
+   по краю, показывая «Boards linke». Плитки в ряду равной ширины, длина
+   подписи у них разная - значит переносим, а не режем. */
+.wb-lbl{font-size:9px;font-weight:600;color:var(--text3);margin-top:2px;line-height:1.25;}
 .wb-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:13px;}
 .wb-day{min-width:0;border:0;background:transparent;padding:0;cursor:pointer;text-align:center;color:var(--text3);font:700 9px var(--mono);}
 .wb-day:focus-visible{outline:2px solid var(--accent2);outline-offset:3px;border-radius:7px;}
@@ -396,10 +403,10 @@ a{text-decoration:none;color:inherit;}
   .stat-row{grid-template-columns:1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=606" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=606">
-<link rel="stylesheet" href="styles/harmony.css?v=606">
-<link rel="stylesheet" href="styles/unify.css?v=606">
+<script src="theme.js?v=607" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=607">
+<link rel="stylesheet" href="styles/harmony.css?v=607">
+<link rel="stylesheet" href="styles/unify.css?v=607">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -431,12 +438,12 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=606">
-<link rel="stylesheet" href="styles/tool-window.css?v=606">
+<link rel="stylesheet" href="styles/teached-brand.css?v=607">
+<link rel="stylesheet" href="styles/tool-window.css?v=607">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=606">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=606">
-<link rel="stylesheet" href="styles/controls.css?v=606">
+<link rel="stylesheet" href="styles/figma-theme.css?v=607">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=607">
+<link rel="stylesheet" href="styles/controls.css?v=607">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -722,7 +729,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=606"></script>
+<script src="scripts/app-core.js?v=607"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -2059,12 +2066,12 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=606"></script>
-<script src="scripts/nav-boost.js?v=606" defer></script>
-<script src="scripts/mobile-perf.js?v=606" defer></script>
-<script src="scripts/mobile-nav.js?v=606"></script>
-<script src="scripts/autogrow.js?v=606" defer></script>
-<script src="pwa-boot.js?v=606" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=606" defer></script>
+<script src="pwa.js?v=607"></script>
+<script src="scripts/nav-boost.js?v=607" defer></script>
+<script src="scripts/mobile-perf.js?v=607" defer></script>
+<script src="scripts/mobile-nav.js?v=607"></script>
+<script src="scripts/autogrow.js?v=607" defer></script>
+<script src="pwa-boot.js?v=607" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=607" defer></script>
 </body>
 </html>

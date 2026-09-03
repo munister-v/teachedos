@@ -243,6 +243,19 @@ body.fx:not(#_) :is(
   border-radius:var(--fx-r-card) !important;
   box-shadow:none !important;
 }
+
+/* Внутри белой рейки расписания стекло не читается вовсе. Заливка
+   rgba(255,253,246,.55) поверх #fff даёт контраст к фону около 1.01:1, а
+   рамка rgba(255,255,255,.6) - это белое по белому. Блоки «Stats», «Time
+   zone» и плитки счётчиков превращались в пятна без границ: половина рейки
+   выглядела как карточки, половина - как текст, насыпанный на белое.
+
+   Стекло придумано для песочного стола, а не для белой колонки, поэтому
+   здесь блокам возвращается обычная поверхность с видимым краем. */
+body.fx:not(#_) #side :is(.side-section,.stat-pill,.up-next,.wb-metric) {
+  background:#FBFBF8 !important;
+  border:1px solid rgba(32,32,44,.14) !important;
+}
 body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
   .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item
