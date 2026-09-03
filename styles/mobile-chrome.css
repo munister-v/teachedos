@@ -177,7 +177,7 @@
       .wb-status, .wb-day-label, .publisher-audit-title, .publisher-audit-mark,
       .publisher-note-mark, .publisher-preview-placeholder,
       /* счётчики и подписи в листе инструментов на доске */
-      .tst-n, .tsc-n, .tgh-count, .tool-open-dot,
+      .tst-n, .tsc-n, .tgh-count, .tool-open-dot, .ts-kind, .ts-cat,
       .lesson-preview-kicker, .lesson-preview-level, .lesson-preview-meta,
       .community-cover-kind, .community-cover-level, .community-cover-caption,
       .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
