@@ -70,7 +70,9 @@
       .journal-filter, .insight-action,
       /* лист инструментов на доске: подвкладки, чипы навыка и две ссылки
          действий под ними шли по 28-38px */
-      .tools-subtab, .tool-skill-chip) {
+      .tools-subtab, .tool-skill-chip,
+      /* фильтры уровня на подборках уроков шли по 25px */
+      .ltab) {
     min-height: 44px !important;
     height: auto !important;
     display: inline-flex !important;
