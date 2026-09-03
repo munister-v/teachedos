@@ -288,3 +288,28 @@ body.fx.landing-page .cat .cat-tags { margin-top:auto; padding-top:14px; }
    .sec-h из «редакторского» прохода без !important. */
 body.fx.landing-page :is(.nav-logo,.brand-wordmark) { font-weight:600; }
 body.fx.landing-page :is(.hero-h,.sec-h,.final-h) { font-weight:600; }
+
+/* ── Порог кегля на телефоне ───────────────────────────────────────────
+   Тот же порог 11px, что уже принят в приложении (styles/mobile-chrome.css);
+   лендинг его не получал, потому что мобильный слой сюда не подключён.
+
+   Замер на 375px дал 88 элементов мельче 11px по факту - считал объявленный
+   кегль, умноженный на точный совокупный масштаб предков (rect.width /
+   offsetWidth), потому что страница часть блоков увеличивает: у .pv-chip
+   объявлено 3,5px, а на экране 9,4px.
+
+   Из этих 88 поднимаю только настоящий текст страницы. Внутренности макетов
+   (.fp-shot, .cat-prev, .step-shot, .preview-shell, .pv-*) не трогаю: это
+   рисунок интерфейса, там кегль держит подобие, а не читаемость. По той же
+   причине не трогаю инициалы в кружках и галочку ✓ - это знаки, не текст. */
+@media (max-width: 860px) {
+  body.landing-page :is(.sec-eye, .bento-tag, .testi-source, .plan-name,
+      .plan-badge, .support-lbl, .support-eye, .cat-count,
+      /* подписи-предложения под макетами: это проза, а не изображение UI */
+      .fp-cap, .scap, .cap) {
+    font-size: 11px !important;
+  }
+  body.landing-page .footer-col > summary > h4 { font-size: 11px !important; }
+  /* Галочка в отзывах - знак, а не текст; кегль ей держит форму кружка. */
+  body.landing-page .testi-source > span.v { font-size: 8px !important; }
+}
