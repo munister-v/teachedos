@@ -608,7 +608,10 @@ body.fx .win-titlebar {
 }
 body.fx .win-titlebar:active { cursor:grabbing; }
 body.fx .win-controls { position:absolute; top:20px; left:20px; }
-body.fx .win-main { padding-top:34px !important; }
+/* Кнопки лежат в 20-46px от верха (top:20px + их 26px высоты). win-body даёт
+   8px сверху, так что этому отступу нужно 38px, а не 34 - на 4px ниже кнопок
+   заезжал первый ряд текста (studio-eyebrow, "lesson workspace" и т.п.). */
+body.fx .win-main { padding-top:40px !important; }
 
 /* Доска: холст начинался за рейкой, и слева оставалась песочная полоса
    страницы. В макете рейка лежит поверх холста, поэтому холст во всю ширину,
