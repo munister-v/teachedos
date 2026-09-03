@@ -160,6 +160,16 @@
     justify-content: center !important;
   }
 
+  /* Ссылка «назад» на ученических страницах. У ученика это единственный
+     способ выйти из задания, а высота у неё была 17px: строка текста без
+     собственной коробки. Растёт только область нажатия. */
+  body:not(#_) :is(.back-link, .lesson-brand, .brand-back, .portal-back) {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
   /* Логотип в шапке: сам знак остаётся 26px, растёт только область нажатия -
      поэтому min-height, а не height, и внешне ничего не меняется. */
   body:not(#_) :is(.logo, .nav-logo) {
