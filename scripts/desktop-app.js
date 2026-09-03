@@ -1493,6 +1493,12 @@ let _mePromise = null;
 function fetchMe() {
   if (_mePromise) return _mePromise;
   if (!_authToken) return Promise.resolve({ ok: false, status: 0, user: null });
+  // Таймаута здесь намеренно нет. Он напрашивается - до ответа этого запроса
+  // дашборд держится невидимым, - но обе ветки отказа в checkAuthAndRoute на
+  // домене teached.tech зовут clearAuthState(): отменённый по таймауту запрос
+  // не «показал бы страницу быстрее», а выкинул бы учителя на форму входа
+  // посреди медленной сети. Белый экран лечится страховкой в index.html,
+  // которая снимает html{opacity:0} через 2.5 с независимо от сети и скриптов.
   _mePromise = fetch(API_BASE + '/api/auth/me', {
     headers: { Authorization: 'Bearer ' + _authToken }
   }).then(async r => ({ ok: r.ok, status: r.status, user: r.ok ? (await r.json()).user : null }));
