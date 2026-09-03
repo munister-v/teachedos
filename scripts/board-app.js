@@ -13542,7 +13542,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '618';
+const TEACHEDOS_ASSET_VERSION = '619';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -13938,11 +13938,36 @@ function renderBoardWorkoutPicks() {
   onBoardWorkoutPickChange();
 }
 
+const WORKOUT_LANG_STORE = 'teachedos_vocab_workout_lang';
+
+function boardWorkoutLang() {
+  const el = document.getElementById('tbuilder-workout-lang');
+  if (el && el.value) return el.value;
+  try { return localStorage.getItem(WORKOUT_LANG_STORE) || 'Ukrainian'; } catch (_) { return 'Ukrainian'; }
+}
+
+function onBoardWorkoutLangChange() {
+  try { localStorage.setItem(WORKOUT_LANG_STORE, boardWorkoutLang()); } catch (_) {}
+}
+
 function onBoardWorkoutPickChange() {
   const keys = boardWorkoutPickedKeys();
   try { localStorage.setItem(WORKOUT_PICKS_STORE, JSON.stringify(keys)); } catch (_) {}
   const meta = document.getElementById('tbuilder-workout-meta');
   if (meta) meta.textContent = keys.length + (keys.length === 1 ? ' chosen' : ' chosen');
+
+  /* Поле языка показывается только когда отмечена активность, которой он
+     нужен: спрашивать язык перевода у того, кто собирает флешкарты, незачем. */
+  const wrap = document.getElementById('tb-workout-lang-wrap');
+  if (wrap) {
+    const needs = boardWorkoutActivities().some(a => a.needsLang && keys.includes(a.key));
+    wrap.hidden = !needs;
+    const sel = document.getElementById('tbuilder-workout-lang');
+    if (needs && sel && !sel.dataset.restored) {
+      try { const saved = localStorage.getItem(WORKOUT_LANG_STORE); if (saved) sel.value = saved; } catch (_) {}
+      sel.dataset.restored = '1';
+    }
+  }
 }
 
 /* Прогон набора. Активности идут последовательно, а не Promise.all: серверные
@@ -13976,7 +14001,14 @@ async function runBoardWorkout() {
     /* Без <strong>: в .tbuilder-empty этот тег занят под слот иконки и скрыт
        правилом display:none - название активности внутри него пропадало. */
     if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(a.title)}” — ${i + 1} of ${acts.length}.</div>`;
+    /* Язык перевода едет как «teacher note» - тот же канал input.extra, который
+       читает промт на бекенде. Без него модель по умолчанию уходит в
+       украинский, и выбор в поле ни на что бы не влиял. */
     const input = { ...base, tool: { id: a.tool } };
+    if (a.needsLang) {
+      const lang = boardWorkoutLang();
+      input.extra = (base.extra ? base.extra + ' ' : '') + 'Translate into ' + lang + '.';
+    }
     let out = null;
     try {
       out = a.ai ? await requestServerTeacherTool(input, 25000)

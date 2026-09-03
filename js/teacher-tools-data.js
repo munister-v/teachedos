@@ -1529,15 +1529,13 @@ const STICKER_KEYWORDS = {
 
 // Expose each on `window`.
 /* ── Vocabulary Workout: активности, которые доска умеет сама ─────────────
-   Студия в хабе предлагает 11 активностей, здесь их 10.
+   Все 11 активностей студии, как в хабе.
 
-   Нет только `word-translation-match`, и по существу, а не из-за движка:
-   офлайновый генератор без указанного языка выдаёт «Journey → a long trip»,
-   то есть английское слово к английскому определению. Это не перевод, а
-   дубль «Match word to meaning» под чужим именем. В хабе активность работает
-   через сервер и получает язык отдельным полем «Translate into»; на доске
-   такого поля нет, и пока его нет, честнее не предлагать галочку, которая
-   построит не то, что обещает.
+   `needsLang:true` - активности нужен язык перевода: офлайновый генератор без
+   него выдаёт «Journey → a long trip», то есть слово к английскому
+   определению, а не перевод. Поэтому она помечена ai:true и идёт через
+   сервер, а язык панель отдаёт в input.extra - тот же канал «teacher note»,
+   который читает промт на бекенде.
 
    Остальные проверены прогоном: у каждой на доске есть настоящий генератор
    (scripts/board-gen.js) и осмысленный результат.
@@ -1561,6 +1559,10 @@ const BOARD_WORKOUT_ACTIVITIES = [
   {key:'situations', tool:'comm-situations',       title:'Speaking situations',        hint:'Paired role-play scenarios that force the words into a real conversation.'},
   {key:'odd',        tool:'odd-one-out',           title:'Odd one out',                hint:'Groups where one word does not belong.',        ai:true, game:'speed-quiz'},
   {key:'sorting',    tool:'word-sorting',          title:'Word sorting',               hint:'Categories for drag-and-drop sorting.',         ai:true, game:'word-categories'},
+  /* Только серверной: офлайновый генератор без языка выдаёт слово к
+     английскому определению, а не перевод. Язык едет в поле «teacher note»
+     (input.extra) - тот же канал, который читает промт на бекенде. */
+  {key:'translate',  tool:'word-translation-match',title:'Word-translation pairs',     hint:'Bilingual pairs for matching. Pick the language below.', ai:true, game:'memory-match', needsLang:true},
   {key:'writing',    tool:'creative-writing',      title:'Creative writing task',      hint:'A short writing prompt built around the words.', ai:true},
   {key:'discussion', tool:'discussion',            title:'Discussion questions',       hint:'Speaking prompts that force the words out.',     ai:true},
 ];
