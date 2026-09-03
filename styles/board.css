@@ -4885,6 +4885,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
   body.board-phone-shell .layer-sep{ display:none !important; }
 
+  /* У выделенной карточки на телефоне было ДВА набора цветов. Второй,
+     `.sticky-toolbar`, это десктопная штука для мыши: она висит на
+     `top:-44px` над карточкой и показывается по :hover. Наведения на
+     телефоне нет, остаётся показ по .selected - и получалась белая коробка
+     с точками по 18px, наполовину уехавшая под верхнюю панель, если
+     карточка стоит у края холста.
+
+     Обе её функции есть в полосе снизу и с нормальными целями: цвет там
+     28px вместо 18, удаление - корзина вместо крестика 22px. */
+  body.board-phone-shell .sticky-toolbar{ display:none !important; }
+
   body.board-phone-shell #board-wrap::after{
     content:"Double-tap a card to open";
     position:fixed;
