@@ -13558,7 +13558,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '622';
+const TEACHEDOS_ASSET_VERSION = '623';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20362,8 +20362,14 @@ function addGameCard(src, title, w, h, extraData) {
   // Cap to 80% of the visible board area so the card fits without scrolling
   const maxW = Math.floor(r.width  * 0.72);
   const maxH = Math.floor(r.height * 0.82);
-  const cardW = Math.min(maxW, w);
-  const cardH = Math.min(maxH, h);
+  /* Пропорции игры при зажатии сохраняются. Раньше ширина и высота зажимались
+     независимо, и на узком экране карточка выходила 280x585 при игре 520x600:
+     ширину урезали вдвое, высоту почти нет. Игра масштабируется целиком, по
+     меньшей стороне, поэтому сверху и снизу оставались пустые полосы по две
+     сотни пикселей. Считаем один множитель на обе стороны. */
+  const fit = Math.min(1, maxW / w, maxH / h);
+  const cardW = Math.round(w * fit);
+  const cardH = Math.round(h * fit);
   const fp = findFreePlacement(pos.x, pos.y, cardW, cardH);
   addCard('game', fp.x - cardW/2, fp.y - cardH/2,
     { title, src, naturalW: w, naturalH: h, ...(extraData || {}) }, cardW, cardH);
