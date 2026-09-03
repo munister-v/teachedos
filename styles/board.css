@@ -4743,9 +4743,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   }
 
   body.board-phone-shell .tb-logo{
-    width:36px!important;
-    height:36px!important;
-    border-radius:12px!important;
+    width:44px!important;
+    height:44px!important;
+    border-radius:13px!important;
     background:#CDF24F!important;
     box-shadow:0 1px 0 rgba(255,255,255,.75) inset;
   }
@@ -4895,6 +4895,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
      Обе её функции есть в полосе снизу и с нормальными целями: цвет там
      28px вместо 18, удаление - корзина вместо крестика 22px. */
   body.board-phone-shell .sticky-toolbar{ display:none !important; }
+
+  /* Кнопка сворачивания листа: 30x40 при пороге 44. Лежит в шапке листа
+     «Plans/Tools», рядом с вкладками той же высоты. */
+  body.board-phone-shell #sb-collapse{
+    width:44px !important;
+    min-width:44px !important;
+    height:44px !important;
+    min-height:44px !important;
+  }
 
   /* ── Лист «Plans/Tools» ────────────────────────────────────────────────
      Фон панели - rgba(255,253,247,.55) при `backdrop-filter:none`, то есть
@@ -6082,16 +6091,21 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   body.board-phone-shell #auth-login-btn{
     display:none!important;
   }
+  /* 38px не дотягивал до порога 44. Верхняя панель доски 54px без
+     вертикальных отступов, поэтому 44 встают с зазором 5px сверху и снизу -
+     менять высоту панели не нужно. */
   body.board-phone-shell .tb-logo{
-    flex:0 0 38px;
-    width:38px!important;
-    height:38px!important;
-    border-radius:12px!important;
+    flex:0 0 44px;
+    width:44px!important;
+    height:44px!important;
+    border-radius:13px!important;
   }
   body.board-phone-shell .tb-board-chip{
     flex:1 1 auto!important;
     min-width:0!important;
-    height:40px!important;
+    /* Пилюля с названием доски открывает переименование, то есть это цель
+       нажатия, а не подпись. Ровняем по логотипу рядом. */
+    height:44px!important;
     border-radius:13px!important;
   }
   body.board-phone-shell .tb-board-chip-title{
