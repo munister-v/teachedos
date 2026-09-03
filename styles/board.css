@@ -4821,8 +4821,19 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     align-items:flex-end!important;
   }
 
+  /* Здесь стояло `contain:layout style paint`, и оно съедало доску целиком.
+     #board это не полотно, а точка отсчёта для пан-зума: position:absolute
+     без ширины и высоты, все карточки лежат в нём абсолютно, его
+     собственный бокс 0x0. Paint-containment обрезает потомков по боксу
+     САМОГО элемента, то есть по нулю. Карточки при этом остаются в DOM,
+     getComputedStyle честно отвечает visible и opacity:1, у них есть
+     нормальный getBoundingClientRect - они просто не рисуются и не ловят
+     касание: elementFromPoint в центре карточки возвращал #board-wrap.
+     На десктопе правило не действовало, поэтому баг жил только на телефоне.
+
+     Обрезка по видимой области никуда не делась: её даёт #board-wrap со
+     своим overflow:hidden и настоящим боксом. */
   body.board-phone-shell #board{
-    contain:layout style paint;
     will-change:transform;
   }
 
