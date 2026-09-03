@@ -450,7 +450,11 @@ function fitAll(animate) {
   const PAD = phone ? 26 : 60;
   const pw=boardWrap.clientWidth, ph=boardWrap.clientHeight;
   const cw=maxX-minX, ch=maxY-minY;
-  if (cw <= 0 || ch <= 0) return;
+  /* Сравнение `cw <= 0` НЕ ловит NaN: любое сравнение с NaN ложно, поэтому
+     карточка без координат (x или y не число) проносила NaN сквозь этот
+     страж дальше в targetScale, и state.scale становился NaN - индикатор
+     масштаба показывал «NaN%». Проверяем конечность явно. */
+  if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0) return;
   /* Не считать по неизмеренному вьюпорту. Пока #board-wrap не разложен
      (вкладка в фоне, элемент ещё скрыт, вызов до первого layout), clientWidth
      равен нулю - и тогда (0 - PAD*2)/cw уходит в минус, Math.max ниже
@@ -638,6 +642,16 @@ function nextCardZ() {
 
 function normalizeCardLayer(card, fallbackZ) {
   if (!Number.isFinite(Number(card.z)) || Number(card.z) <= 0) card.z = fallbackZ || 1;
+  /* Координаты и размер тоже обязаны быть числами. Карточка без x/y
+     рисуется на месте по запасным значениям в CSS и выглядит нормальной, но
+     отравляет любую арифметику по границам содержимого: fitAll получал NaN и
+     клал в state.scale NaN. Чиним на входе, чтобы одна кривая запись не
+     ломала камеру всей доски. */
+  const NUM = { x: 100, y: 100, w: 220, h: 180 };
+  for (const k in NUM) {
+    if (!Number.isFinite(Number(card[k]))) card[k] = NUM[k];
+    else card[k] = Number(card[k]);
+  }
   return card;
 }
 
@@ -13494,7 +13508,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '599';
+const TEACHEDOS_ASSET_VERSION = '600';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
