@@ -2235,8 +2235,17 @@ body.board-dragging .board-card{will-change:transform,left,top;}
 }
 .card-sticky:hover .sticky-close,.card-sticky.selected .sticky-close{opacity:1;}
 /* Sticky floating toolbar - Miro-style popover above sticky */
+/* top:8px, а не -44px. Палитра лежит ВНУТРИ карточки, и это вынужденно:
+   .board-card несёт overflow:hidden и contain:content, то есть режет всё за
+   своими границами. Смещение -44px считали под один ряд кружков; палитра
+   давно переносится на несколько строк и выросла до 152px, из которых 88
+   оказывались выше кромки карточки и просто срезались - на экране висел
+   обрубок палитры без верхних рядов.
+
+   Поднять карточке overflow нельзя: обрезка нужна её собственному
+   содержимому. Поэтому палитра переезжает внутрь, к верхней кромке. */
 .sticky-toolbar{
-  position:absolute;left:50%;top:-44px;transform:translateX(-50%);
+  position:absolute;left:50%;top:8px;transform:translateX(-50%);
   display:flex;gap:3px;padding:5px 7px;border-radius:8px;
   background:#fff;border:1px solid rgba(0,0,0,.10);
   box-shadow:0 4px 16px rgba(5,5,23,.12),0 1px 3px rgba(0,0,0,.06);
