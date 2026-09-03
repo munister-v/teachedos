@@ -4940,7 +4940,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
      трогаем. */
   body.board-phone-shell:not(#_) #tool-builder-panel .tbuilder-form select{
     background-color:#F3F3EE !important;
-    border:1.5px solid rgba(14,14,16,.14) !important;
+    border:1.5px solid rgba(32,32,44,.52) !important;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%236E6E5C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
     background-repeat:no-repeat !important;
     background-position:right 12px center !important;
