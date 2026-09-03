@@ -9482,18 +9482,18 @@ function _ttRefreshBriefReview() {
   const needsVocab = TT_REQUIRE_VOCAB_SET.has(tool.id);
   const wantsVocab = TT_NEEDS_VOCAB_SET.has(tool.id);
   const checks = [];
-  if (!topic) checks.push({ type:'needs', text:'Add a topic' });
+  if (!topic) checks.push({ type:'needs', text:'Add a topic', want:'a topic' });
   else if (topic.length < 4) checks.push({ type:'attention', text:'Make the topic more specific' });
   else checks.push({ type:'ok', text:'Topic set' });
   if (needsSource) {
-    if (!source) checks.push({ type:'needs', text:'Source text needed' });
+    if (!source) checks.push({ type:'needs', text:'Source text needed', want:'a source text' });
     else if (source.length < 80) checks.push({ type:'attention', text:'Text is short' });
     else checks.push({ type:'ok', text:'Text has context' });
   } else if (source) {
     checks.push({ type:'ok', text:'Extra context added' });
   }
   if (needsVocab) {
-    if (!vocab.length) checks.push({ type:'needs', text:'Vocabulary needed' });
+    if (!vocab.length) checks.push({ type:'needs', text:'Vocabulary needed', want:'target words' });
     else if (vocab.length < 2) checks.push({ type:'attention', text:'Add a few more terms' });
     else checks.push({ type:'ok', text:`${vocab.length} terms ready` });
   } else if (wantsVocab && vocab.length) {
@@ -9506,7 +9506,13 @@ function _ttRefreshBriefReview() {
   review.classList.toggle('attention', !hasNeeds && hasAttention);
   review.classList.toggle('needs-input', hasNeeds);
   heading.textContent = 'Task input';
-  const missing = checks.filter(check => check.type === 'needs').map(check => check.text.toLowerCase());
+  /* Тексты проверок служат двум местам сразу: подписями чипов и кусками этой
+     фразы. Прямая склейка давала «Add add a topic and vocabulary needed to
+     create the draft» - удвоенное Add и существительное там, где нужен
+     объект. Поэтому у проверки есть отдельное короткое `want` для фразы, а
+     `text` остаётся подписью чипа. */
+  const missing = checks.filter(check => check.type === 'needs')
+    .map(check => check.want || check.text.toLowerCase());
   copy.textContent = hasNeeds
     ? `Add ${missing.join(' and ')} to create the draft.`
     : (hasAttention ? 'You can create now; a little more detail will sharpen the result.' : 'Ready for a first draft. You can edit the result on the board.');
@@ -13542,7 +13548,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '619';
+const TEACHEDOS_ASSET_VERSION = '620';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
