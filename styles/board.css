@@ -4864,10 +4864,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     row-gap:6px !important;
     padding:8px !important;
   }
+  /* Перенос по месту рвал смысловые группы: получалось «карандаш, дубль» /
+     «восемь цветов и ещё один дубль» / «дубль, замок, удалить». Ряд цветов
+     занимает отдельную строку целиком, и тогда все кнопки-иконки ложатся в
+     одну: шесть по 44px это 264px плюс зазоры, в 370px помещается. */
   body.board-phone-shell .layer-popover .card-color-row{
+    flex:0 0 100% !important;
     max-width:none !important;
     justify-content:center !important;
+    order:2 !important;
   }
+  body.board-phone-shell .layer-popover .layer-btn{ order:1 !important; }
   body.board-phone-shell .layer-btn{
     min-width:44px !important;
     height:44px !important;
