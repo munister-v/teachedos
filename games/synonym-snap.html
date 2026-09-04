@@ -26,10 +26,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .word-card.wrong{border-color:#f44336;background:#fff0f0}
 .msg{margin-top:14px;font-size:1rem;font-weight:700;color:var(--accent);min-height:22px;text-align:center}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=651">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=651">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=652">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=652">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=651">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=652">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -40,8 +40,8 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 <div class="grid" id="grid"></div>
 <div class="msg" id="msg"></div>
 
-<script src="../scripts/game-handoff.js?v=651"></script>
-<script src="../scripts/game-pause.js?v=651"></script>
+<script src="../scripts/game-handoff.js?v=652"></script>
+<script src="../scripts/game-pause.js?v=652"></script>
 <script>
 const PAIRS=[
   ['big','large'],['fast','quick'],['happy','glad'],['begin','start'],
@@ -135,6 +135,6 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=651"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=652"></script>
 </body>
 </html>

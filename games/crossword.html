@@ -56,10 +56,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=651">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=651">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=652">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=652">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=651">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=652">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -101,10 +101,52 @@ const WORD_BANK=[
 const SIZE=15;
 let solution={}, placements=[], numbers={}, bounds={}, customBank=null;
 
+/* Ширина сетки на телефоне.
+
+   Клетка кроссворда - цель нажатия, а порог 44px упирается в арифметику: при
+   двенадцати колонках это 528px на экране в 375. Пока сетка строилась по полю
+   генератора, клетка была 19px, и никакая правка стилей этого не меняла.
+
+   Поэтому на телефоне ограничивается сама сетка: семь колонок дают клетке
+   около 48px, то есть она упирается в потолок 44 и порог наконец берётся.
+   Восемь колонок давали бы 42 - почти, но мимо, а «почти» здесь не считается.
+
+   Плата честная и её видно: слова длиннее семи букв на телефон не попадают,
+   и слов в сетке становится меньше. Это сознательный размен - лучше меньшая
+   сетка, в которую можно попасть пальцем, чем полная, в которую нельзя.
+   По вертикали ограничения нет: вниз страница прокручивается свободно. */
+const PHONE_MAX_COLS = 7;
+function maxCols(){
+  return (window.matchMedia && window.matchMedia('(max-width:480px)').matches)
+    ? PHONE_MAX_COLS : SIZE;
+}
+
 function buildCrossword(){
-  const list=[...(customBank||WORD_BANK)].sort((a,b)=>b.word.length-a.word.length);
+  const full=customBank||WORD_BANK;
+  const narrow=full.filter(w=>w.word.length<=maxCols());
+  /* Если под узкую сетку не набирается материала - например, учитель дал
+     набор из одних длинных слов, - ограничение снимается целиком, вместе с
+     фильтром. Снимать только фильтр нельзя: первое слово ставится без
+     проверки, а каждое следующее упиралось бы в предел, и на телефоне
+     выходил кроссворд из ОДНОГО слова. Проверено на наборе из тринадцати-
+     буквенных слов: было 1 слово и клетка 25px. Лучше прежняя мелкая
+     клетка, но настоящая сетка. */
+  const wide=narrow.length<4;
+  const limit=wide?SIZE:maxCols();
+  const list=[...(wide?full:narrow)].sort((a,b)=>b.word.length-a.word.length);
   let grid=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
   placements=[];
+
+  /* Ширина занятой части сетки, если поставить слово сюда. Считается по уже
+     расставленным словам плюс кандидат - до самой расстановки. */
+  function spanWith(word,row,col,dir){
+    let minC=col, maxC=dir==='across'?col+word.length-1:col;
+    for(const p of placements){
+      minC=Math.min(minC,p.col);
+      maxC=Math.max(maxC,p.dir==='across'?p.col+p.word.length-1:p.col);
+    }
+    return maxC-minC+1;
+  }
 
   function canPlace(word,row,col,dir){
     // cell before start and after end must be empty (no run-on words)
@@ -156,7 +198,9 @@ function buildCrossword(){
           let row,col;
           if(existing.dir==='across'){ col=existing.col+j; row=existing.row-i; }
           else { row=existing.row+j; col=existing.col-i; }
-          if(canPlace(word,row,col,dir)){ place(word,clue,row,col,dir); placed=true; }
+          if(canPlace(word,row,col,dir) && spanWith(word,row,col,dir)<=limit){
+            place(word,clue,row,col,dir); placed=true;
+          }
         }
       }
     }
@@ -295,7 +339,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=651"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=651"></script>
+<script src="../scripts/game-handoff.js?v=652"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=652"></script>
 </body>
 </html>
