@@ -650,7 +650,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   position:relative;gap:2px;
 }
 .sb-tab{
-  flex:1;padding:8px 4px 7px;text-align:center;cursor:pointer;
+  flex:1;padding:8px 4px;text-align:center;cursor:pointer;
   border-radius:10px;border-bottom:none;
   transition:color .12s,background .14s;
   display:flex;flex-direction:column;align-items:center;gap:3px;
