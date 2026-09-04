@@ -6736,6 +6736,30 @@ document.addEventListener('mouseup', e => {
       if (heightWasDragged) card.data._manualH = true;
       else requestAnimationFrame(() => _wsFitToContent(card.id, { shrink: true }));
     }
+    /* Resizing moves a card's centre just as dragging does, so frame membership
+       has to be settled here too. Without it a card resized until its centre
+       left the frame stayed a child - still moving with the frame, still
+       counted by the geometry audit - and one resized until its centre entered
+       a frame never became one. Frames re-evaluate every card instead: a frame
+       dragged smaller or larger changes who is inside it, not where it is. */
+    if (card.type === 'frame') {
+      state.cards.forEach(other => {
+        if (!other || other === card || other.type === 'frame') return;
+        const target = findFrameUnder(other);
+        if (target) {
+          if (other.data.parentFrame !== target.id) setCardParentFrame(other, target);
+        } else if (other.data.parentFrame) {
+          setCardParentFrame(other, null);
+        }
+      });
+    } else {
+      const target = findFrameUnder(card);
+      if (target) {
+        if (card.data.parentFrame !== target.id) setCardParentFrame(card, target);
+      } else if (card.data.parentFrame) {
+        setCardParentFrame(card, null);
+      }
+    }
     scheduleSave();
   }
 
@@ -6770,7 +6794,17 @@ document.addEventListener('mouseup', e => {
         }
       } else {
         const { type, data, w, h } = sidebarDragData;
-        addCard(type, pos.x - w/2, pos.y - h/2, data, w, h);
+        const dropped = addCard(type, pos.x - w/2, pos.y - h/2, data, w, h);
+        /* Dropped straight from the sidebar onto a frame, this card never went
+           through a card drag, and card drag is where frame membership was
+           being settled. Untracked, it would sit inside the frame while not
+           belonging to it: left behind when the frame is moved, and invisible
+           to the generated-frame geometry audit that sizes the frame around
+           the children it knows about. */
+        if (dropped && dropped.type !== 'frame') {
+          const target = findFrameUnder(dropped);
+          if (target) setCardParentFrame(dropped, target);
+        }
       }
     }
     ghostEl.style.display = 'none';
@@ -7325,6 +7359,18 @@ function cloneCardsWithRelationships(sourceCards, offsetX, offsetY) {
       if (oldParent && idMap.has(oldParent)) {
         card.data.parentFrame = idMap.get(oldParent);
       }
+    });
+    /* A copy lands a short offset from its original, so a card copied out of a
+       frame without that frame almost always comes to rest inside it - and the
+       parentFrame that would have said so was dropped above, correctly, because
+       the frame itself was not part of the copied set. Settling containment on
+       where the new cards actually landed is what keeps a pasted or duplicated
+       card moving with the frame it visibly sits in. Cards that inherited a
+       parent from the copied set are already right and are left alone. */
+    cloned.forEach(({ card }) => {
+      if (card.type === 'frame' || card.data.parentFrame) return;
+      const target = findFrameUnder(card);
+      if (target) setCardParentFrame(card, target);
     });
   } finally {
     _suppressSnapshot--;
@@ -11370,7 +11416,11 @@ function _ttAuditGeneratedFrame(frameId, opts = {}) {
   state.cards.forEach(card => {
     if (!card || card === frame || card.type === 'frame') return;
     if (card.data?.parentFrame === frame.id) return;
-    if (_cardInFrame(card, frame)) setCardParentFrame(card, frame);
+    // findFrameUnder, not a bare _cardInFrame test: where frames overlap the
+    // topmost one owns the card, exactly as drag-end decides it. Adopting on
+    // plain containment instead would let two overlapping frames take turns
+    // claiming the same card on every audit pass.
+    if (findFrameUnder(card) === frame) setCardParentFrame(card, frame);
   });
   const childIds = [...new Set(frame.data?.childIds || [])];
   // Nested frames define a real outer boundary, but their own contents naturally
@@ -13726,7 +13776,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '706';
+const TEACHEDOS_ASSET_VERSION = '707';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
