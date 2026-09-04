@@ -1930,6 +1930,30 @@ function renderTeacherToolLocalPreview(out){
     return;
   }
 
+  /* Всё, что не cards и не vocab, падало сюда и читало out.questions.length.
+     У формы без questions - боковых boardKind вроде matching, wordset и
+     worksheet, или результата, собранного не тем путём, - это бросало
+     исключение ПОСРЕДИ рендера, до единственной записи в body.innerHTML.
+     Панель оставалась с ПРЕДЫДУЩИМ результатом, и учитель видел не свой
+     инструмент, а тот, что генерировал до него: один раз сделав словарное
+     упражнение, он получал его в ответ на любой следующий инструмент, сколько
+     бы раз ни нажимал. Ошибка при этом молчала - она уходила в консоль, а на
+     экране просто ничего не менялось.
+
+     Ни один вызов рендера не обёрнут, а их шесть, поэтому проверка стоит
+     здесь: неизвестная форма уходит в общий рендер секций, и панель в любом
+     случае перерисовывается. */
+  if (!Array.isArray(out.questions)) {
+    if (Array.isArray(out.sections) && typeof renderTeacherToolBuilderOutput === 'function') {
+      renderTeacherToolBuilderOutput(out);
+      return;
+    }
+    if (chip) chip.textContent = out.kind || 'ready';
+    body.innerHTML = _ttPreviewHeader(out, 0, 'items')
+      + '<div class="tbuilder-empty">Этот материал создан, но его нельзя показать в предпросмотре. Нажмите «Add to board» - на доске он откроется полностью.</div>';
+    return;
+  }
+
   // quiz - for match/sort tasks the meaningful count is the number of pairs
   // (a sort is one "question" holding many words), not the question count.
   const isMatchSet = out.questions.length > 0 && out.questions.every(q => q.type === 'match');

@@ -9560,8 +9560,36 @@ const TT_MEDIA_SET = new Set([
 ]);
 // Text-generation tools - offer Genre + Length controls for the produced text.
 const TT_TEXTGEN_SET = new Set(['generate-text','text-topic-vocab']);
-const TT_BUILDER_DRAFT_KEY = 'teachedos_tt_builder_draft_v1';
+/* Черновик хранился под ОДНИМ ключом на все 77 инструментов и восстанавливался
+   в любой следующий. Учитель заполнял целевые слова для словарного упражнения,
+   открывал «Rewrite the Sentence» - и видел там те же слова, ту же тему и те же
+   заметки. Инструмент открывался правильный, но выглядел как предыдущий, и по
+   форме нельзя было понять, что это не он: жалоба «что бы я ни открыла,
+   открывает вокабуляр» - ровно про это.
+
+   Теперь у каждого инструмента свой черновик, под своим id. Старый общий ключ
+   не переносится: разложить его по инструментам нельзя, а подставлять во все -
+   это и есть исходная ошибка. */
+const TT_BUILDER_DRAFT_KEY = 'teachedos_tt_builder_draft_v2';
+const TT_BUILDER_DRAFT_LEGACY_KEY = 'teachedos_tt_builder_draft_v1';
+/* Черновиков теперь много, а место у localStorage общее с доской, поэтому
+   держим только последние: без предела один вставленный текст на инструмент
+   быстро съел бы квоту, из-за которой доска уже падала в «Local cache is
+   full». */
+const TT_BUILDER_DRAFT_MAX_TOOLS = 12;
 const TT_BUILDER_DRAFT_MAX_CHARS = 180000;
+
+function _ttReadDraftStore() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(TT_BUILDER_DRAFT_KEY) || 'null');
+    if (parsed && parsed.version === 2 && parsed.tools && typeof parsed.tools === 'object') return parsed.tools;
+  } catch {}
+  return {};
+}
+
+// Общий черновик больше не читается ничем; убираем его, чтобы он не занимал
+// квоту, которой доске и так не хватает.
+try { localStorage.removeItem(TT_BUILDER_DRAFT_LEGACY_KEY); } catch {}
 let _ttDraftSaveTimer = 0;
 let _ttClearedDraft = null;
 let _ttClearUndoTimer = 0;
@@ -9607,7 +9635,13 @@ function _ttSaveBuilderDraft() {
   if (!activeTeacherToolBuilder) return false;
   if (_ttDraftSaveTimer) { clearTimeout(_ttDraftSaveTimer); _ttDraftSaveTimer = 0; }
   const draft = _ttReadBuilderDraft();
-  const payload = JSON.stringify({ version: 1, savedAt: Date.now(), draft });
+  const tools = _ttReadDraftStore();
+  tools[activeTeacherToolBuilder.id] = { savedAt: Date.now(), draft };
+  // Оставляем только самые свежие, старые вытесняем по времени сохранения.
+  const keep = Object.entries(tools)
+    .sort((a, b) => (b[1]?.savedAt || 0) - (a[1]?.savedAt || 0))
+    .slice(0, TT_BUILDER_DRAFT_MAX_TOOLS);
+  const payload = JSON.stringify({ version: 2, tools: Object.fromEntries(keep) });
   if (payload.length > TT_BUILDER_DRAFT_MAX_CHARS) {
     _ttSetDraftState('Draft is too large to save', 'unsaved');
     return false;
@@ -9637,14 +9671,25 @@ function _ttQueueBuilderDraft() {
   _ttDraftSaveTimer = setTimeout(() => _ttSaveBuilderDraft(), 360);
 }
 
+/* Пустой черновик: им затирается форма, когда у открываемого инструмента
+   своего черновика нет. Панель одна на все инструменты и переиспользуется, так
+   что без этого в полях просто оставались бы значения предыдущего - то есть та
+   же самая ошибка, только уже не из localStorage, а из DOM. */
+const TT_BUILDER_EMPTY_DRAFT = {
+  level: 'B1', count: '12', topic: '', genre: '', length: '',
+  source: '', vocab: '', extra: '', action: 'simplify',
+};
+
 function _ttRestoreBuilderDraft() {
+  const toolId = activeTeacherToolBuilder && activeTeacherToolBuilder.id;
   try {
-    const saved = JSON.parse(localStorage.getItem(TT_BUILDER_DRAFT_KEY) || 'null');
-    if (saved?.version === 1 && _ttApplyBuilderDraft(saved.draft)) {
+    const saved = _ttReadDraftStore()[toolId];
+    if (saved && _ttApplyBuilderDraft(saved.draft)) {
       _ttSetDraftState('Draft restored', 'saved');
       return true;
     }
   } catch {}
+  _ttApplyBuilderDraft(TT_BUILDER_EMPTY_DRAFT);
   _ttSetDraftState('Saved on this device');
   return false;
 }
@@ -9670,7 +9715,14 @@ function clearTeacherToolBuilderFields() {
   ['tbuilder-topic','tbuilder-source','tbuilder-vocab','tbuilder-extra'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
-  try { localStorage.removeItem(TT_BUILDER_DRAFT_KEY); } catch {}
+  /* Чистится ОДИН инструмент, а ключ теперь общий на все, поэтому удаляем свою
+     запись, а не весь ключ - иначе «Clear fields» в одном инструменте стирал бы
+     черновики всех остальных. */
+  try {
+    const tools = _ttReadDraftStore();
+    if (activeTeacherToolBuilder) delete tools[activeTeacherToolBuilder.id];
+    localStorage.setItem(TT_BUILDER_DRAFT_KEY, JSON.stringify({ version: 2, tools }));
+  } catch {}
   const button = document.getElementById('tbuilder-clear-btn');
   if (button) { button.textContent = 'Undo clear'; button.classList.add('undo'); }
   _ttSetDraftState('Fields cleared — you can undo', 'unsaved');
@@ -13805,7 +13857,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '713';
+const TEACHEDOS_ASSET_VERSION = '714';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
