@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=661">
+<link rel="manifest" href="manifest.json?v=665">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -19,6 +19,26 @@
  "@context": "https://schema.org",
  "@graph": [
   {
+   "@type": "Organization",
+   "@id": "https://teached.tech/#org",
+   "name": "TeachEd",
+   "url": "https://teached.tech/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://teached.tech/og-cover.png"
+   }
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://teached.tech/#website",
+   "name": "TeachEd",
+   "url": "https://teached.tech/",
+   "inLanguage": "en",
+   "publisher": {
+    "@id": "https://teached.tech/#org"
+   }
+  },
+  {
    "@type": "SoftwareApplication",
    "name": "TeachEd",
    "url": "https://teached.tech/",
@@ -26,10 +46,61 @@
    "operatingSystem": "Web browser, iOS, Android",
    "description": "Workspace for language teachers: lesson boards, printable worksheets, YouTube lessons, ready lesson packs and 30+ classroom games.",
    "offers": {
-    "@type": "Offer",
-    "price": "0",
+    "@type": "AggregateOffer",
     "priceCurrency": "USD",
-    "description": "Free plan"
+    "lowPrice": "0",
+    "highPrice": "29",
+    "offerCount": 3,
+    "offers": [
+     {
+      "@type": "Offer",
+      "name": "Free",
+      "price": "0",
+      "priceCurrency": "USD"
+     },
+     {
+      "@type": "Offer",
+      "name": "Pro",
+      "price": "9.90",
+      "priceCurrency": "USD",
+      "priceSpecification": {
+       "@type": "UnitPriceSpecification",
+       "price": "9.90",
+       "priceCurrency": "USD",
+       "billingDuration": 1,
+       "billingIncrement": 1,
+       "unitCode": "MON"
+      }
+     },
+     {
+      "@type": "Offer",
+      "name": "School",
+      "price": "29",
+      "priceCurrency": "USD",
+      "priceSpecification": {
+       "@type": "UnitPriceSpecification",
+       "price": "29",
+       "priceCurrency": "USD",
+       "billingDuration": 1,
+       "billingIncrement": 1,
+       "unitCode": "MON"
+      }
+     }
+    ]
+   },
+   "featureList": [
+    "Lesson boards",
+    "Printable worksheets",
+    "YouTube lesson builder",
+    "Vocabulary drills",
+    "Quizzes",
+    "30+ classroom games",
+    "Offline mode (PWA)"
+   ],
+   "inLanguage": "en",
+   "isAccessibleForFree": true,
+   "publisher": {
+    "@id": "https://teached.tech/#org"
    }
   },
   {
@@ -98,8 +169,20 @@
       "@type": "Answer",
       "text": "You can copy-paste content from any source into board cards and notes. We're working on direct import from Google Docs and PDF. In the meantime, our ready-made packs cover most common lesson types immediately."
      }
+    },
+    {
+     "@type": "Question",
+     "name": "Is my data safe?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Your data is stored securely on our servers with encrypted connections. Free plan data is local-first (browser storage). Pro plan syncs encrypted to the cloud. We never sell or share your data."
+     }
     }
-   ]
+   ],
+   "@id": "https://teached.tech/#faq",
+   "isPartOf": {
+    "@id": "https://teached.tech/#website"
+   }
   }
  ]
 }
@@ -127,6 +210,10 @@
 <meta property="og:title" content="TeachEd - lesson boards, worksheets and games for language teachers">
 <meta property="og:description" content="Prepare ESL lessons with boards, worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games - online or offline.">
 <meta property="og:url" content="https://teached.tech/">
+<!-- Язык и тип картинки: og:locale отсутствовал, а без og:image:type часть
+     агрегаторов не показывает превью до собственной загрузки файла. -->
+<meta property="og:locale" content="en_US">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image" content="https://teached.tech/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -1860,9 +1947,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=661">
+<link rel="stylesheet" href="styles/teached-brand.css?v=665">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=661">
+<link rel="stylesheet" href="styles/figma-landing.css?v=665">
 </head>
 <body class="landing-page fx">
 
@@ -2744,7 +2831,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=661">
+<link rel="stylesheet" href="styles/auth.css?v=665">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*

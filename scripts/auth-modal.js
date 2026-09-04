@@ -398,8 +398,20 @@
     } catch (e) { console.warn('[auth-modal] gsi init failed', e); return false; }
   }
   async function setupGoogle() {
-    const ok = await initGsi(); if (!ok) return;
-    const area = $('auth-google-area'), wrap = $('auth-google-btn');
+    // renderFields() уже открыла область синхронно (googleArea.style.display
+    // = 'block' для входа), не дожидаясь этой функции - иначе кнопка Google
+    // моргала бы пустым местом при каждом открытии формы. Но это значит, что
+    // до сюда область всегда раскрыта, и на любом пути отказа её нужно
+    // закрыть явно, а не молча выйти. Раньше `if (!ok) return` делал именно
+    // это: initGsi проваливался (нет сети до accounts.google.com,
+    // заблокирован скрипт, не поднялась /api/auth/config) - и в окне
+    // навсегда оставалась пустая полоса с одиноким разделителем «OR» над
+    // пустым местом высотой в кнопку. На телефоне, где под формой каждый
+    // пиксель на счету, это ещё и отодвигало поля вниз без всякой причины.
+    const ok = await initGsi();
+    const area = $('auth-google-area');
+    if (!ok) { if (area) area.style.display = 'none'; return; }
+    const wrap = $('auth-google-btn');
     if (!area || !wrap) return;
     // Показываем блок только когда кнопка Google действительно отрисовалась.
     // Раньше область раскрывалась до вызова renderButton, и если GSI не
@@ -410,7 +422,7 @@
       try {
         const width = Math.min(336, Math.max(240, ($('auth-modal')?.clientWidth || 400) - 60));
         google.accounts.id.renderButton(wrap, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', width, logo_alignment: 'center', locale: 'en' });
-      } catch (e) { console.warn('[auth-modal] gsi renderButton', e); }
+      } catch (e) { console.warn('[auth-modal] gsi renderButton', e); area.style.display = 'none'; return; }
       area.style.display = wrap.childElementCount ? 'block' : 'none';
     });
   }
@@ -429,5 +441,50 @@
     } finally {
       if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
     }
+  }
+
+  /* Клавиатура на телефоне ужимает visualViewport, а не сам документ: карточка
+     входа занимает весь экран (@media 540px в auth.css), «Sign in» лежит на
+     фиксированной высоте от начала формы, и ничто не подводило активное поле
+     или саму кнопку под сузившийся видимый прямоугольник. На узком экране
+     кнопка уходит ниже клавиатуры целиком - добраться до неё можно было,
+     только вручную закрыв клавиатуру. Оверлей уже прокручиваемый
+     (overflow-y:auto), не хватало только команды на прокрутку.
+
+     Слушатель один на всё приложение (модалка переживает несколько открытий
+     за сеанс), сработавший input проверяется на месте по .auth-inp внутри
+     #auth-overlay, поэтому лишней работы на остальных полях страницы нет.
+
+     Прокрутка - мгновенная, не smooth. Сначала стояло
+     scrollTo({top,behavior:'smooth'}) (а до него - el.scrollIntoView с тем
+     же behavior); оба замерены и оба ненадёжны здесь: на сильно суженном
+     экране один проход анимации останавливался на трети заданного пути
+     (64px из нужных ~230), кнопка оставалась ниже кадра, и лишь второй такой
+     же вызов дотягивал до места - похоже на неровность Chromium со
+     smooth-прокруткой внутри вложенного скролл-контейнера при недавнем
+     изменении метрик вьюпорта, а это ровно наш случай (клавиатура). Прямое
+     присвоение scrollTop бьёт точно в цель одним прыжком - без плавности,
+     зато без риска, что кнопка так и останется скрытой. */
+  function scrollFocusedAuthFieldIntoView() {
+    const el = document.activeElement;
+    if (!el || !el.classList || !el.classList.contains('auth-inp')) return;
+    const overlay = document.getElementById('auth-overlay');
+    if (!overlay || !overlay.contains(el)) return;
+    const overlayRect = overlay.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const elCenter = (elRect.top + elRect.bottom) / 2 - overlayRect.top;
+    const delta = elCenter - overlayRect.height / 2;
+    const maxScroll = Math.max(0, overlay.scrollHeight - overlay.clientHeight);
+    const target = Math.min(Math.max(0, overlay.scrollTop + delta), maxScroll);
+    overlay.scrollTop = target;
+  }
+  document.addEventListener('focusin', e => {
+    if (!e.target.classList || !e.target.classList.contains('auth-inp')) return;
+    // Клавиатура анимированно выезжает ~250-300мс; scrollIntoView раньше
+    // целится в высоту ДО её появления и промахивается.
+    setTimeout(scrollFocusedAuthFieldIntoView, 320);
+  });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', scrollFocusedAuthFieldIntoView);
   }
 })();
