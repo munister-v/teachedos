@@ -762,6 +762,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .annotation-resolve{border:1px solid rgba(24,30,22,.16);background:#fff;color:#4D564B;}
 .annotation-send{border:1px solid #1A1C19;background:#1A1C19;color:#fff;}
 .annotation-send:hover{background:#343A32;}
+/* Удаление тише двух других действий: рамки нет, цвет приглушён, красным
+   становится только под курсором. Строка кнопок - space-between, так что оно
+   само встаёт слева, дальше всего от «Reply». */
+.annotation-delete{border:1px solid transparent;background:transparent;color:#8A8F87;}
+.annotation-delete:hover{background:rgba(190,38,38,.08);color:#BE2626;}
 .comments-panel{position:fixed;top:calc(var(--tb-h, 52px) + 12px);right:12px;z-index:2000;width:min(340px,calc(100vw - 24px));max-height:calc(100vh - var(--tb-h, 52px) - 24px);display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid rgba(24,30,22,.12);border-radius:12px;box-shadow:0 18px 42px rgba(25,31,22,.18),0 3px 9px rgba(25,31,22,.08);animation:annotationPopoverIn .15s ease both;}
 .comments-panel>header span{flex:1;}.comments-panel>header small{min-width:20px;height:20px;display:grid;place-items:center;border-radius:999px;background:#F2F4EE;color:#697167;font-size:11px;}.comments-panel-list{overflow:auto;padding:7px;}
 .comments-panel-item{box-sizing:border-box;width:100%;display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:9px;align-items:start;padding:10px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;cursor:pointer;}

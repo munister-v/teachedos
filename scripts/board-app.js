@@ -7854,10 +7854,30 @@ function openAnnotationThread(annotationId) {
   popover.dataset.mode = 'thread';
   popover.className = 'annotation-popover annotation-thread';
   const messages = annotation.thread.map(message => `<article class="annotation-message"><div><b>${esc(message.author)}</b><time>${annotationTimeAgo(message.createdAt)}</time></div><p>${esc(message.body)}</p></article>`).join('');
-  popover.innerHTML = `<header><span>${annotation.resolved ? 'Resolved comment' : 'Comment'}</span><button type="button" class="annotation-close" aria-label="Close comment">×</button></header><div class="annotation-messages">${messages}</div><form class="annotation-reply"><textarea aria-label="Reply to comment" rows="2" placeholder="Reply…"></textarea><div><button type="button" class="annotation-resolve">${annotation.resolved ? 'Reopen' : 'Resolve'}</button><button type="submit" class="annotation-send">Reply</button></div></form>`;
+  /* Удалить комментарий было нельзя вообще: в треде жили «Закрыть», «Решить»
+     и «Ответить», а функции удаления не существовало ни здесь, ни где-либо
+     ещё. Случайно поставленная точка оставалась на доске навсегда - «решить»
+     её только помечает, но пятно остаётся. Удаление рядом с «Решить», но
+     обычной кнопкой, а не главной, и со своим подтверждением: отменить его
+     можно только общим Undo, и это стоит сказать до, а не после. */
+  popover.innerHTML = `<header><span>${annotation.resolved ? 'Resolved comment' : 'Comment'}</span><button type="button" class="annotation-close" aria-label="Close comment">×</button></header><div class="annotation-messages">${messages}</div><form class="annotation-reply"><textarea aria-label="Reply to comment" rows="2" placeholder="Reply…"></textarea><div><button type="button" class="annotation-delete" aria-label="Delete comment">Delete</button><button type="button" class="annotation-resolve">${annotation.resolved ? 'Reopen' : 'Resolve'}</button><button type="submit" class="annotation-send">Reply</button></div></form>`;
   document.body.appendChild(popover);
   positionAnnotationPopover(annotation, popover);
   popover.querySelector('.annotation-close').addEventListener('click', closeAnnotationPopover);
+  popover.querySelector('.annotation-delete').addEventListener('click', () => {
+    const count = annotation.thread.length;
+    const question = count > 1
+      ? `Delete this comment and its ${count - 1} ${count === 2 ? 'reply' : 'replies'}?`
+      : 'Delete this comment?';
+    if (!confirm(question)) return;
+    snapshot();
+    const at = state.annotations.indexOf(annotation);
+    if (at !== -1) state.annotations.splice(at, 1);
+    closeAnnotationPopover();
+    renderAllAnnotations();
+    scheduleSave();
+    toast && toast('Comment deleted');
+  });
   popover.querySelector('.annotation-resolve').addEventListener('click', () => {
     snapshot();
     annotation.resolved = !annotation.resolved;
@@ -13785,7 +13805,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '712';
+const TEACHEDOS_ASSET_VERSION = '713';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16805,6 +16825,48 @@ async function initUserBoard() {
       } else if (currentUser.role === 'student') {
         // Student with no owned boards - redirect to student dashboard
         location.href = 'student.html';
+      } else {
+        /* Учитель, у которого ещё нет ни одной доски, раньше не получал
+           НИЧЕГО: currentBoardId оставался пустым, а облачное сохранение по
+           нему и включается (см. scheduleSave и saveToCloud). Всё, что он
+           создавал, ложилось только в localStorage этого браузера - и
+           пропадало вместе с ним: при очистке данных, при вытеснении по
+           нехватке места (в scheduleSave для этого даже есть ветка «Local
+           cache is full»), на другом устройстве. Урок, сделанный за вечер,
+           исчезал, и по интерфейсу нельзя было понять, что он вообще нигде
+           не сохранён.
+
+           Поэтому первая доска заводится сама, при первом же входе. Тем же
+           запросом уходит то, что уже лежит на холсте, - если человек успел
+           что-то сделать до того, как доска завелась, оно не теряется, а
+           становится содержимым новой доски. */
+        try {
+          const payload = JSON.parse(serialize());
+          const rNew = await apiFetch('/api/boards', {
+            method: 'POST',
+            body: { name: 'My Board', data: payload },
+          });
+          const created = await rNew.json();
+          const nb = created && created.board;
+          if (rNew.ok && nb && nb.id) {
+            currentBoardId = nb.id;
+            boardOwnerId = nb.user_id || currentUser.id;
+            isOwner = true;
+            boardAccessRole = 'owner';
+            boardCanEdit = true;
+            _cachedBoardCount = 1;
+            localStorage.setItem('teachedos_board_id', currentBoardId);
+            applyRoleUI && applyRoleUI();
+            saveStatus.textContent = '☁ cloud';
+            history.replaceState(null, '', 'board.html?id=' + currentBoardId);
+            if (window.__pendingCommunityImport) runPendingCommunityImport();
+            else runPendingToolImports();
+          }
+        } catch (e) {
+          /* Не удалось - работаем как раньше, локально. Молча, потому что
+             это не действие учителя и падать на ровном месте незачем. */
+          console.warn('[board] first-board bootstrap failed:', e && e.message);
+        }
       }
     }
   } catch (e) {
