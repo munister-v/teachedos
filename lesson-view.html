@@ -31,12 +31,18 @@
   #lesson-toast{position:fixed;right:18px;bottom:18px;z-index:40;max-width:min(360px,calc(100vw - 36px));padding:11px 14px;border-radius:13px;background:#1c1c1e;color:#fff;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease;box-shadow:0 10px 24px rgba(0,0,0,.18)}#lesson-toast.show{opacity:1;transform:translateY(0)}
   @media(max-width:820px){.lesson-nav{height:58px;padding:0 14px;gap:9px}.lesson-brand span{display:none}.lesson-nav-sep{display:none}.lesson-back{min-height:44px;padding:0 7px}.lesson-link-action{min-height:42px;padding:0 10px}.lesson-shell{padding:16px 14px 36px}.lesson-breadcrumb{margin-bottom:11px}.lesson-hero{grid-template-columns:1fr;gap:18px;padding:22px 20px;border-radius:22px}.lesson-title{font-size:clamp(32px,9vw,42px);line-height:1}.lesson-description{font-size:15px;line-height:1.5}.lesson-summary{grid-template-columns:1fr auto;align-items:center;padding:13px 14px}.lesson-summary-note{display:none}.lesson-layout{grid-template-columns:1fr;gap:14px;margin-top:14px}.lesson-board-panel,.lesson-details{border-radius:21px}.board-panel-head{padding:15px}.board-panel-state{font-size:9px}.lesson-stage{min-height:0;padding:10px;border-radius:0 0 21px 21px}.board-panel-note{padding:11px 14px}.lesson-details{padding:18px}.detail-row{grid-template-columns:82px minmax(0,1fr)}.copy-board{min-height:50px;font-size:14px}.detail-link{min-height:46px}.lesson-frame-card{padding:9px}.lesson-frame-card-text{font-size:13px}.lesson-frame-card-type{font-size:8px}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* Телефон: кнопки у ссылки урока стояли на min-height:42px - двух пикселей
+   не хватало до порога. */
+@media (max-width:860px){
+  .lesson-link-action{min-height:44px;}
+}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=652">
+<link rel="stylesheet" href="styles/teached-brand.css?v=655">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=652">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=652">
-<link rel="stylesheet" href="styles/controls.css?v=652">
+<link rel="stylesheet" href="styles/figma-theme.css?v=655">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=655">
+<link rel="stylesheet" href="styles/controls.css?v=655">
 </head>
 <body class="fx">
 <header class="lesson-nav">
@@ -104,7 +110,7 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=652"></script>
+<script src="scripts/app-core.js?v=655"></script>
 <script>
   const FALLBACK_COLORS = ['#fef3c7','#d1fae5','#dbeafe','#fce7f3','#ede9fe','#ffe4d2'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';

@@ -56,10 +56,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=652">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=652">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=655">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=655">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=652">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=655">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -115,10 +115,14 @@ let solution={}, placements=[], numbers={}, bounds={}, customBank=null;
    и слов в сетке становится меньше. Это сознательный размен - лучше меньшая
    сетка, в которую можно попасть пальцем, чем полная, в которую нельзя.
    По вертикали ограничения нет: вниз страница прокручивается свободно. */
-const PHONE_MAX_COLS = 7;
 function maxCols(){
-  return (window.matchMedia && window.matchMedia('(max-width:480px)').matches)
-    ? PHONE_MAX_COLS : SIZE;
+  if(!(window.matchMedia && window.matchMedia('(max-width:480px)').matches)) return SIZE;
+  /* Число колонок считается из ширины экрана, а не константой: семь колонок
+     давали клетку 44px на 375, но всего 38,8 на 320 (iPhone SE) - порог там
+     снова не брался. Вычитаемые 48px - те же поля и дорожки, что в расчёте
+     --cell, делитель 44 - сам порог. Не меньше четырёх, иначе сетка
+     выродится. */
+  return Math.max(4, Math.floor((window.innerWidth - 48) / 44));
 }
 
 function buildCrossword(){
@@ -339,7 +343,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=652"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=652"></script>
+<script src="../scripts/game-handoff.js?v=655"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=655"></script>
 </body>
 </html>

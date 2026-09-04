@@ -6214,14 +6214,18 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     text-overflow:ellipsis;
     white-space:nowrap;
   }
+  /* 40px было ниже порога цели нажатия. Рейка на телефоне 54px высотой,
+     кнопка сидит с отступом 7 - 44 помещается свободно. Настольный размер
+     рейки (26px у .tb-btn под кадр макета) это не трогает: правило живёт
+     внутри телефонного медиазапроса и привязано к board-phone-shell. */
   body.board-phone-shell #btn-share{
     display:grid!important;
     place-items:center;
-    flex:0 0 40px;
-    width:40px!important;
-    min-width:40px!important;
-    height:40px!important;
-    min-height:40px!important;
+    flex:0 0 44px;
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
     padding:0!important;
     border-radius:13px!important;
     background:#1C1C1E!important;
@@ -6366,6 +6370,17 @@ body.board-page:not(#_) #sidebar{ background:#FFFDF7 !important; backdrop-filter
    размеры остаются прежними: там эти подписи читают с полуметра, а не с
    вытянутой руки. */
 @media (max-width:860px){
+  /* Кнопка «ещё» в рейке и крестик редактора карточки шли 40px по узкой
+     стороне. Рейка на телефоне 54px, место есть. */
+  body.board-phone-shell #btn-more{ min-width:44px; min-height:44px; }
+  /* Якорь на родителя обязателен: рядом лежит
+     `#card-editor .ed-save, #card-editor button{min-height:42px}` весом
+     (0,1,1,1), и правило без родителя ему проигрывает. */
+  #card-editor #card-editor-close{ min-width:44px; min-height:44px; }
+
+  /* Чипы памяти в генераторе - цель нажатия высотой 31px. */
+  .ai-memory-chip{ min-height:44px; display:inline-flex; align-items:center; }
+
   .ai-form label,
   .tbuilder-form label,
   .ai-kicker,

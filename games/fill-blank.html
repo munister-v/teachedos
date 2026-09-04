@@ -34,10 +34,20 @@ input[type=text].wrong{border-color:#EC2D8C;background:#fdf0f5;animation:shake .
 .final p{color:#555;margin-bottom:20px}
 .big{font-size:3rem;margin-bottom:8px}
 .btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
+
+/* Строка ответа переливалась за экран на 320px: поле держит собственную
+   ширину около 220px, кнопка «Check» ещё 83, и вдвоём с промежутком они не
+   помещались в 242 доступных. Полю разрешено сжиматься (у flex-элемента
+   min-width по умолчанию auto, то есть он не уже своего содержимого), а
+   строке - переноситься, если и этого мало. */
+@media (max-width:600px){
+  .input-row{flex-wrap:wrap;}
+  .input-row input{min-width:0;flex:1 1 140px;}
+}
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=652">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=655">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=652">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=655">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>

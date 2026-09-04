@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json?v=652">
+<link rel="manifest" href="manifest.json?v=655">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -172,14 +172,43 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   .mdo-btn{display:flex;align-items:center;justify-content:center;min-height:44px;padding:11px 14px;border-radius:13px;background:var(--ink);color:#fff;font:700 13px var(--font-sans,system-ui);text-decoration:none}
   .mdo-btn.secondary{background:rgba(205,242,79,.2);color:var(--ink);border:1px solid rgba(168,208,43,.45)}
 }
+
+/* Телефон: цели нажатия в конструкторе.
+   Кнопка удаления варианта была 19x19 - самая мелкая цель во всём
+   приложении, и при этом действие необратимое: промах стирает вариант.
+   Флажки и переключатели шли 18x18 - в них тоже надо попасть пальцем. */
+@media (max-width:860px){
+  .del-opt{
+    min-width:44px; min-height:44px; padding:0;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  input[type=checkbox], input[type=radio]{ width:24px; height:24px; }
+}
+
+/* Вкладки конструктора выходили 42px, ссылка-марка в шапке - 28px.
+   Обе - цели нажатия, обеим не хватало до порога. */
+@media (max-width:860px){
+  /* Переключатель панелей на телефоне: кнопки лежат в .mobile-panes, а не
+     в .tabs - селектор по догадке не сработал, взят по факту. */
+  .mobile-panes button{ min-height:44px; }
+  .nav-brand{ min-height:44px; display:inline-flex; align-items:center; }
+  /* Переключателю варианта нужен тот же вес, что у .opt-row input[type=radio],
+     иначе базовые 18px остаются. */
+  .opt-row input[type=radio], .opt-row input[type=checkbox]{ width:24px; height:24px; }
+  /* Поля и кнопки формы выходили 37-43px - каждой не хватало по мелочи.
+     Сам переключатель оставлен 24px: кружок в 44px выглядит поломкой, а
+     нажимают в строку варианта целиком. */
+  input[type=text], input[type=number], textarea, select,
+  button[type=submit], .btn, .primary-btn{ min-height:44px; }
+}
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=652">
-<link rel="stylesheet" href="styles/teached-brand.css?v=652">
-<link rel="stylesheet" href="styles/tool-window.css?v=652">
+<link rel="stylesheet" href="styles/mobile.css?v=655">
+<link rel="stylesheet" href="styles/teached-brand.css?v=655">
+<link rel="stylesheet" href="styles/tool-window.css?v=655">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=652">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=652">
-<link rel="stylesheet" href="styles/controls.css?v=652">
+<link rel="stylesheet" href="styles/figma-theme.css?v=655">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=655">
+<link rel="stylesheet" href="styles/controls.css?v=655">
 </head>
 <body class="tw-page fx">
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -321,7 +350,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocab-loader.js?v=652"></script>
+<script src="scripts/vocab-loader.js?v=655"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -756,7 +785,7 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
-<script src="scripts/autogrow.js?v=652" defer></script>
-<script src="pwa-boot.js?v=652" defer></script>
+<script src="scripts/autogrow.js?v=655" defer></script>
+<script src="pwa-boot.js?v=655" defer></script>
 </body>
 </html>
