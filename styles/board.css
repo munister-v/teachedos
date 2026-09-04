@@ -6354,3 +6354,21 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 
 /* Панель уроков непрозрачна на любой ширине: она всегда лежит над холстом. */
 body.board-page:not(#_) #sidebar{ background:#FFFDF7 !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+
+/* ── Порог кегля на телефоне ──────────────────────────────────────────────
+   Замер на 375px: единственные подписи мельче 11px на всей доске - в панели
+   генератора урока. Метки полей формы (Level, Duration, Skill, Audience и
+   ещё девять), надзаголовок панели, чипы режима и вторая строка на кнопках
+   шаблонов - все набраны 10px, а метки ещё и капителью в моно с разрядкой,
+   где слово опознаётся по одной высоте прописных.
+
+   Порог тот же, к которому приведены хабы, домашний экран и игры. На столе
+   размеры остаются прежними: там эти подписи читают с полуметра, а не с
+   вытянутой руки. */
+@media (max-width:860px){
+  .ai-form label,
+  .tbuilder-form label,
+  .ai-kicker,
+  .ai-chip,
+  .ai-template-btn span{ font-size:11px; }
+}
