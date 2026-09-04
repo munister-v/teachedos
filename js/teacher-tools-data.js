@@ -84,7 +84,28 @@ const BOARD_TEACHER_TOOLS = [
   {id:'audio-video-questions',cat:'listening',title:'Audio & Video Question Creator',desc:'Question set from transcript, video notes or listening focus.',kind:'Listening'},
   {id:'transcript-helper',cat:'listening',title:'Transcript to Lesson Tasks',desc:'Turn transcript into gist, detail, vocab and speaking tasks.',kind:'Transcript'},
   {id:'warmup-listening',cat:'listening',title:'Warm-Up Before Listening',desc:'Prediction questions and vocabulary preparation before media.',kind:'Warm-up'},
-  {id:'listening-dictation',cat:'listening',title:'Dictation / Shadowing Task',desc:'Short dictation, chunking and pronunciation practice flow.',kind:'Pronunciation'}
+  {id:'listening-dictation',cat:'listening',title:'Dictation / Shadowing Task',desc:'Short dictation, chunking and pronunciation practice flow.',kind:'Pronunciation'},
+
+  /* Перенесено из реестра хаба (scripts/teacher-tools-app.js): эти
+     инструменты были доступны ТОЛЬКО со страницы Teacher Tools, хотя доска
+     умеет их выполнять - генераторы для всех пятнадцати уже лежат в
+     scripts/board-gen.js, не хватало лишь записи в этом списке. Шаг к тому,
+     чтобы всё работало с доски; сами хабы пока на месте. */
+  {id:'word-translation-match',cat:'vocabulary',title:'Word-Translation Matching',desc:'Translate target words and build matching pairs for bilingual vocabulary practice.',kind:'Matching'},
+  {id:'word-order',cat:'grammar',title:'Word Order / Unscramble',desc:'Shuffle sentence words for students to put back in the correct order.',kind:'Reorder'},
+  {id:'matching-halves',cat:'grammar',title:'Matching Halves',desc:'Split collocations or sentences into two halves for students to match.',kind:'Matching'},
+  {id:'comm-situations',cat:'vocabulary',title:'Communicative Situations',desc:'Generate role-play situation cards that use the target vocabulary.',kind:'Role Play'},
+  {id:'rephrase-word',cat:'vocabulary',title:'Rephrase Using Word Given',desc:'Rewrite sentences keeping the meaning, using a given key word.',kind:'Transformation'},
+  {id:'four-opinions',cat:'writing',title:'Four Opinions',desc:'Present four contrasting opinions on a topic for response writing.',kind:'Discussion'},
+  {id:'find-quotes',cat:'writing',title:'Find Quotes',desc:'Collect relevant quotes about a topic for discussion and writing.',kind:'Extraction'},
+  {id:'essay-topics',cat:'writing',title:'Essay Topics',desc:'Generate essay prompts and questions on any topic.',kind:'Prompt'},
+  {id:'lead-in',cat:'speaking',title:'Lead-in Activities',desc:'Create quick warm-up activities to introduce a topic.',kind:'Warm-up'},
+  {id:'interesting-facts',cat:'speaking',title:'Interesting Facts',desc:'Generate fact-based discussion starters about a topic.',kind:'Content'},
+  {id:'pros-cons',cat:'speaking',title:'Pros and Cons',desc:'List arguments for and against a topic for debate practice.',kind:'Discussion'},
+  {id:'type-gap',cat:'grammar',title:'Type Anything into Gap',desc:'Create open cloze gaps where students type a suitable word.',kind:'Gap Fill'},
+  {id:'word-bank',cat:'grammar',title:'Fill from Word Bank',desc:'Gap-fill where students choose answers from a provided word bank.',kind:'Word Bank'},
+  {id:'summary-gapfill',cat:'listening',title:'Summary GapFill',desc:'Create a gapped summary of a transcript for listening practice.',kind:'Summary'},
+  {id:'choose-summary',cat:'listening',title:'Choose Right Summary',desc:'Offer several summaries so students pick the correct one.',kind:'Choice'}
 ];
 
 /* ─── TOOL_SEED_CONTENT ─── */
@@ -1449,6 +1470,16 @@ const GAMES = [
   { icon:'👾', title:'Maze Chase',         tag:'Vocabulary', desc:'Run the maze and grab only the target-category words',    src:'games/maze-chase.html',            w:520, h:600 },
   { icon:'🔨', title:'Whack-a-Mole',       tag:'Vocabulary', desc:'Whack only the words from the target category',           src:'games/whack-a-mole.html',          w:560, h:560 },
   { icon:'🖼️', title:'Photo Match',        tag:'Vocabulary', desc:'Match each word to its photo - images fetched automatically', src:'games/word-image-match.html',      w:560, h:620 },
+
+  /* Три игры были доступны только из хаба игр, хотя доска умеет ставить
+     любую игру по src. Размеры сняты замером натуральной раскладки, а не
+     угаданы. Ещё два файла в папке games намеренно НЕ добавлены: create
+     («Create a Word Set») и twee-module-studio - это авторские студии для
+     учителя, а не активность для ученика; на доске они были бы встроенным
+     редактором. Они остаются в хабе игр. */
+  { icon:'⚖️', title:'Four Opinions',     tag:'Speaking',   desc:'Four contrasting opinions on a topic to react to',        src:'games/four-opinions-uk.html',      w:600, h:620 },
+  { icon:'🖼', title:'Image Quiz',        tag:'Vocabulary', desc:'Pick the word that matches the picture',                  src:'games/image-quiz.html',            w:460, h:520 },
+  { icon:'🧭', title:'LinguaQuiz',        tag:'Grammar',    desc:'Cloze quiz over a text with instant checking',            src:'games/linguaquiz-ai-uk.html',      w:600, h:640 },
 ];
 
 /* ─── STICKER_CATEGORIES ─── */

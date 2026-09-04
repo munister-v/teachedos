@@ -9111,6 +9111,11 @@ const BOARD_TOOL_NAMES = {
   speaking:'Speaking', grammar:'Grammar', listening:'Listening', utility:'Utility'
 };
 const TT_TOOL_ICONS = {
+  /* Vocabulary Workout - студия, а не рядовой инструмент: из одного списка
+     слов собирается целый набор активностей. Своего значка у неё не было,
+     и она брала общий значок категории (🧠), тот же, что у полутора
+     десятков словарных инструментов рядом - флагман терялся среди них. */
+  'vocab-workout':'🏋️',
   'lesson-pack':'📦','worksheet-builder':'📄','homework-set':'📋','cefr-checker':'🎯',
   'rubric-maker':'✅','answer-key':'🔑','add-text':'💬','add-images':'🖼','add-video':'🎬',
   'abcd-text':'🔤','open-questions':'❓','true-false':'⚖️','three-titles':'📰',
@@ -13673,7 +13678,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '693';
+const TEACHEDOS_ASSET_VERSION = '694';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
