@@ -4838,10 +4838,19 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     box-shadow:0 8px 22px rgba(14,14,16,.07);
   }
 
+  /* Мелочь панелей приходит с десктопа со своими 6, 8, 9, 10 и 14 - на
+     телефоне рядом с кнопками рейки (12), листом (18) и панелью (24) это
+     читалось разнобоем. Свожу к малому шагу шкалы только на телефоне;
+     настольная доска со своими значениями не затронута. */
+  body.board-phone-shell :is(.sb-tab, .snippet, .sb-collapse, .sb-search input,
+      #card-editor-close, #sb-search, .tb-board-chip-title) {
+    border-radius: 12px !important;
+  }
+
   body.board-phone-shell .tb-logo{
     width:44px!important;
     height:44px!important;
-    border-radius:13px!important;
+    border-radius:12px!important;
     background:#CDF24F!important;
     box-shadow:0 1px 0 rgba(255,255,255,.75) inset;
   }
@@ -6195,7 +6204,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     flex:0 0 44px;
     width:44px!important;
     height:44px!important;
-    border-radius:13px!important;
+    border-radius:12px!important;
   }
   body.board-phone-shell .tb-board-chip{
     flex:1 1 auto!important;
@@ -6203,7 +6212,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     /* Пилюля с названием доски открывает переименование, то есть это цель
        нажатия, а не подпись. Ровняем по логотипу рядом. */
     height:44px!important;
-    border-radius:13px!important;
+    border-radius:12px!important;
   }
   body.board-phone-shell .tb-board-chip-title{
     height:38px!important;
@@ -6227,7 +6236,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     height:44px!important;
     min-height:44px!important;
     padding:0!important;
-    border-radius:13px!important;
+    border-radius:12px!important;
     background:#1C1C1E!important;
     color:#CDF24F!important;
     box-shadow:0 6px 16px rgba(28,28,30,.16)!important;
@@ -6247,7 +6256,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     height:40px!important;
     min-height:40px!important;
     padding:0!important;
-    border-radius:13px!important;
+    border-radius:12px!important;
     background:#fff!important;
     border:1px solid rgba(94,94,74,.12)!important;
   }
@@ -6312,7 +6321,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     height:40px;
     padding:0;
     border:1px solid rgba(94,94,74,.12);
-    border-radius:13px;
+    border-radius:12px;
     background:#fff;
     color:#3A3A2E;
     cursor:pointer;
