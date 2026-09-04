@@ -11360,6 +11360,18 @@ function _restackBelow(cardIds, startY, gap) {
 function _ttAuditGeneratedFrame(frameId, opts = {}) {
   const frame = state.cards.find(card => card && card.id === frameId && card.type === 'frame');
   if (!frame || frame.data?._ttSrc !== 1) return null;
+  // A card only gets registered into frame.data.childIds on drag-end (see the
+  // mouseup handler above), so anything placed inside the frame another way -
+  // pasted, inserted from a toolbar, dropped by a tool that skips the drag
+  // gesture - is invisible to that bookkeeping. Adopting it here, before the
+  // geometry runs, is what stops the shrink pass below from sizing the frame
+  // around only the cards it happens to know about and stranding the rest
+  // outside the new, smaller box.
+  state.cards.forEach(card => {
+    if (!card || card === frame || card.type === 'frame') return;
+    if (card.data?.parentFrame === frame.id) return;
+    if (_cardInFrame(card, frame)) setCardParentFrame(card, frame);
+  });
   const childIds = [...new Set(frame.data?.childIds || [])];
   // Nested frames define a real outer boundary, but their own contents naturally
   // overlap them. Keep them for envelope checks and exclude them from collision
@@ -13714,7 +13726,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '705';
+const TEACHEDOS_ASSET_VERSION = '706';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
