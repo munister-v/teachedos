@@ -1523,10 +1523,20 @@ body{ -webkit-overflow-scrolling:touch; text-rendering:optimizeLegibility; }
 }
 
 /* Crisper keyboard focus everywhere (accessibility + finish). */
-:where(a, button, .btn, input, select, textarea, [role="button"], [tabindex]):focus-visible{
+:where(a, button, .btn, [role="button"], [tabindex]):focus-visible{
   outline: 2px solid #1C1C1E;
   outline-offset: 2px;
   border-radius: 6px;
+}
+/* Текстовые поля матчат :focus-visible и при обычном тапе, а не только с
+   клавиатуры: на телефоне вокруг поля появлялось жирное чёрное кольцо поверх
+   собственной лаймовой подсветки поля (правило ниже, «body:not(.board-page)
+   ... :focus»). Индикатор фокуса нужен, поэтому не убираю его, а привожу к
+   палитре: то же кольцо лаймом. border-radius сюда не входит - он менял
+   скругление поля прямо в момент фокуса (13px у .auth-inp снаружи, 6px тут). */
+:where(input, select, textarea):focus-visible{
+  outline: 2px solid rgba(200,230,50,.85);
+  outline-offset: 2px;
 }
 
 /* Tasteful thin scrollbars matching the sand/ink theme. */

@@ -79,6 +79,13 @@
   --font-sans:var(--te-font-ui) !important;
   --font-serif:var(--te-font-display) !important;
   --font-mono:var(--te-font-mono) !important;
+  /* Семнадцать файлов (board.css, legal.css и пятнадцать страниц) объявляют
+     собственный --mono системным стеком, параллельно правильному --font-mono.
+     На доске из-за этого рядом жили два разных моноширинных: 55 элементов
+     в JetBrains Mono и 83 в системном SF Mono. Хуже того, системный стек
+     подставляет разный шрифт на разных ОС, а JetBrains Mono лежит у нас
+     и одинаков везде. Псевдоним сводится сюда же. */
+  --mono:var(--te-font-mono) !important;
   --ink:var(--te-ink) !important;
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
