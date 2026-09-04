@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=704">
+<link rel="manifest" href="manifest.json?v=705">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -68,8 +68,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .toggle-row{display:flex;justify-content:center}
 
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:30px}
-.plan{background:var(--card);border:2px solid var(--border);border-radius:22px;padding:24px 20px;cursor:pointer;transition:.2s;position:relative;text-align:left}
+.plan{background:var(--card);border:2px solid var(--border);border-radius:22px;padding:24px 20px;cursor:pointer;transition:.2s;position:relative;text-align:left;outline:none}
 .plan:hover{border-color:rgba(200,230,50,.5);transform:translateY(-2px);box-shadow:var(--shadow)}
+/* role="button"+tabindex card - see landing.html .faq-q for why this needs
+   an explicit outline:none instead of relying on click-suppression. */
+.plan:focus-visible{border-color:var(--lime);box-shadow:0 0 0 3px rgba(200,230,50,.35)}
 .plan.selected{border-color:var(--lime);background:rgba(200,230,50,.06);box-shadow:0 0 0 3px rgba(200,230,50,.18)}
 .plan.current-plan{opacity:.7;cursor:default;transform:none}
 .plan.current-plan:hover{transform:none;box-shadow:none;border-color:var(--border)}
@@ -156,14 +159,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
   .copy-btn,.submit-btn{min-height:44px}
 }
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=704">
-<link rel="stylesheet" href="styles/unify.css?v=704">
-<link rel="stylesheet" href="styles/mobile.css?v=704">
-<link rel="stylesheet" href="styles/teached-brand.css?v=704">
+<link rel="stylesheet" href="styles/harmony.css?v=705">
+<link rel="stylesheet" href="styles/unify.css?v=705">
+<link rel="stylesheet" href="styles/mobile.css?v=705">
+<link rel="stylesheet" href="styles/teached-brand.css?v=705">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=704">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=704">
-<link rel="stylesheet" href="styles/controls.css?v=704">
+<link rel="stylesheet" href="styles/figma-theme.css?v=705">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=705">
+<link rel="stylesheet" href="styles/controls.css?v=705">
 </head>
 <body class="fx">
 
@@ -588,7 +591,7 @@ async function cancelPendingPayment() {
 
 init();
 </script>
-<script src="scripts/autogrow.js?v=704" defer></script>
-<script src="pwa-boot.js?v=704" defer></script>
+<script src="scripts/autogrow.js?v=705" defer></script>
+<script src="pwa-boot.js?v=705" defer></script>
 </body>
 </html>

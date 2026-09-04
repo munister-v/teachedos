@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=704">
+<link rel="manifest" href="manifest.json?v=705">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -667,6 +667,12 @@ nav.ln{
   display:flex;align-items:center;justify-content:space-between;
   padding:20px 0;font-size:15px;font-weight:650;color:var(--ink);
   cursor:pointer;gap:16px;
+  /* Custom role="button" divs don't reliably get the click-suppresses-outline
+     treatment a real <button> gets in every engine - some webviews leave the
+     raw UA default (a solid dark box) after a tap. :focus-visible below
+     supplies the real ring for keyboard users; this just removes the
+     unstyled fallback. */
+  outline:none;
 }
 .faq-icon{
   width:26px;height:26px;border-radius:50%;flex-shrink:0;
@@ -1952,9 +1958,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=704">
+<link rel="stylesheet" href="styles/teached-brand.css?v=705">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=704">
+<link rel="stylesheet" href="styles/figma-landing.css?v=705">
 </head>
 <body class="landing-page fx">
 
@@ -2836,7 +2842,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=704">
+<link rel="stylesheet" href="styles/auth.css?v=705">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
