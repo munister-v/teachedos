@@ -73,6 +73,18 @@ body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) {
   border: 1px solid rgba(32, 32, 44, .40) !important;
 }
 
+/* Исключить поле из порога выше - только не поднимать ЕГО границу. Своя
+   граница у него всё равно оставалась: её рисует общее правило полей из
+   tool-window.css, которое перебивает и unify.css, и figma-theme.css с их
+   `border:none`. Внутри пилюли она читается как вторая рамка независимо от
+   того, насколько бледная. Гасим здесь, где порог и назначается. */
+body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) > input,
+body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) input {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 /* Фокус остаётся заметнее покоя: иначе поднятая граница покоя съедает
    разницу между «поле» и «поле, в котором я сейчас пишу». */
 body:not(#_):not(#__) :is(
