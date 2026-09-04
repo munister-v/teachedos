@@ -264,7 +264,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
   width:44px;
   height:44px;
   min-height:44px;
-  border-radius:8px;
+  border-radius:12px;
   background:#e8e8e1;
   color:#3f403a;
   font:720 12px/1 var(--mono);
@@ -325,7 +325,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 }
 .tools-workbench .workspace .panel + .panel { padding-left:26px; border-left:1px solid var(--tt-line); }
 .tools-workbench .panel-head { padding:26px 0 16px; border:0; background:transparent; }
-.tools-workbench .panel-icon { width:42px; height:42px; border-radius:8px; background:#e8e8e1; font-size:17px; }
+.tools-workbench .panel-icon { width:42px; height:42px; border-radius:12px; background:#e8e8e1; font-size:17px; }
 .tools-workbench .panel h2 { font-size:21px; font-weight:700; }
 .tools-workbench .panel-body { padding:0; }
 .tools-workbench .result-empty { min-height:260px; background:#eeeeea; border-radius:10px; }
@@ -424,7 +424,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
 .tools-workbench .workspace .panel-icon {
   width:38px;
   height:38px;
-  border-radius:8px;
+  border-radius:12px;
   background:#e9e9e2;
   color:#3b3c35;
   font-size:14px;
