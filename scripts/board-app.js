@@ -8120,18 +8120,27 @@ function makeBezier(x1, y1, x2, y2, fromAnchor, toAnchor) {
     case 'left':   c1x=x1-len; break;
     case 'bottom': c1y=y1+len; break;
     case 'top':    c1y=y1-len; break;
-    default: // auto: push control point away from destination
-      if (Math.abs(dx) >= Math.abs(dy)) { c1x = x1 - (dx > 0 ? len : -len); }
-      else                               { c1y = y1 - (dy > 0 ? len : -len); }
+    default:
+      /* Auto: the handle leaves TOWARD the destination. It used to be
+         subtracted, which aimed it backwards - the curve set off away from
+         its target and had to swing back around, and that detour is the long
+         dangling loop the connectors were drawing. */
+      if (Math.abs(dx) >= Math.abs(dy)) { c1x = x1 + (dx > 0 ? len : -len); }
+      else                               { c1y = y1 + (dy > 0 ? len : -len); }
   }
   switch(toAnchor) {
     case 'left':   c2x=x2-len; break;
     case 'right':  c2x=x2+len; break;
     case 'top':    c2y=y2-len; break;
     case 'bottom': c2y=y2+len; break;
-    default: // auto: approach from the direction the line arrives from
-      if (Math.abs(dx) >= Math.abs(dy)) { c2x = x2 + (dx > 0 ? len : -len); }
-      else                               { c2y = y2 + (dy > 0 ? len : -len); }
+    default:
+      /* Auto: approach from the side the line comes from, which means
+         stepping BACK from the endpoint, against the direction of travel -
+         the opposite of what the arithmetic did. Adding pushed the handle
+         past the endpoint, so the curve overshot its target, and while
+         dragging it overshot the cursor, before curling back. */
+      if (Math.abs(dx) >= Math.abs(dy)) { c2x = x2 - (dx > 0 ? len : -len); }
+      else                               { c2y = y2 - (dy > 0 ? len : -len); }
   }
   // A curved connector can overshoot a visible endpoint by its full handle
   // length (especially when it leaves a card through the left edge). Since
@@ -13776,7 +13785,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '708';
+const TEACHEDOS_ASSET_VERSION = '709';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

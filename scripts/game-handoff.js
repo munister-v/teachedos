@@ -39,9 +39,18 @@
      эта ссылка возвращает на доску. */
   function fixBackLink() {
     try {
-      if (!/[?&]from=board\b/.test(location.search)) return;
       var back = document.querySelector('a.back, .back[href]');
       if (!back) return;
+      /* Внутри карточки доски игра лежит в iframe, и «← Games» уводит САМ
+         iframe на games/index.html: карточка с заголовком «Grammar Fix»
+         превращается в хаб игр, а заголовок остаётся прежним. Возвращаться
+         тут некуда - карточка и есть игра, - поэтому кнопки просто нет.
+         Проверка идёт до ветки from=board: встроенная игра этого параметра
+         не несёт, у неё в адресе только сам файл. */
+      var embedded = false;
+      try { embedded = window.parent !== window; } catch (e) { embedded = true; }
+      if (embedded) { back.remove(); return; }
+      if (!/[?&]from=board\b/.test(location.search)) return;
       back.setAttribute('href', '../board.html');
       var label = (back.textContent || '').trim();
       if (/games/i.test(label)) back.textContent = '← Board';
