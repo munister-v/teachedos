@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 <title>TeachedOS Games · LinguaQuiz</title>
-<link rel="stylesheet" href="../styles/games-base.css?v=649">
+<link rel="stylesheet" href="../styles/games-base.css?v=650">
 <style>
 :root {
   --bg: #f8fbff;
@@ -306,11 +306,21 @@ body.embed-mode .layout {
 body.embed-mode .back-link {
   display: none;
 }
+
+/* Единственная ссылка ухода с экрана была полоской в 19px высотой -
+   на телефоне в неё нужно попасть пальцем. */
+@media (max-width: 600px) {
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=649">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=649">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=650">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=650">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=649">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=650">
 </head>
 <body class="fx">
 <div class="shell">
@@ -374,9 +384,9 @@ body.embed-mode .back-link {
   </section>
 </div>
 
-<script src="../scripts/games-embed.js?v=649"></script>
-<script src="../scripts/games-data.js?v=649"></script>
-<script src="../scripts/games/linguaquiz-ai-uk.js?v=649"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=649"></script>
+<script src="../scripts/games-embed.js?v=650"></script>
+<script src="../scripts/games-data.js?v=650"></script>
+<script src="../scripts/games/linguaquiz-ai-uk.js?v=650"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=650"></script>
 </body>
 </html>
