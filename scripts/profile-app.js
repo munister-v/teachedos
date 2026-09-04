@@ -242,6 +242,15 @@ async function init() {
 }
 
 async function renderOverview(forceOffline = false) {
+  /* Верхняя навигация профиля - единственное место в приложении, где чип
+     #nav-avatar/#nav-name никогда не обновлялся из загруженных данных
+     пользователя: на каждой другой странице это делает applyUserToDesktop,
+     а у profile.html своего вызова нет. Оставался статичный плейсхолдер
+     «T Teacher» вместо настоящих инициалов и роли. */
+  const navAvatar = document.getElementById('nav-avatar');
+  const navName = document.getElementById('nav-name');
+  if (navAvatar) navAvatar.textContent = me.avatar || (me.name || 'T')[0];
+  if (navName) navName.textContent = me.role === 'admin' ? 'Admin' : 'Teacher';
   document.getElementById('profile-avatar-big').textContent = me.avatar || 'T';
   document.getElementById('profile-name-big').textContent = me.name;
   document.getElementById('profile-email-big').textContent = me.email;
@@ -856,6 +865,8 @@ async function saveName() {
     me = { ...me, ...user };
     document.getElementById('profile-name-big').textContent = me.name;
     document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
+    const navName = document.getElementById('nav-name');
+    if (navName) navName.textContent = me.role === 'admin' ? 'Admin' : 'Teacher';
     toast('Name updated!');
   } catch { toast('Failed to save name'); }
 }
@@ -882,6 +893,8 @@ async function saveAvatar() {
     const { user } = await r.json();
     me = { ...me, ...user };
     document.getElementById('profile-avatar-big').textContent = me.avatar;
+    const navAvatar = document.getElementById('nav-avatar');
+    if (navAvatar) navAvatar.textContent = me.avatar;
     toast('Avatar updated!');
   } catch { toast('Failed to save avatar'); }
 }
