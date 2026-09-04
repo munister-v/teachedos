@@ -39,7 +39,11 @@
      эта ссылка возвращает на доску. */
   function fixBackLink() {
     try {
-      var back = document.querySelector('a.back, .back[href]');
+      /* Пять игр несут не ссылку, а <button class="back">, который во фрейме
+         шлёт родителю closeGame - сообщение, которого доска не слушает. Такая
+         кнопка не уводит карточку в хаб, но и не делает ничего: во встроенном
+         виде она так же лишняя, поэтому селектор ловит оба варианта. */
+      var back = document.querySelector('a.back, .back[href], button.back');
       if (!back) return;
       /* Внутри карточки доски игра лежит в iframe, и «← Games» уводит САМ
          iframe на games/index.html: карточка с заголовком «Grammar Fix»
