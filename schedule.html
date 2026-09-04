@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=715">
+<link rel="manifest" href="manifest.json?v=716">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=715">
-<link rel="preload" as="style" href="styles/unify.css?v=715">
+<link rel="preload" as="style" href="styles/harmony.css?v=716">
+<link rel="preload" as="style" href="styles/unify.css?v=716">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -410,10 +410,10 @@ a{text-decoration:none;color:inherit;}
   .form-group input[type=checkbox]{ width:22px; height:22px; }
 }
 </style>
-<script src="theme.js?v=715" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=715">
-<link rel="stylesheet" href="styles/harmony.css?v=715">
-<link rel="stylesheet" href="styles/unify.css?v=715">
+<script src="theme.js?v=716" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=716">
+<link rel="stylesheet" href="styles/harmony.css?v=716">
+<link rel="stylesheet" href="styles/unify.css?v=716">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -445,12 +445,12 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=715">
-<link rel="stylesheet" href="styles/tool-window.css?v=715">
+<link rel="stylesheet" href="styles/teached-brand.css?v=716">
+<link rel="stylesheet" href="styles/tool-window.css?v=716">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=715">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=715">
-<link rel="stylesheet" href="styles/controls.css?v=715">
+<link rel="stylesheet" href="styles/figma-theme.css?v=716">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=716">
+<link rel="stylesheet" href="styles/controls.css?v=716">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -594,9 +594,13 @@ a{text-decoration:none;color:inherit;}
   <!-- Main timetable -->
   <div id="main">
     <div class="schedule-canvas-bar desktop-schedule-only">
+      <!-- Диапазон недели живёт в панели со стрелками, рядом с ‹ › и Today,
+           где им и управляют. Здесь он стоял вторым экземпляром той же строки
+           в семнадцати пикселях от первого - одна и та же дата дважды подряд,
+           причём во второй раз крупным заголовком. Осталась только подпись
+           раздела, поднятая из кикера в заголовок, чтобы блок не потерял вес. -->
       <div>
-        <div class="scb-kicker">Teaching week</div>
-        <div class="scb-title" id="week-canvas-range">-</div>
+        <div class="scb-title">Teaching week</div>
       </div>
       <div class="scb-note">Drag a class to reschedule</div>
     </div>
@@ -736,7 +740,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=715"></script>
+<script src="scripts/app-core.js?v=716"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1193,8 +1197,6 @@ function updateWeekHeader() {
   const fmt = (d) => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   const range = `${fmt(dates[0])} - ${fmt(dates[6])}`;
   document.getElementById('week-label').textContent = range;
-  const canvasRange = document.getElementById('week-canvas-range');
-  if (canvasRange) canvasRange.textContent = range;
   dates.forEach((d,i) => {
     const gh = document.getElementById(`gh-${i}`);
     const gd = document.getElementById(`gd-${i}`);
@@ -2073,12 +2075,12 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=715"></script>
-<script src="scripts/nav-boost.js?v=715" defer></script>
-<script src="scripts/mobile-perf.js?v=715" defer></script>
-<script src="scripts/mobile-nav.js?v=715"></script>
-<script src="scripts/autogrow.js?v=715" defer></script>
-<script src="pwa-boot.js?v=715" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=715" defer></script>
+<script src="pwa.js?v=716"></script>
+<script src="scripts/nav-boost.js?v=716" defer></script>
+<script src="scripts/mobile-perf.js?v=716" defer></script>
+<script src="scripts/mobile-nav.js?v=716"></script>
+<script src="scripts/autogrow.js?v=716" defer></script>
+<script src="pwa-boot.js?v=716" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=716" defer></script>
 </body>
 </html>
