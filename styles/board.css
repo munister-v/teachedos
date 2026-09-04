@@ -874,14 +874,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   border:1.5px solid var(--border,rgba(94,94,74,.12));
   display:flex;flex-direction:column;gap:3px;
   cursor:pointer;flex-shrink:0;
-  transition:border-color .14s,box-shadow .14s,background .14s;
+  transition:border-color .14s,box-shadow .14s,background .14s,transform .14s;
   margin:0;
 }
+/* scale(1.015) відкидалось у сусідню комірку 6px-гріда і наповзало на її
+   рамку/тінь - плюс без z-index сусід із пізнішим порядком у DOM міг
+   намалюватись поверх. Лишаємо тільки підйом, без розширення картки. */
 .tool-snippet:hover{
   border-color:var(--ts-color,var(--accent));
   box-shadow:0 6px 20px rgba(94,94,74,.12);
   background:#fafbff;
-  transform:translateY(-2px) scale(1.015);
+  transform:translateY(-2px);
+  z-index:1;
 }
 .tool-snippet:active{opacity:.85;}
 /* Header row: icon + title */
