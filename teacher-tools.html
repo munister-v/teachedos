@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=658">
+<link rel="manifest" href="manifest.json?v=659">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -279,17 +279,16 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
 .wk-pending{padding:14px;border:1px dashed rgba(24,24,24,.18);border-radius:16px;text-align:center;color:var(--muted);font-size:13px}
 @media print{.wk-block-bar{display:none!important}}
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=658">
-<link rel="stylesheet" href="styles/unify.css?v=658">
-<link rel="stylesheet" href="styles/knowledge-bases.css?v=658">
-<link rel="stylesheet" href="styles/mobile.css?v=658">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=658">
-<link rel="stylesheet" href="styles/teached-brand.css?v=658">
-<link rel="stylesheet" href="styles/tool-window.css?v=658">
+<link rel="stylesheet" href="styles/harmony.css?v=659">
+<link rel="stylesheet" href="styles/unify.css?v=659">
+<link rel="stylesheet" href="styles/mobile.css?v=659">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=659">
+<link rel="stylesheet" href="styles/teached-brand.css?v=659">
+<link rel="stylesheet" href="styles/tool-window.css?v=659">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=658">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=658">
-<link rel="stylesheet" href="styles/controls.css?v=658">
+<link rel="stylesheet" href="styles/figma-theme.css?v=659">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=659">
+<link rel="stylesheet" href="styles/controls.css?v=659">
 </head>
 <body class="tools-workbench tw-page fx">
 <nav class="nav">
@@ -369,36 +368,6 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
       <div class="chips" id="top-chips"></div>
     </div>
     <section class="grid" id="tools-grid" aria-label="Teacher tools"></section>
-    <!-- Секція знань розгорталась повністю: 64 паки, 448 карток, 61 139 пікселів -
-     70% усієї сторінки, і стояла МІЖ пресетами та списком інструментів. Щоб
-     дійти до інструмента, вчитель прокручував бібліотеку словників.
-     Тепер вона згорнута і стоїть ПІСЛЯ інструментів: це довідник, до якого
-     звертаються за потреби, а не те, повз що йдуть щоразу. -->
-<details class="knowledge-bases" id="knowledge-bases-section" aria-labelledby="knowledge-bases-title">
-    <summary class="knowledge-bases-summary">
-      <span class="kb-summary-title">Ready knowledge bases</span>
-      <span class="kb-summary-hint" id="knowledge-base-summary-hint">reusable offline packs - vocabulary, grammar notes, prompts and a source text</span>
-    </summary>
-      <div class="knowledge-bases-head">
-        <div>
-          <div class="eyebrow" style="margin-bottom:4px;">Local knowledge</div>
-          <h2 class="knowledge-bases-title" id="knowledge-bases-title">Ready knowledge bases</h2>
-          <p class="knowledge-bases-sub">Reusable offline packs with vocabulary, grammar notes, prompts, facts and a source text. Load one into any tool, then adapt it for your class.</p>
-          <div class="knowledge-bases-status" id="knowledge-base-count" aria-live="polite"></div>
-        </div>
-        <div class="knowledge-bases-actions">
-          <button class="btn sm lime" type="button" onclick="saveCurrentKnowledgeBase()">Save current inputs</button>
-          <button class="btn sm ghost" type="button" onclick="exportKnowledgeBases()">Export bases</button>
-          <button class="btn sm ghost" type="button" onclick="document.getElementById('knowledge-base-import').click()">Import bases</button>
-          <input id="knowledge-base-import" class="kb-import-input" type="file" accept="application/json,.json" onchange="importKnowledgeBases(event)">
-        </div>
-      </div>
-      <div class="knowledge-bases-toolbar">
-        <input id="knowledge-base-search" class="knowledge-bases-search" type="search" placeholder="Search topic, skill or level…" oninput="renderKnowledgeBases()" aria-label="Search local knowledge bases">
-        <div class="knowledge-bases-levels" id="knowledge-base-levels" aria-label="Filter knowledge bases by level"></div>
-      </div>
-      <div class="knowledge-bases-grid" id="knowledge-bases-grid"></div>
-    </details>
     <section class="workspace" id="workspace">
       <button class="tt-back" type="button" onclick="backToCatalog()">All tools</button>
       <div class="panel">
@@ -434,12 +403,11 @@ button:disabled,.btn:disabled{opacity:.62;cursor:progress;transform:none!importa
   </main>
 </div>
 <div class="toast" id="toast"></div>
-<script src="scripts/custom-sets.js?v=658"></script>
-<script src="scripts/knowledge-bases.js?v=658"></script>
-<script src="scripts/tt-text-core.js?v=658"></script>
-<script src="scripts/teacher-tools-app.js?v=658"></script>
-<script src="js/teacher-tool-stt.js?v=658" defer></script>
-<script src="scripts/autogrow.js?v=658" defer></script>
-<script src="pwa-boot.js?v=658" defer></script>
+<script src="scripts/custom-sets.js?v=659"></script>
+<script src="scripts/tt-text-core.js?v=659"></script>
+<script src="scripts/teacher-tools-app.js?v=659"></script>
+<script src="js/teacher-tool-stt.js?v=659" defer></script>
+<script src="scripts/autogrow.js?v=659" defer></script>
+<script src="pwa-boot.js?v=659" defer></script>
 </body>
 </html>

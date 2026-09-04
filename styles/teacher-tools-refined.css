@@ -1104,10 +1104,6 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
      и набраны они 9px. Здесь тот же порог 11px. Надзаголовок .eyebrow
      намеренно оставлен на 10px: это общий токен tool-window.css на всё
      приложение, его правка тянет за собой все страницы разом. */
-  .tools-workbench .kb-card-level,
-  .tools-workbench .kb-card-source,
-  .tools-workbench .kb-card-icon { font-size:11px; }
-  .tools-workbench .kb-level { font-size:11px; }
 
   /* Touch has no hover state, so the press itself has to answer. */
   .tools-workbench .tool:active { background:#f1f1eb; box-shadow:inset 2px 0 0 var(--tt-accent); }
@@ -1135,7 +1131,7 @@ html:has(body.tools-workbench) { background:#f7f6f1; }
      body.tw-page - without it that layer's display:flex wins. */
   body.tools-workbench:not(#_):not(.tt-browsing) .main:has(.workspace.show) > :is(
     .hero, .recent-tools-section, .presets-block, .bar, .grid,
-    .knowledge-bases, .library) { display:none !important; }
+    .library) { display:none !important; }
   body.tools-workbench.tt-browsing .workspace.show { display:none; }
   /* With the catalog gone the workspace starts the screen: its top rule and
      the gap that separated it from the grid have nothing left to separate. */

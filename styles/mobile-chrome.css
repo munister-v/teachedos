@@ -148,19 +148,6 @@
   body:not(#_) .mp-daypicker { gap: 4px !important; }
   body:not(#_) .mp-day { min-width: 44px !important; }
 
-  /* Уровни базы знаний: восемь фильтров в 332px в одну строку по 44px не
-     помещаются никак. Значит не сжимать их, а листать - тем же приёмом, что
-     и остальные полосы. */
-  body:not(#_) .knowledge-bases-levels {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    scrollbar-width: none;
-    padding-right: 28px !important;
-  }
-  body:not(#_) .knowledge-bases-levels::-webkit-scrollbar { display: none; }
-  body:not(#_) .kb-level { flex: 0 0 auto !important; min-width: 44px !important; }
-
   /* Иконка в мобильной шапке набора уроков. */
   body:not(#_) .lp-mob-top > a {
     min-width: 44px !important;
@@ -204,7 +191,7 @@
       .community-cover-kind, .community-cover-level, .community-cover-caption,
       .community-topic-chip, .journal-kicker, .sec-kicker, .insight-kicker,
       .pc-eyebrow, .pc-level, .pc-dur, .tag, .dict-hot, .field label,
-      .knowledge-bases-status, .side-title, .sb-badge, .side-count,
+      .side-title, .sb-badge, .side-count,
       /* статус задания на ученическом экране шёл 10px */
       .pill,
       .sb-tab-lbl, .sn-label, .badge, .mq-status, .tb-field-meta,
@@ -217,7 +204,7 @@
      в скобках у метки поля, хинты в меню. Называем их через родителя - так же,
      как подписи счётчиков выше. */
   body:not(#_) :is(.mq-btn, .form-label, .user-menu-item, .community-lesson-meta,
-      .chip, .kb-card-tags, .dict-foot, .topic-ctl, .kb-card-meta,
+      .chip, .dict-foot, .topic-ctl,
       .tool-skill-chip, .tool-group-head, .u-top) > span,
   body:not(#_) .preset-card span,
   body:not(#_) small {
