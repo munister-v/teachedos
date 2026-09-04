@@ -49,7 +49,7 @@ body:not(#_):not(#__) :is(
     .form-input,
     .setting-input,
     .input
-):not(.curr-search input):not(.sb-search input):not(.bs-search) {
+):not(.curr-search input):not(.sb-search input):not(.bs-search):not(.hw-search input):not(.search-wrap input) {
   border-width: 1px !important;
   border-style: solid !important;
   border-color: rgba(32, 32, 44, .58) !important;
@@ -62,8 +62,14 @@ body:not(#_):not(#__) :is(.btn.ghost, .btn.soft, .btn-ghost, .btn.btn-ghost) {
 /* Составные поля: прозрачный input лежит ВНУТРИ пилюли с иконкой, и границу
    несёт пилюля. Порог на самом поле рисовал жёсткий прямоугольник внутри
    скруглённой пилюли - две рамки, одна поверх другой. Поле исключено выше,
-   порог перенесён на обёртку. */
-body:not(#_):not(#__) :is(.curr-search, .sb-search) {
+   порог перенесён на обёртку.
+
+   .hw-search (homework) и .search-wrap (lesson-packs) были той же постройки,
+   но в оба списка не попали: поиск на домашних заданиях так и рисовал внутри
+   пилюли тёмный прямоугольник на .58, а сама пилюля оставалась на .16, то
+   есть ниже порога, ради которого этот файл и существует. Обёртка забирает
+   границу себе, поле её теряет. */
+body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) {
   border: 1px solid rgba(32, 32, 44, .40) !important;
 }
 
