@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=694">
+<link rel="manifest" href="manifest.json?v=696">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=694">
-<link rel="stylesheet" href="styles/auth.css?v=694">
-<link rel="stylesheet" href="styles/mobile.css?v=694">
-<link rel="stylesheet" href="styles/harmony.css?v=694">
-<link rel="stylesheet" href="styles/unify.css?v=694">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=694">
+<link rel="stylesheet" href="styles/board.css?v=696">
+<link rel="stylesheet" href="styles/auth.css?v=696">
+<link rel="stylesheet" href="styles/mobile.css?v=696">
+<link rel="stylesheet" href="styles/harmony.css?v=696">
+<link rel="stylesheet" href="styles/unify.css?v=696">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=696">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -271,13 +271,13 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=694">
+<link rel="stylesheet" href="styles/teached-brand.css?v=696">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=694">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=694">
-<link rel="stylesheet" href="styles/controls.css?v=694">
+<link rel="stylesheet" href="styles/figma-theme.css?v=696">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=696">
+<link rel="stylesheet" href="styles/controls.css?v=696">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=694">
+<link rel="stylesheet" href="styles/figma-concept.css?v=696">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -847,11 +847,16 @@
       <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
         <polygon points="0 0, 8 3, 0 6" fill="#333"/>
       </marker>
+      <!-- arrowhead-sel/-hover нигде не подключены (нет marker-end="url(#arrowhead-sel/…)"
+           ни в JS, ни в CSS) - цвет наведённой/выделенной линии красит саму
+           линию через stroke, а наконечник всегда идёт от #arrowhead.
+           Заодно эти двое красились в зелёный var(--accent) - были бы той же
+           ловушкой, если бы их когда-нибудь подключили. -->
       <marker id="arrowhead-sel" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/>
+        <polygon points="0 0, 8 3, 0 6" fill="#1C1C1E"/>
       </marker>
       <marker id="arrowhead-hover" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/>
+        <polygon points="0 0, 8 3, 0 6" fill="#1C1C1E"/>
       </marker>
       <marker id="arrowhead-prereq" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
         <polygon points="0 0, 9 3, 0 6" fill="#6366f1"/>
@@ -859,8 +864,13 @@
       <marker id="arrowhead-prereq-done" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
         <polygon points="0 0, 9 3, 0 6" fill="#10b981"/>
       </marker>
+      <!-- Наконечник у "хвостового" конца двунаправленной/обратной стрелки
+           (marker-start, board-app.js:8232). В отличие от -sel/-hover выше,
+           этот РЕАЛЬНО подключён и красился в зелёный ВСЕГДА, а не только
+           при наведении - постоянно зелёный кончик на каждой стрелке
+           «в обе стороны» или «назад», без всякого взаимодействия. -->
       <marker id="arrowhead-start" markerWidth="9" markerHeight="6" refX="1" refY="3" orient="auto-start-reverse">
-        <polygon points="0 0, 9 3, 0 6" fill="var(--accent)"/>
+        <polygon points="0 0, 9 3, 0 6" fill="#333"/>
       </marker>
     </defs>
   </svg>
@@ -2036,13 +2046,13 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=694"></script>
-<script src="js/teacher-tools-data.js?v=694"></script>
-<script src="scripts/tt-text-core.js?v=694"></script>
-<script src="scripts/board-app.js?v=694"></script>
-<script src="js/board-vocab.js?v=694"></script>
-<script src="js/board-reveal.js?v=694"></script>
-<script src="js/teacher-tool-board-composer.js?v=694"></script>
+<script src="scripts/auth-modal.js?v=696"></script>
+<script src="js/teacher-tools-data.js?v=696"></script>
+<script src="scripts/tt-text-core.js?v=696"></script>
+<script src="scripts/board-app.js?v=696"></script>
+<script src="js/board-vocab.js?v=696"></script>
+<script src="js/board-reveal.js?v=696"></script>
+<script src="js/teacher-tool-board-composer.js?v=696"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2050,8 +2060,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=694" defer></script>
-<script src="pwa-boot.js?v=694" defer></script>
+<script src="scripts/autogrow.js?v=696" defer></script>
+<script src="pwa-boot.js?v=696" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2133,11 +2143,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=694"></script>
-<script src="scripts/nav-boost.js?v=694" defer></script>
-<script src="scripts/mobile-perf.js?v=694" defer></script>
-<script src="scripts/mobile-nav.js?v=694"></script>
-<script src="scripts/mobile-zoom-guard.js?v=694" defer></script>
+<script src="pwa.js?v=696"></script>
+<script src="scripts/nav-boost.js?v=696" defer></script>
+<script src="scripts/mobile-perf.js?v=696" defer></script>
+<script src="scripts/mobile-nav.js?v=696"></script>
+<script src="scripts/mobile-zoom-guard.js?v=696" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

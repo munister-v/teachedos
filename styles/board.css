@@ -1638,8 +1638,12 @@ body.alt-duplicating *{cursor:copy!important;}
   marker-end:url(#arrowhead);pointer-events:stroke;
   cursor:pointer;transition:stroke .12s;
 }
-#arrows-svg .arrow-path:hover{stroke:var(--accent);stroke-width:2;}
-#arrows-svg .arrow-path.selected-arrow{stroke:var(--accent);stroke-width:2;stroke-dasharray:none;}
+/* Наведение и выделение линии были var(--accent) - приглушённый зелёный
+   («Calm pass», board.css:14). Для самой линии связи это читается как
+   «стрелки зелёные», хотя базовый цвет и так почти чёрный (#333) - тот же
+   тон, просто с усиленной толщиной, вместо смены цвета на зелёный. */
+#arrows-svg .arrow-path:hover{stroke:#1C1C1E;stroke-width:2;}
+#arrows-svg .arrow-path.selected-arrow{stroke:#1C1C1E;stroke-width:2;stroke-dasharray:none;}
 #arrows-svg .arrow-endpoint-handle{
   fill:var(--accent-hi);stroke:var(--accent);stroke-width:2;cursor:grab;pointer-events:all;
   transition:r .12s,transform .08s;
@@ -1658,7 +1662,10 @@ body.alt-duplicating *{cursor:copy!important;}
 #arrows-svg .arrow-path.prereq{stroke:#6366f1;stroke-width:1.5;}
 #arrows-svg .arrow-path.prereq.done{stroke:#22c55e;}
 #arrows-svg .arrow-path.prereq.locked{stroke:#9ca3af;stroke-dasharray:5 3;}
-#arrows-svg .arrow-pending{fill:none;stroke:color-mix(in srgb,var(--accent) 50%,transparent);stroke-width:1.5;stroke-dasharray:6 4;}
+/* Пунктир, который видно, ПОКА тянешь связь между карточками - это первое,
+   что видит учитель при рисовании стрелки, и раньше это была зелёная линия
+   (--accent). Приведена к тому же чёрному, что и готовая стрелка. */
+#arrows-svg .arrow-pending{fill:none;stroke:rgba(28,28,30,.55);stroke-width:1.5;stroke-dasharray:6 4;}
 
 /* Board canvas */
 #board{position:absolute;top:0;left:0;transform-origin:0 0;z-index:10;will-change:transform;}
