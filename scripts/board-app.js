@@ -2386,6 +2386,34 @@ function renderGame(el, card) {
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:center center;flex-shrink:0;`;
   iframe.dataset.cardId = card.id;
+  /* Каждая игра - самостоятельная страница со своим кремовым/розовым фоном
+     тела (это фирменный цвет приложения, games/*.html грузятся и напрямую,
+     не только на доске). На доске игра лежит уменьшенной внутри плитки, и
+     этот фон читается как цветная рамка вокруг белой карточки игры - на
+     скриншотах именно это и было: персиковый и розовый обод вместо чистого
+     белого поля. Красить сами игровые файлы нельзя - тот же цвет нужен,
+     когда игру открывают отдельной страницей. Поэтому фон перебивается
+     точечно, только для вида внутри карточки доски: свой <style> с более
+     высоким весом, вставленный в документ игры после её собственных стилей. */
+  iframe._whitenBackground = function () {
+    try {
+      const href = iframe.contentWindow.location.href;
+      if (!href || href === 'about:blank') return false;
+      const doc = iframe.contentDocument;
+      if (!doc || doc.getElementById('_board-white-bg')) return !!doc;
+      const style = doc.createElement('style');
+      style.id = '_board-white-bg';
+      /* Простого body{background:#fff!important} не хватает: у игр со
+         скином ТИЧ.ЭД figma-theme.css красит фон селектором
+         body.fx:not(#_) - тот же трюк с фиктивным :not(#_) для веса уровня
+         id, что описан в самом figma-theme.css. Против !important spec vs
+         !important решает специфичность, и голый `body` (0,0,1) проигрывает
+         (1,1,1). Здесь тот же селектор, тем же весом. */
+      style.textContent = 'body:not(#_){background:#fff!important;}body.fx:not(#_){background:#fff!important;}';
+      doc.head.appendChild(style);
+      return true;
+    } catch (_) { return false; } // кросс-доменный документ - не наш случай для games/*.html
+  };
   // Robust custom-content handoff. A single post on `load` is fragile: if the
   // game registers its message listener slightly late, the content is lost.
   // So we (a) deliver when the game announces `game-ready`, and (b) fall back to
@@ -2416,6 +2444,14 @@ function renderGame(el, card) {
     } catch {}
   };
   iframe.addEventListener('load', () => {
+    /* `load` первым срабатывает на пустом about:blank (ленивая подгрузка
+       src, тот же случай, что уже разобран у _deliverGameContent выше) -
+       документа игры там ещё нет, _whitenBackground тихо выходит по её же
+       проверке. Три попытки следом ловят реальную навигацию независимо от
+       того, есть ли у карточки пользовательский контент. */
+    iframe._whitenBackground();
+    setTimeout(() => iframe._whitenBackground(), 200);
+    setTimeout(() => iframe._whitenBackground(), 600);
     if (!card.data.customContent) return;
     iframe._deliverGameContent();
     // Fallback retries for games that finish wiring up just after load.
@@ -13678,7 +13714,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '696';
+const TEACHEDOS_ASSET_VERSION = '699';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
