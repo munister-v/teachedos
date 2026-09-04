@@ -2568,6 +2568,9 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
      которой и mobile.css (--mp-radius-full), и harmony.css (999px) сходятся
      на пилюле. Возвращаю форму, не отнимая у неё переход из общего правила. */
   body:not(.board-page) .mp-btn { border-radius: var(--mp-radius-full, 999px) !important; }
+  /* .mp-icon-btn в mobile.css объявлена на 12px (малый шаг шкалы), общее
+     правило кнопок навязывало ей 15px - ещё одно значение вне шкалы. */
+  body:not(.board-page) :is(.mp-icon-btn, .mp-icon-bell) { border-radius: var(--mp-radius-sm, 12px) !important; }
 
   body:not(.board-page) :is(.btn:active, button:active, .mp-btn:active, .setting-btn:active, .new-board-btn:active, .action-btn:active, .filter-btn:active, .mini-btn:active, .board-pill:active) {
     transform: scale(.975) !important;
@@ -2632,7 +2635,9 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
      около 5,3:1 при норме 4,5:1 для текста 14px. */
   .mob-nav-tab {
     height: 52px !important;
-    border-radius: 16px !important;
+    /* Вкладка лежит внутри панели с радиусом 24 и отступом 5: геометрически
+       верный внутренний радиус равен 24 - 5 = 19, ближайший шаг шкалы 18. */
+    border-radius: 18px !important;
     color: rgba(28,28,30,.66) !important;
   }
 
