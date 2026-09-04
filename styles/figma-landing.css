@@ -136,6 +136,16 @@ body.fx.landing-page :is(.bc,.cat,.pv-card,.pv-tool,.faq-item,.plan,.fp-shot,.st
   color:var(--fx-ink) !important;
 }
 body.fx.landing-page :is(.bc,.plan,.faq-item) { border-radius:var(--fx-r-panel,28px) !important; }
+/* Радиус 28px верен для больших панелей (.bc, .plan), но строка вопроса
+   всего 68px высотой: радиус съедает 28 из 34 полувысоты, и карточка
+   читается капсулой. Плюс строки стояли ВПЛОТНУЮ - зазор ноль, - и девять
+   капсул подряд слипались в ленту с перетяжками между соседями.
+   Строке нужен свой радиус и воздух между строками. */
+body.fx.landing-page .faq-item {
+  border-radius:16px !important;
+  margin-bottom:8px !important;
+}
+body.fx.landing-page .faq-item:last-child { margin-bottom:0 !important; }
 body.fx.landing-page :is(.cat,.pv-card,.fp-shot,.stat-c,.fp-gtile) { border-radius:20px !important; }
 /* Плитки категорий несли по своему акцентному цвету на каждую тему. */
 body.fx.landing-page .cat { --acc:#161616 !important; --acc-bg:rgba(203,240,60,.22) !important; }

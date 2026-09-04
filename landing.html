@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=659">
+<link rel="manifest" href="manifest.json?v=661">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -1400,8 +1400,14 @@ body.pwa-standalone .hero{
     transform-origin:22% 16%;
   }
   /* Мелочь по краям после приближения всё равно оказывается за кадром,
-     а вместе с ней уезжает и смысл: убираем, чтобы не резалось наполовину. */
-  .pv-tools,.pv-zoom,.pv-timer,.pv-match,.pv-sticky{ display:none !important; }
+     а вместе с ней уезжает и смысл: убираем, чтобы не резалось наполовину.
+
+     .pv-links в этот список не попал, а зря: пунктирные связи между
+     карточками доски - тоже прямой потомок, и приближение растягивает их
+     вместе со всем. Соединять после приближения нечего (карточки за
+     кадром), зато обрезанный краем доски конец связи торчал у правого
+     края листа серым огрызком - его и видно на телефоне. */
+  .pv-tools,.pv-zoom,.pv-timer,.pv-match,.pv-sticky,.pv-links{ display:none !important; }
 }
 
 /* ═══════════ Bento feature cards → realistic component mini-previews ═══════════ */
@@ -1854,9 +1860,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=659">
+<link rel="stylesheet" href="styles/teached-brand.css?v=661">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=659">
+<link rel="stylesheet" href="styles/figma-landing.css?v=661">
 </head>
 <body class="landing-page fx">
 
@@ -1965,7 +1971,7 @@ section{scroll-margin-top:64px;}
             <div class="pv-ws-title">Present Perfect - gap-fill</div>
             <div class="pv-ws-meta">Fill each gap with the correct adverb · 7 questions</div>
             <div class="pv-line"><b>1.</b> I have <span class="pv-gap fill">just</span> finished my homework.</div>
-            <div class="pv-line"><b>2.</b> She hasn't called me <span class="pv-type">yet<span class="car"></span></span> .</div>
+            <div class="pv-line"><b>2.</b> She hasn't called me <span class="pv-type">yet<span class="car"></span></span>.</div>
             <div class="pv-line"><b>3.</b> We've known them <span class="pv-gap"></span> 2019.</div>
             <div class="pv-ws-foot">
               <span class="pv-chip go">B2</span><span class="pv-chip">Answer key</span><span class="pv-chip">A4 / PDF</span>
@@ -2738,7 +2744,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=659">
+<link rel="stylesheet" href="styles/auth.css?v=661">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
