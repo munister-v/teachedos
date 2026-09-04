@@ -476,7 +476,7 @@ body.tw-page:not(#_) .pane-tab.active {
    17px radius and a pink+lime double focus ring. That treatment is the single
    biggest reason the old pages looked unrelated to the desktop, and it is
    guarded with !important at (0,6,1) - hence the repeated :is() list. */
-body.tw-page:not(#_) :is( input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]), textarea, select, .form-input, .form-textarea, .form-select ){padding:9px 12px !important;border:1px solid var(--tw-line-2) !important;border-radius:11px !important;background:#fff !important;color:var(--tw-ink) !important;font-size:13.5px !important;font-weight:550 !important;line-height:1.45 !important;box-shadow:none !important;
+body.tw-page:not(#_) :is( input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]), textarea, select, .form-input, .form-textarea, .form-select ){padding:9px 12px !important;border:1px solid var(--tw-line-2) !important;border-radius:14px !important;background:#fff !important;color:var(--tw-ink) !important;font-size:13.5px !important;font-weight:550 !important;line-height:1.45 !important;box-shadow:none !important;
 }
 body.tw-page:not(#_) :is(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
@@ -543,7 +543,7 @@ body.tw-page:not(#_) .hw-focus-detail { font-size:12px !important; color:var(--t
 body.tw-page:not(#_) .hw-card { padding:13px !important; }
 body.tw-page:not(#_) .hw-card .hw-title { font-size:14px !important; }
 body.tw-page:not(#_) .hw-search {
-  border-radius:11px !important;
+  border-radius:14px !important;
   border:1px solid var(--tw-line-2) !important;
   background:#fff !important;
 }

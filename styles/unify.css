@@ -2559,8 +2559,12 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     box-shadow: 0 1px 0 rgba(255,255,255,.72) inset;
   }
 
+  /* 15px не принадлежит телефонной шкале (mobile.css: 12 / 18 / 24) и стояло
+     между малым шагом и карточками: на главной и доске управляющие элементы
+     уже 12, а прочие кнопки оставались 15. Правило живёт внутри телефонного
+     медиазапроса, настольные кнопки не затронуты. */
   body:not(.board-page) :is(.btn, button, .mp-btn, .setting-btn, .new-board-btn, .action-btn, .filter-btn, .mini-btn, .board-pill) {
-    border-radius: 15px !important;
+    border-radius: 12px !important;
     transition: transform .14s ease, background-color .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease !important;
   }
 
