@@ -614,7 +614,10 @@ body.fx .win-titlebar {
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
 }
 body.fx .win-titlebar:active { cursor:grabbing; }
-body.fx .win-controls { position:absolute; top:20px; left:20px; }
+/* Кнопки стояли top:20 при полосе заголовка высотой 46: они прижимались к её
+   нижнему краю (21-47), сверху оставалось 20px пустоты, а рейка начиналась
+   ровно под ними. Центр полосы это 11. */
+body.fx .win-controls { position:absolute; top:11px; left:20px; }
 /* Кнопки лежат в 20-46px от верха (top:20px + их 26px высоты). win-body даёт
    8px сверху, так что этому отступу нужно 38px, а не 34 - на 4px ниже кнопок
    заезжал первый ряд текста (studio-eyebrow, "lesson workspace" и т.п.). */

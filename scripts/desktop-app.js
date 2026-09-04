@@ -782,6 +782,13 @@ function updateStudentSidebar() {
 
 /* ══════════════════════ BOARDS LIST ══════════════════════ */
 let MY_BOARDS = [];
+/* Виджет писал «No boards yet», пока список пуст, и не отличал «досок нет» от
+   «не удалось загрузить»: у запроса /api/boards не было обработки ошибки, и
+   при любой осечке сети пользователь видел утверждение, которое никто не
+   проверял. Эти два флага разделяют три состояния: ещё грузим, не смогли,
+   действительно пусто. */
+let BOARDS_LOADED = false;
+let BOARDS_ERROR = false;
 let SHARED_BOARDS = [];
 let boardsFilterMode = 'all';
 
@@ -791,6 +798,25 @@ function boardsFilter(mode, el) {
   if (el) el.classList.add('active');
   boardsRender();
 }
+
+/* Повтор загрузки досок после осечки: тот же запрос, что при старте. */
+async function reloadBoards() {
+  BOARDS_ERROR = false; BOARDS_LOADED = false;
+  if (typeof boardsRender === 'function') boardsRender();
+  try {
+    const r = await fetch((typeof API !== 'undefined' ? API : '') + '/api/boards',
+      { headers: { Authorization: 'Bearer ' + (localStorage.getItem('teachedos_token') || '') } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    MY_BOARDS = d.boards || [];
+    BOARDS_LOADED = true;
+    if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
+  } catch (e) {
+    BOARDS_ERROR = true;
+  }
+  if (typeof boardsRender === 'function') boardsRender();
+}
+window.reloadBoards = reloadBoards;
 
 function boardsRender() {
   const grid = document.getElementById('plans-grid');
@@ -803,6 +829,14 @@ function boardsRender() {
   else                                    list = MY_BOARDS;
 
   if (q) list = list.filter(b => (b.name || '').toLowerCase().includes(q));
+
+  if (!list.length && !q && boardsFilterMode !== 'shared' && (BOARDS_ERROR || !BOARDS_LOADED)) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
+      ${BOARDS_ERROR ? 'Could not load your boards.' : 'Loading your boards…'}
+      ${BOARDS_ERROR ? `<div style="margin-top:10px;"><button type="button" onclick="reloadBoards()" style="border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer;">Try again</button></div>` : ''}
+      </div>`;
+    return;
+  }
 
   if (!list.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
@@ -2350,8 +2384,12 @@ setInterval(loadNotifications, 120000);
   });
 
   // Boards: vocab widget + Lesson Plans grid + students aggregation
-  fetch(API + '/api/boards', auth).then(r => r.json()).then(d => {
+  fetch(API + '/api/boards', auth).then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(d => {
     const boards = d.boards || [];
+    BOARDS_LOADED = true; BOARDS_ERROR = false;
     if (typeof MY_BOARDS !== 'undefined') {
       MY_BOARDS = boards;
       if (typeof boardsRender === 'function') boardsRender();
@@ -2399,6 +2437,13 @@ setInterval(loadNotifications, 120000);
   }).catch(() => {
     if (cachedDash?.boards || cachedDash?.students) {
       applyTeacherDashboardCache({ boards: cachedDash.boards || [], students: cachedDash.students || [] }, { offlineNotice: true });
+    }
+    /* Раньше на этом обрывалось: без кэша список оставался пустым, и виджет
+       писал «No boards yet» - утверждение о состоянии, которого никто не
+       проверял. Теперь осечка называется осечкой и её можно повторить. */
+    if (!Array.isArray(MY_BOARDS) || !MY_BOARDS.length) {
+      BOARDS_ERROR = true;
+      if (typeof boardsRender === 'function') boardsRender();
     }
   });
 
