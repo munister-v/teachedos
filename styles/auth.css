@@ -364,12 +364,23 @@
     background: rgba(14,14,16,.07) !important;
     width: 34px !important;
     height: 34px !important;
-    border-radius: 10px !important;
+    /* На белом листе без песочной полосы квадратная плашка читалась чужой:
+       единственный серый блок наверху. Круг - это знак «закрыть», как у
+       остальных круглых кнопок продукта. */
+    border-radius: 50% !important;
+    background: rgba(14,14,16,.055) !important;
   }
 
-  /* Push toggle + forgot to the bottom naturally */
+  /* Прижатие «Register» к низу листа (margin-top:auto) разрывало экран:
+     заметка о защите входа оставалась под кнопкой, «Don't have an account?»
+     уезжало вниз, и между ними стояло около 350px пустоты - подвал читался
+     оторванным, а не подвалом. Строка идёт следом за содержимым; свободное
+     место собирается внизу, как на любом коротком экране.
+     Вертикально центрировать тело нельзя: при открытой клавиатуре flex-центр
+     выталкивает верх за пределы .auth-card с overflow:hidden, и заголовок
+     становится недостижимым прокруткой. */
   .auth-btn { margin-top: 12px !important; }
-  .auth-toggle { margin-top: auto; padding-top: 24px; }
+  .auth-toggle { margin-top: 26px; padding-top: 0; }
   .auth-forgot { margin-top: 8px; }
 
   /* Input fields: iOS-safe 16px to prevent auto-zoom */
