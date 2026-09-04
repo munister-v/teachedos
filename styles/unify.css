@@ -2564,6 +2564,11 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     transition: transform .14s ease, background-color .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease !important;
   }
 
+  /* Общее правило выше задаёт всем кнопкам 15px и заодно ловит .mp-btn, у
+     которой и mobile.css (--mp-radius-full), и harmony.css (999px) сходятся
+     на пилюле. Возвращаю форму, не отнимая у неё переход из общего правила. */
+  body:not(.board-page) .mp-btn { border-radius: var(--mp-radius-full, 999px) !important; }
+
   body:not(.board-page) :is(.btn:active, button:active, .mp-btn:active, .setting-btn:active, .new-board-btn:active, .action-btn:active, .filter-btn:active, .mini-btn:active, .board-pill:active) {
     transform: scale(.975) !important;
   }
@@ -2610,16 +2615,25 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     height: 64px !important;
     padding: 5px !important;
     gap: 4px !important;
-    border-radius: 22px !important;
+    /* Шкала телефона в mobile.css: 12 / 18 / 24 / 999. 22px не принадлежало ей
+       и стояло рядом с карточками на 18 и 24. Беру крупный шаг шкалы. */
+    border-radius: 24px !important;
     background: rgba(255,255,255,.96) !important;
     border: 1px solid rgba(28,28,30,.10) !important;
     box-shadow: 0 10px 24px rgba(28,28,30,.10), 0 1px 0 rgba(255,255,255,.86) inset !important;
   }
 
+  /* Этот блок идёт позже второго описания .mob-nav-tab в этом же файле и
+     перебивал его целиком. Вместе с высотой он возвращал 17px вместо 16px
+     (два почти одинаковых радиуса на одном экране) и, что важнее, подпись
+     rgba(28,28,30,.46) - это ровно те 2,93:1, про которые в раннем блоке
+     написано, что их подняли ради читаемости. Замер на живом сайте дал те же
+     2,93:1, то есть исправление было мертво. Радиус сведён к 16px, цвет даёт
+     около 5,3:1 при норме 4,5:1 для текста 14px. */
   .mob-nav-tab {
     height: 52px !important;
-    border-radius: 17px !important;
-    color: rgba(28,28,30,.46) !important;
+    border-radius: 16px !important;
+    color: rgba(28,28,30,.66) !important;
   }
 
   .mob-nav-tab.active {
