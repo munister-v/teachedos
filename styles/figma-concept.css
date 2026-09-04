@@ -183,6 +183,18 @@ body.fx .studio-chip {
 body.fx .studio-chip.primary {
   background:rgba(255,255,255,.62) !important; color:var(--fx-ink) !important;
   border:1px solid rgba(255,255,255,.7) !important;
+  /* unify.css красит этот чип в лайм И вешает свечение
+     `0 4px 12px rgba(205,249,64,.30)`. Здесь заливка возвращалась к тихой
+     белой, но тень не перекрывалась: селектор был той же специфики и просто
+     не объявлял box-shadow, а базовое `box-shadow:none` у .studio-chip слабее
+     (0,2,1) против (0,3,1). Получалась белая кнопка в зелёном ореоле, всегда,
+     и таких по окнам рабочего стола пять штук. */
+  box-shadow:none !important;
+}
+body.fx .studio-chip.primary:hover {
+  background:rgba(255,255,255,.82) !important;
+  border-color:rgba(255,255,255,.9) !important;
+  box-shadow:none !important;
 }
 body.fx .studio-chip.secondary {
   background:rgba(255,255,255,.6) !important; color:var(--fx-ink) !important;
