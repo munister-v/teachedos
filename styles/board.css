@@ -235,6 +235,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .cascade-item:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--accent-text);}
 .cascade-item.danger{color:#ef4444;}
 .cascade-item.danger:hover{background:rgba(239,68,68,.08);color:#dc2626;}
+.cascade-item svg.ci-ic{height:18px;stroke:currentColor;}
 .cascade-item .ci-ic{width:18px;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.85;}
 .cascade-item .ci-lbl{flex:1;}
 .cascade-item .ci-arr{color:#64645D;font-size:14px;margin-left:auto;flex-shrink:0;}
@@ -5821,7 +5822,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   background:#fff !important;color:#1C1C1E !important;border-color:rgba(94,94,74,.14) !important;
 }
 .tbuilder-btn:focus-visible,.ai-action:focus-visible,.gen-btn:focus-visible,.mt-btn:focus-visible,.tb-icon-btn:focus-visible{
-  outline:3px solid rgba(236,45,140,.25) !important;outline-offset:3px !important;
+  outline:3px solid rgba(200,230,50,.55) !important;outline-offset:3px !important;
 }
 .card,.board-card,.lesson-card{box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 10px 28px rgba(28,28,30,.06) !important;}
 @media(max-width:720px){
@@ -6041,7 +6042,9 @@ body:not(.board-phone-shell) #board-name-display { height:32px; }
 .tool-snippet:focus-visible,
 .board-list-item:focus-visible,
 .empty-action:focus-visible{
-  outline:3px solid rgba(236,45,140,.25) !important;
+  /* Розовый - остаток палитры «Lime x Pink x Cream»; в нынешней его нет,
+     и кольцо фокуса выбивалось из лайма с чернильным. */
+  outline:3px solid rgba(200,230,50,.55) !important;
   outline-offset:3px !important;
 }
 @media(max-width:860px){

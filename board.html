@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=688">
+<link rel="manifest" href="manifest.json?v=689">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=688">
-<link rel="stylesheet" href="styles/auth.css?v=688">
-<link rel="stylesheet" href="styles/mobile.css?v=688">
-<link rel="stylesheet" href="styles/harmony.css?v=688">
-<link rel="stylesheet" href="styles/unify.css?v=688">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=688">
+<link rel="stylesheet" href="styles/board.css?v=689">
+<link rel="stylesheet" href="styles/auth.css?v=689">
+<link rel="stylesheet" href="styles/mobile.css?v=689">
+<link rel="stylesheet" href="styles/harmony.css?v=689">
+<link rel="stylesheet" href="styles/unify.css?v=689">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=689">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -271,13 +271,13 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=688">
+<link rel="stylesheet" href="styles/teached-brand.css?v=689">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=688">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=688">
-<link rel="stylesheet" href="styles/controls.css?v=688">
+<link rel="stylesheet" href="styles/figma-theme.css?v=689">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=689">
+<link rel="stylesheet" href="styles/controls.css?v=689">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=688">
+<link rel="stylesheet" href="styles/figma-concept.css?v=689">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -331,6 +331,7 @@
 <symbol id="bi-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 8.5L12 4l7.5 4.5v8L12 21l-7.5-4.5zM4.5 8.5L12 13l7.5-4.5M12 13v8"/></symbol>
 <symbol id="bi-infinity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5.5 12c1.6-3.5 4.1-3.5 6.5 0s4.9 3.5 6.5 0-1.6-3.5-3.3-3.5S12.9 9.8 12 12s-3.2 3.5-5.2 3.5S3.9 14.2 5.5 12z"/></symbol>
 <symbol id="bi-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12c1.8-4 5.2-6.5 9.5-6.5s7.7 2.5 9.5 6.5c-1.8 4-5.2 6.5-9.5 6.5S4.3 16 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+<symbol id="bi-a11y" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="7.6" r="1.15" fill="currentColor" stroke="none"/><path d="M7.8 10.2h8.4M12 10.6v3.2M12 13.8l-2 3.4M12 13.8l2 3.4"/></symbol>
 <symbol id="bi-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2l8.4 14.6H3.6z"/><path d="M12 9v4.3M12 16.5h.01"/></symbol>
 </defs></svg>
 
@@ -441,13 +442,13 @@
 
   <!-- Miro-style Board menu (cascading) -->
   <div id="board-menu" class="cascade-menu" style="display:none;">
-    <div class="cascade-item" data-sub="board"><span class="ci-ic">🗂</span><span class="ci-lbl">Board</span><span class="ci-arr">›</span></div>
+    <div class="cascade-item" data-sub="board"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-boards"/></svg><span class="ci-lbl">Board</span><span class="ci-arr">›</span></div>
     <div class="cascade-item" data-sub="edit"><span class="ci-ic">✎</span><span class="ci-lbl">Edit</span><span class="ci-arr">›</span></div>
-    <div class="cascade-item" data-sub="view"><span class="ci-ic">👁</span><span class="ci-lbl">View</span><span class="ci-arr">›</span></div>
-    <div class="cascade-item" data-sub="prefs"><span class="ci-ic">⚙</span><span class="ci-lbl">Preferences</span><span class="ci-arr">›</span></div>
-    <div class="cascade-item" data-sub="a11y"><span class="ci-ic">♿</span><span class="ci-lbl">Accessibility</span><span class="ci-arr">›</span></div>
+    <div class="cascade-item" data-sub="view"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-eye"/></svg><span class="ci-lbl">View</span><span class="ci-arr">›</span></div>
+    <div class="cascade-item" data-sub="prefs"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-gear"/></svg><span class="ci-lbl">Preferences</span><span class="ci-arr">›</span></div>
+    <div class="cascade-item" data-sub="a11y"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-a11y"/></svg><span class="ci-lbl">Accessibility</span><span class="ci-arr">›</span></div>
     <div class="cascade-sep"></div>
-    <div class="cascade-item" onclick="closeBoardMenu()"><span class="ci-ic">📺</span><span class="ci-lbl">Send to interactive display</span></div>
+    <div class="cascade-item" onclick="closeBoardMenu()"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-video"/></svg><span class="ci-lbl">Send to interactive display</span></div>
   </div>
 
   <!-- Cascade submenus -->
@@ -457,7 +458,7 @@
     <div class="cascade-item" onclick="openExportMenu(event);closeBoardMenu()"><span class="ci-ic">⬇</span><span class="ci-lbl">Export</span><span class="ci-arr">›</span></div>
     <div class="cascade-sep"></div>
     <div class="cascade-item" onclick="closeBoardMenu()"><span class="ci-ic">★</span><span class="ci-lbl">Star this board</span></div>
-    <div class="cascade-item" onclick="openVersionHistory();closeBoardMenu()"><span class="ci-ic">🕐</span><span class="ci-lbl">History</span></div>
+    <div class="cascade-item" onclick="openVersionHistory();closeBoardMenu()"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-clock"/></svg><span class="ci-lbl">History</span></div>
     <div class="cascade-item" onclick="openSettings();closeBoardMenu()"><span class="ci-ic">ⓘ</span><span class="ci-lbl">Details</span></div>
   </div>
   <div id="cascade-sub-edit" class="cascade-sub" style="display:none;">
@@ -465,9 +466,9 @@
     <div class="cascade-item" onclick="document.getElementById('btn-redo').click();closeBoardMenu()"><span class="ci-ic">↷</span><span class="ci-lbl">Redo</span><span class="ci-kbd">Ctrl+Y</span></div>
     <div class="cascade-sep"></div>
     <div class="cascade-item" onclick="duplicateSelected&&duplicateSelected();closeBoardMenu()"><span class="ci-ic">⧉</span><span class="ci-lbl">Duplicate</span><span class="ci-kbd">Ctrl+D</span></div>
-    <div class="cascade-item danger" onclick="deleteSelected&&deleteSelected();closeBoardMenu()"><span class="ci-ic">🗑</span><span class="ci-lbl">Delete selected</span><span class="ci-kbd">Del</span></div>
+    <div class="cascade-item danger" onclick="deleteSelected&&deleteSelected();closeBoardMenu()"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-trash"/></svg><span class="ci-lbl">Delete selected</span><span class="ci-kbd">Del</span></div>
     <div class="cascade-sep"></div>
-    <div class="cascade-item" onclick="toggleBoardSearch();closeBoardMenu()"><span class="ci-ic">🔍</span><span class="ci-lbl">Find on board</span><span class="ci-kbd">Ctrl+F</span></div>
+    <div class="cascade-item" onclick="toggleBoardSearch();closeBoardMenu()"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-search"/></svg><span class="ci-lbl">Find on board</span><span class="ci-kbd">Ctrl+F</span></div>
   </div>
   <div id="cascade-sub-view" class="cascade-sub" style="display:none;">
     <div class="cascade-item" onclick="document.getElementById('btn-fit').click();closeBoardMenu()"><span class="ci-ic">⛶</span><span class="ci-lbl">Fit to screen</span><span class="ci-kbd">F</span></div>
@@ -477,9 +478,9 @@
     <div class="cascade-item" onclick="toggleSidebar();closeBoardMenu()"><span class="ci-ic">▤</span><span class="ci-lbl">Toggle sidebar</span></div>
   </div>
   <div id="cascade-sub-prefs" class="cascade-sub" style="display:none;">
-    <div class="cascade-item" onclick="openSettings();closeBoardMenu()"><span class="ci-ic">⚙</span><span class="ci-lbl">Board settings</span></div>
+    <div class="cascade-item" onclick="openSettings();closeBoardMenu()"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-gear"/></svg><span class="ci-lbl">Board settings</span></div>
     <div class="cascade-item" onclick="openAiAssistantPanel();closeBoardMenu()"><span class="ci-ic">✦</span><span class="ci-lbl">AI Memory Studio</span></div>
-    <div class="cascade-item" onclick="openBgModal();closeBoardMenu()"><span class="ci-ic">🎨</span><span class="ci-lbl">Background</span></div>
+    <div class="cascade-item" onclick="openBgModal();closeBoardMenu()"><svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#bi-palette"/></svg><span class="ci-lbl">Background</span></div>
     <div class="cascade-item" onclick="toggleSnap();closeBoardMenu()"><span class="ci-ic">⊞</span><span class="ci-lbl">Snap to grid</span></div>
   </div>
   <div id="cascade-sub-a11y" class="cascade-sub" style="display:none;">
@@ -2027,13 +2028,13 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=688"></script>
-<script src="js/teacher-tools-data.js?v=688"></script>
-<script src="scripts/tt-text-core.js?v=688"></script>
-<script src="scripts/board-app.js?v=688"></script>
-<script src="js/board-vocab.js?v=688"></script>
-<script src="js/board-reveal.js?v=688"></script>
-<script src="js/teacher-tool-board-composer.js?v=688"></script>
+<script src="scripts/auth-modal.js?v=689"></script>
+<script src="js/teacher-tools-data.js?v=689"></script>
+<script src="scripts/tt-text-core.js?v=689"></script>
+<script src="scripts/board-app.js?v=689"></script>
+<script src="js/board-vocab.js?v=689"></script>
+<script src="js/board-reveal.js?v=689"></script>
+<script src="js/teacher-tool-board-composer.js?v=689"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2041,8 +2042,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=688" defer></script>
-<script src="pwa-boot.js?v=688" defer></script>
+<script src="scripts/autogrow.js?v=689" defer></script>
+<script src="pwa-boot.js?v=689" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2124,11 +2125,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=688"></script>
-<script src="scripts/nav-boost.js?v=688" defer></script>
-<script src="scripts/mobile-perf.js?v=688" defer></script>
-<script src="scripts/mobile-nav.js?v=688"></script>
-<script src="scripts/mobile-zoom-guard.js?v=688" defer></script>
+<script src="pwa.js?v=689"></script>
+<script src="scripts/nav-boost.js?v=689" defer></script>
+<script src="scripts/mobile-perf.js?v=689" defer></script>
+<script src="scripts/mobile-nav.js?v=689"></script>
+<script src="scripts/mobile-zoom-guard.js?v=689" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
