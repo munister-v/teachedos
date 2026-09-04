@@ -15,7 +15,7 @@
   --auth-ink3:      #575768;
   --auth-border:    rgba(94,94,74,.16);
   --auth-bg-field:  rgba(255,255,255,.70);
-  --auth-card-bg:   rgba(247,244,238,.96);
+  --auth-card-bg:   #F7F4EE;
   --auth-radius:    14px;
 }
 
@@ -36,7 +36,10 @@
    Метрики зняті з живого index.html (див. пам'ятку про мову вікон):
    біле тіло, радіус 18, рамка rgba(23,23,25,.10) і триярусна тінь.      */
 .auth-card {
-  background: rgba(255,255,255,.98);
+  /* Было rgba(255,255,255,.98): сквозь карточку входа проступал заголовок
+     лендинга («Your whole classroom» читался за формой). Просвет тут смысла
+     не несёт, только грязнит. */
+  background: #FFFFFF;
   border-radius: 18px;
   padding: 0;                       /* відступи тепер у .auth-body */
   overflow: hidden;                 /* титульна смуга ріжеться по радіусу */
@@ -195,12 +198,16 @@
 /* ── Submit button ───────────────────────────────────────────── */
 .auth-btn {
   width: 100%; padding: 13px; border: none; border-radius: 12px;
-  /* Calm pass: a near-black slab with lime type was the loudest thing on the
-     screen, and sign-in is a routine action, not an alarm. */
-  background: linear-gradient(140deg, #556056 0%, #48524A 100%);
+  /* Тише, чем чернильная плита с лаймовым текстом: вход, это рутина, не
+     тревога. Но прошлый спокойный проход взял серо-зелёный #556056, которого
+     нет ни в одном токене (бренд: --lime #CDF940 и --ink #20202C), и главное
+     действие страницы читалось отключённым. Замысел сохраняю, цвет беру
+     из палитры: чернильный с белым текстом, ровно как главная кнопка
+     приложения (.bc-btn.primary в профиле). */
+  background: #20202C;
   color: #FFFFFF; font-family: inherit; font-weight: 600; font-size: 15px;
   cursor: pointer; margin-top: 6px; letter-spacing: -.01em;
-  box-shadow: 0 6px 20px rgba(59,69,60,.20), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 6px 20px rgba(32,32,44,.20), inset 0 1px 0 rgba(255,255,255,.08);
   transition: filter .15s, transform .12s, box-shadow .15s;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   position: relative; overflow: hidden;
@@ -249,7 +256,7 @@
   background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
   transition: color .14s;
 }
-.auth-toggle button:hover { color: #556056; }
+.auth-toggle button:hover { color: #20202C; }
 
 /* ── Google button area ──────────────────────────────────────── */
 .auth-google-area { display: none; margin-bottom: 16px; }
@@ -319,14 +326,24 @@
     display: flex;
     flex-direction: column;
   }
-  /* Полоса окна прижата к верхнему краю листа и держится при прокрутке. */
+  /* Полоса окна прижата к верхнему краю листа и держится при прокрутке.
+     Язык окон рабочего стола держится на том, что карточка висит НА чём-то:
+     на затемнении, среди окон. На телефоне карточка занимает весь экран,
+     вокруг ничего нет, и песочная полоса читается не как заголовок окна,
+     а как чужая лента браузера над страницей. Поэтому здесь она сливается
+     с карточкой и остаётся тем, чем нужна на телефоне: местом для крестика. */
   .auth-titlebar {
     position: sticky !important;
     top: 0; z-index: 5;
     padding-top: env(safe-area-inset-top, 0px) !important;
     height: auto !important;
     min-height: calc(env(safe-area-inset-top, 0px) + 46px) !important;
+    background: #FFFFFF !important;
+    border-bottom: none !important;
   }
+  /* Логотип и слово TeachEd в полосе дублировали шапку карточки: тот же знак
+     48px и название стояли на сто пикселей ниже. На телефоне оставляем один. */
+  .auth-tb-logo, .auth-tb-name { display: none !important; }
   /* Колонкой должно быть тело листа, а не карточка: содержимое лежит внутри
      .auth-body, поэтому margin-top:auto на .auth-toggle прежде ни на что не
      влиял и под «Register» оставалось до 270px пустоты. */
