@@ -8,10 +8,10 @@ const FAV_STORE = 'teachedos_teacher_tools_favorites';
 const DRAFT_STORE = 'teachedos_teacher_tools_drafts';
 const RECENT_TOOL_STORE = 'teachedos_teacher_tools_recent';
 const TOOLS = [
+  {id:'vocab-workout',cat:'vocabulary',badge:'New',icon:'SET',title:'Vocabulary Workout',desc:'Paste one word list and build a whole practice set: tick the activities you need, edit each one, send them to the board together.',mode:'vocab-workout'},
   {id:'lesson-pack',cat:'utility',badge:'New',icon:'PLAN',title:'Complete Lesson Pack Builder',desc:'Create a warm-up, presentation, practice, production and homework plan from one topic.',mode:'lesson-pack'},
   {id:'worksheet-builder',cat:'utility',badge:'New',icon:'PDF',title:'ESL Worksheet Builder',desc:'Turn a topic or text into a printable worksheet with teacher notes and answer key.',mode:'worksheet'},
   {id:'homework-set',cat:'utility',icon:'HW',title:'Homework Assignment Builder',desc:'Create clear homework instructions, tasks, deadlines and success criteria.',mode:'homework'},
-  {id:'vocab-workout',cat:'vocabulary',badge:'New',icon:'SET',title:'Vocabulary Workout',desc:'Paste one word list and build a whole practice set: tick the activities you need, edit each one, send them to the board together.',mode:'vocab-workout'},
   {id:'word-image-match',cat:'vocabulary',badge:'New',icon:'IMG',title:'Word-Image Matching',desc:'Create a visual matching exercise with uploadable images and target words.',mode:'images',game:'memory-match'},
   {id:'word-definition-match',cat:'vocabulary',icon:'DEF',title:'Word-Definition Matching',desc:'Turn vocabulary into matching pairs for cards, worksheets or memory games.',mode:'pairs',game:'memory-match'},
   {id:'word-translation-match',cat:'vocabulary',badge:'New',icon:'WT',title:'Word-Translation Matching',desc:'Translate target words and build matching pairs for bilingual vocabulary practice.',mode:'translation-match',game:'memory-match'},
@@ -1324,7 +1324,7 @@ function ttPrefetchEngine(){
   _ttEnginePrefetched=true;
   const go=()=>{
     const l=document.createElement('link');
-    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=692';
+    l.rel='prefetch';l.as='script';l.href='scripts/board-gen.js?v=693';
     document.head.appendChild(l);
   };
   if(typeof requestIdleCallback==='function')requestIdleCallback(go,{timeout:3000});
@@ -1336,7 +1336,7 @@ function ttEnsureEngine(){
   if(_ttEnginePromise)return _ttEnginePromise;
   _ttEnginePromise=new Promise(resolve=>{
     const el=document.createElement('script');
-    el.src='scripts/board-gen.js?v=692';
+    el.src='scripts/board-gen.js?v=693';
     el.onload=()=>resolve(typeof generateTeacherToolLocal==='function');
     el.onerror=()=>{_ttEnginePromise=null;resolve(false);};
     document.head.appendChild(el);

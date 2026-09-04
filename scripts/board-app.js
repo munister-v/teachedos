@@ -13673,7 +13673,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '692';
+const TEACHEDOS_ASSET_VERSION = '693';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14957,6 +14957,12 @@ function renderElementsTab(sec) {
    offline detection, retry backoff, session stats, Ctrl+S
    ════════════════════════════════════════════════════════════════ */
 const SAVE_KEY     = 'teachedos_board_v3';
+/* Объявление поднято сюда из блока API ниже по файлу. Оно нужно уже
+   serializeBoard()/loadBoard() (строки ~15150), которые выполняются на
+   раннем пути загрузки - а `let` ниже по файлу означает временную мёртвую
+   зону и ReferenceError в этот момент. Само значение - лишь чтение из
+   localStorage, зависимостей у него нет. */
+let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 const VER_KEY      = 'teachedos_versions_v1';   // version snapshots
 const SESSION_KEY  = 'teachedos_session_v1';
 
@@ -15145,6 +15151,10 @@ function serializeBoard() {
            annotations: normalizeAnnotations(state.annotations),
            strokes: state.strokes || [],
            groups: (state.groups || []).map(g => ({ ...g, cardIds: [...g.cardIds] })),
+           /* Чья это доска. Снимок много лет был анонимным, а локальный кэш
+              один на все доски (SAVE_KEY), поэтому его нельзя было отличить
+              от снимка другой доски - см. разбор в loadBoard(). */
+           boardId: currentBoardId || null,
            savedAt: Date.now() };
 }
 
@@ -15329,11 +15339,35 @@ function forceSave() {
 }
 
 /* ════ LOAD LOCAL ════ */
-function loadBoard() {
+/* expectedBoardId - какую доску мы СЕЙЧАС открываем. Кэш применяется, только
+   если он от неё же.
+
+   Зачем. Локальный кэш один на все доски (SAVE_KEY = 'teachedos_board_v3'), а
+   снимок до сих пор не помнил, чей он. Отсюда путь молчаливой порчи чужой
+   доски:
+     1. учитель работает с доской A - в кэше лежит A;
+     2. открывает доску B, она успешно грузится из облака; кэш всё ещё A,
+        потому что loadBoardData() его не переписывает, а saveLocal()
+        случится лишь при первой правке;
+     3. следующая загрузка B падает (рестарт API на деплое, холодный старт,
+        мобильная сеть) - catch зовёт loadBoard(), и на холст молча ложатся
+        карточки доски A, хотя в адресе и в currentBoardId стоит B;
+     4. любая правка -> saveToCloud() -> PATCH /api/boards/B содержимым A.
+   Доска B оказывалась перезаписана доской A без единого предупреждения.
+
+   Правило намеренно мягкое: отказ только когда ОБА идентификатора известны и
+   не совпали. Снимок без boardId (сделан до этой правки) и локальная работа
+   без входа, где доски нет вовсе, продолжают открываться как раньше. */
+function loadBoard(expectedBoardId) {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
+    const want = expectedBoardId === undefined ? currentBoardId : expectedBoardId;
+    if (want && data.boardId && data.boardId !== want) {
+      console.warn('[board] local cache belongs to board', data.boardId, '- opening', want, '; cache ignored');
+      return false;
+    }
     /* Start from a clean slate. state.cards is push()ed into below, and this
        function has three call sites: the init at the bottom of the file, the
        "cloud load failed, using local" catch, and the "backend unreachable -
@@ -15620,7 +15654,10 @@ renderSidebar();
   document.head.appendChild(l);
 });
 
-const loaded = loadBoard();
+/* URL_BOARD_ID объявляется ниже по файлу, здесь он ещё в мёртвой зоне -
+   поэтому адрес читается напрямую. Смысл тот же: холодный старт на
+   ?id=B не должен рисовать карточки доски A из общего кэша. */
+const loaded = loadBoard(new URLSearchParams(location.search).get('id') || currentBoardId);
 // Fresh boards stay empty. The empty state presents the first real actions instead of demo content.
 // On phones, auto-fit all cards into view on first paint so users see content
 // instead of an off-canvas blank corner.
@@ -16279,7 +16316,6 @@ renderGamesGrid = function(filter) {
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 let authToken = localStorage.getItem('teachedos_token') || null;
 let currentUser = null;
-let currentBoardId = localStorage.getItem('teachedos_board_id') || null;
 let boardAccessRole = 'owner';
 let boardCanEdit = true;
 // Board fetch kicked off in parallel with the /api/auth/me check on boot
@@ -16661,7 +16697,7 @@ async function initUserBoard() {
     }
   } catch (e) {
     console.warn('[board] cloud load failed, using local:', e.message);
-    loadBoard();
+    loadBoard(URL_BOARD_ID || currentBoardId);
   }
 }
 
@@ -19820,7 +19856,7 @@ function startReconnectLoop() {
       const cached = localStorage.getItem('teachedos_user');
       if (cached) try { currentUser = JSON.parse(cached); } catch {}
       updateAuthUI();
-      loadBoard();
+      loadBoard(URL_BOARD_ID || currentBoardId);
       if (window.__pendingLessonFlowImport) await runPendingLessonFlowImport();
       runPendingToolImports();
       showOfflineBanner();
