@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=655">
+<link rel="manifest" href="manifest.json?v=658">
 <meta name="theme-color" content="#F7F3EA">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -1209,6 +1209,12 @@ body.pwa-standalone .hero{
 .support-row:hover{border-color:rgba(11,11,12,.2);transform:translateY(-1px);}
 .support-lbl{font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.07em;text-transform:uppercase;}
 .support-val{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.1em;color:var(--ink);word-break:break-all;}
+/* IBAN набран группами по четыре, но в номере 29 знаков - последняя группа
+   выходила из одной цифры, и она же оставалась сиротой на второй строке:
+   строке не хватало трёх пикселей. Последняя группа сделана из пяти цифр,
+   сироте взяться неоткуда. Значение для копирования лежит отдельно в
+   обработчике и не менялось. */
+.support-val.mono-sm{word-break:normal;overflow-wrap:anywhere;}
 .support-val.mono-sm{font-size:12px;letter-spacing:.06em;}
 
 /* ════════ MOBILE RHYTHM - tighten the desktop-scale vertical air on phones ════════ */
@@ -1848,9 +1854,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=655">
+<link rel="stylesheet" href="styles/teached-brand.css?v=658">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=655">
+<link rel="stylesheet" href="styles/figma-landing.css?v=658">
 </head>
 <body class="landing-page fx">
 
@@ -2685,7 +2691,7 @@ section{scroll-margin-top:64px;}
         </button>
         <button type="button" class="support-row" onclick="navigator.clipboard.writeText('UA673220010000026204363043356');const v=this.querySelector('.support-val');const t=v.textContent;v.textContent='Copied!';setTimeout(()=>v.textContent=t,1400);">
           <span class="support-lbl">IBAN</span>
-          <span class="support-val mono-sm">UA67 3220 0100 0002 6204 3630 4335 6</span>
+          <span class="support-val mono-sm">UA67 3220 0100 0002 6204 3630 43356</span>
         </button>
       </div>
     </div>
@@ -2732,7 +2738,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=655">
+<link rel="stylesheet" href="styles/auth.css?v=658">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*

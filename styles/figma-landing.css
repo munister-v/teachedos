@@ -139,8 +139,35 @@ body.fx.landing-page :is(.bc,.plan,.faq-item) { border-radius:var(--fx-r-panel,2
 body.fx.landing-page :is(.cat,.pv-card,.fp-shot,.stat-c,.fp-gtile) { border-radius:20px !important; }
 /* Плитки категорий несли по своему акцентному цвету на каждую тему. */
 body.fx.landing-page .cat { --acc:#161616 !important; --acc-bg:rgba(203,240,60,.22) !important; }
+/* Полоска сверху и текст подписи берут ОДНУ переменную --acc. Сплющив её в
+   чернильный ради читаемости текста, слой заодно превратил тонкий цветной
+   акцент в чёрную планку: на песочной карточке она читается крышкой, и
+   таких крышек на экране шесть подряд. Тексту чернильный нужен, полоске -
+   нет, поэтому полоска красится отдельно, лаймом самого макета. Радиус
+   выровнен по карточке: слой задаёт ей 20px, а полоска несла 18 из --radius
+   и не ложилась в угол. */
+body.fx.landing-page .cat::before {
+  background:var(--fx-lime,#CBF03C) !important;
+  opacity:1 !important;
+  border-radius:20px 20px 0 0 !important;
+}
+/* Подписи «N tools» и метки тем.
+
+   Здесь стоял только фон - а `.cat-count` в разметке идёт блоком без полей
+   и без скругления. Фон честно и рисовался: белый прямоугольник во всю
+   ширину строки, с рублеными углами и текстом впритык к краю. На песочной
+   карточке это читалось как обрезанная плашка, а не как подпись.
+
+   Фону нужна геометрия под него: строчный бокс по ширине текста, поля и
+   радиус капсулы. Тогда это чип, каким его и задумывали. */
 body.fx.landing-page :is(.cat-tag,.cat-count) {
-  background:rgba(255,255,255,.6) !important; color:var(--fx-ink-2) !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  width:auto !important;
+  padding:3px 9px !important;
+  border-radius:999px !important;
+  background:rgba(255,255,255,.6) !important;
+  color:var(--fx-ink-2) !important;
 }
 
 /* Декоративные слои героя: сетка точек, «аврора» и белое пятно под
