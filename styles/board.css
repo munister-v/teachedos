@@ -5888,6 +5888,15 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   border-color:rgba(28,28,30,.2);
   box-shadow:0 8px 20px rgba(28,28,30,.07);
 }
+/* Чип с названием доски был на 12px выше кнопки «Поделиться», стоящей в той же
+   полосе: 52 против 40. Высоту задавала кнопка меню внутри чипа (44px) плюс
+   отступы 4+4. Равняю по кнопке: чип 40, кнопка меню 32, отступы прежние.
+   Телефонная оболочка исключена явно - там у чипа свои 44px под палец, а моё
+   правило с id перебило бы их. */
+body:not(.board-phone-shell) #tb-board-chip { height:40px; }
+body:not(.board-phone-shell) #btn-board-menu { width:32px; height:32px; }
+body:not(.board-phone-shell) #board-name-display { height:32px; }
+
 #btn-share.tb-btn-primary{
   min-height:40px;
   border-radius:999px !important;
