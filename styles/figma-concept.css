@@ -462,17 +462,26 @@ body.fx.board-page #empty-state .empty-action.primary {
 body.fx.board-page #empty-state .empty-action.primary:hover { background:var(--fx-lime-deep) !important; }
 
 /* Карточки досок красит правило с более высокой специфкой (.lesson-card из
-   общей темы), поэтому целюсь в них прямо, а не через `.curr-grid > *`:
-   в макете карточка - полупрозрачный кремовый прямоугольник в тон панели,
-   а не белый блок с серой рамкой. */
+   общей темы), поэтому целюсь в них прямо, а не через `.curr-grid > *`.
+
+   Кремовая полупрозрачная заливка rgba(255,253,246,.55) была в тон бежевой
+   панели. Панель стала светлой, и та же заливка осталась единственным тёплым
+   пятном на белом - карточка читалась как бежевый прямоугольник. Заодно
+   разъехалось всё остальное: белая рамка на белом не видна, а наведение
+   rgba(255,255,255,.75) на белом фоне не давало вообще никакой разницы, то
+   есть карточка не отзывалась на курсор.
+
+   Теперь карточка белая с волосяной линией по чернилам, а наведение уходит в
+   светло-серый, и его видно. */
 body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime) {
-  background:rgba(255,253,246,.55) !important;
-  border:1px solid rgba(255,255,255,.6) !important;
+  background:#FFFFFF !important;
+  border:1px solid rgba(22,22,22,.14) !important;
   border-radius:var(--fx-r-card) !important;
   box-shadow:none !important;
 }
 body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime):hover {
-  background:rgba(255,255,255,.75) !important;
+  background:#F4F4EF !important;
+  border-color:rgba(22,22,22,.22) !important;
 }
 body.fx.os-desktop .curr-grid .lc-lang {
   font-size:12px !important; color:var(--fx-mute) !important;
