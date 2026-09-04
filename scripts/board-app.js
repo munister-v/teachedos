@@ -13776,7 +13776,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '707';
+const TEACHEDOS_ASSET_VERSION = '708';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16942,11 +16942,25 @@ function getShareUrl() {
   const snapshot = { name: boardName, cards: state.cards, links: state.arrows };
   try {
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(snapshot))));
-    if (encoded.length > 240000) {
-      toast('This local board is too large for a share link. Sync it first.');
+    const url = location.origin + location.pathname + '?communityImport=' + encodeURIComponent(encoded);
+    /* A synced board shares as ?id=... and none of this applies. An unsynced
+       one has nowhere to live but the address itself, and the address is not
+       ours to fill: nginx refuses a request line over 8 KB with a 414 before
+       the page is ever reached, and the service worker then reports "You are
+       offline" on a perfectly live connection.
+
+       The old ceiling of 240000 was thirty times what the server actually
+       serves, so it never once fired - every board past a few cards produced
+       a link that looked fine and was dead on arrival. It also measured the
+       base64 before encodeURIComponent, which expands + / = into %2B %2F %3D
+       and adds a few more percent. Measure the finished URL against the real
+       limit instead, and keep a margin for the proxy's own headroom. */
+    const URL_LIMIT = 7600;
+    if (url.length > URL_LIMIT) {
+      toast('This board is too big for a link. Sync it and share the synced link.');
       return location.origin + location.pathname + '?local=1';
     }
-    return location.origin + location.pathname + '?communityImport=' + encodeURIComponent(encoded);
+    return url;
   } catch {
     return location.origin + location.pathname + '?local=1';
   }
