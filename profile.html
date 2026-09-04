@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=701">
-<link rel="preload" as="style" href="styles/unify.css?v=701">
-<link rel="manifest" href="manifest.json?v=701">
+<link rel="preload" as="style" href="styles/harmony.css?v=702">
+<link rel="preload" as="style" href="styles/unify.css?v=702">
+<link rel="manifest" href="manifest.json?v=702">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -116,31 +116,15 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .card-title { font-size: 16px; font-weight:600; letter-spacing: -.022em; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
 /* ── Avatar area ── */
-/* padding:0 держит замысел обложки (см. .profile-hero-band ниже). За него
-   спорят пять правил на .card, и без веса частное правило проигрывает общему:
-   сначала выигрывало .card{padding:16px!important}, после исключения - следующее
-   в очереди .card{padding:18px}. Гоняться за ними по одному бессмысленно. */
-.profile-hero-card { position: relative; overflow: hidden; padding: 0 !important; }
-/* Quiet decorative band behind the identity row - same lime-radial language
-   as the mobile hero, just toned down for a dense desktop card instead of
-   a full-bleed phone screen. Card content sits in its own padded row so the
-   band can bleed to the card's own rounded corners without clipping tricks. */
-.profile-hero-band {
-  height: 64px;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(200,230,50,.22), transparent 60%),
-    linear-gradient(135deg, rgba(200,230,50,.10), rgba(139,66,253,.06));
-  border-bottom: 1px solid rgba(94,94,74,.08);
-}
-/* Строка целиком поднималась на 34px под полосу-обложку, и нижний край полосы
-   проходил сквозь текст: замер на 1440px дал полосу 85-149, имя 117-145 (на
-   лайме) и почту 147-168, то есть строка почты была разрезана краем на 2px.
-   Под полосу должен заходить только аватар, как в любой обложке профиля.
-   Выравнивание по верху вместо низа: строка начинается там, где кончается
-   полоса, а аватар уходит вверх своим отрицательным отступом. */
-.profile-hero-row { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; padding: 0 24px 24px; margin-top: 0; }
+/* Была декоративная лаймовая полоса-"обложка" за строкой личности
+   (.profile-hero-band): 64px, радиальный градиент, тонкая граница снизу,
+   аватар наезжал на неё отрицательным отступом. На живой странице читалась
+   как дешёвый баннер с жёстким швом между полосой и белой картой - убрано
+   по прямой правке пользователя ("некрасиво"). Карточка теперь обычная,
+   с обычным паддингом; аватар лежит в строке на общих основаниях. */
+.profile-hero-card { position: relative; }
+.profile-hero-row { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
 #profile-avatar-big {
-  margin-top: -34px;
   font-size: 56px; line-height: 1; cursor: pointer; transition: transform .18s cubic-bezier(.34,1.3,.64,1), box-shadow .18s ease;
   display: flex; align-items: center; justify-content: center;
   width: 92px; height: 92px; border-radius: 24px; flex-shrink: 0;
@@ -481,10 +465,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=701" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=701">
-<link rel="stylesheet" href="styles/harmony.css?v=701">
-<link rel="stylesheet" href="styles/unify.css?v=701">
+<script src="theme.js?v=702" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=702">
+<link rel="stylesheet" href="styles/harmony.css?v=702">
+<link rel="stylesheet" href="styles/unify.css?v=702">
 <style>
 @media (max-width: 860px) {
   body{background:#F5F0E8;}
@@ -555,13 +539,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     color:#b91c1c!important;
     background:rgba(255,255,255,.82)!important;
   }
-  /* .profile-hero-card исключён намеренно: у него собственное padding:0,
-     потому что лаймовая полоса-обложка должна уходить в край карточки и
-     получать скругление от неё (см. комментарий у .profile-hero-band), а
-     содержимое лежит в своей строке .profile-hero-row с отступом 0 24px 24px.
-     Общее правило с !important перебивало это частное, и полоса висела
-     прямоугольником с зазором 17px со всех сторон. */
-  .card:not(.profile-hero-card){
+  .card{
     padding:16px!important;
     margin-bottom:12px!important;
     border-radius:16px!important;
@@ -789,12 +767,12 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=701">
-<link rel="stylesheet" href="styles/tool-window.css?v=701">
+<link rel="stylesheet" href="styles/teached-brand.css?v=702">
+<link rel="stylesheet" href="styles/tool-window.css?v=702">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=701">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=701">
-<link rel="stylesheet" href="styles/controls.css?v=701">
+<link rel="stylesheet" href="styles/figma-theme.css?v=702">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=702">
+<link rel="stylesheet" href="styles/controls.css?v=702">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -964,7 +942,6 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <!-- OVERVIEW TAB -->
     <div id="tab-overview" class="tab-panel active">
       <div class="card profile-hero-card">
-        <div class="profile-hero-band" aria-hidden="true"></div>
         <div class="profile-hero-row">
           <div id="profile-avatar-big" title="Click to change in Settings" onclick="switchTab('settings')"></div>
           <div style="flex:1;min-width:180px;">
@@ -1250,10 +1227,10 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=701"></script>
-<script src="scripts/profile-app.js?v=701"></script>
-<script src="scripts/autogrow.js?v=701" defer></script>
-<script src="pwa-boot.js?v=701" defer></script>
+<script src="scripts/app-core.js?v=702"></script>
+<script src="scripts/profile-app.js?v=702"></script>
+<script src="scripts/autogrow.js?v=702" defer></script>
+<script src="pwa-boot.js?v=702" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1272,11 +1249,11 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=701"></script>
-<script src="scripts/nav-boost.js?v=701" defer></script>
-<script src="scripts/mobile-perf.js?v=701" defer></script>
-<script src="scripts/mobile-nav.js?v=701"></script>
-<script src="scripts/mobile-zoom-guard.js?v=701" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=701" defer></script>
+<script src="pwa.js?v=702"></script>
+<script src="scripts/nav-boost.js?v=702" defer></script>
+<script src="scripts/mobile-perf.js?v=702" defer></script>
+<script src="scripts/mobile-nav.js?v=702"></script>
+<script src="scripts/mobile-zoom-guard.js?v=702" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=702" defer></script>
 </body>
 </html>
