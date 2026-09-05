@@ -452,17 +452,17 @@ body.fx.board-page #empty-state .empty-key {
   border-radius:999px !important; color:var(--fx-ink-2) !important;
   font-family:inherit !important; padding:2px 10px !important;
 }
-/* В макете у карточки одна кнопка, но «Add text» - это действие, а не
-   украшение. Оставляю обе: лаймовая капсула и призрачная рядом. */
+/* Схема потока живёт под подсказкой про C и повторяет её же материал:
+   те же мягкие пилюли, связка нарисована чернилами, а не розовым акцентом
+   базовой темы - в макете розового нет. */
+body.fx.board-page #empty-state .empty-flow .ef-card {
+  fill:rgba(240,238,232,.8) !important; stroke:none !important;
+}
+body.fx.board-page #empty-state .empty-flow .ef-label { fill:var(--fx-mute) !important; }
+body.fx.board-page #empty-state .empty-flow .ef-line { stroke:var(--fx-ink) !important; opacity:.4; }
+body.fx.board-page #empty-state .empty-flow .ef-tip { fill:var(--fx-ink) !important; opacity:.4; }
 body.fx.board-page #empty-state .empty-actions {
   display:flex !important; gap:8px !important; margin-top:16px !important;
-}
-body.fx.board-page #empty-state .empty-action:not(.primary) {
-  flex:0 0 auto !important;
-  background:rgba(255,255,255,.7) !important;
-  border:1px solid rgba(22,22,22,.10) !important;
-  border-radius:999px !important; padding:11px 16px !important;
-  font-size:15px !important; font-weight:600 !important; color:var(--fx-ink) !important;
 }
 body.fx.board-page #empty-state .empty-action.primary {
   display:block !important; flex:1 1 auto !important;

@@ -2851,6 +2851,14 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   padding:1px 8px;font-size:11px;font-weight:650;font-family:var(--mono);color:var(--text-2);
   box-shadow:0 1px 2px rgba(0,0,0,.07);
 }
+/* The sketch scales with its box, so the label size in user units is not what
+   the teacher reads: at 280px wide the 9-unit type lands at ~11px, the floor
+   the rest of the product holds to. */
+.empty-flow{width:100%;max-width:280px;height:auto;margin-top:2px;}
+.empty-flow .ef-card{fill:#fff;stroke:rgba(94,94,74,.22);stroke-width:1.2;}
+.empty-flow .ef-label{fill:var(--text-3);font:650 9px/1 var(--font-sans,system-ui,sans-serif);}
+.empty-flow .ef-line{stroke:#EC2D8C;stroke-width:1.4;stroke-linecap:round;fill:none;}
+.empty-flow .ef-tip{fill:#EC2D8C;}
 
 /* ── Context menu (Miro style) ── */
 @keyframes ctx-pop{from{opacity:0;transform:scale(.94) translateY(-4px);}to{opacity:1;transform:none;}}
@@ -5402,6 +5410,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
     font-size:12px;
     justify-content:center;
   }
+  /* The flow sketch illustrates the C shortcut, which a phone has no way to press. */
+  body.board-phone-shell .empty-flow{display:none;}
   body.board-phone-shell .empty-sub::after{
     /* Текст описывал прежний режим «только чтение». Создание на телефоне
        включено, и обещать обратное - врать в самом заметном месте пустой доски. */
