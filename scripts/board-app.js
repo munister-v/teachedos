@@ -1,12 +1,4 @@
 /* ════════════════════════ DATA ════════════════════════ */
-const PLANS = [
-  { title:'Articles: a, an, the',            type:'Grammar',  level:'A2', dur:'60 min', status:'active', desc:'Core challenge for Slavic speakers. Warm-up → presentation → controlled practice → free speaking.' },
-  { title:'Present Perfect vs. Past Simple', type:'Grammar',  level:'B1', dur:'60 min', status:'active', desc:'Contrastive analysis. Timeline diagrams, Have you ever…? activities, news headlines exercise.' },
-  { title:'False Friends: RU/UA/PL → EN',    type:'Vocab',    level:'B1', dur:'45 min', status:'draft',  desc:'Магазин ≠ magazine. Фабрика ≠ fabric. Gap fill, translation traps quiz, meme creation.' },
-  { title:'Opinion & Agreeing/Disagreeing',  type:'Speaking', level:'B2', dur:'60 min', status:'active', desc:'Functional language chunks. Discussion cards, structured debate, feedback on hedging & softening.' },
-  { title:'Prepositions: at / in / on',      type:'Grammar',  level:'A2', dur:'45 min', status:'active', desc:'Logic-based approach: place, time, manner. Picture descriptions, gap fill, peer check.' },
-  { title:'Phrasal Verbs: get, make, take',  type:'Vocab',    level:'B1', dur:'50 min', status:'draft',  desc:'Context-first approach. Story gap-fill, matching, role-play scenarios. B2 extension: phrasal verbs with multiple meanings.' },
-];
 const STUDENTS = [
   { name:'Anna Kovalenko',    group:'A', level:'A2', streak:12, lastSeen:'Today',     native:'🇺🇦', progress:68 },
   { name:'Dmytro Shevchenko', group:'A', level:'A2', streak:5,  lastSeen:'Today',     native:'🇺🇦', progress:52 },
@@ -8944,7 +8936,7 @@ document.getElementById('minimap').addEventListener('click', e => {
 });
 
 /* ════════════════════════ SIDEBAR ════════════════════════ */
-let activeTab = 'plans', searchQ = '';
+let activeTab = 'tools', searchQ = '';
 
 document.querySelectorAll('.sb-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -8965,7 +8957,7 @@ function selectSidebarTab(name) {
   if (!name) return;
   activeTab = name;
   // Primary tabs in the bar: mark active. Secondary (Notes/Course/Games) fall under the "More" tab indicator.
-  const primaryNames = ['plans','tools'];
+  const primaryNames = ['tools'];
   document.querySelectorAll('.sb-tab').forEach(t => t.classList.remove('active'));
   // Keep the rail ✦ button in sync with the Tools tab.
   document.getElementById('mt-tools')?.classList.toggle('active',
@@ -9176,7 +9168,6 @@ document.getElementById('sb-search').addEventListener('input', e => {
 function renderSidebar() {
   const sec = document.getElementById('sb-content');
   sec.innerHTML = '';
-  if (activeTab === 'plans')    renderPlansTab(sec);
   if (activeTab === 'students') renderStudentsTab(sec);
   if (activeTab === 'notes')    renderNotesTab(sec);
   if (activeTab === 'course')   renderCourseTab(sec);
@@ -13857,7 +13848,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '720';
+const TEACHEDOS_ASSET_VERSION = '721';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14470,7 +14461,6 @@ function makeTeacherToolSnippet(tool) {
     </div>
     <div class="ts-row2">
       <span class="ts-kind">${esc(tool.kind)}</span>
-      <span class="ts-cat">${esc(BOARD_TOOL_NAMES[tool.cat] || tool.cat)}</span>
     </div>
     <div class="ts-desc">${esc(tool.desc)}</div>
   `;
@@ -14834,17 +14824,6 @@ function _renderEmptyToolsState() {
   empty.style.cssText = 'padding:24px 16px;text-align:center;font-size:12px;color:var(--text-3);border:1px dashed var(--border);border-radius:12px;margin:8px 4px;';
   empty.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🤔</div>Nothing matches this filter or search.<br><button type="button" onclick="setBoardToolSkill('all', document.querySelector('.tool-skill-chip[data-skill=all]'))" style="margin-top:10px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:650;cursor:pointer;">Clear filter</button>`;
   return empty;
-}
-
-function renderPlansTab(sec) {
-  sec.appendChild(makeLegend('Pick or drag → add to board'));
-  PLANS.forEach(d => {
-    const lc=(d.level||'').toLowerCase(), tc=(d.type||'').toLowerCase();
-    const el = makeSnippet('📋 Lesson Plan', d.title,
-      `<span class="badge ${lc}">${d.level}</span><span class="badge ${tc}">${d.type}</span><span class="badge ${d.status==='active'?'active-s':'draft'}">${d.status==='active'?'✓ Active':'✎ Draft'}</span>`,
-      'plan', {...d});
-    if (el) sec.appendChild(el);
-  });
 }
 
 let _realMembers = null;

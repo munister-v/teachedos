@@ -643,7 +643,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 }
 #sidebar.open{transform:none;opacity:1;pointer-events:auto;}
 #sidebar.open:hover{box-shadow:0 20px 56px rgba(5,5,23,.22),0 2px 8px rgba(0,0,0,.06);}
-#sidebar.tools-mode{width:min(390px, calc(100vw - var(--mt-w,56px) - 18px));}
+#sidebar.tools-mode{width:min(430px, calc(100vw - var(--mt-w,56px) - 18px));}
 [data-theme="dark"] #sidebar{background:#1E1E35;border-color:rgba(255,255,255,.09);}
 #sb-reopen{display:none!important;}
 .sb-tabs{
@@ -869,15 +869,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 /* Tool card - icon-first layout, category-colored */
 /* ── Tool snippet: 2-col compact grid, description on hover ── */
 .tool-snippet-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  display:grid;grid-template-columns:1fr 1fr;gap:9px;
   padding:0 4px;
 }
 .tool-snippet{
   position:relative;overflow:hidden;
-  padding:9px 10px 9px 13px;
+  padding:11px 12px 11px 15px;
   border-radius:12px;background:#fff;
   border:1.5px solid var(--border,rgba(94,94,74,.12));
-  display:flex;flex-direction:column;gap:3px;
+  display:flex;flex-direction:column;gap:4px;
   cursor:pointer;flex-shrink:0;
   transition:border-color .14s,box-shadow .14s,background .14s,transform .14s;
   margin:0;
@@ -904,21 +904,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   font-size:13px;line-height:1;
 }
 .tool-snippet .ts-title{
-  font-size:12px;font-weight:650;color:var(--text);
+  font-size:14px;font-weight:700;color:var(--text);
   line-height:1.25;letter-spacing:-.01em;
   white-space:normal;min-width:0;
 }
-/* Tags row */
+/* Tags row - cat badge dropped: every card here already sits inside a group
+   headed by its category (tool-group-head, or the skill filter's own header),
+   so repeating the category on each card underneath restated what the header
+   just said. Kind stays - unlike cat, it varies card to card. */
 .tool-snippet .ts-row2{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
 .tool-snippet .ts-kind{
   font-size:8.5px;font-family:var(--mono);font-weight:650;
   color:var(--ts-color,var(--accent));letter-spacing:.05em;text-transform:uppercase;
   padding:1.5px 5px;border-radius:4px;background:var(--ts-bg,color-mix(in srgb,var(--accent) 10%,transparent));
   white-space:nowrap;
-}
-.tool-snippet .ts-cat{
-  font-size:8.5px;font-family:var(--mono);font-weight:600;
-  color:var(--text-3);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;
 }
 /* Description + action - visible on hover only */
 .tool-snippet .ts-desc{
