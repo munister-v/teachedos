@@ -6239,7 +6239,6 @@ body:not(.board-phone-shell) #board-name-display { height:32px; }
     gap:6px!important;
     padding:calc(env(safe-area-inset-top,0px) + 6px) 8px 6px!important;
   }
-  body.board-phone-shell #tb-hamburger,
   body.board-phone-shell .tb-board-chip-menu,
   body.board-phone-shell #auth-chip,
   body.board-phone-shell #auth-login-btn{

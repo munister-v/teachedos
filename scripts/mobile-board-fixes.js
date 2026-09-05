@@ -256,7 +256,7 @@
 
   document.addEventListener("click", event => {
     if (!isPhone()) return;
-    if (event.target.closest("#board-menu, .cascade-sub, #tb-hamburger, #btn-board-menu, #user-menu, #auth-chip, #more-menu, #btn-more, #mq-more")) return;
+    if (event.target.closest("#board-menu, .cascade-sub, #btn-board-menu, #user-menu, #auth-chip, #more-menu, #btn-more, #mq-more")) return;
     window.closeBoardMenu();
     syncBackdrop();
   }, true);
