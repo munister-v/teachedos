@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=737">
+<link rel="manifest" href="manifest.json?v=738">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=737">
-<link rel="preload" as="style" href="styles/unify.css?v=737">
+<link rel="preload" as="style" href="styles/harmony.css?v=738">
+<link rel="preload" as="style" href="styles/unify.css?v=738">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -127,6 +127,10 @@ button{font-family:var(--font);cursor:pointer;}
 .starter-library summary::after{content:'+';font-size:18px;font-weight:400;color:var(--text3);}
 .starter-library[open] summary::after{content:'−';}
 .starter-library .ready-library{margin:12px 0 0!important;width:100%!important;}
+/* display:grid на содержимом закрытого <details> оставляет его в раскладке:
+   свёрнутая секция занимала 1135px пустоты и уводила низ страницы за
+   пределы прокрутки. Закрыт - значит не участвует в раскладке. */
+.starter-library:not([open]) .ready-library{display:none!important;}
 
 /* ── COURSE HEADER ── */
 #course-header{
@@ -384,11 +388,14 @@ button{font-family:var(--font);cursor:pointer;}
   #layout:has(.course-empty-state) #sidebar{display:none !important;}
   #layout:has(.course-item) #welcome{display:none !important;}
   /* Раньше #main кончался там же, где кончался его текст, и ниже до самой
-     навигации лежала мёртвая серая полоса в половину экрана. Тянем не
-     константой (высота на константах против текста, который переносится,
-     здесь ломалась не раз), а ростом самой колонки. */
-  #layout{min-height:100dvh;}
-  #main{flex:1 1 auto;}
+     навигации лежала мёртвая серая полоса в половину экрана. Тянули колонку
+     до 100dvh, но отсчёт шёл от ВЕРХА #layout, а он лежит на 65px ниже
+     шапки: страница вырастала до 989px при экране 844 и прокручивалась на
+     145px в пустоту. Полоса была видна только потому, что у #main свой,
+     более светлый фон. На телефоне бокового столбца нет, #main занимает
+     весь экран, и отдельная поверхность под ним ничего не значит: убираем
+     фон, и полосе неоткуда взяться при любой высоте. */
+  #main{flex:1 1 auto;background:transparent;}
 }
 /* Opening a course used to flip #welcome/#course-view via a flat
    style.display swap with no transition. */
@@ -398,10 +405,10 @@ button{font-family:var(--font);cursor:pointer;}
   #course-view{animation-duration:.001ms}
 }
 </style>
-<script src="theme.js?v=737" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=737">
-<link rel="stylesheet" href="styles/harmony.css?v=737">
-<link rel="stylesheet" href="styles/unify.css?v=737">
+<script src="theme.js?v=738" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=738">
+<link rel="stylesheet" href="styles/harmony.css?v=738">
+<link rel="stylesheet" href="styles/unify.css?v=738">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -449,7 +456,10 @@ button{font-family:var(--font);cursor:pointer;}
   #course-list .course-empty-state{min-width:100%;background:#fff;border-radius:14px;border:1px solid rgba(92,92,102,.10);}
   .course-skeleton{flex:0 0 178px;margin:0;background:#fff;}
   #sb-shared-head,#shared-list{display:none!important;}
-  #welcome{padding:28px 16px;min-height:44vh;}
+  /* Пустое состояние центрировалось по высоте колонки в 764px, поэтому
+     заголовок «Build a course around your lessons» стоял на 358px от верха:
+     полтора экрана телефона до первого слова. Прижимаем к шапке. */
+  #welcome{padding:28px 16px;min-height:44vh;justify-content:flex-start;}
   .ready-library{margin:12px 16px 0!important;grid-template-columns:1fr!important;}
   #course-header{border-radius:18px;margin:0 12px 0;padding:14px!important;}
   #course-header .ch-actions{width:100%;align-items:center;}
@@ -465,12 +475,12 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=737">
-<link rel="stylesheet" href="styles/tool-window.css?v=737">
+<link rel="stylesheet" href="styles/teached-brand.css?v=738">
+<link rel="stylesheet" href="styles/tool-window.css?v=738">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=737">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=737">
-<link rel="stylesheet" href="styles/controls.css?v=737">
+<link rel="stylesheet" href="styles/figma-theme.css?v=738">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=738">
+<link rel="stylesheet" href="styles/controls.css?v=738">
 </head>
 <body class="tw-page mp-shell fx">
 
@@ -610,7 +620,7 @@ button{font-family:var(--font);cursor:pointer;}
   <symbol id="i-courses" viewBox="0 0 24 24"><path d="M4 6.5c2.5-1 5-1 7 .5v11c-2-1.5-4.5-1.5-7-.5zM20 6.5c-2.5-1-5-1-7 .5v11c2-1.5 4.5-1.5 7-.5z"/><path d="M12 7v11"/></symbol>
 </svg>
 
-<script src="scripts/app-core.js?v=737"></script>
+<script src="scripts/app-core.js?v=738"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -1562,12 +1572,12 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=737" defer></script>
-<script src="scripts/mobile-perf.js?v=737" defer></script>
-<script src="scripts/mobile-nav.js?v=737"></script>
-<script src="scripts/mobile-zoom-guard.js?v=737" defer></script>
-<script src="scripts/autogrow.js?v=737" defer></script>
-<script src="pwa-boot.js?v=737" defer></script>
-  <script src="scripts/signin-entry.js?v=737" defer></script>
+<script src="scripts/nav-boost.js?v=738" defer></script>
+<script src="scripts/mobile-perf.js?v=738" defer></script>
+<script src="scripts/mobile-nav.js?v=738"></script>
+<script src="scripts/mobile-zoom-guard.js?v=738" defer></script>
+<script src="scripts/autogrow.js?v=738" defer></script>
+<script src="pwa-boot.js?v=738" defer></script>
+  <script src="scripts/signin-entry.js?v=738" defer></script>
 </body>
 </html>
