@@ -921,6 +921,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
 .tool-group-head .tgh-ico svg{width:16px;height:16px;}
 .tool-snippet .ts-icon svg{width:16px;height:16px;color:var(--ts-color);}
 .lesson-pack-snippet .lps-icon svg{width:22px;height:22px;color:var(--lp-color);}
+.lp-preview-icon svg{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 .yt-lesson-cta .yt-cta-ic svg{width:22px;height:22px;}
 /* The slots were sized for glyphs sitting on a text baseline; with an svg
    child they need to centre it instead. */

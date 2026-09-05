@@ -9354,11 +9354,13 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
   _suppressSnapshot++;
   let outer;
   try {
-    // Outer (lesson) frame - distinctive title with icon + level + duration
+    // Outer (lesson) frame. Border is the brand ink, not the pack's own hue -
+    // same call renderWorksheet already made: a board of dropped material in
+    // seven saturated colours reads as unrelated widgets, not one product.
     outer = addCard('frame', x0, y0, {
-      title: `${pack.icon}  ${pack.title} · ${pack.level} · ${pack.duration}`,
+      title: `${pack.title} · ${pack.level} · ${pack.duration}`,
       bg: '#ffffff',
-      border: pack.color,
+      border: WS_ACCENT_INK,
       childIds: [],
       _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson Pack',
     }, FRAME_W, FRAME_H);
@@ -9366,7 +9368,7 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
     // Lesson-level header text card (skill + summary line)
     const header = addCard('text', x0 + PAD, y0 + 56, defaultTextData({
       text: `${pack.title}\n${pack.skill} · ${pack.level} · ${pack.duration}\n\n${pack.summary}`,
-      textColor: pack.color,
+      textColor: WS_ACCENT_INK,
       bgColor: '#ffffff',
       align: 'left',
       fontSize: 15,
@@ -9381,9 +9383,9 @@ function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
       const sx = x0 + PAD + i * (STAGE_W + STAGE_GAP);
       // Inner stage frame
       const stageFrame = addCard('frame', sx, stagesY, {
-        title: stage.title,
+        title: lessonStageTitle(stage.title),
         bg: '#ffffff',
-        border: pack.color,
+        border: WS_ACCENT_INK,
         childIds: []
       }, STAGE_W, STAGE_H);
 
@@ -13899,7 +13901,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '725';
+const TEACHEDOS_ASSET_VERSION = '726';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14612,6 +14614,14 @@ function makeLessonPackSnippet(pack) {
   return el;
 }
 
+/* Stage titles in LESSON_PACKS still carry a leading emoji from the old
+   pastel treatment ("\u{1F31F} Warm-up \u00B7 5 min"). The preview numbers its stages and
+   the panel icons are drawn from the sprite now, so strip it at render rather
+   than editing every pack. */
+function lessonStageTitle(title) {
+  return String(title || '').replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, '').trim();
+}
+
 /* Compact in-place preview shown as a toast-modal. Lets the teacher
    skim the stages before deciding to drop the pack on the board. */
 function openLessonPackPreview(packId) {
@@ -14624,22 +14634,31 @@ function openLessonPackPreview(packId) {
   ov.style.cssText = `position:fixed;inset:0;background:rgba(5,5,23,.55);backdrop-filter:blur(10px);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;`;
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
   const card = document.createElement('div');
-  card.style.cssText = `background:#fff;border-radius:18px;width:100%;max-width:880px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(5,5,23,.28);border-top:6px solid ${pack.color};`;
+  /* The preview used to paint itself in the pack's own hue: a coloured top
+     rule, a saturated primary button and a pastel fill per stage. That is the
+     old rainbow language, and it also lied - what lands on the board is white
+     stage frames on the brand ink. Ink and lime here, and the stages look like
+     the cards the teacher is about to get. */
+  const meta = BOARD_TOOL_META[lessonPackCat(pack)] || BOARD_TOOL_META.utility;
+  card.style.cssText = `background:#fff;border-radius:18px;width:100%;max-width:880px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(5,5,23,.28);border-top:4px solid ${WS_ACCENT_INK};`;
   card.innerHTML = `
     <div style="padding:18px 22px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;">
-      <div style="font-size:32px;flex-shrink:0;">${pack.icon}</div>
+      <div class="lp-preview-icon" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${meta.bg};color:${meta.color};">${toolCatIcon(meta)}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:18px;font-weight:600;letter-spacing:-.02em;color:var(--text);">${esc(pack.title)}</div>
         <div style="font-size:11.5px;font-weight:600;color:#666;margin-top:3px;">${esc(pack.level)} · ${esc(pack.duration)} · ${esc(pack.skill)}</div>
       </div>
-      <button type="button" id="lp-preview-drop" style="border:none;background:${pack.color};color:#fff;font:800 12px var(--font);padding:10px 16px;border-radius:10px;cursor:pointer;">Drop on board →</button>
+      <button type="button" id="lp-preview-drop" style="border:none;background:${WS_ACCENT_LIME};color:${WS_ACCENT_INK};font:800 12px var(--font);padding:10px 16px;border-radius:999px;cursor:pointer;">Drop on board →</button>
       <button type="button" id="lp-preview-close" style="border:none;background:rgba(0,0,0,.06);width:34px;height:34px;border-radius:10px;font-size:16px;cursor:pointer;color:#666;">×</button>
     </div>
     <div style="padding:14px 22px;font-size:13px;color:#444;line-height:1.5;border-bottom:1px solid rgba(0,0,0,.04);">${esc(pack.summary)}</div>
     <div style="flex:1;overflow:auto;padding:16px 22px 22px;display:grid;gap:12px;">
-      ${pack.stages.map(s => `
-        <div style="border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:14px;background:${s.color};">
-          <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text);">${esc(s.title)}</div>
+      ${pack.stages.map((s, i) => `
+        <div style="border:1px solid rgba(28,28,30,.12);border-left:3px solid ${WS_ACCENT_INK};border-radius:14px;padding:14px;background:#fff;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="min-width:20px;height:20px;border-radius:6px;background:${WS_ACCENT_INK};color:#fff;font:800 11px/20px var(--font);text-align:center;">${i + 1}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text);">${esc(lessonStageTitle(s.title))}</span>
+          </div>
           <div style="font-size:12.5px;line-height:1.6;color:var(--text);white-space:pre-wrap;">${esc(s.text)}</div>
         </div>
       `).join('')}
