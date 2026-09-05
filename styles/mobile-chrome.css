@@ -305,4 +305,43 @@
     flex: 0 0 auto !important;
     scroll-snap-align: start;
   }
+
+  /* ── Оконная рамка не приезжает на телефон ────────────────────────────
+     Дашборд построен как окно рабочего стола: .win с полем сверху под
+     полосу меню, скруглением и внутренними отступами. На телефоне ни
+     полосы меню, ни кнопок окна нет - остаются только их последствия.
+     Замер на 390px: 52px пустой полосы сверху, 8px поля .win-body плюс
+     9px у .win-main с каждой стороны, скругление 18px по краю экрана.
+     Итого содержимому доставалось 372px из 390 и на треть экрана меньше
+     первого экрана. Окно на телефоне разворачивается во весь кадр.
+
+     Балласт `:not(#_)` обязателен: figma-concept.css задаёт эти же поля
+     через `body.fx :is(.win-main, .win-sidebar)` c !important и грузится
+     ПОЗЖЕ этого файла - без разряда id правило проигрывает молча. */
+  .win:not(#_) {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  .win-body:not(#_) {
+    padding: 0 !important;
+  }
+  body.fx:not(#_) :is(.win-main, .win-sidebar) {
+    padding-top: 0 !important;
+  }
+  .win-main:not(#_) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  /* #desktop - «рабочий стол» под окном: те же 57px форы и скругление 45px
+     под несуществующей на телефоне полосой меню. */
+  #desktop:not(#_) {
+    top: 0 !important;
+    border-radius: 0 !important;
+  }
 }
