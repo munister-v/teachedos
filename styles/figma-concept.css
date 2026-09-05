@@ -327,10 +327,6 @@ body.fx.board-page #toolbar {
   padding:0 22px !important;
 }
 body.fx.board-page .tb-logo-mark, body.fx.board-page .tb-slash { display:none !important; }
-/* Без слова "TeachEd" рядом знак остался один против лаймовой пилюли на 44px
-   и читался мелким. 30 держит вес рядом с ней, не перебивая название доски.
-   Ручку задаёт figma-theme.css - там у правила id-балласт, размер только так. */
-body.fx.board-page { --fx-logo-size:30px; }
 body.fx.board-page .tb-board-chip {
   background:var(--fx-lime) !important; border:none !important;
   border-radius:999px !important; padding:8px 16px !important;
@@ -603,12 +599,18 @@ body.fx.os-desktop .di.open .di-icon :is(svg,.ic) { color:var(--fx-ink) !importa
    Переменная теперь равна тому, что на экране. Захотим низкую панель по
    макету - опускать надо min-height в unify.css, а не переписывать здесь
    цифру, которой никто не подчиняется. */
-/* --fx-rail-x - левый край всей левой колонки: по нему стоит и рейка
-   инструментов, и знак над ней. Раньше рейка начиналась с 14, а знак с 20:
-   почти совпадение читается как промах, а не как отступ. */
-body.fx.board-page { --mt-w:110px; --tb-h:54px; --fx-rail-x:14px; }
+/* Левая колонка: рейка инструментов и знак над ней стоят на одной оси.
+   --fx-rail-x - её левый край, --fx-rail-w - ширина коробки рейки
+   (10px отступа + плитка 60px + 10px + рамка с двух сторон). Знак не
+   прижимается к краю, а центрируется в этой же ширине - тогда он читается
+   как шапка колонки, а не как случайно сдвинутая иконка. */
+body.fx.board-page { --mt-w:110px; --tb-h:54px; --fx-rail-x:14px; --fx-rail-w:82px; }
 body.fx.board-page #toolbar { padding:0 16px 0 var(--fx-rail-x) !important; }
-body.fx.board-page .tb-logo { padding-left:0 !important; }
+body.fx.board-page .tb-logo {
+  padding:0 !important;
+  width:var(--fx-rail-w) !important;
+  justify-content:center !important;
+}
 body.fx.board-page .tb-board-chip { padding:2px 10px !important; }
 body.fx.board-page .tb-board-chip-title { font-size:13px !important; }
 body.fx.board-page :is(.tb-btn,.tb-icon-btn,.tb-auth-chip) {
