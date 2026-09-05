@@ -6841,15 +6841,6 @@ document.addEventListener('mouseup', e => {
           setTimeout(() => { try { zoomToCard?.(fid, true); } catch {} }, 80);
           toast && toast(`✨ ${sidebarDragData.tool.title} template ready - edit the stickies`);
         }
-      } else if (sidebarDragData.__lessonPack) {
-        // Lesson Pack drop: drop a full multi-frame lesson layout
-        const fid = instantiateLessonPack(sidebarDragData.pack, pos.x, pos.y);
-        if (fid) {
-          clearSelection?.();
-          selectCard?.(fid);
-          setTimeout(() => { try { zoomToCard?.(fid, true); } catch {} }, 80);
-          toast && toast(`✨ ${sidebarDragData.pack.title} · ${sidebarDragData.pack.duration} lesson ready`);
-        }
       } else {
         const { type, data, w, h } = sidebarDragData;
         const dropped = addCard(type, pos.x - w/2, pos.y - h/2, data, w, h);
@@ -9328,87 +9319,6 @@ function getToolSeed(tool) {
    can use it as-is or edit any sticky in place.
    Each pack: 5 stages × 1 main sticky each = 5 stickies + 1 header.
 ══════════════════════════════════════════════════════════════════ */
-/* LESSON_PACKS - extracted to js/teacher-tools-data.js */
-
-/* Drop a full Lesson Pack on the board - an outer Frame containing 5
-   sub-Frames (one per stage) each pre-filled with the real lesson
-   content for the chosen topic.
-   Returns the outer frame id so the caller can select / zoom. */
-function instantiateLessonPack(pack, anchorBoardX, anchorBoardY) {
-  if (!pack || !Array.isArray(pack.stages) || !pack.stages.length) return null;
-
-  // Outer frame holds the whole lesson; sub-frames per stage sit inside.
-  const STAGE_COUNT = pack.stages.length;
-  const STAGE_W = 320;
-  const STAGE_H = 560;
-  const STAGE_GAP = 18;
-  const PAD = 26;
-  const HEADER_H = 110;
-  const FRAME_W = PAD * 2 + STAGE_W * STAGE_COUNT + STAGE_GAP * (STAGE_COUNT - 1);
-  const FRAME_H = PAD + HEADER_H + 20 + STAGE_H + PAD;
-  const _ap = findFreePlacement(anchorBoardX, anchorBoardY, FRAME_W, FRAME_H);
-  const x0 = Math.round(_ap.x - FRAME_W / 2);
-  const y0 = Math.round(_ap.y - FRAME_H / 2);
-
-  snapshot();
-  _suppressSnapshot++;
-  let outer;
-  try {
-    // Outer (lesson) frame. Border is the brand ink, not the pack's own hue -
-    // same call renderWorksheet already made: a board of dropped material in
-    // seven saturated colours reads as unrelated widgets, not one product.
-    outer = addCard('frame', x0, y0, {
-      title: `${pack.title} · ${pack.level} · ${pack.duration}`,
-      bg: '#ffffff',
-      border: WS_ACCENT_INK,
-      childIds: [],
-      _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson Pack',
-    }, FRAME_W, FRAME_H);
-
-    // Lesson-level header text card (skill + summary line)
-    const header = addCard('text', x0 + PAD, y0 + 56, defaultTextData({
-      text: `${pack.title}\n${pack.skill} · ${pack.level} · ${pack.duration}\n\n${pack.summary}`,
-      textColor: WS_ACCENT_INK,
-      bgColor: '#ffffff',
-      align: 'left',
-      fontSize: 15,
-    }), FRAME_W - PAD * 2, HEADER_H);
-    if (outer && header) setCardParentFrame?.(header, outer);
-
-    // One sub-frame per stage, each with a single sticky carrying the
-    // teacher-ready content. (We use sub-frames so teachers can drag-zoom
-    // into one stage at a time.)
-    const stagesY = y0 + 56 + HEADER_H + 14;
-    pack.stages.forEach((stage, i) => {
-      const sx = x0 + PAD + i * (STAGE_W + STAGE_GAP);
-      // Inner stage frame
-      const stageFrame = addCard('frame', sx, stagesY, {
-        title: lessonStageTitle(stage.title),
-        bg: '#ffffff',
-        border: WS_ACCENT_INK,
-        childIds: []
-      }, STAGE_W, STAGE_H);
-
-      // White panel filling the stage frame body
-      const stickyX = sx + 14;
-      const stickyY = stagesY + 50;
-      const stickyW = STAGE_W - 28;
-      const stickyH = STAGE_H - 64;
-      _ttAddStickyCard(stageFrame, stickyX, stickyY, stickyW, stickyH, stage.text);
-      // Nest the stage frame in the outer lesson frame
-      if (outer && stageFrame) setCardParentFrame?.(stageFrame, outer);
-    });
-
-    if (typeof renumberFrames === 'function') renumberFrames();
-  } finally {
-    _suppressSnapshot--;
-  }
-
-  _sendCardToBack(outer);   // keep the white lesson substrate behind everything
-  scheduleSave?.(); saveLocal?.();
-  _ttScheduleGeneratedHarmonyAudit?.(outer?.id, { minH: 720, shrink: true });
-  return outer ? outer.id : null;
-}
 
 /* Build a fully-fledged template on the board: a Frame containing a
    header text card, 5 step stickies (the board-ready flow), a teacher
@@ -13901,7 +13811,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '727';
+const TEACHEDOS_ASSET_VERSION = '728';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14565,218 +14475,35 @@ function makeTeacherToolSnippet(tool) {
   return el;
 }
 
-/* Lesson Pack snippet card for the Tools sidebar. Click → preview modal;
-   drag → drops the full multi-frame lesson on the board. */
-function makeLessonPackSnippet(pack) {
-  const q = searchQ.trim().toLowerCase();
-  const hay = `${pack.title} ${pack.skill} ${pack.level} ${pack.summary}`.toLowerCase();
-  if (q && !hay.includes(q)) return null;
-  const el = document.createElement('div');
-  el.className = 'lesson-pack-snippet';
-  el.style.setProperty('--lp-color', pack.color);
-  el.style.setProperty('--lp-bg', pack.bg);
-  el.setAttribute('draggable', 'false');
-  el.innerHTML = `
-    <div class="lps-head">
-      <div class="lps-icon">${toolCatIcon(BOARD_TOOL_META[lessonPackCat(pack)])}</div>
-      <div class="lps-meta">
-        <div class="lps-title">${esc(pack.title)}</div>
-        <div class="lps-tags">
-          <span class="lps-tag">${esc(pack.level)}</span>
-          <span class="lps-tag">${esc(pack.duration)}</span>
-          <span class="lps-tag lps-skill">${esc(pack.skill)}</span>
-        </div>
-      </div>
-    </div>
-    <div class="lps-summary">${esc(pack.summary)}</div>
-    <div class="lps-stages">
-      ${pack.stages.map((s,i) => `<span class="lps-stage-dot" title="${esc(s.title.replace(/[·\n]+/g,' '))}">${i+1}</span>`).join('')}
-    </div>
-    <div class="lps-foot">
-      <span class="lps-hint">Drag to board</span>
-      <span class="lps-open">${pack.stages.length} stages →</span>
-    </div>
-  `;
-  el.addEventListener('mousedown', e => {
-    isSidebarDrag = true; document.body.classList.add('board-dragging');
-    sidebarDragData = { __lessonPack: true, pack, w: 1700, h: 720 };
-    ghostEl.innerHTML = `${pack.icon} ${pack.title}<br><span style="font-size:10px;opacity:.7;">Drop to build a full ${pack.duration} lesson</span>`;
-    ghostEl.style.background = '#fff';
-    ghostEl.style.display = 'block';
-    ghostEl.style.left = (e.clientX - 150) + 'px';
-    ghostEl.style.top  = (e.clientY - 28)  + 'px';
-    e.preventDefault();
-  });
-  el.addEventListener('click', () => {
-    if (isSidebarDrag) return;
-    openLessonPackPreview(pack.id);
-  });
-  return el;
-}
-
-/* Stage titles in LESSON_PACKS still carry a leading emoji from the old
-   pastel treatment ("\u{1F31F} Warm-up \u00B7 5 min"). The preview numbers its stages and
-   the panel icons are drawn from the sprite now, so strip it at render rather
-   than editing every pack. */
-function lessonStageTitle(title) {
-  return String(title || '').replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, '').trim();
-}
-
-/* Compact in-place preview shown as a toast-modal. Lets the teacher
-   skim the stages before deciding to drop the pack on the board. */
-function openLessonPackPreview(packId) {
-  const pack = LESSON_PACKS.find(p => p.id === packId);
-  if (!pack) return;
-  const existing = document.getElementById('lp-preview-overlay');
-  existing?.remove();
-  const ov = document.createElement('div');
-  ov.id = 'lp-preview-overlay';
-  ov.style.cssText = `position:fixed;inset:0;background:rgba(5,5,23,.55);backdrop-filter:blur(10px);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;`;
-  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-  const card = document.createElement('div');
-  /* The preview used to paint itself in the pack's own hue: a coloured top
-     rule, a saturated primary button and a pastel fill per stage. That is the
-     old rainbow language, and it also lied - what lands on the board is white
-     stage frames on the brand ink. Ink and lime here, and the stages look like
-     the cards the teacher is about to get. */
-  const meta = BOARD_TOOL_META[lessonPackCat(pack)] || BOARD_TOOL_META.utility;
-  card.style.cssText = `background:#fff;border-radius:18px;width:100%;max-width:880px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(5,5,23,.28);border-top:4px solid ${WS_ACCENT_INK};`;
-  card.innerHTML = `
-    <div style="padding:18px 22px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;">
-      <div class="lp-preview-icon" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${meta.bg};color:${meta.color};">${toolCatIcon(meta)}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:18px;font-weight:600;letter-spacing:-.02em;color:var(--text);">${esc(pack.title)}</div>
-        <div style="font-size:11.5px;font-weight:600;color:#666;margin-top:3px;">${esc(pack.level)} · ${esc(pack.duration)} · ${esc(pack.skill)}</div>
-      </div>
-      <button type="button" id="lp-preview-drop" style="border:none;background:${WS_ACCENT_LIME};color:${WS_ACCENT_INK};font:800 12px var(--font);padding:10px 16px;border-radius:999px;cursor:pointer;">Drop on board →</button>
-      <button type="button" id="lp-preview-close" style="border:none;background:rgba(0,0,0,.06);width:34px;height:34px;border-radius:10px;font-size:16px;cursor:pointer;color:#666;">×</button>
-    </div>
-    <div style="padding:14px 22px;font-size:13px;color:#444;line-height:1.5;border-bottom:1px solid rgba(0,0,0,.04);">${esc(pack.summary)}</div>
-    <div style="flex:1;overflow:auto;padding:16px 22px 22px;display:grid;gap:12px;">
-      ${pack.stages.map((s, i) => `
-        <div style="border:1px solid rgba(28,28,30,.12);border-left:3px solid ${WS_ACCENT_INK};border-radius:14px;padding:14px;background:#fff;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-            <span style="min-width:20px;height:20px;border-radius:6px;background:${WS_ACCENT_INK};color:#fff;font:800 11px/20px var(--font);text-align:center;">${i + 1}</span>
-            <span style="font-size:13px;font-weight:600;color:var(--text);">${esc(lessonStageTitle(s.title))}</span>
-          </div>
-          <div style="font-size:12.5px;line-height:1.6;color:var(--text);white-space:pre-wrap;">${esc(s.text)}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-  ov.appendChild(card);
-  document.body.appendChild(ov);
-  card.querySelector('#lp-preview-close').addEventListener('click', () => ov.remove());
-  card.querySelector('#lp-preview-drop').addEventListener('click', () => {
-    const center = getBoardViewportCenter();
-    const fid = instantiateLessonPack(pack, center.x, center.y);
-    ov.remove();
-    if (fid) {
-      clearSelection?.();
-      selectCard?.(fid);
-      setTimeout(() => { try { zoomToCard?.(fid, true); } catch {} }, 80);
-      toast && toast(`✨ ${pack.title} dropped on board`);
-    }
-  });
-  document.addEventListener('keydown', function onKey(e) {
-    if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', onKey); }
-  });
-}
-
-/* Sub-tab inside the Tools tab: 'tools' (constructors) vs 'exercises'
-   (ready lesson packs). Sticks in localStorage so the choice survives
-   reload. The skill filter (activeToolSkill) is shared between them. */
-let activeToolsSubTab = (() => {
-  try { return localStorage.getItem('tools-subtab') || 'tools'; } catch { return 'tools'; }
-})();
-function setToolsSubTab(tab) {
-  activeToolsSubTab = tab;
-  try { localStorage.setItem('tools-subtab', tab); } catch {}
-  renderSidebar();
-}
-
-/* Map LESSON_PACKS to a tool category. Each pack carries a `skill` line
-   like "Speaking + Vocab" - derive the primary skill for filtering. */
-function lessonPackCat(p) {
-  const s = (p.skill || '').toLowerCase();
-  if (s.includes('reading')) return 'reading';
-  if (s.includes('grammar')) return 'grammar';
-  if (s.includes('writing')) return 'writing';
-  if (s.includes('listening')) return 'listening';
-  if (s.includes('vocab')) return 'vocabulary';
-  if (s.includes('speaking') || s.includes('discussion')) return 'speaking';
-  return 'utility';
-}
-
 function renderToolsTab(sec) {
   const q = (searchQ || '').trim().toLowerCase();
-
-  // ═══ Top sub-tabs: Tools | Ready-made Exercises ═══
-  const subTabs = document.createElement('div');
-  subTabs.className = 'tools-subtab-row';
   const toolsCount = BOARD_TEACHER_TOOLS.length;
-  const exCount    = LESSON_PACKS.length;
-  subTabs.innerHTML = `
-    <button class="tools-subtab ${activeToolsSubTab==='tools'?'active':''}" type="button" onclick="setToolsSubTab('tools')">
-      <span class="tst-ic"><svg aria-hidden="true"><use href="#bi-grid"/></svg></span>
-      <span class="tst-l">Tools</span>
-      <span class="tst-n">${toolsCount}</span>
-    </button>
-    <button class="tools-subtab ${activeToolsSubTab==='exercises'?'active':''}" type="button" onclick="setToolsSubTab('exercises')">
-      <span class="tst-ic"><svg aria-hidden="true"><use href="#bi-box"/></svg></span>
-      <span class="tst-l">Ready-made Exercises</span>
-      <span class="tst-n">${exCount}</span>
-    </button>
-  `;
-  sec.appendChild(subTabs);
 
-  // ═══ Compact hero - context-aware to the active sub-tab ═══
   const hero = document.createElement('div');
   hero.className = 'tools-mini-hero';
-  if (activeToolsSubTab === 'tools') {
-    hero.innerHTML = `
-      <b>Teacher Tools</b>
-      <p>${toolsCount} ready-to-use constructors. Open the builder, or drag any tool onto the board as a draft card.</p>
-      <div class="tools-mini-actions">
-        <a href="teacher-tools.html">Open full hub →</a>
-        <button type="button" onclick="openAiAssistantPanel()">✦ AI lesson flow</button>
-      </div>`;
-  } else {
-    hero.innerHTML = `
-      <b>Ready-made Exercises</b>
-      <p>${exCount} fully-written lessons + extra topic packs. Drag a card to drop a complete board, or click to preview.</p>
-      <div class="tools-mini-actions">
-        <a href="teacher-tools.html">More on the hub →</a>
-        <button type="button" onclick="openAiAssistantPanel()">✦ Build with AI</button>
-      </div>`;
-  }
+  hero.innerHTML = `
+    <b>Teacher Tools</b>
+    <p>${toolsCount} ready-to-use constructors. Open the builder, or drag any tool onto the board as a draft card.</p>
+    <div class="tools-mini-actions">
+      <a href="teacher-tools.html">Open full hub \u2192</a>
+      <button type="button" onclick="openAiAssistantPanel()">\u2726 AI lesson flow</button>
+    </div>`;
   sec.appendChild(hero);
 
-  // ═══ Skill filter chips - shared between sub-tabs ═══
+  // Skill filter chips
   const cats = BOARD_TEACHER_TOOLS.reduce((m,t)=>{m[t.cat]=(m[t.cat]||0)+1;return m;},{});
-  const packCats = LESSON_PACKS.reduce((m,p)=>{ const c=lessonPackCat(p); m[c]=(m[c]||0)+1; return m;},{});
   const filters = document.createElement('div');
   filters.className = 'tool-skill-row';
   filters.innerHTML = BOARD_TOOL_SKILLS.map(skill => {
     const meta = BOARD_TOOL_META[skill] || BOARD_TOOL_META.all;
-    let n;
-    if (activeToolsSubTab === 'tools') {
-      n = skill === 'all' ? toolsCount : (cats[skill] || 0);
-    } else {
-      n = skill === 'all' ? exCount : (packCats[skill] || 0);
-    }
+    const n = skill === 'all' ? toolsCount : (cats[skill] || 0);
     return `<button class="tool-skill-chip ${skill === activeToolSkill ? 'active' : ''}" data-skill="${skill}" type="button" onclick="setBoardToolSkill('${skill}', this)">
       <span class="tsc-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[skill] || skill}</span><span class="tsc-n">${n}</span>
     </button>`;
   }).join('');
   sec.appendChild(filters);
 
-  // ═══ Body: route to the right renderer ═══
-  if (activeToolsSubTab === 'exercises') {
-    renderToolsTab_Exercises(sec, q);
-  } else {
-    renderToolsTab_Tools(sec, q, cats);
-  }
+  renderToolsTab_Tools(sec, q, cats);
 }
 
 function _mkToolGrid() {
@@ -14846,45 +14573,6 @@ function renderToolsTab_Tools(sec, q, cats) {
     });
     if (shown) sec.appendChild(grid);
     else sec.appendChild(_renderEmptyToolsState());
-  }
-}
-
-function renderToolsTab_Exercises(sec, q) {
-  // Filter lesson packs by skill + search
-  const filtered = LESSON_PACKS.filter(p => {
-    if (activeToolSkill !== 'all' && lessonPackCat(p) !== activeToolSkill) return false;
-    if (!q) return true;
-    const hay = `${p.title} ${p.skill} ${p.level} ${p.summary}`.toLowerCase();
-    return hay.includes(q);
-  });
-
-  if (activeToolSkill === 'all' && !q) {
-    // Group by skill so the user sees Reading/Speaking/etc. sections.
-    BOARD_TOOL_SKILLS.filter(s => s !== 'all').forEach(skill => {
-      const items = LESSON_PACKS.filter(p => lessonPackCat(p) === skill);
-      if (!items.length) return;
-      const meta = BOARD_TOOL_META[skill];
-      const head = document.createElement('div');
-      head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[skill]}</span><span class="tgh-count">${items.length}</span>`;
-      sec.appendChild(head);
-      items.forEach(p => { const el = makeLessonPackSnippet(p); if (el) sec.appendChild(el); });
-    });
-  } else {
-    if (activeToolSkill !== 'all') {
-      const meta = BOARD_TOOL_META[activeToolSkill];
-      const head = document.createElement('div');
-      head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[activeToolSkill]} exercises</span><span class="tgh-count">${filtered.length}</span>`;
-      sec.appendChild(head);
-    } else if (q) {
-      const head = document.createElement('div');
-      head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico"><svg aria-hidden="true"><use href="#bi-search"/></svg></span><span>Search results</span>`;
-      sec.appendChild(head);
-    }
-    filtered.forEach(p => { const el = makeLessonPackSnippet(p); if (el) sec.appendChild(el); });
-    if (!filtered.length) sec.appendChild(_renderEmptyToolsState());
   }
 }
 

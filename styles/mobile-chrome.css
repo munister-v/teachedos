@@ -68,9 +68,9 @@
   body:not(#_) :is(.btn, .suite-tab, .comm-tab, .gb-filter, .filter-btn,
       .lesson-preset, .board-switcher-trigger, .mp-day, .tool-btn, .mini-btn, .pane-tab,
       .journal-filter, .insight-action,
-      /* лист инструментов на доске: подвкладки, чипы навыка и две ссылки
+      /* лист инструментов на доске: чипы навыка и две ссылки
          действий под ними шли по 28-38px */
-      .tools-subtab, .tool-skill-chip,
+      .tool-skill-chip,
       /* фильтры уровня на подборках уроков шли по 25px */
       .ltab) {
     min-height: 44px !important;
@@ -211,7 +211,7 @@
       .wb-status, .wb-day-label, .publisher-audit-title, .publisher-audit-mark,
       .publisher-note-mark, .publisher-preview-placeholder,
       /* счётчики и подписи в листе инструментов на доске */
-      .tst-n, .tsc-n, .tgh-count, .tool-open-dot, .ts-kind,
+      .tsc-n, .tgh-count, .tool-open-dot, .ts-kind,
       /* ученические и тарифные страницы */
       .save, .p-lessons-label,
       .lesson-preview-kicker, .lesson-preview-level, .lesson-preview-meta,
