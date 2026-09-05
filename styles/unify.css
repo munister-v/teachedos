@@ -2864,7 +2864,6 @@ body.board-page .empty-action.primary {
   body.board-page .text-size-input { width: 50px; }
   body.board-page .text-color-control { width: 38px; height: 38px; border-radius: 10px; }
   body.board-page .text-format-toolbar .tb-sep { height: 22px; margin: 0 2px; }
-  body.board-page .text-drag-strip { top: -34px; height: 28px; padding-inline: 12px; }
 }
 @media (pointer: coarse) {
   body.board-page .mq-btn:hover,

@@ -1051,6 +1051,27 @@ function renderSticky(el, card) {
 
 const _generatedPanelEditingIds = new Set();
 
+/* Puts a card's editor into typing mode. A text box is not editable until it
+   is asked to be - that is what keeps it draggable from anywhere - so callers
+   cannot just focus the node, they have to go through its own entry point. */
+function enterCardEditMode(el, selectAll = true) {
+  if (!el) return false;
+  const ta = el.querySelector('textarea');
+  if (ta) {
+    ta.focus();
+    if (selectAll) ta.select?.();
+    else ta.setSelectionRange(ta.value.length, ta.value.length);
+    return true;
+  }
+  const rich = el.querySelector('.text-rich-editor,[contenteditable="true"],[contenteditable="plaintext-only"]');
+  if (!rich) return false;
+  if (rich._beginEdit) { rich._beginEdit(selectAll); return true; }
+  rich.focus();
+  if (rich.classList.contains('sticky-text')) rich.classList.add('editing');
+  if (selectAll) { try { document.execCommand('selectAll', false, null); } catch {} }
+  return true;
+}
+
 function renderText(el, card) {
   card.data = defaultTextData(card.data || {});
 
@@ -1140,14 +1161,6 @@ function renderText(el, card) {
   tc.className = 'card-close text-close'; tc.textContent = '×';
   tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
 
-  const dragStrip = document.createElement('div');
-  dragStrip.className = 'text-drag-strip';
-  dragStrip.textContent = 'Drag text';
-  dragStrip.title = 'Drag to move this text box';
-  dragStrip.addEventListener('mousedown', () => {
-    if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
-  });
-
   const body = document.createElement('div');
   body.className = 'card-body';
   const toolbar = document.createElement('div');
@@ -1176,7 +1189,12 @@ function renderText(el, card) {
 
   const editor = document.createElement('div');
   editor.className = 'text-rich-editor';
-  editor.contentEditable = boardCanEdit ? 'true' : 'false';
+  /* Off until asked. A live contenteditable swallows mousedown - the board's
+     own card handler skips those targets on purpose - so a text box that is
+     always editable can only be moved by a thin strip above it, which the
+     format toolbar then covers. Non-editable means drag lands anywhere on the
+     body; double-click types. Same contract the sticky already uses. */
+  editor.contentEditable = 'false';
   editor.spellcheck = true;
   editor.dataset.placeholder = 'Text';
   // Heal legacy cards: text generated before the markdown pass stored raw
@@ -1201,6 +1219,8 @@ function renderText(el, card) {
     scheduleSave();
   });
   editor.addEventListener('blur', () => {
+    editor.contentEditable = 'false';
+    editor.classList.remove('editing');
     if (_textEditOrigHtml === null) return;
     const upgradedHtml = _ttSanitizeRichHtml(_ttUpgradeStoredMarkdown(editor.innerHTML));
     if (upgradedHtml !== editor.innerHTML) editor.innerHTML = upgradedHtml;
@@ -1230,12 +1250,44 @@ function renderText(el, card) {
     document.execCommand(html ? 'insertHTML' : 'insertText', false,
       html ? _ttSanitizeRichHtml(html) : text);
   });
-  editor.addEventListener('mousedown', e => {
-    if (!state.selected.has(card.id)) {
-      clearSelection();
-      selectCard(card.id);
+  /* Enter typing mode. `at` is the mouse event that asked for it, so the caret
+     lands where the user actually clicked instead of at the end of the text. */
+  const beginTextEdit = (at) => {
+    if (!boardCanEdit || editor.isContentEditable) return;
+    editor.contentEditable = 'true';
+    editor.classList.add('editing');
+    editor.focus();
+    const point = at && (document.caretRangeFromPoint
+      ? document.caretRangeFromPoint(at.clientX, at.clientY)
+      : null);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    if (point) sel.addRange(point);
+    else {
+      const r = document.createRange();
+      r.selectNodeContents(editor);
+      r.collapse(false);
+      sel.addRange(r);
     }
+  };
+  // Lets the placement flows put a brand-new text box straight into typing.
+  editor._beginEdit = (selectAll) => {
+    beginTextEdit(null);
+    if (selectAll) { try { document.execCommand('selectAll', false, null); } catch {} }
+  };
+
+  editor.addEventListener('dblclick', e => {
+    if (!boardCanEdit) return;
     e.stopPropagation();
+    beginTextEdit(e);
+  });
+  editor.addEventListener('mousedown', e => {
+    // While typing, keep the click for the caret. Otherwise let it through so
+    // the board selects the card and starts a drag from wherever it was hit.
+    if (editor.isContentEditable) {
+      if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
+      e.stopPropagation();
+    }
   });
   editor.addEventListener('keydown', e => {
     // Esc exits edit mode without dropping selection (matches sticky/mindmap).
@@ -1247,7 +1299,6 @@ function renderText(el, card) {
     document.execCommand('insertText', false, text);
   });
   bindTextToolbar(toolbar, editor, card, el);
-  el.appendChild(dragStrip);
   body.appendChild(toolbar);
   body.appendChild(editor);
   el.appendChild(tc);
@@ -4667,6 +4718,9 @@ function bindTextToolbar(toolbar, editor, card, el) {
   toolbar.querySelectorAll('[data-cmd]').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
+      // execCommand needs a live caret. A selected-but-not-typing box has
+      // neither, so bold/italic/underline apply to the whole text instead.
+      if (!editor.isContentEditable) editor._beginEdit?.(true);
       editor.focus();
       document.execCommand(btn.dataset.cmd, false, null);
       card.data.html = editor.innerHTML;
@@ -6376,6 +6430,18 @@ boardWrap.addEventListener('mousedown', e => {
   if (beginBoxSelectionAt(e.clientX, e.clientY)) e.preventDefault();
 });
 
+/* Leaving typing mode has to be explicit. Box select, panning and placement all
+   call preventDefault on the canvas mousedown, which suppresses the focus change
+   that would otherwise blur the editor - so clicking away left a text box stuck
+   in edit mode, and a card stuck in edit mode cannot be dragged. */
+document.addEventListener('mousedown', e => {
+  const editing = document.querySelector('.text-rich-editor.editing,.sticky-text.editing');
+  if (!editing || editing.contains(e.target)) return;
+  // The format toolbar works on the live selection, so it must not end the session.
+  if (e.target.closest?.('.text-format-toolbar')) return;
+  editing.blur();
+}, true);
+
 // Miro-style: double-click empty canvas → spawn a text card at cursor
 boardWrap.addEventListener('dblclick', e => {
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
@@ -7199,10 +7265,7 @@ document.addEventListener('keydown', e => {
     const selEl = getCardEl(selId);
     if (selEl) {
       e.preventDefault();
-      const ta = selEl.querySelector('textarea');
-      const rich = selEl.querySelector('[contenteditable="true"]');
-      if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
-      else if (rich) { rich.focus(); document.execCommand && document.execCommand('selectAll', false, null); }
+      enterCardEditMode(selEl, false);
     }
   }
   if (e.key === 'Escape') {
@@ -13836,7 +13899,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '724';
+const TEACHEDOS_ASSET_VERSION = '725';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18353,11 +18416,7 @@ function addStickyFromPalette(color, text = '', opts = {}) {
     if (!opts.skipFocus) {
       setTimeout(() => {
         const el = getCardEl(card.id);
-        const ta = el?.querySelector('textarea, [contenteditable="true"], [contenteditable="plaintext-only"]');
-        if (!ta) return;
-        ta.focus();
-        if (ta.tagName === 'TEXTAREA') ta.setSelectionRange(ta.value.length, ta.value.length);
-        else { try { document.execCommand('selectAll', false, null); } catch {} }
+        enterCardEditMode(el, false);
       }, 50);
     }
   }
@@ -18573,10 +18632,7 @@ function _doPlace(clientX, clientY, sized) {
       getCardEl(placed.id)?.classList.add('selected');
       setTimeout(() => {
         const el = getCardEl(placed.id);
-        const ta = el?.querySelector('textarea');
-        const rich = el?.querySelector('[contenteditable="true"]');
-        if (ta) { ta.focus(); ta.select?.(); }
-        else if (rich) { rich.focus(); document.execCommand && document.execCommand('selectAll', false, null); }
+        enterCardEditMode(el);
       }, 50);
     } else if (placed && type === 'sticky') {
       clearSelection?.();
@@ -18745,14 +18801,7 @@ function toolbarQuickAdd(type) {
       showLayerPopover && showLayerPopover(placed.id);
       setTimeout(() => {
         const el = getCardEl(placed.id);
-        const ta = el?.querySelector('textarea');
-        const rich = el?.querySelector('[contenteditable="true"],[contenteditable="plaintext-only"]');
-        if (ta) { ta.focus(); ta.select?.(); }
-        else if (rich) {
-          rich.focus();
-          if (rich.classList.contains('sticky-text')) rich.classList.add('editing');
-          document.execCommand && document.execCommand('selectAll', false, null);
-        }
+        enterCardEditMode(el);
       }, 40);
     }
     return;

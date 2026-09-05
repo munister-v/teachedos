@@ -1361,7 +1361,10 @@ body.board-readonly .sticky-text { cursor:text!important; }
 #board-wrap textarea,
 #board-wrap input,
 #board-wrap select{touch-action:auto;}
-#board-wrap :where(.generated-panel-content,.text-rich-editor,.sticky-text.editing,.note-body [contenteditable],.card-text-selectable){
+/* .text-rich-editor is scoped to .editing like the sticky beside it: outside
+   typing mode the body is a drag surface, and a forced text cursor plus text
+   selection there fights the drag instead of helping. */
+#board-wrap :where(.generated-panel-content,.text-rich-editor.editing,.sticky-text.editing,.note-body [contenteditable],.card-text-selectable){
   user-select:text!important;
   -webkit-user-select:text!important;
   cursor:text;
@@ -2405,20 +2408,6 @@ body.board-phone-shell .card-sticky .sticky-text:empty::before{
   box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 20%,transparent),0 4px 12px color-mix(in srgb,var(--accent) 10%,transparent);
 }
 .card-text .card-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px;overflow:visible;}
-.text-drag-strip{
-  position:absolute;left:8px;right:8px;top:-22px;height:18px;
-  display:none;align-items:center;justify-content:center;gap:6px;
-  border-radius:999px;background:rgba(255,255,255,.92);
-  border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
-  color:var(--accent-text);font:800 10px/1 var(--font);
-  letter-spacing:.04em;text-transform:uppercase;
-  box-shadow:0 3px 12px color-mix(in srgb,var(--accent) 10%,transparent);
-  cursor:grab;user-select:none;z-index:22;
-}
-.text-drag-strip::before{content:"⠿";font-size:12px;line-height:1;opacity:.8;}
-.card-text:hover .text-drag-strip,
-.card-text.selected .text-drag-strip{display:flex;}
-.text-drag-strip:active{cursor:grabbing;}
 .text-format-toolbar{
   display:none;align-items:center;gap:2px;flex-wrap:nowrap;
   padding:5px 6px;border-radius:12px;
@@ -2491,6 +2480,9 @@ body.board-phone-shell .card-sticky .sticky-text:empty::before{
   line-height:1.35;cursor:text;user-select:text;white-space:pre-wrap;
   overflow:auto;border-radius:8px;padding:2px 4px;
 }
+/* Not typing yet: the body is a drag surface, so say so with the cursor and
+   keep a drag from painting a text selection on the way. */
+.text-rich-editor:not(.editing){cursor:move;user-select:none;}
 .text-rich-editor:empty::before{content:attr(data-placeholder);color:rgba(28,28,30,.35);pointer-events:none;}
 .text-rich-editor a{color:#2563eb;text-decoration:underline;text-underline-offset:2px;}
 .text-close{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s;z-index:20;}
