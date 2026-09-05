@@ -903,6 +903,31 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);
   background:var(--ts-bg,color-mix(in srgb,var(--accent) 10%,transparent));
   font-size:13px;line-height:1;
 }
+/* Sidebar category icons come from the #bi-* sprite. The slots below used to
+   hold emoji, so each one sizes its svg to what its own font-size used to
+   render at, and takes the category colour the slot is already tinted with. */
+.tools-panel-icon,
+.tools-subtab .tst-ic svg,
+.tool-skill-chip .tsc-ico svg,
+.tool-group-head .tgh-ico svg,
+.tool-snippet .ts-icon svg,
+.lesson-pack-snippet .lps-icon svg,
+.yt-lesson-cta .yt-cta-ic svg{
+  display:block;fill:none;stroke:currentColor;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+}
+.tools-subtab .tst-ic svg{width:16px;height:16px;}
+.tool-skill-chip .tsc-ico svg{width:14px;height:14px;}
+.tool-group-head .tgh-ico svg{width:16px;height:16px;}
+.tool-snippet .ts-icon svg{width:16px;height:16px;color:var(--ts-color);}
+.lesson-pack-snippet .lps-icon svg{width:22px;height:22px;color:var(--lp-color);}
+.yt-lesson-cta .yt-cta-ic svg{width:22px;height:22px;}
+/* The slots were sized for glyphs sitting on a text baseline; with an svg
+   child they need to centre it instead. */
+.tools-subtab .tst-ic,
+.tool-skill-chip .tsc-ico,
+.tool-group-head .tgh-ico,
+.yt-lesson-cta .yt-cta-ic{display:inline-flex;align-items:center;justify-content:center;}
 .tool-snippet .ts-title{
   font-size:14px;font-weight:700;color:var(--text);
   line-height:1.25;letter-spacing:-.01em;

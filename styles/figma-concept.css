@@ -327,6 +327,10 @@ body.fx.board-page #toolbar {
   padding:0 22px !important;
 }
 body.fx.board-page .tb-logo-mark, body.fx.board-page .tb-slash { display:none !important; }
+/* Без слова "TeachEd" рядом знак остался один против лаймовой пилюли на 44px
+   и читался мелким. 30 держит вес рядом с ней, не перебивая название доски.
+   Ручку задаёт figma-theme.css - там у правила id-балласт, размер только так. */
+body.fx.board-page { --fx-logo-size:30px; }
 body.fx.board-page .tb-board-chip {
   background:var(--fx-lime) !important; border:none !important;
   border-radius:999px !important; padding:8px 16px !important;

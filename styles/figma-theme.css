@@ -667,8 +667,10 @@ body.fx:not(#_) .new-board-btn.secondary:hover { background:rgba(255,255,255,.85
    прятало <img> и добавляло отступ - лишний риск сдвинуть вёрстку там, где
    раскладка шапки опирается на размер картинки. Осталось только ограничить
    размер. */
+/* Размер через переменную: у селектора здесь есть id-балласт :not(#_), и
+   перебить его страницей уже нечем - отсюда единственная точка правки. */
 body.fx:not(#_) :is(.nav-logo,.mb-apple,.tb-logo,.logo) img {
-  width:26px !important; height:26px !important;
+  width:var(--fx-logo-size,26px) !important; height:var(--fx-logo-size,26px) !important;
   border-radius:0 !important; background:none !important;
 }
 

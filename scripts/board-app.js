@@ -9212,37 +9212,25 @@ const BOARD_TOOL_NAMES = {
   all:'All', reading:'Reading', vocabulary:'Vocab', writing:'Writing',
   speaking:'Speaking', grammar:'Grammar', listening:'Listening', utility:'Utility'
 };
-const TT_TOOL_ICONS = {
-  /* Vocabulary Workout - студия, а не рядовой инструмент: из одного списка
-     слов собирается целый набор активностей. Своего значка у неё не было,
-     и она брала общий значок категории (🧠), тот же, что у полутора
-     десятков словарных инструментов рядом - флагман терялся среди них. */
-  'vocab-workout':'🏋️',
-  'lesson-pack':'📦','worksheet-builder':'📄','homework-set':'📋','cefr-checker':'🎯',
-  'rubric-maker':'✅','answer-key':'🔑','add-text':'💬','add-images':'🖼','add-video':'🎬',
-  'abcd-text':'🔤','open-questions':'❓','true-false':'⚖️','three-titles':'📰',
-  'summary-task':'📝','simplify-text':'⬇️','gist-detail':'🔍','text-topic-vocab':'✍️',
-  'word-image-match':'🖼','word-definition-match':'🔗','extract-vocab':'💡',
-  'essential-vocab':'⭐','odd-one-out':'🎯','word-sorting':'🗂','sentences-vocab':'✏️',
-  'collocations':'🔀','word-families':'🌳','flashcards':'🃏',
-  'link-words':'⛓️','creative-writing':'🎨','sentence-translation':'🌐',
-  'essay-outline':'📐','email-reply':'📧','rewrite-style':'🔄',
-  'gap':'⬛','gaps-abcd':'📊','gaps-brackets':'( )','two-options':'↔️',
-  'rewrite':'✏️','error-correction':'❌','grammar-rules':'📏','tense-contrast':'⏳',
-  'discussion':'💬','dialogue':'🗣️','roleplay-cards':'🎭','debate-cards':'⚖️',
-  'question-ladder':'🪜','audio-video-questions':'📹',
-  'transcript-helper':'📜','warmup-listening':'🎵','listening-dictation':'🎙️',
-};
+/* `icon` is the emoji the board cards, drag ghost and builder header still
+   use. `svg` is the sprite id the tools sidebar draws instead: the panel is a
+   dense grid of categories, and a row of unrelated emoji read as noise next to
+   the category colour each card is already tinted with. */
 const BOARD_TOOL_META = {
-  all:       { icon:'✦', color:'#0E0E10', bg:'rgba(14,14,16,.08)' },
-  reading:   { icon:'📖', color:'#4262FF', bg:'rgba(66,98,255,.12)' },
-  vocabulary:{ icon:'🧠', color:'#EC2D8C', bg:'rgba(236,45,140,.12)' },
-  writing:   { icon:'✍️', color:'#7C3AED', bg:'rgba(124,58,237,.12)' },
-  speaking:  { icon:'💬', color:'#FF7A1A', bg:'rgba(255,122,26,.14)' },
-  grammar:   { icon:'⚙️', color:'#0EA5A4', bg:'rgba(14,165,164,.12)' },
-  listening: { icon:'🎧', color:'#0891B2', bg:'rgba(8,145,178,.12)' },
-  utility:   { icon:'🧰', color:'#5E5E4A', bg:'rgba(94,94,74,.12)' },
+  all:       { icon:'✦', svg:'bi-spark',       color:'#0E0E10', bg:'rgba(14,14,16,.08)' },
+  reading:   { icon:'📖', svg:'bi-book',        color:'#4262FF', bg:'rgba(66,98,255,.12)' },
+  vocabulary:{ icon:'🧠', svg:'bi-vocab',       color:'#EC2D8C', bg:'rgba(236,45,140,.12)' },
+  writing:   { icon:'✍️', svg:'bi-pen',         color:'#7C3AED', bg:'rgba(124,58,237,.12)' },
+  speaking:  { icon:'💬', svg:'bi-comment',     color:'#FF7A1A', bg:'rgba(255,122,26,.14)' },
+  grammar:   { icon:'⚙️', svg:'bi-gear',        color:'#0EA5A4', bg:'rgba(14,165,164,.12)' },
+  listening: { icon:'🎧', svg:'bi-headphones',  color:'#0891B2', bg:'rgba(8,145,178,.12)' },
+  utility:   { icon:'🧰', svg:'bi-tools',       color:'#5E5E4A', bg:'rgba(94,94,74,.12)' },
 };
+/* Sidebar icon markup for a category (falls back to the emoji if a category
+   ever lands here without a sprite id). */
+function toolCatIcon(meta) {
+  return meta?.svg ? `<svg aria-hidden="true"><use href="#${meta.svg}"/></svg>` : (meta?.icon || '');
+}
 // Tool IDs surfaced as "popular this week" featured row
 const BOARD_TOOL_FEATURED = ['lesson-pack','worksheet-builder','rewrite','flashcards','discussion'];
 let activeToolSkill = 'all';
@@ -13848,7 +13836,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '723';
+const TEACHEDOS_ASSET_VERSION = '724';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14447,7 +14435,6 @@ function makeTeacherToolSnippet(tool) {
   const hay = `${tool.title} ${tool.desc} ${tool.cat} ${tool.kind}`.toLowerCase();
   if (q && !hay.includes(q)) return null;
   const meta = BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
-  const icon = TT_TOOL_ICONS[tool.id] || meta.icon;
   const el = document.createElement('div');
   el.className = 'tool-snippet';
   el.style.setProperty('--ts-color', meta.color);
@@ -14456,7 +14443,7 @@ function makeTeacherToolSnippet(tool) {
   el.innerHTML = `
     <div class="tool-open-dot" title="${tool.studio ? 'Open the studio' : 'Open builder'}">↗</div>
     <div class="ts-row1">
-      <div class="ts-icon">${icon}</div>
+      <div class="ts-icon">${toolCatIcon(meta)}</div>
       <div class="ts-title">${esc(tool.title)}</div>
     </div>
     <div class="ts-row2">
@@ -14526,7 +14513,7 @@ function makeLessonPackSnippet(pack) {
   el.setAttribute('draggable', 'false');
   el.innerHTML = `
     <div class="lps-head">
-      <div class="lps-icon">${pack.icon}</div>
+      <div class="lps-icon">${toolCatIcon(BOARD_TOOL_META[lessonPackCat(pack)])}</div>
       <div class="lps-meta">
         <div class="lps-title">${esc(pack.title)}</div>
         <div class="lps-tags">
@@ -14649,12 +14636,12 @@ function renderToolsTab(sec) {
   const exCount    = LESSON_PACKS.length;
   subTabs.innerHTML = `
     <button class="tools-subtab ${activeToolsSubTab==='tools'?'active':''}" type="button" onclick="setToolsSubTab('tools')">
-      <span class="tst-ic">🧰</span>
+      <span class="tst-ic"><svg aria-hidden="true"><use href="#bi-grid"/></svg></span>
       <span class="tst-l">Tools</span>
       <span class="tst-n">${toolsCount}</span>
     </button>
     <button class="tools-subtab ${activeToolsSubTab==='exercises'?'active':''}" type="button" onclick="setToolsSubTab('exercises')">
-      <span class="tst-ic">📚</span>
+      <span class="tst-ic"><svg aria-hidden="true"><use href="#bi-box"/></svg></span>
       <span class="tst-l">Ready-made Exercises</span>
       <span class="tst-n">${exCount}</span>
     </button>
@@ -14697,7 +14684,7 @@ function renderToolsTab(sec) {
       n = skill === 'all' ? exCount : (packCats[skill] || 0);
     }
     return `<button class="tool-skill-chip ${skill === activeToolSkill ? 'active' : ''}" data-skill="${skill}" type="button" onclick="setBoardToolSkill('${skill}', this)">
-      <span class="tsc-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[skill] || skill}</span><span class="tsc-n">${n}</span>
+      <span class="tsc-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[skill] || skill}</span><span class="tsc-n">${n}</span>
     </button>`;
   }).join('');
   sec.appendChild(filters);
@@ -14722,7 +14709,7 @@ function renderToolsTab_Tools(sec, q, cats) {
     const cta = document.createElement('button');
     cta.type = 'button';
     cta.className = 'yt-lesson-cta';
-    cta.innerHTML = `<span class="yt-cta-ic">🎬</span><span class="yt-cta-tx"><b>YouTube → Lesson</b><small>Paste a link - get a full set of exercises in one click</small></span><span class="yt-cta-go">→</span>`;
+    cta.innerHTML = `<span class="yt-cta-ic"><svg aria-hidden="true"><use href="#bi-video"/></svg></span><span class="yt-cta-tx"><b>YouTube → Lesson</b><small>Paste a link - get a full set of exercises in one click</small></span><span class="yt-cta-go">→</span>`;
     cta.onclick = openYtLesson;
     sec.appendChild(cta);
   }
@@ -14734,7 +14721,7 @@ function renderToolsTab_Tools(sec, q, cats) {
     if (featured.length) {
       const head = document.createElement('div');
       head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">⭐</span><span>Popular</span><span class="tgh-count">${featured.length}</span>`;
+      head.innerHTML = `<span class="tgh-ico"><svg aria-hidden="true"><use href="#bi-star"/></svg></span><span>Popular</span><span class="tgh-count">${featured.length}</span>`;
       sec.appendChild(head);
       const grid = _mkToolGrid();
       featured.forEach(t => { const el = makeTeacherToolSnippet(t); if (el) grid.appendChild(el); });
@@ -14749,7 +14736,7 @@ function renderToolsTab_Tools(sec, q, cats) {
       const meta = BOARD_TOOL_META[skill];
       const head = document.createElement('div');
       head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[skill]}</span><span class="tgh-count">${items.length}</span>`;
+      head.innerHTML = `<span class="tgh-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[skill]}</span><span class="tgh-count">${items.length}</span>`;
       sec.appendChild(head);
       const grid = _mkToolGrid();
       items.forEach(t => { const el = makeTeacherToolSnippet(t); if (el) grid.appendChild(el); });
@@ -14760,12 +14747,12 @@ function renderToolsTab_Tools(sec, q, cats) {
       const meta = BOARD_TOOL_META[activeToolSkill];
       const head = document.createElement('div');
       head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[activeToolSkill]}</span><span class="tgh-count">${cats[activeToolSkill]||0}</span>`;
+      head.innerHTML = `<span class="tgh-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[activeToolSkill]}</span><span class="tgh-count">${cats[activeToolSkill]||0}</span>`;
       sec.appendChild(head);
     } else if (q) {
       const head = document.createElement('div');
       head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">🔍</span><span>Results</span>`;
+      head.innerHTML = `<span class="tgh-ico"><svg aria-hidden="true"><use href="#bi-search"/></svg></span><span>Results</span>`;
       sec.appendChild(head);
     }
     const list = BOARD_TEACHER_TOOLS.filter(t => activeToolSkill === 'all' || t.cat === activeToolSkill);
@@ -14797,7 +14784,7 @@ function renderToolsTab_Exercises(sec, q) {
       const meta = BOARD_TOOL_META[skill];
       const head = document.createElement('div');
       head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[skill]}</span><span class="tgh-count">${items.length}</span>`;
+      head.innerHTML = `<span class="tgh-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[skill]}</span><span class="tgh-count">${items.length}</span>`;
       sec.appendChild(head);
       items.forEach(p => { const el = makeLessonPackSnippet(p); if (el) sec.appendChild(el); });
     });
@@ -14806,12 +14793,12 @@ function renderToolsTab_Exercises(sec, q) {
       const meta = BOARD_TOOL_META[activeToolSkill];
       const head = document.createElement('div');
       head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">${meta.icon}</span><span>${BOARD_TOOL_NAMES[activeToolSkill]} exercises</span><span class="tgh-count">${filtered.length}</span>`;
+      head.innerHTML = `<span class="tgh-ico">${toolCatIcon(meta)}</span><span>${BOARD_TOOL_NAMES[activeToolSkill]} exercises</span><span class="tgh-count">${filtered.length}</span>`;
       sec.appendChild(head);
     } else if (q) {
       const head = document.createElement('div');
       head.className = 'tool-group-head';
-      head.innerHTML = `<span class="tgh-ico">🔍</span><span>Search results</span>`;
+      head.innerHTML = `<span class="tgh-ico"><svg aria-hidden="true"><use href="#bi-search"/></svg></span><span>Search results</span>`;
       sec.appendChild(head);
     }
     filtered.forEach(p => { const el = makeLessonPackSnippet(p); if (el) sec.appendChild(el); });
