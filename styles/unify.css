@@ -1605,7 +1605,7 @@ a, button, [role="button"], input, select, textarea, label, .btn{ -webkit-tap-hi
   /* Heavy dashboard sections below the first viewport can wait for paint
      without changing layout because contain-intrinsic-size reserves space. */
   @supports (content-visibility: auto) {
-    :where(.library, .activity-grid, .analytics-grid, .settings-grid, .queue-grid, .ops-grid, .section-block, .pricing, .faq, .footer) {
+    :where(.library, .activity-grid, .analytics-grid, .settings-grid, .queue-grid, .ops-grid, .section-block, .pricing, .footer) {
       content-visibility: auto;
       contain-intrinsic-size: 1px 720px;
     }

@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=739">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=739">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=740">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=740">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=739">
+<link rel="manifest" href="manifest.json?v=740">
 <meta name="theme-color" content="#F3F3F6">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -110,87 +110,6 @@
    "isAccessibleForFree": true,
    "publisher": {
     "@id": "https://teached.tech/#org"
-   }
-  },
-  {
-   "@type": "FAQPage",
-   "mainEntity": [
-    {
-     "@type": "Question",
-     "name": "How does the AI generation work?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise - reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet - that you can edit, print, play as a game or drop on a board."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Do I need my own API key? Does AI cost extra?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "No. AI is built in - no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Can I edit what the AI produces?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "Always. Every generated item is fully editable before you export it - fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Do I need to download anything?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "No. TeachEd is a Progressive Web App - you open it in your browser and optionally add it to your home screen for a native-app feel. No App Store, no installation waiting, no updates to manage manually."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Does it really work offline?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "Yes. Once TeachEd has loaded once, all pages, boards, grades and games are cached by the Service Worker and available with no internet connection. Great for teaching in areas with spotty Wi-Fi."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "What languages does TeachEd support?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "The platform UI is in English. The ready-made lesson packs are designed for teaching English to Slavic-language learners (Ukrainian, Russian, Polish), with bilingual vocabulary cards. Custom boards can cover any language."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Can my students use TeachEd too?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "Yes. Students get a read-only portal where they see their homework, progress and board content shared by you. Live board sessions let students follow along on their own device in real time (Pro plan)."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Can I import my existing materials?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "You can copy-paste content from any source into board cards and notes. We're working on direct import from Google Docs and PDF. In the meantime, our ready-made packs cover most common lesson types immediately."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Is my data safe?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "Your data is stored securely on our servers with encrypted connections. Free plan data is local-first (browser storage). Pro plan syncs encrypted to the cloud. We never sell or share your data."
-     }
-    }
-   ],
-   "@id": "https://teached.tech/#faq",
-   "isPartOf": {
-    "@id": "https://teached.tech/#website"
    }
   }
  ]
@@ -669,29 +588,6 @@ nav.ln{
 }
 .plan-btn{width:100%;justify-content:center;margin-top:auto;}
 
-/* ── FAQ ── */
-.faq{max-width:760px;margin:0 auto;}
-.faq-item{border-bottom:1px solid rgba(14,14,16,.08);}
-.faq-q{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:20px 0;font-size:15px;font-weight:650;color:var(--ink);
-  cursor:pointer;gap:16px;
-  /* Custom role="button" divs don't reliably get the click-suppresses-outline
-     treatment a real <button> gets in every engine - some webviews leave the
-     raw UA default (a solid dark box) after a tap. :focus-visible below
-     supplies the real ring for keyboard users; this just removes the
-     unstyled fallback. */
-  outline:none;
-}
-.faq-icon{
-  width:26px;height:26px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:14px;
-  background:rgba(14,14,16,.06);color:var(--ink3);transition:.2s;
-}
-.faq-item.open .faq-icon{background:var(--pink);color:#fff;transform:rotate(45deg);}
-.faq-a{display:none;padding:0 0 20px;font-size:14px;color:var(--ink2);line-height:1.75;}
-.faq-item.open .faq-a{display:block;}
-
 /* ── FINAL CTA ── */
 .final{
   text-align:center;padding:100px 20px;
@@ -770,7 +666,7 @@ h1,h2,h3,h4,.hero-h,.sec-h,.feat-h,.final-h{animation:none!important;}
 /* Бургер и выпадающее меню. До этого на телефоне .nav-links просто гасились,
    бургера не было, а .sticky-mob (полоса с действием внизу) осталась только в
    стилях - в разметке её нет ни одной. Итог: с телефона до разделов Features,
-   Tools, How it works, Pricing и FAQ нельзя было добраться вовсе. */
+   Tools, How it works, и Pricing нельзя было добраться вовсе. */
 .nav-burger{
   display:none;width:40px;height:40px;padding:0;border:none;background:transparent;
   border-radius:12px;cursor:pointer;flex-direction:column;gap:4px;
@@ -1095,15 +991,6 @@ nav.ln{background:rgba(252,252,251,.80);border-bottom:1px solid var(--line-2);ba
 .plan-price{font-family:var(--font);font-weight:650;letter-spacing:-.04em;}
 .plan-features li::before{color:var(--lime-dark);}
 
-/* ── FAQ ── */
-.faq-q{font-weight:600;}
-/* Раскрытый вопрос получал сплошной чернильный кружок с белым крестиком и
-   становился единственным сильным пятном в разделе из девяти карточек: взгляд
-   тянуло на кнопку закрытия, а не на ответ. Что раскрыто, уже сказано самим
-   ответом и поворотом знака в крестик (transform выше). Значку хватает того же
-   нейтрального тона, чуть плотнее закрытых. */
-.faq-item.open .faq-icon{background:rgba(14,14,16,.11);color:var(--ink);}
-
 /* ── FINAL CTA → light ── */
 .final{background:var(--cream-2);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);padding:clamp(72px,10vw,120px) 20px;}
 .final-blob{display:none;}
@@ -1124,8 +1011,7 @@ footer{background:transparent;border-top:1px solid var(--line);}
 html{scroll-behavior:smooth;scroll-padding-top:84px;-webkit-text-size-adjust:100%;}
 body{-webkit-overflow-scrolling:touch;}
 section[id], .hero{scroll-margin-top:80px;}
-a,button,.btn,.bc,.cat,.faq-q,.nav-lnk,.footer-col a,.plan{transition-timing-function:cubic-bezier(.22,.61,.36,1);}
-.faq-a{overflow:hidden;}
+a,button,.btn,.bc,.cat,.nav-lnk,.footer-col a,.plan{transition-timing-function:cubic-bezier(.22,.61,.36,1);}
 
 /* ── Hero polish: stronger title, tidy trust row ── */
 .hero .container{position:relative;z-index:1;}
@@ -1327,7 +1213,7 @@ body.pwa-standalone .hero{
 /* ════════ MOBILE RHYTHM - tighten the desktop-scale vertical air on phones ════════ */
 @media(max-width:860px){
   section{padding:clamp(40px,8vw,60px) 0;}
-  #features,#tools,#how,#pricing,#faq{padding-top:clamp(40px,8vw,58px);padding-bottom:clamp(40px,8vw,58px);}
+  #features,#tools,#how,#pricing{padding-top:clamp(40px,8vw,58px);padding-bottom:clamp(40px,8vw,58px);}
   .sec-sub{margin-bottom:26px;font-size:15px;}
   .sec-h{font-size:clamp(26px,7vw,38px);}
   .bento{gap:12px;}
@@ -1879,7 +1765,7 @@ body::before{
   letter-spacing:.055em;
 }
 .btn{min-height:48px;}
-.btn:focus-visible,.nav-lnk:focus-visible,.faq-q:focus-visible{
+.btn:focus-visible,.nav-lnk:focus-visible{
   outline:3px solid rgba(236,45,140,.30);outline-offset:3px;
 }
 .final{background:
@@ -1967,9 +1853,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=739">
+<link rel="stylesheet" href="styles/teached-brand.css?v=740">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=739">
+<link rel="stylesheet" href="styles/figma-landing.css?v=740">
 </head>
 <body class="landing-page fx">
 
@@ -1985,7 +1871,6 @@ section{scroll-margin-top:64px;}
       <a class="nav-lnk" href="#tools">Tools</a>
       <a class="nav-lnk" href="#how">How it works</a>
       <a class="nav-lnk" href="#pricing">Pricing</a>
-      <a class="nav-lnk" href="#faq">FAQ</a>
     </div>
     <div class="nav-space"></div>
     <div class="nav-ctas">
@@ -2699,81 +2584,6 @@ section{scroll-margin-top:64px;}
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════ FAQ ═══════════════════════════════════════ -->
-<section id="faq">
-  <div class="container">
-    <div style="text-align:center;margin-bottom:48px;">
-      <div class="sec-eye">FAQ</div>
-      <h2 class="sec-h">Common <em>questions</em></h2>
-    </div>
-    <div class="faq">
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          How does the AI generation work?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">Pick a tool, type a topic or paste a text (or a YouTube link), choose the CEFR level and number of items, and hit Generate. In a few seconds you get a ready exercise - reading comprehension, gap-fill, vocabulary task, quiz or a full worksheet - that you can edit, print, play as a game or drop on a board.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          Do I need my own API key? Does AI cost extra?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">No. AI is built in - no keys, no setup. The Free plan includes a generous daily allowance (around 20 generations a day), and Pro removes the limit entirely. If AI is ever unavailable, tools fall back to offline templates so you're never blocked.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          Can I edit what the AI produces?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">Always. Every generated item is fully editable before you export it - fix a question, swap a word, toggle the answer key, or regenerate just the part you don't like. You stay in control; the AI just removes the blank-page problem.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          Do I need to download anything?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">No. TeachEd is a Progressive Web App - you open it in your browser and optionally add it to your home screen for a native-app feel. No App Store, no installation waiting, no updates to manage manually.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          Does it really work offline?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">Yes. Once TeachEd has loaded once, all pages, boards, grades and games are cached by the Service Worker and available with no internet connection. Great for teaching in areas with spotty Wi-Fi.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          What languages does TeachEd support?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">The platform UI is in English. The ready-made lesson packs are designed for teaching English to Slavic-language learners (Ukrainian, Russian, Polish), with bilingual vocabulary cards. Custom boards can cover any language.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          Can my students use TeachEd too?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">Yes. Students get a read-only portal where they see their homework, progress and board content shared by you. Live board sessions let students follow along on their own device in real time (Pro plan).</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          Can I import my existing materials?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">You can copy-paste content from any source into board cards and notes. We're working on direct import from Google Docs and PDF. In the meantime, our ready-made packs cover most common lesson types immediately.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" role="button" tabindex="0" aria-expanded="false" onclick="toggleFaq(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFaq(this);}">
-          Is my data safe?
-          <span class="faq-icon">+</span>
-        </div>
-        <div class="faq-a">Your data is stored securely on our servers with encrypted connections. Free plan data is local-first (browser storage). Pro plan syncs encrypted to the cloud. We never sell or share your data.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ═══════════════════════════════════════ FINAL CTA ═══════════════════════════════════════ -->
 <section class="final">
   <div class="final-blob a"></div>
@@ -2851,7 +2661,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=739">
+<link rel="stylesheet" href="styles/auth.css?v=740">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
@@ -2895,15 +2705,6 @@ section{scroll-margin-top:64px;}
 }
 </style>
 <script>
-/* Keyboard-accessible FAQ accordion: toggles the open state and keeps
-   aria-expanded in sync so screen readers announce it correctly. */
-window.toggleFaq = function(trigger){
-  const item = trigger.parentElement;
-  const open = item.classList.toggle('open');
-  trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-};
-</script>
-<script>
 window.TEACHED_AUTH_CONFIG = {
   subtitle: () => 'Lessons, boards and games in one place',
 };
@@ -2930,7 +2731,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1) Reveal-on-scroll
   var sels = ['.hero-badge', '.hero-sub', '.hero-ctas', '.hero-trust', '.preview-stage',
     '.stats-strip .stat-c', '.sec-eye', '.sec-h', '.sec-sub',
-    '#features .bc', '#tools .cat', '#how .step', '.testi', '.plan', '.faq-item',
+    '#features .bc', '#tools .cat', '#how .step', '.testi', '.plan',
     '.final-h', '.final-sub', '.final-ctas'];
   var els = [];
   sels.forEach(function (s) { document.querySelectorAll(s).forEach(function (el) { els.push(el); }); });
