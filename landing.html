@@ -3,13 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Лендинг - первая страница почти для всех посетителей. teached-brand.css и
+     figma-landing.css обнаруживались только после разбора ~1700-строчного
+     inline <style> внутри head (два прохода редизайна, не объединены), то
+     есть сеть за ними даже не начинала ходить, пока парсер до них не
+     доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
+     head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
+     грузить её стили заранее незачем. -->
+<link rel="preload" as="style" href="styles/teached-brand.css?v=739">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=739">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=738">
+<link rel="manifest" href="manifest.json?v=739">
 <meta name="theme-color" content="#F3F3F6">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -1958,9 +1967,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=738">
+<link rel="stylesheet" href="styles/teached-brand.css?v=739">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=738">
+<link rel="stylesheet" href="styles/figma-landing.css?v=739">
 </head>
 <body class="landing-page fx">
 
@@ -2842,7 +2851,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=738">
+<link rel="stylesheet" href="styles/auth.css?v=739">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
