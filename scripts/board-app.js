@@ -35,7 +35,7 @@ const STICKY_COLORS = [
    what is offered next. */
 const WS_ACCENT_COLORS = [
   '#CDF24F','#A8C42A','#7FA65C','#4E9A8F','#5B8FB0','#6B7BA8',
-  '#8C7BB0','#A56E96','#C4707E','#C4805A','#D0A045','#8A8A78',
+  '#8C7BB0','#A56E96','#C4707E','#C4805A','#D0A045','#88888B',
 ];
 const SHARED_NOTES_KEY = 'teachedos_notes_v1';
 
@@ -4150,7 +4150,7 @@ strong{font-weight:650}
 @keyframes iwfall{0%{transform:translateY(-12px) rotate(0)}100%{transform:translateY(105vh) rotate(540deg)}}
 /* ── Key ── */
 .iw-key-wrap{margin-top:16px;border-top:1px solid #eee;padding-top:12px}
-.iw-key-toggle{background:none;border:2px solid rgba(14,14,16,.14);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:#6E6E5C}
+.iw-key-toggle{background:none;border:2px solid rgba(14,14,16,.14);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:#6C6C6F}
 .iw-key-toggle:hover{border-color:${accent};color:${accent}}
 .iw-key{margin-top:10px;background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}
 .iw-key b{color:#16a34a}
@@ -4160,7 +4160,7 @@ strong{font-weight:650}
 .iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid #e4e5ec;background:#fff;font:800 17px system-ui;color:${accent};cursor:pointer;transition:all .15s;line-height:1}
 .iw-step-nav:hover:not(:disabled){border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 .iw-step-nav:disabled{opacity:.3;cursor:default}
-.iw-step-count{font:800 12px monospace;color:#6E6E5C;min-width:56px;text-align:center}
+.iw-step-count{font:800 12px monospace;color:#6C6C6F;min-width:56px;text-align:center}
 .iw-step-hidden{display:none!important}
 .iw-stepper .iw-q{border:none;box-shadow:0 2px 22px rgba(0,0,0,.08);border-radius:18px;border-left:5px solid ${accent};padding:30px 26px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
 .iw-stepper .iw-qnum{display:none}
@@ -4279,7 +4279,7 @@ function printWorksheet(cardId) {
   // board.css is not loaded here - so any visual change to the worksheet has to
   // be made in both places or the printout stops matching the board.
   const accent = WS_ACCENT_INK;
-  const LIME = '#CDF24F', CREAM = '#F5F0E8', LINE = 'rgba(14,14,16,.14)';
+  const LIME = '#CDF24F', CREAM = '#F2F2F5', LINE = 'rgba(14,14,16,.14)';
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   // Same heading rule as the board (see _wsHeading): inside a lesson the sheet
@@ -4302,9 +4302,9 @@ function printWorksheet(cardId) {
     .ws-print-head .kicker{font:800 10px ui-monospace,monospace;letter-spacing:.13em;
       text-transform:uppercase;color:rgba(14,14,16,.62);margin-bottom:5px}
     h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:600;line-height:1.06;color:${accent}}
-    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E6E5C;margin:0 0 18px}
+    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#6C6C6F;margin:0 0 18px}
     /* question / stage card shell */
-    .ws-q{position:relative;border:1px solid #EDE8E0;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
+    .ws-q{position:relative;border:1px solid #E7E7EC;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
     .ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;font-weight:600;line-height:1.5}
     .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:${LIME};color:${accent};font:800 13px -apple-system,Arial}
@@ -4317,7 +4317,7 @@ function printWorksheet(cardId) {
     .ws-opt.correct .ws-mark{background:${accent};color:${LIME}}
     /* True / False */
     .ws-tf{display:flex;gap:10px;margin-top:12px}
-    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.45;font-weight:600;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6E6A5C}
+    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.45;font-weight:600;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6A6A6D}
     .ws-tf-b.on{background:${LIME};color:${accent};border-color:${accent}}
     /* answer chip + writing lines */
     .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:600}
@@ -4328,13 +4328,13 @@ function printWorksheet(cardId) {
     .ws-group{margin:0 0 18px;break-inside:auto}
     .ws-group-head{margin:0 0 9px}
     .ws-group-title{margin:0;font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#0E0E10}
-    .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#6E6E5C}
+    .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#6C6C6F}
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
     .ws-chip b{font-weight:650;color:${accent}}
-    .ws-chip-def{color:#6E6E5C;font-weight:600}
+    .ws-chip-def{color:#6C6C6F;font-weight:600}
     .ws-chip .ws-gap{min-width:72px;margin:0}
-    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#6E6E5C;margin:0 0 9px}
+    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#6C6C6F;margin:0 0 9px}
     .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
     .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:650;vertical-align:baseline}
     .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
@@ -4349,35 +4349,35 @@ function printWorksheet(cardId) {
     /* stage cards (reading / glossary / tasks / grammar) */
     /* One accent for the whole pack (not a different hue per stage type) - the
        stage rail number + text label are enough to tell stages apart. */
-    .ws-q-card{--stage-accent:${accent};border:1px solid #EDE8E0;border-top:3px solid var(--stage-accent)}
+    .ws-q-card{--stage-accent:${accent};border:1px solid #E7E7EC;border-top:3px solid var(--stage-accent)}
     .ws-stage-rail{display:none}
     .ws-card-head{display:flex;align-items:center;gap:9px;color:#0E0E10;font-weight:650;font-size:15px}
     .ws-card-title{flex:1}
-    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6E6E5C}
+    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6C6C6F}
     .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
     .ws-q-card.ws-anchor{border-style:dashed}
-    .ws-card-txt{font-size:13px;line-height:1.65;color:#3A3A2E;margin-top:9px;white-space:normal}
+    .ws-card-txt{font-size:13px;line-height:1.65;color:#3A3A40;margin-top:9px;white-space:normal}
     .ws-card-txt strong{color:#0E0E10;font-weight:650}
     /* reading block + drop cap */
     .ws-reading-title{font-size:14px;font-weight:650;color:#0E0E10;margin-bottom:7px}
-    .ws-reading-copy{font-size:13px;line-height:1.78;color:#26261E;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
+    .ws-reading-copy{font-size:13px;line-height:1.78;color:#252528;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
     .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:650;margin:4px 10px 0 0;color:${accent}}
     /* glossary */
     .ws-vocab-grid{display:grid;gap:7px;margin-top:4px}
     .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:2px solid ${LINE};background:${CREAM};border-radius:11px;page-break-inside:avoid}
     .ws-vocab-term{justify-self:start;font:800 12px -apple-system,Arial;color:${accent};background:#fff;border:1.5px solid ${LINE};padding:4px 11px;border-radius:999px}
-    .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#4A4838}
+    .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#47474A}
     /* before / after prompts */
     .ws-prompt-list{display:grid;gap:7px;margin-top:4px}
     .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:2px solid ${LINE};border-radius:11px;page-break-inside:avoid}
     .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:${LIME};color:${accent};font:800 11px -apple-system,Arial}
-    .ws-prompt-text{font-size:13px;line-height:1.5;color:#26261E}
+    .ws-prompt-text{font-size:13px;line-height:1.5;color:#252528}
     /* aims/objectives checklist + grammar example block */
     .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
-    .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#3A3A2E}
+    .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#3A3A40}
     .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:${LIME};color:${accent};display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
     .ws-grammar-block{background:${CREAM};border:2px solid ${LINE};border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
-    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#26261E}
+    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#252528}
     /* Print always shows full stage text - no clamp, so the "Show more" toggle
        (only meaningful on-screen) never appears here. */
     /* Lesson Pack stages: two print columns instead of one long vertical run
@@ -8356,7 +8356,7 @@ function renderAllArrows() {
         styleWrap.style.display = arrow.type === 'prereq' ? 'none' : '';
         const cs = arrow.style || 'solid', cd = arrow.direction || 'forward';
         const cr = arrow.route || 'curve';
-        const cc = arrow.color || '#5E5E4A';
+        const cc = arrow.color || '#5A5A63';
         ['solid','dashed','dotted'].forEach(s => document.getElementById('cas-'+s)?.classList.toggle('active', s===cs));
         ['forward','both','backward','none'].forEach(d => document.getElementById('cad-'+d)?.classList.toggle('active', d===cd));
         ['curve','straight','elbow'].forEach(r => document.getElementById('car-'+r)?.classList.toggle('active', r===cr));
@@ -8444,8 +8444,8 @@ function renderAllArrows() {
       fo.setAttribute('x', mx - 40); fo.setAttribute('y', my - 12);
       fo.setAttribute('width', 80); fo.setAttribute('height', 24);
       fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="
-        background:rgba(255,255,255,.92);border:1px solid rgba(94,94,74,.2);border-radius:6px;
-        padding:2px 7px;font-size:10px;font-weight:600;color:#3A3A2E;
+        background:rgba(255,255,255,.92);border:1px solid rgba(92,92,102,.2);border-radius:6px;
+        padding:2px 7px;font-size:10px;font-weight:600;color:#3A3A40;
         font-family:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;text-align:center;white-space:nowrap;
         overflow:hidden;text-overflow:ellipsis;">${arrow.label}</div>`;
       g.appendChild(fo);
@@ -8961,7 +8961,7 @@ function renderMinimap() {
   const vw = boardWrap.clientWidth/state.scale, vh = boardWrap.clientHeight/state.scale;
   ctx.strokeStyle = 'rgba(200,230,50,.65)';
   ctx.lineWidth = 1.5;
-  ctx.fillStyle = 'rgba(94,94,74,.04)';
+  ctx.fillStyle = 'rgba(92,92,102,.04)';
   ctx.beginPath();
   ctx.rect(vx*scale+ox, vy*scale+oy, vw*scale, vh*scale);
   ctx.fill(); ctx.stroke();
@@ -9278,7 +9278,7 @@ const BOARD_TOOL_META = {
   speaking:  { icon:'💬', svg:'bi-comment',     color:'#FF7A1A', bg:'rgba(255,122,26,.14)' },
   grammar:   { icon:'⚙️', svg:'bi-gear',        color:'#0EA5A4', bg:'rgba(14,165,164,.12)' },
   listening: { icon:'🎧', svg:'bi-headphones',  color:'#0891B2', bg:'rgba(8,145,178,.12)' },
-  utility:   { icon:'🧰', svg:'bi-tools',       color:'#5E5E4A', bg:'rgba(94,94,74,.12)' },
+  utility:   { icon:'🧰', svg:'bi-tools',       color:'#5A5A63', bg:'rgba(92,92,102,.12)' },
 };
 /* Sidebar icon markup for a category (falls back to the emoji if a category
    ever lands here without a sprite id). */
@@ -13811,7 +13811,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '728';
+const TEACHEDOS_ASSET_VERSION = '731';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14617,7 +14617,7 @@ function renderStudentsTab(sec) {
   const doneCount = members.reduce((s,m) => s + m.lessons.filter(l=>l.status==='done').length, 0);
   const totalLessons = members.reduce((s,m) => s + m.lessons.length, 0);
   const summary = document.createElement('div');
-  summary.style.cssText = 'padding:8px 10px;background:rgba(94,94,74,.06);border-radius:9px;font-size:11px;font-weight:600;color:var(--text-2);margin:4px 6px 8px;';
+  summary.style.cssText = 'padding:8px 10px;background:rgba(92,92,102,.06);border-radius:9px;font-size:11px;font-weight:600;color:var(--text-2);margin:4px 6px 8px;';
   summary.textContent = `${members.length} student${members.length>1?'s':''} · ${doneCount}/${totalLessons} lessons done`;
   sec.appendChild(summary);
 
@@ -15188,7 +15188,7 @@ async function captureThumb() {
     const canvas = document.createElement('canvas');
     canvas.width = 480; canvas.height = 300;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#F5F0E8';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#F2F2F5';
     ctx.fillRect(0,0,480,300);
     // Draw minimap content as a simple visual
     state.cards.slice(0,30).forEach(c => {
@@ -16462,7 +16462,7 @@ function applyRoleUI() {
     if (isOwner) { badge.textContent = ''; badge.style.display = 'none'; }
     else {
       badge.textContent = boardCanEdit ? 'Editor' : 'View only';
-      badge.style.cssText += 'background:#edf1e8;color:#4f5d4f;display:inline;';
+      badge.style.cssText += 'background:#efeff2;color:#4f5d4f;display:inline;';
     }
   }
   // Students: poll for live session
@@ -17783,7 +17783,7 @@ async function renderBoardToCanvas() {
   const prevPan = { ...state.pan }, prevScale = state.scale;
   const prevTransform = board.style.transform;
   const prevOverflow = board.style.overflow;
-  const bgColor = getComputedStyle(boardWrap).backgroundColor || '#F5F0E8';
+  const bgColor = getComputedStyle(boardWrap).backgroundColor || '#F2F2F5';
 
   board.style.transform = 'none';
   board.style.overflow = 'visible';
@@ -17859,7 +17859,7 @@ async function exportBoardImage(format) {
       const pageH = doc.internal.pageSize.getHeight();
       const margin = 24;
       const usableW = pageW - margin * 2, usableH = pageH - margin * 2;
-      const boardBg = getComputedStyle(boardWrap).backgroundColor || '#F5F0E8';
+      const boardBg = getComputedStyle(boardWrap).backgroundColor || '#F2F2F5';
       const fitScale = Math.min(usableW / imgW, usableH / imgH);
 
       /* Everything used to be squeezed onto a single A4, so the bigger the
@@ -19864,7 +19864,7 @@ function switchVideoTab(tab) {
 
 function handleVideoFileDrop(e) {
   e.preventDefault();
-  document.getElementById('video-drop-zone').style.borderColor = 'rgba(94,94,74,.28)';
+  document.getElementById('video-drop-zone').style.borderColor = 'rgba(92,92,102,.28)';
   const file = e.dataTransfer.files[0];
   if (file) loadVideoFile(file);
 }
@@ -19884,7 +19884,7 @@ function loadVideoFile(file) {
 
 function handleAudioFileDrop(e) {
   e.preventDefault();
-  document.getElementById('audio-drop-zone').style.borderColor = 'rgba(94,94,74,.28)';
+  document.getElementById('audio-drop-zone').style.borderColor = 'rgba(92,92,102,.28)';
   const file = e.dataTransfer.files[0];
   if (file) loadAudioFile(file);
 }
@@ -20094,7 +20094,7 @@ async function placeImageFile(file, pos) {
 function handleImageFileDrop(e) {
   e.preventDefault();
   const zone = document.getElementById('image-drop-zone');
-  if (zone) { zone.style.borderColor = 'rgba(94,94,74,.28)'; zone.style.background = 'var(--bg)'; }
+  if (zone) { zone.style.borderColor = 'rgba(92,92,102,.28)'; zone.style.background = 'var(--bg)'; }
   const file = e.dataTransfer.files && e.dataTransfer.files[0];
   if (!file) return;
   const pos = resolveBoardPlacement(pendingImagePos);
@@ -20598,7 +20598,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ════════════════════════ BACKGROUND CUSTOMIZATION ════════════════════════ */
-const BG_PRESETS = ['#F5F0E8','#FFFFFF','#FAFAF7','#FFF9E6','#FFF0F0','#F0F7FF','#F0FFF4','#F9F0FF','#FFE4E1','#E0F2FE','#DCFCE7','#FEF3C7','#FCE7F3','#E5E7EB','#1C1C1E','#0F172A'];
+const BG_PRESETS = ['#F2F2F5','#FFFFFF','#FAFAF7','#F9F9FC','#FFF0F0','#F0F7FF','#F0FFF4','#F9F0FF','#FFE4E1','#E0F2FE','#DCFCE7','#FEF3C7','#FCE7F3','#E5E7EB','#1C1C1E','#0F172A'];
 const BG_KEY = 'teachedos_board_bg';
 
 function openBgModal() {
@@ -20606,7 +20606,7 @@ function openBgModal() {
   if (!ov) return;
   buildBgGrid();
   const saved = getBgState();
-  const cur = saved.color || '#F5F0E8';
+  const cur = saved.color || '#F2F2F5';
   document.getElementById('bg-custom-color').value = cur;
   document.getElementById('bg-custom-hex').value   = cur;
   syncBgHexInput();
@@ -20748,7 +20748,7 @@ let _drawState = (() => {
 })();
 function _saveDrawState() { try { localStorage.setItem(DRAW_STATE_KEY, JSON.stringify(_drawState)); } catch {} }
 
-const PEN_COLORS    = ['#1C1C1E','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#C8E632','#A2A28C','#FFFFFF','#0EA5E9','#10B981'];
+const PEN_COLORS    = ['#1C1C1E','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#C8E632','#9A9AA3','#FFFFFF','#0EA5E9','#10B981'];
 const MARKER_COLORS = ['#FACC15','#FCA5A5','#FDBA74','#FDE047','#86EFAC','#67E8F9','#93C5FD','#C4B5FD','#F0ABFC','#FBCFE8','#FFFFFF','#FDE68A','#A7F3D0','#BFDBFE'];
 
 function ensureDrawLayer() {
@@ -20885,7 +20885,7 @@ function _updateDrawCursor(e) {
   // Tint the preview with the active color (transparent for eraser, fill for pen/marker)
   if (isEraser) {
     _drawCursorPreview.style.background = 'transparent';
-    _drawCursorPreview.style.border = '1.5px solid rgba(94,94,74,.55)';
+    _drawCursorPreview.style.border = '1.5px solid rgba(92,92,102,.55)';
     _drawCursorPreview.style.opacity = '.85';
   } else {
     _drawCursorPreview.style.background = conf.color || '#1C1C1E';
@@ -20993,7 +20993,7 @@ function openDrawPalette(anchorBtn, tool) {
     grid.innerHTML = palette.map(c => `
       <div onclick="setDrawColor('${c}')" title="${c}"
         class="${c.toLowerCase()===cur?'is-active':''}"
-        style="background:${c};box-shadow:inset 0 0 0 1px ${c.toLowerCase()==='#ffffff'?'rgba(94,94,74,.20)':'rgba(0,0,0,.08)'};"></div>
+        style="background:${c};box-shadow:inset 0 0 0 1px ${c.toLowerCase()==='#ffffff'?'rgba(92,92,102,.20)':'rgba(0,0,0,.08)'};"></div>
     `).join('');
     const customColor = document.getElementById('draw-color-custom');
     if (customColor && /^#[0-9a-fA-F]{6}$/.test(_drawState[tool].color)) {

@@ -37,12 +37,9 @@ body.fx #desktop {
      поправки на слое не выгружает (там можно крутить насыщенность и
      температуру заливки), поэтому тёплый слой поверх - моя реконструкция.
      Цвет и прозрачность подобраны наименьшими квадратами по трём точкам
-     кадра: верх-лево #EBD4C7, правый край #D9D6C6, низ-лево #F4EEDC.
+     кадра: верх-лево #D9D9DC, правый край #D5D5D8, низ-лево #EEEEF1.
      Промах после подгонки - около 7 единиц на канал вместо прежних 20. */
-  background:
-    linear-gradient(rgba(237,217,198,.64), rgba(237,217,198,.64)),
-    url("../img/desktop-bg.jpg") center / cover no-repeat,
-    #E3C9B6 !important;
+  background: #EFEFF2 !important;
   overflow:hidden;
 }
 /* Зерно больше не рисуем: оно в снимке. */
@@ -215,7 +212,7 @@ body.fx .curr-search input { font-size:14px !important; color:var(--fx-ink) !imp
 body.fx .curr-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:14px !important; }
 body.fx .curr-grid > *:not(.plans-empty-state) {
   border-radius:var(--fx-r-card) !important;
-  background:rgba(255,253,246,.55) !important;
+  background:rgba(253,253,255,.55) !important;
   border:1px solid rgba(255,255,255,.55) !important;
   box-shadow:none !important;
   min-height:158px;
@@ -231,7 +228,7 @@ body.fx .widget {
   border:1px solid var(--fx-glass-line) !important;
   backdrop-filter:blur(30px) saturate(1.3) !important;
   -webkit-backdrop-filter:blur(30px) saturate(1.3) !important;
-  box-shadow:0 18px 40px rgba(90,70,55,.14) !important;
+  box-shadow:0 18px 40px rgba(74,74,77,.14) !important;
   padding:18px !important;
 }
 /* Без !important: перетаскивание виджета пишет left/top инлайном, а
@@ -297,11 +294,11 @@ body.fx #dock-wrap { bottom:28px !important; }
 body.fx #dock {
   gap:8px !important; padding:10px !important;
   border-radius:var(--fx-r-dock,19px) !important;
-  background:rgba(255,253,247,.55) !important;
+  background:rgba(253,253,255,.55) !important;
   border:1px solid rgba(255,255,255,.6) !important;
   backdrop-filter:blur(40px) saturate(1.4) !important;
   -webkit-backdrop-filter:blur(40px) saturate(1.4) !important;
-  box-shadow:0 18px 44px rgba(90,70,55,.16) !important;
+  box-shadow:0 18px 44px rgba(74,74,77,.16) !important;
   align-items:center !important;
 }
 body.fx .di-label, body.fx .di-dot { display:none !important; }
@@ -336,7 +333,7 @@ body.fx.board-page .tb-board-chip-title {
   font-size:15px !important; font-weight:650 !important; color:var(--fx-ink) !important;
 }
 body.fx.board-page #board-wrap {
-  background-color:#F7F7EF !important;
+  background-color:#F6F6F9 !important;
   background-image:none !important;
 }
 body.fx.board-page #miro-toolbar {
@@ -349,7 +346,7 @@ body.fx.board-page #miro-toolbar {
   border-radius:26px !important;
   backdrop-filter:blur(40px) saturate(1.4) !important;
   -webkit-backdrop-filter:blur(40px) saturate(1.4) !important;
-  box-shadow:0 18px 44px rgba(90,70,55,.14) !important;
+  box-shadow:0 18px 44px rgba(74,74,77,.14) !important;
 }
 body.fx.board-page #miro-toolbar .mt-btn {
   width:60px !important; height:60px !important;
@@ -429,7 +426,7 @@ body.fx.board-page #empty-state {
   background:rgba(255,255,255,.82) !important;
   border:1px solid rgba(255,255,255,.9) !important;
   border-radius:var(--fx-r-panel) !important;
-  box-shadow:0 24px 60px rgba(90,70,55,.14) !important;
+  box-shadow:0 24px 60px rgba(74,74,77,.14) !important;
   padding:28px 26px !important; width:min(360px,88vw) !important;
   backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);
 }
@@ -441,7 +438,7 @@ body.fx.board-page #empty-state .empty-text {
   margin:0 0 18px !important;
 }
 body.fx.board-page #empty-state .empty-hint {
-  background:rgba(240,238,232,.75) !important; border:none !important;
+  background:rgba(238,238,241,.75) !important; border:none !important;
   border-radius:999px !important; padding:9px 14px !important;
   font-size:12px !important; color:var(--fx-mute) !important;
   justify-content:flex-start !important; gap:8px !important;
@@ -456,7 +453,7 @@ body.fx.board-page #empty-state .empty-key {
    те же мягкие пилюли, связка нарисована чернилами, а не розовым акцентом
    базовой темы - в макете розового нет. */
 body.fx.board-page #empty-state .empty-flow .ef-card {
-  fill:rgba(240,238,232,.8) !important; stroke:none !important;
+  fill:rgba(238,238,241,.8) !important; stroke:none !important;
 }
 body.fx.board-page #empty-state .empty-flow .ef-label { fill:var(--fx-mute) !important; }
 body.fx.board-page #empty-state .empty-flow .ef-line { stroke:var(--fx-ink) !important; opacity:.4; }
@@ -476,7 +473,7 @@ body.fx.board-page #empty-state .empty-action.primary:hover { background:var(--f
 /* Карточки досок красит правило с более высокой специфкой (.lesson-card из
    общей темы), поэтому целюсь в них прямо, а не через `.curr-grid > *`.
 
-   Кремовая полупрозрачная заливка rgba(255,253,246,.55) была в тон бежевой
+   Кремовая полупрозрачная заливка rgba(253,253,255,.55) была в тон бежевой
    панели. Панель стала светлой, и та же заливка осталась единственным тёплым
    пятном на белом - карточка читалась как бежевый прямоугольник. Заодно
    разъехалось всё остальное: белая рамка на белом не видна, а наведение
@@ -492,7 +489,7 @@ body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime) {
   box-shadow:none !important;
 }
 body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime):hover {
-  background:#F4F4EF !important;
+  background:#F3F3F6 !important;
   border-color:rgba(22,22,22,.22) !important;
 }
 body.fx.os-desktop .curr-grid .lc-lang {
@@ -527,7 +524,7 @@ body.fx.os-desktop .curr-grid .lesson-card .lc-lang {
 body.fx .win-body { padding:8px !important; padding-top:8px !important; }
 body.fx .win-sidebar {
   /* Ширина карточки-сайдбара на кадре 259 при 1920 - у нас 194. */
-  background:rgba(255,253,247,.55) !important;
+  background:rgba(253,253,255,.55) !important;
   border:1px solid rgba(255,255,255,.5) !important;
   border-radius:14px !important;
   padding:40px 14px 14px !important;
@@ -558,11 +555,11 @@ body.fx #fx-ghost-panel {
   display:block; position:fixed; z-index:1; pointer-events:none;
   left:500px; top:196px; width:430px; height:430px;
   border-radius:var(--fx-r-panel);
-  background:rgba(255,252,246,.34);
+  background:rgba(252,252,255,.34);
   border:1px solid rgba(255,255,255,.42);
   backdrop-filter:blur(26px) saturate(1.2);
   -webkit-backdrop-filter:blur(26px) saturate(1.2);
-  box-shadow:0 24px 60px rgba(90,70,55,.10);
+  box-shadow:0 24px 60px rgba(74,74,77,.10);
 }
 /* На узких экранах плашка налезала бы на карточки-счётчики и док. */
 @media (max-width:1280px), (max-height:760px) {
@@ -664,7 +661,7 @@ body.fx .win-controls { position:absolute; top:11px; left:20px; }
 body.fx :is(.win-main, .win-sidebar) { padding-top:52px !important; }
 
 /* Шов на верхней кромке. Рейка начиналась на 9px от верха окна, то есть её
-   светлый тон (rgba(255,253,247,.55) против прозрачной основной колонки)
+   светлый тон (rgba(253,253,255,.55) против прозрачной основной колонки)
    проходил СКВОЗЬ полосу заголовка высотой 46px - и по ней, прямо между
    кнопками окна, шла вертикальная граница двух оттенков. Верх окна читался
    как склейка из двух половин.
@@ -749,7 +746,7 @@ body.fx .mp-btn-ghost-dark {
   border:1px solid rgba(22,22,22,.10) !important;
 }
 body.fx :is(.mp-stat,.mp-stat-lavender,.mp-stat-cyan,.mp-stat-peach) {
-  background:rgba(255,253,246,.72) !important;
+  background:rgba(253,253,255,.72) !important;
   border:1px solid var(--fx-glass-line) !important;
   color:var(--fx-ink) !important;
 }

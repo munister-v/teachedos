@@ -1257,11 +1257,11 @@ const TAG_COLORS = {
   Writing:    { bg:'rgba(110,201,138,.12)',   color:'#6ec98a' },
   Listening:  { bg:'rgba(245,158,11,.12)',    color:'#f59e0b' },
   Speaking:   { bg:'rgba(167,139,250,.12)',   color:'#a78bfa' },
-  Vocabulary: { bg:'rgba(202,201,183,.18)',   color:'#1C1C1E' },
+  Vocabulary: { bg:'rgba(201,201,208,.18)',   color:'#1C1C1E' },
   Grammar:    { bg:'rgba(248,113,113,.12)',   color:'#f87171' },
   Utility:    { bg:'rgba(156,163,175,.12)',   color:'#9ca3af' },
   New:        { bg:'rgba(110,201,138,.18)',   color:'#6ec98a' },
-  Pro:        { bg:'rgba(202,201,183,.22)',   color:'#1C1C1E' },
+  Pro:        { bg:'rgba(201,201,208,.22)',   color:'#1C1C1E' },
 };
 
 let activeToolGroup = 'all';
@@ -1296,7 +1296,7 @@ function toolsRender() {
       const c = TAG_COLORS[t.badge] || {};
       return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.color}40;font-weight:600;">${t.badge}</span>`;
     })() : '';
-    return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(94,94,74,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(94,94,74,0.09)';this.style.borderColor='rgba(202,201,183,0.28)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(94,94,74,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
+    return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(92,92,102,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(92,92,102,0.09)';this.style.borderColor='rgba(201,201,208,0.28)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(92,92,102,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
         <div style="font-size:22px;flex-shrink:0;line-height:1;">${t.icon}</div>
         <div style="flex:1;">
@@ -1339,12 +1339,12 @@ const SP_ITEMS = [
   // Windows
   { icon:'📋', iconBg:'linear-gradient(145deg,#6B7669,#5A6459)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
   { icon:'👥', iconBg:'linear-gradient(145deg,#5F6B75,#4F5A64)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
-  { icon:'📅', iconBg:'linear-gradient(145deg,#786E5F,#635B4E)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
+  { icon:'📅', iconBg:'linear-gradient(145deg,#6F6F72,#5C5C5F)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
   { icon:'✍️', iconBg:'linear-gradient(145deg,#585C59,#474B48)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
   { icon:'🪄', iconBg:'linear-gradient(145deg,#75798A,#63667A)', title:'Teaching Tools', sub:'Open full teacher tools hub', kbd:'Tools', action:()=>location.href='teacher-tools.html' },
   { icon:'💳', iconBg:'linear-gradient(145deg,#5A6459,#6B7669)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
   // External pages
-  { icon:'📌', iconBg:'linear-gradient(145deg,#867D5F,#6F684F)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
+  { icon:'📌', iconBg:'linear-gradient(145deg,#7C7C7F,#67676A)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
   { icon:'📚', iconBg:'linear-gradient(145deg,#75798A,#63667A)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
   { icon:'🌍', iconBg:'linear-gradient(145deg,#6B7A63,#5A6754)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
   { icon:'📊', iconBg:'linear-gradient(145deg,#5C7570,#4C625E)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
@@ -1367,7 +1367,7 @@ function rebuildSpotlightBoards() {
   let i = SP_ITEMS.length - 1;
   while (i >= 0 && SP_ITEMS[i].kbd === 'Board') SP_ITEMS.splice(i--, 1);
   (MY_BOARDS || []).slice(0, 12).forEach(b => SP_ITEMS.push({
-    icon: '📌', iconBg:'linear-gradient(145deg,#867D5F,#6F684F)',
+    icon: '📌', iconBg:'linear-gradient(145deg,#7C7C7F,#67676A)',
     title: b.name || 'Untitled Board',
     sub: 'Open board · ' + (b.card_count || 0) + ' cards',
     kbd:'Board',
@@ -1731,7 +1731,7 @@ function showAuthOverlay() {
     overlay.style.cssText = `
       position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;
       display:flex;align-items:flex-start;justify-content:center;
-      background:linear-gradient(165deg,#F7F5F1 0%,#EFEBE4 52%,#E7E2D9 100%);
+      background:linear-gradient(165deg,#F5F5F8 0%,#EBEBEE 52%,#E2E2E5 100%);
       overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(20px,calc((100dvh - 620px)/2)) 16px max(20px,env(safe-area-inset-bottom,0px));
       opacity:0;visibility:hidden;pointer-events:none;
       transition:opacity .24s cubic-bezier(.22,.61,.36,1),visibility 0s linear .24s;
@@ -1777,7 +1777,7 @@ function showAuthOverlay() {
         <!-- Титульна смуга: вхід читається як вікно TeachEd, а не як
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
-        <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(234,228,216,.98);border-bottom:1px solid rgba(23,23,25,.08);">
+        <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(228,228,231,.98);border-bottom:1px solid rgba(23,23,25,.08);">
           <img src="logo-sm.png" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#1C1C1E;">TeachEd</span>
         </div>
@@ -1794,22 +1794,22 @@ function showAuthOverlay() {
         <div id="os-auth-err" class="os-auth-error" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
         <div id="os-google-area" style="display:none;margin-bottom:18px;">
           <div id="os-google-btn" style="display:flex;justify-content:center;min-height:44px;"></div>
-          <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#9A9A8A;font-size:12px;font-weight:600;letter-spacing:.04em;">
-            <span style="flex:1;height:1px;background:rgba(94,94,74,.18);"></span>OR<span style="flex:1;height:1px;background:rgba(94,94,74,.18);"></span>
+          <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#98989B;font-size:12px;font-weight:600;letter-spacing:.04em;">
+            <span style="flex:1;height:1px;background:rgba(92,92,102,.18);"></span>OR<span style="flex:1;height:1px;background:rgba(92,92,102,.18);"></span>
           </div>
         </div>
         <div id="os-role-row" style="display:none;margin-bottom:16px;">
-          <div style="font-size:10px;font-weight:600;color:#7A7A6A;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+          <div style="font-size:10px;font-weight:600;color:#78787B;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button type="button" id="role-teacher" onclick="selectOsRole('teacher')" aria-pressed="true" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(141,184,0,.65);background:rgba(205,242,79,.18);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
               <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Teacher</div>
-              <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Create &amp; manage</div>
+              <div style="font-size:10px;color:#78787B;margin-top:2px;">Create &amp; manage</div>
             </button>
             <button type="button" id="role-student" onclick="selectOsRole('student')" aria-pressed="false" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(24,24,24,.14);background:#FFFFFF;cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🎓</div>
               <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Student</div>
-              <div style="font-size:10px;color:#7A7A6A;margin-top:2px;">Learn &amp; progress</div>
+              <div style="font-size:10px;color:#78787B;margin-top:2px;">Learn &amp; progress</div>
             </button>
           </div>
         </div>
@@ -1819,7 +1819,7 @@ function showAuthOverlay() {
         <div id="os-forgot-row" style="text-align:right;margin-top:2px;margin-bottom:6px;">
           <button type="button" onclick="startForgotPassword()" style="color:#888;font-size:12px;font-weight:600;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
         </div>
-        <div style="text-align:center;margin-top:16px;font-size:13px;color:#5A5A4A;font-weight:500;">
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:#58585B;font-weight:500;">
           <span id="os-toggle-text">Don't have an account?</span>
           <button type="button" onclick="toggleOsAuth()" style="color:#1C1C1E;font-weight:650;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;" id="os-toggle-link">Register</button>
         </div>
@@ -1977,9 +1977,9 @@ function selectOsRole(role) {
   const t = document.getElementById('role-teacher');
   const s = document.getElementById('role-student');
   if (t && s) {
-        t.style.borderColor = role==='teacher'?'#C8E64A':'rgba(94,94,74,.14)';
+        t.style.borderColor = role==='teacher'?'#C8E64A':'rgba(92,92,102,.14)';
         t.style.background  = role==='teacher'?'rgba(200,230,74,.10)':'#fafafa';
-        s.style.borderColor = role==='student'?'#C8E64A':'rgba(94,94,74,.14)';
+        s.style.borderColor = role==='student'?'#C8E64A':'rgba(92,92,102,.14)';
         s.style.background  = role==='student'?'rgba(200,230,74,.10)':'#fafafa';
         t.setAttribute('aria-pressed', role === 'teacher' ? 'true' : 'false');
         s.setAttribute('aria-pressed', role === 'student' ? 'true' : 'false');
@@ -2016,7 +2016,7 @@ function renderOsAuthFields() {
   const INP_S = 'width:100%;padding:13px 44px 13px 16px;border:1px solid rgba(24,24,24,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
   const INP_PLAIN = 'width:100%;padding:13px 16px;border:1px solid rgba(24,24,24,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
   const WRAP_S = 'position:relative;margin-bottom:12px;';
-  const LABEL_S = 'display:block;margin:0 0 6px;color:#8A8A80;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
+  const LABEL_S = 'display:block;margin:0 0 6px;color:#89898C;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
   const EYE_S  = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;cursor:pointer;color:#9A9AAA;display:flex;align-items:center;justify-content:center;border-radius:7px;padding:0;';
   const EYE_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path class="eo" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle class="eo" cx="12" cy="12" r="3"/>
@@ -2039,7 +2039,7 @@ function renderOsAuthFields() {
   if (!isLogin) {
     const help = document.createElement('p');
     help.id = 'os-password-help';
-    help.style.cssText = 'margin:-7px 1px 12px;color:#5A5A4A;font-size:11px;font-weight:650;line-height:1.4;';
+    help.style.cssText = 'margin:-7px 1px 12px;color:#58585B;font-size:11px;font-weight:650;line-height:1.4;';
     help.textContent = 'Use at least 10 characters.';
     f.querySelector('#os-af-pass')?.parentElement?.appendChild(help);
   }
@@ -2049,7 +2049,7 @@ function renderOsAuthFields() {
     const help = document.getElementById('os-password-help');
     if (!help) return;
     const len = e.target.value.length;
-    help.style.color = len >= 10 ? '#166534' : (len ? '#9A5B12' : '#5A5A4A');
+    help.style.color = len >= 10 ? '#166534' : (len ? '#9A5B12' : '#58585B');
     help.textContent = len >= 10 ? 'Length looks good. A memorable multi-word passphrase is best.' : `Use at least 10 characters${len ? ` · ${10 - len} more needed` : ''}.`;
   });
 }
@@ -2095,7 +2095,7 @@ function startForgotPassword() {
   err.style.display = 'none';
   const f = document.getElementById('os-auth-fields');
   const WRAP_S = 'position:relative;margin-bottom:12px;';
-  const LABEL_S = 'display:block;margin:0 0 6px;color:#8A8A80;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
+  const LABEL_S = 'display:block;margin:0 0 6px;color:#89898C;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
   const INP = 'width:100%;padding:13px 16px;border:1px solid rgba(24,24,24,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
   f.innerHTML = `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='rgba(141,184,0,.55)';this.style.boxShadow='0 0 0 4px rgba(205,242,79,.24)'" onblur="this.style.borderColor='rgba(24,24,24,.14)';this.style.boxShadow='none'">`;
   f.querySelector('input').addEventListener('keydown', e => { if(e.key==='Enter') submitForgotPassword(); });

@@ -6,19 +6,19 @@
 <title>Fill in the Blank</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
 .back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem;cursor:pointer;background:none;border:none}
 h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .subtitle{color:#525252;font-size:.85rem;margin-bottom:10px}
 .hud{display:flex;justify-content:space-between;width:100%;max-width:440px;margin-bottom:6px}
 .hud span{font-size:.85rem;color:#555;font-weight:600}
-.progress-wrap{width:100%;max-width:440px;background:#E0D9CE;border-radius:99px;height:8px;margin-bottom:16px;overflow:hidden}
+.progress-wrap{width:100%;max-width:440px;background:#DADADD;border-radius:99px;height:8px;margin-bottom:16px;overflow:hidden}
 .progress-bar{height:8px;background:#CDF24F;border-radius:99px;transition:width .4s}
 .card{width:100%;max-width:440px;background:#fff;border-radius:20px;padding:28px 22px;box-shadow:0 4px 24px rgba(0,0,0,.09);margin-bottom:16px}
 .sentence{font-size:1.15rem;line-height:1.7;color:#0E0E10;margin-bottom:20px;text-align:center}
 .blank{display:inline-block;border-bottom:2.5px solid #0E0E10;min-width:90px;padding:0 4px;font-weight:700}
 .input-row{display:flex;gap:10px;align-items:center}
-input[type=text]{flex:1;padding:12px 14px;border:2px solid #E0D9CE;border-radius:12px;font-size:1rem;font-family:inherit;outline:none;transition:.2s}
+input[type=text]{flex:1;padding:12px 14px;border:2px solid #DADADD;border-radius:12px;font-size:1rem;font-family:inherit;outline:none;transition:.2s}
 input[type=text]:focus{border-color:#CDF24F}
 input[type=text].correct{border-color:#7ED321;background:#f0fde8;animation:greenPulse .4s}
 input[type=text].wrong{border-color:#EC2D8C;background:#fdf0f5;animation:shake .4s}
@@ -45,9 +45,9 @@ input[type=text].wrong{border-color:#EC2D8C;background:#fdf0f5;animation:shake .
   .input-row input{min-width:0;flex:1 1 140px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>

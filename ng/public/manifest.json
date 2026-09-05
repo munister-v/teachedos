@@ -4,7 +4,7 @@
   "description": "The operating system for modern teachers",
   "start_url": "/teachedos/index.html",
   "display": "standalone",
-  "background_color": "#F5F0E8",
+  "background_color": "#F2F2F5",
   "theme_color": "#1C1C1E",
   "orientation": "any",
   "icons": [

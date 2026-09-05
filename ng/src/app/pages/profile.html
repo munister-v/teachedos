@@ -91,21 +91,21 @@
     <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
       <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">
         <div style="font-size:18px;font-weight:900;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">📥 Bulk Invite Students</div>
-        <div style="font-size:13px;color:#A2A28C;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
+        <div style="font-size:13px;color:#9A9AA3;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
-          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F5F0E8;color:#1C1C1E;"></select>
+          <div style="font-size:11px;font-weight:700;color:#9A9AA3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
+          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(92,92,102,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F2F2F5;color:#1C1C1E;"></select>
         </div>
         <div style="margin-bottom:18px;">
-          <div style="font-size:11px;font-weight:700;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
-          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F0E8;color:#1C1C1E;line-height:1.6;"></textarea>
+          <div style="font-size:11px;font-weight:700;color:#9A9AA3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
+          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(92,92,102,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F2F2F5;color:#1C1C1E;line-height:1.6;"></textarea>
         </div>
         <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
         <div style="display:flex;gap:10px;">
-          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:700;cursor:pointer;color:#3A3A2E;">Cancel</button>
+          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(92,92,102,.18);background:#F2F2F5;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:700;cursor:pointer;color:#3A3A40;">Cancel</button>
           <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#C8E632;color:#1C1C1E;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:800;cursor:pointer;font-size:13px;">Invite Students →</button>
         </div>
-        <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#A2A28C;">×</div>
+        <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#9A9AA3;">×</div>
       </div>
     </div>
 
@@ -198,7 +198,7 @@
       <!-- Plan -->
       <div class="card" id="plan-card">
         <div class="card-title">💳 Subscription Plan</div>
-        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
+        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(92,92,102,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
           <div style="font-size:2rem;" id="plan-icon">⭐</div>
           <div>
             <div style="font-size:1rem;font-weight:900;color:var(--text);" id="plan-name-display">Free</div>

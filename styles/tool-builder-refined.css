@@ -4,15 +4,15 @@
 */
 #tool-builder-panel{
   --tb-ink:#20211d;
-  --tb-muted:#77786e;
-  --tb-line:#e4e4dc;
+  --tb-muted:#77777a;
+  --tb-line:#e3e3e6;
   /* Панель лежит на песочном холсте доски, и чистый #ffffff был единственной
      холодной поверхностью в тёплой палитре - на фоне доски он читался как
      дыра. Берём среднюю точку из исходного градиента .tbuilder-box в
      board.css: тот же белый, но на полтона теплее и темнее. Пара с --tb-wash
      сохраняется, так что форма и предпросмотр по-прежнему различаются. */
-  --tb-surface:#FAFAF4;
-  --tb-wash:#f6f6f1;
+  --tb-surface:#FAFAFB;
+  --tb-wash:#f5f5f8;
   --tb-lime:#c9e747;
   background:rgba(25,26,22,.54);
   backdrop-filter:blur(5px);
@@ -40,7 +40,7 @@
 }
 
 #tool-builder-panel .tbuilder-kicker{
-  color:#85867c;
+  color:#858588;
   font-size:9px;
   font-weight:800;
   letter-spacing:.1em;
@@ -68,14 +68,14 @@
   width:40px;
   height:40px;
   border-radius:9px;
-  background:#f0f0eb;
-  color:#464740;
+  background:#efeff2;
+  color:#464649;
   box-shadow:none;
   transition:background .15s ease,color .15s ease;
 }
 
 #tool-builder-panel .tbuilder-close:hover{
-  background:#e4e4dd;
+  background:#e3e3e6;
   color:#171814;
 }
 
@@ -132,7 +132,7 @@
   width:7px;
   height:7px;
   margin-top:5px;
-  background:#9b9c92;
+  background:#9b9b9e;
   box-shadow:none;
 }
 
@@ -141,7 +141,7 @@
 #tool-builder-panel .tbuilder-brief.needs-input .tbuilder-review-dot{background:#b4685d;box-shadow:none;}
 
 #tool-builder-panel .tbuilder-brief-copy strong{
-  color:#55564e;
+  color:#555558;
   font:750 11px/1.25 var(--font);
   letter-spacing:0;
   text-transform:none;
@@ -165,7 +165,7 @@
 
 #tool-builder-panel .tbuilder-form label{
   margin:17px 0 7px;
-  color:#77786e;
+  color:#77777a;
   font-size:9px;
   font-weight:800;
   letter-spacing:.09em;
@@ -198,7 +198,7 @@
   padding:11px 12px;
   border:1px solid transparent !important;
   border-radius:8px !important;
-  background:#f3f3ee !important;
+  background:#f2f2f5 !important;
   color:var(--tb-ink) !important;
   box-shadow:none !important;
   font-size:13px;
@@ -212,7 +212,7 @@
 
 #tool-builder-panel .tbuilder-form input::placeholder,
 #tool-builder-panel .tbuilder-form textarea::placeholder{
-  color:#9c9d92 !important;
+  color:#9b9b9e !important;
 }
 
 #tool-builder-panel .tbuilder-form input:focus,
@@ -228,25 +228,25 @@
   padding:3px;
   border:0;
   border-radius:9px;
-  background:#f1f1ec;
+  background:#f0f0f3;
 }
 
 #tool-builder-panel .tbuilder-choice-row button{
   min-height:40px;
   border-radius:7px;
-  color:#696a61;
+  color:#69696c;
   font-size:12px;
   font-weight:650;
   box-shadow:none;
 }
 
 #tool-builder-panel .tbuilder-choice-row button:hover{
-  background:#e7e7df;
-  color:#31322d;
+  background:#e6e6e9;
+  color:#313134;
 }
 
 #tool-builder-panel .tbuilder-choice-row button.active{
-  background:#2c2d28;
+  background:#2c2c2f;
   color:#fff;
   box-shadow:none;
 }
@@ -256,7 +256,7 @@
 #tool-builder-panel .tb-field-meta{
   display:none;
   margin-top:5px;
-  color:#85867b;
+  color:#848487;
   font-size:10px;
 }
 
@@ -280,7 +280,7 @@
 #tool-builder-panel .tb-field-wrap.tb-field-required input,
 #tool-builder-panel .tb-field-wrap.tb-field-required textarea{
   border-color:transparent !important;
-  background:#f3f3ee !important;
+  background:#f2f2f5 !important;
 }
 
 #tool-builder-panel .tb-field-wrap.tb-field-required:focus-within input,
@@ -294,8 +294,8 @@
   padding:4px 7px;
   border:0;
   border-radius:6px;
-  background:#e7e7df;
-  color:#55564e;
+  background:#e6e6e9;
+  color:#555558;
   box-shadow:none;
 }
 
@@ -314,7 +314,7 @@
   border:0;
   border-radius:8px;
   background:transparent;
-  color:#5b5c54;
+  color:#5b5b5e;
   box-shadow:none;
   font-size:12px;
   font-weight:680;
@@ -324,13 +324,13 @@
 }
 
 #tool-builder-panel .tbuilder-btn:hover{
-  background:#ecece6;
-  color:#252620;
+  background:#ebebee;
+  color:#252528;
 }
 
 #tool-builder-panel .tbuilder-btn.lime,
 #tool-builder-panel .tbuilder-btn.blue{
-  background:#2b2c27;
+  background:#2b2b2e;
   color:#fff;
 }
 
@@ -362,7 +362,7 @@
   min-height:42px;
   padding:0 9px;
   border-radius:8px;
-  color:#696a61;
+  color:#69696c;
   cursor:pointer;
   font-size:12px;
   font-weight:650;
@@ -370,7 +370,7 @@
 }
 
 #tool-builder-panel .tbuilder-more-actions summary::-webkit-details-marker{display:none;}
-#tool-builder-panel .tbuilder-more-actions summary:hover{background:#ecece6;color:#252620;}
+#tool-builder-panel .tbuilder-more-actions summary:hover{background:#ebebee;color:#252528;}
 
 #tool-builder-panel .tbuilder-more-menu{
   position:absolute;
@@ -402,7 +402,7 @@
   padding:9px;
 }
 
-#tool-builder-panel .tbuilder-menu-item:hover{background:#f0f0e9;}
+#tool-builder-panel .tbuilder-menu-item:hover{background:#efeff2;}
 #tool-builder-panel .tbuilder-menu-sep{border-top-color:var(--tb-line);}
 
 #tool-builder-panel .tbuilder-preview-head{
@@ -410,7 +410,7 @@
 }
 
 #tool-builder-panel .tbuilder-preview-title{
-  color:#77786e;
+  color:#77777a;
   font-size:9px;
   font-weight:800;
   letter-spacing:.1em;
@@ -430,7 +430,7 @@
   border:0 !important;
   border-radius:0 !important;
   background:transparent !important;
-  color:#9a9b91;
+  color:#9a9a9d;
   font-size:13px;
   font-weight:550;
   line-height:1.5;
@@ -458,14 +458,14 @@
 }
 
 #tool-builder-panel .tbuilder-section h4{
-  color:#2b2c27;
+  color:#2b2b2e;
   font-size:13px;
   font-weight:680;
 }
 
 #tool-builder-panel .tbuilder-section p,
 #tool-builder-panel .tbuilder-section li{
-  color:#66675f;
+  color:#666669;
   font-weight:500;
 }
 
@@ -486,13 +486,13 @@
   width:28px;
   height:28px;
   border-radius:6px;
-  background:#e8e8e1;
+  background:#e7e7ea;
   box-shadow:none;
   font-size:15px;
 }
 
 #tool-builder-panel .tt-result-title{
-  color:#2b2c27;
+  color:#2b2b2e;
   font-size:13px;
   font-weight:700;
 }
@@ -503,16 +503,16 @@
   padding:0;
   border-radius:0;
   background:transparent;
-  color:#85867b;
+  color:#848487;
   font-size:8.5px;
 }
 
-#tool-builder-panel .tt-rc.accent{background:transparent;color:#6e6f67;}
-#tool-builder-panel .tt-rc + .tt-rc::before{content:'·';margin:0 6px;color:#b0b0a7;}
+#tool-builder-panel .tt-rc.accent{background:transparent;color:#6e6e71;}
+#tool-builder-panel .tt-rc + .tt-rc::before{content:'·';margin:0 6px;color:#afafb2;}
 
 #tool-builder-panel .tt-edit-hint{
   margin:0 0 8px;
-  color:#96978e;
+  color:#969699;
   font-size:9px;
   font-weight:550;
 }

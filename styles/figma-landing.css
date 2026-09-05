@@ -18,28 +18,28 @@ body.fx.landing-page {
   --fx-lime:#CBF03C;
   --fx-lime-deep:#BCE22A;
   --fx-ink:#161616;
-  --fx-ink-2:#4A4A46;
-  /* #9A968C давал 1.87:1 на песке и 2.63:1 на светлом стекле: под ним ходят
+  --fx-ink-2:#4A4A4D;
+  /* #969699 давал 1.87:1 на песке и 2.63:1 на светлом стекле: под ним ходят
      все надзаголовки секций, подписи счётчиков, .bento-tag и .fp-cap, то есть
      весь мелкий текст лендинга разом не проходил AA. Тон и температура те же,
      лайтнес опущен до 4.7:1 на песке и 6.2:1 на стекле. */
   /* Приглушённый тон стоит и на тёплых тинтах карточек, где песок под
      полупрозрачной подложкой темнее белого: 3.6:1. Опущен до 4.8:1. */
-  --fx-mute:#47443F;
-  --fx-glass:rgba(255,252,246,.55);
+  --fx-mute:#444447;
+  --fx-glass:rgba(252,252,255,.55);
   --fx-glass-line:rgba(255,255,255,.62);
-  --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
+  --fx-shadow:0 30px 70px rgba(74,74,77,.16), 0 6px 18px rgba(74,74,77,.08);
 
   /* Собственные токены страницы переводятся на палитру макета - так
      перекрашиваются разом все места, где они использованы. */
-  --cream:#E4D6C4; --cream-2:#DCD3BF; --paper:#E4D6C4;
-  --card:rgba(255,252,246,.55); --white:rgba(255,252,246,.72);
-  --ink:#161616; --ink2:#4A4A46;
+  --cream:#D8D8DB; --cream-2:#D3D3D6; --paper:#D8D8DB;
+  --card:rgba(252,252,255,.55); --white:rgba(252,252,255,.72);
+  --ink:#161616; --ink2:#4A4A4D;
   /* --ink3 отдаёт подписи футера и мелкие метки. teached-brand.css держит
      его на :root с !important (#5E5E6A), var() там резолвится в контексте
      :root, поэтому переопределение --text-3 на body до него не доходит:
      нужен свой важный тон, читаемый на песке. */
-  --ink3:#57544D !important;
+  --ink3:#545457 !important;
   --line:rgba(255,255,255,.55); --line-2:rgba(22,22,22,.07);
   /* teached-brand.css переопределяет эти же токены на `body.landing-page`
      с !important, поэтому объявление без важности проигрывало и розовый
@@ -60,11 +60,9 @@ body.fx.landing-page {
 /* ── Фон ────────────────────────────────────────────────────────────────── */
 html:has(body.fx.landing-page),
 body.fx.landing-page {
-  /* Тот же снимок из макета, что и в приложении. */
-  background:
-    linear-gradient(rgba(237,217,198,.64), rgba(237,217,198,.64)),
-    url("../img/desktop-bg.jpg") center / cover no-repeat,
-    #E3C9B6 !important;
+  /* Тот же ровный тёмно-белый, что и в приложении: снимок из макета убран
+     вместе с бежевой заливкой (см. figma-theme.css). */
+  background: #EFEFF2 !important;
   background-attachment:fixed !important;
   color:var(--fx-ink) !important;
 }
@@ -125,7 +123,7 @@ body.fx.landing-page :is(.sec-eye,.stat-l,.fp-cap,.bento-tag) {
 body.fx.landing-page .ink-row :is(.bento-tag,.cat-tag,.cat-count) {
   background:rgba(255,255,255,.12) !important;
   border-color:rgba(255,255,255,.24) !important;
-  color:#F5F0E8 !important;
+  color:#F2F2F5 !important;
 }
 
 /* ── Карточки и панели ──────────────────────────────────────────────────── */
@@ -275,7 +273,7 @@ body.fx.landing-page .nav-burger:hover { background:rgba(22,22,22,.06) !importan
   body.fx.landing-page nav.ln .nav-links {
     background:#FFFFFF !important;
     border-bottom:1px solid rgba(22,22,22,.08) !important;
-    box-shadow:0 12px 28px rgba(90,70,55,.14) !important;
+    box-shadow:0 12px 28px rgba(74,74,77,.14) !important;
   }
   body.fx.landing-page nav.ln .nav-links .nav-lnk {
     color:var(--fx-ink) !important; border-radius:12px !important;
@@ -303,7 +301,7 @@ body.fx.landing-page :is(.support-row,.fp-paper) { border-radius:18px !important
    блок движения глушит backdrop-filter по всей странице, и это
    единственная действительно дорогая часть стекла. */
 body.fx.landing-page :is(.bc,.cat,.plan,.faq-item,.step,.testi,.support-card) {
-  box-shadow:0 1px 2px rgba(90,70,55,.06), 0 10px 30px rgba(90,70,55,.10) !important;
+  box-shadow:0 1px 2px rgba(74,74,77,.06), 0 10px 30px rgba(74,74,77,.10) !important;
 }
 
 /* Три шага - три разной длины абзаца, а панель-скриншот шла сразу за текстом:

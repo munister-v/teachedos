@@ -11,14 +11,14 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
 :root {
-  --bg:       #F5F0E8;
-  --bg-2:     #EDE8E0;
+  --bg:       #F2F2F5;
+  --bg-2:     #E7E7EC;
   --surface:  #FFFFFF;
-  --border:   rgba(94,94,74,0.12);
-  --border-2: rgba(94,94,74,0.24);
+  --border:   rgba(92,92,102,0.12);
+  --border-2: rgba(92,92,102,0.24);
   --text:     #1C1C1E;
-  --text-2:   #3A3A2E;
-  --text-3:   #A2A28C;
+  --text-2:   #3A3A40;
+  --text-3:   #9A9AA3;
   --accent:   #1C1C1E;
   --lime:     #C8E632;
   --lavender: #C8E632;
@@ -44,7 +44,7 @@ body {
 /* ── NAV ── */
 .nav {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(245,240,232,0.88);
+  background: rgba(242,242,245,0.88);
   backdrop-filter: blur(24px) saturate(1.8);
   -webkit-backdrop-filter: blur(24px) saturate(1.8);
   border-bottom: 1px solid var(--border);
@@ -180,19 +180,19 @@ body {
   font-size: 10px; font-family: var(--mono); font-weight: 600;
   letter-spacing: 0.06em; text-transform: uppercase;
   padding: 3px 9px; border-radius: 999px;
-  background: var(--bg-2, #EDE8E0); color: var(--text-3);
+  background: var(--bg-2, #E7E7EC); color: var(--text-3);
   border: 1px solid var(--border);
 }
 .card-tag.vocab    { background: rgba(28,28,30,0.10); color: #1C1C1E; border-color: rgba(28,28,30,0.20); }
 .card-tag.grammar  { background: rgba(200,230,50,0.12);    color: #1C1C1E; border-color: rgba(200,230,50,0.22); }
 .card-tag.spelling { background: rgba(200,230,50,0.18); color: #4D5A15; border-color: rgba(200,230,50,0.40); }
 .card-tag.speed    { background: rgba(245,158,11,0.10);  color: #7C4403; border-color: rgba(245,158,11,0.22); }
-.card-tag.ai       { background: rgba(94,94,74,0.08);    color: #4F4F3E; border-color: rgba(94,94,74,0.18); }
+.card-tag.ai       { background: rgba(92,92,102,0.08);    color: #4D4D50; border-color: rgba(92,92,102,0.18); }
 .card-tag.speaking { background: rgba(236,45,140,0.10);  color: #970E52; border-color: rgba(236,45,140,0.22); }
 .card-tag.local    { background: rgba(53,109,255,0.10);  color: #1D47A5; border-color: rgba(53,109,255,0.22); }
 .card-tag.create   { background: rgba(59,130,246,0.10);  color: #1144B6; border-color: rgba(59,130,246,0.22); }
 .card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 12px;}
-.card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(94,94,74,.08);color:var(--text-3);border:1px solid var(--border);}
+.card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(92,92,102,.08);color:var(--text-3);border:1px solid var(--border);}
 /* Two games (Four Opinions, LinguaQuiz) have a Ukrainian-only interface in an
    otherwise English hub - not a bug, just worth knowing before you open one
    mid-lesson. Same pill shape as the rest of the meta row, distinct color so
@@ -285,10 +285,10 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=728">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=731">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 
@@ -778,6 +778,6 @@ function initGameFilters(){
 enhanceGameCards();
 initGameFilters();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=728"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=731"></script>
 </body>
 </html>

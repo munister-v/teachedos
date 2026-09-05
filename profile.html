@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=728">
-<link rel="preload" as="style" href="styles/unify.css?v=728">
-<link rel="manifest" href="manifest.json?v=728">
+<link rel="preload" as="style" href="styles/harmony.css?v=731">
+<link rel="preload" as="style" href="styles/unify.css?v=731">
+<link rel="manifest" href="manifest.json?v=731">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -24,13 +24,13 @@
   --accent: #1C1C1E;
   --accent-2: rgba(200,230,50,.08);
   --accent-3: rgba(200,230,50,.16);
-  --bg: #F5F0E8;
-  --bg-2: #EDE8E0;
-  --border: rgba(94,94,74,.14);
-  --border-2: rgba(94,94,74,.28);
+  --bg: #F2F2F5;
+  --bg-2: #E7E7EC;
+  --border: rgba(92,92,102,.14);
+  --border-2: rgba(92,92,102,.28);
   --text: #1C1C1E;
-  --text-2: #3A3A2E;
-  --text-3: #A2A28C;
+  --text-2: #3A3A40;
+  --text-3: #9A9AA3;
   --shadow: 0 4px 24px rgba(5,5,23,.08);
   --radius: 16px;
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -42,19 +42,19 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 /* ── NAV (macOS-style menubar) ── */
 #nav{
   position:sticky;top:0;z-index:200;height:36px;
-  background:rgba(245,240,232,0.82);
+  background:rgba(242,242,245,0.82);
   backdrop-filter:blur(32px) saturate(2);
   -webkit-backdrop-filter:blur(32px) saturate(2);
-  border-bottom:1px solid rgba(94,94,74,.08);
+  border-bottom:1px solid rgba(92,92,102,.08);
   display:flex;align-items:center;padding:0 14px;gap:0;
-  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(94,94,74,.05);
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(92,92,102,.05);
 }
 .nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0;text-decoration:none;}
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
 .nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
-.nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
+.nav-sep{width:1px;height:18px;background:rgba(92,92,102,.14);margin:0 4px;}
 .nav-link{
-  font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
+  font-size:13px;font-weight:600;color:#3A3A40;padding:0 10px;height:36px;
   display:flex;align-items:center;border-radius:8px;transition:background .15s ease,color .15s ease;white-space:nowrap;
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
@@ -62,9 +62,9 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .nav-link.active{font-weight:650;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A2E;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A40;
   padding:3px 10px 3px 7px;border-radius:20px;
-  border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07);
+  border:1px solid rgba(200,230,50,.22);background:rgba(92,92,102,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
 }
 .nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
@@ -106,7 +106,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 /* ── Cards ── */
 .card {
   background: #fff; border-radius: var(--radius);
-  border: 1px solid rgba(94,94,74,.11);
+  border: 1px solid rgba(92,92,102,.11);
   box-shadow: 0 2px 12px rgba(5,5,23,.06), 0 1px 0 rgba(255,255,255,.8) inset;
   padding: 24px; margin-bottom: 20px;
   transition: transform .22s cubic-bezier(.34,1.3,.64,1), box-shadow .22s ease, border-color .2s ease;
@@ -150,7 +150,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   padding: 14px 16px; text-align: left;
   transition: transform .2s cubic-bezier(.34,1.3,.64,1), box-shadow .18s ease;
 }
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(94,94,74,.1); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(92,92,102,.1); }
 /* One icon chip per metric so the row scans like the rest of the app's stat
    rows (analytics/journal/gradebook already do this) instead of four bare
    numbers - a plain color-coded left stripe was the only signal before,
@@ -270,7 +270,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   color: var(--text);
 }
 .setting-input::placeholder { color: var(--text-3); }
-.setting-input:hover { border-color: rgba(94,94,74,.26); }
+.setting-input:hover { border-color: rgba(92,92,102,.26); }
 .setting-input:focus { border-color: #C8E632; box-shadow: 0 0 0 3px rgba(200,230,50,.18); background: #fff; }
 .setting-btn {
   padding: 9px 20px; border-radius: 10px; border: none;
@@ -287,7 +287,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 
 #plan-card .plan-option {
   background: #fff;
-  border-color: rgba(94,94,74,.18);
+  border-color: rgba(92,92,102,.18);
   box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 8px 24px rgba(5,5,23,.035);
   color: #1C1C1E;
 }
@@ -315,7 +315,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   opacity: 1;
 }
 #plan-card .plan-option-meta {
-  color: #5F5F50;
+  color: #5D5D60;
   opacity: 1;
 }
 #plan-card .plan-option-price {
@@ -356,7 +356,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 /* ── Responsive ── */
 @media (max-width: 860px) {
   body { background: #fff; }
-  #nav { padding: 0 14px; gap: 8px; overflow-x: auto; background: rgba(255,255,255,0.96); border-bottom: 1px solid rgba(94,94,74,0.08); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  #nav { padding: 0 14px; gap: 8px; overflow-x: auto; background: rgba(255,255,255,0.96); border-bottom: 1px solid rgba(92,92,102,0.08); backdrop-filter: none; -webkit-backdrop-filter: none; }
   .nav-link { display: none; }
   .nav-sep { display: none; }
   .nav-user { border: none; background: transparent; padding: 4px 6px; }
@@ -398,7 +398,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
       radial-gradient(circle at top right, rgba(200,230,50,.18), transparent 34%),
       linear-gradient(150deg, rgba(255,255,255,.96), rgba(247,238,242,.92));
     border: 1px solid rgba(200,230,50,.14);
-    box-shadow: 0 18px 40px rgba(94,94,74,.08);
+    box-shadow: 0 18px 40px rgba(92,92,102,.08);
     margin-bottom: 16px;
   }
   .mobile-profile-eyebrow {
@@ -450,9 +450,9 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-action-title { font-size: 13px; font-weight:650; line-height: 1.2; }
   .mobile-profile-action-sub { margin-top: 3px; font-size: 11px; color: var(--text-3); line-height: 1.35; }
   .mobile-profile-more { display:none; position:relative; }
-  .mobile-profile-more summary { list-style:none; display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border:1px solid rgba(94,94,74,.14); border-radius:18px; background:#fff; color:var(--text); font-size:12px; font-weight:650; cursor:pointer; }
+  .mobile-profile-more summary { list-style:none; display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border:1px solid rgba(92,92,102,.14); border-radius:18px; background:#fff; color:var(--text); font-size:12px; font-weight:650; cursor:pointer; }
   .mobile-profile-more summary::-webkit-details-marker { display:none; }
-  .mobile-profile-more-menu { display:flex; flex-direction:column; gap:8px; margin-top:8px; padding:8px; border:1px solid rgba(94,94,74,.14); border-radius:18px; background:#fff; }
+  .mobile-profile-more-menu { display:flex; flex-direction:column; gap:8px; margin-top:8px; padding:8px; border:1px solid rgba(92,92,102,.14); border-radius:18px; background:#fff; }
   .mobile-profile-more-menu .mobile-profile-action { min-height:52px; }
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .boards-grid { grid-template-columns: 1fr; }
@@ -465,13 +465,13 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=728" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=728">
-<link rel="stylesheet" href="styles/harmony.css?v=728">
-<link rel="stylesheet" href="styles/unify.css?v=728">
+<script src="theme.js?v=731" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=731">
+<link rel="stylesheet" href="styles/harmony.css?v=731">
+<link rel="stylesheet" href="styles/unify.css?v=731">
 <style>
 @media (max-width: 860px) {
-  body{background:#F5F0E8;}
+  body{background:#F2F2F5;}
   #layout.mp-shell{
     padding:12px 12px calc(78px + env(safe-area-inset-bottom,0px));
     gap:12px;
@@ -485,7 +485,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     z-index:160;
     padding:4px 0 8px;
     margin:0 -2px;
-    background:#F5F0E8;
+    background:#F2F2F5;
     scroll-padding:12px;
   }
   .st-item{
@@ -493,9 +493,9 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding:0 14px!important;
     border-radius:999px!important;
     background:#fff!important;
-    border:1px solid rgba(94,94,74,.12)!important;
+    border:1px solid rgba(92,92,102,.12)!important;
     box-shadow:none!important;
-    color:#3A3A2E!important;
+    color:#3A3A40!important;
     transform:none!important;
   }
   .st-item.active{
@@ -508,13 +508,13 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-hero{
     border-radius:18px;
     background:#fff;
-    border:1px solid rgba(94,94,74,.12);
+    border:1px solid rgba(92,92,102,.12);
     box-shadow:none;
     padding:18px;
   }
-  .mobile-profile-eyebrow{color:#7A7A6A;}
+  .mobile-profile-eyebrow{color:#78787B;}
   .mobile-profile-title{color:#1C1C1E;font-size:23px;}
-  .mobile-profile-copy{color:#5E5E4A;}
+  .mobile-profile-copy{color:#5A5A63;}
   .mobile-profile-actions{grid-template-columns:1fr 1fr;gap:8px;}
   .mobile-profile-secondary{display:none!important;}
   .mobile-profile-more{display:block;grid-column:1/-1;}
@@ -524,7 +524,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding:12px 13px;
     border-radius:18px;
     background:#fff;
-    border:1px solid rgba(94,94,74,.12);
+    border:1px solid rgba(92,92,102,.12);
     box-shadow:none;
   }
   .mobile-profile-action-ic{
@@ -543,7 +543,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding:16px!important;
     margin-bottom:12px!important;
     border-radius:16px!important;
-    border:1px solid rgba(94,94,74,.12)!important;
+    border:1px solid rgba(92,92,102,.12)!important;
     box-shadow:none!important;
     transform:none!important;
   }
@@ -584,7 +584,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 body.profile-page.fx:not(#_),
 body.profile-page.fx:not(#_) #layout,
 body.profile-page.fx:not(#_) #main-content {
-  background: #F5F0E8 !important;
+  background: #F2F2F5 !important;
   background-image: none !important;
   background-attachment: scroll !important;
   color: #1C1C1E !important;
@@ -597,9 +597,9 @@ body.profile-page #nav {
   overflow-x: auto !important;
   overflow-y: hidden !important;
   flex-wrap: nowrap !important;
-  background: rgba(250,248,243,.96) !important;
-  border-bottom: 1px solid rgba(94,94,74,.14) !important;
-  box-shadow: 0 2px 14px rgba(58,58,46,.08) !important;
+  background: rgba(248,248,251,.96) !important;
+  border-bottom: 1px solid rgba(92,92,102,.14) !important;
+  box-shadow: 0 2px 14px rgba(57,57,60,.08) !important;
   scrollbar-width: none;
 }
 body.profile-page #nav::-webkit-scrollbar { display: none; }
@@ -607,7 +607,7 @@ body.profile-page #nav .nav-link {
   min-height: 44px;
   height: 44px;
   padding: 0 12px !important;
-  color: #3A3A2E !important;
+  color: #3A3A40 !important;
   font-weight:600 !important;
   flex: 0 0 auto;
 }
@@ -623,12 +623,12 @@ body.profile-page #nav .nav-link.active {
   box-shadow: inset 0 -2px 0 #7A8E00;
 }
 body.profile-page #nav .nav-logo-name { color: #1C1C1E !important; }
-body.profile-page #nav .nav-sep { background: rgba(94,94,74,.18) !important; }
+body.profile-page #nav .nav-sep { background: rgba(92,92,102,.18) !important; }
 /* СВЕТЛАЯ ШАПКА - ЗНАЧИТ ТЁМНЫЙ ТЕКСТ, ВКЛЮЧАЯ ВЛОЖЕННЫЙ.
 
    Здесь красился только сам чип (.nav-user), а имя внутри него - отдельный
    элемент со своим цветом: unify.css задаёт «#nav #nav-name { color:
-   rgba(245,240,232,.85) }» для ТЁМНОЙ шапки остальных страниц, и это правило
+   rgba(242,242,245,.85) }» для ТЁМНОЙ шапки остальных страниц, и это правило
    с двумя id перебивало наследование. На профиле шапка светлая, поэтому имя
    выходило кремовым по белому - «Teacher» читался только под углом.
    Тот же класс ошибки, что был у поля поиска: правило для тёмной поверхности
@@ -636,13 +636,13 @@ body.profile-page #nav .nav-sep { background: rgba(94,94,74,.18) !important; }
 body.profile-page #nav .nav-user {
   min-height: 40px;
   flex: 0 0 auto;
-  color: #3A3A2E !important;
+  color: #3A3A40 !important;
   background: rgba(255,255,255,.8) !important;
-  border-color: rgba(94,94,74,.18) !important;
+  border-color: rgba(92,92,102,.18) !important;
 }
 body.profile-page #nav #nav-name,
 body.profile-page #nav .nav-user span:not(#nav-avatar) {
-  color: #3A3A2E !important;
+  color: #3A3A40 !important;
 }
 /* Инициал в кружке: лаймовый по светло-лаймовому - то же самое, только тише.
    Тёмная буква на лаймовом кружке читается на любом фоне. */
@@ -676,8 +676,8 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
    account page feel like a long checkout form. */
 body.profile-page #plan-card {
   padding: 22px;
-  border-color: rgba(94,94,74,.16);
-  box-shadow: 0 10px 32px rgba(58,58,46,.08), 0 1px 0 rgba(255,255,255,.9) inset;
+  border-color: rgba(92,92,102,.16);
+  box-shadow: 0 10px 32px rgba(57,57,60,.08), 0 1px 0 rgba(255,255,255,.9) inset;
 }
 body.profile-page #plan-card > .card-title {
   margin-bottom: 14px;
@@ -702,7 +702,7 @@ body.profile-page #plan-icon {
   flex-shrink: 0;
 }
 body.profile-page #plan-name-display { font-size: 17px !important; }
-body.profile-page #plan-desc-display { color: #6e6e5c !important; }
+body.profile-page #plan-desc-display { color: #6c6c6f !important; }
 body.profile-page #plan-status-banner {
   padding: 11px 13px !important;
   margin-bottom: 14px !important;
@@ -714,7 +714,7 @@ body.profile-page #plan-usage-summary {
 }
 body.profile-page #plan-usage-summary > div:first-child,
 body.profile-page #plan-upgrade-section > div:first-child {
-  color: #6e6e5c !important;
+  color: #6c6c6f !important;
   font-size: 10px !important;
   letter-spacing: .11em !important;
 }
@@ -725,7 +725,7 @@ body.profile-page #plan-usage-summary > div:nth-child(2) > div {
   min-height: 76px;
   padding: 12px 13px !important;
   background: #fff !important;
-  border-color: rgba(94,94,74,.14) !important;
+  border-color: rgba(92,92,102,.14) !important;
   border-radius: 12px !important;
 }
 body.profile-page #plan-usage-summary > div:nth-child(2) > div > div:nth-child(2) {
@@ -739,14 +739,14 @@ body.profile-page #plan-features-list {
 body.profile-page #plan-features-list > div {
   padding: 9px 11px !important;
   border-radius: 10px !important;
-  background: rgba(94,94,74,.035) !important;
-  border-color: rgba(94,94,74,.12) !important;
+  background: rgba(92,92,102,.035) !important;
+  border-color: rgba(92,92,102,.12) !important;
   font-size: 11.5px !important;
   line-height: 1.35;
 }
 body.profile-page #plan-upgrade-section {
   padding-top: 17px;
-  border-top: 1px solid rgba(94,94,74,.12);
+  border-top: 1px solid rgba(92,92,102,.12);
 }
 body.profile-page #plan-upgrade-section > .setting-group { margin-bottom: 10px !important; }
 body.profile-page #plan-upgrade-section .setting-label { margin-bottom: 6px; }
@@ -764,7 +764,7 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
 @media (max-width: 860px) {
   /* Same specificity gap as the desktop rule above: body.profile-page
      alone never beat figma-theme.css's body.fx:not(#_). */
-  body.profile-page.fx:not(#_) { background: #F5F0E8 !important; background-image: none !important; }
+  body.profile-page.fx:not(#_) { background: #F2F2F5 !important; background-image: none !important; }
   body.profile-page #nav { display: none !important; }
   body.profile-page #layout { background: transparent !important; }
   body.profile-page #plan-card { padding: 16px !important; box-shadow: none; }
@@ -777,12 +777,12 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
-<link rel="stylesheet" href="styles/tool-window.css?v=728">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
+<link rel="stylesheet" href="styles/tool-window.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=728">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=728">
-<link rel="stylesheet" href="styles/controls.css?v=728">
+<link rel="stylesheet" href="styles/figma-theme.css?v=731">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=731">
+<link rel="stylesheet" href="styles/controls.css?v=731">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -998,21 +998,21 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
       <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">
         <div style="font-size:18px;font-weight:700;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">Bulk Invite Students</div>
-        <div style="font-size:13px;color:#A2A28C;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
+        <div style="font-size:13px;color:#9A9AA3;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:600;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
-          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F5F0E8;color:#1C1C1E;"></select>
+          <div style="font-size:11px;font-weight:600;color:#9A9AA3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
+          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(92,92,102,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F2F2F5;color:#1C1C1E;"></select>
         </div>
         <div style="margin-bottom:18px;">
-          <div style="font-size:11px;font-weight:600;color:#A2A28C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
-          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(94,94,74,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F5F0E8;color:#1C1C1E;line-height:1.6;"></textarea>
+          <div style="font-size:11px;font-weight:600;color:#9A9AA3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
+          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(92,92,102,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F2F2F5;color:#1C1C1E;line-height:1.6;"></textarea>
         </div>
         <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
         <div style="display:flex;gap:10px;">
-          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:600;cursor:pointer;color:#3A3A2E;">Cancel</button>
+          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(92,92,102,.18);background:#F2F2F5;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:600;cursor:pointer;color:#3A3A40;">Cancel</button>
           <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#C8E632;color:#1C1C1E;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:650;cursor:pointer;font-size:13px;">Invite Students →</button>
         </div>
-        <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#A2A28C;">×</div>
+        <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#9A9AA3;">×</div>
       </div>
     </div>
 
@@ -1127,7 +1127,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
       <!-- Plan -->
       <div class="card" id="plan-card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg> Subscription plan</div>
-        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(94,94,74,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
+        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(92,92,102,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
           <div style="width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:rgba(200,230,50,.22);color:var(--text);" id="plan-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
           <div>
             <div style="font-size:1rem;font-weight:700;color:var(--text);" id="plan-name-display">Free</div>
@@ -1237,10 +1237,10 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=728"></script>
-<script src="scripts/profile-app.js?v=728"></script>
-<script src="scripts/autogrow.js?v=728" defer></script>
-<script src="pwa-boot.js?v=728" defer></script>
+<script src="scripts/app-core.js?v=731"></script>
+<script src="scripts/profile-app.js?v=731"></script>
+<script src="scripts/autogrow.js?v=731" defer></script>
+<script src="pwa-boot.js?v=731" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1259,11 +1259,11 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=728"></script>
-<script src="scripts/nav-boost.js?v=728" defer></script>
-<script src="scripts/mobile-perf.js?v=728" defer></script>
-<script src="scripts/mobile-nav.js?v=728"></script>
-<script src="scripts/mobile-zoom-guard.js?v=728" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=728" defer></script>
+<script src="pwa.js?v=731"></script>
+<script src="scripts/nav-boost.js?v=731" defer></script>
+<script src="scripts/mobile-perf.js?v=731" defer></script>
+<script src="scripts/mobile-nav.js?v=731"></script>
+<script src="scripts/mobile-zoom-guard.js?v=731" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=731" defer></script>
 </body>
 </html>

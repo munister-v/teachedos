@@ -48,7 +48,7 @@
   /* Core */
   --te-ink:#20202C;
   --te-lime:#CDF940;
-  --te-paper:#F6F6F2;
+  --te-paper:#F6F6F9;
   --te-white:#FFFFFF;
 
   /* Secondary palette */
@@ -66,7 +66,7 @@
   --te-lavender:#9B8CEB;
   --te-lime-soft:#D3F36B;
   --te-sky:#69AFF3;
-  --te-olive:#5D5A42;
+  --te-olive:#58585B;
   --te-muted:#6C6C77;
 
   /* Typography */
@@ -99,7 +99,7 @@
   --muted:var(--te-muted) !important;
   --cream:var(--te-paper) !important;
   --bg:var(--te-paper) !important;
-  --bg2:#ECECE8 !important;
+  --bg2:#ECECEF !important;
   --card:var(--te-white) !important;
   --lime:var(--te-lime) !important;
   --lime-dark:#A9C52C !important;
@@ -118,7 +118,7 @@
      Keep its API, but make it speak the TeachEd palette instead of sage. */
   --calm-ink:var(--te-ink) !important;
   --calm-ink-hover:#12121C !important;
-  --calm-ink-soft:#F1F3E6 !important;
+  --calm-ink-soft:#F1F1F4 !important;
   --calm-accent:var(--te-violet) !important;
   --calm-accent-soft:#EEE8FF !important;
   --calm-line:rgba(32,32,44,.14) !important;
@@ -247,7 +247,7 @@ body.mp-shell :where(.ready-icon,.ch-icon) {
   box-shadow:none !important;
 }
 body.mp-shell :where(.ready-chip,.ch-pill) {
-  background:#F1F3E6 !important;
+  background:#F1F1F4 !important;
   border-color:rgba(32,32,44,.12) !important;
   color:var(--te-ink) !important;
 }
@@ -320,7 +320,7 @@ body.os-desktop {
    keeping their white work surfaces and controlled information density. */
 body.landing-page {
   --cream:var(--te-paper) !important;
-  --cream-2:#EEF1E2 !important;
+  --cream-2:#EEEEF1 !important;
   --ink:var(--te-ink) !important;
   --ink2:#50505C !important;
   --ink3:#5E5E6A !important;
@@ -348,7 +348,7 @@ body.landing-page {
   --yellow:#FFF2BA !important;
 }
 body.landing-page nav.ln {
-  background:rgba(246,246,242,.88) !important;
+  background:rgba(246,246,249,.88) !important;
   border-bottom-color:rgba(32,32,44,.10) !important;
 }
 body.landing-page .btn-pink {
@@ -404,7 +404,7 @@ body.landing-page .final {
 
 body.os-desktop {
   --bg:var(--te-paper) !important;
-  --bg-2:#EEEDE7 !important;
+  --bg-2:#EDEDF0 !important;
   --text:var(--te-ink) !important;
   --text-2:#50505C !important;
   --text-3:#5E5E6A !important;
@@ -420,7 +420,7 @@ body.os-desktop #desktop {
   background:
     radial-gradient(ellipse 70% 55% at 18% 16%,rgba(255,78,0,.12) 0%,transparent 62%),
     radial-gradient(ellipse 58% 46% at 86% 78%,rgba(155,140,235,.21) 0%,transparent 60%),
-    linear-gradient(160deg,#FFF 0%,#FFF9F5 48%,#F2F0FF 100%) !important;
+    linear-gradient(160deg,#FFF 0%,#FAFAFD 48%,#F2F0FF 100%) !important;
 }
 body.os-desktop .blob1 { background:radial-gradient(circle,rgba(255,213,232,.48),transparent 70%) !important; }
 body.os-desktop .blob2 { background:radial-gradient(circle,rgba(205,249,64,.25),transparent 70%) !important; }
@@ -476,7 +476,7 @@ body.os-desktop .widget {
   background:
     radial-gradient(circle at 88% 0%,rgba(205,249,64,.20),transparent 34%),
     radial-gradient(circle at 0% 100%,rgba(155,140,235,.15),transparent 40%),
-    linear-gradient(145deg,rgba(255,255,255,.96),rgba(246,246,242,.90)) !important;
+    linear-gradient(145deg,rgba(255,255,255,.96),rgba(246,246,249,.90)) !important;
   border-color:rgba(255,255,255,.92) !important;
   box-shadow:0 12px 30px rgba(32,32,44,.12),0 2px 8px rgba(32,32,44,.07),inset 0 1px 0 #fff !important;
 }
@@ -517,7 +517,7 @@ body.os-desktop .note-item.active .note-item-title { background:#EEE8FF !importa
 :root {
   --te-surface-lime:#F3FCD7;
   --te-surface-violet:#EEE8FF;
-  --te-surface-coral:#FFE7DB;
+  --te-surface-coral:#EDEDF0;
   --te-surface-blue:#E6F0FF;
   --te-surface-yellow:#FFF4C8;
   --te-line:rgba(32,32,44,.14);
@@ -531,7 +531,7 @@ body:not(.board-page):not(.os-desktop):not(.landing-page) {
   background:
     radial-gradient(circle at 94% 2%,rgba(139,66,253,.055),transparent 25%),
     radial-gradient(circle at 3% 92%,rgba(205,249,64,.10),transparent 28%),
-    #FFFCF8 !important;
+    #FCFCFF !important;
 }
 body:not(.board-page):not(.os-desktop):not(.landing-page) :where(input,textarea,select) {
   background:#fff !important;
@@ -610,15 +610,15 @@ body.tools-workbench {
   --tt-muted:#666672;
   --tt-faint:#8D8D98;
   --tt-line:var(--te-line);
-  --tt-wash:#FFFCF8;
+  --tt-wash:#FCFCFF;
   --tt-accent:var(--te-lime);
   background:
     radial-gradient(circle at 98% 4%,rgba(139,66,253,.06),transparent 23%),
-    #FFFCF8 !important;
+    #FCFCFF !important;
 }
-html:has(body.tools-workbench) { background:#FFFCF8 !important; }
+html:has(body.tools-workbench) { background:#FCFCFF !important; }
 body.tools-workbench .nav {
-  background:rgba(255,252,248,.94) !important;
+  background:rgba(252,252,255,.94) !important;
   border-bottom-color:var(--te-line) !important;
 }
 body.tools-workbench .nav-link.active,
@@ -704,7 +704,7 @@ body.board-page {
   --board-calm-line:var(--te-line) !important;
 }
 body.board-page #toolbar,
-body.board-page #miro-toolbar { background:#FFFCF8 !important; border-color:var(--te-line) !important; }
+body.board-page #miro-toolbar { background:#FCFCFF !important; border-color:var(--te-line) !important; }
 body.board-page #toolbar #btn-share.tb-btn-primary { background:var(--te-lime) !important; border-color:var(--te-lime) !important; color:var(--te-ink) !important; box-shadow:0 7px 16px rgba(205,249,64,.30) !important; }
 body.board-page #toolbar #btn-share.tb-btn-primary:hover { background:var(--te-lime-soft) !important; border-color:var(--te-lime-soft) !important; }
 body.board-page #miro-toolbar .mt-btn.active { background:var(--te-violet) !important; border-color:var(--te-violet) !important; color:#fff !important; }

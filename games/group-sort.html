@@ -10,18 +10,18 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#1C1C1E;--lime:#C8E632}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#525252;font-size:.9rem;margin-bottom:20px;text-align:center}
 .card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:520px;text-align:center}
 .top{display:flex;justify-content:space-between;margin-bottom:18px;font-weight:700;color:#525252;font-size:.9rem}
 .top span{color:var(--accent)}
-.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:46px;margin-bottom:22px;padding:10px;border:2px dashed #eee2d8;border-radius:14px}
+.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:46px;margin-bottom:22px;padding:10px;border:2px dashed #e4e4e7;border-radius:14px}
 .chip{padding:8px 14px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;transition:.15s;border:2px solid transparent}
 .chip.selected{background:var(--lime);color:#1C1C1E;border-color:#1C1C1E}
 .bins{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.bin{background:#FBF8F3;border:2px solid #eee2d8;border-radius:14px;padding:12px 8px;min-height:120px;cursor:pointer;transition:.15s}
+.bin{background:#F8F8FB;border:2px solid #e4e4e7;border-radius:14px;padding:12px 8px;min-height:120px;cursor:pointer;transition:.15s}
 .bin:hover{border-color:var(--lime)}
 .bin.flash-err{border-color:#f44336;background:#fce4ec}
 .bin-title{font-weight:800;font-size:.95rem;color:var(--accent);margin-bottom:10px}
@@ -40,10 +40,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .bin-words .chip{min-height:0;display:inline-block;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=728">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=731">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -181,7 +181,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=728"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=728"></script>
+<script src="../scripts/game-handoff.js?v=731"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=731"></script>
 </body>
 </html>

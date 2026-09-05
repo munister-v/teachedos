@@ -5,11 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=728">
+<link rel="manifest" href="manifest.json?v=731">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=728">
-<link rel="preload" as="style" href="styles/unify.css?v=728">
+<link rel="preload" as="style" href="styles/harmony.css?v=731">
+<link rel="preload" as="style" href="styles/unify.css?v=731">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -19,9 +19,9 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --accent:#1C1C1E;--accent2:#C8E632;--lime:#C8E632;
-  --bg:#F5F0E8;--bg2:#EDE8E0;--card:#fff;
-  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
-  --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
+  --bg:#F2F2F5;--bg2:#E7E7EC;--card:#fff;
+  --border:rgba(92,92,102,.14);--border2:rgba(92,92,102,.28);
+  --text:#1C1C1E;--text2:#3A3A40;--text3:#9A9AA3;
   --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
   --shadow:0 4px 24px rgba(5,5,23,.08);
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;--mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
@@ -34,12 +34,12 @@ button{font-family:var(--font);cursor:pointer;}
 /* ── NAV (macOS-style menubar) ── */
 #nav{
   position:sticky;top:0;z-index:200;height:36px;
-  background:rgba(245,240,232,0.82);
+  background:rgba(242,242,245,0.82);
   backdrop-filter:blur(32px) saturate(2);
   -webkit-backdrop-filter:blur(32px) saturate(2);
-  border-bottom:1px solid rgba(94,94,74,.08);
+  border-bottom:1px solid rgba(92,92,102,.08);
   display:flex;align-items:center;padding:0 14px;gap:0;
-  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(94,94,74,.05);
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(92,92,102,.05);
 }
 .nav-logo{
   display:flex;align-items:center;margin-right:6px;flex-shrink:0;
@@ -60,7 +60,7 @@ button{font-family:var(--font);cursor:pointer;}
   display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);
-  background:rgba(94,94,74,.07);
+  background:rgba(92,92,102,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
 }
 .nav-user:hover{border-color:var(--accent);background:rgba(200,230,50,.09);}
@@ -90,14 +90,14 @@ button{font-family:var(--font);cursor:pointer;}
   background:var(--lime);color:#1C1C1E;font-size:12px;font-weight:650;
   transition:.15s;white-space:nowrap;
 }
-.btn-new-course:hover{background:var(--accent);color:#F5F0E8;}
+.btn-new-course:hover{background:var(--accent);color:#F2F2F5;}
 #course-list{flex:1;overflow-y:auto;padding:8px 8px 16px;}
 .course-item{
   display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;
   cursor:pointer;transition:.15s;margin-bottom:2px;
 }
 .course-item:hover{background:rgba(200,230,50,.07);}
-.course-item.active{background:rgba(94,94,74,.12);}
+.course-item.active{background:rgba(92,92,102,.12);}
 .course-item.active .ci-name{color:var(--accent);}
 .ci-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .ci-name{font-size:13px;font-weight:650;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
@@ -148,7 +148,7 @@ button{font-family:var(--font);cursor:pointer;}
 }
 .ch-pill{
   display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;
-  font-size:11px;font-weight:650;background:rgba(94,94,74,.12);color:var(--accent);
+  font-size:11px;font-weight:650;background:rgba(92,92,102,.12);color:var(--accent);
 }
 .ch-actions{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start;margin-top:4px;}
 .course-mobile-more{display:none;position:relative;}
@@ -161,9 +161,9 @@ button{font-family:var(--font);cursor:pointer;}
   font-size:12px;font-weight:650;transition:.15s;cursor:pointer;
 }
 .btn-primary{background:var(--lime);color:#1C1C1E;}
-.btn-primary:hover{background:var(--accent);color:#F5F0E8;}
+.btn-primary:hover{background:var(--accent);color:#F2F2F5;}
 .btn-ghost{background:rgba(200,230,50,.08);color:var(--accent);border:1.5px solid var(--border2);}
-.btn-ghost:hover{background:rgba(94,94,74,.16);}
+.btn-ghost:hover{background:rgba(92,92,102,.16);}
 .btn-danger{background:rgba(239,68,68,.08);color:#A61919;border:1.5px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:rgba(239,68,68,.15);}
 .btn-soft{background:rgba(99,102,241,.1);color:var(--blue);border:1.5px solid rgba(99,102,241,.26);}
@@ -195,7 +195,7 @@ button{font-family:var(--font);cursor:pointer;}
 .ready-lessons{display:flex;flex-wrap:wrap;gap:5px;}
 .ready-chip{
   font-size:10px;font-weight:650;color:var(--text2);
-  background:rgba(94,94,74,.08);border:1px solid var(--border);border-radius:999px;
+  background:rgba(92,92,102,.08);border:1px solid var(--border);border-radius:999px;
   padding:3px 7px;
 }
 .ready-actions{display:flex;gap:8px;margin-top:auto;}
@@ -254,18 +254,18 @@ button{font-family:var(--font);cursor:pointer;}
   /* Explicit colors + !important and qualified selectors below: harmony.css /
      unify.css (loaded after this block) otherwise win and force the card text to
      inherit body ink, which on a white card looked washed-out / faint. */
-  background:#ffffff !important;border:1px solid rgba(94,94,74,.18);border-radius:12px;
+  background:#ffffff !important;border:1px solid rgba(92,92,102,.18);border-radius:12px;
   padding:14px 14px 12px;cursor:pointer;transition:.18s;position:relative;
   display:flex;flex-direction:column;gap:5px;
 }
 .lesson-card:hover{
   border-color:var(--accent);
-  box-shadow:0 6px 24px rgba(94,94,74,.12);
+  box-shadow:0 6px 24px rgba(92,92,102,.12);
   transform:translateY(-2px);
 }
-.lessons-grid .lesson-card .lc-num{font-size:10px;font-weight:650;color:#6E6E5C !important;font-family:var(--mono);letter-spacing:.04em;}
+.lessons-grid .lesson-card .lc-num{font-size:10px;font-weight:650;color:#6C6C6F !important;font-family:var(--mono);letter-spacing:.04em;}
 .lessons-grid .lesson-card .lc-name{font-size:13px;font-weight:650;color:#1C1C1E !important;line-height:1.3;}
-.lessons-grid .lesson-card .lc-meta{font-size:11px;color:#6E6E5C !important;}
+.lessons-grid .lesson-card .lc-meta{font-size:11px;color:#6C6C6F !important;}
 .lc-remove{
   position:absolute;top:8px;right:8px;width:20px;height:20px;
   border:none;border-radius:6px;background:transparent;color:var(--text3);
@@ -280,7 +280,7 @@ button{font-family:var(--font);cursor:pointer;}
   background:transparent;color:var(--text3);font-size:12px;font-weight:600;
   cursor:pointer;transition:.15s;text-align:center;
 }
-.add-lesson-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(94,94,74,.04);}
+.add-lesson-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(92,92,102,.04);}
 
 /* Unassigned */
 #unassigned-section{padding:0 28px 24px;}
@@ -311,7 +311,7 @@ button{font-family:var(--font);cursor:pointer;}
 #picker-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px;}
 .picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1.5px solid transparent;transition:.15s;}
 .picker-item:hover{background:rgba(200,230,50,.07);border-color:var(--border);}
-.picker-item.selected{background:rgba(94,94,74,.12);border-color:var(--accent);}
+.picker-item.selected{background:rgba(92,92,102,.12);border-color:var(--accent);}
 .pi-name{font-size:13px;font-weight:650;flex:1;color:var(--text);}
 .pi-meta{font-size:11px;color:var(--text3);}
 #picker-actions{display:flex;gap:8px;justify-content:flex-end;}
@@ -398,17 +398,17 @@ button{font-family:var(--font);cursor:pointer;}
   #course-view{animation-duration:.001ms}
 }
 </style>
-<script src="theme.js?v=728" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=728">
-<link rel="stylesheet" href="styles/harmony.css?v=728">
-<link rel="stylesheet" href="styles/unify.css?v=728">
+<script src="theme.js?v=731" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=731">
+<link rel="stylesheet" href="styles/harmony.css?v=731">
+<link rel="stylesheet" href="styles/unify.css?v=731">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
-  background:rgba(255,255,255,.55);border:1px solid rgba(94,94,74,.08);
+  background:rgba(255,255,255,.55);border:1px solid rgba(92,92,102,.08);
 }
 .course-skeleton-dot,.course-skeleton-line,.course-skeleton-count{
-  border-radius:999px;background:linear-gradient(90deg,rgba(94,94,74,.08),rgba(255,255,255,.72),rgba(94,94,74,.08));
+  border-radius:999px;background:linear-gradient(90deg,rgba(92,92,102,.08),rgba(255,255,255,.72),rgba(92,92,102,.08));
   background-size:220% 100%;animation:coursePulse 1.25s ease-in-out infinite;
 }
 .course-skeleton-dot{width:9px;height:9px;flex-shrink:0;}
@@ -421,16 +421,16 @@ button{font-family:var(--font);cursor:pointer;}
   .mp-topbar{
     position:sticky;top:0;z-index:220;
     padding-top:env(safe-area-inset-top,0px);
-    background:var(--bg,#F5F0E8);
-    border-bottom:1px solid rgba(94,94,74,.10);
+    background:var(--bg,#F2F2F5);
+    border-bottom:1px solid rgba(92,92,102,.10);
     backdrop-filter:none;-webkit-backdrop-filter:none;
   }
   #layout{gap:10px;}
   #sidebar{
     position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:180;
-    background:var(--bg,#F5F0E8);
-    border:1px solid rgba(94,94,74,.10);border-left:none;border-right:none;
-    border-radius:0 0 18px 18px;box-shadow:0 12px 24px rgba(94,94,74,.07);
+    background:var(--bg,#F2F2F5);
+    border:1px solid rgba(92,92,102,.10);border-left:none;border-right:none;
+    border-radius:0 0 18px 18px;box-shadow:0 12px 24px rgba(92,92,102,.07);
   }
   #course-plan-note{padding:8px 12px 0!important;}
   #course-list{
@@ -440,13 +440,13 @@ button{font-family:var(--font);cursor:pointer;}
   #course-list::-webkit-scrollbar{display:none;}
   #course-list .course-item{
     flex:0 0 auto;min-width:178px;max-width:230px;min-height:44px;margin:0;
-    background:#fff;border:1px solid rgba(94,94,74,.12);
-    box-shadow:0 2px 10px rgba(94,94,74,.05);
+    background:#fff;border:1px solid rgba(92,92,102,.12);
+    box-shadow:0 2px 10px rgba(92,92,102,.05);
   }
   #course-list .course-item.active{background:#1C1C1E;color:#C8E632;border-color:#1C1C1E;}
   #course-list .course-item.active .ci-name,
   #course-list .course-item.active .ci-count{color:#C8E632;}
-  #course-list .course-empty-state{min-width:100%;background:#fff;border-radius:14px;border:1px solid rgba(94,94,74,.10);}
+  #course-list .course-empty-state{min-width:100%;background:#fff;border-radius:14px;border:1px solid rgba(92,92,102,.10);}
   .course-skeleton{flex:0 0 178px;margin:0;background:#fff;}
   #sb-shared-head,#shared-list{display:none!important;}
   #welcome{padding:28px 16px;min-height:44vh;}
@@ -465,12 +465,12 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
-<link rel="stylesheet" href="styles/tool-window.css?v=728">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
+<link rel="stylesheet" href="styles/tool-window.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=728">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=728">
-<link rel="stylesheet" href="styles/controls.css?v=728">
+<link rel="stylesheet" href="styles/figma-theme.css?v=731">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=731">
+<link rel="stylesheet" href="styles/controls.css?v=731">
 </head>
 <body class="tw-page mp-shell fx">
 
@@ -610,7 +610,7 @@ button{font-family:var(--font);cursor:pointer;}
   <symbol id="i-courses" viewBox="0 0 24 24"><path d="M4 6.5c2.5-1 5-1 7 .5v11c-2-1.5-4.5-1.5-7-.5zM20 6.5c-2.5-1-5-1-7 .5v11c2-1.5 4.5-1.5 7-.5z"/><path d="M12 7v11"/></symbol>
 </svg>
 
-<script src="scripts/app-core.js?v=728"></script>
+<script src="scripts/app-core.js?v=731"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -619,7 +619,7 @@ const { planLimit, userPlan } = window.TeachEdApp;
 // One muted family instead of a full-saturation rainbow: the dots identify a
 // course, they aren't decoration, so they read as a set rather than competing.
 const COLORS = [
-  '#7C8A7B','#8C9A7A','#A8A882','#C2B48A','#C79E86',
+  '#7C8A7B','#8C9A7A','#A4A4A7','#C2B48A','#C79E86',
   '#B98C8C','#9A8CA8','#8496A8','#7FA69B','#96A08C',
 ];
 let selectedColor = COLORS[0];
@@ -1315,15 +1315,15 @@ async function openSharedCourse(id) {
     const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     modal.innerHTML = '<div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">' +
       '<div style="font-size:18px;font-weight:700;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:4px;">' + esc2(course.name) + '</div>' +
-      '<div style="font-size:13px;color:#A2A28C;margin-bottom:20px;">' + boards.length + ' board' + (boards.length!==1?'s':'') + '</div>' +
+      '<div style="font-size:13px;color:#9A9AA3;margin-bottom:20px;">' + boards.length + ' board' + (boards.length!==1?'s':'') + '</div>' +
       (boards.length ? boards.map(b =>
-        '<a href="board.html?id=' + b.id + '" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(94,94,74,.14);margin-bottom:8px;text-decoration:none;background:#F5F0E8;">' +
+        '<a href="board.html?id=' + b.id + '" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(92,92,102,.14);margin-bottom:8px;text-decoration:none;background:#F2F2F5;">' +
         '<span class="course-board-dot" aria-hidden="true"></span>' +
         '<div><div style="font-size:14px;font-weight:650;color:#1C1C1E;">' + esc2(b.name) + '</div>' +
-        '<div style="font-size:11px;color:#A2A28C;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
+        '<div style="font-size:11px;color:#9A9AA3;margin-top:2px;">' + (b.card_count||0) + ' cards</div></div>' +
         '<span style="margin-left:auto;color:#C8E632;font-weight:600;font-size:13px;">Open →</span></a>'
-      ).join('') : '<div style="text-align:center;padding:24px;color:#A2A28C;font-size:13px;">No boards yet</div>') +
-      '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(94,94,74,.18);background:#F5F0E8;font-family:inherit;font-weight:600;cursor:pointer;color:#3A3A2E;">Close</button>' +
+      ).join('') : '<div style="text-align:center;padding:24px;color:#9A9AA3;font-size:13px;">No boards yet</div>') +
+      '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1.5px solid rgba(92,92,102,.18);background:#F2F2F5;font-family:inherit;font-weight:600;cursor:pointer;color:#3A3A40;">Close</button>' +
       '</div>';
     modal.onclick = e => { if(e.target===modal) modal.remove(); };
     document.body.appendChild(modal);
@@ -1562,11 +1562,11 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=728" defer></script>
-<script src="scripts/mobile-perf.js?v=728" defer></script>
-<script src="scripts/mobile-nav.js?v=728"></script>
-<script src="scripts/mobile-zoom-guard.js?v=728" defer></script>
-<script src="scripts/autogrow.js?v=728" defer></script>
-<script src="pwa-boot.js?v=728" defer></script>
+<script src="scripts/nav-boost.js?v=731" defer></script>
+<script src="scripts/mobile-perf.js?v=731" defer></script>
+<script src="scripts/mobile-nav.js?v=731"></script>
+<script src="scripts/mobile-zoom-guard.js?v=731" defer></script>
+<script src="scripts/autogrow.js?v=731" defer></script>
+<script src="pwa-boot.js?v=731" defer></script>
 </body>
 </html>

@@ -19,7 +19,7 @@
     <a class="mb-item" routerLink="/profile">Profile</a>
   </nav>
   <div class="mb-right">
-    <a id="desktop-user-chip" routerLink="/profile" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(94,94,74,.1);border:1px solid rgba(200,230,50,.25);margin-right:6px;"></a>
+    <a id="desktop-user-chip" routerLink="/profile" style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--text,#333);text-decoration:none;padding:2px 8px;border-radius:12px;background:rgba(92,92,102,.1);border:1px solid rgba(200,230,50,.25);margin-right:6px;"></a>
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)">🔍</span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
       🔔<span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#C8E632;color:#1C1C1E;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
@@ -29,8 +29,8 @@
 </div>
 
 <!-- NOTIFICATIONS PANEL -->
-<div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(94,94,74,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
-  <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(94,94,74,.10);">
+<div id="notif-panel" style="display:none;position:fixed;top:36px;right:8px;width:320px;max-height:420px;background:#fff;border-radius:16px;border:1px solid rgba(92,92,102,.14);box-shadow:0 12px 40px rgba(5,5,23,.14);z-index:1100;overflow:hidden;flex-direction:column;">
+  <div style="display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid rgba(92,92,102,.10);">
     <span style="font-size:14px;font-weight:800;color:#1C1C1E;letter-spacing:-.02em;">Notifications</span>
     <button onclick="notifReadAll()" style="margin-left:auto;font-size:11px;font-weight:700;color:#C8E632;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;">Mark all read</button>
   </div>
@@ -365,7 +365,7 @@
       </div>
       <div style="padding:28px 32px;">
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F5F0E8;border:1.5px solid rgba(200,230,50,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F2F2F5;border:1.5px solid rgba(200,230,50,.15);">
             <div style="font-size:28px;">📋</div>
             <div><div style="font-size:14px;font-weight:800;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases - drag & drop cards to build your curriculum.</div></div>
           </div>
@@ -389,7 +389,7 @@
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">📋 Create your first board</div>
         <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #C8E632;cursor:pointer;transition:.15s;background:#F5F0E8;">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #C8E632;cursor:pointer;transition:.15s;background:#F2F2F5;">
             <div style="font-size:20px;margin-bottom:4px;">⬜</div>
             <div style="font-size:12px;font-weight:800;color:#1C1C1E;">Blank Board</div>
           </div>

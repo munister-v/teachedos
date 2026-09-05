@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=728">
+<link rel="manifest" href="manifest.json?v=731">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,7 +16,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --lime:#C8E632;--ink:#1C1C1E;--muted:#6E6E60;--bg:#F5F0E8;
+  --lime:#C8E632;--ink:#1C1C1E;--muted:#6C6C6F;--bg:#F2F2F5;
   --card:#ffffff;--border:rgba(23,23,25,.10);--shadow:0 8px 32px rgba(5,5,23,.09);
   --good:#1E7D46;--warn:#b45309;--bad:#c62828;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
@@ -95,10 +95,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .step-body{flex:1;min-width:0}
 .step-body h3{font-size:14px;font-weight:650;margin-bottom:6px}
 .step-body p{font-size:13px;color:var(--muted);line-height:1.5}
-.iban-display{background:linear-gradient(135deg,#1C1C1E,#2C2C2E);border-radius:16px;padding:20px 22px;color:#F5F0E8;margin:10px 0}
+.iban-display{background:linear-gradient(135deg,#1C1C1E,#2C2C2E);border-radius:16px;padding:20px 22px;color:#F2F2F5;margin:10px 0}
 .iban-number{font-size:18px;font-weight:700;letter-spacing:.08em;font-family:var(--te-font-mono,ui-monospace,monospace);margin-bottom:12px;word-break:break-all}
 .iban-meta{display:flex;gap:20px;flex-wrap:wrap}
-.iban-meta-item .label{color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;font-size:9px;margin-bottom:2px}
+.iban-meta-item .label{color:rgba(242,242,245,.45);text-transform:uppercase;letter-spacing:.08em;font-size:9px;margin-bottom:2px}
 .iban-meta-item .val{font-weight:650;font-size:13px}
 .copy-btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(200,230,50,.18);color:#C8E64A;border:1.5px solid rgba(200,230,50,.28);border-radius:10px;font-weight:650;font-size:12px;cursor:pointer;transition:.15s}
 .copy-btn:hover{background:rgba(200,230,50,.28)}
@@ -159,14 +159,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
   .copy-btn,.submit-btn{min-height:44px}
 }
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=728">
-<link rel="stylesheet" href="styles/unify.css?v=728">
-<link rel="stylesheet" href="styles/mobile.css?v=728">
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="styles/harmony.css?v=731">
+<link rel="stylesheet" href="styles/unify.css?v=731">
+<link rel="stylesheet" href="styles/mobile.css?v=731">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=728">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=728">
-<link rel="stylesheet" href="styles/controls.css?v=728">
+<link rel="stylesheet" href="styles/figma-theme.css?v=731">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=731">
+<link rel="stylesheet" href="styles/controls.css?v=731">
 </head>
 <body class="fx">
 
@@ -591,7 +591,7 @@ async function cancelPendingPayment() {
 
 init();
 </script>
-<script src="scripts/autogrow.js?v=728" defer></script>
-<script src="pwa-boot.js?v=728" defer></script>
+<script src="scripts/autogrow.js?v=731" defer></script>
+<script src="pwa-boot.js?v=731" defer></script>
 </body>
 </html>

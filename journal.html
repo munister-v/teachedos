@@ -15,9 +15,9 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --accent:#1C1C1E;--lime:#C8E632;--lavender:#C8E632;
-  --bg:#F5F0E8;--card:#fff;
-  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
-  --text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
+  --bg:#F2F2F5;--card:#fff;
+  --border:rgba(92,92,102,.14);--border2:rgba(92,92,102,.28);
+  --text:#1C1C1E;--text2:#3A3A40;--text3:#9A9AA3;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;--mono:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --nav-h:52px;
 }
@@ -27,12 +27,12 @@ a{text-decoration:none;color:inherit;}
 /* ── NAV (macOS-style menubar) ── */
 #nav{
   position:sticky;top:0;z-index:200;height:36px;
-  background:rgba(245,240,232,0.82);
+  background:rgba(242,242,245,0.82);
   backdrop-filter:blur(32px) saturate(2);
   -webkit-backdrop-filter:blur(32px) saturate(2);
-  border-bottom:1px solid rgba(94,94,74,.08);
+  border-bottom:1px solid rgba(92,92,102,.08);
   display:flex;align-items:center;padding:0 14px;gap:0;
-  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(94,94,74,.05);
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(92,92,102,.05);
 }
 .nav-logo{
   display:flex;align-items:center;margin-right:6px;flex-shrink:0;
@@ -40,9 +40,9 @@ a{text-decoration:none;color:inherit;}
 }
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
 .nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
-.nav-sep{width:1px;height:18px;background:rgba(94,94,74,.14);margin:0 4px;}
+.nav-sep{width:1px;height:18px;background:rgba(92,92,102,.14);margin:0 4px;}
 .nav-link{
-  font-size:13px;font-weight:600;color:#3A3A2E;padding:0 10px;height:36px;
+  font-size:13px;font-weight:600;color:#3A3A40;padding:0 10px;height:36px;
   display:flex;align-items:center;border-radius:8px;transition:.12s;white-space:nowrap;
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
@@ -50,10 +50,10 @@ a{text-decoration:none;color:inherit;}
 .nav-link.active{font-weight:650;color:#C8E632;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A2E;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A40;
   padding:3px 10px 3px 7px;border-radius:20px;
   border:1px solid rgba(200,230,50,.22);
-  background:rgba(94,94,74,.07);
+  background:rgba(92,92,102,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
 }
 .nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
@@ -72,8 +72,8 @@ a{text-decoration:none;color:inherit;}
 .btn{min-height:44px;padding:10px 20px;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
 .btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(200,230,50,.22);}
 .btn-primary:hover{filter:brightness(1.08);}
-.btn-ghost{background:rgba(94,94,74,.08);color:var(--text2);border:1px solid var(--border);}
-.btn-ghost:hover{background:rgba(94,94,74,.14);}
+.btn-ghost{background:rgba(92,92,102,.08);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:rgba(92,92,102,.14);}
 
 /* Stats row */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
@@ -103,7 +103,7 @@ a{text-decoration:none;color:inherit;}
 .table-row{display:grid;grid-template-columns:40px 1fr 80px 80px 120px 100px 96px;gap:0;
   padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;transition:.12s;min-height:72px;}
 .table-row:last-child{border-bottom:none;}
-.table-row:hover{background:rgba(94,94,74,.04);}
+.table-row:hover{background:rgba(92,92,102,.04);}
 .student-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:12px;font-weight:700;color:#1C1C1E;flex-shrink:0;}
 .student-name{font-size:14px;font-weight:650;color:var(--text);}
@@ -162,7 +162,7 @@ a{text-decoration:none;color:inherit;}
 
 @media(max-width:860px){
   body{background:#fff;}
-  #nav{padding:0 14px;gap:6px;overflow-x:auto;background:#FAFAF8;border-bottom:1px solid rgba(94,94,74,0.08);transform:translateZ(0);}
+  #nav{padding:0 14px;gap:6px;overflow-x:auto;background:#FAFAF8;border-bottom:1px solid rgba(92,92,102,0.08);transform:translateZ(0);}
   .nav-link{display:none;}
   .nav-sep{display:none;}
   .nav-user{border:none;background:transparent;padding:4px 6px;}
@@ -201,16 +201,16 @@ a{text-decoration:none;color:inherit;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=728" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=728">
-<link rel="stylesheet" href="styles/harmony.css?v=728">
-<link rel="stylesheet" href="styles/unify.css?v=728">
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
-<link rel="stylesheet" href="styles/tool-window.css?v=728">
+<script src="theme.js?v=731" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=731">
+<link rel="stylesheet" href="styles/harmony.css?v=731">
+<link rel="stylesheet" href="styles/unify.css?v=731">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
+<link rel="stylesheet" href="styles/tool-window.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=728">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=728">
-<link rel="stylesheet" href="styles/controls.css?v=728">
+<link rel="stylesheet" href="styles/figma-theme.css?v=731">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=731">
+<link rel="stylesheet" href="styles/controls.css?v=731">
 </head>
 <body class="tw-page suite-page journal-suite fx">
 
@@ -368,7 +368,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=728"></script>
+<script src="scripts/app-core.js?v=731"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const JOURNAL_CACHE_KEY = 'teachedos_journal_cache_v1';
@@ -489,7 +489,7 @@ function renderStats() {
   document.getElementById('s-ready').textContent = students.filter(x => (x.lessons_left||0) >= 3).length;
 }
 
-const COLORS = ['#eef6b1','#ede8e0','#dcfce7','#dbeafe','#fef3c7','#fce7f3','#ccfbf1','#e9d5ff'];
+const COLORS = ['#eef6b1','#e7e7ec','#dcfce7','#dbeafe','#fef3c7','#fce7f3','#ccfbf1','#e9d5ff'];
 function avatarColor(name) { let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))%COLORS.length; return COLORS[h]; }
 
 function setJournalQuery(query) {
@@ -706,12 +706,12 @@ document.addEventListener('keydown', event => {
 init();
 </script>
 
-<script src="pwa.js?v=728"></script>
-<script src="scripts/nav-boost.js?v=728" defer></script>
-<script src="scripts/mobile-perf.js?v=728" defer></script>
-<script src="scripts/mobile-nav.js?v=728"></script>
-<script src="scripts/mobile-zoom-guard.js?v=728" defer></script>
-<script src="scripts/autogrow.js?v=728" defer></script>
-<script src="pwa-boot.js?v=728" defer></script>
+<script src="pwa.js?v=731"></script>
+<script src="scripts/nav-boost.js?v=731" defer></script>
+<script src="scripts/mobile-perf.js?v=731" defer></script>
+<script src="scripts/mobile-nav.js?v=731"></script>
+<script src="scripts/mobile-zoom-guard.js?v=731" defer></script>
+<script src="scripts/autogrow.js?v=731" defer></script>
+<script src="pwa-boot.js?v=731" defer></script>
 </body>
 </html>

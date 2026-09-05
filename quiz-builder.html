@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json?v=728">
+<link rel="manifest" href="manifest.json?v=731">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Quiz Builder - TeachEd</title>
 <style>
-:root{--cream:#F7F3EA;--lime:#CDF24F;--pink:#EC2D8C;--ink:#0E0E10;--card:#fff;--border:#E5DFD3;--text2:#666;--shadow:0 2px 12px rgba(0,0,0,.08)}
+:root{--cream:#F3F3F6;--lime:#CDF24F;--pink:#EC2D8C;--ink:#0E0E10;--card:#fff;--border:#DFDFE2;--text2:#666;--shadow:0 2px 12px rgba(0,0,0,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
 /* NAV */
@@ -25,7 +25,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .nav-actions{display:flex;gap:8px}
 .btn{padding:8px 16px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:.15s}
 .btn-outline{background:#fff;border:2px solid var(--border);color:var(--ink)}
-.btn-outline:hover{border-color:var(--lime);background:#f9fde8}
+.btn-outline:hover{border-color:var(--lime);background:#f9f9fc}
 .btn-lime{background:var(--lime);color:var(--ink)}
 .btn-lime:hover{background:#b8e030}
 .btn-pink{background:var(--pink);color:#fff}
@@ -43,7 +43,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .add-btn select{appearance:none;-webkit-appearance:none;background:var(--lime);border:none;border-radius:8px;padding:7px 28px 7px 10px;font-weight:600;font-size:.82rem;cursor:pointer;color:var(--ink)}
 .add-btn::after{content:'▼';position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:.6rem}
 .q-list{flex:1;overflow-y:auto;padding:8px}
-.q-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:12px;cursor:pointer;border:2px solid transparent;margin-bottom:4px;transition:.15s;background:#f9f6f1}
+.q-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:12px;cursor:pointer;border:2px solid transparent;margin-bottom:4px;transition:.15s;background:#f6f6f9}
 .q-item:hover{background:var(--cream);border-color:var(--lime)}
 .q-item.active{background:#f0fde8;border-color:var(--lime)}
 .q-drag{color:#5C5C5C;font-size:.8rem;cursor:grab;padding:2px}
@@ -52,7 +52,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .q-type-badge{font-size:.65rem;font-weight:650;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:2px}
 .badge-mcq{background:#e8f4ff;color:#1e6cb8}
 .badge-tf{background:#e8fff0;color:#2e7d32}
-.badge-fib{background:#fff8e8;color:#A05800}
+.badge-fib{background:#f8f8fb;color:#A05800}
 .badge-sa{background:#f5e8ff;color:#7b1fa2}
 .badge-mp{background:#ffe8f5;color:#c2185b}
 .q-preview{font-size:.8rem;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
@@ -98,7 +98,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 .toggle-row span{font-size:.85rem;font-weight:600}
 .toggle{position:relative;width:40px;height:22px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0;position:absolute}
-.toggle-slider{position:absolute;inset:0;background:#E0D9CE;border-radius:99px;cursor:pointer;transition:.2s}
+.toggle-slider{position:absolute;inset:0;background:#DADADD;border-radius:99px;cursor:pointer;transition:.2s}
 .toggle-slider::before{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s}
 .toggle input:checked+.toggle-slider{background:var(--lime)}
 .toggle input:checked+.toggle-slider::before{transform:translateX(18px)}
@@ -110,7 +110,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 .preview-q .q-pts{font-size:.8rem;font-weight:600;color:var(--text2)}
 .preview-q .q-text{font-size:1rem;font-weight:600;margin-bottom:12px;line-height:1.5}
 .preview-opt{padding:10px 14px;border:2px solid var(--border);border-radius:10px;margin-bottom:6px;font-size:.9rem;cursor:pointer}
-.preview-opt:hover{border-color:var(--lime);background:#f9fde8}
+.preview-opt:hover{border-color:var(--lime);background:#f9f9fc}
 .preview-inp{padding:10px 12px;border:2px solid var(--border);border-radius:10px;width:100%;font-size:.9rem;font-family:inherit;outline:none}
 .preview-inp:focus{border-color:var(--lime)}
 /* TOAST */
@@ -163,7 +163,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 .auto-gen-go:active{transform:scale(.97)}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 @media(max-width:860px){
-  .mobile-desktop-only{position:fixed;inset:0;z-index:10000;display:flex!important;align-items:center;justify-content:center;padding:24px 18px;background:rgba(247,243,234,.96)}
+  .mobile-desktop-only{position:fixed;inset:0;z-index:10000;display:flex!important;align-items:center;justify-content:center;padding:24px 18px;background:rgba(243,243,246,.96)}
   .mdo-card{width:min(100%,390px);padding:28px 22px 22px;border:1px solid var(--border);border-radius:24px;background:#fff;box-shadow:0 18px 50px rgba(14,14,16,.16);text-align:center}
   .mdo-ic{width:52px;height:52px;margin:0 auto 16px;display:grid;place-items:center;border-radius:16px;background:rgba(205,242,79,.25);font-size:26px}
   .mdo-card h2{font-size:22px;line-height:1.08;letter-spacing:-.04em;color:var(--ink)}
@@ -202,13 +202,13 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   button[type=submit], .btn, .primary-btn{ min-height:44px; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=728">
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
-<link rel="stylesheet" href="styles/tool-window.css?v=728">
+<link rel="stylesheet" href="styles/mobile.css?v=731">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
+<link rel="stylesheet" href="styles/tool-window.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=728">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=728">
-<link rel="stylesheet" href="styles/controls.css?v=728">
+<link rel="stylesheet" href="styles/figma-theme.css?v=731">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=731">
+<link rel="stylesheet" href="styles/controls.css?v=731">
 </head>
 <body class="tw-page fx">
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -350,7 +350,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocab-loader.js?v=728"></script>
+<script src="scripts/vocab-loader.js?v=731"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -785,7 +785,7 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
-<script src="scripts/autogrow.js?v=728" defer></script>
-<script src="pwa-boot.js?v=728" defer></script>
+<script src="scripts/autogrow.js?v=731" defer></script>
+<script src="pwa-boot.js?v=731" defer></script>
 </body>
 </html>

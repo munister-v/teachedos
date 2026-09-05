@@ -6,7 +6,7 @@
 <title>Spin the Wheel</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;overflow-x:hidden}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;overflow-x:hidden}
 .back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
 h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
 .subtitle{color:#525252;font-size:.85rem;margin-bottom:14px}
@@ -19,17 +19,17 @@ canvas{border-radius:50%;box-shadow:0 4px 24px rgba(0,0,0,.15)}
 .btn-spin{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:800;cursor:pointer;transition:.15s}
 .btn-spin:hover{background:#b8e030}
 .btn-spin:disabled{opacity:.5;cursor:default}
-.btn-edit{background:#fff;color:#0E0E10;border:2px solid #E0D9CE;border-radius:14px;padding:13px 20px;font-size:.9rem;font-weight:700;cursor:pointer}
+.btn-edit{background:#fff;color:#0E0E10;border:2px solid #DADADD;border-radius:14px;padding:13px 20px;font-size:.9rem;font-weight:700;cursor:pointer}
 .btn-edit:hover{border-color:#CDF24F}
 .editor{display:none;width:100%;max-width:420px;background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 18px rgba(0,0,0,.09);margin-bottom:12px}
 .editor h3{font-size:1rem;font-weight:700;margin-bottom:8px}
-.editor textarea{width:100%;height:130px;border:2px solid #E0D9CE;border-radius:10px;padding:10px;font-family:inherit;font-size:.9rem;resize:vertical;outline:none}
+.editor textarea{width:100%;height:130px;border:2px solid #DADADD;border-radius:10px;padding:10px;font-family:inherit;font-size:.9rem;resize:vertical;outline:none}
 .editor textarea:focus{border-color:#CDF24F}
 .btn-save{background:#CDF24F;color:#0E0E10;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer;margin-top:8px}
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>
@@ -175,6 +175,6 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 draw(currentAngle);
 </script>
-<script src="../scripts/game-handoff.js?v=728"></script>
+<script src="../scripts/game-handoff.js?v=731"></script>
 </body>
 </html>

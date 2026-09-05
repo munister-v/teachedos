@@ -183,7 +183,7 @@ function _ttLessonStageMeta(card, index) {
     return { label: 'Vocabulary', accent: '#65A30D', bg: '#F7FEE7' };
   }
   if (/before|warm|lead[- ]?in|pre[- ]?task|starter|hook/.test(hay)) {
-    return { label: 'Warm-up', accent: '#D97706', bg: '#FFFBEB' };
+    return { label: 'Warm-up', accent: '#D97706', bg: '#FAFAFD' };
   }
   if (/reading|listening|input|text|article|dialogue|transcript/.test(hay) && body.length > 120) {
     return { label: 'Input', accent: '#2563EB', bg: '#EFF6FF' };
@@ -198,9 +198,9 @@ function _ttLessonStageMeta(card, index) {
     return { label: 'Output', accent: '#DB2777', bg: '#FDF2F8' };
   }
   if (/answer|key|teacher|note|feedback|solution/.test(hay)) {
-    return { label: 'Teacher', accent: '#475569', bg: '#F5F0E8' };
+    return { label: 'Teacher', accent: '#475569', bg: '#F2F2F5' };
   }
-  return { label: `Stage ${index + 1}`, accent: '#0E0E10', bg: '#F5F0E8' };
+  return { label: `Stage ${index + 1}`, accent: '#0E0E10', bg: '#F2F2F5' };
 }
 
 function _ttLessonStageHtml(card, index, stageMeta) {
@@ -267,7 +267,7 @@ function _ttActivityOverviewHtml(output, count, meta, eyebrow, note) {
   const kind = output.kind || output.boardKind || 'Activity';
   const accent = meta.frameBorder || '#0E0E10';
   return `
-    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:18px 22px;background:linear-gradient(135deg,#F5F0E8 0%,#FFFFFF 48%,${meta.pale || '#E2E8F0'} 170%);border:1px solid rgba(15,23,42,.08);box-shadow:0 14px 34px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden">
+    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:18px 22px;background:linear-gradient(135deg,#F2F2F5 0%,#FFFFFF 48%,${meta.pale || '#E2E8F0'} 170%);border:1px solid rgba(15,23,42,.08);box-shadow:0 14px 34px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden">
       <div style="min-width:0;max-width:760px">
         <div style="font:950 10px/1 var(--font);letter-spacing:.18em;text-transform:uppercase;color:${accent};margin-bottom:10px">${esc(eyebrow || 'Board activity')}</div>
         <div style="font:950 27px/1.05 var(--font);letter-spacing:-.04em;color:#0E0E10;white-space:normal">${esc(output.title || 'Generated activity')}</div>
@@ -356,14 +356,14 @@ function _ttPlaceMatchingOrSortingBoard(output, meta) {
       { textColor: meta.frameBorder, fontSize: 15 });
 
     const bankW = 250, colW = 330, cardH = 58, gap = 12;
-    _ttAddTextCard(frame, x0 + PAD, y0 + 172, bankW, 52, 'Word bank\nMove these into the right matches.', { bgColor: '#F5F0E8', fontSize: 13 });
+    _ttAddTextCard(frame, x0 + PAD, y0 + 172, bankW, 52, 'Word bank\nMove these into the right matches.', { bgColor: '#F2F2F5', fontSize: 13 });
     pairs.forEach((p, i) => {
       const col = i % 2, row = Math.floor(i / 2);
       _ttAddStickyCard(frame, x0 + PAD + col * (bankW + gap), y0 + 238 + row * (cardH + gap), bankW, cardH, p.left, i % 2 ? '#FFE0B2' : '#FFF176');
     });
 
     const matchX = x0 + PAD + 2 * (bankW + gap) + 26;
-    _ttAddTextCard(frame, matchX, y0 + 172, colW, 52, 'Student matching zone\nDefinitions / categories.', { bgColor: '#F5F0E8', fontSize: 13 });
+    _ttAddTextCard(frame, matchX, y0 + 172, colW, 52, 'Student matching zone\nDefinitions / categories.', { bgColor: '#F2F2F5', fontSize: 13 });
     pairs.forEach((p, i) => {
       const row = i;
       if (row > 11) return;

@@ -8,21 +8,21 @@
   --embed-heading-size: clamp(24px, 3vw, 34px);
 
   /* Palette */
-  --bg:        #F5F0E8;
-  --bg-2:      #EDE8E0;
-  --bg-3:      #CAC9B7;
+  --bg:        #F2F2F5;
+  --bg-2:      #E7E7EC;
+  --bg-3:      #C9C9D0;
   --bg-card:   #FFFFFF;
-  --border:    rgba(94,94,74,0.14);
+  --border:    rgba(92,92,102,0.14);
   --text:      #1C1C1E;
-  --text-2:    #3A3A2E;
-  --text-3:    #A2A28C;
-  --muted:     #A2A28C;
+  --text-2:    #3A3A40;
+  --text-3:    #9A9AA3;
+  --muted:     #9A9AA3;
   --accent:    #1C1C1E;
   --accent-2:  rgba(200,230,50,0.10);
   --accent-3:  rgba(200,230,50,0.22);
   --lime:      #C8E632;
   --lavender:  #C8E632;
-  --sand-dark: #5E5E4A;
+  --sand-dark: #5A5A63;
   --panel:     #FFFFFF;
   --shadow:    0 4px 24px rgba(5,5,23,0.08), 0 1px 3px rgba(0,0,0,0.04);
   --radius:    24px;

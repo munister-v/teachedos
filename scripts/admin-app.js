@@ -2342,7 +2342,7 @@ function initApiTester() {
   const btns = document.getElementById('at-quick-btns');
   if (btns) {
     btns.innerHTML = AT_QUICK.map((q, i) =>
-      `<button onclick="loadQuickEndpoint(${i})" style="padding:5px 10px;background:rgba(28,28,30,.06);border:1.5px solid rgba(94,94,74,.18);border-radius:8px;font-family:monospace;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2)">${esc(q.label)}</button>`
+      `<button onclick="loadQuickEndpoint(${i})" style="padding:5px 10px;background:rgba(28,28,30,.06);border:1.5px solid rgba(92,92,102,.18);border-radius:8px;font-family:monospace;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2)">${esc(q.label)}</button>`
     ).join('');
   }
 }

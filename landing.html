@@ -9,8 +9,8 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=728">
-<meta name="theme-color" content="#F7F3EA">
+<link rel="manifest" href="manifest.json?v=731">
+<meta name="theme-color" content="#F3F3F6">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
 <link rel="canonical" href="https://teached.tech/">
@@ -228,7 +228,7 @@
 :root{
   --lime:#CDF24F; --lime-dark:#A8D02B; --lime-text:#0E0E10;
   --pink:#EC2D8C; --pink-soft:#FCE3EF;
-  --cream:#F7F3EA; --cream-2:#EDE8E0;
+  --cream:#F3F3F6; --cream-2:#E7E7EC;
   --ink:#0E0E10;  --ink2:#3A3A40; --ink3:#86868F;
   --card:#FFFFFF;
   --lavender:#D8C5FB; --peach:#FFB5AE; --cyan:#8FE6E6; --yellow:#FFC94A;
@@ -284,7 +284,7 @@ section{padding:80px 0;position:relative;}
 /* ── NAV ── */
 nav.ln{
   position:fixed;top:0;left:0;right:0;z-index:1000;
-  background:rgba(247,243,234,.82);
+  background:rgba(243,243,246,.82);
   backdrop-filter:blur(24px) saturate(1.8);
   -webkit-backdrop-filter:blur(24px) saturate(1.8);
   border-bottom:1px solid rgba(14,14,16,.07);
@@ -323,14 +323,14 @@ nav.ln{
   background:
     radial-gradient(ellipse 60% 50% at 8%  90%, rgba(205,242,79,.30) 0%, transparent 60%),
     radial-gradient(ellipse 55% 45% at 94% 85%, rgba(236,45,140,.18) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 40% at 50%  0%, rgba(247,243,234,.98) 0%, transparent 70%),
-    linear-gradient(160deg,#F7F3EA 0%,#F2EDE4 100%);
+    radial-gradient(ellipse 70% 40% at 50%  0%, rgba(243,243,246,.98) 0%, transparent 70%),
+    linear-gradient(160deg,#F3F3F6 0%,#EDEDF0 100%);
   background-image:
     radial-gradient(circle, rgba(14,14,16,.09) 1px, transparent 1px),
     radial-gradient(ellipse 60% 50% at 8%  90%, rgba(205,242,79,.30) 0%, transparent 60%),
     radial-gradient(ellipse 55% 45% at 94% 85%, rgba(236,45,140,.18) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 40% at 50%  0%, rgba(247,243,234,.98) 0%, transparent 70%),
-    linear-gradient(160deg,#F7F3EA 0%,#F2EDE4 100%);
+    radial-gradient(ellipse 70% 40% at 50%  0%, rgba(243,243,246,.98) 0%, transparent 70%),
+    linear-gradient(160deg,#F3F3F6 0%,#EDEDF0 100%);
   background-size:28px 28px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
 }
 .hero-badge{
@@ -385,7 +385,7 @@ nav.ln{
   overflow:hidden;
 }
 .preview-bar{
-  height:38px;background:rgba(247,243,234,.90);
+  height:38px;background:rgba(243,243,246,.90);
   border-bottom:1px solid rgba(14,14,16,.06);
   display:flex;align-items:center;padding:0 14px;gap:7px;
 }
@@ -407,7 +407,7 @@ nav.ln{
   grid-template-columns:180px 1fr 1fr;gap:12px;min-height:320px;
 }
 .preview-sidebar{
-  background:rgba(247,243,234,.70);border-radius:14px;
+  background:rgba(243,243,246,.70);border-radius:14px;
   padding:12px;display:flex;flex-direction:column;gap:6px;
 }
 .ps-label{
@@ -493,7 +493,7 @@ nav.ln{
 }
 .bc:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(14,14,16,.09);}
 .bc.lime{background:var(--lime);border-color:rgba(205,242,79,.5);}
-.bc.ink{background:var(--ink);color:#F5F0E8;border-color:var(--ink);}
+.bc.ink{background:var(--ink);color:#F2F2F5;border-color:var(--ink);}
 .bc.pink-soft{background:var(--pink-soft);border-color:rgba(236,45,140,.15);}
 .bc.lav{background:var(--lavender);border-color:rgba(216,197,251,.5);}
 .bc.peach{background:var(--peach);border-color:rgba(255,181,174,.5);}
@@ -507,7 +507,7 @@ nav.ln{
 .bc .ic-ink{background:rgba(14,14,16,.08);}
 .bc.lime .ic,.bc.ink .ic{background:rgba(255,255,255,.15);}
 .bc-h{font-size:17px;font-weight:650;letter-spacing:-.02em;color:var(--ink);}
-.bc.ink .bc-h{color:#F5F0E8;}
+.bc.ink .bc-h{color:#F2F2F5;}
 .bc-p{font-size:12px;line-height:1.6;color:var(--ink2);}
 .bc.ink .bc-p,.bc.lime .bc-p{color:inherit;opacity:.75;}
 .bento-tag{
@@ -516,7 +516,7 @@ nav.ln{
   background:rgba(205,242,79,.20);border:1px solid rgba(205,242,79,.45);color:#4a7000;
   align-self:flex-start;
 }
-.bc.ink .bento-tag{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.25);color:#F5F0E8;}
+.bc.ink .bento-tag{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.25);color:#F2F2F5;}
 .bc.pink-soft .bento-tag{background:rgba(236,45,140,.10);border-color:rgba(236,45,140,.25);color:var(--pink);}
 .span2{grid-column:span 2;} .span3{grid-column:span 3;} .span4{grid-column:span 4;}
 .row2{grid-row:span 2;}
@@ -698,10 +698,10 @@ nav.ln{
 .final-h{
   font-family:var(--serif);font-size:clamp(38px,6vw,72px);
   font-weight:600;letter-spacing:-.03em;line-height:1;
-  color:#F5F0E8;margin-bottom:18px;
+  color:#F2F2F5;margin-bottom:18px;
 }
 .final-h em{font-style:normal;color:var(--lime);}
-.final-p{font-size:17px;color:rgba(245,240,232,.65);max-width:480px;margin:0 auto 36px;line-height:1.65;}
+.final-p{font-size:17px;color:rgba(242,242,245,.65);max-width:480px;margin:0 auto 36px;line-height:1.65;}
 .final-ctas{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
 .btn-cream{background:var(--cream);color:var(--ink);}
 .btn-cream:hover{background:#fff;transform:translateY(-1px);}
@@ -925,7 +925,7 @@ body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opa
   --line:rgba(11,11,12,.10); --line-2:rgba(11,11,12,.06);
   --pink:#E11D74; --pink-soft:#FBE9F2;
   --lime:#ECF4D6; --lime-dark:#8AAE12; --lime-text:#1B2400;
-  --lavender:#F0ECFB; --peach:#FBEEEA; --cyan:#E6F4F4; --yellow:#FBF1DA;
+  --lavender:#F0ECFB; --peach:#F1F1F4; --cyan:#E6F4F4; --yellow:#F1F1F4;
   --radius:18px;
   --serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif;
   --maxw:1120px;
@@ -1053,7 +1053,7 @@ nav.ln{background:rgba(252,252,251,.80);border-bottom:1px solid var(--line-2);ba
   background:transparent;border:1px solid var(--line);color:var(--ink2);
   font-weight:600;letter-spacing:.05em;
 }
-.bc.ink .bento-tag{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);color:#F5F0E8;}
+.bc.ink .bento-tag{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);color:#F2F2F5;}
 .bc.pink-soft .bento-tag{background:#fff;border-color:rgba(225,29,116,.25);color:var(--pink);}
 /* richer cards: allow growth + concrete detail chips */
 .bento{grid-auto-rows:minmax(190px,auto);}
@@ -1063,7 +1063,7 @@ nav.ln{background:rgba(252,252,251,.80);border-bottom:1px solid var(--line-2);ba
   font-size:11px;font-weight:600;color:var(--ink2);white-space:nowrap;
   background:#FAFAF9;border:1px solid var(--line-2);padding:4px 9px;border-radius:999px;
 }
-.bc.ink .bc-points span{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#E9E4DC;}
+.bc.ink .bc-points span{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#E5E5E8;}
 .bc.lime .bc-points span,.bc.peach .bc-points span,.bc.lav .bc-points span,.bc.pink-soft .bc-points span{
   background:rgba(255,255,255,.62);border-color:rgba(11,11,12,.07);color:var(--ink2);
 }
@@ -1199,7 +1199,7 @@ body.pwa-standalone .sticky-mob{display:none!important;}
   body{
     background:
       radial-gradient(circle at 50% -90px, rgba(200,230,50,.22), transparent 270px),
-      linear-gradient(180deg,#fffefa 0%,#f8f5ef 42%,#f2ece3 100%)!important;
+      linear-gradient(180deg,#fefeff 0%,#f5f5f8 42%,#ededf0 100%)!important;
   }
   nav.ln{
     border-bottom:1px solid rgba(11,11,12,.06);
@@ -1216,14 +1216,14 @@ body.pwa-standalone .sticky-mob{display:none!important;}
   .hero-badge{
     background:rgba(255,255,255,.74);
     border-color:rgba(11,11,12,.08);
-    box-shadow:0 1px 0 rgba(255,255,255,.75) inset,0 10px 24px rgba(44,40,31,.06);
+    box-shadow:0 1px 0 rgba(255,255,255,.75) inset,0 10px 24px rgba(40,40,43,.06);
   }
   .hero-h{
     letter-spacing:-.055em;
     text-wrap:balance;
   }
   .hero-sub{
-    color:#444437;
+    color:#434346;
     text-wrap:pretty;
   }
   .hero-ctas .btn{
@@ -1232,7 +1232,7 @@ body.pwa-standalone .sticky-mob{display:none!important;}
   }
   .hero-ctas .btn-glass{
     background:rgba(255,255,255,.78);
-    box-shadow:0 1px 0 rgba(255,255,255,.76) inset,0 8px 20px rgba(44,40,31,.055);
+    box-shadow:0 1px 0 rgba(255,255,255,.76) inset,0 8px 20px rgba(40,40,43,.055);
   }
   .preview-stage{
     padding-left:14px;
@@ -1242,7 +1242,7 @@ body.pwa-standalone .sticky-mob{display:none!important;}
     border-radius:24px;
     border-color:rgba(11,11,12,.08);
     background:rgba(255,255,255,.82);
-    box-shadow:0 1px 0 rgba(255,255,255,.78) inset,0 18px 42px rgba(44,40,31,.09);
+    box-shadow:0 1px 0 rgba(255,255,255,.78) inset,0 18px 42px rgba(40,40,43,.09);
   }
   .sticky-mob{
     left:10px;
@@ -1254,7 +1254,7 @@ body.pwa-standalone .sticky-mob{display:none!important;}
     box-shadow:0 10px 24px rgba(11,11,12,.10),0 1px 0 rgba(255,255,255,.86) inset;
   }
   .sticky-mob-text{color:#111113;}
-  .sticky-mob-sub{color:#727260;}
+  .sticky-mob-sub{color:#707073;}
   .sticky-mob .btn{
     background:#111113;
     color:#fff;
@@ -1288,7 +1288,7 @@ body.pwa-standalone .hero{
 #support{padding:clamp(40px,7vw,72px) 0;background:transparent;}
 .support-card{
   display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center;
-  background:var(--cream-2,#F1ECE3);border:1px solid var(--line);border-radius:22px;
+  background:var(--cream-2,#ECECEF);border:1px solid var(--line);border-radius:22px;
   padding:clamp(22px,3vw,34px);max-width:820px;margin:0 auto;
 }
 .support-eye{
@@ -1452,7 +1452,7 @@ body.pwa-standalone .hero{
 /* - sticky note - */
 .pv-sticky{
   position:absolute;z-index:4;left:67%;top:9%;width:23cqw;padding:2cqw;
-  background:linear-gradient(165deg,#F4F8DE,#E9F2C6);
+  background:linear-gradient(165deg,#F4F4F7,#E9F2C6);
   border-radius:1cqw;transform:rotate(-3.5deg);
   box-shadow:0 2.6cqw 5cqw rgba(80,100,10,.18),0 .5cqw 1.4cqw rgba(11,11,12,.06);
   font-size:1.85cqw;line-height:1.5;color:#33420a;font-weight:600;
@@ -1562,7 +1562,7 @@ body.pwa-standalone .hero{
 /* 5 · mini lesson board */
 .fp-board{position:relative;height:78px;}
 .fp-board .n{position:absolute;border-radius:7px;padding:6px 8px;font-size:9px;font-weight:650;box-shadow:0 5px 14px rgba(11,11,12,.12);z-index:2;}
-.fp-board .n1{left:0;top:6px;background:linear-gradient(165deg,#F4F8DE,#E9F2C6);color:#5b7011;transform:rotate(-4deg);}
+.fp-board .n1{left:0;top:6px;background:linear-gradient(165deg,#F4F4F7,#E9F2C6);color:#5b7011;transform:rotate(-4deg);}
 .fp-board .n2{right:2px;top:0;background:#fff;border:1px solid var(--line);color:var(--ink);}
 .fp-board .n3{left:32%;bottom:0;background:var(--pink-soft);color:#BF3A00;}
 .fp-board svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
@@ -1796,7 +1796,7 @@ body.pwa-standalone .hero{
 
 /* image flashcard on the canvas */
 .pv-flash{left:50.5%;top:59%;width:18cqw;padding:0;overflow:hidden;z-index:3;}
-.pv-flash .img{height:8.5cqw;background:linear-gradient(135deg,#FBE9F2 0%,#F0ECFB 55%,#F4F8DE 100%);display:grid;place-items:center;border-bottom:1px solid var(--line-2);}
+.pv-flash .img{height:8.5cqw;background:linear-gradient(135deg,#FBE9F2 0%,#F0ECFB 55%,#F4F4F7 100%);display:grid;place-items:center;border-bottom:1px solid var(--line-2);}
 .pv-flash .img svg{width:8cqw;height:6cqw;}
 .pv-flash .cap{padding:1.1cqw 1.3cqw;display:flex;align-items:baseline;justify-content:space-between;gap:.6cqw;}
 .pv-flash .w{font-family:var(--font);font-weight:650;font-size:2cqw;color:var(--ink);letter-spacing:-.01em;}
@@ -1875,7 +1875,7 @@ body::before{
 }
 .final{background:
   radial-gradient(ellipse 50% 60% at 18% 8%,rgba(205,242,79,.22),transparent 64%),
-  linear-gradient(180deg,#fff,#F7F3EA);}
+  linear-gradient(180deg,#fff,#F3F3F6);}
 @media(max-width:640px){
   .hero-trust span{width:100%;justify-content:center;}
   .preview-bar-title::before{display:none;}
@@ -1958,9 +1958,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=728">
+<link rel="stylesheet" href="styles/figma-landing.css?v=731">
 </head>
 <body class="landing-page fx">
 
@@ -2170,7 +2170,7 @@ section{scroll-margin-top:64px;}
         <div style="display:flex;align-items:flex-start;justify-content:space-between;">
           <div>
             <div class="bento-tag">★ Most loved</div>
-            <div class="bc-h" style="color:#F5F0E8;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:600;">Worksheet &amp;<br>exercise studio</div>
+            <div class="bc-h" style="color:#F2F2F5;margin-top:10px;font-family:var(--serif);font-size:22px;font-weight:600;">Worksheet &amp;<br>exercise studio</div>
             <div class="bc-p" style="margin-top:8px;">Type a topic, paste a text or drop a YouTube link. TeachEd drafts reading tasks, gap-fills, vocabulary sets, quizzes and A4 worksheets at the CEFR level you choose. Edit, print, or play interactively.</div>
             <div class="bc-points">
               <span>CEFR A1-C2</span><span>Answer keys</span><span>PDF &amp; A4 print</span><span>Editable</span><span>Interactive mode</span>
@@ -2293,7 +2293,7 @@ section{scroll-margin-top:64px;}
         <div class="ic" style="font-size:22px;">🖨️</div>
         <div>
           <div class="bento-tag">Export</div>
-          <div class="bc-h" style="color:#F5F0E8;margin-top:8px;">Print, PDF &amp; share links</div>
+          <div class="bc-h" style="color:#F2F2F5;margin-top:8px;">Print, PDF &amp; share links</div>
           <div class="bc-p">A4 worksheets, PDF/Word, Google Forms &amp; no-account share links.</div>
         </div>
         <div class="fp-shot">
@@ -2512,18 +2512,18 @@ section{scroll-margin-top:64px;}
     </div>
 
     <!-- Utility row -->
-    <div class="ink-row" style="margin-top:14px;background:var(--ink);color:#F5F0E8;border-radius:var(--radius);padding:26px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;justify-content:space-between;">
+    <div class="ink-row" style="margin-top:14px;background:var(--ink);color:#F2F2F5;border-radius:var(--radius);padding:26px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;justify-content:space-between;">
       <div style="max-width:520px;">
-        <div class="bento-tag" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#F5F0E8;">Lesson builders</div>
+        <div class="bento-tag" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#F2F2F5;">Lesson builders</div>
         <div style="font-family:var(--serif);font-size:22px;font-weight:600;margin-top:10px;">Assemble a whole lesson, then export it</div>
-        <p style="font-size:13.5px;line-height:1.65;color:rgba(245,240,232,.72);margin-top:8px;">Lesson Pack, Worksheet and Homework builders turn any topic into a complete, printable lesson - with a CEFR level checker, plus blocks for your own text, images and video.</p>
+        <p style="font-size:13.5px;line-height:1.65;color:rgba(242,242,245,.72);margin-top:8px;">Lesson Pack, Worksheet and Homework builders turn any topic into a complete, printable lesson - with a CEFR level checker, plus blocks for your own text, images and video.</p>
       </div>
       <div class="cat-tags" style="max-width:340px;">
-        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Lesson pack</span>
-        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Worksheet builder</span>
-        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Homework builder</span>
-        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">CEFR checker</span>
-        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F5F0E8;">Add text / images / video</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F2F2F5;">Lesson pack</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F2F2F5;">Worksheet builder</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F2F2F5;">Homework builder</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F2F2F5;">CEFR checker</span>
+        <span class="cat-tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#F2F2F5;">Add text / images / video</span>
       </div>
     </div>
   </div>
@@ -2775,7 +2775,7 @@ section{scroll-margin-top:64px;}
     <button class="btn btn-lime btn-xl" type="button" onclick="openAuth('register')">Start free →</button>
     <button class="btn btn-cream btn-xl" type="button" onclick="openAuth('login')">Sign in</button>
   </div>
-  <p style="margin-top:24px;font-size:12px;color:rgba(245,240,232,.35);font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;">Free forever plan · No App Store needed · Works offline</p>
+  <p style="margin-top:24px;font-size:12px;color:rgba(242,242,245,.35);font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;">Free forever plan · No App Store needed · Works offline</p>
 </section>
 
 <!-- ═══════════════════════ SUPPORT (humble, sits above footer) ═══════════════════════ -->
@@ -2842,7 +2842,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=728">
+<link rel="stylesheet" href="styles/auth.css?v=731">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*

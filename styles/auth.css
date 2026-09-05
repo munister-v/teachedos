@@ -13,9 +13,9 @@
   /* Третій рівень: на теплій картці входу давав 1.9:1 - розділювач «OR»
      і «Forgot password?» практично не читались. Тон той самий, темніше. */
   --auth-ink3:      #575768;
-  --auth-border:    rgba(94,94,74,.16);
+  --auth-border:    rgba(92,92,102,.16);
   --auth-bg-field:  rgba(255,255,255,.70);
-  --auth-card-bg:   #F7F4EE;
+  --auth-card-bg:   #F4F4F7;
   --auth-radius:    14px;
 }
 
@@ -56,7 +56,7 @@
 .auth-titlebar {
   display: flex; align-items: center; gap: 8px;
   height: 46px; padding: 0 10px 0 14px;
-  background: rgba(234,228,216,.98);
+  background: rgba(228,228,231,.98);
   border-bottom: 1px solid rgba(23,23,25,.08);
 }
 .auth-tb-logo { width: 20px; height: 20px; display: block; flex: 0 0 auto; }
@@ -175,7 +175,7 @@
    password one) got the same 16px, letting long input text run under the
    eye icon. */
 .auth-password-field .auth-inp { padding-right: 44px; }
-.auth-field-label{display:block;margin:0 0 6px;color:#8A8A80;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;}
+.auth-field-label{display:block;margin:0 0 6px;color:#89898C;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;}
 .auth-password-help{margin:6px 1px 0;color:var(--auth-ink2);font-size:11px;font-weight:650;line-height:1.4;}
 .auth-password-help.needs-input{color:#9A5B12;}
 .auth-password-help.ready{color:#166534;}
@@ -268,7 +268,7 @@
   background:
     radial-gradient(ellipse 60% 50% at 20% 15%, rgba(200,230,50,.12) 0%, transparent 58%),
     radial-gradient(ellipse 55% 45% at 84% 80%, rgba(236,45,140,.08) 0%, transparent 56%),
-    #F5F1EB;
+    #F2F2F5;
   padding: 24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
 }
 .auth-page .auth-card {
@@ -283,7 +283,7 @@
 .auth-spinner-wrap { display: flex; align-items: center; gap: 10px; color: var(--auth-ink3); font-size: 14px; font-weight: 600; }
 .auth-spinner {
   width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
-  border: 2.5px solid rgba(94,94,74,.18); border-top-color: var(--auth-lime-dark);
+  border: 2.5px solid rgba(92,92,102,.18); border-top-color: var(--auth-lime-dark);
   animation: auth-spin .6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -297,7 +297,7 @@
   #lp-auth {
     align-items: flex-start !important;
     justify-content: flex-start !important;
-    background: var(--auth-card-bg, #F5F0E8) !important;
+    background: var(--auth-card-bg, #F2F2F5) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     padding: 0 !important;

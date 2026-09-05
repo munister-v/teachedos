@@ -12,33 +12,33 @@
   --color-white:     #FFFFFF;
 
   /* ── Color: Sand Scale ── */
-  --sand-50:  #FAFAF4;
-  --sand-100: #F5F0E8;
-  --sand-200: #EDE8E0;
-  --sand-300: #CAC9B7;
-  --sand-400: #A2A28C;
-  --sand-500: #7A7A64;
-  --sand-600: #5E5E4A;
-  --sand-700: #3A3A2E;
-  --sand-800: #1E1E16;
+  --sand-50:  #FAFAFB;
+  --sand-100: #F2F2F5;
+  --sand-200: #E7E7EC;
+  --sand-300: #C9C9D0;
+  --sand-400: #9A9AA3;
+  --sand-500: #76767F;
+  --sand-600: #5A5A63;
+  --sand-700: #3A3A40;
+  --sand-800: #1D1D20;
   --sand-900: #1C1C1E;
 
   /* ── Color: Semantic ── */
-  --color-bg:          #F5F0E8;
+  --color-bg:          #F2F2F5;
   --color-bg-subtle:   var(--sand-200);
   --color-bg-muted:    var(--sand-300);
   --color-surface:     var(--color-white);
   --color-surface-2:   var(--sand-50);
-  --color-overlay:     rgba(245,240,232,0.92);
+  --color-overlay:     rgba(242,242,245,0.92);
 
   --color-text:        var(--sand-900);
   --color-text-2:      var(--sand-700);
   --color-text-3:      var(--sand-400);
   --color-text-inv:    var(--color-white);
 
-  --color-border:      rgba(94,94,74,0.14);
-  --color-border-2:    rgba(94,94,74,0.28);
-  --color-border-3:    rgba(94,94,74,0.08);
+  --color-border:      rgba(92,92,102,0.14);
+  --color-border-2:    rgba(92,92,102,0.28);
+  --color-border-3:    rgba(92,92,102,0.08);
 
   --color-primary:     var(--color-rose);
   --color-primary-bg:  rgba(200,230,50,0.08);
@@ -57,10 +57,10 @@
   /* ── Color: Dark Theme ── */
   --color-dark-bg:       #1C1C1E;
   --color-dark-surface:  #2C2C2E;
-  --color-dark-border:   rgba(202,201,183,0.12);
-  --color-dark-text:     #F5F0E8;
-  --color-dark-text-2:   #CAC9B7;
-  --color-dark-text-3:   #5E5E4A;
+  --color-dark-border:   rgba(201,201,208,0.12);
+  --color-dark-text:     #F2F2F5;
+  --color-dark-text-2:   #C9C9D0;
+  --color-dark-text-3:   #5A5A63;
 
   /* ── Typography: Families ── */
   --font-sans:  -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -178,8 +178,8 @@
   --color-text-3:    var(--color-dark-text-3);
 
   --color-border:    var(--color-dark-border);
-  --color-border-2:  rgba(202,201,183,0.22);
-  --color-border-3:  rgba(202,201,183,0.06);
+  --color-border-2:  rgba(201,201,208,0.22);
+  --color-border-3:  rgba(201,201,208,0.06);
 
   --shadow-xs:  0 1px 3px rgba(0,0,0,0.20);
   --shadow-sm:  0 2px 8px rgba(0,0,0,0.24);

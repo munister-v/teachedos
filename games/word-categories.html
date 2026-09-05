@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#1C1C1E}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 12px}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 12px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:14px;font-size:.9rem}
 h1{font-size:1.6rem;font-weight:800;color:var(--accent);margin-bottom:3px}
 .subtitle{color:#525252;font-size:.88rem;margin-bottom:16px}
@@ -24,7 +24,7 @@ h1{font-size:1.6rem;font-weight:800;color:var(--accent);margin-bottom:3px}
 .column{background:#fff;border-radius:16px;padding:14px 12px;box-shadow:0 3px 14px #C8E63214;min-height:140px}
 .col-title{font-size:.85rem;font-weight:800;color:var(--accent);margin-bottom:10px;text-align:center;text-transform:uppercase;letter-spacing:.5px}
 .drop-area{min-height:100px;display:flex;flex-direction:column;gap:6px}
-.placed{padding:7px 12px;background:#F5F0E8;border:2px solid #ffcce0;border-radius:10px;font-weight:700;font-size:.85rem;color:#C8E632;cursor:pointer;text-align:center}
+.placed{padding:7px 12px;background:#F2F2F5;border:2px solid #ffcce0;border-radius:10px;font-weight:700;font-size:.85rem;color:#C8E632;cursor:pointer;text-align:center}
 .placed:hover{background:#ffe0ec}
 .placed.correct{background:#f0fff4;border-color:#4caf50;color:#2e7d32}
 .placed.wrong{background:#fff0f0;border-color:#f44336;color:#c62828}
@@ -43,10 +43,10 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
   .btn-check,.btn-clear,.play-again{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=728">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=731">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -251,7 +251,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=728"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=731"></script>
 <script src="../scripts/game-handoff.js"></script>
 </body>
 </html>

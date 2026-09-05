@@ -6,20 +6,20 @@
 <title>Speed Quiz</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px}
 .back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
 h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .subtitle{color:#525252;font-size:.85rem;margin-bottom:10px}
 .hud{display:flex;justify-content:space-between;width:100%;max-width:440px;margin-bottom:6px}
 .hud span{font-size:.85rem;color:#555;font-weight:600}
-.timer-track{width:100%;max-width:440px;height:10px;background:#E0D9CE;border-radius:99px;margin-bottom:14px;overflow:hidden}
+.timer-track{width:100%;max-width:440px;height:10px;background:#DADADD;border-radius:99px;margin-bottom:14px;overflow:hidden}
 .timer-bar{height:10px;border-radius:99px;background:#CDF24F;transition:width .1s linear,background .1s}
 .timer-bar.warn{background:#ff6b35}
 .card{width:100%;max-width:440px;background:#fff;border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px rgba(0,0,0,.09);margin-bottom:14px}
 .question{font-size:1.1rem;font-weight:700;color:#0E0E10;margin-bottom:20px;line-height:1.5;text-align:center;min-height:60px}
 .options{display:flex;flex-direction:column;gap:10px}
-.opt{padding:13px 16px;border:2px solid #E0D9CE;border-radius:12px;background:#fff;font-size:.95rem;font-weight:600;cursor:pointer;text-align:left;transition:.15s;color:#0E0E10}
-.opt:hover:not(:disabled){border-color:#CDF24F;background:#f9fde8}
+.opt{padding:13px 16px;border:2px solid #DADADD;border-radius:12px;background:#fff;font-size:.95rem;font-weight:600;cursor:pointer;text-align:left;transition:.15s;color:#0E0E10}
+.opt:hover:not(:disabled){border-color:#CDF24F;background:#f9f9fc}
 .opt.correct{border-color:#7ED321;background:#f0fde8;color:#2e7d32}
 .opt.wrong{border-color:#EC2D8C;background:#fdf0f5;color:#EC2D8C}
 .opt.reveal{border-color:#7ED321;background:#f0fde8;color:#2e7d32}
@@ -33,9 +33,9 @@ h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .score-big{font-size:2.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>

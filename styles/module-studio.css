@@ -4,9 +4,9 @@
 
 body {
   --text: #1C1C1E;
-  --muted: #A2A28C;
+  --muted: #9A9AA3;
   --panel: rgba(255, 255, 255, 0.96);
-  --border: rgba(94, 94, 74, 0.16);
+  --border: rgba(92,92,102, 0.16);
   --accent: #1C1C1E;
   /* Акцент модуля — цвет заливки. Как ТЕКСТ на своём же светлом тинте он
      давал 2,9:1, поэтому у надписей отдельный, затемнённый вариант. */
@@ -19,10 +19,10 @@ body {
   --page-background:
     radial-gradient(circle at top left, rgba(200, 230, 50, 0.18), transparent 28%),
     radial-gradient(circle at bottom right, rgba(159, 140, 232, 0.12), transparent 24%),
-    linear-gradient(180deg, #F5F0E8 0%, #EDE8E0 100%);
+    linear-gradient(180deg, #F2F2F5 0%, #E7E7EC 100%);
   --embed-background:
     radial-gradient(circle at top left, rgba(200, 230, 50, 0.10), transparent 22%),
-    linear-gradient(180deg, #F5F0E8 0%, #EDE8E0 100%);
+    linear-gradient(180deg, #F2F2F5 0%, #E7E7EC 100%);
 }
 
 .module-shell {

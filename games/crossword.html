@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#1C1C1E;--lime:#C8E632}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#525252;font-size:.9rem;margin-bottom:20px;text-align:center}
@@ -20,7 +20,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .grid{display:inline-grid;gap:2px;background:var(--accent);border-radius:8px;padding:4px;margin-bottom:18px}
 .cell{width:32px;height:32px;position:relative}
 .cell.block{background:transparent}
-.cell.fill{background:#FBF8F3;border-radius:3px}
+.cell.fill{background:#F8F8FB;border-radius:3px}
 .cell input{width:100%;height:100%;border:none;background:transparent;text-align:center;text-transform:uppercase;font-weight:800;font-size:1rem;color:var(--accent);border-radius:3px;font-family:inherit}
 .cell input:focus{outline:2px solid var(--lime)}
 .cell input.correct{background:#e8f5e9;color:#2e7d32}
@@ -32,7 +32,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:22px;color:#525252}
 .actions{display:flex;gap:10px;justify-content:center;margin-top:14px}
 .actions button{padding:12px 22px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:.9rem;cursor:pointer;background:var(--accent);color:#fff}
-.actions button.secondary{background:#FBF8F3;color:var(--accent);border:2px solid #eee2d8}
+.actions button.secondary{background:#F8F8FB;color:var(--accent);border:2px solid #e4e4e7}
 @media (max-width:480px){
   /* Клетка меряется от ширины экрана, а не константой: сетка кроссворда
      бывает и в 15 столбцов, а при фиксированных 26px такая уезжала на 414px
@@ -56,10 +56,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=728">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=731">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -343,7 +343,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=728"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=728"></script>
+<script src="../scripts/game-handoff.js?v=731"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=731"></script>
 </body>
 </html>

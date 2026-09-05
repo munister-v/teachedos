@@ -59,9 +59,9 @@
 ───────────────────────────────────────────────────────────────────────── */
 :root {
   /* Surfaces */
-  --mp-bg:          #F7F3EA;
+  --mp-bg:          #F3F3F6;
   --mp-surface:     #FFFFFF;
-  --mp-surface-soft:#FAF7F1;
+  --mp-surface-soft:#F7F7FA;
   --mp-premium:     #0E0E10;
   --mp-premium-2:   #1C1C1E;
   /* Accents */
@@ -342,7 +342,7 @@
   /* Coloured tile variants with serif numerals */
   .mp-stat-lavender { background: rgba(205,242,79,.22); border-color: rgba(205,242,79,.35); }
   .mp-stat-peach    { background: rgba(255,190,100,.22); border-color: rgba(255,190,100,.35); }
-  .mp-stat-cyan     { background: rgba(94,94,74,.10); border-color: rgba(94,94,74,.16); }
+  .mp-stat-cyan     { background: rgba(92,92,102,.10); border-color: rgba(92,92,102,.16); }
   .mp-stat-lavender .mp-stat-label, .mp-stat-lavender .mp-stat-sub,
   .mp-stat-peach .mp-stat-label, .mp-stat-peach .mp-stat-sub,
   .mp-stat-cyan .mp-stat-label, .mp-stat-cyan .mp-stat-sub { color: rgba(14,14,16,.55); }

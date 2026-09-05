@@ -10,12 +10,12 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#1C1C1E;--lime:#C8E632}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#525252;font-size:.9rem;margin-bottom:20px;text-align:center}
 .card{background:#fff;border-radius:20px;padding:22px 20px;box-shadow:0 4px 24px rgba(14,14,16,.07);width:100%;max-width:620px;text-align:center}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-weight:700;color:#635F59;font-size:.82rem;letter-spacing:.02em}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-weight:700;color:#606063;font-size:.82rem;letter-spacing:.02em}
 .top span{color:var(--accent)}
 /* Колонка не уже 128px: длинные слова («мінімалістичний») в четырёх колонках на
    520px рвались на три строки и вылезали за карточку. Сетка сама решает,
@@ -24,7 +24,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px}
 /* Квадрат заменён на минимальную высоту: слово из трёх строк больше не
    выпирает за пределы плитки, а короткое не растягивает её впустую. */
-.tile{min-height:84px;border-radius:14px;background:#FBF8F3;border:1.5px solid #ece4d9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;color:var(--accent);cursor:pointer;text-align:center;padding:10px 8px;line-height:1.25;transition:border-color .14s,background .14s,transform .1s;overflow-wrap:anywhere;hyphens:auto}
+.tile{min-height:84px;border-radius:14px;background:#F8F8FB;border:1.5px solid #e5e5e8;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;color:var(--accent);cursor:pointer;text-align:center;padding:10px 8px;line-height:1.25;transition:border-color .14s,background .14s,transform .1s;overflow-wrap:anywhere;hyphens:auto}
 .tile:active{transform:scale(.98)}
 .tile:hover{border-color:#0E0E10}
 .tile.selected{background:rgba(200,230,50,.35);border-color:var(--accent)}
@@ -34,10 +34,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .play-again{margin-top:12px;padding:14px 24px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
 @media (max-width:420px){.grid{grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}.tile{font-size:.74rem;min-height:72px}}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=728">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=731">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -50,10 +50,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   <button class="play-again" id="again" onclick="start()">▶ Play Again</button>
 </div>
 
-<script src="../scripts/game-handoff.js?v=728"></script>
-<script src="../scripts/game-pause.js?v=728"></script>
-<script src="../scripts/vocabulary.js?v=728"></script>
-<script src="../scripts/custom-sets.js?v=728"></script>
+<script src="../scripts/game-handoff.js?v=731"></script>
+<script src="../scripts/game-pause.js?v=731"></script>
+<script src="../scripts/vocabulary.js?v=731"></script>
+<script src="../scripts/custom-sets.js?v=731"></script>
 <script>
 let tiles=[], selected=[], pairsLeft=0, timer=90, sInt;
 
@@ -175,6 +175,6 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=728"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=731"></script>
 </body>
 </html>

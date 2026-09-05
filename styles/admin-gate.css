@@ -8,7 +8,7 @@
   --gate-muted:#6c6c77;
   --gate-line:rgba(32,32,44,.14);
   --gate-surface:#ffffff;
-  --gate-canvas:#f6f6f2;
+  --gate-canvas:#f6f6f9;
   --gate-accent:#cdf940;
   --gate-accent-ink:#56621a;
   --gate-pink:#f0508a;
@@ -22,15 +22,15 @@ body.admin-gate-page{min-height:100dvh;background:var(--gate-canvas);color:var(-
 body.admin-gate-page::before{position:fixed;inset:0;z-index:-1;content:"";opacity:.62;background-image:radial-gradient(circle,rgba(32,32,44,.065) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.45),transparent 74%);pointer-events:none}
 .admin-gate-shell{display:grid;min-height:100dvh;place-items:center;padding:clamp(20px,4vw,56px)}
 .admin-gate-card{display:grid;grid-template-columns:minmax(260px,.94fr) minmax(330px,1.06fr);width:min(100%,820px);min-height:488px;overflow:hidden;border:1px solid var(--gate-line);border-radius:16px;background:var(--gate-surface);box-shadow:0 22px 54px rgba(32,32,44,.12),0 2px 4px rgba(32,32,44,.06)}
-.admin-gate-context{display:flex;flex-direction:column;min-width:0;padding:34px;background:var(--gate-ink);color:#f6f6f2;border-right:4px solid var(--gate-pink)}
+.admin-gate-context{display:flex;flex-direction:column;min-width:0;padding:34px;background:var(--gate-ink);color:#f6f6f9;border-right:4px solid var(--gate-pink)}
 .admin-gate-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:760;letter-spacing:0}
 .admin-gate-mark{display:grid;width:34px;height:34px;place-items:center;border-radius:10px;background:var(--gate-accent);color:var(--gate-ink);font-size:10px;font-weight:850;letter-spacing:.04em}
 .admin-gate-context-copy{margin:auto 0 28px}
 .admin-gate-eyebrow{margin:0 0 10px;color:var(--gate-accent-ink);font-size:11px;font-weight:760;letter-spacing:.08em;line-height:1.3;text-transform:uppercase}
 .admin-gate-context .admin-gate-eyebrow{color:var(--gate-accent)}
 .admin-gate-context h1{max-width:330px;margin:0;font-family:"TeachEd Display","TeachEd UI",sans-serif;font-size:clamp(29px,3.3vw,39px);font-weight:800;letter-spacing:-.04em;line-height:1.02}
-.admin-gate-context-copy>p:last-child{max-width:340px;margin:18px 0 0;color:rgba(248,248,243,.66);font-size:14px;line-height:1.55}
-.admin-gate-context-note{display:flex;align-items:center;gap:8px;width:max-content;max-width:100%;padding-top:15px;border-top:1px solid rgba(255,255,255,.14);color:rgba(248,248,243,.67);font-size:12px;line-height:1.4}
+.admin-gate-context-copy>p:last-child{max-width:340px;margin:18px 0 0;color:rgba(247,247,250,.66);font-size:14px;line-height:1.55}
+.admin-gate-context-note{display:flex;align-items:center;gap:8px;width:max-content;max-width:100%;padding-top:15px;border-top:1px solid rgba(255,255,255,.14);color:rgba(247,247,250,.67);font-size:12px;line-height:1.4}
 .admin-gate-status-dot{width:8px;height:8px;border-radius:50%;background:var(--gate-accent);box-shadow:0 0 0 4px rgba(205,249,64,.13)}
 .admin-gate-form-panel{display:flex;flex-direction:column;justify-content:center;padding:48px clamp(28px,5vw,58px)}
 .admin-gate-form-panel h2{margin:0;color:var(--gate-ink);font-family:"TeachEd Display","TeachEd UI",sans-serif;font-size:31px;font-weight:800;letter-spacing:-.035em;line-height:1.12}

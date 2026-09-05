@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#1C1C1E}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#525252;font-size:.9rem;margin-bottom:20px}
@@ -28,7 +28,7 @@ input.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
 input.wrong{border-color:#f44336;background:#fff0f0}
 .btn-row{display:flex;gap:10px;margin-top:12px}
 button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
-.btn-hint{background:#F5F0E8;color:var(--accent)}
+.btn-hint{background:#F2F2F5;color:var(--accent)}
 .btn-skip{background:#f5f5f5;color:#525252}
 .feedback{margin-top:14px;font-size:1rem;font-weight:700;min-height:22px}
 .feedback.ok{color:#4caf50}
@@ -36,10 +36,10 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 .progress{width:100%;height:5px;background:#f0e0e8;border-radius:3px;margin-bottom:20px}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=728">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=731">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -164,7 +164,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 document.getElementById('ans').addEventListener('input',check);
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=728"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=728"></script>
+<script src="../scripts/game-handoff.js?v=731"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=731"></script>
 </body>
 </html>

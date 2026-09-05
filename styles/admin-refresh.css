@@ -4,7 +4,7 @@
   --admin-surface-2:#f8f8f6;
   --admin-ink:#1d201d;
   /* На песочном фоне темы прежний #70766F давал 3.3:1 в подписях разделов. */
-  --admin-muted:#4E4E48 !important;
+  --admin-muted:#4D4D50 !important;
   --admin-line:#dfe2dc;
   --admin-accent:#596759;
   --admin-accent-soft:#e7ece5;
@@ -195,9 +195,9 @@ tr:hover td{background:#f9faf8}
 
 /* Control center refinement: one operational visual language across the gate and workspace. */
 :root{
-  --admin-bg:var(--te-paper,#f6f6f2);
+  --admin-bg:var(--te-paper,#f6f6f9);
   --admin-surface:var(--te-white,#fff);
-  --admin-surface-2:#eeeee9;
+  --admin-surface-2:#ededf0;
   --admin-ink:var(--te-ink,#20202c);
   --admin-muted:var(--te-muted,#6c6c77);
   --admin-line:rgba(32,32,44,.14);
@@ -215,7 +215,7 @@ body.admin-page::before{position:fixed;inset:0;z-index:-1;content:"";opacity:.34
 body.admin-page button,body.admin-page input,body.admin-page select,body.admin-page textarea{font-family:inherit}
 
 /* Fallback login never competes with the protected entry screen, but remains usable if a session expires. */
-#login-screen{background:rgba(245,244,238,.98);backdrop-filter:blur(6px);transition:opacity .16s ease,visibility .16s ease}
+#login-screen{background:rgba(244,244,247,.98);backdrop-filter:blur(6px);transition:opacity .16s ease,visibility .16s ease}
 .login-box{position:relative;width:min(420px,100%);padding:34px;border:1px solid var(--admin-line);border-radius:16px;background:var(--admin-surface);box-shadow:0 22px 54px rgba(32,32,44,.14);text-align:left}
 .login-box::before{position:absolute;top:0;right:34px;left:34px;height:3px;content:"";border-radius:0 0 4px 4px;background:var(--admin-accent)}
 .login-brand{margin-bottom:38px;color:var(--admin-ink);font-size:16px;font-weight:760}
@@ -260,17 +260,17 @@ html body.admin-page #login-screen .login-box .btn-primary:active{transform:tran
 #refresh-ring{background:var(--te-pink,#f0508a)}
 #page-dashboard>.stats-grid{border-color:var(--admin-line);border-radius:14px;background:var(--admin-surface);box-shadow:var(--shadow)}
 #page-dashboard>.stats-grid>.stat-card{min-height:116px;background:transparent}
-#page-dashboard>.stats-grid>.stat-card:hover{background:#fbfbf5}
+#page-dashboard>.stats-grid>.stat-card:hover{background:#fafafd}
 .stat-num{font-size:29px;color:var(--admin-ink);font-weight:740}
 .stat-label{color:var(--admin-muted);font-size:10px;font-weight:720;letter-spacing:.04em;text-transform:uppercase}
 .signal{font-size:10px}
 .signal-dot.good{background:#4d7a28}.signal-dot.warn{background:#a96510}.signal-dot.bad{background:var(--admin-danger)}
 .table-card,.audit-card,.setting-card,.ops-card,.brief-card,.production-card{border-color:var(--admin-line);border-radius:14px;background:var(--admin-surface);box-shadow:var(--shadow)}
-.table-header{padding:16px 18px;background:rgba(255,254,250,.76)}
+.table-header{padding:16px 18px;background:rgba(254,254,255,.76)}
 .table-header-title{font-size:15px;font-weight:730}
-th{background:#f2f2ec;color:#687067;font-size:10px;font-weight:760;letter-spacing:.06em}
+th{background:#f1f1f4;color:#687067;font-size:10px;font-weight:760;letter-spacing:.06em}
 td{font-size:13px}
-tr:hover td{background:#fafaf5}
+tr:hover td{background:#f9f9fc}
 .search-box,.form-input,.form-select{border-color:var(--admin-line);border-radius:10px;background:#fff}
 .search-box:focus,.form-input:focus,.form-select:focus{border-color:var(--te-violet,#8b42fd);box-shadow:0 0 0 3px rgba(139,66,253,.18)}
 .btn-primary,.btn-save{border:1px solid var(--admin-accent)!important;border-radius:12px!important;background:var(--admin-accent)!important;color:var(--admin-ink)!important;font-weight:800!important}
@@ -298,16 +298,16 @@ tr:hover td{background:#fafaf5}
 .modal-overlay{background:rgba(22,24,19,.36);backdrop-filter:blur(4px)}
 .modal,.shortcuts-box{border-color:var(--admin-line);border-radius:16px;background:#fff;box-shadow:0 28px 70px rgba(32,32,44,.22)}
 .modal-overlay.open .modal{transition-duration:.2s}
-#user-drawer{background:#fffefa}
-.drawer-head,.drawer-foot{background:#f2f2ec}
+#user-drawer{background:#fefeff}
+.drawer-head,.drawer-foot{background:#f1f1f4}
 .drawer-close{border-radius:7px}
 #toast{border-radius:8px;box-shadow:0 16px 38px rgba(22,24,19,.18)}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(172,214,38,.42);outline-offset:2px}
 
 @media(max-width:980px){
   #main{padding:22px 16px 44px}
-  #mobile-topbar{min-height:62px;border-bottom:1px solid var(--admin-line);background:rgba(245,244,238,.96);backdrop-filter:blur(12px)}
-  .mtb-menu{width:42px;height:42px;border-radius:7px;background:#fffefa}
+  #mobile-topbar{min-height:62px;border-bottom:1px solid var(--admin-line);background:rgba(244,244,247,.96);backdrop-filter:blur(12px)}
+  .mtb-menu{width:42px;height:42px;border-radius:7px;background:#fefeff}
   .mtb-title{font-size:16px;font-weight:740}
   #sidebar{box-shadow:14px 0 36px rgba(22,24,19,.18)}
   .page-title{font-size:26px}

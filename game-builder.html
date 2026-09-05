@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=728">
-<link rel="preload" as="style" href="styles/unify.css?v=728">
-<link rel="manifest" href="manifest.json?v=728">
+<link rel="preload" as="style" href="styles/harmony.css?v=731">
+<link rel="preload" as="style" href="styles/unify.css?v=731">
+<link rel="manifest" href="manifest.json?v=731">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -18,8 +18,8 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent:#1C1C1E;--lime:#C8E632;--lime-dark:#A8D02B;--bg:#F5F0E8;--card:#fff;
-  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);--text:#1C1C1E;--text2:#3A3A2E;--text3:#A2A28C;
+  --accent:#1C1C1E;--lime:#C8E632;--lime-dark:#A8D02B;--bg:#F2F2F5;--card:#fff;
+  --border:rgba(92,92,102,.14);--border2:rgba(92,92,102,.28);--text:#1C1C1E;--text2:#3A3A40;--text3:#9A9AA3;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
   --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
   --pink:#EC2D8C;--pink-soft:#FCE3EF;
@@ -28,17 +28,17 @@
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
 a{text-decoration:none;color:inherit}
-#nav{position:sticky;top:0;z-index:200;height:36px;background:rgba(245,240,232,.86);backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(94,94,74,.08);display:flex;align-items:center;padding:0 14px}
+#nav{position:sticky;top:0;z-index:200;height:36px;background:rgba(242,242,245,.86);backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(92,92,102,.08);display:flex;align-items:center;padding:0 14px}
 .nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0}.nav-logo img{width:22px;height:22px;border-radius:6px}.nav-logo-name{font-size:13px;font-weight:650;margin-left:7px}
 .nav-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
 .nav-link{font-size:13px;font-weight:600;color:var(--text2);padding:0 10px;height:36px;display:flex;align-items:center;border-radius:8px;white-space:nowrap;transition:background .12s,color .12s}
 .nav-link:hover{background:rgba(5,5,23,.06)}.nav-link.active{font-weight:700;color:var(--lime)}
 .nav-spacer{flex:1}
-.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(94,94,74,.07)}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(200,230,50,.22);background:rgba(92,92,102,.07)}
 #nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(200,230,50,.15);font-size:11px;font-weight:700}
 .shell{display:flex;align-items:flex-start;max-width:1380px;margin:0 auto}.wrap{flex:1;min-width:0;max-width:1180px;padding:34px 22px 60px}.side{width:196px;flex:0 0 196px;position:sticky;top:44px;padding:24px 8px 40px 14px}.side-title{font:900 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:16px 10px 7px}.side-title:first-child{margin-top:0}.side-btn{width:100%;min-height:40px;border:0;background:transparent;border-radius:12px;display:flex;align-items:center;gap:9px;padding:8px 10px;color:var(--text2);font-weight:650;font-size:13px;text-align:left;transition:background .16s;cursor:pointer}.side-btn:hover{background:rgba(28,28,30,.06);color:var(--text)}.side-ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:800;flex:0 0 auto}
 .hero{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:28px}
-.hero-card{background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.65);border-radius:28px;box-shadow:0 18px 50px rgba(94,94,74,.09);backdrop-filter:blur(16px);padding:34px;background:radial-gradient(circle at top right,rgba(200,230,50,.28),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.92),rgba(237,232,224,.82))}
+.hero-card{background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.65);border-radius:28px;box-shadow:0 18px 50px rgba(92,92,102,.09);backdrop-filter:blur(16px);padding:34px;background:radial-gradient(circle at top right,rgba(200,230,50,.28),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.92),rgba(233,233,236,.82))}
 .eyebrow{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:12px}
 h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-width:720px}
 .hero-copy{margin-top:12px;color:var(--text2);font-size:15px;line-height:1.6;max-width:640px}
@@ -128,14 +128,14 @@ textarea{min-height:60px;resize:vertical}
 .gb-field-error{margin-top:6px;color:#9F1239;font:700 11px/1.4 var(--font)}
 .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .game-card{background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
-.game-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(94,94,74,.12);border-color:rgba(205,242,79,.35)}
+.game-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(92,92,102,.12);border-color:rgba(205,242,79,.35)}
 .game-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--lime),var(--accent))}
 .game-top{display:flex;gap:10px;align-items:center}
 .game-ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font-size:22px;flex-shrink:0}
 .game-name{font-size:15px;font-weight:700;line-height:1.2}
 .game-meta{font-size:11px;color:var(--text3);margin-top:2px}
 .game-tags{display:flex;gap:6px;flex-wrap:wrap}
-.tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
+.tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(92,92,102,.08);color:var(--text2)}
 .tag.lime{background:rgba(200,230,50,.18);color:var(--accent)}
 .tag.pink{background:rgba(236,45,140,.1);color:var(--pink)}
 .tag.blue{background:rgba(59,130,246,.1);color:var(--blue)}
@@ -158,14 +158,14 @@ textarea{min-height:60px;resize:vertical}
 .dict-toolbar{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:10px;margin-bottom:14px}
 .dict-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:28px}
 .dict-card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.2s}
-.dict-card:hover{border-color:rgba(200,230,50,.55);transform:translateY(-2px);box-shadow:0 10px 30px rgba(94,94,74,.10)}
+.dict-card:hover{border-color:rgba(200,230,50,.55);transform:translateY(-2px);box-shadow:0 10px 30px rgba(92,92,102,.10)}
 .dict-card::after{content:"";position:absolute;right:-44px;top:-44px;width:112px;height:112px;border-radius:999px;background:rgba(200,230,50,.18);pointer-events:none}
 .dict-head{display:flex;align-items:flex-start;gap:10px;position:relative;z-index:1}
 .dict-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(200,230,50,.16);font-size:22px;flex-shrink:0}
 .dict-title{font-size:15px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
 .dict-meta{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.35}
 .dict-preview{display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:1}
-.dict-word{font:800 11px var(--font);padding:5px 8px;border-radius:999px;background:rgba(94,94,74,.08);color:var(--text2)}
+.dict-word{font:800 11px var(--font);padding:5px 8px;border-radius:999px;background:rgba(92,92,102,.08);color:var(--text2)}
 .dict-actions{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1;margin-top:auto}
 .dict-actions .btn{flex:1;min-width:92px}
 .dict-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1;font:800 10px var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
@@ -191,7 +191,7 @@ textarea{min-height:60px;resize:vertical}
 .gb-live-eyebrow{font:800 9px/1 var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
 .gb-live-title{font:900 15px/1.2 var(--font);letter-spacing:-.02em;color:var(--text)}
 .gb-live-actions{display:flex;gap:6px;flex-shrink:0}
-.gb-live-stage{border:1px solid var(--border);border-radius:14px;background:#F5F0E8;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center}
+.gb-live-stage{border:1px solid var(--border);border-radius:14px;background:#F2F2F5;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center}
 .gb-live-stage iframe{border:none;display:block;transform-origin:top left}
 .gb-live-empty{padding:26px 18px;text-align:center;font:700 12px/1.6 var(--font);color:var(--text3)}
 .gb-live-note{margin-top:9px;font:700 11px/1.45 var(--mono,monospace);color:var(--text3);min-height:16px}
@@ -241,8 +241,8 @@ textarea{min-height:60px;resize:vertical}
 
 /* ── Mobile hand-off ─────────────────────────────────────────────────────── */
 @media(max-width:860px){
-  .mobile-desktop-only{position:fixed;inset:0;z-index:10000;display:flex!important;align-items:center;justify-content:center;padding:24px 18px;background:rgba(245,240,232,.96)}
-  .mdo-card{width:min(100%,390px);padding:28px 22px 22px;border:1px solid rgba(94,94,74,.14);border-radius:24px;background:#fff;box-shadow:0 18px 50px rgba(94,94,74,.16);text-align:center}
+  .mobile-desktop-only{position:fixed;inset:0;z-index:10000;display:flex!important;align-items:center;justify-content:center;padding:24px 18px;background:rgba(242,242,245,.96)}
+  .mdo-card{width:min(100%,390px);padding:28px 22px 22px;border:1px solid rgba(92,92,102,.14);border-radius:24px;background:#fff;box-shadow:0 18px 50px rgba(92,92,102,.16);text-align:center}
   .mdo-ic{width:52px;height:52px;margin:0 auto 16px;display:grid;place-items:center;border-radius:16px;background:rgba(200,230,50,.22);font-size:26px}
   .mdo-card h2{font-size:22px;line-height:1.08;letter-spacing:-.04em}
   .mdo-card p{margin:10px auto 20px;max-width:310px;color:var(--text2);font-size:13px;line-height:1.5}
@@ -258,17 +258,17 @@ textarea{min-height:60px;resize:vertical}
   .tab{min-height:44px;display:inline-flex;align-items:center;}
 }
 </style>
-<script src="theme.js?v=728" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=728">
-<link rel="stylesheet" href="styles/harmony.css?v=728">
-<link rel="stylesheet" href="styles/unify.css?v=728">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=728">
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
-<link rel="stylesheet" href="styles/tool-window.css?v=728">
+<script src="theme.js?v=731" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=731">
+<link rel="stylesheet" href="styles/harmony.css?v=731">
+<link rel="stylesheet" href="styles/unify.css?v=731">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=731">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
+<link rel="stylesheet" href="styles/tool-window.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=728">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=728">
-<link rel="stylesheet" href="styles/controls.css?v=728">
+<link rel="stylesheet" href="styles/figma-theme.css?v=731">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=731">
+<link rel="stylesheet" href="styles/controls.css?v=731">
 </head>
 <body class="tools-workbench tw-page fx">
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -536,9 +536,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=728"></script>
-<script src="scripts/vocab-loader.js?v=728"></script>
-<script src="scripts/game-builder-app.js?v=728"></script>
+<script src="scripts/app-core.js?v=731"></script>
+<script src="scripts/vocab-loader.js?v=731"></script>
+<script src="scripts/game-builder-app.js?v=731"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -552,10 +552,10 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF24F">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=728" defer></script>
-<script src="scripts/mobile-nav.js?v=728"></script>
-<script src="scripts/mobile-zoom-guard.js?v=728" defer></script>
-<script src="scripts/autogrow.js?v=728" defer></script>
-<script src="pwa-boot.js?v=728" defer></script>
+<script src="scripts/mobile-perf.js?v=731" defer></script>
+<script src="scripts/mobile-nav.js?v=731"></script>
+<script src="scripts/mobile-zoom-guard.js?v=731" defer></script>
+<script src="scripts/autogrow.js?v=731" defer></script>
+<script src="pwa-boot.js?v=731" defer></script>
 </body>
 </html>

@@ -20,20 +20,20 @@ body.fx {
   --fx-lime:#CBF03C;
   --fx-lime-deep:#BCE22A;
   --fx-ink:#161616;
-  --fx-ink-2:#4A4A46;
-  /* Тот же тон, что на лендинге: прежний #9A968C давал 2.63:1 на светлых
+  --fx-ink-2:#4A4A4D;
+  /* Тот же тон, что на лендинге: прежний #969699 давал 2.63:1 на светлых
      панелях - под ним подсказки пустого состояния доски и .sb-label. */
-  --fx-mute:#5A5750;
+  --fx-mute:#57575A;
 
-  --fx-bg-1:#EBD4C7;
-  --fx-bg-2:#E4DCCC;
-  --fx-bg-3:#D9D6C6;
-  --fx-bg-4:#F4EEDC;
+  --fx-bg-1:#D9D9DC;
+  --fx-bg-2:#DDDDE0;
+  --fx-bg-3:#D5D5D8;
+  --fx-bg-4:#EEEEF1;
 
-  --fx-glass:rgba(255,252,246,.52);
-  --fx-glass-strong:rgba(255,253,248,.72);
+  --fx-glass:rgba(252,252,255,.52);
+  --fx-glass-strong:rgba(253,253,255,.72);
   --fx-glass-line:rgba(255,255,255,.62);
-  --fx-shadow:0 30px 70px rgba(90,70,55,.16), 0 6px 18px rgba(90,70,55,.08);
+  --fx-shadow:0 30px 70px rgba(74,74,77,.16), 0 6px 18px rgba(74,74,77,.08);
 
   /* Скругления сняты с кадра макета по отношению радиуса к размеру самого
      элемента, а не на глаз: плитка дока 0.25 стороны, панель 0.03 высоты,
@@ -65,11 +65,13 @@ body.fx {
    юридические - оставались на белом с фиолетовым свечением старой темы.
    Свойство background-attachment при этом применялось, поэтому в инспекторе
    выглядело так, будто правило работает. */
+/* Раньше здесь лежал снимок рабочего стола (desktop-bg.jpg) под тёплой
+   заливкой. Именно он красил все разделы в «слегка бежевый»: даже после
+   перевода заливки в нейтраль сквозь неё на 36% просвечивал пастельный
+   розово-голубой градиент снимка. Ровный тёмно-белый вместо картинки -
+   и заодно минус 87 КБ на каждой из шестидесяти страниц. */
 body.fx:not(#_) {
-  background:
-    linear-gradient(rgba(237,217,198,.64), rgba(237,217,198,.64)),
-    url("../img/desktop-bg.jpg") center / cover no-repeat,
-    #E3C9B6 !important;
+  background: #EFEFF2 !important;
   background-attachment:fixed !important;
   color:var(--fx-ink) !important;
   /* Фиолетовый акцент старой темы в макете не встречается: лайм на действии,
@@ -78,12 +80,12 @@ body.fx:not(#_) {
   --tw-accent:#161616;
   --tw-accent-soft:rgba(203,240,60,.28);
   --tw-ink:#161616;
-  --tw-ink-2:#4A4A46;
+  --tw-ink-2:#4A4A4D;
   /* tool-window.css держал здесь #5E5E6A (6.5:1 на белом); тема опускала
      тон до 2.6:1 разом на всех тринадцати страницах инструментов. */
-  --tw-ink-3:#5A5750;
+  --tw-ink-3:#57575A;
 
-  /* Фон страницы уехал с белого (#FFFCF8, яркость 0.98) на песок (0.61),
+  /* Фон страницы уехал с белого (#FCFCFF, яркость 0.98) на песок (0.61),
      а вторичный текст этих страниц подбирался под белое. Тона, которые на
      белом давали 4.6-5.0, на песке падают до 2.9-3.2, поэтому приглушённые
      токены опускаются здесь на те же 4.7:1 по песку. Оттенок и температура
@@ -161,7 +163,7 @@ body.fx:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
      стекло, а список уроков, сквозь который читаются карточки доски. */
   body.fx:not(#_):not(.board-page):not(.tools-workbench) :is(.side,#sidebar) {
     top:56px !important;
-    background:rgba(255,253,247,.55) !important;
+    background:rgba(253,253,255,.55) !important;
     border:1px solid rgba(255,255,255,.5) !important;
     border-radius:24px !important;
     box-shadow:none !important;
@@ -238,14 +240,14 @@ body.fx:not(#_) :is(
   .hw-card,.hw-metric,.tpl-card,.type-card,.library-item,
   .stat-card,.insight-card,.stat-pill,.side-section
 ):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame) {
-  background:rgba(255,253,246,.55) !important;
+  background:rgba(253,253,255,.55) !important;
   border:1px solid rgba(255,255,255,.6) !important;
   border-radius:var(--fx-r-card) !important;
   box-shadow:none !important;
 }
 
 /* Внутри белой рейки расписания стекло не читается вовсе. Заливка
-   rgba(255,253,246,.55) поверх #fff даёт контраст к фону около 1.01:1, а
+   rgba(253,253,255,.55) поверх #fff даёт контраст к фону около 1.01:1, а
    рамка rgba(255,255,255,.6) - это белое по белому. Блоки «Stats», «Time
    zone» и плитки счётчиков превращались в пятна без границ: половина рейки
    выглядела как карточки, половина - как текст, насыпанный на белое.
@@ -352,9 +354,9 @@ body.fx:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
   html:has(body.fx) {
     background:
       radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
-      radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
-      radial-gradient(ellipse 70% 60% at 0% 100%, #EFE6D2 0%, transparent 64%),
-      linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+      radial-gradient(ellipse 55% 50% at 100% 18%,#D5D5D8 0%, transparent 62%),
+      radial-gradient(ellipse 70% 60% at 0% 100%, #E6E6E9 0%, transparent 64%),
+      linear-gradient(150deg, #EFEFF2 0%, #EAEAEF 50%, #E4E4EA 100%) !important;
     background-attachment:fixed !important;
   }
   /* Тогда фон body только дублировал бы корневой. */
@@ -425,8 +427,8 @@ body.fx:not(#_) {
 body.fx:not(#_) .auth-page {
   background:
     radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
-    radial-gradient(ellipse 55% 50% at 100% 18%,#DCD6C0 0%, transparent 62%),
-    linear-gradient(150deg, #E3C9B6 0%, #E0D0BC 50%, #D8CDB8 100%) !important;
+    radial-gradient(ellipse 55% 50% at 100% 18%,#D5D5D8 0%, transparent 62%),
+    linear-gradient(150deg, #EFEFF2 0%, #EAEAEF 50%, #E4E4EA 100%) !important;
 }
 body.fx:not(#_) .auth-card {
   background:var(--fx-glass-strong) !important;
@@ -443,7 +445,7 @@ body.fx:not(#_) .auth-card {
    поэтому оверлей на доске (единственное место поверх содержимого) делаем
    непрозрачным явно. */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
-  body.fx:not(#_) .board-auth-card { background:#FBF7F0 !important; }
+  body.fx:not(#_) .board-auth-card { background:#FAFAFB !important; }
 }
 body.fx:not(#_) .auth-title {
   font-weight:800 !important; letter-spacing:-.03em !important; color:var(--fx-ink) !important;
@@ -486,7 +488,7 @@ body.fx:not(#_) .label {
    больших цветных плит в макете нет. Делаю её такой же стеклянной панелью с
    чернильным текстом, лайм остаётся на кнопке. */
 body.fx:not(#_) .hero {
-  background:rgba(255,253,247,.55) !important;
+  background:rgba(253,253,255,.55) !important;
   color:var(--fx-ink) !important;
 }
 body.fx:not(#_) :is(.hero-title,.panel-title) {
@@ -525,7 +527,7 @@ body.fx:not(#_) .yt-lesson-cta:hover { background:var(--fx-lime-deep) !important
 
 /* Сообщество, превью публикуемого урока: тёмно-зелёный градиент. */
 body.fx:not(#_) .lesson-preview {
-  background:rgba(255,253,246,.62) !important;
+  background:rgba(253,253,255,.62) !important;
   border:1px solid var(--fx-glass-line) !important;
   color:var(--fx-ink) !important;
   box-shadow:none !important;
@@ -674,7 +676,7 @@ body.fx:not(#_) :is(.nav-logo,.mb-apple,.tb-logo,.logo) img {
   border-radius:0 !important; background:none !important;
 }
 
-/* teacher-tools-refined.css красит описание инструмента литералом #74756d:
+/* teacher-tools-refined.css красит описание инструмента литералом #747477:
    на белом это 4.6:1, на песке 3.0:1. */
 body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !important; }
 
@@ -699,7 +701,7 @@ body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !impo
    он снят только с главной (body.os-desktop), как и просили.
 
    Одним фоном обойтись нельзя. Панели главной собраны на полупрозрачном стекле
-   --fx-glass rgba(255,252,246,.52) и держатся исключительно на контрасте с
+   --fx-glass rgba(252,252,255,.52) и держатся исключительно на контрасте с
    тёмной песочной подложкой: на светлом фоне они дают composite примерно
    #FDFCF9 против фона, то есть разницу в доли процента, и вместе с белой же
    рамкой --fx-glass-line просто растворяются. Поэтому на главной стекло
@@ -715,14 +717,14 @@ body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !impo
    Снимок desktop-bg.jpg с тёплой заливкой снимается вместе с цветом, иначе он
    остался бы поверх новой подложки. */
 body.fx.os-desktop #desktop:not(#_) {
-  background:#F1F0E9 !important;
+  background:#F0F0F3 !important;
 }
 html:has(body.fx.os-desktop) {
-  background:#F1F0E9 !important;
+  background:#F0F0F3 !important;
   background-attachment:scroll !important;
 }
 body.fx.os-desktop:not(#_) {
-  background:#F1F0E9 !important;
+  background:#F0F0F3 !important;
   background-attachment:scroll !important;
 
   --fx-glass:#FFFFFF;
@@ -733,5 +735,5 @@ body.fx.os-desktop:not(#_) {
   --fx-glass-line:rgba(22,22,22,.18);
   /* Тень была рассчитана на тёмную подложку; на светлой она читалась грязным
      пятном, поэтому мягче и холоднее. */
-  --fx-shadow:0 18px 44px rgba(40,38,32,.10), 0 3px 10px rgba(40,38,32,.06);
+  --fx-shadow:0 18px 44px rgba(38,38,41,.10), 0 3px 10px rgba(38,38,41,.06);
 }

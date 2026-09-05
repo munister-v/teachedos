@@ -480,7 +480,7 @@ async function loadSharedBoards(forceOffline = false) {
     }
     wrap.innerHTML = boards.map(b => `
       <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
-        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:650;color:var(--text);">${esc(b.name)}</div>
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
@@ -496,7 +496,7 @@ async function loadSharedBoards(forceOffline = false) {
     }
     wrap.innerHTML = cachedBoards.map(b => `
       <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
-        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F5F0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:650;color:var(--text);">${esc(b.name)}</div>
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar || '👩‍🏫'} ${esc(b.owner_name || 'Teacher')} · Saved snapshot</div>

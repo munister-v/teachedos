@@ -169,12 +169,12 @@
         min-height: 42px;
         padding: 9px 11px;
         border-radius: 13px;
-        background: rgba(245,240,232,.74);
-        border: 1px solid rgba(94,94,74,.10);
+        background: rgba(242,242,245,.74);
+        border: 1px solid rgba(92,92,102,.10);
       }
       .te-kbd-desc {
         min-width: 0;
-        color: #303026;
+        color: #2F2F32;
         font-size: 13px;
         font-weight: 750;
       }
@@ -195,7 +195,7 @@
       }
       .te-kbd-sub {
         margin-top: 14px;
-        color: #6A6A5A;
+        color: #68686B;
         font-size: 12px;
         line-height: 1.5;
       }
@@ -211,7 +211,7 @@
         padding: 10px 13px;
         border-radius: 999px;
         background: rgba(14,14,16,.94);
-        color: #F5F0E8;
+        color: #F2F2F5;
         box-shadow: 0 16px 42px rgba(5,5,23,.24);
         font-family: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
         font-size: 12px;

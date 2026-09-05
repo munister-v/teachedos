@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <base href="/">
-<link rel="manifest" href="manifest.json?v=728">
+<link rel="manifest" href="manifest.json?v=731">
 <meta name="theme-color" content="#FFFFFF"/>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -10,8 +10,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=728">
-<link rel="preload" as="style" href="styles/unify.css?v=728">
+<link rel="preload" as="style" href="styles/harmony.css?v=731">
+<link rel="preload" as="style" href="styles/unify.css?v=731">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -27,19 +27,19 @@ try { if (localStorage.getItem('teachedos_admin_token')) document.documentElemen
 <style>
 :root{
   --accent:#1C1C1E;--accent2:#C8E632;--lime:#C8E632;
-  --bg:#F5F0E8;--card:#fff;
-  --border:rgba(94,94,74,.14);--border2:rgba(94,94,74,.28);
-  --text:#1C1C1E;--text2:#3A3A2E;--muted:#5B5B4E;
+  --bg:#F2F2F5;--card:#fff;
+  --border:rgba(92,92,102,.14);--border2:rgba(92,92,102,.28);
+  --text:#1C1C1E;--text2:#3A3A40;--muted:#5A5A5D;
   --green:#0D6E36;--red:#A61919;--orange:#AE5000;--blue:#3b82f6;
   --dark:#1C1C1E;--dark2:#2C2C2E;--sidebar-w:240px;
   --card-r:14px;--shadow:0 4px 24px rgba(5,5,23,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F5F0E8;color:var(--text);min-height:100vh;display:flex;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F2F2F5;color:var(--text);min-height:100vh;display:flex;overflow-x:hidden}
 
 /* ── Login screen ───────────────────────────────────────────────────────── */
 #login-screen{
-  position:fixed;inset:0;background:linear-gradient(135deg,#F5F0E8 0%,#f3e8ff 100%);
+  position:fixed;inset:0;background:linear-gradient(135deg,#F2F2F5 0%,#f3e8ff 100%);
   display:flex;align-items:center;justify-content:center;z-index:9999;
   transition:opacity .3s;
 }
@@ -118,10 +118,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(5,5,23,.12)}
 .stat-icon{font-size:32px;width:52px;height:52px;border-radius:14px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.stat-icon.pink{background:#F5F0E8}
+.stat-icon.pink{background:#F2F2F5}
 .stat-icon.green{background:#f0fdf4}
 .stat-icon.blue{background:#eff6ff}
-.stat-icon.orange{background:#fff7ed}
+.stat-icon.orange{background:#f8f8fb}
 .stat-num{font-size:30px;font-weight:700;line-height:1}
 .stat-label{font-size:13px;color:var(--muted);font-weight:600;margin-top:3px}
 .signal{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:650;color:var(--muted);margin-top:10px}
@@ -136,12 +136,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .audit-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(5,5,23,.12)}
 .audit-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .audit-card-title{font-size:16px;font-weight:700}
-.audit-count{font-size:12px;font-weight:700;color:var(--accent);background:#fff7ed;border-radius:20px;padding:3px 9px}
+.audit-count{font-size:12px;font-weight:700;color:var(--accent);background:#f8f8fb;border-radius:20px;padding:3px 9px}
 .audit-list{display:flex;flex-direction:column;gap:8px}
 .audit-item{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fafafa}
 .audit-main{font-size:13px;font-weight:650;color:var(--text)}
 .audit-sub{font-size:12px;color:var(--muted);margin-top:2px;word-break:break-word}
-.audit-warning{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff7ed;color:#9a3412;font-size:13px;font-weight:600}
+.audit-warning{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#f8f8fb;color:#9a3412;font-size:13px;font-weight:600}
 .audit-warning.medium{background:#fef2f2;color:#991b1b}
 .empty-note{font-size:13px;color:var(--muted);padding:10px 0}
 .audit-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -170,7 +170,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .spotlight-action{border:none;border-radius:8px;padding:5px 8px;background:#fff;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
 .spotlight-empty{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;padding:8px 0}
 .brief-card{display:grid;grid-template-columns:180px 1fr;gap:22px;align-items:center;background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:22px;margin-bottom:24px}
-.brief-score{width:148px;height:148px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:conic-gradient(var(--accent) calc(var(--score,0)*1%),#f1f1e8 0);position:relative}
+.brief-score{width:148px;height:148px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:conic-gradient(var(--accent) calc(var(--score,0)*1%),#f0f0f3 0);position:relative}
 .brief-score::after{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}
 .brief-score-num{position:relative;z-index:1;font-size:38px;font-weight:700;line-height:1;color:var(--text)}
 .brief-score-label{position:relative;z-index:1;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
@@ -182,7 +182,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .brief-action{border:none;border-radius:999px;padding:8px 12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:#eff6ff;color:#1d4ed8;
   transition:all .22s cubic-bezier(.34,1.56,.64,1)}
 .brief-action:active{transform:scale(.95)}
-.brief-action.watch{background:#fff7ed;color:#c2410c}
+.brief-action.watch{background:#f8f8fb;color:#c2410c}
 .brief-action.risk{background:#fef2f2;color:#dc2626}
 .brief-action.good{background:#ecfdf5;color:#15803d}
 
@@ -220,7 +220,7 @@ tr{transition:background .15s ease}
 .btn-edit:hover{background:#dbeafe}
 .btn-danger{background:#fef2f2;color:var(--red)}
 .btn-danger:hover{background:#fee2e2}
-.btn-orange{background:#fff7ed;color:var(--orange)}
+.btn-orange{background:#f8f8fb;color:var(--orange)}
 .btn-orange:hover{background:#ffedd5}
 .btn-green{background:#f0fdf4;color:var(--green)}
 .btn-green:hover{background:#dcfce7}
@@ -308,7 +308,7 @@ tr{transition:background .15s ease}
 .setting-card{background:#fff;border-radius:var(--card-r);padding:24px;box-shadow:var(--shadow);
   transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease}
 .setting-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(5,5,23,.12)}
-.settings-hero{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:26px 28px;margin-bottom:20px;border-radius:22px;background:linear-gradient(135deg,#1c1c1e 0%,#30302b 62%,#48501d 100%);color:#fff;box-shadow:0 18px 42px rgba(28,28,30,.18)}
+.settings-hero{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:26px 28px;margin-bottom:20px;border-radius:22px;background:linear-gradient(135deg,#1c1c1e 0%,#2f2f32 62%,#48501d 100%);color:#fff;box-shadow:0 18px 42px rgba(28,28,30,.18)}
 .settings-hero::after{content:"";position:absolute;right:-68px;bottom:-92px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(200,230,50,.42),transparent 68%);pointer-events:none}
 .settings-hero-copy{position:relative;z-index:1;max-width:680px}
 .settings-hero-kicker{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.56);margin-bottom:8px}
@@ -318,7 +318,7 @@ tr{transition:background .15s ease}
 .settings-hero .btn-sm{min-height:44px;padding:0 14px;border-radius:11px}
 .settings-hero .btn-edit{background:#c8e632;color:#1c1c1e;border-color:transparent}
 .settings-hero .btn-ghost{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff}
-.setting-card--featured{grid-column:1/-1;background:linear-gradient(180deg,#fff 0%,#fcfcf8 100%);border:1px solid rgba(28,28,30,.08);box-shadow:0 16px 36px rgba(28,28,30,.1)}
+.setting-card--featured{grid-column:1/-1;background:linear-gradient(180deg,#fff 0%,#fcfcff 100%);border:1px solid rgba(28,28,30,.08);box-shadow:0 16px 36px rgba(28,28,30,.1)}
 .setting-card--featured:hover{transform:none}
 .production-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
 .production-kicker{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
@@ -326,9 +326,9 @@ tr{transition:background .15s ease}
 .production-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-top:5px;max-width:680px}
 .production-actions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
 .production-actions .btn-sm{min-height:44px;padding:0 13px}
-.production-summary{display:flex;align-items:center;gap:12px;min-height:58px;padding:13px 15px;margin-bottom:16px;border-radius:14px;background:#f7f7f2;border:1px solid var(--border)}
+.production-summary{display:flex;align-items:center;gap:12px;min-height:58px;padding:13px 15px;margin-bottom:16px;border-radius:14px;background:#f6f6f9;border:1px solid var(--border)}
 .production-summary.is-good{background:#ecfdf5;border-color:#bbf7d0}
-.production-summary.is-warn{background:#fff7ed;border-color:#fed7aa}
+.production-summary.is-warn{background:#f8f8fb;border-color:#fed7aa}
 .production-summary.is-bad{background:#fef2f2;border-color:#fecaca}
 .production-summary-icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:#fff;font-size:15px;flex:0 0 auto}
 .production-summary-title{font-size:14px;font-weight:700;color:var(--text)}
@@ -336,7 +336,7 @@ tr{transition:background .15s ease}
 .production-check-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .production-check{display:flex;align-items:flex-start;gap:10px;min-height:76px;padding:13px;border-radius:14px;background:#fafafa;border:1px solid var(--border)}
 .production-check.good{background:#f5fcf7;border-color:#d1fae5}
-.production-check.warn{background:#fffaf3;border-color:#fed7aa}
+.production-check.warn{background:#fbfbfe;border-color:#fed7aa}
 .production-check.bad{background:#fff6f6;border-color:#fecaca}
 .production-check-icon{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;background:#e5e7eb;color:#6b7280;font-size:12px;font-weight:700}
 .production-check.good .production-check-icon{background:#dcfce7;color:#15803d}
@@ -350,7 +350,7 @@ tr{transition:background .15s ease}
 .production-note{font-size:11px;color:var(--muted);max-width:520px;line-height:1.45;text-align:right}
 .ui-plan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .ui-plan-card{padding:16px;border:1px solid var(--border);border-radius:16px;background:#fafafa}
-.ui-plan-card.p0{background:#fffaf3;border-color:#fed7aa}
+.ui-plan-card.p0{background:#fbfbfe;border-color:#fed7aa}
 .ui-plan-card.p1{background:#f7f8ff;border-color:#dbeafe}
 .ui-plan-card.p2{background:#f7fcf8;border-color:#d1fae5}
 .ui-plan-kicker{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
@@ -370,7 +370,7 @@ tr{transition:background .15s ease}
 .invite-status.active{background:#ecfdf5;color:#15803d}
 .invite-status.used{background:#eff6ff;color:#1d4ed8}
 .invite-status.revoked{background:#fef2f2;color:#dc2626}
-.invite-status.expired{background:#fff7ed;color:#c2410c}
+.invite-status.expired{background:#f8f8fb;color:#c2410c}
 .plan-control-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;margin-bottom:24px}
 .plan-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
 .plan-card{position:relative;overflow:hidden;background:#fff;border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.7)}
@@ -415,7 +415,7 @@ tr{transition:background .15s ease}
 .ops-action-title{font-size:14px;font-weight:650;color:var(--text)}
 .ops-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:650}
 .ops-pill.good{background:#ecfdf5;color:#15803d}
-.ops-pill.warn{background:#fff7ed;color:#c2410c}
+.ops-pill.warn{background:#f8f8fb;color:#c2410c}
 .ops-pill.bad{background:#fef2f2;color:#dc2626}
 .activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:24px}
 .activity-list{display:flex;flex-direction:column;gap:10px}
@@ -466,7 +466,7 @@ tr{transition:background .15s ease}
 @media (max-width: 980px){
   #mobile-topbar{
     display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:120;
-    padding:14px 16px;background:rgba(245,240,232,.92);backdrop-filter:blur(14px);
+    padding:14px 16px;background:rgba(242,242,245,.92);backdrop-filter:blur(14px);
     border-bottom:1px solid var(--border);
   }
   .mtb-menu{
@@ -676,16 +676,16 @@ html{scroll-behavior:smooth}
 .empty-state-title{font:800 15px var(--font);color:var(--text);margin-bottom:4px}
 .empty-state-sub{font-size:13px}
 </style>
-<script src="theme.js?v=728" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=728">
-<link rel="stylesheet" href="styles/harmony.css?v=728">
-<link rel="stylesheet" href="styles/unify.css?v=728">
-<link rel="stylesheet" href="styles/teached-brand.css?v=728">
-<link rel="stylesheet" href="styles/admin-refresh.css?v=728">
-<link rel="stylesheet" href="styles/admin-control.css?v=728">
+<script src="theme.js?v=731" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=731">
+<link rel="stylesheet" href="styles/harmony.css?v=731">
+<link rel="stylesheet" href="styles/unify.css?v=731">
+<link rel="stylesheet" href="styles/teached-brand.css?v=731">
+<link rel="stylesheet" href="styles/admin-refresh.css?v=731">
+<link rel="stylesheet" href="styles/admin-control.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=728">
-<link rel="stylesheet" href="styles/controls.css?v=728">
+<link rel="stylesheet" href="styles/figma-theme.css?v=731">
+<link rel="stylesheet" href="styles/controls.css?v=731">
 </head>
 <body class="admin-page fx">
 
@@ -1564,7 +1564,7 @@ html{scroll-behavior:smooth}
     <div class="page-title">Billing</div>
     <div class="page-sub">Manual invoice requests and bank-transfer confirmations</div>
 
-    <div class="table-card" style="padding:22px;margin-bottom:20px;background:linear-gradient(135deg,rgba(28,28,30,.97),rgba(40,40,44,.95));color:#F5F0E8;border-color:rgba(200,230,50,.1)">
+    <div class="table-card" style="padding:22px;margin-bottom:20px;background:linear-gradient(135deg,rgba(28,28,30,.97),rgba(40,40,44,.95));color:#F2F2F5;border-color:rgba(200,230,50,.1)">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
         <div>
           <div style="font-size:11px;font-weight:600;color:rgba(200,230,50,.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Payment card for transfers</div>
@@ -1574,10 +1574,10 @@ html{scroll-behavior:smooth}
         <button onclick="copyAdminCard()" style="padding:9px 16px;background:rgba(200,230,50,.15);color:#C8E64A;border:1.5px solid rgba(200,230,50,.25);border-radius:10px;font-weight:650;font-size:12px;cursor:pointer">📋 Copy</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
-        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Cardholder</div><div style="font-weight:650;font-size:14px">TeachEd Ltd</div></div>
-        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Bank</div><div style="font-weight:650;font-size:14px">PrivatBank</div></div>
-        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Currency</div><div style="font-weight:650;font-size:14px">UAH / USD</div></div>
-        <div><div style="font-size:10px;color:rgba(245,240,232,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Comment field</div><div style="font-weight:650;font-size:14px">Invoice number</div></div>
+        <div><div style="font-size:10px;color:rgba(242,242,245,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Cardholder</div><div style="font-weight:650;font-size:14px">TeachEd Ltd</div></div>
+        <div><div style="font-size:10px;color:rgba(242,242,245,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Bank</div><div style="font-weight:650;font-size:14px">PrivatBank</div></div>
+        <div><div style="font-size:10px;color:rgba(242,242,245,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Currency</div><div style="font-weight:650;font-size:14px">UAH / USD</div></div>
+        <div><div style="font-size:10px;color:rgba(242,242,245,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Comment field</div><div style="font-weight:650;font-size:14px">Invoice number</div></div>
       </div>
     </div>
 
@@ -1923,7 +1923,7 @@ html{scroll-behavior:smooth}
       <div class="setting-card">
         <div class="setting-title">🔗 API Endpoint</div>
         <div class="setting-desc">Current backend URL being used by this panel.</div>
-        <div style="font-family:var(--te-font-mono,ui-monospace,monospace);font-size:13px;padding:12px;background:#F5F0E8;border-radius:10px;word-break:break-all" id="api-url-display"></div>
+        <div style="font-family:var(--te-font-mono,ui-monospace,monospace);font-size:13px;padding:12px;background:#F2F2F5;border-radius:10px;word-break:break-all" id="api-url-display"></div>
       </div>
 
       <div class="setting-card" style="grid-column:1/-1">
@@ -2018,7 +2018,7 @@ html{scroll-behavior:smooth}
 
         <div style="display:flex;gap:8px">
           <button onclick="runApiTest()" style="flex:1;padding:12px;background:var(--dark);color:#fff;border:none;border-radius:10px;font-weight:650;font-size:14px;cursor:pointer">▶ Send Request</button>
-          <button onclick="clearApiTest()" style="padding:12px 16px;background:rgba(94,94,74,.08);color:var(--text);border:1.5px solid var(--border);border-radius:10px;font-weight:600;cursor:pointer">Clear</button>
+          <button onclick="clearApiTest()" style="padding:12px 16px;background:rgba(92,92,102,.08);color:var(--text);border:1.5px solid var(--border);border-radius:10px;font-weight:600;cursor:pointer">Clear</button>
         </div>
       </div>
 
@@ -2031,8 +2031,8 @@ html{scroll-behavior:smooth}
         <div id="at-timing" style="font-size:11px;color:var(--muted);margin-bottom:10px;display:none">Response time: <strong id="at-time-ms">-</strong></div>
         <pre id="at-response" style="background:#1C1C1E;color:#C8E64A;padding:16px;border-radius:12px;font-size:12px;overflow:auto;min-height:320px;max-height:520px;white-space:pre-wrap;word-break:break-word">// Hit "Send Request" to see the response here</pre>
         <div style="display:flex;gap:8px;margin-top:12px">
-          <button onclick="copyApiResponse()" style="padding:8px 14px;background:rgba(94,94,74,.08);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:12px;cursor:pointer">📋 Copy</button>
-          <button onclick="formatApiResponse()" style="padding:8px 14px;background:rgba(94,94,74,.08);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:12px;cursor:pointer">✨ Format</button>
+          <button onclick="copyApiResponse()" style="padding:8px 14px;background:rgba(92,92,102,.08);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:12px;cursor:pointer">📋 Copy</button>
+          <button onclick="formatApiResponse()" style="padding:8px 14px;background:rgba(92,92,102,.08);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:12px;cursor:pointer">✨ Format</button>
         </div>
       </div>
     </div>
@@ -2275,15 +2275,15 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=728"></script>
-<script src="scripts/admin-refresh.js?v=728" defer></script>
-<script src="scripts/admin-security.js?v=728" defer></script>
-  <script src="scripts/admin-control.js?v=728" defer></script>
-<script src="pwa.js?v=728"></script>
-<script src="scripts/autogrow.js?v=728" defer></script>
-<script src="pwa-boot.js?v=728" defer></script>
-<script src="scripts/nav-boost.js?v=728" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=728" defer></script>
-<script src="scripts/mobile-perf.js?v=728" defer></script>
+<script src="scripts/admin-app.js?v=731"></script>
+<script src="scripts/admin-refresh.js?v=731" defer></script>
+<script src="scripts/admin-security.js?v=731" defer></script>
+  <script src="scripts/admin-control.js?v=731" defer></script>
+<script src="pwa.js?v=731"></script>
+<script src="scripts/autogrow.js?v=731" defer></script>
+<script src="pwa-boot.js?v=731" defer></script>
+<script src="scripts/nav-boost.js?v=731" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=731" defer></script>
+<script src="scripts/mobile-perf.js?v=731" defer></script>
 </body>
 </html>

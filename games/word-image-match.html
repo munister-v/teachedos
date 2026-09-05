@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#1C1C1E;--lime:#C8E632}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F5F0E8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#525252;font-size:.9rem;margin-bottom:20px;text-align:center}
@@ -22,9 +22,9 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 @media(max-width:440px){.grid{grid-template-columns:repeat(3,1fr)}}
 
-.tile{border-radius:12px;border:2px solid #eee2d8;cursor:pointer;transition:border-color .15s,transform .1s;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center}
+.tile{border-radius:12px;border:2px solid #e4e4e7;cursor:pointer;transition:border-color .15s,transform .1s;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center}
 /* Word tiles */
-.tile-word{background:#FBF8F3;padding:12px 6px;min-height:56px;font-weight:800;font-size:.78rem;color:var(--accent);text-align:center;line-height:1.25}
+.tile-word{background:#F8F8FB;padding:12px 6px;min-height:56px;font-weight:800;font-size:.78rem;color:var(--accent);text-align:center;line-height:1.25}
 /* Image tiles - square aspect ratio */
 .tile-img{aspect-ratio:1/1}
 .tile-img img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
@@ -40,10 +40,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .play-again{margin-top:12px;width:100%;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
 .loading{text-align:center;padding:32px;color:#525252;font-size:.9rem}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=728">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=728">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=731">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=731">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=728">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=731">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -261,6 +261,6 @@ window.addEventListener('message',function(e){
 window.parent.postMessage({type:'game-ready'},'*');
 restart();
 </script>
-<script src="../scripts/game-handoff.js?v=728"></script>
+<script src="../scripts/game-handoff.js?v=731"></script>
 </body>
 </html>
