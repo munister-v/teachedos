@@ -5178,6 +5178,39 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   body.board-phone-shell .mobile-board-action{
     display:flex;
   }
+  /* Сетка инструментов доски в листе «More». Четыре колонки при 390px дают
+     плитку ~78px - в неё влезает значок и однословная подпись, цель нажатия
+     58px по высоте. Те же десять действий строками списка заняли бы ~470px,
+     то есть весь лист, и до навигации внизу пришлось бы скроллить. */
+  body.board-phone-shell .more-tool-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+    margin:2px 0 10px;
+  }
+  body.board-phone-shell .mtg-tile{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:5px;
+    min-height:58px;padding:8px 4px;
+    border:1px solid var(--border);border-radius:13px;
+    background:#fff;color:var(--text);
+    font:600 11px/1.1 var(--font,inherit);
+    text-align:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  body.board-phone-shell .mtg-tile:active{
+    background:rgba(28,28,30,.06);
+    transform:scale(.97);
+  }
+  body.board-phone-shell .mtg-tile svg{
+    width:19px;height:19px;flex:none;
+    fill:none;stroke:currentColor;
+  }
+  body.board-phone-shell .mtg-tile span{
+    display:block;width:100%;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
   body.board-phone-shell .mobile-board-action + .mobile-board-action{
     margin-top:2px;
   }

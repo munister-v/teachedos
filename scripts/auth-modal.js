@@ -136,7 +136,27 @@
     $('auth-overlay')?.classList.add('is-success');
     if (btn) { btn.classList.remove('loading'); btn.classList.add('success'); btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
     if (lbl) lbl.textContent = 'Opening workspace…';
-    setTimeout(() => { location.href = d.user.role === 'student' ? 'student.html' : 'index.html'; }, 300);
+    setTimeout(() => { location.href = afterLoginTarget(d.user.role); }, 300);
+  }
+
+  /* Куда возвращаться после входа. Кнопка «Sign in» с любой страницы
+     (scripts/signin-entry.js) кладёт сюда адрес, с которого ушли: ученик,
+     открывший ссылку на урок, после логина должен попасть на урок, а не на
+     дашборд, где этой ссылки уже не найти.
+     Разрешаем только свои относительные пути - иначе значение из
+     sessionStorage превращается в открытый редирект на чужой домен. */
+  function afterLoginTarget(role) {
+    var fallback = role === 'student' ? 'student.html' : 'index.html';
+    var back;
+    try {
+      back = sessionStorage.getItem('teachedos_return_to');
+      sessionStorage.removeItem('teachedos_return_to');
+    } catch (e) { return fallback; }
+    if (!back) return fallback;
+    // «/path», но не «//host» и не «/\host»
+    if (!/^\/[^/\\]/.test(back)) return fallback;
+    if (/^\/(index|student|landing)\.html/.test(back)) return fallback;
+    return back;
   }
 
   async function handleSuccess(d) {

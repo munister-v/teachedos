@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=731">
+<link rel="manifest" href="manifest.json?v=736">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -16,12 +16,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=731">
-<link rel="stylesheet" href="styles/auth.css?v=731">
-<link rel="stylesheet" href="styles/mobile.css?v=731">
-<link rel="stylesheet" href="styles/harmony.css?v=731">
-<link rel="stylesheet" href="styles/unify.css?v=731">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=731">
+<link rel="stylesheet" href="styles/board.css?v=736">
+<link rel="stylesheet" href="styles/auth.css?v=736">
+<link rel="stylesheet" href="styles/mobile.css?v=736">
+<link rel="stylesheet" href="styles/harmony.css?v=736">
+<link rel="stylesheet" href="styles/unify.css?v=736">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=736">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -271,13 +271,13 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=731">
+<link rel="stylesheet" href="styles/teached-brand.css?v=736">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=731">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=731">
-<link rel="stylesheet" href="styles/controls.css?v=731">
+<link rel="stylesheet" href="styles/figma-theme.css?v=736">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=736">
+<link rel="stylesheet" href="styles/controls.css?v=736">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=731">
+<link rel="stylesheet" href="styles/figma-concept.css?v=736">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -500,10 +500,59 @@
         <span class="more-account-email" id="more-account-email"></span>
       </span>
     </div>
+    <!-- Инструменты доски на телефоне. Левая рейка (#main-toolbar) и верхние
+         кнопки панели скрыты до 861px, поэтому Redo, масштаб, режим показа,
+         комментарии, игры, воркаут, маркер и ластик на телефоне не открывались
+         НИКАК: в списке ниже их не было, а рейки нет. Сетка, а не строки
+         списка: десять пунктов строками - это 470px и лист на весь экран,
+         сеткой они занимают 3 ряда. -->
+    <div class="more-tool-grid mobile-board-action" id="more-tool-grid">
+      <button type="button" class="mtg-tile" onclick="redo();toggleMoreMenu()" aria-label="Redo">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 7a5 5 0 1 0-.5 4"/><path d="M13 3v4H9"/></svg>
+        <span>Redo</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="document.getElementById('btn-fit').click();toggleMoreMenu()" aria-label="Fit to screen">
+        <svg aria-hidden="true"><use href="#bi-fit"/></svg>
+        <span>Fit</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="document.getElementById('btn-zoom-in').click()" aria-label="Zoom in">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14M7 5v4M5 7h4"/></svg>
+        <span>Zoom in</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="document.getElementById('btn-zoom-out').click()" aria-label="Zoom out">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14M5 7h4"/></svg>
+        <span>Zoom out</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="startBoardPresent();toggleMoreMenu()" aria-label="Present board">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/><path d="M8 11.5v2M5.5 13.5h5"/></svg>
+        <span>Present</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="toggleCommentsPanel&&toggleCommentsPanel();toggleMoreMenu()" aria-label="Comments">
+        <svg aria-hidden="true"><use href="#bi-comment"/></svg>
+        <span>Comments</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="openGamesModal();toggleMoreMenu()" aria-label="Games Hub">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="4.5" width="13" height="7" rx="3.5"/><path d="M4.5 6.5v2M3.5 7.5h2M10.8 7.2h.01M12.2 8.6h.01"/></svg>
+        <span>Games</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="openTeacherToolBuilder('vocab-workout');toggleMoreMenu()" aria-label="Vocabulary Workout">
+        <svg aria-hidden="true"><use href="#bi-vocab"/></svg>
+        <span>Workout</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="toggleDrawTool&&toggleDrawTool('marker');toggleMoreMenu()" aria-label="Highlighter">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13l2.5-.5 7-7L10 3l-7 7z"/><path d="M2 14.5h12"/></svg>
+        <span>Marker</span>
+      </button>
+      <button type="button" class="mtg-tile" onclick="toggleDrawTool&&toggleDrawTool('eraser');toggleMoreMenu()" aria-label="Eraser">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l-2-2 6-6 4 4-4 4z"/><path d="M2 14.5h12"/></svg>
+        <span>Eraser</span>
+      </button>
+    </div>
     <div class="user-menu-item" id="more-teacher-tools" onclick="openToolsSidebar();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-tools"/></svg>Teacher tools</div>
     <div class="user-menu-item" id="more-share-board" onclick="openSharePanel();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-share"/></svg>Share board</div>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-    <div class="user-menu-item mobile-board-action" onclick="document.getElementById('btn-fit').click();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-fit"/></svg>Fit to screen</div>
+    <!-- «Fit to screen» и «Reset tool» переехали в сетку выше и в нижнюю
+         панель (Select) - строкой они дублировали бы плитку. -->
     <div class="user-menu-item mobile-board-action" onclick="resetBoardPointer&&resetBoardPointer(true);toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-cursor"/></svg>Reset tool</div>
     <div class="user-menu-item mobile-board-action mobile-board-action-duplicate" onclick="toggleDrawTool&&toggleDrawTool('pen');toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-pen"/></svg>Pen</div>
     <div class="user-menu-item" onclick="toggleBoardSearch();toggleMoreMenu()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-search"/></svg>Search cards <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:var(--te-font-mono,ui-monospace,monospace);">Ctrl+F</span></div>
@@ -2067,13 +2116,13 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=731"></script>
-<script src="js/teacher-tools-data.js?v=731"></script>
-<script src="scripts/tt-text-core.js?v=731"></script>
-<script src="scripts/board-app.js?v=731"></script>
-<script src="js/board-vocab.js?v=731"></script>
-<script src="js/board-reveal.js?v=731"></script>
-<script src="js/teacher-tool-board-composer.js?v=731"></script>
+<script src="scripts/auth-modal.js?v=736"></script>
+<script src="js/teacher-tools-data.js?v=736"></script>
+<script src="scripts/tt-text-core.js?v=736"></script>
+<script src="scripts/board-app.js?v=736"></script>
+<script src="js/board-vocab.js?v=736"></script>
+<script src="js/board-reveal.js?v=736"></script>
+<script src="js/teacher-tool-board-composer.js?v=736"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2081,8 +2130,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=731" defer></script>
-<script src="pwa-boot.js?v=731" defer></script>
+<script src="scripts/autogrow.js?v=736" defer></script>
+<script src="pwa-boot.js?v=736" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2164,11 +2213,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=731"></script>
-<script src="scripts/nav-boost.js?v=731" defer></script>
-<script src="scripts/mobile-perf.js?v=731" defer></script>
-<script src="scripts/mobile-nav.js?v=731"></script>
-<script src="scripts/mobile-zoom-guard.js?v=731" defer></script>
+<script src="pwa.js?v=736"></script>
+<script src="scripts/nav-boost.js?v=736" defer></script>
+<script src="scripts/mobile-perf.js?v=736" defer></script>
+<script src="scripts/mobile-nav.js?v=736"></script>
+<script src="scripts/mobile-zoom-guard.js?v=736" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
