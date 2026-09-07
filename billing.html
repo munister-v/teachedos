@@ -58,6 +58,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .usage-row .u-bar{height:6px;border-radius:99px;background:rgba(28,28,30,.08);overflow:hidden}
 .usage-row .u-fill{height:100%;background:var(--lime);border-radius:99px;transition:width .4s}
 .usage-row .u-fill.hot{background:var(--warn)}
+.usage-row .u-reset{margin-top:6px;font-size:10px;color:var(--muted)}
 
 /* Cycle toggle */
 .cycle-toggle{display:inline-flex;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:4px;gap:4px;margin:0 auto 22px;box-shadow:var(--shadow)}
@@ -415,15 +416,25 @@ function renderUsage() {
     ['Students / board', usage.students_per_board],
     ['Courses', usage.courses],
     ['Storage (MB)', usage.storage_mb],
+    ['AI requests', usage.ai_requests],
   ];
   wrap.innerHTML = rows.filter(([, v]) => v).map(([label, v]) => {
     const used = v.used ?? 0;
     const limit = v.unlimited ? '∞' : v.limit;
     const pct = v.unlimited || !v.limit ? 0 : Math.min(100, Math.round((used / v.limit) * 100));
     const hot = pct >= 80 ? ' hot' : '';
+    // Only the AI row carries a reset date - it's the only allowance that
+    // refills on its own before the billing cycle turns over (weekly on
+    // Free), so "resets in N days" is the one thing worth spelling out here.
+    let resetNote = '';
+    if (v.resets_at) {
+      const days = Math.max(0, Math.ceil((new Date(v.resets_at) - new Date()) / 86400000));
+      resetNote = `<div class="u-reset">Resets in ${days} day${days === 1 ? '' : 's'}${v.period === 'week' ? ' (weekly)' : ''}</div>`;
+    }
     return `<div class="usage-row">
       <div class="u-top"><span>${label}</span><span>${used} / ${limit}</span></div>
       <div class="u-bar"><div class="u-fill${hot}" style="width:${pct}%"></div></div>
+      ${resetNote}
     </div>`;
   }).join('');
 }

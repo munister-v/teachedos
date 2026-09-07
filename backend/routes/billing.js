@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { readAiQuota } = require('./ai');
 const {
   PLAN_CATALOG,
   normalizePlanKey,
@@ -134,6 +135,16 @@ router.get('/usage', requireAuth, async (req, res) => {
     const counts = await loadUsageCounts(req.user.id);
     const usage = usageSnapshot(state.plan, counts);
     const planDef = PLAN_CATALOG[state.plan];
+    // Same {used, limit, unlimited} shape as boards/students/storage below,
+    // so the account page's existing progress-bar renderer just picks it up
+    // as one more row instead of needing a second, AI-only usage widget.
+    const aiQuota = await readAiQuota(req.user).catch(() => null);
+    if (aiQuota) {
+      usage.ai_requests = {
+        used: aiQuota.requests, limit: aiQuota.request_limit, unlimited: false,
+        period: aiQuota.period, resets_at: aiQuota.period_ends_at,
+      };
+    }
     res.json({
       current: state,
       counts,

@@ -19337,7 +19337,7 @@ async function runAiAssistant() {
         if (status) {
           const q = data.quota;
           status.textContent = q
-            ? `AI lesson ready. ${q.requests_remaining} AI requests remain this month.`
+            ? `AI lesson ready. ${q.requests_remaining} AI requests remain this ${q.period === 'week' ? 'week' : 'month'}.`
             : 'AI lesson ready.';
         }
         return;

@@ -17,6 +17,19 @@ function monthlyQuota(user) {
   return AI_MONTHLY_LIMITS[effectivePlanKey(user)] || AI_MONTHLY_LIMITS.free;
 }
 
+// Free accounts reset weekly rather than monthly - the same $0.10/10-request
+// cap, refilled four times as often, instead of once. Paid plans keep the
+// calendar month. The 'month' column just holds whatever period-start date
+// is written into it; nothing about the schema assumes a calendar month, so
+// this needed no migration, only a different date_trunc unit per plan.
+function quotaUnit(user) {
+  return effectivePlanKey(user) === 'free' ? 'week' : 'month';
+}
+
+function periodLabel(unit) {
+  return unit === 'week' ? 'week' : 'month';
+}
+
 function estimateAiCost(input = {}) {
   const sourceLength = String(input.source || input.text || input.teacherMemory || '').length;
   const items = Math.min(100, Math.max(0, Number(input.count || input.items || 0)));
@@ -28,20 +41,21 @@ function estimateAiCost(input = {}) {
 
 async function reserveAiQuota(user, input) {
   const quota = monthlyQuota(user);
+  const unit = quotaUnit(user);
   const reserved = estimateAiCost(input);
   const { rows } = await pool.query(
     `INSERT INTO ai_usage_monthly (user_id, month, reserved_usd, requests)
-     VALUES ($1, date_trunc('month', CURRENT_DATE)::date, $2, 1)
+     VALUES ($1, date_trunc($5, CURRENT_DATE)::date, $2, 1)
      ON CONFLICT (user_id, month) DO UPDATE
        SET reserved_usd = ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd,
            requests = ai_usage_monthly.requests + 1
        WHERE ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd <= $3
          AND ai_usage_monthly.requests < $4
      RETURNING reserved_usd, actual_usd, requests`,
-    [user.id, reserved, quota.usd, quota.requests],
+    [user.id, reserved, quota.usd, quota.requests, unit],
   );
   if (!rows.length) {
-    const error = new Error('Monthly AI allowance reached. Your local tools and saved materials remain available.');
+    const error = new Error(`${periodLabel(unit) === 'week' ? 'Weekly' : 'Monthly'} AI allowance reached. Your local tools and saved materials remain available.`);
     error.status = 429;
     error.code = 'AI_MONTHLY_BUDGET_REACHED';
     error.quota = quota;
@@ -59,24 +73,44 @@ async function releaseAiQuota(user, reservation) {
     `UPDATE ai_usage_monthly
      SET reserved_usd = GREATEST(0, reserved_usd - $2),
          requests = GREATEST(0, requests - 1)
-     WHERE user_id=$1 AND month=date_trunc('month', CURRENT_DATE)::date`,
-    [user.id, Number(reservation.reserved)]
+     WHERE user_id=$1 AND month=date_trunc($3, CURRENT_DATE)::date`,
+    [user.id, Number(reservation.reserved), quotaUnit(user)]
   );
 }
 
+// period_ends_at lets the client show "resets in N days" instead of a bare
+// count - the free plan's reset cadence isn't obvious from the numbers alone
+// once it stopped being "the 1st of the month".
 async function readAiQuota(user) {
   const quota = monthlyQuota(user);
+  const unit = quotaUnit(user);
   const { rows } = await pool.query(
-    `SELECT reserved_usd, actual_usd, requests
+    `SELECT reserved_usd, actual_usd, requests,
+            date_trunc($2, CURRENT_DATE)::date AS period_start,
+            (date_trunc($2, CURRENT_DATE) + ('1 ' || $2)::interval)::date AS period_end
      FROM ai_usage_monthly
-     WHERE user_id=$1 AND month=date_trunc('month', CURRENT_DATE)::date`,
-    [user.id],
+     WHERE user_id=$1 AND month=date_trunc($2, CURRENT_DATE)::date`,
+    [user.id, unit],
   );
+  let periodStart, periodEnd;
+  if (rows.length) {
+    ({ period_start: periodStart, period_end: periodEnd } = rows[0]);
+  } else {
+    const { rows: periodRows } = await pool.query(
+      `SELECT date_trunc($1, CURRENT_DATE)::date AS period_start,
+              (date_trunc($1, CURRENT_DATE) + ('1 ' || $1)::interval)::date AS period_end`,
+      [unit],
+    );
+    ({ period_start: periodStart, period_end: periodEnd } = periodRows[0]);
+  }
   const usage = rows[0] || {};
   const reserved = Number(usage.reserved_usd || 0);
   const actual = Number(usage.actual_usd || 0);
   const requests = Number(usage.requests || 0);
   return {
+    period: periodLabel(unit),
+    period_start: periodStart,
+    period_ends_at: periodEnd,
     month: new Date().toISOString().slice(0, 7),
     limit_usd: quota.usd,
     reserved_usd: reserved,
@@ -88,13 +122,13 @@ async function readAiQuota(user) {
   };
 }
 
-function recordActualAiCost(userId, usd) {
-  if (!userId || !usd) return;
+function recordActualAiCost(user, usd) {
+  if (!user?.id || !usd) return;
   pool.query(
     `UPDATE ai_usage_monthly
      SET actual_usd = actual_usd + $2
-     WHERE user_id=$1 AND month=date_trunc('month', CURRENT_DATE)::date`,
-    [userId, usd],
+     WHERE user_id=$1 AND month=date_trunc($3, CURRENT_DATE)::date`,
+    [user.id, usd, quotaUnit(user)],
   ).catch(() => {});
 }
 
@@ -1475,7 +1509,7 @@ async function generate(input, quotaUser) {
     const m = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastModel = m;
     METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
-    recordActualAiCost(quotaUser?.id, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
+    recordActualAiCost(quotaUser, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
     METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
     recordUsage('llm_ok');
     return out;
@@ -1603,7 +1637,12 @@ router.get('/admin/allowances', requireAuth, requireAdmin, async (req, res) => {
               COALESCE(SUM(a.actual_usd), 0)::numeric AS actual_usd
        FROM ai_usage_monthly a
        JOIN users u ON u.id=a.user_id
-       WHERE a.month=to_date($1 || '-01', 'YYYY-MM-DD')
+       -- Free-plan rows are keyed by week-start, not the 1st of the month
+       -- (see quotaUnit in this file), so a plain equality check would drop
+       -- three weeks out of four here. A range catches both period lengths,
+       -- crediting each week's usage to the calendar month it started in.
+       WHERE a.month >= to_date($1 || '-01', 'YYYY-MM-DD')
+         AND a.month <  to_date($1 || '-01', 'YYYY-MM-DD') + INTERVAL '1 month'
        GROUP BY COALESCE(u.plan, 'free')
        ORDER BY plan ASC`,
       [month],
@@ -1788,7 +1827,7 @@ Rules: 5 stages that sum to ${duration}. All activities must be practical and re
     METRICS.lastAt = new Date().toISOString();
     METRICS.lastModel = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
-    recordActualAiCost(req.user.id, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
+    recordActualAiCost(req.user, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
     recordUsage('llm_ok');
     result.provider = 'backend-ai';
     result.mode = mode;
@@ -1829,3 +1868,7 @@ module.exports = router;
 // to exercise it directly instead of booting express and postgres around it.
 module.exports.generateLocal = generateLocal;
 module.exports.normaliseInput = normaliseInput;
+// billing.js folds this into the account page's own usage panel, so the AI
+// allowance shows next to boards/students/storage instead of living only in
+// a plain status line inside the AI tools themselves.
+module.exports.readAiQuota = readAiQuota;

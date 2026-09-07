@@ -1812,7 +1812,10 @@ function renderHubAiQuota(quota){
   const el=document.getElementById('tt-ai-quota');
   if(!el||!quota)return;
   el.style.display='';
-  el.textContent=`AI allowance: ${quota.requests_remaining} requests left this month`;
+  // "this month" used to be a lie for Free accounts once their reset moved
+  // to weekly - say which period is actually running out.
+  const per=quota.period==='week'?'week':'month';
+  el.textContent=`AI allowance: ${quota.requests_remaining} requests left this ${per}`;
 }
 async function loadHubAiQuota(){
   const token=localStorage.getItem('teachedos_token');
