@@ -10370,6 +10370,7 @@ async function _ytGenerate(url, level, picks, transcriptOverride, options = {}) 
     _ytRenderChips(picks, statusMap);
     _ytStatus(`✨ Generating ${picks.length} exercise${picks.length > 1 ? 's' : ''}…`);
     _ytSetProgress(10);
+    _lastAiToolError = null;
 
     const ordered = new Array(picks.length).fill(null);
     const failed = [];
@@ -10458,7 +10459,9 @@ async function _ytGenerate(url, level, picks, transcriptOverride, options = {}) 
     const results = ordered.filter(Boolean);
     _ytFailedPicks = failed;
     if (!results.length) {
-      _ytStatus('⚠ The engine was busy - no exercises came back. Try again in a moment.');
+      _ytStatus(_lastAiToolError?.code === 'AI_MONTHLY_BUDGET_REACHED'
+        ? '⚠ Monthly AI allowance reached for your plan. Your local tools and saved materials still work - the allowance resets next month, or upgrade for more.'
+        : '⚠ The engine was busy - no exercises came back. Try again in a moment.');
       return;
     }
 
@@ -12451,6 +12454,14 @@ function enhanceTeacherToolOutputFast(output, input) {
   return out;
 }
 
+// Set by requestServerTeacherTool whenever a call fails, so a caller that
+// only sees "no exercises came back" after several parallel attempts can
+// tell a real engine outage apart from a plan limit - the two look
+// identical from the return value (null) otherwise, and used to share one
+// generic "engine was busy" message even when the true cause was the
+// teacher's own monthly AI allowance running out.
+let _lastAiToolError = null;
+
 async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = null) {
   if (!authToken) return null;
   const controller = new AbortController();
@@ -12483,6 +12494,7 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
     const data = await response.json().catch(() => null);
     if (!response.ok || !data?.output) {
       console.warn('[tt-ai-server] unavailable', data?.error || response.status);
+      _lastAiToolError = { code: data?.code || null, message: data?.error || null, status: response.status };
       return null;
     }
     const output = _ttSanitizeOutput(data.output);
