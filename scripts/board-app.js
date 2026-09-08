@@ -14623,6 +14623,10 @@ function _stageTextParts(keys) {
    сбили бы вопросы на определения вместо содержания. */
 function _stageReadingText(out) {
   if (!out) return '';
+  /* Учительский текст держим отдельно и БЕЗ разметки жирного: в карточку
+     на доску идёт размеченный, а в задания - чистый. Иначе модель видит в
+     исходнике «**board**» и охотно тащит эти звёздочки в вопросы. */
+  if (out.sourceText) return String(out.sourceText);
   const cards = (out.struct && Array.isArray(out.struct.cards)) ? out.struct.cards
               : (Array.isArray(out.cards) ? out.cards : []);
   const card = cards.find(c => /reading text|📖/i.test(c.title || ''));
@@ -15088,6 +15092,8 @@ function _ttOwnTextOutput(base, keys) {
     topic: base.topic,
     title: heading || 'Reading text',
     cards: [{ title: '📖 Reading text', text: heading ? `${heading}\n${body}` : body }],
+    /* Чистый исходник для заданий - см. _stageReadingText. */
+    sourceText: heading ? `${heading}\n${text}` : text,
     vocab: words,
     generatedAt: new Date().toISOString(),
   };
