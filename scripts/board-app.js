@@ -19584,9 +19584,18 @@ async function runAiAssistant() {
         renderAiAssistantPreview(normaliseAiLesson({ ...data.result, mode: input.mode }, input));
         if (status) {
           const q = data.quota;
-          status.textContent = q
-            ? `AI lesson ready. ${q.requests_remaining} AI requests remain this ${q.period === 'week' ? 'week' : 'month'}.`
-            : 'AI lesson ready.';
+          const remain = q ? ` ${q.requests_remaining} AI requests remain this ${q.period === 'week' ? 'week' : 'month'}.` : '';
+          // Единичная генерация инструмента уже называет уровень, которым
+          // собран материал (rules/backup/ai) - у Lesson Flow был тот же
+          // резерв в бэкенде, но три верхних уровня цепочки отвечали одним
+          // и тем же "AI lesson ready", и учитель не мог заметить момент,
+          // когда основная модель недоступна и работает бесплатная
+          // страховка. tier едет с ответом именно для этого сообщения.
+          status.textContent = data.result.tier === 'backup'
+            ? `Main engine unavailable: built on the backup engine.${remain}`
+            : data.result.tier === 'light'
+              ? `AI lesson ready (fast model).${remain}`
+              : `AI lesson ready.${remain}`;
         }
         return;
       }

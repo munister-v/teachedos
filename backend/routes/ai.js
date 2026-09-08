@@ -1831,6 +1831,16 @@ Rules: 5 stages that sum to ${duration}. All activities must be practical and re
     recordUsage('llm_ok');
     result.provider = 'backend-ai';
     result.mode = mode;
+    /* Одиночный инструмент панели (renderTeacherToolResult) уже говорит
+       учителю, каким уровнем цепочки собран материал - основной моделью,
+       лёгкой, страховкой или локальными шаблонами. У потока уроков
+       (Lesson Flow) была ровно та же цепочка, но три её первых уровня
+       схлопывались в одно "AI lesson ready": teacher видел одинаковое
+       сообщение и когда ответила основная модель, и когда пришлось
+       переключаться на бесплатную страховку. tier едет вместе с
+       результатом, чтобы клиент мог различить их так же, как уже
+       различает единичную генерацию. */
+    result.tier = aiEngine.getLastTier ? (aiEngine.getLastTier() || 'primary') : 'primary';
     res.json({ result, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/lesson-board]', err.message);
