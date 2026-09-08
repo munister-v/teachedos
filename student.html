@@ -793,8 +793,15 @@ function esc(s){ const d=document.createElement('div');d.textContent=s||'';retur
 
 function logout() {
   apiFetch('/api/auth/logout',{method:'POST'}).catch(()=>{});
-  localStorage.removeItem('teachedos_token');
-  localStorage.removeItem('teachedos_board_id');
+  // Тот же набор ключей, что чистят desktop-app.js/profile-app.js: раньше
+  // здесь снимался только токен и board_id, а teachedos_role/user/user_email
+  // оставались в localStorage - следующий вход на этом же устройстве (общий
+  // компьютер в классе) видел их как кэш ещё до ответа /api/auth/me, потому
+  // что auth-modal.js, community.html и board-app.js читают эти ключи
+  // напрямую, не дожидаясь сервера.
+  ['teachedos_token','teachedos_role','teachedos_user','teachedos_user_email',
+   'teachedos_board_id'].forEach(k => localStorage.removeItem(k));
+  try { google.accounts.id.disableAutoSelect(); } catch {}
   location.href = 'index.html';
 }
 
