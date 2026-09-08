@@ -643,7 +643,14 @@ const BOARD_LESSON_STAGES = {
         question: 'How should the text itself look?',
         options: [
           {key:'bold-vocab', flag:'boldVocab', title:'Bold the target vocabulary', hint:'Each target word stands out the first time it appears.', on:true},
-          {key:'glossary',   flag:'glossary',  title:'Glossary under the text',    hint:'Every target word with a short definition at your level.', on:true},
+          /* gen:true - только для написанного движком текста: это правило
+             ПРОМТА. У вставленного учителем текста писать нечего, там ту
+             же работу делает «Word helper beside the text». */
+          {key:'glossary',   flag:'glossary',  title:'Glossary under the text',    hint:'Every target word with a short definition at your level.', on:true, gen:true},
+          /* Отдельной карточкой рядом с текстом, а не строкой глоссария:
+             на слово приходится определение, живой пример ИЗ ЭТОГО текста,
+             синонимы и коллокации - в одну строку это не укладывается. */
+          {key:'side-glossary', tool:'reading-glossary', title:'Word helper beside the text', hint:'A card per word: meaning, the line it appears in, synonyms, collocations.', ai:true, after:'source', count:8},
         ],
       },
       {
@@ -652,6 +659,7 @@ const BOARD_LESSON_STAGES = {
         question: 'How do you want to work with the text?',
         options: [
           {key:'post-tf',      tool:'true-false',     title:'True / False statements', hint:'Fast check that they read it.', ai:true, after:'source'},
+          {key:'post-tfng',    tool:'tf-not-given',   title:'True / False / Not Given',hint:'Exam-style: some statements the text simply never mentions.', ai:true, after:'source'},
           {key:'post-abcd',    tool:'abcd-text',      title:'ABC questions',           hint:'Multiple choice with one correct answer.', ai:true, after:'source'},
           {key:'post-open',    tool:'open-questions', title:'Open questions',          hint:'Comprehension questions they answer in their own words.', ai:true, after:'source'},
           {key:'post-gap',     tool:'gap',            title:'Gap-fill',                hint:'Sentences from the text with the target words removed.', ai:true, after:'source'},
@@ -659,9 +667,65 @@ const BOARD_LESSON_STAGES = {
           {key:'post-disc',    tool:'discussion',     title:'Discussion questions',    hint:'Speaking prompts that push the words into use.', ai:true, after:'source'},
         ],
       },
+      /* Этап «а дальше что». Учитель выбирает не задание, а НАПРАВЛЕНИЕ:
+         поговорим, попишем или ещё поработаем со словами. Всё строится
+         по тому же тексту, поэтому разговор идёт про прочитанное, а не
+         про тему вообще. */
+      {
+        key: 'follow',
+        label: 'Follow-up',
+        question: 'Where does the lesson go after the text?',
+        options: [
+          {key:'follow-speak',  tool:'conversation-starters', title:'Let’s talk',       hint:'Speaking prompts that grow out of what they just read.', ai:true, after:'source'},
+          {key:'follow-role',   tool:'roleplay-cards',        title:'Role play',            hint:'Two-role cards built on the situation in the text.', ai:true, after:'source'},
+          {key:'follow-write',  tool:'creative-writing',      title:'Let’s write',      hint:'A writing task with a frame, based on the text.', ai:true, after:'source'},
+          {key:'follow-colloc', tool:'collocations',          title:'More work on the words',hint:'Collocations from the text plus short practice.', ai:true, after:'source'},
+        ],
+      },
+      /* Домашка отдельным этапом, а не галочкой у заданий: она уезжает не
+         только на доску, но и в журнал - карточки становятся заданием,
+         которое можно выдать ученикам и проверить. */
+      {
+        key: 'homework',
+        label: 'Homework',
+        question: 'Should the lesson leave homework behind?',
+        options: [
+          {key:'hw-set', tool:'homework-set', title:'Build homework from this text', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
+        ],
+      },
     ],
   },
 };
+
+/* ─── BOARD_LESSON_SKILLS ─── первый вопрос конструктора ────────────────
+   «Над чем сегодня работаем». Готов тот навык, у которого есть этапы в
+   BOARD_LESSON_STAGES; остальные показаны честно как следующие, а не
+   кнопкой, которая молча ничего не делает. */
+const BOARD_LESSON_SKILLS = [
+  {key:'reading',    title:'Reading',    hint:'A text, and the lesson built around it.',     icon:'📖', stages:'reading'},
+  {key:'listening',  title:'Listening',  hint:'Video or audio with the same stages.',        icon:'🎧'},
+  {key:'speaking',   title:'Speaking',   hint:'Discussion, role play, fluency practice.',    icon:'💬'},
+  {key:'writing',    title:'Writing',    hint:'From a model text to their own writing.',     icon:'✍️'},
+  {key:'grammar',    title:'Grammar',    hint:'A rule in context, then practice.',           icon:'⚙️'},
+  {key:'vocabulary', title:'Vocabulary', hint:'A word set and the practice around it.',      icon:'🧠'},
+];
+
+/* ─── BOARD_LESSON_SOURCES ─── второй вопрос: откуда берём материал ─────
+   mode:'source'   - материал уже есть, текст остаётся ДОСЛОВНО учительским
+                     и никуда на генерацию не уходит;
+   mode:'generate' - текста ещё нет, его пишет названный инструмент. */
+const BOARD_LESSON_SOURCES = [
+  {key:'own',   mode:'source',   field:'source', icon:'📄', title:'I already have the text',
+   hint:'Paste it in. The lesson is built around your exact wording, nothing is rewritten.'},
+  {key:'shot',  mode:'source',   field:'source', icon:'🖼️', title:'A screenshot or photo', ocr:true,
+   hint:'Coursebook page, PDF, anything on screen. The text is read in your browser.'},
+  {key:'link',  mode:'source',   field:'source', icon:'🔗', title:'A link', link:true,
+   hint:'A YouTube video (its transcript) or a web page.'},
+  {key:'words', mode:'generate', field:'vocab',  icon:'🔤', title:'Just my word list', tool:'text-topic-vocab',
+   hint:'Give the words you need to cover. The text gets written around them.'},
+  {key:'topic', mode:'generate', field:'topic',  icon:'✦',  title:'Only a topic', tool:'generate-text',
+   hint:'No material yet. A leveled text is written for you.'},
+];
 
 /* Какие инструменты панели ведут учителя по этапам. Оба создают учебный
    текст с нуля - именно у них «до текста / текст / после текста» и есть
@@ -669,10 +733,16 @@ const BOARD_LESSON_STAGES = {
 const BOARD_STAGED_TOOLS = {
   'text-topic-vocab': 'reading',
   'generate-text': 'reading',
+  /* Учительский текст проходит те же этапы, что и написанный движком.
+     Разница только в первом шаге: этот текст никуда не уходит на
+     генерацию, он остаётся дословно тем, что учитель вставил. */
+  'add-text': 'reading',
 };
 
 window.BOARD_LESSON_STAGES = BOARD_LESSON_STAGES;
 window.BOARD_STAGED_TOOLS  = BOARD_STAGED_TOOLS;
+window.BOARD_LESSON_SKILLS  = BOARD_LESSON_SKILLS;
+window.BOARD_LESSON_SOURCES = BOARD_LESSON_SOURCES;
 
 window.BOARD_TEACHER_TOOLS = BOARD_TEACHER_TOOLS;
 window.STICKER_KEYWORDS     = STICKER_KEYWORDS;

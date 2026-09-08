@@ -1120,7 +1120,13 @@
       </div>
       <button class="tbuilder-close" onclick="closeTeacherToolBuilder()" aria-label="Close teacher tool builder">×</button>
     </div>
-    <div class="tbuilder-layout">
+    <!-- Мастер урока: два вопроса ПЕРЕД конструктором. Живёт в той же
+         панели, потому что это её первый шаг, а не отдельное окно: ответив,
+         учитель остаётся на месте и видит под собой уже готовую форму. -->
+    <div class="tb-wiz" id="tbuilder-wizard" hidden>
+      <div id="tb-wiz-step"></div>
+    </div>
+    <div class="tbuilder-layout" id="tbuilder-layout">
       <div class="tbuilder-form">
         <div class="tbuilder-brief" id="tbuilder-brief-review" aria-live="polite">
           <div class="tbuilder-brief-top">
@@ -1190,6 +1196,8 @@
           <div class="tb-field-meta"><span id="tbuilder-yt-status">Paste a public link to load its transcript.</span></div>
         </div>
         <div class="tb-field-wrap" id="tb-wrap-source">
+          <!-- Скриншот / ссылка: обе дороги кончаются текстом в поле ниже -->
+          <div class="tb-wiz-source-tools" id="tb-wiz-source-tools" hidden></div>
           <label for="tbuilder-source" id="tbuilder-source-label">Source text</label>
           <textarea id="tbuilder-source" spellcheck="true" placeholder="Paste a text, transcript, teacher notes or exam task..."></textarea>
           <div class="tb-field-meta"><span id="tbuilder-source-hint">Paste the material students will work with.</span><span class="tb-field-meta-actions"><span id="tbuilder-source-meta">0 characters</span><button type="button" class="tbuilder-field-action" id="tbuilder-clean-source" onclick="tidyTeacherToolSource()" hidden>Clean text</button></span></div>

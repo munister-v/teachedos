@@ -769,6 +769,18 @@ function shapeSpec(input) {
       schema: p.schema('{"title":"🔑 Glossary","text":"word - definition\\n…"}'),
     };
   }
+  /* Боковой словарик этапа «во время чтения». От карточки "🔑 Glossary"
+     внутри самого текста отличается тем, ради чего учитель его и просит:
+     там одна строка «слово - определение», здесь на каждое слово ещё и
+     живой пример ИЗ ЭТОГО текста, синонимы и коллокации. Поэтому это
+     отдельный инструмент, а не флаг glossary: одной строкой такое не
+     ложится, а карточкой на слово - ложится и читается рядом с текстом. */
+  if (toolId === 'reading-glossary') {
+    return {
+      task: `${cardsHead} Choose the ${count} most useful, teachable words/phrases that ACTUALLY APPEAR in the source text, and build a study glossary at ${level} level. Return ONE card per word: "title" = the word or phrase exactly as it appears; "text" = exactly four lines, in this order and with these labels:\nMeaning: a student-friendly definition of the sense it has HERE, max 15 words, at ${level} level.\nIn the text: the sentence from the source where it appears, trimmed to at most 18 words, quoted.\nSynonyms: 2-3 words at or below ${level} level, comma separated (write "-" if it genuinely has none).\nGoes with: 2-3 natural collocations or partner words, comma separated, as they are really used.\nSkip trivial function words. Put every chosen word in "vocab".${context}`,
+      schema: '{"cards":[{"title":"word","text":"Meaning: …\\nIn the text: \\"…\\"\\nSynonyms: …, …\\nGoes with: …, …"}],"vocab":["word"]}',
+    };
+  }
   if (toolId === 'summary-task') {
     return {
       task: `${cardsHead} Read the source text and build a summarising worksheet at ${level} level. Return cards in this order: 1) "🎯 Main idea" - ONE sentence capturing the central point; 2) "🔑 Key details" - 4-6 of the most important supporting points, one per line as "• …"; 3) "✍️ Your summary" - a guided frame for the student to write a 40-60 word summary, with 2-3 sentence starters (one per line); 4) "✅ Model summary" - a teacher model summary of 40-60 words. Put key words in "vocab".${context}`,

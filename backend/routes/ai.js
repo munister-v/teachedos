@@ -202,6 +202,7 @@ const TOOL_META = {
   'match-headings': ['reading', 'Matching'],
   'sentence-insertion': ['reading', 'MCQ'],
   'reading-bits': ['reading', 'Reorder'],
+  'reading-glossary': ['reading', 'Glossary'],
   'word-definition-match': ['vocabulary', 'Matching'],
   'word-image-match': ['vocabulary', 'Matching'],
   'extract-vocab': ['vocabulary', 'Extraction'],
@@ -1714,7 +1715,12 @@ function decodeEntities(t) {
   return String(t)
     .replace(/&amp;#39;|&#39;/g, "'").replace(/&amp;quot;|&quot;/g, '"')
     .replace(/&amp;amp;|&amp;/g, '&').replace(/&gt;/g, '>').replace(/&lt;/g, '<')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    /* Шестнадцатеричные мнемоники - половина живых страниц пишет апостроф
+       именно так, и без этой строки он доезжал до учителя как «&#x27;»
+       прямо в тексте урока. */
+    .replace(/&#[xX]([0-9a-fA-F]+);/g, (_, n) => String.fromCharCode(parseInt(n, 16)));
 }
 function ytSeconds(value) {
   const raw = String(value || '').trim().toLowerCase();
@@ -1797,6 +1803,107 @@ router.get('/youtube-transcript', async (req, res) => {
   } catch (err) {
     console.error('[ai/youtube-transcript]', err.message);
     res.status(502).json({ error: 'Could not fetch the transcript right now' });
+  }
+});
+
+/* ── GET /api/ai/web-text?url= - читаемый текст веб-страницы ────────────────
+   Второй половине «дай ссылку»: YouTube отдаёт транскрипт эндпоинтом выше,
+   обычная страница - этим. Забирает сервер, а не браузер, потому что чужой
+   сайт не отдаст страницу фронтенду (CORS).
+
+   Раз запрос по чужому адресу делает НАШ сервер, он же обязан проверить
+   адрес: без проверки это классический SSRF - «ссылка» вида
+   http://127.0.0.1:5432 или на 169.254.169.254 заставила бы сервер сходить
+   к себе внутрь и принести наружу то, что снаружи не видно. Поэтому только
+   http/https, только публичные адреса, и каждый редирект проверяется
+   заново, а не по первому адресу. */
+const PRIVATE_HOST_RE = /^(localhost$|127\.|10\.|192\.168\.|169\.254\.|0\.0\.0\.0$|\[?::1\]?$|172\.(1[6-9]|2\d|3[01])\.)/i;
+function publicHttpUrl(raw) {
+  let u;
+  try { u = new URL(String(raw || '').trim()); } catch { return null; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+  if (PRIVATE_HOST_RE.test(u.hostname)) return null;
+  if (/\.(local|internal|localhost)$/i.test(u.hostname)) return null;
+  return u;
+}
+function readableFromHtml(html) {
+  let s = String(html || '');
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+       .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+       .replace(/<!--[\s\S]*?-->/g, ' ');
+  const title = (s.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '';
+  /* Обвязку страницы выкидываем ДО текста. Без этого учитель получал в
+     поле «ваш текст» сначала меню сайта («Jump to content · Main menu ·
+     Log in»), а уже потом статью - и первым же заданием шли вопросы по
+     навигации Википедии. */
+  s = s.replace(/<(nav|header|footer|aside)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  /* Если у страницы есть <article> или <main>, статья лежит там. Берём
+     самый ДЛИННЫЙ такой блок: на новостных сайтах в разметку попадают ещё
+     и карточки «читайте также», каждая своим коротким <article>. */
+  const blocks = [];
+  for (const re of [/<article\b[^>]*>([\s\S]*?)<\/article>/gi, /<main\b[^>]*>([\s\S]*?)<\/main>/gi]) {
+    let m;
+    while ((m = re.exec(s))) blocks.push(m[1]);
+  }
+  const best = blocks.sort((a, b) => b.length - a.length)[0];
+  if (best && best.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().length > 400) s = best;
+  /* Абзацы и заголовки размечаем переводом строки ДО того, как снять теги:
+     иначе текст страницы слипается в одну строку и делить его на абзацы
+     потом уже не по чему. */
+  s = s.replace(/<\/(p|div|section|article|h[1-6]|li|tr|blockquote)>/gi, '\n')
+       .replace(/<br\s*\/?>/gi, '\n')
+       .replace(/<[^>]+>/g, ' ');
+  s = decodeEntities(s)
+    .replace(/[ \t ]+/g, ' ')
+    .replace(/\n\s*\n\s*\n+/g, '\n\n')
+    .split('\n').map(line => line.trim())
+    /* Остатки чужой разметки (шаблоны и сноски Википедии - {{cite web}},
+       [[Hamburg]]) читаются как мусор посреди урока и в задания попадать
+       не должны. Строку с ними выбрасываем целиком: внутри неё всё равно
+       не текст статьи, а её служебная обвязка. */
+    .filter(line => !/\{\{|\}\}|<ref[\s>]|\[\[[^\]]+\]\]/.test(line))
+    .join('\n')
+    .trim();
+  return { title: decodeEntities(title).replace(/\s+/g, ' ').trim(), text: s };
+}
+router.get('/web-text', async (req, res) => {
+  let target = publicHttpUrl(req.query.url);
+  if (!target) return res.status(400).json({ error: 'Provide a public http(s) link' });
+  try {
+    let response = null;
+    for (let hop = 0; hop < 4; hop++) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 10000);
+      try {
+        response = await fetch(target.href, {
+          signal: ctrl.signal,
+          redirect: 'manual',
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TeachEdBot/1.0; +https://teached.tech)', Accept: 'text/html,*/*' },
+        });
+      } finally { clearTimeout(timer); }
+      if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
+        const next = publicHttpUrl(new URL(response.headers.get('location'), target).href);
+        if (!next) return res.status(400).json({ error: 'That link redirects somewhere we cannot follow' });
+        target = next;
+        continue;
+      }
+      break;
+    }
+    if (!response || !response.ok) return res.status(502).json({ error: 'The page could not be opened' });
+    const type = response.headers.get('content-type') || '';
+    if (!/text\/html|text\/plain|application\/xhtml/i.test(type)) {
+      return res.status(415).json({ error: 'That link is not a web page with text' });
+    }
+    const raw = (await response.text()).slice(0, 600000);
+    const { title, text } = /text\/plain/i.test(type)
+      ? { title: '', text: raw.replace(/\s+\n/g, '\n').trim() }
+      : readableFromHtml(raw);
+    if (text.length < 200) return res.status(404).json({ error: 'No readable text found on that page' });
+    res.json({ title, text: text.slice(0, 20000), url: target.href });
+  } catch (err) {
+    console.error('[ai/web-text]', err.message);
+    res.status(502).json({ error: 'Could not read that page right now' });
   }
 });
 

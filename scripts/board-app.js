@@ -9528,6 +9528,10 @@ const TT_NEEDS_VOCAB_SET = new Set([
   'synonyms-antonyms','phrasal-verbs','idioms',
   // tools built around the teacher's target vocabulary
   'text-topic-vocab','creative-writing','link-words','sentence-translation',
+  /* Учительский текст: слова нужны не для генерации, а чтобы было ЧТО
+     выделять жирным и вокруг чего строить словарик. Поле необязательное
+     (в REQUIRE его нет) - без слов урок собирается и так. */
+  'add-text',
 ]);
 // Tools that are pointless without target words → block generation until given.
 const TT_REQUIRE_VOCAB_SET = new Set([
@@ -12317,9 +12321,13 @@ function _ttAppendActivityCard(frame, type, data, w, h) {
   toast('✨ Interactive activity added - students can take it on the board');
 }
 
-function openTeacherToolBuilder(toolId) {
+function openTeacherToolBuilder(toolId, opts = {}) {
   const tool = BOARD_TEACHER_TOOLS.find(t => t.id === toolId);
   if (!tool) return;
+  /* Инструмент, открытый из списка, - это не урок из мастера. Без сброса
+     следующий инструмент унаследовал бы «свой текст»/«скриншот» от
+     прошлого урока и молча пошёл бы не тем путём. */
+  if (!opts.keepWizard) { boardLessonWizard = null; _wizShow(false); _wizRenderSourceTools(null); }
   activeTeacherToolBuilder = tool;
   _ttRestoreBuilderDraft();
   lastTeacherToolBuilderOutput = null;
@@ -14510,7 +14518,14 @@ function boardLessonStagesFor(toolId) {
 function boardStageOptions(toolId) {
   const cfg = boardLessonStagesFor(toolId);
   if (!cfg) return [];
-  return cfg.stages.reduce((acc, st) => acc.concat(st.options.map(o => ({ ...o, stage: st.key }))), []);
+  /* gen:true - правило промта, которым пишется текст. Когда текст принёс
+     учитель, писать нечего: показывать такую галочку значит обещать то,
+     чего не произойдёт. Фильтр стоит здесь, а не в отрисовке, чтобы
+     список «что показали» и список «что прогоняем» не разошлись. */
+  const ownText = boardWizardIsOwnText();
+  return cfg.stages.reduce((acc, st) => acc.concat(
+    st.options.filter(o => !(ownText && o.gen)).map(o => ({ ...o, stage: st.key }))
+  ), []);
 }
 
 /* Выбор запоминается ОТДЕЛЬНО ПО ИНСТРУМЕНТУ: у разных скилов свои этапы,
@@ -14537,7 +14552,11 @@ function renderBoardLessonStages(toolId) {
   if (!host || !cfg) return;
   const picked = new Set(boardStageSavedPicks(toolId));
   host.dataset.toolId = toolId;
-  host.innerHTML = cfg.stages.map((st, si) => `
+  const usable = boardStageOptions(toolId);
+  const shown = cfg.stages
+    .map(st => ({ ...st, options: st.options.filter(o => usable.some(u => u.key === o.key)) }))
+    .filter(st => st.options.length);
+  host.innerHTML = shown.map((st, si) => `
     <div class="tb-stage" data-stage="${esc(st.key)}">
       <div class="tb-stage-head">
         <span class="tb-stage-n">${si + 1}</span>
@@ -14631,21 +14650,30 @@ async function runBoardLessonStages() {
   const base = readTeacherToolBuilderInput();
   const opts = boardStageOptions(toolId).filter(o => o.tool && keys.includes(o.key));
 
+  const ownText = boardWizardIsOwnText();
+
   _ttSetGenerating(true);
   lastLessonStageSet = null;
   _ttSetAddToBoard(false);
-  if (chip) chip.textContent = 'writing the text…';
-  if (body) body.innerHTML = '<div class="tbuilder-empty">Writing the text…</div>';
+  if (chip) chip.textContent = ownText ? 'reading your text…' : 'writing the text…';
+  if (body) body.innerHTML = `<div class="tbuilder-empty">${ownText ? 'Working from your text…' : 'Writing the text…'}</div>`;
 
-  const textInput = { ...base, tool: { id: toolId }, parts: _stageTextParts(keys) };
   let textOut = null;
-  try { textOut = await requestServerTeacherTool(textInput, 30000); }
-  catch (err) { console.warn('[stages] text failed', err); }
+  if (ownText) {
+    /* Ни одного запроса: текст учителя уже готов и остаётся дословным. */
+    textOut = _ttOwnTextOutput(base, keys);
+  } else {
+    const textInput = { ...base, tool: { id: toolId }, parts: _stageTextParts(keys) };
+    try { textOut = await requestServerTeacherTool(textInput, 30000); }
+    catch (err) { console.warn('[stages] text failed', err); }
+  }
 
   if (!textOut) {
     _ttSetGenerating(false);
-    if (chip) chip.textContent = 'AI unavailable';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">The text could not be created. AI tools need you to be signed in - try again in a moment.</div>';
+    if (chip) chip.textContent = ownText ? 'no text yet' : 'AI unavailable';
+    if (body) body.innerHTML = ownText
+      ? '<div class="tbuilder-empty">Paste, scan or fetch the text first - the whole lesson is built from it.</div>'
+      : '<div class="tbuilder-empty">The text could not be created. AI tools need you to be signed in - try again in a moment.</div>';
     return;
   }
 
@@ -14665,7 +14693,7 @@ async function runBoardLessonStages() {
     /* Панель у текстовых инструментов прячет поле Items, и в нём остаётся
        умолчание в 12 - для «True / False по тексту» это не урок, а
        контрольная. Заданиям этапа хватает шести. */
-    input.count = 6;
+    input.count = o.count || 6;
     let out = null;
     try {
       out = o.ai ? await requestServerTeacherTool(input, 25000)
@@ -14786,10 +14814,334 @@ function placeBoardLessonStageSet() {
   } finally {
     lastTeacherToolBuilderOutput = prev;
   }
-  if (set.built.length) placeBoardWorkoutSet(set.base, set.built);
+  /* Домашка кладётся отдельно от остального урока: журналу нужны id
+     именно её карточек, а укладчик набора их не возвращает - поэтому
+     сверяем список карточек доски до и после её укладки. Это работает
+     при любом способе укладки (лист, карточки, игра), в отличие от
+     попытки угадать id заранее. */
+  const homework = set.built.filter(b => b.activity.homework);
+  const lesson   = set.built.filter(b => !b.activity.homework);
+
+  if (lesson.length) placeBoardWorkoutSet(set.base, lesson);
+
+  if (homework.length) {
+    const before = new Set((state.cards || []).map(c => c.id));
+    placeBoardWorkoutSet(set.base, homework);
+    const newIds = (state.cards || []).map(c => c.id).filter(id => !before.has(id));
+    const title = `Homework: ${set.textOut.title || set.base.topic || 'reading'}`;
+    _ttCreateHomeworkFromCards(newIds, title, homework.map(h => h.activity.title).join('; '));
+  }
+
   const n = set.built.length + 1;
   toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
   return true;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   МАСТЕР УРОКА
+
+   Панель инструментов знает 77 конструкторов, и это её беда, а не сила:
+   чтобы собрать обычный урок по чтению, учитель должен был сам догадаться,
+   что текст делает «Generate a Text on a Topic», вопросы к нему - другой
+   инструмент, а обсуждение после - третий, и вручную перенести текст из
+   одного в другой.
+
+   Мастер разворачивает это: сначала спрашиваем, НАД ЧЕМ работаем и ОТКУДА
+   материал, а инструменты подбираются сами. Учитель отвечает на два
+   вопроса, отмечает галочками этапы, смотрит превью и одобряет.
+
+   Ниже - только эти два вопроса и подготовка материала. Всё, что после
+   (этапы, прогон, превью, укладка), уже жило в конструкторе этапов и
+   переиспользуется как есть. */
+
+let boardLessonWizard = null;   // {skill, source} - null, когда панель открыта обычным инструментом
+
+function boardWizardSource() {
+  return (boardLessonWizard && boardLessonWizard.source) || null;
+}
+/* Текст УЖЕ ЕСТЬ у учителя (вставил, снял скриншот, дал ссылку) - значит
+   он не пишется движком, а идёт в работу дословно.
+
+   Смотрим и на инструмент, а не только на ответ в мастере: add-text
+   («Add Your Text») лежит и в общем списке, и открытый оттуда он значит
+   ровно то же самое. Без этой половины урок, начатый из списка, ушёл бы
+   писать учительский текст заново на сервер. */
+function boardWizardIsOwnText() {
+  const src = boardWizardSource();
+  if (src) return src.mode === 'source';
+  return (activeTeacherToolBuilder && activeTeacherToolBuilder.id) === 'add-text';
+}
+
+function _wizShow(on) {
+  const wiz = document.getElementById('tbuilder-wizard');
+  const layout = document.getElementById('tbuilder-layout');
+  if (wiz) wiz.hidden = !on;
+  if (layout) layout.style.display = on ? 'none' : '';
+}
+
+function openLessonWizard() {
+  boardLessonWizard = { skill: null, source: null };
+  lastLessonStageSet = null;
+  document.getElementById('tool-builder-panel')?.classList.add('open');
+  renderLessonWizard();
+  prewarmTeacherAiEngine();
+}
+
+function renderLessonWizard() {
+  const host = document.getElementById('tb-wiz-step');
+  if (!host || !boardLessonWizard) return;
+  _wizShow(true);
+  const kicker = document.getElementById('tbuilder-kicker');
+  const title  = document.getElementById('tbuilder-title');
+  const sub    = document.getElementById('tbuilder-sub');
+
+  if (!boardLessonWizard.skill) {
+    if (kicker) kicker.textContent = 'Lesson builder / step 1 of 2';
+    if (title)  title.textContent  = 'What are we working on today?';
+    if (sub)    sub.textContent    = 'Pick the skill. The tools are chosen for you.';
+    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => `
+      <button type="button" class="tb-wiz-card${s.stages ? '' : ' is-soon'}"
+        ${s.stages ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
+        <span class="tb-wiz-ic">${esc(s.icon)}</span>
+        <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
+        ${s.stages ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">next</span>'}
+      </button>`).join('')}</div>`;
+    return;
+  }
+
+  const skill = (BOARD_LESSON_SKILLS || []).find(s => s.key === boardLessonWizard.skill);
+  if (kicker) kicker.textContent = `Lesson builder / ${skill ? skill.title : ''} / step 2 of 2`;
+  if (title)  title.textContent  = 'Where does the material come from?';
+  if (sub)    sub.textContent    = 'Bring your own, or let the text be written for you.';
+  host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SOURCES || []).map(s => `
+    <button type="button" class="tb-wiz-card" onclick="pickLessonSource('${esc(s.key)}')">
+      <span class="tb-wiz-ic">${esc(s.icon)}</span>
+      <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
+      <span class="tb-wiz-go">→</span>
+    </button>`).join('')}</div>
+    <button type="button" class="tb-wiz-back" onclick="backLessonWizard()">← Back</button>`;
+}
+
+function pickLessonSkill(key) {
+  if (!boardLessonWizard) boardLessonWizard = { skill: null, source: null };
+  boardLessonWizard.skill = key;
+  renderLessonWizard();
+}
+
+function backLessonWizard() {
+  if (!boardLessonWizard) return;
+  boardLessonWizard.skill = null;
+  boardLessonWizard.source = null;
+  renderLessonWizard();
+}
+
+/* Ответ на второй вопрос закрывает мастер и открывает конструктор уже
+   настроенным: нужный инструмент, нужное поле, этапы под этот источник. */
+function pickLessonSource(key) {
+  const src = (BOARD_LESSON_SOURCES || []).find(s => s.key === key);
+  if (!src) return;
+  boardLessonWizard.source = src;
+  _wizShow(false);
+  /* У «своего текста» инструмента-генератора нет: работа идёт с тем, что
+     вставил учитель, поэтому берём add-text - он и заявлен как «ваш текст»,
+     и уже показывает поле источника. */
+  const toolId = src.mode === 'generate' ? src.tool : 'add-text';
+  openTeacherToolBuilder(toolId, { keepWizard: true });
+
+  const skill = (BOARD_LESSON_SKILLS || []).find(s => s.key === boardLessonWizard.skill);
+  const kicker = document.getElementById('tbuilder-kicker');
+  const title  = document.getElementById('tbuilder-title');
+  const sub    = document.getElementById('tbuilder-sub');
+  if (kicker) kicker.textContent = `Lesson builder / ${skill ? skill.title : ''}`;
+  if (title)  title.textContent  = skill ? `${skill.title} lesson` : 'Lesson';
+  if (sub)    sub.textContent    = src.hint;
+
+  _wizRenderSourceTools(src);
+  const field = document.getElementById(`tbuilder-${src.field}`);
+  if (field) setTimeout(() => { try { field.focus({ preventScroll: false }); } catch (_) { field.focus(); } }, 60);
+}
+
+/* Инструменты добывания текста живут НАД полем источника: скриншот и
+   ссылка обе кончаются тем же - текстом в этом поле, поэтому и стоят
+   рядом с ним, а не отдельным экраном мастера. */
+function _wizRenderSourceTools(src) {
+  const host = document.getElementById('tb-wiz-source-tools');
+  if (!host) return;
+  if (!src || (!src.ocr && !src.link)) { host.hidden = true; host.innerHTML = ''; return; }
+  host.hidden = false;
+  if (src.ocr) {
+    host.innerHTML = `
+      <div class="tb-wiz-tool">
+        <input type="file" id="tb-wiz-shot" accept="image/*" hidden onchange="readLessonScreenshot(this)">
+        <button type="button" class="tbuilder-btn ghost" onclick="document.getElementById('tb-wiz-shot').click()">Choose an image</button>
+        <span class="tb-wiz-tool-note" id="tb-wiz-shot-note">PNG, JPG or a screenshot from the clipboard. Nothing is uploaded: the text is read here, in your browser.</span>
+      </div>`;
+  } else {
+    host.innerHTML = `
+      <div class="tb-wiz-tool">
+        <input type="url" id="tb-wiz-link" inputmode="url" placeholder="https://… or a YouTube link">
+        <button type="button" class="tbuilder-btn ghost" onclick="importLessonLink()">Get the text</button>
+        <span class="tb-wiz-tool-note" id="tb-wiz-link-note">A YouTube link brings its transcript, a web page brings its article text.</span>
+      </div>`;
+  }
+}
+
+/* ── Скриншот → текст ──────────────────────────────────────────────────
+   Распознаётся в браузере (tesseract.js), а не на сервере: в цепочке
+   моделей нет ни одной, которая читает картинки, а картинка учебника с
+   телефона - это ещё и файл на несколько мегабайт, который незачем гонять
+   через нашу квоту. */
+const TESSERACT_SRC = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+let _tesseractLoading = null;
+function _loadTesseract() {
+  if (window.Tesseract) return Promise.resolve(window.Tesseract);
+  if (_tesseractLoading) return _tesseractLoading;
+  _tesseractLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = TESSERACT_SRC;
+    s.onload = () => resolve(window.Tesseract);
+    s.onerror = () => { _tesseractLoading = null; reject(new Error('OCR library did not load')); };
+    document.head.appendChild(s);
+  });
+  return _tesseractLoading;
+}
+
+async function readLessonScreenshot(input) {
+  const file = input && input.files && input.files[0];
+  const note = document.getElementById('tb-wiz-shot-note');
+  if (!file) return;
+  const say = msg => { if (note) note.textContent = msg; };
+  say('Loading the reader…');
+  try {
+    const T = await _loadTesseract();
+    say('Reading the image… 0%');
+    const res = await T.recognize(file, 'eng', {
+      logger: m => { if (m && m.status === 'recognizing text') say(`Reading the image… ${Math.round((m.progress || 0) * 100)}%`); },
+    });
+    const text = String(res?.data?.text || '').replace(/\n{3,}/g, '\n\n').trim();
+    if (!text) { say('No text could be read from that image. A sharper, straighter shot usually fixes it.'); return; }
+    _wizFillSource(text);
+    say(`Read ${text.split(/\s+/).length} words. Check it below and fix anything the reader got wrong.`);
+  } catch (err) {
+    console.warn('[wizard] ocr failed', err);
+    say('The image could not be read. Paste the text by hand instead.');
+  } finally {
+    if (input) input.value = '';
+  }
+}
+
+/* ── Ссылка → текст ───────────────────────────────────────────────────── */
+async function importLessonLink() {
+  const field = document.getElementById('tb-wiz-link');
+  const note  = document.getElementById('tb-wiz-link-note');
+  const url = (field?.value || '').trim();
+  const say = msg => { if (note) note.textContent = msg; };
+  if (!url) { say('Paste a link first.'); return; }
+  say('Fetching…');
+  try {
+    const isYt = /youtube\.com|youtu\.be/i.test(url);
+    const res = await apiFetch(isYt
+      ? `/api/ai/youtube-transcript?url=${encodeURIComponent(url)}`
+      : `/api/ai/web-text?url=${encodeURIComponent(url)}`);
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) { say(data?.error || 'That link could not be read.'); return; }
+    const text = String(isYt ? data.transcript : data.text || '').trim();
+    if (!text) { say('Nothing readable came back from that link.'); return; }
+    _wizFillSource(text);
+    const topic = document.getElementById('tbuilder-topic');
+    if (topic && !topic.value.trim() && data.title) topic.value = String(data.title).slice(0, 120);
+    say(`Brought ${text.split(/\s+/).length} words${data.title ? ` from “${data.title}”` : ''}. Check it below.`);
+  } catch (err) {
+    console.warn('[wizard] link import failed', err);
+    say('That link could not be read right now.');
+  }
+}
+
+function _wizFillSource(text) {
+  const field = document.getElementById('tbuilder-source');
+  if (!field) return;
+  field.value = text;
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/* ── Свой текст как результат «генерации» ──────────────────────────────
+   Дальше по конвейеру все ждут результат инструмента: карточки, уровень,
+   boardKind. Учительский текст оборачивается в ту же форму, но НИКУДА не
+   уходит - ни одной модели он не показывается и ни одного слова в нём не
+   меняется. Это и есть обещание «ничего не переписываем».
+
+   Жирным выделяем здесь же: в сгенерированном тексте это делает промт, а
+   в чужом тексте выделить слово - работа на строках, для которой модель
+   не нужна и которой нельзя рисковать (она перепишет заодно и текст). */
+function _ttOwnTextOutput(base, keys) {
+  const text = String(base.source || '').trim();
+  if (!text) return null;
+  const words = String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const body = keys.includes('bold-vocab') && words.length ? _ttBoldFirstOccurrences(text, words) : text;
+  const heading = (base.topic || '').trim();
+  return {
+    engine: 'teacher-text',
+    boardKind: 'cards',
+    cat: 'reading',
+    kind: 'Reading Text',
+    level: base.level,
+    topic: base.topic,
+    title: heading || 'Reading text',
+    cards: [{ title: '📖 Reading text', text: heading ? `${heading}\n${body}` : body }],
+    vocab: words,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+/* Первое вхождение каждого слова, по границе слова и без учёта регистра.
+   Уже размеченное **…** не трогаем повторно, иначе вложенные звёздочки
+   ломают разметку. */
+function _ttBoldFirstOccurrences(text, words) {
+  let out = text;
+  words.slice(0, 40).forEach(word => {
+    const w = word.trim();
+    if (!w) return;
+    const safe = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(^|[^\\w*])(${safe})(?![\\w*])`, 'i');
+    if (!new RegExp(`\\*\\*${safe}\\*\\*`, 'i').test(out)) {
+      out = out.replace(re, (m, pre, hit) => `${pre}**${hit}**`);
+    }
+  });
+  return out;
+}
+
+/* ── Домашка в журнал ─────────────────────────────────────────────────
+   Карточки уже лежат на доске, поэтому задание описывается их id: ровно
+   так журнал и устроен - «вот эти карточки этой доски». Учитель получает
+   не картинку домашки, а запись, которую можно выдать и проверить. */
+async function _ttCreateHomeworkFromCards(cardIds, title, instructions) {
+  if (!cardIds.length) return null;
+  if (!authToken || !currentBoardId) {
+    toast('Homework is on the board. Sign in and open a saved board to also put it in the journal.');
+    return null;
+  }
+  try {
+    const res = await apiFetch('/api/homework', {
+      method: 'POST',
+      body: {
+        board_id: currentBoardId,
+        title: String(title || 'Homework').slice(0, 255),
+        instructions: String(instructions || ''),
+        required_cards: cardIds,
+      },
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.homework) {
+      console.warn('[wizard] homework create failed', data?.error || res.status);
+      toast('Homework cards are on the board, but the journal entry could not be created.');
+      return null;
+    }
+    toast('Homework created - assign it in the Homework journal.');
+    return data.homework;
+  } catch (err) {
+    console.warn('[wizard] homework create failed', err);
+    return null;
+  }
 }
 
 function makeTeacherToolSnippet(tool) {
@@ -14895,6 +15247,20 @@ function makeTeacherToolSnippet(tool) {
 function renderToolsTab(sec) {
   const q = (searchQ || '').trim().toLowerCase();
   const toolsCount = BOARD_TEACHER_TOOLS.length;
+
+  /* Парадная дверь панели. Список из 77 инструментов остаётся ниже для
+     тех, кто знает, что ищет; тому, кто просто пришёл вести урок, сначала
+     задают два вопроса и собирают урок за него. */
+  if (!q) {
+    const wiz = document.createElement('button');
+    wiz.type = 'button';
+    wiz.className = 'lesson-wiz-cta';
+    wiz.innerHTML = `<span class="lw-cta-ic"><svg aria-hidden="true"><use href="#bi-spark"/></svg></span>
+      <span class="lw-cta-tx"><b>Build a lesson</b><small>Two questions, and the whole lesson lands on the board</small></span>
+      <span class="lw-cta-go">→</span>`;
+    wiz.onclick = openLessonWizard;
+    sec.appendChild(wiz);
+  }
 
   const hero = document.createElement('div');
   hero.className = 'tools-mini-hero';
