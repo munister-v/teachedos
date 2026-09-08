@@ -13863,7 +13863,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '757';
+const TEACHEDOS_ASSET_VERSION = '759';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19276,32 +19276,124 @@ function getAiAssistantInput() {
    весам. Если одни полы уже длиннее урока (совсем короткий формат), они
    ужимаются пропорционально. Сумма этапов равна заданной длительности
    всегда - последний этап добирает разницу округлений. */
-function planLessonStages(minutes) {
-  const parts = [
-    { key: 'warm',     weight: .12, floor: 5  },
-    { key: 'lead',     weight: .22, floor: 8  },
-    { key: 'practice', weight: .30, floor: 12 },
-    { key: 'output',   weight: .25, floor: 10 },
-    { key: 'reflect',  weight: .11, floor: 4  },
-  ];
-  const total = Math.max(5, Math.round(minutes) || 45);
-  const floorSum = parts.reduce((sum, p) => sum + p.floor, 0);
+/* Делит total минут между этапами по весам, уважая минимумы, и гарантирует
+   что сумма равна total. Отдельная функция, потому что тем же делением
+   лечится время, пришедшее от языковой модели: она считает арифметику на
+   глаз и «5 этапов на 45 минут» регулярно даёт в сумме 50 или 40. */
+function distributeMinutes(total, parts) {
+  const target = Math.max(parts.length, Math.round(total) || 45);
+  const floors = parts.map(p => Math.max(1, p.floor || 1));
+  const floorSum = floors.reduce((sum, v) => sum + v, 0);
 
-  let out;
-  if (floorSum > total) {
+  let values;
+  if (floorSum > target) {
     // Урок короче, чем сумма минимумов: ужимаем их пропорционально.
-    out = parts.map(p => ({ key: p.key, value: Math.max(1, Math.floor(total * (p.floor / floorSum))) }));
+    values = floors.map(v => Math.max(1, Math.floor(target * (v / floorSum))));
   } else {
-    const spare = total - floorSum;
-    const weightSum = parts.reduce((sum, p) => sum + p.weight, 0);
-    out = parts.map(p => ({ key: p.key, value: p.floor + Math.floor(spare * (p.weight / weightSum)) }));
+    const spare = target - floorSum;
+    const weightSum = parts.reduce((sum, p) => sum + Math.max(0, p.weight || 0), 0) || parts.length;
+    values = parts.map((p, i) => floors[i] + Math.floor(spare * (Math.max(0, p.weight || 0) / weightSum)));
   }
-  // Остаток от округлений уходит в практику - самый длинный этап, там
-  // лишняя минута незаметна, а в рефлексии она бы удвоила блок.
-  const drift = total - out.reduce((sum, p) => sum + p.value, 0);
-  const practice = out.find(p => p.key === 'practice') || out[out.length - 1];
-  practice.value += drift;
-  return Object.fromEntries(out.map(p => [p.key, p.value]));
+  // Остаток от округлений уходит в самый длинный этап: там лишняя минута
+  // незаметна, а в коротком блоке она заметно меняет пропорции.
+  const drift = target - values.reduce((sum, v) => sum + v, 0);
+  let longest = 0;
+  values.forEach((v, i) => { if (v > values[longest]) longest = i; });
+  values[longest] += drift;
+  return values;
+}
+
+const LESSON_STAGE_SHAPE = [
+  { key: 'warm',     weight: .12, floor: 5  },
+  { key: 'lead',     weight: .22, floor: 8  },
+  { key: 'practice', weight: .30, floor: 12 },
+  { key: 'output',   weight: .25, floor: 10 },
+  { key: 'reflect',  weight: .11, floor: 4  },
+];
+
+function planLessonStages(minutes) {
+  const values = distributeMinutes(minutes, LESSON_STAGE_SHAPE);
+  return Object.fromEntries(LESSON_STAGE_SHAPE.map((p, i) => [p.key, values[i]]));
+}
+
+/* Ответ языковой модели приходит на доску как есть: /api/ai/lesson-board
+   отдаёт распарсенный JSON без проверки формы. Промпт просит пять этапов,
+   сумму по длительности и списки нужной длины, но это просьба, а не
+   контракт: модель возвращает то четыре этапа, то семь, а времена
+   «12 min + 15 min + 20 min» на сорокапятиминутный урок.
+
+   Здесь один шлюз для обоих путей - серверного и локального фолбэка, -
+   после которого и превью, и доска работают с предсказуемой формой. */
+function normaliseAiLesson(raw, input) {
+  const asText = value => (value === null || value === undefined) ? '' : String(value).trim();
+  const asList = (value, limit) => (Array.isArray(value) ? value : [])
+    .map(asText)
+    .filter(Boolean)
+    .slice(0, limit);
+
+  const lesson = (raw && typeof raw === 'object') ? { ...raw } : {};
+  const askedMinutes = parseInt(input?.duration, 10) || 45;
+
+  let stages = (Array.isArray(lesson.stages) ? lesson.stages : [])
+    .map(stage => ({
+      time:     asText(stage?.time),
+      title:    asText(stage?.title) || 'Stage',
+      goal:     asText(stage?.goal),
+      activity: asText(stage?.activity),
+    }))
+    .filter(stage => stage.activity || stage.goal)
+    .slice(0, 8);
+
+  // Ни одного пригодного этапа - это не план урока. Лучше честный локальный
+  // черновик, чем рамка с заголовком и пустотой под ним.
+  if (!stages.length) {
+    const local = generateLocalAiLesson(input || {});
+    stages = local.stages;
+    if (!asText(lesson.summary)) lesson.summary = local.summary;
+    // Раз черновик всё равно построен, добираем из него и то, что модель
+    // прислала в нечитаемом виде: иначе доска получала этапы, но пустую
+    // карточку целевого языка рядом с ними.
+    if (!Array.isArray(lesson.vocabulary) || !lesson.vocabulary.length) lesson.vocabulary = local.vocabulary;
+    if (!asText(lesson.homework)) lesson.homework = local.homework;
+    if (!Array.isArray(lesson.warmupPrompts) || !lesson.warmupPrompts.length) lesson.warmupPrompts = local.warmupPrompts;
+  }
+
+  // Время этапов: если модель дала читаемые минуты и они складываются в
+  // заданную длительность - оставляем как есть, это её замысел. Иначе
+  // перекладываем ту же длительность по её же пропорциям.
+  const parsed = stages.map(stage => {
+    const match = /(\d+(?:[.,]\d+)?)/.exec(stage.time || '');
+    return match ? Math.max(1, Math.round(parseFloat(match[1].replace(',', '.')))) : 0;
+  });
+  const sum = parsed.reduce((total, value) => total + value, 0);
+  const allReadable = parsed.every(value => value > 0);
+  if (!allReadable || Math.abs(sum - askedMinutes) > 1) {
+    const shape = stages.map((_, index) => {
+      const fallback = LESSON_STAGE_SHAPE[Math.min(index, LESSON_STAGE_SHAPE.length - 1)];
+      const weight = allReadable ? parsed[index] / sum : fallback.weight;
+      return { weight, floor: Math.min(4, Math.max(1, Math.round(askedMinutes * weight))) };
+    });
+    const minutes = distributeMinutes(askedMinutes, shape);
+    stages = stages.map((stage, index) => ({ ...stage, time: `${minutes[index]} min` }));
+  }
+
+  return {
+    ...lesson,
+    provider: asText(lesson.provider) || 'local',
+    title: asText(lesson.title) || `${input?.level || 'B1'} ${input?.skill || 'English'} lesson`,
+    summary: asText(lesson.summary),
+    stages,
+    vocabulary:         asList(lesson.vocabulary, 10),
+    warmupPrompts:      asList(lesson.warmupPrompts, 5),
+    assessmentCriteria: asList(lesson.assessmentCriteria, 5),
+    modeAddons:         asList(lesson.modeAddons, 6),
+    memoryHints:        asList(lesson.memoryHints, 5),
+    mistakeItems:       asList(lesson.mistakeItems, 6),
+    teacherScript:      asList(lesson.teacherScript, 5),
+    homework:  asText(lesson.homework),
+    challenge: asText(lesson.challenge),
+    teacherTip: asText(lesson.teacherTip),
+  };
 }
 
 /* Служебные слова не являются лексикой урока. Фильтр «длиннее трёх букв»
@@ -19489,7 +19581,7 @@ async function runAiAssistant() {
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
       if (data.result) {
-        renderAiAssistantPreview({ ...data.result, mode: input.mode });
+        renderAiAssistantPreview(normaliseAiLesson({ ...data.result, mode: input.mode }, input));
         if (status) {
           const q = data.quota;
           status.textContent = q
@@ -19505,7 +19597,7 @@ async function runAiAssistant() {
   } catch (_) {}
   // Fallback: local rule engine
   if (status) status.textContent = 'Generating from local memory...';
-  renderAiAssistantPreview(generateLocalAiLesson(input));
+  renderAiAssistantPreview(normaliseAiLesson(generateLocalAiLesson(input), input));
   if (status) status.textContent = 'Preview ready (local mode).';
 }
 
@@ -19546,13 +19638,19 @@ function applyAiAssistantToBoard() {
   const stageAccents = ['#F97316','#3B82F6','#8B5CF6','#10B981','#EC4899'];
 
   // ── Estimate total height before placing ────────────────────────
-  const stages      = (result.stages || []).slice(0, 5);
+  // Раскладываем ВСЕ этапы. Раньше здесь стоял slice(0, 5): модель, которую
+  // попросили про пять этапов, иногда присылает шесть или семь, и лишние
+  // молча исчезали - в превью учитель видел один план, на доске получал
+  // другой. Ряд вмещает пять карточек, дальше перенос.
+  const stages      = (result.stages || []);
+  const STAGES_PER_ROW = 5;
+  const stageRows   = Math.max(1, Math.ceil(stages.length / STAGES_PER_ROW));
   const row3Count   = [result.vocabulary?.length, result.mistakeItems?.length || result.memoryHints?.length, result.homework].filter(Boolean).length;
   const row4Items   = [result.warmupPrompts?.length, result.assessmentCriteria?.length, result.modeAddons?.length, result.challenge, result.teacherScript?.length].filter(Boolean);
   const row4Rows    = Math.ceil(row4Items.length / 3);
   const estH = 46 + PAD +
     (stages.length ? ROW_LESSON + GAP : 0) +
-    (stages.length ? ROW_STAGE  + GAP : 0) +
+    (stages.length ? stageRows * (ROW_STAGE + GAP) : 0) +
     (row3Count     ? ROW3_H     + GAP : 0) +
     (row4Items.length ? row4Rows * (ROW4_H + GAP) : 0) +
     PAD;
@@ -19583,16 +19681,20 @@ function applyAiAssistantToBoard() {
 
     // ── Row 2: Stage note cards - each gets a unique accent stripe ──
     if (stages.length) {
-      const sw = Math.floor((IW - GAP * (stages.length - 1)) / stages.length);
-      stages.forEach((stage, idx) => {
-        addCard('note', ox + idx * (sw + GAP), cy, {
-          icon:   stageEmojis[idx] || '📌',
-          title:  `${stage.time || ''} · ${stage.title || 'Stage'}`,
-          body:   stage.activity || '',
-          accent: stageAccents[idx % stageAccents.length],
-        }, sw, ROW_STAGE);
-      });
-      cy += ROW_STAGE + GAP;
+      for (let start = 0; start < stages.length; start += STAGES_PER_ROW) {
+        const row = stages.slice(start, start + STAGES_PER_ROW);
+        const sw = Math.floor((IW - GAP * (row.length - 1)) / row.length);
+        row.forEach((stage, col) => {
+          const idx = start + col;
+          addCard('note', ox + col * (sw + GAP), cy, {
+            icon:   stageEmojis[idx] || '📌',
+            title:  `${stage.time || ''} · ${stage.title || 'Stage'}`,
+            body:   stage.activity || '',
+            accent: stageAccents[idx % stageAccents.length],
+          }, sw, ROW_STAGE);
+        });
+        cy += ROW_STAGE + GAP;
+      }
     }
 
     // ── Row 3: Support cards (vocab | memory notes | homework) ──
