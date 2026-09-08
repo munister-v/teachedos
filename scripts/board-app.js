@@ -14737,6 +14737,19 @@ function renderBoardLessonStagePreview(set) {
    на экран они положить не могут. */
 function _ttStagePlainPreview(out) {
   if (!out) return '';
+  /* Результат из карточек (lead-in, three-titles, choose-summary,
+     summary-task) держит содержимое в struct.cards, а не в .text и не в
+     .questions - без этой ветки этап показывал один заголовок задания и
+     пустоту под ним. */
+  const cards = (out.struct && Array.isArray(out.struct.cards)) ? out.struct.cards
+              : (Array.isArray(out.cards) ? out.cards : []);
+  if (cards.length) {
+    return cards.map(c => {
+      const head = String(c.title || '').trim();
+      const text = String(c.text || '').trim();
+      return head && text ? `${head}\n${text}` : (head || text);
+    }).filter(Boolean).join('\n\n');
+  }
   if (Array.isArray(out.questions) && out.questions.length) {
     return out.questions.slice(0, 6).map((q, i) => {
       const stem = q.q || q.text || q.prompt || '';
