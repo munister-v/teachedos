@@ -141,12 +141,13 @@
   .sp-link-input,
   .sp-email-input
 ):focus-visible {
+  /* Одно кольцо. Раньше поле в фокусе получало три: розовое на 4px,
+     лаймовое на 8px и розовую тень под ними - вместе с собственной рамкой
+     поля и общим кольцом фокуса это давало на телефоне жирную многослойную
+     обводку вместо подсказки «вы печатаете сюда». */
   border-color: var(--pink, #ec2d8c) !important;
   background: #fff !important;
-  box-shadow:
-    0 0 0 4px var(--form-ring-pink),
-    0 0 0 8px var(--form-ring-lime),
-    0 18px 46px rgba(236,45,140,.13) !important;
+  box-shadow: 0 0 0 3px var(--form-ring-pink) !important;
 }
 
 :is(
