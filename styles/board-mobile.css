@@ -152,3 +152,29 @@
     touch-action: pan-x pan-y;
   }
 }
+
+/* Кнопка «Add to board» на плитке инструмента. На мыши её нет: там
+   инструмент кладётся перетаскиванием, и лишняя кнопка в плотной сетке
+   из 77 плиток только шумит. */
+.ts-add-phone { display: none; }
+
+@media (max-width: 860px) {
+  body.phone-board .ts-add-phone {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    min-height: 44px;
+    border: 1px solid rgba(28,28,30,.12);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent, #C6F432) 22%, #fff);
+    color: var(--text, #1C1C1E);
+    font-family: var(--font);
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  body.phone-board .ts-add-phone:active {
+    background: var(--accent, #C6F432);
+  }
+  /* Подпись библиотеки обещает жест, которого на телефоне нет. */
+  body.phone-board .tools-mini-hero p { font-size: 12px; }
+}

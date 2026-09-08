@@ -39,6 +39,7 @@
       ['Zoom to a card','Double-tap it; double-tap the canvas to fit the board.'],
       ['Read long cards','Scroll inside the card itself.'],
       ['Add',           'Sticky, Text, Frame, Sticker, Comment and the lesson library.'],
+      ['Use a tool',    'Library → Add to board drops a ready frame; tapping the tile opens its builder.'],
       ['Edit',          'Opens the full-screen card editor.'],
       ['Undo / Redo',   'From the bar at the bottom.'],
       ['Draw',          'Pen draws; the canvas stops panning while it is on.'],
@@ -46,7 +47,8 @@
     ],
     assisted: [
       ['Move a card',  'Select it, tap Move, then drag anywhere on the screen.'],
-      ['Resize a card','Select it, tap Size, pick a size. Free resize needs the corner handles.']
+      ['Resize a card','Select it, tap Size, pick a size. Free resize needs the corner handles.'],
+      ['Place a tool', 'Add to board puts it in the middle of the view - dragging a tool out of the library needs a mouse.']
     ],
     desktop: [
       ['Connectors and arrows', 'Anchor dots are smaller than a fingertip and the drag has to land exactly.'],

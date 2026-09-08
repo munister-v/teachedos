@@ -13863,7 +13863,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '748';
+const TEACHEDOS_ASSET_VERSION = '751';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14522,8 +14522,38 @@ function makeTeacherToolSnippet(tool) {
       return;
     }
     if (isSidebarDrag) return;
+    if (e.target.closest('.ts-add-phone')) return;   // handled below
     openTeacherToolBuilder(tool.id);
   });
+
+  /* ТЕЛЕФОН: у инструмента должен быть путь на доску, а не только в билдер.
+     Класть шаблон умеет ровно один жест - перетаскивание из библиотеки на
+     полотно, - а на телефоне библиотека занимает весь экран: доски под ней
+     нет, ронять шаблон некуда, и обещание «drag any tool onto the board»
+     там неисполнимо. Поэтому на телефоне у плитки появляется явное
+     действие: тот же instantiateToolTemplate, только якорь - центр вида,
+     библиотека закрывается сама и доска подъезжает к результату. */
+  if (!tool.studio) {
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'ts-add-phone';
+    add.textContent = 'Add to board';
+    add.addEventListener('click', ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const center = getBoardViewportCenter() || { x: 240, y: 480 };
+      const fid = instantiateToolTemplate(tool, center.x, center.y);
+      if (!fid) { toast && toast('Could not add that tool'); return; }
+      const sb = document.getElementById('sidebar');
+      if (sb) sb.classList.remove('open');
+      clearSelection?.();
+      selectCard?.(fid);
+      setTimeout(() => { try { zoomToCard?.(fid, true); } catch {} }, 120);
+      scheduleSave?.();
+      toast && toast(`✨ ${tool.title} added - edit the stickies`);
+    });
+    el.appendChild(add);
+  }
   return el;
 }
 
@@ -14535,7 +14565,9 @@ function renderToolsTab(sec) {
   hero.className = 'tools-mini-hero';
   hero.innerHTML = `
     <b>Teacher Tools</b>
-    <p>${toolsCount} ready-to-use constructors. Open the builder, or drag any tool onto the board as a draft card.</p>
+    <p>${toolsCount} ready-to-use constructors. ${isBoardPhone()
+      ? 'Tap a tool to open the builder, or use Add to board for a ready draft.'
+      : 'Open the builder, or drag any tool onto the board as a draft card.'}</p>
     <div class="tools-mini-actions">
       <a href="teacher-tools.html">Open full hub \u2192</a>
       <button type="button" onclick="openAiAssistantPanel()">\u2726 AI lesson flow</button>
