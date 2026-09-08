@@ -138,7 +138,11 @@ html,body,button,input,textarea,select {
   letter-spacing:-.035em;
 }
 
-:where(code,pre,kbd,samp,.mono,.eyebrow,.label,[class*="mono"],[class*="kicker"]) {
+/* `<pre>` means "keep my line breaks", which is not the same as "this is
+   code". The shared-task page uses one to hold a reading passage, and the
+   passage came out in JetBrains Mono: fewer words per line, and a text a
+   student reads set in a typeface meant for code. Prose opts out by class. */
+:where(code,pre,kbd,samp,.mono,.eyebrow,.label,[class*="mono"],[class*="kicker"]):not(.prose):not(.prose *) {
   font-family:var(--te-font-mono) !important;
 }
 

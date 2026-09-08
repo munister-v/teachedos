@@ -17,7 +17,10 @@
   .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.05)}
   h1{margin:.1em 0 .2em;font-size:1.5rem;letter-spacing:-.03em}
   .meta{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:18px}
-  pre.body{white-space:pre-wrap;font:inherit;margin:0}
+  /* Prose, not code: keep the line breaks the teacher typed, keep the page's
+     reading typeface. `.prose` also opts this out of the brand layer's
+     monospace rule for <pre>. */
+  pre.body{white-space:pre-wrap;font:inherit;margin:0;font-size:1rem}
   .q{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;background:#fff}
   .q .qt{font-weight:600;margin-bottom:10px}
   .opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:10px 13px;margin:7px 0;cursor:pointer;font:inherit;transition:.12s}
@@ -50,11 +53,11 @@
   .foot a{color:#43610A;font-weight:600;text-decoration:none}
   .state{padding:40px 0;text-align:center;color:var(--muted)}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=751">
+<link rel="stylesheet" href="styles/teached-brand.css?v=752">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=751">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=751">
-<link rel="stylesheet" href="styles/controls.css?v=751">
+<link rel="stylesheet" href="styles/figma-theme.css?v=752">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=752">
+<link rel="stylesheet" href="styles/controls.css?v=752">
 </head>
 <body class="fx">
 <div class="wrap">
@@ -96,7 +99,7 @@ function render(m){
   root.innerHTML=`<div class="card">
     <h1>${esc(m.title||'TeachEd Task')}</h1>
     <div class="meta">${meta}</div>
-    ${interactive || `<pre class="body">${esc(m.text||'')}</pre>`}
+    ${interactive || `<pre class="body prose">${esc(m.text||'')}</pre>`}
   </div>`;
   if(interactive) wireInteractive(gt);
 }
@@ -182,6 +185,6 @@ function wireInteractive(gt){
 }
 load();
 </script>
-  <script src="scripts/signin-entry.js?v=751" defer></script>
+  <script src="scripts/signin-entry.js?v=752" defer></script>
 </body>
 </html>
