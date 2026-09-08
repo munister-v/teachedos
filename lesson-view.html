@@ -38,11 +38,11 @@
   .lesson-link-action{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=759">
+<link rel="stylesheet" href="styles/teached-brand.css?v=760">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=759">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=759">
-<link rel="stylesheet" href="styles/controls.css?v=759">
+<link rel="stylesheet" href="styles/figma-theme.css?v=760">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=760">
+<link rel="stylesheet" href="styles/controls.css?v=760">
 </head>
 <body class="fx">
 <header class="lesson-nav">
@@ -110,7 +110,7 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=759"></script>
+<script src="scripts/app-core.js?v=760"></script>
 <script>
   const FALLBACK_COLORS = ['#fef3c7','#d1fae5','#dbeafe','#fce7f3','#ede9fe','#ffe4d2'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -199,7 +199,12 @@
     return `${cards.length} card${cards.length === 1 ? '' : 's'} — ${kinds}. ${level || 'Mixed'} level${duration ? `, ${duration}` : ''}.`;
   }
 
+  let lastSnapshot = null;      // нужен, чтобы пересобрать полотно при смене режима
+  let lastCompact = null;
+
   function renderCanvas(snapshot) {
+    lastSnapshot = snapshot;
+    lastCompact = window.matchMedia('(max-width:820px)').matches;
     const canvas = document.getElementById('lesson-canvas');
     const cards = Array.isArray(snapshot?.cards) ? snapshot.cards : [];
     if (!cards.length) {
@@ -244,8 +249,16 @@
 
        Полотно масштабируется в fitCanvas и лежит в .lesson-stage с overflow:auto,
        так что расти ему можно: высокий урок прокручивается, а не обрезается. */
-    const width = Math.max(880, Math.round(bounds.maxX + offsetX + 48));
-    const height = Math.max(560, Math.round(bounds.maxY + offsetY + 48));
+    /* Минимальный размер полотна держит доску из одной карточки похожей на
+       доску, а не на марку. На телефоне он же дорисовывает пустоту, которую
+       приходится пролистывать: сцена там и так уже (345px), и лишние 140px
+       справа - это просто пустое поле под пальцем. На узком экране полотно
+       равно уроку. */
+    const compactViewport = window.matchMedia('(max-width:820px)').matches;
+    const minW = compactViewport ? 320 : 880;
+    const minH = compactViewport ? 240 : 560;
+    const width = Math.max(minW, Math.round(bounds.maxX + offsetX + 48));
+    const height = Math.max(minH, Math.round(bounds.maxY + offsetY + 48));
     canvasSize = { width, height };
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
@@ -431,9 +444,17 @@
   }
 
   initializeLesson();
-  window.addEventListener('resize', fitCanvas, { passive:true });
+  /* Минимальный размер полотна зависит от ширины экрана, поэтому поворот
+     телефона или переход через 820px требует пересборки, а не только нового
+     масштаба - иначе на планшете остаётся полотно, посчитанное для телефона. */
+  function refitCanvas() {
+    const compact = window.matchMedia('(max-width:820px)').matches;
+    if (lastSnapshot && compact !== lastCompact) renderCanvas(lastSnapshot);
+    else fitCanvas();
+  }
+  window.addEventListener('resize', refitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=759" defer></script>
+  <script src="scripts/signin-entry.js?v=760" defer></script>
 </body>
 </html>
