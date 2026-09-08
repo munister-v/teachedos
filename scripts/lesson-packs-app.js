@@ -2206,7 +2206,7 @@ function renderPackContent(p) {
     : _lpSections(p.content);
   if (!sections.length) {
     // Незнакомая вёрстка - показываем как есть, но честно, а не молча пустой.
-    return `<pre class="lp-mono lp-raw">${_LP_ESC(_lpPlainText(p))}</pre>`;
+    return `<pre class="lp-mono lp-raw prose">${_LP_ESC(_lpPlainText(p))}</pre>`;
   }
   const nav = sections.length > 2
     ? `<nav class="lp-toc">${sections.map((s, i) =>

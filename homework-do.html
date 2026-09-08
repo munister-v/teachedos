@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=752">
+<link rel="stylesheet" href="styles/fonts.css?v=754">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -85,7 +85,16 @@ a{text-decoration:none;color:inherit;}
   box-shadow:0 24px 60px rgba(5,5,23,.10);position:relative;
 }
 #runner-iframe{width:100%;height:100%;border:none;display:block;}
-.card-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:14px;text-align:center;padding:24px;}
+/* Заглушка для типа карточки, который ученик не проходит здесь. Была
+   flex-строкой: текст и кнопка вставали в РЯД, и на телефоне кнопка
+   наезжала на последние слова. Колонка и разрыв это снимают. */
+.card-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  height:100%;color:var(--text-3);font-size:14px;text-align:center;padding:24px;line-height:1.5;}
+.card-empty .runner-btn{margin-top:0;}
+/* Высота 600px нужна игре в iframe. Под одну фразу она разворачивала
+   пустой белый лист во весь экран, а инструкция и список задач уезжали
+   под него. Заглушка живёт по своему содержимому. */
+#runner-card-host.is-message{height:auto;min-height:150px;}
 
 #runner-side{
   width:280px;flex-shrink:0;border-left:1px solid var(--border);background:var(--card);
@@ -117,15 +126,15 @@ a{text-decoration:none;color:inherit;}
   background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=752" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=752">
-<link rel="stylesheet" href="styles/harmony.css?v=752">
-<link rel="stylesheet" href="styles/unify.css?v=752">
-<link rel="stylesheet" href="styles/teached-brand.css?v=752">
+<script src="theme.js?v=754" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=754">
+<link rel="stylesheet" href="styles/harmony.css?v=754">
+<link rel="stylesheet" href="styles/unify.css?v=754">
+<link rel="stylesheet" href="styles/teached-brand.css?v=754">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=752">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=752">
-<link rel="stylesheet" href="styles/controls.css?v=752">
+<link rel="stylesheet" href="styles/figma-theme.css?v=754">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=754">
+<link rel="stylesheet" href="styles/controls.css?v=754">
 </head>
 <body class="fx">
 
@@ -313,6 +322,7 @@ function showCurrent() {
   const cid = requiredCards[stepIdx];
   const card = (current.board.data.cards || []).find(c => c.id === cid);
   if (!card) {
+    host.classList.add('is-message');
     host.innerHTML = `<div class="card-empty">This card no longer exists on the board.</div>`;
     return;
   }
@@ -322,6 +332,7 @@ function showCurrent() {
 
 function renderCardForStudent(host, card) {
   host.innerHTML = '';
+  host.classList.remove('is-message');
   if (card.type === 'game') {
     const iframe = document.createElement('iframe');
     iframe.src = card.data.src;
@@ -404,7 +415,8 @@ function renderCardForStudent(host, card) {
     wrap.appendChild(disp); wrap.appendChild(btn);
     host.appendChild(wrap);
   } else {
-    host.innerHTML = `<div class="card-empty">This card type (${esc(card.type)}) isn't directly playable yet.<br>Mark as done when finished.<br><br><button class="runner-btn primary" onclick="markCardDone('${esc(card.id)}')">Mark as done</button></div>`;
+    host.classList.add('is-message');
+    host.innerHTML = `<div class="card-empty"><div>This card type (${esc(card.type)}) isn't directly playable yet.<br>Mark as done when finished.</div><button class="runner-btn primary" onclick="markCardDone('${esc(card.id)}')">Mark as done</button></div>`;
   }
 }
 
@@ -480,10 +492,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=752" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=752" defer></script>
-<script src="scripts/autogrow.js?v=752" defer></script>
-<script src="pwa-boot.js?v=752" defer></script>
-  <script src="scripts/signin-entry.js?v=752" defer></script>
+<script src="scripts/nav-boost.js?v=754" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=754" defer></script>
+<script src="scripts/autogrow.js?v=754" defer></script>
+<script src="pwa-boot.js?v=754" defer></script>
+  <script src="scripts/signin-entry.js?v=754" defer></script>
 </body>
 </html>
