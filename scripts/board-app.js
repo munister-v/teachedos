@@ -13863,7 +13863,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '755';
+const TEACHEDOS_ASSET_VERSION = '756';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19263,13 +19263,93 @@ function getAiAssistantInput() {
   };
 }
 
+/* Раскладка урока по этапам.
+
+   Было: каждый этап брал max(пол, доля от длительности), а рефлексия -
+   остаток, тоже с полом. На 45+ минутах доли выигрывают у полов и сумма
+   сходится; на коротком уроке выигрывают полы, и 30-минутный урок
+   расписывался на 39 минут - учитель получал план, который не влезает в
+   пару. План, который врёт про время, хуже отсутствия плана: по нему
+   строится расписание.
+
+   Стало: полы уважаются, пока они помещаются в урок, а остаток делится по
+   весам. Если одни полы уже длиннее урока (совсем короткий формат), они
+   ужимаются пропорционально. Сумма этапов равна заданной длительности
+   всегда - последний этап добирает разницу округлений. */
+function planLessonStages(minutes) {
+  const parts = [
+    { key: 'warm',     weight: .12, floor: 5  },
+    { key: 'lead',     weight: .22, floor: 8  },
+    { key: 'practice', weight: .30, floor: 12 },
+    { key: 'output',   weight: .25, floor: 10 },
+    { key: 'reflect',  weight: .11, floor: 4  },
+  ];
+  const total = Math.max(5, Math.round(minutes) || 45);
+  const floorSum = parts.reduce((sum, p) => sum + p.floor, 0);
+
+  let out;
+  if (floorSum > total) {
+    // Урок короче, чем сумма минимумов: ужимаем их пропорционально.
+    out = parts.map(p => ({ key: p.key, value: Math.max(1, Math.floor(total * (p.floor / floorSum))) }));
+  } else {
+    const spare = total - floorSum;
+    const weightSum = parts.reduce((sum, p) => sum + p.weight, 0);
+    out = parts.map(p => ({ key: p.key, value: p.floor + Math.floor(spare * (p.weight / weightSum)) }));
+  }
+  // Остаток от округлений уходит в практику - самый длинный этап, там
+  // лишняя минута незаметна, а в рефлексии она бы удвоила блок.
+  const drift = total - out.reduce((sum, p) => sum + p.value, 0);
+  const practice = out.find(p => p.key === 'practice') || out[out.length - 1];
+  practice.value += drift;
+  return Object.fromEntries(out.map(p => [p.key, p.value]));
+}
+
+/* Служебные слова не являются лексикой урока. Фильтр «длиннее трёх букв»
+   пропускал their/about/which/things, и «target vocabulary» из темы
+   "These are about which things people should think about" получался
+   целиком служебным - учитель видел список, который нельзя учить. */
+const LESSON_STOPWORDS = new Set([
+  'about','above','after','again','against','along','also','always','among','another','around',
+  'because','been','before','being','below','between','both','cannot','could','does','doing','done',
+  'down','during','each','either','else','enough','even','ever','every','from','further','have',
+  'having','here','how','however','into','itself','just','less','like','made','make','many','maybe',
+  'more','most','much','must','need','never','next','nothing','often','once','only','other','others',
+  'over','own','part','perhaps','please','quite','rather','really','same','several','shall','should',
+  'since','some','something','still','such','sure','take','than','that','their','them','themselves',
+  'then','there','these','they','thing','things','think','this','those','through','thus','together',
+  'too','under','until','upon','used','using','very','want','well','were','what','when','where',
+  'which','while','will','with','within','without','would','your','yours','yourself',
+  // частые слова инструкций для учителя, а не язык для учеников
+  'lesson','lessons','student','students','teacher','teachers','class','classes','remember',
+  'practice','practise','activity','activities','exercise','exercises','board','cards','card',
+  'homework','example','examples','answer','answers','question','questions','task','tasks',
+]);
+
+function pickLessonVocabulary(sources, limit = 10) {
+  const seen = new Map();   // нижний регистр -> слово в исходном виде
+  for (const text of sources) {
+    if (!text) continue;
+    const words = String(text)
+      .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+      .split(/\s+/)
+      .filter(Boolean);
+    for (const word of words) {
+      const key = word.toLowerCase();
+      if (key.length < 4) continue;
+      if (LESSON_STOPWORDS.has(key)) continue;
+      if (/^\d+$/.test(key)) continue;
+      // Дедуп ДО среза: раньше срез шёл первым, дубли съедали слоты и
+      // список выходил короче обещанного.
+      if (!seen.has(key)) seen.set(key, word);
+      if (seen.size >= limit) return [...seen.values()];
+    }
+  }
+  return [...seen.values()];
+}
+
 function generateLocalAiLesson(input) {
   const minutes = parseInt(input.duration, 10) || 45;
-  const warm = Math.max(5, Math.round(minutes * .12));
-  const lead = Math.max(8, Math.round(minutes * .22));
-  const practice = Math.max(12, Math.round(minutes * .30));
-  const output = Math.max(10, Math.round(minutes * .25));
-  const reflect = Math.max(4, minutes - warm - lead - practice - output);
+  const { warm, lead, practice, output, reflect } = planLessonStages(minutes);
   const skillRecipes = {
     Writing: ['model text noticing', 'argument builder', 'guided paragraph', 'peer upgrade'],
     Speaking: ['opinion line', 'useful phrases', 'role-play ladder', 'fluency reflection'],
@@ -19280,22 +19360,21 @@ function generateLocalAiLesson(input) {
   };
   const recipe = skillRecipes[input.skill] || skillRecipes.Writing;
   const cleanTopic = input.topic.replace(/\s+/g, ' ').trim();
-  const words = cleanTopic
-    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
-    .split(/\s+/)
-    .filter(w => w.length > 3)
-    .slice(0, 8);
-  const memoryWords = `${input.teacherMemory} ${input.studentMemory} ${input.mistakes} ${input.source}`
-    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
-    .split(/\s+/)
-    .filter(w => w.length > 4)
-    .slice(0, 12);
+  // Тема и материал урока - это язык, который учат. Заметки учителя и
+  // профиль класса - инструкции ДЛЯ УЧИТЕЛЯ, оттуда лексика не берётся:
+  // раньше в словарь урока попадали слова вроде "Remember" и "students".
+  const words = pickLessonVocabulary([cleanTopic], 8);
+  const memoryWords = pickLessonVocabulary([input.source, input.mistakes], 12);
   const mistakeItems = input.mistakes
     .split(/[,;\n]/)
     .map(x => x.trim())
     .filter(Boolean)
     .slice(0, 6);
-  const vocabulary = [...new Set([...(words.length ? words : ['claim','reason','example','contrast','conclusion']), ...memoryWords].slice(0, 10))];
+  const vocabulary = pickLessonVocabulary(
+    [ (words.length ? words : ['claim','reason','evidence','contrast','conclusion']).join(' '),
+      memoryWords.join(' ') ],
+    10
+  );
   const memoryHints = [
     input.teacherMemory ? `Teacher style: ${input.teacherMemory}` : '',
     input.studentMemory ? `Class profile: ${input.studentMemory}` : '',
