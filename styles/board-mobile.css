@@ -137,3 +137,18 @@
     font-size: 22px; line-height: 1; color: var(--text);
   }
 }
+
+/* Scrolling inside a card, part two. The JS half (board-app.js hands the
+   gesture back to a scrollable child) is not enough on its own: .board-card
+   and #board-wrap declare touch-action:none so the board can own pan, pinch
+   and drag, and touch-action is intersected down the hit-test chain - a
+   `none` ancestor cancels a descendant's scroll before any script runs.
+   Cards on a phone therefore allow panning gestures, and the board's own
+   preventDefault still claims them for the canvas everywhere else. */
+@media (max-width: 860px) {
+  body.phone-board #board-wrap,
+  body.phone-board .board-card,
+  body.phone-board.board-phone-shell .board-card {
+    touch-action: pan-x pan-y;
+  }
+}

@@ -6972,7 +6972,18 @@ document.addEventListener('mouseup', e => {
     if (e.touches.length === 1) {
       const tt = e.target;
       const editing = tt.closest && tt.closest('[contenteditable="true"],textarea,input,select,.text-format-toolbar,.layer-popover');
-      const hit = !editing && tt.closest && tt.closest('.resize-handle, .anchor-dot, .board-card, .arrow-hit, .arrow-endpoint-handle, .arrow-waypoint-handle');
+      // On a phone a card is NOT a drag target. Chrome's touch-to-mouse
+      // compatibility layer fires its own mouseup right after the first
+      // touchmove, which ends the drag one pixel in - the card sits there
+      // while the finger keeps going, and the board looks broken. Worse, the
+      // preventDefault this branch does on touchstart suppresses the click
+      // that follows a tap, so tapping a card selected nothing either.
+      // Phones move cards through Move (scripts/board-mobile.js); a finger on
+      // a card pans the board, like a finger anywhere else.
+      const phoneCardTap = isBoardPhone() && tt.closest && tt.closest('.board-card') &&
+                           !tt.closest('.resize-handle, .anchor-dot, .arrow-hit, .arrow-endpoint-handle, .arrow-waypoint-handle');
+      const hit = !editing && !phoneCardTap && tt.closest &&
+                  tt.closest('.resize-handle, .anchor-dot, .board-card, .arrow-hit, .arrow-endpoint-handle, .arrow-waypoint-handle');
       // Connect mode is a drag-first tool on touch: press anywhere, move to a
       // card or a free point, release. The existing auto-connect mouseup path
       // handles snapping and returns to Select after the gesture.
@@ -13852,7 +13863,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '741';
+const TEACHEDOS_ASSET_VERSION = '745';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

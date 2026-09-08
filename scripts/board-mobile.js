@@ -232,6 +232,7 @@
 
   function onMoveDrag(event) {
     if (!moving || !moving.origin || event.touches.length !== 1) return;
+    if (event.target.closest('#phone-move-hud,#phone-card-actions')) return;
     const api = bridge();
     const touch = event.touches[0];
     const now = api.screenToBoard(touch.clientX, touch.clientY);
@@ -243,6 +244,9 @@
 
   function onMoveEnd(event) {
     if (!moving) return;
+    // The HUD's own buttons have to keep their tap: preventDefault here
+    // suppresses the click that follows, and Done stopped working.
+    if (event.target.closest('#phone-move-hud,#phone-card-actions')) return;
     moving.origin = null;
     event.preventDefault();
     event.stopImmediatePropagation();
