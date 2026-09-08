@@ -163,14 +163,8 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 .auto-gen-go:active{transform:scale(.97)}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 @media(max-width:860px){
-  .mobile-desktop-only{position:fixed;inset:0;z-index:10000;display:flex!important;align-items:center;justify-content:center;padding:24px 18px;background:rgba(243,243,246,.96)}
-  .mdo-card{width:min(100%,390px);padding:28px 22px 22px;border:1px solid var(--border);border-radius:24px;background:#fff;box-shadow:0 18px 50px rgba(14,14,16,.16);text-align:center}
-  .mdo-ic{width:52px;height:52px;margin:0 auto 16px;display:grid;place-items:center;border-radius:16px;background:rgba(205,242,79,.25);font-size:26px}
-  .mdo-card h2{font-size:22px;line-height:1.08;letter-spacing:-.04em;color:var(--ink)}
-  .mdo-card p{margin:10px auto 20px;max-width:310px;color:var(--text2);font-size:13px;line-height:1.5}
-  .mdo-actions{display:grid;gap:8px}
-  .mdo-btn{display:flex;align-items:center;justify-content:center;min-height:44px;padding:11px 14px;border-radius:13px;background:var(--ink);color:#fff;font:700 13px var(--font-sans,system-ui);text-decoration:none}
-  .mdo-btn.secondary{background:rgba(205,242,79,.2);color:var(--ink);border:1px solid rgba(168,208,43,.45)}
+  /* Заглушка снята вместе с её разметкой (см. комментарий над <nav>) -
+     сами .mdo-* классы теперь нигде не встречаются на этой странице. */
 }
 
 /* Телефон: цели нажатия в конструкторе.
@@ -179,6 +173,15 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
    Флажки и переключатели шли 18x18 - в них тоже надо попасть пальцем. */
 @media (max-width:860px){
   .del-opt{
+    min-width:44px; min-height:44px; padding:0;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  /* Крестик удаления вопроса в списке слева - тот же промах, что был у
+     del-opt: глиф без заданного размера давал 18x21, а действие
+     необратимо. .q-del сидит в общей строке .q-item (align-items:center),
+     поэтому рост высоты до 44 просто делает всю строку удобнее нажимать,
+     не только сам крестик. */
+  .q-del{
     min-width:44px; min-height:44px; padding:0;
     display:inline-flex; align-items:center; justify-content:center;
   }
@@ -200,6 +203,27 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
      нажимают в строку варианта целиком. */
   input[type=text], input[type=number], textarea, select,
   button[type=submit], .btn, .primary-btn{ min-height:44px; }
+  /* auto-gen-go (39px) и add-opt-btn (37px) - обычные <button> без класса
+     .btn, тот же порог достаётся им отдельной строкой. */
+  .auto-gen-go, .add-opt-btn{ min-height:44px; }
+  /* Подписи авто-генератора набраны 9-10px - ниже порога 11px, принятого
+     во всём приложении (см. mobile-chrome.css). Свои классы этой страницы,
+     в общий список не входят. */
+  .auto-gen-head span, .auto-gen-row label, .auto-gen-meta,
+  .auto-gen-row .half span{ font-size:11px; }
+  /* Номер вопроса и бейдж типа в списке слева - те же 9-10px. */
+  .q-num, .q-type-badge{ font-size:11px; }
+  /* Переключатель Shuffle - видимая полоска 40x22, меньше цели 44. Менять
+     сам вид не хочется (стандартный размер тумблера везде), поэтому зона
+     нажатия растёт невидимым квадратом поверх, а не самим переключателем. */
+  .toggle{ position:relative; }
+  .toggle::after{
+    content:''; position:absolute; top:50%; left:50%;
+    width:44px; height:44px; transform:translate(-50%,-50%);
+  }
+  /* Ответы в режиме Preview - те же тапаемые варианты, что видит ученик,
+     выходили 41px по высоте. */
+  .preview-opt{ padding:12px 14px; }
 }
 </style>
 <link rel="stylesheet" href="styles/mobile.css?v=765">
@@ -212,16 +236,10 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 </head>
 <body class="tw-page fx">
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
-<div class="mobile-desktop-only" role="dialog" aria-modal="true" aria-labelledby="mdo-title">
-  <div class="mdo-card">
-    <div class="mdo-ic">📝</div>
-    <h2 id="mdo-title">Build quizzes on a computer</h2>
-    <p>Quiz Builder needs a larger screen for question editing, so it works best on a laptop or desktop.</p>
-    <div class="mdo-actions">
-      <a class="mdo-btn" href="index.html">← Back to home</a>
-    </div>
-  </div>
-</div>
+<!-- Заглушку "открой на компьютере" убрали: под ней уже была рабочая
+     трёхпанельная мобильная раскладка (.mobile-panes), просто никогда не
+     проверенная касанием. game-builder эту заглушку сохраняет - готовой
+     замены у него нет. -->
 
 <!-- NAV -->
 <nav class="nav">
@@ -419,7 +437,7 @@ function renderSidebar(){
         <span class="q-type-badge ${TYPE_BADGE[q.type]}">${TYPE_LABELS[q.type]}</span>
         <div class="q-preview">${q.text||'(empty)'}</div>
       </div>
-      <span class="q-del" title="Delete" onclick="event.stopPropagation();deleteQuestion(${q.id})">✕</span>`;
+      <span class="q-del" title="Delete" onclick="event.stopPropagation();deleteQuestion(${q.id})" role="button" tabindex="0">✕</span>`;
     d.onclick=()=>setActive(q.id);
     list.appendChild(d);
   });
@@ -438,11 +456,11 @@ function renderEditor(){
 
   if(q.type==='mcq'){
     const opts = q.options.map((o,i)=>`
-      <div class="opt-row">
+      <label class="opt-row">
         <input type="radio" name="correct_${q.id}" ${q.correct===i?'checked':''} onchange="update(${q.id},'correct',${i})">
         <input type="text" placeholder="Option ${i+1}" value="${esc(o)}" oninput="updateOpt(${q.id},${i},this.value)">
-        ${q.options.length>2?`<button class="del-opt" onclick="removeOpt(${q.id},${i})">✕</button>`:''}
-      </div>`).join('');
+        ${q.options.length>2?`<button class="del-opt" onclick="event.preventDefault();removeOpt(${q.id},${i})">✕</button>`:''}
+      </label>`).join('');
     body=`${opts}
       ${q.options.length<6?`<button class="add-opt-btn" onclick="addOpt(${q.id})">+ Add option</button>`:''}
       <p style="font-size:.8rem;color:var(--text2)">● = correct answer</p>`;
