@@ -590,6 +590,90 @@ const BOARD_WORKOUT_ACTIVITIES = [
 ];
 window.BOARD_WORKOUT_ACTIVITIES = BOARD_WORKOUT_ACTIVITIES;
 
+/* ═══════════════════════════════════════════════════════════════════
+   ЭТАПЫ УРОКА ДЛЯ КОНСТРУКТОРА
+
+   Инструмент, который создаёт учебный ТЕКСТ, до сих пор отдавал один
+   готовый результат: текст, глоссарий и жёстко зашитые в промт «Before
+   reading» / «After reading». Учитель не выбирал ни что будет до текста,
+   ни что после - модель решала за него, и поменять это можно было только
+   собрав каждое задание отдельным инструментом заново, вручную вставив
+   в него тот же текст.
+
+   Здесь этапы описаны данными, а не кодом: у скила есть список этапов, у
+   этапа - список вариантов. Вариант бывает двух видов:
+
+     tool - отдельное задание. Прогоняется тем же конвейером, что и
+            одиночный инструмент панели, и ложится на доску своей
+            карточкой (или игрой - см. BOARD_WORKOUT_ACTIVITIES).
+     flag - не задание, а свойство самого текста. Едет в промт через
+            input.extra - тот же канал, которым студия передаёт язык
+            перевода.
+
+   `after:'source'` у этапа означает, что его задания строятся ПО
+   СГЕНЕРИРОВАННОМУ ТЕКСТУ, а не по теме: вопросы after-reading должны
+   спрашивать про тот текст, который ученик только что прочитал, иначе
+   они не связаны с уроком. Это и есть причина, по которой этапы живут
+   в конструкторе, а не собираются вручную из отдельных инструментов.
+
+   Добавить скил = добавить сюда ключ и перечислить этапы. Логика
+   прогона (runBoardLessonStages в board-app.js) ничего не знает про
+   reading конкретно. */
+const BOARD_LESSON_STAGES = {
+  reading: {
+    label: 'Reading lesson',
+    stages: [
+      {
+        key: 'pre',
+        label: 'Before reading',
+        question: 'How do you want to work with the words before the text?',
+        options: [
+          {key:'pre-defs',    tool:'word-definition-match', title:'Match words to meanings', hint:'Pairs for matching, cards or a memory game.', game:'memory-match'},
+          /* ai:true осознанно: офлайнового генератора у word-image-match нет
+             (TT_LOCAL_QUALITY_SET), без сервера он отдал бы пустой каркас. */
+          {key:'pre-images',  tool:'word-image-match',      title:'Match words to pictures', hint:'Image prompt for each word - pick or draw the picture yourself.', ai:true},
+          {key:'pre-lead',    tool:'lead-in',               title:'Short lead-in questions', hint:'Two or three questions that open the topic.', ai:true},
+          {key:'pre-titles',  tool:'three-titles',          title:'Choose the best title',   hint:'One right title and two plausible decoys.', ai:true, after:'source'},
+          {key:'pre-summary', tool:'choose-summary',        title:'Choose the right summary',hint:'Several summaries, students pick the one that fits.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'text',
+        label: 'The text',
+        question: 'How should the text itself look?',
+        options: [
+          {key:'bold-vocab', flag:'boldVocab', title:'Bold the target vocabulary', hint:'Each target word stands out the first time it appears.', on:true},
+          {key:'glossary',   flag:'glossary',  title:'Glossary under the text',    hint:'Every target word with a short definition at your level.', on:true},
+        ],
+      },
+      {
+        key: 'post',
+        label: 'After reading',
+        question: 'How do you want to work with the text?',
+        options: [
+          {key:'post-tf',      tool:'true-false',     title:'True / False statements', hint:'Fast check that they read it.', ai:true, after:'source'},
+          {key:'post-abcd',    tool:'abcd-text',      title:'ABC questions',           hint:'Multiple choice with one correct answer.', ai:true, after:'source'},
+          {key:'post-open',    tool:'open-questions', title:'Open questions',          hint:'Comprehension questions they answer in their own words.', ai:true, after:'source'},
+          {key:'post-gap',     tool:'gap',            title:'Gap-fill',                hint:'Sentences from the text with the target words removed.', ai:true, after:'source'},
+          {key:'post-summary', tool:'summary-task',   title:'Summary task',            hint:'Main idea, key details and a short writing prompt.', ai:true, after:'source'},
+          {key:'post-disc',    tool:'discussion',     title:'Discussion questions',    hint:'Speaking prompts that push the words into use.', ai:true, after:'source'},
+        ],
+      },
+    ],
+  },
+};
+
+/* Какие инструменты панели ведут учителя по этапам. Оба создают учебный
+   текст с нуля - именно у них «до текста / текст / после текста» и есть
+   настоящий этап урока. */
+const BOARD_STAGED_TOOLS = {
+  'text-topic-vocab': 'reading',
+  'generate-text': 'reading',
+};
+
+window.BOARD_LESSON_STAGES = BOARD_LESSON_STAGES;
+window.BOARD_STAGED_TOOLS  = BOARD_STAGED_TOOLS;
+
 window.BOARD_TEACHER_TOOLS = BOARD_TEACHER_TOOLS;
 window.STICKER_KEYWORDS     = STICKER_KEYWORDS;
 window.TOOL_SEED_CONTENT   = TOOL_SEED_CONTENT;

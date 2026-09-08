@@ -3624,6 +3624,24 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-form .tb-workout-item b{display:block;font-family:var(--font);text-transform:none;letter-spacing:0;margin:0;font-size:13px;font-weight:650;color:#0E0E10;}
 .tbuilder-form .tb-workout-item small{display:block;font-family:var(--font);text-transform:none;letter-spacing:0;margin-top:1px;font-size:11px;color:#636366;line-height:1.35;}
 .tbuilder-form .tb-workout-ai{flex:0 0 auto;align-self:center;font:700 9px/1 var(--mono,ui-monospace,monospace);letter-spacing:.08em;text-transform:uppercase;color:#6C6C6F;background:rgba(14,14,16,.06);border-radius:999px;padding:4px 7px;}
+/* ЭТАПЫ УРОКА В КОНСТРУКТОРЕ
+   Этап отделён салатовой полосой слева и салатовым номером - учитель
+   видит не плоский список галочек, а последовательность урока: до
+   текста, сам текст, после текста. Варианты внутри этапа переиспользуют
+   .tb-workout-item: это та же карточка-галочка, второй её вид развёл бы
+   один и тот же элемент по двум наборам правил. */
+.tb-stages{display:grid;gap:14px;}
+.tb-stage{position:relative;padding-left:13px;}
+.tb-stage::before{content:'';position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:999px;background:var(--te-lime,#CDF940);}
+.tb-stage-head{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+.tb-stage-n{flex:0 0 auto;display:grid;place-items:center;width:19px;height:19px;border-radius:6px;background:var(--te-lime,#CDF940);color:#0E0E10;font:800 11px/1 var(--font);}
+.tb-stage-title{font-family:var(--font);font-size:13px;font-weight:700;color:#0E0E10;letter-spacing:0;text-transform:none;}
+.tb-stage-q{font-family:var(--font);font-size:11px;color:#636366;line-height:1.35;margin:0 0 7px;text-transform:none;letter-spacing:0;}
+.tb-stage-meta{font-family:var(--font);font-size:10px;color:#8b8b90;margin-top:5px;text-transform:none;letter-spacing:0;}
+/* Отмеченный вариант подсвечивается салатовым, чтобы состав урока читался
+   с одного взгляда, не вчитываясь в положение галочек. */
+.tbuilder-form .tb-workout-item.is-on{border-color:rgba(168,208,43,.75);background:rgba(205,249,64,.13);}
+
 .tbuilder-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;}
 .tbuilder-btn{border:0;border-radius:14px;background:#556056;color:#fff;font-weight:600;padding:11px 14px;cursor:pointer;}
 .tbuilder-btn.lime{background:#C8E632;color:#0E0E10;}

@@ -335,6 +335,53 @@ function sourceEvidenceMap(source) {
     : '';
 }
 
+/* Из чего состоит результат текстового инструмента.
+
+   Раньше состав был жёстко зашит в промт: текст, глоссарий, «Before
+   reading» и «After reading» приезжали всегда. Конструктор на доске
+   теперь ведёт учителя по этапам урока и сам собирает задания до и
+   после текста отдельными инструментами по ЭТОМУ ЖЕ тексту - и если
+   оставить их зашитыми здесь, учитель получит их дважды: один раз от
+   модели, второй раз своими галочками.
+
+   Флаги приходят из панели (input.parts). Их отсутствие означает старое
+   поведение: ни одна вызывающая сторона, кроме конструктора этапов, их
+   не шлёт, и для неё всё остаётся как было. */
+function readingTextParts(input) {
+  const raw = input && input.parts;
+  const has = key => !raw || raw[key] !== false;   // нет флагов = старое поведение
+  const wantGlossary = has('glossary');
+  const wantBefore   = has('before');
+  const wantAfter    = has('after');
+  const wantBold     = has('bold');
+
+  return {
+    boldRule: wantBold
+      ? 'mark each target word in **bold** the first time it appears'
+      : 'do NOT use bold or any other markup anywhere in the text',
+    cardPlan(glossarySpec) {
+      const parts = ['"📖 Reading text" - a short title on the first line, then the text'];
+      if (wantGlossary) parts.push(glossarySpec);
+      if (wantBefore)   parts.push('"Before reading" - 2-3 prediction/lead-in questions');
+      if (wantAfter)    parts.push('"After reading" - 3 comprehension questions');
+      const plan = parts.map((p, i) => `${i + 1}) ${p}`).join('; ');
+      /* Явный запрет, а не просто умолчание списка: модель охотно
+         дописывает «полезные» карточки сверх плана, и тогда снятая
+         галочка выглядела бы неработающей. */
+      const dropped = [!wantGlossary && 'glossary', !wantBefore && '"Before reading"', !wantAfter && '"After reading"'].filter(Boolean);
+      const ban = dropped.length ? ` Return EXACTLY these cards and nothing else - no ${dropped.join(', no ')} card.` : '';
+      return `${plan}.${ban}`;
+    },
+    schema(glossaryCard) {
+      const cards = ['{"title":"📖 Reading text","text":"Title\\nParagraph text…"}'];
+      if (wantGlossary) cards.push(glossaryCard);
+      if (wantBefore)   cards.push('{"title":"Before reading","text":"1. …\\n2. …"}');
+      if (wantAfter)    cards.push('{"title":"After reading","text":"1. …\\n2. …\\n3. …"}');
+      return `{"cards":[${cards.join(',')}],"vocab":["word"]}`;
+    },
+  };
+}
+
 // Describe the target JSON shape per board kind. The model fills these in;
 // the route then wraps them in the shared `base()` envelope.
 function shapeSpec(input) {
@@ -716,9 +763,10 @@ function shapeSpec(input) {
     };
   }
   if (toolId === 'text-topic-vocab') {
+    const p = readingTextParts(input);
     return {
-      task: `${cardsHead} Write a leveled reading text (about ${words} words, 2-4 natural paragraphs) at ${level} level that NATURALLY uses EVERY target word/phrase from the vocabulary list in context - mark each target word in **bold** the first time it appears, and do not force them awkwardly.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - every target word, one per line as "word - short ${level} definition"; 3) "Before reading" - 2 prediction/lead-in questions; 4) "After reading" - 3 comprehension questions that check the target words in context. Put all target words in "vocab".${context}`,
-      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word - definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …\\n3. …"}],"vocab":["word"]}',
+      task: `${cardsHead} Write a leveled reading text (about ${words} words, 2-4 natural paragraphs) at ${level} level that NATURALLY uses EVERY target word/phrase from the vocabulary list in context - ${p.boldRule}, and do not force them awkwardly.${genreText} Return cards in this order: ${p.cardPlan(`"🔑 Glossary" - every target word, one per line as "word - short ${level} definition"`)} Put all target words in "vocab".${context}`,
+      schema: p.schema('{"title":"🔑 Glossary","text":"word - definition\\n…"}'),
     };
   }
   if (toolId === 'summary-task') {
@@ -728,9 +776,10 @@ function shapeSpec(input) {
     };
   }
   if (toolId === 'generate-text') {
+    const p = readingTextParts(input);
     return {
-      task: `${cardsHead} Write an original, engaging reading text on this topic at ${level} level (about ${words} words, 2-4 natural paragraphs). Use vocabulary and grammar appropriate to ${level}.${genreText} Return cards in this order: 1) "📖 Reading text" - a short title on the first line, then the text; 2) "🔑 Glossary" - 6-8 key words from the text, one per line as "word - short ${level} definition"; 3) "Before reading" - 2-3 prediction/lead-in questions; 4) "After reading" - 3-4 comprehension + discussion questions. Put the glossary words in "vocab".${context}`,
-      schema: '{"cards":[{"title":"📖 Reading text","text":"Title\\nParagraph text…"},{"title":"🔑 Glossary","text":"word - definition\\n…"},{"title":"Before reading","text":"1. …\\n2. …"},{"title":"After reading","text":"1. …\\n2. …"}],"vocab":["word"]}',
+      task: `${cardsHead} Write an original, engaging reading text on this topic at ${level} level (about ${words} words, 2-4 natural paragraphs). Use vocabulary and grammar appropriate to ${level}.${genreText} Return cards in this order: ${p.cardPlan(`"🔑 Glossary" - 6-8 key words from the text, one per line as "word - short ${level} definition"`)} Put the glossary words in "vocab".${context}`,
+      schema: p.schema('{"title":"🔑 Glossary","text":"word - definition\\n…"}'),
     };
   }
   if (toolId === 'sentences-vocab') {

@@ -263,6 +263,17 @@ function invalidInput(message) {
   return error;
 }
 
+/* Белый список частей текстового материала. Значения приводятся к булевым,
+   всё незнакомое отбрасывается: это поле едет в промт, и строка оттуда
+   стала бы указанием модели. */
+const READING_PARTS = ['bold', 'glossary', 'before', 'after'];
+function pickParts(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const out = {};
+  READING_PARTS.forEach(k => { if (k in raw) out[k] = raw[k] !== false; });
+  return Object.keys(out).length ? out : null;
+}
+
 function normaliseInput(body) {
   const raw = body?.input || body || {};
   const toolId = clean(body?.toolId || raw.toolId || raw.tool?.id || '');
@@ -291,6 +302,12 @@ function normaliseInput(body) {
     source,
     vocab,
     extra: clean(raw.extra, '').slice(0, 600),
+    /* Состав текстового материала: конструктор этапов на доске сам
+       собирает задания до и после текста, поэтому просит модель их не
+       дублировать. Только известные ключи и только булевы значения -
+       поле приходит от клиента и уезжает в промт. Отсутствие поля даёт
+       прежнее поведение (см. readingTextParts в aiEngine.js). */
+    parts: pickParts(raw.parts),
     /* Что уже собрано в этом уроке и сколько он длится. Нужно только плану:
        без этого он планирует НЕ те материалы, которые лежат на доске рядом. */
     materials: clean(raw.materials, '').slice(0, 1200),
@@ -314,6 +331,9 @@ function cacheKey(userId, input) {
     source: input.source,
     vocab: input.vocab,
     extra: input.extra,
+    /* Без parts в ключе снятая галочка «Glossary» отдавала бы кеш от
+       прошлого запроса с глоссарием: те же тема и слова, другой состав. */
+    parts: input.parts,
     model: input.model,
   });
 }

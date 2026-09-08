@@ -1199,6 +1199,11 @@
           <textarea id="tbuilder-vocab" spellcheck="true" placeholder="One word or phrase per line..."></textarea>
           <div class="tb-field-meta"><span id="tbuilder-vocab-hint">One word or phrase per line.</span><span class="tb-field-meta-actions"><span id="tbuilder-vocab-meta">0 terms</span><button type="button" class="tbuilder-field-action" id="tbuilder-tidy-vocab" onclick="tidyTeacherToolVocabulary()" hidden>Tidy list</button></span></div>
         </div>
+        <!-- Этапы урока. Показываются только у инструментов из
+             BOARD_STAGED_TOOLS; содержимое рисует renderBoardLessonStages(). -->
+        <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-stages">
+          <div id="tbuilder-stages" class="tb-stages"></div>
+        </div>
         <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-workout">
           <label>Activities</label>
           <div id="tbuilder-workout-list" class="tb-workout-list"></div>

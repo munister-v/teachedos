@@ -11697,6 +11697,17 @@ function _ttAdaptFields(tool) {
   if (workoutWrap) workoutWrap.classList.toggle('tb-field-hidden', !isWorkout);
   if (isWorkout) renderBoardWorkoutPicks();
 
+  /* Инструменты, создающие текст, ведут учителя по этапам урока: что до
+     текста, каким быть тексту, что после. Список этапов - в данных
+     (BOARD_LESSON_STAGES), здесь только показ. */
+  const hasStages = !!boardLessonStagesFor(tool.id);
+  const stagesWrap = document.getElementById('tb-wrap-stages');
+  if (stagesWrap) stagesWrap.classList.toggle('tb-field-hidden', !hasStages);
+  if (hasStages) renderBoardLessonStages(tool.id);
+  /* Смена инструмента обнуляет собранный урок: иначе «Add to board» у
+     следующего инструмента положила бы набор от предыдущего. */
+  lastLessonStageSet = null;
+
   // Hide the "Items" count for tools that produce a single artifact / scaffold.
   const countWrap = document.getElementById('tb-wrap-count');
   if (countWrap) countWrap.classList.toggle('tb-field-hidden', TT_NO_COUNT_SET.has(tool.id));
@@ -12528,6 +12539,8 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
           source: input.source,
           vocab: input.vocab,
           extra: input.extra,
+          // Состав текстового материала - только у конструктора этапов.
+          parts: input.parts,
         },
       },
     });
@@ -13901,6 +13914,10 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   /* Студия строит набор, а не один материал, поэтому уходит своей дорогой -
      до проверок и кеша одиночного инструмента, которые ей не подходят. */
   if (activeTeacherToolBuilder.id === 'vocab-workout') { await runBoardWorkout(); return; }
+  /* Инструмент с этапами строит не один материал, а урок: текст плюс
+     отмеченные задания вокруг него. Уходит своей дорогой до кеша и
+     проверок одиночного инструмента, как и студия. */
+  if (boardLessonStagesFor(activeTeacherToolBuilder.id)) { await runBoardLessonStages(); return; }
   if (!_ttSyncFormReadiness({ attempted: true })) return;
   await _ensureGenLoaded();   // pull in board-gen.js on first generation
   const input = readTeacherToolBuilderInput();
@@ -14077,6 +14094,12 @@ async function generateTeacherToolBuilder(mode = 'fast') {
 async function applyTeacherToolBuilderToBoard(mode) {
   if (!activeTeacherToolBuilder) return;
   closeAddToBoardMenu();
+  /* У набора этапов на доску едет весь урок, а не только активный
+     результат: иначе кнопка положила бы один текст и молча потеряла
+     задания, которые учитель уже видел в превью. */
+  if (lastLessonStageSet && boardLessonStagesFor(activeTeacherToolBuilder.id)) {
+    if (placeBoardLessonStageSet()) return;
+  }
   if (!lastTeacherToolBuilderOutput) await generateTeacherToolBuilder('fast');
   const output = lastTeacherToolBuilderOutput;
   if (!output) return;
@@ -14455,6 +14478,305 @@ function _ttWorkoutPlainText(out) {
     return out.questions.map((q, i) => `${i + 1}. ${q.q || q.text || q.prompt || ''}`).join('\n');
   }
   return '';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ЭТАПЫ УРОКА
+
+   Инструмент, создающий текст, раньше отдавал один результат, в котором
+   «Before reading» и «After reading» были ЗАШИТЫ В ПРОМТ: учитель их не
+   выбирал и не мог поменять, не собирая каждое задание заново отдельным
+   инструментом и не вставляя в него тот же текст руками.
+
+   Теперь этапы описаны данными (BOARD_LESSON_STAGES в
+   js/teacher-tools-data.js), а этот код ничего не знает про reading
+   конкретно: он читает этапы скила, рисует галочки и прогоняет
+   отмеченное. Добавить скил = дописать данные.
+
+   Главное, ради чего это живёт в конструкторе, а не собирается вручную:
+   задания с after:'source' получают ИМЕННО ТОЛЬКО ЧТО СГЕНЕРИРОВАННЫЙ
+   текст как исходник. Вопросы after-reading спрашивают про тот текст,
+   который прочитал ученик, а не про тему вообще. */
+
+const STAGE_PICKS_STORE = 'teachedos_board_stage_picks';
+
+function boardLessonStagesFor(toolId) {
+  const skill = (typeof BOARD_STAGED_TOOLS !== 'undefined' && BOARD_STAGED_TOOLS) ? BOARD_STAGED_TOOLS[toolId] : null;
+  if (!skill) return null;
+  const all = (typeof BOARD_LESSON_STAGES !== 'undefined' && BOARD_LESSON_STAGES) ? BOARD_LESSON_STAGES : null;
+  return (all && all[skill]) ? all[skill] : null;
+}
+
+function boardStageOptions(toolId) {
+  const cfg = boardLessonStagesFor(toolId);
+  if (!cfg) return [];
+  return cfg.stages.reduce((acc, st) => acc.concat(st.options.map(o => ({ ...o, stage: st.key }))), []);
+}
+
+/* Выбор запоминается ОТДЕЛЬНО ПО ИНСТРУМЕНТУ: у разных скилов свои этапы,
+   и общий список ключей смешал бы их между собой. */
+function boardStageSavedPicks(toolId) {
+  try {
+    const all = JSON.parse(localStorage.getItem(STAGE_PICKS_STORE) || '{}');
+    if (all && Array.isArray(all[toolId])) return all[toolId];
+  } catch (_) {}
+  /* По умолчанию - то, что учитель получал и раньше: текст с выделенной
+     лексикой, глоссарий, вводные вопросы до и открытые после. Разница в
+     том, что теперь это видно и снимается галочкой. */
+  return boardStageOptions(toolId).filter(o => o.on).map(o => o.key).concat(['pre-lead', 'post-open'])
+    .filter(k => boardStageOptions(toolId).some(o => o.key === k));
+}
+
+function boardStagePickedKeys() {
+  return [...document.querySelectorAll('#tbuilder-stages input:checked')].map(i => i.value);
+}
+
+function renderBoardLessonStages(toolId) {
+  const host = document.getElementById('tbuilder-stages');
+  const cfg = boardLessonStagesFor(toolId);
+  if (!host || !cfg) return;
+  const picked = new Set(boardStageSavedPicks(toolId));
+  host.dataset.toolId = toolId;
+  host.innerHTML = cfg.stages.map((st, si) => `
+    <div class="tb-stage" data-stage="${esc(st.key)}">
+      <div class="tb-stage-head">
+        <span class="tb-stage-n">${si + 1}</span>
+        <span class="tb-stage-title">${esc(st.label)}</span>
+      </div>
+      <p class="tb-stage-q">${esc(st.question)}</p>
+      <div class="tb-workout-list">
+        ${st.options.map(o => `
+          <label class="tb-workout-item${picked.has(o.key) ? ' is-on' : ''}">
+            <input type="checkbox" value="${esc(o.key)}" ${picked.has(o.key) ? 'checked' : ''} onchange="onBoardStagePickChange()">
+            <span style="min-width:0">
+              <b>${esc(o.title)}</b>
+              <small>${esc(o.hint)}</small>
+            </span>
+            ${o.ai ? '<span class="tb-workout-ai">AI</span>' : ''}
+          </label>`).join('')}
+      </div>
+    </div>`).join('') + `<div class="tb-stage-meta" id="tbuilder-stages-meta"></div>`;
+  onBoardStagePickChange();
+}
+
+function onBoardStagePickChange() {
+  const host = document.getElementById('tbuilder-stages');
+  if (!host) return;
+  const toolId = host.dataset.toolId;
+  const keys = boardStagePickedKeys();
+  try {
+    const all = JSON.parse(localStorage.getItem(STAGE_PICKS_STORE) || '{}');
+    all[toolId] = keys;
+    localStorage.setItem(STAGE_PICKS_STORE, JSON.stringify(all));
+  } catch (_) {}
+  host.querySelectorAll('.tb-workout-item').forEach(el => {
+    el.classList.toggle('is-on', !!el.querySelector('input:checked'));
+  });
+  const meta = document.getElementById('tbuilder-stages-meta');
+  if (meta) {
+    const tasks = boardStageOptions(toolId).filter(o => o.tool && keys.includes(o.key)).length;
+    meta.textContent = tasks
+      ? `The text plus ${tasks} ${tasks === 1 ? 'activity' : 'activities'} - each lands as its own card.`
+      : 'Only the text will be created. Tick activities to build the lesson around it.';
+  }
+}
+
+/* Состав самого текста. Едет отдельным полем input.parts, а не строкой в
+   «teacher note»: заметка учителя приходит в промт как «follow it where
+   it applies», и просьба убрать карточку спорила бы там с собственной
+   схемой инструмента, где эта карточка перечислена. parts же меняет саму
+   схему на бекенде (readingTextParts в aiEngine.js).
+
+   before/after выключены всегда: эти этапы теперь собираются
+   отмеченными заданиями по этому же тексту. Без этого учитель получил бы
+   их дважды - зашитые в промт и свои. */
+function _stageTextParts(keys) {
+  return {
+    bold: keys.includes('bold-vocab'),
+    glossary: keys.includes('glossary'),
+    before: false,
+    after: false,
+  };
+}
+
+/* Текст, по которому строятся задания after:'source'. Берём карточку
+   самого текста, а не весь результат: глоссарий и заголовки в исходнике
+   сбили бы вопросы на определения вместо содержания. */
+function _stageReadingText(out) {
+  if (!out) return '';
+  const cards = (out.struct && Array.isArray(out.struct.cards)) ? out.struct.cards
+              : (Array.isArray(out.cards) ? out.cards : []);
+  const card = cards.find(c => /reading text|📖/i.test(c.title || ''));
+  if (card && card.text) return String(card.text);
+  const body = cards.filter(c => !/glossary|🔑/i.test(c.title || '')).map(c => c.text).filter(Boolean).join('\n\n');
+  return body || String(out.text || '');
+}
+
+let lastLessonStageSet = null;
+
+/* Прогон этапов. Сначала текст - он исходник для всего остального,
+   поэтому идёт первым и синхронно. Дальше задания по одному: серверные
+   вызовы делят одну квоту, и веер параллельных запросов упёрся бы в неё
+   разом (та же причина, что у runBoardWorkout). */
+async function runBoardLessonStages() {
+  const toolId = activeTeacherToolBuilder && activeTeacherToolBuilder.id;
+  const cfg = boardLessonStagesFor(toolId);
+  if (!cfg) return;
+  if (!_ttSyncFormReadiness({ attempted: true })) return;
+  await _ensureGenLoaded();
+
+  const chip = document.getElementById('tbuilder-chip');
+  const body = document.getElementById('tbuilder-output');
+  const keys = boardStagePickedKeys();
+  const base = readTeacherToolBuilderInput();
+  const opts = boardStageOptions(toolId).filter(o => o.tool && keys.includes(o.key));
+
+  _ttSetGenerating(true);
+  lastLessonStageSet = null;
+  _ttSetAddToBoard(false);
+  if (chip) chip.textContent = 'writing the text…';
+  if (body) body.innerHTML = '<div class="tbuilder-empty">Writing the text…</div>';
+
+  const textInput = { ...base, tool: { id: toolId }, parts: _stageTextParts(keys) };
+  let textOut = null;
+  try { textOut = await requestServerTeacherTool(textInput, 30000); }
+  catch (err) { console.warn('[stages] text failed', err); }
+
+  if (!textOut) {
+    _ttSetGenerating(false);
+    if (chip) chip.textContent = 'AI unavailable';
+    if (body) body.innerHTML = '<div class="tbuilder-empty">The text could not be created. AI tools need you to be signed in - try again in a moment.</div>';
+    return;
+  }
+
+  const readingText = _stageReadingText(textOut);
+  const built = [];
+  const failed = [];
+
+  for (let i = 0; i < opts.length; i++) {
+    const o = opts[i];
+    if (chip) chip.textContent = `building ${i + 1} of ${opts.length}…`;
+    if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(o.title)}” — ${i + 1} of ${opts.length}.</div>`;
+    const input = { ...base, tool: { id: o.tool } };
+    /* Вот ради чего этапы живут в конструкторе: задание получает тот
+       самый текст, который ученик только что прочитал. Собранное
+       отдельными инструментами оно спрашивало бы про тему вообще. */
+    if (o.after === 'source' && readingText) input.source = readingText;
+    /* Панель у текстовых инструментов прячет поле Items, и в нём остаётся
+       умолчание в 12 - для «True / False по тексту» это не урок, а
+       контрольная. Заданиям этапа хватает шести. */
+    input.count = 6;
+    let out = null;
+    try {
+      out = o.ai ? await requestServerTeacherTool(input, 25000)
+                 : generateTeacherToolLocal(input);
+    } catch (err) { console.warn('[stages] activity failed', o.key, err); }
+    if (out) { out.title = o.title; built.push({ activity: o, out }); }
+    else failed.push(o.title);
+  }
+
+  _ttSetGenerating(false);
+  lastLessonStageSet = { base, cfg, textOut, built, failed };
+  lastTeacherToolBuilderOutput = textOut;
+  renderBoardLessonStagePreview(lastLessonStageSet);
+  _ttSetAddToBoard(true);
+  if (chip) chip.textContent = built.length ? `text + ${built.length}` : 'text ready';
+}
+
+/* Превью набора: этапы теми же салатовыми заголовками, что и в форме,
+   чтобы «что я отметил» и «что получилось» читались как одно и то же.
+   Содержимое показывается настоящее, но только на чтение: правка по
+   месту есть у одиночного инструмента, а здесь на экране до шести
+   разных материалов сразу. */
+function renderBoardLessonStagePreview(set) {
+  const body = document.getElementById('tbuilder-output');
+  if (!body || !set) return;
+  const { cfg, textOut, built, failed } = set;
+  const byStage = {};
+  built.forEach(b => { (byStage[b.activity.stage] = byStage[b.activity.stage] || []).push(b); });
+
+  const textCards = (textOut.struct && Array.isArray(textOut.struct.cards)) ? textOut.struct.cards
+                  : (Array.isArray(textOut.cards) ? textOut.cards : []);
+
+  const html = cfg.stages.map((st, si) => {
+    const items = byStage[st.key] || [];
+    let inner = '';
+    if (st.key === 'text') {
+      inner = textCards.length
+        ? textCards.map(c => `
+            <div class="tbuilder-section">
+              <h4>${esc(c.title || '')}</h4>
+              <p>${_ttMdToHtml(c.text || '')}</p>
+            </div>`).join('')
+        : `<div class="tbuilder-section"><p>${_ttMdToHtml(String(textOut.text || ''))}</p></div>`;
+    } else if (items.length) {
+      inner = items.map(({ activity, out }) => `
+        <div class="tbuilder-section">
+          <h4>${esc(activity.title)}</h4>
+          <p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>
+        </div>`).join('');
+    } else {
+      inner = `<div class="tb-stage-meta">Nothing ticked for this stage.</div>`;
+    }
+    return `<div class="tb-stage" style="margin-bottom:14px">
+      <div class="tb-stage-head">
+        <span class="tb-stage-n">${si + 1}</span>
+        <span class="tb-stage-title">${esc(st.label)}</span>
+      </div>
+      ${inner}
+    </div>`;
+  }).join('');
+
+  body.innerHTML = html + (failed.length
+    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.</div>` : '');
+}
+
+/* Короткое читаемое представление результата для превью этапа. Полные
+   рендереры одиночного инструмента пишут прямо в #tbuilder-output и
+   завязаны на редактирование одного активного результата - шесть штук
+   на экран они положить не могут. */
+function _ttStagePlainPreview(out) {
+  if (!out) return '';
+  if (Array.isArray(out.questions) && out.questions.length) {
+    return out.questions.slice(0, 6).map((q, i) => {
+      const stem = q.q || q.text || q.prompt || '';
+      if (q.type === 'mcq' && Array.isArray(q.options)) {
+        return `${i + 1}. ${stem}\n` + q.options.map(o => `   ${o === q.answer ? '✓' : '•'} ${o}`).join('\n');
+      }
+      if (q.type === 'truefalse') return `${i + 1}. ${stem} — ${q.answer ? 'True' : 'False'}`;
+      if (q.type === 'gap-fill') return `${i + 1}. ${stem} (${q.answer || ''})`;
+      if (q.type === 'match' && Array.isArray(q.pairs)) {
+        return q.pairs.slice(0, 8).map(p => `• ${p.left} — ${p.right || ''}`).join('\n');
+      }
+      return `${i + 1}. ${stem}`;
+    }).join('\n');
+  }
+  if (Array.isArray(out.items) && out.items.length) {
+    return out.items.slice(0, 8).map(i => `• ${i.word}${i.definition || i.example ? ' — ' + (i.definition || i.example) : ''}`).join('\n');
+  }
+  return _ttWorkoutPlainText(out);
+}
+
+/* Укладка набора на доску. Текст ложится своим обычным путём, задания -
+   тем же укладчиком, что и набор студии: он уже умеет выбирать между
+   игрой, листом и карточкой и раскладывать сеткой, а вторая раскладка
+   разошлась бы с первой. */
+function placeBoardLessonStageSet() {
+  const set = lastLessonStageSet;
+  if (!set) return false;
+  const prev = lastTeacherToolBuilderOutput;
+  try {
+    lastTeacherToolBuilderOutput = set.textOut;
+    _ttPlaceWorksheetOnBoard(set.textOut);
+  } catch (err) {
+    console.warn('[stages] text placement failed', err);
+  } finally {
+    lastTeacherToolBuilderOutput = prev;
+  }
+  if (set.built.length) placeBoardWorkoutSet(set.base, set.built);
+  const n = set.built.length + 1;
+  toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
+  return true;
 }
 
 function makeTeacherToolSnippet(tool) {
