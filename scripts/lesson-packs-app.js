@@ -2179,18 +2179,62 @@ function _lpBodyHtml(body) {
 
 /* Тип секции решает её цвет и подпись. Учитель ищет глазами «где практика» и
    «где ответы», а не читает заголовки подряд. */
-function _lpSectionKind(title) {
+/* Роль раздела по форме его содержимого - когда заголовок молчит.
+
+   Замер по всем 22 пакам: из 170 разделов 89 попадали в дефолт «Input»,
+   и добрая половина из них Input не была. Автор пака не пишет «PRACTICE»
+   над упражнением - он пишет «TRANSFORM - active → passive:» или «CHOOSE:
+   active or passive?», а банк фраз называет «AGREEING» и «AT THE AIRPORT».
+   Заголовок такое не выдаёт, а тело выдаёт: у задания нумерованные строки
+   с пропусками или стрелками, у банка фраз - маркированные реплики в
+   кавычках либо строки «термин - перевод». */
+function _lpBodyShape(body) {
+  const lines = String(body || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return null;
+  const count = re => lines.filter(l => re.test(l)).length;
+  const numbered = count(/^\d+[.)]/);
+  const gaps     = count(/_{2,}/);
+  const arrows   = lines.filter(l => l.includes('→') || l.includes('->')).length;
+  const phrases  = count(/^[•·▸►*-]\s*["“„]/);
+  /* «фраза - значение». Левая часть от трёх символов: иначе под правило
+     попадает расшифровка аббревиатуры вроде «S - Situation», а это
+     объяснение метода, а не банк слов. */
+  const glossary = count(/^[^\s].{2,40}\s[-–—]\s\S/);
+
+  // Упражнение: пронумерованные пункты, в которых есть что заполнить или
+  // преобразовать. Только стрелок мало - ими же рисуют таблицы сравнения.
+  if (numbered >= 2 && (gaps >= 1 || arrows >= 1)) return { cls: 'prac', label: 'Practice' };
+  if (gaps >= 2) return { cls: 'prac', label: 'Practice' };
+  // Банк языка: больше половины строк - готовые реплики или пары «слово - перевод».
+  if (phrases / lines.length >= .6)  return { cls: 'voc', label: 'Language' };
+  if (lines.length >= 3 && glossary / lines.length >= .6) return { cls: 'voc', label: 'Language' };
+  return null;
+}
+
+function _lpSectionKind(title, body) {
   /* У собранных паков заголовок несёт часы: «12-20 min · Gist questions».
      Роль определяется по названию этапа, поэтому окно снимаем. */
   title = String(title).replace(/^\s*\d+\s*[-]\s*\d+\s*min[^·:]*[·:]?\s*/i, '');
   if (/objective|aims?|goals?/i.test(title)) return { cls: 'aim', label: 'Aims' };
   if (/warm[-\s]?up|lead[-\s]?in/i.test(title)) return { cls: 'prod', label: 'Warm-up' };
   if (/vocab|word\s*bank|key\s*language|phrases/i.test(title)) return { cls: 'voc', label: 'Language' };
-  if (/\b(practice|practise|exercises?|tasks?|drill)\b/i.test(title)) return { cls: 'prac', label: 'Practice' };
-  if (/\b(role-?play|discussion|debate|speaking)\b/i.test(title)) return { cls: 'prod', label: 'Production' };
+  /* Заголовок сам может быть словарной статьёй: «DO - perform a task,
+     activity, duty». Глаголы задания внутри такого определения ничего не
+     обещают, поэтому роль решает тело: у банка слов оно глоссарий, у
+     упражнения - нумерованные пункты. */
+  // Слева от тире может стоять и двухбуквенное слово - «DO - perform a task,
+  // activity, duty» это словарная статья, а не упражнение.
+  const titleIsGlossaryEntry = /^\S.{0,40}\s[-–—]\s\S/.test(title.trim());
+  if (!titleIsGlossaryEntry) {
+    // Production проверяется РАНЬШЕ Practice: «DEBATE TOPICS (choose one)»
+    // это разговорный этап, а не упражнение, хотя слово «choose» в нём есть.
+    if (/\b(role-?play|discussion|debate|speaking)\b/i.test(title)) return { cls: 'prod', label: 'Production' };
+    if (/\b(practice|practise|exercises?|tasks?|drill|quiz|game|activity)\b/i.test(title)) return { cls: 'prac', label: 'Practice' };
+    if (/\b(transform|rewrite|complete|choose|match|fill)\b/i.test(title)) return { cls: 'prac', label: 'Practice' };
+  }
   if (/teacher\s*notes?/i.test(title)) return { cls: 'note', label: 'Teacher notes' };
   if (/homework|follow[-\s]?up/i.test(title)) return { cls: 'hw', label: 'Homework' };
-  return { cls: 'core', label: 'Input' };
+  return _lpBodyShape(body) || { cls: 'core', label: 'Input' };
 }
 
 function _lpSkillMark(skill) {
@@ -2213,7 +2257,7 @@ function renderPackContent(p) {
         `<button type="button" class="lp-toc-btn" onclick="_lpJump(${i})">${_LP_ESC(String(s.title).replace(/^\s*\d+\s*[-]\s*\d+\s*min[^·:]*[·:]?\s*/i, ''))}</button>`).join('')}</nav>`
     : '';
   const body = sections.map((s, i) => {
-    const k = _lpSectionKind(s.title);
+    const k = _lpSectionKind(s.title, s.body);
     /* Часы этапа отделены от его названия: время - метка, а не часть
        заголовка, и в таком виде его видно, не вчитываясь в строку. */
     const w = String(s.title).match(/^\s*(\d+\s*[-]\s*\d+\s*min)[^·:]*[·:]?\s*(.*)$/i);
@@ -2404,6 +2448,12 @@ function _lpSections(content) {
     if (!l || /^\s/.test(l)) return false;
     const t = l.trim();
     if (t.length < 3 || t.length > 70) return false;
+    /* Пункт нумерованного списка - не заголовок раздела, даже если он капсом
+       и без отступа. Пак «15 частых ошибок» пишет их как «2. DOUBLE NEGATIVE»,
+       и такие строки резали его на куски: пункты 2, 4, 8 и 10 становились
+       отдельными «этапами урока», а 11 и 12 попадали в тело десятого. Урок
+       разваливался тем непредсказуемее, чем аккуратнее был написан. */
+    if (/^\d+[.)]\s/.test(t)) return false;
     if (/^[\p{Extended_Pictographic}]/u.test(t)) return true;
     const letters = t.replace(/[^A-Za-zА-Яа-яЇїІіЄєҐґ]/g, '');
     return letters.length >= 3 && letters === letters.toUpperCase();
