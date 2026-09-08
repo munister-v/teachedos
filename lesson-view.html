@@ -38,11 +38,11 @@
   .lesson-link-action{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=756">
+<link rel="stylesheet" href="styles/teached-brand.css?v=757">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=756">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=756">
-<link rel="stylesheet" href="styles/controls.css?v=756">
+<link rel="stylesheet" href="styles/figma-theme.css?v=757">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=757">
+<link rel="stylesheet" href="styles/controls.css?v=757">
 </head>
 <body class="fx">
 <header class="lesson-nav">
@@ -110,7 +110,7 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=756"></script>
+<script src="scripts/app-core.js?v=757"></script>
 <script>
   const FALLBACK_COLORS = ['#fef3c7','#d1fae5','#dbeafe','#fce7f3','#ede9fe','#ffe4d2'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -172,6 +172,9 @@
 
   function pluralize(type) {
     if (/z$/.test(type)) return `${type}zes`;
+    // Consonant + y takes -ies. Without this the commonest card type on any
+    // board summarised as "5 stickys".
+    if (/[^aeiou]y$/i.test(type)) return `${type.slice(0, -1)}ies`;
     return /[sx]$|[cs]h$/.test(type) ? `${type}es` : `${type}s`;
   }
 
@@ -207,6 +210,14 @@
       requestAnimationFrame(fitCanvas);
       return;
     }
+    /* Границы считаются от самих карточек, а не от начала координат.
+
+       Стартовые {minX:0, minY:0} означали, что доска всегда «начинается»
+       в нуле. Автор доски работает там, где ему удобно: кластер урока
+       часто стоит на x≈900, y≈600 и дальше. Тогда minX оставался нулём,
+       полотно включало в себя весь пустой прямоугольник до кластера, и
+       fitCanvas ужимал ЭТУ ширину - урок ехал в правый нижний угол
+       крошечными карточками, а левые две трети экрана были пустыми. */
     const bounds = cards.reduce((result, card) => {
       const x = Number(card.x) || 0;
       const y = Number(card.y) || 0;
@@ -217,9 +228,11 @@
       result.maxX = Math.max(result.maxX, x + width);
       result.maxY = Math.max(result.maxY, y + height);
       return result;
-    }, { minX:0, minY:0, maxX:0, maxY:0 });
-    const offsetX = bounds.minX < 0 ? -bounds.minX + 48 : 48;
-    const offsetY = bounds.minY < 0 ? -bounds.minY + 48 : 48;
+    }, { minX:Infinity, minY:Infinity, maxX:-Infinity, maxY:-Infinity });
+    // Сдвигаем так, чтобы самая левая/верхняя карточка отступала от края
+    // полотна на 48px - независимо от того, где автор её оставил.
+    const offsetX = 48 - bounds.minX;
+    const offsetY = 48 - bounds.minY;
     /* Размер полотна — по фактическим границам урока, без верхнего предела.
 
        Раньше здесь стояли Math.min(1640) и Math.min(1160), и всё, что не влезло,
@@ -231,14 +244,14 @@
 
        Полотно масштабируется в fitCanvas и лежит в .lesson-stage с overflow:auto,
        так что расти ему можно: высокий урок прокручивается, а не обрезается. */
-    const width = Math.max(880, bounds.maxX + offsetX + 48);
-    const height = Math.max(560, bounds.maxY + offsetY + 48);
+    const width = Math.max(880, Math.round(bounds.maxX + offsetX + 48));
+    const height = Math.max(560, Math.round(bounds.maxY + offsetY + 48));
     canvasSize = { width, height };
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     canvas.innerHTML = cards.map((card, index) => {
-      const x = Math.max(18, (Number(card.x) || 0) + offsetX);
-      const y = Math.max(18, (Number(card.y) || 0) + offsetY);
+      const x = Math.round(Math.max(18, (Number(card.x) || 0) + offsetX));
+      const y = Math.round(Math.max(18, (Number(card.y) || 0) + offsetY));
       // Только нижние границы: полотно посчитано из тех же bounds, поэтому
       // карточка и так внутри, а верхний зажим по ширине/высоте полотна как раз
       // и уводил размер в минус.
@@ -421,6 +434,6 @@
   window.addEventListener('resize', fitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=756" defer></script>
+  <script src="scripts/signin-entry.js?v=757" defer></script>
 </body>
 </html>
