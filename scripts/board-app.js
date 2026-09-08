@@ -6933,6 +6933,23 @@ document.addEventListener('mouseup', e => {
     return true;
   }
 
+  // Walks up from a touch target looking for an element that can actually
+  // scroll (overflow set AND content taller than the box). Stops at the board
+  // surface so the canvas itself never counts.
+  function _touchScrollableAt(target) {
+    let node = target;
+    while (node && node !== boardWrap && node.nodeType === 1) {
+      const style = getComputedStyle(node);
+      const scrollableY = /(auto|scroll|overlay)/.test(style.overflowY) &&
+                          node.scrollHeight - node.clientHeight > 2;
+      const scrollableX = /(auto|scroll|overlay)/.test(style.overflowX) &&
+                          node.scrollWidth - node.clientWidth > 2;
+      if (scrollableY || scrollableX) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
   boardWrap.addEventListener('touchstart', e => {
     if (isBoxSelecting && e.touches.length > 1) {
       isBoxSelecting = false;
@@ -6981,7 +6998,14 @@ document.addEventListener('mouseup', e => {
       // Select mode uses a deliberate one-finger marquee on blank canvas.
       // Two fingers remain available for pan/zoom; the Hand tool keeps the
       // old one-finger pan behavior for anyone who needs to navigate freely.
-      if (!editing && !_handMode && !spaceDown && beginBoxSelectionAt(e.touches[0].clientX, e.touches[0].clientY)) {
+      //
+      // Not on a phone. A marquee needs a second gesture to be worth anything
+      // (align, group, drag the lot), and none of those survive a touch
+      // screen - so on a phone the finger did the one thing it could do,
+      // drew an empty rectangle, and the board looked frozen. One finger
+      // pans there; marquee is a desktop capability (see scripts/board-mobile.js).
+      if (!editing && !_handMode && !spaceDown && !isBoardPhone() &&
+          beginBoxSelectionAt(e.touches[0].clientX, e.touches[0].clientY)) {
         e.preventDefault();
         dismissBoardHint();
         return;
@@ -6994,8 +7018,8 @@ document.addEventListener('mouseup', e => {
       t0 = ts[0]; t1 = null;
       panOrigin = { mx:t0.clientX, my:t0.clientY, px:state.pan.x, py:state.pan.y };
       pinchOrigin = null;
-      // Blank-canvas one-finger pan is reserved for Hand mode. Select mode
-      // starts a marquee above; two fingers use the pinch/pan path below.
+      // Blank-canvas one-finger pan: the default on a phone, and Hand mode on
+      // a mouse. On desktop Select mode starts a marquee above instead.
     } else if (ts.length === 2) {
       cancelLongPress();
       touchDriving = false;
@@ -7023,6 +7047,11 @@ document.addEventListener('mouseup', e => {
       e.preventDefault();
       return;
     }
+    // A card can hold more text than fits it (worksheets, reading passages,
+    // long stickies). The blanket preventDefault below is what pans the board,
+    // but it also ate the scroll inside those - on a phone the rest of the
+    // text was simply unreachable. Let a scrollable child keep its own gesture.
+    if (e.touches.length === 1 && _touchScrollableAt(e.target)) return;
     e.preventDefault();
     const ts = Array.from(e.touches);
     // Cancel pending long-press if finger moved past a small slop
@@ -13823,7 +13852,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '740';
+const TEACHEDOS_ASSET_VERSION = '741';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15053,9 +15082,14 @@ setInterval(() => {
   // Warn if not saved in 5+ min
   const status = document.getElementById('save-status');
   const mobile = document.getElementById('mobile-save-status');
-  if (diff >= 5 && status && !pendingCloudSave) {
+  // "Unsaved" has to mean unsaved. lastSavedAt is restored from the board's
+  // own savedAt on load, so a board opened after a week showed a warning of
+  // `116229m unsaved` on a board nobody had touched. Warn only when the
+  // content actually differs from what was last written.
+  const dirty = (typeof boardHash === 'function') ? boardHash() !== lastSavedHash : true;
+  if (diff >= 5 && dirty && status && !pendingCloudSave) {
     status.textContent = `⚠ ${diff}m unsaved`;
-    if (mobile) { mobile.className = 'mq-status warn'; mobile.textContent = `${diff}m`; }
+    if (mobile) { mobile.className = 'mq-status warn'; mobile.textContent = `${diff}m unsaved`; }
   }
 }, 30000);
 
@@ -22185,3 +22219,46 @@ function openStudentQuiz(cardId) {
   buildQuestion(0);
   overlay.classList.add('open');
 }
+
+/* ════════════════════ PHONE BRIDGE ════════════════════
+   The phone layer (scripts/board-mobile.js) needs to move, size and read
+   cards, and `state` is deliberately private to this file. Rather than let
+   another script reach into the DOM and guess, it gets this narrow, named
+   surface - everything the phone contract is allowed to do, and nothing else.
+   If a call is missing here, the phone cannot do it: that is the point. */
+window.boardPhoneBridge = {
+  isPhone:        () => isBoardPhone(),
+  canEdit:        () => boardCanEdit,
+  scale:          () => state.scale,
+  mode:           () => state.mode,
+  cardCount:      () => state.cards.length,
+  getCard:        id => state.cards.find(c => c.id === id) || null,
+  selectedIds:    () => [...state.selected],
+  screenToBoard,
+  viewportCenter: getBoardViewportCenter,
+  snapshot,
+  scheduleSave,
+  toast,
+  moveCardTo(id, x, y) {
+    const card = state.cards.find(c => c.id === id);
+    if (!card || (card.data && card.data.locked)) return false;
+    card.x = Math.round(x); card.y = Math.round(y);
+    updateCardPos(card);
+    _scheduleArrows();
+    return true;
+  },
+  resizeCardTo(id, w, h) {
+    const card = state.cards.find(c => c.id === id);
+    if (!card || (card.data && card.data.locked)) return false;
+    card.w = Math.max(80, Math.round(w));
+    card.h = Math.max(60, Math.round(h));
+    const el = getCardEl(id);
+    if (el) { el.style.width = card.w + 'px'; el.style.height = card.h + 'px'; }
+    _scheduleArrows();
+    return true;
+  },
+  isLocked(id) {
+    const card = state.cards.find(c => c.id === id);
+    return !!(card && card.data && card.data.locked);
+  }
+};

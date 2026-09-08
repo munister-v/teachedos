@@ -1,0 +1,139 @@
+/* Phone board layer - see scripts/board-mobile.js for the contract this
+   styles. Everything here is inside the phone media query on purpose: on a
+   desktop viewport none of these elements should even have a resting style,
+   which is the bug the mobile Add sheet already taught us once. */
+
+@media (max-width: 860px) {
+
+  /* Desktop-only affordances: hidden rather than left to be poked at.
+     The gate in board-mobile.js is the backstop, this is the front door. */
+  body.phone-board .anchor-dot,
+  body.phone-board .resize-handle,
+  body.phone-board #layer-popover,
+  body.phone-board .multi-sel-box,
+  body.phone-board #mq-add-sheet [onclick*="connect"] {
+    display: none !important;
+  }
+
+  /* ── selected-card actions ── */
+  #phone-card-actions {
+    display: none;
+    position: fixed;
+    left: 10px; right: 10px;
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    z-index: 1250;
+    padding: 6px;
+    gap: 4px;
+    background: var(--card-bg, #fff);
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(5,5,23,.16), 0 1px 4px rgba(0,0,0,.06);
+  }
+  #phone-card-actions.open { display: flex; }
+  #phone-card-actions.is-moving { opacity: .35; pointer-events: none; }
+  #phone-card-actions button {
+    flex: 1; min-width: 0; height: 46px;
+    border: none; border-radius: 11px; background: transparent;
+    font-family: var(--font); font-size: 12px; font-weight: 600;
+    color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  #phone-card-actions button:active {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent-text);
+  }
+  #phone-card-actions button.danger { color: #d92d20; }
+
+  /* ── move mode ── */
+  body.phone-moving-card .board-card.selected {
+    outline: 3px solid var(--accent, #C6F432);
+    outline-offset: 2px;
+  }
+  #phone-move-hud {
+    position: fixed;
+    left: 10px; right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 1400;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    background: #17171F; color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(5,5,40,.28);
+    font-family: var(--font); font-size: 12.5px; font-weight: 600;
+  }
+  #phone-move-hud span { flex: 1; min-width: 0; }
+  #phone-move-hud button {
+    border: none; border-radius: 10px;
+    padding: 9px 12px;
+    background: rgba(255,255,255,.14); color: #fff;
+    font-family: var(--font); font-size: 12.5px; font-weight: 700;
+  }
+  #phone-move-hud button.primary { background: var(--accent, #C6F432); color: #17171F; }
+
+  /* ── size sheet ── */
+  #phone-size-sheet {
+    display: none;
+    position: fixed;
+    left: 10px; right: 10px;
+    bottom: calc(138px + env(safe-area-inset-bottom, 0px));
+    z-index: 1260;
+    padding: 12px;
+    background: var(--card-bg, #fff);
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(5,5,23,.16);
+  }
+  #phone-size-sheet.open { display: block; }
+  #phone-size-sheet p {
+    margin: 0 0 8px;
+    font-family: var(--font); font-size: 11.5px; font-weight: 700;
+    letter-spacing: .04em; text-transform: uppercase; color: var(--text-2, #6b6b7b);
+  }
+  .phone-size-row { display: flex; gap: 6px; }
+  #phone-size-sheet button {
+    flex: 1; height: 46px;
+    border: 1px solid rgba(0,0,0,.10); border-radius: 12px;
+    background: transparent; color: var(--text);
+    font-family: var(--font); font-size: 13px; font-weight: 700;
+  }
+  #phone-size-sheet button:active { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .phone-size-fit { margin-top: 8px; width: 100%; }
+
+  /* ── the contract, readable ── */
+  #phone-contract-sheet {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 1500;
+    background: rgba(10,10,25,.44);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  }
+  #phone-contract-sheet.open { display: block; }
+  #phone-contract-sheet .pcs-panel {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    max-height: 82vh; overflow: auto;
+    padding: 18px 16px max(20px, env(safe-area-inset-bottom, 20px));
+    background: var(--card-bg, #fff);
+    border-radius: 24px 24px 0 0;
+    font-family: var(--font);
+  }
+  #phone-contract-sheet h2 { margin: 0 0 12px; font-size: 19px; }
+  #phone-contract-sheet h3 {
+    margin: 16px 0 6px;
+    font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase;
+  }
+  #phone-contract-sheet h3.ok       { color: #1a7f4b; }
+  #phone-contract-sheet h3.assisted { color: #9a6400; }
+  #phone-contract-sheet h3.desktop  { color: #6b6b7b; }
+  #phone-contract-sheet dl { margin: 0; }
+  #phone-contract-sheet dt { font-size: 13.5px; font-weight: 700; color: var(--text); }
+  #phone-contract-sheet dd {
+    margin: 2px 0 10px; font-size: 12.5px; line-height: 1.45;
+    color: var(--text-2, #5d5d6b);
+  }
+  #phone-contract-sheet .pcs-close {
+    position: absolute; top: 12px; right: 12px;
+    width: 44px; height: 44px;
+    border: none; border-radius: 12px; background: transparent;
+    font-size: 22px; line-height: 1; color: var(--text);
+  }
+}
