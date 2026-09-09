@@ -12434,6 +12434,9 @@ function _ttCacheKey(mode, input) {
     source: input.source,
     vocab: input.vocab,
     extra: input.extra,
+    /* Иначе «пересобрать» отдавало бы из локального кеша тот же материал,
+       который учитель только что забраковал. */
+    variant: input.variant || 0,
   });
 }
 
@@ -12558,6 +12561,8 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
           extra: input.extra,
           // Состав текстового материала - только у конструктора этапов.
           parts: input.parts,
+          // Номер попытки: «пересобрать это задание» в конструкторе этапов.
+          variant: input.variant,
         },
       },
     });
@@ -13893,7 +13898,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '769';
+const TEACHEDOS_ASSET_VERSION = '770';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14798,9 +14803,18 @@ function renderBoardLessonStagePreview(set) {
             </div>`).join('')
         : `<div class="tbuilder-section"><p>${_ttMdToHtml(String(textOut.text || ''))}</p></div>`;
     } else if (items.length) {
+      /* Одобрение должно позволять отказ от ЧАСТИ. Раньше одно неудачное
+         задание заставляло пересобирать весь урок: шесть новых запросов и
+         пять новых материалов вместо одного, который не понравился. */
       inner = items.map(({ activity, out }) => `
-        <div class="tbuilder-section">
-          <h4>${esc(activity.title)}</h4>
+        <div class="tbuilder-section" data-act="${esc(activity.key)}">
+          <div class="tb-act-head">
+            <h4>${esc(activity.title)}</h4>
+            <span class="tb-act-tools">
+              <button type="button" class="tb-act-btn" onclick="redoStageActivity('${esc(activity.key)}')" title="Build this one again, differently">Redo</button>
+              <button type="button" class="tb-act-btn" onclick="dropStageActivity('${esc(activity.key)}')" title="Leave this one out of the lesson">Drop</button>
+            </span>
+          </div>
           <p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>
         </div>`).join('');
     } else {
@@ -14817,6 +14831,55 @@ function renderBoardLessonStagePreview(set) {
 
   body.innerHTML = html + (failed.length
     ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.</div>` : '');
+}
+
+/* Убрать одно задание из собранного урока. Ничего не пересобирает: то,
+   что учителю не нужно, просто не поедет на доску. */
+function dropStageActivity(key) {
+  const set = lastLessonStageSet;
+  if (!set) return;
+  const i = set.built.findIndex(b => b.activity.key === key);
+  if (i < 0) return;
+  const [gone] = set.built.splice(i, 1);
+  renderBoardLessonStagePreview(set);
+  const chip = document.getElementById('tbuilder-chip');
+  if (chip) chip.textContent = set.built.length ? `text + ${set.built.length}` : 'text ready';
+  toast(`“${gone.activity.title}” left out`);
+}
+
+/* Пересобрать ОДНО задание. Уходит запрос только по нему, с номером
+   попытки: и наш кеш, и серверный ключом считают variant, поэтому вместо
+   забракованного материала приходит действительно другой. */
+async function redoStageActivity(key) {
+  const set = lastLessonStageSet;
+  if (!set) return;
+  const entry = set.built.find(b => b.activity.key === key);
+  if (!entry) return;
+  const host = document.querySelector(`#tbuilder-output [data-act="${CSS.escape(key)}"]`);
+  const body = host && host.querySelector('p');
+  if (body) body.innerHTML = '<span class="tb-stage-meta">Building another version…</span>';
+
+  const o = entry.activity;
+  const variant = Math.min(5, (entry.variant || 0) + 1);
+  const input = { ...set.base, tool: { id: o.tool }, count: o.count || 6, variant };
+  if (o.after === 'source') {
+    const src = _stageReadingText(set.textOut);
+    if (src) input.source = src;
+  }
+  let out = null;
+  try {
+    out = o.ai ? await requestServerTeacherTool(input, 25000) : generateTeacherToolLocal(input);
+  } catch (err) { console.warn('[stages] redo failed', key, err); }
+
+  if (!out) {
+    renderBoardLessonStagePreview(set);
+    toast('That one could not be rebuilt - the old version is kept');
+    return;
+  }
+  out.title = o.title;
+  entry.out = out;
+  entry.variant = variant;
+  renderBoardLessonStagePreview(set);
 }
 
 /* Короткое читаемое представление результата для превью этапа. Полные

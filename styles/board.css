@@ -3642,6 +3642,18 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
    с одного взгляда, не вчитываясь в положение галочек. */
 .tbuilder-form .tb-workout-item.is-on{border-color:rgba(168,208,43,.75);background:rgba(205,249,64,.13);}
 
+/* Кнопки у одного задания в превью: пересобрать его или выкинуть, не
+   трогая остальной урок. Держатся тихо, пока учитель не наведётся. */
+.tb-act-head{display:flex;align-items:baseline;gap:8px;justify-content:space-between;}
+.tb-act-head h4{margin:0;min-width:0;}
+.tb-act-tools{flex:0 0 auto;display:flex;gap:4px;opacity:.45;transition:opacity .12s;}
+.tbuilder-section:hover .tb-act-tools,
+.tb-act-tools:focus-within{opacity:1;}
+.tb-act-btn{border:1px solid rgba(14,14,16,.12);background:#fff;border-radius:8px;cursor:pointer;
+  padding:3px 8px;font-family:var(--font);font-size:11px;font-weight:600;color:#636366;
+  text-transform:none;letter-spacing:0;}
+.tb-act-btn:hover{border-color:rgba(14,14,16,.3);color:#0E0E10;}
+
 /* ─── Мастер урока: два вопроса перед конструктором ──────────────────────
    Тот же язык, что и у этапов ниже (салатовый акцент, карточка-строка), -
    мастер и есть первый шаг конструктора, а не отдельный продукт.

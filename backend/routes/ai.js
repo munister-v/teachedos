@@ -317,6 +317,11 @@ function normaliseInput(body) {
     parts: pickParts(raw.parts),
     /* Что уже собрано в этом уроке и сколько он длится. Нужно только плану:
        без этого он планирует НЕ те материалы, которые лежат на доске рядом. */
+    /* Номер попытки. Учитель может пересобрать ОДНО задание в уроке, не
+       трогая остальные; без этого числа он получал бы из кеша ровно тот же
+       материал, который только что забраковал, и кнопка выглядела бы
+       сломанной. Входит в ключ кеша и просит модель зайти иначе. */
+    variant: Math.max(0, Math.min(5, parseInt(raw.variant, 10) || 0)),
     materials: clean(raw.materials, '').slice(0, 1200),
     duration: Math.max(20, Math.min(120, parseInt(raw.duration, 10) || 45)),
     model: clean(raw.model, '').slice(0, 80),
@@ -341,6 +346,7 @@ function cacheKey(userId, input) {
     /* Без parts в ключе снятая галочка «Glossary» отдавала бы кеш от
        прошлого запроса с глоссарием: те же тема и слова, другой состав. */
     parts: input.parts,
+    variant: input.variant,
     model: input.model,
   });
 }

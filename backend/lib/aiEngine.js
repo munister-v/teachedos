@@ -444,7 +444,13 @@ function shapeSpec(input) {
   const evidenceRule = input.source
     ? 'Evidence rule: every question, example and answer must be traceable to a distinct detail in the source. Spread a multi-item set across the source checkpoints, not only its opening. Do not invent facts to make an item easier.'
     : `Topic rule: before writing, choose a concrete setting, people and situation for "${topic}". Reuse those anchors across the material so it could not be relabelled for another topic.`;
-  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}". ${evidenceRule}`;
+  /* Приписка о повторе идёт В КОНЦЕ head, а не в начале: начало промпта -
+     это общий префикс (материал урока), на совпадении которого держится
+     кеш провайдера, и сдвигать его ради одной строки нельзя. */
+  const retry = input.variant > 0
+    ? ` This is attempt ${input.variant + 1}: the teacher rejected the previous version. Produce a genuinely different take - different examples, different angle, different wording - not a lightly edited copy of the obvious first answer.`
+    : '';
+  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}". ${evidenceRule}${retry}`;
 
   // ── Reading text controls (genre + length) ──────────────────────────────────
   // Optional input.genre / input.length from the UI; otherwise sensible defaults
