@@ -3744,9 +3744,17 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   // (not the pastel STICKY_PALETTE_COLORS, which is built for sticky notes
   // with dark text) matching the gradient look already used by
   // .iw-flash-front/.iw-card-front below.
-  const TILE_GRADIENTS = [['#7B8CDE','#5B6CBE'],['#E07B5A','#C05A3A'],['#5AAE7B','#3A8E5B'],
-    ['#C9A84C','#A9882C'],['#B05AB0','#903A90'],['#5AAEB0','#3A8E90'],
-    ['#EC7FA9','#C65D87'],['#4FA8A8','#2F8888'],['#D4A574','#B4855C']];
+  /* Пересчитаны 09.09.2026: исходный набор красиво выглядел на пипетке и
+     проваливал контраст в деле. Белый текст (.iw-stepper .iw-opt{color:#fff})
+     на светлом конце (t1) каждой пары давал 2.2-4.3:1 - вплоть до "The US is
+     lagging behind..." почти не читалось на бледно-сиреневом. Ниже - те же
+     девять оттенков, темнее ровно настолько, чтобы у ОБОИХ концов градиента
+     был честный контраст с белым (проверено формулой WCAG, минимум 4.65:1,
+     не «на глаз»), при этом каждая пара всё ещё узнаётся своим цветом и
+     светлее/темнее внутри себя - не залита в один плоский тон. */
+  const TILE_GRADIENTS = [['#6370B2','#5160AA'],['#AC5E46','#A24C31'],['#43805B','#2F7249'],
+    ['#887236','#7A6320'],['#A652A6','#9D3F9D'],['#427D7F','#2D6F71'],
+    ['#A75C7A','#9D4A6B'],['#3C7E7E','#277070'],['#8D6F54','#805F41']];
 
   // ─── MODE: Questions (quiz-based tools) ───
   if (qs.length && isAllGapFill) {
@@ -4113,7 +4121,10 @@ strong{font-weight:650}
 .iw-drag{padding:6px 14px;border-radius:8px;background:${accent};color:${WS_ACCENT_INK};font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
 .iw-drag:active{cursor:grabbing;transform:scale(1.06)}
 .iw-drag.placed{opacity:.35;pointer-events:none}
-.iw-drag.sort-correct{background:#16a34a!important;color:#fff!important;opacity:1!important}
+/* #16a34a с белым текстом - 3.3:1, ниже порога WCAG AA (4.5). #15803D - тот
+   же зелёный на пару оттенков темнее, уже используется рядом как текст на
+   светлом фоне (5.0:1 там) - здесь даёт те же 5.0:1 в паре с белым. */
+.iw-drag.sort-correct{background:#15803D!important;color:#fff!important;opacity:1!important}
 .iw-drag.sort-wrong{background:#dc2626!important;color:#fff!important;opacity:1!important}
 .iw-match-targets{flex:1.2;display:flex;flex-direction:column;gap:6px}
 .iw-target{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1.5px solid #e4e5ec;border-radius:10px;min-height:38px;transition:all .2s}
@@ -4201,7 +4212,7 @@ strong{font-weight:650}
 .iw-stepper .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
 .iw-stepper .iw-opt:hover{background:linear-gradient(135deg,var(--t1),var(--t2));opacity:.92}
 .iw-stepper .iw-opt.selected:not(.correct):not(.wrong){outline:3px solid #1a1722;outline-offset:2px}
-.iw-stepper .iw-opt.correct{background:#16a34a!important;color:#fff}
+.iw-stepper .iw-opt.correct{background:#15803D!important;color:#fff}
 .iw-stepper .iw-opt.wrong{background:#dc2626!important;color:#fff;opacity:.85}
 .iw-stepper .iw-tf{justify-content:center}
 .iw-stepper .iw-tf-btn{font-size:15px;padding:12px 30px}
@@ -5538,7 +5549,7 @@ function openLessonPresent(cardId) {
       <button class="lp-action-btn secondary" onclick="closeLessonPresent();openCardEditor('${card.id}')">✏️ Edit Lesson</button>
       ${d.status !== 'done' ? `<button class="lp-action-btn primary" onclick="markLessonDoneFromPresent('${card.id}')">
         ${d.status === 'locked' ? '🔓 Unlock' : d.status === 'in-progress' ? '✅ Mark Done' : '⏳ Start Lesson'}
-      </button>` : `<button class="lp-action-btn primary" style="background:#16a34a;">✅ Completed</button>`}
+      </button>` : `<button class="lp-action-btn primary" style="background:#15803D;">✅ Completed</button>`}
     </div>`;
 
   overlay.classList.add('open');
@@ -13965,7 +13976,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '776';
+const TEACHEDOS_ASSET_VERSION = '777';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
