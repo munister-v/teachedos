@@ -130,7 +130,7 @@ body.fx .win-sidebar {
   padding:8px 18px 18px !important; width:210px !important;
 }
 body.fx .sb-section-label {
-  font-size:11px !important; font-weight:400 !important;
+  font-size:11px !important; font-weight:500 !important;
   color:var(--fx-mute) !important; text-transform:lowercase !important;
   letter-spacing:0 !important; margin:18px 0 8px !important;
 }
@@ -153,12 +153,18 @@ body.fx .studio-hero {
 }
 /* Кегли тоже сняты с кадра: заголовок ~43px при 1920 (32 у нас), надзаголовок
    15 (11), подпись 17 (12.5). Было 38/13/14 - крупнее макета. */
+/* Веса 400/800 повторяли кадр буквально - в самом кластере (крошечный
+   надзаголовок рядом с огромным жирным заголовком, всё одной гарнитурой)
+   разница читалась как «слишком много разных шрифтов», хотя гарнитура
+   везде одна: TeachEd UI. Сузил вилку 400-800 до 500-700 по всему
+   кластеру (эта секция + виджеты ниже) - тот же принцип «мелкое тише,
+   крупное громче», просто не на всю доступную амплитуду. */
 body.fx .studio-eyebrow {
-  font-size:11px !important; font-weight:400 !important; color:var(--fx-mute) !important;
+  font-size:11px !important; font-weight:500 !important; color:var(--fx-mute) !important;
   text-transform:lowercase !important; letter-spacing:0 !important; margin-bottom:6px !important;
 }
 body.fx .studio-title {
-  font-size:32px !important; font-weight:800 !important; letter-spacing:-.03em !important;
+  font-size:32px !important; font-weight:700 !important; letter-spacing:-.03em !important;
   color:var(--fx-ink) !important; line-height:1.05 !important;
   text-transform:lowercase !important; margin:0 0 8px !important;
 }
@@ -245,12 +251,14 @@ body.fx .widget { padding:14px !important; }
 
 body.fx .widget .ic { position:absolute; top:18px; right:18px; width:20px; height:20px; opacity:.85; }
 /* Цифра на кадре ~56px при 1920 - в нашем масштабе 42. */
+/* Вилка весов 400-800 сужена до 500-700 - см. комментарий у .studio-title
+   выше про то же самое решение для этого экрана в целом. */
 body.fx .wg-streak-n, body.fx .wg-vocab-word {
-  font-size:42px !important; font-weight:800 !important; line-height:1 !important;
+  font-size:42px !important; font-weight:700 !important; line-height:1 !important;
   letter-spacing:-.045em !important; color:var(--fx-ink) !important; margin:0 !important;
 }
 body.fx .wg-streak-label, body.fx .wg-vocab-label {
-  font-size:12px !important; font-weight:400 !important; color:var(--fx-mute) !important;
+  font-size:12px !important; font-weight:500 !important; color:var(--fx-mute) !important;
   text-transform:lowercase !important; letter-spacing:0 !important;
   font-family:inherit !important; margin:10px 0 0 !important;
 }
@@ -265,8 +273,8 @@ body.fx :is(.wg-streak-sub,.wg-vocab-lang,.wg-vocab-trans,.wg-vocab-ex) {
 body.fx .wg-vocab-trans { color:var(--fx-ink-2) !important; }
 /* Карточка ближайшего урока: заголовок, время, прогресс. */
 body.fx .wg-today-label { font-family:inherit !important; font-size:13px !important;
-  letter-spacing:0 !important; text-transform:lowercase !important; color:var(--fx-mute) !important; }
-body.fx .wg-today-title { font-size:19px !important; font-weight:800 !important;
+  font-weight:500 !important; letter-spacing:0 !important; text-transform:lowercase !important; color:var(--fx-mute) !important; }
+body.fx .wg-today-title { font-size:19px !important; font-weight:700 !important;
   letter-spacing:-.02em !important; color:var(--fx-ink) !important; }
 body.fx .wg-today-meta { font-family:inherit !important; font-size:12px !important;
   color:var(--fx-mute) !important; }
