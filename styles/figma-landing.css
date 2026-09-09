@@ -377,3 +377,44 @@ body.fx.landing-page .hp-avatars span {
 }
 body.fx.landing-page .hp-text { font-size: 12px; }
 body.fx.landing-page .hp-stars { color: var(--fx-mute); }
+
+/* ── Pro-план физически крупнее, а не только с лейблом ─────────────────
+   "Most popular" уже поднимал карточку на -6px и красил рамку, но три
+   колонки оставались одной ширины - глаз не находил разницу, пока не
+   читал бейдж. Средняя колонка получает больше внутреннего воздуха и
+   собственный масштаб, поэтому она физически больше соседей, а не
+   только подписана как таковая. z-index не даёт увеличенной карточке
+   уйти под тень соседей на стыке колонок. */
+body.fx.landing-page .plan.pop {
+  padding-top: 40px;
+  padding-bottom: 38px;
+  z-index: 1;
+}
+@media (min-width: 861px) {
+  body.fx.landing-page .plan.pop {
+    transform: translateY(-14px) scale(1.045);
+  }
+}
+body.fx.landing-page .plan.pop .plan-price { font-size: 58px; }
+
+/* ── Отзывы: цитата весит больше, чем рамка карточки ────────────────────
+   Три одинаковые карточки-аккаунты читались как визитки, а не как то,
+   что учителя реально сказали. Рамка и тень сняты, цитата укрупнена -
+   тот же приём, что у одной большой цитаты на весь экран, но без
+   JS-карусели: устойчиво на телефоне и не требует свайпа. */
+body.fx.landing-page .testi {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 8px 4px;
+}
+body.fx.landing-page .testi-q {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -.01em;
+}
+@media (min-width: 861px) {
+  body.fx.landing-page .testi-grid { gap: 40px; }
+}
