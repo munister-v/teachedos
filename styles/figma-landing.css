@@ -418,3 +418,20 @@ body.fx.landing-page .testi-q {
 @media (min-width: 861px) {
   body.fx.landing-page .testi-grid { gap: 40px; }
 }
+
+/* ── Toolkit: "+N more" opens the rest of a card's tag wall ─────────────
+   Same chip as the other tags so it reads as one more item in the row,
+   not a UI control bolted on - only the dashed border marks it as
+   interactive. Built as a real <button>, so it is focusable and
+   announced correctly without any extra ARIA. */
+body.fx.landing-page .cat-tags-toggle {
+  background: transparent !important;
+  border-style: dashed !important;
+  color: var(--fx-mute) !important;
+  cursor: pointer;
+  font: inherit;
+}
+body.fx.landing-page .cat-tags-toggle:hover {
+  background: rgba(22,22,22,.06) !important;
+  color: var(--fx-ink) !important;
+}
