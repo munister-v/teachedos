@@ -13976,7 +13976,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '789';
+const TEACHEDOS_ASSET_VERSION = '790';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14753,6 +14753,69 @@ function _stageReadingText(out) {
 
 let lastLessonStageSet = null;
 
+/* «Match words to meanings» без значений.
+
+   Задание собирается локально (_ttGenWordDefinitionMatch), а значение
+   ищет в трёх местах: пояснение учителя, предложение из текста,
+   встроенная библиотечка слов. Для урока про травмы там нет ничего, и
+   на доску ехали пары «Bruise — » с пустой правой половиной: слово
+   есть, сопоставлять не с чем.
+
+   Порядок добора именно такой:
+     1. Cambridge (/api/dictionary/define) - учебный словарь с
+        определениями, написанными ограниченной лексикой, и уровнем
+        CEFR у значений: на B2 берётся значение не выше B2.
+     2. Движок - для того, чего в словаре нет и не будет: «severe burn»,
+        «doesn't agree with me» - это не заголовки словарных статей. У
+        движка есть тема и уровень урока, поэтому он пишет определение
+        под этот класс, а не общее.
+   Что не нашлось ни там, ни там, остаётся пустым - как и было. */
+async function _ttFillMatchDefinitions(out, base) {
+  const q = (out && Array.isArray(out.questions))
+    ? out.questions.find(x => x && x.type === 'match' && Array.isArray(x.pairs)) : null;
+  if (!q) return;
+  const empty = () => q.pairs.filter(p => !String(p.right || '').trim());
+  if (!empty().length) return;
+
+  try {
+    const words = empty().map(p => p.left).join(',');
+    const r = await apiFetch('/api/dictionary/define?level=' + encodeURIComponent(base.level || '') +
+                             '&words=' + encodeURIComponent(words));
+    const d = await r.json().catch(() => null);
+    const byWord = {};
+    (d && d.results || []).forEach(x => {
+      if (x && x.definition) byWord[String(x.word).toLowerCase()] = x.definition;
+    });
+    q.pairs.forEach(p => {
+      if (String(p.right || '').trim()) return;
+      const hit = byWord[String(p.left).toLowerCase()];
+      if (hit) p.right = hit;
+    });
+  } catch (err) { console.warn('[defs] dictionary lookup failed', err); }
+
+  const still = empty();
+  if (!still.length) return;
+  try {
+    const ai = await requestServerTeacherTool({
+      ...base,
+      tool: { id: 'word-definition-match' },
+      vocab: still.map(p => p.left).join('\n'),
+      count: still.length,
+    }, 20000);
+    const aiQ = (ai && Array.isArray(ai.questions))
+      ? ai.questions.find(x => x && x.type === 'match' && Array.isArray(x.pairs)) : null;
+    if (!aiQ) return;
+    const byWord = {};
+    aiQ.pairs.forEach(p => {
+      if (p && p.right) byWord[String(p.left).toLowerCase().trim()] = p.right;
+    });
+    still.forEach(p => {
+      const hit = byWord[String(p.left).toLowerCase().trim()];
+      if (hit) p.right = hit;
+    });
+  } catch (err) { console.warn('[defs] AI fallback failed', err); }
+}
+
 /* Прогон этапов. Сначала текст - он исходник для всего остального,
    поэтому идёт первым и синхронно. Дальше задания по одному: серверные
    вызовы делят одну квоту, и веер параллельных запросов упёрся бы в неё
@@ -14819,6 +14882,13 @@ async function runBoardLessonStages() {
       out = o.ai ? await requestServerTeacherTool(input, 25000)
                  : generateTeacherToolLocal(input);
     } catch (err) { console.warn('[stages] activity failed', o.key, err); }
+    /* Значения к словам добираются ПОСЛЕ сборки задания, а не внутри
+       генератора: генератор синхронный и работает офлайн, а словарь -
+       это сеть. */
+    if (out && o.tool === 'word-definition-match') {
+      if (chip) chip.textContent = 'looking up meanings…';
+      await _ttFillMatchDefinitions(out, base);
+    }
     if (out) { out.title = o.title; built.push({ activity: o, out }); }
     else failed.push(o.title);
   }
@@ -15014,6 +15084,8 @@ async function redoStageActivity(key) {
     toast('That one could not be rebuilt - the old version is kept');
     return;
   }
+  // Пересобранное задание тоже без значений - добираем той же парой словарь/движок.
+  if (o.tool === 'word-definition-match') await _ttFillMatchDefinitions(out, set.base);
   out.title = o.title;
   entry.out = out;
   entry.variant = variant;
