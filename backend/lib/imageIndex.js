@@ -22,6 +22,15 @@ const INDEX_PATH = process.env.IMAGE_INDEX_PATH
 
 const MAX_ENTRIES = 20000;      // ~20k слов с запасом на все темы и уровни
 const SAVE_DEBOUNCE_MS = 4000;  // запись пачкой: урок добавляет по 12 записей подряд
+/* routes/images.js ограничивает запрошенный limit двенадцатью
+   (`Math.min(parseInt(req.query.limit) || 1, 12)`), и ручной photo-picker
+   (runPhotoSearch в game-builder-app.js) действительно всегда просит 9 -
+   это 3x3 сетка, из которой учитель выбирает одну картинку. put() хранил
+   только первые 4 хита, поэтому `remembered.hits.length >= limit` (routes/
+   images.js) никогда не проходил для limit=9: индекс на этот путь не
+   попадал вообще, каждый повторный поиск того же слова снова шёл в сеть.
+   Потолок здесь держим тем же, что и потолок запроса. */
+const MAX_HITS_PER_ENTRY = 12;
 
 let index = new Map();
 let dirty = false;
@@ -83,7 +92,7 @@ function put(word, topic, hits) {
     // Выбрасываем самую старую запись: карта хранит порядок вставки.
     index.delete(index.keys().next().value);
   }
-  index.set(keyOf(word, topic), { hits: hits.slice(0, 4), at: Date.now() });
+  index.set(keyOf(word, topic), { hits: hits.slice(0, MAX_HITS_PER_ENTRY), at: Date.now() });
   scheduleSave();
 }
 
