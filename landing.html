@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=778">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=778">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=779">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=779">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=778">
+<link rel="manifest" href="manifest.json?v=779">
 <meta name="theme-color" content="#F3F3F6">
 <title>TeachEd - lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -238,6 +238,10 @@ nav.ln{
   padding:7px 12px;border-radius:10px;transition:.14s;
 }
 .nav-lnk:hover{color:var(--ink);background:rgba(14,14,16,.05);}
+/* Scrollspy: which section is on screen right now, same idea as the
+   sticky pill nav on hops.ai - the visitor always knows where they are
+   in the story instead of the nav being four dead links. */
+.nav-lnk.active{color:var(--ink);background:rgba(14,14,16,.07);}
 .nav-space{flex:1;}
 .nav-ctas{display:flex;align-items:center;gap:8px;}
 
@@ -1853,9 +1857,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=778">
+<link rel="stylesheet" href="styles/teached-brand.css?v=779">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=778">
+<link rel="stylesheet" href="styles/figma-landing.css?v=779">
 </head>
 <body class="landing-page fx">
 
@@ -2661,7 +2665,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=778">
+<link rel="stylesheet" href="styles/auth.css?v=779">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
@@ -2903,6 +2907,50 @@ document.addEventListener('DOMContentLoaded', () => {
     hero.addEventListener('pointermove', onMove, { passive: true });
     hero.addEventListener('pointerleave', onLeave);
   }
+})();
+</script>
+<script>
+/* Scrollspy for the top nav - highlights the section currently on screen
+   (#features/#tools/#how/#pricing), independent of the __TEACHED_STATIC_LANDING__
+   flag above: this is orientation, not decorative motion, so it stays on
+   even when the reveal animations are switched off. */
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.nav-lnk[href^="#"]'));
+  if (!links.length) return;
+  var map = {};
+  links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+  var sections = Object.keys(map)
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
+  if (!sections.length) return;
+  var current = null;
+  function setActive(id) {
+    if (id === current) return;
+    current = id;
+    links.forEach(function (a) { a.classList.remove('active'); });
+    if (id && map[id]) map[id].classList.add('active');
+  }
+  // Position-based, not ratio-based: with several tall adjacent sections an
+  // IntersectionObserver's "which one crossed a threshold in this batch"
+  // picks whichever section happened to fire last, not the one actually
+  // under the reading line - it highlighted "Tools" while "Features" filled
+  // the screen. Walking the sections by their own top edge against a fixed
+  // line under the nav is simple and always agrees with what's on screen.
+  var line = 110; // px from viewport top, just under the fixed nav
+  function update() {
+    var activeId = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].getBoundingClientRect().top <= line) activeId = sections[i].id;
+    }
+    setActive(activeId);
+  }
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { update(); ticking = false; });
+  }, { passive: true });
+  update();
 })();
 </script>
 <script>
