@@ -338,3 +338,42 @@ body.fx.landing-page :is(.hero-h,.sec-h,.final-h) { font-weight:600; }
   /* Галочка в отзывах - знак, а не текст; кегль ей держит форму кружка. */
   body.landing-page .testi-source > span.v { font-size: 8px !important; }
 }
+
+/* ── Лайм только для действия и статуса ────────────────────────────────
+   До этого лайм стоял разом на кнопке, на плашках B2/CEFR, на звёздах
+   отзывов, на галочках плана и на подписи "Verified" - десяток мест
+   одного цвета читались как конфетти, а не как акцент. Оставляю лайм
+   только там, где он значит "жми" (.btn-lime/.btn-pink) или "живое
+   состояние прямо сейчас" (.tb.r .ld - индикатор Live, pv-gap.fill/
+   .pv-type - подсвеченный ответ ИИ в макете доски, .fp-pwa .off -
+   индикатор offline-режима). Декоративные плашки, звёзды и галочки
+   переведены на чернила той же лёгкости, что и остальной мелкий текст. */
+body.fx.landing-page :is(.pc-chip.lime, .bc.lime, .pv-chip.go) {
+  background: rgba(22,22,22,.08) !important;
+  border-color: rgba(22,22,22,.14) !important;
+  color: var(--fx-ink) !important;
+}
+body.fx.landing-page .testi-stars,
+body.fx.landing-page .plan-features li::before {
+  color: var(--fx-ink) !important;
+}
+body.fx.landing-page :is(.testi-source, .testi-source .v) {
+  color: var(--fx-mute) !important;
+  background: rgba(22,22,22,.08) !important;
+}
+
+/* ── Хиро: доказательство доверия тише мокапа ──────────────────────────
+   Ряд аватарок и звёзд стоял между кнопками и превью доски с тем же
+   визуальным весом, что заголовок и мокап - три конкурирующих фокуса на
+   первом экране. Мокап остаётся героем; ряд доверия уменьшен и приглушён
+   до подписи под кнопками, а не второй витрины рядом с ней. */
+body.fx.landing-page .hero-proof {
+  opacity: .78;
+  transform: scale(.92);
+  margin-top: -2px;
+}
+body.fx.landing-page .hp-avatars span {
+  width: 24px; height: 24px; font-size: 9px;
+}
+body.fx.landing-page .hp-text { font-size: 12px; }
+body.fx.landing-page .hp-stars { color: var(--fx-mute); }
