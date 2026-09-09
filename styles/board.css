@@ -3710,6 +3710,14 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-section p{font-size:12px;line-height:1.5;color:#636366;font-weight:650;margin:0;white-space:pre-wrap;}
 .tbuilder-section li{font-size:12px;line-height:1.52;color:#636366;font-weight:650;}
 .tbuilder-section ul{margin:4px 0 0;padding-left:16px;}
+/* Полоса картинок в превью «Match words to pictures»: то, что реально
+   поедет на доску, а не список поисковых запросов. Плитка кликабельна -
+   это замена снимка, поэтому у неё курсор и подсветка, как у кнопки. */
+.tb-img-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:6px;}
+.tb-img-tile{display:flex;flex-direction:column;gap:4px;padding:0;border:1px solid rgba(14,14,16,.10);background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;font:inherit;transition:border-color .14s,box-shadow .14s;}
+.tb-img-tile:hover{border-color:color-mix(in srgb,var(--accent) 45%,transparent);box-shadow:0 4px 14px rgba(14,14,16,.10);}
+.tb-img-tile img,.tb-img-tile .ws-vcard-img{display:block;width:100%;height:64px;object-fit:cover;}
+.tb-img-word{display:block;padding:0 6px 6px;font-size:11px;font-weight:650;line-height:1.25;color:#0E0E10;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* Correct answer highlight */
 .tt-answer-correct{color:#16a34a;font-weight:600;}
 .tt-answer-wrong{color:#6b7280;}

@@ -11898,7 +11898,12 @@ function _ttGamePayloads(out) {
     const qs = out.questions;
     // Matching exercise - word↔definition or word↔category (word-sorting).
     if (qs[0].type === 'match' && Array.isArray(qs[0].pairs)) {
-      const raw = qs[0].pairs.map(p => ({ left: _ttG(p.left), right: _ttG(p.right) })).filter(p => p.left && p.right);
+      /* img едет вместе с парой: у «Match words to pictures» снимок уже
+         подобран на сборке урока и показан учителю в превью. Без него
+         игра искала бы картинку заново при открытии и могла достать
+         другую - то есть на уроке было бы не то, что одобрили. */
+      const raw = qs[0].pairs.map(p => ({ left: _ttG(p.left), right: _ttG(p.right), img: p.img || null }))
+                             .filter(p => p.left && p.right);
       const rights = [...new Set(raw.map(p => p.right.toLowerCase()))];
       // Few distinct right-hand values ⇒ they're categories ⇒ Sort into Categories.
       if (rights.length >= 2 && rights.length <= Math.max(2, Math.ceil(raw.length / 2))) {
@@ -11910,8 +11915,15 @@ function _ttGamePayloads(out) {
       if (pairs.length >= 3) {
         push('memory-match', 'Memory Match', '🃏', { pairs });
         push('flashcards', 'Flashcards', '📇', { pairs });
-        // Photo Match: use the left-side word as the Unsplash search query
-        push('word-image-match', 'Photo Match', '🖼️', { pairs: raw.map(p => ({ left: p.left, right: p.left })) });
+        /* Photo Match. Запрос - само слово; если снимок уже выбран
+           (урок с картинками), он едет как imageUrl, и игра берёт
+           именно его, не обращаясь в фотобанк (см. games/
+           word-image-match.html: «pre-picked URL - skip fetch»). */
+        push('word-image-match', 'Photo Match', '🖼️', {
+          pairs: raw.map(p => (p.img && p.img.url)
+            ? { left: p.left, right: p.left, imageUrl: p.img.url }
+            : { left: p.left, right: p.left }),
+        });
       }
     }
     const mcqs = qs.filter(q => q.type === 'mcq' && Array.isArray(q.options) && q.options.length >= 2);
@@ -13976,7 +13988,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '790';
+const TEACHEDOS_ASSET_VERSION = '791';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14816,6 +14828,98 @@ async function _ttFillMatchDefinitions(out, base) {
   } catch (err) { console.warn('[defs] AI fallback failed', err); }
 }
 
+/* «Match words to pictures» без картинок.
+
+   Движок для этого задания пишет не определение, а ПОИСКОВЫЙ ЗАПРОС:
+   «bruise» → «human bruise close-up». Дальше запрос ехал на доску как
+   текст, а снимок искала уже сама игра при открытии - то есть учитель
+   до урока не видел, что достанется ученику, и поменять не мог.
+
+   Поэтому картинка подбирается здесь, на сборке: превью показывает
+   ровно тот снимок, который поедет на доску, а клик по нему открывает
+   замену (openStageImagePicker). Найденное живёт прямо в паре
+   (p.img), оттуда же его берёт укладчик игры.
+
+   Три одновременных запроса - тот же предел, что и у карточек словаря
+   (_TT_IMG_CONCURRENCY): урок на двенадцать слов не должен выедать
+   часовой лимит фотобанка. */
+async function _ttFillMatchImages(out, base) {
+  const q = (out && Array.isArray(out.questions))
+    ? out.questions.find(x => x && x.type === 'match' && Array.isArray(x.pairs)) : null;
+  if (!q) return;
+  const todo = q.pairs.filter(p => p && p.left && !p.img);
+  if (!todo.length) return;
+
+  let i = 0;
+  async function worker() {
+    while (i < todo.length) {
+      const p = todo[i++];
+      /* Запрос движка («human bruise close-up») точнее самого слова -
+         ради него он и писался. Слово идёт контекстом, а не запросом:
+         так поиск знает, о чём картинка, но ищет по описанию сцены. */
+      const query = String(p.right || '').trim() || String(p.left || '');
+      const img = await _ttFetchWordImage(query, base.topic || '', String(p.left || ''));
+      if (img) p.img = img;
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(_TT_IMG_CONCURRENCY, todo.length) }, worker));
+}
+
+/* Замена картинки в превью урока. Тот же ход, что и у карточки словаря
+   (openVocabImagePicker), но работает по собранному набору этапов, а не
+   по карточке доски: на этой стадии доски ещё нет. */
+async function openStageImagePicker(actKey, pairIndex, anchorEl) {
+  const set = lastLessonStageSet;
+  const entry = set && set.built.find(b => b.activity.key === actKey);
+  const q = entry && (entry.out.questions || []).find(x => x && x.type === 'match' && Array.isArray(x.pairs));
+  const pair = q && q.pairs[pairIndex];
+  if (!pair) return;
+
+  document.getElementById('vimg-picker')?.remove();
+  const box = document.createElement('div');
+  box.id = 'vimg-picker';
+  box.className = 'vimg-picker';
+  box.innerHTML = '<div class="vimg-picker-head">Choose a picture for “' + esc(pair.left) + '”</div>'
+                + '<div class="vimg-picker-grid">Searching…</div>';
+  document.body.appendChild(box);
+  const r = anchorEl.getBoundingClientRect();
+  box.style.left = Math.max(12, Math.min(window.innerWidth - 300, r.left)) + 'px';
+  box.style.top = Math.min(window.innerHeight - 240, r.bottom + 8) + 'px';
+
+  const close = (e) => {
+    if (e && box.contains(e.target)) return;
+    box.remove(); document.removeEventListener('mousedown', close);
+  };
+  setTimeout(() => document.addEventListener('mousedown', close), 0);
+
+  const qs = new URLSearchParams({ q: String(pair.right || pair.left), limit: '9' });
+  if (set.base && set.base.topic) qs.set('topic', set.base.topic);
+  if (pair.left) qs.set('context', String(pair.left));
+  let urls = [];
+  try {
+    const res = await apiFetch('/api/images/search?' + qs.toString());
+    const d = await res.json();
+    urls = (d.urls || []).filter(u => u && u.url);
+  } catch {}
+
+  const grid = box.querySelector('.vimg-picker-grid');
+  if (!urls.length) { grid.textContent = 'Nothing found for this word.'; return; }
+  grid.innerHTML = urls.map((u, i) =>
+    `<button type="button" class="vimg-opt" data-i="${i}"><img src="${esc(u.thumb || u.url)}" alt="" referrerpolicy="no-referrer" crossorigin="anonymous"></button>`).join('')
+    + '<button type="button" class="vimg-opt vimg-none" data-i="-1">No picture</button>';
+  grid.querySelectorAll('.vimg-opt').forEach(btn => btn.addEventListener('click', () => {
+    const i = Number(btn.dataset.i);
+    if (i < 0) delete pair.img;
+    else {
+      const u = urls[i];
+      const abs = (x) => (x && x.startsWith('/') ? API + x : x);
+      pair.img = { url: abs(u.url), thumb: abs(u.thumb || u.url), credit: u.credit || '', origin: u.origin || '' };
+    }
+    box.remove(); document.removeEventListener('mousedown', close);
+    renderBoardLessonStagePreview(set);
+  }));
+}
+
 /* Прогон этапов. Сначала текст - он исходник для всего остального,
    поэтому идёт первым и синхронно. Дальше задания по одному: серверные
    вызовы делят одну квоту, и веер параллельных запросов упёрся бы в неё
@@ -14889,6 +14993,10 @@ async function runBoardLessonStages() {
       if (chip) chip.textContent = 'looking up meanings…';
       await _ttFillMatchDefinitions(out, base);
     }
+    if (out && o.tool === 'word-image-match') {
+      if (chip) chip.textContent = 'finding pictures…';
+      await _ttFillMatchImages(out, base);
+    }
     if (out) { out.title = o.title; built.push({ activity: o, out }); }
     else failed.push(o.title);
   }
@@ -14905,6 +15013,34 @@ async function runBoardLessonStages() {
   renderBoardLessonStagePreview(lastLessonStageSet);
   _ttSetAddToBoard(true);
   if (chip) chip.textContent = built.length ? `text + ${built.length}` : 'text ready';
+}
+
+/* Задание с картинками показывается картинками, а не списком запросов.
+
+   Раньше «Match words to pictures» выглядел в превью так:
+   «• bruise — human bruise close-up». Прочитать это можно, увидеть
+   урок - нет: снимок искался позже и совсем в другом месте (внутри
+   игры), поэтому учитель узнавал, что достанется ученику, только на
+   занятии.
+
+   Клик по плитке открывает замену. Слово подписано под снимком: без
+   подписи набор фотографий не читается как задание про эти шесть слов.
+   Там, где снимок не нашёлся, стоит та же буквенная плитка «draw it»,
+   что и в карточках словаря, - пустых рамок здесь нет. */
+function _ttStageImageStrip(activity, out) {
+  if (!activity || activity.tool !== 'word-image-match') return '';
+  const q = (out && Array.isArray(out.questions))
+    ? out.questions.find(x => x && x.type === 'match' && Array.isArray(x.pairs)) : null;
+  if (!q || !q.pairs.length) return '';
+  const tiles = q.pairs.map((p, i) => {
+    const inner = p.img && p.img.thumb
+      ? `<img src="${esc(p.img.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous">`
+      : _ttLetterTile(p.left);
+    return `<button type="button" class="tb-img-tile" title="Click to change the picture"
+      onclick="openStageImagePicker('${esc(activity.key)}',${i},this)">
+      ${inner}<span class="tb-img-word">${esc(p.left)}</span></button>`;
+  }).join('');
+  return `<div class="tb-img-strip">${tiles}</div>`;
 }
 
 /* Превью набора: этапы теми же салатовыми заголовками, что и в форме,
@@ -14974,7 +15110,7 @@ function renderBoardLessonStagePreview(set) {
               <button type="button" class="tb-act-btn" onclick="dropStageActivity('${esc(activity.key)}')" title="Leave this one out of the lesson">Drop</button>
             </span>
           </div>
-          <p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>
+          ${_ttStageImageStrip(activity, out) || `<p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>`}
         </div>`).join('');
     } else {
       inner = `<div class="tb-stage-meta">Nothing ticked for this stage.</div>`;
@@ -15086,6 +15222,7 @@ async function redoStageActivity(key) {
   }
   // Пересобранное задание тоже без значений - добираем той же парой словарь/движок.
   if (o.tool === 'word-definition-match') await _ttFillMatchDefinitions(out, set.base);
+  if (o.tool === 'word-image-match') await _ttFillMatchImages(out, set.base);
   out.title = o.title;
   entry.out = out;
   entry.variant = variant;

@@ -120,14 +120,26 @@ function pickSense(senses, level) {
   return senses[0];
 }
 
+function blank(word) {
+  return { word, definition: null, cefr: null, example: null, pos: null, source: null };
+}
+
 async function lookup(word, level) {
   const w = String(word || '').trim();
-  if (!w || w.length > 60) return { word: w, definition: null, source: null };
+  if (!w || w.length > 60) return blank(w);
 
   let entry = defIndex.get(w);
   if (!entry) {
-    const fresh = await fetchCambridge(w);
-    if (!fresh) return { word: w, definition: null, source: null, error: 'unreachable' };
+    /* Одна повторная попытка. Проверено на живом сервере: из шести слов
+       холодной пачки одно вернулось «unreachable», остальные пять - с
+       определениями. Сеть моргнула ровно один раз, но для урока это
+       значит пустую половину пары, которую учитель увидит на доске. */
+    let fresh = await fetchCambridge(w);
+    if (!fresh) {
+      await new Promise(r => setTimeout(r, 250));
+      fresh = await fetchCambridge(w);
+    }
+    if (!fresh) return { ...blank(w), error: 'unreachable' };
     entry = fresh;
     defIndex.put(w, fresh);           // включая пустой senses: «нет статьи» - тоже ответ
   }
@@ -154,7 +166,19 @@ router.get('/define', async (req, res) => {
 
   if (many) {
     const words = many.split(/[,;\n]/).map(s => s.trim()).filter(Boolean).slice(0, 20);
-    const out = await Promise.all(words.map(w => lookup(w, level).catch(() => ({ word: w, definition: null }))));
+    /* По четыре за раз, а не все двенадцать веером. Двенадцать
+       одновременных соединений к чужому сайту - это и есть тот случай,
+       когда одно из них молча обрывается; четырёх хватает, чтобы пачка
+       из шести слов уложилась в те же полсекунды. */
+    const out = new Array(words.length);
+    let i = 0;
+    async function worker() {
+      while (i < words.length) {
+        const cur = i++;
+        out[cur] = await lookup(words[cur], level).catch(() => blank(words[cur]));
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(4, words.length) }, worker));
     return res.json({ results: out });
   }
   if (!one) return res.json({ results: [] });
