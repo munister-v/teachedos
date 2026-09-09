@@ -136,7 +136,7 @@
         <div id="rb-status" class="rb-status"></div>
         <div class="rb-actions">
           <button id="rb-cancel" class="tbuilder-btn ghost" type="button" onclick="closeReadingBlock()">Close</button>
-          <button id="rb-run" class="tbuilder-btn blue" type="button" onclick="runReadingBlock()">Build reading block</button>
+          <button id="rb-run" class="tbuilder-btn lime" type="button" onclick="runReadingBlock()">Build reading block</button>
         </div>
       </div>
     `;
