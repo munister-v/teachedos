@@ -253,21 +253,28 @@ router.get('/search', async (req, res) => {
      подпись и лицензия едут вместе с картинкой, а не теряются. */
   /* Три источника на кандидата шли строго по очереди - три отдельных HTTP-
      похода (до TIMEOUT=5s каждый), хотя запросы независимы и бьют в разные
-     API. Урок на 10-12 слов, где половина лексики не находится с первой
-     попытки (редкие или составные термины), могла провести в одних только
-     сетевых ожиданиях больше минуты последовательно. Провайдеры теперь
-     идут одним Promise.all: тот же порядок предпочтения (Unsplash → Pexels
-     → Pixabay) сохранён - выбор просто откладывается до момента, когда все
-     три уже ответили, а не запрашивается по одному. */
+     API. Первая попытка объединить их одним Promise.all([u, p, x]) чинила
+     задержку не до конца: Promise.all ждёт САМЫЙ медленный из трёх, даже
+     когда Unsplash или Pexels уже нашли что нужно - если Pixabay в этот
+     момент подвисает (мало ли: свой троттлинг, перегруженный час), запрос
+     всё равно стоял все TIMEOUT=5s ради ответа, который потом выбрасывался.
+     Проверено на живых словах: «airport» и «customs officer» упирались
+     ровно в потолок 5.0s даже когда Pexels отвечал за 260мс.
+
+     Unsplash и Pexels - равноправная пара по комментарию выше (сильные в
+     разных темах), поэтому летят вместе. Pixabay - объявленный fallback
+     (см. его комментарий: «free key, no approval needed»), поэтому его
+     вообще не запрашиваем, если один из первых двух уже нашёл снимок:
+     сокращает трату его куда более скромной квоты, а не только время. */
   let results = [];
   let used = queries[0];
   for (const candidate of queries) {
-    const [unsplash, pexels, pixabay] = await Promise.all([
+    const [unsplash, pexels] = await Promise.all([
       unsplashSearch(candidate, limit),
       pexelsSearch(candidate, limit),
-      pixabaySearch(candidate, limit),
     ]);
-    results = unsplash.length ? unsplash : (pexels.length ? pexels : pixabay);
+    results = unsplash.length ? unsplash : pexels;
+    if (!results.length) results = await pixabaySearch(candidate, limit);
     if (results.length) { used = candidate; break; }
   }
   // Wikimedia - только по самому слову и только если не нашлось ничего: его
