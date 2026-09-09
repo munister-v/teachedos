@@ -360,6 +360,10 @@ function readingTextParts(input) {
      его условностями (обращение и подпись в письме, заголовок в статье,
      оценка в рецензии), а не как «текст для чтения в 2-4 абзаца». */
   const asModel = raw && raw.model === true;
+  /* Урок по грамматике: «тема» это НАЗВАНИЕ ФОРМЫ. Просить по ней текст
+     как по теме - значит получить статью о времени Past Perfect вместо
+     истории, в которой оно естественно работает. */
+  const asFormContext = raw && raw.form === true;
 
   return {
     boldRule: wantBold
@@ -368,6 +372,8 @@ function readingTextParts(input) {
     cardPlan(glossarySpec) {
       const parts = [asModel
         ? '"✍️ Model text" - a MODEL the student will imitate: a real, complete example of the requested genre, following that genre\'s conventions (an email opens with a greeting and closes with a sign-off; a review states a verdict; an article has a headline). Not a prose passage about the topic.'
+        : asFormContext
+        ? '"📖 Reading text" - a short, natural text that USES the target grammar repeatedly and unmistakably (at least six clear instances), in a real situation that makes that form the natural choice. Never explain or mention the grammar: this is the example the student meets before the rule, not an article about the rule.'
         : '"📖 Reading text" - a short title on the first line, then the text'];
       if (wantGlossary) parts.push(glossarySpec);
       if (wantBefore)   parts.push('"Before reading" - 2-3 prediction/lead-in questions');

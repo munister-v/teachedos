@@ -13893,7 +13893,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '768';
+const TEACHEDOS_ASSET_VERSION = '769';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14642,10 +14642,12 @@ function _stageTextParts(keys) {
     glossary: keys.includes('glossary'),
     before: false,
     after: false,
-    /* Урок по письму просит не отрывок для чтения, а образец жанра. Флаг
-       меняет схему на бекенде (readingTextParts), а не уговаривает модель
-       заметкой учителя. */
+    /* Урок по письму просит не отрывок для чтения, а образец жанра; урок по
+       грамматике - текст, который ИСПОЛЬЗУЕТ форму, а не рассказывает о ней.
+       Оба флага меняют схему на бекенде (readingTextParts), а не уговаривают
+       модель заметкой учителя. */
     model: (boardLessonWizard && boardLessonWizard.skill) === 'writing',
+    form:  (boardLessonWizard && boardLessonWizard.skill) === 'grammar',
   };
 }
 
@@ -15196,6 +15198,7 @@ function _ttOwnTextOutput(base, keys) {
     listening: { cat:'listening', kind:'Transcript',   card:'🎬 Transcript',     name:'Transcript'     },
     speaking:  { cat:'speaking',  kind:'Dialogue',     card:'💬 Model dialogue', name:'Model dialogue' },
     writing:   { cat:'writing',   kind:'Model',        card:'✍️ Model text',     name:'Model text'     },
+    grammar:   { cat:'grammar',   kind:'In context',   card:'📖 The form in context', name:'The form in context' },
   }[skill] || { cat:'reading', kind:'Reading Text', card:'📖 Reading text', name:'Reading text' };
   const words = String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
   const body = keys.includes('bold-vocab') && words.length ? _ttBoldFirstOccurrences(text, words) : text;

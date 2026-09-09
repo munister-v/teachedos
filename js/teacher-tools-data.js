@@ -917,6 +917,72 @@ const BOARD_LESSON_STAGES = {
       },
     ],
   },
+
+  /* ─── Grammar ─────────────────────────────────────────────────────────
+     Урок по грамматике идёт от ПРИМЕРА к правилу и только потом к
+     упражнениям: правило, выданное первым, ученик просто перепишет. Поэтому
+     в середине здесь короткий текст, в котором форма встречается живьём, а
+     карточка с правилом - отдельная галочка следом.
+
+     Дальше самый длинный в продукте список тренировки: заполнение, выбор,
+     раскрытие скобок, порядок слов, исправление ошибок. Все они уже были,
+     но лежали в панели вперемешку с остальными семьюдесятью. */
+  grammar: {
+    label: 'Grammar lesson',
+    stages: [
+      {
+        key: 'context',
+        label: 'The form in context',
+        question: 'Where do they meet the form before it is named?',
+        options: [
+          {key:'gr-text', media:'text',        title:'A short text using it', hint:'The form in real sentences first. Untick it and the tasks are still built from it.', on:true},
+          {key:'gr-rule', tool:'grammar-rules',title:'The rule card',         hint:'The rule in plain words, with examples and the usual traps.', ai:true, after:'source', on:true},
+        ],
+      },
+      {
+        key: 'notice',
+        label: 'Notice it',
+        question: 'How do they work out what changes?',
+        options: [
+          {key:'gr-two',   tool:'two-options',    title:'This one or that one', hint:'Two forms with a slash: they pick the right one.', ai:true, after:'source'},
+          {key:'gr-tense', tool:'tense-contrast', title:'Tense contrast',       hint:'The same sentence in two tenses, side by side.', ai:true},
+        ],
+      },
+      {
+        key: 'drill',
+        label: 'Practice',
+        question: 'What do they actually do with it?',
+        options: [
+          {key:'gr-gap',   tool:'gap',            title:'Fill in the gap',        hint:'Sentences with the form removed.', ai:true, after:'source', on:true},
+          {key:'gr-brack', tool:'gaps-brackets',  title:'Open the brackets',      hint:'The verb given in brackets, put into the right form.', ai:true},
+          {key:'gr-abcd',  tool:'gaps-abcd',      title:'Gaps with four options', hint:'Multiple choice for each gap.', ai:true},
+          {key:'gr-order', tool:'word-order',     title:'Put the words in order', hint:'Scrambled sentences to rebuild.', ai:true},
+          {key:'gr-rew',   tool:'rewrite',        title:'Rewrite the sentence',   hint:'Same meaning, required structure.', ai:true},
+          {key:'gr-err',   tool:'error-correction',title:'Find the mistake',      hint:'Sentences carrying the errors this form attracts.', ai:true, after:'source'},
+        ],
+      },
+      /* Грамматика, оставшаяся упражнением, забывается к следующему уроку.
+         Последний этап заставляет форму прозвучать в собственной речи. */
+      {
+        key: 'use',
+        label: 'Use it for real',
+        question: 'Where do they say it themselves?',
+        options: [
+          {key:'gr-say',  tool:'sentences-vocab', title:'Say it about yourself', hint:'A model sentence per structure, then their own.', ai:true},
+          {key:'gr-disc', tool:'discussion',      title:'Questions that need it',hint:'Speaking prompts the form is hard to avoid in.', ai:true},
+          {key:'gr-role', tool:'roleplay-cards',  title:'Role play',             hint:'A situation where the structure does real work.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'homework',
+        label: 'Homework',
+        question: 'Should the lesson leave homework behind?',
+        options: [
+          {key:'gr-hw', tool:'homework-set', title:'Build homework from this lesson', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
+        ],
+      },
+    ],
+  },
 };
 
 /* ─── BOARD_LESSON_SKILLS ─── первый вопрос конструктора ────────────────
@@ -928,7 +994,7 @@ const BOARD_LESSON_SKILLS = [
   {key:'listening',  title:'Listening',  hint:'A video on the board, and the tasks around it.', icon:'🎧', stages:'listening'},
   {key:'speaking',   title:'Speaking',   hint:'From a model dialogue to them doing the talking.', icon:'💬', stages:'speaking'},
   {key:'writing',    title:'Writing',    hint:'From a model text to their own writing.',     icon:'✍️', stages:'writing'},
-  {key:'grammar',    title:'Grammar',    hint:'A rule in context, then practice.',           icon:'⚙️'},
+  {key:'grammar',    title:'Grammar',    hint:'The form in context, then the rule, then practice.', icon:'⚙️', stages:'grammar'},
   {key:'vocabulary', title:'Vocabulary', hint:'A word set and the practice around it.',      icon:'🧠'},
 ];
 
@@ -942,7 +1008,7 @@ const BOARD_LESSON_SKILLS = [
    которые приносят настоящую запись. */
 const BOARD_LESSON_SOURCES = [
   {key:'own',   mode:'source',   field:'source', icon:'📄', title:'I already have the text',
-   skills:['reading','listening','speaking','writing'],
+   skills:['reading','listening','speaking','writing','grammar'],
    hint:'Paste it in. The lesson is built around your exact wording, nothing is rewritten.'},
   {key:'shot',  mode:'source',   field:'source', icon:'🖼️', title:'A screenshot or photo', ocr:true,
    skills:['reading'],
@@ -958,7 +1024,7 @@ const BOARD_LESSON_SOURCES = [
      диалог: образец для говорения это не статья, а разговор. */
   {key:'topic', mode:'generate', field:'topic',  icon:'✦',  title:'Only a topic', tool:'generate-text',
    toolBySkill:{speaking:'dialogue'},
-   skills:['reading','speaking','writing'],
+   skills:['reading','speaking','writing','grammar'],
    hint:'No material yet. The example you start from is written for you.'},
 ];
 

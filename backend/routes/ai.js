@@ -269,8 +269,11 @@ function invalidInput(message) {
    стала бы указанием модели. */
 /* `model` - урок по ПИСЬМУ: середина это не отрывок для чтения, а образец
    жанра, и выглядеть он должен как настоящее письмо/рецензия/эссе, а не
-   как проза в четырёх абзацах. Остальные ключи - состав текста для чтения. */
-const READING_PARTS = ['bold', 'glossary', 'before', 'after', 'model'];
+   как проза в четырёх абзацах.
+   `form` - урок по ГРАММАТИКЕ: в поле темы там стоит «past perfect», и без
+   этого флага получался текст ПРО время, а не текст, который его
+   использует. Остальные ключи - состав текста для чтения. */
+const READING_PARTS = ['bold', 'glossary', 'before', 'after', 'model', 'form'];
 function pickParts(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const out = {};
