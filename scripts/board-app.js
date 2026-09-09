@@ -13976,7 +13976,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '783';
+const TEACHEDOS_ASSET_VERSION = '784';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18515,7 +18515,12 @@ function wsConnect() {
   } catch { return; }
 
   ws.onopen = () => {
-    document.getElementById('ws-dot').style.background = '#22c55e';
+    // Brand lime (--te-lime, teached-brand.css), not a generic traffic-light
+    // green: the landing page already promises a lime "Live" dot on this
+    // same toolbar mockup (.tb.r .ld in figma-landing.css) - the real board
+    // was still using an unrelated green, so the app never matched what was
+    // shown before sign-up.
+    document.getElementById('ws-dot').style.background = '#CDF940';
     document.getElementById('ws-dot').title = 'Real-time: connected';
     clearTimeout(wsReconnectTimer);
   };
