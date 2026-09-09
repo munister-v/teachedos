@@ -149,6 +149,22 @@
   box-shadow: 0 0 0 4px rgba(205,242,79,.24);
 }
 .auth-inp::placeholder { color: var(--auth-ink3); font-weight: 500; }
+/* Chrome paints an autofilled field with its own blue/yellow tint before
+   any author CSS runs, clashing with the white field + ink text everywhere
+   else in this modal (screenshot: saved email/password came back lavender-
+   blue while the rest of the card stayed white). box-shadow inset is the
+   only reliable way to override it - background-color itself is ignored
+   on an autofilled input. The 9999s transition delays Chrome's own repaint
+   of the tint so ours wins immediately instead of flashing yellow first. */
+.auth-inp:-webkit-autofill,
+.auth-inp:-webkit-autofill:hover,
+.auth-inp:-webkit-autofill:focus,
+.auth-inp:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 40px #FFFFFF inset !important;
+  -webkit-text-fill-color: var(--auth-ink) !important;
+  caret-color: var(--auth-ink) !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
 /* Pages that embed this modal (board.html in particular) also load a generic
    "every plain <input> on the page" form theme (harmony.css) that paints a
    pink/coral focus ring and border with !important - it's meant for the
