@@ -13898,7 +13898,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '772';
+const TEACHEDOS_ASSET_VERSION = '773';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14747,7 +14747,7 @@ async function runBoardLessonStages() {
 
   _ttSetGenerating(false);
   lastLessonStageSet = {
-    base, cfg, textOut, built, failed, keys,
+    base, cfg, textOut, built, failed, keys, toolId,
     /* Плеер и решение «класть ли транскрипт» нужны укладчику, а он
        вызывается позже и отдельно, уже без формы перед глазами. */
     media: (boardLessonWizard && boardLessonWizard.media) || null,
@@ -14795,13 +14795,24 @@ function renderBoardLessonStagePreview(set) {
         : `<div class="tb-stage-meta">The transcript stays off the board. Every task below is still built from it.</div>`);
       inner = rows.join('');
     } else if (st.key === 'text') {
-      inner = textCards.length
+      /* Кнопка стоит один раз на весь этап, не на каждой карточке: текст и
+         его глоссарий - один результат одного запроса, редактировать
+         части раздельно нельзя, только всё целиком. */
+      const canRedo = textOut && textOut.engine !== 'teacher-text';
+      const dependents = built.filter(b => b.activity.after === 'source').length;
+      const redoBtn = canRedo
+        ? `<button type="button" class="tb-act-btn" onclick="redoStageText()" title="Write it again, differently">Redo${dependents ? ` (rebuilds ${dependents} task${dependents === 1 ? '' : 's'} too)` : ''}</button>`
+        : '';
+      const cardsHtml = textCards.length
         ? textCards.map(c => `
             <div class="tbuilder-section">
               <h4>${esc(c.title || '')}</h4>
               <p>${_ttMdToHtml(c.text || '')}</p>
             </div>`).join('')
         : `<div class="tbuilder-section"><p>${_ttMdToHtml(String(textOut.text || ''))}</p></div>`;
+      inner = redoBtn
+        ? `<div data-stage-text><div class="tb-act-head" style="margin-bottom:4px"><span></span><span class="tb-act-tools" style="opacity:1">${redoBtn}</span></div>${cardsHtml}</div>`
+        : cardsHtml;
     } else if (items.length) {
       /* Одобрение должно позволять отказ от ЧАСТИ. Раньше одно неудачное
          задание заставляло пересобирать весь урок: шесть новых запросов и
@@ -14831,6 +14842,55 @@ function renderBoardLessonStagePreview(set) {
 
   body.innerHTML = html + (failed.length
     ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.</div>` : '');
+}
+
+/* Пересобрать саму середину урока - текст, диалог или образец, - а не
+   только задание вокруг неё. Redo у заданий уже был; без этой пары текст
+   оставался единственной вещью в уроке, которую нельзя было забраковать
+   не начиная всё заново.
+
+   Недоступно для учительского текста (engine:'teacher-text'): это не
+   сгенерированный черновик, а то, что учитель сам вставил дословно -
+   пересобирать нечего, только сам текст руками в поле.
+
+   Задания, построенные ПО ЭТОМУ тексту (after:'source'), автоматически
+   перестраиваются на новый: иначе они остались бы про уже заменённый
+   текст, и «после прочтения» спрашивало бы про то, чего на доске больше
+   нет. Задания, не завязанные на текст, не трогаем. */
+async function redoStageText() {
+  const set = lastLessonStageSet;
+  if (!set || set.textOut?.engine === 'teacher-text') return;
+  const host = document.querySelector('#tbuilder-output [data-stage-text]');
+  const body = host && host.querySelector('p, .tbuilder-section p');
+  if (body) body.innerHTML = '<span class="tb-stage-meta">Writing another version…</span>';
+
+  const variant = Math.min(5, (set.textVariant || 0) + 1);
+  const textInput = { ...set.base, tool: { id: set.toolId }, parts: _stageTextParts(set.keys || []), variant };
+  let textOut = null;
+  try { textOut = await requestServerTeacherTool(textInput, 30000); }
+  catch (err) { console.warn('[stages] text redo failed', err); }
+
+  if (!textOut) {
+    renderBoardLessonStagePreview(set);
+    toast('That could not be rebuilt - the old version is kept');
+    return;
+  }
+  set.textOut = textOut;
+  set.textVariant = variant;
+
+  const readingText = _stageReadingText(textOut);
+  for (const entry of set.built) {
+    if (entry.activity.after !== 'source') continue;
+    const input = { ...set.base, tool: { id: entry.activity.tool }, count: entry.activity.count || 6 };
+    if (readingText) input.source = readingText;
+    let out = null;
+    try {
+      out = entry.activity.ai ? await requestServerTeacherTool(input, 25000) : generateTeacherToolLocal(input);
+    } catch (err) { console.warn('[stages] dependent activity redo failed', entry.activity.key, err); }
+    if (out) { out.title = entry.activity.title; entry.out = out; }
+    // Не получилось - оставляем прежний материал, а не выкидываем его молча.
+  }
+  renderBoardLessonStagePreview(set);
 }
 
 /* Убрать одно задание из собранного урока. Ничего не пересобирает: то,
