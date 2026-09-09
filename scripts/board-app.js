@@ -10618,7 +10618,17 @@ function _ytRetryFailed() {
 // exercises is exactly what forced a 9-stage pack into one narrow scrolling
 // column instead of the grid _ttPlaceWorksheetOnBoard already knows how to do.
 function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
-  const cardsResults = results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
+  /* Материал «карточками» (boardKind:'cards') у видеоурока - это план
+     занятия, и его место в подвале кадра: широкой полосой под сеткой.
+
+     У урока из этапов теми же карточками приходит половина заданий -
+     lead-in первым этапом, summary-task третьим, роль/письмо
+     последним, - и подвал утащил бы их из своего места в уроке вниз,
+     все вместе и вне порядка. Для такого урока (ctx.inlineCards)
+     карточки остаются обычными ячейками сетки и стоят там, где стоят
+     в превью. Видеоурок ключа не передаёт и ведёт себя как раньше. */
+  const cardsResults = ctx.inlineCards ? []
+    : results.filter(out => out.boardKind === 'cards' && Array.isArray(out.cards) && out.cards.length);
   let gridResults = results.filter(out => !cardsResults.includes(out));
   /* Each exercise is generated from the same transcript by a separate call, so
      none of them knows what the others asked - and the same fact is the most
@@ -10732,11 +10742,15 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, Math.max(FW, 640), Math.max(FH || 400, VIDEO_H));
   const x0 = Math.round(center.x - FW / 2), y0 = Math.round(center.y - FH / 2);
-  // Title the frame after the actual video when we have it.
-  let title = '🎬  Lesson from YouTube';
+  /* Заголовок кадра. Урок из видео называется видео, урок из
+     конструктора этапов - своей темой (ctx.frameIcon/ctx.frameLabel):
+     укладчик один на оба, а «🎬 Lesson from YouTube» над уроком по
+     чтению был бы просто неправдой. */
+  const icon = ctx.frameIcon || '🎬';
+  let title = `${icon}  ${ctx.frameLabel || 'Lesson from YouTube'}`;
   if (videoTitle) {
     const t = videoTitle.length > 60 ? videoTitle.slice(0, 57).trim() + '…' : videoTitle;
-    title = `🎬  ${t}`;
+    title = `${icon}  ${t}`;
   }
   /* When the model cannot be reached the server quietly answers from its rule
      engine instead. The material is usable but noticeably flatter, and until
@@ -10768,14 +10782,14 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
            sheet - the exact mismatch that read on the board as cards colliding
            and packing "not working". Transitioned for real once plan has
            settled, below. */
-        _ttSrc: 1, _ttCat: 'utility', _ttKind: 'Lesson from video', _mode: 'plan',
+        _ttSrc: 1, _ttCat: 'utility', _ttKind: ctx.frameKind || 'Lesson from video', _mode: 'plan',
         /* Из чего собран урок - на кадре. Без этого блок нельзя пересобрать:
            карточка знает СВОИ вопросы, но не текст, из которого они сделаны.
            Тот же слепок транскрипта, что уходил в генерацию, поэтому «сделать
            проще» строится ровно из того же материала, а не из другого куска
            видео. Заодно кадру становится доступно «+ Add activity», которое
            до сих пор работало только у уроков из конструктора инструментов. */
-        lesson: { source: ctx.source || '', topic: videoTitle || 'Video lesson', level: ctx.level || 'B1', vocab: [] },
+        lesson: { source: ctx.source || '', topic: videoTitle || ctx.frameLabel || 'Video lesson', level: ctx.level || 'B1', vocab: ctx.vocab || [] },
       }, FW, FH);
       cells.forEach((cell, i) => {
         const x = x0 + PAD + layout.cells[i].col * (CARD_W + COL_GAP);
@@ -11050,7 +11064,7 @@ async function openVocabImagePicker(cardId, index, anchorEl) {
     requestAnimationFrame(() => {
       _wsFitToContent(card.id, { shrink: true });
       const frame = state.cards.find(c => c.id === card.data.parentFrame);
-      if (frame && frame.data?._ttKind === 'Lesson from video') _relayoutLessonFrameNow(frame);
+      if (_isLessonFrame(frame)) _relayoutLessonFrameNow(frame);
     });
     scheduleSave?.(); saveLocal?.();
   }));
@@ -11090,7 +11104,7 @@ async function _ttAttachImagesToVocabCard(cardId, topic) {
     requestAnimationFrame(() => {
       _wsFitToContent(card.id, { shrink: true });
       const frame = state.cards.find(c => c.id === card.data.parentFrame);
-      if (frame && frame.data?._ttKind === 'Lesson from video') _relayoutLessonFrameNow(frame);
+      if (_isLessonFrame(frame)) _relayoutLessonFrameNow(frame);
     });
     scheduleSave?.(); saveLocal?.();
   }
@@ -11181,7 +11195,7 @@ async function regenerateWorksheetAtLevel(cardId, dir) {
       _wsFitToContent(card.id, { shrink: true });
       // Пересобирать кадр есть смысл только у сетки урока: одиночная карточка
       // на доске просто меняет свою высоту и никого не двигает.
-      if (frame && frame.data?._ttKind === 'Lesson from video') _relayoutLessonFrameNow(frame);
+      if (_isLessonFrame(frame)) _relayoutLessonFrameNow(frame);
     });
     toast(`Rebuilt at ${next}.`);
   } catch (e) {
@@ -11245,6 +11259,19 @@ async function regenerateWorksheetItem(cardId) {
     _wsFitToContent(card.id, { shrink: true });
     scheduleSave?.(); saveLocal?.();
   }
+}
+
+/* Кадр урока - это кадр урока, кем бы он ни собран.
+
+   Проверка на _ttKind === 'Lesson from video' стояла в трёх местах,
+   вызывающих пересборку кадра, и была верной ровно до тех пор, пока
+   уроки делало только видео. Урок из конструктора этапов кладётся тем
+   же укладчиком и в такой же кадр ('Lesson from builder'), поэтому
+   после правки карточки его надо перепаковывать точно так же - иначе
+   выросший лист наезжал бы на соседний ряд именно в нём. */
+function _isLessonFrame(frame) {
+  const k = frame && frame.data && frame.data._ttKind;
+  return k === 'Lesson from video' || k === 'Lesson from builder';
 }
 
 /* Пересборка кадра его же геометрией - после того как один блок изменился в
@@ -13988,7 +14015,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '791';
+const TEACHEDOS_ASSET_VERSION = '792';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15268,10 +15295,26 @@ function _ttStagePlainPreview(out) {
   return _ttWorkoutPlainText(out);
 }
 
-/* Укладка набора на доску. Текст ложится своим обычным путём, задания -
-   тем же укладчиком, что и набор студии: он уже умеет выбирать между
-   игрой, листом и карточкой и раскладывать сеткой, а вторая раскладка
-   разошлась бы с первой. */
+/* Укладка урока на доску - ТЕМ ЖЕ УКЛАДЧИКОМ, ЧТО И УРОК ИЗ ВИДЕО.
+
+   Раньше здесь был свой путь: текст ложился отдельно, задания уходили в
+   placeBoardWorkoutSet (игра / лист / «набор материалов»), и на доске
+   получалась россыпь карточек вокруг центра - без кадра, без порядка и
+   без нумерации. Учитель нажимал «добавить урок», а получал горсть
+   разрозненных листов, в которой сам урок надо было ещё собрать.
+
+   Урок из видео к этому времени уже умел всё нужное: один кадр с
+   названием, ячейки в порядке ПРЕПОДАВАНИЯ (а не в порядке, в котором
+   ответил движок), сквозная нумерация шагов, выравнивание колонок по
+   реальной высоте после отрисовки. Второй раскладки быть не должно -
+   она неизбежно разойдётся с первой, а превью, написанное по этапам,
+   перестанет соответствовать доске.
+
+   Поэтому набор этапов превращается в тот же список results, а порядок
+   задаётся _ytStage = номер этапа: чтение идёт «до текста → текст →
+   после текста → продолжение», то есть ровно так, как этапы стоят в
+   форме и в превью. Домашка по-прежнему кладётся отдельно: журналу
+   нужны id именно её карточек. */
 function placeBoardLessonStageSet() {
   const set = lastLessonStageSet;
   if (!set) return false;
@@ -15291,40 +15334,60 @@ function placeBoardLessonStageSet() {
   const wantsVideo = !!videoOpt && keys.includes(videoOpt.key);
   const wantsTextOnBoard = middleOnBoardOpt ? keys.includes(middleOnBoardOpt.key) : true;
 
-  let placedMiddle = 0;
-  if (set.media && wantsVideo) {
-    try {
-      const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
-      const W = 460, H = 300;
-      const spot = findFreePlacement(c0.x, c0.y, W, H);
-      addCard('video', Math.round(spot.x - W / 2), Math.round(spot.y - H / 2),
-        { title: set.media.title || 'Video', url: set.media.url, embedUrl: set.media.embedUrl, _ytSource: true },
-        W, H);
-      placedMiddle++;
-    } catch (err) { console.warn('[stages] video placement failed', err); }
-  }
-
-  if (wantsTextOnBoard) {
-    const prev = lastTeacherToolBuilderOutput;
-    try {
-      lastTeacherToolBuilderOutput = set.textOut;
-      _ttPlaceWorksheetOnBoard(set.textOut);
-      placedMiddle++;
-    } catch (err) {
-      console.warn('[stages] text placement failed', err);
-    } finally {
-      lastTeacherToolBuilderOutput = prev;
-    }
-  }
   /* Домашка кладётся отдельно от остального урока: журналу нужны id
-     именно её карточек, а укладчик набора их не возвращает - поэтому
+     именно её карточек, а укладчик кадра их не возвращает - поэтому
      сверяем список карточек доски до и после её укладки. Это работает
-     при любом способе укладки (лист, карточки, игра), в отличие от
-     попытки угадать id заранее. */
+     при любом способе укладки, в отличие от попытки угадать id заранее. */
   const homework = set.built.filter(b => b.activity.homework);
   const lesson   = set.built.filter(b => !b.activity.homework);
 
-  if (lesson.length) placeBoardWorkoutSet(set.base, lesson);
+  /* Номер этапа = место в уроке. Укладчик сортирует ячейки по _ytStage,
+     и именно это превращает «в каком порядке ответил движок» в «в каком
+     порядке это преподают». Текст получает номер своего этапа, поэтому
+     встаёт между «до чтения» и «после чтения» сам, без отдельной ветки. */
+  const stageIndex = {};
+  (set.cfg.stages || []).forEach((st, i) => { stageIndex[st.key] = i; });
+  const textStageIdx = (set.cfg.stages || []).findIndex(st => (st.options || []).some(o => o.flag || o.media));
+
+  const results = [];
+  if (wantsTextOnBoard && set.textOut) {
+    set.textOut._ytStage = textStageIdx >= 0 ? textStageIdx : 1;
+    results.push(set.textOut);
+  }
+  lesson.forEach(({ activity, out }) => {
+    out.title = activity.title;
+    out._ytStage = stageIndex[activity.stage] != null ? stageIndex[activity.stage] : 9;
+    results.push(out);
+  });
+
+  if (!results.length && !homework.length) return false;
+
+  const readingText = _stageReadingText(set.textOut) || '';
+  const label = set.base.topic
+    ? `${set.cfg.label}: ${set.base.topic}`
+    : (set.cfg.label || 'Lesson');
+  /* Плеер отдаёт укладчику, а не кладёт руками: у кадра для видео есть
+     своя первая ячейка нужных пропорций, и урок про аудирование должен
+     начинаться с неё, а не с карточки, плавающей рядом с кадром. */
+  const videoUrl = (set.media && wantsVideo) ? set.media.url : null;
+
+  try {
+    _placeLessonOnBoard(results, '', videoUrl, {
+      source: readingText,
+      level: set.base.level || 'B1',
+      topic: set.base.topic || '',
+      frameIcon: '📗',
+      frameLabel: label,
+      frameKind: 'Lesson from builder',
+      /* Карточки-задания (lead-in, summary-task, роль/письмо) остаются
+         на своих местах в сетке, а не уезжают в подвал кадра. */
+      inlineCards: true,
+      visualVocabulary: true,
+    });
+  } catch (err) {
+    console.warn('[stages] lesson placement failed', err);
+    return false;
+  }
 
   if (homework.length) {
     const before = new Set((state.cards || []).map(c => c.id));
@@ -15334,7 +15397,7 @@ function placeBoardLessonStageSet() {
     _ttCreateHomeworkFromCards(newIds, title, homework.map(h => h.activity.title).join('; '));
   }
 
-  const n = set.built.length + placedMiddle;
+  const n = results.length + homework.length;
   toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
   return true;
 }
