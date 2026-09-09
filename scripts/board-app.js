@@ -13898,7 +13898,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '770';
+const TEACHEDOS_ASSET_VERSION = '771';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15054,21 +15054,25 @@ function renderLessonWizard() {
     if (kicker) kicker.textContent = 'Lesson builder / step 1 of 2';
     if (title)  title.textContent  = 'What are we working on today?';
     if (sub)    sub.textContent    = 'Pick the skill. The tools are chosen for you.';
-    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => `
-      <button type="button" class="tb-wiz-card${s.stages ? '' : ' is-soon'}"
-        ${s.stages ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
+    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout); return `
+      <button type="button" class="tb-wiz-card${ready ? '' : ' is-soon'}"
+        ${ready ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
         <span class="tb-wiz-ic">${esc(s.icon)}</span>
         <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
-        ${s.stages ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">next</span>'}
-      </button>`).join('')}</div>`;
+        ${ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">next</span>'}
+      </button>`; }).join('')}</div>`;
     return;
   }
 
   const skill = (BOARD_LESSON_SKILLS || []).find(s => s.key === boardLessonWizard.skill);
   if (kicker) kicker.textContent = `Lesson builder / ${skill ? skill.title : ''} / step 2 of 2`;
-  if (title)  title.textContent  = 'Where does the material come from?';
+  if (title)  title.textContent  = boardLessonWizard.skill === 'vocabulary'
+    ? 'Where does the word list come from?'
+    : 'Where does the material come from?';
   if (sub)    sub.textContent    = boardLessonWizard.skill === 'listening'
     ? 'A video to listen to, or a transcript you already have.'
+    : boardLessonWizard.skill === 'vocabulary'
+    ? 'Bring your own list, or let it be picked for you.'
     : 'Bring your own, or let the text be written for you.';
   const sources = (BOARD_LESSON_SOURCES || [])
     .filter(s => !s.skills || s.skills.includes(boardLessonWizard.skill));
@@ -15108,6 +15112,23 @@ function pickLessonSource(key) {
      от предыдущего захода, он приехал бы на доску к чужому уроку. */
   boardLessonWizard.media = null;
   _wizShow(false);
+  /* Вокабуляр не строит урок по этапам - он ведёт в уже существующую
+     студию «Vocabulary Workout» (routeTo). Второй, параллельный конвейер
+     ради того же результата не нужен: мастер лишь наполняет её список
+     слов из одного из трёх источников. */
+  if (src.mode === 'workout') {
+    openTeacherToolBuilder(src.routeTo, { keepWizard: true });
+    const skill = (BOARD_LESSON_SKILLS || []).find(s => s.key === boardLessonWizard.skill);
+    const kicker = document.getElementById('tbuilder-kicker');
+    if (kicker) kicker.textContent = `Lesson builder / ${skill ? skill.title : ''}`;
+    document.getElementById('tbuilder-sub').textContent = src.hint;
+    _wizRenderSourceTools(src);
+    if (!src.extractTool) {
+      const field = document.getElementById('tbuilder-vocab');
+      if (field) setTimeout(() => { try { field.focus(); } catch (_) {} }, 60);
+    }
+    return;
+  }
   /* У «своего текста» инструмента-генератора нет: работа идёт с тем, что
      вставил учитель, поэтому берём add-text - он и заявлен как «ваш текст»,
      и уже показывает поле источника. */
@@ -15135,8 +15156,26 @@ function pickLessonSource(key) {
 function _wizRenderSourceTools(src) {
   const host = document.getElementById('tb-wiz-source-tools');
   if (!host) return;
-  if (!src || (!src.ocr && !src.link)) { host.hidden = true; host.innerHTML = ''; return; }
+  if (!src || (!src.ocr && !src.link && !src.extractTool)) { host.hidden = true; host.innerHTML = ''; return; }
   host.hidden = false;
+  if (src.extractTool) {
+    /* Студия ждёт готовый список слов, а не текст или тему - поэтому это
+       не показ поля источника (у vocab-workout его нет), а отдельная
+       мини-форма: своё поле ввода и кнопка, которая добывает список и
+       кладёт его в #tbuilder-vocab, где студия его уже ждёт. */
+    host.innerHTML = src.extractField === 'topic'
+      ? `<div class="tb-wiz-tool">
+           <span class="tb-wiz-tool-note">Fill in the topic above, then:</span>
+           <button type="button" class="tbuilder-btn ghost" onclick="extractLessonVocab()">Choose the words</button>
+           <span class="tb-wiz-tool-note" id="tb-wiz-extract-note"></span>
+         </div>`
+      : `<div class="tb-wiz-tool">
+           <textarea id="tb-wiz-extract-src" rows="4" placeholder="Paste the text here…" style="flex:1 1 100%;min-width:0"></textarea>
+           <button type="button" class="tbuilder-btn ghost" onclick="extractLessonVocab()">Pull out the words</button>
+           <span class="tb-wiz-tool-note" id="tb-wiz-extract-note"></span>
+         </div>`;
+    return;
+  }
   if (src.ocr) {
     host.innerHTML = `
       <div class="tb-wiz-tool">
@@ -15230,6 +15269,44 @@ async function importLessonLink() {
     console.warn('[wizard] link import failed', err);
     say('That link could not be read right now.');
   }
+}
+
+/* Добывает список слов через extract-vocab (из вставленного текста) или
+   essential-vocab (по теме) и кладёт результат в #tbuilder-vocab - то же
+   поле, из которого студия «Vocabulary Workout» строит весь набор.
+   Определения и примеры из ответа не нужны здесь: студия сама решает,
+   какая активность что с этими словами сделает. */
+async function extractLessonVocab() {
+  const src = boardWizardSource();
+  const note = document.getElementById('tb-wiz-extract-note');
+  const say = msg => { if (note) note.textContent = msg; };
+  if (!src || !src.extractTool) return;
+
+  const base = readTeacherToolBuilderInput();
+  const input = { ...base, tool: { id: src.extractTool } };
+  if (src.extractField === 'topic') {
+    if (!base.topic.trim()) { say('Fill in the topic first.'); return; }
+  } else {
+    const text = (document.getElementById('tb-wiz-extract-src')?.value || '').trim();
+    if (!text) { say('Paste the text first.'); return; }
+    input.source = text;
+  }
+
+  say('Choosing the words…');
+  await _ensureGenLoaded();
+  let out = null;
+  try { out = await requestServerTeacherTool(input, 20000); }
+  catch (err) { console.warn('[wizard] vocab extraction failed', err); }
+
+  const words = Array.isArray(out?.items) ? out.items.map(i => i.word).filter(Boolean) : [];
+  if (!words.length) { say('No words came back - sign in, or add a few words by hand below.'); return; }
+
+  const field = document.getElementById('tbuilder-vocab');
+  if (field) {
+    field.value = words.join('\n');
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  say(`${words.length} words added below. Tick the activities you want and build the lesson.`);
 }
 
 function _wizFillSource(text) {

@@ -995,7 +995,12 @@ const BOARD_LESSON_SKILLS = [
   {key:'speaking',   title:'Speaking',   hint:'From a model dialogue to them doing the talking.', icon:'💬', stages:'speaking'},
   {key:'writing',    title:'Writing',    hint:'From a model text to their own writing.',     icon:'✍️', stages:'writing'},
   {key:'grammar',    title:'Grammar',    hint:'The form in context, then the rule, then practice.', icon:'⚙️', stages:'grammar'},
-  {key:'vocabulary', title:'Vocabulary', hint:'A word set and the practice around it.',      icon:'🧠'},
+  /* `workout:true`, не `stages:` - вокабуляр не ведёт через этапы урока,
+     он ведёт в уже существующую студию «Vocabulary Workout»: список слов
+     и чек-лист активностей, каждая своей карточкой. Второй, параллельный
+     конвейер для того же результата не нужен - мастер лишь даёт студии
+     троих родителей: список слов, слова из текста, слова по теме. */
+  {key:'vocabulary', title:'Vocabulary', hint:'A word set and the practice around it.',      icon:'🧠', workout:true},
 ];
 
 /* ─── BOARD_LESSON_SOURCES ─── второй вопрос: откуда берём материал ─────
@@ -1026,6 +1031,20 @@ const BOARD_LESSON_SOURCES = [
    toolBySkill:{speaking:'dialogue'},
    skills:['reading','speaking','writing','grammar'],
    hint:'No material yet. The example you start from is written for you.'},
+
+  /* Вокабуляр не пишет текст - он ведёт прямо в студию «Vocabulary
+     Workout» (routeTo), а `extractTool` (если есть) сначала добывает
+     список слов и кладёт его в поле vocab, прежде чем открыть чек-лист
+     активностей. Три источника этого списка: свой, из текста, по теме. */
+  {key:'vocab-own',   mode:'workout', field:'vocab',  icon:'🔤', title:'My word list',
+   skills:['vocabulary'], routeTo:'vocab-workout',
+   hint:'Type or paste the words. Tick which activities you want, and they all land on the board.'},
+  {key:'vocab-text',  mode:'workout', field:'source', icon:'📄', title:'Pull words from a text I have',
+   skills:['vocabulary'], routeTo:'vocab-workout', extractTool:'extract-vocab', extractField:'source',
+   hint:'Paste the text - the words worth teaching are picked out of it for you.'},
+  {key:'vocab-topic', mode:'workout', field:'topic',  icon:'✦',  title:'Just a topic',
+   skills:['vocabulary'], routeTo:'vocab-workout', extractTool:'essential-vocab', extractField:'topic',
+   hint:'No list yet. The essential words for the topic are chosen for you.'},
 ];
 
 /* Какие инструменты панели ведут учителя по этапам. Оба создают учебный
