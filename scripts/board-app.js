@@ -3347,7 +3347,7 @@ function renderWorksheet(el, card) {
   const listTag = _ttWorksheetListTag(d);
   // --q-cols is read by every group's own list, so the column count is decided
   // once for the sheet and every group obeys it.
-  const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length)}"`
+  const gridCols = cards ? `style="--lp-cols:${_ttLessonPackCols(cards.length, card.w)}"`
                  : qList ? `style="--q-cols:${qCols}"` : '';
   // Name the section. Generated sheets ran the masthead straight into the
   // content, so a reader had nothing telling them what the block below is.
@@ -6815,7 +6815,7 @@ document.addEventListener('mouseup', e => {
     isResizing = false;
     document.body.classList.remove('board-dragging');
     document.body.style.cursor = '';
-    const { card, el, dir, sh } = resizeStart;
+    const { card, el, dir, sh, sw } = resizeStart;
     if (card.type === 'game') applyGameScale(el, card);
     /* A worksheet dragged WIDER rewraps its text, so the height it needed a
        moment ago is the wrong height now - left alone it either scrolls or
@@ -6825,7 +6825,16 @@ document.addEventListener('mouseup', e => {
        Dragging the height, on the other hand, is a decision: mark it and stop
        auto-fitting this card, or every re-render would undo the teacher. */
     if (card.type === 'worksheet' && card.data) {
+      const widthWasDragged = /e|w/.test(dir || '') && Math.abs(card.w - sw) > 1;
       const heightWasDragged = /n|s/.test(dir || '') && Math.abs(card.h - sh) > 1;
+      /* The drag itself only ever restyled el.style.width/height (see the
+         mousemove handler above) - the column count baked into --lp-cols /
+         --q-cols by the last render never got a chance to react, so a
+         Lesson Pack dragged narrower kept exactly as many columns as it
+         had at its old width, squeezed into less room instead of dropping
+         a column. A full re-render at the card's FINAL width recomputes
+         both (_ttLessonPackCols and _ttQuestionCols both read card.w). */
+      if (widthWasDragged) reRenderCard(card);
       if (heightWasDragged) card.data._manualH = true;
       else requestAnimationFrame(() => _wsFitToContent(card.id, { shrink: true }));
     }
@@ -13257,7 +13266,19 @@ function _packWidth(count){ return Math.min(PACK_MAX_W, PACK_CHROME_W + _ttLesso
    .ws-list-cards now reads this through --lp-cols rather than choosing its own
    column count from the card width, which is what let the estimate size a card
    for a grid the browser never drew. */
-function _ttLessonPackCols(count){ return _ttGridCols(count, PACK_COL_W, 230, 4); }
+/* `cardW`, when known, clamps the content-driven pick to what the card's
+   CURRENT width can actually hold - without it, a Lesson Pack resized
+   narrower by hand kept exactly as many columns as it was born with,
+   just squeezed into less room (grid-template-columns divides whatever
+   width it is given, with no minimum per column - see .ws-list-cards).
+   Omitted at placement time, where it is this function's job to pick the
+   count width will be DERIVED from (_packWidth), not the reverse. */
+function _ttLessonPackCols(count, cardW){
+  const base = _ttGridCols(count, PACK_COL_W, 230, 4);
+  if (!(cardW > 0)) return base;
+  const fits = Math.max(1, Math.floor((cardW - PACK_CHROME_W) / PACK_COL_W));
+  return Math.max(1, Math.min(base, fits));
+}
 
 /* Column count for a packed grid, chosen from the REAL packed height rather
    than from a nominal cell size. _ttGridCols scores count x cellW against a
@@ -13944,7 +13965,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '775';
+const TEACHEDOS_ASSET_VERSION = '776';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
