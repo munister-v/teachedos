@@ -355,12 +355,20 @@ function readingTextParts(input) {
   const wantAfter    = has('after');
   const wantBold     = has('bold');
 
+  /* Урок по письму: то, что стоит в середине, ученик будет ИМИТИРОВАТЬ.
+     Значит образец обязан выглядеть как настоящий представитель жанра, с
+     его условностями (обращение и подпись в письме, заголовок в статье,
+     оценка в рецензии), а не как «текст для чтения в 2-4 абзаца». */
+  const asModel = raw && raw.model === true;
+
   return {
     boldRule: wantBold
       ? 'mark each target word in **bold** the first time it appears'
       : 'do NOT use bold or any other markup anywhere in the text',
     cardPlan(glossarySpec) {
-      const parts = ['"📖 Reading text" - a short title on the first line, then the text'];
+      const parts = [asModel
+        ? '"✍️ Model text" - a MODEL the student will imitate: a real, complete example of the requested genre, following that genre\'s conventions (an email opens with a greeting and closes with a sign-off; a review states a verdict; an article has a headline). Not a prose passage about the topic.'
+        : '"📖 Reading text" - a short title on the first line, then the text'];
       if (wantGlossary) parts.push(glossarySpec);
       if (wantBefore)   parts.push('"Before reading" - 2-3 prediction/lead-in questions');
       if (wantAfter)    parts.push('"After reading" - 3 comprehension questions');
@@ -373,7 +381,9 @@ function readingTextParts(input) {
       return `${plan}.${ban}`;
     },
     schema(glossaryCard) {
-      const cards = ['{"title":"📖 Reading text","text":"Title\\nParagraph text…"}'];
+      const cards = [asModel
+        ? '{"title":"✍️ Model text","text":"A complete example of the genre…"}'
+        : '{"title":"📖 Reading text","text":"Title\\nParagraph text…"}'];
       if (wantGlossary) cards.push(glossaryCard);
       if (wantBefore)   cards.push('{"title":"Before reading","text":"1. …\\n2. …"}');
       if (wantAfter)    cards.push('{"title":"After reading","text":"1. …\\n2. …\\n3. …"}');

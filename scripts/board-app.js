@@ -13893,7 +13893,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '767';
+const TEACHEDOS_ASSET_VERSION = '768';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14642,6 +14642,10 @@ function _stageTextParts(keys) {
     glossary: keys.includes('glossary'),
     before: false,
     after: false,
+    /* Урок по письму просит не отрывок для чтения, а образец жанра. Флаг
+       меняет схему на бекенде (readingTextParts), а не уговаривает модель
+       заметкой учителя. */
+    model: (boardLessonWizard && boardLessonWizard.skill) === 'writing',
   };
 }
 
@@ -14772,7 +14776,7 @@ function renderBoardLessonStagePreview(set) {
     if ((st.options || []).some(o => o.media)) {
       const keys = set.keys || [];
       const vid = (st.options.find(o => o.media === 'video') || {}).key;
-      const tr  = (st.options.find(o => o.media === 'transcript') || {}).key;
+      const tr  = (st.options.find(o => o.media === 'text') || {}).key;
       const rows = [];
       if (keys.includes(vid)) {
         rows.push(set.media
@@ -14867,13 +14871,13 @@ function placeBoardLessonStageSet() {
   const stageOpts = (set.cfg.stages || []).reduce((acc, st) => acc.concat(st.options || []), []);
   const mediaOpts = stageOpts.filter(o => o.media);
   const videoOpt = mediaOpts.find(o => o.media === 'video');
-  const transcriptOpt = mediaOpts.find(o => o.media === 'transcript');
+  const middleOnBoardOpt = mediaOpts.find(o => o.media === 'text');
   /* Плеер кладём, только если этап его ПРЕДЛАГАЛ и учитель отметил.
      Иначе урок по чтению, собранный из ссылки на YouTube, получал бы
      видео на доску - никто этого не просил, а «чтение» превращалось в
      просмотр. */
   const wantsVideo = !!videoOpt && keys.includes(videoOpt.key);
-  const wantsTextOnBoard = transcriptOpt ? keys.includes(transcriptOpt.key) : true;
+  const wantsTextOnBoard = middleOnBoardOpt ? keys.includes(middleOnBoardOpt.key) : true;
 
   let placedMiddle = 0;
   if (set.media && wantsVideo) {
@@ -15042,7 +15046,9 @@ function pickLessonSource(key) {
   /* У «своего текста» инструмента-генератора нет: работа идёт с тем, что
      вставил учитель, поэтому берём add-text - он и заявлен как «ваш текст»,
      и уже показывает поле источника. */
-  const toolId = src.mode === 'generate' ? src.tool : 'add-text';
+  const toolId = src.mode === 'generate'
+    ? ((src.toolBySkill && src.toolBySkill[boardLessonWizard.skill]) || src.tool)
+    : 'add-text';
   openTeacherToolBuilder(toolId, { keepWizard: true });
 
   const skill = (BOARD_LESSON_SKILLS || []).find(s => s.key === boardLessonWizard.skill);
@@ -15180,19 +15186,29 @@ function _wizFillSource(text) {
 function _ttOwnTextOutput(base, keys) {
   const text = String(base.source || '').trim();
   if (!text) return null;
-  const listening = (boardLessonWizard && boardLessonWizard.skill) === 'listening';
+  /* Один и тот же вставленный текст называется по-разному в зависимости
+     от урока: для чтения это текст, для аудирования расшифровка, а для
+     говорения и письма - ОБРАЗЕЦ, с которого ученик стартует. Название на
+     карточке должно говорить учителю, чем эта вещь работает в уроке. */
+  const skill = (boardLessonWizard && boardLessonWizard.skill) || 'reading';
+  const face = {
+    reading:   { cat:'reading',   kind:'Reading Text', card:'📖 Reading text',   name:'Reading text'   },
+    listening: { cat:'listening', kind:'Transcript',   card:'🎬 Transcript',     name:'Transcript'     },
+    speaking:  { cat:'speaking',  kind:'Dialogue',     card:'💬 Model dialogue', name:'Model dialogue' },
+    writing:   { cat:'writing',   kind:'Model',        card:'✍️ Model text',     name:'Model text'     },
+  }[skill] || { cat:'reading', kind:'Reading Text', card:'📖 Reading text', name:'Reading text' };
   const words = String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
   const body = keys.includes('bold-vocab') && words.length ? _ttBoldFirstOccurrences(text, words) : text;
   const heading = (base.topic || '').trim();
   return {
     engine: 'teacher-text',
     boardKind: 'cards',
-    cat: listening ? 'listening' : 'reading',
-    kind: listening ? 'Transcript' : 'Reading Text',
+    cat: face.cat,
+    kind: face.kind,
     level: base.level,
     topic: base.topic,
-    title: heading || (listening ? 'Transcript' : 'Reading text'),
-    cards: [{ title: listening ? '🎬 Transcript' : '📖 Reading text', text: heading ? `${heading}\n${body}` : body }],
+    title: heading || face.name,
+    cards: [{ title: face.card, text: heading ? `${heading}\n${body}` : body }],
     /* Чистый исходник для заданий - см. _stageReadingText. */
     sourceText: heading ? `${heading}\n${text}` : text,
     vocab: words,

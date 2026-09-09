@@ -727,7 +727,7 @@ const BOARD_LESSON_STAGES = {
         question: 'What goes on the board next to the tasks?',
         options: [
           {key:'lis-video',      media:'video',      title:'The video itself',      hint:'A player card they can start right on the board.', on:true},
-          {key:'lis-transcript', media:'transcript', title:'The transcript beside it', hint:'Off by default: reading along is not listening. Useful for a replay.'},
+          {key:'lis-transcript', media:'text', title:'The transcript beside it', hint:'Off by default: reading along is not listening. Useful for a replay.'},
         ],
       },
       {
@@ -774,6 +774,149 @@ const BOARD_LESSON_STAGES = {
       },
     ],
   },
+
+  /* ─── Speaking ────────────────────────────────────────────────────────
+     Здесь урок устроен наоборот по отношению к чтению и аудированию. Там
+     в середине лежит ЧУЖОЙ материал, который ученик разбирает. Здесь
+     главное - то, что ученик СКАЖЕТ, а материал в середине это всего лишь
+     образец языка, с которого он стартует.
+
+     Поэтому образец (диалог) можно и не класть на доску: сильной группе
+     он не нужен, а заданиям он всё равно служит исходником. Тот же
+     механизм, что у транскрипта в аудировании. */
+  speaking: {
+    label: 'Speaking lesson',
+    stages: [
+      {
+        key: 'warm',
+        label: 'Warm-up',
+        question: 'How do you get them talking at all?',
+        options: [
+          {key:'sp-start',  tool:'conversation-starters', title:'Conversation starters', hint:'Easy openers on the topic, before anything harder.', ai:true, on:true},
+          {key:'sp-lead',   tool:'lead-in',               title:'Short lead-in questions',hint:'Two or three questions that open the topic.', ai:true},
+          {key:'sp-ladder', tool:'question-ladder',       title:'Question ladder',        hint:'Questions that climb from simple to demanding.', ai:true},
+          {key:'sp-facts',  tool:'interesting-facts',     title:'Facts to react to',      hint:'Surprising facts they respond to instead of inventing an opinion cold.', ai:true},
+        ],
+      },
+      {
+        key: 'input',
+        label: 'Useful language',
+        question: 'What language do they need before they speak?',
+        options: [
+          {key:'sp-model', media:'text',              title:'The model dialogue on the board', hint:'The example they hear the language in. Untick it and the tasks are still built from it.', on:true},
+          {key:'sp-situ',  tool:'comm-situations',    title:'Situations with mini-dialogues',  hint:'Short exchanges showing the phrases actually in use.', ai:true, after:'source'},
+          {key:'sp-vocab', tool:'essential-vocab',    title:'Key words for the topic',         hint:'Topic vocabulary with definitions and examples.', ai:true},
+        ],
+      },
+      {
+        key: 'practice',
+        label: 'Practice first',
+        question: 'How do they rehearse before the real task?',
+        options: [
+          {key:'sp-sent',  tool:'sentences-vocab',   title:'Say it in a sentence',     hint:'One model sentence per target phrase.', ai:true},
+          {key:'sp-rephr', tool:'rephrase-word',     title:'Say it another way',       hint:'Rewrite a sentence using a given key word.', ai:true, after:'source'},
+          {key:'sp-err',   tool:'error-correction',  title:'Common mistakes to fix',   hint:'Sentences with the errors this language usually attracts.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'task',
+        label: 'The speaking task',
+        question: 'What are they actually going to do?',
+        options: [
+          {key:'sp-role',  tool:'roleplay-cards', title:'Role play cards',   hint:'Two roles, a situation, and what each side wants.', ai:true, after:'source', on:true},
+          {key:'sp-disc',  tool:'discussion',     title:'Discussion questions',hint:'Warm-up, deeper and follow-up questions.', ai:true},
+          {key:'sp-debate',tool:'debate-cards',   title:'Debate cards',      hint:'Two sides with arguments to defend.', ai:true},
+          {key:'sp-four',  tool:'four-opinions',  title:'Four opinions to react to', hint:'Four stated positions they agree or argue with.', ai:true},
+          {key:'sp-pros',  tool:'pros-cons',      title:'Pros and cons',     hint:'Both sides listed, then they take one.', ai:true},
+        ],
+      },
+      /* Критерии, а не проверка: говорение нельзя «сдать на карточке», но
+         можно заранее договориться, что считается хорошим ответом. */
+      {
+        key: 'feedback',
+        label: 'How it is judged',
+        question: 'Do they need to see what a good answer looks like?',
+        options: [
+          {key:'sp-rubric', tool:'rubric-maker', title:'Success criteria', hint:'What you are listening for, in words the student can use themselves.', ai:true},
+        ],
+      },
+      {
+        key: 'homework',
+        label: 'Homework',
+        question: 'Should the lesson leave homework behind?',
+        options: [
+          {key:'sp-hw', tool:'homework-set', title:'Build homework from this lesson', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
+        ],
+      },
+    ],
+  },
+
+  /* ─── Writing ─────────────────────────────────────────────────────────
+     Как и говорение, строится к тому, что напишет ученик. Середина - это
+     ОБРАЗЕЦ жанра: письмо, эссе, рецензия. Жанр и длину учитель выбирает
+     в форме (generate-text показывает эти поля), поэтому здесь их дублировать
+     не нужно. */
+  writing: {
+    label: 'Writing lesson',
+    stages: [
+      {
+        key: 'warm',
+        label: 'Ideas first',
+        question: 'How do they find something to say?',
+        options: [
+          {key:'wr-lead',  tool:'lead-in',           title:'Questions to open the topic', hint:'Two or three questions before any writing happens.', ai:true, on:true},
+          {key:'wr-four',  tool:'four-opinions',     title:'Four opinions to react to',   hint:'Positions they can agree with, argue with or borrow.', ai:true},
+          {key:'wr-pros',  tool:'pros-cons',         title:'Pros and cons',               hint:'Both sides listed, ready to be used as arguments.', ai:true},
+        ],
+      },
+      {
+        key: 'model',
+        label: 'The model text',
+        question: 'What do they see before they write?',
+        options: [
+          {key:'wr-model', media:'text',          title:'The model on the board',  hint:'An example of the genre you set above. Untick it and the tasks are still built from it.', on:true},
+          {key:'wr-style', tool:'rewrite-style',  title:'Rewrite it in another tone', hint:'Same content, different register: what formality actually changes.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'language',
+        label: 'Language for the task',
+        question: 'What do they need to build it out of?',
+        options: [
+          {key:'wr-link',   tool:'link-words',      title:'Linking words',        hint:'Connectors with sentences to join using them.', ai:true, on:true},
+          {key:'wr-vocab',  tool:'essential-vocab', title:'Key words for the topic',hint:'Topic vocabulary with definitions and examples.', ai:true},
+          {key:'wr-colloc', tool:'collocations',    title:'Natural word partners',  hint:'Collocations from the model, plus short practice.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'task',
+        label: 'The writing task',
+        question: 'What are they writing?',
+        options: [
+          {key:'wr-write',   tool:'creative-writing', title:'The task with a frame', hint:'Prompt, constraints and a checklist they write against.', ai:true, on:true},
+          {key:'wr-outline', tool:'essay-outline',    title:'An essay plan to fill in',hint:'Thesis, body paragraphs, evidence, conclusion.', ai:true},
+          {key:'wr-email',   tool:'email-reply',      title:'An email to answer',    hint:'A functional email task with tone and useful phrases.', ai:true},
+          {key:'wr-topics',  tool:'essay-topics',     title:'A choice of topics',    hint:'Several prompts so they pick their own.', ai:true},
+        ],
+      },
+      {
+        key: 'feedback',
+        label: 'How it is judged',
+        question: 'Do they need to see what a good piece looks like?',
+        options: [
+          {key:'wr-rubric', tool:'rubric-maker', title:'Success criteria', hint:'What you are marking, in words the student can check their own draft against.', ai:true},
+        ],
+      },
+      {
+        key: 'homework',
+        label: 'Homework',
+        question: 'Should the lesson leave homework behind?',
+        options: [
+          {key:'wr-hw', tool:'homework-set', title:'Build homework from this lesson', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
+        ],
+      },
+    ],
+  },
 };
 
 /* ─── BOARD_LESSON_SKILLS ─── первый вопрос конструктора ────────────────
@@ -783,8 +926,8 @@ const BOARD_LESSON_STAGES = {
 const BOARD_LESSON_SKILLS = [
   {key:'reading',    title:'Reading',    hint:'A text, and the lesson built around it.',     icon:'📖', stages:'reading'},
   {key:'listening',  title:'Listening',  hint:'A video on the board, and the tasks around it.', icon:'🎧', stages:'listening'},
-  {key:'speaking',   title:'Speaking',   hint:'Discussion, role play, fluency practice.',    icon:'💬'},
-  {key:'writing',    title:'Writing',    hint:'From a model text to their own writing.',     icon:'✍️'},
+  {key:'speaking',   title:'Speaking',   hint:'From a model dialogue to them doing the talking.', icon:'💬', stages:'speaking'},
+  {key:'writing',    title:'Writing',    hint:'From a model text to their own writing.',     icon:'✍️', stages:'writing'},
   {key:'grammar',    title:'Grammar',    hint:'A rule in context, then practice.',           icon:'⚙️'},
   {key:'vocabulary', title:'Vocabulary', hint:'A word set and the practice around it.',      icon:'🧠'},
 ];
@@ -799,7 +942,7 @@ const BOARD_LESSON_SKILLS = [
    которые приносят настоящую запись. */
 const BOARD_LESSON_SOURCES = [
   {key:'own',   mode:'source',   field:'source', icon:'📄', title:'I already have the text',
-   skills:['reading','listening'],
+   skills:['reading','listening','speaking','writing'],
    hint:'Paste it in. The lesson is built around your exact wording, nothing is rewritten.'},
   {key:'shot',  mode:'source',   field:'source', icon:'🖼️', title:'A screenshot or photo', ocr:true,
    skills:['reading'],
@@ -810,9 +953,13 @@ const BOARD_LESSON_SOURCES = [
   {key:'words', mode:'generate', field:'vocab',  icon:'🔤', title:'Just my word list', tool:'text-topic-vocab',
    skills:['reading'],
    hint:'Give the words you need to cover. The text gets written around them.'},
+  /* `toolBySkill` - чем пишется середина урока, когда её ещё нет. У чтения
+     и письма это текст (у письма ещё и в выбранном жанре), у говорения -
+     диалог: образец для говорения это не статья, а разговор. */
   {key:'topic', mode:'generate', field:'topic',  icon:'✦',  title:'Only a topic', tool:'generate-text',
-   skills:['reading'],
-   hint:'No material yet. A leveled text is written for you.'},
+   toolBySkill:{speaking:'dialogue'},
+   skills:['reading','speaking','writing'],
+   hint:'No material yet. The example you start from is written for you.'},
 ];
 
 /* Какие инструменты панели ведут учителя по этапам. Оба создают учебный
