@@ -251,12 +251,23 @@ router.get('/search', async (req, res) => {
      оставлен последним намеренно: там CC-лицензии, где указание автора чаще
      всего ОБЯЗАТЕЛЬНО, и материал попадает на печатный лист - поэтому его
      подпись и лицензия едут вместе с картинкой, а не теряются. */
+  /* Три источника на кандидата шли строго по очереди - три отдельных HTTP-
+     похода (до TIMEOUT=5s каждый), хотя запросы независимы и бьют в разные
+     API. Урок на 10-12 слов, где половина лексики не находится с первой
+     попытки (редкие или составные термины), могла провести в одних только
+     сетевых ожиданиях больше минуты последовательно. Провайдеры теперь
+     идут одним Promise.all: тот же порядок предпочтения (Unsplash → Pexels
+     → Pixabay) сохранён - выбор просто откладывается до момента, когда все
+     три уже ответили, а не запрашивается по одному. */
   let results = [];
   let used = queries[0];
   for (const candidate of queries) {
-    results = await unsplashSearch(candidate, limit);
-    if (!results.length) results = await pexelsSearch(candidate, limit);
-    if (!results.length) results = await pixabaySearch(candidate, limit);
+    const [unsplash, pexels, pixabay] = await Promise.all([
+      unsplashSearch(candidate, limit),
+      pexelsSearch(candidate, limit),
+      pixabaySearch(candidate, limit),
+    ]);
+    results = unsplash.length ? unsplash : (pexels.length ? pexels : pixabay);
     if (results.length) { used = candidate; break; }
   }
   // Wikimedia - только по самому слову и только если не нашлось ничего: его
