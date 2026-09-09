@@ -335,7 +335,7 @@
       j: 'journal.html',
       r: 'gradebook.html',
       p: 'profile.html',
-      t: 'teacher-tools.html',
+      t: 'board.html',
       l: 'lesson-packs.html'
     };
     let pendingG = false;

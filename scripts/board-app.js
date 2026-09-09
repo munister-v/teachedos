@@ -4255,7 +4255,12 @@ function openSourceTool(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   const origin = card && card.data && card.data._ttOrigin;
   if (!origin || !origin.toolId) return;
-  location.href = 'teacher-tools.html?tool=' + encodeURIComponent(origin.toolId);
+  /* Раньше уходило на отдельный Tools Hub - с этой же доски, без единого
+     шанса вернуться с результатом на неё же. Инструмент теперь открывается
+     прямо здесь: карточка никуда не девается, а новый результат кладётся
+     рядом с ней тем же путём, что и любой другой из панели. */
+  openToolsSidebar();
+  openTeacherToolBuilder(origin.toolId);
 }
 
 /* Flip the answer-key visibility on a worksheet card and re-render it. */
@@ -13898,7 +13903,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '773';
+const TEACHEDOS_ASSET_VERSION = '774';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15624,7 +15629,6 @@ function renderToolsTab(sec) {
       ? 'Tap a tool to open the builder, or use Add to board for a ready draft.'
       : 'Open the builder, or drag any tool onto the board as a draft card.'}</p>
     <div class="tools-mini-actions">
-      <a href="teacher-tools.html">Open full hub \u2192</a>
       <button type="button" onclick="openAiAssistantPanel()">\u2726 AI lesson flow</button>
     </div>`;
   sec.appendChild(hero);
@@ -16980,12 +16984,44 @@ function ttPlaceMaterialCard(material, pos, anchor) {
   return tc;
 }
 
+/* ── ?tool=<id> - прямая ссылка на один инструмент ────────────────────────
+   Раньше вела на отдельный Tools Hub (teacher-tools.html) - второй, ничем
+   не связанный с доской конвейер генерации на 2500+ строк, который держали
+   в синхроне вручную и который эту синхронность уже терял: словарик,
+   Redo/Drop и все шесть навыков мастера достались только доске. Хаб убран,
+   ссылка теперь просто открывает тот же конструктор доски.
+
+   'cefr' - единственный id, который называли иначе: на доске это
+   'cefr-checker'. */
+const TOOL_LINK_ALIASES = { cefr: 'cefr-checker' };
+window.__pendingToolOpen = null;
+(function captureToolOpenParam() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('tool');
+  if (id) window.__pendingToolOpen = TOOL_LINK_ALIASES[id] || id;
+})();
+
+function runPendingToolOpen() {
+  const id = window.__pendingToolOpen;
+  if (!id) return false;
+  window.__pendingToolOpen = null;
+  const params = new URLSearchParams(location.search);
+  params.delete('tool');
+  const q = params.toString();
+  history.replaceState({}, '', location.pathname + (q ? '?' + q : ''));
+  if (!(typeof BOARD_TEACHER_TOOLS !== 'undefined' && BOARD_TEACHER_TOOLS.some(t => t.id === id))) return false;
+  openToolsSidebar();
+  openTeacherToolBuilder(id);
+  return true;
+}
+
 /* Обидва імпорти зі студії інструментів - одиночний матеріал і набір - живуть
    в одних і тих самих сімох точках завантаження дошки (гість, свій кабінет,
    чужа дошка, офлайн-кеш і так далі). Один вхід замість двох умов у кожній:
    інакше набір довелося б дописувати сімома правками і в одній з них забути. */
 function runPendingToolImports() {
   let done = false;
+  if (window.__pendingToolOpen) done = runPendingToolOpen() || done;
   if (window.__pendingToolMaterialImport) done = runPendingToolMaterialImport() || done;
   if (window.__pendingToolMaterialSetImport) done = runPendingToolMaterialSetImport() || done;
   return done;

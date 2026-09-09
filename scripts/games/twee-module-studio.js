@@ -374,7 +374,7 @@ function handoffToTeacherTools(values) {
     fields: handoff.fields(values)
   };
   localStorage.setItem(TEACHER_TOOLS_DRAFT_STORE, JSON.stringify(drafts));
-  window.location.href = `../teacher-tools.html?tool=${encodeURIComponent(handoff.toolId)}`;
+  window.location.href = `../board.html?tool=${encodeURIComponent(handoff.toolId)}`;
   return true;
 }
 

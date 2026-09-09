@@ -62,7 +62,7 @@ document.getElementById("opinions-form").addEventListener("submit", (event) => {
     topic,
     vocab: "Lesson context: " + context + "\nResponse length: " + document.getElementById("length").value
   });
-  window.location.assign("../teacher-tools.html?tool=" + FOUR_OPINIONS_TOOL_ID);
+  window.location.assign("../board.html?tool=" + FOUR_OPINIONS_TOOL_ID);
 });
 
 document.querySelectorAll("#topic, #context").forEach((field) => {
