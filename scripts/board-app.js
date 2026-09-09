@@ -13893,7 +13893,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '766';
+const TEACHEDOS_ASSET_VERSION = '767';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14866,8 +14866,14 @@ function placeBoardLessonStageSet() {
   const keys = set.keys || [];
   const stageOpts = (set.cfg.stages || []).reduce((acc, st) => acc.concat(st.options || []), []);
   const mediaOpts = stageOpts.filter(o => o.media);
-  const wantsVideo      = !mediaOpts.length || keys.includes((mediaOpts.find(o => o.media === 'video') || {}).key);
-  const wantsTextOnBoard = !mediaOpts.length || keys.includes((mediaOpts.find(o => o.media === 'transcript') || {}).key);
+  const videoOpt = mediaOpts.find(o => o.media === 'video');
+  const transcriptOpt = mediaOpts.find(o => o.media === 'transcript');
+  /* Плеер кладём, только если этап его ПРЕДЛАГАЛ и учитель отметил.
+     Иначе урок по чтению, собранный из ссылки на YouTube, получал бы
+     видео на доску - никто этого не просил, а «чтение» превращалось в
+     просмотр. */
+  const wantsVideo = !!videoOpt && keys.includes(videoOpt.key);
+  const wantsTextOnBoard = transcriptOpt ? keys.includes(transcriptOpt.key) : true;
 
   let placedMiddle = 0;
   if (set.media && wantsVideo) {
@@ -15019,6 +15025,7 @@ function backLessonWizard() {
   if (!boardLessonWizard) return;
   boardLessonWizard.skill = null;
   boardLessonWizard.source = null;
+  boardLessonWizard.media = null;
   renderLessonWizard();
 }
 
@@ -15028,6 +15035,9 @@ function pickLessonSource(key) {
   const src = (BOARD_LESSON_SOURCES || []).find(s => s.key === key);
   if (!src) return;
   boardLessonWizard.source = src;
+  /* Плеер принадлежит той ссылке, которую забрали в ЭТОТ раз. Оставшись
+     от предыдущего захода, он приехал бы на доску к чужому уроку. */
+  boardLessonWizard.media = null;
   _wizShow(false);
   /* У «своего текста» инструмента-генератора нет: работа идёт с тем, что
      вставил учитель, поэтому берём add-text - он и заявлен как «ваш текст»,
