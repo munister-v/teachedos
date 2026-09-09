@@ -3130,9 +3130,29 @@ function _ttWorksheetListHTML(d, showAns, accent) {
     return chips;
   }
   if (cards) {
+    /* Нумерованные рельсы и плашка «Input text» / «Practice» имеют смысл
+       только у настоящего Lesson Pack: там cards[] и правда шаги одного
+       урока, разложенные по времени. Reading Text, Dialogue, Model,
+       Transcript из конструктора этапов тоже приходят массивом cards[]
+       (текст + опциональный глоссарий) - и получали ту же нумерованную
+       плашку с почти случайным ярлыком ("Input text" на карточку, которая
+       и есть весь материал целиком, а не один его этап). sm по-прежнему
+       считается для КАЖДОЙ карточки: он решает, каким рендерить ТЕЛО
+       (список aims, плитки словаря, обычный абзац с буквицей) - это не
+       косметика, а форма контента; убирается только видимая рамка этапа. */
+    const isLessonFlow = String(d.kind || '').trim() === 'Lesson Flow';
     return cards.map((c, i) => {
       const sm = _ttWorksheetStageMeta(c.title || '', i);
       const bodyHtml = _ttWorksheetStageBodyHtml(c, sm);
+      if (!isLessonFlow) {
+        // Один-единственный материал - подписывать нечего, масштаб уже
+        // задан заголовком карточки. Несколько (текст + глоссарий) - хотя
+        // бы простой заголовок без плашки-этапа и нумерации.
+        const plainTitle = cards.length > 1
+          ? `<div class="ws-card-head ws-card-head-plain"><span class="ws-card-title">${_ttMdInline(c.title || '')}</span></div>`
+          : '';
+        return `<li class="ws-q ws-q-card ws-q-card-plain ${sm.cls}" style="--q-accent:${accent}">${plainTitle}<div class="ws-card-txt">${bodyHtml}</div></li>`;
+      }
       const { clean: cleanTitle, time } = _ttExtractStageTiming(c.title || '');
       const anchorCls = sm.anchor ? ` ws-anchor ws-anchor-${sm.anchor}` : '';
       return `<li class="ws-q ws-q-card ${sm.cls}${anchorCls}" style="--q-accent:${accent};--stage:${i+1}">
@@ -3271,7 +3291,11 @@ function renderWorksheet(el, card) {
   const unitBase = qs ? 'question' : items ? 'word' : 'card';
   const unit = unitBase + (n === 1 ? '' : 's'); // singular when there is exactly one
   const hasKey = !!qs && qs.some(q => q.type === 'mcq' || q.type === 'truefalse' || (q.type === 'gap-fill' && q.answer));
-  const stepper = cards ? `<div class="ws-stepper">${cards.slice(0, 5).map((c, i) => {
+  /* Тот же гейт, что и у карточек ниже (_ttWorksheetListHTML): степпер в
+     шапке перечисляет ЭТАПЫ, а для Reading Text/Dialogue/Model это не
+     этапы, а части одного материала (текст + опциональный глоссарий) -
+     степпер печатал «1 INPUT TEXT · 2 LANGUAGE BANK» над обычным текстом. */
+  const stepper = cards && String(d.kind || '').trim() === 'Lesson Flow' ? `<div class="ws-stepper">${cards.slice(0, 5).map((c, i) => {
       const sm = _ttWorksheetStageMeta(c.title || '', i);
       return `<span class="ws-step ${sm.cls}"><i>${i + 1}</i><b>${esc(sm.label)}</b></span>`;
     }).join('')}${cards.length > 5 ? `<span class="ws-step more"><i>+</i><b>${cards.length - 5}</b></span>` : ''}</div>` : '';
@@ -3327,7 +3351,13 @@ function renderWorksheet(el, card) {
                  : qList ? `style="--q-cols:${qCols}"` : '';
   // Name the section. Generated sheets ran the masthead straight into the
   // content, so a reader had nothing telling them what the block below is.
-  let sectionLabel = Array.isArray(d.cards) && d.cards.length ? 'Stages'
+  /* «Stages» имеет смысл только у настоящего Lesson Pack (kind:'Lesson
+     Flow') - у него cards[] это реально шаги урока. Reading Text, Dialogue,
+     Model, Transcript и всё остальное текстовое из конструктора этапов
+     тоже приходит массивом cards[] (текст + опциональный глоссарий), и
+     подписывалось тем же словом - лист с одним абзацем показывал заголовок
+     «STAGES» над единственной карточкой, которая ничьим этапом не была. */
+  let sectionLabel = Array.isArray(d.cards) && d.cards.length && String(d.kind || '').trim() === 'Lesson Flow' ? 'Stages'
                    : Array.isArray(d.items) && d.items.length ? 'Vocabulary'
                    : Array.isArray(d.questions) && d.questions.length ? 'Questions'
                    : '';
@@ -13199,6 +13229,12 @@ function _ttSplitLessonBlocks(results, cardW, colGap, rowGap, head, videoH = 0, 
    has to be roughly right for the ratio to come out sensible. */
 function _ttGridCols(count, cellW, cellH, maxCols = 6, targetRatio = 2.2) {
   if (!(count > 1)) return 1;
+  /* На телефоне многоколоночная сетка не читается вообще - карточка и так
+     уже сжата масштабом до ширины экрана (zoomToCard), и вторая-третья
+     колонка внутри нее превращается в текст мельче половины положенного.
+     Один столбец, читаемый листанием вниз, честнее, чем компактная сетка,
+     которую всё равно придётся разжимать пальцами. */
+  if (isBoardPhone()) return 1;
   let best = 1, bestScore = Infinity;
   for (let c = 1, hi = Math.min(maxCols, count); c <= hi; c++) {
     const rows = Math.ceil(count / c);
@@ -13360,6 +13396,11 @@ function _ttQuestionCols(count, cardW = 440){
    _ttQuestionCols enforces - width is derived FROM the column count this
    picks, so the two never disagree about how many columns fit. */
 function _ttOrganicWorksheetWidth(count) {
+  /* На телефоне ширина в колонках не имеет смысла - см. _ttGridCols. Один
+     столбец шириной с сам стандартный лист: _ttQuestionCols увидит эту
+     ширину и сам вернёт 1 (он выводит число колонок ИЗ ширины, не наоборот),
+     так что этот выбор не спорит с тем, что дальше отрисуется. */
+  if (isBoardPhone()) return 520;
   if (count < 3) return 520;
   const colUnit = WS_QCOL_MIN + 12;
   const cols = Math.max(2, Math.min(4, Math.floor(count / 2)));
@@ -13903,7 +13944,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '774';
+const TEACHEDOS_ASSET_VERSION = '775';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

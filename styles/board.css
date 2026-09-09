@@ -4083,6 +4083,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	/* Anchor stages (lesson aims / homework) bookend the sequence - a dashed
 	   border + a small start/end mark set them apart from the procedural
 	   middle stages, without introducing a new colour. */
+	/* Reading Text / Dialogue / Model / Transcript из конструктора этапов:
+	   тот же .ws-q-card, но без рельса-нумерации и плашки этапа - у них
+	   это не шаг урока, а весь материал (см. _ttWorksheetListHTML). Левый
+	   отступ, оставленный под рельс, и вынужденная высота ему не нужны. */
+	.ws-q-card-plain{padding-left:16px;min-height:0;background:#fff;}
+	.ws-card-head-plain{font:800 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#8b8b90;margin-bottom:2px;}
+	.ws-card-head-plain .ws-card-title{font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:inherit;}
 	.ws-q-card.ws-anchor{border-style:dashed;position:relative;}
 	.ws-q-card.ws-anchor .ws-stage-rail{background:transparent;border:2px dashed color-mix(in srgb,var(--stage-accent) 45%,transparent);}
 	/* Small corner mark - keeps the rail number (position in the sequence)
