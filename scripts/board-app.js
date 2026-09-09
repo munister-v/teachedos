@@ -13898,7 +13898,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '771';
+const TEACHEDOS_ASSET_VERSION = '772';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15510,12 +15510,31 @@ function makeTeacherToolSnippet(tool) {
   return el;
 }
 
+/* Раньше это была витрина из 77 карточек, и мастер урока был всего лишь
+   первой строкой над ней - учитель, который просто пришёл вести урок,
+   всё равно листал мимо шести групп инструментов, чтобы до них дойти.
+
+   Каталог никуда не делся - тому, кто точно знает, что ему нужно ОДНО
+   упражнение без урока вокруг, шесть шагов мастера были бы лишними, а
+   поиск по названию только по каталогу и работает. Но по умолчанию он
+   свёрнут: открывается по своей кнопке или сам, как только учитель
+   начинает печатать в общем поиске - раз он ищет, ему нужен именно
+   список, а не мастер. */
+const TOOLS_CATALOG_OPEN_KEY = 'teachedos_tools_catalog_open';
+function boardToolsCatalogOpen() {
+  try { return localStorage.getItem(TOOLS_CATALOG_OPEN_KEY) === '1'; } catch (_) { return false; }
+}
+function toggleToolsCatalog() {
+  try { localStorage.setItem(TOOLS_CATALOG_OPEN_KEY, boardToolsCatalogOpen() ? '0' : '1'); } catch (_) {}
+  renderSidebar();
+}
+
 function renderToolsTab(sec) {
   const q = (searchQ || '').trim().toLowerCase();
   const toolsCount = BOARD_TEACHER_TOOLS.length;
+  const open = q || boardToolsCatalogOpen();
 
-  /* Парадная дверь панели. Список из 77 инструментов остаётся ниже для
-     тех, кто знает, что ищет; тому, кто просто пришёл вести урок, сначала
+  /* Парадная дверь панели. Тому, кто просто пришёл вести урок, сразу
      задают два вопроса и собирают урок за него. */
   if (!q) {
     const wiz = document.createElement('button');
@@ -15526,6 +15545,15 @@ function renderToolsTab(sec) {
       <span class="lw-cta-go">→</span>`;
     wiz.onclick = openLessonWizard;
     sec.appendChild(wiz);
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'tools-catalog-toggle';
+    toggle.innerHTML = `<span>${open ? 'Hide' : 'Browse'} all ${toolsCount} tools</span><span class="tct-chev${open ? ' is-open' : ''}">⌄</span>`;
+    toggle.onclick = toggleToolsCatalog;
+    sec.appendChild(toggle);
+
+    if (!open) return;
   }
 
   const hero = document.createElement('div');

@@ -3778,6 +3778,17 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .lw-cta-tx small{font-size:11px;opacity:.78;font-weight:500;line-height:1.35;margin-top:2px;}
 .lw-cta-go{flex:0 0 auto;font-size:19px;opacity:.7;}
 
+/* Скромная строка под чёрной кнопкой - не вторая CTA, а признание, что
+   каталог всё ещё существует. Открытое состояние выглядит так же тихо:
+   раскрыть 77 карточек не повод менять акцент кнопки на что-то заметное. */
+.tools-catalog-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+  border:1px dashed rgba(14,14,16,.16);border-radius:12px;background:none;cursor:pointer;
+  padding:9px 12px;margin-bottom:14px;font-family:var(--font);font-size:12px;font-weight:650;
+  color:#636366;transition:border-color .12s,color .12s;}
+.tools-catalog-toggle:hover{border-color:rgba(14,14,16,.32);color:#0E0E10;}
+.tct-chev{display:inline-block;transition:transform .15s;}
+.tct-chev.is-open{transform:rotate(180deg);}
+
 .yt-lesson-cta{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:16px;padding:14px 16px;margin-bottom:14px;cursor:pointer;text-align:left;color:#fff;background:linear-gradient(135deg,var(--accent),#7C3AED);box-shadow:0 10px 26px color-mix(in srgb,var(--accent) 28%,transparent);}
 .yt-lesson-cta:hover{filter:brightness(1.05);transform:translateY(-1px);}
 .yt-cta-ic{font-size:24px;line-height:1;}
