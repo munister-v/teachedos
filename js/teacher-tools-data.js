@@ -695,6 +695,85 @@ const BOARD_LESSON_STAGES = {
       },
     ],
   },
+
+  /* ─── Listening ───────────────────────────────────────────────────────
+     Тот же ход, что и у чтения, с одной честной разницей: в середине урока
+     не текст, а ВИДЕО. Оно ложится на доску карточкой-плеером, а заданиям
+     исходником служит транскрипт - его же учитель может положить рядом,
+     а может и не класть (смотреть с субтитрами перед глазами это уже не
+     аудирование).
+
+     Задания после видео - те же инструменты, что и у чтения: транскрипт
+     для них такой же исходный текст. Дублировать их отдельными «слушательными»
+     копиями было бы неправдой про то, как они устроены. */
+  listening: {
+    label: 'Listening lesson',
+    stages: [
+      {
+        key: 'pre',
+        label: 'Before listening',
+        question: 'How do you get them ready for it?',
+        options: [
+          {key:'lis-warm', tool:'warmup-listening',      title:'Prediction and key words', hint:'What they expect to hear, plus the words they will need.', ai:true, after:'source', on:true},
+          {key:'lis-defs', tool:'word-definition-match', title:'Match words to meanings',  hint:'Pairs for matching, cards or a memory game.', game:'memory-match'},
+          {key:'lis-lead', tool:'lead-in',               title:'Short lead-in questions',  hint:'Two or three questions that open the topic.', ai:true},
+        ],
+      },
+      /* Единственный этап, который не про задания, а про то, ЧТО лежит на
+         доске: сам плеер и, по желанию, транскрипт. */
+      {
+        key: 'media',
+        label: 'The video',
+        question: 'What goes on the board next to the tasks?',
+        options: [
+          {key:'lis-video',      media:'video',      title:'The video itself',      hint:'A player card they can start right on the board.', on:true},
+          {key:'lis-transcript', media:'transcript', title:'The transcript beside it', hint:'Off by default: reading along is not listening. Useful for a replay.'},
+        ],
+      },
+      {
+        key: 'while',
+        label: 'While listening',
+        question: 'What are they doing while it plays?',
+        options: [
+          {key:'lis-gist',   tool:'gist-detail',         title:'Gist, then detail',        hint:'One pass for the main idea, a second for the specifics.', ai:true, after:'source', on:true},
+          {key:'lis-gapsum', tool:'summary-gapfill',     title:'Gapped summary to fill in',hint:'A summary with key words removed, completed as they listen.', ai:true, after:'source'},
+          {key:'lis-dict',   tool:'listening-dictation', title:'Dictation / shadowing',    hint:'A short chunk to write down and repeat.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'post',
+        label: 'After listening',
+        question: 'How do you check they understood?',
+        options: [
+          {key:'lis-choose', tool:'choose-summary',   title:'Choose the right summary', hint:'Several summaries, students pick the one that fits.', ai:true, after:'source'},
+          {key:'lis-tf',     tool:'true-false',       title:'True / False statements',  hint:'Fast check that they followed it.', ai:true, after:'source'},
+          {key:'lis-tfng',   tool:'tf-not-given',     title:'True / False / Not Given', hint:'Exam-style: some statements the speaker never mentions.', ai:true, after:'source'},
+          {key:'lis-abcd',   tool:'abcd-text',        title:'ABC questions',            hint:'Multiple choice with one correct answer.', ai:true, after:'source'},
+          {key:'lis-open',   tool:'open-questions',   title:'Open questions',           hint:'Comprehension questions in their own words.', ai:true, after:'source', on:true},
+          {key:'lis-vocab',  tool:'vocab-in-context', title:'What the words meant here',hint:'Multiple choice on the sense a word had in this video.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'follow',
+        label: 'Follow-up',
+        question: 'Where does the lesson go after the video?',
+        options: [
+          {key:'lis-speak',  tool:'conversation-starters', title:'Let’s talk',            hint:'Speaking prompts that grow out of what they heard.', ai:true, after:'source'},
+          {key:'lis-role',   tool:'roleplay-cards',        title:'Role play',             hint:'Two-role cards built on the situation in the video.', ai:true, after:'source'},
+          {key:'lis-write',  tool:'creative-writing',      title:'Let’s write',           hint:'A writing task with a frame, based on the video.', ai:true, after:'source'},
+          {key:'lis-colloc', tool:'collocations',          title:'More work on the words',hint:'Collocations from the transcript plus short practice.', ai:true, after:'source'},
+        ],
+      },
+      {
+        key: 'homework',
+        label: 'Homework',
+        question: 'Should the lesson leave homework behind?',
+        options: [
+          {key:'lis-hw', tool:'homework-set', title:'Build homework from this video', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
+        ],
+      },
+    ],
+  },
 };
 
 /* ─── BOARD_LESSON_SKILLS ─── первый вопрос конструктора ────────────────
@@ -703,7 +782,7 @@ const BOARD_LESSON_STAGES = {
    кнопкой, которая молча ничего не делает. */
 const BOARD_LESSON_SKILLS = [
   {key:'reading',    title:'Reading',    hint:'A text, and the lesson built around it.',     icon:'📖', stages:'reading'},
-  {key:'listening',  title:'Listening',  hint:'Video or audio with the same stages.',        icon:'🎧'},
+  {key:'listening',  title:'Listening',  hint:'A video on the board, and the tasks around it.', icon:'🎧', stages:'listening'},
   {key:'speaking',   title:'Speaking',   hint:'Discussion, role play, fluency practice.',    icon:'💬'},
   {key:'writing',    title:'Writing',    hint:'From a model text to their own writing.',     icon:'✍️'},
   {key:'grammar',    title:'Grammar',    hint:'A rule in context, then practice.',           icon:'⚙️'},
@@ -713,17 +792,26 @@ const BOARD_LESSON_SKILLS = [
 /* ─── BOARD_LESSON_SOURCES ─── второй вопрос: откуда берём материал ─────
    mode:'source'   - материал уже есть, текст остаётся ДОСЛОВНО учительским
                      и никуда на генерацию не уходит;
-   mode:'generate' - текста ещё нет, его пишет названный инструмент. */
+   mode:'generate' - текста ещё нет, его пишет названный инструмент.
+
+   `skills` - у каких навыков этот источник вообще осмыслен. Видео нельзя
+   «написать по теме», поэтому у аудирования остаются только те два пути,
+   которые приносят настоящую запись. */
 const BOARD_LESSON_SOURCES = [
   {key:'own',   mode:'source',   field:'source', icon:'📄', title:'I already have the text',
+   skills:['reading','listening'],
    hint:'Paste it in. The lesson is built around your exact wording, nothing is rewritten.'},
   {key:'shot',  mode:'source',   field:'source', icon:'🖼️', title:'A screenshot or photo', ocr:true,
+   skills:['reading'],
    hint:'Coursebook page, PDF, anything on screen. The text is read in your browser.'},
   {key:'link',  mode:'source',   field:'source', icon:'🔗', title:'A link', link:true,
+   skills:['reading','listening'],
    hint:'A YouTube video (its transcript) or a web page.'},
   {key:'words', mode:'generate', field:'vocab',  icon:'🔤', title:'Just my word list', tool:'text-topic-vocab',
+   skills:['reading'],
    hint:'Give the words you need to cover. The text gets written around them.'},
   {key:'topic', mode:'generate', field:'topic',  icon:'✦',  title:'Only a topic', tool:'generate-text',
+   skills:['reading'],
    hint:'No material yet. A leveled text is written for you.'},
 ];
 

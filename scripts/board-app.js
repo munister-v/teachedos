@@ -9629,12 +9629,21 @@ function _ttApplyBuilderDraft(draft) {
   return true;
 }
 
+/* Черновик хранится под инструментом, но add-text обслуживает ДВА навыка:
+   и чтение со своим текстом, и аудирование с транскриптом. По голому id
+   учитель, начав урок по видео, находил бы в поле текст из прошлого урока
+   по чтению. Навык дописывается к ключу, когда он известен. */
+function _ttDraftKeyFor(toolId) {
+  const skill = boardLessonWizard && boardLessonWizard.skill;
+  return skill ? `${toolId}@${skill}` : toolId;
+}
+
 function _ttSaveBuilderDraft() {
   if (!activeTeacherToolBuilder) return false;
   if (_ttDraftSaveTimer) { clearTimeout(_ttDraftSaveTimer); _ttDraftSaveTimer = 0; }
   const draft = _ttReadBuilderDraft();
   const tools = _ttReadDraftStore();
-  tools[activeTeacherToolBuilder.id] = { savedAt: Date.now(), draft };
+  tools[_ttDraftKeyFor(activeTeacherToolBuilder.id)] = { savedAt: Date.now(), draft };
   // Оставляем только самые свежие, старые вытесняем по времени сохранения.
   const keep = Object.entries(tools)
     .sort((a, b) => (b[1]?.savedAt || 0) - (a[1]?.savedAt || 0))
@@ -9681,7 +9690,7 @@ const TT_BUILDER_EMPTY_DRAFT = {
 function _ttRestoreBuilderDraft() {
   const toolId = activeTeacherToolBuilder && activeTeacherToolBuilder.id;
   try {
-    const saved = _ttReadDraftStore()[toolId];
+    const saved = _ttReadDraftStore()[_ttDraftKeyFor(toolId)];
     if (saved && _ttApplyBuilderDraft(saved.draft)) {
       _ttSetDraftState('Draft restored', 'saved');
       return true;
@@ -14509,6 +14518,12 @@ function _ttWorkoutPlainText(out) {
 const STAGE_PICKS_STORE = 'teachedos_board_stage_picks';
 
 function boardLessonStagesFor(toolId) {
+  /* Ответ в мастере главнее инструмента. Аудирование и чтение приходят
+     ОДНИМ И ТЕМ ЖЕ add-text (в обоих случаях текст уже у учителя), и без
+     этой строки урок по видео собирался бы по этапам чтения. */
+  const picked = boardLessonWizard && boardLessonWizard.skill;
+  const all0 = (typeof BOARD_LESSON_STAGES !== 'undefined' && BOARD_LESSON_STAGES) ? BOARD_LESSON_STAGES : null;
+  if (picked && all0 && all0[picked]) return all0[picked];
   const skill = (typeof BOARD_STAGED_TOOLS !== 'undefined' && BOARD_STAGED_TOOLS) ? BOARD_STAGED_TOOLS[toolId] : null;
   if (!skill) return null;
   const all = (typeof BOARD_LESSON_STAGES !== 'undefined' && BOARD_LESSON_STAGES) ? BOARD_LESSON_STAGES : null;
@@ -14528,12 +14543,24 @@ function boardStageOptions(toolId) {
   ), []);
 }
 
-/* Выбор запоминается ОТДЕЛЬНО ПО ИНСТРУМЕНТУ: у разных скилов свои этапы,
-   и общий список ключей смешал бы их между собой. */
+/* Выбор запоминается ОТДЕЛЬНО ПО НАБОРУ ЭТАПОВ, а не по инструменту.
+   Раньше ключом был инструмент, и это работало, пока у каждого скила был
+   свой. Теперь чтение и аудирование приходят одним add-text (в обоих
+   случаях материал уже у учителя) - по ключу инструмента отмеченное в
+   уроке по чтению всплывало в уроке по видео, где таких заданий нет, и
+   учитель получал пустой список галочек вместо своих умолчаний. */
+function _stagePicksKey(toolId) {
+  const skill = boardLessonWizard && boardLessonWizard.skill;
+  if (skill) return `skill:${skill}`;
+  const mapped = (typeof BOARD_STAGED_TOOLS !== 'undefined' && BOARD_STAGED_TOOLS) ? BOARD_STAGED_TOOLS[toolId] : null;
+  return mapped ? `skill:${mapped}` : toolId;
+}
+
 function boardStageSavedPicks(toolId) {
   try {
     const all = JSON.parse(localStorage.getItem(STAGE_PICKS_STORE) || '{}');
-    if (all && Array.isArray(all[toolId])) return all[toolId];
+    const saved = all && all[_stagePicksKey(toolId)];
+    if (Array.isArray(saved)) return saved;
   } catch (_) {}
   /* По умолчанию - то, что учитель получал и раньше: текст с выделенной
      лексикой, глоссарий, вводные вопросы до и открытые после. Разница в
@@ -14585,7 +14612,7 @@ function onBoardStagePickChange() {
   const keys = boardStagePickedKeys();
   try {
     const all = JSON.parse(localStorage.getItem(STAGE_PICKS_STORE) || '{}');
-    all[toolId] = keys;
+    all[_stagePicksKey(toolId)] = keys;
     localStorage.setItem(STAGE_PICKS_STORE, JSON.stringify(all));
   } catch (_) {}
   host.querySelectorAll('.tb-workout-item').forEach(el => {
@@ -14708,7 +14735,13 @@ async function runBoardLessonStages() {
   }
 
   _ttSetGenerating(false);
-  lastLessonStageSet = { base, cfg, textOut, built, failed };
+  lastLessonStageSet = {
+    base, cfg, textOut, built, failed, keys,
+    /* Плеер и решение «класть ли транскрипт» нужны укладчику, а он
+       вызывается позже и отдельно, уже без формы перед глазами. */
+    media: (boardLessonWizard && boardLessonWizard.media) || null,
+    skill: (boardLessonWizard && boardLessonWizard.skill) || null,
+  };
   lastTeacherToolBuilderOutput = textOut;
   renderBoardLessonStagePreview(lastLessonStageSet);
   _ttSetAddToBoard(true);
@@ -14733,7 +14766,24 @@ function renderBoardLessonStagePreview(set) {
   const html = cfg.stages.map((st, si) => {
     const items = byStage[st.key] || [];
     let inner = '';
-    if (st.key === 'text') {
+    /* Этап с плеером показывает не текст задания, а из чего состоит
+       середина урока: видео и, если отмечен, транскрипт. Иначе учитель
+       видел бы «ничего не отмечено» там, где на доску поедет видео. */
+    if ((st.options || []).some(o => o.media)) {
+      const keys = set.keys || [];
+      const vid = (st.options.find(o => o.media === 'video') || {}).key;
+      const tr  = (st.options.find(o => o.media === 'transcript') || {}).key;
+      const rows = [];
+      if (keys.includes(vid)) {
+        rows.push(set.media
+          ? `<div class="tbuilder-section"><h4>🎬 ${esc(set.media.title || 'Video')}</h4><p>${esc(set.media.url || '')}</p></div>`
+          : `<div class="tb-stage-meta">Ticked, but no video link was fetched - paste a YouTube link and press “Get the text”.</div>`);
+      }
+      rows.push(keys.includes(tr)
+        ? `<div class="tbuilder-section"><h4>📄 Transcript</h4><p>${_ttMdToHtml(String((textCards[0] && textCards[0].text) || textOut.text || '').slice(0, 600))}…</p></div>`
+        : `<div class="tb-stage-meta">The transcript stays off the board. Every task below is still built from it.</div>`);
+      inner = rows.join('');
+    } else if (st.key === 'text') {
       inner = textCards.length
         ? textCards.map(c => `
             <div class="tbuilder-section">
@@ -14809,14 +14859,40 @@ function _ttStagePlainPreview(out) {
 function placeBoardLessonStageSet() {
   const set = lastLessonStageSet;
   if (!set) return false;
-  const prev = lastTeacherToolBuilderOutput;
-  try {
-    lastTeacherToolBuilderOutput = set.textOut;
-    _ttPlaceWorksheetOnBoard(set.textOut);
-  } catch (err) {
-    console.warn('[stages] text placement failed', err);
-  } finally {
-    lastTeacherToolBuilderOutput = prev;
+  /* Что лежит в середине урока, зависит от навыка. У чтения это текст и
+     он на доске всегда. У аудирования - плеер, а транскрипт появляется
+     только если учитель его отметил: смотреть видео с расшифровкой перед
+     глазами это уже не аудирование, поэтому по умолчанию его нет. */
+  const keys = set.keys || [];
+  const stageOpts = (set.cfg.stages || []).reduce((acc, st) => acc.concat(st.options || []), []);
+  const mediaOpts = stageOpts.filter(o => o.media);
+  const wantsVideo      = !mediaOpts.length || keys.includes((mediaOpts.find(o => o.media === 'video') || {}).key);
+  const wantsTextOnBoard = !mediaOpts.length || keys.includes((mediaOpts.find(o => o.media === 'transcript') || {}).key);
+
+  let placedMiddle = 0;
+  if (set.media && wantsVideo) {
+    try {
+      const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+      const W = 460, H = 300;
+      const spot = findFreePlacement(c0.x, c0.y, W, H);
+      addCard('video', Math.round(spot.x - W / 2), Math.round(spot.y - H / 2),
+        { title: set.media.title || 'Video', url: set.media.url, embedUrl: set.media.embedUrl, _ytSource: true },
+        W, H);
+      placedMiddle++;
+    } catch (err) { console.warn('[stages] video placement failed', err); }
+  }
+
+  if (wantsTextOnBoard) {
+    const prev = lastTeacherToolBuilderOutput;
+    try {
+      lastTeacherToolBuilderOutput = set.textOut;
+      _ttPlaceWorksheetOnBoard(set.textOut);
+      placedMiddle++;
+    } catch (err) {
+      console.warn('[stages] text placement failed', err);
+    } finally {
+      lastTeacherToolBuilderOutput = prev;
+    }
   }
   /* Домашка кладётся отдельно от остального урока: журналу нужны id
      именно её карточек, а укладчик набора их не возвращает - поэтому
@@ -14832,11 +14908,11 @@ function placeBoardLessonStageSet() {
     const before = new Set((state.cards || []).map(c => c.id));
     placeBoardWorkoutSet(set.base, homework);
     const newIds = (state.cards || []).map(c => c.id).filter(id => !before.has(id));
-    const title = `Homework: ${set.textOut.title || set.base.topic || 'reading'}`;
+    const title = `Homework: ${set.textOut.title || set.base.topic || 'lesson'}`;
     _ttCreateHomeworkFromCards(newIds, title, homework.map(h => h.activity.title).join('; '));
   }
 
-  const n = set.built.length + 1;
+  const n = set.built.length + placedMiddle;
   toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
   return true;
 }
@@ -14916,8 +14992,15 @@ function renderLessonWizard() {
   const skill = (BOARD_LESSON_SKILLS || []).find(s => s.key === boardLessonWizard.skill);
   if (kicker) kicker.textContent = `Lesson builder / ${skill ? skill.title : ''} / step 2 of 2`;
   if (title)  title.textContent  = 'Where does the material come from?';
-  if (sub)    sub.textContent    = 'Bring your own, or let the text be written for you.';
-  host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SOURCES || []).map(s => `
+  if (sub)    sub.textContent    = boardLessonWizard.skill === 'listening'
+    ? 'A video to listen to, or a transcript you already have.'
+    : 'Bring your own, or let the text be written for you.';
+  const sources = (BOARD_LESSON_SOURCES || [])
+    .filter(s => !s.skills || s.skills.includes(boardLessonWizard.skill));
+  /* У аудирования ссылка идёт первой: готовый транскрипт под рукой - это
+     редкость, а ссылка на видео - обычный случай. */
+  if (boardLessonWizard.skill === 'listening') sources.sort((a, b) => Number(!!b.link) - Number(!!a.link));
+  host.innerHTML = `<div class="tb-wiz-grid">${sources.map(s => `
     <button type="button" class="tb-wiz-card" onclick="pickLessonSource('${esc(s.key)}')">
       <span class="tb-wiz-ic">${esc(s.icon)}</span>
       <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
@@ -15054,6 +15137,13 @@ async function importLessonLink() {
     _wizFillSource(text);
     const topic = document.getElementById('tbuilder-topic');
     if (topic && !topic.value.trim() && data.title) topic.value = String(data.title).slice(0, 120);
+    /* Само видео запоминаем отдельно от транскрипта: на доску урок по
+       аудированию кладёт ПЛЕЕР, а транскрипт остаётся исходником для
+       заданий и появляется на доске только если учитель его отметил. */
+    if (isYt && boardLessonWizard) {
+      const embedUrl = (typeof parseVideoEmbed === 'function') ? parseVideoEmbed(url) : null;
+      boardLessonWizard.media = embedUrl ? { url, embedUrl, title: data.title || 'Video' } : null;
+    }
     say(`Brought ${text.split(/\s+/).length} words${data.title ? ` from “${data.title}”` : ''}. Check it below.`);
   } catch (err) {
     console.warn('[wizard] link import failed', err);
@@ -15080,18 +15170,19 @@ function _wizFillSource(text) {
 function _ttOwnTextOutput(base, keys) {
   const text = String(base.source || '').trim();
   if (!text) return null;
+  const listening = (boardLessonWizard && boardLessonWizard.skill) === 'listening';
   const words = String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
   const body = keys.includes('bold-vocab') && words.length ? _ttBoldFirstOccurrences(text, words) : text;
   const heading = (base.topic || '').trim();
   return {
     engine: 'teacher-text',
     boardKind: 'cards',
-    cat: 'reading',
-    kind: 'Reading Text',
+    cat: listening ? 'listening' : 'reading',
+    kind: listening ? 'Transcript' : 'Reading Text',
     level: base.level,
     topic: base.topic,
-    title: heading || 'Reading text',
-    cards: [{ title: '📖 Reading text', text: heading ? `${heading}\n${body}` : body }],
+    title: heading || (listening ? 'Transcript' : 'Reading text'),
+    cards: [{ title: listening ? '🎬 Transcript' : '📖 Reading text', text: heading ? `${heading}\n${body}` : body }],
     /* Чистый исходник для заданий - см. _stageReadingText. */
     sourceText: heading ? `${heading}\n${text}` : text,
     vocab: words,
