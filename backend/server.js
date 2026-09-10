@@ -40,13 +40,51 @@ const ALLOWED_ORIGINS = new Set([
   ] : []),
 ]);
 
-app.use(cors({
+// The gate for the API proper, unchanged: an unknown Origin is still refused,
+// and only these origins may make calls that carry credentials.
+const apiCors = cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED_ORIGINS.has(origin)) return cb(null, true);
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
-}));
+});
+
+/* Reading images is public and deliberately plays by other rules.
+
+   Everything under /api/images is a read-only GET: no auth, no cookies, no
+   provider keys in the response, and /proxy sets Access-Control-Allow-Origin
+   itself on purpose so html2canvas can paint photos into an export. The gate
+   above got there first, though. A sandboxed iframe (sandbox without
+   allow-same-origin), a data: URL or a file:// page sends the literal string
+   "null" as Origin, which is neither falsy nor on the allowlist, so the
+   request died with 403 before the route ever ran and the board drew empty
+   grey boxes where the photos should have been.
+
+   So public image reads get their own permissive CORS and skip the gate. The
+   fix is deliberately not "add null to ALLOWED_ORIGINS": that set goes out
+   with credentials: true, and a null origin covers sandboxes, data: URLs and
+   local files, which must never be able to call the API with credentials.
+   The star is also a constant, which matters because /proxy is cached for a
+   year: reflecting the caller's Origin back would bake one consumer's header
+   into that cached copy.
+
+   Ordering alone would not have been enough. cors() sets its headers and
+   calls next() for anything that is not a preflight, so mounting this merely
+   in front of the gate would still leave the gate to refuse the request. */
+const publicImageCors = cors({
+  origin: '*',
+  methods: ['GET', 'HEAD', 'OPTIONS'],
+  credentials: false,
+});
+const isPublicImageRequest = (req) => {
+  const p = req.path.toLowerCase();
+  return p === '/api/images' || p.startsWith('/api/images/');
+};
+
+app.use((req, res, next) => (
+  isPublicImageRequest(req) ? publicImageCors(req, res, next) : apiCors(req, res, next)
+));
 
 // Stripe webhook needs raw body - must be before express.json()
 app.post('/api/billing/webhook',
