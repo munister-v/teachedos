@@ -3724,6 +3724,31 @@ function _ttPlayCardSize(d) {
       w = Math.max(w, Math.min(900, Math.round(380 + longestDef * 4.8)));
     }
   }
+  /* Лист «все пропуски» - не степпер: все предложения и все плитки стоят на
+     одной карточке, поэтому и высота у неё не «самый высокий вопрос», а
+     сумма своих частей. По общему правилу (максимум по вопросам) выходило
+     496 при нужных 643: второй ряд плиток и кнопка проверки оказывались за
+     нижним краем.
+
+     Плитки квадратные и лежат по три в ряд, значит их высота следует за
+     ШИРИНОЙ карточки - отсюда и расчёт от w. Замерено: 480 → плитка 141,
+     720 → 221, то есть ровно (w - 36 - 20) / 3. Предложения считаются по
+     строкам, а не по штукам: на 487 они ложатся в две строки (319px на
+     шесть), на 720 в одну-две (252px), и разница в полтораста точек - это
+     ровно та высота, на которую карточка иначе промахнётся.
+
+     Это по-прежнему только первая прикидка, чтобы карточка не прыгала при
+     открытии: точную высоту пришлёт сама разметка (IW_HEIGHT_REPORTER). */
+  if (qs.length > 1 && qs.every(q => q.type === 'gap-fill')) {
+    const tile = (w - 36 - 20) / 3;            // поля body 18+18, два зазора по 10
+    const rows = Math.ceil(qs.length / 3);
+    const grid = rows * tile + (rows - 1) * 10;
+    const perRow = Math.max(20, (w - 36) / 7.3);   // знаков в строке при 14px/1.6
+    const sentences = qs.reduce((n, q) =>
+      n + Math.max(1, Math.ceil(String(q.text || '').length / perRow)) * 22 + 10, 0);
+    const h = 16 + PLAY_TITLE + sentences + 20 + grid + 20 + 50 + 24;
+    return { w, h: Math.max(420, Math.min(WS_MAX_SHEET, Math.round(h))) };
+  }
   /* Материал - не флип-коробка: у него нет «лица», под которым прячется
      ответ, есть только текст, и высота у него ровно такая, какой текст.
      Это лишь первая прикидка, чтобы карточка не прыгала: точную высоту
@@ -3849,6 +3874,25 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
     }
   });
 }
+
+/* Замерить содержимое srcdoc-iframe снаружи нельзя, поэтому разметка меряет
+   себя сама и присылает высоту (приёмник - обработчик 'iw-height' выше).
+
+   Годится НЕ всякой карточке: у степпера на экране один шаг из шести, и
+   карточка, следующая за его высотой, дёргалась бы на каждом «дальше».
+   Только там, где всё содержимое видно сразу: материал и лист «все пропуски». */
+const IW_HEIGHT_REPORTER = `
+var _iwRH=0;
+function iwReportHeight(){
+  try{
+    var h=Math.ceil(document.documentElement.scrollHeight);
+    if(Math.abs(h-_iwRH)<4) return; _iwRH=h;
+    if(window.__IW_CARD__) parent.postMessage({type:'iw-height',cardId:window.__IW_CARD__,height:h},'*');
+  }catch(e){}
+}
+window.addEventListener('load',iwReportHeight);
+document.addEventListener('DOMContentLoaded',iwReportHeight);
+if(window.ResizeObserver) new ResizeObserver(iwReportHeight).observe(document.body);`;
 
 function _buildInteractiveWSHtml(d, cardId, ownerView) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
@@ -4257,18 +4301,7 @@ document.addEventListener('DOMContentLoaded',()=>{
        текст в неё не помещался и прокручивался внутри. Кто знает
        настоящую высоту, тот её и сообщает: замерить эту разметку снаружи
        нельзя (srcdoc-iframe), а изнутри - одна строка. */
-    scriptHtml = `
-var _iwRH=0;
-function iwReportHeight(){
-  try{
-    var h=Math.ceil(document.documentElement.scrollHeight);
-    if(Math.abs(h-_iwRH)<4) return; _iwRH=h;
-    if(window.__IW_CARD__) parent.postMessage({type:'iw-height',cardId:window.__IW_CARD__,height:h},'*');
-  }catch(e){}
-}
-window.addEventListener('load',iwReportHeight);
-document.addEventListener('DOMContentLoaded',iwReportHeight);
-if(window.ResizeObserver) new ResizeObserver(iwReportHeight).observe(document.body);`;
+    scriptHtml = IW_HEIGHT_REPORTER;
   }
 
   // ─── MODE: Cards (collocations, word-families, phrasal verbs, idioms, etc.) ───
@@ -4316,6 +4349,15 @@ document.addEventListener('keydown', function(e){
 document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='function') iwGoto(0); });
 `;
   }
+
+  /* Лист «все пропуски» - единственный вопросник, у которого всё содержимое
+     на экране сразу, поэтому он, как и материал, меряет себя сам. Оценка
+     снаружи занижала его систематически: плитки квадратные (aspect-ratio:1/1,
+     три в ряд), их высота зависит от ШИРИНЫ карточки, а оценщик считал по
+     одному вопросу - второй ряд плиток и кнопка «Check Answers» уезжали под
+     нижний край. Со счётом после проверки высота меняется ещё раз, и это
+     тоже приедет замером, а не догадкой. */
+  if (isAllGapFill) scriptHtml += IW_HEIGHT_REPORTER;
 
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 *{box-sizing:border-box;margin:0}
@@ -4495,7 +4537,13 @@ strong{font-weight:650}
 .iw-stepper .iw-card-back-text{font-size:14.5px}
 /* ── Grouped gap-fill grid (one step for all single-word blanks) ── */
 .iw-gapgrid-card{width:100%}
-.iw-gapgrid-sentences{margin-bottom:20px;max-height:180px;overflow-y:auto}
+/* Без своей прокрутки. Коробка была ограничена 180px, потому что карточка не
+   умела расти: её высоту задавала оценка снаружи. Теперь разметка сообщает
+   свою настоящую высоту, и ограничение осталось бы чистым вредом - на узкой
+   карточке из шести предложений было видно четыре, а ученик, заполняя пятую
+   плитку, прокручивал список вверх, чтобы вспомнить пятое предложение.
+   Полоса прокрутки внутри карточки на бесконечном холсте - вообще запах. */
+.iw-gapgrid-sentences{margin-bottom:20px}
 .iw-gs-item{font-size:14px;line-height:1.6;margin-bottom:10px;color:#3a3644}
 .iw-gs-item b{color:${ink}}
 .iw-gap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -14293,7 +14341,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '797';
+const TEACHEDOS_ASSET_VERSION = '799';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
