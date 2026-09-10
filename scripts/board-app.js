@@ -3350,7 +3350,7 @@ function renderWorksheet(el, card) {
     const wrap = document.createElement('div');
     wrap.className = 'card-body text-interactive-wrap';
     const iframe = document.createElement('iframe');
-    iframe.srcdoc = _buildInteractiveWSHtml(d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner);
+    iframe.srcdoc = _buildInteractiveWSHtml(d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner, card.w);
     iframe.sandbox = 'allow-scripts';
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
     wrap.addEventListener('mousedown', e => e.stopPropagation());
@@ -3790,18 +3790,29 @@ function _ttPlayCardSize(d) {
     const boxes = d.cards.length * 84;   // рамка, кикер и заголовок каждой карточки
     return { w: W, h: Math.max(320, Math.min(WS_MAX_SHEET, 40 + PLAY_TITLE + boxes + rows * 25)) };
   }
+  /* НА ТЕЛЕФОНЕ КАРТОЧКА СТРОИТСЯ ПОД ЭКРАН, А НЕ УЖИМАЕТСЯ ЗУМОМ.
+
+     Доска на телефоне сводит карточки в вид зумом (fitAll), и лист шириной
+     880 честно помещался - в виде двух колонок кеглем в семь пикселей.
+     Ужимать нечего: раскладку внутри кадра решает СОБСТВЕННАЯ ширина
+     кадра, а она равна ширине карточки. Значит и ширину надо давать
+     телефонную - тогда внутри включается вертикальная раскладка и
+     карточка читается при 100% зума. */
+  const phoneW = (typeof isBoardPhone === 'function' && isBoardPhone())
+    ? Math.max(260, Math.min(360, (window.innerWidth || 375) - 28))
+    : 0;
   /* Мастерская письма - две колонки: задание слева, лист справа. Высота у
      неё своя, а не «по содержимому»: лист прокручивается внутри, и растить
-     под него карточку значит выгнать чек-лист требований за нижний край. */
-  if (_ttWritingTask(d)) return { w: 880, h: 620 };
-  /* Доска вопросов - сетка в три колонки, поэтому и ширина под три колонки,
-     а высота по числу рядов. Точную пришлёт сама разметка. */
+     под него карточку значит выгнать чек-лист требований за нижний край.
+     На телефоне колонки встают друг под друга, поэтому карточка выше. */
+  if (_ttWritingTask(d)) return phoneW ? { w: phoneW, h: 800 } : { w: 880, h: 620 };
+  /* Доска вопросов: ширина под число колонок, высота по числу рядов.
+     Точную высоту пришлёт сама разметка (IW_HEIGHT_REPORTER). */
   if (_ttIsPromptDeck(d)) {
-    const tile = Math.max(150, Math.min(300, 104 + Math.ceil(
-      qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0) / 30) * 20));
-    const rows = Math.ceil(qs.length / 3);
-    return { w: 720, h: Math.max(360, Math.min(WS_MAX_SHEET,
-      40 + PLAY_TITLE + rows * tile + (rows - 1) * 12 + 131)) };
+    const w = phoneW || 720;
+    const m = _ttDeckMetrics(qs, w);
+    return { w, h: Math.max(360, Math.min(WS_MAX_SHEET,
+      40 + PLAY_TITLE + m.rows * m.tile + (m.rows - 1) * 12 + 131)) };
   }
   if (!qs.length) {
     /* Flashcards / lesson-pack stages: fixed flip box, no per-item measuring.
@@ -3912,6 +3923,40 @@ function _ttWritingTask(d) {
     extras:  cards.filter(c => c !== prompt && c !== reqs
               && !/useful phrase|phrases|language bank|model|example opener|sample/i.test(String(c && c.title || ''))),
   };
+}
+
+/* СЕТКА ДОСКИ ВОПРОСОВ СЧИТАЕТСЯ ОДИН РАЗ, НА ДВОИХ.
+
+   Обе стороны флип-плитки лежат absolute, поэтому её высота задаётся числом,
+   а не содержимым: посчитать её надо ДО разметки, и ровно так же посчитать
+   размер самой карточки. Пока это были две формулы, они и разошлись - на
+   телефоне карточка ужималась зумом доски, а плитка оставалась «десктопной»
+   и текст в ней обрезался.
+
+   Колонки берём явным числом, а не auto-fill: тогда ширина колонки известна
+   здесь, а не только браузеру, и по ней считаются строки текста. */
+function _ttDeckMetrics(qs, cardW) {
+  const W = Math.max(240, cardW || 720);
+  /* Два столбца держим до последнего: доска вопросов тем и отличается от
+     списка, что видно всё поле сразу, а рубашка «Q1» читается в любой
+     ширине. Порог 280, чтобы iPhone SE (карточка 292) остался доской, а не
+     стал столбиком из шести штук. Тесноту оборота добирает высота плитки:
+     она считается по строкам, поэтому узкая колонка просто выше. */
+  const cols = W >= 620 ? 3 : W >= 280 ? 2 : 1;
+  const pad = W < 620 ? 20 : 26;                    // поля плитки, узкой они меньше
+  const colW = (W - 36 - (cols - 1) * 12) / cols;
+  /* 0.85 - плата за перенос ПО СЛОВАМ. Деление длины на «знаков в строке»
+     считает, будто строка заполняется до последнего символа; на деле в конце
+     каждой пропадает недописанное слово, и чем уже колонка, тем дороже это
+     обходится. Без поправки плитка на 320px выходила ровно на строку короче,
+     и последняя строка вопроса уезжала под край. */
+  const perRow = Math.max(10, (colW - pad) / 6.6 * 0.85);  // 13px system-ui
+  const longest = qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0);
+  const rows = Math.max(1, Math.ceil(longest / perRow));
+  /* Пол в 150px - не про текст, а про палец: на обороте лежат поле ответа и
+     кнопка «перевернуть назад», и им нужно место. */
+  const tile = Math.max(150, Math.min(320, 104 + rows * 20));
+  return { cols, tile, rows: Math.ceil(qs.length / cols) };
 }
 
 /* Сколько слов ждут: «about 150-180 words» → 180. Верхняя граница, а не
@@ -4083,7 +4128,7 @@ const IW_WORD_HELP_SCRIPT = `
   });
 })();`;
 
-function _buildInteractiveWSHtml(d, cardId, ownerView) {
+function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const items = Array.isArray(d.items) ? d.items : [];
   const cards = Array.isArray(d.cards) ? d.cards : [];
@@ -4129,14 +4174,12 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   const isMaterial = _ttIsMaterialCards(d);
   const isPromptDeck = _ttIsPromptDeck(d);
   const writing = _ttWritingTask(d);
-  /* Обе стороны флип-карточки лежат absolute друг на друге, поэтому высота у
-     плитки одна на всю сетку и задаётся здесь - по самому длинному вопросу,
-     иначе он обрежется ровно на той карточке, ради которой всё и затевалось.
-     ~30 знаков в строке: 13px в колонке около 220px. */
-  const deckTileH = isPromptDeck
-    ? Math.max(150, Math.min(300, 104 + Math.ceil(
-        qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0) / 30) * 20))
-    : 0;
+  // Сетка вопросов и высота её плитки - см. _ttDeckMetrics, там же и почему.
+  const deck = isPromptDeck ? _ttDeckMetrics(qs, cardW) : null;
+  /* Узкая карточка - это телефон: колонок одна-две, и вёрстка внутри кадра
+     обязана переключиться сама. Зум доски её не спасёт - он ужимает готовые
+     880 пикселей, а не пересобирает раскладку. */
+  const narrow = (cardW || 720) < 620;
   /* Материал не листается: текст и его глоссарий стоят друг под другом и
      читаются подряд, поэтому ни счётчика шагов, ни стрелок у него нет.
      Доска вопросов и письменная мастерская - тоже не степпер: у них всё
@@ -4474,22 +4517,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 });`;
   }
 
-  /* Доска вопросов дописывается ПОСЛЕ общего скрипта вопросников: тот
-     присваивает scriptHtml целиком, а сохранение ответов нам как раз оттуда
-     и нужно. Высоту она сообщает сама - в сетке её задаёт число рядов, а не
-     самый высокий вопрос, и снаружи это не угадать. */
-  if (isPromptDeck) {
-    scriptHtml += `
-function iwDeckFlip(btn){
-  var c=btn.closest('.iw-dcard'); if(!c) return;
-  var open=!c.classList.contains('flipped');
-  c.classList.toggle('flipped',open);
-  if(open){ var t=c.querySelector('.iw-dcard-input'); if(t) setTimeout(function(){ t.focus(); },320); }
-}
-function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(function(c){ c.classList.toggle('flipped',!!open); }); }
-` + IW_HEIGHT_REPORTER;
-  }
-
   // ─── MODE: Vocab items (flashcards / essential vocab) ───
   else if (items.length) {
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${items.map((it, i) => `<div class="iw-flash" onclick="iwFlipOrNext(this)">
@@ -4719,6 +4746,29 @@ function iwTitlePick(btn){
     scriptHtml = '';
   }
 
+  /* Дописки к режимам, у которых всё содержимое на экране сразу. Стоят ПОСЛЕ
+     всей цепочки: ветки присваивают scriptHtml целиком, и вклиниться раньше
+     значит потерять либо своё, либо чужое. */
+  if (isPromptDeck) {
+    // Флип по нажатию + высота: в сетке её задаёт число рядов, а не самый
+    // высокий вопрос, и снаружи это не угадать.
+    scriptHtml += `
+function iwDeckFlip(btn){
+  var c=btn.closest('.iw-dcard'); if(!c) return;
+  var open=!c.classList.contains('flipped');
+  c.classList.toggle('flipped',open);
+  if(open){ var t=c.querySelector('.iw-dcard-input'); if(t) setTimeout(function(){ t.focus(); },320); }
+}
+function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(function(c){ c.classList.toggle('flipped',!!open); }); }
+` + IW_HEIGHT_REPORTER;
+  }
+  /* Мастерская меряет себя ТОЛЬКО на узкой карточке. На широкой её высота -
+     это `calc(100vh - 88px)`, то есть высота самой карточки: замер вернул бы
+     карточке её же высоту и зациклился. На узкой колонки стоят друг под
+     другом, высота честно содержательная, и без замера кнопка «Submit» просто
+     уезжает под нижний край. */
+  if (writing && narrow) scriptHtml += IW_HEIGHT_REPORTER;
+
   // ── Shared stepper navigation (one card at a time, all content modes) ──
   if (stepTotal > 0) {
     scriptHtml += `
@@ -4935,8 +4985,8 @@ strong{font-weight:650}
 .iw-card-back-title{font:800 13px system-ui;color:${ink};margin-bottom:6px;width:100%}
 .iw-card-back-text{font:13px/1.6 system-ui;color:#3a3644;width:100%}
 /* ── Prompt deck (discussion): all questions at once, face down ── */
-.iw-deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.iw-dcard{perspective:800px;height:${deckTileH}px}
+.iw-deck{display:grid;grid-template-columns:repeat(${deck ? deck.cols : 3},1fr);gap:12px}
+.iw-dcard{perspective:800px;height:${deck ? deck.tile : 184}px}
 .iw-dcard-inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
 .iw-dcard.flipped .iw-dcard-inner{transform:rotateY(180deg)}
 .iw-dcard-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:13px;display:flex;flex-direction:column;text-align:left}
@@ -4958,7 +5008,9 @@ strong{font-weight:650}
 .iw-ws-block{border:1.5px solid #e4e5ec;border-radius:14px;padding:12px 13px}
 .iw-ws-h{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};margin-bottom:7px}
 .iw-ws-prompt{font:13px/1.55 system-ui;color:#3a3644}
-.iw-ws-reqs{list-style:none;display:flex;flex-direction:column;gap:8px}
+/* padding:0 обязателен - общий reset наверху снимает только margin, и
+   браузерные 40px отступа списка съедали треть узкой колонки. */
+.iw-ws-reqs{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px}
 .iw-ws-reqs label{display:flex;gap:8px;align-items:flex-start;font:12.5px/1.45 system-ui;color:#3a3644;cursor:pointer}
 .iw-ws-reqs input{flex-shrink:0;width:15px;height:15px;margin-top:1px;accent-color:${ink};cursor:pointer}
 .iw-ws-reqs input:checked+span{color:#8b8792;text-decoration:line-through}
@@ -4991,10 +5043,30 @@ strong{font-weight:650}
 .iw-ws-done{font:700 12px system-ui;color:#15803d;text-align:center;margin-top:8px}
 body.iw-ws-sent .iw-ws-editor{background:#fafafa;color:#4a4a52}
 body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
+/* ── Узкая карточка = телефон ──
+   Ширина кадра равна ширине карточки, поэтому этот порог и есть «телефон»:
+   доска на телефоне отдаёт такой карточке ширину экрана (см. phoneW в
+   _ttPlayCardSize). Кегль здесь не мельче 11px, цель нажатия не меньше 40px -
+   служебные подписи набраны капителью с разрядкой, в ней слово опознаётся по
+   одной высоте прописных, и 10px на вытянутой руке не читается. */
 @media (max-width:620px){
-  .iw-ws{flex-direction:column;height:auto}
+  .iw-ws{flex-direction:column;height:auto;gap:12px}
   .iw-ws-side{flex:none;max-width:none;overflow:visible}
-  .iw-ws-editor{min-height:220px}
+  .iw-ws-editor{min-height:220px;font-size:15px}
+  .iw-ws-h,.iw-ws-label,.iw-ws-acc summary{font-size:11px}
+  .iw-ws-reqs label{padding:6px 0;min-height:40px;align-items:center;font-size:13px}
+  .iw-ws-reqs input{width:19px;height:19px}
+  .iw-ws-acc summary{padding:5px 0}
+  .iw-ws-bar{padding:5px 6px}
+  .iw-ws-bar button{min-width:40px;height:40px;font-size:15px}
+  .iw-ws-count{font-size:12.5px}
+  .iw-dcard-face{padding:10px}
+  .iw-dcard-num{font-size:11px}
+  .iw-dcard-text{font-size:13px}
+  .iw-dcard-input{font-size:13px}
+  .iw-dcard-hide{width:34px;height:34px;font-size:16px;top:5px;right:5px}
+  .iw-dcard-tag{font-size:30px}
+  .iw-dcard-hint{font-size:11.5px}
 }
 /* ── Bottom buttons ── */
 /* One wide primary action at the foot of the card, as on the static sheet:
@@ -14969,7 +15041,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '805';
+const TEACHEDOS_ASSET_VERSION = '806';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
