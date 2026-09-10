@@ -3671,8 +3671,13 @@ function _ttPlayStepHeight(q, w) {
   } else if (q.type === 'truefalse') h += 56;
   /* Строка с фотографией втрое выше строки с определением - меряем по
      тому, что реально поедет на доску, иначе задание с картинками
-     обрежется по нижнему краю карточки. */
-  else if (q.type === 'match' && Array.isArray(q.pairs)) h += 60 + q.pairs.length * (q.pairs.some(p => _ttPairPic(p)) ? 100 : 46);
+     обрежется по нижнему краю карточки. Снимки при этом лежат в ДВА
+     столбца, значит рядов вдвое меньше, чем пар. */
+  else if (q.type === 'match' && Array.isArray(q.pairs)) {
+    h += 60 + (q.pairs.some(p => _ttPairPic(p))
+      ? Math.ceil(q.pairs.length / 2) * 135
+      : q.pairs.length * 46);
+  }
   else if (q.type === 'open') h += 64;
   else h += 52;                                // gap-fill and anything else
   return Math.max(220 + PLAY_QPAD, h);         // .iw-q min-height:220
@@ -3692,7 +3697,33 @@ function _ttPlayCardSize(d) {
   // with the text it has to hold - within bounds, since a stepper that fills
   // the board stops reading as a card being presented.
   const longest = qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0);
-  const w = Math.max(480, Math.min(720, 480 + Math.round((longest - 90) / 4)));
+  let w = Math.max(480, Math.min(720, 480 + Math.round((longest - 90) / 4)));
+  /* МАТЧИНГ МЕРЯЕТСЯ СТРОКАМИ, А НЕ ВОПРОСОМ.
+
+     У задания на соединение вопрос всегда короткий («Match each word to its
+     definition.»), поэтому правило выше давало ему минимальные 480 - а внутри
+     этих 480 две колонки, и определению оставалось около 13 знаков в строку.
+     Замер того самого урока про травмы: определения ложились в 8, 6, 5, 5, 5
+     и 5 строк. Именно это учитель и увидел - столбик мелкой каши.
+
+     Ширина берётся с шага, на котором самое длинное определение укладывается
+     в ДВЕ строки. Замерено на живой разметке (Range-прямоугольники, а не
+     оценка по коробке): 720 → до трёх строк, 800 → три, 880 → все по две,
+     960 → те же две. Отсюда и формула, и потолок: за 880 ширина уже ничего
+     не покупает.
+
+     С картинками правая колонка - плитки в два столбца (см. .has-pics в
+     разметке), и ширину задаёт плитка: 200px на снимок плюс слот и поля. */
+  const match = qs.find(q => q && q.type === 'match' && Array.isArray(q.pairs) && q.pairs.length);
+  if (match) {
+    const pics = match.pairs.some(p => _ttPairPic(p));
+    if (pics) {
+      w = Math.max(w, 880);
+    } else {
+      const longestDef = match.pairs.reduce((n, p) => Math.max(n, String(p.right || '').length), 0);
+      w = Math.max(w, Math.min(900, Math.round(380 + longestDef * 4.8)));
+    }
+  }
   /* Материал - не флип-коробка: у него нет «лица», под которым прячется
      ответ, есть только текст, и высота у него ровно такая, какой текст.
      Это лишь первая прикидка, чтобы карточка не прыгала: точную высоту
@@ -3934,7 +3965,16 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
              уже нашли снимок (p.img). Показывая его текстом, доска
              превращала задание про картинки в матчинг «bruise ↔ human
              bruise close-up»: учитель одобрял в превью фотографии, а
-             ученик получал их описания. Есть снимок - показываем снимок. */
+             ученик получал их описания. Есть снимок - показываем снимок.
+
+             Без crossorigin, в отличие от статического листа. Эта разметка
+             живёт в iframe с sandbox="allow-scripts" БЕЗ allow-same-origin,
+             то есть в непрозрачном источнике: запрос уходит с `Origin: null`,
+             а общий CORS-шлюз бекенда отвечает на него 403. Картинки
+             приходили битыми - шесть серых плашек вместо фотографий.
+             Атрибут тут и не нужен: html2canvas всё равно не может прочитать
+             содержимое чужого по источнику фрейма, ради него crossorigin и
+             ставился на листе. */
           const withPics = q.pairs.some(p => _ttPairPic(p));
           inner = `<div class="iw-match${withPics ? ' has-pics' : ''}" data-qi="${qi}">
             <div class="iw-match-bank" id="bank-${qi}">
@@ -3944,7 +3984,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
               ${q.pairs.map(p => `<div class="iw-target" data-right="${esc(p.right)}" data-expect="${esc(p.left)}">
                 <span class="iw-slot"></span>
                 ${_ttPairPic(p)
-                  ? `<img class="iw-pic" src="${esc(_ttPairPic(p))}" alt="" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous">`
+                  ? `<img class="iw-pic" src="${esc(_ttPairPic(p))}" alt="" loading="lazy" referrerpolicy="no-referrer">`
                   : `<span class="iw-def">${md(p.right)}</span>`}
               </div>`).join('')}
             </div>
@@ -4335,9 +4375,17 @@ strong{font-weight:650}
 .iw-slot{min-width:60px;min-height:26px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${ink};padding:3px 8px;transition:all .15s}
 .iw-slot.filled{border-style:solid;border-color:${accent};background:color-mix(in srgb,${accent} 10%,#fff)}
 .iw-def{font-size:12.5px;color:#3f3a4a;flex:1}
-.iw-pic{flex:1;min-width:0;height:78px;object-fit:cover;border-radius:8px;background:#f2f2f5;display:block}
+.iw-pic{flex:1;min-width:0;height:110px;object-fit:cover;border-radius:8px;background:#f2f2f5;display:block}
 .iw-match.has-pics .iw-target{align-items:stretch;padding:8px 10px}
 .iw-match.has-pics .iw-slot{align-self:center}
+/* Снимки идут в два столбца, а банк слов получает фиксированную колонку.
+   Одним столбцом на всю ширину карточки фотография растягивалась в полосу
+   4:1: object-fit:cover срезал у «blister» всё, кроме куска кожи, и задание
+   «подбери слово к картинке» показывало картинки, по которым слово не
+   угадать. Два столбца тратят ту же ширину на РАЗМЕР плитки, а не на её
+   растяжение, и на банк остаётся ровно столько, сколько нужно словам. */
+.iw-match.has-pics .iw-match-bank{flex:0 0 200px}
+.iw-match.has-pics .iw-match-targets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 /* Sorting */
 .iw-sort{display:flex;flex-direction:column;gap:12px}
 .iw-sort-bank{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;min-height:40px}
@@ -14245,7 +14293,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '795';
+const TEACHEDOS_ASSET_VERSION = '796';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
