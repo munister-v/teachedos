@@ -105,7 +105,7 @@ async function fetchCambridge(word) {
       signal: ctrl.signal,
       headers: { 'User-Agent': UA, 'Accept-Language': 'en' },
     });
-    if (!r.ok) return { senses: [], pos: null };
+    if (!r.ok) return { senses: [], pos: null, pron: null };
     html = await r.text();
   } catch {
     return null;              // сеть/таймаут - НЕ кэшируем, попробуем в другой раз
@@ -166,6 +166,13 @@ async function lookup(word, level) {
   if (!w || w.length > 60) return blank(w);
 
   let entry = defIndex.get(w);
+  /* Кэш вечный и переживает выкат (лежит вне backend/ намеренно), поэтому у
+     слов, найденных до появления произношения, поля pron нет вовсе - и без
+     этой проверки они бы никогда его не получили: как раз те слова, которые
+     учитель уже разобрал в уроке. Отличаем «не спрашивали» (undefined) от
+     «спросили, произношения нет» (null), иначе слово без транскрипции
+     перезапрашивалось бы вечно. */
+  if (entry && entry.pron === undefined) entry = null;
   if (!entry) {
     /* Одна повторная попытка. Проверено на живом сервере: из шести слов
        холодной пачки одно вернулось «unreachable», остальные пять - с
