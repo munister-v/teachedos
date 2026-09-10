@@ -4108,7 +4108,8 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	   это не шаг урока, а весь материал (см. _ttWorksheetListHTML). Левый
 	   отступ, оставленный под рельс, и вынужденная высота ему не нужны. */
 	.ws-q-card-plain{padding-left:16px;min-height:0;background:#fff;}
-	.ws-card-head-plain{font:800 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#8b8b90;margin-bottom:2px;}
+	/* 10px в верхнем регистре и без того на пределе - #8b8b90 давал 3.39:1. */
+	.ws-card-head-plain{font:800 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#70707a;margin-bottom:2px;}
 	.ws-card-head-plain .ws-card-title{font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:inherit;}
 	.ws-q-card.ws-anchor{border-style:dashed;position:relative;}
 	.ws-q-card.ws-anchor .ws-stage-rail{background:transparent;border:2px dashed color-mix(in srgb,var(--stage-accent) 45%,transparent);}

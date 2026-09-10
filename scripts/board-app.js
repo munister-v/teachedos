@@ -2795,6 +2795,45 @@ function _accentTextColor(hex) {
   return l > 0.58 ? '#0E0E10' : '#FFFFFF';
 }
 
+/* ЛАЙМ - ЗАЛИВКА, А НЕ ЧЕРНИЛА.
+
+   Фирменный #CDF24F на белом даёт 1.36:1 - это не «бледновато», это текст,
+   которого физически не видно. А в Play-режиме им набраны заголовок листа,
+   счёт, стрелки шага, шапки колонок сортировки - всё, что стоит на белом.
+   Учитель присылал это скриншотом трижды, каждый раз про новое место:
+   правится не место, а само правило.
+
+   Отсюда одна производная: тот же тон, притемнённый ровно настолько, чтобы
+   на белом читался (WCAG AA, 4.5:1 для мелкого текста). Считается из
+   accent, а не задан константой, потому что accent у карточки может быть
+   свой - и тогда «тёмный лайм» был бы просто чужим цветом.
+
+   Заливки, рамки и подсветки остаются самим accent: там он и работает. */
+/* Цель чуть выше порога 4.5 не для запаса «на всякий случай»: те же
+   чернила ложатся не только на белое, но и на 12-процентную заливку тем же
+   accent'ом (.iw-opt.selected, .iw-tf-btn.selected). Фон там темнее белого,
+   и ink, посчитанный ровно на 4.5 по белому, на нём проваливался до 4.45. */
+function _accentInkOnWhite(hex, target = 4.9) {
+  const rgb = _hexToRgb(hex);
+  if (!rgb) return '#0E0E10';
+  const lum = ({ r, g, b }) => {
+    const s = [r, g, b].map(v => {
+      const c = v / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
+  };
+  const onWhite = c => 1.05 / (lum(c) + 0.05);
+  let c = { ...rgb };
+  /* Умножаем каналы, а не вычитаем: пропорция между ними сохраняется,
+     значит сохраняется и оттенок - тёмный лайм остаётся лаймом, а не
+     уезжает в серый или в бутылочно-зелёный. */
+  for (let i = 0; i < 40 && onWhite(c) < target; i++) {
+    c = { r: Math.round(c.r * 0.92), g: Math.round(c.g * 0.92), b: Math.round(c.b * 0.92) };
+  }
+  return '#' + [c.r, c.g, c.b].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('');
+}
+
 function _rgba(hex, alpha) {
   const rgb = _hexToRgb(hex);
   if (!rgb) return `rgba(14,14,16,${alpha})`;
@@ -3792,6 +3831,9 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   // opened teal/orange/whatever its category happened to be once a student
   // pressed Play.
   const accent = d.accent || WS_ACCENT_LIME;
+  /* Всё, что набрано accent'ом ПО БЕЛОМУ, берёт эти чернила - см.
+     _accentInkOnWhite. Заливки и рамки остаются на самом accent. */
+  const ink = _accentInkOnWhite(accent);
   const kind = String(d.kind || '').toLowerCase();
   // Teacher key is only shown to the board owner (students just get correct/wrong
   // feedback after Check). Persisted student state is injected for restore.
@@ -4128,11 +4170,47 @@ document.addEventListener('DOMContentLoaded',()=>{
        пустая строка между ними не обязательна - режем по любому. */
     contentHtml = `<div class="iw-read">${cards.map(c => {
       const lines = String(c.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+
+      /* Глоссарий под текстом («Glossary under the text» включён по
+         умолчанию) приезжает тем же cards[], но это не проза: это пары
+         слово-значение, и абзацами они читаются как сплошная стена.
+         Разбор и проверка формы те же, что в режиме плана
+         (_ttWorksheetStageBodyHtml): заголовок со словом «glossary» сам по
+         себе ничего не доказывает - движок нередко отвечает прозой, а один
+         неверный разрез превращает абзац в ярлык на одно слово. */
+      const isGloss = _ttWorksheetStageMeta(c.title || '').cls === 'ws-stage-vocab';
+      const pairs = isGloss ? lines.map(_ttParseVocabLine) : [];
+      const parsed = pairs.filter(Boolean).length;
+      if (isGloss && lines.length >= 2 && parsed >= Math.ceil(lines.length * 0.6)) {
+        const rows = pairs.map((p, i) => `<div class="iw-gloss-row">
+          <span class="iw-gloss-term">${md(p ? p.term : lines[i])}</span>
+          <span class="iw-gloss-def">${p ? md(p.def) : ''}</span>
+        </div>`).join('');
+        return `<article class="iw-read-card">
+          <div class="iw-read-kicker">${md(c.title || '')}</div>
+          <div class="iw-gloss">${rows}</div>
+        </article>`;
+      }
+
       const head = lines.length > 1 && lines[0].length <= 90 ? lines.shift() : '';
+      /* Абзацы нумеруются, потому что на них ссылаются вслух и в заданиях
+         («in paragraph 3…»): без номера обе стороны считают абзацы пальцем
+         по экрану. Номер - подпись на поле, а не часть строки: он не
+         сдвигает текст и не попадает в копирование. */
+      const words = lines.join(' ').split(/\s+/).filter(Boolean).length;
+      /* Сколько это читать - первое, что учитель прикидывает, планируя урок.
+         180 слов в минуту - средний темп чтения про себя на B1-B2, минимум
+         одна минута: «меньше минуты» в план не поставишь.
+
+         Только у настоящего текста: у словаря, который не разобрался на
+         пары и приехал сюда прозой, «40 words · ~1 min» означало бы время
+         чтения списка слов - число верное, смысл ложный. */
+      const meta = (!isGloss && words)
+        ? `<span class="iw-read-meta">${words} words · ~${Math.max(1, Math.round(words / 180))} min</span>` : '';
       return `<article class="iw-read-card">
-        <div class="iw-read-kicker">${md(c.title || '')}</div>
+        <div class="iw-read-kicker">${md(c.title || '')}${meta}</div>
         ${head ? `<h2 class="iw-read-head">${md(head)}</h2>` : ''}
-        ${lines.map(p => `<p class="iw-read-p">${md(p)}</p>`).join('')}
+        ${lines.map((p, i) => `<p class="iw-read-p"><span class="iw-read-n" aria-hidden="true">${i + 1}</span>${md(p)}</p>`).join('')}
       </article>`;
     }).join('')}</div>`;
     /* Высота карточки на доске задавалась оценкой и коробкой в 240px -
@@ -4203,7 +4281,7 @@ document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='fu
 *{box-sizing:border-box;margin:0}
 body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16px 18px 24px;background:#fff;overflow-x:hidden}
 strong{font-weight:650}
-.iw-title{font:800 13px system-ui;letter-spacing:.06em;text-transform:uppercase;color:${accent};margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${accent}}
+.iw-title{font:800 13px system-ui;letter-spacing:.06em;text-transform:uppercase;color:${ink};margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${accent}}
 /* ── Questions ── */
 .iw-q{display:flex;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid #eaeaf0;border-radius:12px;border-left:3.5px solid ${accent};transition:box-shadow .2s}
 .iw-q:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -4214,7 +4292,7 @@ strong{font-weight:650}
 .iw-opts{display:flex;flex-direction:column;gap:5px}
 .iw-opt{display:block;width:100%;text-align:left;padding:8px 13px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:13px system-ui;color:#3a3644;cursor:pointer;transition:all .15s}
 .iw-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 6%,#fff)}
-.iw-opt.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${accent};font-weight:600}
+.iw-opt.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${ink};font-weight:600}
 .iw-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
 .iw-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b;opacity:.7}
 .iw-opt[disabled]{pointer-events:none}
@@ -4222,7 +4300,7 @@ strong{font-weight:650}
 .iw-tf{display:flex;gap:10px}
 .iw-tf-btn{padding:8px 22px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:700 13px system-ui;cursor:pointer;transition:all .15s}
 .iw-tf-btn:hover{border-color:${accent}}
-.iw-tf-btn.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${accent}}
+.iw-tf-btn.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${ink}}
 .iw-tf-btn.correct{border-color:#16a34a;background:#dcfce7;color:#15803d}
 .iw-tf-btn.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
 .iw-tf-btn[disabled]{pointer-events:none}
@@ -4254,7 +4332,7 @@ strong{font-weight:650}
 .iw-target.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff);box-shadow:0 0 0 2px color-mix(in srgb,${accent} 20%,transparent)}
 .iw-target.correct{border-color:#16a34a;background:#dcfce7}
 .iw-target.wrong{border-color:#dc2626;background:#fee2e2}
-.iw-slot{min-width:60px;min-height:26px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${accent};padding:3px 8px;transition:all .15s}
+.iw-slot{min-width:60px;min-height:26px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${ink};padding:3px 8px;transition:all .15s}
 .iw-slot.filled{border-style:solid;border-color:${accent};background:color-mix(in srgb,${accent} 10%,#fff)}
 .iw-def{font-size:12.5px;color:#3f3a4a;flex:1}
 .iw-pic{flex:1;min-width:0;height:78px;object-fit:cover;border-radius:8px;background:#f2f2f5;display:block}
@@ -4265,7 +4343,7 @@ strong{font-weight:650}
 .iw-sort-bank{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;min-height:40px}
 .iw-sort-cols{display:flex;gap:10px;flex-wrap:wrap}
 .iw-sort-col{flex:1;min-width:100px}
-.iw-sort-header{font:800 12px system-ui;text-transform:uppercase;letter-spacing:.05em;color:${accent};padding:6px 10px;border-bottom:2px solid ${accent};margin-bottom:6px}
+.iw-sort-header{font:800 12px system-ui;text-transform:uppercase;letter-spacing:.05em;color:${ink};padding:6px 10px;border-bottom:2px solid ${accent};margin-bottom:6px}
 .iw-sort-drop{min-height:60px;padding:6px;border:1.5px dashed #d4d6e0;border-radius:10px;display:flex;flex-direction:column;gap:4px;transition:all .2s}
 .iw-sort-drop.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 /* Odd one out */
@@ -4290,11 +4368,21 @@ strong{font-weight:650}
       the card grows to the text (see iwReportHeight). ── */
 .iw-read{display:flex;flex-direction:column;gap:18px}
 .iw-read-card{border:1.5px solid #e4e5ec;border-radius:12px;padding:18px 20px;background:#fff}
-.iw-read-kicker{font:800 10px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${accent};margin-bottom:10px}
+.iw-read-kicker{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:800 10px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};margin-bottom:10px}
+.iw-read-meta{font:700 10px system-ui;letter-spacing:.06em;color:#70707a;white-space:nowrap}
 .iw-read-head{font:700 20px/1.25 system-ui;color:#171814;margin:0 0 12px;letter-spacing:-.02em}
-.iw-read-p{font:15px/1.65 -apple-system,system-ui,sans-serif;color:#1a1a2e;margin:0 0 12px}
+/* Номер абзаца висит на поле: на него ссылаются в заданиях и вслух, но в
+   строке текста он был бы лишним словом. */
+.iw-read-p{position:relative;font:15px/1.65 -apple-system,system-ui,sans-serif;color:#1a1a2e;margin:0 0 12px;padding-left:26px}
 .iw-read-p:last-child{margin-bottom:0}
+.iw-read-n{position:absolute;left:0;top:2px;width:18px;text-align:right;font:700 10px system-ui;color:#70707a;user-select:none}
 .iw-read-p strong{background:color-mix(in srgb,${accent} 38%,transparent);padding:0 2px;border-radius:3px}
+/* Глоссарий: слово и значение в два столбца, как в языковом банке листа. */
+.iw-gloss{display:flex;flex-direction:column;gap:1px}
+.iw-gloss-row{display:grid;grid-template-columns:minmax(90px,29%) 1fr;gap:14px;padding:8px 0;border-top:1px solid #eeeef1}
+.iw-gloss-row:first-child{border-top:0}
+.iw-gloss-term{font:700 14px system-ui;color:#171814}
+.iw-gloss-def{font:14px/1.5 -apple-system,system-ui,sans-serif;color:#4a4a52}
 /* ── Card-flip (collocations, phrasal, idioms) ── */
 .iw-card-flip{perspective:600px;cursor:pointer;min-height:130px}
 .iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
@@ -4305,7 +4393,7 @@ strong{font-weight:650}
 .iw-card-title{font:800 15px system-ui}
 .iw-card-hint{font:11px system-ui;opacity:.6;margin-top:6px}
 .iw-card-back{background:#fff;border:1.5px solid #e4e5ec;transform:rotateY(180deg);justify-content:flex-start;text-align:left;overflow-y:auto}
-.iw-card-back-title{font:800 13px system-ui;color:${accent};margin-bottom:6px;width:100%}
+.iw-card-back-title{font:800 13px system-ui;color:${ink};margin-bottom:6px;width:100%}
 .iw-card-back-text{font:13px/1.6 system-ui;color:#3a3644;width:100%}
 /* ── Bottom buttons ── */
 /* One wide primary action at the foot of the card, as on the static sheet:
@@ -4319,7 +4407,7 @@ strong{font-weight:650}
 /* Secondary: outlined, not a second filled button in a flat grey that
    belongs to no palette. */
 .iw-reset{background:transparent;color:${WS_ACCENT_INK};border-color:${WS_ACCENT_INK}}
-.iw-score{text-align:center;margin-top:14px;font:700 15px system-ui;color:${accent};display:none}
+.iw-score{text-align:center;margin-top:14px;font:700 15px system-ui;color:${ink};display:none}
 .iw-score.iw-pop{animation:iwpop .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes iwpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
 .iw-conf{position:fixed;top:-12px;width:9px;height:14px;border-radius:2px;z-index:99999;pointer-events:none;animation:iwfall 1.9s linear forwards}
@@ -4327,13 +4415,13 @@ strong{font-weight:650}
 /* ── Key ── */
 .iw-key-wrap{margin-top:16px;border-top:1px solid #eee;padding-top:12px}
 .iw-key-toggle{background:none;border:2px solid rgba(14,14,16,.14);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:#6C6C6F}
-.iw-key-toggle:hover{border-color:${accent};color:${accent}}
+.iw-key-toggle:hover{border-color:${accent};color:${ink}}
 .iw-key{margin-top:10px;background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}
 .iw-key b{color:#16a34a}
 /* ── Stepper (Play mode: one card at a time) ── */
 .iw-stepper{display:flex;flex-direction:column}
 .iw-step-hud{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px}
-.iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid #e4e5ec;background:#fff;font:800 17px system-ui;color:${accent};cursor:pointer;transition:all .15s;line-height:1}
+.iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid #e4e5ec;background:#fff;font:800 17px system-ui;color:${ink};cursor:pointer;transition:all .15s;line-height:1}
 .iw-step-nav:hover:not(:disabled){border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 .iw-step-nav:disabled{opacity:.3;cursor:default}
 .iw-step-count{font:800 12px monospace;color:#6C6C6F;min-width:56px;text-align:center}
@@ -4361,7 +4449,7 @@ strong{font-weight:650}
 .iw-gapgrid-card{width:100%}
 .iw-gapgrid-sentences{margin-bottom:20px;max-height:180px;overflow-y:auto}
 .iw-gs-item{font-size:14px;line-height:1.6;margin-bottom:10px;color:#3a3644}
-.iw-gs-item b{color:${accent}}
+.iw-gs-item b{color:${ink}}
 .iw-gap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .iw-gap-grid .iw-gap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1/1;border-radius:16px;background:linear-gradient(135deg,var(--t1),var(--t2));cursor:text;padding:8px}
 .iw-gap-grid .iw-gap:focus-within{transform:scale(1.05);box-shadow:0 4px 16px rgba(0,0,0,.18)}
@@ -14157,7 +14245,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '794';
+const TEACHEDOS_ASSET_VERSION = '795';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
