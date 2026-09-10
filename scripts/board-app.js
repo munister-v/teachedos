@@ -714,6 +714,18 @@ function addCard(type, x, y, data={}, w, h) {
     el.addEventListener('animationend', () => el.classList.remove('card-appear'), { once: true });
   }
   updateEmpty();
+  /* Мастерская письма и доска вопросов открываются сразу, а не по кнопке
+     Play: печатать их незачем, и на бумажном листе они теряют всё, ради чего
+     сделаны - чек-лист требований, счётчик слов, рубашку у вопроса. Печатный
+     вид никуда не делся, он в одном «✕ Exit» отсюда.
+
+     Здесь, а не в укладчиках: их несколько, и каждый пришлось бы помнить.
+     Восстановление доски идёт мимо addCard (renderCard напрямую), поэтому
+     карточка, у которой учитель однажды нажал Exit, такой и останется. */
+  if (type === 'worksheet' && cardData._interactive === undefined
+      && (_ttWritingTask(cardData) || _ttIsPromptDeck(cardData))) {
+    activateWorksheet(card.id);
+  }
   return card;
 }
 
@@ -786,8 +798,9 @@ function renderCard(card) {
     dot.title = 'Connect from ' + anchor;
     dot.addEventListener('mousedown', e => {
       e.stopPropagation();
+      e.preventDefault();
       if (!boardCanEdit) return;
-      startConnection({ card, anchor });
+      connectFromAnchor(card, anchor);
     });
     el.appendChild(dot);
   });
@@ -814,11 +827,11 @@ function renderCard(card) {
     if (e.target.closest('[contenteditable="true"],.text-format-toolbar,.layer-popover')) return;
     if (e.target.closest('.card-close,.sticky-close,.text-close,.color-dot,.ws-btn,.generated-panel-actionbar,.generated-panel-btn')) return;
 
-    if (state.mode === 'connect') {
+    if (state.mode === 'connect' || connectPending) {
       // In connect mode, clicking the card body uses the nearest anchor
       e.stopPropagation();
       const nearestAnchor = nearestCardAnchor(card, e.clientX, e.clientY);
-      startConnection({ card, anchor: nearestAnchor });
+      connectFromAnchor(card, nearestAnchor);
       return;
     }
 
@@ -3777,6 +3790,19 @@ function _ttPlayCardSize(d) {
     const boxes = d.cards.length * 84;   // рамка, кикер и заголовок каждой карточки
     return { w: W, h: Math.max(320, Math.min(WS_MAX_SHEET, 40 + PLAY_TITLE + boxes + rows * 25)) };
   }
+  /* Мастерская письма - две колонки: задание слева, лист справа. Высота у
+     неё своя, а не «по содержимому»: лист прокручивается внутри, и растить
+     под него карточку значит выгнать чек-лист требований за нижний край. */
+  if (_ttWritingTask(d)) return { w: 880, h: 620 };
+  /* Доска вопросов - сетка в три колонки, поэтому и ширина под три колонки,
+     а высота по числу рядов. Точную пришлёт сама разметка. */
+  if (_ttIsPromptDeck(d)) {
+    const tile = Math.max(150, Math.min(300, 104 + Math.ceil(
+      qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0) / 30) * 20));
+    const rows = Math.ceil(qs.length / 3);
+    return { w: 720, h: Math.max(360, Math.min(WS_MAX_SHEET,
+      40 + PLAY_TITLE + rows * tile + (rows - 1) * 12 + 131)) };
+  }
   if (!qs.length) {
     /* Flashcards / lesson-pack stages: fixed flip box, no per-item measuring.
        PLAY_CHROME was written for a question card's ONE "Check Answers"
@@ -3845,6 +3871,55 @@ function _ttIsMaterialCards(d) {
   if (!d || !Array.isArray(d.cards) || !d.cards.length) return false;
   return d._ttMaterial === 1
       || TT_MATERIAL_KINDS.includes(String(d.kind || '').trim().toLowerCase());
+}
+
+/* ДОСКА ВОПРОСОВ, А НЕ СЛАЙДЕР.
+
+   Speaking-подсказки степпер показывал по одной: проверять в них нечего,
+   зато класс не видел, куда идёт разговор, а учитель не мог раздать вопросы
+   в своём порядке - только листать. Такие наборы (все вопросы открытые и
+   тема разговорная) раскладываются сеткой рубашкой вверх.
+
+   Гейт по cat/kind, а не «все вопросы open»: у «Open questions» после текста
+   ученик ПИШЕТ ответы, и прятать задание под рубашку там незачем. */
+function _ttIsPromptDeck(d) {
+  const qs = d && Array.isArray(d.questions) ? d.questions : null;
+  if (!qs || qs.length < 2 || !qs.every(q => q && q.type === 'open')) return false;
+  const kind = String(d.kind || '').toLowerCase();
+  if (/odd/.test(kind)) return false;
+  return String(d.cat || '').toLowerCase() === 'speaking'
+      || /discussion|ladder|conversation|talk|debate/.test(kind);
+}
+
+/* ПИСЬМЕННАЯ РАБОТА - ЭТО РАБОЧЕЕ МЕСТО, А НЕ ЧЕТЫРЕ КАРТОЧКИ.
+
+   creative-writing отдаёт четыре карточки (задание, требования, полезные
+   фразы, образец начала), и в Play они становились колодой «переверни меня»:
+   писать было негде, а требования, по которым пишут, лежали под рубашкой.
+   Разбираем набор по ролям - остальное делает ветка мастерской. */
+function _ttWritingTask(d) {
+  const cards = d && Array.isArray(d.cards) ? d.cards : null;
+  if (!cards || cards.length < 2 || _ttIsMaterialCards(d)) return null;
+  const pick = re => cards.find(c => re.test(String(c && c.title || '')));
+  const prompt = pick(/writing prompt|^\s*task\b|prompt/i);
+  const reqs   = pick(/requirement|success criteria|checklist/i);
+  if (!prompt || !reqs) return null;
+  return {
+    prompt,
+    reqs,
+    phrases: pick(/useful phrase|phrases|language bank/i) || null,
+    model:   pick(/model|example opener|sample/i) || null,
+    extras:  cards.filter(c => c !== prompt && c !== reqs
+              && !/useful phrase|phrases|language bank|model|example opener|sample/i.test(String(c && c.title || ''))),
+  };
+}
+
+/* Сколько слов ждут: «about 150-180 words» → 180. Верхняя граница, а не
+   нижняя - счётчик показывает цель, до которой ученик дописывает. */
+function _ttWordTarget(text) {
+  const m = String(text || '').match(/(\d{2,4})\s*(?:-|–|—|to)\s*(\d{2,4})\s*words|(\d{2,4})\s*words/i);
+  if (!m) return 150;
+  return parseInt(m[2] || m[3] || m[1], 10) || 150;
 }
 
 // Receive student answer-state posted by interactive worksheet iframes and
@@ -4052,9 +4127,21 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   // instead of one stepper card per blank - see the isAllGapFill branch below.
   const isAllGapFill = qs.length > 1 && qs.every(q => q.type === 'gap-fill');
   const isMaterial = _ttIsMaterialCards(d);
+  const isPromptDeck = _ttIsPromptDeck(d);
+  const writing = _ttWritingTask(d);
+  /* Обе стороны флип-карточки лежат absolute друг на друге, поэтому высота у
+     плитки одна на всю сетку и задаётся здесь - по самому длинному вопросу,
+     иначе он обрежется ровно на той карточке, ради которой всё и затевалось.
+     ~30 знаков в строке: 13px в колонке около 220px. */
+  const deckTileH = isPromptDeck
+    ? Math.max(150, Math.min(300, 104 + Math.ceil(
+        qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0) / 30) * 20))
+    : 0;
   /* Материал не листается: текст и его глоссарий стоят друг под другом и
-     читаются подряд, поэтому ни счётчика шагов, ни стрелок у него нет. */
-  const stepTotal = isMaterial ? 0
+     читаются подряд, поэтому ни счётчика шагов, ни стрелок у него нет.
+     Доска вопросов и письменная мастерская - тоже не степпер: у них всё
+     содержимое на экране сразу. */
+  const stepTotal = (isMaterial || isPromptDeck || writing) ? 0
     : isAllGapFill ? 1 : (qs.length || items.length || cards.length || 0);
   const stepHud = stepTotal > 1
     ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
@@ -4075,8 +4162,30 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
     ['#887236','#7A6320'],['#A652A6','#9D3F9D'],['#427D7F','#2D6F71'],
     ['#A75C7A','#9D4A6B'],['#3C7E7E','#277070'],['#8D6F54','#805F41']];
 
+  // ─── MODE: Prompt deck (discussion / speaking) ───
+  /* Все вопросы сразу, рубашкой вверх. Ответ ученика живёт на обороте той же
+     карточки обычным .iw-open-input[data-qi] - тем самым, который уже умеют
+     сохранять и восстанавливать iwSnapshot/iwRestore ниже. */
+  if (qs.length && isPromptDeck) {
+    contentHtml = `<div class="iw-deck">${qs.map((q, qi) => `<div class="iw-dcard" data-step="${qi}">
+      <div class="iw-dcard-inner">
+        <button class="iw-dcard-face iw-dcard-front" onclick="iwDeckFlip(this)" aria-label="Reveal question ${qi+1}">
+          <span class="iw-dcard-tag">Q${qi+1}</span><span class="iw-dcard-hint">tap to reveal</span>
+        </button>
+        <div class="iw-dcard-face iw-dcard-back">
+          <span class="iw-dcard-num">Q${qi+1}</span>
+          <p class="iw-dcard-text">${md(q.text||'')}</p>
+          <textarea class="iw-open-input iw-dcard-input" data-qi="${qi}" placeholder="+ Add your response" rows="2"></textarea>
+          <button class="iw-dcard-hide" onclick="iwDeckFlip(this)" aria-label="Turn back over">↩</button>
+        </div>
+      </div>
+    </div>`).join('')}</div>
+    <div class="iw-bottom"><button class="iw-submit" onclick="iwDeckAll(true)">👁 Reveal All</button>
+    <button class="iw-submit iw-reset" onclick="iwDeckAll(false)">↺ Turn All Back</button></div>`;
+  }
+
   // ─── MODE: Questions (quiz-based tools) ───
-  if (qs.length && isAllGapFill) {
+  else if (qs.length && isAllGapFill) {
     const sentencesHtml = qs.map((q, qi) => `<div class="iw-gs-item"><b>${qi+1}.</b> ${md(q.text||'')}</div>`).join('');
     const tilesHtml = qs.map((q, qi) => {
       const [t1, t2] = TILE_GRADIENTS[qi % TILE_GRADIENTS.length];
@@ -4365,6 +4474,22 @@ document.addEventListener('DOMContentLoaded',()=>{
 });`;
   }
 
+  /* Доска вопросов дописывается ПОСЛЕ общего скрипта вопросников: тот
+     присваивает scriptHtml целиком, а сохранение ответов нам как раз оттуда
+     и нужно. Высоту она сообщает сама - в сетке её задаёт число рядов, а не
+     самый высокий вопрос, и снаружи это не угадать. */
+  if (isPromptDeck) {
+    scriptHtml += `
+function iwDeckFlip(btn){
+  var c=btn.closest('.iw-dcard'); if(!c) return;
+  var open=!c.classList.contains('flipped');
+  c.classList.toggle('flipped',open);
+  if(open){ var t=c.querySelector('.iw-dcard-input'); if(t) setTimeout(function(){ t.focus(); },320); }
+}
+function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(function(c){ c.classList.toggle('flipped',!!open); }); }
+` + IW_HEIGHT_REPORTER;
+  }
+
   // ─── MODE: Vocab items (flashcards / essential vocab) ───
   else if (items.length) {
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${items.map((it, i) => `<div class="iw-flash" onclick="iwFlipOrNext(this)">
@@ -4376,6 +4501,110 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
     <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.remove('flipped'));if(typeof iwGoto==='function')iwGoto(0)">↺ Reset</button></div>`;
     scriptHtml = '';
+  }
+
+  // ─── MODE: Writing workspace (creative writing, homework task) ───
+  /* Писать - это работа, а не колода карточек. Слева задание и то, по чему
+     его проверяют, справа само письмо; требования - живой чек-лист, фразы и
+     образец начала свёрнуты, чтобы не заслонять чистый лист. */
+  else if (writing) {
+    const wordTarget = _ttWordTarget(writing.reqs.text);
+    const lines = t => String(t || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const reqItems = lines(writing.reqs.text).map(s => s.replace(/^(\d+[.)]|[-•*☐])\s*/, ''));
+    const accordion = (c, open) => c ? `<details class="iw-ws-acc"${open ? ' open' : ''}>
+      <summary>${md(c.title || '')}</summary>
+      <div class="iw-ws-acc-body">${lines(c.text).map(l => {
+        const m = l.match(/^(.+?)\s+[-–—]\s+(.+)$/);
+        return m ? `<p><b>${md(m[1])}</b><span>${md(m[2])}</span></p>` : `<p>${md(l)}</p>`;
+      }).join('')}</div></details>` : '';
+    contentHtml = `<div class="iw-ws">
+      <aside class="iw-ws-side">
+        <div class="iw-ws-block">
+          <h3 class="iw-ws-h">${md(writing.prompt.title || 'Writing prompt')}</h3>
+          <p class="iw-ws-prompt">${md(writing.prompt.text || '')}</p>
+        </div>
+        <div class="iw-ws-block">
+          <h3 class="iw-ws-h">${md(writing.reqs.title || 'Requirements')}</h3>
+          <ul class="iw-ws-reqs">${reqItems.map((r, i) => `<li><label>
+            <input type="checkbox" class="iw-ws-req" data-ri="${i}"><span>${md(r)}</span>
+          </label></li>`).join('')}</ul>
+        </div>
+        ${accordion(writing.phrases)}${accordion(writing.model)}
+        ${writing.extras.map(c => accordion(c)).join('')}
+      </aside>
+      <section class="iw-ws-main">
+        <div class="iw-ws-head">
+          <span class="iw-ws-label">Writing workspace</span>
+          <span class="iw-ws-count"><b id="iw-wc">0</b> / ${wordTarget} words</span>
+        </div>
+        <div class="iw-ws-bar">
+          <button type="button" onclick="iwFmt('bold')" title="Bold"><b>B</b></button>
+          <button type="button" onclick="iwFmt('italic')" title="Italic"><i>I</i></button>
+          <button type="button" onclick="iwFmt('underline')" title="Underline"><u>U</u></button>
+          <span class="iw-ws-bar-sep"></span>
+          <button type="button" onclick="iwFmt('insertUnorderedList')" title="Bulleted list">•</button>
+          <button type="button" onclick="iwFmt('insertOrderedList')" title="Numbered list">1.</button>
+        </div>
+        <div class="iw-ws-editor" id="iw-editor" contenteditable="true" spellcheck="true"
+             data-placeholder="Start writing here…"></div>
+        <div class="iw-ws-meter"><i id="iw-wcbar"></i></div>
+        <button class="iw-submit iw-ws-submit" id="iw-ws-submit" onclick="iwWsSubmit()">Submit Final Draft</button>
+        <div class="iw-ws-done" id="iw-ws-done"></div>
+      </section>
+    </div>`;
+    scriptHtml = `
+var IW_TARGET=${wordTarget};
+function iwWords(){
+  var t=(document.getElementById('iw-editor').innerText||'').trim();
+  return t? t.split(/\\s+/).length : 0;
+}
+function iwWsTick(){
+  var n=iwWords();
+  document.getElementById('iw-wc').textContent=n;
+  var bar=document.getElementById('iw-wcbar');
+  bar.style.width=Math.min(100,Math.round(n/IW_TARGET*100))+'%';
+  bar.classList.toggle('full', n>=IW_TARGET);
+}
+function iwFmt(cmd){ document.getElementById('iw-editor').focus(); document.execCommand(cmd,false,null); iwWsTick(); iwWsSave(); }
+var _iwT=null;
+function iwWsSave(){
+  clearTimeout(_iwT);
+  _iwT=setTimeout(function(){
+    if(!window.__IW_CARD__) return;
+    var done=[].map.call(document.querySelectorAll('.iw-ws-req'),function(c){return c.checked;});
+    parent.postMessage({type:'iw-state',cardId:window.__IW_CARD__,
+      state:{draft:document.getElementById('iw-editor').innerHTML,done:done,
+             submitted:document.body.classList.contains('iw-ws-sent')}},'*');
+  },300);
+}
+/* Кнопка говорит только то, что действительно произошло: черновик записан
+   на карточку доски. Никуда он не «отправляется» - отправлять некуда. */
+function iwWsSubmit(){
+  if(document.body.classList.contains('iw-ws-sent')){
+    document.body.classList.remove('iw-ws-sent');
+    document.getElementById('iw-editor').setAttribute('contenteditable','true');
+    document.getElementById('iw-ws-submit').textContent='Submit Final Draft';
+    document.getElementById('iw-ws-done').textContent='';
+  } else {
+    document.body.classList.add('iw-ws-sent');
+    document.getElementById('iw-editor').setAttribute('contenteditable','false');
+    document.getElementById('iw-ws-submit').textContent='↩ Reopen draft';
+    document.getElementById('iw-ws-done').textContent='✓ Handed in - '+iwWords()+' words saved on the board.';
+  }
+  iwWsSave();
+}
+document.addEventListener('DOMContentLoaded',function(){
+  var ed=document.getElementById('iw-editor');
+  ed.addEventListener('input',function(){ iwWsTick(); iwWsSave(); });
+  document.querySelectorAll('.iw-ws-req').forEach(function(c){ c.addEventListener('change',iwWsSave); });
+  var s=window.__IW_STATE__;
+  if(s){
+    if(s.draft) ed.innerHTML=s.draft;
+    (s.done||[]).forEach(function(v,i){ var c=document.querySelector('.iw-ws-req[data-ri="'+i+'"]'); if(c) c.checked=!!v; });
+    if(s.submitted) iwWsSubmit();
+  }
+  iwWsTick();
+});`;
   }
 
   // ─── MODE: Reading material (text / transcript / dialogue / model) ───
@@ -4705,6 +4934,68 @@ strong{font-weight:650}
 .iw-card-back{background:#fff;border:1.5px solid #e4e5ec;transform:rotateY(180deg);justify-content:flex-start;text-align:left;overflow-y:auto}
 .iw-card-back-title{font:800 13px system-ui;color:${ink};margin-bottom:6px;width:100%}
 .iw-card-back-text{font:13px/1.6 system-ui;color:#3a3644;width:100%}
+/* ── Prompt deck (discussion): all questions at once, face down ── */
+.iw-deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.iw-dcard{perspective:800px;height:${deckTileH}px}
+.iw-dcard-inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.iw-dcard.flipped .iw-dcard-inner{transform:rotateY(180deg)}
+.iw-dcard-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:13px;display:flex;flex-direction:column;text-align:left}
+.iw-dcard-front{align-items:center;justify-content:center;gap:6px;cursor:pointer;border:none;width:100%;
+  background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#0E0E10));color:${WS_ACCENT_INK};transition:transform .15s}
+.iw-dcard-front:hover{transform:translateY(-2px)}
+.iw-dcard-tag{font:800 26px system-ui;letter-spacing:.02em}
+.iw-dcard-hint{font:11px system-ui;opacity:.62}
+.iw-dcard-back{background:#fff;border:1.5px solid #e4e5ec;transform:rotateY(180deg);gap:7px;overflow:hidden}
+.iw-dcard-num{font:800 10px monospace;letter-spacing:.1em;color:${ink}}
+.iw-dcard-text{font:600 13px/1.45 system-ui;color:#1a1722;flex:1;min-height:0;overflow-y:auto}
+.iw-dcard-input{width:100%;border:none;border-top:1.5px dashed #e4e5ec;border-radius:0;padding:7px 0 0;font:12.5px/1.5 system-ui;color:#3a3644;background:none;resize:none;outline:none}
+.iw-dcard-input::placeholder{color:#8b8792;font-weight:600}
+.iw-dcard-hide{position:absolute;top:8px;right:8px;width:22px;height:22px;border:none;border-radius:7px;background:#f2f2f5;color:#6C6C6F;font:13px system-ui;line-height:1;cursor:pointer}
+.iw-dcard-hide:hover{background:#e6e6ea}
+/* ── Writing workspace ── */
+.iw-ws{display:flex;gap:16px;align-items:stretch;height:calc(100vh - 88px);min-height:400px}
+.iw-ws-side{flex:0 0 33%;max-width:310px;min-width:190px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:4px}
+.iw-ws-block{border:1.5px solid #e4e5ec;border-radius:14px;padding:12px 13px}
+.iw-ws-h{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};margin-bottom:7px}
+.iw-ws-prompt{font:13px/1.55 system-ui;color:#3a3644}
+.iw-ws-reqs{list-style:none;display:flex;flex-direction:column;gap:8px}
+.iw-ws-reqs label{display:flex;gap:8px;align-items:flex-start;font:12.5px/1.45 system-ui;color:#3a3644;cursor:pointer}
+.iw-ws-reqs input{flex-shrink:0;width:15px;height:15px;margin-top:1px;accent-color:${ink};cursor:pointer}
+.iw-ws-reqs input:checked+span{color:#8b8792;text-decoration:line-through}
+.iw-ws-acc{border:1.5px solid #e4e5ec;border-radius:14px;padding:10px 13px}
+.iw-ws-acc summary{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};cursor:pointer;list-style:none}
+.iw-ws-acc summary::-webkit-details-marker{display:none}
+.iw-ws-acc summary::after{content:' +';font-family:monospace;opacity:.5}
+.iw-ws-acc[open] summary::after{content:' −'}
+.iw-ws-acc-body{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.iw-ws-acc-body p{font:12.5px/1.5 system-ui;color:#3a3644}
+.iw-ws-acc-body b{display:block;color:#1a1722}
+.iw-ws-acc-body span{color:#6C6C6F}
+.iw-ws-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.iw-ws-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.iw-ws-label{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink}}
+.iw-ws-count{font:12px system-ui;color:#6C6C6F}
+.iw-ws-count b{font-weight:800;color:#1a1722}
+.iw-ws-bar{display:flex;align-items:center;gap:3px;border:1.5px solid #e4e5ec;border-bottom:none;border-radius:12px 12px 0 0;padding:6px 8px}
+.iw-ws-bar button{min-width:28px;height:26px;padding:0 7px;border:none;border-radius:7px;background:none;font:13px system-ui;color:#3a3644;cursor:pointer;white-space:nowrap}
+.iw-ws-bar button:hover{background:#f2f2f5}
+.iw-ws-bar-sep{width:1px;height:16px;background:#e4e5ec;margin:0 4px}
+.iw-ws-editor{flex:1;min-height:140px;overflow-y:auto;border:1.5px solid #e4e5ec;border-radius:0 0 12px 12px;
+  padding:13px 14px;font:14px/1.7 system-ui;color:#1a1722;outline:none}
+.iw-ws-editor:focus{border-color:${accent}}
+.iw-ws-editor:empty::before{content:attr(data-placeholder);color:#a9a5b0}
+.iw-ws-meter{height:4px;border-radius:3px;background:#ececed;margin:10px 0;overflow:hidden}
+.iw-ws-meter i{display:block;height:100%;width:0;background:${accent};transition:width .25s}
+.iw-ws-meter i.full{background:#16a34a}
+.iw-ws-submit{margin-top:0}
+.iw-ws-done{font:700 12px system-ui;color:#15803d;text-align:center;margin-top:8px}
+body.iw-ws-sent .iw-ws-editor{background:#fafafa;color:#4a4a52}
+body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
+@media (max-width:620px){
+  .iw-ws{flex-direction:column;height:auto}
+  .iw-ws-side{flex:none;max-width:none;overflow:visible}
+  .iw-ws-editor{min-height:220px}
+}
 /* ── Bottom buttons ── */
 /* One wide primary action at the foot of the card, as on the static sheet:
    the small centred pill read as a minor control on the screen where it is
@@ -6252,18 +6543,10 @@ function addCardInfrastructure(el, card) {
   ['top','right','bottom','left'].forEach(anchor => {
     const dot = document.createElement('div');
     dot.className = 'anchor-dot'; dot.dataset.anchor = anchor;
-    // Dragging from an anchor dot always starts a connection (Miro parity).
-    // We auto-enter connect mode if needed, so the rest of the connection
-    // pipeline (preview line, drop-target highlight, commit) just works.
-    // The flag tells the connection commit/cancel to drop back to Select.
     dot.addEventListener('mousedown', e => {
       e.stopPropagation();
       e.preventDefault();
-      if (state.mode !== 'connect') {
-        setMode('connect');
-        window._autoConnectMode = true;
-      }
-      startConnection({ card, anchor });
+      connectFromAnchor(card, anchor);
     });
     el.appendChild(dot);
   });
@@ -6995,7 +7278,7 @@ boardWrap.addEventListener('mousedown', e => {
   const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
   if (!onBg) return;
 
-  if (state.mode === 'connect') {
+  if (state.mode === 'connect' || connectPending) {
     clearSelection();
     const pos = screenToBoard(e.clientX, e.clientY);
     if (connectPending) {
@@ -8739,6 +9022,28 @@ function _arrowEffectiveAnchor(arrow, side) {
 }
 
 // from = either {card, anchor} OR {point:{x,y}} (board coords)
+/* ЕДИНЫЙ ВХОД ДЛЯ ЯКОРЕЙ - иначе стрелка не отцепляется от курсора.
+
+   Якорь карточки висел на двух разных обработчиках: тот, что в
+   addCardInfrastructure, включал режим связывания и ставил _autoConnectMode,
+   а тот, что в renderCard (то есть на ВСЕХ обычных карточках), просто звал
+   startConnection. Разница выходила боком трижды подряд: mouseup не
+   завершал связь (его ветка ждёт _autoConnectMode), клик по пустой канве
+   её не отменял (та ветка ждёт mode==='connect'), а клик по любой карточке
+   начинал НОВУЮ связь вместо завершения текущей - стрелка перецеплялась с
+   карточки на карточку и снималась только Escape.
+
+   Здесь один вход на все якоря: связь уже тянется - этот якорь её
+   завершает, нет - начинает и честно входит в режим связывания. */
+function connectFromAnchor(card, anchor) {
+  if (connectPending) { finishConnection({ card, anchor }); return; }
+  if (state.mode !== 'connect') {
+    setMode('connect');
+    window._autoConnectMode = true;
+  }
+  startConnection({ card, anchor });
+}
+
 function startConnection(from) {
   cancelConnection();
   const path = document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -14150,7 +14455,15 @@ function _ttPlaceWorksheetOnBoard(output){
   const frameH = isPagedSet
     ? HEAD + rowH.reduce((sum, h) => sum + h, 0) + Math.max(0, ROWS - 1) * GAP + PAD
     : heights[0];
-  const center = findFreePlacement(c0.x, c0.y, frameW, frameH);
+  /* Лист, который откроется сразу мастерской письма или доской вопросов
+     (авто-Play в addCard), занимает НЕ ту площадь, по которой ищется место:
+     мастерская шире печатного листа на четверть. Резервируем сразу
+     большее из двух, иначе новая карточка ляжет впритык и накроет соседа. */
+  const live = (!isPagedSet && (_ttWritingTask(parts[0]) || _ttIsPromptDeck(parts[0])))
+    ? _ttPlayCardSize(parts[0]) : null;
+  const center = findFreePlacement(c0.x, c0.y,
+    live ? Math.max(frameW, live.w) : frameW,
+    live ? Math.max(frameH, live.h) : frameH);
   const x0 = Math.round(center.x - frameW / 2);
   const y0 = Math.round(center.y - frameH / 2);
   snapshot(); _suppressSnapshot++;
@@ -14656,7 +14969,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '804';
+const TEACHEDOS_ASSET_VERSION = '805';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
