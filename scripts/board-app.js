@@ -3967,6 +3967,42 @@ function _ttWordTarget(text) {
   return parseInt(m[2] || m[3] || m[1], 10) || 150;
 }
 
+/* Подводка сфокусированного поля под видимую часть экрана.
+
+   Клавиатура не меняет layout-вьюпорт, она сжимает ВИЗУАЛЬНЫЙ, поэтому
+   высоту видимой полосы берём у visualViewport, а не у boardWrap. И приходит
+   она позже фокуса: сначала фокус, потом клавиатура выезжает и присылает
+   resize - значит пересчитывать надо на оба события, пока поле в фокусе. */
+let _iwFocusPending = null;
+function _iwRevealFocused() {
+  const m = _iwFocusPending;
+  if (!m || typeof isBoardPhone !== 'function' || !isBoardPhone()) return;
+  const card = state.cards.find(c => c.id === m.cardId);
+  const el = getCardEl(m.cardId);
+  if (!card || !el) return;
+  const frame = el.querySelector('.text-interactive-wrap iframe');
+  if (!frame) return;
+  // Над кадром ещё полоса «Exit» - её высоту меряем по живой карточке.
+  const chrome = Math.max(0, el.offsetHeight - frame.clientHeight);
+  const s = state.scale;
+  const topScreen = state.pan.y + (card.y + chrome + m.top) * s;
+  const botScreen = topScreen + m.height * s;
+  const wrapTop = boardWrap.getBoundingClientRect().top;
+  const vvH = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  const visibleBottom = Math.max(140, Math.min(boardWrap.clientHeight, vvH - wrapTop));
+  const PAD = 14;
+  let dy = 0;
+  if (botScreen > visibleBottom - PAD) dy = (visibleBottom - PAD) - botScreen;
+  if (topScreen + dy < PAD) dy = PAD - topScreen;
+  if (Math.abs(dy) < 2) return;
+  state.pan.y += dy;
+  applyTransform();
+}
+if (typeof window !== 'undefined' && window.visualViewport && !window.__iwFocusVV) {
+  window.__iwFocusVV = true;
+  window.visualViewport.addEventListener('resize', () => { if (_iwFocusPending) _iwRevealFocused(); });
+}
+
 // Receive student answer-state posted by interactive worksheet iframes and
 // persist it on the card so it survives re-render / reload / move.
 if (typeof window !== 'undefined' && !window.__iwStateListener) {
@@ -4002,6 +4038,16 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
       renderAllArrows?.();
       scheduleSave && scheduleSave(); saveLocal && saveLocal();
     }
+    /* Подвести поле ввода под клавиатуру - см. IW_FOCUS_REPORTER. Только на
+       телефоне: на компьютере ничего не перекрывает и двигать вид под курсор
+       значит дёргать доску под учителем. */
+    if (m.type === 'iw-focus' && m.cardId) {
+      _iwFocusPending = m;
+      _iwRevealFocused();
+    }
+    if (m.type === 'iw-blur' && m.cardId) {
+      if (_iwFocusPending && _iwFocusPending.cardId === m.cardId) _iwFocusPending = null;
+    }
     if (m.type === 'iw-progress' && m.cardId) {
       try {
         if (typeof currentBoardId !== 'undefined' && currentBoardId && typeof apiFetch === 'function') {
@@ -4033,6 +4079,31 @@ function iwReportHeight(){
 window.addEventListener('load',iwReportHeight);
 document.addEventListener('DOMContentLoaded',iwReportHeight);
 if(window.ResizeObserver) new ResizeObserver(iwReportHeight).observe(document.body);`;
+
+/* КЛАВИАТУРА НА ТЕЛЕФОНЕ ЗАКРЫВАЕТ ТО, ВО ЧТО ПИШУТ.
+
+   Содержимое кадра ровно по размеру кадра, прокручивать внутри нечего, а сам
+   кадр лежит в трансформированном полотне доски - браузеру некуда «подвести
+   элемент в вид», и он не делает ничего. Проверено пальцем: с открытой
+   клавиатурой на экране остаются задание и требования, а поле ввода, в
+   которое ученик печатает, уезжает вниз за край. Писать вслепую.
+
+   Кадр не может подвинуть доску сам (чужой источник), поэтому он только
+   сообщает, где у него оказалось поле; подводит его обработчик 'iw-focus'
+   снаружи. Шлём в координатах документа кадра - снаружи их пересчитают в
+   координаты доски, зная положение карточки и масштаб. */
+const IW_FOCUS_REPORTER = `
+function iwFocusable(t){ return !!t && (t.isContentEditable || t.tagName==='TEXTAREA' || t.tagName==='INPUT'); }
+document.addEventListener('focusin',function(e){
+  if(!iwFocusable(e.target) || !window.__IW_CARD__) return;
+  var r=e.target.getBoundingClientRect();
+  parent.postMessage({type:'iw-focus',cardId:window.__IW_CARD__,
+    top:Math.round(r.top+(window.scrollY||0)),height:Math.round(r.height)},'*');
+});
+document.addEventListener('focusout',function(e){
+  if(!iwFocusable(e.target) || !window.__IW_CARD__) return;
+  parent.postMessage({type:'iw-blur',cardId:window.__IW_CARD__},'*');
+});`;
 
 /* КАРТОЧКА СЛОВА ПОД ПОДСВЕЧЕННЫМ СЛОВОМ.
 
@@ -4753,11 +4824,16 @@ function iwTitlePick(btn){
     // Флип по нажатию + высота: в сетке её задаёт число рядов, а не самый
     // высокий вопрос, и снаружи это не угадать.
     scriptHtml += `
+/* Автофокус в поле ответа - только там, где есть курсор. На телефоне
+   перевернуть карточку чаще всего значит ПРОЧИТАТЬ вопрос вслух, а фокус
+   выбрасывает клавиатуру на пол-экрана и уводит доску. Захотят писать -
+   нажмут на строку ответа сами. */
 function iwDeckFlip(btn){
   var c=btn.closest('.iw-dcard'); if(!c) return;
   var open=!c.classList.contains('flipped');
   c.classList.toggle('flipped',open);
-  if(open){ var t=c.querySelector('.iw-dcard-input'); if(t) setTimeout(function(){ t.focus(); },320); }
+  var coarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+  if(open && !coarse){ var t=c.querySelector('.iw-dcard-input'); if(t) setTimeout(function(){ t.focus(); },320); }
 }
 function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(function(c){ c.classList.toggle('flipped',!!open); }); }
 ` + IW_HEIGHT_REPORTER;
@@ -4768,6 +4844,9 @@ function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(functio
      другом, высота честно содержательная, и без замера кнопка «Submit» просто
      уезжает под нижний край. */
   if (writing && narrow) scriptHtml += IW_HEIGHT_REPORTER;
+  /* Только на узкой карточке: подводка нужна там, где поле перекрывает
+     клавиатура, и только там, где в кадре вообще есть куда печатать. */
+  if (narrow && (writing || isPromptDeck)) scriptHtml += IW_FOCUS_REPORTER;
 
   // ── Shared stepper navigation (one card at a time, all content modes) ──
   if (stepTotal > 0) {
@@ -15041,7 +15120,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '806';
+const TEACHEDOS_ASSET_VERSION = '807';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
