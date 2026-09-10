@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=809">
+<link rel="stylesheet" href="styles/fonts.css?v=810">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -131,15 +131,15 @@ a{text-decoration:none;color:inherit;}
   background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=809" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=809">
-<link rel="stylesheet" href="styles/harmony.css?v=809">
-<link rel="stylesheet" href="styles/unify.css?v=809">
-<link rel="stylesheet" href="styles/teached-brand.css?v=809">
+<script src="theme.js?v=810" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=810">
+<link rel="stylesheet" href="styles/harmony.css?v=810">
+<link rel="stylesheet" href="styles/unify.css?v=810">
+<link rel="stylesheet" href="styles/teached-brand.css?v=810">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=809">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=809">
-<link rel="stylesheet" href="styles/controls.css?v=809">
+<link rel="stylesheet" href="styles/figma-theme.css?v=810">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=810">
+<link rel="stylesheet" href="styles/controls.css?v=810">
 </head>
 <body class="fx">
 
@@ -189,7 +189,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 
 <!-- Проигрыватель листа, общий с доской: без него лист ученику не показать. -->
-<script src="scripts/worksheet-play.js?v=809"></script>
+<script src="scripts/worksheet-play.js?v=810"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -433,7 +433,10 @@ function renderCardForStudent(host, card) {
     const att = current.attempts.find(t => t.card_id === card.id);
     const data = Object.assign({}, card.data, { _state: (att && att.data && att.data.iw) || null });
     const iframe = document.createElement('iframe');
-    iframe.srcdoc = _buildInteractiveWSHtml(data, card.id, false, host.clientWidth || 720);
+    // Запасная ширина считается от экрана, а не константой: константа на
+    // телефоне выдала бы десктопную раскладку в две колонки.
+    const hostW = host.clientWidth || Math.min(560, Math.max(280, window.innerWidth - 32));
+    iframe.srcdoc = _buildInteractiveWSHtml(data, card.id, false, hostW);
     iframe.sandbox = 'allow-scripts';
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
     iframe.dataset.cardId = card.id;
@@ -485,7 +488,12 @@ async function submitAssignment() {
 /* ── worksheet iframe → сохранить работу ученика ──
    Лист шлёт своё состояние сам (iwSave → 'iw-state'): черновик письма,
    отмеченные требования, ответы на вопросы. Кладём его в попытку, чтобы
-   вернувшись на карточку ученик увидел свою работу, а не чистый лист. */
+   вернувшись на карточку ученик увидел свою работу, а не чистый лист.
+
+   Лист сохраняется на каждый ввод (250мс), а здесь за каждым сохранением стоит
+   запрос к серверу - гасим до одного раза в 1.2с, иначе сочинение на 180 слов
+   это сотни запросов. */
+let iwSaveT = null;
 window.addEventListener('message', e => {
   const d = e.data;
   if (!d || typeof d !== 'object' || d.type !== 'iw-state' || !d.cardId || !current) return;
@@ -494,13 +502,38 @@ window.addEventListener('message', e => {
   for (const f of frames) if (f.contentWindow === e.source && f.dataset.cardId === d.cardId) { ok = true; break; }
   if (!ok) return;
   const s = d.state || {};
-  const answered = (s.draft && s.draft.replace(/<[^>]*>/g, '').trim().length)
-    || Object.keys(s.open || {}).length || Object.keys(s.mcq || {}).length
-    || Object.keys(s.gap || {}).length || Object.keys(s.tf || {}).length;
-  recordAttempt(d.cardId, {
-    status: s.submitted ? 'done' : (answered ? 'in_progress' : 'assigned'),
-    data: { iw: s },
-  });
+  const card = (current.board.data.cards || []).find(c => c.id === d.cardId);
+  const cd = (card && card.data) || {};
+  const qs = Array.isArray(cd.questions) ? cd.questions : [];
+  const draft = String(s.draft || '').replace(/<[^>]*>/g, '').trim();
+  const answeredQs = Object.keys(s.open || {}).length + Object.keys(s.mcq || {}).length
+    + Object.keys(s.gap || {}).length + Object.keys(s.tf || {}).length;
+  /* ОЦЕНКА ЗА ТО, ЧТО ПРОВЕРЯЕТСЯ АВТОМАТОМ, ИДЁТ ОТДЕЛЬНО (см. 'iw-progress').
+     Здесь - только листы, у которых правильного ответа нет: письмо и вопросы
+     для обсуждения. Молчать про них нельзя: computeFinalScore на бекенде делит
+     сумму на ЧИСЛО ЗАДАННЫХ карточек, поэтому карточка без счёта тянет итог в
+     ноль - сданное сочинение превратило бы «всё выполнено» в половину. Считаем
+     то же, что и чек-лист рядом: выполненность, а не правильность. Сам текст
+     лежит в data.iw, учитель читает его глазами. */
+  const gradable = qs.some(q => q && (q.type === 'mcq' || q.type === 'truefalse' || q.type === 'gap-fill'));
+  const payload = { status: s.submitted ? 'done' : ((draft || answeredQs) ? 'in_progress' : 'assigned'), data: { iw: s } };
+  if (!gradable) {
+    if (Array.isArray(cd.cards) && cd.cards.length) { payload.score = s.submitted ? 1 : 0; payload.max_score = 1; }
+    else if (qs.length) { payload.score = Math.min(answeredQs, qs.length); payload.max_score = qs.length; }
+  }
+  clearTimeout(iwSaveT);
+  iwSaveT = setTimeout(() => recordAttempt(d.cardId, payload), 1200);
+});
+
+/* Счёт за проверяемую часть листа лист считает сам и присылает после проверки. */
+window.addEventListener('message', e => {
+  const d = e.data;
+  if (!d || typeof d !== 'object' || d.type !== 'iw-progress' || !d.cardId || !current) return;
+  const frames = document.querySelectorAll('iframe[data-card-id]');
+  let ok = false;
+  for (const f of frames) if (f.contentWindow === e.source && f.dataset.cardId === d.cardId) { ok = true; break; }
+  if (!ok) return;
+  recordAttempt(d.cardId, { score: d.score, max_score: d.maxScore, status: 'done' });
 });
 
 /* ── game iframe → record attempt ── */
@@ -537,10 +570,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=809" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=809" defer></script>
-<script src="scripts/autogrow.js?v=809" defer></script>
-<script src="pwa-boot.js?v=809" defer></script>
-  <script src="scripts/signin-entry.js?v=809" defer></script>
+<script src="scripts/nav-boost.js?v=810" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=810" defer></script>
+<script src="scripts/autogrow.js?v=810" defer></script>
+<script src="pwa-boot.js?v=810" defer></script>
+  <script src="scripts/signin-entry.js?v=810" defer></script>
 </body>
 </html>
