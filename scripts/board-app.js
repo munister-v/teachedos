@@ -3018,6 +3018,20 @@ function _ttGroupQuestions(qs) {
    the two cannot drift into different markup for the same content - and the
    items themselves are <li>, which is what makes a worksheet readable to a
    screen reader ("list, 8 items") and survivable as pasted HTML. */
+/* Снимок, подобранный к паре на сборке урока («Match words to pictures»).
+
+   Одна точка на все три рендера - лист, доска и расчёт высоты, - потому
+   что расхождение здесь стоило бы урока: карточка нарисовала бы
+   фотографии, а высоту доска посчитала бы по строке текста.
+
+   thumb принимается наравне с url: в подборщике картинок пара получает
+   оба поля, но у набора, пришедшего из архива, бывает только миниатюра -
+   а показать миниатюру всё равно лучше, чем поисковый запрос текстом. */
+function _ttPairPic(p) {
+  const img = p && p.img;
+  return (img && (img.thumb || img.url)) || '';
+}
+
 function _ttWorksheetListTag(d) {
   // Questions are grouped into <section>s that carry their own <ol> (see
   // _ttGroupQuestions), so the outer element is a plain container there.
@@ -3054,7 +3068,12 @@ function _ttWorksheetListHTML(d, showAns, accent) {
           ans = `<div class="ws-ans"><span class="ws-ans-label">Answer</span> <b>${_ttMdInline(q.answer)}</b></div>`;
         }
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
-        ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${_ttMdInline(p.left)}</span><span class="ws-mlink"></span><span class="ws-r">${_ttMdInline(p.right || '')}</span>`).join('')}</div>`;
+        // См. iw-match: у задания с картинками p.right - поисковый запрос,
+        // а не то, что показывают ученику.
+        ans = `<div class="ws-match">${q.pairs.map(p => `<span class="ws-l">${_ttMdInline(p.left)}</span><span class="ws-mlink"></span><span class="ws-r">${
+          _ttPairPic(p)
+            ? `<img class="ws-pic" src="${esc(_ttPairPic(p))}" alt="" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous">`
+            : _ttMdInline(p.right || '')}</span>`).join('')}</div>`;
       } else if (q.type === 'open') {
         // Four ruled lines: at the old 4.8mm pitch three lines were unusable
         // anyway, and an open question is the one place a student writes.
@@ -3611,7 +3630,10 @@ function _ttPlayStepHeight(q, w) {
     const cols = Math.max(1, Math.floor((usable + 10) / 130));
     h += Math.ceil(q.options.length / cols) * 74;
   } else if (q.type === 'truefalse') h += 56;
-  else if (q.type === 'match' && Array.isArray(q.pairs)) h += 60 + q.pairs.length * 46;
+  /* Строка с фотографией втрое выше строки с определением - меряем по
+     тому, что реально поедет на доску, иначе задание с картинками
+     обрежется по нижнему краю карточки. */
+  else if (q.type === 'match' && Array.isArray(q.pairs)) h += 60 + q.pairs.length * (q.pairs.some(p => _ttPairPic(p)) ? 100 : 46);
   else if (q.type === 'open') h += 64;
   else h += 52;                                // gap-fill and anything else
   return Math.max(220 + PLAY_QPAD, h);         // .iw-q min-height:220
@@ -3805,14 +3827,23 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
             </div>`).join('')}</div>
           </div>`;
         } else {
-          inner = `<div class="iw-match" data-qi="${qi}">
+          /* У «Match words to pictures» правая сторона пары - это не
+             определение, а ПОИСКОВЫЙ ЗАПРОС, по которому на сборке урока
+             уже нашли снимок (p.img). Показывая его текстом, доска
+             превращала задание про картинки в матчинг «bruise ↔ human
+             bruise close-up»: учитель одобрял в превью фотографии, а
+             ученик получал их описания. Есть снимок - показываем снимок. */
+          const withPics = q.pairs.some(p => _ttPairPic(p));
+          inner = `<div class="iw-match${withPics ? ' has-pics' : ''}" data-qi="${qi}">
             <div class="iw-match-bank" id="bank-${qi}">
               ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}">${md(p.left)}</div>`).join('')}
             </div>
             <div class="iw-match-targets">
               ${q.pairs.map(p => `<div class="iw-target" data-right="${esc(p.right)}" data-expect="${esc(p.left)}">
                 <span class="iw-slot"></span>
-                <span class="iw-def">${md(p.right)}</span>
+                ${_ttPairPic(p)
+                  ? `<img class="iw-pic" src="${esc(_ttPairPic(p))}" alt="" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous">`
+                  : `<span class="iw-def">${md(p.right)}</span>`}
               </div>`).join('')}
             </div>
           </div>`;
@@ -4117,7 +4148,7 @@ strong{font-weight:650}
 .iw-check-btn:hover{opacity:.85}
 /* Matching D&D */
 .iw-match{display:flex;gap:16px;flex-wrap:wrap}
-.iw-match-bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:8px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;flex:1}
+.iw-match-bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:8px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;flex:1;align-items:flex-start;align-content:flex-start}
 .iw-drag{padding:6px 14px;border-radius:8px;background:${accent};color:${WS_ACCENT_INK};font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
 .iw-drag:active{cursor:grabbing;transform:scale(1.06)}
 .iw-drag.placed{opacity:.35;pointer-events:none}
@@ -4134,6 +4165,9 @@ strong{font-weight:650}
 .iw-slot{min-width:60px;min-height:26px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${accent};padding:3px 8px;transition:all .15s}
 .iw-slot.filled{border-style:solid;border-color:${accent};background:color-mix(in srgb,${accent} 10%,#fff)}
 .iw-def{font-size:12.5px;color:#3f3a4a;flex:1}
+.iw-pic{flex:1;min-width:0;height:78px;object-fit:cover;border-radius:8px;background:#f2f2f5;display:block}
+.iw-match.has-pics .iw-target{align-items:stretch;padding:8px 10px}
+.iw-match.has-pics .iw-slot{align-self:center}
 /* Sorting */
 .iw-sort{display:flex;flex-direction:column;gap:12px}
 .iw-sort-bank{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;min-height:40px}
@@ -4392,6 +4426,7 @@ function printWorksheet(cardId) {
     .ws-l{font-size:13.5px;line-height:1.45;font-weight:600;color:${accent};background:${CREAM};border:2px solid ${LINE};padding:7px 12px;border-radius:10px;justify-self:start}
     .ws-mlink{width:22px;height:0;border-top:2px dotted ${LINE}}
     .ws-r{font-size:13.5px;line-height:1.45;color:${accent};font-weight:600}
+    .ws-pic{display:block;width:100%;max-width:180px;height:82px;object-fit:cover;border-radius:9px;border:2px solid ${LINE};background:${CREAM}}
     /* stage cards (reading / glossary / tasks / grammar) */
     /* One accent for the whole pack (not a different hue per stage type) - the
        stage rail number + text label are enough to tell stages apart. */
@@ -12965,6 +13000,7 @@ const WS_H = {
   mcqBase: 88, mcqPerOption: 74,   // measured: option 72px, 4-option card 356px
   trueFalse: 136,                  // measured 128
   matchBase: 76, matchPerPair: 54, // measured 219px at 3 pairs
+  matchPerPicPair: 108,            // same row with a 78px photo instead of a line of text
   other: 140,                      // gap-fill
   open: 212,                       // open question - four 8mm ruled lines
   chipCharPx: 8.4, chipPad: 34, chipRow: 56, chipUsable: 607,  // glossary chip: measured 235px wide for 24 chars, 42px tall + 8 gap
@@ -13001,7 +13037,10 @@ function _ttQuestionHeight(q, k = 1){
     return WS_H.mcqBase + opts + extra;
   }
   if (q.type === 'truefalse') return WS_H.trueFalse + extra;
-  if (q.type === 'match' && Array.isArray(q.pairs)) return WS_H.matchBase + q.pairs.length * WS_H.matchPerPair + extra;
+  if (q.type === 'match' && Array.isArray(q.pairs)) {
+    const perPair = q.pairs.some(p => _ttPairPic(p)) ? WS_H.matchPerPicPair : WS_H.matchPerPair;
+    return WS_H.matchBase + q.pairs.length * perPair + extra;
+  }
   // Open questions carry four 8mm ruled lines, so they are far taller than the
   // gap-fill they used to share a constant with - one number for both left
   // every open-question sheet scrolling.
@@ -14015,7 +14054,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '792';
+const TEACHEDOS_ASSET_VERSION = '793';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15442,6 +15481,10 @@ function _wizShow(on) {
   const layout = document.getElementById('tbuilder-layout');
   if (wiz) wiz.hidden = !on;
   if (layout) layout.style.display = on ? 'none' : '';
+  /* У самого мастера свой «← Back» под карточками - две кнопки назад на
+     одном экране означали бы два разных «назад». */
+  const btn = document.getElementById('tbuilder-back');
+  if (btn) btn.hidden = on || !(boardLessonWizard && boardLessonWizard.skill);
 }
 
 function openLessonWizard() {
@@ -15509,6 +15552,20 @@ function backLessonWizard() {
   boardLessonWizard.skill = null;
   boardLessonWizard.source = null;
   boardLessonWizard.media = null;
+  renderLessonWizard();
+}
+
+/* Из конструктора обратно в мастер. Ответив на второй вопрос, учитель
+   оказывался в форме без единого выхода назад: «×» закрывает панель
+   целиком, и ошибка в выборе источника стоила всего набранного. Здесь
+   возвращается ШАГ 2 - навык остаётся, меняется только источник. */
+function backToLessonWizard() {
+  if (!boardLessonWizard) { closeTeacherToolBuilder(); return; }
+  _ttSaveBuilderDraft();
+  boardLessonWizard.source = null;
+  boardLessonWizard.media = null;
+  lastLessonStageSet = null;
+  _wizRenderSourceTools(null);
   renderLessonWizard();
 }
 
@@ -15587,11 +15644,25 @@ function _wizRenderSourceTools(src) {
     return;
   }
   if (src.ocr) {
+    /* Кнопка «Choose an image» открывала только системный диалог, а
+       скриншот учебника чаще всего уже лежит в буфере (Cmd+Shift+4) или
+       перетаскивается из папки. Ради этих двух путей и стоит рамка: она
+       и сама принимает файл, и говорит про Cmd+V - раньше про вставку
+       было написано в примечании, но её никто не слушал. */
     host.innerHTML = `
       <div class="tb-wiz-tool">
-        <input type="file" id="tb-wiz-shot" accept="image/*" hidden onchange="readLessonScreenshot(this)">
-        <button type="button" class="tbuilder-btn ghost" onclick="document.getElementById('tb-wiz-shot').click()">Choose an image</button>
-        <span class="tb-wiz-tool-note" id="tb-wiz-shot-note">PNG, JPG or a screenshot from the clipboard. Nothing is uploaded: the text is read here, in your browser.</span>
+        <input type="file" id="tb-wiz-shot" accept="image/*" hidden onchange="readLessonScreenshot(this.files && this.files[0]); this.value='';">
+        <div class="tb-wiz-drop" id="tb-wiz-drop" tabindex="0" role="button"
+             aria-label="Add a screenshot: drop a file, paste from the clipboard, or click to choose one"
+             onclick="document.getElementById('tb-wiz-shot').click()"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('tb-wiz-shot').click();}">
+          <span class="tb-wiz-drop-ic" aria-hidden="true">🖼</span>
+          <span class="tb-wiz-drop-tx">
+            <b>Drop a screenshot here, or press ${_ttPasteKeyLabel()}</b>
+            <small>You can also click to choose a file</small>
+          </span>
+        </div>
+        <span class="tb-wiz-tool-note" id="tb-wiz-shot-note">PNG or JPG. Nothing is uploaded: the text is read here, in your browser.</span>
       </div>`;
   } else {
     host.innerHTML = `
@@ -15623,8 +15694,56 @@ function _loadTesseract() {
   return _tesseractLoading;
 }
 
-async function readLessonScreenshot(input) {
-  const file = input && input.files && input.files[0];
+function _ttPasteKeyLabel() {
+  return /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent) ? '⌘V' : 'Ctrl+V';
+}
+
+/* Три входа - диалог, перетаскивание, буфер - кончаются одним и тем же
+   файлом, поэтому и распознавание одно на всех. */
+function _ttPickImageFile(list) {
+  return Array.from(list || []).find(f => f && /^image\//.test(f.type)) || null;
+}
+
+function _wizOcrDropzone() {
+  return document.getElementById('tb-wiz-drop');
+}
+
+document.addEventListener('dragover', e => {
+  const zone = _wizOcrDropzone();
+  if (!zone || !e.target.closest || !e.target.closest('#tb-wiz-drop')) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  zone.classList.add('is-over');
+});
+document.addEventListener('dragleave', e => {
+  if (e.target.closest && e.target.closest('#tb-wiz-drop')) _wizOcrDropzone()?.classList.remove('is-over');
+});
+document.addEventListener('drop', e => {
+  const zone = _wizOcrDropzone();
+  if (!zone || !e.target.closest || !e.target.closest('#tb-wiz-drop')) return;
+  e.preventDefault();
+  zone.classList.remove('is-over');
+  const file = _ttPickImageFile(e.dataTransfer && e.dataTransfer.files);
+  if (file) readLessonScreenshot(file);
+  else {
+    const note = document.getElementById('tb-wiz-shot-note');
+    if (note) note.textContent = 'That was not an image. Drop a PNG or JPG screenshot.';
+  }
+});
+
+/* Вставка ловится на всей панели, а не только на рамке: снимок в буфере
+   жмут Cmd+V не глядя, куда сейчас смотрит фокус. Картинка в текстовое
+   поле всё равно не вставится, так что чужого поведения мы не отнимаем -
+   и текстовую вставку не трогаем вовсе. */
+document.getElementById('tool-builder-panel')?.addEventListener('paste', e => {
+  if (!_wizOcrDropzone()) return;
+  const file = _ttPickImageFile(e.clipboardData && e.clipboardData.files);
+  if (!file) return;
+  e.preventDefault();
+  readLessonScreenshot(file);
+});
+
+async function readLessonScreenshot(file) {
   const note = document.getElementById('tb-wiz-shot-note');
   if (!file) return;
   const say = msg => { if (note) note.textContent = msg; };
@@ -15642,8 +15761,6 @@ async function readLessonScreenshot(input) {
   } catch (err) {
     console.warn('[wizard] ocr failed', err);
     say('The image could not be read. Paste the text by hand instead.');
-  } finally {
-    if (input) input.value = '';
   }
 }
 

@@ -74,12 +74,24 @@
   transition:background .15s ease,color .15s ease;
 }
 
-#tool-builder-panel .tbuilder-close:hover{
+#tool-builder-panel .tbuilder-back{
+  height:40px;
+  border-radius:9px;
+  background:#efeff2;
+  color:#464649;
+  font-size:12.5px;
+  box-shadow:none;
+  transition:background .15s ease,color .15s ease;
+}
+
+#tool-builder-panel .tbuilder-close:hover,
+#tool-builder-panel .tbuilder-back:hover{
   background:#e3e3e6;
   color:#171814;
 }
 
 #tool-builder-panel .tbuilder-close:focus-visible,
+#tool-builder-panel .tbuilder-back:focus-visible,
 #tool-builder-panel .tbuilder-btn:focus-visible,
 #tool-builder-panel .tbuilder-more-actions summary:focus-visible,
 #tool-builder-panel .tbuilder-menu-item:focus-visible{

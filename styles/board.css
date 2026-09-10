@@ -3477,6 +3477,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
    объявлять. */
 .tbuilder-title{font-size:clamp(21px,2.2vw,28px);line-height:1.08;letter-spacing:-.03em;font-weight:600;margin:3px 0 2px;}
 .tbuilder-sub{max-width:560px;color:#636366;font-size:12.5px;line-height:1.5;font-weight:600;}
+.tbuilder-top-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tbuilder-back{border:0;background:rgba(14,14,16,.08);height:36px;padding:0 14px;border-radius:13px;font-family:var(--font);font-size:12.5px;font-weight:600;color:#0E0E10;cursor:pointer;white-space:nowrap;transition:background .14s,transform .1s;}
+.tbuilder-back:hover{background:rgba(14,14,16,.14);}
+.tbuilder-back:active{transform:scale(.96);}
 .tbuilder-close{border:0;background:rgba(14,14,16,.08);width:36px;height:36px;border-radius:13px;font-size:18px;font-weight:600;color:#0E0E10;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .14s,transform .1s;flex-shrink:0;}
 .tbuilder-close:hover{background:rgba(14,14,16,.14);}
 .tbuilder-close:active{transform:scale(.94);}
@@ -3684,6 +3688,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tb-wiz-tool input[type=url]{flex:1 1 190px;min-width:0;}
 .tb-wiz-tool .tbuilder-btn{padding:9px 13px;font-size:12px;white-space:nowrap;}
 .tb-wiz-tool-note{flex:1 1 100%;font-family:var(--font);font-size:11px;color:#636366;line-height:1.35;}
+.tb-wiz-drop{flex:1 1 100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px dashed #c9cbd4;border-radius:12px;background:#fafafc;cursor:pointer;text-align:left;transition:border-color .14s,background .14s;}
+.tb-wiz-drop:hover,.tb-wiz-drop:focus-visible{border-color:#9aa0ad;background:#f4f4f7;}
+.tb-wiz-drop.is-over{border-color:var(--accent,#C9E747);border-style:solid;background:color-mix(in srgb,var(--accent,#C9E747) 12%,#fff);}
+.tb-wiz-drop-ic{font-size:20px;line-height:1;flex-shrink:0;}
+.tb-wiz-drop-tx{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.tb-wiz-drop-tx b{font-family:var(--font);font-size:12.5px;font-weight:600;color:#0E0E10;}
+.tb-wiz-drop-tx small{font-family:var(--font);font-size:11px;color:#636366;}
 
 .tbuilder-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;}
 .tbuilder-btn{border:0;border-radius:14px;background:#556056;color:#fff;font-weight:600;padding:11px 14px;cursor:pointer;}
@@ -4055,6 +4066,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ws-l{font-size:14px;line-height:1.45;font-weight:600;padding:8px 14px;border-radius:12px;background:var(--ws-cream);color:var(--ws-ink);border:2px solid var(--ws-line);justify-self:start;}
 .ws-mlink{width:20px;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--ws-line) 0 4px,transparent 4px 7px);}
 .ws-r{font-size:14px;line-height:1.45;color:var(--ws-ink);font-weight:600;}
+.ws-pic{display:block;width:100%;max-width:190px;height:86px;object-fit:cover;border-radius:10px;border:2px solid var(--ws-line);background:var(--ws-cream);}
 	/* Stage / lesson-plan cards (cards[] kind) */
 	/* Lesson Pack stage cards - one accent (the pack's own category colour, not
 	   a different hue per stage type) so the sequence reads as one considered
