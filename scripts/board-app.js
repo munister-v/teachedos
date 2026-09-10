@@ -3654,6 +3654,18 @@ function _ttPlayCardSize(d) {
   // the board stops reading as a card being presented.
   const longest = qs.reduce((n, q) => Math.max(n, String(q.text || '').length), 0);
   const w = Math.max(480, Math.min(720, 480 + Math.round((longest - 90) / 4)));
+  /* Материал - не флип-коробка: у него нет «лица», под которым прячется
+     ответ, есть только текст, и высота у него ровно такая, какой текст.
+     Это лишь первая прикидка, чтобы карточка не прыгала: точную высоту
+     пришлёт сама разметка (iwReportHeight → 'iw-height'). */
+  if (_ttIsMaterialCards(d)) {
+    const W = 560, perRow = Math.floor((W - 78) / 8.1);
+    const rows = d.cards.reduce((n, c) => n + String(c.text || '').split(/\n+/)
+      .filter(Boolean)
+      .reduce((k, line) => k + Math.max(1, Math.ceil(line.length / perRow)), 0), 0);
+    const boxes = d.cards.length * 84;   // рамка, кикер и заголовок каждой карточки
+    return { w: W, h: Math.max(320, Math.min(WS_MAX_SHEET, 40 + PLAY_TITLE + boxes + rows * 25)) };
+  }
   if (!qs.length) {
     /* Flashcards / lesson-pack stages: fixed flip box, no per-item measuring.
        PLAY_CHROME was written for a question card's ONE "Check Answers"
@@ -3698,6 +3710,28 @@ function deactivateWorksheet(cardId) {
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
+/* МАТЕРИАЛ ЧИТАЮТ, А НЕ УГАДЫВАЮТ.
+
+   В Play-режиме любая карточка с cards[] становилась флип-картой: лицо с
+   заголовком и «tap to reveal», под ним спрятанное тело. Для коллокаций и
+   фразовых глаголов это верно - заголовок там и есть то, что вспоминают.
+   Но текст урока приезжает тем же cards[], и ученик получал салатовый
+   прямоугольник «📖 Reading text · tap to reveal» вместо самого текста,
+   а после переворота - тот же текст в коробке фиксированной высоты 240px
+   с прокруткой внутри.
+
+   Признак ставит укладчик урока (`_ttMaterial`, см. placeBoardLessonStageSet):
+   там это ЗНАЮТ, а ответ сервера поля kind не несёт вовсе - у текста,
+   написанного движком, по нему гадать нечего. kind остаётся вторым путём:
+   по нему узнаётся учительский текст (_ttOwnTextOutput) и одиночный
+   инструмент, открытый из каталога. */
+const TT_MATERIAL_KINDS = ['reading text', 'transcript', 'dialogue', 'model', 'in context'];
+function _ttIsMaterialCards(d) {
+  if (!d || !Array.isArray(d.cards) || !d.cards.length) return false;
+  return d._ttMaterial === 1
+      || TT_MATERIAL_KINDS.includes(String(d.kind || '').trim().toLowerCase());
+}
+
 // Receive student answer-state posted by interactive worksheet iframes and
 // persist it on the card so it survives re-render / reload / move.
 if (typeof window !== 'undefined' && !window.__iwStateListener) {
@@ -3709,6 +3743,28 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
       const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
       if (!card || !card.data) return;
       card.data._state = m.state;
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    }
+    /* Карточка с материалом сама сообщает, сколько места ей нужно: снаружи
+       содержимое srcdoc-iframe не измерить, а оценка по числу символов
+       промахивается ровно настолько, чтобы текст пришлось прокручивать
+       внутри карточки. Растём и сжимаемся, но не ниже разумного минимума и
+       не выше общего потолка листа. */
+    if (m.type === 'iw-height' && m.cardId && m.height > 0) {
+      const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
+      if (!card || !card.data || !card.data._interactive) return;
+      const el = getCardEl(m.cardId);
+      /* Присланная высота - высота РАЗМЕТКИ, а над кадром ещё полоса
+         «Exit» с ручкой перетаскивания. Меряем её здесь же, по живой
+         карточке, а не константой: иначе текст всё равно упирался бы в
+         низ ровно на высоту этой полосы. */
+      const frame = el && el.querySelector('.text-interactive-wrap iframe');
+      const chrome = (el && frame) ? Math.max(0, el.offsetHeight - frame.clientHeight) : 0;
+      const next = Math.max(220, Math.min(WS_MAX_SHEET, Math.round(m.height + chrome)));
+      if (Math.abs(next - card.h) <= 4) return;
+      card.h = next;
+      if (el) el.style.height = next + 'px';
+      renderAllArrows?.();
       scheduleSave && scheduleSave(); saveLocal && saveLocal();
     }
     if (m.type === 'iw-progress' && m.cardId) {
@@ -3758,7 +3814,11 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   // one combined step (a numbered sentence list + a grid of answer tiles)
   // instead of one stepper card per blank - see the isAllGapFill branch below.
   const isAllGapFill = qs.length > 1 && qs.every(q => q.type === 'gap-fill');
-  const stepTotal = isAllGapFill ? 1 : (qs.length || items.length || cards.length || 0);
+  const isMaterial = _ttIsMaterialCards(d);
+  /* Материал не листается: текст и его глоссарий стоят друг под другом и
+     читаются подряд, поэтому ни счётчика шагов, ни стрелок у него нет. */
+  const stepTotal = isMaterial ? 0
+    : isAllGapFill ? 1 : (qs.length || items.length || cards.length || 0);
   const stepHud = stepTotal > 1
     ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
     : '';
@@ -4061,6 +4121,38 @@ document.addEventListener('DOMContentLoaded',()=>{
     scriptHtml = '';
   }
 
+  // ─── MODE: Reading material (text / transcript / dialogue / model) ───
+  else if (isMaterial) {
+    /* Первая строка тела - это заголовок текста («My Biggest Fail»), его
+       кладёт туда _ttOwnTextOutput. Абзацы разделены переводами строк, и
+       пустая строка между ними не обязательна - режем по любому. */
+    contentHtml = `<div class="iw-read">${cards.map(c => {
+      const lines = String(c.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+      const head = lines.length > 1 && lines[0].length <= 90 ? lines.shift() : '';
+      return `<article class="iw-read-card">
+        <div class="iw-read-kicker">${md(c.title || '')}</div>
+        ${head ? `<h2 class="iw-read-head">${md(head)}</h2>` : ''}
+        ${lines.map(p => `<p class="iw-read-p">${md(p)}</p>`).join('')}
+      </article>`;
+    }).join('')}</div>`;
+    /* Высота карточки на доске задавалась оценкой и коробкой в 240px -
+       текст в неё не помещался и прокручивался внутри. Кто знает
+       настоящую высоту, тот её и сообщает: замерить эту разметку снаружи
+       нельзя (srcdoc-iframe), а изнутри - одна строка. */
+    scriptHtml = `
+var _iwRH=0;
+function iwReportHeight(){
+  try{
+    var h=Math.ceil(document.documentElement.scrollHeight);
+    if(Math.abs(h-_iwRH)<4) return; _iwRH=h;
+    if(window.__IW_CARD__) parent.postMessage({type:'iw-height',cardId:window.__IW_CARD__,height:h},'*');
+  }catch(e){}
+}
+window.addEventListener('load',iwReportHeight);
+document.addEventListener('DOMContentLoaded',iwReportHeight);
+if(window.ResizeObserver) new ResizeObserver(iwReportHeight).observe(document.body);`;
+  }
+
   // ─── MODE: Cards (collocations, word-families, phrasal verbs, idioms, etc.) ───
   else if (cards.length) {
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${cards.map((c, i) => `<div class="iw-card-flip" onclick="iwFlipOrNext(this)">
@@ -4194,6 +4286,15 @@ strong{font-weight:650}
 .iw-flash-word{font:800 16px system-ui;letter-spacing:-.02em}
 .iw-flash-back{background:#f0fdf4;border:1.5px solid #a7e3bd;transform:rotateY(180deg)}
 .iw-flash-def{font:600 12.5px system-ui;color:#15803d;line-height:1.5}
+/* ── Reading material: read, not guessed. No box, no scroll of its own -
+      the card grows to the text (see iwReportHeight). ── */
+.iw-read{display:flex;flex-direction:column;gap:18px}
+.iw-read-card{border:1.5px solid #e4e5ec;border-radius:12px;padding:18px 20px;background:#fff}
+.iw-read-kicker{font:800 10px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${accent};margin-bottom:10px}
+.iw-read-head{font:700 20px/1.25 system-ui;color:#171814;margin:0 0 12px;letter-spacing:-.02em}
+.iw-read-p{font:15px/1.65 -apple-system,system-ui,sans-serif;color:#1a1a2e;margin:0 0 12px}
+.iw-read-p:last-child{margin-bottom:0}
+.iw-read-p strong{background:color-mix(in srgb,${accent} 38%,transparent);padding:0 2px;border-radius:3px}
 /* ── Card-flip (collocations, phrasal, idioms) ── */
 .iw-card-flip{perspective:600px;cursor:pointer;min-height:130px}
 .iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
@@ -10842,6 +10943,8 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
               // shrink it to its content instead of leaving the estimate's
               // slack as a hole in the grid.
               _ttSrc: 1, _ytTool: out._ytTool || '', _ytToolId: out._ytToolId || '',
+              // Материал урока читают, а не переворачивают - см. _ttIsMaterialCards.
+              _ttMaterial: out._ttMaterial || 0,
               _step: out._step, _steps: out._steps,
               // Семафор приезжает с сервера вместе с материалом и живёт на
               // карточке: учитель смотрит на лист, а не в консоль.
@@ -14054,7 +14157,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '793';
+const TEACHEDOS_ASSET_VERSION = '794';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15391,6 +15494,11 @@ function placeBoardLessonStageSet() {
   const results = [];
   if (wantsTextOnBoard && set.textOut) {
     set.textOut._ytStage = textStageIdx >= 0 ? textStageIdx : 1;
+    /* Метка «это материал урока, его читают». Ставится здесь, потому что
+       здесь это ЗНАЮТ: kind у ответа сервера не заполняется вовсе, и
+       угадывать материал по виду карточек на рендере значило бы гадать.
+       См. _ttIsMaterialCards. */
+    set.textOut._ttMaterial = 1;
     results.push(set.textOut);
   }
   lesson.forEach(({ activity, out }) => {
