@@ -1323,13 +1323,33 @@ function assembleFromLLM(input, data) {
       p => p.left.toLowerCase(),
     ).slice(0, input.count);
     if (!pairs.length) throw new Error('LLM returned no pairs');
+    /* Подпись читает УЧЕНИК, поэтому она называет то, что он видит на
+       карточке. Раньше всё, кроме трёх перечисленных инструментов, падало в
+       ветку про определения:
+
+       - «подбери слово к картинке» просило «match the words with
+         student-friendly definitions», хотя определений на карточке нет
+         вовсе: right у этого инструмента - поисковый запрос, по которому
+         подбирается фотография (см. aiEngine, word-image-match);
+       - подбор заголовков к абзацам просил о том же, хотя слева там
+         «Paragraph 3: ...», а справа заголовок;
+       - и само «student-friendly» - это указание модели из промта, а не
+         слова, с которыми обращаются к ученику.
+
+       Формулировки совпадают с офлайновым генератором (scripts/board-gen.js),
+       чтобы одно и то же задание не меняло подпись в зависимости от того,
+       собрали его на сервере или без него. */
     let matchText = input.toolId === 'word-sorting'
       ? `Sort the words into the correct categories for ${input.topic}.`
       : input.toolId === 'word-translation-match'
         ? `Match each word with its translation (${input.topic}).`
         : input.toolId === 'matching-halves'
           ? `Match the two halves to make complete sentences (${input.topic}).`
-          : `Match the words with student-friendly definitions for ${input.topic}.`;
+          : input.toolId === 'word-image-match'
+            ? `Match each word to its photo (${input.topic}).`
+            : input.toolId === 'match-headings'
+              ? `Match each paragraph with the heading that fits it (${input.topic}).`
+              : `Match each word to its definition (${input.topic}).`;
     // Sorting safety net: reject degenerate categories (label == topic, a vague
     // catch-all, fewer than 2 groups, or everything dumped in one) and fall back
     // to an honest open-ended sort where students name the groups themselves.
