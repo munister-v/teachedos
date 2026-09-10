@@ -3789,6 +3789,10 @@ function activateWorksheet(cardId) {
   const size = _ttPlayCardSize(card.data);
   card.w = size.w; card.h = size.h;
   reRenderCard(card);
+  /* Карточки слов добираются здесь, а не при сборке урока: на досках, где
+     текст уже лежит, пересобирать урок ради подсказок никто не станет.
+     Запрос уходит в фон и сам перерисует карточку, когда ответит. */
+  if (_ttIsMaterialCards(card.data) && !card.data._wordHelp) _ttFillWordHelp(cardId);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
@@ -3894,6 +3898,100 @@ window.addEventListener('load',iwReportHeight);
 document.addEventListener('DOMContentLoaded',iwReportHeight);
 if(window.ResizeObserver) new ResizeObserver(iwReportHeight).observe(document.body);`;
 
+/* КАРТОЧКА СЛОВА ПОД ПОДСВЕЧЕННЫМ СЛОВОМ.
+
+   Данные (__IW_WORDS__) приезжают готовыми снаружи: внутри песочницы у
+   документа непрозрачный источник, и любой его запрос к нашему же API
+   получает 403 - см. [[teached-worksheet-sandbox-iframe]]. Здесь только
+   показ.
+
+   Озвучка: сначала запись голосом из словаря (обычный <audio>, CORS ему не
+   нужен), а если у слова записи нет - что бывает у фраз вроде «doesn't
+   agree with me», их в словаре просто нет - синтез речи браузера. Кнопка
+   рисуется только когда есть чем звучать. */
+const IW_WORD_HELP_SCRIPT = `
+(function(){
+  var W = window.__IW_WORDS__ || {};
+  var norm = function(s){ return String(s||'').toLowerCase().replace(/[\\u2019]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\\s+/g,' ').trim(); };
+  var box = null, audio = null;
+  function close(){ if(box){ box.remove(); box = null; } if(audio){ audio.pause(); audio = null; } }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function row(label, inner){ return '<div class="iw-wh-row"><span class="iw-wh-label">' + label + '</span>' + inner + '</div>'; }
+
+  function open(el, info){
+    close();
+    box = document.createElement('div');
+    box.className = 'iw-wh';
+    var canSay = !!info.audio || !!window.speechSynthesis;
+    var html = '<div class="iw-wh-head"><span class="iw-wh-word">' + esc(info.word) + '</span>'
+      + (info.pos ? '<span class="iw-wh-pos">' + esc(info.pos) + '</span>' : '')
+      + '<button type="button" class="iw-wh-x" aria-label="Close">&times;</button></div>';
+    if (info.ipa || canSay) {
+      html += row('Phonetics &amp; pronunciation', '<div class="iw-wh-ipa">'
+        + (canSay ? '<button type="button" class="iw-wh-say" aria-label="Listen">&#128266;</button>' : '')
+        + '<span>' + (info.ipa ? '/' + esc(info.ipa) + '/' : '') + '</span></div>');
+    }
+    if (info.meaning)  html += row('Meaning', '<div>' + esc(info.meaning) + '</div>');
+    if (info.synonyms) html += row('Synonyms', '<div>' + esc(info.synonyms) + '</div>');
+    if (info.example)  html += row('Example', '<div class="iw-wh-eg">' + esc(info.example) + '</div>');
+    box.innerHTML = html;
+    document.body.appendChild(box);
+
+    /* Карточка текста невысокая, а окошко со всеми четырьмя строками бывает
+       выше половины её высоты. Простое «не влезло снизу - показать сверху»
+       давало худшее из возможного: окно упиралось в верхний край и
+       накрывало ровно то слово, которое объясняет. Поэтому выбирается
+       сторона, где места больше, и высота ограничивается этим местом -
+       окно всегда целиком видно и никогда не закрывает слово. */
+    var r = el.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+    var below = vh - r.bottom - 18, above = r.top - 18;
+    var down = below >= Math.min(box.offsetHeight, above);
+    box.style.maxHeight = Math.max(96, Math.round(down ? below : above)) + 'px';
+    box.style.overflowY = 'auto';
+    var h = box.offsetHeight;
+    box.style.left = Math.max(10, Math.min(r.left, vw - box.offsetWidth - 10)) + 'px';
+    box.style.top = (down ? r.bottom + 8 : Math.max(10, r.top - h - 8)) + 'px';
+
+    box.querySelector('.iw-wh-x').addEventListener('click', close);
+    var say = box.querySelector('.iw-wh-say');
+    if (say) say.addEventListener('click', function(){
+      say.classList.add('is-playing');
+      var done = function(){ say.classList.remove('is-playing'); };
+      if (info.audio) {
+        audio = new Audio(info.audio);
+        audio.addEventListener('ended', done);
+        audio.addEventListener('error', done);
+        audio.play().catch(done);
+      } else if (window.speechSynthesis) {
+        var u = new SpeechSynthesisUtterance(info.word);
+        u.lang = 'en-GB'; u.onend = done; u.onerror = done;
+        window.speechSynthesis.speak(u);
+      } else done();
+    });
+  }
+
+  document.addEventListener('click', function(e){
+    var hit = e.target.closest ? e.target.closest('.iw-read-p strong') : null;
+    if (hit) {
+      var info = W[norm(hit.textContent)];
+      if (info) { e.stopPropagation(); open(hit, info); }
+      return;
+    }
+    if (box && !(e.target.closest && e.target.closest('.iw-wh'))) close();
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+
+  /* Помечаются только те слова, по которым есть что показать: подчёркивание
+     и курсор - обещание, и слово без данных его бы не сдержало. */
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.iw-read-p strong').forEach(function(s){
+      if (W[norm(s.textContent)]) s.setAttribute('data-wh', '1');
+    });
+  });
+})();`;
+
 function _buildInteractiveWSHtml(d, cardId, ownerView) {
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const items = Array.isArray(d.items) ? d.items : [];
@@ -3914,6 +4012,9 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   // feedback after Check). Persisted student state is injected for restore.
   if (ownerView === undefined) ownerView = true;
   const savedState = d._state || null;
+  // Карточки слов для подсвеченной лексики - только если их успели собрать
+  // (_ttFillWordHelp), иначе подсветка остаётся просто подсветкой.
+  const wordHelp = (d._wordHelp && Object.keys(d._wordHelp).length) ? d._wordHelp : null;
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   // Keep Markdown only as an authoring convention. Every visible value uses
   // this formatter, while data-* attributes continue to use plain esc().
@@ -4302,6 +4403,7 @@ document.addEventListener('DOMContentLoaded',()=>{
        настоящую высоту, тот её и сообщает: замерить эту разметку снаружи
        нельзя (srcdoc-iframe), а изнутри - одна строка. */
     scriptHtml = IW_HEIGHT_REPORTER;
+    if (wordHelp) scriptHtml += IW_WORD_HELP_SCRIPT;
   }
 
   // ─── MODE: Cards (collocations, word-families, phrasal verbs, idioms, etc.) ───
@@ -4467,6 +4569,31 @@ strong{font-weight:650}
 .iw-read-p:last-child{margin-bottom:0}
 .iw-read-n{position:absolute;left:0;top:2px;width:18px;text-align:right;font:700 10px system-ui;color:#70707a;user-select:none}
 .iw-read-p strong{background:color-mix(in srgb,${accent} 38%,transparent);padding:0 2px;border-radius:3px}
+/* ── Подсказка по слову ───────────────────────────────────────────────
+   Подсвеченное слово было просто краской: ученик видел, что слово важное,
+   и на этом всё. Теперь оно открывает карточку слова - произношение с
+   записью голоса, значение, синонимы и пример. Данные приезжают готовыми
+   в __IW_WORDS__ (словарь + глоссарий урока), внутрь песочницы за ними
+   ходить нельзя. Курсор и пунктир под словом - чтобы было видно, что
+   нажимается; у слов без данных ни того, ни другого. */
+.iw-read-p strong[data-wh]{cursor:pointer;box-shadow:inset 0 -1px 0 color-mix(in srgb,${ink} 45%,transparent)}
+.iw-read-p strong[data-wh]:hover{background:color-mix(in srgb,${accent} 62%,transparent)}
+/* fixed, а не absolute: карточка сама сообщает свою высоту по scrollHeight
+   (IW_HEIGHT_REPORTER), и всплывающий блок в потоке документа растил бы её
+   на каждое нажатие. Окно iframe и есть видимая часть карточки, поэтому
+   координат из getBoundingClientRect достаточно. */
+.iw-wh{position:fixed;z-index:40;width:min(280px,calc(100% - 24px));padding:12px 14px;border:1px solid #dcdce4;border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.16);font:13px/1.5 -apple-system,system-ui,sans-serif;color:#2a2a33}
+.iw-wh-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.iw-wh-word{font:800 14px system-ui;color:${ink}}
+.iw-wh-pos{font:11px system-ui;color:#82828e}
+.iw-wh-x{margin-left:auto;width:26px;height:26px;flex-shrink:0;border:0;border-radius:8px;background:#f2f2f5;color:#4a4a52;font:700 14px system-ui;cursor:pointer;line-height:1}
+.iw-wh-row{margin-top:6px}
+.iw-wh-label{display:block;font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:#82828e;margin-bottom:2px}
+.iw-wh-ipa{display:flex;align-items:center;gap:8px;font:600 14px ui-monospace,monospace;color:#2a2a33}
+.iw-wh-say{width:30px;height:30px;flex-shrink:0;border:1px solid #dcdce4;border-radius:9px;background:#fff;cursor:pointer;font-size:14px;line-height:1}
+.iw-wh-say:hover{background:color-mix(in srgb,${accent} 22%,#fff);border-color:${accent}}
+.iw-wh-say.is-playing{background:${accent};border-color:${accent}}
+.iw-wh-eg{color:#4a4a52;font-style:italic}
 /* Глоссарий: слово и значение в два столбца, как в языковом банке листа. */
 .iw-gloss{display:flex;flex-direction:column;gap:1px}
 .iw-gloss-row{display:grid;grid-template-columns:minmax(90px,29%) 1fr;gap:14px;padding:8px 0;border-top:1px solid #eeeef1}
@@ -4556,7 +4683,7 @@ strong{font-weight:650}
 </style></head><body>
 <div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>
 ${contentHtml}
-<script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};<\/script>
+<script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};${wordHelp ? `window.__IW_WORDS__=${JSON.stringify(wordHelp)};` : ''}<\/script>
 <script>${scriptHtml}<\/script>
 </body></html>`;
 }
@@ -14341,7 +14468,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '800';
+const TEACHEDOS_ASSET_VERSION = '801';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15216,6 +15343,106 @@ async function _ttFillMatchImages(out, base) {
     }
   }
   await Promise.all(Array.from({ length: Math.min(_TT_IMG_CONCURRENCY, todo.length) }, worker));
+}
+
+/* ══════════════════════════════════════════════════════════
+   КАРТОЧКИ СЛОВ ПОД ТЕКСТОМ УРОКА
+   ──────────────────────────────────────────────────────────
+   Подсвеченное в тексте слово было только краской: ученик видел, что слово
+   важное, и на этом всё - за произношением он шёл в другое место, а учитель
+   диктовал транскрипцию вслух. Нажатие теперь открывает карточку слова.
+
+   Собирается из двух источников, оба уже есть:
+   - словарь (`/api/dictionary/define`) даёт транскрипцию, запись голосом,
+     значение нужного уровня и пример;
+   - «Word helper beside the text», если этот этап выбран, даёт синонимы и
+     значение в контексте ИМЕННО ЭТОГО текста - для урока это точнее
+     словарной статьи, поэтому оно и берётся первым.
+
+   Только для слов. Фраз («doesn't agree with me») в словаре нет по природе
+   вещей, у них остаётся то, что написал глоссарий урока, и синтез речи
+   вместо записи.
+   ══════════════════════════════════════════════════════════ */
+const _ttWordKey = s => String(s || '').toLowerCase().replace(/[’]/g, "'")
+  .replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+/* Кликабельно ровно то, что подсвечено, поэтому и список берётся из самой
+   разметки (**…** ставит _ttBoldFirstOccurrences), а не из d.vocab: в vocab
+   попадают и слова, которых в тексте не нашлось. */
+function _ttReadingTerms(d) {
+  const terms = new Set();
+  (d.cards || []).forEach(c => {
+    const re = /\*\*([^*\n]{1,40})\*\*/g;
+    let m;
+    while ((m = re.exec(String(c.text || '')))) terms.add(m[1].trim());
+  });
+  return [...terms].filter(Boolean).slice(0, 20);
+}
+
+/* Синонимы и значение из соседней карточки «Word helper»: её движок пишет
+   ровно четырьмя помеченными строками (см. reading-glossary в aiEngine),
+   поэтому разбор - это поиск строки по метке, а не парсинг прозы. */
+function _ttLessonWordNotes(card) {
+  const frameId = card.data && card.data.parentFrame;
+  const out = {};
+  if (!frameId || typeof state === 'undefined') return out;
+  state.cards
+    .filter(c => c.id !== card.id && c.data && c.data.parentFrame === frameId && Array.isArray(c.data.cards))
+    .forEach(c => c.data.cards.forEach(g => {
+      const term = _ttWordKey(g && g.title);
+      if (!term) return;
+      const line = label => {
+        const m = String(g.text || '').match(new RegExp('^\\s*' + label + '\\s*:\\s*(.+)$', 'im'));
+        const v = m ? m[1].trim() : '';
+        return v && v !== '-' ? v : null;
+      };
+      const meaning = line('Meaning');
+      const synonyms = line('Synonyms');
+      if (meaning || synonyms) out[term] = { meaning, synonyms };
+    }));
+  return out;
+}
+
+/* Один запрос на карточку, пачкой: у текста таких слов шесть-двенадцать, а
+   маршрут словаря для того пачку и принимает. Ставится ДО запроса, иначе
+   повторный рендер успевает послать второй такой же. */
+async function _ttFillWordHelp(cardId) {
+  const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === cardId) : null;
+  if (!card || !card.data || card.data._wordHelp || !_ttIsMaterialCards(card.data)) return;
+  const terms = _ttReadingTerms(card.data);
+  if (!terms.length) return;
+  card.data._wordHelp = {};
+
+  const notes = _ttLessonWordNotes(card);
+  const help = {};
+  try {
+    const qs = new URLSearchParams({ words: terms.join(','), level: card.data.level || '' });
+    const r = await apiFetch('/api/dictionary/define?' + qs.toString());
+    const d = await r.json();
+    (d.results || []).forEach(x => {
+      if (!x || !x.word) return;
+      help[_ttWordKey(x.word)] = { word: x.word, pos: x.pos || null, ipa: x.ipa || null,
+        audio: x.audio || null, meaning: x.definition || null, example: x.example || null };
+    });
+  } catch { /* без словаря останутся заметки урока - карточка всё равно полезна */ }
+
+  terms.forEach(t => {
+    const k = _ttWordKey(t);
+    const base = help[k] || { word: t, pos: null, ipa: null, audio: null, meaning: null, example: null };
+    const note = notes[k];
+    if (note) {
+      if (note.meaning) base.meaning = note.meaning;   // значение В ЭТОМ тексте точнее словарного
+      if (note.synonyms) base.synonyms = note.synonyms;
+    }
+    if (base.meaning || base.ipa || base.audio || base.synonyms || base.example) help[k] = base;
+    else delete help[k];
+  });
+
+  card.data._wordHelp = help;
+  if (Object.keys(help).length) {
+    reRenderCard(card);
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  }
 }
 
 /* Замена картинки в превью урока. Тот же ход, что и у карточки словаря

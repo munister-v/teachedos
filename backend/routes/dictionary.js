@@ -43,6 +43,7 @@ const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 const CEFR_ORDER = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
+const CAMBRIDGE = 'https://dictionary.cambridge.org';
 
 function stripTags(html) {
   return String(html)
@@ -54,6 +55,40 @@ function stripTags(html) {
     .replace(/&[a-z]+;/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/* ПРОИЗНОШЕНИЕ: транскрипция и запись голосом.
+
+   Нужны карточке текста на доске: подсвеченное слово раскрывает окошко, где
+   ученик видит /kʌt/ и может послушать слово. Берётся с той же страницы, что
+   и определение, - лишнего запроса нет.
+
+   Два места, где легко ошибиться, оба проверены на живых страницах:
+
+   1) Транскрипция набрана вложенными span'ами: у «digestion» схва вынесена
+      в <span class="sp dsp">ə</span>, и выборка «первый текстовый кусок»
+      обрывала слово на /daɪˈdʒes.tʃ/. Поэтому блок целиком чистится от
+      тегов, а из результата берётся то, что стоит между косыми чертами.
+   2) Окно режется по началу СЛЕДУЮЩЕГО блока произношения (со смещением,
+      иначе оно находит собственный заголовок): без этого британская выборка
+      дотягивалась до американской транскрипции. */
+function pronunciation(html, region) {
+  const i = html.indexOf(`class="${region} dpron-i`);
+  if (i < 0) return null;
+  let chunk = html.slice(i, i + 1800);
+  const next = chunk.indexOf('dpron-i', 40);
+  if (next > 0) chunk = chunk.slice(0, next);
+
+  const mp3 = (chunk.match(/<source type="audio\/mpeg" src="([^"]+\.mp3)"/) || [])[1];
+  let ipa = null;
+  const pi = chunk.indexOf('class="pron dpron">');
+  if (pi >= 0) ipa = (stripTags(chunk.slice(pi, pi + 400)).match(/\/([^/]{1,40})\//) || [])[1] || null;
+
+  if (!ipa && !mp3) return null;
+  return {
+    ipa: ipa ? ipa.trim() : null,
+    audio: mp3 ? (mp3.startsWith('http') ? mp3 : CAMBRIDGE + mp3) : null,
+  };
 }
 
 /* Одно слово - одна страница. Разбор построен на классах разметки
@@ -98,7 +133,9 @@ async function fetchCambridge(word) {
     });
   }
   const pos = (html.match(/class="pos dpos"[^>]*>([^<]+)</) || [])[1] || null;
-  return { senses, pos };
+  // Британское произношение первым: это учебный словарь, и в нём оно основное.
+  const pron = pronunciation(html, 'uk') || pronunciation(html, 'us');
+  return { senses, pos, pron };
 }
 
 /* Какое значение показать ученику.
@@ -121,7 +158,7 @@ function pickSense(senses, level) {
 }
 
 function blank(word) {
-  return { word, definition: null, cefr: null, example: null, pos: null, source: null };
+  return { word, definition: null, cefr: null, example: null, pos: null, ipa: null, audio: null, source: null };
 }
 
 async function lookup(word, level) {
@@ -151,6 +188,11 @@ async function lookup(word, level) {
     cefr: sense ? sense.cefr : null,
     example: sense ? sense.example : null,
     pos: entry.pos || null,
+    /* Произношение у слова одно на все значения, поэтому берётся от статьи,
+       а не от выбранного значения, и приходит даже когда подходящего по
+       уровню определения не нашлось. */
+    ipa: (entry.pron && entry.pron.ipa) || null,
+    audio: (entry.pron && entry.pron.audio) || null,
     source: sense ? 'cambridge' : null,
   };
 }
