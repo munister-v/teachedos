@@ -4015,6 +4015,9 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
   // Карточки слов для подсвеченной лексики - только если их успели собрать
   // (_ttFillWordHelp), иначе подсветка остаётся просто подсветкой.
   const wordHelp = (d._wordHelp && Object.keys(d._wordHelp).length) ? d._wordHelp : null;
+  // Выбор заголовка переехал на карточку текста - см. placeBoardLessonStageSet.
+  const titleChoice = (d._titleChoice && Array.isArray(d._titleChoice.options)
+    && d._titleChoice.options.length > 1) ? d._titleChoice : null;
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   // Keep Markdown only as an authoring convention. Every visible value uses
   // this formatter, while data-* attributes continue to use plain esc().
@@ -4073,6 +4076,9 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
   } else if (qs.length) {
     const isOddOneOut = kind.includes('odd');
+    // Порядок миссий - порядок их первого появления, а не алфавит: это
+    // последовательность урока, в ней и подписываем «2 из 4».
+    const missionOrder = [...new Set(qs.map(q => q && q._mission).filter(Boolean))];
     const qBlocks = qs.map((q, qi) => {
       let inner = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
@@ -4152,7 +4158,15 @@ function _buildInteractiveWSHtml(d, cardId, ownerView) {
       // student cannot answer without first tapping the card is one extra tap
       // per question and nothing else. Tapping a card that has no controls at
       // all (a bare prompt) still advances to the next one - see iwCardTap.
-      return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody"><div class="iw-qtext">${md(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div>` : ''}</div></div>`;
+      /* Подпись миссии. У блока «после чтения» вопросы съехались из четырёх
+         заданий (см. placeBoardLessonStageSet), и без неё ученик посреди
+         шестнадцати шагов не понимает, что вообще делает: тут «правда или
+         ложь», а через три шага уже пропуски. Считается по _mission, поэтому
+         у обычной карточки одного задания подписи нет вовсе. */
+      const mission = q._mission && missionOrder.length > 1
+        ? `<div class="iw-mission">Mission ${missionOrder.indexOf(q._mission) + 1} of ${missionOrder.length} · ${md(q._mission)}</div>`
+        : '';
+      return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody">${mission}<div class="iw-qtext">${md(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div>` : ''}</div></div>`;
     }).join('');
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
       `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
@@ -4353,7 +4367,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     /* Первая строка тела - это заголовок текста («My Biggest Fail»), его
        кладёт туда _ttOwnTextOutput. Абзацы разделены переводами строк, и
        пустая строка между ними не обязательна - режем по любому. */
-    contentHtml = `<div class="iw-read">${cards.map(c => {
+    contentHtml = `<div class="iw-read">${cards.map((c, ci) => {
       const lines = String(c.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
 
       /* Глоссарий под текстом («Glossary under the text» включён по
@@ -4392,9 +4406,22 @@ document.addEventListener('DOMContentLoaded',()=>{
          чтения списка слов - число верное, смысл ложный. */
       const meta = (!isGloss && words)
         ? `<span class="iw-read-meta">${words} words · ~${Math.max(1, Math.round(words / 180))} min</span>` : '';
+      /* Плашка выбора заголовка встаёт НА МЕСТО заголовка, а сам заголовок
+         до ответа скрыт: он и есть правильный ответ, и показывать его рядом
+         с вариантами значит не задавать вопроса. Только у первой карточки
+         материала - заголовок у текста один. */
+      const pick = (titleChoice && ci === 0) ? `
+        <div class="iw-tp" id="iw-tp">
+          <button type="button" class="iw-tp-bar" onclick="iwTitleToggle()">
+            <span class="iw-tp-caret">&#9656;</span><span class="iw-tp-label">${md(titleChoice.text || 'Choose the best title')}</span>
+          </button>
+          <div class="iw-tp-opts">${(titleChoice.options || []).map((o, oi) =>
+            `<button type="button" class="iw-tp-opt" data-val="${esc(o)}" onclick="iwTitlePick(this)">${String.fromCharCode(65 + oi)}. ${md(o)}</button>`).join('')}</div>
+        </div>` : '';
       return `<article class="iw-read-card">
         <div class="iw-read-kicker">${md(c.title || '')}${meta}</div>
-        ${head ? `<h2 class="iw-read-head">${md(head)}</h2>` : ''}
+        ${pick}
+        ${head ? `<h2 class="iw-read-head"${titleChoice && ci === 0 ? ' data-veiled="1"' : ''}>${md(head)}</h2>` : ''}
         ${lines.map((p, i) => `<p class="iw-read-p"><span class="iw-read-n" aria-hidden="true">${i + 1}</span>${md(p)}</p>`).join('')}
       </article>`;
     }).join('')}</div>`;
@@ -4404,6 +4431,34 @@ document.addEventListener('DOMContentLoaded',()=>{
        нельзя (srcdoc-iframe), а изнутри - одна строка. */
     scriptHtml = IW_HEIGHT_REPORTER;
     if (wordHelp) scriptHtml += IW_WORD_HELP_SCRIPT;
+    if (titleChoice) scriptHtml += `
+var _iwTitleAns = ${JSON.stringify(String(titleChoice.answer || ''))};
+function iwTitleToggle(){
+  var tp = document.getElementById('iw-tp');
+  if (tp && !tp.classList.contains('is-done')) tp.classList.toggle('is-open');
+}
+/* Ответ проверяется на месте, как и у остальных вопросов (см. pickMCQ):
+   верный вариант зеленеет, неверный краснеет и подсвечивает верный. После
+   верного ответа плашка сворачивается и отдаёт место заголовку - ради
+   этого места задание сюда и переехало. */
+function iwTitlePick(btn){
+  var tp = document.getElementById('iw-tp');
+  if (!tp || tp.classList.contains('is-done')) return;
+  var ok = btn.getAttribute('data-val') === _iwTitleAns;
+  btn.classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) {
+    tp.querySelectorAll('.iw-tp-opt').forEach(function(b){
+      if (b.getAttribute('data-val') === _iwTitleAns) b.classList.add('correct');
+    });
+  }
+  tp.classList.add('is-done');
+  tp.classList.remove('is-open');
+  var lbl = tp.querySelector('.iw-tp-label');
+  if (lbl) lbl.textContent = (ok ? '\\u2713 ' : '\\u2717 ') + btn.textContent.replace(/^[A-C]\\.\\s*/, '');
+  var caret = tp.querySelector('.iw-tp-caret'); if (caret) caret.remove();
+  document.querySelectorAll('.iw-read-head[data-veiled]').forEach(function(h){ h.removeAttribute('data-veiled'); });
+  if (typeof iwReportHeight === 'function') setTimeout(iwReportHeight, 60);
+}`;
   }
 
   // ─── MODE: Cards (collocations, word-families, phrasal verbs, idioms, etc.) ───
@@ -4563,6 +4618,28 @@ strong{font-weight:650}
 .iw-read-kicker{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:800 10px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};margin-bottom:10px}
 .iw-read-meta{font:700 10px system-ui;letter-spacing:.06em;color:#70707a;white-space:nowrap}
 .iw-read-head{font:700 20px/1.25 system-ui;color:#171814;margin:0 0 12px;letter-spacing:-.02em}
+/* До ответа заголовок скрыт: он и есть правильный вариант. */
+.iw-read-head[data-veiled]{display:none}
+/* ── Выбор заголовка в шапке текста ─────────────────────────────────
+   Одна плашка вместо целой карточки задания: свёрнутая - строка с
+   каретой, развёрнутая - три варианта. После ответа сворачивается совсем
+   и уступает место настоящему заголовку. */
+.iw-tp{margin:0 0 12px}
+.iw-tp-bar{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 12px;border:1.5px solid ${accent};border-radius:10px;
+  background:color-mix(in srgb,${accent} 26%,#fff);color:${ink};font:700 13px system-ui;text-align:left;cursor:pointer}
+.iw-tp-bar:hover{background:color-mix(in srgb,${accent} 40%,#fff)}
+.iw-tp-caret{font-size:11px;transition:transform .18s}
+.iw-tp.is-open .iw-tp-caret{transform:rotate(90deg)}
+.iw-tp-label{flex:1;min-width:0}
+.iw-tp-opts{display:none;flex-direction:column;gap:6px;margin-top:8px}
+.iw-tp.is-open .iw-tp-opts{display:flex}
+.iw-tp-opt{padding:9px 12px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;color:#3a3644;font:13px/1.4 system-ui;text-align:left;cursor:pointer}
+.iw-tp-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
+.iw-tp-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
+.iw-tp-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
+.iw-tp.is-done .iw-tp-bar{border-style:dashed;background:transparent;font-weight:600;color:#4a4a52}
+/* ── Подпись миссии в блоке «после чтения» ── */
+.iw-mission{font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:${ink};opacity:.55;margin-bottom:6px}
 /* Номер абзаца висит на поле: на него ссылаются в заданиях и вслух, но в
    строке текста он был бы лишним словом. */
 .iw-read-p{position:relative;font:15px/1.65 -apple-system,system-ui,sans-serif;color:#1a1a2e;margin:0 0 12px;padding-left:26px}
@@ -11256,6 +11333,9 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
               _ttSrc: 1, _ytTool: out._ytTool || '', _ytToolId: out._ytToolId || '',
               // Материал урока читают, а не переворачивают - см. _ttIsMaterialCards.
               _ttMaterial: out._ttMaterial || 0,
+              // Выбор заголовка едет НА карточке текста, отдельной карточкой
+              // его больше нет - см. placeBoardLessonStageSet.
+              _titleChoice: out._titleChoice || null,
               _step: out._step, _steps: out._steps,
               // Семафор приезжает с сервера вместе с материалом и живёт на
               // карточке: учитель смотрит на лист, а не в консоль.
@@ -14468,7 +14548,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '802';
+const TEACHEDOS_ASSET_VERSION = '803';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15892,7 +15972,52 @@ function placeBoardLessonStageSet() {
      сверяем список карточек доски до и после её укладки. Это работает
      при любом способе укладки, в отличие от попытки угадать id заранее. */
   const homework = set.built.filter(b => b.activity.homework);
-  const lesson   = set.built.filter(b => !b.activity.homework);
+  let   lesson   = set.built.filter(b => !b.activity.homework);
+
+  /* ЗАГОЛОВОК ЖИВЁТ НА ТЕКСТЕ, А НЕ ОТДЕЛЬНОЙ КАРТОЧКОЙ.
+
+     «Choose the best title» это ОДИН вопрос, и ради него на доску вставала
+     карточка размером с остальные задания. Задание при этом про текст,
+     который лежит рядом, - его место в шапке текста, а не в метре от него.
+     Вопрос переезжает в карточку текста (_titleChoice), карточка-дубль не
+     кладётся, и урок получает обратно целую ячейку сетки. */
+  if (wantsTextOnBoard && set.textOut) {
+    const titleEntry = lesson.find(b => b.activity.tool === 'three-titles');
+    const q = titleEntry && (titleEntry.out.questions || [])
+      .find(x => x && x.type === 'mcq' && Array.isArray(x.options) && x.options.length > 1);
+    if (q) {
+      set.textOut._titleChoice = { text: q.text, options: q.options, answer: q.answer };
+      lesson = lesson.filter(b => b !== titleEntry);
+    }
+  }
+
+  /* ПОСЛЕ ЧТЕНИЯ - ОДИН БЛОК МИССИЙ.
+     True/False, ABC, Gap-fill и открытые вопросы приезжали четырьмя
+     отдельными карточками: половина ширины кадра уходила на четыре шапки и
+     четыре кнопки «Check Answers», а ученик щёлкал между ними, не понимая,
+     сколько ещё осталось. Вопросы у всех уже лежат одним списком, поэтому
+     они просто сливаются в одну карточку-степпер; откуда взялся вопрос,
+     помнит поле _mission, и оно же подписывает шаг.
+
+     Сливаются только задания с вопросами и только если их больше одного:
+     сводка и другие карточки-тексты остаются собой, а единственное задание
+     не должно переименовываться в «миссии». */
+  const postWithQs = lesson.filter(b => b.activity.stage === 'post'
+    && Array.isArray(b.out.questions) && b.out.questions.length);
+  if (postWithQs.length > 1) {
+    const first = postWithQs[0].out;
+    const questions = [];
+    postWithQs.forEach(({ activity, out }) => out.questions.forEach(q =>
+      questions.push({ ...q, _mission: activity.title })));
+    const missions = {
+      engine: first.engine, boardKind: 'quiz', cat: first.cat || 'reading',
+      kind: 'Missions', level: first.level, topic: first.topic,
+      title: 'Post-reading missions', questions,
+      generatedAt: new Date().toISOString(),
+    };
+    lesson = lesson.filter(b => !postWithQs.includes(b));
+    lesson.push({ activity: { ...postWithQs[0].activity, title: missions.title }, out: missions });
+  }
 
   /* Номер этапа = место в уроке. Укладчик сортирует ячейки по _ytStage,
      и именно это превращает «в каком порядке ответил движок» в «в каком
