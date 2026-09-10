@@ -15120,7 +15120,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '807';
+const TEACHEDOS_ASSET_VERSION = '808';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -25257,10 +25257,23 @@ window.boardPhoneBridge = {
   resizeCardTo(id, w, h) {
     const card = state.cards.find(c => c.id === id);
     if (!card || (card.data && card.data.locked)) return false;
+    const wasW = card.w;
     card.w = Math.max(80, Math.round(w));
     card.h = Math.max(60, Math.round(h));
     const el = getCardEl(id);
     if (el) { el.style.width = card.w + 'px'; el.style.height = card.h + 'px'; }
+    /* Ширина листа - это не только его коробка. Раскладку внутри кадра решает
+       ширина КАРТОЧКИ (колонки вопросов, сетка доски вопросов и высота её
+       плитки, вертикальная раскладка мастерской), а она запекается в разметку
+       при отрисовке. Меняя тут только style.width, «Fit the screen width» на
+       телефоне оставлял десктопную карточку с тремя колонками в ширине
+       телефона - ровно та каша, ради которой кнопка и нажимается.
+
+       На компьютере то же самое давно чинится перерисовкой в конце
+       перетаскивания ручки (см. widthWasDragged) - здесь просто не хватало
+       второго конца. Ответы ученика переживут: они лежат в card.data._state и
+       возвращаются через __IW_STATE__. */
+    if (Math.abs(card.w - wasW) > 1 && card.type === 'worksheet' && card.data) reRenderCard(card);
     _scheduleArrows();
     return true;
   },
