@@ -525,6 +525,12 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
   const writing = _ttWritingTask(d);
   // Разминка: все заходы сеткой, а не по одному - см. _ttIsWarmupBoard.
   const warm = (!writing && _ttIsWarmupBoard(d)) ? _ttWarmAngles(cards) : null;
+  /* Порядок миссий - порядок их первого появления, а не алфавит: это
+     последовательность урока. Два и больше задания в одной карточке (блок
+     «после чтения», см. placeBoardLessonStageSet) раскладываются станциями
+     на один экран, а не листаются степпером. */
+  const missionOrder = [...new Set(qs.map(q => q && q._mission).filter(Boolean))];
+  const missionMode = missionOrder.length > 1 && !isPromptDeck;
   // Сетка вопросов и высота её плитки - см. _ttDeckMetrics, там же и почему.
   const deck = isPromptDeck ? _ttDeckMetrics(qs, cardW) : null;
   /* Узкая карточка - это телефон: колонок одна-две, и вёрстка внутри кадра
@@ -535,7 +541,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      читаются подряд, поэтому ни счётчика шагов, ни стрелок у него нет.
      Доска вопросов и письменная мастерская - тоже не степпер: у них всё
      содержимое на экране сразу. */
-  const stepTotal = (isMaterial || isPromptDeck || writing || warm) ? 0
+  const stepTotal = (isMaterial || isPromptDeck || writing || warm || missionMode) ? 0
     : isAllGapFill ? 1 : (qs.length || items.length || cards.length || 0);
   const stepHud = stepTotal > 1
     ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
@@ -552,6 +558,12 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      был честный контраст с белым (проверено формулой WCAG, минимум 4.65:1,
      не «на глаз»), при этом каждая пара всё ещё узнаётся своим цветом и
      светлее/темнее внутри себя - не залита в один плоский тон. */
+  /* Пары «заливка шапки / чернила и полоса» для станций. Тон тёмный не
+     для красоты: им набрано имя станции ПО СВЕТЛОМУ, и на глаз тут
+     ошибаются - все шесть проверены на контраст с белым и со своей
+     заливкой. */
+  const MC_STATION_COLORS = [['#E9F4EC','#15703C'],['#E9F1FD','#1D4ED8'],['#F2ECFA','#6B21A8'],
+    ['#FEF0E6','#B4470E'],['#FDF4DF','#8A6410'],['#EAF5F5','#1C6B6B']];
   const TILE_GRADIENTS = [['#6370B2','#5160AA'],['#AC5E46','#A24C31'],['#43805B','#2F7249'],
     ['#887236','#7A6320'],['#A652A6','#9D3F9D'],['#427D7F','#2D6F71'],
     ['#A75C7A','#9D4A6B'],['#3C7E7E','#277070'],['#8D6F54','#805F41']];
@@ -595,10 +607,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
       `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
   } else if (qs.length) {
     const isOddOneOut = kind.includes('odd');
-    // Порядок миссий - порядок их первого появления, а не алфавит: это
-    // последовательность урока, в ней и подписываем «2 из 4».
-    const missionOrder = [...new Set(qs.map(q => q && q._mission).filter(Boolean))];
-    const qBlocks = qs.map((q, qi) => {
+    const qCards = qs.map((q, qi) => {
       let inner = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         inner = `<div class="iw-opts" data-qi="${qi}" data-answer="${esc(q.answer)}">${
@@ -682,13 +691,45 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
          шестнадцати шагов не понимает, что вообще делает: тут «правда или
          ложь», а через три шага уже пропуски. Считается по _mission, поэтому
          у обычной карточки одного задания подписи нет вовсе. */
-      const mission = q._mission && missionOrder.length > 1
+      /* В режиме станций подпись несёт шапка станции, а не каждый вопрос
+         под ней - иначе «Mission 2 of 3» повторяется шесть раз подряд. */
+      const mission = (q._mission && missionOrder.length > 1 && !missionMode)
         ? `<div class="iw-mission">Mission ${missionOrder.indexOf(q._mission) + 1} of ${missionOrder.length} · ${md(q._mission)}</div>`
         : '';
       return `<div class="iw-q" data-step="${qi}" onclick="iwCardTap(this)"><div class="iw-qnum">${qi+1}</div><div class="iw-qbody">${mission}<div class="iw-qtext">${md(q.text||'')}</div>${hasInner ? `<div class="iw-qreveal">${inner}</div>` : ''}</div></div>`;
-    }).join('');
-    contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
-      `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+    });
+    const qBlocks = qCards.join('');
+    /* ЦЕНТР УПРАВЛЕНИЯ ПОЛЁТОМ, А НЕ ШЕСТНАДЦАТЬ ШАГОВ ПОДРЯД.
+
+       Блок «после чтения» сливает True/False, ABC и пропуски в одну
+       карточку (placeBoardLessonStageSet), и степпер показывал этот сплав
+       по одному вопросу: ученик не видел, сколько осталось, а учитель не
+       мог сказать «начните со второго задания». Задания и так разные -
+       значит, это станции: каждая со своей шапкой и своим цветом, все на
+       экране, внизу одна проверка на всё. */
+    if (missionMode) {
+      const stations = missionOrder.map((name, mi) => {
+        const [tint, tone] = MC_STATION_COLORS[mi % MC_STATION_COLORS.length];
+        const inner = qs.map((q, qi) => q._mission === name ? qCards[qi] : '').join('');
+        return `<section class="iw-mc-station" data-mi="${mi}" style="--tint:${tint};--tone:${tone}">
+          <div class="iw-mc-strip">
+            <span class="iw-mc-num">Station ${mi + 1}</span>
+            <span class="iw-mc-name">${md(name)}</span>
+            <span class="iw-mc-tick" aria-hidden="true">✓</span>
+          </div>
+          <div class="iw-mc-body">${inner}</div>
+        </section>`;
+      }).join('');
+      contentHtml = `<div class="iw-mc-progress">
+        <div class="iw-mc-bar"><span class="iw-mc-fill" id="iw-mc-fill"></span></div>
+        <p class="iw-mc-note" id="iw-mc-note">Progress: 0 of ${missionOrder.length} stations complete</p>
+      </div>
+      <div class="iw-mc">${stations}</div>` +
+      `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check All Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+    } else {
+      contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
+        `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+    }
   }
 
   // Answer key + scoring/state script apply to either Questions branch above
@@ -866,6 +907,44 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.iw-gap-input,.iw-open-input').forEach(el=>el.addEventListener('input',iwSave));
   if(window.__IW_STATE__) iwRestore(window.__IW_STATE__);
 });`;
+
+    /* Полоса выполнения станций. Считается ПО РАЗМЕТКЕ, а не по своему
+       счётчику: ответ ставится шестью разными обработчиками (pickMCQ, pickTF,
+       checkGap, drag/drop, textarea), и второй источник правды разошёлся бы
+       с первым на первом же перетаскивании. Пересчёт вешается на click/input
+       всего документа - дешевле, чем врезаться в каждый из них. */
+    if (missionMode) {
+      scriptHtml += `
+function iwMcAnswered(q){
+  var w=q.querySelector('.iw-opts,.iw-tf');
+  if(w) return !!w.querySelector('.selected');
+  var g=q.querySelector('.iw-gap-input'); if(g) return !!g.value.trim();
+  var o=q.querySelector('.iw-open-input'); if(o) return !!o.value.trim();
+  var sort=q.querySelector('.iw-sort'); if(sort) return !sort.querySelector('.iw-sort-bank .iw-drag');
+  var m=q.querySelector('.iw-match'); if(m) return !m.querySelector('.iw-match-bank .iw-drag:not(.placed)');
+  return true;
+}
+function iwMcSync(){
+  var secs=[].slice.call(document.querySelectorAll('.iw-mc-station')), done=0;
+  secs.forEach(function(sec){
+    var qs=[].slice.call(sec.querySelectorAll('.iw-q'));
+    var ok=qs.length>0 && qs.every(iwMcAnswered);
+    sec.classList.toggle('is-done',ok);
+    if(ok) done++;
+  });
+  var fill=document.getElementById('iw-mc-fill');
+  if(fill) fill.style.width=(secs.length?Math.round(done/secs.length*100):0)+'%';
+  var note=document.getElementById('iw-mc-note');
+  if(note) note.textContent='Progress: '+done+' of '+secs.length+' stations complete';
+  if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60);
+}
+document.addEventListener('click',function(){ setTimeout(iwMcSync,0); });
+document.addEventListener('input',function(){ setTimeout(iwMcSync,0); });
+document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0); });`;
+      /* Станции целиком на экране, высота меняется при проверке ответов -
+         мерит себя сама, как материал и сетка пропусков. */
+      scriptHtml += IW_HEIGHT_REPORTER;
+    }
   }
 
   // ─── MODE: Vocab items (flashcards / essential vocab) ───
@@ -1499,6 +1578,29 @@ body.iw-warm-page{background:#EDF0F4;padding:20px 22px 26px}
 .iw-warm-foot .iw-warm-finish{width:auto;flex:0 0 auto;padding:13px 24px;border-radius:12px}
 .iw-warm-foot .iw-warm-finish[disabled]{background:#D6D8DE;border-color:#D6D8DE;color:#7A7D86;opacity:1}
 body.iw-warm-sent .iw-warm-foot .iw-warm-finish{background:#15703C;border-color:#15703C;opacity:1}
+/* ── Mission control: станции «после чтения» на одном экране ── */
+body.iw-mc-page{background:#EDF0F4;padding:20px 22px 26px}
+.iw-mc-progress{margin:0 auto 18px;max-width:520px;text-align:center}
+.iw-mc-bar{height:6px;border-radius:99px;background:#DCE0E8;overflow:hidden}
+.iw-mc-fill{display:block;height:100%;width:0;border-radius:99px;background:#15703C;transition:width .3s}
+.iw-mc-note{margin-top:7px;font:700 11.5px system-ui;color:#6C6C6F}
+.iw-mc{display:flex;flex-direction:column;gap:14px}
+.iw-mc-station{border-radius:14px;background:#fff;overflow:hidden;border-left:4px solid var(--tone);
+  filter:drop-shadow(0 4px 10px rgba(22,28,45,.10))}
+.iw-mc-strip{display:flex;align-items:center;gap:9px;padding:11px 15px;background:var(--tint)}
+.iw-mc-num{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--tone)}
+.iw-mc-name{flex:1;min-width:0;font:700 14.5px system-ui;color:#1a1722}
+.iw-mc-tick{flex:0 0 auto;width:20px;height:20px;border-radius:50%;font:800 11px system-ui;
+  border:1.5px solid color-mix(in srgb,var(--tone) 40%,#fff);color:transparent;
+  display:flex;align-items:center;justify-content:center}
+.iw-mc-station.is-done .iw-mc-tick{background:var(--tone);border-color:var(--tone);color:#fff}
+.iw-mc-body{padding:14px 15px 15px}
+/* Вопрос внутри станции уже обведён её собственной рамкой - вторая рамка
+   вокруг каждого превращала станцию в сетку коробок. */
+.iw-mc-body .iw-q{border:none;border-left:none;padding:6px 0;margin-bottom:10px}
+.iw-mc-body .iw-q:hover{box-shadow:none}
+.iw-mc-body .iw-q:last-child{margin-bottom:0}
+.iw-mc-body .iw-qnum{background:var(--tone);color:#fff}
 /* ── Writing workspace ── */
 .iw-ws{display:flex;gap:16px;align-items:stretch;height:calc(100vh - 88px);min-height:400px}
 .iw-ws-side{flex:0 0 33%;max-width:310px;min-width:190px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:4px}
@@ -1557,6 +1659,9 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
   .iw-ws-bar{padding:5px 6px}
   .iw-ws-bar button{min-width:40px;height:40px;font-size:15px}
   .iw-ws-count{font-size:12.5px}
+  .iw-mc-strip{padding:11px 13px;flex-wrap:wrap}
+  .iw-mc-name{flex:1 1 100%;order:3;font-size:14px}
+  .iw-mc-body{padding:13px}
   .iw-warm-grid{grid-template-columns:1fr;gap:13px}
   .iw-warm-h{font-size:18px}
   .iw-warm-lede{font-size:13px}
@@ -1649,11 +1754,14 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-gap-grid .iw-gap-input{width:100%;text-align:center;background:rgba(255,255,255,.92);border:none;border-radius:8px;padding:8px 4px;font:800 15px system-ui;color:#1a1722}
 .iw-gap-grid .iw-gap-input.correct{background:#dcfce7;color:#15803d}
 .iw-gap-grid .iw-gap-input.wrong{background:#fee2e2;color:#991b1b}
-</style></head><body${warm ? ' class="iw-warm-page"' : ''}>
+</style></head><body${warm ? ' class="iw-warm-page"' : missionMode ? ' class="iw-mc-page"' : ''}>
 ${warm ? `<header class="iw-warm-head">
   <p class="iw-warm-kicker">${md(d.title || d.kind || 'Warm-up')}</p>
   <h1 class="iw-warm-h">Warm-Up Station: Choose Your Angle</h1>
   <p class="iw-warm-lede">Pick any starting point to dive into the topic</p>
+</header>` : missionMode ? `<header class="iw-warm-head">
+  <p class="iw-warm-kicker">${md(d.title || d.kind || 'Missions')}</p>
+  <h1 class="iw-warm-h">Mission Control: Post-Reading Review</h1>
 </header>` : `<div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>`}
 ${contentHtml}
 <script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};${wordHelp ? `window.__IW_WORDS__=${JSON.stringify(wordHelp)};` : ''}<\/script>

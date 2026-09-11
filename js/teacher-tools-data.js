@@ -647,10 +647,15 @@ const BOARD_LESSON_STAGES = {
              ПРОМТА. У вставленного учителем текста писать нечего, там ту
              же работу делает «Word helper beside the text». */
           {key:'glossary',   flag:'glossary',  title:'Glossary under the text',    hint:'Every target word with a short definition at your level.', on:true, gen:true},
-          /* Отдельной карточкой рядом с текстом, а не строкой глоссария:
-             на слово приходится определение, живой пример ИЗ ЭТОГО текста,
-             синонимы и коллокации - в одну строку это не укладывается. */
-          {key:'side-glossary', tool:'reading-glossary', title:'Word helper beside the text', hint:'A card per word: meaning, the line it appears in, synonyms, collocations.', ai:true, after:'source', count:8},
+          /* «Word helper beside the text» (reading-glossary) убран из этапа
+             11.09.2026: на доске он вставал отдельной колодой «переверни
+             слово» посреди урока и повторял то, что уже делает карточка
+             слова ПО НАЖАТИЮ В САМОМ ТЕКСТЕ (см. _ttReadingTerms). Сам
+             инструмент жив в каталоге - учитель откроет его руками, если
+             нужен именно список слов отдельной карточкой.
+             `_ttLessonWordNotes` по-прежнему подхватит такую карточку,
+             если она в кадре есть; без неё карточка слова берёт всё из
+             словаря. */
         ],
       },
       {

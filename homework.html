@@ -6,13 +6,13 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=821">
-<link rel="preload" as="style" href="styles/unify.css?v=821">
+<link rel="preload" as="style" href="styles/harmony.css?v=822">
+<link rel="preload" as="style" href="styles/unify.css?v=822">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=821">
+<link rel="stylesheet" href="styles/fonts.css?v=822">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -295,16 +295,16 @@ button{font-family:var(--font);cursor:pointer;}
   .nw-ta{min-height:140px;}
 }
 </style>
-<script src="theme.js?v=821" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=821">
-<link rel="stylesheet" href="styles/harmony.css?v=821">
-<link rel="stylesheet" href="styles/unify.css?v=821">
-<link rel="stylesheet" href="styles/teached-brand.css?v=821">
-<link rel="stylesheet" href="styles/tool-window.css?v=821">
+<script src="theme.js?v=822" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=822">
+<link rel="stylesheet" href="styles/harmony.css?v=822">
+<link rel="stylesheet" href="styles/unify.css?v=822">
+<link rel="stylesheet" href="styles/teached-brand.css?v=822">
+<link rel="stylesheet" href="styles/tool-window.css?v=822">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=821">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=821">
-<link rel="stylesheet" href="styles/controls.css?v=821">
+<link rel="stylesheet" href="styles/figma-theme.css?v=822">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=822">
+<link rel="stylesheet" href="styles/controls.css?v=822">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -462,7 +462,7 @@ button{font-family:var(--font);cursor:pointer;}
 <div id="toast" role="status" aria-live="polite"></div>
 
 <!-- Not deferred: init() below calls mountNotesWidget() synchronously. -->
-<script src="scripts/notes-widget.js?v=821"></script>
+<script src="scripts/notes-widget.js?v=822"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -895,12 +895,12 @@ init();
 if (typeof mountNotesWidget === 'function') mountNotesWidget(document.getElementById('notes-widget-host'));
 </script>
 
-<script src="scripts/nav-boost.js?v=821" defer></script>
-<script src="scripts/mobile-perf.js?v=821" defer></script>
-<script src="scripts/mobile-nav.js?v=821"></script>
-<script src="scripts/mobile-zoom-guard.js?v=821" defer></script>
-<script src="scripts/autogrow.js?v=821" defer></script>
-<script src="pwa-boot.js?v=821" defer></script>
-  <script src="scripts/signin-entry.js?v=821" defer></script>
+<script src="scripts/nav-boost.js?v=822" defer></script>
+<script src="scripts/mobile-perf.js?v=822" defer></script>
+<script src="scripts/mobile-nav.js?v=822"></script>
+<script src="scripts/mobile-zoom-guard.js?v=822" defer></script>
+<script src="scripts/autogrow.js?v=822" defer></script>
+<script src="pwa-boot.js?v=822" defer></script>
+  <script src="scripts/signin-entry.js?v=822" defer></script>
 </body>
 </html>
