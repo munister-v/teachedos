@@ -127,7 +127,7 @@ const _PROMPTS = {
   'essay-topics': (i) =>
     `You are an EFL teacher. Create exactly ${i.count} essay prompts/questions at ${i.level} level about "${i.topic}". Vary the type (agree/disagree, advantages/disadvantages, discuss).\nReturn ONLY a JSON array:\n[{"text":"essay question?"}]`,
   'lead-in': (i) =>
-    `You are an EFL teacher. Create exactly ${i.count} quick lead-in / warm-up activities at ${i.level} level to introduce the topic "${i.topic}".\nReturn ONLY a JSON array:\n[{"task":"Activity name","text":"what students do"}]`,
+    `You are an EFL teacher. Create exactly ${i.count} warm-up ANGLES at ${i.level} level - different ways into the topic "${i.topic}", so the class can start from any of them.\nName each angle in 2-4 words (never "Activity 1"). Put the key discussion question first, then one short instruction line.\nReturn ONLY a JSON array:\n[{"task":"Angle name","text":"Key question?\\nShort instruction."}]`,
   'pros-cons': (i) =>
     `You are an EFL teacher. List arguments for and against "${i.topic}" at ${i.level} level for a debate. Provide ${Math.max(3,Math.ceil(i.count/2))} PRO and the same number of CON points.\nReturn ONLY a JSON array:\n[{"side":"PRO","point":"argument"},{"side":"CON","point":"argument"}]`,
   'type-gap': (i) =>

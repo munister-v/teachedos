@@ -857,8 +857,8 @@ function shapeSpec(input) {
   }
   if (toolId === 'lead-in') {
     return {
-      task: `${cardsHead} Design 3-4 warm-up activities (5-7 min total) to introduce the topic. One card per activity, variety required: brainstorm / picture description / quick poll / personal connection / prediction. Each card "title" = activity type + number, "text" = clear teacher instruction + expected student output. Include "vocab" of useful preview words.${context}`,
-      schema: '{"cards":[{"title":"Activity 1: Brainstorm","text":"..."},{"title":"Activity 2: Quick poll","text":"..."},{"title":"Activity 3: Prediction","text":"..."}],"vocab":["word"]}',
+      task: `${cardsHead} Design 3-4 warm-up ANGLES (5-7 min total) - different ways into the same topic, so the class can start from whichever one it likes. One card per angle, variety required: personal connection / prediction / quick quiz or myth-busting / visual or situation reading / word association. "title" = that angle's own name, 2-4 words, never "Activity 1" and never a bare number. "text" = the key discussion question FIRST on its own line (max 18 words, ends with "?"), then one line of teacher instruction (max 20 words). Include "vocab" of useful preview words.${context}`,
+      schema: '{"cards":[{"title":"The Reality Check","text":"When did you last need this yourself?\\nPairs, 2 min, then one example from each pair."},{"title":"Myth or Fact","text":"..."},{"title":"Read the Situation","text":"..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'interesting-facts') {

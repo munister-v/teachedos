@@ -188,6 +188,115 @@ function _ttWritingTask(d) {
   };
 }
 
+/* РАЗМИНКА - ЭТО МЕНЮ НА ВЫБОР, А НЕ ОЧЕРЕДЬ ИЗ СЛАЙДОВ.
+
+   Lead-in отдаёт 3-4 карточки, и степпер показывал их по одной: ученик
+   видел «Activity 1» и стрелку, класс не видел, куда идёт разговор, а
+   учитель не мог начать с той, которая сегодня зайдёт. Между тем выбирать
+   тут не из чего только на первый взгляд: заходов ровно столько, сколько
+   карточек, и они РАЗНЫЕ по типу - личный опыт, прогноз, ситуация,
+   быстрый вопрос. Это меню, и оно кладётся сеткой: все заходы на экране,
+   порядок выбирает ученик.
+
+   Роль каждой плитки не выдумывается, а вычитывается из самой карточки
+   (_ttWarmAngle): движок пишет «Activity 2: Quick poll», и «Quick poll»
+   это и есть роль. Разные плитки не получают одну роль дважды - иначе
+   меню из четырёх «Personal Connection» ничего не объясняет. */
+const TT_WARM_KINDS = /warm[\s-]?up|lead[\s-]?in|starter|ice[\s-]?break|hook/i;
+
+function _ttIsWarmupBoard(d) {
+  const cards = d && Array.isArray(d.cards) ? d.cards : null;
+  if (!cards || cards.length < 2 || cards.length > 6) return false;
+  /* Текст урока и письменная мастерская приезжают тем же cards[] - у них
+     свои режимы, и разминкой они не становятся от слова «warm» в заголовке
+     урока. */
+  if (_ttIsMaterialCards(d) || _ttWritingTask(d)) return false;
+  return TT_WARM_KINDS.test(String(d.kind || '')) || TT_WARM_KINDS.test(String(d.title || ''));
+}
+
+/* Роли перебираются сверху вниз, поэтому специфичные стоят раньше общих:
+   «your», «personal» есть почти в каждой второй инструкции, и если пустить
+   личный опыт первым, он заберёт себе и прогноз, и опрос. */
+const TT_WARM_ROLES = [
+  { re:/predict|prediction|guess what|what will|before you read|upcoming|the title|headline/i,
+    role:'Prediction',          icon:'🔮', tint:'#EEF1FE', tone:'#4338CA' },
+  { re:/picture|image|photo|video|look at the|visual|scene|situation|spot the/i,
+    role:'Visual · Context',    icon:'🔍', tint:'#FEF0E6', tone:'#B4470E' },
+  { re:/quiz|true or false|myth|fact|poll|vote|raise your hand|how many/i,
+    role:'Quick Quiz',          icon:'⚡', tint:'#FDF4DF', tone:'#8A6410' },
+  { re:/board|brainstorm|word|association|match|keyword|vocab|mind map/i,
+    role:'Word Association',    icon:'🔀', tint:'#E9F1FD', tone:'#1D4ED8' },
+  { re:/you ever|your own|personal|experience|remember|tell (?:us|your|a)|happened/i,
+    role:'Personal Connection', icon:'💬', tint:'#E9F4EC', tone:'#15703C' },
+  { re:/agree|opinion|dilemma|better than|should we|debate|argue/i,
+    role:'Core Dilemma',        icon:'⚖️', tint:'#F2ECFA', tone:'#6B21A8' },
+];
+
+/* Имя плитки - это её заголовок без служебной нумерации. «Activity 2:
+   Quick poll» и «2 · On the board (3 min)» несут смысл во второй половине,
+   а первая половина одинакова у всех и занимает строку зря. */
+function _ttWarmName(title, role) {
+  const clean = String(title || '')
+    .replace(/^\s*(?:activity|task|step|stage|part)\s*\d*\s*[:.•·)-]?\s*/i, '')
+    .replace(/^\s*\d+\s*[:.•·)-]\s*/, '')
+    .replace(/\s*\(\s*\d+\s*(?:-\s*\d+\s*)?min[^)]*\)\s*$/i, '')
+    .trim();
+  return clean || role;
+}
+
+/* Ключевой вопрос вперёд, инструкция под ним. Учитель и ученик цепляются
+   глазами за то, что обсуждают, а не за «Ask each student one question,
+   no long answers». Вопрос ищется буквально - строка, кончающаяся на «?»;
+   если вопроса нет, за него работает первая фраза. */
+function _ttWarmSplit(text) {
+  const raw = String(text || '').replace(/\r/g, '').trim();
+  if (!raw) return { hook:'', rest:'' };
+  const strip = s => String(s).replace(/^\s*(?:[•–-]|\d+[.)])\s*/, '').trim();
+  const lines = raw.split('\n').map(s => s.trim()).filter(Boolean);
+  const hi = lines.findIndex(l => /\?\s*$/.test(l));
+  if (hi >= 0) {
+    return { hook: strip(lines[hi]), rest: lines.filter((_, i) => i !== hi).join('\n') };
+  }
+  const first = lines[0];
+  const m = first.match(/^[^.!?]+[.!?]?/);
+  const hook = strip(m ? m[0] : first);
+  const rest = (first.slice(m ? m[0].length : first.length).trim()
+    + '\n' + lines.slice(1).join('\n')).trim();
+  return { hook, rest };
+}
+
+/* Роль ищется СНАЧАЛА в заголовке и только потом в тексте: инструкция
+   почти всегда кончается словами вроде «ask for one personal example», и
+   по ней «Core Dilemma» уезжал в «Personal Connection», унося у соседней
+   плитки её собственную роль. Заголовок карточки такой оговорки не знает. */
+function _ttWarmAngles(cards) {
+  const roles = new Array(cards.length).fill(null);
+  const used  = new Set();
+  const claim = (i, r) => { roles[i] = r; used.add(r.role); };
+  const seek  = (i, hay) => {
+    const hit = TT_WARM_ROLES.find(r => !used.has(r.role) && r.re.test(hay));
+    if (hit) claim(i, hit);
+  };
+  cards.forEach((c, i) => seek(i, String(c && c.title || '')));
+  cards.forEach((c, i) => { if (!roles[i]) seek(i, String(c && c.text || '')); });
+  cards.forEach((c, i) => { if (!roles[i]) claim(i,
+    TT_WARM_ROLES.find(r => !used.has(r.role)) || TT_WARM_ROLES[i % TT_WARM_ROLES.length]); });
+
+  const key = s => String(s).toLowerCase().replace(/[^a-z]+/g, '');
+  return cards.map((c, i) => {
+    const title = String(c && c.title || '');
+    const text  = String(c && c.text  || '');
+    const r = roles[i];
+    const name = _ttWarmName(title, r.role);
+    const { hook, rest } = _ttWarmSplit(text);
+    /* Подпись роли снимается, когда она повторяет имя: «Word Association /
+       WORD ASSOCIATION» это не два уровня, это одно и то же дважды. */
+    const a = key(name), b = key(r.role);
+    const role = (a === b || a.includes(b) || b.includes(a)) ? '' : r.role;
+    return { name, role, icon:r.icon, tint:r.tint, tone:r.tone, hook, rest };
+  });
+}
+
 /* СЕТКА ДОСКИ ВОПРОСОВ СЧИТАЕТСЯ ОДИН РАЗ, НА ДВОИХ.
 
    Обе стороны флип-плитки лежат absolute, поэтому её высота задаётся числом,
@@ -414,6 +523,8 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
   const isMaterial = _ttIsMaterialCards(d);
   const isPromptDeck = _ttIsPromptDeck(d);
   const writing = _ttWritingTask(d);
+  // Разминка: все заходы сеткой, а не по одному - см. _ttIsWarmupBoard.
+  const warm = (!writing && _ttIsWarmupBoard(d)) ? _ttWarmAngles(cards) : null;
   // Сетка вопросов и высота её плитки - см. _ttDeckMetrics, там же и почему.
   const deck = isPromptDeck ? _ttDeckMetrics(qs, cardW) : null;
   /* Узкая карточка - это телефон: колонок одна-две, и вёрстка внутри кадра
@@ -424,7 +535,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      читаются подряд, поэтому ни счётчика шагов, ни стрелок у него нет.
      Доска вопросов и письменная мастерская - тоже не степпер: у них всё
      содержимое на экране сразу. */
-  const stepTotal = (isMaterial || isPromptDeck || writing) ? 0
+  const stepTotal = (isMaterial || isPromptDeck || writing || warm) ? 0
     : isAllGapFill ? 1 : (qs.length || items.length || cards.length || 0);
   const stepHud = stepTotal > 1
     ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
@@ -973,6 +1084,90 @@ function iwTitlePick(btn){
 }`;
   }
 
+  // ─── MODE: Warm-up choice board (lead-in) ───
+  /* Сетка заходов: заголовок с ролью, под ним ключевой вопрос, инструкция
+     раскрывается по нажатию. Открытая плитка сразу считается пройденной -
+     отдельной галочки «я это сделал» разминке не нужно, её проходят
+     разговором, а не проверкой. */
+  else if (warm) {
+    contentHtml = `<p class="iw-warm-lede">Pick any starting point to dive into the topic</p>
+    <div class="iw-warm-grid">${warm.map((a, i) => `<div class="iw-wtile" data-wi="${i}" data-done="0" style="--tint:${a.tint};--tone:${a.tone}">
+      <button type="button" class="iw-wtile-head${a.role ? '' : ' is-solo'}" onclick="iwWarmOpen(this)" aria-expanded="false">
+        <span class="iw-wtile-icon" aria-hidden="true">${a.icon}</span>
+        <span class="iw-wtile-name">${md(a.name)}</span>
+        ${a.role ? `<span class="iw-wtile-role">${esc(a.role)}</span>` : ''}
+        <span class="iw-wtile-mark" aria-hidden="true">✓</span>
+      </button>
+      <div class="iw-wtile-body">
+        <p class="iw-wtile-hook">${md(a.hook)}</p>
+        <div class="iw-wtile-more">
+          ${a.rest ? `<p class="iw-wtile-rest">${md(a.rest).replace(/\n/g, '<br>')}</p>` : ''}
+          <textarea class="iw-warm-note" data-wi="${i}" rows="2" placeholder="+ Jot what you said"></textarea>
+        </div>
+      </div>
+    </div>`).join('')}</div>
+    <div class="iw-warm-foot">
+      <span class="iw-warm-count" id="iw-warm-count">0 of ${warm.length} explored</span>
+      <button class="iw-submit iw-warm-finish" id="iw-warm-finish" onclick="iwWarmFinish()" disabled>Finish Warm-Up</button>
+    </div>`;
+    scriptHtml = `
+function iwWarmSync(){
+  var tiles=[].slice.call(document.querySelectorAll('.iw-wtile'));
+  var done=tiles.filter(function(t){ return t.dataset.done==='1'; }).length;
+  var c=document.getElementById('iw-warm-count');
+  if(c) c.textContent=done+' of '+tiles.length+' explored';
+  var b=document.getElementById('iw-warm-finish');
+  if(b && !document.body.classList.contains('iw-warm-sent')) b.disabled=!done;
+  if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60);
+}
+function iwWarmOpen(btn){
+  var t=btn.closest('.iw-wtile'); if(!t) return;
+  var open=t.classList.toggle('is-open');
+  btn.setAttribute('aria-expanded', open?'true':'false');
+  if(open) t.dataset.done='1';
+  iwWarmSync(); iwWarmSave();
+}
+function iwWarmFinish(){
+  document.body.classList.add('iw-warm-sent');
+  var b=document.getElementById('iw-warm-finish');
+  if(b){ b.textContent='✓ Warm-up done'; b.disabled=true; }
+  iwWarmSave();
+  if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60);
+}
+function iwWarmSnapshot(){
+  var s={ warmOpen:{}, warmDone:{}, warmNote:{}, warmFinished:document.body.classList.contains('iw-warm-sent') };
+  document.querySelectorAll('.iw-wtile').forEach(function(t){
+    if(t.dataset.done==='1') s.warmDone[t.dataset.wi]=1;
+    if(t.classList.contains('is-open')) s.warmOpen[t.dataset.wi]=1;
+  });
+  document.querySelectorAll('.iw-warm-note').forEach(function(n){ if(n.value) s.warmNote[n.dataset.wi]=n.value; });
+  return s;
+}
+var _iwWarmT=null;
+function iwWarmSave(){ try{ clearTimeout(_iwWarmT); _iwWarmT=setTimeout(function(){
+  if(window.__IW_CARD__) parent.postMessage({ type:'iw-state', cardId:window.__IW_CARD__, state:iwWarmSnapshot() },'*');
+},250); }catch(e){} }
+function iwWarmRestore(s){
+  if(!s) return;
+  try{
+    document.querySelectorAll('.iw-wtile').forEach(function(t){
+      var wi=t.dataset.wi;
+      if((s.warmDone||{})[wi]) t.dataset.done='1';
+      if((s.warmOpen||{})[wi]){ t.classList.add('is-open'); var h=t.querySelector('.iw-wtile-head'); if(h) h.setAttribute('aria-expanded','true'); }
+    });
+    Object.keys(s.warmNote||{}).forEach(function(wi){
+      var n=document.querySelector('.iw-warm-note[data-wi="'+wi+'"]'); if(n) n.value=s.warmNote[wi];
+    });
+    if(s.warmFinished) iwWarmFinish();
+  }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.iw-warm-note').forEach(function(n){ n.addEventListener('input',iwWarmSave); });
+  iwWarmRestore(window.__IW_STATE__);
+  iwWarmSync();
+});`;
+  }
+
   // ─── MODE: Cards (collocations, word-families, phrasal verbs, idioms, etc.) ───
   else if (cards.length) {
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${cards.map((c, i) => `<div class="iw-card-flip" onclick="iwFlipOrNext(this)">
@@ -1012,10 +1207,13 @@ function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(functio
      карточке её же высоту и зациклился. На узкой колонки стоят друг под
      другом, высота честно содержательная, и без замера кнопка «Submit» просто
      уезжает под нижний край. */
+  /* Меню разминки целиком на экране, и его высота меняется на каждом
+     раскрытии плитки - мерить себя должно оно само, а не оценщик снаружи. */
+  if (warm) scriptHtml += IW_HEIGHT_REPORTER;
   if (writing && narrow) scriptHtml += IW_HEIGHT_REPORTER;
   /* Только на узкой карточке: подводка нужна там, где поле перекрывает
      клавиатура, и только там, где в кадре вообще есть куда печатать. */
-  if (narrow && (writing || isPromptDeck)) scriptHtml += IW_FOCUS_REPORTER;
+  if (narrow && (writing || isPromptDeck || warm)) scriptHtml += IW_FOCUS_REPORTER;
 
   // ── Shared stepper navigation (one card at a time, all content modes) ──
   if (stepTotal > 0) {
@@ -1250,6 +1448,41 @@ strong{font-weight:650}
 .iw-dcard-input::placeholder{color:#8b8792;font-weight:600}
 .iw-dcard-hide{position:absolute;top:8px;right:8px;width:22px;height:22px;border:none;border-radius:7px;background:#f2f2f5;color:#6C6C6F;font:13px system-ui;line-height:1;cursor:pointer}
 .iw-dcard-hide:hover{background:#e6e6ea}
+/* ── Warm-up choice board: все заходы сразу, выбирает ученик ── */
+.iw-warm-lede{font:13px/1.5 system-ui;color:#6C6C6F;margin:-6px 0 14px}
+.iw-warm-grid{display:grid;grid-template-columns:repeat(${(warm && warm.length > 2 && !narrow) ? 2 : 1},1fr);gap:12px;align-items:start}
+.iw-wtile{border:1.5px solid #e4e5ec;border-radius:16px;background:#fff;overflow:hidden;transition:box-shadow .18s,border-color .18s}
+.iw-wtile:hover{box-shadow:0 4px 14px rgba(0,0,0,.07)}
+.iw-wtile[data-done="1"]{border-color:var(--tone)}
+.iw-wtile-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;width:100%;
+  padding:11px 13px;border:none;background:var(--tint);cursor:pointer;text-align:left}
+.iw-wtile-icon{grid-column:1;grid-row:1/3;font-size:17px;line-height:1}
+.iw-wtile-name{grid-column:2;grid-row:1;font:800 14px system-ui;color:#1a1722;text-align:left}
+.iw-wtile-role{grid-column:2;grid-row:2;font:700 10.5px system-ui;letter-spacing:.08em;text-transform:uppercase;color:var(--tone);text-align:left}
+.iw-wtile-mark{grid-column:3;grid-row:1/3;width:22px;height:22px;border-radius:50%;font:800 12px system-ui;
+  border:1.5px solid color-mix(in srgb,var(--tone) 40%,#fff);color:transparent;
+  display:flex;align-items:center;justify-content:center;transition:background .15s}
+.iw-wtile[data-done="1"] .iw-wtile-mark{background:var(--tone);border-color:var(--tone);color:#fff}
+.iw-wtile-body{padding:12px 13px 13px}
+.iw-wtile-hook{font:700 14px/1.5 system-ui;color:#1a1722}
+/* Инструкция под ключевым вопросом - по нажатию: разминку ведут вопросом,
+   а «Ask each student one question, no long answers» это уже для того, кто
+   решил начать отсюда. */
+.iw-wtile-more{display:none;margin-top:10px;padding-top:10px;border-top:1.5px dashed #e9e9ef}
+.iw-wtile.is-open .iw-wtile-more{display:block}
+.iw-wtile-rest{font:13px/1.6 system-ui;color:#3a3644}
+.iw-warm-note{width:100%;margin-top:9px;border:1.5px solid #e4e5ec;border-radius:10px;padding:8px 10px;
+  font:13px/1.5 system-ui;color:#3a3644;background:#fff;resize:vertical;outline:none}
+.iw-warm-note:focus{border-color:var(--tone)}
+.iw-warm-note::placeholder{color:#8b8792;font-weight:600}
+.iw-warm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+.iw-warm-count{font:700 12px system-ui;color:#6C6C6F;white-space:nowrap}
+/* Оба правила специфичнее .iw-submit ниже по файлу - иначе width:100%
+   оттуда растягивает кнопку на всю строку подвала. */
+.iw-warm-foot .iw-warm-finish{width:auto;flex:0 0 auto;padding:12px 22px}
+.iw-wtile-head.is-solo .iw-wtile-name{grid-row:1/3}
+.iw-submit[disabled]{opacity:.42;cursor:default}
+body.iw-warm-sent .iw-warm-foot .iw-warm-finish{background:#15703C;border-color:#15703C;opacity:1}
 /* ── Writing workspace ── */
 .iw-ws{display:flex;gap:16px;align-items:stretch;height:calc(100vh - 88px);min-height:400px}
 .iw-ws-side{flex:0 0 33%;max-width:310px;min-width:190px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:4px}
@@ -1308,6 +1541,15 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
   .iw-ws-bar{padding:5px 6px}
   .iw-ws-bar button{min-width:40px;height:40px;font-size:15px}
   .iw-ws-count{font-size:12.5px}
+  .iw-warm-grid{grid-template-columns:1fr}
+  .iw-wtile-head{padding:12px;min-height:48px}
+  .iw-wtile-role{font-size:11px}
+  .iw-wtile-hook{font-size:14.5px}
+  .iw-wtile-rest{font-size:13px}
+  .iw-warm-note{font-size:14px}
+  .iw-warm-count{font-size:12.5px}
+  .iw-warm-foot{flex-direction:column;align-items:stretch}
+  .iw-warm-finish{width:100%}
   .iw-dcard-face{padding:10px}
   .iw-dcard-num{font-size:11px}
   .iw-dcard-text{font-size:13px}

@@ -866,10 +866,14 @@ function _ttGenLeadIn(input){
     : `Board race: in pairs, write as many words connected to "${topic}" as you can in 60 seconds.`;
   return { boardKind:'cards', kind:'Lead-in', cat:'speaking', level:input.level, topic,
     title:`${input.level} · Lead-in: ${topic}`,
+    /* Заголовок карточки - имя захода, а не «Activity 1»: в Play они
+       становятся меню на выбор (см. _ttIsWarmupBoard), и выбирать «1 ·
+       Quick round» нельзя - по такому имени не видно, куда идёт разговор.
+       Первая строка текста - ключевой вопрос, остальное инструкция. */
     cards:[
-      { title:'1 · Quick round (2 min)', text:`Ask each student one question, no long answers:\n• What comes to mind when you hear "${topic}"?\n• Have you ever talked about this before?\n• One word for how you feel about it?` },
-      { title:'2 · On the board (3 min)', text:board },
-      { title:'3 · Hand over to the topic (2 min)', text:`Pairs agree on ONE question about "${topic}" they want answered today.\nCollect the questions; return to them at the end of the lesson.` },
+      { title:'First Reaction (2 min)', text:`What comes to mind when you hear "${topic}"?\nOne question each, no long answers; one word for how you feel about it.` },
+      { title:'Word Association (3 min)', text:board },
+      { title:'Your Own Question (2 min)', text:`What do you want answered about "${topic}" today?\nPairs agree on ONE question. Collect them; return to them at the end of the lesson.` },
     ]};
 }
 
