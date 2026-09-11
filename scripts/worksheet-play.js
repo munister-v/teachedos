@@ -1090,9 +1090,8 @@ function iwTitlePick(btn){
      отдельной галочки «я это сделал» разминке не нужно, её проходят
      разговором, а не проверкой. */
   else if (warm) {
-    contentHtml = `<p class="iw-warm-lede">Pick any starting point to dive into the topic</p>
-    <div class="iw-warm-grid">${warm.map((a, i) => `<div class="iw-wtile" data-wi="${i}" data-done="0" style="--tint:${a.tint};--tone:${a.tone}">
-      <button type="button" class="iw-wtile-head${a.role ? '' : ' is-solo'}" onclick="iwWarmOpen(this)" aria-expanded="false">
+    contentHtml = `<div class="iw-warm-grid">${warm.map((a, i) => `<div class="iw-wtile" data-wi="${i}" data-done="0" style="--tint:${a.tint};--tone:${a.tone}">
+      <button type="button" class="iw-wtile-head" onclick="iwWarmOpen(this)" aria-expanded="false" aria-label="${esc(a.name)}${a.role ? ' - ' + esc(a.role) : ''}">
         <span class="iw-wtile-icon" aria-hidden="true">${a.icon}</span>
         <span class="iw-wtile-name">${md(a.name)}</span>
         ${a.role ? `<span class="iw-wtile-role">${esc(a.role)}</span>` : ''}
@@ -1105,6 +1104,7 @@ function iwTitlePick(btn){
           <textarea class="iw-warm-note" data-wi="${i}" rows="2" placeholder="+ Jot what you said"></textarea>
         </div>
       </div>
+      <span class="iw-wtile-fold" aria-hidden="true"></span>
     </div>`).join('')}</div>
     <div class="iw-warm-foot">
       <span class="iw-warm-count" id="iw-warm-count">0 of ${warm.length} explored</span>
@@ -1448,40 +1448,56 @@ strong{font-weight:650}
 .iw-dcard-input::placeholder{color:#8b8792;font-weight:600}
 .iw-dcard-hide{position:absolute;top:8px;right:8px;width:22px;height:22px;border:none;border-radius:7px;background:#f2f2f5;color:#6C6C6F;font:13px system-ui;line-height:1;cursor:pointer}
 .iw-dcard-hide:hover{background:#e6e6ea}
-/* ── Warm-up choice board: все заходы сразу, выбирает ученик ── */
-.iw-warm-lede{font:13px/1.5 system-ui;color:#6C6C6F;margin:-6px 0 14px}
-.iw-warm-grid{display:grid;grid-template-columns:repeat(${(warm && warm.length > 2 && !narrow) ? 2 : 1},1fr);gap:12px;align-items:start}
-.iw-wtile{border:1.5px solid #e4e5ec;border-radius:16px;background:#fff;overflow:hidden;transition:box-shadow .18s,border-color .18s}
-.iw-wtile:hover{box-shadow:0 4px 14px rgba(0,0,0,.07)}
-.iw-wtile[data-done="1"]{border-color:var(--tone)}
-.iw-wtile-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;width:100%;
-  padding:11px 13px;border:none;background:var(--tint);cursor:pointer;text-align:left}
-.iw-wtile-icon{grid-column:1;grid-row:1/3;font-size:17px;line-height:1}
-.iw-wtile-name{grid-column:2;grid-row:1;font:800 14px system-ui;color:#1a1722;text-align:left}
-.iw-wtile-role{grid-column:2;grid-row:2;font:700 10.5px system-ui;letter-spacing:.08em;text-transform:uppercase;color:var(--tone);text-align:left}
-.iw-wtile-mark{grid-column:3;grid-row:1/3;width:22px;height:22px;border-radius:50%;font:800 12px system-ui;
+/* ── Warm-up choice board: все заходы сразу, выбирает ученик ──
+   Отдельная «станция» со своей подложкой: разминка это не страница листа,
+   а стол с карточками, и плитка на сером читается как лист, который можно
+   взять. Всё под body.iw-warm-page, чтобы остальные режимы остались белыми. */
+body.iw-warm-page{background:#EDF0F4;padding:20px 22px 26px}
+.iw-warm-head{text-align:center;margin-bottom:18px}
+.iw-warm-kicker{font:800 10.5px system-ui;letter-spacing:.1em;text-transform:uppercase;color:#8b8792;margin-bottom:6px}
+.iw-warm-h{font:800 21px/1.28 system-ui;color:#14532D;letter-spacing:-.01em}
+.iw-warm-lede{font:13.5px/1.5 system-ui;color:#6C6C6F;margin-top:5px}
+.iw-warm-grid{display:grid;grid-template-columns:repeat(${(warm && warm.length > 2 && !narrow) ? 2 : 1},1fr);gap:16px;align-items:start}
+/* Тень через filter, а не box-shadow: срез угла ниже клипает всё, что
+   элемент рисует, - box-shadow пропадал вместе с углом. drop-shadow идёт
+   по СИЛУЭТУ после клипа, поэтому уголок отбрасывает тень как надо. */
+.iw-wtile{position:relative;border-radius:14px;background:#fff;
+  filter:drop-shadow(0 4px 10px rgba(22,28,45,.10));transition:filter .18s,transform .18s}
+.iw-wtile:hover{filter:drop-shadow(0 8px 18px rgba(22,28,45,.15));transform:translateY(-1px)}
+/* Загнутый уголок: у самой плитки срезан угол, в срез положен «отворот».
+   Срез съедает рамку на этом углу, поэтому у плитки её и нет - границу
+   держит тень. */
+.iw-wtile{clip-path:polygon(0 0,100% 0,100% calc(100% - 30px),calc(100% - 30px) 100%,0 100%)}
+.iw-wtile-fold{position:absolute;right:0;bottom:0;width:30px;height:30px;
+  background:linear-gradient(135deg,#f4f5f8 0%,#e2e5ec 100%);clip-path:polygon(100% 0,0 100%,100% 100%)}
+.iw-wtile-head{display:flex;align-items:center;gap:9px;width:100%;padding:13px 15px;
+  border:none;background:var(--tint);cursor:pointer;text-align:left;border-radius:14px 14px 0 0}
+.iw-wtile-icon{font-size:16px;line-height:1}
+.iw-wtile-name{flex:1;min-width:0;font:700 15px system-ui;color:#1a1722;text-align:left}
+.iw-wtile-role{font:700 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:var(--tone);white-space:nowrap}
+.iw-wtile-mark{flex:0 0 auto;width:20px;height:20px;border-radius:50%;font:800 11px system-ui;
   border:1.5px solid color-mix(in srgb,var(--tone) 40%,#fff);color:transparent;
   display:flex;align-items:center;justify-content:center;transition:background .15s}
 .iw-wtile[data-done="1"] .iw-wtile-mark{background:var(--tone);border-color:var(--tone);color:#fff}
-.iw-wtile-body{padding:12px 13px 13px}
-.iw-wtile-hook{font:700 14px/1.5 system-ui;color:#1a1722}
+.iw-wtile-body{padding:16px 18px 26px}
+.iw-wtile-hook{font:600 15px/1.55 system-ui;color:#1a1722}
+.iw-wtile-hook strong{font-weight:800}
 /* Инструкция под ключевым вопросом - по нажатию: разминку ведут вопросом,
    а «Ask each student one question, no long answers» это уже для того, кто
    решил начать отсюда. */
-.iw-wtile-more{display:none;margin-top:10px;padding-top:10px;border-top:1.5px dashed #e9e9ef}
+.iw-wtile-more{display:none;margin-top:12px;padding-top:12px;border-top:1.5px dashed #e9e9ef}
 .iw-wtile.is-open .iw-wtile-more{display:block}
-.iw-wtile-rest{font:13px/1.6 system-ui;color:#3a3644}
-.iw-warm-note{width:100%;margin-top:9px;border:1.5px solid #e4e5ec;border-radius:10px;padding:8px 10px;
-  font:13px/1.5 system-ui;color:#3a3644;background:#fff;resize:vertical;outline:none}
+.iw-wtile-rest{font:13.5px/1.6 system-ui;color:#3a3644}
+.iw-warm-note{width:100%;margin-top:10px;border:1.5px solid #e4e5ec;border-radius:10px;padding:9px 11px;
+  font:13.5px/1.5 system-ui;color:#3a3644;background:#fff;resize:vertical;outline:none}
 .iw-warm-note:focus{border-color:var(--tone)}
 .iw-warm-note::placeholder{color:#8b8792;font-weight:600}
-.iw-warm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
-.iw-warm-count{font:700 12px system-ui;color:#6C6C6F;white-space:nowrap}
+.iw-warm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px}
+.iw-warm-count{font:700 12px system-ui;color:#8b8792;white-space:nowrap}
 /* Оба правила специфичнее .iw-submit ниже по файлу - иначе width:100%
-   оттуда растягивает кнопку на всю строку подвала. */
-.iw-warm-foot .iw-warm-finish{width:auto;flex:0 0 auto;padding:12px 22px}
-.iw-wtile-head.is-solo .iw-wtile-name{grid-row:1/3}
-.iw-submit[disabled]{opacity:.42;cursor:default}
+   оттуда растягивает «Finish Warm-Up» на всю строку подвала. */
+.iw-warm-foot .iw-warm-finish{width:auto;flex:0 0 auto;padding:13px 24px;border-radius:12px}
+.iw-warm-foot .iw-warm-finish[disabled]{background:#D6D8DE;border-color:#D6D8DE;color:#7A7D86;opacity:1}
 body.iw-warm-sent .iw-warm-foot .iw-warm-finish{background:#15703C;border-color:#15703C;opacity:1}
 /* ── Writing workspace ── */
 .iw-ws{display:flex;gap:16px;align-items:stretch;height:calc(100vh - 88px);min-height:400px}
@@ -1541,15 +1557,22 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
   .iw-ws-bar{padding:5px 6px}
   .iw-ws-bar button{min-width:40px;height:40px;font-size:15px}
   .iw-ws-count{font-size:12.5px}
-  .iw-warm-grid{grid-template-columns:1fr}
-  .iw-wtile-head{padding:12px;min-height:48px}
-  .iw-wtile-role{font-size:11px}
-  .iw-wtile-hook{font-size:14.5px}
-  .iw-wtile-rest{font-size:13px}
+  .iw-warm-grid{grid-template-columns:1fr;gap:13px}
+  .iw-warm-h{font-size:18px}
+  .iw-warm-lede{font-size:13px}
+  .iw-wtile-head{padding:12px 13px;min-height:48px}
+  /* Роль в одну строку с именем на узкой плитке не помещается - она уходит
+     вниз, под имя, а не режет его. */
+  .iw-wtile-head{flex-wrap:wrap}
+  .iw-wtile-name{flex:1 1 auto}
+  .iw-wtile-role{font-size:11px;flex-basis:100%;order:3}
+  .iw-wtile-hook{font-size:15px}
+  .iw-wtile-rest{font-size:13.5px}
   .iw-warm-note{font-size:14px}
   .iw-warm-count{font-size:12.5px}
-  .iw-warm-foot{flex-direction:column;align-items:stretch}
-  .iw-warm-finish{width:100%}
+  .iw-warm-foot{flex-direction:column-reverse;align-items:stretch;gap:10px}
+  .iw-warm-foot .iw-warm-finish{width:100%}
+  .iw-warm-count{text-align:center}
   .iw-dcard-face{padding:10px}
   .iw-dcard-num{font-size:11px}
   .iw-dcard-text{font-size:13px}
@@ -1626,8 +1649,12 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-gap-grid .iw-gap-input{width:100%;text-align:center;background:rgba(255,255,255,.92);border:none;border-radius:8px;padding:8px 4px;font:800 15px system-ui;color:#1a1722}
 .iw-gap-grid .iw-gap-input.correct{background:#dcfce7;color:#15803d}
 .iw-gap-grid .iw-gap-input.wrong{background:#fee2e2;color:#991b1b}
-</style></head><body>
-<div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>
+</style></head><body${warm ? ' class="iw-warm-page"' : ''}>
+${warm ? `<header class="iw-warm-head">
+  <p class="iw-warm-kicker">${md(d.title || d.kind || 'Warm-up')}</p>
+  <h1 class="iw-warm-h">Warm-Up Station: Choose Your Angle</h1>
+  <p class="iw-warm-lede">Pick any starting point to dive into the topic</p>
+</header>` : `<div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>`}
 ${contentHtml}
 <script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};${wordHelp ? `window.__IW_WORDS__=${JSON.stringify(wordHelp)};` : ''}<\/script>
 <script>${scriptHtml}<\/script>
