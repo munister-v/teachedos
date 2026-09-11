@@ -7264,7 +7264,7 @@ function toggleConnectMode() {
   document.getElementById(enabling ? 'mt-connect' : 'mt-select')?.classList.add('active');
   updateMobilePointerControls();
   // Quick hint so users know what to do
-  if (enabling) toast && toast('Connect mode: tap Select to exit');
+  if (enabling) toast && toast('Connect: click one card, then another · Esc to cancel');
 }
 
 function updateMobilePointerControls() {
@@ -7851,13 +7851,17 @@ function finishConnection(to) {
   connectPending = null;
   board.querySelectorAll('.board-card').forEach(el => el.classList.remove('anchors-visible','connect-target-hover'));
   renderAllArrows();
-  // If we auto-entered connect mode via an anchor drag, drop back to Select.
-  if (window._autoConnectMode) {
-    window._autoConnectMode = false;
-    setMode('select');
-    document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('mt-select')?.classList.add('active');
-  }
+  /* ИНСТРУМЕНТ СВЯЗИ ОДНОРАЗОВЫЙ - одна стрелка, и снова выбор.
+
+     Раньше обратно в Select возвращала только связь, начатая перетаскиванием
+     от точки. Включённый кнопкой на панели режим оставался включённым, и
+     клик по пустому месту - ровно тот, которым учитель пытается «уйти», -
+     начинал НОВУЮ стрелку от точки клика, и та ехала за курсором. Каждая
+     попытка избавиться от стрелки рождала следующую. Так ведут себя стрелки
+     в Figma и Miro: нарисовал - инструмент отпустил. */
+  window._autoConnectMode = false;
+  setMode('select');
+  setMiroTool('select');
 }
 
 function cancelConnection() {
@@ -13722,7 +13726,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '810';
+const TEACHEDOS_ASSET_VERSION = '819';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

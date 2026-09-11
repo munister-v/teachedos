@@ -34,13 +34,49 @@
   `;
   document.head.appendChild(navStyle);
 
+  // ── Keep the active suite-tab in view on narrow screens ─────────────
+  // .suite-switcher scrolls horizontally there (styles/unify.css) rather
+  // than squeezing every label to fit - correct, but it always starts
+  // scrolled to the left, so landing on whichever tab sorts last (currently
+  // Gradebook) opened with its own label cut off by the frame until the
+  // teacher noticed the row scrolls at all.
+  //
+  // Not scrollIntoView(): the switcher is position:sticky, and in this
+  // engine sticky throws off scrollIntoView's "is it visible" check - it
+  // measured the tab as already in view and moved the row 4px, not the 49
+  // actually needed. Measuring both rects and setting scrollLeft directly
+  // sidesteps whatever sticky is doing to the other API.
+  //
+  // Not run inline either: this file is itself `defer`, which only promises
+  // the DOM is parsed - styles/unify.css (the sheet that turns the switcher
+  // into a horizontal scroller in the first place) is loaded via <link
+  // rel="preload"> specifically because it's "late-discovered" on these
+  // pages, so it can still be in flight when a deferred script runs. Measured
+  // before it applies, the switcher looks like the plain desktop
+  // inline-flex row - nothing overflows, both branches below are false, and
+  // the scroll position that gets left in place is whatever it started at.
+  // `load` is the one event both specs and every engine guarantee fires
+  // after every non-preload stylesheet has been applied.
+  window.addEventListener('load', () => {
+    const activeTab = document.querySelector('.suite-switcher .suite-tab.active');
+    const switcher = activeTab && activeTab.closest('.suite-switcher');
+    if (!switcher) return;
+    const wrapRect = switcher.getBoundingClientRect();
+    const tabRect = activeTab.getBoundingClientRect();
+    if (tabRect.right > wrapRect.right) switcher.scrollLeft += tabRect.right - wrapRect.right + 8;
+    else if (tabRect.left < wrapRect.left) switcher.scrollLeft -= wrapRect.left - tabRect.left + 8;
+  });
+
   // ── Skip on small/slow connections (data-saver) ─────────────
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   const lowData = conn && (conn.saveData || /2g/.test(conn.effectiveType || ''));
 
   const PREFETCHED = new Set();
   const SAME_ORIGIN = location.origin;
-  const DATA_SUITE = new Set(['analytics.html', 'journal.html', 'gradebook.html']);
+  // Homework joined this suite's cross-links (its own suite-switcher tabs,
+  // one click to each of the other three) - prefetch follows the same set
+  // so hovering into any of the four warms the other three.
+  const DATA_SUITE = new Set(['homework.html', 'analytics.html', 'journal.html', 'gradebook.html']);
 
   function currentPageName() {
     return location.pathname.split('/').pop() || 'index.html';
@@ -96,7 +132,7 @@
   function idlePrefetchVisible() {
     if (lowData) return;
     if (DATA_SUITE.has(currentPageName())) {
-      ['analytics.html', 'journal.html', 'gradebook.html'].forEach(href => {
+      [...DATA_SUITE].forEach(href => {
         const u = new URL(href, location.href);
         if (u.pathname !== location.pathname) prefetch(u);
       });

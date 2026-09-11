@@ -2126,8 +2126,22 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     position: sticky;
     top: calc(42px + env(safe-area-inset-top, 0px));
     z-index: 180;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* Was a fixed-column grid (originally repeat(3,...) for the three pages
+       that always had exactly three tabs). Homework joined as a fourth, and
+       a grid that divides the row into N equal tracks doesn't know the text
+       inside needs more than its share - "Gradebook" at any equal-width
+       division under ~370px overflowed its pill with .suite-tab's own
+       white-space:nowrap and got clipped at the switcher's edge, silently:
+       nothing here throws, it just paints wrong. Tabs are the kind of
+       content whose count and label length change over time (a fifth
+       section, a longer translated word) - the container needs to survive
+       that by construction, not by a tuned column count. Horizontal scroll
+       does: tabs keep their natural width, the row scrolls if it doesn't
+       fit, and nothing is ever cut off mid-word. */
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     width: 100%;
     margin: 0 0 2px;
     padding: 4px;
@@ -2135,11 +2149,13 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     background: #FAFAF8;
     box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 8px 18px rgba(14,14,16,.06);
   }
+  .suite-switcher::-webkit-scrollbar { display: none; }
 
   .suite-tab {
-    min-width: 0;
+    flex: 1 1 0;
+    min-width: max-content;
     min-height: 40px;
-    padding: 0 8px;
+    padding: 0 10px;
     font-size: 12px;
   }
 
