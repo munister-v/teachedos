@@ -3660,30 +3660,30 @@ function _ttPlayCardSize(d) {
       w = Math.max(w, Math.min(900, Math.round(380 + longestDef * 4.8)));
     }
   }
-  /* Лист «все пропуски» - не степпер: все предложения и все плитки стоят на
+  /* Лист «все пропуски» - не степпер: все предложения и банк слов стоят на
      одной карточке, поэтому и высота у неё не «самый высокий вопрос», а
-     сумма своих частей. По общему правилу (максимум по вопросам) выходило
-     496 при нужных 643: второй ряд плиток и кнопка проверки оказывались за
-     нижним краем.
+     сумма своих частей. Только настоящие пропуски-с-плейсхолдером - у
+     word-order/rewrite тем же типом приходит целое предложение на
+     переписывание, и они остаются обычным степпером со свободным полем
+     (см. worksheet-play.js: isAllGapFill).
 
-     Плитки квадратные и лежат по три в ряд, значит их высота следует за
-     ШИРИНОЙ карточки - отсюда и расчёт от w. Замерено: 480 → плитка 141,
-     720 → 221, то есть ровно (w - 36 - 20) / 3. Предложения считаются по
-     строкам, а не по штукам: на 487 они ложатся в две строки (319px на
-     шесть), на 720 в одну-две (252px), и разница в полтораста точек - это
-     ровно та высота, на которую карточка иначе промахнётся.
+     12.09.2026: слот переехал ПРЯМО В СТРОКУ предложения (та же плитка,
+     что у матчинга), а отдельная сетка пронумерованных квадратов ушла -
+     банк слов теперь просто оборачивается, как у матчинга. Строки считаются
+     по символам (с учётом ширины вклеенного слота), банк - по числу чипов
+     в ряд при типичной ширине чипа около 110px.
 
      Это по-прежнему только первая прикидка, чтобы карточка не прыгала при
      открытии: точную высоту пришлёт сама разметка (IW_HEIGHT_REPORTER). */
-  if (qs.length > 1 && qs.every(q => q.type === 'gap-fill')) {
-    const tile = (w - 36 - 20) / 3;            // поля body 18+18, два зазора по 10
-    const rows = Math.ceil(qs.length / 3);
-    const grid = rows * tile + (rows - 1) * 10;
-    const perRow = Math.max(20, (w - 36) / 7.3);   // знаков в строке при 14px/1.6
+  if (qs.length > 1 && qs.every(q => q.type === 'gap-fill' && /_{3,}/.test(String(q.text || '')))) {
+    const perRow = Math.max(20, (w - 36) / 7.6);   // знаков в строке при 15px/2
     const sentences = qs.reduce((n, q) =>
-      n + Math.max(1, Math.ceil(String(q.text || '').length / perRow)) * 22 + 10, 0);
-    const h = 16 + PLAY_TITLE + sentences + 20 + grid + 20 + 50 + 24;
-    return { w, h: Math.max(420, Math.min(WS_MAX_SHEET, Math.round(h))) };
+      n + Math.max(1, Math.ceil((String(q.text || '').length + 14) / perRow)) * 30 + 6, 0);
+    const perRowChips = Math.max(2, Math.floor((w - 36 - 20) / 110));
+    const bankRows = Math.ceil(qs.length / perRowChips);
+    const bank = 20 + bankRows * 40 + (bankRows - 1) * 8;
+    const h = 16 + PLAY_TITLE + sentences + 16 + bank + 40;
+    return { w, h: Math.max(360, Math.min(WS_MAX_SHEET, Math.round(h))) };
   }
   /* Материал - не флип-коробка: у него нет «лица», под которым прячется
      ответ, есть только текст, и высота у него ровно такая, какой текст.
@@ -13733,7 +13733,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '824';
+const TEACHEDOS_ASSET_VERSION = '825';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

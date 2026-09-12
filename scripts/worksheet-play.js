@@ -155,20 +155,25 @@ function _ttIsMaterialCards(d) {
 
 /* ДОСКА ВОПРОСОВ, А НЕ СЛАЙДЕР.
 
-   Speaking-подсказки степпер показывал по одной: проверять в них нечего,
-   зато класс не видел, куда идёт разговор, а учитель не мог раздать вопросы
-   в своём порядке - только листать. Такие наборы (все вопросы открытые и
-   тема разговорная) раскладываются сеткой рубашкой вверх.
+   Открытые вопросы степпер показывал по одной штуке: проверять в них
+   нечего, зато класс не видел, куда идёт разговор/чтение, а учитель не мог
+   раздать вопросы в своём порядке - только листать. Любой набор из двух и
+   больше ВСЕХ открытых вопросов раскладывается сеткой рубашкой вверх - это
+   один и тот же жест «спросили, тапнул, ответил» что для дискуссии, что для
+   вопросов на понимание текста.
 
-   Гейт по cat/kind, а не «все вопросы open»: у «Open questions» после текста
-   ученик ПИШЕТ ответы, и прятать задание под рубашку там незачем. */
+   09.09.2026: гейт стоял по cat/kind («Open questions» после чтения
+   нарочно исключался - «ученик пишет ответы, прятать незачем»). 12.09.2026
+   заказчица прислала обратный пример: те же «Open questions» она хочет
+   ИМЕННО карточками рубашкой вверх, как в дискуссии, а не старым степпером
+   со стрелками «6 из 6». Один тап на раскрытие не прячет от ученика ничего,
+   чего он не увидит через секунду - гейт снят, остаётся только форма
+   набора (все открытые, кроме odd-one-out - у него свои кнопки-слова). */
 function _ttIsPromptDeck(d) {
   const qs = d && Array.isArray(d.questions) ? d.questions : null;
   if (!qs || qs.length < 2 || !qs.every(q => q && q.type === 'open')) return false;
   const kind = String(d.kind || '').toLowerCase();
-  if (/odd/.test(kind)) return false;
-  return String(d.cat || '').toLowerCase() === 'speaking'
-      || /discussion|ladder|conversation|talk|debate/.test(kind);
+  return !/odd/.test(kind);
 }
 
 /* ПИСЬМЕННАЯ РАБОТА - ЭТО РАБОЧЕЕ МЕСТО, А НЕ ЧЕТЫРЕ КАРТОЧКИ.
@@ -532,7 +537,14 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
   // Worksheets made entirely of single-blank gap-fill sentences collapse into
   // one combined step (a numbered sentence list + a grid of answer tiles)
   // instead of one stepper card per blank - see the isAllGapFill branch below.
-  const isAllGapFill = qs.length > 1 && qs.every(q => q.type === 'gap-fill');
+  /* Только настоящие пропуски-с-плейсхолдером ("_____" в тексте), а не
+     любой инструмент, помеченный type:'gap-fill'. У word-order/rewrite/
+     proofread тем же типом приходит ЦЕЛОЕ предложение на переписывание -
+     там нечего вклеивать в строку, и они честно остаются степпером со
+     свободным полем ввода (см. ветку ниже). Раньше оба случая делили одну
+     сетку пронумерованных квадратов - для целого предложения слишком
+     тесную. */
+  const isAllGapFill = qs.length > 1 && qs.every(q => q.type === 'gap-fill' && /_{3,}/.test(String(q.text||'')));
   const isMaterial = _ttIsMaterialCards(d);
   const isPromptDeck = _ttIsPromptDeck(d);
   const writing = _ttWritingTask(d);
@@ -581,12 +593,13 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
     ['#887236','#7A6320'],['#A652A6','#9D3F9D'],['#427D7F','#2D6F71'],
     ['#A75C7A','#9D4A6B'],['#3C7E7E','#277070'],['#8D6F54','#805F41']];
 
-  // ─── MODE: Prompt deck (discussion / speaking) ───
-  /* Все вопросы сразу, рубашкой вверх. Ответ ученика живёт на обороте той же
-     карточки обычным .iw-open-input[data-qi] - тем самым, который уже умеют
-     сохранять и восстанавливать iwSnapshot/iwRestore ниже. */
-  if (qs.length && isPromptDeck) {
-    contentHtml = `<div class="iw-deck">${qs.map((q, qi) => `<div class="iw-dcard" data-step="${qi}">
+  /* Одна флип-карточка вопроса. Раньше жила только внутри блока «обсуждение
+     рубашкой вверх» (isPromptDeck ниже); теперь её же зовёт станция Mission
+     Control, у которой все вопросы открытые - опрос про пережитое читателем
+     не выигрывает от степпера «6 из 6», это тот же жест «спросили - ответил»,
+     что и в дискуссии. Одна разметка - один источник правды про то, как
+     флип-карточка устроена. */
+  const dCardHtml = (q, qi) => `<div class="iw-dcard" data-step="${qi}">
       <div class="iw-dcard-inner">
         <button class="iw-dcard-face iw-dcard-front" onclick="iwDeckFlip(this)" aria-label="Reveal question ${qi+1}">
           <span class="iw-dcard-tag">Q${qi+1}</span><span class="iw-dcard-hint">tap to reveal</span>
@@ -598,26 +611,51 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
           <button class="iw-dcard-hide" onclick="iwDeckFlip(this)" aria-label="Turn back over">↩</button>
         </div>
       </div>
-    </div>`).join('')}</div>
+    </div>`;
+
+  /* Пропуски - кирпичики в банке слов, которые перетаскивают ПРЯМО В
+     предложение, а не отдельный список пронумерованных полей рядом с
+     отдельным списком предложений: учителю и ученику раньше приходилось
+     сверять номер строки с номером плитки глазами. Слот - тот же .iw-target,
+     каким уже собран матчинг (checkAll/iwReset/сохранение его не отличают от
+     пары), только вклеен ВНУТРЬ строки через модификатор .iw-blank, а не
+     стоит отдельной плашкой. */
+  const gapFillDragHtml = (pairs) => {
+    const bankChips = pairs.map(({ q }, i) => {
+      const [t1, t2] = TILE_GRADIENTS[i % TILE_GRADIENTS.length];
+      return `<div class="iw-drag iw-gap-brick" draggable="true" data-left="${esc(q.answer||'')}" style="--t1:${t1};--t2:${t2}">${md(q.answer||'')}</div>`;
+    });
+    // Тасуем чипы банка - порядок предложений остаётся учебным (по порядку урока).
+    for (let i = bankChips.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bankChips[i], bankChips[j]] = [bankChips[j], bankChips[i]];
+    }
+    const lines = pairs.map(({ q, qi }) => {
+      const ans = String(q.answer || '').trim();
+      const blank = `<span class="iw-target iw-blank" data-qi="${qi}" data-expect="${esc(ans)}"><span class="iw-slot"></span></span>`;
+      const rendered = md(q.text || '');
+      const withBlank = /_{3,}/.test(rendered) ? rendered.replace(/_{3,}/, blank) : rendered + ' ' + blank;
+      return `<p class="iw-gapline"><b>${qi+1}.</b> ${withBlank}</p>`;
+    }).join('');
+    return `<div class="iw-gapfill">
+      <div class="iw-gapfill-lines">${lines}</div>
+      <div class="iw-gapfill-bank">${bankChips.join('')}</div>
+    </div>`;
+  };
+
+  // ─── MODE: Prompt deck (discussion / speaking) ───
+  /* Все вопросы сразу, рубашкой вверх. Ответ ученика живёт на обороте той же
+     карточки обычным .iw-open-input[data-qi] - тем самым, который уже умеют
+     сохранять и восстанавливать iwSnapshot/iwRestore ниже. */
+  if (qs.length && isPromptDeck) {
+    contentHtml = `<div class="iw-deck">${qs.map((q, qi) => dCardHtml(q, qi)).join('')}</div>
     <div class="iw-bottom"><button class="iw-submit" onclick="iwDeckAll(true)">👁 Reveal All</button>
     <button class="iw-submit iw-reset" onclick="iwDeckAll(false)">↺ Turn All Back</button></div>`;
   }
 
   // ─── MODE: Questions (quiz-based tools) ───
   else if (qs.length && isAllGapFill) {
-    const sentencesHtml = qs.map((q, qi) => `<div class="iw-gs-item"><b>${qi+1}.</b> ${md(q.text||'')}</div>`).join('');
-    const tilesHtml = qs.map((q, qi) => {
-      const [t1, t2] = TILE_GRADIENTS[qi % TILE_GRADIENTS.length];
-      return `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}" style="--t1:${t1};--t2:${t2}" onclick="this.querySelector('input').focus()">
-        <span class="iw-gap-num">${qi+1}</span>
-        <input type="text" class="iw-gap-input" placeholder="?" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()" onkeydown="iwGapEnter(event,this)" onblur="iwGapBlur(this)">
-      </div>`;
-    }).join('');
-    contentHtml = `<div class="iw-stepper"><div class="iw-step-track"><div class="iw-gapgrid-card">
-      <div class="iw-gapgrid-sentences">${sentencesHtml}</div>
-      <div class="iw-gap-grid">${tilesHtml}</div>
-    </div></div></div>` +
-      IW_FOOT;
+    contentHtml = gapFillDragHtml(qs.map((q, qi) => ({ q, qi }))) + IW_FOOT;
   } else if (qs.length) {
     const isOddOneOut = kind.includes('odd');
     const qCards = qs.map((q, qi) => {
@@ -628,9 +666,16 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
         }</div>`;
       } else if (q.type === 'truefalse') {
         const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
+        /* Тумблер, а не пара кнопок: выбор - один жест перевода рычажка, а
+           не «нажми на нужную из двух табличек». data-val/selected остаются
+           теми же, что и раньше (pickTF/iwGrade их не знают, что сменилась
+           обёртка) - меняется только то, как это нарисовано. */
         inner = `<div class="iw-tf" data-qi="${qi}" data-answer="${correct}">
-          <button class="iw-tf-btn" data-val="true" onclick="pickTF(this)">True</button>
-          <button class="iw-tf-btn" data-val="false" onclick="pickTF(this)">False</button>
+          <div class="iw-tf-switch">
+            <button class="iw-tf-btn" data-val="true" onclick="pickTF(this)">True</button>
+            <button class="iw-tf-btn" data-val="false" onclick="pickTF(this)">False</button>
+            <span class="iw-tf-thumb" aria-hidden="true"></span>
+          </div>
         </div>`;
       } else if (q.type === 'gap-fill') {
         inner = `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}">
@@ -722,7 +767,23 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
     if (missionMode) {
       const stations = missionOrder.map((name, mi) => {
         const [tint, tone] = MC_STATION_COLORS[mi % MC_STATION_COLORS.length];
-        const inner = qs.map((q, qi) => q._mission === name ? qCards[qi] : '').join('');
+        const stationQs = qs.map((q, qi) => ({ q, qi })).filter(({ q }) => q._mission === name);
+        /* Станция сама решает, какой у неё жест, а не наследует степпер
+           по умолчанию. Одна станция «Fact Check» на True/False и одна
+           «Trivia» на ABC остаются стопкой .iw-q - у них уже свой крупный
+           стиль (см. .iw-mc-body .iw-opt/.iw-tf выше). Но станция «Open
+           questions» из двух-трёх вопросов и станция «Gap-Fill» из
+           нескольких пропусков — те же цельные блоки, что и на верхнем
+           уровне (dCardHtml/gapFillDragHtml), а не стопка карточек: сваливать
+           готовый флип-грид или банк слов обратно в список .iw-q значило бы
+           воспроизводить внутри Mission Control именно тот степпер, ради
+           ухода от которого станции и придуманы. */
+        const allOpen = stationQs.length > 1 && stationQs.every(({ q }) => q.type === 'open');
+        const allBlankGap = stationQs.length > 1
+          && stationQs.every(({ q }) => q.type === 'gap-fill' && /_{3,}/.test(String(q.text||'')));
+        const inner = allOpen ? `<div class="iw-deck iw-deck-mini">${stationQs.map(({ q, qi }) => dCardHtml(q, qi)).join('')}</div>`
+          : allBlankGap ? gapFillDragHtml(stationQs)
+          : stationQs.map(({ qi }) => qCards[qi]).join('');
         return `<section class="iw-mc-station" data-mi="${mi}" style="--tint:${tint};--tone:${tone}">
           <div class="iw-mc-strip">
             <span class="iw-mc-num">Station ${mi + 1}</span>
@@ -810,23 +871,17 @@ function iwMaybeFinish(){
   checkAll();
 }
 function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
-function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
+/* closest('.iw-tf'), не parentNode: рычажок тумблера завёл лишний уровень
+   вложенности (.iw-tf-switch) между кнопкой и держателем data-answer -
+   с parentNode ответ сверялся с несуществующим атрибутом и падал в "wrong"
+   независимо от выбора. */
+function pickTF(btn){ const w=btn.closest('.iw-tf'); if(!w||w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
 function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
 function checkGap(w,silent){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; w.dataset.locked='1'; inp.readOnly=true; const ok=inp.value.trim().toLowerCase()===String(ans||'').trim().toLowerCase(); inp.classList.remove(ok?'wrong':'correct'); inp.classList.add(ok?'correct':'wrong'); _iwQDone(w,ok); if(silent) return; iwSave(); iwBeep(ok); iwMaybeFinish(); }
-/* Same instant grading for the combined gap-fill grid, where the tiles have no
-   Check button of their own: leaving a filled tile marks it. */
 function iwGapBlur(inp){ const w=inp.closest('.iw-gap'); if(!w||w.dataset.locked||!inp.value.trim()) return; checkGap(w); }
 function iwGapEnter(e, inp){
   if(e.key!=='Enter') return;
   e.preventDefault();
-  const grid=inp.closest('.iw-gap-grid');
-  if(grid){
-    // Combined gap-fill grid: jump to the next empty tile, or blur if all filled.
-    const inputs=[...grid.querySelectorAll('.iw-gap-input')];
-    const next=inputs.find((el,idx)=>idx>inputs.indexOf(inp)&&!el.value) || inputs.find(el=>!el.value&&el!==inp);
-    if(next) next.focus(); else inp.blur();
-    return;
-  }
   // Standalone gap-fill question: Enter grades it, same as leaving the field.
   const w=inp.closest('.iw-gap');
   if(w&&inp.value.trim()&&!w.dataset.locked) checkGap(w);
@@ -847,7 +902,7 @@ function checkAll(silent){
   document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ total++; const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){d.classList.add('sort-correct'); if(!d.dataset.missed) score++;}else d.classList.add('sort-wrong'); });
   // Lock matching/sorting so dragging further doesn't leave the just-computed
   // correct/wrong marks stale (same fix as gap-fill's readOnly, above).
-  document.querySelectorAll('.iw-match,.iw-sort').forEach(w=>{ w.dataset.locked='1'; w.querySelectorAll('.iw-drag').forEach(d=>{ d.draggable=false; }); });
+  document.querySelectorAll('.iw-match,.iw-gapfill,.iw-sort').forEach(w=>{ w.dataset.locked='1'; w.querySelectorAll('.iw-drag').forEach(d=>{ d.draggable=false; }); });
   const el=document.getElementById('iw-score'); if(!el) return;
   const pct=total?Math.round(score/total*100):0; el.style.display='block';
   el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) - Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) - Good job!':'📚 '+score+'/'+total+' ('+pct+'%) - Keep practicing!';
@@ -885,9 +940,9 @@ function iwReset(){
   document.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelectorAll('.iw-open-input').forEach(t=>t.value='');
   // Matching: free every slot + chip
-  document.querySelectorAll('.iw-match').forEach(m=>{ delete m.dataset.locked; m.querySelectorAll('.iw-slot').forEach(s=>{ s.textContent=''; s.classList.remove('filled'); }); m.querySelectorAll('.iw-target').forEach(t=>t.classList.remove('correct','wrong','dragover')); m.querySelectorAll('.iw-drag').forEach(d=>{ d.draggable=true; d.classList.remove('placed'); d.style.outline=''; d.style.boxShadow=''; }); });
+  document.querySelectorAll('.iw-match,.iw-gapfill').forEach(m=>{ delete m.dataset.locked; m.classList.remove('is-done'); m.querySelectorAll('.iw-slot').forEach(s=>{ s.textContent=''; s.classList.remove('filled'); }); m.querySelectorAll('.iw-target').forEach(t=>{ t.classList.remove('correct','wrong','dragover'); delete t.dataset.done; delete t.dataset.missed; }); m.querySelectorAll('.iw-drag').forEach(d=>{ d.draggable=true; d.classList.remove('placed'); d.style.outline=''; d.style.boxShadow=''; }); });
   // Sorting: return chips to bank
-  document.querySelectorAll('.iw-sort').forEach(s=>{ delete s.dataset.locked; const bank=s.querySelector('.iw-sort-bank'); s.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ d.draggable=true; d.classList.remove('sort-correct','sort-wrong','placed'); d.style.outline=''; d.style.boxShadow=''; if(bank) bank.appendChild(d); }); });
+  document.querySelectorAll('.iw-sort').forEach(s=>{ delete s.dataset.locked; s.classList.remove('is-done'); const bank=s.querySelector('.iw-sort-bank'); s.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ d.draggable=true; d.classList.remove('sort-correct','sort-wrong','placed'); delete d.dataset.done; delete d.dataset.missed; d.style.outline=''; d.style.boxShadow=''; if(bank) bank.appendChild(d); }); });
   const el=document.getElementById('iw-score'); if(el){ el.style.display='none'; el.textContent=''; }
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='none';
   if(typeof iwGoto==='function') iwGoto(0);
@@ -895,13 +950,16 @@ function iwReset(){
 }
 /* ── State persistence: snapshot DOM → object, post to parent; restore on load ── */
 function iwSnapshot(){
-  const s={ mcq:{}, tf:{}, gap:{}, open:{}, match:{}, sort:{}, odd:{}, checked:false };
+  const s={ mcq:{}, tf:{}, gap:{}, open:{}, match:{}, sort:{}, odd:{}, blank:{}, checked:false };
   document.querySelectorAll('.iw-opts').forEach(w=>{ const sel=w.querySelector('.iw-opt.selected'); if(sel) s.mcq[w.dataset.qi]=sel.dataset.val; });
   document.querySelectorAll('.iw-tf').forEach(w=>{ const sel=w.querySelector('.iw-tf-btn.selected'); if(sel) s.tf[w.dataset.qi]=sel.dataset.val; });
   document.querySelectorAll('.iw-gap').forEach(w=>{ const inp=w.querySelector('.iw-gap-input'); if(inp&&inp.value) s.gap[w.dataset.qi]=inp.value; });
   document.querySelectorAll('.iw-open-input').forEach(t=>{ if(t.value) s.open[t.dataset.qi]=t.value; });
   document.querySelectorAll('.iw-ooo').forEach(w=>{ const sel=w.querySelector('.iw-ooo-btn.selected'); if(sel) s.odd[w.dataset.qi]=sel.dataset.word; });
   document.querySelectorAll('.iw-match').forEach(m=>{ const qi=m.dataset.qi, o={}; m.querySelectorAll('.iw-target').forEach((t,i)=>{ const v=t.querySelector('.iw-slot').textContent.trim(); if(v) o[i]=v; }); if(Object.keys(o).length) s.match[qi]=o; });
+  /* У каждого пропуска свой qi (в отличие от пары матчинга, где qi - у
+     ГРУППЫ полей) - сохраняем поштучно, без позиционного индекса. */
+  document.querySelectorAll('.iw-blank').forEach(t=>{ const v=t.querySelector('.iw-slot').textContent.trim(); if(v) s.blank[t.dataset.qi]=v; });
   document.querySelectorAll('.iw-sort').forEach(w=>{ const qi=w.dataset.qi, o={}; w.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ const col=d.closest('.iw-sort-col'); if(col) o[d.dataset.left]=col.dataset.cat; }); if(Object.keys(o).length) s.sort[qi]=o; });
   const scoreEl=document.getElementById('iw-score');
   s.checked=!!(scoreEl && scoreEl.style.display==='block');
@@ -918,6 +976,7 @@ function iwRestore(s){
     Object.keys(s.open||{}).forEach(qi=>{ const t=document.querySelector('.iw-open-input[data-qi="'+qi+'"]'); if(t) t.value=s.open[qi]; });
     Object.keys(s.odd||{}).forEach(qi=>{ const w=document.querySelector('.iw-ooo[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-ooo-btn[data-word="'+CSS.escape(s.odd[qi])+'"]'); if(b) b.classList.add('selected'); });
     Object.keys(s.match||{}).forEach(qi=>{ const m=document.querySelector('.iw-match[data-qi="'+qi+'"]'); if(!m) return; const targets=m.querySelectorAll('.iw-target'); const o=s.match[qi]; Object.keys(o).forEach(i=>{ const t=targets[i]; if(!t) return; const slot=t.querySelector('.iw-slot'); slot.textContent=o[i]; slot.classList.add('filled'); const chip=m.querySelector('.iw-drag[data-left="'+CSS.escape(o[i])+'"]'); if(chip) chip.classList.add('placed'); }); });
+    Object.keys(s.blank||{}).forEach(qi=>{ const t=document.querySelector('.iw-blank[data-qi="'+qi+'"]'); if(!t) return; const slot=t.querySelector('.iw-slot'); slot.textContent=s.blank[qi]; slot.classList.add('filled'); const chip=t.closest('.iw-gapfill')?.querySelector('.iw-drag[data-left="'+CSS.escape(s.blank[qi])+'"]'); if(chip) chip.classList.add('placed'); });
     Object.keys(s.sort||{}).forEach(qi=>{ const w=document.querySelector('.iw-sort[data-qi="'+qi+'"]'); if(!w) return; const o=s.sort[qi]; Object.keys(o).forEach(left=>{ const chip=w.querySelector('.iw-drag[data-left="'+CSS.escape(left)+'"]'); const col=w.querySelector('.iw-sort-col[data-cat="'+CSS.escape(o[left])+'"]'); if(chip&&col) col.querySelector('.iw-sort-drop').appendChild(chip); }); });
     // Reopening the sheet has to bring the marks back with the answers -
     // re-grade what was already answered, and only what was answered, so an
@@ -931,7 +990,7 @@ function iwRestore(s){
       const v=t.querySelector('.iw-slot').textContent.trim();
       if(v&&v===t.dataset.expect){ t.classList.add('correct'); t.dataset.done='1'; }
     });
-    document.querySelectorAll('.iw-match').forEach(m=>{ if(typeof _iwMatchDone==='function') _iwMatchDone(m); });
+    document.querySelectorAll('.iw-match,.iw-gapfill').forEach(m=>{ if(typeof _iwMatchDone==='function') _iwMatchDone(m); });
     document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){ d.classList.add('sort-correct'); d.dataset.done='1'; } });
     if(s.checked) checkAll(true);
   }catch(e){}
@@ -949,6 +1008,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (missionMode) {
       scriptHtml += `
 function iwMcAnswered(q){
+  /* Пропуск не завёрнут в .iw-q (это плитка внутри цельного банка слов,
+     не отдельная карточка) - готовность читаем напрямую с _iwGradeTarget. */
+  if(q.classList.contains('iw-blank')) return !!q.dataset.done;
   var w=q.querySelector('.iw-opts,.iw-tf');
   if(w) return !!w.querySelector('.selected');
   var g=q.querySelector('.iw-gap-input'); if(g) return !!g.value.trim();
@@ -960,7 +1022,11 @@ function iwMcAnswered(q){
 function iwMcSync(){
   var secs=[].slice.call(document.querySelectorAll('.iw-mc-station')), done=0;
   secs.forEach(function(sec){
-    var qs=[].slice.call(sec.querySelectorAll('.iw-q'));
+    /* Станция «Open questions» кладёт флип-карточки (.iw-dcard) прямо в
+       тело секции, «Gap-Fill» - плитки-пропуски (.iw-blank) в свой банк:
+       ни те, ни другие не обёрнуты в .iw-q, и старый запрос их не видел -
+       такая станция никогда не отмечалась пройденной. */
+    var qs=[].slice.call(sec.querySelectorAll('.iw-q,.iw-dcard,.iw-blank'));
     var ok=qs.length>0 && qs.every(iwMcAnswered);
     sec.classList.toggle('is-done',ok);
     if(ok) done++;
@@ -1296,7 +1362,12 @@ document.addEventListener('DOMContentLoaded',function(){
   /* Дописки к режимам, у которых всё содержимое на экране сразу. Стоят ПОСЛЕ
      всей цепочки: ветки присваивают scriptHtml целиком, и вклиниться раньше
      значит потерять либо своё, либо чужое. */
-  if (isPromptDeck) {
+  /* missionMode тоже кладёт .iw-dcard - станция «Open questions» рисует
+     мини-колоду через тот же dCardHtml(), - а iwDeckFlip раньше объявлялся
+     только для isPromptDeck. Станция получала onclick на несуществующую
+     функцию: тап по карточке не делал ничего, тихо (ReferenceError внутри
+     инлайн-обработчика никуда не всплывает). */
+  if (isPromptDeck || missionMode) {
     // Флип по нажатию + высота: в сетке её задаёт число рядов, а не самый
     // высокий вопрос, и снаружи это не угадать.
     scriptHtml += `
@@ -1312,7 +1383,10 @@ function iwDeckFlip(btn){
   if(open && !coarse){ var t=c.querySelector('.iw-dcard-input'); if(t) setTimeout(function(){ t.focus(); },320); }
 }
 function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(function(c){ c.classList.toggle('flipped',!!open); }); }
-` + IW_HEIGHT_REPORTER;
+`;
+    /* У missionMode свой замерщик уже стоит (см. выше, рядом с iwMcSync) -
+       второй ResizeObserver на то же тело ничего не сломает, но и не нужен. */
+    if (!missionMode) scriptHtml += IW_HEIGHT_REPORTER;
   }
   /* Мастерская меряет себя ТОЛЬКО на узкой карточке. На широкой её высота -
      это `calc(100vh - 88px)`, то есть высота самой карточки: замер вернул бы
@@ -1382,20 +1456,35 @@ strong{font-weight:650}
 .iw-qtext{font-size:13.5px;font-weight:650;margin-bottom:8px;line-height:1.5;white-space:pre-line}
 /* MCQ */
 .iw-opts{display:flex;flex-direction:column;gap:5px}
-.iw-opt{display:block;width:100%;text-align:left;padding:8px 13px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:13px system-ui;color:#3a3644;cursor:pointer;transition:all .15s}
+.iw-opt{position:relative;display:block;width:100%;text-align:left;padding:8px 13px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:13px system-ui;color:#3a3644;cursor:pointer;transition:all .15s}
 .iw-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 6%,#fff)}
 .iw-opt.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${ink};font-weight:600}
 .iw-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
 .iw-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b;opacity:.7}
 .iw-opt[disabled]{pointer-events:none}
-/* T/F */
-.iw-tf{display:flex;gap:10px}
-.iw-tf-btn{padding:8px 22px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:700 13px system-ui;cursor:pointer;transition:all .15s}
-.iw-tf-btn:hover{border-color:${accent}}
-.iw-tf-btn.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${ink}}
-.iw-tf-btn.correct{border-color:#16a34a;background:#dcfce7;color:#15803d}
-.iw-tf-btn.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
+/* Бейдж в углу плитки - тот же язык, что у совпадений: не гадать по цвету
+   заливки, а прочитать знак. Пусто по умолчанию, появляется только у
+   graded-плитки (селектор ниже, где .iw-opt поверх градиента). */
+.iw-opt.correct::after,.iw-opt.wrong::after{position:absolute;top:6px;right:8px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 10px system-ui;line-height:1;animation:iwdot .25s ease}
+.iw-opt.correct::after{content:'✓';background:${IW_OK};color:#fff}
+.iw-opt.wrong::after{content:'✕';background:#dc2626;color:#fff}
+/* T/F - тумблер вместо пары кнопок */
+.iw-tf{display:flex;justify-content:center}
+.iw-tf-switch{position:relative;display:inline-flex;padding:4px;gap:2px;border-radius:999px;background:#f1f1f5;border:1.5px solid #e4e5ec}
+.iw-tf-btn{position:relative;z-index:1;border:none;background:transparent;padding:8px 22px;border-radius:999px;font:700 13px system-ui;color:#6b6b76;cursor:pointer;transition:color .2s}
 .iw-tf-btn[disabled]{pointer-events:none}
+/* Рычажок - белая таблетка под активной стороной, ездит по transform.
+   :has() решает, куда: по выбранной кнопке, без второго источника правды в JS. */
+.iw-tf-thumb{position:absolute;top:4px;left:4px;bottom:4px;width:calc(50% - 4px);border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.14);transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .2s}
+.iw-tf-switch:has(.iw-tf-btn[data-val="false"].selected) .iw-tf-thumb{transform:translateX(100%)}
+.iw-tf-switch:has(.iw-tf-btn.selected){background:color-mix(in srgb,${accent} 10%,#f1f1f5)}
+.iw-tf-btn.selected{color:${ink};font-weight:800}
+/* Вердикт красит саму подложку, а не одну кнопку - ответ на тумблере один. */
+.iw-tf-switch:has(.iw-tf-btn.correct){background:#f1f1f5}
+.iw-tf-switch:has(.iw-tf-btn.correct) .iw-tf-thumb{background:${IW_OK}}
+.iw-tf-switch:has(.iw-tf-btn.correct) .iw-tf-btn.selected{color:#fff}
+.iw-tf-switch:has(.iw-tf-btn.wrong) .iw-tf-thumb{background:#dc2626}
+.iw-tf-switch:has(.iw-tf-btn.wrong) .iw-tf-btn.selected{color:#fff}
 /* Once a question is graded, the options that were neither picked nor right
    step back - a palette tile that happens to be green should not read as the
    answer next to the one that actually is. */
@@ -1778,38 +1867,46 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-stepper .iw-qtext{font-size:23px;font-weight:650;line-height:1.4;margin-bottom:18px;text-align:center;white-space:pre-line}
 .iw-qreveal{display:block;animation:iwreveal .25s ease}
 @keyframes iwreveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.iw-stepper .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
-.iw-stepper .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
-.iw-stepper .iw-opt:hover{background:linear-gradient(135deg,var(--t1),var(--t2));opacity:.92}
-.iw-stepper .iw-opt.selected:not(.correct):not(.wrong){outline:3px solid #1a1722;outline-offset:2px}
-.iw-stepper .iw-opt.correct{background:#15803D!important;color:#fff}
-.iw-stepper .iw-opt.wrong{background:#dc2626!important;color:#fff;opacity:.85}
-.iw-stepper .iw-tf{justify-content:center}
-.iw-stepper .iw-tf-btn{font-size:15px;padding:12px 30px}
+/* Плитки и текст вопроса - тем же крупным языком и в степпере, и в станции
+   Mission Control: станция раньше падала обратно на мелкий список кнопок
+   (.iw-opt по умолчанию), и «Trivia Challenge» на экране не совпадала с тем,
+   что видел учитель на превью. */
+.iw-stepper .iw-qtext,.iw-mc-body .iw-qtext{font-size:17px}
+.iw-stepper .iw-qtext{font-size:23px}
+.iw-stepper .iw-opts,.iw-mc-body .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
+.iw-stepper .iw-opt:hover,.iw-mc-body .iw-opt:hover{background:linear-gradient(135deg,var(--t1),var(--t2));opacity:.92}
+.iw-stepper .iw-opt.selected:not(.correct):not(.wrong),.iw-mc-body .iw-opt.selected:not(.correct):not(.wrong){outline:3px solid #1a1722;outline-offset:2px}
+.iw-stepper .iw-opt.correct,.iw-mc-body .iw-opt.correct{background:#15803D!important;color:#fff}
+.iw-stepper .iw-opt.wrong,.iw-mc-body .iw-opt.wrong{background:#dc2626!important;color:#fff;opacity:.85}
+.iw-stepper .iw-tf,.iw-mc-body .iw-tf{justify-content:center}
+.iw-stepper .iw-tf-btn,.iw-mc-body .iw-tf-btn{font-size:15px;padding:12px 30px}
 .iw-stepper .iw-gap-input{font-size:16px}
 .iw-stepper .iw-flash,.iw-stepper .iw-card-flip{height:auto;min-height:240px;cursor:pointer}
 .iw-stepper .iw-flash-inner,.iw-stepper .iw-card-inner{min-height:240px}
 .iw-stepper .iw-flash-word{font-size:28px}
 .iw-stepper .iw-card-title{font-size:22px}
 .iw-stepper .iw-card-back-text{font-size:14.5px}
-/* ── Grouped gap-fill grid (one step for all single-word blanks) ── */
-.iw-gapgrid-card{width:100%}
-/* Без своей прокрутки. Коробка была ограничена 180px, потому что карточка не
-   умела расти: её высоту задавала оценка снаружи. Теперь разметка сообщает
-   свою настоящую высоту, и ограничение осталось бы чистым вредом - на узкой
-   карточке из шести предложений было видно четыре, а ученик, заполняя пятую
-   плитку, прокручивал список вверх, чтобы вспомнить пятое предложение.
-   Полоса прокрутки внутри карточки на бесконечном холсте - вообще запах. */
-.iw-gapgrid-sentences{margin-bottom:20px}
-.iw-gs-item{font-size:14px;line-height:1.6;margin-bottom:10px;color:#3a3644}
-.iw-gs-item b{color:${ink}}
-.iw-gap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.iw-gap-grid .iw-gap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1/1;border-radius:16px;background:linear-gradient(135deg,var(--t1),var(--t2));cursor:text;padding:8px}
-.iw-gap-grid .iw-gap:focus-within{transform:scale(1.05);box-shadow:0 4px 16px rgba(0,0,0,.18)}
-.iw-gap-num{font:800 11px monospace;color:rgba(255,255,255,.75)}
-.iw-gap-grid .iw-gap-input{width:100%;text-align:center;background:rgba(255,255,255,.92);border:none;border-radius:8px;padding:8px 4px;font:800 15px system-ui;color:#1a1722}
-.iw-gap-grid .iw-gap-input.correct{background:#dcfce7;color:#15803d}
-.iw-gap-grid .iw-gap-input.wrong{background:#fee2e2;color:#991b1b}
+/* ── Пропуски-кирпичики (перетаскивание слова в предложение) ──
+   Раньше пропуск проверялся отдельной пронумерованной плиткой рядом со
+   списком предложений - учителю и ученику приходилось сверять номер строки
+   с номером плитки. Теперь слот стоит ПРЯМО в тексте (та же .iw-target, что
+   у матчинга), и банк слов внизу - перетащил, увидел результат на месте. */
+.iw-gapfill-lines{margin-bottom:16px}
+.iw-gapline{font-size:15px;line-height:2;margin-bottom:6px;color:#3a3644}
+.iw-gapline b{color:${ink};margin-right:2px}
+.iw-blank{display:inline-flex;vertical-align:middle;margin:0 3px;min-height:auto;padding:3px 22px 3px 8px}
+.iw-blank .iw-slot{min-width:64px;min-height:20px;font-size:13.5px}
+.iw-gapfill-bank{display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:#f8f8fb;border-radius:12px;border:1.5px dashed #d4d6e0}
+.iw-gap-brick{background:linear-gradient(135deg,var(--t1),var(--t2));color:#fff;font-weight:700}
+.iw-mc-body .iw-gapfill-lines,.iw-mc-body .iw-gapline{font-size:14px}
+/* Флип-карточки открытых вопросов внутри станции - те же .iw-deck/.iw-dcard,
+   только компактнее и без строки Reveal All/Turn All Back под ними (общий
+   индикатор Mission Control уже сверху). */
+.iw-deck-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.iw-deck-mini .iw-dcard{height:150px}
+.iw-deck-mini .iw-dcard-tag{font-size:20px}
+.iw-deck-mini .iw-dcard-text{font-size:12px}
 </style></head><body${warm ? ' class="iw-warm-page"' : missionMode ? ' class="iw-mc-page"' : ''}>
 ${warm ? `<header class="iw-warm-head">
   <p class="iw-warm-kicker">${md(d.title || d.kind || 'Warm-up')}</p>
@@ -1834,7 +1931,7 @@ function _iwDragScript(accent) {
    оценивается, а пальцем нет. Проверка живёт здесь, ниже по коду её никто
    не дублирует. */
 function _iwPlace(tgt,chip,silent){
-  const m=tgt.closest('.iw-match'); if(!m||m.dataset.locked) return;
+  const m=tgt.closest('.iw-match,.iw-gapfill'); if(!m||m.dataset.locked) return;
   const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim();
   if(prev){ const old=m.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); }
   slot.textContent=chip.dataset.left; slot.classList.add('filled');
@@ -1862,11 +1959,14 @@ function _iwGradeTarget(tgt,chip){
     },900);
   }
   if(typeof iwBeep==='function') iwBeep(ok);
-  _iwMatchDone(tgt.closest('.iw-match'));
+  _iwMatchDone(tgt.closest('.iw-match,.iw-gapfill'));
   if(typeof iwMaybeFinish==='function') setTimeout(iwMaybeFinish, ok?420:1100);
   return ok;
 }
-/* Тонкая отметка в углу задания вместо плашки со счётом под ним. */
+/* Тонкая отметка в углу задания вместо плашки со счётом под ним. Тот же
+   код обслуживает и матчинг, и банк слов для пропусков (оба - контейнер
+   с .iw-target внутри); у пропусков нет своего .iw-q сверху (это цельный
+   блок, а не стопка карточек), тогда q просто не находится и пропускается. */
 function _iwMatchDone(m){
   if(!m) return;
   const targets=[...m.querySelectorAll('.iw-target')];
@@ -1895,9 +1995,9 @@ function _iwGradeSortChip(chip){
   if(typeof iwMaybeFinish==='function') setTimeout(iwMaybeFinish, ok?420:1100);
 }
 let dragEl=null;
-document.addEventListener('dragstart',e=>{ if(!e.target.classList.contains('iw-drag')||e.target.closest('.iw-match,.iw-sort')?.dataset.locked) return; dragEl=e.target; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',e.target.dataset.left); setTimeout(()=>e.target.style.opacity='.4',0); });
+document.addEventListener('dragstart',e=>{ if(!e.target.classList.contains('iw-drag')||e.target.closest('.iw-match,.iw-gapfill,.iw-sort')?.dataset.locked) return; dragEl=e.target; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',e.target.dataset.left); setTimeout(()=>e.target.style.opacity='.4',0); });
 document.addEventListener('dragend',e=>{ if(dragEl) dragEl.style.opacity=''; dragEl=null; document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); });
-document.addEventListener('dragover',e=>{ const tgt=e.target.closest('.iw-target')||e.target.closest('.iw-sort-drop'); if(tgt&&!tgt.closest('.iw-match,.iw-sort')?.dataset.locked){e.preventDefault();tgt.classList.add('dragover');} });
+document.addEventListener('dragover',e=>{ const tgt=e.target.closest('.iw-target')||e.target.closest('.iw-sort-drop'); if(tgt&&!tgt.closest('.iw-match,.iw-gapfill,.iw-sort')?.dataset.locked){e.preventDefault();tgt.classList.add('dragover');} });
 document.addEventListener('dragleave',e=>{ const tgt=e.target.closest('.iw-target')||e.target.closest('.iw-sort-drop'); if(tgt) tgt.classList.remove('dragover'); });
 document.addEventListener('drop',e=>{
   e.preventDefault();
@@ -1905,25 +2005,25 @@ document.addEventListener('drop',e=>{
   if(sortDrop&&sortDrop.closest('.iw-sort')?.dataset.locked) return;
   if(sortDrop&&dragEl){ sortDrop.classList.remove('dragover'); sortDrop.appendChild(dragEl); dragEl.classList.remove('placed'); dragEl.style.opacity=''; const c=dragEl; dragEl=null; _iwS(); _iwGradeSortChip(c); return; }
   const tgt=e.target.closest('.iw-target');
-  if(!tgt||!dragEl||tgt.closest('.iw-match')?.dataset.locked) return;
+  if(!tgt||!dragEl||tgt.closest('.iw-match,.iw-gapfill')?.dataset.locked) return;
   _iwPlace(tgt,dragEl);
 });
 function _iwS(){ if(typeof iwSave==='function') iwSave(); }
 // Touch drag
 let touchDrag=null,touchClone=null;
-document.addEventListener('touchstart',e=>{ const d=e.target.closest('.iw-drag'); if(!d||d.classList.contains('placed')||d.closest('.iw-match,.iw-sort')?.dataset.locked) return; touchDrag=d; touchClone=d.cloneNode(true); touchClone.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:.85;transform:scale(1.08)'; document.body.appendChild(touchClone); const t=e.touches[0]; touchClone.style.left=(t.clientX-30)+'px'; touchClone.style.top=(t.clientY-16)+'px'; e.preventDefault(); },{passive:false});
+document.addEventListener('touchstart',e=>{ const d=e.target.closest('.iw-drag'); if(!d||d.classList.contains('placed')||d.closest('.iw-match,.iw-gapfill,.iw-sort')?.dataset.locked) return; touchDrag=d; touchClone=d.cloneNode(true); touchClone.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:.85;transform:scale(1.08)'; document.body.appendChild(touchClone); const t=e.touches[0]; touchClone.style.left=(t.clientX-30)+'px'; touchClone.style.top=(t.clientY-16)+'px'; e.preventDefault(); },{passive:false});
 document.addEventListener('touchmove',e=>{ if(!touchDrag) return; const t=e.touches[0]; if(touchClone){touchClone.style.left=(t.clientX-30)+'px';touchClone.style.top=(t.clientY-16)+'px';} document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(tgt=>{ const r=tgt.getBoundingClientRect(); tgt.classList.toggle('dragover',t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom); }); e.preventDefault(); },{passive:false});
 document.addEventListener('touchend',e=>{ if(!touchDrag) return; if(touchClone){touchClone.remove();touchClone=null;} const sortDrop=document.querySelector('.iw-sort-drop.dragover'); if(sortDrop){ sortDrop.appendChild(touchDrag); touchDrag.classList.remove('placed'); _iwGradeSortChip(touchDrag); } else { const over=document.querySelector('.iw-target.dragover'); if(over) _iwPlace(over,touchDrag); } document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); touchDrag=null; _iwS(); });
 // Click-to-place
 let clickSelected=null;
 document.addEventListener('click',e=>{
   const d=e.target.closest('.iw-drag');
-  if(d&&!d.classList.contains('placed')&&!d.closest('.iw-match,.iw-sort')?.dataset.locked){ document.querySelectorAll('.iw-drag').forEach(x=>{x.style.outline='';x.style.boxShadow='';}); d.style.outline='2.5px solid #fff';d.style.outlineOffset='2px';d.style.boxShadow='0 0 0 4px ${accent}'; clickSelected=d; return; }
+  if(d&&!d.classList.contains('placed')&&!d.closest('.iw-match,.iw-gapfill,.iw-sort')?.dataset.locked){ document.querySelectorAll('.iw-drag').forEach(x=>{x.style.outline='';x.style.boxShadow='';}); d.style.outline='2.5px solid #fff';d.style.outlineOffset='2px';d.style.boxShadow='0 0 0 4px ${accent}'; clickSelected=d; return; }
   const sortDrop=e.target.closest('.iw-sort-drop');
   if(sortDrop&&sortDrop.closest('.iw-sort')?.dataset.locked){ clickSelected=null; return; }
   if(sortDrop&&clickSelected){ sortDrop.appendChild(clickSelected); clickSelected.classList.remove('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; const c=clickSelected; clickSelected=null; _iwS(); _iwGradeSortChip(c); return; }
   const tgt=e.target.closest('.iw-target');
-  if(tgt&&tgt.closest('.iw-match')?.dataset.locked){ clickSelected=null; return; }
+  if(tgt&&tgt.closest('.iw-match,.iw-gapfill')?.dataset.locked){ clickSelected=null; return; }
   if(tgt&&clickSelected){ const c=clickSelected; clickSelected=null; _iwPlace(tgt,c); }
 });`;
 }
