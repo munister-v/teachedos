@@ -7,10 +7,16 @@ const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
 const { effectivePlanKey } = require('../lib/billing');
 
+/* Потолки платных планов подняты вслед за сведением резерва с фактом: пока
+   резерв не сводился, 90 запросов и $1.40 упирались друг в друга примерно на
+   одной отметке, и учитель вылетал посреди урока (один урок в конструкторе
+   это 3-6 запросов, плюс каждый Redo). Деньги теперь считаются настоящие,
+   поэтому долларовый потолок поднят вместе с числом запросов: иначе он стал
+   бы новым ограничителем и решение «1000 запросов» ничего бы не изменило. */
 const AI_MONTHLY_LIMITS = {
   free: { usd: 0.10, requests: 10 },
-  pro: { usd: 1.40, requests: 90 },
-  school: { usd: 1.40, requests: 90 },
+  pro: { usd: 3.00, requests: 1000 },
+  school: { usd: 3.00, requests: 1000 },
 };
 
 function monthlyQuota(user) {
