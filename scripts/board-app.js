@@ -3843,6 +3843,14 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
       card.h = next;
       if (el) el.style.height = next + 'px';
       renderAllArrows?.();
+      /* Карточка растёт САМА (материал/Mission Control меряют себя), а рама
+         урока вокруг нужного размера не знает - без этого высокая карточка
+         вылезала за нижний край рамы и наезжала на соседей внутри неё, и
+         каждый следующий чих замера (ResizeObserver, одно и то же на пиксель)
+         снова и снова пересчитывал то же наложение - глазами это читалось
+         как «всё постоянно уезжает вниз». Тот же приём, что и при первой
+         раскладке урока (placeBoardLessonStageSet/mergeLessonMissions). */
+      if (card.data.parentFrame) _ttScheduleGeneratedHarmonyAudit?.(card.data.parentFrame, { minH: 640, shrink: true });
       scheduleSave && scheduleSave(); saveLocal && saveLocal();
     }
     /* Подвести поле ввода под клавиатуру - см. IW_FOCUS_REPORTER. Только на
@@ -3854,6 +3862,29 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
     }
     if (m.type === 'iw-blur' && m.cardId) {
       if (_iwFocusPending && _iwFocusPending.cardId === m.cardId) _iwFocusPending = null;
+    }
+    /* Карточка слова по ЛЮБОМУ слову текста, не только по заранее
+       подгруженным (см. IW_WORD_HELP_SCRIPT). Внутри песочницы своего же
+       API не достать (Origin: null) - слово смотрит родитель и отвечает
+       ПРЯМО в приславший iframe (e.source), а не broadcast'ом: на доске
+       может быть открыт не один материал одновременно, и чужой ответ не
+       должен долетать до чужого попапа. Слово, которого словарь не знает
+       (имя, опечатка), тоже отвечается - пустым info, иначе окно "Looking
+       it up…" висело бы вечно. */
+    if (m.type === 'iw-word-lookup' && m.cardId && m.word && e.source) {
+      (async () => {
+        let info = { word: m.word };
+        try {
+          const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
+          const qs = new URLSearchParams({ w: m.word, level: (card && card.data && card.data.level) || '' });
+          const r = await apiFetch('/api/dictionary/define?' + qs.toString());
+          const d = await r.json();
+          const hit = d && d.results && d.results[0];
+          if (hit) info = { word: hit.word || m.word, pos: hit.pos || null, ipa: hit.ipa || null,
+            audio: hit.audio || null, meaning: hit.definition || null, example: hit.example || null };
+        } catch {}
+        try { e.source.postMessage({ type: 'iw-word-info', cardId: m.cardId, word: m.word, info }, '*'); } catch {}
+      })();
     }
     if (m.type === 'iw-progress' && m.cardId) {
       try {
@@ -13733,7 +13764,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '825';
+const TEACHEDOS_ASSET_VERSION = '826';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

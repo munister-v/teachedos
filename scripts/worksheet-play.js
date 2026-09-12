@@ -412,24 +412,36 @@ document.addEventListener('focusout',function(e){
    нужен), а если у слова записи нет - что бывает у фраз вроде «doesn't
    agree with me», их в словаре просто нет - синтез речи браузера. Кнопка
    рисуется только когда есть чем звучать. */
+/* Стоп-слова - служебные слова, у которых спрашивать словарь нечего:
+   определение "the" никому не нужно, а тратить лимит запроса на чужой сайт
+   (см. backend/routes/dictionary.js) и место в попапе - незачем. Список
+   короткий и грубый нарочно: пропустить лишнее слово дешевле (одна пустая
+   карточка), чем не открыть по-настоящему нужное. */
+const IW_STOPWORDS = new Set(('a an the is are was were be been being of to in on at for and or '
+  + 'but it its this that these those he she they we you i my your his her their our as with from '
+  + 'by not no do does did has have had will would can could should may might if so than then there '
+  + 'here when what who which how why him them us').split(' '));
+
 const IW_WORD_HELP_SCRIPT = `
 (function(){
   var W = window.__IW_WORDS__ || {};
+  var STOP = ${JSON.stringify([...IW_STOPWORDS])}.reduce(function(o,w){o[w]=1;return o;},{});
   var norm = function(s){ return String(s||'').toLowerCase().replace(/[\\u2019]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\\s+/g,' ').trim(); };
-  var box = null, audio = null;
-  function close(){ if(box){ box.remove(); box = null; } if(audio){ audio.pause(); audio = null; } }
+  var box = null, audio = null, openWord = null;
+  function close(){ if(box){ box.remove(); box = null; } if(audio){ audio.pause(); audio = null; } openWord = null; }
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function row(label, inner){ return '<div class="iw-wh-row"><span class="iw-wh-label">' + label + '</span>' + inner + '</div>'; }
 
-  function open(el, info){
-    close();
-    box = document.createElement('div');
-    box.className = 'iw-wh';
+  /* Слово известно (пришло готовым в __IW_WORDS__ или уже подгружено), но
+     объяснить нечего - словарь такого слова просто не знает (имя, опечатка,
+     служебное слово). Пустой попап хуже отсутствия попапа. */
+  function bodyHtml(info){
     var canSay = !!info.audio || !!window.speechSynthesis;
     var html = '<div class="iw-wh-head"><span class="iw-wh-word">' + esc(info.word) + '</span>'
       + (info.pos ? '<span class="iw-wh-pos">' + esc(info.pos) + '</span>' : '')
       + '<button type="button" class="iw-wh-x" aria-label="Close">&times;</button></div>';
+    if (info.loading) { html += '<div class="iw-wh-row iw-wh-loading">Looking it up…</div>'; return html; }
     if (info.ipa || canSay) {
       html += row('Phonetics &amp; pronunciation', '<div class="iw-wh-ipa">'
         + (canSay ? '<button type="button" class="iw-wh-say" aria-label="Listen">&#128266;</button>' : '')
@@ -438,8 +450,17 @@ const IW_WORD_HELP_SCRIPT = `
     if (info.meaning)  html += row('Meaning', '<div>' + esc(info.meaning) + '</div>');
     if (info.synonyms) html += row('Synonyms', '<div>' + esc(info.synonyms) + '</div>');
     if (info.example)  html += row('Example', '<div class="iw-wh-eg">' + esc(info.example) + '</div>');
-    box.innerHTML = html;
-    document.body.appendChild(box);
+    if (!info.meaning && !info.ipa && !info.synonyms && !info.example && !canSay) html += '<div class="iw-wh-row iw-wh-loading">No dictionary entry for this word.</div>';
+    return html;
+  }
+
+  var openEl = null;
+
+  /* Перерисовка окна на месте, без close()/open(): пока идёт подгрузка
+     "Looking it up…", ученик уже видит окно у нужного слова, а замена его
+     на реальные данные не должна прыгать заново к слову или мигать. */
+  function render(el, info){
+    box.innerHTML = bodyHtml(info);
 
     /* Карточка текста невысокая, а окошко со всеми четырьмя строками бывает
        выше половины её высоты. Простое «не влезло снизу - показать сверху»
@@ -450,6 +471,7 @@ const IW_WORD_HELP_SCRIPT = `
     var r = el.getBoundingClientRect();
     var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
     var below = vh - r.bottom - 18, above = r.top - 18;
+    box.style.maxHeight = '';
     var down = below >= Math.min(box.offsetHeight, above);
     box.style.maxHeight = Math.max(96, Math.round(down ? below : above)) + 'px';
     box.style.overflowY = 'auto';
@@ -475,11 +497,50 @@ const IW_WORD_HELP_SCRIPT = `
     });
   }
 
+  function open(el, info){
+    close();
+    openWord = norm(info.word);
+    openEl = el;
+    box = document.createElement('div');
+    box.className = 'iw-wh';
+    document.body.appendChild(box);
+    render(el, info);
+  }
+
+  /* Слово нажато, но словаря о нём ещё ничего не знаем (не из готовой
+     пачки __IW_WORDS__) - открываем окно СРАЗУ, с состоянием ожидания, и
+     просим родителя (внутри песочницы к своему же API идти нельзя - см.
+     [[teached-worksheet-sandbox-iframe]]) посмотреть слово. Гонка ответов
+     не страховка по номеру попытки, а простая проверка "это всё ещё то же
+     открытое слово?" (openWord) - устаревший ответ на слово, которое уже
+     закрыли или сменили, просто уходит в кеш W и ничего не перерисовывает. */
+  function lookup(el, word){
+    var w = norm(word);
+    open(el, { word: word, loading: true });
+    try {
+      parent.postMessage({ type:'iw-word-lookup', cardId: window.__IW_CARD__, word: w }, '*');
+    } catch(e) {}
+  }
+
+  window.addEventListener('message', function(e){
+    var m = e.data;
+    if (!m || m.type !== 'iw-word-info' || !m.word) return;
+    var k = norm(m.word);
+    var info = m.info && (m.info.meaning || m.info.ipa || m.info.synonyms || m.info.example || m.info.audio)
+      ? Object.assign({ word: m.word }, m.info) : { word: m.word };
+    W[k] = info;
+    if (openWord === k && openEl) render(openEl, info);
+  });
+
   document.addEventListener('click', function(e){
-    var hit = e.target.closest ? e.target.closest('.iw-read-p strong') : null;
+    var hit = e.target.closest ? e.target.closest('.iw-word') : null;
     if (hit) {
-      var info = W[norm(hit.textContent)];
-      if (info) { e.stopPropagation(); open(hit, info); }
+      var w = norm(hit.textContent);
+      if (!w || STOP[w]) return;
+      e.stopPropagation();
+      var known = W[w];
+      if (known) open(hit, known);
+      else lookup(hit, hit.textContent);
       return;
     }
     if (box && !(e.target.closest && e.target.closest('.iw-wh'))) close();
@@ -527,6 +588,28 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
   const md = s => esc(s)
     .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
     .replace(/__([^_\n]+?)__/g, '<strong>$1</strong>');
+  /* Тот же md(), но каждое слово ещё и завёрнуто в свой <span> - зацепка
+     для клика по ЛЮБОМУ слову текста (карточка слова, см.
+     IW_WORD_HELP_SCRIPT), не только по **выделенным** заранее. Токенизация
+     идёт по СЫРОЙ строке, до esc(): экранировать нужно каждый кусок
+     (слово/не-слово) отдельно - иначе, скажем, "&lt;" ломается пополам, а
+     "lt" внутри неё по ошибке становится "словом". */
+  const mdWords = s => {
+    const raw = String(s || '');
+    const wrapWords = t => t.split(/([A-Za-z][A-Za-z'’-]*)/g).map((chunk, i) =>
+      i % 2 === 1 ? `<span class="iw-word">${esc(chunk)}</span>` : esc(chunk)
+    ).join('');
+    let out = '', last = 0;
+    const re = /\*\*([^*\n]+?)\*\*|__([^_\n]+?)__/g;
+    let m;
+    while ((m = re.exec(raw))) {
+      out += wrapWords(raw.slice(last, m.index));
+      out += `<strong>${wrapWords(m[1] || m[2])}</strong>`;
+      last = re.lastIndex;
+    }
+    out += wrapWords(raw.slice(last));
+    return out;
+  };
 
   let contentHtml = '';
   let scriptHtml = '';
@@ -1223,7 +1306,7 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="iw-read-kicker">${md(c.title || '')}${meta}</div>
         ${pick}
         ${head ? `<h2 class="iw-read-head"${titleChoice && ci === 0 ? ' data-veiled="1"' : ''}>${md(head)}</h2>` : ''}
-        ${lines.map((p, i) => `<p class="iw-read-p"><span class="iw-read-n" aria-hidden="true">${i + 1}</span>${md(p)}</p>`).join('')}
+        ${lines.map((p, i) => `<p class="iw-read-p"><span class="iw-read-n" aria-hidden="true">${i + 1}</span>${mdWords(p)}</p>`).join('')}
       </article>`;
     }).join('')}</div>`;
     /* Высота карточки на доске задавалась оценкой и коробкой в 240px -
@@ -1231,7 +1314,11 @@ document.addEventListener('DOMContentLoaded',function(){
        настоящую высоту, тот её и сообщает: замерить эту разметку снаружи
        нельзя (srcdoc-iframe), а изнутри - одна строка. */
     scriptHtml = IW_HEIGHT_REPORTER;
-    if (wordHelp) scriptHtml += IW_WORD_HELP_SCRIPT;
+    /* Карточка слова теперь и по обычному слову, не только по заранее
+       выделенному (12.09.2026) - подгружает недостающее по требованию
+       (см. iw-word-lookup в IW_WORD_HELP_SCRIPT), поэтому нужна ВСЕГДА на
+       материале, а не только когда пачка вышла непустой. */
+    scriptHtml += IW_WORD_HELP_SCRIPT;
     if (titleChoice) scriptHtml += `
 var _iwTitleAns = ${JSON.stringify(String(titleChoice.answer || ''))};
 function iwTitleToggle(){
@@ -1614,6 +1701,13 @@ strong{font-weight:650}
    нажимается; у слов без данных ни того, ни другого. */
 .iw-read-p strong[data-wh]{cursor:pointer;box-shadow:inset 0 -1px 0 color-mix(in srgb,${ink} 45%,transparent)}
 .iw-read-p strong[data-wh]:hover{background:color-mix(in srgb,${accent} 62%,transparent)}
+/* Любое слово теперь тоже открывает карточку - не только выделенные
+   заранее. Постоянного подчёркивания на каждом слове быть не должно (стена
+   пунктира нечитаема) - курсор и подсветка только под пальцем/курсором. */
+.iw-word{cursor:pointer;border-radius:2px}
+.iw-word:hover{background:color-mix(in srgb,${accent} 30%,transparent)}
+.iw-read-p strong .iw-word{cursor:pointer}
+.iw-read-p strong .iw-word:hover{background:transparent}
 /* fixed, а не absolute: карточка сама сообщает свою высоту по scrollHeight
    (IW_HEIGHT_REPORTER), и всплывающий блок в потоке документа растил бы её
    на каждое нажатие. Окно iframe и есть видимая часть карточки, поэтому
