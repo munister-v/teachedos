@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=823">
+<link rel="stylesheet" href="styles/fonts.css?v=824">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -131,15 +131,15 @@ a{text-decoration:none;color:inherit;}
   background:#1C1C1E;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=823" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=823">
-<link rel="stylesheet" href="styles/harmony.css?v=823">
-<link rel="stylesheet" href="styles/unify.css?v=823">
-<link rel="stylesheet" href="styles/teached-brand.css?v=823">
+<script src="theme.js?v=824" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=824">
+<link rel="stylesheet" href="styles/harmony.css?v=824">
+<link rel="stylesheet" href="styles/unify.css?v=824">
+<link rel="stylesheet" href="styles/teached-brand.css?v=824">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=823">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=823">
-<link rel="stylesheet" href="styles/controls.css?v=823">
+<link rel="stylesheet" href="styles/figma-theme.css?v=824">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=824">
+<link rel="stylesheet" href="styles/controls.css?v=824">
 </head>
 <body class="fx">
 
@@ -189,7 +189,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 
 <!-- Проигрыватель листа, общий с доской: без него лист ученику не показать. -->
-<script src="scripts/worksheet-play.js?v=823"></script>
+<script src="scripts/worksheet-play.js?v=824"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -515,7 +515,11 @@ window.addEventListener('message', e => {
      ноль - сданное сочинение превратило бы «всё выполнено» в половину. Считаем
      то же, что и чек-лист рядом: выполненность, а не правильность. Сам текст
      лежит в data.iw, учитель читает его глазами. */
-  const gradable = qs.some(q => q && (q.type === 'mcq' || q.type === 'truefalse' || q.type === 'gap-fill'));
+  /* 'match' здесь с тех пор, как слова оцениваются в момент укладки: лист сам
+     присылает настоящий счёт ('iw-progress'), а эта ветка, отработав позже по
+     таймеру, записала бы поверх него выполненность - то есть ноль, потому что
+     answeredQs про разложенные слова ничего не знает. */
+  const gradable = qs.some(q => q && (q.type === 'mcq' || q.type === 'truefalse' || q.type === 'gap-fill' || q.type === 'match'));
   const payload = { status: s.submitted ? 'done' : ((draft || answeredQs) ? 'in_progress' : 'assigned'), data: { iw: s } };
   if (!gradable) {
     if (Array.isArray(cd.cards) && cd.cards.length) { payload.score = s.submitted ? 1 : 0; payload.max_score = 1; }
@@ -570,10 +574,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=823" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=823" defer></script>
-<script src="scripts/autogrow.js?v=823" defer></script>
-<script src="pwa-boot.js?v=823" defer></script>
-  <script src="scripts/signin-entry.js?v=823" defer></script>
+<script src="scripts/nav-boost.js?v=824" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=824" defer></script>
+<script src="scripts/autogrow.js?v=824" defer></script>
+<script src="pwa-boot.js?v=824" defer></script>
+  <script src="scripts/signin-entry.js?v=824" defer></script>
 </body>
 </html>

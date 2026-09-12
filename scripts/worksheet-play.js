@@ -29,6 +29,12 @@ const WS_ACCENT_INK = '#0E0E10';
 
 const WS_ACCENT_LIME = '#CDF24F';
 
+/* Цвет «принято». Лаймом вердикт не показать: на белом он 1.36:1 и тонкий
+   контур им просто не виден (см. заметку ниже про лайм как заливку). Этот
+   зелёный уже живёт в файле как тёмный текст на светлом и даёт 5.0:1, то
+   есть читается и глифом ✓, и кольцом вокруг поля. */
+const IW_OK = '#15803D';
+
 /* ЛАЙМ - ЗАЛИВКА, А НЕ ЧЕРНИЛА.
 
    Фирменный #CDF24F на белом даёт 1.36:1 - это не «бледновато», это текст,
@@ -345,6 +351,13 @@ function _ttWordTarget(text) {
    Годится НЕ всякой карточке: у степпера на экране один шаг из шести, и
    карточка, следующая за его высотой, дёргалась бы на каждом «дальше».
    Только там, где всё содержимое видно сразу: материал и лист «все пропуски». */
+/* Низ листа без кнопки проверки. Каждый ответ оценивается в момент, когда он
+   дан (выбор плитки, уход из поля, укладка слова), поэтому «✓ Check Answers»
+   внизу колоды не решала задачу, а добавляла шаг: ученик уже знал про каждый
+   свой ответ. Счёт лист подводит сам, когда отвечено всё (iwMaybeFinish), и
+   только тогда показывает «начать заново». */
+const IW_FOOT = `<div class="iw-bottom"><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try again</button></div><div class="iw-score" id="iw-score"></div>`;
+
 const IW_HEIGHT_REPORTER = `
 var _iwRH=0;
 function iwReportHeight(){
@@ -604,7 +617,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
       <div class="iw-gapgrid-sentences">${sentencesHtml}</div>
       <div class="iw-gap-grid">${tilesHtml}</div>
     </div></div></div>` +
-      `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+      IW_FOOT;
   } else if (qs.length) {
     const isOddOneOut = kind.includes('odd');
     const qCards = qs.map((q, qi) => {
@@ -621,8 +634,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
         </div>`;
       } else if (q.type === 'gap-fill') {
         inner = `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}">
-          <input type="text" class="iw-gap-input" placeholder="Type your answer…" autocomplete="off" onkeydown="iwGapEnter(event,this)">
-          <button class="iw-check-btn" onclick="checkGap(this.parentNode)">Check</button>
+          <input type="text" class="iw-gap-input" placeholder="Type your answer…" autocomplete="off" onkeydown="iwGapEnter(event,this)" onblur="iwGapBlur(this)">
         </div>`;
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
         const cats = [...new Set(q.pairs.map(p => p.right))];
@@ -725,10 +737,10 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
         <p class="iw-mc-note" id="iw-mc-note">Progress: 0 of ${missionOrder.length} stations complete</p>
       </div>
       <div class="iw-mc">${stations}</div>` +
-      `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check All Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+      IW_FOOT;
     } else {
       contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
-        `<div class="iw-bottom"><button class="iw-submit" id="iw-check-btn" onclick="checkAll()">✓ Check Answers</button><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try Again</button></div><div class="iw-score" id="iw-score"></div>`;
+        IW_FOOT;
     }
   }
 
@@ -758,8 +770,9 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
    the bottom of the deck, so a student answering eight questions found out
    about the first one seven questions later. The answer is graded the moment
    it is made: the pick turns green or red, the right one is marked, and the
-   question locks. Check Answers still exists for the drag activities and for
-   the running total - and fires by itself once nothing is left unanswered. */
+   question locks. Dragging words is graded the same way, on the drop
+   (_iwGradeTarget), so the button at the bottom is gone entirely and the
+   sheet totals itself once nothing is left unanswered. */
 function iwGrade(w){
   if(!w || w.dataset.locked) return null;
   const sel=w.querySelector('.iw-opt.selected,.iw-tf-btn.selected');
@@ -767,8 +780,14 @@ function iwGrade(w){
   const ans=w.dataset.answer;
   w.dataset.locked='1';
   w.querySelectorAll('.iw-opt,.iw-tf-btn').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); });
-  return sel.dataset.val===ans;
+  const ok=sel.dataset.val===ans;
+  _iwQDone(w,ok);
+  return ok;
 }
+/* Точка в углу вопроса. Одна и та же отметка у всех типов заданий: ученик
+   узнаёт её, не читая, независимо от того, выбирал он плитку, писал в поле
+   или раскладывал слова. */
+function _iwQDone(el,ok){ const q=el&&el.closest&&el.closest('.iw-q'); if(q&&ok) q.classList.add('is-done'); }
 /* A wrong answer gets longer on screen than a right one: the point of showing
    the correct option is that it is read before the card slides away. */
 function iwAfterPick(ok){
@@ -780,16 +799,20 @@ function iwMaybeFinish(){
   const el=document.getElementById('iw-score');
   if(el && el.style.display==='block') return;
   if(document.querySelector('.iw-opts:not([data-locked]),.iw-tf:not([data-locked])')) return;
-  if(document.querySelector('.iw-match,.iw-sort')) return;
+  /* Раньше присутствие матчинга или сортировки отменяло автосчёт: их
+     оценивала только кнопка внизу. Теперь они оцениваются на укладке, и
+     «готово» значит, что каждое поле закрыто верным словом, а банк пуст. */
+  if([...document.querySelectorAll('.iw-target')].some(t=>!t.dataset.done)) return;
+  if(document.querySelector('.iw-sort-bank .iw-drag')) return;
   const openGap=[...document.querySelectorAll('.iw-gap')].some(w=>!w.dataset.locked);
   if(openGap) return;
-  if(!document.querySelector('.iw-opts,.iw-tf,.iw-gap')) return;
+  if(!document.querySelector('.iw-opts,.iw-tf,.iw-gap,.iw-target,.iw-sort')) return;
   checkAll();
 }
 function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
 function pickTF(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
 function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
-function checkGap(w,silent){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; w.dataset.locked='1'; inp.readOnly=true; const ok=inp.value.trim().toLowerCase()===String(ans||'').trim().toLowerCase(); inp.classList.remove(ok?'wrong':'correct'); inp.classList.add(ok?'correct':'wrong'); if(silent) return; iwSave(); iwBeep(ok); iwMaybeFinish(); }
+function checkGap(w,silent){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; w.dataset.locked='1'; inp.readOnly=true; const ok=inp.value.trim().toLowerCase()===String(ans||'').trim().toLowerCase(); inp.classList.remove(ok?'wrong':'correct'); inp.classList.add(ok?'correct':'wrong'); _iwQDone(w,ok); if(silent) return; iwSave(); iwBeep(ok); iwMaybeFinish(); }
 /* Same instant grading for the combined gap-fill grid, where the tiles have no
    Check button of their own: leaving a filled tile marks it. */
 function iwGapBlur(inp){ const w=inp.closest('.iw-gap'); if(!w||w.dataset.locked||!inp.value.trim()) return; checkGap(w); }
@@ -804,9 +827,9 @@ function iwGapEnter(e, inp){
     if(next) next.focus(); else inp.blur();
     return;
   }
-  // Standalone gap-fill question: Enter submits the same as clicking Check.
-  const btn=inp.parentNode.querySelector('.iw-check-btn');
-  if(btn) btn.click();
+  // Standalone gap-fill question: Enter grades it, same as leaving the field.
+  const w=inp.closest('.iw-gap');
+  if(w&&inp.value.trim()&&!w.dataset.locked) checkGap(w);
 }
 function toggleKey(btn){ const k=btn.nextElementSibling; const o=k.style.display!=='none'; k.style.display=o?'none':'block'; btn.textContent=o?'🔑 Show Answer Key':'🔑 Hide Answer Key'; }
 ${_iwDragScript(accent)}
@@ -816,16 +839,18 @@ function checkAll(silent){
   document.querySelectorAll('.iw-opts').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-opt.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
   document.querySelectorAll('.iw-tf').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-tf-btn.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
   document.querySelectorAll('.iw-gap').forEach(w=>{ total++; const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; inp.readOnly=true; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.add('correct');score++;}else inp.classList.add('wrong'); });
-  document.querySelectorAll('.iw-target').forEach(t=>{ total++; const slot=t.querySelector('.iw-slot'),placed=slot.textContent.trim(); if(placed===t.dataset.expect){t.classList.add('correct');score++;}else if(placed) t.classList.add('wrong'); });
+  /* Балл даётся за попадание С ПЕРВОГО РАЗА. Неверное слово возвращается в
+     банк и ученик кладёт снова, так что к концу верно стоит всё; без отметки
+     о промахе (data-missed) любой лист закрывался бы на 100% перебором. */
+  document.querySelectorAll('.iw-target').forEach(t=>{ total++; const slot=t.querySelector('.iw-slot'),placed=slot.textContent.trim(); if(placed===t.dataset.expect){t.classList.add('correct'); if(!t.dataset.missed) score++;}else if(placed) t.classList.add('wrong'); });
   // Sorting
-  document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ total++; const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){d.classList.add('sort-correct');score++;}else d.classList.add('sort-wrong'); });
+  document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ total++; const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){d.classList.add('sort-correct'); if(!d.dataset.missed) score++;}else d.classList.add('sort-wrong'); });
   // Lock matching/sorting so dragging further doesn't leave the just-computed
   // correct/wrong marks stale (same fix as gap-fill's readOnly, above).
   document.querySelectorAll('.iw-match,.iw-sort').forEach(w=>{ w.dataset.locked='1'; w.querySelectorAll('.iw-drag').forEach(d=>{ d.draggable=false; }); });
   const el=document.getElementById('iw-score'); if(!el) return;
   const pct=total?Math.round(score/total*100):0; el.style.display='block';
   el.textContent=pct>=80?'🎉 '+score+'/'+total+' ('+pct+'%) - Excellent!':pct>=50?'👍 '+score+'/'+total+' ('+pct+'%) - Good job!':'📚 '+score+'/'+total+' ('+pct+'%) - Keep practicing!';
-  const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='none';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='inline-block';
   if(!silent){ el.classList.remove('iw-pop'); void el.offsetWidth; el.classList.add('iw-pop'); iwBeep(pct>=50); if(pct>=80) iwConfetti(); iwSave();
     try{ if(window.__IW_CARD__) parent.postMessage({type:'iw-progress',cardId:window.__IW_CARD__,score:score,maxScore:total,pct:pct},'*'); }catch(e){}
@@ -864,7 +889,6 @@ function iwReset(){
   // Sorting: return chips to bank
   document.querySelectorAll('.iw-sort').forEach(s=>{ delete s.dataset.locked; const bank=s.querySelector('.iw-sort-bank'); s.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ d.draggable=true; d.classList.remove('sort-correct','sort-wrong','placed'); d.style.outline=''; d.style.boxShadow=''; if(bank) bank.appendChild(d); }); });
   const el=document.getElementById('iw-score'); if(el){ el.style.display='none'; el.textContent=''; }
-  const cb=document.getElementById('iw-check-btn'); if(cb) cb.style.display='inline-block';
   const ta=document.getElementById('iw-tryagain'); if(ta) ta.style.display='none';
   if(typeof iwGoto==='function') iwGoto(0);
   iwSave();
@@ -900,6 +924,15 @@ function iwRestore(s){
     // untouched question is still open rather than pre-revealed.
     document.querySelectorAll('.iw-opts,.iw-tf').forEach(w=>{ if(w.querySelector('.selected')) iwGrade(w); });
     document.querySelectorAll('.iw-gap').forEach(w=>{ const inp=w.querySelector('.iw-gap-input'); if(inp&&inp.value.trim()) checkGap(w,true); });
+    /* Уложенное в прошлый заход возвращается уже проверенным: неверное
+       никогда не сохраняется (оно уходит обратно в банк), поэтому здесь
+       достаточно проставить отметку, не гоняя ученика по второму кругу. */
+    document.querySelectorAll('.iw-target').forEach(t=>{
+      const v=t.querySelector('.iw-slot').textContent.trim();
+      if(v&&v===t.dataset.expect){ t.classList.add('correct'); t.dataset.done='1'; }
+    });
+    document.querySelectorAll('.iw-match').forEach(m=>{ if(typeof _iwMatchDone==='function') _iwMatchDone(m); });
+    document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){ d.classList.add('sort-correct'); d.dataset.done='1'; } });
     if(s.checked) checkAll(true);
   }catch(e){}
 }
@@ -1373,10 +1406,13 @@ strong{font-weight:650}
 .iw-gap-input{flex:1;border:none;border-bottom:2px solid ${accent};padding:5px 4px;font:14px system-ui;outline:none;background:transparent}
 .iw-gap-input.correct{border-color:#16a34a;color:#15803d;font-weight:600}
 .iw-gap-input.wrong{border-color:#dc2626;color:#991b1b}
-.iw-check-btn{padding:6px 14px;border:none;border-radius:8px;background:${WS_ACCENT_INK};color:#fff;font:800 11px system-ui;cursor:pointer}
-.iw-check-btn:hover{opacity:.85}
 /* Matching D&D */
 .iw-match{display:flex;gap:16px;flex-wrap:wrap}
+/* Задание пройдено целиком: одна еле заметная точка в углу карточки вместо
+   плашки со счётом. Ученик видит, что можно идти дальше, не читая ничего. */
+.iw-q{position:relative}
+.iw-q.is-done::after{content:'';position:absolute;top:10px;right:12px;width:7px;height:7px;border-radius:50%;background:${IW_OK};box-shadow:0 0 0 3px color-mix(in srgb,${IW_OK} 16%,transparent);animation:iwdot .3s ease}
+@keyframes iwdot{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
 .iw-match-bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:8px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;flex:1;align-items:flex-start;align-content:flex-start}
 .iw-drag{padding:6px 14px;border-radius:8px;background:${accent};color:${WS_ACCENT_INK};font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
 .iw-drag:active{cursor:grabbing;transform:scale(1.06)}
@@ -1387,15 +1423,29 @@ strong{font-weight:650}
 .iw-drag.sort-correct{background:#15803D!important;color:#fff!important;opacity:1!important}
 .iw-drag.sort-wrong{background:#dc2626!important;color:#fff!important;opacity:1!important}
 .iw-match-targets{flex:1.2;display:flex;flex-direction:column;gap:6px}
-.iw-target{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1.5px solid #e4e5ec;border-radius:10px;min-height:38px;transition:all .2s}
+/* Правое поле держится ВСЕГДА, а не только когда отметка появилась: иначе
+   строка определения прыгала бы вбок в момент вердикта, а длинная - уезжала
+   бы под галочку. */
+.iw-target{display:flex;align-items:center;gap:8px;padding:6px 22px 6px 10px;border:1.5px solid #e4e5ec;border-radius:10px;min-height:38px;transition:all .2s}
 .iw-target.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff);box-shadow:0 0 0 2px color-mix(in srgb,${accent} 20%,transparent)}
-.iw-target.correct{border-color:#16a34a;background:#dcfce7}
-.iw-target.wrong{border-color:#dc2626;background:#fee2e2}
+/* Вердикт - контур, а не заливка. Закрашенный блок перекрикивал сам учебный
+   материал (в задании с фотографиями зелёный фон спорил со снимком), а нужно
+   лишь сказать «принято». Толщина берётся кольцом box-shadow, поэтому рамка
+   не двигает содержимое на пиксель при смене состояния. */
+.iw-target.correct{border-color:${IW_OK};background:color-mix(in srgb,${IW_OK} 6%,#fff);box-shadow:0 0 0 2.5px color-mix(in srgb,${IW_OK} 22%,transparent)}
+/* Отметка в углу: подтверждение, которое видно боковым зрением и не требует
+   читать. Ставится на само поле, поэтому работает и там, где полей шесть. */
+.iw-target.correct::after{content:'✓';position:absolute;top:4px;right:6px;font:800 11px system-ui;color:${IW_OK};line-height:1;pointer-events:none}
+.iw-target{position:relative}
+/* Ошибка - мягкий сигнал к повторной попытке, а не приговор: слово само
+   вернётся в банк через момент (см. _iwGradeTarget). */
+.iw-target.wrong{border-color:#e0a3a3;background:color-mix(in srgb,#dc2626 4%,#fff);animation:iwnudge .32s ease}
+@keyframes iwnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .iw-slot{min-width:60px;min-height:26px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${ink};padding:3px 8px;transition:all .15s}
 .iw-slot.filled{border-style:solid;border-color:${accent};background:color-mix(in srgb,${accent} 10%,#fff)}
 .iw-def{font-size:12.5px;color:#3f3a4a;flex:1}
 .iw-pic{flex:1;min-width:0;height:110px;object-fit:cover;border-radius:8px;background:#f2f2f5;display:block}
-.iw-match.has-pics .iw-target{align-items:stretch;padding:8px 10px}
+.iw-match.has-pics .iw-target{align-items:stretch;padding:8px 22px 8px 10px}
 .iw-match.has-pics .iw-slot{align-self:center}
 /* Снимки идут в два столбца, а банк слов получает фиксированную колонку.
    Одним столбцом на всю ширину карточки фотография растягивалась в полосу
@@ -1698,6 +1748,12 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 /* Secondary: outlined, not a second filled button in a flat grey that
    belongs to no palette. */
 .iw-reset{background:transparent;color:${WS_ACCENT_INK};border-color:${WS_ACCENT_INK}}
+/* «Начать заново» появляется уже после того, как лист пройден, и спорить за
+   внимание с содержимым ему не за чем: на весь низ карточки эта кнопка была
+   такой же тяжёлой, как прежняя проверка. Только у листа с заданиями - у
+   флешкарт «Reset» стоит в паре с «Reveal All», там ширина общая. */
+#iw-tryagain{width:auto;align-self:center;padding:7px 16px;border-width:1.5px;border-color:#d9dae2;border-radius:11px;font-size:12px;color:#5b5b66}
+#iw-tryagain:hover{border-color:${WS_ACCENT_INK};color:${WS_ACCENT_INK};opacity:1}
 .iw-score{text-align:center;margin-top:14px;font:700 15px system-ui;color:${ink};display:none}
 .iw-score.iw-pop{animation:iwpop .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes iwpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
@@ -1771,6 +1827,73 @@ ${contentHtml}
 
 function _iwDragScript(accent) {
   return `
+/* ОДНА ТОЧКА ВХОДА НА ЧЕТЫРЕ СПОСОБА ПОЛОЖИТЬ СЛОВО.
+   Мышь, палец, клик-и-клик и восстановление сессии раньше повторяли укладку
+   каждый своим куском кода. Пока укладка была только укладкой, расхождение
+   стоило мало; с мгновенной проверкой оно означало бы, что мышью ответ
+   оценивается, а пальцем нет. Проверка живёт здесь, ниже по коду её никто
+   не дублирует. */
+function _iwPlace(tgt,chip,silent){
+  const m=tgt.closest('.iw-match'); if(!m||m.dataset.locked) return;
+  const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim();
+  if(prev){ const old=m.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); }
+  slot.textContent=chip.dataset.left; slot.classList.add('filled');
+  chip.classList.add('placed'); chip.style.outline=''; chip.style.boxShadow='';
+  tgt.classList.remove('correct','wrong','dragover');
+  if(!silent) _iwGradeTarget(tgt,chip);
+  _iwS();
+}
+/* Вердикт в момент укладки. Верное остаётся на месте и запирается, неверное
+   мягко возвращается в банк: ученику не нужно искать, что он сделал не так,
+   а учителю - объяснять, где кнопка проверки. Первая попытка запоминается
+   (data-missed), иначе перебором любой лист закрывался бы на 100%. */
+function _iwGradeTarget(tgt,chip){
+  const ok=tgt.querySelector('.iw-slot').textContent.trim()===tgt.dataset.expect;
+  if(ok){ tgt.classList.add('correct'); tgt.dataset.done='1'; if(chip) chip.draggable=false; }
+  else{
+    if(!tgt.dataset.missed) tgt.dataset.missed='1';
+    tgt.classList.add('wrong');
+    setTimeout(function(){
+      tgt.classList.remove('wrong');
+      const slot=tgt.querySelector('.iw-slot');
+      slot.textContent=''; slot.classList.remove('filled');
+      if(chip) chip.classList.remove('placed');
+      _iwS();
+    },900);
+  }
+  if(typeof iwBeep==='function') iwBeep(ok);
+  _iwMatchDone(tgt.closest('.iw-match'));
+  if(typeof iwMaybeFinish==='function') setTimeout(iwMaybeFinish, ok?420:1100);
+  return ok;
+}
+/* Тонкая отметка в углу задания вместо плашки со счётом под ним. */
+function _iwMatchDone(m){
+  if(!m) return;
+  const targets=[...m.querySelectorAll('.iw-target')];
+  const done=targets.length&&targets.every(t=>t.dataset.done);
+  m.classList.toggle('is-done',done);
+  const q=m.closest('.iw-q'); if(q) q.classList.toggle('is-done',done);
+}
+/* То же для сортировки: фишка оценивается, попав в колонку. */
+function _iwGradeSortChip(chip){
+  const col=chip.closest('.iw-sort-col'); if(!col) return;
+  const ok=chip.dataset.expect===col.dataset.cat;
+  if(ok){ chip.classList.add('sort-correct'); chip.dataset.done='1'; chip.draggable=false; }
+  else{
+    if(!chip.dataset.missed) chip.dataset.missed='1';
+    chip.classList.add('sort-wrong');
+    setTimeout(function(){
+      chip.classList.remove('sort-wrong');
+      const bank=chip.closest('.iw-sort')?.querySelector('.iw-sort-bank');
+      if(bank) bank.appendChild(chip);
+      _iwS();
+    },900);
+  }
+  if(typeof iwBeep==='function') iwBeep(ok);
+  const s=chip.closest('.iw-sort');
+  if(s){ const left=s.querySelectorAll('.iw-sort-bank .iw-drag').length; s.classList.toggle('is-done',!left); }
+  if(typeof iwMaybeFinish==='function') setTimeout(iwMaybeFinish, ok?420:1100);
+}
 let dragEl=null;
 document.addEventListener('dragstart',e=>{ if(!e.target.classList.contains('iw-drag')||e.target.closest('.iw-match,.iw-sort')?.dataset.locked) return; dragEl=e.target; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',e.target.dataset.left); setTimeout(()=>e.target.style.opacity='.4',0); });
 document.addEventListener('dragend',e=>{ if(dragEl) dragEl.style.opacity=''; dragEl=null; document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); });
@@ -1780,20 +1903,17 @@ document.addEventListener('drop',e=>{
   e.preventDefault();
   const sortDrop=e.target.closest('.iw-sort-drop');
   if(sortDrop&&sortDrop.closest('.iw-sort')?.dataset.locked) return;
-  if(sortDrop&&dragEl){ sortDrop.classList.remove('dragover'); sortDrop.appendChild(dragEl); dragEl.classList.remove('placed'); dragEl.style.opacity=''; dragEl=null; _iwS(); return; }
+  if(sortDrop&&dragEl){ sortDrop.classList.remove('dragover'); sortDrop.appendChild(dragEl); dragEl.classList.remove('placed'); dragEl.style.opacity=''; const c=dragEl; dragEl=null; _iwS(); _iwGradeSortChip(c); return; }
   const tgt=e.target.closest('.iw-target');
   if(!tgt||!dragEl||tgt.closest('.iw-match')?.dataset.locked) return;
-  tgt.classList.remove('dragover');
-  const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim();
-  if(prev){ const bank=tgt.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); slot.classList.remove('filled'); }
-  slot.textContent=dragEl.dataset.left; slot.classList.add('filled'); dragEl.classList.add('placed'); tgt.classList.remove('correct','wrong'); _iwS();
+  _iwPlace(tgt,dragEl);
 });
 function _iwS(){ if(typeof iwSave==='function') iwSave(); }
 // Touch drag
 let touchDrag=null,touchClone=null;
 document.addEventListener('touchstart',e=>{ const d=e.target.closest('.iw-drag'); if(!d||d.classList.contains('placed')||d.closest('.iw-match,.iw-sort')?.dataset.locked) return; touchDrag=d; touchClone=d.cloneNode(true); touchClone.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:.85;transform:scale(1.08)'; document.body.appendChild(touchClone); const t=e.touches[0]; touchClone.style.left=(t.clientX-30)+'px'; touchClone.style.top=(t.clientY-16)+'px'; e.preventDefault(); },{passive:false});
 document.addEventListener('touchmove',e=>{ if(!touchDrag) return; const t=e.touches[0]; if(touchClone){touchClone.style.left=(t.clientX-30)+'px';touchClone.style.top=(t.clientY-16)+'px';} document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(tgt=>{ const r=tgt.getBoundingClientRect(); tgt.classList.toggle('dragover',t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom); }); e.preventDefault(); },{passive:false});
-document.addEventListener('touchend',e=>{ if(!touchDrag) return; if(touchClone){touchClone.remove();touchClone=null;} const sortDrop=document.querySelector('.iw-sort-drop.dragover'); if(sortDrop){ sortDrop.appendChild(touchDrag); touchDrag.classList.remove('placed'); } else { const over=document.querySelector('.iw-target.dragover'); if(over){ const slot=over.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=over.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=touchDrag.dataset.left; slot.classList.add('filled'); touchDrag.classList.add('placed'); over.classList.remove('correct','wrong','dragover'); } } document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); touchDrag=null; _iwS(); });
+document.addEventListener('touchend',e=>{ if(!touchDrag) return; if(touchClone){touchClone.remove();touchClone=null;} const sortDrop=document.querySelector('.iw-sort-drop.dragover'); if(sortDrop){ sortDrop.appendChild(touchDrag); touchDrag.classList.remove('placed'); _iwGradeSortChip(touchDrag); } else { const over=document.querySelector('.iw-target.dragover'); if(over) _iwPlace(over,touchDrag); } document.querySelectorAll('.iw-target,.iw-sort-drop').forEach(t=>t.classList.remove('dragover')); touchDrag=null; _iwS(); });
 // Click-to-place
 let clickSelected=null;
 document.addEventListener('click',e=>{
@@ -1801,10 +1921,10 @@ document.addEventListener('click',e=>{
   if(d&&!d.classList.contains('placed')&&!d.closest('.iw-match,.iw-sort')?.dataset.locked){ document.querySelectorAll('.iw-drag').forEach(x=>{x.style.outline='';x.style.boxShadow='';}); d.style.outline='2.5px solid #fff';d.style.outlineOffset='2px';d.style.boxShadow='0 0 0 4px ${accent}'; clickSelected=d; return; }
   const sortDrop=e.target.closest('.iw-sort-drop');
   if(sortDrop&&sortDrop.closest('.iw-sort')?.dataset.locked){ clickSelected=null; return; }
-  if(sortDrop&&clickSelected){ sortDrop.appendChild(clickSelected); clickSelected.classList.remove('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; clickSelected=null; _iwS(); return; }
+  if(sortDrop&&clickSelected){ sortDrop.appendChild(clickSelected); clickSelected.classList.remove('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; const c=clickSelected; clickSelected=null; _iwS(); _iwGradeSortChip(c); return; }
   const tgt=e.target.closest('.iw-target');
   if(tgt&&tgt.closest('.iw-match')?.dataset.locked){ clickSelected=null; return; }
-  if(tgt&&clickSelected){ const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim(); if(prev){ const bank=tgt.closest('.iw-match').querySelector('.iw-match-bank'); const old=bank.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); } slot.textContent=clickSelected.dataset.left; slot.classList.add('filled'); clickSelected.classList.add('placed'); clickSelected.style.outline='';clickSelected.style.boxShadow=''; tgt.classList.remove('correct','wrong'); clickSelected=null; _iwS(); }
+  if(tgt&&clickSelected){ const c=clickSelected; clickSelected=null; _iwPlace(tgt,c); }
 });`;
 }
 

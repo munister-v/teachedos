@@ -3233,10 +3233,11 @@ function renderWorksheet(el, card) {
   if (d._interactive && _wsHasInteractive(d)) {
     el.dataset.interactive = '1';
     el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent);
-    const tc = document.createElement('div');
-    tc.className = 'card-close text-close'; tc.textContent = '×';
-    tc.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
-
+    /* В углу играющей карточки стояли ДВА креста впритык: «×» удаляла
+       карточку с доски насовсем, «✕ Exit» всего лишь выходила из игры. Два
+       разных по последствиям действия в одной точке, и промах стоил урока.
+       В режиме игры выход один, а удалить карточку по-прежнему можно, выйдя
+       из игры или выделив карточку и нажав Delete. */
     const strip = document.createElement('div');
     strip.className = 'ws-drag-strip';
     strip.innerHTML = `<span>${esc(d.title || 'Interactive Activity')}</span><button class="ws-back-btn" title="Back to static view">✕ Exit</button>`;
@@ -3259,7 +3260,6 @@ function renderWorksheet(el, card) {
     wrap.addEventListener('mousedown', e => e.stopPropagation());
     wrap.appendChild(iframe);
 
-    el.appendChild(tc);
     el.appendChild(strip);
     el.appendChild(wrap);
     return;
@@ -3578,7 +3578,11 @@ function _wsHasInteractive(d) {
 
    Measured here instead, at the sizes Play actually renders, and sized to
    the TALLEST step so moving through the deck never resizes the card. */
-const PLAY_CHROME = 176;   // body padding 40 + step HUD ~50 + Check/Try again ~86
+/* Кнопки проверки внизу больше нет (ответ оценивается в момент, когда он
+   дан), и запас под неё стал пустым полем в нижней трети карточки. Осталось
+   место под строку счёта и «начать заново», которые появляются в самом
+   конце. */
+const PLAY_CHROME = 156;   // body padding 40 + step HUD ~50 + score/Try again ~66
 const PLAY_QPAD = 60;      // .iw-stepper .iw-q padding 30px top+bottom
 function _ttPlayStepHeight(q, w) {
   // Characters per line at 23px, from the 58-per-row measured at 16px on a
@@ -13729,7 +13733,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '823';
+const TEACHEDOS_ASSET_VERSION = '824';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
