@@ -12328,6 +12328,9 @@ let _lastAiToolError = null;
 
 async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = null) {
   if (!authToken) return null;
+  /* Причина относится к ЭТОМУ запросу: иначе отказ по лимиту в начале урока
+     объяснял бы собой любой последующий обрыв связи. */
+  _lastAiToolError = null;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   // Allow an external signal (e.g. the YouTube→Lesson "Stop" button) to abort
@@ -13726,7 +13729,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '822';
+const TEACHEDOS_ASSET_VERSION = '823';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14382,6 +14385,21 @@ function boardStageOptions(toolId) {
    случаях материал уже у учителя) - по ключу инструмента отмеченное в
    уроке по чтению всплывало в уроке по видео, где таких заданий нет, и
    учитель получал пустой список галочек вместо своих умолчаний. */
+/* Почему этап не собрался. Отказ по лимиту приходит тем же «пусто», что и
+   сетевая ошибка, и конструктор говорил про вход в аккаунт - учитель, уже
+   вошедший, читал это как «навык сломан». Причина известна серверу, надо
+   лишь донести её (_lastAiToolError ставит requestServerTeacherTool). */
+function _stageFailureReason() {
+  const e = (typeof _lastAiToolError !== 'undefined' && _lastAiToolError) || null;
+  if (!e) return '';
+  if (e.code === 'AI_MONTHLY_BUDGET_REACHED') {
+    return e.message || 'AI allowance for your plan is used up for this period. Your own text, local tools and saved materials still work.';
+  }
+  if (e.status === 401 || e.status === 403) return 'Sign in again - the session expired while the lesson was being built.';
+  if (e.status === 429) return 'Too many requests in a row. Wait a few seconds and try again.';
+  return '';
+}
+
 function _stagePicksKey(toolId) {
   const skill = boardLessonWizard && boardLessonWizard.skill;
   if (skill) return `skill:${skill}`;
@@ -14795,10 +14813,10 @@ async function runBoardLessonStages() {
 
   if (!textOut) {
     _ttSetGenerating(false);
-    if (chip) chip.textContent = ownText ? 'no text yet' : 'AI unavailable';
+    if (chip) chip.textContent = ownText ? 'no text yet' : (_stageFailureReason() ? 'allowance reached' : 'AI unavailable');
     if (body) body.innerHTML = ownText
       ? '<div class="tbuilder-empty">Paste, scan or fetch the text first - the whole lesson is built from it.</div>'
-      : '<div class="tbuilder-empty">The text could not be created. AI tools need you to be signed in - try again in a moment.</div>';
+      : `<div class="tbuilder-empty">${esc(_stageFailureReason() || 'The text could not be created. AI tools need you to be signed in - try again in a moment.')}</div>`;
     return;
   }
 
@@ -14962,8 +14980,9 @@ function renderBoardLessonStagePreview(set) {
     </div>`;
   }).join('');
 
+  const failNote = failed.length ? _stageFailureReason() : '';
   body.innerHTML = html + (failed.length
-    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.</div>` : '');
+    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.${failNote ? ` ${esc(failNote)}` : ''}</div>` : '');
 }
 
 /* Пересобрать саму середину урока - текст, диалог или образец, - а не
