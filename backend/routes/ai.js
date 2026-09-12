@@ -64,6 +64,23 @@ async function reserveAiQuota(user, input) {
   return { quota, reserved, ...rows[0] };
 }
 
+// Резерв - потолок на время полёта запроса, а не счёт. Он намеренно в
+// разы выше обычного: пока модель не ответила, настоящая цена неизвестна.
+// Без сведения он оставался в строке навсегда, и вычерпывал месячный лимит
+// примерно в двадцать раз быстрее реальных трат: на школьном плане учитель
+// упирался в «Monthly AI allowance reached» потратив центы. Сводим резерв
+// к факту, как только цена известна; неизвестная цена оставляет потолок.
+async function settleAiQuota(user, reservation, actualUsd) {
+  const actual = Number(actualUsd);
+  if (!user?.id || !reservation?.reserved || !Number.isFinite(actual) || actual <= 0) return;
+  await pool.query(
+    `UPDATE ai_usage_monthly
+     SET reserved_usd = GREATEST(0, reserved_usd - $2 + $3)
+     WHERE user_id=$1 AND month=date_trunc($4, CURRENT_DATE)::date`,
+    [user.id, Number(reservation.reserved), actual, quotaUnit(user)],
+  );
+}
+
 // A provider failure must never consume a teacher's personal allowance. The
 // reservation protects the ceiling while a request is in flight; if no model
 // response was produced, return that reservation before surfacing the error.
@@ -1562,7 +1579,11 @@ async function generate(input, quotaUser) {
     const m = aiEngine.getLastModel() || aiEngine.MODEL;
     METRICS.lastModel = m;
     METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
-    recordActualAiCost(quotaUser, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
+    const costUsd = recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage);
+    recordActualAiCost(quotaUser, costUsd);
+    /* Цену знает только это место, а свести резерв может только тот, кто его
+       делал, - маршрут. Едет на самом input: он у них общий по ссылке. */
+    input._actualCostUsd = costUsd;
     METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
     recordUsage('llm_ok');
     return out;
@@ -1607,6 +1628,7 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
       });
       throw err;
     }
+    await settleAiQuota(req.user, reservation, input._actualCostUsd).catch(() => {});
     output.cached = false;
     output.processingMs = Date.now() - started;
     cacheSet(key, output);
