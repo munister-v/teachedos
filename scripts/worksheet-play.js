@@ -25,9 +25,13 @@
    teacher picks a card accent we turn that one hex into a full readable theme:
    fill, text-on-fill, muted text and soft borders. Kept next to the worksheet
    renderers because this belongs to generated output, not the tool picker. */
-const WS_ACCENT_INK = '#0E0E10';
+/* 13.09.2026: те же два токена, что и в styles/teached-brand.css
+   (--te-ink/--te-lime), буквально из листа заказчицы - этот файл рендерит
+   срез внутри песочницы (srcdoc-iframe), где teached-brand.css не грузится,
+   поэтому свои константы, но значения обязаны совпадать с общими. */
+const WS_ACCENT_INK = '#24282C';
 
-const WS_ACCENT_LIME = '#CDF24F';
+const WS_ACCENT_LIME = '#CDF649';
 
 /* Цвет «принято». Лаймом вердикт не показать: на белом он 1.36:1 и тонкий
    контур им просто не виден (см. заметку ниже про лайм как заливку). Этот
@@ -37,7 +41,7 @@ const IW_OK = '#15803D';
 
 /* ЛАЙМ - ЗАЛИВКА, А НЕ ЧЕРНИЛА.
 
-   Фирменный #CDF24F на белом даёт 1.36:1 - это не «бледновато», это текст,
+   Фирменный #CDF649 на белом даёт 1.36:1 - это не «бледновато», это текст,
    которого физически не видно. А в Play-режиме им набраны заголовок листа,
    счёт, стрелки шага, шапки колонок сортировки - всё, что стоит на белом.
    Учитель присылал это скриншотом трижды, каждый раз про новое место:
@@ -55,7 +59,7 @@ const IW_OK = '#15803D';
    и ink, посчитанный ровно на 4.5 по белому, на нём проваливался до 4.45. */
 function _accentInkOnWhite(hex, target = 4.9) {
   const rgb = _hexToRgb(hex);
-  if (!rgb) return '#0E0E10';
+  if (!rgb) return '#24282C';
   const lum = ({ r, g, b }) => {
     const s = [r, g, b].map(v => {
       const c = v / 255;
@@ -1665,7 +1669,7 @@ strong{font-weight:650}
 .iw-flash-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
 .iw-flash.flipped .iw-flash-inner{transform:rotateY(180deg)}
 .iw-flash-front,.iw-flash-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center}
-.iw-flash-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#0E0E10));color:${WS_ACCENT_INK};border:none}
+.iw-flash-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#24282C));color:${WS_ACCENT_INK};border:none}
 .iw-flash-num{font:800 10px monospace;opacity:.6;margin-bottom:4px}
 .iw-flash-word{font:800 16px system-ui;letter-spacing:-.02em}
 .iw-flash-back{background:#f0fdf4;border:1.5px solid #a7e3bd;transform:rotateY(180deg)}
@@ -1748,7 +1752,7 @@ strong{font-weight:650}
 .iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
 .iw-card-flip.flipped .iw-card-inner{transform:rotateY(180deg)}
 .iw-card-front,.iw-card-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.iw-card-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#0E0E10));color:${WS_ACCENT_INK}}
+.iw-card-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#24282C));color:${WS_ACCENT_INK}}
 .iw-card-num{font:800 10px monospace;opacity:.5;margin-bottom:4px}
 .iw-card-title{font:800 15px system-ui}
 .iw-card-hint{font:11px system-ui;opacity:.6;margin-top:6px}
@@ -1762,7 +1766,7 @@ strong{font-weight:650}
 .iw-dcard.flipped .iw-dcard-inner{transform:rotateY(180deg)}
 .iw-dcard-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:13px;display:flex;flex-direction:column;text-align:left}
 .iw-dcard-front{align-items:center;justify-content:center;gap:6px;cursor:pointer;border:none;width:100%;
-  background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#0E0E10));color:${WS_ACCENT_INK};transition:transform .15s}
+  background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#24282C));color:${WS_ACCENT_INK};transition:transform .15s}
 .iw-dcard-front:hover{transform:translateY(-2px)}
 .iw-dcard-tag{font:800 26px system-ui;letter-spacing:.02em}
 .iw-dcard-hint{font:11px system-ui;opacity:.62}

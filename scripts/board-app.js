@@ -34,7 +34,7 @@ const STICKY_COLORS = [
    Cards already saved keep whatever hex they were given - this only changes
    what is offered next. */
 const WS_ACCENT_COLORS = [
-  '#CDF24F','#A8C42A','#7FA65C','#4E9A8F','#5B8FB0','#6B7BA8',
+  '#CDF649','#A8C42A','#7FA65C','#4E9A8F','#5B8FB0','#6B7BA8',
   '#8C7BB0','#A56E96','#C4707E','#C4805A','#D0A045','#88888B',
 ];
 const SHARED_NOTES_KEY = 'teachedos_notes_v1';
@@ -2809,13 +2809,13 @@ function _hexToRgb(hex) {
 
 function _accentTextColor(hex) {
   const rgb = _hexToRgb(hex);
-  if (!rgb) return '#0E0E10';
+  if (!rgb) return '#24282C';
   const srgb = [rgb.r, rgb.g, rgb.b].map(v => {
     const c = v / 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   });
   const l = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-  return l > 0.58 ? '#0E0E10' : '#FFFFFF';
+  return l > 0.58 ? '#24282C' : '#FFFFFF';
 }
 
 
@@ -3219,7 +3219,7 @@ function _wsStripKicker(d) {
 function renderWorksheet(el, card) {
   const d = card.data || {};
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
-             || { icon:'📄', color:'#0E0E10' };
+             || { icon:'📄', color:'#24282C' };
   // Generated sheets all share ONE accent (the brand ink) instead of taking the
   // category hue from BOARD_TOOL_META - seven saturated hues across reading /
   // vocab / writing / speaking made a board of generated material read as a
@@ -3937,13 +3937,13 @@ function printWorksheet(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card) return;
   const d = card.data || {};
-  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || { color:'#0E0E10' };
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || { color:'#24282C' };
   // Mirrors the on-screen sheet (see .ws-* in board.css): same one brand accent,
   // not the per-category hue. This popup carries its OWN copy of the styles -
   // board.css is not loaded here - so any visual change to the worksheet has to
   // be made in both places or the printout stops matching the board.
   const accent = WS_ACCENT_INK;
-  const LIME = '#CDF24F', CREAM = '#F2F2F5', LINE = 'rgba(14,14,16,.14)';
+  const LIME = '#CDF649', CREAM = '#F2F2F5', LINE = 'rgba(14,14,16,.14)';
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   // Same heading rule as the board (see _wsHeading): inside a lesson the sheet
@@ -3957,7 +3957,7 @@ function printWorksheet(cardId) {
                     showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
   const css = `
     *{box-sizing:border-box}
-    body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0E0E10;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#24282C;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     /* Same masthead as the board, deliberately shorter: on screen it can fill
        the head of the card, on paper a full-bleed lime block is a lot of toner
        for decoration, so it wraps just the title and its kicker. */
@@ -3991,7 +3991,7 @@ function printWorksheet(cardId) {
     /* Question groups - same structure as the board (see _ttGroupQuestions). */
     .ws-group{margin:0 0 18px;break-inside:auto}
     .ws-group-head{margin:0 0 9px}
-    .ws-group-title{margin:0;font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#0E0E10}
+    .ws-group-title{margin:0;font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#24282C}
     .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#6C6C6F}
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
@@ -4016,15 +4016,15 @@ function printWorksheet(cardId) {
        stage rail number + text label are enough to tell stages apart. */
     .ws-q-card{--stage-accent:${accent};border:1px solid #E7E7EC;border-top:3px solid var(--stage-accent)}
     .ws-stage-rail{display:none}
-    .ws-card-head{display:flex;align-items:center;gap:9px;color:#0E0E10;font-weight:650;font-size:15px}
+    .ws-card-head{display:flex;align-items:center;gap:9px;color:#24282C;font-weight:650;font-size:15px}
     .ws-card-title{flex:1}
     .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6C6C6F}
     .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
     .ws-q-card.ws-anchor{border-style:dashed}
     .ws-card-txt{font-size:13px;line-height:1.65;color:#3A3A40;margin-top:9px;white-space:normal}
-    .ws-card-txt strong{color:#0E0E10;font-weight:650}
+    .ws-card-txt strong{color:#24282C;font-weight:650}
     /* reading block + drop cap */
-    .ws-reading-title{font-size:14px;font-weight:650;color:#0E0E10;margin-bottom:7px}
+    .ws-reading-title{font-size:14px;font-weight:650;color:#24282C;margin-bottom:7px}
     .ws-reading-copy{font-size:13px;line-height:1.78;color:#252528;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
     .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:650;margin:4px 10px 0 0;color:${accent}}
     /* glossary */
@@ -9007,7 +9007,7 @@ const BOARD_TOOL_NAMES = {
    dense grid of categories, and a row of unrelated emoji read as noise next to
    the category colour each card is already tinted with. */
 const BOARD_TOOL_META = {
-  all:       { icon:'✦', svg:'bi-spark',       color:'#0E0E10', bg:'rgba(14,14,16,.08)' },
+  all:       { icon:'✦', svg:'bi-spark',       color:'#24282C', bg:'rgba(14,14,16,.08)' },
   reading:   { icon:'📖', svg:'bi-book',        color:'#4262FF', bg:'rgba(66,98,255,.12)' },
   vocabulary:{ icon:'🧠', svg:'bi-vocab',       color:'#EC2D8C', bg:'rgba(236,45,140,.12)' },
   writing:   { icon:'✍️', svg:'bi-pen',         color:'#7C3AED', bg:'rgba(124,58,237,.12)' },
@@ -13426,7 +13426,7 @@ function _ttPlaceWarmupStickers(output){
 }
 
 function _ttPlaceCardsOnBoard(output){
-  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[output.cat]) || { icon:'📝', color:'#0E0E10' };
+  const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[output.cat]) || { icon:'📝', color:'#24282C' };
   const cards = output.cards;
   const total = cards.length;
   const isDialogue = output.kind === 'Dialogue';
@@ -13468,7 +13468,7 @@ function _ttPlaceCardsOnBoard(output){
   try {
     frame = addCard('frame', x0, y0, {
       title: `${meta.icon}  ${output.title}`, bg:'#ffffff',
-      border: (meta.color || '#0E0E10') + '55', // ~33% alpha (8-digit hex)
+      border: (meta.color || '#24282C') + '55', // ~33% alpha (8-digit hex)
       childIds:[],
       _ttSrc: 1, _ttCat: output.cat || 'utility', _ttKind: output.kind || '',
     }, FW, FH);
@@ -13764,7 +13764,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '828';
+const TEACHEDOS_ASSET_VERSION = '829';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -21069,7 +21069,7 @@ function applyAiAssistantToBoard() {
   const accent = {
     Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
     Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899',
-  }[_aiSkill] || '#0E0E10';
+  }[_aiSkill] || '#24282C';
   const stageEmojis = ['🎯','🔍','✍️','💬','🪞'];
 
   const ROW_LESSON = 150;
@@ -23123,7 +23123,7 @@ function _onAccentFor(hex) {
   const n = parseInt(m[1], 16);
   const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
   const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
-  return L > 0.18 ? '#0E0E10' : '#FFFFFF';
+  return L > 0.18 ? '#24282C' : '#FFFFFF';
 }
 
 /* Accent used as TEXT on a light/white surface (chips, status lines) rather
