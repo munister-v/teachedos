@@ -666,15 +666,28 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      был честный контраст с белым (проверено формулой WCAG, минимум 4.65:1,
      не «на глаз»), при этом каждая пара всё ещё узнаётся своим цветом и
      светлее/темнее внутри себя - не залита в один плоский тон. */
-  /* Пары «заливка шапки / чернила и полоса» для станций. Тон тёмный не
-     для красоты: им набрано имя станции ПО СВЕТЛОМУ, и на глаз тут
-     ошибаются - все шесть проверены на контраст с белым и со своей
-     заливкой. */
-  const MC_STATION_COLORS = [['#E9F4EC','#15703C'],['#E9F1FD','#1D4ED8'],['#F2ECFA','#6B21A8'],
-    ['#FEF0E6','#B4470E'],['#FDF4DF','#8A6410'],['#EAF5F5','#1C6B6B']];
-  const TILE_GRADIENTS = [['#6370B2','#5160AA'],['#AC5E46','#A24C31'],['#43805B','#2F7249'],
-    ['#887236','#7A6320'],['#A652A6','#9D3F9D'],['#427D7F','#2D6F71'],
-    ['#A75C7A','#9D4A6B'],['#3C7E7E','#277070'],['#8D6F54','#805F41']];
+  /* 12.09.2026: цвета станций и плиток - ТОЛЬКО из брендовой палитры
+     заказчицы (2428QC/CDF649/F6F6EF/CACCC6 + 14 второстепенных), не
+     придуманные. Придуманных синих/фиолетовых заливок больше нет.
+
+     Почему у станций ОДИН И ТОТ ЖЕ tone (#24282C), а не свой на каждую:
+     из всей палитры белый текст даёт ≥4.5:1 только на двух цветах -
+     6B42FD (5.49:1) и 5D614B (6.41:1), а нужно шесть разных станций.
+     Зато тёмный #24282C поверх ЛЮБОГО светлого второстепенного цвета
+     даёт от 5.2:1 до 11.9:1 (посчитано формулой WCAG, не на глаз) - им и
+     набраны имя станции, галочка и номер вопроса везде. Разнообразие
+     станций - в заливке (tint), а не в чернилах: один якорный цвет
+     бренда на всех читается собраннее, чем шесть придуманных тёмных
+     оттенков. */
+  const MC_STATION_COLORS = [['#FFE44D','#24282C'],['#F3A46B','#24282C'],['#9F8CE8','#24282C'],
+    ['#6BAFF3','#24282C'],['#D3F36B','#24282C'],['#A3A48D','#24282C']];
+  /* Плитки MCQ и кирпичики пропусков - плоская заливка одним цветом
+     палитры (без градиента - смесь двух цветов уже не «этот цвет»), с
+     тёмным текстом почти везде и белым только там, где тёмный текст
+     проваливается (6B42FD, 5D614B - см. расчёт выше). */
+  const TILE_GRADIENTS = [['#FFE44D','#24282C'],['#FF8C3A','#24282C'],['#3F9FFF','#24282C'],
+    ['#49F6F0','#24282C'],['#D3F36B','#24282C'],['#F3A46B','#24282C'],
+    ['#6BAFF3','#24282C'],['#A3A48D','#24282C'],['#6B42FD','#F6F6EF'],['#5D614B','#F6F6EF']];
 
   /* Одна флип-карточка вопроса. Раньше жила только внутри блока «обсуждение
      рубашкой вверх» (isPromptDeck ниже); теперь её же зовёт станция Mission
@@ -705,8 +718,8 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      стоит отдельной плашкой. */
   const gapFillDragHtml = (pairs) => {
     const bankChips = pairs.map(({ q }, i) => {
-      const [t1, t2] = TILE_GRADIENTS[i % TILE_GRADIENTS.length];
-      return `<div class="iw-drag iw-gap-brick" draggable="true" data-left="${esc(q.answer||'')}" style="--t1:${t1};--t2:${t2}">${md(q.answer||'')}</div>`;
+      const [fill, ink] = TILE_GRADIENTS[i % TILE_GRADIENTS.length];
+      return `<div class="iw-drag iw-gap-brick" draggable="true" data-left="${esc(q.answer||'')}" style="--fill:${fill};--ink:${ink}">${md(q.answer||'')}</div>`;
     });
     // Тасуем чипы банка - порядок предложений остаётся учебным (по порядку урока).
     for (let i = bankChips.length - 1; i > 0; i--) {
@@ -745,7 +758,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
       let inner = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         inner = `<div class="iw-opts" data-qi="${qi}" data-answer="${esc(q.answer)}">${
-          q.options.map((o, oi) => { const [t1, t2] = TILE_GRADIENTS[oi % TILE_GRADIENTS.length]; return `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)" style="--t1:${t1};--t2:${t2}">${String.fromCharCode(65+oi)}. ${md(o)}</button>`; }).join('')
+          q.options.map((o, oi) => { const [fill, ink] = TILE_GRADIENTS[oi % TILE_GRADIENTS.length]; return `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)" style="--fill:${fill};--ink:${ink}">${String.fromCharCode(65+oi)}. ${md(o)}</button>`; }).join('')
         }</div>`;
       } else if (q.type === 'truefalse') {
         const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
@@ -1968,8 +1981,14 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-stepper .iw-qtext,.iw-mc-body .iw-qtext{font-size:17px}
 .iw-stepper .iw-qtext{font-size:23px}
 .iw-stepper .iw-opts,.iw-mc-body .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
-.iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:linear-gradient(135deg,var(--t1),var(--t2))}
-.iw-stepper .iw-opt:hover,.iw-mc-body .iw-opt:hover{background:linear-gradient(135deg,var(--t1),var(--t2));opacity:.92}
+/* Заливка - плоский цвет из брендовой палитры (--fill), не смесь двух:
+   градиент между двумя чужими друг другу цветами меньше похож на «этот
+   цвет из палитры», чем ровная плашка. Чернила (--ink) считаны по
+   формуле WCAG под каждый --fill заранее (см. TILE_GRADIENTS) - тёмные
+   почти everywhere, белые только там, где сама заливка достаточно
+   тёмная (6B42FD, 5D614B). */
+.iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:var(--ink);display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:var(--fill)}
+.iw-stepper .iw-opt:hover,.iw-mc-body .iw-opt:hover{background:var(--fill);opacity:.85}
 .iw-stepper .iw-opt.selected:not(.correct):not(.wrong),.iw-mc-body .iw-opt.selected:not(.correct):not(.wrong){outline:3px solid #1a1722;outline-offset:2px}
 .iw-stepper .iw-opt.correct,.iw-mc-body .iw-opt.correct{background:#15803D!important;color:#fff}
 .iw-stepper .iw-opt.wrong,.iw-mc-body .iw-opt.wrong{background:#dc2626!important;color:#fff;opacity:.85}
@@ -1992,7 +2011,7 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-blank{display:inline-flex;vertical-align:middle;margin:0 3px;min-height:auto;padding:3px 22px 3px 8px}
 .iw-blank .iw-slot{min-width:64px;min-height:20px;font-size:13.5px}
 .iw-gapfill-bank{display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:#f8f8fb;border-radius:12px;border:1.5px dashed #d4d6e0}
-.iw-gap-brick{background:linear-gradient(135deg,var(--t1),var(--t2));color:#fff;font-weight:700}
+.iw-gap-brick{background:var(--fill);color:var(--ink);font-weight:700}
 .iw-mc-body .iw-gapfill-lines,.iw-mc-body .iw-gapline{font-size:14px}
 /* Флип-карточки открытых вопросов внутри станции - те же .iw-deck/.iw-dcard,
    только компактнее и без строки Reveal All/Turn All Back под ними (общий
