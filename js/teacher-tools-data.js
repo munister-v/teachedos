@@ -632,7 +632,12 @@ const BOARD_LESSON_STAGES = {
           /* ai:true осознанно: офлайнового генератора у word-image-match нет
              (TT_LOCAL_QUALITY_SET), без сервера он отдал бы пустой каркас. */
           {key:'pre-images',  tool:'word-image-match',      title:'Match words to pictures', hint:'Image prompt for each word - pick or draw the picture yourself.', ai:true},
-          {key:'pre-lead',    tool:'lead-in',               title:'Short lead-in questions', hint:'Two or three questions that open the topic.', ai:true},
+          /* after:'source' - разминка иначе видит только голую тему
+             (topic), написанную учителем ДО текста, и её вопросы получались
+             топорными, не про этот конкретный текст. Текст к моменту
+             сборки уже готов (runBoardLessonStages пишет его первым), так
+             что подать его - вопрос лишь метки, а не порядка на доске. */
+          {key:'pre-lead',    tool:'lead-in',               title:'Short lead-in questions', hint:'Two or three questions that open the topic.', ai:true, after:'source'},
           {key:'pre-titles',  tool:'three-titles',          title:'Choose the best title',   hint:'One right title and two plausible decoys.', ai:true, after:'source'},
           {key:'pre-summary', tool:'choose-summary',        title:'Choose the right summary',hint:'Several summaries, students pick the one that fits.', ai:true, after:'source'},
         ],
@@ -721,7 +726,7 @@ const BOARD_LESSON_STAGES = {
         options: [
           {key:'lis-warm', tool:'warmup-listening',      title:'Prediction and key words', hint:'What they expect to hear, plus the words they will need.', ai:true, after:'source', on:true},
           {key:'lis-defs', tool:'word-definition-match', title:'Match words to meanings',  hint:'Pairs for matching, cards or a memory game.', game:'memory-match'},
-          {key:'lis-lead', tool:'lead-in',               title:'Short lead-in questions',  hint:'Two or three questions that open the topic.', ai:true},
+          {key:'lis-lead', tool:'lead-in',               title:'Short lead-in questions',  hint:'Two or three questions that open the topic.', ai:true, after:'source'},
         ],
       },
       /* Единственный этап, который не про задания, а про то, ЧТО лежит на
@@ -798,7 +803,7 @@ const BOARD_LESSON_STAGES = {
         question: 'How do you get them talking at all?',
         options: [
           {key:'sp-start',  tool:'conversation-starters', title:'Conversation starters', hint:'Easy openers on the topic, before anything harder.', ai:true, on:true},
-          {key:'sp-lead',   tool:'lead-in',               title:'Short lead-in questions',hint:'Two or three questions that open the topic.', ai:true},
+          {key:'sp-lead',   tool:'lead-in',               title:'Short lead-in questions',hint:'Two or three questions that open the topic.', ai:true, after:'source'},
           {key:'sp-ladder', tool:'question-ladder',       title:'Question ladder',        hint:'Questions that climb from simple to demanding.', ai:true},
           {key:'sp-facts',  tool:'interesting-facts',     title:'Facts to react to',      hint:'Surprising facts they respond to instead of inventing an opinion cold.', ai:true},
         ],
@@ -869,7 +874,7 @@ const BOARD_LESSON_STAGES = {
         label: 'Ideas first',
         question: 'How do they find something to say?',
         options: [
-          {key:'wr-lead',  tool:'lead-in',           title:'Questions to open the topic', hint:'Two or three questions before any writing happens.', ai:true, on:true},
+          {key:'wr-lead',  tool:'lead-in',           title:'Questions to open the topic', hint:'Two or three questions before any writing happens.', ai:true, on:true, after:'source'},
           {key:'wr-four',  tool:'four-opinions',     title:'Four opinions to react to',   hint:'Positions they can agree with, argue with or borrow.', ai:true},
           {key:'wr-pros',  tool:'pros-cons',         title:'Pros and cons',               hint:'Both sides listed, ready to be used as arguments.', ai:true},
         ],

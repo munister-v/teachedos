@@ -856,9 +856,18 @@ function shapeSpec(input) {
     };
   }
   if (toolId === 'lead-in') {
+    /* 13.09.2026: заказчица прислала промпт от себя после того, как назвала
+       живые вопросы "топорными" - и указала точную причину: они не вели к
+       конкретному тексту. Раньше это было структурно неизбежно - у tool'а
+       не было input.source (см. after:'source' на pre-lead/lis-lead/
+       sp-lead/wr-lead в js/teacher-tools-data.js), и "тема" была всё, что
+       он знал. Теперь источник есть, и формулировка ниже - её собственная,
+       не пересказ: явный запрет на тривию/учебниковые вопросы, три угла
+       вместо "3-4", и требование держаться темы ИМЕННО этого текста, а не
+       обвязки вокруг темы вообще. */
     return {
-      task: `${cardsHead} Design 3-4 warm-up ANGLES (5-7 min total) - different ways into the same topic, so the class can start from whichever one it likes. One card per angle, variety required: personal connection / prediction / quick quiz or myth-busting / visual or situation reading / word association. "title" = that angle's own name, 2-4 words, never "Activity 1" and never a bare number. "text" = the key discussion question FIRST on its own line (max 18 words, ends with "?"), then one line of teacher instruction (max 20 words). Include "vocab" of useful preview words.${context}`,
-      schema: '{"cards":[{"title":"The Reality Check","text":"When did you last need this yourself?\\nPairs, 2 min, then one example from each pair."},{"title":"Myth or Fact","text":"..."},{"title":"Read the Situation","text":"..."}],"vocab":["word"]}',
+      task: `${cardsHead} Generate a multi-angle warm-up station featuring exactly 3 distinct interactive choices prior to reading. Avoid direct textbook questions or factual trivia. Instead, for each angle prompt the reader to evaluate a common dilemma, weigh a personal threshold of behavior, or challenge a widespread misconception - each one anchored to a specific, concrete detail from the source text below, not the topic in the abstract. Each angle must use natural, communicative B2-C1 phrasing designed to provoke a brief personal anecdote or debate. "title" = that angle's own name, 2-4 words, never "Activity 1" and never a bare number. "text" = the key discussion question FIRST on its own line (max 18 words, ends with "?"), then one line of teacher instruction (max 20 words). Include "vocab" of useful preview words.${context}`,
+      schema: '{"cards":[{"title":"The Reality Check","text":"When did you last need this yourself?\\nPairs, 2 min, then one example from each pair."},{"title":"The Grey Area","text":"..."},{"title":"Common Misconception","text":"..."}],"vocab":["word"]}',
     };
   }
   if (toolId === 'interesting-facts') {

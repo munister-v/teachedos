@@ -748,9 +748,10 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      карточки обычным .iw-open-input[data-qi] - тем самым, который уже умеют
      сохранять и восстанавливать iwSnapshot/iwRestore ниже. */
   if (qs.length && isPromptDeck) {
-    contentHtml = `<div class="iw-deck">${qs.map((q, qi) => dCardHtml(q, qi)).join('')}</div>
-    <div class="iw-bottom"><button class="iw-submit" onclick="iwDeckAll(true)">👁 Reveal All</button>
-    <button class="iw-submit iw-reset" onclick="iwDeckAll(false)">↺ Turn All Back</button></div>`;
+    /* Без чёрной плашки «Reveal All / Turn All Back» - см. dCardHtml и
+       _iwDcardDoneScript: карточка сама отмечается точкой в углу, когда в
+       ней есть ответ, и учителю незачем массово переворачивать колоду. */
+    contentHtml = `<div class="iw-deck">${qs.map((q, qi) => dCardHtml(q, qi)).join('')}</div>`;
   }
 
   // ─── MODE: Questions (quiz-based tools) ───
@@ -1073,7 +1074,7 @@ function iwRestore(s){
     Object.keys(s.mcq||{}).forEach(qi=>{ const w=document.querySelector('.iw-opts[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-opt[data-val="'+CSS.escape(s.mcq[qi])+'"]'); if(b) b.classList.add('selected'); });
     Object.keys(s.tf||{}).forEach(qi=>{ const w=document.querySelector('.iw-tf[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-tf-btn[data-val="'+s.tf[qi]+'"]'); if(b) b.classList.add('selected'); });
     Object.keys(s.gap||{}).forEach(qi=>{ const w=document.querySelector('.iw-gap[data-qi="'+qi+'"]'); if(w){ const inp=w.querySelector('.iw-gap-input'); if(inp) inp.value=s.gap[qi]; } });
-    Object.keys(s.open||{}).forEach(qi=>{ const t=document.querySelector('.iw-open-input[data-qi="'+qi+'"]'); if(t) t.value=s.open[qi]; });
+    Object.keys(s.open||{}).forEach(qi=>{ const t=document.querySelector('.iw-open-input[data-qi="'+qi+'"]'); if(t){ t.value=s.open[qi]; if(typeof iwDcardSync==='function') iwDcardSync(t); } });
     Object.keys(s.odd||{}).forEach(qi=>{ const w=document.querySelector('.iw-ooo[data-qi="'+qi+'"]'); if(!w) return; const b=w.querySelector('.iw-ooo-btn[data-word="'+CSS.escape(s.odd[qi])+'"]'); if(b) b.classList.add('selected'); });
     Object.keys(s.match||{}).forEach(qi=>{ const m=document.querySelector('.iw-match[data-qi="'+qi+'"]'); if(!m) return; const targets=m.querySelectorAll('.iw-target'); const o=s.match[qi]; Object.keys(o).forEach(i=>{ const t=targets[i]; if(!t) return; const slot=t.querySelector('.iw-slot'); slot.textContent=o[i]; slot.classList.add('filled'); const chip=m.querySelector('.iw-drag[data-left="'+CSS.escape(o[i])+'"]'); if(chip) chip.classList.add('placed'); }); });
     Object.keys(s.blank||{}).forEach(qi=>{ const t=document.querySelector('.iw-blank[data-qi="'+qi+'"]'); if(!t) return; const slot=t.querySelector('.iw-slot'); slot.textContent=s.blank[qi]; slot.classList.add('filled'); const chip=t.closest('.iw-gapfill')?.querySelector('.iw-drag[data-left="'+CSS.escape(s.blank[qi])+'"]'); if(chip) chip.classList.add('placed'); });
@@ -1095,8 +1096,13 @@ function iwRestore(s){
     if(s.checked) checkAll(true);
   }catch(e){}
 }
+/* Точка в углу флип-карточки вместо чёрной кнопки «Reveal All / Turn All
+   Back» снизу колоды: ответ написан - карточка сама отмечается, массово
+   переворачивать нечего и незачем. */
+function iwDcardSync(inp){ const c=inp.closest('.iw-dcard'); if(c) c.classList.toggle('is-done', !!inp.value.trim()); }
 document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.iw-gap-input,.iw-open-input').forEach(el=>el.addEventListener('input',iwSave));
+  document.querySelectorAll('.iw-dcard-input').forEach(el=>{ el.addEventListener('input',()=>iwDcardSync(el)); iwDcardSync(el); });
   if(window.__IW_STATE__) iwRestore(window.__IW_STATE__);
 });`;
 
@@ -1153,9 +1159,9 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
         <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${md(it.word||'')}</span></div>
         <div class="iw-flash-back"><span class="iw-flash-def">${md(it.example || it.definition || '-')}</span></div>
       </div>
-    </div>`).join('')}</div></div>
-    <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
-    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-flash').forEach(f=>f.classList.remove('flipped'));if(typeof iwGoto==='function')iwGoto(0)">↺ Reset</button></div>`;
+    </div>`).join('')}</div></div>`;
+    // Флешкарты не сдаются - ни чёрной плашки снизу, ни отметки не нужно,
+    // только тап по карточке, чтобы её перевернуть.
     scriptHtml = '';
   }
 
@@ -1390,16 +1396,20 @@ function iwTitlePick(btn){
     </div>`).join('')}</div>
     <div class="iw-warm-foot">
       <span class="iw-warm-count" id="iw-warm-count">0 of ${warm.length} explored</span>
-      <button class="iw-submit iw-warm-finish" id="iw-warm-finish" onclick="iwWarmFinish()" disabled>Finish Warm-Up</button>
+      <span class="iw-warm-tick" id="iw-warm-tick" aria-hidden="true" hidden>✓</span>
     </div>`;
+    /* Точка вместо чёрной кнопки «Finish Warm-Up»: как только открыты все
+       плитки, разминка сама отмечается пройденной - нажимать нечего. */
     scriptHtml = `
 function iwWarmSync(){
   var tiles=[].slice.call(document.querySelectorAll('.iw-wtile'));
   var done=tiles.filter(function(t){ return t.dataset.done==='1'; }).length;
   var c=document.getElementById('iw-warm-count');
   if(c) c.textContent=done+' of '+tiles.length+' explored';
-  var b=document.getElementById('iw-warm-finish');
-  if(b && !document.body.classList.contains('iw-warm-sent')) b.disabled=!done;
+  var allDone=tiles.length>0 && done===tiles.length;
+  document.body.classList.toggle('iw-warm-sent',allDone);
+  var t=document.getElementById('iw-warm-tick');
+  if(t) t.hidden=!allDone;
   if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60);
 }
 function iwWarmOpen(btn){
@@ -1409,15 +1419,8 @@ function iwWarmOpen(btn){
   if(open) t.dataset.done='1';
   iwWarmSync(); iwWarmSave();
 }
-function iwWarmFinish(){
-  document.body.classList.add('iw-warm-sent');
-  var b=document.getElementById('iw-warm-finish');
-  if(b){ b.textContent='✓ Warm-up done'; b.disabled=true; }
-  iwWarmSave();
-  if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60);
-}
 function iwWarmSnapshot(){
-  var s={ warmOpen:{}, warmDone:{}, warmNote:{}, warmFinished:document.body.classList.contains('iw-warm-sent') };
+  var s={ warmOpen:{}, warmDone:{}, warmNote:{} };
   document.querySelectorAll('.iw-wtile').forEach(function(t){
     if(t.dataset.done==='1') s.warmDone[t.dataset.wi]=1;
     if(t.classList.contains('is-open')) s.warmOpen[t.dataset.wi]=1;
@@ -1440,7 +1443,6 @@ function iwWarmRestore(s){
     Object.keys(s.warmNote||{}).forEach(function(wi){
       var n=document.querySelector('.iw-warm-note[data-wi="'+wi+'"]'); if(n) n.value=s.warmNote[wi];
     });
-    if(s.warmFinished) iwWarmFinish();
   }catch(e){}
 }
 document.addEventListener('DOMContentLoaded',function(){
@@ -1457,9 +1459,9 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="iw-card-front"><span class="iw-card-num">${i+1}</span><span class="iw-card-title">${md(c.title||'')}</span><span class="iw-card-hint">tap to reveal</span></div>
         <div class="iw-card-back"><div class="iw-card-back-title">${md(c.title||'')}</div><div class="iw-card-back-text">${md(c.text||'').replace(/\n/g,'<br>')}</div></div>
       </div>
-    </div>`).join('')}</div></div>
-    <div class="iw-bottom"><button class="iw-submit" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.add('flipped'))">👁 Reveal All</button>
-    <button class="iw-submit iw-reset" onclick="document.querySelectorAll('.iw-card-flip').forEach(f=>f.classList.remove('flipped'));if(typeof iwGoto==='function')iwGoto(0)">↺ Reset</button></div>`;
+    </div>`).join('')}</div></div>`;
+    // Те же информационные карточки, что и флешкарты - нечего сдавать,
+    // незачем массово переворачивать.
     scriptHtml = '';
   }
 
@@ -1486,7 +1488,6 @@ function iwDeckFlip(btn){
   var coarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
   if(open && !coarse){ var t=c.querySelector('.iw-dcard-input'); if(t) setTimeout(function(){ t.focus(); },320); }
 }
-function iwDeckAll(open){ document.querySelectorAll('.iw-dcard').forEach(function(c){ c.classList.toggle('flipped',!!open); }); }
 `;
     /* У missionMode свой замерщик уже стоит (см. выше, рядом с iwMcSync) -
        второй ResizeObserver на то же тело ничего не сломает, но и не нужен. */
@@ -1761,7 +1762,10 @@ strong{font-weight:650}
 .iw-card-back-text{font:13px/1.6 system-ui;color:#3a3644;width:100%}
 /* ── Prompt deck (discussion): all questions at once, face down ── */
 .iw-deck{display:grid;grid-template-columns:repeat(${deck ? deck.cols : 3},1fr);gap:12px}
-.iw-dcard{perspective:800px;height:${deck ? deck.tile : 184}px}
+.iw-dcard{perspective:800px;height:${deck ? deck.tile : 184}px;position:relative}
+/* Точка вместо чёрной кнопки снизу - см. iwDcardSync. Тот же язык, что и
+   у обычного вопроса (.iw-q.is-done), везде одна и та же отметка. */
+.iw-dcard.is-done::after{content:'';position:absolute;top:6px;right:8px;z-index:2;width:7px;height:7px;border-radius:50%;background:${IW_OK};box-shadow:0 0 0 3px color-mix(in srgb,${IW_OK} 16%,transparent);animation:iwdot .3s ease}
 .iw-dcard-inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
 .iw-dcard.flipped .iw-dcard-inner{transform:rotateY(180deg)}
 .iw-dcard-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:13px;display:flex;flex-direction:column;text-align:left}
@@ -1823,11 +1827,9 @@ body.iw-warm-page{background:#EDF0F4;padding:20px 22px 26px}
 .iw-warm-note::placeholder{color:#8b8792;font-weight:600}
 .iw-warm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px}
 .iw-warm-count{font:700 12px system-ui;color:#8b8792;white-space:nowrap}
-/* Оба правила специфичнее .iw-submit ниже по файлу - иначе width:100%
-   оттуда растягивает «Finish Warm-Up» на всю строку подвала. */
-.iw-warm-foot .iw-warm-finish{width:auto;flex:0 0 auto;padding:13px 24px;border-radius:12px}
-.iw-warm-foot .iw-warm-finish[disabled]{background:#D6D8DE;border-color:#D6D8DE;color:#7A7D86;opacity:1}
-body.iw-warm-sent .iw-warm-foot .iw-warm-finish{background:#15703C;border-color:#15703C;opacity:1}
+/* Точка вместо чёрной кнопки «Finish Warm-Up» - появляется сама, когда
+   открыты все плитки (iwWarmSync ставит/снимает [hidden]). */
+.iw-warm-tick{width:22px;height:22px;border-radius:50%;background:${IW_OK};color:#fff;display:flex;align-items:center;justify-content:center;font:800 12px system-ui;flex-shrink:0;animation:iwdot .3s ease}
 /* ── Mission control: станции «после чтения» на одном экране ── */
 body.iw-mc-page{background:#EDF0F4;padding:20px 22px 26px}
 .iw-mc-progress{margin:0 auto 18px;max-width:520px;text-align:center}
