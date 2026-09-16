@@ -776,9 +776,13 @@ function renderNextClass(next, todaysCount) {
   if (!next) {
     _nextClassAt = null;
     if (label)  label.textContent = 'Schedule';
+    /* Имя ученика режется многоточием (одна строка - это сознательно), а
+       пустое состояние - предложение, и «Nothing schedul…» в нём выглядело
+       как обрыв связи. Ему разрешаем перенос, часам - уйти совсем. */
+    title.classList.add('is-wrap');
     title.textContent = todaysCount ? 'All done' : 'Nothing scheduled';
     if (meta)   meta.textContent = todaysCount ? `${todaysCount} classes today` : 'Add a class to get started';
-    if (time)   time.textContent = '--:--';
+    if (time)   { time.textContent = '--:--'; time.style.display = 'none'; }
     if (badge)  badge.textContent = '';
     if (avatar) avatar.textContent = '📅';
     if (launch) {
@@ -794,6 +798,8 @@ function renderNextClass(next, todaysCount) {
   const dur = toMin(next.end_time) - toMin(next.start_time);
 
   if (label) label.textContent = 'Next class';
+  title.classList.remove('is-wrap');
+  if (time) time.style.display = '';
   title.textContent = who;
   if (meta) {
     // подпись вида «Individual Lesson · 60 min»: сам урок + длительность
