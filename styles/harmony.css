@@ -979,7 +979,9 @@ body { font-family: var(--font) !important; }
   #wg-today {
     top: 260px;
     right: 24px;
-    width: 192px !important;
+    /* Шире соседей: это единственный виджет с именем ученика и кнопкой
+       входа в урок, в 192px имя уезжало в многоточие. */
+    width: 248px !important;
   }
   .wg-today-label {
     font-family: var(--font-mono) !important;
@@ -1007,16 +1009,25 @@ body { font-family: var(--font) !important; }
     gap: 8px !important;
     margin-top: 5px !important;
   }
+  /* «Starts in 2h 17m» - это строка под временем, а не ярлык: капсула
+     рядом с 38-пиксельными часами читалась как вторая кнопка. */
   .wg-today-badge {
     font-family: var(--font-mono) !important;
-    font-size: 9px !important;
-    color: var(--lime) !important;
-    background: rgba(205,242,79,0.12) !important;
-    border: 1px solid rgba(205,242,79,0.25) !important;
-    border-radius: 20px !important;
-    padding: 2px 8px !important;
-    margin-top: 8px !important;
-    letter-spacing: 0.06em !important;
+    font-size: 10px !important;
+    color: rgba(242,242,245,0.55) !important;
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin-top: 6px !important;
+    letter-spacing: 0.04em !important;
+  }
+  .wg-next-time { color: #F2F2F5 !important; }
+  .wg-next-avatar { background: var(--lime) !important; color: #0E0E10 !important; }
+  .wg-next-launch { background: var(--lime) !important; color: #0E0E10 !important; }
+  .wg-next-launch[disabled] {
+    background: rgba(242,242,245,0.10) !important;
+    color: rgba(242,242,245,0.45) !important;
   }
   .wg-today-prog {
     background: rgba(242,242,245,0.08) !important;
@@ -1230,9 +1241,11 @@ body { font-family: var(--font) !important; }
   }
 
   /* ── Mono labels: consistent positive letter-spacing ── */
+  /* .wg-today-meta ушла отсюда 16.09.2026: теперь это «Individual Lesson ·
+     60 min» - человеческая строка под именем ученика, а капитель с
+     разрядкой режет её на полуслове и делает подписью-ярлыком. */
   .mp-board-meta,
-  .mp-board-eyebrow,
-  .wg-today-meta {
+  .mp-board-eyebrow {
     letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
   }

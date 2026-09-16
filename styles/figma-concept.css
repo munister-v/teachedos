@@ -244,7 +244,7 @@ body.fx .widget {
 /* Карточки-счётчики: на кадре 267×169 при 1920 и отступ справа 21 - в нашем
    масштабе 200×127 и 16. Были 186 шириной и 178 высотой: узкие и заметно
    выше макета. */
-body.fx #wg-today  { top:73px; right:452px; width:200px; }
+body.fx #wg-today  { top:73px; right:452px; width:248px !important; }
 body.fx #wg-streak { top:73px; right:236px; width:200px; }
 body.fx #wg-vocab  { top:73px; right:20px;  width:200px; }
 body.fx .widget { padding:14px !important; }
@@ -271,7 +271,10 @@ body.fx :is(.wg-streak-sub,.wg-vocab-lang,.wg-vocab-trans,.wg-vocab-ex) {
   margin-top:4px !important;
 }
 body.fx .wg-vocab-trans { color:var(--fx-ink-2) !important; }
-/* Карточка ближайшего урока: заголовок, время, прогресс. */
+/* Карточка ближайшего урока: кто, когда, через сколько и кнопка входа.
+   Ширину и вид задаём здесь же, потому что harmony.css держит виджеты
+   через !important, и без своей строки скин концепта получал чужую
+   капсулу-ярлык вместо строки обратного отсчёта. */
 body.fx .wg-today-label { font-family:inherit !important; font-size:13px !important;
   font-weight:500 !important; letter-spacing:0 !important; text-transform:lowercase !important; color:var(--fx-mute) !important; }
 body.fx .wg-today-title { font-size:19px !important; font-weight:700 !important;
@@ -279,7 +282,20 @@ body.fx .wg-today-title { font-size:19px !important; font-weight:700 !important;
 body.fx .wg-today-meta { font-family:inherit !important; font-size:12px !important;
   color:var(--fx-mute) !important; }
 body.fx .wg-today-badge { font-family:inherit !important; font-size:12px !important;
-  background:var(--fx-lime) !important; color:var(--fx-ink) !important; border:none !important; }
+  background:none !important; color:var(--fx-mute) !important; border:none !important;
+  padding:0 !important; margin-top:6px !important; letter-spacing:0 !important; }
+body.fx .wg-next-avatar {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  font-family:inherit !important; }
+body.fx .wg-next-time {
+  font-size:38px !important; font-weight:700 !important; line-height:1 !important;
+  letter-spacing:-.045em !important; color:var(--fx-ink) !important; }
+body.fx .wg-next-launch {
+  background:var(--fx-lime) !important; color:var(--fx-ink) !important;
+  font-family:inherit !important; font-size:13px !important; font-weight:600 !important;
+  border-radius:12px !important; }
+body.fx .wg-next-launch[disabled] {
+  background:rgba(36,40,44,.08) !important; color:var(--fx-mute) !important; }
 body.fx .wg-today-prog-fill { background:var(--fx-lime) !important; }
 
 /* Лаймовая кнопка-капсула */

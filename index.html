@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=830">
-<link rel="preload" as="style" href="styles/harmony.css?v=830">
-<link rel="preload" as="style" href="styles/unify.css?v=830">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=830">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=830">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=830">
-<link rel="preload" as="style" href="styles/controls.css?v=830">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=830">
+<link rel="preload" as="style" href="styles/mobile.css?v=833">
+<link rel="preload" as="style" href="styles/harmony.css?v=833">
+<link rel="preload" as="style" href="styles/unify.css?v=833">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=833">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=833">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=833">
+<link rel="preload" as="style" href="styles/controls.css?v=833">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=833">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=830">
+<link rel="manifest" href="manifest.json?v=833">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -84,8 +84,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=830">
-<link rel="stylesheet" href="styles/main.css?v=830">
+<link rel="stylesheet" href="styles/tokens.css?v=833">
+<link rel="stylesheet" href="styles/main.css?v=833">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -341,37 +341,57 @@ html,body {
 }
 .wg-streak-sub { font-size:11px; color: #3A3A40; margin-top:8px; line-height:1.4; }
 
-/* Today widget */
+/* Next-class widget. Карточка ближайшего урока: кто, когда, через сколько и
+   кнопка входа. Шире соседей по правой колонке — это единственный виджет,
+   с которого начинают занятие, и он несёт имя ученика плюс действие. */
 #wg-today {
   top:184px; right:24px;
-  width:176px; padding:16px 18px;
+  width:248px; padding:16px 18px 18px;
 }
 .wg-today-label {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
-  text-transform:uppercase; color: #58585B; margin-bottom:10px;
+  text-transform:uppercase; color: #58585B; margin-bottom:12px;
 }
+.wg-next-who { display:flex; align-items:center; gap:11px; margin-bottom:14px; }
+.wg-next-avatar {
+  width:44px; height:44px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:21px; line-height:1;
+  background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
+  font-family: var(--font-ui); font-weight:700;
+  /* инициалы, когда у ученика нет эмодзи-аватара */
+  letter-spacing:-.01em;
+}
+.wg-next-id { min-width:0; }
 .wg-today-title {
-  font-family: var(--font-ui); font-size:19px; font-weight:600;
-  color: var(--text); line-height:1.2; margin-bottom:6px;
+  font-family: var(--font-ui); font-size:21px; font-weight:600;
+  color: var(--text); line-height:1.15; letter-spacing:-.02em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .wg-today-meta {
   font-size:11px; color: var(--text-3); font-family: var(--font-mono);
-  display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;
+  margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.wg-next-time {
+  font-family: var(--font-ui); font-size:38px; font-weight:600;
+  color: var(--text); line-height:1; letter-spacing:-.03em;
 }
 .wg-today-badge {
-  display:inline-flex; align-items:center; gap:4px;
-  font-size:10px; font-family: var(--font-mono);
-  color: var(--accent); background: var(--accent-2);
-  border: 1px solid var(--accent-3); border-radius:20px; padding:3px 9px;
-  margin-top:10px; letter-spacing:0.06em;
+  font-size:11px; color: var(--text-3); font-family: var(--font-mono);
+  margin-top:6px; display:block;
 }
-.wg-today-prog {
-  margin-top:12px; height:3px; background: rgba(201,201,208,0.18);
-  border-radius:2px; overflow:hidden;
+.wg-next-launch {
+  margin-top:14px; width:100%;
+  background: var(--te-lime, #CDF649); border:none;
+  border-radius:12px; padding:11px;
+  font-size:13px; font-family: var(--font-ui); font-weight:650;
+  color: var(--te-ink, #24282C); cursor:pointer; text-align:center;
+  transition: filter .15s, transform .15s;
 }
-.wg-today-prog-fill {
-  height:100%; background: linear-gradient(90deg, var(--deep-rose), var(--accent));
-  border-radius:2px; width:68%;
+.wg-next-launch:hover { filter:brightness(.96); transform:translateY(-1px); }
+.wg-next-launch[disabled] {
+  background: rgba(202,204,198,.38); color: var(--text-3);
+  cursor:default; transform:none; filter:none;
 }
 
 /* Vocab widget */
@@ -1070,6 +1090,92 @@ html,body {
 #win-plans .studio-actions .studio-chip.secondary,
 #win-plans #sidebar-plans .sb-secondary { display:none; }
 #win-students .studio-actions .studio-chip.secondary { display:none; }
+
+/* ── Students: список слева, карточка выбранного справа ───────────────
+   Оба столбца прокручиваются сами, поэтому у окна нет общей прокрутки,
+   которая уводила бы карточку ученика за край при длинном списке. */
+.st-split { flex:1; min-height:0; display:flex; }
+.st-list-col {
+  flex:1; min-width:0; display:flex; flex-direction:column;
+  border-right:1px solid var(--border, rgba(92,92,102,.16));
+}
+.st-list-head { display:flex; gap:8px; padding:12px 12px 10px; }
+.st-search {
+  flex:1; min-width:0; height:32px; padding:0 11px;
+  border:1px solid var(--border, rgba(92,92,102,.16)); border-radius:10px;
+  background: var(--bg-2, #F3F3F6); color: var(--text); font-size:12.5px;
+  font-family: var(--font-ui); outline:none;
+}
+.st-search:focus { border-color: var(--te-lime, #CDF649); }
+.st-add-btn {
+  width:32px; height:32px; flex-shrink:0; border:none; border-radius:10px;
+  background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
+  font-size:19px; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition: filter .15s, transform .15s;
+}
+.st-add-btn:hover { filter:brightness(.96); transform:translateY(-1px); }
+.st-add-form { padding:0 12px 12px; display:flex; flex-direction:column; gap:7px; }
+/* Атрибут hidden слабее правила по классу: без этой строки форма
+   добавления ученика стояла раскрытой всегда, а кнопка «+» её только
+   закрывала. */
+.st-add-form[hidden] { display:none; }
+.st-add-input {
+  height:32px; padding:0 10px; border-radius:10px;
+  border:1px solid var(--border, rgba(92,92,102,.16));
+  background: var(--bg-2, #F3F3F6); color: var(--text);
+  font-size:12.5px; font-family: var(--font-ui); outline:none;
+}
+.st-add-input:focus { border-color: var(--te-lime, #CDF649); }
+.st-add-row { display:flex; gap:7px; }
+.st-add-go, .st-add-cancel {
+  flex:1; height:30px; border-radius:9px; border:none; cursor:pointer;
+  font-size:12px; font-family: var(--font-ui); font-weight:650;
+}
+.st-add-go { background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C); }
+.st-add-cancel { background: rgba(92,92,102,.10); color: var(--text-3); }
+.st-add-hint { font-size:10.5px; line-height:1.45; color: var(--text-3); }
+.st-add-msg { font-size:11px; color: var(--text-3); min-height:14px; }
+.st-add-msg.err { color: var(--te-coral, #FF4E00); }
+#students-list { flex:1; min-height:0; overflow-y:auto; padding:0 10px 12px; display:flex; flex-direction:column; gap:4px; }
+.st-row {
+  display:flex; align-items:center; gap:10px; padding:8px 10px;
+  border-radius:10px; cursor:pointer; border:1px solid transparent;
+  transition: background .15s, border-color .15s;
+}
+.st-row:hover { background: rgba(92,92,102,.06); }
+.st-row.active { background: rgba(92,92,102,.09); border-color: var(--border-2, rgba(92,92,102,.3)); }
+.st-row-avatar {
+  width:30px; height:30px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
+  font-size:15px; font-weight:700;
+}
+.st-row-name { font-size:12.5px; font-weight:600; color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.st-row-sub  { font-size:10.5px; color: var(--text-3); font-family: var(--font-mono); margin-top:1px; }
+.st-detail { width:212px; flex-shrink:0; overflow-y:auto; padding:18px 16px; text-align:center; }
+.st-detail-avatar {
+  width:62px; height:62px; border-radius:50%; margin:0 auto 12px;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
+  font-size:28px; font-weight:700;
+}
+.st-detail-name { font-size:16px; font-weight:650; color: var(--text); letter-spacing:-.02em; }
+.st-detail-mail { font-size:11px; color: var(--text-3); margin-top:3px; word-break:break-all; }
+.st-detail-stat {
+  margin-top:14px; padding:9px; border-radius:11px;
+  background: rgba(92,92,102,.06); font-size:12px; color: var(--text);
+}
+.st-detail-stat b { font-weight:650; }
+.st-detail-btn {
+  display:block; margin-top:8px; padding:9px; border-radius:11px;
+  border:1px solid var(--border, rgba(92,92,102,.16));
+  background:transparent; color: var(--text); font-size:12px; font-weight:600;
+  font-family: var(--font-ui); text-decoration:none; cursor:pointer; width:100%;
+}
+.st-detail-btn:hover { background: rgba(92,92,102,.06); }
+.st-detail-empty { color: var(--text-3); font-size:12px; padding-top:40px; line-height:1.6; }
+@media (max-width: 860px) { .st-detail { display:none; } }
 #win-schedule .studio-actions .studio-chip.secondary { display:none; }
 .notes-save-hint {
   display:inline-flex;
@@ -1586,10 +1692,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=830" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=830">
-<link rel="stylesheet" href="styles/harmony.css?v=830">
-<link rel="stylesheet" href="styles/unify.css?v=830">
+<script src="theme.js?v=833" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=833">
+<link rel="stylesheet" href="styles/harmony.css?v=833">
+<link rel="stylesheet" href="styles/unify.css?v=833">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1597,13 +1703,13 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=830">
+<link rel="stylesheet" href="styles/teached-brand.css?v=833">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=830">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=830">
-<link rel="stylesheet" href="styles/controls.css?v=830">
+<link rel="stylesheet" href="styles/figma-theme.css?v=833">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=833">
+<link rel="stylesheet" href="styles/controls.css?v=833">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=830">
+<link rel="stylesheet" href="styles/figma-concept.css?v=833">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1767,12 +1873,16 @@ html,body {
 
 <div class="widget" id="wg-today">
   <div class="wg-today-label">Next class</div>
-  <div class="wg-today-title">-</div>
-  <div class="wg-today-meta"></div>
-  <div class="wg-today-badge"></div>
-  <div class="wg-today-prog">
-    <div class="wg-today-prog-fill" style="width:0%"></div>
+  <div class="wg-next-who">
+    <div class="wg-next-avatar" id="wg-next-avatar">🧑‍🎓</div>
+    <div class="wg-next-id">
+      <div class="wg-today-title">-</div>
+      <div class="wg-today-meta"></div>
+    </div>
   </div>
+  <div class="wg-next-time" id="wg-next-time">--:--</div>
+  <div class="wg-today-badge"></div>
+  <button class="wg-next-launch" id="wg-next-launch" disabled>Launch lesson</button>
 </div>
 
 <div class="widget" id="wg-vocab">
@@ -1938,7 +2048,7 @@ html,body {
 </div>
 
 <!-- STUDENTS -->
-<div class="win" id="win-students" style="top:96px;left:680px;width:600px;height:520px;">
+<div class="win" id="win-students" style="top:96px;left:640px;width:760px;height:560px;">
   <div class="win-titlebar" id="tb-students">
     <div class="win-controls">
       <div class="tl close"  onclick="closeWin('students')"></div>
@@ -1960,10 +2070,31 @@ html,body {
       <section class="studio-hero blue">
         <div class="studio-eyebrow">Classroom roster</div>
         <div class="studio-title">Your students</div>
-        <p class="studio-copy">Active students, their boards and what needs doing next. Add or edit them in Gradebook.</p>
-        <div class="studio-actions"><a class="studio-chip primary" href="gradebook.html">Open gradebook →</a><a class="studio-chip secondary" href="profile.html#students">Student settings</a></div>
+        <div class="studio-actions"><a class="studio-chip primary" href="gradebook.html">Open gradebook →</a></div>
       </section>
-      <div id="students-list" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="st-split">
+        <div class="st-list-col">
+          <div class="st-list-head">
+            <input class="st-search" id="students-search" type="search" placeholder="Search" oninput="studentsRender()" aria-label="Search students">
+            <button class="st-add-btn" onclick="studentsAddToggle()" title="Add student" aria-label="Add student">+</button>
+          </div>
+          <form class="st-add-form" id="students-add" hidden onsubmit="studentsAddSubmit(event)">
+            <input class="st-add-input" id="students-add-email" type="email" placeholder="student@email.com" required>
+            <select class="st-add-input" id="students-add-board" aria-label="Board"></select>
+            <!-- «Добавить» на бекенде = пригласить УЖЕ ЗАРЕГИСТРИРОВАННОГО
+                 пользователя на доску; аккаунт отсюда не создаётся, и об
+                 этом честнее сказать до нажатия, а не ответом 404. -->
+            <div class="st-add-hint">The student needs a TeachEd account already - this adds them to the board.</div>
+            <div class="st-add-row">
+              <button class="st-add-go" type="submit">Add student</button>
+              <button class="st-add-cancel" type="button" onclick="studentsAddToggle()">Cancel</button>
+            </div>
+            <div class="st-add-msg" id="students-add-msg"></div>
+          </form>
+          <div id="students-list"></div>
+        </div>
+        <aside class="st-detail" id="students-detail"></aside>
+      </div>
     </div>
   </div>
 </div>
@@ -2215,27 +2346,27 @@ html,body {
 <!-- DOCK -->
 <div id="dock-wrap">
   <div id="dock">
-    <div class="di open" id="di-plans" onclick="openApp('plans')" title="Lesson Plans">
+    <div class="di open" id="di-plans" onclick="dockApp('plans')" title="Lesson Plans">
       <div class="di-icon" style="background:linear-gradient(145deg,#6B7669,#5A6459);"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
-    <div class="di" id="di-students" onclick="openApp('students')" title="Students">
+    <div class="di" id="di-students" onclick="dockApp('students')" title="Students">
       <div class="di-icon" style="background:linear-gradient(145deg,#5F6B75,#4F5A64);"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
       <div class="di-label">Students</div>
       <div class="di-dot"></div>
     </div>
-    <div class="di" id="di-schedule" onclick="openApp('schedule')" title="Schedule">
+    <div class="di" id="di-schedule" onclick="dockApp('schedule')" title="Schedule">
       <div class="di-icon schedule"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
       <div class="di-label">Schedule</div>
       <div class="di-dot"></div>
     </div>
-    <div class="di" id="di-notes" onclick="openApp('notes')" title="Notes">
+    <div class="di" id="di-notes" onclick="dockApp('notes')" title="Notes">
       <div class="di-icon notes"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg></div>
       <div class="di-label">Notes</div>
       <div class="di-dot"></div>
     </div>
-    <div class="di" id="di-tools" onclick="openApp('tools')" title="Teaching Tools">
+    <div class="di" id="di-tools" onclick="dockApp('tools')" title="Teaching Tools">
       <div class="di-icon" style="background:linear-gradient(145deg,#75798A,#63667A);"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></div>
       <div class="di-label">Tools</div>
       <div class="di-dot"></div>
@@ -2267,7 +2398,7 @@ html,body {
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
     </a>
-    <div class="di di-secondary" id="di-pricing" onclick="openApp('pricing')" title="Pricing">
+    <div class="di di-secondary" id="di-pricing" onclick="dockApp('pricing')" title="Pricing">
       <div class="di-icon" style="background:linear-gradient(145deg,#5A6459,#6B7669);"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
       <div class="di-label">Pricing</div>
       <div class="di-dot"></div>
@@ -2283,7 +2414,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=830"></script>
+<script src="scripts/desktop-app.js?v=833"></script>
 
 <script>
 
@@ -2303,8 +2434,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=830" defer></script>
-<script src="pwa-boot.js?v=830" defer></script>
+<script src="scripts/autogrow.js?v=833" defer></script>
+<script src="pwa-boot.js?v=833" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2524,11 +2655,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=830" defer></script>
-<script src="scripts/nav-boost.js?v=830" defer></script>
-<script src="scripts/mobile-perf.js?v=830" defer></script>
-<script src="scripts/mobile-nav.js?v=830" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=830" defer></script>
-  <script src="scripts/signin-entry.js?v=830" defer></script>
+<script src="pwa.js?v=833" defer></script>
+<script src="scripts/nav-boost.js?v=833" defer></script>
+<script src="scripts/mobile-perf.js?v=833" defer></script>
+<script src="scripts/mobile-nav.js?v=833" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=833" defer></script>
+  <script src="scripts/signin-entry.js?v=833" defer></script>
 </body>
 </html>

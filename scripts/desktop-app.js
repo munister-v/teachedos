@@ -707,12 +707,136 @@ function openApp(id) {
   WM.open(id);
   if (id === 'notes' && typeof notesLoad === 'function' && !_notesLoaded) notesLoad();
 }
+
+/* Клик по иконке дока — переключатель, как в macOS: окно открыто и в фокусе →
+   сворачиваем, открыто но под другим → поднимаем, закрыто/свёрнуто → открываем.
+   Отдельная функция, а не поведение openApp: спотлайт, хэши и кнопки внутри
+   окон зовут openApp и должны именно ОТКРЫВАТЬ, а не закрывать наугад. */
+function dockApp(id) {
+  const win = document.getElementById('win-' + id);
+  if (win && win.classList.contains('open') && !win.classList.contains('minimizing')) {
+    if (win.classList.contains('focused')) WM.minimize(id);
+    else WM.focus(id);
+    return;
+  }
+  openApp(id);
+}
 function openPricingFromHash() { if (['#pricing','#plans','#billing'].includes(location.hash)) setTimeout(() => openApp('pricing'), 120); }
 window.addEventListener('hashchange', openPricingFromHash);
 openPricingFromHash();
 function openNotesFromHash() { if (location.hash === '#notes') setTimeout(() => openApp('notes'), 120); }
 window.addEventListener('hashchange', openNotesFromHash);
 openNotesFromHash();
+/* ══════════════════════ NEXT-CLASS WIDGET ══════════════════════ */
+/* Момент начала ближайшего урока: по нему раз в полминуты пересчитывается
+   строка «Starts in …», поэтому хранится отдельно от разметки. */
+let _nextClassAt = null;
+
+/* Ближайший урок из недельного расписания: сегодняшние слоты, что ещё не
+   начались. Общий помощник для живой загрузки и для офлайн-снимка, чтобы
+   виджет не показывал разное в зависимости от того, откуда пришли данные. */
+function pickNextClass(schedule) {
+  const today = (new Date().getDay() + 6) % 7; // 0=Пн … 6=Вс, как в базе
+  const toMin = t => { const [h, m] = String(t).split(':'); return +h * 60 + +m; };
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const todays = (schedule || [])
+    .filter(s => s.day === today)
+    .sort((a, b) => String(a.start_time).localeCompare(String(b.start_time)));
+  return { next: todays.find(s => toMin(s.start_time) >= nowMin) || null, todaysCount: todays.length };
+}
+
+function nextClassInitials(name) {
+  return (name || '')
+    .trim().split(/\s+/).slice(0, 2)
+    .map(part => part[0] || '')
+    .join('').toUpperCase() || '?';
+}
+
+function nextClassCountdown() {
+  const badge = document.querySelector('#wg-today .wg-today-badge');
+  if (!badge || !_nextClassAt) return;
+  const diff = _nextClassAt - Date.now();
+  if (diff <= 0) { badge.textContent = 'Starting now'; return; }
+  const mins = Math.round(diff / 60000);
+  const h = Math.floor(mins / 60), m = mins % 60;
+  badge.textContent = 'Starts in ' + (h ? `${h}h ${m}m` : `${m}m`);
+}
+
+function renderNextClass(next, todaysCount) {
+  const label  = document.querySelector('#wg-today .wg-today-label');
+  const title  = document.querySelector('#wg-today .wg-today-title');
+  const meta   = document.querySelector('#wg-today .wg-today-meta');
+  const badge  = document.querySelector('#wg-today .wg-today-badge');
+  const time   = document.getElementById('wg-next-time');
+  const avatar = document.getElementById('wg-next-avatar');
+  const launch = document.getElementById('wg-next-launch');
+  if (!title) return;
+
+  if (!next) {
+    _nextClassAt = null;
+    if (label)  label.textContent = 'Schedule';
+    title.textContent = todaysCount ? 'All done' : 'Nothing scheduled';
+    if (meta)   meta.textContent = todaysCount ? `${todaysCount} classes today` : 'Add a class to get started';
+    if (time)   time.textContent = '--:--';
+    if (badge)  badge.textContent = '';
+    if (avatar) avatar.textContent = '📅';
+    if (launch) {
+      launch.textContent = 'Open schedule';
+      launch.disabled = false;
+      launch.onclick = () => { location.href = 'schedule.html'; };
+    }
+    return;
+  }
+
+  const toMin = t => { const [h, m] = String(t).split(':'); return +h * 60 + +m; };
+  const who = next.group_name || next.title || 'Class';
+  const dur = toMin(next.end_time) - toMin(next.start_time);
+
+  if (label) label.textContent = 'Next class';
+  title.textContent = who;
+  if (meta) {
+    // подпись вида «Individual Lesson · 60 min»: сам урок + длительность
+    const kind = next.group_name ? next.title : (next.level || 'Lesson');
+    meta.textContent = [kind, dur > 0 ? `${dur} min` : ''].filter(Boolean).join(' · ');
+  }
+  if (time) time.textContent = String(next.start_time).slice(0, 5);
+
+  if (avatar) {
+    // аватар ученика, если он есть среди учеников доски; иначе инициалы
+    const match = (typeof STUDENTS !== 'undefined' ? STUDENTS : [])
+      .find(s => (s.name || '').toLowerCase() === who.toLowerCase());
+    const face = match?.avatar || '';
+    if (_isPhotoUrl(face)) {
+      avatar.textContent = '';
+      avatar.style.backgroundImage = `url('${face}')`;
+      avatar.style.backgroundSize = 'cover';
+      avatar.style.backgroundPosition = 'center';
+    } else {
+      avatar.style.backgroundImage = '';
+      avatar.textContent = face || nextClassInitials(who);
+      avatar.style.fontSize = face ? '21px' : '15px';
+    }
+  }
+
+  const start = new Date();
+  start.setHours(toMin(next.start_time) / 60 | 0, toMin(next.start_time) % 60, 0, 0);
+  _nextClassAt = start.getTime();
+  nextClassCountdown();
+
+  if (launch) {
+    launch.disabled = false;
+    launch.textContent = next.meeting_url ? 'Launch lesson' : (next.board_id ? 'Open board' : 'Open schedule');
+    launch.onclick = () => {
+      if (next.meeting_url) window.open(next.meeting_url, '_blank', 'noopener');
+      else if (next.board_id) location.href = `board.html?id=${encodeURIComponent(next.board_id)}`;
+      else location.href = 'schedule.html';
+    };
+  }
+}
+
+setInterval(nextClassCountdown, 30000);
+
 function closeWin(id)  { WM.close(id); }
 function minWin(id)    { WM.minimize(id); }
 function maxWin(id)    { WM.maximize(id); }
@@ -729,36 +853,150 @@ function studentsFilter(filter, el) {
   studentsRender();
 }
 
+/* id выбранного ученика: список слева, его карточка справа — как в почте. */
+let studentsSelectedId = null;
+
+/* Аватар ученика. В базе это ЭМОДЗИ (профиль так и предлагает - «choose
+   your avatar emoji»), фотографий продукт пока не загружает. Ссылка всё же
+   разбирается: если когда-нибудь в поле окажется URL, кружок покажет
+   снимок, а не напечатает адрес буквами. Пусто - инициалы, чтобы кружок
+   никогда не был дырой. */
+const _isPhotoUrl = v => /^https?:\/\//i.test(String(v || ''));
+
+function studentAvatarMarkup(s, cls) {
+  if (_isPhotoUrl(s.avatar)) {
+    return `<div class="${cls}" style="background-image:url('${esc(s.avatar)}');background-size:cover;background-position:center;"></div>`;
+  }
+  const face = s.avatar || nextClassInitials(s.name);
+  const small = !s.avatar ? ' style="font-size:.62em;"' : '';
+  return `<div class="${cls}"${small}>${esc(face)}</div>`;
+}
+
 function studentsRender() {
   const list = document.getElementById('students-list');
   if (!list) return;
 
   if (!STUDENTS.length) {
-    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-3);font-size:13px;">
-      No students yet.<br>
-      <a href="gradebook.html" style="color:var(--accent);font-weight:600;text-decoration:none;margin-top:10px;display:inline-block;">Open Gradebook to add →</a>
+    list.innerHTML = `<div style="text-align:center;padding:36px 16px;color:var(--text-3);font-size:12.5px;line-height:1.6;">
+      No students yet.<br>Use <b style="color:var(--text);">+</b> to invite one.
     </div>`;
+    studentDetailRender();
     return;
   }
 
   const f = studentsActiveFilter;
+  const q = (document.getElementById('students-search')?.value || '').trim().toLowerCase();
   const filtered = STUDENTS.filter(s => {
+    if (q && !((s.name || '') + ' ' + (s.email || '')).toLowerCase().includes(q)) return false;
     if (f === 'all') return true;
     if (f === 'today') return s.lastSeen === 'Today';
     return s.group === f || s.level === f;
   });
 
+  if (!filtered.length) {
+    list.innerHTML = `<div style="text-align:center;padding:30px 16px;color:var(--text-3);font-size:12.5px;">Nobody matches “${esc(q)}”.</div>`;
+    return;
+  }
+
+  // выбранным остаётся тот же ученик, пока он в отфильтрованном списке
+  if (!filtered.some(s => String(s.id) === String(studentsSelectedId))) {
+    studentsSelectedId = filtered[0].id;
+  }
+
   list.innerHTML = filtered.map(s => `
-    <a href="gradebook.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(200,230,50,0.04);border:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;" onmouseenter="this.style.background='rgba(200,230,50,0.09)'" onmouseleave="this.style.background='rgba(200,230,50,0.04)'">
-      <div style="font-size:22px;flex-shrink:0;">${s.avatar || '🧑‍🎓'}</div>
+    <div class="st-row${String(s.id) === String(studentsSelectedId) ? ' active' : ''}" onclick="studentSelect('${esc(String(s.id))}')">
+      ${studentAvatarMarkup(s, 'st-row-avatar')}
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);">${s.name}</div>
-        <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${s.email}</div>
-      </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:11px;color:var(--text-3);">${s.boardCount} board${s.boardCount === 1 ? '' : 's'}</div>
+        <div class="st-row-name">${esc(s.name || 'Student')}</div>
+        <div class="st-row-sub">${s.boardCount} board${s.boardCount === 1 ? '' : 's'}</div>
       </div>
     </div>`).join('');
+
+  studentDetailRender();
+}
+
+function studentSelect(id) {
+  studentsSelectedId = id;
+  studentsRender();
+}
+
+function studentDetailRender() {
+  const box = document.getElementById('students-detail');
+  if (!box) return;
+  const s = STUDENTS.find(x => String(x.id) === String(studentsSelectedId));
+  if (!s) {
+    box.innerHTML = `<div class="st-detail-empty">Pick a student<br>to see their card.</div>`;
+    return;
+  }
+  box.innerHTML = `
+    ${studentAvatarMarkup(s, 'st-detail-avatar')}
+    <div class="st-detail-name">${esc(s.name || 'Student')}</div>
+    <div class="st-detail-mail">${esc(s.email || '')}</div>
+    <div class="st-detail-stat">On <b>${s.boardCount}</b> board${s.boardCount === 1 ? '' : 's'}</div>
+    <a class="st-detail-btn" href="gradebook.html">Open gradebook</a>
+    <a class="st-detail-btn" href="homework.html">Assign homework</a>`;
+}
+
+/* ── Добавление ученика прямо с рабочего стола ──────────────────────
+   На бэкенде «добавить ученика» = пригласить его на доску по почте
+   (POST /api/members/:boardId/invite), отдельной сущности ученика нет —
+   поэтому форма спрашивает и почту, и доску. */
+function studentsAddToggle() {
+  const form = document.getElementById('students-add');
+  if (!form) return;
+  const opening = form.hidden;
+  form.hidden = !opening;
+  if (!opening) return;
+
+  const sel = document.getElementById('students-add-board');
+  const boards = (typeof MY_BOARDS !== 'undefined' ? MY_BOARDS : []);
+  if (sel) {
+    sel.innerHTML = boards.length
+      ? boards.map(b => `<option value="${esc(String(b.id))}">${esc(b.name || 'Board')}</option>`).join('')
+      : '<option value="">No boards yet — create one first</option>';
+  }
+  const msg = document.getElementById('students-add-msg');
+  if (msg) { msg.textContent = ''; msg.classList.remove('err'); }
+  document.getElementById('students-add-email')?.focus();
+}
+
+async function studentsAddSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('students-add-email')?.value.trim();
+  const boardId = document.getElementById('students-add-board')?.value;
+  const msg = document.getElementById('students-add-msg');
+  const setMsg = (text, isErr) => {
+    if (!msg) return;
+    msg.textContent = text;
+    msg.classList.toggle('err', !!isErr);
+  };
+  if (!email) return;
+  if (!boardId) return setMsg('Create a board first — students are added to a board.', true);
+
+  setMsg('Adding…');
+  try {
+    const r = await fetch(API_BASE + `/api/members/${encodeURIComponent(boardId)}/invite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+      body: JSON.stringify({ email, role: 'student' }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return setMsg(d.error || `Could not add (HTTP ${r.status})`, true);
+
+    const added = d.member || {};
+    const existing = STUDENTS.find(s => String(s.id) === String(added.id));
+    if (existing) existing.boardCount++;
+    else STUDENTS.push({ ...added, boardCount: 1 });
+    STUDENTS.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    studentsSelectedId = added.id || studentsSelectedId;
+    studentsRender();
+    updateStudentSidebar();
+    if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
+    setMsg(`${added.name || email} added.`);
+    document.getElementById('students-add-email').value = '';
+  } catch {
+    setMsg('Network error — student not added.', true);
+  }
 }
 
 function updateStudentSidebar() {
@@ -1595,6 +1833,8 @@ function applyTeacherDashboardCache(cache, options = {}) {
   if (Array.isArray(cache.schedule)) {
     SCHEDULE_RAW = cache.schedule;
     schRender();
+    const { next, todaysCount } = pickNextClass(cache.schedule);
+    renderNextClass(next, todaysCount);
   }
   if (Array.isArray(cache.boards)) {
     MY_BOARDS = cache.boards;
@@ -2360,23 +2600,8 @@ setInterval(loadNotifications, 120000);
       else streakSub.innerHTML = `All ${todays.length} done - great job!`;
     }
 
-    // Today widget - show next class
-    const todayLabel = document.querySelector('#wg-today .wg-today-label');
-    const todayTitle = document.querySelector('#wg-today .wg-today-title');
-    const todayMeta = document.querySelector('#wg-today .wg-today-meta');
-    const todayBadge = document.querySelector('#wg-today .wg-today-badge');
-    if (next) {
-      if (todayLabel) todayLabel.textContent = 'Next class';
-      if (todayTitle) todayTitle.innerHTML = next.title.replace(/^([^:]+:)/, '$1<br>');
-      if (todayMeta) todayMeta.innerHTML = `<span>👥 ${next.group_name || '-'}</span><span>·</span><span>${next.level || ''}</span>`;
-      const dur = toMin(next.end_time) - toMin(next.start_time);
-      if (todayBadge) todayBadge.textContent = `🕐 ${next.start_time.slice(0,5)} · ${dur} min`;
-    } else {
-      if (todayLabel) todayLabel.textContent = 'Schedule';
-      if (todayTitle) todayTitle.innerHTML = todays.length ? 'All done<br><em style="font-style:normal;color:var(--accent)">for today</em>' : 'Nothing<br><em style="font-style:normal;color:var(--accent)">scheduled today</em>';
-      if (todayMeta) todayMeta.innerHTML = `<a href="schedule.html" style="color:var(--accent);text-decoration:none;">Open schedule →</a>`;
-      if (todayBadge) todayBadge.textContent = '';
-    }
+    // Next-class widget - кто, когда, через сколько и кнопка входа
+    renderNextClass(next, todays.length);
     updateMobileTeacherOverview();
   }).catch(() => {
     if (cachedDash?.schedule) applyTeacherDashboardCache({ schedule: cachedDash.schedule }, { offlineNotice: true });
