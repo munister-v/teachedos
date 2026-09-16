@@ -282,7 +282,7 @@ body.fx .wg-today-title { font-size:19px !important; font-weight:700 !important;
 body.fx .wg-today-meta { font-family:inherit !important; font-size:12px !important;
   color:var(--fx-mute) !important; }
 body.fx .wg-today-badge { font-family:inherit !important; font-size:12px !important;
-  background:none !important; color:var(--fx-mute) !important; border:none !important;
+  background:none !important; color:var(--fx-ink-2) !important; border:none !important;
   padding:0 !important; margin-top:6px !important; letter-spacing:0 !important; }
 body.fx .wg-next-avatar {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important;

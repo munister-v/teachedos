@@ -36,7 +36,11 @@ let topZ = 200;
 const zMap = {};
 
 function getTeacherMobileSnapshot() {
-  const today = new Date().getDay();
+  /* 0=Пн … 6=Вс, как в базе и как везде в расписании. Тут стоял голый
+     getDay() (0=Вс), то есть телефон каждый день показывал ЗАВТРАШНИЕ
+     занятия, а в среду - «no class today» при двух занятиях в этот день.
+     Ср. pickNextClass и schedule.html, они считают так же. */
+  const today = (new Date().getDay() + 6) % 7;
   const toMin = t => {
     if (!t || !String(t).includes(':')) return 0;
     const [h, m] = String(t).split(':');
@@ -77,32 +81,52 @@ function updateMobileTeacherOverview() {
   boards.textContent = String(boardCount);
   students.textContent = String(studentCount);
 
+  /* НИ ОДНОГО return ДО БЛОКА mp-* НИЖЕ.
+
+     Раньше ветка «есть ближайший урок» заканчивалась `return`, и всё, что
+     ученик видит на телефоне (mp-next-*, mp-stat-*), обновлялось ТОЛЬКО в
+     день без занятий. В обычный день домашний экран так и стоял с
+     заглушкой «Build your first board» и нулями, хотя в расписании было
+     два занятия. Ветки ниже заполняют старые скрытые пролёты, а показ
+     живёт в блоке mp-*, и он должен выполняться всегда. */
   if (next) {
     title.textContent = `Next up at ${String(next.start_time || '').slice(0, 5)}`;
     sub.textContent = `${next.group_name || next.title || 'Class'}${next.level ? ' · ' + next.level : ''}`;
     focusTitle.textContent = `${todays.length} class${todays.length === 1 ? '' : 'es'} on your day plan`;
     focusSub.textContent = `Keep ${boardCount} boards and ${totalCards} cards ready. ${studentCount ? `${studentCount} students are already in your workspace.` : 'Invite students when you are ready.'}`;
-    return;
-  }
-
-  if (todays.length) {
-    title.textContent = 'All classes wrapped';
-    sub.textContent = 'Your mobile workspace is clear for prep, review, or notes.';
   } else {
-    title.textContent = 'Light day, strong prep';
-    sub.textContent = 'No classes are scheduled yet, so this is a good time to tune boards and invite students.';
-  }
+    if (todays.length) {
+      title.textContent = 'All classes wrapped';
+      sub.textContent = 'Your mobile workspace is clear for prep, review, or notes.';
+    } else {
+      title.textContent = 'Light day, strong prep';
+      sub.textContent = 'No classes are scheduled yet, so this is a good time to tune boards and invite students.';
+    }
 
-  if (freshestBoard) {
-    focusTitle.textContent = `Latest board: ${freshestBoard.name || 'Untitled Board'}`;
-    focusSub.textContent = `${freshestBoard.card_count || 0} cards ready${studentCount ? ` · ${studentCount} students connected` : ''}. Open your board or gradebook to keep momentum.`;
-  } else {
-    focusTitle.textContent = 'Your mobile desk is ready for setup';
-    focusSub.textContent = `Create your first board, then connect students and schedule classes. ${boardCount ? `${boardCount} boards already exist.` : 'No boards yet.'}`;
+    if (freshestBoard) {
+      focusTitle.textContent = `Latest board: ${freshestBoard.name || 'Untitled Board'}`;
+      focusSub.textContent = `${freshestBoard.card_count || 0} cards ready${studentCount ? ` · ${studentCount} students connected` : ''}. Open your board or gradebook to keep momentum.`;
+    } else {
+      focusTitle.textContent = 'Your mobile desk is ready for setup';
+      focusSub.textContent = `Create your first board, then connect students and schedule classes. ${boardCount ? `${boardCount} boards already exist.` : 'No boards yet.'}`;
+    }
   }
 
   /* ── Populate Mobile Pro design elements ── */
   try {
+    /* toMin/nowMin ЖИВУТ ЗДЕСЬ, а не в getTeacherMobileSnapshot.
+
+       Карточка ближайшего урока ниже считала по ним минуты до начала, но
+       объявлены они были в другой функции - ReferenceError, который
+       глотал `catch` ниже. Видимых следов не было: статистика над этим
+       местом успевала обновиться, а карточка урока и лента «Today in
+       class» молча оставались с заглушками. */
+    const toMin = t => {
+      if (!t || !String(t).includes(':')) return 0;
+      const [h, m] = String(t).split(':');
+      return Number(h) * 60 + Number(m);
+    };
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
     const initials = (firstName.match(/[A-ZА-ЯҐЄІЇ]/gi) || ['T'])[0].toUpperCase();
     const last = String(user.name || '').split(' ').slice(1).join(' ');
     const lastInitial = last ? (last[0] || '').toUpperCase() : '';
@@ -111,16 +135,26 @@ function updateMobileTeacherOverview() {
     const today = new Date();
     const dayStr = `${dayNames[today.getDay()]} · ${monthNames[today.getMonth()]} ${today.getDate()}`;
 
+    /* ТЕКСТ СТАВИТСЯ СРАЗУ, АНИМАЦИЯ - ОТДЕЛЬНО.
+
+       Раньше и текст, и возврат прозрачности лежали внутри
+       requestAnimationFrame, а он в СКРЫТОЙ вкладке не вызывается вовсе.
+       Телефон, открывший дашборд в фоне (переключился в мессенджер, пока
+       грузится), навсегда оставался с заглушкой «Build your first board»
+       при двух занятиях в расписании. Той же породы, что и молчащий
+       IntersectionObserver при document.hidden.
+
+       Поэтому: значение пишем синхронно, а плавность - это уже украшение,
+       и у него есть запасной таймер на случай, когда кадров не будет. */
     const setText = (id, t) => {
       const el = document.getElementById(id);
-      if (!el) return;
-      if (el.textContent === t) return;
-      // Smooth cross-fade for value changes
+      if (!el || el.textContent === t) return;
       el.style.opacity = '0';
-      requestAnimationFrame(() => {
-        el.textContent = t;
-        el.style.opacity = '1';
-      });
+      el.textContent = t;
+      let shown = false;
+      const show = () => { if (shown) return; shown = true; el.style.opacity = '1'; };
+      requestAnimationFrame(show);
+      setTimeout(show, 120);
     };
     setText('mp-avatar', (initials + lastInitial) || 'T');
     setText('mp-greeting-meta', dayStr);
@@ -821,7 +855,7 @@ function renderNextClass(next, todaysCount) {
     } else {
       avatar.style.backgroundImage = '';
       avatar.textContent = face || nextClassInitials(who);
-      avatar.style.fontSize = face ? '21px' : '15px';
+      avatar.style.fontSize = face ? '22px' : '16px';
     }
   }
 
@@ -886,12 +920,15 @@ function studentsRender() {
     list.innerHTML = `<div style="text-align:center;padding:36px 16px;color:var(--text-3);font-size:12.5px;line-height:1.6;">
       No students yet.<br>Use <b style="color:var(--text);">+</b> to invite one.
     </div>`;
+    const empty = document.getElementById('students-count');
+    if (empty) empty.textContent = '';
     studentDetailRender();
     return;
   }
 
   const f = studentsActiveFilter;
   const q = (document.getElementById('students-search')?.value || '').trim().toLowerCase();
+  const countEl = document.getElementById('students-count');
   const filtered = STUDENTS.filter(s => {
     if (q && !((s.name || '') + ' ' + (s.email || '')).toLowerCase().includes(q)) return false;
     if (f === 'all') return true;
@@ -899,8 +936,17 @@ function studentsRender() {
     return s.group === f || s.level === f;
   });
 
+  /* «Students (3 total)», а при поиске - «2 of 3»: строка отвечает на
+     вопрос «это весь список или уже отфильтрованный». */
+  if (countEl) {
+    countEl.textContent = filtered.length === STUDENTS.length
+      ? `Students (${STUDENTS.length} total)`
+      : `${filtered.length} of ${STUDENTS.length} students`;
+  }
+
   if (!filtered.length) {
     list.innerHTML = `<div style="text-align:center;padding:30px 16px;color:var(--text-3);font-size:12.5px;">Nobody matches “${esc(q)}”.</div>`;
+    studentDetailRender();
     return;
   }
 
@@ -939,7 +985,7 @@ function studentDetailRender() {
     <div class="st-detail-name">${esc(s.name || 'Student')}</div>
     <div class="st-detail-mail">${esc(s.email || '')}</div>
     <div class="st-detail-stat">On <b>${s.boardCount}</b> board${s.boardCount === 1 ? '' : 's'}</div>
-    <a class="st-detail-btn" href="gradebook.html">Open gradebook</a>
+    <a class="st-detail-btn primary" href="gradebook.html">Open gradebook</a>
     <a class="st-detail-btn" href="homework.html">Assign homework</a>`;
 }
 

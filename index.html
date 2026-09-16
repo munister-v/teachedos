@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=834">
-<link rel="preload" as="style" href="styles/harmony.css?v=834">
-<link rel="preload" as="style" href="styles/unify.css?v=834">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=834">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=834">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=834">
-<link rel="preload" as="style" href="styles/controls.css?v=834">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=834">
+<link rel="preload" as="style" href="styles/mobile.css?v=841">
+<link rel="preload" as="style" href="styles/harmony.css?v=841">
+<link rel="preload" as="style" href="styles/unify.css?v=841">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=841">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=841">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=841">
+<link rel="preload" as="style" href="styles/controls.css?v=841">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=841">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=834">
+<link rel="manifest" href="manifest.json?v=841">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -84,8 +84,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=834">
-<link rel="stylesheet" href="styles/main.css?v=834">
+<link rel="stylesheet" href="styles/tokens.css?v=841">
+<link rel="stylesheet" href="styles/main.css?v=841">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -354,7 +354,7 @@ html,body {
 }
 .wg-next-who { display:flex; align-items:center; gap:11px; margin-bottom:14px; }
 .wg-next-avatar {
-  width:44px; height:44px; border-radius:50%; flex-shrink:0;
+  width:46px; height:46px; border-radius:50%; flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
   font-size:21px; line-height:1;
   background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
@@ -1095,13 +1095,31 @@ html,body {
 
 /* ── Students: список слева, карточка выбранного справа ───────────────
    Оба столбца прокручиваются сами, поэтому у окна нет общей прокрутки,
-   которая уводила бы карточку ученика за край при длинном списке. */
+   которая уводила бы карточку ученика за край при длинном списке.
+
+   Шапка окна ужата НЕ везде, а только здесь: общий .studio-hero отдаёт
+   заголовку треть высоты, и в списке учеников после него оставалось место
+   на три строки. Заголовок и «Open gradebook» встают в одну строку. */
+/* Сеткой, а не flex-строкой: у шапки три ребёнка подряд (надзаголовок,
+   заголовок, кнопка), и в строку они вставали друг за другом - «classroom
+   roster» оказывался слева ОТ заголовка, а не над ним. */
+#win-students .studio-hero {
+  padding:16px 18px 14px; display:grid;
+  grid-template-columns:1fr auto; align-items:end; gap:3px 12px;
+}
+#win-students .studio-eyebrow { grid-column:1; grid-row:1; }
+#win-students .studio-title   { grid-column:1; grid-row:2; font-size:22px; line-height:1.1; }
+#win-students .studio-actions { grid-column:2; grid-row:2; justify-self:end; margin:0; }
 .st-split { flex:1; min-height:0; display:flex; }
 .st-list-col {
   flex:1; min-width:0; display:flex; flex-direction:column;
   border-right:1px solid var(--border, rgba(92,92,102,.16));
 }
-.st-list-head { display:flex; gap:8px; padding:12px 12px 10px; }
+.st-list-head { display:flex; gap:8px; padding:12px 14px 8px; }
+.st-count {
+  padding:0 16px 8px; font-size:10.5px; font-family: var(--font-mono);
+  letter-spacing:.08em; text-transform:uppercase; color: var(--text-3);
+}
 .st-search {
   flex:1; min-width:0; height:32px; padding:0 11px;
   border:1px solid var(--border, rgba(92,92,102,.16)); border-radius:10px;
@@ -1139,44 +1157,61 @@ html,body {
 .st-add-hint { font-size:10.5px; line-height:1.45; color: var(--text-3); }
 .st-add-msg { font-size:11px; color: var(--text-3); min-height:14px; }
 .st-add-msg.err { color: var(--te-coral, #FF4E00); }
-#students-list { flex:1; min-height:0; overflow-y:auto; padding:0 10px 12px; display:flex; flex-direction:column; gap:4px; }
+#students-list { flex:1; min-height:0; overflow-y:auto; padding:0 12px 14px; display:flex; flex-direction:column; gap:2px; }
+/* Выбранная строка помечена лаймом слева, а не серой заливкой: серым уже
+   набран ховер, и выбор от наведения было не отличить. */
 .st-row {
-  display:flex; align-items:center; gap:10px; padding:8px 10px;
-  border-radius:10px; cursor:pointer; border:1px solid transparent;
-  transition: background .15s, border-color .15s;
+  position:relative; display:flex; align-items:center; gap:11px;
+  padding:9px 12px; min-height:46px; border-radius:11px; cursor:pointer;
+  transition: background .15s;
 }
-.st-row:hover { background: rgba(92,92,102,.06); }
-.st-row.active { background: rgba(92,92,102,.09); border-color: var(--border-2, rgba(92,92,102,.3)); }
+.st-row::before {
+  content:''; position:absolute; left:4px; top:50%; transform:translateY(-50%);
+  width:3px; height:0; border-radius:2px; background: var(--te-lime, #CDF649);
+  transition: height .18s;
+}
+.st-row:hover { background: rgba(92,92,102,.05); }
+.st-row.active { background: rgba(205,246,73,.14); }
+.st-row.active::before { height:22px; }
 .st-row-avatar {
-  width:30px; height:30px; border-radius:50%; flex-shrink:0;
+  width:32px; height:32px; border-radius:50%; flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
   background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
-  font-size:15px; font-weight:700;
+  font-size:16px; font-weight:700;
 }
-.st-row-name { font-size:12.5px; font-weight:600; color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.st-row-sub  { font-size:10.5px; color: var(--text-3); font-family: var(--font-mono); margin-top:1px; }
-.st-detail { width:212px; flex-shrink:0; overflow-y:auto; padding:18px 16px; text-align:center; }
+.st-row-name { font-size:13px; font-weight:600; color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.st-row-sub  { font-size:10.5px; color: var(--text-3); font-family: var(--font-mono); margin-top:2px; letter-spacing:.04em; }
+.st-detail { width:236px; flex-shrink:0; overflow-y:auto; padding:22px 18px; text-align:center; }
 .st-detail-avatar {
-  width:62px; height:62px; border-radius:50%; margin:0 auto 12px;
+  width:66px; height:66px; border-radius:50%; margin:0 auto 13px;
   display:flex; align-items:center; justify-content:center;
   background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
-  font-size:28px; font-weight:700;
+  font-size:30px; font-weight:700;
+  box-shadow: 0 0 0 5px rgba(205,246,73,.22);
 }
-.st-detail-name { font-size:16px; font-weight:650; color: var(--text); letter-spacing:-.02em; }
-.st-detail-mail { font-size:11px; color: var(--text-3); margin-top:3px; word-break:break-all; }
+.st-detail-name { font-size:17px; font-weight:650; color: var(--text); letter-spacing:-.02em; line-height:1.2; }
+.st-detail-mail { font-size:11.5px; color: var(--text-3); margin-top:4px; word-break:break-all; }
+/* Счётчик досок - это сведения, а не действие: раньше он выглядел ровно
+   как две кнопки под ним, и карточка читалась как три кнопки подряд. */
 .st-detail-stat {
-  margin-top:14px; padding:9px; border-radius:11px;
-  background: rgba(92,92,102,.06); font-size:12px; color: var(--text);
+  margin:16px 0 14px; padding:10px; border-radius:12px;
+  background: rgba(92,92,102,.055); font-size:12px; color: var(--text-3);
 }
-.st-detail-stat b { font-weight:650; }
+.st-detail-stat b { font-weight:700; color: var(--text); }
 .st-detail-btn {
-  display:block; margin-top:8px; padding:9px; border-radius:11px;
+  display:block; margin-top:8px; padding:10px; border-radius:12px;
   border:1px solid var(--border, rgba(92,92,102,.16));
-  background:transparent; color: var(--text); font-size:12px; font-weight:600;
+  background:transparent; color: var(--text); font-size:12.5px; font-weight:600;
   font-family: var(--font-ui); text-decoration:none; cursor:pointer; width:100%;
+  transition: background .15s, filter .15s;
 }
 .st-detail-btn:hover { background: rgba(92,92,102,.06); }
-.st-detail-empty { color: var(--text-3); font-size:12px; padding-top:40px; line-height:1.6; }
+.st-detail-btn.primary {
+  background: var(--te-lime, #CDF649); border-color: var(--te-lime, #CDF649);
+  color: var(--te-ink, #24282C);
+}
+.st-detail-btn.primary:hover { filter:brightness(.96); background: var(--te-lime, #CDF649); }
+.st-detail-empty { color: var(--text-3); font-size:12px; padding-top:44px; line-height:1.6; }
 @media (max-width: 860px) { .st-detail { display:none; } }
 #win-schedule .studio-actions .studio-chip.secondary { display:none; }
 .notes-save-hint {
@@ -1694,10 +1729,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=834" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=834">
-<link rel="stylesheet" href="styles/harmony.css?v=834">
-<link rel="stylesheet" href="styles/unify.css?v=834">
+<script src="theme.js?v=841" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=841">
+<link rel="stylesheet" href="styles/harmony.css?v=841">
+<link rel="stylesheet" href="styles/unify.css?v=841">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1705,13 +1740,13 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=834">
+<link rel="stylesheet" href="styles/teached-brand.css?v=841">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=834">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=834">
-<link rel="stylesheet" href="styles/controls.css?v=834">
+<link rel="stylesheet" href="styles/figma-theme.css?v=841">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=841">
+<link rel="stylesheet" href="styles/controls.css?v=841">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=834">
+<link rel="stylesheet" href="styles/figma-concept.css?v=841">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -2093,6 +2128,7 @@ html,body {
             </div>
             <div class="st-add-msg" id="students-add-msg"></div>
           </form>
+          <div class="st-count" id="students-count"></div>
           <div id="students-list"></div>
         </div>
         <aside class="st-detail" id="students-detail"></aside>
@@ -2416,7 +2452,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=834"></script>
+<script src="scripts/desktop-app.js?v=841"></script>
 
 <script>
 
@@ -2436,8 +2472,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=834" defer></script>
-<script src="pwa-boot.js?v=834" defer></script>
+<script src="scripts/autogrow.js?v=841" defer></script>
+<script src="pwa-boot.js?v=841" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2657,11 +2693,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=834" defer></script>
-<script src="scripts/nav-boost.js?v=834" defer></script>
-<script src="scripts/mobile-perf.js?v=834" defer></script>
-<script src="scripts/mobile-nav.js?v=834" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=834" defer></script>
-  <script src="scripts/signin-entry.js?v=834" defer></script>
+<script src="pwa.js?v=841" defer></script>
+<script src="scripts/nav-boost.js?v=841" defer></script>
+<script src="scripts/mobile-perf.js?v=841" defer></script>
+<script src="scripts/mobile-nav.js?v=841" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=841" defer></script>
+  <script src="scripts/signin-entry.js?v=841" defer></script>
 </body>
 </html>
