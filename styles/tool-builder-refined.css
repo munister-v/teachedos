@@ -311,10 +311,21 @@
   box-shadow:none;
 }
 
+/* Кнопка создания липнет к низу окна и на десктопе, а не только на
+   телефоне: у «Vocabulary Workout» под полем слов одиннадцать галочек, и
+   «Create draft» уходила за край - учитель видел только список и считал, что
+   создавать нечем. Прокручивается окно (.tbuilder-box, без padding), поэтому
+   bottom:0, а отрицательные поля дотягивают полосу до краёв формы. */
 #tool-builder-panel .tbuilder-actions{
+  position:sticky;
+  bottom:0;
+  z-index:3;
   align-items:center;
   gap:8px;
-  margin-top:24px;
+  margin:24px -28px -28px;
+  padding:14px 28px;
+  background:var(--tb-surface);
+  border-top:1px solid var(--tb-line);
 }
 
 #tool-builder-panel .tbuilder-btn{

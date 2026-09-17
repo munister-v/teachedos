@@ -9478,7 +9478,11 @@ function _ttRefreshBriefReview() {
   const needsVocab = TT_REQUIRE_VOCAB_SET.has(tool.id);
   const wantsVocab = TT_NEEDS_VOCAB_SET.has(tool.id);
   const checks = [];
-  if (!topic) checks.push({ type:'needs', text:'Add a topic', want:'a topic' });
+  /* То же правило, что в _ttSyncFormReadiness: при списке слов тема не
+     обязательна. Карточка сверху формы продолжала требовать тему, когда
+     кнопка уже была активна, и учитель читал это как «не создастся». */
+  if (!topic && needsVocab && vocab.length) checks.push({ type:'ok', text:'Topic from your words' });
+  else if (!topic) checks.push({ type:'needs', text:'Add a topic', want:'a topic' });
   else if (topic.length < 4) checks.push({ type:'attention', text:'Make the topic more specific' });
   else checks.push({ type:'ok', text:'Topic set' });
   if (needsSource) {
@@ -13771,7 +13775,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '844';
+const TEACHEDOS_ASSET_VERSION = '845';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
