@@ -48,6 +48,65 @@ async function enforceStudentLimit({ boardId, ownerPlan, inviteeId }) {
 }
 
 /* ──────────────────────────────────────────────────────────────
+   GET /api/members/roster  - every student across the teacher's boards
+   Один запрос на весь список учеников рабочего стола вместо запроса на
+   каждую доску. Рядом с пользователем - то, что учитель сам ведёт в журнале
+   (уровень, оставшиеся уроки; связь по student_id, иначе по почте), средний
+   процент квизов на досках учителя, и кто сейчас на доске. «Группа» здесь
+   не сущность, а факт: ученик делит доску хотя бы с одним другим учеником.
+   Стоит ДО /:boardId, иначе «roster» разбирался бы как id доски.
+────────────────────────────────────────────────────────────── */
+router.get('/roster', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      WITH mine AS (
+        SELECT id FROM boards WHERE user_id = $1
+      ), seats AS (
+        SELECT bc.board_id, bc.user_id,
+               COUNT(*) OVER (PARTITION BY bc.board_id) AS board_size
+          FROM board_collaborators bc
+          JOIN mine m ON m.id = bc.board_id
+         WHERE bc.user_id <> $1
+      )
+      SELECT u.id, u.name, u.email, u.avatar, u.last_login_at,
+             ARRAY_AGG(DISTINCT s.board_id::text) AS board_ids,
+             BOOL_OR(s.board_size = 1) AS individual,
+             BOOL_OR(s.board_size > 1) AS in_group,
+             j.id AS journal_id, j.level, j.lessons_left,
+             q.quiz_avg, q.quiz_count
+        FROM seats s
+        JOIN users u ON u.id = s.user_id
+        LEFT JOIN LATERAL (
+          SELECT id, level, lessons_left FROM student_journal
+           WHERE teacher_id = $1 AND (student_id = u.id OR LOWER(email) = LOWER(u.email))
+           ORDER BY (student_id = u.id) DESC NULLS LAST, created_at DESC
+           LIMIT 1
+        ) j ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT ROUND(AVG(qr.pct))::int AS quiz_avg, COUNT(*)::int AS quiz_count
+            FROM quiz_results qr JOIN mine m ON m.id = qr.board_id
+           WHERE qr.user_id = u.id
+        ) q ON TRUE
+       GROUP BY u.id, j.id, j.level, j.lessons_left, q.quiz_avg, q.quiz_count
+       ORDER BY u.name
+    `, [req.user.id]);
+
+    const boardIds = new Set(rows.flatMap(r => r.board_ids || []));
+    const online = require('../ws').onlineUserIds(boardIds);
+    res.json({
+      students: rows.map(r => ({
+        ...r,
+        boardCount: (r.board_ids || []).length,
+        online: online.has(String(r.id)),
+      })),
+    });
+  } catch (err) {
+    console.error('[members] roster error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* ──────────────────────────────────────────────────────────────
    GET /api/members/my/boards  - boards shared with current user (as student)
 ────────────────────────────────────────────────────────────── */
 router.get('/my/boards', requireAuth, async (req, res) => {

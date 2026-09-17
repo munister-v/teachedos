@@ -932,8 +932,9 @@ function studentsRender() {
   const filtered = STUDENTS.filter(s => {
     if (q && !((s.name || '') + ' ' + (s.email || '')).toLowerCase().includes(q)) return false;
     if (f === 'all') return true;
-    if (f === 'today') return s.lastSeen === 'Today';
-    return s.group === f || s.level === f;
+    if (f === 'individual') return !!s.individual;
+    if (f === 'group') return !!s.in_group;
+    return s.level === f;
   });
 
   /* «Students (3 total)», а при поиске - «2 of 3»: строка отвечает на
@@ -957,14 +958,42 @@ function studentsRender() {
 
   list.innerHTML = filtered.map(s => `
     <div class="st-row${String(s.id) === String(studentsSelectedId) ? ' active' : ''}" onclick="studentSelect('${esc(String(s.id))}')">
-      ${studentAvatarMarkup(s, 'st-row-avatar')}
+      ${studentAvatarWithDot(s, 'st-row-avatar')}
       <div style="flex:1;min-width:0;">
         <div class="st-row-name">${esc(s.name || 'Student')}</div>
-        <div class="st-row-sub">${s.boardCount} board${s.boardCount === 1 ? '' : 's'}</div>
+        <div class="st-row-sub">${esc(studentRowSub(s))}</div>
       </div>
     </div>`).join('');
 
   studentDetailRender();
+}
+
+function studentAvatarWithDot(s, cls) {
+  const dot = s.online ? '<span class="st-online" title="On a board now"></span>' : '';
+  return `<div class="st-ava-wrap">${studentAvatarMarkup(s, cls)}${dot}</div>`;
+}
+
+/* Уроки ведёт учитель в журнале (lessons_left), и пока ученика там нет,
+   честнее сказать «сколько досок», чем выдумывать баланс. */
+const _lessonsLeft = n => `${n} lesson${n === 1 ? '' : 's'} left`;
+const _hasJournal = s => s.journal_id != null && s.lessons_left != null;
+
+function studentRowSub(s) {
+  const parts = [];
+  if (s.level) parts.push(s.level);
+  if (_hasJournal(s)) parts.push(_lessonsLeft(Number(s.lessons_left)));
+  else parts.push(`${s.boardCount} board${s.boardCount === 1 ? '' : 's'}`);
+  return parts.join(' / ');
+}
+
+function _lastSeenLabel(iso) {
+  const t = Date.parse(iso || '');
+  if (!t) return '';
+  const days = Math.floor((Date.now() - t) / 86400000);
+  if (days <= 0) return 'Seen today';
+  if (days === 1) return 'Seen yesterday';
+  if (days < 30) return `Seen ${days}d ago`;
+  return `Seen ${Math.floor(days / 30)}mo ago`;
 }
 
 function studentSelect(id) {
@@ -980,13 +1009,34 @@ function studentDetailRender() {
     box.innerHTML = `<div class="st-detail-empty">Pick a student<br>to see their card.</div>`;
     return;
   }
+  const n = Number(s.boardCount) || 0;
+  const chips = [];
+  if (s.level) chips.push(`<span class="st-chip level">${esc(s.level)} level</span>`);
+  if (s.quiz_count) chips.push(`<span class="st-chip quiz">Quizzes ${Number(s.quiz_avg) || 0}%</span>`);
+  chips.push(`<span class="st-chip boards">${n} board${n === 1 ? '' : 's'}</span>`);
+  if (s.individual && s.in_group) chips.push('<span class="st-chip format">1:1 &amp; group</span>');
+  else if (s.individual) chips.push('<span class="st-chip format">1:1</span>');
+  else if (s.in_group) chips.push('<span class="st-chip format">Group</span>');
+  if (s.online) chips.push('<span class="st-chip live">On a board now</span>');
+  else if (_lastSeenLabel(s.last_login_at)) chips.push(`<span class="st-chip ghost">${_lastSeenLabel(s.last_login_at)}</span>`);
+
+  const stat = _hasJournal(s)
+    ? `<div class="st-detail-stat"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>${_lessonsLeft(Number(s.lessons_left))}</div>`
+    : `<div class="st-detail-stat is-muted">Not in your journal yet</div>`;
+  const profile = s.journal_id != null ? 'journal.html' : 'gradebook.html';
+
   box.innerHTML = `
-    ${studentAvatarMarkup(s, 'st-detail-avatar')}
+    ${studentAvatarWithDot(s, 'st-detail-avatar')}
     <div class="st-detail-name">${esc(s.name || 'Student')}</div>
     <div class="st-detail-mail">${esc(s.email || '')}</div>
-    <div class="st-detail-stat">On <b>${s.boardCount}</b> board${s.boardCount === 1 ? '' : 's'}</div>
-    <a class="st-detail-btn primary" href="gradebook.html">Open gradebook</a>
-    <a class="st-detail-btn" href="homework.html">Assign homework</a>`;
+    ${stat}
+    <div class="st-detail-rule"></div>
+    <div class="st-detail-h">Current progress &amp; skills</div>
+    <div class="st-chips">${chips.join('')}</div>
+    <div class="st-detail-actions">
+      <a class="st-detail-btn" href="${profile}">View profile →</a>
+      <a class="st-detail-btn" href="homework.html">Assign homework</a>
+    </div>`;
 }
 
 /* ── Добавление ученика прямо с рабочего стола ──────────────────────
@@ -1054,15 +1104,20 @@ async function studentsAddSubmit(e) {
 function updateStudentSidebar() {
   const wrap = document.getElementById('sidebar-students');
   if (!wrap) return;
-  // Just remove the static counts since we don't have group info from API
   wrap.querySelectorAll('.sb-item-badge').forEach(b => b.remove());
-  const allBadge = wrap.querySelector('.sb-item.active');
-  if (allBadge && STUDENTS.length) {
+  const counts = {
+    all: STUDENTS.length,
+    individual: STUDENTS.filter(x => x.individual).length,
+    group: STUDENTS.filter(x => x.in_group).length,
+  };
+  wrap.querySelectorAll('.sb-item[data-filter]').forEach(item => {
+    const n = counts[item.dataset.filter];
+    if (!n) return;
     const badge = document.createElement('span');
     badge.className = 'sb-item-badge';
-    badge.textContent = STUDENTS.length;
-    allBadge.appendChild(badge);
-  }
+    badge.textContent = n;
+    item.appendChild(badge);
+  });
   // Update header sub-text
   const sub = document.querySelector('#win-students [style*="font-family:var(--font-mono)"]');
   if (sub) sub.textContent = STUDENTS.length
@@ -2671,18 +2726,31 @@ setInterval(loadNotifications, 120000);
       if (typeof boardsRender === 'function') boardsRender();
       if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
     }
-    // Aggregate students from all boards' members
-    const memberFetches = boards.slice(0, 20).map(b =>
+    /* Весь список одним запросом (/api/members/roster: журнал, квизы, кто на
+       доске). Запасной путь - по доске на запрос, как было; он же чинит
+       ключ: маршрут доски отдаёт user_id, а не id, и по undefined все ученики
+       слипались в одного. */
+    const perBoard = () => Promise.all(boards.slice(0, 20).map(b =>
       fetch(API + `/api/members/${b.id}`, auth).then(r => r.ok ? r.json() : { members: [] }).catch(() => ({ members: [] }))
-    );
-    Promise.all(memberFetches).then(results => {
+    )).then(results => {
       const seen = new Map();
-      results.forEach(r => (r.members || []).forEach(m => {
-        if (!seen.has(m.id)) seen.set(m.id, { ...m, boardCount: 1 });
-        else seen.get(m.id).boardCount++;
+      results.forEach((r, bi) => (r.members || []).forEach(m => {
+        const id = m.id || m.user_id;
+        const size = (r.members || []).length;
+        const cur = seen.get(id) || { ...m, id, boardCount: 0, individual: false, in_group: false };
+        cur.boardCount++;
+        if (size === 1) cur.individual = true; else cur.in_group = true;
+        seen.set(id, cur);
       }));
+      return Array.from(seen.values());
+    });
+    fetch(API + '/api/members/roster', auth)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(d => d.students || [])
+      .catch(perBoard)
+      .then(list => {
       if (typeof STUDENTS !== 'undefined') {
-        STUDENTS = Array.from(seen.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        STUDENTS = list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         if (typeof studentsRender === 'function') studentsRender();
         if (typeof updateStudentSidebar === 'function') updateStudentSidebar();
         if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();

@@ -254,4 +254,17 @@ function setup(server) {
   console.log('[ws] WebSocket server ready');
 }
 
-module.exports = { setup };
+/* Кто из этих пользователей сейчас держит сокет хоть одной из досок.
+   Другого признака «в сети» у продукта нет: last_login_at пишется только
+   при входе, и по нему «онлайн» был бы выдумкой. */
+function onlineUserIds(boardIds) {
+  const online = new Set();
+  for (const id of boardIds) {
+    const room = rooms.get(String(id));
+    if (!room) continue;
+    for (const client of room) if (client.userId) online.add(String(client.userId));
+  }
+  return online;
+}
+
+module.exports = { setup, onlineUserIds };

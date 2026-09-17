@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=842">
-<link rel="preload" as="style" href="styles/harmony.css?v=842">
-<link rel="preload" as="style" href="styles/unify.css?v=842">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=842">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=842">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=842">
-<link rel="preload" as="style" href="styles/controls.css?v=842">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=842">
+<link rel="preload" as="style" href="styles/mobile.css?v=843">
+<link rel="preload" as="style" href="styles/harmony.css?v=843">
+<link rel="preload" as="style" href="styles/unify.css?v=843">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=843">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=843">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=843">
+<link rel="preload" as="style" href="styles/controls.css?v=843">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=843">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=842">
+<link rel="manifest" href="manifest.json?v=843">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -84,8 +84,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=842">
-<link rel="stylesheet" href="styles/main.css?v=842">
+<link rel="stylesheet" href="styles/tokens.css?v=843">
+<link rel="stylesheet" href="styles/main.css?v=843">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1180,24 +1180,61 @@ html,body {
   font-size:16px; font-weight:700;
 }
 .st-row-name { font-size:13px; font-weight:600; color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.st-row-sub  { font-size:10.5px; color: var(--text-3); font-family: var(--font-mono); margin-top:2px; letter-spacing:.04em; }
-.st-detail { width:236px; flex-shrink:0; overflow-y:auto; padding:22px 18px; text-align:center; }
+.st-row-sub  { font-size:11px; color: var(--text-3); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Строки делит линейка, а не воздух: при полусотне учеников соседние имена
+   без неё сливались в сплошной столбец. У выбранной и соседней с ней строки
+   линейку прячем - её роль уже играет заливка. */
+.st-row + .st-row::after {
+  content:''; position:absolute; left:55px; right:12px; top:-1px; height:1px;
+  background: var(--border, rgba(92,92,102,.16));
+}
+.st-row.active::after, .st-row.active + .st-row::after, .st-row:hover::after, .st-row:hover + .st-row::after { display:none; }
+/* Аватар и точка «на доске сейчас». Точка - только когда ученик реально
+   держит сокет одной из досок учителя (online из /api/members/roster):
+   зелёная точка «на всякий случай» врала бы. */
+.st-ava-wrap { position:relative; flex-shrink:0; line-height:0; }
+.st-online {
+  position:absolute; right:-1px; bottom:-1px; width:10px; height:10px; border-radius:50%;
+  background:#15803D; box-shadow:0 0 0 2px var(--surface, #fff);
+}
+.st-detail .st-ava-wrap { width:76px; margin:0 auto; }
+.st-detail .st-online { width:14px; height:14px; right:2px; bottom:14px; box-shadow:0 0 0 3px var(--surface, #fff); }
+.st-detail { width:264px; flex-shrink:0; overflow-y:auto; padding:24px 18px; text-align:center; }
 .st-detail-avatar {
-  width:66px; height:66px; border-radius:50%; margin:0 auto 13px;
+  width:76px; height:76px; border-radius:50%; margin:0 auto 13px;
   display:flex; align-items:center; justify-content:center;
   background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
-  font-size:30px; font-weight:700;
-  box-shadow: 0 0 0 5px rgba(205,246,73,.22);
+  font-size:34px; font-weight:700;
 }
 .st-detail-name { font-size:17px; font-weight:650; color: var(--text); letter-spacing:-.02em; line-height:1.2; }
 .st-detail-mail { font-size:11.5px; color: var(--text-3); margin-top:4px; word-break:break-all; }
 /* Счётчик досок - это сведения, а не действие: раньше он выглядел ровно
    как две кнопки под ним, и карточка читалась как три кнопки подряд. */
+/* Остаток уроков - главная цифра карточки, как баланс в макете: крупно и
+   с часами, а не мелкой серой плашкой. */
 .st-detail-stat {
-  margin:16px 0 14px; padding:10px; border-radius:12px;
-  background: rgba(92,92,102,.055); font-size:12px; color: var(--text-3);
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  margin:14px 0 0; font-size:15px; font-weight:650; color: var(--text); letter-spacing:-.01em;
 }
-.st-detail-stat b { font-weight:700; color: var(--text); }
+.st-detail-stat .ic { width:18px; height:18px; }
+.st-detail-stat.is-muted { font-size:12.5px; font-weight:500; color: var(--text-3); }
+.st-detail-rule { height:1px; margin:16px 0 14px; background: var(--border, rgba(92,92,102,.16)); }
+.st-detail-h { font-size:12.5px; font-weight:650; color: var(--text); margin-bottom:9px; }
+/* Чипы - плоские цвета брендового листа с чернилами (все держат ≥4.5:1 с
+   #24282C), по одному цвету на смысл, а не по номеру чипа. */
+.st-chips { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
+.st-chip {
+  padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:600; line-height:1.3;
+  color: var(--te-ink, #24282C); background:#F6F6EF; white-space:nowrap;
+}
+.st-chip.level  { background:#F3DF6B; }
+.st-chip.quiz   { background:#6BAFF3; }
+.st-chip.boards { background:#D3F36B; }
+.st-chip.format { background:#9F8CE8; }
+.st-chip.live   { background:#F3A46B; }
+.st-chip.ghost  { background:transparent; box-shadow: inset 0 0 0 1px var(--border, rgba(92,92,102,.16)); color: var(--text-3); }
+.st-detail-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:7px; margin-top:16px; }
+.st-detail-actions .st-detail-btn { display:inline-flex; width:auto; margin:0; padding:7px 14px; border-radius:999px; font-size:12px; }
 .st-detail-btn {
   display:block; margin-top:8px; padding:10px; border-radius:12px;
   border:1px solid var(--border, rgba(92,92,102,.16));
@@ -1729,10 +1766,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=842" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=842">
-<link rel="stylesheet" href="styles/harmony.css?v=842">
-<link rel="stylesheet" href="styles/unify.css?v=842">
+<script src="theme.js?v=843" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=843">
+<link rel="stylesheet" href="styles/harmony.css?v=843">
+<link rel="stylesheet" href="styles/unify.css?v=843">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1740,13 +1777,13 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=842">
+<link rel="stylesheet" href="styles/teached-brand.css?v=843">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=842">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=842">
-<link rel="stylesheet" href="styles/controls.css?v=842">
+<link rel="stylesheet" href="styles/figma-theme.css?v=843">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=843">
+<link rel="stylesheet" href="styles/controls.css?v=843">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=842">
+<link rel="stylesheet" href="styles/figma-concept.css?v=843">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1781,6 +1818,8 @@ html,body {
 <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.2 2.3 3.3 5 3.3 8s-1.1 5.7-3.3 8c-2.2-2.3-3.3-5-3.3-8S9.8 6.3 12 4z"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.4"/><path d="M5 19.5c.8-3.4 3.5-5.2 7-5.2s6.2 1.8 7 5.2"/></symbol>
 <symbol id="i-cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5L12 5.5l8.5 4-8.5 4z"/><path d="M7 11.5v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5 12 4.5l7.5 6"/><path d="M6.5 9v10.5h11V9"/><path d="M10 19.5v-5h4v5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><path d="M12 8v4.3l2.8 1.7"/></symbol>
 <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5h15"/><path d="M7.5 19.5v-6M12 19.5V6.5M16.5 19.5v-9"/></symbol>
 <symbol id="i-gradebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5h11a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-11a1.5 1.5 0 0 1 0-3h11"/><path d="M6.5 4.5v13"/><path d="M10 8.5h5"/></symbol>
 <symbol id="i-board" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="13" rx="2"/><path d="M8 17.5L7 20M16 17.5L17 20M8.5 9h3M8.5 12.5h6"/></symbol>
@@ -2095,8 +2134,15 @@ html,body {
   </div>
   <div class="win-body" style="position:relative;">
     <div class="win-sidebar" id="sidebar-students">
-      <div class="sb-section-label">Groups</div>
-      <div class="sb-item active" onclick="studentsFilter('all',this)"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>All Students</div>
+      <div class="sb-section-label">My school</div>
+      <div class="sb-item" onclick="closeWin('students')"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>My dashboard</div>
+      <div class="sb-item" onclick="openApp('plans')"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg>All boards</div>
+      <div class="sb-item" onclick="openApp('schedule')"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Schedule</div>
+      <div class="sb-section-label">Student roster</div>
+      <div class="sb-item active" data-filter="all" onclick="studentsFilter('all',this)"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>All students</div>
+      <div class="sb-item" data-filter="individual" onclick="studentsFilter('individual',this)"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg>Individual</div>
+      <div class="sb-item" data-filter="group" onclick="studentsFilter('group',this)"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg>Groups</div>
+      <div class="sb-item" role="link" onclick="location.href='gradebook.html'"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Progress</div>
     </div>
     <div class="win-main studio-main-scroll" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
@@ -2452,7 +2498,7 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=842"></script>
+<script src="scripts/desktop-app.js?v=843"></script>
 
 <script>
 
@@ -2472,8 +2518,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=842" defer></script>
-<script src="pwa-boot.js?v=842" defer></script>
+<script src="scripts/autogrow.js?v=843" defer></script>
+<script src="pwa-boot.js?v=843" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2693,11 +2739,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=842" defer></script>
-<script src="scripts/nav-boost.js?v=842" defer></script>
-<script src="scripts/mobile-perf.js?v=842" defer></script>
-<script src="scripts/mobile-nav.js?v=842" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=842" defer></script>
-  <script src="scripts/signin-entry.js?v=842" defer></script>
+<script src="pwa.js?v=843" defer></script>
+<script src="scripts/nav-boost.js?v=843" defer></script>
+<script src="scripts/mobile-perf.js?v=843" defer></script>
+<script src="scripts/mobile-nav.js?v=843" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=843" defer></script>
+  <script src="scripts/signin-entry.js?v=843" defer></script>
 </body>
 </html>
