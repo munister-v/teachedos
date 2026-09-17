@@ -234,17 +234,17 @@ function _ttIsWarmupBoard(d) {
    личный опыт первым, он заберёт себе и прогноз, и опрос. */
 const TT_WARM_ROLES = [
   { re:/predict|prediction|guess what|what will|before you read|upcoming|the title|headline/i,
-    role:'Prediction',          icon:'🔮', tint:'#EEF1FE', tone:'#4338CA' },
+    role:'Prediction' },
   { re:/picture|image|photo|video|look at the|visual|scene|situation|spot the/i,
-    role:'Visual · Context',    icon:'🔍', tint:'#FEF0E6', tone:'#B4470E' },
+    role:'Visual · Context' },
   { re:/quiz|true or false|myth|fact|poll|vote|raise your hand|how many/i,
-    role:'Quick Quiz',          icon:'⚡', tint:'#FDF4DF', tone:'#8A6410' },
+    role:'Quick Quiz' },
   { re:/board|brainstorm|word|association|match|keyword|vocab|mind map/i,
-    role:'Word Association',    icon:'🔀', tint:'#E9F1FD', tone:'#1D4ED8' },
+    role:'Word Association' },
   { re:/you ever|your own|personal|experience|remember|tell (?:us|your|a)|happened/i,
-    role:'Personal Connection', icon:'💬', tint:'#E9F4EC', tone:'#15703C' },
+    role:'Personal Connection' },
   { re:/agree|opinion|dilemma|better than|should we|debate|argue/i,
-    role:'Core Dilemma',        icon:'⚖️', tint:'#F2ECFA', tone:'#6B21A8' },
+    role:'Core Dilemma' },
 ];
 
 /* Имя плитки - это её заголовок без служебной нумерации. «Activity 2:
@@ -308,7 +308,7 @@ function _ttWarmAngles(cards) {
        WORD ASSOCIATION» это не два уровня, это одно и то же дважды. */
     const a = key(name), b = key(r.role);
     const role = (a === b || a.includes(b) || b.includes(a)) ? '' : r.role;
-    return { name, role, icon:r.icon, tint:r.tint, tone:r.tone, hook, rest };
+    return { name, role, hook, rest };
   });
 }
 
@@ -574,7 +574,11 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
   const accent = d.accent || WS_ACCENT_LIME;
   /* Всё, что набрано accent'ом ПО БЕЛОМУ, берёт эти чернила - см.
      _accentInkOnWhite. Заливки и рамки остаются на самом accent. */
-  const ink = _accentInkOnWhite(accent);
+  /* Фирменный лайм - заливка, его пара в листе бренда - чернила #24282C, а не
+     «тёмный лайм»: рассчитанный оливковый тон на подписях был ещё одним
+     цветом, которого в палитре нет. Свой accent карточки по-прежнему
+     получает производную. */
+  const ink = accent.toLowerCase() === WS_ACCENT_LIME.toLowerCase() ? WS_ACCENT_INK : _accentInkOnWhite(accent);
   const kind = String(d.kind || '').toLowerCase();
   // Teacher key is only shown to the board owner (students just get correct/wrong
   // feedback after Check). Persisted student state is injected for restore.
@@ -658,41 +662,6 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
   const stepHud = stepTotal > 1
     ? `<div class="iw-step-hud"><button class="iw-step-nav iw-prev" onclick="iwPrev()" aria-label="Previous">‹</button><span class="iw-step-count" id="iw-step-count">1 / ${stepTotal}</span><button class="iw-step-nav iw-next" onclick="iwNext()" aria-label="Next">›</button></div>`
     : '';
-  // Vivid gradient pairs for MCQ/gap-fill answer tiles - a dedicated set
-  // (not the pastel STICKY_PALETTE_COLORS, which is built for sticky notes
-  // with dark text) matching the gradient look already used by
-  // .iw-flash-front/.iw-card-front below.
-  /* Пересчитаны 09.09.2026: исходный набор красиво выглядел на пипетке и
-     проваливал контраст в деле. Белый текст (.iw-stepper .iw-opt{color:#fff})
-     на светлом конце (t1) каждой пары давал 2.2-4.3:1 - вплоть до "The US is
-     lagging behind..." почти не читалось на бледно-сиреневом. Ниже - те же
-     девять оттенков, темнее ровно настолько, чтобы у ОБОИХ концов градиента
-     был честный контраст с белым (проверено формулой WCAG, минимум 4.65:1,
-     не «на глаз»), при этом каждая пара всё ещё узнаётся своим цветом и
-     светлее/темнее внутри себя - не залита в один плоский тон. */
-  /* 12.09.2026: цвета станций и плиток - ТОЛЬКО из брендовой палитры
-     заказчицы (2428QC/CDF649/F6F6EF/CACCC6 + 14 второстепенных), не
-     придуманные. Придуманных синих/фиолетовых заливок больше нет.
-
-     Почему у станций ОДИН И ТОТ ЖЕ tone (#24282C), а не свой на каждую:
-     из всей палитры белый текст даёт ≥4.5:1 только на двух цветах -
-     6B42FD (5.49:1) и 5D614B (6.41:1), а нужно шесть разных станций.
-     Зато тёмный #24282C поверх ЛЮБОГО светлого второстепенного цвета
-     даёт от 5.2:1 до 11.9:1 (посчитано формулой WCAG, не на глаз) - им и
-     набраны имя станции, галочка и номер вопроса везде. Разнообразие
-     станций - в заливке (tint), а не в чернилах: один якорный цвет
-     бренда на всех читается собраннее, чем шесть придуманных тёмных
-     оттенков. */
-  const MC_STATION_COLORS = [['#FFE44D','#24282C'],['#F3A46B','#24282C'],['#9F8CE8','#24282C'],
-    ['#6BAFF3','#24282C'],['#D3F36B','#24282C'],['#A3A48D','#24282C']];
-  /* Плитки MCQ и кирпичики пропусков - плоская заливка одним цветом
-     палитры (без градиента - смесь двух цветов уже не «этот цвет»), с
-     тёмным текстом почти везде и белым только там, где тёмный текст
-     проваливается (6B42FD, 5D614B - см. расчёт выше). */
-  const TILE_GRADIENTS = [['#FFE44D','#24282C'],['#FF8C3A','#24282C'],['#3F9FFF','#24282C'],
-    ['#49F6F0','#24282C'],['#D3F36B','#24282C'],['#F3A46B','#24282C'],
-    ['#6BAFF3','#24282C'],['#A3A48D','#24282C'],['#6B42FD','#F6F6EF'],['#5D614B','#F6F6EF']];
-
   /* Одна флип-карточка вопроса. Раньше жила только внутри блока «обсуждение
      рубашкой вверх» (isPromptDeck ниже); теперь её же зовёт станция Mission
      Control, у которой все вопросы открытые - опрос про пережитое читателем
@@ -722,8 +691,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      стоит отдельной плашкой. */
   const gapFillDragHtml = (pairs) => {
     const bankChips = pairs.map(({ q }, i) => {
-      const [fill, ink] = TILE_GRADIENTS[i % TILE_GRADIENTS.length];
-      return `<div class="iw-drag iw-gap-brick" draggable="true" data-left="${esc(q.answer||'')}" style="--fill:${fill};--ink:${ink}">${md(q.answer||'')}</div>`;
+      return `<div class="iw-drag iw-gap-brick" draggable="true" data-left="${esc(q.answer||'')}">${md(q.answer||'')}</div>`;
     });
     // Тасуем чипы банка - порядок предложений остаётся учебным (по порядку урока).
     for (let i = bankChips.length - 1; i > 0; i--) {
@@ -763,7 +731,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
       let inner = '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
         inner = `<div class="iw-opts" data-qi="${qi}" data-answer="${esc(q.answer)}">${
-          q.options.map((o, oi) => { const [fill, ink] = TILE_GRADIENTS[oi % TILE_GRADIENTS.length]; return `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)" style="--fill:${fill};--ink:${ink}">${String.fromCharCode(65+oi)}. ${md(o)}</button>`; }).join('')
+          q.options.map((o, oi) => `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)"><span class="iw-opt-key">${String.fromCharCode(65+oi)}</span><span class="iw-opt-text">${md(o)}</span></button>`).join('')
         }</div>`;
       } else if (q.type === 'truefalse') {
         const correct = q.answer === true || q.answer === 'true' || q.answer === 'True';
@@ -867,7 +835,6 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
        экране, внизу одна проверка на всё. */
     if (missionMode) {
       const stations = missionOrder.map((name, mi) => {
-        const [tint, tone] = MC_STATION_COLORS[mi % MC_STATION_COLORS.length];
         const stationQs = qs.map((q, qi) => ({ q, qi })).filter(({ q }) => q._mission === name);
         /* Станция сама решает, какой у неё жест, а не наследует степпер
            по умолчанию. Одна станция «Fact Check» на True/False и одна
@@ -885,7 +852,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
         const inner = allOpen ? `<div class="iw-deck iw-deck-mini">${stationQs.map(({ q, qi }) => dCardHtml(q, qi)).join('')}</div>`
           : allBlankGap ? gapFillDragHtml(stationQs)
           : stationQs.map(({ qi }) => qCards[qi]).join('');
-        return `<section class="iw-mc-station" data-mi="${mi}" style="--tint:${tint};--tone:${tone}">
+        return `<section class="iw-mc-station" data-mi="${mi}">
           <div class="iw-mc-strip">
             <span class="iw-mc-num">Station ${mi + 1}</span>
             <span class="iw-mc-name">${md(name)}</span>
@@ -1378,9 +1345,8 @@ function iwTitlePick(btn){
      отдельной галочки «я это сделал» разминке не нужно, её проходят
      разговором, а не проверкой. */
   else if (warm) {
-    contentHtml = `<div class="iw-warm-grid">${warm.map((a, i) => `<div class="iw-wtile" data-wi="${i}" data-done="0" style="--tint:${a.tint};--tone:${a.tone}">
+    contentHtml = `<div class="iw-warm-grid">${warm.map((a, i) => `<div class="iw-wtile" data-wi="${i}" data-done="0">
       <button type="button" class="iw-wtile-head" onclick="iwWarmOpen(this)" aria-expanded="false" aria-label="${esc(a.name)}${a.role ? ' - ' + esc(a.role) : ''}">
-        <span class="iw-wtile-icon" aria-hidden="true">${a.icon}</span>
         <span class="iw-wtile-name">${md(a.name)}</span>
         ${a.role ? `<span class="iw-wtile-role">${esc(a.role)}</span>` : ''}
         <span class="iw-wtile-mark" aria-hidden="true">✓</span>
@@ -1392,7 +1358,6 @@ function iwTitlePick(btn){
           <textarea class="iw-warm-note" data-wi="${i}" rows="2" placeholder="+ Jot what you said"></textarea>
         </div>
       </div>
-      <span class="iw-wtile-fold" aria-hidden="true"></span>
     </div>`).join('')}</div>
     <div class="iw-warm-foot">
       <span class="iw-warm-count" id="iw-warm-count">0 of ${warm.length} explored</span>
@@ -1550,20 +1515,33 @@ document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='fu
 
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 *{box-sizing:border-box;margin:0}
-body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:#1a1722;padding:16px 18px 24px;background:#fff;overflow-x:hidden}
+/* Один язык на все режимы кадра: цвета - буквальные hex брендового листа
+   (чернила, лайм, бумага, серый + олива/шалфей для вторичного текста), одна
+   подложка-бумага и одна белая панель с линейкой. Раньше разминка и Mission
+   Control стояли на своём холодно-сером, читалка на белом, и у каждой была
+   своя шкала серых. */
+:root{--ink:#24282C;--lime:#CDF649;--paper:#F6F6EF;--gray:#CACCC6;--olive:#5D614B;--sage:#A3A48D;--panel:#fff;
+  --line:rgba(36,40,44,.12);--line-2:rgba(36,40,44,.22);--r:14px}
+body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:var(--ink);padding:18px 20px 24px;background:var(--paper);overflow-x:hidden}
 strong{font-weight:650}
-.iw-title{font:800 13px system-ui;letter-spacing:.06em;text-transform:uppercase;color:${ink};margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${accent}}
+.iw-title{font:700 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--olive);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line-2)}
 /* ── Questions ── */
-.iw-q{display:flex;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid #eaeaf0;border-radius:12px;border-left:3.5px solid ${accent};transition:box-shadow .2s}
-.iw-q:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.iw-qnum{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:${accent};color:${WS_ACCENT_INK};display:flex;align-items:center;justify-content:center;font:800 12px monospace}
+.iw-q{display:flex;gap:10px;margin-bottom:12px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);transition:border-color .2s}
+.iw-q:hover{border-color:var(--line-2)}
+.iw-qnum{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:var(--lime);color:var(--ink);display:flex;align-items:center;justify-content:center;font:700 12px system-ui}
 .iw-qbody{flex:1;min-width:0}
 .iw-qtext{font-size:13.5px;font-weight:650;margin-bottom:8px;line-height:1.5;white-space:pre-line}
 /* MCQ */
 .iw-opts{display:flex;flex-direction:column;gap:5px}
-.iw-opt{position:relative;display:block;width:100%;text-align:left;padding:8px 13px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;font:13px system-ui;color:#3a3644;cursor:pointer;transition:all .15s}
-.iw-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 6%,#fff)}
-.iw-opt.selected{border-color:${accent};background:color-mix(in srgb,${accent} 12%,#fff);color:${ink};font-weight:600}
+.iw-opt{position:relative;display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel);font:13px system-ui;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+/* Буква варианта - ярлык на бумаге, не цвет плитки: A/B/C узнаются по
+   знаку, а заливка остаётся за выбором и вердиктом. */
+.iw-opt-key{flex:0 0 auto;width:22px;height:22px;border-radius:7px;background:var(--paper);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font:700 11px system-ui;color:var(--olive)}
+.iw-opt-text{flex:1;min-width:0}
+.iw-opt.selected .iw-opt-key{background:var(--ink);border-color:var(--ink);color:var(--lime)}
+.iw-opt.correct .iw-opt-key,.iw-opt.wrong .iw-opt-key{background:transparent;border-color:currentColor;color:inherit}
+.iw-opt:hover{border-color:var(--ink);background:var(--panel)}
+.iw-opt.selected{border-color:var(--ink);background:color-mix(in srgb,var(--lime) 30%,#fff);color:var(--ink);font-weight:600}
 .iw-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
 .iw-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b;opacity:.7}
 .iw-opt[disabled]{pointer-events:none}
@@ -1575,17 +1553,17 @@ strong{font-weight:650}
 .iw-opt.wrong::after{content:'✕';background:#dc2626;color:#fff}
 /* T/F - тумблер вместо пары кнопок */
 .iw-tf{display:flex;justify-content:center}
-.iw-tf-switch{position:relative;display:inline-flex;padding:4px;gap:2px;border-radius:999px;background:#f1f1f5;border:1.5px solid #e4e5ec}
-.iw-tf-btn{position:relative;z-index:1;border:none;background:transparent;padding:8px 22px;border-radius:999px;font:700 13px system-ui;color:#6b6b76;cursor:pointer;transition:color .2s}
+.iw-tf-switch{position:relative;display:inline-flex;padding:4px;gap:2px;border-radius:999px;background:var(--paper);border:1px solid var(--line-2)}
+.iw-tf-btn{position:relative;z-index:1;border:none;background:transparent;padding:8px 22px;border-radius:999px;font:700 13px system-ui;color:var(--olive);cursor:pointer;transition:color .2s}
 .iw-tf-btn[disabled]{pointer-events:none}
 /* Рычажок - белая таблетка под активной стороной, ездит по transform.
    :has() решает, куда: по выбранной кнопке, без второго источника правды в JS. */
 .iw-tf-thumb{position:absolute;top:4px;left:4px;bottom:4px;width:calc(50% - 4px);border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.14);transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .2s}
 .iw-tf-switch:has(.iw-tf-btn[data-val="false"].selected) .iw-tf-thumb{transform:translateX(100%)}
-.iw-tf-switch:has(.iw-tf-btn.selected){background:color-mix(in srgb,${accent} 10%,#f1f1f5)}
+.iw-tf-switch:has(.iw-tf-btn.selected){background:var(--paper)}
 .iw-tf-btn.selected{color:${ink};font-weight:800}
 /* Вердикт красит саму подложку, а не одну кнопку - ответ на тумблере один. */
-.iw-tf-switch:has(.iw-tf-btn.correct){background:#f1f1f5}
+.iw-tf-switch:has(.iw-tf-btn.correct){background:var(--paper)}
 .iw-tf-switch:has(.iw-tf-btn.correct) .iw-tf-thumb{background:${IW_OK}}
 .iw-tf-switch:has(.iw-tf-btn.correct) .iw-tf-btn.selected{color:#fff}
 .iw-tf-switch:has(.iw-tf-btn.wrong) .iw-tf-thumb{background:#dc2626}
@@ -1607,8 +1585,8 @@ strong{font-weight:650}
 .iw-q{position:relative}
 .iw-q.is-done::after{content:'';position:absolute;top:10px;right:12px;width:7px;height:7px;border-radius:50%;background:${IW_OK};box-shadow:0 0 0 3px color-mix(in srgb,${IW_OK} 16%,transparent);animation:iwdot .3s ease}
 @keyframes iwdot{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
-.iw-match-bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:8px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;flex:1;align-items:flex-start;align-content:flex-start}
-.iw-drag{padding:6px 14px;border-radius:8px;background:${accent};color:${WS_ACCENT_INK};font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
+.iw-match-bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:8px;background:var(--paper);border-radius:10px;border:1.5px dashed var(--gray);flex:1;align-items:flex-start;align-content:flex-start}
+.iw-drag{padding:6px 14px;border-radius:8px;background:var(--lime);color:var(--ink);font:700 12.5px system-ui;cursor:grab;user-select:none;transition:transform .15s,opacity .15s}
 .iw-drag:active{cursor:grabbing;transform:scale(1.06)}
 .iw-drag.placed{opacity:.35;pointer-events:none}
 /* #16a34a с белым текстом - 3.3:1, ниже порога WCAG AA (4.5). #15803D - тот
@@ -1620,7 +1598,7 @@ strong{font-weight:650}
 /* Правое поле держится ВСЕГДА, а не только когда отметка появилась: иначе
    строка определения прыгала бы вбок в момент вердикта, а длинная - уезжала
    бы под галочку. */
-.iw-target{display:flex;align-items:center;gap:8px;padding:6px 22px 6px 10px;border:1.5px solid #e4e5ec;border-radius:10px;min-height:38px;transition:all .2s}
+.iw-target{display:flex;align-items:center;gap:8px;padding:6px 22px 6px 10px;border:1.5px solid var(--line-2);border-radius:10px;min-height:38px;transition:all .2s}
 .iw-target.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff);box-shadow:0 0 0 2px color-mix(in srgb,${accent} 20%,transparent)}
 /* Вердикт - контур, а не заливка. Закрашенный блок перекрикивал сам учебный
    материал (в задании с фотографиями зелёный фон спорил со снимком), а нужно
@@ -1635,10 +1613,10 @@ strong{font-weight:650}
    вернётся в банк через момент (см. _iwGradeTarget). */
 .iw-target.wrong{border-color:#e0a3a3;background:color-mix(in srgb,#dc2626 4%,#fff);animation:iwnudge .32s ease}
 @keyframes iwnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.iw-slot{min-width:60px;min-height:26px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${ink};padding:3px 8px;transition:all .15s}
+.iw-slot{min-width:60px;min-height:26px;border:1.5px dashed var(--gray);border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${ink};padding:3px 8px;transition:all .15s}
 .iw-slot.filled{border-style:solid;border-color:${accent};background:color-mix(in srgb,${accent} 10%,#fff)}
-.iw-def{font-size:12.5px;color:#3f3a4a;flex:1}
-.iw-pic{flex:1;min-width:0;height:110px;object-fit:cover;border-radius:8px;background:#f2f2f5;display:block}
+.iw-def{font-size:12.5px;color:var(--ink);flex:1}
+.iw-pic{flex:1;min-width:0;height:110px;object-fit:cover;border-radius:8px;background:var(--paper);display:block}
 .iw-match.has-pics .iw-target{align-items:stretch;padding:8px 22px 8px 10px}
 .iw-match.has-pics .iw-slot{align-self:center}
 /* Снимки идут в два столбца, а банк слов получает фиксированную колонку.
@@ -1651,37 +1629,37 @@ strong{font-weight:650}
 .iw-match.has-pics .iw-match-targets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 /* Sorting */
 .iw-sort{display:flex;flex-direction:column;gap:12px}
-.iw-sort-bank{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:#f8f8fb;border-radius:10px;border:1.5px dashed #d4d6e0;min-height:40px}
+.iw-sort-bank{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:var(--paper);border-radius:10px;border:1.5px dashed var(--gray);min-height:40px}
 .iw-sort-cols{display:flex;gap:10px;flex-wrap:wrap}
 .iw-sort-col{flex:1;min-width:100px}
 .iw-sort-header{font:800 12px system-ui;text-transform:uppercase;letter-spacing:.05em;color:${ink};padding:6px 10px;border-bottom:2px solid ${accent};margin-bottom:6px}
-.iw-sort-drop{min-height:60px;padding:6px;border:1.5px dashed #d4d6e0;border-radius:10px;display:flex;flex-direction:column;gap:4px;transition:all .2s}
+.iw-sort-drop{min-height:60px;padding:6px;border:1.5px dashed var(--gray);border-radius:10px;display:flex;flex-direction:column;gap:4px;transition:all .2s}
 .iw-sort-drop.dragover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 /* Odd one out */
 .iw-ooo{display:flex;flex-wrap:wrap;gap:8px}
-.iw-ooo-btn{padding:10px 20px;border:1.5px solid #e4e5ec;border-radius:12px;background:#fff;font:700 14px system-ui;cursor:pointer;transition:all .15s}
+.iw-ooo-btn{padding:10px 20px;border:1.5px solid var(--line-2);border-radius:12px;background:#fff;font:700 14px system-ui;cursor:pointer;transition:all .15s}
 .iw-ooo-btn:hover{border-color:${accent};transform:scale(1.04)}
 .iw-ooo-btn.selected{border-color:#dc2626;background:#fee2e2;color:#991b1b;text-decoration:line-through;transform:scale(.96)}
 /* open */
-.iw-open-input{width:100%;border:1px solid #d4d6e0;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none}
+.iw-open-input{width:100%;border:1px solid var(--gray);border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none}
 .iw-open-input:focus{border-color:${accent}}
 /* ── Flashcards ── */
 .iw-flash{perspective:600px;cursor:pointer;height:120px}
 .iw-flash-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
 .iw-flash.flipped .iw-flash-inner{transform:rotateY(180deg)}
 .iw-flash-front,.iw-flash-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center}
-.iw-flash-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#24282C));color:${WS_ACCENT_INK};border:none}
+.iw-flash-front{background:var(--lime);color:var(--ink);border:none}
 .iw-flash-num{font:800 10px monospace;opacity:.6;margin-bottom:4px}
 .iw-flash-word{font:800 16px system-ui;letter-spacing:-.02em}
-.iw-flash-back{background:#f0fdf4;border:1.5px solid #a7e3bd;transform:rotateY(180deg)}
-.iw-flash-def{font:600 12.5px system-ui;color:#15803d;line-height:1.5}
+.iw-flash-back{background:var(--panel);border:1px solid var(--line-2);transform:rotateY(180deg)}
+.iw-flash-def{font:600 12.5px system-ui;color:var(--ink);line-height:1.5}
 /* ── Reading material: read, not guessed. No box, no scroll of its own -
       the card grows to the text (see iwReportHeight). ── */
 .iw-read{display:flex;flex-direction:column;gap:18px}
-.iw-read-card{border:1.5px solid #e4e5ec;border-radius:12px;padding:18px 20px;background:#fff}
-.iw-read-kicker{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:800 10px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};margin-bottom:10px}
-.iw-read-meta{font:700 10px system-ui;letter-spacing:.06em;color:#70707a;white-space:nowrap}
-.iw-read-head{font:700 20px/1.25 system-ui;color:#171814;margin:0 0 12px;letter-spacing:-.02em}
+.iw-read-card{border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;background:var(--panel)}
+.iw-read-kicker{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:700 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--olive);margin-bottom:10px}
+.iw-read-meta{font:700 10.5px system-ui;letter-spacing:.06em;color:var(--olive);white-space:nowrap}
+.iw-read-head{font:700 20px/1.25 system-ui;color:var(--ink);margin:0 0 12px;letter-spacing:-.02em}
 /* До ответа заголовок скрыт: он и есть правильный вариант. */
 .iw-read-head[data-veiled]{display:none}
 /* ── Выбор заголовка в шапке текста ─────────────────────────────────
@@ -1697,18 +1675,18 @@ strong{font-weight:650}
 .iw-tp-label{flex:1;min-width:0}
 .iw-tp-opts{display:none;flex-direction:column;gap:6px;margin-top:8px}
 .iw-tp.is-open .iw-tp-opts{display:flex}
-.iw-tp-opt{padding:9px 12px;border:1.5px solid #e4e5ec;border-radius:10px;background:#fff;color:#3a3644;font:13px/1.4 system-ui;text-align:left;cursor:pointer}
+.iw-tp-opt{padding:9px 12px;border:1.5px solid var(--line-2);border-radius:10px;background:#fff;color:var(--ink);font:13px/1.4 system-ui;text-align:left;cursor:pointer}
 .iw-tp-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 .iw-tp-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
 .iw-tp-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
-.iw-tp.is-done .iw-tp-bar{border-style:dashed;background:transparent;font-weight:600;color:#4a4a52}
+.iw-tp.is-done .iw-tp-bar{border-style:dashed;background:transparent;font-weight:600;color:var(--olive)}
 /* ── Подпись миссии в блоке «после чтения» ── */
 .iw-mission{font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:${ink};opacity:.55;margin-bottom:6px}
 /* Номер абзаца висит на поле: на него ссылаются в заданиях и вслух, но в
    строке текста он был бы лишним словом. */
-.iw-read-p{position:relative;font:15px/1.65 -apple-system,system-ui,sans-serif;color:#1a1a2e;margin:0 0 12px;padding-left:26px}
+.iw-read-p{position:relative;font:15px/1.65 -apple-system,system-ui,sans-serif;color:var(--ink);margin:0 0 12px;padding-left:26px}
 .iw-read-p:last-child{margin-bottom:0}
-.iw-read-n{position:absolute;left:0;top:2px;width:18px;text-align:right;font:700 10px system-ui;color:#70707a;user-select:none}
+.iw-read-n{position:absolute;left:0;top:2px;width:18px;text-align:right;font:700 10px system-ui;color:var(--olive);user-select:none}
 .iw-read-p strong{background:color-mix(in srgb,${accent} 38%,transparent);padding:0 2px;border-radius:3px}
 /* ── Подсказка по слову ───────────────────────────────────────────────
    Подсвеченное слово было просто краской: ученик видел, что слово важное,
@@ -1730,36 +1708,36 @@ strong{font-weight:650}
    (IW_HEIGHT_REPORTER), и всплывающий блок в потоке документа растил бы её
    на каждое нажатие. Окно iframe и есть видимая часть карточки, поэтому
    координат из getBoundingClientRect достаточно. */
-.iw-wh{position:fixed;z-index:40;width:min(280px,calc(100% - 24px));padding:12px 14px;border:1px solid #dcdce4;border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.16);font:13px/1.5 -apple-system,system-ui,sans-serif;color:#2a2a33}
+.iw-wh{position:fixed;z-index:40;width:min(280px,calc(100% - 24px));padding:12px 14px;border:1px solid var(--line-2);border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.16);font:13px/1.5 -apple-system,system-ui,sans-serif;color:var(--ink)}
 .iw-wh-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .iw-wh-word{font:800 14px system-ui;color:${ink}}
-.iw-wh-pos{font:11px system-ui;color:#82828e}
-.iw-wh-x{margin-left:auto;width:26px;height:26px;flex-shrink:0;border:0;border-radius:8px;background:#f2f2f5;color:#4a4a52;font:700 14px system-ui;cursor:pointer;line-height:1}
+.iw-wh-pos{font:11px system-ui;color:var(--olive)}
+.iw-wh-x{margin-left:auto;width:26px;height:26px;flex-shrink:0;border:0;border-radius:8px;background:var(--paper);color:var(--olive);font:700 14px system-ui;cursor:pointer;line-height:1}
 .iw-wh-row{margin-top:6px}
-.iw-wh-label{display:block;font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:#82828e;margin-bottom:2px}
-.iw-wh-ipa{display:flex;align-items:center;gap:8px;font:600 14px ui-monospace,monospace;color:#2a2a33}
-.iw-wh-say{width:30px;height:30px;flex-shrink:0;border:1px solid #dcdce4;border-radius:9px;background:#fff;cursor:pointer;font-size:14px;line-height:1}
+.iw-wh-label{display:block;font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--olive);margin-bottom:2px}
+.iw-wh-ipa{display:flex;align-items:center;gap:8px;font:600 14px ui-monospace,monospace;color:var(--ink)}
+.iw-wh-say{width:30px;height:30px;flex-shrink:0;border:1px solid var(--line-2);border-radius:9px;background:#fff;cursor:pointer;font-size:14px;line-height:1}
 .iw-wh-say:hover{background:color-mix(in srgb,${accent} 22%,#fff);border-color:${accent}}
 .iw-wh-say.is-playing{background:${accent};border-color:${accent}}
-.iw-wh-eg{color:#4a4a52;font-style:italic}
+.iw-wh-eg{color:var(--olive);font-style:italic}
 /* Глоссарий: слово и значение в два столбца, как в языковом банке листа. */
 .iw-gloss{display:flex;flex-direction:column;gap:1px}
-.iw-gloss-row{display:grid;grid-template-columns:minmax(90px,29%) 1fr;gap:14px;padding:8px 0;border-top:1px solid #eeeef1}
+.iw-gloss-row{display:grid;grid-template-columns:minmax(90px,29%) 1fr;gap:14px;padding:8px 0;border-top:1px solid var(--line)}
 .iw-gloss-row:first-child{border-top:0}
-.iw-gloss-term{font:700 14px system-ui;color:#171814}
-.iw-gloss-def{font:14px/1.5 -apple-system,system-ui,sans-serif;color:#4a4a52}
+.iw-gloss-term{font:700 14px system-ui;color:var(--ink)}
+.iw-gloss-def{font:14px/1.5 -apple-system,system-ui,sans-serif;color:var(--olive)}
 /* ── Card-flip (collocations, phrasal, idioms) ── */
 .iw-card-flip{perspective:600px;cursor:pointer;min-height:130px}
 .iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
 .iw-card-flip.flipped .iw-card-inner{transform:rotateY(180deg)}
 .iw-card-front,.iw-card-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.iw-card-front{background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#24282C));color:${WS_ACCENT_INK}}
+.iw-card-front{background:var(--lime);color:var(--ink)}
 .iw-card-num{font:800 10px monospace;opacity:.5;margin-bottom:4px}
 .iw-card-title{font:800 15px system-ui}
 .iw-card-hint{font:11px system-ui;opacity:.6;margin-top:6px}
-.iw-card-back{background:#fff;border:1.5px solid #e4e5ec;transform:rotateY(180deg);justify-content:flex-start;text-align:left;overflow-y:auto}
+.iw-card-back{background:#fff;border:1.5px solid var(--line-2);transform:rotateY(180deg);justify-content:flex-start;text-align:left;overflow-y:auto}
 .iw-card-back-title{font:800 13px system-ui;color:${ink};margin-bottom:6px;width:100%}
-.iw-card-back-text{font:13px/1.6 system-ui;color:#3a3644;width:100%}
+.iw-card-back-text{font:13px/1.6 system-ui;color:var(--ink);width:100%}
 /* ── Prompt deck (discussion): all questions at once, face down ── */
 .iw-deck{display:grid;grid-template-columns:repeat(${deck ? deck.cols : 3},1fr);gap:12px}
 .iw-dcard{perspective:800px;height:${deck ? deck.tile : 184}px;position:relative}
@@ -1770,129 +1748,120 @@ strong{font-weight:650}
 .iw-dcard.flipped .iw-dcard-inner{transform:rotateY(180deg)}
 .iw-dcard-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:13px;display:flex;flex-direction:column;text-align:left}
 .iw-dcard-front{align-items:center;justify-content:center;gap:6px;cursor:pointer;border:none;width:100%;
-  background:linear-gradient(135deg,${accent},color-mix(in srgb,${accent} 55%,#24282C));color:${WS_ACCENT_INK};transition:transform .15s}
+  background:var(--lime);color:var(--ink);transition:transform .15s}
 .iw-dcard-front:hover{transform:translateY(-2px)}
-.iw-dcard-tag{font:800 26px system-ui;letter-spacing:.02em}
+.iw-dcard-tag{font:700 26px system-ui;letter-spacing:.02em}
 .iw-dcard-hint{font:11px system-ui;opacity:.62}
-.iw-dcard-back{background:#fff;border:1.5px solid #e4e5ec;transform:rotateY(180deg);gap:7px;overflow:hidden}
-.iw-dcard-num{font:800 10px monospace;letter-spacing:.1em;color:${ink}}
-.iw-dcard-text{font:600 13px/1.45 system-ui;color:#1a1722;flex:1;min-height:0;overflow-y:auto}
-.iw-dcard-input{width:100%;border:none;border-top:1.5px dashed #e4e5ec;border-radius:0;padding:7px 0 0;font:12.5px/1.5 system-ui;color:#3a3644;background:none;resize:none;outline:none}
-.iw-dcard-input::placeholder{color:#8b8792;font-weight:600}
-.iw-dcard-hide{position:absolute;top:8px;right:8px;width:22px;height:22px;border:none;border-radius:7px;background:#f2f2f5;color:#6C6C6F;font:13px system-ui;line-height:1;cursor:pointer}
-.iw-dcard-hide:hover{background:#e6e6ea}
-/* ── Warm-up choice board: все заходы сразу, выбирает ученик ──
-   Отдельная «станция» со своей подложкой: разминка это не страница листа,
-   а стол с карточками, и плитка на сером читается как лист, который можно
-   взять. Всё под body.iw-warm-page, чтобы остальные режимы остались белыми. */
-body.iw-warm-page{background:#EDF0F4;padding:20px 22px 26px}
-.iw-warm-head{text-align:center;margin-bottom:18px}
-.iw-warm-kicker{font:800 10.5px system-ui;letter-spacing:.1em;text-transform:uppercase;color:#8b8792;margin-bottom:6px}
-.iw-warm-h{font:800 21px/1.28 system-ui;color:#14532D;letter-spacing:-.01em}
-.iw-warm-lede{font:13.5px/1.5 system-ui;color:#6C6C6F;margin-top:5px}
-.iw-warm-grid{display:grid;grid-template-columns:repeat(${(warm && warm.length > 2 && !narrow) ? 2 : 1},1fr);gap:16px;align-items:start}
-/* Тень через filter, а не box-shadow: срез угла ниже клипает всё, что
-   элемент рисует, - box-shadow пропадал вместе с углом. drop-shadow идёт
-   по СИЛУЭТУ после клипа, поэтому уголок отбрасывает тень как надо. */
-.iw-wtile{position:relative;border-radius:14px;background:#fff;
-  filter:drop-shadow(0 4px 10px rgba(22,28,45,.10));transition:filter .18s,transform .18s}
-.iw-wtile:hover{filter:drop-shadow(0 8px 18px rgba(22,28,45,.15));transform:translateY(-1px)}
-/* Загнутый уголок: у самой плитки срезан угол, в срез положен «отворот».
-   Срез съедает рамку на этом углу, поэтому у плитки её и нет - границу
-   держит тень. */
-.iw-wtile{clip-path:polygon(0 0,100% 0,100% calc(100% - 30px),calc(100% - 30px) 100%,0 100%)}
-.iw-wtile-fold{position:absolute;right:0;bottom:0;width:30px;height:30px;
-  background:linear-gradient(135deg,#f4f5f8 0%,#e2e5ec 100%);clip-path:polygon(100% 0,0 100%,100% 100%)}
-.iw-wtile-head{display:flex;align-items:center;gap:9px;width:100%;padding:13px 15px;
-  border:none;background:var(--tint);cursor:pointer;text-align:left;border-radius:14px 14px 0 0}
-.iw-wtile-icon{font-size:16px;line-height:1}
-.iw-wtile-name{flex:1;min-width:0;font:700 15px system-ui;color:#1a1722;text-align:left}
-.iw-wtile-role{font:700 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:var(--tone);white-space:nowrap}
-.iw-wtile-mark{flex:0 0 auto;width:20px;height:20px;border-radius:50%;font:800 11px system-ui;
-  border:1.5px solid color-mix(in srgb,var(--tone) 40%,#fff);color:transparent;
-  display:flex;align-items:center;justify-content:center;transition:background .15s}
-.iw-wtile[data-done="1"] .iw-wtile-mark{background:var(--tone);border-color:var(--tone);color:#fff}
-.iw-wtile-body{padding:16px 18px 26px}
-.iw-wtile-hook{font:600 15px/1.55 system-ui;color:#1a1722}
-.iw-wtile-hook strong{font-weight:800}
+.iw-dcard-back{background:var(--panel);border:1px solid var(--line-2);transform:rotateY(180deg);gap:7px;overflow:hidden}
+.iw-dcard-num{font:700 10.5px system-ui;letter-spacing:.09em;color:var(--olive)}
+.iw-dcard-text{font:600 13px/1.45 system-ui;color:var(--ink);flex:1;min-height:0;overflow-y:auto}
+.iw-dcard-input{width:100%;border:none;border-top:1px dashed var(--gray);border-radius:0;padding:7px 0 0;font:12.5px/1.5 system-ui;color:var(--ink);background:none;resize:none;outline:none}
+.iw-dcard-input::placeholder{color:var(--olive);font-weight:600}
+.iw-dcard-hide{position:absolute;top:8px;right:8px;width:22px;height:22px;border:none;border-radius:7px;background:var(--paper);color:var(--olive);font:13px system-ui;line-height:1;cursor:pointer}
+.iw-dcard-hide:hover{background:var(--line)}
+/* ── Шапка режима: одна на разминку, станции и всё остальное ──
+   Кикер капителью оливой, заголовок чернилами, подпись оливой, слева и
+   с той же линейкой снизу, что у .iw-title. Раньше у разминки и Mission
+   Control была центрированная шапка тёмно-зелёным, которого в палитре нет,
+   а у читалки - левая капитель: два разных документа в одной рамке. */
+.iw-head{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.iw-kicker{font:700 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--olive);margin-bottom:5px}
+.iw-h{font:700 20px/1.28 system-ui;color:var(--ink);letter-spacing:-.015em}
+.iw-lede{font:13.5px/1.5 system-ui;color:var(--olive);margin-top:4px}
+/* ── Панель: плитка разминки и станция - одна и та же вещь ──
+   Белая панель на бумаге, линейка вместо тени, без заливок по ролям и без
+   загнутого уголка. Отличаются плитки словами (роль, номер станции), а не
+   цветом: пастели ролей были придуманы и в брендовый лист не входили. */
+.iw-warm-grid{display:grid;grid-template-columns:repeat(${(warm && warm.length > 2 && !narrow) ? 2 : 1},1fr);gap:12px;align-items:start}
+.iw-wtile,.iw-mc-station{position:relative;border-radius:var(--r);background:var(--panel);border:1px solid var(--line);overflow:hidden;transition:border-color .15s}
+.iw-wtile:hover{border-color:var(--line-2)}
+/* Подпись над именем, отметка справа на обе строки - тот же порядок, что
+   в шапке режима (кикер, потом заголовок), на любой ширине. Сеткой, а не
+   переносом флекса: перенос ставил роль разминки ПОД имя, а номер станции
+   НАД ним. */
+.iw-wtile-head,.iw-mc-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label mark" "name mark";column-gap:10px;align-items:center;
+  width:100%;padding:12px 14px;border:none;border-bottom:1px solid var(--line);background:var(--panel);text-align:left}
+.iw-wtile-head{cursor:pointer;font:inherit;color:inherit}
+.iw-wtile-name,.iw-mc-name{grid-area:name;min-width:0;font:700 14.5px/1.35 system-ui;color:var(--ink);text-align:left}
+.iw-wtile-role,.iw-mc-num{grid-area:label;margin-bottom:3px;font:700 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--olive)}
+/* Отметка пройденного - одна на обе панели: пустой круг линейкой,
+   пройдено - лайм с галочкой чернилами. */
+.iw-wtile-mark,.iw-mc-tick{grid-area:mark;width:20px;height:20px;border-radius:50%;font:700 11px system-ui;
+  border:1px solid var(--line-2);color:transparent;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.iw-wtile[data-done="1"] .iw-wtile-mark,.iw-mc-station.is-done .iw-mc-tick{background:var(--lime);border-color:var(--lime);color:var(--ink)}
+.iw-wtile-body{padding:14px 16px 16px}
+.iw-wtile-hook{font:600 14.5px/1.55 system-ui;color:var(--ink)}
+.iw-wtile-hook strong{font-weight:700}
 /* Инструкция под ключевым вопросом - по нажатию: разминку ведут вопросом,
    а «Ask each student one question, no long answers» это уже для того, кто
    решил начать отсюда. */
-.iw-wtile-more{display:none;margin-top:12px;padding-top:12px;border-top:1.5px dashed #e9e9ef}
+.iw-wtile-more{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--gray)}
 .iw-wtile.is-open .iw-wtile-more{display:block}
-.iw-wtile-rest{font:13.5px/1.6 system-ui;color:#3a3644}
-.iw-warm-note{width:100%;margin-top:10px;border:1.5px solid #e4e5ec;border-radius:10px;padding:9px 11px;
-  font:13.5px/1.5 system-ui;color:#3a3644;background:#fff;resize:vertical;outline:none}
-.iw-warm-note:focus{border-color:var(--tone)}
-.iw-warm-note::placeholder{color:#8b8792;font-weight:600}
-.iw-warm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px}
-.iw-warm-count{font:700 12px system-ui;color:#8b8792;white-space:nowrap}
+.iw-wtile-rest{font:13.5px/1.6 system-ui;color:var(--ink)}
+.iw-warm-note{width:100%;margin-top:10px;border:1px solid var(--line-2);border-radius:10px;padding:9px 11px;
+  font:13.5px/1.5 system-ui;color:var(--ink);background:var(--panel);resize:vertical;outline:none}
+.iw-warm-note:focus{border-color:var(--ink)}
+.iw-warm-note::placeholder{color:var(--olive);font-weight:600}
+.iw-warm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+.iw-warm-count{font:700 12px system-ui;color:var(--olive);white-space:nowrap}
 /* Точка вместо чёрной кнопки «Finish Warm-Up» - появляется сама, когда
    открыты все плитки (iwWarmSync ставит/снимает [hidden]). */
-.iw-warm-tick{width:22px;height:22px;border-radius:50%;background:${IW_OK};color:#fff;display:flex;align-items:center;justify-content:center;font:800 12px system-ui;flex-shrink:0;animation:iwdot .3s ease}
+/* display:flex перебивал атрибут hidden - галочка горела при «0 of 3». */
+.iw-warm-tick[hidden]{display:none}
+.iw-warm-tick{width:22px;height:22px;border-radius:50%;background:var(--lime);color:var(--ink);display:flex;align-items:center;justify-content:center;font:700 12px system-ui;flex-shrink:0;animation:iwdot .3s ease}
 /* ── Mission control: станции «после чтения» на одном экране ── */
-body.iw-mc-page{background:#EDF0F4;padding:20px 22px 26px}
-.iw-mc-progress{margin:0 auto 18px;max-width:520px;text-align:center}
-.iw-mc-bar{height:6px;border-radius:99px;background:#DCE0E8;overflow:hidden}
-.iw-mc-fill{display:block;height:100%;width:0;border-radius:99px;background:#15703C;transition:width .3s}
-.iw-mc-note{margin-top:7px;font:700 11.5px system-ui;color:#6C6C6F}
-.iw-mc{display:flex;flex-direction:column;gap:14px}
-.iw-mc-station{border-radius:14px;background:#fff;overflow:hidden;border-left:4px solid var(--tone);
-  filter:drop-shadow(0 4px 10px rgba(22,28,45,.10))}
-.iw-mc-strip{display:flex;align-items:center;gap:9px;padding:11px 15px;background:var(--tint)}
-.iw-mc-num{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--tone)}
-.iw-mc-name{flex:1;min-width:0;font:700 14.5px system-ui;color:#1a1722}
-.iw-mc-tick{flex:0 0 auto;width:20px;height:20px;border-radius:50%;font:800 11px system-ui;
-  border:1.5px solid color-mix(in srgb,var(--tone) 40%,#fff);color:transparent;
-  display:flex;align-items:center;justify-content:center}
-.iw-mc-station.is-done .iw-mc-tick{background:var(--tone);border-color:var(--tone);color:#fff}
-.iw-mc-body{padding:14px 15px 15px}
-/* Вопрос внутри станции уже обведён её собственной рамкой - вторая рамка
-   вокруг каждого превращала станцию в сетку коробок. */
-.iw-mc-body .iw-q{border:none;border-left:none;padding:6px 0;margin-bottom:10px}
-.iw-mc-body .iw-q:hover{box-shadow:none}
+.iw-mc-progress{margin:0 0 14px}
+.iw-mc-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.iw-mc-fill{display:block;height:100%;width:0;border-radius:99px;background:var(--ink);transition:width .3s}
+.iw-mc-note{margin-top:7px;font:700 12px system-ui;color:var(--olive)}
+.iw-mc{display:flex;flex-direction:column;gap:12px}
+.iw-mc-body{padding:14px}
+/* Вопрос внутри станции уже в её панели - вторая рамка вокруг каждого
+   превращала станцию в сетку коробок. */
+.iw-mc-body .iw-q{background:transparent;border:none;padding:6px 0;margin-bottom:10px}
+.iw-mc-body .iw-q + .iw-q{border-top:1px solid var(--line);padding-top:14px;border-radius:0}
+.iw-mc-body .iw-q:hover{border-color:transparent}
 .iw-mc-body .iw-q:last-child{margin-bottom:0}
-.iw-mc-body .iw-qnum{background:var(--tone);color:#fff}
 /* ── Writing workspace ── */
 .iw-ws{display:flex;gap:16px;align-items:stretch;height:calc(100vh - 88px);min-height:400px}
 .iw-ws-side{flex:0 0 33%;max-width:310px;min-width:190px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:4px}
-.iw-ws-block{border:1.5px solid #e4e5ec;border-radius:14px;padding:12px 13px}
+.iw-ws-block{border:1.5px solid var(--line-2);border-radius:14px;padding:12px 13px}
 .iw-ws-h{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};margin-bottom:7px}
-.iw-ws-prompt{font:13px/1.55 system-ui;color:#3a3644}
+.iw-ws-prompt{font:13px/1.55 system-ui;color:var(--ink)}
 /* padding:0 обязателен - общий reset наверху снимает только margin, и
    браузерные 40px отступа списка съедали треть узкой колонки. */
 .iw-ws-reqs{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px}
-.iw-ws-reqs label{display:flex;gap:8px;align-items:flex-start;font:12.5px/1.45 system-ui;color:#3a3644;cursor:pointer}
+.iw-ws-reqs label{display:flex;gap:8px;align-items:flex-start;font:12.5px/1.45 system-ui;color:var(--ink);cursor:pointer}
 .iw-ws-reqs input{flex-shrink:0;width:15px;height:15px;margin-top:1px;accent-color:${ink};cursor:pointer}
-.iw-ws-reqs input:checked+span{color:#8b8792;text-decoration:line-through}
-.iw-ws-acc{border:1.5px solid #e4e5ec;border-radius:14px;padding:10px 13px}
+.iw-ws-reqs input:checked+span{color:var(--olive);text-decoration:line-through}
+.iw-ws-acc{border:1.5px solid var(--line-2);border-radius:14px;padding:10px 13px}
 .iw-ws-acc summary{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink};cursor:pointer;list-style:none}
 .iw-ws-acc summary::-webkit-details-marker{display:none}
 .iw-ws-acc summary::after{content:' +';font-family:monospace;opacity:.5}
 .iw-ws-acc[open] summary::after{content:' −'}
 .iw-ws-acc-body{margin-top:8px;display:flex;flex-direction:column;gap:6px}
-.iw-ws-acc-body p{font:12.5px/1.5 system-ui;color:#3a3644}
-.iw-ws-acc-body b{display:block;color:#1a1722}
-.iw-ws-acc-body span{color:#6C6C6F}
+.iw-ws-acc-body p{font:12.5px/1.5 system-ui;color:var(--ink)}
+.iw-ws-acc-body b{display:block;color:var(--ink)}
+.iw-ws-acc-body span{color:var(--olive)}
 .iw-ws-main{flex:1;min-width:0;display:flex;flex-direction:column}
 .iw-ws-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
 .iw-ws-label{font:800 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:${ink}}
-.iw-ws-count{font:12px system-ui;color:#6C6C6F}
-.iw-ws-count b{font-weight:800;color:#1a1722}
-.iw-ws-bar{display:flex;align-items:center;gap:3px;border:1.5px solid #e4e5ec;border-bottom:none;border-radius:12px 12px 0 0;padding:6px 8px}
-.iw-ws-bar button{min-width:28px;height:26px;padding:0 7px;border:none;border-radius:7px;background:none;font:13px system-ui;color:#3a3644;cursor:pointer;white-space:nowrap}
-.iw-ws-bar button:hover{background:#f2f2f5}
-.iw-ws-bar-sep{width:1px;height:16px;background:#e4e5ec;margin:0 4px}
-.iw-ws-editor{flex:1;min-height:140px;overflow-y:auto;border:1.5px solid #e4e5ec;border-radius:0 0 12px 12px;
-  padding:13px 14px;font:14px/1.7 system-ui;color:#1a1722;outline:none}
+.iw-ws-count{font:12px system-ui;color:var(--olive)}
+.iw-ws-count b{font-weight:800;color:var(--ink)}
+.iw-ws-bar{display:flex;align-items:center;gap:3px;border:1.5px solid var(--line-2);border-bottom:none;border-radius:12px 12px 0 0;padding:6px 8px}
+.iw-ws-bar button{min-width:28px;height:26px;padding:0 7px;border:none;border-radius:7px;background:none;font:13px system-ui;color:var(--ink);cursor:pointer;white-space:nowrap}
+.iw-ws-bar button:hover{background:var(--paper)}
+.iw-ws-bar-sep{width:1px;height:16px;background:var(--line-2);margin:0 4px}
+.iw-ws-editor{flex:1;min-height:140px;overflow-y:auto;border:1.5px solid var(--line-2);border-radius:0 0 12px 12px;
+  padding:13px 14px;font:14px/1.7 system-ui;color:var(--ink);outline:none}
 .iw-ws-editor:focus{border-color:${accent}}
-.iw-ws-editor:empty::before{content:attr(data-placeholder);color:#a9a5b0}
-.iw-ws-meter{height:4px;border-radius:3px;background:#ececed;margin:10px 0;overflow:hidden}
+.iw-ws-editor:empty::before{content:attr(data-placeholder);color:var(--sage)}
+.iw-ws-meter{height:4px;border-radius:3px;background:var(--line);margin:10px 0;overflow:hidden}
 .iw-ws-meter i{display:block;height:100%;width:0;background:${accent};transition:width .25s}
 .iw-ws-meter i.full{background:#16a34a}
 .iw-ws-submit{margin-top:0}
 .iw-ws-done{font:700 12px system-ui;color:#15803d;text-align:center;margin-top:8px}
-body.iw-ws-sent .iw-ws-editor{background:#fafafa;color:#4a4a52}
+body.iw-ws-sent .iw-ws-editor{background:var(--paper);color:var(--olive)}
 body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 /* ── Узкая карточка = телефон ──
    Ширина кадра равна ширине карточки, поэтому этот порог и есть «телефон»:
@@ -1911,18 +1880,13 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
   .iw-ws-bar{padding:5px 6px}
   .iw-ws-bar button{min-width:40px;height:40px;font-size:15px}
   .iw-ws-count{font-size:12.5px}
-  .iw-mc-strip{padding:11px 13px;flex-wrap:wrap}
-  .iw-mc-name{flex:1 1 100%;order:3;font-size:14px}
+  .iw-mc-name{font-size:14px}
   .iw-mc-body{padding:13px}
   .iw-warm-grid{grid-template-columns:1fr;gap:13px}
-  .iw-warm-h{font-size:18px}
-  .iw-warm-lede{font-size:13px}
+  .iw-h{font-size:18px}
+  .iw-lede{font-size:13px}
   .iw-wtile-head{padding:12px 13px;min-height:48px}
-  /* Роль в одну строку с именем на узкой плитке не помещается - она уходит
-     вниз, под имя, а не режет его. */
-  .iw-wtile-head{flex-wrap:wrap}
-  .iw-wtile-name{flex:1 1 auto}
-  .iw-wtile-role{font-size:11px;flex-basis:100%;order:3}
+  .iw-wtile-role,.iw-mc-num{font-size:11px}
   .iw-wtile-hook{font-size:15px}
   .iw-wtile-rest{font-size:13.5px}
   .iw-warm-note{font-size:14px}
@@ -1954,7 +1918,7 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
    внимание с содержимым ему не за чем: на весь низ карточки эта кнопка была
    такой же тяжёлой, как прежняя проверка. Только у листа с заданиями - у
    флешкарт «Reset» стоит в паре с «Reveal All», там ширина общая. */
-#iw-tryagain{width:auto;align-self:center;padding:7px 16px;border-width:1.5px;border-color:#d9dae2;border-radius:11px;font-size:12px;color:#5b5b66}
+#iw-tryagain{width:auto;align-self:center;padding:7px 16px;border-width:1.5px;border-color:var(--gray);border-radius:11px;font-size:12px;color:var(--olive)}
 #iw-tryagain:hover{border-color:${WS_ACCENT_INK};color:${WS_ACCENT_INK};opacity:1}
 .iw-score{text-align:center;margin-top:14px;font:700 15px system-ui;color:${ink};display:none}
 .iw-score.iw-pop{animation:iwpop .5s cubic-bezier(.34,1.56,.64,1)}
@@ -1962,44 +1926,38 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-conf{position:fixed;top:-12px;width:9px;height:14px;border-radius:2px;z-index:99999;pointer-events:none;animation:iwfall 1.9s linear forwards}
 @keyframes iwfall{0%{transform:translateY(-12px) rotate(0)}100%{transform:translateY(105vh) rotate(540deg)}}
 /* ── Key ── */
-.iw-key-wrap{margin-top:16px;border-top:1px solid #eee;padding-top:12px}
-.iw-key-toggle{background:none;border:2px solid rgba(14,14,16,.14);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:#6C6C6F}
+.iw-key-wrap{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.iw-key-toggle{background:none;border:2px solid var(--line-2);border-radius:8px;padding:6px 14px;font:800 11px system-ui;cursor:pointer;color:var(--olive)}
 .iw-key-toggle:hover{border-color:${accent};color:${ink}}
-.iw-key{margin-top:10px;background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}
-.iw-key b{color:#16a34a}
+.iw-key{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--lime);padding:10px 14px;border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.8}
+.iw-key b{color:var(--ink)}
 /* ── Stepper (Play mode: one card at a time) ── */
 .iw-stepper{display:flex;flex-direction:column}
 .iw-step-hud{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px}
-.iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid #e4e5ec;background:#fff;font:800 17px system-ui;color:${ink};cursor:pointer;transition:all .15s;line-height:1}
+.iw-step-nav{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line-2);background:#fff;font:800 17px system-ui;color:${ink};cursor:pointer;transition:all .15s;line-height:1}
 .iw-step-nav:hover:not(:disabled){border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
 .iw-step-nav:disabled{opacity:.3;cursor:default}
-.iw-step-count{font:800 12px monospace;color:#6C6C6F;min-width:56px;text-align:center}
+.iw-step-count{font:800 12px monospace;color:var(--olive);min-width:56px;text-align:center}
 .iw-step-hidden{display:none!important}
-.iw-stepper .iw-q{border:none;box-shadow:0 2px 22px rgba(0,0,0,.08);border-radius:18px;border-left:5px solid ${accent};padding:30px 26px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
+.iw-stepper .iw-q{border:1px solid var(--line);border-radius:var(--r);padding:28px 24px;min-height:220px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
 .iw-stepper .iw-qnum{display:none}
 .iw-stepper .iw-qtext{font-size:23px;font-weight:650;line-height:1.4;margin-bottom:18px;text-align:center;white-space:pre-line}
 .iw-qreveal{display:block;animation:iwreveal .25s ease}
 @keyframes iwreveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 /* Плитки и текст вопроса - тем же крупным языком и в степпере, и в станции
-   Mission Control: станция раньше падала обратно на мелкий список кнопок
-   (.iw-opt по умолчанию), и «Trivia Challenge» на экране не совпадала с тем,
-   что видел учитель на превью. */
-.iw-stepper .iw-qtext,.iw-mc-body .iw-qtext{font-size:17px}
-.iw-stepper .iw-qtext{font-size:23px}
-.iw-stepper .iw-opts,.iw-mc-body .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
-/* Заливка - плоский цвет из брендовой палитры (--fill), не смесь двух:
-   градиент между двумя чужими друг другу цветами меньше похож на «этот
-   цвет из палитры», чем ровная плашка. Чернила (--ink) считаны по
-   формуле WCAG под каждый --fill заранее (см. TILE_GRADIENTS) - тёмные
-   почти everywhere, белые только там, где сама заливка достаточно
-   тёмная (6B42FD, 5D614B). */
-.iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:64px;border:none;border-radius:14px;font-size:15.5px;font-weight:650;color:var(--ink);display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:var(--fill)}
-.iw-stepper .iw-opt:hover,.iw-mc-body .iw-opt:hover{background:var(--fill);opacity:.85}
-.iw-stepper .iw-opt.selected:not(.correct):not(.wrong),.iw-mc-body .iw-opt.selected:not(.correct):not(.wrong){outline:3px solid #1a1722;outline-offset:2px}
-.iw-stepper .iw-opt.correct,.iw-mc-body .iw-opt.correct{background:#15803D!important;color:#fff}
-.iw-stepper .iw-opt.wrong,.iw-mc-body .iw-opt.wrong{background:#dc2626!important;color:#fff;opacity:.85}
-.iw-stepper .iw-tf,.iw-mc-body .iw-tf{justify-content:center}
-.iw-stepper .iw-tf-btn,.iw-mc-body .iw-tf-btn{font-size:15px;padding:12px 30px}
+   Mission Control. Плитка - белая панель с буквой, а не цветная плашка:
+   радуга из четырёх заливок перекрикивала сам вопрос и не совпадала ни с
+   читалкой, ни с разминкой в той же раме. Цвет остаётся за выбором (лайм)
+   и вердиктом (зелёный/красный). */
+.iw-stepper .iw-qtext,.iw-mc-body .iw-qtext{font-size:16px}
+.iw-stepper .iw-qtext{font-size:22px}
+.iw-stepper .iw-opts,.iw-mc-body .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:52px;border-radius:12px;font-size:14.5px;font-weight:600;padding:10px 12px}
+.iw-stepper .iw-opt.correct,.iw-mc-body .iw-opt.correct{background:#15803D!important;border-color:#15803D;color:#fff}
+.iw-stepper .iw-opt.wrong,.iw-mc-body .iw-opt.wrong{background:#dc2626!important;border-color:#dc2626;color:#fff;opacity:.85}
+.iw-stepper .iw-tf,.iw-mc-body .iw-tf{justify-content:flex-start}
+.iw-stepper .iw-tf{justify-content:center}
+.iw-stepper .iw-tf-btn,.iw-mc-body .iw-tf-btn{font-size:14.5px;padding:10px 26px}
 .iw-stepper .iw-gap-input{font-size:16px}
 .iw-stepper .iw-flash,.iw-stepper .iw-card-flip{height:auto;min-height:240px;cursor:pointer}
 .iw-stepper .iw-flash-inner,.iw-stepper .iw-card-inner{min-height:240px}
@@ -2012,12 +1970,12 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
    с номером плитки. Теперь слот стоит ПРЯМО в тексте (та же .iw-target, что
    у матчинга), и банк слов внизу - перетащил, увидел результат на месте. */
 .iw-gapfill-lines{margin-bottom:16px}
-.iw-gapline{font-size:15px;line-height:2;margin-bottom:6px;color:#3a3644}
+.iw-gapline{font-size:15px;line-height:2;margin-bottom:6px;color:var(--ink)}
 .iw-gapline b{color:${ink};margin-right:2px}
 .iw-blank{display:inline-flex;vertical-align:middle;margin:0 3px;min-height:auto;padding:3px 22px 3px 8px}
 .iw-blank .iw-slot{min-width:64px;min-height:20px;font-size:13.5px}
-.iw-gapfill-bank{display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:#f8f8fb;border-radius:12px;border:1.5px dashed #d4d6e0}
-.iw-gap-brick{background:var(--fill);color:var(--ink);font-weight:700}
+.iw-gapfill-bank{display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:var(--panel);border-radius:12px;border:1px dashed var(--gray)}
+.iw-gap-brick{font-weight:700}
 .iw-mc-body .iw-gapfill-lines,.iw-mc-body .iw-gapline{font-size:14px}
 /* Флип-карточки открытых вопросов внутри станции - те же .iw-deck/.iw-dcard,
    только компактнее и без строки Reveal All/Turn All Back под ними (общий
@@ -2027,13 +1985,13 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-deck-mini .iw-dcard-tag{font-size:20px}
 .iw-deck-mini .iw-dcard-text{font-size:12px}
 </style></head><body${warm ? ' class="iw-warm-page"' : missionMode ? ' class="iw-mc-page"' : ''}>
-${warm ? `<header class="iw-warm-head">
-  <p class="iw-warm-kicker">${md(d.title || d.kind || 'Warm-up')}</p>
-  <h1 class="iw-warm-h">Warm-Up Station: Choose Your Angle</h1>
-  <p class="iw-warm-lede">Pick any starting point to dive into the topic</p>
-</header>` : missionMode ? `<header class="iw-warm-head">
-  <p class="iw-warm-kicker">${md(d.title || d.kind || 'Missions')}</p>
-  <h1 class="iw-warm-h">Mission Control: Post-Reading Review</h1>
+${warm ? `<header class="iw-head">
+  <p class="iw-kicker">${md(d.title || d.kind || 'Warm-up')}</p>
+  <h1 class="iw-h">Choose your angle</h1>
+  <p class="iw-lede">Pick any starting point to dive into the topic</p>
+</header>` : missionMode ? `<header class="iw-head">
+  <p class="iw-kicker">${md(d.title || d.kind || 'Missions')}</p>
+  <h1 class="iw-h">Post-reading review</h1>
 </header>` : `<div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>`}
 ${contentHtml}
 <script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};${wordHelp ? `window.__IW_WORDS__=${JSON.stringify(wordHelp)};` : ''}<\/script>
