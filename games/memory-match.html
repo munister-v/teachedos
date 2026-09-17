@@ -26,21 +26,21 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .tile.matched .front-face{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
 .msg{margin-top:18px;font-size:1.1rem;font-weight:700;color:var(--accent);min-height:24px;text-align:center}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=843">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=843">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=844">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=844">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=843">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=844">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
 <h1>🧠 Memory Match</h1>
 <p class="subtitle">Match word + definition pairs</p>
-<div class="top"><div>Pairs: <span id="pairs">0</span>/<span id="pairs-total">8</span></div><div>Moves: <span id="moves">0</span></div><div>⏱ <span id="timer">0</span>s</div></div>
+<div class="top"><div id="round" hidden></div><div>Pairs: <span id="pairs">0</span>/<span id="pairs-total">8</span></div><div>Moves: <span id="moves">0</span></div><div>⏱ <span id="timer">0</span>s</div></div>
 <div class="grid" id="grid"></div>
 <div class="msg" id="msg"></div>
 
-<script src="../scripts/game-pause.js?v=843"></script>
-<script src="../scripts/vocabulary.js?v=843"></script>
+<script src="../scripts/game-pause.js?v=844"></script>
+<script src="../scripts/vocabulary.js?v=844"></script>
 <script>
 let PAIRS=[
   {w:'curious',d:'eager to know'},
@@ -67,6 +67,14 @@ let PAIRS=[
   }
 })();
 let flipped=[],matched=0,moves=0,locked=false,timerSec=0,tInt,pairsInPlay=8;
+/* Раунды идут ПО ВСЕЙ колоде, а не восемью случайными парами каждый раз:
+   из двадцати слов учителя случайная восьмёрка могла ни разу не показать
+   половину списка. Колода тасуется один раз, раунды берут её по порядку
+   (8 + 8 + 4), и к концу последнего раунда сыграно каждое слово. */
+const ROUND_SIZE=8;
+let deck=[],round=0,totalMoves=0,totalSec=0;
+function newDeck(){deck=shuffle([...PAIRS]);round=0;totalMoves=0;totalSec=0;}
+function roundsTotal(){return Math.max(1,Math.ceil(deck.length/ROUND_SIZE));}
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 
@@ -79,8 +87,11 @@ function start(){
   clearInterval(tInt);
   tInt=setInterval(()=>{timerSec++;document.getElementById('timer').textContent=timerSec;},1000);
 
-  const chosen=shuffle([...PAIRS]).slice(0,8);
+  if(!deck.length||deck.length!==PAIRS.length||round>=roundsTotal())newDeck();
+  const chosen=deck.slice(round*ROUND_SIZE,(round+1)*ROUND_SIZE);
   pairsInPlay=chosen.length;
+  const roundEl=document.getElementById('round');
+  if(roundEl){roundEl.hidden=roundsTotal()<2;roundEl.textContent='Round '+(round+1)+' of '+roundsTotal();}
   /* Всего пар было зашито в разметку как «/8», а играет игра
      min(PAIRS.length, 8): со своим списком из шести слов счётчик показывал
      «0/8», и восьми ученик не достигал никогда. Пишем настоящее число. */
@@ -126,8 +137,15 @@ function check(){
     document.getElementById('pairs').textContent=matched;
     if(matched===pairsInPlay){
       clearInterval(tInt);
-      document.getElementById('msg').innerHTML=`🎉 Done in ${timerSec}s & ${moves} moves! <button onclick="start()" style="margin-left:12px;padding:6px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;
-      try{window.parent.postMessage({type:'game-finished',score:matched,max:pairsInPlay,time:timerSec,mistakes:Math.max(0,moves-pairsInPlay),game:'Memory Match',status:'done'},'*');}catch(e){}
+      totalMoves+=moves;totalSec+=timerSec;
+      const btn='margin-left:12px;padding:6px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff';
+      round++;
+      if(round<roundsTotal()){
+        document.getElementById('msg').innerHTML=`✅ Round ${round} of ${roundsTotal()} done! <button onclick="start()" style="${btn}">▶ Next ${Math.min(ROUND_SIZE,deck.length-round*ROUND_SIZE)} words</button>`;
+      } else {
+        document.getElementById('msg').innerHTML=`🎉 All ${deck.length} words matched in ${totalSec}s & ${totalMoves} moves! <button onclick="newDeck();start()" style="${btn}">▶ Again</button>`;
+        try{window.parent.postMessage({type:'game-finished',score:deck.length,max:deck.length,time:totalSec,mistakes:Math.max(0,totalMoves-deck.length),game:'Memory Match',status:'done'},'*');}catch(e){}
+      }
     }
   } else {
     a.classList.remove('flipped');b.classList.remove('flipped');
@@ -138,7 +156,7 @@ function check(){
 function applyCustomContent(content,title){
   const pairs=(content&&content.pairs||[]).map(p=>({w:String(p.a||p.w||p.word||'').trim(),d:String(p.b||p.d||p.definition||'').trim()})).filter(p=>p.w&&p.d);
   if(pairs.length<2)return;
-  PAIRS=pairs;
+  PAIRS=pairs;newDeck();
   if(title){document.title=title+' · Memory Match';const h=document.querySelector('h1');if(h)h.textContent='🧠 '+title;}
   start();
 }
@@ -151,7 +169,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=843"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=844"></script>
 <script src="../scripts/game-handoff.js"></script>
 </body>
 </html>

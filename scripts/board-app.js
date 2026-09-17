@@ -9630,12 +9630,17 @@ function _ttSyncFormReadiness(opts = {}) {
   const source = String(document.getElementById('tbuilder-source')?.value || '').trim();
   const vocab = String(document.getElementById('tbuilder-vocab')?.value || '').trim();
   const missing = [];
-  if (!topic) missing.push({ wrap:'tb-wrap-topic', input:'tbuilder-topic', label:'topic' });
+  /* Список слов сам и есть тема: мастер урока «по моим словам» тему не
+     спрашивает, а кнопка «Create draft» ждала её молча - учитель вставлял
+     слова и не получал ничего. Тема для заголовков и подсказок движку
+     берётся из самих слов (см. _ttTopicFromWords). */
+  const topicOptional = needsVocab && !!vocab;
+  if (!topic && !topicOptional) missing.push({ wrap:'tb-wrap-topic', input:'tbuilder-topic', label:'topic' });
   if (needsSource && !source) missing.push({ wrap:'tb-wrap-source', input:'tbuilder-source', label:'source text' });
   if (needsVocab && !vocab) missing.push({ wrap:'tb-wrap-vocab', input:'tbuilder-vocab', label:'target vocabulary' });
   if (opts.attempted) missing.forEach(item => { const wrap = document.getElementById(item.wrap); if (wrap) wrap.dataset.ttAttempted = '1'; });
 
-  _ttSetRequiredFieldState('tb-wrap-topic', 'tbuilder-topic', true, !!topic);
+  _ttSetRequiredFieldState('tb-wrap-topic', 'tbuilder-topic', !topicOptional, !!topic);
   _ttSetRequiredFieldState('tb-wrap-source', 'tbuilder-source', needsSource, !!source);
   _ttSetRequiredFieldState('tb-wrap-vocab', 'tbuilder-vocab', needsVocab, !!vocab);
   const ready = missing.length === 0;
@@ -11426,6 +11431,8 @@ function _ttScheduleGeneratedHarmonyAudit(frameId, opts = {}) {
 // Tools that produce a single artifact or a fixed scaffold - the "Items" count
 // is meaningless, so hide it to avoid confusion (e.g. "Simplify a Text" + 50).
 const TT_NO_COUNT_SET = new Set([
+  // Сколько слов - столько и пунктов: число задаёт сам список учителя.
+  'vocab-workout',
   'lesson-pack','worksheet-builder','homework-set','cefr-checker','rubric-maker',
   'answer-key','add-text','add-images','add-video','simplify-text','summary-task',
   'three-titles','text-topic-vocab','essay-outline','email-reply','rewrite-style',
@@ -13764,7 +13771,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '843';
+const TEACHEDOS_ASSET_VERSION = '844';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14222,8 +14229,32 @@ async function runBoardWorkout() {
     return;
   }
 
-  const acts = boardWorkoutActivities().filter(a => keys.includes(a.key));
+  /* КАЖДОЕ ЗАДАНИЕ - НА ВЕСЬ СПИСОК, А НЕ НА ЕГО НАЧАЛО.
+     Число пунктов раньше бралось из поля «Items» (12 по умолчанию), и из
+     двадцати слов учителя в каждое задание попадали первые двенадцать. Теперь
+     число - это сам список, до TT_WORDLIST_MAX слов. */
   _ttSetGenerating(true);
+  let entries = _ttUniqueVocabEntries(base);
+  const listed = entries.length;
+  const trimmed = Math.max(0, listed - TT_WORDLIST_MAX);
+  entries = entries.slice(0, TT_WORDLIST_MAX);
+  if (!base.topic) base.topic = _ttTopicFromWords(entries.map(e => e.word));
+
+  /* Значения ищутся ОДИН раз на весь список, до генерации. Слово без
+     пояснения давало пустую пару: «Match» с пустой правой колонкой, а
+     флешкарты без значений превращались в Hangman. Пояснение учителя
+     остаётся главным, словарь и движок добирают только недостающее. */
+  if (chip) chip.textContent = 'looking up meanings…';
+  if (body) body.innerHTML = `<div class="tbuilder-empty">Looking up meanings for ${entries.length} words…</div>`;
+  const missing = entries.filter(e => !e.gloss).map(e => e.word);
+  if (missing.length) {
+    const found = await _ttLookupDefinitions(missing, base);
+    entries.forEach(e => { if (!e.gloss) e.gloss = found[e.word.toLowerCase()] || ''; });
+  }
+  base.vocab = entries.map(e => e.gloss ? `${e.word} - ${e.gloss.replace(/\s*\n\s*/g, ' ')}` : e.word).join('\n');
+  base.count = entries.length;
+
+  const acts = boardWorkoutActivities().filter(a => keys.includes(a.key));
   const built = [];
   const failed = [];
 
@@ -14266,7 +14297,18 @@ async function runBoardWorkout() {
   if (body) {
     body.innerHTML = `<div class="tbuilder-empty">${built.length} ${built.length === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc(failed.join(', '))}.</span>` : ''}</div>`;
   }
-  toast(built.length + (built.length === 1 ? ' activity added' : ' activities added'));
+  /* Панель закрывается, как и у остальных укладчиков: карточки ложились ПОД
+     открытое окно, и выглядело так, будто не создалось ничего. */
+  closeTeacherToolBuilder();
+  const noMeaning = entries.filter(e => !e.gloss).length;
+  const notes = [];
+  if (failed.length) notes.push(`skipped: ${failed.join(', ')}`);
+  if (noMeaning) notes.push(`${noMeaning} word${noMeaning === 1 ? '' : 's'} without a meaning`);
+  const scope = trimmed
+    ? `the first ${TT_WORDLIST_MAX} of your ${listed} words (limit ${TT_WORDLIST_MAX})`
+    : `all ${entries.length} words`;
+  toast(`${built.length} ${built.length === 1 ? 'activity' : 'activities'} with ${scope}` +
+    (notes.length ? ` · ${notes.join(' · ')}` : ''));
 }
 
 /* Укладка набора. Каждая активность ложится в СВОЕЙ форме, а не текстовой
@@ -14577,46 +14619,83 @@ async function _ttFillMatchDefinitions(out, base) {
   const q = (out && Array.isArray(out.questions))
     ? out.questions.find(x => x && x.type === 'match' && Array.isArray(x.pairs)) : null;
   if (!q) return;
-  const empty = () => q.pairs.filter(p => !String(p.right || '').trim());
-  if (!empty().length) return;
+  const empty = q.pairs.filter(p => !String(p.right || '').trim());
+  if (!empty.length) return;
+  const found = await _ttLookupDefinitions(empty.map(p => p.left), base);
+  empty.forEach(p => {
+    const hit = found[String(p.left).toLowerCase().trim()];
+    if (hit) p.right = hit;
+  });
+}
 
-  try {
-    const words = empty().map(p => p.left).join(',');
-    const r = await apiFetch('/api/dictionary/define?level=' + encodeURIComponent(base.level || '') +
-                             '&words=' + encodeURIComponent(words));
-    const d = await r.json().catch(() => null);
-    const byWord = {};
-    (d && d.results || []).forEach(x => {
-      if (x && x.definition) byWord[String(x.word).toLowerCase()] = x.definition;
-    });
-    q.pairs.forEach(p => {
-      if (String(p.right || '').trim()) return;
-      const hit = byWord[String(p.left).toLowerCase()];
-      if (hit) p.right = hit;
-    });
-  } catch (err) { console.warn('[defs] dictionary lookup failed', err); }
+/* Список слов учителя - до этого предела, дальше не берём (о лишних
+   говорит тост). Тридцать - это урок, а не словарь. */
+const TT_WORDLIST_MAX = 30;
 
-  const still = empty();
-  if (!still.length) return;
+/* Записи списка без повторов («Salary» и «salary» - одно слово), с
+   пояснением учителя, если оно было хоть у одной из копий. */
+function _ttUniqueVocabEntries(input) {
+  const seen = new Map();
+  (_ttVocabEntries(input) || []).forEach(e => {
+    const key = String(e.word || '').trim().toLowerCase();
+    if (!key) return;
+    const prev = seen.get(key);
+    if (!prev) seen.set(key, { word: String(e.word).trim(), gloss: String(e.gloss || '').trim() });
+    else if (!prev.gloss && e.gloss) prev.gloss = String(e.gloss).trim();
+  });
+  return [...seen.values()];
+}
+
+function _ttTopicFromWords(words) {
+  const head = words.slice(0, 3).join(', ');
+  return words.length > 3 ? `Vocabulary: ${head}…` : `Vocabulary: ${head}`;
+}
+
+/* Значения для списка слов: word (в нижнем регистре) → определение.
+   1. Cambridge (/api/dictionary/define) - учебный словарь, значение не выше
+      уровня урока. Пачками по TT_DEFINE_BATCH: сервер принимает не больше
+      двадцати слов за запрос, и всё сверх двадцатого раньше оставалось без
+      значения.
+   2. Движок - для того, чего в словаре нет («severe burn», «doesn't agree
+      with me»): у него есть тема и уровень, он пишет определение под класс.
+   Что не нашлось ни там, ни там, остаётся без значения. */
+const TT_DEFINE_BATCH = 20;
+async function _ttLookupDefinitions(words, base) {
+  const found = Object.create(null);
+  const list = [...new Set(words.map(w => String(w || '').trim()).filter(Boolean))];
+  for (let i = 0; i < list.length; i += TT_DEFINE_BATCH) {
+    const chunk = list.slice(i, i + TT_DEFINE_BATCH);
+    try {
+      const r = await apiFetch('/api/dictionary/define?level=' + encodeURIComponent(base.level || '') +
+                               '&words=' + encodeURIComponent(chunk.join(',')));
+      const d = await r.json().catch(() => null);
+      (d && d.results || []).forEach((x, xi) => {
+        if (!x || !x.definition) return;
+        /* Ключ - слово, КОТОРОЕ СПРАШИВАЛИ: словарь может вернуть статью
+           «colleague» на запрос «Colleagues», и по его написанию слово
+           учителя значения не нашло бы. */
+        found[String(chunk[xi] || x.word).toLowerCase()] = x.definition;
+      });
+    } catch (err) { console.warn('[defs] dictionary lookup failed', err); }
+  }
+
+  const still = list.filter(w => !found[w.toLowerCase()]);
+  if (!still.length) return found;
   try {
     const ai = await requestServerTeacherTool({
       ...base,
       tool: { id: 'word-definition-match' },
-      vocab: still.map(p => p.left).join('\n'),
+      vocab: still.join('\n'),
       count: still.length,
-    }, 20000);
+    }, 25000);
     const aiQ = (ai && Array.isArray(ai.questions))
       ? ai.questions.find(x => x && x.type === 'match' && Array.isArray(x.pairs)) : null;
-    if (!aiQ) return;
-    const byWord = {};
-    aiQ.pairs.forEach(p => {
-      if (p && p.right) byWord[String(p.left).toLowerCase().trim()] = p.right;
-    });
-    still.forEach(p => {
-      const hit = byWord[String(p.left).toLowerCase().trim()];
-      if (hit) p.right = hit;
+    (aiQ ? aiQ.pairs : []).forEach(p => {
+      const key = String(p && p.left || '').toLowerCase().trim();
+      if (p && p.right && key && !found[key]) found[key] = p.right;
     });
   } catch (err) { console.warn('[defs] AI fallback failed', err); }
+  return found;
 }
 
 /* «Match words to pictures» без картинок.
