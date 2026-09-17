@@ -587,12 +587,42 @@ function _ttGenFlashcards(input){
 }
 
 /* ── sentences-vocab ────────────────────────────────────────────── */
+/* «ОДНО ПРЕДЛОЖЕНИЕ НА СЛОВО, С ПРОПУСКОМ» - А НЕ ТРИДЦАТЬ «СОСТАВЬ САМ».
+
+   Задание обещает учителю пропуск и кладётся игрой Fill the Blank, но
+   генератор писал только «Make a sentence using the word: X» - вопросы без
+   пропуска и без ответа. Игра из них не собиралась, на доску вставало
+   «Spin the Wheel» с тридцатью одинаковыми подсказками.
+
+   Настоящее предложение без модели взять неоткуда, кроме словаря: он
+   отдаёт пример к статье (input.vocabExamples, собирает runBoardWorkout).
+   Слово в нём ищется с обычными окончаниями (burn → burns, burned,
+   burning), пропускается то, что реально стоит в тексте, - это и ответ.
+   Нет примера - предложение строится из значения («___ means …»): это
+   всё ещё пропуск, на который есть ответ, и слово не выпадает из игры.
+   Нет ни примера, ни значения - остаётся открытое задание, как было. */
+function _ttGapFromExample(word, example){
+  const ex = String(example || '').trim();
+  if (!ex) return null;
+  const esc = String(word).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  const m = ex.match(new RegExp('\\b(' + esc + '(?:s|es|ed|d|ing|er|ers)?)\\b', 'i'));
+  if (!m) return null;
+  return { text: ex.slice(0, m.index) + '_____' + ex.slice(m.index + m[1].length), answer: m[1] };
+}
+
 function _ttGenSentencesVocab(input){
   const words = _ttVocabLines(input).slice(0, input.count);
   if (!words.length) return null;
-  const questions = words.map(w => ({
-    type:'open', text:`Make a sentence using the word: "${_ttCap(w)}"`, points:2,
-  }));
+  const glosses = _ttVocabGlossIndex(input);
+  const examples = input.vocabExamples || {};
+  const questions = words.map(w => {
+    const key = String(w).toLowerCase();
+    const gap = _ttGapFromExample(w, examples[key]);
+    if (gap) return { type:'gap-fill', text: gap.text, answer: gap.answer, points:1 };
+    const gloss = glosses[key];
+    if (gloss) return { type:'gap-fill', text:`_____ means "${gloss.replace(/"/g, "'")}".`, answer: w, points:1 };
+    return { type:'open', text:`Make a sentence using the word: "${_ttCap(w)}"`, points:2 };
+  });
   return { boardKind:'quiz', kind:'Sentence Set', cat:'vocabulary', level:input.level, topic:input.topic,
     title:`${input.level} · Sentences with Vocabulary: ${input.topic}`, questions };
 }

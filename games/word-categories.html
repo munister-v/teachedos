@@ -43,16 +43,16 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
   .btn-check,.btn-clear,.play-again{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=845">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=845">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=846">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=846">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=845">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=846">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
 <h1>🗂️ Word Categories</h1>
 <p class="subtitle">Tap a word, then tap a category to place it</p>
-<div class="hud"><div>Score: <span id="score">0</span></div><div>Round: <span id="round">1</span>/8</div></div>
+<div class="hud"><div>Score: <span id="score">0</span></div><div>Round: <span id="round">1</span>/<span id="round-total">8</span></div></div>
 <div class="word-pool" id="pool"></div>
 <div class="columns" id="columns"></div>
 <div class="btn-row">
@@ -116,6 +116,8 @@ function loadRound(){
   document.getElementById('btn-check').style.display='';
   document.getElementById('btn-next').style.display='none';
   document.getElementById('round').textContent=roundIdx+1;
+  // «/8» было вписано в разметку под встроенный набор; у своих слов раундов столько, сколько вышло
+  document.getElementById('round-total').textContent=rounds.length;
   const round=rounds[roundIdx];
   const allWords=Object.values(round.words).flat();
   shuffle(allWords);
@@ -236,9 +238,27 @@ function applyCustomContent(content,title){
     words:(c.words||[]).map(w=>String(w||'').trim()).filter(Boolean)
   })).filter(c=>c.name&&c.words.length);
   if(cats.length<2)return;
-  const words={};
-  cats.forEach(c=>{words[c.name]=c.words.slice(0,8);});
-  ROUNDS=[{cats:cats.map(c=>c.name),words}];
+  /* РАУНДЫ, А НЕ ОБРЕЗКА ДО ВОСЬМИ.
+     Каждая категория резалась до 8 слов (под раскладку одного экрана), и из
+     списка в 30 слов учитель получал игру на 16-24: остальные молча
+     пропадали. Теперь слова идут раундами по 8 на категорию, счёт уже
+     суммируется по раундам. Раунд, где осталась одна категория, - это не
+     сортировка, поэтому её хвост доливается в предыдущий раунд. */
+  const PER=8;
+  const rounds=[];
+  for(let r=0;;r++){
+    const words={};
+    cats.forEach(c=>{const part=c.words.slice(r*PER,(r+1)*PER);if(part.length)words[c.name]=part;});
+    const names=Object.keys(words);
+    if(!names.length)break;
+    if(names.length<2&&rounds.length){
+      const prev=rounds[rounds.length-1];
+      names.forEach(n=>{prev.words[n]=(prev.words[n]||[]).concat(words[n]);if(!prev.cats.includes(n))prev.cats.push(n);});
+      continue;
+    }
+    rounds.push({cats:names,words});
+  }
+  ROUNDS=rounds;
   if(title){document.title=title+' · Word Categories';const h=document.querySelector('h1');if(h)h.textContent='🗂 '+title;}
   start();
 }
@@ -251,7 +271,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=845"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=846"></script>
 <script src="../scripts/game-handoff.js"></script>
 </body>
 </html>

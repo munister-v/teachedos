@@ -33,9 +33,9 @@ h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .score-big{font-size:2.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
 .btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=845">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=846">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=845">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=846">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>
@@ -175,7 +175,15 @@ function applyCustomContent(content,title){
     return {q:String(q.q||q.text||q.prompt||'').trim(),opts,ans};
   }).filter(q=>q.q&&q.opts.length>=2);
   if(qs.length<1)return;
-  QUESTIONS=qs.map(q=>{while(q.opts.length<4)q.opts.push(['Not mentioned','Another option','All of these','None of these'][q.opts.length]);q.opts=q.opts.slice(0,4);q.ans=Math.min(q.ans,3);return q;});
+  /* Вариантов в игре четыре. Если правильный стоял пятым или дальше, его
+     отрезали, а ответ «Math.min(ans,3)» молча переводили на вариант D -
+     неправильный помечался правильным. Правильный теперь сначала
+     переставляется в пределы первых четырёх, потом режем. */
+  QUESTIONS=qs.map(q=>{
+    if(q.ans>3&&q.ans<q.opts.length){const right=q.opts[q.ans];q.opts.splice(q.ans,1);q.opts.splice(3,0,right);q.ans=3;}
+    while(q.opts.length<4)q.opts.push(['Not mentioned','Another option','All of these','None of these'][q.opts.length]);
+    q.opts=q.opts.slice(0,4);q.ans=Math.min(q.ans,3);return q;
+  });
   if(title){document.title=title+' · Speed Quiz';const h=document.querySelector('h1');if(h)h.textContent='⚡ '+title;}
   restart();
 }

@@ -13775,7 +13775,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '845';
+const TEACHEDOS_ASSET_VERSION = '846';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14250,11 +14250,15 @@ async function runBoardWorkout() {
      остаётся главным, словарь и движок добирают только недостающее. */
   if (chip) chip.textContent = 'looking up meanings…';
   if (body) body.innerHTML = `<div class="tbuilder-empty">Looking up meanings for ${entries.length} words…</div>`;
+  /* Словарь спрашиваем обо ВСЁМ списке: кроме значения он отдаёт пример,
+     и из примера получается настоящее предложение с пропуском для «Example
+     sentences». Движок же добирает значения только тем словам, у которых
+     нет ни пояснения учителя, ни словарной статьи. */
   const missing = entries.filter(e => !e.gloss).map(e => e.word);
-  if (missing.length) {
-    const found = await _ttLookupDefinitions(missing, base);
-    entries.forEach(e => { if (!e.gloss) e.gloss = found[e.word.toLowerCase()] || ''; });
-  }
+  const examples = Object.create(null);
+  const found = await _ttLookupDefinitions(entries.map(e => e.word), base, { examples, defsFor: missing });
+  entries.forEach(e => { if (!e.gloss) e.gloss = found[e.word.toLowerCase()] || ''; });
+  base.vocabExamples = examples;
   base.vocab = entries.map(e => e.gloss ? `${e.word} - ${e.gloss.replace(/\s*\n\s*/g, ' ')}` : e.word).join('\n');
   base.count = entries.length;
 
@@ -14664,7 +14668,11 @@ function _ttTopicFromWords(words) {
       with me»): у него есть тема и уровень, он пишет определение под класс.
    Что не нашлось ни там, ни там, остаётся без значения. */
 const TT_DEFINE_BATCH = 20;
-async function _ttLookupDefinitions(words, base) {
+/* opts.examples - сборщик примеров из словаря (слово в нижнем регистре →
+   предложение). opts.defsFor - для каких слов значение действительно нужно:
+   к движку идут только они, а словарь спрашивается обо всём списке, чтобы
+   собрать примеры и для слов, которым учитель уже написал пояснение. */
+async function _ttLookupDefinitions(words, base, opts = {}) {
   const found = Object.create(null);
   const list = [...new Set(words.map(w => String(w || '').trim()).filter(Boolean))];
   for (let i = 0; i < list.length; i += TT_DEFINE_BATCH) {
@@ -14674,16 +14682,19 @@ async function _ttLookupDefinitions(words, base) {
                                '&words=' + encodeURIComponent(chunk.join(',')));
       const d = await r.json().catch(() => null);
       (d && d.results || []).forEach((x, xi) => {
-        if (!x || !x.definition) return;
+        if (!x) return;
         /* Ключ - слово, КОТОРОЕ СПРАШИВАЛИ: словарь может вернуть статью
            «colleague» на запрос «Colleagues», и по его написанию слово
            учителя значения не нашло бы. */
-        found[String(chunk[xi] || x.word).toLowerCase()] = x.definition;
+        const key = String(chunk[xi] || x.word).toLowerCase();
+        if (x.example && opts.examples) opts.examples[key] = x.example;
+        if (x.definition) found[key] = x.definition;
       });
     } catch (err) { console.warn('[defs] dictionary lookup failed', err); }
   }
 
-  const still = list.filter(w => !found[w.toLowerCase()]);
+  const want = Array.isArray(opts.defsFor) ? opts.defsFor : list;
+  const still = want.filter(w => !found[String(w).toLowerCase()]);
   if (!still.length) return found;
   try {
     const ai = await requestServerTeacherTool({
