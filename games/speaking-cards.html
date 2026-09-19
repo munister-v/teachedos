@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<title>Speaking Cards</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#24282C;--lime:#CDF649;--paper:#F6F6EF;--gray:#CACCC6;--olive:#5D614B}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--ink);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.6rem;font-weight:800;margin-bottom:4px;text-align:center}
+.subtitle{color:var(--olive);font-size:.9rem;margin-bottom:18px;text-align:center}
+.count{font-weight:700;color:var(--olive);font-size:.9rem;margin-bottom:12px}
+.stage{position:relative;width:100%;max-width:420px;aspect-ratio:4/3}
+/* Колода - стопка рубашкой вверх; сданная карта лежит поверх неё лицом. */
+.deck{position:absolute;inset:0;border-radius:18px;background:var(--lime);box-shadow:6px 6px 0 var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;cursor:pointer;border:2px solid var(--ink)}
+.deck.empty{background:var(--paper);border-style:dashed;box-shadow:none;cursor:default;color:var(--olive)}
+.card{position:absolute;inset:0;border-radius:18px;background:#fff;border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:22px;display:flex;flex-direction:column;gap:10px;animation:deal .28s ease}
+.card[hidden]{display:none}
+@keyframes deal{from{transform:translateY(-14px) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
+.card .word{font-size:2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.card .meaning{font-size:.95rem;color:var(--olive);line-height:1.45}
+.card .task{margin-top:auto;padding:12px 14px;border-radius:12px;background:var(--paper);font-weight:700;font-size:1rem;line-height:1.4}
+.row{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center}
+button{font-family:inherit;font-weight:700;font-size:.95rem;border-radius:12px;padding:11px 18px;cursor:pointer;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+button.primary{background:var(--ink);color:var(--lime)}
+button:disabled{opacity:.35;cursor:default}
+@media (max-width:600px){button{min-height:44px}.card .word{font-size:1.6rem}}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=849">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1 id="title">🗣️ Speaking Cards</h1>
+<p class="subtitle">Deal a card and talk: every card is one of your words</p>
+<div class="count" id="count"></div>
+<div class="stage">
+  <div class="deck" id="deck" onclick="deal()">Tap to deal</div>
+  <div class="card" id="card" hidden>
+    <div class="word" id="cWord"></div>
+    <div class="meaning" id="cMeaning"></div>
+    <div class="task" id="cTask"></div>
+  </div>
+</div>
+<div class="row">
+  <button id="prevBtn" onclick="prev()">← Back</button>
+  <button class="primary" id="dealBtn" onclick="deal()">Deal next card</button>
+  <button onclick="reshuffle()">↻ Shuffle</button>
+</div>
+
+<script>
+/* Как Speaking cards в Wordwall: колода перетасована, карты сдаются по одной
+   и каждая - одно слово учителя с заданием «скажи». Задания чередуются,
+   чтобы тридцать карт не были тридцатью одинаковыми «make a sentence». */
+const TASKS=[
+  'Use it in a sentence about yourself.',
+  'Explain it to your partner without saying the word.',
+  'Ask your partner a question with it.',
+  'Tell a short story (3 sentences) that uses it.',
+  'Say when you last saw, did or needed this.',
+  'Give an example from real life.',
+  'Say the opposite, or a word it goes with.',
+];
+let CARDS=[
+  {word:'deadline',meaning:'a time by which something must be done'},
+  {word:'colleague',meaning:'a person you work with'},
+  {word:'salary',meaning:'money you earn every month'},
+  {word:'promotion',meaning:'moving to a higher job'},
+];
+let order=[],pos=-1;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function reshuffle(){order=shuffle(CARDS.map((_,i)=>i));pos=-1;render();}
+function deal(){if(pos>=order.length-1)return;pos++;render();report();}
+function prev(){if(pos<=0)return;pos--;render();}
+function render(){
+  const card=document.getElementById('card'),deck=document.getElementById('deck');
+  document.getElementById('count').textContent=pos<0?CARDS.length+' cards':'Card '+(pos+1)+' of '+order.length;
+  document.getElementById('prevBtn').disabled=pos<=0;
+  document.getElementById('dealBtn').disabled=pos>=order.length-1;
+  document.getElementById('dealBtn').textContent=pos>=order.length-1&&pos>=0?'All cards dealt':'Deal next card';
+  deck.classList.toggle('empty',pos>=order.length-1&&pos>=0);
+  deck.textContent=pos>=order.length-1&&pos>=0?'Deck empty':'Tap to deal';
+  if(pos<0){card.hidden=true;return;}
+  const c=CARDS[order[pos]];
+  document.getElementById('cWord').textContent=c.word;
+  document.getElementById('cMeaning').textContent=c.meaning||'';
+  document.getElementById('cTask').textContent=c.prompt||TASKS[order[pos]%TASKS.length];
+  card.hidden=false;card.style.animation='none';void card.offsetWidth;card.style.animation='';
+}
+function report(){
+  try{window.parent.postMessage({type:'game-progress',score:pos+1,max:order.length,status:pos>=order.length-1?'done':'in-progress'},'*');}catch(e){}
+  if(pos>=order.length-1){try{window.parent.postMessage({type:'game-finished',score:order.length,max:order.length,game:'Speaking Cards',status:'done'},'*');}catch(e){}}
+}
+function applyCustomContent(content,title){
+  const src=(content&&content.cards)||(content&&content.pairs)||[];
+  const cards=src.map(c=>({word:String(c.word||c.a||c.w||'').trim(),meaning:String(c.meaning||c.b||c.d||c.definition||'').trim(),prompt:String(c.prompt||'').trim()})).filter(c=>c.word);
+  if(!cards.length)return;
+  CARDS=cards;
+  if(title){document.title=title+' · Speaking Cards';document.getElementById('title').textContent='🗣️ '+title;}
+  reshuffle();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
+reshuffle();
+</script>
+<script src="../scripts/game-handoff.js?v=849"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=849"></script>
+</body>
+</html>

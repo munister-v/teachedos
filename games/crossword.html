@@ -56,10 +56,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=846">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=846">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=849">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=849">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=846">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=849">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -314,25 +314,47 @@ function check(){
   });
   document.getElementById('score').textContent=correct;
   const solved = correct===total;
-  document.getElementById('feedback').textContent= solved ? '🎉 Solved! Great job!' : `${correct}/${total} correct so far`;
+  document.getElementById('feedback').textContent= solved
+    ? (customAll&&cwQueue.length ? `🎉 Solved! ${cwQueue.length} words left - press New Puzzle.` : '🎉 Solved! Great job!')
+    : `${correct}/${total} correct so far`;
   if(solved) try{window.parent.postMessage({type:'game-finished',score:correct,max:total,game:'Crossword',status:'done'},'*');}catch(e){}
   else try{window.parent.postMessage({type:'teachedos-score',score:correct},'*');}catch(e){}
 }
 
+/* Свой список идёт кроссвордами по CW_ROUND слов через весь список, а не
+   первые десять. Слово, которое сетка не приняла, переходит в следующий
+   кроссворд, иначе оно тихо пропадало бы из урока. */
+const CW_ROUND=10;
+let customAll=null, cwQueue=[], cwDone=0;
 function start(){
   document.getElementById('feedback').textContent='';
   document.getElementById('score').textContent=0;
+  if(customAll){
+    if(!cwQueue.length){cwQueue=customAll.slice().sort(()=>Math.random()-.5);cwDone=0;}
+    customBank=cwQueue.splice(0,CW_ROUND);
+  }
   buildCrossword();
+  if(customAll){
+    const missed=customBank.filter(w=>!placements.some(p=>p.word===w.word));
+    if(missed.length) cwQueue.unshift(...missed);
+    cwDone+=customBank.length-missed.length;
+    const left=cwQueue.length;
+    document.getElementById('feedback').textContent=left
+      ? `${customAll.length} words: this puzzle has ${placements.length}, ${left} more in the next one.`
+      : (customAll.length>placements.length ? `Last puzzle of your ${customAll.length} words.` : '');
+  }
   render();
 }
 
 function applyCustomContent(content,title){
   const bank=((content&&content.pairs)||[]).map(p=>({
-    word:String(p.a||p.word||p.en||'').trim().toUpperCase(),
+    // Фраза вписывается без пробела (SORE THROAT → SORETHROAT), как в
+    // печатных кроссвордах; иначе фильтр ниже молча выкидывал её из урока.
+    word:String(p.a||p.word||p.en||'').toUpperCase().replace(/[^A-Z]/g,''),
     clue:String(p.b||p.definition||p.clue||p.uk||'').trim()
   })).filter(x=>/^[A-Z]{2,}$/.test(x.word)&&x.clue);
   if(bank.length<2)return;
-  customBank=bank.slice(0,10);
+  customAll=bank;cwQueue=[];
   if(title){document.title=title+' · Crossword';const h=document.querySelector('h1');if(h)h.textContent=title;}
   start();
 }
@@ -343,7 +365,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=846"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=846"></script>
+<script src="../scripts/game-handoff.js?v=849"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=849"></script>
 </body>
 </html>

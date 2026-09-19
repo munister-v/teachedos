@@ -471,6 +471,8 @@ const GAMES = [
   { icon:'⚖️', title:'Four Opinions',     tag:'Speaking',   desc:'Four contrasting opinions on a topic to react to',        src:'games/four-opinions-uk.html',      w:600, h:620 },
   { icon:'🖼', title:'Image Quiz',        tag:'Vocabulary', desc:'Pick the word that matches the picture',                  src:'games/image-quiz.html',            w:460, h:520 },
   { icon:'🧭', title:'LinguaQuiz',        tag:'Grammar',    desc:'Cloze quiz over a text with instant checking',            src:'games/linguaquiz-ai-uk.html',      w:600, h:640 },
+  { icon:'🗣️', title:'Speaking Cards',    tag:'Speaking',   desc:'Deal a card, talk about the word on it',                  src:'games/speaking-cards.html',        w:480, h:560 },
+  { icon:'🎁', title:'Open the Box',      tag:'Vocabulary', desc:'Numbered boxes, each hiding one of your words',           src:'games/open-the-box.html',          w:520, h:600 },
 ];
 
 /* ─── STICKER_CATEGORIES ─── */
@@ -572,6 +574,35 @@ const STICKER_KEYWORDS = {
    и есть нормальная форма: пары слово-значение это Memory Match, предложения
    с пропуском - Fill the Blank, категории - Word Categories. У остальных
    игры нет, они ложатся стилизованным листом. */
+/* ─── BOARD_WORD_TEMPLATES ─── шаблоны «один список слов - много игр» ────
+   Как в Wordwall: учитель даёт список, отмечает, КАК тренировать, и каждый
+   отмеченный шаблон сразу ложится на доску играбельной игрой со ВСЕМИ
+   словами. Содержимое собирается прямо из списка (слово, значение, пример),
+   а не через генератор задания - так ни одно слово не теряется по дороге.
+
+   needs - что шаблону нужно от списка сверх самих слов:
+     meaning  - значение (добирается словарём/движком до сборки);
+     example  - пример-предложение (из словаря; без него слово пропускается);
+     groups   - группы: строки учителя «Food: apple, bread», иначе движок (AI).
+   icon - ключ простого глифа в _wordTemplateIcon (board-app.js). */
+const BOARD_WORD_TEMPLATES = [
+  {key:'matchup',   title:'Match up',              game:'word-definition-match', icon:'matchup',   needs:'meaning', hint:'Drag each word to its meaning.'},
+  {key:'quiz',      title:'Quiz',                  game:'vocab-quiz',            icon:'quiz',      needs:'meaning', hint:'A question on every word, four options.'},
+  {key:'flashcards',title:'Flash cards',           game:'flashcards',            icon:'flashcards',needs:'meaning', hint:'Word on the front, meaning and example behind.'},
+  {key:'speaking',  title:'Speaking cards',        game:'speaking-cards',        icon:'speaking',  needs:'',        hint:'Deal a card and talk about the word.'},
+  {key:'wheel',     title:'Spin the wheel',        game:'spin-wheel',            icon:'wheel',     needs:'',        hint:'Spin, land on a word, use it.'},
+  {key:'groupsort', title:'Group sort',            game:'group-sort',            icon:'groupsort', needs:'groups',  hint:'Drag words into their groups.', ai:true},
+  {key:'findmatch', title:'Find the match',        game:'find-match',            icon:'findmatch', needs:'meaning', hint:'Tap the word that fits the meaning.'},
+  {key:'pairs',     title:'Matching pairs',        game:'memory-match',          icon:'pairs',     needs:'meaning', hint:'Turn tiles over two at a time.'},
+  {key:'box',       title:'Open the box',          game:'open-the-box',          icon:'box',       needs:'',        hint:'Open numbered boxes, one word inside each.'},
+  {key:'anagram',   title:'Anagram',               game:'word-scramble',         icon:'anagram',   needs:'meaning', hint:'Put the letters back in order.'},
+  {key:'unjumble',  title:'Unjumble',              game:'sentence-builder',      icon:'unjumble',  needs:'example', hint:'Reorder the words of an example sentence.'},
+  {key:'complete',  title:'Complete the sentence', game:'fill-blank',            icon:'complete',  needs:'example', hint:'Each word goes back into its sentence.'},
+  {key:'wordsearch',title:'Wordsearch',            game:'word-search',           icon:'wordsearch',needs:'',        hint:'Find the words hidden in the grid.'},
+  {key:'crossword', title:'Crossword',             game:'crossword',             icon:'crossword', needs:'meaning', hint:'Meanings are the clues.'},
+  {key:'hangman',   title:'Hangman',               game:'hangman',               icon:'hangman',   needs:'meaning', hint:'Guess the word letter by letter.'},
+];
+
 const BOARD_WORKOUT_ACTIVITIES = [
   {key:'match',      tool:'word-definition-match', title:'Match word to meaning',      hint:'Pairs for matching, cards or a memory game.', game:'memory-match'},
   {key:'flashcards', tool:'flashcards',            title:'Flashcards',                 hint:'Word on one side, meaning and an example on the other.', game:'flashcards'},
@@ -589,6 +620,7 @@ const BOARD_WORKOUT_ACTIVITIES = [
   {key:'discussion', tool:'discussion',            title:'Discussion questions',       hint:'Speaking prompts that force the words out.',     ai:true},
 ];
 window.BOARD_WORKOUT_ACTIVITIES = BOARD_WORKOUT_ACTIVITIES;
+window.BOARD_WORD_TEMPLATES = BOARD_WORD_TEMPLATES;
 
 /* ═══════════════════════════════════════════════════════════════════
    ЭТАПЫ УРОКА ДЛЯ КОНСТРУКТОРА

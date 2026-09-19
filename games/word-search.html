@@ -37,9 +37,9 @@ h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
   .grid-wrap{padding:6px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=846">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=849">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=846">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=849">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>
@@ -56,9 +56,9 @@ h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
   <button class="btn-play" onclick="init()">Play Again</button>
 </div>
 
-<script src="../scripts/game-handoff.js?v=846"></script>
-<script src="../scripts/game-pause.js?v=846"></script>
-<script src="../scripts/vocabulary.js?v=846"></script>
+<script src="../scripts/game-handoff.js?v=849"></script>
+<script src="../scripts/game-pause.js?v=849"></script>
+<script src="../scripts/vocabulary.js?v=849"></script>
 <script>
 let WORDS=['COMFORT','NEGOTIATE','PREJUDICE','ABUNDANCE','VULNERABLE','DELIBERATE','PHENOMENON','INEVITABLE'];
 (function loadFromUrl(){
@@ -72,11 +72,25 @@ let WORDS=['COMFORT','NEGOTIATE','PREJUDICE','ABUNDANCE','VULNERABLE','DELIBERAT
   const topic = window.TEACHEDOS_VOCAB.getTopic(topicId);
   if(topic) document.title = topic.name + ' Word Search · TeachEd';
 })();
-const SIZE=12;
+let SIZE=12;
+/* Свой список - раундами по ROUND_SIZE через весь список, а не первые
+   десять. Фраза ищется без пробелов («SORE THROAT» → SORETHROAT), как в
+   Wordwall; сетка растёт под самое длинное слово (до 15). Слово, которое не
+   легло в сетку, уходит в следующий раунд, а не остаётся в списке «найди»,
+   которого на поле нет. */
+const ROUND_SIZE=8;
+let ALL=null,queue=[],roundNo=0,roundWon=false;
 let grid=[],placed=[],foundSet=new Set(),selecting=false,selStart=null,selCells=[];
 let timerSec=0,timerInt=null,done=false;
 
 function init(){
+  if(ALL){
+    if(roundWon&&queue.length){roundNo++;}
+    else{queue=ALL.slice().sort(()=>Math.random()-.5);roundNo=1;}
+    roundWon=false;
+    WORDS=queue.splice(0,ROUND_SIZE);
+    SIZE=Math.max(12,Math.min(15,Math.max(...WORDS.map(w=>w.length))));
+  }
   foundSet=new Set();done=false;selCells=[];selecting=false;
   document.getElementById('winMsg').style.display='none';
   document.getElementById('grid').style.display='grid';
@@ -116,6 +130,10 @@ function buildGrid(){
         placed.push({word,cells});placed_=true;
       }
     }
+  }
+  if(ALL){
+    const missed=WORDS.filter(w=>!placed.some(p=>p.word===w));
+    if(missed.length){WORDS=WORDS.filter(w=>!missed.includes(w));queue.unshift(...missed);}
   }
   const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)
@@ -202,6 +220,13 @@ function win(){
   const m=Math.floor(timerSec/60),s=timerSec%60;
   document.getElementById('winTime').textContent='Solved in '+(m?m+'m ':'')+s+'s! 🏆';
   document.getElementById('winMsg').style.display='flex';
+  const btn=document.querySelector('#winMsg .btn-play');
+  if(ALL){
+    roundWon=true;
+    const total=Math.ceil(ALL.length/ROUND_SIZE);
+    if(btn)btn.textContent=queue.length?'Next '+Math.min(ROUND_SIZE,queue.length)+' words':'Play again';
+    document.getElementById('winTime').textContent+=queue.length?' Round '+roundNo+' of '+Math.max(total,roundNo+1)+'.':' All '+ALL.length+' words found.';
+  }
   window.parent.postMessage({type:'gameScore',score:WORDS.length,max:WORDS.length,game:'Word Search'},'*');
 }
 
@@ -217,10 +242,10 @@ function renderWords(){
 
 function applyCustomContent(content,title){
   const src=((content&&content.words)||[]).concat(((content&&content.pairs)||[]).map(p=>p.a||p.word||p.en||''));
-  const words=src.map(w=>String(w||'').trim().toUpperCase()).filter(w=>/^[A-Z]+$/.test(w)&&w.length>=3&&w.length<=11);
+  const words=src.map(w=>String(w||'').toUpperCase().replace(/[^A-Z]/g,'')).filter(w=>w.length>=3&&w.length<=15);
   const uniq=[...new Set(words)];
   if(uniq.length<2)return;
-  WORDS=uniq.slice(0,10);
+  ALL=uniq;queue=[];roundNo=0;roundWon=false;
   if(title){document.title=title+' · Word Search';const h=document.querySelector('h1');if(h)h.textContent=title;}
   init();
 }

@@ -3645,6 +3645,26 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Отмеченный вариант подсвечивается салатовым, чтобы состав урока читался
    с одного взгляда, не вчитываясь в положение галочек. */
 .tbuilder-form .tb-workout-item.is-on{border-color:rgba(168,208,43,.75);background:rgba(205,249,64,.13);}
+/* Сетка шаблонов «как тренировать» - как выбор шаблона в Wordwall: плитка с
+   глифом и названием, отмеченная - лаймом. Цвета - буквальные hex листа. */
+/* Контейнер сам по себе - сетка в две колонки для листов; шаблоны внутри
+   раскладываются своей сеткой, поэтому здесь он просто блок. */
+#tool-builder-panel .tbuilder-form #tbuilder-workout-list{display:block}
+.tbuilder-form .tb-tpl-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 8px;font:700 11px/1.2 var(--font);color:#5D614B;text-transform:none;letter-spacing:0}
+.tbuilder-form .tb-tpl-all{border:0;background:none;padding:4px 2px;font:700 12px var(--font);color:#24282C;text-decoration:underline;cursor:pointer}
+.tbuilder-form .tb-tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+#tool-builder-panel .tbuilder-form .tb-tpl,
+.tbuilder-form .tb-tpl{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;margin:0;padding:12px 8px 10px;border:1.5px solid #CACCC6;border-radius:12px;background:#fff;cursor:pointer;text-align:center;text-transform:none;letter-spacing:0;transition:border-color .12s,background .12s}
+.tbuilder-form .tb-tpl:hover{border-color:#24282C}
+.tbuilder-form .tb-tpl input{position:absolute;top:7px;left:7px;width:15px;height:15px;margin:0;accent-color:#24282C;cursor:pointer}
+.tbuilder-form .tb-tpl-ico{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:10px;background:#F6F6EF}
+.tbuilder-form .tb-tpl-name{font:650 12.5px/1.25 var(--font);color:#24282C}
+.tbuilder-form .tb-tpl .tb-workout-ai{position:absolute;top:6px;right:6px}
+#tool-builder-panel .tbuilder-form .tb-tpl:has(input:checked),.tbuilder-form .tb-tpl:has(input:checked){border-color:#24282C;background:#CDF649}
+#tool-builder-panel .tbuilder-form .tb-tpl:has(input:checked) .tb-tpl-ico{background:#fff}
+.tbuilder-form .tb-tpl-more{margin-top:12px}
+.tbuilder-form .tb-tpl-more summary{cursor:pointer;font:700 12px var(--font);color:#5D614B;padding:4px 0}
+.tbuilder-form .tb-tpl-more .tb-workout-list{margin-top:8px}
 
 /* Кнопки у одного задания в превью: пересобрать его или выкинуть, не
    трогая остальной урок. Держатся тихо, пока учитель не наведётся. */

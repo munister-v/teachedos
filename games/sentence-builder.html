@@ -44,17 +44,17 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
   .btn-check,.btn-clear,.play-again{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=846">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=846">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=849">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=849">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=846">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=849">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
 <h1>🧩 Sentence Builder</h1>
 <p class="subtitle">Arrange the words in the correct order</p>
 <div class="card">
-  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/12</div></div>
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/<span id="qtotal">12</span></div></div>
   <div class="translation" id="translation"></div>
   <div class="drop-zone" id="drop-zone"></div>
   <div class="words" id="words"></div>
@@ -81,11 +81,19 @@ const SENTENCES=[
   {s:'He has been studying English for two years.',t:'Він вивчає англійську вже два роки.'},
 ];
 let queue=[],idx=0,score=0,placed=[],wordEls=[];
+/* Свои предложения (Unjumble из списка слов учителя) - все, а не двенадцать
+   случайных; подсказка над полем - слово и его значение, а не перевод. */
+let customSentences=null;
+/* Кнопки Check/Clear запоминаются: endGame заменяет ряд на «Play Again», и
+   без возврата после повторного старта собирать предложение было нечем. */
+const BTN_ROW_HTML=document.querySelector('.btn-row').innerHTML;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 
 function start(){
-  queue=shuffle([...SENTENCES]).slice(0,12);
+  queue=customSentences?shuffle([...customSentences]):shuffle([...SENTENCES]).slice(0,12);
+  document.querySelector('.btn-row').innerHTML=BTN_ROW_HTML;
+  document.getElementById('qtotal').textContent=queue.length;
   idx=0;score=0;
   document.getElementById('score').textContent=0;
   nextQ();
@@ -173,11 +181,26 @@ function endGame(){
   document.querySelector('.btn-row').innerHTML=`<button onclick="start()" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--accent);color:#fff">▶ Play Again</button>`;
   document.getElementById('feedback').className='feedback ok';
   document.getElementById('feedback').textContent='Done! Score: '+score+'/'+queue.length;
+  try{window.parent.postMessage({type:'game-finished',score:score,max:queue.length,game:'Unjumble',status:'done'},'*');}catch(e){}
 }
+
+function applyCustomContent(content,title){
+  const list=((content&&content.sentences)||[]).map(x=>typeof x==='string'?{s:x,t:''}:{s:String(x.s||x.sentence||x.text||''),t:String(x.t||x.hint||'')})
+    .map(x=>({s:x.s.replace(/\s+/g,' ').trim(),t:x.t.trim()}))
+    .filter(x=>x.s.split(' ').length>=3);
+  if(list.length<1)return;
+  customSentences=list;
+  if(title){document.title=title+' · Unjumble';const h=document.querySelector('h1');if(h)h.textContent='🧩 '+title;}
+  start();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=846"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=846"></script>
+<script src="../scripts/game-handoff.js?v=849"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=849"></script>
 </body>
 </html>

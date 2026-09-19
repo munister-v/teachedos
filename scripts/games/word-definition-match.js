@@ -89,7 +89,24 @@ function buildCards() {
   return shuffle(cards);
 }
 
+/* Свой список идёт раундами по CUSTOM_ROUND пар через весь список: срез до
+   восьми оставлял слова учителя за бортом. Следующий раунд начинается только
+   после выигранного; проигранный переигрывается тем же набором. */
+const CUSTOM_ROUND = 8;
+let customAll = null, customDeck = [], customRound = 0, customWon = false;
+function customRoundsTotal() { return Math.max(1, Math.ceil(customDeck.length / CUSTOM_ROUND)); }
+function loadCustomRound() {
+  if (!customAll || state.themeId !== "custom") return;
+  if (!customDeck.length || (customWon && customRound + 1 >= customRoundsTotal())) {
+    customDeck = shuffle(customAll); customRound = 0;
+  } else if (customWon) customRound += 1;
+  customWon = false;
+  const theme = THEMES.find((t) => t.id === "custom");
+  if (theme) theme.pairs = customDeck.slice(customRound * CUSTOM_ROUND, (customRound + 1) * CUSTOM_ROUND);
+}
+
 function resetGame() {
+  loadCustomRound();
   stopTimer();
   state.cards = buildCards();
   state.selectedIds = [];
@@ -135,6 +152,7 @@ function checkEndState() {
   if (state.matches === totalPairs) {
     stopTimer();
     state.status = "won";
+    if (customAll && state.themeId === "custom") customWon = true;
     showResult(true);
     return;
   }
@@ -153,6 +171,14 @@ function showResult(isWin) {
     : "Спроба завершена, але прогрес збережено. Перезапустіть гру та спробуйте іншу стратегію.";
   document.getElementById("modal-time").textContent = state.elapsed + " с";
   document.getElementById("modal-pairs").textContent = state.matches + " / " + getTheme().pairs.length;
+  if (isWin && customAll && state.themeId === "custom") {
+    const more = customRound + 1 < customRoundsTotal();
+    document.getElementById("result-title").textContent = more
+      ? "Round " + (customRound + 1) + " of " + customRoundsTotal() + " done"
+      : "All " + customDeck.length + " pairs matched!";
+    const again = document.getElementById("play-again-btn");
+    if (again) again.textContent = more ? "Next " + Math.min(CUSTOM_ROUND, customDeck.length - (customRound + 1) * CUSTOM_ROUND) + " pairs" : "Play again";
+  }
   modalEl.classList.add("open");
   modalEl.setAttribute("aria-hidden", "false");
   try { window.parent.postMessage({ type: "game-finished", score: state.matches, max: getTheme().pairs.length, time: state.elapsed, game: "Match up", status: "done" }, "*"); } catch (e) {}
@@ -231,7 +257,8 @@ function applyCustomContent(content, title) {
     .map((p, i) => ({ id: "c" + i, term: String(p.a || p.term || p.word || "").trim(), definition: String(p.b || p.definition || p.d || "").trim() }))
     .filter((p) => p.term && p.definition);
   if (pairs.length < 2) return;
-  const theme = { id: "custom", name: title || "Custom set", pairs: pairs.slice(0, 8) };
+  customAll = pairs; customDeck = []; customRound = 0; customWon = false;
+  const theme = { id: "custom", name: title || "Custom set", pairs: pairs.slice(0, CUSTOM_ROUND) };
   const idx = THEMES.findIndex((t) => t.id === "custom");
   if (idx >= 0) THEMES[idx] = theme; else THEMES.push(theme);
   state.themeId = "custom";

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<title>Open the Box</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#24282C;--lime:#CDF649;--paper:#F6F6EF;--gray:#CACCC6;--olive:#5D614B}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.back{align-self:flex-start;color:var(--ink);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
+h1{font-size:1.6rem;font-weight:800;margin-bottom:4px;text-align:center}
+.subtitle{color:var(--olive);font-size:.9rem;margin-bottom:14px;text-align:center}
+.count{font-weight:700;color:var(--olive);font-size:.9rem;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px;width:100%;max-width:520px}
+.box{aspect-ratio:1;border-radius:12px;border:2px solid var(--ink);background:var(--lime);box-shadow:3px 3px 0 var(--ink);font-weight:800;font-size:1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:var(--ink)}
+.box:hover{transform:translateY(-1px)}
+.box.opened{background:#fff;box-shadow:none;border-color:var(--gray);color:var(--olive);font-size:.72rem;font-weight:700;padding:4px;text-align:center;line-height:1.2;word-break:break-word}
+/* Открытая коробка - поверх сетки, как в Wordwall: слово крупно, значение
+   и задание под ним. Закрытие возвращает к полю, коробка остаётся открытой. */
+.lid{position:fixed;inset:0;background:rgba(36,40,44,.45);display:flex;align-items:center;justify-content:center;padding:18px}
+.lid[hidden]{display:none}
+.lid-card{width:100%;max-width:400px;background:#fff;border:2px solid var(--ink);border-radius:18px;box-shadow:6px 6px 0 var(--ink);padding:22px;animation:pop .22s ease}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.lid-num{font-size:.8rem;font-weight:800;color:var(--olive);letter-spacing:.08em;text-transform:uppercase}
+.lid-word{font-size:2rem;font-weight:800;margin:6px 0 8px;letter-spacing:-.02em;line-height:1.1}
+.lid-meaning{color:var(--olive);line-height:1.45;margin-bottom:14px}
+.lid-task{padding:11px 13px;border-radius:12px;background:var(--paper);font-weight:700;line-height:1.4;margin-bottom:16px}
+button{font-family:inherit;font-weight:700;font-size:.95rem;border-radius:12px;padding:11px 18px;cursor:pointer;border:2px solid var(--ink);background:var(--ink);color:var(--lime)}
+.row{display:flex;gap:10px;margin-top:18px}
+.ghost{background:#fff;color:var(--ink)}
+@media (max-width:600px){button{min-height:44px}}
+</style>
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=849">
+</head>
+<body>
+<a class="back" href="index.html">← Games</a>
+<h1 id="title">🎁 Open the Box</h1>
+<p class="subtitle">Pick a box, open it and use the word inside</p>
+<div class="count" id="count"></div>
+<div class="grid" id="grid"></div>
+<div class="row"><button class="ghost" onclick="reset()">↻ Close all &amp; shuffle</button></div>
+<div class="lid" id="lid" hidden onclick="if(event.target===this)closeLid()">
+  <div class="lid-card">
+    <div class="lid-num" id="lNum"></div>
+    <div class="lid-word" id="lWord"></div>
+    <div class="lid-meaning" id="lMeaning"></div>
+    <div class="lid-task" id="lTask"></div>
+    <button onclick="closeLid()">Done</button>
+  </div>
+</div>
+
+<script>
+/* По коробке на слово: номер снаружи, слово внутри. Сколько слов у учителя,
+   столько и коробок - без среза до «удобного» числа. */
+const TASKS=['Make a sentence with it.','Explain it without saying it.','Ask a question with it.','Give an example from your life.','Say a word it goes with.'];
+let ITEMS=[{word:'deadline',meaning:'a time by which something must be done'},{word:'salary',meaning:'money you earn every month'},{word:'colleague',meaning:'a person you work with'},{word:'promotion',meaning:'moving to a higher job'}];
+let order=[],opened=new Set();
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function reset(){order=shuffle(ITEMS.map((_,i)=>i));opened=new Set();render();}
+function render(){
+  const g=document.getElementById('grid');g.innerHTML='';
+  order.forEach((it,i)=>{
+    const b=document.createElement('button');
+    b.className='box'+(opened.has(i)?' opened':'');
+    b.textContent=opened.has(i)?ITEMS[it].word:String(i+1);
+    b.onclick=()=>openBox(i);
+    g.appendChild(b);
+  });
+  document.getElementById('count').textContent=opened.size+' of '+order.length+' opened';
+}
+function openBox(i){
+  const it=ITEMS[order[i]];
+  document.getElementById('lNum').textContent='Box '+(i+1);
+  document.getElementById('lWord').textContent=it.word;
+  document.getElementById('lMeaning').textContent=it.meaning||'';
+  document.getElementById('lTask').textContent=it.prompt||TASKS[i%TASKS.length];
+  document.getElementById('lid').hidden=false;
+  if(!opened.has(i)){opened.add(i);
+    try{window.parent.postMessage({type:'game-progress',score:opened.size,max:order.length,status:opened.size===order.length?'done':'in-progress'},'*');}catch(e){}
+    if(opened.size===order.length){try{window.parent.postMessage({type:'game-finished',score:order.length,max:order.length,game:'Open the Box',status:'done'},'*');}catch(e){}}
+  }
+  render();
+}
+function closeLid(){document.getElementById('lid').hidden=true;}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLid();});
+function applyCustomContent(content,title){
+  const src=(content&&content.items)||(content&&content.pairs)||[];
+  const items=src.map(c=>({word:String(c.word||c.a||c.w||'').trim(),meaning:String(c.meaning||c.b||c.d||c.definition||'').trim(),prompt:String(c.prompt||'').trim()})).filter(c=>c.word);
+  if(!items.length)return;
+  ITEMS=items;
+  if(title){document.title=title+' · Open the Box';document.getElementById('title').textContent='🎁 '+title;}
+  reset();
+}
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='teachedos-custom-game-content')applyCustomContent(e.data.content,e.data.title);
+});
+try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
+reset();
+</script>
+<script src="../scripts/game-handoff.js?v=849"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=849"></script>
+</body>
+</html>

@@ -13775,7 +13775,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '846';
+const TEACHEDOS_ASSET_VERSION = '849';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14151,25 +14151,69 @@ function boardWorkoutActivities() {
     ? BOARD_WORKOUT_ACTIVITIES : [];
 }
 
+function boardWordTemplates() {
+  return (typeof BOARD_WORD_TEMPLATES !== 'undefined' && Array.isArray(BOARD_WORD_TEMPLATES))
+    ? BOARD_WORD_TEMPLATES : [];
+}
+
+/* Задания-листы, которые шаблоны-игры НЕ покрывают: сопоставление,
+   флешкарты, примеры и сортировка теперь - игры сверху, дублировать их
+   листами значило бы дать две галочки на одно и то же. */
+const WORKOUT_TASKS_BESIDE_GAMES = new Set(['link', 'halves', 'situations', 'odd', 'translate', 'writing', 'discussion']);
+
 function boardWorkoutSavedPicks() {
   try {
     const raw = JSON.parse(localStorage.getItem(WORKOUT_PICKS_STORE) || 'null');
-    if (Array.isArray(raw) && raw.length) return raw;
+    // Старые сохранения - ключи листов без шаблонов; с ними учитель увидел бы
+    // пустую сетку игр, поэтому такие сохранения не подхватываем.
+    if (Array.isArray(raw) && raw.some(k => String(k).startsWith('tpl:'))) return raw;
   } catch (_) {}
-  // По умолчанию три офлайновые: они строятся мгновенно и без сети, поэтому
-  // первый прогон даёт результат даже без входа в аккаунт.
-  return ['match', 'flashcards', 'sentences'];
+  // По умолчанию - шаблоны, которые строятся из одного списка без сети и
+  // без входа: у каждого слова уже будет значение из словаря.
+  return ['tpl:matchup', 'tpl:flashcards', 'tpl:pairs', 'tpl:quiz', 'tpl:complete', 'tpl:wordsearch'];
 }
 
 function boardWorkoutPickedKeys() {
   return [...document.querySelectorAll('#tbuilder-workout-list input:checked')].map(i => i.value);
 }
 
+/* Глифы шаблонов - свои, простые, в чернилах бренда. Картинки Wordwall -
+   их графика; повторяем раскладку и жест, а не рисунок. */
+function _wordTemplateIcon(key) {
+  const L = '#24282C', A = '#CDF649', B = '#6BAFF3', C = '#F3A46B';
+  const r = (x, y, w, h, f) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.6" fill="${f || '#fff'}" stroke="${L}" stroke-width="1.3"/>`;
+  const glyphs = {
+    matchup:   r(3,4,7,4,A)+r(3,10,7,4,A)+r(3,16,7,4,A)+r(14,4,7,4)+r(14,10,7,4)+r(14,16,7,4)+`<path d="M10.5 6h3M10.5 12h3" stroke="${L}" stroke-width="1.3"/>`,
+    quiz:      r(3,3,18,6)+r(3,12,8,4,A)+r(13,12,8,4)+r(3,17,8,4)+r(13,17,8,4),
+    flashcards:r(6,6,15,12)+r(3,3,15,12,A)+`<path d="M7 8h7M7 11h5" stroke="${L}" stroke-width="1.3"/>`,
+    speaking:  r(3,5,10,14,C)+r(11,3,10,14)+`<path d="M14 8h4M14 11h3" stroke="${L}" stroke-width="1.3"/>`,
+    wheel:     `<circle cx="12" cy="13" r="8" fill="${A}" stroke="${L}" stroke-width="1.3"/><path d="M12 5v16M4 13h16M6.3 7.3l11.4 11.4M17.7 7.3 6.3 18.7" stroke="${L}" stroke-width="1"/><path d="M10 2h4l-2 3z" fill="${L}"/>`,
+    groupsort: r(3,3,8,18)+r(13,3,8,18)+r(5,6,4,3,B)+r(5,11,4,3,B)+r(15,6,4,3,C)+r(15,11,4,3,C),
+    findmatch: r(4,3,16,7)+`<path d="M8 6.5h8" stroke="${L}" stroke-width="1.3"/>`+r(3,13,5,4,A)+r(9.5,13,5,4,B)+r(16,13,5,4,C)+r(6,18,5,3,C)+r(13,18,5,3,A),
+    pairs:     r(3,3,8,8,A)+r(13,3,8,8)+r(3,13,8,8)+r(13,13,8,8,A)+`<path d="M7 5.5v3M5.5 7h3M17 15.5v3M15.5 17h3" stroke="${L}" stroke-width="1.2"/>`,
+    box:       r(3,11,5,5,B)+r(9.5,11,5,5,B)+r(16,11,5,5,B)+r(6,5,5,5,B)+r(13,5,5,5,C)+r(6,17,5,4,B)+r(13,17,5,4,B),
+    anagram:   r(2,8,4,6,A)+r(7,8,4,6)+r(12,8,4,6,A)+r(17,8,4,6)+`<path d="M5 17c3 3 10 3 13 0" fill="none" stroke="${L}" stroke-width="1.3"/><path d="m16.5 15.6 1.8 1.6-2.2.9" fill="none" stroke="${L}" stroke-width="1.2"/>`,
+    unjumble:  r(2,9,6,5,C)+r(9,9,5,5,A)+r(15,9,7,5,B)+`<path d="M5 7c2-3 6-3 8 0" fill="none" stroke="${L}" stroke-width="1.3"/>`,
+    complete:  r(3,4,18,16)+`<path d="M6 9h4M14 9h4M6 15h12" stroke="${L}" stroke-width="1.3"/>`+r(10.5,7,3,4,A),
+    wordsearch:r(3,3,18,18)+`<path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke="${L}" stroke-width=".8"/><path d="M5 6l13 12" stroke="${A}" stroke-width="3" stroke-linecap="round" opacity=".9"/>`,
+    crossword: r(9,3,6,6)+r(3,9,6,6,A)+r(9,9,6,6,A)+r(15,9,6,6,A)+r(9,15,6,6),
+    hangman:   `<path d="M5 21h10M8 21V4h8v3" fill="none" stroke="${L}" stroke-width="1.4"/><circle cx="16" cy="9.5" r="2.4" fill="${A}" stroke="${L}" stroke-width="1.2"/><path d="M16 12v4M14 14h4" stroke="${L}" stroke-width="1.2"/>`,
+  };
+  return `<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">${glyphs[key] || ''}</svg>`;
+}
+
 function renderBoardWorkoutPicks() {
   const list = document.getElementById('tbuilder-workout-list');
   if (!list) return;
   const picked = new Set(boardWorkoutSavedPicks());
-  list.innerHTML = boardWorkoutActivities().map(a => `
+  const tiles = boardWordTemplates().map(t => `
+    <label class="tb-tpl" title="${esc(t.hint)}">
+      <input type="checkbox" value="tpl:${esc(t.key)}" ${picked.has('tpl:' + t.key) ? 'checked' : ''} onchange="onBoardWorkoutPickChange()">
+      <span class="tb-tpl-ico">${_wordTemplateIcon(t.icon)}</span>
+      <span class="tb-tpl-name">${esc(t.title)}</span>
+      ${t.ai ? '<span class="tb-workout-ai">AI</span>' : ''}
+    </label>`).join('');
+  const tasks = boardWorkoutActivities().filter(a => WORKOUT_TASKS_BESIDE_GAMES.has(a.key)).map(a => `
     <label class="tb-workout-item">
       <input type="checkbox" value="${esc(a.key)}" ${picked.has(a.key) ? 'checked' : ''} onchange="onBoardWorkoutPickChange()">
       <span style="min-width:0">
@@ -14178,6 +14222,20 @@ function renderBoardWorkoutPicks() {
       </span>
       ${a.ai ? '<span class="tb-workout-ai">AI</span>' : ''}
     </label>`).join('');
+  list.innerHTML = `
+    <div class="tb-tpl-head"><span>Games · every word in each</span><button type="button" class="tb-tpl-all" onclick="boardWorkoutPickAll()">Select all</button></div>
+    <div class="tb-tpl-grid">${tiles}</div>
+    <details class="tb-tpl-more"${[...picked].some(k => !String(k).startsWith('tpl:')) ? ' open' : ''}>
+      <summary>Worksheets and speaking tasks</summary>
+      <div class="tb-workout-list">${tasks}</div>
+    </details>`;
+  onBoardWorkoutPickChange();
+}
+
+function boardWorkoutPickAll() {
+  const boxes = [...document.querySelectorAll('#tbuilder-workout-list .tb-tpl input')];
+  const on = boxes.some(b => !b.checked);
+  boxes.forEach(b => { if (!b.dataset.ai || on) b.checked = on; });
   onBoardWorkoutPickChange();
 }
 
@@ -14197,7 +14255,10 @@ function onBoardWorkoutPickChange() {
   const keys = boardWorkoutPickedKeys();
   try { localStorage.setItem(WORKOUT_PICKS_STORE, JSON.stringify(keys)); } catch (_) {}
   const meta = document.getElementById('tbuilder-workout-meta');
-  if (meta) meta.textContent = keys.length + (keys.length === 1 ? ' chosen' : ' chosen');
+  const games = keys.filter(k => k.startsWith('tpl:')).length;
+  if (meta) meta.textContent = `${games} game${games === 1 ? '' : 's'}` + (keys.length - games ? ` + ${keys.length - games} task${keys.length - games === 1 ? '' : 's'}` : '');
+  const all = document.querySelector('#tbuilder-workout-list .tb-tpl-all');
+  if (all) all.textContent = [...document.querySelectorAll('#tbuilder-workout-list .tb-tpl input')].every(b => b.checked) ? 'Clear' : 'Select all';
 
   /* Поле языка показывается только когда отмечена активность, которой он
      нужен: спрашивать язык перевода у того, кто собирает флешкарты, незачем. */
@@ -14259,8 +14320,31 @@ async function runBoardWorkout() {
   const found = await _ttLookupDefinitions(entries.map(e => e.word), base, { examples, defsFor: missing });
   entries.forEach(e => { if (!e.gloss) e.gloss = found[e.word.toLowerCase()] || ''; });
   base.vocabExamples = examples;
+  base.rawVocab = base.rawVocab || base.vocab;
   base.vocab = entries.map(e => e.gloss ? `${e.word} - ${e.gloss.replace(/\s*\n\s*/g, ' ')}` : e.word).join('\n');
   base.count = entries.length;
+
+  /* Шаблоны-игры собираются прямо из списка, без генератора задания:
+     значения и примеры уже есть, ни одно слово не теряется по дороге. */
+  const tplKeys = keys.filter(k => k.startsWith('tpl:')).map(k => k.slice(4));
+  const tpls = boardWordTemplates().filter(t => tplKeys.includes(t.key));
+  const tplBuilt = [];
+  const tplNotes = [];
+  const ctx = { base, entries, examples };
+  for (let i = 0; i < tpls.length; i++) {
+    const t = tpls[i];
+    if (chip) chip.textContent = `game ${i + 1} of ${tpls.length}…`;
+    if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(t.title)}” — ${i + 1} of ${tpls.length}.</div>`;
+    let res = null;
+    try { res = await _wordTemplateContent(t, ctx); }
+    catch (err) { console.warn('[workout] template failed', t.key, err); }
+    if (res && res.content) {
+      tplBuilt.push({ t, content: res.content });
+      if (res.note) tplNotes.push(res.note);
+    } else {
+      tplNotes.push(`${t.title}: ${res && res.why ? res.why : 'could not be built'}`);
+    }
+  }
 
   const acts = boardWorkoutActivities().filter(a => keys.includes(a.key));
   const built = [];
@@ -14293,30 +14377,113 @@ async function runBoardWorkout() {
 
   _ttSetGenerating(false);
 
-  if (!built.length) {
+  const total = built.length + tplBuilt.length;
+  if (!total) {
     if (chip) chip.textContent = 'nothing built';
-    if (body) body.innerHTML = '<div class="tbuilder-empty">None of the ticked activities could be built. AI ones need you to be signed in; the offline ones need a longer word list.</div>';
+    if (body) body.innerHTML = `<div class="tbuilder-empty">Nothing could be built from this list.${tplNotes.length ? `<br><span style="opacity:.7">${esc(tplNotes.join(' · '))}</span>` : ''}<br>AI tasks need you to be signed in.</div>`;
     return;
   }
 
-  placeBoardWorkoutSet(base, built);
+  if (tplBuilt.length) _placeWordTemplateGames(tplBuilt, base);
+  if (built.length) placeBoardWorkoutSet(base, built);
 
-  if (chip) chip.textContent = `${built.length} on board`;
+  if (chip) chip.textContent = `${total} on board`;
   if (body) {
-    body.innerHTML = `<div class="tbuilder-empty">${built.length} ${built.length === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc(failed.join(', '))}.</span>` : ''}</div>`;
+    body.innerHTML = `<div class="tbuilder-empty">${total} ${total === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc(failed.join(', '))}.</span>` : ''}</div>`;
   }
   /* Панель закрывается, как и у остальных укладчиков: карточки ложились ПОД
      открытое окно, и выглядело так, будто не создалось ничего. */
   closeTeacherToolBuilder();
   const noMeaning = entries.filter(e => !e.gloss).length;
-  const notes = [];
+  const notes = [...tplNotes];
   if (failed.length) notes.push(`skipped: ${failed.join(', ')}`);
   if (noMeaning) notes.push(`${noMeaning} word${noMeaning === 1 ? '' : 's'} without a meaning`);
   const scope = trimmed
     ? `the first ${TT_WORDLIST_MAX} of your ${listed} words (limit ${TT_WORDLIST_MAX})`
     : `all ${entries.length} words`;
-  toast(`${built.length} ${built.length === 1 ? 'activity' : 'activities'} with ${scope}` +
+  toast(`${total} ${total === 1 ? 'activity' : 'activities'} with ${scope}` +
     (notes.length ? ` · ${notes.join(' · ')}` : ''));
+}
+
+/* Содержимое игры для шаблона - прямо из списка учителя.
+   Возвращает { content, note } или { why }, если шаблону не из чего
+   собраться. note - о словах, которые шаблон честно не смог взять (нет
+   значения / нет примера), чтобы тост не обещал «все слова», когда это не так. */
+async function _wordTemplateContent(t, ctx) {
+  const { base, entries, examples } = ctx;
+  const ex = e => examples[String(e.word).toLowerCase()] || '';
+  const withMeaning = entries.filter(e => e.gloss);
+  const pairs = withMeaning.map(e => ({ a: e.word, b: e.gloss, example: ex(e) }));
+  const lost = (n, what) => n ? `${t.title}: ${n} word${n === 1 ? '' : 's'} without ${what}` : '';
+  const needMeaning = () => pairs.length >= 2
+    ? { content: { pairs }, note: lost(entries.length - pairs.length, 'a meaning') }
+    : { why: 'needs meanings for at least 2 words' };
+
+  switch (t.key) {
+    case 'matchup': case 'quiz': case 'flashcards': case 'findmatch':
+    case 'pairs': case 'anagram': case 'crossword': case 'hangman':
+      return needMeaning();
+    case 'speaking':
+      return { content: { cards: entries.map(e => ({ word: e.word, meaning: e.gloss })) } };
+    case 'box':
+      return { content: { items: entries.map(e => ({ word: e.word, meaning: e.gloss })) } };
+    case 'wheel':
+    case 'wordsearch':
+      return entries.length >= 2 ? { content: { words: entries.map(e => e.word) } } : { why: 'needs at least 2 words' };
+    case 'unjumble': {
+      const sentences = entries.filter(e => ex(e) && ex(e).split(/\s+/).length >= 3)
+        .map(e => ({ s: ex(e), t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
+      return sentences.length
+        ? { content: { sentences }, note: lost(entries.length - sentences.length, 'an example sentence') }
+        : { why: 'no example sentences were found for these words' };
+    }
+    case 'complete': {
+      /* Тот же генератор, что у «Example sentences»: пропуск ставится в
+         словарный пример с настоящей формой слова (burn → burned), а без
+         примера - в предложение из значения. Тут только упаковка в игру. */
+      const out = generateTeacherToolLocal({ ...base, tool: { id: 'sentences-vocab' } });
+      const g = out ? (_ttGamePayloads(out) || []).find(x => x.gameType === 'fill-blank') : null;
+      return g ? { content: g.content } : { why: 'no sentences with gaps could be made' };
+    }
+    case 'groupsort': {
+      /* Группы учителя главнее: строки «Food: apple, bread» в списке. Иначе
+         группы предлагает движок (нужен вход). */
+      const cats = [];
+      String(base.rawVocab || '').split(/\n+/).forEach(line => {
+        const m = line.match(/^\s*([^:]{1,40}):\s*(.+,.+)$/);
+        if (m) cats.push({ name: m[1].trim(), words: m[2].split(/[,;]+/).map(w => w.trim()).filter(Boolean) });
+      });
+      if (cats.length >= 2) return { content: { categories: cats } };
+      const out = await requestServerTeacherTool({ ...base, tool: { id: 'word-sorting' } }, 25000);
+      const g = out ? (_ttGamePayloads(out) || []).find(x => x.gameType === 'word-categories') : null;
+      return g ? { content: g.content } : { why: 'groups need AI (sign in) or lines like “Food: apple, bread”' };
+    }
+  }
+  return { why: 'unknown template' };
+}
+
+/* Игры набора ложатся сеткой по три в ряд от центра видимой доски, а не
+   каждая в первое свободное место: так урок читается как один набор, и
+   учитель видит, что создалось всё отмеченное. */
+function _placeWordTemplateGames(list, base) {
+  const r = boardWrap.getBoundingClientRect();
+  const start = screenToBoard(r.left + r.width * 0.2, r.top + r.height * 0.2) || { x: 200, y: 200 };
+  const COLS = 3, CARD_W = 420, GAP = 36;
+  const metas = list.map(({ t }) => _gameMetaFor(t.game));
+  const heights = metas.map(m => Math.round(m.h * (CARD_W / m.w)));
+  const rowH = [];
+  metas.forEach((_, i) => { const row = Math.floor(i / COLS); rowH[row] = Math.max(rowH[row] || 0, heights[i]); });
+  const fp = findFreePlacement(start.x + (COLS * (CARD_W + GAP)) / 2, start.y + rowH.reduce((a, b) => a + b + GAP, 0) / 2,
+    COLS * (CARD_W + GAP), rowH.reduce((a, b) => a + b + GAP, 0));
+  const x0 = fp.x - (COLS * (CARD_W + GAP)) / 2, y0 = fp.y - rowH.reduce((a, b) => a + b + GAP, 0) / 2;
+  list.forEach(({ t, content }, i) => {
+    const m = metas[i], row = Math.floor(i / COLS), col = i % COLS;
+    const y = y0 + rowH.slice(0, row).reduce((a, b) => a + b + GAP, 0);
+    addCard('game', x0 + col * (CARD_W + GAP), y,
+      { title: `${t.title}: ${base.topic}`, src: m.src, naturalW: m.w, naturalH: m.h, customContent: content, level: base.level },
+      CARD_W, heights[i]);
+  });
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
 /* Укладка набора. Каждая активность ложится в СВОЕЙ форме, а не текстовой

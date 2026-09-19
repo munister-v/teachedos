@@ -40,10 +40,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .bin-words .chip{min-height:0;display:inline-block;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=846">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=846">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=849">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=849">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=846">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=849">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -166,7 +166,7 @@ function endGame(){
 function applyCustomContent(content,title){
   const cats=((content&&content.categories)||[]).map(c=>({
     name:String(c.name||c.category||'').trim(),
-    words:(c.words||[]).map(w=>String(w||'').trim()).filter(Boolean).slice(0,6)
+    words:(c.words||[]).map(w=>String(w||'').trim()).filter(Boolean)
   })).filter(c=>c.name&&c.words.length);
   if(cats.length<2)return;
   const obj={}; cats.forEach(c=>{obj[c.name]=c.words;});
@@ -181,7 +181,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=846"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=846"></script>
+<script src="../scripts/game-handoff.js?v=849"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=849"></script>
 </body>
 </html>

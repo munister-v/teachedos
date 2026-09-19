@@ -34,10 +34,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .play-again{margin-top:12px;padding:14px 24px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
 @media (max-width:420px){.grid{grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}.tile{font-size:.74rem;min-height:72px}}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=846">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=846">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=849">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=849">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=846">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=849">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -50,18 +50,26 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   <button class="play-again" id="again" onclick="start()">▶ Play Again</button>
 </div>
 
-<script src="../scripts/game-handoff.js?v=846"></script>
-<script src="../scripts/game-pause.js?v=846"></script>
-<script src="../scripts/vocabulary.js?v=846"></script>
-<script src="../scripts/custom-sets.js?v=846"></script>
+<script src="../scripts/game-handoff.js?v=849"></script>
+<script src="../scripts/game-pause.js?v=849"></script>
+<script src="../scripts/vocabulary.js?v=849"></script>
+<script src="../scripts/custom-sets.js?v=849"></script>
 <script>
 let tiles=[], selected=[], pairsLeft=0, timer=90, sInt;
 
 function shuffle(a){return a.slice().sort(()=>Math.random()-.5)}
 
 var customWords=null,totalPairs=0;
+/* Свой список играется раундами по ROUND_SIZE через ВСЮ колоду: срез до
+   восьми оставлял больше половины слов учителя за бортом. */
+const ROUND_SIZE=8;
+var deck=[],round=0;
+function roundsTotal(){return Math.max(1,Math.ceil(deck.length/ROUND_SIZE));}
 function loadWords(){
-  if(customWords) return customWords;
+  if(customWords){
+    if(!deck.length||round>=roundsTotal()){deck=shuffle(customWords);round=0;}
+    return deck.slice(round*ROUND_SIZE,(round+1)*ROUND_SIZE);
+  }
   const p=new URLSearchParams(location.search);
   const setId=p.get('set');
   if(setId && window.TEACHEDOS_CUSTOM){
@@ -149,22 +157,32 @@ function clickTile(i,el){
     },500);
   }
   selected=[];
-  window.parent.postMessage({type:'teachedos-score',score:8-pairsLeft},'*');
+  window.parent.postMessage({type:'teachedos-score',score:totalPairs-pairsLeft},'*');
 }
 
 function endGame(won){
   clearInterval(sInt);
   const found=totalPairs-pairsLeft;
-  document.getElementById('feedback').textContent= won ? 'All pairs matched' : 'Time up - '+found+'/'+totalPairs+' pairs found';
-  document.getElementById('again').style.display='inline-block';
+  const again=document.getElementById('again');
+  if(customWords&&won&&round+1<roundsTotal()){
+    round++;
+    const next=Math.min(ROUND_SIZE,deck.length-round*ROUND_SIZE);
+    document.getElementById('feedback').textContent='Round '+round+' of '+roundsTotal()+' done';
+    again.textContent='Next '+next+' words';
+    again.style.display='inline-block';
+    return;
+  }
+  if(customWords){round=roundsTotal();again.textContent='Play again';}
+  document.getElementById('feedback').textContent= won ? (customWords?'All '+deck.length+' pairs matched':'All pairs matched') : 'Time up - '+found+'/'+totalPairs+' pairs found';
+  again.style.display='inline-block';
   try{window.parent.postMessage({type:'game-finished',score:found,max:totalPairs,game:'Find the match',status:'done'},'*');}catch(e){}
 }
 
 function applyCustomContent(content,title){
   const pairs=((content&&content.pairs)||[]).map(p=>({en:String(p.a||p.word||p.en||'').trim(),uk:String(p.b||p.definition||p.uk||'').trim()})).filter(p=>p.en&&p.uk);
   if(pairs.length<2)return;
-  customWords=pairs.slice(0,8);
-  const lbl=document.getElementById('topicLabel'); if(lbl) lbl.textContent=(title?title:'Custom set')+' - match each word to its translation';
+  customWords=pairs;deck=[];round=0;
+  const lbl=document.getElementById('topicLabel'); if(lbl) lbl.textContent=(title?title:'Custom set')+' - match each word to its meaning';
   if(title){document.title=title+' · Find the match';}
   start();
 }
@@ -175,6 +193,6 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=846"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=849"></script>
 </body>
 </html>
