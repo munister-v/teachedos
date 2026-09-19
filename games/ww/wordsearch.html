@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Wordsearch</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Wordsearch: сетка букв слева, список слов плашками справа. Слово
+   выделяют протяжкой по буквам (или тапом по первой и последней). Весь
+   список учителя идёт раундами по ROUND слов, фраза - без пробелов. */
+.ws{width:100%;height:100%;display:grid;grid-template-columns:auto minmax(120px,1fr);gap:14px;align-items:center;justify-content:center}
+.ws-grid{display:grid;background:#fff;border:2px solid var(--gray);border-radius:6px;padding:4px;touch-action:none;position:relative}
+.ws-c{display:flex;align-items:center;justify-content:center;font-weight:800;text-transform:uppercase;border-radius:50%;line-height:1}
+.ws-c.sel{background:#CDF649}
+.ws-c.found{color:#fff}
+.ws-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-content:center}
+.ws-w{padding:6px 8px;border:3px solid var(--ink);border-radius:10px;background:#fff;font-weight:800;font-size:clamp(12px,2.2vw,16px);text-align:center;word-break:break-word}
+.ws-w.found{color:var(--f);background:var(--c);border-color:var(--c);text-decoration:line-through}
+@media (max-width:560px){.ws{grid-template-columns:1fr;grid-template-rows:auto auto}.ws-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache'},{a:'fever'},{a:'cough'},{a:'rash'},{a:'sore throat'},{a:'insomnia'},{a:'bruise'},{a:'burn'}];
+var ROUND=10;
+var ww=WW.init({template:'Wordsearch',instructions:'Words are hidden in a letter grid. Find them as fast as you can.',timer:'up',score:true,center:'Tap a hidden word'});
+var all=[],queue=[],words=[],grid=[],placed=[],N=10,found={},selA=null,dragPath=[],roundNo=0,totalRounds=1;
+function norm(w){return String(w).toUpperCase().replace(/[^A-Z]/g,'');}
+function build(){
+  var tries=0;
+  do{
+    N=Math.max(9,Math.min(15,Math.max.apply(null,words.map(function(w){return norm(w).length;}))+1));
+    grid=[];for(var r=0;r<N;r++){grid.push(new Array(N).fill(''));}
+    placed=[];var dirs=[[0,1],[1,0],[1,1],[-1,1]];
+    words.slice().sort(function(a,b){return norm(b).length-norm(a).length;}).forEach(function(w){
+      var W=norm(w),ok=false;
+      for(var t=0;t<300&&!ok;t++){
+        var d=dirs[Math.floor(Math.random()*dirs.length)],r0=Math.floor(Math.random()*N),c0=Math.floor(Math.random()*N),cells=[],fit=true;
+        for(var i=0;i<W.length;i++){var r=r0+d[0]*i,c=c0+d[1]*i;if(r<0||r>=N||c<0||c>=N||(grid[r][c]&&grid[r][c]!==W[i])){fit=false;break;}cells.push([r,c]);}
+        if(fit){cells.forEach(function(p,i){grid[p[0]][p[1]]=W[i];});placed.push({w:w,cells:cells});ok=true;}
+      }
+    });
+  }while(placed.length<words.length&&++tries<5);
+  /* Не поместившееся слово - в следующий раунд, а не в список «найди». */
+  var missed=words.filter(function(w){return !placed.some(function(p){return p.w===w;});});
+  if(missed.length){words=words.filter(function(w){return missed.indexOf(w)<0;});queue=missed.concat(queue);}
+  var A='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++)if(!grid[r][c])grid[r][c]=A[Math.floor(Math.random()*26)];
+}
+function render(){
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='ws';
+  var H=ww.stage.clientHeight-16,W=ww.stage.clientWidth-40;var side=Math.floor(Math.min(H,W*0.62));var cs=Math.floor((side-8)/N);
+  var g=document.createElement('div');g.className='ws-grid';g.style.gridTemplateColumns='repeat('+N+','+cs+'px)';g.style.gridAutoRows=cs+'px';
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+    var d=document.createElement('div');d.className='ws-c';d.textContent=grid[r][c];d.dataset.r=r;d.dataset.c=c;d.style.fontSize=Math.max(10,Math.floor(cs*.55))+'px';
+    var hit=null;Object.keys(found).forEach(function(k){var p=placed[k];if(p.cells.some(function(x){return x[0]===r&&x[1]===c;}))hit=+k;});
+    if(hit!=null){var f=ww.fill(hit);d.classList.add('found');d.style.background=f[0];d.style.color=f[1];}
+    g.appendChild(d);
+  }
+  var list=document.createElement('div');list.className='ws-list';
+  placed.forEach(function(p,i){var b=document.createElement('div');b.className='ws-w'+(found[i]?' found':'');b.textContent=p.w;ww.paint(b,i);list.appendChild(b);});
+  root.appendChild(g);root.appendChild(list);ww.stage.appendChild(root);
+  ww.setCenter(totalRounds>1?('Tap a hidden word · '+roundNo+' of '+totalRounds):'Tap a hidden word');
+  wire(g);
+}
+function cellAt(x,y){var n=document.elementFromPoint(x,y);return n&&n.classList&&n.classList.contains('ws-c')?n:null;}
+function line(a,b){
+  var r0=+a.dataset.r,c0=+a.dataset.c,r1=+b.dataset.r,c1=+b.dataset.c,dr=Math.sign(r1-r0),dc=Math.sign(c1-c0),len=Math.max(Math.abs(r1-r0),Math.abs(c1-c0));
+  if(!(r0===r1||c0===c1||Math.abs(r1-r0)===Math.abs(c1-c0)))return[[r0,c0]];
+  var out=[];for(var i=0;i<=len;i++)out.push([r0+dr*i,c0+dc*i]);return out;
+}
+function paintSel(g,cells){g.querySelectorAll('.ws-c.sel').forEach(function(n){n.classList.remove('sel');});cells.forEach(function(p){var n=g.children[p[0]*N+p[1]];if(n&&!n.classList.contains('found'))n.classList.add('sel');});}
+function test(cells){
+  var str=cells.map(function(p){return grid[p[0]][p[1]];}).join('');
+  for(var i=0;i<placed.length;i++){
+    if(found[i])continue;var p=placed[i],fw=p.cells.map(function(x){return grid[x[0]][x[1]];}).join('');
+    var same=p.cells.length===cells.length&&(p.cells.every(function(x,k){return x[0]===cells[k][0]&&x[1]===cells[k][1];})||p.cells.every(function(x,k){var y=cells[cells.length-1-k];return x[0]===y[0]&&x[1]===y[1];}));
+    if(same){found[i]=true;ww.addScore(1);ww.beep(true);ww.progress(ww.score,all.length);render();
+      if(Object.keys(found).length===placed.length)roundDone();return;}
+  }
+}
+function wire(g){
+  var down=null;
+  g.onpointerdown=function(e){var c=cellAt(e.clientX,e.clientY);if(!c||!ww.running)return;e.preventDefault();down=c;paintSel(g,[[+c.dataset.r,+c.dataset.c]]);};
+  g.onpointermove=function(e){if(!down)return;var c=cellAt(e.clientX,e.clientY);if(c){dragPath=line(down,c);paintSel(g,dragPath);}};
+  g.onpointerup=function(e){
+    if(!down)return;var c=cellAt(e.clientX,e.clientY)||down;
+    if(c===down){ /* тап: первая буква, затем последняя */
+      if(selA&&selA!==c){var cells=line(selA,c);selA=null;paintSel(g,[]);test(cells);}
+      else{selA=c;}
+    }else{var cells2=line(down,c);selA=null;paintSel(g,[]);test(cells2);}
+    down=null;
+  };
+}
+function nextRound(){words=queue.splice(0,ROUND);found={};selA=null;roundNo++;build();render();}
+function roundDone(){
+  if(queue.length){setTimeout(nextRound,700);return;}
+  ww.finish({score:ww.score,max:all.length,answers:all.map(function(w){return{q:w,a:'found',ok:true};})});
+}
+ww.onStart=function(){queue=WW.shuffle(all);totalRounds=Math.ceil(all.length/ROUND);roundNo=0;nextRound();};
+window.addEventListener('resize',function(){if(ww.running)render();});
+window.applyCustomContent=function(content,title){
+  var src=[];(WW.pairsFrom(content)||[]).forEach(function(p){src.push(p.word);});
+  ((content&&content.words)||[]).forEach(function(w){src.push(String(w));});
+  var seen={};all=src.filter(function(w){var k=norm(w);if(k.length<3||k.length>15||seen[k])return false;seen[k]=1;return true;});
+  if(all.length<2)return;
+  ww.setTitle(title||'Wordsearch');document.title=(title||'Wordsearch')+' · Wordsearch';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

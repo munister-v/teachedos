@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Crossword</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Crossword: сетка слева, подсказки (значения) справа, Across / Down.
+   Буквы вводятся с клавиатуры, курсор идёт по слову сам. Весь список -
+   кроссвордами по ROUND слов; фраза вписывается без пробела. */
+.cw{width:100%;height:100%;display:grid;grid-template-columns:auto minmax(150px,1fr);gap:14px;align-items:center;justify-content:center}
+.cw-grid{position:relative}
+.cw-cell{position:absolute;box-sizing:border-box;border:2px solid var(--ink);background:#fff}
+.cw-cell input{width:100%;height:100%;border:0;background:transparent;text-align:center;font-family:inherit;font-weight:800;text-transform:uppercase;color:var(--ink);outline:none;padding:0;caret-color:transparent}
+.cw-cell.cur{background:#CDF649}
+.cw-cell.word{background:#F6F6EF}
+.cw-cell.ok{background:#D6F0DE}
+.cw-cell.bad{background:#FBDADA}
+.cw-n{position:absolute;left:2px;top:0;font-size:9px;font-weight:800;line-height:1.1;pointer-events:none}
+.cw-clues{max-height:100%;overflow:auto;font-size:clamp(12px,2vw,14px);line-height:1.35}
+.cw-clues h4{font-size:14px;font-weight:800;margin:4px 0 4px}
+.cw-clues li{list-style:none;padding:3px 6px;border-radius:5px;cursor:pointer}
+.cw-clues li.cur{background:#CDF649}
+.cw-clues li b{margin-right:5px}
+@media (max-width:560px){.cw{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
+var ROUND=10;
+var ww=WW.init({template:'Crossword',instructions:'Use the clues to solve the crossword puzzle.',timer:'up',score:true,action:{label:'Submit Answers'}});
+var all=[],queue=[],placed=[],cells={},cur=null,dir='a',roundNo=0,checked=false,total=0;
+function norm(w){return String(w).toUpperCase().replace(/[^A-Z]/g,'');}
+function key(r,c){return r+','+c;}
+/* Раскладка: первое слово по центру горизонтально, каждое следующее ищет
+   пересечение с уже стоящей буквой и не касается чужих слов боком. */
+function layout(list){
+  var grid={},out=[];
+  function can(W,r,c,d){
+    var dr=d==='d'?1:0,dc=d==='a'?1:0,hit=0;
+    if(grid[key(r-dr,c-dc)]||grid[key(r+dr*W.length,c+dc*W.length)])return -1;
+    for(var i=0;i<W.length;i++){var rr=r+dr*i,cc=c+dc*i,g=grid[key(rr,cc)];
+      if(g){if(g!==W[i])return -1;hit++;}
+      else{ if(grid[key(rr+dc,cc+dr)]||grid[key(rr-dc,cc-dr)])return -1; }}
+    return hit;
+  }
+  function put(it,W,r,c,d){var dr=d==='d'?1:0,dc=d==='a'?1:0;for(var i=0;i<W.length;i++)grid[key(r+dr*i,c+dc*i)]=W[i];out.push({it:it,W:W,r:r,c:c,d:d});}
+  var sorted=list.slice().sort(function(a,b){return norm(b.word).length-norm(a.word).length;}),left=[];
+  sorted.forEach(function(it,idx){
+    var W=norm(it.word);if(!out.length){put(it,W,0,0,'a');return;}
+    var best=null;
+    out.forEach(function(p){for(var i=0;i<p.W.length;i++)for(var j=0;j<W.length;j++){if(p.W[i]!==W[j])continue;
+      var d=p.d==='a'?'d':'a',r=p.d==='a'?p.r-j:p.r+i,c=p.d==='a'?p.c+i:p.c-j,h=can(W,r,c,d);
+      if(h>0&&(!best||h>best.h))best={r:r,c:c,d:d,h:h};}});
+    if(best)put(it,W,best.r,best.c,best.d);else left.push(it);
+  });
+  return{placed:out,left:left};
+}
+function nextRound(){
+  var take=queue.splice(0,ROUND),lay=layout(take);
+  queue=lay.left.concat(queue);
+  if(!lay.placed.length&&queue.length)return nextRound();
+  placed=lay.placed;roundNo++;checked=false;cells={};
+  var minR=Infinity,minC=Infinity;placed.forEach(function(p){minR=Math.min(minR,p.r);minC=Math.min(minC,p.c);});
+  placed.forEach(function(p){p.r-=minR;p.c-=minC;});
+  /* номера по порядку чтения */
+  var starts={};placed.forEach(function(p){starts[key(p.r,p.c)]=1;});
+  var nums={},n=0;Object.keys(starts).map(function(k){return k.split(',').map(Number);}).sort(function(a,b){return a[0]-b[0]||a[1]-b[1];}).forEach(function(rc){nums[key(rc[0],rc[1])]=++n;});
+  placed.forEach(function(p,i){p.n=nums[key(p.r,p.c)];p.i=i;var dr=p.d==='d'?1:0,dc=p.d==='a'?1:0;
+    for(var k=0;k<p.W.length;k++){var kk=key(p.r+dr*k,p.c+dc*k);cells[kk]=cells[kk]||{ch:p.W[k],v:'',words:[]};cells[kk].words.push(i);}});
+  cur=null;render();focusWord(0);
+}
+function wordCells(i){var p=placed[i],dr=p.d==='d'?1:0,dc=p.d==='a'?1:0,out=[];for(var k=0;k<p.W.length;k++)out.push(key(p.r+dr*k,p.c+dc*k));return out;}
+function render(){
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='cw';
+  var R=0,C=0;Object.keys(cells).forEach(function(k){var a=k.split(',').map(Number);R=Math.max(R,a[0]+1);C=Math.max(C,a[1]+1);});
+  var H=ww.stage.clientHeight-10,W=ww.stage.clientWidth*0.6;var s=Math.floor(Math.min(H/R,W/C,40));
+  var g=document.createElement('div');g.className='cw-grid';g.style.width=(C*s)+'px';g.style.height=(R*s)+'px';
+  var curCells=cur!=null?wordCells(cur):[];
+  Object.keys(cells).forEach(function(k){var a=k.split(',').map(Number),cell=cells[k];
+    var d=document.createElement('div');d.className='cw-cell'+(curCells.indexOf(k)>=0?' word':'')+(checked?(cell.v===cell.ch?' ok':' bad'):'');
+    d.style.left=(a[1]*s)+'px';d.style.top=(a[0]*s)+'px';d.style.width=(s+2)+'px';d.style.height=(s+2)+'px';
+    var num=placed.find(function(p){return p.r===a[0]&&p.c===a[1];});
+    if(num){var nn=document.createElement('span');nn.className='cw-n';nn.textContent=num.n;d.appendChild(nn);}
+    var inp=document.createElement('input');inp.maxLength=1;inp.value=cell.v;inp.dataset.k=k;inp.style.fontSize=Math.floor(s*.55)+'px';inp.autocomplete='off';inp.setAttribute('autocapitalize','characters');
+    inp.onfocus=function(){d.classList.add('cur');if(cur==null||cells[k].words.indexOf(cur)<0){cur=cells[k].words[0];renderSoft();}};
+    inp.onblur=function(){d.classList.remove('cur');};
+    inp.oninput=function(){var v=norm(inp.value).slice(-1);cell.v=v;inp.value=v;if(v)step(k,1);};
+    inp.onkeydown=function(e){if(e.key==='Backspace'&&!inp.value){step(k,-1);e.preventDefault();}};
+    d.appendChild(inp);g.appendChild(d);});
+  var cl=document.createElement('div');cl.className='cw-clues';
+  ['a','d'].forEach(function(dd){var list=placed.filter(function(p){return p.d===dd;}).sort(function(a,b){return a.n-b.n;});if(!list.length)return;
+    var h=document.createElement('h4');h.textContent=dd==='a'?'Across':'Down';cl.appendChild(h);
+    list.forEach(function(p){var li=document.createElement('li');li.className=p.i===cur?'cur':'';li.innerHTML='<b>'+p.n+'</b>'+WW.esc(p.it.meaning);li.onclick=function(){focusWord(p.i);};cl.appendChild(li);});});
+  root.appendChild(g);root.appendChild(cl);ww.stage.appendChild(root);
+  var left=queue.length;
+  ww.setCenter(left?('Puzzle '+roundNo+' · '+left+' more words next'):(roundNo>1?'Puzzle '+roundNo:''),true);
+  if(checked)ww.setAction(queue.length?'Next puzzle':'Finish',after);else ww.setAction('Submit Answers',submit);
+}
+function renderSoft(){var f=document.activeElement&&document.activeElement.dataset.k;render();if(f){var i=ww.stage.querySelector('input[data-k="'+f+'"]');if(i)i.focus();}}
+function focusWord(i){cur=i;var ks=wordCells(i);render();var first=ks.find(function(k){return !cells[k].v;})||ks[0];var inp=ww.stage.querySelector('input[data-k="'+first+'"]');if(inp)inp.focus();}
+function step(k,d){if(cur==null)return;var ks=wordCells(cur),i=ks.indexOf(k)+d;if(i>=0&&i<ks.length){var inp=ww.stage.querySelector('input[data-k="'+ks[i]+'"]');if(inp)inp.focus();}}
+function submit(){
+  checked=true;var got=0;placed.forEach(function(p,i){if(wordCells(i).every(function(k){return cells[k].v===cells[k].ch;}))got++;});
+  ww.addScore(got);ww.beep(got===placed.length);ww.progress(ww.score,total);render();
+}
+function after(){if(queue.length){nextRound();return;}ww.finish({score:ww.score,max:total,answers:all.map(function(x){return{q:x.meaning,a:x.word};})});}
+ww.onStart=function(){queue=WW.shuffle(all);roundNo=0;total=all.length;nextRound();};
+window.addEventListener('resize',function(){if(ww.running)renderSoft();});
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content).filter(function(x){var n=norm(x.word).length;return x.meaning&&n>=2&&n<=15;});
+  if(p.length<2)return;
+  all=p;ww.setTitle(title||'Crossword');document.title=(title||'Crossword')+' · Crossword';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

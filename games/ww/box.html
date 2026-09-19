@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Open the box</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Open the box: цветные коробки с номерами, по коробке на слово. Открытая
+   показывает слово, значение и задание; закрыть - коробка остаётся пустой. */
+.ob{display:grid;gap:10px;width:100%;height:100%;align-content:center;justify-content:center}
+.ob .ww-tile{font-size:clamp(18px,4vw,30px);font-weight:800}
+.ob .ww-tile.is-open{background:transparent!important;box-shadow:none;border:3px dashed var(--gray);color:transparent}
+.ob-lid{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(255,255,255,.72)}
+.ob-lid[hidden]{display:none}
+.ob-card{width:min(92%,440px);border-radius:6px;padding:20px 18px 16px;text-align:center;background:var(--c);color:var(--f);
+  box-shadow:inset 0 -8px 0 rgba(36,40,44,.2),0 8px 20px rgba(36,40,44,.25);animation:ww-pop .25s ease}
+.ob-n{font-weight:800;font-size:14px;opacity:.85}
+.ob-w{font-weight:800;font-size:clamp(28px,7vw,44px);line-height:1.05;margin:4px 0 8px}
+.ob-m{font-weight:600;font-size:clamp(14px,2.6vw,18px);line-height:1.35}
+.ob-t{margin-top:12px;padding:8px 10px;border-radius:6px;background:rgba(255,255,255,.85);color:var(--ink);font-weight:700;font-size:15px}
+.ob-close{margin-top:12px;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);padding:5px 20px;font-weight:800;font-size:16px}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'runny nose',b:'liquid keeps coming out of your nose'},{a:'bruise',b:'a dark mark on the skin after a hit'},{a:'burn',b:'an injury from fire or heat'},{a:'sprain',b:'an injury to a joint'}];
+var TASKS=['Make a sentence with it.','Explain it without saying it.','Ask a question with it.','Give an example from your life.','Say a word it goes with.'];
+var ww=WW.init({template:'Open the box',instructions:'Tap each box in turn to open them up and reveal the item inside.',timer:'up',score:true,center:'Tap one to open'});
+var items=[],order=[],opened=[];
+function render(){
+  ww.stage.innerHTML='';
+  var g=document.createElement('div');g.className='ob';
+  var n=order.length,cols=n<=10?5:n<=18?6:n<=24?6:7,rows=Math.ceil(n/cols),gap=10;
+  var W=ww.stage.clientWidth-28,H=ww.stage.clientHeight-12;
+  var s=Math.floor(Math.min((W-gap*(cols-1))/cols,(H-gap*(rows-1))/rows));
+  g.style.gridTemplateColumns='repeat('+cols+','+s+'px)';g.style.gridAutoRows=s+'px';
+  order.forEach(function(it,i){
+    var b=document.createElement('button');b.className='ww-tile'+(opened[i]?' is-open':'');b.textContent=String(i+1);ww.paint(b,i);
+    b.onclick=function(){if(!opened[i])openBox(i);};g.appendChild(b);
+  });
+  ww.stage.appendChild(g);
+  var lid=document.createElement('div');lid.className='ob-lid';lid.hidden=true;ww.stage.appendChild(lid);
+}
+function openBox(i){
+  if(!ww.running)return;
+  var it=items[order[i]];opened[i]=true;ww.addScore(1);ww.beep(true);ww.progress(ww.score,order.length);
+  render();
+  var lid=ww.stage.querySelector('.ob-lid');var f=ww.fill(i);
+  lid.innerHTML='<div class="ob-card" style="--c:'+f[0]+';--f:'+f[1]+'"><div class="ob-n">Box '+(i+1)+'</div><div class="ob-w">'+WW.esc(it.word)+'</div>'+(it.meaning?'<div class="ob-m">'+WW.esc(it.meaning)+'</div>':'')+
+    '<div class="ob-t">'+WW.esc(it.prompt||TASKS[i%TASKS.length])+'</div><button class="ob-close" type="button">OK</button></div>';
+  lid.hidden=false;
+  lid.querySelector('.ob-close').onclick=function(){lid.hidden=true;
+    if(opened.every(Boolean))ww.finish({score:ww.score,max:order.length,message:'All boxes opened',answers:order.map(function(k){return{q:items[k].word,a:items[k].meaning};})});};
+}
+ww.onStart=function(){order=WW.shuffle(items.map(function(_,i){return i;}));opened=new Array(order.length).fill(false);render();};
+window.addEventListener('resize',function(){if(order.length&&ww.running)render();});
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content);
+  if(p.length<1)return;
+  items=p;ww.setTitle(title||'Open the box');document.title=(title||'Open the box')+' · Open the box';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

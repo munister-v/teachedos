@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Unjumble</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Unjumble: слова предложения крупными плитками прямо в строке, их
+   меняют местами (перетащить на другое слово или тапнуть два подряд).
+   Знак в конце стоит на месте. Правильный порядок проверяется сам. */
+.uj{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.uj-hint{font-weight:700;color:var(--olive);font-size:clamp(13px,2.4vw,16px);text-align:center;max-width:94%}
+.uj-line{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 8px;padding:10px 6px;border-bottom:4px solid var(--gray);max-width:100%}
+.uj-w{padding:6px 12px;border:3px solid #fff;border-radius:6px;background:#24282C;color:#fff;font-weight:800;font-size:clamp(17px,3.8vw,28px);line-height:1.1;
+  box-shadow:0 0 0 2px #24282C,0 3px 4px rgba(36,40,44,.3);touch-action:none;cursor:grab}
+.uj-w.is-sel{outline:3px solid #CDF649;outline-offset:3px}
+.uj-w.is-over{outline:3px dashed #CDF649;outline-offset:3px}
+.uj-punct{font-weight:900;font-size:clamp(20px,4.4vw,34px)}
+.uj.ok .uj-w{background:var(--ok);box-shadow:0 0 0 2px var(--ok)}
+.uj-moves{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{s:'I have a terrible headache today.',t:'headache - a pain in your head'},{s:'She stayed at home with a high fever.',t:'fever - a high body temperature'},{s:'Are you listening to music?',t:''}];
+var ww=WW.init({template:'Unjumble',instructions:'Drag and drop words to rearrange each sentence into its correct order.',timer:'up',score:true});
+var items=[],deck=[],pos=0,state=[];
+function split(s){var m=s.match(/^(.*?)([.?!]+)?$/);var body=m[1].trim(),p=m[2]||'';return{words:body.split(/\s+/),punct:p};}
+function mk(it){var sp=split(it.s);var w=sp.words.slice();var sh=WW.shuffle(w.map(function(_,i){return i;}));var g=0;
+  while(sh.every(function(v,i){return w[v]===w[i];})&&w.length>1&&g++<10)sh=WW.shuffle(w.map(function(_,i){return i;}));
+  return{words:w,punct:sp.punct,order:sh,moves:0,done:null};}
+function bonus(st){return Math.max(0,st.words.length-1-st.moves);}
+function render(){
+  var st=state[pos],it=deck[pos];
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='uj'+(st.done==='ok'?' ok':'');
+  if(it.t){var h=document.createElement('div');h.className='uj-hint';h.textContent=it.t;root.appendChild(h);}
+  var line=document.createElement('div');line.className='uj-line';
+  st.order.forEach(function(wi,k){var b=document.createElement('div');b.className='uj-w';b.textContent=st.words[wi];b.dataset.k=k;line.appendChild(b);});
+  if(st.punct){var p=document.createElement('span');p.className='uj-punct';p.textContent=st.punct;line.appendChild(p);}
+  root.appendChild(line);ww.stage.appendChild(root);
+  ww.setCenter(st.done?'':bonus(st)+' moves for bonus');
+  ww.setNav(pos,deck.length,function(){pos--;render();},function(){pos++;render();});
+}
+function swap(a,b){
+  var st=state[pos];if(!ww.running||st.done||a===b)return;
+  var t=st.order[a];st.order[a]=st.order[b];st.order[b]=t;st.moves++;render();
+  var ok=st.order.every(function(v,i){return st.words[v]===st.words[i];});
+  if(ok){st.done='ok';var pts=1+(bonus(st)>0?1:0);ww.addScore(pts);ww.beep(true);ww.progress(ww.score,deck.length*2);render();
+    setTimeout(function(){var nx=state.findIndex(function(s){return !s.done;});
+      if(nx<0){ww.finish({score:ww.score,max:deck.length*2,note:'1 point per sentence, +1 for finishing within the bonus moves',answers:deck.map(function(x,i){return{q:x.s,a:state[i].moves+' moves',ok:true};})});return;}
+      pos=nx;render();},900);}
+}
+/* Тянуть слово на другое или тапнуть два подряд - в обоих случаях обмен. */
+WW.dnd(document.body,{tile:'.uj-w',target:'.uj-w',drop:function(tile,tg){swap(+tile.dataset.k,+tg.dataset.k);},
+  pair:function(a,b){swap(+a.dataset.k,+b.dataset.k);}});
+ww.onStart=function(){deck=WW.shuffle(items);pos=0;state=deck.map(mk);render();};
+window.applyCustomContent=function(content,title){
+  var src=(content&&content.sentences)||[];
+  var p=src.map(function(x){return typeof x==='string'?{s:x,t:''}:{s:String(x.s||x.sentence||x.text||''),t:String(x.t||x.hint||'')};})
+    .map(function(x){return{s:x.s.replace(/\s+/g,' ').trim(),t:x.t.trim()};}).filter(function(x){return x.s.split(' ').length>=3;});
+  if(!p.length)return;
+  items=p;ww.setTitle(title||'Unjumble');document.title=(title||'Unjumble')+' · Unjumble';ww.showStart();
+};
+window.applyCustomContent({sentences:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

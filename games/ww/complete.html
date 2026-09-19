@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Complete the sentence</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Complete the sentence: слева столбик вариантов в белой рамке, справа
+   крупное предложение с пустым полем. Слово тянут в поле (или тапают),
+   «Submit Answers» проверяет. */
+.cs{width:100%;height:100%;display:grid;grid-template-columns:minmax(120px,30%) 1fr;gap:18px;align-items:center}
+.cs-bank{display:flex;flex-direction:column;gap:6px;padding:8px;border:2px solid var(--gray);border-radius:6px;background:#fff;min-height:60px}
+.cs-bank .ww-tile{min-height:40px;font-size:clamp(15px,2.8vw,20px);touch-action:none;cursor:grab}
+.cs-text{font-weight:700;font-size:clamp(19px,4vw,30px);line-height:1.6}
+.cs-gap{display:inline-flex;vertical-align:middle;min-width:110px;min-height:40px;margin:0 4px;border:2px solid var(--gray);border-radius:4px;background:#fff;align-items:center;justify-content:center;padding:0 3px}
+.cs-gap .ww-tile{min-height:34px;padding:3px 10px;font-size:clamp(15px,2.8vw,20px);touch-action:none;cursor:grab}
+.cs-gap.ok{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok)}
+.cs-gap.bad{border-color:var(--bad);box-shadow:0 0 0 2px var(--bad)}
+.cs-fix{display:block;font-size:15px;color:var(--olive);font-weight:700;margin-top:6px}
+@media (max-width:540px){.cs{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:10px}.cs-bank{flex-direction:row;flex-wrap:wrap;justify-content:center}}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=['I have a terrible ___ (headache) and I need to lie down.','She stayed at home with a high ___ (fever).','He could not stop coughing: it was a bad ___ (cough).','There was a red ___ (rash) on her arm.'];
+var ww=WW.init({template:'Complete the sentence',instructions:'Drag and drop the words into the blank spaces within the text.',timer:'up',score:true,navTop:true,action:{label:'Submit Answers'}});
+var items=[],deck=[],pos=0,state=[];
+function parse(s){
+  var m=String(s).match(/^(.*?)_{2,}\s*\(([^)]+)\)(.*)$/);
+  if(!m){var m2=String(s).match(/^(.*?)\s*\|\s*(.+)$/);if(!m2)return null;return null;}
+  return{before:m[1],answer:m[2].trim(),after:m[3]};
+}
+function mk(it,i){
+  var others=WW.shuffle(items.filter(function(x){return x.answer.toLowerCase()!==it.answer.toLowerCase();}).map(function(x){return x.answer;}))
+    .filter(function(v,k,a){return a.indexOf(v)===k;}).slice(0,3);
+  return{opts:WW.shuffle([it.answer].concat(others)),put:null,done:null};
+}
+function render(){
+  var it=deck[pos],st=state[pos];
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='cs';
+  var bank=document.createElement('div');bank.className='cs-bank';
+  st.opts.forEach(function(o,i){if(st.put===o)return;var t=document.createElement('div');t.className='ww-tile';t.textContent=o;t.dataset.w=o;ww.paint(t,i);bank.appendChild(t);});
+  var text=document.createElement('div');text.className='cs-text';
+  text.appendChild(document.createTextNode(it.before));
+  var gap=document.createElement('span');gap.className='cs-gap'+(st.done==='ok'?' ok':st.done==='bad'?' bad':'');
+  if(st.put){var t=document.createElement('div');t.className='ww-tile';t.textContent=st.put;t.dataset.w=st.put;ww.paint(t,st.opts.indexOf(st.put));gap.appendChild(t);}
+  text.appendChild(gap);text.appendChild(document.createTextNode(it.after));
+  if(st.done==='bad'){var f=document.createElement('span');f.className='cs-fix';f.textContent='Answer: '+it.answer;text.appendChild(f);}
+  root.appendChild(bank);root.appendChild(text);ww.stage.appendChild(root);
+  ww.setNav(pos,deck.length,function(){pos--;render();},function(){pos++;render();});
+  if(st.done)ww.setAction(state.every(function(s){return s.done;})?'Finish':'Next',next);
+  else ww.setAction('Submit Answers',submit,!st.put);
+}
+function submit(){
+  var st=state[pos],it=deck[pos];if(!st.put||st.done)return;
+  st.done=st.put.toLowerCase()===it.answer.toLowerCase()?'ok':'bad';ww.beep(st.done==='ok');if(st.done==='ok')ww.addScore(1);
+  ww.progress(ww.score,deck.length);render();
+}
+function next(){
+  var nx=state.findIndex(function(s){return !s.done;});
+  if(nx<0){ww.finish({score:ww.score,max:deck.length,answers:deck.map(function(x,i){return{q:x.before+'___'+x.after,a:x.answer,ok:state[i].done==='ok'};})});return;}
+  pos=nx;render();
+}
+WW.dnd(document.body,{tile:'.cs .ww-tile',target:'.cs-gap, .cs-bank',drop:function(tile,tg){
+  var st=state[pos];if(st.done||!ww.running)return;
+  st.put=tg.classList.contains('cs-gap')?tile.dataset.w:null;render();
+}});
+ww.onStart=function(){deck=WW.shuffle(items);pos=0;state=deck.map(mk);render();};
+window.applyCustomContent=function(content,title){
+  var src=(content&&content.sentences)||[];
+  var p=src.map(function(x){return parse(typeof x==='string'?x:(x.s||x.text||''));}).filter(Boolean);
+  if(!p.length)return;
+  items=p;ww.setTitle(title||'Complete the sentence');document.title=(title||'Complete the sentence')+' · Complete the sentence';ww.showStart();
+};
+window.applyCustomContent({sentences:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

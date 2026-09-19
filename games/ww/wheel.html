@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Spin the wheel</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Spin the wheel: сектора цветами листа, стрелка слева, белая втулка.
+   После остановки - карточка слова; «Eliminate» убирает его с колеса. */
+.wh{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.wh canvas{max-width:100%;max-height:100%}
+.wh-ptr{position:absolute;width:0;height:0;border-top:16px solid transparent;border-bottom:16px solid transparent;border-left:30px solid var(--ink);filter:drop-shadow(0 2px 2px rgba(36,40,44,.3))}
+.wh-res{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7)}
+.wh-res[hidden]{display:none}
+.wh-card{width:min(90%,420px);border-radius:6px;padding:18px;text-align:center;background:var(--c);color:var(--f);box-shadow:inset 0 -8px 0 rgba(36,40,44,.2),0 8px 20px rgba(36,40,44,.25);animation:ww-pop .25s ease}
+.wh-w{font-weight:800;font-size:clamp(28px,7vw,46px);line-height:1.05}
+.wh-m{font-weight:600;font-size:clamp(14px,2.6vw,18px);margin-top:6px;line-height:1.35}
+.wh-row{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.wh-row button{border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);padding:5px 16px;font-weight:800;font-size:15px}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'bruise',b:'a dark mark after a hit'},{a:'burn',b:'an injury from heat'}];
+var ww=WW.init({template:'Spin the wheel',instructions:'Spin the wheel to see which item comes up next.',timer:'none',score:false,action:{label:'Spin It'}});
+var items=[],live=[],angle=0,spinning=false,cv,ctx,size=0,spins=0;
+function sectorLabels(list){
+  if(list.length<2)return list.slice();var pre=list[0];
+  list.forEach(function(w){var k=0;while(k<pre.length&&k<w.length&&pre[k]===w[k])k++;pre=pre.slice(0,k);});
+  var cut=Math.max(pre.lastIndexOf(' '),pre.lastIndexOf(':'))+1;
+  return list.map(function(w){var r=w.slice(cut>0?cut:0).trim();return r||w;});
+}
+function setup(){
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='wh';
+  size=Math.floor(Math.min(ww.stage.clientWidth-60,ww.stage.clientHeight-8));
+  var dpr=window.devicePixelRatio||1;
+  cv=document.createElement('canvas');cv.width=size*dpr;cv.height=size*dpr;cv.style.width=size+'px';cv.style.height=size+'px';
+  ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  var ptr=document.createElement('div');ptr.className='wh-ptr';ptr.style.left='calc(50% - '+(size/2+26)+'px)';
+  var res=document.createElement('div');res.className='wh-res';res.hidden=true;
+  root.appendChild(cv);root.appendChild(ptr);root.appendChild(res);ww.stage.appendChild(root);
+  draw();
+}
+function draw(){
+  var n=live.length,r=size/2-4,c=size/2,slice=2*Math.PI/Math.max(1,n),labels=sectorLabels(live.map(function(i){return items[i].word;}));
+  ctx.clearRect(0,0,size,size);
+  live.forEach(function(k,i){
+    var f=ww.fill(k);ctx.beginPath();ctx.moveTo(c,c);ctx.arc(c,c,r,angle+i*slice,angle+(i+1)*slice);ctx.closePath();
+    ctx.fillStyle=f[0];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.save();ctx.translate(c,c);ctx.rotate(angle+(i+.5)*slice);ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillStyle=f[1];
+    var fs=Math.max(10,Math.min(18,Math.floor(r*slice*.55)));ctx.font='800 '+fs+'px Nunito,-apple-system,sans-serif';
+    var t=labels[i],max=Math.floor((r*.7)/(fs*.55));if(t.length>max)t=t.slice(0,max-1)+'…';
+    ctx.fillText(t,r-12,1);ctx.restore();
+  });
+  ctx.beginPath();ctx.arc(c,c,r*.14,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#24282C';ctx.stroke();
+  ctx.beginPath();ctx.arc(c,c,r,0,2*Math.PI);ctx.lineWidth=4;ctx.strokeStyle='#fff';ctx.stroke();
+}
+function spin(){
+  if(spinning||!ww.running||!live.length)return;
+  spinning=true;ww.setAction('Spin It',spin,true);
+  var start=angle,turn=(5+Math.random()*3)*2*Math.PI,dur=3800,t0=performance.now();
+  (function step(now){
+    var p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);angle=start+turn*e;draw();
+    if(p<1)return requestAnimationFrame(step);
+    spinning=false;ww.setAction('Spin It',spin,false);
+    /* Стрелка слева = угол π в системе canvas. */
+    var n=live.length,slice=2*Math.PI/n,a=((Math.PI-angle)%(2*Math.PI)+2*Math.PI)%(2*Math.PI),idx=Math.floor(a/slice)%n;
+    show(idx);
+  })(t0);
+}
+function show(idx){
+  var k=live[idx],it=items[k],f=ww.fill(k);spins++;ww.beep(true);ww.progress(spins,items.length);
+  var res=ww.stage.querySelector('.wh-res');
+  res.innerHTML='<div class="wh-card" style="--c:'+f[0]+';--f:'+f[1]+'"><div class="wh-w">'+WW.esc(it.word)+'</div>'+(it.meaning?'<div class="wh-m">'+WW.esc(it.meaning)+'</div>':'')+
+    '<div class="wh-row"><button type="button" data-e>Eliminate</button><button type="button" data-k>OK</button></div></div>';
+  res.hidden=false;
+  res.querySelector('[data-k]').onclick=function(){res.hidden=true;};
+  res.querySelector('[data-e]').onclick=function(){res.hidden=true;live.splice(idx,1);draw();
+    if(!live.length)ww.finish({message:'Every word has been used',answers:items.map(function(x){return{q:x.word,a:x.meaning};})});};
+}
+ww.onStart=function(){live=WW.shuffle(items.map(function(_,i){return i;}));angle=0;spins=0;setup();ww.setAction('Spin It',spin);};
+window.addEventListener('resize',function(){if(live.length)setup();});
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content);
+  if(!p.length&&content&&content.words)p=content.words.map(function(w){return{word:String(w),meaning:''};});
+  p=p.filter(function(x){return x.word;});
+  if(p.length<2)return;
+  items=p;ww.setTitle(title||'Spin the wheel');document.title=(title||'Spin the wheel')+' · Spin the wheel';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

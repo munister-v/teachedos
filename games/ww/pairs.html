@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Matching pairs</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Matching pairs: серые карты рубашкой вверх, открываются по две. Совпало -
+   обе остаются открытыми в цвете пары. Раунды по ROUND пар через весь список. */
+.mp{display:grid;gap:7px;width:100%;height:100%;align-content:center;justify-content:center}
+.mp-card{position:relative;border:0;padding:0;background:none;perspective:700px}
+.mp-in{position:absolute;inset:0;transition:transform .35s;transform-style:preserve-3d}
+.mp-card.open .mp-in,.mp-card.done .mp-in{transform:rotateY(180deg)}
+.mp-f{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:5px;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;
+  font-weight:700;font-size:clamp(10px,1.9vw,15px);line-height:1.15;word-break:break-word}
+.mp-back{background:#5D614B;box-shadow:inset 0 -5px 0 rgba(36,40,44,.35),0 2px 3px rgba(36,40,44,.25)}
+.mp-face{transform:rotateY(180deg);background:#fff;border:2px solid var(--gray)}
+.mp-card.done .mp-face{background:var(--c);color:var(--f);border-color:transparent;box-shadow:inset 0 -5px 0 rgba(36,40,44,.22)}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
+var ROUND=10;
+var ww=WW.init({template:'Matching pairs',instructions:'Tap a pair of tiles at a time to reveal if they match.',timer:'up',score:true});
+var items=[],deck=[],round=0,cards=[],open=[],lock=false;
+function rounds(){return Math.max(1,Math.ceil(deck.length/ROUND));}
+function layout(n){var W=ww.stage.clientWidth,H=ww.stage.clientHeight,best=4,bestS=0;for(var c=3;c<=8;c++){var r=Math.ceil(n/c);var s=Math.min(W/c,(H/r)*0.75);if(s>bestS){bestS=s;best=c;}}return best;}
+function deal(){
+  var set=deck.slice(round*ROUND,(round+1)*ROUND);
+  cards=[];set.forEach(function(p,k){cards.push({k:k,text:p.word,p:p});cards.push({k:k,text:p.meaning,p:p});});
+  cards=WW.shuffle(cards);open=[];lock=false;render();
+  ww.setCenter(rounds()>1?('Round '+(round+1)+' of '+rounds()):'',true);
+}
+function render(){
+  ww.stage.innerHTML='';
+  var g=document.createElement('div');g.className='mp';
+  /* Размер карты считается от сцены: и по ширине, и по высоте все ряды
+     обязаны поместиться, пропорция 3:4 держится внутри этого. */
+  var cols=layout(cards.length),rowsN=Math.ceil(cards.length/cols),gap=7;
+  var W=ww.stage.clientWidth-28,H=ww.stage.clientHeight-12;
+  var cw=Math.min((W-gap*(cols-1))/cols,((H-gap*(rowsN-1))/rowsN)*0.75),ch=cw/0.75;
+  g.style.gridTemplateColumns='repeat('+cols+','+Math.floor(cw)+'px)';
+  g.style.gridTemplateRows='repeat('+rowsN+','+Math.floor(ch)+'px)';
+  cards.forEach(function(c,i){
+    var b=document.createElement('button');b.className='mp-card'+(c.open?' open':'')+(c.done?' done':'');b.type='button';
+    b.innerHTML='<div class="mp-in"><div class="mp-f mp-back"></div><div class="mp-f mp-face">'+WW.esc(c.text)+'</div></div>';
+    var f=ww.fill(c.k);b.style.setProperty('--c',f[0]);b.style.setProperty('--f',f[1]);
+    b.onclick=function(){tap(i);};g.appendChild(b);
+  });
+  ww.stage.appendChild(g);
+}
+function tap(i){
+  var c=cards[i];if(!ww.running||lock||c.open||c.done)return;
+  c.open=true;open.push(i);render();
+  if(open.length<2)return;
+  var a=cards[open[0]],b=cards[open[1]];lock=true;
+  if(a.k===b.k&&a!==b){
+    setTimeout(function(){a.done=b.done=true;a.open=b.open=false;open=[];lock=false;ww.addScore(1);ww.beep(true);ww.progress(ww.score,deck.length);render();
+      if(cards.every(function(x){return x.done;}))next();},350);
+  }else{
+    ww.beep(false);
+    setTimeout(function(){a.open=b.open=false;open=[];lock=false;render();},900);
+  }
+}
+function next(){
+  if(round+1<rounds()){round++;setTimeout(deal,500);return;}
+  ww.finish({score:ww.score,max:deck.length,answers:deck.map(function(p){return{q:p.word,a:p.meaning};})});
+}
+ww.onStart=function(){deck=WW.shuffle(items);round=0;deal();};
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content).filter(function(x){return x.meaning;});
+  if(p.length<2)return;
+  items=p;ww.setTitle(title||'Matching pairs');document.title=(title||'Matching pairs')+' · Matching pairs';ww.showStart();
+};
+window.addEventListener('resize',function(){if(cards.length)render();});
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

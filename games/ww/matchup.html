@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Match up</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Match up: сверху банк слов-плиток, ниже строки «пустое место + значение».
+   Слово тянут к значению; «Submit Answers» проверяет страницу. */
+.mu{width:100%;height:100%;display:flex;flex-direction:column;gap:10px}
+.mu-bank{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:36px}
+.mu-bank .ww-tile{font-size:15px;min-height:32px;padding:5px 10px;cursor:grab;touch-action:none}
+.mu-rows{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.mu-row{display:grid;grid-template-columns:minmax(120px,32%) 1fr;gap:12px;align-items:center}
+.mu-row .ww-slot{min-height:38px}
+.mu-row .ww-slot .ww-tile{width:100%;min-height:34px;font-size:15px;touch-action:none;cursor:grab}
+.mu-def{font-weight:600;font-size:clamp(14px,2.4vw,17px);line-height:1.3}
+.mu-mark{font-weight:900;margin-left:6px}
+.mu-row.ok .ww-slot{outline:3px solid var(--ok);outline-offset:1px;border-radius:7px}
+.mu-row.bad .ww-slot{outline:3px solid var(--bad);outline-offset:1px;border-radius:7px}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'runny nose',b:'liquid keeps coming out of your nose'}];
+var PAGE=6;
+var ww=WW.init({template:'Match up',instructions:'Drag and drop each keyword next to its definition.',timer:'up',score:true,action:{label:'Submit Answers'}});
+var items=[],deck=[],page=0,placed={},checked=false,results=[];
+function pages(){return Math.max(1,Math.ceil(deck.length/PAGE));}
+function cur(){return deck.slice(page*PAGE,(page+1)*PAGE);}
+function render(){
+  var list=cur();
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='mu';
+  var bank=document.createElement('div');bank.className='mu-bank';
+  var used=Object.values(placed);
+  WW.shuffle(list.map(function(x,i){return i;})).forEach(function(i){
+    var w=list[i].word; if(used.indexOf(w)>=0)return;
+    var t=document.createElement('div');t.className='ww-tile';t.textContent=w;t.dataset.word=w;ww.paint(t,deck.indexOf(list[i]));bank.appendChild(t);
+  });
+  var rows=document.createElement('div');rows.className='mu-rows';
+  list.forEach(function(it,i){
+    var r=document.createElement('div');r.className='mu-row';
+    var slot=document.createElement('div');slot.className='ww-slot';slot.dataset.i=i;
+    if(placed[i]){var t=document.createElement('div');t.className='ww-tile';t.textContent=placed[i];t.dataset.word=placed[i];
+      ww.paint(t,deck.findIndex(function(x){return x.word===placed[i];}));slot.appendChild(t);slot.classList.add('is-filled');}
+    if(checked){r.classList.add(placed[i]===it.word?'ok':'bad');}
+    var d=document.createElement('div');d.className='mu-def';d.textContent=it.meaning;
+    r.appendChild(slot);r.appendChild(d);rows.appendChild(r);
+  });
+  root.appendChild(bank);root.appendChild(rows);ww.stage.appendChild(root);
+  ww.setNav(page,pages(),null,null);
+  var full=Object.keys(placed).length===list.length;
+  if(checked) ww.setAction(page<pages()-1?'Next':'Finish',nextPage);
+  else ww.setAction('Submit Answers',submit,!full);
+}
+function drop(tile,slot){
+  if(checked||!ww.running)return;
+  var w=tile.dataset.word,i=+slot.dataset.i;
+  Object.keys(placed).forEach(function(k){if(placed[k]===w)delete placed[k];});
+  placed[i]=w;render();
+}
+function submit(){
+  var list=cur();checked=true;var got=0;
+  list.forEach(function(it,i){var ok=placed[i]===it.word;if(ok)got++;results.push({q:it.meaning,a:it.word,ok:ok});});
+  ww.addScore(got);ww.beep(got===list.length);ww.progress(ww.score,deck.length);render();
+}
+function nextPage(){
+  if(page<pages()-1){page++;placed={};checked=false;render();return;}
+  ww.finish({score:ww.score,max:deck.length,answers:results});
+}
+WW.dnd(document.body,{tile:'.mu .ww-tile',target:'.mu .ww-slot, .mu-bank',drop:function(tile,tg){
+  if(tg.classList.contains('mu-bank')){if(checked)return;Object.keys(placed).forEach(function(k){if(placed[k]===tile.dataset.word)delete placed[k];});render();return;}
+  drop(tile,tg);
+}});
+ww.onStart=function(){deck=WW.shuffle(items);page=0;placed={};checked=false;results=[];render();};
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content).filter(function(x){return x.meaning;});
+  if(p.length<2)return;
+  items=p;ww.setTitle(title||'Match up');document.title=(title||'Match up')+' · Match up';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Find the match</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Find the match: подсказка на «плёнке» между пунктирами, под ней все
+   слова плитками. Верная плитка исчезает, неверная стоит жизни. */
+.fm{width:100%;height:100%;display:flex;flex-direction:column;gap:10px}
+.fm-strip{position:relative;flex:1;min-height:90px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;
+  border-top:8px dashed var(--gray);border-bottom:8px dashed var(--gray)}
+.fm-clue{font-weight:700;font-size:clamp(17px,3.4vw,26px);line-height:1.3;max-width:94%;animation:ww-pop .25s ease}
+.fm-clue img{max-height:130px;max-width:100%;object-fit:contain}
+.fm-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
+.fm-grid .ww-tile{flex:0 0 calc(20% - 4px);min-height:36px;font-size:clamp(12px,2.1vw,16px);padding:4px 5px}
+.fm-grid .ww-tile.is-gone{visibility:hidden}
+@media (max-width:520px){.fm-grid .ww-tile{flex-basis:calc(33.3% - 4px)}}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'runny nose',b:'liquid keeps coming out of your nose'}];
+var LIVES=3;
+var ww=WW.init({template:'Find the match',instructions:'Tap the matching answer to eliminate it. Repeat until all answers are gone.',timer:'up',score:true,lives:LIVES,center:'Tap the matching tile'});
+var items=[],tiles=[],queue=[],lives=LIVES,results=[];
+function render(){
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='fm';
+  var strip=document.createElement('div');strip.className='fm-strip';
+  var clue=document.createElement('div');clue.className='fm-clue';
+  var it=items[queue[0]];
+  if(it){ if(it.img)clue.innerHTML='<img src="'+WW.esc(it.img)+'" alt="">'; else clue.textContent=it.meaning; }
+  strip.appendChild(clue);
+  var grid=document.createElement('div');grid.className='fm-grid';
+  tiles.forEach(function(t,i){
+    var b=document.createElement('button');b.className='ww-tile'+(t.gone?' is-gone':'');b.textContent=items[t.i].word;ww.paint(b,i);
+    b.onclick=function(){tap(t,b);};grid.appendChild(b);
+  });
+  root.appendChild(strip);root.appendChild(grid);ww.stage.appendChild(root);
+}
+function tap(t,b){
+  if(!ww.running||t.gone||!queue.length)return;
+  var want=queue[0];
+  if(t.i===want){
+    t.gone=true;queue.shift();ww.addScore(1);ww.beep(true);results.push({q:items[want].meaning,a:items[want].word,ok:true});
+    ww.progress(ww.score,items.length);
+    if(!queue.length){render();ww.finish({score:ww.score,max:items.length,answers:results});return;}
+    render();
+  }else{
+    ww.beep(false);b.classList.add('is-bad','ww-shake');lives--;ww.setLives(lives);
+    setTimeout(function(){b.classList.remove('is-bad','ww-shake');},450);
+    if(lives<=0){
+      queue.forEach(function(q){results.push({q:items[q].meaning,a:items[q].word,ok:false});});
+      ww.finish({score:ww.score,max:items.length,answers:results,note:'Out of lives'});
+    }
+  }
+}
+ww.onStart=function(){
+  lives=LIVES;ww.setLives(lives);results=[];
+  tiles=WW.shuffle(items.map(function(_,i){return{i:i,gone:false};}));
+  queue=WW.shuffle(items.map(function(_,i){return i;}));
+  render();
+};
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content).filter(function(x){return x.meaning;});
+  if(p.length<2)return;
+  items=p;ww.setTitle(title||'Find the match');document.title=(title||'Find the match')+' · Find the match';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

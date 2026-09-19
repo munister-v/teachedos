@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Hangman</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Hangman: виселица слева, справа значение, прочерки и клавиатура.
+   Пробел и дефис во фразе видны сразу, угадываются только буквы. */
+.hm{width:100%;height:100%;display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:14px;align-items:center}
+.hm svg{width:100%;max-height:100%}
+.hm-right{display:flex;flex-direction:column;align-items:center;gap:12px}
+.hm-clue{text-align:center;font-weight:700;font-size:clamp(14px,2.6vw,19px);line-height:1.3}
+.hm-word{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
+.hm-s{width:clamp(20px,4.4vw,32px);border-bottom:4px solid var(--ink);text-align:center;font-weight:800;font-size:clamp(18px,4vw,28px);line-height:1.2;min-height:1.3em}
+.hm-s.sp{border:0;width:14px}
+.hm-s.miss{color:var(--bad)}
+.hm-keys{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;width:100%;max-width:400px}
+.hm-keys .ww-tile{min-height:clamp(26px,5vw,36px);padding:0;font-size:clamp(13px,2.6vw,18px);font-weight:800}
+.hm-keys .ww-tile.used{opacity:.25;pointer-events:none}
+@media (max-width:540px){.hm{grid-template-columns:1fr;grid-template-rows:90px 1fr}}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'sore throat',b:'pain when you swallow'}];
+var MAXW=6;
+var ww=WW.init({template:'Hangman',instructions:'Choose letters to complete the answer.',timer:'up',score:true});
+var items=[],deck=[],pos=0,state=[];
+var PARTS=['<line x1="20" y1="190" x2="120" y2="190"/>','<line x1="50" y1="190" x2="50" y2="20"/>','<line x1="50" y1="20" x2="130" y2="20"/><line x1="130" y1="20" x2="130" y2="45"/>',
+  '<circle cx="130" cy="62" r="17"/>','<line x1="130" y1="79" x2="130" y2="130"/>','<line x1="130" y1="95" x2="108" y2="115"/><line x1="130" y1="95" x2="152" y2="115"/><line x1="130" y1="130" x2="112" y2="160"/><line x1="130" y1="130" x2="148" y2="160"/>'];
+function render(){
+  var it=deck[pos],st=state[pos],w=it.word.toLowerCase();
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='hm';
+  var shown=st.done==='bad'?PARTS.length:Math.min(PARTS.length,st.wrong);
+  root.innerHTML='<svg viewBox="0 0 170 200" fill="none" stroke="#24282C" stroke-width="6" stroke-linecap="round">'+PARTS.slice(0,shown).join('')+'</svg>';
+  var R=document.createElement('div');R.className='hm-right';
+  var clue=document.createElement('div');clue.className='hm-clue';clue.textContent=it.meaning;
+  var W=document.createElement('div');W.className='hm-word';
+  w.split('').forEach(function(ch){var s=document.createElement('div');
+    if(!/[a-z]/.test(ch)){s.className='hm-s sp';s.textContent=ch===' '?'':ch;}
+    else{var known=st.used[ch];s.className='hm-s'+(st.done==='bad'&&!known?' miss':'');s.textContent=(known||st.done)?ch:'';}
+    W.appendChild(s);});
+  var K=document.createElement('div');K.className='hm-keys';
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function(ch,i){var b=document.createElement('button');b.className='ww-tile'+(st.used[ch]||st.done?' used':'');b.textContent=ch;ww.paint(b,i);b.onclick=function(){guess(ch);};K.appendChild(b);});
+  R.appendChild(clue);R.appendChild(W);R.appendChild(K);root.appendChild(R);ww.stage.appendChild(root);
+  ww.setNav(pos,deck.length,function(){pos--;render();},function(){pos++;render();});
+}
+function guess(ch){
+  var st=state[pos],w=deck[pos].word.toLowerCase();if(!ww.running||st.done||st.used[ch])return;
+  st.used[ch]=true;
+  if(w.indexOf(ch)<0){st.wrong++;ww.beep(false);if(st.wrong>=MAXW)st.done='bad';}
+  else{ww.beep(true);if(w.split('').every(function(c){return !/[a-z]/.test(c)||st.used[c];})){st.done='ok';ww.addScore(1);}}
+  if(st.done)ww.progress(ww.score,deck.length);
+  render();
+  if(st.done)setTimeout(function(){var nx=state.findIndex(function(s){return !s.done;});
+    if(nx<0){ww.finish({score:ww.score,max:deck.length,answers:deck.map(function(x,i){return{q:x.meaning,a:x.word,ok:state[i].done==='ok'};})});return;}
+    pos=nx;render();},st.done==='ok'?900:1800);
+}
+document.addEventListener('keydown',function(e){if(/^[a-z]$/i.test(e.key))guess(e.key.toLowerCase());});
+ww.onStart=function(){deck=WW.shuffle(items);pos=0;state=deck.map(function(){return{used:{},wrong:0,done:null};});render();};
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content).filter(function(x){return x.meaning&&/^[a-z][a-z' -]*[a-z]$/i.test(x.word);});
+  if(!p.length)return;
+  items=p;ww.setTitle(title||'Hangman');document.title=(title||'Hangman')+' · Hangman';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

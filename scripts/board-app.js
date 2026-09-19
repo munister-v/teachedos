@@ -11809,6 +11809,8 @@ function openAssignmentGameBuilderMenu(cardId, ev) {
 // catalog when available, with a safe fallback.
 function _gameMetaFor(gameType) {
   const src = 'games/' + gameType + '.html';
+  // Шаблоны games/ww/ - экран 3:2, как плеер Wordwall.
+  if (String(gameType).startsWith('ww/')) return { src, w: 720, h: 480 };
   const entry = (typeof GAMES !== 'undefined' && Array.isArray(GAMES)) ? GAMES.find(g => g.src === src) : null;
   return { src, w: entry?.w || 480, h: entry?.h || 560 };
 }
@@ -13775,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '849';
+const TEACHEDOS_ASSET_VERSION = '850';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14429,7 +14431,10 @@ async function _wordTemplateContent(t, ctx) {
       return { content: { items: entries.map(e => ({ word: e.word, meaning: e.gloss })) } };
     case 'wheel':
     case 'wordsearch':
-      return entries.length >= 2 ? { content: { words: entries.map(e => e.word) } } : { why: 'needs at least 2 words' };
+      // Колесо показывает значение выпавшего слова, поэтому пары, а не только слова.
+      return entries.length >= 2
+        ? { content: { words: entries.map(e => e.word), pairs: entries.map(e => ({ a: e.word, b: e.gloss })) } }
+        : { why: 'needs at least 2 words' };
     case 'unjumble': {
       const sentences = entries.filter(e => ex(e) && ex(e).split(/\s+/).length >= 3)
         .map(e => ({ s: ex(e), t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
@@ -14468,7 +14473,7 @@ async function _wordTemplateContent(t, ctx) {
 function _placeWordTemplateGames(list, base) {
   const r = boardWrap.getBoundingClientRect();
   const start = screenToBoard(r.left + r.width * 0.2, r.top + r.height * 0.2) || { x: 200, y: 200 };
-  const COLS = 3, CARD_W = 420, GAP = 36;
+  const COLS = 3, CARD_W = 480, GAP = 36;
   const metas = list.map(({ t }) => _gameMetaFor(t.game));
   const heights = metas.map(m => Math.round(m.h * (CARD_W / m.w)));
   const rowH = [];

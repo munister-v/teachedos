@@ -584,23 +584,25 @@ const STICKER_KEYWORDS = {
      meaning  - значение (добирается словарём/движком до сборки);
      example  - пример-предложение (из словаря; без него слово пропускается);
      groups   - группы: строки учителя «Food: apple, bread», иначе движок (AI).
-   icon - ключ простого глифа в _wordTemplateIcon (board-app.js). */
+   icon - ключ простого глифа в _wordTemplateIcon (board-app.js).
+   game - страница шаблона в games/ww/: одна оболочка раскладки Wordwall
+   (старт, таймер, счёт, «1 of N», итоги) на все пятнадцать. */
 const BOARD_WORD_TEMPLATES = [
-  {key:'matchup',   title:'Match up',              game:'word-definition-match', icon:'matchup',   needs:'meaning', hint:'Drag each word to its meaning.'},
-  {key:'quiz',      title:'Quiz',                  game:'vocab-quiz',            icon:'quiz',      needs:'meaning', hint:'A question on every word, four options.'},
-  {key:'flashcards',title:'Flash cards',           game:'flashcards',            icon:'flashcards',needs:'meaning', hint:'Word on the front, meaning and example behind.'},
-  {key:'speaking',  title:'Speaking cards',        game:'speaking-cards',        icon:'speaking',  needs:'',        hint:'Deal a card and talk about the word.'},
-  {key:'wheel',     title:'Spin the wheel',        game:'spin-wheel',            icon:'wheel',     needs:'',        hint:'Spin, land on a word, use it.'},
-  {key:'groupsort', title:'Group sort',            game:'group-sort',            icon:'groupsort', needs:'groups',  hint:'Drag words into their groups.', ai:true},
-  {key:'findmatch', title:'Find the match',        game:'find-match',            icon:'findmatch', needs:'meaning', hint:'Tap the word that fits the meaning.'},
-  {key:'pairs',     title:'Matching pairs',        game:'memory-match',          icon:'pairs',     needs:'meaning', hint:'Turn tiles over two at a time.'},
-  {key:'box',       title:'Open the box',          game:'open-the-box',          icon:'box',       needs:'',        hint:'Open numbered boxes, one word inside each.'},
-  {key:'anagram',   title:'Anagram',               game:'word-scramble',         icon:'anagram',   needs:'meaning', hint:'Put the letters back in order.'},
-  {key:'unjumble',  title:'Unjumble',              game:'sentence-builder',      icon:'unjumble',  needs:'example', hint:'Reorder the words of an example sentence.'},
-  {key:'complete',  title:'Complete the sentence', game:'fill-blank',            icon:'complete',  needs:'example', hint:'Each word goes back into its sentence.'},
-  {key:'wordsearch',title:'Wordsearch',            game:'word-search',           icon:'wordsearch',needs:'',        hint:'Find the words hidden in the grid.'},
-  {key:'crossword', title:'Crossword',             game:'crossword',             icon:'crossword', needs:'meaning', hint:'Meanings are the clues.'},
-  {key:'hangman',   title:'Hangman',               game:'hangman',               icon:'hangman',   needs:'meaning', hint:'Guess the word letter by letter.'},
+  {key:'matchup',   title:'Match up',              game:'ww/matchup', icon:'matchup',   needs:'meaning', hint:'Drag each word to its meaning.'},
+  {key:'quiz',      title:'Quiz',                  game:'ww/quiz',            icon:'quiz',      needs:'meaning', hint:'A question on every word, four options.'},
+  {key:'flashcards',title:'Flash cards',           game:'ww/flashcards',            icon:'flashcards',needs:'meaning', hint:'Word on the front, meaning and example behind.'},
+  {key:'speaking',  title:'Speaking cards',        game:'ww/speaking',        icon:'speaking',  needs:'',        hint:'Deal a card and talk about the word.'},
+  {key:'wheel',     title:'Spin the wheel',        game:'ww/wheel',            icon:'wheel',     needs:'',        hint:'Spin, land on a word, use it.'},
+  {key:'groupsort', title:'Group sort',            game:'ww/groupsort',            icon:'groupsort', needs:'groups',  hint:'Drag words into their groups.', ai:true},
+  {key:'findmatch', title:'Find the match',        game:'ww/findmatch',            icon:'findmatch', needs:'meaning', hint:'Tap the word that fits the meaning.'},
+  {key:'pairs',     title:'Matching pairs',        game:'ww/pairs',          icon:'pairs',     needs:'meaning', hint:'Turn tiles over two at a time.'},
+  {key:'box',       title:'Open the box',          game:'ww/box',          icon:'box',       needs:'',        hint:'Open numbered boxes, one word inside each.'},
+  {key:'anagram',   title:'Anagram',               game:'ww/anagram',         icon:'anagram',   needs:'meaning', hint:'Put the letters back in order.'},
+  {key:'unjumble',  title:'Unjumble',              game:'ww/unjumble',      icon:'unjumble',  needs:'example', hint:'Reorder the words of an example sentence.'},
+  {key:'complete',  title:'Complete the sentence', game:'ww/complete',            icon:'complete',  needs:'example', hint:'Each word goes back into its sentence.'},
+  {key:'wordsearch',title:'Wordsearch',            game:'ww/wordsearch',           icon:'wordsearch',needs:'',        hint:'Find the words hidden in the grid.'},
+  {key:'crossword', title:'Crossword',             game:'ww/crossword',             icon:'crossword', needs:'meaning', hint:'Meanings are the clues.'},
+  {key:'hangman',   title:'Hangman',               game:'ww/hangman',               icon:'hangman',   needs:'meaning', hint:'Guess the word letter by letter.'},
 ];
 
 const BOARD_WORKOUT_ACTIVITIES = [

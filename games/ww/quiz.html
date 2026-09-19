@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Quiz</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Quiz: подсказка слева, четыре крупные плитки 2x2 справа, «1 of N» снизу. */
+.q-wrap{width:100%;height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:center}
+.q-clue{display:flex;align-items:center;justify-content:center;text-align:center;height:100%;max-height:260px;padding:10px;font-weight:700;font-size:clamp(17px,3.2vw,24px);line-height:1.3}
+.q-clue img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;height:100%;max-height:230px}
+.q-opts .ww-tile{font-size:clamp(15px,2.8vw,21px);min-height:72px}
+@media (max-width:560px){.q-wrap{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:10px}.q-clue{max-height:140px}.q-opts{max-height:none}}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'}];
+var ww=WW.init({template:'Quiz',instructions:'Tap the correct answer.',timer:'up',score:true});
+var items=[],order=[],pos=0,answered=[],results=[];
+
+function build(){
+  order=WW.shuffle(items.map(function(_,i){return i;}));
+  pos=0;answered=new Array(order.length).fill(null);results=[];
+}
+function render(){
+  var it=items[order[pos]];
+  var others=WW.shuffle(items.filter(function(x){return x.word!==it.word;})).slice(0,3).map(function(x){return x.word;});
+  var opts=it._opts||(it._opts=WW.shuffle([it.word].concat(others)));
+  ww.stage.innerHTML='';
+  var wrap=document.createElement('div');wrap.className='q-wrap';
+  var clue=document.createElement('div');clue.className='q-clue';
+  if(it.img){clue.innerHTML='<img src="'+WW.esc(it.img)+'" alt="">';}else clue.textContent=it.meaning;
+  var grid=document.createElement('div');grid.className='q-opts';
+  opts.forEach(function(o,i){
+    var b=document.createElement('button');b.className='ww-tile';b.textContent=o;ww.paint(b,i);
+    var done=answered[pos];
+    if(done){ if(o===it.word)b.classList.add('is-ok'); else if(o===done)b.classList.add('is-bad'); else b.classList.add('is-dim'); }
+    b.onclick=function(){pick(o,b);};
+    grid.appendChild(b);
+  });
+  wrap.appendChild(clue);wrap.appendChild(grid);ww.stage.appendChild(wrap);
+  ww.setNav(pos,order.length,function(){pos--;render();},function(){pos++;render();});
+}
+function pick(o,b){
+  if(!ww.running||answered[pos])return;
+  var it=items[order[pos]];var ok=o===it.word;
+  answered[pos]=o;results.push({q:it.meaning,a:it.word,ok:ok});
+  ww.beep(ok);if(ok)ww.addScore(1);else b.classList.add('ww-shake');
+  ww.progress(ww.score,order.length);
+  render();
+  setTimeout(function(){
+    var next=answered.findIndex(function(x){return !x;});
+    if(next<0){ww.finish({score:ww.score,max:order.length,answers:order.map(function(i,k){var x=items[i];return{q:x.meaning,a:x.word,ok:answered[k]===x.word};})});return;}
+    pos=next;render();
+  },900);
+}
+ww.onStart=function(){items.forEach(function(x){delete x._opts;});build();render();};
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content).filter(function(x){return x.meaning;});
+  if(p.length<2)return;
+  items=p;ww.setTitle(title||'Quiz');document.title=(title||'Quiz')+' · Quiz';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

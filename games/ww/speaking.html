@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Speaking cards</title>
+<link rel="stylesheet" href="ww.css?v=850">
+<style>
+/* Speaking cards: колода рубашкой слева, сданная карта справа, снизу
+   Shuffle / Undo / Deal. Карта - слово учителя и задание «скажи». */
+.sc{display:flex;align-items:center;justify-content:center;gap:5%;width:100%;height:100%}
+.sc-deck,.sc-spot{position:relative;width:38%;max-width:260px;aspect-ratio:5/7;max-height:100%}
+.sc-back{position:absolute;inset:0;border-radius:10px;background:#24282C;border:6px solid #CDF649}
+.sc-back::after{content:"";position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;transform:translate(-50%,-50%) rotate(45deg);border:5px solid #CDF649;border-radius:6px}
+.sc-deck .sc-back:nth-child(1){transform:translate(6px,6px)}
+.sc-deck .sc-back:nth-child(2){transform:translate(3px,3px)}
+.sc-count{position:absolute;left:0;right:0;bottom:-26px;text-align:center;font-weight:700;color:var(--olive);font-size:14px}
+.sc-spot{border:3px dashed var(--gray);border-radius:10px}
+.sc-card{position:absolute;inset:-3px;border-radius:10px;background:#fff;border:6px solid var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;animation:sc-in .35s ease}
+@keyframes sc-in{from{transform:translateX(-60%) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+.sc-w{font-weight:800;font-size:clamp(20px,4.6vw,32px);line-height:1.05}
+.sc-m{font-weight:600;color:var(--olive);font-size:clamp(12px,2.2vw,15px);line-height:1.3}
+.sc-t{margin-top:4px;padding:7px 9px;border-radius:6px;background:var(--paper);font-weight:700;font-size:clamp(12px,2.2vw,15px);line-height:1.3}
+.sc-btns{display:flex;gap:8px}
+.sc-btns .ww-action{min-width:96px}
+</style>
+</head>
+<body>
+<script src="ww.js?v=850"></script>
+<script>
+var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'}];
+var TASKS=['Use it in a sentence about yourself.','Explain it without saying the word.','Ask your partner a question with it.','Tell a 3-sentence story with it.','Say when you last had, saw or needed it.','Give an example from real life.','Say a word it goes with.'];
+var ww=WW.init({template:'Speaking cards',instructions:'Deal out random cards from a shuffled deck.',timer:'none',score:false,action:{label:'Deal'}});
+var items=[],order=[],pos=-1;
+/* Три кнопки вместо одной главной: Shuffle / Undo / Deal, как в референсе. */
+(function(){
+  var act=document.querySelector('.ww-action');var box=document.createElement('div');box.className='sc-btns';
+  var sh=document.createElement('button');sh.className='ww-action';sh.textContent='Shuffle';sh.onclick=function(){reshuffle();};
+  var un=document.createElement('button');un.className='ww-action';un.textContent='Undo';un.id='sc-undo';un.onclick=function(){if(pos>=0){pos--;render();}};
+  act.parentNode.insertBefore(box,act);box.appendChild(sh);box.appendChild(un);box.appendChild(act);
+})();
+function reshuffle(){order=WW.shuffle(items.map(function(_,i){return i;}));pos=-1;render();}
+function render(){
+  ww.stage.innerHTML='';
+  var root=document.createElement('div');root.className='sc';
+  var deck=document.createElement('div');deck.className='sc-deck';
+  var left=order.length-pos-1;
+  if(left>0){deck.innerHTML='<div class="sc-back"></div>'+(left>1?'<div class="sc-back"></div>':'')+(left>2?'<div class="sc-back"></div>':'');}
+  else deck.style.border='3px dashed var(--gray)',deck.style.borderRadius='10px';
+  var cnt=document.createElement('div');cnt.className='sc-count';cnt.textContent=left+' left';deck.appendChild(cnt);
+  deck.onclick=deal;
+  var spot=document.createElement('div');spot.className='sc-spot';
+  if(pos>=0){var it=items[order[pos]];var f=ww.fill(order[pos]);
+    spot.innerHTML='<div class="sc-card" style="--c:'+f[0]+'"><div class="sc-w">'+WW.esc(it.word)+'</div>'+(it.meaning?'<div class="sc-m">'+WW.esc(it.meaning)+'</div>':'')+'<div class="sc-t">'+WW.esc(it.prompt||TASKS[order[pos]%TASKS.length])+'</div></div>';}
+  root.appendChild(deck);root.appendChild(spot);ww.stage.appendChild(root);
+  ww.setAction('Deal',deal,left<=0);
+  var un=document.getElementById('sc-undo');if(un)un.disabled=pos<0;
+}
+function deal(){
+  if(pos>=order.length-1)return;pos++;render();ww.progress(pos+1,order.length);
+  if(pos===order.length-1)ww.post({type:'game-finished',score:order.length,max:order.length,game:'Speaking cards',status:'done'});
+}
+ww.onStart=reshuffle;
+window.addEventListener('resize',function(){if(order.length)render();});
+window.applyCustomContent=function(content,title){
+  var p=WW.pairsFrom(content);
+  if(p.length<1)return;
+  items=p;ww.setTitle(title||'Speaking cards');document.title=(title||'Speaking cards')+' · Speaking cards';ww.showStart();
+};
+window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
+WW.listen();
+</script>
+<script src="../../scripts/game-handoff.js?v=850"></script>
+</body>
+</html>

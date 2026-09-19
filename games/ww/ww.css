@@ -1,0 +1,96 @@
+/* Общая оболочка шаблонов «как тренировать» (раскладка Wordwall Classic):
+   сверху таймер / задание / счёт, по центру сцена, снизу меню / главная
+   кнопка / звук и полный экран, поверх - экран старта и итогов.
+   Цвета - буквальные hex брендового листа TeachEd; на яркой заливке текст
+   чернилами, белый только на фиолетовом и оливковом (там он держит 4.5:1). */
+:root{
+  --ink:#24282C;--lime:#CDF649;--paper:#F6F6EF;--gray:#CACCC6;--olive:#5D614B;--sage:#A3A48D;
+  --ok:#15803D;--bad:#DC2626;
+  --line:rgba(36,40,44,.16);
+  --font:"Nunito","TeachEd UI","Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:#fff;color:var(--ink);display:flex;flex-direction:column;overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:inherit;cursor:pointer}
+
+.ww-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:8px 14px 4px;min-height:46px}
+.ww-timer{font-weight:800;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.ww-center{font-weight:700;font-size:19px;text-align:center;line-height:1.15;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70vw}
+.ww-center.muted{color:var(--olive)}
+.ww-score{justify-self:end;display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.ww-lives{letter-spacing:1px;font-size:18px}
+.ww-tick{font-size:18px}
+
+.ww-stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px 14px;overflow:hidden}
+
+.ww-bottom{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:6px 12px 10px;min-height:52px}
+.ww-bottom-left{display:flex;align-items:center;gap:8px}
+.ww-bottom-right{justify-self:end;display:flex;align-items:center;gap:6px}
+.ww-icon{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:2px solid var(--ink);border-radius:8px;background:#fff;padding:0}
+.ww-icon.flat{border-color:transparent}
+.ww-icon svg{width:22px;height:22px}
+.ww-action{min-width:150px;padding:5px 22px;border:2px solid var(--ink);border-radius:8px;background:#fff;font-weight:700;font-size:17px;line-height:1.3}
+.ww-action:disabled{opacity:.35;cursor:default}
+.ww-action[hidden],.ww-nav[hidden]{display:none}
+.ww-nav{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.ww-arrow{width:26px;height:26px;border:0;background:none;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.ww-arrow svg{width:22px;height:22px}
+.ww-arrow:disabled{opacity:.28;cursor:default}
+
+/* Плитка - плоский цвет листа и тёмная полоса снизу (тень, не градиент):
+   тот же объём, что у плиток Wordwall, без смеси двух цветов. */
+.ww-tile{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;border:0;border-radius:6px;
+  background:var(--c,#3F9FFF);color:var(--f,var(--ink));font-weight:700;line-height:1.15;padding:6px 8px;
+  box-shadow:inset 0 -5px 0 rgba(36,40,44,.22),0 2px 3px rgba(36,40,44,.18);word-break:break-word;transition:transform .12s,opacity .2s}
+.ww-tile:active{transform:translateY(1px)}
+.ww-tile.is-dim{opacity:.25;pointer-events:none}
+.ww-tile.is-ok{background:var(--ok)!important;color:#fff!important}
+.ww-tile.is-bad{background:var(--bad)!important;color:#fff!important}
+@keyframes ww-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.ww-shake{animation:ww-shake .3s ease}
+@keyframes ww-pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+
+/* Экран старта и итогов - поверх сцены, тёмная подложка. */
+.ww-over{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:18px;text-align:center;background:rgba(36,40,44,.9);color:#fff}
+.ww-over[hidden]{display:none}
+.ww-over-kicker{font-weight:700;font-size:20px}
+.ww-over-title{font-weight:800;font-size:clamp(24px,6vw,36px);line-height:1.1;max-width:90%}
+.ww-start-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:84px;height:84px;margin:6px 0;border:0;border-radius:6px;
+  background:var(--lime);color:var(--ink);font-weight:800;font-size:16px;box-shadow:inset 0 -5px 0 rgba(36,40,44,.25)}
+.ww-start-btn svg{width:38px;height:38px}
+.ww-over-note{font-weight:600;font-size:17px;line-height:1.35;max-width:420px;opacity:.95}
+.ww-over-score{font-weight:800;font-size:clamp(34px,9vw,54px);line-height:1}
+.ww-over-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.ww-over-row button{padding:8px 18px;border:0;border-radius:8px;background:#fff;color:var(--ink);font-weight:800;font-size:16px}
+.ww-over-row button.primary{background:var(--lime)}
+
+.ww-menu{position:absolute;left:12px;bottom:56px;z-index:70;display:flex;flex-direction:column;min-width:170px;padding:6px;border:2px solid var(--ink);border-radius:10px;background:#fff;box-shadow:0 8px 20px rgba(36,40,44,.2)}
+.ww-menu[hidden]{display:none}
+.ww-menu button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:6px;font-weight:700;font-size:15px}
+.ww-menu button:hover{background:var(--paper)}
+
+/* Разбор ответов на итоговом экране: слово - значение, верное/неверное. */
+.ww-answers{position:absolute;inset:0;z-index:65;overflow:auto;background:#fff;color:var(--ink);padding:14px 16px 16px}
+.ww-answers[hidden]{display:none}
+.ww-answers h2{font-size:20px;font-weight:800;margin-bottom:10px}
+.ww-answers li{list-style:none;display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.35}
+.ww-answers li b{min-width:34%;font-weight:800}
+.ww-answers li.bad b{color:var(--bad)}
+.ww-answers li.ok b{color:var(--ok)}
+.ww-answers .close{position:sticky;top:0;float:right;border:2px solid var(--ink);border-radius:8px;background:#fff;padding:4px 12px;font-weight:800}
+
+@media (max-width:520px){
+  .ww-timer,.ww-score{font-size:18px}
+  .ww-center{font-size:16px}
+  .ww-action{min-width:120px;font-size:15px}
+  .ww-icon{width:40px;height:40px}
+}
+
+/* Перетаскивание: выбранная тапом плитка и цель под пальцем. */
+.ww-tile.is-sel{outline:3px solid var(--ink);outline-offset:2px}
+.is-over{outline:3px dashed var(--ink);outline-offset:2px}
+.ww-slot{border:2px dashed var(--gray);border-radius:6px;background:#fff;min-height:40px;display:flex;align-items:center;justify-content:center}
+.ww-slot.is-filled{border-style:solid;border-color:transparent;background:transparent}
