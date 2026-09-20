@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Quiz</title>
-<link rel="stylesheet" href="ww.css?v=884">
+<link rel="stylesheet" href="ww.css?v=885">
 <style>
 /* Quiz: подсказка слева, четыре крупные плитки 2x2 справа, «1 of N» снизу. */
 .q-wrap{width:100%;height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:center}
@@ -16,7 +16,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=884"></script>
+<script src="ww.js?v=885"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'}];
 var ww=WW.init({template:'Quiz',instructions:'Tap the correct answer.',timer:'up',score:true});
@@ -67,6 +67,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=884"></script>
+<script src="../../scripts/game-handoff.js?v=885"></script>
 </body>
 </html>
