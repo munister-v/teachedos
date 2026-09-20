@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
+const dns = require('dns').promises;
+const net = require('net');
 const { requireAuth, requireTeacher, requireAdmin } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
 const derive = require('../lib/derive');
@@ -1828,7 +1830,14 @@ async function ytCaptionTracks(id) {
   };
 }
 
-router.get('/youtube-transcript', async (req, res) => {
+const webToolsLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.AI_WEBTOOLS_PER_HOUR || 30),
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many requests. Try again later.' },
+});
+
+router.get('/youtube-transcript', webToolsLimiter, async (req, res) => {
   const id = ytVideoId(req.query.url || '');
   if (!id) return res.status(400).json({ error: 'Provide a valid YouTube link' });
   const wantedLang = String(req.query.lang || '').trim().toLowerCase().slice(0, 12);
@@ -1844,7 +1853,7 @@ router.get('/youtube-transcript', async (req, res) => {
         || tracks.find(t => /^en/.test(t.languageCode || '') && t.kind !== 'asr')
         || tracks.find(t => /^en/.test(t.languageCode || '')) || tracks[0];
       if (!track || !track.baseUrl) return res.status(404).json({ error: 'No transcript track available' });
-      const xml = await (await fetch(track.baseUrl)).text();
+      const xml = await (await fetch(track.baseUrl, { signal: AbortSignal.timeout(10000) })).text();
       const segments = captionSegments(xml);
       const transcript = (segments.length ? segments.map(segment => segment.text).join(' ') : decodeEntities(xml.replace(/<[^>]+>/g, ' '))).replace(/\s+/g, ' ').trim();
       if (!transcript) return res.status(404).json({ error: 'Transcript was empty' });
@@ -1885,6 +1894,33 @@ function publicHttpUrl(raw) {
   if (PRIVATE_HOST_RE.test(u.hostname)) return null;
   if (/\.(local|internal|localhost)$/i.test(u.hostname)) return null;
   return u;
+}
+/* The hostname-string check above blocks an attacker from writing a private
+   IP literally, but a hostname like evil.example.com can still resolve (at
+   fetch time) to 127.0.0.1 or 169.254.169.254 - DNS rebinding. Resolve and
+   check every address the name maps to before we let fetch() touch it. */
+function isPrivateIp(ip) {
+  if (net.isIPv4(ip)) {
+    const o = ip.split('.').map(Number);
+    return o[0] === 0 || o[0] === 10 || o[0] === 127
+      || (o[0] === 169 && o[1] === 254)
+      || (o[0] === 172 && o[1] >= 16 && o[1] <= 31)
+      || (o[0] === 192 && o[1] === 168);
+  }
+  if (net.isIPv6(ip)) {
+    const low = ip.toLowerCase();
+    return low === '::1' || low === '::' || low.startsWith('fe80:')
+      || low.startsWith('fc') || low.startsWith('fd')
+      || low.startsWith('::ffff:127.') || low.startsWith('::ffff:169.254.')
+      || low.startsWith('::ffff:10.') || low.startsWith('::ffff:192.168.');
+  }
+  return true; // unknown shape - refuse rather than risk it
+}
+async function assertPublicHost(hostname) {
+  let addrs;
+  try { addrs = await dns.lookup(hostname, { all: true }); }
+  catch { return false; }
+  return addrs.length > 0 && addrs.every(a => !isPrivateIp(a.address));
 }
 function readableFromHtml(html) {
   let s = String(html || '');
@@ -1927,9 +1963,11 @@ function readableFromHtml(html) {
     .trim();
   return { title: decodeEntities(title).replace(/\s+/g, ' ').trim(), text: s };
 }
-router.get('/web-text', async (req, res) => {
+router.get('/web-text', webToolsLimiter, async (req, res) => {
   let target = publicHttpUrl(req.query.url);
-  if (!target) return res.status(400).json({ error: 'Provide a public http(s) link' });
+  if (!target || !(await assertPublicHost(target.hostname))) {
+    return res.status(400).json({ error: 'Provide a public http(s) link' });
+  }
   try {
     let response = null;
     for (let hop = 0; hop < 4; hop++) {
@@ -1944,7 +1982,9 @@ router.get('/web-text', async (req, res) => {
       } finally { clearTimeout(timer); }
       if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
         const next = publicHttpUrl(new URL(response.headers.get('location'), target).href);
-        if (!next) return res.status(400).json({ error: 'That link redirects somewhere we cannot follow' });
+        if (!next || !(await assertPublicHost(next.hostname))) {
+          return res.status(400).json({ error: 'That link redirects somewhere we cannot follow' });
+        }
         target = next;
         continue;
       }

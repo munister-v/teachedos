@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { readAiQuota } = require('./ai');
 const {
   PLAN_CATALOG,
@@ -217,6 +217,13 @@ router.post('/checkout', requireAuth, async (req, res) => {
   }
 
   if (!stripe || !STRIPE_PRICE_IDS[plan]) {
+    // Dev-only convenience path: grants the plan with no charge, so it must
+    // never run in production - if Stripe secrets/price IDs are missing or
+    // misconfigured there, fail loudly instead of silently giving the plan away.
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[billing] checkout: Stripe not configured in production - refusing dev_mode grant');
+      return res.status(503).json({ error: 'Billing is temporarily unavailable. Please try again later.' });
+    }
     try {
       await pool.query(
         `UPDATE users
@@ -279,7 +286,10 @@ router.post('/portal', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/upgrade', requireAuth, async (req, res) => {
+// Admin-only manual plan override (bypasses payment) - see plan_source:'admin' below.
+// This must never be reachable by a plain authenticated user: it grants a paid
+// plan for free with no charge/verification of any kind.
+router.post('/upgrade', requireAuth, requireAdmin, async (req, res) => {
   const plan = normalizePlanKey(req.body?.plan);
   const cycle = normalizeCycleKey(req.body?.cycle);
   if (!['free', 'pro', 'school'].includes(plan)) {

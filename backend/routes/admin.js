@@ -1611,7 +1611,9 @@ router.post('/boards/:id/transfer', async (req, res) => {
 // ── DELETE /api/admin/boards/:id ───────────────────────────────────────────
 router.delete('/boards/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM boards WHERE id=$1', [req.params.id]);
+    const { rows } = await pool.query('DELETE FROM boards WHERE id=$1 RETURNING id, name', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+    logAdminAction(req, 'board.delete', { targetId: rows[0].id, targetLabel: rows[0].name });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1639,7 +1641,9 @@ router.get('/sessions', async (req, res) => {
 // ── DELETE /api/admin/sessions/:id ────────────────────────────────────────
 router.delete('/sessions/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM sessions WHERE id=$1', [req.params.id]);
+    const { rows } = await pool.query('DELETE FROM sessions WHERE id=$1 RETURNING id, user_id', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Session not found' });
+    logAdminAction(req, 'session.delete', { targetId: rows[0].id, targetLabel: rows[0].user_id });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1649,8 +1653,9 @@ router.delete('/sessions/:id', async (req, res) => {
 // ── DELETE /api/admin/sessions (all for a user) ───────────────────────────
 router.delete('/sessions/user/:userId', async (req, res) => {
   try {
-    await pool.query('DELETE FROM sessions WHERE user_id=$1', [req.params.userId]);
-    res.json({ ok: true });
+    const { rowCount } = await pool.query('DELETE FROM sessions WHERE user_id=$1', [req.params.userId]);
+    logAdminAction(req, 'session.delete_all', { targetId: req.params.userId, detail: `deleted=${rowCount || 0}` });
+    res.json({ ok: true, deleted: rowCount || 0 });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1766,6 +1771,16 @@ router.get('/auth-events', async (req, res) => {
     );
     res.json({ events: rows, total: parseInt(total[0].count, 10) });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Was previously a hardcoded constant baked into the public admin-app.js
+// bundle (readable by anyone who downloaded the file, no login needed). Now
+// served only to an authenticated admin, and sourced from the environment
+// instead of being committed to the repo.
+router.get('/payment-card', (_req, res) => {
+  const card = process.env.ADMIN_PAYMENT_CARD || '';
+  if (!card) return res.status(404).json({ error: 'No card configured' });
+  res.json({ card });
 });
 
 module.exports = router;

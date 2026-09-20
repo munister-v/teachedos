@@ -1763,25 +1763,41 @@ function approvePayment(id, name, plan, defaultMonths = 1, cycle = 'monthly', in
   }, {label: 'Approve', color: '#007B55'});
 }
 
-const ADMIN_PAYMENT_CARD = '5375 4141 1234 5678';
+// Card number is no longer shipped in this file - it's fetched from an
+// admin-only API endpoint on demand, and never persisted client-side.
 let _cardRevealed = false;
+let _cardNumber = null;
+let _cardHideTimer = null;
 
-function toggleAdminCard() {
-  _cardRevealed = !_cardRevealed;
+function hideAdminCard() {
+  _cardRevealed = false;
+  clearTimeout(_cardHideTimer);
   const el = document.getElementById('admin-card-number');
   const btn = document.getElementById('admin-card-toggle');
-  if (_cardRevealed) {
-    el.textContent = ADMIN_PAYMENT_CARD;
+  if (el) el.textContent = '•••• •••• •••• ••••';
+  if (btn) btn.textContent = '👁 Show';
+}
+
+async function toggleAdminCard() {
+  if (_cardRevealed) { hideAdminCard(); return; }
+  const el = document.getElementById('admin-card-number');
+  const btn = document.getElementById('admin-card-toggle');
+  try {
+    if (!_cardNumber) {
+      const d = await api('GET', '/api/admin/payment-card');
+      _cardNumber = d.card;
+    }
+    _cardRevealed = true;
+    el.textContent = _cardNumber;
     btn.textContent = '🙈 Hide';
-    setTimeout(() => { if (_cardRevealed) { _cardRevealed = false; el.textContent = '•••• •••• •••• ••••'; btn.textContent = '👁 Show'; } }, 15000);
-  } else {
-    el.textContent = '•••• •••• •••• ••••';
-    btn.textContent = '👁 Show';
-  }
+    clearTimeout(_cardHideTimer);
+    _cardHideTimer = setTimeout(hideAdminCard, 15000);
+  } catch (e) { toast(e.message, 'error'); }
 }
 
 function copyAdminCard() {
-  navigator.clipboard?.writeText(ADMIN_PAYMENT_CARD.replace(/\s/g,'')).then(() => toast('Card number copied', 'success'));
+  if (!_cardNumber) { toast('Reveal the card first', 'error'); return; }
+  navigator.clipboard?.writeText(_cardNumber.replace(/\s/g,'')).then(() => toast('Card number copied', 'success'));
 }
 
 function rejectPayment(id, name) {
