@@ -54,6 +54,17 @@ const authLimiter = rateLimit({
   message: { error: 'Too many attempts. Please wait a few minutes and try again.' },
 });
 
+// GET /invites/:token has no password to brute-force, but a valid token
+// reveals the invite's email + role - without a limiter it's an unlimited
+// oracle for enumerating invite tokens.
+const inviteTokenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait a few minutes and try again.' },
+});
+
 // The two emergency admin-secret routes intentionally remain available for
 // recovery, but should never be a credential-guessing oracle.
 const adminSecretLimiter = rateLimit({
@@ -419,7 +430,7 @@ router.post('/register', authLimiter, async (req, res) => {
 });
 
 // GET /api/auth/invites/:token - fetch invite details
-router.get('/invites/:token', async (req, res) => {
+router.get('/invites/:token', inviteTokenLimiter, async (req, res) => {
   try {
     const invite = await loadActiveInvite(req.params.token);
     res.json({

@@ -155,14 +155,18 @@ router.get('/portal/:studentId', requireAuth, async (req, res) => {
     // Journal entry (lesson balance)
     let journalEntry = null;
     try {
+      // When a teacher (not the student) is viewing, scope to that teacher's
+      // own journal entry - matching by email alone would leak another
+      // teacher's private notes for a student who shares boards with both.
+      // The student's own self-view keeps the old unscoped lookup.
       const { rows: je } = await pool.query(
         `SELECT j.*, COUNT(a.id) FILTER (WHERE a.status='present') AS attended,
                 COUNT(a.id) AS total_sessions
          FROM student_journal j
          LEFT JOIN attendance a ON a.journal_id = j.id
-         WHERE j.email = $1
+         WHERE j.email = $1 AND ($2::uuid IS NULL OR j.teacher_id = $2)
          GROUP BY j.id LIMIT 1`,
-        [student.email]
+        [student.email, isOwn ? null : req.user.id]
       );
       journalEntry = je[0] || null;
     } catch {}

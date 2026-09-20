@@ -95,6 +95,14 @@ function setup(server) {
     },
   });
 
+  // Without this, an error the ws library emits on the server itself (e.g.
+  // during the HTTP upgrade handshake) has no listener and Node throws it
+  // as an uncaught exception, crashing the whole process - not just one
+  // collaboration session.
+  wss.on('error', (err) => {
+    console.error('[ws] server error:', err && err.message);
+  });
+
   wss.on('connection', async (ws, req) => {
     const url    = new URL(req.url, 'http://localhost');
     const token  = tokenFromProtocols(req);

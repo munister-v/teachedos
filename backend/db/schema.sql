@@ -688,3 +688,20 @@ BEGIN
     INSERT INTO schema_meta(key) VALUES ('boards_next_deadline_backfill');
   END IF;
 END $$;
+
+-- attendance had no uniqueness guard on (journal_id, date): the app's
+-- "ON CONFLICT DO NOTHING" insert had no constraint to trigger on, so a
+-- double-submit (double-click, retry, two tabs) inserted the same day
+-- twice and double-deducted a lesson from lessons_left. Add the missing
+-- index so that insert becomes a real no-op on a duplicate. If duplicate
+-- rows already exist from before this fix, skip creating the index rather
+-- than fail startup - run a manual cleanup pass, then this will apply on
+-- the next restart.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_attendance_journal_date_unique') THEN
+    CREATE UNIQUE INDEX idx_attendance_journal_date_unique ON attendance(journal_id, date);
+  END IF;
+EXCEPTION WHEN unique_violation THEN
+  RAISE WARNING 'idx_attendance_journal_date_unique not created: attendance has pre-existing duplicate (journal_id, date) rows - clean those up, then restart to apply the constraint';
+END $$;

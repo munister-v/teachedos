@@ -1301,6 +1301,11 @@ function personInitials(user) {
 }
 
 async function loadUsers() {
+  // The bulk-selection Sets are keyed by user id and never reconciled against
+  // what's actually on screen - without this, selecting rows on one page and
+  // then paginating/filtering left the bulk bar acting on ids that are no
+  // longer visible (or belong to different users after a search change).
+  clearBulk();
   const search = document.getElementById('users-search').value;
   const tbody  = document.getElementById('users-tbody');
   tbody.innerHTML = '<tr class="empty-row"><td colspan="9"><div class="skel skel-line" style="width:180px"></div></td></tr>';
@@ -1346,9 +1351,9 @@ async function loadUsers() {
           <div class="action-group">
             <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','drawer')">View</button>
             <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','edit')">Edit</button>
-            <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${esc(u.name)}')">End session</button>
-            ${u.locked_at ? `<button class="btn-sm" style="background:#ea580c;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer" onclick="unlockUser('${u.id}','${esc(u.name)}')">Unlock</button>` : ''}
-            <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${esc(u.name)}')">Delete</button>
+            <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${escAttr(u.name)}')">End session</button>
+            ${u.locked_at ? `<button class="btn-sm" style="background:#ea580c;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer" onclick="unlockUser('${u.id}','${escAttr(u.name)}')">Unlock</button>` : ''}
+            <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${escAttr(u.name)}')">Delete</button>
           </div>
         </td>
       </tr>`;

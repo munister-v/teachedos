@@ -4,6 +4,17 @@ const pool          = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { webpush, pushConfigured } = require('../lib/pushConfig');
 
+// meeting_url ends up as the click-through link on a push notification sent
+// to every enrolled student - restrict it to actual web links so it can't
+// carry a javascript:/data: payload or other non-navigable scheme.
+function safeMeetingUrl(raw) {
+  if (!raw) return null;
+  try {
+    const u = new URL(String(raw).trim());
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : null;
+  } catch { return null; }
+}
+
 async function notifyStudentsLive(slot) {
   if (!pushConfigured) return;
   try {
@@ -115,7 +126,7 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
       const { rows } = await pool.query(
         `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4, group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12, board_id=$13
          WHERE id=$14 AND user_id=$15 RETURNING *`,
-        [day, start_time, end_time, title || 'Class', group_name, level, room, color || '#C8E632', recurring !== false, meeting_url || null, is_live || false, specific_date || null, board_id || null, id, req.user.id]
+        [day, start_time, end_time, title || 'Class', group_name, level, room, color || '#C8E632', recurring !== false, safeMeetingUrl(meeting_url), is_live || false, specific_date || null, board_id || null, id, req.user.id]
       );
       if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
       return res.json({ slot: rows[0] });
@@ -123,7 +134,7 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO schedule (user_id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date, board_id)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-      [req.user.id, day, start_time, end_time, title || 'Class', group_name, level, room, color || '#C8E632', recurring !== false, meeting_url || null, is_live || false, specific_date || null, board_id || null]
+      [req.user.id, day, start_time, end_time, title || 'Class', group_name, level, room, color || '#C8E632', recurring !== false, safeMeetingUrl(meeting_url), is_live || false, specific_date || null, board_id || null]
     );
     res.status(201).json({ slot: rows[0] });
   } catch (err) {
@@ -142,7 +153,7 @@ router.patch('/:id', requireAuth, requireTeacher, async (req, res) => {
         group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12, board_id=$13
        WHERE id=$14 AND user_id=$15 RETURNING *`,
       [day, start_time, end_time, title||'Class', group_name||null, level||null,
-       room||null, color||'#C8E632', recurring!==false, meeting_url||null, is_live||false,
+       room||null, color||'#C8E632', recurring!==false, safeMeetingUrl(meeting_url), is_live||false,
        specific_date||null, board_id||null, req.params.id, req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
@@ -160,7 +171,7 @@ router.patch('/:id/live', requireAuth, requireTeacher, async (req, res) => {
     const { rows } = await pool.query(
       `UPDATE schedule SET is_live=$1, meeting_url=COALESCE($2, meeting_url)
        WHERE id=$3 AND user_id=$4 RETURNING *`,
-      [is_live === true, meeting_url || null, req.params.id, req.user.id]
+      [is_live === true, safeMeetingUrl(meeting_url), req.params.id, req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
     if (is_live === true) notifyStudentsLive(rows[0]);

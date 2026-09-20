@@ -2052,13 +2052,13 @@ function renderPacks() {
       ? _lpMatchLine(_lpPlainText(p), q) : '';
     return `
     <div class="pack-card${p.mine ? ' mine' : ''}" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
-      <div class="pc-eyebrow">${p.eyebrow}</div>
-      <div class="pc-title">${p.title}</div>
+      <div class="pc-eyebrow">${_LP_ESC(p.eyebrow)}</div>
+      <div class="pc-title">${_LP_ESC(p.title)}</div>
       ${deep ? `<div class="pc-hit">${deep}</div>` : ''}
-      <div class="pc-desc">${p.desc}</div>
+      <div class="pc-desc">${_LP_ESC(p.desc)}</div>
       <div class="pc-meta">
-        <span class="pc-level ${lvlClass(p.level)}">${p.level}</span>
-        <span class="pc-dur">${p.duration}</span>
+        <span class="pc-level ${lvlClass(p.level)}">${_LP_ESC(p.level)}</span>
+        <span class="pc-dur">${_LP_ESC(p.duration)}</span>
         <span class="pc-open">Open →</span>
       </div>
     </div>

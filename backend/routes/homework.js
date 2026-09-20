@@ -68,20 +68,29 @@ router.post('/', requireTeacher, async (req, res) => {
     );
     const hw = rows[0];
 
-    // Optional bulk assignment
+    // Optional bulk assignment - restricted to real collaborators on this
+    // board, same as POST /:id/assign below.
     if (Array.isArray(student_ids) && student_ids.length) {
-      const values = [];
-      const params = [];
-      student_ids.forEach((sid, i) => {
-        values.push(`($1, $${i+2})`);
-        params.push(sid);
-      });
-      await pool.query(
-        `INSERT INTO homework_assignment (homework_id, student_id)
-         VALUES ${values.join(',')}
-         ON CONFLICT DO NOTHING`,
-        [hw.id, ...params]
+      const { rows: validRows } = await pool.query(
+        `SELECT user_id FROM board_collaborators WHERE board_id=$1 AND user_id = ANY($2::uuid[])`,
+        [board_id, student_ids]
       );
+      const validIds = new Set(validRows.map(r => r.user_id));
+      const filteredIds = student_ids.filter(id => validIds.has(id));
+      if (filteredIds.length) {
+        const values = [];
+        const params = [];
+        filteredIds.forEach((sid, i) => {
+          values.push(`($1, $${i+2})`);
+          params.push(sid);
+        });
+        await pool.query(
+          `INSERT INTO homework_assignment (homework_id, student_id)
+           VALUES ${values.join(',')}
+           ON CONFLICT DO NOTHING`,
+          [hw.id, ...params]
+        );
+      }
     }
 
     res.status(201).json({ homework: hw });
@@ -190,8 +199,19 @@ router.post('/:id/assign', requireTeacher, async (req, res) => {
     const hw = await loadOwnHomework(req.params.id, req.user.id);
     if (!hw) return res.status(404).json({ error: 'Homework not found' });
 
-    const studentIds = Array.isArray(req.body.student_ids) ? req.body.student_ids : [];
-    if (!studentIds.length) return res.status(400).json({ error: 'student_ids required' });
+    const rawIds = Array.isArray(req.body.student_ids) ? req.body.student_ids : [];
+    if (!rawIds.length) return res.status(400).json({ error: 'student_ids required' });
+
+    // Only assign to users who actually collaborate on this board - without
+    // this, a teacher could push homework straight into any user's inbox by
+    // guessing/enumerating UUIDs, with attacker-controlled title/instructions.
+    const { rows: validRows } = await pool.query(
+      `SELECT user_id FROM board_collaborators WHERE board_id=$1 AND user_id = ANY($2::uuid[])`,
+      [hw.board_id, rawIds]
+    );
+    const validIds = new Set(validRows.map(r => r.user_id));
+    const studentIds = rawIds.filter(id => validIds.has(id));
+    if (!studentIds.length) return res.status(400).json({ error: 'None of the given students are on this board' });
 
     const values = []; const params = [];
     studentIds.forEach((sid, i) => {

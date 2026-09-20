@@ -1163,6 +1163,7 @@ function renderText(el, card) {
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
     wrap.addEventListener('mousedown', e => e.stopPropagation());
     wrap.appendChild(iframe);
+    _iwRegisterFrame(card.id, iframe);
 
     el.appendChild(tc);
     el.appendChild(strip);
@@ -3259,6 +3260,7 @@ function renderWorksheet(el, card) {
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
     wrap.addEventListener('mousedown', e => e.stopPropagation());
     wrap.appendChild(iframe);
+    _iwRegisterFrame(card.id, iframe);
 
     el.appendChild(strip);
     el.appendChild(wrap);
@@ -3810,6 +3812,20 @@ if (typeof window !== 'undefined' && window.visualViewport && !window.__iwFocusV
   window.visualViewport.addEventListener('resize', () => { if (_iwFocusPending) _iwRevealFocused(); });
 }
 
+// Registry of cardId -> the specific sandboxed iframe window that owns it.
+// A srcdoc iframe with sandbox="allow-scripts" (no allow-same-origin) has an
+// opaque origin, so e.origin can't be checked against an allowlist - but
+// e.source can be checked against the exact window we created for that
+// card, which is what actually stops any other page/frame from forging a
+// message with a matching cardId (e.g. to spoof a quiz score).
+window.__iwFrames = window.__iwFrames || new Map();
+function _iwRegisterFrame(cardId, iframeEl) {
+  try { window.__iwFrames.set(cardId, iframeEl.contentWindow); } catch {}
+}
+function _iwSourceValid(cardId, source) {
+  return !!source && window.__iwFrames.get(cardId) === source;
+}
+
 // Receive student answer-state posted by interactive worksheet iframes and
 // persist it on the card so it survives re-render / reload / move.
 if (typeof window !== 'undefined' && !window.__iwStateListener) {
@@ -3817,7 +3833,7 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
   window.addEventListener('message', e => {
     const m = e.data;
     if (!m) return;
-    if (m.type === 'iw-state' && m.cardId) {
+    if (m.type === 'iw-state' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
       const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
       if (!card || !card.data) return;
       card.data._state = m.state;
@@ -3828,7 +3844,7 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
        промахивается ровно настолько, чтобы текст пришлось прокручивать
        внутри карточки. Растём и сжимаемся, но не ниже разумного минимума и
        не выше общего потолка листа. */
-    if (m.type === 'iw-height' && m.cardId && m.height > 0) {
+    if (m.type === 'iw-height' && m.cardId && m.height > 0 && _iwSourceValid(m.cardId, e.source)) {
       const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
       if (!card || !card.data || !card.data._interactive) return;
       const el = getCardEl(m.cardId);
@@ -3856,11 +3872,11 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
     /* Подвести поле ввода под клавиатуру - см. IW_FOCUS_REPORTER. Только на
        телефоне: на компьютере ничего не перекрывает и двигать вид под курсор
        значит дёргать доску под учителем. */
-    if (m.type === 'iw-focus' && m.cardId) {
+    if (m.type === 'iw-focus' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
       _iwFocusPending = m;
       _iwRevealFocused();
     }
-    if (m.type === 'iw-blur' && m.cardId) {
+    if (m.type === 'iw-blur' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
       if (_iwFocusPending && _iwFocusPending.cardId === m.cardId) _iwFocusPending = null;
     }
     /* Карточка слова по ЛЮБОМУ слову текста, не только по заранее
@@ -3871,7 +3887,7 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
        должен долетать до чужого попапа. Слово, которого словарь не знает
        (имя, опечатка), тоже отвечается - пустым info, иначе окно "Looking
        it up…" висело бы вечно. */
-    if (m.type === 'iw-word-lookup' && m.cardId && m.word && e.source) {
+    if (m.type === 'iw-word-lookup' && m.cardId && m.word && _iwSourceValid(m.cardId, e.source)) {
       (async () => {
         let info = { word: m.word };
         try {
@@ -3886,7 +3902,7 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
         try { e.source.postMessage({ type: 'iw-word-info', cardId: m.cardId, word: m.word, info }, '*'); } catch {}
       })();
     }
-    if (m.type === 'iw-progress' && m.cardId) {
+    if (m.type === 'iw-progress' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
       try {
         if (typeof currentBoardId !== 'undefined' && currentBoardId && typeof apiFetch === 'function') {
           apiFetch('/api/boards/' + currentBoardId + '/progress', {
@@ -5093,10 +5109,10 @@ function cycleLessonStatus(cardId) {
 
 // When a lesson is marked done, find lessons connected via arrows and unlock them
 function autoUnlockNextLessons(fromId) {
-  const outgoing = state.arrows.filter(a => a.from === fromId);
+  const outgoing = state.arrows.filter(a => a.fromCard === fromId);
   let changed = false;
   outgoing.forEach(a => {
-    const target = state.cards.find(c => c.id === a.to);
+    const target = state.cards.find(c => c.id === a.toCard);
     if (target && target.type === 'lesson' && target.data.status === 'locked') {
       target.data.status = 'available';
       reRenderCard(target);
@@ -16612,7 +16628,8 @@ let _membersLoaded = false;
 async function loadRealMembers() {
   if (!currentBoardId || _membersLoaded) return;
   try {
-    const d = await apiFetch('/api/members/' + currentBoardId + '/progress');
+    const r = await apiFetch('/api/members/' + currentBoardId + '/progress');
+    const d = await r.json();
     _realMembers = (d.members || []);
     _membersLoaded = true;
     if (activeTab === 'students') renderSidebar();
@@ -16648,8 +16665,8 @@ function renderStudentsTab(sec) {
     const done = m.lessons.filter(l=>l.status==='done').length;
     const total = m.lessons.length;
     const pct = total ? Math.round(done/total*100) : 0;
-    const el = makeSnippet(m.avatar||'🎓', m.name,
-      `<span class="badge">${m.email.split('@')[0]}</span><span class="badge pink">${pct}% done</span>`,
+    const el = makeSnippet(m.avatar||'🎓', esc(m.name),
+      `<span class="badge">${esc(m.email.split('@')[0])}</span><span class="badge pink">${pct}% done</span>`,
       'student', { name:m.name, avatar:m.avatar||'🎓', email:m.email, progress:pct });
     if (el) sec.appendChild(el);
   });
@@ -19499,9 +19516,14 @@ function updatePresenceBar() {
       const col  = peerColor(uid);
       const name = (info.name || '?');
       const initial = name.trim().charAt(0).toUpperCase() || '?';
+      // A peer's display name is attacker-controllable (it's their account
+      // name), so it must be escaped for the HTML attribute it lands in -
+      // esc() alone doesn't cover double quotes, which this attribute uses.
+      const safeName = esc(name).replace(/"/g, '&quot;');
+      const safeUid = String(uid).replace(/'/g, '');
       return `<div class="peer-chip" style="background:${col};"
-        onclick="jumpToStudent('${uid}')" title="Jump to ${name}">
-        <span>${initial}</span>
+        onclick="jumpToStudent('${safeUid}')" title="Jump to ${safeName}">
+        <span>${esc(initial)}</span>
       </div>`;
     }).join('') + (peers.length > 5 ? `<div class="peer-chip" style="background:#9999AA;"><span>+${peers.length-5}</span></div>` : '');
   } else {

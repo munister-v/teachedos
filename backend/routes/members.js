@@ -162,41 +162,60 @@ router.post('/:boardId/invite', requireAuth, async (req, res) => {
   const safeRole = normalizeBoardRole(role);
   if (!email) return res.status(400).json({ error: 'Email required' });
 
+  // The plan's student-limit check and the insert used to be two separate
+  // queries with no lock between them, so two concurrent invites for the
+  // same board could both pass the "under limit" check before either
+  // commits. Locking the board row for the duration of the transaction
+  // serializes concurrent invites on that board (other boards are
+  // unaffected) so the count the limit check sees is never stale.
+  const client = await pool.connect();
   try {
-    // verify ownership
-    const { rows: own } = await pool.query(
-      'SELECT id FROM boards WHERE id=$1 AND user_id=$2', [boardId, req.user.id]
+    await client.query('BEGIN');
+    const { rows: own } = await client.query(
+      'SELECT id FROM boards WHERE id=$1 AND user_id=$2 FOR UPDATE', [boardId, req.user.id]
     );
-    if (!own.length) return res.status(403).json({ error: 'Not your board' });
+    if (!own.length) { await client.query('ROLLBACK'); return res.status(403).json({ error: 'Not your board' }); }
 
-    // find invitee
-    const { rows: users } = await pool.query(
+    const { rows: users } = await client.query(
       'SELECT id, name, email, avatar FROM users WHERE email=$1',
       [email.toLowerCase().trim()]
     );
-    if (!users.length) return res.status(404).json({ error: 'User not found. They must register first.' });
+    if (!users.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'User not found. They must register first.' }); }
     const invitee = users[0];
 
-    // can't invite yourself
-    if (invitee.id === req.user.id) return res.status(400).json({ error: 'Cannot invite yourself' });
+    if (invitee.id === req.user.id) { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Cannot invite yourself' }); }
 
     const plan = normalizePlanKey(req.user.plan);
-    const limitError = await enforceStudentLimit({ boardId, ownerPlan: plan, inviteeId: invitee.id });
-    if (limitError) {
-      return res.status(402).json(limitError);
+    const limit = getPlanLimit(plan, 'studentsPerBoard');
+    if (limit !== -1) {
+      const { rows: existing } = await client.query(
+        'SELECT 1 FROM board_collaborators WHERE board_id=$1 AND user_id=$2 LIMIT 1', [boardId, invitee.id]
+      );
+      if (!existing.length) {
+        const { rows: countRows } = await client.query(
+          'SELECT COUNT(*)::int AS count FROM board_collaborators WHERE board_id=$1', [boardId]
+        );
+        if (Number(countRows[0]?.count || 0) >= limit) {
+          await client.query('ROLLBACK');
+          return res.status(402).json({ error: 'Student limit reached', code: 'STUDENT_LIMIT_REACHED', plan, limit });
+        }
+      }
     }
 
-    // upsert
-    await pool.query(`
+    await client.query(`
       INSERT INTO board_collaborators (board_id, user_id, role)
       VALUES ($1, $2, $3)
       ON CONFLICT (board_id, user_id) DO UPDATE SET role = EXCLUDED.role
     `, [boardId, invitee.id, safeRole]);
 
+    await client.query('COMMIT');
     res.json({ member: { ...invitee, role: safeRole } });
   } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('[members] invite error:', err.message);
     res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
   }
 });
 

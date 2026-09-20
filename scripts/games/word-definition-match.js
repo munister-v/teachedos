@@ -23,6 +23,15 @@ const livesEl = document.getElementById("lives");
 const hintEl = document.getElementById("hint");
 const modalEl = document.getElementById("result-modal");
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function shuffle(list) {
   const clone = [...list];
   for (let i = clone.length - 1; i > 0; i -= 1) {
@@ -44,7 +53,7 @@ function formatTime(totalSeconds) {
 
 function fillThemeOptions() {
   themeSelect.innerHTML = THEMES.map((theme) => (
-    '<option value="' + theme.id + '">' + theme.name + "</option>"
+    '<option value="' + escapeHtml(theme.id) + '">' + escapeHtml(theme.name) + "</option>"
   )).join("");
 }
 
@@ -132,9 +141,9 @@ function renderStats() {
 function renderCards() {
   cardsEl.innerHTML = state.cards.map((card) => {
     return (
-      '<button class="card ' + card.status + '" data-id="' + card.id + '" type="button">' +
-        '<span class="card-type">' + card.label + '</span>' +
-        '<span class="card-text">' + card.text + "</span>" +
+      '<button class="card ' + escapeHtml(card.status) + '" data-id="' + escapeHtml(card.id) + '" type="button">' +
+        '<span class="card-type">' + escapeHtml(card.label) + '</span>' +
+        '<span class="card-text">' + escapeHtml(card.text) + "</span>" +
       "</button>"
     );
   }).join("");

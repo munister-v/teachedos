@@ -56,14 +56,25 @@ router.post('/:id/attendance', async (req, res) => {
   // verify ownership
   const { rows: own } = await pool.query('SELECT id FROM student_journal WHERE id=$1 AND teacher_id=$2', [req.params.id, req.user.id]);
   if (!own.length) return res.status(403).json({ error: 'not your student' });
+  // App-level guard in addition to the DB unique index (schema.sql): if the
+  // index couldn't be created because older duplicate rows already exist,
+  // this still stops a plain double-submit from double-deducting a lesson.
+  const { rows: dup } = await pool.query(
+    'SELECT id FROM attendance WHERE journal_id=$1 AND date=$2 LIMIT 1',
+    [req.params.id, date]
+  );
+  if (dup.length) return res.json({ ok: true, record: null });
   const { rows } = await pool.query(
     `INSERT INTO attendance (teacher_id,journal_id,date,status,note)
      VALUES ($1,$2,$3,$4,$5)
      ON CONFLICT DO NOTHING RETURNING *`,
     [req.user.id, req.params.id, date, status, note]
   );
-  // Deduct lesson if present
-  if (status === 'present') {
+  // Deduct lesson if present - only for a row we actually just inserted.
+  // ON CONFLICT DO NOTHING returns no row for a duplicate (id, date), so a
+  // double-submit (double-click, retry, two tabs) no-ops here too instead of
+  // deducting a second lesson for the same attendance record.
+  if (status === 'present' && rows.length) {
     await pool.query(
       `UPDATE student_journal SET lessons_left = GREATEST(0, lessons_left - 1) WHERE id=$1`,
       [req.params.id]
