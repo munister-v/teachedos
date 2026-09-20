@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '908';
+  const TEACHEDOS_ASSET_VERSION = '909';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -806,4 +806,53 @@
 
   window.addEventListener('offline', () => setOfflineState(true));
   window.addEventListener('online', () => setOfflineState(false));
+
+  /* Сервер молчит, а устройство в сети. Баннер выше ловил только
+     navigator.onLine, то есть отключённый Wi-Fi. Когда бэкенд недоступен
+     (перезапуск VPS, гостевая сеть с порталом, оборванный туннель),
+     страница просто показывала нули: «0 заданий», «нет домашки» - и это
+     читается как «у меня всё пропало», а не «не дозвонились до сервера».
+     Поэтому считаем сетевые отказы запросов к /api/ и говорим прямо. */
+  (function watchApiReachability() {
+    const original = window.fetch;
+    if (typeof original !== 'function') return;
+    let failures = 0;
+    let shown = false;
+    const isApi = input => {
+      try {
+        const url = new URL(typeof input === 'string' ? input : (input && input.url) || '', location.href);
+        return /\/api\//.test(url.pathname);
+      } catch { return false; }
+    };
+    const announceDown = () => {
+      if (shown || !navigator.onLine) return;
+      shown = true;
+      document.body.classList.add('pwa-offline');
+      showStatus(
+        'offline',
+        'Cannot reach the server',
+        'The page is showing what is saved on this device. Numbers and lists may be incomplete until the server answers again.',
+        [{ label: 'Try again', primary: true, onClick: () => location.reload() },
+         { label: 'Dismiss', onClick: () => ensureStatusBanner().classList.remove('show') }],
+        {}
+      );
+    };
+    const announceBack = () => {
+      if (!shown) return;
+      shown = false;
+      failures = 0;
+      document.body.classList.remove('pwa-offline');
+      showStatus('online', 'Server is back', 'Reload the page to see the current data.',
+        [{ label: 'Reload', primary: true, onClick: () => location.reload() }], { autoHideMs: 6000 });
+    };
+    window.fetch = function (input, init) {
+      const watched = isApi(input);
+      let result;
+      try { result = original.apply(this, arguments); }
+      catch (err) { if (watched) { failures++; announceDown(); } throw err; }
+      if (!watched || !result || typeof result.then !== 'function') return result;
+      return result.then(response => { announceBack(); return response; },
+        error => { failures++; announceDown(); throw error; });
+    };
+  })();
 })();
