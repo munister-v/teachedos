@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '912';
+  const TEACHEDOS_ASSET_VERSION = '913';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -630,8 +630,19 @@
       background:rgba(255,255,255,.14);color:inherit;
     }
     .teachedos-status-btn.primary{background:#fff;color:#1C1C1E}
+    /* Крестик - запасной выход, а не элемент композиции: заливка делала из
+       него серый квадрат рядом с кнопками. Когда у баннера есть свои кнопки
+       («Dismiss», «Try again»), крестик убирается совсем - два способа
+       закрыть одно и то же выглядят неопрятно. */
     .teachedos-status-close{
-      width:28px;height:28px;border:none;border-radius:999px;background:rgba(255,255,255,.12);color:inherit;cursor:pointer;flex-shrink:0;
+      width:32px;height:32px;margin:-4px -4px 0 0;border:none;border-radius:999px;background:none;color:inherit;
+      display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;opacity:.55;cursor:pointer;flex-shrink:0;
+      transition:opacity .15s ease,background .15s ease;
+    }
+    .teachedos-status-close:hover{opacity:1;background:rgba(255,255,255,.12)}
+    .teachedos-status.has-actions .teachedos-status-close{display:none}
+    @media (max-width:640px){
+      .teachedos-status-close{width:40px;height:40px;margin:-6px -6px 0 0}
     }
     body.pwa-offline::after{
       content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e85d75,#9f8ce8);z-index:9996;
@@ -707,6 +718,7 @@
     banner.querySelector('.teachedos-status-sub').textContent = sub || '';
     const actionsWrap = banner.querySelector('.teachedos-status-actions');
     actionsWrap.innerHTML = '';
+    banner.classList.toggle('has-actions', !!(actions && actions.length));
     (actions || []).forEach(action => {
       const btn = document.createElement('button');
       btn.type = 'button';
