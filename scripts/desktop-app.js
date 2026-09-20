@@ -2291,9 +2291,22 @@ async function handleGoogleCredential(response) {
     if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
     _applyOsAuthSuccess(d);
   } catch (err) {
-    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+    if (errEl) { errEl.textContent = _osHumanAuthError(err); errEl.style.display = 'block'; }
   }
 }
+/* «Failed to fetch» в окне входа читается как поломка сайта, хотя это почти
+   всегда сеть: гостевой Wi-Fi с порталом, перезапуск сервера, пропавший
+   интернет. Тот же текст, что в scripts/auth-modal.js. */
+function _osHumanAuthError(e) {
+  const raw = String((e && e.message) || '').trim();
+  if (!raw || /failed to fetch|load failed|networkerror|network request failed/i.test(raw)) {
+    return navigator.onLine
+      ? 'Cannot reach the server right now. Check your connection and try again.'
+      : 'You are offline. Connect to the internet and try again.';
+  }
+  return raw;
+}
+
 function _applyOsAuthSuccess(d) {
   if (_osAuthNavigating) return;
   _osAuthNavigating = true;
@@ -2531,7 +2544,7 @@ async function submitOsAuth() {
     if (isReg) d.isNewUser = true;
     _applyOsAuthSuccess(d);
   } catch(err) {
-    errEl.textContent = err.message; errEl.style.display='block';
+    errEl.textContent = _osHumanAuthError(err); errEl.style.display='block';
   }
   if (!succeeded) {
     btn.disabled = false;

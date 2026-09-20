@@ -30,6 +30,20 @@
      closeOnBackdropClick  - Default: true.
    ════════════════════════════════════════════════════════════════════════ */
 (function () {
+/* Сетевой отказ браузера приходит как TypeError с текстом «Failed to fetch»
+   (в Safari - «Load failed»). Показывать его человеку нельзя: он читается
+   как поломка в самом сайте, хотя чаще это гостевая сеть с порталом,
+   перезапуск сервера или пропавший интернет. */
+function humanError(e) {
+  const raw = String((e && e.message) || '').trim();
+  if (!raw || /failed to fetch|load failed|networkerror|network request failed/i.test(raw)) {
+    return navigator.onLine
+      ? 'Cannot reach the server right now. Check your connection and try again.'
+      : 'You are offline. Connect to the internet and try again.';
+  }
+  return raw;
+}
+
   const cfg = window.TEACHED_AUTH_CONFIG || {};
 
   const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')
@@ -364,7 +378,7 @@
       if (!r.ok) throw new Error(d.error || 'Something went wrong');
       await handleSuccess(d);
     } catch (e) {
-      err.textContent = e.message; err.style.display = 'block';
+      err.textContent = humanError(e); err.style.display = 'block';
       btn.classList.remove('loading'); btn.disabled = false; btn.setAttribute('aria-busy', 'false');
       if (lbl) lbl.textContent = mode === 'login' ? 'Sign in' : 'Create account';
     }
@@ -457,7 +471,7 @@
       if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
       await handleSuccess(d);
     } catch (e) {
-      if (err) { err.textContent = e.message; err.style.display = 'block'; }
+      if (err) { err.textContent = humanError(e); err.style.display = 'block'; }
     } finally {
       if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
     }
