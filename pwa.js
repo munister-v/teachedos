@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '910';
+  const TEACHEDOS_ASSET_VERSION = '912';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -845,14 +845,66 @@
       showStatus('online', 'Server is back', 'Reload the page to see the current data.',
         [{ label: 'Reload', primary: true, onClick: () => location.reload() }], { autoHideMs: 6000 });
     };
+    /* Протухшая сессия выглядела как пустой аккаунт: страница рисовала шапку
+       «Teacher» и нули, потому что каждый запрос возвращал 401, а сказать об
+       этом было некому. Говорим один раз за загрузку и даём кнопку входа.
+       Запросы самого входа исключены: там 401 - это «неверный пароль», и его
+       показывает форма. */
+    let saidExpired = false;
+    const isAuthCall = input => {
+      try {
+        const url = new URL(typeof input === 'string' ? input : (input && input.url) || '', location.href);
+        return /\/api\/auth\//.test(url.pathname);
+      } catch { return false; }
+    };
+    const announceExpired = () => {
+      if (saidExpired) return;
+      let token = null;
+      try { token = localStorage.getItem('teachedos_token'); } catch {}
+      if (!token) return;
+      saidExpired = true;
+      const signIn = {
+        label: 'Sign in', primary: true,
+        onClick: () => {
+          if (typeof window.openAuthModal === 'function') window.openAuthModal('login');
+          else location.href = 'index.html?app=1';
+        }
+      };
+      showStatus('offline', 'Your session has expired',
+        'Sign in again to see your boards, homework and students. Nothing is lost.',
+        [signIn, { label: 'Dismiss', onClick: () => ensureStatusBanner().classList.remove('show') }], {});
+    };
+    /* Ловим и то, что случилось ДО нас: слой PWA грузится отложенно, а
+       страница успевает сделать свои запросы. Chrome кладёт код ответа в
+       запись ресурса, поэтому прошлые 401 видны без повторного запроса. */
+    const scanPastRequests = () => {
+      let entries = [];
+      try { entries = performance.getEntriesByType('resource') || []; } catch { return; }
+      for (const entry of entries) {
+        if (typeof entry.responseStatus !== 'number') continue;
+        if (!/\/api\//.test(entry.name) || /\/api\/auth\//.test(entry.name)) continue;
+        if (entry.responseStatus === 401 || entry.responseStatus === 403) { announceExpired(); return; }
+      }
+    };
+
     window.fetch = function (input, init) {
       const watched = isApi(input);
+      const authCall = watched && isAuthCall(input);
       let result;
       try { result = original.apply(this, arguments); }
       catch (err) { if (watched) { failures++; announceDown(); } throw err; }
       if (!watched || !result || typeof result.then !== 'function') return result;
-      return result.then(response => { announceBack(); return response; },
-        error => { failures++; announceDown(); throw error; });
+      return result.then(response => {
+        announceBack();
+        if (!authCall && (response.status === 401 || response.status === 403)) announceExpired();
+        return response;
+      }, error => { failures++; announceDown(); throw error; });
     };
+
+    /* Один проход сразу и один после полной загрузки: ранние запросы страницы
+       нередко ещё в полёте, когда этот файл только выполнился. */
+    scanPastRequests();
+    if (document.readyState === 'complete') setTimeout(scanPastRequests, 1200);
+    else window.addEventListener('load', () => setTimeout(scanPastRequests, 1200), { once: true });
   })();
 })();
