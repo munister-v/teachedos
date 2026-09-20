@@ -3657,6 +3657,14 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .wr-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(36,40,44,.16);border-radius:999px;background:#fff;padding:4px 10px;font:650 11.5px var(--font);color:#24282C;cursor:pointer}
 .wr-chip span{color:#5D614B;font-weight:800}
 .wr-chip:hover{border-color:#24282C}
+.wr-chip.is-open{border-color:#24282C;background:#CDF649}
+.wr-game{border:1px solid rgba(36,40,44,.14);border-radius:12px;background:#F6F6EF;padding:8px;display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto}
+.wr-game-head{font:800 12px var(--font);color:#24282C}
+.wr-game-head span{display:block;font:500 11px var(--font);color:#5D614B;margin-top:1px}
+.wg-row{display:flex;gap:8px;align-items:center;font:500 11.5px/1.35 var(--font);color:#24282C}
+.wg-row b{flex:0 0 28%;font-weight:700}
+.wg-row span{min-width:0}
+.wg-row .wr-in{flex:1}
 .wr-rows{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
 /* Слово - строкой во всю ширину карточки (в узкой колонке студии оно
    иначе обрезалось на середине), поля под ним. */

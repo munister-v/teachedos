@@ -13777,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '853';
+const TEACHEDOS_ASSET_VERSION = '854';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14382,7 +14382,10 @@ function renderWordReview() {
   const withMeaning = live.filter(e => e.gloss).length;
   const tpls = boardWordTemplates().filter(t => r.tplKeys.includes(t.key));
   const acts = boardWorkoutActivities().filter(a => r.actKeys.includes(a.key));
-  const chips = tpls.map(t => `<button type="button" class="wr-chip" onclick="wordReviewDropGame('${esc(t.key)}')">${esc(t.title)}<span>✕</span></button>`)
+  /* Плитка игры открывает СВОЁ содержимое: пары, предложения, группы -
+     то, что ляжет на доску. Так учитель видит не только список слов, но и
+     каждое задание, и правит предложения прямо здесь. */
+  const chips = tpls.map(t => `<button type="button" class="wr-chip${r.open === t.key ? ' is-open' : ''}" onclick="wordReviewShowGame('${esc(t.key)}')">${esc(t.title)}<span onclick="event.stopPropagation();wordReviewDropGame('${esc(t.key)}')">✕</span></button>`)
     .concat(acts.map(a => `<button type="button" class="wr-chip" onclick="wordReviewDropGame('${esc(a.key)}',1)">${esc(a.title)}<span>✕</span></button>`)).join('');
   const n = tpls.length + acts.length;
   box.innerHTML = `<div class="wr">
@@ -14391,8 +14394,43 @@ function renderWordReview() {
       <button type="button" class="wr-add" onclick="commitWordWorkout()"${n && live.length ? '' : ' disabled'}>Add ${n} to the board</button>
     </div>
     <div class="wr-games">${chips || '<span class="wr-note">No activities picked</span>'}</div>
+    ${r.open ? wordReviewGameBlock(r.open, live) : ''}
     <div class="wr-rows">${r.entries.map(wordReviewRow).join('')}</div>
   </div>`;
+}
+
+/* Что будет внутри игры. Пары и слова - из списка (правятся в строках
+   ниже), предложения - здесь же, потому что они принадлежат заданию. */
+function wordReviewGameBlock(key, live) {
+  const t = boardWordTemplates().find(x => x.key === key);
+  if (!t) return '';
+  const r = _wordReview;
+  const idx = e => r.entries.indexOf(e);
+  let rows = '';
+  if (key === 'unjumble' || key === 'complete') {
+    const with_ = live.filter(e => e.example);
+    rows = with_.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.example)}" oninput="wordReviewEdit(${idx(e)},'example',this.value)" aria-label="Sentence for ${esc(e.word)}"></div>`).join('')
+      + (live.length > with_.length ? `<div class="wr-note wr-warn">${live.length - with_.length} word${live.length - with_.length === 1 ? '' : 's'} without a sentence will be skipped here - write one above to include them.</div>` : '');
+  } else if (key === 'groupsort') {
+    const cats = [];
+    String(r.base.rawVocab || '').split(/\n+/).forEach(line => {
+      const m = line.match(/^\s*([^:]{1,40}):\s*(.+,.+)$/);
+      if (m) cats.push(m[1].trim() + ': ' + m[2].trim());
+    });
+    rows = cats.length >= 2 ? cats.map(c => `<div class="wg-row"><span>${esc(c)}</span></div>`).join('')
+      : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
+  } else if (key === 'wheel' || key === 'wordsearch' || key === 'speaking' || key === 'box') {
+    rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`;
+  } else {
+    rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><span>${esc(e.gloss || '—')}</span></div>`).join('');
+  }
+  return `<div class="wr-game"><div class="wr-game-head">${esc(t.title)}<span>${esc(t.hint || '')}</span></div>${rows}</div>`;
+}
+
+function wordReviewShowGame(key) {
+  if (!_wordReview) return;
+  _wordReview.open = _wordReview.open === key ? null : key;
+  renderWordReview();
 }
 
 function wordReviewEdit(i, field, value) {
