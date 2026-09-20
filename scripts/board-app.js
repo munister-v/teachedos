@@ -13777,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '877';
+const TEACHEDOS_ASSET_VERSION = '881';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14324,7 +14324,7 @@ async function runBoardWorkout() {
   entries.forEach(e => {
     const k = e.word.toLowerCase();
     if (!e.gloss) e.gloss = found[k] || '';
-    e.example = examples[k] || '';
+    e.example = _wrUsableExample(examples[k]) || _wrFallbackExample(e.word, e.gloss || found[k] || '');
     const inf = info[k] || {};
     e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.senses = inf.senses || []; e.matched = inf.matched || '';
     e.fromTeacher = !!e.gloss && !found[k];
@@ -14427,6 +14427,13 @@ function wordReviewGameBlock(key, live) {
       : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
   } else if (key === 'wheel' || key === 'wordsearch' || key === 'speaking' || key === 'box') {
     rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`;
+  } else if (t.needs === 'meaning') {
+    /* Пару правят прямо здесь, а не только в списке выше: учитель смотрит на
+       игру и видит в ней ту самую строку, которую надо поменять. Поле то же
+       самое (gloss), поэтому правка тут же расходится по всем играм. */
+    const with_ = live.filter(e => e.gloss);
+    rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.gloss || '')}" placeholder="meaning for “${esc(e.word)}”" oninput="wordReviewEdit(${idx(e)},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}"></div>`).join('')
+      + (live.length > with_.length ? `<div class="wr-note wr-warn">${live.length - with_.length} word${live.length - with_.length === 1 ? '' : 's'} without a meaning will be skipped here - write one to include them.</div>` : '');
   } else {
     rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><span>${esc(e.gloss || '—')}</span></div>`).join('');
   }
@@ -14479,6 +14486,31 @@ function wordReviewPlay(i) {
   const e = _wordReview && _wordReview.entries[i];
   if (!e || !e.audio) return;
   try { if (_wrAudio) _wrAudio.pause(); _wrAudio = new Audio(e.audio); _wrAudio.play(); } catch (_) {}
+}
+
+/* Предложение из значения, когда словарь примера не дал. Без него слово
+   молча выпадало из «Complete the sentence» и «Unjumble» - а задания должны
+   быть СО ВСЕМИ словами списка. Рамка «X means Y» всегда грамматична, слово
+   в ней настоящее, и учитель её тут же правит в разборе. */
+/* Словарь часто даёт не предложение, а кусок словосочетания: «a doctor's
+   prescription», «a broken/missing tooth». В «Unjumble» такое собирать
+   нечего, в «Complete the sentence» - нечего понимать, поэтому короткие
+   обрывки и варианты через косую черту не берём, а строим предложение из
+   значения. */
+function _wrUsableExample(ex) {
+  const t = String(ex || '').trim();
+  if (!t) return '';
+  if (t.indexOf('/') >= 0) return '';
+  return t.split(/\s+/).length >= 4 ? t : '';
+}
+
+function _wrFallbackExample(word, gloss) {
+  const w = String(word || '').trim();
+  const g = String(gloss || '').split(/\s*[;·]\s*/)[0].replace(/\s+/g, ' ').trim().replace(/[.\s]+$/, '');
+  if (!w || !g || g.split(/\s+/).length < 2) return '';
+  /* «The word X means Y», а не «X means Y»: вторая рамка спотыкается на
+     множественном числе - «Teeth means one of the hard, white objects». */
+  return `The word ${w} means ${g}.`;
 }
 
 /* Поиск по ТОМУ написанию, которое сейчас в поле: учитель поправил

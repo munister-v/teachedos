@@ -147,14 +147,30 @@ async function fetchCambridge(word) {
    таких нет - просто самое частое. Для «cut» на B2 это даёт A2-значение
    «разрезать ножом», а не B2-«сократить расходы»: в уроке про травмы
    верно именно первое, и оно же первое по частоте. */
+/* Статьи-отсылки. У форм слова Cambridge даёт не значение, а ссылку:
+   «present participle of choke». Такое «значение» бесполезно и в паре, и в
+   предложении («Choking means present participle of choke»), поэтому за
+   ссылкой идём к самому слову и берём значение оттуда - показывая при этом
+   ту форму, которую ввёл учитель. */
+const REDIRECT_DEF = /^(?:present participle|past participle|past simple(?: and past participle)?|past tense|third person present|3rd person present|plural|comparative|superlative|-ing form|singular)\s+of\s+([a-zA-Z' -]{2,40})$/i;
+
 function pickSense(senses, level) {
   if (!Array.isArray(senses) || !senses.length) return null;
+  /* Значения-отсылки («present participle of choke») пропускаем, пока в
+     статье есть настоящие: у форм слова отсылка стоит ПЕРВОЙ, и именно она
+     уезжала в пару и в предложение вместо объяснения. */
+  const real = senses.filter(s => !isRedirectDef(s && s.def));
+  const list = real.length ? real : senses;
   const cap = CEFR_ORDER[String(level || '').toUpperCase()];
   if (cap) {
-    const fit = senses.find(s => s.cefr && CEFR_ORDER[s.cefr] <= cap);
+    const fit = list.find(s => s.cefr && CEFR_ORDER[s.cefr] <= cap);
     if (fit) return fit;
   }
-  return senses[0];
+  return list[0];
+}
+
+function isRedirectDef(def) {
+  return REDIRECT_DEF.test(String(def || '').trim().replace(/[.\s]+$/, ''));
 }
 
 function blank(word) {
@@ -205,7 +221,7 @@ async function lookupOne(w) {
   return fresh;
 }
 
-async function lookup(word, level) {
+async function lookup(word, level, depth) {
   const w = String(word || '').trim();
   if (!w || w.length > 60) return blank(w);
 
@@ -221,6 +237,29 @@ async function lookup(word, level) {
   }
   if (!entry) return { ...blank(w), error: unreachable ? 'unreachable' : 'not-found' };
 
+  /* Отсылку разворачиваем один раз: цепочку из двух отсылок Cambridge не
+     делает, а лишний круг - лишний запрос наружу. Смотрим ПЕРВОЕ значение
+     статьи, а не выбранное: у «teeth» отсылка идёт первой, а следом лежит
+     переносное «effective force or power» - взять его вместо зубов значит
+     соврать. Форма слова объясняется своей основой. */
+  const first = (entry.senses || [])[0];
+  if (first && !depth) {
+    const m = String(first.def || '').trim().replace(/[.\s]+$/, '').match(REDIRECT_DEF);
+    if (m) {
+      const base = await lookup(m[1].trim(), level, 1).catch(() => null);
+      if (base && base.definition) {
+        return {
+          ...base,
+          word: w,
+          matched: base.matched || m[1].trim(),
+          /* Произношение - у той формы, которую ввёл учитель, а не у основы:
+             озвучка «choking» и «choke» звучит по-разному. */
+          ipa: (entry.pron && entry.pron.ipa) || base.ipa || null,
+          audio: (entry.pron && entry.pron.audio) || base.audio || null,
+        };
+      }
+    }
+  }
   const sense = pickSense(entry.senses, level);
   return {
     word: w,

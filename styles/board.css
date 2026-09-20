@@ -3658,7 +3658,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .wr-chip span{color:#5D614B;font-weight:800}
 .wr-chip:hover{border-color:#24282C}
 .wr-chip.is-open{border-color:#24282C;background:#CDF649}
-.wr-game{border:1px solid rgba(36,40,44,.14);border-radius:12px;background:#F6F6EF;padding:8px;display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto}
+/* Окно игры в разборе: строки теперь с полем ввода и выше, поэтому в 190px
+   помещалось три с половиной - край резался ровно по строке и читался как
+   обрыв, а не как прокрутка. */
+.wr-game{border:1px solid rgba(36,40,44,.14);border-radius:12px;background:#F6F6EF;padding:8px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
 .wr-game-head{font:800 12px var(--font);color:#24282C}
 .wr-game-head span{display:block;font:500 11px var(--font);color:#5D614B;margin-top:1px}
 .wg-row{display:flex;gap:8px;align-items:center;font:500 11.5px/1.35 var(--font);color:#24282C}
