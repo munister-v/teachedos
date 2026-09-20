@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=896">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=896">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=897">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=897">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=896">
+<link rel="manifest" href="manifest.json?v=897">
 <!-- Под строкой состояния на телефоне стоит закреплённая шапка, а она белая.
      Прежний #F3F3F6 не совпадал ни с ней, ни с фоном страницы (#EFEFF2), и
      сверху была видна лишняя полоска другого оттенка. -->
@@ -654,29 +654,16 @@ footer{
 .footer-col > summary h4{margin-bottom:14px;}
 
 /* ── STICKY CTA mobile ── */
-.sticky-mob{
-  display:none;position:fixed;left:12px;right:12px;
-  bottom:calc(12px + env(safe-area-inset-bottom,0));z-index:990;
-  background:rgba(14,14,16,.88);backdrop-filter:blur(20px);
-  border-radius:18px;padding:10px 10px 10px 18px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  box-shadow:0 12px 36px rgba(14,14,16,.28);
-  border:1px solid rgba(255,255,255,.06);
-}
 /* Headings should be immediately readable: no decorative letter-draw or
    reveal animation, and coloured emphasis stays upright like the wordmark. */
 h1,h2,h3,h4,.hero-h,.sec-h,.feat-h,.final-h{animation:none!important;}
 .hero-h em,.sec-h em,.feat-h em,.stat-n em,.final-h em,.footer-brand em{font-style:normal!important;}
-.sticky-mob-text{font-size:13px;font-weight:600;color:#fff;line-height:1.3;}
-.sticky-mob-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
 /* Override the generic mobile ".btn{width:100%}" rule below - this button
    must stay content-sized or it swallows the whole bar and wraps the label. */
-.sticky-mob .btn{width:auto;flex-shrink:0;}
 
 /* ── RESPONSIVE ── */
 @media(min-width:861px){
   .nav-links{display:flex;}
-  .sticky-mob{display:none!important;}
   .preview-body{grid-template-columns:180px 1fr 1fr;}
 }
 /* Бургер и выпадающее меню. До этого на телефоне .nav-links просто гасились,
@@ -717,7 +704,6 @@ nav.nav-open .nav-burger span:nth-child(3){transform:translateY(-6px) rotate(-45
   .stats-grid{grid-template-columns:repeat(2,1fr);}
   .preview-body{grid-template-columns:1fr;min-height:auto;}
   .preview-sidebar,.pc-stats{display:none;}
-  .sticky-mob{display:flex;}
 }
 @media(max-width:540px){
   .hero-h{font-size:40px;}
@@ -1021,7 +1007,6 @@ footer{background:transparent;border-top:1px solid var(--line);}
 .footer-col a:hover{color:var(--pink);}
 
 /* ── Sticky mobile CTA ── */
-.sticky-mob{background:rgba(11,11,12,.92);border:1px solid rgba(255,255,255,.08);border-radius:16px;}
 
 /* ── Global smoothness ── */
 html{scroll-behavior:smooth;scroll-padding-top:84px;-webkit-text-size-adjust:100%;}
@@ -1098,12 +1083,10 @@ a,button,.btn,.bc,.cat,.nav-lnk,.footer-col a,.plan{transition-timing-function:c
   body{padding-top:0!important;}
   nav.ln{padding-top:calc(env(safe-area-inset-top,0px) + 8px);}
   .hero{padding-top:calc(104px + env(safe-area-inset-top,0px));}
-  .sticky-mob{display:none!important;}
 }
 
 html.pwa-standalone body,
 body.pwa-standalone{padding-top:0!important;}
-body.pwa-standalone .sticky-mob{display:none!important;}
 
 /* ════════ MOBILE LANDING APP POLISH - cleaner PWA first screen ════════ */
 @media(max-width:860px){
@@ -1154,23 +1137,6 @@ body.pwa-standalone .sticky-mob{display:none!important;}
     border-color:rgba(11,11,12,.08);
     background:rgba(255,255,255,.82);
     box-shadow:0 1px 0 rgba(255,255,255,.78) inset,0 18px 42px rgba(40,40,43,.09);
-  }
-  .sticky-mob{
-    left:10px;
-    right:10px;
-    bottom:max(8px,env(safe-area-inset-bottom,0px));
-    border-radius:22px;
-    background:rgba(255,255,255,.96);
-    border:1px solid rgba(11,11,12,.10);
-    box-shadow:0 10px 24px rgba(11,11,12,.10),0 1px 0 rgba(255,255,255,.86) inset;
-  }
-  .sticky-mob-text{color:#111113;}
-  .sticky-mob-sub{color:#707073;}
-  .sticky-mob .btn{
-    background:#111113;
-    color:#fff;
-    border-radius:16px;
-    box-shadow:none;
   }
 }
 
@@ -1398,7 +1364,6 @@ body.pwa-standalone .hero{
    Поэтому на узком экране герой - заголовок, подзаголовок и кнопки. */
 @media(max-width:640px){
   .preview-stage{ display:none; }
-}
 }
 
 /* ═══════════ Bento feature cards → realistic component mini-previews ═══════════ */
@@ -1851,9 +1816,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=896">
+<link rel="stylesheet" href="styles/teached-brand.css?v=897">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=896">
+<link rel="stylesheet" href="styles/figma-landing.css?v=897">
 </head>
 <body class="landing-page fx">
 
@@ -2693,7 +2658,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=896">
+<link rel="stylesheet" href="styles/auth.css?v=897">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
