@@ -13777,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '868';
+const TEACHEDOS_ASSET_VERSION = '869';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14660,10 +14660,15 @@ async function _wordTemplateContent(t, ctx) {
 /* Игры набора ложатся сеткой по три в ряд от центра видимой доски, а не
    каждая в первое свободное место: так урок читается как один набор, и
    учитель видит, что создалось всё отмеченное. */
+let _lastPlacedGameId = null;
 function _placeWordTemplateGames(list, base) {
   const r = boardWrap.getBoundingClientRect();
   const start = screenToBoard(r.left + r.width * 0.2, r.top + r.height * 0.2) || { x: 200, y: 200 };
-  const COLS = 3, CARD_W = 480, GAP = 36;
+  /* Телефон: игры ложатся в один столбец. Тремя в ряд полоса выходила шире
+     полутора тысяч точек доски, и после «Add to the board» в кадре не было
+     ни одной карточки целиком - учителю казалось, что ничего не создалось. */
+  const phone = isBoardPhone();
+  const COLS = phone ? 1 : 3, CARD_W = 480, GAP = 36;
   const metas = list.map(({ t }) => _gameMetaFor(t.game));
   const heights = metas.map(m => Math.round(m.h * (CARD_W / m.w)));
   const rowH = [];
@@ -14674,11 +14679,17 @@ function _placeWordTemplateGames(list, base) {
   list.forEach(({ t, content }, i) => {
     const m = metas[i], row = Math.floor(i / COLS), col = i % COLS;
     const y = y0 + rowH.slice(0, row).reduce((a, b) => a + b + GAP, 0);
-    addCard('game', x0 + col * (CARD_W + GAP), y,
+    const id = addCard('game', x0 + col * (CARD_W + GAP), y,
       { title: `${t.title}: ${base.topic}`, src: m.src, naturalW: m.w, naturalH: m.h, customContent: content, level: base.level },
       CARD_W, heights[i]);
+    if (i === 0) _lastPlacedGameId = (id && id.id) ? id.id : id;
   });
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  /* И сразу наводимся на первую игру: на телефоне список лежит ниже формы,
+     и без наводки результат остаётся за краем кадра. */
+  if (phone && _lastPlacedGameId) {
+    setTimeout(() => { try { zoomToCard(_lastPlacedGameId, true); } catch (_) {} }, 120);
+  }
 }
 
 /* Укладка набора. Каждая активность ложится в СВОЕЙ форме, а не текстовой
