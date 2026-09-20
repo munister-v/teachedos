@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=890">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=890">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=895">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=895">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=890">
+<link rel="manifest" href="manifest.json?v=895">
 <meta name="theme-color" content="#F3F3F6">
 <title>TeachEd – lesson boards, worksheets and games for language teachers</title>
 <meta name="description" content="TeachEd helps language teachers prepare faster: lesson boards, printable worksheets, YouTube lessons, vocabulary drills, quizzes and 30+ classroom games in one offline-ready workspace.">
@@ -226,6 +226,15 @@ nav.ln{
   font-size:17px;font-weight:650;letter-spacing:-.02em;color:var(--ink);
 }
 .nav-logo img{width:26px;height:26px;border-radius:8px;}
+/* Селектор с родителем обязателен: тема ставит
+   `body.fx.landing-page > *:not(nav){position:relative;z-index:1}`, и ссылка
+   уезжала под закреплённую шапку вместо того, чтобы лечь поверх неё. */
+body.fx.landing-page > a.skip-link,
+body.landing-page > a.skip-link{position:fixed;left:-9999px;top:0;z-index:2000;padding:10px 16px;border-radius:0 0 12px 0;
+  background:#161616;color:#fff;font-size:14px;font-weight:600;line-height:1.2;text-decoration:none;}
+body.fx.landing-page > a.skip-link:focus,
+body.landing-page > a.skip-link:focus{left:0;}
+.hero:focus{outline:none;}
 .brand-wordmark{
   display:inline-block;
   font-size:20px;font-weight:650;letter-spacing:-.02em;line-height:1;
@@ -1839,17 +1848,21 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=890">
+<link rel="stylesheet" href="styles/teached-brand.css?v=895">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=890">
+<link rel="stylesheet" href="styles/figma-landing.css?v=895">
 </head>
 <body class="landing-page fx">
+
+<!-- Клавиатурой шапку проходят перед каждым разделом заново. Ссылка видна
+     только в фокусе и уводит сразу в содержимое. -->
+<a class="skip-link" href="#hero-content">Skip to content</a>
 
 <!-- ═══════════════════════════════════════ NAV ═══════════════════════════════════════ -->
 <nav class="ln" role="navigation">
   <div class="nav-inner">
     <a class="nav-logo" href="/">
-      <img src="logo-sm.png" alt="TeachEd">
+      <img src="logo-sm.png" alt="TeachEd" width="26" height="26" decoding="async">
       <span class="brand-wordmark">Teach<em>Ed</em></span>
     </a>
     <div class="nav-links" id="nav-links" onclick="this.closest('nav').classList.remove('nav-open')">
@@ -1869,8 +1882,35 @@ section{scroll-margin-top:64px;}
   </div>
 </nav>
 
+<script>
+  /* Меню на телефоне закрывалось ТОЛЬКО по пункту или по второму нажатию на
+     бургер: ни Escape, ни касание мимо его не убирали, и раскрытая панель
+     висела над страницей, пока её не закроют вручную. Здесь оба выхода;
+     после Escape фокус возвращается на бургер, иначе он падает в body. */
+  (function () {
+    var nav = document.querySelector('nav.ln') || document.querySelector('nav');
+    if (!nav) return;
+    var burger = nav.querySelector('.nav-burger');
+    if (!burger) return;
+    function close(focusBurger) {
+      if (!nav.classList.contains('nav-open')) return;
+      nav.classList.remove('nav-open');
+      burger.setAttribute('aria-expanded', 'false');
+      if (focusBurger) burger.focus();
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') close(true);
+    });
+    document.addEventListener('pointerdown', function (e) {
+      if (!nav.classList.contains('nav-open')) return;
+      if (nav.contains(e.target)) return;
+      close(false);
+    });
+  })();
+</script>
+
 <!-- ═══════════════════════════════════════ HERO ═══════════════════════════════════════ -->
-<section class="hero">
+<section class="hero" id="hero-content" tabindex="-1">
   <div class="hero-bg"></div>
   <div class="hero-aurora" aria-hidden="true"><span class="ab ab1"></span><span class="ab ab2"></span><span class="ab ab3"></span></div>
   <div class="hero-spot" aria-hidden="true"></div>
@@ -2650,7 +2690,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=890">
+<link rel="stylesheet" href="styles/auth.css?v=895">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
