@@ -107,6 +107,23 @@ for (const file of listStaticHtml()) {
   }
 }
 
+/* Ссылка без ?v= этим скриптом не ловится ВООБЩЕ: он правит только те, у
+   которых версия уже есть. Так `scripts/auth-modal.js` на лендинге и
+   `styles/auth.css` в сбросе пароля годами ездили без версии, то есть
+   правка в них не доходила до человека, пока не истечёт месячный кэш.
+   Поэтому в конце - проверка и список. */
+const unversioned = [];
+for (const file of listStaticHtml()) {
+  const html = readFileSync(file, 'utf8');
+  const re = /(?:src|href)="((?:scripts|styles|js|fonts)\/[^"?#]+\.(?:css|js))"/g;
+  let m;
+  while ((m = re.exec(html))) unversioned.push(`${file}: ${m[1]}`);
+}
+if (unversioned.length) {
+  console.log(`! ${unversioned.length} asset link(s) without ?v= - they will be served from cache for up to a month:`);
+  for (const u of unversioned) console.log(`  ${u}`);
+}
+
 console.log(`v${next} - sw.js, version.json, ${links} asset links across ${touched} pages`
   + (pins ? `, ${pins} in-script pins` : '')
   + (assetConstBumped ? ', TEACHEDOS_ASSET_VERSION' : ''));
