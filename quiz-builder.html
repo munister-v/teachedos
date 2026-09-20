@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json?v=872">
+<link rel="manifest" href="manifest.json?v=877">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -147,6 +147,22 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   .nav-title{display:none}
   .nav-actions #publishBtn{font-size:0;padding:7px 11px}
   .nav-actions #publishBtn::before{content:'🌍';font-size:.95rem}
+  /* Три подписи в ряд не помещались, и «Save to Homework» уезжала за правый
+     край: пальцем не достать. Сжать их до значков нельзя - скин окон задаёт
+     кегль кнопок через !important, - поэтому шапка переносит действия на
+     вторую строку, а сами подписи остаются целыми. */
+  /* !important здесь обязателен: figma-theme держит высоту шапки 52px через
+     !important для всех страниц, и без перебивания действия не переносятся,
+     а уезжают вбок. Полоска вкладок при переменной высоте шапки перестаёт
+     быть липкой - иначе она ложится поверх кнопок. */
+  /* :not(#_) второй раз - чтобы перебить figma-theme: там селектор
+     :is(.nav, #nav), а :is берёт вес самого тяжёлого аргумента, то есть
+     идентификатора. Без второго :not(#_) правило проигрывает по весу. */
+  body.fx:not(#_) nav.nav:not(#_),
+  body.tw-page:not(#_) nav.nav:not(#_){height:auto!important;min-height:52px!important;flex-wrap:wrap!important;align-items:center;padding:6px 10px!important;row-gap:6px;overflow:visible!important}
+  .nav-actions{flex:1 1 100%;flex-wrap:wrap;gap:6px}
+  .nav-actions .btn{min-height:40px}
+  .mobile-panes{position:static}
 }
 .auto-gen{margin:14px;padding:14px;background:#0E0E10;color:#fff;border-radius:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(14,14,16,.12)}
 .auto-gen-head{display:flex;align-items:center;gap:8px;font:800 13px var(--font-sans, system-ui)}
@@ -226,13 +242,13 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   .preview-opt{ padding:12px 14px; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=872">
-<link rel="stylesheet" href="styles/teached-brand.css?v=872">
-<link rel="stylesheet" href="styles/tool-window.css?v=872">
+<link rel="stylesheet" href="styles/mobile.css?v=877">
+<link rel="stylesheet" href="styles/teached-brand.css?v=877">
+<link rel="stylesheet" href="styles/tool-window.css?v=877">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=872">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=872">
-<link rel="stylesheet" href="styles/controls.css?v=872">
+<link rel="stylesheet" href="styles/figma-theme.css?v=877">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=877">
+<link rel="stylesheet" href="styles/controls.css?v=877">
 </head>
 <body class="tw-page fx">
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -248,7 +264,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   <div class="nav-actions">
     <button class="btn btn-outline" id="previewBtn" onclick="togglePreview()">Preview</button>
     <button class="btn btn-outline" id="publishBtn" onclick="publishQuiz()">🌍 Publish to Community</button>
-    <button class="btn btn-lime" onclick="saveToHomework()">Save to Homework</button>
+    <button class="btn btn-lime" id="saveHwBtn" onclick="saveToHomework()">Save to Homework</button>
   </div>
 </nav>
 
@@ -368,7 +384,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocab-loader.js?v=872"></script>
+<script src="scripts/vocab-loader.js?v=877"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -803,7 +819,7 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
-<script src="scripts/autogrow.js?v=872" defer></script>
-<script src="pwa-boot.js?v=872" defer></script>
+<script src="scripts/autogrow.js?v=877" defer></script>
+<script src="pwa-boot.js?v=877" defer></script>
 </body>
 </html>
