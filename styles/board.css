@@ -3645,6 +3645,42 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Отмеченный вариант подсвечивается салатовым, чтобы состав урока читался
    с одного взгляда, не вчитываясь в положение галочек. */
 .tbuilder-form .tb-workout-item.is-on{border-color:rgba(168,208,43,.75);background:rgba(205,249,64,.13);}
+/* Разбор списка перед доской (правая колонка студии): строка на слово -
+   прослушать, значение, пример, выбор значения из словаря, убрать. */
+.wr{display:flex;flex-direction:column;gap:10px;height:100%;min-height:0;text-align:left}
+.wr-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wr-top b{display:block;font:700 14px var(--font);color:#24282C}
+.wr-top span{display:block;font:500 11.5px var(--font);color:#5D614B;margin-top:2px}
+.wr-add{border:0;border-radius:10px;background:#CDF649;color:#24282C;font:800 13px var(--font);padding:9px 14px;cursor:pointer;white-space:nowrap}
+.wr-add:disabled{opacity:.4;cursor:default}
+.wr-games{display:flex;flex-wrap:wrap;gap:6px}
+.wr-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(36,40,44,.16);border-radius:999px;background:#fff;padding:4px 10px;font:650 11.5px var(--font);color:#24282C;cursor:pointer}
+.wr-chip span{color:#5D614B;font-weight:800}
+.wr-chip:hover{border-color:#24282C}
+.wr-rows{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+/* Слово - строкой во всю ширину карточки (в узкой колонке студии оно
+   иначе обрезалось на середине), поля под ним. */
+.wr-row{display:grid;grid-template-columns:1fr auto;gap:6px 8px;align-items:start;padding:8px;border:1px solid rgba(36,40,44,.12);border-radius:12px;background:#fff}
+.wr-row .wr-fields{grid-column:1 / -1}
+.wr-row.is-off{opacity:.45}
+.wr-w{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wr-play{width:26px;height:26px;flex:0 0 auto;border:1px solid rgba(36,40,44,.2);border-radius:8px;background:#F6F6EF;color:#24282C;font-size:11px;cursor:pointer}
+.wr-play:disabled{opacity:.3;cursor:default}
+.wr-word{min-width:0;flex:1;border:0;border-bottom:1px dashed rgba(36,40,44,.25);background:none;font:700 13px var(--font);color:#24282C;padding:2px 0}
+.wr-ipa{flex-basis:100%;font:500 11px ui-monospace,monospace;color:#5D614B}
+.wr-fields{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wr-in{width:100%;border:1px solid rgba(36,40,44,.16);border-radius:8px;padding:6px 8px;font:500 12px/1.35 var(--font);color:#24282C;background:#fff;resize:vertical}
+.wr-in:focus{outline:none;border-color:#24282C}
+.wr-ex{color:#3f3f3f}
+.wr-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.wr-sense{max-width:100%;border:1px solid rgba(36,40,44,.16);border-radius:8px;padding:4px 6px;font:500 11.5px var(--font);background:#fff;color:#24282C}
+.wr-look{border:1px solid rgba(36,40,44,.16);border-radius:8px;background:#fff;padding:4px 9px;font:650 11.5px var(--font);color:#24282C;cursor:pointer}
+.wr-look:hover{border-color:#24282C}
+.wr-note{font:500 11px var(--font);color:#5D614B}
+.wr-warn{color:#B45309;font-weight:700}
+.wr-drop{width:26px;height:26px;border:1px solid rgba(36,40,44,.16);border-radius:8px;background:#fff;color:#5D614B;font-size:12px;cursor:pointer}
+.wr-drop:hover{border-color:#24282C;color:#24282C}
+
 /* Сетка шаблонов «как тренировать» - как выбор шаблона в Wordwall: плитка с
    глифом и названием, отмеченная - лаймом. Цвета - буквальные hex листа. */
 /* Контейнер сам по себе - сетка в две колонки для листов; шаблоны внутри

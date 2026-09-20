@@ -4,23 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Find the match</title>
-<link rel="stylesheet" href="ww.css?v=850">
+<link rel="stylesheet" href="ww.css?v=853">
 <style>
 /* Find the match: подсказка на «плёнке» между пунктирами, под ней все
    слова плитками. Верная плитка исчезает, неверная стоит жизни. */
 .fm{width:100%;height:100%;display:flex;flex-direction:column;gap:10px}
 .fm-strip{position:relative;flex:1;min-height:90px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;
   border-top:8px dashed var(--gray);border-bottom:8px dashed var(--gray)}
-.fm-clue{font-weight:700;font-size:clamp(17px,3.4vw,26px);line-height:1.3;max-width:94%;animation:ww-pop .25s ease}
+.fm-clue{font-weight:700;font-size:clamp(18px,3.6vw,30px);line-height:1.25;max-width:94%;max-height:100%;overflow:auto;animation:ww-pop .25s ease}
 .fm-clue img{max-height:130px;max-width:100%;object-fit:contain}
 .fm-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
 .fm-grid .ww-tile{flex:0 0 calc(20% - 4px);min-height:36px;font-size:clamp(12px,2.1vw,16px);padding:4px 5px}
-.fm-grid .ww-tile.is-gone{visibility:hidden}
+/* Угаданная плитка уходит совсем: visibility оставляла дыру в ряду. */
+.fm-grid .ww-tile.is-gone{display:none}
 @media (max-width:520px){.fm-grid .ww-tile{flex-basis:calc(33.3% - 4px)}}
 </style>
 </head>
 <body>
-<script src="ww.js?v=850"></script>
+<script src="ww.js?v=853"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'runny nose',b:'liquid keeps coming out of your nose'}];
 var LIVES=3;
@@ -72,6 +73,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=850"></script>
+<script src="../../scripts/game-handoff.js?v=853"></script>
 </body>
 </html>

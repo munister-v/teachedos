@@ -94,3 +94,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .is-over{outline:3px dashed var(--ink);outline-offset:2px}
 .ww-slot{border:2px dashed var(--gray);border-radius:6px;background:#fff;min-height:40px;display:flex;align-items:center;justify-content:center}
 .ww-slot.is-filled{border-style:solid;border-color:transparent;background:transparent}
+
+/* Кнопка «послушать слово» (запись Cambridge). */
+.ww-say{width:30px;height:30px;flex:0 0 auto;border:2px solid var(--ink);border-radius:8px;background:#fff;font-size:14px;line-height:1;padding:0;cursor:pointer}
+.ww-say:active{transform:translateY(1px)}

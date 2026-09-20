@@ -161,36 +161,73 @@ function blank(word) {
   return { word, definition: null, cefr: null, example: null, pos: null, ipa: null, audio: null, source: null };
 }
 
+/* Как учитель пишет слово и что об этом знает словарь - разные вещи.
+   «a cough», «a blister», «feels sick», «back hurts / back aches» -
+   статьи с такими заголовками нет, а слово есть. Поэтому пробуем
+   несколько написаний по порядку:
+     1) без артикля - ПЕРВЫМ: у «a rash» и «a temperature» свои страницы
+        идиом («a rash of», «have a temperature»), и по ним словарь
+        отвечал не тем значением;
+     2) как написал учитель;
+     3) первый вариант до «/» («back hurts / back aches» → «back hurts»);
+     4) без -s у первого слова пары («feels sick» → «feel sick»);
+     5) последнее слово фразы - как крайний случай.
+   Что не нашлось нигде, по-прежнему уходит на движок (AI). */
+function lookupVariants(w) {
+  const out = [];
+  const push = v => { v = String(v || '').trim().replace(/\s+/g, ' '); if (v && out.indexOf(v) < 0) out.push(v); };
+  const noArticle = s => s.replace(/^(?:a|an|the)\s+/i, '');
+  const first = w.split('/')[0].trim();
+  push(noArticle(w));
+  push(w);
+  if (first !== w) { push(noArticle(first)); push(first); }
+  const parts = noArticle(first).split(' ');
+  if (parts.length === 2 && /[a-z]s$/i.test(parts[0])) push(parts[0].replace(/s$/i, '') + ' ' + parts[1]);
+  if (parts.length > 1) push(parts[parts.length - 1].replace(/^'?s?$/i, ''));
+  return out.filter(Boolean).slice(0, 5);
+}
+
+async function lookupOne(w) {
+  let entry = defIndex.get(w);
+  if (entry && entry.pron === undefined) entry = null;
+  if (entry) return entry;
+  /* Одна повторная попытка. Проверено на живом сервере: из шести слов
+     холодной пачки одно вернулось «unreachable», остальные пять - с
+     определениями. Сеть моргнула ровно один раз, но для урока это
+     значит пустую половину пары, которую учитель увидит на доске. */
+  let fresh = await fetchCambridge(w);
+  if (!fresh) {
+    await new Promise(r => setTimeout(r, 250));
+    fresh = await fetchCambridge(w);
+  }
+  if (!fresh) return null;
+  defIndex.put(w, fresh);             // включая пустой senses: «нет статьи» - тоже ответ
+  return fresh;
+}
+
 async function lookup(word, level) {
   const w = String(word || '').trim();
   if (!w || w.length > 60) return blank(w);
 
-  let entry = defIndex.get(w);
   /* Кэш вечный и переживает выкат (лежит вне backend/ намеренно), поэтому у
      слов, найденных до появления произношения, поля pron нет вовсе - и без
-     этой проверки они бы никогда его не получили: как раз те слова, которые
-     учитель уже разобрал в уроке. Отличаем «не спрашивали» (undefined) от
-     «спросили, произношения нет» (null), иначе слово без транскрипции
-     перезапрашивалось бы вечно. */
-  if (entry && entry.pron === undefined) entry = null;
-  if (!entry) {
-    /* Одна повторная попытка. Проверено на живом сервере: из шести слов
-       холодной пачки одно вернулось «unreachable», остальные пять - с
-       определениями. Сеть моргнула ровно один раз, но для урока это
-       значит пустую половину пары, которую учитель увидит на доске. */
-    let fresh = await fetchCambridge(w);
-    if (!fresh) {
-      await new Promise(r => setTimeout(r, 250));
-      fresh = await fetchCambridge(w);
-    }
-    if (!fresh) return { ...blank(w), error: 'unreachable' };
-    entry = fresh;
-    defIndex.put(w, fresh);           // включая пустой senses: «нет статьи» - тоже ответ
+     этой проверки они бы никогда его не получили. */
+  let entry = null, matched = w, unreachable = false;
+  for (const v of lookupVariants(w)) {
+    const got = await lookupOne(v);
+    if (got === null) { unreachable = true; continue; }
+    if (got.senses && got.senses.length) { entry = got; matched = v; break; }
+    if (!entry) entry = got;
   }
+  if (!entry) return { ...blank(w), error: unreachable ? 'unreachable' : 'not-found' };
 
   const sense = pickSense(entry.senses, level);
   return {
     word: w,
+    matched,
+    /* Все значения статьи - чтобы учитель мог выбрать другое в разборе
+       перед тем, как задания лягут на доску. */
+    senses: (entry.senses || []).map(x => ({ def: x.def, cefr: x.cefr, example: x.example })),
     definition: sense ? sense.def : null,
     cefr: sense ? sense.cefr : null,
     example: sense ? sense.example : null,

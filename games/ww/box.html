@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Open the box</title>
-<link rel="stylesheet" href="ww.css?v=850">
+<link rel="stylesheet" href="ww.css?v=853">
 <style>
 /* Open the box: цветные коробки с номерами, по коробке на слово. Открытая
    показывает слово, значение и задание; закрыть - коробка остаётся пустой. */
@@ -23,7 +23,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=850"></script>
+<script src="ww.js?v=853"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'runny nose',b:'liquid keeps coming out of your nose'},{a:'bruise',b:'a dark mark on the skin after a hit'},{a:'burn',b:'an injury from fire or heat'},{a:'sprain',b:'an injury to a joint'}];
 var TASKS=['Make a sentence with it.','Explain it without saying it.','Ask a question with it.','Give an example from your life.','Say a word it goes with.'];
@@ -48,7 +48,7 @@ function openBox(i){
   var it=items[order[i]];opened[i]=true;ww.addScore(1);ww.beep(true);ww.progress(ww.score,order.length);
   render();
   var lid=ww.stage.querySelector('.ob-lid');var f=ww.fill(i);
-  lid.innerHTML='<div class="ob-card" style="--c:'+f[0]+';--f:'+f[1]+'"><div class="ob-n">Box '+(i+1)+'</div><div class="ob-w">'+WW.esc(it.word)+'</div>'+(it.meaning?'<div class="ob-m">'+WW.esc(it.meaning)+'</div>':'')+
+  lid.innerHTML='<div class="ob-card" style="--c:'+f[0]+';--f:'+f[1]+'"><div class="ob-n">Box '+(i+1)+'</div><div class="ob-w">'+WW.esc(it.word)+'</div>'+(it.audio?'<div style="margin-bottom:8px">'+WW.sayBtn(it.audio)+'</div>':'')+(it.meaning?'<div class="ob-m">'+WW.esc(it.meaning)+'</div>':'')+
     '<div class="ob-t">'+WW.esc(it.prompt||TASKS[i%TASKS.length])+'</div><button class="ob-close" type="button">OK</button></div>';
   lid.hidden=false;
   lid.querySelector('.ob-close').onclick=function(){lid.hidden=true;
@@ -64,6 +64,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=850"></script>
+<script src="../../scripts/game-handoff.js?v=853"></script>
 </body>
 </html>

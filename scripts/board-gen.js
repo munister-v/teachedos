@@ -473,7 +473,13 @@ function _ttCountItems(out){
    «vis-a-vis». Двокрапка теж роздільник, але з умовою нижче. */
 const _TT_GLOSS_SPLIT = /\s+[-–—|]\s+|\t+/;
 function _ttVocabEntries(input){
-  const rows = String(input.vocab||'').split(/\n+/).map(x => x.trim()).filter(Boolean);
+  /* Маркер списка - не часть слова. Учитель копирует список из урока
+     («• a cough»), и словарь потом искал статью «• a cough» - не находил
+     ничего, а на доску ехала пара с пустым значением. Срезаем маркеры и
+     нумерацию в начале строки. */
+  const rows = String(input.vocab||'').split(/\n+/)
+    .map(x => x.replace(/^\s*(?:[•·‣▪∙*\u2022]|[-–—]|\d+[.)])\s+/, '').trim())
+    .filter(Boolean);
   const out = [];
   const push = (word, gloss) => { if (word) out.push({ word, gloss: gloss || '' }); };
   rows.forEach(row => {

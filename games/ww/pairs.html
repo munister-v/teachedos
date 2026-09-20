@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Matching pairs</title>
-<link rel="stylesheet" href="ww.css?v=850">
+<link rel="stylesheet" href="ww.css?v=853">
 <style>
 /* Matching pairs: серые карты рубашкой вверх, открываются по две. Совпало -
    обе остаются открытыми в цвете пары. Раунды по ROUND пар через весь список. */
@@ -13,14 +13,17 @@
 .mp-in{position:absolute;inset:0;transition:transform .35s;transform-style:preserve-3d}
 .mp-card.open .mp-in,.mp-card.done .mp-in{transform:rotateY(180deg)}
 .mp-f{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:5px;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;
-  font-weight:700;font-size:clamp(10px,1.9vw,15px);line-height:1.15;word-break:break-word}
+  font-weight:700;line-height:1.12;overflow:hidden;hyphens:auto;word-break:break-word}
+/* Кегль лица карты считается от её размера и длины текста (см. render):
+   определение в двадцать слов иначе выезжало за карту. */
+.mp-face span{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
 .mp-back{background:#5D614B;box-shadow:inset 0 -5px 0 rgba(36,40,44,.35),0 2px 3px rgba(36,40,44,.25)}
 .mp-face{transform:rotateY(180deg);background:#fff;border:2px solid var(--gray)}
 .mp-card.done .mp-face{background:var(--c);color:var(--f);border-color:transparent;box-shadow:inset 0 -5px 0 rgba(36,40,44,.22)}
 </style>
 </head>
 <body>
-<script src="ww.js?v=850"></script>
+<script src="ww.js?v=853"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
 var ROUND=10;
@@ -46,7 +49,11 @@ function render(){
   g.style.gridTemplateRows='repeat('+rowsN+','+Math.floor(ch)+'px)';
   cards.forEach(function(c,i){
     var b=document.createElement('button');b.className='mp-card'+(c.open?' open':'')+(c.done?' done':'');b.type='button';
-    b.innerHTML='<div class="mp-in"><div class="mp-f mp-back"></div><div class="mp-f mp-face">'+WW.esc(c.text)+'</div></div>';
+    /* Кегль и число строк - от площади карты и длины текста, чтобы длинное
+       определение помещалось целиком, а не вылезало за край. */
+    var lines=Math.max(2,Math.floor((ch-10)/(cw*0.135*1.12)));
+    var fs=Math.max(8,Math.min(15,Math.sqrt((cw-10)*(ch-10)/Math.max(6,c.text.length))*0.82));
+    b.innerHTML='<div class="mp-in"><div class="mp-f mp-back"></div><div class="mp-f mp-face" style="font-size:'+fs.toFixed(1)+'px"><span style="-webkit-line-clamp:'+lines+'">'+WW.esc(c.text)+'</span></div></div>';
     var f=ww.fill(c.k);b.style.setProperty('--c',f[0]);b.style.setProperty('--f',f[1]);
     b.onclick=function(){tap(i);};g.appendChild(b);
   });
@@ -79,6 +86,6 @@ window.addEventListener('resize',function(){if(cards.length)render();});
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=850"></script>
+<script src="../../scripts/game-handoff.js?v=853"></script>
 </body>
 </html>

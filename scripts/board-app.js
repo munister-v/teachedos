@@ -13777,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '850';
+const TEACHEDOS_ASSET_VERSION = '853';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14319,17 +14319,161 @@ async function runBoardWorkout() {
      нет ни пояснения учителя, ни словарной статьи. */
   const missing = entries.filter(e => !e.gloss).map(e => e.word);
   const examples = Object.create(null);
-  const found = await _ttLookupDefinitions(entries.map(e => e.word), base, { examples, defsFor: missing });
-  entries.forEach(e => { if (!e.gloss) e.gloss = found[e.word.toLowerCase()] || ''; });
-  base.vocabExamples = examples;
+  const info = Object.create(null);
+  const found = await _ttLookupDefinitions(entries.map(e => e.word), base, { examples, defsFor: missing, info });
+  entries.forEach(e => {
+    const k = e.word.toLowerCase();
+    if (!e.gloss) e.gloss = found[k] || '';
+    e.example = examples[k] || '';
+    const inf = info[k] || {};
+    e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.senses = inf.senses || []; e.matched = inf.matched || '';
+    e.fromTeacher = !!e.gloss && !found[k];
+  });
   base.rawVocab = base.rawVocab || base.vocab;
+  base.count = entries.length;
+
+  _ttSetGenerating(false);
+  /* РАЗБОР ПЕРЕД ДОСКОЙ. Дальше учитель смотрит, что нашлось: правит
+     значение и пример, слушает слово, выбирает другое значение статьи,
+     убирает слово или игру - и только потом всё это едет на доску. */
+  _wordReview = { base, entries, tplKeys: keys.filter(k => k.startsWith('tpl:')).map(k => k.slice(4)),
+    actKeys: keys.filter(k => !k.startsWith('tpl:')), trimmed, listed };
+  renderWordReview();
+  if (chip) chip.textContent = 'check the words';
+  return;
+}
+
+/* ═════════ РАЗБОР СПИСКА ПЕРЕД ДОСКОЙ ═════════
+   Учитель видит, что нашлось на каждое слово, и решает сам: поправить
+   значение и пример руками, выбрать другое значение словарной статьи,
+   послушать слово, поискать другую форму («feels sick» → «feel sick»),
+   убрать слово или целую игру. На доску едет то, что он одобрил. */
+let _wordReview = null;
+let _wrAudio = null;
+
+function wordReviewRow(e, i) {
+  const senses = Array.isArray(e.senses) ? e.senses : [];
+  const opts = senses.map((x, k) => `<option value="${k}"${x.def === e.gloss ? ' selected' : ''}>${esc((x.cefr ? x.cefr + ' · ' : '') + x.def.slice(0, 80))}</option>`).join('');
+  return `<div class="wr-row${e.dropped ? ' is-off' : ''}" data-i="${i}">
+    <div class="wr-w">
+      <button type="button" class="wr-play" title="Listen" ${e.audio ? '' : 'disabled'} onclick="wordReviewPlay(${i})">▶</button>
+      <input class="wr-word" value="${esc(e.word)}" oninput="wordReviewEdit(${i},'word',this.value)" aria-label="Word">
+      ${e.ipa ? `<span class="wr-ipa">/${esc(e.ipa)}/</span>` : ''}
+    </div>
+    <div class="wr-fields">
+      <textarea class="wr-in" rows="2" placeholder="Meaning - type your own or pick one below" oninput="wordReviewEdit(${i},'gloss',this.value)" aria-label="Meaning">${esc(e.gloss || '')}</textarea>
+      <textarea class="wr-in wr-ex" rows="1" placeholder="Example sentence (used by Unjumble and Complete the sentence)" oninput="wordReviewEdit(${i},'example',this.value)" aria-label="Example">${esc(e.example || '')}</textarea>
+      <div class="wr-tools">
+        ${senses.length > 1 ? `<select class="wr-sense" onchange="wordReviewPickSense(${i},this.value)" aria-label="Dictionary senses"><option value="">Cambridge: ${senses.length} meanings…</option>${opts}</select>` : ''}
+        ${e.matched && e.matched.toLowerCase() !== String(e.word).toLowerCase() ? `<span class="wr-note">from “${esc(e.matched)}”</span>` : ''}
+        ${!e.gloss ? '<span class="wr-note wr-warn">no meaning yet</span>' : ''}
+        <button type="button" class="wr-look" onclick="wordReviewLookup(${i})">Look up</button>
+      </div>
+    </div>
+    <button type="button" class="wr-drop" title="${e.dropped ? 'Bring back' : 'Remove word'}" onclick="wordReviewDrop(${i})">${e.dropped ? '↺' : '✕'}</button>
+  </div>`;
+}
+
+function renderWordReview() {
+  const box = document.getElementById('tbuilder-output');
+  const r = _wordReview;
+  if (!box || !r) return;
+  const live = r.entries.filter(e => !e.dropped);
+  const withMeaning = live.filter(e => e.gloss).length;
+  const tpls = boardWordTemplates().filter(t => r.tplKeys.includes(t.key));
+  const acts = boardWorkoutActivities().filter(a => r.actKeys.includes(a.key));
+  const chips = tpls.map(t => `<button type="button" class="wr-chip" onclick="wordReviewDropGame('${esc(t.key)}')">${esc(t.title)}<span>✕</span></button>`)
+    .concat(acts.map(a => `<button type="button" class="wr-chip" onclick="wordReviewDropGame('${esc(a.key)}',1)">${esc(a.title)}<span>✕</span></button>`)).join('');
+  const n = tpls.length + acts.length;
+  box.innerHTML = `<div class="wr">
+    <div class="wr-top">
+      <div><b>Check the words</b><span>${live.length} word${live.length === 1 ? '' : 's'} · ${withMeaning} with a meaning${r.trimmed ? ` · first ${TT_WORDLIST_MAX} of ${r.listed}` : ''}</span></div>
+      <button type="button" class="wr-add" onclick="commitWordWorkout()"${n && live.length ? '' : ' disabled'}>Add ${n} to the board</button>
+    </div>
+    <div class="wr-games">${chips || '<span class="wr-note">No activities picked</span>'}</div>
+    <div class="wr-rows">${r.entries.map(wordReviewRow).join('')}</div>
+  </div>`;
+}
+
+function wordReviewEdit(i, field, value) {
+  const e = _wordReview && _wordReview.entries[i];
+  if (!e) return;
+  e[field] = String(value || '').trim();
+  /* Перерисовывать на каждый символ нельзя - курсор уезжает из поля;
+     счётчик сверху обновляем отдельно. */
+  const head = document.querySelector('.wr-top span');
+  const live = _wordReview.entries.filter(x => !x.dropped);
+  if (head) head.textContent = `${live.length} word${live.length === 1 ? '' : 's'} · ${live.filter(x => x.gloss).length} with a meaning`;
+}
+
+function wordReviewPickSense(i, k) {
+  const e = _wordReview && _wordReview.entries[i];
+  if (!e || k === '') return;
+  const s = e.senses[+k];
+  if (!s) return;
+  e.gloss = s.def;
+  if (s.example && !e.example) e.example = s.example;
+  renderWordReview();
+}
+
+function wordReviewDrop(i) {
+  const e = _wordReview && _wordReview.entries[i];
+  if (!e) return;
+  e.dropped = !e.dropped;
+  renderWordReview();
+}
+
+function wordReviewDropGame(key, isAct) {
+  const r = _wordReview;
+  if (!r) return;
+  if (isAct) r.actKeys = r.actKeys.filter(k => k !== key);
+  else r.tplKeys = r.tplKeys.filter(k => k !== key);
+  renderWordReview();
+}
+
+function wordReviewPlay(i) {
+  const e = _wordReview && _wordReview.entries[i];
+  if (!e || !e.audio) return;
+  try { if (_wrAudio) _wrAudio.pause(); _wrAudio = new Audio(e.audio); _wrAudio.play(); } catch (_) {}
+}
+
+/* Поиск по ТОМУ написанию, которое сейчас в поле: учитель поправил
+   «feels sick» на «feel sick» - и словарь отвечает уже про него. */
+async function wordReviewLookup(i) {
+  const r = _wordReview;
+  const e = r && r.entries[i];
+  if (!e || !e.word) return;
+  const info = Object.create(null), examples = Object.create(null);
+  const found = await _ttLookupDefinitions([e.word], { ...r.base, tool: { id: 'word-definition-match' } }, { info, examples, defsFor: [] });
+  const k = e.word.toLowerCase(), inf = info[k] || {};
+  e.senses = inf.senses || []; e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.matched = inf.matched || '';
+  if (found[k]) e.gloss = found[k];
+  if (examples[k]) e.example = examples[k];
+  renderWordReview();
+}
+
+/* Сборка и укладка того, что учитель одобрил в разборе. */
+async function commitWordWorkout() {
+  const r = _wordReview;
+  if (!r) return;
+  const chip = document.getElementById('tbuilder-chip');
+  const body = document.getElementById('tbuilder-output');
+  const base = r.base;
+  const entries = r.entries.filter(e => !e.dropped && e.word);
+  if (!entries.length) { if (chip) chip.textContent = 'no words left'; return; }
+  const keys = r.tplKeys.map(k => 'tpl:' + k).concat(r.actKeys);
+  const examples = Object.create(null);
+  entries.forEach(e => { if (e.example) examples[e.word.toLowerCase()] = e.example; });
+  base.vocabExamples = examples;
   base.vocab = entries.map(e => e.gloss ? `${e.word} - ${e.gloss.replace(/\s*\n\s*/g, ' ')}` : e.word).join('\n');
   base.count = entries.length;
+  const trimmed = r.trimmed, listed = r.listed;
+  _ttSetGenerating(true);
+  await _ensureGenLoaded();
 
   /* Шаблоны-игры собираются прямо из списка, без генератора задания:
      значения и примеры уже есть, ни одно слово не теряется по дороге. */
-  const tplKeys = keys.filter(k => k.startsWith('tpl:')).map(k => k.slice(4));
-  const tpls = boardWordTemplates().filter(t => tplKeys.includes(t.key));
+  const tpls = boardWordTemplates().filter(t => r.tplKeys.includes(t.key));
   const tplBuilt = [];
   const tplNotes = [];
   const ctx = { base, entries, examples };
@@ -14395,6 +14539,7 @@ async function runBoardWorkout() {
   }
   /* Панель закрывается, как и у остальных укладчиков: карточки ложились ПОД
      открытое окно, и выглядело так, будто не создалось ничего. */
+  _wordReview = null;
   closeTeacherToolBuilder();
   const noMeaning = entries.filter(e => !e.gloss).length;
   const notes = [...tplNotes];
@@ -14415,7 +14560,8 @@ async function _wordTemplateContent(t, ctx) {
   const { base, entries, examples } = ctx;
   const ex = e => examples[String(e.word).toLowerCase()] || '';
   const withMeaning = entries.filter(e => e.gloss);
-  const pairs = withMeaning.map(e => ({ a: e.word, b: e.gloss, example: ex(e) }));
+  // audio - запись голоса из словаря: ученик слушает слово прямо в игре.
+  const pairs = withMeaning.map(e => ({ a: e.word, b: e.gloss, example: ex(e), audio: e.audio || null }));
   const lost = (n, what) => n ? `${t.title}: ${n} word${n === 1 ? '' : 's'} without ${what}` : '';
   const needMeaning = () => pairs.length >= 2
     ? { content: { pairs }, note: lost(entries.length - pairs.length, 'a meaning') }
@@ -14426,14 +14572,14 @@ async function _wordTemplateContent(t, ctx) {
     case 'pairs': case 'anagram': case 'crossword': case 'hangman':
       return needMeaning();
     case 'speaking':
-      return { content: { cards: entries.map(e => ({ word: e.word, meaning: e.gloss })) } };
+      return { content: { cards: entries.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'box':
-      return { content: { items: entries.map(e => ({ word: e.word, meaning: e.gloss })) } };
+      return { content: { items: entries.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'wheel':
     case 'wordsearch':
       // Колесо показывает значение выпавшего слова, поэтому пары, а не только слова.
       return entries.length >= 2
-        ? { content: { words: entries.map(e => e.word), pairs: entries.map(e => ({ a: e.word, b: e.gloss })) } }
+        ? { content: { words: entries.map(e => e.word), pairs: entries.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) } }
         : { why: 'needs at least 2 words' };
     case 'unjumble': {
       const sentences = entries.filter(e => ex(e) && ex(e).split(/\s+/).length >= 3)
@@ -14846,6 +14992,10 @@ const TT_DEFINE_BATCH = 20;
    собрать примеры и для слов, которым учитель уже написал пояснение. */
 async function _ttLookupDefinitions(words, base, opts = {}) {
   const found = Object.create(null);
+  /* Словарь отдаёт не только значение: произношение (ученик слушает слово),
+     пример и ВСЕ значения статьи - из них учитель выбирает нужное в разборе
+     перед тем, как задания лягут на доску. Складываем в opts.info. */
+  const info = opts.info || null;
   const list = [...new Set(words.map(w => String(w || '').trim()).filter(Boolean))];
   for (let i = 0; i < list.length; i += TT_DEFINE_BATCH) {
     const chunk = list.slice(i, i + TT_DEFINE_BATCH);
@@ -14855,6 +15005,10 @@ async function _ttLookupDefinitions(words, base, opts = {}) {
       const d = await r.json().catch(() => null);
       (d && d.results || []).forEach((x, xi) => {
         if (!x) return;
+        if (info) info[String(chunk[xi] || x.word).toLowerCase()] = {
+          matched: x.matched || x.word, audio: x.audio || null, ipa: x.ipa || null,
+          senses: Array.isArray(x.senses) ? x.senses : (x.definition ? [{ def: x.definition, cefr: x.cefr, example: x.example }] : []),
+        };
         /* Ключ - слово, КОТОРОЕ СПРАШИВАЛИ: словарь может вернуть статью
            «colleague» на запрос «Colleagues», и по его написанию слово
            учителя значения не нашло бы. */

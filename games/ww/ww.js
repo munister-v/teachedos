@@ -174,6 +174,7 @@
         word: String(p.a || p.word || p.w || p.term || p.en || '').trim(),
         meaning: String(p.b || p.meaning || p.definition || p.d || p.uk || '').trim(),
         example: String(p.example || p.ex || '').trim(),
+        audio: p.audio || null,
         img: p.img || null
       };
     }).filter(function (p) { return p.word; });
@@ -249,5 +250,20 @@
     return { clear: function () { if (selected) selected.classList.remove('is-sel'); selected = null; } };
   }
 
-  window.WW = { init: init, pairsFrom: pairsFrom, listen: listen, shuffle: shuffle, esc: esc, fills: FILLS, fmt: fmt, dnd: dnd };
+  /* Запись голоса из словаря: кнопка рядом со словом. Одна на страницу -
+     вторая нажатая останавливает первую. */
+  var _audio = null;
+  function say(url) {
+    if (!url) return;
+    try { if (_audio) _audio.pause(); _audio = new Audio(url); _audio.play(); } catch (e) {}
+  }
+  function sayBtn(url, cls) {
+    return url ? '<button type="button" class="ww-say ' + (cls || '') + '" aria-label="Listen" data-say="' + String(url).replace(/"/g, '&quot;') + '">🔊</button>' : '';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-say]');
+    if (b) { e.stopPropagation(); say(b.getAttribute('data-say')); }
+  });
+
+  window.WW = { init: init, pairsFrom: pairsFrom, listen: listen, say: say, sayBtn: sayBtn, shuffle: shuffle, esc: esc, fills: FILLS, fmt: fmt, dnd: dnd };
 })();

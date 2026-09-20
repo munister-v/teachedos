@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Flash cards</title>
-<link rel="stylesheet" href="ww.css?v=850">
+<link rel="stylesheet" href="ww.css?v=853">
 <style>
 /* Flash cards: одна большая карта; спереди значение, «Flip» - слово.
    После переворота справа ✓ / ✗ - ученик сам отмечает, знал ли. */
@@ -18,6 +18,7 @@
 .fc-front .t{font-weight:700;font-size:clamp(17px,3.4vw,24px);line-height:1.3}
 .fc-back .w{font-weight:800;font-size:clamp(28px,7vw,48px);line-height:1.05}
 .fc-back .ex{font-weight:600;font-size:clamp(13px,2.2vw,16px);line-height:1.35;opacity:.92;max-width:92%}
+.fc-say{margin-top:-2px}
 .fc-marks{display:flex;flex-direction:column;gap:8px}
 .fc-marks[hidden]{display:none}
 .fc-marks button{width:46px;height:46px;border:0;border-radius:6px;color:#fff;font-size:24px;font-weight:900;box-shadow:inset 0 -4px 0 rgba(36,40,44,.25)}
@@ -26,7 +27,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=850"></script>
+<script src="ww.js?v=853"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head',example:'I have a terrible headache.'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'}];
 var ww=WW.init({template:'Flash cards',instructions:'Read the card, flip it and check yourself.',timer:'up',score:true,navTop:true,action:{label:'Flip'}});
@@ -38,7 +39,8 @@ function render(){
   var card=document.createElement('div');card.className='fc-card';
   var inner=document.createElement('div');inner.className='fc-inner';
   var front=document.createElement('div');front.className='fc-face fc-front';front.innerHTML=it.img?'<img src="'+WW.esc(it.img)+'" alt="" style="max-width:90%;max-height:90%;object-fit:contain">':'<div class="t">'+WW.esc(it.meaning)+'</div>';
-  var back=document.createElement('div');back.className='fc-face fc-back';back.innerHTML='<div class="w">'+WW.esc(it.word)+'</div>'+(it.example?'<div class="ex">'+WW.esc(it.example)+'</div>':'');
+  var back=document.createElement('div');back.className='fc-face fc-back';
+  back.innerHTML='<div class="w">'+WW.esc(it.word)+'</div>'+(it.audio?'<div class="fc-say">'+WW.sayBtn(it.audio)+'</div>':'')+(it.example?'<div class="ex">'+WW.esc(it.example)+'</div>':'');
   var f=ww.fill(pos);[front,back].forEach(function(n){n.style.setProperty('--c',f[0]);n.style.setProperty('--f',f[1]);});
   inner.appendChild(front);inner.appendChild(back);card.appendChild(inner);
   card.onclick=flip;
@@ -76,6 +78,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=850"></script>
+<script src="../../scripts/game-handoff.js?v=853"></script>
 </body>
 </html>
