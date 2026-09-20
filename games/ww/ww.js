@@ -88,6 +88,17 @@
     var menu = el('div', 'ww-menu'); menu.hidden = true;
     var mRestart = el('button', '', 'Start again'); var mFull = el('button', '', 'Full screen');
     menu.appendChild(mRestart); menu.appendChild(mFull);
+    /* Выход к доске. На телефоне карточка не играет игру у себя - она уводит
+       сюда целой страницей, и другого видимого пути назад в меню не было:
+       урок оставался за системной кнопкой «назад», которой в приложении
+       на домашнем экране просто нет. Во фрейме пункт не нужен. */
+    var embedded = true; try { embedded = window.parent !== window; } catch (e) { embedded = true; }
+    var fromBoard = /[?&]from=board\b/.test(location.search);
+    var mBack = null;
+    if (!embedded && fromBoard) {
+      mBack = el('button', '', '← Back to the board');
+      menu.appendChild(mBack);
+    }
 
     var start = el('div', 'ww-over');
     start.innerHTML = '<div class="ww-over-kicker">' + esc(opts.template || '') + '</div>' +
@@ -168,6 +179,13 @@
     mRestart.onclick = function () { menu.hidden = true; api.showStart(); };
     function fs() { var d = document.documentElement; try { if (document.fullscreenElement) document.exitFullscreen(); else if (d.requestFullscreen) d.requestFullscreen(); } catch (e) {} }
     fullBtn.onclick = fs; mFull.onclick = function () { menu.hidden = true; fs(); };
+    if (mBack) mBack.onclick = function () {
+      /* Идём по точному адресу доски из referrer - он несёт её id. history.back
+         сюда не годится: доска сама пишет записи истории, и шаг назад уводил
+         на предыдущую открытую доску, а не на ту, с которой запустили игру. */
+      var ref = document.referrer || '';
+      location.href = ref.indexOf('board.html') >= 0 ? ref : '../../board.html';
+    };
     soundBtn.onclick = function () { muted = !muted; soundBtn.innerHTML = muted ? ICON.mute : ICON.sound; };
     api.setLives(opts.lives || 0);
     return api;
