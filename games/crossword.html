@@ -25,7 +25,9 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .cell input:focus{outline:2px solid var(--lime)}
 .cell input.correct{background:#e8f5e9;color:#2e7d32}
 .cell input.incorrect{background:#fce4ec;color:#c62828}
-.cell .num{position:absolute;top:1px;left:2px;font-size:.55rem;font-weight:700;color:#525252;pointer-events:none}
+/* Номер клетки - не значок, а текст, который читают: .55rem на телефоне
+   даёт 8.8px, ниже порога кегля продукта (11px). */
+.cell .num{position:absolute;top:1px;left:2px;font-size:max(11px,.55rem);font-weight:700;color:#525252;pointer-events:none}
 .clues{display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:left;margin-bottom:8px}
 .clues h3{font-size:.85rem;color:var(--accent);margin-bottom:6px;font-weight:800}
 .clues ol{font-size:.8rem;color:#555;padding-left:18px;line-height:1.6}
@@ -56,10 +58,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=906">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=906">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=907">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=907">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=906">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=907">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -365,7 +367,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=906"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=906"></script>
+<script src="../scripts/game-handoff.js?v=907"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=907"></script>
 </body>
 </html>
