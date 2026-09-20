@@ -13777,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '882';
+const TEACHEDOS_ASSET_VERSION = '884';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14327,6 +14327,7 @@ async function runBoardWorkout() {
     e.example = _wrUsableExample(examples[k]) || _wrFallbackExample(e.word, e.gloss || found[k] || '');
     const inf = info[k] || {};
     e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.senses = inf.senses || []; e.matched = inf.matched || '';
+    e.pos = inf.pos || null;
     e.fromTeacher = !!e.gloss && !found[k];
   });
   base.rawVocab = base.rawVocab || base.vocab;
@@ -14423,8 +14424,19 @@ function wordReviewGameBlock(key, live) {
       const m = line.match(/^\s*([^:]{1,40}):\s*(.+,.+)$/);
       if (m) cats.push(m[1].trim() + ': ' + m[2].trim());
     });
-    rows = cats.length >= 2 ? cats.map(c => `<div class="wg-row"><span>${esc(c)}</span></div>`).join('')
-      : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
+    if (cats.length >= 2) {
+      rows = cats.map(c => `<div class="wg-row"><span>${esc(c)}</span></div>`).join('');
+    } else {
+      /* Те же группы, что уедут в игру: по частям речи из словаря. Учитель
+         видит их заранее и может задать свои строкой «Illness: fever, cough». */
+      const byPos = Object.create(null);
+      live.forEach(e => { const p = POS_GROUP[String(e.pos || '').toLowerCase()]; if (p) (byPos[p] = byPos[p] || []).push(e.word); });
+      const names = Object.keys(byPos);
+      rows = names.length >= 2
+        ? names.map(n => `<div class="wg-row"><b>${esc(n)}</b><span>${esc(byPos[n].join(', '))}</span></div>`).join('')
+          + '<div class="wr-note">Groups by part of speech. Your own groups win: write them in the list as “Illness: fever, cough”.</div>'
+        : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
+    }
   } else if (key === 'wheel' || key === 'wordsearch' || key === 'speaking' || key === 'box') {
     rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`;
   } else if (key === 'pairs') {
@@ -14640,6 +14652,11 @@ async function commitWordWorkout() {
    Возвращает { content, note } или { why }, если шаблону не из чего
    собраться. note - о словах, которые шаблон честно не смог взять (нет
    значения / нет примера), чтобы тост не обещал «все слова», когда это не так. */
+/* Метки частей речи словаря - в человеческие названия групп. Всё, что не
+   в списке (наречия, предлоги, междометия), в сортировку не идёт: две-три
+   корзины читаются, восемь - нет. */
+const POS_GROUP = { noun: 'Nouns', verb: 'Verbs', adjective: 'Adjectives', adverb: 'Adverbs' };
+
 async function _wordTemplateContent(t, ctx) {
   const { base, entries, examples } = ctx;
   const ex = e => examples[String(e.word).toLowerCase()] || '';
@@ -14689,6 +14706,16 @@ async function _wordTemplateContent(t, ctx) {
         if (m) cats.push({ name: m[1].trim(), words: m[2].split(/[,;]+/).map(w => w.trim()).filter(Boolean) });
       });
       if (cats.length >= 2) return { content: { categories: cats } };
+      /* Без групп учителя и без входа в движок «Group sort» не получался
+         вовсе - единственный шаблон из пятнадцати, который молча выпадал.
+         Части речи словарь знает про каждое слово, и сортировка по ним -
+         обычное словарное задание, а не заглушка. */
+      const byPos = Object.create(null);
+      entries.forEach(e => { const p = POS_GROUP[String(e.pos || '').toLowerCase()]; if (p) (byPos[p] = byPos[p] || []).push(e.word); });
+      const posCats = Object.keys(byPos).filter(k => byPos[k].length).map(k => ({ name: k, words: byPos[k] }));
+      if (posCats.length >= 2 && posCats.reduce((n, c) => n + c.words.length, 0) >= 4) {
+        return { content: { categories: posCats }, note: `${t.title}: groups by part of speech` };
+      }
       const out = await requestServerTeacherTool({ ...base, tool: { id: 'word-sorting' } }, 25000);
       const g = out ? (_ttGamePayloads(out) || []).find(x => x.gameType === 'word-categories') : null;
       return g ? { content: g.content } : { why: 'groups need AI (sign in) or lines like “Food: apple, bread”' };
@@ -15101,7 +15128,7 @@ async function _ttLookupDefinitions(words, base, opts = {}) {
       (d && d.results || []).forEach((x, xi) => {
         if (!x) return;
         if (info) info[String(chunk[xi] || x.word).toLowerCase()] = {
-          matched: x.matched || x.word, audio: x.audio || null, ipa: x.ipa || null,
+          matched: x.matched || x.word, audio: x.audio || null, ipa: x.ipa || null, pos: x.pos || null,
           senses: Array.isArray(x.senses) ? x.senses : (x.definition ? [{ def: x.definition, cefr: x.cefr, example: x.example }] : []),
         };
         /* Ключ - слово, КОТОРОЕ СПРАШИВАЛИ: словарь может вернуть статью
