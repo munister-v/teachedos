@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Crossword</title>
-<link rel="stylesheet" href="ww.css?v=863">
+<link rel="stylesheet" href="ww.css?v=867">
 <style>
 /* Crossword: сетка слева, подсказки (значения) справа, Across / Down.
    Буквы вводятся с клавиатуры, курсор идёт по слову сам. Весь список -
@@ -26,11 +26,19 @@
 .cw-clues li{list-style:none;padding:3px 6px;border-radius:5px;cursor:pointer}
 .cw-clues li.cur{background:#CDF649}
 .cw-clues li b{margin-right:5px}
+@media (max-width:560px){
+  /* Сетка идёт от левого края и прокручивается: при центрировании
+     широкий кроссворд срезало сразу с двух сторон вместе с номерами. */
+  .cw{grid-template-columns:1fr;grid-template-rows:auto minmax(80px,1fr);justify-content:start;justify-items:start;overflow:auto}
+  .cw-scroll{width:100%;overflow-x:auto;padding-left:10px}
+  .cw-grid{align-self:start}
+  .cw-clues{width:100%;font-size:13px}
+}
 @media (max-width:560px){.cw{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
 </style>
 </head>
 <body>
-<script src="ww.js?v=863"></script>
+<script src="ww.js?v=867"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
 var ROUND=10;
@@ -81,7 +89,11 @@ function render(){
   ww.stage.innerHTML='';
   var root=document.createElement('div');root.className='cw';
   var R=0,C=0;Object.keys(cells).forEach(function(k){var a=k.split(',').map(Number);R=Math.max(R,a[0]+1);C=Math.max(C,a[1]+1);});
-  var H=ww.stage.clientHeight-10,W=ww.stage.clientWidth*0.6;var s=Math.floor(Math.min(H/R,W/C,44));
+  /* Телефон: сетка и подсказки идут друг под другом, поэтому ширина
+     кадра целиком, а клетка не мельче 30px - в 21px палец не попадает. */
+  var narrow=window.innerWidth<=560;
+  var H=ww.stage.clientHeight-10,W=narrow?(ww.stage.clientWidth-4):(ww.stage.clientWidth*0.6);
+  var s=narrow?Math.max(30,Math.floor(Math.min(W/C,44))):Math.floor(Math.min(H/R,W/C,44));
   var g=document.createElement('div');g.className='cw-grid';g.style.width=(C*s)+'px';g.style.height=(R*s)+'px';
   var curCells=cur!=null?wordCells(cur):[];
   Object.keys(cells).forEach(function(k){var a=k.split(',').map(Number),cell=cells[k];
@@ -101,7 +113,9 @@ function render(){
   ['a','d'].forEach(function(dd){var list=placed.filter(function(p){return p.d===dd;}).sort(function(a,b){return a.n-b.n;});if(!list.length)return;
     var h=document.createElement('h4');h.textContent=dd==='a'?'Across':'Down';cl.appendChild(h);
     list.forEach(function(p){var li=document.createElement('li');li.className=p.i===cur?'cur':'';li.innerHTML='<b>'+p.n+'</b>'+WW.esc(p.it.meaning);li.onclick=function(){focusWord(p.i);};cl.appendChild(li);});});
-  root.appendChild(g);root.appendChild(cl);ww.stage.appendChild(root);
+  if(narrow){var sc=document.createElement('div');sc.className='cw-scroll';sc.appendChild(g);root.appendChild(sc);}
+  else root.appendChild(g);
+  root.appendChild(cl);ww.stage.appendChild(root);
   var left=queue.length;
   ww.setCenter(left?('Puzzle '+roundNo+' · '+left+' more words next'):(roundNo>1?'Puzzle '+roundNo:''),true);
   if(checked)ww.setAction(queue.length?'Next puzzle':'Finish',after);else ww.setAction('Submit Answers',submit);
@@ -124,6 +138,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=863"></script>
+<script src="../../scripts/game-handoff.js?v=867"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Hangman</title>
-<link rel="stylesheet" href="ww.css?v=863">
+<link rel="stylesheet" href="ww.css?v=867">
 <style>
 /* Hangman: виселица слева, справа значение, прочерки и клавиатура.
    Пробел и дефис во фразе видны сразу, угадываются только буквы. */
@@ -19,6 +19,11 @@
 .hm-keys{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;width:100%;max-width:400px}
 .hm-keys .ww-tile{min-height:clamp(26px,5vw,36px);padding:0;font-size:clamp(13px,2.6vw,18px);font-weight:800}
 .hm-keys .ww-tile.used{opacity:.25;pointer-events:none}
+/* Телефон: семь клавиш в ряд вместо девяти - буква под палец. */
+@media (max-width:430px){
+  .hm-keys{grid-template-columns:repeat(7,1fr);gap:5px}
+  .hm-keys .ww-tile{min-height:40px;font-size:16px}
+}
 @media (max-width:540px){.hm{grid-template-columns:1fr;grid-template-rows:90px 1fr}}
 /* Низкий кадр (карточка доски): виселица ужимается, клавиатура мельче -
    иначе нижний ряд букв уходил под край. */
@@ -32,7 +37,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=863"></script>
+<script src="ww.js?v=867"></script>
 <script>
 var DEMO=[{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'sore throat',b:'pain when you swallow'}];
 var MAXW=6;
@@ -79,6 +84,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=863"></script>
+<script src="../../scripts/game-handoff.js?v=867"></script>
 </body>
 </html>

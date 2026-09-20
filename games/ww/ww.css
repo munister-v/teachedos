@@ -87,18 +87,6 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .ww-answers li.ok b{color:var(--ok)}
 .ww-answers .close{position:sticky;top:0;float:right;border:2px solid var(--ink);border-radius:8px;background:#fff;padding:4px 12px;font-weight:800}
 
-@media (max-width:520px){
-  .ww-timer,.ww-score{font-size:18px}
-  .ww-center{font-size:16px}
-  .ww-action{min-width:96px;font-size:15px;padding:5px 14px}
-  .ww-icon{width:40px;height:40px}
-}
-@media (max-width:430px){
-  .ww-action{min-width:0;font-size:14px;padding:5px 10px}
-  .ww-icon{width:34px;height:34px}
-  .ww-bottom,.ww-top{gap:5px;padding-left:8px;padding-right:8px}
-  .ww-bottom-right{gap:3px}
-}
 
 /* Перетаскивание: выбранная тапом плитка и цель под пальцем. */
 .ww-tile.is-sel{outline:3px solid var(--ink);outline-offset:2px}
@@ -109,3 +97,26 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 /* Кнопка «послушать слово» (запись Cambridge). */
 .ww-say{width:30px;height:30px;flex:0 0 auto;border:2px solid var(--ink);border-radius:8px;background:#fff;font-size:14px;line-height:1;padding:0;cursor:pointer}
 .ww-say:active{transform:translateY(1px)}
+
+
+/* Мобильные правила держим в конце файла: раньше они стояли выше
+   базовых и проигрывали по порядку, хотя экран был узкий. */
+@media (max-width:520px){
+  .ww-timer,.ww-score{font-size:18px}
+  .ww-center{font-size:16px}
+  .ww-action{min-width:96px;min-height:40px;font-size:15px;padding:5px 14px}
+  .ww-icon{width:40px;height:40px}
+}
+/* Узкий экран сжимает ширину и отступы, но не высоту: палец не
+   попадает в кнопку в 32px, а в тесноте промах стоит хода. */
+@media (max-width:430px){
+  .ww-action{min-width:0;min-height:40px;font-size:14px;padding:5px 10px}
+  .ww-icon{width:40px;height:40px}
+  .ww-icon svg{width:20px;height:20px}
+  .ww-bottom,.ww-top{gap:5px;padding-left:8px;padding-right:8px}
+  .ww-bottom-right{gap:3px}
+  .ww-tile{min-height:40px}
+  .ww-slot{min-height:44px}
+  .ww-say{width:40px;height:40px}
+  .ww-arrow{width:40px;height:40px}
+}

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Wordsearch</title>
-<link rel="stylesheet" href="ww.css?v=863">
+<link rel="stylesheet" href="ww.css?v=867">
 <style>
 /* Wordsearch: сетка букв слева, список слов плашками справа. Слово
    выделяют протяжкой по буквам (или тапом по первой и последней). Весь
@@ -24,7 +24,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=863"></script>
+<script src="ww.js?v=867"></script>
 <script>
 var DEMO=[{a:'headache'},{a:'fever'},{a:'cough'},{a:'rash'},{a:'sore throat'},{a:'insomnia'},{a:'bruise'},{a:'burn'}];
 var ROUND=10;
@@ -55,10 +55,15 @@ function build(){
 function render(){
   ww.stage.innerHTML='';
   var root=document.createElement('div');root.className='ws';
-  var H=ww.stage.clientHeight-16,W=ww.stage.clientWidth-40;var side=Math.floor(Math.min(H,W*0.62));var cs=Math.floor((side-8)/N);
+  /* Телефон: список слов уходит под сетку, значит сетке - вся ширина;
+     клетка не мельче 26px, иначе буква падает ниже порога кегля. */
+  var narrow=window.innerWidth<=560;
+  var H=ww.stage.clientHeight-16,W=ww.stage.clientWidth-(narrow?8:40);
+  var side=narrow?Math.min(W,Math.max(N*26+8,Math.floor(H*0.62))):Math.floor(Math.min(H,W*0.62));
+  var cs=Math.floor((side-8)/N);
   var g=document.createElement('div');g.className='ws-grid';g.style.gridTemplateColumns='repeat('+N+','+cs+'px)';g.style.gridAutoRows=cs+'px';
   for(var r=0;r<N;r++)for(var c=0;c<N;c++){
-    var d=document.createElement('div');d.className='ws-c';d.textContent=grid[r][c];d.dataset.r=r;d.dataset.c=c;d.style.fontSize=Math.max(10,Math.floor(cs*.55))+'px';
+    var d=document.createElement('div');d.className='ws-c';d.textContent=grid[r][c];d.dataset.r=r;d.dataset.c=c;d.style.fontSize=Math.max(11,Math.floor(cs*.55))+'px';
     var hit=null;Object.keys(found).forEach(function(k){var p=placed[k];if(p.cells.some(function(x){return x[0]===r&&x[1]===c;}))hit=+k;});
     if(hit!=null){var f=ww.fill(hit);d.classList.add('found');d.style.background=f[0];d.style.color=f[1];}
     g.appendChild(d);
@@ -115,6 +120,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=863"></script>
+<script src="../../scripts/game-handoff.js?v=867"></script>
 </body>
 </html>

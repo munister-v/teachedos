@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Find the match</title>
-<link rel="stylesheet" href="ww.css?v=863">
+<link rel="stylesheet" href="ww.css?v=867">
 <style>
 /* Find the match: подсказка на «плёнке» между пунктирами, под ней все
    слова плитками. Верная плитка исчезает, неверная стоит жизни. */
@@ -17,11 +17,15 @@
 .fm-grid .ww-tile{flex:0 0 calc(var(--cols,20%) - 4px);min-height:32px;font-size:clamp(12px,2.1vw,16px);padding:4px 5px}
 /* Угаданная плитка уходит совсем: visibility оставляла дыру в ряду. */
 .fm-grid .ww-tile.is-gone{display:none}
+/* Телефон: в ряду не больше трёх плиток, высота под палец. */
+@media (max-width:430px){
+  .fm-grid .ww-tile{flex:0 0 calc(33.333% - 4px);min-height:40px;font-size:14px}
+}
 
 </style>
 </head>
 <body>
-<script src="ww.js?v=863"></script>
+<script src="ww.js?v=867"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'runny nose',b:'liquid keeps coming out of your nose'}];
 var LIVES=3;
@@ -83,6 +87,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=863"></script>
+<script src="../../scripts/game-handoff.js?v=867"></script>
 </body>
 </html>

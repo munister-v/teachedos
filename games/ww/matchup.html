@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Match up</title>
-<link rel="stylesheet" href="ww.css?v=863">
+<link rel="stylesheet" href="ww.css?v=867">
 <style>
 /* Match up: сверху банк слов-плиток, ниже строки «пустое место + значение».
    Слово тянут к значению; «Submit Answers» проверяет страницу. */
@@ -19,10 +19,16 @@
 .mu-mark{font-weight:900;margin-left:6px}
 .mu-row.ok .ww-slot{outline:3px solid var(--ok);outline-offset:1px;border-radius:7px}
 .mu-row.bad .ww-slot{outline:3px solid var(--bad);outline-offset:1px;border-radius:7px}
+/* Телефон: плитку тянут пальцем, поэтому не мельче 40px. */
+@media (max-width:430px){
+  .mu-bank .ww-tile{min-height:40px;padding:8px 12px}
+  .mu-row .ww-slot{min-height:44px}
+  .mu-row .ww-slot .ww-tile{min-height:40px}
+}
 </style>
 </head>
 <body>
-<script src="ww.js?v=863"></script>
+<script src="ww.js?v=867"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'runny nose',b:'liquid keeps coming out of your nose'}];
 /* Сколько строк на странице - от высоты кадра, а не константой: на
@@ -92,6 +98,6 @@ window.addEventListener('resize',function(){if(ww.running){syncPage();render();}
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=863"></script>
+<script src="../../scripts/game-handoff.js?v=867"></script>
 </body>
 </html>

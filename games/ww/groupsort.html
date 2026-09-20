@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Group sort</title>
-<link rel="stylesheet" href="ww.css?v=863">
+<link rel="stylesheet" href="ww.css?v=867">
 <style>
 /* Group sort: слева куча плиток, справа колонки групп с заголовками.
    Плитку тянут в колонку (или тапают плитку, потом колонку). */
@@ -21,10 +21,12 @@
 .gs-in{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;padding:6px;overflow:auto}
 .gs .ww-tile.ok{outline:3px solid var(--ok);outline-offset:1px}
 .gs .ww-tile.bad{outline:3px solid var(--bad);outline-offset:1px;opacity:.6}
+/* Телефон: слово перетаскивают пальцем. */
+@media (max-width:430px){.gs .ww-tile{min-height:40px;padding:8px 10px}}
 </style>
 </head>
 <body>
-<script src="ww.js?v=863"></script>
+<script src="ww.js?v=867"></script>
 <script>
 var DEMO=[{name:'Illness',words:['fever','cough','headache','insomnia']},{name:'Injury',words:['bruise','burn','sprain','cut']}];
 var ww=WW.init({template:'Group sort',instructions:'Drag and drop each item into its correct group.',timer:'up',score:true,action:{label:'Submit Answers'}});
@@ -70,6 +72,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({categories:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=863"></script>
+<script src="../../scripts/game-handoff.js?v=867"></script>
 </body>
 </html>
