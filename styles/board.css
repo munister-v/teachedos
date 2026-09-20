@@ -6602,3 +6602,30 @@ body.board-page:not(#_) #sidebar{ background:#FDFDFF !important; backdrop-filter
   .wr-row{padding:10px;gap:8px}
   .wg-row .wr-in{min-height:40px}
 }
+/* ── Порог кегля и цели нажатия: вторая волна ─────────────────────────────
+   Замер на 390px прошёл по всем панелям доски, а не только по генератору.
+   Подписи в быстром добавлении, боковой панели, настройке задания, панели
+   рисования и модалке видео тоже набраны 10px. Подсказки клавиш там же
+   бессмысленны: на телефоне нет ни Space, ни L, ни M. */
+@media (max-width:860px){
+  .qa-title,
+  .align-heading,
+  .cfg-label,
+  .cfg-type-btn,
+  .dp-label,
+  .bg-label,
+  .sp-hint,
+  .sp-head-sub,
+  .sp-community-kicker,
+  .yt-modal-label,
+  .ctx-arrow-style-lbl,
+  .mq-add-kicker,
+  .ms-count{ font-size:11px; }
+  .mtm-kbd,
+  .sp-row-kbd,
+  .qa-row kbd,
+  .sp-hint code{ display:none; }
+  /* Строка «показать весь каталог» и «выбрать все» - цели пальца. */
+  .tools-catalog-toggle{ min-height:44px; }
+  .tb-tpl-all{ min-height:40px; padding:8px 12px; }
+}
