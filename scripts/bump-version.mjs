@@ -43,7 +43,11 @@ writeFileSync('sw.js', sw);
    как ?v=374. То есть правка в слое PWA (кольцо фокуса, горячие клавиши,
    подсказки) не доезжала до людей вообще, и service worker регистрировался
    по старому адресу. Поэтому список, а не одна строка. */
-const ASSET_CONST_FILES = ['scripts/board-app.js', 'pwa-boot.js'];
+/* И третья: pwa.js держит ту же константу и по ней РЕШАЕТ, сносить ли
+   рантайм-кэш. Пока она стояла на 374, а pwa-boot писал в тот же ключ
+   свежий номер, каждая загрузка страницы видела расхождение и сносила
+   кэш заново, а `reloadForVersion` ещё и считал сайт обновившимся. */
+const ASSET_CONST_FILES = ['scripts/board-app.js', 'pwa-boot.js', 'pwa.js'];
 let assetConstBumped = false;
 for (const p of ASSET_CONST_FILES) {
   const before = readFileSync(p, 'utf8');
