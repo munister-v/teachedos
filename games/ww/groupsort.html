@@ -4,14 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Group sort</title>
-<link rel="stylesheet" href="ww.css?v=854">
+<link rel="stylesheet" href="ww.css?v=858">
 <style>
 /* Group sort: слева куча плиток, справа колонки групп с заголовками.
    Плитку тянут в колонку (или тапают плитку, потом колонку). */
-.gs{width:100%;height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:14px}
+/* min-height:0 по всей цепочке - иначе колонки растут под содержимое и
+   плитки уезжают за нижний край кадра. */
+.gs{width:100%;height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:14px}
+.gs>*{min-height:0}
 .gs-pile{display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;padding:6px;border:2px solid var(--gray);border-radius:6px;overflow:auto}
-.gs .ww-tile{min-height:32px;padding:4px 9px;font-size:clamp(12px,2vw,15px);touch-action:none;cursor:grab}
+.gs .ww-tile{min-height:var(--th,32px);padding:var(--tp,4px 9px);font-size:var(--tf,clamp(12px,2vw,15px));touch-action:none;cursor:grab}
 .gs-groups{display:grid;gap:8px;min-height:0}
+.gs-groups>*{min-height:0}
 .gs-col{display:flex;flex-direction:column;min-height:0;border:2px dashed var(--gray);border-radius:6px;background:#fff}
 .gs-head{padding:6px 8px;text-align:center;font-weight:800;font-size:clamp(13px,2.3vw,17px);border-bottom:2px solid var(--gray)}
 .gs-in{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;padding:6px;overflow:auto}
@@ -20,7 +24,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=854"></script>
+<script src="ww.js?v=858"></script>
 <script>
 var DEMO=[{name:'Illness',words:['fever','cough','headache','insomnia']},{name:'Injury',words:['bruise','burn','sprain','cut']}];
 var ww=WW.init({template:'Group sort',instructions:'Drag and drop each item into its correct group.',timer:'up',score:true,action:{label:'Submit Answers'}});
@@ -28,6 +32,13 @@ var cats=[],items=[],where={},checked=false;
 function render(){
   ww.stage.innerHTML='';
   var root=document.createElement('div');root.className='gs';
+  /* Чем больше слов, тем мельче плитка - до порога читаемости 11px; всё,
+     что и так не помещается, остаётся за прокруткой, а не за краем кадра. */
+  var n=items.length,H=ww.stage.clientHeight;
+  var tf=n>24?11:n>16?12:n>10?13:14;
+  root.style.setProperty('--tf',tf+'px');
+  root.style.setProperty('--th',(tf<12?24:tf<13?26:30)+'px');
+  root.style.setProperty('--tp',(tf<12?'2px 6px':'3px 8px'));
   var pile=document.createElement('div');pile.className='gs-pile';pile.dataset.g='';
   var groups=document.createElement('div');groups.className='gs-groups';groups.style.gridTemplateColumns='repeat('+Math.min(cats.length,4)+',minmax(0,1fr))';
   if(cats.length>4)groups.style.gridTemplateRows='repeat('+Math.ceil(cats.length/4)+',minmax(0,1fr))';
@@ -59,6 +70,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({categories:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=854"></script>
+<script src="../../scripts/game-handoff.js?v=858"></script>
 </body>
 </html>

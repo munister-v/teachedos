@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Matching pairs</title>
-<link rel="stylesheet" href="ww.css?v=854">
+<link rel="stylesheet" href="ww.css?v=858">
 <style>
 /* Matching pairs: серые карты рубашкой вверх, открываются по две. Совпало -
    обе остаются открытыми в цвете пары. Раунды по ROUND пар через весь список. */
@@ -23,7 +23,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=854"></script>
+<script src="ww.js?v=858"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
 var ROUND=10;
@@ -51,13 +51,27 @@ function render(){
     var b=document.createElement('button');b.className='mp-card'+(c.open?' open':'')+(c.done?' done':'');b.type='button';
     /* Кегль и число строк - от площади карты и длины текста, чтобы длинное
        определение помещалось целиком, а не вылезало за край. */
-    var lines=Math.max(2,Math.floor((ch-10)/(cw*0.135*1.12)));
-    var fs=Math.max(8,Math.min(15,Math.sqrt((cw-10)*(ch-10)/Math.max(6,c.text.length))*0.82));
-    b.innerHTML='<div class="mp-in"><div class="mp-f mp-back"></div><div class="mp-f mp-face" style="font-size:'+fs.toFixed(1)+'px"><span style="-webkit-line-clamp:'+lines+'">'+WW.esc(c.text)+'</span></div></div>';
+    /* Кегль не опускается ниже 11px - ниже этого текст на карточке не
+       читается (общее правило продукта). Что не помещается при этом кегле,
+       обрезается многоточием, а не мельчает до нечитаемого. */
+    var fs=Math.max(11,Math.min(15,Math.sqrt((cw-10)*(ch-10)/Math.max(6,c.text.length))*0.82));
+    var lines=Math.max(2,Math.floor((ch-10)/(fs*1.15)));
+    var cap=Math.floor(lines*((cw-12)/(fs*0.62)));
+    var txt=c.text.length>cap?c.text.slice(0,Math.max(4,cap-1)).replace(/\s+\S*$/,'')+'…':c.text;
+    b.innerHTML='<div class="mp-in"><div class="mp-f mp-back"></div><div class="mp-f mp-face" style="font-size:'+fs.toFixed(1)+'px"><span style="-webkit-line-clamp:'+lines+'" title="'+WW.esc(c.text)+'">'+WW.esc(txt)+'</span></div></div>';
     var f=ww.fill(c.k);b.style.setProperty('--c',f[0]);b.style.setProperty('--f',f[1]);
     b.onclick=function(){tap(i);};g.appendChild(b);
   });
   ww.stage.appendChild(g);
+  /* Подгон по факту: расчёт даёт кегль и число строк, но длина слов бывает
+     такой, что последняя строка всё равно срезается. Меряем и укорачиваем,
+     пока текст не поместится целиком. */
+  g.querySelectorAll('.mp-face span').forEach(function(sp){
+    var guard=0;
+    while(sp.scrollHeight>sp.clientHeight+2&&sp.textContent.length>8&&guard++<40){
+      sp.textContent=sp.textContent.replace(/…$/,'').slice(0,-Math.max(2,Math.round(sp.textContent.length*0.08))).replace(/\s+\S*$/,'')+'…';
+    }
+  });
 }
 function tap(i){
   var c=cards[i];if(!ww.running||lock||c.open||c.done)return;
@@ -86,6 +100,6 @@ window.addEventListener('resize',function(){if(cards.length)render();});
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=854"></script>
+<script src="../../scripts/game-handoff.js?v=858"></script>
 </body>
 </html>

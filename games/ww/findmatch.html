@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Find the match</title>
-<link rel="stylesheet" href="ww.css?v=854">
+<link rel="stylesheet" href="ww.css?v=858">
 <style>
 /* Find the match: подсказка на «плёнке» между пунктирами, под ней все
    слова плитками. Верная плитка исчезает, неверная стоит жизни. */
@@ -14,14 +14,14 @@
 .fm-clue{font-weight:700;font-size:clamp(18px,3.6vw,30px);line-height:1.25;max-width:94%;max-height:100%;overflow:auto;animation:ww-pop .25s ease}
 .fm-clue img{max-height:130px;max-width:100%;object-fit:contain}
 .fm-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
-.fm-grid .ww-tile{flex:0 0 calc(20% - 4px);min-height:36px;font-size:clamp(12px,2.1vw,16px);padding:4px 5px}
+.fm-grid .ww-tile{flex:0 0 calc(var(--cols,20%) - 4px);min-height:32px;font-size:clamp(12px,2.1vw,16px);padding:4px 5px}
 /* Угаданная плитка уходит совсем: visibility оставляла дыру в ряду. */
 .fm-grid .ww-tile.is-gone{display:none}
-@media (max-width:520px){.fm-grid .ww-tile{flex-basis:calc(33.3% - 4px)}}
+
 </style>
 </head>
 <body>
-<script src="ww.js?v=854"></script>
+<script src="ww.js?v=858"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'runny nose',b:'liquid keeps coming out of your nose'}];
 var LIVES=3;
@@ -36,6 +36,16 @@ function render(){
   if(it){ if(it.img)clue.innerHTML='<img src="'+WW.esc(it.img)+'" alt="">'; else clue.textContent=it.meaning; }
   strip.appendChild(clue);
   var grid=document.createElement('div');grid.className='fm-grid';
+  /* Колонки считаются от числа оставшихся плиток и высоты кадра: при
+     тридцати словах пятью в ряд сетка уезжала за нижний край. */
+  var leftN=tiles.filter(function(x){return !x.gone;}).length;
+  var H=ww.stage.clientHeight,rowH=37;
+  /* Плиткам отдаётся не больше половины кадра: вторая половина - подсказка.
+     Колонок ровно столько, чтобы ряды влезли в эту половину. */
+  var maxRows=Math.max(2,Math.floor((H*0.5)/rowH));
+  var cols=Math.max(3,Math.min(8,Math.ceil(leftN/maxRows)));
+  grid.style.setProperty('--cols',(100/cols)+'%');
+  grid.style.maxHeight=Math.round(H*0.52)+'px';grid.style.overflow='auto';
   tiles.forEach(function(t,i){
     var b=document.createElement('button');b.className='ww-tile'+(t.gone?' is-gone':'');b.textContent=items[t.i].word;ww.paint(b,i);
     b.onclick=function(){tap(t,b);};grid.appendChild(b);
@@ -73,6 +83,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=854"></script>
+<script src="../../scripts/game-handoff.js?v=858"></script>
 </body>
 </html>

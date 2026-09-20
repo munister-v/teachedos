@@ -4,24 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Wordsearch</title>
-<link rel="stylesheet" href="ww.css?v=854">
+<link rel="stylesheet" href="ww.css?v=858">
 <style>
 /* Wordsearch: сетка букв слева, список слов плашками справа. Слово
    выделяют протяжкой по буквам (или тапом по первой и последней). Весь
    список учителя идёт раундами по ROUND слов, фраза - без пробелов. */
-.ws{width:100%;height:100%;display:grid;grid-template-columns:auto minmax(120px,1fr);gap:14px;align-items:center;justify-content:center}
+.ws{width:100%;height:100%;min-height:0;display:grid;grid-template-columns:auto minmax(110px,1fr);gap:12px;align-items:center;justify-content:center}
+.ws>*{min-height:0}
 .ws-grid{display:grid;background:#fff;border:2px solid var(--gray);border-radius:6px;padding:4px;touch-action:none;position:relative}
 .ws-c{display:flex;align-items:center;justify-content:center;font-weight:800;text-transform:uppercase;border-radius:50%;line-height:1}
 .ws-c.sel{background:#CDF649}
 .ws-c.found{color:#fff}
-.ws-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-content:center}
+/* Список слов - своя прокрутка и число колонок по ширине: при десяти
+   длинных словах он вылезал за нижний край кадра. */
+.ws-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;align-content:start;max-height:100%;overflow:auto;padding:2px}
 .ws-w{padding:6px 8px;border:3px solid var(--ink);border-radius:10px;background:#fff;font-weight:800;font-size:clamp(12px,2.2vw,16px);text-align:center;word-break:break-word}
 .ws-w.found{color:var(--f);background:var(--c);border-color:var(--c);text-decoration:line-through}
 @media (max-width:560px){.ws{grid-template-columns:1fr;grid-template-rows:auto auto}.ws-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 </head>
 <body>
-<script src="ww.js?v=854"></script>
+<script src="ww.js?v=858"></script>
 <script>
 var DEMO=[{a:'headache'},{a:'fever'},{a:'cough'},{a:'rash'},{a:'sore throat'},{a:'insomnia'},{a:'bruise'},{a:'burn'}];
 var ROUND=10;
@@ -112,6 +115,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=854"></script>
+<script src="../../scripts/game-handoff.js?v=858"></script>
 </body>
 </html>

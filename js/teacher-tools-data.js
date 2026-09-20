@@ -432,33 +432,38 @@ const TOOL_FLOW_TEMPLATES = {
 // non-module <script>) can resolve them as bare identifiers.
 
 /* ─── GAMES ─── */
+/* w/h - НАСТОЯЩИЙ размер верстки игры, а не «примерно». На доске игра
+   рисуется в этом размере и целиком масштабируется под карточку; если
+   высота занижена, у игры срезается низ - клавиатура Hangman, кнопки
+   кроссворда, нижний ряд плиток. Значения ниже сняты замером страниц
+   (scrollHeight при своей ширине), а не на глаз. */
 const GAMES = [
   { icon:'🔀', title:'Word Scramble',    tag:'Vocabulary', desc:'Unscramble the letters to form the correct word',         src:'games/word-scramble.html',         w:460, h:520 },
-  { icon:'🎯', title:'Hangman',           tag:'Spelling',   desc:'Guess the hidden word letter by letter',                  src:'games/hangman.html',               w:460, h:560 },
+  { icon:'🎯', title:'Hangman',           tag:'Spelling',   desc:'Guess the hidden word letter by letter',                  src:'games/hangman.html',               w:460, h:700 },
   { icon:'⚡', title:'Article Rush',      tag:'Grammar',    desc:'Pick a / an / the / ∅ as fast as you can',                src:'games/article-rush.html',          w:460, h:520 },
-  { icon:'🧠', title:'Memory Match',      tag:'Vocabulary', desc:'Flip cards to match words with their definitions',       src:'games/memory-match.html',          w:520, h:600 },
+  { icon:'🧠', title:'Memory Match',      tag:'Vocabulary', desc:'Flip cards to match words with their definitions',       src:'games/memory-match.html',          w:520, h:700 },
   { icon:'🧩', title:'Sentence Builder',  tag:'Grammar',    desc:'Arrange shuffled words into correct sentences',           src:'games/sentence-builder.html',      w:520, h:560 },
   { icon:'🌧️', title:'Typing Rain',       tag:'Speed',      desc:'Type falling words before they hit the ground',           src:'games/typing-rain.html',           w:560, h:560 },
   { icon:'✅', title:'True or False',     tag:'Grammar',    desc:'Rapid-fire grammar and vocabulary statements',            src:'games/true-false.html',            w:460, h:520 },
   { icon:'🔗', title:'Phrasal Verbs',     tag:'Vocabulary', desc:'Complete phrasal verbs with the right particle',          src:'games/phrasal-verbs.html',         w:460, h:520 },
-  { icon:'🪤', title:'False Friends',     tag:'Vocabulary', desc:'Identify tricky false cognates from RU/UA/PL',            src:'games/false-friends.html',         w:460, h:580 },
+  { icon:'🪤', title:'False Friends',     tag:'Vocabulary', desc:'Identify tricky false cognates from RU/UA/PL',            src:'games/false-friends.html',         w:460, h:630 },
   { icon:'📍', title:'Prepositions',      tag:'Grammar',    desc:'Fill in at / in / on / by in context',                    src:'games/prepositions.html',          w:460, h:520 },
   { icon:'🔧', title:'Grammar Fix',       tag:'Grammar',    desc:'Spot and correct the error in each sentence',             src:'games/grammar-fix.html',           w:500, h:560 },
-  { icon:'⏱️', title:'Tense Picker',      tag:'Grammar',    desc:'Choose the correct verb tense form',                      src:'games/tense-picker.html',          w:480, h:580 },
+  { icon:'⏱️', title:'Tense Picker',      tag:'Grammar',    desc:'Choose the correct verb tense form',                      src:'games/tense-picker.html',          w:480, h:610 },
   { icon:'🔄', title:'Synonym Snap',      tag:'Vocabulary', desc:'Match synonym pairs before time runs out',                src:'games/synonym-snap.html',          w:520, h:560 },
-  { icon:'🐝', title:'Spelling Bee',      tag:'Spelling',   desc:'Type the word from its definition clue',                  src:'games/spelling-bee.html',          w:460, h:560 },
+  { icon:'🐝', title:'Spelling Bee',      tag:'Spelling',   desc:'Type the word from its definition clue',                  src:'games/spelling-bee.html',          w:460, h:630 },
   { icon:'🗂️', title:'Word Categories',   tag:'Vocabulary', desc:'Sort words into the correct topic groups',                src:'games/word-categories.html',       w:560, h:640 },
-  { icon:'🃏', title:'Definition Match',  tag:'Vocabulary', desc:'Match words to their definitions',                        src:'games/word-definition-match.html', w:520, h:580 },
+  { icon:'🃏', title:'Definition Match',  tag:'Vocabulary', desc:'Match words to their definitions',                        src:'games/word-definition-match.html', w:520, h:700 },
   { icon:'🗂️', title:'Flashcards',        tag:'Vocabulary', desc:'Flip cards to test yourself - Got it / Again tracking',    src:'games/flashcards.html',            w:460, h:560 },
   { icon:'✍️', title:'Fill in the Blank', tag:'Grammar',    desc:'Type the missing word to complete each sentence',          src:'games/fill-blank.html',            w:460, h:560 },
   { icon:'🔍', title:'Word Search',        tag:'Spelling',   desc:'Find hidden words in a 12×12 letter grid',                src:'games/word-search.html',           w:520, h:620 },
   { icon:'⚡', title:'Speed Quiz',         tag:'Speed',      desc:'4-option MCQ with 6-second countdown - how fast are you?', src:'games/speed-quiz.html',            w:480, h:560 },
   { icon:'🎡', title:'Spin the Wheel',     tag:'Speaking',   desc:'Editable word wheel - great for hot-seat vocabulary drills', src:'games/spin-wheel.html',          w:460, h:560 },
-  { icon:'🃏', title:'Find the Match',     tag:'Vocabulary', desc:'Tap matching word + translation tiles before time runs out', src:'games/find-match.html',          w:560, h:600 },
+  { icon:'🃏', title:'Find the Match',     tag:'Vocabulary', desc:'Tap matching word + translation tiles before time runs out', src:'games/find-match.html',          w:560, h:800 },
   { icon:'❓', title:'Vocabulary Quiz',    tag:'Vocabulary', desc:'Multiple-choice quiz built from your word pairs',         src:'games/vocab-quiz.html',            w:480, h:560 },
-  { icon:'🧩', title:'Crossword',          tag:'Vocabulary', desc:'Auto-generated crossword - your words, your clues',        src:'games/crossword.html',             w:600, h:620 },
-  { icon:'🗃️', title:'Group Sort',         tag:'Vocabulary', desc:'Drag words into the correct category bins',                src:'games/group-sort.html',            w:600, h:560 },
-  { icon:'👾', title:'Maze Chase',         tag:'Vocabulary', desc:'Run the maze and grab only the target-category words',    src:'games/maze-chase.html',            w:520, h:600 },
+  { icon:'🧩', title:'Crossword',          tag:'Vocabulary', desc:'Auto-generated crossword - your words, your clues',        src:'games/crossword.html',             w:600, h:790 },
+  { icon:'🗃️', title:'Group Sort',         tag:'Vocabulary', desc:'Drag words into the correct category bins',                src:'games/group-sort.html',            w:600, h:580 },
+  { icon:'👾', title:'Maze Chase',         tag:'Vocabulary', desc:'Run the maze and grab only the target-category words',    src:'games/maze-chase.html',            w:520, h:900 },
   { icon:'🔨', title:'Whack-a-Mole',       tag:'Vocabulary', desc:'Whack only the words from the target category',           src:'games/whack-a-mole.html',          w:560, h:560 },
   { icon:'🖼️', title:'Photo Match',        tag:'Vocabulary', desc:'Match each word to its photo - images fetched automatically', src:'games/word-image-match.html',      w:560, h:620 },
 
@@ -468,9 +473,9 @@ const GAMES = [
      («Create a Word Set») и twee-module-studio - это авторские студии для
      учителя, а не активность для ученика; на доске они были бы встроенным
      редактором. Они остаются в хабе игр. */
-  { icon:'⚖️', title:'Four Opinions',     tag:'Speaking',   desc:'Four contrasting opinions on a topic to react to',        src:'games/four-opinions-uk.html',      w:600, h:620 },
-  { icon:'🖼', title:'Image Quiz',        tag:'Vocabulary', desc:'Pick the word that matches the picture',                  src:'games/image-quiz.html',            w:460, h:520 },
-  { icon:'🧭', title:'LinguaQuiz',        tag:'Grammar',    desc:'Cloze quiz over a text with instant checking',            src:'games/linguaquiz-ai-uk.html',      w:600, h:640 },
+  { icon:'⚖️', title:'Four Opinions',     tag:'Speaking',   desc:'Four contrasting opinions on a topic to react to',        src:'games/four-opinions-uk.html',      w:600, h:700 },
+  { icon:'🖼', title:'Image Quiz',        tag:'Vocabulary', desc:'Pick the word that matches the picture',                  src:'games/image-quiz.html',            w:460, h:620 },
+  { icon:'🧭', title:'LinguaQuiz',        tag:'Grammar',    desc:'Cloze quiz over a text with instant checking',            src:'games/linguaquiz-ai-uk.html',      w:600, h:700 },
   { icon:'🗣️', title:'Speaking Cards',    tag:'Speaking',   desc:'Deal a card, talk about the word on it',                  src:'games/speaking-cards.html',        w:480, h:560 },
   { icon:'🎁', title:'Open the Box',      tag:'Vocabulary', desc:'Numbered boxes, each hiding one of your words',           src:'games/open-the-box.html',          w:520, h:600 },
 ];

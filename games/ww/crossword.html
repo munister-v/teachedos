@@ -4,21 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Crossword</title>
-<link rel="stylesheet" href="ww.css?v=854">
+<link rel="stylesheet" href="ww.css?v=858">
 <style>
 /* Crossword: сетка слева, подсказки (значения) справа, Across / Down.
    Буквы вводятся с клавиатуры, курсор идёт по слову сам. Весь список -
    кроссвордами по ROUND слов; фраза вписывается без пробела. */
-.cw{width:100%;height:100%;display:grid;grid-template-columns:auto minmax(150px,1fr);gap:14px;align-items:center;justify-content:center}
-.cw-grid{position:relative}
+/* align-items:stretch - иначе колонка подсказок растёт под содержимое и
+   список уезжает за нижний край кадра вместо собственной прокрутки. */
+.cw{width:100%;height:100%;min-height:0;display:grid;grid-template-columns:auto minmax(140px,1fr);gap:12px;align-items:stretch;justify-content:center}
+.cw>*{min-height:0}
+.cw-grid{position:relative;align-self:center}
 .cw-cell{position:absolute;box-sizing:border-box;border:2px solid var(--ink);background:#fff}
 .cw-cell input{width:100%;height:100%;border:0;background:transparent;text-align:center;font-family:inherit;font-weight:800;text-transform:uppercase;color:var(--ink);outline:none;padding:0;caret-color:transparent}
 .cw-cell.cur{background:#CDF649}
 .cw-cell.word{background:#F6F6EF}
 .cw-cell.ok{background:#D6F0DE}
 .cw-cell.bad{background:#FBDADA}
-.cw-n{position:absolute;left:2px;top:0;font-size:9px;font-weight:800;line-height:1.1;pointer-events:none}
-.cw-clues{max-height:100%;overflow:auto;font-size:clamp(12px,2vw,14px);line-height:1.35}
+.cw-n{position:absolute;left:2px;top:0;font-weight:800;line-height:1;pointer-events:none;text-shadow:0 0 2px #fff,0 0 2px #fff}
+.cw-clues{height:100%;max-height:100%;overflow:auto;font-size:clamp(12px,2vw,14px);line-height:1.35}
 .cw-clues h4{font-size:14px;font-weight:800;margin:4px 0 4px}
 .cw-clues li{list-style:none;padding:3px 6px;border-radius:5px;cursor:pointer}
 .cw-clues li.cur{background:#CDF649}
@@ -27,7 +30,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=854"></script>
+<script src="ww.js?v=858"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
 var ROUND=10;
@@ -78,14 +81,16 @@ function render(){
   ww.stage.innerHTML='';
   var root=document.createElement('div');root.className='cw';
   var R=0,C=0;Object.keys(cells).forEach(function(k){var a=k.split(',').map(Number);R=Math.max(R,a[0]+1);C=Math.max(C,a[1]+1);});
-  var H=ww.stage.clientHeight-10,W=ww.stage.clientWidth*0.6;var s=Math.floor(Math.min(H/R,W/C,40));
+  var H=ww.stage.clientHeight-10,W=ww.stage.clientWidth*0.6;var s=Math.floor(Math.min(H/R,W/C,44));
   var g=document.createElement('div');g.className='cw-grid';g.style.width=(C*s)+'px';g.style.height=(R*s)+'px';
   var curCells=cur!=null?wordCells(cur):[];
   Object.keys(cells).forEach(function(k){var a=k.split(',').map(Number),cell=cells[k];
     var d=document.createElement('div');d.className='cw-cell'+(curCells.indexOf(k)>=0?' word':'')+(checked?(cell.v===cell.ch?' ok':' bad'):'');
     d.style.left=(a[1]*s)+'px';d.style.top=(a[0]*s)+'px';d.style.width=(s+2)+'px';d.style.height=(s+2)+'px';
     var num=placed.find(function(p){return p.r===a[0]&&p.c===a[1];});
-    if(num){var nn=document.createElement('span');nn.className='cw-n';nn.textContent=num.n;d.appendChild(nn);}
+    /* Номер клетки - тоже текст для ученика: не мельче 11px, дальше растёт
+       вместе с клеткой. */
+    if(num){var nn=document.createElement('span');nn.className='cw-n';nn.style.fontSize=Math.max(11,Math.round(s*0.32))+'px';nn.textContent=num.n;d.appendChild(nn);}
     var inp=document.createElement('input');inp.maxLength=1;inp.value=cell.v;inp.dataset.k=k;inp.style.fontSize=Math.floor(s*.55)+'px';inp.autocomplete='off';inp.setAttribute('autocapitalize','characters');
     inp.onfocus=function(){d.classList.add('cur');if(cur==null||cells[k].words.indexOf(cur)<0){cur=cells[k].words[0];renderSoft();}};
     inp.onblur=function(){d.classList.remove('cur');};
@@ -119,6 +124,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=854"></script>
+<script src="../../scripts/game-handoff.js?v=858"></script>
 </body>
 </html>

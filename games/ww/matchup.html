@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Match up</title>
-<link rel="stylesheet" href="ww.css?v=854">
+<link rel="stylesheet" href="ww.css?v=858">
 <style>
 /* Match up: сверху банк слов-плиток, ниже строки «пустое место + значение».
    Слово тянут к значению; «Submit Answers» проверяет страницу. */
@@ -22,13 +22,20 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=854"></script>
+<script src="ww.js?v=858"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'to push air out of your throat with a noise'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'runny nose',b:'liquid keeps coming out of your nose'}];
+/* Сколько строк на странице - от высоты кадра, а не константой: на
+   карточке доски шесть строк не помещались и последняя уезжала под край. */
+function pageSize(){
+  var h=ww&&ww.stage?ww.stage.clientHeight:340;
+  return Math.max(3,Math.min(6,Math.floor((h-56)/46)));
+}
 var PAGE=6;
 var ww=WW.init({template:'Match up',instructions:'Drag and drop each keyword next to its definition.',timer:'up',score:true,action:{label:'Submit Answers'}});
 var items=[],deck=[],page=0,placed={},checked=false,results=[];
 function pages(){return Math.max(1,Math.ceil(deck.length/PAGE));}
+function syncPage(){PAGE=pageSize();}
 function cur(){return deck.slice(page*PAGE,(page+1)*PAGE);}
 function render(){
   var list=cur();
@@ -75,15 +82,16 @@ WW.dnd(document.body,{tile:'.mu .ww-tile',target:'.mu .ww-slot, .mu-bank',drop:f
   if(tg.classList.contains('mu-bank')){if(checked)return;Object.keys(placed).forEach(function(k){if(placed[k]===tile.dataset.word)delete placed[k];});render();return;}
   drop(tile,tg);
 }});
-ww.onStart=function(){deck=WW.shuffle(items);page=0;placed={};checked=false;results=[];render();};
+ww.onStart=function(){syncPage();deck=WW.shuffle(items);page=0;placed={};checked=false;results=[];render();};
 window.applyCustomContent=function(content,title){
   var p=WW.pairsFrom(content).filter(function(x){return x.meaning;});
   if(p.length<2)return;
   items=p;ww.setTitle(title||'Match up');document.title=(title||'Match up')+' · Match up';ww.showStart();
 };
+window.addEventListener('resize',function(){if(ww.running){syncPage();render();}});
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=854"></script>
+<script src="../../scripts/game-handoff.js?v=858"></script>
 </body>
 </html>

@@ -4,17 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Speaking cards</title>
-<link rel="stylesheet" href="ww.css?v=854">
+<link rel="stylesheet" href="ww.css?v=858">
 <style>
 /* Speaking cards: колода рубашкой слева, сданная карта справа, снизу
    Shuffle / Undo / Deal. Карта - слово учителя и задание «скажи». */
-.sc{display:flex;align-items:center;justify-content:center;gap:5%;width:100%;height:100%}
-.sc-deck,.sc-spot{position:relative;width:38%;max-width:260px;aspect-ratio:5/7;max-height:100%}
+.sc{display:flex;align-items:center;justify-content:center;gap:5%;width:100%;height:100%;padding-bottom:20px}
+/* Карта считается от ВЫСОТЫ кадра: по ширине она помещалась, а по высоте
+   вылезала за нижний край. */
+.sc-deck,.sc-spot{position:relative;height:min(100%,calc((100vw - 40px) * 0.38 * 1.4));aspect-ratio:5/7;max-width:46%}
 .sc-back{position:absolute;inset:0;border-radius:10px;background:#24282C;border:6px solid #CDF649}
 .sc-back::after{content:"";position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;transform:translate(-50%,-50%) rotate(45deg);border:5px solid #CDF649;border-radius:6px}
 .sc-deck .sc-back:nth-child(1){transform:translate(6px,6px)}
 .sc-deck .sc-back:nth-child(2){transform:translate(3px,3px)}
-.sc-count{position:absolute;left:0;right:0;bottom:-26px;text-align:center;font-weight:700;color:var(--olive);font-size:14px}
+.sc-count{position:absolute;left:0;right:0;bottom:-20px;text-align:center;font-weight:700;color:var(--olive);font-size:14px}
 .sc-spot{border:3px dashed var(--gray);border-radius:10px}
 .sc-card{position:absolute;inset:-3px;border-radius:10px;background:#fff;border:6px solid var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;animation:sc-in .35s ease}
 @keyframes sc-in{from{transform:translateX(-60%) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
@@ -26,7 +28,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=854"></script>
+<script src="ww.js?v=858"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'}];
 var TASKS=['Use it in a sentence about yourself.','Explain it without saying the word.','Ask your partner a question with it.','Tell a 3-sentence story with it.','Say when you last had, saw or needed it.','Give an example from real life.','Say a word it goes with.'];
@@ -70,6 +72,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=854"></script>
+<script src="../../scripts/game-handoff.js?v=858"></script>
 </body>
 </html>
