@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '907';
+  const TEACHEDOS_ASSET_VERSION = '908';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -341,6 +341,9 @@
       j: 'journal.html',
       r: 'gradebook.html',
       p: 'profile.html',
+      /* «G T» остаётся от хаба инструментов: хаба нет, инструменты живут на
+         доске, поэтому клавиша ведёт туда же, что и «G B». В списке подсказок
+         её нет - две строки на один адрес только путают. */
       t: 'board.html',
       l: 'lesson-packs.html'
     };
@@ -422,7 +425,7 @@
             <div class="te-kbd-row"><span class="te-kbd-desc">Journal</span><span class="te-kbd-key">G J</span></div>
             <div class="te-kbd-row"><span class="te-kbd-desc">Gradebook</span><span class="te-kbd-key">G R</span></div>
             <div class="te-kbd-row"><span class="te-kbd-desc">Profile</span><span class="te-kbd-key">G P</span></div>
-            <div class="te-kbd-row"><span class="te-kbd-desc">Teaching tools</span><span class="te-kbd-key">G T</span></div>
+            <div class="te-kbd-row"><span class="te-kbd-desc">Lesson packs</span><span class="te-kbd-key">G L</span></div>
             <div class="te-kbd-row"><span class="te-kbd-desc">Close dialog / menu</span><span class="te-kbd-key">Esc</span></div>
           </div>
           <div class="te-kbd-sub">Shortcuts are disabled while typing. Board keeps its own tool shortcuts.</div>
