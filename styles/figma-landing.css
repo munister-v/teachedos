@@ -435,3 +435,13 @@ body.fx.landing-page .cat-tags-toggle:hover {
   background: rgba(22,22,22,.06) !important;
   color: var(--fx-ink) !important;
 }
+/* Телефон: остальные чипы в стене тегов - подписи, а этот единственный
+   нажимают, поэтому ему цель пальца в 40px. Соседние чипы не трогаем:
+   ряд держится на их росте. */
+@media (max-width: 640px) {
+  body.fx.landing-page .cat-tags-toggle {
+    min-height: 40px;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
