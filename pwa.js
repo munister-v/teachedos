@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '913';
+  const TEACHEDOS_ASSET_VERSION = '915';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -619,8 +619,13 @@
       backdrop-filter:blur(18px) saturate(1.6);
     }
     .teachedos-status.show{transform:translateY(0);opacity:1;pointer-events:auto}
-    .teachedos-status.offline{background:rgba(28,28,30,.94);color:#fff}
-    .teachedos-status.online{background:rgba(22,163,74,.94);color:#fff}
+    /* Плотный фон, а не полупрозрачный: сквозь .94 читались названия вкладок
+       под баннером, и он выглядел грязным. Размытие оставлено - оно смягчает
+       край, когда баннер наезжает на карточки. */
+    .teachedos-status.offline{background:#1C1C1E;color:#fff}
+        /* Зелёный темнее прежнего: на #12813C подпись (11px, прозрачность .84)
+       давала 4.0:1, ниже порога. На #116B33 - 5.2:1, заголовок 6.6:1. */
+    .teachedos-status.online{background:#116B33;color:#fff}
     .teachedos-status-copy{flex:1;min-width:0}
     .teachedos-status-title{font-size:13px;font-weight:900;line-height:1.25}
     .teachedos-status-sub{font-size:11px;line-height:1.5;opacity:.84;margin-top:3px}
