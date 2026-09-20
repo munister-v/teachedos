@@ -906,9 +906,15 @@ body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { backgrou
   border-color: rgba(141, 184, 0, .62);
   box-shadow: 0 0 0 3px rgba(205, 242, 79, .22);
 }
+/* Кольцо фокуса двойное: чернильный контур плюс лаймовый ореол.
+   Одним лаймом оно жило только на тёмных поверхностях - на светлом фоне
+   продукта (#EFEFF2, #F6F6EF) лайм даёт 1.2:1, и клавиатурный обход шёл
+   вслепую. Чернила на этих фонах дают 13-16:1, а на тёмной панели, где
+   пропадают уже они, кольцо держит ореол. */
 :is(a, button, .btn, [role="button"], [tabindex]):focus-visible {
-  outline: 2px solid rgba(200, 230, 50, .92) !important;
+  outline: 2px solid #24282C !important;
   outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(205, 242, 79, .55) !important;
 }
 /* Мышиный клик по кнопке не должен оставлять кольцо: его показывает
    :focus-visible, а :focus без него - это как раз указатель или касание. */

@@ -95,9 +95,15 @@
         animation-play-state: paused !important;
       }
 
+      /* Кольцо клавиатурного обхода. Было одним лаймом - на светлых
+         поверхностях продукта (#EFEFF2, #F6F6EF, белые карточки) это около
+         1.2:1, то есть фокус не виден там, где им и пользуются. Теперь
+         чернильный контур с лаймовым ореолом: контур держит светлый фон,
+         ореол - тёмные панели доски и полосы. */
       html.te-keyboard-nav :focus-visible {
-        outline: 3px solid rgba(200,230,50,.75) !important;
-        outline-offset: 3px !important;
+        outline: 2px solid #24282C !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 5px rgba(205,242,79,.55) !important;
         border-radius: 10px;
       }
 

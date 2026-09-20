@@ -589,8 +589,10 @@ html:has(body.tools-workbench) { background:#f6f6f9; }
 .tools-workbench .result-more-actions > summary::-webkit-details-marker { display:none; }
 .tools-workbench .result-more-actions > summary:focus-visible,
 .tools-workbench .result-menu-item:focus-visible {
-  outline:3px solid rgba(200,230,50,.5);
+  /* Чернила с лаймовым ореолом: один лайм на белом даёт около 1.2:1. */
+  outline:2px solid #24282C;
   outline-offset:2px;
+  box-shadow:0 0 0 5px rgba(205,242,79,.55);
 }
 .tools-workbench .result-more-menu {
   position:absolute;

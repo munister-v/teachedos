@@ -1535,7 +1535,8 @@ body{ -webkit-overflow-scrolling:touch; text-rendering:optimizeLegibility; }
    палитре: то же кольцо лаймом. border-radius сюда не входит - он менял
    скругление поля прямо в момент фокуса (13px у .auth-inp снаружи, 6px тут). */
 :where(input, select, textarea):focus-visible{
-  outline: 2px solid rgba(200,230,50,.85);
+  /* Чернила: лайм на белом поле не виден (1.2:1). */
+  outline: 2px solid #24282C;
   outline-offset: 2px;
 }
 

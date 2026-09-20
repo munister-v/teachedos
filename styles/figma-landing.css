@@ -445,16 +445,3 @@ body.fx.landing-page .cat-tags-toggle:hover {
     padding-right: 14px !important;
   }
 }
-
-/* ── Кольцо фокуса на светлом лендинге ────────────────────────────────────
-   Общее правило продукта красит его лаймом (teached-brand.css, с
-   !important): на тёмных поверхностях приложения это видно, а здесь фон
-   #EFEFF2, и кольцо даёт 1.23:1 - клавиатурный обход шёл вслепую. Чернила
-   на этом фоне дают 15.8:1. Внутри тёмной полосы кольцо снова светлое. */
-body.fx.landing-page :is(a, button, .btn, [role="button"], [tabindex]):focus-visible {
-  outline: 2px solid var(--fx-ink, #161616) !important;
-  outline-offset: 2px !important;
-}
-body.fx.landing-page .ink-row :is(a, button, .btn, [role="button"], [tabindex]):focus-visible {
-  outline-color: #CBF03C !important;
-}

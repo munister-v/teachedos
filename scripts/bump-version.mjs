@@ -37,9 +37,15 @@ writeFileSync('sw.js', sw);
    shipped inside board-gen.js kept being served from cache for up to a day,
    which is the exact failure this file exists to prevent. Bump it here so the
    two cannot drift again. */
+/* Файлов с этой константой ДВА, и второй про это узнал дорого: pwa-boot.js
+   собирает из неё адреса `sw.js?v=` и `pwa.js?v=`, а бампался только
+   board-app.js - к 20.09.2026 сайт дошёл до 899, а pwa.js всё ещё грузился
+   как ?v=374. То есть правка в слое PWA (кольцо фокуса, горячие клавиши,
+   подсказки) не доезжала до людей вообще, и service worker регистрировался
+   по старому адресу. Поэтому список, а не одна строка. */
+const ASSET_CONST_FILES = ['scripts/board-app.js', 'pwa-boot.js'];
 let assetConstBumped = false;
-{
-  const p = 'scripts/board-app.js';
+for (const p of ASSET_CONST_FILES) {
   const before = readFileSync(p, 'utf8');
   const after = before.replace(
     /const TEACHEDOS_ASSET_VERSION = '\d+';/,
