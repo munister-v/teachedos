@@ -4334,6 +4334,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   .tbuilder-row{grid-template-columns:1fr;}
   .tbuilder-form-head{flex-direction:column;align-items:stretch;}
   .tbuilder-form-status{max-width:none;text-align:left;align-self:flex-start;}
+  /* Порог кегля на телефоне - 11px (общее правило продукта). */
+  .tbuilder-form .tb-workout-ai{font-size:11px;padding:3px 7px;}
+  .tbuilder-form .tb-tpl-name{font-size:12.5px;}
   .tbuilder-draft-bar{align-items:flex-start;flex-direction:column;}
   .tbuilder-draft-actions{justify-content:flex-start;}
   .tbuilder-generation-plan-head{flex-direction:column;}
@@ -6582,4 +6585,20 @@ body.board-page:not(#_) #sidebar{ background:#FDFDFF !important; backdrop-filter
   .ai-kicker,
   .ai-chip,
   .ai-template-btn span{ font-size:11px; }
+}
+
+
+/* Телефон: цель нажатия не меньше 40px. На узком экране разбор - это
+   пальцы, а не мышь: крестик в 9px и кнопка в 25px там непопадаемы. */
+@media (max-width:760px){
+  .wr-add{min-height:44px;padding:10px 16px;font-size:14px}
+  .wr-chip{min-height:40px;padding:6px 8px 6px 12px;font-size:12.5px;gap:2px}
+  .wr-chip span{display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;font-size:14px}
+  .wr-play,.wr-drop{width:40px;height:40px;font-size:14px}
+  .wr-look{min-height:40px;padding:8px 14px;font-size:13px}
+  .wr-sense{min-height:40px;font-size:13px}
+  .wr-word{font-size:15px;padding:6px 0}
+  .wr-in{font-size:14px;padding:8px 10px}
+  .wr-row{padding:10px;gap:8px}
+  .wg-row .wr-in{min-height:40px}
 }

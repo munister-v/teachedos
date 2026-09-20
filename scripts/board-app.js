@@ -13777,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '858';
+const TEACHEDOS_ASSET_VERSION = '863';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14388,6 +14388,9 @@ function renderWordReview() {
   const chips = tpls.map(t => `<button type="button" class="wr-chip${r.open === t.key ? ' is-open' : ''}" onclick="wordReviewShowGame('${esc(t.key)}')">${esc(t.title)}<span onclick="event.stopPropagation();wordReviewDropGame('${esc(t.key)}')">✕</span></button>`)
     .concat(acts.map(a => `<button type="button" class="wr-chip" onclick="wordReviewDropGame('${esc(a.key)}',1)">${esc(a.title)}<span>✕</span></button>`)).join('');
   const n = tpls.length + acts.length;
+  /* На телефоне колонка превью стоит ПОД формой: разбор появлялся ниже
+     экрана, и это читалось как «ничего не создалось». Подводим к нему. */
+  const wasEmpty = !box.querySelector('.wr');
   box.innerHTML = `<div class="wr">
     <div class="wr-top">
       <div><b>Check the words</b><span>${live.length} word${live.length === 1 ? '' : 's'} · ${withMeaning} with a meaning${r.trimmed ? ` · first ${TT_WORDLIST_MAX} of ${r.listed}` : ''}</span></div>
@@ -14397,6 +14400,9 @@ function renderWordReview() {
     ${r.open ? wordReviewGameBlock(r.open, live) : ''}
     <div class="wr-rows">${r.entries.map(wordReviewRow).join('')}</div>
   </div>`;
+  if (wasEmpty && window.innerWidth <= 860) {
+    try { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { box.scrollIntoView(); }
+  }
 }
 
 /* Что будет внутри игры. Пары и слова - из списка (правятся в строках

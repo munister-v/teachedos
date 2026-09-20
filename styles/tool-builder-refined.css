@@ -615,3 +615,12 @@
 @media (max-width:860px){
   #tool-builder-panel .tbuilder-form label{ font-size:11px; }
 }
+
+/* Порог кегля на телефоне - 11px (общее правило продукта): надзаголовки
+   студии набраны капителью с разрядкой, и 9px на вытянутой руке не
+   читаются. Правим здесь, где эти размеры и заданы, а не поверх. */
+@media (max-width:520px){
+  #tool-builder-panel .tbuilder-kicker,
+  #tool-builder-panel .tbuilder-preview-title{ font-size:11px; letter-spacing:.08em; }
+  #tool-builder-panel .tbuilder-sub{ font-size:13px; }
+}
