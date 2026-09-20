@@ -13777,7 +13777,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '881';
+const TEACHEDOS_ASSET_VERSION = '882';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14427,6 +14427,14 @@ function wordReviewGameBlock(key, live) {
       : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
   } else if (key === 'wheel' || key === 'wordsearch' || key === 'speaking' || key === 'box') {
     rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`;
+  } else if (key === 'pairs') {
+    /* На плитке «Matching pairs» помещается около ста знаков: дальше текст
+       ужимается до нечитаемого и обрезается многоточием. Учителю про это
+       говорим здесь, где он правит значение, а не после игры. */
+    const LIMIT = 100;
+    const longOnes = live.filter(e => (e.gloss || '').length > LIMIT);
+    rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.gloss || '')}" placeholder="meaning for “${esc(e.word)}”" oninput="wordReviewEdit(${idx(e)},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}"></div>`).join('')
+      + (longOnes.length ? `<div class="wr-note wr-warn">${longOnes.length} meaning${longOnes.length === 1 ? ' is' : 's are'} longer than a tile holds and will be cut short: ${esc(longOnes.map(e => e.word).join(', '))}.</div>` : '');
   } else if (t.needs === 'meaning') {
     /* Пару правят прямо здесь, а не только в списке выше: учитель смотрит на
        игру и видит в ней ту самую строку, которую надо поменять. Поле то же
