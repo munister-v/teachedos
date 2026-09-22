@@ -261,7 +261,12 @@ async function lookup(word, level, depth) {
      «to become larger», «broken» - «damaged, no longer able to work», а не
      «to break». У «teeth» после отсылки идёт фраза («effective force»), у
      «choking» - сами значения choke: там разворот остаётся. */
-  const ownAdjective = (entry.senses || []).some(x => x && !isRedirectDef(x.def) && /adjective/i.test(String(x.pos || '')));
+  /* ТОЛЬКО когда статья начинается с отсылки. Без этого условия правило
+     срабатывало на любом слове, где есть прилагательное вообще: «rash»
+     получал «careless or unwise» вместо «small red spots on the skin»,
+     «prescription» - «(of lenses or glasses)…». */
+  const ownAdjective = !!first && isRedirectDef(first.def)
+    && (entry.senses || []).some(x => x && !isRedirectDef(x.def) && /adjective/i.test(String(x.pos || '')));
   if (first && !depth && !ownAdjective) {
     const m = String(first.def || '').trim().replace(/[.\s]+$/, '').match(REDIRECT_DEF);
     if (m) {
