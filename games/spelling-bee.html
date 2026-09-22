@@ -36,17 +36,17 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
 .progress{width:100%;height:5px;background:#f0e0e8;border-radius:3px;margin-bottom:20px}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=917">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=917">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=918">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=918">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=917">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=918">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
 <h1>🐝 Spelling Bee</h1>
 <p class="subtitle">Type the word from its definition</p>
 <div class="card">
-  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/15</div></div>
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/<span id="qtotal">15</span></div></div>
   <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
   <div class="bee">🐝</div>
   <div class="definition" id="definition"></div>
@@ -80,7 +80,9 @@ const WORDS=[
 let q=[],idx=0,score=0,revealed=0,hintsUsed=false,customWords=null;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
-function start(){q=shuffle([...(customWords||WORDS)]).slice(0,15);idx=0;score=0;document.getElementById('score').textContent=0;nextWord();}
+/* Свой список учителя - целиком (раньше первые 15, остальное молча
+   пропадало), встроенный - как был, 15 случайных. Итог в счётчике - по факту. */
+function start(){q=customWords?shuffle([...customWords]):shuffle([...WORDS]).slice(0,15);idx=0;score=0;document.getElementById('score').textContent=0;document.getElementById('qtotal').textContent=q.length;nextWord();}
 
 function nextWord(){
   if(idx>=q.length){endGame();return;}
@@ -152,7 +154,7 @@ function applyCustomContent(content,title){
     t:String(p.b||p.translation||p.uk||'').trim()
   })).filter(x=>/^[a-zA-Z][a-zA-Z'-]*$/.test(x.w)&&x.d);
   if(words.length<2)return;
-  customWords=words.slice(0,15);
+  customWords=words;
   if(title){document.title=title+' · Spelling Bee';const h=document.querySelector('h1');if(h)h.textContent=title;}
   start();
 }
@@ -164,7 +166,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 document.getElementById('ans').addEventListener('input',check);
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=917"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=917"></script>
+<script src="../scripts/game-handoff.js?v=918"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=918"></script>
 </body>
 </html>

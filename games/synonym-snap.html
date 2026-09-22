@@ -26,22 +26,22 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .word-card.wrong{border-color:#f44336;background:#fff0f0}
 .msg{margin-top:14px;font-size:1rem;font-weight:700;color:var(--accent);min-height:22px;text-align:center}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=917">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=917">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=918">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=918">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=917">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=918">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
 <h1>🔄 Synonym Snap</h1>
 <p class="subtitle">Match synonym pairs - tap two cards</p>
-<div class="hud"><div>Pairs: <span id="pairs">0</span>/8</div><div>Errors: <span id="errors">0</span></div><div>⏱ <span id="time">90</span>s</div></div>
+<div class="hud"><div>Pairs: <span id="pairs">0</span>/<span id="ptotal">8</span><span id="round"></span></div><div>Errors: <span id="errors">0</span></div><div>⏱ <span id="time">90</span>s</div></div>
 <div class="timer-bar"><div class="timer-fill" id="tfill" style="width:100%"></div></div>
 <div class="grid" id="grid"></div>
 <div class="msg" id="msg"></div>
 
-<script src="../scripts/game-handoff.js?v=917"></script>
-<script src="../scripts/game-pause.js?v=917"></script>
+<script src="../scripts/game-handoff.js?v=918"></script>
+<script src="../scripts/game-pause.js?v=918"></script>
 <script>
 const PAIRS=[
   ['big','large'],['fast','quick'],['happy','glad'],['begin','start'],
@@ -51,13 +51,24 @@ const PAIRS=[
   ['loud','noisy'],['sad','miserable'],['pretty','beautiful'],['scared','afraid'],
 ];
 let selected=[],matched=0,errors=0,timer=90,tInt,locked=false,customPairs=null,pairsInPlay=8;
+/* РАУНДЫ ПО ВОСЕМЬ ПАР, А НЕ ВОСЕМЬ СЛУЧАЙНЫХ ИЗ СПИСКА.
+   Поле держит восемь пар, и из двадцати пар учителя в игру попадали восемь
+   случайных - двенадцать ученик не видел никогда. Теперь весь список идёт
+   раундами (8+8+4), счёт и ошибки копятся за игру. */
+const PER_ROUND=8;
+let deck=[],roundNo=0,rounds=1,totalMatched=0;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 
 function start(){
-  matched=0;errors=0;timer=90;selected=[];locked=false;
-  document.getElementById('pairs').textContent=0;
+  deck=customPairs?shuffle([...customPairs]):shuffle([...PAIRS]).slice(0,PER_ROUND);
+  rounds=Math.max(1,Math.ceil(deck.length/PER_ROUND));roundNo=0;totalMatched=0;errors=0;
   document.getElementById('errors').textContent=0;
+  startRound();
+}
+function startRound(){
+  matched=0;timer=90;selected=[];locked=false;
+  document.getElementById('pairs').textContent=0;
   document.getElementById('time').textContent=90;
   document.getElementById('tfill').style.width='100%';
   document.getElementById('msg').textContent='';
@@ -69,8 +80,10 @@ function start(){
     if(timer<=0){clearInterval(tInt);endGame();}
   },1000);
 
-  const chosen=shuffle([...(customPairs||PAIRS)]).slice(0,8);
+  const chosen=deck.slice(roundNo*PER_ROUND,(roundNo+1)*PER_ROUND);
   pairsInPlay=chosen.length;
+  document.getElementById('ptotal').textContent=pairsInPlay;
+  document.getElementById('round').textContent=rounds>1?` · Round ${roundNo+1}/${rounds}`:'';
   const cards=[];
   chosen.forEach(([a,b])=>{cards.push({word:a,group:a+'|'+b});cards.push({word:b,group:a+'|'+b});});
   shuffle(cards);
@@ -102,9 +115,18 @@ function check(){
   if(a.dataset.group===b.dataset.group){
     a.classList.remove('selected');b.classList.remove('selected');
     a.classList.add('matched');b.classList.add('matched');
-    matched++;
+    matched++;totalMatched++;
     document.getElementById('pairs').textContent=matched;
-    if(matched===pairsInPlay){clearInterval(tInt);document.getElementById('msg').innerHTML=`🎉 Done! Errors: ${errors} | Time: ${90-timer}s <button onclick="start()" style="margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;try{window.parent.postMessage({type:'game-finished',score:matched,max:pairsInPlay,time:90-timer,mistakes:errors,game:'Synonym Snap',status:'done'},'*');}catch(e){}}
+    if(matched===pairsInPlay){
+      clearInterval(tInt);
+      const btn='margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff';
+      if(roundNo<rounds-1){
+        document.getElementById('msg').innerHTML=`✓ Round ${roundNo+1} of ${rounds} done <button onclick="roundNo++;startRound()" style="${btn}">Next round ▶</button>`;
+      }else{
+        document.getElementById('msg').innerHTML=`🎉 Done! ${totalMatched}/${deck.length} pairs · Errors: ${errors} <button onclick="start()" style="${btn}">▶ Again</button>`;
+        try{window.parent.postMessage({type:'game-finished',score:totalMatched,max:deck.length,time:90-timer,mistakes:errors,game:'Synonym Snap',status:'done'},'*');}catch(e){}
+      }
+    }
   } else {
     errors++;
     document.getElementById('errors').textContent=errors;
@@ -116,16 +138,16 @@ function check(){
 
 function endGame(){
   if(matched<pairsInPlay){
-    document.getElementById('msg').innerHTML=`Time up! ${matched}/${pairsInPlay} pairs <button onclick="start()" style="margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;
+    document.getElementById('msg').innerHTML=`Time up! ${totalMatched}/${deck.length} pairs <button onclick="start()" style="margin-left:10px;padding:5px 14px;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#fff">▶ Again</button>`;
     document.getElementById('grid').querySelectorAll('.word-card:not(.matched)').forEach(c=>c.onclick=null);
-    try{window.parent.postMessage({type:'game-finished',score:matched,max:pairsInPlay,time:90,mistakes:errors,game:'Synonym Snap',status:'done'},'*');}catch(e){}
+    try{window.parent.postMessage({type:'game-finished',score:totalMatched,max:deck.length,time:90,mistakes:errors,game:'Synonym Snap',status:'done'},'*');}catch(e){}
   }
 }
 
 function applyCustomContent(content,title){
   const pairs=((content&&content.pairs)||[]).map(p=>[String(p.a||p.word||'').trim(),String(p.b||p.definition||p.d||'').trim()]).filter(x=>x[0]&&x[1]);
   if(pairs.length<2)return;
-  customPairs=pairs.slice(0,8);
+  customPairs=pairs;
   if(title){document.title=title+' · Synonym Snap';const h=document.querySelector('h1');if(h)h.textContent=title;}
   start();
 }
@@ -135,6 +157,6 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=917"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=918"></script>
 </body>
 </html>

@@ -13850,7 +13850,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '917';
+const TEACHEDOS_ASSET_VERSION = '918';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14403,6 +14403,7 @@ async function runBoardWorkout() {
     e.exampleAuto = !_wrUsableExample(examples[k]) && !!e.example;
     const inf = info[k] || {};
     e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.senses = inf.senses || []; e.matched = inf.matched || '';
+    e.posTeacher = !!e.pos;
     e.pos = e.pos || inf.pos || null; // позначка вчителя «(n)» точніша за словник
     e.fromTeacher = !!e.gloss && !found[k];
   });
@@ -14514,7 +14515,7 @@ function _wrMissHtml(e) {
 
 function wordReviewRow(e, i) {
   const senses = Array.isArray(e.senses) ? e.senses : [];
-  const opts = senses.map((x, k) => `<option value="${k}"${x.def === e.gloss ? ' selected' : ''}>${esc((x.cefr ? x.cefr + ' · ' : '') + x.def.slice(0, 80))}</option>`).join('');
+  const opts = senses.map((x, k) => `<option value="${k}"${x.def === e.gloss ? ' selected' : ''}>${esc([x.cefr, x.pos].filter(Boolean).join(' · ') + (x.cefr || x.pos ? ' · ' : '') + x.def.slice(0, 80))}</option>`).join('');
   const miss = _wrMissHtml(e);
   const from = e.matched && e.matched.toLowerCase() !== String(e.word).toLowerCase() ? `<span class="wr-note">from “${esc(e.matched)}”</span>` : '';
   return `<div class="wr-row${e.dropped ? ' is-off' : ''}${!e.gloss && !e.dropped ? ' is-bare' : ''}" data-i="${i}">
@@ -14699,6 +14700,9 @@ function wordReviewPickSense(i, k) {
   const s = e.senses[+k];
   if (!s) return;
   e.gloss = s.def;
+  // Значение из другой части статьи - и часть речи другая («left»: adverb /
+  // adjective / noun). Group sort сортирует по ней; позначку учителя не трогаем.
+  if (s.pos && !e.posTeacher) e.pos = s.pos;
   /* Другое значение статьи - другой пример: раньше пример оставался от
      первого значения (или заготовка «The word X means …» со старым
      смыслом), и Complete/Unjumble учили не тому значению, что выбрано. */

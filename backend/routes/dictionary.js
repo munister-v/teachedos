@@ -111,10 +111,19 @@ async function fetchCambridge(word) {
     return null;              // сеть/таймаут - НЕ кэшируем, попробуем в другой раз
   } finally { clearTimeout(t); }
 
-  /* У блока значения класс с висящим пробелом: `ddef_block "`. */
-  const blocks = html.split(/class="def-block ddef_block\s*"/).slice(1);
+  /* У блока значения класс с висящим пробелом: `ddef_block "`.
+     Часть речи - У КАЖДОГО значения своя: заголовок статьи («verb»,
+     «adjective») стоит перед группой значений, и значение берёт тот, что
+     последним встретился выше него. У «swollen» первое значение - отсылка
+     к глаголу swell, а второе - прилагательное «larger than usual»; без
+     части речи на значении их было не различить. */
+  const posAt = [];
+  for (const m of html.matchAll(/class="pos dpos"[^>]*>([^<]+)</g)) posAt.push({ i: m.index, pos: m[1].trim() });
+  const starts = [...html.matchAll(/class="def-block ddef_block\s*"/g)].map(m => m.index);
+  const blocks = starts.map((i, k) => ({ i, b: html.slice(i, starts[k + 1] || html.length) }));
   const senses = [];
-  for (const b of blocks.slice(0, 4)) {
+  for (const { i, b } of blocks.slice(0, 4)) {
+    const hdr = posAt.filter(p => p.i < i).pop();
     const dm = b.match(/class="def ddef_d db">([\s\S]*?)<\/div>/);
     if (!dm) continue;
     const def = stripTags(dm[1]).replace(/\s*:\s*$/, '');
@@ -130,6 +139,7 @@ async function fetchCambridge(word) {
       def,
       cefr: lm ? lm[1] : null,
       example: em ? stripTags(em[1]).slice(0, 120) : null,
+      pos: hdr ? hdr.pos : null,
     });
   }
   const pos = (html.match(/class="pos dpos"[^>]*>([^<]+)</) || [])[1] || null;
@@ -206,6 +216,9 @@ function lookupVariants(w) {
 async function lookupOne(w) {
   let entry = defIndex.get(w);
   if (entry && entry.pron === undefined) entry = null;
+  /* Кэш вечный: статьи, найденные до того, как у значения появилась своя
+     часть речи, перечитываются один раз при первом же запросе. */
+  if (entry && Array.isArray(entry.senses) && entry.senses.length && entry.senses[0].pos === undefined) entry = null;
   if (entry) return entry;
   /* Одна повторная попытка. Проверено на живом сервере: из шести слов
      холодной пачки одно вернулось «unreachable», остальные пять - с
@@ -243,7 +256,13 @@ async function lookup(word, level, depth) {
      переносное «effective force or power» - взять его вместо зубов значит
      соврать. Форма слова объясняется своей основой. */
   const first = (entry.senses || [])[0];
-  if (first && !depth) {
+  /* Но если у формы есть СВОЁ значение-прилагательное, отсылку не
+     разворачиваем: «swollen» - это «larger than usual», а не глагол
+     «to become larger», «broken» - «damaged, no longer able to work», а не
+     «to break». У «teeth» после отсылки идёт фраза («effective force»), у
+     «choking» - сами значения choke: там разворот остаётся. */
+  const ownAdjective = (entry.senses || []).some(x => x && !isRedirectDef(x.def) && /adjective/i.test(String(x.pos || '')));
+  if (first && !depth && !ownAdjective) {
     const m = String(first.def || '').trim().replace(/[.\s]+$/, '').match(REDIRECT_DEF);
     if (m) {
       const base = await lookup(m[1].trim(), level, 1).catch(() => null);
@@ -260,17 +279,21 @@ async function lookup(word, level, depth) {
       }
     }
   }
-  const sense = pickSense(entry.senses, level);
+  const sense = pickSense(ownAdjective ? (entry.senses || []).filter(x => /adjective/i.test(String(x.pos || ''))) : entry.senses, level);
+  /* Отсылки в список значений для учителя не идут, пока есть настоящие:
+     «past participle of swell» выбирать незачем. */
+  const listed = (entry.senses || []).filter(x => !isRedirectDef(x.def));
   return {
     word: w,
     matched,
     /* Все значения статьи - чтобы учитель мог выбрать другое в разборе
        перед тем, как задания лягут на доску. */
-    senses: (entry.senses || []).map(x => ({ def: x.def, cefr: x.cefr, example: x.example })),
+    senses: (listed.length ? listed : entry.senses || []).map(x => ({ def: x.def, cefr: x.cefr, example: x.example, pos: x.pos || null })),
     definition: sense ? sense.def : null,
     cefr: sense ? sense.cefr : null,
     example: sense ? sense.example : null,
-    pos: entry.pos || null,
+    // Часть речи выбранного значения, а не первой строки статьи.
+    pos: (sense && sense.pos) || entry.pos || null,
     /* Произношение у слова одно на все значения, поэтому берётся от статьи,
        а не от выбранного значения, и приходит даже когда подходящего по
        уровню определения не нашлось. */

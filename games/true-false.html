@@ -30,17 +30,17 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .choice.flash-err{background:#f44336;color:#fff}
 .feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#525252}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=917">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=917">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=918">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=918">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=917">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=918">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
 <h1>✅ True or False</h1>
 <p class="subtitle">Is the statement correct?</p>
 <div class="card">
-  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/20</div><div>⏱ <span id="time">45</span>s</div></div>
+  <div class="top"><div>Score: <span id="score">0</span></div><div>Q: <span id="qn">1</span>/<span id="qtotal">20</span></div><div>⏱ <span id="time">45</span>s</div></div>
   <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
   <div class="statement" id="statement"></div>
   <div class="choices">
@@ -50,7 +50,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   <div class="feedback" id="feedback"></div>
 </div>
 
-<script src="../scripts/game-pause.js?v=917"></script>
+<script src="../scripts/game-pause.js?v=918"></script>
 <script>
 let QS=[
   {s:'"She don\'t like coffee" is correct.',a:false,exp:'Should be: She doesn\'t like coffee'},
@@ -77,11 +77,18 @@ let QS=[
 let q=[],idx=0,score=0,timer=45,tInt,locked=false;
 
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
+/* Свои утверждения учителя идут ВСЕ, а не первые двадцать; «/20» в
+   счётчике было вписано в разметку и врало при любом другом числе. Время
+   растёт со списком (~2.3 с на утверждение, не меньше прежних 45 с), иначе
+   на тридцать утверждений его физически не хватало. */
+let customQS=false;
 function start(){
-  q=shuffle([...QS]).slice(0,20);
-  idx=0;score=0;timer=45;locked=false;
+  q=customQS?shuffle([...QS]):shuffle([...QS]).slice(0,20);
+  const T=Math.max(45,Math.round(q.length*2.3));
+  idx=0;score=0;timer=T;locked=false;
   document.getElementById('score').textContent=0;
-  document.getElementById('time').textContent=45;
+  document.getElementById('time').textContent=T;
+  document.getElementById('qtotal').textContent=q.length;
   clearInterval(tInt);
   tInt=setInterval(()=>{timer--;document.getElementById('time').textContent=timer;if(timer<=0){clearInterval(tInt);endGame();}},1000);
   nextQ();
@@ -122,7 +129,7 @@ function applyCustomContent(content,title){
     exp:String(s.exp||s.explanation||'').trim()
   })).filter(s=>s.s);
   if(qs.length<1)return;
-  QS=qs;
+  QS=qs;customQS=true;
   if(title){document.title=title+' · True or False';const h=document.querySelector('h1');if(h)h.textContent='✅ '+title;}
   start();
 }
@@ -134,7 +141,7 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=917"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=918"></script>
 <script src="../scripts/game-handoff.js"></script>
 </body>
 </html>
