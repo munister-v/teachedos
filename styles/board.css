@@ -3691,6 +3691,60 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .wr-warn{color:#B45309;font-weight:700}
 .wr-drop{width:26px;height:26px;border:1px solid rgba(36,40,44,.16);border-radius:8px;background:#fff;color:#5D614B;font-size:12px;cursor:pointer}
 .wr-drop:hover{border-color:#24282C;color:#24282C}
+/* ── Разбор v2: строка слова компактная, поля не раздувает harmony ──
+   harmony.css красит любой input/textarea/select правилом :is(...) с
+   !important и специфичностью (0,6,1): min-height 46px, padding 12px 15px,
+   радиус 17px. В разборе это давало строку слова высотой 300px и список из
+   шестнадцати слов в четыре тысячи пикселей. Перебить его можно только
+   через id - поэтому всё ниже под #tbuilder-output. */
+#tbuilder-output .wr{min-width:0;max-width:100%}
+#tbuilder-output .wr-rows{gap:6px}
+#tbuilder-output .wr-fields{min-width:0}
+#tbuilder-output .wr-row{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:8px 9px;border-radius:12px;min-width:0}
+#tbuilder-output .wr-row.is-bare{border-color:#F3A46B;background:#FFF8F1}
+#tbuilder-output .wr-head{display:flex;align-items:center;gap:6px;min-width:0}
+#tbuilder-output .wr-head .wr-word{flex:1 1 auto;min-width:60px}
+#tbuilder-output .wr-head .wr-drop{margin-left:auto;flex:0 0 auto}
+#tbuilder-output .wr-ipa{flex:0 0 auto;flex-basis:auto;white-space:nowrap}
+#tbuilder-output .wr-pos{flex:0 0 auto;font:650 10.5px var(--font);color:#5D614B;background:#F1F2EA;border-radius:999px;padding:2px 7px;white-space:nowrap}
+#tbuilder-output .wr-grp{background:#E9F1FD;color:#24282C}
+/* Цвет рамки НЕ трогаем: controls.css держит у полей порог 3:1
+   (body:not(#_):not(#__), .58) - это порог доступности, а не вкус. Здесь
+   только размер: высота, отступы, радиус, кегль и ширина. */
+#tbuilder-output .wr-row :is(input.wr-word,textarea.wr-in,input.wr-in,select.wr-sense){
+  min-height:0 !important;height:auto !important;border-radius:8px !important;padding:5px 8px !important;
+  font:500 12.5px/1.35 var(--font) !important;background:#fff !important;box-shadow:none !important;
+  color:#24282C !important;box-sizing:border-box !important}
+#tbuilder-output .wr-row input.wr-word{font-weight:700 !important;font-size:13.5px !important;padding:3px 7px !important}
+#tbuilder-output .wr-row textarea.wr-in{width:100% !important;max-width:100% !important;resize:none;field-sizing:content;max-height:120px}
+#tbuilder-output .wr-row textarea.wr-ex{color:#4A4E43 !important;font-style:italic !important}
+#tbuilder-output .wr-row select.wr-sense{flex:1 1 150px;width:auto !important;min-width:0;max-width:100%;padding:4px 6px !important}
+#tbuilder-output .wr-tools{flex-wrap:nowrap}
+#tbuilder-output .wr-look{flex:0 0 auto}
+#tbuilder-output .wr-tools{gap:6px}
+#tbuilder-output .wr-tools:empty{display:none}
+#tbuilder-output .wr-miss:empty{display:none}
+#tbuilder-output .wr-miss{display:flex;flex-direction:column;gap:2px}
+#tbuilder-output .wr-miss-i{font:600 11px/1.35 var(--font);color:#8A4A12}
+#tbuilder-output .wr-miss-i em{font-style:normal;font-weight:500;color:#5D614B}
+#tbuilder-output .wr-miss-i em::before{content:'· '}
+#tbuilder-output .wr-game :is(input.wr-in){min-height:0 !important;padding:4px 8px !important;border-radius:8px !important;font:500 12px/1.3 var(--font) !important;box-shadow:none !important;background:#fff !important;box-sizing:border-box !important}
+#tbuilder-output .wr-cover{margin-top:2px}
+#tbuilder-output .wr-auto{font-style:italic;color:#6B6F62}
+#tbuilder-output .wr-cover em{font-style:normal;font-weight:500;color:#5D614B}
+.wr-chip-n{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 5px;border-radius:999px;background:#F1F2EA;font:800 10.5px var(--font);color:#24282C}
+.wr-chip.is-short .wr-chip-n{background:#FFE3CC;color:#8A4A12}
+.wr-chip.is-open .wr-chip-n{background:#fff}
+/* Список слов у Vocabulary Workout - главный вход: высокое поле, моноширинный
+   кегль, чтобы «word - meaning» читались колонкой. id бьёт harmony. */
+#tb-wrap-vocab.tb-wordlist #tbuilder-vocab{min-height:210px !important;font-family:ui-monospace,SFMono-Regular,Menlo,monospace !important;font-size:13px !important;font-weight:500 !important;line-height:1.55 !important}
+#tb-wrap-vocab.tb-wordlist #tbuilder-vocab::placeholder{color:#8A8E82;opacity:1}
+#tb-wrap-vocab.tb-wordlist #tbuilder-vocab-meta{font-weight:700;color:#24282C}
+/* tool-builder-refined.css прячет подписи под полями у всех инструментов
+   (#tool-builder-panel .tb-field-meta{display:none}). У списка слов подпись -
+   единственная обратная связь до «Create draft»: как разобран список
+   («8 words · 2 with your meaning · 2 groups») и какие форматы понимаются. */
+#tool-builder-panel #tb-wrap-vocab.tb-wordlist .tb-field-meta{display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin-top:6px;font:500 11.5px/1.4 var(--font);color:#5D614B}
 
 /* Сетка шаблонов «как тренировать» - как выбор шаблона в Wordwall: плитка с
    глифом и названием, отмеченная - лаймом. Цвета - буквальные hex листа. */

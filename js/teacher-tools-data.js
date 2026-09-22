@@ -588,7 +588,8 @@ const STICKER_KEYWORDS = {
    needs - что шаблону нужно от списка сверх самих слов:
      meaning  - значение (добирается словарём/движком до сборки);
      example  - пример-предложение (из словаря; без него слово пропускается);
-     groups   - группы: строки учителя «Food: apple, bread», иначе движок (AI).
+     groups   - группы: строки учителя «Food: apple, bread», иначе части речи
+                из словаря; движок (AI) - только если нет ни того, ни другого.
    icon - ключ простого глифа в _wordTemplateIcon (board-app.js).
    game - страница шаблона в games/ww/: одна оболочка раскладки Wordwall
    (старт, таймер, счёт, «1 of N», итоги) на все пятнадцать. */
@@ -598,7 +599,7 @@ const BOARD_WORD_TEMPLATES = [
   {key:'flashcards',title:'Flash cards',           game:'ww/flashcards',            icon:'flashcards',needs:'meaning', hint:'Word on the front, meaning and example behind.'},
   {key:'speaking',  title:'Speaking cards',        game:'ww/speaking',        icon:'speaking',  needs:'',        hint:'Deal a card and talk about the word.'},
   {key:'wheel',     title:'Spin the wheel',        game:'ww/wheel',            icon:'wheel',     needs:'',        hint:'Spin, land on a word, use it.'},
-  {key:'groupsort', title:'Group sort',            game:'ww/groupsort',            icon:'groupsort', needs:'groups',  hint:'Drag words into their groups.', ai:true},
+  {key:'groupsort', title:'Group sort',            game:'ww/groupsort',            icon:'groupsort', needs:'groups',  hint:'Drag words into their groups: yours (“Illness: fever, cough”) or by part of speech.'},
   {key:'findmatch', title:'Find the match',        game:'ww/findmatch',            icon:'findmatch', needs:'meaning', hint:'Tap the word that fits the meaning.'},
   {key:'pairs',     title:'Matching pairs',        game:'ww/pairs',          icon:'pairs',     needs:'meaning', hint:'Turn tiles over two at a time.'},
   {key:'box',       title:'Open the box',          game:'ww/box',          icon:'box',       needs:'',        hint:'Open numbered boxes, one word inside each.'},

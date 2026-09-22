@@ -471,17 +471,48 @@ function _ttCountItems(out){
    друге з них не було б словом узагалі. */
 /* Пробіли навколо дефіса обовʼязкові: інакше розбирався б «e-mail» і
    «vis-a-vis». Двокрапка теж роздільник, але з умовою нижче. */
-const _TT_GLOSS_SPLIT = /\s+[-–—|]\s+|\t+/;
+/* Стрелки и «=» тоже роздільники, і пробіли навколо них не обовʼязкові:
+   у слові їх не буває («fever = high temperature», «cough→кашель»,
+   «ache -> pain»). Раніше весь такий рядок ставав одним «словом», і словник
+   шукав статтю «fever = high temperature». */
+const _TT_GLOSS_SPLIT = /\s*(?:->|=>|→|⇒|=)\s*|\s+[-–—|]\s+|\t+/;
+/* Позначка частини мови біля слова - «fever (n)», «run v.», «bright (adj)».
+   Її знімаємо зі слова, але не викидаємо: Group sort сортує по частинах мови,
+   і позначка вчителя точніша за здогад словника. */
+const _TT_POS_ALIASES = { n:'noun', noun:'noun', v:'verb', vb:'verb', verb:'verb', adj:'adjective', adjective:'adjective',
+  adv:'adverb', adverb:'adverb', prep:'preposition', conj:'conjunction', pron:'pronoun', phr:'phrase', 'phr v':'phrasal verb',
+  'phrasal verb':'phrasal verb', idiom:'idiom', expr:'phrase' };
+const _TT_POS_RE = '(n|noun|v|vb|verb|adj|adjective|adv|adverb|prep|conj|pron|phr\\.?\\s?v|phrasal verb|phr|idiom|expr)';
+function _ttPosKey(raw){ return _TT_POS_ALIASES[String(raw||'').toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim()] || ''; }
+/* Слово з рядка вчителя - без лапок, без хвостової пунктуації і без
+   позначки частини мови. Крапку в кінці знімаємо лише там, де вона
+   одна: «fever.» - це розділовий знак, «e.g.» і «U.S.» - частина слова. */
+function _ttCleanWord(raw){
+  let w = String(raw||'').replace(/ /g,' ').trim();
+  let pos = '';
+  const tag = w.match(new RegExp('^(.+?)\\s*(?:\\(\\s*' + _TT_POS_RE + '\\.?\\s*\\)|\\[\\s*' + _TT_POS_RE + '\\.?\\s*\\]|\\s' + _TT_POS_RE + '\\.)$', 'i'));
+  if (tag) { w = tag[1].trim(); pos = _ttPosKey(tag[2] || tag[3] || tag[4]); }
+  w = w.replace(/^["'«“‘„`]+|["'»”’`]+$/g, '').trim();
+  w = w.replace(/[,;:!?]+$/, '').trim();
+  if (/\.$/.test(w) && (w.match(/\./g) || []).length === 1) w = w.slice(0, -1).trim();
+  return { word: w, pos };
+}
 function _ttVocabEntries(input){
   /* Маркер списка - не часть слова. Учитель копирует список из урока
      («• a cough»), и словарь потом искал статью «• a cough» - не находил
      ничего, а на доску ехала пара с пустым значением. Срезаем маркеры и
      нумерацию в начале строки. */
-  const rows = String(input.vocab||'').split(/\n+/)
-    .map(x => x.replace(/^\s*(?:[•·‣▪∙*\u2022]|[-–—]|\d+[.)])\s+/, '').trim())
+  /* Маркер - будь-який: «•», «-», «1.», «1)», «a)», «✅», «👉», «→».
+     Букву з дужкою знімаємо лише як «a)» / «b.»: артикль «a fever» -
+     частина слова, його словник і так обробляє сам. */
+  const rows = String(input.vocab||'').replace(/\u00a0/g,' ').split(/\n+/)
+    .map(x => x.replace(/^\s*(?:\d+[.)]|[a-z][.)](?=\s)|[^\p{L}\p{N}"'«“‘„(\[]+)\s*/iu, '').trim())
     .filter(Boolean);
   const out = [];
-  const push = (word, gloss) => { if (word) out.push({ word, gloss: gloss || '' }); };
+  const push = (word, gloss, group) => {
+    const c = _ttCleanWord(word);
+    if (c.word) out.push({ word: c.word, gloss: String(gloss || '').trim(), pos: c.pos, group: group || '' });
+  };
   rows.forEach(row => {
     const parts = row.split(_TT_GLOSS_SPLIT);
     if (parts.length > 1 && parts[0].trim() && parts.slice(1).join('').trim()) {
@@ -492,9 +523,19 @@ function _ttVocabEntries(input){
        «vertigo: запаморочення» - це пояснення. У полі «Word groups»
        «Food: apple, bread, cheese» - це категорія, і після двокрапки стоять
        самі слова, а не пояснення. Розрізняє їх кома: перелік після двокрапки
-       - завжди перелік. */
+       - завжди перелік. І тоді назва групи НЕ входить у перше слово:
+       раніше «Illness: fever, cough» давало слово «Illness: fever», і з ним
+       Match up, Quiz і решта ігор шукали значення для «Illness: fever». */
     const colon = row.match(/^([^:]{1,60}):\s+(.+)$/);
     if (colon && !/,/.test(colon[2])) { push(colon[1].trim(), colon[2].trim()); return; }
+    if (colon) {
+      colon[2].split(/[,;]+/).map(x => x.trim()).filter(Boolean).forEach(word => push(word, '', colon[1].trim()));
+      return;
+    }
+    /* «fever n. high temperature» - словникова форма без роздільника:
+       слово, частина мови з крапкою, пояснення. */
+    const dict = row.match(new RegExp('^(.+?)\\s+' + _TT_POS_RE + '\\.\\s+(.+)$', 'i'));
+    if (dict && !/,/.test(dict[1])) { push(dict[1] + ' (' + dict[2] + ')', dict[3]); return; }
     row.split(/[,;]+/).map(x => x.trim()).filter(Boolean).forEach(word => push(word, ''));
   });
   return out;

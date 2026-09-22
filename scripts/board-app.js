@@ -9618,11 +9618,33 @@ function _ttUpdateFieldMeta() {
   const topic = text('tbuilder-topic');
   const extra = text('tbuilder-extra');
   const terms = vocab ? vocab.split(/\n|,/).map(item => item.trim()).filter(Boolean).length : 0;
+  const isWorkout = activeTeacherToolBuilder && activeTeacherToolBuilder.id === 'vocab-workout';
   const sourceWords = _ttSourceWordCount(source);
   write('tbuilder-topic-meta', `${topic.length} character${topic.length === 1 ? '' : 's'}`);
   write('tbuilder-source-meta', source ? `${source.length.toLocaleString()} characters · ${sourceWords} word${sourceWords === 1 ? '' : 's'}` : '0 characters');
-  write('tbuilder-vocab-meta', `${terms} term${terms === 1 ? '' : 's'}`);
+  write('tbuilder-vocab-meta', _ttVocabMetaText(vocab, isWorkout) || `${terms} term${terms === 1 ? '' : 's'}`);
   write('tbuilder-extra-meta', `${extra.length} character${extra.length === 1 ? '' : 's'}`);
+}
+
+/* Счётчик под списком слов считает так же, как потом разберёт сборка:
+   «frugal - careful with money, not wasteful» - одно слово, а не два;
+   «Illness: fever, cough» - два слова и группа; повторы сливаются. Раньше
+   тут делили по запятым и переводам строки, и число под полем с числом
+   слов в разборе не сходилось. Разборщик живёт в board-gen.js, который
+   грузится лениво; пока его нет - старый счёт. */
+function _ttVocabMetaText(vocab, isWorkout) {
+  if (!vocab || typeof _ttVocabEntries !== 'function') return '';
+  const all = _ttVocabEntries({ vocab });
+  const uniq = _ttUniqueVocabEntries({ vocab });
+  const parts = [`${uniq.length} word${uniq.length === 1 ? '' : 's'}`];
+  const glossed = uniq.filter(e => e.gloss).length;
+  if (glossed) parts.push(`${glossed} with your meaning`);
+  const groups = new Set(uniq.map(e => e.group).filter(Boolean)).size;
+  if (groups) parts.push(`${groups} group${groups === 1 ? '' : 's'}`);
+  const rep = all.length - uniq.length;
+  if (rep) parts.push(`${rep} repeat${rep === 1 ? '' : 's'} merged`);
+  if (isWorkout && uniq.length > TT_WORDLIST_MAX) parts.push(`only the first ${TT_WORDLIST_MAX} are used`);
+  return parts.join(' · ');
 }
 
 function _ttSetRequiredFieldState(wrapId, inputId, required, hasValue) {
@@ -9654,7 +9676,10 @@ function _ttSyncFormReadiness(opts = {}) {
      спрашивает, а кнопка «Create draft» ждала её молча - учитель вставлял
      слова и не получал ничего. Тема для заголовков и подсказок движку
      берётся из самих слов (см. _ttTopicFromWords). */
-  const topicOptional = needsVocab && !!vocab;
+  /* У Vocabulary Workout тема не нужна никогда: название набора берётся из
+     слов, а спрашивать «*» у поля, без которого всё и так работает, значит
+     заставлять учителя думать, что он что-то пропустил. */
+  const topicOptional = (needsVocab && !!vocab) || tool.id === 'vocab-workout';
   if (!topic && !topicOptional) missing.push({ wrap:'tb-wrap-topic', input:'tbuilder-topic', label:'topic' });
   if (needsSource && !source) missing.push({ wrap:'tb-wrap-source', input:'tbuilder-source', label:'source text' });
   if (needsVocab && !vocab) missing.push({ wrap:'tb-wrap-vocab', input:'tbuilder-vocab', label:'target vocabulary' });
@@ -11552,6 +11577,7 @@ function _ttAdaptFields(tool) {
   const workoutWrap = document.getElementById('tb-wrap-workout');
   if (workoutWrap) workoutWrap.classList.toggle('tb-field-hidden', !isWorkout);
   if (isWorkout) renderBoardWorkoutPicks();
+  _ttWorkoutFormLayout(isWorkout);
 
   /* Инструменты, создающие текст, ведут учителя по этапам урока: что до
      текста, каким быть тексту, что после. Список этапов - в данных
@@ -11618,7 +11644,38 @@ function _ttAdaptFields(tool) {
   if (vocabHint) vocabHint.textContent = vocabRequired
     ? 'Required: one word or phrase per line.'
     : (needsVocab ? 'Recommended: add words for a more specific task.' : 'Optional: one word or phrase per line.');
+  if (isWorkout) {
+    if (vocLabel) vocLabel.textContent = 'Your word list';
+    if (vocTA) vocTA.placeholder = 'fever - a high temperature\nsore throat\ncough (v)\nIllness: rash, headache, sneeze\n…one word or phrase per line, up to ' + TT_WORDLIST_MAX;
+    if (vocabHint) vocabHint.textContent = 'Meanings after “ - ” or “=”, parts of speech like (n), groups as “Illness: fever, cough”. The rest comes from the dictionary.';
+    /* Разборщик списка лежит в лениво грузящемся board-gen.js - подтянем
+       его сразу, чтобы счётчик под полем считал уже по-настоящему. */
+    if (typeof _ensureGenLoaded === 'function') _ensureGenLoaded().then(() => _ttUpdateFieldMeta()).catch(() => {});
+  }
   _ttSyncFormReadiness();
+}
+
+/* Для Vocabulary Workout список слов - главный вход, а тема - необязательная
+   подпись: список встаёт первым, тема уходит под него. У остальных
+   инструментов порядок прежний, поэтому поле возвращается на своё место. */
+function _ttWorkoutFormLayout(isWorkout) {
+  const topicWrap = document.getElementById('tb-wrap-topic');
+  const vocWrap = document.getElementById('tb-wrap-vocab');
+  const srcWrap = document.getElementById('tb-wrap-source');
+  const topicLabel = document.getElementById('tbuilder-topic-label');
+  const topicInput = document.getElementById('tbuilder-topic');
+  if (!topicWrap || !vocWrap) return;
+  if (isWorkout) {
+    if (vocWrap.nextElementSibling !== topicWrap) topicWrap.parentNode.insertBefore(vocWrap, topicWrap);
+    vocWrap.classList.add('tb-wordlist');
+    if (topicLabel) topicLabel.textContent = 'Name of the set (optional)';
+    if (topicInput) { topicInput.dataset.prevPh = topicInput.dataset.prevPh || topicInput.placeholder; topicInput.placeholder = 'Leave empty to name it from your words'; }
+  } else {
+    if (srcWrap && srcWrap.nextElementSibling !== vocWrap) srcWrap.parentNode.insertBefore(vocWrap, srcWrap.nextElementSibling);
+    vocWrap.classList.remove('tb-wordlist');
+    if (topicLabel) topicLabel.textContent = 'Topic / grammar focus';
+    if (topicInput && topicInput.dataset.prevPh) topicInput.placeholder = topicInput.dataset.prevPh;
+  }
 }
 
 function setTeacherToolAction(action, btn) {
@@ -13793,7 +13850,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '916';
+const TEACHEDOS_ASSET_VERSION = '917';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14341,9 +14398,12 @@ async function runBoardWorkout() {
     const k = e.word.toLowerCase();
     if (!e.gloss) e.gloss = found[k] || '';
     e.example = _wrUsableExample(examples[k]) || _wrFallbackExample(e.word, e.gloss || found[k] || '');
+    // Предложение, собранное из значения, помечается: учитель должен видеть,
+    // что это не пример из словаря, а заготовка.
+    e.exampleAuto = !_wrUsableExample(examples[k]) && !!e.example;
     const inf = info[k] || {};
     e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.senses = inf.senses || []; e.matched = inf.matched || '';
-    e.pos = inf.pos || null;
+    e.pos = e.pos || inf.pos || null; // позначка вчителя «(n)» точніша за словник
     e.fromTeacher = !!e.gloss && !found[k];
   });
   base.rawVocab = base.rawVocab || base.vocab;
@@ -14368,27 +14428,125 @@ async function runBoardWorkout() {
 let _wordReview = null;
 let _wrAudio = null;
 
+/* ═════════ ПРАВИЛА ШАБЛОНОВ: КАКОЕ СЛОВО В КАКУЮ ИГРУ ПОПАДЁТ ═════════
+   Одно место на три потребителя: сборку игры (_wordTemplateContent),
+   плашки «не войдёт в …» у каждого слова в разборе и счётчики на
+   чипах игр. Пока правила жили в каждом из них отдельно (и ещё раз -
+   внутри самих games/ww/*.html), они расходились: разбор обещал слово,
+   а игра его молча не брала. Пороги здесь ДОЛЖНЫ совпадать с фильтрами
+   в applyCustomContent страниц шаблонов - при правке одного правьте оба.
+
+   Возвращает короткую причину («no meaning») или '' - слово войдёт. */
+const WW_LETTERS_ONLY = /^[a-z][a-z' -]*$/i;          // games/ww/anagram.html
+const WW_HANGMAN_WORD = /^[a-z][a-z' -]*[a-z]$/i;     // games/ww/hangman.html
+function _wwGroupMode(entries) {
+  const groups = new Set(entries.map(e => e.group).filter(Boolean));
+  return groups.size >= 2 ? 'teacher' : 'pos';
+}
+function _wwSkipReason(key, e, mode) {
+  const n = _wwLetterCount(e.word);
+  const sentence = String(e.example || '').trim().split(/\s+/).filter(Boolean).length >= 3;
+  switch (key) {
+    case 'matchup': case 'quiz': case 'flashcards': case 'findmatch': case 'pairs':
+      return e.gloss ? '' : 'no meaning';
+    case 'anagram':
+      if (!e.gloss) return 'no meaning';
+      return WW_LETTERS_ONLY.test(e.word) ? '' : 'not only letters';
+    case 'hangman':
+      if (!e.gloss) return 'no meaning';
+      return WW_HANGMAN_WORD.test(e.word) ? '' : 'not only letters';
+    case 'crossword':
+      if (!e.gloss) return 'no meaning';
+      return n < 2 ? 'too short for the grid' : n > 15 ? 'too long for the grid' : '';
+    case 'wordsearch':
+      return n < 3 ? 'too short for the grid' : n > 15 ? 'too long for the grid' : '';
+    case 'unjumble':
+      return sentence ? '' : 'no sentence';
+    case 'complete':
+      return sentence || e.gloss ? '' : 'no sentence or meaning';
+    case 'groupsort':
+      if (mode === 'teacher') return e.group ? '' : 'no group';
+      return POS_GROUP[String(e.pos || '').toLowerCase()] ? '' : 'no part of speech';
+    default:
+      return '';
+  }
+}
+/* Кто войдёт и кто нет - с причиной. Повтор по буквам (Wordsearch
+   сравнивает слова без пробелов и регистра) тоже причина. */
+function _wwCoverage(key, entries) {
+  const mode = key === 'groupsort' ? _wwGroupMode(entries) : '';
+  const kept = [], skipped = [];
+  const seen = new Set();
+  entries.forEach(e => {
+    let why = _wwSkipReason(key, e, mode);
+    if (!why && key === 'wordsearch') {
+      const k = String(e.word).toUpperCase().replace(/[^A-Z]/g, '');
+      if (seen.has(k)) why = 'repeats another word'; else seen.add(k);
+    }
+    (why ? skipped : kept).push(why ? { e, why } : e);
+  });
+  return { kept, skipped, mode };
+}
+/* «Crossword: 2 left out - too long for the grid: recovery position, …». */
+function _wwCoverageNote(title, skipped) {
+  if (!skipped.length) return '';
+  const byWhy = new Map();
+  skipped.forEach(s => { if (!byWhy.has(s.why)) byWhy.set(s.why, []); byWhy.get(s.why).push(s.e.word); });
+  const parts = [...byWhy].map(([why, ws]) => `${why}: ${ws.slice(0, 3).join(', ')}${ws.length > 3 ? ` +${ws.length - 3}` : ''}`);
+  return `${title}: ${skipped.length} left out (${parts.join('; ')})`;
+}
+
+/* Куда слово НЕ войдёт среди отмеченных игр, с причиной: «Not in
+   Crossword, Wordsearch - too long for the grid». Учитель видит это у
+   самого слова, пока ещё можно поправить написание или значение. */
+function _wrMissHtml(e) {
+  const r = _wordReview;
+  if (!r || e.dropped) return '';
+  const live = r.entries.filter(x => !x.dropped);
+  const byWhy = new Map();
+  boardWordTemplates().filter(t => r.tplKeys.includes(t.key)).forEach(t => {
+    const why = _wwSkipReason(t.key, e, t.key === 'groupsort' ? _wwGroupMode(live) : '');
+    if (why) { if (!byWhy.has(why)) byWhy.set(why, []); byWhy.get(why).push(t.title); }
+  });
+  if (!byWhy.size) return '';
+  return [...byWhy].map(([why, titles]) => `<span class="wr-miss-i">Not in ${esc(titles.join(', '))} <em>${esc(why)}</em></span>`).join('');
+}
+
 function wordReviewRow(e, i) {
   const senses = Array.isArray(e.senses) ? e.senses : [];
   const opts = senses.map((x, k) => `<option value="${k}"${x.def === e.gloss ? ' selected' : ''}>${esc((x.cefr ? x.cefr + ' · ' : '') + x.def.slice(0, 80))}</option>`).join('');
-  return `<div class="wr-row${e.dropped ? ' is-off' : ''}" data-i="${i}">
-    <div class="wr-w">
-      <button type="button" class="wr-play" title="Listen" ${e.audio ? '' : 'disabled'} onclick="wordReviewPlay(${i})">▶</button>
+  const miss = _wrMissHtml(e);
+  const from = e.matched && e.matched.toLowerCase() !== String(e.word).toLowerCase() ? `<span class="wr-note">from “${esc(e.matched)}”</span>` : '';
+  return `<div class="wr-row${e.dropped ? ' is-off' : ''}${!e.gloss && !e.dropped ? ' is-bare' : ''}" data-i="${i}">
+    <div class="wr-head">
+      <button type="button" class="wr-play" title="${e.audio ? 'Listen' : 'No recording for this word'}" ${e.audio ? '' : 'disabled'} onclick="wordReviewPlay(${i})" aria-label="Listen to ${esc(e.word)}">▶</button>
       <input class="wr-word" value="${esc(e.word)}" oninput="wordReviewEdit(${i},'word',this.value)" aria-label="Word">
       ${e.ipa ? `<span class="wr-ipa">/${esc(e.ipa)}/</span>` : ''}
+      ${e.pos ? `<span class="wr-pos">${esc(e.pos)}</span>` : ''}
+      ${e.group ? `<span class="wr-pos wr-grp">${esc(e.group)}</span>` : ''}
+      <button type="button" class="wr-drop" title="${e.dropped ? 'Bring back' : 'Remove word'}" aria-label="${e.dropped ? 'Bring back' : 'Remove'} ${esc(e.word)}" onclick="wordReviewDrop(${i})">${e.dropped ? '↺' : '✕'}</button>
     </div>
     <div class="wr-fields">
-      <textarea class="wr-in" rows="2" placeholder="Meaning - type your own or pick one below" oninput="wordReviewEdit(${i},'gloss',this.value)" aria-label="Meaning">${esc(e.gloss || '')}</textarea>
-      <textarea class="wr-in wr-ex" rows="1" placeholder="Example sentence (used by Unjumble and Complete the sentence)" oninput="wordReviewEdit(${i},'example',this.value)" aria-label="Example">${esc(e.example || '')}</textarea>
+      <textarea class="wr-in wr-gloss" rows="1" placeholder="${e.gloss ? '' : 'No meaning found - type one, or Look up another spelling'}" oninput="wordReviewEdit(${i},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}">${esc(e.gloss || '')}</textarea>
+      <textarea class="wr-in wr-ex" rows="1" placeholder="Example sentence with “${esc(e.word)}”" oninput="wordReviewEdit(${i},'example',this.value)" aria-label="Example with ${esc(e.word)}">${esc(e.example || '')}</textarea>
       <div class="wr-tools">
-        ${senses.length > 1 ? `<select class="wr-sense" onchange="wordReviewPickSense(${i},this.value)" aria-label="Dictionary senses"><option value="">Cambridge: ${senses.length} meanings…</option>${opts}</select>` : ''}
-        ${e.matched && e.matched.toLowerCase() !== String(e.word).toLowerCase() ? `<span class="wr-note">from “${esc(e.matched)}”</span>` : ''}
-        ${!e.gloss ? '<span class="wr-note wr-warn">no meaning yet</span>' : ''}
+        ${senses.length > 1 ? `<select class="wr-sense" onchange="wordReviewPickSense(${i},this.value)" aria-label="Dictionary meanings"><option value="">${senses.length} meanings in Cambridge…</option>${opts}</select>` : ''}
         <button type="button" class="wr-look" onclick="wordReviewLookup(${i})">Look up</button>
+        ${from}
+        ${e.exampleAuto ? '<span class="wr-note wr-auto" title="The dictionary had no example, so the sentence is built from the meaning. Write a better one if you like.">sentence made from the meaning</span>' : ''}
       </div>
+      <div class="wr-miss">${miss}</div>
     </div>
-    <button type="button" class="wr-drop" title="${e.dropped ? 'Bring back' : 'Remove word'}" onclick="wordReviewDrop(${i})">${e.dropped ? '↺' : '✕'}</button>
   </div>`;
+}
+
+/* Чип игры: название, сколько слов в неё войдёт, крестик. Число
+   меньше списка подсвечено - игра возьмёт не всё. */
+function _wrChipHtml(t, live) {
+  const r = _wordReview;
+  const n = _wwCoverage(t.key, live).kept.length;
+  const short = n < live.length;
+  return `<button type="button" class="wr-chip${r.open === t.key ? ' is-open' : ''}${short ? ' is-short' : ''}" data-k="${esc(t.key)}" onclick="wordReviewShowGame('${esc(t.key)}')" title="${short ? `${live.length - n} of your words will not be in this game - open it to see why` : 'Every word is in this game'}">${esc(t.title)}<b class="wr-chip-n">${n}</b><span onclick="event.stopPropagation();wordReviewDropGame('${esc(t.key)}')" aria-label="Remove ${esc(t.title)}">✕</span></button>`;
 }
 
 function renderWordReview() {
@@ -14402,94 +14560,112 @@ function renderWordReview() {
   /* Плитка игры открывает СВОЁ содержимое: пары, предложения, группы -
      то, что ляжет на доску. Так учитель видит не только список слов, но и
      каждое задание, и правит предложения прямо здесь. */
-  const chips = tpls.map(t => `<button type="button" class="wr-chip${r.open === t.key ? ' is-open' : ''}" onclick="wordReviewShowGame('${esc(t.key)}')">${esc(t.title)}<span onclick="event.stopPropagation();wordReviewDropGame('${esc(t.key)}')">✕</span></button>`)
+  const chips = tpls.map(t => _wrChipHtml(t, live))
     .concat(acts.map(a => `<button type="button" class="wr-chip" onclick="wordReviewDropGame('${esc(a.key)}',1)">${esc(a.title)}<span>✕</span></button>`)).join('');
   const n = tpls.length + acts.length;
   /* На телефоне колонка превью стоит ПОД формой: разбор появлялся ниже
      экрана, и это читалось как «ничего не создалось». Подводим к нему. */
   const wasEmpty = !box.querySelector('.wr');
+  const keepScroll = box.querySelector('.wr-rows')?.scrollTop || 0;
   box.innerHTML = `<div class="wr">
     <div class="wr-top">
-      <div><b>Check the words</b><span>${live.length} word${live.length === 1 ? '' : 's'} · ${withMeaning} with a meaning${r.trimmed ? ` · first ${TT_WORDLIST_MAX} of ${r.listed}` : ''}</span></div>
+      <div><b>Check the words</b><span class="wr-sum">${_wrSummary()}</span></div>
       <button type="button" class="wr-add" onclick="commitWordWorkout()"${n && live.length ? '' : ' disabled'}>Add ${n} to the board</button>
     </div>
     <div class="wr-games">${chips || '<span class="wr-note">No activities picked</span>'}</div>
     ${r.open ? wordReviewGameBlock(r.open, live) : ''}
     <div class="wr-rows">${r.entries.map(wordReviewRow).join('')}</div>
   </div>`;
+  const rows = box.querySelector('.wr-rows');
+  if (rows && keepScroll) rows.scrollTop = keepScroll;
   if (wasEmpty && window.innerWidth <= 860) {
     try { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { box.scrollIntoView(); }
   }
 }
 
+function _wrSummary() {
+  const r = _wordReview;
+  const live = r.entries.filter(e => !e.dropped);
+  const withMeaning = live.filter(e => e.gloss).length;
+  return `${live.length} word${live.length === 1 ? '' : 's'} · ${withMeaning} with a meaning${r.trimmed ? ` · first ${TT_WORDLIST_MAX} of ${r.listed}` : ''}`;
+}
+
+/* Правка в поле не перерисовывает разбор (курсор уехал бы из поля), но
+   плашки «не войдёт», счётчики чипов и сводка обязаны следовать за ней:
+   дописал значение - слово тут же вернулось в игры. */
+function _wrRefreshCoverage(i) {
+  const r = _wordReview;
+  if (!r) return;
+  const live = r.entries.filter(e => !e.dropped);
+  const e = r.entries[i];
+  const row = document.querySelector(`.wr-row[data-i="${i}"]`);
+  if (row && e) {
+    const m = row.querySelector('.wr-miss');
+    if (m) m.innerHTML = _wrMissHtml(e);
+    row.classList.toggle('is-bare', !e.gloss && !e.dropped);
+  }
+  document.querySelectorAll('.wr-chip[data-k]').forEach(c => {
+    const t = boardWordTemplates().find(x => x.key === c.dataset.k);
+    if (!t) return;
+    const n = _wwCoverage(t.key, live).kept.length;
+    const b = c.querySelector('.wr-chip-n');
+    if (b) b.textContent = n;
+    c.classList.toggle('is-short', n < live.length);
+  });
+  const sum = document.querySelector('.wr-top .wr-sum');
+  if (sum) sum.textContent = _wrSummary();
+  const foot = document.querySelector('.wr-game .wr-cover');
+  if (foot && r.open) foot.outerHTML = _wrCoverFoot(r.open, live);
+}
+
+/* Подвал блока игры: кто в неё не войдёт и почему - из тех же правил. */
+function _wrCoverFoot(key, live) {
+  const { skipped } = _wwCoverage(key, live);
+  if (!skipped.length) return `<div class="wr-cover wr-note">All ${live.length} words are in this game.</div>`;
+  return `<div class="wr-cover wr-note wr-warn">${skipped.length} left out: ${skipped.map(s => `${esc(s.e.word)} <em>(${esc(s.why)})</em>`).join(', ')}.</div>`;
+}
+
 /* Что будет внутри игры. Пары и слова - из списка (правятся в строках
-   ниже), предложения - здесь же, потому что они принадлежат заданию. */
+   ниже), предложения - здесь же, потому что они принадлежат заданию.
+   Поле есть у КАЖДОГО слова, а не только у вошедших: дописал здесь
+   предложение или значение - слово вернулось в игру. */
 function wordReviewGameBlock(key, live) {
   const t = boardWordTemplates().find(x => x.key === key);
   if (!t) return '';
   const r = _wordReview;
   const idx = e => r.entries.indexOf(e);
+  const field = (e, prop, ph) => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e[prop] || '')}" placeholder="${ph}" oninput="wordReviewEdit(${idx(e)},'${prop}',this.value)" aria-label="${prop === 'example' ? 'Sentence' : 'Meaning'} for ${esc(e.word)}"></div>`;
   let rows = '';
   if (key === 'unjumble' || key === 'complete') {
-    const with_ = live.filter(e => e.example);
-    rows = with_.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.example)}" oninput="wordReviewEdit(${idx(e)},'example',this.value)" aria-label="Sentence for ${esc(e.word)}"></div>`).join('')
-      + (live.length > with_.length ? `<div class="wr-note wr-warn">${live.length - with_.length} word${live.length - with_.length === 1 ? '' : 's'} without a sentence will be skipped here - write one above to include them.</div>` : '');
+    rows = live.map(e => field(e, 'example', `a sentence with “${esc(e.word)}”`)).join('');
   } else if (key === 'groupsort') {
-    const cats = [];
-    String(r.base.rawVocab || '').split(/\n+/).forEach(line => {
-      const m = line.match(/^\s*([^:]{1,40}):\s*(.+,.+)$/);
-      if (m) cats.push(m[1].trim() + ': ' + m[2].trim());
+    const mode = _wwGroupMode(live);
+    const by = new Map();
+    live.forEach(e => {
+      const g = mode === 'teacher' ? e.group : POS_GROUP[String(e.pos || '').toLowerCase()];
+      if (g) { if (!by.has(g)) by.set(g, []); by.get(g).push(e.word); }
     });
-    if (cats.length >= 2) {
-      rows = cats.map(c => `<div class="wg-row"><span>${esc(c)}</span></div>`).join('');
-    } else {
-      /* Те же группы, что уедут в игру: по частям речи из словаря. Учитель
-         видит их заранее и может задать свои строкой «Illness: fever, cough». */
-      const byPos = Object.create(null);
-      live.forEach(e => { const p = POS_GROUP[String(e.pos || '').toLowerCase()]; if (p) (byPos[p] = byPos[p] || []).push(e.word); });
-      const names = Object.keys(byPos);
-      rows = names.length >= 2
-        ? names.map(n => `<div class="wg-row"><b>${esc(n)}</b><span>${esc(byPos[n].join(', '))}</span></div>`).join('')
-          + '<div class="wr-note">Groups by part of speech. Your own groups win: write them in the list as “Illness: fever, cough”.</div>'
-        : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
-    }
-  } else if (key === 'wordsearch') {
-    /* Слово вне 3-15 букв (без пробелов) сетка не берёт - см. norm() в
-       games/ww/wordsearch.html и тот же порог в _wordTemplateContent.
-       Показываем это здесь же, а не после того, как игра уже легла на
-       доску без него. */
-    const tooLong = live.filter(e => { const n = _wwLetterCount(e.word); return n < 3 || n > 15; });
-    rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`
-      + (tooLong.length ? `<div class="wr-note wr-warn">${tooLong.length} word${tooLong.length === 1 ? '' : 's'} outside 3-15 letters will not fit the grid: ${esc(tooLong.map(e => e.word).join(', '))}.</div>` : '');
-  } else if (key === 'wheel' || key === 'speaking' || key === 'box') {
+    rows = by.size >= 2
+      ? [...by].map(([n, ws]) => `<div class="wg-row"><b>${esc(n)}</b><span>${esc(ws.join(', '))}</span></div>`).join('')
+        + (mode === 'pos' ? '<div class="wr-note">Groups by part of speech. Your own groups win: write them in the list as “Illness: fever, cough”.</div>' : '')
+      : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
+  } else if (key === 'wheel' || key === 'speaking' || key === 'box' || key === 'wordsearch') {
     rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`;
-  } else if (key === 'pairs') {
-    /* На плитке «Matching pairs» помещается около ста знаков: дальше текст
-       ужимается до нечитаемого и обрезается многоточием. Учителю про это
-       говорим здесь, где он правит значение, а не после игры. */
-    const LIMIT = 100;
-    const longOnes = live.filter(e => (e.gloss || '').length > LIMIT);
-    rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.gloss || '')}" placeholder="meaning for “${esc(e.word)}”" oninput="wordReviewEdit(${idx(e)},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}"></div>`).join('')
-      + (longOnes.length ? `<div class="wr-note wr-warn">${longOnes.length} meaning${longOnes.length === 1 ? ' is' : 's are'} longer than a tile holds and will be cut short: ${esc(longOnes.map(e => e.word).join(', '))}.</div>` : '');
-  } else if (key === 'crossword') {
-    /* Тот же порог, что у Wordsearch, только на клетках сетки: 2-15 букв
-       без пробелов (см. norm() в games/ww/crossword.html). */
-    const with_ = live.filter(e => e.gloss);
-    const tooLong = with_.filter(e => { const n = _wwLetterCount(e.word); return n < 2 || n > 15; });
-    rows = with_.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.gloss || '')}" placeholder="meaning for “${esc(e.word)}”" oninput="wordReviewEdit(${idx(e)},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}"></div>`).join('')
-      + (live.length > with_.length ? `<div class="wr-note wr-warn">${live.length - with_.length} word${live.length - with_.length === 1 ? '' : 's'} without a meaning will be skipped here - write one to include them.</div>` : '')
-      + (tooLong.length ? `<div class="wr-note wr-warn">${tooLong.length} word${tooLong.length === 1 ? '' : 's'} outside 2-15 letters will not fit the grid: ${esc(tooLong.map(e => e.word).join(', '))}.</div>` : '');
   } else if (t.needs === 'meaning') {
-    /* Пару правят прямо здесь, а не только в списке выше: учитель смотрит на
+    /* Пару правят прямо здесь, а не только в списке ниже: учитель смотрит на
        игру и видит в ней ту самую строку, которую надо поменять. Поле то же
        самое (gloss), поэтому правка тут же расходится по всем играм. */
-    const with_ = live.filter(e => e.gloss);
-    rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.gloss || '')}" placeholder="meaning for “${esc(e.word)}”" oninput="wordReviewEdit(${idx(e)},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}"></div>`).join('')
-      + (live.length > with_.length ? `<div class="wr-note wr-warn">${live.length - with_.length} word${live.length - with_.length === 1 ? '' : 's'} without a meaning will be skipped here - write one to include them.</div>` : '');
+    rows = live.map(e => field(e, 'gloss', `meaning for “${esc(e.word)}”`)).join('');
+    if (key === 'pairs') {
+      /* На плитке «Matching pairs» помещается около ста знаков: дальше текст
+         обрезается многоточием. Это не выпадение, а обрезка - своя плашка. */
+      const longOnes = live.filter(e => (e.gloss || '').length > 100);
+      if (longOnes.length) rows += `<div class="wr-note wr-warn">${longOnes.length} meaning${longOnes.length === 1 ? ' is' : 's are'} longer than a tile holds and will be cut short: ${esc(longOnes.map(e => e.word).join(', '))}.</div>`;
+    }
   } else {
     rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><span>${esc(e.gloss || '—')}</span></div>`).join('');
   }
-  return `<div class="wr-game"><div class="wr-game-head">${esc(t.title)}<span>${esc(t.hint || '')}</span></div>${rows}</div>`;
+  return `<div class="wr-game"><div class="wr-game-head">${esc(t.title)}<span>${esc(t.hint || '')}</span></div>${rows}${_wrCoverFoot(key, live)}</div>`;
 }
 
 function wordReviewShowGame(key) {
@@ -14502,11 +14678,19 @@ function wordReviewEdit(i, field, value) {
   const e = _wordReview && _wordReview.entries[i];
   if (!e) return;
   e[field] = String(value || '').trim();
+  /* Своё предложение учителя - уже не заготовка. А заготовка идёт за
+     значением: поправил значение - «The word X means …» переписалось тоже,
+     иначе Unjumble собирал бы фразу со старым смыслом. */
+  if (field === 'example') e.exampleAuto = false;
+  if ((field === 'gloss' || field === 'word') && (e.exampleAuto || !e.example)) {
+    e.example = _wrFallbackExample(e.word, e.gloss);
+    e.exampleAuto = !!e.example;
+    const ta = document.querySelector(`.wr-row[data-i="${i}"] .wr-ex`);
+    if (ta && document.activeElement !== ta) ta.value = e.example;
+  }
   /* Перерисовывать на каждый символ нельзя - курсор уезжает из поля;
-     счётчик сверху обновляем отдельно. */
-  const head = document.querySelector('.wr-top span');
-  const live = _wordReview.entries.filter(x => !x.dropped);
-  if (head) head.textContent = `${live.length} word${live.length === 1 ? '' : 's'} · ${live.filter(x => x.gloss).length} with a meaning`;
+     сводка, счётчики чипов и плашки «не войдёт» обновляются точечно. */
+  _wrRefreshCoverage(i);
 }
 
 function wordReviewPickSense(i, k) {
@@ -14515,7 +14699,12 @@ function wordReviewPickSense(i, k) {
   const s = e.senses[+k];
   if (!s) return;
   e.gloss = s.def;
-  if (s.example && !e.example) e.example = s.example;
+  /* Другое значение статьи - другой пример: раньше пример оставался от
+     первого значения (или заготовка «The word X means …» со старым
+     смыслом), и Complete/Unjumble учили не тому значению, что выбрано. */
+  const ex = _wrUsableExample(s.example);
+  if (ex && (!e.example || e.exampleAuto)) { e.example = ex; e.exampleAuto = false; }
+  else if (e.exampleAuto || !e.example) { e.example = _wrFallbackExample(e.word, e.gloss); e.exampleAuto = !!e.example; }
   renderWordReview();
 }
 
@@ -14576,7 +14765,10 @@ async function wordReviewLookup(i) {
   const k = e.word.toLowerCase(), inf = info[k] || {};
   e.senses = inf.senses || []; e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.matched = inf.matched || '';
   if (found[k]) e.gloss = found[k];
-  if (examples[k]) e.example = examples[k];
+  const ex = _wrUsableExample(examples[k]);
+  if (ex) { e.example = ex; e.exampleAuto = false; }
+  else if (e.exampleAuto || !e.example) { e.example = _wrFallbackExample(e.word, e.gloss); e.exampleAuto = !!e.example; }
+  if (inf.pos) e.pos = inf.pos;
   renderWordReview();
 }
 
@@ -14697,114 +14889,62 @@ const POS_GROUP = { noun: 'Nouns', verb: 'Verbs', adjective: 'Adjectives', adver
 function _wwLetterCount(word) { return String(word || '').toUpperCase().replace(/[^A-Z]/g, '').length; }
 
 async function _wordTemplateContent(t, ctx) {
-  const { base, entries, examples } = ctx;
-  const ex = e => examples[String(e.word).toLowerCase()] || '';
-  const withMeaning = entries.filter(e => e.gloss);
+  const { base, entries } = ctx;
+  /* Кто войдёт в игру - решают общие правила (_wwCoverage), те же, что
+     рисуют плашки «Not in …» в разборе и счётчики на чипах. Учитель видел
+     «Crossword 15» - на доску и поедет кроссворд на 15 слов. */
+  const { kept, skipped, mode } = _wwCoverage(t.key, entries);
+  const note = _wwCoverageNote(t.title, skipped) || undefined;
   // audio - запись голоса из словаря: ученик слушает слово прямо в игре.
-  const pairs = withMeaning.map(e => ({ a: e.word, b: e.gloss, example: ex(e), audio: e.audio || null }));
-  const lost = (n, what) => n ? `${t.title}: ${n} word${n === 1 ? '' : 's'} without ${what}` : '';
-  const needMeaning = () => pairs.length >= 2
-    ? { content: { pairs }, note: lost(entries.length - pairs.length, 'a meaning') }
-    : { why: 'needs meanings for at least 2 words' };
-  /* Кроссворд, поиск слов, виселица и анаграмма - ЕДИНСТВЕННЫЕ четыре игры
-     из пятнадцати, где само содержимое ограничивает форму слова (клетки
-     сетки, буквы виселицы), и они молча резали свой вход внутри
-     applyCustomContent. «recovery position» (16 букв без пробела) не
-     попадало ни в кроссворд, ни в поиск слов ни разу - учитель видел «30
-     добавлено», открывал доску и находил там 29. Здесь тот же фильтр
-     считается ДО сборки, и разница уходит в то же предупреждение, что и
-     «без значения». */
-  const withMeaningIn = (min, max) => {
-    const ok = withMeaning.filter(e => { const n = _wwLetterCount(e.word); return n >= min && n <= max; });
-    return { ok, dropped: withMeaning.length - ok.length };
-  };
-  const letterGame = (min, max, minCount, what) => {
-    const { ok, dropped } = withMeaningIn(min, max);
-    if (ok.length < minCount) return { why: `needs at least ${minCount} word${minCount === 1 ? '' : 's'} of ${min}-${max} letters` };
-    const notes = [lost(entries.length - withMeaning.length, 'a meaning'), lost(dropped, what)].filter(Boolean).join(' · ');
-    return { content: { pairs: ok.map(e => ({ a: e.word, b: e.gloss, example: ex(e), audio: e.audio || null })) }, note: notes || undefined };
-  };
+  const pair = e => ({ a: e.word, b: e.gloss, example: e.example || '', audio: e.audio || null });
+  const need = (min, what) => kept.length >= min ? null : { why: `needs at least ${min} word${min === 1 ? '' : 's'} ${what}` };
 
   switch (t.key) {
     case 'matchup': case 'quiz': case 'flashcards': case 'findmatch': case 'pairs':
-      return needMeaning();
+      return need(2, 'with a meaning') || { content: { pairs: kept.map(pair) }, note };
     case 'crossword':
-      // Совпадает с n>=2&&n<=15 в games/ww/crossword.html.
-      return letterGame(2, 15, 2, 'a length the grid can hold (2-15 letters)');
-    case 'hangman': case 'anagram': {
-      /* Оба regex - буквально те же, что в games/ww/hangman.html и
-         anagram.html; hangman запрещает голую одну букву («a» без второй
-         буквы), анаграмма её пускает. */
-      const re = t.key === 'hangman' ? /^[a-z][a-z' -]*[a-z]$/i : /^[a-z][a-z' -]*$/i;
-      const what = t.key === 'hangman' ? 'letters only the game can hangman-mask' : 'letters the game can scramble';
-      const ok = withMeaning.filter(e => re.test(e.word));
-      return ok.length
-        ? { content: { pairs: ok.map(e => ({ a: e.word, b: e.gloss, example: ex(e), audio: e.audio || null })) },
-            note: [lost(entries.length - withMeaning.length, 'a meaning'), lost(withMeaning.length - ok.length, what)].filter(Boolean).join(' · ') || undefined }
-        : { why: 'needs at least one word made only of letters' };
-    }
+      return need(2, 'of 2-15 letters with a meaning') || { content: { pairs: kept.map(pair) }, note };
+    case 'hangman': case 'anagram':
+      return need(1, 'made only of letters, with a meaning') || { content: { pairs: kept.map(pair) }, note };
+    case 'wordsearch':
+      return need(2, 'of 3-15 letters') || { content: { words: kept.map(e => e.word), pairs: kept.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) }, note };
     case 'speaking':
-      return { content: { cards: entries.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
+      return { content: { cards: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'box':
-      return { content: { items: entries.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
+      return { content: { items: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'wheel':
       // Колесо показывает значение выпавшего слова, поэтому пары, а не только слова.
-      return entries.length >= 2
-        ? { content: { words: entries.map(e => e.word), pairs: entries.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) } }
-        : { why: 'needs at least 2 words' };
-    case 'wordsearch': {
-      // games/ww/wordsearch.html: norm().length от 3 до 15, дубликаты по
-      // нормализованной форме схлопываются - считаем так же, чтобы число в
-      // предупреждении и число слов в сетке не расходились.
-      const seen = new Set();
-      const ok = [];
-      let dupped = 0;
-      entries.forEach(e => {
-        const n = _wwLetterCount(e.word);
-        if (n < 3 || n > 15) return;
-        const key = e.word.toUpperCase().replace(/[^A-Z]/g, '');
-        if (seen.has(key)) { dupped++; return; }
-        seen.add(key); ok.push(e);
-      });
-      if (ok.length < 2) return { why: 'needs at least 2 words of 3-15 letters' };
-      return {
-        content: { words: ok.map(e => e.word), pairs: ok.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) },
-        note: [lost(entries.length - ok.length - dupped, 'a length the grid can hold (3-15 letters)'), lost(dupped, 'being a duplicate once letters are compared')].filter(Boolean).join(' · ') || undefined,
-      };
-    }
+      return need(2, '') || { content: { words: kept.map(e => e.word), pairs: kept.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) } };
     case 'unjumble': {
-      const sentences = entries.filter(e => ex(e) && ex(e).split(/\s+/).length >= 3)
-        .map(e => ({ s: ex(e), t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
-      return sentences.length
-        ? { content: { sentences }, note: lost(entries.length - sentences.length, 'an example sentence') }
-        : { why: 'no example sentences were found for these words' };
+      const sentences = kept.map(e => ({ s: e.example, t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
+      return sentences.length ? { content: { sentences }, note } : { why: 'no example sentences for these words - add one in the list' };
     }
     case 'complete': {
       /* Тот же генератор, что у «Example sentences»: пропуск ставится в
-         словарный пример с настоящей формой слова (burn → burned), а без
-         примера - в предложение из значения. Тут только упаковка в игру. */
-      const out = generateTeacherToolLocal({ ...base, tool: { id: 'sentences-vocab' } });
+         пример с настоящей формой слова (burn → burned), а без примера - в
+         предложение из значения. На вход - только вошедшие слова, чтобы
+         число предложений совпало с тем, что обещал разбор. */
+      const examples = Object.create(null);
+      kept.forEach(e => { if (e.example) examples[e.word.toLowerCase()] = e.example; });
+      const out = generateTeacherToolLocal({ ...base, tool: { id: 'sentences-vocab' }, count: kept.length, vocabExamples: examples,
+        vocab: kept.map(e => e.gloss ? `${e.word} - ${e.gloss.replace(/\s*\n\s*/g, ' ')}` : e.word).join('\n') });
       const g = out ? (_ttGamePayloads(out) || []).find(x => x.gameType === 'fill-blank') : null;
-      return g ? { content: g.content } : { why: 'no sentences with gaps could be made' };
+      return g ? { content: g.content, note } : { why: 'no sentences with gaps could be made' };
     }
     case 'groupsort': {
-      /* Группы учителя главнее: строки «Food: apple, bread» в списке. Иначе
-         группы предлагает движок (нужен вход). */
-      const cats = [];
-      String(base.rawVocab || '').split(/\n+/).forEach(line => {
-        const m = line.match(/^\s*([^:]{1,40}):\s*(.+,.+)$/);
-        if (m) cats.push({ name: m[1].trim(), words: m[2].split(/[,;]+/).map(w => w.trim()).filter(Boolean) });
+      /* Группы учителя главнее (строки «Illness: fever, cough» - e.group),
+         иначе части речи: их знает словарь или сам учитель («fever (n)»).
+         Раньше группы читались из сырого текста поля, и слово, убранное в
+         разборе, всё равно ехало в сортировку. */
+      const by = new Map();
+      kept.forEach(e => {
+        const g = mode === 'teacher' ? e.group : POS_GROUP[String(e.pos || '').toLowerCase()];
+        if (!by.has(g)) by.set(g, []);
+        by.get(g).push(e.word);
       });
-      if (cats.length >= 2) return { content: { categories: cats } };
-      /* Без групп учителя и без входа в движок «Group sort» не получался
-         вовсе - единственный шаблон из пятнадцати, который молча выпадал.
-         Части речи словарь знает про каждое слово, и сортировка по ним -
-         обычное словарное задание, а не заглушка. */
-      const byPos = Object.create(null);
-      entries.forEach(e => { const p = POS_GROUP[String(e.pos || '').toLowerCase()]; if (p) (byPos[p] = byPos[p] || []).push(e.word); });
-      const posCats = Object.keys(byPos).filter(k => byPos[k].length).map(k => ({ name: k, words: byPos[k] }));
-      if (posCats.length >= 2 && posCats.reduce((n, c) => n + c.words.length, 0) >= 4) {
-        return { content: { categories: posCats }, note: `${t.title}: groups by part of speech` };
+      const cats = [...by].map(([name, words]) => ({ name, words }));
+      if (cats.length >= 2 && kept.length >= 4) {
+        return { content: { categories: cats }, note: [mode === 'pos' ? `${t.title}: groups by part of speech` : '', note].filter(Boolean).join(' · ') || undefined };
       }
       const out = await requestServerTeacherTool({ ...base, tool: { id: 'word-sorting' } }, 25000);
       const g = out ? (_ttGamePayloads(out) || []).find(x => x.gameType === 'word-categories') : null;
@@ -15178,8 +15318,14 @@ function _ttUniqueVocabEntries(input) {
     const key = String(e.word || '').trim().toLowerCase();
     if (!key) return;
     const prev = seen.get(key);
-    if (!prev) seen.set(key, { word: String(e.word).trim(), gloss: String(e.gloss || '').trim() });
-    else if (!prev.gloss && e.gloss) prev.gloss = String(e.gloss).trim();
+    /* pos и group - то, что учитель написал сам («fever (n)», строка
+       «Illness: fever, cough»): их берём с любой из копий слова. */
+    if (!prev) seen.set(key, { word: String(e.word).trim(), gloss: String(e.gloss || '').trim(), pos: e.pos || '', group: e.group || '' });
+    else {
+      if (!prev.gloss && e.gloss) prev.gloss = String(e.gloss).trim();
+      if (!prev.pos && e.pos) prev.pos = e.pos;
+      if (!prev.group && e.group) prev.group = e.group;
+    }
   });
   return [...seen.values()];
 }
