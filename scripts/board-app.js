@@ -13793,7 +13793,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '915';
+const TEACHEDOS_ASSET_VERSION = '916';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14453,7 +14453,15 @@ function wordReviewGameBlock(key, live) {
           + '<div class="wr-note">Groups by part of speech. Your own groups win: write them in the list as “Illness: fever, cough”.</div>'
         : '<div class="wr-note">Groups come from the engine (sign in), or write them in the list as “Illness: fever, cough”.</div>';
     }
-  } else if (key === 'wheel' || key === 'wordsearch' || key === 'speaking' || key === 'box') {
+  } else if (key === 'wordsearch') {
+    /* Слово вне 3-15 букв (без пробелов) сетка не берёт - см. norm() в
+       games/ww/wordsearch.html и тот же порог в _wordTemplateContent.
+       Показываем это здесь же, а не после того, как игра уже легла на
+       доску без него. */
+    const tooLong = live.filter(e => { const n = _wwLetterCount(e.word); return n < 3 || n > 15; });
+    rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`
+      + (tooLong.length ? `<div class="wr-note wr-warn">${tooLong.length} word${tooLong.length === 1 ? '' : 's'} outside 3-15 letters will not fit the grid: ${esc(tooLong.map(e => e.word).join(', '))}.</div>` : '');
+  } else if (key === 'wheel' || key === 'speaking' || key === 'box') {
     rows = `<div class="wg-row"><span>${live.map(e => esc(e.word)).join(', ')}</span></div>`;
   } else if (key === 'pairs') {
     /* На плитке «Matching pairs» помещается около ста знаков: дальше текст
@@ -14463,6 +14471,14 @@ function wordReviewGameBlock(key, live) {
     const longOnes = live.filter(e => (e.gloss || '').length > LIMIT);
     rows = live.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.gloss || '')}" placeholder="meaning for “${esc(e.word)}”" oninput="wordReviewEdit(${idx(e)},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}"></div>`).join('')
       + (longOnes.length ? `<div class="wr-note wr-warn">${longOnes.length} meaning${longOnes.length === 1 ? ' is' : 's are'} longer than a tile holds and will be cut short: ${esc(longOnes.map(e => e.word).join(', '))}.</div>` : '');
+  } else if (key === 'crossword') {
+    /* Тот же порог, что у Wordsearch, только на клетках сетки: 2-15 букв
+       без пробелов (см. norm() в games/ww/crossword.html). */
+    const with_ = live.filter(e => e.gloss);
+    const tooLong = with_.filter(e => { const n = _wwLetterCount(e.word); return n < 2 || n > 15; });
+    rows = with_.map(e => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e.gloss || '')}" placeholder="meaning for “${esc(e.word)}”" oninput="wordReviewEdit(${idx(e)},'gloss',this.value)" aria-label="Meaning of ${esc(e.word)}"></div>`).join('')
+      + (live.length > with_.length ? `<div class="wr-note wr-warn">${live.length - with_.length} word${live.length - with_.length === 1 ? '' : 's'} without a meaning will be skipped here - write one to include them.</div>` : '')
+      + (tooLong.length ? `<div class="wr-note wr-warn">${tooLong.length} word${tooLong.length === 1 ? '' : 's'} outside 2-15 letters will not fit the grid: ${esc(tooLong.map(e => e.word).join(', '))}.</div>` : '');
   } else if (t.needs === 'meaning') {
     /* Пару правят прямо здесь, а не только в списке выше: учитель смотрит на
        игру и видит в ней ту самую строку, которую надо поменять. Поле то же
@@ -14673,6 +14689,13 @@ async function commitWordWorkout() {
    корзины читаются, восемь - нет. */
 const POS_GROUP = { noun: 'Nouns', verb: 'Verbs', adjective: 'Adjectives', adverb: 'Adverbs' };
 
+/* Буквы слова без пробелов и пунктуации - ТОЧНО тем же способом, каким
+   считают свои игры (см. norm() в games/ww/crossword.html и wordsearch.html:
+   toUpperCase + replace(/[^A-Z]/g,'')). Если здесь посчитать иначе -
+   например, оставить пробелы или апострофы - число совпадёт с игрой не
+   всегда, и предупреждение снова начнёт врать. */
+function _wwLetterCount(word) { return String(word || '').toUpperCase().replace(/[^A-Z]/g, '').length; }
+
 async function _wordTemplateContent(t, ctx) {
   const { base, entries, examples } = ctx;
   const ex = e => examples[String(e.word).toLowerCase()] || '';
@@ -14683,21 +14706,72 @@ async function _wordTemplateContent(t, ctx) {
   const needMeaning = () => pairs.length >= 2
     ? { content: { pairs }, note: lost(entries.length - pairs.length, 'a meaning') }
     : { why: 'needs meanings for at least 2 words' };
+  /* Кроссворд, поиск слов, виселица и анаграмма - ЕДИНСТВЕННЫЕ четыре игры
+     из пятнадцати, где само содержимое ограничивает форму слова (клетки
+     сетки, буквы виселицы), и они молча резали свой вход внутри
+     applyCustomContent. «recovery position» (16 букв без пробела) не
+     попадало ни в кроссворд, ни в поиск слов ни разу - учитель видел «30
+     добавлено», открывал доску и находил там 29. Здесь тот же фильтр
+     считается ДО сборки, и разница уходит в то же предупреждение, что и
+     «без значения». */
+  const withMeaningIn = (min, max) => {
+    const ok = withMeaning.filter(e => { const n = _wwLetterCount(e.word); return n >= min && n <= max; });
+    return { ok, dropped: withMeaning.length - ok.length };
+  };
+  const letterGame = (min, max, minCount, what) => {
+    const { ok, dropped } = withMeaningIn(min, max);
+    if (ok.length < minCount) return { why: `needs at least ${minCount} word${minCount === 1 ? '' : 's'} of ${min}-${max} letters` };
+    const notes = [lost(entries.length - withMeaning.length, 'a meaning'), lost(dropped, what)].filter(Boolean).join(' · ');
+    return { content: { pairs: ok.map(e => ({ a: e.word, b: e.gloss, example: ex(e), audio: e.audio || null })) }, note: notes || undefined };
+  };
 
   switch (t.key) {
-    case 'matchup': case 'quiz': case 'flashcards': case 'findmatch':
-    case 'pairs': case 'anagram': case 'crossword': case 'hangman':
+    case 'matchup': case 'quiz': case 'flashcards': case 'findmatch': case 'pairs':
       return needMeaning();
+    case 'crossword':
+      // Совпадает с n>=2&&n<=15 в games/ww/crossword.html.
+      return letterGame(2, 15, 2, 'a length the grid can hold (2-15 letters)');
+    case 'hangman': case 'anagram': {
+      /* Оба regex - буквально те же, что в games/ww/hangman.html и
+         anagram.html; hangman запрещает голую одну букву («a» без второй
+         буквы), анаграмма её пускает. */
+      const re = t.key === 'hangman' ? /^[a-z][a-z' -]*[a-z]$/i : /^[a-z][a-z' -]*$/i;
+      const what = t.key === 'hangman' ? 'letters only the game can hangman-mask' : 'letters the game can scramble';
+      const ok = withMeaning.filter(e => re.test(e.word));
+      return ok.length
+        ? { content: { pairs: ok.map(e => ({ a: e.word, b: e.gloss, example: ex(e), audio: e.audio || null })) },
+            note: [lost(entries.length - withMeaning.length, 'a meaning'), lost(withMeaning.length - ok.length, what)].filter(Boolean).join(' · ') || undefined }
+        : { why: 'needs at least one word made only of letters' };
+    }
     case 'speaking':
       return { content: { cards: entries.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'box':
       return { content: { items: entries.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'wheel':
-    case 'wordsearch':
       // Колесо показывает значение выпавшего слова, поэтому пары, а не только слова.
       return entries.length >= 2
         ? { content: { words: entries.map(e => e.word), pairs: entries.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) } }
         : { why: 'needs at least 2 words' };
+    case 'wordsearch': {
+      // games/ww/wordsearch.html: norm().length от 3 до 15, дубликаты по
+      // нормализованной форме схлопываются - считаем так же, чтобы число в
+      // предупреждении и число слов в сетке не расходились.
+      const seen = new Set();
+      const ok = [];
+      let dupped = 0;
+      entries.forEach(e => {
+        const n = _wwLetterCount(e.word);
+        if (n < 3 || n > 15) return;
+        const key = e.word.toUpperCase().replace(/[^A-Z]/g, '');
+        if (seen.has(key)) { dupped++; return; }
+        seen.add(key); ok.push(e);
+      });
+      if (ok.length < 2) return { why: 'needs at least 2 words of 3-15 letters' };
+      return {
+        content: { words: ok.map(e => e.word), pairs: ok.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) },
+        note: [lost(entries.length - ok.length - dupped, 'a length the grid can hold (3-15 letters)'), lost(dupped, 'being a duplicate once letters are compared')].filter(Boolean).join(' · ') || undefined,
+      };
+    }
     case 'unjumble': {
       const sentences = entries.filter(e => ex(e) && ex(e).split(/\s+/).length >= 3)
         .map(e => ({ s: ex(e), t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
