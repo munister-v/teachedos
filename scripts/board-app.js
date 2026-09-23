@@ -13862,7 +13862,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '920';
+const TEACHEDOS_ASSET_VERSION = '921';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16238,6 +16238,7 @@ function backToLessonWizard() {
   boardLessonWizard.source = null;
   boardLessonWizard.media = null;
   lastLessonStageSet = null;
+  boardLessonWizard.news = null;
   _wizRenderSourceTools(null);
   renderLessonWizard();
 }
@@ -16251,6 +16252,7 @@ function pickLessonSource(key) {
   /* Плеер принадлежит той ссылке, которую забрали в ЭТОТ раз. Оставшись
      от предыдущего захода, он приехал бы на доску к чужому уроку. */
   boardLessonWizard.media = null;
+  boardLessonWizard.news = null;
   _wizShow(false);
   /* Вокабуляр не строит урок по этапам - он ведёт в уже существующую
      студию «Vocabulary Workout» (routeTo). Второй, параллельный конвейер
@@ -16298,6 +16300,7 @@ function _wizRenderSourceTools(src) {
   if (!host) return;
   if (!src || (!src.ocr && !src.link && !src.extractTool)) { host.hidden = true; host.innerHTML = ''; return; }
   host.hidden = false;
+  if (src.news) { _wizRenderNews(host); return; }
   if (src.extractTool) {
     /* Студия ждёт готовый список слов, а не текст или тему - поэтому это
        не показ поля источника (у vocab-workout его нет), а отдельная
@@ -16344,6 +16347,208 @@ function _wizRenderSourceTools(src) {
         <button type="button" class="tbuilder-btn ghost" onclick="importLessonLink()">Get the text</button>
         <span class="tb-wiz-tool-note" id="tb-wiz-link-note">A YouTube link brings its transcript, a web page brings its article text.</span>
       </div>`;
+  }
+}
+
+/* ── Новость → текст урока на уровне класса ────────────────────────────
+   Рубрики и заголовки приходят с сервера (/api/ai/news, закрытый список
+   изданий), учитель выбирает статью и уровень, дальше два шага:
+   1) сервер достаёт текст статьи (/api/ai/news-article);
+   2) news-graded пересказывает её на выбранном уровне - те же факты,
+      лексика и грамматика уровня.
+   Результат ложится в поле источника как обычный учительский текст
+   (add-text): правится руками, и остальной урок строится вокруг него.
+   «Original» - без пересказа, для сильных групп. */
+const NEWS_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+let _wizNewsState = null; // { topics, topic, items, picked, busy, token }
+
+function _wizNewsAgo(iso) {
+  const t = Date.parse(iso || '');
+  if (!t) return '';
+  const min = Math.max(1, Math.round((Date.now() - t) / 60000));
+  if (min < 60) return `${min} min ago`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `${h} h ago`;
+  const d = Math.round(h / 24);
+  return d === 1 ? 'yesterday' : `${d} days ago`;
+}
+
+function _wizRenderNews(host) {
+  if (!_wizNewsState) _wizNewsState = { topics: null, topic: 'science', items: null, picked: null, busy: false, level: null };
+  const st = _wizNewsState;
+  if (!st.level) st.level = document.getElementById('tbuilder-level')?.value || 'B1';
+  if (!authToken) {
+    host.innerHTML = `<div class="tb-wiz-tool"><span class="tb-wiz-tool-note">Sign in to browse today's news.</span></div>`;
+    return;
+  }
+  const topics = st.topics || [];
+  const items = st.items;
+  const picked = st.picked != null && items ? items[st.picked] : null;
+  const list = items == null
+    ? `<div class="tb-news-empty">Loading headlines…</div>`
+    : !items.length
+    ? `<div class="tb-news-empty">No stories came back for this topic. Try another one.</div>`
+    : items.map((it, i) => `
+      <button type="button" class="tb-news-item${st.picked === i ? ' is-picked' : ''}" onclick="pickNewsStory(${i})" aria-pressed="${st.picked === i}">
+        ${it.image ? `<img class="tb-news-thumb" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '<span class="tb-news-thumb is-blank" aria-hidden="true">📰</span>'}
+        <span class="tb-news-tx">
+          <b>${esc(it.title)}</b>
+          <small>${esc(it.source)}${it.published ? ` · ${esc(_wizNewsAgo(it.published))}` : ''}</small>
+        </span>
+      </button>`).join('');
+  host.innerHTML = `
+    <div class="tb-news">
+      <div class="tb-news-topics" role="tablist" aria-label="News topic">
+        ${(topics.length ? topics : [{ key: st.topic, title: 'Science' }]).map(t => `
+          <button type="button" role="tab" class="tb-news-topic${t.key === st.topic ? ' is-on' : ''}" aria-selected="${t.key === st.topic}"
+            onclick="loadNewsTopic('${esc(t.key)}')">${esc(t.title)}</button>`).join('')}
+      </div>
+      <div class="tb-news-list" id="tb-news-list">${list}</div>
+      ${picked ? `
+      <div class="tb-news-pick">
+        <div class="tb-news-pick-head">
+          <b>${esc(picked.title)}</b>
+          ${picked.summary ? `<small>${esc(picked.summary)}</small>` : ''}
+          <a href="${esc(picked.url)}" target="_blank" rel="noopener">Open the original on ${esc(picked.source)} ↗</a>
+        </div>
+        <div class="tb-news-levels" role="radiogroup" aria-label="Retell at level">
+          <span class="tb-news-levels-label">Retell at</span>
+          ${NEWS_LEVELS.map(l => `<button type="button" role="radio" aria-checked="${st.level === l}" class="tb-news-level${st.level === l ? ' is-on' : ''}" onclick="setNewsLevel('${l}')">${l}</button>`).join('')}
+          <button type="button" role="radio" aria-checked="${st.level === 'original'}" class="tb-news-level${st.level === 'original' ? ' is-on' : ''}" onclick="setNewsLevel('original')" title="Keep the article's own wording">Original</button>
+        </div>
+        <button type="button" class="tbuilder-btn lime" onclick="useNewsStory()" ${st.busy ? 'disabled' : ''}>
+          ${st.busy ? 'Working…' : st.level === 'original' ? 'Use the original text' : `Retell it at ${esc(st.level)}`}
+        </button>
+      </div>` : ''}
+      <span class="tb-wiz-tool-note" id="tb-news-note">${esc(st.note || 'Pick a story. It is retold at your level, the facts stay the same.')}</span>
+    </div>`;
+  if (!st.topics) loadNewsTopics();
+  else if (items == null && !st.loading) loadNewsTopic(st.topic);
+}
+
+function _wizNewsRerender() {
+  const host = document.getElementById('tb-wiz-source-tools');
+  if (host && boardWizardSource()?.news) _wizRenderNews(host);
+}
+
+async function loadNewsTopics() {
+  const st = _wizNewsState;
+  if (!st || st.loadingTopics) return;
+  st.loadingTopics = true;
+  try {
+    const res = await apiFetch('/api/ai/news');
+    const data = await res.json().catch(() => null);
+    st.topics = Array.isArray(data?.topics) ? data.topics : [];
+  } catch (_) { st.topics = []; }
+  st.loadingTopics = false;
+  st.items = null;
+  loadNewsTopic(st.topic);
+}
+
+async function loadNewsTopic(key) {
+  const st = _wizNewsState;
+  if (!st) return;
+  st.topic = key;
+  st.items = null;
+  st.picked = null;
+  st.loading = true;
+  st.note = '';
+  _wizNewsRerender();
+  const ticket = st.ticket = (st.ticket || 0) + 1;
+  let items = [];
+  try {
+    const res = await apiFetch(`/api/ai/news?topic=${encodeURIComponent(key)}`);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) st.note = data?.error || 'The news could not be loaded right now.';
+    items = Array.isArray(data?.items) ? data.items : [];
+  } catch (_) { st.note = 'The news could not be loaded right now.'; }
+  /* Учитель мог уже переключить рубрику - поздний ответ старой не нужен. */
+  if (ticket !== st.ticket) return;
+  st.loading = false;
+  st.items = items;
+  _wizNewsRerender();
+}
+
+function pickNewsStory(i) {
+  const st = _wizNewsState;
+  if (!st || !st.items || st.busy) return;
+  st.picked = st.picked === i ? null : i;
+  st.note = '';
+  _wizNewsRerender();
+  document.querySelector('.tb-news-pick')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function setNewsLevel(level) {
+  const st = _wizNewsState;
+  if (!st || st.busy) return;
+  st.level = level;
+  /* Уровень урока и уровень пересказа - одно и то же: задания вокруг
+     текста строятся по полю Level конструктора. */
+  const sel = document.getElementById('tbuilder-level');
+  if (sel && level !== 'original') { sel.value = level; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+  _wizNewsRerender();
+}
+
+async function useNewsStory() {
+  const st = _wizNewsState;
+  const story = st && st.items && st.items[st.picked];
+  if (!story || st.busy) return;
+  const say = msg => { st.note = msg; const n = document.getElementById('tb-news-note'); if (n) n.textContent = msg; };
+  st.busy = true;
+  _wizNewsRerender();
+  say('Reading the article…');
+  try {
+    const res = await apiFetch(`/api/ai/news-article?url=${encodeURIComponent(story.url)}`);
+    const art = await res.json().catch(() => null);
+    if (!res.ok || !art?.text) { say(art?.error || 'That story could not be read. Try another one.'); return; }
+    const source = art.source || story.source;
+    const date = (art.published || story.published) ? new Date(art.published || story.published) : null;
+    const when = date && !isNaN(date) ? date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    let text = art.text;
+    let title = art.title || story.title;
+    let vocab = [];
+    const original = st.level === 'original';
+    if (!original) {
+      say(`Retelling ${art.words} words at ${st.level}…`);
+      await _ensureGenLoaded();
+      const base = readTeacherToolBuilderInput();
+      const out = await requestServerTeacherTool({
+        ...base,
+        tool: { id: 'news-graded' },
+        level: st.level,
+        topic: title.slice(0, 150),
+        source: art.text,
+        vocab: '',
+        extra: '',
+      }, 45000);
+      const card = Array.isArray(out?.cards) ? out.cards.find(c => c && c.text) : null;
+      if (!card) {
+        const why = _lastAiToolError?.message;
+        say(why ? `${why} You can still use the original text.` : 'The retelling did not come back. Try again, or use the original text.');
+        return;
+      }
+      text = String(card.text).replace(/\*\*/g, '').trim();
+      if (card.title) title = String(card.title).replace(/\*\*/g, '').trim();
+      vocab = Array.isArray(out.vocab) ? out.vocab.map(w => String(w).trim()).filter(Boolean) : [];
+    }
+    /* Без адреса: строка едет на доску ученику, а ссылка на оригинал
+       остаётся учителю в панели выше. */
+    const credit = `${original ? 'From' : `Retold at ${st.level} from`} ${source}${when ? `, ${when}` : ''}.`;
+    if (boardLessonWizard) boardLessonWizard.news = { url: story.url, source, level: st.level, vocab, credit };
+    _wizFillSource(text);
+    const topic = document.getElementById('tbuilder-topic');
+    if (topic) { topic.value = title.slice(0, 120); topic.dispatchEvent(new Event('input', { bubbles: true })); }
+    const n = text.split(/\s+/).length;
+    say(original
+      ? `The original article is below (${n} words). Check it, then create the draft.`
+      : `Retold at ${st.level}: ${art.words} → ${n} words. Edit it below if you like, then create the draft.`);
+    document.getElementById('tbuilder-source')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  } catch (err) {
+    console.warn('[wizard] news story failed', err);
+    say('That story could not be prepared right now.');
+  } finally {
+    st.busy = false;
+    _wizNewsRerender();
   }
 }
 
@@ -16547,8 +16752,16 @@ function _ttOwnTextOutput(base, keys) {
     writing:   { cat:'writing',   kind:'Model',        card:'✍️ Model text',     name:'Model text'     },
     grammar:   { cat:'grammar',   kind:'In context',   card:'📖 The form in context', name:'The form in context' },
   }[skill] || { cat:'reading', kind:'Reading Text', card:'📖 Reading text', name:'Reading text' };
-  const words = String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
-  const body = keys.includes('bold-vocab') && words.length ? _ttBoldFirstOccurrences(text, words) : text;
+  /* Пересказанная новость приносит свои слова урока (их выбрал пересказ,
+     поле vocab у add-text скрыто) и строку об источнике. Слова берутся
+     только те, что остались в тексте после правок учителя. */
+  const news = skill === 'reading' && boardLessonWizard && boardLessonWizard.news;
+  const newsWords = news && Array.isArray(news.vocab)
+    ? news.vocab.filter(w => text.toLowerCase().includes(String(w).toLowerCase()))
+    : [];
+  const words = [...new Set([...String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean), ...newsWords])];
+  const credit = news && news.credit ? `\n\n${news.credit}` : '';
+  const body = (keys.includes('bold-vocab') && words.length ? _ttBoldFirstOccurrences(text, words) : text) + credit;
   const heading = (base.topic || '').trim();
   return {
     engine: 'teacher-text',

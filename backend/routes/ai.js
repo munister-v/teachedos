@@ -7,6 +7,7 @@ const aiEngine = require('../lib/aiEngine');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
+const newsFeeds = require('../lib/newsFeeds');
 const { effectivePlanKey } = require('../lib/billing');
 
 /* Потолки платных планов подняты вслед за сведением резерва с фактом: пока
@@ -219,6 +220,7 @@ const TOOL_META = {
   'three-titles': ['reading', 'Titles'],
   'summary-task': ['reading', 'Summary'],
   'simplify-text': ['reading', 'Adaptation'],
+  'news-graded': ['reading', 'Reading Text'],
   'gist-detail': ['reading', 'Reading Flow'],
   'generate-text': ['reading', 'Reading Text'],
   'tf-not-given': ['reading', 'Check'],
@@ -2004,6 +2006,37 @@ router.get('/web-text', webToolsLimiter, async (req, res) => {
   } catch (err) {
     console.error('[ai/web-text]', err.message);
     res.status(502).json({ error: 'Could not read that page right now' });
+  }
+});
+
+/* ── Новости для урока чтения ──────────────────────────────────────────
+   Список рубрик, свежие заголовки рубрики и текст выбранной статьи. Ходят
+   только по закрытому списку изданий (см. lib/newsFeeds.js), ленты кешируются
+   на 20 минут, поэтому лимит мягче, чем у /web-text: учитель листает рубрики,
+   прежде чем выбрать одну статью. */
+const newsLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.AI_NEWS_PER_HOUR || 150),
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many requests. Try again later.' },
+});
+router.get('/news', requireAuth, newsLimiter, async (req, res) => {
+  try {
+    if (!req.query.topic) return res.json({ topics: newsFeeds.topics() });
+    res.json(await newsFeeds.topicItems(String(req.query.topic)));
+  } catch (err) {
+    console.error('[ai/news]', err.message);
+    res.status(502).json({ error: 'The news could not be loaded right now' });
+  }
+});
+router.get('/news-article', requireAuth, newsLimiter, async (req, res) => {
+  try {
+    const out = await newsFeeds.readArticle(req.query.url);
+    if (out.error) return res.status(out.status || 502).json({ error: out.error });
+    res.json(out);
+  } catch (err) {
+    console.error('[ai/news-article]', err.message);
+    res.status(502).json({ error: 'The story could not be read right now' });
   }
 });
 

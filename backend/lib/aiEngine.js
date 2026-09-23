@@ -143,7 +143,7 @@ function listModels() {
 const HEAVY_TOOLS = new Set([
   // читання: розуміння й екзаменаційні формати
   'abcd-text', 'gist-detail', 'three-titles', 'choose-summary', 'reading-bits',
-  'true-false', 'summary-task', 'simplify-text', 'text-topic-vocab', 'generate-text',
+  'true-false', 'summary-task', 'simplify-text', 'news-graded', 'text-topic-vocab', 'generate-text',
   'tf-not-given', 'vocab-in-context', 'reference-questions', 'match-headings', 'sentence-insertion',
   // мислення й мовлення
   'open-questions', 'discussion', 'question-ladder', 'debate-cards', 'roleplay-cards',
@@ -782,6 +782,18 @@ function shapeSpec(input) {
     return {
       task: `${head} ${mode[0].toUpperCase() + mode.slice(1)}. Return one card whose text is the adapted version, plus a short teacher-note card. Keep the main ideas.${context}`,
       schema: '{"cards":[{"title":"...","text":"..."}],"vocab":["word","word"]}',
+    };
+  }
+  /* Новость на уровне класса: учитель выбрал статью из ленты (Guardian, BBC …),
+     и её надо не «упростить слегка», как simplify-text, а пересказать как
+     graded reader: те же факты, имена, числа и даты, но предложения и лексика
+     уровня. Выдумывать нельзя - это новость, а не рассказ по мотивам.
+     Отдельный инструмент, а не флаг simplify-text: там одна карточка плюс
+     заметка учителю и нет ни заголовка, ни длины по уровню. */
+  if (toolId === 'news-graded') {
+    return {
+      task: `${head} The source is a real news article. Retell it as a graded news story for ${level} learners, about ${words} words, in 3-5 short paragraphs. Keep it TRUE to the source: the same facts, people, places, numbers and dates, in a clear order (what happened first, then why it matters). Do NOT add facts, quotes or opinions that are not in the source; you may drop minor details and side stories. Sentences, grammar and vocabulary must fit ${level} exactly - rewrite, do not copy long source sentences. Keep at most one short quote if the source has a memorable one. Ignore photo captions, "related stories" lines and newsletter notices if any slipped into the source. Return ONE card: "title" = a clear ${level} headline (max 10 words); "text" = the story, paragraphs separated by a blank line, no headline inside, no markdown, no bold. In "vocab" list the 6-8 most useful words or short phrases for ${level} learners that appear EXACTLY as written in your story.${context}`,
+      schema: '{"cards":[{"title":"headline","text":"paragraph\\n\\nparagraph"}],"vocab":["word"]}',
     };
   }
   if (toolId === 'text-topic-vocab') {

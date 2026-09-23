@@ -1071,6 +1071,13 @@ const BOARD_LESSON_SOURCES = [
   {key:'link',  mode:'source',   field:'source', icon:'🔗', title:'A link', link:true,
    skills:['reading','listening'],
    hint:'A YouTube video (its transcript) or a web page.'},
+  /* Свежая статья из открытых изданий (Guardian, BBC, ScienceDaily …),
+     пересказанная на уровне класса (news-graded). mode:'source' - после
+     пересказа текст ведёт себя как учительский: дальше обычный урок чтения
+     на add-text, и никакая следующая генерация его уже не переписывает. */
+  {key:'news',  mode:'source',   field:'source', icon:'📰', title:'A fresh news story', news:true,
+   skills:['reading'],
+   hint:'Pick today\'s article from The Guardian, BBC and others. It is retold at your level, the tasks are built around it.'},
   {key:'words', mode:'generate', field:'vocab',  icon:'🔤', title:'Just my word list', tool:'text-topic-vocab',
    skills:['reading'],
    hint:'Give the words you need to cover. The text gets written around them.'},
