@@ -100,10 +100,11 @@ html::after  { width:380px; height:380px; right:-120px; bottom:-140px; backgroun
 .ip-status.err { color:var(--ip-coral); }
 .ip-status.ok { color:var(--ip-ink); font-weight:650; }
 .ip-foot {
-  padding:14px 26px 18px; font-size:12px; line-height:1.5; color:var(--ip-sage); text-align:center;
+  /* Было var(--ip-sage) #A3A48D - 2.5:1 на белом, подпись почти не читалась. */
+  padding:14px 26px 18px; font-size:12px; line-height:1.5; color:#5C5C66; text-align:center;
   border-top:1px solid rgba(36,40,44,.08);
 }
-.ip-foot a { color:var(--ip-olive); }
+.ip-foot a { color:var(--ip-ink); }
 
 /* ── Form (account invite) ──────────────────────────────────────────── */
 .ip-form { display:grid; gap:14px; }
