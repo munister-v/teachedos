@@ -144,9 +144,15 @@ const WALL_GROUPS = [
 const WALL_CACHE_KEY = 'teachedos_wallpaper';
 let _wallValue = null;
 
+/* Без расширения: адрес вида /…/x.jpg nginx на проде отдаёт как статику
+   с диска (404), до API он не доходит. Сервер сам находит файл по id. */
+function wallFileUrl(value) {
+  const id = String(value || '').slice(7).replace(/\.(jpg|png|webp)$/, '');
+  return `${API_BASE}/api/users/wallpaper/${encodeURIComponent(id)}`;
+}
 function wallCss(value) {
   if (value && value.startsWith('custom:')) {
-    return `url("${API_BASE}/api/users/wallpaper/${encodeURIComponent(value.slice(7))}") center / cover no-repeat, #EFEFF2`;
+    return `url("${wallFileUrl(value)}") center / cover no-repeat, #F6F6EF`;
   }
   const key = value && value.startsWith('preset:') ? value.slice(7) : null;
   return (WALL_PRESETS.find(p => p.key === key) || WALL_PRESETS[0]).css;
@@ -313,7 +319,7 @@ async function uploadWallpaper(file) {
     const probe = new Image();
     probe.onload = () => res(true);
     probe.onerror = () => res(false);
-    probe.src = `${API_BASE}/api/users/wallpaper/${encodeURIComponent(r.data.wallpaper.slice(7))}`;
+    probe.src = wallFileUrl(r.data.wallpaper);
   });
   if (!ok) { say('The photo was uploaded but could not be shown. Try again.'); return; }
   applyWallpaper(r.data.wallpaper);

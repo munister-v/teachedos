@@ -31,8 +31,16 @@ function removeWallFile(value) {
 }
 
 // Картинку отдаём ДО requireAuth - см. выше.
+/* Адрес без расширения (/wallpaper/<24 hex>) - основной. С расширением
+   .jpg/.webp запрос на проде не доходит сюда: nginx ловит картинки своим
+   правилом статики и отвечает 404 с диска, а фон стола оставался серым. */
 router.get('/wallpaper/:file', (req, res) => {
-  const file = String(req.params.file || '');
+  let file = String(req.params.file || '');
+  if (/^[0-9a-f]{24}$/.test(file)) {
+    const ext = ['jpg', 'webp', 'png'].find(e => fs.existsSync(path.join(WALL_DIR, `${file}.${e}`)));
+    if (!ext) return res.status(404).end();
+    file = `${file}.${ext}`;
+  }
   if (!WALL_FILE_RE.test(file)) return res.status(404).end();
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.sendFile(path.join(WALL_DIR, file), err => { if (err && !res.headersSent) res.status(404).end(); });
