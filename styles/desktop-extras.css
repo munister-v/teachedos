@@ -189,3 +189,92 @@ body.fx #wg-pulse .wg-pulse-title {
 }
 .wall-credit:hover { opacity:1; text-decoration:underline; }
 @media (max-width: 860px) { .wall-credit { display:none; } }
+
+/* ── Стекло по макету «Главная стр» ───────────────────────────────────────
+   На ровном светлом фоне figma-theme.css делает окна белыми: стекло там
+   растворялось. Когда за окнами снимок, тёмный фон или небо по умолчанию
+   (класс wall-glass ставит applyWallpaper), стекло возвращается - как в
+   макете. Плотность подобрана под текст: #55555C на самом тёмном снимке
+   (river-night) держит не ниже 4.5:1, поэтому на тёмных фонах стекло плотнее. */
+body.fx.os-desktop.wall-glass:not(#_) {
+  --fx-glass:rgba(250,250,252,.66);
+  --fx-glass-strong:rgba(252,252,254,.8);
+  --fx-glass-line:rgba(255,255,255,.55);
+  --fx-shadow:0 30px 70px rgba(30,40,44,.20), 0 6px 18px rgba(30,40,44,.10);
+}
+body.fx.os-desktop.wall-glass.wall-dark:not(#_) {
+  --fx-glass:rgba(250,250,252,.82);
+  --fx-glass-strong:rgba(252,252,254,.88);
+}
+body.fx.os-desktop.wall-glass .win {
+  backdrop-filter:blur(34px) saturate(1.4) !important;
+  -webkit-backdrop-filter:blur(34px) saturate(1.4) !important;
+}
+
+/* Левая колонка окна досок - тёмное стекло со светлым текстом, как в макете. */
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans {
+  background:rgba(28,31,36,.74) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  backdrop-filter:blur(24px) saturate(1.2);
+  -webkit-backdrop-filter:blur(24px) saturate(1.2);
+}
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-section-label { color:rgba(255,255,255,.8) !important; }
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item { color:#FFFFFF !important; }
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item:hover { background:rgba(255,255,255,.12) !important; }
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item.active { background:rgba(255,255,255,.2) !important; color:#FFFFFF !important; }
+
+/* Плитки досок - матовые, а не белые карточки. */
+body.fx.os-desktop.wall-glass .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime) {
+  background:rgba(255,255,255,.62) !important;
+  border:1px solid rgba(255,255,255,.75) !important;
+}
+body.fx.os-desktop.wall-glass .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime):hover {
+  background:rgba(255,255,255,.85) !important;
+}
+body.fx.os-desktop.wall-glass :is(.curr-search) {
+  background:rgba(255,255,255,.6) !important; border-color:rgba(255,255,255,.8) !important;
+}
+
+/* ── Панель расписания ────────────────────────────────────────────────── */
+body.fx #fx-ghost-panel {
+  pointer-events:auto; cursor:pointer;
+  left:auto; right:344px; top:372px; height:auto;
+  /* Между окном досок (правый край ~662) и Student Pulse справа. */
+  width:clamp(280px, calc(100vw - 344px - 690px), 392px);
+  max-height:calc(100vh - 372px - 130px); overflow:hidden;
+  padding:10px 10px 14px;
+  background:var(--fx-glass); border:1px solid var(--fx-glass-line);
+  box-shadow:var(--fx-shadow);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+body.fx #fx-ghost-panel:hover { transform:translateY(-2px); }
+body.fx #fx-ghost-panel:focus-visible { outline:2px solid #161616; outline-offset:3px; }
+body.fx.os-desktop:not(.wall-glass) #fx-ghost-panel { background:#FFFFFF; border-color:rgba(22,22,22,.18); }
+.sp-card { background:#FFFFFF; border-radius:13px; padding:12px 12px 10px; box-shadow:0 6px 18px rgba(30,40,44,.08); }
+.sp-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.sp-title { font-size:14px; font-weight:700; color:#161616; letter-spacing:-.01em; }
+.sp-month { font-size:12px; color:#55555C; }
+.sp-add { margin-left:auto; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#161616;
+  border:1px solid rgba(22,22,22,.16); border-radius:999px; padding:3px 4px 3px 10px; }
+.sp-add i { font-style:normal; width:18px; height:18px; border-radius:50%; background:#CBF03C; display:grid; place-items:center; font-weight:700; }
+.sp-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.sp-day { display:flex; flex-direction:column; align-items:center; gap:3px; padding:5px 0 6px; border-radius:10px; position:relative; }
+.sp-day span { font-size:11px; color:#55555C; }
+.sp-day b { font-size:14px; font-weight:650; color:#161616; }
+.sp-day.has::after { content:''; position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; background:#161616; opacity:.5; }
+.sp-day.is-today { background:#CBF03C; }
+.sp-day.is-today span { color:#161616; }
+.sp-count { margin:14px 6px 8px; font-size:13px; color:#3A3A40; }
+.sp-count b { font-size:15px; color:#161616; }
+.sp-list { display:flex; flex-direction:column; gap:8px; padding:0 2px; }
+.sp-pill { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.86); border:1px solid rgba(255,255,255,.9);
+  border-radius:999px; padding:5px 14px 5px 5px; }
+.sp-av { width:30px; height:30px; flex-shrink:0; border-radius:50%; background:#EEE8FF; color:#161616; display:grid; place-items:center; font-size:11px; font-weight:700; }
+.sp-txt { min-width:0; display:flex; flex-direction:column; }
+.sp-txt b { font-size:13px; font-weight:650; color:#161616; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sp-txt small { font-size:11.5px; color:#55555C; }
+.sp-empty { font-size:13px; line-height:1.45; color:#3A3A40; background:rgba(255,255,255,.8); border-radius:12px; padding:10px 12px; }
+/* Невысокий экран: лишние строки прячутся целиком, а не обрезаются посередине. */
+@media (max-height:899px) { .sp-pill:nth-child(n+4) { display:none; } }
+@media (max-height:840px) { .sp-pill:nth-child(n+3) { display:none; } }
+@media (max-height:800px) { .sp-pill:nth-child(n+2) { display:none; } }

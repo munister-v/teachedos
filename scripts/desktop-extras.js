@@ -52,7 +52,7 @@ function fillAccountChip(user) {
     applyUserToDesktop = function (user) {
       orig(user);
       try { fillAccountChip(user); } catch (_) {}
-      try { loadWallpaper(); loadPulse(); } catch (_) {}
+      try { loadWallpaper(); loadPulse(); loadSchedPreview(); } catch (_) {}
     };
   }
   if (typeof _currentUser !== 'undefined' && _currentUser) fillAccountChip(_currentUser);
@@ -93,7 +93,11 @@ async function desktopSignOut() {
    палитры TeachEd (нейтральный «тёмно-белый», лайм, лавандовый); окна и
    виджеты белые, поэтому и тёмный фон остаётся читаемым. */
 const WALL_PRESETS = [
-  { key: null,       group: 'colour', title: 'TeachEd',  css: '#EFEFF2' },
+  /* Стандартный фон - небо из макета «Главная стр» (Figma): серые облака
+     сверху, бирюза снизу. На нём окна становятся стеклом (glass). Прежний
+     ровный светлый остался пресетом 'plain'. */
+  { key: null,       group: 'colour', title: 'TeachEd sky', glass: true, css: 'radial-gradient(55% 38% at 28% 16%, rgba(255,255,255,.38) 0%, transparent 70%), radial-gradient(45% 30% at 78% 26%, rgba(255,255,255,.24) 0%, transparent 70%), radial-gradient(70% 45% at 60% 100%, rgba(62,150,150,.55) 0%, transparent 70%), linear-gradient(180deg, #8C9194 0%, #A3A9AB 36%, #9DB6B5 64%, #6AA8A6 100%)' },
+  { key: 'plain',    group: 'colour', title: 'Plain',    css: '#EFEFF2' },
   { key: 'mist',     group: 'colour', title: 'Mist',     css: 'radial-gradient(120% 90% at 15% 10%, #FFFFFF 0%, transparent 55%), linear-gradient(160deg, #E9ECF2 0%, #DCE1EA 100%)' },
   { key: 'dawn',     group: 'colour', title: 'Lime dawn', css: 'radial-gradient(90% 70% at 85% 0%, rgba(205,242,79,.55) 0%, transparent 60%), linear-gradient(170deg, #F6F8EE 0%, #E7EAE3 100%)' },
   { key: 'meadow',   group: 'colour', title: 'Meadow',   css: 'radial-gradient(80% 60% at 10% 90%, rgba(168,208,43,.35) 0%, transparent 60%), radial-gradient(70% 60% at 90% 20%, rgba(124,138,123,.25) 0%, transparent 60%), #E8ECE4' },
@@ -154,7 +158,12 @@ function applyWallpaper(value) {
   const key = _wallValue && _wallValue.startsWith('preset:') ? _wallValue.slice(7) : null;
   const preset = WALL_PRESETS.find(p => p.key === key);
   desk.style.setProperty('--desk-wall', wallCss(_wallValue));
-  desk.classList.toggle('has-wall', !!_wallValue);
+  desk.classList.toggle('has-wall', true);
+  /* Стекло окон - только там, где за ним есть что размывать: снимок, тёмный
+     фон или небо по умолчанию. На ровных светлых цветах и узорах стекло
+     растворяется в фоне, там окна остаются белыми (figma-theme.css). */
+  const glass = !preset || !!(preset.glass || preset.dark || preset.group === 'photo');
+  document.body.classList.toggle('wall-glass', glass);
   /* Тёмный фон: подписи на самом столе (скрытые виджеты, пустые места)
      переключаются на светлые. Свой снимок считаем светлым - окна и
      виджеты всё равно на белых подложках. */
@@ -577,5 +586,61 @@ async function pulseArchive(i) {
   renderPulse();
 }
 
+/* ── Превью расписания (панель из макета) ──────────────────────────────── */
+/* В макете «Главная стр» за окном досок стоит стеклянная панель с неделей
+   расписания. Раньше на её месте была пустая декоративная плашка, и её
+   принимали за сломанное окно. Теперь это живая неделя: дни, сегодняшний
+   выделен, ближайшие занятия пилюлями; клик открывает окно Schedule. */
+const SP_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+function _spInitials(name) {
+  return String(name || 'C').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || 'C';
+}
+function renderSchedPreview(all) {
+  const box = document.getElementById('fx-ghost-panel');
+  if (!box) return;
+  const now = new Date();
+  const today = (now.getDay() + 6) % 7; // 0=Пн, как в базе
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const toMin = t => { const [h, m] = String(t || '0:0').split(':'); return +h * 60 + +m; };
+  const monday = new Date(now); monday.setDate(now.getDate() - today);
+  const weekly = (all || []).filter(s => s.recurring !== false && !s.specific_date);
+  const order = s => ((s.day - today + 7) % 7) * 1440 + toMin(s.start_time);
+  const upcoming = weekly
+    .filter(s => !(s.day === today && toMin(s.end_time) <= nowMin))
+    .sort((a, b) => order(a) - order(b));
+  const month = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const days = SP_DAYS.map((d, i) => {
+    const dt = new Date(monday); dt.setDate(monday.getDate() + i);
+    const has = weekly.some(s => s.day === i);
+    return `<div class="sp-day${i === today ? ' is-today' : ''}${has ? ' has' : ''}"><span>${d}</span><b>${dt.getDate()}</b></div>`;
+  }).join('');
+  const pills = upcoming.slice(0, 4).map(s => {
+    const who = s.group_name || s.title || 'Class';
+    const when = s.day === today ? 'Today' : s.day === (today + 1) % 7 ? 'Tomorrow' : SP_DAYS[s.day];
+    return `<div class="sp-pill"><span class="sp-av">${esc(_spInitials(who))}</span>
+      <span class="sp-txt"><b>${esc(who)}</b><small>${when} · ${esc(String(s.start_time).slice(0, 5))}${s.level ? ' · ' + esc(s.level) : ''}</small></span></div>`;
+  }).join('');
+  box.innerHTML = `
+    <div class="sp-card">
+      <div class="sp-head"><span class="sp-title">Schedule</span><span class="sp-month">${esc(month)}</span>
+        <span class="sp-add">Add <i>+</i></span></div>
+      <div class="sp-week">${days}</div>
+    </div>
+    <div class="sp-count"><b>${upcoming.length}</b> ${upcoming.length === 1 ? 'class' : 'classes'} this week</div>
+    <div class="sp-list">${pills || '<div class="sp-empty">No classes this week yet. Open the schedule to add one.</div>'}</div>`;
+}
+async function loadSchedPreview() {
+  const box = document.getElementById('fx-ghost-panel');
+  if (!box || !_authToken) return;
+  if (!box.dataset.wired) {
+    box.dataset.wired = '1';
+    const open = () => { if (typeof dockApp === 'function') dockApp('schedule'); };
+    box.addEventListener('click', open);
+    box.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  }
+  const r = await dxJson('/api/schedule').catch(() => null);
+  if (r && r.ok) renderSchedPreview(r.data?.schedule || []);
+}
+
 // Если пользователь уже известен к моменту загрузки файла (кэш дашборда).
-if (typeof _currentUser !== 'undefined' && _currentUser) { loadWallpaper(); loadPulse(); }
+if (typeof _currentUser !== 'undefined' && _currentUser) { loadWallpaper(); loadPulse(); loadSchedPreview(); }

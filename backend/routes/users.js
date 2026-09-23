@@ -18,7 +18,7 @@ const WALL_DIR = process.env.WALLPAPER_DIR
 const WALL_FILE_RE = /^[0-9a-f]{24}\.(jpg|png|webp)$/;
 // Ключи совпадают с WALL_PRESETS в scripts/desktop-extras.js.
 const WALL_PRESETS = new Set([
-  'mist', 'dawn', 'meadow', 'lavender', 'dusk', 'graphite',
+  'plain', 'mist', 'dawn', 'meadow', 'lavender', 'dusk', 'graphite',
   'dots', 'paper', 'lime-dots', 'stripes', 'night-grid',
   'carpathians', 'fjord', 'lake', 'laurel', 'fog', 'hills', 'moss', 'alley', 'frost', 'sunset', 'harbour', 'canals', 'river-night',
 ]);
