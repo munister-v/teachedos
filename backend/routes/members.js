@@ -84,7 +84,10 @@ router.get('/roster', requireAuth, async (req, res) => {
         ) j ON TRUE
         LEFT JOIN LATERAL (
           SELECT ROUND(AVG(qr.pct))::int AS quiz_avg, COUNT(*)::int AS quiz_count
-            FROM quiz_results qr JOIN mine m ON m.id = qr.board_id
+            -- quiz_results.board_id is text, boards.id is uuid: compared as
+            -- they are, Postgres refused ("operator does not exist: uuid = text")
+            -- and the whole roster answered 500
+            FROM quiz_results qr JOIN mine m ON m.id::text = qr.board_id
            WHERE qr.user_id = u.id
         ) q ON TRUE
        GROUP BY u.id, j.id, j.level, j.lessons_left, q.quiz_avg, q.quiz_count
