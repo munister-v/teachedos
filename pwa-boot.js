@@ -19,7 +19,7 @@
          пользователя почти ничего не меняла.
      Имя теперь то же, что у константы в scripts/board-app.js, - его бамп
      версии уже ловит, так что рассинхрон больше не повторится. */
-  const TEACHEDOS_ASSET_VERSION = '932';
+  const TEACHEDOS_ASSET_VERSION = '935';
   const CACHE_VERSION_KEY = 'teachedos_asset_version';
   const purgeOldRuntimeCaches = () => {
     try {

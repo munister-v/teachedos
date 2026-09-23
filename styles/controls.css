@@ -49,7 +49,7 @@ body:not(#_):not(#__) :is(
     .form-input,
     .setting-input,
     .input
-):not(.curr-search input):not(.sb-search input):not(.bs-search):not(.hw-search input):not(.search-wrap input) {
+):not(.curr-search input):not(.sb-search input):not(.bs-search):not(.hw-search input):not(.search-wrap input):not(.lib-search input) {
   border-width: 1px !important;
   border-style: solid !important;
   border-color: rgba(32, 32, 44, .58) !important;
@@ -69,7 +69,7 @@ body:not(#_):not(#__) :is(.btn.ghost, .btn.soft, .btn-ghost, .btn.btn-ghost) {
    пилюли тёмный прямоугольник на .58, а сама пилюля оставалась на .16, то
    есть ниже порога, ради которого этот файл и существует. Обёртка забирает
    границу себе, поле её теряет. */
-body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) {
+body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap, .lib-search) {
   border: 1px solid rgba(32, 32, 44, .40) !important;
 }
 
@@ -78,8 +78,8 @@ body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) {
    tool-window.css, которое перебивает и unify.css, и figma-theme.css с их
    `border:none`. Внутри пилюли она читается как вторая рамка независимо от
    того, насколько бледная. Гасим здесь, где порог и назначается. */
-body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) > input,
-body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap) input {
+body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap, .lib-search) > input,
+body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap, .lib-search) input {
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;

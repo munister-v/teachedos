@@ -794,6 +794,7 @@ const WGM = (function () {
 function openApp(id) {
   WM.open(id);
   if (id === 'notes' && typeof notesLoad === 'function' && !_notesLoaded) notesLoad();
+  if (id === 'schedule') requestAnimationFrame(() => schScrollToToday());
 }
 
 /* Клик по иконке дока — переключатель, как в macOS: окно открыто и в фокусе →
@@ -1366,12 +1367,15 @@ let schYear = _now.getFullYear(), schMonth = _now.getMonth();
 let SCHEDULE_RAW = []; // populated from /api/schedule (recurring weekly slots)
 const EVENT_CLS = ['', 'blue', 'green', 'orange'];
 function eventsForDate(y, m, d) {
-  const dow = new Date(y, m, d).getDay();
+  // В базе день недели 0=Пн … 6=Вс (как в schedule.html и виджетах), а
+  // getDay() считает от воскресенья - без сдвига урок уезжал на день раньше.
+  const dow = (new Date(y, m, d).getDay() + 6) % 7;
   return SCHEDULE_RAW
     .filter(s => s.day === dow)
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
     .map((s, i) => ({
-      text: `${(s.group_name || s.title || 'Class').slice(0, 8)} ${s.start_time.slice(0,5)}${s.level ? ' ' + s.level : ''}`,
+      text: `${s.start_time.slice(0,5)} ${String(s.group_name || s.title || 'Class').split(/\s+/)[0]}`,
+      title: `${s.group_name || s.title || 'Class'} · ${s.start_time.slice(0,5)}-${String(s.end_time).slice(0,5)}${s.level ? ' · ' + s.level : ''}`,
       cls: EVENT_CLS[i % EVENT_CLS.length],
     }));
 }
@@ -1388,13 +1392,13 @@ function schRender() {
   document.getElementById('sch-month').textContent = SCH_MONTHS[schMonth] + ' ' + schYear;
   const grid = document.getElementById('sch-grid');
   grid.innerHTML = '';
-  const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dows = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   dows.forEach(d => {
     const el = document.createElement('div');
     el.className = 'sch-dow'; el.textContent = d;
     grid.appendChild(el);
   });
-  const first = new Date(schYear, schMonth, 1).getDay();
+  const first = (new Date(schYear, schMonth, 1).getDay() + 6) % 7; // неделя с понедельника
   const total = new Date(schYear, schMonth+1, 0).getDate();
   const today = new Date();
   for (let i = 0; i < first; i++) {
@@ -1412,7 +1416,7 @@ function schRender() {
     let html = '<div class="sch-day-num">' + d + '</div>';
     if (EVENTS[key]) {
       EVENTS[key].forEach(ev => {
-        html += '<div class="sch-event ' + ev.cls + '">' + ev.text + '</div>';
+        html += '<div class="sch-event ' + ev.cls + '" title="' + esc(ev.title) + '">' + esc(ev.text) + '</div>';
       });
     }
     el.innerHTML = html;
@@ -1427,6 +1431,17 @@ function schRender() {
       grid.appendChild(el);
     }
   }
+}
+/* Окно ниже месяца: неделя с сегодняшним днём часто оказывалась под
+   краем, и окно открывалось на прошедших числах. Докручиваем к ней. */
+function schScrollToToday() {
+  const cell = document.querySelector('#sch-grid .sch-cell.today');
+  const wrap = cell && cell.closest('.sch-grid-wrap');
+  if (!wrap) return;
+  const head = document.querySelector('#sch-grid .sch-dow');
+  const dy = cell.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
+  wrap.scrollTop = Math.max(0, wrap.scrollTop + dy - (head ? head.offsetHeight : 0) - 6);
+
 }
 function schPrev() { schMonth--; if(schMonth<0){schMonth=11;schYear--;} schRender(); }
 function schNext() { schMonth++; if(schMonth>11){schMonth=0;schYear++;} schRender(); }

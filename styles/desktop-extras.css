@@ -357,3 +357,56 @@ body.fx.os-desktop:not(#_) #wg-pulse { top:auto; bottom:85px; right:auto; left:5
 @media (max-width:1280px), (max-height:760px) {
   body.fx.os-desktop #fx-analytics { display:none; }
 }
+
+/* ── Окна рабочего стола на стекле ────────────────────────────────────── */
+/* Students: липкая шапка списка была белой плитой (+ белая тень вверх) - на
+   стекле читалась заплаткой. Прозрачная с размытием: без своего размытия:
+   вложенный backdrop-filter заново осветлял полосу (см. win-titlebar). */
+body.fx.os-desktop.wall-glass:not(#_) .st-list-head {
+  background:transparent !important; box-shadow:none !important;
+}
+/* Tools: поле поиска внутри капсулы рисовало вторую рамку - .lib-search
+   добавлен в список обёрток поиска в controls.css. */
+body.fx.os-desktop:not(#_) .lib-search input:focus { outline:none !important; }
+body.fx.os-desktop:not(#_) .lib-search { background:rgba(255,255,255,.72) !important; }
+body.fx.os-desktop:not(#_) #win-tools select {
+  border:1px solid rgba(22,22,22,.14) !important; border-radius:999px !important;
+  box-shadow:none !important; background-color:rgba(255,255,255,.72) !important;
+}
+
+/* Schedule: 1fr = minmax(auto,1fr), и неразрывная подпись урока
+   раздвигала колонку - суббота уезжала за край окна. */
+body.fx.os-desktop:not(#_) .sch-grid { grid-template-columns:repeat(7, minmax(0, 1fr)) !important; }
+body.fx.os-desktop:not(#_) .sch-dow { font-family:inherit !important; font-size:11px !important; letter-spacing:0 !important;
+  text-transform:none !important; color:var(--fx-mute) !important; font-weight:600 !important; }
+body.fx.os-desktop:not(#_) .sch-day-num { font-family:inherit !important; color:var(--fx-ink-2) !important; }
+body.fx.os-desktop:not(#_) .sch-cell.today { background:rgba(203,240,60,.14) !important; }
+body.fx.os-desktop:not(#_) .sch-cell.today .sch-day-num { background:var(--fx-lime) !important; color:var(--fx-ink) !important; }
+body.fx.os-desktop:not(#_) .sch-event,
+body.fx.os-desktop:not(#_) .sch-event:is(.blue,.green,.orange) {
+  font-family:inherit !important; font-size:11px !important; font-weight:600 !important;
+  background:rgba(255,255,255,.82) !important; border:1px solid rgba(22,22,22,.10) !important;
+  border-left:3px solid var(--fx-lime) !important; color:var(--fx-ink) !important;
+  border-radius:6px !important; padding:2px 6px !important;
+}
+body.fx.os-desktop:not(#_) .sch-event.blue { border-left-color:#B9A8F5 !important; }
+body.fx.os-desktop:not(#_) .sch-event.green { border-left-color:#8FD6B4 !important; }
+body.fx.os-desktop:not(#_) .sch-event.orange { border-left-color:#F5B971 !important; }
+/* Стрелки месяца оставались розово-оранжевыми из прошлой темы. */
+body.fx.os-desktop:not(#_) .sch-nav-btn {
+  background:rgba(255,255,255,.72) !important; border:1px solid rgba(22,22,22,.16) !important;
+  color:var(--fx-ink) !important; border-radius:999px !important;
+}
+body.fx.os-desktop:not(#_) .sch-nav-btn:hover { background:#FFFFFF !important; }
+/* Строка дней недели липкая: при прокрутке к текущей неделе она уезжала,
+   и числа оставались без подписи дня. */
+body.fx.os-desktop:not(#_) .sch-dow {
+  position:sticky; top:0; z-index:2; background:#F7F7F9 !important;
+}
+/* Окно Schedule: прокручивается только сетка месяца, шапка окна стоит.
+   Раньше прокручивалось всё окно, и текст уезжал под кнопки светофора. */
+body.fx.os-desktop:not(#_) #win-schedule .win-main {
+  display:flex !important; flex-direction:column !important; overflow:hidden !important;
+}
+body.fx.os-desktop:not(#_) #win-schedule .sch-body { flex:1 1 auto !important; min-height:0 !important; }
+body.fx.os-desktop:not(#_) #win-schedule .sch-grid-wrap { flex:1 1 auto !important; min-height:0 !important; overflow:auto !important; }
