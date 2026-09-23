@@ -13850,7 +13850,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '918';
+const TEACHEDOS_ASSET_VERSION = '919';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15149,6 +15149,9 @@ function boardStageOptions(toolId) {
    вошедший, читал это как «навык сломан». Причина известна серверу, надо
    лишь донести её (_lastAiToolError ставит requestServerTeacherTool). */
 function _stageFailureReason() {
+  /* Гостю AI-задания не строятся вовсе - запрос даже не уходит, и без
+     этой строки он видел голое «Could not build» без причины. */
+  if (typeof authToken !== 'undefined' && !authToken) return 'Sign in to build these with AI.';
   const e = (typeof _lastAiToolError !== 'undefined' && _lastAiToolError) || null;
   if (!e) return '';
   if (e.code === 'AI_MONTHLY_BUDGET_REACHED') {
@@ -16441,7 +16444,14 @@ async function importLessonLink() {
     if (!text) { say('Nothing readable came back from that link.'); return; }
     _wizFillSource(text);
     const topic = document.getElementById('tbuilder-topic');
-    if (topic && !topic.value.trim() && data.title) topic.value = String(data.title).slice(0, 120);
+    if (topic && !topic.value.trim() && data.title) {
+      topic.value = String(data.title).slice(0, 120);
+      /* Без события форма не узнаёт о теме: исходник выше уже отчитался,
+         когда тема была ещё пустой, и кнопка «Create draft» оставалась
+         выключенной, пока учитель сам не тронет поле. Именно так урок
+         по видео «перестал создаваться». */
+      topic.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     /* Само видео запоминаем отдельно от транскрипта: на доску урок по
        аудированию кладёт ПЛЕЕР, а транскрипт остаётся исходником для
        заданий и появляется на доске только если учитель его отметил. */
