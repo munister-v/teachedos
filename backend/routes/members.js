@@ -4,7 +4,7 @@ const pool    = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { normalizePlanKey, getPlanLimit } = require('../lib/billing');
 const crypto = require('crypto');
-const { sendEmail, studentInviteEmail, emailConfigured } = require('../lib/email');
+const { sendEmail, studentInviteEmail, emailConfigured, SITE } = require('../lib/email');
 
 async function loadBoardOwner(boardId, ownerId) {
   const { rows } = await pool.query(
@@ -48,6 +48,79 @@ async function enforceStudentLimit({ boardId, ownerPlan, inviteeId }) {
   }
   return null;
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Join links - one reusable link per board.
+   Typing every student's email is slow; the teacher copies the link into
+   a chat instead. Whoever opens it (join.html) and signs in - or signs up -
+   is seated on the board as a student. "New link" rotates the token, so an
+   old link that leaked stops working.
+────────────────────────────────────────────────────────────── */
+const joinUrl = token => `${SITE}/join.html?t=${encodeURIComponent(token)}`;
+
+// POST /api/members/:boardId/join-link  body: { rotate? }  - owner only
+router.post('/:boardId/join-link', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, join_token FROM boards WHERE id=$1 AND user_id=$2', [req.params.boardId, req.user.id]
+    );
+    if (!rows.length) return res.status(403).json({ error: 'Not your board' });
+    let token = rows[0].join_token;
+    if (!token || req.body?.rotate) {
+      token = crypto.randomBytes(12).toString('base64url');
+      await pool.query('UPDATE boards SET join_token=$1 WHERE id=$2', [token, rows[0].id]);
+    }
+    res.json({ token, url: joinUrl(token) });
+  } catch (err) {
+    console.error('[members] join-link error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+async function boardByJoinToken(token) {
+  if (!token || String(token).length > 64) return null;
+  const { rows } = await pool.query(
+    `SELECT b.id, b.name, b.user_id, u.name AS teacher_name, u.plan AS teacher_plan
+       FROM boards b JOIN users u ON u.id = b.user_id
+      WHERE b.join_token = $1`,
+    [String(token)]
+  );
+  return rows[0] || null;
+}
+
+// GET /api/members/join/:token  - public: what the link leads to
+router.get('/join/:token', async (req, res) => {
+  try {
+    const b = await boardByJoinToken(req.params.token);
+    if (!b) return res.status(404).json({ error: 'This link no longer works - ask your teacher for a new one' });
+    res.json({ board: { id: b.id, name: b.name }, teacher: { name: b.teacher_name || 'Your teacher' } });
+  } catch (err) {
+    console.error('[members] join lookup error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/members/join/:token  - the signed-in visitor joins the board
+router.post('/join/:token', requireAuth, async (req, res) => {
+  try {
+    const b = await boardByJoinToken(req.params.token);
+    if (!b) return res.status(404).json({ error: 'This link no longer works - ask your teacher for a new one' });
+    if (String(b.user_id) === String(req.user.id)) return res.json({ boardId: b.id, owner: true });
+    const limited = await enforceStudentLimit({
+      boardId: b.id, ownerPlan: normalizePlanKey(b.teacher_plan), inviteeId: req.user.id,
+    });
+    if (limited) return res.status(402).json({ ...limited, error: 'This board is full - ask your teacher to make room' });
+    const { rowCount } = await pool.query(
+      `INSERT INTO board_collaborators (board_id, user_id, role)
+       VALUES ($1, $2, 'student') ON CONFLICT (board_id, user_id) DO NOTHING`,
+      [b.id, req.user.id]
+    );
+    res.json({ boardId: b.id, boardName: b.name, joined: rowCount > 0 });
+  } catch (err) {
+    console.error('[members] join error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 /* ──────────────────────────────────────────────────────────────
    GET /api/members/roster  - every student across the teacher's boards

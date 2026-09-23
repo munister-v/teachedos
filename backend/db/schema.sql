@@ -721,3 +721,8 @@ ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pulse_hidden JSONB NOT NULL
 ALTER TABLE invites ADD COLUMN IF NOT EXISTS board_id UUID REFERENCES boards(id) ON DELETE CASCADE;
 ALTER TABLE invites ADD COLUMN IF NOT EXISTS board_role VARCHAR(50);
 CREATE INDEX IF NOT EXISTS idx_invites_board_pending ON invites (LOWER(email)) WHERE board_id IS NOT NULL AND accepted_at IS NULL;
+
+-- One reusable join link per board: the teacher sends it anywhere, and
+-- whoever opens it and signs in lands on the board as a student.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS join_token TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_boards_join_token ON boards (join_token) WHERE join_token IS NOT NULL;

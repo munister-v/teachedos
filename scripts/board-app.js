@@ -13883,7 +13883,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '926';
+const TEACHEDOS_ASSET_VERSION = '927';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19706,6 +19706,39 @@ async function spInvite() {
     errEl.textContent = 'Network error'; errEl.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Invite';
+  }
+}
+
+/* One join link for the whole class instead of an email per student.
+   "New link" rotates it, so a link that went too far stops working. */
+async function spJoinLink(rotate) {
+  const input = document.getElementById('sp-join-input');
+  const btn = document.getElementById('sp-join-btn');
+  const hint = document.getElementById('sp-join-hint');
+  if (!input || !btn) return;
+  if (input.value && !rotate) {
+    try { await navigator.clipboard.writeText(input.value); toast('✓ Join link copied'); }
+    catch { input.select(); }
+    return;
+  }
+  if (rotate && !confirm('Make a new link? The old one will stop working.')) return;
+  btn.disabled = true;
+  try {
+    const r = await apiFetch(`/api/members/${currentBoardId}/join-link`, { method: 'POST', body: { rotate: !!rotate } });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.url) { toast(d.error || 'Could not make the link'); return; }
+    input.value = d.url;
+    btn.textContent = 'Copy';
+    if (hint) {
+      hint.innerHTML = 'Anyone who opens it and signs in joins this board as a student. <button type="button">New link</button>';
+      hint.querySelector('button').onclick = () => spJoinLink(true);
+    }
+    try { await navigator.clipboard.writeText(d.url); toast('✓ Join link copied'); }
+    catch { input.select(); }
+  } catch {
+    toast('Network error');
+  } finally {
+    btn.disabled = false;
   }
 }
 

@@ -1113,6 +1113,9 @@ function studentsAddToggle() {
   }
   const msg = document.getElementById('students-add-msg');
   if (msg) { msg.textContent = ''; msg.classList.remove('err'); }
+  const linkMsg = document.getElementById('students-link-msg');
+  if (linkMsg) linkMsg.textContent = '';
+  if (sel) sel.onchange = () => { if (linkMsg) linkMsg.textContent = ''; };
   document.getElementById('students-add-email')?.focus();
 }
 
@@ -1173,6 +1176,43 @@ async function studentsAddSubmit(e) {
     document.getElementById('students-add-email').value = '';
   } catch {
     setMsg('Network error — student not added.', true);
+  }
+}
+
+/* A join link for the selected board: one link for the whole class, sent
+   in any chat, instead of typing every student's email. "New link" rotates
+   it so an old link that went too far stops working. */
+async function studentsJoinLink(rotate) {
+  const boardId = document.getElementById('students-add-board')?.value;
+  const msg = document.getElementById('students-link-msg');
+  if (!msg) return;
+  msg.classList.remove('err');
+  if (!boardId) { msg.classList.add('err'); msg.textContent = 'Create a board first - the link opens a board.'; return; }
+  if (rotate && !confirm('Make a new link? The old one will stop working.')) return;
+  msg.textContent = 'Making the link…';
+  try {
+    const r = await fetch(API_BASE + `/api/members/${encodeURIComponent(boardId)}/join-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+      body: JSON.stringify({ rotate: !!rotate }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.url) { msg.classList.add('err'); msg.textContent = d.error || `Could not make the link (HTTP ${r.status})`; return; }
+    let copied = false;
+    try { await navigator.clipboard.writeText(d.url); copied = true; } catch {}
+    msg.innerHTML = (copied ? '<b>Link copied.</b> ' : '')
+      + 'Anyone who opens it and signs in joins this board as a student.'
+      + `<span class="st-link-url">${escHtmlStudents(d.url)}</span>`
+      + (copied ? '' : '<button type="button" class="st-add-copy">Copy</button>')
+      + '<button type="button" class="st-link-new">New link</button>';
+    msg.querySelector('.st-add-copy')?.addEventListener('click', async (ev) => {
+      try { await navigator.clipboard.writeText(d.url); ev.target.textContent = 'Copied ✓'; }
+      catch { prompt('Copy the join link:', d.url); }
+    });
+    msg.querySelector('.st-link-new')?.addEventListener('click', () => studentsJoinLink(true));
+  } catch {
+    msg.classList.add('err');
+    msg.textContent = 'Network error - link not made.';
   }
 }
 
