@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=929">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=929">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=930">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=930">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=929">
+<link rel="manifest" href="manifest.json?v=930">
 <!-- Под строкой состояния на телефоне стоит закреплённая шапка, а она белая.
      Прежний #F3F3F6 не совпадал ни с ней, ни с фоном страницы (#EFEFF2), и
      сверху была видна лишняя полоска другого оттенка. -->
@@ -1816,9 +1816,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=929">
+<link rel="stylesheet" href="styles/teached-brand.css?v=930">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=929">
+<link rel="stylesheet" href="styles/figma-landing.css?v=930">
 </head>
 <body class="landing-page fx">
 
@@ -2658,7 +2658,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=929">
+<link rel="stylesheet" href="styles/auth.css?v=930">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
@@ -2706,7 +2706,7 @@ window.TEACHED_AUTH_CONFIG = {
   subtitle: () => 'Lessons, boards and games in one place',
 };
 </script>
-<script src="scripts/auth-modal.js?v=929" defer></script>
+<script src="scripts/auth-modal.js?v=930" defer></script>
 <script>
 // Deep link: /landing.html?auth=register|login or #signin opens the modal
 document.addEventListener('DOMContentLoaded', () => {

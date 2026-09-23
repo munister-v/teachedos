@@ -854,8 +854,12 @@ const BOARD_LESSON_STAGES = {
         question: 'What language do they need before they speak?',
         options: [
           {key:'sp-model', media:'text',              title:'The model dialogue on the board', hint:'The example they hear the language in. Untick it and the tasks are still built from it.', on:true},
-          {key:'sp-situ',  tool:'comm-situations',    title:'Situations with mini-dialogues',  hint:'Short exchanges showing the phrases actually in use.', ai:true, after:'source'},
-          {key:'sp-vocab', tool:'essential-vocab',    title:'Key words for the topic',         hint:'Topic vocabulary with definitions and examples.', ai:true},
+          /* Фразы берутся ИЗ диалога, а не «по теме вообще»: иначе на доске
+             лежали два набора языка - в образце одни выражения, в списке
+             другие, и ученик не видел, что из образца ему брать в свою речь. */
+          {key:'sp-phr',   tool:'extract-vocab',      title:'Phrases from the dialogue',       hint:'The expressions worth stealing, each with the line it came from.', ai:true, after:'source', on:true},
+          {key:'sp-situ',  tool:'comm-situations',    title:'Situations with mini-dialogues',  hint:'Short exchanges showing the same phrases in new situations.', ai:true, after:'source'},
+          {key:'sp-vocab', tool:'essential-vocab',    title:'Extra words for the topic',       hint:'Topic vocabulary beyond the dialogue, with definitions and examples.', ai:true},
         ],
       },
       {
@@ -863,7 +867,7 @@ const BOARD_LESSON_STAGES = {
         label: 'Practice first',
         question: 'How do they rehearse before the real task?',
         options: [
-          {key:'sp-sent',  tool:'sentences-vocab',   title:'Say it in a sentence',     hint:'One model sentence per target phrase.', ai:true},
+          {key:'sp-sent',  tool:'sentences-vocab',   title:'Say it in a sentence',     hint:'One model sentence per phrase from the dialogue.', ai:true, after:'source'},
           {key:'sp-rephr', tool:'rephrase-word',     title:'Say it another way',       hint:'Rewrite a sentence using a given key word.', ai:true, after:'source'},
           {key:'sp-err',   tool:'error-correction',  title:'Common mistakes to fix',   hint:'Sentences with the errors this language usually attracts.', ai:true, after:'source'},
         ],
@@ -874,7 +878,7 @@ const BOARD_LESSON_STAGES = {
         question: 'What are they actually going to do?',
         options: [
           {key:'sp-role',  tool:'roleplay-cards', title:'Role play cards',   hint:'Two roles, a situation, and what each side wants.', ai:true, after:'source', on:true},
-          {key:'sp-disc',  tool:'discussion',     title:'Discussion questions',hint:'Warm-up, deeper and follow-up questions.', ai:true},
+          {key:'sp-disc',  tool:'discussion',     title:'Discussion questions',hint:'Questions that pick up where the dialogue left off.', ai:true, after:'source'},
           {key:'sp-debate',tool:'debate-cards',   title:'Debate cards',      hint:'Two sides with arguments to defend.', ai:true},
           {key:'sp-four',  tool:'four-opinions',  title:'Four opinions to react to', hint:'Four stated positions they agree or argue with.', ai:true},
           {key:'sp-pros',  tool:'pros-cons',      title:'Pros and cons',     hint:'Both sides listed, then they take one.', ai:true},
@@ -925,6 +929,10 @@ const BOARD_LESSON_STAGES = {
         question: 'What do they see before they write?',
         options: [
           {key:'wr-model', media:'text',          title:'The model on the board',  hint:'An example of the genre you set above. Untick it and the tasks are still built from it.', on:true},
+          /* Образец читают не ради содержания, а ради устройства: что
+             делает каждый абзац. Без этого шага «напиши такой же» сводился
+             к пересказу чужого текста своими словами. */
+          {key:'wr-build', tool:'match-headings', title:'How the model is built', hint:'They match each paragraph to the job it does - the plan they will reuse.', ai:true, after:'source', on:true},
           {key:'wr-style', tool:'rewrite-style',  title:'Rewrite it in another tone', hint:'Same content, different register: what formality actually changes.', ai:true, after:'source'},
         ],
       },
@@ -933,8 +941,9 @@ const BOARD_LESSON_STAGES = {
         label: 'Language for the task',
         question: 'What do they need to build it out of?',
         options: [
-          {key:'wr-link',   tool:'link-words',      title:'Linking words',        hint:'Connectors with sentences to join using them.', ai:true, on:true},
-          {key:'wr-vocab',  tool:'essential-vocab', title:'Key words for the topic',hint:'Topic vocabulary with definitions and examples.', ai:true},
+          {key:'wr-phr',    tool:'extract-vocab',   title:'Phrases from the model', hint:'The expressions worth reusing, each with the sentence it came from.', ai:true, after:'source', on:true},
+          {key:'wr-link',   tool:'link-words',      title:'Linking words',        hint:'Connectors from the model, and sentences to join with them.', ai:true, after:'source'},
+          {key:'wr-vocab',  tool:'essential-vocab', title:'Extra words for the topic',hint:'Topic vocabulary beyond the model, with definitions and examples.', ai:true},
           {key:'wr-colloc', tool:'collocations',    title:'Natural word partners',  hint:'Collocations from the model, plus short practice.', ai:true, after:'source'},
         ],
       },
@@ -943,8 +952,11 @@ const BOARD_LESSON_STAGES = {
         label: 'The writing task',
         question: 'What are they writing?',
         options: [
-          {key:'wr-write',   tool:'creative-writing', title:'The task with a frame', hint:'Prompt, constraints and a checklist they write against.', ai:true, on:true},
-          {key:'wr-outline', tool:'essay-outline',    title:'An essay plan to fill in',hint:'Thesis, body paragraphs, evidence, conclusion.', ai:true},
+          /* Задание по образцу: тот же жанр и та же схема абзацев, новая
+             тема или новая точка зрения. Без источника движок придумывал
+             задание другого жанра, и образец над ним ничему не учил. */
+          {key:'wr-write',   tool:'creative-writing', title:'Their own text, same genre', hint:'A prompt in the model\'s genre, its paragraph plan and a checklist they write against.', ai:true, after:'source', on:true},
+          {key:'wr-outline', tool:'essay-outline',    title:'An essay plan to fill in',hint:'Thesis, body paragraphs, evidence, conclusion - shaped like the model.', ai:true, after:'source'},
           {key:'wr-email',   tool:'email-reply',      title:'An email to answer',    hint:'A functional email task with tone and useful phrases.', ai:true},
           {key:'wr-topics',  tool:'essay-topics',     title:'A choice of topics',    hint:'Several prompts so they pick their own.', ai:true},
         ],

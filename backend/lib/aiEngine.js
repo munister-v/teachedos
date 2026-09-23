@@ -550,6 +550,14 @@ function shapeSpec(input) {
         schema: '{"pairs":[{"left":"word","right":"short definition"}]}',
       };
     }
+    if (toolId === 'match-headings' && input.lesson === 'writing') {
+      /* Урок письма читает образец ради устройства: что ДЕЛАЕТ абзац, а не
+         о чём он. Эти подписи потом становятся планом собственного текста. */
+      return {
+        task: `${head} The source text is a MODEL the student will imitate in their own writing. Divide it into its paragraphs (greeting and sign-off lines count as their own parts when the genre has them). For EACH part name the JOB it does in the text, not its topic - e.g. "Opening: says why I am writing", "Main point with an example", "Answers the other side", "Closing: asks for a reply". "left" = "Paragraph N: <first 6-8 words…>"; "right" = the job, max 8 words, at ${level} level. Do NOT reuse a label.${context}`,
+        schema: '{"pairs":[{"left":"Paragraph 1: first words…","right":"Opening: says why I am writing"}]}',
+      };
+    }
     if (toolId === 'match-headings') {
       return {
         task: `${head} Read the source text and divide it into its natural paragraphs (or, if it is one block, into 4-6 logical sections). For EACH paragraph write ONE short, accurate heading that captures its main idea. "left" = "Paragraph N: <first 6-8 words…>" so the student can identify the paragraph; "right" = the heading. Keep headings parallel in style and at ${level} level. Do NOT reuse a heading.${context}`,
@@ -829,8 +837,14 @@ function shapeSpec(input) {
     };
   }
   if (toolId === 'sentences-vocab') {
+    /* В уроке говорения целевых слов учитель не вводит - они в образце.
+       Без этой строки модель брала «слова по теме» и практика расходилась
+       с диалогом. */
+    const fromModel = !input.vocab && input.source
+      ? ` The target phrases are the ${Math.min(count, 8)} most useful expressions from the source text - take them from there, do not invent new ones.`
+      : '';
     return {
-      task: `${cardsHead} For EACH target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return exactly one card per target word - do NOT invent extra words: "title" = the word, "text" = the example sentence with the target word in **bold**. Put all target words in "vocab".${context}`,
+      task: `${cardsHead}${fromModel} For EACH target word/phrase write ONE natural example sentence at ${level} level that makes the meaning clear. Return exactly one card per target word - do NOT invent extra words: "title" = the word, "text" = the example sentence with the target word in **bold**. Put all target words in "vocab".${context}`,
       schema: '{"cards":[{"title":"target word","text":"Example sentence with **word**."}],"vocab":["word"]}',
     };
   }
@@ -900,6 +914,15 @@ function shapeSpec(input) {
     return {
       task: `${cardsHead} Choose 5-7 target words/phrases from the topic. Return 3 cards: 1) "Task" - instruction to write sentences or a short paragraph using ALL the words; 2) "Word list" - each word with a one-line usage note; 3) "Model answer" - a short model paragraph using all words (target words in **bold**) plus 2-3 writing tips. Include "vocab" list.${context}`,
       schema: '{"cards":[{"title":"Task","text":"..."},{"title":"Word list","text":"word - usage note\\n..."},{"title":"Model answer","text":"Model paragraph.\\n\\nTips:\\n1. ..."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'creative-writing' && input.lesson === 'writing' && input.source) {
+    /* Задание по образцу: тот же жанр, та же схема абзацев, новая ситуация.
+       Иначе образец над заданием ничему не учил - просили эссе, а
+       показывали письмо. */
+    return {
+      task: `${cardsHead} The source text is the MODEL the class has just studied. Set a writing task in the SAME genre and format as the model (same kind of text, similar length, same register), on a new but related situation or a different point of view - never ask them to rewrite the model itself. Return 4 cards: 1) "Writing prompt" - the situation and who they write to/for; 2) "Paragraph plan" - the model's structure as a numbered plan they follow, one line per paragraph saying what it must do; 3) "Useful phrases" - 5-6 phrases taken from the model, each with a brief usage note; 4) "Checklist" - 4-5 yes/no checks (length, register, plan followed, phrases used, linking). Keep it at ${level} level. Include "vocab" list of the phrases.${context}`,
+      schema: '{"cards":[{"title":"Writing prompt","text":"..."},{"title":"Paragraph plan","text":"1. ...\\n2. ..."},{"title":"Useful phrases","text":"phrase - use\\n..."},{"title":"Checklist","text":"☐ ...\\n☐ ..."}],"vocab":["phrase"]}',
     };
   }
   if (toolId === 'creative-writing') {

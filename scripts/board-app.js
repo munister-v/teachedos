@@ -12384,6 +12384,7 @@ function _ttCacheKey(mode, input) {
     /* Иначе «пересобрать» отдавало бы из локального кеша тот же материал,
        который учитель только что забраковал. */
     variant: input.variant || 0,
+    lesson: input.lesson || '',
   });
 }
 
@@ -12513,6 +12514,8 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
           parts: input.parts,
           // Номер попытки: «пересобрать это задание» в конструкторе этапов.
           variant: input.variant,
+          // Навык урока из мастера: задание в уроке письма строится иначе.
+          lesson: input.lesson,
         },
       },
     });
@@ -13883,7 +13886,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '929';
+const TEACHEDOS_ASSET_VERSION = '930';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15751,6 +15754,10 @@ async function runBoardLessonStages() {
   const body = document.getElementById('tbuilder-output');
   const keys = boardStagePickedKeys();
   const base = readTeacherToolBuilderInput();
+  /* Навык урока едет в каждый запрос этапа, включая «пересобрать»: они все
+     строятся от set.base. «Заголовки к абзацам» в уроке письма - схема
+     образца, а задание - текст того же жанра (aiEngine.js). */
+  if (boardLessonWizard && boardLessonWizard.skill) base.lesson = boardLessonWizard.skill;
   const opts = boardStageOptions(toolId).filter(o => o.tool && keys.includes(o.key));
 
   const ownText = boardWizardIsOwnText();

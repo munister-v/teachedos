@@ -352,6 +352,10 @@ function normaliseInput(body) {
     materials: clean(raw.materials, '').slice(0, 1200),
     duration: Math.max(20, Math.min(120, parseInt(raw.duration, 10) || 45)),
     model: clean(raw.model, '').slice(0, 80),
+    /* Какой урок собирает мастер. Одно и то же задание в уроке письма
+       значит другое, чем само по себе: «заголовки к абзацам» там - схема
+       образца, а не пересказ его содержания (см. aiEngine.js). */
+    lesson: ['reading', 'listening', 'speaking', 'writing', 'grammar'].includes(raw.lesson) ? raw.lesson : '',
     cat: meta[0],
     kind: meta[1],
   };
@@ -375,6 +379,7 @@ function cacheKey(userId, input) {
     parts: input.parts,
     variant: input.variant,
     model: input.model,
+    lesson: input.lesson,
   });
 }
 
