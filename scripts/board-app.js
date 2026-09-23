@@ -9498,6 +9498,7 @@ function _ttRefreshBriefReview() {
      обязательна. Карточка сверху формы продолжала требовать тему, когда
      кнопка уже была активна, и учитель читал это как «не создастся». */
   if (!topic && needsVocab && vocab.length) checks.push({ type:'ok', text:'Topic from your words' });
+  else if (!topic && tool.id === 'add-text' && source) checks.push({ type:'ok', text:'Topic from your text' });
   else if (!topic) checks.push({ type:'needs', text:'Add a topic', want:'a topic' });
   else if (topic.length < 4) checks.push({ type:'attention', text:'Make the topic more specific' });
   else checks.push({ type:'ok', text:'Topic set' });
@@ -9679,7 +9680,8 @@ function _ttSyncFormReadiness(opts = {}) {
   /* У Vocabulary Workout тема не нужна никогда: название набора берётся из
      слов, а спрашивать «*» у поля, без которого всё и так работает, значит
      заставлять учителя думать, что он что-то пропустил. */
-  const topicOptional = (needsVocab && !!vocab) || tool.id === 'vocab-workout';
+  const topicOptional = (needsVocab && !!vocab) || tool.id === 'vocab-workout'
+    || (tool.id === 'add-text' && !!source);
   if (!topic && !topicOptional) missing.push({ wrap:'tb-wrap-topic', input:'tbuilder-topic', label:'topic' });
   if (needsSource && !source) missing.push({ wrap:'tb-wrap-source', input:'tbuilder-source', label:'source text' });
   if (needsVocab && !vocab) missing.push({ wrap:'tb-wrap-vocab', input:'tbuilder-vocab', label:'target vocabulary' });
@@ -12300,13 +12302,23 @@ document.querySelector('.tbuilder-form')?.addEventListener('keydown', e => {
   }
 });
 
+/* Тема из первых слов учительского текста: «I already have the text»
+   требовал ещё и тему, и кнопка молча ждала её после вставленного текста. */
+function _ttTopicFromText(text) {
+  const first = String(text || '').replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s/)[0] || '';
+  const words = first.replace(/^["'«“(\[]+|["'»”)\].,!?:;]+$/g, '').split(' ').filter(Boolean);
+  return words.length > 8 ? `${words.slice(0, 8).join(' ').replace(/[,;:–-]+$/, '')}…` : words.join(' ');
+}
+
 function readTeacherToolBuilderInput() {
   const getVal = id => document.getElementById(id)?.value?.trim() || '';
+  const ownTextTopic = activeTeacherToolBuilder?.id === 'add-text' && !getVal('tbuilder-topic') && getVal('tbuilder-source')
+    ? _ttTopicFromText(getVal('tbuilder-source')) : '';
   return {
     tool: activeTeacherToolBuilder,
     level: getVal('tbuilder-level') || 'B1',
     count: Math.max(3, Math.min(100, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
-    topic: getVal('tbuilder-topic'),
+    topic: getVal('tbuilder-topic') || ownTextTopic,
     action: document.getElementById('tbuilder-action')?.dataset.action || 'simplify',
     genre: getVal('tbuilder-genre'),
     length: getVal('tbuilder-length'),
@@ -13850,7 +13862,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '919';
+const TEACHEDOS_ASSET_VERSION = '920';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
