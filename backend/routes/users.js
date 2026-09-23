@@ -15,7 +15,12 @@ const { requireAuth } = require('../middleware/auth');
 const WALL_DIR = process.env.WALLPAPER_DIR
   || path.join(__dirname, '..', '..', 'data', 'wallpapers');
 const WALL_FILE_RE = /^[0-9a-f]{24}\.(jpg|png|webp)$/;
-const WALL_PRESETS = new Set(['mist', 'dawn', 'meadow', 'lavender', 'dusk', 'graphite']);
+// Ключи совпадают с WALL_PRESETS в scripts/desktop-extras.js.
+const WALL_PRESETS = new Set([
+  'mist', 'dawn', 'meadow', 'lavender', 'dusk', 'graphite',
+  'dots', 'paper', 'lime-dots', 'stripes', 'night-grid',
+  'carpathians', 'fjord', 'lake', 'laurel', 'fog', 'hills', 'moss', 'alley', 'frost', 'sunset', 'harbour', 'canals', 'river-night',
+]);
 const WALL_MAX_BYTES = 4 * 1024 * 1024;
 
 function removeWallFile(value) {

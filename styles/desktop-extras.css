@@ -54,7 +54,7 @@ body.fx #desktop.has-wall { transition: background .35s ease; }
 .wp-overlay.open { display:flex; }
 .wp-overlay.is-drop .wp-sheet { outline:3px dashed #A8C21F; outline-offset:-10px; }
 .wp-sheet {
-  width:min(680px, 100%); max-height:90vh; overflow:auto; background:#fff; border-radius:22px; padding:22px;
+  width:min(760px, 100%); max-height:90vh; overflow:auto; background:#fff; border-radius:22px; padding:22px;
   box-shadow:0 30px 80px rgba(17,16,24,.4); font-family:var(--font-ui, inherit);
   animation:wpIn .18s cubic-bezier(.34,1.3,.64,1);
 }
@@ -63,7 +63,9 @@ body.fx #desktop.has-wall { transition: background .35s ease; }
 .wp-head h2 { margin:0; font-size:19px; font-weight:600; letter-spacing:-.02em; color:#161616; }
 .wp-head p { margin:4px 0 0; font-size:12px; color:#6B7280; }
 .wp-x { width:34px; height:34px; border-radius:11px; border:0; background:rgba(17,24,39,.06); cursor:pointer; display:grid; place-items:center; color:#161616; flex-shrink:0; }
-.wp-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px; }
+.wp-grid { display:flex; flex-direction:column; gap:18px; }
+.wp-group h3 { margin:0 0 8px; font-size:12px; font-weight:650; letter-spacing:.06em; text-transform:uppercase; color:#6B6B73; }
+.wp-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(128px, 1fr)); gap:12px; }
 .wp-tile { display:flex; flex-direction:column; gap:7px; padding:0; border:0; background:none; cursor:pointer; text-align:left; font:inherit; }
 .wp-swatch {
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
@@ -177,3 +179,13 @@ body.fx #wg-pulse .wg-pulse-title {
 @media (max-width: 860px) {
   .mb-acct-wrap, #wg-pulse { display:none !important; }
 }
+
+.wall-credit {
+  position:fixed; left:14px; bottom:10px; z-index:40; max-width:40vw;
+  font:500 11px/1.3 var(--font-ui, inherit); color:rgba(255,255,255,.88); text-decoration:none;
+  background:rgba(0,0,0,.28); padding:4px 9px; border-radius:999px;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:.75; transition:opacity .15s;
+}
+.wall-credit:hover { opacity:1; text-decoration:underline; }
+@media (max-width: 860px) { .wall-credit { display:none; } }
