@@ -3661,7 +3661,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Окно игры в разборе: строки теперь с полем ввода и выше, поэтому в 190px
    помещалось три с половиной - край резался ровно по строке и читался как
    обрыв, а не как прокрутка. */
-.wr-game{border:1px solid rgba(36,40,44,.14);border-radius:12px;background:#F5F5F8;padding:8px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
+.wr-game{border:1px solid rgba(36,40,44,.14);border-radius:12px;background:#F6F6EF;padding:8px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
 .wr-game-head{font:800 12px var(--font);color:#24282C}
 .wr-game-head span{display:block;font:500 11px var(--font);color:#5D614B;margin-top:1px}
 .wg-row{display:flex;gap:8px;align-items:center;font:500 11.5px/1.35 var(--font);color:#24282C}
@@ -3675,7 +3675,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .wr-row .wr-fields{grid-column:1 / -1}
 .wr-row.is-off{opacity:.45}
 .wr-w{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.wr-play{width:26px;height:26px;flex:0 0 auto;border:1px solid rgba(36,40,44,.2);border-radius:8px;background:#F5F5F8;color:#24282C;font-size:11px;cursor:pointer}
+.wr-play{width:26px;height:26px;flex:0 0 auto;border:1px solid rgba(36,40,44,.2);border-radius:8px;background:#F6F6EF;color:#24282C;font-size:11px;cursor:pointer}
 .wr-play:disabled{opacity:.3;cursor:default}
 .wr-word{min-width:0;flex:1;border:0;border-bottom:1px dashed rgba(36,40,44,.25);background:none;font:700 13px var(--font);color:#24282C;padding:2px 0}
 .wr-ipa{flex-basis:100%;font:500 11px ui-monospace,monospace;color:#5D614B}
@@ -3755,10 +3755,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tbuilder-form .tb-tpl-all{border:0;background:none;padding:4px 2px;font:700 12px var(--font);color:#24282C;text-decoration:underline;cursor:pointer}
 .tbuilder-form .tb-tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
 #tool-builder-panel .tbuilder-form .tb-tpl,
-.tbuilder-form .tb-tpl{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;margin:0;padding:12px 8px 10px;border:1.5px solid #CBCBCE;border-radius:12px;background:#fff;cursor:pointer;text-align:center;text-transform:none;letter-spacing:0;transition:border-color .12s,background .12s}
+.tbuilder-form .tb-tpl{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;margin:0;padding:12px 8px 10px;border:1.5px solid #CACCC6;border-radius:12px;background:#fff;cursor:pointer;text-align:center;text-transform:none;letter-spacing:0;transition:border-color .12s,background .12s}
 .tbuilder-form .tb-tpl:hover{border-color:#24282C}
 .tbuilder-form .tb-tpl input{position:absolute;top:7px;left:7px;width:15px;height:15px;margin:0;accent-color:#24282C;cursor:pointer}
-.tbuilder-form .tb-tpl-ico{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:10px;background:#F5F5F8}
+.tbuilder-form .tb-tpl-ico{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:10px;background:#F6F6EF}
 .tbuilder-form .tb-tpl-name{font:650 12.5px/1.25 var(--font);color:#24282C}
 .tbuilder-form .tb-tpl .tb-workout-ai{position:absolute;top:6px;right:6px}
 #tool-builder-panel .tbuilder-form .tb-tpl:has(input:checked),.tbuilder-form .tb-tpl:has(input:checked){border-color:#24282C;background:#CDF649}
@@ -3941,11 +3941,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
    главный путь, а не ещё один быстрый приём. */
 .lesson-wiz-cta{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:16px;
   padding:14px 16px;margin-bottom:10px;cursor:pointer;text-align:left;
-  background:var(--te-ink,#0E0E10);color:#fff;box-shadow:0 10px 26px rgba(14,14,16,.24);
+  /* Была чёрная плита. В языке макета действие - лайм, тёмных плит нет;
+     кнопка остаётся самой тяжёлой в панели - заливкой и тенью. */
+  background:#CDF649;color:#24282C;box-shadow:0 10px 24px rgba(36,40,44,.14);
   transition:transform .12s,filter .12s;}
-.lesson-wiz-cta:hover{filter:brightness(1.12);transform:translateY(-1px);}
+.lesson-wiz-cta:hover{filter:brightness(.97);transform:translateY(-1px);}
 .lw-cta-ic{flex:0 0 auto;display:grid;place-items:center;width:34px;height:34px;border-radius:11px;
-  background:var(--te-lime,#CDF940);color:#0E0E10;}
+  background:#24282C;color:#CDF649;}
 .lw-cta-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;}
 .lw-cta-tx{flex:1;min-width:0;display:flex;flex-direction:column;}
 .lw-cta-tx b{font-size:14px;font-weight:650;letter-spacing:0;}
@@ -5726,7 +5728,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Invite view: two labelled cards (email / join link) and the member list,
    in the brand palette - ink buttons, lime for the link, paper cards. */
 #sp-invite-view{gap:10px;}
-.sp-inv-card{display:flex;flex-direction:column;gap:7px;padding:13px 13px 12px;border-radius:16px;background:#F5F5F8;border:1px solid #CBCBCE;}
+.sp-inv-card{display:flex;flex-direction:column;gap:7px;padding:13px 13px 12px;border-radius:16px;background:#F6F6EF;border:1px solid #CACCC6;}
 .sp-inv-label{font:700 10px var(--mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;color:#5D614B;}
 .sp-inv-list-label{margin:8px 2px 0;}
 .sp-inv-row{display:flex;gap:7px;align-items:center;}

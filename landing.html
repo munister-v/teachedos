@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=941">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=941">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=946">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=946">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=941">
+<link rel="manifest" href="manifest.json?v=946">
 <!-- Под строкой состояния на телефоне стоит закреплённая шапка, а она белая.
      Прежний #F3F3F6 не совпадал ни с ней, ни с фоном страницы (#EFEFF2), и
      сверху была видна лишняя полоска другого оттенка. -->
@@ -1021,7 +1021,7 @@ a,button,.btn,.bc,.cat,.nav-lnk,.footer-col a,.plan{transition-timing-function:c
 .hero-sub{margin:0 auto 32px;}
 .hero-ctas{gap:12px;margin-bottom:30px;}
 .hero-phone-note{display:none;}
-html.is-phone .hero-phone-note{display:block;max-width:330px;margin:-6px auto 22px;font-size:13px;line-height:1.45;color:#5C5C66;text-align:center;}
+html.is-phone .hero-phone-note{display:block;max-width:330px;margin:-6px auto 22px;font-size:13px;line-height:1.45;color:#5D614B;text-align:center;}
 .hero-trust{
   display:inline-flex;flex-wrap:wrap;justify-content:center;gap:8px;
 }
@@ -1818,9 +1818,9 @@ section{scroll-margin-top:64px;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=941">
+<link rel="stylesheet" href="styles/teached-brand.css?v=946">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=941">
+<link rel="stylesheet" href="styles/figma-landing.css?v=946">
 </head>
 <body class="landing-page fx">
 
@@ -1888,7 +1888,7 @@ section{scroll-margin-top:64px;}
     <h1 class="hero-h">
       <span class="line"><span>Your whole</span></span>
       <span class="line"><span>classroom,</span></span>
-      <span class="line"><span><em>in your pocket</em></span></span>
+      <span class="line"><span><em>in one place</em></span></span>
     </h1>
     <p class="hero-sub">
       A focused workspace for language teachers: build lesson boards, shape worksheets, turn YouTube into class material, and run 30+ games – online or offline.
@@ -2662,7 +2662,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=941">
+<link rel="stylesheet" href="styles/auth.css?v=946">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
@@ -2710,7 +2710,7 @@ window.TEACHED_AUTH_CONFIG = {
   subtitle: () => 'Lessons, boards and games in one place',
 };
 </script>
-<script src="scripts/auth-modal.js?v=941" defer></script>
+<script src="scripts/auth-modal.js?v=946" defer></script>
 <script>
 // Deep link: /landing.html?auth=register|login or #signin opens the modal
 document.addEventListener('DOMContentLoaded', () => {

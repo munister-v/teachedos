@@ -13892,7 +13892,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '941';
+const TEACHEDOS_ASSET_VERSION = '946';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23366,7 +23366,7 @@ function buildGamesTabs() {
   if (!tabs) return;
   tabs.innerHTML = GAME_TAGS.map(tag => `
     <button onclick="switchGamesTab('${tag}')"
-      style="padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:${tag===_gamesActiveTag?'#CBF03C':'#FFFFFF'};color:${tag===_gamesActiveTag?'#161616':'#3A3A40'};font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">${tag}</button>
+      style="padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:${tag===_gamesActiveTag?'#CDF649':'#FFFFFF'};color:${tag===_gamesActiveTag?'#24282C':'#5D614B'};font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">${tag}</button>
   `).join('');
 }
 function switchGamesTab(tag) {
@@ -23386,19 +23386,19 @@ function renderGamesGrid(filter) {
   grid.innerHTML = list.length ? list.map(g => `
     <div class="game-tile" draggable="true" data-game-src="${g.src}" data-game-title="${esc(g.title)}" data-game-w="${g.w}" data-game-h="${g.h}"
       onclick='addGameCard(${JSON.stringify(g.src)},${JSON.stringify(g.title)},${g.w},${g.h})'
-      style="background:#FFFFFF;border:1px solid rgba(22,22,22,.12);border-radius:14px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;">
+      style="background:#FFFFFF;border:1px solid rgba(36,40,44,.12);border-radius:14px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;">
       <div style="font-size:30px;line-height:1;">${g.icon}</div>
       <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
-      <div style="font-size:11.5px;color:#55555C;line-height:1.35;min-height:30px;">${esc(g.desc)}</div>
-      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:#161616;text-transform:uppercase;letter-spacing:.06em;">
-        <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(203,240,60,.45);">${esc(g.tag)}</span>
+      <div style="font-size:11.5px;color:#5D614B;line-height:1.35;min-height:30px;">${esc(g.desc)}</div>
+      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:#24282C;text-transform:uppercase;letter-spacing:.06em;">
+        <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(205,246,73,.6);">${esc(g.tag)}</span>
       </div>
     </div>
   `).join('') : `<div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:var(--text-3);font-size:13px;">No games match your search.</div>`;
   // Hover effect via JS (cleaner than inline ::hover)
   grid.querySelectorAll('.game-tile').forEach(el => {
-    el.addEventListener('mouseenter', () => { el.style.borderColor = 'rgba(22,22,22,.32)'; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 24px rgba(30,40,44,.10)'; });
-    el.addEventListener('mouseleave', () => { el.style.borderColor = 'rgba(22,22,22,.12)'; el.style.transform = ''; el.style.boxShadow = ''; });
+    el.addEventListener('mouseenter', () => { el.style.borderColor = 'rgba(36,40,44,.32)'; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 24px rgba(36,40,44,.10)'; });
+    el.addEventListener('mouseleave', () => { el.style.borderColor = 'rgba(36,40,44,.12)'; el.style.transform = ''; el.style.boxShadow = ''; });
     el.addEventListener('dragstart', ev => {
       ev.dataTransfer.setData('text/game-src', el.dataset.gameSrc);
       ev.dataTransfer.setData('text/game-title', el.dataset.gameTitle);

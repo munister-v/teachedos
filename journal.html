@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=941"></script>
+<script src="scripts/phone-gate.js?v=946"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -111,15 +111,15 @@ a{text-decoration:none;color:inherit;}
 .student-email{font-size:11px;color:var(--text3);margin-top:1px;}
 .student-level-mobile{display:none;}
 .level-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:650;font-family:var(--mono);}
-.level-a1{background:rgba(34,197,94,.12);color:#16a34a;}
-.level-a2{background:rgba(96,165,250,.12);color:#2563eb;}
-.level-b1{background:rgba(245,158,11,.12);color:#d97706;}
-.level-b2{background:rgba(28,28,30,.12);color:#7c3aed;}
-.level-c1{background:rgba(239,68,68,.12);color:#dc2626;}
-.level-c2{background:rgba(5,5,23,.10);color:#1C1C1E;}
+.level-a1{background:#D3F36B;color:#24282C;}
+.level-a2{background:#6BAFF3;color:#24282C;}
+.level-b1{background:#FFE44D;color:#24282C;}
+.level-b2{background:#9F8CE8;color:#24282C;}
+.level-c1{background:#F3A46B;color:#24282C;}
+.level-c2{background:#6B42FD;color:#FFFFFF;}
 .balance-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:650;border:1.5px solid;}
-.balance-ok{color:#16a34a;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08);}
-.balance-low{color:#d97706;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08);}
+.balance-ok{color:#24282C;border-color:#CDF649;background:rgba(205,246,73,.35);}
+.balance-low{color:#24282C;border-color:#FF8C3A;background:rgba(255,140,58,.18);}
 .balance-zero{color:#dc2626;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08);}
 .journal-suite .attend-btn{min-height:44px !important;padding:5px 12px;border-radius:8px;border:1.5px solid var(--accent);background:transparent;
   color:var(--accent);font-family:var(--font);font-size:11px;font-weight:650;cursor:pointer;transition:.12s;}
@@ -202,16 +202,16 @@ a{text-decoration:none;color:inherit;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=941" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=941">
-<link rel="stylesheet" href="styles/harmony.css?v=941">
-<link rel="stylesheet" href="styles/unify.css?v=941">
-<link rel="stylesheet" href="styles/teached-brand.css?v=941">
-<link rel="stylesheet" href="styles/tool-window.css?v=941">
+<script src="theme.js?v=946" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=946">
+<link rel="stylesheet" href="styles/harmony.css?v=946">
+<link rel="stylesheet" href="styles/unify.css?v=946">
+<link rel="stylesheet" href="styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="styles/tool-window.css?v=946">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=941">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=941">
-<link rel="stylesheet" href="styles/controls.css?v=941">
+<link rel="stylesheet" href="styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
+<link rel="stylesheet" href="styles/controls.css?v=946">
 </head>
 <body class="tw-page suite-page journal-suite fx">
 
@@ -376,7 +376,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=941"></script>
+<script src="scripts/app-core.js?v=946"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const JOURNAL_CACHE_KEY = 'teachedos_journal_cache_v1';
@@ -717,13 +717,13 @@ document.addEventListener('keydown', event => {
 init();
 </script>
 
-<script src="pwa.js?v=941"></script>
-<script src="scripts/nav-boost.js?v=941" defer></script>
-<script src="scripts/mobile-perf.js?v=941" defer></script>
-<script src="scripts/mobile-nav.js?v=941"></script>
-<script src="scripts/mobile-zoom-guard.js?v=941" defer></script>
-<script src="scripts/autogrow.js?v=941" defer></script>
-<script src="pwa-boot.js?v=941" defer></script>
-  <script src="scripts/signin-entry.js?v=941" defer></script>
+<script src="pwa.js?v=946"></script>
+<script src="scripts/nav-boost.js?v=946" defer></script>
+<script src="scripts/mobile-perf.js?v=946" defer></script>
+<script src="scripts/mobile-nav.js?v=946"></script>
+<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
+<script src="scripts/autogrow.js?v=946" defer></script>
+<script src="pwa-boot.js?v=946" defer></script>
+  <script src="scripts/signin-entry.js?v=946" defer></script>
 </body>
 </html>

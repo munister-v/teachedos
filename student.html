@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=941">
-<link rel="preload" as="style" href="styles/unify.css?v=941">
-<link rel="manifest" href="manifest.json?v=941">
+<link rel="preload" as="style" href="styles/harmony.css?v=946">
+<link rel="preload" as="style" href="styles/unify.css?v=946">
+<link rel="manifest" href="manifest.json?v=946">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -17,17 +17,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=941">
+<link rel="stylesheet" href="styles/fonts.css?v=946">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#1C1C1E;--bg-sidebar:#242426;--bg-card:#2C2C2E;--bg-card-2:#3A3A3C;
-  --accent:#06b6d4;--accent-glow:rgba(6,182,212,.15);--accent-border:rgba(6,182,212,.25);
-  --orange:#C8E632;--orange-dim:rgba(200,230,50,.12);
-  --lime:#C8E632;--lavender:#C8E632;--green:#22c55e;
-  --text:#e8e8f0;--text-2:#9a9ab8;--text-3:#5a5a78;
-  --border:rgba(255,255,255,.06);--border-2:rgba(255,255,255,.1);
+  /* Страница рисовалась под тёмную тему, а светлые слои (unify, brand,
+     figma-theme) перекрывали только --bg и --text: карточки и кнопки
+     оставались #2C2C2E с уже тёмным текстом - 1.1-1.7:1. Свои токены
+     страницы теперь светлые, в тон продукту; тёмные значения не нужны -
+     тёмной темы у приложения нет (theme.js снимает data-theme="dark"). */
+  --bg:#F6F6EF;--bg-sidebar:#FFFFFF;--bg-card:#FFFFFF;--bg-card-2:#F6F6EF;
+  --accent:#24282C;--accent-glow:rgba(205,246,73,.22);--accent-border:rgba(36,40,44,.22);
+  --orange:#CDF649;--orange-dim:rgba(205,246,73,.12);
+  --lime:#CDF649;--lavender:#CDF649;--green:#22c55e;
+  --text:#24282C;--text-2:#5D614B;--text-3:#5D614B;
+  --border:rgba(36,40,44,.10);--border-2:rgba(36,40,44,.18);
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
   --mono:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --display:'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
@@ -35,7 +40,7 @@
 html{height:100%}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100%;-webkit-font-smoothing:antialiased;overflow:hidden}
 @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
-@keyframes glow-pulse{0%,100%{box-shadow:0 0 15px rgba(6,182,212,.2)}50%{box-shadow:0 0 30px rgba(6,182,212,.35)}}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 15px rgba(205,246,73,.2)}50%{box-shadow:0 0 30px rgba(205,246,73,.35)}}
 
 /* ── SHELL ── */
 #shell{display:flex;height:100vh;overflow:hidden}
@@ -45,10 +50,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   width:300px;flex-shrink:0;background:var(--bg-sidebar);
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
-  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent;
+  scrollbar-width:thin;scrollbar-color:rgba(36,40,44,.14) transparent;
 }
 .sidebar::-webkit-scrollbar{width:4px}
-.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(36,40,44,.14);border-radius:2px}
 
 .sb-logo{
   padding:16px 22px 14px;border-bottom:1px solid var(--border);
@@ -88,7 +93,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-class:hover{border-color:var(--accent-border);background:var(--bg-card-2)}
 .sb-class-thumb{
   width:72px;height:50px;border-radius:8px;overflow:hidden;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(28,28,30,.1));
+  background:linear-gradient(135deg,rgba(205,246,73,.1),rgba(36,40,44,.03));
   display:flex;align-items:center;justify-content:center;
 }
 .sb-class-thumb img{width:100%;height:100%;object-fit:cover}
@@ -98,9 +103,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-class-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .sb-class-badge{
   font-size:9px;font-weight:600;padding:1px 6px;border-radius:4px;
-  background:rgba(6,182,212,.12);color:var(--accent);font-family:var(--mono);
+  background:rgba(205,246,73,.12);color:var(--accent);font-family:var(--mono);
 }
-.sb-class-badge.type{background:rgba(28,28,30,.12);color:var(--lavender)}
+.sb-class-badge.type{background:rgba(36,40,44,.03);color:#24282C}
 .sb-class-teacher{font-size:10px;color:var(--text-3);display:flex;align-items:center;gap:3px;margin-top:3px}
 .sb-class-teacher-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
 
@@ -120,8 +125,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-milestone-labels{display:flex;justify-content:space-between;margin-bottom:6px}
 .sb-milestone-level{font-size:11px;font-weight:650;font-family:var(--mono)}
 .sb-milestone-level.from{color:var(--accent)}
-.sb-milestone-level.to{color:var(--lime)}
-.sb-milestone-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.sb-milestone-level.to{color:#24282C}
+.sb-milestone-bar{height:6px;border-radius:3px;background:rgba(36,40,44,.08);overflow:hidden}
 .sb-milestone-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--lime));transition:width .6s}
 
 /* Sidebar footer */
@@ -136,7 +141,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* ── MAIN CONTENT ── */
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 .main::-webkit-scrollbar{width:6px}
-.main::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:3px}
+.main::-webkit-scrollbar-thumb{background:rgba(36,40,44,.12);border-radius:3px}
 
 /* Top bar */
 .topbar{
@@ -161,7 +166,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   position:absolute;top:-1px;right:-1px;width:8px;height:8px;
   border-radius:50%;background:var(--orange);border:2px solid var(--bg);
 }
-.tb-avatar{
+.tb-avatar{text-decoration:none;
   width:36px;height:36px;border-radius:50%;
   border:2px solid var(--border-2);background:var(--bg-card);
   display:flex;align-items:center;justify-content:center;
@@ -169,7 +174,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .mobile-summary{
   display:none;margin-bottom:18px;padding:16px 16px 14px;border-radius:18px;
-  background:linear-gradient(135deg,rgba(6,182,212,.14),rgba(28,28,30,.12));
+  background:linear-gradient(135deg,rgba(205,246,73,.14),rgba(36,40,44,.03));
   border:1px solid var(--accent-border);
 }
 .ms-kicker{
@@ -180,8 +185,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ms-copy{font-size:13px;line-height:1.6;color:var(--text-2);margin-top:8px}
 .ms-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
 .ms-stat{
-  padding:12px 10px;border-radius:14px;background:rgba(28,28,30,.22);
-  border:1px solid rgba(255,255,255,.05);text-align:center;
+  padding:12px 10px;border-radius:14px;background:rgba(255,255,255,.72);
+  border:1px solid rgba(36,40,44,.08);text-align:center;
 }
 .ms-stat-value{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1}
 .ms-stat-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
@@ -194,9 +199,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .welcome-text{
   font-family:var(--display);font-size:28px;font-weight:700;
   letter-spacing:.02em;line-height:1.15;
-  background:linear-gradient(135deg,#f0e68c,#06b6d4);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
+  /* Был градиент жёлтый->бирюзовый под тёмный фон: на светлом 1.5-2:1. */
+  color:#24282C;
 }
 
 /* Section headings */
@@ -231,9 +235,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   text-decoration:none;
 }
 .va-btn:hover{border-color:var(--accent-border);background:var(--bg-card-2)}
-.va-btn.primary{background:var(--accent);border-color:var(--accent);color:#1C1C1E}
+.va-btn.primary{background:#CDF649;border-color:#CDF649;color:#24282C}
 .va-btn.primary:hover{opacity:.88}
-.va-lang{color:var(--orange);font-weight:650}
+.va-lang{color:#24282C;font-weight:700;background:rgba(205,246,73,.55);border-radius:6px;padding:0 5px}
 
 /* Tabs */
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
@@ -244,7 +248,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   font-family:var(--font);
 }
 .tab:hover{color:var(--text-2)}
-.tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.tab.active{color:#24282C;border-bottom-color:#CDF649}
 
 /* Tab content */
 .tab-pane{display:none}
@@ -253,7 +257,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Notification banner */
 .notif-banner{
   display:flex;align-items:center;gap:10px;padding:14px 18px;
-  background:linear-gradient(135deg,rgba(6,182,212,.06),rgba(28,28,30,.04));
+  background:linear-gradient(135deg,rgba(205,246,73,.06),rgba(36,40,44,.02));
   border:1px solid var(--accent-border);border-radius:14px;margin-bottom:16px;
 }
 .notif-icon{font-size:18px;flex-shrink:0}
@@ -291,7 +295,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   border-radius:20px;cursor:pointer;transition:.15s;border:none;
 }
 .vw-badge.learned{background:rgba(34,197,94,.12);color:#22c55e}
-.vw-badge.new{background:var(--orange-dim);color:var(--orange)}
+.vw-badge.new{background:var(--orange-dim);color:#24282C}
 
 /* Progress cards */
 .progress-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -303,7 +307,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .prog-card-label{font-size:11px;color:var(--text-3);font-weight:600;margin-top:6px}
 .prog-bar-wrap{margin-top:12px}
 .prog-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px}
-.prog-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.prog-bar{height:5px;border-radius:3px;background:rgba(36,40,44,.08);overflow:hidden}
 .prog-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--lavender))}
 
 /* Games grid */
@@ -354,10 +358,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Live banner */
 .live-banner{
   display:none;align-items:center;gap:12px;padding:14px 18px;margin-bottom:16px;
-  background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:14px;color:#fff;
+  background:#24282C;border-radius:14px;color:#fff; /* лист: чернила под белый текст; эфир обозначает коралловая точка */
 }
 .live-dot{
-  width:10px;height:10px;border-radius:50%;background:#fff;
+  width:10px;height:10px;border-radius:50%;background:#FF4E00;
   animation:pulse-dot 1.2s infinite;flex-shrink:0;
 }
 .live-info{flex:1}
@@ -385,7 +389,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .modal-box{
   background:var(--bg-card);border:1px solid var(--border-2);
   border-radius:18px;padding:24px;width:100%;max-width:400px;
-  box-shadow:0 24px 64px rgba(0,0,0,.4);
+  box-shadow:0 24px 64px rgba(36,40,44,.4);
 }
 .modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
 .modal-input{
@@ -402,7 +406,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .modal-submit{
   flex:2;padding:10px;border-radius:10px;border:none;
-  background:var(--accent);color:#1C1C1E;font-family:var(--font);
+  background:var(--accent);color:#24282C;font-family:var(--font);
   font-weight:650;cursor:pointer;font-size:13px;transition:.15s;
 }
 .modal-submit:hover{opacity:.88}
@@ -420,7 +424,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .mob-toggle{
   display:none;width:38px;height:38px;border-radius:8px;
   border:1px solid var(--border);background:var(--bg-card);
-  cursor:pointer;align-items:center;justify-content:center;
+  cursor:pointer;align-items:center;justify-content:center;flex-direction:column;
   flex-shrink:0;
 }
 .mob-toggle span{display:block;width:18px;height:2px;background:var(--text);border-radius:1px;transition:.2s;font-size:0;line-height:0}
@@ -430,10 +434,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   height:calc(56px + env(safe-area-inset-bottom,0px));
   padding-bottom:env(safe-area-inset-bottom,0px);
   z-index:1200;
-  background:rgba(22,22,24,0.94);
+  background:rgba(255,255,255,.94);
   backdrop-filter:blur(24px) saturate(1.8);
   -webkit-backdrop-filter:blur(24px) saturate(1.8);
-  border-top:1px solid rgba(255,255,255,.07);
+  border-top:1px solid rgba(36,40,44,.08);
   gap:0;
 }
 .mtab{
@@ -469,7 +473,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   }
   .sidebar.open{left:0}
   .sidebar-backdrop{
-    display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;
+    display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);z-index:199;
     backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
   }
   .sidebar-backdrop.show{display:block}
@@ -502,14 +506,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=941">
-<link rel="stylesheet" href="styles/harmony.css?v=941">
-<link rel="stylesheet" href="styles/unify.css?v=941">
-<link rel="stylesheet" href="styles/teached-brand.css?v=941">
+<link rel="stylesheet" href="styles/mobile.css?v=946">
+<link rel="stylesheet" href="styles/harmony.css?v=946">
+<link rel="stylesheet" href="styles/unify.css?v=946">
+<link rel="stylesheet" href="styles/teached-brand.css?v=946">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=941">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=941">
-<link rel="stylesheet" href="styles/controls.css?v=941">
+<link rel="stylesheet" href="styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
+<link rel="stylesheet" href="styles/controls.css?v=946">
 </head>
 <body class="fx">
 
@@ -577,7 +581,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </button>
       <a class="tb-guide" href="javascript:void(0)" onclick="showGuide()">💡 How does it work</a>
       <div class="tb-spacer"></div>
-      <button class="tb-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">☀️</button>
+      <!-- Переключатель темы убран: тёмной темы у продукта нет, кнопка
+           переводила страницу в полутёмное состояние с нечитаемым текстом. -->
+      <button class="tb-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle theme" style="display:none">☀️</button>
       <div class="tb-btn" style="cursor:default;">
         🔔
         <div class="tb-dot" id="notif-dot" style="display:none;"></div>
@@ -634,7 +640,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="vs-card">
           <span class="vs-icon">🎯</span>
           <div class="vs-label">To Learn</div>
-          <div class="vs-num" id="v-tolearn" style="color:var(--lavender)">-</div>
+          <div class="vs-num" id="v-tolearn" style="color:#24282C">-</div>
         </div>
         <div class="vs-card">
           <span class="vs-icon">⚡</span>
@@ -644,7 +650,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="vs-card">
           <span class="vs-icon">🏆</span>
           <div class="vs-label">Day Record</div>
-          <div class="vs-num" id="v-record" style="color:var(--lime)">-</div>
+          <div class="vs-num" id="v-record" style="color:#24282C">-</div>
         </div>
       </div>
 
@@ -653,7 +659,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <button class="va-btn primary" onclick="learnWords()">→ Learn words</button>
         <span class="va-btn"><span class="va-lang" id="lang-pair">EN</span>&nbsp;→&nbsp;<span id="lang-to">RU</span></span>
         <button class="va-btn" onclick="openVocabModal()">+ Add new word</button>
-        <button class="va-btn" onclick="loadVocab()" title="Refresh">🔄</button>
+        <button class="va-btn" onclick="loadVocab()" title="Refresh" aria-label="Refresh words">↻ Refresh</button>
       </div>
 
       <!-- Tabs -->
@@ -698,7 +704,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             </div>
           </div>
           <div class="prog-card">
-            <div class="prog-card-num" id="pg-streak" style="color:var(--orange)">-</div>
+            <div class="prog-card-num" id="pg-streak" style="color:#24282C">-</div>
             <div class="prog-card-label">🔥 Day Streak</div>
           </div>
         </div>
@@ -710,7 +716,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
       <!-- Tab: Schedule -->
       <div class="tab-pane" id="pane-schedule">
-        <div id="schedule-timezone-summary" class="empty-state" style="display:none;margin-bottom:10px;background:rgba(200,230,50,.08);border-color:rgba(200,230,50,.2);color:var(--text-2);"></div>
+        <div id="schedule-timezone-summary" class="empty-state" style="display:none;margin-bottom:10px;background:rgba(205,246,73,.08);border-color:rgba(205,246,73,.2);color:var(--text-2);"></div>
         <div id="schedule-list">
           <div class="empty-state">No upcoming lessons scheduled</div>
         </div>
@@ -774,7 +780,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=941"></script>
+<script src="scripts/app-core.js?v=946"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1329,13 +1335,13 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/autogrow.js?v=941" defer></script>
-<script src="pwa-boot.js?v=941" defer></script>
-<script src="pwa.js?v=941"></script>
-<script src="scripts/nav-boost.js?v=941" defer></script>
-<script src="scripts/mobile-perf.js?v=941" defer></script>
-<script src="scripts/mobile-nav.js?v=941"></script>
-<script src="scripts/mobile-zoom-guard.js?v=941" defer></script>
-  <script src="scripts/signin-entry.js?v=941" defer></script>
+<script src="scripts/autogrow.js?v=946" defer></script>
+<script src="pwa-boot.js?v=946" defer></script>
+<script src="pwa.js?v=946"></script>
+<script src="scripts/nav-boost.js?v=946" defer></script>
+<script src="scripts/mobile-perf.js?v=946" defer></script>
+<script src="scripts/mobile-nav.js?v=946"></script>
+<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
+  <script src="scripts/signin-entry.js?v=946" defer></script>
 </body>
 </html>

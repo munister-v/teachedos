@@ -58,9 +58,9 @@
   /* Core */
   --te-ink:#24282C;
   --te-lime:#CDF649;
-  --te-paper:#F5F5F8;
+  --te-paper:#F6F6EF;
   --te-white:#FFFFFF;
-  --te-gray:#CBCBCE;
+  --te-gray:#CACCC6;
 
   /* Secondary palette - буквально лист заказчицы, без исключений */
   --te-yellow:#FFE44D;
@@ -908,7 +908,7 @@ body.landing-page .btn-glass:hover,body.landing-page .btn-cream:hover { backgrou
 }
 /* Кольцо фокуса двойное: чернильный контур плюс лаймовый ореол.
    Одним лаймом оно жило только на тёмных поверхностях - на светлом фоне
-   продукта (#EFEFF2, #F5F5F8) лайм даёт 1.2:1, и клавиатурный обход шёл
+   продукта (#EFEFF2, #F6F6EF) лайм даёт 1.2:1, и клавиатурный обход шёл
    вслепую. Чернила на этих фонах дают 13-16:1, а на тёмной панели, где
    пропадают уже они, кольцо держит ореол. */
 :is(a, button, .btn, [role="button"], [tabindex]):focus-visible {

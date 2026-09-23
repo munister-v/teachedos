@@ -3,10 +3,10 @@
    personal account invite). The first page of TeachEd a student ever sees,
    so it carries the brand, not a generic form: an ink ticket that says who
    invites you and where, what you get, and one lime button.
-   Palette: ink #24282C, lime #CDF649, paper #F5F5F8, line #CBCBCE.
+   Palette: ink #24282C, lime #CDF649, paper #F6F6EF, line #CACCC6.
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --ip-ink:#24282C; --ip-lime:#CDF649; --ip-paper:#F5F5F8; --ip-line:#CBCBCE;
+  --ip-ink:#24282C; --ip-lime:#CDF649; --ip-paper:#F6F6EF; --ip-line:#CACCC6;
   --ip-olive:#5D614B; --ip-sage:#A3A48D; --ip-coral:#FF4E00;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
@@ -97,11 +97,11 @@ html::after  { width:380px; height:380px; right:-120px; bottom:-140px; backgroun
 
 .ip-status { margin-top:12px; font-size:13.5px; line-height:1.45; color:var(--ip-olive); text-align:center; }
 .ip-status:empty { display:none; }
-.ip-status.err { color:var(--ip-coral); }
+.ip-status.err { color:var(--ip-ink); font-weight:650; } /* коралл текстом на белом 3.2:1 */
 .ip-status.ok { color:var(--ip-ink); font-weight:650; }
 .ip-foot {
-  /* Было var(--ip-sage) #A3A48D - 2.5:1 на белом, подпись почти не читалась. */
-  padding:14px 26px 18px; font-size:12px; line-height:1.5; color:#5C5C66; text-align:center;
+  /* Было var(--ip-sage) #A3A48D - 2.5:1 на белом. Олива из того же листа - 6.4:1. */
+  padding:14px 26px 18px; font-size:12px; line-height:1.5; color:var(--ip-olive); text-align:center;
   border-top:1px solid rgba(36,40,44,.08);
 }
 .ip-foot a { color:var(--ip-ink); }
@@ -125,7 +125,7 @@ html::after  { width:380px; height:380px; right:-120px; bottom:-140px; backgroun
   color:transparent !important; background:rgba(246,246,239,.12); border-radius:8px;
 }
 .ip-card.is-loading .ip-ava { background:rgba(246,246,239,.14); color:transparent; }
-.ip-card.is-dead .ip-chip { background:var(--ip-coral); color:#fff; }
+.ip-card.is-dead .ip-chip { background:var(--ip-paper); color:var(--ip-ink); } /* белый на коралле 3.3:1, чернила 4.48:1 - оба ниже порога */
 .ip-card.is-dead .ip-from, .ip-card.is-dead .ip-perks, .ip-card.is-dead .ip-meta { display:none; }
 .ip-card.is-dead .ip-title { margin-top:0; font-size:28px !important; }
 

@@ -8,15 +8,14 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>TeachEd - Accept Invite</title>
 <link rel="icon" type="image/png" href="logo-sm.png"/>
-<link rel="stylesheet" href="styles/mobile.css?v=941">
-<link rel="stylesheet" href="styles/harmony.css?v=941">
-<link rel="stylesheet" href="styles/unify.css?v=941">
-<link rel="stylesheet" href="styles/teached-brand.css?v=941">
-<link rel="stylesheet" href="styles/figma-theme.css?v=941">
-<link rel="stylesheet" href="styles/controls.css?v=941">
-<link rel="stylesheet" href="styles/invite-page.css?v=941">
+<!-- Тот же набор, что у join.html: страница целиком на ip-* из invite-page.css.
+     Общие слои (harmony, unify, figma-theme) перекрашивали заголовок в чернила
+     на тёмной шапке (1.2:1) и делали карточку полупрозрачной. -->
+<link rel="stylesheet" href="styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="styles/controls.css?v=946">
+<link rel="stylesheet" href="styles/invite-page.css?v=946">
 </head>
-<body class="fx">
+<body>
   <!-- A personal invite (admin -> teacher, or teacher -> student by email):
        the address and role are reserved, the person only picks a name and
        a password. Same ticket card as join.html. -->
@@ -174,7 +173,7 @@ $('accept-form').addEventListener('submit', async e => {
 
 loadInvite();
 </script>
-<script src="scripts/nav-boost.js?v=941" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=941" defer></script>
+<script src="scripts/nav-boost.js?v=946" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
 </body>
 </html>

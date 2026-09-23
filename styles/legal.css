@@ -33,7 +33,7 @@ a:hover{text-decoration:underline;text-underline-offset:2px;}
   display:flex;align-items:center;justify-content:space-between;gap:12px;
 }
 .doc-logo{display:flex;align-items:center;gap:9px;font-weight:650;font-size:17px;letter-spacing:-.02em;color:var(--ink);}
-.doc-logo em{font-style:normal;color:var(--pink);}
+.doc-logo em{font-style:normal;color:inherit;}
 .doc-logo img{width:26px;height:26px;border-radius:8px;}
 .doc-back{
   font-size:13px;font-weight:600;color:var(--ink2);

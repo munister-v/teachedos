@@ -62,7 +62,7 @@ html:has(body.tools-workbench) { background:#f6f6f9; }
   height:calc(100dvh - 56px);
   padding:24px 12px;
   border-right:1px solid var(--tt-line);
-  background:#fbfbf8;
+  background:#FFFFFF;
   box-shadow:none;
   backdrop-filter:none;
 }

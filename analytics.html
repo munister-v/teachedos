@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=941"></script>
+<script src="scripts/phone-gate.js?v=946"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -320,23 +320,23 @@ a{text-decoration:none;color:inherit;}
 /* Замок аналитики (нет в тарифе): одна карточка вместо пустых секций. */
 body.analytics-locked :is(#board-context,#overview-section,#insight-section,#course-progress-section,#status-breakdown-section,#lessons-section,#assignments-section,#students-section,#quiz-analytics-section){display:none !important;}
 body.analytics-locked .grid2{display:none !important;}
-.analytics-lock{padding:28px 28px 26px;border-radius:18px;background:#FFFFFF;border:1px solid rgba(22,22,22,.12);margin-bottom:18px;max-width:640px;}
-.analytics-lock .al-kicker{font-size:12px;font-weight:600;color:#55555C;margin-bottom:6px;}
-.analytics-lock .al-title{font-size:24px;font-weight:700;letter-spacing:-.02em;color:#161616;margin-bottom:8px;}
-.analytics-lock .al-copy{font-size:14px;line-height:1.5;color:#3A3A40;margin:0 0 18px;}
-.analytics-lock .al-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;background:#CBF03C;color:#161616;font-weight:650;font-size:14px;text-decoration:none;}
-.analytics-lock .al-btn:hover{background:#BCE22A;}
+.analytics-lock{padding:28px 28px 26px;border-radius:18px;background:#FFFFFF;border:1px solid rgba(36,40,44,.12);margin-bottom:18px;max-width:640px;}
+.analytics-lock .al-kicker{font-size:12px;font-weight:600;color:#5D614B;margin-bottom:6px;}
+.analytics-lock .al-title{font-size:24px;font-weight:700;letter-spacing:-.02em;color:#24282C;margin-bottom:8px;}
+.analytics-lock .al-copy{font-size:14px;line-height:1.5;color:#5D614B;margin:0 0 18px;}
+.analytics-lock .al-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;background:#CDF649;color:#24282C;font-weight:650;font-size:14px;text-decoration:none;}
+.analytics-lock .al-btn:hover{background:#D3F36B;}
 </style>
-<script src="theme.js?v=941" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=941">
-<link rel="stylesheet" href="styles/harmony.css?v=941">
-<link rel="stylesheet" href="styles/unify.css?v=941">
-<link rel="stylesheet" href="styles/teached-brand.css?v=941">
-<link rel="stylesheet" href="styles/tool-window.css?v=941">
+<script src="theme.js?v=946" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=946">
+<link rel="stylesheet" href="styles/harmony.css?v=946">
+<link rel="stylesheet" href="styles/unify.css?v=946">
+<link rel="stylesheet" href="styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="styles/tool-window.css?v=946">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=941">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=941">
-<link rel="stylesheet" href="styles/controls.css?v=941">
+<link rel="stylesheet" href="styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
+<link rel="stylesheet" href="styles/controls.css?v=946">
 </head>
 <body class="tw-page suite-page analytics-suite fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -538,7 +538,7 @@ body.analytics-locked .grid2{display:none !important;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=941"></script>
+<script src="scripts/app-core.js?v=946"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
@@ -1221,12 +1221,12 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=941" defer></script>
-<script src="scripts/mobile-perf.js?v=941" defer></script>
-<script src="scripts/mobile-nav.js?v=941"></script>
-<script src="scripts/mobile-zoom-guard.js?v=941" defer></script>
-<script src="scripts/autogrow.js?v=941" defer></script>
-<script src="pwa-boot.js?v=941" defer></script>
-  <script src="scripts/signin-entry.js?v=941" defer></script>
+<script src="scripts/nav-boost.js?v=946" defer></script>
+<script src="scripts/mobile-perf.js?v=946" defer></script>
+<script src="scripts/mobile-nav.js?v=946"></script>
+<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
+<script src="scripts/autogrow.js?v=946" defer></script>
+<script src="pwa-boot.js?v=946" defer></script>
+  <script src="scripts/signin-entry.js?v=946" defer></script>
 </body>
 </html>

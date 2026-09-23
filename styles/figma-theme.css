@@ -254,13 +254,14 @@ body.fx:not(#_) :is(
 
    Стекло придумано для песочного стола, а не для белой колонки, поэтому
    здесь блокам возвращается обычная поверхность с видимым краем. */
-/* .up-next в этот список НЕ входит, и это важно: у неё собственный тёмный
-   градиент #1C1C1E→#2A2A2D с белым текстом, она никогда не была стеклянной.
+/* .up-next в этот список НЕ входит: карточку красит сама schedule.html
+   (с 24.09.2026 - белая с лаймовой кромкой, в эфире - красный градиент с
+   белым текстом). Раньше это был тёмный градиент #1C1C1E→#2A2A2D.
    Я включил её сюда по ошибке - заливка стала светлой, а текст остался
    белым, и карточка «следующее занятие» с временем и кнопкой пропала с
    экрана. Пустое её состояние тоже красится само (.up-next.empty). */
 body.fx:not(#_) #side :is(.side-section,.stat-pill,.wb-metric) {
-  background:#FBFBF8 !important;
+  background:#FFFFFF !important;
   border:1px solid rgba(32,32,44,.14) !important;
 }
 body.fx:not(#_) :is(
@@ -748,14 +749,14 @@ body.fx.os-desktop:not(#_) {
    волосяной линией, заголовок без плашки, как карточки главной. */
 body.fx.tw-page:has(.suite-switcher):not(#_) .section {
   background:#FFFFFF !important;
-  border:1px solid rgba(22,22,22,.12) !important;
+  border:1px solid rgba(36,40,44,.12) !important;
   border-radius:18px !important;
-  box-shadow:0 1px 2px rgba(30,40,44,.04), 0 10px 28px rgba(30,40,44,.05) !important;
+  box-shadow:0 1px 2px rgba(36,40,44,.04), 0 10px 28px rgba(36,40,44,.05) !important;
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
 }
 body.fx.tw-page:has(.suite-switcher):not(#_) .sec-head {
   background:transparent !important; box-shadow:none !important;
-  border-bottom:1px solid rgba(22,22,22,.08) !important;
+  border-bottom:1px solid rgba(36,40,44,.08) !important;
   min-height:52px !important; padding:14px 18px 12px !important;
 }
 body.fx.tw-page:has(.suite-switcher):not(#_) .sec-title {
@@ -763,6 +764,6 @@ body.fx.tw-page:has(.suite-switcher):not(#_) .sec-title {
 }
 body.fx.tw-page:has(.suite-switcher):not(#_) .sec-kicker {
   font-family:inherit !important; font-size:12px !important; font-weight:500 !important;
-  letter-spacing:0 !important; text-transform:lowercase !important; color:#55555C !important;
+  letter-spacing:0 !important; text-transform:lowercase !important; color:#5D614B !important;
 }
 body.fx.tw-page:has(.suite-switcher):not(#_) .sec-body { padding:16px 18px !important; }

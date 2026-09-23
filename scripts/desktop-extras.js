@@ -97,7 +97,7 @@ const WALL_PRESETS = [
      сверху, бирюза снизу. На нём окна становятся стеклом (glass). Прежний
      ровный светлый остался пресетом 'plain'. */
   { key: null,       group: 'colour', title: 'TeachEd sky', glass: true, css: 'radial-gradient(55% 38% at 28% 16%, rgba(255,255,255,.38) 0%, transparent 70%), radial-gradient(45% 30% at 78% 26%, rgba(255,255,255,.24) 0%, transparent 70%), radial-gradient(70% 45% at 60% 100%, rgba(62,150,150,.55) 0%, transparent 70%), linear-gradient(180deg, #8C9194 0%, #A3A9AB 36%, #9DB6B5 64%, #6AA8A6 100%)' },
-  { key: 'plain',    group: 'colour', title: 'Plain',    css: '#EFEFF2' },
+  { key: 'plain',    group: 'colour', title: 'Plain',    css: '#F6F6EF' },
   { key: 'mist',     group: 'colour', title: 'Mist',     css: 'radial-gradient(120% 90% at 15% 10%, #FFFFFF 0%, transparent 55%), linear-gradient(160deg, #E9ECF2 0%, #DCE1EA 100%)' },
   { key: 'dawn',     group: 'colour', title: 'Lime dawn', css: 'radial-gradient(90% 70% at 85% 0%, rgba(205,242,79,.55) 0%, transparent 60%), linear-gradient(170deg, #F6F8EE 0%, #E7EAE3 100%)' },
   { key: 'meadow',   group: 'colour', title: 'Meadow',   css: 'radial-gradient(80% 60% at 10% 90%, rgba(168,208,43,.35) 0%, transparent 60%), radial-gradient(70% 60% at 90% 20%, rgba(124,138,123,.25) 0%, transparent 60%), #E8ECE4' },
@@ -605,8 +605,10 @@ function renderSchedPreview(all) {
   const monday = new Date(now); monday.setDate(now.getDate() - today);
   const weekly = (all || []).filter(s => s.recurring !== false && !s.specific_date);
   const order = s => ((s.day - today + 7) % 7) * 1440 + toMin(s.start_time);
+  // Конец раньше начала = урок через полночь (23:30-00:30): он не закончился.
+  const endMin = s => { const e = toMin(s.end_time); return e < toMin(s.start_time) ? e + 1440 : e; };
   const upcoming = weekly
-    .filter(s => !(s.day === today && toMin(s.end_time) <= nowMin))
+    .filter(s => !(s.day === today && endMin(s) <= nowMin))
     .sort((a, b) => order(a) - order(b));
   const month = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   const days = SP_DAYS.map((d, i) => {
@@ -626,7 +628,7 @@ function renderSchedPreview(all) {
         <span class="sp-add">Add <i>+</i></span></div>
       <div class="sp-week">${days}</div>
     </div>
-    <div class="sp-count"><b>${upcoming.length}</b> ${upcoming.length === 1 ? 'class' : 'classes'} this week</div>
+    <div class="sp-count"><b>${weekly.length}</b> ${weekly.length === 1 ? 'class' : 'classes'} this week</div>
     <div class="sp-list">${pills || '<div class="sp-empty">No classes this week yet. Open the schedule to add one.</div>'}</div>`;
 }
 async function loadSchedPreview() {

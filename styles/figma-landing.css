@@ -228,7 +228,12 @@ body.fx.landing-page :is(svg [stroke="#E11D74"],svg [stroke="#EC2D8C"]) { stroke
    1.09:1, чипы под ним 1.04:1, то есть были не видны вовсе. Заголовок задан
    ещё и инлайновым style, поэтому нужен !important. */
 body.fx.landing-page .bc.ink :is(.bc-h,.bc-p,.bento-tag) { color:var(--fx-ink) !important; }
-body.fx.landing-page .bc.ink .bc-p { color:var(--fx-ink-2) !important; }
+body.fx.landing-page .bc.ink .bc-p { color:var(--fx-ink-2) !important; opacity:1 !important; }
+/* Полупрозрачность поверх уже приглушённого текста опускала подписи ниже
+   4.5:1 (лаймовая карточка 3.35, строка «Loved by» 3.5). Цвет берёт олива
+   листа, без прозрачности. */
+body.fx.landing-page .bc.lime .bc-p { opacity:1 !important; color:#24282C !important; }
+body.fx.landing-page .hero-proof { opacity:1 !important; }
 body.fx.landing-page .bc.ink .bento-tag {
   background:rgba(22,22,22,.06) !important; border-color:rgba(22,22,22,.12) !important;
   color:var(--fx-mute) !important;
@@ -375,7 +380,7 @@ body.fx.landing-page .hero-proof {
 body.fx.landing-page .hp-avatars span {
   width: 24px; height: 24px; font-size: 9px;
 }
-body.fx.landing-page .hp-text { font-size: 12px; }
+body.fx.landing-page .hp-text { font-size: 12px; color:#5D614B !important; }
 body.fx.landing-page .hp-stars { color: var(--fx-mute); }
 
 /* ── Pro-план физически крупнее, а не только с лейблом ─────────────────

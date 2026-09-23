@@ -1520,7 +1520,7 @@ document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='fu
    подложка-бумага и одна белая панель с линейкой. Раньше разминка и Mission
    Control стояли на своём холодно-сером, читалка на белом, и у каждой была
    своя шкала серых. */
-:root{--ink:#24282C;--lime:#CDF649;--paper:#F5F5F8;--gray:#CBCBCE;--olive:#5D614B;--sage:#A3A48D;--panel:#fff;
+:root{--ink:#24282C;--lime:#CDF649;--paper:#F6F6EF;--gray:#CACCC6;--olive:#5D614B;--sage:#A3A48D;--panel:#fff;
   --line:rgba(36,40,44,.12);--line-2:rgba(36,40,44,.22);--r:14px}
 body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:var(--ink);padding:18px 20px 24px;background:var(--paper);overflow-x:hidden}
 strong{font-weight:650}
