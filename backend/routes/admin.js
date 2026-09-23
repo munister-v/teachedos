@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { sendEmail, emailConfigured, accountInviteEmail } = require('../lib/email');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -1208,7 +1209,15 @@ router.post('/invites', async (req, res) => {
       [safeEmail, safeRole, token, safeNote, req.user.id, safeDays]
     );
 
-    res.status(201).json({ invite: rows[0] });
+    // the invite used to be created and never sent - the admin had to copy
+    // the link out by hand; now it is emailed, and the link stays in the answer
+    const mail = accountInviteEmail({ token, role: safeRole, note: safeNote, days: safeDays });
+    let emailSent = false;
+    if (emailConfigured()) {
+      try { await sendEmail({ to: safeEmail, subject: mail.subject, html: mail.html, text: mail.text }); emailSent = true; }
+      catch (err) { console.error('[admin/invites] email failed:', err.message); }
+    }
+    res.status(201).json({ invite: rows[0], emailSent, inviteUrl: mail.link });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

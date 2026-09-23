@@ -217,7 +217,7 @@ router.post('/:boardId/invite', requireAuth, async (req, res) => {
       const mail = studentInviteEmail({ token, teacherName: req.user.name, boardTitle: own[0].name });
       let emailSent = false;
       if (emailConfigured()) {
-        try { await sendEmail({ to: cleanEmail, subject: mail.subject, html: mail.html }); emailSent = true; }
+        try { await sendEmail({ to: cleanEmail, subject: mail.subject, html: mail.html, text: mail.text }); emailSent = true; }
         catch (err) { console.error('[members] invite email failed:', err.message); }
       }
       return res.status(202).json({ invited: true, email: cleanEmail, emailSent, inviteUrl: mail.link });

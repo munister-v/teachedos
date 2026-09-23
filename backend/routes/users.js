@@ -5,6 +5,7 @@ const fs     = require('fs');
 const path   = require('path');
 const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth');
+const { sendEmailQuietly, passwordChangedEmail } = require('../lib/email');
 
 /* ── Фон рабочего стола ────────────────────────────────────────────────
    Свой фон учителя живёт файлом в data/wallpapers (вне backend/: деплой
@@ -152,6 +153,7 @@ router.patch('/me/password', async (req, res) => {
   // device immediately so a previously copied session cannot persist.
   await pool.query('DELETE FROM sessions WHERE user_id = $1 AND id <> $2', [req.user.id, req.authSessionId]);
   res.json({ ok: true });
+  sendEmailQuietly({ to: req.user.email, ...passwordChangedEmail({ how: 'changed' }) }, 'users/password-changed');
 });
 
 module.exports = router;

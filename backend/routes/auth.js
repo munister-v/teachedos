@@ -7,7 +7,7 @@ const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
 const { attachBoardInvites } = require('../lib/boardInvites');
 const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth');
-const { sendEmail, resetPasswordEmail } = require('../lib/email');
+const { sendEmail, sendEmailQuietly, resetPasswordEmail, passwordChangedEmail, welcomeEmail } = require('../lib/email');
 const { recordTelemetry } = require('../lib/telemetry');
 
 function logAuthEvent(userId, email, event, req, detail) {
@@ -423,6 +423,7 @@ router.post('/register', authLimiter, async (req, res) => {
     const payload = await issueLoginSession(req, user);
     logAuthEvent(user.id, user.email, 'signup', req);
     res.status(201).json({ ...payload, isNewUser: true });
+    sendEmailQuietly({ to: user.email, ...welcomeEmail({ name: user.name, role: user.role }) }, 'auth/welcome');
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email already registered' });
@@ -523,6 +524,7 @@ router.post('/invites/:token/accept', authLimiter, async (req, res) => {
     await client.query('COMMIT');
     logAuthEvent(user.id, user.email, 'invite.accept', req);
     res.status(201).json({ token, isNewUser: true, user: publicUser(user) });
+    sendEmailQuietly({ to: user.email, ...welcomeEmail({ name: user.name, role: user.role }) }, 'auth/welcome');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('[auth/invite-accept]', err.message);
@@ -677,6 +679,7 @@ router.post('/google', authLimiter, async (req, res) => {
     const payload = await issueLoginSession(req, user);
     payload.isNewUser = isNewUser;
     res.json(payload);
+    if (isNewUser) sendEmailQuietly({ to: user.email, ...welcomeEmail({ name: user.name, role: user.role }) }, 'auth/welcome');
   } catch (err) {
     console.error('[auth/google]', err.message);
     res.status(401).json({ error: 'Could not verify Google sign-in' });
@@ -849,8 +852,8 @@ router.post('/forgot-password', forgotLimiter, async (req, res) => {
        VALUES ($1, $2, $3, 'reset', $4)`,
       [userId, email, tokenHash, exp]);
 
-    const { subject, html } = resetPasswordEmail(token);
-    await sendEmail({ to: email, subject, html });
+    const { subject, html, text } = resetPasswordEmail(token);
+    await sendEmail({ to: email, subject, html, text });
   } catch (err) {
     console.error('[auth/forgot-password]', err.message);
   }
@@ -909,6 +912,8 @@ router.post('/reset-password', forgotLimiter, async (req, res) => {
     await client.query('COMMIT');
     logAuthEvent(rows[0].user_id, rows[0].email, 'password.reset', req);
     res.json({ ok: true, message: 'Password updated. You can now sign in.' });
+    // if it wasn't them, this is how they find out
+    sendEmailQuietly({ to: rows[0].email, ...passwordChangedEmail({ how: 'reset' }) }, 'auth/password-changed');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('[auth/reset-password]', err.message);

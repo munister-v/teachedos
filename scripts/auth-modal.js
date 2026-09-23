@@ -521,4 +521,16 @@ function humanError(e) {
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', scrollFocusedAuthFieldIntoView);
   }
+
+  /* ?forgot=1 opens the reset form straight away: the "your password was
+     changed - wasn't you?" email links here, and a person in that situation
+     should land on the form, not look for it. */
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get('forgot') === '1' && !localStorage.getItem('teachedos_token')) {
+      const open = () => window.openAuthModal && window.openAuthModal('forgot');
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', open, { once: true });
+      else setTimeout(open, 0);
+    }
+  } catch (_) {}
 })();

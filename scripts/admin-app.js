@@ -2165,7 +2165,7 @@ async function createInvite() {
     const d = await api('POST', '/api/admin/invites', { email, role, expiresInDays, note });
     const inviteUrl = buildInviteUrl(d.invite.token);
     await navigator.clipboard.writeText(inviteUrl).catch(() => {});
-    toast('Invite created and copied', 'success');
+    toast(d.emailSent ? `Invite emailed to ${email} (link also copied)` : 'Invite created and copied - email is not configured, send the link yourself', 'success');
     document.getElementById('invite-email').value = '';
     document.getElementById('invite-note').value = '';
     document.getElementById('invite-role').value = 'teacher';
