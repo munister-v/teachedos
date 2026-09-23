@@ -21,9 +21,10 @@ const NOTES = [
   { title:'Phrasal Verbs - plan draft', preview:'get, make, take - context-first approach…',
     body:'Phrasal Verbs: get, make, take - DRAFT\nTarget: B1 · 50 min\n\nOBJECTIVES\n• 12 core phrasal verbs in context\n• Separable vs inseparable\n• Use naturally in speaking\n\nACTIVITIES\n• Gap-fill story (office setting)\n• B2 extension: phrasal verbs with multiple meanings\n• Review quiz for next class\n• Role-play cards with image prompts' },
 ];
+/* Стикеры - только цвета листа заказчицы, все под чернильный текст (>=4.5:1). */
 const STICKY_COLORS = [
-  '#FFE566','#AFF4C6','#CFE2FF','#FFB8D9','#CDB4F6','#FFD580',
-  '#FF8B8B','#9BDDCC','#FFC680','#B8F0FF','#FFB3BA','#D4F1A0',
+  '#FFE44D','#F3DF6B','#D3F36B','#CDF649','#49F6F0','#6BAFF3',
+  '#9F8CE8','#F3A46B','#FF8C3A','#CACCC6','#A3A48D','#F6F6EF',
 ];
 /* Card accent palette (accent line, headers, interactive controls).
    Twelve choices as before, but muted: the old set was Tailwind's vivid ramp
@@ -34,8 +35,8 @@ const STICKY_COLORS = [
    Cards already saved keep whatever hex they were given - this only changes
    what is offered next. */
 const WS_ACCENT_COLORS = [
-  '#CDF649','#A8C42A','#7FA65C','#4E9A8F','#5B8FB0','#6B7BA8',
-  '#8C7BB0','#A56E96','#C4707E','#C4805A','#D0A045','#88888B',
+  '#CDF649','#D3F36B','#5D614B','#A3A48D','#49F6F0','#6BAFF3',
+  '#3F9FFF','#6B42FD','#886BF3','#9F8CE8','#FF8C3A','#FF4E00',
 ];
 const SHARED_NOTES_KEY = 'teachedos_notes_v1';
 
@@ -688,7 +689,7 @@ function _sendCardToBack(card) {
 
 function defaultTextData(data={}) {
   return {
-    textColor: '#111111',
+    textColor: '#24282C',
     bgColor: 'transparent',
     fontFamily: 'var(--font)',
     fontSize: 16,
@@ -1201,7 +1202,7 @@ function renderText(el, card) {
     <button class="text-format-btn" data-align="right" aria-label="Align right">⇥</button>
     <span class="tb-sep"></span>
     <button class="text-link-btn" aria-label="Insert link">🔗</button>
-    <input class="text-color-control" type="color" data-act="text-color" aria-label="Text color" value="${cssColorToHex(card.data.textColor || '#111111')}">
+    <input class="text-color-control" type="color" data-act="text-color" aria-label="Text color" value="${cssColorToHex(card.data.textColor || '#24282C')}">
     <input class="text-color-control" type="color" data-act="bg-color" aria-label="Card background color" value="${cssColorToHex(card.data.bgColor || '#ffffff')}">
     <button class="text-bg-clear" aria-label="Transparent background">⊘</button>
     <span class="tb-sep"></span>
@@ -1362,7 +1363,7 @@ function renderStudent(el, card) {
       <div class="prog-bar"><div class="prog-fill" style="width:${d.progress||0}%"></div></div>
     </div>
     <div class="student-meta">
-      <span style="color:#f59e0b;font-weight:600;">${(d.streak||0)>0?'🔥'+d.streak:'-'}</span>
+      <span style="color:#F3A46B;font-weight:600;">${(d.streak||0)>0?'🔥'+d.streak:'-'}</span>
       <span>${esc(d.lastSeen||'')}</span>
       <span class="badge ${lc}">${d.level||''}</span>
     </div>`;
@@ -1386,7 +1387,7 @@ function renderNote(el, card) {
     titleSpan.style.outline = 'none';
     titleSpan.style.cursor = 'text';
     titleSpan.addEventListener('mousedown', e => e.stopPropagation());
-    titleSpan.addEventListener('focus', () => titleSpan.style.background = 'rgba(200,230,50,.06)');
+    titleSpan.addEventListener('focus', () => titleSpan.style.background = 'rgba(205,246,73,.06)');
     titleSpan.addEventListener('blur', () => {
       titleSpan.style.background = '';
       const v = titleSpan.textContent.trim() || 'Note';
@@ -1809,8 +1810,8 @@ function _mtMoreDo(action) {
 }
 
 function renderFrame(el, card) {
-  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(14,14,16,.05)');
-  el.style.setProperty('--frame-border', card.data.border || 'rgba(14,14,16,.30)');
+  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(36,40,44,.05)');
+  el.style.setProperty('--frame-border', card.data.border || 'rgba(36,40,44,.30)');
   // Assign a number if missing (legacy frames)
   if (!card.data.num) {
     const frames = state.cards.filter(c => c.type === 'frame');
@@ -2018,7 +2019,7 @@ function renderShape(el, card) {
   const shEl = document.createElementNS(ns, tag);
   Object.entries(attrs).forEach(([k,v]) => shEl.setAttribute(k, v));
   shEl.setAttribute('fill', d.fill || '#ffffff');
-  shEl.setAttribute('stroke', d.stroke || '#1C1C1E');
+  shEl.setAttribute('stroke', d.stroke || '#24282C');
   shEl.setAttribute('stroke-width', d.sw || 2);
   if (d.opacity != null) shEl.setAttribute('fill-opacity', d.opacity);
   svg.appendChild(shEl);
@@ -2026,7 +2027,7 @@ function renderShape(el, card) {
 
   const textDiv = document.createElement('div');
   textDiv.className = 'shape-text';
-  textDiv.style.color = d.textColor || '#1C1C1E';
+  textDiv.style.color = d.textColor || '#24282C';
   textDiv.style.fontSize = (d.fontSize || 14) + 'px';
   textDiv.textContent = d.text || '';
   el.appendChild(textDiv);
@@ -2059,7 +2060,7 @@ function renderShape(el, card) {
 }
 
 /* ════════════════════════ MINDMAP CARD ════════════════════════ */
-const MINDMAP_COLORS = ['#4262FF','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D','#FB923C'];
+const MINDMAP_COLORS = ['#6BAFF3','#D3F36B','#49F6F0','#FF8C3A','#F3A46B','#9F8CE8','#FFE44D','#F3DF6B'];
 
 function renderMindmap(el, card) {
   const d = card.data;
@@ -2069,7 +2070,7 @@ function renderMindmap(el, card) {
 
   const textDiv = document.createElement('div');
   textDiv.className = 'mindmap-text';
-  textDiv.style.color = d.textColor || '#1C1C1E';
+  textDiv.style.color = d.textColor || '#24282C';
   textDiv.textContent = d.text || 'Topic';
   el.appendChild(textDiv);
 
@@ -2157,7 +2158,7 @@ function quickAddFrame() {
       title: n === 1 ? 'Phone board' : 'Phone board ' + n,
       num: n,
       bg: 'rgba(255,255,255,1)',
-      border: 'rgba(28,28,30,.24)',
+      border: 'rgba(36,40,44,.24)',
       childIds: [],
       mobileFormat: true,
     }, 390, 844);
@@ -2180,8 +2181,8 @@ function quickAddFrame() {
   const newCard = addCard('frame', pos.x - def.w/2, pos.y - def.h/2, {
     title: 'Frame ' + n,
     num: n,
-    bg: 'rgba(14,14,16,.05)',
-    border: 'rgba(14,14,16,.30)',
+    bg: 'rgba(36,40,44,.05)',
+    border: 'rgba(36,40,44,.30)',
     childIds: []
   });
   // Send frames behind all other cards (Miro behaviour)
@@ -2669,8 +2670,8 @@ function renderLesson(el, card) {
       <span class="lesson-status ${st.cls}">${st.label}</span>
       ${d.level ? `<span class="badge ${LEVEL_COLORS[d.level]||'b1'}">${d.level}</span>` : ''}
       ${d.skill ? `<span class="badge lesson-${SKILL_MAP[d.skill]||'g'}">${d.skill}</span>` : ''}
-      ${d.duration ? `<span class="badge" style="background:rgba(0,0,0,.05);color:var(--text-3)">⏱ ${d.duration}</span>` : ''}
-      ${d.module ? `<span class="badge" style="background:rgba(139,92,246,.08);color:#7c3aed;font-size:9px;">📂 ${esc(d.module)}</span>` : ''}
+      ${d.duration ? `<span class="badge" style="background:rgba(36,40,44,.05);color:var(--text-3)">⏱ ${d.duration}</span>` : ''}
+      ${d.module ? `<span class="badge" style="background:rgba(136,107,243,.08);color:#6B42FD;font-size:9px;">📂 ${esc(d.module)}</span>` : ''}
     </div>`;
 
   // Description
@@ -2700,7 +2701,7 @@ function renderLesson(el, card) {
   // Footer
   const footerHtml = `
     <div class="lesson-footer">
-      ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#3b82f6;text-decoration:none;font-weight:600;" onclick="event.stopPropagation()">🔗 Material</a>` : ''}
+      ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#6B42FD;text-decoration:none;font-weight:600;" onclick="event.stopPropagation()">🔗 Material</a>` : ''}
       <button class="lesson-present-btn" onclick="event.stopPropagation();openLessonPresent('${card.id}')">▶ Present</button>
       ${isOwner ? `<button class="lesson-status-btn" onclick="event.stopPropagation();cycleLessonStatus('${card.id}')" title="Cycle status">↻</button>` : ''}
       <button class="lesson-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
@@ -2723,8 +2724,8 @@ function renderAssignment(el, card) {
   const pct = total ? Math.round(submitted / total * 100) : 0;
   const qs = d.questions || [];
   const totalPts = qs.reduce((s,q) => s + (q.points||1), 0) || d.maxScore || 0;
-  const typeColors = { Quiz:'#f97316', Essay:'#8b5cf6', Speaking:'#06b6d4', Project:'#10b981', Mixed:'#ec4899' };
-  const typeColor = typeColors[d.type] || '#f97316';
+  const typeColors = { Quiz:'#FF8C3A', Essay:'#886BF3', Speaking:'#6BAFF3', Project:'#A3A48D', Mixed:'#9F8CE8' };
+  const typeColor = typeColors[d.type] || '#FF8C3A';
   const typeIcons = { Quiz:'📝', Essay:'✍️', Speaking:'🗣', Project:'🏗', Mixed:'🎯' };
   const qtypeLabels = { 'gap-fill':'Gap-fill', 'mcq':'MCQ', 'match':'Match', 'truefalse':'T/F', 'open':'Open' };
 
@@ -2777,7 +2778,7 @@ function renderAssignment(el, card) {
     : (qs.length
         ? (prevResult
           ? `<div class="assign-prev-score">
-               <span class="assign-score-pill" style="background:${prevResult.pct>=80?'#d1fae5':prevResult.pct>=50?'#fef3c7':'#fee2e2'};color:${prevResult.pct>=80?'#065f46':prevResult.pct>=50?'#92400e':'#991b1b'}">
+               <span class="assign-score-pill" style="background:${prevResult.pct>=80?'#49F6F0':prevResult.pct>=50?'#F3DF6B':'#F3A46B'};color:${prevResult.pct>=80?'#5D614B':prevResult.pct>=50?'#FF4E00':'#FF4E00'}">
                  ${prevResult.pct>=80?'🏆':prevResult.pct>=50?'👍':'📖'} ${prevResult.pct}% · ${prevResult.score}/${prevResult.maxScore} pts
                </span>
                <button class="assign-take-btn" style="padding:4px 10px;font-size:10px;" onclick="openStudentQuiz('${card.id}')">Retake</button>
@@ -3965,7 +3966,7 @@ function printWorksheet(cardId) {
   // board.css is not loaded here - so any visual change to the worksheet has to
   // be made in both places or the printout stops matching the board.
   const accent = WS_ACCENT_INK;
-  const LIME = '#CDF649', CREAM = '#F2F2F5', LINE = 'rgba(14,14,16,.14)';
+  const LIME = '#CDF649', CREAM = '#F6F6EF', LINE = 'rgba(36,40,44,.14)';
   const showAns = d.showAnswers !== false;
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
   // Same heading rule as the board (see _wsHeading): inside a lesson the sheet
@@ -3986,11 +3987,11 @@ function printWorksheet(cardId) {
     .ws-print-head{background:${LIME};border:2px solid ${accent};border-radius:16px;
       padding:16px 18px;margin-bottom:20px;page-break-inside:avoid;break-inside:avoid}
     .ws-print-head .kicker{font:800 10px ui-monospace,monospace;letter-spacing:.13em;
-      text-transform:uppercase;color:rgba(14,14,16,.62);margin-bottom:5px}
+      text-transform:uppercase;color:rgba(36,40,44,.62);margin-bottom:5px}
     h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:600;line-height:1.06;color:${accent}}
-    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#6C6C6F;margin:0 0 18px}
+    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin:0 0 18px}
     /* question / stage card shell */
-    .ws-q{position:relative;border:1px solid #E7E7EC;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
+    .ws-q{position:relative;border:1px solid #CACCC6;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
     .ws-qh{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;font-weight:600;line-height:1.5}
     .ws-num{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:${LIME};color:${accent};font:800 13px -apple-system,Arial}
@@ -4003,7 +4004,7 @@ function printWorksheet(cardId) {
     .ws-opt.correct .ws-mark{background:${accent};color:${LIME}}
     /* True / False */
     .ws-tf{display:flex;gap:10px;margin-top:12px}
-    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.45;font-weight:600;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#6A6A6D}
+    .ws-tf-b{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.45;font-weight:600;padding:9px 20px;border-radius:12px;background:#fff;border:2px solid ${LINE};color:#5D614B}
     .ws-tf-b.on{background:${LIME};color:${accent};border-color:${accent}}
     /* answer chip + writing lines */
     .ws-ans{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1.45;margin-top:11px;color:${accent};background:${CREAM};border:2px solid ${LINE};border-radius:11px;padding:8px 12px;font-weight:600}
@@ -4014,13 +4015,13 @@ function printWorksheet(cardId) {
     .ws-group{margin:0 0 18px;break-inside:auto}
     .ws-group-head{margin:0 0 9px}
     .ws-group-title{margin:0;font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#24282C}
-    .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#6C6C6F}
+    .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#5D614B}
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
     .ws-chip b{font-weight:650;color:${accent}}
-    .ws-chip-def{color:#6C6C6F;font-weight:600}
+    .ws-chip-def{color:#5D614B;font-weight:600}
     .ws-chip .ws-gap{min-width:72px;margin:0}
-    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#6C6C6F;margin:0 0 9px}
+    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#5D614B;margin:0 0 9px}
     .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
     .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:650;vertical-align:baseline}
     .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
@@ -4036,35 +4037,35 @@ function printWorksheet(cardId) {
     /* stage cards (reading / glossary / tasks / grammar) */
     /* One accent for the whole pack (not a different hue per stage type) - the
        stage rail number + text label are enough to tell stages apart. */
-    .ws-q-card{--stage-accent:${accent};border:1px solid #E7E7EC;border-top:3px solid var(--stage-accent)}
+    .ws-q-card{--stage-accent:${accent};border:1px solid #CACCC6;border-top:3px solid var(--stage-accent)}
     .ws-stage-rail{display:none}
     .ws-card-head{display:flex;align-items:center;gap:9px;color:#24282C;font-weight:650;font-size:15px}
     .ws-card-title{flex:1}
-    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6C6C6F}
+    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#5D614B}
     .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
     .ws-q-card.ws-anchor{border-style:dashed}
-    .ws-card-txt{font-size:13px;line-height:1.65;color:#3A3A40;margin-top:9px;white-space:normal}
+    .ws-card-txt{font-size:13px;line-height:1.65;color:#5D614B;margin-top:9px;white-space:normal}
     .ws-card-txt strong{color:#24282C;font-weight:650}
     /* reading block + drop cap */
     .ws-reading-title{font-size:14px;font-weight:650;color:#24282C;margin-bottom:7px}
-    .ws-reading-copy{font-size:13px;line-height:1.78;color:#252528;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
+    .ws-reading-copy{font-size:13px;line-height:1.78;color:#24282C;padding:14px 16px;border:2px solid ${LINE};border-radius:12px;background:${CREAM}}
     .ws-reading-copy.has-dropcap::first-letter{float:left;font-size:42px;line-height:.8;font-weight:650;margin:4px 10px 0 0;color:${accent}}
     /* glossary */
     .ws-vocab-grid{display:grid;gap:7px;margin-top:4px}
     .ws-vocab-row{display:grid;grid-template-columns:minmax(96px,.4fr) 1fr;gap:12px;align-items:center;padding:9px 12px;border:2px solid ${LINE};background:${CREAM};border-radius:11px;page-break-inside:avoid}
     .ws-vocab-term{justify-self:start;font:800 12px -apple-system,Arial;color:${accent};background:#fff;border:1.5px solid ${LINE};padding:4px 11px;border-radius:999px}
-    .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#47474A}
+    .ws-vocab-def{font-size:12.5px;line-height:1.5;color:#5D614B}
     /* before / after prompts */
     .ws-prompt-list{display:grid;gap:7px;margin-top:4px}
     .ws-prompt{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:9px 11px;border:2px solid ${LINE};border-radius:11px;page-break-inside:avoid}
     .ws-prompt-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:${LIME};color:${accent};font:800 11px -apple-system,Arial}
-    .ws-prompt-text{font-size:13px;line-height:1.5;color:#252528}
+    .ws-prompt-text{font-size:13px;line-height:1.5;color:#24282C}
     /* aims/objectives checklist + grammar example block */
     .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
-    .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#3A3A40}
+    .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#5D614B}
     .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:${LIME};color:${accent};display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
     .ws-grammar-block{background:${CREAM};border:2px solid ${LINE};border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
-    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#252528}
+    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#24282C}
     /* Print always shows full stage text - no clamp, so the "Show more" toggle
        (only meaningful on-screen) never appears here. */
     /* Lesson Pack stages: two print columns instead of one long vertical run
@@ -4113,7 +4114,7 @@ function renderMilestone(el, card) {
         <circle class="milestone-ring-bg" cx="44" cy="44" r="${R}"/>
         <circle class="milestone-ring-fill" cx="44" cy="44" r="${R}"
           stroke-dasharray="${C}" stroke-dashoffset="${offset}"
-          ${percent===100?'stroke:#10b981':''}/>
+          ${percent===100?'stroke:#A3A48D':''}/>
       </svg>
       <div class="milestone-pct">${percent}%</div>
     </div>
@@ -4248,8 +4249,8 @@ function _ttSanitizeRichHtml(value) {
 function _wsEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function _wsCSS(){
-  const G='#447C6F';
-  return `*{box-sizing:border-box}body{margin:0;padding:14px 16px 20px;background:#fff;font:13.5px/1.6 -apple-system,system-ui,sans-serif;color:#1a1a2e}.ph{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:${G};margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${G}}.inst{font-size:12px;color:#666;margin:0 0 12px;font-style:italic}.wb{background:#f0fdf4;border-radius:8px;padding:7px 12px;margin:0 0 12px;font-size:12.5px}.wb b{color:${G}}.item{margin:0 0 13px}.item-n{font-weight:600;color:${G};margin-right:3px}label.opt{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer;font-size:13px}label.opt:hover{color:${G}}input[type=radio]{accent-color:${G};width:14px;height:14px;flex-shrink:0;cursor:pointer}input[type=text]{border:none;border-bottom:1.5px solid ${G};width:110px;font:13.5px system-ui;outline:none;background:transparent;color:#1a1a2e;padding:1px 3px}select{border:1px solid #d1d5db;border-radius:6px;padding:3px 8px;font:13px system-ui;outline:none;cursor:pointer;max-width:320px}select:focus{border-color:${G}}textarea{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none;min-height:72px;margin-top:4px}textarea:focus{border-color:${G}}.reveal-btn{background:${G};color:#fff;border:none;padding:7px 14px;border-radius:8px;font:700 11.5px system-ui;cursor:pointer;margin-top:6px}.reveal-btn:hover{opacity:.88}.key{display:none;margin-top:10px;background:#f0fdf4;border-left:3px solid ${G};padding:9px 13px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}.key.open{display:block}.ka{color:${G};font-weight:600}`;
+  const G='#5D614B';
+  return `*{box-sizing:border-box}body{margin:0;padding:14px 16px 20px;background:#fff;font:13.5px/1.6 -apple-system,system-ui,sans-serif;color:#5D614B}.ph{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:${G};margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${G}}.inst{font-size:12px;color:#5D614B;margin:0 0 12px;font-style:italic}.wb{background:#F6F6EF;border-radius:8px;padding:7px 12px;margin:0 0 12px;font-size:12.5px}.wb b{color:${G}}.item{margin:0 0 13px}.item-n{font-weight:600;color:${G};margin-right:3px}label.opt{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer;font-size:13px}label.opt:hover{color:${G}}input[type=radio]{accent-color:${G};width:14px;height:14px;flex-shrink:0;cursor:pointer}input[type=text]{border:none;border-bottom:1.5px solid ${G};width:110px;font:13.5px system-ui;outline:none;background:transparent;color:#5D614B;padding:1px 3px}select{border:1px solid #CACCC6;border-radius:6px;padding:3px 8px;font:13px system-ui;outline:none;cursor:pointer;max-width:320px}select:focus{border-color:${G}}textarea{width:100%;border:1px solid #CACCC6;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none;min-height:72px;margin-top:4px}textarea:focus{border-color:${G}}.reveal-btn{background:${G};color:#fff;border:none;padding:7px 14px;border-radius:8px;font:700 11.5px system-ui;cursor:pointer;margin-top:6px}.reveal-btn:hover{opacity:.88}.key{display:none;margin-top:10px;background:#F6F6EF;border-left:3px solid ${G};padding:9px 13px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}.key.open{display:block}.ka{color:${G};font-weight:600}`;
 }
 
 function _wsMCItems(items){
@@ -4319,12 +4320,12 @@ function cssColorToHex(value) {
   const v = String(value).trim();
   if (/^#[0-9a-f]{6}$/i.test(v)) return v;
   if (/^#[0-9a-f]{3}$/i.test(v)) return '#' + v.slice(1).split('').map(ch => ch + ch).join('');
-  return '#111111';
+  return '#24282C';
 }
 
 function applyTextStyles(card, editor) {
   const d = card.data = defaultTextData(card.data || {});
-  editor.style.color = d.textColor || '#111111';
+  editor.style.color = d.textColor || '#24282C';
   editor.style.background = d.bgColor || 'transparent';
   editor.style.fontFamily = d.fontFamily || 'var(--font)';
   editor.style.textAlign = d.align || 'left';
@@ -4539,31 +4540,31 @@ function openCardEditor(cardId) {
       <div><div class="ed-label">Module / Section</div>
         <input class="ed-input" id="ed-module" placeholder="e.g. Unit 3: Past Tenses" value="${esc(card.data.module||'')}"/></div>
 
-      <div style="border-top:1px solid rgba(0,0,0,.06);padding-top:10px;margin-top:4px;">
+      <div style="border-top:1px solid rgba(36,40,44,.06);padding-top:10px;margin-top:4px;">
         <div class="ed-label" style="display:flex;align-items:center;justify-content:space-between;">
           Objectives
-          <button type="button" onclick="edAddObjective()" style="padding:2px 8px;border:1px solid rgba(99,102,241,.3);border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;color:#6366f1;background:rgba(99,102,241,.06);">+ Add</button>
+          <button type="button" onclick="edAddObjective()" style="padding:2px 8px;border:1px solid rgba(136,107,243,.3);border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;color:#6B42FD;background:rgba(136,107,243,.06);">+ Add</button>
         </div>
         <div id="ed-objectives" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
           ${objectives.map((o,i) => `
             <div style="display:flex;gap:4px;align-items:center;">
               <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" value="${esc(o.text)}" data-obj-idx="${i}"/>
-              <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>
+              <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(255,78,0,.08);color:#24282C;border-radius:4px;font-size:11px;cursor:pointer;">×</button>
             </div>`).join('')}
         </div>
       </div>
 
-      <div style="border-top:1px solid rgba(0,0,0,.06);padding-top:10px;margin-top:4px;">
+      <div style="border-top:1px solid rgba(36,40,44,.06);padding-top:10px;margin-top:4px;">
         <div class="ed-label" style="display:flex;align-items:center;justify-content:space-between;">
           Attachments
-          <button type="button" onclick="edAddAttachment()" style="padding:2px 8px;border:1px solid rgba(59,130,246,.3);border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;color:#3b82f6;background:rgba(59,130,246,.06);">+ Add</button>
+          <button type="button" onclick="edAddAttachment()" style="padding:2px 8px;border:1px solid rgba(63,159,255,.3);border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;color:#6B42FD;background:rgba(63,159,255,.06);">+ Add</button>
         </div>
         <div id="ed-attachments" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
           ${attachments.map((a,i) => `
             <div style="display:flex;gap:4px;align-items:center;" data-att-idx="${i}">
               <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" value="${esc(a.name)}" placeholder="Name" data-att-name/>
               <input class="ed-input" style="flex:2;padding:5px 8px;font-size:11px;" value="${esc(a.url)}" placeholder="URL" data-att-url/>
-              <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>
+              <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(255,78,0,.08);color:#24282C;border-radius:4px;font-size:11px;cursor:pointer;">×</button>
             </div>`).join('')}
         </div>
       </div>
@@ -4571,7 +4572,7 @@ function openCardEditor(cardId) {
       <div><div class="ed-label">Teacher Notes (private)</div>
         <textarea class="ed-input ed-textarea" id="ed-notes" placeholder="Notes visible in Present mode…" style="min-height:50px;">${esc(card.data.notes||'')}</textarea></div>
 
-      <div style="background:rgba(99,102,241,.06);border-radius:10px;padding:9px 11px;font-size:11px;color:#6366f1;line-height:1.5;">
+      <div style="background:rgba(136,107,243,.06);border-radius:10px;padding:9px 11px;font-size:11px;color:#6B42FD;line-height:1.5;">
         💡 Connect this card to a <b>Milestone</b> to track course completion. Use arrows to chain lessons - when you mark a lesson Done, the next one auto-unlocks.</div>
       <button class="ed-save" onclick="saveCardEditor()">✓ Save Lesson</button>`;
 
@@ -4601,7 +4602,7 @@ function openCardEditor(cardId) {
       </div>
       <div><div class="ed-label">Instructions</div>
         <textarea class="ed-input ed-textarea" id="ed-desc" style="min-height:50px;">${esc(card.data.desc||'')}</textarea></div>
-      ${qs.length ? `<div style="background:rgba(249,115,22,.07);border-radius:10px;padding:9px 11px;font-size:12px;color:#ea580c;">
+      ${qs.length ? `<div style="background:rgba(255,140,58,.07);border-radius:10px;padding:9px 11px;font-size:12px;color:#24282C;">
         📋 <strong>${qs.length} questions</strong> · ${qs.reduce((s,q)=>s+(q.points||1),0)} pts total
         <br><span style="font-size:10px;color:var(--text-3);">Open the Builder to edit questions.</span>
       </div>` : ''}
@@ -4611,7 +4612,7 @@ function openCardEditor(cardId) {
         <div style="flex:1"><div class="ed-label">Total Students</div>
           <input class="ed-input" id="ed-total" type="number" min="0" value="${card.data.total||0}"/></div>
       </div>
-      <button class="ed-save" style="background:#f97316;" onclick="saveCardEditor()">✓ Save</button>
+      <button class="ed-save" style="background:#FF8C3A;" onclick="saveCardEditor()">✓ Save</button>
       <button class="ed-save" onclick="openTaskBuilder('${card.id}');closeCardEditor();">🛠 Open Builder</button>`;
 
   } else if (card.type === 'milestone') {
@@ -4620,7 +4621,7 @@ function openCardEditor(cardId) {
         <input class="ed-input" id="ed-title" value="${esc(card.data.title||'')}"/></div>
       <div><div class="ed-label">Description</div>
         <textarea class="ed-input ed-textarea" id="ed-desc">${esc(card.data.desc||'')}</textarea></div>
-      <div style="background:#f0fdf4;border-radius:10px;padding:10px;font-size:12px;color:#166534;">
+      <div style="background:#F6F6EF;border-radius:10px;padding:10px;font-size:12px;color:#5D614B;">
         💡 Connect lesson cards to this milestone with arrows. Progress auto-calculates from their status.
       </div>
       <button class="ed-save" onclick="saveCardEditor()">Save Milestone</button>`;
@@ -4672,7 +4673,7 @@ function openCardEditor(cardId) {
   } else if (card.type === 'text') {
     const plainBody = [card.data.title || card.data.text || '', card.data.body || card.data.desc || ''].filter(Boolean).join('\n');
     body.innerHTML = `
-      <div style="background:rgba(200,230,50,.08);border-radius:10px;padding:9px 11px;font-size:12px;color:var(--text-2);line-height:1.45;">
+      <div style="background:rgba(205,246,73,.08);border-radius:10px;padding:9px 11px;font-size:12px;color:var(--text-2);line-height:1.45;">
         Rich text is edited directly on the card: font, bold/italic/underline, links, align, colors and lock.
       </div>
       <div><div class="ed-label">Plain text fallback</div>
@@ -4736,7 +4737,7 @@ function openCardEditor(cardId) {
         <div><div class="ed-label">Fill Color</div>
           <input type="color" class="ed-input" id="ed-shape-fill" value="${card.data.fill||'#ffffff'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
         <div><div class="ed-label">Stroke Color</div>
-          <input type="color" class="ed-input" id="ed-shape-stroke" value="${card.data.stroke&&card.data.stroke.startsWith('#')?card.data.stroke:'#1c1c1e'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+          <input type="color" class="ed-input" id="ed-shape-stroke" value="${card.data.stroke&&card.data.stroke.startsWith('#')?card.data.stroke:'#24282C'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
       </div>
       <div><div class="ed-label">Stroke Width</div>
         <input type="range" class="ed-input" id="ed-shape-sw" min="0" max="10" value="${card.data.sw||2}" style="padding:4px 0;"/></div>
@@ -4744,25 +4745,25 @@ function openCardEditor(cardId) {
         <input class="ed-input" id="ed-shape-text" value="${esc(card.data.text||'')}"/></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div><div class="ed-label">Text Color</div>
-          <input type="color" class="ed-input" id="ed-shape-tc" value="${card.data.textColor&&card.data.textColor.startsWith('#')?card.data.textColor:'#1c1c1e'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+          <input type="color" class="ed-input" id="ed-shape-tc" value="${card.data.textColor&&card.data.textColor.startsWith('#')?card.data.textColor:'#24282C'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
         <div><div class="ed-label">Font Size</div>
           <input type="number" class="ed-input" id="ed-shape-fs" value="${card.data.fontSize||14}" min="8" max="72"/></div>
       </div>
       <button class="ed-save" onclick="saveCardEditor()">Apply Shape</button>`;
 
   } else if (card.type === 'mindmap') {
-    const mmColors = ['#4262FF','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D','#FB923C'];
+    const mmColors = MINDMAP_COLORS;
     body.innerHTML = `
       <div><div class="ed-label">Node Text</div>
         <input class="ed-input" id="ed-mm-text" value="${esc(card.data.text||'')}"/></div>
       <div><div class="ed-label">Color</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
-          ${mmColors.map(c=>`<div onclick="document.getElementById('ed-mm-color').value='${c}';this.parentNode.querySelectorAll('[data-mc]').forEach(x=>x.style.outline='none');this.style.outline='2px solid #1C1C1E';" data-mc="1"
+          ${mmColors.map(c=>`<div onclick="document.getElementById('ed-mm-color').value='${c}';this.parentNode.querySelectorAll('[data-mc]').forEach(x=>x.style.outline='none');this.style.outline='2px solid #24282C';" data-mc="1"
             style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;outline:${card.data.color===c?'2px solid #1C1C1E':'none'};transition:.1s;"></div>`).join('')}
-          <input type="color" class="ed-input" id="ed-mm-color" value="${card.data.color||'#4262FF'}" style="width:28px;height:28px;padding:0;border-radius:50%;cursor:pointer;border:none;"/>
+          <input type="color" class="ed-input" id="ed-mm-color" value="${card.data.color||'#6B42FD'}" style="width:28px;height:28px;padding:0;border-radius:50%;cursor:pointer;border:none;"/>
         </div></div>
       <div><div class="ed-label">Text Color</div>
-        <input type="color" class="ed-input" id="ed-mm-tc" value="${card.data.textColor&&card.data.textColor.startsWith('#')?card.data.textColor:'#1c1c1e'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+        <input type="color" class="ed-input" id="ed-mm-tc" value="${card.data.textColor&&card.data.textColor.startsWith('#')?card.data.textColor:'#24282C'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
       <button class="ed-save" onclick="saveCardEditor()">Apply Node</button>`;
 
   } else {
@@ -4789,7 +4790,7 @@ function openCardEditor(cardId) {
     </div>
     <div style="display:flex;gap:6px;">
       <textarea id="card-comment-input" placeholder="Add a comment…"
-        style="flex:1;resize:none;height:56px;padding:7px 10px;border:1px solid rgba(0,0,0,.10);border-radius:9px;font-size:12px;font-family:var(--font);outline:none;background:#fff;color:#1c1c1e;"
+        style="flex:1;resize:none;height:56px;padding:7px 10px;border:1px solid rgba(36,40,44,.10);border-radius:9px;font-size:12px;font-family:var(--font);outline:none;background:#fff;color:#24282C;"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitCardComment();}"></textarea>
       <button onclick="submitCardComment()" style="align-self:flex-end;padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;">Send</button>
     </div>`;
@@ -4822,12 +4823,12 @@ async function loadCardComments(cardId) {
       const isOwn = c.name === (currentUser?.name);
       return `<div style="display:flex;gap:8px;align-items:flex-start;" data-comment-id="${c.id}">
         <div style="font-size:18px;flex-shrink:0;margin-top:1px;">${c.avatar||'👤'}</div>
-        <div style="flex:1;background:${isOwn?'rgba(200,230,50,.07)':'#f5f5f7'};border-radius:10px;padding:7px 10px;">
+        <div style="flex:1;background:${isOwn?'rgba(205,246,73,.07)':'#F6F6EF'};border-radius:10px;padding:7px 10px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
             <span style="font-size:11px;font-weight:650;color:var(--text);">${esc(c.name)} <span style="font-weight:400;color:var(--text-3);">${c.role==='teacher'?'· Teacher':''}</span></span>
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:10px;color:var(--text-3);">${time}</span>
-              ${isOwn?`<span onclick="deleteCardComment(${c.id},'${cardId}')" style="font-size:10px;color:#ef4444;cursor:pointer;font-weight:600;">✕</span>`:''}
+              ${isOwn?`<span onclick="deleteCardComment(${c.id},'${cardId}')" style="font-size:10px;color:#24282C;cursor:pointer;font-weight:600;">✕</span>`:''}
             </div>
           </div>
           <div style="font-size:12px;color:var(--text);white-space:pre-wrap;">${esc(c.body)}</div>
@@ -5052,7 +5053,7 @@ function edAddObjective() {
   row.style.cssText = 'display:flex;gap:4px;align-items:center;';
   row.innerHTML = `
     <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" placeholder="e.g. Students can use Past Perfect" data-obj-idx="new"/>
-    <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>`;
+    <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(255,78,0,.08);color:#24282C;border-radius:4px;font-size:11px;cursor:pointer;">×</button>`;
   container.appendChild(row);
   row.querySelector('input').focus();
 }
@@ -5065,7 +5066,7 @@ function edAddAttachment() {
   row.innerHTML = `
     <input class="ed-input" style="flex:1;padding:5px 8px;font-size:11px;" placeholder="Name" data-att-name/>
     <input class="ed-input" style="flex:2;padding:5px 8px;font-size:11px;" placeholder="https://..." data-att-url/>
-    <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(239,68,68,.08);color:#ef4444;border-radius:4px;font-size:11px;cursor:pointer;">×</button>`;
+    <button type="button" onclick="this.parentElement.remove()" style="padding:2px 6px;border:none;background:rgba(255,78,0,.08);color:#24282C;border-radius:4px;font-size:11px;cursor:pointer;">×</button>`;
   container.appendChild(row);
   row.querySelector('[data-att-name]').focus();
 }
@@ -5179,7 +5180,7 @@ function openLessonPresent(cardId) {
       <span class="lesson-status ${st.cls}" style="font-size:12px;padding:5px 12px;">${st.label}</span>
       ${d.level ? `<span class="badge ${LEVEL_COLORS[d.level]||'b1'}" style="font-size:12px;padding:4px 10px;">${d.level}</span>` : ''}
       ${d.skill ? `<span class="badge lesson-${SKILL_MAP[d.skill]||'g'}" style="font-size:12px;padding:4px 10px;">${d.skill}</span>` : ''}
-      ${d.duration ? `<span class="badge" style="background:rgba(0,0,0,.05);color:var(--text-3);font-size:12px;padding:4px 10px;">⏱ ${d.duration}</span>` : ''}
+      ${d.duration ? `<span class="badge" style="background:rgba(36,40,44,.05);color:var(--text-3);font-size:12px;padding:4px 10px;">⏱ ${d.duration}</span>` : ''}
     </div>
     ${d.desc ? `<div class="lp-section"><div class="lp-section-title">Description</div><div class="lp-desc">${esc(d.desc)}</div></div>` : ''}
     ${objSection}
@@ -5190,7 +5191,7 @@ function openLessonPresent(cardId) {
       <button class="lp-action-btn secondary" onclick="closeLessonPresent();openCardEditor('${card.id}')">✏️ Edit Lesson</button>
       ${d.status !== 'done' ? `<button class="lp-action-btn primary" onclick="markLessonDoneFromPresent('${card.id}')">
         ${d.status === 'locked' ? '🔓 Unlock' : d.status === 'in-progress' ? '✅ Mark Done' : '⏳ Start Lesson'}
-      </button>` : `<button class="lp-action-btn primary" style="background:#15803D;">✅ Completed</button>`}
+      </button>` : `<button class="lp-action-btn primary" style="background:#5D614B;">✅ Completed</button>`}
     </div>`;
 
   overlay.classList.add('open');
@@ -5660,15 +5661,15 @@ function ensureLayerPopover() {
 
 // Frame color presets (bg color, border color, label)
 const FRAME_COLORS = [
-  { bg:'rgba(255,255,255,0)',    border:'rgba(0,0,0,.18)',      label:'Clear',  icon:'<svg width="12" height="12" viewBox="0 0 12 12"><pattern id="chk" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#ccc"/><rect x="2" y="2" width="2" height="2" fill="#ccc"/></pattern><rect width="12" height="12" fill="white"/><rect width="12" height="12" fill="url(#chk)" opacity=".5"/></svg>' },
-  { bg:'rgba(255,255,255,1)',    border:'rgba(0,0,0,.18)',      label:'White' },
-  { bg:'rgba(66,98,255,.08)',    border:'rgba(66,98,255,.35)',  label:'Blue' },
-  { bg:'rgba(34,197,94,.09)',    border:'rgba(34,197,94,.40)', label:'Green' },
-  { bg:'rgba(245,158,11,.09)',   border:'rgba(245,158,11,.40)',label:'Yellow' },
-  { bg:'rgba(239,68,68,.08)',    border:'rgba(239,68,68,.38)', label:'Red' },
-  { bg:'rgba(124,58,237,.08)',   border:'rgba(124,58,237,.38)',label:'Purple' },
-  { bg:'rgba(249,115,22,.08)',   border:'rgba(249,115,22,.38)',label:'Orange' },
-  { bg:'rgba(15,23,42,.88)',     border:'rgba(15,23,42,.75)',  label:'Dark' },
+  { bg:'rgba(255,255,255,0)',    border:'rgba(36,40,44,.18)',      label:'Clear',  icon:'<svg width="12" height="12" viewBox="0 0 12 12"><pattern id="chk" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#CACCC6"/><rect x="2" y="2" width="2" height="2" fill="#CACCC6"/></pattern><rect width="12" height="12" fill="white"/><rect width="12" height="12" fill="url(#chk)" opacity=".5"/></svg>' },
+  { bg:'rgba(255,255,255,1)',    border:'rgba(36,40,44,.18)',      label:'White' },
+  { bg:'rgba(107,66,253,.08)',    border:'rgba(107,66,253,.35)',  label:'Blue' },
+  { bg:'rgba(211,243,107,.09)',    border:'rgba(211,243,107,.40)', label:'Green' },
+  { bg:'rgba(243,164,107,.09)',   border:'rgba(243,164,107,.40)',label:'Yellow' },
+  { bg:'rgba(255,78,0,.08)',    border:'rgba(255,78,0,.38)', label:'Red' },
+  { bg:'rgba(107,66,253,.08)',   border:'rgba(107,66,253,.38)',label:'Purple' },
+  { bg:'rgba(255,140,58,.08)',   border:'rgba(255,140,58,.38)',label:'Orange' },
+  { bg:'rgba(93,97,75,.88)',     border:'rgba(93,97,75,.75)',  label:'Dark' },
 ];
 
 function showLayerPopover(cardId) {
@@ -8114,7 +8115,7 @@ function renderAllArrows() {
         styleWrap.style.display = arrow.type === 'prereq' ? 'none' : '';
         const cs = arrow.style || 'solid', cd = arrow.direction || 'forward';
         const cr = arrow.route || 'curve';
-        const cc = arrow.color || '#5A5A63';
+        const cc = arrow.color || '#5D614B';
         ['solid','dashed','dotted'].forEach(s => document.getElementById('cas-'+s)?.classList.toggle('active', s===cs));
         ['forward','both','backward','none'].forEach(d => document.getElementById('cad-'+d)?.classList.toggle('active', d===cd));
         ['curve','straight','elbow'].forEach(r => document.getElementById('car-'+r)?.classList.toggle('active', r===cr));
@@ -8202,8 +8203,8 @@ function renderAllArrows() {
       fo.setAttribute('x', mx - 40); fo.setAttribute('y', my - 12);
       fo.setAttribute('width', 80); fo.setAttribute('height', 24);
       fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="
-        background:rgba(255,255,255,.92);border:1px solid rgba(92,92,102,.2);border-radius:6px;
-        padding:2px 7px;font-size:10px;font-weight:600;color:#3A3A40;
+        background:rgba(255,255,255,.92);border:1px solid rgba(93,97,75,.2);border-radius:6px;
+        padding:2px 7px;font-size:10px;font-weight:600;color:#5D614B;
         font-family:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;text-align:center;white-space:nowrap;
         overflow:hidden;text-overflow:ellipsis;">${arrow.label}</div>`;
       g.appendChild(fo);
@@ -8606,7 +8607,7 @@ document.getElementById('ctx-sticky').addEventListener('click', () =>
 document.getElementById('ctx-text').addEventListener('click', () =>
   addCard('text', ctxPos.x-100, ctxPos.y-45, defaultTextData({ text:'Text' })));
 document.getElementById('ctx-shape').addEventListener('click', () =>
-  addCard('shape', ctxPos.x-100, ctxPos.y-80, { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 }));
+  addCard('shape', ctxPos.x-100, ctxPos.y-80, { shape:'rect', fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 }));
 document.getElementById('ctx-video').addEventListener('click', () => {
   ctxMenu.style.display = 'none';
   pendingVideoPos = ctxPos;
@@ -8698,17 +8699,17 @@ function renderMinimap() {
 
   // Draw cards
   state.cards.forEach(c => {
-    const colors = { sticky:'#fef08a', plan:'rgba(200,230,50,.25)', student:'rgba(96,165,250,.25)',
-                     note:'rgba(245,158,11,.25)', event:'rgba(110,201,138,.25)', text:'rgba(0,0,0,.1)', image:'rgba(0,0,0,.12)' };
-    ctx.fillStyle = c.color || colors[c.type] || 'rgba(200,200,200,.4)';
-    ctx.strokeStyle = 'rgba(200,230,50,.2)';
+    const colors = { sticky:'#F3DF6B', plan:'rgba(205,246,73,.25)', student:'rgba(63,159,255,.25)',
+                     note:'rgba(243,164,107,.25)', event:'rgba(163,164,141,.25)', text:'rgba(36,40,44,.1)', image:'rgba(36,40,44,.12)' };
+    ctx.fillStyle = c.color || colors[c.type] || 'rgba(202,204,198,.4)';
+    ctx.strokeStyle = 'rgba(205,246,73,.2)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.roundRect(c.x*scale+ox, c.y*scale+oy, c.w*scale, c.h*scale, 3);
     ctx.fill(); ctx.stroke();
   });
   state.annotations.forEach(annotation => {
-    ctx.fillStyle = annotation.resolved ? '#8C948A' : '#F59E0B';
+    ctx.fillStyle = annotation.resolved ? '#A3A48D' : '#F3A46B';
     ctx.beginPath();
     ctx.arc(annotation.x * scale + ox, annotation.y * scale + oy, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -8717,9 +8718,9 @@ function renderMinimap() {
   // Viewport rectangle
   const vx = -state.pan.x/state.scale, vy = -state.pan.y/state.scale;
   const vw = boardWrap.clientWidth/state.scale, vh = boardWrap.clientHeight/state.scale;
-  ctx.strokeStyle = 'rgba(200,230,50,.65)';
+  ctx.strokeStyle = 'rgba(205,246,73,.65)';
   ctx.lineWidth = 1.5;
-  ctx.fillStyle = 'rgba(92,92,102,.04)';
+  ctx.fillStyle = 'rgba(93,97,75,.04)';
   ctx.beginPath();
   ctx.rect(vx*scale+ox, vy*scale+oy, vw*scale, vh*scale);
   ctx.fill(); ctx.stroke();
@@ -9029,14 +9030,14 @@ const BOARD_TOOL_NAMES = {
    dense grid of categories, and a row of unrelated emoji read as noise next to
    the category colour each card is already tinted with. */
 const BOARD_TOOL_META = {
-  all:       { icon:'✦', svg:'bi-spark',       color:'#24282C', bg:'rgba(14,14,16,.08)' },
-  reading:   { icon:'📖', svg:'bi-book',        color:'#4262FF', bg:'rgba(66,98,255,.12)' },
-  vocabulary:{ icon:'🧠', svg:'bi-vocab',       color:'#EC2D8C', bg:'rgba(236,45,140,.12)' },
-  writing:   { icon:'✍️', svg:'bi-pen',         color:'#7C3AED', bg:'rgba(124,58,237,.12)' },
-  speaking:  { icon:'💬', svg:'bi-comment',     color:'#FF7A1A', bg:'rgba(255,122,26,.14)' },
-  grammar:   { icon:'⚙️', svg:'bi-gear',        color:'#0EA5A4', bg:'rgba(14,165,164,.12)' },
-  listening: { icon:'🎧', svg:'bi-headphones',  color:'#0891B2', bg:'rgba(8,145,178,.12)' },
-  utility:   { icon:'🧰', svg:'bi-tools',       color:'#5A5A63', bg:'rgba(92,92,102,.12)' },
+  all:       { icon:'✦', svg:'bi-spark',       color:'#24282C', bg:'rgba(36,40,44,.08)' },
+  reading:   { icon:'📖', svg:'bi-book',        color:'#6B42FD', bg:'rgba(107,66,253,.12)' },
+  vocabulary:{ icon:'🧠', svg:'bi-vocab',       color:'#886BF3', bg:'rgba(136,107,243,.12)' },
+  writing:   { icon:'✍️', svg:'bi-pen',         color:'#6B42FD', bg:'rgba(107,66,253,.12)' },
+  speaking:  { icon:'💬', svg:'bi-comment',     color:'#FF8C3A', bg:'rgba(255,140,58,.14)' },
+  grammar:   { icon:'⚙️', svg:'bi-gear',        color:'#49F6F0', bg:'rgba(73,246,240,.12)' },
+  listening: { icon:'🎧', svg:'bi-headphones',  color:'#3F9FFF', bg:'rgba(63,159,255,.12)' },
+  utility:   { icon:'🧰', svg:'bi-tools',       color:'#5D614B', bg:'rgba(93,97,75,.12)' },
 };
 /* Sidebar icon markup for a category (falls back to the emoji if a category
    ever lands here without a sprite id). */
@@ -10471,7 +10472,7 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
   try {
     if (n) {
       frame = addCard('frame', x0, y0, {
-        title, bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
+        title, bg: '#ffffff', border: 'rgba(36,40,44,.30)', childIds: [],
         /* Built as 'plan' even though every generated lesson is meant to open
            in Play by default - the packing above (CARD_W, cols, the overlap-safe
            re-measure pass below) is written and tested for the plan grid.
@@ -13397,7 +13398,7 @@ function _ttPlaceWorksheetOnBoard(output){
     if (isPagedSet) {
       frame = addCard('frame', x0, y0, {
         title: `▦  ${output.title || 'Worksheet'} · ${parts.length} pages`,
-        bg: '#ffffff', border: 'rgba(14,14,16,.30)', childIds: [],
+        bg: '#ffffff', border: 'rgba(36,40,44,.30)', childIds: [],
         _ttSrc: 1, _ttGrid: 'pages',
       }, frameW, frameH);
     }
@@ -13518,7 +13519,7 @@ function _ttPlaceQuizOnBoard(output){
 function _ttPlaceWarmupStickers(output){
   const qs = (output.questions || []).filter(q => q && q.text);
   if (!qs.length) { toast('No warm-up questions to place'); return; }
-  const palette = ['#A8D02B','#EC2D8C','#8B5CF6','#F97316','#0891B2','#D97706'];
+  const palette = ['#CDF649','#9F8CE8','#6BAFF3','#FF8C3A','#49F6F0','#F3A46B'];
   const W = 210, H = 175, GAP = 20;
   const COLS = _ttGridCols(qs.length, W, H, 5);
   const ROWS = Math.ceil(qs.length / COLS);
@@ -13645,7 +13646,7 @@ function _ttPlaceVocabOnBoard(output){
     frame = addCard('frame', x0, y0, {
       title: `${_vmeta.icon}  ${output.title}`,
       bg: '#ffffff',
-      border: (_vmeta.color || '#EC2D8C') + '55',
+      border: (_vmeta.color || '#886BF3') + '55',
       childIds: [],
       _ttSrc: 1, _ttCat: output.cat || 'vocabulary', _ttKind: output.kind || 'Vocabulary',
     }, FW, FH);
@@ -13892,7 +13893,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '946';
+const TEACHEDOS_ASSET_VERSION = '950';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14052,8 +14053,8 @@ async function generateTeacherToolBuilder(mode = 'fast') {
     if (chip) chip.textContent = 'AI…';
     if (body) body.innerHTML = `
       <div class="tbuilder-empty" id="tt-ai-status">Завантаження моделі (~1.8 GB, лише перший раз)…</div>
-      <div style="margin:10px 16px 0;height:6px;border-radius:3px;background:rgba(0,0,0,.08);">
-        <div id="tt-ai-bar" style="height:100%;width:0;border-radius:3px;background:var(--accent,#C8E632);transition:width .4s;"></div>
+      <div style="margin:10px 16px 0;height:6px;border-radius:3px;background:rgba(36,40,44,.08);">
+        <div id="tt-ai-bar" style="height:100%;width:0;border-radius:3px;background:var(--accent,#CDF649);transition:width .4s;"></div>
       </div>`;
     try {
       const items = await window._ttAI.generate(toolId, input, (text, pct) => {
@@ -14076,10 +14077,10 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       // JSON parsed but could not be mapped to this tool. A quality local
       // generator may still use the teacher's source or vocab below.
       console.warn('[tt-ai] response parsed but mapping failed');
-      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">AI returned an unusable result. Your draft was not changed.</div>';
+      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#24282C">AI returned an unusable result. Your draft was not changed.</div>';
     } catch (err) {
       console.warn('[tt-ai] generation error:', err.message);
-      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#f97316">AI is unavailable. Your draft was not changed.</div>';
+      if (body) body.innerHTML = '<div class="tbuilder-empty" style="color:#24282C">AI is unavailable. Your draft was not changed.</div>';
     }
   } else if (wantsAI) {
     if (chip) chip.textContent = 'AI unavailable';
@@ -17271,7 +17272,7 @@ function renderStudentsTab(sec) {
   const doneCount = members.reduce((s,m) => s + m.lessons.filter(l=>l.status==='done').length, 0);
   const totalLessons = members.reduce((s,m) => s + m.lessons.length, 0);
   const summary = document.createElement('div');
-  summary.style.cssText = 'padding:8px 10px;background:rgba(92,92,102,.06);border-radius:9px;font-size:11px;font-weight:600;color:var(--text-2);margin:4px 6px 8px;';
+  summary.style.cssText = 'padding:8px 10px;background:rgba(93,97,75,.06);border-radius:9px;font-size:11px;font-weight:600;color:var(--text-2);margin:4px 6px 8px;';
   summary.textContent = `${members.length} student${members.length>1?'s':''} · ${doneCount}/${totalLessons} lessons done`;
   sec.appendChild(summary);
 
@@ -17300,7 +17301,7 @@ function renderNotesTab(sec) {
     shared.forEach(d => {
       const el = makeSnippet(d.pinned ? 'Pinned note' : 'Note', d.title,
         `<span style="font-size:10px;color:var(--text-3);">${esc(d.preview)}</span>`,
-        'note', { title:d.title, body:d.body, accent:d.pinned ? '#C8E632' : '' }, 300, 240);
+        'note', { title:d.title, body:d.body, accent:d.pinned ? '#CDF649' : '' }, 300, 240);
       if (el) sec.appendChild(el);
     });
     const open = document.createElement('button');
@@ -17654,31 +17655,31 @@ function setSaveUI(state, detail) {
   if (!dot || !status) return;
   dot.className = '';
   if (state === 'saving') {
-    dot.style.background = '#f59e0b'; dot.classList.add('save-dot-saving');
+    dot.style.background = '#F3A46B'; dot.classList.add('save-dot-saving');
     status.textContent = 'saving…';
     showMobileSaveStatus(mobile, 'warn', 'Saving');
   } else if (state === 'saved') {
-    dot.style.background = '#22c55e';
+    dot.style.background = '#D3F36B';
     status.textContent = detail || '✓ saved';
-    const md = document.getElementById('board-meta-dot'); if (md) md.style.background = '#22c55e';
+    const md = document.getElementById('board-meta-dot'); if (md) md.style.background = '#D3F36B';
     lastSavedAt = new Date();
     showMobileSaveStatus(mobile, 'good', 'Saved', true);
   } else if (state === 'cloud') {
-    dot.style.background = '#6366f1';
+    dot.style.background = '#886BF3';
     const now = new Date();
     status.textContent = `☁ synced ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
     lastSavedAt = now;
     showMobileSaveStatus(mobile, 'good', 'Synced', true);
   } else if (state === 'offline') {
-    dot.style.background = '#f97316';
+    dot.style.background = '#FF8C3A';
     status.textContent = '📡 offline';
     showMobileSaveStatus(mobile, 'warn', 'Offline');
   } else if (state === 'error') {
-    dot.style.background = '#ef4444';
+    dot.style.background = '#FF4E00';
     status.textContent = '⚠ error';
     showMobileSaveStatus(mobile, 'warn', 'Error');
   } else if (state === 'conflict') {
-    dot.style.background = '#ef4444';
+    dot.style.background = '#FF4E00';
     status.textContent = '⚡ conflict';
     showMobileSaveStatus(mobile, 'warn', 'Conflict');
   }
@@ -17847,7 +17848,7 @@ async function captureThumb() {
     const canvas = document.createElement('canvas');
     canvas.width = 480; canvas.height = 300;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#F2F2F5';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#F6F6EF';
     ctx.fillRect(0,0,480,300);
     // Draw minimap content as a simple visual
     state.cards.slice(0,30).forEach(c => {
@@ -17855,7 +17856,7 @@ async function captureThumb() {
       const sy = (c.y * state.scale + state.pan.y) / boardWrap.clientHeight * 300;
       const sw = c.w * state.scale / boardWrap.clientWidth  * 480;
       const sh = c.h * state.scale / boardWrap.clientHeight * 300;
-      ctx.fillStyle = 'rgba(200,230,50,.15)';
+      ctx.fillStyle = 'rgba(205,246,73,.15)';
       ctx.beginPath();
       ctx.roundRect(sx,sy,Math.max(4,sw),Math.max(3,sh),2);
       ctx.fill();
@@ -18142,7 +18143,7 @@ function renderVersionList() {
         </div>
         <span class="vh-ver-badge${ver.pinned?'':' auto'}">${ver.pinned?'📌 Pinned':'Auto'}</span>
         <button class="vh-ver-restore" onclick="restoreVersion('${ver.id}')">Restore</button>
-        <button onclick="deleteVersion('${ver.id}',event)" title="Delete this version" style="border:none;background:none;cursor:pointer;color:var(--text-3);font-size:14px;padding:2px 4px;border-radius:5px;transition:.1s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-3)'">✕</button>`;
+        <button onclick="deleteVersion('${ver.id}',event)" title="Delete this version" style="border:none;background:none;cursor:pointer;color:var(--text-3);font-size:14px;padding:2px 4px;border-radius:5px;transition:.1s;" onmouseover="this.style.color='#24282C'" onmouseout="this.style.color='var(--text-3)'">✕</button>`;
       list.appendChild(el);
     });
   }
@@ -18314,7 +18315,7 @@ const COMMUNITY_IMPORT_KEY = 'teachedos_community_import';
 
   // Show confirmation banner (signed-in users only - see above)
   const banner = document.createElement('div');
-  banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
+  banner.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);background:#24282C;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 8px 32px rgba(36,40,44,.3);z-index:9999;display:flex;align-items:center;gap:14px;max-width:480px;width:90%;';
   banner.innerHTML = `
     <div style="flex:1;">
       <div style="font-weight:600;font-size:14px;margin-bottom:3px;">📥 Shared board ready to import</div>
@@ -18487,7 +18488,7 @@ function ttPlaceMaterialCard(material, pos, anchor) {
   const tc = addCard('text', originX(520), originY(420), defaultTextData({
     text,
     fontFamily: 'var(--font)',
-    textColor: '#111111',
+    textColor: '#24282C',
     bgColor: '#ffffff',
     align: 'left',
   }), 520, 420);
@@ -18784,10 +18785,10 @@ function buildLessonFlowCards(lesson) {
   const created = [];
   const frameW = Math.max(1180, Math.min(1600, 380 + Math.min(stages.length, 3) * 300));
   const frameH = 850 + Math.max(0, Math.ceil((stages.length - 6) / 3)) * 230;
-  const _flowFrame = addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'#ffffff', border:'rgba(200,230,50,.42)' }, frameW, frameH);
+  const _flowFrame = addCard('frame', baseX - 40, baseY - 50, { title: lesson.title || 'Lesson flow', bg:'#ffffff', border:'rgba(205,246,73,.42)' }, frameW, frameH);
   const overview = addCard('text', baseX, baseY, defaultTextData({
     text: (lesson.title || 'Lesson') + '\n' + [lesson.level, lesson.skill, lesson.format, (lesson.duration || '') + ' min'].filter(Boolean).join(' / ') + '\n\n' + (lesson.brief || ''),
-    bgColor:'#ffffff', textColor:'#111111', align:'left'
+    bgColor:'#ffffff', textColor:'#24282C', align:'left'
   }), 360, 210);
   const goals = addCard('checklist', baseX, baseY + 240, {
     title:'Lesson goals',
@@ -18795,7 +18796,7 @@ function buildLessonFlowCards(lesson) {
   }, 320, 210);
   const vocab = addCard('text', baseX, baseY + 480, defaultTextData({
     text:'Useful language\n\n' + (vocabItems.length ? vocabItems.join('\n') : 'Add target vocabulary here'),
-    bgColor:'#ffffff', textColor:'#111111', align:'left'
+    bgColor:'#ffffff', textColor:'#24282C', align:'left'
   }), 320, 240);
   stages.forEach((stage, i) => {
     const col = i % 3;
@@ -18908,9 +18909,9 @@ renderGamesGrid = function(filter) {
       <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
       <div style="font-size:11px;color:var(--text-3);line-height:1.3;min-height:30px;">${esc(g.typeName || '')} · ${esc(g.level || 'Mixed')}</div>
       <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
-        <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(200,230,50,.10);">Custom</span>
+        <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(205,246,73,.10);">Custom</span>
       </div>`;
-    tile.addEventListener('mouseenter', () => { tile.style.borderColor = 'var(--accent)'; tile.style.transform = 'translateY(-2px)'; tile.style.boxShadow = '0 8px 24px rgba(200,230,50,.12)'; });
+    tile.addEventListener('mouseenter', () => { tile.style.borderColor = 'var(--accent)'; tile.style.transform = 'translateY(-2px)'; tile.style.boxShadow = '0 8px 24px rgba(205,246,73,.12)'; });
     tile.addEventListener('mouseleave', () => { tile.style.borderColor = 'var(--border)'; tile.style.transform = ''; tile.style.boxShadow = ''; });
     tile.addEventListener('click', () => {
       addGameCard(g.gameSrc || 'games/flashcards.html', g.title, g.w || 460, g.h || 520, {
@@ -19154,7 +19155,7 @@ function applyRoleUI() {
     if (isOwner) { badge.textContent = ''; badge.style.display = 'none'; }
     else {
       badge.textContent = boardCanEdit ? 'Editor' : 'View only';
-      badge.style.cssText += 'background:#efeff2;color:#4f5d4f;display:inline;';
+      badge.style.cssText += 'background:#F6F6EF;color:#5D614B;display:inline;';
     }
   }
   // Students: poll for live session
@@ -19892,7 +19893,7 @@ async function showBoardList() {
       item.onclick = () => switchBoard(b.id, b.name);
       list.appendChild(item);
     });
-  } catch { list.innerHTML = '<div style="color:#D01414;">Failed to load</div>'; }
+  } catch { list.innerHTML = '<div style="color:#24282C;">Failed to load</div>'; }
 }
 function closeBoardList() { document.getElementById('boards-overlay').style.display = 'none'; }
 
@@ -19974,7 +19975,8 @@ ws = null;
 let wsReconnectTimer = null;
 let wsEnabled = false;
 let remoteCursors = {}; // userId → { el, x, y }
-const PEER_COLORS = ['#6366f1','#10b981','#f97316','#06b6d4','#8b5cf6','#ef4444','#eab308'];
+/* Подписи курсоров и чипы пишутся чернилами, поэтому цвета - светлые из листа. */
+const PEER_COLORS = ['#9F8CE8','#CDF649','#FF8C3A','#49F6F0','#F3A46B','#6BAFF3','#FFE44D'];
 let peerColorMap = {};
 let peerColorIdx = 0;
 let wsBroadcastTimer = null;
@@ -20010,7 +20012,7 @@ function wsConnect() {
     // same toolbar mockup (.tb.r .ld in figma-landing.css) - the real board
     // was still using an unrelated green, so the app never matched what was
     // shown before sign-up.
-    document.getElementById('ws-dot').style.background = '#CDF940';
+    document.getElementById('ws-dot').style.background = '#CDF649';
     document.getElementById('ws-dot').title = 'Real-time: connected';
     clearTimeout(wsReconnectTimer);
   };
@@ -20070,7 +20072,7 @@ function wsConnect() {
   };
 
   ws.onclose = () => {
-    document.getElementById('ws-dot').style.background = '#9ca3af';
+    document.getElementById('ws-dot').style.background = '#A3A48D';
     document.getElementById('ws-dot').title = 'Real-time: disconnected';
     clearRemoteCursors();
     if (wsEnabled) wsReconnectTimer = setTimeout(wsConnect, 4000);
@@ -20145,10 +20147,10 @@ function updateRemoteCursor(userId, bx, by, name, avatar) {
     const col = peerColor(userId);
     // Miro-style arrow cursor (SVG) + tiny name pill below-right
     el.innerHTML = `
-      <svg width="22" height="22" viewBox="0 0 22 22" style="display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25));">
+      <svg width="22" height="22" viewBox="0 0 22 22" style="display:block;filter:drop-shadow(0 1px 2px rgba(36,40,44,.25));">
         <path d="M2 2 L2 16 L6.5 12 L9.5 19 L12 18 L9 11 L15 11 Z" fill="${col}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
       </svg>
-      <div style="position:absolute;left:16px;top:18px;background:${col};color:#fff;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:var(--font);letter-spacing:-.005em;box-shadow:0 1px 3px rgba(0,0,0,.20);">${(name||'…').replace(/</g,'&lt;')}</div>`;
+      <div style="position:absolute;left:16px;top:18px;background:${col};color:#24282C;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:var(--font);letter-spacing:-.005em;box-shadow:0 1px 3px rgba(36,40,44,.20);">${(name||'…').replace(/</g,'&lt;')}</div>`;
     board.appendChild(el);
     remoteCursors[userId] = { el };
   }
@@ -20191,7 +20193,7 @@ function updatePresenceBar() {
         onclick="jumpToStudent('${safeUid}')" title="Jump to ${safeName}">
         <span>${esc(initial)}</span>
       </div>`;
-    }).join('') + (peers.length > 5 ? `<div class="peer-chip" style="background:#9999AA;"><span>+${peers.length-5}</span></div>` : '');
+    }).join('') + (peers.length > 5 ? `<div class="peer-chip" style="background:#A3A48D;"><span>+${peers.length-5}</span></div>` : '');
   } else {
     // Student: simple count
     bar.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-3);">👥 ${peers.length + 1} online</span>`;
@@ -20446,7 +20448,7 @@ function _resolveColorToRgba(token) {
       _colorProbeCtx = c.getContext('2d', { willReadFrequently: true });
     }
     const ctx = _colorProbeCtx;
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = '#24282C';
     ctx.fillStyle = token;             // silently ignored if unparseable…
     if (ctx.fillStyle !== '#000' || /^#000000$|^black$/i.test(token.trim())) {
       ctx.clearRect(0, 0, 1, 1);
@@ -20536,7 +20538,7 @@ async function renderBoardToCanvas() {
   const prevPan = { ...state.pan }, prevScale = state.scale;
   const prevTransform = board.style.transform;
   const prevOverflow = board.style.overflow;
-  const bgColor = getComputedStyle(boardWrap).backgroundColor || '#F2F2F5';
+  const bgColor = getComputedStyle(boardWrap).backgroundColor || '#F6F6EF';
 
   board.style.transform = 'none';
   board.style.overflow = 'visible';
@@ -20612,7 +20614,7 @@ async function exportBoardImage(format) {
       const pageH = doc.internal.pageSize.getHeight();
       const margin = 24;
       const usableW = pageW - margin * 2, usableH = pageH - margin * 2;
-      const boardBg = getComputedStyle(boardWrap).backgroundColor || '#F2F2F5';
+      const boardBg = getComputedStyle(boardWrap).backgroundColor || '#F6F6EF';
       const fitScale = Math.min(usableW / imgW, usableH / imgH);
 
       /* Everything used to be squeezed onto a single A4, so the bigger the
@@ -20767,14 +20769,14 @@ let _miroTool = 'select';
 let _stickyAddCount = 0;
 
 const STICKY_PALETTE_COLORS = [
-  '#FFF176','#FFE066',
-  '#FFB16C','#FF8F8F',
-  '#FFB3E6','#F27BD3',
-  '#A9CCFF','#A99BFF',
-  '#86E5F2','#75A9F9',
-  '#73DDD0','#5BDA88',
-  '#D0EE95','#A9E84F',
-  '#F3F4F6','#111111',
+  '#F3DF6B','#F3DF6B',
+  '#F3A46B','#F3A46B',
+  '#9F8CE8','#9F8CE8',
+  '#6BAFF3','#9F8CE8',
+  '#49F6F0','#6BAFF3',
+  '#49F6F0','#D3F36B',
+  '#D3F36B','#CDF649',
+  '#F6F6EF','#24282C',
 ];
 
 function openStickyPalette() {
@@ -20889,7 +20891,7 @@ function addStickyStack() {
   _suppressSnapshot++;
   try {
     const labels = ['Idea', 'Question', 'Example'];
-    ['#FFF176','#FFB16C','#FF8F8F'].forEach((color, i) => addStickyFromPalette(color, labels[i], { skipFocus:true }));
+    ['#F3DF6B','#F3A46B','#D3F36B'].forEach((color, i) => addStickyFromPalette(color, labels[i], { skipFocus:true }));
   } finally { _suppressSnapshot--; }
   toast('Sticky stack added');
 }
@@ -20899,10 +20901,10 @@ function addStickyTemplates() {
   _suppressSnapshot++;
   try {
     const templates = [
-      ['Goal', '#FFF176'],
-      ['Key vocabulary', '#A9CCFF'],
-      ['Common mistake', '#FF8F8F'],
-      ['Homework idea', '#73DDD0'],
+      ['Goal', '#F3DF6B'],
+      ['Key vocabulary', '#6BAFF3'],
+      ['Common mistake', '#F3A46B'],
+      ['Homework idea', '#49F6F0'],
     ];
     templates.forEach(([text, color]) => addStickyFromPalette(color, text, { skipFocus:true }));
   } finally { _suppressSnapshot--; }
@@ -21058,7 +21060,7 @@ function _doPlace(clientX, clientY, sized) {
   setMiroTool('select');
   if (type === 'shape') {
     const def = getDefaults('shape');
-    const data = extraData || { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 };
+    const data = extraData || { shape:'rect', fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 };
     const c = bp.draggedRect
       ? addCard('shape', bp.x, bp.y, data, bp.w, bp.h)
       : addCard('shape', bp.x - def.w/2, bp.y - def.h/2, data);
@@ -21149,7 +21151,7 @@ function quickAddShape(shape) {
   closeShapePanel();
   _closeMoreShapes && _closeMoreShapes();
   // Enter placement mode: user clicks canvas where they want the shape
-  enterPlaceMode('shape', { shape, fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
+  enterPlaceMode('shape', { shape, fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 });
 }
 
 /* ── Shape panel: secondary "More shapes" pop-out ─────────────── */
@@ -21229,7 +21231,7 @@ function _addFramePreset(key) {
     {
       title: key === 'mobile' ? 'Phone board' : preset.label,
       bg: 'rgba(255,255,255,1)',
-      border: key === 'mobile' ? 'rgba(28,28,30,.24)' : 'rgba(0,0,0,.18)',
+      border: key === 'mobile' ? 'rgba(36,40,44,.24)' : 'rgba(36,40,44,.18)',
       mobileFormat: key === 'mobile',
     },
     preset.w, preset.h
@@ -21311,9 +21313,9 @@ function quickAddCard(type, bx, by) {
     pickImageFile(pos);
     return;
   } else if (type === 'shape') {
-    card = addCard('shape', x, y, { shape:'rect', fill:'#ffffff', stroke:'#1C1C1E', sw:2, text:'', textColor:'#1C1C1E', fontSize:14 });
+    card = addCard('shape', x, y, { shape:'rect', fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 });
   } else if (type === 'mindmap') {
-    const colors = ['#4262FF','#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D'];
+    const colors = MINDMAP_COLORS.slice(0, 7);
     card = addCard('mindmap', x, y, { text:'Topic', color: colors[Math.floor(Math.random()*colors.length)] });
   } else if (type === 'table') {
     card = addCard('table', x, y, { title:'Table', rows:[['Header 1','Header 2','Header 3'],['','',''],['','','']] });
@@ -21346,7 +21348,7 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
 
 function renderVocab(el, card) {
   const d = card.data;
-  const accent = d.accent || '#EC2D8C';
+  const accent = d.accent || '#886BF3';
   el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent);
   el.classList.toggle('vocab-fav', !!d.fav);
   el.appendChild(makeHeader('📖', d.word || 'Word', card.id));
@@ -22297,8 +22299,8 @@ function applyAiAssistantToBoard() {
 
   const _aiSkill = document.getElementById('ai-skill')?.value || 'Writing';
   const accent = {
-    Writing:'#8B5CF6', Reading:'#06B6D4', Speaking:'#10B981',
-    Grammar:'#F59E0B', Listening:'#3B82F6', Vocabulary:'#EC4899',
+    Writing:'#886BF3', Reading:'#6BAFF3', Speaking:'#A3A48D',
+    Grammar:'#F3A46B', Listening:'#3F9FFF', Vocabulary:'#9F8CE8',
   }[_aiSkill] || '#24282C';
   const stageEmojis = ['🎯','🔍','✍️','💬','🪞'];
 
@@ -22308,7 +22310,7 @@ function applyAiAssistantToBoard() {
   const ROW4_H     = 220;
 
   // Per-stage accent palette (warm → cool → warm progression)
-  const stageAccents = ['#F97316','#3B82F6','#8B5CF6','#10B981','#EC4899'];
+  const stageAccents = ['#FF8C3A','#3F9FFF','#886BF3','#A3A48D','#9F8CE8'];
 
   // ── Estimate total height before placing ────────────────────────
   // Раскладываем ВСЕ этапы. Раньше здесь стоял slice(0, 5): модель, которую
@@ -22383,7 +22385,7 @@ function applyAiAssistantToBoard() {
           addCard('checklist', rx, cy, {
             title:  '🗂 Target language',
             items:  result.vocabulary.slice(0, 10).map(text => ({ text, done: false })),
-            accent: '#22C55E',
+            accent: '#D3F36B',
           }, rw, ROW3_H);
         } else if (key === 'memory') {
           addCard('note', rx, cy, {
@@ -22420,13 +22422,13 @@ function applyAiAssistantToBoard() {
           addCard('note', ex, cy, {
             icon: '☀️', title: 'Warm-up prompts',
             body: result.warmupPrompts.join('\n'),
-            accent: '#F97316',
+            accent: '#FF8C3A',
           }, ew, ROW4_H);
         } else if (key === 'criteria') {
           addCard('checklist', ex, cy, {
             title: '✅ Success criteria',
             items: result.assessmentCriteria.map(text => ({ text, done: false })),
-            accent: '#10B981',
+            accent: '#A3A48D',
           }, ew, ROW4_H);
         } else if (key === 'extras') {
           addCard('checklist', ex, cy, {
@@ -22438,13 +22440,13 @@ function applyAiAssistantToBoard() {
           addCard('note', ex, cy, {
             icon: '🚀', title: 'Challenge',
             body: result.challenge,
-            accent: '#EF4444',
+            accent: '#FF4E00',
           }, ew, ROW4_H);
         } else if (key === 'script') {
           addCard('note', ex, cy, {
             icon: '🎤', title: 'Teacher script',
             body: result.teacherScript.join('\n'),
-            accent: '#6366F1',
+            accent: '#886BF3',
           }, ew, ROW4_H);
         }
         ex += ew + GAP;
@@ -22807,7 +22809,7 @@ function switchVideoTab(tab) {
 
 function handleVideoFileDrop(e) {
   e.preventDefault();
-  document.getElementById('video-drop-zone').style.borderColor = 'rgba(92,92,102,.28)';
+  document.getElementById('video-drop-zone').style.borderColor = 'rgba(93,97,75,.28)';
   const file = e.dataTransfer.files[0];
   if (file) loadVideoFile(file);
 }
@@ -22827,7 +22829,7 @@ function loadVideoFile(file) {
 
 function handleAudioFileDrop(e) {
   e.preventDefault();
-  document.getElementById('audio-drop-zone').style.borderColor = 'rgba(92,92,102,.28)';
+  document.getElementById('audio-drop-zone').style.borderColor = 'rgba(93,97,75,.28)';
   const file = e.dataTransfer.files[0];
   if (file) loadAudioFile(file);
 }
@@ -23037,7 +23039,7 @@ async function placeImageFile(file, pos) {
 function handleImageFileDrop(e) {
   e.preventDefault();
   const zone = document.getElementById('image-drop-zone');
-  if (zone) { zone.style.borderColor = 'rgba(92,92,102,.28)'; zone.style.background = 'var(--bg)'; }
+  if (zone) { zone.style.borderColor = 'rgba(93,97,75,.28)'; zone.style.background = 'var(--bg)'; }
   const file = e.dataTransfer.files && e.dataTransfer.files[0];
   if (!file) return;
   const pos = resolveBoardPlacement(pendingImagePos);
@@ -23495,7 +23497,7 @@ window.addEventListener('message', e => {
     else if (status === 'done') txt = '✅';
     badge.textContent = txt;
     const done = status === 'done';
-    badge.style.background = done ? '#10b981' : '';
+    badge.style.background = done ? '#A3A48D' : '';
     badge.style.color = done ? '#fff' : '';
   }
 
@@ -23549,7 +23551,7 @@ function openBgModal() {
   if (!ov) return;
   buildBgGrid();
   const saved = getBgState();
-  const cur = saved.color || '#F2F2F5';
+  const cur = saved.color || '#F6F6EF';
   document.getElementById('bg-custom-color').value = cur;
   document.getElementById('bg-custom-hex').value   = cur;
   syncBgHexInput();
@@ -23588,7 +23590,7 @@ function buildBgGrid() {
     return `<button type="button"
       class="bg-swatch${isActive?' active':''}${isLight?' light':''}"
       data-c="${c}" title="${c}"
-      style="background:${c};${c.toLowerCase()==='#ffffff'?'box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);':''}"
+      style="background:${c};${c.toLowerCase()==='#ffffff'?'box-shadow:inset 0 0 0 1px rgba(36,40,44,.10);':''}"
       onclick="applyBgColor('${c}');buildBgGrid();"></button>`;
   }).join('');
 }
@@ -23681,8 +23683,8 @@ let _drawCursorPreview = null;
 // Per-tool state (color + size), persisted
 const DRAW_STATE_KEY = 'teachedos_draw_state_v1';
 const _drawDefaults = {
-  pen:    { color: '#1C1C1E', size: 3 },
-  marker: { color: '#FACC15', size: 14 },
+  pen:    { color: '#24282C', size: 3 },
+  marker: { color: '#FFE44D', size: 14 },
   eraser: { size: 18 },
 };
 let _drawState = (() => {
@@ -23691,8 +23693,8 @@ let _drawState = (() => {
 })();
 function _saveDrawState() { try { localStorage.setItem(DRAW_STATE_KEY, JSON.stringify(_drawState)); } catch {} }
 
-const PEN_COLORS    = ['#1C1C1E','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#C8E632','#9A9AA3','#FFFFFF','#0EA5E9','#10B981'];
-const MARKER_COLORS = ['#FACC15','#FCA5A5','#FDBA74','#FDE047','#86EFAC','#67E8F9','#93C5FD','#C4B5FD','#F0ABFC','#FBCFE8','#FFFFFF','#FDE68A','#A7F3D0','#BFDBFE'];
+const PEN_COLORS    = ['#24282C','#FF4E00','#FF8C3A','#FFE44D','#5D614B','#49F6F0','#3F9FFF','#6B42FD','#886BF3','#CDF649','#A3A48D','#FFFFFF','#6BAFF3','#9F8CE8'];
+const MARKER_COLORS = ['#FFE44D','#F3DF6B','#F3A46B','#FF8C3A','#D3F36B','#CDF649','#49F6F0','#6BAFF3','#9F8CE8','#886BF3','#FFFFFF','#CACCC6','#A3A48D','#FF4E00'];
 
 function ensureDrawLayer() {
   if (_drawSvg) return _drawSvg;
@@ -23719,7 +23721,7 @@ function ensureDrawLayer() {
         state.strokes.push({
           id: 's' + (state.nextId++),
           tool: op < 0.7 ? 'marker' : 'pen',
-          color: p.getAttribute('stroke') || '#1C1C1E',
+          color: p.getAttribute('stroke') || '#24282C',
           size: +(p.getAttribute('stroke-width') || 3),
           points: pts,
         });
@@ -23757,7 +23759,7 @@ function _strokePath(points) {
 
 function _strokeAttrs(stroke) {
   return {
-    stroke: stroke.color || '#1C1C1E',
+    stroke: stroke.color || '#24282C',
     'stroke-width': stroke.size || 3,
     fill: 'none',
     'stroke-linecap': 'round',
@@ -23828,10 +23830,10 @@ function _updateDrawCursor(e) {
   // Tint the preview with the active color (transparent for eraser, fill for pen/marker)
   if (isEraser) {
     _drawCursorPreview.style.background = 'transparent';
-    _drawCursorPreview.style.border = '1.5px solid rgba(92,92,102,.55)';
+    _drawCursorPreview.style.border = '1.5px solid rgba(93,97,75,.55)';
     _drawCursorPreview.style.opacity = '.85';
   } else {
-    _drawCursorPreview.style.background = conf.color || '#1C1C1E';
+    _drawCursorPreview.style.background = conf.color || '#24282C';
     _drawCursorPreview.style.border = '1.5px solid #fff';
     _drawCursorPreview.style.opacity = _drawTool === 'marker' ? '.55' : '.85';
   }
@@ -24266,7 +24268,7 @@ document.addEventListener('keydown', e => {
       const existing = state.arrows.filter(a => a.fromCard === card.id).length;
       const childX = card.x + card.w + 60;
       const childY = card.y + existing * (card.h + 24);
-      const childColors = ['#60D394','#6DD5FA','#F7971E','#FF6B9D','#A78BFA','#FCD34D'];
+      const childColors = MINDMAP_COLORS.slice(1, 7);
       const child = addCard('mindmap', childX, childY, { text:'Subtopic', color: childColors[Math.floor(Math.random()*childColors.length)] });
       state.arrows.push({ id:'a'+(state.nextId++), fromCard:card.id, fromAnchor:'right', toCard:child.id, toAnchor:'left' });
       renderAllArrows(); scheduleSave?.();
@@ -25071,7 +25073,7 @@ function openStudentQuiz(cardId) {
       <div class="quiz-result-body">
         <div class="quiz-score-circle" style="--pct:${pct}">
           <svg width="120" height="120" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#f0e8f0" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#F6F6EF" stroke-width="10"/>
             <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="10"
               stroke-dasharray="${2*Math.PI*50}" stroke-dashoffset="${2*Math.PI*50*(1-pct/100)}"
               stroke-linecap="round" transform="rotate(-90 60 60)"/>

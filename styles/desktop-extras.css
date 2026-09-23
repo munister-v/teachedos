@@ -27,14 +27,14 @@ body.fx #desktop.has-wall { transition: background .35s ease; }
 .mb-acct-menu {
   position:absolute; top:calc(100% + 8px); right:0; z-index:9000; width:248px;
   background:#fff; border:1px solid rgba(36,40,44,.08); border-radius:16px;
-  box-shadow:0 18px 50px rgba(17,16,24,.18); padding:6px;
+  box-shadow:0 18px 50px rgba(36,40,44,.18); padding:6px;
   font-family:var(--font-ui, inherit);
 }
 .mb-acct-menu[hidden] { display:none; }
 .mb-acct-head { display:flex; align-items:center; gap:10px; padding:10px 10px 12px; border-bottom:1px solid rgba(36,40,44,.07); margin-bottom:4px; }
 .mb-acct-who { display:flex; flex-direction:column; min-width:0; }
 .mb-acct-who b { font-size:14px; font-weight:650; color:#24282C; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.mb-acct-who small { font-size:12px; color:#6B6B73; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mb-acct-who small { font-size:12px; color:#5D614B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mb-acct-item {
   display:flex; align-items:center; gap:10px; width:100%; min-height:40px; padding:0 10px;
   border:0; border-radius:10px; background:none; cursor:pointer; text-decoration:none;
@@ -49,22 +49,22 @@ body.fx #desktop.has-wall { transition: background .35s ease; }
 /* ── Выбор фона ───────────────────────────────────────────────────────── */
 .wp-overlay {
   position:fixed; inset:0; z-index:9500; display:none; align-items:center; justify-content:center; padding:16px;
-  background:rgba(17,16,24,.5); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+  background:rgba(36,40,44,.5); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
 }
 .wp-overlay.open { display:flex; }
-.wp-overlay.is-drop .wp-sheet { outline:3px dashed #A8C21F; outline-offset:-10px; }
+.wp-overlay.is-drop .wp-sheet { outline:3px dashed #D3F36B; outline-offset:-10px; }
 .wp-sheet {
   width:min(760px, 100%); max-height:90vh; overflow:auto; background:#fff; border-radius:22px; padding:22px;
-  box-shadow:0 30px 80px rgba(17,16,24,.4); font-family:var(--font-ui, inherit);
+  box-shadow:0 30px 80px rgba(36,40,44,.4); font-family:var(--font-ui, inherit);
   animation:wpIn .18s cubic-bezier(.34,1.3,.64,1);
 }
 @keyframes wpIn { from { transform:translateY(10px) scale(.985); opacity:0; } to { transform:none; opacity:1; } }
 .wp-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:16px; }
 .wp-head h2 { margin:0; font-size:19px; font-weight:600; letter-spacing:-.02em; color:#24282C; }
-.wp-head p { margin:4px 0 0; font-size:12px; color:#6B7280; }
-.wp-x { width:34px; height:34px; border-radius:11px; border:0; background:rgba(17,24,39,.06); cursor:pointer; display:grid; place-items:center; color:#24282C; flex-shrink:0; }
+.wp-head p { margin:4px 0 0; font-size:12px; color:#5D614B; }
+.wp-x { width:34px; height:34px; border-radius:11px; border:0; background:rgba(93,97,75,.06); cursor:pointer; display:grid; place-items:center; color:#24282C; flex-shrink:0; }
 .wp-grid { display:flex; flex-direction:column; gap:18px; }
-.wp-group h3 { margin:0 0 8px; font-size:12px; font-weight:650; letter-spacing:.06em; text-transform:uppercase; color:#6B6B73; }
+.wp-group h3 { margin:0 0 8px; font-size:12px; font-weight:650; letter-spacing:.06em; text-transform:uppercase; color:#5D614B; }
 .wp-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(128px, 1fr)); gap:12px; }
 .wp-tile { display:flex; flex-direction:column; gap:7px; padding:0; border:0; background:none; cursor:pointer; text-align:left; font:inherit; }
 .wp-swatch {
@@ -75,16 +75,16 @@ body.fx #desktop.has-wall { transition: background .35s ease; }
 .wp-tile:hover .wp-swatch { transform:translateY(-1px); }
 .wp-tile.is-on .wp-swatch { box-shadow:0 0 0 3px #fff, 0 0 0 5px #24282C; }
 .wp-tile:focus-visible { outline:none; }
-.wp-tile:focus-visible .wp-swatch { box-shadow:0 0 0 3px #fff, 0 0 0 5px #A8C21F; }
+.wp-tile:focus-visible .wp-swatch { box-shadow:0 0 0 3px #fff, 0 0 0 5px #D3F36B; }
 .wp-label { font-size:12.5px; font-weight:600; color:#24282C; }
-.wp-upload .wp-swatch { background:#F6F6EF; border:1.5px dashed #C4C4CC; color:#5D614B; }
+.wp-upload .wp-swatch { background:#F6F6EF; border:1.5px dashed #CACCC6; color:#5D614B; }
 .wp-upload .wp-swatch .ic { width:22px; height:22px; }
-.wp-upload .wp-swatch small { font-size:11px; color:#6B6B73; }
-.wp-note { margin:14px 0 0; font-size:12px; color:#6B7280; }
+.wp-upload .wp-swatch small { font-size:11px; color:#5D614B; }
+.wp-note { margin:14px 0 0; font-size:12px; color:#5D614B; }
 
 .desk-ctx {
   position:fixed; z-index:9400; min-width:220px; padding:5px; background:rgba(255,255,255,.96);
-  border:1px solid rgba(36,40,44,.10); border-radius:10px; box-shadow:0 12px 32px rgba(17,16,24,.18);
+  border:1px solid rgba(36,40,44,.10); border-radius:10px; box-shadow:0 12px 32px rgba(36,40,44,.18);
   backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
 }
 .desk-ctx button { display:block; width:100%; padding:7px 10px; border:0; border-radius:6px; background:none; text-align:left; cursor:pointer; font:500 13px var(--font-ui, inherit); color:#24282C; }
@@ -93,9 +93,9 @@ body.fx #desktop.has-wall { transition: background .35s ease; }
 /* ── Библиотека заданий ───────────────────────────────────────────────── */
 body.fx #win-tools .lib-main { overflow-y:auto; }
 .lib-top { padding:0 24px 14px; }
-.lib-kicker { font-family:var(--font-mono, ui-monospace, monospace); font-size:11px; color:#6B6B73; }
+.lib-kicker { font-family:var(--font-mono, ui-monospace, monospace); font-size:11px; color:#5D614B; }
 .lib-title { margin:4px 0 4px; font-size:30px; font-weight:650; letter-spacing:-.03em; color:#24282C; line-height:1.1; }
-.lib-sub { margin:0 0 14px; font-size:13px; color:#6B6B73; max-width:520px; }
+.lib-sub { margin:0 0 14px; font-size:13px; color:#5D614B; max-width:520px; }
 .lib-tools { display:flex; gap:8px; flex-wrap:wrap; }
 .lib-search {
   flex:1 1 240px; display:flex; align-items:center; gap:8px; height:42px; padding:0 14px;
@@ -114,7 +114,7 @@ body.fx #win-tools .lib-main { overflow-y:auto; }
 .lib-chip { font-size:10.5px; font-weight:650; color:#5D614B; background:#F6F6EF; border-radius:999px; padding:3px 8px; }
 .lib-card-title { margin:0; font-size:15px; font-weight:650; line-height:1.3; color:#24282C; letter-spacing:-.01em; }
 .lib-card-desc { margin:0; font-size:12.5px; line-height:1.45; color:#5D614B; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-.lib-card-meta { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11.5px; color:#6B6B73; margin-top:auto; }
+.lib-card-meta { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11.5px; color:#5D614B; margin-top:auto; }
 .lib-card-meta span { display:inline-flex; align-items:center; gap:4px; }
 .lib-card-meta .ic { width:14px; height:14px; }
 .lib-card-actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
@@ -125,14 +125,14 @@ body.fx #win-tools .lib-main { overflow-y:auto; }
 }
 .lib-btn:hover { background:#F6F6EF; }
 .lib-btn.is-primary { background:#CDF649; border-color:#CDF649; }
-.lib-btn.is-primary:hover { background:#BCD92B; }
-.lib-icon { margin-left:auto; width:34px; height:34px; border:0; border-radius:10px; background:none; cursor:pointer; color:#6B6B73; display:grid; place-items:center; }
-.lib-icon:hover { background:#FDECEC; color:#B42318; }
+.lib-btn.is-primary:hover { background:#CDF649; }
+.lib-icon { margin-left:auto; width:34px; height:34px; border:0; border-radius:10px; background:none; cursor:pointer; color:#5D614B; display:grid; place-items:center; }
+.lib-icon:hover { background:#F6F6EF; color:#24282C; }
 .lib-pick { display:flex; gap:6px; align-items:center; padding-top:4px; font-size:12.5px; color:#5D614B; }
 .lib-pick select { flex:1; min-width:0; height:34px; border:1px solid rgba(36,40,44,.14); border-radius:10px; padding:0 8px; font:500 13px var(--font-ui, inherit); background:#fff; }
 .lib-empty { grid-column:1 / -1; display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:28px 4px; font-size:13px; color:#5D614B; max-width:480px; line-height:1.5; }
 .lib-empty b { font-size:15px; color:#24282C; }
-.lib-side-note { font-size:12px; color:#6B6B73; padding:4px 10px; line-height:1.4; }
+.lib-side-note { font-size:12px; color:#5D614B; padding:4px 10px; line-height:1.4; }
 #sidebar-tools .lib-bname { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 /* ── Student Pulse ────────────────────────────────────────────────────── */
@@ -270,7 +270,7 @@ body.fx.os-desktop:not(.wall-glass) #fx-ghost-panel { background:#FFFFFF; border
 .sp-list { display:flex; flex-direction:column; gap:8px; padding:0 2px; }
 .sp-pill { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.86); border:1px solid rgba(255,255,255,.9);
   border-radius:999px; padding:5px 14px 5px 5px; }
-.sp-av { width:30px; height:30px; flex-shrink:0; border-radius:50%; background:#EEE8FF; color:#24282C; display:grid; place-items:center; font-size:11px; font-weight:700; }
+.sp-av { width:30px; height:30px; flex-shrink:0; border-radius:50%; background:#9F8CE8; color:#24282C; display:grid; place-items:center; font-size:11px; font-weight:700; }
 .sp-txt { min-width:0; display:flex; flex-direction:column; }
 .sp-txt b { font-size:13px; font-weight:650; color:#24282C; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .sp-txt small { font-size:11.5px; color:#5D614B; }

@@ -1763,15 +1763,15 @@ const TOOLS_DATA = [
 ];
 
 const TAG_COLORS = {
-  Reading:    { bg:'rgba(96,165,250,.12)',    color:'#60a5fa' },
-  Writing:    { bg:'rgba(110,201,138,.12)',   color:'#6ec98a' },
-  Listening:  { bg:'rgba(245,158,11,.12)',    color:'#f59e0b' },
-  Speaking:   { bg:'rgba(167,139,250,.12)',   color:'#a78bfa' },
-  Vocabulary: { bg:'rgba(201,201,208,.18)',   color:'#1C1C1E' },
-  Grammar:    { bg:'rgba(248,113,113,.12)',   color:'#f87171' },
-  Utility:    { bg:'rgba(156,163,175,.12)',   color:'#9ca3af' },
-  New:        { bg:'rgba(110,201,138,.18)',   color:'#6ec98a' },
-  Pro:        { bg:'rgba(201,201,208,.22)',   color:'#1C1C1E' },
+  Reading:    { bg:'rgba(63,159,255,.12)',    color:'#3F9FFF' },
+  Writing:    { bg:'rgba(163,164,141,.12)',   color:'#A3A48D' },
+  Listening:  { bg:'rgba(243,164,107,.12)',    color:'#F3A46B' },
+  Speaking:   { bg:'rgba(159,140,232,.12)',   color:'#9F8CE8' },
+  Vocabulary: { bg:'rgba(202,204,198,.18)',   color:'#24282C' },
+  Grammar:    { bg:'rgba(255,78,0,.12)',   color:'#FF4E00' },
+  Utility:    { bg:'rgba(163,164,141,.12)',   color:'#A3A48D' },
+  New:        { bg:'rgba(163,164,141,.18)',   color:'#A3A48D' },
+  Pro:        { bg:'rgba(202,204,198,.22)',   color:'#24282C' },
 };
 
 let activeToolGroup = 'all';
@@ -1809,7 +1809,7 @@ function toolsRender() {
       const c = TAG_COLORS[t.badge] || {};
       return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.color}40;font-weight:600;">${t.badge}</span>`;
     })() : '';
-    return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(92,92,102,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(92,92,102,0.09)';this.style.borderColor='rgba(201,201,208,0.28)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(92,92,102,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
+    return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(93,97,75,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(93,97,75,0.09)';this.style.borderColor='rgba(202,204,198,0.28)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(93,97,75,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
         <div style="font-size:22px;flex-shrink:0;line-height:1;">${t.icon}</div>
         <div style="flex:1;">
@@ -1850,25 +1850,25 @@ toolsRender();
 /* ══════════════════════ SPOTLIGHT ══════════════════════ */
 const SP_ITEMS = [
   // Windows
-  { icon:'📋', iconBg:'linear-gradient(145deg,#6B7669,#5A6459)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
-  { icon:'👥', iconBg:'linear-gradient(145deg,#5F6B75,#4F5A64)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
-  { icon:'📅', iconBg:'linear-gradient(145deg,#6F6F72,#5C5C5F)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
-  { icon:'✍️', iconBg:'linear-gradient(145deg,#585C59,#474B48)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
-  { icon:'💳', iconBg:'linear-gradient(145deg,#5A6459,#6B7669)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
+  { icon:'📋', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Lesson Plans', sub:'Open lesson plans window', kbd:'Plans', action:()=>openApp('plans') },
+  { icon:'👥', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
+  { icon:'📅', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
+  { icon:'✍️', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
+  { icon:'💳', iconBg:'linear-gradient(145deg,#5D614B,#A3A48D)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
   // External pages
-  { icon:'📌', iconBg:'linear-gradient(145deg,#7C7C7F,#67676A)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
-  { icon:'📚', iconBg:'linear-gradient(145deg,#75798A,#63667A)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
-  { icon:'🌍', iconBg:'linear-gradient(145deg,#6B7A63,#5A6754)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
-  { icon:'📊', iconBg:'linear-gradient(145deg,#5C7570,#4C625E)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
-  { icon:'📒', iconBg:'linear-gradient(145deg,#5F6B75,#4F5A64)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
-  { icon:'👤', iconBg:'linear-gradient(145deg,#6B7669,#5A6459)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
+  { icon:'📌', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
+  { icon:'📚', iconBg:'linear-gradient(145deg,#A3A48D,#886BF3)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
+  { icon:'🌍', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
+  { icon:'📊', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
+  { icon:'📒', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
+  { icon:'👤', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
   // Students quick jump (rebuilt later when STUDENTS loads from API)
 ];
 
 function rebuildSpotlightStudents() {
   while (SP_ITEMS.length && SP_ITEMS[SP_ITEMS.length-1].kbd === 'Student') SP_ITEMS.pop();
   STUDENTS.forEach(s => SP_ITEMS.push({
-    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(200,230,50,0.10)',
+    icon: s.avatar || '🧑‍🎓', iconBg:'rgba(205,246,73,0.10)',
     title: s.name, sub: s.email || '',
     kbd:'Student', action:()=>{ openApp('students'); studentsRender(); }
   }));
@@ -1879,7 +1879,7 @@ function rebuildSpotlightBoards() {
   let i = SP_ITEMS.length - 1;
   while (i >= 0 && SP_ITEMS[i].kbd === 'Board') SP_ITEMS.splice(i--, 1);
   (MY_BOARDS || []).slice(0, 12).forEach(b => SP_ITEMS.push({
-    icon: '📌', iconBg:'linear-gradient(145deg,#7C7C7F,#67676A)',
+    icon: '📌', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)',
     title: b.name || 'Untitled Board',
     sub: 'Open board · ' + (b.card_count || 0) + ' cards',
     kbd:'Board',
@@ -2208,7 +2208,7 @@ async function checkAuthAndRoute() {
       const btn = document.createElement('button');
       btn.id = 'mp-offline-signin';
       btn.textContent = '⚡ Sign in';
-      btn.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:300;padding:10px 18px;background:#1C1C1E;color:#C8E632;border:none;border-radius:20px;font-size:13px;font-weight:650;cursor:pointer;box-shadow:0 4px 16px rgba(14,14,16,.25);display:none;';
+      btn.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:300;padding:10px 18px;background:#24282C;color:#CDF649;border:none;border-radius:20px;font-size:13px;font-weight:650;cursor:pointer;box-shadow:0 4px 16px rgba(36,40,44,.25);display:none;';
       btn.onclick = () => { clearAuthState(); showAuthOverlay(); btn.remove(); };
       document.body.appendChild(btn);
       // Show only on mobile
@@ -2245,7 +2245,7 @@ function showAuthOverlay() {
     overlay.style.cssText = `
       position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;max-width:100vw;z-index:99999;
       display:flex;align-items:flex-start;justify-content:center;
-      background:linear-gradient(165deg,#F5F5F8 0%,#EBEBEE 52%,#E2E2E5 100%);
+      background:linear-gradient(165deg,#F6F6EF 0%,#F6F6EF 52%,#F6F6EF 100%);
       overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(20px,calc((100dvh - 620px)/2)) 16px max(20px,env(safe-area-inset-bottom,0px));
       opacity:0;visibility:hidden;pointer-events:none;
       transition:opacity .24s cubic-bezier(.22,.61,.36,1),visibility 0s linear .24s;
@@ -2262,9 +2262,9 @@ function showAuthOverlay() {
         #os-auth-overlay.open .os-auth-field:nth-child(3){animation-delay:.09s}
         #os-auth-overlay .os-auth-error[style*="display: block"]{animation:osAuthErrorIn .22s cubic-bezier(.22,.61,.36,1) both}
         #os-auth-overlay .os-auth-btn{transition:filter .15s,transform .12s,box-shadow .15s,background .2s,color .2s}
-        #os-auth-overlay .os-auth-btn:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 10px 36px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.08)!important}
+        #os-auth-overlay .os-auth-btn:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 10px 36px rgba(36,40,44,.34),inset 0 1px 0 rgba(255,255,255,.08)!important}
         #os-auth-overlay .os-auth-btn:active:not(:disabled){transform:scale(.98)}
-        #os-auth-overlay .os-auth-btn.is-success{background:linear-gradient(140deg,#285a3a,#3b7f4e)!important;color:#eaffc6!important}
+        #os-auth-overlay .os-auth-btn.is-success{background:linear-gradient(140deg,#5D614B,#5D614B)!important;color:#D3F36B!important}
         #os-auth-overlay .os-auth-card.is-success{transform:translateY(-2px) scale(.99)}
         #os-auth-overlay .os-auth-error{line-height:1.4}
         #os-auth-overlay .os-auth-logo{will-change:transform}
@@ -2283,59 +2283,59 @@ function showAuthOverlay() {
         overflow:hidden;
         width:min(400px,calc(100vw - 32px));
         max-width:100%;
-        box-shadow:0 24px 72px rgba(0,0,0,.30),0 8px 24px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.72);
-        border:1px solid rgba(23,23,25,.10);
+        box-shadow:0 24px 72px rgba(36,40,44,.30),0 8px 24px rgba(36,40,44,.14),inset 0 1px 0 rgba(255,255,255,.72);
+        border:1px solid rgba(36,40,44,.10);
         position:relative;z-index:1;
         margin:auto;
       ">
         <!-- Титульна смуга: вхід читається як вікно TeachEd, а не як
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
-        <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(228,228,231,.98);border-bottom:1px solid rgba(23,23,25,.08);">
+        <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
           <img src="logo-sm.png" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
-          <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#1C1C1E;">TeachEd</span>
+          <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
             <img class="os-auth-logo" src="logo-sm.png" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
-          <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#1C1C1E;margin-bottom:4px;">
+          <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
           </div>
-          <div id="os-auth-sub" style="font-size:12px;color:#6B7280;margin-top:0;font-weight:500;line-height:1.45;">Lessons, boards and games in one place</div>
+          <div id="os-auth-sub" style="font-size:12px;color:#5D614B;margin-top:0;font-weight:500;line-height:1.45;">Lessons, boards and games in one place</div>
         </div>
-        <div id="os-auth-err" class="os-auth-error" role="alert" aria-live="assertive" style="display:none;background:rgba(255,245,245,.95);border:1.5px solid rgba(239,68,68,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#c62828;margin-bottom:14px;font-weight:600;"></div>
+        <div id="os-auth-err" class="os-auth-error" role="alert" aria-live="assertive" style="display:none;background:rgba(246,246,239,.95);border:1.5px solid rgba(255,78,0,.22);border-radius:12px;padding:10px 14px;font-size:13px;color:#24282C;margin-bottom:14px;font-weight:600;"></div>
         <div id="os-google-area" style="display:none;margin-bottom:18px;">
           <div id="os-google-btn" style="display:flex;justify-content:center;min-height:44px;"></div>
-          <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#98989B;font-size:12px;font-weight:600;letter-spacing:.04em;">
-            <span style="flex:1;height:1px;background:rgba(92,92,102,.18);"></span>OR<span style="flex:1;height:1px;background:rgba(92,92,102,.18);"></span>
+          <div style="display:flex;align-items:center;gap:10px;margin:16px 0 2px;color:#5D614B;font-size:12px;font-weight:600;letter-spacing:.04em;">
+            <span style="flex:1;height:1px;background:rgba(93,97,75,.18);"></span>OR<span style="flex:1;height:1px;background:rgba(93,97,75,.18);"></span>
           </div>
         </div>
         <div id="os-role-row" style="display:none;margin-bottom:16px;">
-          <div style="font-size:10px;font-weight:600;color:#78787B;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+          <div style="font-size:10px;font-weight:600;color:#5D614B;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <button type="button" id="role-teacher" onclick="selectOsRole('teacher')" aria-pressed="true" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(141,184,0,.65);background:rgba(205,242,79,.18);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
+            <button type="button" id="role-teacher" onclick="selectOsRole('teacher')" aria-pressed="true" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(205,246,73,.65);background:rgba(205,246,73,.18);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
-              <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Teacher</div>
-              <div style="font-size:10px;color:#78787B;margin-top:2px;">Create &amp; manage</div>
+              <div style="font-size:12px;font-weight:650;color:#24282C;">Teacher</div>
+              <div style="font-size:10px;color:#5D614B;margin-top:2px;">Create &amp; manage</div>
             </button>
-            <button type="button" id="role-student" onclick="selectOsRole('student')" aria-pressed="false" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(24,24,24,.14);background:#FFFFFF;cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
+            <button type="button" id="role-student" onclick="selectOsRole('student')" aria-pressed="false" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(36,40,44,.14);background:#FFFFFF;cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🎓</div>
-              <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Student</div>
-              <div style="font-size:10px;color:#78787B;margin-top:2px;">Learn &amp; progress</div>
+              <div style="font-size:12px;font-weight:650;color:#24282C;">Student</div>
+              <div style="font-size:10px;color:#5D614B;margin-top:2px;">Learn &amp; progress</div>
             </button>
           </div>
         </div>
         <div id="os-auth-fields"></div>
-        <button id="os-auth-btn" class="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#1C1C1E,#2D2D30);color:#C8E632;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:650;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
+        <button id="os-auth-btn" class="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#24282C,#24282C);color:#CDF649;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:650;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(36,40,44,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(205,246,73,.3);border-top-color:#CDF649;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
         <style>@keyframes _osSpin{to{transform:rotate(360deg)}}</style>
         <div id="os-forgot-row" style="text-align:right;margin-top:2px;margin-bottom:6px;">
-          <button type="button" onclick="startForgotPassword()" style="color:#888;font-size:12px;font-weight:600;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
+          <button type="button" onclick="startForgotPassword()" style="color:#5D614B;font-size:12px;font-weight:600;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
         </div>
-        <div style="text-align:center;margin-top:16px;font-size:13px;color:#58585B;font-weight:500;">
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:#5D614B;font-weight:500;">
           <span id="os-toggle-text">Don't have an account?</span>
-          <button type="button" onclick="toggleOsAuth()" style="color:#1C1C1E;font-weight:650;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;" id="os-toggle-link">Register</button>
+          <button type="button" onclick="toggleOsAuth()" style="color:#24282C;font-weight:650;cursor:pointer;margin-left:4px;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;" id="os-toggle-link">Register</button>
         </div>
         </div>
       </div>`;
@@ -2540,11 +2540,11 @@ function renderOsAuthFields() {
   if (togLink) togLink.textContent = isLogin ? 'Register' : 'Sign in';
   const f = document.getElementById('os-auth-fields');
   if (!f) return;
-  const INP_S = 'width:100%;padding:13px 44px 13px 16px;border:1px solid rgba(24,24,24,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
-  const INP_PLAIN = 'width:100%;padding:13px 16px;border:1px solid rgba(24,24,24,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#1C1C1E;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
+  const INP_S = 'width:100%;padding:13px 44px 13px 16px;border:1px solid rgba(36,40,44,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#24282C;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
+  const INP_PLAIN = 'width:100%;padding:13px 16px;border:1px solid rgba(36,40,44,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#24282C;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
   const WRAP_S = 'position:relative;margin-bottom:12px;';
-  const LABEL_S = 'display:block;margin:0 0 6px;color:#89898C;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
-  const EYE_S  = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;cursor:pointer;color:#9A9AAA;display:flex;align-items:center;justify-content:center;border-radius:7px;padding:0;';
+  const LABEL_S = 'display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
+  const EYE_S  = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;cursor:pointer;color:#5D614B;display:flex;align-items:center;justify-content:center;border-radius:7px;padding:0;';
   const EYE_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path class="eo" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle class="eo" cx="12" cy="12" r="3"/>
     <line class="ec" x1="1" y1="1" x2="23" y2="23" style="display:none"/><path class="ec" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" style="display:none"/></svg>`;
@@ -2556,8 +2556,8 @@ function renderOsAuthFields() {
     btn.querySelectorAll('.eo').forEach(e=>e.style.display=show?'':'none');
     btn.querySelectorAll('.ec').forEach(e=>e.style.display=show?'none':'');
   }
-  const focusFn = "this.style.borderColor='rgba(141,184,0,.55)';this.style.boxShadow='0 0 0 4px rgba(205,242,79,.24)'";
-  const blurFn  = "this.style.borderColor='rgba(24,24,24,.14)';this.style.boxShadow='none'";
+  const focusFn = "this.style.borderColor='rgba(205,246,73,.55)';this.style.boxShadow='0 0 0 4px rgba(205,246,73,.24)'";
+  const blurFn  = "this.style.borderColor='rgba(36,40,44,.14)';this.style.boxShadow='none'";
   f.innerHTML =
     (!isLogin ? `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-name" style="${LABEL_S}">Your name</label><input id="os-af-name" type="text" maxlength="120" placeholder="Your full name" autocomplete="name" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>` : '') +
     `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email address" autocomplete="email" style="${INP_PLAIN}" onfocus="${focusFn}" onblur="${blurFn}"></div>
@@ -2566,7 +2566,7 @@ function renderOsAuthFields() {
   if (!isLogin) {
     const help = document.createElement('p');
     help.id = 'os-password-help';
-    help.style.cssText = 'margin:-7px 1px 12px;color:#58585B;font-size:11px;font-weight:650;line-height:1.4;';
+    help.style.cssText = 'margin:-7px 1px 12px;color:#5D614B;font-size:11px;font-weight:650;line-height:1.4;';
     help.textContent = 'Use at least 10 characters.';
     f.querySelector('#os-af-pass')?.parentElement?.appendChild(help);
   }
@@ -2576,7 +2576,7 @@ function renderOsAuthFields() {
     const help = document.getElementById('os-password-help');
     if (!help) return;
     const len = e.target.value.length;
-    help.style.color = len >= 10 ? '#166534' : (len ? '#9A5B12' : '#58585B');
+    help.style.color = len >= 10 ? '#5D614B' : (len ? '#FF4E00' : '#5D614B');
     help.textContent = len >= 10 ? 'Length looks good. A memorable multi-word passphrase is best.' : `Use at least 10 characters${len ? ` · ${10 - len} more needed` : ''}.`;
   });
 }
@@ -2602,7 +2602,7 @@ function startForgotPassword() {
   if (_fpTitle) _fpTitle.textContent = 'Reset your password';
   if (sub) sub.textContent = 'We will email you a link to set a new one';
   if (btn) {
-    btn.innerHTML = '<span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(200,230,50,.3);border-top-color:#C8E632;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Send reset link</span>';
+    btn.innerHTML = '<span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(205,246,73,.3);border-top-color:#CDF649;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Send reset link</span>';
     btn.onclick = submitForgotPassword;
     btn.disabled = false;
     btn.classList.remove('loading', 'is-success');
@@ -2622,9 +2622,9 @@ function startForgotPassword() {
   err.style.display = 'none';
   const f = document.getElementById('os-auth-fields');
   const WRAP_S = 'position:relative;margin-bottom:12px;';
-  const LABEL_S = 'display:block;margin:0 0 6px;color:#89898C;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
-  const INP = 'width:100%;padding:13px 16px;border:1px solid rgba(24,24,24,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#1C1C1E;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
-  f.innerHTML = `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='rgba(141,184,0,.55)';this.style.boxShadow='0 0 0 4px rgba(205,242,79,.24)'" onblur="this.style.borderColor='rgba(24,24,24,.14)';this.style.boxShadow='none'">`;
+  const LABEL_S = 'display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
+  const INP = 'width:100%;padding:13px 16px;border:1px solid rgba(36,40,44,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#24282C;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
+  f.innerHTML = `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='rgba(205,246,73,.55)';this.style.boxShadow='0 0 0 4px rgba(205,246,73,.24)'" onblur="this.style.borderColor='rgba(36,40,44,.14)';this.style.boxShadow='none'">`;
   f.querySelector('input').addEventListener('keydown', e => { if(e.key==='Enter') submitForgotPassword(); });
 }
 
@@ -2646,14 +2646,14 @@ async function submitForgotPassword() {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email})
     });
     // Always show success (server doesn't reveal if email exists)
-    errEl.style.color = '#179955';
+    errEl.style.color = '#5D614B';
     errEl.textContent = '✓ If that email is registered, a reset link is on its way. Check your inbox.';
     errEl.style.display = 'block';
     if (btnLbl) btnLbl.textContent = 'Sent';
     btn.classList.remove('loading'); btn.classList.add('is-success'); btn.removeAttribute('aria-busy');
     document.getElementById('os-auth-fields').innerHTML = '';
   } catch {
-    errEl.style.color = '#d73333';
+    errEl.style.color = '#24282C';
     errEl.textContent = 'Something went wrong. Please try again.';
     errEl.style.display = 'block';
     btn.disabled = false; btn.classList.remove('loading'); btn.removeAttribute('aria-busy');

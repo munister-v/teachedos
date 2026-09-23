@@ -265,7 +265,7 @@ async function renderOverview(forceOffline = false) {
   if (existingPlanBadge) existingPlanBadge.remove();
   if (planBadge) {
     const el = document.getElementById('profile-role-badge');
-    el.insertAdjacentHTML('afterend', `<span id="profile-plan-badge" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(200,230,50,.28),rgba(200,230,50,.14));border:1px solid rgba(200,230,50,.4);font-size:12px;font-weight:650;color:#5a6b00;">${planBadge}</span>`);
+    el.insertAdjacentHTML('afterend', `<span id="profile-plan-badge" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(205,246,73,.28),rgba(205,246,73,.14));border:1px solid rgba(205,246,73,.4);font-size:12px;font-weight:650;color:#5D614B;">${planBadge}</span>`);
   }
 
   if (me.created_at) {
@@ -368,7 +368,7 @@ async function loadBoards(forceOffline = false) {
     const cachedBoards = readProfileCache()?.boards || [];
     boardsCache = cachedBoards;
     if (cachedBoards.length) renderBoardsGrid(cachedBoards);
-    else grid.innerHTML = '<div style="color:#D01414;grid-column:1/-1;">Failed to load boards</div>';
+    else grid.innerHTML = '<div style="color:#24282C;grid-column:1/-1;">Failed to load boards</div>';
   }
   updateMobileProfileSummary({ offline: forceOffline });
 }
@@ -479,29 +479,29 @@ async function loadSharedBoards(forceOffline = false) {
       return;
     }
     wrap.innerHTML = boards.map(b => `
-      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
-        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(36,40,44,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F6F6EF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:650;color:var(--text);">${esc(b.name)}</div>
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
         </div>
-        <span style="font-size:10px;font-weight:650;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role}</span>
+        <span style="font-size:10px;font-weight:650;padding:3px 10px;border-radius:20px;background:rgba(136,107,243,.1);color:#6B42FD;">${b.role}</span>
       </a>`).join('');
   } catch {
     const cachedBoards = readProfileCache()?.sharedBoards || [];
     sharedBoardsCache = cachedBoards;
     if (!cachedBoards.length) {
-      wrap.innerHTML = `<div style="color:${forceOffline ? 'var(--text-3)' : '#D01414'};text-align:center;padding:20px;">${forceOffline ? 'Offline mode: no saved shared boards yet.' : 'Failed to load shared boards'}</div>`;
+      wrap.innerHTML = `<div style="color:${forceOffline ? 'var(--text-3)' : '#FF4E00'};text-align:center;padding:20px;">${forceOffline ? 'Offline mode: no saved shared boards yet.' : 'Failed to load shared boards'}</div>`;
       return;
     }
     wrap.innerHTML = cachedBoards.map(b => `
-      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(5,5,23,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
-        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
+      <a href="board.html?id=${esc(b.id)}" style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 12px rgba(36,40,44,.07);display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;">
+        <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F6F6EF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:650;color:var(--text);">${esc(b.name)}</div>
           <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar || '👩‍🏫'} ${esc(b.owner_name || 'Teacher')} · Saved snapshot</div>
         </div>
-        <span style="font-size:10px;font-weight:650;padding:3px 10px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1;">${b.role || 'viewer'}</span>
+        <span style="font-size:10px;font-weight:650;padding:3px 10px;border-radius:20px;background:rgba(136,107,243,.1);color:#6B42FD;">${b.role || 'viewer'}</span>
       </a>`).join('');
   }
   updateMobileProfileSummary({ offline: forceOffline });
@@ -524,10 +524,10 @@ function initMeetingRooms() {
 }
 
 function billingToneStyle(tone) {
-  if (tone === 'good') return { color: '#166534', border: 'rgba(34,197,94,.2)', bg: 'rgba(34,197,94,.08)' };
-  if (tone === 'warn') return { color: '#b45309', border: 'rgba(249,115,22,.22)', bg: 'rgba(249,115,22,.08)' };
-  if (tone === 'bad') return { color: '#b91c1c', border: 'rgba(239,68,68,.22)', bg: 'rgba(239,68,68,.08)' };
-  return { color: 'var(--text-2)', border: 'var(--border)', bg: 'rgba(28,28,30,.03)' };
+  if (tone === 'good') return { color: '#5D614B', border: 'rgba(211,243,107,.2)', bg: 'rgba(211,243,107,.08)' };
+  if (tone === 'warn') return { color: '#24282C', border: 'rgba(36,40,44,.22)', bg: 'rgba(36,40,44,.08)' };
+  if (tone === 'bad') return { color: '#24282C', border: 'rgba(36,40,44,.22)', bg: 'rgba(36,40,44,.08)' };
+  return { color: 'var(--text-2)', border: 'var(--border)', bg: 'rgba(36,40,44,.03)' };
 }
 
 function billingCycleLabel(cycle) {
@@ -821,7 +821,7 @@ function toggleManagePanel() {
   const quote = billingPlans?.[current.plan]?.cycles?.find(item => item.key === (current.cycle || 'monthly'));
   const expires = current.plan_expires_at ? new Date(current.plan_expires_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : null;
   const daysLeft = expires && current.plan_expires_at ? Math.ceil((new Date(current.plan_expires_at) - Date.now()) / 86400000) : null;
-  const expiryColor = daysLeft != null && daysLeft < 14 ? '#ef4444' : 'var(--text-2)';
+  const expiryColor = daysLeft != null && daysLeft < 14 ? '#FF4E00' : 'var(--text-2)';
 
   const row = (label, value, color='var(--text)') =>
     `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
@@ -835,7 +835,7 @@ function toggleManagePanel() {
     row('Cycle', billingCycleLabel(current.cycle || 'monthly')),
     row('Price', quote ? formatMoney(quote.total, quote.currency) : (current.plan === 'free' ? '$0' : '-')),
     expires ? row('Active until', expires + (daysLeft != null ? ` (${daysLeft}d left)` : ''), expiryColor) : '',
-    billingOverview?.pending_payment ? row('Pending invoice', billingOverview.pending_payment.invoice_no || `#${billingOverview.pending_payment.id}`, '#b45309') : '',
+    billingOverview?.pending_payment ? row('Pending invoice', billingOverview.pending_payment.invoice_no || `#${billingOverview.pending_payment.id}`, '#FF4E00') : '',
   ].join('');
 
   loadBillingRequests().catch(() => {});
@@ -940,9 +940,9 @@ async function submitBulkImport() {
     if (d.notFound?.length) msg += `⚠️ Not found: ${d.notFound.join(', ')}\n`;
     if (d.alreadyMember?.length) msg += `ℹ️ Already members: ${d.alreadyMember.join(', ')}`;
     resultEl.textContent = msg || 'Done';
-    resultEl.style.background = d.added?.length ? 'rgba(34,197,94,.1)' : 'rgba(245,158,11,.1)';
+    resultEl.style.background = d.added?.length ? 'rgba(211,243,107,.1)' : 'rgba(243,164,107,.1)';
     resultEl.style.border = d.added?.length ? '1px solid rgba(34,197,94,.3)' : '1px solid rgba(245,158,11,.3)';
-    resultEl.style.color = d.added?.length ? '#15803d' : '#92400e';
+    resultEl.style.color = d.added?.length ? '#5D614B' : '#FF4E00';
     resultEl.style.display = 'block';
     resultEl.style.whiteSpace = 'pre-line';
     if (d.limitReached) {

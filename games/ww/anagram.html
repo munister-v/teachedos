@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Anagram</title>
-<link rel="stylesheet" href="ww.css?v=946">
+<link rel="stylesheet" href="ww.css?v=950">
 <style>
 /* Anagram: подсказка слева, справа буквы-плитки и строка ответа с
    прочерками. Буквы перетаскивают или тапают по порядку; пробел во фразе
@@ -21,14 +21,14 @@
 .an-answer{padding:8px 10px;border:2px solid var(--gray);border-radius:6px;min-height:62px;align-items:flex-end}
 .an-slot{width:clamp(28px,5.4vw,40px);height:clamp(34px,6.4vw,48px);display:flex;align-items:center;justify-content:center;border:0;border-bottom:4px solid var(--gray);background:none;font-weight:800;font-size:clamp(17px,3.6vw,26px);padding:0}
 .an-slot.gap{width:14px;border:0}
-.an-answer.ok{border-color:var(--ok);background:#EAF7EE}
+.an-answer.ok{border-color:var(--ok);background:#F6F6EF}
 .an-answer.bad{border-color:var(--bad)}
 .an-reveal{font-weight:700;color:var(--olive);font-size:15px;min-height:20px}
 @media (max-width:540px){.an{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:8px}}
 </style>
 </head>
 <body>
-<script src="ww.js?v=946"></script>
+<script src="ww.js?v=950"></script>
 <script>
 var DEMO=[{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'}];
 var ww=WW.init({template:'Anagram',instructions:'Drag the letters into the correct positions to unjumble the words.',timer:'up',score:true});
@@ -85,6 +85,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=946"></script>
+<script src="../../scripts/game-handoff.js?v=950"></script>
 </body>
 </html>

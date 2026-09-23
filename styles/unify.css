@@ -72,23 +72,23 @@
   /* Override the legacy --accent token across all pages.
      harmony.css doesn't consume var(--accent) directly (uses var(--pink) explicitly),
      so this only redirects per-page inline styles that referenced --accent for CTAs. */
-  --accent: #0E0E10;
+  --accent: #24282C;
 
-  --u-ink:       #0E0E10;
-  --u-ink-hover: #1F1F22;
-  --u-ink-soft:  rgba(14, 14, 16, 0.06);
-  --u-ink-line:  rgba(14, 14, 16, 0.08);
-  --u-lime:      #C8E632;
-  --u-lime-pop:  #CDF24F;
-  --u-lime-dark: #A8C42A;
-  --u-lime-soft: rgba(200, 230, 50, 0.16);
-  --u-lime-edge: rgba(205, 242, 79, 0.42);
-  --u-lime-glow: rgba(200, 230, 50, 0.30);
+  --u-ink:       #24282C;
+  --u-ink-hover: #24282C;
+  --u-ink-soft:  rgba(36,40,44,0.06);
+  --u-ink-line:  rgba(36,40,44,0.08);
+  --u-lime:      #CDF649;
+  --u-lime-pop:  #CDF649;
+  --u-lime-dark: #D3F36B;
+  --u-lime-soft: rgba(205,246,73,0.16);
+  --u-lime-edge: rgba(205,246,73,0.42);
+  --u-lime-glow: rgba(205,246,73,0.30);
   --u-card:      #FFFFFF;
 }
 
 [data-theme="dark"] {
-  --u-card:      #2C2C2E;
+  --u-card:      #24282C;
   --u-ink-soft:  rgba(255, 255, 255, 0.06);
   --u-ink-line:  rgba(255, 255, 255, 0.08);
 }
@@ -108,43 +108,43 @@
   --font-mono:  'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace !important;
 
   /* Cream-light surface palette - same on every page */
-  --bg:         #F2F2F5 !important;
-  --bg-2:       #E7E7EC !important;
-  --bg2:        #E7E7EC !important;
-  --cream:      #F2F2F5 !important;
+  --bg:         #F6F6EF !important;
+  --bg-2:       #F6F6EF !important;
+  --bg2:        #F6F6EF !important;
+  --cream:      #F6F6EF !important;
   --card:       #FFFFFF !important;
-  --text:       #0E0E10 !important;
-  --text-2:     #3A3A40 !important;
-  --text-3:     #6C6C6F !important;
-  --text2:      #3A3A40 !important;
-  --text3:      #6C6C6F !important;
-  --border:     rgba(14,14,16,0.08) !important;
-  --border-2:   rgba(14,14,16,0.16) !important;
-  --border2:    rgba(14,14,16,0.16) !important;
-  --line:       rgba(14,14,16,0.08) !important;
-  --line2:      rgba(14,14,16,0.16) !important;
-  --ink:        #0E0E10 !important;
-  --ink2:       #1C1C1E !important;
-  --ink3:       #68686B !important;
+  --text:       #24282C !important;
+  --text-2:     #5D614B !important;
+  --text-3:     #5D614B !important;
+  --text2:      #5D614B !important;
+  --text3:      #5D614B !important;
+  --border:     rgba(36,40,44,0.08) !important;
+  --border-2:   rgba(36,40,44,0.16) !important;
+  --border2:    rgba(36,40,44,0.16) !important;
+  --line:       rgba(36,40,44,0.08) !important;
+  --line2:      rgba(36,40,44,0.16) !important;
+  --ink:        #24282C !important;
+  --ink2:       #24282C !important;
+  --ink3:       #5D614B !important;
 }
 
 /* Neuter any stray [data-theme="dark"] still applied at runtime -
    variables fall back to the cream palette above. */
 html[data-theme="dark"],
 :root[data-theme="dark"] {
-  --bg:         #F2F2F5 !important;
-  --bg-2:       #E7E7EC !important;
-  --bg2:        #E7E7EC !important;
-  --cream:      #F2F2F5 !important;
+  --bg:         #F6F6EF !important;
+  --bg-2:       #F6F6EF !important;
+  --bg2:        #F6F6EF !important;
+  --cream:      #F6F6EF !important;
   --card:       #FFFFFF !important;
-  --text:       #0E0E10 !important;
-  --text-2:     #3A3A40 !important;
-  --text-3:     #6C6C6F !important;
-  --ink:        #0E0E10 !important;
-  --ink2:       #1C1C1E !important;
+  --text:       #24282C !important;
+  --text-2:     #5D614B !important;
+  --text-3:     #5D614B !important;
+  --ink:        #24282C !important;
+  --ink2:       #24282C !important;
   --u-card:     #FFFFFF !important;
-  --u-ink-soft: rgba(14, 14, 16, 0.06) !important;
-  --u-ink-line: rgba(14, 14, 16, 0.08) !important;
+  --u-ink-soft: rgba(36,40,44,0.06) !important;
+  --u-ink-line: rgba(36,40,44,0.08) !important;
 }
 
 html, body {
@@ -192,14 +192,14 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):not(.btn-pink-soft):
   background: var(--u-ink) !important;
   color: #fff !important;
   border: none !important;
-  box-shadow: 0 4px 14px rgba(14, 14, 16, 0.18) !important;
+  box-shadow: 0 4px 14px rgba(36,40,44,0.18) !important;
 }
 .btn-primary:hover,
 .btn.btn-primary:hover,
 button.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover,
 a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
   background: var(--u-ink-hover) !important;
-  box-shadow: 0 8px 22px rgba(14, 14, 16, 0.26) !important;
+  box-shadow: 0 8px 22px rgba(36,40,44,0.26) !important;
   transform: translateY(-1px);
 }
 
@@ -213,25 +213,25 @@ a.btn:not(.lime):not(.ghost):not(.btn-lime):not(.btn-ghost):hover {
 .btn-lime:hover,
 .btn.btn-lime:hover {
   background: var(--u-lime-dark) !important;
-  box-shadow: 0 8px 22px rgba(200, 230, 50, 0.40) !important;
+  box-shadow: 0 8px 22px rgba(205,246,73,0.40) !important;
 }
 
 /* Community page .mini-btn (was inheriting pink via --accent) */
 .mini-btn:not(.alt):not(.lime):not(.ghost) {
   background: var(--u-ink) !important;
   color: #fff !important;
-  box-shadow: 0 3px 10px rgba(14, 14, 16, 0.18) !important;
+  box-shadow: 0 3px 10px rgba(36,40,44,0.18) !important;
 }
 .mini-btn:not(.alt):not(.lime):not(.ghost):hover {
   background: var(--u-ink-hover) !important;
-  box-shadow: 0 6px 18px rgba(14, 14, 16, 0.26) !important;
+  box-shadow: 0 6px 18px rgba(36,40,44,0.26) !important;
 }
 .mini-btn.alt {
   background: var(--u-lime-soft) !important;
   color: var(--u-ink) !important;
 }
 .mini-btn.alt:hover {
-  background: rgba(200, 230, 50, 0.28) !important;
+  background: rgba(205,246,73,0.28) !important;
 }
 .mini-btn.lime {
   background: var(--u-lime) !important;
@@ -280,7 +280,7 @@ body:not(.board-page) .board-card:hover,
 .tool-card:hover,
 .lesson-card:not(.featured):not(.ink):not(.lime):not(.dark):hover {
   border-color: var(--u-lime-edge) !important;
-  box-shadow: 0 12px 32px rgba(14, 14, 16, 0.08),
+  box-shadow: 0 12px 32px rgba(36,40,44,0.08),
               inset 0 0 0 1px var(--u-lime-edge) !important;
 }
 
@@ -343,7 +343,7 @@ body:not(.board-page) .board-card::before,
 .lesson-card.dark .tool-icon,
 .featured-card .icon-tile,
 .mp-next-card .icon-tile {
-  background: rgba(205, 242, 79, 0.20) !important;
+  background: rgba(205,246,73,0.20) !important;
   color: var(--u-lime-pop) !important;
 }
 
@@ -410,7 +410,7 @@ body:not(.board-page) .board-card::before,
 /* Dark sidebar variant - keep lime accent visible */
 [data-theme="dark"] .sb-item.active,
 .sidebar.dark .sb-item.active {
-  background: rgba(200, 230, 50, 0.12) !important;
+  background: rgba(205,246,73,0.12) !important;
   color: var(--u-lime-pop) !important;
 }
 
@@ -510,7 +510,7 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 [data-theme="dark"] .mp-board-card,
 [data-theme="dark"] .card,
 [data-theme="dark"] .lesson-card:not(.featured):not(.ink) {
-  background: #2C2C2E;
+  background: #24282C;
   border-color: rgba(255, 255, 255, 0.08);
 }
 /* profile.html's .card hardcodes #1C1C1E text + card-title color via --text,
@@ -519,18 +519,18 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 [data-theme="dark"] .card,
 [data-theme="dark"] .card-title,
 [data-theme="dark"] #profile-name-big {
-  color: #F0F0F3;
+  color: #FFFFFF;
 }
 [data-theme="dark"] #profile-email-big,
 [data-theme="dark"] .stat-label,
 [data-theme="dark"] .rbi-meta {
-  color: rgba(240, 240, 243, 0.55);
+  color: rgba(255,255,255,0.55);
 }
 [data-theme="dark"] .board-card:hover,
 [data-theme="dark"] .game-tile-comm:hover,
 [data-theme="dark"] .pack-card:hover {
   border-color: var(--u-lime-edge) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35),
+  box-shadow: 0 12px 32px rgba(36,40,44,0.35),
               inset 0 0 0 1px var(--u-lime-edge) !important;
 }
 
@@ -547,10 +547,10 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 @media (min-width: 861px) {
   body:not(.os-desktop) .hero-inner .hero-card,
   body:not(.os-desktop) .hero-in    .hero-side {
-    background: #181818 !important;
+    background: #24282C !important;
     color: #fff !important;
     border-color: transparent !important;
-    box-shadow: 0 18px 44px rgba(24,24,24,.22) !important;
+    box-shadow: 0 18px 44px rgba(36,40,44,.22) !important;
   }
   body:not(.os-desktop) .hero-inner .hero-card *,
   body:not(.os-desktop) .hero-in    .hero-side * {
@@ -580,13 +580,13 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 @media (min-width: 861px) {
   body:not(.os-desktop) .btn.ghost:not(.hero-inner .btn.ghost):not(.hero-in .btn.ghost) {
     background: rgba(255,255,255,0.90) !important;
-    color: #1C1C1E !important;
-    border: 1px solid rgba(14,14,16,0.16) !important;
+    color: #24282C !important;
+    border: 1px solid rgba(36,40,44,0.16) !important;
   }
   body:not(.os-desktop) .btn.ghost:hover:not(.hero-inner .btn.ghost):not(.hero-in .btn.ghost) {
-    background: rgba(200,230,50,0.12) !important;
-    border-color: rgba(200,230,50,0.40) !important;
-    color: #1C1C1E !important;
+    background: rgba(205,246,73,0.12) !important;
+    border-color: rgba(205,246,73,0.40) !important;
+    color: #24282C !important;
   }
 }
 
@@ -596,10 +596,10 @@ body:not(.board-page)[data-theme="dark"] .board-card,
       comes later → it overrides these light rules for teacher-tools pages. */
 @media (min-width: 861px) {
   .hero-card:not(.ink):not(.dark) {
-    background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(233,233,236,.84)) !important;
-    border: 1px solid rgba(14,14,16,0.07) !important;
+    background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(246,246,239,.84)) !important;
+    border: 1px solid rgba(36,40,44,0.07) !important;
     color: var(--text) !important;
-    box-shadow: 0 18px 50px rgba(92,92,102,.09) !important;
+    box-shadow: 0 18px 50px rgba(36,40,44,.09) !important;
   }
   .hero-card:not(.ink):not(.dark) h1,
   .hero-card:not(.ink):not(.dark) h2,
@@ -610,9 +610,9 @@ body:not(.board-page)[data-theme="dark"] .board-card,
   }
   .share-card {
     background: rgba(255,255,255,.92) !important;
-    border: 1px solid rgba(14,14,16,0.07) !important;
+    border: 1px solid rgba(36,40,44,0.07) !important;
     color: var(--text) !important;
-    box-shadow: 0 18px 50px rgba(92,92,102,.09) !important;
+    box-shadow: 0 18px 50px rgba(36,40,44,.09) !important;
   }
   .share-card .share-title,
   .share-card .label,
@@ -624,7 +624,7 @@ body:not(.board-page)[data-theme="dark"] .board-card,
   .share-card textarea {
     background: #fff !important;
     color: var(--text) !important;
-    border-color: rgba(14,14,16,0.12) !important;
+    border-color: rgba(36,40,44,0.12) !important;
   }
 }
 
@@ -644,8 +644,8 @@ body:not(.board-page)[data-theme="dark"] .board-card,
 [id$="-overlay"] textarea,
 [id$="-overlay"] select {
   background: #ffffff !important;
-  color: #1c1c1e !important;
-  border-color: rgba(14,14,16,0.14) !important;
+  color: #24282C !important;
+  border-color: rgba(36,40,44,0.14) !important;
   color-scheme: light !important;
 }
 
@@ -660,14 +660,14 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="
 textarea,
 select {
   background-color: #ffffff !important;
-  color: #1c1c1e !important;
+  color: #24282C !important;
   color-scheme: light !important;
 }
 /* <option> popups follow the same light scheme (Firefox/Chrome dark-mode dropdowns) */
 select option,
 select optgroup {
   background-color: #ffffff !important;
-  color: #1c1c1e !important;
+  color: #24282C !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -680,26 +680,26 @@ select optgroup {
   /* Non-board pages: sidebar sits on cream --bg, needs dark text */
   body:not(.board-page):not(.admin-page) #sidebar .sb-item,
   body:not(.board-page):not(.admin-page) .sb-item {
-    color: var(--text-2, #3A3A40) !important;
+    color: var(--text-2, #5D614B) !important;
   }
   body:not(.board-page):not(.admin-page) #sidebar .sb-item:hover,
   body:not(.board-page):not(.admin-page) .sb-item:hover {
-    background: rgba(200, 230, 50, 0.10) !important;
-    color: var(--ink, #0E0E10) !important;
+    background: rgba(205,246,73,0.10) !important;
+    color: var(--ink, #24282C) !important;
   }
   body:not(.board-page):not(.admin-page) #sidebar .sb-item.active,
   body:not(.board-page):not(.admin-page) .sb-item.active {
-    background: rgba(200, 230, 50, 0.16) !important;
-    color: var(--ink, #0E0E10) !important;
+    background: rgba(205,246,73,0.16) !important;
+    color: var(--ink, #24282C) !important;
     font-weight:650 !important;
   }
   body:not(.board-page):not(.admin-page) #sidebar .sb-label,
   body:not(.board-page):not(.admin-page) .sb-section-label {
-    color: var(--text-3, #6C6C6F) !important;
+    color: var(--text-3, #5D614B) !important;
   }
   body:not(.board-page):not(.admin-page) #sidebar {
-    background: var(--bg, #F2F2F5) !important;
-    border-right-color: rgba(14,14,16,.08) !important;
+    background: var(--bg, #F6F6EF) !important;
+    border-right-color: rgba(36,40,44,.08) !important;
   }
 }
 
@@ -725,30 +725,30 @@ body:not(.board-page) .board-card::before {
 
 .btn-primary,
 .btn.btn-primary {
-  background: #C8E632 !important;
-  color: #1C1C1E !important;
+  background: #CDF649 !important;
+  color: #24282C !important;
   border: none !important;
-  box-shadow: 0 4px 14px rgba(200,230,50,0.28) !important;
+  box-shadow: 0 4px 14px rgba(205,246,73,0.28) !important;
 }
 .btn-primary:hover,
 .btn.btn-primary:hover {
-  background: #A8C42A !important;
-  color: #1C1C1E !important;
+  background: #D3F36B !important;
+  color: #24282C !important;
   transform: translateY(-1px);
 }
 
 /* ── btn-soft: neutral ink tone, not purple ── */
 .btn-soft,
 .btn.btn-soft {
-  background: rgba(92,92,102,0.08) !important;
-  color: #1C1C1E !important;
-  border: 1.5px solid rgba(92,92,102,0.20) !important;
+  background: rgba(93,97,75,0.08) !important;
+  color: #24282C !important;
+  border: 1.5px solid rgba(93,97,75,0.20) !important;
   box-shadow: none !important;
 }
 .btn-soft:hover,
 .btn.btn-soft:hover {
-  background: rgba(92,92,102,0.14) !important;
-  border-color: rgba(92,92,102,0.32) !important;
+  background: rgba(93,97,75,0.14) !important;
+  border-color: rgba(93,97,75,0.32) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -760,20 +760,20 @@ body:not(.board-page) .board-card::before {
 @media (min-width: 861px) {
   /* Sidebar skill/category count badges: lime, not pink */
   .sb-item-badge {
-    background: rgba(200,230,50,0.22) !important;
-    color: #1C1C1E !important;
+    background: rgba(205,246,73,0.22) !important;
+    color: #24282C !important;
     border-radius: 10px !important;
   }
   .sb-item.active .sb-item-badge {
-    background: #C8E632 !important;
-    color: #1C1C1E !important;
+    background: #CDF649 !important;
+    color: #24282C !important;
   }
 }
 
 /* Schedule "Open full schedule →" active tab button: ink, not pink */
 .sch-view.active {
-  background: #0E0E10 !important;
-  color: #F2F2F5 !important;
+  background: #24282C !important;
+  color: #FFFFFF !important;
 }
 
 /* Board search input: keep transparent so the container bg shows through */
@@ -794,30 +794,30 @@ body:not(.board-page) .board-card::before {
 @media (min-width: 861px) {
   .lesson-card .lc-name,
   .lesson-card .lc-title {
-    color: #F2F2F5 !important;
+    color: #FFFFFF !important;
   }
   .lesson-card .lc-num {
-    color: rgba(242,242,245,0.55) !important;
+    color: rgba(255,255,255,0.55) !important;
   }
   .lesson-card .lc-meta,
   .lesson-card .lc-dur {
-    color: rgba(242,242,245,0.50) !important;
+    color: rgba(255,255,255,0.50) !important;
   }
   /* Top stripe: lime only, no pink */
   .lesson-card::before {
-    background: linear-gradient(90deg, #C8E632, #A8C42A) !important;
+    background: linear-gradient(90deg, #CDF649, #D3F36B) !important;
   }
 
   /* ── .lc-lang language badge: harmony forces pink-on-pink - fix to lime ── */
   .lc-lang {
-    background: rgba(200,230,50,0.16) !important;
-    border-color: rgba(200,230,50,0.28) !important;
-    color: #5A7A00 !important;
+    background: rgba(205,246,73,0.16) !important;
+    border-color: rgba(205,246,73,0.28) !important;
+    color: #5D614B !important;
   }
 
   /* ── .lc-prog-fill: pure lime, remove pink gradient ── */
   .lc-prog-fill {
-    background: linear-gradient(90deg, #C8E632, #A8C42A) !important;
+    background: linear-gradient(90deg, #CDF649, #D3F36B) !important;
   }
 }
 
@@ -830,23 +830,23 @@ body:not(.board-page) .board-card::before {
 
 /* index.html calendar widget */
 .sch-cell.today .sch-day-num {
-  background: #0E0E10 !important;
-  color: #F2F2F5 !important;
+  background: #24282C !important;
+  color: #FFFFFF !important;
 }
 .sch-event {
-  color: #1C1C1E !important;
-  background: linear-gradient(135deg, rgba(200,230,50,0.18),
-    rgba(201,201,208,0.15)) !important;
-  border-color: rgba(200,230,50,0.22) !important;
+  color: #24282C !important;
+  background: linear-gradient(135deg, rgba(205,246,73,0.18),
+    rgba(202,204,198,0.15)) !important;
+  border-color: rgba(205,246,73,0.22) !important;
 }
 
 /* schedule.html full-page calendar */
 .gh-day.today .gh-day-num {
-  background: #0E0E10 !important;
+  background: #24282C !important;
   color: #fff !important;
 }
 .gh-day.today {
-  color: #0E0E10 !important;
+  color: #24282C !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -857,41 +857,41 @@ body:not(.board-page) .board-card::before {
 
 /* Profile board grid: board name */
 .bc-name {
-  color: #0E0E10 !important;
+  color: #24282C !important;
 }
 .bc-meta {
-  color: #6C6C6F !important;
+  color: #5D614B !important;
 }
 
 /* Profile board grid: Primary "Open" button - ink, not pink */
 .bc-btn.primary {
-  background: #0E0E10 !important;
-  color: #F2F2F5 !important;
-  border-color: #0E0E10 !important;
+  background: #24282C !important;
+  color: #FFFFFF !important;
+  border-color: #24282C !important;
 }
 .bc-btn.primary:hover {
-  background: #1C1C1E !important;
-  border-color: #1C1C1E !important;
-  color: #F2F2F5 !important;
+  background: #24282C !important;
+  border-color: #24282C !important;
+  color: #FFFFFF !important;
 }
 
 /* Profile "Recent Boards" list: board name & meta */
 .rbi-name {
-  color: #0E0E10 !important;
+  color: #24282C !important;
 }
 .rbi-meta {
-  color: #6C6C6F !important;
+  color: #5D614B !important;
 }
 
 /* lesson-card text: dark-bg cards (courses.html etc.) → cream text */
 @media (min-width: 861px) {
-  body:not(.os-desktop) .lesson-card .lc-title { color: #F2F2F5 !important; }
+  body:not(.os-desktop) .lesson-card .lc-title { color: #FFFFFF !important; }
   body:not(.os-desktop) .lesson-card .lc-meta,
-  body:not(.os-desktop) .lesson-card .lc-dur  { color: rgba(242,242,245,0.55) !important; }
+  body:not(.os-desktop) .lesson-card .lc-dur  { color: rgba(255,255,255,0.55) !important; }
   /* OS window: white-bg cards → dark text */
-  body.os-desktop .lesson-card .lc-title      { color: #0E0E10 !important; }
+  body.os-desktop .lesson-card .lc-title      { color: #24282C !important; }
   body.os-desktop .lesson-card .lc-meta,
-  body.os-desktop .lesson-card .lc-dur        { color: #6C6C6F !important; }
+  body.os-desktop .lesson-card .lc-dur        { color: #5D614B !important; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -906,15 +906,15 @@ body:not(.board-page) .board-card::before {
   /* ── Body: restore light background & dark text ── */
   body:not(.os-desktop) {
     background-color: transparent !important;
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
 
   /* ── .wrap: restore dark ink text ── */
   body:not(.os-desktop) .wrap {
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
   body:not(.os-desktop) .grid {
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
 
   /* ── Form inputs / textareas / selects: restore light ── */
@@ -925,31 +925,31 @@ body:not(.board-page) .board-card::before {
     background: #ffffff !important;
     background-image: none !important;
     background-color: #ffffff !important;
-    color: #0E0E10 !important;
-    border: 1px solid rgba(23,23,25,0.12) !important;
+    color: #24282C !important;
+    border: 1px solid rgba(36,40,44,0.12) !important;
     box-shadow: none !important;
   }
   body:not(.os-desktop) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]):focus,
   body:not(.os-desktop) textarea:focus,
   body:not(.os-desktop) select:focus {
-    border-color: rgba(88,103,255,0.55) !important;
-    box-shadow: 0 0 0 4px rgba(88,103,255,0.10) !important;
+    border-color: rgba(136,107,243,0.55) !important;
+    box-shadow: 0 0 0 4px rgba(136,107,243,0.10) !important;
     background: #ffffff !important;
   }
   body:not(.os-desktop) input::placeholder,
   body:not(.os-desktop) textarea::placeholder {
-    color: rgba(23,23,25,0.38) !important;
+    color: rgba(36,40,44,0.38) !important;
   }
 
   /* ── Form labels: restore visible dark label ── */
   body:not(.os-desktop) :is(.label, .form-label, .field label, .form-field label) {
-    color: rgba(23,23,25,0.50) !important;
+    color: rgba(36,40,44,0.50) !important;
   }
 
   /* ── select options: restore light ── */
   body:not(.os-desktop) select option {
     background: #ffffff !important;
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
 
   /* ── Panel titles / headings: restore dark ink ── */
@@ -962,18 +962,18 @@ body:not(.board-page) .board-card::before {
 
   /* ── section-title: harmony forces cream, restore to ink ── */
   body:not(.os-desktop) .section-title {
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
 
   /* ── Schedule nav buttons: replace pink with neutral ink ── */
   body:not(.os-desktop) .sch-nav-btn {
-    background: rgba(23,23,25,0.06) !important;
-    border-color: rgba(23,23,25,0.14) !important;
-    color: #0E0E10 !important;
+    background: rgba(36,40,44,0.06) !important;
+    border-color: rgba(36,40,44,0.14) !important;
+    color: #24282C !important;
   }
   body:not(.os-desktop) .sch-nav-btn:hover {
-    background: rgba(23,23,25,0.11) !important;
-    color: #0E0E10 !important;
+    background: rgba(36,40,44,0.11) !important;
+    color: #24282C !important;
   }
 }
 
@@ -987,131 +987,131 @@ body:not(.board-page) .board-card::before {
 @media (min-width: 861px) {
   /* Window chrome */
   body.os-desktop .win {
-    background: rgba(242,242,245,0.97) !important;
-    border: 1px solid rgba(23,23,25,0.10) !important;
+    background: rgba(246,246,239,0.97) !important;
+    border: 1px solid rgba(36,40,44,0.10) !important;
     box-shadow:
-      0 24px 72px rgba(0,0,0,0.14),
-      0 8px 24px rgba(0,0,0,0.08),
+      0 24px 72px rgba(36,40,44,0.14),
+      0 8px 24px rgba(36,40,44,0.08),
       inset 0 1px 0 rgba(255,255,255,0.70) !important;
   }
   body.os-desktop .win-titlebar {
-    background: rgba(228,228,231,0.98) !important;
-    border-bottom: 1px solid rgba(23,23,25,0.08) !important;
+    background: rgba(246,246,239,0.98) !important;
+    border-bottom: 1px solid rgba(36,40,44,0.08) !important;
   }
   body.os-desktop .win-title {
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
   body.os-desktop .win-sidebar {
-    background: rgba(222,222,225,0.92) !important;
-    border-right: 1px solid rgba(23,23,25,0.08) !important;
+    background: rgba(246,246,239,0.92) !important;
+    border-right: 1px solid rgba(36,40,44,0.08) !important;
   }
   body.os-desktop .win-main {
-    background: rgba(248,248,251,0.98) !important;
-    color: #0E0E10 !important;
+    background: rgba(246,246,239,0.98) !important;
+    color: #24282C !important;
   }
 
   /* Sidebar nav items */
   body.os-desktop .sb-section-label {
-    color: rgba(23,23,25,0.40) !important;
+    color: rgba(36,40,44,0.40) !important;
   }
   body.os-desktop .sb-item {
-    color: rgba(23,23,25,0.72) !important;
+    color: rgba(36,40,44,0.72) !important;
   }
   body.os-desktop .sb-item:hover {
-    background: rgba(200,230,50,0.18) !important;
-    color: #0E0E10 !important;
+    background: rgba(205,246,73,0.18) !important;
+    color: #24282C !important;
   }
   body.os-desktop .sb-item.active {
-    background: rgba(200,230,50,0.22) !important;
-    color: #0E0E10 !important;
+    background: rgba(205,246,73,0.22) !important;
+    color: #24282C !important;
   }
 
   /* Curriculum hero text inside win */
   body.os-desktop .curr-title {
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
   body.os-desktop .curr-title em {
-    color: #6A8A0A !important;
+    color: #5D614B !important;
   }
   body.os-desktop .curr-eyebrow {
-    color: #6A8A0A !important;
+    color: #5D614B !important;
   }
   body.os-desktop .curr-copy {
-    color: #58585B !important;
+    color: #5D614B !important;
   }
   body.os-desktop .curr-tabs {
-    border-bottom-color: rgba(23,23,25,0.10) !important;
+    border-bottom-color: rgba(36,40,44,0.10) !important;
   }
   body.os-desktop .curr-tab {
-    color: rgba(23,23,25,0.50) !important;
+    color: rgba(36,40,44,0.50) !important;
   }
   body.os-desktop .curr-tab:hover {
-    background: rgba(200,230,50,0.14) !important;
-    color: #0E0E10 !important;
+    background: rgba(205,246,73,0.14) !important;
+    color: #24282C !important;
   }
   body.os-desktop .curr-search {
     background: rgba(255,255,255,0.80) !important;
-    border-color: rgba(23,23,25,0.12) !important;
+    border-color: rgba(36,40,44,0.12) !important;
     box-shadow: none !important;
   }
   body.os-desktop .curr-search input,
   body.os-desktop .curr-search input:not([type="checkbox"]) {
-    color: #0E0E10 !important;
+    color: #24282C !important;
     background: none !important;
   }
   body.os-desktop .curr-search input::placeholder {
-    color: rgba(23,23,25,0.35) !important;
+    color: rgba(36,40,44,0.35) !important;
   }
   body.os-desktop .curr-search-ic {
-    color: rgba(23,23,25,0.35) !important;
+    color: rgba(36,40,44,0.35) !important;
   }
 
   /* Board cards inside win */
   body.os-desktop .mp-board-card {
     background: rgba(255,255,255,0.85) !important;
-    border-color: rgba(23,23,25,0.09) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    border-color: rgba(36,40,44,0.09) !important;
+    box-shadow: 0 2px 8px rgba(36,40,44,0.06) !important;
   }
   body.os-desktop .mp-board-card:hover {
-    border-color: rgba(200,230,50,0.50) !important;
-    box-shadow: 0 4px 16px rgba(200,230,50,0.14) !important;
+    border-color: rgba(205,246,73,0.50) !important;
+    box-shadow: 0 4px 16px rgba(205,246,73,0.14) !important;
   }
   body.os-desktop .mp-board-title {
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
   body.os-desktop .mp-board-meta {
-    color: rgba(23,23,25,0.50) !important;
+    color: rgba(36,40,44,0.50) !important;
   }
   body.os-desktop .mp-board-eyebrow {
-    color: rgba(23,23,25,0.38) !important;
+    color: rgba(36,40,44,0.38) !important;
   }
   body.os-desktop .mp-board-status {
-    color: #6A8A0A !important;
+    color: #5D614B !important;
   }
   body.os-desktop .mp-board-status::before {
-    background: #6A8A0A !important;
+    background: #A3A48D !important;
   }
 
   /* Quick-start cards inside win */
   body.os-desktop .mp-quick {
     background: rgba(255,255,255,0.80) !important;
-    border-color: rgba(23,23,25,0.09) !important;
+    border-color: rgba(36,40,44,0.09) !important;
   }
   body.os-desktop .mp-quick:hover {
-    background: rgba(200,230,50,0.12) !important;
-    border-color: rgba(200,230,50,0.35) !important;
+    background: rgba(205,246,73,0.12) !important;
+    border-color: rgba(205,246,73,0.35) !important;
   }
   body.os-desktop .mp-quick-t {
-    color: #0E0E10 !important;
+    color: #24282C !important;
   }
   body.os-desktop .mp-quick-s {
-    color: rgba(23,23,25,0.52) !important;
+    color: rgba(36,40,44,0.52) !important;
   }
   body.os-desktop .mp-quick-arrow {
-    color: #6A8A0A !important;
+    color: #5D614B !important;
   }
   body.os-desktop .mp-quick-ic {
-    background: rgba(200,230,50,0.20) !important;
+    background: rgba(205,246,73,0.20) !important;
   }
 
   /* Win forms (inputs inside win windows) */
@@ -1119,8 +1119,8 @@ body:not(.board-page) .board-card::before {
   body.os-desktop .win textarea,
   body.os-desktop .win select {
     background: rgba(255,255,255,0.90) !important;
-    color: #0E0E10 !important;
-    border-color: rgba(23,23,25,0.14) !important;
+    color: #24282C !important;
+    border-color: rgba(36,40,44,0.14) !important;
     box-shadow: none !important;
   }
 }
@@ -1150,22 +1150,22 @@ body:not(.board-page) .board-card::before {
    ни с чем. Предикат тот же, которым задан фон, чтобы цвет текста и фон
    больше не расходились. */
 #nav .nav-user {
-  border-color: rgba(205,242,79,0.20) !important;
-  background: rgba(205,242,79,0.08) !important;
+  border-color: rgba(205,246,73,0.20) !important;
+  background: rgba(205,246,73,0.08) !important;
 }
 #nav .nav-user:hover {
-  background: rgba(205,242,79,0.14) !important;
-  border-color: rgba(205,242,79,0.32) !important;
+  background: rgba(205,246,73,0.14) !important;
+  border-color: rgba(205,246,73,0.32) !important;
 }
 body.board-page #nav .nav-user,
 body.os-desktop #nav .nav-user,
 body.board-page #nav #nav-name,
 body.os-desktop #nav #nav-name {
-  color: rgba(242,242,245,0.85) !important;
+  color: rgba(255,255,255,0.85) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-user,
 body:not(.board-page):not(.os-desktop) #nav #nav-name {
-  color: #1C1C1E !important;
+  color: #24282C !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1177,33 +1177,33 @@ body:not(.board-page):not(.os-desktop) #nav #nav-name {
 
 @media (min-width: 861px) {
   body:not(.os-desktop) .board-name {
-    color: #1C1C1E !important;
+    color: #24282C !important;
   }
   body:not(.os-desktop) .board-desc {
-    color: #3A3A40 !important;
+    color: #5D614B !important;
   }
   body:not(.os-desktop) .board-meta {
-    color: #9A9AA3 !important;
+    color: #5D614B !important;
   }
   body:not(.os-desktop) .hero-copy {
-    color: #3A3A40 !important;
+    color: #5D614B !important;
   }
   body:not(.os-desktop) .share-title {
-    color: #1C1C1E !important;
+    color: #24282C !important;
   }
   /* mp-board-card: harmony sets dark glass bg globally - restore on non-OS pages */
   body:not(.os-desktop) .mp-board-card:not(.dark):not(.lime) {
     background: #FFFFFF !important;
-    border-color: rgba(14,14,16,0.08) !important;
+    border-color: rgba(36,40,44,0.08) !important;
   }
   body:not(.os-desktop) .mp-board-title {
-    color: #1C1C1E !important;
+    color: #24282C !important;
   }
   body:not(.os-desktop) .mp-board-meta {
-    color: #6C6C6F !important;
+    color: #5D614B !important;
   }
   body:not(.os-desktop) .mp-board-eyebrow {
-    color: #9A9AA3 !important;
+    color: #5D614B !important;
   }
 }
 
@@ -1214,9 +1214,9 @@ body:not(.board-page):not(.os-desktop) #nav #nav-name {
 #os-auth-fields input:-webkit-autofill:hover,
 #os-auth-fields input:-webkit-autofill:focus,
 #os-auth-fields input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 40px rgba(244,244,247,0.97) inset !important;
-  -webkit-text-fill-color: #1C1C1E !important;
-  caret-color: #1C1C1E !important;
+  -webkit-box-shadow: 0 0 0 40px rgba(255,255,255,0.97) inset !important;
+  -webkit-text-fill-color: #24282C !important;
+  caret-color: #24282C !important;
   transition: background-color 9999s ease-in-out 0s !important;
 }
 
@@ -1250,17 +1250,17 @@ body {
    Lesson Builder is a light workspace, so lock its controls back to ink.
 ═══════════════════════════════════════════════════════════════ */
 body.lesson-builder-page {
-  color: #0E0E10 !important;
+  color: #24282C !important;
 }
 
 body.lesson-builder-page .hero-side {
   background:
-    radial-gradient(circle at 100% 0%, rgba(200,230,50,0.24), transparent 36%),
-    radial-gradient(circle at 0% 100%, rgba(236,45,140,0.16), transparent 38%),
-    linear-gradient(135deg, #0E0E10, #18191D 58%, #241426) !important;
-  border: 1px solid rgba(205,242,79,0.16) !important;
-  color: #F3F3F6 !important;
-  box-shadow: 0 22px 56px rgba(14,14,16,0.24) !important;
+    radial-gradient(circle at 100% 0%, rgba(205,246,73,0.24), transparent 36%),
+    radial-gradient(circle at 0% 100%, rgba(136,107,243,0.16), transparent 38%),
+    linear-gradient(135deg, #24282C, #24282C 58%, #5D614B) !important;
+  border: 1px solid rgba(205,246,73,0.16) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 22px 56px rgba(36,40,44,0.24) !important;
 }
 
 body.lesson-builder-page .hero-side b {
@@ -1273,13 +1273,13 @@ body.lesson-builder-page .hero-side b {
 }
 
 body.lesson-builder-page .hero-side li {
-  color: rgba(243,243,246,0.86) !important;
+  color: rgba(255,255,255,0.86) !important;
   font-weight: 650 !important;
 }
 
 body.lesson-builder-page .hero-side li::before {
   background: var(--u-lime) !important;
-  box-shadow: 0 0 0 4px rgba(205,242,79,0.10) !important;
+  box-shadow: 0 0 0 4px rgba(205,246,73,0.10) !important;
 }
 
 body.lesson-builder-page .panel,
@@ -1290,8 +1290,8 @@ body.lesson-builder-page .quality-card,
 body.lesson-builder-page .stage,
 body.lesson-builder-page .lib-item {
   background: rgba(255,255,255,0.94) !important;
-  border-color: rgba(23,23,25,0.11) !important;
-  color: #0E0E10 !important;
+  border-color: rgba(36,40,44,0.11) !important;
+  color: #24282C !important;
 }
 
 body.lesson-builder-page .panel-sub,
@@ -1301,50 +1301,50 @@ body.lesson-builder-page .lib-item span,
 body.lesson-builder-page .doc-meta,
 body.lesson-builder-page .doc-section p,
 body.lesson-builder-page .doc-section li {
-  color: #6C6C6F !important;
+  color: #5D614B !important;
 }
 
 body.lesson-builder-page :is(.label, .form-label, .field label, .form-field label) {
-  color: rgba(23,23,25,0.58) !important;
+  color: rgba(36,40,44,0.58) !important;
 }
 
 body.lesson-builder-page .btn.ghost {
   background: rgba(255,255,255,0.94) !important;
-  border: 1px solid rgba(23,23,25,0.13) !important;
-  color: #0E0E10 !important;
-  box-shadow: 0 8px 22px rgba(14,14,16,0.055) !important;
+  border: 1px solid rgba(36,40,44,0.13) !important;
+  color: #24282C !important;
+  box-shadow: 0 8px 22px rgba(36,40,44,0.055) !important;
 }
 
 body.lesson-builder-page .btn.ghost:hover {
-  background: rgba(200,230,50,0.18) !important;
-  border-color: rgba(168,196,42,0.42) !important;
-  color: #0E0E10 !important;
+  background: rgba(205,246,73,0.18) !important;
+  border-color: rgba(211,243,107,0.42) !important;
+  color: #24282C !important;
 }
 
 body.lesson-builder-page .view-toggle .btn.ghost.active,
 body.lesson-builder-page .btn.ghost.active {
-  background: rgba(200,230,50,0.20) !important;
-  border-color: rgba(168,196,42,0.48) !important;
-  color: #6F8C00 !important;
+  background: rgba(205,246,73,0.20) !important;
+  border-color: rgba(211,243,107,0.48) !important;
+  color: #5D614B !important;
 }
 
 body.lesson-builder-page .btn.soft {
-  background: #0E0E10 !important;
-  border: 1px solid #0E0E10 !important;
+  background: #24282C !important;
+  border: 1px solid #24282C !important;
   color: #FFFFFF !important;
-  box-shadow: 0 10px 24px rgba(14,14,16,0.18) !important;
+  box-shadow: 0 10px 24px rgba(36,40,44,0.18) !important;
 }
 
 body.lesson-builder-page .btn.soft:hover {
-  background: #232326 !important;
+  background: #24282C !important;
   color: #FFFFFF !important;
 }
 
 body.lesson-builder-page .btn.lime {
   background: linear-gradient(135deg, var(--u-lime), var(--u-lime-pop)) !important;
-  color: #0E0E10 !important;
-  border: 1px solid rgba(168,196,42,0.28) !important;
-  box-shadow: 0 12px 28px rgba(200,230,50,0.26) !important;
+  color: #24282C !important;
+  border: 1px solid rgba(211,243,107,0.28) !important;
+  box-shadow: 0 12px 28px rgba(205,246,73,0.26) !important;
 }
 
 body.lesson-builder-page .doc-head h2,
@@ -1352,17 +1352,17 @@ body.lesson-builder-page .doc-section h3,
 body.lesson-builder-page .stage-title,
 body.lesson-builder-page .preset b,
 body.lesson-builder-page .activity-btn {
-  color: #0E0E10 !important;
+  color: #24282C !important;
 }
 
 body.lesson-builder-page .chip {
-  background: rgba(14,14,16,0.06) !important;
-  color: #3A3A40 !important;
+  background: rgba(36,40,44,0.06) !important;
+  color: #5D614B !important;
 }
 
 body.lesson-builder-page .chip.ok {
-  background: var(--calm-accent-soft, rgba(35,191,114,0.14)) !important;
-  color: var(--calm-ink, #168A52) !important;
+  background: var(--calm-accent-soft, rgba(163,164,141,0.14)) !important;
+  color: var(--calm-ink, #5D614B) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1372,35 +1372,35 @@ body.lesson-builder-page .chip.ok {
 ═══════════════════════════════════════════════════════════════ */
 body.os-desktop .widget {
   background:
-    radial-gradient(circle at 88% 0%, rgba(124,138,123,0.20), transparent 34%),
-    radial-gradient(circle at 0% 100%, rgba(194,180,138,0.12), transparent 38%),
-    linear-gradient(145deg, rgba(255,255,255,0.94), rgba(242,242,245,0.88)) !important;
+    radial-gradient(circle at 88% 0%, rgba(163,164,141,0.20), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(163,164,141,0.12), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,0.94), rgba(246,246,239,0.88)) !important;
   border: 1px solid rgba(255,255,255,0.56) !important;
-  color: #0E0E10 !important;
+  color: #24282C !important;
   backdrop-filter: blur(34px) saturate(1.16) !important;
   -webkit-backdrop-filter: blur(34px) saturate(1.16) !important;
   box-shadow:
-    0 18px 48px rgba(0,0,0,0.18),
+    0 18px 48px rgba(36,40,44,0.18),
     0 1px 0 rgba(255,255,255,0.84) inset,
-    0 0 0 1px rgba(14,14,16,0.045) inset !important;
+    0 0 0 1px rgba(36,40,44,0.045) inset !important;
 }
 
 body.os-desktop .widget:hover {
   background:
-    radial-gradient(circle at 88% 0%, rgba(124,138,123,0.26), transparent 34%),
-    radial-gradient(circle at 0% 100%, rgba(194,180,138,0.16), transparent 38%),
-    linear-gradient(145deg, rgba(255,255,255,0.97), rgba(242,242,245,0.92)) !important;
-  border-color: rgba(124,138,123,0.42) !important;
+    radial-gradient(circle at 88% 0%, rgba(163,164,141,0.26), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(163,164,141,0.16), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,0.97), rgba(246,246,239,0.92)) !important;
+  border-color: rgba(163,164,141,0.42) !important;
   box-shadow:
-    0 24px 58px rgba(0,0,0,0.22),
+    0 24px 58px rgba(36,40,44,0.22),
     0 1px 0 rgba(255,255,255,0.92) inset,
-    0 0 0 1px rgba(124,138,123,0.22) inset !important;
+    0 0 0 1px rgba(163,164,141,0.22) inset !important;
 }
 
 body.os-desktop .wg-clock-time,
 body.os-desktop .wg-today-title,
 body.os-desktop .wg-vocab-word {
-  color: #0E0E10 !important;
+  color: #24282C !important;
   text-shadow: none !important;
 }
 
@@ -1411,7 +1411,7 @@ body.os-desktop .wg-vocab-trans {
      1.77:1 on the widget's near-white card - only .wg-streak-n's 42px digits
      were ever large enough to earn the lighter 3:1 bar. Darkened to clear
      4.5:1 for all three sizes that share this rule. */
-  color: #566602 !important;
+  color: #5D614B !important;
   text-shadow: none !important;
 }
 
@@ -1419,43 +1419,43 @@ body.os-desktop .wg-clock-date,
 body.os-desktop .wg-streak-label,
 body.os-desktop .wg-today-label,
 body.os-desktop .wg-vocab-label {
-  color: rgba(14,14,16,0.46) !important;
+  color: rgba(36,40,44,0.46) !important;
 }
 
 body.os-desktop .wg-streak-sub,
 body.os-desktop .wg-today-meta,
 body.os-desktop .wg-vocab-lang,
 body.os-desktop .wg-vocab-ex {
-  color: rgba(14,14,16,0.64) !important;
+  color: rgba(36,40,44,0.64) !important;
 }
 
 body.os-desktop .wg-streak-sub a,
 body.os-desktop .wg-today-meta a {
-  color: #4F5A50 !important;
+  color: #5D614B !important;
   font-weight: 600 !important;
 }
 
 /* The "Teacher" badge was hot pink for a label that carries no urgency. */
 body.os-desktop .wg-clock-lang,
 body.os-desktop .wg-today-badge {
-  background: rgba(124,138,123,0.12) !important;
-  border-color: rgba(124,138,123,0.24) !important;
-  color: #4F5A50 !important;
+  background: rgba(163,164,141,0.12) !important;
+  border-color: rgba(163,164,141,0.24) !important;
+  color: #5D614B !important;
 }
 
 body.os-desktop .wg-today-prog {
-  background: rgba(14,14,16,0.10) !important;
+  background: rgba(36,40,44,0.10) !important;
 }
 
 body.os-desktop .wg-vocab-next {
-  background: var(--te-lime, #CDF940) !important;
-  color: var(--te-ink, #20202C) !important;
-  box-shadow: 0 10px 22px rgba(205,249,64,0.28) !important;
+  background: var(--te-lime, #CDF649) !important;
+  color: var(--te-ink, #24282C) !important;
+  box-shadow: 0 10px 22px rgba(205,246,73,0.28) !important;
 }
 
 body.os-desktop .wg-vocab-next:hover {
   background: var(--te-lime-soft, #D3F36B) !important;
-  box-shadow: 0 14px 28px rgba(205,249,64,0.34) !important;
+  box-shadow: 0 14px 28px rgba(205,246,73,0.34) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1478,7 +1478,7 @@ body:not(.board-page) select:not([multiple]):not(.module-select):not(.topic-ctl)
   background-position: right 14px center !important;
   background-size: 11px 8px !important;
   padding-right: 38px !important;
-  color: #1c1c1e !important;
+  color: #24282C !important;
   color-scheme: light !important;
 }
 
@@ -1492,7 +1492,7 @@ body:not(.board-page) .topic-ctl select:not([data-a]):not([data-b]):not([data-c]
   appearance: auto !important;
   background-image: none !important;
   background-color: #ffffff !important;
-  color: #1c1c1e !important;
+  color: #24282C !important;
   color-scheme: light !important;
   padding-right: 12px !important;
 }
@@ -1524,7 +1524,7 @@ body{ -webkit-overflow-scrolling:touch; text-rendering:optimizeLegibility; }
 
 /* Crisper keyboard focus everywhere (accessibility + finish). */
 :where(a, button, .btn, [role="button"], [tabindex]):focus-visible{
-  outline: 2px solid #1C1C1E;
+  outline: 2px solid #24282C;
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -1542,10 +1542,10 @@ body{ -webkit-overflow-scrolling:touch; text-rendering:optimizeLegibility; }
 
 /* Tasteful thin scrollbars matching the sand/ink theme. */
 @media (pointer:fine){
-  *{ scrollbar-width: thin; scrollbar-color: rgba(28,28,30,.32) transparent; }
+  *{ scrollbar-width: thin; scrollbar-color: rgba(36,40,44,.32) transparent; }
   *::-webkit-scrollbar{ width:10px; height:10px; }
-  *::-webkit-scrollbar-thumb{ background:rgba(28,28,30,.26); border-radius:8px; border:2px solid transparent; background-clip:content-box; }
-  *::-webkit-scrollbar-thumb:hover{ background:rgba(28,28,30,.42); background-clip:content-box; }
+  *::-webkit-scrollbar-thumb{ background:rgba(36,40,44,.26); border-radius:8px; border:2px solid transparent; background-clip:content-box; }
+  *::-webkit-scrollbar-thumb:hover{ background:rgba(36,40,44,.42); background-clip:content-box; }
   *::-webkit-scrollbar-track{ background:transparent; }
 }
 
@@ -1730,18 +1730,18 @@ a, button, [role="button"], input, select, textarea, label, .btn{ -webkit-tap-hi
     .insight-card, .plan, .current, .pay-box,
     .mp-board-card, .mp-board-card2, .mp-quick, .mp-tl-card
   ) {
-    box-shadow: 0 1px 4px rgba(14,14,16,.045) !important;
+    box-shadow: 0 1px 4px rgba(36,40,44,.045) !important;
   }
 
   body:not(.board-page) :where(
     .hero-card, .featured-card, .mp-featured, .mp-next-card,
     .modal, .modal-panel, .drawer, .share-card, .auth-card
   ) {
-    box-shadow: 0 2px 12px rgba(14,14,16,.075) !important;
+    box-shadow: 0 2px 12px rgba(36,40,44,.075) !important;
   }
 
   body:not(.board-page) :where(.mp-topbar, .topbar, .mobile-topbar, #nav, .mob-nav, .mobile-bottom-nav) {
-    box-shadow: 0 1px 8px rgba(14,14,16,.055) !important;
+    box-shadow: 0 1px 8px rgba(36,40,44,.055) !important;
   }
 
   body:not(.board-page) :where(
@@ -1807,7 +1807,7 @@ label.hw-search {
   background: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
-  color: var(--text, #1C1C1E) !important;
+  color: var(--text, #24282C) !important;
   font-size: 14px !important;
   font-weight:600 !important;
 }
@@ -1834,7 +1834,7 @@ label.hw-search {
   background: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
-  color: var(--text, #050038) !important;
+  color: var(--text, #6B42FD) !important;
   font-size: 14px !important;
 }
 
@@ -1908,7 +1908,7 @@ label.hw-search {
 
 .suite-page .page-sub,
 .suite-page .page-head [style*="font-size:13px"] {
-  color: var(--text-3, #6C6C6F) !important;
+  color: var(--text-3, #5D614B) !important;
   line-height: 1.45;
 }
 
@@ -1920,10 +1920,10 @@ label.hw-search {
   max-width: 100%;
   padding: 4px;
   margin: -2px 0 8px;
-  border: 1px solid var(--border, rgba(14,14,16,.08));
+  border: 1px solid var(--border, rgba(36,40,44,.08));
   border-radius: 999px;
   background: rgba(255,255,255,.76);
-  box-shadow: 0 6px 18px rgba(14,14,16,.05);
+  box-shadow: 0 6px 18px rgba(36,40,44,.05);
 }
 
 .suite-tab {
@@ -1933,7 +1933,7 @@ label.hw-search {
   justify-content: center;
   padding: 0 14px;
   border-radius: 999px;
-  color: var(--text-2, #3A3A40);
+  color: var(--text-2, #5D614B);
   font-size: 13px;
   font-weight:650;
   line-height: 1;
@@ -1943,14 +1943,14 @@ label.hw-search {
 }
 
 .suite-tab:hover {
-  background: rgba(14,14,16,.06);
-  color: var(--text, #0E0E10);
+  background: rgba(36,40,44,.06);
+  color: var(--text, #24282C);
 }
 
 .suite-tab.active {
-  background: var(--u-ink, #0E0E10);
-  color: var(--u-lime, #C8E632);
-  box-shadow: 0 4px 12px rgba(14,14,16,.16);
+  background: var(--u-ink, #24282C);
+  color: var(--u-lime, #CDF649);
+  box-shadow: 0 4px 12px rgba(36,40,44,.16);
 }
 
 .suite-page .section,
@@ -1958,8 +1958,8 @@ label.hw-search {
 .suite-page .stat-card,
 .suite-page .assign-card,
 .suite-page .qr-card {
-  border: 1px solid var(--border, rgba(14,14,16,.08)) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 8px 24px rgba(14,14,16,.045) !important;
+  border: 1px solid var(--border, rgba(36,40,44,.08)) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 8px 24px rgba(36,40,44,.045) !important;
 }
 
 .suite-page .section,
@@ -1977,7 +1977,7 @@ label.hw-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text, #0E0E10);
+  color: var(--text, #24282C);
   letter-spacing: -.01em;
 }
 
@@ -2028,11 +2028,11 @@ label.hw-search {
 .suite-page .gb-table tr:hover td,
 .suite-page .gb-table tr:hover td.td-name,
 .suite-page .table-row:hover {
-  background: rgba(200,230,50,.055) !important;
+  background: rgba(205,246,73,.055) !important;
 }
 
 .suite-page .empty {
-  color: var(--text-3, #6C6C6F) !important;
+  color: var(--text-3, #5D614B) !important;
 }
 
 body:is(.analytics-suite, .gradebook-suite) #page {
@@ -2147,8 +2147,8 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     margin: 0 0 2px;
     padding: 4px;
     border-radius: 16px;
-    background: #FAFAF8;
-    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 8px 18px rgba(14,14,16,.06);
+    background: #F6F6EF;
+    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 8px 18px rgba(36,40,44,.06);
   }
   .suite-switcher::-webkit-scrollbar { display: none; }
 
@@ -2255,7 +2255,7 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     gap: 8px 10px !important;
     align-items: center !important;
     padding: 13px !important;
-    border: 1px solid var(--border, rgba(14,14,16,.08)) !important;
+    border: 1px solid var(--border, rgba(36,40,44,.08)) !important;
     border-radius: 15px !important;
     background: #fff !important;
     box-shadow: none !important;
@@ -2370,8 +2370,8 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
 @media (max-width: 860px) {
   body:not(.board-page) {
     background:
-      radial-gradient(circle at 50% -12%, rgba(200,230,50,.12), transparent 34%),
-      #F2F2F5 !important;
+      radial-gradient(circle at 50% -12%, rgba(205,246,73,.12), transparent 34%),
+      #F6F6EF !important;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -2388,27 +2388,27 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     z-index: 220 !important;
     min-height: calc(58px + env(safe-area-inset-top, 0px)) !important;
     padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important;
-    background: #F2F2F5 !important;
-    border-bottom: 1px solid rgba(92,92,102,.08) !important;
+    background: #F6F6EF !important;
+    border-bottom: 1px solid rgba(93,97,75,.08) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
   .mp-topbar-title,
   .mp-greeting-name {
-    color: #1C1C1E !important;
+    color: #24282C !important;
     letter-spacing: -.025em !important;
   }
 
   body:not(.board-page) :is(.suite-page .card, .suite-page .stat-card, .suite-page .panel, .card, .stat-card, .ready-card, .lesson-card, .module-block, .insight-card, .gb-mobile-card, .mobile-profile-action, .recent-board-item) {
     border-radius: 16px !important;
-    border-color: rgba(92,92,102,.12) !important;
-    box-shadow: 0 1px 0 rgba(255,255,255,.72) inset, 0 4px 18px rgba(92,92,102,.055) !important;
+    border-color: rgba(93,97,75,.12) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.72) inset, 0 4px 18px rgba(36,40,44,.055) !important;
   }
 
   body:not(.board-page) :is(.card:hover, .stat-card:hover, .board-card:hover, .recent-board-item:hover, .lesson-card:hover) {
     transform: none !important;
-    box-shadow: 0 1px 0 rgba(255,255,255,.72) inset, 0 4px 18px rgba(92,92,102,.055) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.72) inset, 0 4px 18px rgba(36,40,44,.055) !important;
   }
 
   body:not(.board-page) :is(button, .btn, .setting-btn, .new-board-btn, .mp-btn, .action-btn, .filter-btn, .suite-tab, .board-pill) {
@@ -2419,22 +2419,22 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
   body:not(.board-page) :is(input, textarea, select, .setting-input, .form-input) {
     min-height: 44px !important;
     border-radius: 13px !important;
-    border-color: rgba(92,92,102,.20) !important;
+    border-color: rgba(93,97,75,.20) !important;
     background: #fff !important;
   }
 
   body:not(.board-page) :is(input, textarea, select, .setting-input, .form-input):focus {
-    border-color: #C8E632 !important;
-    box-shadow: 0 0 0 4px rgba(200,230,50,.18) !important;
+    border-color: #CDF649 !important;
+    box-shadow: 0 0 0 4px rgba(205,246,73,.18) !important;
   }
 
   .mob-nav {
     height: calc(72px + env(safe-area-inset-bottom,0px)) !important;
     padding: 8px 10px calc(8px + env(safe-area-inset-bottom,0px)) !important;
     gap: 4px !important;
-    background: rgba(250,250,248,.98) !important;
-    border-top: 1px solid rgba(14,14,16,.08) !important;
-    box-shadow: 0 -10px 30px rgba(14,14,16,.08) !important;
+    background: rgba(246,246,239,.98) !important;
+    border-top: 1px solid rgba(36,40,44,.08) !important;
+    box-shadow: 0 -10px 30px rgba(36,40,44,.08) !important;
   }
 
   .mob-nav-tab {
@@ -2443,12 +2443,12 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     /* .58 давал 2.93:1 на белом - подпись под неактивной иконкой таб-бара
        читалась с трудом. .82 держит визуальную приглушённость (активная
        остаётся отдельным #1C1C1E выше) и поднимает контраст до нормы. */
-    color: rgba(92,92,102,.82) !important;
+    color: rgba(93,97,75,.82) !important;
   }
 
   .mob-nav-tab.active {
-    color: #1C1C1E !important;
-    background: rgba(200,230,50,.22) !important;
+    color: #24282C !important;
+    background: rgba(205,246,73,.22) !important;
   }
 
   .mob-nav-label {
@@ -2468,7 +2468,7 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     color: transparent !important;
     background:
       linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.72), rgba(255,255,255,0)),
-      linear-gradient(90deg, rgba(92,92,102,.065), rgba(92,92,102,.12), rgba(92,92,102,.065)) !important;
+      linear-gradient(90deg, rgba(93,97,75,.065), rgba(93,97,75,.12), rgba(93,97,75,.065)) !important;
     background-size: 220% 100%, 100% 100% !important;
     animation: techedAppShimmer 1.35s cubic-bezier(.4,0,.2,1) infinite !important;
     border-radius: 10px !important;
@@ -2477,8 +2477,8 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
   #page-loading,
   #loading.state-msg {
     background:
-      radial-gradient(circle at 50% 18%, rgba(200,230,50,.18), transparent 35%),
-      #F2F2F5 !important;
+      radial-gradient(circle at 50% 18%, rgba(205,246,73,.18), transparent 35%),
+      #F6F6EF !important;
   }
 
   #page-loading {
@@ -2491,7 +2491,7 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     font: 800 12px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
     letter-spacing: .08em;
     text-transform: uppercase;
-    color: #6C6C6F;
+    color: #5D614B;
   }
 }
 
@@ -2507,14 +2507,14 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
 ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 860px) {
   :root {
-    --m2-canvas: #F5F5F8;
+    --m2-canvas: #F6F6EF;
     --m2-surface: rgba(255,255,255,.88);
-    --m2-border: rgba(28,28,30,.085);
-    --m2-border-strong: rgba(28,28,30,.14);
-    --m2-text: #151516;
-    --m2-muted: #606063;
-    --m2-lime: #C8E632;
-    --m2-shadow: 0 1px 0 rgba(255,255,255,.82) inset, 0 4px 14px rgba(40,40,43,.045);
+    --m2-border: rgba(36,40,44,.085);
+    --m2-border-strong: rgba(36,40,44,.14);
+    --m2-text: #24282C;
+    --m2-muted: #5D614B;
+    --m2-lime: #CDF649;
+    --m2-shadow: 0 1px 0 rgba(255,255,255,.82) inset, 0 4px 14px rgba(36,40,44,.045);
     --m2-shadow-soft: 0 1px 0 rgba(255,255,255,.72) inset;
     --m2-radius: 16px;
     --m2-radius-sm: 12px;
@@ -2571,8 +2571,8 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
   }
 
   body:not(.board-page) :is(.stat-icon, .panel-ic, .empty-icon) {
-    background: rgba(200,230,50,.18) !important;
-    color: #1C1C1E !important;
+    background: rgba(205,246,73,.18) !important;
+    color: #24282C !important;
     box-shadow: 0 1px 0 rgba(255,255,255,.72) inset;
   }
 
@@ -2627,9 +2627,9 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
   }
 
   body:not(.board-page) .suite-tab.active {
-    background: #151516 !important;
+    background: #24282C !important;
     color: var(--m2-lime) !important;
-    box-shadow: 0 8px 18px rgba(21,21,22,.16) !important;
+    box-shadow: 0 8px 18px rgba(36,40,44,.16) !important;
   }
 
   .mob-nav {
@@ -2643,8 +2643,8 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
        и стояло рядом с карточками на 18 и 24. Беру крупный шаг шкалы. */
     border-radius: 24px !important;
     background: rgba(255,255,255,.96) !important;
-    border: 1px solid rgba(28,28,30,.10) !important;
-    box-shadow: 0 10px 24px rgba(28,28,30,.10), 0 1px 0 rgba(255,255,255,.86) inset !important;
+    border: 1px solid rgba(36,40,44,.10) !important;
+    box-shadow: 0 10px 24px rgba(36,40,44,.10), 0 1px 0 rgba(255,255,255,.86) inset !important;
   }
 
   /* Этот блок идёт позже второго описания .mob-nav-tab в этом же файле и
@@ -2659,12 +2659,12 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     /* Вкладка лежит внутри панели с радиусом 24 и отступом 5: геометрически
        верный внутренний радиус равен 24 - 5 = 19, ближайший шаг шкалы 18. */
     border-radius: 18px !important;
-    color: rgba(28,28,30,.66) !important;
+    color: rgba(36,40,44,.66) !important;
   }
 
   .mob-nav-tab.active {
-    color: #111113 !important;
-    background: rgba(200,230,50,.24) !important;
+    color: #24282C !important;
+    background: rgba(205,246,73,.24) !important;
   }
 
   .mob-nav-tab.active::before {
@@ -2738,7 +2738,7 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
     height: 8px !important;
     min-width: 8px !important;
     border-radius: 999px !important;
-    background: rgba(28,28,30,.24) !important;
+    background: rgba(36,40,44,.24) !important;
     display: inline-block !important;
     transform: none !important;
   }
@@ -2797,23 +2797,23 @@ body.board-page #mobile-quickbar {
   padding: 8px !important;
   gap: 6px !important;
   border-radius: 24px !important;
-  background: rgba(252,252,255,.92) !important;
-  border: 1px solid rgba(92,92,102,.16) !important;
-  box-shadow: 0 18px 44px rgba(28,28,30,.16), 0 1px 0 rgba(255,255,255,.76) inset !important;
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(93,97,75,.16) !important;
+  box-shadow: 0 18px 44px rgba(36,40,44,.16), 0 1px 0 rgba(255,255,255,.76) inset !important;
   backdrop-filter: blur(22px) saturate(1.25) !important;
 }
 body.board-page .mq-btn {
   min-width: 44px !important;
   min-height: 44px !important;
   border-radius: 18px !important;
-  color: #242427 !important;
+  color: #24282C !important;
   background: transparent !important;
   touch-action: manipulation;
 }
 body.board-page .mq-btn:hover,
 body.board-page .mq-btn.active {
-  background: #1C1C1E !important;
-  color: #F2F2F5 !important;
+  background: #24282C !important;
+  color: #FFFFFF !important;
 }
 /* This is the rule that actually paints the board's top bar. #toolbar is
    declared twice in board.css as well, and both lose to these !important
@@ -2821,8 +2821,8 @@ body.board-page .mq-btn.active {
    changes nothing on screen. Worth knowing before editing the other two. */
 body.board-page #toolbar {
   min-height: 54px !important;
-  background: rgba(252,252,255,.94) !important;
-  border-bottom: 1px solid rgba(28,28,30,.08) !important;
+  background: rgba(255,255,255,.94) !important;
+  border-bottom: 1px solid rgba(36,40,44,.08) !important;
   /* backdrop-filter on fixed chrome sitting over a canvas that pans and zooms
      means this strip is re-blurred every frame the board moves beneath it. At
      22px under a 94%-opaque background the blur was doing almost no visible
@@ -2847,9 +2847,9 @@ body.board-page .empty-action {
   border-radius: 999px !important;
 }
 body.board-page .empty-action.primary {
-  background: #1C1C1E !important;
-  color: #F2F2F5 !important;
-  border-color: #1C1C1E !important;
+  background: #24282C !important;
+  color: #FFFFFF !important;
+  border-color: #24282C !important;
 }
 /* Text editing is a horizontal control rail on phones, not a shrunken desktop
    toolbar. Larger targets and a quiet scrollbar keep formatting usable with a
@@ -2863,7 +2863,7 @@ body.board-page .empty-action.primary {
     gap: 3px;
     padding: 6px;
     border-radius: 16px;
-    box-shadow: 0 12px 30px rgba(28,28,30,.16), 0 1px 0 rgba(255,255,255,.82) inset;
+    box-shadow: 0 12px 30px rgba(36,40,44,.16), 0 1px 0 rgba(255,255,255,.82) inset;
   }
   body.board-page .card-text .text-format-toolbar::-webkit-scrollbar { display: none; }
   body.board-page .text-format-btn,
@@ -2907,40 +2907,40 @@ body.board-page .empty-action.primary {
   background-image: none !important;
   border: 0 !important;
   box-shadow: none !important;
-  color: #F2F2F5 !important;
+  color: #FFFFFF !important;
   font-size: 19px !important;
   font-weight:650 !important;
-  caret-color: #CDF24F !important;
+  caret-color: #CDF649 !important;
   min-height: 0 !important;
   padding: 0 !important;
 }
-#spotlight-overlay #spotlight-input::placeholder { color: rgba(242,242,245,.42) !important; font-weight: 600 !important; }
-#spotlight-overlay #spotlight-input::selection { background: rgba(205,242,79,.30); color: #fff; }
+#spotlight-overlay #spotlight-input::placeholder { color: rgba(255,255,255,.42) !important; font-weight: 600 !important; }
+#spotlight-overlay #spotlight-input::selection { background: rgba(205,246,73,.30); color: #fff; }
 #spotlight-overlay #spotlight-input-wrap {
-  border-bottom: 1px solid rgba(242,242,245,.10) !important;
+  border-bottom: 1px solid rgba(202,204,198,.10) !important;
   padding: 14px 18px !important;
 }
 #spotlight-overlay #spotlight-clear {
-  background: rgba(242,242,245,.10) !important; color: rgba(242,242,245,.75) !important;
+  background: rgba(246,246,239,.10) !important; color: rgba(255,255,255,.75) !important;
 }
-#spotlight-overlay #spotlight-clear:hover { background: rgba(242,242,245,.18) !important; }
-#spotlight-overlay #spotlight-empty { color: rgba(242,242,245,.6) !important; }
-#spotlight-overlay .sp-result-kbd { background: rgba(242,242,245,.10) !important; color: rgba(242,242,245,.55) !important; }
+#spotlight-overlay #spotlight-clear:hover { background: rgba(246,246,239,.18) !important; }
+#spotlight-overlay #spotlight-empty { color: rgba(255,255,255,.6) !important; }
+#spotlight-overlay .sp-result-kbd { background: rgba(246,246,239,.10) !important; color: rgba(255,255,255,.55) !important; }
 
 /* Панель уведомлений: граница и тень сильнее - без них тёмный прямоугольник
    над светлыми виджетами читался как дырка в макете. Пустое состояние было
    почти невидимым. «Mark all read» был розовым, а розовый в этой системе
    означает срочность - обычному действию положен лайм. */
 #notif-panel {
-  background: rgba(18,18,22,.97) !important;
-  border: 1px solid rgba(242,242,245,.14) !important;
-  box-shadow: 0 18px 50px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.30) !important;
-  color: #F2F2F5 !important;
+  background: rgba(36,40,44,.97) !important;
+  border: 1px solid rgba(202,204,198,.14) !important;
+  box-shadow: 0 18px 50px rgba(36,40,44,.45), 0 2px 8px rgba(36,40,44,.30) !important;
+  color: #FFFFFF !important;
 }
-#notif-panel [class*="empty"] { color: rgba(242,242,245,.70) !important; }
-#notif-panel [class*="head"] { border-bottom: 1px solid rgba(242,242,245,.12) !important; }
-#notif-panel button, #notif-panel [class*="mark"] { color: #CDF24F !important; }
-#notif-panel [class*="item"] { border-bottom: 1px solid rgba(242,242,245,.08) !important; }
+#notif-panel [class*="empty"] { color: rgba(255,255,255,.70) !important; }
+#notif-panel [class*="head"] { border-bottom: 1px solid rgba(202,204,198,.12) !important; }
+#notif-panel button, #notif-panel [class*="mark"] { color: #CDF649 !important; }
+#notif-panel [class*="item"] { border-bottom: 1px solid rgba(202,204,198,.08) !important; }
 
 /* Геометрия и краска панели уведомлений - здесь, одним местом. */
 #notif-panel {
@@ -2950,27 +2950,27 @@ body.board-page .empty-action.primary {
 #notif-panel.open { display: flex !important; }
 #notif-panel .np-head {
   display: flex; align-items: center; gap: 10px;
-  padding: 13px 15px; border-bottom: 1px solid rgba(242,242,245,.12) !important;
+  padding: 13px 15px; border-bottom: 1px solid rgba(202,204,198,.12) !important;
 }
-#notif-panel .np-title { font-size: 13px; font-weight:650; letter-spacing: -.01em; color: #F2F2F5 !important; }
+#notif-panel .np-title { font-size: 13px; font-weight:650; letter-spacing: -.01em; color: #FFFFFF !important; }
 #notif-panel .np-mark {
   margin-left: auto; min-height: 32px; padding: 5px 9px; border: 0; border-radius: 8px; cursor: pointer;
-  background: rgba(205,242,79,.12) !important; color: #CDF24F !important;
+  background: rgba(205,246,73,.12) !important; color: #CDF649 !important;
   font-size: 11px; font-weight:600;
 }
-#notif-panel .np-mark:hover { background: rgba(205,242,79,.2) !important; }
+#notif-panel .np-mark:hover { background: rgba(205,246,73,.2) !important; }
 #notif-panel .np-list { overflow-y: auto; max-height: 360px; padding: 8px; }
-#notif-panel .np-empty { padding: 26px 16px; text-align: center; font-size: 13px; color: rgba(242,242,245,.62) !important; }
+#notif-panel .np-empty { padding: 26px 16px; text-align: center; font-size: 13px; color: rgba(255,255,255,.62) !important; }
 #notif-panel .np-item {
   display: flex; align-items: flex-start; gap: 10px; min-height: 56px; padding: 11px 10px; border-radius: 10px; cursor: pointer;
-  color: #F2F2F5 !important; transition: background .12s;
+  color: #FFFFFF !important; transition: background .12s;
 }
-#notif-panel .np-item:hover { background: rgba(242,242,245,.07) !important; }
-#notif-panel .np-item.unread { background: rgba(205,242,79,.08) !important; }
-#notif-panel .np-item-title { font-size: 13px; font-weight:600; line-height: 1.3; color: #F2F2F5 !important; }
+#notif-panel .np-item:hover { background: rgba(246,246,239,.07) !important; }
+#notif-panel .np-item.unread { background: rgba(205,246,73,.08) !important; }
+#notif-panel .np-item-title { font-size: 13px; font-weight:600; line-height: 1.3; color: #FFFFFF !important; }
 #notif-panel .np-item.unread .np-item-title { font-weight:650; }
-#notif-panel .np-item-body, #notif-panel .np-item-time { font-size: 11px; color: rgba(242,242,245,.55) !important; margin-top: 2px; line-height: 1.4; }
-#notif-panel .np-dot { width: 7px; height: 7px; border-radius: 50%; background: #EC2D8C; flex-shrink: 0; margin-top: 5px; }
+#notif-panel .np-item-body, #notif-panel .np-item-time { font-size: 11px; color: rgba(255,255,255,.55) !important; margin-top: 2px; line-height: 1.4; }
+#notif-panel .np-dot { width: 7px; height: 7px; border-radius: 50%; background: #886BF3; flex-shrink: 0; margin-top: 5px; }
 
 @media (max-width: 860px) {
   #notif-panel {
@@ -2989,7 +2989,7 @@ body.board-page .empty-action.primary {
 .gb-member-avatar {
   width: 52px; height: 52px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(14,14,16,.06); color: #0E0E10;
+  background: rgba(36,40,44,.06); color: #24282C;
   font-size: 20px; font-weight:700; letter-spacing: -.02em;
 }
 
@@ -3018,13 +3018,13 @@ body.board-page .empty-action.primary {
    status and progress, but routine actions no longer compete with content.
 ═══════════════════════════════════════════════════════════════ */
 :root {
-  --calm-ink: #556056;
-  --calm-ink-hover: #465047;
-  --calm-ink-soft: #EEF1EC;
-  --calm-accent: #7C8A7B;
-  --calm-accent-soft: #E7ECE6;
-  --calm-line: rgba(68, 78, 69, .16);
-  --calm-muted: #737A72;
+  --calm-ink: #5D614B;
+  --calm-ink-hover: #5D614B;
+  --calm-ink-soft: #FFFFFF;
+  --calm-accent: #A3A48D;
+  --calm-accent-soft: #F6F6EF;
+  --calm-line: rgba(93,97,75,.16);
+  --calm-muted: #5D614B;
 }
 
 /* Headings use hierarchy through size and spacing, not a wall of bold. */
@@ -3048,7 +3048,7 @@ body:not(.board-page) :where(
   background: var(--calm-ink) !important;
   color: #fff !important;
   border-color: var(--calm-ink) !important;
-  box-shadow: 0 5px 14px rgba(59, 69, 60, .16) !important;
+  box-shadow: 0 5px 14px rgba(36,40,44,.16) !important;
   font-weight: 600 !important;
 }
 body:not(.board-page) :where(
@@ -3060,7 +3060,7 @@ body:not(.board-page) :where(
 ) {
   background: var(--calm-ink-hover) !important;
   border-color: var(--calm-ink-hover) !important;
-  box-shadow: 0 8px 20px rgba(59, 69, 60, .20) !important;
+  box-shadow: 0 8px 20px rgba(36,40,44,.20) !important;
 }
 body:not(.board-page) :where(
   .btn-ghost, .btn.btn-ghost, .btn-soft, .btn.btn-soft,
@@ -3079,32 +3079,32 @@ body:not(.board-page) :where(
   .mini-btn.alt:hover, .mini-btn.ghost:hover, .ready-actions .btn-soft:hover
 ) {
   background: var(--calm-accent-soft) !important;
-  border-color: rgba(85, 96, 86, .28) !important;
+  border-color: rgba(93,97,75,.28) !important;
   color: var(--calm-ink-hover) !important;
 }
 
 /* App navigation: quiet surface, low-contrast divider, no dark glass strip. */
 body:not(.board-page):not(.os-desktop) #nav {
-  background: rgba(244, 244, 247, .94) !important;
-  border-bottom-color: rgba(68, 78, 69, .12) !important;
+  background: rgba(246,246,239,.94) !important;
+  border-bottom-color: rgba(93,97,75,.12) !important;
   box-shadow: 0 1px 0 rgba(255,255,255,.72) inset !important;
   backdrop-filter: blur(16px) saturate(1.05) !important;
   -webkit-backdrop-filter: blur(16px) saturate(1.05) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav :where(.nav-link, .nav-logo-name) {
-  color: #4C554D !important;
+  color: #5D614B !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link:hover {
-  background: rgba(85, 96, 86, .08) !important;
-  color: #303930 !important;
+  background: rgba(93,97,75,.08) !important;
+  color: #24282C !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-link.active {
   color: var(--calm-ink) !important;
 }
 body:not(.board-page):not(.os-desktop) #nav .nav-user {
-  background: rgba(85, 96, 86, .07) !important;
-  border-color: rgba(85, 96, 86, .18) !important;
-  color: #4C554D !important;
+  background: rgba(93,97,75,.07) !important;
+  border-color: rgba(93,97,75,.18) !important;
+  color: #5D614B !important;
 }
 body:not(.board-page):not(.os-desktop) #nav #nav-avatar {
   background: var(--calm-accent-soft) !important;
@@ -3113,14 +3113,14 @@ body:not(.board-page):not(.os-desktop) #nav #nav-avatar {
 
 /* Courses: one neutral family for levels, tags, icons and card actions. */
 body.mp-shell #nav {
-  background: rgba(244, 244, 247, .96) !important;
-  border-bottom-color: rgba(68, 78, 69, .12) !important;
+  background: rgba(246,246,239,.96) !important;
+  border-bottom-color: rgba(93,97,75,.12) !important;
   backdrop-filter: blur(16px) saturate(1.05) !important;
   -webkit-backdrop-filter: blur(16px) saturate(1.05) !important;
 }
 body.mp-shell :where(.ready-card, .insight-card, .module-block) {
-  border-color: rgba(68, 78, 69, .14) !important;
-  box-shadow: 0 4px 16px rgba(61, 70, 62, .06) !important;
+  border-color: rgba(93,97,75,.14) !important;
+  box-shadow: 0 4px 16px rgba(36,40,44,.06) !important;
 }
 body.mp-shell .ready-icon,
 body.mp-shell .ch-icon {
@@ -3131,9 +3131,9 @@ body.mp-shell .ch-icon {
 }
 body.mp-shell .ready-chip,
 body.mp-shell .ch-pill {
-  background: #F1F1F4 !important;
-  border-color: rgba(68, 78, 69, .12) !important;
-  color: #5D665E !important;
+  background: #F6F6EF !important;
+  border-color: rgba(93,97,75,.12) !important;
+  color: #5D614B !important;
   font-weight: 500 !important;
 }
 body.mp-shell :where(.ci-dot, .ready-card .ready-icon) {
@@ -3161,7 +3161,7 @@ body.mp-shell .ready-meta {
   letter-spacing: 0 !important;
 }
 body.mp-shell .ready-copy {
-  color: #5C655D !important;
+  color: #5D614B !important;
   line-height: 1.5;
 }
 body.mp-shell .ready-actions .btn-primary {
@@ -3198,18 +3198,18 @@ body:not(.board-page) :where(.chip.active, .tag-btn.active) {
    The calm pass above deliberately stops at `body:not(.board-page)`, so the
    editor kept the old near-black chrome while the rest of the app moved to
    graphite. The board is fully tokenised on --accent, but unify's global
-   `--accent:#0E0E10` (set on :root, and this file loads last) outranked
+   `--accent:#24282C` (set on :root, and this file loads last) outranked
    board.css's own value - so the retune has to land here, on body, to reach
    the editor's descendants.
 ═══════════════════════════════════════════════════════════════ */
 body.board-page {
-  --accent: #556056;
+  --accent: #5D614B;
   --accent-2: color-mix(in srgb, var(--accent) 10%, transparent);
-  --text: #22261F;
-  --text-2: #454B44;
-  --text-3: #737A72;
-  --border: rgba(68, 78, 69, .14);
-  --border-2: rgba(68, 78, 69, .24);
+  --text: #24282C;
+  --text-2: #5D614B;
+  --text-3: #5D614B;
+  --border: rgba(93,97,75,.14);
+  --border-2: rgba(93,97,75,.24);
 }
 
 /* The top bar was the loudest surface in the editor: full-contrast ink type on
@@ -3217,13 +3217,13 @@ body.board-page {
 body.board-page :where(.tb-btn, .tb-board-chip-title, .tb-logo-mark) {
   font-weight: 600 !important;
 }
-body.board-page .tb-slash { color: rgba(68, 78, 69, .28) !important; }
+body.board-page .tb-slash { color: rgba(93,97,75,.28) !important; }
 
 /* Filled toolbar/panel actions follow the app's graphite instead of pure ink. */
 body.board-page :where(.mq-btn.primary, .tb-btn.primary, .ed-btn.primary) {
   background: var(--accent) !important;
   color: #fff !important;
-  box-shadow: 0 5px 14px rgba(59, 69, 60, .16) !important;
+  box-shadow: 0 5px 14px rgba(36,40,44,.16) !important;
 }
 
 /* Rename affordance: hovering the board name showed only a grey wash, which
@@ -3234,7 +3234,7 @@ body.board-page :where(.mq-btn.primary, .tb-btn.primary, .ed-btn.primary) {
   border-bottom: 1px dashed transparent;
 }
 .tb-board-chip-title:hover {
-  border-bottom-color: rgba(68, 78, 69, .32);
+  border-bottom-color: rgba(93,97,75,.32);
 }
 .tb-board-chip-title:hover::after {
   content: '';
@@ -3261,7 +3261,7 @@ body.board-page input#board-rename-input.tb-rename-input {
   font-size: 14px !important;
   font-weight: 600 !important;
   font-family: var(--font) !important;
-  color: var(--text, #22261F) !important;
+  color: var(--text, #24282C) !important;
   background: #fff !important;
   /* Border and shadow stay with harmony's global form styling - it wins these
      two even against an id, so declaring them here would just be dead CSS. */
@@ -3275,7 +3275,7 @@ body.board-page input#board-rename-input.tb-rename-input {
 .tb-rename-hint {
   font-size: 10px;
   letter-spacing: .02em;
-  color: var(--text-3, #737A72);
+  color: var(--text-3, #5D614B);
   white-space: nowrap;
   margin-left: 8px;
   align-self: center;
@@ -3286,10 +3286,10 @@ body.board-page input#board-rename-input.tb-rename-input {
 body.board-page :where(#btn-share.tb-btn-primary, .tb-btn-primary) {
   background: var(--accent) !important;
   color: #fff !important;
-  box-shadow: 0 6px 16px rgba(59, 69, 60, .16) !important;
+  box-shadow: 0 6px 16px rgba(36,40,44,.16) !important;
 }
 body.board-page :where(#btn-share.tb-btn-primary:hover, .tb-btn-primary:hover) {
-  background: #465047 !important;
+  background: #5D614B !important;
 }
 body.board-page .empty-action.primary {
   background: var(--accent) !important;
@@ -3299,22 +3299,22 @@ body.board-page .empty-action.primary {
 /* The primary empty-state action flipped to hot pink on hover - pink is
    reserved for urgency, not for a routine "Open tools". */
 body.board-page .empty-action.primary:hover {
-  background: #465047 !important;
-  border-color: #465047 !important;
+  background: #5D614B !important;
+  border-color: #5D614B !important;
   color: #fff !important;
 }
 body.board-page .empty-key {
-  background: #EEF1EC !important;
-  color: #454B44 !important;
-  border-color: rgba(68, 78, 69, .16) !important;
+  background: #F6F6EF !important;
+  color: #5D614B !important;
+  border-color: rgba(93,97,75,.16) !important;
 }
 body.board-page .empty-icon {
   color: var(--accent) !important;
-  background: rgba(85, 96, 86, .08) !important;
-  border-color: rgba(68, 78, 69, .16) !important;
+  background: rgba(93,97,75,.08) !important;
+  border-color: rgba(93,97,75,.16) !important;
 }
 body.board-page #empty-state::before {
-  background: linear-gradient(180deg, var(--accent), rgba(85, 96, 86, .25)) !important;
+  background: linear-gradient(180deg, var(--accent), rgba(93,97,75,.25)) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3326,10 +3326,10 @@ body.board-page #empty-state::before {
    window chrome and widgets.
 ═══════════════════════════════════════════════════════════════ */
 body.os-desktop {
-  --accent:    #556056;
-  --accent-2:  rgba(124, 138, 123, 0.12);
-  --rose:      #A8B2A2;
-  --deep-rose: #7C8A7B;
+  --accent:    #5D614B;
+  --accent-2:  rgba(163,164,141,0.12);
+  --rose:      #A3A48D;
+  --deep-rose: #A3A48D;
 }
 
 /* Lesson-workspace hero, simplified.
@@ -3342,7 +3342,7 @@ body.os-desktop .studio-hero {
   color: var(--text) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  border-bottom: 1px solid rgba(68, 78, 69, .12) !important;
+  border-bottom: 1px solid rgba(93,97,75,.12) !important;
   margin: 4px 20px 0 !important;
   padding: 18px 0 18px !important;
 }
@@ -3353,7 +3353,7 @@ body.os-desktop .studio-hero::after { display: none !important; }
    already names the app, so all three said the same thing. These rules stay
    for any hero that still carries them. */
 body.os-desktop .studio-eyebrow {
-  color: var(--text-3, #737A72) !important;
+  color: var(--text-3, #5D614B) !important;
   font-weight: 600 !important;
   letter-spacing: .1em !important;
 }
@@ -3370,7 +3370,7 @@ body.os-desktop .studio-title em {
 }
 /* Now the only line of text in the header, so it carries a bit more weight. */
 body.os-desktop .studio-copy {
-  color: var(--text-2, #454B44) !important;
+  color: var(--text-2, #5D614B) !important;
   max-width: 620px !important;
   margin-top: 0 !important;
   font-size: 14px !important;
@@ -3385,7 +3385,7 @@ body.os-desktop .studio-actions {
 /* notes-save-hint sits beside the primary chip in .studio-actions, painted
    white for the dark hero above - invisible once the hero went transparent. */
 body.os-desktop .notes-save-hint {
-  color: var(--text-3, #737A72) !important;
+  color: var(--text-3, #5D614B) !important;
 }
 
 /* One action reads as the action; the rest are links, not competing pills. */
@@ -3393,44 +3393,44 @@ body.os-desktop .studio-chip {
   background: transparent !important;
   border: none !important;
   padding: 7px 2px !important;
-  color: #556056 !important;
+  color: #5D614B !important;
   text-decoration: underline !important;
   text-underline-offset: 3px !important;
-  text-decoration-color: rgba(85, 96, 86, .3) !important;
+  text-decoration-color: rgba(93,97,75,.3) !important;
 }
 body.os-desktop .studio-chip:hover {
-  color: #3F493F !important;
-  text-decoration-color: rgba(85, 96, 86, .6) !important;
+  color: #5D614B !important;
+  text-decoration-color: rgba(93,97,75,.6) !important;
   background: transparent !important;
 }
 body.os-desktop .studio-chip.primary {
-  background: var(--te-lime, #CDF940) !important;
-  color: var(--te-ink, #20202C) !important;
-  border: 1px solid var(--te-lime, #CDF940) !important;
+  background: var(--te-lime, #CDF649) !important;
+  color: var(--te-ink, #24282C) !important;
+  border: 1px solid var(--te-lime, #CDF649) !important;
   border-radius: 999px !important;
   padding: 8px 14px !important;
   margin-right: 6px !important;
   text-decoration: none !important;
-  box-shadow: 0 4px 12px rgba(205, 249, 64, .30) !important;
+  box-shadow: 0 4px 12px rgba(205,246,73,.30) !important;
 }
 body.os-desktop .studio-chip.primary:hover {
   background: var(--te-lime-soft, #D3F36B) !important;
   border-color: var(--te-lime-soft, #D3F36B) !important;
-  color: var(--te-ink, #20202C) !important;
+  color: var(--te-ink, #24282C) !important;
 }
 
 /* Notes app: harmony paints the "New note" button and the notes sidebar in
    pink. Creating a note is the most ordinary action in the window. */
 body.os-desktop .notes-new-btn {
-  background: var(--te-lime, #CDF940) !important;
-  color: var(--te-ink, #20202C) !important;
-  box-shadow: 0 4px 12px rgba(205, 249, 64, .30) !important;
+  background: var(--te-lime, #CDF649) !important;
+  color: var(--te-ink, #24282C) !important;
+  box-shadow: 0 4px 12px rgba(205,246,73,.30) !important;
 }
 body.os-desktop .notes-new-btn:hover {
   background: var(--te-lime-soft, #D3F36B) !important;
 }
 body.os-desktop .note-item.active,
 body.os-desktop .note-item.active .note-item-title {
-  background: rgba(124, 138, 123, .12) !important;
+  background: rgba(163,164,141,.12) !important;
   color: var(--text) !important;
 }

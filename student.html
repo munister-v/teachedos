@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=946">
-<link rel="preload" as="style" href="styles/unify.css?v=946">
-<link rel="manifest" href="manifest.json?v=946">
+<link rel="preload" as="style" href="styles/harmony.css?v=950">
+<link rel="preload" as="style" href="styles/unify.css?v=950">
+<link rel="manifest" href="manifest.json?v=950">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -17,20 +17,20 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=946">
+<link rel="stylesheet" href="styles/fonts.css?v=950">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   /* Страница рисовалась под тёмную тему, а светлые слои (unify, brand,
      figma-theme) перекрывали только --bg и --text: карточки и кнопки
-     оставались #2C2C2E с уже тёмным текстом - 1.1-1.7:1. Свои токены
+     оставались #24282C с уже тёмным текстом - 1.1-1.7:1. Свои токены
      страницы теперь светлые, в тон продукту; тёмные значения не нужны -
      тёмной темы у приложения нет (theme.js снимает data-theme="dark"). */
   --bg:#F6F6EF;--bg-sidebar:#FFFFFF;--bg-card:#FFFFFF;--bg-card-2:#F6F6EF;
   --accent:#24282C;--accent-glow:rgba(205,246,73,.22);--accent-border:rgba(36,40,44,.22);
   --orange:#CDF649;--orange-dim:rgba(205,246,73,.12);
-  --lime:#CDF649;--lavender:#CDF649;--green:#22c55e;
+  --lime:#CDF649;--lavender:#CDF649;--green:#D3F36B;
   --text:#24282C;--text-2:#5D614B;--text-3:#5D614B;
   --border:rgba(36,40,44,.10);--border-2:rgba(36,40,44,.18);
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
@@ -132,11 +132,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Sidebar footer */
 .sb-footer{margin-top:auto;padding:14px 22px;border-top:1px solid var(--border)}
 .sb-signout{
-  width:100%;padding:9px;border-radius:8px;border:1px solid rgba(239,68,68,.2);
-  background:transparent;color:#A61919;font-family:var(--font);font-size:12px;
+  width:100%;padding:9px;border-radius:8px;border:1px solid rgba(255,78,0,.2);
+  background:transparent;color:#24282C;font-family:var(--font);font-size:12px;
   font-weight:600;cursor:pointer;transition:.15s;
 }
-.sb-signout:hover{background:rgba(239,68,68,.08)}
+.sb-signout:hover{background:rgba(255,78,0,.08)}
 
 /* ── MAIN CONTENT ── */
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
@@ -266,8 +266,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Teacher feedback */
 .teacher-fb{
   padding:14px 18px;
-  border:1.5px solid rgba(28,28,30,.3);border-radius:14px;
-  background:rgba(28,28,30,.05);margin-top:12px;
+  border:1.5px solid rgba(36,40,44,.3);border-radius:14px;
+  background:rgba(36,40,44,.05);margin-top:12px;
 }
 .teacher-fb-content{display:flex;align-items:flex-start;gap:10px}
 .teacher-fb-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
@@ -294,7 +294,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   font-size:10px;font-weight:600;font-family:var(--mono);padding:3px 10px;
   border-radius:20px;cursor:pointer;transition:.15s;border:none;
 }
-.vw-badge.learned{background:rgba(34,197,94,.12);color:#22c55e}
+.vw-badge.learned{background:rgba(211,243,107,.12);color:#D3F36B}
 .vw-badge.new{background:var(--orange-dim);color:#24282C}
 
 /* Progress cards */
@@ -383,7 +383,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* Vocab modal */
 .modal-overlay{
-  display:none;position:fixed;inset:0;background:rgba(10,11,20,.7);
+  display:none;position:fixed;inset:0;background:rgba(36,40,44,.7);
   backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;
 }
 .modal-box{
@@ -506,14 +506,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=946">
-<link rel="stylesheet" href="styles/harmony.css?v=946">
-<link rel="stylesheet" href="styles/unify.css?v=946">
-<link rel="stylesheet" href="styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="styles/mobile.css?v=950">
+<link rel="stylesheet" href="styles/harmony.css?v=950">
+<link rel="stylesheet" href="styles/unify.css?v=950">
+<link rel="stylesheet" href="styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=946">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
-<link rel="stylesheet" href="styles/controls.css?v=946">
+<link rel="stylesheet" href="styles/figma-theme.css?v=950">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=950">
+<link rel="stylesheet" href="styles/controls.css?v=950">
 </head>
 <body class="fx">
 
@@ -780,7 +780,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=946"></script>
+<script src="scripts/app-core.js?v=950"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -884,7 +884,7 @@ function renderDashboardFromCache(cache, options = {}) {
     document.getElementById('ms-copy').textContent = 'Offline mode: showing your last saved dashboard snapshot.';
     const list = document.getElementById('schedule-list');
     if (list && schedule.length) {
-      list.insertAdjacentHTML('afterbegin', '<div class="empty-state" style="margin-bottom:10px;background:rgba(28,28,30,.08);border-color:rgba(28,28,30,.18);">Offline mode: upcoming lessons shown from saved data.</div>');
+      list.insertAdjacentHTML('afterbegin', '<div class="empty-state" style="margin-bottom:10px;background:rgba(36,40,44,.08);border-color:rgba(36,40,44,.18);">Offline mode: upcoming lessons shown from saved data.</div>');
     }
   }
   return true;
@@ -1173,8 +1173,8 @@ function renderQuizHistory(results) {
   const list = document.getElementById('quiz-history-list');
   list.innerHTML = results.map(q => {
     const pct = q.pct ?? 0;
-    const bg = pct >= 80 ? 'rgba(34,197,94,.15)' : pct >= 50 ? 'rgba(234,179,8,.15)' : 'rgba(239,68,68,.15)';
-    const col = pct >= 80 ? '#16a34a' : pct >= 50 ? '#ca8a04' : '#dc2626';
+    const bg = pct >= 80 ? 'rgba(211,243,107,.15)' : pct >= 50 ? 'rgba(255,228,77,.15)' : 'rgba(255,78,0,.15)';
+    const col = pct >= 80 ? '#A3A48D' : pct >= 50 ? '#F3A46B' : '#FF4E00';
     const date = new Date(q.submitted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
     return `<div class="quiz-item">
       <div class="quiz-score" style="background:${bg};color:${col};">${pct}%</div>
@@ -1335,13 +1335,13 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/autogrow.js?v=946" defer></script>
-<script src="pwa-boot.js?v=946" defer></script>
-<script src="pwa.js?v=946"></script>
-<script src="scripts/nav-boost.js?v=946" defer></script>
-<script src="scripts/mobile-perf.js?v=946" defer></script>
-<script src="scripts/mobile-nav.js?v=946"></script>
-<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
-  <script src="scripts/signin-entry.js?v=946" defer></script>
+<script src="scripts/autogrow.js?v=950" defer></script>
+<script src="pwa-boot.js?v=950" defer></script>
+<script src="pwa.js?v=950"></script>
+<script src="scripts/nav-boost.js?v=950" defer></script>
+<script src="scripts/mobile-perf.js?v=950" defer></script>
+<script src="scripts/mobile-nav.js?v=950"></script>
+<script src="scripts/mobile-zoom-guard.js?v=950" defer></script>
+  <script src="scripts/signin-entry.js?v=950" defer></script>
 </body>
 </html>

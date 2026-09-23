@@ -9,32 +9,32 @@
 <title>Sentence Builder</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#1C1C1E}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+:root{--accent:#24282C}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#525252;font-size:.9rem;margin-bottom:20px}
-.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:500px}
-.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#525252;font-size:.9rem}
+.subtitle{color:#5D614B;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #CDF64918;width:100%;max-width:500px}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#5D614B;font-size:.9rem}
 .top span{color:var(--accent)}
-.translation{font-size:.9rem;color:#525252;margin-bottom:14px;text-align:center;font-style:italic}
-.drop-zone{min-height:56px;border:2.5px dashed #eee;border-radius:14px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;transition:.2s;align-items:center}
-.drop-zone.active{border-color:var(--accent);background:#F2F2F5}
+.translation{font-size:.9rem;color:#5D614B;margin-bottom:14px;text-align:center;font-style:italic}
+.drop-zone{min-height:56px;border:2.5px dashed #CACCC6;border-radius:14px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;transition:.2s;align-items:center}
+.drop-zone.active{border-color:var(--accent);background:#F6F6EF}
 .words{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;min-height:40px}
-.word-chip{padding:8px 14px;background:#F2F2F5;border:2px solid #ffcce0;border-radius:10px;font-weight:700;font-size:.95rem;color:#0E0E10;cursor:pointer;transition:.15s;user-select:none}
-.word-chip:hover{background:#ffe0ec;transform:translateY(-2px)}
+.word-chip{padding:8px 14px;background:#F6F6EF;border:2px solid #9F8CE8;border-radius:10px;font-weight:700;font-size:.95rem;color:#24282C;cursor:pointer;transition:.15s;user-select:none}
+.word-chip:hover{background:#F3A46B;transform:translateY(-2px)}
 .word-chip.placed{opacity:.35;cursor:default;transform:none}
-.placed-chip{padding:8px 14px;background:#C8E632;border-radius:10px;font-weight:700;font-size:.95rem;color:#fff;cursor:pointer;transition:.15s}
-.placed-chip:hover{background:#e03570}
+.placed-chip{padding:8px 14px;background:#CDF649;border-radius:10px;font-weight:700;font-size:.95rem;color:#fff;cursor:pointer;transition:.15s}
+.placed-chip:hover{background:#FF4E00}
 .btn-row{display:flex;gap:10px}
 button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
 .btn-check{background:var(--accent);color:#fff}
-.btn-check:hover{background:#e03570}
-.btn-clear{background:#f5f5f5;color:#525252}
-.btn-clear:hover{background:#eee}
+.btn-check:hover{background:#FF4E00}
+.btn-clear{background:#F6F6EF;color:#5D614B}
+.btn-clear:hover{background:#F6F6EF}
 .feedback{margin-top:14px;font-size:1rem;font-weight:700;text-align:center;min-height:22px}
-.feedback.ok{color:#4caf50}
-.feedback.err{color:#f44336}
+.feedback.ok{color:#A3A48D}
+.feedback.err{color:#24282C}
 
 /* Телефон: слово, из которого собирают предложение, было 41px высотой при
    пороге 44 - не хватало трёх пикселей. */
@@ -44,10 +44,10 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
   .btn-check,.btn-clear,.play-again{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=946">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=950">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -200,7 +200,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=946"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=946"></script>
+<script src="../scripts/game-handoff.js?v=950"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=950"></script>
 </body>
 </html>

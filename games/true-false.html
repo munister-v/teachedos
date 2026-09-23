@@ -9,31 +9,31 @@
 <title>True or False</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#1C1C1E}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+:root{--accent:#24282C}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#525252;font-size:.9rem;margin-bottom:20px}
-.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:460px;text-align:center}
-.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#525252;font-size:.9rem}
+.subtitle{color:#5D614B;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #CDF64918;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#5D614B;font-size:.9rem}
 .top span{color:var(--accent)}
-.progress{width:100%;height:6px;background:#f0e0e8;border-radius:3px;margin-bottom:22px;overflow:hidden}
+.progress{width:100%;height:6px;background:#F6F6EF;border-radius:3px;margin-bottom:22px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:.3s}
-.statement{font-size:1.15rem;font-weight:700;color:#333;min-height:72px;display:flex;align-items:center;justify-content:center;line-height:1.5;margin-bottom:24px}
+.statement{font-size:1.15rem;font-weight:700;color:#24282C;min-height:72px;display:flex;align-items:center;justify-content:center;line-height:1.5;margin-bottom:24px}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .choice{padding:16px;border:none;border-radius:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:800;font-size:1.2rem;cursor:pointer;transition:.15s}
-.true-btn{background:#e8f5e9;color:#2e7d32}
-.true-btn:hover{background:#c8e6c9}
-.false-btn{background:#fce4ec;color:#c62828}
-.false-btn:hover{background:#f8bbd9}
-.choice.flash-ok{background:#4caf50;color:#fff}
-.choice.flash-err{background:#f44336;color:#fff}
-.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#525252}
+.true-btn{background:#F6F6EF;color:#5D614B}
+.true-btn:hover{background:#A3A48D}
+.false-btn{background:#F6F6EF;color:#24282C}
+.false-btn:hover{background:#9F8CE8}
+.choice.flash-ok{background:#A3A48D;color:#fff}
+.choice.flash-err{background:#FF4E00;color:#fff}
+.feedback{margin-top:18px;font-size:.95rem;font-weight:700;min-height:22px;color:#5D614B}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=946">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=950">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -50,7 +50,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   <div class="feedback" id="feedback"></div>
 </div>
 
-<script src="../scripts/game-pause.js?v=946"></script>
+<script src="../scripts/game-pause.js?v=950"></script>
 <script>
 let QS=[
   {s:'"She don\'t like coffee" is correct.',a:false,exp:'Should be: She doesn\'t like coffee'},
@@ -141,7 +141,7 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=946"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=950"></script>
 <script src="../scripts/game-handoff.js"></script>
 </body>
 </html>

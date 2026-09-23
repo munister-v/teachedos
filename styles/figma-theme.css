@@ -17,23 +17,23 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 body.fx {
-  --fx-lime:#CBF03C;
-  --fx-lime-deep:#BCE22A;
-  --fx-ink:#161616;
-  --fx-ink-2:#4A4A4D;
+  --fx-lime:#CDF649;
+  --fx-lime-deep:#CDF649;
+  --fx-ink:#24282C;
+  --fx-ink-2:#5D614B;
   /* Тот же тон, что на лендинге: прежний #969699 давал 2.63:1 на светлых
      панелях - под ним подсказки пустого состояния доски и .sb-label. */
-  --fx-mute:#57575A;
+  --fx-mute:#5D614B;
 
-  --fx-bg-1:#D9D9DC;
-  --fx-bg-2:#DDDDE0;
-  --fx-bg-3:#D5D5D8;
-  --fx-bg-4:#EEEEF1;
+  --fx-bg-1:#CACCC6;
+  --fx-bg-2:#F6F6EF;
+  --fx-bg-3:#CACCC6;
+  --fx-bg-4:#F6F6EF;
 
-  --fx-glass:rgba(252,252,255,.52);
-  --fx-glass-strong:rgba(253,253,255,.72);
+  --fx-glass:rgba(255,255,255,.52);
+  --fx-glass-strong:rgba(255,255,255,.72);
   --fx-glass-line:rgba(255,255,255,.62);
-  --fx-shadow:0 30px 70px rgba(74,74,77,.16), 0 6px 18px rgba(74,74,77,.08);
+  --fx-shadow:0 30px 70px rgba(36,40,44,.16), 0 6px 18px rgba(36,40,44,.08);
 
   /* Скругления сняты с кадра макета по отношению радиуса к размеру самого
      элемента, а не на глаз: плитка дока 0.25 стороны, панель 0.03 высоты,
@@ -71,34 +71,34 @@ body.fx {
    розово-голубой градиент снимка. Ровный тёмно-белый вместо картинки -
    и заодно минус 87 КБ на каждой из шестидесяти страниц. */
 body.fx:not(#_) {
-  background: #EFEFF2 !important;
+  background: #F6F6EF !important;
   background-attachment:fixed !important;
   color:var(--fx-ink) !important;
   /* Фиолетовый акцент старой темы в макете не встречается: лайм на действии,
      чернила на всём остальном. Подмена переменной перекрашивает разом все
      правила tool-window.css, которые на неё ссылаются. */
-  --tw-accent:#161616;
-  --tw-accent-soft:rgba(203,240,60,.28);
-  --tw-ink:#161616;
-  --tw-ink-2:#4A4A4D;
+  --tw-accent:#24282C;
+  --tw-accent-soft:rgba(205,246,73,.28);
+  --tw-ink:#24282C;
+  --tw-ink-2:#5D614B;
   /* tool-window.css держал здесь #5E5E6A (6.5:1 на белом); тема опускала
      тон до 2.6:1 разом на всех тринадцати страницах инструментов. */
-  --tw-ink-3:#57575A;
+  --tw-ink-3:#5D614B;
 
   /* Фон страницы уехал с белого (#FCFCFF, яркость 0.98) на песок (0.61),
      а вторичный текст этих страниц подбирался под белое. Тона, которые на
      белом давали 4.6-5.0, на песке падают до 2.9-3.2, поэтому приглушённые
      токены опускаются здесь на те же 4.7:1 по песку. Оттенок и температура
      сохранены, меняется только лайтнес. */
-  --te-muted:#55555E !important;
-  --calm-muted:#55555E !important;
-  --muted:#55555E !important;
+  --te-muted:#5D614B !important;
+  --calm-muted:#5D614B !important;
+  --muted:#5D614B !important;
   /* Третий уровень чернил остался на #5E5E6A - на песке это 4.05:1, то есть
      подписи, счётчики и статусы не дотягивали до AA. Оттенок тот же. */
-  --text-3:#4E4E58 !important;
-  --text3:#4E4E58 !important;
-  --soft:#4E4E58 !important;
-  --ink3:#4E4E58 !important;
+  --text-3:#5D614B !important;
+  --text3:#5D614B !important;
+  --soft:#5D614B !important;
+  --ink3:#5D614B !important;
 }
 body.fx:not(#_)::before { content:none !important; }
 
@@ -109,7 +109,7 @@ body.fx:not(#_) :is(.nav,#nav) {
   padding:0 26px !important; gap:4px !important;
   background:#FFFFFF !important;
   border-bottom:none !important;
-  box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
+  box-shadow:0 1px 0 rgba(36,40,44,.06) !important;
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
 }
 body.fx:not(#_) :is(.nav,#nav) :is(.logo,.nav-logo) { color:var(--fx-ink) !important; }
@@ -132,7 +132,7 @@ body.fx:not(#_) :is(.nav,#nav) .nav-link {
   color:var(--fx-ink) !important; background:transparent !important;
 }
 body.fx:not(#_) :is(.nav,#nav) .nav-link:hover {
-  background:rgba(22,22,22,.06) !important;
+  background:rgba(36,40,44,.06) !important;
 }
 body.fx:not(#_) :is(.nav,#nav) .nav-link.active {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important;
@@ -140,7 +140,7 @@ body.fx:not(#_) :is(.nav,#nav) .nav-link.active {
 }
 body.fx:not(#_) :is(.nav,#nav) :is(.nav-pill,.nav-user) {
   height:28px !important; padding:0 12px !important; border-radius:999px !important;
-  background:rgba(22,22,22,.05) !important; color:var(--fx-ink) !important;
+  background:rgba(36,40,44,.05) !important; color:var(--fx-ink) !important;
   font-size:13px !important;
 }
 body.fx:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
@@ -163,7 +163,7 @@ body.fx:not(#_) :is(.nav,#nav) .nav-user :is(#nav-avatar,span:first-child) {
      стекло, а список уроков, сквозь который читаются карточки доски. */
   body.fx:not(#_):not(.board-page):not(.tools-workbench) :is(.side,#sidebar) {
     top:56px !important;
-    background:rgba(253,253,255,.55) !important;
+    background:rgba(255,255,255,.55) !important;
     border:1px solid rgba(255,255,255,.5) !important;
     border-radius:24px !important;
     box-shadow:none !important;
@@ -183,11 +183,11 @@ body.fx:not(#_) #sidebar :is(.sb-logo-title,.sb-uname,.sb-item.active,.sb-item:h
 body.fx:not(#_) #sidebar :is(.sb-logo-sub,.sb-uemail,.sb-item,.sb-logout,.sb-back-link) {
   color:var(--fx-ink-2) !important;
 }
-body.fx:not(#_) #sidebar :is(.sb-logo,.sb-footer) { border-color:rgba(22,22,22,.10) !important; }
+body.fx:not(#_) #sidebar :is(.sb-logo,.sb-footer) { border-color:rgba(36,40,44,.10) !important; }
 body.fx:not(#_) #sidebar .sb-logout {
-  background:rgba(22,22,22,.05) !important; border:1px solid rgba(22,22,22,.10) !important;
+  background:rgba(36,40,44,.05) !important; border:1px solid rgba(36,40,44,.10) !important;
 }
-body.fx:not(#_) #sidebar .sb-item:hover { background:rgba(22,22,22,.05) !important; }
+body.fx:not(#_) #sidebar .sb-item:hover { background:rgba(36,40,44,.05) !important; }
 body.fx:not(#_) .side-btn {
   font-size:15px !important; font-weight:450 !important; color:var(--fx-ink) !important;
   border-radius:10px !important;
@@ -199,7 +199,7 @@ body.fx:not(#_) :is(.side-btn.active,.side-btn.pane-tab.active) {
 }
 /* Фиолетовый чип иконки в рейке - из старой темы. */
 body.fx:not(#_) .side-ic {
-  background:rgba(22,22,22,.06) !important; color:var(--fx-ink) !important;
+  background:rgba(36,40,44,.06) !important; color:var(--fx-ink) !important;
 }
 body.fx:not(#_) .side-btn.active .side-ic {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important;
@@ -219,7 +219,7 @@ body.fx:not(#_) .panel:hover { box-shadow:var(--fx-shadow) !important; }
    панели ничем не залита, отделена только волоском. */
 body.fx:not(#_) .panel-head {
   background:transparent !important;
-  border-bottom:1px solid rgba(22,22,22,.07) !important;
+  border-bottom:1px solid rgba(36,40,44,.07) !important;
   box-shadow:none !important;
 }
 body.fx:not(#_) .panel-title {
@@ -240,7 +240,7 @@ body.fx:not(#_) :is(
   .hw-card,.hw-metric,.tpl-card,.type-card,.library-item,
   .stat-card,.insight-card,.stat-pill,.side-section
 ):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame) {
-  background:rgba(253,253,255,.55) !important;
+  background:rgba(255,255,255,.55) !important;
   border:1px solid rgba(255,255,255,.6) !important;
   border-radius:var(--fx-r-card) !important;
   box-shadow:none !important;
@@ -262,7 +262,7 @@ body.fx:not(#_) :is(
    экрана. Пустое её состояние тоже красится само (.up-next.empty). */
 body.fx:not(#_) #side :is(.side-section,.stat-pill,.wb-metric) {
   background:#FFFFFF !important;
-  border:1px solid rgba(32,32,44,.14) !important;
+  border:1px solid rgba(36,40,44,.14) !important;
 }
 body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
@@ -354,10 +354,10 @@ body.fx:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
      читалось как шов поперёк экрана. */
   html:has(body.fx) {
     background:
-      radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
-      radial-gradient(ellipse 55% 50% at 100% 18%,#D5D5D8 0%, transparent 62%),
-      radial-gradient(ellipse 70% 60% at 0% 100%, #E6E6E9 0%, transparent 64%),
-      linear-gradient(150deg, #EFEFF2 0%, #EAEAEF 50%, #E4E4EA 100%) !important;
+      radial-gradient(ellipse 70% 60% at 4% 2%,   #F3A46B 0%, transparent 62%),
+      radial-gradient(ellipse 55% 50% at 100% 18%,#CACCC6 0%, transparent 62%),
+      radial-gradient(ellipse 70% 60% at 0% 100%, #F6F6EF 0%, transparent 64%),
+      linear-gradient(150deg, #F6F6EF 0%, #F6F6EF 50%, #F6F6EF 100%) !important;
     background-attachment:fixed !important;
   }
   /* Тогда фон body только дублировал бы корневой. */
@@ -412,14 +412,14 @@ body.fx:not(#_) :is(.btn-outline,.btn-sm,.setting-btn) { border-radius:999px !im
    переменных, иначе пришлось бы гоняться за каждым местом, где он всплывает
    (линия «сейчас» в расписании, чипы иконок, ссылки). */
 body.fx:not(#_) {
-  --accent:#161616;
-  --accent-2:rgba(203,240,60,.28);
-  --accent-3:rgba(22,22,22,.14);
-  --te-violet:#161616;
-  --te-surface-violet:rgba(203,240,60,.20);
-  --control-violet:#161616;
-  --lime:#CBF03C;
-  --te-lime:#CBF03C;
+  --accent:#24282C;
+  --accent-2:rgba(205,246,73,.28);
+  --accent-3:rgba(36,40,44,.14);
+  --te-violet:#24282C;
+  --te-surface-violet:rgba(205,246,73,.20);
+  --control-violet:#24282C;
+  --lime:#CDF649;
+  --te-lime:#CDF649;
 }
 
 /* ── Страницы входа и приглашения ───────────────────────────────────────── */
@@ -427,9 +427,9 @@ body.fx:not(#_) {
    внутри приложения, поэтому одна правка приводит к языку макета оба места. */
 body.fx:not(#_) .auth-page {
   background:
-    radial-gradient(ellipse 70% 60% at 4% 2%,   #E3C4B2 0%, transparent 62%),
-    radial-gradient(ellipse 55% 50% at 100% 18%,#D5D5D8 0%, transparent 62%),
-    linear-gradient(150deg, #EFEFF2 0%, #EAEAEF 50%, #E4E4EA 100%) !important;
+    radial-gradient(ellipse 70% 60% at 4% 2%,   #F3A46B 0%, transparent 62%),
+    radial-gradient(ellipse 55% 50% at 100% 18%,#CACCC6 0%, transparent 62%),
+    linear-gradient(150deg, #F6F6EF 0%, #F6F6EF 50%, #F6F6EF 100%) !important;
 }
 body.fx:not(#_) .auth-card {
   background:var(--fx-glass-strong) !important;
@@ -446,7 +446,7 @@ body.fx:not(#_) .auth-card {
    поэтому оверлей на доске (единственное место поверх содержимого) делаем
    непрозрачным явно. */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
-  body.fx:not(#_) .board-auth-card { background:#FAFAFB !important; }
+  body.fx:not(#_) .board-auth-card { background:#F6F6EF !important; }
 }
 body.fx:not(#_) .auth-title {
   font-weight:800 !important; letter-spacing:-.03em !important; color:var(--fx-ink) !important;
@@ -489,7 +489,7 @@ body.fx:not(#_) .label {
    больших цветных плит в макете нет. Делаю её такой же стеклянной панелью с
    чернильным текстом, лайм остаётся на кнопке. */
 body.fx:not(#_) .hero {
-  background:rgba(253,253,255,.55) !important;
+  background:rgba(255,255,255,.55) !important;
   color:var(--fx-ink) !important;
 }
 body.fx:not(#_) :is(.hero-title,.panel-title) {
@@ -528,7 +528,7 @@ body.fx:not(#_) .yt-lesson-cta:hover { background:var(--fx-lime-deep) !important
 
 /* Сообщество, превью публикуемого урока: тёмно-зелёный градиент. */
 body.fx:not(#_) .lesson-preview {
-  background:rgba(253,253,255,.62) !important;
+  background:rgba(255,255,255,.62) !important;
   border:1px solid var(--fx-glass-line) !important;
   color:var(--fx-ink) !important;
   box-shadow:none !important;
@@ -543,14 +543,14 @@ body.fx:not(#_) .lesson-preview .lesson-preview-badge {
 /* Кнопка выбора доски внутри превью. */
 body.fx:not(#_) .lesson-preview :is(button,.lesson-preview-canvas) {
   background:rgba(255,255,255,.6) !important;
-  border:1px dashed rgba(22,22,22,.18) !important;
+  border:1px dashed rgba(36,40,44,.18) !important;
   color:var(--fx-ink-2) !important;
 }
 
 /* Профиль: полоса под шапкой карточки смешивала лайм с фиолетовым. */
 body.fx:not(#_) .profile-hero-band {
-  background:rgba(203,240,60,.22) !important;
-  border-bottom:1px solid rgba(22,22,22,.07) !important;
+  background:rgba(205,246,73,.22) !important;
+  border-bottom:1px solid rgba(36,40,44,.07) !important;
 }
 
 /* ── Активное состояние ─────────────────────────────────────────────────── */
@@ -609,7 +609,7 @@ body.fx:not(#_) :is(.suite-tab,.journal-filter,.gb-filter,.seg-btn) {
 /* Красный остаётся у фильтра «нужно внимание»: это предупреждение, а не
    выбранное состояние. */
 body.fx:not(#_) .gb-filter.attention[aria-pressed="true"] {
-  background:#B91C1C !important; border-color:#B91C1C !important; color:#fff !important;
+  background:#FF4E00 !important; border-color:#FF4E00 !important; color:#fff !important;
 }
 
 /* ── Разнобой, найденный на живых страницах ─────────────────────────────── */
@@ -618,7 +618,7 @@ body.fx:not(#_) .gb-filter.attention[aria-pressed="true"] {
    спорит с песочным фоном и не читается как предупреждение. Спокойный
    красный, тот же, что у фильтра «нужно внимание». */
 body.fx:not(#_) :is(.btn-danger,.danger-btn,.btn.pink) {
-  background:#B91C1C !important; border-color:#B91C1C !important; color:#fff !important;
+  background:#FF4E00 !important; border-color:#FF4E00 !important; color:#fff !important;
 }
 
 /* Пункты рейки: белую пилюлю носили все подряд, а не только активный, из-за
@@ -679,7 +679,7 @@ body.fx:not(#_) :is(.nav-logo,.mb-apple,.tb-logo,.logo) img {
 
 /* teacher-tools-refined.css красит описание инструмента литералом #747477:
    на белом это 4.6:1, на песке 3.0:1. */
-body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !important; }
+body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#5D614B !important; }
 
 /* ── Окно входа на телефоне ─────────────────────────────────────────────── */
 /* Ниже 540px auth.css разворачивает окно в полноэкранный лист и снимает с
@@ -720,14 +720,14 @@ body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !impo
 /* :not(.has-wall) - учитель выбрал свой фон (desktop-extras.js), тогда фон
    ставит desktop-extras.css, а этот стандартный уступает. */
 body.fx.os-desktop #desktop:not(#_):not(.has-wall) {
-  background:#F0F0F3 !important;
+  background:#F6F6EF !important;
 }
 html:has(body.fx.os-desktop) {
-  background:#F0F0F3 !important;
+  background:#F6F6EF !important;
   background-attachment:scroll !important;
 }
 body.fx.os-desktop:not(#_) {
-  background:#F0F0F3 !important;
+  background:#F6F6EF !important;
   background-attachment:scroll !important;
 
   --fx-glass:#FFFFFF;
@@ -735,10 +735,10 @@ body.fx.os-desktop:not(#_) {
   /* .10 давало край #E8E8E8 - всего 1.23:1 к белой карточке, на светлой
      подложке он терялся, и карточка расплывалась в фон. .18 даёт #D5D5D5,
      1.47:1: линия видна, но остаётся волосяной, а не обводкой. */
-  --fx-glass-line:rgba(22,22,22,.18);
+  --fx-glass-line:rgba(36,40,44,.18);
   /* Тень была рассчитана на тёмную подложку; на светлой она читалась грязным
      пятном, поэтому мягче и холоднее. */
-  --fx-shadow:0 18px 44px rgba(38,38,41,.10), 0 3px 10px rgba(38,38,41,.06);
+  --fx-shadow:0 18px 44px rgba(36,40,44,.10), 0 3px 10px rgba(36,40,44,.06);
 }
 
 /* ── Раздел «прогресс» (Homework / Analytics / Journal / Gradebook) ─────────

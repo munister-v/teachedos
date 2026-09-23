@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=946"></script>
+<script src="scripts/phone-gate.js?v=950"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -15,12 +15,12 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent:#1C1C1E;--accent2:#C8E632;--lime:#C8E632;
-  --bg:#F2F2F5;--bg2:#E7E7EC;--card:#fff;
-  --border:rgba(92,92,102,.14);--border2:rgba(92,92,102,.28);
-  --text:#1C1C1E;--text2:#3A3A40;--text3:#9A9AA3;
-  --green:#22c55e;--orange:#f97316;--blue:#6366f1;--purple:#8b5cf6;--red:#ef4444;
-  --shadow:0 4px 24px rgba(5,5,23,.08);
+  --accent:#24282C;--accent2:#CDF649;--lime:#CDF649;
+  --bg:#F6F6EF;--bg2:#F6F6EF;--card:#fff;
+  --border:rgba(93,97,75,.14);--border2:rgba(93,97,75,.28);
+  --text:#24282C;--text2:#5D614B;--text3:#5D614B;
+  --green:#D3F36B;--orange:#FF8C3A;--blue:#886BF3;--purple:#886BF3;--red:#FF4E00;
+  --shadow:0 4px 24px rgba(36,40,44,.08);
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;--mono:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --nav-h:52px;
 }
@@ -30,39 +30,39 @@ a{text-decoration:none;color:inherit;}
 /* ── NAV (macOS-style menubar) ── */
 #nav{
   position:sticky;top:0;z-index:200;height:36px;
-  background:rgba(242,242,245,0.82);
+  background:rgba(246,246,239,0.82);
   backdrop-filter:blur(32px) saturate(2);
   -webkit-backdrop-filter:blur(32px) saturate(2);
-  border-bottom:1px solid rgba(92,92,102,.08);
+  border-bottom:1px solid rgba(93,97,75,.08);
   display:flex;align-items:center;padding:0 14px;gap:0;
-  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(92,92,102,.05);
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(36,40,44,.05);
 }
 .nav-logo{
   display:flex;align-items:center;margin-right:6px;flex-shrink:0;
   text-decoration:none;
 }
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
-.nav-sep{width:1px;height:18px;background:rgba(92,92,102,.14);margin:0 4px;}
+.nav-logo-name{font-size:13px;font-weight:650;color:#24282C;margin-left:7px;letter-spacing:-.01em;}
+.nav-sep{width:1px;height:18px;background:rgba(93,97,75,.14);margin:0 4px;}
 .nav-link{
-  font-size:13px;font-weight:600;color:#3A3A40;padding:0 10px;height:36px;
+  font-size:13px;font-weight:600;color:#5D614B;padding:0 10px;height:36px;
   display:flex;align-items:center;border-radius:8px;transition:.12s;white-space:nowrap;
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
-.nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:650;color:#C8E632;}
+.nav-link:hover{background:rgba(36,40,44,.06);color:#24282C;}
+.nav-link.active{font-weight:650;color:#CDF649;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A40;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5D614B;
   padding:3px 10px 3px 7px;border-radius:20px;
-  border:1px solid rgba(200,230,50,.22);
-  background:rgba(92,92,102,.07);
+  border:1px solid rgba(205,246,73,.22);
+  background:rgba(93,97,75,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
 }
-.nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
+.nav-user:hover{border-color:#CDF649;background:rgba(205,246,73,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:700;
+  background:rgba(205,246,73,.15);color:#CDF649;font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 
@@ -81,8 +81,8 @@ a{text-decoration:none;color:inherit;}
 }
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{background:var(--accent2);}
-.btn-ghost{background:rgba(200,230,50,.08);color:var(--accent);border:1px solid var(--border2);}
-.btn-ghost:hover{background:rgba(200,230,50,.15);}
+.btn-ghost{background:rgba(205,246,73,.08);color:var(--accent);border:1px solid var(--border2);}
+.btn-ghost:hover{background:rgba(205,246,73,.15);}
 
 /* Stats row */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
@@ -92,11 +92,11 @@ a{text-decoration:none;color:inherit;}
 }
 .stat-icon{font-size:28px;width:52px;height:52px;border-radius:14px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.si-pink  {background:#F2F2F5;}
-.si-green {background:#f0fdf4;}
-.si-blue  {background:#eff6ff;}
-.si-orange{background:#f8f8fb;}
-.si-purple{background:#faf5ff;}
+.si-pink  {background:#F6F6EF;}
+.si-green {background:#F6F6EF;}
+.si-blue  {background:#F6F6EF;}
+.si-orange{background:#F6F6EF;}
+.si-purple{background:#F6F6EF;}
 .stat-val{font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1;}
 .stat-lbl{font-size:12px;color:var(--text3);font-weight:600;margin-top:2px;}
 
@@ -107,9 +107,9 @@ a{text-decoration:none;color:inherit;}
   border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;transition:.15s;
   font-family:var(--font);text-align:left;
 }
-.ov-board-row:hover{border-color:var(--accent2);box-shadow:0 4px 14px rgba(92,92,102,.08);transform:translateY(-1px);}
+.ov-board-row:hover{border-color:var(--accent2);box-shadow:0 4px 14px rgba(36,40,44,.08);transform:translateY(-1px);}
 .ovb-name{font-size:13px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ovb-bar{height:8px;border-radius:6px;background:rgba(92,92,102,.12);overflow:hidden;}
+.ovb-bar{height:8px;border-radius:6px;background:rgba(93,97,75,.12);overflow:hidden;}
 .ovb-fill{height:100%;border-radius:6px;background:var(--accent);transition:width .5s cubic-bezier(.34,1.1,.6,1);}
 .ovb-pct{font-size:12px;font-weight:650;font-family:var(--mono);text-align:right;color:var(--text2);}
 .ovb-meta{grid-column:1/-1;font-size:11px;color:var(--text3);font-weight:600;}
@@ -134,7 +134,7 @@ a{text-decoration:none;color:inherit;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
 @media(max-width:860px){
   body{background:#fff;}
-  #nav{padding:0 14px;gap:6px;overflow-x:auto;background:#FAFAF8;border-bottom:1px solid rgba(92,92,102,0.08);transform:translateZ(0);}
+  #nav{padding:0 14px;gap:6px;overflow-x:auto;background:#F6F6EF;border-bottom:1px solid rgba(93,97,75,0.08);transform:translateZ(0);}
   .nav-link{display:none;}
   .nav-sep{display:none;}
   .nav-user{border:none;background:transparent;padding:4px 6px;}
@@ -173,23 +173,23 @@ a{text-decoration:none;color:inherit;}
 /* Lesson table */
 .lesson-table{width:100%;border-collapse:collapse;}
 .lesson-table th{font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;
-  letter-spacing:.05em;padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);background:#fafafa;}
+  letter-spacing:.05em;padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);background:#F6F6EF;}
 .lesson-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
 .lesson-table tr:last-child td{border-bottom:none;}
-.lesson-table tr:hover td{background:#fafafa;}
+.lesson-table tr:hover td{background:#F6F6EF;}
 .status-pill{
   display:inline-flex;align-items:center;gap:4px;
   font-size:10px;font-weight:650;padding:3px 8px;border-radius:20px;font-family:var(--mono);
 }
-.sp-done     {background:rgba(34,197,94,.12); color:#16a34a;}
-.sp-progress {background:rgba(245,158,11,.12);color:#d97706;}
-.sp-available{background:rgba(59,130,246,.12);color:#1d4ed8;}
-.sp-locked   {background:rgba(107,114,128,.12);color:#6b7280;}
+.sp-done     {background:rgba(211,243,107,.12); color:#5D614B;}
+.sp-progress {background:rgba(243,164,107,.12);color:#24282C;}
+.sp-available{background:rgba(63,159,255,.12);color:#6B42FD;}
+.sp-locked   {background:rgba(163,164,141,.12);color:#5D614B;}
 
 /* Progress bar */
 .prog-wrap{margin-bottom:14px;}
 .prog-label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:5px;}
-.prog-bar{height:8px;border-radius:4px;background:rgba(92,92,102,.1);overflow:hidden;}
+.prog-bar{height:8px;border-radius:4px;background:rgba(93,97,75,.1);overflow:hidden;}
 .prog-fill{height:100%;border-radius:4px;transition:width .6s ease;}
 
 /* Pie chart (CSS) */
@@ -204,7 +204,7 @@ a{text-decoration:none;color:inherit;}
 
 /* Assignment cards */
 .assign-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
-.assign-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafafa;display:flex;flex-direction:column;gap:8px;}
+.assign-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#F6F6EF;display:flex;flex-direction:column;gap:8px;}
 .ac-title{font-size:13px;font-weight:650;color:var(--text);margin-bottom:6px;}
 .ac-meta{font-size:11px;color:var(--text3);line-height:1.45;}
 .ac-prog{display:flex;align-items:center;gap:8px;}
@@ -213,7 +213,7 @@ a{text-decoration:none;color:inherit;}
 .ac-pct{font-size:12px;font-weight:650;color:var(--orange);min-width:36px;text-align:right;}
 .stu-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
 .stu-row:last-child{border-bottom:none;}
-.stu-avatar{width:36px;height:36px;border-radius:10px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.stu-avatar{width:36px;height:36px;border-radius:10px;background:#F6F6EF;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .stu-info{flex:1;min-width:0;}
 .stu-name{font-size:13px;font-weight:650;color:var(--text);}
 .stu-sub{font-size:11px;color:var(--text3);margin-top:1px;}
@@ -230,7 +230,7 @@ a{text-decoration:none;color:inherit;}
   display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1000;
   width:320px;max-height:420px;overflow:hidden;
   background:var(--card);border-radius:14px;border:1px solid var(--border);
-  box-shadow:0 16px 40px rgba(5,5,40,.18),0 2px 6px rgba(0,0,0,.06);
+  box-shadow:0 16px 40px rgba(107,66,253,.18),0 2px 6px rgba(36,40,44,.06);
   flex-direction:column;
   animation:bs-pop .14s cubic-bezier(.34,1.3,.6,1) both;
 }
@@ -238,8 +238,8 @@ a{text-decoration:none;color:inherit;}
 .board-switcher.open .board-switcher-pop{display:flex;}
 .bs-tabs{display:flex;border-bottom:1px solid var(--border);padding:4px;gap:4px;flex-shrink:0;}
 .bs-tab{flex:1;padding:8px 10px;border:none;background:transparent;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:650;color:var(--text3);cursor:pointer;transition:background .12s,color .12s;}
-.bs-tab:hover{background:rgba(92,92,102,.06);color:var(--text2);}
-.bs-tab.active{background:rgba(200,230,50,.14);color:var(--accent);}
+.bs-tab:hover{background:rgba(93,97,75,.06);color:var(--text2);}
+.bs-tab.active{background:rgba(205,246,73,.14);color:var(--accent);}
 .bs-search{
   margin:8px 10px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;
   font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);outline:none;
@@ -248,14 +248,14 @@ a{text-decoration:none;color:inherit;}
 .bs-search:focus{border-color:var(--accent);}
 .bs-list{overflow-y:auto;flex:1;padding:4px 6px 10px;}
 .bs-list::-webkit-scrollbar{width:6px;}
-.bs-list::-webkit-scrollbar-thumb{background:rgba(92,92,102,.18);border-radius:6px;}
+.bs-list::-webkit-scrollbar-thumb{background:rgba(93,97,75,.18);border-radius:6px;}
 .bs-item{
   display:flex;align-items:center;gap:8px;padding:8px 10px;
   border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;
   transition:background .1s,color .1s;
 }
-.bs-item:hover{background:rgba(92,92,102,.08);color:var(--text);}
-.bs-item.active{background:rgba(200,230,50,.16);color:var(--accent);}
+.bs-item:hover{background:rgba(93,97,75,.08);color:var(--text);}
+.bs-item.active{background:rgba(205,246,73,.16);color:var(--accent);}
 .bs-select{min-width:0;min-height:40px;flex:1;padding:0;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bs-item .bs-item-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bs-item .bs-open-edit{
@@ -264,7 +264,7 @@ a{text-decoration:none;color:inherit;}
   transition:background .12s,color .12s;
 }
 .bs-item:hover .bs-open-edit{color:var(--text2);}
-.bs-item .bs-open-edit:hover{background:rgba(92,92,102,.14);color:var(--accent);}
+.bs-item .bs-open-edit:hover{background:rgba(93,97,75,.14);color:var(--accent);}
 .bs-empty{padding:24px 16px;text-align:center;color:var(--text3);font-size:12px;}
 .board-pills{display:flex;gap:8px;flex-wrap:wrap;}
 .board-pill{
@@ -280,16 +280,16 @@ a{text-decoration:none;color:inherit;}
 .analytics-context .board-switcher-trigger{white-space:nowrap;}
 .analytics-context-note{margin-bottom:14px;}
 .insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;}
-.insight-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:168px;padding:16px;border:1px solid var(--border);border-radius:14px;background:#fafafa;overflow:hidden;}
+.insight-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:168px;padding:16px;border:1px solid var(--border);border-radius:14px;background:#F6F6EF;overflow:hidden;}
 .insight-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--insight-color,var(--accent));}
 .insight-kicker{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
 .insight-title{font-size:15px;font-weight:700;letter-spacing:-.015em;line-height:1.25;margin-top:8px;color:var(--text);}
 .insight-detail{font-size:12px;font-weight:600;line-height:1.5;color:var(--text2);margin-top:7px;}
 .insight-action{min-height:36px;margin-top:auto;padding:0;border:0;background:transparent;color:var(--text);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
-.insight-card.tone-alert{background:#fff7f7;}
-.insight-card.tone-focus{background:#fafafd;}
-.insight-card.tone-progress{background:#f6fbef;}
-.quiz-card{padding:14px;border:1px solid var(--border);border-radius:14px;background:#fafafa;}
+.insight-card.tone-alert{background:#F6F6EF;}
+.insight-card.tone-focus{background:#F6F6EF;}
+.insight-card.tone-progress{background:#F6F6EF;}
+.quiz-card{padding:14px;border:1px solid var(--border);border-radius:14px;background:#F6F6EF;}
 .quiz-card + .quiz-card{margin-top:12px;}
 .quiz-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .quiz-title{font-size:12px;font-weight:700;color:var(--text2);}
@@ -297,11 +297,11 @@ a{text-decoration:none;color:inherit;}
 .quiz-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
 .quiz-row:last-child{border-bottom:none;}
 .score-pill{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:28px;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:700;}
-.score-good{background:#dcfce7;color:#166534;}.score-mid{background:#fef3c7;color:#92400e;}.score-low{background:#fee2e2;color:#991b1b;}
+.score-good{background:#49F6F0;color:#5D614B;}.score-mid{background:#F3DF6B;color:#24282C;}.score-low{background:#F3A46B;color:#24282C;}
 
 :where(.analytics-suite) button:focus-visible,
 :where(.analytics-suite) a:focus-visible{
-  outline:3px solid rgba(28,28,30,.42);outline-offset:3px;
+  outline:3px solid rgba(36,40,44,.42);outline-offset:3px;
 }
 
 /* Empty */
@@ -311,8 +311,8 @@ a{text-decoration:none;color:inherit;}
 /* Toast */
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;
-  border-radius:12px;font-size:13px;font-weight:600;background:#1C1C1E;color:#fff;
-  box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(20px);
+  border-radius:12px;font-size:13px;font-weight:600;background:#24282C;color:#fff;
+  box-shadow:0 4px 20px rgba(36,40,44,.2);transform:translateY(20px);
   opacity:0;transition:all .25s;pointer-events:none;
 }
 #toast.show{transform:translateY(0);opacity:1;}
@@ -327,16 +327,16 @@ body.analytics-locked .grid2{display:none !important;}
 .analytics-lock .al-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;background:#CDF649;color:#24282C;font-weight:650;font-size:14px;text-decoration:none;}
 .analytics-lock .al-btn:hover{background:#D3F36B;}
 </style>
-<script src="theme.js?v=946" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=946">
-<link rel="stylesheet" href="styles/harmony.css?v=946">
-<link rel="stylesheet" href="styles/unify.css?v=946">
-<link rel="stylesheet" href="styles/teached-brand.css?v=946">
-<link rel="stylesheet" href="styles/tool-window.css?v=946">
+<script src="theme.js?v=950" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=950">
+<link rel="stylesheet" href="styles/harmony.css?v=950">
+<link rel="stylesheet" href="styles/unify.css?v=950">
+<link rel="stylesheet" href="styles/teached-brand.css?v=950">
+<link rel="stylesheet" href="styles/tool-window.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=946">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
-<link rel="stylesheet" href="styles/controls.css?v=946">
+<link rel="stylesheet" href="styles/figma-theme.css?v=950">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=950">
+<link rel="stylesheet" href="styles/controls.css?v=950">
 </head>
 <body class="tw-page suite-page analytics-suite fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -538,7 +538,7 @@ body.analytics-locked .grid2{display:none !important;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=946"></script>
+<script src="scripts/app-core.js?v=950"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
@@ -911,7 +911,7 @@ function analyzeBoard(boardId, cards, boardName) {
   if (!total) {
     progSec.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div>No lessons on this board yet.<br><a href="board.html" style="color:var(--accent);font-weight:600;">Go to board →</a></div>';
   } else {
-    const skillColors = {Grammar:'#ef4444',Vocabulary:'#f59e0b',Speaking:'#8b5cf6',Reading:'#06b6d4',Writing:'#10b981',Listening:'#6366f1'};
+    const skillColors = {Grammar:'#FF4E00',Vocabulary:'#F3A46B',Speaking:'#886BF3',Reading:'#6BAFF3',Writing:'#A3A48D',Listening:'#49F6F0'};
     progSec.innerHTML = `
       <div class="prog-wrap">
         <div class="prog-label"><span>Overall</span><span>${done}/${total} (${pct}%)</span></div>
@@ -920,7 +920,7 @@ function analyzeBoard(boardId, cards, boardName) {
       ${Object.entries(bySkill).map(([skill,{done:d,total:t}])=>`
         <div class="prog-wrap">
           <div class="prog-label"><span>${esc(skill)}</span><span>${d}/${t}</span></div>
-          <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d/t*100)}%;background:${skillColors[skill]||'#6366f1'};"></div></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(d/t*100)}%;background:${skillColors[skill]||'#886BF3'};"></div></div>
         </div>`).join('')}`;
   }
 
@@ -930,10 +930,10 @@ function analyzeBoard(boardId, cards, boardName) {
     pieSec.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true"></div>No data</div>';
   } else {
     const items = [
-      { label:'Done',        n:done,       color:'#22c55e' },
-      { label:'In Progress', n:inProgress, color:'#f97316' },
-      { label:'Available',   n:available,  color:'#3b82f6' },
-      { label:'Locked',      n:locked,     color:'#9ca3af' },
+      { label:'Done',        n:done,       color:'#D3F36B' },
+      { label:'In Progress', n:inProgress, color:'#FF8C3A' },
+      { label:'Available',   n:available,  color:'#3F9FFF' },
+      { label:'Locked',      n:locked,     color:'#A3A48D' },
     ].filter(i=>i.n>0);
     // Build CSS conic gradient
     let acc = 0;
@@ -970,7 +970,7 @@ function analyzeBoard(boardId, cards, boardName) {
       const [cls, label] = statusMap[l.data.status||'available'] || statusMap.available;
       return `<tr>
         <td><strong>${esc(l.data.title||'Lesson')}</strong></td>
-        <td><span class="status-pill" style="background:rgba(99,102,241,.12);color:#6366f1;">${esc(l.data.level||'-')}</span></td>
+        <td><span class="status-pill" style="background:rgba(136,107,243,.12);color:#6B42FD;">${esc(l.data.level||'-')}</span></td>
         <td>${esc(l.data.skill||'-')}</td>
         <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${esc(l.data.duration||'-')}</td>
         <td><span class="status-pill ${cls}">${label}</span></td>
@@ -987,10 +987,10 @@ function analyzeBoard(boardId, cards, boardName) {
   if (!assignments.length) {
     grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon" aria-hidden="true"></div>No assignments on this board</div>';
   } else {
-    const typeColors = { Quiz:'#f97316', Essay:'#8b5cf6', Speaking:'#06b6d4', Project:'#10b981' };
+    const typeColors = { Quiz:'#FF8C3A', Essay:'#886BF3', Speaking:'#6BAFF3', Project:'#A3A48D' };
     grid.innerHTML = assignments.map(a => {
       const pct2 = a.data.total ? Math.round((a.data.submitted||0)/a.data.total*100) : 0;
-      const color = typeColors[a.data.type]||'#f97316';
+      const color = typeColors[a.data.type]||'#FF8C3A';
       const deadline = a.data.deadline ? new Date(a.data.deadline) : null;
       const overdue  = deadline && deadline < new Date();
       const deadlineLabel = deadline ? `${overdue ? 'Past deadline' : 'Due'} ${deadline.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}` : 'No deadline set';
@@ -999,7 +999,7 @@ function analyzeBoard(boardId, cards, boardName) {
         <div class="ac-meta">
           <span style="color:${color};font-weight:600;">${esc(a.data.type||'')}</span>
           ${a.data.maxScore ? ` · ${a.data.maxScore} pts` : ''}
-          · <span style="color:${overdue?'#b91c1c':'var(--text3)'};font-weight:${overdue?'800':'600'};">${deadlineLabel}</span>
+          · <span style="color:${overdue?'#FF4E00':'var(--text3)'};font-weight:${overdue?'800':'600'};">${deadlineLabel}</span>
         </div>
         ${a.data.total ? `<div class="ac-prog">
           <div class="ac-bar"><div class="ac-fill" style="width:${pct2}%;background:${color}"></div></div>
@@ -1027,7 +1027,7 @@ function buildInsights(boardId, cards, lessons, done, inProgress, assignments) {
   if (overdue.length) {
     const names = overdue.slice(0, 2).map(a => esc(a.data.title || 'Untitled assignment')).join(', ');
     insights.push({
-      tone: 'alert', color: '#ef4444', kicker: 'Deadline check',
+      tone: 'alert', color: '#FF4E00', kicker: 'Deadline check',
       title: `${overdue.length} overdue assignment${overdue.length === 1 ? '' : 's'}`,
       detail: `${names}${overdue.length > 2 ? ` and ${overdue.length - 2} more` : ''} need a follow-up.`,
       action: 'Review assignments', target: 'assignments-section'
@@ -1036,13 +1036,13 @@ function buildInsights(boardId, cards, lessons, done, inProgress, assignments) {
 
   if (!total) {
     insights.push({
-      tone: 'focus', color: '#6366f1', kicker: 'Set the baseline', title: 'No lessons to measure yet',
+      tone: 'focus', color: '#886BF3', kicker: 'Set the baseline', title: 'No lessons to measure yet',
       detail: 'Add lesson cards on the board to start tracking course completion and skill coverage.',
       action: 'Open board', href: `board.html?id=${encodeURIComponent(boardId)}`
     });
   } else if (pct === 100) {
     insights.push({
-      tone: 'progress', color: '#22c55e', kicker: 'Course progress', title: 'Course sequence is complete',
+      tone: 'progress', color: '#D3F36B', kicker: 'Course progress', title: 'Course sequence is complete',
       detail: `${done} of ${total} lessons are done. Use the board to plan the next stretch of learning.`,
       action: 'Review lessons', target: 'lessons-section'
     });
@@ -1051,7 +1051,7 @@ function buildInsights(boardId, cards, lessons, done, inProgress, assignments) {
       ? `${done} of ${total} lessons are complete; ${inProgress} currently need attention.`
       : `${done} of ${total} lessons are complete; ${total - done} remain in the sequence.`;
     insights.push({
-      tone: 'progress', color: '#22c55e', kicker: 'Course progress', title: `${pct}% of the course is complete`,
+      tone: 'progress', color: '#D3F36B', kicker: 'Course progress', title: `${pct}% of the course is complete`,
       detail, action: 'View progress map', target: 'course-progress-section'
     });
   }
@@ -1068,7 +1068,7 @@ function buildInsights(boardId, cards, lessons, done, inProgress, assignments) {
   if (weakest && weakest[1].total > 1) {
     const skillPct = Math.round(weakest[1].done / weakest[1].total * 100);
     insights.push({
-      tone: 'focus', color: '#f59e0b', kicker: 'Skill focus', title: esc(weakest[0]),
+      tone: 'focus', color: '#F3A46B', kicker: 'Skill focus', title: esc(weakest[0]),
       detail: `${skillPct}% complete (${weakest[1].done} of ${weakest[1].total} lessons). Plan the next session around this skill.`,
       action: 'See skill breakdown', target: 'course-progress-section'
     });
@@ -1131,7 +1131,7 @@ async function loadQuizAnalytics(boardId) {
           <span class="quiz-title">Quiz <code style="font-size:10px;background:var(--border);padding:1px 5px;border-radius:4px;">${esc(cardId.slice(-8))}</code></span>
           <span class="quiz-summary" style="color:${color}">${rows.length} submitted · avg ${avg}%</span>
         </div>
-        <div style="height:6px;border-radius:3px;background:rgba(92,92,102,.1);margin-bottom:10px;">
+        <div style="height:6px;border-radius:3px;background:rgba(93,97,75,.1);margin-bottom:10px;">
           <div style="height:100%;border-radius:3px;width:${avg}%;background:${color};transition:width .5s;"></div>
         </div>
         ${studentRows}
@@ -1160,7 +1160,7 @@ async function loadStudentProgress(boardId) {
         <div class="stu-info">
           <div class="stu-name">${esc(m.name)}</div>
           <div class="stu-sub">${esc(m.email)} · <span style="color:var(--text3)">${done}/${total} lessons done</span></div>
-          <div style="margin-top:6px;height:5px;border-radius:3px;background:rgba(92,92,102,.1);overflow:hidden;">
+          <div style="margin-top:6px;height:5px;border-radius:3px;background:rgba(93,97,75,.1);overflow:hidden;">
             <div style="height:100%;border-radius:3px;width:${pct}%;background:${color};transition:width .6s;"></div>
           </div>
         </div>
@@ -1221,12 +1221,12 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=946" defer></script>
-<script src="scripts/mobile-perf.js?v=946" defer></script>
-<script src="scripts/mobile-nav.js?v=946"></script>
-<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
-<script src="scripts/autogrow.js?v=946" defer></script>
-<script src="pwa-boot.js?v=946" defer></script>
-  <script src="scripts/signin-entry.js?v=946" defer></script>
+<script src="scripts/nav-boost.js?v=950" defer></script>
+<script src="scripts/mobile-perf.js?v=950" defer></script>
+<script src="scripts/mobile-nav.js?v=950"></script>
+<script src="scripts/mobile-zoom-guard.js?v=950" defer></script>
+<script src="scripts/autogrow.js?v=950" defer></script>
+<script src="pwa-boot.js?v=950" defer></script>
+  <script src="scripts/signin-entry.js?v=950" defer></script>
 </body>
 </html>

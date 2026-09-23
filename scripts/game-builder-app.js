@@ -2245,7 +2245,7 @@ function previewGame() {
     <div style="font-size:16px;font-weight:700;">${selectedType.icon} ${esc(title)}</div>
     <div style="font-size:12px;color:var(--text3);">${esc(selectedType.name)} \u00b7 ${getPreviewItemCount(content)} items \u00b7 live preview</div>
     ${switcher}
-    <div id="pv-stage" style="position:relative;width:100%;border-radius:14px;overflow:hidden;background:#0E0E14;border:1px solid var(--border);"></div>
+    <div id="pv-stage" style="position:relative;width:100%;border-radius:14px;overflow:hidden;background:#24282C;border:1px solid var(--border);"></div>
     <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">This is the real game \u2014 try it before adding to a board.</div>`;
 
   mountPreviewGame(selectedType, content, title);

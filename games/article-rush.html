@@ -9,29 +9,29 @@
 <title>Article Rush</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#1C1C1E}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+:root{--accent:#24282C}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#525252;font-size:.9rem;margin-bottom:20px}
-.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:460px;text-align:center}
-.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#525252;font-size:.9rem}
+.subtitle{color:#5D614B;font-size:.9rem;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:28px 20px;box-shadow:0 4px 24px #CDF64918;width:100%;max-width:460px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:20px;font-weight:700;color:#5D614B;font-size:.9rem}
 .top span{color:var(--accent)}
-.timer-bar{width:100%;height:8px;background:#f0e0e8;border-radius:4px;margin-bottom:24px;overflow:hidden}
+.timer-bar{width:100%;height:8px;background:#F6F6EF;border-radius:4px;margin-bottom:24px;overflow:hidden}
 .timer-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .1s linear}
-.sentence{font-size:1.25rem;font-weight:700;color:#333;margin-bottom:28px;line-height:1.6;min-height:60px}
+.sentence{font-size:1.25rem;font-weight:700;color:#24282C;margin-bottom:28px;line-height:1.6;min-height:60px}
 .blank{color:var(--accent);font-size:1.4rem;letter-spacing:2px}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.choice{padding:14px;border:2.5px solid #eee;border-radius:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:800;font-size:1.3rem;cursor:pointer;background:#fff;transition:.15s}
+.choice{padding:14px;border:2.5px solid #CACCC6;border-radius:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:800;font-size:1.3rem;cursor:pointer;background:#fff;transition:.15s}
 .choice:hover{border-color:var(--accent);color:var(--accent)}
-.choice.correct{border-color:#4caf50;background:#f0fff4;color:#2e7d32}
-.choice.wrong{border-color:#f44336;background:#fff0f0;color:#c62828}
-.feedback{margin-top:18px;font-size:1rem;font-weight:700;min-height:22px;color:#525252}
+.choice.correct{border-color:#A3A48D;background:#FFFFFF;color:#5D614B}
+.choice.wrong{border-color:#FF4E00;background:#F6F6EF;color:#24282C}
+.feedback{margin-top:18px;font-size:1rem;font-weight:700;min-height:22px;color:#5D614B}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=946">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=950">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -45,8 +45,8 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   <div class="feedback" id="feedback"></div>
 </div>
 
-<script src="../scripts/game-handoff.js?v=946"></script>
-<script src="../scripts/game-pause.js?v=946"></script>
+<script src="../scripts/game-handoff.js?v=950"></script>
+<script src="../scripts/game-pause.js?v=950"></script>
 <script>
 const QS=[
   {s:'___ sun rises in the east.',a:'The',opts:['A','An','The','-']},
@@ -128,6 +128,6 @@ function endGame(){
 }
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=946"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=950"></script>
 </body>
 </html>

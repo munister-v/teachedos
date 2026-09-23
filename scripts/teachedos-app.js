@@ -462,15 +462,15 @@ function dictSave() {
 const TOOLS_DATA = window.TEACHEDOS_DATA.tools;
 
 const TAG_COLORS = {
-  Reading:    { bg:'rgba(96,165,250,.12)',    color:'#60a5fa' },
-  Writing:    { bg:'rgba(110,201,138,.12)',   color:'#6ec98a' },
-  Listening:  { bg:'rgba(245,158,11,.12)',    color:'#f59e0b' },
-  Speaking:   { bg:'rgba(167,139,250,.12)',   color:'#a78bfa' },
-  Vocabulary: { bg:'rgba(244,167,185,.12)',   color:'#f4a7b9' },
-  Grammar:    { bg:'rgba(248,113,113,.12)',   color:'#f87171' },
-  Utility:    { bg:'rgba(156,163,175,.12)',   color:'#9ca3af' },
-  New:        { bg:'rgba(110,201,138,.18)',   color:'#6ec98a' },
-  Pro:        { bg:'rgba(244,167,185,.18)',   color:'#f4a7b9' },
+  Reading:    { bg:'rgba(63,159,255,.12)',    color:'#3F9FFF' },
+  Writing:    { bg:'rgba(163,164,141,.12)',   color:'#A3A48D' },
+  Listening:  { bg:'rgba(243,164,107,.12)',    color:'#F3A46B' },
+  Speaking:   { bg:'rgba(159,140,232,.12)',   color:'#9F8CE8' },
+  Vocabulary: { bg:'rgba(243,164,107,.12)',   color:'#F3A46B' },
+  Grammar:    { bg:'rgba(255,78,0,.12)',   color:'#FF4E00' },
+  Utility:    { bg:'rgba(163,164,141,.12)',   color:'#A3A48D' },
+  New:        { bg:'rgba(163,164,141,.18)',   color:'#A3A48D' },
+  Pro:        { bg:'rgba(243,164,107,.18)',   color:'#F3A46B' },
 };
 
 const GAMES_DATA = window.TEACHEDOS_DATA.games;
@@ -516,7 +516,7 @@ function toolsRender() {
       return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.color}40;font-weight:600;">${t.badge}</span>`;
     })() : '';
     const footer = GAMES_DATA.some(g => gameMatchesTool(g, t.id)) ? 'Launch module →' : 'Use tool →';
-    return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(244,167,185,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(244,167,185,0.09)';this.style.borderColor='rgba(244,167,185,0.22)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(244,167,185,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
+    return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(243,164,107,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(243,164,107,0.09)';this.style.borderColor='rgba(243,164,107,0.22)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(243,164,107,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
         <div style="font-size:22px;flex-shrink:0;line-height:1;">${t.icon}</div>
         <div style="flex:1;">

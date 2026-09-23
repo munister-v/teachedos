@@ -59,36 +59,36 @@
 ───────────────────────────────────────────────────────────────────────── */
 :root {
   /* Surfaces */
-  --mp-bg:          #F3F3F6;
+  --mp-bg:          #F6F6EF;
   --mp-surface:     #FFFFFF;
-  --mp-surface-soft:#F7F7FA;
-  --mp-premium:     #0E0E10;
-  --mp-premium-2:   #1C1C1E;
+  --mp-surface-soft:#F6F6EF;
+  --mp-premium:     #24282C;
+  --mp-premium-2:   #24282C;
   /* Accents */
-  --mp-lime:        #CDF24F;
-  --mp-lime-dark:   #A8D02B;
-  --mp-lime-text:   #0E0E10;
-  --mp-pink:        #EC2D8C;
-  --mp-pink-soft:   #FCE3EF;
-  --mp-lavender:    #D8C5FB;
-  --mp-peach:       #FFB5AE;
-  --mp-cyan:        #8FE6E6;
-  --mp-yellow:      #FFC94A;
+  --mp-lime:        #CDF649;
+  --mp-lime-dark:   #CDF649;
+  --mp-lime-text:   #24282C;
+  --mp-pink:        #886BF3;
+  --mp-pink-soft:   #F3A46B;
+  --mp-lavender:    #9F8CE8;
+  --mp-peach:       #F3A46B;
+  --mp-cyan:        #49F6F0;
+  --mp-yellow:      #FFE44D;
   /* Text */
-  --mp-text:        #0E0E10;
-  --mp-text-2:      #3A3A40;
-  --mp-text-3:      #86868F;
+  --mp-text:        #24282C;
+  --mp-text-2:      #5D614B;
+  --mp-text-3:      #5D614B;
   --mp-text-inv:    #FFFFFF;
   --mp-text-inv-2:  rgba(255,255,255,0.70);
   --mp-text-inv-3:  rgba(255,255,255,0.45);
   /* Lines */
-  --mp-border:      rgba(14,14,16,0.08);
-  --mp-border-2:    rgba(14,14,16,0.16);
+  --mp-border:      rgba(36,40,44,0.08);
+  --mp-border-2:    rgba(36,40,44,0.16);
   /* Shadows (kept conservative - large soft shadows are paint-expensive) */
-  --mp-shadow-sm:   0 1px 6px rgba(14,14,16,0.07);
-  --mp-shadow-md:   0 8px 22px rgba(14,14,16,0.08);
-  --mp-shadow-lg:   0 16px 38px rgba(14,14,16,0.10);
-  --mp-shadow-dark: 0 12px 30px rgba(0,0,0,0.20);
+  --mp-shadow-sm:   0 1px 6px rgba(36,40,44,0.07);
+  --mp-shadow-md:   0 8px 22px rgba(36,40,44,0.08);
+  --mp-shadow-lg:   0 16px 38px rgba(36,40,44,0.10);
+  --mp-shadow-dark: 0 12px 30px rgba(36,40,44,0.20);
   /* Radii */
   --mp-radius-sm:   12px;
   --mp-radius-md:   18px;
@@ -257,7 +257,7 @@
     transition: transform .12s var(--mp-spring), background .18s ease;
   }
   .mp-icon-btn:active { transform: scale(.95); }
-  .mp-icon-btn.alert { background: rgba(205,242,79,.20); color: var(--mp-text); border-color: rgba(205,242,79,.4); }
+  .mp-icon-btn.alert { background: rgba(205,246,73,.20); color: var(--mp-text); border-color: rgba(205,246,73,.4); }
   .mp-icon-btn .mp-badge {
     position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px;
     border-radius: 999px; background: var(--mp-pink); color: #fff;
@@ -286,15 +286,15 @@
     transition: transform .12s var(--mp-spring), background .18s ease, box-shadow .18s ease;
   }
   .mp-btn:active { transform: scale(.95); }
-  .mp-btn-lime { background: var(--mp-lime); color: var(--mp-lime-text); box-shadow: 0 4px 14px rgba(205,242,79,.35); }
+  .mp-btn-lime { background: var(--mp-lime); color: var(--mp-lime-text); box-shadow: 0 4px 14px rgba(205,246,73,.35); }
   .mp-btn-lime:hover { background: var(--mp-lime-dark); }
   .mp-btn-dark { background: var(--mp-premium); color: var(--mp-text-inv); }
   .mp-btn-ghost { background: var(--mp-surface); color: var(--mp-text); border: 1px solid var(--mp-border); }
   .mp-btn-ghost-dark, .mp-btn-ghost-white { background: rgba(255,255,255,.10); color: #fff; border: 1px solid rgba(255,255,255,.18); }
   .mp-btn-ghost-dark:hover, .mp-btn-ghost-white:hover { background: rgba(255,255,255,.16); }
   .mp-btn-pink-soft { background: var(--mp-pink-soft); color: var(--mp-pink); }
-  .mp-btn-pink-solid { background: var(--mp-pink); color: #fff; box-shadow: 0 6px 18px rgba(236,45,140,.4); }
-  .mp-btn-pink-solid:hover { background: #d4267f; }
+  .mp-btn-pink-solid { background: var(--mp-pink); color: #fff; box-shadow: 0 6px 18px rgba(136,107,243,.4); }
+  .mp-btn-pink-solid:hover { background: #886BF3; }
 
   /* ── Featured / next-lesson dark card ── */
   .mp-featured, .mp-next-card {
@@ -347,12 +347,12 @@
   .mp-stat-n { font-size: 28px; font-weight:700; letter-spacing: -.04em; color: var(--mp-text); line-height: 1; transition: opacity .25s ease; margin-top: auto; }
   .mp-stat-sub { font-size: 11px; color: var(--mp-text-3); font-weight:600; margin-top: 4px; }
   /* Coloured tile variants with serif numerals */
-  .mp-stat-lavender { background: rgba(205,242,79,.22); border-color: rgba(205,242,79,.35); }
-  .mp-stat-peach    { background: rgba(255,190,100,.22); border-color: rgba(255,190,100,.35); }
-  .mp-stat-cyan     { background: rgba(92,92,102,.10); border-color: rgba(92,92,102,.16); }
+  .mp-stat-lavender { background: rgba(205,246,73,.22); border-color: rgba(205,246,73,.35); }
+  .mp-stat-peach    { background: rgba(243,164,107,.22); border-color: rgba(243,164,107,.35); }
+  .mp-stat-cyan     { background: rgba(93,97,75,.10); border-color: rgba(93,97,75,.16); }
   .mp-stat-lavender .mp-stat-label, .mp-stat-lavender .mp-stat-sub,
   .mp-stat-peach .mp-stat-label, .mp-stat-peach .mp-stat-sub,
-  .mp-stat-cyan .mp-stat-label, .mp-stat-cyan .mp-stat-sub { color: rgba(14,14,16,.55); }
+  .mp-stat-cyan .mp-stat-label, .mp-stat-cyan .mp-stat-sub { color: rgba(36,40,44,.55); }
   .mp-stat-lavender .mp-stat-n, .mp-stat-peach .mp-stat-n, .mp-stat-cyan .mp-stat-n {
     font-family: var(--mp-serif); font-weight:600; font-size: 30px; color: var(--mp-text); letter-spacing: -.03em;
   }
@@ -408,7 +408,7 @@
   .mp-bc2-dur { font: 700 10px var(--mp-mono); color: var(--mp-text-3); letter-spacing: .06em; }
   .mp-bc2-badge { font: 900 10px var(--mp-mono); padding: 3px 7px; border-radius: 6px; letter-spacing: .08em; }
   .mp-bc2-badge-pink { background: var(--mp-pink-soft); color: var(--mp-pink); }
-  .mp-bc2-badge-lime { background: rgba(205,242,79,.25); color: #5A7A00; }
+  .mp-bc2-badge-lime { background: rgba(205,246,73,.25); color: #5D614B; }
   .mp-board-card2.mp-bc2-ink { background: var(--mp-premium); border-color: var(--mp-premium); }
   .mp-board-card2.mp-bc2-ink .mp-bc2-title { color: #fff; }
   .mp-board-card2.mp-bc2-ink .mp-bc2-eyebrow, .mp-board-card2.mp-bc2-ink .mp-bc2-dur { color: var(--mp-text-inv-3); }
@@ -451,9 +451,9 @@
   .mp-today-name { font-size: 14px; font-weight:700; color: var(--mp-text); letter-spacing: -.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mp-today-sub { font: 700 11px var(--mp-mono); color: var(--mp-text-3); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
   .mp-today-arrow { font-size: 17px; color: var(--mp-text-3); font-weight:600; flex-shrink: 0; }
-  .mp-today-check { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(22,163,74,.12); color: #16a34a; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight:700; }
+  .mp-today-check { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(163,164,141,.12); color: #5D614B; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight:700; }
   .mp-today-badge { flex-shrink: 0; font: 900 9px var(--mp-mono); letter-spacing: .08em; background: var(--mp-lime); color: var(--mp-premium); padding: 4px 9px; border-radius: 999px; }
-  .mp-today-item.next { background: var(--mp-premium); border-color: var(--mp-premium); box-shadow: 0 10px 26px rgba(14,14,16,.18); }
+  .mp-today-item.next { background: var(--mp-premium); border-color: var(--mp-premium); box-shadow: 0 10px 26px rgba(36,40,44,.18); }
   .mp-today-item.next .mp-today-name { color: #fff; }
   .mp-today-item.next .mp-today-time { border-right-color: rgba(255,255,255,.18); }
   .mp-today-item.next .mp-today-time b { color: var(--mp-lime); }
@@ -479,9 +479,9 @@
   .mp-tl-check.done { background: var(--mp-lime); border-color: var(--mp-lime); color: var(--mp-lime-text); }
   .mp-tl-arrow { color: var(--mp-text-3); font-size: 14px; }
   /* now = lime highlight */
-  .mp-tl-row.now .mp-tl-card { background: var(--mp-lime); border-color: var(--mp-lime); box-shadow: 0 14px 30px rgba(205,242,79,.3); }
+  .mp-tl-row.now .mp-tl-card { background: var(--mp-lime); border-color: var(--mp-lime); box-shadow: 0 14px 30px rgba(205,246,73,.3); }
   .mp-tl-row.now .mp-tl-time { color: var(--mp-text); }
-  .mp-tl-row.now .mp-tl-time::after { background: var(--mp-lime); border-color: var(--mp-lime); box-shadow: 0 0 10px rgba(205,242,79,.6); }
+  .mp-tl-row.now .mp-tl-time::after { background: var(--mp-lime); border-color: var(--mp-lime); box-shadow: 0 0 10px rgba(205,246,73,.6); }
 
   /* ── Day picker ── */
   .mp-daypicker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 0 18px 22px; }
@@ -523,7 +523,7 @@
      Use: <div class="mp-sheet" data-open> … or toggle .open via JS.
   ─────────────────────────────────────────────────────────────────────── */
   .mp-sheet-scrim {
-    position: fixed; inset: 0; z-index: 9980; background: rgba(14,14,16,.42);
+    position: fixed; inset: 0; z-index: 9980; background: rgba(36,40,44,.42);
     opacity: 0; visibility: hidden; transition: opacity .26s ease, visibility .26s;
   }
   .mp-sheet-scrim.open { opacity: 1; visibility: visible; }
@@ -531,7 +531,7 @@
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 9981;
     background: var(--mp-surface); border-radius: 22px 22px 0 0;
     padding: 10px 18px calc(20px + var(--safe-bottom));
-    box-shadow: 0 -10px 40px rgba(14,14,16,.18);
+    box-shadow: 0 -10px 40px rgba(36,40,44,.18);
     transform: translateY(100%); transition: transform .3s var(--mp-spring);
     max-height: 86dvh; overflow-y: auto; overscroll-behavior: contain;
   }
@@ -542,7 +542,7 @@
   }
 
   /* ── Skeleton shimmer ── */
-  .mp-skel { background: linear-gradient(90deg, rgba(14,14,16,.05) 25%, rgba(14,14,16,.10) 50%, rgba(14,14,16,.05) 75%); background-size: 200% 100%; animation: mp-skel 1.4s ease-in-out infinite; border-radius: 8px; color: transparent !important; }
+  .mp-skel { background: linear-gradient(90deg, rgba(36,40,44,.05) 25%, rgba(36,40,44,.10) 50%, rgba(36,40,44,.05) 75%); background-size: 200% 100%; animation: mp-skel 1.4s ease-in-out infinite; border-radius: 8px; color: transparent !important; }
   @keyframes mp-skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
   /* ───────────────────────────────────────────────────────────────────────

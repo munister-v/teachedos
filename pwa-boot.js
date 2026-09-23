@@ -19,7 +19,7 @@
          пользователя почти ничего не меняла.
      Имя теперь то же, что у константы в scripts/board-app.js, - его бамп
      версии уже ловит, так что рассинхрон больше не повторится. */
-  const TEACHEDOS_ASSET_VERSION = '946';
+  const TEACHEDOS_ASSET_VERSION = '950';
   const CACHE_VERSION_KEY = 'teachedos_asset_version';
   const purgeOldRuntimeCaches = () => {
     try {
@@ -80,7 +80,7 @@
   const ensure = (sel, make) => { if (!head.querySelector(sel)) head.appendChild(make()); };
 
   ensure('link[rel="manifest"]', () => mk('link', { rel: 'manifest', href: 'manifest.json' }));
-  ensure('meta[name="theme-color"]', () => mk('meta', { name: 'theme-color', content: '#1C1C1E' }));
+  ensure('meta[name="theme-color"]', () => mk('meta', { name: 'theme-color', content: '#24282C' }));
   ensure('meta[name="mobile-web-app-capable"]', () => mk('meta', { name: 'mobile-web-app-capable', content: 'yes' }));
   ensure('meta[name="apple-mobile-web-app-capable"]', () => mk('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }));
   ensure('meta[name="apple-mobile-web-app-status-bar-style"]', () => mk('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }));

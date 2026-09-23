@@ -19,7 +19,7 @@
     travel: {
       name: 'Travel & Tourism',
       icon: '✈️',
-      color: '#8FE6E6',
+      color: '#49F6F0',
       A1: [
         ['airport',     'аеропорт',      'аэропорт',       'I am at the airport.'],
         ['ticket',      'квиток',        'билет',          'Where is my ticket?'],
@@ -70,7 +70,7 @@
     food: {
       name: 'Food & Drinks',
       icon: '🍕',
-      color: '#FFB5AE',
+      color: '#F3A46B',
       A1: [
         ['bread',       'хліб',          'хлеб',           'I eat bread for breakfast.'],
         ['water',       'вода',          'вода',           'Can I have water, please?'],
@@ -121,7 +121,7 @@
     family: {
       name: 'Family & Relationships',
       icon: '👨‍👩‍👧',
-      color: '#D8C5FB',
+      color: '#9F8CE8',
       A1: [
         ['mother',      'мати',          'мать',           'My mother is a teacher.'],
         ['father',      'батько',        'отец',           'My father works at home.'],
@@ -172,7 +172,7 @@
     routine: {
       name: 'Daily Routine',
       icon: '🌅',
-      color: '#FFC94A',
+      color: '#FFE44D',
       A1: [
         ['wake up',     'прокидатися',   'просыпаться',    'I wake up at 7.'],
         ['breakfast',   'сніданок',      'завтрак',        'I have breakfast at 8.'],
@@ -223,7 +223,7 @@
     work: {
       name: 'Work & Office',
       icon: '💼',
-      color: '#D8C5FB',
+      color: '#9F8CE8',
       A1: [
         ['job',         'робота',        'работа',         'I love my job.'],
         ['boss',        'начальник',     'начальник',      'My boss is kind.'],
@@ -274,7 +274,7 @@
     education: {
       name: 'School & Education',
       icon: '🎓',
-      color: '#CDF24F',
+      color: '#CDF649',
       A1: [
         ['school',      'школа',         'школа',          'I go to school by bus.'],
         ['book',        'книга',         'книга',          'I read books every day.'],
@@ -325,7 +325,7 @@
     health: {
       name: 'Body & Health',
       icon: '🏥',
-      color: '#FFB5AE',
+      color: '#F3A46B',
       A1: [
         ['head',        'голова',        'голова',         'My head hurts.'],
         ['hand',        'рука',          'рука',           'Wash your hands.'],
@@ -376,7 +376,7 @@
     clothing: {
       name: 'Clothing & Fashion',
       icon: '👔',
-      color: '#D8C5FB',
+      color: '#9F8CE8',
       A1: [
         ['shirt',       'сорочка',       'рубашка',        'I wear a white shirt to work.'],
         ['shoes',       'взуття',        'обувь',          'I need new shoes.'],
@@ -427,7 +427,7 @@
     home: {
       name: 'House & Home',
       icon: '🏠',
-      color: '#FFC94A',
+      color: '#FFE44D',
       A1: [
         ['house',       'дім',           'дом',            'My house is small.'],
         ['kitchen',     'кухня',         'кухня',          'The kitchen is bright.'],
@@ -478,7 +478,7 @@
     weather: {
       name: 'Weather & Seasons',
       icon: '☀️',
-      color: '#8FE6E6',
+      color: '#49F6F0',
       A1: [
         ['sun',         'сонце',         'солнце',         'The sun is bright.'],
         ['rain',        'дощ',           'дождь',          'Rain is falling.'],
@@ -529,7 +529,7 @@
     animals: {
       name: 'Animals',
       icon: '🐾',
-      color: '#CDF24F',
+      color: '#CDF649',
       A1: [
         ['dog',         'пес',           'собака',         'My dog is friendly.'],
         ['cat',         'кіт',           'кот',            'The cat is on the chair.'],
@@ -580,7 +580,7 @@
     nature: {
       name: 'Nature & Environment',
       icon: '🌳',
-      color: '#CDF24F',
+      color: '#CDF649',
       A1: [
         ['tree',        'дерево',        'дерево',         'A tall tree near the lake.'],
         ['flower',      'квітка',        'цветок',         'I picked a yellow flower.'],
@@ -631,7 +631,7 @@
     sports: {
       name: 'Sports & Fitness',
       icon: '⚽',
-      color: '#FFC94A',
+      color: '#FFE44D',
       A1: [
         ['football',    'футбол',        'футбол',         'I play football on Sundays.'],
         ['ball',        'м’яч',          'мяч',            'Pass me the ball.'],
@@ -682,7 +682,7 @@
     hobbies: {
       name: 'Hobbies & Leisure',
       icon: '🎨',
-      color: '#D8C5FB',
+      color: '#9F8CE8',
       A1: [
         ['read',        'читати',        'читать',         'I read every evening.'],
         ['draw',        'малювати',      'рисовать',       'My son loves to draw.'],
@@ -733,7 +733,7 @@
     tech: {
       name: 'Technology & Internet',
       icon: '💻',
-      color: '#8FE6E6',
+      color: '#49F6F0',
       A1: [
         ['phone',       'телефон',       'телефон',        'I lost my phone.'],
         ['computer',    'комп’ютер',     'компьютер',      'This computer is fast.'],
@@ -784,7 +784,7 @@
     money: {
       name: 'Money & Shopping',
       icon: '💰',
-      color: '#CDF24F',
+      color: '#CDF649',
       A1: [
         ['money',       'гроші',         'деньги',         'I have no money.'],
         ['shop',        'магазин',       'магазин',        'A new shop opened.'],
@@ -835,7 +835,7 @@
     transport: {
       name: 'Transport',
       icon: '🚌',
-      color: '#FFB5AE',
+      color: '#F3A46B',
       A1: [
         ['car',         'автомобіль',    'автомобиль',     'My car is old.'],
         ['bus',         'автобус',       'автобус',        'Take bus number 12.'],
@@ -886,7 +886,7 @@
     city: {
       name: 'City & Places',
       icon: '🏙️',
-      color: '#8FE6E6',
+      color: '#49F6F0',
       A1: [
         ['street',      'вулиця',        'улица',          'A long, quiet street.'],
         ['park',        'парк',          'парк',           'I run in the park.'],
@@ -937,7 +937,7 @@
     emotions: {
       name: 'Emotions & Feelings',
       icon: '😊',
-      color: '#FFB5AE',
+      color: '#F3A46B',
       A1: [
         ['happy',       'щасливий',      'счастливый',     'I am happy today.'],
         ['sad',         'сумний',        'грустный',       'He looks sad.'],
@@ -988,7 +988,7 @@
     phrasal: {
       name: 'Phrasal Verbs',
       icon: '🔤',
-      color: '#D8C5FB',
+      color: '#9F8CE8',
       A1: [
         ['get up',      'вставати',      'вставать',       'I get up at seven.'],
         ['sit down',    'сідати',        'садиться',       'Please sit down.'],

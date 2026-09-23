@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=946"></script>
+<script src="scripts/phone-gate.js?v=950"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=946">
+<link rel="manifest" href="manifest.json?v=950">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -17,17 +17,17 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --lime:#C8E632;--ink:#1C1C1E;--muted:#6C6C6F;--bg:#F2F2F5;
-  --card:#ffffff;--border:rgba(23,23,25,.10);--shadow:0 8px 32px rgba(5,5,23,.09);
-  --good:#1E7D46;--warn:#b45309;--bad:#c62828;
+  --lime:#CDF649;--ink:#24282C;--muted:#5D614B;--bg:#F6F6EF;
+  --card:#ffffff;--border:rgba(36,40,44,.10);--shadow:0 8px 32px rgba(36,40,44,.09);
+  --good:#5D614B;--warn:#FF4E00;--bad:#FF4E00;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100dvh;-webkit-font-smoothing:antialiased}
 .nav{display:flex;align-items:center;gap:10px;padding:0 20px;height:52px;background:rgba(255,255,255,.86);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
 .nav-logo{font-weight:700;font-size:16px;letter-spacing:-.03em;text-decoration:none;color:var(--ink)}
-.nav-logo em{color:#5A7A00;font-style:normal}
+.nav-logo em{color:#5D614B;font-style:normal}
 .nav-back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:10px;border:1.5px solid var(--border);transition:.15s}
-.nav-back:hover{background:rgba(0,0,0,.04)}
+.nav-back:hover{background:rgba(36,40,44,.04)}
 .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
 .hero{text-align:center;margin-bottom:28px}
 .hero h1{font-size:clamp(28px,5vw,46px);font-weight:700;letter-spacing:-.04em;line-height:1.05;margin-bottom:10px}
@@ -42,21 +42,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 /* Current plan banner */
 .current{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:24px}
 .current-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.current-icon{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;border-radius:13px;background:rgba(200,230,50,.18);color:var(--ink)}
+.current-icon{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;border-radius:13px;background:rgba(205,246,73,.18);color:var(--ink)}
 .current-icon svg,.plan-mark svg,.inline-icon svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.plan-mark{display:inline-grid;place-items:center;width:28px;height:28px;vertical-align:middle;margin-right:7px;border-radius:9px;background:rgba(28,28,30,.05);color:#526d00}
+.plan-mark{display:inline-grid;place-items:center;width:28px;height:28px;vertical-align:middle;margin-right:7px;border-radius:9px;background:rgba(36,40,44,.05);color:#5D614B}
 .inline-icon{display:inline-grid;place-items:center;width:1.15em;height:1.15em;vertical-align:-.18em;margin-right:.35em;color:currentColor}
 .current-name{font-size:18px;font-weight:700;letter-spacing:-.02em}
 .current-sub{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:2px}
 .pill{margin-left:auto;font-size:11px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
-.pill.good{color:var(--good);background:rgba(58,157,93,.10);border-color:rgba(58,157,93,.25)}
-.pill.warn{color:var(--warn);background:rgba(180,83,9,.10);border-color:rgba(180,83,9,.25)}
-.pill.bad{color:var(--bad);background:rgba(198,40,40,.10);border-color:rgba(198,40,40,.25)}
+.pill.good{color:var(--good);background:rgba(163,164,141,.10);border-color:rgba(163,164,141,.25)}
+.pill.warn{color:var(--warn);background:rgba(255,78,0,.10);border-color:rgba(255,78,0,.25)}
+.pill.bad{color:var(--bad);background:rgba(255,78,0,.10);border-color:rgba(255,78,0,.25)}
 .pill.muted{color:var(--muted)}
 .usage{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
-.usage-row{background:rgba(28,28,30,.03);border-radius:12px;padding:10px 12px}
+.usage-row{background:rgba(36,40,44,.03);border-radius:12px;padding:10px 12px}
 .usage-row .u-top{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.usage-row .u-bar{height:6px;border-radius:99px;background:rgba(28,28,30,.08);overflow:hidden}
+.usage-row .u-bar{height:6px;border-radius:99px;background:rgba(36,40,44,.08);overflow:hidden}
 .usage-row .u-fill{height:100%;background:var(--lime);border-radius:99px;transition:width .4s}
 .usage-row .u-fill.hot{background:var(--warn)}
 .usage-row .u-reset{margin-top:6px;font-size:10px;color:var(--muted)}
@@ -71,13 +71,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:30px}
 .plan{background:var(--card);border:2px solid var(--border);border-radius:22px;padding:24px 20px;cursor:pointer;transition:.2s;position:relative;text-align:left;outline:none}
-.plan:hover{border-color:rgba(200,230,50,.5);transform:translateY(-2px);box-shadow:var(--shadow)}
+.plan:hover{border-color:rgba(205,246,73,.5);transform:translateY(-2px);box-shadow:var(--shadow)}
 /* role="button"+tabindex card: custom role="button" elements don't reliably get
    the click-suppresses-outline treatment a real <button> gets, so some webviews
    leave the raw UA default after a tap. :focus-visible below gives keyboard
    users the real ring; outline:none above only drops the unstyled fallback. */
-.plan:focus-visible{border-color:var(--lime);box-shadow:0 0 0 3px rgba(200,230,50,.35)}
-.plan.selected{border-color:var(--lime);background:rgba(200,230,50,.06);box-shadow:0 0 0 3px rgba(200,230,50,.18)}
+.plan:focus-visible{border-color:var(--lime);box-shadow:0 0 0 3px rgba(205,246,73,.35)}
+.plan.selected{border-color:var(--lime);background:rgba(205,246,73,.06);box-shadow:0 0 0 3px rgba(205,246,73,.18)}
 .plan.current-plan{opacity:.7;cursor:default;transform:none}
 .plan.current-plan:hover{transform:none;box-shadow:none;border-color:var(--border)}
 .plan.popular::before{content:'Most popular';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--lime);color:var(--ink);font-size:11px;font-weight:650;padding:3px 12px;border-radius:0 0 10px 10px;letter-spacing:.04em;text-transform:uppercase}
@@ -86,9 +86,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .plan-price span{font-size:14px;font-weight:600;color:var(--muted)}
 .plan-period{font-size:12px;color:var(--muted);margin-bottom:14px;min-height:16px}
 .plan-feat{list-style:none;display:grid;gap:6px;font-size:13px}
-.plan-feat li{display:flex;align-items:flex-start;gap:6px;color:#2a2a2a;line-height:1.4}
-.plan-feat li::before{content:'✓';font-weight:700;color:#6A8A0A;font-size:12px;margin-top:1px}
-.plan-current-tag{display:inline-block;font-size:11px;font-weight:650;color:var(--good);background:rgba(58,157,93,.1);padding:3px 10px;border-radius:999px;margin-bottom:10px}
+.plan-feat li{display:flex;align-items:flex-start;gap:6px;color:#24282C;line-height:1.4}
+.plan-feat li::before{content:'✓';font-weight:700;color:#5D614B;font-size:12px;margin-top:1px}
+.plan-current-tag{display:inline-block;font-size:11px;font-weight:650;color:var(--good);background:rgba(163,164,141,.1);padding:3px 10px;border-radius:999px;margin-bottom:10px}
 
 /* Payment box */
 .pay-box{background:var(--card);border:1.5px solid var(--border);border-radius:24px;padding:28px;box-shadow:var(--shadow)}
@@ -99,35 +99,35 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .step-body{flex:1;min-width:0}
 .step-body h3{font-size:14px;font-weight:650;margin-bottom:6px}
 .step-body p{font-size:13px;color:var(--muted);line-height:1.5}
-.iban-display{background:linear-gradient(135deg,#1C1C1E,#2C2C2E);border-radius:16px;padding:20px 22px;color:#F2F2F5;margin:10px 0}
+.iban-display{background:linear-gradient(135deg,#24282C,#24282C);border-radius:16px;padding:20px 22px;color:#FFFFFF;margin:10px 0}
 .iban-number{font-size:18px;font-weight:700;letter-spacing:.08em;font-family:var(--te-font-mono,ui-monospace,monospace);margin-bottom:12px;word-break:break-all}
 .iban-meta{display:flex;gap:20px;flex-wrap:wrap}
-.iban-meta-item .label{color:rgba(242,242,245,.45);text-transform:uppercase;letter-spacing:.08em;font-size:9px;margin-bottom:2px}
+.iban-meta-item .label{color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;font-size:9px;margin-bottom:2px}
 .iban-meta-item .val{font-weight:650;font-size:13px}
-.copy-btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(200,230,50,.18);color:#C8E64A;border:1.5px solid rgba(200,230,50,.28);border-radius:10px;font-weight:650;font-size:12px;cursor:pointer;transition:.15s}
-.copy-btn:hover{background:rgba(200,230,50,.28)}
+.copy-btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(205,246,73,.18);color:#CDF649;border:1.5px solid rgba(205,246,73,.28);border-radius:10px;font-weight:650;font-size:12px;cursor:pointer;transition:.15s}
+.copy-btn:hover{background:rgba(205,246,73,.28)}
 .form-field{margin-bottom:14px}
 .form-field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 .form-field input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font);font-size:14px;color:var(--ink);background:#fff;outline:none;transition:.15s}
-.form-field input:focus{border-color:rgba(200,230,50,.6);box-shadow:0 0 0 3px rgba(200,230,50,.15)}
+.form-field input:focus{border-color:rgba(205,246,73,.6);box-shadow:0 0 0 3px rgba(205,246,73,.15)}
 .submit-btn{width:100%;padding:15px;background:var(--ink);color:#fff;border:none;border-radius:14px;font-family:var(--font);font-weight:700;font-size:16px;cursor:pointer;transition:.18s;margin-top:8px}
-.submit-btn:hover{background:#2C2C2E;transform:translateY(-1px)}
+.submit-btn:hover{background:#24282C;transform:translateY(-1px)}
 .submit-btn:disabled{opacity:.5;transform:none;cursor:not-allowed}
 
 /* Pending box */
 .pending-box{background:var(--card);border:1.5px solid var(--border);border-radius:24px;padding:40px 28px;text-align:center;box-shadow:var(--shadow)}
-.pending-icon{width:56px;height:56px;display:grid;place-items:center;margin:0 auto 16px;border-radius:18px;background:rgba(200,230,50,.16);color:#5a7a00;animation:pendingPulse 2s ease-in-out infinite}
+.pending-icon{width:56px;height:56px;display:grid;place-items:center;margin:0 auto 16px;border-radius:18px;background:rgba(205,246,73,.16);color:#5D614B;animation:pendingPulse 2s ease-in-out infinite}
 .pending-icon svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 @keyframes pendingPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .pending-box h2{font-size:22px;font-weight:700;letter-spacing:-.03em;margin-bottom:8px}
 .pending-box p{font-size:14px;color:var(--muted);line-height:1.6;max-width:420px;margin:0 auto 20px}
-.invoice-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(200,230,50,.12);border:1.5px solid rgba(200,230,50,.28);border-radius:12px;font-family:var(--te-font-mono,ui-monospace,monospace);font-weight:650;font-size:14px;color:#5A7A00;margin-bottom:24px}
+.invoice-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(205,246,73,.12);border:1.5px solid rgba(205,246,73,.28);border-radius:12px;font-family:var(--te-font-mono,ui-monospace,monospace);font-weight:650;font-size:14px;color:#5D614B;margin-bottom:24px}
 .btn-row{display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap}
 .btn-row a{padding:12px 24px;border-radius:12px;font-weight:650;font-size:14px;text-decoration:none}
 .btn-dark{background:var(--ink);color:#fff}
-.btn-soft{background:rgba(23,23,25,.06);color:var(--ink);border:1.5px solid var(--border)}
+.btn-soft{background:rgba(36,40,44,.06);color:var(--ink);border:1.5px solid var(--border)}
 
-.err{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.2);color:#c62828;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px}
+.err{background:rgba(255,78,0,.08);border:1.5px solid rgba(255,78,0,.2);color:#24282C;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px}
 
 @media(max-width:600px){
   .nav{padding:0 14px}
@@ -163,14 +163,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
   .copy-btn,.submit-btn{min-height:44px}
 }
 </style>
-<link rel="stylesheet" href="styles/harmony.css?v=946">
-<link rel="stylesheet" href="styles/unify.css?v=946">
-<link rel="stylesheet" href="styles/mobile.css?v=946">
-<link rel="stylesheet" href="styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="styles/harmony.css?v=950">
+<link rel="stylesheet" href="styles/unify.css?v=950">
+<link rel="stylesheet" href="styles/mobile.css?v=950">
+<link rel="stylesheet" href="styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=946">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
-<link rel="stylesheet" href="styles/controls.css?v=946">
+<link rel="stylesheet" href="styles/figma-theme.css?v=950">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=950">
+<link rel="stylesheet" href="styles/controls.css?v=950">
 </head>
 <body class="fx">
 
@@ -283,7 +283,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
       <p style="font-size:13px;color:var(--muted)">You'll get an in-app notification when your plan is activated.</p>
       <div class="btn-row">
         <a href="index.html" class="btn-dark">Back to TeachEd</a>
-        <button class="btn-soft" onclick="cancelPendingPayment()" style="color:#991b1b;border-color:rgba(153,27,27,.2)">Cancel request</button>
+        <button class="btn-soft" onclick="cancelPendingPayment()" style="color:#24282C;border-color:rgba(255,78,0,.2)">Cancel request</button>
       </div>
     </div>
 
@@ -368,7 +368,7 @@ async function loadPaymentHistory() {
     const el = $('payment-history-list');
     const hist = $('payment-history');
     hist.hidden = false;
-    const statusColors = { approved:'#16a34a', rejected:'#dc2626', pending:'#d97706', canceled:'#6b7280' };
+    const statusColors = { approved:'#CDF649', rejected:'#FF4E00', pending:'#FFE44D', canceled:'#CACCC6' };
     el.innerHTML = payments.map(p => `
       <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px">
         <div style="flex:1;min-width:0">
@@ -378,7 +378,7 @@ async function loadPaymentHistory() {
         </div>
         <div style="text-align:right">
           <div style="font-weight:650;font-size:14px">${Number(p.amount||0).toFixed(2)} ${(p.currency||'USD').toUpperCase()}</div>
-          <span style="font:700 10px system-ui;padding:2px 8px;border-radius:999px;background:${statusColors[p.status]||'#6b7280'}22;color:${statusColors[p.status]||'#6b7280'}">${(p.status||'').toUpperCase()}</span>
+          <span style="font:700 10px system-ui;padding:2px 8px;border-radius:999px;background:${statusColors[p.status]||'#CACCC6'}66;color:#24282C">${(p.status||'').toUpperCase()}</span>
         </div>
       </div>`).join('');
   } catch {}
@@ -605,8 +605,8 @@ async function cancelPendingPayment() {
 
 init();
 </script>
-<script src="scripts/autogrow.js?v=946" defer></script>
-<script src="pwa-boot.js?v=946" defer></script>
-  <script src="scripts/signin-entry.js?v=946" defer></script>
+<script src="scripts/autogrow.js?v=950" defer></script>
+<script src="pwa-boot.js?v=950" defer></script>
+  <script src="scripts/signin-entry.js?v=950" defer></script>
 </body>
 </html>

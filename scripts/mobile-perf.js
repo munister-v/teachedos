@@ -166,7 +166,7 @@
       html.te-mobile-lite .share-card,
       html.te-mobile-lite .hero-card,
       html.te-mobile-lite .board-card:not(.selected):not(.dragging) {
-        box-shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 1px 6px rgba(14,14,16,.055) !important;
+        box-shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 1px 6px rgba(36,40,44,.055) !important;
         filter: none !important;
       }
 
@@ -177,7 +177,7 @@
       html.te-mobile-lite #card-editor,
       html.te-mobile-lite .mq-add-sheet,
       html.te-mobile-lite #share-panel {
-        box-shadow: 0 -8px 22px rgba(5,5,23,.14) !important;
+        box-shadow: 0 -8px 22px rgba(36,40,44,.14) !important;
       }
 
       html.te-mobile-lite .mp-pulse,

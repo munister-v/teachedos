@@ -98,21 +98,21 @@ function _ttBoardComposerMeta(output) {
     // Generated activities should read like printable worksheets on the board:
     // white by default, with category color only as border/accent.
     frameBg: '#ffffff',
-    frameBorder: base.color || '#0E0E10',
+    frameBorder: base.color || '#24282C',
     pale: cat === 'grammar' ? '#DCFCE7'
       : cat === 'reading' ? '#CFFAFE'
       : cat === 'speaking' ? '#FEF3C7'
       : cat === 'listening' ? '#E0E7FF'
       : cat === 'writing' ? '#FCE7F3'
       : cat === 'vocabulary' ? '#FAE8FF'
-      : '#E2E8F0'
+      : '#F6F6EF'
   };
 }
 
 function _ttAddTextCard(frame, x, y, w, h, text, opts = {}) {
   const data = defaultTextData({
     text: text != null ? text : (opts.html ? '' : ''),
-    textColor: opts.textColor || '#111827',
+    textColor: opts.textColor || '#5D614B',
     bgColor: opts.bgColor == null ? '#ffffff' : opts.bgColor,
     align: opts.align || 'left',
     fontSize: opts.fontSize || 14,
@@ -150,7 +150,7 @@ function _ttStickyAccent(color) {
   if (/C8E6|BBF|86EF|D9F9|DCFCE|10B9|6EE7/.test(c)) return '#10B981';        // green
   if (/BBDE|BAE6|93C5|3B82|DBEA|67E8/.test(c)) return '#6E8FB0';             // blue
   if (/E8D5|DDD6|C4B5|F8BB|FCE7|F3E8|8B5C|EC2/.test(c)) return '#8B5CF6';    // pink/purple
-  return '#0E0E10';
+  return '#24282C';
 }
 // Body HTML for a panel: escape + **bold** + newlines, via the shared helper.
 function _ttPanelBody(text) {
@@ -161,13 +161,13 @@ function _ttPanelBody(text) {
 // white panel (accent left-rule, soft shadow, Apple font) keeping the exact
 // same footprint. If the text starts with a short heading + blank line it gets
 // an uppercase section label; otherwise the whole thing is the body.
-function _ttAddStickyCard(frame, x, y, w, h, text, color = '#FFF9C4') {
+function _ttAddStickyCard(frame, x, y, w, h, text, color = '#F3DF6B') {
   const accent = _ttStickyAccent(color);
   const raw = String(text || '');
   const m = raw.match(/^([^\n]{1,56})\n\n([\s\S]+)$/);
   const html = m
-    ? _ttReadingSection(_ttStripMd(m[1]).trim(), `<div style="font:500 13.5px/1.55 var(--font);color:#232830">${_ttPanelBody(m[2])}</div>`, accent, '#ffffff')
-    : `<div style="box-sizing:border-box;background:#fff;border:1px solid rgba(17,24,39,.09);border-left:4px solid ${accent};border-radius:13px;padding:12px 14px;box-shadow:0 1px 3px rgba(17,24,39,.05);font:500 13.5px/1.5 var(--font);color:#232830">${_ttPanelBody(raw)}</div>`;
+    ? _ttReadingSection(_ttStripMd(m[1]).trim(), `<div style="font:500 13.5px/1.55 var(--font);color:#24282C">${_ttPanelBody(m[2])}</div>`, accent, '#ffffff')
+    : `<div style="box-sizing:border-box;background:#fff;border:1px solid rgba(93,97,75,.09);border-left:4px solid ${accent};border-radius:13px;padding:12px 14px;box-shadow:0 1px 3px rgba(93,97,75,.05);font:500 13.5px/1.5 var(--font);color:#24282C">${_ttPanelBody(raw)}</div>`;
   return _ttAddTextCard(frame, x, y, w, h, null, { html, bgColor: 'transparent' });
 }
 
@@ -180,27 +180,27 @@ function _ttLessonStageMeta(card, index) {
   const body = String(card?.text || '');
   const hay = `${title}\n${body}`.toLowerCase();
   if (/glossary|vocab|word bank|key words|lexis|collocation/.test(hay)) {
-    return { label: 'Vocabulary', accent: '#65A30D', bg: '#F7FEE7' };
+    return { label: 'Vocabulary', accent: '#A3A48D', bg: '#D3F36B' };
   }
   if (/before|warm|lead[- ]?in|pre[- ]?task|starter|hook/.test(hay)) {
-    return { label: 'Warm-up', accent: '#D97706', bg: '#FAFAFD' };
+    return { label: 'Warm-up', accent: '#FF8C3A', bg: '#F6F6EF' };
   }
   if (/reading|listening|input|text|article|dialogue|transcript/.test(hay) && body.length > 120) {
-    return { label: 'Input', accent: '#2563EB', bg: '#EFF6FF' };
+    return { label: 'Input', accent: '#6B42FD', bg: '#F6F6EF' };
   }
   if (/question|comprehension|check|quiz|true|false|multiple choice/.test(hay)) {
-    return { label: 'Check', accent: '#4F46E5', bg: '#EEF2FF' };
+    return { label: 'Check', accent: '#6B42FD', bg: '#F6F6EF' };
   }
   if (/after|discussion|speaking|role|pair|group|debate|conversation/.test(hay)) {
-    return { label: 'Speaking', accent: '#7C3AED', bg: '#F5F3FF' };
+    return { label: 'Speaking', accent: '#6B42FD', bg: '#F6F6EF' };
   }
   if (/write|writing|homework|journal|reflect|output|assignment/.test(hay)) {
-    return { label: 'Output', accent: '#DB2777', bg: '#FDF2F8' };
+    return { label: 'Output', accent: '#886BF3', bg: '#F6F6EF' };
   }
   if (/answer|key|teacher|note|feedback|solution/.test(hay)) {
-    return { label: 'Teacher', accent: '#475569', bg: '#F2F2F5' };
+    return { label: 'Teacher', accent: '#6B42FD', bg: '#F6F6EF' };
   }
-  return { label: `Stage ${index + 1}`, accent: '#0E0E10', bg: '#F2F2F5' };
+  return { label: `Stage ${index + 1}`, accent: '#24282C', bg: '#F6F6EF' };
 }
 
 function _ttLessonStageHtml(card, index, stageMeta) {
@@ -208,15 +208,15 @@ function _ttLessonStageHtml(card, index, stageMeta) {
   const title = esc(rawTitle || `Stage ${index + 1}`);
   const body = _ttPanelBody(card?.text || '');
   return `
-    <div style="height:100%;box-sizing:border-box;background:#fff;border:1px solid rgba(15,23,42,.09);border-radius:18px;box-shadow:0 10px 28px rgba(15,23,42,.07);overflow:hidden;display:flex;flex-direction:column">
-      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid rgba(15,23,42,.06);background:linear-gradient(180deg,${stageMeta.bg},#fff)">
-        <div style="width:30px;height:30px;border-radius:11px;background:${stageMeta.accent};color:#fff;display:flex;align-items:center;justify-content:center;font:900 13px/1 var(--font);box-shadow:0 6px 14px rgba(15,23,42,.14)">${index + 1}</div>
+    <div style="height:100%;box-sizing:border-box;background:#fff;border:1px solid rgba(93,97,75,.09);border-radius:18px;box-shadow:0 10px 28px rgba(93,97,75,.07);overflow:hidden;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid rgba(93,97,75,.06);background:linear-gradient(180deg,${stageMeta.bg},#fff)">
+        <div style="width:30px;height:30px;border-radius:11px;background:${stageMeta.accent};color:#fff;display:flex;align-items:center;justify-content:center;font:900 13px/1 var(--font);box-shadow:0 6px 14px rgba(93,97,75,.14)">${index + 1}</div>
         <div style="min-width:0;flex:1">
           <div style="font:900 9.5px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;color:${stageMeta.accent};margin-bottom:5px">${esc(stageMeta.label)}</div>
-          <div style="font:900 16px/1.18 var(--font);letter-spacing:-.02em;color:#0E0E10;white-space:normal">${title}</div>
+          <div style="font:900 16px/1.18 var(--font);letter-spacing:-.02em;color:#24282C;white-space:normal">${title}</div>
         </div>
       </div>
-      <div style="padding:12px 15px 14px;font:500 13.5px/1.55 var(--font);color:#263241;overflow:auto;min-height:0;flex:1">
+      <div style="padding:12px 15px 14px;font:500 13.5px/1.55 var(--font);color:#5D614B;overflow:auto;min-height:0;flex:1">
         ${body}
       </div>
     </div>`;
@@ -228,7 +228,7 @@ function _ttLessonOverviewHtml(output, cards, meta) {
   const topic = output.topic || String(output.title || '').replace(/^[^:]*:\s*/, '') || 'Classroom lesson';
   const stages = cards.length;
   return `
-    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:20px 22px;background:linear-gradient(135deg,#0E0E10 0%,#1C1C1E 52%,${meta.frameBorder || '#0E0E10'} 170%);color:#fff;box-shadow:0 18px 44px rgba(14,14,16,.18);display:flex;align-items:center;justify-content:space-between;gap:24px;overflow:hidden">
+    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:20px 22px;background:linear-gradient(135deg,#24282C 0%,#24282C 52%,${meta.frameBorder || '#24282C'} 170%);color:#fff;box-shadow:0 18px 44px rgba(36,40,44,.18);display:flex;align-items:center;justify-content:space-between;gap:24px;overflow:hidden">
       <div style="min-width:0;max-width:820px">
         <div style="font:900 10px/1 var(--font);letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.56);margin-bottom:10px">Generated lesson flow</div>
         <div style="font:950 30px/1.04 var(--font);letter-spacing:-.04em;color:#fff;white-space:normal">${esc(output.title || 'Lesson pack')}</div>
@@ -248,16 +248,16 @@ function _ttLessonMapHtml(cards) {
     const stage = _ttLessonStageMeta(c, i);
     const title = esc(_ttCardSnippet(_ttStripMd(c?.title || `Stage ${i + 1}`), 38));
     return `<div style="display:flex;gap:9px;align-items:flex-start;margin:0 0 9px">
-      <span style="width:22px;height:22px;border-radius:8px;background:${stage.bg};border:1px solid rgba(15,23,42,.08);color:${stage.accent};display:flex;align-items:center;justify-content:center;font:900 10px/1 var(--font);flex:0 0 auto">${i + 1}</span>
-      <span style="font:800 12px/1.25 var(--font);color:#172033">${title}</span>
+      <span style="width:22px;height:22px;border-radius:8px;background:${stage.bg};border:1px solid rgba(93,97,75,.08);color:${stage.accent};display:flex;align-items:center;justify-content:center;font:900 10px/1 var(--font);flex:0 0 auto">${i + 1}</span>
+      <span style="font:800 12px/1.25 var(--font);color:#5D614B">${title}</span>
     </div>`;
   }).join('');
   const extra = cards.length > 10
-    ? `<div style="margin-top:4px;font:800 11px/1.4 var(--font);color:#64748B">+ ${cards.length - 10} more generated stages</div>`
+    ? `<div style="margin-top:4px;font:800 11px/1.4 var(--font);color:#6B42FD">+ ${cards.length - 10} more generated stages</div>`
     : '';
   return `
-    <div style="height:100%;box-sizing:border-box;background:#fff;border:1px solid rgba(15,23,42,.09);border-radius:18px;box-shadow:0 10px 28px rgba(15,23,42,.06);padding:15px 16px;overflow:auto">
-      <div style="font:950 16px/1.15 var(--font);letter-spacing:-.02em;color:#0E0E10;margin-bottom:10px">Lesson map</div>
+    <div style="height:100%;box-sizing:border-box;background:#fff;border:1px solid rgba(93,97,75,.09);border-radius:18px;box-shadow:0 10px 28px rgba(93,97,75,.06);padding:15px 16px;overflow:auto">
+      <div style="font:950 16px/1.15 var(--font);letter-spacing:-.02em;color:#24282C;margin-bottom:10px">Lesson map</div>
       ${items}${extra}
     </div>`;
 }
@@ -265,18 +265,18 @@ function _ttLessonMapHtml(cards) {
 function _ttActivityOverviewHtml(output, count, meta, eyebrow, note) {
   const level = output.level || 'B1';
   const kind = output.kind || output.boardKind || 'Activity';
-  const accent = meta.frameBorder || '#0E0E10';
+  const accent = meta.frameBorder || '#24282C';
   return `
-    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:18px 22px;background:linear-gradient(135deg,#F2F2F5 0%,#FFFFFF 48%,${meta.pale || '#E2E8F0'} 170%);border:1px solid rgba(15,23,42,.08);box-shadow:0 14px 34px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden">
+    <div style="height:100%;box-sizing:border-box;border-radius:20px;padding:18px 22px;background:linear-gradient(135deg,#F6F6EF 0%,#FFFFFF 48%,${meta.pale || '#F6F6EF'} 170%);border:1px solid rgba(93,97,75,.08);box-shadow:0 14px 34px rgba(93,97,75,.08);display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden">
       <div style="min-width:0;max-width:760px">
         <div style="font:950 10px/1 var(--font);letter-spacing:.18em;text-transform:uppercase;color:${accent};margin-bottom:10px">${esc(eyebrow || 'Board activity')}</div>
-        <div style="font:950 27px/1.05 var(--font);letter-spacing:-.04em;color:#0E0E10;white-space:normal">${esc(output.title || 'Generated activity')}</div>
-        <div style="font:500 13.5px/1.45 var(--font);color:#586174;margin-top:9px;max-width:720px">${esc(note || 'Run the activity from left to right, then collect feedback in the side rail.')}</div>
+        <div style="font:950 27px/1.05 var(--font);letter-spacing:-.04em;color:#24282C;white-space:normal">${esc(output.title || 'Generated activity')}</div>
+        <div style="font:500 13.5px/1.45 var(--font);color:#6B42FD;margin-top:9px;max-width:720px">${esc(note || 'Run the activity from left to right, then collect feedback in the side rail.')}</div>
       </div>
       <div style="display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;max-width:330px">
-        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0E0E10">${esc(level)}</span>
-        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0E0E10">${esc(kind)}</span>
-        <span style="border:1px solid rgba(15,23,42,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#0E0E10">${count} items</span>
+        <span style="border:1px solid rgba(93,97,75,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#24282C">${esc(level)}</span>
+        <span style="border:1px solid rgba(93,97,75,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#24282C">${esc(kind)}</span>
+        <span style="border:1px solid rgba(93,97,75,.09);background:#fff;border-radius:999px;padding:8px 11px;font:950 11px/1 var(--font);letter-spacing:.04em;color:#24282C">${count} items</span>
       </div>
     </div>`;
 }
@@ -356,25 +356,25 @@ function _ttPlaceMatchingOrSortingBoard(output, meta) {
       { textColor: meta.frameBorder, fontSize: 15 });
 
     const bankW = 250, colW = 330, cardH = 58, gap = 12;
-    _ttAddTextCard(frame, x0 + PAD, y0 + 172, bankW, 52, 'Word bank\nMove these into the right matches.', { bgColor: '#F2F2F5', fontSize: 13 });
+    _ttAddTextCard(frame, x0 + PAD, y0 + 172, bankW, 52, 'Word bank\nMove these into the right matches.', { bgColor: '#F6F6EF', fontSize: 13 });
     pairs.forEach((p, i) => {
       const col = i % 2, row = Math.floor(i / 2);
-      _ttAddStickyCard(frame, x0 + PAD + col * (bankW + gap), y0 + 238 + row * (cardH + gap), bankW, cardH, p.left, i % 2 ? '#FFE0B2' : '#FFF176');
+      _ttAddStickyCard(frame, x0 + PAD + col * (bankW + gap), y0 + 238 + row * (cardH + gap), bankW, cardH, p.left, i % 2 ? '#F3DF6B' : '#F3DF6B');
     });
 
     const matchX = x0 + PAD + 2 * (bankW + gap) + 26;
-    _ttAddTextCard(frame, matchX, y0 + 172, colW, 52, 'Student matching zone\nDefinitions / categories.', { bgColor: '#F2F2F5', fontSize: 13 });
+    _ttAddTextCard(frame, matchX, y0 + 172, colW, 52, 'Student matching zone\nDefinitions / categories.', { bgColor: '#F6F6EF', fontSize: 13 });
     pairs.forEach((p, i) => {
       const row = i;
       if (row > 11) return;
-      _ttAddStickyCard(frame, matchX, y0 + 238 + row * (cardH + gap), colW, cardH, p.right || 'Definition / category', i % 2 ? '#C8E6C9' : '#BBDEFB');
+      _ttAddStickyCard(frame, matchX, y0 + 238 + row * (cardH + gap), colW, cardH, p.right || 'Definition / category', i % 2 ? '#A3A48D' : '#6BAFF3');
     });
 
     const keyLines = (match?.pairs || []).map((p, i) => `${i + 1}. ${p.left} -> ${p.right}`);
     const sideX = matchX + colW + 28;
     _ttAddStickyCard(frame, sideX, y0 + 172, 360, Math.min(520, FRAME_H - 430),
       `Teacher key\n\n${keyLines.join('\n')}`,
-      '#E8D5FF');
+      '#9F8CE8');
     _ttAddChecklistCard(frame, sideX, y0 + FRAME_H - 220, 360, 168, 'Run this activity', [
       'Students match individually first',
       'Pairs compare answers',
@@ -400,7 +400,7 @@ function _ttPlaceQuizBoard(output, meta) {
   const center = findFreePlacement(c0.x, c0.y, FRAME_W, FRAME_H);
   const x0 = Math.round(center.x - FRAME_W / 2), y0 = Math.round(center.y - FRAME_H / 2);
   const totalPts = questions.reduce((s, q) => s + (q.points || 1), 0);
-  const qColors = ['#FFF9C4', '#D9F99D', '#BAE6FD', '#FBCFE8', '#DDD6FE'];
+  const qColors = ['#F3DF6B', '#D3F36B', '#6BAFF3', '#9F8CE8', '#F3A46B'];
 
   snapshot(); _suppressSnapshot++;
   let frame;
@@ -444,10 +444,10 @@ function _ttPlaceQuizBoard(output, meta) {
     const keyText = questions.map((q, i) => `${i + 1}. ${_ttQuestionAnswerText(q) || 'Open answer'}`).join('\n');
     _ttAddStickyCard(frame, gridX + 3 * (cardW + gap), y0 + 170, 310, Math.min(520, FRAME_H - 450),
       `Teacher key\n\n${keyText}`,
-      '#E8D5FF');
+      '#9F8CE8');
     _ttAddStickyCard(frame, gridX + 3 * (cardW + gap), y0 + FRAME_H - 230, 310, 178,
       'Mistake bank\n\nAfter checking, copy 2-3 common mistakes here and ask students to repair them.',
-      '#FFD580');
+      '#F3DF6B');
   } finally {
     _suppressSnapshot--;
   }
@@ -492,14 +492,14 @@ function _ttPlaceVocabStudioBoard(output, meta) {
     const sideX = x0 + PAD + cols * (VW + gap) + 8;
     _ttAddStickyCard(frame, sideX, startY, 300, 208,
       `Retrieval drill\n\n1. Hide definitions.\n2. Students explain in simple English.\n3. Add a personal example.\n4. Star hard words for homework.`,
-      '#D9F99D');
+      '#D3F36B');
     _ttAddStickyCard(frame, sideX, startY + 224, 300, 208,
       `Game handoff\n\nUse these words for:\n• matching\n• odd one out\n• word sorting\n• flashcards\n• sentence race`,
-      '#BAE6FD');
+      '#6BAFF3');
     if (items.length > visible) {
       _ttAddStickyCard(frame, sideX, startY + 448, 300, 190,
         `Extra words (${items.length - visible})\n\n${items.slice(visible).map((it, i) => `${visible + i + 1}. ${it.word}`).join('\n')}`,
-        '#FCE7F3');
+        '#F6F6EF');
     }
     _ttAddChecklistCard(frame, sideX, y0 + FRAME_H - 190, 300, 138, 'Teacher checks', [
       'Meaning clear',
@@ -573,11 +573,11 @@ function _ttPlaceCardFlowBoard(output, meta) {
       ]);
       _ttAddStickyCard(frame, sideX, y0 + GRID_TOP + 536, RAIL_W, 150,
         'Teacher rail\n\nUse this side area for timing, feedback notes and student examples while the lesson runs.',
-        '#BAE6FD');
+        '#6BAFF3');
       if (cards.length > visibleCards) {
         _ttAddStickyCard(frame, sideX, y0 + GRID_TOP + 704, RAIL_W, 130,
           `More stages\n\n${cards.slice(visibleCards).map((c, i) => `${visibleCards + i + 1}. ${c.title}`).join('\n')}`,
-          '#FCE7F3');
+          '#F6F6EF');
       }
     } finally {
       _suppressSnapshot--;
@@ -661,7 +661,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
       isSpeaking
         ? 'Feedback wall\n\nStrong phrase:\nCorrection:\nNext-level phrase:\nFollow-up question:'
         : 'Teacher note\n\nAsk students to edit, rank, connect or reuse these cards in a final output.',
-      '#E8D5FF');
+      '#9F8CE8');
     _ttAddChecklistCard(frame, sideX, y0 + GRID_TOP + 670, RAIL_W, 154, 'Run it', [
       'Give silent prep time',
       'Pair / group attempt',
@@ -671,7 +671,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
     if (cards.length > visibleCards) {
       _ttAddStickyCard(frame, sideX, y0 + GRID_TOP + 842, RAIL_W, 126,
         `More cards\n\n${cards.slice(visibleCards).map((c, i) => `${visibleCards + i + 1}. ${c.title}`).join('\n')}`,
-        '#FCE7F3');
+        '#F6F6EF');
     }
   } finally {
     _suppressSnapshot--;
@@ -685,7 +685,7 @@ function _ttPlaceCardFlowBoard(output, meta) {
 // accent rule, soft shadow, comfortable padding) rendered inside a transparent
 // text card so the whole thing reads like a printed worksheet but stays editable.
 function _ttReadingSection(label, bodyHtml, accent, bg) {
-  return `<div style="box-sizing:border-box;background:${bg || '#ffffff'};border:1px solid rgba(17,24,39,.09);border-left:4px solid ${accent};border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(17,24,39,.05);font-family:var(--font)">`
+  return `<div style="box-sizing:border-box;background:${bg || '#ffffff'};border:1px solid rgba(93,97,75,.09);border-left:4px solid ${accent};border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(93,97,75,.05);font-family:var(--font)">`
     + `<div style="font:800 10.5px var(--font);letter-spacing:.09em;text-transform:uppercase;color:${accent};margin:0 0 11px">${esc(label)}</div>`
     + bodyHtml + `</div>`;
 }
@@ -693,22 +693,22 @@ function _ttReadingTextBody(text) {
   const raw = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
   let title = '';
   if (raw.length > 1 && raw[0].length <= 64 && !/[.!?:]$/.test(raw[0])) title = raw.shift();
-  const titleHtml = title ? `<div style="font:800 19px var(--font);color:#0f172a;line-height:1.3;margin:0 0 12px">${_ttMdInline(title)}</div>` : '';
+  const titleHtml = title ? `<div style="font:800 19px var(--font);color:#5D614B;line-height:1.3;margin:0 0 12px">${_ttMdInline(title)}</div>` : '';
   const body = raw.map(p => `<p style="margin:0 0 11px">${_ttMdInline(p)}</p>`).join('');
-  return `${titleHtml}<div style="font:400 15.5px/1.72 var(--font);color:#232830">${body}</div>`;
+  return `${titleHtml}<div style="font:400 15.5px/1.72 var(--font);color:#24282C">${body}</div>`;
 }
 function _ttReadingGlossaryBody(text) {
   return String(text || '').split('\n').map(l => l.trim()).filter(Boolean).map(r => {
     const parts = r.split(/\s+[-]\s+/);
     if (parts.length >= 2) {
       const w = parts.shift();
-      return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px"><span style="font-weight:700;color:#0f172a">${_ttMdInline(w)}</span><span style="color:#5b6472"> - ${_ttMdInline(parts.join(' - '))}</span></div>`;
+      return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px"><span style="font-weight:700;color:#5D614B">${_ttMdInline(w)}</span><span style="color:#5D614B"> - ${_ttMdInline(parts.join(' - '))}</span></div>`;
     }
-    return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px;color:#232830">${_ttMdInline(r)}</div>`;
+    return `<div style="margin:0 0 9px;line-height:1.5;font-size:13.5px;color:#24282C">${_ttMdInline(r)}</div>`;
   }).join('');
 }
 function _ttReadingQuestionsBody(text) {
-  return `<div style="font:400 14.5px/1.6 var(--font);color:#232830">`
+  return `<div style="font:400 14.5px/1.6 var(--font);color:#24282C">`
     + String(text || '').split('\n').map(l => l.trim()).filter(Boolean)
         .map(r => `<div style="margin:0 0 8px">${_ttMdInline(r)}</div>`).join('')
     + `</div>`;

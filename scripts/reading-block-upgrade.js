@@ -265,7 +265,7 @@
     try { if (typeof _suppressSnapshot !== "undefined") _suppressSnapshot++; } catch (_) {}
     let frame;
     try {
-      frame = window.addCard("frame", x0, y0, { title: `Reading block · ${source.title || state.topic}`, bg: "#ffffff", border: "rgba(66,98,255,.34)", childIds: [] }, frameW, frameH);
+      frame = window.addCard("frame", x0, y0, { title: `Reading block · ${source.title || state.topic}`, bg: "#ffffff", border: "rgba(107,66,253,.34)", childIds: [] }, frameW, frameH);
       slots.forEach((slot, index) => {
         const row = Math.floor(index / cols);
         const col = index % cols;
@@ -278,7 +278,7 @@
             "",
             source.text,
           ].join("\n");
-          card = window.addCard("text", x, y, window.defaultTextData({ text: body, bgColor: "#F8FAFC", textColor: "#111827", fontSize: 15 }), cardW, slot.h);
+          card = window.addCard("text", x, y, window.defaultTextData({ text: body, bgColor: "#F6F6EF", textColor: "#5D614B", fontSize: 15 }), cardW, slot.h);
         } else if (slot.type === "flow") {
           const words = source.text.split(/\s+/).filter(Boolean).length;
           const flow = [
@@ -293,7 +293,7 @@
             "4. Text evidence: underline proof for every answer.",
             "5. After reading: discuss, summarise, or write a response.",
           ].filter(Boolean).join("\n");
-          card = window.addCard("text", x, y, window.defaultTextData({ text: `Reading lesson flow\n\n${flow}`, bgColor: "#EEF2FF", textColor: "#172554", fontSize: 14 }), cardW, slot.h);
+          card = window.addCard("text", x, y, window.defaultTextData({ text: `Reading lesson flow\n\n${flow}`, bgColor: "#F6F6EF", textColor: "#6B42FD", fontSize: 14 }), cardW, slot.h);
         } else {
           const out = slot.out;
           card = window.addCard("worksheet", x, y, {
@@ -310,7 +310,7 @@
         frame && card && window.setCardParentFrame?.(card, frame);
       });
       const keyY = y0 + 58 + rowH.reduce((a, b) => a + b, 0) + (rowH.length - 1) * gap + 28;
-      const key = window.addCard("text", x0 + 22, keyY, window.defaultTextData({ text: `Teacher key\n\n${answerKey(cards)}`, bgColor: "#F0FDFA", textColor: "#0F3B42", fontSize: 14 }), frameW - 44, 176);
+      const key = window.addCard("text", x0 + 22, keyY, window.defaultTextData({ text: `Teacher key\n\n${answerKey(cards)}`, bgColor: "#F6F6EF", textColor: "#5D614B", fontSize: 14 }), frameW - 44, 176);
       frame && key && window.setCardParentFrame?.(key, frame);
       window.renumberFrames?.();
       window._sendCardToBack?.(frame);

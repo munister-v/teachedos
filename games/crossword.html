@@ -9,32 +9,32 @@
 <title>Crossword</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#1C1C1E;--lime:#C8E632}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+:root{--accent:#24282C;--lime:#CDF649}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#525252;font-size:.9rem;margin-bottom:20px;text-align:center}
-.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:620px;text-align:center}
-.top{display:flex;justify-content:space-between;margin-bottom:14px;font-weight:700;color:#525252;font-size:.9rem}
+.subtitle{color:#5D614B;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:24px 18px;box-shadow:0 4px 24px #CDF64918;width:100%;max-width:620px;text-align:center}
+.top{display:flex;justify-content:space-between;margin-bottom:14px;font-weight:700;color:#5D614B;font-size:.9rem}
 .top span{color:var(--accent)}
 .grid{display:inline-grid;gap:2px;background:var(--accent);border-radius:8px;padding:4px;margin-bottom:18px}
 .cell{width:32px;height:32px;position:relative}
 .cell.block{background:transparent}
-.cell.fill{background:#F8F8FB;border-radius:3px}
+.cell.fill{background:#F6F6EF;border-radius:3px}
 .cell input{width:100%;height:100%;border:none;background:transparent;text-align:center;text-transform:uppercase;font-weight:800;font-size:1rem;color:var(--accent);border-radius:3px;font-family:inherit}
 .cell input:focus{outline:2px solid var(--lime)}
-.cell input.correct{background:#e8f5e9;color:#2e7d32}
-.cell input.incorrect{background:#fce4ec;color:#c62828}
+.cell input.correct{background:#F6F6EF;color:#5D614B}
+.cell input.incorrect{background:#F6F6EF;color:#24282C}
 /* Номер клетки - не значок, а текст, который читают: .55rem на телефоне
    даёт 8.8px, ниже порога кегля продукта (11px). */
-.cell .num{position:absolute;top:1px;left:2px;font-size:max(11px,.55rem);font-weight:700;color:#525252;pointer-events:none}
+.cell .num{position:absolute;top:1px;left:2px;font-size:max(11px,.55rem);font-weight:700;color:#5D614B;pointer-events:none}
 .clues{display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:left;margin-bottom:8px}
 .clues h3{font-size:.85rem;color:var(--accent);margin-bottom:6px;font-weight:800}
-.clues ol{font-size:.8rem;color:#555;padding-left:18px;line-height:1.6}
-.feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:22px;color:#525252}
+.clues ol{font-size:.8rem;color:#5D614B;padding-left:18px;line-height:1.6}
+.feedback{margin-top:14px;font-size:.95rem;font-weight:700;min-height:22px;color:#5D614B}
 .actions{display:flex;gap:10px;justify-content:center;margin-top:14px}
 .actions button{padding:12px 22px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:.9rem;cursor:pointer;background:var(--accent);color:#fff}
-.actions button.secondary{background:#F8F8FB;color:var(--accent);border:2px solid #e4e4e7}
+.actions button.secondary{background:#F6F6EF;color:var(--accent);border:2px solid #CACCC6}
 @media (max-width:480px){
   /* Клетка меряется от ширины экрана, а не константой: сетка кроссворда
      бывает и в 15 столбцов, а при фиксированных 26px такая уезжала на 414px
@@ -58,10 +58,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
   .grid{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=946">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=950">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -367,7 +367,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=946"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=946"></script>
+<script src="../scripts/game-handoff.js?v=950"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=950"></script>
 </body>
 </html>

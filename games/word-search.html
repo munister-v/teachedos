@@ -6,26 +6,26 @@
 <title>Word Search</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;user-select:none;-webkit-user-select:none}
-.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
-h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;user-select:none;-webkit-user-select:none}
+.back{align-self:flex-start;color:#24282C;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
+h1{font-size:1.4rem;font-weight:800;color:#24282C;margin-bottom:2px}
 .hud{display:flex;justify-content:space-between;width:100%;max-width:440px;margin:8px 0}
-.hud span{font-size:.85rem;color:#555;font-weight:600}
-#timer{font-weight:800;color:#0E0E10}
-.grid-wrap{width:100%;max-width:440px;background:#fff;border-radius:16px;padding:12px;box-shadow:0 4px 18px rgba(0,0,0,.09);margin-bottom:12px;overflow:hidden}
+.hud span{font-size:.85rem;color:#5D614B;font-weight:600}
+#timer{font-weight:800;color:#24282C}
+.grid-wrap{width:100%;max-width:440px;background:#fff;border-radius:16px;padding:12px;box-shadow:0 4px 18px rgba(36,40,44,.09);margin-bottom:12px;overflow:hidden}
 #grid{display:grid;gap:0;width:100%}
 .cell{display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-weight:700;font-size:1rem;border-radius:4px;cursor:pointer;transition:background .1s;aspect-ratio:1}
-.cell.selecting{background:#CDF24F}
-.cell.found{background:#EC2D8C;color:#fff}
-.cell.selecting.found{background:#EC2D8C;color:#fff}
+.cell.selecting{background:#CDF649}
+.cell.found{background:#886BF3;color:#fff}
+.cell.selecting.found{background:#886BF3;color:#fff}
 .words-grid{display:flex;flex-wrap:wrap;gap:6px 10px;width:100%;max-width:440px}
-.wtag{font-size:.82rem;font-weight:700;color:#0E0E10;text-transform:uppercase;letter-spacing:.5px}
-.wtag.done{text-decoration:line-through;color:#525252}
-.win-msg{display:none;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.wtag{font-size:.82rem;font-weight:700;color:#24282C;text-transform:uppercase;letter-spacing:.5px}
+.wtag.done{text-decoration:line-through;color:#5D614B}
+.win-msg{display:none;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:32px;box-shadow:0 4px 24px rgba(36,40,44,.1)}
 .win-msg h2{font-size:1.8rem;font-weight:800;margin-bottom:8px}
-.win-msg p{color:#555;margin-bottom:20px}
+.win-msg p{color:#5D614B;margin-bottom:20px}
 .big{font-size:3rem;margin-bottom:8px}
-.btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
+.btn-play{background:#CDF649;color:#24282C;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
 
 /* Телефон. Клетка сетки - цель нажатия, а порог 44px здесь недостижим по
    геометрии: двенадцать колонок это 528px при экране в 375. Поэтому берём
@@ -37,9 +37,9 @@ h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
   .grid-wrap{padding:6px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>
@@ -56,9 +56,9 @@ h1{font-size:1.4rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
   <button class="btn-play" onclick="init()">Play Again</button>
 </div>
 
-<script src="../scripts/game-handoff.js?v=946"></script>
-<script src="../scripts/game-pause.js?v=946"></script>
-<script src="../scripts/vocabulary.js?v=946"></script>
+<script src="../scripts/game-handoff.js?v=950"></script>
+<script src="../scripts/game-pause.js?v=950"></script>
+<script src="../scripts/vocabulary.js?v=950"></script>
 <script>
 let WORDS=['COMFORT','NEGOTIATE','PREJUDICE','ABUNDANCE','VULNERABLE','DELIBERATE','PHENOMENON','INEVITABLE'];
 (function loadFromUrl(){

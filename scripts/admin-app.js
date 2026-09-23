@@ -772,7 +772,7 @@ async function loadAIUsage() {
       const day = r.day.slice(5); // MM-DD
       const tip = `${r.day}: ${r.total} total · ${r.llm_ok} LLM · ${r.fallback} fallback · ${r.cache_hits} cache`;
       return `<div title="${tip}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
-        <div style="width:100%;height:${h}px;background:var(--lime,#9ae600);border-radius:3px 3px 0 0;min-height:4px"></div>
+        <div style="width:100%;height:${h}px;background:var(--lime,#CDF649);border-radius:3px 3px 0 0;min-height:4px"></div>
         <div style="font-size:9px;color:var(--muted)">${day}</div>
       </div>`;
     }).join('');
@@ -1329,9 +1329,9 @@ async function loadUsers() {
     tbody.innerHTML = d.users.map(u => {
       const isSelected = selectedUserIds.has(u.id);
       const statusBadge = u.is_suspended
-        ? '<span class="badge" style="background:#dc2626;color:#fff;font-size:10px">SUSPENDED</span>'
+        ? '<span class="badge" style="background:#FF4E00;color:#fff;font-size:10px">SUSPENDED</span>'
         : u.locked_at
-          ? '<span class="badge" style="background:#ea580c;color:#fff;font-size:10px">LOCKED</span>'
+          ? '<span class="badge" style="background:#FF4E00;color:#fff;font-size:10px">LOCKED</span>'
           : '';
       return `<tr${u.is_suspended ? ' style="opacity:.65"' : ''}>
         <td><input type="checkbox" class="row-check" data-id="${u.id}" onchange="toggleRowCheck(this)" ${isSelected?'checked':''} style="accent-color:var(--lime);cursor:pointer"></td>
@@ -1352,7 +1352,7 @@ async function loadUsers() {
             <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','drawer')">View</button>
             <button class="btn-sm btn-edit" onclick="_openCachedUser('${u.id}','edit')">Edit</button>
             <button class="btn-sm btn-orange" onclick="kickUser('${u.id}','${escAttr(u.name)}')">End session</button>
-            ${u.locked_at ? `<button class="btn-sm" style="background:#ea580c;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer" onclick="unlockUser('${u.id}','${escAttr(u.name)}')">Unlock</button>` : ''}
+            ${u.locked_at ? `<button class="btn-sm" style="background:#FF4E00;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer" onclick="unlockUser('${u.id}','${escAttr(u.name)}')">Unlock</button>` : ''}
             <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}','${escAttr(u.name)}')">Delete</button>
           </div>
         </td>
@@ -1399,9 +1399,9 @@ async function loadUserHistory(userId) {
     });
     items.sort((a,b) => b.t - a.t);
     if (!items.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted)">No plan changes or payments recorded yet.</div>'; return; }
-    el.innerHTML = items.slice(0, 15).map(i => `<div style="font-size:11.5px;line-height:1.6;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05)">${i.html} <span style="color:var(--muted);font-size:10px;float:right">${fmtDate(i.t)}</span></div>`).join('');
+    el.innerHTML = items.slice(0, 15).map(i => `<div style="font-size:11.5px;line-height:1.6;padding:3px 0;border-bottom:1px solid rgba(36,40,44,.05)">${i.html} <span style="color:var(--muted);font-size:10px;float:right">${fmtDate(i.t)}</span></div>`).join('');
   } catch (e) {
-    el.innerHTML = `<div style="font-size:12px;color:#991b1b">${esc(e.message)}</div>`;
+    el.innerHTML = `<div style="font-size:12px;color:#24282C">${esc(e.message)}</div>`;
   }
 }
 
@@ -1429,7 +1429,7 @@ async function saveUser() {
   // Warn on downgrade from paid plan to free
   const currentPlan = document.getElementById('mu-plan').dataset.original || '';
   if (currentPlan && currentPlan !== 'free' && body.plan === 'free') {
-    const ok = await new Promise(r => confirm('Downgrade to Free?', 'User will lose Pro/School features immediately. This cannot be undone without a new payment.', '⚠️', () => r(true), { label: 'Downgrade', color: '#dc2626' }));
+    const ok = await new Promise(r => confirm('Downgrade to Free?', 'User will lose Pro/School features immediately. This cannot be undone without a new payment.', '⚠️', () => r(true), { label: 'Downgrade', color: '#FF4E00' }));
     if (!ok) return;
   }
   try {
@@ -1468,7 +1468,7 @@ function deleteUser(id, name) {
       loadUsers();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }
-  }, { label: 'Delete user', color: '#dc2626' });
+  }, { label: 'Delete user', color: '#FF4E00' });
 }
 
 function kickUser(userId, name) {
@@ -1477,7 +1477,7 @@ function kickUser(userId, name) {
       await api('DELETE', `/api/admin/sessions/user/${userId}`);
       toast('Sessions revoked', 'success');
     } catch(e) { toast(e.message, 'error'); }
-  }, { label: 'Revoke sessions', color: '#f97316' });
+  }, { label: 'Revoke sessions', color: '#FF8C3A' });
 }
 
 // ── Package Control ──────────────────────────────────────────────────────
@@ -1676,9 +1676,9 @@ async function loadBillingSummary() {
       return;
     }
     const urgencyBadge = u => {
-      if (u.urgency === 'overdue') return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#fee2e2;color:#991b1b;margin-left:6px">OVERDUE</span>';
-      if (u.urgency === 'grace')   return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;margin-left:6px">GRACE</span>';
-      return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#dbeafe;color:#1e40af;margin-left:6px">EXPIRING</span>';
+      if (u.urgency === 'overdue') return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#F3A46B;color:#24282C;margin-left:6px">OVERDUE</span>';
+      if (u.urgency === 'grace')   return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#F3DF6B;color:#24282C;margin-left:6px">GRACE</span>';
+      return '<span style="font:700 9px var(--mono);padding:2px 7px;border-radius:999px;background:#6BAFF3;color:#6B42FD;margin-left:6px">EXPIRING</span>';
     };
     root.innerHTML = rows.map(user => `
       <div class="activity-item">
@@ -1765,7 +1765,7 @@ function approvePayment(id, name, plan, defaultMonths = 1, cycle = 'monthly', in
       loadBillingPayments();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }
-  }, {label: 'Approve', color: '#007B55'});
+  }, {label: 'Approve', color: '#5D614B'});
 }
 
 // Card number is no longer shipped in this file - it's fetched from an
@@ -1925,7 +1925,7 @@ function deleteBoard(id, name) {
       loadBoards();
       refreshStats();
     } catch(e) { toast(e.message, 'error'); }
-  }, { label: 'Delete board', color: '#dc2626' });
+  }, { label: 'Delete board', color: '#FF4E00' });
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────
@@ -2363,7 +2363,7 @@ function initApiTester() {
   const btns = document.getElementById('at-quick-btns');
   if (btns) {
     btns.innerHTML = AT_QUICK.map((q, i) =>
-      `<button onclick="loadQuickEndpoint(${i})" style="padding:5px 10px;background:rgba(28,28,30,.06);border:1.5px solid rgba(92,92,102,.18);border-radius:8px;font-family:monospace;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2)">${esc(q.label)}</button>`
+      `<button onclick="loadQuickEndpoint(${i})" style="padding:5px 10px;background:rgba(36,40,44,.06);border:1.5px solid rgba(93,97,75,.18);border-radius:8px;font-family:monospace;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2)">${esc(q.label)}</button>`
     ).join('');
   }
 }
@@ -2416,7 +2416,7 @@ async function runApiTest() {
 
     // Status badge
     statusBadge.style.display = 'inline-block';
-    statusBadge.style.background = ok ? 'rgba(34,197,94,.12)' : 'rgba(239,68,68,.12)';
+    statusBadge.style.background = ok ? 'rgba(211,243,107,.12)' : 'rgba(255,78,0,.12)';
     statusBadge.style.color = ok ? 'var(--green)' : 'var(--red)';
     statusBadge.textContent = `${status} ${r.statusText}`;
 
@@ -2434,7 +2434,7 @@ async function runApiTest() {
   } catch(e) {
     respEl.textContent = `❌ Network error: ${e.message}`;
     statusBadge.style.display = 'inline-block';
-    statusBadge.style.background = 'rgba(239,68,68,.12)';
+    statusBadge.style.background = 'rgba(255,78,0,.12)';
     statusBadge.style.color = 'var(--red)';
     statusBadge.textContent = 'Network Error';
   }
@@ -2471,7 +2471,7 @@ function renderApiHistory() {
   }
   el.innerHTML = atHistory.map((h, i) => `
     <div onclick="replayApiHistoryItem(${i})" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
-      <span style="font-family:monospace;font-size:11px;font-weight:650;padding:2px 7px;border-radius:6px;background:${h.status<300?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)'};color:${h.status<300?'var(--green)':'var(--red)'}">${h.method}</span>
+      <span style="font-family:monospace;font-size:11px;font-weight:650;padding:2px 7px;border-radius:6px;background:${h.status<300?'rgba(211,243,107,.1)':'rgba(255,78,0,.1)'};color:${h.status<300?'var(--green)':'var(--red)'}">${h.method}</span>
       <span style="font-family:monospace;font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(h.path)}</span>
       <span style="font-size:11px;color:var(--muted)">${h.status} · ${h.elapsed}ms · ${h.time}</span>
     </div>`).join('');
@@ -2504,9 +2504,9 @@ async function openUserDrawer(u) {
   document.getElementById('drawer-badges').innerHTML = `
     <span class="badge badge-${u.role}">${u.role}</span>
     <span class="badge badge-${u.plan==='school'?'admin':u.plan==='pro'?'teacher':'student'}">${u.plan||'free'}</span>
-    ${u.plan_status && u.plan_status!=='free' ? `<span class="badge" style="background:rgba(200,230,50,.18);color:#5a6b00">${u.plan_status}</span>` : ''}
-    ${u.is_suspended ? '<span class="badge" style="background:#dc2626;color:#fff">SUSPENDED</span>' : ''}
-    ${u.locked_at ? '<span class="badge" style="background:#ea580c;color:#fff">LOCKED</span>' : ''}
+    ${u.plan_status && u.plan_status!=='free' ? `<span class="badge" style="background:rgba(205,246,73,.18);color:#5D614B">${u.plan_status}</span>` : ''}
+    ${u.is_suspended ? '<span class="badge" style="background:#FF4E00;color:#fff">SUSPENDED</span>' : ''}
+    ${u.locked_at ? '<span class="badge" style="background:#FF4E00;color:#fff">LOCKED</span>' : ''}
   `;
   // Suspend button label
   const suspBtn = document.getElementById('drawer-suspend-btn');
@@ -2554,7 +2554,7 @@ async function loadUserAuthEventsDrawer(userId) {
     const d = await api('GET', `/api/admin/users/${userId}/auth-events`);
     if (!d.events?.length) { el.innerHTML = '<div style="color:var(--muted)">No auth events recorded yet.</div>'; return; }
     el.innerHTML = d.events.slice(0, 12).map(e => `
-      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:11.5px">
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(36,40,44,.06);font-size:11.5px">
         <span class="auth-event-mark">${authEventMark(e.event)}</span>
         <span style="font-weight:600;min-width:100px">${esc(e.event)}</span>
         <span style="color:var(--muted);flex:1">${esc(e.ip || '-')}</span>
@@ -2698,7 +2698,7 @@ async function loadSuspendedUsers() {
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:13px">${esc(u.name)}</div>
           <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>
-          ${u.suspended_reason ? `<div style="font-size:11px;color:#dc2626">${esc(u.suspended_reason)}</div>` : ''}
+          ${u.suspended_reason ? `<div style="font-size:11px;color:#24282C">${esc(u.suspended_reason)}</div>` : ''}
         </div>
         <button class="btn-sm btn-green" onclick="unsuspendUser('${u.id}','${esc(u.name)}').then(loadSecurityPage).then(loadUsers)">Restore access</button>
       </div>`).join('');
@@ -2718,7 +2718,7 @@ async function loadLockedAccounts() {
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:13px">${esc(u.name)}</div>
           <div style="font-size:12px;color:var(--muted)">${esc(u.email)}</div>
-          <div style="font-size:11px;color:#ea580c">${u.failed_login_count||0} failed attempts · locked ${fmtRelative(u.locked_at)}</div>
+          <div style="font-size:11px;color:#24282C">${u.failed_login_count||0} failed attempts · locked ${fmtRelative(u.locked_at)}</div>
         </div>
         <button class="btn-sm btn-orange" onclick="unlockUser('${u.id}','${esc(u.name)}')">Unlock</button>
       </div>`).join('');
@@ -2790,7 +2790,7 @@ function bulkDelete() {
     clearBulk();
     loadUsers();
     refreshStats();
-  }, { label: `Delete ${ids.length} users`, color: '#dc2626' });
+  }, { label: `Delete ${ids.length} users`, color: '#24282C' });
 }
 
 function bulkKick() {
@@ -2803,7 +2803,7 @@ function bulkKick() {
     }
     toast(`Kicked ${ok} user(s)`, 'success');
     clearBulk();
-  }, { label: `Kick ${ids.length} users`, color: '#f97316' });
+  }, { label: `Kick ${ids.length} users`, color: '#24282C' });
 }
 
 async function bulkGrantPlan(plan, months) {

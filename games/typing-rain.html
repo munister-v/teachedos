@@ -9,28 +9,28 @@
 <title>Typing Rain</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#1C1C1E}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#1a0a12;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;color:#fff}
-.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem}
-h1{font-size:1.6rem;font-weight:800;color:#0E0E10;margin-bottom:2px}
-.subtitle{color:#525252;font-size:.85rem;margin-bottom:16px}
+:root{--accent:#24282C}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#24282C;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;color:#fff}
+.back{align-self:flex-start;color:#24282C;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem}
+h1{font-size:1.6rem;font-weight:800;color:#24282C;margin-bottom:2px}
+.subtitle{color:#5D614B;font-size:.85rem;margin-bottom:16px}
 /* Шапка игры была рассчитана на тёмный фон, а тема ставит страницу на песок:
    лаймовые счётчики и белые цифры на нём не читались (1,1–1,4:1).
    Арена ниже остаётся тёмной — это поле игры, там лайм на месте. */
-.hud{display:flex;gap:24px;margin-bottom:12px;font-weight:700;font-size:.95rem;color:#525252}
-.hud span{color:#0E0E10}
-#arena{width:100%;max-width:520px;height:340px;background:#120008;border-radius:18px;position:relative;overflow:hidden;border:2px solid #3a0020}
-.falling{position:absolute;font-weight:800;font-size:1rem;color:#C8E632;white-space:nowrap;text-shadow:0 0 8px #C8E63288;transition:color .1s}
-.falling.active{color:#fff;text-shadow:0 0 12px #C8E632}
-.ground{position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#C8E632,transparent)}
+.hud{display:flex;gap:24px;margin-bottom:12px;font-weight:700;font-size:.95rem;color:#5D614B}
+.hud span{color:#24282C}
+#arena{width:100%;max-width:520px;height:340px;background:#24282C;border-radius:18px;position:relative;overflow:hidden;border:2px solid #6B42FD}
+.falling{position:absolute;font-weight:800;font-size:1rem;color:#CDF649;white-space:nowrap;text-shadow:0 0 8px #CDF64988;transition:color .1s}
+.falling.active{color:#fff;text-shadow:0 0 12px #CDF649}
+.ground{position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#CDF649,transparent)}
 .lives{font-size:1.2rem;letter-spacing:4px}
-input{margin-top:14px;width:100%;max-width:520px;padding:12px 18px;border:2px solid #3a0020;border-radius:14px;font-size:1.1rem;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;background:#120008;color:#fff;outline:none;text-align:center}
+input{margin-top:14px;width:100%;max-width:520px;padding:12px 18px;border:2px solid #6B42FD;border-radius:14px;font-size:1.1rem;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;background:#24282C;color:#fff;outline:none;text-align:center}
 input:focus{border-color:var(--accent)}
-.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#120008cc;border-radius:18px;font-size:1.3rem;font-weight:800;gap:16px}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#24282CCC;border-radius:18px;font-size:1.3rem;font-weight:800;gap:16px}
 button.play-btn{padding:12px 28px;border:none;border-radius:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=946">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=950">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -46,8 +46,8 @@ button.play-btn{padding:12px 28px;border:none;border-radius:14px;font-family:-ap
 </div>
 <input id="inp" type="text" placeholder="Type here..." autocomplete="off" spellcheck="false" disabled>
 
-<script src="../scripts/game-handoff.js?v=946"></script>
-<script src="../scripts/game-pause.js?v=946"></script>
+<script src="../scripts/game-handoff.js?v=950"></script>
+<script src="../scripts/game-pause.js?v=950"></script>
 <script>
 const WORDS=['apple','bridge','cloud','dream','flower','garden','island','journey','knight','lemon','mirror','nation','ocean','piano','queen','river','silver','tiger','uncle','valley','winter','yellow','zebra','market','castle','danger','engine','forest','gentle','harbor','income','jungle','kitten','ladder','muffin','napkin','orange','parrot','rabbit','saddle','tennis','umbrella','village','window','yellow'];
 const HARD=['language','beautiful','together','remember','possible','difficult','decision','knowledge','important','different','grateful','surprise','generous','business','curious','ancient','fragile','precise','vivid','eager'];
@@ -136,9 +136,9 @@ function endGame(){
   document.getElementById('inp').disabled=true;
   const ov=document.getElementById('overlay');
   ov.style.display='flex';
-  ov.innerHTML=`<div>Game Over!</div><div style="font-size:1rem;color:#C8E632">Score: ${score} | Level: ${level}</div><button class="play-btn" onclick="startGame()">▶ Play Again</button>`;
+  ov.innerHTML=`<div>Game Over!</div><div style="font-size:1rem;color:#CDF649">Score: ${score} | Level: ${level}</div><button class="play-btn" onclick="startGame()">▶ Play Again</button>`;
 }
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=946"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=950"></script>
 </body>
 </html>

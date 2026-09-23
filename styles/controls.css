@@ -52,11 +52,11 @@ body:not(#_):not(#__) :is(
 ):not(.curr-search input):not(.sb-search input):not(.bs-search):not(.hw-search input):not(.search-wrap input):not(.lib-search input) {
   border-width: 1px !important;
   border-style: solid !important;
-  border-color: rgba(32, 32, 44, .58) !important;
+  border-color: rgba(36,40,44,.58) !important;
 }
 
 body:not(#_):not(#__) :is(.btn.ghost, .btn.soft, .btn-ghost, .btn.btn-ghost) {
-  border: 1px solid rgba(32, 32, 44, .34) !important;
+  border: 1px solid rgba(36,40,44,.34) !important;
 }
 
 /* Составные поля: прозрачный input лежит ВНУТРИ пилюли с иконкой, и границу
@@ -70,7 +70,7 @@ body:not(#_):not(#__) :is(.btn.ghost, .btn.soft, .btn-ghost, .btn.btn-ghost) {
    есть ниже порога, ради которого этот файл и существует. Обёртка забирает
    границу себе, поле её теряет. */
 body:not(#_):not(#__) :is(.curr-search, .sb-search, .hw-search, .search-wrap, .lib-search) {
-  border: 1px solid rgba(32, 32, 44, .40) !important;
+  border: 1px solid rgba(36,40,44,.40) !important;
 }
 
 /* Исключить поле из порога выше - только не поднимать ЕГО границу. Своя
@@ -91,7 +91,7 @@ body:not(#_):not(#__) :is(
     input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
     textarea, select, .form-input, .setting-input, .input
 ):focus {
-  border-color: rgba(32, 32, 44, .78) !important;
+  border-color: rgba(36,40,44,.78) !important;
 }
 
 

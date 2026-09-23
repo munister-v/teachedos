@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=946"></script>
+<script src="scripts/phone-gate.js?v=950"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=946">
+<link rel="manifest" href="manifest.json?v=950">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -17,31 +17,31 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=946">
-<link rel="stylesheet" href="styles/auth.css?v=946">
-<link rel="stylesheet" href="styles/mobile.css?v=946">
-<link rel="stylesheet" href="styles/harmony.css?v=946">
-<link rel="stylesheet" href="styles/unify.css?v=946">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=946">
+<link rel="stylesheet" href="styles/board.css?v=950">
+<link rel="stylesheet" href="styles/auth.css?v=950">
+<link rel="stylesheet" href="styles/mobile.css?v=950">
+<link rel="stylesheet" href="styles/harmony.css?v=950">
+<link rel="stylesheet" href="styles/unify.css?v=950">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=950">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
-  background:#FDFDFF!important;
+  background:#FFFFFF!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
-  box-shadow:0 1px 0 rgba(28,28,30,.10)!important;
+  box-shadow:0 1px 0 rgba(36,40,44,.10)!important;
 }
 #board-wrap{
-  background-color:#F4F4F7!important;
+  background-color:#F6F6EF!important;
   background-image:
-    linear-gradient(rgba(28,28,30,.045) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(28,28,30,.035) 1px,transparent 1px)!important;
+    linear-gradient(rgba(36,40,44,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(36,40,44,.035) 1px,transparent 1px)!important;
   background-size:32px 32px!important;
 }
 #miro-toolbar{
-  background:#FDFDFF!important;
-  border-right:1px solid rgba(28,28,30,.10)!important;
-  box-shadow:2px 0 14px rgba(28,28,30,.06)!important;
+  background:#FFFFFF!important;
+  border-right:1px solid rgba(36,40,44,.10)!important;
+  box-shadow:2px 0 14px rgba(36,40,44,.06)!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
 }
@@ -53,7 +53,7 @@
 #zoom-controls{
   min-height:44px!important;
   border-radius:12px!important;
-  box-shadow:0 4px 14px rgba(28,28,30,.10)!important;
+  box-shadow:0 4px 14px rgba(36,40,44,.10)!important;
 }
 .zc-btn{
   width:38px!important;
@@ -61,25 +61,25 @@
 }
 #board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game){
   border-radius:14px!important;
-  border-color:rgba(28,28,30,.12)!important;
-  box-shadow:0 3px 12px rgba(28,28,30,.10),0 1px 0 rgba(255,255,255,.85) inset!important;
+  border-color:rgba(36,40,44,.12)!important;
+  box-shadow:0 3px 12px rgba(36,40,44,.10),0 1px 0 rgba(255,255,255,.85) inset!important;
 }
 #board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game) .card-header{
   min-height:36px;
-  background:#FDFDFF;
-  border-bottom:1px solid rgba(28,28,30,.08);
+  background:#FFFFFF;
+  border-bottom:1px solid rgba(36,40,44,.08);
   padding:9px 12px 7px;
 }
 #board .board-card:not(.card-frame):not(.card-text):not(.card-sticky):not(.card-sticker):not(.card-game) .card-title-text{
-  color:#5D5D60;
+  color:#5D614B;
   letter-spacing:.055em;
   font-weight:650;
 }
 #board .card-frame .frame-body{
   border-radius:16px!important;
   background:rgba(255,255,255,.94)!important;
-  border:1.5px solid rgba(28,28,30,.16)!important;
-  box-shadow:0 12px 32px rgba(28,28,30,.10),0 1px 0 rgba(255,255,255,.9) inset!important;
+  border:1.5px solid rgba(36,40,44,.16)!important;
+  box-shadow:0 12px 32px rgba(36,40,44,.10),0 1px 0 rgba(255,255,255,.9) inset!important;
 }
 #board .card-frame .frame-body::before{
   content:'';
@@ -95,36 +95,36 @@
 #board .card-frame .frame-title{
   top:-36px!important;
   padding:8px 12px!important;
-  border:1px solid rgba(28,28,30,.12)!important;
+  border:1px solid rgba(36,40,44,.12)!important;
   border-radius:10px!important;
-  background:#FDFDFF!important;
-  color:#242427!important;
+  background:#FFFFFF!important;
+  color:#24282C!important;
   font-size:11px!important;
   font-weight:650!important;
   letter-spacing:.045em!important;
   text-transform:uppercase;
-  box-shadow:0 3px 10px rgba(28,28,30,.08)!important;
+  box-shadow:0 3px 10px rgba(36,40,44,.08)!important;
 }
 #board .card-frame .frame-num{
   min-width:22px;
   height:22px;
   border-radius:7px!important;
-  background:#CDF24F!important;
-  color:#111!important;
+  background:#CDF649!important;
+  color:#24282C!important;
 }
 #board .card-frame .frame-add-activity{
   top:-36px!important;
   min-height:36px;
   padding:0 12px!important;
   border-radius:10px!important;
-  background:#1C1C1E!important;
-  color:#CDF24F!important;
-  box-shadow:0 4px 12px rgba(28,28,30,.16)!important;
+  background:#24282C!important;
+  color:#CDF649!important;
+  box-shadow:0 4px 12px rgba(36,40,44,.16)!important;
 }
 #board .card-frame .frame-add-activity:focus-visible,
 #board .card-close:focus-visible,
 #board .card-priv-toggle:focus-visible{
-  outline:3px solid #8AAE12!important;
+  outline:3px solid #D3F36B!important;
   outline-offset:2px!important;
 }
 @media (max-width:860px){
@@ -143,15 +143,15 @@
 
 /* Calm board chrome: neutral controls keep the canvas and lesson content first. */
 :root{
-  --board-calm-ink:#59635A;
-  --board-calm-ink-hover:#485248;
-  --board-calm-soft:#E9EEE8;
-  --board-calm-line:rgba(73,84,74,.16);
+  --board-calm-ink:#5D614B;
+  --board-calm-ink-hover:#5D614B;
+  --board-calm-soft:#F6F6EF;
+  --board-calm-line:rgba(93,97,75,.16);
 }
 #toolbar,#miro-toolbar{
-  background:#F6F6F9!important;
+  background:#F6F6EF!important;
   border-color:var(--board-calm-line)!important;
-  box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 4px 16px rgba(55,65,56,.06)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 4px 16px rgba(36,40,44,.06)!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
 }
@@ -160,20 +160,20 @@
   font-weight:600!important;
 }
 #toolbar .tb-btn{
-  background:#FDFDFF!important;
+  background:#FFFFFF!important;
   border-color:var(--board-calm-line)!important;
   color:var(--board-calm-ink-hover)!important;
 }
 #toolbar .tb-btn:hover,#toolbar .tb-icon-btn:hover,#toolbar .tb-auth-chip:hover{
   background:var(--board-calm-soft)!important;
-  border-color:rgba(73,84,74,.24)!important;
+  border-color:rgba(93,97,75,.24)!important;
   color:var(--board-calm-ink-hover)!important;
 }
 #toolbar #btn-share.tb-btn-primary{
   background:var(--board-calm-ink)!important;
   border-color:var(--board-calm-ink)!important;
   color:#fff!important;
-  box-shadow:0 5px 14px rgba(73,84,74,.16)!important;
+  box-shadow:0 5px 14px rgba(36,40,44,.16)!important;
 }
 #toolbar #btn-share.tb-btn-primary:hover{background:var(--board-calm-ink-hover)!important;}
 #miro-toolbar .mt-btn{
@@ -193,7 +193,7 @@
   background:var(--board-calm-ink)!important;
   border-color:var(--board-calm-ink)!important;
   color:#fff!important;
-  box-shadow:0 3px 10px rgba(55,65,56,.14)!important;
+  box-shadow:0 3px 10px rgba(36,40,44,.14)!important;
 }
 #miro-toolbar .mt-btn.active:hover{
   background:var(--board-calm-ink-hover)!important;
@@ -209,17 +209,17 @@
 #toolbar :where(.tb-btn,.tb-btn-primary,.tb-auth-chip):focus-visible,
 #miro-toolbar .mt-btn:focus-visible,
 #align-bar .align-btn:focus-visible{
-  outline:3px solid rgba(124,138,123,.62)!important;
+  outline:3px solid rgba(163,164,141,.62)!important;
   outline-offset:2px!important;
 }
 #toolbar .tb-icon-btn:focus-visible{
-  outline:2px solid rgba(124,138,123,.62)!important;
+  outline:2px solid rgba(163,164,141,.62)!important;
   outline-offset:1px!important;
   border-radius:8px;
 }
 #mt-more-pop{
   border-color:var(--board-calm-line)!important;
-  box-shadow:0 14px 34px rgba(55,65,56,.14),0 1px 4px rgba(55,65,56,.05)!important;
+  box-shadow:0 14px 34px rgba(36,40,44,.14),0 1px 4px rgba(36,40,44,.05)!important;
 }
 #mt-more-pop .mt-more-item:hover{
   background:var(--board-calm-soft)!important;
@@ -234,11 +234,11 @@
   padding:8px!important;
   gap:4px!important;
   border-color:var(--board-calm-line)!important;
-  box-shadow:0 10px 28px rgba(55,65,56,.12)!important;
+  box-shadow:0 10px 28px rgba(36,40,44,.12)!important;
 }
 .align-heading{
   padding:2px 4px 5px;
-  color:#697269;
+  color:#5D614B;
   font:600 10px/1 var(--font);
   letter-spacing:.06em;
   text-transform:uppercase;
@@ -268,19 +268,19 @@
 #board .card-frame .frame-add-activity{
   background:var(--board-calm-ink)!important;
   color:#fff!important;
-  box-shadow:0 4px 12px rgba(55,65,56,.14)!important;
+  box-shadow:0 4px 12px rgba(36,40,44,.14)!important;
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=946">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
-<link rel="stylesheet" href="styles/controls.css?v=946">
+<link rel="stylesheet" href="styles/figma-theme.css?v=950">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=950">
+<link rel="stylesheet" href="styles/controls.css?v=950">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=946">
+<link rel="stylesheet" href="styles/figma-concept.css?v=950">
 <!-- Слой телефона: контракт возможностей доски, см. scripts/board-mobile.js -->
-<link rel="stylesheet" href="styles/board-mobile.css?v=946">
+<link rel="stylesheet" href="styles/board-mobile.css?v=950">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -354,7 +354,7 @@
   <div class="tb-board-chip" id="tb-board-chip">
     <span id="board-name-display" class="tb-board-chip-title" title="Rename board" onclick="startRenameBoard()">My Board</span>
     <span class="tb-board-chip-status" title="Sync status">
-      <span id="board-meta-dot" style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;transition:background .3s;"></span>
+      <span id="board-meta-dot" style="width:7px;height:7px;border-radius:50%;background:#D3F36B;display:inline-block;transition:background .3s;"></span>
     </span>
     <button class="tb-board-chip-menu" id="btn-board-menu" title="Board menu" onclick="toggleBoardMenu(event)" aria-label="Board menu">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
@@ -391,7 +391,7 @@
   </div>
 
   <!-- RIGHT: realtime + presence + comments + invite + templates + share + user + more -->
-  <div id="ws-dot" title="Real-time" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .4s;margin:0 6px;"></div>
+  <div id="ws-dot" title="Real-time" style="width:8px;height:8px;border-radius:50%;background:#A3A48D;flex-shrink:0;transition:background .4s;margin:0 6px;"></div>
   <div id="presence-bar"></div>
   <button id="btn-follow-me" type="button" onclick="toggleFollowMode()" aria-label="Follow presenter">Follow</button>
   <div class="tb-btn text" id="btn-call" title="Join class call" onclick="openBoardCall()" style="color:#34a853;border-color:rgba(52,168,83,.3);display:none;">
@@ -427,7 +427,7 @@
   <div id="btn-editing-mode" style="display:none;" onclick="toggleMoreMenu()"></div>
 
   <!-- User dropdown -->
-  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:6px;z-index:2000;min-width:220px;font-size:13px;">
+  <div id="user-menu" style="display:none;position:fixed;top:52px;right:10px;background:#fff;border-radius:10px;border:1px solid rgba(36,40,44,.08);box-shadow:0 12px 36px rgba(36,40,44,.14),0 1px 4px rgba(36,40,44,.04);padding:6px;z-index:2000;min-width:220px;font-size:13px;">
     <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px;font-family:var(--mono);" id="user-menu-email"></div>
     <a class="user-menu-item" href="index.html"><svg class="umi-ic" aria-hidden="true"><use href="#bi-home"/></svg>Home</a>
     <div class="user-menu-item" onclick="showBoardList()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-boards"/></svg>My Boards</div>
@@ -442,7 +442,7 @@
     <a class="user-menu-item" href="gradebook.html"><svg class="umi-ic" aria-hidden="true"><use href="#bi-gradebook"/></svg>Gradebook</a>
     <a class="user-menu-item" href="profile.html"><svg class="umi-ic" aria-hidden="true"><use href="#bi-user"/></svg>Profile</a>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-    <div class="user-menu-item" style="color:#A61919;" onclick="logout()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-exit"/></svg>Sign out</div>
+    <div class="user-menu-item" style="color:#24282C;" onclick="logout()"><svg class="umi-ic" aria-hidden="true"><use href="#bi-exit"/></svg>Sign out</div>
   </div>
 
   <!-- Miro-style Board menu (cascading) -->
@@ -494,7 +494,7 @@
   </div>
 
   <!-- ⋯ More menu -->
-  <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 36px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:6px;z-index:2000;min-width:240px;font-size:13px;">
+  <div id="more-menu" style="display:none;position:fixed;top:52px;right:44px;background:#fff;border-radius:10px;border:1px solid rgba(36,40,44,.08);box-shadow:0 12px 36px rgba(36,40,44,.14),0 1px 4px rgba(36,40,44,.04);padding:6px;z-index:2000;min-width:240px;font-size:13px;">
     <!-- Account header (phone: identity context for the sheet) -->
     <div class="more-phone-nav more-account" id="more-account">
       <span class="more-account-av" id="more-account-av">T</span>
@@ -661,7 +661,7 @@
     </button>
   </div>
   <!-- More tabs popover -->
-  <div id="sb-more-menu" style="display:none;position:absolute;top:38px;right:6px;background:#fff;border-radius:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 6px 20px rgba(5,5,23,.14),0 1px 4px rgba(0,0,0,.04);padding:5px;z-index:1500;min-width:170px;">
+  <div id="sb-more-menu" style="display:none;position:absolute;top:38px;right:6px;background:#fff;border-radius:8px;border:1px solid rgba(36,40,44,.08);box-shadow:0 6px 20px rgba(36,40,44,.14),0 1px 4px rgba(36,40,44,.04);padding:5px;z-index:1500;min-width:170px;">
     <div class="user-menu-item sb-more-item" data-tab="notes"><svg class="umi-ic" aria-hidden="true"><use href="#bi-text"/></svg>Notes</div>
     <div class="user-menu-item sb-more-item" data-tab="course"><svg class="umi-ic" aria-hidden="true"><use href="#bi-courses"/></svg>Course</div>
     <div class="user-menu-item sb-more-item" data-tab="games"><svg class="umi-ic" aria-hidden="true"><use href="#bi-grid"/></svg>Games</div>
@@ -717,9 +717,9 @@
       <!-- highlighter body -->
       <rect x="9" y="1.5" width="7" height="5" rx="1" transform="rotate(45 12.5 4)"/>
       <!-- bright tip (the colored bit) -->
-      <path d="M8 7.5l2.5 2.5-3.5 3.5-3-1z" fill="#FACC15" stroke="#FACC15"/>
+      <path d="M8 7.5l2.5 2.5-3.5 3.5-3-1z" fill="#FFE44D" stroke="#FFE44D"/>
       <!-- drip strokes (drawn ink trail) -->
-      <path d="M3 14.5h6" stroke-width="2.4" stroke="#FACC15" opacity=".55"/>
+      <path d="M3 14.5h6" stroke-width="2.4" stroke="#FFE44D" opacity=".55"/>
     </svg>
   </button>
   <!-- 8c. Eraser -->
@@ -899,7 +899,7 @@
   <svg id="arrows-svg" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#333"/>
+        <polygon points="0 0, 8 3, 0 6" fill="#24282C"/>
       </marker>
       <!-- arrowhead-sel/-hover нигде не подключены (нет marker-end="url(#arrowhead-sel/…)"
            ни в JS, ни в CSS) - цвет наведённой/выделенной линии красит саму
@@ -907,16 +907,16 @@
            Заодно эти двое красились в зелёный var(--accent) - были бы той же
            ловушкой, если бы их когда-нибудь подключили. -->
       <marker id="arrowhead-sel" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#1C1C1E"/>
+        <polygon points="0 0, 8 3, 0 6" fill="#24282C"/>
       </marker>
       <marker id="arrowhead-hover" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#1C1C1E"/>
+        <polygon points="0 0, 8 3, 0 6" fill="#24282C"/>
       </marker>
       <marker id="arrowhead-prereq" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
-        <polygon points="0 0, 9 3, 0 6" fill="#6366f1"/>
+        <polygon points="0 0, 9 3, 0 6" fill="#6B42FD"/>
       </marker>
       <marker id="arrowhead-prereq-done" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto">
-        <polygon points="0 0, 9 3, 0 6" fill="#10b981"/>
+        <polygon points="0 0, 9 3, 0 6" fill="#A3A48D"/>
       </marker>
       <!-- Наконечник у "хвостового" конца двунаправленной/обратной стрелки
            (marker-start, board-app.js:8232). В отличие от -sel/-hover выше,
@@ -924,12 +924,12 @@
            при наведении - постоянно зелёный кончик на каждой стрелке
            «в обе стороны» или «назад», без всякого взаимодействия. -->
       <marker id="arrowhead-start" markerWidth="9" markerHeight="6" refX="1" refY="3" orient="auto-start-reverse">
-        <polygon points="0 0, 9 3, 0 6" fill="#333"/>
+        <polygon points="0 0, 9 3, 0 6" fill="#24282C"/>
       </marker>
     </defs>
   </svg>
   <!-- Student live-class banner (shown when teacher is broadcasting) -->
-  <div id="board-live-banner" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:800;background:var(--accent);color:var(--on-accent);padding:9px 20px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:600;box-shadow:0 4px 18px rgba(14,14,16,.35);">
+  <div id="board-live-banner" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:800;background:var(--accent);color:var(--on-accent);padding:9px 20px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:600;box-shadow:0 4px 18px rgba(36,40,44,.35);">
     <span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block;animation:pulse-dot 1.2s infinite;flex-shrink:0;font-size:0;line-height:0;">&nbsp;</span>
     <span id="board-live-label">Your teacher is live now</span>
     <a id="board-live-join" target="_blank" rel="noopener" role="button" aria-disabled="true" tabindex="-1" style="margin-left:auto;background:var(--on-accent);color:var(--accent);padding:5px 14px;border-radius:8px;font-weight:650;font-size:12px;text-decoration:none;white-space:nowrap;">Join Call →</a>
@@ -1521,12 +1521,12 @@
     </div>
     <div class="ctx-arrow-style-row">
       <span class="ctx-arrow-style-lbl">Color</span>
-      <span class="cac-swatch" data-c="#5A5A63"  style="background:#5A5A63;"  onclick="setArrowColor('#5A5A63')"></span>
-      <span class="cac-swatch" data-c="#4262FF"  style="background:#4262FF;"  onclick="setArrowColor('#4262FF')"></span>
-      <span class="cac-swatch" data-c="#22C55E"  style="background:#22C55E;"  onclick="setArrowColor('#22C55E')"></span>
-      <span class="cac-swatch" data-c="#EF4444"  style="background:#EF4444;"  onclick="setArrowColor('#EF4444')"></span>
-      <span class="cac-swatch" data-c="#F59E0B"  style="background:#F59E0B;"  onclick="setArrowColor('#F59E0B')"></span>
-      <span class="cac-swatch" data-c="#8B5CF6"  style="background:#8B5CF6;"  onclick="setArrowColor('#8B5CF6')"></span>
+      <span class="cac-swatch" data-c="#5D614B"  style="background:#5D614B;"  onclick="setArrowColor('#5D614B')"></span>
+      <span class="cac-swatch" data-c="#6B42FD"  style="background:#6B42FD;"  onclick="setArrowColor('#6B42FD')"></span>
+      <span class="cac-swatch" data-c="#D3F36B"  style="background:#D3F36B;"  onclick="setArrowColor('#D3F36B')"></span>
+      <span class="cac-swatch" data-c="#FF4E00"  style="background:#FF4E00;"  onclick="setArrowColor('#FF4E00')"></span>
+      <span class="cac-swatch" data-c="#F3A46B"  style="background:#F3A46B;"  onclick="setArrowColor('#F3A46B')"></span>
+      <span class="cac-swatch" data-c="#886BF3"  style="background:#886BF3;"  onclick="setArrowColor('#886BF3')"></span>
     </div>
   </div>
   <div class="ctx-sep" id="ctx-arrow-sep" style="display:none;"></div>
@@ -1727,37 +1727,37 @@
         <div class="stp-section-title"><svg class="inline-ui-icon" aria-hidden="true"><use href="#bi-palette"/></svg>Theme</div>
         <div class="theme-grid" id="theme-grid">
           <div class="theme-swatch active" data-theme="pink" onclick="setTheme('pink')">
-            <div class="theme-swatch-preview" style="background:#F2F2F5;">
-              <div class="theme-swatch-dot" style="background:#C8E632;"></div>
-              <div class="theme-swatch-dot" style="background:#FFF9C4;"></div>
+            <div class="theme-swatch-preview" style="background:#F6F6EF;">
+              <div class="theme-swatch-dot" style="background:#CDF649;"></div>
+              <div class="theme-swatch-dot" style="background:#F3DF6B;"></div>
             </div>
             <div class="theme-swatch-name">Pink Rose</div>
           </div>
           <div class="theme-swatch" data-theme="blue" onclick="setTheme('blue')">
-            <div class="theme-swatch-preview" style="background:#EEF4FF;">
-              <div class="theme-swatch-dot" style="background:#3B82F6;"></div>
-              <div class="theme-swatch-dot" style="background:#E0F2FE;"></div>
+            <div class="theme-swatch-preview" style="background:#F6F6EF;">
+              <div class="theme-swatch-dot" style="background:#3F9FFF;"></div>
+              <div class="theme-swatch-dot" style="background:#F6F6EF;"></div>
             </div>
             <div class="theme-swatch-name">Sky Blue</div>
           </div>
           <div class="theme-swatch" data-theme="green" onclick="setTheme('green')">
-            <div class="theme-swatch-preview" style="background:#F0FDF6;">
-              <div class="theme-swatch-dot" style="background:#10B981;"></div>
-              <div class="theme-swatch-dot" style="background:#D1FAE5;"></div>
+            <div class="theme-swatch-preview" style="background:#F6F6EF;">
+              <div class="theme-swatch-dot" style="background:#A3A48D;"></div>
+              <div class="theme-swatch-dot" style="background:#49F6F0;"></div>
             </div>
             <div class="theme-swatch-name">Forest</div>
           </div>
           <div class="theme-swatch" data-theme="purple" onclick="setTheme('purple')">
-            <div class="theme-swatch-preview" style="background:#F5F3FF;">
-              <div class="theme-swatch-dot" style="background:#7C3AED;"></div>
-              <div class="theme-swatch-dot" style="background:#EDE9FE;"></div>
+            <div class="theme-swatch-preview" style="background:#F6F6EF;">
+              <div class="theme-swatch-dot" style="background:#6B42FD;"></div>
+              <div class="theme-swatch-dot" style="background:#9F8CE8;"></div>
             </div>
             <div class="theme-swatch-name">Lavender</div>
           </div>
           <div class="theme-swatch" data-theme="minimal" onclick="setTheme('minimal')">
-            <div class="theme-swatch-preview" style="background:#FAFAFA;border:1px solid #e4e4e7;">
-              <div class="theme-swatch-dot" style="background:#18181B;"></div>
-              <div class="theme-swatch-dot" style="background:#F4F4F5;"></div>
+            <div class="theme-swatch-preview" style="background:#F6F6EF;border:1px solid #CACCC6;">
+              <div class="theme-swatch-dot" style="background:#24282C;"></div>
+              <div class="theme-swatch-dot" style="background:#F6F6EF;"></div>
             </div>
             <div class="theme-swatch-name">Minimal</div>
           </div>
@@ -1768,15 +1768,15 @@
       <div>
         <div class="stp-section-title">🎯 Accent Color</div>
         <div class="custom-accent-row" id="accent-row">
-          <div class="accent-dot active" data-accent="#0E0E10" style="background:#0E0E10;" onclick="setAccentColor('#0E0E10')"></div>
-          <div class="accent-dot" data-accent="#3B82F6" style="background:#3B82F6;" onclick="setAccentColor('#3B82F6')"></div>
-          <div class="accent-dot" data-accent="#10B981" style="background:#10B981;" onclick="setAccentColor('#10B981')"></div>
-          <div class="accent-dot" data-accent="#7C3AED" style="background:#7C3AED;" onclick="setAccentColor('#7C3AED')"></div>
-          <div class="accent-dot" data-accent="#F97316" style="background:#F97316;" onclick="setAccentColor('#F97316')"></div>
-          <div class="accent-dot" data-accent="#EAB308" style="background:#EAB308;" onclick="setAccentColor('#EAB308')"></div>
-          <div class="accent-dot" data-accent="#EC4899" style="background:#EC4899;" onclick="setAccentColor('#EC4899')"></div>
-          <div class="accent-dot" data-accent="#38BDF8" style="background:#38BDF8;" onclick="setAccentColor('#38BDF8')"></div>
-          <div class="accent-dot" data-accent="#CDF24F" style="background:#CDF24F;" onclick="setAccentColor('#CDF24F')"></div>
+          <div class="accent-dot active" data-accent="#24282C" style="background:#24282C;" onclick="setAccentColor('#24282C')"></div>
+          <div class="accent-dot" data-accent="#3F9FFF" style="background:#3F9FFF;" onclick="setAccentColor('#3F9FFF')"></div>
+          <div class="accent-dot" data-accent="#A3A48D" style="background:#A3A48D;" onclick="setAccentColor('#A3A48D')"></div>
+          <div class="accent-dot" data-accent="#6B42FD" style="background:#6B42FD;" onclick="setAccentColor('#6B42FD')"></div>
+          <div class="accent-dot" data-accent="#FF8C3A" style="background:#FF8C3A;" onclick="setAccentColor('#FF8C3A')"></div>
+          <div class="accent-dot" data-accent="#FFE44D" style="background:#FFE44D;" onclick="setAccentColor('#FFE44D')"></div>
+          <div class="accent-dot" data-accent="#9F8CE8" style="background:#9F8CE8;" onclick="setAccentColor('#9F8CE8')"></div>
+          <div class="accent-dot" data-accent="#6BAFF3" style="background:#6BAFF3;" onclick="setAccentColor('#6BAFF3')"></div>
+          <div class="accent-dot" data-accent="#CDF649" style="background:#CDF649;" onclick="setAccentColor('#CDF649')"></div>
           <input type="color" id="accent-custom" style="width:26px;height:26px;border-radius:50%;border:2.5px solid var(--border);cursor:pointer;padding:0;" onchange="setAccentColor(this.value)" title="Custom color">
         </div>
       </div>
@@ -1847,7 +1847,7 @@
 
       <!-- Reset -->
       <div style="padding-top:4px;border-top:1px solid var(--border);">
-        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#A61919;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
+        <button onclick="resetSettings()" style="padding:8px 18px;border-radius:9px;border:1.5px solid rgba(255,78,0,.3);background:rgba(255,78,0,.06);color:#24282C;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">↺ Reset to defaults</button>
       </div>
 
     </div>
@@ -1855,13 +1855,13 @@
 </div>
 
 <!-- VIDEO URL MODAL -->
-<div id="video-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+<div id="video-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 56px rgba(36,40,44,.18),0 1px 4px rgba(36,40,44,.04);position:relative;border:1px solid rgba(36,40,44,.08);">
     <div style="font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-.01em;">🎬 Add Video</div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;">Embed from YouTube/Vimeo or upload from your computer</div>
 
     <!-- Tabs -->
-    <div style="display:flex;gap:4px;margin-bottom:18px;background:var(--bg,#F2F2F5);border-radius:10px;padding:3px;">
+    <div style="display:flex;gap:4px;margin-bottom:18px;background:var(--bg,#F6F6EF);border-radius:10px;padding:3px;">
       <button id="vtab-url" onclick="switchVideoTab('url')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;background:var(--accent);color:var(--on-accent);transition:.15s;">🔗 URL</button>
       <button id="vtab-file" onclick="switchVideoTab('file')" style="flex:1;padding:7px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;background:transparent;color:var(--text-2);transition:.15s;">📁 Upload from PC</button>
     </div>
@@ -1874,7 +1874,7 @@
     <!-- File tab -->
     <div id="vpanel-file" style="display:none;">
       <div id="video-drop-zone" onclick="document.getElementById('video-file-input').click()"
-        style="border:2px dashed rgba(92,92,102,.28);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:14px;background:var(--bg,#F2F2F5);"
+        style="border:2px dashed rgba(93,97,75,.28);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:14px;background:var(--bg,#F6F6EF);"
         ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
         ondragleave="this.style.borderColor='rgba(0,0,0,.18)'"
         ondrop="handleVideoFileDrop(event)">
@@ -1883,25 +1883,25 @@
         <div style="font-size:11px;color:var(--text-3);margin-top:4px;">MP4, WebM, MOV · max 50 MB</div>
       </div>
       <input id="video-file-input" type="file" accept="video/mp4,video/webm,video/quicktime,video/*" style="display:none;" onchange="handleVideoFileSelect(this)">
-      <div id="video-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(14,14,16,.08);border-radius:8px;border:1px solid rgba(14,14,16,.25);margin-bottom:14px;"></div>
+      <div id="video-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(36,40,44,.08);border-radius:8px;border:1px solid rgba(36,40,44,.25);margin-bottom:14px;"></div>
     </div>
 
     <div style="display:flex;gap:8px;">
       <button onclick="closeVideoModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:600;cursor:pointer;color:var(--text-2);">Cancel</button>
       <button onclick="confirmVideoEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:var(--on-accent);font-family:var(--font);font-weight:650;cursor:pointer;font-size:13px;">Add Video</button>
     </div>
-    <div onclick="closeVideoModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+    <div onclick="closeVideoModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(36,40,44,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
 </div>
 
 <!-- AUDIO MODAL -->
-<div id="audio-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+<div id="audio-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 56px rgba(36,40,44,.18),0 1px 4px rgba(36,40,44,.04);position:relative;border:1px solid rgba(36,40,44,.08);">
     <div style="font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-.01em;">🎵 Add Audio</div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:18px;">Upload an audio file from your computer</div>
 
     <div id="audio-drop-zone" onclick="document.getElementById('audio-file-input').click()"
-      style="border:2px dashed rgba(92,92,102,.28);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:14px;background:var(--bg,#F2F2F5);"
+      style="border:2px dashed rgba(93,97,75,.28);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:14px;background:var(--bg,#F6F6EF);"
       ondragover="event.preventDefault();this.style.borderColor='#1C1C1E'"
       ondragleave="this.style.borderColor='rgba(92,92,102,.28)'"
       ondrop="handleAudioFileDrop(event)">
@@ -1910,7 +1910,7 @@
       <div style="font-size:11px;color:var(--text-3);margin-top:4px;">MP3, WAV, OGG, M4A · max 20 MB</div>
     </div>
     <input id="audio-file-input" type="file" accept="audio/mp3,audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/*" style="display:none;" onchange="handleAudioFileSelect(this)">
-    <div id="audio-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(28,28,30,.12);border-radius:8px;border:1px solid rgba(28,28,30,.3);margin-bottom:14px;"></div>
+    <div id="audio-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(36,40,44,.12);border-radius:8px;border:1px solid rgba(36,40,44,.3);margin-bottom:14px;"></div>
 
     <div style="margin-bottom:14px;">
       <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Title (optional)</div>
@@ -1919,15 +1919,15 @@
 
     <div style="display:flex;gap:8px;">
       <button onclick="closeAudioModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:600;cursor:pointer;color:var(--text-2);">Cancel</button>
-      <button onclick="confirmAudioEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:#1C1C1E;color:#fff;font-family:var(--font);font-weight:650;cursor:pointer;font-size:13px;">Add Audio</button>
+      <button onclick="confirmAudioEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:#24282C;color:#fff;font-family:var(--font);font-weight:650;cursor:pointer;font-size:13px;">Add Audio</button>
     </div>
-    <div onclick="closeAudioModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+    <div onclick="closeAudioModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(36,40,44,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
 </div>
 
 <!-- IMAGE MODAL (URL / file / drag-drop / paste) -->
-<div id="image-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+<div id="image-url-overlay" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 56px rgba(36,40,44,.18),0 1px 4px rgba(36,40,44,.04);position:relative;border:1px solid rgba(36,40,44,.08);">
     <div style="font-size:1.2rem;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-.01em;">🖼 Add Image</div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Drag &amp; drop, paste (Ctrl/⌘+V), choose a file, or use a URL.</div>
 
@@ -1936,13 +1936,13 @@
          ondragleave="this.style.borderColor='rgba(0,0,0,.18)';this.style.background='var(--bg)'"
          ondrop="handleImageFileDrop(event)"
          onclick="document.getElementById('image-file-input').click()"
-         style="border:2px dashed rgba(92,92,102,.28);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:var(--bg);margin-bottom:14px;transition:.15s;">
+         style="border:2px dashed rgba(93,97,75,.28);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:var(--bg);margin-bottom:14px;transition:.15s;">
       <div style="font-size:24px;margin-bottom:4px;">📁</div>
       <div style="font-size:12px;font-weight:600;color:var(--text-2);">Drop image, paste, or click to choose</div>
       <div style="font-size:10px;color:var(--text-3);margin-top:4px;">PNG · JPG · GIF · WebP · max 8 MB</div>
     </div>
     <input id="image-file-input" type="file" accept="image/*" style="display:none;" onchange="handleImageFileSelect(this)">
-    <div id="image-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(14,14,16,.08);border-radius:8px;margin-bottom:14px;"></div>
+    <div id="image-file-info" style="display:none;font-size:12px;color:var(--text-2);font-weight:600;padding:8px 12px;background:rgba(36,40,44,.08);border-radius:8px;margin-bottom:14px;"></div>
 
     <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Or use a URL</div>
     <input id="image-url-input" class="cfg-input" type="url" placeholder="https://example.com/image.png" style="margin-bottom:14px;">
@@ -1951,7 +1951,7 @@
       <button onclick="closeImageModal()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font);font-weight:600;cursor:pointer;color:var(--text-2);">Cancel</button>
       <button onclick="confirmImageEmbed()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:650;cursor:pointer;font-size:13px;">Add Image</button>
     </div>
-    <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
+    <div onclick="closeImageModal()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(36,40,44,.06);font-size:16px;cursor:pointer;color:var(--text-3);">×</div>
   </div>
 </div>
 
@@ -2004,11 +2004,11 @@
 </div>
 
 <!-- GAMES HUB PICKER -->
-<div id="games-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGamesModal()">
-  <div style="background:#fff;border-radius:12px;padding:20px;width:100%;max-width:760px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 56px rgba(5,5,23,.18),0 1px 4px rgba(0,0,0,.04);position:relative;border:1px solid rgba(0,0,0,.08);">
+<div id="games-overlay" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);backdrop-filter:blur(6px);z-index:5000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGamesModal()">
+  <div style="background:#fff;border-radius:12px;padding:20px;width:100%;max-width:760px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 56px rgba(36,40,44,.18),0 1px 4px rgba(36,40,44,.04);position:relative;border:1px solid rgba(36,40,44,.08);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
       <div style="font-size:1.25rem;font-weight:600;color:var(--text);letter-spacing:-.01em;">🎮 Games Hub</div>
-      <div onclick="closeGamesModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;font-size:18px;cursor:pointer;color:#9999AA;transition:.12s;" onmouseover="this.style.background='rgba(0,0,0,.06)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='#9999AA'">×</div>
+      <div onclick="closeGamesModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:transparent;font-size:18px;cursor:pointer;color:#5D614B;transition:.12s;" onmouseover="this.style.background='rgba(0,0,0,.06)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='#9999AA'">×</div>
     </div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Choose a game to drop it on the board · drag the tile to position it exactly</div>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="games-tabs"></div>
@@ -2121,8 +2121,8 @@
 </div>
 
 <!-- BOARD LIST MODAL -->
-<div id="boards-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,10,20,.55);backdrop-filter:blur(6px);z-index:3000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;">
+<div id="boards-overlay" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.55);backdrop-filter:blur(6px);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(36,40,44,.18);position:relative;">
     <div style="font-size:1.1rem;font-weight:650;color:var(--text);margin-bottom:16px;">📋 My Boards</div>
     <div id="boards-list"></div>
     <button onclick="closeBoardList()" style="position:absolute;top:14px;right:16px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-3);">×</button>
@@ -2138,25 +2138,25 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=946"></script>
-<script src="js/teacher-tools-data.js?v=946"></script>
-<script src="scripts/tt-text-core.js?v=946"></script>
+<script src="scripts/auth-modal.js?v=950"></script>
+<script src="js/teacher-tools-data.js?v=950"></script>
+<script src="scripts/tt-text-core.js?v=950"></script>
 <!-- Перед board-app.js: доска зовёт эти имена как свои (общий файл с домашкой). -->
-<script src="scripts/worksheet-play.js?v=946"></script>
-<script src="scripts/board-app.js?v=946"></script>
-<script src="js/board-vocab.js?v=946"></script>
-<script src="js/board-reveal.js?v=946"></script>
-<script src="js/teacher-tool-board-composer.js?v=946"></script>
-<script src="scripts/board-mobile.js?v=946"></script>
+<script src="scripts/worksheet-play.js?v=950"></script>
+<script src="scripts/board-app.js?v=950"></script>
+<script src="js/board-vocab.js?v=950"></script>
+<script src="js/board-reveal.js?v=950"></script>
+<script src="js/teacher-tool-board-composer.js?v=950"></script>
+<script src="scripts/board-mobile.js?v=950"></script>
 
 <!-- Student Quiz Overlay -->
-<div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
-  <div id="student-quiz-modal" style="background:#fff;border-radius:20px;width:min(520px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 32px 90px rgba(0,0,0,.22);font-family:var(--font-ui);">
+<div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.55);z-index:9999;align-items:center;justify-content:center;">
+  <div id="student-quiz-modal" style="background:#fff;border-radius:20px;width:min(520px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 32px 90px rgba(36,40,44,.22);font-family:var(--font-ui);">
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=946" defer></script>
-<script src="pwa-boot.js?v=946" defer></script>
+<script src="scripts/autogrow.js?v=950" defer></script>
+<script src="pwa-boot.js?v=950" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2257,11 +2257,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=946"></script>
-<script src="scripts/nav-boost.js?v=946" defer></script>
-<script src="scripts/mobile-perf.js?v=946" defer></script>
-<script src="scripts/mobile-nav.js?v=946"></script>
-<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
+<script src="pwa.js?v=950"></script>
+<script src="scripts/nav-boost.js?v=950" defer></script>
+<script src="scripts/mobile-perf.js?v=950" defer></script>
+<script src="scripts/mobile-nav.js?v=950"></script>
+<script src="scripts/mobile-zoom-guard.js?v=950" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

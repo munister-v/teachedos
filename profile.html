@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=946"></script>
+<script src="scripts/phone-gate.js?v=950"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=946">
-<link rel="preload" as="style" href="styles/unify.css?v=946">
-<link rel="manifest" href="manifest.json?v=946">
+<link rel="preload" as="style" href="styles/harmony.css?v=950">
+<link rel="preload" as="style" href="styles/unify.css?v=950">
+<link rel="manifest" href="manifest.json?v=950">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -22,56 +22,56 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --accent: #1C1C1E;
-  --accent-2: rgba(200,230,50,.08);
-  --accent-3: rgba(200,230,50,.16);
-  --bg: #F2F2F5;
-  --bg-2: #E7E7EC;
-  --border: rgba(92,92,102,.14);
-  --border-2: rgba(92,92,102,.28);
-  --text: #1C1C1E;
-  --text-2: #3A3A40;
-  --text-3: #9A9AA3;
-  --shadow: 0 4px 24px rgba(5,5,23,.08);
+  --accent: #24282C;
+  --accent-2: rgba(205,246,73,.08);
+  --accent-3: rgba(205,246,73,.16);
+  --bg: #F6F6EF;
+  --bg-2: #F6F6EF;
+  --border: rgba(93,97,75,.14);
+  --border-2: rgba(93,97,75,.28);
+  --text: #24282C;
+  --text-2: #5D614B;
+  --text-3: #5D614B;
+  --shadow: 0 4px 24px rgba(36,40,44,.08);
   --radius: 16px;
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  --lime: #C8E632;
-  --lavender: #C8E632;
+  --lime: #CDF649;
+  --lavender: #CDF649;
 }
 body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line-height: 1.55; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
 
 /* ── NAV (macOS-style menubar) ── */
 #nav{
   position:sticky;top:0;z-index:200;height:36px;
-  background:rgba(242,242,245,0.82);
+  background:rgba(246,246,239,0.82);
   backdrop-filter:blur(32px) saturate(2);
   -webkit-backdrop-filter:blur(32px) saturate(2);
-  border-bottom:1px solid rgba(92,92,102,.08);
+  border-bottom:1px solid rgba(93,97,75,.08);
   display:flex;align-items:center;padding:0 14px;gap:0;
-  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(92,92,102,.05);
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 1px 10px rgba(36,40,44,.05);
 }
 .nav-logo{display:flex;align-items:center;margin-right:6px;flex-shrink:0;text-decoration:none;}
 .nav-logo img{width:22px;height:22px;border-radius:6px;}
-.nav-logo-name{font-size:13px;font-weight:650;color:#1C1C1E;margin-left:7px;letter-spacing:-.01em;}
-.nav-sep{width:1px;height:18px;background:rgba(92,92,102,.14);margin:0 4px;}
+.nav-logo-name{font-size:13px;font-weight:650;color:#24282C;margin-left:7px;letter-spacing:-.01em;}
+.nav-sep{width:1px;height:18px;background:rgba(93,97,75,.14);margin:0 4px;}
 .nav-link{
-  font-size:13px;font-weight:600;color:#3A3A40;padding:0 10px;height:36px;
+  font-size:13px;font-weight:600;color:#5D614B;padding:0 10px;height:36px;
   display:flex;align-items:center;border-radius:8px;transition:background .15s ease,color .15s ease;white-space:nowrap;
   text-decoration:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
-.nav-link:hover{background:rgba(5,5,23,.06);color:#1C1C1E;}
-.nav-link.active{font-weight:650;color:#C8E632;}
+.nav-link:hover{background:rgba(36,40,44,.06);color:#24282C;}
+.nav-link.active{font-weight:650;color:#CDF649;}
 .nav-spacer{flex:1;}
 .nav-user{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#3A3A40;
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5D614B;
   padding:3px 10px 3px 7px;border-radius:20px;
-  border:1px solid rgba(200,230,50,.22);background:rgba(92,92,102,.07);
+  border:1px solid rgba(205,246,73,.22);background:rgba(93,97,75,.07);
   cursor:pointer;transition:.15s;text-decoration:none;
 }
-.nav-user:hover{border-color:#C8E632;background:rgba(200,230,50,.09);}
+.nav-user:hover{border-color:#CDF649;background:rgba(205,246,73,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(200,230,50,.15);color:#C8E632;font-size:10px;font-weight:700;
+  background:rgba(205,246,73,.15);color:#CDF649;font-size:10px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 .nb-spacer{flex:1;}
@@ -92,10 +92,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   margin-bottom: 2px;
 }
 .st-item:active { transform: scale(.97); }
-.st-item:hover { background: rgba(200,230,50,.10); color: var(--text); }
+.st-item:hover { background: rgba(205,246,73,.10); color: var(--text); }
 .st-item.active {
-  background: #1C1C1E; color: #C8E632;
-  box-shadow: 0 2px 10px rgba(5,5,23,.18);
+  background: #24282C; color: #CDF649;
+  box-shadow: 0 2px 10px rgba(36,40,44,.18);
 }
 .st-item.active .st-icon { filter: none; }
 .st-icon { font-size: 17px; width: 22px; text-align: center; }
@@ -107,13 +107,13 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 /* ── Cards ── */
 .card {
   background: #fff; border-radius: var(--radius);
-  border: 1px solid rgba(92,92,102,.11);
-  box-shadow: 0 2px 12px rgba(5,5,23,.06), 0 1px 0 rgba(255,255,255,.8) inset;
+  border: 1px solid rgba(93,97,75,.11);
+  box-shadow: 0 2px 12px rgba(36,40,44,.06), 0 1px 0 rgba(255,255,255,.8) inset;
   padding: 24px; margin-bottom: 20px;
   transition: transform .22s cubic-bezier(.34,1.3,.64,1), box-shadow .22s ease, border-color .2s ease;
   will-change: transform; transform: translateZ(0);
 }
-.card:hover { transform: translateY(-3px) translateZ(0); box-shadow: 0 10px 36px rgba(5,5,23,.11), 0 1px 0 rgba(255,255,255,.8) inset; border-color: rgba(200,230,50,.25); }
+.card:hover { transform: translateY(-3px) translateZ(0); box-shadow: 0 10px 36px rgba(36,40,44,.11), 0 1px 0 rgba(255,255,255,.8) inset; border-color: rgba(205,246,73,.25); }
 .card-title { font-size: 16px; font-weight:600; letter-spacing: -.022em; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
 /* ── Avatar area ── */
@@ -130,10 +130,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   display: flex; align-items: center; justify-content: center;
   width: 92px; height: 92px; border-radius: 24px; flex-shrink: 0;
   background: #fff; border: 4px solid #fff;
-  box-shadow: 0 6px 20px rgba(5,5,23,.14);
+  box-shadow: 0 6px 20px rgba(36,40,44,.14);
 }
-#profile-avatar-big:hover { transform: scale(1.05) translateY(-1px); box-shadow: 0 10px 26px rgba(5,5,23,.2); }
-#profile-name-big { font-size: 24px; font-weight:650; letter-spacing: -.04em; line-height: 1.15; color: var(--text, #1C1C1E) !important; margin-top: 2px; }
+#profile-avatar-big:hover { transform: scale(1.05) translateY(-1px); box-shadow: 0 10px 26px rgba(36,40,44,.2); }
+#profile-name-big { font-size: 24px; font-weight:650; letter-spacing: -.04em; line-height: 1.15; color: var(--text, #24282C) !important; margin-top: 2px; }
 #profile-email-big { font-size: 14px; color: var(--text-3); margin-top: 2px; }
 .profile-badge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .role-badge {
@@ -151,7 +151,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   padding: 14px 16px; text-align: left;
   transition: transform .2s cubic-bezier(.34,1.3,.64,1), box-shadow .18s ease;
 }
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(92,92,102,.1); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(36,40,44,.1); }
 /* One icon chip per metric so the row scans like the rest of the app's stat
    rows (analytics/journal/gradebook already do this) instead of four bare
    numbers - a plain color-coded left stripe was the only signal before,
@@ -169,7 +169,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 }
 .stat-icon .ic { width: 18px; height: 18px; }
 .stat-body { min-width: 0; }
-.stat-n { font-size: 22px; font-weight:650; letter-spacing: -.03em; color: var(--text, #1C1C1E); line-height: 1.15; }
+.stat-n { font-size: 22px; font-weight:650; letter-spacing: -.03em; color: var(--text, #24282C); line-height: 1.15; }
 .stat-label { font-size: 11.5px; font-weight:600; color: var(--text-3); margin-top: 2px; }
 
 /* ── Recent boards ── */
@@ -191,8 +191,8 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   transition: transform .24s cubic-bezier(.34,1.3,.64,1), box-shadow .24s ease, border-color .2s ease;
   will-change: transform; transform: translateZ(0);
 }
-.board-card:hover { transform: translateY(-4px) translateZ(0); box-shadow: 0 12px 40px rgba(0,0,0,.13); border-color: rgba(200,230,50,.3); }
-.bc-thumb { height: 100px; background: linear-gradient(135deg, var(--accent-3), rgba(120,80,200,.12)); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.board-card:hover { transform: translateY(-4px) translateZ(0); box-shadow: 0 12px 40px rgba(36,40,44,.13); border-color: rgba(205,246,73,.3); }
+.bc-thumb { height: 100px; background: linear-gradient(135deg, var(--accent-3), rgba(107,66,253,.12)); display: flex; align-items: center; justify-content: center; font-size: 36px; }
 .bc-body { padding: 14px; flex: 1; }
 .bc-name-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .bc-name { font-size: 14px; font-weight:650; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
@@ -207,9 +207,9 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 }
 .bc-btn:active { transform: scale(.96); }
 .bc-btn:hover { background: var(--accent-2); border-color: var(--accent); color: var(--accent); }
-.bc-btn.danger:hover { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.3); color:#A61919; }
+.bc-btn.danger:hover { background: rgba(255,78,0,.07); border-color: rgba(255,78,0,.3); color:#24282C; }
 .bc-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.bc-btn.primary:hover { background: #2e2e34; border-color: #2e2e34; }
+.bc-btn.primary:hover { background: #24282C; border-color: #24282C; }
 
 .new-board-btn { /* сплошная лаймовая кнопка вместо пунктирной плашки */
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -235,7 +235,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .pf-empty-icon {
   width: 52px; height: 52px; border-radius: 15px; margin-bottom: 12px;
   display: flex; align-items: center; justify-content: center; font-size: 24px;
-  background: linear-gradient(rgba(200,230,50,.30), rgba(200,230,50,.30)), #fff;
+  background: linear-gradient(rgba(205,246,73,.30), rgba(205,246,73,.30)), #fff;
   border: 1px solid var(--border);
 }
 .pf-empty-title {
@@ -271,36 +271,36 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   color: var(--text);
 }
 .setting-input::placeholder { color: var(--text-3); }
-.setting-input:hover { border-color: rgba(92,92,102,.26); }
-.setting-input:focus { border-color: #C8E632; box-shadow: 0 0 0 3px rgba(200,230,50,.18); background: #fff; }
+.setting-input:hover { border-color: rgba(93,97,75,.26); }
+.setting-input:focus { border-color: #CDF649; box-shadow: 0 0 0 3px rgba(205,246,73,.18); background: #fff; }
 .setting-btn {
   padding: 9px 20px; border-radius: 10px; border: none;
   background: var(--accent); color: #fff; font-family: var(--font);
   font-size: 14px; font-weight:600; cursor: pointer;
   transition: transform .2s cubic-bezier(.34,1.56,.64,1), background .15s ease, box-shadow .2s ease;
 }
-.setting-btn:hover { background: #2e2e34; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(5,5,23,.28); }
+.setting-btn:hover { background: #24282C; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(36,40,44,.28); }
 .setting-btn:active { transform: scale(.97); }
 .setting-btn.secondary { background: var(--bg); border: 1.5px solid var(--border); color: var(--text-2); }
 .setting-btn.secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-2); }
-.setting-btn.danger { background: rgba(239,68,68,.08); border: 1.5px solid rgba(239,68,68,.25); color:#A61919; }
-.setting-btn.danger:hover { background: rgba(239,68,68,.15); }
+.setting-btn.danger { background: rgba(255,78,0,.08); border: 1.5px solid rgba(255,78,0,.25); color:#24282C; }
+.setting-btn.danger:hover { background: rgba(255,78,0,.15); }
 
 #plan-card .plan-option {
   background: #fff;
-  border-color: rgba(92,92,102,.18);
-  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 8px 24px rgba(5,5,23,.035);
-  color: #1C1C1E;
+  border-color: rgba(93,97,75,.18);
+  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 8px 24px rgba(36,40,44,.035);
+  color: #24282C;
 }
 #plan-card .plan-option:hover {
-  border-color: rgba(28,28,30,.28);
-  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 30px rgba(5,5,23,.07);
+  border-color: rgba(36,40,44,.28);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 30px rgba(36,40,44,.07);
   transform: translateY(-1px);
 }
 #plan-card .plan-option.is-selected {
-  border-color: #1C1C1E !important;
-  background: linear-gradient(135deg, rgba(200,230,50,.18), rgba(255,255,255,.96)) !important;
-  box-shadow: 0 0 0 3px rgba(200,230,50,.16), 0 14px 34px rgba(5,5,23,.08);
+  border-color: #24282C !important;
+  background: linear-gradient(135deg, rgba(205,246,73,.18), rgba(255,255,255,.96)) !important;
+  box-shadow: 0 0 0 3px rgba(205,246,73,.16), 0 14px 34px rgba(36,40,44,.08);
 }
 #plan-card .plan-option-icon {
   width: 34px;
@@ -309,18 +309,18 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   align-items: center;
   justify-content: center;
   border-radius: 11px;
-  background: rgba(28,28,30,.055);
+  background: rgba(36,40,44,.055);
 }
 #plan-card .plan-option-title {
-  color: #1C1C1E;
+  color: #24282C;
   opacity: 1;
 }
 #plan-card .plan-option-meta {
-  color: #5D5D60;
+  color: #5D614B;
   opacity: 1;
 }
 #plan-card .plan-option-price {
-  color: #050517 !important;
+  color: #24282C !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -334,17 +334,17 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .emoji-opt.selected { border-color: var(--accent); background: var(--accent-3); }
 
 /* ── Danger zone ── */
-.danger-zone { border: 1.5px solid rgba(239,68,68,.25); border-radius: 14px; padding: 20px; }
-.danger-zone-title { font-size: 14px; font-weight:650; color:#A61919; margin-bottom: 12px; }
+.danger-zone { border: 1.5px solid rgba(255,78,0,.25); border-radius: 14px; padding: 20px; }
+.danger-zone-title { font-size: 14px; font-weight:650; color:#24282C; margin-bottom: 12px; }
 
 /* ── Toast ── */
 #toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px) translateZ(0);
-  background: #1a1a2e; color: #fff; padding: 10px 20px; border-radius: 20px;
+  background: #5D614B; color: #fff; padding: 10px 20px; border-radius: 20px;
   font-size: 13px; font-weight:600; opacity: 0; pointer-events: none;
   transition: opacity .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.34,1.3,.64,1);
   z-index: 9999; white-space: nowrap; will-change: transform, opacity;
-  backdrop-filter: blur(12px); box-shadow: 0 8px 28px rgba(0,0,0,.18);
+  backdrop-filter: blur(12px); box-shadow: 0 8px 28px rgba(36,40,44,.18);
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0) translateZ(0); }
 
@@ -357,7 +357,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 /* ── Responsive ── */
 @media (max-width: 860px) {
   body { background: #fff; }
-  #nav { padding: 0 14px; gap: 8px; overflow-x: auto; background: rgba(255,255,255,0.96); border-bottom: 1px solid rgba(92,92,102,0.08); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  #nav { padding: 0 14px; gap: 8px; overflow-x: auto; background: rgba(255,255,255,0.96); border-bottom: 1px solid rgba(93,97,75,0.08); backdrop-filter: none; -webkit-backdrop-filter: none; }
   .nav-link { display: none; }
   .nav-sep { display: none; }
   .nav-user { border: none; background: transparent; padding: 4px 6px; }
@@ -388,7 +388,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     transition: background .15s, color .15s, border-color .15s;
   }
   .st-item.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .st-item[data-tab="logout"] { margin-top: 0 !important; margin-left: 4px; color:#A61919; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+  .st-item[data-tab="logout"] { margin-top: 0 !important; margin-left: 4px; color:#24282C; border-color: rgba(255,78,0,0.3); background: rgba(255,78,0,0.06); }
   .st-icon { display: inline; font-size: 14px; margin-right: 4px; }
   .card { padding: 18px; margin-bottom: 16px; }
   .mobile-profile-shell { display: block; }
@@ -396,10 +396,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding: 18px;
     border-radius: 20px;
     background:
-      radial-gradient(circle at top right, rgba(200,230,50,.18), transparent 34%),
-      linear-gradient(150deg, rgba(255,255,255,.96), rgba(247,238,242,.92));
-    border: 1px solid rgba(200,230,50,.14);
-    box-shadow: 0 18px 40px rgba(92,92,102,.08);
+      radial-gradient(circle at top right, rgba(205,246,73,.18), transparent 34%),
+      linear-gradient(150deg, rgba(255,255,255,.96), rgba(246,246,239,.92));
+    border: 1px solid rgba(205,246,73,.14);
+    box-shadow: 0 18px 40px rgba(36,40,44,.08);
     margin-bottom: 16px;
   }
   .mobile-profile-eyebrow {
@@ -436,7 +436,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding: 12px 14px;
     border-radius: 18px;
     background: rgba(255,255,255,.88);
-    border: 1px solid rgba(200,230,50,.12);
+    border: 1px solid rgba(205,246,73,.12);
     color: var(--text);
     text-decoration: none;
     cursor: pointer;
@@ -444,16 +444,16 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-action-ic {
     width: 36px; height: 36px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(145deg, rgba(200,230,50,.18), rgba(28,28,30,.18));
+    background: linear-gradient(145deg, rgba(205,246,73,.18), rgba(36,40,44,.18));
     flex-shrink: 0;
     font-size: 18px;
   }
   .mobile-profile-action-title { font-size: 13px; font-weight:650; line-height: 1.2; }
   .mobile-profile-action-sub { margin-top: 3px; font-size: 11px; color: var(--text-3); line-height: 1.35; }
   .mobile-profile-more { display:none; position:relative; }
-  .mobile-profile-more summary { list-style:none; display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border:1px solid rgba(92,92,102,.14); border-radius:18px; background:#fff; color:var(--text); font-size:12px; font-weight:650; cursor:pointer; }
+  .mobile-profile-more summary { list-style:none; display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; border:1px solid rgba(93,97,75,.14); border-radius:18px; background:#fff; color:var(--text); font-size:12px; font-weight:650; cursor:pointer; }
   .mobile-profile-more summary::-webkit-details-marker { display:none; }
-  .mobile-profile-more-menu { display:flex; flex-direction:column; gap:8px; margin-top:8px; padding:8px; border:1px solid rgba(92,92,102,.14); border-radius:18px; background:#fff; }
+  .mobile-profile-more-menu { display:flex; flex-direction:column; gap:8px; margin-top:8px; padding:8px; border:1px solid rgba(93,97,75,.14); border-radius:18px; background:#fff; }
   .mobile-profile-more-menu .mobile-profile-action { min-height:52px; }
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .boards-grid { grid-template-columns: 1fr; }
@@ -466,13 +466,13 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=946" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=946">
-<link rel="stylesheet" href="styles/harmony.css?v=946">
-<link rel="stylesheet" href="styles/unify.css?v=946">
+<script src="theme.js?v=950" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=950">
+<link rel="stylesheet" href="styles/harmony.css?v=950">
+<link rel="stylesheet" href="styles/unify.css?v=950">
 <style>
 @media (max-width: 860px) {
-  body{background:#F2F2F5;}
+  body{background:#F6F6EF;}
   #layout.mp-shell{
     padding:12px 12px calc(78px + env(safe-area-inset-bottom,0px));
     gap:12px;
@@ -486,7 +486,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     z-index:160;
     padding:4px 0 8px;
     margin:0 -2px;
-    background:#F2F2F5;
+    background:#F6F6EF;
     scroll-padding:12px;
   }
   .st-item{
@@ -494,28 +494,28 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding:0 14px!important;
     border-radius:999px!important;
     background:#fff!important;
-    border:1px solid rgba(92,92,102,.12)!important;
+    border:1px solid rgba(93,97,75,.12)!important;
     box-shadow:none!important;
-    color:#3A3A40!important;
+    color:#5D614B!important;
     transform:none!important;
   }
   .st-item.active{
-    background:#1C1C1E!important;
-    color:#C8E632!important;
-    border-color:#1C1C1E!important;
+    background:#24282C!important;
+    color:#CDF649!important;
+    border-color:#24282C!important;
   }
   .st-icon{display:none!important;}
   .st-item[data-tab="logout"]{display:none!important;}
   .mobile-profile-hero{
     border-radius:18px;
     background:#fff;
-    border:1px solid rgba(92,92,102,.12);
+    border:1px solid rgba(93,97,75,.12);
     box-shadow:none;
     padding:18px;
   }
-  .mobile-profile-eyebrow{color:#78787B;}
-  .mobile-profile-title{color:#1C1C1E;font-size:23px;}
-  .mobile-profile-copy{color:#5A5A63;}
+  .mobile-profile-eyebrow{color:#5D614B;}
+  .mobile-profile-title{color:#24282C;font-size:23px;}
+  .mobile-profile-copy{color:#5D614B;}
   .mobile-profile-actions{grid-template-columns:1fr 1fr;gap:8px;}
   .mobile-profile-secondary{display:none!important;}
   .mobile-profile-more{display:block;grid-column:1/-1;}
@@ -525,7 +525,7 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
     padding:12px 13px;
     border-radius:18px;
     background:#fff;
-    border:1px solid rgba(92,92,102,.12);
+    border:1px solid rgba(93,97,75,.12);
     box-shadow:none;
   }
   .mobile-profile-action-ic{
@@ -536,15 +536,15 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-action.logout{
     grid-column:1/-1;
     min-height:52px;
-    border-color:rgba(239,68,68,.18)!important;
-    color:#b91c1c!important;
+    border-color:rgba(255,78,0,.18)!important;
+    color:#24282C!important;
     background:rgba(255,255,255,.82)!important;
   }
   .card{
     padding:16px!important;
     margin-bottom:12px!important;
     border-radius:16px!important;
-    border:1px solid rgba(92,92,102,.12)!important;
+    border:1px solid rgba(93,97,75,.12)!important;
     box-shadow:none!important;
     transform:none!important;
   }
@@ -585,10 +585,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 body.profile-page.fx:not(#_),
 body.profile-page.fx:not(#_) #layout,
 body.profile-page.fx:not(#_) #main-content {
-  background: #F2F2F5 !important;
+  background: #F6F6EF !important;
   background-image: none !important;
   background-attachment: scroll !important;
-  color: #1C1C1E !important;
+  color: #24282C !important;
 }
 body.profile-page #nav {
   height: 48px !important;
@@ -598,9 +598,9 @@ body.profile-page #nav {
   overflow-x: auto !important;
   overflow-y: hidden !important;
   flex-wrap: nowrap !important;
-  background: rgba(248,248,251,.96) !important;
-  border-bottom: 1px solid rgba(92,92,102,.14) !important;
-  box-shadow: 0 2px 14px rgba(57,57,60,.08) !important;
+  background: rgba(246,246,239,.96) !important;
+  border-bottom: 1px solid rgba(93,97,75,.14) !important;
+  box-shadow: 0 2px 14px rgba(36,40,44,.08) !important;
   scrollbar-width: none;
 }
 body.profile-page #nav::-webkit-scrollbar { display: none; }
@@ -608,28 +608,28 @@ body.profile-page #nav .nav-link {
   min-height: 44px;
   height: 44px;
   padding: 0 12px !important;
-  color: #3A3A40 !important;
+  color: #5D614B !important;
   font-weight:600 !important;
   flex: 0 0 auto;
 }
 body.profile-page #nav .nav-link:hover,
 body.profile-page #nav .nav-link:focus-visible {
-  background: rgba(200,230,50,.18) !important;
-  color: #1C1C1E !important;
+  background: rgba(205,246,73,.18) !important;
+  color: #24282C !important;
   outline: none;
 }
 body.profile-page #nav .nav-link.active {
-  background: rgba(200,230,50,.34) !important;
-  color: #1C1C1E !important;
-  box-shadow: inset 0 -2px 0 #7A8E00;
+  background: rgba(205,246,73,.34) !important;
+  color: #24282C !important;
+  box-shadow: inset 0 -2px 0 #A3A48D;
 }
-body.profile-page #nav .nav-logo-name { color: #1C1C1E !important; }
-body.profile-page #nav .nav-sep { background: rgba(92,92,102,.18) !important; }
+body.profile-page #nav .nav-logo-name { color: #24282C !important; }
+body.profile-page #nav .nav-sep { background: rgba(93,97,75,.18) !important; }
 /* СВЕТЛАЯ ШАПКА - ЗНАЧИТ ТЁМНЫЙ ТЕКСТ, ВКЛЮЧАЯ ВЛОЖЕННЫЙ.
 
    Здесь красился только сам чип (.nav-user), а имя внутри него - отдельный
    элемент со своим цветом: unify.css задаёт «#nav #nav-name { color:
-   rgba(242,242,245,.85) }» для ТЁМНОЙ шапки остальных страниц, и это правило
+   rgba(255,255,255,.85) }» для ТЁМНОЙ шапки остальных страниц, и это правило
    с двумя id перебивало наследование. На профиле шапка светлая, поэтому имя
    выходило кремовым по белому - «Teacher» читался только под углом.
    Тот же класс ошибки, что был у поля поиска: правило для тёмной поверхности
@@ -637,19 +637,19 @@ body.profile-page #nav .nav-sep { background: rgba(92,92,102,.18) !important; }
 body.profile-page #nav .nav-user {
   min-height: 40px;
   flex: 0 0 auto;
-  color: #3A3A40 !important;
+  color: #5D614B !important;
   background: rgba(255,255,255,.8) !important;
-  border-color: rgba(92,92,102,.18) !important;
+  border-color: rgba(93,97,75,.18) !important;
 }
 body.profile-page #nav #nav-name,
 body.profile-page #nav .nav-user span:not(#nav-avatar) {
-  color: #3A3A40 !important;
+  color: #5D614B !important;
 }
 /* Инициал в кружке: лаймовый по светло-лаймовому - то же самое, только тише.
    Тёмная буква на лаймовом кружке читается на любом фоне. */
 body.profile-page #nav #nav-avatar {
-  background: #C8E632 !important;
-  color: #1C1C1E !important;
+  background: #CDF649 !important;
+  color: #24282C !important;
 }
 body.profile-page #nav .nav-user:focus-visible,
 body.profile-page .st-item:focus-visible,
@@ -657,7 +657,7 @@ body.profile-page button:focus-visible,
 body.profile-page input:focus-visible,
 body.profile-page select:focus-visible,
 body.profile-page textarea:focus-visible {
-  outline: 3px solid rgba(122,142,0,.42);
+  outline: 3px solid rgba(163,164,141,.42);
   outline-offset: 2px;
 }
 body.profile-page #sidebar-tabs,
@@ -665,11 +665,11 @@ body.profile-page .st-item,
 body.profile-page .card,
 body.profile-page .stat-card,
 body.profile-page .board-card {
-  color: #1C1C1E;
+  color: #24282C;
 }
 body.profile-page .st-item.active {
-  background: #1C1C1E !important;
-  color: #C8E632 !important;
+  background: #24282C !important;
+  color: #CDF649 !important;
 }
 body.profile-page #sidebar-tabs { background: transparent !important; }
 
@@ -677,8 +677,8 @@ body.profile-page #sidebar-tabs { background: transparent !important; }
    account page feel like a long checkout form. */
 body.profile-page #plan-card {
   padding: 22px;
-  border-color: rgba(92,92,102,.16);
-  box-shadow: 0 10px 32px rgba(57,57,60,.08), 0 1px 0 rgba(255,255,255,.9) inset;
+  border-color: rgba(93,97,75,.16);
+  box-shadow: 0 10px 32px rgba(36,40,44,.08), 0 1px 0 rgba(255,255,255,.9) inset;
 }
 body.profile-page #plan-card > .card-title {
   margin-bottom: 14px;
@@ -688,8 +688,8 @@ body.profile-page #plan-info {
   min-height: 72px;
   padding: 14px 16px !important;
   margin-bottom: 12px !important;
-  background: linear-gradient(135deg, rgba(200,230,50,.16), rgba(255,255,255,.96)) !important;
-  border-color: rgba(200,230,50,.34) !important;
+  background: linear-gradient(135deg, rgba(205,246,73,.16), rgba(255,255,255,.96)) !important;
+  border-color: rgba(205,246,73,.34) !important;
 }
 body.profile-page #plan-icon {
   width: 42px;
@@ -703,7 +703,7 @@ body.profile-page #plan-icon {
   flex-shrink: 0;
 }
 body.profile-page #plan-name-display { font-size: 17px !important; }
-body.profile-page #plan-desc-display { color: #6c6c6f !important; }
+body.profile-page #plan-desc-display { color: #5D614B !important; }
 body.profile-page #plan-status-banner {
   padding: 11px 13px !important;
   margin-bottom: 14px !important;
@@ -715,7 +715,7 @@ body.profile-page #plan-usage-summary {
 }
 body.profile-page #plan-usage-summary > div:first-child,
 body.profile-page #plan-upgrade-section > div:first-child {
-  color: #6c6c6f !important;
+  color: #5D614B !important;
   font-size: 10px !important;
   letter-spacing: .11em !important;
 }
@@ -726,7 +726,7 @@ body.profile-page #plan-usage-summary > div:nth-child(2) > div {
   min-height: 76px;
   padding: 12px 13px !important;
   background: #fff !important;
-  border-color: rgba(92,92,102,.14) !important;
+  border-color: rgba(93,97,75,.14) !important;
   border-radius: 12px !important;
 }
 body.profile-page #plan-usage-summary > div:nth-child(2) > div > div:nth-child(2) {
@@ -740,14 +740,14 @@ body.profile-page #plan-features-list {
 body.profile-page #plan-features-list > div {
   padding: 9px 11px !important;
   border-radius: 10px !important;
-  background: rgba(92,92,102,.035) !important;
-  border-color: rgba(92,92,102,.12) !important;
+  background: rgba(93,97,75,.035) !important;
+  border-color: rgba(93,97,75,.12) !important;
   font-size: 11.5px !important;
   line-height: 1.35;
 }
 body.profile-page #plan-upgrade-section {
   padding-top: 17px;
-  border-top: 1px solid rgba(92,92,102,.12);
+  border-top: 1px solid rgba(93,97,75,.12);
 }
 body.profile-page #plan-upgrade-section > .setting-group { margin-bottom: 10px !important; }
 body.profile-page #plan-upgrade-section .setting-label { margin-bottom: 6px; }
@@ -765,7 +765,7 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
 @media (max-width: 860px) {
   /* Same specificity gap as the desktop rule above: body.profile-page
      alone never beat figma-theme.css's body.fx:not(#_). */
-  body.profile-page.fx:not(#_) { background: #F2F2F5 !important; background-image: none !important; }
+  body.profile-page.fx:not(#_) { background: #F6F6EF !important; background-image: none !important; }
   body.profile-page #nav { display: none !important; }
   body.profile-page #layout { background: transparent !important; }
   body.profile-page #plan-card { padding: 16px !important; box-shadow: none; }
@@ -778,12 +778,12 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=946">
-<link rel="stylesheet" href="styles/tool-window.css?v=946">
+<link rel="stylesheet" href="styles/teached-brand.css?v=950">
+<link rel="stylesheet" href="styles/tool-window.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=946">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
-<link rel="stylesheet" href="styles/controls.css?v=946">
+<link rel="stylesheet" href="styles/figma-theme.css?v=950">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=950">
+<link rel="stylesheet" href="styles/controls.css?v=950">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -874,7 +874,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <div class="st-item" data-tab="plans" onclick="openPlansSection()">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></span> Pricing
     </div>
-    <div class="st-item" data-tab="logout" onclick="doLogout()" style="margin-top:auto;color:#A61919;">
+    <div class="st-item" data-tab="logout" onclick="doLogout()" style="margin-top:auto;color:#24282C;">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-exit"/></svg></span> Sign out
     </div>
   </div>
@@ -995,24 +995,24 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     </div>
 
     <!-- BULK IMPORT MODAL -->
-    <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(5,5,23,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
-      <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(5,5,23,.18);position:relative;">
-        <div style="font-size:18px;font-weight:700;color:#1C1C1E;letter-spacing:-.03em;margin-bottom:6px;">Bulk Invite Students</div>
-        <div style="font-size:13px;color:#9A9AA3;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
+    <div id="bulk-import-modal" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.5);backdrop-filter:blur(8px);z-index:5000;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(36,40,44,.18);position:relative;">
+        <div style="font-size:18px;font-weight:700;color:#24282C;letter-spacing:-.03em;margin-bottom:6px;">Bulk Invite Students</div>
+        <div style="font-size:13px;color:#5D614B;margin-bottom:18px;">Paste emails (one per line or comma-separated). Students must already have a TeachEd account.</div>
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:600;color:#9A9AA3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
-          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(92,92,102,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F2F2F5;color:#1C1C1E;"></select>
+          <div style="font-size:11px;font-weight:600;color:#5D614B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select Board</div>
+          <select id="bulk-board-select" style="width:100%;padding:10px 12px;border:1.5px solid rgba(93,97,75,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;background:#F6F6EF;color:#24282C;"></select>
         </div>
         <div style="margin-bottom:18px;">
-          <div style="font-size:11px;font-weight:600;color:#9A9AA3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
-          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(92,92,102,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F2F2F5;color:#1C1C1E;line-height:1.6;"></textarea>
+          <div style="font-size:11px;font-weight:600;color:#5D614B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Student Emails</div>
+          <textarea id="bulk-emails-input" placeholder="student1@email.com&#10;student2@email.com&#10;student3@email.com" style="width:100%;height:120px;padding:10px 12px;border:1.5px solid rgba(93,97,75,.18);border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;outline:none;resize:vertical;background:#F6F6EF;color:#24282C;line-height:1.6;"></textarea>
         </div>
         <div id="bulk-result" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
         <div style="display:flex;gap:10px;">
-          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(92,92,102,.18);background:#F2F2F5;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:600;cursor:pointer;color:#3A3A40;">Cancel</button>
-          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#C8E632;color:#1C1C1E;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:650;cursor:pointer;font-size:13px;">Invite Students →</button>
+          <button onclick="closeBulkImport()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(93,97,75,.18);background:#F6F6EF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:600;cursor:pointer;color:#5D614B;">Cancel</button>
+          <button onclick="submitBulkImport()" style="flex:2;padding:11px;border-radius:10px;border:none;background:#CDF649;color:#24282C;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-weight:650;cursor:pointer;font-size:13px;">Invite Students →</button>
         </div>
-        <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(5,5,23,.06);font-size:16px;cursor:pointer;color:#9A9AA3;">×</div>
+        <div onclick="closeBulkImport()" style="position:absolute;top:14px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(36,40,44,.06);font-size:16px;cursor:pointer;color:#5D614B;">×</div>
       </div>
     </div>
 
@@ -1092,7 +1092,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
       <div class="card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> Time zone</div>
         <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Choose whether TeachEd should use your computer time automatically or keep a fixed teaching timezone. We use this to show lesson times correctly for students in other countries.</p>
-        <div class="setting-group" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:rgba(200,230,50,.05);">
+        <div class="setting-group" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:rgba(205,246,73,.05);">
           <div>
             <div class="setting-label" style="margin-bottom:4px;">Use computer time automatically</div>
             <div style="font-size:12px;color:var(--text-3);">Detected zone: <span id="tz-detected-label">-</span></div>
@@ -1127,14 +1127,14 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
       <!-- Plan -->
       <div class="card" id="plan-card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg> Subscription plan</div>
-        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(200,230,50,.08),rgba(92,92,102,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
-          <div style="width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:rgba(200,230,50,.22);color:var(--text);" id="plan-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
+        <div id="plan-info" style="display:flex;align-items:center;gap:14px;padding:14px;background:linear-gradient(135deg,rgba(205,246,73,.08),rgba(93,97,75,.03));border-radius:12px;border:1.5px solid var(--accent-3);margin-bottom:14px;">
+          <div style="width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:rgba(205,246,73,.22);color:var(--text);" id="plan-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
           <div>
             <div style="font-size:1rem;font-weight:700;color:var(--text);" id="plan-name-display">Free</div>
             <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-top:2px;" id="plan-desc-display">3 boards · 5 students per board</div>
           </div>
         </div>
-        <div id="plan-status-banner" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(28,28,30,.03);font-size:12px;line-height:1.6;"></div>
+        <div id="plan-status-banner" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(36,40,44,.03);font-size:12px;line-height:1.6;"></div>
         <div id="plan-usage-summary" style="display:grid;gap:8px;margin-bottom:14px;"></div>
         <div id="plan-features-list" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:16px;"></div>
 
@@ -1173,7 +1173,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
 
         <!-- IBAN payment details (shown after selecting a plan) -->
         <div id="iban-payment-section" style="display:none;margin-bottom:16px;">
-          <div style="padding:16px;background:linear-gradient(135deg,rgba(200,230,50,.12),rgba(200,230,50,.06));border-radius:12px;border:1.5px solid rgba(200,230,50,.3);">
+          <div style="padding:16px;background:linear-gradient(135deg,rgba(205,246,73,.12),rgba(205,246,73,.06));border-radius:12px;border:1.5px solid rgba(205,246,73,.3);">
             <div style="font-size:13px;font-weight:650;color:var(--text);margin-bottom:10px;"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg> Payment details</div>
             <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
               <div><strong>IBAN:</strong> <span id="iban-display" style="font-family:var(--te-font-mono,ui-monospace,monospace);font-size:11px;letter-spacing:.04em;user-select:all;">UA623052990262056400990700807</span>
@@ -1205,7 +1205,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
         <!-- Subscription management panel -->
         <div id="manage-sub-panel" style="display:none;margin-top:16px;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;">
           <!-- Header -->
-          <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(200,230,50,.1),rgba(200,230,50,.04));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(205,246,73,.1),rgba(205,246,73,.04));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
             <div style="font-size:13px;font-weight:650;color:var(--text);"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Subscription details</div>
             <button onclick="toggleManagePanel()" style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-3);line-height:1;">×</button>
           </div>
@@ -1225,7 +1225,7 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
 
       <!-- Danger zone -->
       <div class="card">
-        <div class="card-title" style="color:#A61919;">⚠️ Danger Zone</div>
+        <div class="card-title" style="color:#24282C;">⚠️ Danger Zone</div>
         <div class="danger-zone">
           <div class="danger-zone-title">Delete All Boards</div>
           <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">This will permanently delete all your boards and their data. This cannot be undone.</p>
@@ -1237,17 +1237,17 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=946"></script>
-<script src="scripts/profile-app.js?v=946"></script>
-<script src="scripts/autogrow.js?v=946" defer></script>
-<script src="pwa-boot.js?v=946" defer></script>
+<script src="scripts/app-core.js?v=950"></script>
+<script src="scripts/profile-app.js?v=950"></script>
+<script src="scripts/autogrow.js?v=950" defer></script>
+<script src="pwa-boot.js?v=950" defer></script>
 
 <!-- Board Template Modal -->
-<div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:22px;width:min(640px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(5,5,23,.18);padding:28px 28px 24px;">
+<div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:22px;width:min(640px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(36,40,44,.18);padding:28px 28px 24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <div style="font-size:18px;font-weight:700;"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> New board</div>
-      <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;">×</button>
+      <button onclick="closeTplModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#5D614B;line-height:1;">×</button>
     </div>
     <div style="margin-bottom:18px;">
       <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
@@ -1259,12 +1259,12 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=946"></script>
-<script src="scripts/nav-boost.js?v=946" defer></script>
-<script src="scripts/mobile-perf.js?v=946" defer></script>
-<script src="scripts/mobile-nav.js?v=946"></script>
-<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=946" defer></script>
-  <script src="scripts/signin-entry.js?v=946" defer></script>
+<script src="pwa.js?v=950"></script>
+<script src="scripts/nav-boost.js?v=950" defer></script>
+<script src="scripts/mobile-perf.js?v=950" defer></script>
+<script src="scripts/mobile-nav.js?v=950"></script>
+<script src="scripts/mobile-zoom-guard.js?v=950" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=950" defer></script>
+  <script src="scripts/signin-entry.js?v=950" defer></script>
 </body>
 </html>

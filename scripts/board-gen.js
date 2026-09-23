@@ -1960,7 +1960,7 @@ function switchTeacherToolAndGenerate(toolId) {
 // title and meta chips (kind · level · count).
 function _ttPreviewHeader(out, n, unit){
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[out.cat]) || { icon:'✦', color:'#4262FF' };
-  const accent = meta.color || '#4262FF';
+  const accent = meta.color || '#6B42FD';
   const unitLabel = n === 1 ? String(unit).replace(/s$/, '') : unit; // "1 question", not "1 questions"
   return `<div class="tt-result-head" style="--accent:${accent}">
     <div class="tt-result-icon">${meta.icon || '✦'}</div>
@@ -2061,11 +2061,11 @@ function renderTeacherToolLocalPreview(out){
     } else if (q.type === 'match') {
       ans = `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 8px;margin-top:7px;align-items:center;">${
         (q.pairs||[]).map((p,pi)=>`
-          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="left" style="font-size:11px;font-weight:650;padding:3px 8px;border-radius:7px;background:#eef2ff;color:#4262FF">${esc(p.left)}</span>
-          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="right" style="font-size:11px;padding:3px 8px;color:#5f6070" data-ph="match / definition…">${esc(p.right||'')}</span>`).join('')
+          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="left" style="font-size:11px;font-weight:650;padding:3px 8px;border-radius:7px;background:#F6F6EF;color:#6B42FD">${esc(p.left)}</span>
+          <span class="tt-edit" contenteditable="true" data-match="${i}" data-pi="${pi}" data-side="right" style="font-size:11px;padding:3px 8px;color:#5D614B" data-ph="match / definition…">${esc(p.right||'')}</span>`).join('')
       }</div>`;
     } else if (q.type === 'open') {
-      ans = `<div style="font-size:11px;margin-top:5px;color:#9ca3af;font-style:italic;">Open answer - students write freely</div>`;
+      ans = `<div style="font-size:11px;margin-top:5px;color:#5D614B;font-style:italic;">Open answer - students write freely</div>`;
     }
     return `<div class="tbuilder-section tt-q" style="--i:${i}" data-qi="${i}">
       <button class="tt-del" data-del-q="${i}" title="Remove question">×</button>

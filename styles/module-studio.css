@@ -3,26 +3,26 @@
 }
 
 body {
-  --text: #1C1C1E;
-  --muted: #9A9AA3;
+  --text: #24282C;
+  --muted: #5D614B;
   --panel: rgba(255, 255, 255, 0.96);
-  --border: rgba(92,92,102, 0.16);
-  --accent: #1C1C1E;
+  --border: rgba(93,97,75,0.16);
+  --accent: #24282C;
   /* Акцент модуля — цвет заливки. Как ТЕКСТ на своём же светлом тинте он
      давал 2,9:1, поэтому у надписей отдельный, затемнённый вариант. */
-  --accent-ink: #1C1C1E;
-  --accent-2: rgba(232, 93, 117, 0.10);
-  --shadow: 0 24px 48px rgba(5, 5, 23, 0.08);
+  --accent-ink: #24282C;
+  --accent-2: rgba(255,78,0,0.10);
+  --shadow: 0 24px 48px rgba(36,40,44,0.08);
   --radius: 24px;
   --hero-title-size: clamp(30px, 4vw, 44px);
   --embed-heading-size: clamp(24px, 3vw, 34px);
   --page-background:
-    radial-gradient(circle at top left, rgba(200, 230, 50, 0.18), transparent 28%),
+    radial-gradient(circle at top left, rgba(205,246,73,0.18), transparent 28%),
     radial-gradient(circle at bottom right, rgba(159, 140, 232, 0.12), transparent 24%),
-    linear-gradient(180deg, #F2F2F5 0%, #E7E7EC 100%);
+    linear-gradient(180deg, #F6F6EF 0%, #F6F6EF 100%);
   --embed-background:
-    radial-gradient(circle at top left, rgba(200, 230, 50, 0.10), transparent 22%),
-    linear-gradient(180deg, #F2F2F5 0%, #E7E7EC 100%);
+    radial-gradient(circle at top left, rgba(205,246,73,0.10), transparent 22%),
+    linear-gradient(180deg, #F6F6EF 0%, #F6F6EF 100%);
 }
 
 .module-shell {
@@ -97,10 +97,10 @@ body {
 .module-form-error {
   margin: 0;
   padding: 11px 13px;
-  border: 1px solid rgba(190, 58, 73, 0.30);
+  border: 1px solid rgba(255,78,0,0.30);
   border-radius: 14px;
-  background: rgba(255, 234, 236, 0.88);
-  color: #9a2637;
+  background: rgba(246,246,239,0.88);
+  color: #24282C;
   font-size: 13px;
   font-weight: 650;
   line-height: 1.45;
@@ -137,8 +137,8 @@ body {
 
 .module-field[aria-invalid="true"],
 .module-select[aria-invalid="true"] {
-  border-color: rgba(190, 58, 73, 0.70);
-  box-shadow: 0 0 0 4px rgba(190, 58, 73, 0.10);
+  border-color: rgba(255,78,0,0.70);
+  box-shadow: 0 0 0 4px rgba(255,78,0,0.10);
 }
 
 .module-field.textarea {
@@ -163,7 +163,7 @@ body {
 .module-button {
   padding: 15px 18px;
   border-radius: 18px;
-  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 72%, #6b4eff 28%) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 72%, #6B42FD 28%) 100%);
   color: #fff;
   font-weight:650;
   box-shadow: 0 16px 30px color-mix(in srgb, var(--accent) 18%, transparent 82%);

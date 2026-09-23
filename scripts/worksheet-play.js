@@ -37,7 +37,7 @@ const WS_ACCENT_LIME = '#CDF649';
    контур им просто не виден (см. заметку ниже про лайм как заливку). Этот
    зелёный уже живёт в файле как тёмный текст на светлом и даёт 5.0:1, то
    есть читается и глифом ✓, и кольцом вокруг поля. */
-const IW_OK = '#15803D';
+const IW_OK = '#5D614B';
 
 /* ЛАЙМ - ЗАЛИВКА, А НЕ ЧЕРНИЛА.
 
@@ -989,7 +989,7 @@ function iwBeep(good){
   }catch(e){}
 }
 function iwConfetti(){
-  const cols=['#ef4444','#f59e0b','#16a34a','#4262ff','#8b5cf6','#ec4899'];
+  const cols=['#FF4E00','#F3A46B','#A3A48D','#6B42FD','#886BF3','#9F8CE8'];
   for(let i=0;i<60;i++){
     const c=document.createElement('div'); c.className='iw-conf';
     c.style.left=Math.random()*100+'vw';
@@ -1542,15 +1542,15 @@ strong{font-weight:650}
 .iw-opt.correct .iw-opt-key,.iw-opt.wrong .iw-opt-key{background:transparent;border-color:currentColor;color:inherit}
 .iw-opt:hover{border-color:var(--ink);background:var(--panel)}
 .iw-opt.selected{border-color:var(--ink);background:color-mix(in srgb,var(--lime) 30%,#fff);color:var(--ink);font-weight:600}
-.iw-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
-.iw-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b;opacity:.7}
+.iw-opt.correct{border-color:#A3A48D;background:#49F6F0;color:#5D614B;font-weight:600}
+.iw-opt.wrong{border-color:#FF4E00;background:#F3A46B;color:#24282C;opacity:.7}
 .iw-opt[disabled]{pointer-events:none}
 /* Бейдж в углу плитки - тот же язык, что у совпадений: не гадать по цвету
    заливки, а прочитать знак. Пусто по умолчанию, появляется только у
    graded-плитки (селектор ниже, где .iw-opt поверх градиента). */
 .iw-opt.correct::after,.iw-opt.wrong::after{position:absolute;top:6px;right:8px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 10px system-ui;line-height:1;animation:iwdot .25s ease}
 .iw-opt.correct::after{content:'✓';background:${IW_OK};color:#fff}
-.iw-opt.wrong::after{content:'✕';background:#dc2626;color:#fff}
+.iw-opt.wrong::after{content:'✕';background:#FF4E00;color:#fff}
 /* T/F - тумблер вместо пары кнопок */
 .iw-tf{display:flex;justify-content:center}
 .iw-tf-switch{position:relative;display:inline-flex;padding:4px;gap:2px;border-radius:999px;background:var(--paper);border:1px solid var(--line-2)}
@@ -1558,7 +1558,7 @@ strong{font-weight:650}
 .iw-tf-btn[disabled]{pointer-events:none}
 /* Рычажок - белая таблетка под активной стороной, ездит по transform.
    :has() решает, куда: по выбранной кнопке, без второго источника правды в JS. */
-.iw-tf-thumb{position:absolute;top:4px;left:4px;bottom:4px;width:calc(50% - 4px);border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.14);transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .2s}
+.iw-tf-thumb{position:absolute;top:4px;left:4px;bottom:4px;width:calc(50% - 4px);border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(36,40,44,.14);transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .2s}
 .iw-tf-switch:has(.iw-tf-btn[data-val="false"].selected) .iw-tf-thumb{transform:translateX(100%)}
 .iw-tf-switch:has(.iw-tf-btn.selected){background:var(--paper)}
 .iw-tf-btn.selected{color:${ink};font-weight:800}
@@ -1566,7 +1566,7 @@ strong{font-weight:650}
 .iw-tf-switch:has(.iw-tf-btn.correct){background:var(--paper)}
 .iw-tf-switch:has(.iw-tf-btn.correct) .iw-tf-thumb{background:${IW_OK}}
 .iw-tf-switch:has(.iw-tf-btn.correct) .iw-tf-btn.selected{color:#fff}
-.iw-tf-switch:has(.iw-tf-btn.wrong) .iw-tf-thumb{background:#dc2626}
+.iw-tf-switch:has(.iw-tf-btn.wrong) .iw-tf-thumb{background:#FF4E00}
 .iw-tf-switch:has(.iw-tf-btn.wrong) .iw-tf-btn.selected{color:#fff}
 /* Once a question is graded, the options that were neither picked nor right
    step back - a palette tile that happens to be green should not read as the
@@ -1576,8 +1576,8 @@ strong{font-weight:650}
 /* Gap-fill */
 .iw-gap{display:flex;gap:8px;align-items:center}
 .iw-gap-input{flex:1;border:none;border-bottom:2px solid ${accent};padding:5px 4px;font:14px system-ui;outline:none;background:transparent}
-.iw-gap-input.correct{border-color:#16a34a;color:#15803d;font-weight:600}
-.iw-gap-input.wrong{border-color:#dc2626;color:#991b1b}
+.iw-gap-input.correct{border-color:#A3A48D;color:#5D614B;font-weight:600}
+.iw-gap-input.wrong{border-color:#FF4E00;color:#24282C}
 /* Matching D&D */
 .iw-match{display:flex;gap:16px;flex-wrap:wrap}
 /* Задание пройдено целиком: одна еле заметная точка в углу карточки вместо
@@ -1592,8 +1592,8 @@ strong{font-weight:650}
 /* #16a34a с белым текстом - 3.3:1, ниже порога WCAG AA (4.5). #15803D - тот
    же зелёный на пару оттенков темнее, уже используется рядом как текст на
    светлом фоне (5.0:1 там) - здесь даёт те же 5.0:1 в паре с белым. */
-.iw-drag.sort-correct{background:#15803D!important;color:#fff!important;opacity:1!important}
-.iw-drag.sort-wrong{background:#dc2626!important;color:#fff!important;opacity:1!important}
+.iw-drag.sort-correct{background:#5D614B!important;color:#fff!important;opacity:1!important}
+.iw-drag.sort-wrong{background:#FF4E00!important;color:#fff!important;opacity:1!important}
 .iw-match-targets{flex:1.2;display:flex;flex-direction:column;gap:6px}
 /* Правое поле держится ВСЕГДА, а не только когда отметка появилась: иначе
    строка определения прыгала бы вбок в момент вердикта, а длинная - уезжала
@@ -1611,7 +1611,7 @@ strong{font-weight:650}
 .iw-target{position:relative}
 /* Ошибка - мягкий сигнал к повторной попытке, а не приговор: слово само
    вернётся в банк через момент (см. _iwGradeTarget). */
-.iw-target.wrong{border-color:#e0a3a3;background:color-mix(in srgb,#dc2626 4%,#fff);animation:iwnudge .32s ease}
+.iw-target.wrong{border-color:#F3A46B;background:color-mix(in srgb,#FF4E00 4%,#fff);animation:iwnudge .32s ease}
 @keyframes iwnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .iw-slot{min-width:60px;min-height:26px;border:1.5px dashed var(--gray);border-radius:6px;display:flex;align-items:center;justify-content:center;font:700 12px system-ui;color:${ink};padding:3px 8px;transition:all .15s}
 .iw-slot.filled{border-style:solid;border-color:${accent};background:color-mix(in srgb,${accent} 10%,#fff)}
@@ -1639,7 +1639,7 @@ strong{font-weight:650}
 .iw-ooo{display:flex;flex-wrap:wrap;gap:8px}
 .iw-ooo-btn{padding:10px 20px;border:1.5px solid var(--line-2);border-radius:12px;background:#fff;font:700 14px system-ui;cursor:pointer;transition:all .15s}
 .iw-ooo-btn:hover{border-color:${accent};transform:scale(1.04)}
-.iw-ooo-btn.selected{border-color:#dc2626;background:#fee2e2;color:#991b1b;text-decoration:line-through;transform:scale(.96)}
+.iw-ooo-btn.selected{border-color:#FF4E00;background:#F3A46B;color:#24282C;text-decoration:line-through;transform:scale(.96)}
 /* open */
 .iw-open-input{width:100%;border:1px solid var(--gray);border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none}
 .iw-open-input:focus{border-color:${accent}}
@@ -1677,8 +1677,8 @@ strong{font-weight:650}
 .iw-tp.is-open .iw-tp-opts{display:flex}
 .iw-tp-opt{padding:9px 12px;border:1.5px solid var(--line-2);border-radius:10px;background:#fff;color:var(--ink);font:13px/1.4 system-ui;text-align:left;cursor:pointer}
 .iw-tp-opt:hover{border-color:${accent};background:color-mix(in srgb,${accent} 8%,#fff)}
-.iw-tp-opt.correct{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600}
-.iw-tp-opt.wrong{border-color:#dc2626;background:#fee2e2;color:#991b1b}
+.iw-tp-opt.correct{border-color:#A3A48D;background:#49F6F0;color:#5D614B;font-weight:600}
+.iw-tp-opt.wrong{border-color:#FF4E00;background:#F3A46B;color:#24282C}
 .iw-tp.is-done .iw-tp-bar{border-style:dashed;background:transparent;font-weight:600;color:var(--olive)}
 /* ── Подпись миссии в блоке «после чтения» ── */
 .iw-mission{font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:${ink};opacity:.55;margin-bottom:6px}
@@ -1708,7 +1708,7 @@ strong{font-weight:650}
    (IW_HEIGHT_REPORTER), и всплывающий блок в потоке документа растил бы её
    на каждое нажатие. Окно iframe и есть видимая часть карточки, поэтому
    координат из getBoundingClientRect достаточно. */
-.iw-wh{position:fixed;z-index:40;width:min(280px,calc(100% - 24px));padding:12px 14px;border:1px solid var(--line-2);border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.16);font:13px/1.5 -apple-system,system-ui,sans-serif;color:var(--ink)}
+.iw-wh{position:fixed;z-index:40;width:min(280px,calc(100% - 24px));padding:12px 14px;border:1px solid var(--line-2);border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(36,40,44,.16);font:13px/1.5 -apple-system,system-ui,sans-serif;color:var(--ink)}
 .iw-wh-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .iw-wh-word{font:800 14px system-ui;color:${ink}}
 .iw-wh-pos{font:11px system-ui;color:var(--olive)}
@@ -1858,9 +1858,9 @@ strong{font-weight:650}
 .iw-ws-editor:empty::before{content:attr(data-placeholder);color:var(--sage)}
 .iw-ws-meter{height:4px;border-radius:3px;background:var(--line);margin:10px 0;overflow:hidden}
 .iw-ws-meter i{display:block;height:100%;width:0;background:${accent};transition:width .25s}
-.iw-ws-meter i.full{background:#16a34a}
+.iw-ws-meter i.full{background:#A3A48D}
 .iw-ws-submit{margin-top:0}
-.iw-ws-done{font:700 12px system-ui;color:#15803d;text-align:center;margin-top:8px}
+.iw-ws-done{font:700 12px system-ui;color:#5D614B;text-align:center;margin-top:8px}
 body.iw-ws-sent .iw-ws-editor{background:var(--paper);color:var(--olive)}
 body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 /* ── Узкая карточка = телефон ──
@@ -1953,8 +1953,8 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-stepper .iw-qtext{font-size:22px}
 .iw-stepper .iw-opts,.iw-mc-body .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:52px;border-radius:12px;font-size:14.5px;font-weight:600;padding:10px 12px}
-.iw-stepper .iw-opt.correct,.iw-mc-body .iw-opt.correct{background:#15803D!important;border-color:#15803D;color:#fff}
-.iw-stepper .iw-opt.wrong,.iw-mc-body .iw-opt.wrong{background:#dc2626!important;border-color:#dc2626;color:#fff;opacity:.85}
+.iw-stepper .iw-opt.correct,.iw-mc-body .iw-opt.correct{background:#5D614B!important;border-color:#5D614B;color:#fff}
+.iw-stepper .iw-opt.wrong,.iw-mc-body .iw-opt.wrong{background:#FF4E00!important;border-color:#FF4E00;color:#fff;opacity:.85}
 .iw-stepper .iw-tf,.iw-mc-body .iw-tf{justify-content:flex-start}
 .iw-stepper .iw-tf{justify-content:center}
 .iw-stepper .iw-tf-btn,.iw-mc-body .iw-tf-btn{font-size:14.5px;padding:10px 26px}

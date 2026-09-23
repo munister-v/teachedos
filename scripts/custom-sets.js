@@ -38,7 +38,7 @@
       id,
       name: set.name || 'My word set',
       icon: set.icon || '📚',
-      color: set.color || '#C8E632',
+      color: set.color || '#CDF649',
       words: (set.words || []).map(w => ({
         en: String(w.en || '').trim(),
         uk: String(w.uk || '').trim(),

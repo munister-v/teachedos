@@ -9,30 +9,30 @@
 <title>Word Categories</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#1C1C1E}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 12px}
+:root{--accent:#24282C}
+body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 12px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:14px;font-size:.9rem}
 h1{font-size:1.6rem;font-weight:800;color:var(--accent);margin-bottom:3px}
-.subtitle{color:#525252;font-size:.88rem;margin-bottom:16px}
-.hud{display:flex;gap:20px;margin-bottom:12px;font-weight:700;color:#525252;font-size:.9rem}
+.subtitle{color:#5D614B;font-size:.88rem;margin-bottom:16px}
+.hud{display:flex;gap:20px;margin-bottom:12px;font-weight:700;color:#5D614B;font-size:.9rem}
 .hud span{color:var(--accent)}
 .word-pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:540px;min-height:60px;margin-bottom:18px}
-.chip{padding:9px 16px;background:#C8E632;color:#1C1C1E;border-radius:20px;font-weight:800;font-size:.9rem;cursor:pointer;transition:.2s;user-select:none}
-.chip:hover{background:#e03570;transform:scale(1.05)}
+.chip{padding:9px 16px;background:#CDF649;color:#24282C;border-radius:20px;font-weight:800;font-size:.9rem;cursor:pointer;transition:.2s;user-select:none}
+.chip:hover{background:#FF4E00;transform:scale(1.05)}
 .chip.used{opacity:.3;cursor:default;transform:none}
 .columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:540px}
-.column{background:#fff;border-radius:16px;padding:14px 12px;box-shadow:0 3px 14px #C8E63214;min-height:140px}
+.column{background:#fff;border-radius:16px;padding:14px 12px;box-shadow:0 3px 14px #CDF64914;min-height:140px}
 .col-title{font-size:.85rem;font-weight:800;color:var(--accent);margin-bottom:10px;text-align:center;text-transform:uppercase;letter-spacing:.5px}
 .drop-area{min-height:100px;display:flex;flex-direction:column;gap:6px}
-.placed{padding:7px 12px;background:#F2F2F5;border:2px solid #ffcce0;border-radius:10px;font-weight:700;font-size:.85rem;color:#C8E632;cursor:pointer;text-align:center}
-.placed:hover{background:#ffe0ec}
-.placed.correct{background:#f0fff4;border-color:#4caf50;color:#2e7d32}
-.placed.wrong{background:#fff0f0;border-color:#f44336;color:#c62828}
+.placed{padding:7px 12px;background:#F6F6EF;border:2px solid #9F8CE8;border-radius:10px;font-weight:700;font-size:.85rem;color:#CDF649;cursor:pointer;text-align:center}
+.placed:hover{background:#F3A46B}
+.placed.correct{background:#FFFFFF;border-color:#A3A48D;color:#5D614B}
+.placed.wrong{background:#F6F6EF;border-color:#FF4E00;color:#24282C}
 .btn-row{display:flex;gap:10px;margin-top:14px;width:100%;max-width:540px}
 button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
 .btn-check{background:var(--accent);color:#fff}
-.btn-next{background:#4caf50;color:#fff;display:none}
-.btn-clear{background:#f5f5f5;color:#525252}
+.btn-next{background:#A3A48D;color:#fff;display:none}
+.btn-clear{background:#F6F6EF;color:#5D614B}
 .feedback{margin-top:12px;font-size:.95rem;font-weight:700;color:var(--accent);text-align:center;min-height:20px}
 
 /* Телефон: слово для раскладки было 37px высотой при пороге 44. Высота тут
@@ -43,10 +43,10 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
   .btn-check,.btn-clear,.play-again{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=946">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=950">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -147,7 +147,7 @@ function selectWord(chip){
   document.querySelectorAll('.chip').forEach(c=>c.style.outline='');
   if(chip.classList.contains('used'))return;
   selected=chip.dataset.word;
-  chip.style.outline='3px solid #333';
+  chip.style.outline='3px solid #24282C';
 }
 
 function dropWord(cat){
@@ -271,7 +271,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=946"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=950"></script>
 <script src="../scripts/game-handoff.js"></script>
 </body>
 </html>

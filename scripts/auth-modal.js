@@ -392,14 +392,14 @@ function humanError(e) {
     let sent = false;
     try {
       await fetch(API + '/api/auth/forgot-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-      err.style.background = 'rgba(240,255,245,.97)'; err.style.borderColor = 'rgba(22,163,74,.24)'; err.style.color = '#166534';
+      err.style.background = 'rgba(255,255,255,.97)'; err.style.borderColor = 'rgba(163,164,141,.24)'; err.style.color = '#5D614B';
       err.textContent = '✓ If that email is registered, a reset link is on its way.';
       err.style.display = 'block';
       if (lbl) lbl.textContent = 'Check your inbox';
       $('auth-fields').innerHTML = '';
       sent = true;
     } catch {
-      err.style.color = '#c62828';
+      err.style.color = '#24282C';
       err.textContent = 'Something went wrong. Please try again.';
       err.style.display = 'block';
     } finally {

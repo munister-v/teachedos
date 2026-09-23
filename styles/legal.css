@@ -1,9 +1,9 @@
 /* TeachEd - shared legal/document pages (Privacy, Terms) · light minimal */
 :root{
-  --cream:#FCFCFB; --cream-2:#F4F4F2; --card:#FFFFFF;
-  --ink:#0B0B0C; --ink2:#56565E; --ink3:#9A9AA4;
-  --line:rgba(11,11,12,.10); --line-2:rgba(11,11,12,.06);
-  --pink:#E11D74;
+  --cream:#FFFFFF; --cream-2:#F6F6EF; --card:#FFFFFF;
+  --ink:#24282C; --ink2:#5D614B; --ink3:#5D614B;
+  --line:rgba(36,40,44,.10); --line-2:rgba(36,40,44,.06);
+  --pink:#886BF3;
   /* System stack, as unify.css sets everywhere else. These pages do not load
      unify, so they kept Manrope and rendered in a different typeface from the
      product they describe. */
@@ -19,13 +19,13 @@ body{
 }
 /* Ссылки шли фирменным кораллом: на песочном фоне темы это 3.2:1.
    Тот же тон, опущенный до 4.75:1 (7.5:1 на белом). */
-a{color:#9B2F00;text-decoration:none;}
+a{color:#24282C;text-decoration:none;}
 a:hover{text-decoration:underline;text-underline-offset:2px;}
 
 /* ── Top bar ── */
 .doc-nav{
   position:sticky;top:0;z-index:50;
-  background:rgba(252,252,251,.82);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  background:rgba(255,255,255,.82);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
   border-bottom:1px solid var(--line-2);
 }
 .doc-nav-inner{

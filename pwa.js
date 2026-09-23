@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '946';
+  const TEACHEDOS_ASSET_VERSION = '950';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -103,7 +103,7 @@
       html.te-keyboard-nav :focus-visible {
         outline: 2px solid #24282C !important;
         outline-offset: 2px !important;
-        box-shadow: 0 0 0 5px rgba(205,242,79,.55) !important;
+        box-shadow: 0 0 0 5px rgba(205,246,73,.55) !important;
         border-radius: 10px;
       }
 
@@ -115,7 +115,7 @@
         align-items: center;
         justify-content: center;
         padding: 18px;
-        background: rgba(10,10,12,.38);
+        background: rgba(36,40,44,.38);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         opacity: 0;
@@ -132,10 +132,10 @@
         overflow: auto;
         border-radius: 22px;
         background: rgba(255,255,255,.96);
-        border: 1px solid rgba(14,14,16,.10);
-        box-shadow: 0 24px 70px rgba(5,5,23,.24);
+        border: 1px solid rgba(36,40,44,.10);
+        box-shadow: 0 24px 70px rgba(36,40,44,.24);
         padding: 22px;
-        color: #0E0E10;
+        color: #24282C;
         font-family: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
       }
       .te-kbd-head {
@@ -156,8 +156,8 @@
         height: 36px;
         border: 0;
         border-radius: 999px;
-        background: rgba(14,14,16,.07);
-        color: #0E0E10;
+        background: rgba(36,40,44,.07);
+        color: #24282C;
         font: inherit;
         font-weight: 900;
         cursor: pointer;
@@ -175,12 +175,12 @@
         min-height: 42px;
         padding: 9px 11px;
         border-radius: 13px;
-        background: rgba(242,242,245,.74);
-        border: 1px solid rgba(92,92,102,.10);
+        background: rgba(246,246,239,.74);
+        border: 1px solid rgba(93,97,75,.10);
       }
       .te-kbd-desc {
         min-width: 0;
-        color: #2F2F32;
+        color: #24282C;
         font-size: 13px;
         font-weight: 750;
       }
@@ -191,8 +191,8 @@
         min-height: 25px;
         padding: 0 9px;
         border-radius: 8px;
-        background: #111113;
-        color: #C8E632;
+        background: #24282C;
+        color: #CDF649;
         font-size: 11px;
         font-weight: 900;
         letter-spacing: .04em;
@@ -201,7 +201,7 @@
       }
       .te-kbd-sub {
         margin-top: 14px;
-        color: #68686B;
+        color: #5D614B;
         font-size: 12px;
         line-height: 1.5;
       }
@@ -216,9 +216,9 @@
         max-width: min(520px, calc(100vw - 24px));
         padding: 10px 13px;
         border-radius: 999px;
-        background: rgba(14,14,16,.94);
-        color: #F2F2F5;
-        box-shadow: 0 16px 42px rgba(5,5,23,.24);
+        background: rgba(36,40,44,.94);
+        color: #FFFFFF;
+        box-shadow: 0 16px 42px rgba(36,40,44,.24);
         font-family: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
         font-size: 12px;
         font-weight: 850;
@@ -239,8 +239,8 @@
         padding: 0 7px;
         margin: 0 2px;
         border-radius: 7px;
-        background: rgba(200,230,50,.16);
-        color: #C8E632;
+        background: rgba(205,246,73,.16);
+        color: #CDF649;
         font: inherit;
         font-size: 11px;
         font-weight: 950;
@@ -589,8 +589,8 @@
     }
     .teachedos-install{
       position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9998;
-      background:rgba(28,28,30,.94);color:#fff;border-radius:18px;padding:14px 16px;
-      box-shadow:0 16px 48px rgba(0,0,0,.24);display:flex;gap:12px;align-items:flex-start;
+      background:rgba(36,40,44,.94);color:#fff;border-radius:18px;padding:14px 16px;
+      box-shadow:0 16px 48px rgba(36,40,44,.24);display:flex;gap:12px;align-items:flex-start;
       transform:translateY(130%);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .2s ease;
       font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
     }
@@ -602,7 +602,7 @@
     .teachedos-install button{
       border:none;border-radius:999px;padding:9px 12px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;
     }
-    .teachedos-install .primary{background:#e85d75;color:#fff}
+    .teachedos-install .primary{background:#FF4E00;color:#fff}
     .teachedos-install .secondary{background:rgba(255,255,255,.12);color:#fff}
     .teachedos-install-close{
       width:30px;height:30px;border-radius:999px;background:rgba(255,255,255,.08);color:#fff;flex-shrink:0;
@@ -614,7 +614,7 @@
     .teachedos-status{
       position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top,0px));z-index:9997;
       display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border-radius:16px;
-      box-shadow:0 14px 36px rgba(0,0,0,.16);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+      box-shadow:0 14px 36px rgba(36,40,44,.16);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
       transform:translateY(-140%);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .2s ease;
       backdrop-filter:blur(18px) saturate(1.6);
     }
@@ -622,10 +622,10 @@
     /* Плотный фон, а не полупрозрачный: сквозь .94 читались названия вкладок
        под баннером, и он выглядел грязным. Размытие оставлено - оно смягчает
        край, когда баннер наезжает на карточки. */
-    .teachedos-status.offline{background:#1C1C1E;color:#fff}
+    .teachedos-status.offline{background:#24282C;color:#fff}
         /* Зелёный темнее прежнего: на #12813C подпись (11px, прозрачность .84)
        давала 4.0:1, ниже порога. На #116B33 - 5.2:1, заголовок 6.6:1. */
-    .teachedos-status.online{background:#116B33;color:#fff}
+    .teachedos-status.online{background:#5D614B;color:#fff}
     .teachedos-status-copy{flex:1;min-width:0}
     .teachedos-status-title{font-size:13px;font-weight:900;line-height:1.25}
     .teachedos-status-sub{font-size:11px;line-height:1.5;opacity:.84;margin-top:3px}
@@ -634,7 +634,7 @@
       border:none;border-radius:999px;padding:8px 11px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;
       background:rgba(255,255,255,.14);color:inherit;
     }
-    .teachedos-status-btn.primary{background:#fff;color:#1C1C1E}
+    .teachedos-status-btn.primary{background:#fff;color:#24282C}
     /* Крестик - запасной выход, а не элемент композиции: заливка делала из
        него серый квадрат рядом с кнопками. Когда у баннера есть свои кнопки
        («Dismiss», «Try again»), крестик убирается совсем - два способа
@@ -650,7 +650,7 @@
       .teachedos-status-close{width:40px;height:40px;margin:-6px -6px 0 0}
     }
     body.pwa-offline::after{
-      content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e85d75,#9f8ce8);z-index:9996;
+      content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#FF4E00,#9f8ce8);z-index:9996;
     }
   `;
   document.head.appendChild(style);

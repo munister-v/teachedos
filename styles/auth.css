@@ -6,16 +6,16 @@
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  --auth-lime:      #C8E632;
-  --auth-lime-dark: #8DB800;
-  --auth-ink:       #1C1C1E;
-  --auth-ink2:      #5A5A6A;
+  --auth-lime:      #CDF649;
+  --auth-lime-dark: #CDF649;
+  --auth-ink:       #24282C;
+  --auth-ink2:      #5D614B;
   /* Третій рівень: на теплій картці входу давав 1.9:1 - розділювач «OR»
      і «Forgot password?» практично не читались. Тон той самий, темніше. */
-  --auth-ink3:      #575768;
-  --auth-border:    rgba(92,92,102,.16);
+  --auth-ink3:      #5D614B;
+  --auth-border:    rgba(93,97,75,.16);
   --auth-bg-field:  rgba(255,255,255,.70);
-  --auth-card-bg:   #F4F4F7;
+  --auth-card-bg:   #F6F6EF;
   --auth-radius:    14px;
 }
 
@@ -27,7 +27,7 @@
   position: fixed; inset: 0; z-index: 9998;
   display: flex; align-items: center; justify-content: center;
   padding: 20px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  background: rgba(17,16,24,.52);
+  background: rgba(36,40,44,.52);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
@@ -45,10 +45,10 @@
   overflow: hidden;                 /* титульна смуга ріжеться по радіусу */
   width: min(420px, calc(100vw - 32px));
   position: relative; margin: auto;
-  border: 1px solid rgba(23,23,25,.10);
+  border: 1px solid rgba(36,40,44,.10);
   box-shadow:
-    0 24px 72px rgba(0,0,0,.22),
-    0 8px 24px rgba(0,0,0,.10),
+    0 24px 72px rgba(36,40,44,.22),
+    0 8px 24px rgba(36,40,44,.10),
     0 1px 0 rgba(255,255,255,.72) inset;
 }
 
@@ -56,8 +56,8 @@
 .auth-titlebar {
   display: flex; align-items: center; gap: 8px;
   height: 46px; padding: 0 10px 0 14px;
-  background: rgba(228,228,231,.98);
-  border-bottom: 1px solid rgba(23,23,25,.08);
+  background: rgba(246,246,239,.98);
+  border-bottom: 1px solid rgba(36,40,44,.08);
 }
 .auth-tb-logo { width: 20px; height: 20px; display: block; flex: 0 0 auto; }
 .auth-tb-name {
@@ -70,14 +70,14 @@
 .auth-close {
   margin-left: auto;
   width: 28px; height: 28px; border-radius: 9px;
-  background: rgba(17,24,39,.06); color: var(--auth-ink2);
+  background: rgba(93,97,75,.06); color: var(--auth-ink2);
   font-size: 16px; font-weight: 650; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; border: none; transition: background .15s, color .15s;
   flex: 0 0 auto; padding: 0;
 }
-.auth-close:hover { background: rgba(239,68,68,.12); color: #d63b3b; }
-.auth-close:focus-visible,.auth-eye:focus-visible,.auth-role:focus-visible,.auth-forgot button:focus-visible,.auth-toggle button:focus-visible{outline:3px solid rgba(141,184,0,.58);outline-offset:2px;}
+.auth-close:hover { background: rgba(255,78,0,.12); color: #24282C; }
+.auth-close:focus-visible,.auth-eye:focus-visible,.auth-role:focus-visible,.auth-forgot button:focus-visible,.auth-toggle button:focus-visible{outline:3px solid rgba(205,246,73,.58);outline-offset:2px;}
 
 /* ── Header ──────────────────────────────────────────────────────
    Було три рівні одного й того самого: лого з лаймовим світінням,
@@ -93,21 +93,21 @@
   font-size: 19px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2;
   color: var(--auth-ink); margin-bottom: 4px;
 }
-.auth-title em { font-style: normal; color: #7C8A7B; }
+.auth-title em { font-style: normal; color: #5D614B; }
 .auth-sub {
-  font-size: 12px; color: #6B7280; font-weight: 500; margin-top: 0;
+  font-size: 12px; color: #5D614B; font-weight: 500; margin-top: 0;
   letter-spacing: 0; line-height: 1.45;
 }
 
 /* ── Error / success banners ─────────────────────────────────── */
 .auth-err {
-  display: none; background: rgba(255,245,245,.97); border: 1.5px solid rgba(239,68,68,.24);
-  border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #c62828;
+  display: none; background: rgba(246,246,239,.97); border: 1.5px solid rgba(255,78,0,.24);
+  border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #24282C;
   margin-bottom: 14px; font-weight: 600; line-height: 1.4;
 }
 .auth-ok {
-  display: none; background: rgba(240,255,245,.97); border: 1.5px solid rgba(22,163,74,.24);
-  border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #166534;
+  display: none; background: rgba(255,255,255,.97); border: 1.5px solid rgba(163,164,141,.24);
+  border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #5D614B;
   margin-bottom: 14px; font-weight: 600; line-height: 1.4;
 }
 
@@ -120,15 +120,15 @@
 .auth-role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .auth-role {
   padding: 14px 10px 12px; border-radius: 13px;
-  border: 1px solid rgba(24,24,24,.14); background: #FFFFFF;
+  border: 1px solid rgba(36,40,44,.14); background: #FFFFFF;
   min-height:86px;color:inherit;font:inherit;cursor: pointer; text-align: center; transition: border-color .18s, background .18s, transform .12s;
   user-select: none;
 }
-.auth-role:hover { border-color: rgba(141,184,0,.4); background: rgba(205,242,79,.10); transform: translateY(-1px); }
+.auth-role:hover { border-color: rgba(205,246,73,.4); background: rgba(205,246,73,.10); transform: translateY(-1px); }
 .auth-role.sel {
-  border-color: rgba(141,184,0,.65);
-  background: rgba(205,242,79,.18);
-  box-shadow: 0 2px 12px rgba(141,184,0,.18);
+  border-color: rgba(205,246,73,.65);
+  background: rgba(205,246,73,.18);
+  box-shadow: 0 2px 12px rgba(205,246,73,.18);
 }
 .auth-role-ic { font-size: 1.7rem; line-height: 1; margin-bottom: 5px; }
 .auth-role-name { font-size: 12px; font-weight: 650; color: var(--auth-ink); }
@@ -138,15 +138,15 @@
 .auth-field-wrap { position: relative; margin-bottom: 11px; }
 .auth-inp {
   width: 100%; padding: 11px 13px;
-  border: 1px solid rgba(24,24,24,.14); border-radius: 13px;
+  border: 1px solid rgba(36,40,44,.14); border-radius: 13px;
   font-family: inherit; font-size: 14px; font-weight: 650; color: var(--auth-ink);
   outline: none; background: #FFFFFF;
   transition: border-color .18s, box-shadow .18s;
   box-sizing: border-box; -webkit-appearance: none;
 }
 .auth-inp:focus {
-  border-color: rgba(141,184,0,.55);
-  box-shadow: 0 0 0 4px rgba(205,242,79,.24);
+  border-color: rgba(205,246,73,.55);
+  box-shadow: 0 0 0 4px rgba(205,246,73,.24);
 }
 .auth-inp::placeholder { color: var(--auth-ink3); font-weight: 500; }
 /* Chrome paints an autofilled field with its own blue/yellow tint before
@@ -175,13 +175,13 @@
    page (auth-modal.js always gives the overlay this id), so it anchors the
    override without needing to know what page embedded the modal. */
 #auth-overlay .auth-inp {
-  border-color: rgba(24,24,24,.14) !important;
+  border-color: rgba(36,40,44,.14) !important;
   background: #FFFFFF !important;
   box-shadow: none !important;
 }
 #auth-overlay .auth-inp:focus {
-  border-color: rgba(141,184,0,.55) !important;
-  box-shadow: 0 0 0 4px rgba(205,242,79,.24) !important;
+  border-color: rgba(205,246,73,.55) !important;
+  box-shadow: 0 0 0 4px rgba(205,246,73,.24) !important;
   background: #FFFFFF !important;
 }
 #auth-overlay .auth-inp::placeholder { color: var(--auth-ink3) !important; font-weight: 500 !important; }
@@ -191,10 +191,10 @@
    password one) got the same 16px, letting long input text run under the
    eye icon. */
 .auth-password-field .auth-inp { padding-right: 44px; }
-.auth-field-label{display:block;margin:0 0 6px;color:#89898C;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;}
+.auth-field-label{display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;}
 .auth-password-help{margin:6px 1px 0;color:var(--auth-ink2);font-size:11px;font-weight:650;line-height:1.4;}
-.auth-password-help.needs-input{color:#9A5B12;}
-.auth-password-help.ready{color:#166534;}
+.auth-password-help.needs-input{color:#24282C;}
+.auth-password-help.ready{color:#5D614B;}
 
 /* ── Password eye toggle ─────────────────────────────────────── */
 /* Positioned against .auth-pass-wrap (just the input), not the outer
@@ -208,7 +208,7 @@
   color: var(--auth-ink3); display: flex; align-items: center; justify-content: center;
   border-radius: 7px; transition: color .14s, background .14s;
 }
-.auth-eye:hover { color: var(--auth-ink2); background: rgba(14,14,16,.06); }
+.auth-eye:hover { color: var(--auth-ink2); background: rgba(36,40,44,.06); }
 .auth-eye svg { width: 18px; height: 18px; pointer-events: none; }
 
 /* ── Submit button ───────────────────────────────────────────── */
@@ -220,17 +220,17 @@
      действие страницы читалось отключённым. Замысел сохраняю, цвет беру
      из палитры: чернильный с белым текстом, ровно как главная кнопка
      приложения (.bc-btn.primary в профиле). */
-  background: #20202C;
+  background: #24282C;
   color: #FFFFFF; font-family: inherit; font-weight: 600; font-size: 15px;
   cursor: pointer; margin-top: 6px; letter-spacing: -.01em;
-  box-shadow: 0 6px 20px rgba(32,32,44,.20), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 6px 20px rgba(36,40,44,.20), inset 0 1px 0 rgba(255,255,255,.08);
   transition: filter .15s, transform .12s, box-shadow .15s;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   position: relative; overflow: hidden;
 }
 .auth-btn:hover:not(:disabled) {
   filter: brightness(1.12);
-  box-shadow: 0 10px 36px rgba(14,14,16,.34), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 10px 36px rgba(36,40,44,.34), inset 0 1px 0 rgba(255,255,255,.08);
 }
 .auth-btn:active:not(:disabled) { transform: scale(.98); }
 .auth-btn:disabled { opacity: .55; cursor: default; }
@@ -238,7 +238,7 @@
 /* Spinner inside button */
 .auth-btn-spinner {
   display: none; width: 16px; height: 16px; border-radius: 50%;
-  border: 2px solid rgba(200,230,50,.3); border-top-color: var(--auth-lime);
+  border: 2px solid rgba(205,246,73,.3); border-top-color: var(--auth-lime);
   animation: auth-spin .55s linear infinite; flex-shrink: 0;
 }
 .auth-btn.loading .auth-btn-spinner { display: block; }
@@ -272,7 +272,7 @@
   background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
   transition: color .14s;
 }
-.auth-toggle button:hover { color: #20202C; }
+.auth-toggle button:hover { color: #24282C; }
 
 /* ── Google button area ──────────────────────────────────────── */
 .auth-google-area { display: none; margin-bottom: 16px; }
@@ -302,13 +302,13 @@
 .auth-page {
   min-height: 100dvh; display: flex; align-items: center; justify-content: center;
   background:
-    radial-gradient(ellipse 60% 50% at 20% 15%, rgba(200,230,50,.12) 0%, transparent 58%),
-    radial-gradient(ellipse 55% 45% at 84% 80%, rgba(236,45,140,.08) 0%, transparent 56%),
-    #F2F2F5;
+    radial-gradient(ellipse 60% 50% at 20% 15%, rgba(205,246,73,.12) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 45% at 84% 80%, rgba(136,107,243,.08) 0%, transparent 56%),
+    #F6F6EF;
   padding: 24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
 }
 .auth-page .auth-card {
-  box-shadow: 0 24px 64px rgba(14,14,16,.14), 0 0 0 1px rgba(255,255,255,.55), inset 0 1.5px 0 rgba(255,255,255,.85);
+  box-shadow: 0 24px 64px rgba(36,40,44,.14), 0 0 0 1px rgba(255,255,255,.55), inset 0 1.5px 0 rgba(255,255,255,.85);
 }
 .auth-back {
   display: block; text-align: center; margin-top: 18px;
@@ -319,7 +319,7 @@
 .auth-spinner-wrap { display: flex; align-items: center; gap: 10px; color: var(--auth-ink3); font-size: 14px; font-weight: 600; }
 .auth-spinner {
   width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
-  border: 2.5px solid rgba(92,92,102,.18); border-top-color: var(--auth-lime-dark);
+  border: 2.5px solid rgba(93,97,75,.18); border-top-color: var(--auth-lime-dark);
   animation: auth-spin .6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -333,7 +333,7 @@
   #lp-auth {
     align-items: flex-start !important;
     justify-content: flex-start !important;
-    background: var(--auth-card-bg, #F2F2F5) !important;
+    background: var(--auth-card-bg, #F6F6EF) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     padding: 0 !important;
@@ -397,14 +397,14 @@
     position: static !important;
     margin-left: auto !important;
     z-index: 10;
-    background: rgba(14,14,16,.07) !important;
+    background: rgba(36,40,44,.07) !important;
     width: 34px !important;
     height: 34px !important;
     /* На белом листе без песочной полосы квадратная плашка читалась чужой:
        единственный серый блок наверху. Круг - это знак «закрыть», как у
        остальных круглых кнопок продукта. */
     border-radius: 50% !important;
-    background: rgba(14,14,16,.055) !important;
+    background: rgba(36,40,44,.055) !important;
   }
 
   /* Прижатие «Register» к низу листа (margin-top:auto) разрывало экран:

@@ -39,7 +39,7 @@ body.fx #desktop {
      Цвет и прозрачность подобраны наименьшими квадратами по трём точкам
      кадра: верх-лево #D9D9DC, правый край #D5D5D8, низ-лево #EEEEF1.
      Промах после подгонки - около 7 единиц на канал вместо прежних 20. */
-  background: #EFEFF2 !important;
+  background: #F6F6EF !important;
   overflow:hidden;
 }
 /* Зерно больше не рисуем: оно в снимке. */
@@ -57,7 +57,7 @@ body.fx #menubar {
   height:57px !important;
   background:#FFFFFF !important;
   border-bottom:none !important;
-  box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
+  box-shadow:0 1px 0 rgba(36,40,44,.06) !important;
   padding:0 26px !important;
   gap:2px !important;
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
@@ -73,7 +73,7 @@ body.fx #menubar .mb-item {
   padding:5px 12px !important; border-radius:999px !important;
   background:transparent !important;
 }
-body.fx #menubar .mb-item:hover { background:rgba(22,22,22,.06) !important; }
+body.fx #menubar .mb-item:hover { background:rgba(36,40,44,.06) !important; }
 /* Активный раздел - лаймовая пилюля. */
 body.fx #menubar .mb-item.fx-active {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important; font-weight:650 !important;
@@ -111,7 +111,7 @@ body.fx .win-controls { gap:8px !important; }
 body.fx .win-controls .tl {
   width:13px !important; height:13px !important; border-radius:50% !important;
   position:relative; padding:0 !important; color:transparent !important;
-  border:0.5px solid rgba(0,0,0,.14) !important;
+  border:0.5px solid rgba(36,40,44,.14) !important;
   transition:filter .12s !important;
 }
 body.fx .win-controls .tl.close { background:#FF5F57 !important; }
@@ -120,7 +120,7 @@ body.fx .win-controls .tl.max   { background:#28C840 !important; }
 body.fx .win-controls .tl::before,
 body.fx .win-controls .tl::after {
   content:''; position:absolute; left:50%; top:50%; opacity:0;
-  background:rgba(0,0,0,.55); border-radius:1px; transition:opacity .1s;
+  background:rgba(36,40,44,.55); border-radius:1px; transition:opacity .1s;
 }
 body.fx .win-controls:hover .tl::before,
 body.fx .win-controls:hover .tl::after,
@@ -138,8 +138,8 @@ body.fx .win-controls .tl.max::after {
   width:0; height:0; background:none; border-radius:0;
   border-style:solid; border-color:transparent;
 }
-body.fx .win-controls .tl.max::before { border-width:3.5px 3.5px 0 0; border-top-color:rgba(0,0,0,.55); margin:-3.9px 0 0 -3.9px; }
-body.fx .win-controls .tl.max::after  { border-width:0 0 3.5px 3.5px; border-bottom-color:rgba(0,0,0,.55); margin:.4px 0 0 .4px; }
+body.fx .win-controls .tl.max::before { border-width:3.5px 3.5px 0 0; border-top-color:rgba(36,40,44,.55); margin:-3.9px 0 0 -3.9px; }
+body.fx .win-controls .tl.max::after  { border-width:0 0 3.5px 3.5px; border-bottom-color:rgba(36,40,44,.55); margin:.4px 0 0 .4px; }
 body.fx .win-controls .tl:active { filter:brightness(.85); }
 body.fx .win-body { padding-top:48px !important; background:transparent !important; }
 
@@ -237,7 +237,7 @@ body.fx .curr-search input { font-size:14px !important; color:var(--fx-ink) !imp
 body.fx .curr-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:14px !important; }
 body.fx .curr-grid > *:not(.plans-empty-state) {
   border-radius:var(--fx-r-card) !important;
-  background:rgba(253,253,255,.55) !important;
+  background:rgba(255,255,255,.55) !important;
   border:1px solid rgba(255,255,255,.55) !important;
   box-shadow:none !important;
   min-height:158px;
@@ -253,7 +253,7 @@ body.fx .widget {
   border:1px solid var(--fx-glass-line) !important;
   backdrop-filter:blur(30px) saturate(1.3) !important;
   -webkit-backdrop-filter:blur(30px) saturate(1.3) !important;
-  box-shadow:0 18px 40px rgba(74,74,77,.14) !important;
+  box-shadow:0 18px 40px rgba(36,40,44,.14) !important;
   padding:18px !important;
 }
 /* Без !important: перетаскивание виджета пишет left/top инлайном, а
@@ -337,11 +337,11 @@ body.fx #dock-wrap { bottom:28px !important; }
 body.fx #dock {
   gap:8px !important; padding:10px !important;
   border-radius:var(--fx-r-dock,19px) !important;
-  background:rgba(253,253,255,.55) !important;
+  background:rgba(255,255,255,.55) !important;
   border:1px solid rgba(255,255,255,.6) !important;
   backdrop-filter:blur(40px) saturate(1.4) !important;
   -webkit-backdrop-filter:blur(40px) saturate(1.4) !important;
-  box-shadow:0 18px 44px rgba(74,74,77,.16) !important;
+  box-shadow:0 18px 44px rgba(36,40,44,.16) !important;
   align-items:center !important;
 }
 body.fx .di-label, body.fx .di-dot { display:none !important; }
@@ -363,7 +363,7 @@ body.fx .di.open .di-icon { background:var(--fx-lime) !important; border-color:v
 body.fx.board-page #toolbar {
   height:36px !important;
   background:#FFFFFF !important;
-  box-shadow:0 1px 0 rgba(22,22,22,.06) !important;
+  box-shadow:0 1px 0 rgba(36,40,44,.06) !important;
   padding:0 22px !important;
 }
 body.fx.board-page .tb-logo-mark, body.fx.board-page .tb-slash { display:none !important; }
@@ -376,7 +376,7 @@ body.fx.board-page .tb-board-chip-title {
   font-size:15px !important; font-weight:650 !important; color:var(--fx-ink) !important;
 }
 body.fx.board-page #board-wrap {
-  background-color:#F6F6F9 !important;
+  background-color:#F6F6EF !important;
   background-image:none !important;
 }
 body.fx.board-page #miro-toolbar {
@@ -389,7 +389,7 @@ body.fx.board-page #miro-toolbar {
   border-radius:26px !important;
   backdrop-filter:blur(40px) saturate(1.4) !important;
   -webkit-backdrop-filter:blur(40px) saturate(1.4) !important;
-  box-shadow:0 18px 44px rgba(74,74,77,.14) !important;
+  box-shadow:0 18px 44px rgba(36,40,44,.14) !important;
 }
 body.fx.board-page #miro-toolbar .mt-btn {
   width:60px !important; height:60px !important;
@@ -469,7 +469,7 @@ body.fx.board-page #empty-state {
   background:rgba(255,255,255,.82) !important;
   border:1px solid rgba(255,255,255,.9) !important;
   border-radius:var(--fx-r-panel) !important;
-  box-shadow:0 24px 60px rgba(74,74,77,.14) !important;
+  box-shadow:0 24px 60px rgba(36,40,44,.14) !important;
   padding:28px 26px !important; width:min(360px,88vw) !important;
   backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);
 }
@@ -481,7 +481,7 @@ body.fx.board-page #empty-state .empty-text {
   margin:0 0 18px !important;
 }
 body.fx.board-page #empty-state .empty-hint {
-  background:rgba(238,238,241,.75) !important; border:none !important;
+  background:rgba(246,246,239,.75) !important; border:none !important;
   border-radius:999px !important; padding:9px 14px !important;
   font-size:12px !important; color:var(--fx-mute) !important;
   justify-content:flex-start !important; gap:8px !important;
@@ -496,7 +496,7 @@ body.fx.board-page #empty-state .empty-key {
    те же мягкие пилюли, связка нарисована чернилами, а не розовым акцентом
    базовой темы - в макете розового нет. */
 body.fx.board-page #empty-state .empty-flow .ef-card {
-  fill:rgba(238,238,241,.8) !important; stroke:none !important;
+  fill:rgba(255,255,255,.8) !important; stroke:none !important;
 }
 body.fx.board-page #empty-state .empty-flow .ef-label { fill:var(--fx-mute) !important; }
 body.fx.board-page #empty-state .empty-flow .ef-line { stroke:var(--fx-ink) !important; opacity:.4; }
@@ -527,13 +527,13 @@ body.fx.board-page #empty-state .empty-action.primary:hover { background:var(--f
    светло-серый, и его видно. */
 body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime) {
   background:#FFFFFF !important;
-  border:1px solid rgba(22,22,22,.14) !important;
+  border:1px solid rgba(36,40,44,.14) !important;
   border-radius:var(--fx-r-card) !important;
   box-shadow:none !important;
 }
 body.fx.os-desktop .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime):hover {
-  background:#F3F3F6 !important;
-  border-color:rgba(22,22,22,.22) !important;
+  background:#F6F6EF !important;
+  border-color:rgba(36,40,44,.22) !important;
 }
 body.fx.os-desktop .curr-grid .lc-lang {
   font-size:12px !important; color:var(--fx-mute) !important;
@@ -567,7 +567,7 @@ body.fx.os-desktop .curr-grid .lesson-card .lc-lang {
 body.fx .win-body { padding:8px !important; padding-top:8px !important; }
 body.fx .win-sidebar {
   /* Ширина карточки-сайдбара на кадре 259 при 1920 - у нас 194. */
-  background:rgba(253,253,255,.55) !important;
+  background:rgba(255,255,255,.55) !important;
   border:1px solid rgba(255,255,255,.5) !important;
   border-radius:14px !important;
   padding:40px 14px 14px !important;
@@ -598,11 +598,11 @@ body.fx #fx-ghost-panel {
   display:block; position:fixed; z-index:1; pointer-events:none;
   left:500px; top:196px; width:430px; height:430px;
   border-radius:var(--fx-r-panel);
-  background:rgba(252,252,255,.34);
+  background:rgba(255,255,255,.34);
   border:1px solid rgba(255,255,255,.42);
   backdrop-filter:blur(26px) saturate(1.2);
   -webkit-backdrop-filter:blur(26px) saturate(1.2);
-  box-shadow:0 24px 60px rgba(74,74,77,.10);
+  box-shadow:0 24px 60px rgba(36,40,44,.10);
 }
 /* На узких экранах плашка налезала бы на карточки-счётчики и док. */
 @media (max-width:1280px), (max-height:760px) {
@@ -786,14 +786,14 @@ body.fx .mp-btn-lime {
 }
 body.fx .mp-btn-ghost-dark {
   background:rgba(255,255,255,.6) !important; color:var(--fx-ink) !important;
-  border:1px solid rgba(22,22,22,.10) !important;
+  border:1px solid rgba(36,40,44,.10) !important;
 }
 body.fx :is(.mp-stat,.mp-stat-lavender,.mp-stat-cyan,.mp-stat-peach) {
-  background:rgba(253,253,255,.72) !important;
+  background:rgba(255,255,255,.72) !important;
   border:1px solid var(--fx-glass-line) !important;
   color:var(--fx-ink) !important;
 }
-body.fx .mp-quick-ic2 { background:rgba(203,240,60,.22) !important; color:var(--fx-ink) !important; }
+body.fx .mp-quick-ic2 { background:rgba(205,246,73,.22) !important; color:var(--fx-ink) !important; }
 
 /* Подсказка пустого дня была кремовой по белому - буквально невидимой,
    читалось только слово, набранное жирным. */
@@ -821,8 +821,8 @@ body.fx.board-page :is(.ai-hero,.ai-preview,.ai-memory-note) :is(h1,h2,h3,p,span
    белую полупрозрачную заливку, невидимую на светлом. */
 body.fx.board-page .ai-hero :is(h2 em,.ai-kicker) { color:var(--fx-ink) !important; }
 body.fx.board-page .ai-hero .ai-chip {
-  background:rgba(22,22,22,.05) !important;
-  border-color:rgba(22,22,22,.12) !important;
+  background:rgba(36,40,44,.05) !important;
+  border-color:rgba(36,40,44,.12) !important;
   color:var(--fx-ink-2) !important;
 }
 
@@ -832,7 +832,7 @@ body.fx.board-page .ai-hero .ai-chip {
 body.fx .widget-close {
   top:12px; right:auto; left:12px;
   width:22px; height:22px; border-radius:50%;
-  background:rgba(255,255,255,.72); border:1px solid rgba(22,22,22,.10);
+  background:rgba(255,255,255,.72); border:1px solid rgba(36,40,44,.10);
   color:var(--fx-ink);
 }
 body.fx .widget-close:hover { background:#fff; }

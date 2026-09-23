@@ -31,7 +31,7 @@
      mp-шапку, значит второе меню сверху лишнее. Раньше это делалось через
      `body:has(.mp-shell) #nav` в mobile.css, и чтобы подключить страницу к
      мобильному слою, ей вешали класс .mp-shell. Класс для этого не годится:
-     harmony.css задаёт `.mp-shell{background:#101014 !important}` вне всяких
+     harmony.css задаёт `.mp-shell{background:#24282C !important}` вне всяких
      media-запросов - это тёмный скин дашборда, а не маркер оболочки. На
      аналитике он утащил в темноту весь десктоп. Признаком служит сама
      mp-шапка, у неё нет побочного оформления. */
@@ -276,7 +276,7 @@
     background: #FFFFFF !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    box-shadow: 0 -10px 24px rgba(28, 28, 30, .10) !important;
+    box-shadow: 0 -10px 24px rgba(36,40,44,.10) !important;
   }
   body:not(#_):has(.mob-nav) {
     padding-bottom: calc(64px + 16px + env(safe-area-inset-bottom, 0px)) !important;

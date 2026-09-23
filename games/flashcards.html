@@ -6,40 +6,40 @@
 <title>Flashcards</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
-.back{align-self:flex-start;color:#0E0E10;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem;cursor:pointer;background:none;border:none}
-h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
-.subtitle{color:#525252;font-size:.85rem;margin-bottom:12px}
-.progress-wrap{width:100%;max-width:440px;background:#DADADD;border-radius:99px;height:8px;margin-bottom:8px;overflow:hidden}
-.progress-bar{height:8px;background:#CDF24F;border-radius:99px;transition:width .4s}
-.score-label{font-size:.85rem;color:#555;margin-bottom:14px;align-self:flex-start;width:100%;max-width:440px}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
+.back{align-self:flex-start;color:#24282C;font-weight:700;text-decoration:none;margin-bottom:12px;font-size:.9rem;cursor:pointer;background:none;border:none}
+h1{font-size:1.5rem;font-weight:800;color:#24282C;margin-bottom:4px}
+.subtitle{color:#5D614B;font-size:.85rem;margin-bottom:12px}
+.progress-wrap{width:100%;max-width:440px;background:#CACCC6;border-radius:99px;height:8px;margin-bottom:8px;overflow:hidden}
+.progress-bar{height:8px;background:#CDF649;border-radius:99px;transition:width .4s}
+.score-label{font-size:.85rem;color:#5D614B;margin-bottom:14px;align-self:flex-start;width:100%;max-width:440px}
 .scene{width:100%;max-width:440px;height:230px;perspective:900px;cursor:pointer;margin-bottom:20px}
 .card{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1)}
 .card.flipped{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;box-shadow:0 4px 24px rgba(36,40,44,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
 .front{background:#fff}
 .back-face{background:#fff;transform:rotateY(180deg)}
-.word{font-size:2rem;font-weight:800;color:#0E0E10;text-align:center;margin-bottom:8px}
-.tap-hint{font-size:.8rem;color:#525252;margin-top:12px}
-.phonetic{font-size:.9rem;color:#525252;margin-bottom:6px}
-.translation{font-size:1.3rem;font-weight:700;color:#EC2D8C;margin-bottom:10px}
-.example{font-size:.85rem;color:#555;text-align:center;line-height:1.5;font-style:italic}
+.word{font-size:2rem;font-weight:800;color:#24282C;text-align:center;margin-bottom:8px}
+.tap-hint{font-size:.8rem;color:#5D614B;margin-top:12px}
+.phonetic{font-size:.9rem;color:#5D614B;margin-bottom:6px}
+.translation{font-size:1.3rem;font-weight:700;color:#24282C;margin-bottom:10px}
+.example{font-size:.85rem;color:#5D614B;text-align:center;line-height:1.5;font-style:italic}
 .btn-row{display:flex;gap:12px;width:100%;max-width:440px}
 .btn{flex:1;padding:14px;border:none;border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:.15s}
-.btn-got{background:#CDF24F;color:#0E0E10}
-.btn-got:hover{background:#b8e030}
-.btn-again{background:#fff;color:#0E0E10;border:2px solid #DADADD}
-.btn-again:hover{background:#fdd}
+.btn-got{background:#CDF649;color:#24282C}
+.btn-got:hover{background:#CDF649}
+.btn-again{background:#fff;color:#24282C;border:2px solid #CACCC6}
+.btn-again:hover{background:#F3A46B}
 .btn:disabled{opacity:.4;cursor:default}
-.final{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:40px 24px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.final{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:40px 24px;box-shadow:0 4px 24px rgba(36,40,44,.1)}
 .final h2{font-size:2rem;font-weight:800;margin-bottom:8px}
-.final p{color:#555;font-size:1rem;margin-bottom:20px}
+.final p{color:#5D614B;font-size:1rem;margin-bottom:20px}
 .final .big{font-size:3.5rem;margin-bottom:8px}
-.btn-play{background:#CDF24F;color:#0E0E10;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
+.btn-play{background:#CDF649;color:#24282C;border:none;border-radius:14px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer}
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>
@@ -71,8 +71,8 @@ h1{font-size:1.5rem;font-weight:800;color:#0E0E10;margin-bottom:4px}
   <button class="btn-play" onclick="restart()">Play Again</button>
 </div>
 
-<script src="../scripts/vocabulary.js?v=946"></script>
-<script src="../scripts/custom-sets.js?v=946"></script>
+<script src="../scripts/vocabulary.js?v=950"></script>
+<script src="../scripts/custom-sets.js?v=950"></script>
 <script>
 let VOCAB=[
   {word:"comfortable",ph:"/ˈkʌmftəbl/",tr:"comfortable (adj)",ex:"The new sofa is really comfortable to sit on."},

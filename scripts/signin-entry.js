@@ -65,16 +65,16 @@
         'display:inline-flex;align-items:center;gap:7px;' +
         'min-height:44px;padding:0 16px;' +
         'border:none;border-radius:999px;' +
-        'background:#1C1C1E;color:#CDF24F;' +
+        'background:#24282C;color:#CDF649;' +
         'font:700 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;' +
         'letter-spacing:-.01em;cursor:pointer;' +
-        'box-shadow:0 6px 20px rgba(5,5,23,.22),0 1px 3px rgba(5,5,23,.14);' +
+        'box-shadow:0 6px 20px rgba(36,40,44,.22),0 1px 3px rgba(36,40,44,.14);' +
         '-webkit-tap-highlight-color:transparent;' +
       '}' +
       '#global-signin svg{width:16px;height:16px;flex:none;}' +
-      '#global-signin:hover{background:#000;}' +
+      '#global-signin:hover{background:#24282C;}' +
       '#global-signin:active{transform:scale(.97);}' +
-      '#global-signin:focus-visible{outline:3px solid #CDF24F;outline-offset:3px;}' +
+      '#global-signin:focus-visible{outline:3px solid #CDF649;outline-offset:3px;}' +
       /* На телефоне у части страниц снизу своя навигация (.te-mobnav,
          #mobile-quickbar) - поднимаемся над ней. */
       '@media (max-width:860px){#global-signin{' +

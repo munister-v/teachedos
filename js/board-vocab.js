@@ -243,7 +243,7 @@
     } catch (e) { /* fall back to the default spot */ }
 
     var data = has('defaultTextData')
-      ? window.defaultTextData({ text: text, bgColor: '#ffffff', textColor: '#111111', align: 'left' })
+      ? window.defaultTextData({ text: text, bgColor: '#ffffff', textColor: '#24282C', align: 'left' })
       : { text: text };
     data.vocabSet = true;   // so a later collection skips this card (see fromCard)
     window.addCard('text', pos.x - 160, pos.y - 140, data, 360, Math.min(560, 120 + picked.length * 22));

@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=946"></script>
+<script src="scripts/phone-gate.js?v=950"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=946">
-<link rel="preload" as="style" href="styles/harmony.css?v=946">
-<link rel="preload" as="style" href="styles/unify.css?v=946">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=946">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=946">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=946">
-<link rel="preload" as="style" href="styles/controls.css?v=946">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=946">
+<link rel="preload" as="style" href="styles/mobile.css?v=950">
+<link rel="preload" as="style" href="styles/harmony.css?v=950">
+<link rel="preload" as="style" href="styles/unify.css?v=950">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=950">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=950">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=950">
+<link rel="preload" as="style" href="styles/controls.css?v=950">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=950">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=946">
+<link rel="manifest" href="manifest.json?v=950">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -85,32 +85,32 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=946">
-<link rel="stylesheet" href="styles/main.css?v=946">
+<link rel="stylesheet" href="styles/tokens.css?v=950">
+<link rel="stylesheet" href="styles/main.css?v=950">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
 
 :root {
-  --bg:        #F2F2F5;
-  --bg-2:      #E7E7EC;
-  --bg-3:      #C9C9D0;
+  --bg:        #F6F6EF;
+  --bg-2:      #F6F6EF;
+  --bg-3:      #CACCC6;
   --bg-card:   #FFFFFF;
-  --border:    rgba(92,92,102,0.14);
-  --border-2:  rgba(92,92,102,0.28);
-  --text:      #1C1C1E;
-  --text-2:    #3A3A40;
-  --text-3:    #9A9AA3;
+  --border:    rgba(93,97,75,0.14);
+  --border-2:  rgba(93,97,75,0.28);
+  --text:      #24282C;
+  --text-2:    #5D614B;
+  --text-3:    #5D614B;
   /* Calm pass: the desktop shares the app's graphite/sage action colour.
      --rose / --deep-rose keep their names (used in ~40 places) but no longer
      carry lime and hot pink. */
-  --accent:    #556056;
-  --accent-2:  rgba(124,138,123,0.12);
-  --accent-3:  rgba(92,92,102,0.22);
-  --rose:      #A8B2A2;
-  --deep-rose: #7C8A7B;
-  --blush:     #C9C9D0;
-  --plum:      #5A5A63;
+  --accent:    #5D614B;
+  --accent-2:  rgba(163,164,141,0.12);
+  --accent-3:  rgba(93,97,75,0.22);
+  --rose:      #A3A48D;
+  --deep-rose: #A3A48D;
+  --blush:     #CACCC6;
+  --plum:      #5D614B;
   --font-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --font-mono:  'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --font-ui:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -132,9 +132,9 @@ html,body {
   position:relative;
   width:100%; height:100%;
   background:
-    radial-gradient(ellipse 70% 55% at 18% 16%, rgba(124,138,123,.10) 0%, transparent 62%),
-    radial-gradient(ellipse 58% 46% at 86% 78%, rgba(194,180,138,.14) 0%, transparent 60%),
-    linear-gradient(160deg, #F8F8FB 0%, #F2F2F5 48%, #EBEBEE 100%);
+    radial-gradient(ellipse 70% 55% at 18% 16%, rgba(163,164,141,.10) 0%, transparent 62%),
+    radial-gradient(ellipse 58% 46% at 86% 78%, rgba(163,164,141,.14) 0%, transparent 60%),
+    linear-gradient(160deg, #F6F6EF 0%, #F6F6EF 48%, #F6F6EF 100%);
   overflow:hidden;
 }
 @keyframes desktopIn { from{opacity:0} to{opacity:1} }
@@ -146,22 +146,22 @@ html,body {
 }
 .blob1 {
   width:560px; height:420px; bottom:-80px; left:-100px;
-  background:radial-gradient(circle, rgba(198,205,192,.30), transparent 70%);
+  background:radial-gradient(circle, rgba(202,204,198,.30), transparent 70%);
   animation: blobPulse1 14s ease-in-out infinite;
 }
 .blob2 {
   width:440px; height:360px; bottom:-60px; right:-80px;
-  background:radial-gradient(circle, rgba(124,138,123,.12), transparent 70%);
+  background:radial-gradient(circle, rgba(163,164,141,.12), transparent 70%);
   animation: blobPulse2 18s ease-in-out infinite;
 }
 .blob3 {
   width:300px; height:260px; top:30%; left:38%;
-  background:radial-gradient(circle, rgba(250,250,253,.50), transparent 70%);
+  background:radial-gradient(circle, rgba(246,246,239,.50), transparent 70%);
   animation: blobPulse3 22s ease-in-out infinite;
 }
 .blob4 {
   width:200px; height:180px; top:12%; right:12%;
-  background:radial-gradient(circle, rgba(194,180,138,.10), transparent 70%);
+  background:radial-gradient(circle, rgba(163,164,141,.10), transparent 70%);
   animation: blobPulse2 16s ease-in-out infinite reverse;
 }
 @keyframes blobPulse1 { 0%,100%{opacity:.7} 50%{opacity:.45} }
@@ -179,17 +179,17 @@ html,body {
 .wp-card-white {
   background:rgba(255,255,255,0.55);
   border:1px solid rgba(255,255,255,0.80);
-  box-shadow:0 8px 32px rgba(92,92,102,.07), 0 2px 8px rgba(92,92,102,.04);
+  box-shadow:0 8px 32px rgba(36,40,44,.07), 0 2px 8px rgba(36,40,44,.04);
 }
 .wp-card-lime {
-  background:rgba(199,208,196,0.78);
-  border:1px solid rgba(160,174,158,0.42);
-  box-shadow:0 8px 32px rgba(85,96,86,.12);
+  background:rgba(202,204,198,0.78);
+  border:1px solid rgba(163,164,141,0.42);
+  box-shadow:0 8px 32px rgba(36,40,44,.12);
 }
 .wp-card-pink {
-  background:rgba(204,204,207,0.78);
-  border:1px solid rgba(186,170,140,0.42);
-  box-shadow:0 8px 24px rgba(106,106,109,.14);
+  background:rgba(202,204,198,0.78);
+  border:1px solid rgba(163,164,141,0.42);
+  box-shadow:0 8px 24px rgba(36,40,44,.14);
 }
 /* individual cards - center zone (between left-panel & right-widgets) */
 .wp-c1 { width:155px; height:200px; left:36%; top:38%; animation:wpFloat1 8s  ease-in-out infinite; }
@@ -202,9 +202,9 @@ html,body {
            font-size:36px; opacity:.70; }
 /* header bar inside white card */
 .wp-bar { position:absolute; left:14px; right:14px; height:6px; border-radius:3px;
-          background:rgba(160,174,158,.55); top:20px; }
+          background:rgba(163,164,141,.55); top:20px; }
 .wp-lines { position:absolute; left:14px; right:14px; top:38px; display:flex; flex-direction:column; gap:8px; }
-.wp-line { height:5px; border-radius:3px; background:rgba(92,92,102,.10); }
+.wp-line { height:5px; border-radius:3px; background:rgba(93,97,75,.10); }
 .wp-line:nth-child(2) { width:65%; }
 .wp-line:nth-child(3) { width:80%; }
 /* dots on SVG lines */
@@ -212,9 +212,9 @@ html,body {
   position:absolute; border-radius:50%;
   animation:dotPop 2s ease-in-out infinite;
 }
-.wp-dot-lime { background:rgba(140,156,138,.75); width:9px; height:9px; }
-.wp-dot-pink { background:rgba(194,180,138,.80); width:9px; height:9px; }
-.wp-dot-ring { background:transparent; border:2px solid rgba(140,156,138,.50); width:12px; height:12px; }
+.wp-dot-lime { background:rgba(163,164,141,.75); width:9px; height:9px; }
+.wp-dot-pink { background:rgba(163,164,141,.80); width:9px; height:9px; }
+.wp-dot-ring { background:transparent; border:2px solid rgba(163,164,141,.50); width:12px; height:12px; }
 @keyframes dotPop { 0%,100%{transform:scale(1);opacity:.9} 50%{transform:scale(1.3);opacity:.6} }
 @keyframes wpFloat1 { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
 @keyframes wpFloat2 { 0%,100%{transform:translateY(0px) rotate(0deg)} 50%{transform:translateY(-8px) rotate(.5deg)} }
@@ -222,12 +222,12 @@ html,body {
 /* Menubar */
 #menubar {
   position:fixed; top:0; left:0; right:0; height:32px; z-index:1000;
-  background: rgba(242,242,245,0.75);
+  background: rgba(246,246,239,0.75);
   backdrop-filter: blur(40px) saturate(2.2);
   -webkit-backdrop-filter: blur(40px) saturate(2.2);
-  border-bottom: 1px solid rgba(92,92,102,0.06);
+  border-bottom: 1px solid rgba(93,97,75,0.06);
   display:flex; align-items:center; padding:0 16px; gap:0;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 8px rgba(92,92,102,0.04);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 8px rgba(36,40,44,0.04);
 }
 .mb-apple {
   margin-right:10px; cursor:default;
@@ -235,7 +235,7 @@ html,body {
 }
 .mb-apple img { width:22px; height:22px; border-radius:5px; }
 .mb-app-name {
-  font-size:13px; font-weight:650; color: #2D2D2D; margin-right:4px;
+  font-size:13px; font-weight:650; color: #24282C; margin-right:4px;
   letter-spacing:-0.01em;
 }
 .mb-menu { display:flex; gap:0; align-items:center; }
@@ -247,7 +247,7 @@ html,body {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
-.mb-item:hover, .mb-item:active { background: rgba(5,5,23,0.07); color: var(--text); }
+.mb-item:hover, .mb-item:active { background: rgba(36,40,44,0.07); color: var(--text); }
 .mb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
 .mb-icon { font-size:13px; color: var(--text-3); cursor:default; }
 #mb-clock {
@@ -259,13 +259,13 @@ html,body {
    the divider is the one shared piece of chrome that separates them, so the
    whole thing reads as "one chip, two fields" instead of "two chips". */
 .mb-account-chip {
-  --mb-plan-color: #6b7280;
+  --mb-plan-color: #A3A48D;
   align-items:center; gap:7px; text-decoration:none; margin-right:6px;
   padding:3px 11px 3px 10px; border-radius:999px;
-  background: rgba(92,92,102,.07); border:1px solid rgba(92,92,102,.16);
+  background: rgba(93,97,75,.07); border:1px solid rgba(93,97,75,.16);
   transition: background .15s ease, border-color .15s ease;
 }
-.mb-account-chip:hover { background: rgba(92,92,102,.12); border-color: rgba(92,92,102,.26); }
+.mb-account-chip:hover { background: rgba(93,97,75,.12); border-color: rgba(93,97,75,.26); }
 #mb-plan-badge {
   font-size:10px; font-weight:700; color: var(--mb-plan-color);
   text-transform:uppercase; letter-spacing:.05em;
@@ -273,10 +273,10 @@ html,body {
 }
 #mb-plan-badge::after {
   content:''; position:absolute; right:0; top:50%; transform:translateY(-50%);
-  width:1px; height:12px; background: rgba(92,92,102,.22);
+  width:1px; height:12px; background: rgba(93,97,75,.22);
 }
 #mb-account-name {
-  font-size:12px; font-weight:600; color: var(--text, #333);
+  font-size:12px; font-weight:600; color: var(--text, #24282C);
   display:inline-flex; align-items:center; gap:5px;
 }
 
@@ -289,39 +289,39 @@ html,body {
    the corner radius from a squircle-22 to something plainly ours. */
 .widget {
   position:absolute;
-  background: var(--bg-2, #F3F3F6);
+  background: var(--bg-2, #F6F6EF);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--border, rgba(92,92,102,.16));
+  border: 1px solid var(--border, rgba(93,97,75,.16));
   border-radius:14px;
   overflow:hidden;
-  box-shadow: 0 10px 28px rgba(14,14,16,0.10);
+  box-shadow: 0 10px 28px rgba(36,40,44,0.10);
   transition: transform .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s ease, border-color .18s ease;
 }
 .widget:hover {
   transform:translateY(-2px);
-  box-shadow: 0 14px 36px rgba(14,14,16,0.14);
-  border-color: var(--border-2, rgba(92,92,102,.3));
+  box-shadow: 0 14px 36px rgba(36,40,44,0.14);
+  border-color: var(--border-2, rgba(93,97,75,.3));
 }
-.widget.wg-dragging { transform:translateY(-2px) scale(1.02); box-shadow: 0 20px 46px rgba(14,14,16,0.20); transition:none; cursor:grabbing; z-index:60; }
+.widget.wg-dragging { transform:translateY(-2px) scale(1.02); box-shadow: 0 20px 46px rgba(36,40,44,0.20); transition:none; cursor:grabbing; z-index:60; }
 .widget-close {
   position:absolute; top:6px; right:6px; z-index:2;
   width:20px; height:20px; border-radius:7px; border:none;
-  background: rgba(92,92,102,.10); color: var(--text-3, #78787B);
+  background: rgba(93,97,75,.10); color: var(--text-3, #5D614B);
   font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
   cursor:pointer; opacity:0; transition:opacity .15s, background .15s, color .15s;
 }
 .widget:hover .widget-close { opacity:1; }
-.widget-close:hover { background: rgba(92,92,102,.22); color: var(--text, #1C1C1E); }
+.widget-close:hover { background: rgba(93,97,75,.22); color: var(--text, #24282C); }
 #wg-restore {
   position:fixed; right:24px; bottom:88px; z-index:998;
   display:none; align-items:center; gap:8px;
-  padding:9px 14px; border-radius:999px; border:1px solid var(--border, rgba(92,92,102,.16));
-  background: var(--bg-2, #F3F3F6); box-shadow:0 10px 28px rgba(14,14,16,0.10);
-  font-size:12px; font-family: var(--font-mono); color: var(--text-3, #78787B);
+  padding:9px 14px; border-radius:999px; border:1px solid var(--border, rgba(93,97,75,.16));
+  background: var(--bg-2, #F6F6EF); box-shadow:0 10px 28px rgba(36,40,44,0.10);
+  font-size:12px; font-family: var(--font-mono); color: var(--text-3, #5D614B);
   cursor:pointer;
 }
-#wg-restore:hover { color: var(--text, #1C1C1E); border-color: var(--border-2, rgba(92,92,102,.3)); }
+#wg-restore:hover { color: var(--text, #24282C); border-color: var(--border-2, rgba(93,97,75,.3)); }
 
 /* Clock widget. Left-aligned with an eyebrow label instead of Big Sur's
    centered giant digits, so the shape reads as a TeachEd stat tile rather
@@ -337,10 +337,10 @@ html,body {
 }
 .wg-streak-fire { font-size:22px; margin-left:4px; }
 .wg-streak-label {
-  font-size:10px; color: #58585B; margin-top:4px;
+  font-size:10px; color: #5D614B; margin-top:4px;
   font-family: var(--font-mono); letter-spacing:0.1em; text-transform:uppercase;
 }
-.wg-streak-sub { font-size:11px; color: #3A3A40; margin-top:8px; line-height:1.4; }
+.wg-streak-sub { font-size:11px; color: #5D614B; margin-top:8px; line-height:1.4; }
 
 /* Next-class widget. Карточка ближайшего урока: кто, когда, через сколько и
    кнопка входа. Шире соседей по правой колонке — это единственный виджет,
@@ -351,7 +351,7 @@ html,body {
 }
 .wg-today-label {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
-  text-transform:uppercase; color: #58585B; margin-bottom:12px;
+  text-transform:uppercase; color: #5D614B; margin-bottom:12px;
 }
 .wg-next-who { display:flex; align-items:center; gap:11px; margin-bottom:14px; }
 .wg-next-avatar {
@@ -404,7 +404,7 @@ html,body {
 }
 .wg-vocab-label {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.14em;
-  text-transform:uppercase; color: #58585B; margin-bottom:12px;
+  text-transform:uppercase; color: #5D614B; margin-bottom:12px;
 }
 .wg-vocab-word {
   font-family: var(--font-ui); font-size:24px; font-weight:600;
@@ -422,12 +422,12 @@ html,body {
 }
 .wg-vocab-next {
   margin-top:12px; width:100%;
-  background: linear-gradient(135deg, var(--accent), #6B7669); border: none;
+  background: linear-gradient(135deg, var(--accent), #A3A48D); border: none;
   border-radius:12px; padding:9px; font-size:12px; font-family: var(--font-ui);
   font-weight:650; color: #fff; cursor:pointer; transition:opacity .15s, transform .15s, box-shadow .15s;
-  text-align:center; box-shadow: 0 4px 14px rgba(124,138,123,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  text-align:center; box-shadow: 0 4px 14px rgba(163,164,141,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
 }
-.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(124,138,123,0.30); }
+.wg-vocab-next:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(163,164,141,0.30); }
 
 /* ═══════════════════════════ DOCK ═══════════════════════════ */
 #dock-wrap {
@@ -442,8 +442,8 @@ html,body {
   border: 1px solid rgba(255,255,255,0.65);
   border-radius:22px; padding:8px 14px 7px;
   box-shadow:
-    0 16px 56px rgba(92,92,102,0.14),
-    0 4px 14px rgba(0,0,0,0.07),
+    0 16px 56px rgba(36,40,44,0.14),
+    0 4px 14px rgba(36,40,44,0.07),
     inset 0 1.5px 0 rgba(255,255,255,0.85);
 }
 .di {
@@ -456,7 +456,7 @@ html,body {
   width:46px; height:46px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
   font-size:21px; position:relative; transition:inherit;
-  box-shadow: 0 4px 12px rgba(59,69,60,0.18), inset 0 1px 0 rgba(255,255,255,0.18);
+  box-shadow: 0 4px 12px rgba(36,40,44,0.18), inset 0 1px 0 rgba(255,255,255,0.18);
 }
 .di-label {
   font-size:9px; font-weight:600; color: var(--text-3); font-family: var(--font-ui);
@@ -470,7 +470,7 @@ html,body {
 }
 .di.open .di-dot { display:block; }
 .di-sep {
-  width:1px; height:44px; background: rgba(201,201,208,0.22);
+  width:1px; height:44px; background: rgba(202,204,198,0.22);
   margin:0 3px; align-self:center;
 }
 /* Dock icons: one family, eight hues.
@@ -478,14 +478,14 @@ html,body {
    unrelated brands in a 400px strip. These keep enough hue separation to tell
    apart at 46px while reading as a single set, and every glyph stays white
    at >=4.5:1. */
-.di-icon.curriculum  { background: linear-gradient(145deg,#6B7669,#5A6459); }
-.di-icon.flashcards  { background: linear-gradient(145deg,#75798A,#63667A); }
-.di-icon.progress    { background: linear-gradient(145deg,#7C7C7F,#67676A); }
-.di-icon.schedule    { background: linear-gradient(145deg,#5F6B75,#4F5A64); }
-.di-icon.notes       { background: linear-gradient(145deg,#6F6F72,#5C5C5F); }
-.di-icon.dictionary  { background: linear-gradient(145deg,#5C7570,#4C625E); }
-.di-icon.settings    { background: linear-gradient(145deg,#585C59,#474B48); }
-.di-icon.finder      { background: linear-gradient(145deg,#6B7A63,#5A6754); }
+.di-icon.curriculum  { background: linear-gradient(145deg,#A3A48D,#5D614B); }
+.di-icon.flashcards  { background: linear-gradient(145deg,#A3A48D,#886BF3); }
+.di-icon.progress    { background: linear-gradient(145deg,#A3A48D,#5D614B); }
+.di-icon.schedule    { background: linear-gradient(145deg,#5D614B,#5D614B); }
+.di-icon.notes       { background: linear-gradient(145deg,#A3A48D,#5D614B); }
+.di-icon.dictionary  { background: linear-gradient(145deg,#5D614B,#5D614B); }
+.di-icon.settings    { background: linear-gradient(145deg,#5D614B,#5D614B); }
+.di-icon.finder      { background: linear-gradient(145deg,#5D614B,#5D614B); }
 
 /* The top navigation already owns the full information architecture. Keep
    the dock focused on the six actions teachers use while preparing a class;
@@ -504,8 +504,8 @@ html,body {
   backdrop-filter: blur(32px) saturate(1.8);
   -webkit-backdrop-filter: blur(32px) saturate(1.8);
   box-shadow:
-    0 24px 72px rgba(92,92,102,0.12),
-    0 8px 24px rgba(0,0,0,0.06),
+    0 24px 72px rgba(36,40,44,0.12),
+    0 8px 24px rgba(36,40,44,0.06),
     0 1px 0 rgba(255,255,255,0.9) inset;
   display:none; flex-direction:column; z-index:100;
   min-width:480px; min-height:320px;
@@ -513,8 +513,8 @@ html,body {
 }
 .win:hover {
   box-shadow:
-    0 28px 80px rgba(92,92,102,0.16),
-    0 10px 28px rgba(0,0,0,0.08),
+    0 28px 80px rgba(36,40,44,0.16),
+    0 10px 28px rgba(36,40,44,0.08),
     0 1px 0 rgba(255,255,255,0.9) inset;
 }
 .win.open { display:flex; }
@@ -525,10 +525,10 @@ html,body {
 }
 .win-titlebar {
   height:46px; display:flex; align-items:center; padding:0 16px; gap:0;
-  background: rgba(245,245,248,0.92);
+  background: rgba(246,246,239,0.92);
   backdrop-filter:blur(20px) saturate(1.6);
   -webkit-backdrop-filter:blur(20px) saturate(1.6);
-  border-bottom: 1px solid rgba(92,92,102,0.07);
+  border-bottom: 1px solid rgba(93,97,75,0.07);
   box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
   cursor:default; flex-shrink:0; position:relative;
 }
@@ -549,8 +549,8 @@ html,body {
 .tl.close::before { content:'\2715'; }
 .tl.min::before   { content:'\2013'; }
 .tl.max::before   { content:'\2197'; }
-.tl:hover  { background:rgba(14,14,16,.07); color: var(--text); }
-.tl.close:hover { background:rgba(236,45,140,.13); color:#EC2D8C; }
+.tl:hover  { background:rgba(36,40,44,.07); color: var(--text); }
+.tl.close:hover { background:rgba(136,107,243,.13); color:#24282C; }
 .win-title {
   position:absolute; left:50%; transform:translateX(-50%);
   font-size:13px; font-weight:650; color: var(--text-2); white-space:nowrap;
@@ -564,7 +564,7 @@ html,body {
 .win-title .ic { vertical-align:-.2em; margin-right:6px; }
 .sb-item .ic { width:16px; height:16px; margin-right:8px; vertical-align:-.22em; }
 .di-icon .ic { width:24px; height:24px; color:#fff; }
-.mp-quick-ic2 .ic { width:20px; height:20px; color:#2A2A2D; }
+.mp-quick-ic2 .ic { width:20px; height:20px; color:#24282C; }
 .mob-win-header .ic { width:22px; height:22px; }
 
 
@@ -583,8 +583,8 @@ html,body {
 .win-rz-sw{ bottom:-3px; left:-3px; width:14px; height:14px; cursor:nesw-resize; }
 .win-rz-se::after {
   content:''; position:absolute; bottom:5px; right:5px; width:8px; height:8px;
-  border-right:2px solid rgba(92,92,102,0.30);
-  border-bottom:2px solid rgba(92,92,102,0.30);
+  border-right:2px solid rgba(93,97,75,0.30);
+  border-bottom:2px solid rgba(93,97,75,0.30);
   border-bottom-right-radius:2px; opacity:0; transition:opacity .15s;
 }
 .win:hover .win-rz-se::after { opacity:1; }
@@ -604,8 +604,8 @@ html,body {
 .win.dragging { cursor:grabbing; }
 .win.focused {
   box-shadow:
-    0 32px 88px rgba(92,92,102,0.18),
-    0 12px 32px rgba(0,0,0,0.10),
+    0 32px 88px rgba(36,40,44,0.18),
+    0 12px 32px rgba(36,40,44,0.10),
     0 1px 0 rgba(255,255,255,0.9) inset !important;
 }
 .win:not(.focused) { opacity:0.985; }
@@ -645,8 +645,8 @@ html,body {
 /* ── Snap preview overlay ── */
 .win-snap-preview {
   position:fixed; z-index:99; pointer-events:none;
-  background:rgba(124,138,123,0.18);
-  border:2px solid rgba(124,138,123,0.55);
+  background:rgba(163,164,141,0.18);
+  border:2px solid rgba(163,164,141,0.55);
   border-radius:var(--radius-win);
   backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px);
@@ -657,8 +657,8 @@ html,body {
 
 .win-sidebar {
   width:200px; flex-shrink:0;
-  background: rgba(247,247,250,0.82);
-  border-right: 1px solid rgba(92,92,102,0.08);
+  background: rgba(246,246,239,0.82);
+  border-right: 1px solid rgba(93,97,75,0.08);
   display:flex; flex-direction:column;
   overflow-y:auto;
 }
@@ -679,10 +679,10 @@ html,body {
   border-radius:10px; margin:1px 6px;
   transition: background .15s, color .15s, box-shadow .15s;
 }
-.sb-item:hover { background: rgba(124,138,123,0.10); color: var(--text); }
+.sb-item:hover { background: rgba(163,164,141,0.10); color: var(--text); }
 .sb-item.active {
-  background: #556056; color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(5,5,23,.18);
+  background: #5D614B; color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(36,40,44,.18);
 }
 .sb-item-ic { font-size:15px; flex-shrink:0; width:20px; text-align:center; }
 .sb-item-badge {
@@ -694,8 +694,8 @@ html,body {
 /* scrollbar */
 ::-webkit-scrollbar { width:6px; height:6px; }
 ::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:rgba(92,92,102,0.18); border-radius:4px; }
-::-webkit-scrollbar-thumb:hover { background:rgba(92,92,102,0.30); }
+::-webkit-scrollbar-thumb { background:rgba(93,97,75,0.18); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(93,97,75,0.30); }
 
 /* ═══════════════════════════ CURRICULUM APP ═══════════════════════════ */
 #win-curriculum { top:60px; left:60px; width:820px; height:580px; }
@@ -714,13 +714,13 @@ html,body {
 .curr-search {
   margin:16px 24px 0;
   display:flex; align-items:center; gap:10px;
-  background: rgba(124,138,123,0.04); border: 1px solid rgba(92,92,102,0.10);
+  background: rgba(163,164,141,0.04); border: 1px solid rgba(93,97,75,0.10);
   border-radius:14px; padding:10px 16px;
   transition:border-color .2s, box-shadow .2s;
 }
 .curr-search:focus-within {
-  border-color:rgba(124,138,123,.3);
-  box-shadow:0 0 0 3px rgba(124,138,123,.06);
+  border-color:rgba(163,164,141,.3);
+  box-shadow:0 0 0 3px rgba(163,164,141,.06);
 }
 .curr-search input {
   flex:1; background:none; border:none; outline:none;
@@ -737,7 +737,7 @@ html,body {
   padding:6px 16px; border-radius:20px; cursor:pointer; color: var(--text-3);
   transition: background .15s, color .15s;
 }
-.curr-tab:hover { background: rgba(124,138,123,0.08); color: var(--text-2); }
+.curr-tab:hover { background: rgba(163,164,141,0.08); color: var(--text-2); }
 .curr-tab.active {
   background: var(--accent); color: #fff;
 }
@@ -746,17 +746,17 @@ html,body {
   padding:20px 24px;
 }
 .lesson-card {
-  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(124,138,123,0.08);
+  background: rgba(255,255,255,0.9); border: 1.5px solid rgba(163,164,141,0.08);
   border-radius:18px; padding:20px; cursor:pointer;
   transition: box-shadow .22s, border-color .22s, transform .22s;
   position:relative; overflow:hidden;
-  box-shadow: 0 2px 12px rgba(92,92,102,0.06), 0 0 0 0 rgba(124,138,123,0);
+  box-shadow: 0 2px 12px rgba(36,40,44,0.06), 0 0 0 0 rgba(163,164,141,0);
   backdrop-filter:blur(8px);
 }
 .lesson-card:hover {
-  border-color: rgba(124,138,123,0.25);
+  border-color: rgba(163,164,141,0.25);
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(92,92,102,0.12), 0 0 0 1px rgba(124,138,123,0.06);
+  box-shadow: 0 12px 32px rgba(36,40,44,0.12), 0 0 0 1px rgba(163,164,141,0.06);
 }
 .lesson-card::before {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -784,16 +784,16 @@ html,body {
   font-size:10px; font-family: var(--font-mono); padding:2px 8px;
   border-radius:4px; font-weight:600;
 }
-.lc-level.a1 { background:rgba(124,138,123,.12); color:#5F6B5E; }
-.lc-level.a2 { background:rgba(124,138,123,.12); color:#5F6B5E; }
-.lc-level.b1 { background:rgba(124,138,123,.12); color:#5F6B5E; }
-.lc-level.b2 { background:rgba(124,138,123,.12); color:#5F6B5E; }
-.lc-level.c1 { background:rgba(124,138,123,.12); color:#5F6B5E; }
+.lc-level.a1 { background:rgba(163,164,141,.12); color:#5D614B; }
+.lc-level.a2 { background:rgba(163,164,141,.12); color:#5D614B; }
+.lc-level.b1 { background:rgba(163,164,141,.12); color:#5D614B; }
+.lc-level.b2 { background:rgba(163,164,141,.12); color:#5D614B; }
+.lc-level.c1 { background:rgba(163,164,141,.12); color:#5D614B; }
 .lc-dur {
   font-size:10px; color: var(--text-3); font-family: var(--font-mono);
 }
 .lc-prog {
-  margin-top:10px; height:2px; background: rgba(201,201,208,0.15); border-radius:1px;
+  margin-top:10px; height:2px; background: rgba(202,204,198,0.15); border-radius:1px;
 }
 .lc-prog-fill {
   height:100%; background: linear-gradient(90deg, var(--deep-rose), var(--accent));
@@ -808,7 +808,7 @@ html,body {
 }
 .fc-progress-bar {
   width:100%; max-width:420px; height:3px;
-  background: rgba(201,201,208,0.15); border-radius:2px; overflow:hidden;
+  background: rgba(202,204,198,0.15); border-radius:2px; overflow:hidden;
 }
 .fc-progress-fill {
   height:100%; background: linear-gradient(90deg, var(--deep-rose), var(--accent));
@@ -834,19 +834,19 @@ html,body {
 }
 .fc-front {
   background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
-  border: 1.5px solid rgba(124,138,123,0.12);
-  box-shadow: 0 8px 32px rgba(92,92,102,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
+  border: 1.5px solid rgba(163,164,141,0.12);
+  box-shadow: 0 8px 32px rgba(36,40,44,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
   backdrop-filter:blur(8px);
 }
 .fc-back {
-  background: linear-gradient(145deg, rgba(124,138,123,0.10) 0%, rgba(28,28,30,0.06) 100%);
-  border: 1.5px solid rgba(92,92,102,0.20);
-  box-shadow: 0 4px 20px rgba(92,92,102,0.14);
+  background: linear-gradient(145deg, rgba(163,164,141,0.10) 0%, rgba(36,40,44,0.06) 100%);
+  border: 1.5px solid rgba(93,97,75,0.20);
+  box-shadow: 0 4px 20px rgba(36,40,44,0.14);
   transform:rotateY(180deg);
 }
 .fc-card-lang {
   font-size:9px; font-family: var(--font-mono); letter-spacing:0.12em;
-  text-transform:uppercase; color: #58585B; margin-bottom:12px;
+  text-transform:uppercase; color: #5D614B; margin-bottom:12px;
 }
 .fc-card-word {
   font-family: var(--font-ui); font-size:34px; font-weight:600;
@@ -870,21 +870,21 @@ html,body {
   font-weight:500;
 }
 .fc-btn:active { transform:scale(0.96); }
-.fc-btn.again { background:rgba(248,113,113,.12); color:#f87171; }
-.fc-btn.hard  { background:rgba(245,158,11,.12); color:#f59e0b; }
-.fc-btn.good  { background:rgba(110,201,138,.12); color:#6ec98a; }
-.fc-btn.easy  { background:rgba(201,201,208,.18); color:#1C1C1E; }
+.fc-btn.again { background:rgba(255,78,0,.12); color:#FF4E00; }
+.fc-btn.hard  { background:rgba(243,164,107,.12); color:#F3A46B; }
+.fc-btn.good  { background:rgba(163,164,141,.12); color:#A3A48D; }
+.fc-btn.easy  { background:rgba(202,204,198,.18); color:#24282C; }
 .fc-set-picker {
   display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
   max-width:400px;
 }
 .fc-set {
   font-size:12px; font-family: var(--font-ui); font-weight:600; padding:6px 16px;
-  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(124,138,123,0.16);
+  border-radius:20px; cursor:pointer; border: 1.5px solid rgba(163,164,141,0.16);
   color: var(--text-3); background: #fff;
   transition: background .15s, border-color .15s, color .15s;
 }
-.fc-set:hover { background: rgba(124,138,123,0.06); color: var(--accent); border-color: var(--accent); }
+.fc-set:hover { background: rgba(163,164,141,0.06); color: var(--accent); border-color: var(--accent); }
 .fc-set.active {
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
@@ -899,13 +899,13 @@ html,body {
   background: rgba(255,255,255,0.85); border: 1.5px solid rgba(255,255,255,0.5);
   border-radius:18px; padding:18px 16px;
   display:flex; flex-direction:column; gap:4px;
-  box-shadow: 0 4px 16px rgba(92,92,102,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+  box-shadow: 0 4px 16px rgba(36,40,44,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
   backdrop-filter:blur(8px);
   transition: transform .2s, box-shadow .2s;
 }
 .prog-stat:hover {
   transform:translateY(-2px);
-  box-shadow: 0 8px 24px rgba(92,92,102,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+  box-shadow: 0 8px 24px rgba(36,40,44,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
 }
 .prog-stat-n {
   font-family: var(--font-ui); font-size:32px; font-weight:700;
@@ -929,7 +929,7 @@ html,body {
   font-size:13px; color: var(--text-2); width:90px; flex-shrink:0;
 }
 .prog-lang-bar {
-  flex:1; height:6px; background: rgba(201,201,208,0.12); border-radius:3px; overflow:hidden;
+  flex:1; height:6px; background: rgba(202,204,198,0.12); border-radius:3px; overflow:hidden;
 }
 .prog-lang-fill {
   height:100%; border-radius:3px;
@@ -962,9 +962,9 @@ html,body {
   display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
 }
 .prog-ach {
-  background: #fff; border: 1.5px solid rgba(92,92,102,0.12);
+  background: #fff; border: 1.5px solid rgba(93,97,75,0.12);
   border-radius:14px; padding:14px; display:flex; flex-direction:column; align-items:center;
-  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(124,138,123,0.06);
+  gap:6px; text-align:center; box-shadow: 0 2px 8px rgba(163,164,141,0.06);
 }
 .prog-ach-ic { font-size:24px; }
 .prog-ach-name { font-size:12px; color: var(--text-2); font-weight:600; }
@@ -980,11 +980,11 @@ html,body {
 }
 .sch-nav-btn {
   width:30px; height:30px; border-radius:10px;
-  background: rgba(124,138,123,0.07); border: 1.5px solid rgba(92,92,102,0.14);
+  background: rgba(163,164,141,0.07); border: 1.5px solid rgba(93,97,75,0.14);
   color: var(--accent); cursor:pointer; display:flex; align-items:center;
   justify-content:center; font-size:14px; font-weight:600; transition:background .15s;
 }
-.sch-nav-btn:hover { background: rgba(92,92,102,0.14); }
+.sch-nav-btn:hover { background: rgba(93,97,75,0.14); }
 .sch-month {
   font-family: var(--font-ui); font-size:18px; font-weight:700;
   color: var(--text); letter-spacing:-0.02em;
@@ -1015,7 +1015,7 @@ html,body {
   position:relative;
 }
 .sch-cell.other-month { opacity:0.35; }
-.sch-cell.today { background: rgba(124,138,123,0.06); }
+.sch-cell.today { background: rgba(163,164,141,0.06); }
 .sch-cell.today .sch-day-num {
   background: var(--accent); color:#fff; border-radius:50%;
   width:22px; height:22px; display:flex; align-items:center; justify-content:center;
@@ -1027,17 +1027,17 @@ html,body {
   display:flex; align-items:center; justify-content:center;
 }
 .sch-event {
-  background: linear-gradient(135deg, rgba(124,138,123,0.22), rgba(201,201,208,0.20));
-  border: 1px solid rgba(201,201,208,0.28); border-radius:5px;
+  background: linear-gradient(135deg, rgba(163,164,141,0.22), rgba(202,204,198,0.20));
+  border: 1px solid rgba(202,204,198,0.28); border-radius:5px;
   font-size:10px; padding:2px 6px; color: var(--accent); margin-bottom:3px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   font-family: var(--font-mono); cursor:pointer;
 }
 .sch-event.green {
-  background: rgba(124,138,123,0.12); border-color: rgba(124,138,123,0.26); color:#556056;
+  background: rgba(163,164,141,0.12); border-color: rgba(163,164,141,0.26); color:#5D614B;
 }
 .sch-event.blue {
-  background: rgba(132,150,168,0.12); border-color: rgba(132,150,168,0.26); color:#4F5A64;
+  background: rgba(159,140,232,0.12); border-color: rgba(159,140,232,0.26); color:#5D614B;
 }
 
 /* ═══════════════════════════ NOTES APP ═══════════════════════════ */
@@ -1048,22 +1048,22 @@ html,body {
   padding:10px 10px; border-radius:12px; cursor:pointer; margin:1px 0;
   transition: background .15s;
 }
-.note-item:hover { background: rgba(124,138,123,0.08); }
-.note-item.active { background: rgba(92,92,102,0.14); }
+.note-item:hover { background: rgba(163,164,141,0.08); }
+.note-item.active { background: rgba(93,97,75,0.14); }
 .note-item-title { font-size:13px; color: var(--text); font-weight:500; margin-bottom:3px; }
 .note-item-preview { font-size:11px; color: var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .note-item-date { font-size:9px; color: var(--text-3); font-family: var(--font-mono); margin-top:4px; }
 .notes-toolbar {
   height:40px; display:flex; align-items:center; gap:4px; padding:0 12px;
   border-bottom: 1px solid var(--border); flex-shrink:0;
-  background: rgba(255,240,248,0.60);
+  background: rgba(246,246,239,0.60);
 }
 .notes-tb-btn {
   width:30px; height:30px; border-radius:8px; display:flex; align-items:center;
   justify-content:center; font-size:13px; font-weight:600; color: var(--text-3); cursor:pointer;
   transition:background .15s, color .15s;
 }
-.notes-tb-btn:hover { background: rgba(124,138,123,0.10); color: var(--accent); }
+.notes-tb-btn:hover { background: rgba(163,164,141,0.10); color: var(--accent); }
 .notes-tb-sep { width:1px; height:18px; background: var(--border); margin:0 4px; }
 .notes-editor {
   flex:1; display:flex; flex-direction:column;
@@ -1077,14 +1077,14 @@ html,body {
   height:28px; display:flex; align-items:center; padding:0 16px;
   border-top: 1px solid var(--border); flex-shrink:0;
   font-size:10px; font-weight:600; color: var(--text-3); font-family: var(--font-ui); gap:16px;
-  background: rgba(255,240,248,0.50);
+  background: rgba(246,246,239,0.50);
 }
 .notes-new-btn {
   display:flex; align-items:center; gap:6px; padding:8px 14px;
   margin:8px; border-radius:12px; cursor:pointer;
   background: var(--accent); color: #fff;
   font-size:12px; font-family: var(--font-ui); font-weight:650;
-  transition:opacity .15s; box-shadow: 0 2px 8px rgba(124,138,123,0.25);
+  transition:opacity .15s; box-shadow: 0 2px 8px rgba(163,164,141,0.25);
 }
 .notes-new-btn:hover { opacity:0.88; }
 
@@ -1094,14 +1094,14 @@ html,body {
 
 
 /* ═══════════════════════════ STUDIO HERO HEADER ═══════════════════════════ */
-.studio-hero{position:relative;overflow:hidden;margin:18px 20px 14px;border-radius:26px;background:#101014;color:#fff;padding:22px 24px;box-shadow:0 20px 70px rgba(16,16,20,.18);flex-shrink:0;}
-.studio-hero::after{content:'';position:absolute;right:-78px;top:-92px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(124,138,123,.38),transparent 68%);pointer-events:none;}
-.studio-hero.pink::after{background:radial-gradient(circle,rgba(124,138,123,.28),transparent 68%);}
-.studio-hero.blue::after{background:radial-gradient(circle,rgba(96,165,250,.36),transparent 68%);}
-.studio-hero.mix::after{background:radial-gradient(circle at 40% 40%,rgba(168,178,162,.32),transparent 46%),radial-gradient(circle at 72% 62%,rgba(194,180,138,.26),transparent 60%);}
-.studio-eyebrow{position:relative;z-index:1;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7C8A7B;margin-bottom:8px;}
+.studio-hero{position:relative;overflow:hidden;margin:18px 20px 14px;border-radius:26px;background:#24282C;color:#fff;padding:22px 24px;box-shadow:0 20px 70px rgba(36,40,44,.18);flex-shrink:0;}
+.studio-hero::after{content:'';position:absolute;right:-78px;top:-92px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(163,164,141,.38),transparent 68%);pointer-events:none;}
+.studio-hero.pink::after{background:radial-gradient(circle,rgba(163,164,141,.28),transparent 68%);}
+.studio-hero.blue::after{background:radial-gradient(circle,rgba(63,159,255,.36),transparent 68%);}
+.studio-hero.mix::after{background:radial-gradient(circle at 40% 40%,rgba(163,164,141,.32),transparent 46%),radial-gradient(circle at 72% 62%,rgba(163,164,141,.26),transparent 60%);}
+.studio-eyebrow{position:relative;z-index:1;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5D614B;margin-bottom:8px;}
 .studio-title{position:relative;z-index:1;font-size:31px;line-height:.98;font-weight:700;letter-spacing:-.058em;max-width:620px;}
-.studio-title em{font-style:italic;color:#7C8A7B;}
+.studio-title em{font-style:italic;color:#5D614B;}
 .studio-copy{position:relative;z-index:1;max-width:650px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
 .studio-actions{position:relative;z-index:1;display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;}
 #win-plans .studio-actions .studio-chip.secondary,
@@ -1128,7 +1128,7 @@ html,body {
 .st-split { flex:1; min-height:0; display:flex; }
 .st-list-col {
   flex:1; min-width:0; display:flex; flex-direction:column; overflow-y:auto; overscroll-behavior:contain;
-  border-right:1px solid var(--border, rgba(92,92,102,.16));
+  border-right:1px solid var(--border, rgba(93,97,75,.16));
 }
 .st-list-head {
   display:flex; gap:8px; padding:14px 14px 10px;
@@ -1190,7 +1190,7 @@ html,body {
   font-size:13px; font-family: var(--font-ui); font-weight:700;
   transition: filter .15s, background .15s;
 }
-.st-add-go:hover { background:#000; }
+.st-add-go:hover { background:#24282C; }
 .st-add-go.is-done { background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C); }
 .st-add-hint { font-size:11.5px; line-height:1.45; color: var(--text-3); }
 .st-add-msg { font-size:12px; line-height:1.45; color: var(--text-3); min-height:0; }
@@ -1237,7 +1237,7 @@ html,body {
   width:3px; height:0; border-radius:2px; background: var(--te-lime, #CDF649);
   transition: height .18s;
 }
-.st-row:hover { background: rgba(92,92,102,.05); }
+.st-row:hover { background: rgba(93,97,75,.05); }
 .st-row.active { background: rgba(205,246,73,.14); }
 .st-row.active::before { height:22px; }
 .st-row-avatar {
@@ -1255,7 +1255,7 @@ html,body {
    линейку прячем - её роль уже играет заливка. */
 .st-row + .st-row::after {
   content:''; position:absolute; left:55px; right:12px; top:-1px; height:1px;
-  background: var(--border, rgba(92,92,102,.16));
+  background: var(--border, rgba(93,97,75,.16));
 }
 .st-row.active::after, .st-row.active + .st-row::after, .st-row:hover::after, .st-row:hover + .st-row::after { display:none; }
 /* Аватар и точка «на доске сейчас». Точка - только когда ученик реально
@@ -1264,7 +1264,7 @@ html,body {
 .st-ava-wrap { position:relative; flex-shrink:0; line-height:0; }
 .st-online {
   position:absolute; right:-1px; bottom:-1px; width:10px; height:10px; border-radius:50%;
-  background:#15803D; box-shadow:0 0 0 2px var(--surface, #fff);
+  background:#5D614B; box-shadow:0 0 0 2px var(--surface, #fff);
 }
 .st-detail .st-ava-wrap { width:76px; margin:0 auto; }
 .st-detail .st-online { width:14px; height:14px; right:2px; bottom:14px; box-shadow:0 0 0 3px var(--surface, #fff); }
@@ -1287,7 +1287,7 @@ html,body {
 }
 .st-detail-stat .ic { width:18px; height:18px; }
 .st-detail-stat.is-muted { font-size:12.5px; font-weight:500; color: var(--text-3); }
-.st-detail-rule { height:1px; margin:16px 0 14px; background: var(--border, rgba(92,92,102,.16)); }
+.st-detail-rule { height:1px; margin:16px 0 14px; background: var(--border, rgba(93,97,75,.16)); }
 .st-detail-h { font-size:12.5px; font-weight:650; color: var(--text); margin-bottom:9px; }
 /* Чипы - плоские цвета брендового листа с чернилами (все держат ≥4.5:1 с
    #24282C), по одному цвету на смысл, а не по номеру чипа. */
@@ -1301,17 +1301,17 @@ html,body {
 .st-chip.boards { background:#D3F36B; }
 .st-chip.format { background:#9F8CE8; }
 .st-chip.live   { background:#F3A46B; }
-.st-chip.ghost  { background:transparent; box-shadow: inset 0 0 0 1px var(--border, rgba(92,92,102,.16)); color: var(--text-3); }
+.st-chip.ghost  { background:transparent; box-shadow: inset 0 0 0 1px var(--border, rgba(36,40,44,.16)); color: var(--text-3); }
 .st-detail-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:7px; margin-top:16px; }
 .st-detail-actions .st-detail-btn { display:inline-flex; width:auto; margin:0; padding:7px 14px; border-radius:999px; font-size:12px; }
 .st-detail-btn {
   display:block; margin-top:8px; padding:10px; border-radius:12px;
-  border:1px solid var(--border, rgba(92,92,102,.16));
+  border:1px solid var(--border, rgba(93,97,75,.16));
   background:transparent; color: var(--text); font-size:12.5px; font-weight:600;
   font-family: var(--font-ui); text-decoration:none; cursor:pointer; width:100%;
   transition: background .15s, filter .15s;
 }
-.st-detail-btn:hover { background: rgba(92,92,102,.06); }
+.st-detail-btn:hover { background: rgba(93,97,75,.06); }
 .st-detail-btn.primary {
   background: var(--te-lime, #CDF649); border-color: var(--te-lime, #CDF649);
   color: var(--te-ink, #24282C);
@@ -1340,63 +1340,63 @@ html,body {
   font-weight:600;
 }
 .studio-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:650;color:rgba(255,255,255,.82);text-decoration:none;}
-.studio-chip.primary{background:#DDE3D9;color:#3F493F;border-color:#C3CCC0;}
-.studio-chip.hot{background:#556056;color:#fff;border-color:#556056;}
+.studio-chip.primary{background:#F6F6EF;color:#5D614B;border-color:#CACCC6;}
+.studio-chip.hot{background:#5D614B;color:#fff;border-color:#5D614B;}
 .studio-main-scroll{overflow:auto;}
 
 
 /* ═══════════════════════════ PRICING WINDOW ═══════════════════════════ */
-.pricing-shell{height:100%;overflow:auto;padding:22px;background:radial-gradient(circle at 14% 0%,rgba(124,138,123,.18),transparent 26%),radial-gradient(circle at 86% 8%,rgba(194,180,138,.12),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(242,242,245,.92));}
-.pricing-hero{position:relative;overflow:hidden;border-radius:26px;background:#101014;color:#fff;padding:22px 24px;margin-bottom:14px;box-shadow:0 20px 70px rgba(16,16,20,.18);}
-.pricing-hero::after{content:'';position:absolute;right:-80px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(124,138,123,.42),transparent 68%);pointer-events:none;}
-.pricing-eyebrow{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7C8A7B;margin-bottom:8px;}
+.pricing-shell{height:100%;overflow:auto;padding:22px;background:radial-gradient(circle at 14% 0%,rgba(163,164,141,.18),transparent 26%),radial-gradient(circle at 86% 8%,rgba(163,164,141,.12),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(246,246,239,.92));}
+.pricing-hero{position:relative;overflow:hidden;border-radius:26px;background:#24282C;color:#fff;padding:22px 24px;margin-bottom:14px;box-shadow:0 20px 70px rgba(36,40,44,.18);}
+.pricing-hero::after{content:'';position:absolute;right:-80px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(163,164,141,.42),transparent 68%);pointer-events:none;}
+.pricing-eyebrow{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5D614B;margin-bottom:8px;}
 .pricing-title{font-size:32px;line-height:.96;font-weight:700;letter-spacing:-.055em;max-width:560px;}
-.pricing-title em{font-style:italic;color:#7C8A7B;}
+.pricing-title em{font-style:italic;color:#5D614B;}
 .pricing-copy{max-width:640px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
 .pricing-hero-row{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
 .price-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:650;color:rgba(255,255,255,.82);}
 .pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;}
-.pricing-card{position:relative;display:flex;flex-direction:column;min-height:360px;border:1px solid rgba(92,92,102,.14);border-radius:24px;background:rgba(255,255,255,.84);box-shadow:0 14px 44px rgba(92,92,102,.08);padding:18px;overflow:hidden;}
-.pricing-card::before{content:'';position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#C9C9D0,#A8B2A2);}
-.pricing-card.pro{background:#fff;border-color:rgba(85,96,86,.28);box-shadow:0 22px 60px rgba(59,69,60,.12);transform:translateY(-5px);}
-.pricing-card.pro::before{background:linear-gradient(90deg,#556056,#A8B2A2);}
-.pricing-card.school::before{background:linear-gradient(90deg,#4F5A64,#7C8A7B,#A8B2A2);}
-.plan-tag{align-self:flex-start;border-radius:999px;background:rgba(92,92,102,.08);color:var(--text-2);font-family:var(--font-mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:5px 8px;margin-bottom:12px;}
-.pricing-card.pro .plan-tag{background:rgba(85,96,86,.10);color:#4A554B;}
+.pricing-card{position:relative;display:flex;flex-direction:column;min-height:360px;border:1px solid rgba(93,97,75,.14);border-radius:24px;background:rgba(255,255,255,.84);box-shadow:0 14px 44px rgba(36,40,44,.08);padding:18px;overflow:hidden;}
+.pricing-card::before{content:'';position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#CACCC6,#A3A48D);}
+.pricing-card.pro{background:#fff;border-color:rgba(93,97,75,.28);box-shadow:0 22px 60px rgba(36,40,44,.12);transform:translateY(-5px);}
+.pricing-card.pro::before{background:linear-gradient(90deg,#5D614B,#A3A48D);}
+.pricing-card.school::before{background:linear-gradient(90deg,#5D614B,#A3A48D,#A3A48D);}
+.plan-tag{align-self:flex-start;border-radius:999px;background:rgba(93,97,75,.08);color:var(--text-2);font-family:var(--font-mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:5px 8px;margin-bottom:12px;}
+.pricing-card.pro .plan-tag{background:rgba(93,97,75,.10);color:#5D614B;}
 .price-name{font-size:22px;font-weight:700;letter-spacing:-.045em;color:var(--text);}
 .price-line{display:flex;align-items:flex-end;gap:6px;margin:8px 0 6px;}
 .price-amount{font-size:34px;font-weight:700;letter-spacing:-.07em;color:var(--text);}
 .price-period{font-size:11px;font-weight:650;color:var(--text-3);padding-bottom:6px;}
 .price-desc{font-size:12px;line-height:1.55;color:var(--text-2);min-height:56px;margin-bottom:12px;}
 .price-limits{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
-.price-limit{border:1px solid rgba(92,92,102,.1);border-radius:13px;background:rgba(242,242,245,.58);padding:8px;}
+.price-limit{border:1px solid rgba(93,97,75,.1);border-radius:13px;background:rgba(246,246,239,.58);padding:8px;}
 .price-limit b{display:block;font-size:14px;color:var(--text);line-height:1;}
 .price-limit span{display:block;margin-top:4px;font-size:9px;font-family:var(--font-mono);font-weight:650;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
 .price-features{list-style:none;display:grid;gap:7px;margin:0 0 16px;padding:0;}
 .price-features li{display:flex;gap:8px;font-size:12px;line-height:1.35;color:var(--text-2);}
-.price-features li::before{content:'✓';display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(124,138,123,.35);color:#1C1C1E;font-weight:700;flex:0 0 auto;font-size:10px;}
+.price-features li::before{content:'✓';display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(163,164,141,.35);color:#24282C;font-weight:700;flex:0 0 auto;font-size:10px;}
 .price-actions{margin-top:auto;display:grid;gap:8px;}
-.price-btn{min-height:40px;border-radius:14px;border:1px solid rgba(92,92,102,.16);background:#fff;color:var(--text);font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;}
-.price-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(92,92,102,.1);}
-.price-btn.primary{border-color:#556056;background:#556056;color:#fff;}
-.price-btn.dark{border-color:#101014;background:#101014;color:#fff;}
+.price-btn{min-height:40px;border-radius:14px;border:1px solid rgba(93,97,75,.16);background:#fff;color:var(--text);font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;}
+.price-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(36,40,44,.1);}
+.price-btn.primary{border-color:#5D614B;background:#5D614B;color:#fff;}
+.price-btn.dark{border-color:#24282C;background:#24282C;color:#fff;}
 .price-actions .price-btn.secondary{display:none;}
-.pricing-compare{margin-top:14px;border:1px solid rgba(92,92,102,.12);border-radius:22px;background:rgba(255,255,255,.72);overflow:hidden;}
+.pricing-compare{margin-top:14px;border:1px solid rgba(93,97,75,.12);border-radius:22px;background:rgba(255,255,255,.72);overflow:hidden;}
 .compare-head,.compare-row{display:grid;grid-template-columns:1.45fr repeat(3,1fr);gap:0;align-items:center;}
-.compare-head{background:rgba(16,16,20,.92);color:#fff;font-size:10px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
-.compare-head div,.compare-row div{padding:10px 12px;border-right:1px solid rgba(92,92,102,.1);}
-.compare-row{font-size:12px;color:var(--text-2);border-top:1px solid rgba(92,92,102,.09);}
+.compare-head{background:rgba(36,40,44,.92);color:#fff;font-size:10px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+.compare-head div,.compare-row div{padding:10px 12px;border-right:1px solid rgba(93,97,75,.1);}
+.compare-row{font-size:12px;color:var(--text-2);border-top:1px solid rgba(93,97,75,.09);}
 .compare-row div:first-child{font-weight:650;color:var(--text);}
-.compare-yes{color:#15803d;font-weight:700;}
-.compare-no{color:#a3a3a3;font-weight:650;}
-.pricing-note{margin-top:12px;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(85,96,86,.18);border-radius:18px;background:rgba(85,96,86,.06);padding:12px 14px;color:var(--text-2);font-size:12px;line-height:1.5;}
+.compare-yes{color:#5D614B;font-weight:700;}
+.compare-no{color:#5D614B;font-weight:650;}
+.pricing-note{margin-top:12px;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(93,97,75,.18);border-radius:18px;background:rgba(93,97,75,.06);padding:12px 14px;color:var(--text-2);font-size:12px;line-height:1.5;}
 .pricing-note b{display:block;color:var(--text);margin-bottom:2px;}
 
 
 /* ═══════════════════════════ SPOTLIGHT ═══════════════════════════ */
 #spotlight-overlay {
   position:fixed; inset:0; z-index:2000;
-  background: rgba(30,10,20,0.38);
+  background: rgba(93,97,75,0.38);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display:none; align-items:flex-start; justify-content:center;
@@ -1412,7 +1412,7 @@ html,body {
   -webkit-backdrop-filter:blur(32px) saturate(1.8);
   border-radius:22px;
   border: 1px solid rgba(255,255,255,0.5);
-  box-shadow: 0 32px 100px rgba(92,92,102,0.18), 0 8px 24px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
+  box-shadow: 0 32px 100px rgba(36,40,44,0.18), 0 8px 24px rgba(36,40,44,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
   overflow:hidden;
   animation: spSlide .2s cubic-bezier(.34,1.3,.64,1);
 }
@@ -1420,7 +1420,7 @@ html,body {
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
 #spotlight-input-wrap {
   display:flex; align-items:center; gap:12px;
-  padding:16px 20px; border-bottom: 1px solid rgba(124,138,123,0.10);
+  padding:16px 20px; border-bottom: 1px solid rgba(163,164,141,0.10);
 }
 #spotlight-input-wrap .sp-ic { font-size:18px; color: var(--accent); flex-shrink:0; }
 #spotlight-input {
@@ -1430,11 +1430,11 @@ html,body {
 #spotlight-input::placeholder { color: var(--text-3); font-weight:400; font-size:17px; }
 #spotlight-clear {
   font-size:14px; color: var(--text-3); cursor:pointer; width:22px; height:22px;
-  border-radius:50%; background: rgba(0,0,0,0.07); border:none;
+  border-radius:50%; background: rgba(36,40,44,0.07); border:none;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
   transition:background .12s;
 }
-#spotlight-clear:hover { background:rgba(0,0,0,0.13); }
+#spotlight-clear:hover { background:rgba(36,40,44,0.13); }
 #spotlight-results {
   max-height:380px; overflow-y:auto; padding:8px 0;
 }
@@ -1447,17 +1447,17 @@ html,body {
   padding:9px 20px; cursor:pointer;
   transition:background .12s;
 }
-.sp-result:hover, .sp-result.selected { background: rgba(124,138,123,0.08); }
+.sp-result:hover, .sp-result.selected { background: rgba(163,164,141,0.08); }
 .sp-result-icon {
   width:36px; height:36px; border-radius:9px;
   display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 6px rgba(36,40,44,0.12);
 }
 .sp-result-text { flex:1; min-width:0; }
 .sp-result-title { font-size:14px; font-weight:600; color: var(--text); line-height:1.2; }
 .sp-result-sub { font-size:11px; color: var(--text-3); margin-top:1px; font-family: var(--font-mono); }
 .sp-result-kbd { font-size:10px; color: var(--text-3); font-family: var(--font-mono);
-  background: rgba(0,0,0,0.06); border-radius:5px; padding:2px 6px; flex-shrink:0; }
+  background: rgba(36,40,44,0.06); border-radius:5px; padding:2px 6px; flex-shrink:0; }
 #spotlight-empty { padding:32px; text-align:center; color: var(--text-3); font-size:13px; }
 
 /* Spotlight rows are actions, not a dense result table: give each one a
@@ -1469,7 +1469,7 @@ html,body {
   padding: 10px 12px;
   border-radius: 12px;
 }
-.sp-result:hover, .sp-result.selected { background: rgba(205,242,79,.10); }
+.sp-result:hover, .sp-result.selected { background: rgba(205,246,73,.10); }
 #spotlight-clear { width: 32px; height: 32px; }
 
 @media (max-width: 860px) {
@@ -1488,7 +1488,7 @@ html,body {
   background: var(--accent); color:#fff;
   font-size:9px; font-weight:650; font-family: var(--font-ui);
   display:flex; align-items:center; justify-content:center;
-  padding:0 4px; border:2px solid rgba(255,240,248,0.9);
+  padding:0 4px; border:2px solid rgba(202,204,198,0.9);
   pointer-events:none;
 }
 
@@ -1515,9 +1515,9 @@ html,body {
   #menubar {
     height:52px; padding:0 16px;
     /* solid bg - no backdrop-filter on mobile (saves GPU on every scroll) */
-    background: #FAFAF8;
+    background: #F6F6EF;
     justify-content:space-between;
-    border-bottom:1px solid rgba(14,14,16,0.08);
+    border-bottom:1px solid rgba(36,40,44,0.08);
     transform:translateZ(0);
   }
   .mb-right .nav-user { border:none; background:transparent; padding:4px 6px; }
@@ -1542,7 +1542,7 @@ html,body {
     min-width:0 !important; border-radius:0 !important;
     border:none !important; box-shadow:none !important;
     display:none; flex-direction:column;
-    border-top: 1px solid rgba(92,92,102,0.08) !important;
+    border-top: 1px solid rgba(93,97,75,0.08) !important;
     background:#fff !important;
     z-index:200 !important;
   }
@@ -1556,7 +1556,7 @@ html,body {
   .mob-win-header {
     display:flex; align-items:center; gap:10px;
     padding:14px 16px 10px; flex-shrink:0;
-    border-bottom:1px solid rgba(92,92,102,0.08);
+    border-bottom:1px solid rgba(93,97,75,0.08);
     background: rgba(255,255,255,0.96);
   }
   .mob-win-title {
@@ -1565,7 +1565,7 @@ html,body {
   }
   .mob-sidebar-btn {
     margin-left:auto; width:34px; height:34px; border-radius:10px;
-    background:rgba(124,138,123,0.09); border:1.5px solid var(--border);
+    background:rgba(163,164,141,0.09); border:1.5px solid var(--border);
     color:var(--accent); font-size:16px; font-weight:600;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
@@ -1575,7 +1575,7 @@ html,body {
   .win-sidebar {
     display:none; position:absolute; top:0; left:0; bottom:0;
     z-index:10; width:260px;
-    box-shadow:4px 0 24px rgba(92,92,102,0.12);
+    box-shadow:4px 0 24px rgba(36,40,44,0.12);
     background:rgba(255,255,255,0.98);
   }
   .win-sidebar.mob-open { display:flex !important; }
@@ -1598,10 +1598,10 @@ html,body {
   .mob-home-shell .mp-topbar {
     position:sticky!important; top:0!important; z-index:80;
     background:#FFFFFF!important;
-    border-bottom:1px solid rgba(14,14,16,.06);
+    border-bottom:1px solid rgba(36,40,44,.06);
     padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 12px!important;
     margin:0;
-    box-shadow:0 2px 12px rgba(14,14,16,.04);
+    box-shadow:0 2px 12px rgba(36,40,44,.04);
   }
   .mob-home-shell { background:#fff; }
   /* Content sections need horizontal padding since shell has 0 */
@@ -1615,10 +1615,10 @@ html,body {
     padding:18px;
     border-radius:22px;
     background:
-      radial-gradient(circle at top right, rgba(124,138,123,0.18), transparent 34%),
-      linear-gradient(155deg, rgba(255,255,255,0.96), rgba(247,238,242,0.92));
-    border:1px solid rgba(124,138,123,0.14);
-    box-shadow:0 18px 40px rgba(92,92,102,0.08);
+      radial-gradient(circle at top right, rgba(163,164,141,0.18), transparent 34%),
+      linear-gradient(155deg, rgba(255,255,255,0.96), rgba(246,246,239,0.92));
+    border:1px solid rgba(163,164,141,0.14);
+    box-shadow:0 18px 40px rgba(36,40,44,0.08);
   }
   .mob-home-eyebrow {
     font-size:11px;
@@ -1653,7 +1653,7 @@ html,body {
     padding:14px 12px;
     text-align:left;
     background:rgba(255,255,255,0.86);
-    box-shadow: inset 0 0 0 1px rgba(124,138,123,0.09);
+    box-shadow: inset 0 0 0 1px rgba(163,164,141,0.09);
   }
   .mob-home-kpi-n {
     display:block;
@@ -1686,9 +1686,9 @@ html,body {
     border-radius:18px;
     text-decoration:none;
     background:#fff;
-    border:1px solid rgba(124,138,123,0.10);
+    border:1px solid rgba(163,164,141,0.10);
     color:var(--text);
-    box-shadow:0 2px 8px rgba(92,92,102,0.04);
+    box-shadow:0 2px 8px rgba(36,40,44,0.04);
     transition:transform .12s ease, box-shadow .18s ease, border-color .15s;
     -webkit-tap-highlight-color:transparent;
     min-height:114px;
@@ -1697,8 +1697,8 @@ html,body {
   }
   .mob-home-action:active { transform:scale(0.97); }
   .mob-home-action:hover {
-    border-color:rgba(124,138,123,0.28);
-    box-shadow:0 6px 18px rgba(124,138,123,0.10);
+    border-color:rgba(163,164,141,0.28);
+    box-shadow:0 6px 18px rgba(163,164,141,0.10);
   }
   .mob-home-action-ic {
     width:42px;
@@ -1709,12 +1709,12 @@ html,body {
     justify-content:center;
     font-size:20px;
     flex-shrink:0;
-    background:linear-gradient(135deg, rgba(124,138,123,0.16), rgba(28,28,30,0.16));
-    border:1px solid rgba(124,138,123,0.10);
+    background:linear-gradient(135deg, rgba(163,164,141,0.16), rgba(36,40,44,0.16));
+    border:1px solid rgba(163,164,141,0.10);
   }
-  .mob-home-action:nth-child(2) .mob-home-action-ic { background:linear-gradient(135deg, rgba(28,28,30,0.20), rgba(96,165,250,0.16)); border-color:rgba(28,28,30,0.16); }
-  .mob-home-action:nth-child(3) .mob-home-action-ic { background:linear-gradient(135deg, rgba(96,165,250,0.16), rgba(124,138,123,0.14)); border-color:rgba(96,165,250,0.16); }
-  .mob-home-action:nth-child(4) .mob-home-action-ic { background:linear-gradient(135deg, rgba(245,158,11,0.18), rgba(124,138,123,0.14)); border-color:rgba(245,158,11,0.16); }
+  .mob-home-action:nth-child(2) .mob-home-action-ic { background:linear-gradient(135deg, rgba(36,40,44,0.20), rgba(63,159,255,0.16)); border-color:rgba(36,40,44,0.16); }
+  .mob-home-action:nth-child(3) .mob-home-action-ic { background:linear-gradient(135deg, rgba(63,159,255,0.16), rgba(163,164,141,0.14)); border-color:rgba(63,159,255,0.16); }
+  .mob-home-action:nth-child(4) .mob-home-action-ic { background:linear-gradient(135deg, rgba(243,164,107,0.18), rgba(163,164,141,0.14)); border-color:rgba(243,164,107,0.16); }
   .mob-home-action-copy { min-width:0; width:100%; }
   .mob-home-action-title {
     font-size:14px;
@@ -1733,8 +1733,8 @@ html,body {
     margin-top:12px;
     padding:15px 16px;
     border-radius:18px;
-    background:rgba(28,28,30,0.08);
-    border:1px solid rgba(28,28,30,0.12);
+    background:rgba(36,40,44,0.08);
+    border:1px solid rgba(36,40,44,0.12);
   }
   .mob-home-focus-label {
     font-size:10px;
@@ -1770,8 +1770,8 @@ html,body {
     font-size:11px;
     font-weight:650;
     color:var(--accent);
-    background:rgba(124,138,123,0.09);
-    border:1px solid rgba(124,138,123,0.12);
+    background:rgba(163,164,141,0.09);
+    border:1px solid rgba(163,164,141,0.12);
     text-decoration:none;
   }
 
@@ -1836,10 +1836,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=946" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=946">
-<link rel="stylesheet" href="styles/harmony.css?v=946">
-<link rel="stylesheet" href="styles/unify.css?v=946">
+<script src="theme.js?v=950" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=950">
+<link rel="stylesheet" href="styles/harmony.css?v=950">
+<link rel="stylesheet" href="styles/unify.css?v=950">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1847,15 +1847,15 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=946">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=946">
-<link rel="stylesheet" href="styles/controls.css?v=946">
+<link rel="stylesheet" href="styles/figma-theme.css?v=950">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=950">
+<link rel="stylesheet" href="styles/controls.css?v=950">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=946">
+<link rel="stylesheet" href="styles/figma-concept.css?v=950">
 <!-- Фон, чип аккаунта, библиотека заданий, Student Pulse. После концепта: новые узлы. -->
-<link rel="stylesheet" href="styles/desktop-extras.css?v=946">
+<link rel="stylesheet" href="styles/desktop-extras.css?v=950">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1926,17 +1926,17 @@ html,body {
   <!-- SVG curves + dots -->
   <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
     <!-- pink curve: connects lime card → pink card -->
-    <path d="M 460,430 Q 560,560 640,500" fill="none" stroke="rgba(124,138,123,.28)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 460,430 Q 560,560 640,500" fill="none" stroke="rgba(93,97,75,.28)" stroke-width="1.5" stroke-linecap="round"/>
     <!-- lime curve: pink card → schedule card -->
-    <path d="M 640,500 Q 700,460 665,275" fill="none" stroke="rgba(124,138,123,.38)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 640,500 Q 700,460 665,275" fill="none" stroke="rgba(93,97,75,.38)" stroke-width="1.5" stroke-linecap="round"/>
     <!-- dot on lime curve mid -->
-    <circle cx="238" cy="530" r="4.5" fill="rgba(124,138,123,.90)"/>
+    <circle cx="238" cy="530" r="4.5" fill="rgba(93,97,75,.90)"/>
     <!-- dot on pink curve -->
-    <circle cx="608" cy="498" r="4.5" fill="rgba(140,156,138,.75)"/>
+    <circle cx="608" cy="498" r="4.5" fill="rgba(93,97,75,.75)"/>
     <!-- dot on lime curve top -->
-    <circle cx="1100" cy="630" r="4.5" fill="rgba(124,138,123,.80)"/>
+    <circle cx="1100" cy="630" r="4.5" fill="rgba(93,97,75,.80)"/>
     <!-- ring dot -->
-    <circle cx="1098" cy="628" r="9" fill="none" stroke="rgba(124,138,123,.45)" stroke-width="1.5"/>
+    <circle cx="1098" cy="628" r="9" fill="none" stroke="rgba(93,97,75,.45)" stroke-width="1.5"/>
   </svg>
 
   <!-- Card silhouettes - white card tall -->
@@ -1960,11 +1960,11 @@ html,body {
   </div>
   <!-- Schedule card -->
   <div class="wp-card wp-card-white wp-c5">
-    <div class="wp-bar" style="top:16px;height:5px;background:rgba(124,138,123,.85);"></div>
+    <div class="wp-bar" style="top:16px;height:5px;background:rgba(163,164,141,.85);"></div>
     <div style="position:absolute;left:14px;top:34px;right:14px;display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(92,92,102,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(92,92,102,.10);flex:1;"></div></div>
-      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(92,92,102,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(92,92,102,.10);flex:1;width:70%;"></div></div>
-      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(92,92,102,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(92,92,102,.10);flex:1;"></div></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(93,97,75,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(93,97,75,.10);flex:1;"></div></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(93,97,75,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(93,97,75,.10);flex:1;width:70%;"></div></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:rgba(93,97,75,.15);flex-shrink:0;"></div><div style="height:5px;border-radius:3px;background:rgba(93,97,75,.10);flex:1;"></div></div>
     </div>
   </div>
 </div>
@@ -1991,7 +1991,7 @@ html,body {
          next to each other. -->
     <span class="mb-icon" onclick="openSpotlight()" style="cursor:pointer;" title="Spotlight (⌘K)"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
-      <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:650;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
+      <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#886BF3;color:#fff;font-size:9px;font-weight:650;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
     <!-- Профиль, тарифы, фон и выход - в одном чипе аккаунта: на строке
          меню остаётся то, чем пользуются каждый день. -->
@@ -2186,7 +2186,7 @@ html,body {
         <div class="mp-section-head"><div class="mp-section-h">Teacher controls</div></div>
         <div class="mp-quick-list">
           <a class="mp-quick" href="gradebook.html">
-            <div class="mp-quick-ic2" style="background:rgba(143,230,230,.28)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
+            <div class="mp-quick-ic2" style="background:rgba(73,246,240,.28)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Gradebook</div>
               <div class="mp-quick-s">Scores, attendance and progress</div>
@@ -2194,7 +2194,7 @@ html,body {
             <span class="mp-quick-arr">→</span>
           </a>
           <a class="mp-quick" href="homework.html">
-            <div class="mp-quick-ic2" style="background:rgba(255,181,174,.30)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></div>
+            <div class="mp-quick-ic2" style="background:rgba(243,164,107,.30)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Homework inbox</div>
               <div class="mp-quick-s">Review submitted tasks and follow up</div>
@@ -2202,7 +2202,7 @@ html,body {
             <span class="mp-quick-arr">→</span>
           </a>
           <a class="mp-quick" href="analytics.html">
-            <div class="mp-quick-ic2" style="background:rgba(85,96,86,.12)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
+            <div class="mp-quick-ic2" style="background:rgba(93,97,75,.12)" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
             <div class="mp-quick-info">
               <div class="mp-quick-t">Weekly recap</div>
               <div class="mp-quick-s">Class and student progress at a glance</div>
@@ -2579,12 +2579,12 @@ html,body {
 <div id="dock-wrap">
   <div id="dock">
     <div class="di open" id="di-plans" onclick="dockApp('plans')" title="Lesson Plans">
-      <div class="di-icon" style="background:linear-gradient(145deg,#6B7669,#5A6459);"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#A3A48D,#5D614B);"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
       <div class="di-label">Plans</div>
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-students" onclick="dockApp('students')" title="Students">
-      <div class="di-icon" style="background:linear-gradient(145deg,#5F6B75,#4F5A64);"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5D614B,#5D614B);"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
       <div class="di-label">Students</div>
       <div class="di-dot"></div>
     </div>
@@ -2599,39 +2599,39 @@ html,body {
       <div class="di-dot"></div>
     </div>
     <div class="di" id="di-tools" onclick="dockApp('tools')" title="Teaching Tools">
-      <div class="di-icon" style="background:linear-gradient(145deg,#75798A,#63667A);"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#A3A48D,#886BF3);"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></div>
       <div class="di-label">Tools</div>
       <div class="di-dot"></div>
     </div>
     <a class="di" id="di-board" href="board.html" style="text-decoration:none;" title="Board">
-      <div class="di-icon" style="background:linear-gradient(145deg,#7C7C7F,#67676A);"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#A3A48D,#5D614B);"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg></div>
       <div class="di-label">Board</div>
       <div class="di-dot"></div>
     </a>
     <a class="di di-secondary" id="di-courses" href="courses.html" style="text-decoration:none;" title="Courses">
-      <div class="di-icon" style="background:linear-gradient(145deg,#75798A,#63667A);"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#A3A48D,#886BF3);"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
       <div class="di-label">Courses</div>
       <div class="di-dot"></div>
     </a>
     <a class="di di-secondary" id="di-community" href="community.html" style="text-decoration:none;" title="Community">
-      <div class="di-icon" style="background:linear-gradient(145deg,#6B7A63,#5A6754);"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5D614B,#5D614B);"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div>
       <div class="di-label">Community</div>
       <div class="di-dot"></div>
     </a>
     <div class="di-sep"></div>
     <a class="di di-secondary" id="di-analytics" href="analytics.html" style="text-decoration:none;" title="Analytics">
-      <div class="di-icon" style="background:linear-gradient(145deg,#5C7570,#4C625E);position:relative;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5D614B,#5D614B);position:relative;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
       <div class="di-label">Analytics</div>
       <div class="di-dot"></div>
     </a>
 
     <a class="di di-secondary" id="di-gradebook" href="gradebook.html" style="text-decoration:none;" title="Gradebook">
-      <div class="di-icon" style="background:linear-gradient(145deg,#5F6B75,#4F5A64);"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#5D614B,#5D614B);"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg></div>
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
     </a>
     <a class="di di-secondary" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
-      <div class="di-icon" style="background:linear-gradient(145deg,#6B7669,#5A6459);"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></div>
+      <div class="di-icon" style="background:linear-gradient(145deg,#A3A48D,#5D614B);"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></div>
       <div class="di-label">Profile</div>
       <div class="di-dot"></div>
     </a>
@@ -2641,8 +2641,8 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=946"></script>
-<script src="scripts/desktop-extras.js?v=946"></script>
+<script src="scripts/desktop-app.js?v=950"></script>
+<script src="scripts/desktop-extras.js?v=950"></script>
 
 <script>
 
@@ -2653,7 +2653,7 @@ function showOsToast(msg) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'os-toast';
-    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(28,10,20,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:99999;pointer-events:none;transition:opacity .3s;font-family:inherit;';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(36,40,44,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:99999;pointer-events:none;transition:opacity .3s;font-family:inherit;';
     document.body.appendChild(t);
   }
   t.textContent = msg;
@@ -2662,110 +2662,110 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=946" defer></script>
-<script src="pwa-boot.js?v=946" defer></script>
+<script src="scripts/autogrow.js?v=950" defer></script>
+<script src="pwa-boot.js?v=950" defer></script>
 
 <!-- Onboarding Modal -->
-<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
-  <div id="onboarding-box" style="background:#fff;border-radius:24px;width:min(480px,92vw);box-shadow:0 32px 100px rgba(0,0,0,.28);overflow:hidden;">
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.55);z-index:99000;align-items:center;justify-content:center;">
+  <div id="onboarding-box" style="background:#fff;border-radius:24px;width:min(480px,92vw);box-shadow:0 32px 100px rgba(36,40,44,.28);overflow:hidden;">
     <!-- Steps -->
     <div id="ob-step-1" class="ob-step">
-      <div style="background:linear-gradient(135deg,#2D2D2D,#1a1a1a);padding:36px 32px 28px;text-align:center;">
+      <div style="background:linear-gradient(135deg,#24282C,#24282C);padding:36px 32px 28px;text-align:center;">
         <div style="margin-bottom:12px;"><img src="logo-sm.png" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;"></div>
-        <div style="font-size:22px;font-weight:700;color:#C8E64A;margin-bottom:8px;">Welcome to TeachEd!</div>
+        <div style="font-size:22px;font-weight:700;color:#CDF649;margin-bottom:8px;">Welcome to TeachEd!</div>
         <div style="font-size:14px;color:rgba(255,255,255,.85);line-height:1.6;">Your teaching OS is ready. Let's set up your workspace in 3 quick steps.</div>
       </div>
       <div style="padding:28px 32px;">
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F2F2F5;border:1.5px solid rgba(124,138,123,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F6F6EF;border:1.5px solid rgba(163,164,141,.15);">
             <div><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>
-            <div><div style="font-size:14px;font-weight:650;">Create your first board</div><div style="font-size:12px;color:#888;margin-top:2px;">Boards are your lesson canvases - drag & drop cards to build your curriculum.</div></div>
+            <div><div style="font-size:14px;font-weight:650;">Create your first board</div><div style="font-size:12px;color:#5D614B;margin-top:2px;">Boards are your lesson canvases - drag & drop cards to build your curriculum.</div></div>
           </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f4fff8;border:1.5px solid rgba(16,185,129,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#FFFFFF;border:1.5px solid rgba(163,164,141,.15);">
             <div><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></div>
-            <div><div style="font-size:14px;font-weight:650;">Invite your students</div><div style="font-size:12px;color:#888;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
+            <div><div style="font-size:14px;font-weight:650;">Invite your students</div><div style="font-size:12px;color:#5D614B;margin-top:2px;">Add students by email so they can follow your lessons and take quizzes.</div></div>
           </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f0f4ff;border:1.5px solid rgba(99,102,241,.15);">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#F6F6EF;border:1.5px solid rgba(136,107,243,.15);">
             <div><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div>
-            <div><div style="font-size:14px;font-weight:650;">Set your schedule</div><div style="font-size:12px;color:#888;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
+            <div><div style="font-size:14px;font-weight:650;">Set your schedule</div><div style="font-size:12px;color:#5D614B;margin-top:2px;">Add recurring classes and go live directly from the schedule page.</div></div>
           </div>
         </div>
-        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#556056;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:650;cursor:pointer;">Get Started →</button>
-        <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;">Skip setup</button>
+        <button onclick="obNext(2)" style="width:100%;padding:13px;background:#5D614B;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:650;cursor:pointer;">Get Started →</button>
+        <button onclick="skipOnboarding()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#5D614B;font-size:13px;cursor:pointer;">Skip setup</button>
       </div>
     </div>
 
     <div id="ob-step-2" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 12px;">
-        <div style="font-size:11px;font-weight:600;color:#7C8A7B;font-family:var(--te-font-mono,ui-monospace,monospace);letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
+        <div style="font-size:11px;font-weight:600;color:#5D614B;font-family:var(--te-font-mono,ui-monospace,monospace);letter-spacing:.08em;margin-bottom:8px;">STEP 1 OF 2</div>
         <div style="font-size:20px;font-weight:700;margin-bottom:6px;">Create your first board</div>
-        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
+        <div style="font-size:13px;color:#5D614B;line-height:1.6;margin-bottom:20px;">Choose a template to get started quickly, or start with a blank board.</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;max-height:280px;overflow-y:auto;" id="ob-tpl-grid">
-          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #556056;cursor:pointer;transition:.15s;background:#F2F2F5;">
+          <div id="ob-tpl-blank" onclick="obSelectTpl('blank')" style="padding:12px;border-radius:12px;border:2px solid #5D614B;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-square"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Blank Board</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Blank Board</div>
           </div>
-          <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-speaking" onclick="obSelectTpl('speaking')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-speak"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Speaking</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Speaking</div>
           </div>
-          <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-grammar" onclick="obSelectTpl('grammar')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-ruler"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Grammar</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Grammar</div>
           </div>
-          <div id="ob-tpl-reading" onclick="obSelectTpl('reading')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-reading" onclick="obSelectTpl('reading')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Reading</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Reading</div>
           </div>
-          <div id="ob-tpl-writing" onclick="obSelectTpl('writing')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-writing" onclick="obSelectTpl('writing')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Writing</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Writing</div>
           </div>
-          <div id="ob-tpl-vocab" onclick="obSelectTpl('vocab')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-vocab" onclick="obSelectTpl('vocab')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Vocabulary</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Vocabulary</div>
           </div>
-          <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-testprep" onclick="obSelectTpl('testprep')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Exam Prep</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Exam Prep</div>
           </div>
-          <div id="ob-tpl-business" onclick="obSelectTpl('business')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-business" onclick="obSelectTpl('business')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-case"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Business</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Business</div>
           </div>
-          <div id="ob-tpl-kids" onclick="obSelectTpl('kids')" style="padding:12px;border-radius:12px;border:2px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fafafa;">
+          <div id="ob-tpl-kids" onclick="obSelectTpl('kids')" style="padding:12px;border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:.15s;background:#F6F6EF;">
             <div style="margin-bottom:4px;"><svg class="ic" aria-hidden="true"><use href="#i-kid"/></svg></div>
-            <div style="font-size:12px;font-weight:650;color:#1C1C1E;">Kids (A1)</div>
+            <div style="font-size:12px;font-weight:650;color:#24282C;">Kids (A1)</div>
           </div>
         </div>
         <div style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
+          <div style="font-size:11px;font-weight:600;color:#5D614B;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Board name</div>
           <input id="ob-board-name" type="text" placeholder="My First Board"
-            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;"
+            style="width:100%;padding:10px 12px;border:1.5px solid #CACCC6;border-radius:10px;font-size:14px;outline:none;"
             onkeydown="if(event.key==='Enter')obCreateBoard()">
         </div>
-        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#556056;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;">Create Board & Continue →</button>
-        <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip this step</button>
+        <button onclick="obCreateBoard()" style="width:100%;padding:12px;background:#5D614B;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;">Create Board & Continue →</button>
+        <button onclick="obSkipStep(3)" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#5D614B;font-size:12px;cursor:pointer;">Skip this step</button>
       </div>
     </div>
 
     <div id="ob-step-3" class="ob-step" style="display:none;">
       <div style="padding:32px 32px 24px;">
-        <div style="font-size:11px;font-weight:600;color:#7C8A7B;font-family:var(--te-font-mono,ui-monospace,monospace);letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
+        <div style="font-size:11px;font-weight:600;color:#5D614B;font-family:var(--te-font-mono,ui-monospace,monospace);letter-spacing:.08em;margin-bottom:8px;">STEP 2 OF 2</div>
         <div style="font-size:20px;font-weight:700;margin-bottom:6px;">Add your meeting room</div>
-        <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
+        <div style="font-size:13px;color:#5D614B;line-height:1.6;margin-bottom:20px;">Save your Google Meet or Zoom link so students can join when you go live.</div>
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
+          <div style="font-size:11px;font-weight:600;color:#5D614B;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Google Meet URL (optional)</div>
           <input id="ob-meet-url" type="url" placeholder="https://meet.google.com/xxx-xxxx-xxx"
-            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
+            style="width:100%;padding:10px 12px;border:1.5px solid #CACCC6;border-radius:10px;font-size:13px;outline:none;">
         </div>
         <div style="margin-bottom:20px;">
-          <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Zoom URL (optional)</div>
+          <div style="font-size:11px;font-weight:600;color:#5D614B;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Zoom URL (optional)</div>
           <input id="ob-zoom-url" type="url" placeholder="https://zoom.us/j/123456789"
-            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
+            style="width:100%;padding:10px 12px;border:1.5px solid #CACCC6;border-radius:10px;font-size:13px;outline:none;">
         </div>
-        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#556056;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:650;cursor:pointer;">Finish setup</button>
-        <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#999;font-size:12px;cursor:pointer;">Skip</button>
+        <button onclick="obSaveAndFinish()" style="width:100%;padding:13px;background:#5D614B;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:650;cursor:pointer;">Finish setup</button>
+        <button onclick="skipOnboarding()" style="width:100%;padding:8px;margin-top:6px;background:none;border:none;color:#5D614B;font-size:12px;cursor:pointer;">Skip</button>
       </div>
     </div>
   </div>
@@ -2830,7 +2830,7 @@ async function obCreateBoard() {
           vocab:     [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Vocabulary Introduction', status:'available', skill:'Vocabulary', duration:'15 min', level:'B1', desc:'Present 10 new words in context with images and examples.' }}, { type:'vocab', x:340, y:80, w:220, h:170, data:{ word:'ambitious', phonetic:'/æmˈbɪʃəs/', pos:'adjective', translation:'амбітний', example:'She is very ambitious - she wants to become CEO.' }}, { type:'assignment', x:60, y:300, w:260, h:160, data:{ title:'Vocabulary Quiz', type:'Quiz', maxScore:20, desc:'Match words to definitions. Fill gaps in sentences.', questions:[] }}, { type:'milestone', x:340, y:280, w:220, h:120, data:{ title:'Vocabulary Unit ✓' }}],
           testprep:  [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Topic Review', status:'available', skill:'Grammar', duration:'20 min', level:'B2', desc:'Quick review of key grammar and vocabulary.' }}, { type:'assignment', x:350, y:80, w:270, h:170, data:{ title:'Mock Test - Grammar', type:'Quiz', maxScore:30, timeLimit:20, desc:'15 multiple choice grammar questions. Exam conditions.', questions:[] }}, { type:'assignment', x:60, y:310, w:270, h:170, data:{ title:'Mock Test - Writing', type:'Essay', maxScore:20, timeLimit:30, desc:'Write a formal email (150 words).' }}, { type:'milestone', x:350, y:280, w:220, h:120, data:{ title:'Mock Exam ✓' }}],
           business:  [{ type:'lesson', x:60, y:80, w:270, h:200, data:{ title:'Formal vs Informal Register', status:'available', skill:'Writing', duration:'15 min', level:'B2', desc:'Compare formal email vs casual message. Key phrases for each register.' }}, { type:'vocab', x:350, y:80, w:220, h:180, data:{ word:'Business phrases', phonetic:'', pos:'functional language', translation:'Ділові фрази', example:'I am writing with regard to… / Please find attached…' }}, { type:'assignment', x:60, y:310, w:270, h:170, data:{ title:'Email Writing Task', type:'Essay', maxScore:20, desc:'Write a formal email (120 words) to a client.' }}, { type:'milestone', x:350, y:290, w:220, h:120, data:{ title:'Business English ✓' }}],
-          kids:      [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Hello Song & Greetings', status:'available', skill:'Speaking', duration:'5 min', level:'A1', desc:'Sing the hello song. Practise: Hello! Hi! Good morning!' }}, { type:'sticky', x:340, y:80, w:200, h:160, data:{ text:' Today we learn:\n• 5 colours\n• 5 animals\n• Numbers 1-10\n\nLet\'s have fun!', color:'#E8F5E9' }}, { type:'lesson', x:60, y:300, w:260, h:180, data:{ title:'Vocabulary - Animals & Colours', status:'locked', skill:'Vocabulary', duration:'15 min', level:'A1', desc:'Flashcard game: show picture, students shout the word.' }}, { type:'milestone', x:340, y:280, w:220, h:110, data:{ title:'Kids Lesson ✓', desc:'Great job today!' }}],
+          kids:      [{ type:'lesson', x:60, y:80, w:260, h:190, data:{ title:'Hello Song & Greetings', status:'available', skill:'Speaking', duration:'5 min', level:'A1', desc:'Sing the hello song. Practise: Hello! Hi! Good morning!' }}, { type:'sticky', x:340, y:80, w:200, h:160, data:{ text:' Today we learn:\n• 5 colours\n• 5 animals\n• Numbers 1-10\n\nLet\'s have fun!', color:'#F6F6EF' }}, { type:'lesson', x:60, y:300, w:260, h:180, data:{ title:'Vocabulary - Animals & Colours', status:'locked', skill:'Vocabulary', duration:'15 min', level:'A1', desc:'Flashcard game: show picture, students shout the word.' }}, { type:'milestone', x:340, y:280, w:220, h:110, data:{ title:'Kids Lesson ✓', desc:'Great job today!' }}],
         };
         const tplCards = OB_TEMPLATES[_obTpl];
         if (tplCards) {
@@ -2883,11 +2883,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=946" defer></script>
-<script src="scripts/nav-boost.js?v=946" defer></script>
-<script src="scripts/mobile-perf.js?v=946" defer></script>
-<script src="scripts/mobile-nav.js?v=946" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=946" defer></script>
-  <script src="scripts/signin-entry.js?v=946" defer></script>
+<script src="pwa.js?v=950" defer></script>
+<script src="scripts/nav-boost.js?v=950" defer></script>
+<script src="scripts/mobile-perf.js?v=950" defer></script>
+<script src="scripts/mobile-nav.js?v=950" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=950" defer></script>
+  <script src="scripts/signin-entry.js?v=950" defer></script>
 </body>
 </html>

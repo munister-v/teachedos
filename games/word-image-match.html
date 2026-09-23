@@ -9,41 +9,41 @@
 <title>Word-Image Match</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--accent:#1C1C1E;--lime:#C8E632}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F2F2F5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+:root{--accent:#24282C;--lime:#CDF649}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
-.subtitle{color:#525252;font-size:.9rem;margin-bottom:20px;text-align:center}
-.card{background:#fff;border-radius:20px;padding:20px 16px;box-shadow:0 4px 24px #C8E63218;width:100%;max-width:560px}
-.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#525252;font-size:.9rem}
+.subtitle{color:#5D614B;font-size:.9rem;margin-bottom:20px;text-align:center}
+.card{background:#fff;border-radius:20px;padding:20px 16px;box-shadow:0 4px 24px #CDF64918;width:100%;max-width:560px}
+.top{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:700;color:#5D614B;font-size:.9rem}
 .top span{color:var(--accent)}
 
 /* Grid of mixed image + word tiles */
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 @media(max-width:440px){.grid{grid-template-columns:repeat(3,1fr)}}
 
-.tile{border-radius:12px;border:2px solid #e4e4e7;cursor:pointer;transition:border-color .15s,transform .1s;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center}
+.tile{border-radius:12px;border:2px solid #CACCC6;cursor:pointer;transition:border-color .15s,transform .1s;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center}
 /* Word tiles */
-.tile-word{background:#F8F8FB;padding:12px 6px;min-height:56px;font-weight:800;font-size:.78rem;color:var(--accent);text-align:center;line-height:1.25}
+.tile-word{background:#F6F6EF;padding:12px 6px;min-height:56px;font-weight:800;font-size:.78rem;color:var(--accent);text-align:center;line-height:1.25}
 /* Image tiles - square aspect ratio */
 .tile-img{aspect-ratio:1/1}
 .tile-img img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .tile-img .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff}
 
 .tile:hover{border-color:var(--lime);transform:translateY(-1px)}
-.tile.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(28,28,30,.25)}
+.tile.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(36,40,44,.25)}
 .tile.matched{opacity:0;pointer-events:none;transition:opacity .3s}
 .tile.wrong{animation:shake .35s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 
-.feedback{margin-top:14px;text-align:center;font-size:.95rem;font-weight:700;min-height:22px;color:#525252}
+.feedback{margin-top:14px;text-align:center;font-size:.95rem;font-weight:700;min-height:22px;color:#5D614B}
 .play-again{margin-top:12px;width:100%;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
-.loading{text-align:center;padding:32px;color:#525252;font-size:.9rem}
+.loading{text-align:center;padding:32px;color:#5D614B;font-size:.9rem}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=946">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=946">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=950">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=950">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=946">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=950">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -64,8 +64,8 @@ var tiles=[], selected=[], pairsLeft=0, pairsInPlay=0, timerVal=90, sInt;
 var customPairs=null;
 
 /* ── Palette for placeholder tiles ─────────────────────────────── */
-var PALETTES=[['#7B8CDE','#5B6CBE'],['#E07B5A','#C05A3A'],['#5AAE7B','#3A8E5B'],
-              ['#C9A84C','#A9882C'],['#B05AB0','#903A90'],['#5AAEB0','#3A8E90']];
+var PALETTES=[['#9F8CE8','#886BF3'],['#FF8C3A','#FF4E00'],['#A3A48D','#5D614B'],
+              ['#F3DF6B','#FFE44D'],['#886BF3','#6B42FD'],['#49F6F0','#6BAFF3']];
 
 /* ── Image fetch via backend proxy (3-strategy: Wiki summary → search → Commons) */
 var imgCache={};
@@ -261,6 +261,6 @@ window.addEventListener('message',function(e){
 window.parent.postMessage({type:'game-ready'},'*');
 restart();
 </script>
-<script src="../scripts/game-handoff.js?v=946"></script>
+<script src="../scripts/game-handoff.js?v=950"></script>
 </body>
 </html>

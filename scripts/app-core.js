@@ -135,9 +135,9 @@
     el.id = 'teached-session-banner';
     el.setAttribute('style', [
       'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:999999',
-      'background:#dc2626', 'color:#fff', 'padding:12px 20px',
+      'background:#FF4E00', 'color:#fff', 'padding:12px 20px',
       'text-align:center', 'font:14px/1.4 system-ui,sans-serif',
-      'box-shadow:0 2px 8px rgba(0,0,0,.25)'
+      'box-shadow:0 2px 8px rgba(36,40,44,.25)'
     ].join(';'));
     el.innerHTML = 'Your session has expired. ' +
       '<a href="/index.html" style="color:#fff;font-weight:600;text-decoration:underline">Sign in again →</a>';

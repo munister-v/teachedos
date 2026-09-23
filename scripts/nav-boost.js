@@ -25,7 +25,7 @@
       #menubar .mb-item { height: 44px; }
     }
     #nav .nav-link:focus-visible, #menubar .mb-item:focus-visible {
-      outline: 3px solid rgba(200,230,50,.72);
+      outline: 3px solid rgba(205,246,73,.72);
       outline-offset: -2px;
     }
     @media (max-width: 860px) {
@@ -157,8 +157,8 @@
     const style = document.createElement('style');
     style.textContent = `
       .nb-bar{position:fixed;top:0;left:0;height:2px;width:0;
-        background:linear-gradient(90deg,#0E0E10,#CDF24F);
-        box-shadow:0 0 8px rgba(200,230,50,.45);
+        background:linear-gradient(90deg,#24282C,#CDF649);
+        box-shadow:0 0 8px rgba(205,246,73,.45);
         z-index:99999;pointer-events:none;
         transition:width .25s cubic-bezier(.2,.7,.4,1), opacity .25s;}
       .nb-bar.done{opacity:0;}`;
