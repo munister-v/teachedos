@@ -3,10 +3,10 @@
    personal account invite). The first page of TeachEd a student ever sees,
    so it carries the brand, not a generic form: an ink ticket that says who
    invites you and where, what you get, and one lime button.
-   Palette: ink #24282C, lime #CDF649, paper #F6F6EF, line #CACCC6.
+   Palette: ink #24282C, lime #CDF649, paper #F5F5F8, line #CBCBCE.
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --ip-ink:#24282C; --ip-lime:#CDF649; --ip-paper:#F6F6EF; --ip-line:#CACCC6;
+  --ip-ink:#24282C; --ip-lime:#CDF649; --ip-paper:#F5F5F8; --ip-line:#CBCBCE;
   --ip-olive:#5D614B; --ip-sage:#A3A48D; --ip-coral:#FF4E00;
 }
 * { box-sizing:border-box; margin:0; padding:0; }

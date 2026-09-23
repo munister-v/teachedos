@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=935"></script>
+<script src="scripts/phone-gate.js?v=937"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=935">
-<link rel="preload" as="style" href="styles/harmony.css?v=935">
-<link rel="preload" as="style" href="styles/unify.css?v=935">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=935">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=935">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=935">
-<link rel="preload" as="style" href="styles/controls.css?v=935">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=935">
+<link rel="preload" as="style" href="styles/mobile.css?v=937">
+<link rel="preload" as="style" href="styles/harmony.css?v=937">
+<link rel="preload" as="style" href="styles/unify.css?v=937">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=937">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=937">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=937">
+<link rel="preload" as="style" href="styles/controls.css?v=937">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=937">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=935">
+<link rel="manifest" href="manifest.json?v=937">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -85,8 +85,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=935">
-<link rel="stylesheet" href="styles/main.css?v=935">
+<link rel="stylesheet" href="styles/tokens.css?v=937">
+<link rel="stylesheet" href="styles/main.css?v=937">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1158,7 +1158,7 @@ html,body {
 
 .st-add-card {
   margin:0 14px 12px; padding:14px 14px 4px; border-radius:18px;
-  background: var(--te-paper, #F6F6EF); border:1px solid var(--te-line, #CACCC6);
+  background: var(--te-paper, #F5F5F8); border:1px solid var(--te-line, #CBCBCE);
   display:flex; flex-direction:column; gap:6px;
   animation: stAddIn .18s ease-out;
 }
@@ -1214,7 +1214,7 @@ html,body {
 .st-empty { text-align:center; padding:34px 18px; color: var(--text-3); font-size:12.5px; line-height:1.55; }
 .st-empty-ic {
   width:52px; height:52px; margin:0 auto 12px; border-radius:50%;
-  background: var(--te-paper, #F6F6EF); border:1px solid var(--te-line, #CACCC6);
+  background: var(--te-paper, #F5F5F8); border:1px solid var(--te-line, #CBCBCE);
   display:flex; align-items:center; justify-content:center; color: var(--te-ink, #24282C);
 }
 .st-empty-ic svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
@@ -1294,7 +1294,7 @@ html,body {
 .st-chips { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
 .st-chip {
   padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:600; line-height:1.3;
-  color: var(--te-ink, #24282C); background:#F6F6EF; white-space:nowrap;
+  color: var(--te-ink, #24282C); background:#F5F5F8; white-space:nowrap;
 }
 .st-chip.level  { background:#F3DF6B; }
 .st-chip.quiz   { background:#6BAFF3; }
@@ -1836,10 +1836,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=935" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=935">
-<link rel="stylesheet" href="styles/harmony.css?v=935">
-<link rel="stylesheet" href="styles/unify.css?v=935">
+<script src="theme.js?v=937" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=937">
+<link rel="stylesheet" href="styles/harmony.css?v=937">
+<link rel="stylesheet" href="styles/unify.css?v=937">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1847,15 +1847,15 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=935">
+<link rel="stylesheet" href="styles/teached-brand.css?v=937">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=935">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=935">
-<link rel="stylesheet" href="styles/controls.css?v=935">
+<link rel="stylesheet" href="styles/figma-theme.css?v=937">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=937">
+<link rel="stylesheet" href="styles/controls.css?v=937">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=935">
+<link rel="stylesheet" href="styles/figma-concept.css?v=937">
 <!-- Фон, чип аккаунта, библиотека заданий, Student Pulse. После концепта: новые узлы. -->
-<link rel="stylesheet" href="styles/desktop-extras.css?v=935">
+<link rel="stylesheet" href="styles/desktop-extras.css?v=937">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -2641,8 +2641,8 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=935"></script>
-<script src="scripts/desktop-extras.js?v=935"></script>
+<script src="scripts/desktop-app.js?v=937"></script>
+<script src="scripts/desktop-extras.js?v=937"></script>
 
 <script>
 
@@ -2662,8 +2662,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=935" defer></script>
-<script src="pwa-boot.js?v=935" defer></script>
+<script src="scripts/autogrow.js?v=937" defer></script>
+<script src="pwa-boot.js?v=937" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2883,11 +2883,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=935" defer></script>
-<script src="scripts/nav-boost.js?v=935" defer></script>
-<script src="scripts/mobile-perf.js?v=935" defer></script>
-<script src="scripts/mobile-nav.js?v=935" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=935" defer></script>
-  <script src="scripts/signin-entry.js?v=935" defer></script>
+<script src="pwa.js?v=937" defer></script>
+<script src="scripts/nav-boost.js?v=937" defer></script>
+<script src="scripts/mobile-perf.js?v=937" defer></script>
+<script src="scripts/mobile-nav.js?v=937" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=937" defer></script>
+  <script src="scripts/signin-entry.js?v=937" defer></script>
 </body>
 </html>

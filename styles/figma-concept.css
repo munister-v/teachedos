@@ -859,3 +859,12 @@ body.fx.board-page .tb-board-chip { padding:4px 12px !important; }
      важными правилами, поэтому и здесь важное - иначе не действует. */
   body.fx.board-page #btn-more{ min-width:44px !important; min-height:44px !important; }
 }
+
+/* Поиск в панели инструментов доски: controls.css даёт обёртке .sb-search
+   рамку (порог контраста), но без скругления, и она шла от края до края
+   панели квадратной коробкой. Капсула с полями, как поиск на главной. */
+body.fx.board-page:not(#_) .sb-search {
+  margin:8px 12px 6px !important; padding:0 14px !important;
+  border-radius:999px !important; background:#FFFFFF !important;
+}
+body.fx.board-page:not(#_) .sb-search input { height:40px !important; background:transparent !important; }

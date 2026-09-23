@@ -639,7 +639,7 @@
 #tool-builder-panel.tb-review-wide #tbuilder-output .wr-game{max-height:none;}
 #tool-builder-panel .wr-top-actions{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
 #tool-builder-panel .wr-wide{min-height:34px;padding:0 12px;border:1px solid #24282C;border-radius:999px;background:#fff;color:#24282C;font:700 12px var(--font, inherit);cursor:pointer;white-space:nowrap;}
-#tool-builder-panel .wr-wide:hover{background:#F6F6EF;}
+#tool-builder-panel .wr-wide:hover{background:#F5F5F8;}
 #tool-builder-panel .wr-wide[aria-pressed="true"]{background:#24282C;color:#fff;}
 /* meanings inside an open game wrap instead of being cut at the column edge */
 #tool-builder-panel .wg-row{align-items:flex-start;}

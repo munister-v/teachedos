@@ -467,8 +467,14 @@ function fitAll(animate) {
      досок. Лучше не двигать камеру вовсе, чем увести её в никуда. */
   if (pw < 50 || ph < 50) return;
   const maxScale = phone ? 1.18 : 2;
-  const targetScale = Math.min(maxScale, Math.max(0.08, Math.min((pw-PAD*2)/cw, (ph-PAD*2)/ch)));
-  const targetPanX = (pw-cw*targetScale)/2 - minX*targetScale;
+  /* На десктопе рейка инструментов лежит ПОВЕРХ холста (#board-wrap с left:0,
+     figma-concept.css), и центрирование по всей ширине заводило левую
+     карточку под рейку. Вычитаем её ширину (--mt-w) и центрируем в том, что
+     видно справа от неё. */
+  const rail = phone ? 0 : (parseFloat(getComputedStyle(document.body).getPropertyValue('--mt-w')) || 0);
+  const vw = Math.max(50, pw - rail);
+  const targetScale = Math.min(maxScale, Math.max(0.08, Math.min((vw-PAD*2)/cw, (ph-PAD*2)/ch)));
+  const targetPanX = rail + (vw-cw*targetScale)/2 - minX*targetScale;
   const targetPanY = (ph-ch*targetScale)/2 - minY*targetScale;
   if (animate !== false) {
     const startScale = state.scale, startPanX = state.pan.x, startPanY = state.pan.y;
@@ -13886,7 +13892,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '935';
+const TEACHEDOS_ASSET_VERSION = '937';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23360,7 +23366,7 @@ function buildGamesTabs() {
   if (!tabs) return;
   tabs.innerHTML = GAME_TAGS.map(tag => `
     <button onclick="switchGamesTab('${tag}')"
-      style="padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:${tag===_gamesActiveTag?'var(--accent)':'var(--bg)'};color:${tag===_gamesActiveTag?'#fff':'var(--text-2)'};font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">${tag}</button>
+      style="padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:${tag===_gamesActiveTag?'#CBF03C':'#FFFFFF'};color:${tag===_gamesActiveTag?'#161616':'#3A3A40'};font-family:var(--font);font-size:12px;font-weight:650;cursor:pointer;transition:.15s;">${tag}</button>
   `).join('');
 }
 function switchGamesTab(tag) {
@@ -23380,19 +23386,19 @@ function renderGamesGrid(filter) {
   grid.innerHTML = list.length ? list.map(g => `
     <div class="game-tile" draggable="true" data-game-src="${g.src}" data-game-title="${esc(g.title)}" data-game-w="${g.w}" data-game-h="${g.h}"
       onclick='addGameCard(${JSON.stringify(g.src)},${JSON.stringify(g.title)},${g.w},${g.h})'
-      style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;">
+      style="background:#FFFFFF;border:1px solid rgba(22,22,22,.12);border-radius:14px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:6px;transition:.15s;user-select:none;">
       <div style="font-size:30px;line-height:1;">${g.icon}</div>
       <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
-      <div style="font-size:11px;color:var(--text-3);line-height:1.3;min-height:30px;">${esc(g.desc)}</div>
-      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">
-        <span style="display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(200,230,50,.10);">${esc(g.tag)}</span>
+      <div style="font-size:11.5px;color:#55555C;line-height:1.35;min-height:30px;">${esc(g.desc)}</div>
+      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:#161616;text-transform:uppercase;letter-spacing:.06em;">
+        <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(203,240,60,.45);">${esc(g.tag)}</span>
       </div>
     </div>
   `).join('') : `<div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:var(--text-3);font-size:13px;">No games match your search.</div>`;
   // Hover effect via JS (cleaner than inline ::hover)
   grid.querySelectorAll('.game-tile').forEach(el => {
-    el.addEventListener('mouseenter', () => { el.style.borderColor = 'var(--accent)'; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 24px rgba(200,230,50,.12)'; });
-    el.addEventListener('mouseleave', () => { el.style.borderColor = 'var(--border)'; el.style.transform = ''; el.style.boxShadow = ''; });
+    el.addEventListener('mouseenter', () => { el.style.borderColor = 'rgba(22,22,22,.32)'; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 24px rgba(30,40,44,.10)'; });
+    el.addEventListener('mouseleave', () => { el.style.borderColor = 'rgba(22,22,22,.12)'; el.style.transform = ''; el.style.boxShadow = ''; });
     el.addEventListener('dragstart', ev => {
       ev.dataTransfer.setData('text/game-src', el.dataset.gameSrc);
       ev.dataTransfer.setData('text/game-title', el.dataset.gameTitle);
