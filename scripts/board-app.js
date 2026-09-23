@@ -13862,7 +13862,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '921';
+const TEACHEDOS_ASSET_VERSION = '922';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16298,7 +16298,7 @@ function pickLessonSource(key) {
 function _wizRenderSourceTools(src) {
   const host = document.getElementById('tb-wiz-source-tools');
   if (!host) return;
-  if (!src || (!src.ocr && !src.link && !src.extractTool)) { host.hidden = true; host.innerHTML = ''; return; }
+  if (!src || (!src.ocr && !src.link && !src.extractTool && !src.news)) { host.hidden = true; host.innerHTML = ''; return; }
   host.hidden = false;
   if (src.news) { _wizRenderNews(host); return; }
   if (src.extractTool) {
@@ -16475,7 +16475,7 @@ function pickNewsStory(i) {
   st.picked = st.picked === i ? null : i;
   st.note = '';
   _wizNewsRerender();
-  document.querySelector('.tb-news-pick')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  document.querySelector('.tb-news-pick .tbuilder-btn')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
 function setNewsLevel(level) {
@@ -16534,8 +16534,17 @@ async function useNewsStory() {
     /* Без адреса: строка едет на доску ученику, а ссылка на оригинал
        остаётся учителю в панели выше. */
     const credit = `${original ? 'From' : `Retold at ${st.level} from`} ${source}${when ? `, ${when}` : ''}.`;
-    if (boardLessonWizard) boardLessonWizard.news = { url: story.url, source, level: st.level, vocab, credit };
+    if (boardLessonWizard) boardLessonWizard.news = { url: story.url, source, level: st.level, credit };
     _wizFillSource(text);
+    /* Слова урока, которые выбрал пересказ, - в видимое поле словаря: из
+       него текст получает жирное выделение (а значит, кликабельные слова),
+       и учитель видит и правит список. Только те, что правда есть в тексте. */
+    const vocabField = document.getElementById('tbuilder-vocab');
+    const inText = vocab.filter(w => text.toLowerCase().includes(w.toLowerCase()));
+    if (vocabField && inText.length) {
+      vocabField.value = inText.join('\n');
+      vocabField.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     const topic = document.getElementById('tbuilder-topic');
     if (topic) { topic.value = title.slice(0, 120); topic.dispatchEvent(new Event('input', { bubbles: true })); }
     const n = text.split(/\s+/).length;
@@ -16752,14 +16761,10 @@ function _ttOwnTextOutput(base, keys) {
     writing:   { cat:'writing',   kind:'Model',        card:'✍️ Model text',     name:'Model text'     },
     grammar:   { cat:'grammar',   kind:'In context',   card:'📖 The form in context', name:'The form in context' },
   }[skill] || { cat:'reading', kind:'Reading Text', card:'📖 Reading text', name:'Reading text' };
-  /* Пересказанная новость приносит свои слова урока (их выбрал пересказ,
-     поле vocab у add-text скрыто) и строку об источнике. Слова берутся
-     только те, что остались в тексте после правок учителя. */
+  /* Пересказанная новость подписывается строкой об источнике: откуда
+     текст и что он пересказан, а не написан учителем. */
   const news = skill === 'reading' && boardLessonWizard && boardLessonWizard.news;
-  const newsWords = news && Array.isArray(news.vocab)
-    ? news.vocab.filter(w => text.toLowerCase().includes(String(w).toLowerCase()))
-    : [];
-  const words = [...new Set([...String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean), ...newsWords])];
+  const words = String(base.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
   const credit = news && news.credit ? `\n\n${news.credit}` : '';
   const body = (keys.includes('bold-vocab') && words.length ? _ttBoldFirstOccurrences(text, words) : text) + credit;
   const heading = (base.topic || '').trim();
