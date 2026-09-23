@@ -962,17 +962,25 @@ function studentAvatarMarkup(s, cls) {
     return `<div class="${cls}" style="background-image:url('${esc(s.avatar)}');background-size:cover;background-position:center;"></div>`;
   }
   const face = s.avatar || nextClassInitials(s.name);
-  const small = !s.avatar ? ' style="font-size:.62em;"' : '';
-  return `<div class="${cls}"${small}>${esc(face)}</div>`;
+  // Инициалы мельче эмодзи-аватара, но в меру круга: .62em от родителя
+  // давали 10px и в строке списка, и в круге 76px карточки.
+  return `<div class="${cls}${s.avatar ? '' : ' is-initials'}">${esc(face)}</div>`;
 }
+
+const ST_ICON_USERS = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg>';
+const ST_ICON_CARD = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.5a3.4 3.4 0 0 1 6.4 0M15 10h3M15 13.5h3"/></svg>';
 
 function studentsRender() {
   const list = document.getElementById('students-list');
   if (!list) return;
 
   if (!STUDENTS.length) {
-    list.innerHTML = `<div style="text-align:center;padding:36px 16px;color:var(--text-3);font-size:12.5px;line-height:1.6;">
-      No students yet.<br>Use <b style="color:var(--text);">+</b> to invite one.
+    const formOpen = !document.getElementById('students-add')?.hidden;
+    list.innerHTML = `<div class="st-empty">
+      <div class="st-empty-ic">${ST_ICON_USERS}</div>
+      <div class="st-empty-h">No students yet</div>
+      Add them by email or send the class one join link.
+      ${formOpen ? '' : '<br><button type="button" class="st-empty-btn" onclick="studentsAddToggle()">Add students</button>'}
     </div>`;
     const empty = document.getElementById('students-count');
     if (empty) empty.textContent = '';
@@ -1000,7 +1008,7 @@ function studentsRender() {
   }
 
   if (!filtered.length) {
-    list.innerHTML = `<div style="text-align:center;padding:30px 16px;color:var(--text-3);font-size:12.5px;">Nobody matches “${esc(q)}”.</div>`;
+    list.innerHTML = `<div class="st-empty">Nobody matches “${esc(q)}”.</div>`;
     studentDetailRender();
     return;
   }
@@ -1060,7 +1068,9 @@ function studentDetailRender() {
   if (!box) return;
   const s = STUDENTS.find(x => String(x.id) === String(studentsSelectedId));
   if (!s) {
-    box.innerHTML = `<div class="st-detail-empty">Pick a student<br>to see their card.</div>`;
+    box.innerHTML = `<div class="st-detail-empty"><div class="st-empty-ic">${ST_ICON_CARD}</div>${STUDENTS.length
+      ? 'Pick a student<br>to see their card.'
+      : 'Student cards show<br>up here: level, lessons left,<br>quiz scores.'}</div>`;
     return;
   }
   const n = Number(s.boardCount) || 0;
@@ -1102,20 +1112,23 @@ function studentsAddToggle() {
   if (!form) return;
   const opening = form.hidden;
   form.hidden = !opening;
-  if (!opening) return;
+  document.getElementById('students-add-toggle')?.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  if (!opening) { studentsRender(); return; }
 
   const sel = document.getElementById('students-add-board');
   const boards = (typeof MY_BOARDS !== 'undefined' ? MY_BOARDS : []);
   if (sel) {
+    const keep = sel.value;
     sel.innerHTML = boards.length
       ? boards.map(b => `<option value="${esc(String(b.id))}">${esc(b.name || 'Board')}</option>`).join('')
-      : '<option value="">No boards yet — create one first</option>';
+      : '<option value="">No boards yet - create one first</option>';
+    if (keep && boards.some(b => String(b.id) === keep)) sel.value = keep;
+    sel.onchange = studentsJoinReset;
   }
   const msg = document.getElementById('students-add-msg');
-  if (msg) { msg.textContent = ''; msg.classList.remove('err'); }
-  const linkMsg = document.getElementById('students-link-msg');
-  if (linkMsg) linkMsg.textContent = '';
-  if (sel) sel.onchange = () => { if (linkMsg) linkMsg.textContent = ''; };
+  if (msg) { msg.textContent = ''; msg.className = 'st-add-msg'; }
+  studentsJoinReset();
+  studentsRender();
   document.getElementById('students-add-email')?.focus();
 }
 
@@ -1128,13 +1141,13 @@ async function studentsAddSubmit(e) {
   const email = document.getElementById('students-add-email')?.value.trim();
   const boardId = document.getElementById('students-add-board')?.value;
   const msg = document.getElementById('students-add-msg');
-  const setMsg = (text, isErr) => {
+  const setMsg = (text, isErr, isOk) => {
     if (!msg) return;
     msg.textContent = text;
-    msg.classList.toggle('err', !!isErr);
+    msg.className = 'st-add-msg' + (isErr ? ' err' : isOk ? ' ok' : '');
   };
   if (!email) return;
-  if (!boardId) return setMsg('Create a board first — students are added to a board.', true);
+  if (!boardId) return setMsg('Create a board first - students are added to a board.', true);
 
   setMsg('Adding…');
   try {
@@ -1151,9 +1164,9 @@ async function studentsAddSubmit(e) {
     if (d.invited) {
       document.getElementById('students-add-email').value = '';
       if (!msg) return;
-      msg.classList.remove('err');
+      msg.className = 'st-add-msg ok';
       msg.innerHTML = d.emailSent
-        ? `Invitation sent to <b>${escHtmlStudents(d.email)}</b>. They join this board as soon as they sign up.`
+        ? `✓ Invitation sent to <b>${escHtmlStudents(d.email)}</b>. They join this board as soon as they sign up.`
         : `<b>${escHtmlStudents(d.email)}</b> has no account yet - send them this invitation link. They join this board as soon as they sign up.`
           + ` <button type="button" class="st-add-copy">Copy invite link</button>`;
       msg.querySelector('.st-add-copy')?.addEventListener('click', async (ev) => {
@@ -1172,24 +1185,49 @@ async function studentsAddSubmit(e) {
     studentsRender();
     updateStudentSidebar();
     if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
-    setMsg(`${added.name || email} added.`);
+    setMsg(`✓ ${added.name || email} added to the board.`, false, true);
     document.getElementById('students-add-email').value = '';
   } catch {
-    setMsg('Network error — student not added.', true);
+    setMsg('Network error - student not added.', true);
   }
 }
 
 /* A join link for the selected board: one link for the whole class, sent
    in any chat, instead of typing every student's email. "New link" rotates
    it so an old link that went too far stops working. */
+function studentsJoinReset() {
+  const box = document.getElementById('students-link-box');
+  const make = document.getElementById('students-link-make');
+  const msg = document.getElementById('students-link-msg');
+  if (box) box.hidden = true;
+  if (make) make.hidden = false;
+  if (msg) { msg.textContent = ''; msg.className = 'st-add-msg'; }
+}
+
+async function studentsJoinCopy() {
+  const input = document.getElementById('students-link-url');
+  const btn = document.getElementById('students-link-copy');
+  if (!input?.value) return;
+  try { await navigator.clipboard.writeText(input.value); }
+  catch { input.focus(); input.select(); return; }
+  if (btn) {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('is-done');
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('is-done'); }, 1800);
+  }
+}
+
 async function studentsJoinLink(rotate) {
   const boardId = document.getElementById('students-add-board')?.value;
   const msg = document.getElementById('students-link-msg');
+  const make = document.getElementById('students-link-make');
   if (!msg) return;
-  msg.classList.remove('err');
+  msg.className = 'st-add-msg';
   if (!boardId) { msg.classList.add('err'); msg.textContent = 'Create a board first - the link opens a board.'; return; }
   if (rotate && !confirm('Make a new link? The old one will stop working.')) return;
   msg.textContent = 'Making the link…';
+  if (make) make.disabled = true;
   try {
     const r = await fetch(API_BASE + `/api/members/${encodeURIComponent(boardId)}/join-link`, {
       method: 'POST',
@@ -1198,21 +1236,18 @@ async function studentsJoinLink(rotate) {
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok || !d.url) { msg.classList.add('err'); msg.textContent = d.error || `Could not make the link (HTTP ${r.status})`; return; }
-    let copied = false;
-    try { await navigator.clipboard.writeText(d.url); copied = true; } catch {}
-    msg.innerHTML = (copied ? '<b>Link copied.</b> ' : '')
-      + 'Anyone who opens it and signs in joins this board as a student.'
-      + `<span class="st-link-url">${escHtmlStudents(d.url)}</span>`
-      + (copied ? '' : '<button type="button" class="st-add-copy">Copy</button>')
-      + '<button type="button" class="st-link-new">New link</button>';
-    msg.querySelector('.st-add-copy')?.addEventListener('click', async (ev) => {
-      try { await navigator.clipboard.writeText(d.url); ev.target.textContent = 'Copied ✓'; }
-      catch { prompt('Copy the join link:', d.url); }
-    });
+    document.getElementById('students-link-url').value = d.url;
+    document.getElementById('students-link-box').hidden = false;
+    if (make) make.hidden = true;
+    msg.innerHTML = (rotate ? 'New link ready - the old one no longer works. ' : '')
+      + 'Link leaked too far? <button type="button" class="st-link-new">Make a new one</button>';
     msg.querySelector('.st-link-new')?.addEventListener('click', () => studentsJoinLink(true));
+    studentsJoinCopy();
   } catch {
     msg.classList.add('err');
     msg.textContent = 'Network error - link not made.';
+  } finally {
+    if (make) make.disabled = false;
   }
 }
 

@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=927">
-<link rel="preload" as="style" href="styles/harmony.css?v=927">
-<link rel="preload" as="style" href="styles/unify.css?v=927">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=927">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=927">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=927">
-<link rel="preload" as="style" href="styles/controls.css?v=927">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=927">
+<link rel="preload" as="style" href="styles/mobile.css?v=928">
+<link rel="preload" as="style" href="styles/harmony.css?v=928">
+<link rel="preload" as="style" href="styles/unify.css?v=928">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=928">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=928">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=928">
+<link rel="preload" as="style" href="styles/controls.css?v=928">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=928">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=927">
+<link rel="manifest" href="manifest.json?v=928">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -84,8 +84,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=927">
-<link rel="stylesheet" href="styles/main.css?v=927">
+<link rel="stylesheet" href="styles/tokens.css?v=928">
+<link rel="stylesheet" href="styles/main.css?v=928">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1126,60 +1126,104 @@ html,body {
 #win-students .studio-actions { grid-column:2; grid-row:2; justify-self:end; margin:0; }
 .st-split { flex:1; min-height:0; display:flex; }
 .st-list-col {
-  flex:1; min-width:0; display:flex; flex-direction:column;
+  flex:1; min-width:0; display:flex; flex-direction:column; overflow-y:auto; overscroll-behavior:contain;
   border-right:1px solid var(--border, rgba(92,92,102,.16));
 }
-.st-list-head { display:flex; gap:8px; padding:12px 14px 8px; }
+.st-list-head {
+  display:flex; gap:8px; padding:14px 14px 10px;
+  position:sticky; top:0; z-index:2; background: var(--surface, #fff);
+  box-shadow: 0 -6px 0 var(--surface, #fff);
+}
 .st-count {
-  padding:0 16px 8px; font-size:10.5px; font-family: var(--font-mono);
+  padding:4px 16px 8px; font-size:10.5px; font-family: var(--font-mono);
   letter-spacing:.08em; text-transform:uppercase; color: var(--text-3);
 }
-.st-search {
-  flex:1; min-width:0; height:32px; padding:0 11px;
-  border:1px solid var(--border, rgba(92,92,102,.16)); border-radius:10px;
-  background: var(--bg-2, #F3F3F6); color: var(--text); font-size:12.5px;
-  font-family: var(--font-ui); outline:none;
-}
-.st-search:focus { border-color: var(--te-lime, #CDF649); }
+.st-count:empty { display:none; }
+/* Высоту и радиус полей держит общая тема (44px, 14px) - кнопки окна
+   подстраиваются под неё, а не наоборот: иначе рядом с полем 46px стояли
+   кнопки по 30px и «+» висел выше поиска. Балласт :not(#_) перебивает
+   тему только там, где окну нужно своё (поле-ссылка моноширинным). */
+.st-search { flex:1; min-width:0; }
 .st-add-btn {
-  width:32px; height:32px; flex-shrink:0; border:none; border-radius:10px;
-  background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
-  font-size:19px; line-height:1; cursor:pointer;
+  width:44px; height:44px; flex-shrink:0; align-self:center; border:none; border-radius:14px;
+  background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C); cursor:pointer;
   display:flex; align-items:center; justify-content:center;
-  transition: filter .15s, transform .15s;
+  transition: filter .15s, transform .15s, background .15s;
 }
+.st-add-btn svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; transition: transform .2s; }
 .st-add-btn:hover { filter:brightness(.96); transform:translateY(-1px); }
-.st-add-form { padding:0 12px 12px; display:flex; flex-direction:column; gap:7px; }
+.st-add-btn[aria-expanded="true"] { background: var(--te-ink, #24282C); color: var(--te-lime, #CDF649); }
+.st-add-btn[aria-expanded="true"] svg { transform: rotate(45deg); }
+
+.st-add-card {
+  margin:0 14px 12px; padding:14px 14px 4px; border-radius:18px;
+  background: var(--te-paper, #F6F6EF); border:1px solid var(--te-line, #CACCC6);
+  display:flex; flex-direction:column; gap:6px;
+  animation: stAddIn .18s ease-out;
+}
+@keyframes stAddIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
 /* Атрибут hidden слабее правила по классу: без этой строки форма
-   добавления ученика стояла раскрытой всегда, а кнопка «+» её только
-   закрывала. */
-.st-add-form[hidden] { display:none; }
-.st-add-input {
-  height:32px; padding:0 10px; border-radius:10px;
-  border:1px solid var(--border, rgba(92,92,102,.16));
-  background: var(--bg-2, #F3F3F6); color: var(--text);
-  font-size:12.5px; font-family: var(--font-ui); outline:none;
+   добавления стояла бы раскрытой всегда. */
+.st-add-card[hidden], .st-link-box[hidden], .st-add-link[hidden] { display:none; }
+.st-add-title { font-size:15px; font-weight:700; letter-spacing:-.02em; color: var(--te-ink, #24282C); margin-bottom:6px; }
+.st-add-label {
+  font-family: var(--font-mono); font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color: var(--te-olive, #5D614B);
 }
-.st-add-input:focus { border-color: var(--te-lime, #CDF649); }
-.st-add-row { display:flex; gap:7px; }
-.st-add-go, .st-add-cancel {
-  flex:1; height:30px; border-radius:9px; border:none; cursor:pointer;
-  font-size:12px; font-family: var(--font-ui); font-weight:650;
+.st-add-part { display:flex; flex-direction:column; gap:6px; padding-top:12px; margin-top:6px; border-top:1px solid rgba(36,40,44,.1); }
+.st-add-input { width:100%; min-width:0; }
+#win-students:not(#_):not(#__) .st-add-input { background-color:#fff !important; }
+/* Тема снимает у select системную стрелку (appearance:none) и оставляет
+   под неё отступ справа - стрелку рисуем сами, иначе список досок
+   выглядел обычным полем, в которое нечего выбрать. */
+#win-students:not(#_):not(#__) select.st-add-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2324282C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat:no-repeat !important; background-position:right 14px center !important; background-size:16px !important;
+  cursor:pointer;
 }
-.st-add-go { background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C); }
-.st-add-cancel { background: rgba(92,92,102,.10); color: var(--text-3); }
-.st-add-hint { font-size:10.5px; line-height:1.45; color: var(--text-3); }
-.st-add-msg { font-size:11px; color: var(--text-3); min-height:14px; }
+.st-add-inline, .st-link-box { display:flex; gap:8px; align-items:center; }
+.st-add-inline .st-add-input, .st-link-box .st-add-input { flex:1; }
+.st-add-go {
+  flex-shrink:0; min-width:84px; height:44px; padding:0 18px; border-radius:14px; border:none; cursor:pointer;
+  background: var(--te-ink, #24282C); color:#fff;
+  font-size:13px; font-family: var(--font-ui); font-weight:700;
+  transition: filter .15s, background .15s;
+}
+.st-add-go:hover { background:#000; }
+.st-add-go.is-done { background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C); }
+.st-add-hint { font-size:11.5px; line-height:1.45; color: var(--text-3); }
+.st-add-msg { font-size:12px; line-height:1.45; color: var(--text-3); min-height:0; }
+.st-add-msg:empty { display:none; }
 .st-add-msg.err { color: var(--te-coral, #FF4E00); }
-.st-add-msg b { color: var(--text-1, #24282C); }
-.st-add-or { display:flex; align-items:center; gap:8px; font-size:10.5px; color: var(--text-3); margin-top:2px; }
-.st-add-or::before, .st-add-or::after { content:''; flex:1; height:1px; background: rgba(92,92,102,.16); }
-.st-add-link { padding:9px 12px; border:1px solid var(--te-ink, #24282C); border-radius:999px; background:transparent; color: var(--te-ink, #24282C); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
-.st-add-link:hover { background: var(--te-lime, #CDF649); }
-.st-link-url { display:block; margin-top:4px; padding:6px 9px; border-radius:8px; background: rgba(92,92,102,.08); font-family: var(--font-mono, ui-monospace, monospace); font-size:10.5px; color: var(--text-1, #24282C); word-break:break-all; user-select:all; }
-.st-link-new { margin-left:4px; padding:0; border:0; background:none; color: var(--text-3); font:inherit; text-decoration:underline; cursor:pointer; }
-.st-add-copy { margin-left:4px; padding:3px 9px; border:1px solid #24282C; border-radius:999px; background:#CDF649; color:#24282C; font:inherit; font-weight:700; cursor:pointer; }
-#students-list { flex:1; min-height:0; overflow-y:auto; padding:0 12px 14px; display:flex; flex-direction:column; gap:2px; }
+.st-add-msg.ok { color: var(--te-ink, #24282C); }
+.st-add-msg b { color: var(--te-ink, #24282C); }
+.st-add-link {
+  display:flex; align-items:center; justify-content:center; gap:8px; height:44px; margin-top:2px;
+  border:1px solid var(--te-ink, #24282C); border-radius:14px; background: var(--te-lime, #CDF649);
+  color: var(--te-ink, #24282C); font:inherit; font-size:13px; font-weight:700; cursor:pointer;
+  transition: filter .15s;
+}
+.st-add-link:hover { filter:brightness(.96); }
+.st-add-link svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#win-students:not(#_):not(#__) .st-link-url { font-family: var(--font-mono, ui-monospace, monospace) !important; font-size:11.5px !important; text-overflow:ellipsis; }
+.st-link-new, .st-add-copy {
+  padding:0; border:0; background:none; color: var(--te-ink, #24282C); font:inherit; font-weight:600;
+  text-decoration:underline; text-underline-offset:2px; cursor:pointer;
+}
+.st-empty { text-align:center; padding:34px 18px; color: var(--text-3); font-size:12.5px; line-height:1.55; }
+.st-empty-ic {
+  width:52px; height:52px; margin:0 auto 12px; border-radius:50%;
+  background: var(--te-paper, #F6F6EF); border:1px solid var(--te-line, #CACCC6);
+  display:flex; align-items:center; justify-content:center; color: var(--te-ink, #24282C);
+}
+.st-empty-ic svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.st-empty-h { font-size:14px; font-weight:700; color: var(--te-ink, #24282C); margin-bottom:3px; }
+.st-empty-btn {
+  margin-top:14px; height:40px; padding:0 18px; border-radius:999px; border:none; cursor:pointer;
+  background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C); font:inherit; font-size:12.5px; font-weight:700;
+}
+.st-empty-btn:hover { filter:brightness(.96); }
+#students-list { flex:none; padding:0 12px 14px; display:flex; flex-direction:column; gap:2px; }
 /* Выбранная строка помечена лаймом слева, а не серой заливкой: серым уже
    набран ховер, и выбор от наведения было не отличить. */
 .st-row {
@@ -1201,6 +1245,8 @@ html,body {
   background: var(--te-lime, #CDF649); color: var(--te-ink, #24282C);
   font-size:16px; font-weight:700;
 }
+.st-row-avatar.is-initials { font-size:12px; letter-spacing:.02em; }
+.st-detail-avatar.is-initials { font-size:26px; letter-spacing:-.01em; }
 .st-row-name { font-size:13px; font-weight:600; color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .st-row-sub  { font-size:11px; color: var(--text-3); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* Строки делит линейка, а не воздух: при полусотне учеников соседние имена
@@ -1270,7 +1316,8 @@ html,body {
   color: var(--te-ink, #24282C);
 }
 .st-detail-btn.primary:hover { filter:brightness(.96); background: var(--te-lime, #CDF649); }
-.st-detail-empty { color: var(--text-3); font-size:12px; padding-top:44px; line-height:1.6; }
+.st-detail-empty { color: var(--text-3); font-size:12px; padding-top:64px; line-height:1.6; }
+.st-detail-empty .st-empty-ic { width:46px; height:46px; }
 @media (max-width: 860px) { .st-detail { display:none; } }
 #win-schedule .studio-actions .studio-chip.secondary { display:none; }
 .notes-save-hint {
@@ -1788,10 +1835,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=927" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=927">
-<link rel="stylesheet" href="styles/harmony.css?v=927">
-<link rel="stylesheet" href="styles/unify.css?v=927">
+<script src="theme.js?v=928" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=928">
+<link rel="stylesheet" href="styles/harmony.css?v=928">
+<link rel="stylesheet" href="styles/unify.css?v=928">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1799,15 +1846,15 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=927">
+<link rel="stylesheet" href="styles/teached-brand.css?v=928">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=927">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=927">
-<link rel="stylesheet" href="styles/controls.css?v=927">
+<link rel="stylesheet" href="styles/figma-theme.css?v=928">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=928">
+<link rel="stylesheet" href="styles/controls.css?v=928">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=927">
+<link rel="stylesheet" href="styles/figma-concept.css?v=928">
 <!-- Фон, чип аккаунта, библиотека заданий, Student Pulse. После концепта: новые узлы. -->
-<link rel="stylesheet" href="styles/desktop-extras.css?v=927">
+<link rel="stylesheet" href="styles/desktop-extras.css?v=928">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -2217,26 +2264,44 @@ html,body {
       <div class="st-split">
         <div class="st-list-col">
           <div class="st-list-head">
-            <input class="st-search" id="students-search" type="search" placeholder="Search" oninput="studentsRender()" aria-label="Search students">
-            <button class="st-add-btn" onclick="studentsAddToggle()" title="Add student" aria-label="Add student">+</button>
+            <input class="st-search" id="students-search" type="search" placeholder="Search students" oninput="studentsRender()" aria-label="Search students">
+            <button class="st-add-btn" id="students-add-toggle" onclick="studentsAddToggle()" title="Add students" aria-label="Add students" aria-expanded="false" aria-controls="students-add">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
           </div>
-          <form class="st-add-form" id="students-add" hidden onsubmit="studentsAddSubmit(event)">
-            <input class="st-add-input" id="students-add-email" type="email" placeholder="student@email.com" required>
-            <select class="st-add-input" id="students-add-board" aria-label="Board"></select>
-            <!-- «Добавить» на бекенде = пригласить УЖЕ ЗАРЕГИСТРИРОВАННОГО
-                 пользователя на доску; аккаунт отсюда не создаётся, и об
-                 этом честнее сказать до нажатия, а не ответом 404. -->
-            <div class="st-add-hint">Already on TeachEd - they are added right away. No account yet - they get an invitation and join the board when they sign up.</div>
-            <div class="st-add-row">
-              <button class="st-add-go" type="submit">Add student</button>
-              <button class="st-add-cancel" type="button" onclick="studentsAddToggle()">Cancel</button>
+          <!-- Две дороги к одной цели: по почте (уже есть аккаунт - сразу на
+               доске, нет - приглашение, аккаунт отсюда не создаётся) или одной
+               ссылкой на всю группу. Доска общая для обеих, поэтому выбирается
+               первой, а не прячется между полем почты и кнопкой. -->
+          <form class="st-add-card" id="students-add" hidden onsubmit="studentsAddSubmit(event)">
+            <div class="st-add-title">Add students</div>
+
+            <label class="st-add-label" for="students-add-board">Board</label>
+            <select class="st-add-input" id="students-add-board"></select>
+
+            <div class="st-add-part">
+              <label class="st-add-label" for="students-add-email">By email</label>
+              <div class="st-add-inline">
+                <input class="st-add-input" id="students-add-email" type="email" placeholder="student@email.com" autocomplete="off" required>
+                <button class="st-add-go" type="submit">Add</button>
+              </div>
+              <div class="st-add-hint">Has an account - joins right away. No account yet - gets an email invitation.</div>
+              <div class="st-add-msg" id="students-add-msg" role="status" aria-live="polite"></div>
             </div>
-            <div class="st-add-msg" id="students-add-msg"></div>
-            <!-- Без почты: одна ссылка на доску, учитель кидает её в чат,
-                 любой открывший и вошедший садится на доску учеником. -->
-            <div class="st-add-or"><span>or</span></div>
-            <button class="st-add-link" type="button" onclick="studentsJoinLink()">Copy join link for this board</button>
-            <div class="st-add-msg" id="students-link-msg"></div>
+
+            <div class="st-add-part">
+              <div class="st-add-label">Join link</div>
+              <div class="st-add-hint">One link for the whole class - send it in any chat. Whoever opens it and signs in joins this board.</div>
+              <button class="st-add-link" id="students-link-make" type="button" onclick="studentsJoinLink()">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+                Create join link
+              </button>
+              <div class="st-link-box" id="students-link-box" hidden>
+                <input class="st-add-input st-link-url" id="students-link-url" readonly aria-label="Join link" onfocus="this.select()">
+                <button class="st-add-go" id="students-link-copy" type="button" onclick="studentsJoinCopy()">Copy</button>
+              </div>
+              <div class="st-add-msg" id="students-link-msg" role="status" aria-live="polite"></div>
+            </div>
           </form>
           <div class="st-count" id="students-count"></div>
           <div id="students-list"></div>
@@ -2562,8 +2627,8 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=927"></script>
-<script src="scripts/desktop-extras.js?v=927"></script>
+<script src="scripts/desktop-app.js?v=928"></script>
+<script src="scripts/desktop-extras.js?v=928"></script>
 
 <script>
 
@@ -2583,8 +2648,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=927" defer></script>
-<script src="pwa-boot.js?v=927" defer></script>
+<script src="scripts/autogrow.js?v=928" defer></script>
+<script src="pwa-boot.js?v=928" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2804,11 +2869,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=927" defer></script>
-<script src="scripts/nav-boost.js?v=927" defer></script>
-<script src="scripts/mobile-perf.js?v=927" defer></script>
-<script src="scripts/mobile-nav.js?v=927" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=927" defer></script>
-  <script src="scripts/signin-entry.js?v=927" defer></script>
+<script src="pwa.js?v=928" defer></script>
+<script src="scripts/nav-boost.js?v=928" defer></script>
+<script src="scripts/mobile-perf.js?v=928" defer></script>
+<script src="scripts/mobile-nav.js?v=928" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=928" defer></script>
+  <script src="scripts/signin-entry.js?v=928" defer></script>
 </body>
 </html>
