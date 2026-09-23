@@ -1043,9 +1043,10 @@ const _hasJournal = s => s.journal_id != null && s.lessons_left != null;
 
 function studentRowSub(s) {
   const parts = [];
+  if (s.pending) parts.push(s.invited ? 'Invite sent' : 'Not on a board yet');
   if (s.level) parts.push(s.level);
   if (_hasJournal(s)) parts.push(_lessonsLeft(Number(s.lessons_left)));
-  else parts.push(`${s.boardCount} board${s.boardCount === 1 ? '' : 's'}`);
+  else if (!s.pending) parts.push(`${s.boardCount} board${s.boardCount === 1 ? '' : 's'}`);
   return parts.join(' / ');
 }
 
@@ -1064,6 +1065,26 @@ function studentSelect(id) {
   studentsRender();
 }
 
+/* Статус ученика одной плашкой: что учителю важно знать первым. */
+function studentStatus(s) {
+  if (s.pending) return s.invited ? { t: 'Invite sent', c: 'invited' } : { t: 'Not on a board yet', c: 'quiet' };
+  const due = s.payment_due ? Math.round((Date.parse(s.payment_due + 'T00:00:00') - new Date().setHours(0, 0, 0, 0)) / 86400000) : null;
+  if (due !== null && due < 0) return { t: 'Payment due', c: 'due' };
+  if (_hasJournal(s) && Number(s.lessons_left) <= 2) return { t: 'Low balance', c: 'low' };
+  return { t: 'Active', c: 'active' };
+}
+function _paymentLine(s) {
+  if (!s.payment_due) return 'No payment date yet';
+  const d = Math.round((Date.parse(s.payment_due + 'T00:00:00') - new Date().setHours(0, 0, 0, 0)) / 86400000);
+  if (d > 1) return `Next payment in ${d} days`;
+  if (d === 1) return 'Next payment tomorrow';
+  if (d === 0) return 'Payment due today';
+  return `Payment overdue by ${-d} day${d === -1 ? '' : 's'}`;
+}
+const ST_TG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#229ED9"/><path d="M5.6 11.7l10.6-4.1c.5-.2.9.1.8.8l-1.8 8.5c-.1.6-.5.7-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2 0-.3-.3-.1l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg>';
+const ST_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M12 5.6a6.3 6.3 0 0 0-5.4 9.6L5.8 18l2.9-.8A6.3 6.3 0 1 0 12 5.6zm3.6 8.9c-.2.4-.9.8-1.3.8-.3 0-.8.1-2.5-.6-2.1-.9-3.4-3-3.5-3.1-.1-.1-.8-1.1-.8-2.1s.5-1.5.7-1.7c.2-.2.4-.2.5-.2h.4c.1 0 .3 0 .4.3l.6 1.4c0 .1.1.3 0 .4l-.3.4-.3.3c-.1.1-.2.2-.1.4.1.2.6 1 1.3 1.6.9.8 1.6 1 1.8 1.1.2.1.3.1.4-.1l.6-.7c.1-.2.3-.2.4-.1l1.3.6c.2.1.3.1.4.2 0 .1 0 .6-.2 1z" fill="#fff"/></svg>';
+const ST_MAIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#5D614B"/><rect x="6.5" y="8" width="11" height="8" rx="1.4" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M7 8.8l5 3.7 5-3.7" fill="none" stroke="#fff" stroke-width="1.5"/></svg>';
+
 function studentDetailRender() {
   const box = document.getElementById('students-detail');
   if (!box) return;
@@ -1076,32 +1097,48 @@ function studentDetailRender() {
   }
   const n = Number(s.boardCount) || 0;
   const chips = [];
-  if (s.level) chips.push(`<span class="st-chip level">${esc(s.level)} level</span>`);
   if (s.quiz_count) chips.push(`<span class="st-chip quiz">Quizzes ${Number(s.quiz_avg) || 0}%</span>`);
-  chips.push(`<span class="st-chip boards">${n} board${n === 1 ? '' : 's'}</span>`);
+  if (!s.pending) chips.push(`<span class="st-chip boards">${n} board${n === 1 ? '' : 's'}</span>`);
   if (s.individual && s.in_group) chips.push('<span class="st-chip format">1:1 &amp; group</span>');
   else if (s.individual) chips.push('<span class="st-chip format">1:1</span>');
   else if (s.in_group) chips.push('<span class="st-chip format">Group</span>');
   if (s.online) chips.push('<span class="st-chip live">On a board now</span>');
   else if (_lastSeenLabel(s.last_login_at)) chips.push(`<span class="st-chip ghost">${_lastSeenLabel(s.last_login_at)}</span>`);
 
-  const stat = _hasJournal(s)
-    ? `<div class="st-detail-stat"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>${_lessonsLeft(Number(s.lessons_left))}</div>`
-    : `<div class="st-detail-stat is-muted">Not in your journal yet</div>`;
-  const profile = s.journal_id != null ? 'journal.html' : 'gradebook.html';
+  const st = studentStatus(s);
+  const badges = `<div class="st-badges"><span class="st-badge ${st.c}">${st.t}</span>${s.level ? `<span class="st-badge level">Level ${esc(s.level)}</span>` : ''}</div>`;
+  const money = _hasJournal(s)
+    ? `<div class="st-fin">
+        <div class="st-fin-h">Financial block</div>
+        <div class="st-fin-k">Remaining lessons</div>
+        <div class="st-fin-n"><b>${Number(s.lessons_left)}</b> lesson${Number(s.lessons_left) === 1 ? '' : 's'}</div>
+        <div class="st-fin-f"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>${esc(_paymentLine(s))}</div>
+      </div>`
+    : `<div class="st-fin is-empty">
+        <div class="st-fin-h">Financial block</div>
+        <div class="st-fin-k">Not in your journal yet - no lesson package or payments tracked.</div>
+        <button type="button" class="st-detail-btn" onclick="studentsAddFor('${esc(String(s.id))}')">Add lesson package</button>
+      </div>`;
+  const tg = s.telegram ? String(s.telegram).replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '') : '';
+  const wa = s.phone ? String(s.phone).replace(/\D/g, '') : '';
+  const contacts = [
+    tg ? `<a class="st-contact" href="https://t.me/${tg}" target="_blank" rel="noopener" title="Telegram @${esc(tg)}" aria-label="Message on Telegram">${ST_TG}</a>` : '',
+    wa ? `<a class="st-contact" href="https://wa.me/${wa}" target="_blank" rel="noopener" title="WhatsApp ${esc(s.phone)}" aria-label="Message on WhatsApp">${ST_WA}</a>` : '',
+    s.email ? `<a class="st-contact" href="mailto:${esc(s.email)}" title="${esc(s.email)}" aria-label="Send an email">${ST_MAIL}</a>` : '',
+  ].join('');
 
   box.innerHTML = `
     ${studentAvatarWithDot(s, 'st-detail-avatar')}
     <div class="st-detail-name">${esc(s.name || 'Student')}</div>
     <div class="st-detail-mail">${esc(s.email || '')}</div>
-    ${stat}
-    <div class="st-detail-rule"></div>
-    <div class="st-detail-h">Current progress &amp; skills</div>
-    <div class="st-chips">${chips.join('')}</div>
+    ${badges}
+    ${money}
+    ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
     <div class="st-detail-actions">
-      <a class="st-detail-btn" href="${profile}">View profile →</a>
-      <a class="st-detail-btn" href="homework.html">Assign homework</a>
-    </div>`;
+      <a class="st-detail-btn" href="journal.html">View profile →</a>
+      ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
+    </div>
+    ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}`;
 }
 
 /* ── Добавление ученика прямо с рабочего стола ──────────────────────
@@ -1120,17 +1157,75 @@ function studentsAddToggle() {
   const boards = (typeof MY_BOARDS !== 'undefined' ? MY_BOARDS : []);
   if (sel) {
     const keep = sel.value;
-    sel.innerHTML = boards.length
-      ? boards.map(b => `<option value="${esc(String(b.id))}">${esc(b.name || 'Board')}</option>`).join('')
-      : '<option value="">No boards yet - create one first</option>';
+    sel.innerHTML = '<option value="">Not on a board yet</option>'
+      + boards.map(b => `<option value="${esc(String(b.id))}">${esc(b.name || 'Board')}</option>`).join('');
+    if (!keep && boards.length) sel.value = String(boards[0].id);
     if (keep && boards.some(b => String(b.id) === keep)) sel.value = keep;
     sel.onchange = studentsJoinReset;
   }
   const msg = document.getElementById('students-add-msg');
   if (msg) { msg.textContent = ''; msg.className = 'st-add-msg'; }
   studentsJoinReset();
+  studentsSegWire();
   studentsRender();
-  document.getElementById('students-add-email')?.focus();
+  document.getElementById('students-add-name')?.focus();
+}
+
+/* Сегменты уровня и формата: радиогруппа из кнопок (стрелки тоже листают). */
+function studentsSegWire() {
+  document.querySelectorAll('#students-add .st-seg').forEach(g => {
+    if (g.dataset.wired) return;
+    g.dataset.wired = '1';
+    const pick = btn => g.querySelectorAll('button').forEach(x => x.setAttribute('aria-checked', x === btn ? 'true' : 'false'));
+    g.addEventListener('click', e => { const b = e.target.closest('button'); if (b) pick(b); });
+    g.addEventListener('keydown', e => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+      const all = [...g.querySelectorAll('button')];
+      const i = all.findIndex(x => x.getAttribute('aria-checked') === 'true');
+      const n = all[(i + (e.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length];
+      pick(n); n.focus(); e.preventDefault();
+    });
+  });
+}
+const _segVal = id => document.querySelector(`#${id} button[aria-checked="true"]`)?.dataset.v || '';
+function _segSet(id, v) {
+  const g = document.getElementById(id); if (!g) return;
+  g.querySelectorAll('button').forEach(x => x.setAttribute('aria-checked', x.dataset.v === v ? 'true' : 'false'));
+}
+function studentsPkgStep(d) {
+  const el = document.getElementById('students-add-pkg'); if (!el) return;
+  el.value = Math.max(0, Math.min(200, (parseInt(el.value, 10) || 0) + d));
+}
+/* «Add lesson package» из карточки: та же форма, уже заполненная. */
+function studentsAddFor(id) {
+  const s = STUDENTS.find(x => String(x.id) === String(id)); if (!s) return;
+  const form = document.getElementById('students-add');
+  if (form?.hidden) studentsAddToggle();
+  const set = (k, v) => { const el = document.getElementById(k); if (el) el.value = v || ''; };
+  set('students-add-name', s.name); set('students-add-email', s.email);
+  set('students-add-tg', s.telegram); set('students-add-phone', s.phone);
+  if (s.level) _segSet('students-add-level', s.level);
+  _segSet('students-add-format', s.in_group && !s.individual ? 'group' : 'individual');
+  const sel = document.getElementById('students-add-board'); if (sel) sel.value = '';
+  document.getElementById('students-add-pkg')?.focus();
+}
+
+/* Перечитать список с сервера и выбрать ученика по почте или имени. */
+async function studentsReloadRoster(pick) {
+  try {
+    const r = await fetch(API_BASE + '/api/members/roster', { headers: { Authorization: 'Bearer ' + _authToken } });
+    if (!r.ok) return;
+    const d = await r.json();
+    STUDENTS = (d.students || []).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    if (pick) {
+      const m = STUDENTS.find(x => (pick.email && (x.email || '').toLowerCase() === pick.email.toLowerCase())
+        || (x.name || '').toLowerCase() === (pick.name || '').toLowerCase());
+      if (m) studentsSelectedId = m.id;
+    }
+    studentsRender();
+    if (typeof updateStudentSidebar === 'function') updateStudentSidebar();
+    if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
+  } catch (_) {}
 }
 
 function escHtmlStudents(v) {
@@ -1139,58 +1234,63 @@ function escHtmlStudents(v) {
 
 async function studentsAddSubmit(e) {
   e.preventDefault();
-  const email = document.getElementById('students-add-email')?.value.trim();
-  const boardId = document.getElementById('students-add-board')?.value;
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  const name = val('students-add-name'), email = val('students-add-email');
+  const boardId = document.getElementById('students-add-board')?.value || '';
   const msg = document.getElementById('students-add-msg');
+  const btn = document.querySelector('#students-add .st-add-submit');
   const setMsg = (text, isErr, isOk) => {
     if (!msg) return;
     msg.textContent = text;
     msg.className = 'st-add-msg' + (isErr ? ' err' : isOk ? ' ok' : '');
   };
-  if (!email) return;
-  if (!boardId) return setMsg('Create a board first - students are added to a board.', true);
-
-  setMsg('Adding…');
+  if (!name) { setMsg('Add the student’s name.', true); return; }
+  if (boardId && !email) { setMsg('To invite them to the board, add their email - or pick “Not on a board yet”.', true); return; }
+  const payload = {
+    name, email,
+    level: _segVal('students-add-level') || 'B1',
+    format: _segVal('students-add-format') || 'individual',
+    lessons_left: Math.max(0, parseInt(val('students-add-pkg'), 10) || 0),
+    telegram: val('students-add-tg'), phone: val('students-add-phone'),
+  };
+  const auth = { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken };
+  if (btn) btn.disabled = true;
+  setMsg('Saving…');
   try {
-    const r = await fetch(API_BASE + `/api/members/${encodeURIComponent(boardId)}/invite`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
-      body: JSON.stringify({ email, role: 'student' }),
+    // 1) Журнал учителя: уровень, формат, пакет, контакты. Та же почта - обновляем.
+    const same = email && STUDENTS.find(s => s.journal_id && (s.email || '').toLowerCase() === email.toLowerCase());
+    const jr = await fetch(API_BASE + (same ? `/api/journal/${encodeURIComponent(same.journal_id)}` : '/api/journal'), {
+      method: same ? 'PATCH' : 'POST', headers: auth, body: JSON.stringify(payload),
     });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) return setMsg(d.error || `Could not add (HTTP ${r.status})`, true);
+    if (!jr.ok) { const d = await jr.json().catch(() => ({})); setMsg(d.error || `Could not save (HTTP ${jr.status})`, true); return; }
 
-    /* No account with this email yet: the server created an invitation that
-       seats them on the board as soon as they sign up. */
-    if (d.invited) {
-      document.getElementById('students-add-email').value = '';
-      if (!msg) return;
-      msg.className = 'st-add-msg ok';
-      msg.innerHTML = d.emailSent
-        ? `✓ Invitation sent to <b>${escHtmlStudents(d.email)}</b>. They join this board as soon as they sign up.`
-        : `<b>${escHtmlStudents(d.email)}</b> has no account yet - send them this invitation link. They join this board as soon as they sign up.`
-          + ` <button type="button" class="st-add-copy">Copy invite link</button>`;
-      msg.querySelector('.st-add-copy')?.addEventListener('click', async (ev) => {
-        try { await navigator.clipboard.writeText(d.inviteUrl); ev.target.textContent = 'Copied ✓'; }
-        catch { prompt('Copy the invitation link:', d.inviteUrl); }
+    // 2) Доска: по почте - сразу на доску или приглашение.
+    let note = `✓ ${name} added with ${payload.lessons_left} lesson${payload.lessons_left === 1 ? '' : 's'}.`;
+    let inviteUrl = '';
+    if (boardId && email) {
+      const r = await fetch(API_BASE + `/api/members/${encodeURIComponent(boardId)}/invite`, {
+        method: 'POST', headers: auth, body: JSON.stringify({ email, role: 'student' }),
       });
-      return;
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) note += ` Board: ${d.error || 'could not add'}.`;
+      else if (d.invited) {
+        if (d.emailSent) note += ` Invitation sent to ${d.email}.`;
+        else { note += ` ${d.email} has no account yet - send them the invite link.`; inviteUrl = d.inviteUrl || ''; }
+      } else note += ' Joined the board.';
     }
-
-    const added = d.member || {};
-    const existing = STUDENTS.find(s => String(s.id) === String(added.id));
-    if (existing) existing.boardCount++;
-    else STUDENTS.push({ ...added, boardCount: 1 });
-    STUDENTS.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    studentsSelectedId = added.id || studentsSelectedId;
-    studentsRender();
-    updateStudentSidebar();
-    if (typeof rebuildSpotlightStudents === 'function') rebuildSpotlightStudents();
-    setMsg(`✓ ${added.name || email} added to the board.`, false, true);
-    document.getElementById('students-add-email').value = '';
+    await studentsReloadRoster({ email, name });
+    ['students-add-name', 'students-add-email', 'students-add-tg', 'students-add-phone'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    setMsg(note, false, true);
+    msg?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (inviteUrl && msg) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'st-add-copy'; b.textContent = 'Copy invite link';
+      b.onclick = async () => { try { await navigator.clipboard.writeText(inviteUrl); b.textContent = 'Copied ✓'; } catch { prompt('Copy the invitation link:', inviteUrl); } };
+      msg.append(' ', b);
+    }
   } catch {
-    setMsg('Network error - student not added.', true);
-  }
+    setMsg('Network error - student not saved.', true);
+  } finally { if (btn) btn.disabled = false; }
 }
 
 /* A join link for the selected board: one link for the whole class, sent

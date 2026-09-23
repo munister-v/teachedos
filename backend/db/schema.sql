@@ -726,3 +726,39 @@ CREATE INDEX IF NOT EXISTS idx_invites_board_pending ON invites (LOWER(email)) W
 -- whoever opens it and signs in lands on the board as a student.
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS join_token TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_boards_join_token ON boards (join_token) WHERE join_token IS NOT NULL;
+
+-- ── Student setup + booking (24.09.2026) ────────────────────────────────────
+-- Students window: the "+" form keeps the teacher's own record of the student
+-- (format, contacts) next to level and lesson package in the journal.
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS format VARCHAR(12);
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS telegram VARCHAR(64);
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS phone VARCHAR(32);
+
+-- Weekly availability: 'open' = students may book it through the teacher's
+-- booking link, 'busy' = personal time, never offered. Days are 0=Mon like
+-- the schedule table; times are in the teacher's own time zone.
+CREATE TABLE IF NOT EXISTS schedule_blocks (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day        SMALLINT NOT NULL CHECK (day BETWEEN 0 AND 6),
+  start_time TIME NOT NULL,
+  end_time   TIME NOT NULL,
+  kind       VARCHAR(8) NOT NULL CHECK (kind IN ('open','busy')),
+  label      VARCHAR(80),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_schedule_blocks_user ON schedule_blocks(user_id, day);
+-- One public booking link per teacher (rotating it kills the old one).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS booking_token TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_booking_token ON users(booking_token) WHERE booking_token IS NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS booking_minutes SMALLINT NOT NULL DEFAULT 60;
+-- A class a student booked themselves: who, so the teacher can reach them.
+ALTER TABLE schedule ADD COLUMN IF NOT EXISTS booked_by_email VARCHAR(255);
+-- One-off classes saved from the week grid were stored a day early for
+-- teachers east of UTC (the page built the date with toISOString, which
+-- turns local midnight into the previous UTC day). Their `day` column was
+-- right, so a date whose weekday is exactly one day before `day` is that bug:
+-- move it forward. Idempotent - fixed rows no longer match.
+UPDATE schedule SET specific_date = specific_date + 1
+ WHERE specific_date IS NOT NULL
+   AND (EXTRACT(ISODOW FROM specific_date)::int - 1) = ((day + 6) % 7);

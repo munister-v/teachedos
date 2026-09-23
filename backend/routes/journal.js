@@ -5,6 +5,9 @@ const { createNotification } = require('./notifications');
 
 router.use(requireAuth);
 
+/* Контакт из формы: пусто -> null, иначе обрезанная строка. */
+const cleanContact = (v, max) => { const s = String(v ?? '').trim(); return s ? s.slice(0, max) : null; };
+
 /* ── JOURNAL ── */
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
@@ -21,13 +24,15 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, email='', level='A2', lessons_left=0, payment_due=null } = req.body;
+  const { name, email='', level='A2', lessons_left=0, payment_due=null, format=null, telegram=null, phone=null } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
   if (payment_due && !/^\d{4}-\d{2}-\d{2}$/.test(String(payment_due))) return res.status(400).json({ error: 'payment_due must be YYYY-MM-DD' });
+  const fmt = ['individual', 'group'].includes(format) ? format : null;
   const { rows } = await pool.query(
-    `INSERT INTO student_journal (teacher_id,name,email,level,lessons_left,payment_due)
-     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-    [req.user.id, name.trim(), email.trim(), level, lessons_left, payment_due || null]
+    `INSERT INTO student_journal (teacher_id,name,email,level,lessons_left,payment_due,format,telegram,phone)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+    [req.user.id, name.trim(), email.trim(), level, Math.max(0, parseInt(lessons_left, 10) || 0), payment_due || null,
+     fmt, cleanContact(telegram, 64), cleanContact(phone, 32)]
   );
   res.status(201).json({ student: rows[0] });
 });
@@ -137,8 +142,11 @@ router.post('/:id/remind', async (req, res) => {
 });
 
 router.patch('/:id', async (req, res) => {
-  const { name, email, level, lessons_left, notes, payment_due } = req.body;
+  const { name, email, level, lessons_left, notes, payment_due, format, telegram, phone } = req.body;
   const sets=[]; const p=[req.params.id, req.user.id];
+  if (format!==undefined)       { p.push(['individual','group'].includes(format) ? format : null); sets.push(`format=$${p.length}`); }
+  if (telegram!==undefined)     { p.push(cleanContact(telegram, 64)); sets.push(`telegram=$${p.length}`); }
+  if (phone!==undefined)        { p.push(cleanContact(phone, 32));    sets.push(`phone=$${p.length}`); }
   if (name!==undefined)         { p.push(name);         sets.push(`name=$${p.length}`); }
   if (email!==undefined)        { p.push(email);        sets.push(`email=$${p.length}`); }
   if (level!==undefined)        { p.push(level);        sets.push(`level=$${p.length}`); }

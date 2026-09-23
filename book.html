@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24282C">
+<meta name="robots" content="noindex">
+<title>TeachEd - Book a lesson</title>
+<link rel="icon" type="image/png" href="logo-sm.png"/>
+<link rel="stylesheet" href="styles/teached-brand.css?v=956">
+<link rel="stylesheet" href="styles/controls.css?v=956">
+<link rel="stylesheet" href="styles/invite-page.css?v=956">
+<style>
+  /* Страница бронирования по ссылке учителя (routes/booking.js). Ученику не
+     нужен аккаунт: день -> время -> имя и почта -> готово. Цвета листа. */
+  .bk-days { display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px; margin:0 -2px 6px; scrollbar-width:none; }
+  .bk-days::-webkit-scrollbar { display:none; }
+  .bk-day { flex:0 0 auto; min-width:64px; min-height:64px; border-radius:14px; border:1px solid rgba(36,40,44,.14);
+    background:#FFFFFF; color:#24282C; font:600 12px/1.2 var(--te-font, inherit); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+  .bk-day b { font-size:19px; font-weight:750; }
+  .bk-day[aria-pressed="true"] { background:#CDF649; border-color:#24282C; }
+  .bk-day:focus-visible, .bk-time:focus-visible { outline:2px solid #24282C; outline-offset:2px; }
+  .bk-times { display:grid; grid-template-columns:repeat(auto-fill, minmax(86px, 1fr)); gap:8px; margin-bottom:6px; }
+  .bk-time { min-height:44px; border-radius:12px; border:1.5px dashed #5D614B; background:rgba(205,246,73,.28); color:#24282C;
+    font:650 15px/1 var(--te-font, inherit); cursor:pointer; }
+  .bk-time[aria-pressed="true"] { background:#CDF649; border-style:solid; border-color:#24282C; }
+  .bk-h { font-size:13px; font-weight:700; color:#24282C; margin:14px 0 8px; }
+  .bk-form { display:none; flex-direction:column; gap:6px; margin-top:6px; }
+  .bk-form.show { display:flex; }
+  .bk-form label { font-size:12px; font-weight:600; color:#5D614B; margin-top:4px; }
+  .bk-form input, .bk-form textarea { min-height:46px; border-radius:12px; border:1px solid rgba(36,40,44,.35); padding:10px 12px; font:500 16px var(--te-font, inherit); color:#24282C; background:#FFFFFF; }
+  .bk-form textarea { min-height:70px; resize:vertical; }
+  .bk-empty { padding:18px 4px 8px; color:#5D614B; font-size:14px; line-height:1.5; }
+  .bk-done { text-align:center; padding:10px 0 4px; }
+  .bk-done-h { margin:6px 0 0; font-size:26px; font-weight:750; letter-spacing:-.03em; color:#24282C; }
+  .bk-when { display:inline-block; margin:10px 0 4px; padding:10px 14px; border-radius:12px; background:#F6F6EF; border:1px solid rgba(36,40,44,.12); font-weight:650; color:#24282C; }
+</style>
+</head>
+<body>
+  <main class="ip-card is-loading" id="card">
+    <header class="ip-head">
+      <div class="ip-top">
+        <a class="ip-logo" href="/"><img src="logo-sm.png" alt="">TeachEd</a>
+        <span class="ip-chip" id="chip">Book a lesson</span>
+      </div>
+      <div class="ip-from">
+        <div class="ip-ava" id="ava">TE</div>
+        <div class="ip-from-text" id="from"><b>Your teacher</b>shares their free time</div>
+      </div>
+      <h1 class="ip-title" id="title">Loading free times</h1>
+      <p class="ip-sub" id="sub" hidden></p>
+    </header>
+
+    <section class="ip-body" id="body">
+      <div id="pick" hidden>
+        <div class="bk-h">Pick a day</div>
+        <div class="bk-days" id="days" role="group" aria-label="Days"></div>
+        <div class="bk-h" id="times-h">Pick a time</div>
+        <div class="bk-times" id="times" role="group" aria-labelledby="times-h"></div>
+
+        <form class="bk-form" id="form" novalidate>
+          <label for="f-name">Your name</label>
+          <input id="f-name" autocomplete="name" maxlength="80" required>
+          <label for="f-email">Email - the confirmation goes here</label>
+          <input id="f-email" type="email" autocomplete="email" maxlength="255" required>
+          <label for="f-note">Anything your teacher should know? (optional)</label>
+          <textarea id="f-note" maxlength="500" placeholder="Level, goals, topic…"></textarea>
+          <div class="ip-actions" style="margin-top:8px">
+            <button class="ip-btn primary" type="submit" id="go">Book this time</button>
+          </div>
+        </form>
+      </div>
+      <div class="bk-empty" id="empty" hidden></div>
+      <div class="bk-done" id="done" hidden></div>
+      <div class="ip-status" id="status" role="status" aria-live="polite"></div>
+    </section>
+    <footer class="ip-foot" id="foot">No account needed. Your teacher gets your booking right away.</footer>
+  </main>
+
+<script>
+const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const WD = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+let DATA = null, pickedDate = '', pickedTime = '';
+
+const dayLabel = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }); };
+const shortMonth = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }); };
+
+function dead(title, sub) {
+  $('card').classList.remove('is-loading');
+  $('card').classList.add('is-dead');
+  $('chip').textContent = 'Link not active';
+  $('title').textContent = title;
+  $('sub').textContent = sub; $('sub').hidden = false;
+  $('pick').hidden = true;
+}
+
+async function load() {
+  if (!/^[0-9a-f]{24}$/.test(TOKEN)) return dead('This link is incomplete', 'Open the whole booking link your teacher sent you.');
+  let r, d;
+  try { r = await fetch(`${API}/api/booking/public/${TOKEN}`); d = await r.json(); }
+  catch { return dead('Could not load free times', 'Check your connection and try again.'); }
+  if (!r.ok) return dead('This booking link is not active', 'Ask your teacher for a new link.');
+  DATA = d;
+  $('card').classList.remove('is-loading');
+  const t = d.teacher || {};
+  const face = t.avatar && !/^https?:/i.test(t.avatar) ? t.avatar : (t.name || 'T').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  $('ava').textContent = face;
+  $('from').innerHTML = `<b>${esc(t.name || 'Your teacher')}</b>shares their free time`;
+  $('title').textContent = `Book a lesson with ${(t.name || 'your teacher').split(/\s+/)[0]}`;
+  $('sub').textContent = `${d.minutes}-minute lessons · times shown in ${d.timezone.replace(/_/g, ' ')}`;
+  $('sub').hidden = false;
+  if (!d.days.length) {
+    $('empty').hidden = false;
+    $('empty').textContent = 'No free times in the next two weeks. Check back later or message your teacher.';
+    return;
+  }
+  $('pick').hidden = false;
+  $('days').innerHTML = d.days.map(x => {
+    const [, , dd] = x.date.split('-');
+    return `<button type="button" class="bk-day" data-d="${x.date}" aria-pressed="false" aria-label="${esc(dayLabel(x.date))}">${WD[x.weekday]}<b>${+dd}</b>${shortMonth(x.date)}</button>`;
+  }).join('');
+  $('days').addEventListener('click', e => { const b = e.target.closest('.bk-day'); if (b) pickDay(b.dataset.d); });
+  pickDay(d.days[0].date);
+}
+
+function pickDay(date) {
+  pickedDate = date; pickedTime = '';
+  document.querySelectorAll('.bk-day').forEach(b => b.setAttribute('aria-pressed', b.dataset.d === date ? 'true' : 'false'));
+  const day = DATA.days.find(x => x.date === date);
+  $('times-h').textContent = `Free times · ${dayLabel(date)}`;
+  $('times').innerHTML = day.slots.map(s => `<button type="button" class="bk-time" data-t="${s}" aria-pressed="false">${s}</button>`).join('');
+  $('times').onclick = e => { const b = e.target.closest('.bk-time'); if (b) pickTime(b.dataset.t); };
+  $('form').classList.remove('show');
+  $('status').textContent = '';
+}
+
+function pickTime(t) {
+  pickedTime = t;
+  document.querySelectorAll('.bk-time').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t ? 'true' : 'false'));
+  $('form').classList.add('show');
+  $('go').textContent = `Book ${t}, ${dayLabel(pickedDate)}`;
+  $('f-name').focus();
+}
+
+$('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('f-name').value.trim(), email = $('f-email').value.trim();
+  if (!name) { $('status').textContent = 'Please enter your name.'; $('f-name').focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { $('status').textContent = 'Please enter a valid email.'; $('f-email').focus(); return; }
+  $('go').disabled = true; $('status').textContent = 'Booking…';
+  try {
+    const r = await fetch(`${API}/api/booking/public/${TOKEN}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: pickedDate, start: pickedTime, name, email, note: $('f-note').value.trim() }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      $('status').textContent = d.error || 'Could not book. Try again.';
+      if (r.status === 409) { await reloadSlots(); }
+      return;
+    }
+    $('pick').hidden = true;
+    $('status').textContent = '';
+    $('chip').textContent = 'Booked';
+    $('done').hidden = false;
+    $('done').innerHTML = `<h2 class="bk-done-h">You are booked</h2>
+      <div class="bk-when">${esc(dayLabel(d.date))} · ${esc(d.start)}-${esc(d.end)}</div>
+      <p class="ip-sub" style="color:#5D614B">Times in ${esc(String(d.timezone).replace(/_/g, ' '))}. A confirmation is on its way to ${esc(email)}, and your teacher will send the lesson link.</p>`;
+    $('foot').textContent = 'Need another time? Open the same link again.';
+  } catch { $('status').textContent = 'Network error - not booked. Try again.'; }
+  finally { $('go').disabled = false; }
+});
+
+async function reloadSlots() {
+  try {
+    const r = await fetch(`${API}/api/booking/public/${TOKEN}`); if (!r.ok) return;
+    DATA = await r.json();
+    if (DATA.days.find(x => x.date === pickedDate)) pickDay(pickedDate); else if (DATA.days[0]) pickDay(DATA.days[0].date);
+  } catch (_) {}
+}
+
+load();
+</script>
+</body>
+</html>

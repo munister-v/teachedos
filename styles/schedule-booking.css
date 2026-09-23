@@ -1,0 +1,98 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   schedule-booking.css — открытые часы, личное время, меню клика по сетке и
+   окно «Share booking link» (scripts/schedule-booking.js). Только цвета
+   листа заказчицы: лайм CDF649 / D3F36B, чернила 24282C, олива 5D614B,
+   бумага F6F6EF, серый CACCC6, небесный 3F9FFF (с чернильным текстом).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Панель над сеткой: подсказка + кнопка ссылки */
+.scb-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+.bk-share-btn {
+  display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:0 14px;
+  border:0; border-radius:999px; background:#3F9FFF; color:#24282C;
+  font:650 13px/1 var(--font, inherit); cursor:pointer; white-space:nowrap;
+  box-shadow:0 4px 12px rgba(36,40,44,.12); transition:transform .12s, filter .12s;
+}
+.bk-share-btn:hover { transform:translateY(-1px); filter:brightness(1.05); }
+.bk-share-btn:focus-visible { outline:2px solid #24282C; outline-offset:2px; }
+.bk-share-btn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* Блоки в колонках - под уроками */
+.bk-block {
+  position:absolute; left:3px; right:3px; border-radius:10px; z-index:1;
+  overflow:hidden; cursor:pointer; box-sizing:border-box;
+  display:flex; align-items:flex-start; padding:5px 7px;
+}
+.bk-block.open {
+  background:rgba(205,246,73,.30);
+  border:1.5px dashed #5D614B;
+}
+.bk-block.busy {
+  background:repeating-linear-gradient(135deg, rgba(36,40,44,.07) 0 6px, rgba(246,246,239,.9) 6px 12px);
+  border:1px solid rgba(36,40,44,.20);
+}
+.bk-block:hover { box-shadow:0 0 0 2px rgba(36,40,44,.18); }
+.bk-tag {
+  font-size:10.5px; font-weight:650; line-height:1.2; color:#24282C;
+  background:rgba(255,255,255,.86); border-radius:6px; padding:2px 6px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+.cls-block { z-index:2; }
+
+/* Выделение диапазона */
+.bk-select {
+  position:absolute; left:3px; right:3px; z-index:3; pointer-events:none;
+  border-radius:10px; background:rgba(205,246,73,.45); border:2px solid #24282C;
+  font:650 11px/1 var(--font, inherit); color:#24282C; padding:6px 7px; box-sizing:border-box;
+}
+
+/* Меню действий */
+.bk-menu {
+  position:fixed; z-index:3000; width:280px; padding:14px;
+  background:#FFFFFF; border:1px solid rgba(36,40,44,.12); border-radius:16px;
+  box-shadow:0 18px 44px rgba(36,40,44,.18); font-family:var(--font, inherit);
+  animation:bkIn .14s ease-out;
+}
+@keyframes bkIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+.bk-menu-h { font-size:14px; font-weight:700; color:#24282C; margin-bottom:10px; letter-spacing:-.01em; }
+.bk-menu-acts { display:grid; gap:6px; }
+.bk-menu-acts[hidden], .bk-label[hidden] { display:none; }
+.bk-act {
+  display:flex; align-items:center; gap:9px; min-height:40px; padding:0 12px;
+  border:1px solid rgba(36,40,44,.12); border-radius:11px; background:#FFFFFF;
+  color:#24282C; font:600 13px/1 var(--font, inherit); cursor:pointer; text-align:left;
+}
+.bk-act:hover { background:#F6F6EF; }
+.bk-act:focus-visible { outline:2px solid #24282C; outline-offset:1px; }
+.bk-act.open { background:rgba(205,246,73,.35); }
+.bk-act.open:hover { background:rgba(205,246,73,.55); }
+.bk-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.bk-dot.add { background:#24282C; }
+.bk-dot.open { background:#CDF649; box-shadow:inset 0 0 0 1.5px #5D614B; }
+.bk-dot.busy { background:repeating-linear-gradient(135deg, #5D614B 0 2px, #F6F6EF 2px 4px); box-shadow:inset 0 0 0 1px #5D614B; }
+.bk-dot.clear { background:#FFFFFF; box-shadow:inset 0 0 0 1.5px #CACCC6; }
+.bk-label { display:grid; gap:6px; font-size:12px; color:#5D614B; }
+.bk-label input { min-height:38px; border-radius:10px; border:1px solid rgba(36,40,44,.3); padding:0 10px; font:500 14px var(--font, inherit); color:#24282C; }
+.bk-label-go { min-height:38px; border:0; border-radius:10px; background:#24282C; color:#FFFFFF; font:650 13px var(--font, inherit); cursor:pointer; }
+.bk-menu-note { margin-top:10px; font-size:11.5px; line-height:1.45; color:#5D614B; }
+
+/* Окно ссылки */
+.bk-share-ov { position:fixed; inset:0; z-index:3100; background:rgba(36,40,44,.38); display:grid; place-items:center; padding:16px; }
+.bk-share {
+  position:relative; width:min(460px, 100%); padding:24px 24px 18px; border-radius:20px;
+  background:#FFFFFF; box-shadow:0 30px 70px rgba(36,40,44,.28); font-family:var(--font, inherit); color:#24282C;
+}
+.bk-share h2 { margin:0 0 8px; font-size:20px; font-weight:750; letter-spacing:-.02em; }
+.bk-share p { margin:0 0 12px; font-size:13.5px; line-height:1.5; color:#5D614B; }
+.bk-share .bk-warn { color:#24282C; background:rgba(255,228,77,.45); border-radius:10px; padding:9px 11px; }
+.bk-x { position:absolute; top:12px; right:12px; width:32px; height:32px; border:0; border-radius:50%; background:#F6F6EF; color:#24282C; font-size:20px; line-height:1; cursor:pointer; }
+.bk-url { display:flex; gap:8px; margin:6px 0 12px; }
+.bk-url input { flex:1; min-width:0; min-height:42px; border-radius:11px; border:1px solid rgba(36,40,44,.3); padding:0 12px; font:500 13px var(--font, inherit); color:#24282C; background:#F6F6EF; }
+.bk-copy { min-height:42px; padding:0 16px; border:0; border-radius:11px; background:#CDF649; color:#24282C; font:650 13px var(--font, inherit); cursor:pointer; }
+.bk-send { display:flex; gap:8px; flex-wrap:wrap; }
+.bk-send-btn { flex:1; min-width:110px; display:inline-flex; align-items:center; justify-content:center; min-height:40px; border-radius:11px; border:1px solid rgba(36,40,44,.14); background:#FFFFFF; color:#24282C; font:650 13px var(--font, inherit); text-decoration:none; }
+.bk-send-btn:hover { background:#F6F6EF; }
+.bk-send-btn.tg { box-shadow:inset 4px 0 0 #229ED9; }
+.bk-send-btn.wa { box-shadow:inset 4px 0 0 #25D366; }
+.bk-foot { margin-top:14px; font-size:12px; color:#5D614B; }
+.bk-rotate { border:0; background:none; padding:0; color:#24282C; font:650 12px var(--font, inherit); text-decoration:underline; cursor:pointer; }

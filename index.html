@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=951"></script>
+<script src="scripts/phone-gate.js?v=956"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=951">
-<link rel="preload" as="style" href="styles/harmony.css?v=951">
-<link rel="preload" as="style" href="styles/unify.css?v=951">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=951">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=951">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=951">
-<link rel="preload" as="style" href="styles/controls.css?v=951">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=951">
+<link rel="preload" as="style" href="styles/mobile.css?v=956">
+<link rel="preload" as="style" href="styles/harmony.css?v=956">
+<link rel="preload" as="style" href="styles/unify.css?v=956">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=956">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=956">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=956">
+<link rel="preload" as="style" href="styles/controls.css?v=956">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=956">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=951">
+<link rel="manifest" href="manifest.json?v=956">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -85,8 +85,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=951">
-<link rel="stylesheet" href="styles/main.css?v=951">
+<link rel="stylesheet" href="styles/tokens.css?v=956">
+<link rel="stylesheet" href="styles/main.css?v=956">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1198,6 +1198,28 @@ html,body {
 .st-add-msg.err { color: var(--te-coral, #FF4E00); }
 .st-add-msg.ok { color: var(--te-ink, #24282C); }
 .st-add-msg b { color: var(--te-ink, #24282C); }
+/* Форма «Student details & setup»: сегменты уровня и формата, пакет уроков
+   со степпером, контакты под раскрывашкой. Только цвета листа. */
+.st-opt { font-weight:500; color: var(--text-3); text-transform:none; letter-spacing:0; }
+.st-seg { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:4px; padding:3px; border-radius:12px; background:#FFFFFF; border:1px solid rgba(36,40,44,.12); }
+.st-seg-2 { grid-template-columns:1fr 1fr; }
+.st-seg button { min-height:34px; border:0; border-radius:9px; background:transparent; color:#24282C; font:600 12.5px/1 var(--font-ui, inherit); cursor:pointer; transition:background .12s; }
+.st-seg button:hover { background:rgba(36,40,44,.06); }
+.st-seg button[aria-checked="true"] { background:#CDF649; box-shadow:0 1px 2px rgba(36,40,44,.12); }
+.st-seg button:focus-visible { outline:2px solid #24282C; outline-offset:1px; }
+.st-pkg { display:grid; grid-template-columns:40px 1fr 40px; gap:6px; }
+.st-pkg .st-add-input { text-align:center; font-weight:650; }
+.st-pkg-btn { border:1px solid rgba(36,40,44,.18); border-radius:10px; background:#fff; color:#24282C; font:600 18px/1 var(--font-ui, inherit); cursor:pointer; }
+.st-pkg-btn:hover { background:#F6F6EF; }
+.st-more { border-top:1px solid rgba(36,40,44,.1); padding-top:8px; }
+.st-more summary { cursor:pointer; font-size:12.5px; font-weight:600; color:#24282C; list-style:none; }
+.st-more summary::-webkit-details-marker { display:none; }
+.st-more summary::before { content:'+'; display:inline-block; width:14px; font-weight:700; }
+.st-more[open] summary::before { content:'−'; }
+.st-more[open] { display:flex; flex-direction:column; gap:6px; }
+.st-add-submit { margin-top:8px; min-height:42px; border:0; border-radius:12px; background:#CDF649; color:#24282C; font:650 14px/1 var(--font-ui, inherit); cursor:pointer; }
+.st-add-submit:hover { background:#D3F36B; }
+.st-add-submit[disabled] { opacity:.6; cursor:default; }
 .st-add-link {
   display:flex; align-items:center; justify-content:center; gap:8px; height:44px; margin-top:2px;
   border:1px solid var(--te-ink, #24282C); border-radius:14px; background: var(--te-lime, #CDF649);
@@ -1318,6 +1340,30 @@ html,body {
 }
 .st-detail-btn.primary:hover { filter:brightness(.96); background: var(--te-lime, #CDF649); }
 .st-detail-empty { color: var(--text-3); font-size:12px; padding-top:64px; line-height:1.6; }
+/* Карточка ученика по макету: статус + уровень, финансовый блок, контакты.
+   Пары цветов листа: олива/белый 6.4, лаванда/чернила 5.2, персик/чернила,
+   оранжевый/чернила, серый/чернила, чернила/белый - все >= 4.5:1. */
+.st-badges { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin:12px 0 14px; }
+.st-badge { display:inline-flex; align-items:center; min-height:24px; padding:0 10px; border-radius:999px; font-size:11.5px; font-weight:650; }
+.st-badge.active  { background:#5D614B; color:#FFFFFF; }
+.st-badge.invited { background:#9F8CE8; color:#24282C; }
+.st-badge.quiet   { background:#CACCC6; color:#24282C; }
+.st-badge.due     { background:#F3A46B; color:#24282C; }
+.st-badge.low     { background:#FF8C3A; color:#24282C; }
+.st-badge.level   { background:#24282C; color:#FFFFFF; }
+.st-fin { text-align:left; padding:14px 14px 12px; border-radius:14px; background:#FFFFFF; border:1px solid rgba(36,40,44,.12); margin-bottom:14px; }
+.st-fin-h { font-size:13px; font-weight:700; color:#24282C; margin-bottom:6px; }
+.st-fin-k { font-size:11.5px; color:#5D614B; line-height:1.45; }
+.st-fin-n { font-size:13px; color:#5D614B; margin:2px 0 8px; }
+.st-fin-n b { font-size:34px; font-weight:750; letter-spacing:-.04em; color:#24282C; margin-right:4px; }
+.st-fin-f { display:flex; align-items:center; gap:6px; font-size:12px; color:#24282C; }
+.st-fin-f .ic { width:15px; height:15px; }
+.st-fin.is-empty .st-detail-btn { margin-top:10px; width:100%; }
+.st-contacts { display:flex; justify-content:center; gap:10px; margin-top:14px; }
+.st-contact { width:34px; height:34px; border-radius:50%; display:block; transition:transform .12s; }
+.st-contact svg { width:34px; height:34px; display:block; }
+.st-contact:hover { transform:translateY(-2px); }
+.st-contact:focus-visible { outline:2px solid #24282C; outline-offset:2px; }
 .st-detail-empty .st-empty-ic { width:46px; height:46px; }
 @media (max-width: 860px) { .st-detail { display:none; } }
 #win-schedule .studio-actions .studio-chip.secondary { display:none; }
@@ -1836,10 +1882,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=951" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=951">
-<link rel="stylesheet" href="styles/harmony.css?v=951">
-<link rel="stylesheet" href="styles/unify.css?v=951">
+<script src="theme.js?v=956" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=956">
+<link rel="stylesheet" href="styles/harmony.css?v=956">
+<link rel="stylesheet" href="styles/unify.css?v=956">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1847,15 +1893,15 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=951">
+<link rel="stylesheet" href="styles/teached-brand.css?v=956">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=951">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=951">
-<link rel="stylesheet" href="styles/controls.css?v=951">
+<link rel="stylesheet" href="styles/figma-theme.css?v=956">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=956">
+<link rel="stylesheet" href="styles/controls.css?v=956">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=951">
+<link rel="stylesheet" href="styles/figma-concept.css?v=956">
 <!-- Фон, чип аккаунта, библиотека заданий, Student Pulse. После концепта: новые узлы. -->
-<link rel="stylesheet" href="styles/desktop-extras.css?v=951">
+<link rel="stylesheet" href="styles/desktop-extras.css?v=956">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -2288,23 +2334,54 @@ html,body {
                ссылкой на всю группу. Доска общая для обеих, поэтому выбирается
                первой, а не прячется между полем почты и кнопкой. -->
           <form class="st-add-card" id="students-add" hidden onsubmit="studentsAddSubmit(event)">
-            <div class="st-add-title">Add students</div>
+            <div class="st-add-title">Student details &amp; setup</div>
+
+            <label class="st-add-label" for="students-add-name">Full name</label>
+            <input class="st-add-input" id="students-add-name" type="text" placeholder="e.g. Olena Kovalenko" autocomplete="off" required maxlength="80">
+
+            <label class="st-add-label" for="students-add-email">Email <span class="st-opt">to invite them to a board</span></label>
+            <input class="st-add-input" id="students-add-email" type="email" placeholder="student@email.com" autocomplete="off">
+
+            <div class="st-add-label">Level</div>
+            <div class="st-seg" id="students-add-level" role="radiogroup" aria-label="Level">
+              <button type="button" role="radio" aria-checked="false" data-v="A1">A1</button>
+              <button type="button" role="radio" aria-checked="false" data-v="A2">A2</button>
+              <button type="button" role="radio" aria-checked="true" data-v="B1">B1</button>
+              <button type="button" role="radio" aria-checked="false" data-v="B2">B2</button>
+              <button type="button" role="radio" aria-checked="false" data-v="C1">C1</button>
+              <button type="button" role="radio" aria-checked="false" data-v="C2">C2</button>
+            </div>
+
+            <div class="st-add-label">Format</div>
+            <div class="st-seg st-seg-2" id="students-add-format" role="radiogroup" aria-label="Format">
+              <button type="button" role="radio" aria-checked="true" data-v="individual">Individual</button>
+              <button type="button" role="radio" aria-checked="false" data-v="group">Group</button>
+            </div>
+
+            <label class="st-add-label" for="students-add-pkg">Initial lessons package</label>
+            <div class="st-pkg">
+              <button type="button" class="st-pkg-btn" aria-label="Fewer lessons" onclick="studentsPkgStep(-1)">−</button>
+              <input class="st-add-input" id="students-add-pkg" type="number" min="0" max="200" step="1" value="8" inputmode="numeric">
+              <button type="button" class="st-pkg-btn" aria-label="More lessons" onclick="studentsPkgStep(1)">+</button>
+            </div>
+
+            <details class="st-more">
+              <summary>Contacts (optional)</summary>
+              <label class="st-add-label" for="students-add-tg">Telegram</label>
+              <input class="st-add-input" id="students-add-tg" type="text" placeholder="@username" autocomplete="off" maxlength="64">
+              <label class="st-add-label" for="students-add-phone">WhatsApp</label>
+              <input class="st-add-input" id="students-add-phone" type="tel" placeholder="+380 67 123 45 67" autocomplete="off" maxlength="32">
+            </details>
 
             <label class="st-add-label" for="students-add-board">Board</label>
             <select class="st-add-input" id="students-add-board"></select>
+            <div class="st-add-hint">With an email and a board: has an account - joins right away, no account yet - gets an invitation.</div>
+
+            <button class="st-add-submit" type="submit">Add student</button>
+            <div class="st-add-msg" id="students-add-msg" role="status" aria-live="polite"></div>
 
             <div class="st-add-part">
-              <label class="st-add-label" for="students-add-email">By email</label>
-              <div class="st-add-inline">
-                <input class="st-add-input" id="students-add-email" type="email" placeholder="student@email.com" autocomplete="off" required>
-                <button class="st-add-go" type="submit">Add</button>
-              </div>
-              <div class="st-add-hint">Has an account - joins right away. No account yet - gets an email invitation.</div>
-              <div class="st-add-msg" id="students-add-msg" role="status" aria-live="polite"></div>
-            </div>
-
-            <div class="st-add-part">
-              <div class="st-add-label">Join link</div>
+              <div class="st-add-label">Or one join link for the whole class</div>
               <div class="st-add-hint">One link for the whole class - send it in any chat. Whoever opens it and signs in joins this board.</div>
               <button class="st-add-link" id="students-link-make" type="button" onclick="studentsJoinLink()">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
@@ -2641,8 +2718,8 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=951"></script>
-<script src="scripts/desktop-extras.js?v=951"></script>
+<script src="scripts/desktop-app.js?v=956"></script>
+<script src="scripts/desktop-extras.js?v=956"></script>
 
 <script>
 
@@ -2662,8 +2739,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=951" defer></script>
-<script src="pwa-boot.js?v=951" defer></script>
+<script src="scripts/autogrow.js?v=956" defer></script>
+<script src="pwa-boot.js?v=956" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2883,11 +2960,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=951" defer></script>
-<script src="scripts/nav-boost.js?v=951" defer></script>
-<script src="scripts/mobile-perf.js?v=951" defer></script>
-<script src="scripts/mobile-nav.js?v=951" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=951" defer></script>
-  <script src="scripts/signin-entry.js?v=951" defer></script>
+<script src="pwa.js?v=956" defer></script>
+<script src="scripts/nav-boost.js?v=956" defer></script>
+<script src="scripts/mobile-perf.js?v=956" defer></script>
+<script src="scripts/mobile-nav.js?v=956" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=956" defer></script>
+  <script src="scripts/signin-entry.js?v=956" defer></script>
 </body>
 </html>
