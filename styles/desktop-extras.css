@@ -1,0 +1,179 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   desktop-extras.css — узлы, добавленные 23.09.2026 (desktop-extras.js):
+   чип аккаунта, фон рабочего стола, библиотека заданий, Student Pulse.
+   Подключается после figma-concept.css. Селекторы с body.fx и !important
+   там, где тот же узел красят слои концепта (см. teached-desktop-widgets).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Фон ──────────────────────────────────────────────────────────────── */
+body.fx.os-desktop #desktop.has-wall:not(#_) { background: var(--desk-wall) !important; }
+body.fx #desktop.has-wall { transition: background .35s ease; }
+
+/* ── Чип аккаунта ─────────────────────────────────────────────────────── */
+.mb-acct-wrap { position:relative; display:flex; align-items:center; margin:0 6px; }
+.mb-acct {
+  display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 14px 0 4px;
+  border:0; border-radius:999px; background:#F0F0F3; cursor:pointer;
+  font:600 14px/1 var(--font-ui, inherit); color:#161616;
+  transition:background .14s;
+}
+.mb-acct:hover, .mb-acct[aria-expanded="true"] { background:#E6E6EA; }
+.mb-acct:focus-visible { outline:2px solid #161616; outline-offset:2px; }
+.mb-acct-av {
+  width:28px; height:28px; border-radius:50%; background:#161616; color:#fff;
+  display:grid; place-items:center; font-size:15px; line-height:1; flex-shrink:0;
+}
+.mb-acct-av-lg { width:36px; height:36px; font-size:19px; }
+.mb-acct-menu {
+  position:absolute; top:calc(100% + 8px); right:0; z-index:9000; width:248px;
+  background:#fff; border:1px solid rgba(22,22,22,.08); border-radius:16px;
+  box-shadow:0 18px 50px rgba(17,16,24,.18); padding:6px;
+  font-family:var(--font-ui, inherit);
+}
+.mb-acct-menu[hidden] { display:none; }
+.mb-acct-head { display:flex; align-items:center; gap:10px; padding:10px 10px 12px; border-bottom:1px solid rgba(22,22,22,.07); margin-bottom:4px; }
+.mb-acct-who { display:flex; flex-direction:column; min-width:0; }
+.mb-acct-who b { font-size:14px; font-weight:650; color:#161616; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mb-acct-who small { font-size:12px; color:#6B6B73; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mb-acct-item {
+  display:flex; align-items:center; gap:10px; width:100%; min-height:40px; padding:0 10px;
+  border:0; border-radius:10px; background:none; cursor:pointer; text-decoration:none;
+  font:500 14px/1.2 var(--font-ui, inherit); color:#161616; text-align:left;
+}
+.mb-acct-item:hover, .mb-acct-item:focus-visible { background:#F2F2F5; outline:none; }
+.mb-acct-item .ic { width:18px; height:18px; color:#55555C; }
+.mb-acct-item.is-quiet { color:#55555C; }
+.mb-acct-plan { margin-left:auto; font-size:11px; font-weight:650; color:#55555C; background:#F0F0F3; border-radius:999px; padding:3px 8px; }
+.mb-acct-sep { height:1px; background:rgba(22,22,22,.07); margin:4px 6px; }
+
+/* ── Выбор фона ───────────────────────────────────────────────────────── */
+.wp-overlay {
+  position:fixed; inset:0; z-index:9500; display:none; align-items:center; justify-content:center; padding:16px;
+  background:rgba(17,16,24,.5); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+}
+.wp-overlay.open { display:flex; }
+.wp-overlay.is-drop .wp-sheet { outline:3px dashed #A8C21F; outline-offset:-10px; }
+.wp-sheet {
+  width:min(680px, 100%); max-height:90vh; overflow:auto; background:#fff; border-radius:22px; padding:22px;
+  box-shadow:0 30px 80px rgba(17,16,24,.4); font-family:var(--font-ui, inherit);
+  animation:wpIn .18s cubic-bezier(.34,1.3,.64,1);
+}
+@keyframes wpIn { from { transform:translateY(10px) scale(.985); opacity:0; } to { transform:none; opacity:1; } }
+.wp-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.wp-head h2 { margin:0; font-size:19px; font-weight:600; letter-spacing:-.02em; color:#161616; }
+.wp-head p { margin:4px 0 0; font-size:12px; color:#6B7280; }
+.wp-x { width:34px; height:34px; border-radius:11px; border:0; background:rgba(17,24,39,.06); cursor:pointer; display:grid; place-items:center; color:#161616; flex-shrink:0; }
+.wp-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px; }
+.wp-tile { display:flex; flex-direction:column; gap:7px; padding:0; border:0; background:none; cursor:pointer; text-align:left; font:inherit; }
+.wp-swatch {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  aspect-ratio:16/10; width:100%; border-radius:12px; border:1px solid rgba(22,22,22,.10);
+  box-shadow:inset 0 0 0 0 transparent; transition:box-shadow .14s, transform .14s;
+}
+.wp-tile:hover .wp-swatch { transform:translateY(-1px); }
+.wp-tile.is-on .wp-swatch { box-shadow:0 0 0 3px #fff, 0 0 0 5px #161616; }
+.wp-tile:focus-visible { outline:none; }
+.wp-tile:focus-visible .wp-swatch { box-shadow:0 0 0 3px #fff, 0 0 0 5px #A8C21F; }
+.wp-label { font-size:12.5px; font-weight:600; color:#161616; }
+.wp-upload .wp-swatch { background:#F7F7F9; border:1.5px dashed #C4C4CC; color:#55555C; }
+.wp-upload .wp-swatch .ic { width:22px; height:22px; }
+.wp-upload .wp-swatch small { font-size:11px; color:#6B6B73; }
+.wp-note { margin:14px 0 0; font-size:12px; color:#6B7280; }
+
+.desk-ctx {
+  position:fixed; z-index:9400; min-width:220px; padding:5px; background:rgba(255,255,255,.96);
+  border:1px solid rgba(22,22,22,.10); border-radius:10px; box-shadow:0 12px 32px rgba(17,16,24,.18);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+}
+.desk-ctx button { display:block; width:100%; padding:7px 10px; border:0; border-radius:6px; background:none; text-align:left; cursor:pointer; font:500 13px var(--font-ui, inherit); color:#161616; }
+.desk-ctx button:hover, .desk-ctx button:focus-visible { background:#161616; color:#fff; outline:none; }
+
+/* ── Библиотека заданий ───────────────────────────────────────────────── */
+body.fx #win-tools .lib-main { overflow-y:auto; }
+.lib-top { padding:0 24px 14px; }
+.lib-kicker { font-family:var(--font-mono, ui-monospace, monospace); font-size:11px; color:#6B6B73; }
+.lib-title { margin:4px 0 4px; font-size:30px; font-weight:650; letter-spacing:-.03em; color:#161616; line-height:1.1; }
+.lib-sub { margin:0 0 14px; font-size:13px; color:#6B6B73; max-width:520px; }
+.lib-tools { display:flex; gap:8px; flex-wrap:wrap; }
+.lib-search {
+  flex:1 1 240px; display:flex; align-items:center; gap:8px; height:42px; padding:0 14px;
+  border:1px solid rgba(22,22,22,.14); border-radius:999px; background:#fff; color:#55555C;
+}
+.lib-search input, body.fx .lib-search input { flex:1; min-width:0; height:auto !important; padding:0 !important; border:0 !important; outline:0 !important; box-shadow:none !important; border-radius:0 !important; background:none !important; font:500 14px var(--font-ui, inherit); color:#161616; }
+.lib-search:focus-within { border-color:#161616; }
+#lib-skill { height:42px; padding:0 12px; border:1px solid rgba(22,22,22,.14); border-radius:999px; background:#fff; font:500 13px var(--font-ui, inherit); color:#161616; }
+.lib-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px; padding:0 24px 24px; align-content:start; }
+.lib-card {
+  display:flex; flex-direction:column; gap:8px; padding:14px 16px; background:#fff;
+  border:1px solid rgba(22,22,22,.10); border-radius:16px; position:relative; overflow:hidden;
+}
+.lib-card::before { content:''; position:absolute; inset:0 0 auto 0; height:4px; background:#C8E632; }
+.lib-card-top { display:flex; flex-wrap:wrap; gap:4px; }
+.lib-chip { font-size:10.5px; font-weight:650; color:#3A3A40; background:#F0F0F3; border-radius:999px; padding:3px 8px; }
+.lib-card-title { margin:0; font-size:15px; font-weight:650; line-height:1.3; color:#161616; letter-spacing:-.01em; }
+.lib-card-desc { margin:0; font-size:12.5px; line-height:1.45; color:#55555C; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.lib-card-meta { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11.5px; color:#6B6B73; margin-top:auto; }
+.lib-card-meta span { display:inline-flex; align-items:center; gap:4px; }
+.lib-card-meta .ic { width:14px; height:14px; }
+.lib-card-actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.lib-btn {
+  display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 12px; border-radius:999px;
+  border:1px solid rgba(22,22,22,.14); background:#fff; color:#161616; text-decoration:none; cursor:pointer;
+  font:600 12.5px var(--font-ui, inherit);
+}
+.lib-btn:hover { background:#F2F2F5; }
+.lib-btn.is-primary { background:#C8E632; border-color:#C8E632; }
+.lib-btn.is-primary:hover { background:#BCD92B; }
+.lib-icon { margin-left:auto; width:34px; height:34px; border:0; border-radius:10px; background:none; cursor:pointer; color:#6B6B73; display:grid; place-items:center; }
+.lib-icon:hover { background:#FDECEC; color:#B42318; }
+.lib-pick { display:flex; gap:6px; align-items:center; padding-top:4px; font-size:12.5px; color:#55555C; }
+.lib-pick select { flex:1; min-width:0; height:34px; border:1px solid rgba(22,22,22,.14); border-radius:10px; padding:0 8px; font:500 13px var(--font-ui, inherit); background:#fff; }
+.lib-empty { grid-column:1 / -1; display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:28px 4px; font-size:13px; color:#55555C; max-width:480px; line-height:1.5; }
+.lib-empty b { font-size:15px; color:#161616; }
+.lib-side-note { font-size:12px; color:#6B6B73; padding:4px 10px; line-height:1.4; }
+#sidebar-tools .lib-bname { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ── Student Pulse ────────────────────────────────────────────────────── */
+body.fx #wg-pulse {
+  top:360px; right:20px; width:300px !important; height:auto !important; min-height:0 !important;
+  padding:18px 18px 12px !important; display:flex !important; flex-direction:column; gap:10px;
+}
+.wg-pulse-head { display:flex; align-items:center; justify-content:space-between; }
+body.fx #wg-pulse .wg-pulse-title {
+  font-size:12px !important; font-weight:650 !important; letter-spacing:.06em !important;
+  text-transform:uppercase !important; color:#55555C !important; font-family:var(--font-ui, inherit) !important;
+}
+.wg-pulse-all { font-size:12px; font-weight:600; color:#55555C; text-decoration:none; margin-right:30px; }
+.wg-pulse-all:hover { color:#161616; text-decoration:underline; }
+.wg-pulse-list { display:flex; flex-direction:column; gap:12px; }
+.wg-pulse-item { display:flex; gap:11px; align-items:flex-start; }
+.wg-pulse-av {
+  position:relative; flex-shrink:0; width:40px; height:40px; border-radius:50%;
+  background:#EDEDF1; display:grid; place-items:center; font-size:14px; font-weight:650; color:#3A3A40;
+}
+.wg-pulse-av .wp-emoji { font-size:21px; line-height:1; }
+.wg-pulse-dot { position:absolute; top:0; right:-1px; width:10px; height:10px; border-radius:50%; border:2px solid #fff; }
+.wg-pulse-dot.is-red   { background:#E5484D; }
+.wg-pulse-dot.is-amber { background:#F5A524; }
+.wg-pulse-dot.is-grey  { background:#A3A3AB; }
+.wg-pulse-body { min-width:0; flex:1; }
+.wg-pulse-line { font-size:14px; line-height:1.35; color:#3A3A40; }
+.wg-pulse-line b { color:#161616; font-weight:650; }
+.wg-pulse-acts { display:flex; flex-wrap:wrap; gap:2px 12px; margin-top:4px; }
+.wg-pulse-act {
+  display:inline-flex; align-items:center; gap:5px; min-height:28px; padding:0; border:0; background:none; cursor:pointer;
+  font:500 13px var(--font-ui, inherit); color:#55555C; text-decoration:none;
+}
+.wg-pulse-act .ic { width:15px; height:15px; }
+.wg-pulse-act:hover { color:#161616; }
+.wg-pulse-act[disabled] { opacity:.55; cursor:default; }
+.wg-pulse-empty { font-size:13px; line-height:1.45; color:#55555C; }
+.wg-pulse-empty b { color:#161616; }
+.wg-pulse-empty a, .wg-pulse-link { color:#161616; font-weight:600; background:none; border:0; padding:0; cursor:pointer; font:inherit; text-decoration:underline; }
+.wg-pulse-more { font-size:12px; font-weight:600; color:#55555C; text-decoration:none; }
+.wg-pulse-more:hover { color:#161616; }
+
+/* Телефон: строка меню и виджеты у телефона свои (mp-*), новые узлы там не нужны. */
+@media (max-width: 860px) {
+  .mb-acct-wrap, #wg-pulse { display:none !important; }
+}

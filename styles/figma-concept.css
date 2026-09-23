@@ -102,26 +102,45 @@ body.fx .win-titlebar {
   background:none !important; border:none !important; box-shadow:none !important;
 }
 body.fx .win-title { display:none !important; }
-/* Кнопка сворачивания: в макете у панели один круглый элемент, но свернуть
-   окно - это функция, а не украшение (окно уходит в док). Оставляю вторым
-   кружком того же вида. */
-body.fx .win-controls :is(.tl.close,.tl.min) {
-  width:26px !important; height:26px !important; border-radius:50% !important;
-  background:rgba(255,255,255,.72) !important;
-  border:1px solid rgba(22,22,22,.10) !important;
-  position:relative;
+/* Кнопки окна - светофор macOS (23.09.2026, по просьбе заказчиц: «как на
+   мак ос»). Раньше тут были два белых кружка из макета (× и −), и третьей
+   кнопки - развернуть - не было вовсе. Теперь три точки 13px: красная
+   закрывает, жёлтая сворачивает в док, зелёная раскрывает окно между строкой
+   меню и доком. Значки проступают, когда курсор над ГРУППОЙ, - как в macOS. */
+body.fx .win-controls { gap:8px !important; }
+body.fx .win-controls .tl {
+  width:13px !important; height:13px !important; border-radius:50% !important;
+  position:relative; padding:0 !important; color:transparent !important;
+  border:0.5px solid rgba(0,0,0,.14) !important;
+  transition:filter .12s !important;
 }
-body.fx .win-controls .tl.min::before {
-  content:''; position:absolute; left:7px; top:12px; width:11px; height:1.6px;
-  background:var(--fx-ink); border-radius:2px; opacity:.85;
+body.fx .win-controls .tl.close { background:#FF5F57 !important; }
+body.fx .win-controls .tl.min   { background:#FEBC2E !important; }
+body.fx .win-controls .tl.max   { background:#28C840 !important; }
+body.fx .win-controls .tl::before,
+body.fx .win-controls .tl::after {
+  content:''; position:absolute; left:50%; top:50%; opacity:0;
+  background:rgba(0,0,0,.55); border-radius:1px; transition:opacity .1s;
 }
+body.fx .win-controls:hover .tl::before,
+body.fx .win-controls:hover .tl::after,
+body.fx .win-controls:focus-within .tl::before,
+body.fx .win-controls:focus-within .tl::after { opacity:1; }
 body.fx .win-controls .tl.close::before,
-body.fx .win-controls .tl.close::after {
-  content:''; position:absolute; left:7px; top:12px; width:11px; height:1.6px;
-  background:var(--fx-ink); border-radius:2px; opacity:.85;
-}
+body.fx .win-controls .tl.close::after { width:7px; height:1.2px; margin:-.6px 0 0 -3.5px; }
 body.fx .win-controls .tl.close::before { transform:rotate(45deg); }
 body.fx .win-controls .tl.close::after  { transform:rotate(-45deg); }
+body.fx .win-controls .tl.min::before { width:7px; height:1.2px; margin:-.6px 0 0 -3.5px; }
+body.fx .win-controls .tl.min::after  { display:none; }
+/* Зелёная: две стрелки-треугольника по диагонали, как у macOS «zoom». */
+body.fx .win-controls .tl.max::before,
+body.fx .win-controls .tl.max::after {
+  width:0; height:0; background:none; border-radius:0;
+  border-style:solid; border-color:transparent;
+}
+body.fx .win-controls .tl.max::before { border-width:3.5px 3.5px 0 0; border-top-color:rgba(0,0,0,.55); margin:-3.9px 0 0 -3.9px; }
+body.fx .win-controls .tl.max::after  { border-width:0 0 3.5px 3.5px; border-bottom-color:rgba(0,0,0,.55); margin:.4px 0 0 .4px; }
+body.fx .win-controls .tl:active { filter:brightness(.85); }
 body.fx .win-body { padding-top:48px !important; background:transparent !important; }
 
 /* Сайдбар окна */
@@ -674,7 +693,7 @@ body.fx .win-titlebar:active { cursor:grabbing; }
 /* Кнопки стояли top:20 при полосе заголовка высотой 46: они прижимались к её
    нижнему краю (21-47), сверху оставалось 20px пустоты, а рейка начиналась
    ровно под ними. Центр полосы это 11. */
-body.fx .win-controls { position:absolute; top:11px; left:20px; }
+body.fx .win-controls { position:absolute; top:17px; left:18px; }
 /* Кнопки лежат в 20-46px от верха (top:20px + их 26px высоты). win-body даёт
    8px сверху, так что этому отступу нужно 38px, а не 34 - на 4px ниже кнопок
    заезжал первый ряд текста (studio-eyebrow, "lesson workspace" и т.п.). */

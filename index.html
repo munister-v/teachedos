@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=922">
-<link rel="preload" as="style" href="styles/harmony.css?v=922">
-<link rel="preload" as="style" href="styles/unify.css?v=922">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=922">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=922">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=922">
-<link rel="preload" as="style" href="styles/controls.css?v=922">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=922">
+<link rel="preload" as="style" href="styles/mobile.css?v=923">
+<link rel="preload" as="style" href="styles/harmony.css?v=923">
+<link rel="preload" as="style" href="styles/unify.css?v=923">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=923">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=923">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=923">
+<link rel="preload" as="style" href="styles/controls.css?v=923">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=923">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=922">
+<link rel="manifest" href="manifest.json?v=923">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -84,8 +84,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=922">
-<link rel="stylesheet" href="styles/main.css?v=922">
+<link rel="stylesheet" href="styles/tokens.css?v=923">
+<link rel="stylesheet" href="styles/main.css?v=923">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -608,19 +608,33 @@ html,body {
     0 1px 0 rgba(255,255,255,0.9) inset !important;
 }
 .win:not(.focused) { opacity:0.985; }
-.win.maximized {
-  border-radius:0 !important;
-  top:0 !important; left:0 !important;
-}
+/* Развёрнутое окно занимает рабочую область между строкой меню и доком
+   (координаты ставит WM.maximize) и, как в macOS, сохраняет скругление. */
+.win.maximized { }
 .win.maximized .win-rz-n,.win.maximized .win-rz-s,
 .win.maximized .win-rz-e,.win.maximized .win-rz-w,
 .win.maximized .win-rz-ne,.win.maximized .win-rz-nw,
 .win.maximized .win-rz-se,.win.maximized .win-rz-sw {
   display:none;
 }
-.win.minimizing { animation: winMinimize .22s cubic-bezier(.4,0,.6,1) forwards; }
-@keyframes winMinimize {
-  to { opacity:0; transform:scale(0.85) translateY(40px); }
+/* Свернуть = окно стекает в свою иконку дока; вектор и масштаб ставит
+   WM (--genie-x/-y/-s). Вернуть = тот же путь назад. Сужение по горизонтали
+   раньше, чем по вертикали, даёт узнаваемую «воронку». */
+.win.minimizing { animation: winGenieOut .42s cubic-bezier(.55,0,.35,1) forwards; pointer-events:none; transform-origin:50% 100%; }
+.win.restoring  { animation: winGenieIn .42s cubic-bezier(.2,.75,.3,1); transform-origin:50% 100%; }
+@keyframes winGenieOut {
+  0%   { opacity:1; transform:none; }
+  40%  { opacity:1; transform:translate(calc(var(--genie-x,0px) * .25), calc(var(--genie-y,40px) * .1)) scale(.62, .86); }
+  100% { opacity:0; transform:translate(var(--genie-x,0px), var(--genie-y,40px)) scale(var(--genie-s,.1)); }
+}
+@keyframes winGenieIn {
+  0%   { opacity:0; transform:translate(var(--genie-x,0px), var(--genie-y,40px)) scale(var(--genie-s,.1)); }
+  60%  { opacity:1; transform:translate(calc(var(--genie-x,0px) * .25), calc(var(--genie-y,40px) * .1)) scale(.62, .86); }
+  100% { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .win.minimizing { animation: winClose .16s ease forwards; }
+  .win.restoring  { animation: none; }
 }
 .win.closing { animation: winClose .16s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }
 @keyframes winClose {
@@ -1766,10 +1780,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=922" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=922">
-<link rel="stylesheet" href="styles/harmony.css?v=922">
-<link rel="stylesheet" href="styles/unify.css?v=922">
+<script src="theme.js?v=923" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=923">
+<link rel="stylesheet" href="styles/harmony.css?v=923">
+<link rel="stylesheet" href="styles/unify.css?v=923">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1777,13 +1791,15 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=922">
+<link rel="stylesheet" href="styles/teached-brand.css?v=923">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=922">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=922">
-<link rel="stylesheet" href="styles/controls.css?v=922">
+<link rel="stylesheet" href="styles/figma-theme.css?v=923">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=923">
+<link rel="stylesheet" href="styles/controls.css?v=923">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=922">
+<link rel="stylesheet" href="styles/figma-concept.css?v=923">
+<!-- Фон, чип аккаунта, библиотека заданий, Student Pulse. После концепта: новые узлы. -->
+<link rel="stylesheet" href="styles/desktop-extras.css?v=923">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1832,6 +1848,11 @@ html,body {
 <symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5h11v15l-5.5-4-5.5 4z"/></symbol>
 <symbol id="i-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2.5"/></symbol>
 <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10M17 7L7 17"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5 4.5 4"/></symbol>
+<symbol id="i-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H6.5A2 2 0 0 0 4.5 7v10a2 2 0 0 0 2 2H10"/><path d="M14 8l4 4-4 4M18 12H9"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4L10.5 13.5M20 4l-6 16-3.5-6.5L4 10z"/></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="4" rx="1.2"/><path d="M5.5 9v8.5a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
 </defs></svg>
 
 <h1 class="sr-only">TeachEd language learning platform for teachers</h1>
@@ -1905,8 +1926,6 @@ html,body {
          three more items on a bar that was already ten wide. -->
     <a class="mb-item" href="homework.html">Homework</a>
     <a class="mb-item" href="schedule.html">Schedule</a>
-    <a class="mb-item" href="#pricing" onclick="openApp('pricing');return false;">Tariffs</a>
-    <a class="mb-item" href="profile.html">Profile</a>
   </nav>
   <div class="mb-right">
     <!-- Was two separate pills (plan badge, user chip) each with their own
@@ -1918,6 +1937,25 @@ html,body {
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
       <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#EC2D8C;color:#fff;font-size:9px;font-weight:650;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
+    <!-- Профиль, тарифы, фон и выход - в одном чипе аккаунта: на строке
+         меню остаётся то, чем пользуются каждый день. -->
+    <div class="mb-acct-wrap">
+      <button type="button" class="mb-acct" id="mb-acct" aria-haspopup="menu" aria-expanded="false" onclick="toggleAccountMenu(event)">
+        <span class="mb-acct-av user-display-avatar" id="mb-acct-av">🧑‍🏫</span>
+        <span class="mb-acct-role" id="mb-acct-role">Teacher</span>
+      </button>
+      <div class="mb-acct-menu" id="mb-acct-menu" role="menu" hidden>
+        <div class="mb-acct-head">
+          <span class="mb-acct-av mb-acct-av-lg user-display-avatar" id="mb-acct-av2">🧑‍🏫</span>
+          <span class="mb-acct-who"><b id="mb-acct-name">Teacher</b><small id="mb-acct-email"></small></span>
+        </div>
+        <a role="menuitem" class="mb-acct-item" href="profile.html"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg>Profile</a>
+        <button type="button" role="menuitem" class="mb-acct-item" onclick="closeAccountMenu();openApp('pricing')"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Tariffs<span class="mb-acct-plan" id="mb-acct-plan"></span></button>
+        <button type="button" role="menuitem" class="mb-acct-item" onclick="closeAccountMenu();openWallpaperPicker()"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg>Desktop background</button>
+        <div class="mb-acct-sep" role="separator"></div>
+        <button type="button" role="menuitem" class="mb-acct-item is-quiet" onclick="desktopSignOut()"><svg class="ic" aria-hidden="true"><use href="#i-exit"/></svg>Sign out</button>
+      </div>
+    </div>
     <span id="mb-clock">--:--</span>
   </div>
 </div>
@@ -1971,6 +2009,17 @@ html,body {
   <button class="wg-vocab-next" onclick="location.href='board.html'">Add board</button>
 </div>
 
+<!-- Student Pulse: что по ученикам требует действия сейчас - кончается
+     пакет, ждёт проверки домашка, просрочена оплата. Данные /api/journal/pulse,
+     рисует desktop-extras.js. -->
+<div class="widget" id="wg-pulse" aria-labelledby="wg-pulse-title">
+  <div class="wg-pulse-head">
+    <span class="wg-pulse-title" id="wg-pulse-title">Student pulse</span>
+    <a class="wg-pulse-all" href="journal.html">Journal</a>
+  </div>
+  <div class="wg-pulse-list" id="wg-pulse-list"><div class="wg-pulse-empty">Loading…</div></div>
+</div>
+
 <!-- Декоративная плашка из макета Figma: за основной панелью, со сдвигом
      вправо-вниз, даёт сцене глубину. Чисто оформление, поэтому aria-hidden
      и никаких событий мыши; видна только на экранах с концептом (body.fx). -->
@@ -1982,8 +2031,9 @@ html,body {
 <div class="win open appear" id="win-plans" style="top:90px;left:50px;width:613px;height:486px;">
   <div class="win-titlebar" id="tb-plans">
     <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('plans')"></div>
-      <div class="tl min"    onclick="minWin('plans')"></div>
+      <div class="tl close" title="Close" onclick="closeWin('plans')"></div>
+      <div class="tl min" title="Minimize"    onclick="minWin('plans')"></div>
+      <div class="tl max"    onclick="maxWin('plans')" title="Zoom"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg>Lesson Plans</div>
   </div>
@@ -2127,8 +2177,9 @@ html,body {
 <div class="win" id="win-students" style="top:96px;left:640px;width:760px;height:560px;">
   <div class="win-titlebar" id="tb-students">
     <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('students')"></div>
-      <div class="tl min"    onclick="minWin('students')"></div>
+      <div class="tl close" title="Close" onclick="closeWin('students')"></div>
+      <div class="tl min" title="Minimize"    onclick="minWin('students')"></div>
+      <div class="tl max"    onclick="maxWin('students')" title="Zoom"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Students</div>
   </div>
@@ -2187,8 +2238,9 @@ html,body {
 <div class="win" id="win-schedule" style="top:90px;left:80px;width:700px;height:540px;">
   <div class="win-titlebar" id="tb-schedule">
     <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('schedule')"></div>
-      <div class="tl min"    onclick="minWin('schedule')"></div>
+      <div class="tl close" title="Close" onclick="closeWin('schedule')"></div>
+      <div class="tl min" title="Minimize"    onclick="minWin('schedule')"></div>
+      <div class="tl max"    onclick="maxWin('schedule')" title="Zoom"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Schedule</div>
   </div>
@@ -2224,8 +2276,9 @@ html,body {
 <div class="win" id="win-notes" style="top:100px;left:160px;width:660px;height:500px;">
   <div class="win-titlebar" id="tb-notes">
     <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('notes')"></div>
-      <div class="tl min"    onclick="minWin('notes')"></div>
+      <div class="tl close" title="Close" onclick="closeWin('notes')"></div>
+      <div class="tl min" title="Minimize"    onclick="minWin('notes')"></div>
+      <div class="tl max"    onclick="maxWin('notes')" title="Zoom"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg>Notes</div>
   </div>
@@ -2273,41 +2326,43 @@ html,body {
 <div class="win" id="win-tools" style="top:96px;left:80px;width:860px;height:600px;">
   <div class="win-titlebar" id="tb-tools">
     <div class="win-controls">
-      <div class="tl close"  onclick="closeWin('tools')"></div>
-      <div class="tl min"    onclick="minWin('tools')"></div>
+      <div class="tl close" title="Close" onclick="closeWin('tools')"></div>
+      <div class="tl min" title="Minimize"    onclick="minWin('tools')"></div>
+      <div class="tl max"    onclick="maxWin('tools')" title="Zoom"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg>Teaching Tools</div>
   </div>
   <div class="win-body" style="position:relative;">
+    <!-- Библиотека заданий. Всё, что учитель собирает инструментами на доске,
+         сохраняется сюда само (kind:'material' в /api/library) вместе с доской,
+         на которой оно родилось. Рисует desktop-extras.js. -->
     <div class="win-sidebar" id="sidebar-tools">
-      <div class="sb-section-label">All Skills</div>
-      <div class="sb-item active" id="tg-all" onclick="toolsFilter('all',this)">
-        <svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg> All Tools
-        <span class="sb-item-badge">14</span>
-      </div>
-      <div class="sb-section-label" style="margin-top:6px;">By Skill</div>
-      <div class="sb-item" id="tg-reading"    onclick="toolsFilter('reading',this)">   <svg class="ic" aria-hidden="true"><use href="#i-book"/></svg> Reading    <span class="sb-item-badge">4</span></div>
-      <div class="sb-item" id="tg-writing"    onclick="toolsFilter('writing',this)">   <svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg> Writing    <span class="sb-item-badge">2</span></div>
-
-      <div class="sb-item" id="tg-speaking"   onclick="toolsFilter('speaking',this)">  <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg> Speaking   <span class="sb-item-badge">2</span></div>
-      <div class="sb-item" id="tg-vocabulary" onclick="toolsFilter('vocabulary',this)"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg> Vocabulary <span class="sb-item-badge">4</span></div>
-      <div class="sb-item" id="tg-grammar"    onclick="toolsFilter('grammar',this)">   <svg class="ic" aria-hidden="true"><use href="#i-type"/></svg> Grammar    <span class="sb-item-badge">3</span></div>
-      <div class="sb-item" id="tg-listening"  onclick="toolsFilter('listening',this)"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg> Listening  <span class="sb-item-badge">0</span></div>
-      <div class="sb-item" id="tg-utility"    onclick="toolsFilter('utility',this)">   <svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg> Utility    <span class="sb-item-badge">2</span></div>
+      <div class="sb-section-label">Library</div>
+      <div class="sb-item active" data-lib-filter="all" onclick="libFilter('all',this)"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg>All materials<span class="sb-item-badge" id="lib-count-all">0</span></div>
+      <div class="sb-item" data-lib-filter="recent" onclick="libFilter('recent',this)"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>This week</div>
+      <div class="sb-section-label" style="margin-top:8px;">By board</div>
+      <div id="lib-boards"></div>
     </div>
-    <div class="win-main" style="padding:0;flex-direction:column;">
+    <div class="win-main lib-main" style="padding:0;flex-direction:column;">
       <div class="mob-win-header">
         <svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg>
         <div class="mob-win-title">Teaching Tools</div>
         <div class="mob-sidebar-btn" onclick="mobToggleSidebar('tools')"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></div>
       </div>
-      <section class="studio-hero mix">
-        <div class="studio-eyebrow">Ready for class</div>
-        <div class="studio-title">Teaching tools, in one place</div>
-        <p class="studio-copy">Reading, vocabulary, grammar and speaking tools; results go straight into a board.</p>
-        <div class="studio-actions"><a class="studio-chip primary" href="board.html">Open the builder →</a><span class="tools-count-hint" id="tools-count">14 tools</span></div>
-      </section>
-      <div id="tools-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 20px 20px;"></div>
+      <div class="lib-top">
+        <div class="lib-kicker">task library</div>
+        <h2 class="lib-title">Everything you built</h2>
+        <p class="lib-sub">Every task you make with the tools on a board is kept here, with the board it was made for.</p>
+        <div class="lib-tools">
+          <label class="lib-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input id="lib-q" type="search" placeholder="Search by topic, tool or student…" oninput="libRender()"></label>
+          <select id="lib-skill" onchange="libRender()" aria-label="Skill">
+            <option value="">All skills</option><option value="reading">Reading</option><option value="listening">Listening</option>
+            <option value="speaking">Speaking</option><option value="writing">Writing</option><option value="grammar">Grammar</option>
+            <option value="vocabulary">Vocabulary</option><option value="utility">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="lib-grid" id="lib-grid"></div>
     </div>
   </div>
 </div>
@@ -2318,7 +2373,8 @@ html,body {
   <div class="win-titlebar" id="tb-pricing">
     <div class="win-controls">
       <div class="tl close" onclick="closeWin('pricing')"></div>
-      <div class="tl min" onclick="minWin('pricing')"></div>
+      <div class="tl min" title="Minimize" onclick="minWin('pricing')"></div>
+      <div class="tl max"    onclick="maxWin('pricing')" title="Zoom"></div>
     </div>
     <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Pricing &amp; Plans</div>
   </div>
@@ -2482,11 +2538,6 @@ html,body {
       <div class="di-label">Gradebook</div>
       <div class="di-dot"></div>
     </a>
-    <div class="di di-secondary" id="di-pricing" onclick="dockApp('pricing')" title="Pricing">
-      <div class="di-icon" style="background:linear-gradient(145deg,#5A6459,#6B7669);"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
-      <div class="di-label">Pricing</div>
-      <div class="di-dot"></div>
-    </div>
     <a class="di di-secondary" id="di-profile" href="profile.html" style="text-decoration:none;" title="Profile">
       <div class="di-icon" style="background:linear-gradient(145deg,#6B7669,#5A6459);"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></div>
       <div class="di-label">Profile</div>
@@ -2498,7 +2549,8 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/desktop-app.js?v=922"></script>
+<script src="scripts/desktop-app.js?v=923"></script>
+<script src="scripts/desktop-extras.js?v=923"></script>
 
 <script>
 
@@ -2518,8 +2570,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=922" defer></script>
-<script src="pwa-boot.js?v=922" defer></script>
+<script src="scripts/autogrow.js?v=923" defer></script>
+<script src="pwa-boot.js?v=923" defer></script>
 
 <!-- Onboarding Modal -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99000;align-items:center;justify-content:center;">
@@ -2739,11 +2791,11 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=922" defer></script>
-<script src="scripts/nav-boost.js?v=922" defer></script>
-<script src="scripts/mobile-perf.js?v=922" defer></script>
-<script src="scripts/mobile-nav.js?v=922" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=922" defer></script>
-  <script src="scripts/signin-entry.js?v=922" defer></script>
+<script src="pwa.js?v=923" defer></script>
+<script src="scripts/nav-boost.js?v=923" defer></script>
+<script src="scripts/mobile-perf.js?v=923" defer></script>
+<script src="scripts/mobile-nav.js?v=923" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=923" defer></script>
+  <script src="scripts/signin-entry.js?v=923" defer></script>
 </body>
 </html>

@@ -2,7 +2,9 @@ const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth, optionalAuth, requireTeacher } = require('../middleware/auth');
 
-const KINDS = ['lesson', 'quiz', 'game', 'board', 'other'];
+/* material - задание, собранное инструментом на доске и сохранённое само
+   (окно Teaching Tools на рабочем столе). */
+const KINDS = ['lesson', 'quiz', 'game', 'board', 'material', 'other'];
 const COMMUNITY_SNAPSHOT_MAX_BYTES = 10 * 1024 * 1024;
 const COMMUNITY_SNAPSHOT_MAX_CARDS = 1200;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -100,7 +102,7 @@ async function assertSourceBoardOwnership(userId, data) {
 // Metadata columns for list views (never ship the heavy `data`/`image` blobs in lists)
 const LIST_COLS = `id, kind, title, description, level, skill, tags,
   (image IS NOT NULL) AS has_image, visibility, cloned_from, clone_count,
-  published_at, created_at, updated_at`;
+  published_at, created_at, updated_at, data->'meta' AS meta`;
 
 /* Витрина сообщества и просмотр опубликованного урока доступны без входа:
    именно с них начинается знакомство с TeachEd. Всё, что ниже requireAuth,

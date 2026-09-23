@@ -13862,7 +13862,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '922';
+const TEACHEDOS_ASSET_VERSION = '923';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14077,6 +14077,118 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   _ttSetGenerating(false);
 }
 
+/* Укладка одного результата инструмента - вынесена из
+   applyTeacherToolBuilderToBoard, чтобы ею же клался материал из
+   библиотеки заданий (рабочий стол → «Add to a board»). true - положено. */
+function _ttPlaceOutputOnBoard(output, mode) {
+  // Warm-up / icebreaker prompts: sticky-note cluster, regardless of mode -
+  // a stacked numbered worksheet never fit these (order doesn't matter, no
+  // writing lines needed).
+  if (output.kind === 'Warm-up' && output.boardKind === 'quiz' && Array.isArray(output.questions)) {
+    _ttPlaceWarmupStickers(output); return true;
+  }
+  // Styled read-only worksheet - available for the primitive board kinds.
+  if (mode === 'worksheet' &&
+      ['quiz','vocab','cards'].includes(output.boardKind)) {
+    _ttPlaceWorksheetOnBoard(output); return true;
+  }
+  // 'quiz' (interactive) or default → existing structured placement.
+  if (_ttPlaceComplexToolOnBoard(output)) return true;
+  // Pilot tools place real structured cards (quiz / vocab) instead of stickies.
+  if (output.boardKind === 'quiz')  { _ttPlaceQuizOnBoard(output);  return true; }
+  if (output.boardKind === 'vocab') { _ttPlaceVocabOnBoard(output); return true; }
+  if (output.boardKind === 'cards') { _ttPlaceCardsOnBoard(output); return true; }
+  return false;
+}
+
+/* ── Библиотека заданий ────────────────────────────────────────────────
+   Всё, что учитель кладёт на доску из инструментов, само сохраняется в
+   его библиотеку (/api/library, kind:'material') вместе с доской, на
+   которой родилось. На рабочем столе это окно Teaching Tools: «сделала
+   Владу задание по Past Simple на его доске - оно лежит там».
+   Сохраняем ТО, ЧЕМ укладывали (payload), чтобы из библиотеки положить
+   на другую доску тем же путём, а не пересобирать. */
+const _ttLibSaved = new Set();
+function _ttLibHash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36);
+}
+async function _ttSaveToLibrary(payload, info) {
+  if (!authToken || !payload || (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'student')) return;
+  if (window.__fromLibraryItem) return; // положено ИЗ библиотеки - второй раз не сохраняем
+  let body;
+  try { body = JSON.stringify(payload); } catch (_) { return; }
+  if (body.length > 1500000) return;
+  const hash = _ttLibHash(body);
+  if (_ttLibSaved.has(hash)) return;
+  _ttLibSaved.add(hash);
+  const boardTitle = document.getElementById('board-name-display')?.textContent?.trim() || '';
+  const skill = ['reading','listening','speaking','writing','grammar','vocabulary'].includes(info.cat) ? info.cat : 'utility';
+  const clean = v => String(v == null ? '' : v).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+  try {
+    const r = await apiFetch('/api/library', {
+      method: 'POST',
+      body: {
+        kind: 'material',
+        title: clean(info.title) || clean(info.topic) || 'Task',
+        description: clean(info.topic),
+        level: clean(info.level).slice(0, 20),
+        skill,
+        tags: [info.kind, info.toolId].filter(Boolean),
+        data: {
+          meta: { boardId: currentBoardId || null, boardTitle, kind: clean(info.kind), topic: clean(info.topic), toolId: info.toolId || '', hash },
+          payload,
+        },
+      },
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (err) {
+    _ttLibSaved.delete(hash);
+    console.warn('[library] save failed', err);
+    toast('Added to the board, but not saved to your library');
+  }
+}
+
+/* Материал из библиотеки: board.html?id=…&libraryItem=<id>. Кладётся тем
+   же укладчиком, каким был положен в первый раз. */
+(function captureLibraryItemImport() {
+  const id = new URLSearchParams(location.search).get('libraryItem');
+  if (id && /^[0-9a-f-]{36}$/i.test(id)) window.__pendingLibraryItem = id;
+})();
+async function runPendingLibraryItemImport() {
+  const id = window.__pendingLibraryItem;
+  if (!id) return false;
+  window.__pendingLibraryItem = null;
+  const params = new URLSearchParams(location.search);
+  params.delete('libraryItem');
+  const q = params.toString();
+  history.replaceState({}, '', location.pathname + (q ? '?' + q : ''));
+  try {
+    const r = await apiFetch('/api/library/' + encodeURIComponent(id));
+    const data = await r.json().catch(() => null);
+    const p = data && data.assignment && data.assignment.data && data.assignment.data.payload;
+    if (!r.ok || !p) { toast('That task could not be opened'); return false; }
+    window.__fromLibraryItem = true;
+    try {
+      if (p.type === 'lesson' && Array.isArray(p.results)) {
+        _placeLessonOnBoard(p.results, '', p.videoUrl || null, p.ctx || {});
+      } else if (p.type === 'output' && p.output) {
+        if (!_ttPlaceOutputOnBoard(p.output, p.mode || 'worksheet')) _ttPlaceWorksheetOnBoard(p.output);
+      } else {
+        toast('That task could not be opened');
+        return false;
+      }
+    } finally { window.__fromLibraryItem = false; }
+    toast(`“${data.assignment.title}” added from your library`);
+    return true;
+  } catch (err) {
+    console.warn('[library] import failed', err);
+    toast('That task could not be opened');
+    return false;
+  }
+}
+
 async function applyTeacherToolBuilderToBoard(mode) {
   if (!activeTeacherToolBuilder) return;
   closeAddToBoardMenu();
@@ -14096,23 +14208,13 @@ async function applyTeacherToolBuilderToBoard(mode) {
     const _in = readTeacherToolBuilderInput();
     output._ctx = { source: _in.source || '', vocab: _in.vocab || '', topic: _in.topic || '', level: _in.level || 'B1' };
   } catch {}
-  // Warm-up / icebreaker prompts: sticky-note cluster, regardless of mode -
-  // a stacked numbered worksheet never fit these (order doesn't matter, no
-  // writing lines needed).
-  if (output.kind === 'Warm-up' && output.boardKind === 'quiz' && Array.isArray(output.questions)) {
-    _ttPlaceWarmupStickers(output); return;
+  if (_ttPlaceOutputOnBoard(output, mode)) {
+    _ttSaveToLibrary({ type: 'output', output, mode }, {
+      title: output.title, cat: output.cat, level: output.level || (output._ctx && output._ctx.level),
+      topic: output.topic || (output._ctx && output._ctx.topic), kind: output.kind, toolId: activeTeacherToolBuilder.id,
+    });
+    return;
   }
-  // Styled read-only worksheet - available for the primitive board kinds.
-  if (mode === 'worksheet' &&
-      ['quiz','vocab','cards'].includes(output.boardKind)) {
-    _ttPlaceWorksheetOnBoard(output); return;
-  }
-  // 'quiz' (interactive) or default → existing structured placement.
-  if (_ttPlaceComplexToolOnBoard(output)) return;
-  // Pilot tools place real structured cards (quiz / vocab) instead of stickies.
-  if (output.boardKind === 'quiz')  { _ttPlaceQuizOnBoard(output);  return; }
-  if (output.boardKind === 'vocab') { _ttPlaceVocabOnBoard(output); return; }
-  if (output.boardKind === 'cards') { _ttPlaceCardsOnBoard(output); return; }
   const tool = activeTeacherToolBuilder;
   const meta = BOARD_TOOL_META[output.cat] || BOARD_TOOL_META[tool.cat] || BOARD_TOOL_META.utility;
 
@@ -16111,6 +16213,15 @@ function placeBoardLessonStageSet() {
 
   const n = results.length + homework.length;
   toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
+  _ttSaveToLibrary({
+    type: 'lesson', results, videoUrl,
+    ctx: { source: readingText, level: set.base.level || 'B1', topic: set.base.topic || '', frameIcon: '📗',
+      frameLabel: label, frameKind: 'Lesson from builder', inlineCards: true, visualVocabulary: true },
+  }, {
+    title: set.textOut && set.textOut.title ? set.textOut.title : label,
+    cat: set.skill || (set.cfg && set.cfg.skill) || 'reading', level: set.base.level, topic: set.base.topic,
+    kind: `${set.cfg.label || 'Lesson'} · ${results.length} ${results.length === 1 ? 'part' : 'parts'}`, toolId: set.toolId,
+  });
   return true;
 }
 
@@ -18385,6 +18496,7 @@ function runPendingToolImports() {
   if (window.__pendingToolOpen) done = runPendingToolOpen() || done;
   if (window.__pendingToolMaterialImport) done = runPendingToolMaterialImport() || done;
   if (window.__pendingToolMaterialSetImport) done = runPendingToolMaterialSetImport() || done;
+  if (window.__pendingLibraryItem) { runPendingLibraryItemImport(); done = true; }
   return done;
 }
 

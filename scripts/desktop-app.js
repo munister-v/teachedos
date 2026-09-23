@@ -323,9 +323,20 @@ const WM = (function () {
     const di  = document.getElementById('di-' + id);
     if (!win) return;
     const wasOpen = win.classList.contains('open');
+    const wasMinimized = win.dataset.minimized === '1';
     win.classList.remove('minimizing');
     win.classList.add('open');
-    if (!wasOpen) {
+    if (wasMinimized) {
+      /* Из дока - обратно тем же путём: окно вырастает из своей иконки и
+         встаёт туда, где было. Геометрия не пересчитывается - она осталась
+         на окне, пока оно было свёрнуто. */
+      delete win.dataset.minimized;
+      if (di) di.classList.remove('minimized');
+      setGenieVector(win, di);
+      win.classList.remove('appear');
+      win.classList.add('restoring');
+      setTimeout(() => win.classList.remove('restoring'), 420);
+    } else if (!wasOpen) {
       if (!applyGeom(id)) {
         // first open ever - cascade from default authored position
         const r = win.getBoundingClientRect();
@@ -355,21 +366,61 @@ const WM = (function () {
         win.classList.remove('open', 'focused');
       }
     }
-    if (di) di.classList.remove('open');
+    if (di) di.classList.remove('open', 'minimized');
+    if (win) delete win.dataset.minimized;
     if (focusedId === id) focusedId = null;
   }
 
+  /* Вектор от центра окна к иконке в доке: по нему окно «стекает» в док
+     и по нему же возвращается. Нет иконки (телефон, скрытый док) - уходит
+     вниз к центру экрана, как раньше. */
+  function setGenieVector(win, di) {
+    const r = win.getBoundingClientRect();
+    const t = di ? di.getBoundingClientRect() : null;
+    const tx = t && t.width ? t.left + t.width / 2 : window.innerWidth / 2;
+    const ty = t && t.height ? t.top + t.height / 2 : window.innerHeight;
+    win.style.setProperty('--genie-x', Math.round(tx - (r.left + r.width / 2)) + 'px');
+    win.style.setProperty('--genie-y', Math.round(ty - (r.top + r.height / 2)) + 'px');
+    win.style.setProperty('--genie-s', String(Math.max(0.04, Math.min(0.2, 56 / Math.max(r.width, 1)))));
+  }
+
+  /* Как в macOS: окно уходит в свою иконку дока, а приложение остаётся
+     «запущенным» - точка под иконкой не гаснет, клик по иконке возвращает
+     окно на место. Закрытие (красная кнопка) точку гасит. */
   function minimize(id) {
     const win = winOf(id);
     if (!win) return;
+    const di = document.getElementById('di-' + id);
     saveGeom(id);
+    setGenieVector(win, di);
+    /* .appear у окна, открытого разметкой, не снимается никогда, а его
+       анимация в harmony.css стоит с !important и глушила бы эту. */
+    win.classList.remove('appear');
     win.classList.add('minimizing');
+    win.dataset.minimized = '1';
+    if (di) di.classList.add('open', 'minimized');
     setTimeout(() => {
       win.classList.remove('open', 'minimizing', 'focused');
-      const di = document.getElementById('di-' + id);
-      if (di) di.classList.remove('open');
-    }, 220);
+    }, 420);
     if (focusedId === id) focusedId = null;
+  }
+
+  /* Рабочая область окна - между строкой меню и доком. Раньше «развернуть»
+     растягивало окно на весь вьюпорт: низ уезжал под док, верх - под
+     строку меню. */
+  function workArea(win) {
+    const GAP = 10;
+    const mb = document.getElementById('menubar');
+    // offsetParent у fixed-элементов всегда null - видимость меряем прямоугольником.
+    const shown = el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).display !== 'none';
+    const top = (shown(mb) ? mb.getBoundingClientRect().bottom : 0) + GAP;
+    const dock = document.getElementById('dock');
+    const kr = shown(dock) ? dock.getBoundingClientRect() : null;
+    const bottom = kr && kr.top > top + 200 ? kr.top - GAP : window.innerHeight - GAP;
+    /* Окно позиционируется относительно своего родителя, а считаем во
+       вьюпорте: переводим, иначе окно уезжало под строку меню. */
+    const pr = win && win.offsetParent ? win.offsetParent.getBoundingClientRect() : { left: 0, top: 0 };
+    return { x: Math.round(GAP - pr.left), y: Math.round(top - pr.top), w: Math.round(window.innerWidth - GAP * 2), h: Math.round(bottom - top) };
   }
 
   function maximize(id, skipSave) {
@@ -390,9 +441,10 @@ const WM = (function () {
       state[id] = state[id] || {};
       state[id]._preMax = { x: r.left, y: r.top, w: r.width, h: r.height };
       win.classList.add('maximized');
-      win.style.left = '0px'; win.style.top = '0px';
-      win.style.width  = window.innerWidth  + 'px';
-      win.style.height = window.innerHeight + 'px';
+      const a = workArea(win);
+      win.style.left = a.x + 'px'; win.style.top = a.y + 'px';
+      win.style.width  = a.w + 'px';
+      win.style.height = a.h + 'px';
     }
     if (!skipSave) saveGeom(id);
   }
@@ -560,8 +612,10 @@ const WM = (function () {
   window.addEventListener('resize', () => {
     document.querySelectorAll('.win.open').forEach(win => {
       if (win.classList.contains('maximized')) {
-        win.style.width  = window.innerWidth  + 'px';
-        win.style.height = window.innerHeight + 'px';
+        const a = workArea(win);
+        win.style.left = a.x + 'px'; win.style.top = a.y + 'px';
+        win.style.width  = a.w + 'px';
+        win.style.height = a.h + 'px';
       } else {
         clamp(win);
       }
@@ -1629,9 +1683,12 @@ function toolsRender() {
     seen.add(t.id); return true;
   });
 
-  document.getElementById('tools-count').textContent = unique.length + ' tool' + (unique.length === 1 ? '' : 's');
-
+  /* Окно Teaching Tools теперь библиотека заданий (desktop-extras.js);
+     каталога инструментов в разметке больше нет. */
   const grid = document.getElementById('tools-grid');
+  if (!grid) return;
+  const countEl = document.getElementById('tools-count');
+  if (countEl) countEl.textContent = unique.length + ' tool' + (unique.length === 1 ? '' : 's');
   grid.innerHTML = unique.map(t => {
     const tagHtml = t.tags.map(tag => {
       const c = TAG_COLORS[tag] || {};

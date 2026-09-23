@@ -705,3 +705,13 @@ BEGIN
 EXCEPTION WHEN unique_violation THEN
   RAISE WARNING 'idx_attendance_journal_date_unique not created: attendance has pre-existing duplicate (journal_id, date) rows - clean those up, then restart to apply the constraint';
 END $$;
+
+-- ── Desktop personalisation + Student Pulse (23.09.2026) ────────────────────
+-- desktop_wallpaper: 'preset:<key>' or 'custom:<file>' (file lives in
+-- data/wallpapers, outside backend/, so deploys do not wipe it).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS desktop_wallpaper TEXT;
+-- payment_due: when the student's next payment is due; overdue = before today.
+-- pulse_hidden: alerts the teacher archived, keyed by the exact state
+-- ("pkg:2", "pay:2026-09-20"), so an alert comes back when the state changes.
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS payment_due DATE;
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pulse_hidden JSONB NOT NULL DEFAULT '{}';

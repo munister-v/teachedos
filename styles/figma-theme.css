@@ -716,7 +716,9 @@ body.fx:not(#_) :is(.tools-workbench .tool p,.tool-copy p) { color:#55555E !impo
    (0,2,1): по порядку загрузки этот файл проигрывает, по весу - выигрывает.
    Снимок desktop-bg.jpg с тёплой заливкой снимается вместе с цветом, иначе он
    остался бы поверх новой подложки. */
-body.fx.os-desktop #desktop:not(#_) {
+/* :not(.has-wall) - учитель выбрал свой фон (desktop-extras.js), тогда фон
+   ставит desktop-extras.css, а этот стандартный уступает. */
+body.fx.os-desktop #desktop:not(#_):not(.has-wall) {
   background:#F0F0F3 !important;
 }
 html:has(body.fx.os-desktop) {
