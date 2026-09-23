@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=937"></script>
-<link rel="manifest" href="manifest.json?v=937">
+<script src="scripts/phone-gate.js?v=939"></script>
+<link rel="manifest" href="manifest.json?v=939">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=937">
-<link rel="preload" as="style" href="styles/unify.css?v=937">
+<link rel="preload" as="style" href="styles/harmony.css?v=939">
+<link rel="preload" as="style" href="styles/unify.css?v=939">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -419,10 +419,10 @@ a{text-decoration:none;color:inherit;}
   .form-group input[type=checkbox]{ width:22px; height:22px; }
 }
 </style>
-<script src="theme.js?v=937" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=937">
-<link rel="stylesheet" href="styles/harmony.css?v=937">
-<link rel="stylesheet" href="styles/unify.css?v=937">
+<script src="theme.js?v=939" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=939">
+<link rel="stylesheet" href="styles/harmony.css?v=939">
+<link rel="stylesheet" href="styles/unify.css?v=939">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -454,12 +454,12 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=937">
-<link rel="stylesheet" href="styles/tool-window.css?v=937">
+<link rel="stylesheet" href="styles/teached-brand.css?v=939">
+<link rel="stylesheet" href="styles/tool-window.css?v=939">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=937">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=937">
-<link rel="stylesheet" href="styles/controls.css?v=937">
+<link rel="stylesheet" href="styles/figma-theme.css?v=939">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=939">
+<link rel="stylesheet" href="styles/controls.css?v=939">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -755,7 +755,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=937"></script>
+<script src="scripts/app-core.js?v=939"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1365,9 +1365,9 @@ function renderWeekBrief() {
   const dates = getWeekDates();
   const daySlots = dates.map((date, day) => weekSlotsForDay(day, date));
   const slots = daySlots.flat();
-  const minutes = slots.reduce((sum, slot) => sum + Math.max(0, toMin(slot.end_time) - toMin(slot.start_time)), 0);
+  const minutes = slots.reduce((sum, slot) => sum + slotMinutes(slot), 0);
   const linked = slots.filter(slot => slot.board_id).length;
-  const maxMinutes = Math.max(60, ...daySlots.map(items => items.reduce((sum, slot) => sum + Math.max(0, toMin(slot.end_time) - toMin(slot.start_time)), 0)));
+  const maxMinutes = Math.max(60, ...daySlots.map(items => items.reduce((sum, slot) => sum + slotMinutes(slot), 0)));
   const todayDow = (new Date().getDay() + 6) % 7;
   const weekLabel = weekOffset === 0 ? 'This week' : (weekOffset > 0 ? 'Future week' : 'Past week');
   const status = linked === slots.length && slots.length
@@ -1389,7 +1389,7 @@ function renderWeekBrief() {
     </div>
     <div class="wb-days" aria-label="Daily workload">
       ${daySlots.map((items, day) => {
-        const dayMinutes = items.reduce((sum, slot) => sum + Math.max(0, toMin(slot.end_time) - toMin(slot.start_time)), 0);
+        const dayMinutes = items.reduce((sum, slot) => sum + slotMinutes(slot), 0);
         const height = dayMinutes ? Math.max(10, Math.round(dayMinutes / maxMinutes * 100)) : 0;
         const label = `${DAY_NAMES[day]}: ${items.length} lesson${items.length === 1 ? '' : 's'}, ${(dayMinutes / 60).toFixed(dayMinutes ? 1 : 0)} hours`;
         return `<button type="button" class="wb-day ${weekOffset === 0 && day === todayDow ? 'today' : ''}" title="${esc(label)}" aria-label="${esc(label)}" onclick="focusWeekDay(${day})"><span class="wb-day-label">${DAY_NAMES[day][0]}</span><span class="wb-bar"><span class="wb-fill" style="height:${height}%"></span></span></button>`;
@@ -1594,7 +1594,7 @@ function buildBlock(slot, layout) {
 
   const el = document.createElement('div');
   el.className = 'cls-block';
-  const blockColor = slot.color || '#CDF649';
+  const blockColor = slotColor(slot);
   el.style.cssText = `top:${top}px;height:${height}px;background:${blockColor};`;
   el.classList.toggle('light', isLightScheduleColor(blockColor));
   el.classList.toggle('compact', height < 74);
@@ -1729,7 +1729,7 @@ function schedulePayload(slot, patch = {}) {
     room: slot.room || null,
     meeting_url: slot.meeting_url || null,
     board_id: slot.board_id || null,
-    color: slot.color || '#CDF649',
+    color: slotColor(slot),
     recurring: slot.recurring !== false && !slot.specific_date,
     specific_date: slot.specific_date ? slot.specific_date.slice(0,10) : null,
     ...patch,
@@ -1782,7 +1782,7 @@ function renderSideList() {
       ? new Date(slot.specific_date + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short'})
       : DAY_NAMES[slot.day];
     el.innerHTML = `
-      <div class="cls-dot" style="background:${slot.color};${slot.is_live?'box-shadow:0 0 0 3px rgba(239,68,68,.4);':''}"></div>
+      <div class="cls-dot" style="background:${slotColor(slot)};${slot.is_live?'box-shadow:0 0 0 3px rgba(239,68,68,.4);':''}"></div>
       <div class="cls-info">
         <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#A61919;font-weight:650;">LIVE</span>':''}${slot.specific_date?'<span style="font-size:9px;background:rgba(200,230,50,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600;">Once</span>':''}</div>
         <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}-${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slotMeetingUrl(slot)?' · ':''}</div>
@@ -1793,9 +1793,21 @@ function renderSideList() {
   });
 }
 
+/* Урок через полночь (23:30-00:30) давал отрицательную длительность, и
+   «Hrs/week» уходил в минус. Конец раньше начала = следующий день. */
+function slotMinutes(s) {
+  const d = timeToMinutes(s.end_time) - timeToMinutes(s.start_time);
+  return d < 0 ? d + 1440 : d;
+}
+/* Розовый #FF4B8B - умолчание колонки color в старой схеме базы, в палитре
+   расписания его нет. Такие уроки рисуем как «цвет не выбран» - лайм. */
+function slotColor(slot) {
+  const c = slot && slot.color;
+  return !c || /^#ff4b8b$/i.test(c) ? '#CDF649' : c;
+}
 function renderStats() {
   document.getElementById('stat-total').textContent = schedule.length;
-  const hrs = schedule.reduce((acc,s) => acc + (timeToMinutes(s.end_time)-timeToMinutes(s.start_time))/60, 0);
+  const hrs = schedule.reduce((acc,s) => acc + slotMinutes(s)/60, 0);
   document.getElementById('stat-hours').textContent = hrs.toFixed(1);
   const groups = new Set(schedule.map(s=>s.group_name).filter(Boolean));
   document.getElementById('stat-groups').textContent = groups.size;
@@ -1932,7 +1944,7 @@ function openModal(slot = null, preset = null) {
   renderDayChips();
   syncMeetingDefault();
 
-  const color = data.color || '#CDF649';
+  const color = slotColor(data);
   selectedColor = color;
   document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===color));
   document.getElementById('modal').classList.add('open');
@@ -2177,13 +2189,13 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=937"></script>
-<script src="scripts/nav-boost.js?v=937" defer></script>
-<script src="scripts/mobile-perf.js?v=937" defer></script>
-<script src="scripts/mobile-nav.js?v=937"></script>
-<script src="scripts/autogrow.js?v=937" defer></script>
-<script src="pwa-boot.js?v=937" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=937" defer></script>
-  <script src="scripts/signin-entry.js?v=937" defer></script>
+<script src="pwa.js?v=939"></script>
+<script src="scripts/nav-boost.js?v=939" defer></script>
+<script src="scripts/mobile-perf.js?v=939" defer></script>
+<script src="scripts/mobile-nav.js?v=939"></script>
+<script src="scripts/autogrow.js?v=939" defer></script>
+<script src="pwa-boot.js?v=939" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=939" defer></script>
+  <script src="scripts/signin-entry.js?v=939" defer></script>
 </body>
 </html>

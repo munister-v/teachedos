@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=937"></script>
+<script src="scripts/phone-gate.js?v=939"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -316,17 +316,27 @@ a{text-decoration:none;color:inherit;}
   opacity:0;transition:all .25s;pointer-events:none;
 }
 #toast.show{transform:translateY(0);opacity:1;}
+
+/* Замок аналитики (нет в тарифе): одна карточка вместо пустых секций. */
+body.analytics-locked :is(#board-context,#overview-section,#insight-section,#course-progress-section,#status-breakdown-section,#lessons-section,#assignments-section,#students-section,#quiz-analytics-section){display:none !important;}
+body.analytics-locked .grid2{display:none !important;}
+.analytics-lock{padding:28px 28px 26px;border-radius:18px;background:#FFFFFF;border:1px solid rgba(22,22,22,.12);margin-bottom:18px;max-width:640px;}
+.analytics-lock .al-kicker{font-size:12px;font-weight:600;color:#55555C;margin-bottom:6px;}
+.analytics-lock .al-title{font-size:24px;font-weight:700;letter-spacing:-.02em;color:#161616;margin-bottom:8px;}
+.analytics-lock .al-copy{font-size:14px;line-height:1.5;color:#3A3A40;margin:0 0 18px;}
+.analytics-lock .al-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;background:#CBF03C;color:#161616;font-weight:650;font-size:14px;text-decoration:none;}
+.analytics-lock .al-btn:hover{background:#BCE22A;}
 </style>
-<script src="theme.js?v=937" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=937">
-<link rel="stylesheet" href="styles/harmony.css?v=937">
-<link rel="stylesheet" href="styles/unify.css?v=937">
-<link rel="stylesheet" href="styles/teached-brand.css?v=937">
-<link rel="stylesheet" href="styles/tool-window.css?v=937">
+<script src="theme.js?v=939" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=939">
+<link rel="stylesheet" href="styles/harmony.css?v=939">
+<link rel="stylesheet" href="styles/unify.css?v=939">
+<link rel="stylesheet" href="styles/teached-brand.css?v=939">
+<link rel="stylesheet" href="styles/tool-window.css?v=939">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=937">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=937">
-<link rel="stylesheet" href="styles/controls.css?v=937">
+<link rel="stylesheet" href="styles/figma-theme.css?v=939">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=939">
+<link rel="stylesheet" href="styles/controls.css?v=939">
 </head>
 <body class="tw-page suite-page analytics-suite fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -389,7 +399,7 @@ a{text-decoration:none;color:inherit;}
     <a class="suite-tab" href="journal.html">Journal</a>
     <a class="suite-tab" href="gradebook.html">Gradebook</a>
   </nav>
-  <div id="analytics-lock" style="display:none;padding:14px 16px;border-radius:16px;border:1px solid rgba(249,115,22,.25);background:rgba(249,115,22,.08);color:#9a3412;font-size:13px;font-weight:600;margin-bottom:18px;"></div>
+  <div id="analytics-lock" class="analytics-lock" style="display:none;"></div>
 
   <!-- Board selector -->
   <div class="section analytics-context" id="board-context">
@@ -528,7 +538,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=937"></script>
+<script src="scripts/app-core.js?v=939"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
@@ -629,7 +639,13 @@ function applyAnalyticsGateUI() {
       lock.style.display = 'none';
     } else {
       lock.style.display = 'block';
-      lock.innerHTML = `${upgradeMessage('analytics')} <a href="profile.html#plans" style="color:#9a3412;font-weight:700;">Upgrade package →</a>`;
+      /* Без доступа данные не грузятся вовсе (init выходит до loadData), а
+         секции под замком стояли пустыми с вечным «Loading boards…». Замок
+         теперь - одна понятная карточка, пустые секции прячет класс. */
+      lock.innerHTML = `<div class="al-kicker">Teacher Pro · School</div>
+        <div class="al-title">See how every class is doing</div>
+        <p class="al-copy">${esc(upgradeMessage('analytics'))} Progress per board, lesson status, assignments, quiz results and who needs attention, in one place.</p>
+        <a class="al-btn" href="profile.html#plans">See packages</a>`;
     }
   }
   /* Кнопок экспорта теперь две: десктопная в .page-head и иконка в мобильном
@@ -649,6 +665,7 @@ function applyAnalyticsGateUI() {
   document.querySelectorAll('#stats-row, #progress-section, #pie-section, #students-section, #quiz-analytics-section').forEach(el => {
     if (el) el.style.display = analyticsOn ? '' : 'none';
   });
+  document.body.classList.toggle('analytics-locked', !analyticsOn);
 }
 
 function _setRefreshBusy(busy) {
@@ -1204,12 +1221,12 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=937" defer></script>
-<script src="scripts/mobile-perf.js?v=937" defer></script>
-<script src="scripts/mobile-nav.js?v=937"></script>
-<script src="scripts/mobile-zoom-guard.js?v=937" defer></script>
-<script src="scripts/autogrow.js?v=937" defer></script>
-<script src="pwa-boot.js?v=937" defer></script>
-  <script src="scripts/signin-entry.js?v=937" defer></script>
+<script src="scripts/nav-boost.js?v=939" defer></script>
+<script src="scripts/mobile-perf.js?v=939" defer></script>
+<script src="scripts/mobile-nav.js?v=939"></script>
+<script src="scripts/mobile-zoom-guard.js?v=939" defer></script>
+<script src="scripts/autogrow.js?v=939" defer></script>
+<script src="pwa-boot.js?v=939" defer></script>
+  <script src="scripts/signin-entry.js?v=939" defer></script>
 </body>
 </html>
