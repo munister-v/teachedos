@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json?v=924">
+<link rel="manifest" href="manifest.json?v=925">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=924">
-<link rel="preload" as="style" href="styles/unify.css?v=924">
+<link rel="preload" as="style" href="styles/harmony.css?v=925">
+<link rel="preload" as="style" href="styles/unify.css?v=925">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -307,6 +307,14 @@ a{text-decoration:none;color:inherit;}
 .lesson-preset-title{display:block;font-size:12px;font-weight:700;color:var(--text);}
 .lesson-preset-sub{display:block;font-size:10px;color:var(--text3);margin-top:3px;line-height:1.25;}
 .color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.day-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}
+.day-chip{min-width:48px;height:38px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:#fafafa;color:var(--text2);font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .15s;}
+.day-chip:hover{border-color:#24282C;transform:translateY(-1px);}
+.day-chip.on{background:#CDF649;border-color:#24282C;color:#24282C;}
+.day-chip:focus-visible{outline:2px solid #24282C;outline-offset:2px;}
+.meet-default{display:flex;align-items:flex-start;gap:8px;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;line-height:1.35;}
+.meet-default input{width:16px;height:16px;margin-top:1px;accent-color:#24282C;cursor:pointer;flex:none;}
+.meet-default small{font-weight:500;color:var(--text3);}
 .color-opt{
   width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;
   transition:.15s;
@@ -410,10 +418,10 @@ a{text-decoration:none;color:inherit;}
   .form-group input[type=checkbox]{ width:22px; height:22px; }
 }
 </style>
-<script src="theme.js?v=924" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=924">
-<link rel="stylesheet" href="styles/harmony.css?v=924">
-<link rel="stylesheet" href="styles/unify.css?v=924">
+<script src="theme.js?v=925" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=925">
+<link rel="stylesheet" href="styles/harmony.css?v=925">
+<link rel="stylesheet" href="styles/unify.css?v=925">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -445,12 +453,12 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=924">
-<link rel="stylesheet" href="styles/tool-window.css?v=924">
+<link rel="stylesheet" href="styles/teached-brand.css?v=925">
+<link rel="stylesheet" href="styles/tool-window.css?v=925">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=924">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=924">
-<link rel="stylesheet" href="styles/controls.css?v=924">
+<link rel="stylesheet" href="styles/figma-theme.css?v=925">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=925">
+<link rel="stylesheet" href="styles/controls.css?v=925">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -645,20 +653,22 @@ a{text-decoration:none;color:inherit;}
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group" style="flex:2">
-        <label class="form-label">Title</label>
-        <input class="form-input" id="f-title" placeholder="English Grammar"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Day</label>
-        <select class="form-select" id="f-day">
-          <option value="0">Monday</option><option value="1">Tuesday</option>
-          <option value="2">Wednesday</option><option value="3">Thursday</option>
-          <option value="4">Friday</option><option value="5">Saturday</option>
-          <option value="6">Sunday</option>
-        </select>
-      </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Title</label>
+      <input class="form-input" id="f-title" placeholder="English Grammar"/>
+    </div>
+
+    <!-- Several days at once: a class that runs on Tuesday and Friday is two
+         weekly slots, and picking them here saves filling the form twice. -->
+    <div class="form-group" id="f-days-group" style="margin-bottom:14px">
+      <label class="form-label">Days <span style="font-size:10px;color:var(--text3);font-weight:600;">(pick one or several)</span></label>
+      <div class="day-chips" id="f-days" role="group" aria-label="Days of the week"></div>
+      <select class="form-select" id="f-day" hidden aria-hidden="true" tabindex="-1">
+        <option value="0">Monday</option><option value="1">Tuesday</option>
+        <option value="2">Wednesday</option><option value="3">Thursday</option>
+        <option value="4">Friday</option><option value="5">Saturday</option>
+        <option value="6">Sunday</option>
+      </select>
     </div>
 
     <div class="form-row">
@@ -698,7 +708,11 @@ a{text-decoration:none;color:inherit;}
 
     <div class="form-group" style="margin-bottom:14px">
       <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting URL <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional - Zoom or Meet link)</span></label>
-      <input class="form-input" id="f-meeting-url" type="url" placeholder="https://meet.google.com/… or https://zoom.us/j/…">
+      <input class="form-input" id="f-meeting-url" type="url" placeholder="https://meet.google.com/… or https://zoom.us/j/…" oninput="syncMeetingDefault()">
+      <label class="meet-default">
+        <input type="checkbox" id="f-meeting-default" onchange="toggleMeetingDefault(this.checked)">
+        <span>Use my regular meeting link <small id="f-meeting-default-note">- saved once, filled in for every lesson</small></span>
+      </label>
     </div>
 
     <div class="form-group" style="margin-bottom:14px">
@@ -740,7 +754,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=924"></script>
+<script src="scripts/app-core.js?v=925"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -758,15 +772,20 @@ let schedule = [];
 let currentUser = null;
 let editingId = null;
 let weekOffset = 0; // weeks from current
-let selectedColor = '#7C8A7B';
+let selectedColor = '#CDF649';
+let selectedDays = new Set([0]);
 const apiClient = createApiClient(() => token);
 
-// Same muted family as the course dots - lesson chips sit on top of a dense
-// week grid, so they identify without turning the calendar into a rainbow.
+// The TeachEd palette: the two brand colours first, then the secondary
+// set. Text on a block switches between dark and light by contrast
+// (isLightScheduleColor), so the bright ones stay readable.
 const COLORS = [
-  '#7C8A7B','#8C9A7A','#A4A4A7','#C2B48A','#C79E86',
-  '#B98C8C','#9A8CA8','#8496A8','#7FA69B','#96A08C',
-  '#8E9C84','#8A97A2','#A594A0','#C0A48E','#89A292',
+  '#CDF649','#24282C','#CACCC6',
+  '#FFE44D','#FF8C3A','#FF4E00',
+  '#3F9FFF','#49F6F0','#6B42FD',
+  '#9F8CE8','#D3F36B','#F3DF6B',
+  '#F3A46B','#6BAFF3','#886BF3',
+  '#5D614B','#A3A48D',
 ];
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
@@ -1309,8 +1328,8 @@ function renderUpNext() {
 
   const meta = [slot.group_name, slot.level, slot.room && slot.room].filter(Boolean).join(' · ');
   const acts = [];
-  if (slot.meeting_url) acts.push(`<button class="un-btn primary" onclick="joinMeeting('${esc(slot.meeting_url)}')">Join</button>`);
-  if (slot.meeting_url || live) acts.push(`<button class="un-btn ${live ? 'danger' : 'ghost'}" onclick="toggleLiveSlot('${slot.id}',${!live})">${live ? '⏹ End live' : 'Go Live'}</button>`);
+  if (slotMeetingUrl(slot)) acts.push(`<button class="un-btn primary" onclick="joinMeeting('${esc(slotMeetingUrl(slot))}')">Join</button>`);
+  if (slotMeetingUrl(slot) || live) acts.push(`<button class="un-btn ${live ? 'danger' : 'ghost'}" onclick="toggleLiveSlot('${slot.id}',${!live})">${live ? '⏹ End live' : 'Go Live'}</button>`);
   if (slot.board_id) acts.push(`<button class="un-btn ghost" onclick="openClassBoard('${esc(String(slot.board_id))}')">Board</button>`);
   acts.push(`<button class="un-btn ghost" onclick="openModal(schedule.find(s=>String(s.id)===String('${slot.id}')))">Edit</button>`);
 
@@ -1549,7 +1568,7 @@ function openPlannerAt(day, startMin) {
     end_time: minutesToTime(end),
     specific_date: weekDate ? weekDate.toISOString().slice(0, 10) : '',
     recurring: true,
-    color: selectedColor || '#C8E632',
+    color: selectedColor || '#CDF649',
   });
 }
 
@@ -1574,7 +1593,7 @@ function buildBlock(slot, layout) {
 
   const el = document.createElement('div');
   el.className = 'cls-block';
-  const blockColor = slot.color || '#C8E632';
+  const blockColor = slot.color || '#CDF649';
   el.style.cssText = `top:${top}px;height:${height}px;background:${blockColor};`;
   el.classList.toggle('light', isLightScheduleColor(blockColor));
   el.classList.toggle('compact', height < 74);
@@ -1594,7 +1613,7 @@ function buildBlock(slot, layout) {
     ${slot.group_name||slot.level ? `<div class="cb-meta">${[slot.group_name,slot.level].filter(Boolean).join(' · ')}</div>` : ''}
     ${slot.room ? `<div class="cb-meta">${esc(slot.room)}</div>` : ''}
     <div class="cb-time">${slot.start_time.slice(0,5)} - ${slot.end_time.slice(0,5)}</div>
-    ${slot.meeting_url||slot.is_live ? `<button type="button" class="slot-action ${slot.is_live ? 'live' : ''}" onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})">${slot.is_live ? 'End live' : 'Go live'}</button>` : ''}
+    ${slotMeetingUrl(slot)||slot.is_live ? `<button type="button" class="slot-action ${slot.is_live ? 'live' : ''}" onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})">${slot.is_live ? 'End live' : 'Go live'}</button>` : ''}
     ${slot.board_id ? `<button type="button" class="slot-action" onclick="event.stopPropagation();openClassBoard('${esc(String(slot.board_id))}')">Open board</button>` : ''}`;
   el.style.position = 'absolute';
   el.addEventListener('mousedown', e => startSlotDrag(e, slot, el));
@@ -1709,7 +1728,7 @@ function schedulePayload(slot, patch = {}) {
     room: slot.room || null,
     meeting_url: slot.meeting_url || null,
     board_id: slot.board_id || null,
-    color: slot.color || '#C8E632',
+    color: slot.color || '#CDF649',
     recurring: slot.recurring !== false && !slot.specific_date,
     specific_date: slot.specific_date ? slot.specific_date.slice(0,10) : null,
     ...patch,
@@ -1765,7 +1784,7 @@ function renderSideList() {
       <div class="cls-dot" style="background:${slot.color};${slot.is_live?'box-shadow:0 0 0 3px rgba(239,68,68,.4);':''}"></div>
       <div class="cls-info">
         <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#A61919;font-weight:650;">LIVE</span>':''}${slot.specific_date?'<span style="font-size:9px;background:rgba(200,230,50,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600;">Once</span>':''}</div>
-        <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}-${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slot.meeting_url?' · ':''}</div>
+        <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}-${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slotMeetingUrl(slot)?' · ':''}</div>
       </div>
       <button class="cls-del" onclick="deleteClass(event,'${slot.id}')">×</button>`;
     el.addEventListener('click', () => openModal(slot));
@@ -1799,10 +1818,63 @@ function buildColorGrid() {
   });
 }
 
+const DAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+function renderDayChips() {
+  const host = document.getElementById('f-days');
+  if (!host) return;
+  host.innerHTML = DAY_NAMES.map((d, i) => `<button type="button" class="day-chip${selectedDays.has(i) ? ' on' : ''}"
+    aria-pressed="${selectedDays.has(i)}" title="${DAY_FULL[i]}" onclick="toggleDayChip(${i})">${d}</button>`).join('');
+  const days = [...selectedDays].sort((a, b) => a - b);
+  document.getElementById('f-day').value = days[0] ?? 0;
+  if (!editingId) {
+    const n = document.getElementById('f-recurring').checked ? days.length : 1;
+    const btn = document.getElementById('modal-save-btn');
+    if (btn && !btn.disabled) btn.textContent = n > 1 ? `Add ${n} classes` : 'Add Class';
+  }
+}
+
+function toggleDayChip(i) {
+  // at least one day always stays picked
+  if (selectedDays.has(i)) { if (selectedDays.size > 1) selectedDays.delete(i); }
+  else selectedDays.add(i);
+  renderDayChips();
+  if (typeof renderModalTzPreview === 'function') renderModalTzPreview();
+}
+
+/* The regular meeting link lives on the teacher's profile (users.meeting_url).
+   A lesson saved with the box ticked keeps no link of its own and follows the
+   regular one, so changing it once changes it everywhere - on the schedule,
+   in the students' "Join" buttons and in the live-class notification. */
+const regularMeetingUrl = () => String(currentUser?.meeting_url || '').trim();
+
+function toggleMeetingDefault(on) {
+  const field = document.getElementById('f-meeting-url');
+  if (on && !field.value.trim() && regularMeetingUrl()) field.value = regularMeetingUrl();
+  syncMeetingDefault();
+}
+
+function syncMeetingDefault() {
+  const box = document.getElementById('f-meeting-default');
+  const note = document.getElementById('f-meeting-default-note');
+  const value = document.getElementById('f-meeting-url').value.trim();
+  const regular = regularMeetingUrl();
+  if (!note) return;
+  if (box.checked && value && regular && value !== regular) note.textContent = '- this link replaces your regular one in every lesson';
+  else if (box.checked && !value && !regular) note.textContent = '- paste the link once, it is filled in for every lesson';
+  else if (regular) note.textContent = `- ${regular.replace(/^https?:\/\//, '').slice(0, 42)}`;
+  else note.textContent = '- saved once, filled in for every lesson';
+}
+
+const slotMeetingUrl = slot => slot?.meeting_url || regularMeetingUrl() || '';
+
 function toggleRecurring(checked) {
   const dateRow = document.getElementById('f-date-row');
   const dayGroup = document.getElementById('f-day').closest('.form-group');
   dateRow.style.display = checked ? 'none' : 'flex';
+  // a one-off lesson takes its day from the date
+  document.getElementById('f-days-group').style.display = checked ? '' : 'none';
+  renderDayChips();
   // When switching to specific date, auto-set day from date picker
   if (!checked) {
     const dateInput = document.getElementById('f-specific-date');
@@ -1821,6 +1893,8 @@ function syncDayFromDate() {
   const d = new Date(dateInput.value + 'T00:00:00');
   const dow = (d.getDay() + 6) % 7; // 0=Mon
   document.getElementById('f-day').value = dow;
+  selectedDays = new Set([dow]);
+  renderDayChips();
 }
 
 function openModal(slot = null, preset = null) {
@@ -1833,13 +1907,17 @@ function openModal(slot = null, preset = null) {
   document.getElementById('lesson-presets-wrap').hidden = isEdit;
   setScheduleSaveBusy(false);
   document.getElementById('f-title').value = data.title || '';
-  document.getElementById('f-day').value   = data.day ?? ((new Date().getDay() + 6) % 7);
+  const startDay = Number(data.day ?? ((new Date().getDay() + 6) % 7));
+  selectedDays = new Set([startDay]);
   document.getElementById('f-start').value = data.start_time?.slice(0,5) || '09:00';
   document.getElementById('f-end').value   = data.end_time?.slice(0,5)   || '10:30';
   document.getElementById('f-group').value = data.group_name || '';
   document.getElementById('f-level').value = data.level || '';
   document.getElementById('f-room').value        = data.room  || '';
-  document.getElementById('f-meeting-url').value = data.meeting_url || '';
+  // a lesson without its own link follows the regular one
+  const ownLink = data.meeting_url || '';
+  document.getElementById('f-meeting-url').value = ownLink || regularMeetingUrl();
+  document.getElementById('f-meeting-default').checked = !!regularMeetingUrl() && (!ownLink || ownLink === regularMeetingUrl());
   document.getElementById('f-board').value       = data.board_id || '';
 
   const isRecurring = isEdit ? (slot.recurring !== false && !slot.specific_date) : (data.recurring !== false);
@@ -1849,8 +1927,11 @@ function openModal(slot = null, preset = null) {
   const specificDate = data.specific_date ? data.specific_date.slice(0, 10) : '';
   document.getElementById('f-specific-date').value = specificDate || new Date().toISOString().slice(0, 10);
   document.getElementById('f-date-row').style.display = isRecurring ? 'none' : 'flex';
+  document.getElementById('f-days-group').style.display = isRecurring ? '' : 'none';
+  renderDayChips();
+  syncMeetingDefault();
 
-  const color = data.color || '#C8E632';
+  const color = data.color || '#CDF649';
   selectedColor = color;
   document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===color));
   document.getElementById('modal').classList.add('open');
@@ -1861,10 +1942,10 @@ function openModal(slot = null, preset = null) {
 }
 
 const LESSON_PRESETS = {
-  'online-one': { title: '1:1 English lesson', group_name: '1:1', level: 'B1', room: 'Online', duration: 60, color: '#8496A8' },
-  'online-group': { title: 'Group English lesson', group_name: 'Group', level: 'B1', room: 'Online', duration: 60, color: '#9A8CA8' },
-  offline: { title: 'Classroom English lesson', group_name: 'Class', level: 'B1', room: 'Classroom', duration: 60, color: '#7C8A7B' },
-  club: { title: 'Speaking club', group_name: 'Speaking Club', level: 'B1', room: 'Online', duration: 75, color: '#C79E86' },
+  'online-one': { title: '1:1 English lesson', group_name: '1:1', level: 'B1', room: 'Online', duration: 60, color: '#6BAFF3' },
+  'online-group': { title: 'Group English lesson', group_name: 'Group', level: 'B1', room: 'Online', duration: 60, color: '#9F8CE8' },
+  offline: { title: 'Classroom English lesson', group_name: 'Class', level: 'B1', room: 'Classroom', duration: 60, color: '#5D614B' },
+  club: { title: 'Speaking club', group_name: 'Speaking Club', level: 'B1', room: 'Online', duration: 75, color: '#F3A46B' },
 };
 
 function applyLessonPreset(key) {
@@ -1909,40 +1990,46 @@ async function saveClass() {
 
   const isRecurring = document.getElementById('f-recurring').checked;
   let specificDate = null;
-  let day = parseInt(document.getElementById('f-day').value);
+  let days = [...selectedDays].sort((a, b) => a - b);
 
   if (!isRecurring) {
     specificDate = document.getElementById('f-specific-date').value;
     if (!specificDate) { toast('Please pick a date','err'); return; }
     // Derive day-of-week from the specific date
     const d = new Date(specificDate + 'T00:00:00');
-    day = (d.getDay() + 6) % 7;
+    days = [(d.getDay() + 6) % 7];
   }
+  if (!days.length) { toast('Pick at least one day','err'); return; }
 
-  // Conflict detection
+  // Conflict detection, for every picked day
   const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
   const newStart = toMin(start), newEnd = toMin(end);
-  const conflict = schedule.find(s => {
+  const conflicts = days.map(day => schedule.find(s => {
     if (String(s.id) === String(editingId)) return false;
     if (s.day !== day) return false;
     // For specific-date events, only conflict if same date or both recurring
     if (specificDate && s.specific_date && s.specific_date.slice(0,10) !== specificDate) return false;
     const sS = toMin(s.start_time), sE = toMin(s.end_time);
     return newStart < sE && newEnd > sS;
-  });
-  if (conflict) {
-    const ok = confirm(`⚠️ Time conflict with "${conflict.title}" (${conflict.start_time}-${conflict.end_time}). Save anyway?`);
-    if (!ok) return;
+  })).filter(Boolean);
+  if (conflicts.length) {
+    const list = conflicts.map(c => `"${c.title}" (${DAY_NAMES[c.day]} ${c.start_time.slice(0,5)}-${c.end_time.slice(0,5)})`).join(', ');
+    if (!confirm(`⚠️ Time conflict with ${list}. Save anyway?`)) return;
   }
 
+  // The regular link: saved to the profile once; lessons that use it keep no
+  // link of their own and follow it.
   const meetUrl = document.getElementById('f-meeting-url').value.trim();
-  const body = {
-    title, day,
+  const useRegular = document.getElementById('f-meeting-default').checked && !!meetUrl;
+  if (meetUrl && !/^https?:\/\/.+/i.test(meetUrl)) { toast('The meeting link should start with https://','err'); return; }
+
+  const base = {
+    title,
     start_time: start, end_time: end,
     group_name:    document.getElementById('f-group').value.trim() || null,
     level:         document.getElementById('f-level').value || null,
     room:          document.getElementById('f-room').value.trim() || null,
-    meeting_url:   meetUrl || null,
+    meeting_url:   useRegular ? null : (meetUrl || null),
     board_id:      document.getElementById('f-board').value || null,
     color:         selectedColor,
     recurring:     isRecurring,
@@ -1951,12 +2038,26 @@ async function saveClass() {
 
   try {
     setScheduleSaveBusy(true);
+    if (useRegular && meetUrl !== regularMeetingUrl()) {
+      const next = await apiFetch('/api/auth/me', { method: 'PATCH', body: { meeting_url: meetUrl } });
+      currentUser = { ...currentUser, ...(next?.user || { meeting_url: meetUrl }) };
+      writeScheduleCache({ user: currentUser });
+    }
     if (editingId) {
-      await apiFetch(`/api/schedule/${editingId}`, { method:'PATCH', body: JSON.stringify(body) });
-      toast('Class updated ✅','ok');
+      // the edited lesson keeps its own day if it is still picked; every other
+      // picked day becomes a new lesson with the same details
+      const current = schedule.find(x => String(x.id) === String(editingId));
+      const keepDay = days.includes(Number(current?.day)) ? Number(current.day) : days[0];
+      await apiFetch(`/api/schedule/${editingId}`, { method:'PATCH', body: JSON.stringify({ ...base, day: keepDay }) });
+      for (const day of days.filter(d => d !== keepDay)) {
+        await apiFetch('/api/schedule', { method:'POST', body: JSON.stringify({ ...base, day }) });
+      }
+      toast(days.length > 1 ? `Class updated and added on ${days.filter(d => d !== keepDay).map(d => DAY_NAMES[d]).join(', ')} ✅` : 'Class updated ✅','ok');
     } else {
-      await apiFetch('/api/schedule', { method:'POST', body: JSON.stringify(body) });
-      toast('Class added ✅','ok');
+      for (const day of days) {
+        await apiFetch('/api/schedule', { method:'POST', body: JSON.stringify({ ...base, day }) });
+      }
+      toast(days.length > 1 ? `Added on ${days.map(d => DAY_NAMES[d]).join(', ')} ✅` : 'Class added ✅','ok');
     }
     closeModal();
     await loadSchedule();
@@ -2051,7 +2152,7 @@ function exportICS() {
       `SUMMARY:${escapeIcs(slot.title || 'Class')}`,
       slot.room ? `LOCATION:${escapeIcs(slot.room)}` : '',
       description ? `DESCRIPTION:${escapeIcs(description)}` : '',
-      slot.meeting_url ? `URL:${escapeIcs(slot.meeting_url)}` : '',
+      slotMeetingUrl(slot) ? `URL:${escapeIcs(slotMeetingUrl(slot))}` : '',
       !slot.specific_date && slot.recurring !== false ? `RRULE:FREQ=WEEKLY;BYDAY=${days[Math.max(0, Math.min(6, Number(slot.day) || 0))]}` : '',
       'END:VEVENT',
     ].filter(Boolean).join('\r\n');
@@ -2075,13 +2176,13 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="pwa.js?v=924"></script>
-<script src="scripts/nav-boost.js?v=924" defer></script>
-<script src="scripts/mobile-perf.js?v=924" defer></script>
-<script src="scripts/mobile-nav.js?v=924"></script>
-<script src="scripts/autogrow.js?v=924" defer></script>
-<script src="pwa-boot.js?v=924" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=924" defer></script>
-  <script src="scripts/signin-entry.js?v=924" defer></script>
+<script src="pwa.js?v=925"></script>
+<script src="scripts/nav-boost.js?v=925" defer></script>
+<script src="scripts/mobile-perf.js?v=925" defer></script>
+<script src="scripts/mobile-nav.js?v=925"></script>
+<script src="scripts/autogrow.js?v=925" defer></script>
+<script src="pwa-boot.js?v=925" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=925" defer></script>
+  <script src="scripts/signin-entry.js?v=925" defer></script>
 </body>
 </html>

@@ -340,7 +340,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     try {
       const { rows: sch } = await pool.query(`
         SELECT s.id, s.user_id, s.day, s.start_time, s.end_time, s.title, s.group_name, s.level, s.room,
-               s.color, s.recurring, s.specific_date, s.meeting_url, s.is_live,
+               s.color, s.recurring, s.specific_date, COALESCE(s.meeting_url, u.meeting_url) AS meeting_url, s.is_live,
                u.name AS teacher_name, u.avatar AS teacher_avatar, u.timezone AS teacher_timezone
         FROM schedule s
         JOIN users u ON u.id = s.user_id

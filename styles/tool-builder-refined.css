@@ -21,8 +21,10 @@
 }
 
 #tool-builder-panel .tbuilder-box{
-  width:min(1060px,100%);
-  max-height:min(88dvh,780px);
+  /* a word set is checked here before it lands on the board: on a laptop the
+     old 1060x780 box left the review a slot to read through */
+  width:min(1180px,100%);
+  max-height:min(92dvh,900px);
   overflow:auto;
   padding:0;
   border:1px solid rgba(255,255,255,.58);
@@ -623,4 +625,28 @@
   #tool-builder-panel .tbuilder-kicker,
   #tool-builder-panel .tbuilder-preview-title{ font-size:11px; letter-spacing:.08em; }
   #tool-builder-panel .tbuilder-sub{ font-size:13px; }
+}
+
+/* ── Full view of the word review ─────────────────────────────────────────
+   Checking twenty words and their games in the right half of the builder
+   meant reading through a slot. «Full view» gives the review the whole
+   window; «Back to the form» returns the two columns. */
+#tool-builder-panel.tb-review-wide .tbuilder-box{width:min(1360px,100%);max-height:94dvh;}
+#tool-builder-panel.tb-review-wide .tbuilder-layout{grid-template-columns:1fr;}
+#tool-builder-panel.tb-review-wide .tbuilder-form{display:none;}
+#tool-builder-panel.tb-review-wide .tbuilder-preview{border-left:0;}
+#tool-builder-panel.tb-review-wide #tbuilder-output .wr-rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));align-items:start;}
+#tool-builder-panel.tb-review-wide #tbuilder-output .wr-game{max-height:none;}
+#tool-builder-panel .wr-top-actions{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+#tool-builder-panel .wr-wide{min-height:34px;padding:0 12px;border:1px solid #24282C;border-radius:999px;background:#fff;color:#24282C;font:700 12px var(--font, inherit);cursor:pointer;white-space:nowrap;}
+#tool-builder-panel .wr-wide:hover{background:#F6F6EF;}
+#tool-builder-panel .wr-wide[aria-pressed="true"]{background:#24282C;color:#fff;}
+/* meanings inside an open game wrap instead of being cut at the column edge */
+#tool-builder-panel .wg-row{align-items:flex-start;}
+#tool-builder-panel .wg-row b{padding-top:5px;}
+#tool-builder-panel .wg-row textarea.wr-in{min-height:0 !important;height:auto !important;padding:5px 8px !important;border-radius:8px !important;
+  font:500 12.5px/1.35 var(--font, inherit) !important;background:#fff !important;box-shadow:none !important;color:#24282C !important;
+  resize:none;field-sizing:content;max-height:140px;width:100% !important;}
+@media (max-width:760px){
+  #tool-builder-panel .wr-wide{display:none;}
 }

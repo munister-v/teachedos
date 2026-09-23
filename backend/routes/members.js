@@ -3,6 +3,8 @@ const router  = express.Router();
 const pool    = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { normalizePlanKey, getPlanLimit } = require('../lib/billing');
+const crypto = require('crypto');
+const { sendEmail, studentInviteEmail, emailConfigured } = require('../lib/email');
 
 async function loadBoardOwner(boardId, ownerId) {
   const { rows } = await pool.query(
@@ -175,15 +177,51 @@ router.post('/:boardId/invite', requireAuth, async (req, res) => {
   try {
     await client.query('BEGIN');
     const { rows: own } = await client.query(
-      'SELECT id FROM boards WHERE id=$1 AND user_id=$2 FOR UPDATE', [boardId, req.user.id]
+      'SELECT id, name FROM boards WHERE id=$1 AND user_id=$2 FOR UPDATE', [boardId, req.user.id]
     );
     if (!own.length) { await client.query('ROLLBACK'); return res.status(403).json({ error: 'Not your board' }); }
 
+    const cleanEmail = String(email).toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) || cleanEmail.length > 254) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Enter a valid email address' });
+    }
     const { rows: users } = await client.query(
       'SELECT id, name, email, avatar FROM users WHERE email=$1',
-      [email.toLowerCase().trim()]
+      [cleanEmail]
     );
-    if (!users.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'User not found. They must register first.' }); }
+    /* Nobody has this address yet. It used to stop here with "They must
+       register first" and the student heard nothing; now an invite keeps the
+       board, the student gets a link to sign up, and signing up - by the link
+       or any other way with this email - seats them on the board. The
+       teacher also gets the link back, to send it themselves if mail is off. */
+    if (!users.length) {
+      const { rows: pending } = await client.query(
+        `SELECT token FROM invites
+          WHERE LOWER(email) = $1 AND board_id = $2 AND accepted_at IS NULL
+            AND revoked_at IS NULL AND expires_at > NOW()
+          ORDER BY created_at DESC LIMIT 1`,
+        [cleanEmail, boardId]
+      );
+      const token = pending[0]?.token || crypto.randomBytes(24).toString('hex');
+      if (!pending.length) {
+        await client.query(
+          `INSERT INTO invites (email, role, token, note, created_by, expires_at, board_id, board_role)
+           VALUES ($1, 'student', $2, $3, $4, NOW() + INTERVAL '30 days', $5, $6)`,
+          [cleanEmail, token, `Board: ${own[0].name || ''}`.slice(0, 500), req.user.id, boardId, safeRole]
+        );
+      } else {
+        await client.query(`UPDATE invites SET expires_at = NOW() + INTERVAL '30 days' WHERE token = $1`, [token]);
+      }
+      await client.query('COMMIT');
+      const mail = studentInviteEmail({ token, teacherName: req.user.name, boardTitle: own[0].name });
+      let emailSent = false;
+      if (emailConfigured()) {
+        try { await sendEmail({ to: cleanEmail, subject: mail.subject, html: mail.html }); emailSent = true; }
+        catch (err) { console.error('[members] invite email failed:', err.message); }
+      }
+      return res.status(202).json({ invited: true, email: cleanEmail, emailSent, inviteUrl: mail.link });
+    }
     const invitee = users[0];
 
     if (invitee.id === req.user.id) { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Cannot invite yourself' }); }

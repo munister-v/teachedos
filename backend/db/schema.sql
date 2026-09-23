@@ -715,3 +715,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS desktop_wallpaper TEXT;
 -- ("pkg:2", "pay:2026-09-20"), so an alert comes back when the state changes.
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS payment_due DATE;
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pulse_hidden JSONB NOT NULL DEFAULT '{}';
+
+-- A teacher can invite a student who has no account yet: the invite keeps
+-- the board they are joining, and sign-up seats them on it.
+ALTER TABLE invites ADD COLUMN IF NOT EXISTS board_id UUID REFERENCES boards(id) ON DELETE CASCADE;
+ALTER TABLE invites ADD COLUMN IF NOT EXISTS board_role VARCHAR(50);
+CREATE INDEX IF NOT EXISTS idx_invites_board_pending ON invites (LOWER(email)) WHERE board_id IS NOT NULL AND accepted_at IS NULL;

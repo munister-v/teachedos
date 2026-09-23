@@ -107,4 +107,54 @@ function resetPasswordEmail(token) {
   };
 }
 
-module.exports = { sendEmail, resetPasswordEmail, SITE };
+const escHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* A teacher added a student who has no account yet. The link opens
+   invite.html, where the student picks a name and password; the board is
+   attached on sign-up (and on any later sign-up with the same email). */
+function studentInviteEmail({ token, teacherName, boardTitle }) {
+  const link = `${SITE}/invite.html?token=${encodeURIComponent(token)}`;
+  const who = escHtml(teacherName || 'Your teacher');
+  const board = boardTitle ? ` to <strong>${escHtml(boardTitle)}</strong>` : '';
+  return {
+    link,
+    subject: `${teacherName || 'Your teacher'} invited you to TeachEd`,
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 4px 24px rgba(0,0,0,.07);">
+        <tr><td>
+          <div style="font-size:26px;font-weight:900;letter-spacing:-.04em;margin-bottom:24px;">TeachEd</div>
+          <h2 style="font-size:20px;font-weight:800;margin:0 0 12px;">You're invited to class</h2>
+          <p style="color:#555;line-height:1.6;margin:0 0 28px;">
+            ${who} added you${board} on TeachEd - lessons, homework and games in one place.<br>
+            Create your account to join. It takes a minute and is free for students.
+          </p>
+          <a href="${link}"
+             style="display:inline-block;background:#CDF649;color:#24282C;font-weight:900;padding:14px 32px;border-radius:14px;text-decoration:none;font-size:15px;margin-bottom:28px;">
+            Join the class →
+          </a>
+          <p style="color:#999;font-size:13px;line-height:1.6;margin:0 0 24px;">
+            The link works for 30 days. If the button doesn't open, copy this address:<br>
+            <a href="${link}" style="color:#999;word-break:break-all;">${link}</a>
+          </p>
+          <hr style="border:0;border-top:1px solid #eee;margin:0 0 16px;">
+          <p style="color:#bbb;font-size:12px;margin:0;">
+            TeachEd · <a href="${SITE}" style="color:#bbb;">${SITE}</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  };
+}
+
+/** true when a real provider is set; otherwise sendEmail only logs */
+const emailConfigured = () => !!(process.env.RESEND_API_KEY || process.env.GMAIL_APP_PASSWORD);
+
+module.exports = { sendEmail, resetPasswordEmail, studentInviteEmail, emailConfigured, SITE };

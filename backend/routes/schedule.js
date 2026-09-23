@@ -28,10 +28,16 @@ async function notifyStudentsLive(slot) {
       )
     `, [slot.user_id]);
 
+    // a lesson without its own link uses the teacher's regular one
+    let url = slot.meeting_url;
+    if (!url) {
+      const { rows } = await pool.query('SELECT meeting_url FROM users WHERE id = $1', [slot.user_id]);
+      url = safeMeetingUrl(rows[0]?.meeting_url);
+    }
     const payload = JSON.stringify({
       title: '🔴 Live class started!',
       body: `${slot.title} is now live. Click to join.`,
-      url: slot.meeting_url || '/'
+      url: url || '/'
     });
 
     await Promise.allSettled(

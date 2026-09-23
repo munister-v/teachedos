@@ -12271,7 +12271,7 @@ function openTeacherToolBuilder(toolId, opts = {}) {
 
 function closeTeacherToolBuilder() {
   _ttSaveBuilderDraft();
-  document.getElementById('tool-builder-panel')?.classList.remove('open');
+  document.getElementById('tool-builder-panel')?.classList.remove('open', 'tb-review-wide');
   _ttRefreshBuildLessonBtn();
 }
 
@@ -12285,9 +12285,30 @@ function _ttRefreshBuildLessonBtn(){
   btn.classList.toggle('show', hasTT);
 }
 
-document.getElementById('tool-builder-panel')?.addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeTeacherToolBuilder();
+/* The builder closed "by itself": selecting text in the word list (or
+   dragging a scrollbar) and letting go outside the window fires a click whose
+   target is the backdrop, and that counted as a click on it. Only a press
+   that both starts and ends on the backdrop closes the builder now. */
+let _ttBackdropDown = false;
+document.getElementById('tool-builder-panel')?.addEventListener('pointerdown', e => {
+  _ttBackdropDown = e.target === e.currentTarget;
 });
+document.getElementById('tool-builder-panel')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget && _ttBackdropDown) closeTeacherToolBuilder();
+  _ttBackdropDown = false;
+});
+
+/* The review of a word set sat in the right half of the builder, so games
+   and meanings were checked through a slot. This lets it take the whole
+   window while checking, and gives the form back after. */
+function toggleWordReviewWide(force) {
+  const panel = document.getElementById('tool-builder-panel');
+  if (!panel) return;
+  const on = typeof force === 'boolean' ? force : !panel.classList.contains('tb-review-wide');
+  panel.classList.toggle('tb-review-wide', on);
+  const btn = document.querySelector('.wr-wide');
+  if (btn) { btn.textContent = on ? '⤡ Back to the form' : '⤢ Full view'; btn.setAttribute('aria-pressed', String(on)); }
+}
 
 document.querySelector('.tbuilder-form')?.addEventListener('input', e => {
   if (e.target.matches('input, textarea, select')) { _ttClearTidyUndoAfterManualEdit(e.target.id); _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
@@ -13862,7 +13883,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '924';
+const TEACHEDOS_ASSET_VERSION = '925';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14685,7 +14706,10 @@ function renderWordReview() {
   box.innerHTML = `<div class="wr">
     <div class="wr-top">
       <div><b>Check the words</b><span class="wr-sum">${_wrSummary()}</span></div>
-      <button type="button" class="wr-add" onclick="commitWordWorkout()"${n && live.length ? '' : ' disabled'}>Add ${n} to the board</button>
+      <span class="wr-top-actions">
+        <button type="button" class="wr-wide" onclick="toggleWordReviewWide()" aria-pressed="${document.getElementById('tool-builder-panel')?.classList.contains('tb-review-wide') ? 'true' : 'false'}">${document.getElementById('tool-builder-panel')?.classList.contains('tb-review-wide') ? '⤡ Back to the form' : '⤢ Full view'}</button>
+        <button type="button" class="wr-add" onclick="commitWordWorkout()"${n && live.length ? '' : ' disabled'}>Add ${n} to the board</button>
+      </span>
     </div>
     <div class="wr-games">${chips || '<span class="wr-note">No activities picked</span>'}</div>
     ${r.open ? wordReviewGameBlock(r.open, live) : ''}
@@ -14749,7 +14773,9 @@ function wordReviewGameBlock(key, live) {
   if (!t) return '';
   const r = _wordReview;
   const idx = e => r.entries.indexOf(e);
-  const field = (e, prop, ph) => `<div class="wg-row"><b>${esc(e.word)}</b><input class="wr-in" value="${esc(e[prop] || '')}" placeholder="${ph}" oninput="wordReviewEdit(${idx(e)},'${prop}',this.value)" aria-label="${prop === 'example' ? 'Sentence' : 'Meaning'} for ${esc(e.word)}"></div>`;
+  /* textarea, not input: a meaning longer than the column was cut off
+     mid-sentence, so what was being checked could not be read */
+  const field = (e, prop, ph) => `<div class="wg-row"><b>${esc(e.word)}</b><textarea class="wr-in" rows="1" placeholder="${ph}" oninput="wordReviewEdit(${idx(e)},'${prop}',this.value)" aria-label="${prop === 'example' ? 'Sentence' : 'Meaning'} for ${esc(e.word)}">${esc(e[prop] || '')}</textarea></div>`;
   let rows = '';
   if (key === 'unjumble' || key === 'complete') {
     rows = live.map(e => field(e, 'example', `a sentence with “${esc(e.word)}”`)).join('');
@@ -19664,7 +19690,16 @@ async function spInvite() {
       errEl.style.display = 'block';
     } else {
       document.getElementById('sp-email-input').value = '';
-      toast(`✓ ${d.member.name} invited!`);
+      if (d.invited) {
+        // no account yet: an invitation joins them to this board on sign-up
+        if (d.emailSent) toast(`✓ Invitation sent to ${d.email}`);
+        else {
+          try { await navigator.clipboard.writeText(d.inviteUrl); toast(`${d.email} has no account yet - invite link copied, send it to them`); }
+          catch { prompt(`${d.email} has no account yet. Send them this invitation link:`, d.inviteUrl); }
+        }
+      } else {
+        toast(`✓ ${d.member?.name || email} invited!`);
+      }
       await spLoadMembers();
     }
   } catch {

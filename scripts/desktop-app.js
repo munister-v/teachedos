@@ -1116,6 +1116,10 @@ function studentsAddToggle() {
   document.getElementById('students-add-email')?.focus();
 }
 
+function escHtmlStudents(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 async function studentsAddSubmit(e) {
   e.preventDefault();
   const email = document.getElementById('students-add-email')?.value.trim();
@@ -1138,6 +1142,23 @@ async function studentsAddSubmit(e) {
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) return setMsg(d.error || `Could not add (HTTP ${r.status})`, true);
+
+    /* No account with this email yet: the server created an invitation that
+       seats them on the board as soon as they sign up. */
+    if (d.invited) {
+      document.getElementById('students-add-email').value = '';
+      if (!msg) return;
+      msg.classList.remove('err');
+      msg.innerHTML = d.emailSent
+        ? `Invitation sent to <b>${escHtmlStudents(d.email)}</b>. They join this board as soon as they sign up.`
+        : `<b>${escHtmlStudents(d.email)}</b> has no account yet - send them this invitation link. They join this board as soon as they sign up.`
+          + ` <button type="button" class="st-add-copy">Copy invite link</button>`;
+      msg.querySelector('.st-add-copy')?.addEventListener('click', async (ev) => {
+        try { await navigator.clipboard.writeText(d.inviteUrl); ev.target.textContent = 'Copied ✓'; }
+        catch { prompt('Copy the invitation link:', d.inviteUrl); }
+      });
+      return;
+    }
 
     const added = d.member || {};
     const existing = STUDENTS.find(s => String(s.id) === String(added.id));

@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
+const { attachBoardInvites } = require('../lib/boardInvites');
 const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth');
 const { sendEmail, resetPasswordEmail } = require('../lib/email');
 const { recordTelemetry } = require('../lib/telemetry');
@@ -417,6 +418,8 @@ router.post('/register', authLimiter, async (req, res) => {
       ]
     );
     const user  = rows[0];
+    // a teacher may already have added this address to a board
+    await attachBoardInvites(pool, user).catch((e) => console.error('[auth/register] board invites', e.message));
     const payload = await issueLoginSession(req, user);
     logAuthEvent(user.id, user.email, 'signup', req);
     res.status(201).json({ ...payload, isNewUser: true });
@@ -508,6 +511,7 @@ router.post('/invites/:token/accept', authLimiter, async (req, res) => {
       ]
     );
     const user = created.rows[0];
+    await attachBoardInvites(client, user);
     const token = await createLoginSession(req, user, client);
     await client.query(
       `UPDATE invites
@@ -665,6 +669,7 @@ router.post('/google', authLimiter, async (req, res) => {
       );
       user = inserted.rows[0];
       isNewUser = true;
+      await attachBoardInvites(pool, user).catch((e) => console.error('[auth/google] board invites', e.message));
     }
 
     await pool.query(`UPDATE users SET last_login_at=NOW(), failed_login_count=0, locked_at=NULL WHERE id=$1`, [user.id]).catch(() => {});
