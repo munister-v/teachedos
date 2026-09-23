@@ -875,6 +875,15 @@ function shapeSpec(input) {
   }
 
   // ── Speaking ─────────────────────────────────────────────────────────────────
+  if (toolId === 'dialogue' && input.lesson === 'speaking') {
+    /* В уроке говорения диалог - только образец. Фразы, практику и задание
+       строят следующие этапы из ЭТОГО диалога; свои «Useful language» и
+       «Extension task» у него давали тот же язык на доске дважды-трижды. */
+    return {
+      task: `${cardsHead} Write a natural 10-14 line conversation between Speaker A and Speaker B at ${level} level - the model the class will learn to speak from. Make it a real exchange with a small problem to solve (something unavailable, a change, a misunderstanding), and use 6-8 useful spoken expressions for this situation, marked in **bold**. Return ONE card only: "Dialogue" - the conversation formatted "A: ...\\nB: ...". Put the bold expressions in "vocab".${context}`,
+      schema: '{"cards":[{"title":"Dialogue","text":"A: ...\\nB: ..."}],"vocab":["phrase"]}',
+    };
+  }
   if (toolId === 'dialogue') {
     return {
       task: `${cardsHead} Write a natural 8-12 line conversation between Speaker A and Speaker B at ${level} level. Use target vocabulary (mark key phrases in **bold**). Return 3 cards: 1) "Dialogue" - full conversation formatted "A: ...\\nB: ..."; 2) "Useful language" - 5-6 key phrases with brief explanations (one per line: phrase - meaning); 3) "Extension task" - a speaking or writing follow-up activity. Include "vocab" list.${context}`,
@@ -921,7 +930,7 @@ function shapeSpec(input) {
        Иначе образец над заданием ничему не учил - просили эссе, а
        показывали письмо. */
     return {
-      task: `${cardsHead} The source text is the MODEL the class has just studied. Set a writing task in the SAME genre and format as the model (same kind of text, similar length, same register), on a new but related situation or a different point of view - never ask them to rewrite the model itself. Return 4 cards: 1) "Writing prompt" - the situation and who they write to/for; 2) "Paragraph plan" - the model's structure as a numbered plan they follow, one line per paragraph saying what it must do; 3) "Useful phrases" - 5-6 phrases taken from the model, each with a brief usage note; 4) "Checklist" - 4-5 yes/no checks (length, register, plan followed, phrases used, linking). Keep it at ${level} level. Include "vocab" list of the phrases.${context}`,
+      task: `${cardsHead} The source text is the MODEL the class has just studied. Set a writing task in the SAME genre and format as the model (same kind of text, similar length, same register) but about a clearly DIFFERENT situation: a different place, a different problem or purpose, and a different reason - close enough that the model's plan and phrases still fit, far enough that nobody can copy sentences from it. Never ask them to rewrite the model itself. Return 4 cards: 1) "Writing prompt" - the situation and who they write to/for; 2) "Paragraph plan" - the model's structure as a numbered plan they follow, one line per paragraph saying what it must do; 3) "Useful phrases" - 5-6 phrases taken from the model, each with a brief usage note; 4) "Checklist" - 4-5 yes/no checks (length, register, plan followed, phrases used, linking). Keep it at ${level} level. Include "vocab" list of the phrases.${context}`,
       schema: '{"cards":[{"title":"Writing prompt","text":"..."},{"title":"Paragraph plan","text":"1. ...\\n2. ..."},{"title":"Useful phrases","text":"phrase - use\\n..."},{"title":"Checklist","text":"☐ ...\\n☐ ..."}],"vocab":["phrase"]}',
     };
   }
@@ -965,6 +974,15 @@ function shapeSpec(input) {
   }
 
   // ── Speaking ─────────────────────────────────────────────────────────────────
+  if (toolId === 'roleplay-cards' && input.lesson === 'speaking' && input.source) {
+    /* Ролевая по образцу, но не пересказ образца: иначе ученики просто
+       читали диалог по ролям. Та же функция языка, новые детали и одно
+       осложнение, которого в образце не было. */
+    return {
+      task: `${cardsHead} The source is the model dialogue the class has just practised. Create a role-play where they USE the same kind of language in a NEW version of the situation: change the details (place, people, times, what they want) and add one complication the model did not have, so nobody can just read the model back. Return cards: 1) "Situation" - the new scenario and the goal; 2) "Role A" - who they are, what they want and one thing they must not agree to; 3) "Role B" - the contrasting role, their aim and the complication they bring; 4) "Phrases to use" - 5-6 expressions from the model worth reusing here. Keep it at ${level} level. Include "vocab".${context}`,
+      schema: '{"cards":[{"title":"Situation","text":"..."},{"title":"Role A","text":"..."},{"title":"Role B","text":"..."},{"title":"Phrases to use","text":"..."}],"vocab":["phrase"]}',
+    };
+  }
   if (toolId === 'roleplay-cards') {
     return {
       task: `${cardsHead} Create a role-play at ${level} level. Return cards: 1) "Situation" - the scenario + goal; 2) "Role A" - who they are, their aim and 2-3 things to say; 3) "Role B" - the contrasting role, aim and 2-3 things to say; 4) "Useful language" - functional phrases for this interaction; 5) "Extension" - a follow-up speaking task. Include "vocab".${context}`,
