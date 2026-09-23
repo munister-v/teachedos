@@ -275,6 +275,85 @@ body.fx.os-desktop:not(.wall-glass) #fx-ghost-panel { background:#FFFFFF; border
 .sp-txt small { font-size:11.5px; color:#55555C; }
 .sp-empty { font-size:13px; line-height:1.45; color:#3A3A40; background:rgba(255,255,255,.8); border-radius:12px; padding:10px 12px; }
 /* Невысокий экран: лишние строки прячутся целиком, а не обрезаются посередине. */
-@media (max-height:899px) { .sp-pill:nth-child(n+4) { display:none; } }
-@media (max-height:840px) { .sp-pill:nth-child(n+3) { display:none; } }
-@media (max-height:800px) { .sp-pill:nth-child(n+2) { display:none; } }
+@media (max-height:960px) { .sp-pill:nth-child(n+4) { display:none; } }
+@media (max-height:900px) { .sp-pill:nth-child(n+3) { display:none; } }
+@media (max-height:850px) { .sp-pill:nth-child(n+2) { display:none; } }
+
+/* ── Раскладка правой части по макету ─────────────────────────────────────
+   В кадре справа сверху две карточки (ближайший урок и доски), под ними
+   панель расписания и плитка Analytics. «Classes today» (#wg-streak)
+   убран: то же самое показывает панель расписания (сегодня лаймом, число
+   занятий), а «Add class» - её кнопка «Add». Student Pulse уходит в левый
+   нижний угол, под окно досок. */
+body.fx.os-desktop:not(#_) #wg-streak { display:none !important; }
+
+body.fx.os-desktop:not(#_) :is(#wg-today, #wg-vocab) {
+  top:73px; width:174px !important; height:156px !important; min-height:0 !important;
+  padding:14px !important; box-sizing:border-box;
+}
+body.fx.os-desktop:not(#_) #wg-today { right:210px; }
+body.fx.os-desktop:not(#_) #wg-vocab { right:20px; }
+
+/* Ближайший урок: аватар слева сверху, время крупно справа, под ними
+   «с кем» и обратный отсчёт, внизу кнопка. Разметку не трогаем:
+   обёртки растворяются (display:contents), дети ложатся в сетку. */
+body.fx.os-desktop:not(#_) #wg-today {
+  display:grid !important;
+  grid-template-columns:auto 1fr; grid-template-rows:auto auto auto 1fr;
+  grid-template-areas:"av time" "who who" "badge badge" "btn btn";
+  column-gap:8px; align-items:start;
+}
+body.fx.os-desktop:not(#_) #wg-today :is(.wg-next-who, .wg-next-id) { display:contents !important; }
+body.fx.os-desktop:not(#_) #wg-today :is(.wg-today-label, .wg-today-meta) { display:none !important; }
+body.fx.os-desktop:not(#_) #wg-today .wg-next-avatar {
+  grid-area:av; width:42px !important; height:42px !important; border-radius:50% !important;
+  font-size:16px !important; font-weight:700 !important; margin:0 !important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.9) !important;
+}
+body.fx.os-desktop:not(#_) #wg-today .wg-next-time {
+  grid-area:time; justify-self:end; font-size:34px !important; margin:2px 0 0 !important;
+}
+body.fx.os-desktop:not(#_) #wg-today .wg-today-title {
+  grid-area:who; margin:10px 0 0 !important; font-size:13px !important; font-weight:600 !important;
+  line-height:1.25 !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+body.fx.os-desktop:not(#_) #wg-today .wg-today-title:not(.is-wrap)::before { content:'lesson with '; font-weight:500; color:var(--fx-mute); }
+body.fx.os-desktop:not(#_) #wg-today .wg-today-title.is-wrap { white-space:normal; font-size:15px !important; }
+body.fx.os-desktop:not(#_) #wg-today .wg-today-badge {
+  grid-area:badge; margin:2px 0 0 !important; font-size:12px !important; color:var(--fx-mute) !important;
+  text-transform:lowercase;
+}
+body.fx.os-desktop:not(#_) #wg-today .wg-next-launch {
+  grid-area:btn; align-self:end; width:100%; margin:0 !important; padding:8px 10px !important; min-height:0 !important;
+  border-radius:var(--fx-r-btn,11px) !important;
+}
+
+/* Доски: число, подпись и кнопка - как в макете. */
+body.fx.os-desktop:not(#_) #wg-vocab :is(.wg-vocab-lang, .wg-vocab-trans, .wg-vocab-ex) { display:none !important; }
+body.fx.os-desktop:not(#_) #wg-vocab .wg-vocab-next { margin-top:auto !important; padding:8px 10px !important; }
+
+/* Панель расписания и плитка Analytics - вторым рядом под карточками. */
+/* Карточки лежат в #desktop (он начинается на 57px), панель и плитка -
+   position:fixed, поэтому их top считается от окна: 57 + 73 + 156 + 16. */
+body.fx #fx-ghost-panel { right:236px; top:302px; width:clamp(280px, calc(100vw - 236px - 690px), 392px);
+  max-height:calc(100vh - 302px - 120px); }
+#fx-analytics { display:none; }
+body.fx.os-desktop #fx-analytics {
+  display:grid; place-items:center; position:fixed; z-index:2;
+  top:302px; right:20px; width:196px; height:196px; border-radius:44px;
+  background:#FFFFFF; box-shadow:0 24px 50px rgba(30,40,44,.18), 0 4px 12px rgba(30,40,44,.08);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+body.fx.os-desktop #fx-analytics:hover { transform:translateY(-3px) scale(1.02); }
+body.fx.os-desktop #fx-analytics:focus-visible { outline:2px solid #161616; outline-offset:4px; }
+#fx-analytics svg { width:74%; height:74%; }
+#fx-analytics rect { fill:#161616; }
+#fx-analytics .fx-an-wave { fill:none; stroke:#9FE3C1; stroke-width:6; stroke-linecap:round; opacity:.95; }
+
+/* Student Pulse - левый нижний угол, под окном досок. */
+/* #desktop высотой 100vh, но сдвинут на 57px вниз - его низ за краем окна. */
+body.fx.os-desktop:not(#_) #wg-pulse { top:auto; bottom:85px; right:auto; left:50px; }
+
+@media (max-width:1280px), (max-height:760px) {
+  body.fx.os-desktop #fx-analytics { display:none; }
+}
