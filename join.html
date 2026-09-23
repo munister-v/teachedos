@@ -99,6 +99,7 @@ async function loadInfo() {
   try {
     const r = await fetch(`${API}/api/members/join/${encodeURIComponent(JOIN_TOKEN)}`);
     const d = await r.json().catch(() => ({}));
+    if (r.status === 404) return dead('Your teacher may have made a new one. Ask them to send it again.');
     if (!r.ok) return dead(d.error || 'Ask your teacher for a new link.');
     $('card').classList.remove('is-loading');
     $('title').textContent = d.board.name || 'Your class board';
