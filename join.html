@@ -7,57 +7,51 @@
 <meta name="robots" content="noindex">
 <title>TeachEd - Join the class</title>
 <link rel="icon" type="image/png" href="logo-sm.png"/>
-<link rel="stylesheet" href="styles/teached-brand.css?v=928">
-<link rel="stylesheet" href="styles/auth.css?v=928">
-<style>
-/* Where a teacher's join link lands. One card: who invites you, to which
-   board, and one button. Sign-in / sign-up opens the shared auth modal on
-   this page, so the student never loses the link on the way. */
-:root{--ink:#24282C;--lime:#CDF649;--paper:#F6F6EF;--line:#CACCC6;--muted:#5D614B;--coral:#FF4E00}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px;
-  background:var(--paper);color:var(--ink);
-  font-family:var(--font-sans,-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif);
-}
-.card{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:32px 28px;box-shadow:0 18px 50px rgba(36,40,44,.08)}
-.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin-bottom:28px}
-.logo img{width:26px;height:26px}
-.eyebrow{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:11px;letter-spacing:.06em;text-transform:lowercase;color:var(--muted)}
-h1{font-size:30px;line-height:1.08;font-weight:750;letter-spacing:-.02em;margin-top:8px;overflow-wrap:anywhere}
-.from{margin-top:12px;font-size:15px;line-height:1.5;color:var(--muted)}
-.from b{color:var(--ink)}
-.actions{margin-top:26px;display:grid;gap:10px}
-.btn{
-  display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px 16px;border-radius:999px;
-  border:1px solid var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;
-  transition:transform .12s,filter .12s;
-}
-.btn:hover{transform:translateY(-1px)}
-.btn:disabled{opacity:.55;cursor:wait;transform:none}
-.btn.primary{background:var(--lime);color:var(--ink)}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-.status{margin-top:14px;min-height:20px;font-size:13.5px;line-height:1.45;color:var(--muted)}
-.status.err{color:var(--coral)}
-.skeleton h1,.skeleton .from{color:transparent;background:#eeeee6;border-radius:8px}
-[hidden]{display:none!important}
-</style>
+<link rel="stylesheet" href="styles/teached-brand.css?v=929">
+<link rel="stylesheet" href="styles/auth.css?v=929">
+<link rel="stylesheet" href="styles/invite-page.css?v=929">
 </head>
 <body>
-  <main class="card skeleton" id="card">
-    <div class="logo"><img src="logo-sm.png" alt="">TeachEd</div>
-    <div class="eyebrow">class invitation</div>
-    <h1 id="title">Loading the board</h1>
-    <p class="from" id="from">Checking the link…</p>
+  <!-- Where a teacher's join link lands: who invites you, to which board,
+       what you get, one button. Sign-in / sign-up opens the shared auth
+       modal right here, so the student never loses the link on the way. -->
+  <main class="ip-card is-loading" id="card">
+    <header class="ip-head">
+      <div class="ip-top">
+        <a class="ip-logo" href="/"><img src="logo-sm.png" alt="">TeachEd</a>
+        <span class="ip-chip" id="chip">Class invite</span>
+      </div>
+      <div class="ip-from">
+        <div class="ip-ava" id="ava">TE</div>
+        <div class="ip-from-text" id="from"><b>Your teacher</b>invites you to the board</div>
+      </div>
+      <h1 class="ip-title" id="title">Loading the board</h1>
+      <p class="ip-sub" id="sub" hidden></p>
+    </header>
 
-    <div class="actions" id="guest" hidden>
-      <button class="btn primary" type="button" onclick="startAuth('register')">Create a free account</button>
-      <button class="btn ghost" type="button" onclick="startAuth('login')">I already have an account</button>
-    </div>
-    <div class="actions" id="member" hidden>
-      <button class="btn primary" type="button" id="join-btn" onclick="joinBoard()">Join the board</button>
-    </div>
-    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <section class="ip-body">
+      <ul class="ip-perks" id="perks">
+        <li><span class="ip-perk-ic c1"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 4v5"/></svg></span>Your lessons and materials in one place</li>
+        <li><span class="ip-perk-ic c2"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>Homework and quizzes - with your results</li>
+        <li><span class="ip-perk-ic c3"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9.3l-4 4 1 5.7-5-2.8-5 2.8 1-5.7-4-4 5.5-.8z"/></svg></span>Free for students</li>
+      </ul>
+
+      <div class="ip-actions" id="guest" hidden>
+        <button class="ip-btn primary" type="button" onclick="startAuth('register')">Create a free account</button>
+        <button class="ip-btn ghost" type="button" onclick="startAuth('login')">I already have an account</button>
+      </div>
+      <div class="ip-actions" id="member" hidden>
+        <button class="ip-btn primary" type="button" id="join-btn" onclick="joinBoard()">
+          Join the board
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="ip-actions" id="home" hidden>
+        <a class="ip-btn ghost" href="/">Go to TeachEd</a>
+      </div>
+      <div class="ip-status" id="status" role="status" aria-live="polite"></div>
+    </section>
+    <footer class="ip-foot" id="foot">Only people with this link can join. Already joined? It simply opens the board.</footer>
   </main>
 
 <script>
@@ -67,9 +61,14 @@ const $ = id => document.getElementById(id);
 
 function authToken() { try { return localStorage.getItem('teachedos_token') || ''; } catch { return ''; } }
 
-function setStatus(text, isErr) {
+function setStatus(text, kind) {
   $('status').textContent = text || '';
-  $('status').classList.toggle('err', !!isErr);
+  $('status').className = 'ip-status' + (kind ? ' ' + kind : '');
+}
+
+function initials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || 'T') + (parts[1]?.[0] || '')).toUpperCase();
 }
 
 function showActions() {
@@ -78,11 +77,21 @@ function showActions() {
   $('member').hidden = !signedIn;
 }
 
-function dead(message) {
-  $('card').classList.remove('skeleton');
-  $('title').textContent = 'This link does not work';
-  $('from').textContent = message;
+function dead(message, offline) {
+  $('card').classList.remove('is-loading');
+  $('card').classList.add('is-dead');
+  $('chip').textContent = offline ? 'Offline' : 'Link expired';
+  $('title').textContent = offline ? 'Cannot reach TeachEd' : 'This link does not work';
+  $('sub').textContent = message;
+  $('sub').hidden = false;
   $('guest').hidden = $('member').hidden = true;
+  $('home').hidden = false;
+  if (offline) {
+    $('home').innerHTML = '<button class="ip-btn primary" type="button" onclick="location.reload()">Try again</button>';
+    $('foot').hidden = true;
+  } else {
+    $('foot').textContent = 'Teachers can make a new join link any time in Students → Add students.';
+  }
 }
 
 async function loadInfo() {
@@ -91,16 +100,17 @@ async function loadInfo() {
     const r = await fetch(`${API}/api/members/join/${encodeURIComponent(JOIN_TOKEN)}`);
     const d = await r.json().catch(() => ({}));
     if (!r.ok) return dead(d.error || 'Ask your teacher for a new link.');
-    $('card').classList.remove('skeleton');
+    $('card').classList.remove('is-loading');
     $('title').textContent = d.board.name || 'Your class board';
+    $('ava').textContent = initials(d.teacher.name);
     $('from').innerHTML = '';
     const b = document.createElement('b');
     b.textContent = d.teacher.name;
-    $('from').append(b, ' invites you to this board. Join to see your lessons, homework and quizzes.');
+    $('from').append(b, 'invites you to the board');
     document.title = `TeachEd - ${d.board.name || 'Join the class'}`;
     showActions();
   } catch {
-    dead('Cannot reach TeachEd right now. Check your connection and reload the page.');
+    dead('Check your connection and reload the page - the link itself is fine.', true);
   }
 }
 
@@ -118,13 +128,13 @@ async function joinBoard() {
       // The saved session has expired - sign in again, the link waits here.
       try { localStorage.removeItem('teachedos_token'); } catch {}
       showActions();
-      return setStatus('Your session has expired - sign in to join.', true);
+      return setStatus('Your session has expired - sign in to join.', 'err');
     }
-    if (!r.ok) return setStatus(d.error || `Could not join (HTTP ${r.status})`, true);
-    setStatus(d.owner ? 'This is your own board - opening it.' : 'You are in! Opening the board…');
+    if (!r.ok) return setStatus(d.error || `Could not join (HTTP ${r.status})`, 'err');
+    setStatus(d.owner ? 'This is your own board - opening it.' : 'You are in! Opening the board…', 'ok');
     setTimeout(() => { location.href = `board.html?id=${encodeURIComponent(d.boardId)}`; }, 500);
   } catch {
-    setStatus('Network error - try again.', true);
+    setStatus('Network error - try again.', 'err');
   } finally {
     btn.disabled = false;
   }
@@ -154,7 +164,7 @@ window.TEACHED_AUTH_CONFIG = {
 
 loadInfo();
 </script>
-<script src="scripts/auth-modal.js?v=928"></script>
-<script src="scripts/mobile-zoom-guard.js?v=928" defer></script>
+<script src="scripts/auth-modal.js?v=929"></script>
+<script src="scripts/mobile-zoom-guard.js?v=929" defer></script>
 </body>
 </html>

@@ -3,149 +3,82 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#24282C">
+<meta name="robots" content="noindex">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>TeachEd - Accept Invite</title>
 <link rel="icon" type="image/png" href="logo-sm.png"/>
-<style>
-:root{
-  --bg:#f2f2f5;--card:#ffffff;--text:#1c1c1e;--muted:#7c7c7f;--border:rgba(92,92,102,.14);
-  --accent:#e85d75;--accent2:#9f8ce8;--green:#15803d;--red:#C11B1B;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:
-    radial-gradient(circle at top left,rgba(28,28,30,.18),transparent 34%),
-    radial-gradient(circle at bottom right,rgba(200,230,50,.16),transparent 30%),
-    var(--bg);
-  color:var(--text);
-}
-.shell{
-  width:min(920px,100%);display:grid;grid-template-columns:1.05fr .95fr;overflow:hidden;
-  background:rgba(255,255,255,.64);backdrop-filter:blur(14px);border:1px solid var(--border);
-  border-radius:28px;box-shadow:0 24px 80px rgba(28,28,30,.12);
-}
-.hero{
-  padding:38px 34px;background:linear-gradient(180deg,rgba(200,230,50,.96),rgba(28,28,30,.96));color:#fff;
-  display:flex;flex-direction:column;justify-content:space-between;gap:24px;
-}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:650;width:max-content}
-.hero-title{font-size:38px;line-height:1.05;font-weight:700;max-width:10ch}
-.hero-sub{font-size:15px;line-height:1.65;max-width:38ch;color:rgba(255,255,255,.88)}
-.hero-points{display:grid;gap:12px}
-.hero-point{padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.12);font-size:14px;line-height:1.55}
-.panel{padding:34px 30px;background:var(--card)}
-.panel-title{font-size:28px;font-weight:700;line-height:1.08}
-.panel-sub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.6}
-.invite-meta{
-  margin-top:20px;padding:16px;border-radius:16px;background:#f7f7fa;border:1px solid var(--border);
-  display:grid;gap:8px;font-size:14px;
-}
-.meta-line strong{font-weight:700}
-.form{margin-top:22px;display:grid;gap:14px}
-.label{font-size:13px;font-weight:650;color:var(--muted);margin-bottom:6px;display:block}
-.input{
-  width:100%;padding:13px 14px;border-radius:12px;border:2px solid #e8e8eb;background:#fff;
-  font:inherit;outline:none;transition:border-color .15s,box-shadow .15s;
-}
-.input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(200,230,50,.12)}
-.btn{
-  width:100%;padding:14px 16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:transform .12s,opacity .12s;
-}
-.btn:hover{transform:translateY(-1px)}
-.btn:disabled{opacity:.5;cursor:wait;transform:none}
-.status{
-  margin-top:16px;min-height:22px;font-size:13px;font-weight:600;
-}
-.status.error{color:var(--red)}
-.status.success{color:var(--green)}
-.helper{margin-top:18px;font-size:12px;color:var(--muted);line-height:1.6}
-@media (max-width: 840px){
-  body{align-items:flex-start;padding:0}
-  .shell{grid-template-columns:1fr;min-height:100dvh;border-radius:0;border-inline:0;box-shadow:none}
-  .hero{padding:max(env(safe-area-inset-top,0px),24px) 22px 22px;gap:0}
-  .hero-title{font-size:30px;max-width:18ch}
-  .hero-sub{font-size:14px;line-height:1.5}
-  .hero-points{display:none}
-  .panel{padding:24px 18px max(32px,env(safe-area-inset-bottom,0px))}
-  .panel-title{font-size:24px}
-  .invite-meta{margin-top:16px;padding:14px}
-  .form{margin-top:18px;gap:12px}
-  .input,.btn{min-height:48px}
-}
-</style>
-<link rel="stylesheet" href="styles/mobile.css?v=928">
-<link rel="stylesheet" href="styles/harmony.css?v=928">
-<link rel="stylesheet" href="styles/unify.css?v=928">
-<link rel="stylesheet" href="styles/teached-brand.css?v=928">
-<!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=928">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=928">
-<link rel="stylesheet" href="styles/controls.css?v=928">
+<link rel="stylesheet" href="styles/mobile.css?v=929">
+<link rel="stylesheet" href="styles/harmony.css?v=929">
+<link rel="stylesheet" href="styles/unify.css?v=929">
+<link rel="stylesheet" href="styles/teached-brand.css?v=929">
+<link rel="stylesheet" href="styles/figma-theme.css?v=929">
+<link rel="stylesheet" href="styles/controls.css?v=929">
+<link rel="stylesheet" href="styles/invite-page.css?v=929">
 </head>
 <body class="fx">
-  <div class="shell">
-    <section class="hero">
-      <div>
-        <div class="hero-badge">TeachEd Invite</div>
-        <h1 class="hero-title">Finish your account in one step</h1>
-        <p class="hero-sub">You were invited into TeachEd with a personal onboarding link. Set your name and password, and we will sign you in automatically.</p>
+  <!-- A personal invite (admin -> teacher, or teacher -> student by email):
+       the address and role are reserved, the person only picks a name and
+       a password. Same ticket card as join.html. -->
+  <main class="ip-card is-loading" id="card">
+    <header class="ip-head">
+      <div class="ip-top">
+        <a class="ip-logo" href="/"><img src="logo-sm.png" alt="">TeachEd</a>
+        <span class="ip-chip" id="chip">Invite</span>
       </div>
-      <div class="hero-points">
-        <div class="hero-point">One-time link with expiration. If the invite was revoked or already used, this page will tell you right away.</div>
-        <div class="hero-point">After activation, students go to their dashboard and teachers land in the main workspace with their token already saved.</div>
-      </div>
-    </section>
+      <h1 class="ip-title" id="title">Finish your account</h1>
+      <p class="ip-sub" id="sub">Checking the invitation…</p>
+      <div class="ip-meta" id="meta"></div>
+    </header>
 
-    <section class="panel">
-      <h2 class="panel-title">Accept Invite</h2>
-      <p class="panel-sub" id="panel-sub">Checking the invite details before we create your account.</p>
-
-      <div class="invite-meta" id="invite-meta">
-        <div class="meta-line"><strong>Email:</strong> Loading...</div>
-        <div class="meta-line"><strong>Role:</strong> Loading...</div>
-        <div class="meta-line"><strong>Expires:</strong> Loading...</div>
-      </div>
-
-      <form class="form" id="accept-form">
+    <section class="ip-body">
+      <form class="ip-form" id="accept-form" hidden>
         <div>
-          <label class="label" for="name">Full Name</label>
-          <input class="input" id="name" type="text" placeholder="Your name" autocomplete="name"/>
+          <label class="ip-label" for="name">Your name</label>
+          <input class="input" id="name" type="text" placeholder="First and last name" autocomplete="name" required>
         </div>
         <div>
-          <label class="label" for="password">Create Password</label>
-          <input class="input" id="password" type="password" maxlength="72" placeholder="At least 10 characters" autocomplete="new-password"/>
+          <label class="ip-label" for="password">Password</label>
+          <input class="input" id="password" type="password" maxlength="72" placeholder="10 or more characters" autocomplete="new-password" required>
         </div>
         <div>
-          <label class="label" for="password2">Confirm Password</label>
-          <input class="input" id="password2" type="password" maxlength="72" placeholder="Repeat password" autocomplete="new-password"/>
+          <label class="ip-label" for="password2">Repeat password</label>
+          <input class="input" id="password2" type="password" maxlength="72" placeholder="The same once more" autocomplete="new-password" required>
         </div>
-        <button class="btn" id="submit-btn" type="submit">Create Account</button>
+        <button class="ip-btn primary" id="submit-btn" type="submit">
+          Create account
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
       </form>
-
-      <div class="status" id="status" role="status" aria-live="polite"></div>
-      <div class="helper">Need a fresh link? Ask your administrator to generate a new invite from the admin panel.</div>
+      <div class="ip-actions" id="home" hidden>
+        <a class="ip-btn primary" href="/?auth=login">Sign in to TeachEd</a>
+      </div>
+      <div class="ip-status" id="status" role="status" aria-live="polite"></div>
     </section>
-  </div>
+    <footer class="ip-foot" id="foot">Already have an account? <a href="/?auth=login">Sign in</a></footer>
+  </main>
 
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const tokenParam = new URLSearchParams(location.search).get('token');
+const $ = id => document.getElementById(id);
 let inviteData = null;
 
-function setStatus(text, type='') {
-  const el = document.getElementById('status');
-  el.textContent = text;
-  el.className = `status ${type}`.trim();
+function setStatus(text, kind) {
+  $('status').textContent = text || '';
+  $('status').className = 'ip-status' + (kind ? ' ' + kind : '');
+}
+
+/* «Failed to fetch» читается как поломка сайта; на деле это почти всегда сеть. */
+function humanError(err) {
+  const raw = String(err?.message || '');
+  if (!raw || /failed to fetch|load failed|networkerror/i.test(raw)) return null;
+  return raw;
 }
 
 function formatDate(iso) {
-  if (!iso) return '-';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) + ' ' +
-         d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function roleLabel(role) {
@@ -153,59 +86,64 @@ function roleLabel(role) {
 }
 
 function redirectForRole(role) {
-  if (role === 'student') return 'student.html';
-  return 'index.html';
+  return role === 'student' ? 'student.html' : 'index.html';
+}
+
+function chip(text) {
+  const el = document.createElement('span');
+  el.textContent = text;
+  return el;
+}
+
+function dead(title, message, offline) {
+  $('card').classList.remove('is-loading');
+  $('card').classList.add('is-dead');
+  $('chip').textContent = offline ? 'Offline' : 'Invite closed';
+  $('title').textContent = title;
+  $('sub').textContent = message;
+  $('accept-form').hidden = true;
+  $('home').hidden = false;
+  if (offline) $('home').innerHTML = '<button class="ip-btn primary" type="button" onclick="location.reload()">Try again</button>';
 }
 
 async function loadInvite() {
-  if (!tokenParam) {
-    setStatus('Invite token is missing from the URL.', 'error');
-    document.getElementById('accept-form').style.display = 'none';
-    return;
-  }
+  if (!tokenParam) return dead('This link is incomplete', 'Open the whole link from your invitation email - part of it is missing.');
   try {
     const r = await fetch(`${API}/api/auth/invites/${encodeURIComponent(tokenParam)}`);
-    const d = await r.json();
+    const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || 'Invite not found');
     inviteData = d.invite;
-    document.getElementById('panel-sub').textContent = 'Your email and role are already reserved by this invite.';
-    document.getElementById('invite-meta').innerHTML = `
-      <div class="meta-line"><strong>Email:</strong> ${inviteData.email}</div>
-      <div class="meta-line"><strong>Role:</strong> ${roleLabel(inviteData.role)}</div>
-      <div class="meta-line"><strong>Expires:</strong> ${formatDate(inviteData.expires_at)}</div>
-      ${inviteData.note ? `<div class="meta-line"><strong>Note:</strong> ${inviteData.note}</div>` : ''}
-    `;
+    $('card').classList.remove('is-loading');
+    $('chip').textContent = `${roleLabel(inviteData.role)} invite`;
+    $('title').textContent = 'Finish your account';
+    $('sub').textContent = inviteData.role === 'student'
+      ? 'Your teacher invited you to TeachEd. Pick a name and a password - that is all.'
+      : 'You were invited to teach on TeachEd. Pick a name and a password - that is all.';
+    const meta = $('meta');
+    meta.append(chip(inviteData.email));
+    const board = /^Board:\s*(.+)$/.exec(inviteData.note || '');
+    if (board) meta.append(chip(`Board: ${board[1]}`));
+    if (inviteData.expires_at) meta.append(chip(`Valid until ${formatDate(inviteData.expires_at)}`));
+    $('accept-form').hidden = false;
+    setTimeout(() => $('name').focus(), 50);
   } catch (err) {
-    setStatus(err.message, 'error');
-    document.getElementById('accept-form').style.display = 'none';
-    document.getElementById('panel-sub').textContent = 'This invite cannot be used anymore.';
-    document.getElementById('invite-meta').innerHTML = `
-      <div class="meta-line"><strong>Status:</strong> unavailable</div>
-      <div class="meta-line"><strong>Reason:</strong> ${err.message}</div>
-    `;
+    const msg = humanError(err);
+    if (!msg) return dead('Cannot reach TeachEd', 'Check your connection and reload the page - the invite itself is fine.', true);
+    dead('This invite cannot be used', `${msg}. If you already created your account, just sign in. Otherwise ask for a new invitation.`);
   }
 }
 
-document.getElementById('accept-form').addEventListener('submit', async e => {
+$('accept-form').addEventListener('submit', async e => {
   e.preventDefault();
-  const name = document.getElementById('name').value.trim();
-  const password = document.getElementById('password').value;
-  const password2 = document.getElementById('password2').value;
+  const name = $('name').value.trim();
+  const password = $('password').value;
+  const password2 = $('password2').value;
   if (!inviteData) return;
-  if (!name || !password || !password2) {
-    setStatus('Please complete all fields.', 'error');
-    return;
-  }
-  if (password !== password2) {
-    setStatus('Passwords do not match.', 'error');
-    return;
-  }
-  if (password.length < 10) {
-    setStatus('Password must be at least 10 characters.', 'error');
-    return;
-  }
+  if (!name || !password || !password2) return setStatus('Please fill in all three fields.', 'err');
+  if (password !== password2) return setStatus('The passwords do not match.', 'err');
+  if (password.length < 10) return setStatus('The password needs at least 10 characters.', 'err');
 
-  const btn = document.getElementById('submit-btn');
+  const btn = $('submit-btn');
   btn.disabled = true;
   setStatus('Creating your account…');
   try {
@@ -214,8 +152,8 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, password })
     });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Could not accept invite');
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Could not accept the invite');
     if (d.isNewUser) {
       const email = d.user?.email || 'anon';
       localStorage.setItem('teachedos_onboarding_pending', '1');
@@ -225,10 +163,10 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
     localStorage.setItem('teachedos_role', d.user.role);
     if (d.user.email) localStorage.setItem('teachedos_user_email', d.user.email);
     localStorage.setItem('teachedos_user', JSON.stringify(d.user));
-    setStatus('Account created. Redirecting…', 'success');
-    setTimeout(() => { location.href = redirectForRole(d.user.role); }, 900);
+    setStatus('Account created - opening TeachEd…', 'ok');
+    setTimeout(() => { location.href = redirectForRole(d.user.role); }, 700);
   } catch (err) {
-    setStatus(err.message, 'error');
+    setStatus(humanError(err) || 'Network error - try again.', 'err');
   } finally {
     btn.disabled = false;
   }
@@ -236,8 +174,7 @@ document.getElementById('accept-form').addEventListener('submit', async e => {
 
 loadInvite();
 </script>
-<script src="scripts/nav-boost.js?v=928" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=928" defer></script>
-  <script src="scripts/signin-entry.js?v=928" defer></script>
+<script src="scripts/nav-boost.js?v=929" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=929" defer></script>
 </body>
 </html>

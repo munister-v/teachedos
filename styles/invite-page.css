@@ -1,0 +1,141 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Invite pages - join.html (a teacher's class link) and invite.html (a
+   personal account invite). The first page of TeachEd a student ever sees,
+   so it carries the brand, not a generic form: an ink ticket that says who
+   invites you and where, what you get, and one lime button.
+   Palette: ink #24282C, lime #CDF649, paper #F6F6EF, line #CACCC6.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --ip-ink:#24282C; --ip-lime:#CDF649; --ip-paper:#F6F6EF; --ip-line:#CACCC6;
+  --ip-olive:#5D614B; --ip-sage:#A3A48D; --ip-coral:#FF4E00;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html { background:var(--ip-paper) !important; }
+/* Фон держит html: у body он прозрачный, иначе он перекрывал бы пятна ниже. */
+html body:not(#_):not(#__) { background:transparent !important; }
+body {
+  min-height:100dvh; display:flex; align-items:center; justify-content:center;
+  padding:32px 16px; color:var(--ip-ink);
+  font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif);
+  -webkit-font-smoothing:antialiased;
+}
+/* Две мягкие пятна брендовых цветов за карточкой - чтобы страница не была
+   пустым песком вокруг белого прямоугольника. */
+/* На html, а не на body: у body.fx свои ::before/::after из figma-theme. */
+html::before, html::after {
+  content:''; position:fixed; z-index:0; border-radius:50%; filter:blur(70px); pointer-events:none;
+}
+html::before { width:420px; height:420px; left:-120px; top:-140px; background:rgba(205,246,73,.45); }
+html::after  { width:380px; height:380px; right:-120px; bottom:-140px; background:rgba(159,140,232,.28); }
+
+.ip-card {
+  position:relative; z-index:1; width:min(460px, 100%); overflow:hidden;
+  background:#fff; border:1px solid var(--ip-line); border-radius:28px;
+  box-shadow:0 30px 70px -30px rgba(36,40,44,.35);
+  animation:ipIn .35s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes ipIn { from { opacity:0; transform:translateY(10px) scale(.99); } to { opacity:1; transform:none; } }
+
+/* ── Ink ticket ─────────────────────────────────────────────────────── */
+.ip-head { position:relative; padding:22px 26px 26px; background:var(--ip-ink); color:var(--ip-paper); }
+.ip-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; }
+.ip-logo { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; letter-spacing:-.01em; color:var(--ip-paper); text-decoration:none; }
+.ip-logo img { width:24px; height:24px; filter:invert(1) brightness(1.05); }
+.ip-chip {
+  padding:5px 11px; border-radius:999px; background:var(--ip-lime); color:var(--ip-ink);
+  font-family:var(--font-mono, ui-monospace, Menlo, monospace); font-size:10.5px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; white-space:nowrap;
+}
+.ip-from { display:flex; align-items:center; gap:12px; }
+.ip-ava {
+  width:44px; height:44px; flex-shrink:0; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--ip-lime); color:var(--ip-ink); font-size:15px; font-weight:750; letter-spacing:.02em;
+}
+.ip-from-text { font-size:14px; line-height:1.35; color:rgba(246,246,239,.72); }
+.ip-from-text b { display:block; color:var(--ip-paper); font-size:15px; font-weight:650; }
+.ip-title {
+  margin-top:18px; font-size:34px !important; line-height:1.02 !important; font-weight:750 !important;
+  letter-spacing:-.035em !important; color:var(--ip-paper) !important; overflow-wrap:anywhere;
+}
+.ip-sub { margin-top:10px; font-size:14px; line-height:1.5; color:rgba(246,246,239,.72); }
+/* Надрез билета: полукруги по краям на стыке шапки и тела. */
+.ip-head::before, .ip-head::after {
+  content:''; position:absolute; bottom:-11px; width:22px; height:22px; border-radius:50%;
+  background:var(--ip-paper); border:1px solid var(--ip-line); z-index:1;
+}
+.ip-head::before { left:-12px; }
+.ip-head::after  { right:-12px; }
+
+/* ── Body ───────────────────────────────────────────────────────────── */
+.ip-body { padding:24px 26px 22px; border-top:2px dashed rgba(36,40,44,.14); }
+.ip-perks { list-style:none; display:grid; gap:12px; margin-bottom:22px; }
+.ip-perks li { display:flex; align-items:center; gap:12px; font-size:14px; line-height:1.4; color:var(--ip-ink); }
+.ip-perk-ic {
+  width:34px; height:34px; flex-shrink:0; border-radius:11px;
+  display:flex; align-items:center; justify-content:center; color:var(--ip-ink);
+}
+.ip-perk-ic svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+.ip-perk-ic.c1 { background:#6BAFF3; }
+.ip-perk-ic.c2 { background:#F3DF6B; }
+.ip-perk-ic.c3 { background:#9F8CE8; }
+
+.ip-actions { display:grid; gap:10px; }
+.ip-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:50px; padding:12px 18px;
+  border-radius:16px; border:1px solid var(--ip-ink); font:inherit; font-size:15px; font-weight:700;
+  cursor:pointer; text-decoration:none; transition:transform .12s, filter .12s, background .12s;
+}
+.ip-btn:hover { transform:translateY(-1px); }
+.ip-btn:active { transform:none; }
+.ip-btn:disabled { opacity:.55; cursor:wait; transform:none; }
+.ip-btn.primary { background:var(--ip-lime); color:var(--ip-ink); }
+.ip-btn.primary:hover { filter:brightness(.96); }
+.ip-btn.ghost { background:#fff; color:var(--ip-ink); border-color:var(--ip-line); }
+.ip-btn.ghost:hover { border-color:var(--ip-ink); }
+.ip-btn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+.ip-status { margin-top:12px; font-size:13.5px; line-height:1.45; color:var(--ip-olive); text-align:center; }
+.ip-status:empty { display:none; }
+.ip-status.err { color:var(--ip-coral); }
+.ip-status.ok { color:var(--ip-ink); font-weight:650; }
+.ip-foot {
+  padding:14px 26px 18px; font-size:12px; line-height:1.5; color:var(--ip-sage); text-align:center;
+  border-top:1px solid rgba(36,40,44,.08);
+}
+.ip-foot a { color:var(--ip-olive); }
+
+/* ── Form (account invite) ──────────────────────────────────────────── */
+.ip-form { display:grid; gap:14px; }
+.ip-form .input { display:block; width:100% !important; }
+.ip-form .ip-btn { margin-top:6px; }
+.ip-label {
+  display:block; margin-bottom:6px; font-family:var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ip-olive);
+}
+.ip-meta { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
+.ip-meta span {
+  padding:5px 10px; border-radius:999px; background:rgba(246,246,239,.1);
+  border:1px solid rgba(246,246,239,.18); font-size:12px; color:rgba(246,246,239,.85);
+}
+
+/* ── Loading / dead link ────────────────────────────────────────────── */
+.ip-card.is-loading .ip-title, .ip-card.is-loading .ip-from-text {
+  color:transparent !important; background:rgba(246,246,239,.12); border-radius:8px;
+}
+.ip-card.is-loading .ip-ava { background:rgba(246,246,239,.14); color:transparent; }
+.ip-card.is-dead .ip-chip { background:var(--ip-coral); color:#fff; }
+.ip-card.is-dead .ip-from, .ip-card.is-dead .ip-perks, .ip-card.is-dead .ip-meta { display:none; }
+.ip-card.is-dead .ip-title { margin-top:0; font-size:28px !important; }
+
+[hidden] { display:none !important; }
+
+@media (max-width:520px) {
+  body { align-items:flex-start; padding:16px 12px 28px; }
+  .ip-head { padding:18px 20px 22px; }
+  .ip-top { margin-bottom:20px; }
+  .ip-title { font-size:29px !important; }
+  .ip-body { padding:20px 20px 18px; }
+  .ip-foot { padding:12px 20px 16px; }
+}
+@media (prefers-reduced-motion:reduce) { .ip-card { animation:none; } }

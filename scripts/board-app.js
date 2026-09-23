@@ -13883,7 +13883,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '928';
+const TEACHEDOS_ASSET_VERSION = '929';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19678,7 +19678,7 @@ async function spInvite() {
   const errEl = document.getElementById('sp-err');
   errEl.style.display = 'none';
   if (!email) return;
-  const btn = document.querySelector('.sp-invite-btn');
+  const btn = document.getElementById('sp-invite-go');
   btn.disabled = true; btn.textContent = '…';
   try {
     const r = await apiFetch(`/api/members/${currentBoardId}/invite`, {
@@ -19705,40 +19705,49 @@ async function spInvite() {
   } catch {
     errEl.textContent = 'Network error'; errEl.style.display = 'block';
   } finally {
-    btn.disabled = false; btn.textContent = 'Invite';
+    btn.disabled = false; btn.textContent = 'Add';
   }
 }
 
 /* One join link for the whole class instead of an email per student.
-   "New link" rotates it, so a link that went too far stops working. */
-async function spJoinLink(rotate) {
+   "Make a new one" rotates it, so a link that went too far stops working. */
+async function spJoinCopy() {
   const input = document.getElementById('sp-join-input');
-  const btn = document.getElementById('sp-join-btn');
-  const hint = document.getElementById('sp-join-hint');
-  if (!input || !btn) return;
-  if (input.value && !rotate) {
-    try { await navigator.clipboard.writeText(input.value); toast('✓ Join link copied'); }
-    catch { input.select(); }
-    return;
+  const btn = document.getElementById('sp-join-copy');
+  if (!input?.value) return;
+  try { await navigator.clipboard.writeText(input.value); }
+  catch { input.focus(); input.select(); return; }
+  if (btn) {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('is-done');
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('is-done'); }, 1800);
   }
+}
+
+async function spJoinLink(rotate) {
+  const make = document.getElementById('sp-join-btn');
+  const hint = document.getElementById('sp-join-hint');
   if (rotate && !confirm('Make a new link? The old one will stop working.')) return;
-  btn.disabled = true;
+  if (make) make.disabled = true;
   try {
     const r = await apiFetch(`/api/members/${currentBoardId}/join-link`, { method: 'POST', body: { rotate: !!rotate } });
     const d = await r.json().catch(() => ({}));
     if (!r.ok || !d.url) { toast(d.error || 'Could not make the link'); return; }
-    input.value = d.url;
-    btn.textContent = 'Copy';
+    document.getElementById('sp-join-input').value = d.url;
+    document.getElementById('sp-join-box').hidden = false;
+    if (make) make.hidden = true;
     if (hint) {
-      hint.innerHTML = 'Anyone who opens it and signs in joins this board as a student. <button type="button">New link</button>';
+      hint.hidden = false;
+      hint.innerHTML = (rotate ? 'New link ready - the old one no longer works. ' : '')
+        + 'Link leaked too far? <button type="button">Make a new one</button>';
       hint.querySelector('button').onclick = () => spJoinLink(true);
     }
-    try { await navigator.clipboard.writeText(d.url); toast('✓ Join link copied'); }
-    catch { input.select(); }
+    spJoinCopy();
   } catch {
     toast('Network error');
   } finally {
-    btn.disabled = false;
+    if (make) make.disabled = false;
   }
 }
 
@@ -19750,7 +19759,7 @@ async function spLoadMembers() {
     if (!r.ok) { list.innerHTML = '<div class="sp-empty">No access</div>'; return; }
     const { members } = await r.json();
     if (!members.length) {
-      list.innerHTML = '<div class="sp-empty">No students yet. Invite them above.</div>';
+      list.innerHTML = '<div class="sp-empty">No students yet - add one by email or send the join link.</div>';
       return;
     }
     /* Идентификатор уходит в data-атрибут, а не внутрь onclick.
