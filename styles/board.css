@@ -6784,3 +6784,17 @@ body.laser-on #board iframe{pointer-events:none!important;}
   background:#fff;color:#24282C;font:650 11px var(--font,system-ui,sans-serif);letter-spacing:0;text-transform:none;cursor:pointer;
 }
 .game-tile-assign:hover{background:#CDF649;border-color:#24282C;}
+
+/* ── Writing Studio: drafts the students handed in (teacher view) ── */
+.wf-drafts{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(36,40,44,.42)}
+.wf-drafts-card{width:min(720px,100%);max-height:calc(100dvh - 48px);display:flex;flex-direction:column;background:#fff;border-radius:22px;box-shadow:0 30px 80px rgba(36,40,44,.35);overflow:hidden}
+.wf-drafts-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(36,40,44,.1);font-size:17px;color:#24282C}
+.wf-drafts-x{width:34px;height:34px;border:0;border-radius:50%;background:#F6F6EF;color:#24282C;cursor:pointer;font-size:14px}
+.wf-drafts-x:hover{background:#CACCC6}
+.wf-drafts-body{overflow-y:auto;padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px;color:#24282C}
+.wf-drafts-empty{font-size:14px;color:#5D614B;line-height:1.5}
+.wf-draft{border:1px solid rgba(36,40,44,.12);border-radius:16px;padding:14px 16px}
+.wf-draft header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.wf-draft header b{font-size:15px}
+.wf-draft header span{font-size:12.5px;color:#5D614B}
+.wf-draft-text{font-size:14.5px;line-height:1.65;white-space:normal}

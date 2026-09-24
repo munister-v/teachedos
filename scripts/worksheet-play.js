@@ -561,6 +561,11 @@ const IW_WORD_HELP_SCRIPT = `
 })();`;
 
 function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
+  /* Подготовка к письму - инструменты, а не колоды «переверни меня»
+     (scripts/writing-flow.js). Сама мастерская - ветка writing ниже. */
+  if (d && d._wfRole && d._wfRole !== 'studio' && typeof window !== 'undefined' && window.TeachEdWritingFlow) {
+    return window.TeachEdWritingFlow.buildHtml(d, cardId, ownerView, cardW, IW_HEIGHT_REPORTER);
+  }
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const items = Array.isArray(d.items) ? d.items : [];
   const cards = Array.isArray(d.cards) ? d.cards : [];
@@ -1140,12 +1145,28 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
     const wordTarget = _ttWordTarget(writing.reqs.text);
     const lines = t => String(t || '').split('\n').map(s => s.trim()).filter(Boolean);
     const reqItems = lines(writing.reqs.text).map(s => s.replace(/^(\d+[.)]|[-•*☐])\s*/, ''));
+    /* Фразы вставляются в черновик щелчком, план отмечается галочками:
+       панели - шпаргалка под рукой, а не текст для перечитывания. */
+    const isPlan = c => /plan|structure|outline/i.test(String(c && c.title || ''));
+    let planIdx = 0;
     const accordion = (c, open) => c ? `<details class="iw-ws-acc"${open ? ' open' : ''}>
       <summary>${md(c.title || '')}</summary>
       <div class="iw-ws-acc-body">${lines(c.text).map(l => {
+        if (isPlan(c)) {
+          const pi = planIdx++;
+          return `<label class="iw-ws-plan"><input type="checkbox" class="iw-ws-planchk" data-pi="${pi}"><span>${md(l.replace(/^(\d+[.)]|[-•*])\s*/, ''))}</span></label>`;
+        }
         const m = l.match(/^(.+?)\s+[-–—]\s+(.+)$/);
-        return m ? `<p><b>${md(m[1])}</b><span>${md(m[2])}</span></p>` : `<p>${md(l)}</p>`;
+        return m ? `<p class="iw-ws-phr" data-ins="${esc(m[1].replace(/\*\*/g, ''))}" title="Click to insert into your draft"><b>${md(m[1])}</b><span>${md(m[2])}</span></p>` : `<p>${md(l)}</p>`;
       }).join('')}</div></details>` : '';
+    /* Фразы из остальных блоков урока (шпаргалки) - сюда их передаёт доска. */
+    const lessonPhrases = (d._wfCtx && Array.isArray(d._wfCtx.phrases)) ? d._wfCtx.phrases : [];
+    const lessonAcc = lessonPhrases.length ? `<details class="iw-ws-acc" open>
+      <summary>Phrases from this lesson</summary>
+      <div class="iw-ws-acc-body iw-ws-chips">${lessonPhrases.map(p =>
+        `<button type="button" class="iw-ws-chip" data-ins="${esc(p.phrase)}" title="${esc(p.note || 'Click to insert')}">${md(p.phrase)}</button>`).join('')}</div></details>` : '';
+    const drafts = ownerView && d._wfRole === 'studio'
+      ? `<button type="button" class="iw-ws-drafts" onclick="iwWsDrafts()">Student drafts</button>` : '';
     contentHtml = `<div class="iw-ws">
       <aside class="iw-ws-side">
         <div class="iw-ws-block">
@@ -1158,12 +1179,12 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
             <input type="checkbox" class="iw-ws-req" data-ri="${i}"><span>${md(r)}</span>
           </label></li>`).join('')}</ul>
         </div>
-        ${accordion(writing.phrases)}${accordion(writing.model)}
-        ${writing.extras.map(c => accordion(c)).join('')}
+        ${lessonAcc}${accordion(writing.phrases)}${accordion(writing.model)}
+        ${writing.extras.map(c => accordion(c, isPlan(c))).join('')}
       </aside>
       <section class="iw-ws-main">
         <div class="iw-ws-head">
-          <span class="iw-ws-label">Writing workspace</span>
+          <span class="iw-ws-label">Writing workspace</span>${drafts}
           <span class="iw-ws-count"><b id="iw-wc">0</b> / ${wordTarget} words</span>
         </div>
         <div class="iw-ws-bar">
@@ -1194,7 +1215,22 @@ function iwWsTick(){
   bar.style.width=Math.min(100,Math.round(n/IW_TARGET*100))+'%';
   bar.classList.toggle('full', n>=IW_TARGET);
 }
-function iwFmt(cmd){ document.getElementById('iw-editor').focus(); document.execCommand(cmd,false,null); iwWsTick(); iwWsSave(); }
+function iwFmt(cmd){ iwRestore(); document.execCommand(cmd,false,null); iwWsTick(); iwWsSave(); }
+/* Курсор помним сами: щелчок по фразе в левой колонке уводит фокус из
+   листа, и без сохранённого места вставка уехала бы в начало текста. */
+var _iwRange=null;
+function iwKeep(){ var s=window.getSelection(); if(s&&s.rangeCount){ var r=s.getRangeAt(0); if(document.getElementById('iw-editor').contains(r.commonAncestorContainer)) _iwRange=r.cloneRange(); } }
+function iwRestore(){ var ed=document.getElementById('iw-editor'); ed.focus(); if(_iwRange){ var s=window.getSelection(); s.removeAllRanges(); s.addRange(_iwRange); } else { var r=document.createRange(); r.selectNodeContents(ed); r.collapse(false); var s2=window.getSelection(); s2.removeAllRanges(); s2.addRange(r); } }
+function iwInsert(text){
+  if(document.body.classList.contains('iw-ws-sent')) return;
+  iwRestore();
+  var ed=document.getElementById('iw-editor');
+  var before=(ed.innerText||'').replace(/\s+$/,'');
+  var sp = before && !/\s$/.test(ed.innerText||'') ? ' ' : '';
+  document.execCommand('insertText',false,sp+String(text).trim()+' ');
+  iwKeep(); iwWsTick(); iwWsSave();
+}
+function iwWsDrafts(){ if(window.__IW_CARD__) parent.postMessage({type:'iw-drafts',cardId:window.__IW_CARD__},'*'); }
 var _iwT=null;
 function iwWsSave(){
   clearTimeout(_iwT);
@@ -1203,12 +1239,15 @@ function iwWsSave(){
     var done=[].map.call(document.querySelectorAll('.iw-ws-req'),function(c){return c.checked;});
     parent.postMessage({type:'iw-state',cardId:window.__IW_CARD__,
       state:{draft:document.getElementById('iw-editor').innerHTML,done:done,
+             plan:[].map.call(document.querySelectorAll('.iw-ws-planchk'),function(c){return c.checked;}),
              submitted:document.body.classList.contains('iw-ws-sent')}},'*');
   },300);
 }
-/* Кнопка говорит только то, что действительно произошло: черновик записан
-   на карточку доски. Никуда он не «отправляется» - отправлять некуда. */
-function iwWsSubmit(){
+/* Кнопка говорит только то, что действительно произошло. Черновик уходит
+   учителю через доску (iw-submit-draft → /progress), а ответ доски
+   ('iw-submitted') решает, что написать под кнопкой: сдано, или только
+   сохранено на доске, если ученик не вошёл. */
+function iwWsSubmit(restoring){
   if(document.body.classList.contains('iw-ws-sent')){
     document.body.classList.remove('iw-ws-sent');
     document.getElementById('iw-editor').setAttribute('contenteditable','true');
@@ -1218,19 +1257,37 @@ function iwWsSubmit(){
     document.body.classList.add('iw-ws-sent');
     document.getElementById('iw-editor').setAttribute('contenteditable','false');
     document.getElementById('iw-ws-submit').textContent='↩ Reopen draft';
-    document.getElementById('iw-ws-done').textContent='✓ Handed in - '+iwWords()+' words saved on the board.';
+    if(restoring===true){ document.getElementById('iw-ws-done').textContent='✓ Handed in - '+iwWords()+' words.'; }
+    else {
+      document.getElementById('iw-ws-done').textContent='Handing in…';
+      var ed=document.getElementById('iw-editor');
+      if(window.__IW_CARD__) parent.postMessage({type:'iw-submit-draft',cardId:window.__IW_CARD__,
+        html:ed.innerHTML.slice(0,40000),text:(ed.innerText||'').slice(0,20000),words:iwWords(),target:IW_TARGET},'*');
+    }
   }
   iwWsSave();
 }
+window.addEventListener('message',function(e){
+  var m=e.data||{};
+  if(m.type==='iw-insert-text' && m.text) iwInsert(m.text);
+  if(m.type==='iw-submitted'){
+    var el=document.getElementById('iw-ws-done');
+    if(el) el.textContent = m.ok ? '✓ Handed in to your teacher - '+iwWords()+' words.' : (m.msg || 'Saved on the board.');
+  }
+});
 document.addEventListener('DOMContentLoaded',function(){
   var ed=document.getElementById('iw-editor');
-  ed.addEventListener('input',function(){ iwWsTick(); iwWsSave(); });
+  ed.addEventListener('input',function(){ iwKeep(); iwWsTick(); iwWsSave(); });
+  ed.addEventListener('keyup',iwKeep); ed.addEventListener('mouseup',iwKeep);
+  document.addEventListener('click',function(e){ var t=e.target.closest('[data-ins]'); if(t){ e.preventDefault(); iwInsert(t.getAttribute('data-ins')); } });
+  document.querySelectorAll('.iw-ws-planchk').forEach(function(c){ c.addEventListener('change',iwWsSave); });
   document.querySelectorAll('.iw-ws-req').forEach(function(c){ c.addEventListener('change',iwWsSave); });
   var s=window.__IW_STATE__;
   if(s){
     if(s.draft) ed.innerHTML=s.draft;
     (s.done||[]).forEach(function(v,i){ var c=document.querySelector('.iw-ws-req[data-ri="'+i+'"]'); if(c) c.checked=!!v; });
-    if(s.submitted) iwWsSubmit();
+    (s.plan||[]).forEach(function(v,i){ var c=document.querySelector('.iw-ws-planchk[data-pi="'+i+'"]'); if(c) c.checked=!!v; });
+    if(s.submitted) iwWsSubmit(true);
   }
   iwWsTick();
 });`;
@@ -1863,6 +1920,22 @@ strong{font-weight:650}
 .iw-ws-done{font:700 12px system-ui;color:#5D614B;text-align:center;margin-top:8px}
 body.iw-ws-sent .iw-ws-editor{background:var(--paper);color:var(--olive)}
 body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
+/* Шпаргалки кликабельны: фраза - в черновик, план - галочками. */
+.iw-ws-prompt{font-size:14.5px;line-height:1.55}
+.iw-ws-reqs label{font-size:13.5px}
+.iw-ws-editor{font-size:15.5px;line-height:1.7}
+.iw-ws-phr{margin:0 -6px;padding:5px 6px;border-radius:8px;cursor:pointer;transition:background .12s}
+.iw-ws-phr:hover{background:var(--paper)}
+.iw-ws-phr:hover b::after{content:' ＋';color:${ink};font-weight:800}
+.iw-ws-chips{flex-direction:row !important;flex-wrap:wrap;gap:6px !important}
+.iw-ws-chip{border:1.5px solid var(--line-2);background:#fff;border-radius:999px;padding:5px 11px;font:600 12.5px system-ui;color:var(--ink);cursor:pointer;transition:all .12s}
+.iw-ws-chip:hover{background:${accent};border-color:var(--ink)}
+.iw-ws-plan{display:flex;gap:8px;align-items:flex-start;font:13px/1.45 system-ui;color:var(--ink);cursor:pointer}
+.iw-ws-plan input{flex-shrink:0;width:15px;height:15px;margin-top:2px;accent-color:${ink};cursor:pointer}
+.iw-ws-plan input:checked+span{color:var(--olive);text-decoration:line-through}
+.iw-ws-drafts{margin-left:10px;height:26px;padding:0 10px;border:1.5px solid var(--line-2);border-radius:8px;background:#fff;font:700 11.5px system-ui;color:var(--ink);cursor:pointer;vertical-align:middle}
+.iw-ws-drafts:hover{border-color:var(--ink)}
+.iw-ws-submit{min-height:48px;font-size:15px !important}
 /* ── Узкая карточка = телефон ──
    Ширина кадра равна ширине карточки, поэтому этот порог и есть «телефон»:
    доска на телефоне отдаёт такой карточке ширину экрана (см. phoneW в

@@ -3278,7 +3278,7 @@ function renderWorksheet(el, card) {
     const wrap = document.createElement('div');
     wrap.className = 'card-body text-interactive-wrap';
     const iframe = document.createElement('iframe');
-    iframe.srcdoc = _buildInteractiveWSHtml(d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner, card.w);
+    iframe.srcdoc = _buildInteractiveWSHtml(d._wfRole ? { ...d, _wfCtx: _wfCtxFor(card) } : d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner, card.w);
     iframe.sandbox = 'allow-scripts';
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
     wrap.addEventListener('mousedown', e => e.stopPropagation());
@@ -3651,6 +3651,7 @@ function _ttPlayStepHeight(q, w) {
 // строки не считалось - ЗАГОЛОВОК ОБРЕЗАЛСЯ ПОЛНОСТЬЮ.
 const PLAY_TITLE = 40;   // margin-bottom 14 + padding-bottom 8 + border 2 + строка текста
 function _ttPlayCardSize(d) {
+  if (d && d._wfRole && d._wfRole !== 'studio' && window.TeachEdWritingFlow) return window.TeachEdWritingFlow.playSize(d);
   const qs = Array.isArray(d.questions) ? d.questions : [];
   const steps = Array.isArray(d.items) && d.items.length ? d.items.length
               : Array.isArray(d.cards) && d.cards.length ? d.cards.length : qs.length;
@@ -3762,6 +3763,72 @@ function _ttPlayCardSize(d) {
   return { w, h: Math.max(420, Math.min(900, Math.round(chrome + tallest))) };
 }
 
+/* ── Урок письма: порядок блоков, мастерская, присланные черновики ──
+   Порядок - тот, в котором блоки легли в урок (_wfOrder), а не по
+   координатам: сетка кадра кладёт карточки колонками, и «сверху вниз»
+   перепрыгивало бы через этапы. */
+function _wfFlowFor(card) {
+  const pf = (card.data && card.data.parentFrame) || '';
+  return state.cards.filter(c => c.data && c.data._wfRole && ((c.data.parentFrame || '') === pf))
+    .sort((a, b) => ((a.data._wfOrder ?? 999) - (b.data._wfOrder ?? 999)) || (a.y - b.y) || (a.x - b.x));
+}
+function _wfStudioFor(card) {
+  return _wfFlowFor(card).find(c => c.data._wfRole === 'studio')
+    || state.cards.find(c => c.data && c.data._wfRole === 'studio') || null;
+}
+function _wfCtxFor(card) {
+  const d = card && card.data;
+  if (!d || !d._wfRole) return null;
+  const flow = _wfFlowFor(card);
+  const studio = flow.find(c => c.data._wfRole === 'studio');
+  let next = null;
+  if (d._wfRole !== 'studio') {
+    const i = flow.findIndex(c => c.id === card.id);
+    const nx = flow.slice(i + 1).find(c => c.data._wfRole !== 'studio');
+    if (nx) next = { id: nx.id, label: 'Next: ' + String(nx.data.title || 'next step').slice(0, 40) };
+    else if (studio) next = { id: studio.id, label: 'Open the Writing Studio' };
+  }
+  const phrases = d._wfRole === 'studio' && window.TeachEdWritingFlow
+    ? flow.filter(c => c.data._wfRole === 'phrases').flatMap(c => window.TeachEdWritingFlow.phrasesOf(c.data)).slice(0, 30)
+    : [];
+  return { next, phrases, hasStudio: !!studio };
+}
+
+/* Учитель читает сданные черновики прямо с карточки мастерской. Текст,
+   не HTML: чужая разметка на доску учителя не попадает. */
+async function _wfShowDrafts(cardId) {
+  if (!currentBoardId || !isOwner) return;
+  document.getElementById('wf-drafts')?.remove();
+  const box = document.createElement('div');
+  box.id = 'wf-drafts';
+  box.className = 'wf-drafts';
+  box.innerHTML = `<div class="wf-drafts-card" role="dialog" aria-modal="true" aria-label="Student drafts">
+    <div class="wf-drafts-head"><b>Student drafts</b><button type="button" class="wf-drafts-x" aria-label="Close">✕</button></div>
+    <div class="wf-drafts-body">Loading…</div></div>`;
+  document.body.appendChild(box);
+  const close = () => box.remove();
+  box.addEventListener('click', e => { if (e.target === box || e.target.closest('.wf-drafts-x')) close(); });
+  document.addEventListener('keydown', function onKey(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } });
+  const body = box.querySelector('.wf-drafts-body');
+  try {
+    const r = await apiFetch('/api/boards/' + currentBoardId + '/quiz-results');
+    const { results } = await r.json();
+    const rows = (results || []).filter(x => x.card_id === cardId).map(x => {
+      let ans = x.answers;
+      if (typeof ans === 'string') { try { ans = JSON.parse(ans); } catch { ans = []; } }
+      const w = (Array.isArray(ans) ? ans : []).find(a => a && a.type === 'writing') || {};
+      return { name: x.student_name || x.student_email || 'Student', at: x.submitted_at, words: w.words || x.score || 0, target: x.max_score || 0, text: w.text || '' };
+    });
+    if (!rows.length) { body.innerHTML = '<p class="wf-drafts-empty">No drafts yet. When a student presses <b>Submit Final Draft</b>, their text appears here.</p>'; return; }
+    body.innerHTML = rows.map(x => `<article class="wf-draft">
+      <header><b>${esc(x.name)}</b><span>${x.words}${x.target ? ' / ' + x.target : ''} words · ${esc(new Date(x.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span></header>
+      <div class="wf-draft-text">${esc(x.text).replace(/\n/g, '<br>')}</div>
+    </article>`).join('');
+  } catch {
+    body.textContent = 'Could not load the drafts. Try again in a moment.';
+  }
+}
+
 function activateWorksheet(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card || !card.data) return;
@@ -3842,11 +3909,19 @@ if (typeof window !== 'undefined' && window.visualViewport && !window.__iwFocusV
 // card, which is what actually stops any other page/frame from forging a
 // message with a matching cardId (e.g. to spoof a quiz score).
 window.__iwFrames = window.__iwFrames || new Map();
+/* Храним сам iframe, а окно берём в момент проверки: регистрация идёт,
+   пока карточка ещё собирается вне документа, и contentWindow тогда null -
+   запомненный null отбрасывал потом любое сообщение этой карточки. */
 function _iwRegisterFrame(cardId, iframeEl) {
-  try { window.__iwFrames.set(cardId, iframeEl.contentWindow); } catch {}
+  try { window.__iwFrames.set(cardId, iframeEl); } catch {}
+}
+function _iwFrameWin(cardId) {
+  const f = window.__iwFrames.get(cardId);
+  if (!f) return null;
+  return f.contentWindow !== undefined ? f.contentWindow : f;
 }
 function _iwSourceValid(cardId, source) {
-  return !!source && window.__iwFrames.get(cardId) === source;
+  return !!source && _iwFrameWin(cardId) === source;
 }
 
 // Receive student answer-state posted by interactive worksheet iframes and
@@ -3924,6 +3999,47 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
         } catch {}
         try { e.source.postMessage({ type: 'iw-word-info', cardId: m.cardId, word: m.word, info }, '*'); } catch {}
       })();
+    }
+    /* ── Урок письма: блоки подготовки говорят с мастерской ── */
+    if (m.type === 'iw-goto' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
+      const card = state.cards.find(c => c.id === m.cardId);
+      const ctx = card && _wfCtxFor(card);
+      if (ctx && ctx.next) {
+        const target = state.cards.find(c => c.id === ctx.next.id);
+        if (target && target.data && !target.data._interactive) activateWorksheet(target.id);
+        zoomToCard(ctx.next.id, true);
+      }
+    }
+    if (m.type === 'iw-insert' && m.cardId && m.text && _iwSourceValid(m.cardId, e.source)) {
+      const card = state.cards.find(c => c.id === m.cardId);
+      const studio = card && _wfStudioFor(card);
+      if (!studio) { toast('Open a Writing Studio on this board first'); }
+      else {
+        const send = () => { try { _iwFrameWin(studio.id)?.postMessage({ type: 'iw-insert-text', text: String(m.text).slice(0, 2000) }, '*'); } catch {} };
+        if (!studio.data._interactive) { activateWorksheet(studio.id); setTimeout(send, 600); } else send();
+        toast('Added to your draft');
+      }
+    }
+    if (m.type === 'iw-copy' && m.text && m.cardId && _iwSourceValid(m.cardId, e.source)) {
+      navigator.clipboard?.writeText(String(m.text)).then(() => toast('Copied'), () => {});
+    }
+    if (m.type === 'iw-submit-draft' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
+      const reply = (ok, msg) => { try { e.source.postMessage({ type: 'iw-submitted', ok, msg }, '*'); } catch {} };
+      if (typeof currentBoardId === 'undefined' || !currentBoardId || !authToken) {
+        reply(false, 'Saved on the board. Sign in to hand it in to your teacher.');
+      } else {
+        const words = Math.max(0, Number(m.words) || 0);
+        const target = Math.max(1, Number(m.target) || 1);
+        apiFetch('/api/boards/' + currentBoardId + '/progress', {
+          method: 'POST',
+          body: { cardId: m.cardId, score: words, maxScore: target, pct: Math.min(100, Math.round(words / target * 100)),
+            answers: [{ type: 'writing', words, text: String(m.text || '').slice(0, 20000) }] },
+        }).then(r => reply(r.ok, r.ok ? '' : 'Could not hand it in - it is still saved on the board.'))
+          .catch(() => reply(false, 'No connection - your draft is still saved on the board.'));
+      }
+    }
+    if (m.type === 'iw-drafts' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
+      _wfShowDrafts(m.cardId);
     }
     if (m.type === 'iw-progress' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
       try {
@@ -10529,6 +10645,8 @@ function _placeLessonOnBoard(results, videoTitle, videoUrl, ctx = {}) {
               // его больше нет - см. placeBoardLessonStageSet.
               _titleChoice: out._titleChoice || null,
               _step: out._step, _steps: out._steps,
+              // Роль в уроке письма и место в нём - см. scripts/writing-flow.js.
+              _wfRole: out._wfRole || '', _wfOrder: out._wfRole ? i : undefined,
               // Семафор приезжает с сервера вместе с материалом и живёт на
               // карточке: учитель смотрит на лист, а не в консоль.
               _quality: out.quality || null, _engineNote: out.engineNote || '',
@@ -13909,7 +14027,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '973';
+const TEACHEDOS_ASSET_VERSION = '974';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16290,9 +16408,21 @@ function placeBoardLessonStageSet() {
     set.textOut._ttMaterial = 1;
     results.push(set.textOut);
   }
+  /* УРОК ПИСЬМА ВЕДЁТ К МАСТЕРСКОЙ (scripts/writing-flow.js).
+     Каждому блоку - роль: идеи, шпаргалка, план, критерии, мастерская.
+     Критерии встают ПЕРЕД мастерской, а не после неё: по ним пишут, а не
+     узнают о них, когда текст уже сдан. Мастерская - последней. */
+  const writingFlow = set.skill === 'writing' && window.TeachEdWritingFlow;
+  const taskIdx = stageIndex.task != null ? stageIndex.task : 3;
   lesson.forEach(({ activity, out }) => {
     out.title = activity.title;
     out._ytStage = stageIndex[activity.stage] != null ? stageIndex[activity.stage] : 9;
+    if (writingFlow) {
+      const role = window.TeachEdWritingFlow.roleFor(activity.tool);
+      if (role) out._wfRole = role;
+      if (role === 'criteria') out._ytStage = taskIdx - 0.5;
+      if (role === 'studio') out._ytStage = 99;
+    }
     results.push(out);
   });
 
@@ -16323,6 +16453,13 @@ function placeBoardLessonStageSet() {
   } catch (err) {
     console.warn('[stages] lesson placement failed', err);
     return false;
+  }
+
+  /* Блоки урока письма рисуются по одному, и первые не знали о следующих:
+     кнопка «Next» / «Open the Writing Studio» появлялась только после
+     перезагрузки. Перерисовываем их, когда весь урок уже на доске. */
+  if (writingFlow) {
+    setTimeout(() => state.cards.filter(c => c.data && c.data._wfRole).forEach(c => reRenderCard(c)), 900);
   }
 
   if (homework.length) {
