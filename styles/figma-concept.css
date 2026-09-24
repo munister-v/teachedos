@@ -382,23 +382,24 @@ body.fx.board-page #board-wrap {
 body.fx.board-page #miro-toolbar {
   top:calc(var(--tb-h) + var(--fx-rail-x)) !important; bottom:auto !important;
   left:var(--fx-rail-x) !important; width:auto !important;
-  padding:10px !important; gap:8px !important;
+  padding:6px !important; gap:4px !important;
   background:rgba(255,255,255,.55) !important;
   border:1px solid rgba(255,255,255,.7) !important;
   border-right:1px solid rgba(255,255,255,.7) !important;
-  border-radius:26px !important;
+  border-radius:20px !important;
   backdrop-filter:blur(40px) saturate(1.4) !important;
   -webkit-backdrop-filter:blur(40px) saturate(1.4) !important;
   box-shadow:0 18px 44px rgba(36,40,44,.14) !important;
 }
 body.fx.board-page #miro-toolbar .mt-btn {
-  width:60px !important; height:60px !important;
-  border-radius:var(--fx-r-tile) !important;
+  /* 44 - порог цели нажатия; 60 делали рейку в 82px, она ела холст. */
+  width:44px !important; height:44px !important;
+  border-radius:12px !important;
   background:rgba(255,255,255,.6) !important;
   border:1px solid rgba(255,255,255,.7) !important;
   color:var(--fx-ink) !important;
 }
-body.fx.board-page #miro-toolbar .mt-btn svg { width:22px !important; height:22px !important; }
+body.fx.board-page #miro-toolbar .mt-btn svg { width:19px !important; height:19px !important; }
 body.fx.board-page #miro-toolbar .mt-btn:hover { background:rgba(255,255,255,.85) !important; }
 body.fx.board-page #miro-toolbar .mt-btn.active {
   background:var(--fx-lime) !important; border-color:var(--fx-lime) !important;
@@ -641,10 +642,10 @@ body.fx.os-desktop .di.open .di-icon :is(svg,.ic) { color:var(--fx-ink) !importa
    цифру, которой никто не подчиняется. */
 /* Левая колонка: рейка инструментов и знак над ней стоят на одной оси.
    --fx-rail-x - её левый край, --fx-rail-w - ширина коробки рейки
-   (10px отступа + плитка 60px + 10px + рамка с двух сторон). Знак не
+   (6px отступа + плитка 44px + 6px + рамка с двух сторон). Знак не
    прижимается к краю, а центрируется в этой же ширине - тогда он читается
    как шапка колонки, а не как случайно сдвинутая иконка. */
-body.fx.board-page { --mt-w:110px; --tb-h:54px; --fx-rail-x:14px; --fx-rail-w:82px; }
+body.fx.board-page { --mt-w:86px; --tb-h:54px; --fx-rail-x:14px; --fx-rail-w:58px; }
 body.fx.board-page #toolbar { padding:0 16px 0 var(--fx-rail-x) !important; }
 body.fx.board-page .tb-logo {
   padding:0 !important;
