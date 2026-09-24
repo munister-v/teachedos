@@ -1,0 +1,204 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TeachEd · polish.css - the finishing layer for teacher pages (desktop).
+
+   Loaded LAST on every body.tw-page page. The layers under it (harmony,
+   unify, tool-window, figma-theme, controls) made the pages consistent but
+   compact: 23px page titles, 19px numbers, mono-caps labels on every tile,
+   30px buttons, content stretched edge to edge on a 1440px screen. It read
+   as an unfinished SaaS admin. This layer gives the same markup a product's
+   proportions: a centred column, a real type scale, calm tiles with big
+   numbers, generous cards, one button size.
+
+   Desktop only - phones get the native app (see phone-gate.js).
+   Ballast body.tw-page.fx:not(#_):not(#__) outranks tool-window
+   (body.tw-page:not(#_)) and figma-theme (body.fx:not(#_)).
+   Palette: the client's sheet - ink 24282C, lime CDF649, paper F6F6EF,
+   line CACCC6, olive 5D614B, sage A3A48D + accents.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 900px) {
+
+body.tw-page.fx {
+  --p-ink:#24282C; --p-olive:#5D614B; --p-sage:#A3A48D; --p-paper:#F6F6EF;
+  --p-lime:#CDF649; --p-violet:#6B42FD; --p-line:rgba(36,40,44,.09); --p-line-2:rgba(36,40,44,.16);
+  --p-card-shadow:0 1px 2px rgba(36,40,44,.04), 0 18px 40px -30px rgba(36,40,44,.34);
+  --p-radius:22px;
+}
+
+/* ── Ground ───────────────────────────────────────────────────────────── */
+html:has(body.tw-page.fx) { background:#F6F6EF !important; }
+body.tw-page.fx:not(#_):not(#__) {
+  background:
+    radial-gradient(1100px 520px at 88% -8%, rgba(205,246,73,.20), transparent 62%),
+    radial-gradient(900px 520px at -8% 6%, rgba(159,140,232,.13), transparent 60%),
+    #F6F6EF !important;
+  background-attachment:fixed !important;
+  color:var(--p-ink) !important;
+}
+
+/* ── Suite pages (Homework / Analytics / Journal / Gradebook): a centred
+      column instead of text running 1400px wide. ─────────────────────── */
+body.tw-page.fx:not(#_):not(#__) #page:has(> .suite-switcher) {
+  max-width:1180px !important; margin:0 auto !important;
+  padding:40px 40px 88px !important; box-sizing:border-box !important;
+}
+
+/* ── Page header ──────────────────────────────────────────────────────── */
+body.tw-page.fx:not(#_):not(#__) .page-head {
+  display:flex !important; align-items:flex-end !important; gap:12px !important;
+  margin:0 0 20px !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.page-title, .hero-card h1) {
+  font-size:38px !important; line-height:1.04 !important; font-weight:800 !important;
+  letter-spacing:-.04em !important; color:var(--p-ink) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.page-sub, .hero-copy) {
+  margin-top:8px !important; font-size:15px !important; line-height:1.5 !important;
+  font-weight:500 !important; color:var(--p-olive) !important; max-width:620px !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.eyebrow, .page-eyebrow, .sec-kicker, .gp-kicker, .hw-focus-kicker, .lesson-eyebrow) {
+  font-size:11px !important; letter-spacing:.1em !important; color:var(--p-olive) !important; opacity:.85;
+}
+/* The same page named twice - title, then a marketing banner under it. */
+body.tw-page.fx:not(#_):not(#__) .homework-hero { display:none !important; }
+
+/* ── Section switcher: one segmented control ──────────────────────────── */
+body.tw-page.fx:not(#_):not(#__) .suite-switcher {
+  display:inline-flex !important; gap:2px !important; padding:4px !important; margin:0 0 26px !important;
+  background:#fff !important; border:1px solid var(--p-line) !important; border-radius:14px !important;
+  box-shadow:0 1px 2px rgba(36,40,44,.04) !important; width:auto !important;
+}
+body.tw-page.fx:not(#_):not(#__) .suite-tab {
+  height:36px !important; display:inline-flex !important; align-items:center !important;
+  padding:0 18px !important; border:0 !important; border-radius:10px !important;
+  background:transparent !important; color:var(--p-olive) !important;
+  font-size:13.5px !important; font-weight:650 !important; box-shadow:none !important;
+}
+body.tw-page.fx:not(#_):not(#__) .suite-tab:hover { background:var(--p-paper) !important; color:var(--p-ink) !important; }
+body.tw-page.fx:not(#_):not(#__) .suite-tab.active { background:var(--p-ink) !important; color:#fff !important; }
+
+/* ── Stat tiles: a big number, a plain-language label, a coloured mark ─── */
+body.tw-page.fx:not(#_):not(#__) :is(.stats-grid, .stats-row, .hw-dashboard) {
+  display:grid !important; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap:14px !important; margin:0 0 18px !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .insight-card, .hw-metric) {
+  position:relative !important; display:flex !important; align-items:center !important; gap:14px !important;
+  min-height:96px !important; padding:20px 22px !important; box-sizing:border-box !important;
+  background:#fff !important; border:1px solid var(--p-line) !important; border-radius:20px !important;
+  box-shadow:var(--p-card-shadow) !important; color:var(--p-ink) !important; overflow:hidden !important;
+}
+body.tw-page.fx:not(#_):not(#__) .hw-metric { flex-direction:column !important; align-items:flex-start !important; justify-content:center !important; gap:4px !important; }
+body.tw-page.fx:not(#_):not(#__) .journal-suite .stat-card { flex-direction:column !important; align-items:flex-start !important; justify-content:center !important; gap:4px !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.stat-val, .stat-num, .insight-value, .hw-metric b) {
+  font-size:32px !important; line-height:1 !important; font-weight:800 !important;
+  letter-spacing:-.04em !important; color:var(--p-ink) !important; font-variant-numeric:tabular-nums;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.stat-lbl, .stat-label, .insight-label, .hw-metric span) {
+  margin-top:6px !important; font-family:var(--font-ui, 'TeachEd UI', system-ui, sans-serif) !important;
+  font-size:13px !important; font-weight:600 !important; letter-spacing:0 !important;
+  text-transform:none !important; color:var(--p-olive) !important;
+}
+body.tw-page.fx:not(#_):not(#__) .insight-hint { font-size:12px !important; color:var(--p-sage) !important; margin-top:2px !important; }
+/* A colour mark per tile - the one place a row of equal numbers gets rhythm. */
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card)::before {
+  content:'' !important; position:absolute !important; left:0 !important; top:20px !important; bottom:20px !important;
+  width:4px !important; border-radius:0 4px 4px 0 !important; background:var(--p-lime) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+2)::before { background:#9F8CE8 !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+3)::before { background:#6BAFF3 !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+4)::before { background:#F3A46B !important; }
+body.tw-page.fx:not(#_):not(#__) .stat-icon {
+  width:44px !important; height:44px !important; flex-shrink:0 !important; border-radius:14px !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  background:var(--p-paper) !important; color:var(--p-ink) !important;
+}
+body.tw-page.fx:not(#_):not(#__) .stat-icon .stat-ic, body.tw-page.fx:not(#_):not(#__) .stat-icon svg {
+  width:20px !important; height:20px !important; background:none !important; color:inherit !important;
+}
+
+/* ── Cards and sections ───────────────────────────────────────────────── */
+body.tw-page.fx:not(#_):not(#__) :is(.section, .panel, .hw-focus, .hw-toolbar, .gradebook-pulse, .gradebook-controls, .card, .analytics-lock) {
+  border:1px solid var(--p-line) !important; border-radius:var(--p-radius) !important;
+  background:#fff !important; box-shadow:var(--p-card-shadow) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.section, .panel, .hw-focus, .hw-toolbar, .gradebook-pulse, .gradebook-controls) { margin-bottom:18px !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.sec-head, .panel-head) {
+  min-height:60px !important; padding:16px 22px !important;
+  background:#fff !important; box-shadow:none !important;
+  border-bottom:1px solid var(--p-line) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.sec-title, .card-title, .section-title) {
+  font-size:17px !important; font-weight:750 !important; letter-spacing:-.02em !important; color:var(--p-ink) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.sec-body) { padding:20px 22px !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.hw-focus, .gradebook-pulse) { padding:22px 24px !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.hw-focus-title, .gp-title) {
+  font-size:19px !important; font-weight:750 !important; letter-spacing:-.025em !important; color:var(--p-ink) !important; margin-top:4px !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.gp-copy, .hw-focus-copy p, .hw-focus-sub) { font-size:14px !important; color:var(--p-olive) !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.gradebook-controls, .hw-toolbar) { padding:14px 16px !important; }
+
+/* ── Buttons: one height, one radius, brand colours ───────────────────── */
+body.tw-page.fx:not(#_):not(#__) .btn {
+  height:42px !important; min-height:42px !important; padding:0 18px !important; border-radius:12px !important;
+  font-size:13.5px !important; font-weight:700 !important; letter-spacing:-.005em !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:6px !important;
+  box-shadow:none !important; transition:background .15s, border-color .15s, filter .15s, transform .15s !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.btn-primary, .btn.lime, .btn-lime) {
+  background:var(--p-lime) !important; color:var(--p-ink) !important; border:1px solid var(--p-ink) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.btn-primary, .btn.lime, .btn-lime):hover { filter:brightness(.96) !important; transform:translateY(-1px) !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.btn-ghost, .btn.ghost, .btn-soft, .btn-secondary) {
+  background:#fff !important; color:var(--p-ink) !important; border:1px solid var(--p-line-2) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.btn-ghost, .btn.ghost, .btn-soft, .btn-secondary):hover { border-color:var(--p-ink) !important; background:#fff !important; }
+body.tw-page.fx:not(#_):not(#__) .btn-danger { background:#fff !important; color:#FF4E00 !important; border:1px solid rgba(255,78,0,.45) !important; }
+body.tw-page.fx:not(#_):not(#__) .btn-danger:hover { background:#FF4E00 !important; color:#fff !important; }
+body.tw-page.fx:not(#_):not(#__) .btn-sm { height:34px !important; min-height:34px !important; padding:0 13px !important; font-size:12.5px !important; border-radius:10px !important; }
+
+/* ── Filter chips ─────────────────────────────────────────────────────── */
+body.tw-page.fx:not(#_):not(#__) :is(.gb-filter, .journal-filter, .filter-btn) {
+  height:36px !important; padding:0 15px !important; border-radius:999px !important;
+  font-size:13px !important; font-weight:650 !important;
+  background:#fff !important; color:var(--p-olive) !important; border:1px solid var(--p-line-2) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.gb-filter, .journal-filter, .filter-btn):hover { color:var(--p-ink) !important; border-color:var(--p-ink) !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.gb-filter[aria-pressed="true"], .journal-filter.active, .filter-btn.active) {
+  background:var(--p-ink) !important; color:#fff !important; border-color:var(--p-ink) !important;
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────── */
+body.tw-page.fx:not(#_):not(#__) :is(.gb-table, .lesson-table, .qr-table) th {
+  height:44px !important; padding:0 16px !important; font-family:var(--font-mono, ui-monospace, monospace) !important;
+  font-size:10.5px !important; font-weight:700 !important; letter-spacing:.09em !important; text-transform:uppercase !important;
+  color:var(--p-olive) !important; background:#FBFBF7 !important; border-bottom:1px solid var(--p-line) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.gb-table, .lesson-table, .qr-table) td {
+  height:56px !important; padding:0 16px !important; font-size:14px !important; color:var(--p-ink) !important;
+  border-bottom:1px solid var(--p-line) !important;
+}
+body.tw-page.fx:not(#_):not(#__) :is(.gb-table, .lesson-table, .qr-table) tbody tr:hover td { background:#FBFBF7 !important; }
+
+/* ── Empty states: an icon, a sentence, a way forward ─────────────────── */
+body.tw-page.fx:not(#_):not(#__) .empty {
+  display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important;
+  gap:6px !important; padding:48px 24px !important; text-align:center !important;
+}
+body.tw-page.fx:not(#_):not(#__) .empty-icon {
+  width:60px !important; height:60px !important; margin:0 0 8px !important; border-radius:50% !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  background:var(--p-paper) !important; border:1px solid var(--p-line-2) !important;
+  font-size:24px !important; color:var(--p-ink) !important;
+}
+body.tw-page.fx:not(#_):not(#__) .empty-title { font-size:17px !important; font-weight:750 !important; letter-spacing:-.02em !important; color:var(--p-ink) !important; }
+body.tw-page.fx:not(#_):not(#__) .empty-sub { font-size:14px !important; line-height:1.5 !important; color:var(--p-olive) !important; max-width:420px !important; }
+
+/* ── Text floor: nothing important below 12.5px on a desktop ─────────── */
+body.tw-page.fx:not(#_):not(#__) :is(.gb-filter-note, .hw-sub, .section-sub, .sec-sub) { font-size:13px !important; color:var(--p-olive) !important; }
+
+/* ── Top bar: a little more air ───────────────────────────────────────── */
+body.tw-page.fx:not(#_):not(#__) #nav { min-height:60px !important; }
+body.tw-page.fx:not(#_):not(#__) #nav .nav-link { font-size:14.5px !important; }
+
+}
