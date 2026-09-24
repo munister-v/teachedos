@@ -450,7 +450,7 @@ function shapeSpec(input) {
   const retry = input.variant > 0
     ? ` This is attempt ${input.variant + 1}: the teacher rejected the previous version. Produce a genuinely different take - different examples, different angle, different wording - not a lightly edited copy of the obvious first answer.`
     : '';
-  const head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}". ${evidenceRule}${retry}`;
+  let head = `${prefix}Tool: ${toolId}. ${cefrBrief(level)} Topic: "${topic}". ${evidenceRule}${retry}`;
 
   // ── Reading text controls (genre + length) ──────────────────────────────────
   // Optional input.genre / input.length from the UI; otherwise sensible defaults
@@ -460,9 +460,31 @@ function shapeSpec(input) {
     email: 'an informal email or letter', report: 'a clear factual report',
     blog: 'an engaging blog post', dialogue: 'a natural two-person dialogue',
     review: 'a review (film / book / product / place)',
+    'personal-email': 'a personal email to a friend', 'casual-message': 'a short casual message (chat / note to a friend)',
+    'formal-letter': 'a formal letter of inquiry', complaint: 'a formal letter of complaint',
+    'opinion-essay': 'an opinion essay',
   };
   const genre = GENRES[String(input.genre || '').toLowerCase()] || '';
+  /* Регистр - главный параметр урока письма: от него зависят и образец, и
+     фразы, и критерии проверки. В уроке письма он едет в КАЖДЫЙ промт
+     (registerText ниже, в head), иначе шпаргалка выходила разговорной к
+     официальной жалобе. */
+  const REGISTER_OF = {
+    'personal-email': 'informal', story: 'informal', 'casual-message': 'informal', email: 'informal', blog: 'informal', dialogue: 'informal',
+    'formal-letter': 'formal', complaint: 'formal', report: 'formal',
+    'opinion-essay': 'academic', article: 'academic', review: 'academic',
+  };
+  const REGISTER_RULES = {
+    informal: 'INFORMAL - contractions are welcome (I\'m, it\'s, can\'t), a friendly personal tone, everyday phrasal verbs, short sentences, informal openings and closings (Hi Sam, / Take care, / See you soon).',
+    formal: 'FORMAL - no contractions, polite and neutral tone, no slang or phrasal verbs where a formal word exists, formal openings and closings (Dear Sir or Madam, / Yours faithfully, / I look forward to hearing from you).',
+    academic: 'ACADEMIC / SEMI-FORMAL - no contractions, a clear position and topic sentences, linking words and hedging (It could be argued that, On the other hand), impersonal constructions, no slang.',
+  };
+  const register = REGISTER_OF[String(input.genre || '').toLowerCase()] || '';
+  const registerText = register && input.lesson === 'writing'
+    ? ` REGISTER: ${REGISTER_RULES[register]} Everything you produce - model text, phrases, linking words, criteria and checklist items - must fit this register, and any checklist must include one check for it.`
+    : '';
   const genreText = genre ? ` Write it as ${genre}.` : '';
+  head += registerText;
   const LEN_BANDS = { short: '90-130', medium: '160-200', long: '240-320' };
   const lvlDefaultWords = /^A[12]/i.test(level) ? '90-130' : /^C[12]/i.test(level) ? '240-320' : '160-200';
   const words = LEN_BANDS[String(input.length || '').toLowerCase()] || lvlDefaultWords;

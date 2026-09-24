@@ -14027,7 +14027,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '974';
+const TEACHEDOS_ASSET_VERSION = '976';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15480,8 +15480,27 @@ function boardStageSavedPicks(toolId) {
     .filter(k => boardStageOptions(toolId).some(o => o.key === k));
 }
 
+/* Переключатели подготовки в уроке письма → варианты этапов. «on» -
+   что ставится при включении, keys - что считается включённым и что
+   снимается при выключении. */
+const WF_TOGGLES = [
+  { id: 'ideas', title: 'Include Ideas generation', hint: 'Opinions or pros & cons - they write their view, then compare.', on: ['wr-four'], keys: ['wr-four', 'wr-pros'] },
+  { id: 'phrases', title: 'Include Useful phrases', hint: 'Phrases and linking words in the chosen register, one click into the draft.', on: ['wr-phr', 'wr-link'], keys: ['wr-phr', 'wr-link', 'wr-colloc', 'wr-vocab'] },
+  { id: 'checklist', title: 'Include Interactive checklist', hint: 'Success criteria for this register, ticked against the draft.', on: ['wr-rubric'], keys: ['wr-rubric'] },
+];
+function onWfToggle(id, on) {
+  const t = WF_TOGGLES.find(x => x.id === id);
+  const host = document.getElementById('tbuilder-stages');
+  if (!t || !host) return;
+  (on ? t.on : t.keys).forEach(k => {
+    const inp = host.querySelector(`.tb-workout-item input[value="${k}"]`);
+    if (inp) inp.checked = on;
+  });
+  onBoardStagePickChange();
+}
+
 function boardStagePickedKeys() {
-  return [...document.querySelectorAll('#tbuilder-stages input:checked')].map(i => i.value);
+  return [...document.querySelectorAll('#tbuilder-stages .tb-workout-item input:checked')].map(i => i.value);
 }
 
 function renderBoardLessonStages(toolId) {
@@ -15494,7 +15513,21 @@ function renderBoardLessonStages(toolId) {
   const shown = cfg.stages
     .map(st => ({ ...st, options: st.options.filter(o => usable.some(u => u.key === o.key)) }))
     .filter(st => st.options.length);
-  host.innerHTML = shown.map((st, si) => `
+  /* Урок письма: сверху три переключателя подготовки (см. ТЗ «Writing
+     Lesson Flow») - они просто ставят галочки нужных вариантов этапов ниже,
+     так что сборка урока не знает о них ничего нового. */
+  const isWriting = boardLessonWizard && boardLessonWizard.skill === 'writing';
+  const genreLabel = document.getElementById('tbuilder-genre-label');
+  if (genreLabel) genreLabel.textContent = isWriting ? 'Genre / Register' : 'Genre';
+  const wfSetup = isWriting ? `<div class="tb-wf-setup" id="tb-wf-setup">
+      <div class="tb-wf-setup-h">Pre-writing steps <small>What the student works through before the Writing Studio</small></div>
+      ${WF_TOGGLES.map(t => `<label class="tb-wf-tog">
+        <input type="checkbox" data-wf-tog="${t.id}" onchange="onWfToggle('${t.id}', this.checked)">
+        <span class="tb-wf-switch" aria-hidden="true"></span>
+        <span><b>${esc(t.title)}</b><small>${esc(t.hint)}</small></span>
+      </label>`).join('')}
+    </div>` : '';
+  host.innerHTML = wfSetup + shown.map((st, si) => `
     <div class="tb-stage" data-stage="${esc(st.key)}">
       <div class="tb-stage-head">
         <span class="tb-stage-n">${si + 1}</span>
@@ -15528,6 +15561,10 @@ function onBoardStagePickChange() {
   } catch (_) {}
   host.querySelectorAll('.tb-workout-item').forEach(el => {
     el.classList.toggle('is-on', !!el.querySelector('input:checked'));
+  });
+  host.querySelectorAll('[data-wf-tog]').forEach(inp => {
+    const t = WF_TOGGLES.find(x => x.id === inp.dataset.wfTog);
+    inp.checked = !!t && t.keys.some(k => keys.includes(k));
   });
   const meta = document.getElementById('tbuilder-stages-meta');
   if (meta) {
@@ -16155,8 +16192,113 @@ function renderBoardLessonStagePreview(set) {
   }).join('');
 
   const failNote = failed.length ? _stageFailureReason() : '';
-  body.innerHTML = html + (failed.length
-    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.${failNote ? ` ${esc(failNote)}` : ''}</div>` : '');
+  const failHtml = failed.length
+    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.${failNote ? ` ${esc(failNote)}` : ''}</div>` : '';
+  if (set.skill === 'writing' && window.TeachEdWritingFlow) {
+    body.innerHTML = _wfStudentPreviewHtml(set) + `<details class="tb-wf-teacher"><summary>Teacher view - every part, editable</summary>${html}</details>` + failHtml;
+    _wfPreviewShow(0);
+    return;
+  }
+  body.innerHTML = html + failHtml;
+}
+
+/* ── Урок письма глазами ученика ─────────────────────────────────────────
+   После «Create draft» учитель видит не список карточек, а тот самый путь,
+   который пройдёт ученик: шаги подготовки по одному и Writing Studio
+   последним шагом. Каждый шаг - настоящая разметка карточки
+   (writing-flow.js / worksheet-play.js) в песочнице, без связи с доской:
+   без id карточки она никуда не пишет. Регистр виден сверху и меняется
+   тут же - «Rebuild» пересобирает урок с новым жанром. */
+let _wfPreviewSteps = [];
+const WF_STEP_META = { ideas: '💡 Ideas', phrases: '🔤 Phrases', plan: '🧭 Plan', criteria: '✅ Criteria', studio: '✍️ Writing Studio', model: '📄 Model' };
+const WF_STEP_W = { ideas: 760, phrases: 640, plan: 620, criteria: 620, studio: 900, model: 600 };
+function _wfStudentPreviewHtml(set) {
+  const WF = window.TeachEdWritingFlow;
+  const blocks = set.built
+    .filter(b => !b.activity.homework)
+    .map(b => ({ b, role: WF.roleFor(b.activity.tool) }))
+    .filter(x => x.role);
+  const order = { ideas: 0, phrases: 2, plan: 3, criteria: 4, studio: 9 };
+  blocks.sort((a, b) => order[a.role] - order[b.role]);
+  const textCards = (set.textOut && ((set.textOut.struct && set.textOut.struct.cards) || set.textOut.cards)) || [];
+  const steps = [];
+  blocks.filter(x => x.role === 'ideas').forEach(x => steps.push(x));
+  if (textCards.length) steps.push({ role: 'model', out: { title: 'Model text', cards: textCards, _ttMaterial: 1 } });
+  blocks.filter(x => x.role !== 'ideas').forEach(x => steps.push(x));
+  const phrases = blocks.filter(x => x.role === 'phrases').flatMap(x => WF.phrasesOf(x.b.out)).slice(0, 30);
+  _wfPreviewSteps = steps.map(x => {
+    const out = x.out || x.b.out;
+    const d = { ...out, title: out.title || (x.b && x.b.activity.title) || '', _wfRole: x.role === 'model' ? '' : x.role, _wfCtx: { next: null, phrases } };
+    /* id '__wfprev' - только чтобы шаг сообщил свою высоту; доска такой
+       карточки не знает и остальные его сообщения пропускает. */
+    const html = x.role === 'model' || x.role === 'studio'
+      ? _buildInteractiveWSHtml(d, '__wfprev', false, WF_STEP_W[x.role])
+      : WF.buildHtml(d, '__wfprev', false, WF_STEP_W[x.role]);
+    return { role: x.role, title: d.title || WF_STEP_META[x.role], html };
+  });
+  const genre = document.getElementById('tbuilder-genre');
+  const genreOpts = genre ? genre.innerHTML : '';
+  return `<div class="tb-wf-prev">
+    <div class="tb-wf-prev-top">
+      <span class="tb-wf-prev-kicker">Student view</span>
+      <label class="tb-wf-reg">Register
+        <select id="tb-wf-reg">${genreOpts}</select>
+      </label>
+      <button type="button" class="tb-wf-rebuild" id="tb-wf-rebuild" hidden onclick="_wfRebuildWithGenre()">Rebuild</button>
+    </div>
+    <div class="tb-wf-steps">${_wfPreviewSteps.map((st, i) => `<button type="button" class="tb-wf-step${st.role === 'studio' ? ' is-studio' : ''}" data-i="${i}" onclick="_wfPreviewShow(${i})"><i>${i + 1}</i>${esc(WF_STEP_META[st.role] || st.title)}</button>`).join('<span class="tb-wf-arrow">→</span>')}</div>
+    <div class="tb-wf-frame" id="tb-wf-frame"></div>
+    <div class="tb-wf-nav"><button type="button" onclick="_wfPreviewShow(_wfPreviewCur-1)">← Back</button><span id="tb-wf-where"></span><button type="button" onclick="_wfPreviewShow(_wfPreviewCur+1)">Next →</button></div>
+  </div>`;
+}
+let _wfPreviewCur = 0;
+let _wfPrev = null;
+window.addEventListener('message', e => {
+  const m = e.data;
+  if (!m || m.type !== 'iw-height' || m.cardId !== '__wfprev' || !_wfPrev || _wfPrev.studio) return;
+  if (!_wfPrev.frame || e.source !== _wfPrev.frame.contentWindow) return;
+  const h = Math.max(240, Math.min(1400, Number(m.height) || 0));
+  _wfPrev.frame.style.height = h + 'px';
+  const host = document.getElementById('tb-wf-frame');
+  if (host) host.style.height = Math.round(h * _wfPrev.scale) + 'px';
+});
+function _wfPreviewShow(i) {
+  if (!_wfPreviewSteps.length) return;
+  i = Math.max(0, Math.min(_wfPreviewSteps.length - 1, i));
+  _wfPreviewCur = i;
+  const st = _wfPreviewSteps[i];
+  const host = document.getElementById('tb-wf-frame');
+  if (!host) return;
+  document.querySelectorAll('.tb-wf-step').forEach(b => b.classList.toggle('on', Number(b.dataset.i) === i));
+  const where = document.getElementById('tb-wf-where');
+  if (where) where.textContent = `Step ${i + 1} of ${_wfPreviewSteps.length}`;
+  const reg = document.getElementById('tb-wf-reg');
+  const genre = document.getElementById('tbuilder-genre');
+  if (reg && genre && !reg.dataset.bound) {
+    reg.value = genre.value; reg.dataset.bound = '1';
+    reg.addEventListener('change', () => { document.getElementById('tb-wf-rebuild').hidden = reg.value === genre.value; });
+  }
+  /* Карточка рисуется в своей ширине и ужимается под колонку превью:
+     мастерская в 480px переключилась бы на телефонную раскладку. */
+  const W = WF_STEP_W[st.role] || 640;
+  const scale = Math.min(1, (host.clientWidth || 460) / W);
+  const H = st.role === 'studio' ? 640 : 520;
+  host.style.height = Math.round(H * scale) + 'px';
+  host.innerHTML = '';
+  _wfPrev = { scale, studio: st.role === 'studio' };
+  const f = document.createElement('iframe');
+  _wfPrev.frame = f;
+  f.sandbox = 'allow-scripts';
+  f.srcdoc = st.html;
+  f.style.cssText = `width:${W}px;height:${H}px;border:0;transform:scale(${scale});transform-origin:0 0;display:block;background:#F6F6EF`;
+  host.appendChild(f);
+}
+function _wfRebuildWithGenre() {
+  const reg = document.getElementById('tb-wf-reg');
+  const genre = document.getElementById('tbuilder-genre');
+  if (!reg || !genre) return;
+  genre.value = reg.value;
+  runBoardLessonStages();
 }
 
 /* Пересобрать саму середину урока - текст, диалог или образец, - а не

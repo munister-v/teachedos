@@ -919,7 +919,7 @@ const BOARD_LESSON_STAGES = {
         question: 'How do they find something to say?',
         options: [
           {key:'wr-lead',  tool:'lead-in',           title:'Questions to open the topic', hint:'Two or three questions before any writing happens.', ai:true, on:true, after:'source'},
-          {key:'wr-four',  tool:'four-opinions',     title:'Four opinions to react to',   hint:'Positions they can agree with, argue with or borrow.', ai:true},
+          {key:'wr-four',  tool:'four-opinions',     title:'Four opinions to react to',   hint:'They write their own view in each box, then compare with the model.', ai:true, on:true},
           {key:'wr-pros',  tool:'pros-cons',         title:'Pros and cons',               hint:'Both sides listed, ready to be used as arguments.', ai:true},
         ],
       },
@@ -966,7 +966,7 @@ const BOARD_LESSON_STAGES = {
         label: 'How it is judged',
         question: 'Do they need to see what a good piece looks like?',
         options: [
-          {key:'wr-rubric', tool:'rubric-maker', title:'Success criteria', hint:'What you are marking, in words the student can check their own draft against.', ai:true},
+          {key:'wr-rubric', tool:'rubric-maker', title:'Success criteria', hint:'A checklist the student ticks against their own draft before handing it in.', ai:true, on:true},
         ],
       },
       {

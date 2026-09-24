@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=974"></script>
+<script src="scripts/phone-gate.js?v=976"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=974">
+<link rel="manifest" href="manifest.json?v=976">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -17,12 +17,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=974">
-<link rel="stylesheet" href="styles/auth.css?v=974">
-<link rel="stylesheet" href="styles/mobile.css?v=974">
-<link rel="stylesheet" href="styles/harmony.css?v=974">
-<link rel="stylesheet" href="styles/unify.css?v=974">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=974">
+<link rel="stylesheet" href="styles/board.css?v=976">
+<link rel="stylesheet" href="styles/auth.css?v=976">
+<link rel="stylesheet" href="styles/mobile.css?v=976">
+<link rel="stylesheet" href="styles/harmony.css?v=976">
+<link rel="stylesheet" href="styles/unify.css?v=976">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=976">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -272,15 +272,15 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=974">
+<link rel="stylesheet" href="styles/teached-brand.css?v=976">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=974">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=974">
-<link rel="stylesheet" href="styles/controls.css?v=974">
+<link rel="stylesheet" href="styles/figma-theme.css?v=976">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=976">
+<link rel="stylesheet" href="styles/controls.css?v=976">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=974">
+<link rel="stylesheet" href="styles/figma-concept.css?v=976">
 <!-- Слой телефона: контракт возможностей доски, см. scripts/board-mobile.js -->
-<link rel="stylesheet" href="styles/board-mobile.css?v=974">
+<link rel="stylesheet" href="styles/board-mobile.css?v=976">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1172,16 +1172,32 @@
         <div class="tb-field-wrap tb-field-hidden" id="tb-wrap-textgen">
           <div class="tbuilder-row">
             <div>
-              <label for="tbuilder-genre">Genre</label>
+              <label for="tbuilder-genre" id="tbuilder-genre-label">Genre</label>
+              <!-- Жанр сгруппирован по регистру: в уроке письма регистр решает,
+                   какие фразы, критерии и правила (сокращения, обращения) получит
+                   ученик - см. REGISTER_RULES в backend/lib/aiEngine.js. -->
               <select id="tbuilder-genre">
                 <option value="">Auto</option>
-                <option value="article">Article</option>
-                <option value="story">Story</option>
-                <option value="email">Email / letter</option>
-                <option value="report">Report</option>
-                <option value="blog">Blog post</option>
-                <option value="dialogue">Dialogue</option>
-                <option value="review">Review</option>
+                <optgroup label="Informal">
+                  <option value="personal-email">Personal email</option>
+                  <option value="story">Story</option>
+                  <option value="casual-message">Casual message</option>
+                </optgroup>
+                <optgroup label="Formal">
+                  <option value="formal-letter">Formal letter of inquiry</option>
+                  <option value="complaint">Complaint</option>
+                  <option value="report">Official report</option>
+                </optgroup>
+                <optgroup label="Academic / Semi-formal">
+                  <option value="opinion-essay">Opinion essay</option>
+                  <option value="article">Article</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="email">Email / letter</option>
+                  <option value="blog">Blog post</option>
+                  <option value="dialogue">Dialogue</option>
+                  <option value="review">Review</option>
+                </optgroup>
               </select>
             </div>
             <div>
@@ -2142,19 +2158,19 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=974"></script>
-<script src="js/teacher-tools-data.js?v=974"></script>
-<script src="scripts/tt-text-core.js?v=974"></script>
+<script src="scripts/auth-modal.js?v=976"></script>
+<script src="js/teacher-tools-data.js?v=976"></script>
+<script src="scripts/tt-text-core.js?v=976"></script>
 <!-- Перед board-app.js: доска зовёт эти имена как свои (общий файл с домашкой). -->
-<script src="scripts/writing-flow.js?v=974"></script>
-<script src="scripts/worksheet-play.js?v=974"></script>
-<script src="scripts/board-app.js?v=974"></script>
-<script src="scripts/board-laser.js?v=974"></script>
-<script src="scripts/assign-game.js?v=974"></script>
-<script src="js/board-vocab.js?v=974"></script>
-<script src="js/board-reveal.js?v=974"></script>
-<script src="js/teacher-tool-board-composer.js?v=974"></script>
-<script src="scripts/board-mobile.js?v=974"></script>
+<script src="scripts/writing-flow.js?v=976"></script>
+<script src="scripts/worksheet-play.js?v=976"></script>
+<script src="scripts/board-app.js?v=976"></script>
+<script src="scripts/board-laser.js?v=976"></script>
+<script src="scripts/assign-game.js?v=976"></script>
+<script src="js/board-vocab.js?v=976"></script>
+<script src="js/board-reveal.js?v=976"></script>
+<script src="js/teacher-tool-board-composer.js?v=976"></script>
+<script src="scripts/board-mobile.js?v=976"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2162,8 +2178,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=974" defer></script>
-<script src="pwa-boot.js?v=974" defer></script>
+<script src="scripts/autogrow.js?v=976" defer></script>
+<script src="pwa-boot.js?v=976" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2264,11 +2280,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=974"></script>
-<script src="scripts/nav-boost.js?v=974" defer></script>
-<script src="scripts/mobile-perf.js?v=974" defer></script>
-<script src="scripts/mobile-nav.js?v=974"></script>
-<script src="scripts/mobile-zoom-guard.js?v=974" defer></script>
+<script src="pwa.js?v=976"></script>
+<script src="scripts/nav-boost.js?v=976" defer></script>
+<script src="scripts/mobile-perf.js?v=976" defer></script>
+<script src="scripts/mobile-nav.js?v=976"></script>
+<script src="scripts/mobile-zoom-guard.js?v=976" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->

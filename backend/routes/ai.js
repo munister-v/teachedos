@@ -342,7 +342,10 @@ function normaliseInput(body) {
   const action = ['simplify', 'upgrade', 'keep'].includes(raw.action) ? raw.action : 'simplify';
   // Reading-text controls (optional): genre + length. Empty string = "let the
   // engine choose" (length then defaults by CEFR level).
-  const genre = ['article', 'story', 'email', 'report', 'blog', 'dialogue', 'review'].includes(raw.genre) ? raw.genre : '';
+  /* Жанр урока письма несёт и регистр (aiEngine.js: REGISTER_RULES) - по
+     нему модель выбирает фразы, критерии и правила вроде сокращений. */
+  const genre = ['article', 'story', 'email', 'report', 'blog', 'dialogue', 'review',
+    'personal-email', 'casual-message', 'formal-letter', 'complaint', 'opinion-essay'].includes(raw.genre) ? raw.genre : '';
   const length = ['short', 'medium', 'long'].includes(raw.length) ? raw.length : '';
   const source = limitText(raw.source, 18000);
   const vocab = limitText(raw.vocab, 8000);
