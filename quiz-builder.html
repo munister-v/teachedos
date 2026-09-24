@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=959"></script>
+<script src="scripts/phone-gate.js?v=962"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json?v=959">
+<link rel="manifest" href="manifest.json?v=962">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -243,13 +243,13 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   .preview-opt{ padding:12px 14px; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=959">
-<link rel="stylesheet" href="styles/teached-brand.css?v=959">
-<link rel="stylesheet" href="styles/tool-window.css?v=959">
+<link rel="stylesheet" href="styles/mobile.css?v=962">
+<link rel="stylesheet" href="styles/teached-brand.css?v=962">
+<link rel="stylesheet" href="styles/tool-window.css?v=962">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=959">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=959">
-<link rel="stylesheet" href="styles/controls.css?v=959">
+<link rel="stylesheet" href="styles/figma-theme.css?v=962">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=962">
+<link rel="stylesheet" href="styles/controls.css?v=962">
 </head>
 <body class="tw-page fx">
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -385,7 +385,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocab-loader.js?v=959"></script>
+<script src="scripts/vocab-loader.js?v=962"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -648,14 +648,37 @@ function loadMeta(){
 }
 
 // ── Save to Homework ──
-function saveToHomework(){
+/* «Save to Homework». Раньше квиз уходил только в localStorage
+   (teachedos_quiz_drafts), который больше никто не читает: учитель не находил
+   его в Homework. Теперь: вопросы -> формат доски, новая доска с названием
+   квиза, квиз на ней карточкой, и запись в журнале домашек. */
+function _toBoardQuestion(q){
+  const text=String(q.text||'').trim();
+  if(q.type==='mcq'){const opts=(q.options||[]).map(String).filter(Boolean);if(opts.length<2)return null;const ans=opts[Number(q.correct)]??opts[0];return{type:'mcq',text,options:opts,answer:ans,points:q.points||1}}
+  if(q.type==='tf')return{type:'truefalse',text,answer:String(q.correct)==='true',points:q.points||1};
+  if(q.type==='fib'){const t=text.replace(/_{2,}/g,'_____');return{type:'gap-fill',text:t.includes('_____')?t:t+' _____',answer:String(q.answer||''),points:q.points||1}}
+  if(q.type==='mp'){const pairs=(q.pairs||[]).filter(p=>p&&(p.l||p.left)).map(p=>({left:String(p.l??p.left),right:String(p.r??p.right??'')}));return pairs.length?{type:'match',text:text||'Match the pairs',pairs,points:q.points||1}:null}
+  return text?{type:'open',text,points:q.points||1}:null;
+}
+async function saveToHomework(){
   saveMeta();
+  if(!questions.length){showToast('Add at least one question first');return}
   const drafts=JSON.parse(localStorage.getItem('teachedos_quiz_drafts')||'[]');
   const quiz={id:Date.now(),meta:{...meta},questions:JSON.parse(JSON.stringify(questions)),createdAt:new Date().toISOString()};
-  const idx=drafts.findIndex(d=>d.id===quiz.id);
-  if(idx>=0) drafts[idx]=quiz; else drafts.push(quiz);
-  localStorage.setItem('teachedos_quiz_drafts',JSON.stringify(drafts));
-  showToast('Quiz saved - go to Homework to assign 🎉');
+  drafts.push(quiz);
+  try{localStorage.setItem('teachedos_quiz_drafts',JSON.stringify(drafts))}catch(_){}
+  const qs=questions.map(_toBoardQuestion).filter(Boolean);
+  if(!qs.length){showToast('These questions are empty - fill them in first');return}
+  if(!libToken()){showToast('Sign in to turn this quiz into homework');return}
+  const title=(meta.title||'Quiz').trim();
+  const btn=document.getElementById('saveHwBtn');if(btn){btn.disabled=true;btn.textContent='Preparing…'}
+  let boardId='';
+  try{const r=await libFetch('/api/boards',{method:'POST',body:{name:title,data:{cards:[]}}});const d=await r.json().catch(()=>({}));boardId=d.board&&d.board.id||''}catch(_){}
+  if(!boardId){if(btn){btn.disabled=false;btn.textContent='Save to Homework'}showToast('Could not create a board for this quiz. Try again.');return}
+  const material={title,topic:title,kind:'Quiz',cat:'grammar',level:meta.level||'B1',materialKey:'quiz-builder:'+quiz.id,
+    toolId:'quiz-builder',toolTitle:'Quiz Builder',struct:{boardKind:'quiz',questions:qs}};
+  try{sessionStorage.setItem('teachedos_pending_tool_material_set',JSON.stringify({materials:[material],homework:{title,instructions:meta.subject?('Quiz · '+meta.subject):''}}))}catch(_){}
+  location.href='board.html?id='+encodeURIComponent(boardId)+'&addToolMaterialSet=1';
 }
 
 function showToast(msg){
@@ -820,7 +843,7 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
-<script src="scripts/autogrow.js?v=959" defer></script>
-<script src="pwa-boot.js?v=959" defer></script>
+<script src="scripts/autogrow.js?v=962" defer></script>
+<script src="pwa-boot.js?v=962" defer></script>
 </body>
 </html>

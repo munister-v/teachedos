@@ -13893,7 +13893,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '959';
+const TEACHEDOS_ASSET_VERSION = '962';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14021,8 +14021,9 @@ async function generateTeacherToolBuilder(mode = 'fast') {
       _ttSetImproving(false);
       if (!serverOutput) {
         lastTeacherToolBuilderOutput = null;
-        if (chip) chip.textContent = 'AI unavailable';
-        if (body) body.innerHTML = '<div class="tbuilder-empty">AI could not create this material. Your draft was not changed. Try again or add more source material.</div>';
+        const why = _stageFailureReason();
+        if (chip) chip.textContent = _stageFailureChip();
+        if (body) body.innerHTML = `<div class="tbuilder-empty">${why ? esc(why) + ' ' : 'AI could not create this material. '}Your draft was not changed.</div>`;
         _ttSetGenerating(false);
         return;
       }
@@ -15312,6 +15313,19 @@ function _stageFailureReason() {
   return '';
 }
 
+/* Короткая метка причины для чипа. Раньше любая причина (лимит в минуту,
+   истёкшая сессия, гость) превращалась в «allowance reached» - учитель после
+   пары быстрых кликов читал, что месячный лимит AI исчерпан. */
+function _stageFailureChip() {
+  if (typeof authToken !== 'undefined' && !authToken) return 'sign in for AI';
+  const e = (typeof _lastAiToolError !== 'undefined' && _lastAiToolError) || null;
+  if (!e) return 'AI unavailable';
+  if (e.code === 'AI_MONTHLY_BUDGET_REACHED') return 'allowance reached';
+  if (e.status === 429) return 'too many requests';
+  if (e.status === 401 || e.status === 403) return 'sign in again';
+  return 'AI unavailable';
+}
+
 function _stagePicksKey(toolId) {
   const skill = boardLessonWizard && boardLessonWizard.skill;
   if (skill) return `skill:${skill}`;
@@ -15787,7 +15801,7 @@ async function runBoardLessonStages() {
 
   if (!textOut) {
     _ttSetGenerating(false);
-    if (chip) chip.textContent = ownText ? 'no text yet' : (_stageFailureReason() ? 'allowance reached' : 'AI unavailable');
+    if (chip) chip.textContent = ownText ? 'no text yet' : _stageFailureChip();
     if (body) body.innerHTML = ownText
       ? '<div class="tbuilder-empty">Paste, scan or fetch the text first - the whole lesson is built from it.</div>'
       : `<div class="tbuilder-empty">${esc(_stageFailureReason() || 'The text could not be created. AI tools need you to be signed in - try again in a moment.')}</div>`;
@@ -18641,6 +18655,7 @@ function runPendingToolMaterialSetImport() {
     let cursorX = rowStartX;
     let rowHeight = 0;
     let inRow = 0;
+    const placedIds = [];
     set.materials.forEach(material => {
       const hasBody = material && (material.text || (material.struct && (
         (material.struct.questions || []).length ||
@@ -18664,6 +18679,7 @@ function runPendingToolMaterialSetImport() {
       const card = ttPlaceMaterialCard(material, { x: cursorX, y: rowTop }, 'topleft');
       if (!card) return;
       placed++;
+      placedIds.push(card.id);
       rowHeight = Math.max(rowHeight, (card.y + card.h) - rowTop);
       cursorX = card.x + card.w + GAP;
       inRow++;
@@ -18675,6 +18691,11 @@ function runPendingToolMaterialSetImport() {
       }
     });
     scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    /* Набор пришёл «как домашка» (Quiz Builder → Save to Homework): сразу
+       заводим запись в журнале домашек из положенных карточек. */
+    if (set.homework && placedIds.length) {
+      setTimeout(() => _ttCreateHomeworkFromCards(placedIds, set.homework.title, set.homework.instructions || ''), 600);
+    }
     if (placed) {
       const tail = skipped ? ' (' + skipped + ' already on the board)' : '';
       toast && toast('✦ ' + placed + ' activities added' + tail);

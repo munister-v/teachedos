@@ -34,6 +34,32 @@ function computeFinalScore(attempts, requiredCards) {
 /* ════════════════════════ TEACHER ENDPOINTS ════════════════════════ */
 
 /* ── POST /api/homework ── create homework */
+/* Кому можно назначить домашку на доске boardId. Раньше - только тем, кто
+   уже сидит на этой доске: у новой доски (квиз из Quiz Builder, урок из
+   мастера) учеников нет, а экран Homework предлагал учеников со всех досок
+   учителя - сервер молча их отбрасывал, и домашка не доходила ни до кого.
+   Теперь: любой ученик учителя (соавтор любой его доски); кого нет на этой
+   доске - сажаем на неё учеником, чтобы он мог её открыть. Чужих не берём. */
+async function seatTeacherStudents(teacherId, boardId, rawIds) {
+  const ids = (Array.isArray(rawIds) ? rawIds : []).map(String)
+    .filter(id => /^[0-9a-f-]{36}$/i.test(id));
+  if (!ids.length) return [];
+  const { rows } = await pool.query(
+    `SELECT DISTINCT bc.user_id
+       FROM board_collaborators bc JOIN boards b ON b.id = bc.board_id
+      WHERE b.user_id = $1 AND bc.user_id <> $1 AND bc.user_id = ANY($2::uuid[])`,
+    [teacherId, ids]);
+  const ok = rows.map(r => r.user_id);
+  if (ok.length) {
+    await pool.query(
+      `INSERT INTO board_collaborators (board_id, user_id, role)
+       SELECT $1, u, 'student' FROM unnest($2::uuid[]) AS u
+       ON CONFLICT (board_id, user_id) DO NOTHING`,
+      [boardId, ok]);
+  }
+  return ok;
+}
+
 router.post('/', requireTeacher, async (req, res) => {
   try {
     const {
@@ -68,15 +94,9 @@ router.post('/', requireTeacher, async (req, res) => {
     );
     const hw = rows[0];
 
-    // Optional bulk assignment - restricted to real collaborators on this
-    // board, same as POST /:id/assign below.
+    // Optional bulk assignment - the teacher's own students (seatTeacherStudents).
     if (Array.isArray(student_ids) && student_ids.length) {
-      const { rows: validRows } = await pool.query(
-        `SELECT user_id FROM board_collaborators WHERE board_id=$1 AND user_id = ANY($2::uuid[])`,
-        [board_id, student_ids]
-      );
-      const validIds = new Set(validRows.map(r => r.user_id));
-      const filteredIds = student_ids.filter(id => validIds.has(id));
+      const filteredIds = await seatTeacherStudents(req.user.id, board_id, student_ids);
       if (filteredIds.length) {
         const values = [];
         const params = [];
@@ -202,16 +222,10 @@ router.post('/:id/assign', requireTeacher, async (req, res) => {
     const rawIds = Array.isArray(req.body.student_ids) ? req.body.student_ids : [];
     if (!rawIds.length) return res.status(400).json({ error: 'student_ids required' });
 
-    // Only assign to users who actually collaborate on this board - without
-    // this, a teacher could push homework straight into any user's inbox by
-    // guessing/enumerating UUIDs, with attacker-controlled title/instructions.
-    const { rows: validRows } = await pool.query(
-      `SELECT user_id FROM board_collaborators WHERE board_id=$1 AND user_id = ANY($2::uuid[])`,
-      [hw.board_id, rawIds]
-    );
-    const validIds = new Set(validRows.map(r => r.user_id));
-    const studentIds = rawIds.filter(id => validIds.has(id));
-    if (!studentIds.length) return res.status(400).json({ error: 'None of the given students are on this board' });
+    // Only the teacher's own students (on any of their boards) - never an
+    // arbitrary user by UUID. Missing ones are seated on this board.
+    const studentIds = await seatTeacherStudents(req.user.id, hw.board_id, rawIds);
+    if (!studentIds.length) return res.status(400).json({ error: 'None of these are your students' });
 
     const values = []; const params = [];
     studentIds.forEach((sid, i) => {

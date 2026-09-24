@@ -411,19 +411,61 @@ function _ttGenSentenceTranslation(input){
     title:`${input.level} · Sentence Translation: ${input.topic}`, questions };
 }
 
+/* Настоящие грамматические ошибки вместо перестановки слов словаря:
+   прошлое -> основа, неправильные глаголы, was/were, has/have, is/are,
+   3-е лицо без -s, a/an, предлоги. Правила перебираются по кругу со сдвигом,
+   чтобы задания не были одного типа. null - ни одно правило не подошло. */
+const _TT_IRREG_PAST = { went:'go', had:'have', bought:'buy', took:'take', made:'make', saw:'see', said:'say',
+  came:'come', got:'get', taught:'teach', thought:'think', found:'find', gave:'give', told:'tell', felt:'feel',
+  left:'leave', met:'meet', began:'begin', wrote:'write', ate:'eat', drank:'drink', spent:'spend', flew:'fly',
+  knew:'know', became:'become', brought:'bring', kept:'keep', lost:'lose', paid:'pay', sent:'send', sat:'sit',
+  stood:'stand', understood:'understand', won:'win', chose:'choose', drove:'drive', ran:'run', swam:'swim' };
+function _ttMatchCase(orig, repl) {
+  if (orig === orig.toUpperCase() && orig.length > 1) return repl.toUpperCase();
+  return orig[0] === orig[0].toUpperCase() ? repl[0].toUpperCase() + repl.slice(1) : repl;
+}
+function _ttEdBase(w) {
+  const lw = w.toLowerCase();
+  if (!/^[a-z]{3,}ed$/.test(lw) || /^(need|feed|seed|speed|bleed|breed|proceed|exceed|succeed|red|bed|shed|hundred|interested|tired|excited|bored|naked|wicked|sacred)$/.test(lw)) return null;
+  if (lw.endsWith('ied')) return lw.slice(0, -3) + 'y';               // carried -> carry
+  const b = lw.slice(0, -2);
+  if (/([bdgmnprt])\1$/.test(b)) return b.slice(0, -1);               // planned -> plan
+  if (/ell$/.test(b) && b.length > 5) return b.slice(0, -1);         // travelled -> travel (spelled, called stay)
+  if (/(ng|rg|dg|nc|rc|lg)$/.test(b)) return null;                    // changed/charged/danced vs belonged: ambiguous
+  if (/[aeiou](v|z|c|g)$/.test(b) || /(at|ur|us|as|os|ok)$/.test(b) && /[aeiou][^aeiou]$/.test(b)) return b + 'e'; // loved, created, caused
+  if (/[aeiou]d$/.test(b) || /[^aeiou][aeiou][^aeiouwxy]$/.test(b) && !/(ll|ss|ff|ck|sh|ch|lk|nt|st|rk|sk|lp|mp|rn|rm|lt|nd|wn)$/.test(b) && !/(it|et|en|er|on|ow|ew)$/.test(b)) return null; // decided/hoped: ambiguous - skip
+  return b;                                                            // asked, walked, visited, showed
+}
+function _ttInjectGrammarError(s, shift = 0) {
+  const rules = [
+    s => { const m = s.match(/\b([A-Za-z]{3,}ed)\b/g) || []; for (const w of m) { const b = _ttEdBase(w); if (b) return s.replace(new RegExp('\\b' + w + '\\b'), _ttMatchCase(w, b)); } return null; },
+    s => { const m = s.match(/\b([A-Za-z]+)\b/g) || []; for (const w of m) { const b = _TT_IRREG_PAST[w.toLowerCase()]; if (b) return s.replace(new RegExp('\\b' + w + '\\b'), _ttMatchCase(w, b)); } return null; },
+    s => /\bwas\b/i.test(s) ? s.replace(/\b(w)as\b/i, (x, c) => c + 'ere') : /\bwere\b/i.test(s) ? s.replace(/\b(w)ere\b/i, (x, c) => c + 'as') : null,
+    s => /\bhas\b/i.test(s) ? s.replace(/\b(h)as\b/i, (x, c) => c + 'ave') : /\b(he|she|it) have\b/i.test(s) ? s.replace(/\b(he|she|it) have\b/i, '$1 has') : null,
+    s => /\bis\b/.test(s) ? s.replace(/\bis\b/, 'are') : /\b(they|we|you) are\b/i.test(s) ? s.replace(/\b(they|we|you) are\b/i, '$1 is') : null,
+    s => { const m = s.match(/\b(he|she|it)\s+([a-z]{3,}s)\b/i); if (!m || /(ss|us|is)$/.test(m[2])) return null; const base = m[2].replace(/ies$/, 'y').replace(/(sh|ch|x|o)es$/, '$1').replace(/s$/, ''); return s.replace(m[0], `${m[1]} ${base}`); },
+    s => { const m = s.match(/\ban\s+([a-z]+)/i) || s.match(/\ba\s+([aeiou][a-z]+)/i); if (m) return null;
+           const k = s.match(/\ba\s+([b-df-hj-np-tv-z][a-z]+)/i); return k ? s.replace(k[0], k[0].replace(/\ba\b/i, 'an')) : (s.match(/\ban\s+[aeiou]/i) ? s.replace(/\ban(\s+[aeiou])/i, 'a$1') : null); },
+    s => { const pairs = [[/\bin (the morning|the evening|the afternoon)\b/i, 'at $1'], [/\bat (night|the weekend)\b/i, 'in $1'], [/\bon (Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/, 'in $1'], [/\bin (Paris|London|Vienna|Prague|Europe|[A-Z][a-z]+)\b/, 'at $1'], [/\bat (the airport|home|school|work)\b/i, 'in $1']];
+           for (const [re, rep] of pairs) if (re.test(s)) return s.replace(re, rep); return null; },
+  ];
+  for (let k = 0; k < rules.length; k++) {
+    const r = rules[(k + shift) % rules.length](s);
+    if (r && r !== s) return r;
+  }
+  return null;
+}
+
 function _ttGenErrorCorrection(input){
   const sents = teacherToolSourceSentences(input.source, input.topic, 60)
-    .filter(s => s.split(/\s+/).length >= 5 && _ttContentWords(s).length >= 2);
-  const pool = _ttContentWords(input.source || '');
-  if (!sents.length || pool.length < 3) return null;
+    .filter(s => s.split(/\s+/).length >= 5);
+  if (!sents.length) return null;
   const questions = [];
+  let shift = 0;
   for (const s of sents) {
     if (questions.length >= input.count) break;
-    const words = _ttContentWords(s);
-    const target = words.sort((a,b)=>b.length-a.length)[0];
-    const repl = pool.find(w => w !== target && Math.abs(w.length-target.length) <= 2 && !s.toLowerCase().includes(w));
-    if (!target || !repl) { questions.push({ type:'open', text:'Is this sentence correct? If not, correct it:\n"'+s+'"', answer:s, points:2 }); continue; }
-    const broken = s.replace(new RegExp('\\b'+target+'\\b','i'), repl);
+    const broken = _ttInjectGrammarError(s, shift++);
+    if (!broken) continue;
     questions.push({ type:'open', text:'Find and correct the mistake:\n"'+broken+'"', answer:s, points:2 });
   }
   return questions.length
@@ -734,13 +776,26 @@ function _ttGenTwoOptions(input){
   if (!sents.length || pool.length < 2) return null;
   const targets = _ttSentenceTargets(sents, 2);
   const questions = [];
+  const suffix = w => (w.match(/(ing|ed|ly|tion|ment|ness|ful|less|able|ous|ive|er|est|s)$/) || [''])[0];
   for (const [s, a] of targets){
     if (questions.length >= input.count) break;
-    // Distractor: a content word from the pool with similar length, not in this sentence
-    const distractor = pool.find(w => w !== a && Math.abs(w.length-a.length) <= 2 && !s.toLowerCase().includes(w))
-      || pool.find(w => w !== a) || a + 's';
+    /* Отвлекающий вариант - сначала другая форма того же слова (planned /
+       planning), иначе слово с тем же окончанием: так выбор проверяет
+       язык, а не угадывается по части речи. Регистр - как в предложении. */
+    const lw = a.toLowerCase();
+    const edBase = _ttEdBase(lw);
+    const forms = edBase ? [edBase, edBase.replace(/e$/, '') + 'ing']
+      : _TT_IRREG_PAST[lw] ? [_TT_IRREG_PAST[lw]]
+      : /ing$/.test(lw) ? [lw.replace(/ing$/, 'ed')]
+      : /ly$/.test(lw) ? [lw.replace(/ly$/, '')]
+      : [];
+    const sameEnd = pool.find(w => w !== lw && suffix(w) === suffix(lw) && Math.abs(w.length - lw.length) <= 3 && !s.toLowerCase().includes(w));
+    const distractor = forms.find(f => f && f !== lw) || sameEnd
+      || pool.find(w => w !== lw && !s.toLowerCase().includes(w)) || lw + 's';
+    const inSent = (s.match(new RegExp('\\b' + lw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i')) || [a])[0];
+    const shown = w => _ttMatchCase(inSent, w);
     questions.push({ type:'mcq', text:`Choose the correct option:\n"${_ttBlank(s,a)}"`,
-      options:_ttShuffle([_ttCap(a), _ttCap(distractor)]), answer:_ttCap(a), points:1 });
+      options:_ttShuffle([shown(lw), shown(distractor)]), answer:shown(lw), points:1 });
   }
   return questions.length ? { boardKind:'quiz', kind:'Two Options', cat:'grammar', level:input.level, topic:input.topic,
     title:`${input.level} · Two Options: ${input.topic}`, questions } : null;

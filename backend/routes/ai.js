@@ -208,6 +208,31 @@ const CACHE_MAX = 200;
 const cache = new Map();
 
 const TOOL_META = {
+  /* 24.09.2026: 21 инструмент доски не был описан здесь, и сервер отдавал
+     их материал как «B1 · Task: <тема>» в категории utility - не та иконка
+     и цвет рамки на доске, не та полка в библиотеке. Значения - из реестра
+     доски (js/teacher-tools-data.js: cat, kind). */
+  'vocab-workout': ['vocabulary', 'Activity set'],
+  'cefr-checker': ['utility', 'Analyzer'],
+  'add-text': ['utility', 'Content'],
+  'add-images': ['utility', 'Media'],
+  'add-video': ['utility', 'Media'],
+  'link-words': ['writing', 'Writing'],
+  'word-translation-match': ['vocabulary', 'Matching'],
+  'word-order': ['grammar', 'Reorder'],
+  'matching-halves': ['grammar', 'Matching'],
+  'comm-situations': ['vocabulary', 'Role Play'],
+  'rephrase-word': ['vocabulary', 'Transformation'],
+  'four-opinions': ['writing', 'Discussion'],
+  'find-quotes': ['writing', 'Extraction'],
+  'essay-topics': ['writing', 'Prompt'],
+  'lead-in': ['speaking', 'Warm-up'],
+  'interesting-facts': ['speaking', 'Content'],
+  'pros-cons': ['speaking', 'Discussion'],
+  'type-gap': ['grammar', 'Gap Fill'],
+  'word-bank': ['grammar', 'Word Bank'],
+  'summary-gapfill': ['listening', 'Summary'],
+  'choose-summary': ['listening', 'Choice'],
   'lesson-pack': ['utility', 'Lesson Pack'],
   'worksheet-builder': ['utility', 'Worksheet'],
   'homework-set': ['utility', 'Homework'],
