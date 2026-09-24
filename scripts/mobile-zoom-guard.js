@@ -1,5 +1,5 @@
 (function () {
-  var isMobile = window.matchMedia && window.matchMedia('(max-width: 860px)').matches;
+  var isMobile = window.matchMedia && window.matchMedia('(max-width: 860px) and (pointer: coarse)').matches;
   if (!isMobile) return;
 
   // Avoid a global non-passive touchend listener: on iPhone it can delay tap

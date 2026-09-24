@@ -2,7 +2,7 @@
    TeachEd lesson covers - the banner on top of a Community lesson card.
 
    A cover is a small JSON design, not a picture: background (colour,
-   gradient, pattern, one of our photos or the teacher's own upload), a big
+   gradient, pattern, one of our photos or the teacher's own), a big
    headline in one of five fonts, an optional sticker and the level badge.
    Being HTML + CSS it renders crisp at any size - card, preview, lesson page -
    and costs nothing to store. Only an uploaded photo is an image; it lives
@@ -198,7 +198,10 @@
   function editor(host, opts = {}) {
     let cover = normalize(opts.value);
     let image = opts.image || '';
-    let tab = cover ? cover.style : 'auto';
+    /* Своё фото живёт в сетке вкладки Photo первой плиткой, как в выборе фона
+       рабочего стола, поэтому у стиля 'upload' своей вкладки нет. */
+    const tabFor = c => (c ? (c.style === 'upload' ? 'photo' : c.style) : 'auto');
+    let tab = tabFor(cover);
     const info = () => (typeof opts.info === 'function' ? opts.info() : opts.info) || {};
     const current = () => cover || auto(info());
     const touch = patch => {
@@ -220,16 +223,12 @@
         <div class="lce-pats">${PATTERNS.map(p => `<button type="button" class="lce-pat tcv-pattern tcv-p-${p.key}${c.pattern === p.key ? ' on' : ''}" data-pattern="${p.key}" style="background:${c.bg};--tcv-accent:${c.accent}"><span>${p.label}</span></button>`).join('')}</div>
         <div class="lce-row"><span class="lce-lbl">Base</span><div class="lce-sws">${sw(PALETTE, c.bg, 'bg')}</div></div>
         <div class="lce-row"><span class="lce-lbl">Pattern</span><div class="lce-sws">${sw(PALETTE, c.accent, 'accent')}</div></div>`;
-      if (tab === 'photo') return `
-        <div class="lce-photos">${PHOTOS.map(p => `<button type="button" class="lce-photo${c.style === 'photo' && c.photo === p ? ' on' : ''}" data-photo="${p}" style="background-image:url('img/wallpapers/${p}-thumb.webp')" aria-label="${p}"></button>`).join('')}</div>
-        ${shadeRow(c)}`;
+      const own = image
+        ? `<button type="button" class="lce-photo lce-own${c.style === 'upload' ? ' on' : ''}" data-own style="background-image:url('${esc(image)}')" aria-label="Your photo"></button>`
+        : `<label class="lce-photo lce-own lce-own-add" title="JPG, PNG or WebP - it is cropped to the cover for you"><input type="file" accept="image/*" hidden data-upload><span aria-hidden="true">+</span><small>Your photo</small></label>`;
       return `
-        <label class="lce-drop">
-          <input type="file" accept="image/*" hidden data-upload>
-          ${image ? `<span class="lce-drop-prev" style="background-image:url('${esc(image)}')"></span>` : ''}
-          <span><b>${image ? 'Replace your photo' : 'Upload your own photo'}</b><small>JPG, PNG or WebP - it is cropped to the cover for you</small></span>
-        </label>
-        ${image ? `<button type="button" class="lce-link" data-clear-upload>Remove photo</button>` : ''}
+        <div class="lce-photos">${own}${PHOTOS.map(p => `<button type="button" class="lce-photo${c.style === 'photo' && c.photo === p ? ' on' : ''}" data-photo="${p}" style="background-image:url('img/wallpapers/${p}-thumb.webp')" aria-label="${p}"></button>`).join('')}</div>
+        ${image ? `<div class="lce-own-links"><label class="lce-link">Replace your photo<input type="file" accept="image/*" hidden data-upload></label><button type="button" class="lce-link" data-clear-upload>Remove</button></div>` : ''}
         ${shadeRow(c)}`;
     }
     const shadeRow = c => `<div class="lce-row"><span class="lce-lbl">Darken</span><input type="range" min="0" max="70" step="1" value="${c.shade}" data-shade class="lce-range"><span class="lce-val">${c.shade}%</span></div>`;
@@ -240,7 +239,7 @@
       host.innerHTML = `
         <div class="lce">
           <div class="lce-tabs" role="tablist">
-            ${[['auto', 'Auto'], ['color', 'Colour'], ['gradient', 'Gradient'], ['pattern', 'Pattern'], ['photo', 'Photo'], ['upload', 'Upload']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${tab === k}" class="lce-tab${tab === k ? ' on' : ''}" data-tab="${k}">${l}</button>`).join('')}
+            ${[['auto', 'Auto'], ['color', 'Colour'], ['gradient', 'Gradient'], ['pattern', 'Pattern'], ['photo', 'Photo']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${tab === k}" class="lce-tab${tab === k ? ' on' : ''}" data-tab="${k}">${l}</button>`).join('')}
             <button type="button" class="lce-shuffle" data-shuffle title="Surprise me">🎲</button>
           </div>
           <div class="lce-panel">${bgPanel(c)}</div>
@@ -269,8 +268,8 @@
         const c = current();
         const base = { style: tab };
         if (tab === 'color' && c.style !== 'color') { base.ink = readableOn(c.bg); }
-        if (tab === 'photo' || (tab === 'upload' && image)) base.ink = '#FFFFFF';
-        if (tab === 'upload' && !image) { paint(); return; }
+        if (tab === 'photo' && c.style === 'upload') { paint(); return; }
+        if (tab === 'photo') base.ink = '#FFFFFF';
         touch(base);
         return;
       }
@@ -281,7 +280,8 @@
         touch({ ...pick, title: c.title, sub: c.sub, sticker: STICKERS[1 + Math.floor(Math.random() * (STICKERS.length - 1))], badge: c.badge });
         return;
       }
-      if (d.bg) { const style = tab === 'auto' || tab === 'photo' || tab === 'upload' ? 'color' : tab; tab = style; touch({ style, bg: d.bg, ...(style === 'color' ? { ink: readableOn(d.bg) } : {}) }); return; }
+      if (d.own !== undefined) { touch({ style: 'upload', ink: '#FFFFFF', shade: Math.max(current().shade, 25) }); return; }
+      if (d.bg) { const style = tab === 'auto' || tab === 'photo' ? 'color' : tab; tab = style; touch({ style, bg: d.bg, ...(style === 'color' ? { ink: readableOn(d.bg) } : {}) }); return; }
       if (d.bg2) { tab = 'gradient'; touch({ style: 'gradient', bg2: d.bg2 }); return; }
       if (d.grad) { const [a, g] = d.grad.split(','); tab = 'gradient'; touch({ style: 'gradient', bg: a, bg2: g, ink: readableOn(a) }); return; }
       if (d.pattern) { tab = 'pattern'; touch({ style: 'pattern', pattern: d.pattern }); return; }
@@ -293,7 +293,7 @@
       if (d.sticker !== undefined) { touch({ sticker: d.sticker }); return; }
       if (d.clearUpload !== undefined) {
         image = '';
-        tab = 'auto'; cover = cover && cover.style === 'upload' ? null : cover;
+        if (cover && cover.style === 'upload') cover = normalize({ ...cover, style: 'photo' });
         paint(); opts.onChange?.(cover, image);
       }
     });
@@ -313,7 +313,7 @@
       if (t.matches('[data-upload]') && t.files && t.files[0]) {
         try {
           image = await fileToCoverImage(t.files[0]);
-          tab = 'upload';
+          tab = 'photo';
           touch({ style: 'upload', ink: '#FFFFFF', shade: Math.max(current().shade, 25) });
         } catch (err) { alert(err.message); }
       }
@@ -323,7 +323,7 @@
     return {
       get: () => cover,
       getImage: () => image,
-      set(next, nextImage) { cover = normalize(next); if (nextImage !== undefined) image = nextImage || ''; tab = cover ? cover.style : 'auto'; paint(); },
+      set(next, nextImage) { cover = normalize(next); if (nextImage !== undefined) image = nextImage || ''; tab = tabFor(cover); paint(); },
       refresh: paint,
     };
   }

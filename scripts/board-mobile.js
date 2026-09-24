@@ -28,8 +28,9 @@
 (function () {
   'use strict';
 
-  const MQ = window.matchMedia ? window.matchMedia('(max-width:860px)') : null;
-  const isPhone = () => (MQ ? MQ.matches : window.innerWidth <= 860);
+  // Same rule as board-app.js: a narrow touch screen, not a zoomed desktop window.
+  const MQ = window.matchMedia ? window.matchMedia('(max-width:860px) and (pointer:coarse)') : null;
+  const isPhone = () => !!(MQ && MQ.matches);
   const bridge = () => window.boardPhoneBridge || null;
 
   const CONTRACT = {

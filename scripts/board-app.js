@@ -146,7 +146,11 @@ const saveStatus = document.getElementById('save-status');
 const undoToast  = document.getElementById('undo-toast');
 const minimapCanvas = document.getElementById('minimap-canvas');
 const minimapCtx = minimapCanvas.getContext('2d');
-const BOARD_PHONE_MQL = window.matchMedia ? window.matchMedia('(max-width:860px)') : null;
+/* Телефонная раскладка доски - это узкий СЕНСОРНЫЙ экран, а не просто узкое
+   окно. На компьютере зум браузера (Cmd +) сжимает окно в CSS-пикселях ниже
+   860, и раньше доска принимала его за телефон: левая панель инструментов
+   исчезала, верхняя сворачивалась, а нижняя панель телефона не появлялась. */
+const BOARD_PHONE_MQL = window.matchMedia ? window.matchMedia('(max-width:860px) and (pointer:coarse)') : null;
 
 function isBoardPhone() {
   return !!(BOARD_PHONE_MQL && BOARD_PHONE_MQL.matches);
@@ -4386,7 +4390,7 @@ function positionTextToolbar(toolbar, cardEl) {
     if (getComputedStyle(toolbar).display === 'none') return;
     toolbar.classList.remove('is-below');
     toolbar.style.setProperty('--text-toolbar-shift', '0px');
-    const safe = window.innerWidth <= 860 ? 10 : 12;
+    const safe = isBoardPhone() ? 10 : 12;
     const r = toolbar.getBoundingClientRect();
     if (r.top < 58) toolbar.classList.add('is-below');
     const next = toolbar.getBoundingClientRect();
@@ -13893,7 +13897,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '970';
+const TEACHEDOS_ASSET_VERSION = '971';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -14728,7 +14732,7 @@ function renderWordReview() {
   </div>`;
   const rows = box.querySelector('.wr-rows');
   if (rows && keepScroll) rows.scrollTop = keepScroll;
-  if (wasEmpty && window.innerWidth <= 860) {
+  if (wasEmpty && isBoardPhone()) {
     try { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { box.scrollIntoView(); }
   }
 }
