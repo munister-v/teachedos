@@ -13893,7 +13893,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '962';
+const TEACHEDOS_ASSET_VERSION = '963';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17779,6 +17779,7 @@ function saveLocal() {
 }
 
 /* ════ CLOUD SAVE with retry ════ */
+let _lastThumbSent = '';
 async function saveToCloud(retryCount = 0) {
   if (!currentUser || !authToken || !currentBoardId || !boardCanEdit) return;
   /* isOffline — подсказка, а не приговор. Флаг взводится от неудачного
@@ -17798,10 +17799,14 @@ async function saveToCloud(retryCount = 0) {
   try {
     const data = serializeBoard();
     const thumb = await captureThumb();
+    /* Превью шлём, только если оно изменилось: раньше ~16 КБ base64 уходили
+       с каждым автосохранением, хотя картинка между ними обычно та же. */
+    const sendThumb = thumb && thumb !== _lastThumbSent ? thumb : undefined;
     const r = await apiFetchTimeout('/api/boards/' + currentBoardId, {
       method: 'PATCH',
-      body: { state: data, thumbnail: thumb || undefined },
+      body: { state: data, thumbnail: sendThumb },
     }, 15000);
+    if (r.ok && sendThumb) _lastThumbSent = sendThumb;
     if (r.status === 401 || r.status === 403) {
       // Token expired mid-session - show reconnect
       setSaveUI('error');

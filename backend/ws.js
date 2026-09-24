@@ -71,6 +71,21 @@ function viewFor(msg, viewerId, ownerId) {
   return msg;
 }
 
+/* Медленный клиент (плохая сеть, телефон в фоне) не должен раздувать память
+   сервера: у ws очередь отправки не ограничена. Курсоры и вьюпорт - это
+   «последнее значение важнее всех прошлых», их отставшему просто не шлём;
+   если отстал безнадёжно - закрываем, клиент переподключится и получит
+   свежую доску. */
+const SOFT_BUFFER = 1 * 1024 * 1024;
+const HARD_BUFFER = 24 * 1024 * 1024;
+const EPHEMERAL = new Set(['cursor', 'viewport', 'selection']);
+function sendGuarded(ws, data, type) {
+  const queued = ws.bufferedAmount || 0;
+  if (queued > HARD_BUFFER) { try { ws.terminate(); } catch (_) {} return; }
+  if (queued > SOFT_BUFFER && EPHEMERAL.has(type)) return;
+  ws.send(data);
+}
+
 function broadcast(boardId, msg, exclude) {
   const room = rooms.get(boardId);
   if (!room) return;
@@ -78,9 +93,9 @@ function broadcast(boardId, msg, exclude) {
   const plain = carriesBoardData(msg) ? null : JSON.stringify(msg);
   room.forEach(ws => {
     if (ws === exclude || ws.readyState !== 1 /* OPEN */) return;
-    if (plain !== null) { ws.send(plain); return; }
+    if (plain !== null) { sendGuarded(ws, plain, msg.type); return; }
     const view = viewFor(msg, ws.userId, ownerId);
-    if (view) ws.send(JSON.stringify(view));
+    if (view) sendGuarded(ws, JSON.stringify(view), msg.type);
   });
 }
 
@@ -103,7 +118,23 @@ function setup(server) {
     console.error('[ws] server error:', err && err.message);
   });
 
+  /* Пульс: без него «полумёртвые» соединения (уснувший телефон, оборванная
+     сеть без FIN) жили в комнатах вечно - утечка памяти, отправка в пустоту
+     и ложное «On a board now». Раз в 30 с ping; кто не ответил pong с
+     прошлого раза - закрываем, это вызовет штатный close и peer_left. */
+  const heartbeat = setInterval(() => {
+    wss.clients.forEach(ws => {
+      if (ws.isAlive === false) { try { ws.terminate(); } catch (_) {} return; }
+      ws.isAlive = false;
+      try { ws.ping(); } catch (_) {}
+    });
+  }, 30000);
+  if (heartbeat.unref) heartbeat.unref();
+  wss.on('close', () => clearInterval(heartbeat));
+
   wss.on('connection', async (ws, req) => {
+    ws.isAlive = true;
+    ws.on('pong', () => { ws.isAlive = true; });
     const url    = new URL(req.url, 'http://localhost');
     const token  = tokenFromProtocols(req);
     const boardId = url.searchParams.get('boardId');

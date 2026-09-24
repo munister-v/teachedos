@@ -62,8 +62,10 @@ router.use(requireAuth);
 // GET /api/boards - list user's boards (name, id, updated_at, thumbnail)
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT id, name, thumbnail, updated_at, created_at,
-            jsonb_array_length(data->'cards') AS card_count
+    /* Без thumbnail (у 50 досок это ~800 КБ на каждый заход на рабочий стол,
+       а учительские экраны превью не показывают) и без распаковки data:
+       card_count ведёт триггер. */
+    `SELECT id, name, updated_at, created_at, card_count
      FROM boards WHERE user_id = $1
      ORDER BY updated_at DESC`,
     [req.user.id]
@@ -153,7 +155,7 @@ router.put('/:id', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
     `UPDATE boards SET ${sets.join(', ')}, updated_at = NOW()
      WHERE id = $1 AND user_id = $2
-     RETURNING id, name, thumbnail, updated_at`,
+     RETURNING id, name, updated_at`,
     params
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });
@@ -195,7 +197,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
     `UPDATE boards SET ${sets.join(', ')}, updated_at = NOW()
      WHERE id = $1 AND user_id = $2
-     RETURNING id, name, thumbnail, updated_at`,
+     RETURNING id, name, updated_at`,
     params
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found or not owner' });

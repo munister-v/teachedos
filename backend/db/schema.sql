@@ -608,9 +608,14 @@ CREATE INDEX IF NOT EXISTS idx_incident_updates_incident_created ON incident_upd
 -- одно нажатие «сохранить» - незаметно на одном учителе и смертельно на ста.
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS data_bytes INTEGER NOT NULL DEFAULT 0;
 
+-- card_count рядом с размером: список досок читал jsonb_array_length(data->'cards')
+-- и ради одного числа распаковывал из TOAST каждую доску целиком.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS card_count INTEGER NOT NULL DEFAULT 0;
 CREATE OR REPLACE FUNCTION set_board_data_bytes() RETURNS TRIGGER AS $$
 BEGIN
   NEW.data_bytes := pg_column_size(NEW.data);
+  NEW.card_count := CASE WHEN jsonb_typeof(NEW.data->'cards') = 'array'
+                         THEN jsonb_array_length(NEW.data->'cards') ELSE 0 END;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -622,6 +627,9 @@ CREATE TRIGGER trg_boards_data_bytes
 
 -- Разовый добор для досок, созданных до появления колонки.
 UPDATE boards SET data_bytes = pg_column_size(data) WHERE data_bytes = 0;
+-- Разовый добор card_count (второй запуск ничего не меняет: пустые доски дают 0).
+UPDATE boards SET card_count = jsonb_array_length(data->'cards')
+ WHERE card_count = 0 AND jsonb_typeof(data->'cards') = 'array' AND jsonb_array_length(data->'cards') > 0;
 
 CREATE INDEX IF NOT EXISTS idx_boards_user_bytes ON boards(user_id) INCLUDE (data_bytes);
 
@@ -762,3 +770,9 @@ ALTER TABLE schedule ADD COLUMN IF NOT EXISTS booked_by_email VARCHAR(255);
 UPDATE schedule SET specific_date = specific_date + 1
  WHERE specific_date IS NOT NULL
    AND (EXTRACT(ISODOW FROM specific_date)::int - 1) = ((day + 6) % 7);
+
+-- ── Нагрузка (24.09.2026) ───────────────────────────────────────────────────
+-- «Доски ученика», расписание ученика, ростер, назначение домашки ищут
+-- board_collaborators по user_id; первичный ключ (board_id, user_id) для этого
+-- не годится - был полный проход таблицы.
+CREATE INDEX IF NOT EXISTS idx_board_collab_user ON board_collaborators(user_id);

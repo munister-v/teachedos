@@ -101,26 +101,69 @@ function recordTelemetry(input = {}) {
   const metadata = cleanMetadata(input.metadata);
 
   // Monitoring must never delay a teacher's save, login, or share action.
-  return ensureTelemetrySchema()
-    .then(() => Promise.all([
-      pool.query(
-        `INSERT INTO telemetry_events
-          (category, event_type, outcome, actor_id, board_id, duration_ms, metadata)
-         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)`,
-        [category, eventType, outcome, actorId, boardId, durationMs, JSON.stringify(metadata)],
-      ),
-      pool.query(
-        `INSERT INTO telemetry_hourly
-          (hour_start, category, event_type, outcome, event_count, total_duration_ms)
-         VALUES (date_trunc('hour', NOW()), $1, $2, $3, 1, $4)
-         ON CONFLICT (hour_start, category, event_type, outcome)
-         DO UPDATE SET
-           event_count = telemetry_hourly.event_count + 1,
-           total_duration_ms = telemetry_hourly.total_duration_ms + EXCLUDED.total_duration_ms`,
-        [category, eventType, outcome, durationMs || 0],
-      ),
-    ]))
-    .catch((error) => console.warn('[telemetry]', error.message));
+  /* Батч вместо двух запросов на КАЖДОЕ событие. Автосохранение доски шлёт
+     'board.updated' каждые несколько секунд у каждого учителя, и все они
+     делали upsert в ОДНУ строку telemetry_hourly (час + тип события):
+     блокировка этой строки выстраивала сохранения в очередь и занимала
+     соединения пула. Теперь события копятся в памяти и уходят раз в 5 с
+     одним INSERT, а почасовые счётчики - одним upsert на ключ. */
+  _tq.events.push([category, eventType, outcome, actorId, boardId, durationMs, JSON.stringify(metadata)]);
+  if (_tq.events.length > 2000) _tq.events.splice(0, _tq.events.length - 2000);
+  const key = `${category}\u0000${eventType}\u0000${outcome}`;
+  const h = _tq.hourly.get(key) || { category, eventType, outcome, n: 0, ms: 0 };
+  h.n += 1; h.ms += durationMs || 0;
+  _tq.hourly.set(key, h);
+  if (!_tq.timer) {
+    _tq.timer = setTimeout(flushTelemetry, 5000);
+    if (_tq.timer.unref) _tq.timer.unref();
+  }
+  return Promise.resolve();
 }
 
-module.exports = { ensureTelemetrySchema, recordTelemetry };
+const _tq = { events: [], hourly: new Map(), timer: null, flushing: false };
+
+async function flushTelemetry() {
+  _tq.timer = null;
+  if (_tq.flushing) { _tq.timer = setTimeout(flushTelemetry, 1000); return; }
+  const events = _tq.events.splice(0);
+  const hourly = [..._tq.hourly.values()]; _tq.hourly.clear();
+  if (!events.length && !hourly.length) return;
+  _tq.flushing = true;
+  try {
+    await ensureTelemetrySchema();
+    for (let i = 0; i < events.length; i += 500) {
+      const chunk = events.slice(i, i + 500);
+      const params = []; const rows = [];
+      chunk.forEach((e, k) => {
+        const o = k * 7;
+        rows.push(`($${o + 1}, $${o + 2}, $${o + 3}, $${o + 4}, $${o + 5}, $${o + 6}, $${o + 7}::jsonb)`);
+        params.push(...e);
+      });
+      await pool.query(
+        `INSERT INTO telemetry_events (category, event_type, outcome, actor_id, board_id, duration_ms, metadata)
+         VALUES ${rows.join(', ')}`, params);
+    }
+    for (const h of hourly) {
+      await pool.query(
+        `INSERT INTO telemetry_hourly
+          (hour_start, category, event_type, outcome, event_count, total_duration_ms)
+         VALUES (date_trunc('hour', NOW()), $1, $2, $3, $4, $5)
+         ON CONFLICT (hour_start, category, event_type, outcome)
+         DO UPDATE SET
+           event_count = telemetry_hourly.event_count + EXCLUDED.event_count,
+           total_duration_ms = telemetry_hourly.total_duration_ms + EXCLUDED.total_duration_ms`,
+        [h.category, h.eventType, h.outcome, h.n, h.ms]);
+    }
+  } catch (error) {
+    console.warn('[telemetry]', error.message);
+  } finally {
+    _tq.flushing = false;
+  }
+}
+
+/* При штатной остановке (деплой перезапускает сервис) - дописать хвост. */
+for (const sig of ['SIGTERM', 'SIGINT']) {
+  process.once(sig, () => { flushTelemetry().finally(() => process.exit(0)); setTimeout(() => process.exit(0), 2000).unref(); });
+}
+
+module.exports = { ensureTelemetrySchema, recordTelemetry, flushTelemetry };

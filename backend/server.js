@@ -3,6 +3,7 @@ require('dotenv').config();
 // Also resolve a colocated backend/.env when the process is started from the repo root.
 require('dotenv').config({ path: process.env.DOTENV_CONFIG_PATH || path.join(__dirname, '.env') });
 const express  = require('express');
+require('./lib/asyncErrors'); // async-ошибки маршрутов -> next(err), а не падение процесса
 const cors     = require('cors');
 const http     = require('http');
 const migrate  = require('./db/migrate');
@@ -156,6 +157,26 @@ app.use((req, res, next) => {
   next();
 });
 
+/* 64 обработчика отвечают на сбой `{ error: err.message }` - и клиент видел
+   сырой текст Postgres/Node («invalid input syntax for type uuid…», имена
+   ограничений, куски SQL). Здесь, до маршрутов, ответ 5xx с таким текстом
+   заменяется нейтральным (битый id - 400), оригинал уходит в лог. Понятные
+   сообщения самих маршрутов (например, про недоступный AI) не трогаются. */
+const INTERNAL_ERR_RE = /invalid input syntax|violates|constraint|relation "|column "|syntax error|duplicate key|null value in column|operator does not exist|function .* does not exist|ECONN|ETIMEDOUT|EPIPE|socket hang up|Cannot read prop|is not a function|is not defined|undefined|canceling statement/i;
+app.use((req, res, next) => {
+  const json = res.json.bind(res);
+  res.json = (body) => {
+    if (res.statusCode >= 500 && body && typeof body.error === 'string' && INTERNAL_ERR_RE.test(body.error)) {
+      console.error('[error]', req.method, req.originalUrl.split('?')[0], body.error);
+      if (/invalid input syntax/i.test(body.error)) { res.status(400); body = { ...body, error: 'Invalid id or value in the request.' }; }
+      else if (/canceling statement/i.test(body.error)) { res.status(503); body = { ...body, error: 'The server is busy. Please try again in a moment.' }; }
+      else body = { ...body, error: 'Server error' };
+    }
+    return json(body);
+  };
+  next();
+});
+
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/auth',   require('./routes/auth'));
 app.use('/api/share',  require('./routes/share'));
@@ -194,8 +215,24 @@ app.use((err, req, res, _next) => {
       error: 'Board payload is too large. Compress or remove a few images and try again.',
     });
   }
-  console.error('[error]', err.message);
+  if (res.headersSent) return;
+  /* Ошибки Postgres, которые вызывает сам запрос, - это 4xx, а не 500:
+     битый id в адресе, повтор уникального значения. Таймаут запроса -
+     перегрузка, клиенту стоит повторить. */
+  if (err.code === '22P02' || err.code === '22007' || err.code === '22008') {
+    return res.status(400).json({ error: 'Invalid id or value in the request.' });
+  }
+  if (err.code === '23505') return res.status(409).json({ error: 'This already exists.' });
+  if (err.code === '23503') return res.status(409).json({ error: 'A linked record does not exist.' });
+  if (err.code === '57014') return res.status(503).json({ error: 'The server is busy. Please try again in a moment.' });
+  console.error('[error]', req.method, req.originalUrl.split('?')[0], err.message);
   res.status(500).json({ error: 'Server error' });
+});
+
+/* Последняя сетка: забытый .catch в фоновой задаче не должен ронять API
+   для всех. Пишем в лог и живём дальше. */
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason && reason.message ? reason.message : reason);
 });
 
 // ── Start ──────────────────────────────────────────────────────────────────
