@@ -400,4 +400,96 @@ router.get('/dashboard', requireAuth, async (req, res) => {
   }
 });
 
+/* GET /api/student/progress - вкладка Progress в кабинете ученика.
+
+   Раньше там были «Lessons done» и процент по одной таблице student_progress,
+   причём процент считался от карточек, которых ученик уже коснулся, - то есть
+   почти всегда 100%. Домашка, игры, квизы и слова в прогресс не попадали.
+
+   Здесь всё, что ученик реально сделал:
+     homework  - заданное, сданное, вовремя ли, средний итог, последние итоги;
+     quizzes   - квизы на досках (quiz_results);
+     words     - словарь ученика, сколько выучено;
+     activity  - по дням за 28 дней, в часовом поясе ученика: любое действие
+                 (карточка на доске, попытка в домашке, квиз, сдача);
+     streak    - дни подряд с действием, по сегодня или по вчера (вчерашняя
+                 серия не сгорает, пока день не кончился). */
+router.get('/progress', requireAuth, async (req, res) => {
+  const uid = req.user.id;
+  let tz = String(req.user.timezone || 'Europe/Kyiv');
+  try { new Intl.DateTimeFormat('en', { timeZone: tz }); } catch (_) { tz = 'UTC'; }
+  const safe = async (q, p) => { try { return (await pool.query(q, p)).rows; } catch (e) { console.warn('[student/progress]', e.message); return []; } };
+  try {
+    const hw = await safe(`
+      SELECT a.id, a.status, a.final_score, a.assigned_at, a.submitted_at, a.graded_at, a.teacher_note,
+             h.title, h.due_at, h.pass_threshold, u.name AS teacher_name
+        FROM homework_assignment a
+        JOIN homework h ON h.id = a.homework_id
+        JOIN users u    ON u.id = h.user_id
+       WHERE a.student_id = $1`, [uid]);
+    const finished = hw.filter(a => a.status === 'submitted' || a.status === 'graded');
+    const scored = finished.filter(a => typeof a.final_score === 'number');
+    const withDue = finished.filter(a => a.due_at && a.submitted_at);
+    const onTime = withDue.filter(a => new Date(a.submitted_at) <= new Date(a.due_at)).length;
+    const now = Date.now();
+    const overdue = hw.filter(a => (a.status === 'assigned' || a.status === 'in_progress') && a.due_at && new Date(a.due_at).getTime() < now).length;
+
+    const [qs] = await safe(`SELECT COUNT(*)::int AS n, ROUND(AVG(pct))::int AS avg FROM quiz_results WHERE user_id = $1`, [uid]);
+    const quizRecent = await safe(`
+      SELECT qr.pct, qr.score, qr.max_score, qr.submitted_at, b.name AS board_name
+        FROM quiz_results qr LEFT JOIN boards b ON b.id::text = qr.board_id::text
+       WHERE qr.user_id = $1 ORDER BY qr.submitted_at DESC LIMIT 10`, [uid]);
+    const [vw] = await safe(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE learned)::int AS learned FROM vocabulary WHERE user_id = $1`, [uid]);
+
+    // Один день - один счётчик, в поясе ученика: «сегодня» у него, а не в UTC.
+    const days = await safe(`
+      WITH ev AS (
+        SELECT updated_at AS t FROM student_progress WHERE user_id = $1 AND status = 'done'
+        UNION ALL
+        SELECT t.updated_at FROM homework_attempt t JOIN homework_assignment a ON a.id = t.assignment_id WHERE a.student_id = $1
+        UNION ALL
+        SELECT submitted_at FROM homework_assignment WHERE student_id = $1 AND submitted_at IS NOT NULL
+        UNION ALL
+        SELECT submitted_at FROM quiz_results WHERE user_id = $1
+      )
+      SELECT to_char((t AT TIME ZONE $2)::date, 'YYYY-MM-DD') AS day, COUNT(*)::int AS n
+        FROM ev WHERE t > NOW() - INTERVAL '400 days'
+       GROUP BY 1 ORDER BY 1 DESC`, [uid, tz]);
+    const byDay = new Map(days.map(d => [d.day, d.n]));
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());   // YYYY-MM-DD
+    const dayStr = (base, back) => { const d = new Date(base + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - back); return d.toISOString().slice(0, 10); };
+    const activity = [];
+    for (let i = 27; i >= 0; i--) { const d = dayStr(today, i); activity.push({ day: d, n: byDay.get(d) || 0 }); }
+    let streak = 0;
+    let i = byDay.has(today) ? 0 : 1;          // сегодня ещё не занимался - серия по вчера жива
+    while (byDay.has(dayStr(today, i))) { streak++; i++; }
+
+    const recent = [
+      ...finished.map(a => ({ kind: 'homework', title: a.title, pct: a.final_score, at: a.submitted_at || a.graded_at, pass: typeof a.final_score === 'number' ? a.final_score >= (a.pass_threshold || 60) : null, note: a.teacher_note || '', teacher: a.teacher_name })),
+      ...quizRecent.map(q => ({ kind: 'quiz', title: q.board_name ? `Quiz · ${q.board_name}` : 'Quiz', pct: q.pct, at: q.submitted_at, pass: q.pct >= 60, note: '', detail: `${q.score}/${q.max_score}` })),
+    ].filter(r => r.at).sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 12);
+
+    res.json({
+      today,
+      homework: {
+        assigned: hw.length,
+        done: finished.length,
+        open: hw.length - finished.length,
+        overdue,
+        avg: scored.length ? Math.round(scored.reduce((s, a) => s + a.final_score, 0) / scored.length) : null,
+        onTimePct: withDue.length ? Math.round(onTime / withDue.length * 100) : null,
+      },
+      quizzes: { count: qs ? qs.n : 0, avg: qs && qs.n ? qs.avg : null },
+      words: { total: vw ? vw.total : 0, learned: vw ? vw.learned : 0 },
+      activity,
+      activeDays28: activity.filter(d => d.n > 0).length,
+      streak,
+      recent,
+    });
+  } catch (err) {
+    console.error('[student/progress]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

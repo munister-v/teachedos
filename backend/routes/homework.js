@@ -297,7 +297,11 @@ router.get('/my/inbox', async (req, res) => {
               h.required_cards, h.pass_threshold,
               h.board_id,
               u.id   AS teacher_id, u.name AS teacher_name, u.avatar AS teacher_avatar,
-              c.name AS course_name
+              c.name AS course_name,
+              -- тип первой заданной карточки: кабинет ученика показывает игры
+              -- во вкладке Games, а лист или квиз из одной карточки - нет
+              (SELECT card->>'type' FROM boards b, jsonb_array_elements(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN b.data->'cards' ELSE '[]'::jsonb END) card
+                WHERE b.id = h.board_id AND card->>'id' = h.required_cards->>0 LIMIT 1) AS first_card_type
          FROM homework_assignment a
          JOIN homework h  ON h.id = a.homework_id
          JOIN users u     ON u.id = h.user_id
