@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=964"></script>
+<script src="scripts/phone-gate.js?v=965"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=964">
+<link rel="manifest" href="manifest.json?v=965">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -79,10 +79,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.side{display:none}.shell{display:block}.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=964" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=964">
-<link rel="stylesheet" href="styles/harmony.css?v=964">
-<link rel="stylesheet" href="styles/unify.css?v=964">
+<script src="theme.js?v=965" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=965">
+<link rel="stylesheet" href="styles/harmony.css?v=965">
+<link rel="stylesheet" href="styles/unify.css?v=965">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -326,12 +326,14 @@ body.share-drawer-open { overflow:hidden; }
   body:not(#_):not(#__) .share-card, .share-backdrop { transition:none !important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=964">
-<link rel="stylesheet" href="styles/tool-window.css?v=964">
+<link rel="stylesheet" href="styles/teached-brand.css?v=965">
+<link rel="stylesheet" href="styles/tool-window.css?v=965">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=964">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=964">
-<link rel="stylesheet" href="styles/controls.css?v=964">
+<link rel="stylesheet" href="styles/figma-theme.css?v=965">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=965">
+<link rel="stylesheet" href="styles/controls.css?v=965">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=965">
+<link rel="stylesheet" href="styles/community-cards.css?v=965">
 </head>
 <body class="tw-page fx">
 <nav id="nav">
@@ -384,15 +386,15 @@ body.share-drawer-open { overflow:hidden; }
         </button>
       </div>
       <p class="publisher-intro" id="publisher-intro">Share a clean, copyable lesson snapshot with other teachers.</p>
-      <div class="lesson-preview" aria-label="Lesson card preview">
-        <div class="lesson-preview-top">
-          <span class="lesson-preview-kicker" id="lesson-preview-kicker">Community lesson</span>
-          <span class="lesson-preview-level" id="share-preview-level">B1</span>
-        </div>
-        <div class="lesson-preview-title" id="share-preview-title">Your lesson title</div>
-        <div class="lesson-preview-meta" id="share-preview-meta">Choose a board to start</div>
-        <div class="lesson-preview-canvas is-loading" id="publisher-preview-canvas" aria-hidden="true">
-          <span class="publisher-preview-placeholder">Board layout</span>
+      <!-- Как урок будет выглядеть в ленте: та же карточка, что в сетке ниже,
+           с обложкой, которую учитель собирает в «Customise the cover». -->
+      <div class="pub-cover" aria-label="Lesson card preview">
+        <div class="pub-card" id="pub-cover-card"></div>
+        <div class="pub-inside">
+          <span class="pub-inside-lbl" id="share-preview-meta">Choose a board to start</span>
+          <div class="lesson-preview-canvas is-loading" id="publisher-preview-canvas" aria-hidden="true">
+            <span class="publisher-preview-placeholder">Board layout</span>
+          </div>
         </div>
       </div>
       <div class="field">
@@ -430,6 +432,10 @@ body.share-drawer-open { overflow:hidden; }
         <div class="field"><div class="label">Language</div><select id="share-language" onchange="updatePublisherPreview()"><option value="">Not set</option><option selected>English</option><option>Ukrainian</option><option>Polish</option><option>German</option><option>French</option><option>Spanish</option><option>Other</option></select></div>
         <div class="field"><div class="label">Learners</div><select id="share-audience" onchange="updatePublisherPreview()"><option value="">Any age</option><option>Kids</option><option>Teens</option><option>Adults</option></select></div>
       </div>
+      <details class="pub-custom" id="pub-custom" open>
+        <summary><span>Customise the cover</span><small>Colour, photo, font, sticker</small></summary>
+        <div id="pub-cover-editor"></div>
+      </details>
       <div class="publisher-toggles">
         <label class="publisher-toggle"><input type="checkbox" id="share-allow-copy" checked><span><strong>Let others copy it</strong><small>Off publishes it read-only — teachers can open the lesson but not take it to their own board.</small></span></label>
         <label class="publisher-toggle"><input type="checkbox" id="share-include-keys" checked onchange="refreshPublisherSource()"><span><strong>Include answer keys</strong><small>Off strips teacher-key cards from the snapshot before it is published.</small></span></label>
@@ -463,23 +469,35 @@ body.share-drawer-open { overflow:hidden; }
   <!-- ══════ BOARDS SECTION ══════ -->
   <div id="tab-boards">
     <div class="section-head">
-      <div><div class="section-title">Community lessons &amp; spaces</div><div class="section-sub">Single lesson frames or whole boards, published as a snapshot ready to copy.</div></div>
+      <div><div class="section-title">Community lessons &amp; spaces</div><div class="section-sub" id="community-count">Lessons and whole boards teachers share, ready to copy.</div></div>
       <button class="btn ghost" onclick="loadBoards()">Refresh</button>
     </div>
-    <div class="filters-row">
-      <input id="board-search" placeholder="Search lessons, tags, descriptions…" oninput="renderCommunity()">
-      <select id="board-level" onchange="renderCommunity()">
-        <option value="">All levels</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option>
-      </select>
-      <select id="board-sort" onchange="renderCommunity()">
-        <option value="newest">Newest first</option>
-        <option value="popular">Most saved</option>
-      </select>
-      <select id="board-type" onchange="renderCommunity()">
-        <option value="">Lessons &amp; Spaces</option>
-        <option value="lesson">Lessons only</option>
-        <option value="space">Spaces only</option>
-      </select>
+    <div class="cm-toolbar">
+      <label class="cm-search search-wrap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="board-search" type="search" placeholder="Search lessons, topics, authors…" oninput="renderCommunity()" aria-label="Search lessons">
+      </label>
+      <div class="cm-filters">
+        <label class="cm-pill is-sort"><select id="board-sort" onchange="renderCommunity()" aria-label="Sort">
+          <option value="newest">Newest</option><option value="trending">Popular this week</option><option value="popular">Most copied</option>
+        </select></label>
+        <label class="cm-pill"><select id="board-language" onchange="renderCommunity()" aria-label="Language">
+          <option value="">Language</option><option>English</option><option>Ukrainian</option><option>Polish</option><option>German</option><option>French</option><option>Spanish</option><option>Other</option>
+        </select></label>
+        <label class="cm-pill"><select id="board-level" onchange="renderCommunity()" aria-label="Level">
+          <option value="">Level</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Mixed</option>
+        </select></label>
+        <label class="cm-pill"><select id="board-age" onchange="renderCommunity()" aria-label="Age">
+          <option value="">Age</option><option>Kids</option><option>Teens</option><option>Adults</option>
+        </select></label>
+        <label class="cm-pill"><select id="board-skill" onchange="renderCommunity()" aria-label="Skill">
+          <option value="">Skill</option><option>Speaking</option><option>Grammar</option><option>Vocabulary</option><option>Reading</option><option>Writing</option><option>Listening</option><option>Mixed skills</option>
+        </select></label>
+        <label class="cm-pill"><select id="board-type" onchange="renderCommunity()" aria-label="Type">
+          <option value="">Lessons &amp; Spaces</option><option value="lesson">Lessons</option><option value="space">Spaces</option>
+        </select></label>
+        <button class="cm-clear" id="board-clear" type="button" onclick="clearCommunityFilters()" hidden>Clear filters</button>
+      </div>
     </div>
     <section class="grid" id="community-grid"></section>
   </div>
@@ -532,8 +550,9 @@ body.share-drawer-open { overflow:hidden; }
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=964"></script>
-<script src="scripts/vocab-loader.js?v=964"></script>
+<script src="scripts/app-core.js?v=965"></script>
+<script src="scripts/lesson-cover.js?v=965"></script>
+<script src="scripts/vocab-loader.js?v=965"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -566,7 +585,8 @@ function makeCard(type, x, y, w, h, data) {
 }
 const SAMPLE_POSTS = [
   {
-    id:'sample-1', title:'A2 Articles: a/an/the', level:'A2', author:'TeachEd',
+    id:'sample-1', title:'A2 Articles: a/an/the', level:'A2', author:'TeachEd', language:'English', audience:'Adults',
+    cover:{ style:'pattern', bg:'#24282C', pattern:'grid', accent:'#CDF649', font:'display', ink:'#CDF649', title:'Articles: a / an / the', sub:'Grammar · 45 min', sticker:'🧩' },
     desc:'Warm-up, presentation cards, controlled practice and speaking prompts for Slavic learners.',
     skill:'Grammar', duration:45,
     tags:['grammar','A2'],
@@ -581,7 +601,8 @@ const SAMPLE_POSTS = [
     ], links:[] }
   },
   {
-    id:'sample-2', title:'B1 Present Perfect Stories', level:'B1', author:'TeachEd',
+    id:'sample-2', title:'B1 Present Perfect Stories', level:'B1', author:'TeachEd', language:'English', audience:'Teens',
+    cover:{ style:'gradient', bg:'#6B42FD', bg2:'#FF4E00', font:'hand', ink:'#FFFFFF', title:'Present Perfect Stories', sub:'Have you ever…?', sticker:'✈️' },
     desc:'Timeline board with examples, mini quiz and pair-speaking story cards.',
     skill:'Grammar', duration:45,
     tags:['grammar','speaking'],
@@ -595,7 +616,8 @@ const SAMPLE_POSTS = [
     ], links:[] }
   },
   {
-    id:'sample-3', title:'B2 Debate Club', level:'B2', author:'TeachEd',
+    id:'sample-3', title:'B2 Debate Club', level:'B2', author:'TeachEd', language:'English', audience:'Adults',
+    cover:{ style:'photo', photo:'river-night', font:'serif', ink:'#FFFFFF', title:'Debate Club', sub:'Is social media good for us?', sticker:'🏆', shade:40 },
     desc:'Opinion cards, roles, vocabulary bank and feedback checklist for a full speaking lesson.',
     skill:'Speaking', duration:60,
     tags:['speaking','debate'],
@@ -634,6 +656,13 @@ function assignmentToCommunityPost(assignment, dataOverride) {
     preview: assignment.preview || data.preview || null,
     visibility: assignment.visibility || data.visibility || 'community',
     cloneCount: Number(assignment.clone_count) || 0,
+    cover: assignment.cover || data.cover || null,
+    language: assignment.language || data.language || '',
+    audience: assignment.audience || data.audience || '',
+    allowCopy: assignment.allow_copy !== undefined ? assignment.allow_copy !== false : data.allowCopy !== false,
+    isMine: !!assignment.is_mine,
+    hasImage: !!assignment.has_image,
+    updatedAt: assignment.updated_at || '',
     /* Кадр урока был выбран при публикации (sourceFrameId в publishBoard())
        -> это «Lesson»; пусто -> опубликована вся доска -> «Space». Локальные
        демо-посты (SAMPLE_POSTS) не задают это поле и по умолчанию считаются
@@ -760,6 +789,7 @@ function savePublisherDraft() {
     visibility: getValue('share-visibility'),
     allowCopy: document.getElementById('share-allow-copy')?.checked !== false,
     includeKeys: document.getElementById('share-include-keys')?.checked !== false,
+    cover: pubCover && pubCover.style !== 'upload' ? pubCover : null,
   };
   writePublisherDrafts(drafts);
 }
@@ -789,6 +819,7 @@ function restorePublisherDraft() {
   const includeKeys = document.getElementById('share-include-keys');
   if (allowCopy && Object.prototype.hasOwnProperty.call(draft, 'allowCopy')) allowCopy.checked = draft.allowCopy !== false;
   if (includeKeys && Object.prototype.hasOwnProperty.call(draft, 'includeKeys')) includeKeys.checked = draft.includeKeys !== false;
+  if (Object.prototype.hasOwnProperty.call(draft, 'cover')) { pubCover = draft.cover || null; pubCoverEditor?.set(pubCover, ''); }
   return true;
 }
 
@@ -1096,9 +1127,46 @@ function resetPublisherSuccess() {
   if (panel) panel.hidden = true;
   clearPublisherDraft();
   ['share-title','share-desc','share-tags'].forEach(id => { const field = document.getElementById(id); if (field) field.value = ''; });
+  pubCover = null; pubCoverImage = ''; pubCoverEditor?.set(null, '');
   clearPublisherFormError();
   updatePublisherPreview();
   document.getElementById('share-title')?.focus({ preventScroll:true });
+}
+
+/* Обложка в форме публикации: живой предпросмотр карточки и редактор.
+   null в pubCover значит «автоматическая» - её рисует TeachEdCover.auto. */
+let pubCover = null;
+let pubCoverImage = '';
+let pubCoverEditor = null;
+function publisherCoverInfo() {
+  const board = getSelectedPublisherBoard();
+  return {
+    title: document.getElementById('share-title')?.value.trim() || publisherFrameMeta?.title || board.name || 'Your lesson title',
+    level: document.getElementById('share-level')?.value || '',
+    skill: document.getElementById('share-skill')?.value || '',
+    duration: document.getElementById('share-duration')?.value || '',
+  };
+}
+function renderPublisherCoverCard(title) {
+  const host = document.getElementById('pub-cover-card');
+  if (!host) return;
+  const info = publisherCoverInfo();
+  host.innerHTML = communityCardHtml({
+    id: 'preview', title: title || info.title, level: info.level, skill: info.skill, duration: info.duration,
+    language: document.getElementById('share-language')?.value || '',
+    audience: document.getElementById('share-audience')?.value || '',
+    author: (JSON.parse(localStorage.getItem('teachedos_user') || '{}').name) || 'You',
+    createdAt: new Date().toISOString(), cover: pubCover, _coverImage: pubCoverImage,
+    isSpace: !publisherFrameId, allowCopy: document.getElementById('share-allow-copy')?.checked !== false,
+  }, { preview: true });
+}
+function initPublisherCoverEditor() {
+  const host = document.getElementById('pub-cover-editor');
+  if (!host || !window.TeachEdCover || pubCoverEditor) return;
+  pubCoverEditor = TeachEdCover.editor(host, {
+    value: pubCover, image: pubCoverImage, info: publisherCoverInfo,
+    onChange: (cover, image) => { pubCover = cover; pubCoverImage = image; renderPublisherCoverCard(); schedulePublisherDraft(); },
+  });
 }
 
 function updatePublisherPreview() {
@@ -1117,7 +1185,8 @@ function updatePublisherPreview() {
 
   setText('share-preview-title', title);
   setText('share-preview-level', level);
-  setText('share-preview-meta', detail);
+  setText('share-preview-meta', detail ? `What's inside · ${detail}` : "What's inside");
+  renderPublisherCoverCard(title);
 
   /* Одно и то же окно публикует два разных продукта: кадр урока ("Lesson") -
      если выбрана рамка на доске, и всю доску целиком ("Space") - если нет.
@@ -1152,7 +1221,13 @@ function focusCommunityPublisher() {
     backdrop.addEventListener('click', closeCommunityPublisher);
     document.body.appendChild(backdrop);
   }
+  /* Панель живёт в шапке страницы, а у её предков свои слои (transform,
+     backdrop-filter): position:fixed внутри них прилипал к блоку, а не к
+     окну, и подложка ложилась поверх самой панели. В body - вне всех слоёв. */
+  if (publisher.parentElement !== document.body) document.body.appendChild(publisher);
   if (!publisher.classList.contains('is-open')) _publisherReturnFocus = document.activeElement;
+  initPublisherCoverEditor();
+  renderPublisherCoverCard();
   publisher.classList.add('is-open');
   publisher.setAttribute('aria-hidden', 'false');
   backdrop.classList.add('is-open');
@@ -1345,7 +1420,9 @@ async function publishBoard() {
           skill,
           tags,
           visibility,
+          image: pubCover && pubCover.style === 'upload' && pubCoverImage ? pubCoverImage : null,
           data:{
+            cover: pubCover || undefined,
             snapshot_version:1,
             sourceBoardId:boardId,
             sourceBoardName:selectedName,
@@ -1418,6 +1495,7 @@ function buildLessonUrl(post) {
     language: post.language || '',
     audience: post.audience || '',
     allowCopy: post.allowCopy !== false,
+    cover: post.cover || null,
     tags: post.tags || [],
     author: post.author,
     createdAt: post.createdAt,
@@ -1547,56 +1625,198 @@ function lessonCoverHtml(post, cardCount) {
 }
 
 // ── Render community grid ──────────────────────────────────────
+/* Карточка в духе витрин, к которым привыкли учителя: обложка, автор и дата,
+   название, внизу язык · уровень · возраст и «Copy». Описание, теги и число
+   карточек - на странице урока, в сетке они превращали ленту в стену текста. */
+const LANG_FLAGS = {
+  English:'<svg viewBox="0 0 60 30"><path d="M0 0h60v30H0z" fill="#012169"/><path d="M0 0l60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30M60 0L0 30" stroke="#C8102E" stroke-width="2.4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></svg>',
+  Ukrainian:'<svg viewBox="0 0 3 2"><path d="M0 0h3v1H0z" fill="#0057B7"/><path d="M0 1h3v1H0z" fill="#FFD700"/></svg>',
+  Polish:'<svg viewBox="0 0 8 5"><path d="M0 0h8v2.5H0z" fill="#fff"/><path d="M0 2.5h8V5H0z" fill="#DC143C"/></svg>',
+  German:'<svg viewBox="0 0 5 3"><path d="M0 0h5v1H0z" fill="#000"/><path d="M0 1h5v1H0z" fill="#D00"/><path d="M0 2h5v1H0z" fill="#FFCE00"/></svg>',
+  French:'<svg viewBox="0 0 3 2"><path d="M0 0h1v2H0z" fill="#002654"/><path d="M1 0h1v2H1z" fill="#fff"/><path d="M2 0h1v2H2z" fill="#CE1126"/></svg>',
+  Spanish:'<svg viewBox="0 0 4 2"><path d="M0 0h4v2H0z" fill="#AA151B"/><path d="M0 .5h4v1H0z" fill="#F1BF00"/></svg>',
+};
+const langFlag = lang => LANG_FLAGS[lang]
+  ? `<span class="cm-flag" title="${esc(lang)}">${LANG_FLAGS[lang]}</span>`
+  : (lang ? `<span class="cm-flag cm-flag-txt" title="${esc(lang)}">${esc(String(lang).slice(0, 2).toUpperCase())}</span>` : '');
+const shortDate = iso => { const t = Date.parse(iso || ''); return t ? new Date(t).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' }) : ''; };
+
+function coverImageUrl(post) {
+  if (post._coverImage) return post._coverImage;
+  if (post.serverId && post.hasImage) return `/api/library/${encodeURIComponent(post.serverId)}/cover?v=${encodeURIComponent(post.updatedAt || '')}`;
+  return '';
+}
+function postCoverHtml(post) {
+  return window.TeachEdCover
+    ? TeachEdCover.render(post.cover, { title: post.title, level: post.level, skill: post.skill, duration: post.duration, kind: post.isSpace ? 'Space' : '', imageUrl: coverImageUrl(post) })
+    : '';
+}
+function authorAvatarHtml(post) {
+  const av = String(post.avatar || '').trim();
+  return /^\p{Extended_Pictographic}/u.test(av) ? esc(av) : esc(getAuthorInitials(post.author));
+}
+function communityCardHtml(p, opts = {}) {
+  const url = p.snapshot || p.serverId ? buildLessonUrl(p) : 'board.html';
+  const facts = [p.level && p.level !== 'Mixed' ? p.level : (p.level || ''), p.audience || p.skill || ''].filter(Boolean);
+  const copyBtn = p.allowCopy === false
+    ? `<a class="cm-copy is-view" href="${esc(url)}">View</a>`
+    : `<button class="cm-copy" type="button" onclick='copyCommunityPost(${JSON.stringify(p.id)}, this)'>Copy</button>`;
+  return `<article class="cm-card">
+    <a class="cm-cover" href="${esc(url)}" tabindex="-1" aria-hidden="true">${postCoverHtml(p)}</a>
+    ${p.isMine && !opts.preview ? `<button class="cm-edit-cover" type="button" onclick='openCoverEditor(${JSON.stringify(p.id)})'>✎ Edit cover</button>` : ''}
+    <div class="cm-body">
+      <div class="cm-by">
+        <span class="cm-ava" aria-hidden="true">${authorAvatarHtml(p)}</span>
+        <span class="cm-author">${esc(p.author || 'Teacher')}</span>
+        <time class="cm-date">${esc(shortDate(p.createdAt))}</time>
+      </div>
+      <h3 class="cm-title"><a href="${esc(url)}">${esc(p.title)}</a></h3>
+      <div class="cm-foot">
+        <span class="cm-facts">${langFlag(p.language)}${facts.map(f => `<span>${esc(f)}</span>`).join('<i aria-hidden="true">•</i>')}</span>
+        <span class="cm-acts">
+          ${opts.preview ? '' : `<button class="cm-share" type="button" title="Share" aria-label="Share lesson" onclick='shareCommunityPost(${JSON.stringify(p.id)})'><svg viewBox="0 0 24 24"><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/></svg></button>`}
+          ${copyBtn}
+        </span>
+      </div>
+    </div>
+  </article>`;
+}
+
+/* «Popular this week»: копирования с поправкой на возраст публикации -
+   свежий урок с тремя копиями выше годового с пятью. Недельных счётчиков
+   в базе нет, это честное приближение без новой таблицы. */
+const trendScore = p => (Number(p.cloneCount) || 0) / Math.pow(((Date.now() - (Date.parse(p.createdAt) || Date.now())) / 864e5) + 2, 0.8);
+
 function renderCommunity() {
   const grid = document.getElementById('community-grid');
-  const q = (document.getElementById('board-search')?.value || '').trim().toLowerCase();
-  const level = document.getElementById('board-level')?.value || '';
-  const sort = document.getElementById('board-sort')?.value || 'newest';
-  const type = document.getElementById('board-type')?.value || '';
+  const val = id => document.getElementById(id)?.value || '';
+  const q = val('board-search').trim().toLowerCase();
+  const f = { level: val('board-level'), language: val('board-language'), age: val('board-age'), skill: val('board-skill'), type: val('board-type') };
+  const sort = val('board-sort') || 'newest';
+  document.querySelectorAll('.cm-pill select').forEach(sel => sel.closest('.cm-pill').classList.toggle('is-set', sel.id !== 'board-sort' && !!sel.value));
+  const anyFilter = q || Object.values(f).some(Boolean);
+  const clear = document.getElementById('board-clear');
+  if (clear) clear.hidden = !anyFilter;
   const posts = getCommunityPosts().filter(p => {
-    const hay = [p.title, p.desc, p.author, p.level, p.skill, p.duration, ...(p.tags || [])].join(' ').toLowerCase();
-    const matchesType = !type || (type === 'space' ? !!p.isSpace : !p.isSpace);
-    return (!level || p.level === level) && (!q || hay.includes(q)) && matchesType;
+    const hay = [p.title, p.desc, p.author, p.level, p.skill, p.language, p.audience, ...(p.tags || [])].join(' ').toLowerCase();
+    if (q && !hay.includes(q)) return false;
+    if (f.level && p.level !== f.level) return false;
+    if (f.language && (p.language || '') !== f.language) return false;
+    if (f.age && (p.audience || '') !== f.age) return false;
+    if (f.skill && (p.skill || '') !== f.skill) return false;
+    if (f.type && (f.type === 'space') !== !!p.isSpace) return false;
+    return true;
   });
-  /* «Most saved» сортирует по числу копирований на доску, а не по клонам
-     библиотеки — это разные счётчики (см. cloneCount у track-copy). При
-     равном счёте вперёд идёт более свежая публикация. */
-  if (sort === 'popular') {
-    posts.sort((a, b) => (Number(b.cloneCount) || 0) - (Number(a.cloneCount) || 0)
-      || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  } else {
-    posts.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  }
+  const byDate = (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  if (sort === 'popular') posts.sort((a, b) => (Number(b.cloneCount) || 0) - (Number(a.cloneCount) || 0) || byDate(a, b));
+  else if (sort === 'trending') posts.sort((a, b) => trendScore(b) - trendScore(a) || byDate(a, b));
+  else posts.sort(byDate);
+  setText('community-count', posts.length
+    ? `${posts.length} ${posts.length === 1 ? 'lesson' : 'lessons'}${anyFilter ? ' match your filters' : ' ready to copy'}`
+    : 'Nothing matches yet');
   if (!posts.length) {
-    grid.innerHTML = '<div class="empty">No community lessons match this view. Clear filters or share the first one.</div>';
+    grid.innerHTML = `<div class="cm-empty"><b>No lessons match this view.</b><span>Try another level or language - or share the first one.</span>${anyFilter ? '<button class="btn ghost" type="button" onclick="clearCommunityFilters()">Clear filters</button>' : ''}</div>`;
     updateCommunityStats();
     return;
   }
-  grid.innerHTML = posts.map(p => {
-    const cardCount = Number(p.cardCount) || p.snapshot?.cards?.length || 0;
-    const saves = Number(p.cloneCount) || 0;
-    const meta = [p.level || 'Mixed', p.skill || 'Lesson board', p.duration ? `${p.duration} min` : '', cardCount ? `${cardCount} cards` : '', saves ? `${saves} saves` : ''].filter(Boolean);
-    return `
-    <article class="board-card community-lesson-card">
-      ${lessonCoverHtml(p, cardCount)}
-      <div class="community-lesson-body">
-        <h3 class="community-lesson-title">${esc(p.title)}</h3>
-        <div class="community-lesson-byline"><span class="community-author-avatar" aria-hidden="true">${esc(getAuthorInitials(p.author))}</span><span>${esc(p.author||'Teacher')}</span><span aria-hidden="true">·</span><span>Shared lesson</span></div>
-        <p class="community-lesson-desc">${esc(p.desc || 'Ready-to-use lesson snapshot from TeachEd.')}</p>
-        <div class="community-lesson-meta">${meta.map(item => `<span>${esc(item)}</span>`).join('')}</div>
-        <div class="community-card-tags">${(p.tags||[]).slice(0,3).map(t=>`<span class="community-topic-chip">${esc(t)}</span>`).join('')}</div>
-        <div class="community-card-actions">
-        ${p.snapshot || p.serverId
-          ? `<a class="community-primary-action" href="${esc(buildLessonUrl(p))}">View lesson →</a>`
-          : `<a class="community-primary-action" href="board.html">Open board</a>`
-        }
-        <button class="community-link-action" type="button" aria-label="Share lesson" title="Share lesson" onclick='shareCommunityPost(${JSON.stringify(p.id)})'>Share</button>
-        </div>
-      </div>
-    </article>`;
-  }).join('');
+  grid.innerHTML = posts.map(p => communityCardHtml(p)).join('');
   updateCommunityStats();
 }
+
+function clearCommunityFilters() {
+  ['board-search', 'board-level', 'board-language', 'board-age', 'board-skill', 'board-type'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  renderCommunity();
+}
+
+/* Copy прямо с карточки, тем же путём, что «Copy to my board» на странице
+   урока: снимок через sessionStorage на доску (адрес с ним упирался в 414). */
+async function copyCommunityPost(postId, btn) {
+  const post = findPost(postId);
+  if (!post) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Copying…'; }
+  try {
+    let snapshot = post.snapshot;
+    if (!snapshot && post.serverId) {
+      const r = await api('/api/library/' + encodeURIComponent(post.serverId));
+      const d = await r.json().catch(() => ({}));
+      snapshot = d.assignment?.data?.snapshot;
+    }
+    if (!snapshot?.cards?.length) throw new Error('This lesson cannot be copied yet');
+    let handoff = 'session';
+    try { sessionStorage.setItem('teachedos_community_import', JSON.stringify(snapshot)); }
+    catch {
+      const encoded = encodeSnapshot(snapshot);
+      if (!encoded || encoded.length > 6000) throw new Error('This lesson is too large to copy in private mode');
+      handoff = encodeURIComponent(encoded);
+    }
+    if (post.serverId) api('/api/library/' + encodeURIComponent(post.serverId) + '/track-copy', { method:'POST' }).catch(() => {});
+    location.href = 'board.html?communityImport=' + handoff;
+  } catch (err) {
+    toast(err.message || 'Could not copy this lesson');
+    if (btn) { btn.disabled = false; btn.textContent = 'Copy'; }
+  }
+}
+
+/* ── Своя обложка у опубликованного урока ──────────────────────────────
+   Снимок доски после публикации не меняется, а обложка - да: автор может
+   перекрасить её в любой момент, как в обычных витринах уроков. */
+let _coverModal = null;
+function openCoverEditor(postId) {
+  const post = findPost(postId);
+  if (!post?.serverId || !window.TeachEdCover) return;
+  closeCoverEditor();
+  const wrap = document.createElement('div');
+  wrap.className = 'cm-modal';
+  wrap.innerHTML = `<div class="cm-modal-card" role="dialog" aria-modal="true" aria-labelledby="cm-modal-title">
+    <div class="cm-modal-head"><b id="cm-modal-title">Edit cover</b><button type="button" class="share-close" aria-label="Close" onclick="closeCoverEditor()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="cm-modal-prev" id="cm-modal-prev"></div>
+    <div id="cm-modal-editor"></div>
+    <div class="cm-modal-foot"><button type="button" class="btn ghost" onclick="closeCoverEditor()">Cancel</button><button type="button" class="btn lime" id="cm-modal-save">Save cover</button></div>
+  </div>`;
+  wrap.addEventListener('click', e => { if (e.target === wrap) closeCoverEditor(); });
+  document.body.appendChild(wrap);
+  document.body.classList.add('share-drawer-open');
+  let image = coverImageUrl(post);
+  let imageChanged = false;
+  const prev = wrap.querySelector('#cm-modal-prev');
+  const draw = (cover, img) => { prev.innerHTML = communityCardHtml({ ...post, cover, _coverImage: img, isMine:false }, { preview:true }); };
+  const ed = TeachEdCover.editor(wrap.querySelector('#cm-modal-editor'), {
+    value: post.cover, image,
+    info: () => ({ title: post.title, level: post.level, skill: post.skill, duration: post.duration }),
+    onChange: (cover, img) => { if (img !== image) { image = img; imageChanged = true; } draw(cover, img); },
+  });
+  draw(post.cover, image);
+  wrap.querySelector('#cm-modal-save').onclick = async (ev) => {
+    const btn = ev.currentTarget;
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const body = { cover: ed.get() };
+      if (imageChanged) body.coverImage = /^data:/.test(image) ? image : null;
+      const r = await api('/api/library/' + encodeURIComponent(post.serverId), { method:'PATCH', body });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || 'Could not save the cover');
+      post.cover = body.cover;
+      if (imageChanged) { post.hasImage = !!body.coverImage; post._coverImage = body.coverImage || ''; }
+      post.updatedAt = d.assignment?.updated_at || new Date().toISOString();
+      closeCoverEditor();
+      renderCommunity();
+      toast('Cover saved');
+    } catch (err) {
+      toast(err.message);
+      btn.disabled = false; btn.textContent = 'Save cover';
+    }
+  };
+  _coverModal = wrap;
+}
+function closeCoverEditor() {
+  if (!_coverModal) return;
+  _coverModal.remove();
+  _coverModal = null;
+  if (!document.getElementById('share-card')?.classList.contains('is-open')) document.body.classList.remove('share-drawer-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCoverEditor(); });
 
 // ── Get post by id ─────────────────────────────────────────────
 function findPost(id) {
@@ -2018,11 +2238,11 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=964" defer></script>
-<script src="scripts/mobile-nav.js?v=964"></script>
-<script src="scripts/mobile-zoom-guard.js?v=964" defer></script>
-<script src="scripts/autogrow.js?v=964" defer></script>
-<script src="pwa-boot.js?v=964" defer></script>
-  <script src="scripts/signin-entry.js?v=964" defer></script>
+<script src="scripts/mobile-perf.js?v=965" defer></script>
+<script src="scripts/mobile-nav.js?v=965"></script>
+<script src="scripts/mobile-zoom-guard.js?v=965" defer></script>
+<script src="scripts/autogrow.js?v=965" defer></script>
+<script src="pwa-boot.js?v=965" defer></script>
+  <script src="scripts/signin-entry.js?v=965" defer></script>
 </body>
 </html>

@@ -17,6 +17,52 @@ const cleanTags = t => {
   return [];
 };
 
+/* ── Обложка урока в Community ────────────────────────────────────────────
+   Учитель собирает обложку сам: фон (цвет, градиент, узор, фото или свой
+   снимок), крупный заголовок, шрифт, наклейка, значок уровня. Здесь только
+   белый список - в базу не доезжает ни чужой CSS, ни URL, ни цвет вне
+   листа бренда. Свой снимок лежит в колонке image (data:-URL) и отдаётся
+   отдельным маршрутом /:id/cover, чтобы лента не тащила мегабайты. */
+const COVER_COLORS = new Set(['#24282C', '#CDF649', '#F6F6EF', '#CACCC6', '#FFFFFF',
+  '#FFE44D', '#FF8C3A', '#FF4E00', '#3F9FFF', '#49F6F0', '#6B42FD', '#9F8CE8', '#D3F36B',
+  '#F3DF6B', '#F3A46B', '#6BAFF3', '#886BF3', '#5D614B', '#A3A48D']);
+const COVER_STYLES = new Set(['color', 'gradient', 'pattern', 'photo', 'upload']);
+const COVER_PATTERNS = new Set(['dots', 'grid', 'lines', 'waves', 'confetti', 'stripes', 'circles', 'zigzag']);
+const COVER_PHOTOS = new Set(['alley', 'canals', 'carpathians', 'fjord', 'fog', 'frost', 'harbour',
+  'hills', 'lake', 'laurel', 'moss', 'river-night', 'sunset']);
+const COVER_FONTS = new Set(['sans', 'display', 'serif', 'hand', 'mono']);
+const coverColor = (v, fallback) => {
+  const hex = String(v || '').toUpperCase();
+  return COVER_COLORS.has(hex) ? hex : fallback;
+};
+function cleanCover(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const style = COVER_STYLES.has(raw.style) ? raw.style : 'color';
+  const shade = Math.round(Number(raw.shade));
+  return {
+    style,
+    bg: coverColor(raw.bg, '#24282C'),
+    bg2: coverColor(raw.bg2, '#6B42FD'),
+    pattern: COVER_PATTERNS.has(raw.pattern) ? raw.pattern : 'dots',
+    photo: COVER_PHOTOS.has(raw.photo) ? raw.photo : 'lake',
+    font: COVER_FONTS.has(raw.font) ? raw.font : 'display',
+    ink: coverColor(raw.ink, '#FFFFFF'),
+    accent: coverColor(raw.accent, '#CDF649'),
+    align: raw.align === 'left' ? 'left' : 'center',
+    title: clip(raw.title, 70),
+    sub: clip(raw.sub, 90),
+    sticker: clip(raw.sticker, 8),
+    badge: raw.badge !== false,
+    shade: Number.isFinite(shade) ? Math.max(0, Math.min(70, shade)) : 30,
+  };
+}
+const COVER_IMAGE_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+const COVER_IMAGE_MAX = 1_500_000;
+function cleanCoverImage(v) {
+  const s = String(v || '');
+  return s.length <= COVER_IMAGE_MAX && COVER_IMAGE_RE.test(s) ? s : null;
+}
+
 function buildCommunityBoardPreview(snapshot) {
   const cards = snapshot.cards.filter(card => card && card.type !== 'frame');
   const columns = Math.max(1, Math.ceil(Math.sqrt(Math.min(cards.length, 12))));
@@ -78,6 +124,7 @@ function normalizeCommunityBoardData(raw, title) {
       language: clip(raw.language, 40) || null,
       audience: clip(raw.audience, 40) || null,
       allowCopy: raw.allowCopy === false ? false : undefined,
+      cover: cleanCover(raw.cover) || undefined,
       preview: buildCommunityBoardPreview(snapshot),
       snapshot: { ...snapshot, name: clip(snapshot.name || title, 255) || 'Community lesson' },
     }
@@ -111,7 +158,7 @@ const LIST_COLS = `id, kind, title, description, level, skill, tags,
 router.get('/community', optionalAuth, async (req, res) => {
   try {
     const { kind, level, skill, q } = req.query;
-    const params = [];
+    const params = [req.user?.id || null];
     let where = `a.visibility = 'community'`;
     if (kind && KINDS.includes(kind)) { params.push(kind);  where += ` AND a.kind = $${params.length}`; }
     if (level)                        { params.push(level);  where += ` AND a.level = $${params.length}`; }
@@ -130,6 +177,11 @@ router.get('/community', optionalAuth, async (req, res) => {
               a.data->'preview' AS preview,
               COALESCE(NULLIF(a.data->>'source_frame_id', ''),
                        NULLIF(a.data->>'sourceFrameId', '')) AS source_frame_id,
+              a.data->'cover' AS cover, a.updated_at,
+              NULLIF(a.data->>'language', '') AS language,
+              NULLIF(a.data->>'audience', '') AS audience,
+              (a.data->>'allowCopy') IS DISTINCT FROM 'false' AS allow_copy,
+              ($1::uuid IS NOT NULL AND a.user_id = $1) AS is_mine,
               u.name AS author_name, u.avatar AS author_avatar
        FROM assignments a JOIN users u ON u.id = a.user_id
        WHERE ${where}
@@ -216,6 +268,28 @@ router.post('/:id/track-copy', async (req, res) => {
   }
 });
 
+/* GET /api/library/:id/cover - свой снимок обложки. Публичный для
+   опубликованных уроков, как и сама витрина; тело - картинка, а не JSON,
+   поэтому карточка ставит его прямо в background-image и браузер кеширует. */
+router.get('/:id/cover', async (req, res) => {
+  try {
+    if (!UUID_RE.test(String(req.params.id || ''))) return res.status(404).end();
+    const { rows } = await pool.query(
+      `SELECT image, updated_at FROM assignments
+       WHERE id = $1 AND visibility IN ('community', 'unlisted') AND image IS NOT NULL`,
+      [req.params.id]
+    );
+    const m = rows[0] && /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(rows[0].image);
+    if (!m) return res.status(404).end();
+    res.set('Content-Type', m[1]);
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(Buffer.from(m[2], 'base64'));
+  } catch (err) {
+    console.error('[library] cover error:', err.message);
+    res.status(500).end();
+  }
+});
+
 router.use(requireAuth);
 
 // ── GET /api/library - my library (metadata only) ──────────────────────────
@@ -287,7 +361,7 @@ router.post('/', async (req, res) => {
         clip(b.skill, 40),
         JSON.stringify(cleanTags(b.tags)),
         data,
-        b.image ? String(b.image).slice(0, 2_000_000) : null,
+        kind === 'board' ? cleanCoverImage(b.image) : (b.image ? String(b.image).slice(0, 2_000_000) : null),
         visibility,
         visibility,   // $11 — только для CASE, см. комментарий к запросу
       ]
@@ -312,8 +386,17 @@ router.patch('/:id', async (req, res) => {
   if (b.skill !== undefined)       push('skill', clip(b.skill, 40));
   if (b.tags !== undefined)        push('tags', JSON.stringify(cleanTags(b.tags)));
   if (b.data !== undefined)        push('data', b.data || {});
-  if (b.image !== undefined)       push('image', b.image ? String(b.image).slice(0, 2_000_000) : null);
+  /* Обложку автор меняет и у опубликованного урока - снимок доски при этом
+     не трогается, поэтому это отдельное поле, а не весь data. */
+  if (b.cover !== undefined && b.data === undefined) {
+    params.push(JSON.stringify(cleanCover(b.cover)));
+    sets.push(`data = jsonb_set(COALESCE(data, '{}'::jsonb), '{cover}', $${params.length}::jsonb)`);
+  }
+  if (b.coverImage !== undefined)  push('image', cleanCoverImage(b.coverImage));
+  if (b.image !== undefined && b.coverImage === undefined) push('image', b.image ? String(b.image).slice(0, 2_000_000) : null);
   if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
+  // Для ?v= у адреса обложки: новый снимок должен сменить закешированный.
+  sets.push('updated_at = NOW()');
   try {
     if (b.data !== undefined || b.kind !== undefined) {
       const current = await pool.query(

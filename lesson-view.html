@@ -37,12 +37,17 @@
 @media (max-width:860px){
   .lesson-link-action{min-height:44px;}
 }
+
+/* Обложка урока над сводкой справа - как у карточки в Community. */
+.lesson-cover-art { border-radius:20px; overflow:hidden; margin-bottom:12px; box-shadow:0 16px 34px -22px rgba(36,40,44,.5); }
+.lesson-cover-art:empty { display:none; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=964">
+<link rel="stylesheet" href="styles/teached-brand.css?v=965">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=964">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=964">
-<link rel="stylesheet" href="styles/controls.css?v=964">
+<link rel="stylesheet" href="styles/figma-theme.css?v=965">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=965">
+<link rel="stylesheet" href="styles/controls.css?v=965">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=965">
 </head>
 <body class="fx">
 <header class="lesson-nav">
@@ -70,6 +75,8 @@
         <div class="lesson-byline"><span class="lesson-author-mark" id="lesson-author-mark" aria-hidden="true"></span><span>Shared by <strong id="lesson-author"></strong></span></div>
       </div>
       <aside class="lesson-hero-side">
+        <!-- Та же обложка, что у карточки в Community: урок узнаётся по ней. -->
+        <div class="lesson-cover-art" id="lesson-cover-art"></div>
         <div class="lesson-summary" aria-label="Lesson summary">
           <span class="lesson-summary-label">Snapshot</span>
           <span class="lesson-summary-value" id="lesson-summary-value"></span>
@@ -110,7 +117,8 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=964"></script>
+<script src="scripts/app-core.js?v=965"></script>
+<script src="scripts/lesson-cover.js?v=965"></script>
 <script>
   const FALLBACK_COLORS = ['#F3DF6B','#49F6F0','#6BAFF3','#F6F6EF','#9F8CE8','#F3A46B'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -321,6 +329,10 @@
     optionalRow('detail-row-audience', 'detail-audience', data.audience);
     setText('detail-contents', `${cardCount} activity card${cardCount === 1 ? '' : 's'}`);
     applyCopyPermission(data);
+    const art = document.getElementById('lesson-cover-art');
+    if (art && window.TeachEdCover) {
+      art.innerHTML = TeachEdCover.render(data.cover, { title, level: data.level, skill: data.skill, duration: data.duration, imageUrl: data.coverImage || '' });
+    }
     renderTags(data.tags);
     renderCanvas(snapshot);
     document.getElementById('lesson-loading').hidden = true;
@@ -415,6 +427,8 @@
       createdAt: assignment.published_at,
       serverId: assignment.id,
       snapshot: data.snapshot,
+      cover: data.cover || null,
+      coverImage: assignment.image ? `/api/library/${encodeURIComponent(assignment.id)}/cover?v=${encodeURIComponent(assignment.updated_at || '')}` : '',
     };
   }
 
@@ -455,6 +469,6 @@
   window.addEventListener('resize', refitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=964" defer></script>
+  <script src="scripts/signin-entry.js?v=965" defer></script>
 </body>
 </html>
