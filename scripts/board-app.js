@@ -3780,14 +3780,18 @@ function _ttPlayCardSize(d) {
 const WP_TITLES = { ideas: 'Ideas', model: 'Model text', guide: 'Genre guide', phrases: 'Phrases', plan: 'Plan', criteria: 'Checklist', studio: 'Writing Studio' };
 let _wpFocusId = null;
 
-function _wfPlacePath(set, results, label) {
+function _wfPlacePath(set, results, label, kind) {
+  const speaking = kind === 'speaking';
   const WG = window.TeachEdWritingGenres;
-  const guide = WG ? WG.guideFor(set.base.genre) : null;
-  const steps = results.map(out => {
+  const guide = !speaking && WG ? WG.guideFor(set.base.genre) : null;
+  const speakOuts = speaking ? results.filter(o => o._wfRole === 'speak').map(_wpSlim) : [];
+  let steps = results.filter(o => !(speaking && o._wfRole === 'speak')).map(out => {
     const role = out._wfRole || (out._ttMaterial ? 'model' : '');
-    return { role, title: WP_TITLES[role] || String(out.title || 'Task').slice(0, 28), out: _wpSlim(out), state: null };
+    const title = speaking && role === 'model' ? 'Model dialogue' : WP_TITLES[role] || String(out.title || 'Task').slice(0, 28);
+    return { role, title, out: _wpSlim(out), state: null };
   });
   steps.sort((a, b) => ((a.out._ytStage ?? 9) - (b.out._ytStage ?? 9)));
+  if (speaking) steps.push({ role: 'speak-studio', title: 'Speaking Studio', out: { title: 'Speaking Studio', outs: speakOuts }, state: null });
   if (guide) {
     const at = steps.findIndex(s => s.role === 'phrases' || s.role === 'plan' || s.role === 'criteria' || s.role === 'studio');
     steps.splice(at < 0 ? steps.length : at, 0, { role: 'guide', title: 'Genre guide', out: { title: guide.label }, state: null });
@@ -3798,14 +3802,14 @@ function _wfPlacePath(set, results, label) {
   snapshot();
   const card = addCard('worksheet', Math.round(center.x - W / 2), Math.round(center.y - H / 2), {
     title: label, level: set.base.level || 'B1', topic: set.base.topic || '', cat: 'writing', _ttSrc: 1, _interactive: true,
-    _wfPath: { steps, cur: 0, done: [], guide, genre: set.base.genre || '' },
+    _wfPath: { kind: speaking ? 'speaking' : 'writing', steps, cur: 0, done: [], guide, genre: set.base.genre || '' },
   }, W, H);
   if (card) setTimeout(() => zoomToCard(card.id, true), 80);
   return card;
 }
 // Только то, что нужно разметке шага: без служебных полей генерации.
 function _wpSlim(out) {
-  const keep = ['title', 'kind', 'cat', 'level', 'topic', 'boardKind', 'questions', 'items', 'cards', 'vocab', '_ttMaterial', '_titleChoice', '_ytStage', '_wfRole', 'accent'];
+  const keep = ['title', 'kind', 'cat', 'level', 'topic', 'boardKind', 'questions', 'items', 'cards', 'vocab', '_ttMaterial', '_titleChoice', '_ytStage', '_wfRole', 'accent', 'outs'];
   const o = {};
   keep.forEach(k => { if (out[k] !== undefined) o[k] = out[k]; });
   return o;
@@ -3818,7 +3822,7 @@ function _wpStepHtml(card, k, width) {
   const p = card.data._wfPath;
   const st = p.steps[k];
   const d = { ...st.out, title: st.out.title || st.title, _state: st.state || null,
-    _wfRole: st.role === 'model' ? '' : st.role, _wfGuide: p.guide || null,
+    _wfRole: st.role === 'model' ? '' : st.role, _wfGuide: p.guide || null, _wfSpeak: p.kind === 'speaking',
     _wfCtx: { next: null, phrases: _wpPhrases(p), guide: p.guide || null } };
   const id = card.id + '::' + k;
   const owner = (typeof isOwner === 'undefined') ? true : !!isOwner;
@@ -3838,11 +3842,12 @@ function _wpRender(el, card, focus) {
   const root = document.createElement('div');
   root.className = 'wp' + (focus ? ' is-focus' : '');
   const next = p.steps[i + 1];
-  const nextLabel = !next ? '' : next.role === 'studio' ? 'Go to the Writing Studio →' : `Next: ${next.title} →`;
+  const nextLabel = !next ? '' : next.role === 'studio' ? 'Go to the Writing Studio →'
+    : next.role === 'speak-studio' ? 'Go to the Speaking Studio →' : `Next: ${next.title} →`;
   root.innerHTML = `
     <div class="wp-head">
       <div class="wp-top">
-        <div class="wp-name"><span class="wp-kicker">Writing path${p.guide ? ' · ' + esc(p.guide.label) + ' · ' + esc(p.guide.registerLabel) : ''}</span>
+        <div class="wp-name"><span class="wp-kicker">${p.kind === 'speaking' ? 'Speaking path' : 'Writing path'}${p.guide ? ' · ' + esc(p.guide.label) + ' · ' + esc(p.guide.registerLabel) : ''}</span>
           <b class="wp-title">${esc(card.data.title || 'Writing lesson')}</b></div>
         ${focus ? '<button type="button" class="wp-btn wp-close">✕ Back to the board</button>' : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
       </div>
@@ -3852,12 +3857,27 @@ function _wpRender(el, card, focus) {
     <div class="wp-nav">
       <button type="button" class="wp-btn wp-prev"${i === 0 ? ' disabled' : ''}>← Back</button>
       <span class="wp-where">Step ${i + 1} of ${n} · ${esc(p.steps[i].title)}</span>
-      ${next ? `<button type="button" class="wp-btn wp-next${next.role === 'studio' ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : '<span class="wp-end">Last step</span>'}
+      ${next ? `<button type="button" class="wp-btn wp-next${next.role === 'studio' || next.role === 'speak-studio' ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : '<span class="wp-end">Last step</span>'}
     </div>`;
   el.appendChild(root);
   const stage = root.querySelector('.wp-stage');
   if (!focus && _wpFocusId === card.id) {
     stage.innerHTML = '<div class="wp-away">This path is open in the Studio window.</div>';
+  } else if (p.steps[i].role === 'speak-studio' && window.TeachEdSpeakingStudio) {
+    const stp = p.steps[i];
+    const box = document.createElement('div');
+    box.className = 'wp-ss';
+    stage.appendChild(box);
+    const owner = (typeof isOwner === 'undefined') ? true : !!isOwner;
+    const args = { cardId: card.id, boardId: currentBoardId, owner, api: apiFetch };
+    // Один живой экземпляр: при перерисовке прежний отдаёт микрофон.
+    try { window.__ssActive?.destroy(); } catch {}
+    window.__ssActive = window.TeachEdSpeakingStudio.mount(box, {
+      ...args, outs: stp.out.outs || [], phrases: _wpPhrases(p), state: stp.state,
+      authed: !!(currentBoardId && authToken),
+      save: stState => { stp.state = stState; scheduleSave && scheduleSave(); saveLocal && saveLocal(); },
+      onRecordings: () => window.TeachEdSpeakingStudio.showRecordings(args),
+    });
   } else {
     const f = document.createElement('iframe');
     f.sandbox = 'allow-scripts';
@@ -3879,7 +3899,9 @@ function _wpRender(el, card, focus) {
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
   root.querySelector('.wp-close')?.addEventListener('click', () => closeCardStudio());
 }
+function _ssStop() { try { window.__ssActive?.destroy(); } catch {} window.__ssActive = null; }
 function _wpGo(cardId, k) {
+  _ssStop();
   const card = state.cards.find(c => c.id === cardId);
   const p = card && card.data._wfPath;
   if (!p) return;
@@ -3978,6 +4000,7 @@ function _studioRender() {
 function closeCardStudio(silent) {
   const ov = document.getElementById('card-studio');
   if (!ov) return;
+  _ssStop();
   ov.remove();
   document.body.classList.remove('studio-open');
   const id = _wpFocusId;
@@ -14257,7 +14280,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '978';
+const TEACHEDOS_ASSET_VERSION = '980';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16785,11 +16808,20 @@ function placeBoardLessonStageSet() {
      Критерии встают ПЕРЕД мастерской, а не после неё: по ним пишут, а не
      узнают о них, когда текст уже сдан. Мастерская - последней. */
   const writingFlow = set.skill === 'writing' && window.TeachEdWritingFlow;
+  /* Урок говорения - тот же путь, последним шагом Speaking Studio
+     (scripts/speaking-studio.js): задания разговора собираются в неё. */
+  const speakingFlow = set.skill === 'speaking' && window.TeachEdSpeakingStudio && window.TeachEdWritingFlow;
+  const SPEAK_ROLES = { 'extract-vocab': 'phrases', 'comm-situations': 'phrases', 'essential-vocab': 'phrases', 'rubric-maker': 'criteria',
+    'roleplay-cards': 'speak', 'discussion': 'speak', 'debate-cards': 'speak', 'four-opinions': 'speak', 'pros-cons': 'speak' };
   const taskIdx = stageIndex.task != null ? stageIndex.task : 3;
   lesson.forEach(({ activity, out }) => {
     out.title = activity.title;
     out._ytStage = stageIndex[activity.stage] != null ? stageIndex[activity.stage] : 9;
-    if (writingFlow) {
+    if (speakingFlow) {
+      const role = SPEAK_ROLES[activity.tool] || '';
+      if (role) out._wfRole = role;
+      if (role === 'criteria') out._ytStage = taskIdx - 0.5;
+    } else if (writingFlow) {
       const role = window.TeachEdWritingFlow.roleFor(activity.tool);
       if (role) out._wfRole = role;
       if (role === 'criteria') out._ytStage = taskIdx - 0.5;
@@ -16809,8 +16841,8 @@ function placeBoardLessonStageSet() {
      начинаться с неё, а не с карточки, плавающей рядом с кадром. */
   const videoUrl = (set.media && wantsVideo) ? set.media.url : null;
 
-  if (writingFlow) {
-    try { _wfPlacePath(set, results, label); }
+  if (writingFlow || speakingFlow) {
+    try { _wfPlacePath(set, results, label, speakingFlow ? 'speaking' : 'writing'); }
     catch (err) { console.warn('[stages] writing path placement failed', err); return false; }
   } else try {
     _placeLessonOnBoard(results, '', videoUrl, {

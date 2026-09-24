@@ -306,6 +306,72 @@ router.post('/:id/progress', async (req, res) => {
   }
 });
 
+/* ── Speaking Studio recordings ─────────────────────────────────────────
+   A student hands in a spoken answer; the board owner listens. Audio is a
+   short Opus/AAC clip sent as base64 (≤ 6 MB decoded, ≤ 5 minutes). */
+const REC_MIME = /^audio\/(webm|ogg|mp4|mpeg|aac|x-m4a)(;.*)?$/i;
+router.post('/:id/recordings', async (req, res) => {
+  try {
+    const { cardId, promptIdx, prompt, mime, durationMs, audio } = req.body || {};
+    if (!cardId || !audio || !REC_MIME.test(String(mime || ''))) return res.status(400).json({ error: 'Recording required' });
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (!boardHasVisibleCard(access, cardId, req.user.id)) return res.status(404).json({ error: 'Card not found' });
+    const buf = Buffer.from(String(audio), 'base64');
+    if (!buf.length || buf.length > 6 * 1024 * 1024) return res.status(413).json({ error: 'Recording is too long' });
+    const ms = Math.max(0, Math.min(300000, parseInt(durationMs, 10) || 0));
+    const { rows } = await pool.query(
+      `INSERT INTO speaking_recordings (board_id, card_id, user_id, prompt_idx, prompt, mime, duration_ms, audio)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id, created_at`,
+      [req.params.id, String(cardId).slice(0, 80), req.user.id, Math.max(0, parseInt(promptIdx, 10) || 0),
+       String(prompt || '').slice(0, 600), String(mime).split(';')[0].toLowerCase(), ms, buf]
+    );
+    res.status(201).json({ recording: rows[0] });
+  } catch (err) {
+    console.error('[boards] recording error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/boards/:id/recordings?cardId= - the owner's list (no audio bytes)
+router.get('/:id/recordings', async (req, res) => {
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access || access.access_role !== 'owner') return res.status(403).json({ error: 'Board owner access required' });
+    const params = [req.params.id];
+    let where = 'r.board_id = $1';
+    if (req.query.cardId) { params.push(String(req.query.cardId)); where += ` AND r.card_id = $${params.length}`; }
+    const { rows } = await pool.query(
+      `SELECT r.id, r.card_id, r.prompt_idx, r.prompt, r.mime, r.duration_ms, r.created_at,
+              u.name AS student_name, u.email AS student_email
+       FROM speaking_recordings r JOIN users u ON u.id = r.user_id
+       WHERE ${where} ORDER BY r.created_at DESC LIMIT 300`, params);
+    res.json({ recordings: rows });
+  } catch (err) {
+    console.error('[boards] recordings list error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/boards/:id/recordings/:rid/audio - owner, or the student who recorded it
+router.get('/:id/recordings/:rid/audio', async (req, res) => {
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).end();
+    const { rows } = await pool.query(
+      'SELECT user_id, mime, audio FROM speaking_recordings WHERE id = $1 AND board_id = $2',
+      [req.params.rid, req.params.id]);
+    const r = rows[0];
+    if (!r) return res.status(404).end();
+    if (access.access_role !== 'owner' && String(r.user_id) !== String(req.user.id)) return res.status(403).end();
+    res.set('Content-Type', r.mime);
+    res.set('Cache-Control', 'private, max-age=3600');
+    res.send(r.audio);
+  } catch (err) {
+    res.status(500).end();
+  }
+});
+
 // GET /api/boards/:id/quiz-results - teacher views all student quiz results
 router.get('/:id/quiz-results', async (req, res) => {
   try {

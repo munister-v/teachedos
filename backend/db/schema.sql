@@ -786,3 +786,19 @@ ALTER TABLE ai_usage_daily ADD COLUMN IF NOT EXISTS usd NUMERIC(12,6) NOT NULL D
 -- (backend/lib/cover.js whitelists it); an uploaded photo sits beside it.
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS cover JSONB;
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS cover_image TEXT;
+
+-- Speaking Studio: a student's spoken answer to one prompt of a card. Audio
+-- stays in the database (a minute of Opus is ~300 KB) so backups carry it.
+CREATE TABLE IF NOT EXISTS speaking_recordings (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  board_id    UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  card_id     TEXT NOT NULL,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  prompt_idx  INTEGER NOT NULL DEFAULT 0,
+  prompt      TEXT NOT NULL DEFAULT '',
+  mime        VARCHAR(60) NOT NULL,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  audio       BYTEA NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_rec_board ON speaking_recordings (board_id, card_id, created_at DESC);

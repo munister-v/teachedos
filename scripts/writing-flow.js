@@ -235,11 +235,13 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="wf-ph-main"><b>${md(r.phrase)}</b>${r.note ? `<span>${md(r.note)}</span>` : ''}${r.ex ? `<em>“${md(r.ex)}”</em>` : ''}</div>
         <div class="wf-ph-acts">
           <button class="wf-mini" type="button" data-copy="${esc(r.phrase)}">Copy</button>
-          <button class="wf-mini" type="button" data-ins="${esc(r.phrase)}">＋ Insert</button>
+          ${d._wfSpeak ? '' : `<button class="wf-mini" type="button" data-ins="${esc(r.phrase)}">＋ Insert</button>`}
         </div>
       </div>`;
     };
-    const content = `<div class="wf-intro"><span class="wf-ic">🔤</span><span><b>Your cheat sheet for writing.</b> Press <b>＋ Insert</b> to drop a phrase into your draft in the Writing Studio, or <b>Copy</b> it.</span></div>
+    const content = `<div class="wf-intro"><span class="wf-ic">🔤</span><span>${d._wfSpeak
+      ? '<b>Phrases to use when you speak.</b> Say each one aloud with the example - they are waiting for you in the Speaking Studio too.'
+      : '<b>Your cheat sheet for writing.</b> Press <b>＋ Insert</b> to drop a phrase into your draft in the Writing Studio, or <b>Copy</b> it.'}</span></div>
       ${groups.map((g, gi) => `<details class="wf-panel" ${gi < 2 ? 'open' : ''}><summary>${md(g.title)}<span class="wf-count">${g.rows.length}</span></summary><div class="wf-list">${g.rows.map(row).join('')}</div></details>`).join('')}
       ${notes.map(c => `<details class="wf-panel"><summary>${md(c.title || 'Note')}</summary><div class="wf-note">${md(c.text || '')}</div></details>`).join('')}
       ${footHtml(d, `${k} phrases`)}`;
