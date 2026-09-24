@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=971"></script>
+<script src="scripts/phone-gate.js?v=972"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=971">
+<link rel="manifest" href="manifest.json?v=972">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -17,12 +17,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=971">
-<link rel="stylesheet" href="styles/auth.css?v=971">
-<link rel="stylesheet" href="styles/mobile.css?v=971">
-<link rel="stylesheet" href="styles/harmony.css?v=971">
-<link rel="stylesheet" href="styles/unify.css?v=971">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=971">
+<link rel="stylesheet" href="styles/board.css?v=972">
+<link rel="stylesheet" href="styles/auth.css?v=972">
+<link rel="stylesheet" href="styles/mobile.css?v=972">
+<link rel="stylesheet" href="styles/harmony.css?v=972">
+<link rel="stylesheet" href="styles/unify.css?v=972">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=972">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -272,15 +272,15 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=971">
+<link rel="stylesheet" href="styles/teached-brand.css?v=972">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=971">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=971">
-<link rel="stylesheet" href="styles/controls.css?v=971">
+<link rel="stylesheet" href="styles/figma-theme.css?v=972">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=972">
+<link rel="stylesheet" href="styles/controls.css?v=972">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=971">
+<link rel="stylesheet" href="styles/figma-concept.css?v=972">
 <!-- Слой телефона: контракт возможностей доски, см. scripts/board-mobile.js -->
-<link rel="stylesheet" href="styles/board-mobile.css?v=971">
+<link rel="stylesheet" href="styles/board-mobile.css?v=972">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -738,6 +738,10 @@
   <!-- 11. Comment -->
   <button class="mt-btn" id="mt-comment" aria-label="Comment - click canvas to add" data-tip="Comment - click canvas to add" onclick="toggleCommentMode()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h13v9H7l-3.5 3v-12z"/></svg>
+  </button>
+  <!-- Laser pointer: a glowing red/green trail that fades in 5 s (scripts/board-laser.js) -->
+  <button class="mt-btn" id="mt-laser" aria-label="Laser pointer (K)" data-tip="Laser pointer (K)" onclick="TeachEdLaser.toggle()">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l6.2-6.2"/><path d="M8.2 7.4l2.4 2.4"/><circle class="mt-laser-dot" cx="12.6" cy="5.4" r="2.2" fill="var(--laser,#FF2B2B)" stroke="none"/><path d="M12.6 1.2v.9M16.8 5.4h-.9M15.6 2.4l-.6.6"/></svg>
   </button>
   <!-- 11b. Games Hub - one click instead of buried in "+ More tools" -->
   <button class="mt-btn" id="mt-games" aria-label="Games Hub (G)" data-tip="Games Hub (G)" onclick="openGamesModal()">
@@ -2138,16 +2142,18 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=971"></script>
-<script src="js/teacher-tools-data.js?v=971"></script>
-<script src="scripts/tt-text-core.js?v=971"></script>
+<script src="scripts/auth-modal.js?v=972"></script>
+<script src="js/teacher-tools-data.js?v=972"></script>
+<script src="scripts/tt-text-core.js?v=972"></script>
 <!-- Перед board-app.js: доска зовёт эти имена как свои (общий файл с домашкой). -->
-<script src="scripts/worksheet-play.js?v=971"></script>
-<script src="scripts/board-app.js?v=971"></script>
-<script src="js/board-vocab.js?v=971"></script>
-<script src="js/board-reveal.js?v=971"></script>
-<script src="js/teacher-tool-board-composer.js?v=971"></script>
-<script src="scripts/board-mobile.js?v=971"></script>
+<script src="scripts/worksheet-play.js?v=972"></script>
+<script src="scripts/board-app.js?v=972"></script>
+<script src="scripts/board-laser.js?v=972"></script>
+<script src="scripts/assign-game.js?v=972"></script>
+<script src="js/board-vocab.js?v=972"></script>
+<script src="js/board-reveal.js?v=972"></script>
+<script src="js/teacher-tool-board-composer.js?v=972"></script>
+<script src="scripts/board-mobile.js?v=972"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2155,8 +2161,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=971" defer></script>
-<script src="pwa-boot.js?v=971" defer></script>
+<script src="scripts/autogrow.js?v=972" defer></script>
+<script src="pwa-boot.js?v=972" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2257,11 +2263,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=971"></script>
-<script src="scripts/nav-boost.js?v=971" defer></script>
-<script src="scripts/mobile-perf.js?v=971" defer></script>
-<script src="scripts/mobile-nav.js?v=971"></script>
-<script src="scripts/mobile-zoom-guard.js?v=971" defer></script>
+<script src="pwa.js?v=972"></script>
+<script src="scripts/nav-boost.js?v=972" defer></script>
+<script src="scripts/mobile-perf.js?v=972" defer></script>
+<script src="scripts/mobile-nav.js?v=972"></script>
+<script src="scripts/mobile-zoom-guard.js?v=972" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
@@ -2291,5 +2297,10 @@ window.TEACHED_AUTH_CONFIG = {
 </div>
 <div id="gif-backdrop" onclick="closeGifPanel()"></div>
 
+<div id="laser-pop" class="laser-pop" hidden role="group" aria-label="Laser colour">
+  <button type="button" data-laser-color="red" aria-label="Red laser (1)" style="--c:#FF2B2B"></button>
+  <button type="button" data-laser-color="green" aria-label="Green laser (2)" style="--c:#2BFF5A"></button>
+  <span class="laser-pop-hint">Drag to circle · fades in 5 s · Esc</span>
+</div>
 </body>
 </html>

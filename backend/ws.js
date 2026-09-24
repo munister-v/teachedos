@@ -238,6 +238,20 @@ function setup(server) {
             name: authenticated.user.name, avatar: authenticated.user.avatar,
           }, ws);
           break;
+        // Laser pointer (scripts/board-laser.js): ephemeral, never stored.
+        // Board coordinates only - numbers are coerced and the batch capped.
+        case 'laser': {
+          const num = v => (Number.isFinite(+v) ? Math.round(+v * 10) / 10 : 0);
+          const pt = p => (Array.isArray(p) ? [num(p[0]), num(p[1])] : null);
+          broadcast(boardId, {
+            type: 'laser', userId,
+            color: msg.color === 'green' ? 'green' : 'red',
+            dot: msg.dot ? pt(msg.dot) : null,
+            pts: Array.isArray(msg.pts) ? msg.pts.slice(0, 200).map(pt).filter(Boolean) : [],
+            start: !!msg.start, end: !!msg.end, off: !!msg.off,
+          }, ws);
+          break;
+        }
         // Selection awareness (who has what selected)
         case 'selection':
           broadcast(boardId, {

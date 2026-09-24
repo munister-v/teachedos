@@ -163,6 +163,13 @@ body {
 }
 .card:hover::before { opacity: 1; }
 
+.card-assign {
+  margin-left: auto; margin-right: 8px; height: 26px; padding: 0 12px;
+  border: 1px solid rgba(36,40,44,.18); border-radius: 999px; background: #fff;
+  color: #24282C; font: 650 12px var(--font, system-ui, sans-serif); cursor: pointer;
+  position: relative; z-index: 1;
+}
+.card-assign:hover { background: #CDF649; border-color: #24282C; }
 .card-icon {
   font-size: 2rem; margin-bottom: 14px; line-height: 1;
   display: block;
@@ -288,10 +295,10 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=971">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=971">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=972">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=972">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=971">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=972">
 </head>
 <body class="fx">
 
@@ -689,6 +696,7 @@ body {
   <a href="../index.html">← Back to TeachEd</a> &nbsp;·&nbsp; <span id="footer-game-count">games available</span>
 </footer>
 
+<script src="../scripts/assign-game.js?v=972"></script>
 <script>
 let activeGameTag = 'all';
 const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', speaking:'Speaking', ai:'Creator', create:'Create & Share'};
@@ -778,9 +786,37 @@ function initGameFilters(){
   applyGameFilters(true);
 }
 
+/* «Assign» на карточке игры - только учителю (ученику назначать некому) и
+   только играм, которые считают счёт: студии и генераторы (ai, create)
+   домашкой не бывают. Сама выдача - scripts/assign-game.js. */
+function addAssignButtons(){
+  let role = '', token = '';
+  try { role = localStorage.getItem('teachedos_role') || ''; token = localStorage.getItem('teachedos_token') || ''; } catch (_) {}
+  if (!token || role === 'student' || !window.TeachEdAssign) return;
+  document.querySelectorAll('.card').forEach(card => {
+    const tag = card.dataset.tag || '';
+    if (tag === 'ai' || tag === 'create' || card.querySelector('.card-assign')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'card-assign';
+    btn.textContent = 'Assign';
+    btn.title = 'Assign to students as homework';
+    btn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      TeachEdAssign.forGame({
+        src: 'games/' + card.getAttribute('href'),
+        title: card.querySelector('.card-title')?.textContent.trim() || 'Game',
+        icon: card.querySelector('.card-icon')?.textContent.trim() || '🎮',
+      });
+    });
+    card.querySelector('.card-footer')?.insertBefore(btn, card.querySelector('.card-arrow'));
+  });
+}
+
 enhanceGameCards();
 initGameFilters();
+addAssignButtons();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=971"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=972"></script>
 </body>
 </html>

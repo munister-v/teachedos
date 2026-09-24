@@ -2433,6 +2433,18 @@ function renderGame(el, card) {
     scoreBadge.textContent = '…';
   }
   hdr.appendChild(scoreBadge);
+  /* Задать эту игру ученикам - как домашку, с тем материалом, что на карточке
+     (scripts/assign-game.js). Только у своей доски: ученику назначать некому. */
+  if (typeof isOwner !== 'undefined' && isOwner && window.TeachEdAssign) {
+    const assignBtn = document.createElement('button');
+    assignBtn.type = 'button';
+    assignBtn.className = 'game-assign-btn';
+    assignBtn.textContent = 'Assign';
+    assignBtn.title = 'Assign this game to students as homework';
+    assignBtn.addEventListener('mousedown', e => e.stopPropagation());
+    assignBtn.addEventListener('click', e => { e.stopPropagation(); TeachEdAssign.forBoardCard(card); });
+    hdr.appendChild(assignBtn);
+  }
   const closeBtn = document.createElement('button');
   closeBtn.className = 'card-close'; closeBtn.textContent = '×';
   closeBtn.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
@@ -13897,7 +13909,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '971';
+const TEACHEDOS_ASSET_VERSION = '972';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20058,7 +20070,9 @@ function wsConnect() {
       state.strokes = msg.strokes;
       if (typeof renderAllStrokes === 'function') renderAllStrokes();
       wsIgnoreNext = false;
-    } else if (msg.type === 'cursor') {
+    } else if (msg.type === 'laser') {
+      window.TeachEdLaser?.remote(msg);
+  } else if (msg.type === 'cursor') {
       peerInfo[msg.userId] = { name: msg.name, avatar: msg.avatar };
       updateRemoteCursor(msg.userId, msg.x, msg.y, msg.name, msg.avatar);
     } else if (msg.type === 'peer_joined') {
@@ -23422,8 +23436,9 @@ function renderGamesGrid(filter) {
       <div style="font-size:30px;line-height:1;">${g.icon}</div>
       <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;">${esc(g.title)}</div>
       <div style="font-size:11.5px;color:#5D614B;line-height:1.35;min-height:30px;">${esc(g.desc)}</div>
-      <div style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:#24282C;text-transform:uppercase;letter-spacing:.06em;">
+      <div style="margin-top:auto;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:#24282C;text-transform:uppercase;letter-spacing:.06em;">
         <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(205,246,73,.6);">${esc(g.tag)}</span>
+        ${window.TeachEdAssign && !(currentUser && currentUser.role === 'student') ? `<button type="button" class="game-tile-assign" title="Assign to students as homework" data-assign-src="${esc(g.src)}" onclick="event.stopPropagation();TeachEdAssign.forGame(GAMES.find(x => x.src === this.dataset.assignSrc))">Assign</button>` : ''}
       </div>
     </div>
   `).join('') : `<div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:var(--text-3);font-size:13px;">No games match your search.</div>`;

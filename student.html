@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=971">
-<link rel="preload" as="style" href="styles/unify.css?v=971">
-<link rel="manifest" href="manifest.json?v=971">
+<link rel="preload" as="style" href="styles/harmony.css?v=972">
+<link rel="preload" as="style" href="styles/unify.css?v=972">
+<link rel="manifest" href="manifest.json?v=972">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=971">
+<link rel="stylesheet" href="styles/fonts.css?v=972">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -280,6 +280,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   font-size:13px;font-weight:600;
 }
 
+/* Homework in the Assignments tab (loadHomework) */
+.hw-sec{font:700 11px var(--font);letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:14px 2px 8px;}
+.hw-sec:first-child{margin-top:0}
+.hw-card{
+  display:flex;align-items:center;gap:14px;padding:13px 14px;margin-bottom:8px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  text-decoration:none;color:var(--text);transition:border-color .15s, transform .15s;
+}
+.hw-card:hover{border-color:var(--accent-border);transform:translateY(-1px)}
+.hw-card-ic{width:40px;height:40px;border-radius:12px;background:var(--bg-card-2);display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 40px}
+.hw-card-main{flex:1;min-width:0}
+.hw-card-title{font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hw-card-meta{font-size:12px;color:var(--text-2);margin-top:2px}
+.hw-card-meta .late{color:#C0392B;font-weight:650}
+.hw-card-note{font-size:12px;color:var(--text-2);margin-top:4px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hw-card-score{font:700 13px var(--mono);padding:4px 9px;border-radius:999px;background:var(--bg-card-2)}
+.hw-card-score.pass{background:rgba(205,246,73,.45)}
+.hw-card-go{flex:0 0 auto;padding:8px 14px;border-radius:10px;background:#CDF649;color:#24282C;font-size:13px;font-weight:650}
+.hw-card.done .hw-card-go{background:var(--bg-card-2)}
+
 /* Vocab list */
 .vocab-word-item{
   display:flex;align-items:center;gap:12px;padding:11px 14px;
@@ -506,14 +526,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=971">
-<link rel="stylesheet" href="styles/harmony.css?v=971">
-<link rel="stylesheet" href="styles/unify.css?v=971">
-<link rel="stylesheet" href="styles/teached-brand.css?v=971">
+<link rel="stylesheet" href="styles/mobile.css?v=972">
+<link rel="stylesheet" href="styles/harmony.css?v=972">
+<link rel="stylesheet" href="styles/unify.css?v=972">
+<link rel="stylesheet" href="styles/teached-brand.css?v=972">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=971">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=971">
-<link rel="stylesheet" href="styles/controls.css?v=971">
+<link rel="stylesheet" href="styles/figma-theme.css?v=972">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=972">
+<link rel="stylesheet" href="styles/controls.css?v=972">
 </head>
 <body class="fx">
 
@@ -780,7 +800,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=971"></script>
+<script src="scripts/app-core.js?v=972"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -973,6 +993,7 @@ async function init() {
       location.href = 'index.html'; return;
     }
 
+    loadHomework();
     // Try loading portal data for teacher notes
     loadPortalData();
     checkLiveSessions();
@@ -1228,6 +1249,57 @@ function renderPortalData(data) {
   }
 }
 
+// ── Homework (Assignments tab) ──
+/* Всё, что задал учитель - домашки на доске и игры из каталога - живёт в
+   /api/homework/my/inbox. Вкладка Assignments его раньше не читала вовсе и
+   всегда показывала «No assignments yet»: ученик узнавал о домашке, только
+   если сам находил homework-do.html. Задание открывается там же, сразу. */
+async function loadHomework() {
+  const list = document.getElementById('assignments-list');
+  try {
+    const r = await apiFetch('/api/homework/my/inbox');
+    if (!r.ok) return;
+    const { assignments = [] } = await r.json();
+    const todo = assignments.filter(a => a.status === 'assigned' || a.status === 'in_progress');
+    const done = assignments.filter(a => a.status === 'submitted' || a.status === 'graded');
+    if (!assignments.length) {
+      list.innerHTML = '<div class="empty-state">No assignments yet. When your teacher gives you homework or a game, it appears here.</div>';
+      return;
+    }
+    const now = Date.now();
+    const card = a => {
+      const due = a.due_at ? new Date(a.due_at) : null;
+      const late = due && due.getTime() < now && (a.status === 'assigned' || a.status === 'in_progress');
+      const dueTxt = due ? due.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
+      const finished = a.status === 'submitted' || a.status === 'graded';
+      const score = typeof a.final_score === 'number'
+        ? `<span class="hw-card-score${a.final_score >= (a.pass_threshold || 60) ? ' pass' : ''}">${a.final_score}%</span>` : '';
+      const go = finished ? 'Review' : a.status === 'in_progress' ? 'Continue' : 'Start';
+      const n = Array.isArray(a.required_cards) ? a.required_cards.length : 0;
+      return `<a class="hw-card${finished ? ' done' : ''}" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}">
+        <span class="hw-card-ic">${n === 1 ? '🎮' : '📝'}</span>
+        <span class="hw-card-main">
+          <span class="hw-card-title" style="display:block">${esc(a.title)}</span>
+          <span class="hw-card-meta" style="display:block">${esc(a.teacher_name || 'Teacher')}${dueTxt ? ` · <span class="${late ? 'late' : ''}">${late ? 'Was due' : 'Due'} ${esc(dueTxt)}</span>` : ''}${a.status === 'graded' ? ' · checked' : a.status === 'submitted' ? ' · sent' : ''}</span>
+          ${a.teacher_note ? `<span class="hw-card-note" style="display:block">“${esc(a.teacher_note)}”</span>` : a.instructions && !finished ? `<span class="hw-card-note" style="display:block">${esc(a.instructions)}</span>` : ''}
+        </span>
+        ${score}<span class="hw-card-go">${go}</span>
+      </a>`;
+    };
+    list.innerHTML =
+      (todo.length ? `<div class="hw-sec">To do · ${todo.length}</div>${todo.map(card).join('')}` : '<div class="empty-state">All done - nothing waiting for you. 🎉</div>') +
+      (done.length ? `<div class="hw-sec">Done</div>${done.slice(0, 12).map(card).join('')}` : '');
+    if (todo.length) {
+      document.getElementById('assignments-notif').innerHTML = `
+        <div class="notif-banner">
+          <span class="notif-icon">🔔</span>
+          <span class="notif-text">You have ${todo.length} task${todo.length > 1 ? 's' : ''} from your teacher.</span>
+        </div>`;
+      document.getElementById('notif-dot').style.display = '';
+    }
+  } catch (_) { /* offline: the tab keeps its empty state */ }
+}
+
 // ── Push subscribe ──
 async function checkPushSubscribed() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission === 'denied') return;
@@ -1335,13 +1407,13 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/autogrow.js?v=971" defer></script>
-<script src="pwa-boot.js?v=971" defer></script>
-<script src="pwa.js?v=971"></script>
-<script src="scripts/nav-boost.js?v=971" defer></script>
-<script src="scripts/mobile-perf.js?v=971" defer></script>
-<script src="scripts/mobile-nav.js?v=971"></script>
-<script src="scripts/mobile-zoom-guard.js?v=971" defer></script>
-  <script src="scripts/signin-entry.js?v=971" defer></script>
+<script src="scripts/autogrow.js?v=972" defer></script>
+<script src="pwa-boot.js?v=972" defer></script>
+<script src="pwa.js?v=972"></script>
+<script src="scripts/nav-boost.js?v=972" defer></script>
+<script src="scripts/mobile-perf.js?v=972" defer></script>
+<script src="scripts/mobile-nav.js?v=972"></script>
+<script src="scripts/mobile-zoom-guard.js?v=972" defer></script>
+  <script src="scripts/signin-entry.js?v=972" defer></script>
 </body>
 </html>

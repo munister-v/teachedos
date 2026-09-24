@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=971">
+<link rel="stylesheet" href="styles/fonts.css?v=972">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -131,22 +131,22 @@ a{text-decoration:none;color:inherit;}
   background:#24282C;color:#fff;box-shadow:0 4px 20px rgba(36,40,44,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=971" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=971">
-<link rel="stylesheet" href="styles/harmony.css?v=971">
-<link rel="stylesheet" href="styles/unify.css?v=971">
-<link rel="stylesheet" href="styles/teached-brand.css?v=971">
+<script src="theme.js?v=972" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=972">
+<link rel="stylesheet" href="styles/harmony.css?v=972">
+<link rel="stylesheet" href="styles/unify.css?v=972">
+<link rel="stylesheet" href="styles/teached-brand.css?v=972">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=971">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=971">
-<link rel="stylesheet" href="styles/controls.css?v=971">
+<link rel="stylesheet" href="styles/figma-theme.css?v=972">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=972">
+<link rel="stylesheet" href="styles/controls.css?v=972">
 </head>
 <body class="fx">
 
 <!-- INBOX -->
 <div id="inbox">
   <div style="margin-bottom:18px;">
-    <a class="back-link" href="index.html">← Back to home</a>
+    <a class="back-link" href="student.html">← My room</a>
   </div>
   <div class="head">
     <div>
@@ -189,7 +189,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 
 <!-- Проигрыватель листа, общий с доской: без него лист ученику не показать. -->
-<script src="scripts/worksheet-play.js?v=971"></script>
+<script src="scripts/worksheet-play.js?v=972"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -220,6 +220,9 @@ let requiredCards = [];
     inbox = r.assignments || [];
   } catch (e) { toast('Could not load homework: ' + e.message); inbox = []; }
   render();
+  // student.html links straight to one task: homework-do.html?a=<assignment id>
+  const direct = new URLSearchParams(location.search).get('a');
+  if (direct && inbox.some(a => String(a.assignment_id) === direct)) openRunner(direct);
 })();
 
 function switchTab(t) {
@@ -346,6 +349,15 @@ function renderCardForStudent(host, card) {
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
     iframe.dataset.cardId = card.id;
+    /* Материал учителя (свои слова, свои вопросы) лежит в карточке. На доске
+       его передаёт board-app; здесь раньше не передавал никто, и ученик
+       получал демо-вариант игры вместо того, что ему задали. Шлём на
+       game-ready (игра точно слушает) и на load с повтором - как доска. */
+    if (card.data.customContent) {
+      const send = () => { try { iframe.contentWindow.postMessage({ type: 'teachedos-custom-game-content', title: card.data.title || 'Game', level: card.data.level || '', content: card.data.customContent }, '*'); } catch (_) {} };
+      iframe._sendContent = send;
+      iframe.addEventListener('load', () => { send(); setTimeout(send, 400); }, { once: true });
+    }
     host.appendChild(iframe);
   } else if (card.type === 'checklist') {
     const items = card.data.items || [];
@@ -544,19 +556,35 @@ window.addEventListener('message', e => {
 window.addEventListener('message', e => {
   const d = e.data;
   if (!d || typeof d !== 'object') return;
-  if (d.type !== 'teachedos-score' && d.type !== 'game-progress' && d.type !== 'game-finished' && d.type !== 'game-result') return;
+  if (d.type === 'game-ready') {
+    for (const f of document.querySelectorAll('iframe[data-card-id]')) if (f.contentWindow === e.source && f._sendContent) f._sendContent();
+    return;
+  }
+  // gameScore: Flashcards, Fill in the Blank, Speed Quiz, Spin the Wheel and
+  // Word Search announce the end of the game this way.
+  if (d.type !== 'teachedos-score' && d.type !== 'game-progress' && d.type !== 'game-finished' && d.type !== 'game-result' && d.type !== 'gameScore') return;
   // Find which card iframe sent this
   const iframes = document.querySelectorAll('iframe[data-card-id]');
   let cardId = null;
   for (const f of iframes) if (f.contentWindow === e.source) { cardId = f.dataset.cardId; break; }
   if (!cardId || !current) return;
+  const done = d.type === 'game-finished' || d.type === 'gameScore' || d.status === 'done';
+  /* Сыгранную до конца игру не затираем. «Play again» заново шлёт счёт с
+     нуля, и раньше первый же ход второго круга переписывал законченный
+     результат незаконченным. Держим лучший законченный круг. */
+  const prev = current.attempts.find(t => t.card_id === cardId);
+  if (prev && prev.status === 'done') {
+    if (!done) return;
+    const pct = (sc, mx) => (Number(mx) > 0 ? Number(sc) / Number(mx) : 0);
+    if (pct(d.score, d.max) < pct(prev.score, prev.max_score)) return;
+  }
   recordAttempt(cardId, {
     card_id: cardId,
     score: d.score,
     max_score: d.max,
     time_seconds: d.time,
     mistakes: d.mistakes,
-    status: (d.type === 'game-finished' || d.status === 'done') ? 'done' : 'in_progress',
+    status: done ? 'done' : 'in_progress',
   });
 });
 
@@ -574,10 +602,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=971" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=971" defer></script>
-<script src="scripts/autogrow.js?v=971" defer></script>
-<script src="pwa-boot.js?v=971" defer></script>
-  <script src="scripts/signin-entry.js?v=971" defer></script>
+<script src="scripts/nav-boost.js?v=972" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=972" defer></script>
+<script src="scripts/autogrow.js?v=972" defer></script>
+<script src="pwa-boot.js?v=972" defer></script>
+  <script src="scripts/signin-entry.js?v=972" defer></script>
 </body>
 </html>

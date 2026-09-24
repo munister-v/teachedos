@@ -6752,3 +6752,35 @@ body.board-page:not(#_) #sidebar{ background:#FFFFFF !important; backdrop-filter
   .tools-catalog-toggle{ min-height:44px; }
   .tb-tpl-all{ min-height:40px; padding:8px 12px; }
 }
+
+/* ── Laser pointer (scripts/board-laser.js) ─────────────────────────────── */
+#laser-layer{position:absolute;inset:0;pointer-events:none;z-index:9500;}
+/* the glowing dot is the cursor; games in cards must not swallow the stroke */
+body.laser-on #board-wrap, body.laser-on #board-wrap *{cursor:none!important;}
+body.laser-on #board iframe{pointer-events:none!important;}
+#mt-laser.active .mt-laser-dot{filter:drop-shadow(0 0 3px var(--laser,#FF2B2B));}
+.laser-pop{
+  position:fixed;z-index:10050;transform:translateY(-50%);
+  display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;
+  background:#fff;border:1px solid rgba(36,40,44,.12);border-radius:999px;
+  box-shadow:0 8px 24px rgba(36,40,44,.14);
+}
+.laser-pop[hidden]{display:none;}
+.laser-pop button{
+  width:20px;height:20px;border-radius:50%;border:2px solid #fff;padding:0;cursor:pointer;
+  background:var(--c);box-shadow:0 0 0 1px rgba(36,40,44,.18),0 0 8px var(--c);
+}
+.laser-pop button.on{box-shadow:0 0 0 2px #24282C,0 0 10px var(--c);}
+.laser-pop-hint{font:500 11.5px var(--font,system-ui,sans-serif);color:#5C5C66;white-space:nowrap;}
+
+/* ── Assign a game to students (scripts/assign-game.js) ─────────────────── */
+.game-assign-btn{
+  flex:0 0 auto;margin-left:6px;height:24px;padding:0 10px;border:0;border-radius:999px;
+  background:#CDF649;color:#24282C;font:650 11.5px var(--font,system-ui,sans-serif);cursor:pointer;
+}
+.game-assign-btn:hover{background:#D3F36B;box-shadow:0 0 0 1px #24282C inset;}
+.game-tile-assign{
+  margin-left:auto;height:24px;padding:0 10px;border:1px solid rgba(36,40,44,.18);border-radius:999px;
+  background:#fff;color:#24282C;font:650 11px var(--font,system-ui,sans-serif);letter-spacing:0;text-transform:none;cursor:pointer;
+}
+.game-tile-assign:hover{background:#CDF649;border-color:#24282C;}

@@ -22,7 +22,11 @@ function computeFinalScore(attempts, requiredCards) {
     const a = attempts.find(x => x.card_id === cardId);
     if (!a) continue;
     if (a.score == null) continue;
-    const max = a.max_score || 1;
+    /* Без максимума счёт - это «сколько очков набрано по ходу», а не доля:
+       игра, брошенная на середине, присылает лишь такой счёт. Раньше max
+       подменялся единицей, и 3 очка из недоигранной игры давали 100%. */
+    if (!a.max_score) continue;
+    const max = a.max_score;
     sum += Math.max(0, Math.min(100, Math.round((a.score / max) * 100)));
     counted++;
   }
