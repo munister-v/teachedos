@@ -776,6 +776,10 @@ const WGM = (function () {
     w.style.right = 'auto';
   }
   let _wgResizeRaf = 0;
+  /* Виджет дорастает, когда приходят его данные («Nothing scheduled»
+     длиннее прочерков) - поправляем место и после загрузки. */
+  const _wgReclamp = () => document.querySelectorAll('.widget').forEach(applyPosition);
+  window.addEventListener('load', () => { _wgReclamp(); setTimeout(_wgReclamp, 1500); setTimeout(_wgReclamp, 4000); });
   window.addEventListener('resize', () => {
     cancelAnimationFrame(_wgResizeRaf);
     _wgResizeRaf = requestAnimationFrame(() => document.querySelectorAll('.widget').forEach(applyPosition));
