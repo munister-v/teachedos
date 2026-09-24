@@ -1518,6 +1518,11 @@ function today() { return new Date().toISOString().slice(0, 10); }
 const DEFAULT_PRICES = {
   'gpt-4.1-mini': { in: 0.40, cachedIn: 0.10, out: 1.60 },
   'gpt-4o-mini': { in: 0.15, cachedIn: 0.075, out: 0.60 },
+  // developers.openai.com/api/docs/pricing, 2026-09-24
+  'gpt-6-sol': { in: 2.00, cachedIn: 0.20, out: 10.00 },
+  'gpt-6-luna': { in: 0.10, cachedIn: 0.01, out: 0.50 },
+  'gpt-5.4-mini': { in: 0.75, cachedIn: 0.075, out: 4.50 },
+  'gpt-5-mini': { in: 0.25, cachedIn: 0.025, out: 2.00 },
 };
 const PRICES = (() => {
   try { return { ...DEFAULT_PRICES, ...(JSON.parse(process.env.AI_PRICES || '{}')) }; }
@@ -1527,7 +1532,8 @@ const PRICES = (() => {
 const DAILY_BUDGET = Number(process.env.AI_DAILY_BUDGET_USD || 0) || 0;
 
 function priceFor(model) {
-  const key = Object.keys(PRICES).find(k => String(model || '').includes(k));
+  // Довший ключ перший: 'gpt-5.4-mini' не повинен знайтися як 'gpt-5.4'.
+  const key = Object.keys(PRICES).sort((a, b) => b.length - a.length).find(k => String(model || '').includes(k));
   // Незнакомая модель - не повод потерять счёт: берём самый дорогой известный
   // тариф, чтобы оценка ошибалась в безопасную сторону.
   return key ? PRICES[key] : { in: 0.40, cachedIn: 0.10, out: 1.60 };

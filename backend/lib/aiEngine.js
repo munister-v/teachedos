@@ -1101,7 +1101,30 @@ function parseProviderError(status, body) {
   return e;
 }
 
-function buildRequestBody(provider, user) {
+/* МОДЕЛІ, ЩО «ДУМАЮТЬ» (OpenAI gpt-5*, gpt-6*, o-серія).
+
+   Вони приймають інші параметри, ніж gpt-4.1-mini: не беруть temperature,
+   замість max_tokens - max_completion_tokens (у нього входять і токени
+   міркування, тому стеля вища), а глибину задає reasoning_effort.
+   Основна модель думає на 'low' - цього досить для питань на висновок і
+   дистракторів і вкладається в 25 с, які чекає дошка; легка - 'none'
+   (gpt-6*) або 'minimal' (gpt-5*), там міркування не потрібне.
+   Перевизначення: AI_REASONING_EFFORT, AI_REASONING_EFFORT_LIGHT. */
+const REASONING_MODEL = /^(?:openai\/)?(?:gpt-5|gpt-6|o[1-9])/i;
+function isReasoningModel(provider) { return REASONING_MODEL.test(String(provider.model || '')); }
+function reasoningEffort(provider) {
+  if (provider.name === 'light') {
+    return process.env.AI_REASONING_EFFORT_LIGHT || (/gpt-6/i.test(provider.model) ? 'none' : 'minimal');
+  }
+  return process.env.AI_REASONING_EFFORT || 'low';
+}
+// Думаюча модель відповідає довше: 12 с для неї замало, 20 с - ще в межах
+// очікування дошки.
+function timeoutFor(provider) {
+  return isReasoningModel(provider) ? Math.max(TIMEOUT_MS, Number(process.env.AI_REASONING_TIMEOUT_MS || 20000)) : TIMEOUT_MS;
+}
+
+function buildRequestBody(provider, user, drop = {}) {
   const openrouter = isOpenRouter(provider);
   const body = {
     model: provider.model,
@@ -1113,6 +1136,12 @@ function buildRequestBody(provider, user) {
       { role: 'user', content: user },
     ],
   };
+  if (!openrouter && isReasoningModel(provider)) {
+    delete body.temperature;
+    delete body.max_tokens;
+    body.max_completion_tokens = 12000;
+    if (!drop.reasoning_effort) body.reasoning_effort = reasoningEffort(provider);
+  }
 
   if (openrouter) {
     body.max_completion_tokens = body.max_tokens;
@@ -1141,9 +1170,10 @@ function buildRequestBody(provider, user) {
 }
 
 // Call one provider's chat-completions endpoint and parse its JSON reply.
-async function callProvider(provider, user) {
+async function callProvider(provider, user, drop = {}) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const limit = timeoutFor(provider);
+  const timer = setTimeout(() => ctrl.abort(), limit);
   const headers = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${provider.key}`,
@@ -1159,7 +1189,7 @@ async function callProvider(provider, user) {
     resp = await fetch(`${provider.baseUrl}/chat/completions`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(buildRequestBody(provider, user)),
+      body: JSON.stringify(buildRequestBody(provider, user, drop)),
       signal: ctrl.signal,
     });
   } catch (err) {
@@ -1169,7 +1199,7 @@ async function callProvider(provider, user) {
     // just burns the client's whole wait budget before ever reaching a
     // healthy fallback provider. Fast HTTP errors (429/5xx) still get their
     // normal same-provider retry below.
-    const e = new Error(ctrl.signal.aborted ? `timeout after ${TIMEOUT_MS}ms` : err.message);
+    const e = new Error(ctrl.signal.aborted ? `timeout after ${limit}ms` : err.message);
     e.retryable = true;
     e.isTimeout = ctrl.signal.aborted;
     throw e;
@@ -1179,6 +1209,14 @@ async function callProvider(provider, user) {
 
   if (!resp.ok) {
     const detail = await resp.text().catch(() => '');
+    /* Рівень міркування, якого ця модель не знає ('none' у старшої
+       gpt-5, 'minimal' у новішої), - не привід злітати на запасну модель:
+       повторюємо той самий запит без reasoning_effort, модель візьме свій
+       типовий рівень. */
+    if (resp.status === 400 && !drop.reasoning_effort && /reasoning[_ ]effort/i.test(detail)) {
+      console.warn(`[ai/${provider.name}] ${provider.model} rejected reasoning_effort, retrying without it`);
+      return callProvider(provider, user, { ...drop, reasoning_effort: true });
+    }
     const e = parseProviderError(resp.status, detail);
     e.retryAfter = resp.headers.get('retry-after') || '';
     throw e;
