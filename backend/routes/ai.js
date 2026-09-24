@@ -1541,10 +1541,33 @@ function rollSpendDay() {
 /* Светофор расходов: сколько потрачено сегодня и что из-за этого происходит.
    green - работаем как обычно; amber - за порогом, тяжёлые задания уходят на
    лёгкую модель; red - вдвое за порогом, к модели не обращаемся вовсе. */
+/* Общий счёт из базы (ai_usage_daily.usd): переживает выкат и одинаков для
+   всех процессов. Читаем раз в 30 с, между чтениями добавляем свои траты. */
+const SPEND_DB = { day: '', usd: 0, localSince: 0 };
+async function refreshSpendFromDb() {
+  try {
+    const { rows } = await pool.query(
+      `SELECT to_char(CURRENT_DATE, 'YYYY-MM-DD') AS day,
+              COALESCE((SELECT usd FROM ai_usage_daily WHERE day = CURRENT_DATE), 0)::float AS usd`);
+    SPEND_DB.day = rows[0].day; SPEND_DB.usd = rows[0].usd; SPEND_DB.localSince = 0;
+  } catch (_) {}
+}
+refreshSpendFromDb();
+{ const t = setInterval(refreshSpendFromDb, 30000); if (t.unref) t.unref(); }
+function persistSpend(usd) {
+  if (!(usd > 0)) return;
+  SPEND_DB.localSince += usd;
+  pool.query(
+    `INSERT INTO ai_usage_daily (day, usd) VALUES (CURRENT_DATE, $1)
+     ON CONFLICT (day) DO UPDATE SET usd = ai_usage_daily.usd + EXCLUDED.usd`, [usd]
+  ).catch(() => {});
+}
+
 function budgetState() {
   rollSpendDay();
-  if (!DAILY_BUDGET) return { level: 'green', usd: METRICS.spend.usd, budget: 0 };
-  const usd = METRICS.spend.usd;
+  const shared = SPEND_DB.day ? SPEND_DB.usd + SPEND_DB.localSince : 0;
+  const usd = Math.max(METRICS.spend.usd, shared);
+  if (!DAILY_BUDGET) return { level: 'green', usd, budget: 0 };
   const level = usd >= DAILY_BUDGET * 2 ? 'red' : usd >= DAILY_BUDGET ? 'amber' : 'green';
   return { level, usd, budget: DAILY_BUDGET };
 }
@@ -1575,6 +1598,7 @@ function recordTokens(usage) {
   const fresh = Math.max(0, prompt - cached);
   const usd = (fresh * p.in + cached * p.cachedIn + completion * p.out) / 1e6;
   METRICS.spend.usd = Number((METRICS.spend.usd + usd).toFixed(6));
+  persistSpend(usd);
   METRICS.spend.calls++;
   METRICS.spend.byModel[model] = Number(((METRICS.spend.byModel[model] || 0) + usd).toFixed(6));
   return usd;

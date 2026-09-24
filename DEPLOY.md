@@ -58,3 +58,26 @@ Performance-relevant settings:
   text/css/js/json/svg/xml; brotli is ~10-15% smaller than gzip.
 - Static assets (`css|js|png|...|woff2`) get a single
   `Cache-Control: public, max-age=2592000` (30d).
+
+## Several API processes (optional, `WEB_CONCURRENCY`)
+
+By default the API runs as ONE process (`WEB_CONCURRENCY` unset or `1`) - the
+right choice for the current 1.7 GB VPS shared by ~10 projects.
+
+On a bigger server set `WEB_CONCURRENCY=2` (or more, max 8) in the unit's
+environment (e.g. a drop-in `/etc/systemd/system/teached-api.service.d/cluster.conf`
+with `Environment=WEB_CONCURRENCY=2`, then `systemctl daemon-reload && systemctl restart teached-api`).
+`server.js` then starts `backend/lib/clusterPrimary.js`:
+
+- the primary runs the migration once and restarts crashed children;
+- N **web** workers serve HTTP on `PORT`; WebSocket upgrades are piped as raw
+  TCP to the hub - nginx and the browser see no difference;
+- one **hub** holds all collaboration rooms (they live in memory), runs the
+  background jobs (deadline reminders, housekeeping) and answers
+  `/internal/online` for presence, on `127.0.0.1:${TEACHED_HUB_PORT:-4101}`
+  with a per-boot secret.
+
+Each process needs its own heap (`--max-old-space-size` applies per process).
+Measured locally (100 concurrent clients, mixed reads): 1 process ~2 000 req/s,
+2 web workers ~3 560 req/s, p50 roughly halved.
+Rollback: remove the variable (or set it to `1`) and restart.

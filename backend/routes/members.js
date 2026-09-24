@@ -171,7 +171,7 @@ router.get('/roster', requireAuth, async (req, res) => {
     `, [req.user.id]);
 
     const boardIds = new Set(rows.flatMap(r => r.board_ids || []));
-    const online = require('../ws').onlineUserIds(boardIds);
+    const online = await require('../ws').onlineUserIdsAsync(boardIds);
     /* Ученики из журнала, которых ещё нет ни на одной доске (добавлен по
        почте без аккаунта - ждёт регистрации, или ведётся только в журнале).
        Без них добавленный через «+» ученик пропадал из списка до регистрации. */

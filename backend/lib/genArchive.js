@@ -47,7 +47,14 @@ function save() {
   dirty = false;
   try {
     fs.mkdirSync(path.dirname(ARCHIVE_PATH), { recursive: true });
-    const tmp = ARCHIVE_PATH + '.tmp';
+    /* Процессов API может быть несколько, у каждого своя копия в памяти.
+       Перед записью подмешиваем то, что успели записать другие, иначе
+       последний записавший стирал бы чужие уроки. */
+    try {
+      const disk = JSON.parse(fs.readFileSync(ARCHIVE_PATH, 'utf8')).entries || {};
+      for (const [k, v] of Object.entries(disk)) if (!store.has(k)) store.set(k, v);
+    } catch (_) {}
+    const tmp = ARCHIVE_PATH + '.' + process.pid + '.tmp';
     fs.writeFileSync(tmp, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), entries: Object.fromEntries(store) }));
     fs.renameSync(tmp, ARCHIVE_PATH);
   } catch (e) {

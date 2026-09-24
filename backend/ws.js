@@ -306,4 +306,27 @@ function onlineUserIds(boardIds) {
   return online;
 }
 
-module.exports = { setup, onlineUserIds };
+/* В режиме нескольких процессов комнаты живут в хабе - web-процесс
+   спрашивает его. Хаб не ответил за 400 мс - список учеников всё равно
+   отдаётся, просто без зелёных точек. */
+function onlineUserIdsAsync(boardIds) {
+  if (process.env.TEACHED_ROLE !== 'web') return Promise.resolve(onlineUserIds(boardIds));
+  const http = require('http');
+  const body = JSON.stringify({ boardIds: [...boardIds] });
+  return new Promise(resolve => {
+    const req = http.request({
+      host: '127.0.0.1', port: parseInt(process.env.TEACHED_HUB_PORT, 10) || 4101,
+      path: '/internal/online', method: 'POST', timeout: 400,
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'x-hub-secret': process.env.TEACHED_HUB_SECRET || '' },
+    }, res => {
+      let data = '';
+      res.on('data', d => { data += d; });
+      res.on('end', () => { try { resolve(new Set(JSON.parse(data).userIds || [])); } catch (_) { resolve(new Set()); } });
+    });
+    req.on('timeout', () => { req.destroy(); resolve(new Set()); });
+    req.on('error', () => resolve(new Set()));
+    req.end(body);
+  });
+}
+
+module.exports = { setup, onlineUserIds, onlineUserIdsAsync };

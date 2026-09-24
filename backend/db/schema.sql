@@ -776,3 +776,8 @@ UPDATE schedule SET specific_date = specific_date + 1
 -- board_collaborators по user_id; первичный ключ (board_id, user_id) для этого
 -- не годится - был полный проход таблицы.
 CREATE INDEX IF NOT EXISTS idx_board_collab_user ON board_collaborators(user_id);
+
+-- Суточные расходы на AI в долларах: светофор бюджета держал их только в
+-- памяти процесса - каждый выкат обнулял счётчик, а при нескольких процессах
+-- каждый видел бы лишь свою долю.
+ALTER TABLE ai_usage_daily ADD COLUMN IF NOT EXISTS usd NUMERIC(12,6) NOT NULL DEFAULT 0;

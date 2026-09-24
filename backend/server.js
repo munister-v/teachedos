@@ -2,6 +2,15 @@ const path = require('path');
 require('dotenv').config();
 // Also resolve a colocated backend/.env when the process is started from the repo root.
 require('dotenv').config({ path: process.env.DOTENV_CONFIG_PATH || path.join(__dirname, '.env') });
+/* Несколько процессов - только по WEB_CONCURRENCY >= 2 (lib/clusterPrimary.js).
+   Проверка до тяжёлых require: главный процесс маршруты не грузит. */
+const cluster = require('cluster');
+const WEB_N = Math.max(1, Math.min(8, parseInt(process.env.WEB_CONCURRENCY, 10) || 1));
+if (WEB_N > 1 && cluster.isPrimary) {
+  require('./lib/clusterPrimary')(WEB_N);
+  return;
+}
+const ROLE = process.env.TEACHED_ROLE || 'single';   // single | web | hub
 const express  = require('express');
 require('./lib/asyncErrors'); // async-ошибки маршрутов -> next(err), а не падение процесса
 const cors     = require('cors');
@@ -237,15 +246,53 @@ process.on('unhandledRejection', (reason) => {
 
 // ── Start ──────────────────────────────────────────────────────────────────
 const PORT   = process.env.PORT || 4000;
-const server = http.createServer(app);
+const HUB_PORT = parseInt(process.env.TEACHED_HUB_PORT, 10) || 4101;
+const HUB_SECRET = process.env.TEACHED_HUB_SECRET || '';
 
-// WebSocket
-require('./ws').setup(server);
+/* hub: только WebSocket-комнаты + внутренний /internal/online.
+   web: HTTP-API, апгрейды WebSocket - сырым TCP в хаб.
+   single: всё в одном процессе, как было. */
+const server = ROLE === 'hub'
+  ? http.createServer((req, res) => {
+      if (req.method === 'POST' && req.url === '/internal/online' && req.headers['x-hub-secret'] === HUB_SECRET) {
+        let body = '';
+        req.on('data', d => { body += d; if (body.length > 1e6) req.destroy(); });
+        req.on('end', () => {
+          let ids = [];
+          try { ids = JSON.parse(body).boardIds || []; } catch (_) {}
+          const online = require('./ws').onlineUserIds(new Set(ids.map(String)));
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ userIds: [...online] }));
+        });
+        return;
+      }
+      res.statusCode = 404; res.end();
+    })
+  : http.createServer(app);
+
+if (ROLE === 'web') {
+  const net = require('net');
+  server.on('upgrade', (req, socket, head) => {
+    const up = net.connect(HUB_PORT, '127.0.0.1');
+    const kill = () => { socket.destroy(); up.destroy(); };
+    up.on('error', kill); socket.on('error', kill);
+    up.on('connect', () => {
+      let h = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
+      for (let i = 0; i < req.rawHeaders.length; i += 2) h += `${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}\r\n`;
+      up.write(h + '\r\n');
+      if (head && head.length) up.write(head);
+      socket.pipe(up).pipe(socket);
+    });
+  });
+} else {
+  // WebSocket
+  require('./ws').setup(server);
+}
 
 async function main() {
   if (process.env.DATABASE_URL) {
     try {
-      await migrate();
+      if (!process.env.TEACHED_SKIP_MIGRATE) await migrate();
       await ensureTelemetrySchema();
     } catch (err) {
       // Serving requests against a partially migrated schema creates data loss
@@ -260,12 +307,16 @@ async function main() {
     console.warn('[startup] DATABASE_URL not set - DB features disabled until env var is added');
   }
 
-  server.listen(PORT, () => {
-    console.log(`[server] TeachedOS API running on port ${PORT}`);
-  });
+  if (ROLE === 'hub') {
+    server.listen(HUB_PORT, '127.0.0.1', () => console.log(`[hub ${process.pid}] WebSocket hub on 127.0.0.1:${HUB_PORT}`));
+  } else {
+    server.listen(PORT, () => {
+      console.log(`[server${ROLE === 'web' ? ' web ' + process.pid : ''}] TeachedOS API running on port ${PORT}`);
+    });
+  }
 
-  // Deadline reminder job - runs every hour
-  if (process.env.DATABASE_URL) {
+  // Deadline reminder job - runs every hour. Фоновые задачи - в одном процессе.
+  if (process.env.DATABASE_URL && ROLE !== 'web') {
     const { scheduleDeadlineReminders } = require('./jobs/deadlineReminders');
     scheduleDeadlineReminders();
     const { scheduleHousekeeping } = require('./jobs/housekeeping');
