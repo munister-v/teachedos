@@ -283,27 +283,55 @@ function _ttVocabLibIndex(){
 // Word-Definition Match works from the teacher's WORD LIST (no source text
 // needed). The definition is auto-filled from a source sentence when text is
 // pasted, otherwise from the vocab library; the AI path writes real definitions.
+/* Candidate words from a text for a vocabulary task: words the text repeats
+   first (they carry its topic - "grocery", "sauce" in a cooking vlog), then
+   the rest in reading order. Contractions and fillers of speech ("there's",
+   "gonna") are not vocabulary. Level is NOT judged here - that needs the
+   dictionary's CEFR marks, see _ttFillMatchDefinitions (board-app.js). */
+const _TT_SPOKEN = new Set(('yeah yes okay gonna wanna gotta kinda sorta like really actually literally basically thing things stuff guys dude lot lots right well know think mean said says going gets getting got want wants make made come came look looks looking thank thanks please hello bye today tomorrow yesterday something anything nothing everything someone anyone everyone somebody anybody nobody there here where').split(/\s+/));
+function _ttVocabCandidates(text, limit){
+  const count = new Map(), first = new Map();
+  _ttWords(text).forEach((w, i) => {
+    if (/['’]/.test(w)) return;                       // there's, don't, I'm
+    const base = w.replace(/^[^a-z]+|[^a-z]+$/g, '');
+    if (base.length < 4 || _TT_STOP.has(base) || _TT_SPOKEN.has(base)) return;
+    count.set(base, (count.get(base) || 0) + 1);
+    if (!first.has(base)) first.set(base, i);
+  });
+  /* Длина - грубый, но честный признак уровня: короткие слова почти все
+     A1-A2 («need», «home», «cook»). В длинном транскрипте повторяются как
+     раз они, поэтому один только счёт повторов набирал бы кандидатов из
+     того, что ученик B1 давно знает. */
+  const weight = w => Math.min(count.get(w), 3) + (w.length >= 8 ? 2 : w.length >= 6 ? 1 : 0);
+  return [...count.keys()]
+    .sort((a, b) => (weight(b) - weight(a)) || (first.get(a) - first.get(b)))
+    .slice(0, limit || 30);
+}
+
 function _ttGenWordDefinitionMatch(input){
-  const words = _ttVocabLines(input).slice(0, input.count);
+  const own = _ttVocabEntries(input).length > 0;
+  /* Слова учителя берём как есть. Слова из текста - только кандидаты: какие
+     из них пойдут в пары, решает уровень по словарю (_ttFillMatchDefinitions).
+     Раньше брались первые слова длиннее трёх букв по порядку, и из влога
+     выходили «Glad, There's, Nobody, Talk, Guys» при уровне B1. */
+  const candidates = own ? [] : _ttVocabCandidates(input.source || '', 60);
+  const words = own ? _ttVocabLines(input).slice(0, input.count) : candidates.slice(0, input.count);
   if (words.length < 2) return null;
-  const sents = input.source ? teacherToolSourceSentences(input.source, input.topic, 80) : [];
   const lib = _ttVocabLibIndex();
-  /* Пояснення вчителя стоїть ПЕРШИМ. Воно написане під цей клас і цей рівень,
-     тоді як речення з тексту і стаття з бібліотеки - здогади. */
+  /* Значение - это пояснение учителя или перевод из библиотеки. Предложение из
+     текста значением не является («Glad — And I'm so glad there's nobody
+     here»): пустую правую половину заполнит словарь, а не цитата. */
   const gloss = _ttVocabGlossIndex(input);
-  const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pairs = words.map(w => {
     let right = gloss[String(w).toLowerCase()] || '';
-    if (!right && sents.length) {
-      const ex = sents.find(s => new RegExp('\\b' + reEsc(w) + '\\b', 'i').test(s));
-      if (ex) right = ex.length > 100 ? ex.slice(0, 100) + '…' : ex;
-    }
-    if (!right) { const hit = lib[String(w).toLowerCase()]; if (hit) right = hit.ex || hit.uk || ''; }
+    if (!right) { const hit = lib[String(w).toLowerCase()]; if (hit && hit.uk) right = hit.uk; }
     return { left: _ttCap(w), right };
   });
+  const q = { type:'match', text:'Match each word to its definition.', pairs, points: pairs.length };
+  if (!own) { q.candidates = candidates; q.want = Math.max(2, input.count || 6); }
   return { boardKind:'quiz', kind:'Matching', cat:'vocabulary', level:input.level, topic:input.topic,
     title:`${input.level} · Word-Definition Match: ${input.topic}`,
-    questions: [{ type:'match', text:'Match each word to its definition.', pairs, points: pairs.length }] };
+    questions: [q] };
 }
 
 /* ── collocations ────────────────────────────────────────────────── */

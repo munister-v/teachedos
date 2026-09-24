@@ -15484,6 +15484,7 @@ async function _ttFillMatchDefinitions(out, base) {
   const q = (out && Array.isArray(out.questions))
     ? out.questions.find(x => x && x.type === 'match' && Array.isArray(x.pairs)) : null;
   if (!q) return;
+  if (Array.isArray(q.candidates) && q.candidates.length) await _ttPickWordsByLevel(q, base);
   const empty = q.pairs.filter(p => !String(p.right || '').trim());
   if (!empty.length) return;
   const found = await _ttLookupDefinitions(empty.map(p => p.left), base);
@@ -15491,6 +15492,57 @@ async function _ttFillMatchDefinitions(out, base) {
     const hit = found[String(p.left).toLowerCase().trim()];
     if (hit) p.right = hit;
   });
+}
+
+/* Слова из текста - по уровню урока.
+
+   Генератор отдаёт кандидатов (q.candidates), а какие из них идут в пары,
+   решает Cambridge: у значений статьи стоит CEFR, и уровень слова - это
+   его самое простое значение («talk» A1, «glad» A2, «reliable» B1).
+   Порядок для урока уровня L: сначала L, потом L+1 (слово чуть выше -
+   то, ради чего задание), потом L-1. A1 на уроке выше A1 не берётся, как
+   и слова на два уровня выше: первое ученик знает, второе ему рано.
+   Слово без отметки уровня, но с определением - последний запас.
+   Движок к кандидатам не зовём (defsFor: []): просить его писать
+   определения тридцати словам, из которых возьмут шесть, незачем. */
+const TT_CEFR = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
+async function _ttPickWordsByLevel(q, base) {
+  const want = q.want || q.pairs.length;
+  const cands = q.candidates;
+  delete q.candidates; delete q.want;
+  const L = TT_CEFR[String(base.level || '').toUpperCase()] || 3;
+  const info = Object.create(null);
+  let found;
+  try { found = await _ttLookupDefinitions(cands, base, { info, defsFor: [] }); }
+  catch (_) { return; }            // офлайн - остаются кандидаты по порядку
+  const rank = lvl => {
+    if (!lvl) return 4;
+    if (lvl === L) return 0;
+    if (lvl === L + 1) return 1;
+    if (lvl === L - 1 && (lvl > 1 || L === 1)) return 2;
+    if (L === 1 && lvl === 2) return 1;
+    return -1;                     // A1 на уроке выше A1, или на два уровня выше
+  };
+  const scored = cands.map((w, i) => {
+    const key = w.toLowerCase();
+    const def = found[key];
+    const e = info[key];
+    const levels = (e && e.senses || []).map(x => TT_CEFR[x && x.cefr]).filter(Boolean);
+    const lvl = levels.length ? Math.min(...levels) : 0;
+    /* Форму из текста («restocked») показываем словарной («restock»), если
+       словарь нашёл статью по основе. */
+    const head = e && e.matched && !/\s/.test(e.matched) ? String(e.matched).toLowerCase() : key;
+    /* «grocery — a grocer's»: определение из двух слов ничего не объясняет,
+       такое слово идёт последним запасом. */
+    const r = def ? rank(lvl) : -1;
+    return { w: head, def, r: r >= 0 && String(def).trim().split(/\s+/).length < 3 ? 5 : r, i };
+  }).filter(x => x.r >= 0);
+  const seen = new Set();
+  const picked = scored.sort((a, b) => (a.r - b.r) || (a.i - b.i))
+    .filter(x => !seen.has(x.w) && seen.add(x.w)).slice(0, want);
+  if (picked.length < 2) return;   // словарь молчит - оставляем как было
+  q.pairs = picked.map(x => ({ left: _ttCap(x.w), right: x.def }));
+  q.points = q.pairs.length;
 }
 
 /* Список слов учителя - до этого предела, дальше не берём (о лишних
