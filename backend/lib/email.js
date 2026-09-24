@@ -236,6 +236,6 @@ function welcomeEmail({ name, role }) {
 }
 
 module.exports = {
-  sendEmail, sendEmailQuietly, emailConfigured, SITE,
+  sendEmail, sendEmailQuietly, emailConfigured, SITE, layout, textVersion,
   resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail,
 };

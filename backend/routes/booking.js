@@ -16,7 +16,7 @@ const rateLimit = require('express-rate-limit');
 const pool      = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
-const { sendEmailQuietly, SITE } = require('../lib/email');
+const { sendEmailQuietly, SITE, layout, textVersion } = require('../lib/email');
 
 const DAYS_AHEAD = 14;
 const MIN_NOTICE_MIN = 60;           // no booking that starts within the hour
@@ -189,6 +189,14 @@ router.post('/link/rotate', requireAuth, requireTeacher, async (req, res) => {
   catch (err) { console.error('[booking] rotate:', err.message); res.status(500).json({ error: 'Server error' }); }
 });
 
+/* Длина урока для брони: 30 / 45 / 60 / 90 минут. */
+router.post('/settings', requireAuth, requireTeacher, async (req, res) => {
+  const m = Number(req.body?.minutes);
+  if (![30, 45, 60, 90].includes(m)) return res.status(400).json({ error: 'minutes must be 30, 45, 60 or 90' });
+  await pool.query('UPDATE users SET booking_minutes=$2 WHERE id=$1', [req.user.id, m]);
+  res.json({ minutes: m });
+});
+
 /* ── Public: what a student sees and books ───────────────────────────── */
 router.get('/public/:token', async (req, res) => {
   try {
@@ -230,18 +238,31 @@ router.post('/public/:token', bookLimiter, async (req, res) => {
 
     const when = `${date} · ${start.slice(0, 5)}-${end} (${t.timezone || 'Europe/Kyiv'})`;
     createNotification(t.id, 'booking', `${name} booked a lesson`, `${when}${note ? ' - ' + note : ''}`, '/schedule.html');
-    if (t.email) sendEmailQuietly({
-      to: t.email,
-      subject: `New booking: ${name}, ${date} ${start.slice(0, 5)}`,
-      html: `<p><b>${escHtml(name)}</b> (${escHtml(email)}) booked a lesson.</p><p>${escHtml(when)}</p>${note ? `<p>${escHtml(note)}</p>` : ''}<p><a href="${SITE}/schedule.html">Open your schedule</a></p>`,
-      text: `${name} (${email}) booked a lesson.\n${when}\n${note}\n${SITE}/schedule.html`,
-    }, 'booking-teacher');
-    sendEmailQuietly({
-      to: email,
-      subject: `Your lesson with ${t.name || 'your teacher'} is booked`,
-      html: `<p>You are booked with <b>${escHtml(t.name || 'your teacher')}</b>.</p><p>${escHtml(when)}</p><p>Your teacher will send the lesson link.</p>`,
-      text: `You are booked with ${t.name || 'your teacher'}.\n${when}\nYour teacher will send the lesson link.`,
-    }, 'booking-student');
+    // Письма в общем фирменном макете (lib/email.js layout).
+    const tName = t.name || 'your teacher';
+    if (t.email) {
+      const title = `${name} booked a lesson`;
+      const lines = [when, `${name} · ${email}`, ...(note ? [`“${note}”`] : [])];
+      sendEmailQuietly({
+        to: t.email,
+        subject: `New booking: ${name}, ${date} ${start.slice(0, 5)}`,
+        html: layout({ preheader: when, title, paragraphs: lines.map(escHtml),
+          button: { href: `${SITE}/schedule.html`, label: 'Open my schedule' },
+          footnote: 'Booked through your TeachEd booking link.' }),
+        text: textVersion({ title, lines, link: `${SITE}/schedule.html`, linkLabel: 'Open my schedule' }),
+      }, 'booking-teacher');
+    }
+    {
+      const title = `Your lesson with ${tName} is booked`;
+      const lines = [when, `${tName} will send you the lesson link before the class.`];
+      sendEmailQuietly({
+        to: email,
+        subject: title,
+        html: layout({ preheader: when, title, paragraphs: lines.map(escHtml),
+          footnote: 'Need another time? Open the same booking link again.' }),
+        text: textVersion({ title, lines }),
+      }, 'booking-student');
+    }
     res.status(201).json({ ok: true, id: rows[0].id, date, start: start.slice(0, 5), end, timezone: t.timezone || 'Europe/Kyiv' });
   } catch (err) {
     console.error('[booking] public post:', err.message);

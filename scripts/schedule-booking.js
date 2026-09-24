@@ -39,7 +39,7 @@ function bkRender() {
     el.innerHTML = `<span class="bk-tag">${b.kind === 'open' ? 'Open for booking' : 'Busy' + (b.label ? ' · ' + bkEsc(b.label) : '')}</span>`;
     el.addEventListener('click', ev => {
       ev.stopPropagation();
-      bkMenu({ day: b.day, start: s, end: e, block: b }, ev.clientX, ev.clientY);
+      bkMenu({ days: [b.day], start: s, end: e, block: b }, ev.clientX, ev.clientY);
     });
     col.insertBefore(el, col.firstChild);
   });
@@ -52,43 +52,58 @@ function bkRender() {
   renderGrid = function () { orig.apply(this, arguments); bkRender(); };
 })();
 
-/* ── Выделение диапазона: тянуть вниз по пустой колонке ─────────────── */
-const bkSel = { on: false, col: null, day: 0, a: 0, b: 0, y0: 0, moved: false, el: null, justEnded: false };
+/* ── Выделение: тянуть по пустой колонке (вниз - часы, вбок - дни) ─── */
+const bkSel = { on: false, d0: 0, d1: 0, a: 0, b: 0, x0: 0, y0: 0, moved: false, justEnded: false };
+const bkRange = () => {
+  const lo = Math.max(HOUR_START * 60, Math.min(bkSel.a, bkSel.b));
+  const hi = Math.min(HOUR_END * 60, Math.max(bkSel.a, bkSel.b) + 30);
+  const days = [];
+  for (let d = Math.min(bkSel.d0, bkSel.d1); d <= Math.max(bkSel.d0, bkSel.d1); d++) days.push(d);
+  return { days, start: lo, end: hi };
+};
+function bkPaintSelection(r) {
+  document.querySelectorAll('.bk-select').forEach(el => el.remove());
+  r.days.forEach((d, i) => {
+    const col = document.getElementById(`day-${d}`); if (!col) return;
+    const el = document.createElement('div'); el.className = 'bk-select';
+    el.style.top = (r.start - HOUR_START * 60) / 60 * PX_PER_HOUR + 'px';
+    el.style.height = (r.end - r.start) / 60 * PX_PER_HOUR + 'px';
+    if (i === 0) el.textContent = `${bkFmt(r.start)} - ${bkFmt(r.end)}`;
+    col.appendChild(el);
+  });
+}
 document.addEventListener('mousedown', e => {
   if (e.button !== 0) return;
   const col = e.target.closest?.('.day-col');
   if (!col || e.target.closest('.cls-block, .bk-block, .bk-menu')) return;
-  bkSel.on = true; bkSel.moved = false; bkSel.col = col; bkSel.day = Number(col.dataset.day);
-  bkSel.y0 = e.clientY;
+  bkSel.on = true; bkSel.moved = false;
+  bkSel.d0 = bkSel.d1 = Number(col.dataset.day);
+  bkSel.x0 = e.clientX; bkSel.y0 = e.clientY;
   bkSel.a = bkSel.b = Math.floor(gridMinutesFromPointer(e.clientY, col) / 30) * 30;
 });
 document.addEventListener('mousemove', e => {
   if (!bkSel.on) return;
-  if (!bkSel.moved && Math.abs(e.clientY - bkSel.y0) < 8) return;
+  if (!bkSel.moved && Math.abs(e.clientY - bkSel.y0) < 8 && Math.abs(e.clientX - bkSel.x0) < 12) return;
   bkSel.moved = true;
-  bkSel.b = Math.floor(gridMinutesFromPointer(e.clientY, bkSel.col) / 30) * 30;
-  const lo = Math.max(HOUR_START * 60, Math.min(bkSel.a, bkSel.b));
-  const hi = Math.min(HOUR_END * 60, Math.max(bkSel.a, bkSel.b) + 30);
-  if (!bkSel.el) { bkSel.el = document.createElement('div'); bkSel.el.className = 'bk-select'; bkSel.col.appendChild(bkSel.el); }
-  bkSel.el.style.top = (lo - HOUR_START * 60) / 60 * PX_PER_HOUR + 'px';
-  bkSel.el.style.height = (hi - lo) / 60 * PX_PER_HOUR + 'px';
-  bkSel.el.textContent = `${bkFmt(lo)} - ${bkFmt(hi)}`;
+  const over = document.elementFromPoint(e.clientX, e.clientY)?.closest?.('.day-col');
+  if (over) bkSel.d1 = Number(over.dataset.day);
+  const col = document.getElementById(`day-${bkSel.d0}`);
+  bkSel.b = Math.floor(gridMinutesFromPointer(e.clientY, col) / 30) * 30;
+  bkPaintSelection(bkRange());
 });
 document.addEventListener('mouseup', e => {
   if (!bkSel.on) return;
   bkSel.on = false;
   if (!bkSel.moved) return;
-  const lo = Math.max(HOUR_START * 60, Math.min(bkSel.a, bkSel.b));
-  const hi = Math.min(HOUR_END * 60, Math.max(bkSel.a, bkSel.b) + 30);
   bkSel.justEnded = true; setTimeout(() => { bkSel.justEnded = false; }, 50);
-  bkMenu({ day: bkSel.day, start: lo, end: hi }, e.clientX, e.clientY);
+  bkMenu(bkRange(), e.clientX, e.clientY);
 });
 
 /* Клик по пустому месту (из bindGridClicks): меню вместо сразу диалога. */
 function bookingGridClick(e, col, day, startMin) {
   if (bkSel.justEnded) return true;
   const s = Math.floor(startMin / 60) * 60;
-  bkMenu({ day, start: s, end: Math.min(HOUR_END * 60, s + 60) }, e.clientX, e.clientY);
+  bkMenu({ days: [day], start: s, end: Math.min(HOUR_END * 60, s + 60) }, e.clientX, e.clientY);
   return true;
 }
 
@@ -96,31 +111,24 @@ function bookingGridClick(e, col, day, startMin) {
 function bkClose() {
   document.querySelector('.bk-menu')?.remove();
   document.querySelectorAll('.bk-select').forEach(el => el.remove());
-  bkSel.el = null;
 }
+const BK_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 function bkMenu(r, x, y) {
   bkClose();
-  if (r.start < HOUR_START * 60 || r.end <= r.start) return;
-  if (!r.block && bkSel.moved === false) {
-    // одиночный клик - подсветить час, о котором спрашиваем
-    const col = document.getElementById(`day-${r.day}`);
-    if (col) {
-      const el = document.createElement('div'); el.className = 'bk-select';
-      el.style.top = (r.start - HOUR_START * 60) / 60 * PX_PER_HOUR + 'px';
-      el.style.height = (r.end - r.start) / 60 * PX_PER_HOUR + 'px';
-      el.textContent = `${bkFmt(r.start)} - ${bkFmt(r.end)}`;
-      col.appendChild(el);
-    }
-  }
-  const overlapping = BK_BLOCKS.some(b => b.day === r.day && bkMin(b.start_time) < r.end && bkMin(b.end_time) > r.start);
+  const days = r.days || [r.day];
+  if (r.start < HOUR_START * 60 || r.end <= r.start || !days.length) return;
+  if (!r.block) bkPaintSelection({ days, start: r.start, end: r.end });
+  const many = days.length > 1;
+  const dayText = many ? `${BK_SHORT[days[0]]}-${BK_SHORT[days[days.length - 1]]}` : BK_DAYS[days[0]];
+  const overlapping = BK_BLOCKS.some(b => days.includes(b.day) && bkMin(b.start_time) < r.end && bkMin(b.end_time) > r.start);
   const m = document.createElement('div');
   m.className = 'bk-menu';
   m.setAttribute('role', 'dialog');
   m.setAttribute('aria-label', 'Time actions');
   m.innerHTML = `
-    <div class="bk-menu-h">${BK_DAYS[r.day]} · ${bkFmt(r.start)} - ${bkFmt(r.end)}</div>
+    <div class="bk-menu-h">Action for ${dayText} · ${bkFmt(r.start)} - ${bkFmt(r.end)}</div>
     <div class="bk-menu-acts">
-      <button type="button" class="bk-act add" data-a="add"><span class="bk-dot add"></span>Add a class</button>
+      ${many ? '' : '<button type="button" class="bk-act add" data-a="add"><span class="bk-dot add"></span>Add a class</button>'}
       <button type="button" class="bk-act open" data-a="open"><span class="bk-dot open"></span>Open for booking</button>
       <button type="button" class="bk-act busy" data-a="busy"><span class="bk-dot busy"></span>Mark as busy</button>
       ${overlapping ? '<button type="button" class="bk-act clear" data-a="clear"><span class="bk-dot clear"></span>Clear this time</button>' : ''}
@@ -129,38 +137,35 @@ function bkMenu(r, x, y) {
       <input type="text" maxlength="80" placeholder="Lunch, walk, another job…">
       <button type="button" class="bk-label-go">Mark as busy</button>
     </label>
-    <div class="bk-menu-note">Open hours repeat every week. Students see them through your booking link.</div>`;
+    <div class="bk-menu-note">${many ? `Applies to ${days.length} days. ` : ''}Open hours repeat every week. Students see them through your booking link.</div>`;
   document.body.appendChild(m);
   const w = m.offsetWidth, h = m.offsetHeight;
   m.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + 'px';
   m.style.top = Math.max(8, Math.min(innerHeight - h - 8, y + 12)) + 'px';
-  const range = { day: r.day, start_time: bkFmt(r.start), end_time: bkFmt(r.end) };
-  const save = async (kind, label) => {
+  const rangeFor = d => ({ day: d, start_time: bkFmt(r.start), end_time: bkFmt(r.end) });
+  const run = async (path, body, okText) => {
     try {
-      await apiFetch('/api/booking/blocks', { method: 'POST', body: JSON.stringify({ ...range, kind, label }) });
-      bkClose(); await bkLoad();
-      toast(kind === 'open' ? 'Open for booking' : 'Marked as busy', 'ok');
-    } catch (err) { toast(err.message || 'Could not save', 'err'); }
+      for (const d of days) await apiFetch(path, { method: 'POST', body: JSON.stringify({ ...rangeFor(d), ...body }) });
+      bkClose(); await bkLoad(); toast(okText, 'ok');
+    } catch (err) { toast(err.message || 'Could not save', 'err'); await bkLoad(); }
   };
-  m.addEventListener('click', async ev => {
+  m.addEventListener('click', ev => {
     const b = ev.target.closest('[data-a]');
     if (!b) return;
     const a = b.dataset.a;
-    if (a === 'add') { bkClose(); openPlannerAt(r.day, r.start); return; }
-    if (a === 'open') return save('open');
+    if (a === 'add') { bkClose(); openPlannerAt(days[0], r.start); return; }
+    if (a === 'open') return run('/api/booking/blocks', { kind: 'open' }, 'Open for booking');
     if (a === 'busy') {
       const lab = m.querySelector('.bk-label'); lab.hidden = false;
       m.querySelector('.bk-menu-acts').hidden = true;
       lab.querySelector('input').focus();
       return;
     }
-    if (a === 'clear') {
-      try { await apiFetch('/api/booking/blocks/clear', { method: 'POST', body: JSON.stringify(range) }); bkClose(); await bkLoad(); toast('Cleared', 'ok'); }
-      catch (err) { toast(err.message || 'Could not clear', 'err'); }
-    }
+    if (a === 'clear') return run('/api/booking/blocks/clear', {}, 'Cleared');
   });
-  m.querySelector('.bk-label-go').addEventListener('click', () => save('busy', m.querySelector('.bk-label input').value.trim()));
-  m.querySelector('.bk-label input').addEventListener('keydown', ev => { if (ev.key === 'Enter') m.querySelector('.bk-label-go').click(); });
+  const goBusy = () => run('/api/booking/blocks', { kind: 'busy', label: m.querySelector('.bk-label input').value.trim() }, 'Marked as busy');
+  m.querySelector('.bk-label-go').addEventListener('click', goBusy);
+  m.querySelector('.bk-label input').addEventListener('keydown', ev => { if (ev.key === 'Enter') goBusy(); });
   m.querySelector('.bk-act')?.focus();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') bkClose(); });
@@ -187,7 +192,10 @@ async function bkShare(rotate) {
         <a class="bk-send-btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>
         <a class="bk-send-btn" href="${bkEsc(d.url)}" target="_blank" rel="noopener">Preview</a>
       </div>
-      <div class="bk-foot">${d.minutes}-minute lessons · <button type="button" class="bk-rotate">New link</button> <span>(the old one stops working)</span></div>
+      <div class="bk-len"><span>Lesson length</span>
+        <div class="bk-len-seg" role="radiogroup" aria-label="Lesson length">${[30, 45, 60, 90].map(n =>
+          `<button type="button" role="radio" data-m="${n}" aria-checked="${n === d.minutes}">${n} min</button>`).join('')}</div></div>
+      <div class="bk-foot"><button type="button" class="bk-rotate">New link</button> <span>(the old one stops working)</span></div>
     </div>`;
   document.body.appendChild(ov);
   const close = () => ov.remove();
@@ -197,6 +205,14 @@ async function bkShare(rotate) {
     try { await navigator.clipboard.writeText(d.url); ev.target.textContent = 'Copied ✓'; }
     catch { ov.querySelector('.bk-url input').select(); }
   };
+  ov.querySelector('.bk-len-seg').addEventListener('click', async ev => {
+    const btn = ev.target.closest('[data-m]'); if (!btn) return;
+    try {
+      await apiFetch('/api/booking/settings', { method: 'POST', body: JSON.stringify({ minutes: Number(btn.dataset.m) }) });
+      ov.querySelectorAll('.bk-len-seg button').forEach(x => x.setAttribute('aria-checked', x === btn ? 'true' : 'false'));
+      toast(`Students now book ${btn.dataset.m}-minute lessons`, 'ok');
+    } catch (err) { toast(err.message || 'Could not save', 'err'); }
+  });
   ov.querySelector('.bk-rotate').onclick = () => { if (confirm('Make a new link? The old one will stop working.')) bkShare(true); };
   ov.querySelector('.bk-copy').focus();
 }
