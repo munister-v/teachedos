@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=969"></script>
+<script src="scripts/phone-gate.js?v=970"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=969">
+<link rel="manifest" href="manifest.json?v=970">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=969">
-<link rel="preload" as="style" href="styles/unify.css?v=969">
+<link rel="preload" as="style" href="styles/harmony.css?v=970">
+<link rel="preload" as="style" href="styles/unify.css?v=970">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -272,6 +272,10 @@ button{font-family:var(--font);cursor:pointer;}
   box-shadow:0 6px 24px rgba(36,40,44,.12);
   transform:translateY(-2px);
 }
+.lessons-grid .lesson-card.has-cover{padding:0 0 12px !important;overflow:hidden;}
+.lessons-grid .lesson-card.has-cover .lc-cover{line-height:0;margin-bottom:10px;}
+.lessons-grid .lesson-card.has-cover > :not(.lc-cover):not(.lc-remove){padding-left:13px;padding-right:13px;}
+.lessons-grid .lesson-card.has-cover .lc-remove{z-index:3;background:rgba(255,255,255,.92);}
 .lessons-grid .lesson-card .lc-num{font-size:10px;font-weight:650;color:#5D614B !important;font-family:var(--mono);letter-spacing:.04em;}
 .lessons-grid .lesson-card .lc-name{font-size:13px;font-weight:650;color:#24282C !important;line-height:1.3;}
 .lessons-grid .lesson-card .lc-meta{font-size:11px;color:#5D614B !important;}
@@ -410,10 +414,10 @@ button{font-family:var(--font);cursor:pointer;}
   #course-view{animation-duration:.001ms}
 }
 </style>
-<script src="theme.js?v=969" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=969">
-<link rel="stylesheet" href="styles/harmony.css?v=969">
-<link rel="stylesheet" href="styles/unify.css?v=969">
+<script src="theme.js?v=970" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=970">
+<link rel="stylesheet" href="styles/harmony.css?v=970">
+<link rel="stylesheet" href="styles/unify.css?v=970">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -480,14 +484,15 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=969">
-<link rel="stylesheet" href="styles/tool-window.css?v=969">
+<link rel="stylesheet" href="styles/teached-brand.css?v=970">
+<link rel="stylesheet" href="styles/tool-window.css?v=970">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=969">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=969">
-<link rel="stylesheet" href="styles/controls.css?v=969">
+<link rel="stylesheet" href="styles/figma-theme.css?v=970">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=970">
+<link rel="stylesheet" href="styles/controls.css?v=970">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=970">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=969">
+<link rel="stylesheet" href="styles/polish.css?v=970">
 </head>
 <body class="tw-page mp-shell fx">
 
@@ -631,7 +636,8 @@ button{font-family:var(--font);cursor:pointer;}
   <symbol id="i-courses" viewBox="0 0 24 24"><path d="M4 6.5c2.5-1 5-1 7 .5v11c-2-1.5-4.5-1.5-7-.5zM20 6.5c-2.5-1-5-1-7 .5v11c2-1.5 4.5-1.5 7-.5z"/><path d="M12 7v11"/></symbol>
 </svg>
 
-<script src="scripts/app-core.js?v=969"></script>
+<script src="scripts/app-core.js?v=970"></script>
+<script src="scripts/lesson-cover.js?v=970"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -1054,7 +1060,11 @@ function renderModuleBlock(course, m, mi) {
 function lessonCardHTML(b, courseId, moduleId, idx) {
   const num = idx !== undefined ? `Lesson ${idx+1}` : '';
   const cards = b.card_count || 0;
-  return `<a class="lesson-card" href="board.html?id=${b.id}" style="text-decoration:none;display:block;">
+  /* Обложка доски: сохранённая владельцем (из /api/boards) или автоматическая. */
+  const own = (allBoards || []).find(x => String(x.id) === String(b.id));
+  const cover = window.TeachEdCover ? TeachEdCover.render(own?.cover || b.cover || null, { title: b.name || 'Lesson' }) : '';
+  return `<a class="lesson-card has-cover" href="board.html?id=${b.id}" style="text-decoration:none;display:block;">
+    <div class="lc-cover">${cover}</div>
     ${num ? `<div class="lc-num">${num}</div>` : ''}
     <div class="lc-name">${esc(b.name)}</div>
     <div class="lc-meta">${cards} card${cards!==1?'s':''} · ${timeSince(b.updated_at)}</div>
@@ -1583,12 +1593,12 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=969" defer></script>
-<script src="scripts/mobile-perf.js?v=969" defer></script>
-<script src="scripts/mobile-nav.js?v=969"></script>
-<script src="scripts/mobile-zoom-guard.js?v=969" defer></script>
-<script src="scripts/autogrow.js?v=969" defer></script>
-<script src="pwa-boot.js?v=969" defer></script>
-  <script src="scripts/signin-entry.js?v=969" defer></script>
+<script src="scripts/nav-boost.js?v=970" defer></script>
+<script src="scripts/mobile-perf.js?v=970" defer></script>
+<script src="scripts/mobile-nav.js?v=970"></script>
+<script src="scripts/mobile-zoom-guard.js?v=970" defer></script>
+<script src="scripts/autogrow.js?v=970" defer></script>
+<script src="pwa-boot.js?v=970" defer></script>
+  <script src="scripts/signin-entry.js?v=970" defer></script>
 </body>
 </html>

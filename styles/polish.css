@@ -207,6 +207,15 @@ body.tw-page.fx:not(#_):not(#__) .empty-sub { font-size:14px !important; line-he
 /* ── Text floor: nothing important below 12.5px on a desktop ─────────── */
 body.tw-page.fx:not(#_):not(#__) :is(.gb-filter-note, .hw-sub, .section-sub, .sec-sub) { font-size:13px !important; color:var(--p-olive) !important; }
 
+/* ── Schedule: the booking link is the page's second action - ink, beside
+      the lime "Add class", not a third colour. ──────────────────────── */
+body.tw-page.fx:not(#_):not(#__) .bk-share-btn {
+  height:40px !important; min-height:40px !important; padding:0 16px !important; border-radius:12px !important;
+  background:var(--p-ink) !important; color:#fff !important; box-shadow:none !important;
+  font-size:13.5px !important; font-weight:700 !important;
+}
+body.tw-page.fx:not(#_):not(#__) .bk-share-btn:hover { background:#000 !important; filter:none !important; }
+
 /* ── Top bar: a little more air ───────────────────────────────────────── */
 body.tw-page.fx:not(#_):not(#__) #nav { min-height:60px !important; }
 body.tw-page.fx:not(#_):not(#__) #nav .nav-link { font-size:14.5px !important; }

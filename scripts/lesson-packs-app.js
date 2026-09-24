@@ -2009,6 +2009,19 @@ function _lpMatchLine(content, q) {
   return _LP_ESC(cut.slice(0, i)) + '<mark>' + _LP_ESC(cut.slice(i, i + q.length)) + '</mark>' + _LP_ESC(cut.slice(i + q.length));
 }
 
+/* Обложка пака - та же, что у уроков в Community и досок на рабочем столе
+   (scripts/lesson-cover.js): сразу видно уровень, навык и длительность, а
+   моноширинная строка «GRAMMAR · A2 · 30 MIN» над заголовком больше не нужна. */
+function _lpCoverHtml(p) {
+  if (!window.TeachEdCover) return '';
+  const skill = String(p.skill || '');
+  return `<div class="pc-cover">${TeachEdCover.render(p.cover || null, {
+    title: p.title, level: p.level,
+    skill: skill ? skill[0].toUpperCase() + skill.slice(1) : '',
+    duration: parseInt(p.duration, 10) || '',
+  })}</div>`;
+}
+
 function renderPacks() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
   const filtered = allPacks().filter(p => {
@@ -2051,8 +2064,9 @@ function renderPacks() {
     const deep = q && !p.title.toLowerCase().includes(q) && !p.desc.toLowerCase().includes(q)
       ? _lpMatchLine(_lpPlainText(p), q) : '';
     return `
-    <div class="pack-card${p.mine ? ' mine' : ''}" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
-      <div class="pc-eyebrow">${_LP_ESC(p.eyebrow)}</div>
+    <div class="pack-card has-cover${p.mine ? ' mine' : ''}" style="--card-accent:${p.accent}" onclick="openPack('${p.id}')">
+      ${_lpCoverHtml(p)}
+      <div class="pc-in">
       <div class="pc-title">${_LP_ESC(p.title)}</div>
       ${deep ? `<div class="pc-hit">${deep}</div>` : ''}
       <div class="pc-desc">${_LP_ESC(p.desc)}</div>
@@ -2060,6 +2074,7 @@ function renderPacks() {
         <span class="pc-level ${lvlClass(p.level)}">${_LP_ESC(p.level)}</span>
         <span class="pc-dur">${_LP_ESC(p.duration)}</span>
         <span class="pc-open">Open →</span>
+      </div>
       </div>
     </div>
   `;
