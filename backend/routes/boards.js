@@ -1,3 +1,4 @@
+const { cleanCover, cleanCoverImage } = require('../lib/cover');
 const router = require('express').Router();
 const { filterBoardData } = require('../lib/boardVisibility');
 const { sanitizeBoardData } = require('../lib/boardSanitize');
@@ -65,7 +66,8 @@ router.get('/', async (req, res) => {
     /* Без thumbnail (у 50 досок это ~800 КБ на каждый заход на рабочий стол,
        а учительские экраны превью не показывают) и без распаковки data:
        card_count ведёт триггер. */
-    `SELECT id, name, updated_at, created_at, card_count
+    `SELECT id, name, updated_at, created_at, card_count, cover,
+            (cover_image IS NOT NULL) AS has_cover_image
      FROM boards WHERE user_id = $1
      ORDER BY updated_at DESC`,
     [req.user.id]
@@ -170,6 +172,44 @@ router.put('/:id', requireAuth, async (req, res) => {
 });
 
 // PATCH /api/boards/:id - update board (state, name, or thumbnail)
+/* PATCH /api/boards/:id/cover - обложка своей доски: дизайн и, по желанию,
+   свой снимок. Отдельно от сохранения доски, чтобы не гонять весь холст
+   ради смены цвета и не трогать updated_at (порядок в списке досок). */
+router.patch('/:id/cover', requireAuth, async (req, res) => {
+  try {
+    const sets = ['cover = $3'];
+    const params = [req.params.id, req.user.id, req.body?.cover ? JSON.stringify(cleanCover(req.body.cover)) : null];
+    if (req.body?.coverImage !== undefined) { params.push(cleanCoverImage(req.body.coverImage)); sets.push(`cover_image = $${params.length}`); }
+    const { rows } = await pool.query(
+      `UPDATE boards SET ${sets.join(', ')} WHERE id = $1 AND user_id = $2
+       RETURNING id, cover, (cover_image IS NOT NULL) AS has_cover_image`,
+      params
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+    res.json({ board: rows[0] });
+  } catch (err) {
+    console.error('[boards] cover error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/boards/:id/cover-image - own photo of the cover (owner only).
+router.get('/:id/cover-image', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT cover_image FROM boards WHERE id = $1 AND user_id = $2 AND cover_image IS NOT NULL',
+      [req.params.id, req.user.id]
+    );
+    const m = rows[0] && /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(rows[0].cover_image);
+    if (!m) return res.status(404).end();
+    res.set('Content-Type', m[1]);
+    res.set('Cache-Control', 'private, max-age=86400');
+    res.send(Buffer.from(m[2], 'base64'));
+  } catch (err) {
+    res.status(500).end();
+  }
+});
+
 router.patch('/:id', requireAuth, async (req, res) => {
   const { data, state: stateBody, name, thumbnail } = req.body;
   const rawBoardData = data || stateBody;

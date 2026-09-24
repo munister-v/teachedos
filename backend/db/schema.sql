@@ -781,3 +781,8 @@ CREATE INDEX IF NOT EXISTS idx_board_collab_user ON board_collaborators(user_id)
 -- памяти процесса - каждый выкат обнулял счётчик, а при нескольких процессах
 -- каждый видел бы лишь свою долю.
 ALTER TABLE ai_usage_daily ADD COLUMN IF NOT EXISTS usd NUMERIC(12,6) NOT NULL DEFAULT 0;
+
+-- A teacher's own boards get the same designed cover as Community lessons
+-- (backend/lib/cover.js whitelists it); an uploaded photo sits beside it.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS cover JSONB;
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS cover_image TEXT;

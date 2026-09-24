@@ -169,3 +169,32 @@
 .lce-none { font:700 10px var(--font-ui, system-ui, sans-serif); color:#5D614B; }
 .lce-check { display:flex; align-items:center; gap:8px; font:600 12.5px var(--font-ui, system-ui, sans-serif); color:#24282C; cursor:pointer; }
 .lce-check input { width:16px !important; height:16px !important; min-height:0 !important; accent-color:#24282C; }
+
+/* ── Edit-cover modal (TeachEdCover.openModal) ────────────────────────── */
+.tcv-modal {
+  position:fixed; inset:0; z-index:100000; display:flex; align-items:center; justify-content:center; padding:20px;
+  background:rgba(36,40,44,.42); animation:tcvFade .18s ease;
+}
+@keyframes tcvFade { from { opacity:0; } to { opacity:1; } }
+.tcv-modal-card {
+  width:min(500px, 100%); max-height:calc(100dvh - 40px); overflow-y:auto; overscroll-behavior:contain;
+  background:#fff; color:#24282C; border-radius:24px; padding:18px 20px 0;
+  box-shadow:0 30px 80px rgba(36,40,44,.35); display:flex; flex-direction:column; gap:14px;
+  font-family:var(--font-ui, system-ui, sans-serif);
+}
+.tcv-modal-card > * { flex-shrink:0; }
+.tcv-modal-head { display:flex; align-items:center; justify-content:space-between; font-size:17px; }
+.tcv-modal-x { width:36px; height:36px; border:0; border-radius:50%; background:#F6F6EF; color:#24282C; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.tcv-modal-x:hover { background:#CACCC6; }
+.tcv-modal-x svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; }
+.tcv-modal-prev { border-radius:18px; overflow:hidden; box-shadow:0 14px 30px -20px rgba(36,40,44,.5); }
+.tcv-modal-foot {
+  position:sticky; bottom:0; display:flex; justify-content:flex-end; gap:8px; margin:0 -20px; padding:12px 20px 16px;
+  background:#fff; border-top:1px solid rgba(36,40,44,.08);
+}
+.tcv-btn {
+  height:40px; padding:0 18px; border-radius:12px; border:1px solid #24282C; background:#CDF649; color:#24282C;
+  font:750 13.5px var(--font-ui, system-ui, sans-serif); cursor:pointer;
+}
+.tcv-btn.ghost { background:#fff; border-color:#CACCC6; }
+.tcv-btn:disabled { opacity:.6; cursor:wait; }

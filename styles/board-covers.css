@@ -1,0 +1,28 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Board cards with covers - "your lesson boards" on the desktop.
+   The cover (styles/lesson-cover.css) sits on top, name and counts below,
+   a pencil opens the same editor Community lessons use.
+   Ballast :not(#_) beats figma-concept.css's card rules (padding, title size).
+   ═══════════════════════════════════════════════════════════════════════════ */
+body:not(#_):not(#__) .curr-grid .lesson-card.bd-card {
+  padding:0 !important; display:flex; flex-direction:column; overflow:hidden;
+}
+.bd-cover { line-height:0; }
+.bd-cover .tcv-cover { border-radius:0; }
+body:not(#_):not(#__) .curr-grid .bd-card .bd-body { padding:11px 14px 13px; display:flex; flex-direction:column; gap:4px; }
+body:not(#_):not(#__) .curr-grid .bd-card .lc-title {
+  font-size:15px !important; line-height:1.25 !important; margin:0 !important;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+body:not(#_):not(#__) .curr-grid .bd-card .lc-meta { margin-top:0 !important; gap:10px; }
+.bd-cover-btn {
+  position:absolute; z-index:3; top:8px; right:8px; width:30px; height:30px; border:0; border-radius:50%;
+  background:rgba(255,255,255,.94); color:#24282C; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(36,40,44,.2);
+  opacity:0; transform:scale(.9); transition:opacity .15s, transform .15s, background .15s;
+}
+.bd-cover-btn svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.bd-card:hover .bd-cover-btn, .bd-cover-btn:focus-visible { opacity:1; transform:none; }
+.bd-cover-btn:hover { background:#CDF649; }
+@media (hover:none) { .bd-cover-btn { opacity:1; transform:none; } }

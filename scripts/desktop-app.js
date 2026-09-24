@@ -1524,20 +1524,79 @@ function boardsRender() {
     return;
   }
 
+  const escB = v => String(v ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
   grid.innerHTML = list.map(b => {
     const cards = b.card_count || 0;
     const updated = b.updated_at ? new Date(b.updated_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
-    const owner = b.owner_name ? `<div class="lc-desc">Shared by ${b.owner_name}</div>` : '';
-    return `<div class="lesson-card" onclick="location.href='board.html?id=${b.id}'" style="cursor:pointer;">
-      <div class="lc-lang">board</div>
-      <div class="lc-title">${(b.name || 'Untitled').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</div>
-      ${owner}
-      <div class="lc-meta">
-        <span class="lc-dur">${cards} card${cards === 1 ? '' : 's'}</span>
-        ${updated ? `<span class="lc-dur">${updated}</span>` : ''}
+    const owner = b.owner_name ? `<div class="lc-desc">Shared by ${escB(b.owner_name)}</div>` : '';
+    const own = !b.owner_name && boardsFilterMode !== 'shared';
+    const cover = window.TeachEdCover
+      ? TeachEdCover.render(b.cover, { title: b.name || 'Untitled', imageUrl: BOARD_COVER_URLS[b.id] || '' })
+      : '';
+    return `<div class="lesson-card bd-card" onclick="location.href='board.html?id=${escB(b.id)}'" style="cursor:pointer;">
+      <div class="bd-cover">${cover}</div>
+      ${own ? `<button class="bd-cover-btn" type="button" title="Customise cover" aria-label="Customise cover" onclick="event.stopPropagation();openBoardCoverEditor('${escB(b.id)}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>` : ''}
+      <div class="bd-body">
+        <div class="lc-title">${escB(b.name || 'Untitled')}</div>
+        ${owner}
+        <div class="lc-meta">
+          <span class="lc-dur">${cards} card${cards === 1 ? '' : 's'}</span>
+          ${updated ? `<span class="lc-dur">${updated}</span>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('');
+  loadBoardCoverImages(list);
+}
+
+/* ── Обложки своих досок ────────────────────────────────────────────────
+   Тот же редактор, что у уроков в Community (scripts/lesson-cover.js).
+   Свой снимок отдаётся только владельцу, поэтому <img src> не подходит -
+   адрес без токена вернул бы 401. Забираем fetch'ем с заголовком и кладём
+   в blob:-адрес, один раз на доску. */
+const BOARD_COVER_URLS = {};
+const _boardCoverPending = new Set();
+function loadBoardCoverImages(list) {
+  const need = (list || []).filter(b => b.has_cover_image && !BOARD_COVER_URLS[b.id] && !_boardCoverPending.has(b.id));
+  if (!need.length) return;
+  need.forEach(b => _boardCoverPending.add(b.id));
+  Promise.all(need.map(async b => {
+    try {
+      const r = await fetch(API_BASE + `/api/boards/${encodeURIComponent(b.id)}/cover-image`, { headers: { Authorization: 'Bearer ' + (_authToken || '') } });
+      if (r.ok) BOARD_COVER_URLS[b.id] = URL.createObjectURL(await r.blob());
+    } catch (_) {}
+  })).then(() => boardsRender());
+}
+
+function openBoardCoverEditor(boardId) {
+  const b = (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
+  if (!b || !window.TeachEdCover) return;
+  const info = { title: b.name || 'Untitled' };
+  TeachEdCover.openModal({
+    heading: `Cover · ${b.name || 'Untitled'}`,
+    info,
+    value: b.cover || null,
+    image: BOARD_COVER_URLS[b.id] || '',
+    async onSave(cover, image, imageChanged) {
+      const body = { cover };
+      if (imageChanged) body.coverImage = /^data:/.test(image) ? image : null;
+      const r = await fetch(API_BASE + `/api/boards/${encodeURIComponent(b.id)}/cover`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (_authToken || '') },
+        body: JSON.stringify(body),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || `Could not save (HTTP ${r.status})`);
+      b.cover = d.board?.cover ?? cover;
+      b.has_cover_image = !!d.board?.has_cover_image;
+      if (imageChanged) {
+        if (BOARD_COVER_URLS[b.id]?.startsWith('blob:')) URL.revokeObjectURL(BOARD_COVER_URLS[b.id]);
+        if (body.coverImage) BOARD_COVER_URLS[b.id] = body.coverImage; else delete BOARD_COVER_URLS[b.id];
+      }
+      boardsRender();
+      if (typeof showOsToast === 'function') showOsToast('Cover saved');
+    },
+  });
 }
 
 /* ══════════════════════ SCHEDULE ══════════════════════ */

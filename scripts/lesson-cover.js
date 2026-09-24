@@ -255,7 +255,7 @@
             </div>
           </div>
           <div class="lce-row"><span class="lce-lbl">Sticker</span><div class="lce-stickers">${STICKERS.map(s => `<button type="button" class="lce-stk${c.sticker === s ? ' on' : ''}" data-sticker="${esc(s)}">${s || '<span class="lce-none">none</span>'}</button>`).join('')}</div></div>
-          <label class="lce-check"><input type="checkbox" data-badge ${c.badge ? 'checked' : ''}> Show the level badge${inf.level ? ` (${esc(inf.level)})` : ''}</label>
+          ${inf.level ? `<label class="lce-check"><input type="checkbox" data-badge ${c.badge ? 'checked' : ''}> Show the level badge (${esc(inf.level)})</label>` : ''}
         </div>`;
     }
 
@@ -328,5 +328,45 @@
     };
   }
 
-  window.TeachEdCover = { render, auto, normalize, editor, fileToCoverImage, stripLevel, PALETTE, PHOTOS };
+  /* ── Modal: edit a saved cover ────────────────────────────────────────
+     openModal({ heading, info, value, image, preview(cover, image) → html,
+                 onSave(cover, image, imageChanged) → Promise })
+     Used for a teacher's own boards on the desktop; Community keeps its
+     own copy that previews the full lesson card. */
+  function openModal(o) {
+    document.querySelector('.tcv-modal')?.remove();
+    const wrap = document.createElement('div');
+    wrap.className = 'tcv-modal';
+    wrap.innerHTML = `<div class="tcv-modal-card" role="dialog" aria-modal="true" aria-label="${esc(o.heading || 'Edit cover')}">
+      <div class="tcv-modal-head"><b>${esc(o.heading || 'Edit cover')}</b><button type="button" class="tcv-modal-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="tcv-modal-prev"></div>
+      <div class="tcv-modal-ed"></div>
+      <div class="tcv-modal-foot"><button type="button" class="tcv-btn ghost" data-cancel>Cancel</button><button type="button" class="tcv-btn" data-save>Save cover</button></div>
+    </div>`;
+    document.body.appendChild(wrap);
+    let image = o.image || '';
+    let changed = false;
+    const prev = wrap.querySelector('.tcv-modal-prev');
+    const draw = (cover, img) => { prev.innerHTML = o.preview ? o.preview(cover, img) : render(cover, { ...o.info, imageUrl: img }); };
+    const ed = editor(wrap.querySelector('.tcv-modal-ed'), {
+      value: o.value, image, info: o.info,
+      onChange: (cover, img) => { if (img !== image) { image = img; changed = true; } draw(cover, img); },
+    });
+    draw(o.value, image);
+    const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey, true); };
+    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    document.addEventListener('keydown', onKey, true);
+    wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+    wrap.querySelector('.tcv-modal-x').onclick = close;
+    wrap.querySelector('[data-cancel]').onclick = close;
+    wrap.querySelector('[data-save]').onclick = async ev => {
+      const btn = ev.currentTarget;
+      btn.disabled = true; btn.textContent = 'Saving…';
+      try { await o.onSave(ed.get(), image, changed); close(); }
+      catch (err) { btn.disabled = false; btn.textContent = 'Save cover'; alert(err.message || 'Could not save the cover'); }
+    };
+    return { close };
+  }
+
+  window.TeachEdCover = { render, auto, normalize, editor, openModal, fileToCoverImage, stripLevel, PALETTE, PHOTOS };
 })();

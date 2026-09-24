@@ -41,13 +41,16 @@
 /* Обложка урока над сводкой справа - как у карточки в Community. */
 .lesson-cover-art { border-radius:20px; overflow:hidden; margin-bottom:12px; box-shadow:0 16px 34px -22px rgba(36,40,44,.5); }
 .lesson-cover-art:empty { display:none; }
+/* Пустые строки деталей скрыты атрибутом, но .detail-row с display:grid
+   сильнее [hidden] - «Learners» стоял с пустым значением. */
+.detail-row[hidden] { display:none !important; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=965">
+<link rel="stylesheet" href="styles/teached-brand.css?v=966">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=965">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=965">
-<link rel="stylesheet" href="styles/controls.css?v=965">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=965">
+<link rel="stylesheet" href="styles/figma-theme.css?v=966">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=966">
+<link rel="stylesheet" href="styles/controls.css?v=966">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=966">
 </head>
 <body class="fx">
 <header class="lesson-nav">
@@ -117,8 +120,8 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=965"></script>
-<script src="scripts/lesson-cover.js?v=965"></script>
+<script src="scripts/app-core.js?v=966"></script>
+<script src="scripts/lesson-cover.js?v=966"></script>
 <script>
   const FALLBACK_COLORS = ['#F3DF6B','#49F6F0','#6BAFF3','#F6F6EF','#9F8CE8','#F3A46B'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -469,6 +472,6 @@
   window.addEventListener('resize', refitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=965" defer></script>
+  <script src="scripts/signin-entry.js?v=966" defer></script>
 </body>
 </html>
