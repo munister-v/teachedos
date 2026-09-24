@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=963"></script>
+<script src="scripts/phone-gate.js?v=964"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -202,32 +202,31 @@ a{text-decoration:none;color:inherit;}
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:16px;left:16px;}
 }
 </style>
-<script src="theme.js?v=963" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=963">
-<link rel="stylesheet" href="styles/harmony.css?v=963">
-<link rel="stylesheet" href="styles/unify.css?v=963">
-<link rel="stylesheet" href="styles/teached-brand.css?v=963">
-<link rel="stylesheet" href="styles/tool-window.css?v=963">
+<script src="theme.js?v=964" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=964">
+<link rel="stylesheet" href="styles/harmony.css?v=964">
+<link rel="stylesheet" href="styles/unify.css?v=964">
+<link rel="stylesheet" href="styles/teached-brand.css?v=964">
+<link rel="stylesheet" href="styles/tool-window.css?v=964">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=963">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=963">
-<link rel="stylesheet" href="styles/controls.css?v=963">
+<link rel="stylesheet" href="styles/figma-theme.css?v=964">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=964">
+<link rel="stylesheet" href="styles/controls.css?v=964">
 </head>
 <body class="tw-page suite-page journal-suite fx">
 
 <nav id="nav">
   <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
+  <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
+       Gradebook and Analytics live as tabs inside Homework, Profile under the
+       account chip on the right. -->
   <a class="nav-link" href="index.html">Home</a>
-  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="board.html">Boards</a>
   <a class="nav-link" href="courses.html">Courses</a>
   <a class="nav-link" href="community.html">Community</a>
-  <a class="nav-link" href="homework.html">Homework</a>
+  <a class="nav-link active" href="homework.html" aria-current="page">Homework</a>
   <a class="nav-link" href="schedule.html">Schedule</a>
-  <a class="nav-link" href="analytics.html">Analytics</a>
-  <a class="nav-link active" href="journal.html">Journal</a>
-  <a class="nav-link" href="gradebook.html">Gradebook</a>
-  <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
     <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
@@ -376,7 +375,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=963"></script>
+<script src="scripts/app-core.js?v=964"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const JOURNAL_CACHE_KEY = 'teachedos_journal_cache_v1';
@@ -717,13 +716,13 @@ document.addEventListener('keydown', event => {
 init();
 </script>
 
-<script src="pwa.js?v=963"></script>
-<script src="scripts/nav-boost.js?v=963" defer></script>
-<script src="scripts/mobile-perf.js?v=963" defer></script>
-<script src="scripts/mobile-nav.js?v=963"></script>
-<script src="scripts/mobile-zoom-guard.js?v=963" defer></script>
-<script src="scripts/autogrow.js?v=963" defer></script>
-<script src="pwa-boot.js?v=963" defer></script>
-  <script src="scripts/signin-entry.js?v=963" defer></script>
+<script src="pwa.js?v=964"></script>
+<script src="scripts/nav-boost.js?v=964" defer></script>
+<script src="scripts/mobile-perf.js?v=964" defer></script>
+<script src="scripts/mobile-nav.js?v=964"></script>
+<script src="scripts/mobile-zoom-guard.js?v=964" defer></script>
+<script src="scripts/autogrow.js?v=964" defer></script>
+<script src="pwa-boot.js?v=964" defer></script>
+  <script src="scripts/signin-entry.js?v=964" defer></script>
 </body>
 </html>

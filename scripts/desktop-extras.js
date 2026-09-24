@@ -38,7 +38,8 @@ function fillAccountChip(user) {
   if (!user) return;
   const role = user.role === 'admin' ? 'Admin' : user.role === 'student' ? 'Student' : 'Teacher';
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  set('mb-acct-role', role);
+  // В чипе строки меню - имя, как на остальных страницах; роль и тариф - в меню под ним.
+  set('mb-acct-role', String(user.name || '').trim().split(/\s+/)[0] || role);
   set('mb-acct-name', user.name || role);
   set('mb-acct-email', user.email || '');
   const plan = String(user.plan || 'free');

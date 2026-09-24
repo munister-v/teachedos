@@ -760,13 +760,26 @@ const WGM = (function () {
     updateRestoreChip();
   }
 
+  /* Сохранённое место держим в пределах экрана. Позиция запоминается в
+     пикселях, и виджет, поставленный на широком мониторе, на ноутбуке
+     уезжал за правый край - «Next class» был виден наполовину. Сохранённое
+     значение не трогаем: вернётся на широкий экран - встанет где стоял. */
   function applyPosition(w) {
     const s = state[w.id];
     if (!s || s.left == null) return;
-    w.style.left = s.left + 'px';
-    w.style.top = s.top + 'px';
+    const width = w.offsetWidth || 240;
+    const height = w.offsetHeight || 120;
+    const maxX = Math.max(8, window.innerWidth - width - 8);
+    const maxY = Math.max(56, window.innerHeight - height - 8);
+    w.style.left = Math.max(8, Math.min(s.left, maxX)) + 'px';
+    w.style.top = Math.max(56, Math.min(s.top, maxY)) + 'px';
     w.style.right = 'auto';
   }
+  let _wgResizeRaf = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(_wgResizeRaf);
+    _wgResizeRaf = requestAnimationFrame(() => document.querySelectorAll('.widget').forEach(applyPosition));
+  });
 
   function attach(w) {
     if (w._wgmAttached) return;

@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=963"></script>
+<script src="scripts/phone-gate.js?v=964"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=963">
-<link rel="preload" as="style" href="styles/unify.css?v=963">
+<link rel="preload" as="style" href="styles/harmony.css?v=964">
+<link rel="preload" as="style" href="styles/unify.css?v=964">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=963">
+<link rel="stylesheet" href="styles/fonts.css?v=964">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -304,16 +304,16 @@ button{font-family:var(--font);cursor:pointer;}
   .nw-tb{width:40px;height:40px;font-size:15px}
 }
 </style>
-<script src="theme.js?v=963" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=963">
-<link rel="stylesheet" href="styles/harmony.css?v=963">
-<link rel="stylesheet" href="styles/unify.css?v=963">
-<link rel="stylesheet" href="styles/teached-brand.css?v=963">
-<link rel="stylesheet" href="styles/tool-window.css?v=963">
+<script src="theme.js?v=964" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=964">
+<link rel="stylesheet" href="styles/harmony.css?v=964">
+<link rel="stylesheet" href="styles/unify.css?v=964">
+<link rel="stylesheet" href="styles/teached-brand.css?v=964">
+<link rel="stylesheet" href="styles/tool-window.css?v=964">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=963">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=963">
-<link rel="stylesheet" href="styles/controls.css?v=963">
+<link rel="stylesheet" href="styles/figma-theme.css?v=964">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=964">
+<link rel="stylesheet" href="styles/controls.css?v=964">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -333,16 +333,15 @@ button{font-family:var(--font);cursor:pointer;}
 <nav id="nav">
   <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
+  <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
+       Gradebook and Analytics live as tabs inside Homework, Profile under the
+       account chip on the right. -->
   <a class="nav-link" href="index.html">Home</a>
-  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="board.html">Boards</a>
   <a class="nav-link" href="courses.html">Courses</a>
   <a class="nav-link" href="community.html">Community</a>
-  <a class="nav-link active" href="homework.html">Homework</a>
+  <a class="nav-link active" href="homework.html" aria-current="page">Homework</a>
   <a class="nav-link" href="schedule.html">Schedule</a>
-  <a class="nav-link" href="analytics.html">Analytics</a>
-  <a class="nav-link" href="journal.html">Journal</a>
-  <a class="nav-link" href="gradebook.html">Gradebook</a>
-  <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html" id="nav-user">
     <span id="nav-avatar">T</span><span id="nav-name">Teacher</span>
@@ -471,7 +470,7 @@ button{font-family:var(--font);cursor:pointer;}
 <div id="toast" role="status" aria-live="polite"></div>
 
 <!-- Not deferred: init() below calls mountNotesWidget() synchronously. -->
-<script src="scripts/notes-widget.js?v=963"></script>
+<script src="scripts/notes-widget.js?v=964"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -904,12 +903,12 @@ init();
 if (typeof mountNotesWidget === 'function') mountNotesWidget(document.getElementById('notes-widget-host'));
 </script>
 
-<script src="scripts/nav-boost.js?v=963" defer></script>
-<script src="scripts/mobile-perf.js?v=963" defer></script>
-<script src="scripts/mobile-nav.js?v=963"></script>
-<script src="scripts/mobile-zoom-guard.js?v=963" defer></script>
-<script src="scripts/autogrow.js?v=963" defer></script>
-<script src="pwa-boot.js?v=963" defer></script>
-  <script src="scripts/signin-entry.js?v=963" defer></script>
+<script src="scripts/nav-boost.js?v=964" defer></script>
+<script src="scripts/mobile-perf.js?v=964" defer></script>
+<script src="scripts/mobile-nav.js?v=964"></script>
+<script src="scripts/mobile-zoom-guard.js?v=964" defer></script>
+<script src="scripts/autogrow.js?v=964" defer></script>
+<script src="pwa-boot.js?v=964" defer></script>
+  <script src="scripts/signin-entry.js?v=964" defer></script>
 </body>
 </html>

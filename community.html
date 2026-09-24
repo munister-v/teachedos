@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=963"></script>
+<script src="scripts/phone-gate.js?v=964"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=963">
+<link rel="manifest" href="manifest.json?v=964">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -79,10 +79,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.side{display:none}.shell{display:block}.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=963" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=963">
-<link rel="stylesheet" href="styles/harmony.css?v=963">
-<link rel="stylesheet" href="styles/unify.css?v=963">
+<script src="theme.js?v=964" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=964">
+<link rel="stylesheet" href="styles/harmony.css?v=964">
+<link rel="stylesheet" href="styles/unify.css?v=964">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -283,28 +283,69 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
     body .game-level-filters::-webkit-scrollbar{display:none;}
     body .game-level-filters .level-pill{flex:0 0 auto;}
   }
+
+/* ── Publisher as a drawer ──────────────────────────────────────────────
+   Форма публикации стояла второй колонкой в шапке и была втрое выше неё:
+   сетка уроков начиналась только после формы, на 1600px вниз, и страница
+   сообщества выглядела пустой. Теперь форма выезжает справа по «Share a
+   lesson» (и сама открывается, если пришли с доски ?publishBoard=).
+   Балласт :not(#_) - перебить hover-подъёмы и «стекло» из unify/harmony. */
+body:not(#_):not(#__) .hero { grid-template-columns:minmax(0,1fr) !important; }
+body:not(#_):not(#__) .share-card {
+  position:fixed !important; top:0 !important; right:0 !important; bottom:0 !important; z-index:900 !important;
+  width:min(460px, 100vw) !important; max-height:none !important; margin:0 !important;
+  overflow-y:auto !important; overscroll-behavior:contain;
+  border-radius:24px 0 0 24px !important; background:#fff !important; border:0 !important;
+  box-shadow:-24px 0 60px rgba(36,40,44,.18) !important; backdrop-filter:none !important;
+  transform:translateX(105%) !important; visibility:hidden;
+  transition:transform .32s cubic-bezier(.2,.8,.2,1), visibility 0s linear .32s !important;
+  padding:22px 24px 28px !important;
+}
+body:not(#_):not(#__) .share-card.is-open {
+  transform:none !important; visibility:visible;
+  transition:transform .32s cubic-bezier(.2,.8,.2,1), visibility 0s !important;
+}
+.share-backdrop {
+  position:fixed; inset:0; z-index:899; background:rgba(36,40,44,.32);
+  opacity:0; pointer-events:none; transition:opacity .25s ease;
+}
+.share-backdrop.is-open { opacity:1; pointer-events:auto; }
+.share-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
+.share-head .share-title { margin:0 !important; }
+.share-close {
+  width:36px; height:36px; flex-shrink:0; border:0; border-radius:50%; background:#F6F6EF; color:#24282C;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s;
+}
+.share-close:hover { background:#CACCC6; }
+.share-close svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; }
+body.share-drawer-open { overflow:hidden; }
+@media (max-width:900px) {
+  body:not(#_):not(#__) .share-card { border-radius:0 !important; width:100vw !important; }
+}
+@media (prefers-reduced-motion:reduce) {
+  body:not(#_):not(#__) .share-card, .share-backdrop { transition:none !important; }
+}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=963">
-<link rel="stylesheet" href="styles/tool-window.css?v=963">
+<link rel="stylesheet" href="styles/teached-brand.css?v=964">
+<link rel="stylesheet" href="styles/tool-window.css?v=964">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=963">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=963">
-<link rel="stylesheet" href="styles/controls.css?v=963">
+<link rel="stylesheet" href="styles/figma-theme.css?v=964">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=964">
+<link rel="stylesheet" href="styles/controls.css?v=964">
 </head>
 <body class="tw-page fx">
 <nav id="nav">
   <a class="nav-logo" href="index.html"><img src="logo-sm.png" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
+  <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
+       Gradebook and Analytics live as tabs inside Homework, Profile under the
+       account chip on the right. -->
   <a class="nav-link" href="index.html">Home</a>
-  <a class="nav-link" href="board.html">Board</a>
+  <a class="nav-link" href="board.html">Boards</a>
   <a class="nav-link" href="courses.html">Courses</a>
-  <a class="nav-link active" href="community.html">Community</a>
+  <a class="nav-link active" href="community.html" aria-current="page">Community</a>
   <a class="nav-link" href="homework.html">Homework</a>
   <a class="nav-link" href="schedule.html">Schedule</a>
-  <a class="nav-link" href="analytics.html">Analytics</a>
-  <a class="nav-link" href="journal.html">Journal</a>
-  <a class="nav-link" href="gradebook.html">Gradebook</a>
-  <a class="nav-link" href="profile.html">Profile</a>
   <div class="nav-spacer"></div>
   <a class="nav-user" href="profile.html"><span id="nav-avatar">T</span><span id="nav-name">Teacher</span></a>
 </nav>
@@ -335,8 +376,13 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
         <div class="stat-pill"><div class="stat-num" id="stat-games">0</div><div class="stat-label">Games</div></div>
       </div>
     </div>
-    <aside class="share-card" aria-labelledby="publisher-heading">
-      <div class="share-title" id="publisher-heading">Publish a lesson</div>
+    <aside class="share-card" id="share-card" role="dialog" aria-modal="true" aria-labelledby="publisher-heading" aria-hidden="true">
+      <div class="share-head">
+        <div class="share-title" id="publisher-heading">Publish a lesson</div>
+        <button class="share-close" type="button" onclick="closeCommunityPublisher()" aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
       <p class="publisher-intro" id="publisher-intro">Share a clean, copyable lesson snapshot with other teachers.</p>
       <div class="lesson-preview" aria-label="Lesson card preview">
         <div class="lesson-preview-top">
@@ -486,8 +532,8 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=963"></script>
-<script src="scripts/vocab-loader.js?v=963"></script>
+<script src="scripts/app-core.js?v=964"></script>
+<script src="scripts/vocab-loader.js?v=964"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -1092,11 +1138,42 @@ function updatePublisherPreview() {
   syncPublisherButton();
 }
 
+/* Форма публикации - выезжающая панель, а не колонка шапки (см. стили
+   «Publisher as a drawer»): с ней сетка уроков стояла на 1600px ниже. */
+let _publisherReturnFocus = null;
 function focusCommunityPublisher() {
-  const publisher = document.querySelector('.share-card');
-  publisher?.scrollIntoView({ behavior:'smooth', block:'start' });
-  requestAnimationFrame(() => document.getElementById('share-title')?.focus({ preventScroll:true }));
+  const publisher = document.getElementById('share-card');
+  if (!publisher) return;
+  let backdrop = document.getElementById('share-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'share-backdrop';
+    backdrop.className = 'share-backdrop';
+    backdrop.addEventListener('click', closeCommunityPublisher);
+    document.body.appendChild(backdrop);
+  }
+  if (!publisher.classList.contains('is-open')) _publisherReturnFocus = document.activeElement;
+  publisher.classList.add('is-open');
+  publisher.setAttribute('aria-hidden', 'false');
+  backdrop.classList.add('is-open');
+  document.body.classList.add('share-drawer-open');
+  setTimeout(() => document.getElementById('share-title')?.focus({ preventScroll:true }), 120);
 }
+
+function closeCommunityPublisher() {
+  const publisher = document.getElementById('share-card');
+  if (!publisher || !publisher.classList.contains('is-open')) return;
+  publisher.classList.remove('is-open');
+  publisher.setAttribute('aria-hidden', 'true');
+  document.getElementById('share-backdrop')?.classList.remove('is-open');
+  document.body.classList.remove('share-drawer-open');
+  try { _publisherReturnFocus?.focus?.({ preventScroll:true }); } catch (_) {}
+  _publisherReturnFocus = null;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeCommunityPublisher();
+});
 
 function canPublishCommunityLesson() {
   if (!token) return false;
@@ -1941,11 +2018,11 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=963" defer></script>
-<script src="scripts/mobile-nav.js?v=963"></script>
-<script src="scripts/mobile-zoom-guard.js?v=963" defer></script>
-<script src="scripts/autogrow.js?v=963" defer></script>
-<script src="pwa-boot.js?v=963" defer></script>
-  <script src="scripts/signin-entry.js?v=963" defer></script>
+<script src="scripts/mobile-perf.js?v=964" defer></script>
+<script src="scripts/mobile-nav.js?v=964"></script>
+<script src="scripts/mobile-zoom-guard.js?v=964" defer></script>
+<script src="scripts/autogrow.js?v=964" defer></script>
+<script src="pwa-boot.js?v=964" defer></script>
+  <script src="scripts/signin-entry.js?v=964" defer></script>
 </body>
 </html>

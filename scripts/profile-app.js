@@ -250,7 +250,8 @@ async function renderOverview(forceOffline = false) {
   const navAvatar = document.getElementById('nav-avatar');
   const navName = document.getElementById('nav-name');
   if (navAvatar) navAvatar.textContent = me.avatar || (me.name || 'T')[0];
-  if (navName) navName.textContent = me.role === 'admin' ? 'Admin' : 'Teacher';
+  // Имя, как в чипе на всех остальных страницах, а не роль.
+  if (navName) navName.textContent = (me.name || '').split(/\s+/)[0] || (me.role === 'admin' ? 'Admin' : 'Teacher');
   document.getElementById('profile-avatar-big').textContent = me.avatar || 'T';
   document.getElementById('profile-name-big').textContent = me.name;
   document.getElementById('profile-email-big').textContent = me.email;
@@ -866,7 +867,7 @@ async function saveName() {
     document.getElementById('profile-name-big').textContent = me.name;
     document.getElementById('nb-user-info').textContent = me.name.split(' ')[0];
     const navName = document.getElementById('nav-name');
-    if (navName) navName.textContent = me.role === 'admin' ? 'Admin' : 'Teacher';
+    if (navName) navName.textContent = me.name.split(/\s+/)[0] || 'Teacher';
     toast('Name updated!');
   } catch { toast('Failed to save name'); }
 }
