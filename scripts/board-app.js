@@ -3242,6 +3242,8 @@ function _wsStripKicker(d) {
 
 function renderWorksheet(el, card) {
   const d = card.data || {};
+  // Урок письма - один виджет-путь, а не россыпь карточек (см. _wpRender).
+  if (d._wfPath && Array.isArray(d._wfPath.steps) && d._wfPath.steps.length) { _wpRender(el, card, false); return; }
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
              || { icon:'📄', color:'#24282C' };
   // Generated sheets all share ONE accent (the brand ink) instead of taking the
@@ -3264,7 +3266,8 @@ function renderWorksheet(el, card) {
        из игры или выделив карточку и нажав Delete. */
     const strip = document.createElement('div');
     strip.className = 'ws-drag-strip';
-    strip.innerHTML = `<span>${esc(d.title || 'Interactive Activity')}</span><button class="ws-back-btn" title="Back to static view">✕ Exit</button>`;
+    strip.innerHTML = `<span>${esc(d.title || 'Interactive Activity')}</span><button class="ws-focus-btn" title="Open in a studio window">⤢ Studio</button><button class="ws-back-btn" title="Back to static view">✕ Exit</button>`;
+    strip.querySelector('.ws-focus-btn').addEventListener('click', ev => { ev.stopPropagation(); openCardStudio(card.id); });
     strip.title = 'Drag to move';
     strip.addEventListener('mousedown', e => {
       if (e.target.closest('.ws-back-btn')) return;
@@ -3763,6 +3766,228 @@ function _ttPlayCardSize(d) {
   return { w, h: Math.max(420, Math.min(900, Math.round(chrome + tallest))) };
 }
 
+/* ═══ ВИДЖЕТ-ПУТЬ УРОКА ПИСЬМА ════════════════════════════════════════════
+   Урок письма ведёт ученика за руку: идеи → образец → памятка жанра →
+   фразы → план и критерии → Writing Studio. На доске это ОДНА карточка,
+   а не россыпь блоков, в которой непонятно, с чего начать: на экране всегда
+   один шаг, сверху - где ты в пути, снизу - «дальше». Кнопка «Open Studio»
+   разворачивает путь окном на весь экран - доска для урока это холст, а
+   студия - режим фокуса.
+
+   Шаг - это та же разметка, что у отдельных карточек (writing-flow.js /
+   worksheet-play.js), в своём iframe с id «карточка::шаг». Ответы шага
+   живут в card.data._wfPath.steps[k].state. */
+const WP_TITLES = { ideas: 'Ideas', model: 'Model text', guide: 'Genre guide', phrases: 'Phrases', plan: 'Plan', criteria: 'Checklist', studio: 'Writing Studio' };
+let _wpFocusId = null;
+
+function _wfPlacePath(set, results, label) {
+  const WG = window.TeachEdWritingGenres;
+  const guide = WG ? WG.guideFor(set.base.genre) : null;
+  const steps = results.map(out => {
+    const role = out._wfRole || (out._ttMaterial ? 'model' : '');
+    return { role, title: WP_TITLES[role] || String(out.title || 'Task').slice(0, 28), out: _wpSlim(out), state: null };
+  });
+  steps.sort((a, b) => ((a.out._ytStage ?? 9) - (b.out._ytStage ?? 9)));
+  if (guide) {
+    const at = steps.findIndex(s => s.role === 'phrases' || s.role === 'plan' || s.role === 'criteria' || s.role === 'studio');
+    steps.splice(at < 0 ? steps.length : at, 0, { role: 'guide', title: 'Genre guide', out: { title: guide.label }, state: null });
+  }
+  const W = 1040, H = 780;
+  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const center = findFreePlacement(c0.x, c0.y, W, H);
+  snapshot();
+  const card = addCard('worksheet', Math.round(center.x - W / 2), Math.round(center.y - H / 2), {
+    title: label, level: set.base.level || 'B1', topic: set.base.topic || '', cat: 'writing', _ttSrc: 1, _interactive: true,
+    _wfPath: { steps, cur: 0, done: [], guide, genre: set.base.genre || '' },
+  }, W, H);
+  if (card) setTimeout(() => zoomToCard(card.id, true), 80);
+  return card;
+}
+// Только то, что нужно разметке шага: без служебных полей генерации.
+function _wpSlim(out) {
+  const keep = ['title', 'kind', 'cat', 'level', 'topic', 'boardKind', 'questions', 'items', 'cards', 'vocab', '_ttMaterial', '_titleChoice', '_ytStage', '_wfRole', 'accent'];
+  const o = {};
+  keep.forEach(k => { if (out[k] !== undefined) o[k] = out[k]; });
+  return o;
+}
+function _wpPhrases(p) {
+  const WF = window.TeachEdWritingFlow;
+  return WF ? p.steps.filter(s => s.role === 'phrases').flatMap(s => WF.phrasesOf(s.out)).slice(0, 30) : [];
+}
+function _wpStepHtml(card, k, width) {
+  const p = card.data._wfPath;
+  const st = p.steps[k];
+  const d = { ...st.out, title: st.out.title || st.title, _state: st.state || null,
+    _wfRole: st.role === 'model' ? '' : st.role, _wfGuide: p.guide || null,
+    _wfCtx: { next: null, phrases: _wpPhrases(p), guide: p.guide || null } };
+  const id = card.id + '::' + k;
+  const owner = (typeof isOwner === 'undefined') ? true : !!isOwner;
+  if (['ideas', 'phrases', 'plan', 'criteria', 'guide'].includes(st.role) && window.TeachEdWritingFlow) {
+    return window.TeachEdWritingFlow.buildHtml(d, id, owner, width);
+  }
+  if (st.role === 'studio') d._wfRole = 'studio';
+  return _buildInteractiveWSHtml(d, id, owner, width);
+}
+function _wpRender(el, card, focus) {
+  const p = card.data._wfPath;
+  const n = p.steps.length;
+  const i = Math.max(0, Math.min(n - 1, p.cur || 0));
+  const done = p.done || [];
+  el.classList.add('wp-card');
+  el.dataset.interactive = '1';
+  const root = document.createElement('div');
+  root.className = 'wp' + (focus ? ' is-focus' : '');
+  const next = p.steps[i + 1];
+  const nextLabel = !next ? '' : next.role === 'studio' ? 'Go to the Writing Studio →' : `Next: ${next.title} →`;
+  root.innerHTML = `
+    <div class="wp-head">
+      <div class="wp-top">
+        <div class="wp-name"><span class="wp-kicker">Writing path${p.guide ? ' · ' + esc(p.guide.label) + ' · ' + esc(p.guide.registerLabel) : ''}</span>
+          <b class="wp-title">${esc(card.data.title || 'Writing lesson')}</b></div>
+        ${focus ? '<button type="button" class="wp-btn wp-close">✕ Back to the board</button>' : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
+      </div>
+      <div class="wp-steps">${p.steps.map((s, k) => `<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${s.role === 'studio' ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k + 1}</i><span>${esc(s.title)}</span></button>`).join('<span class="wp-line"></span>')}</div>
+    </div>
+    <div class="wp-stage"></div>
+    <div class="wp-nav">
+      <button type="button" class="wp-btn wp-prev"${i === 0 ? ' disabled' : ''}>← Back</button>
+      <span class="wp-where">Step ${i + 1} of ${n} · ${esc(p.steps[i].title)}</span>
+      ${next ? `<button type="button" class="wp-btn wp-next${next.role === 'studio' ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : '<span class="wp-end">Last step</span>'}
+    </div>`;
+  el.appendChild(root);
+  const stage = root.querySelector('.wp-stage');
+  if (!focus && _wpFocusId === card.id) {
+    stage.innerHTML = '<div class="wp-away">This path is open in the Studio window.</div>';
+  } else {
+    const f = document.createElement('iframe');
+    f.sandbox = 'allow-scripts';
+    const width = focus ? Math.min(1280, window.innerWidth - 64) : card.w - 24;
+    f.srcdoc = _wpStepHtml(card, i, width);
+    f.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#F6F6EF';
+    stage.appendChild(f);
+    _iwRegisterFrame(card.id + '::' + i, f);
+  }
+  // Доска не должна тащить карточку, когда работают внутри шага.
+  [stage, root.querySelector('.wp-nav'), root.querySelector('.wp-steps')].forEach(x => x.addEventListener('mousedown', ev => ev.stopPropagation()));
+  root.querySelector('.wp-head').addEventListener('mousedown', ev => {
+    if (ev.target.closest('button')) { ev.stopPropagation(); return; }
+    if (!focus && !state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
+  });
+  root.querySelectorAll('.wp-step').forEach(b => b.addEventListener('click', () => _wpGo(card.id, Number(b.dataset.k))));
+  root.querySelector('.wp-prev').addEventListener('click', () => _wpGo(card.id, i - 1));
+  root.querySelector('.wp-next')?.addEventListener('click', () => _wpGo(card.id, i + 1));
+  root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
+  root.querySelector('.wp-close')?.addEventListener('click', () => closeCardStudio());
+}
+function _wpGo(cardId, k) {
+  const card = state.cards.find(c => c.id === cardId);
+  const p = card && card.data._wfPath;
+  if (!p) return;
+  k = Math.max(0, Math.min(p.steps.length - 1, k));
+  if (k === p.cur) return;
+  if (!Array.isArray(p.done)) p.done = [];
+  if (k > p.cur) p.done[p.cur] = true;
+  p.cur = k;
+  reRenderCard(card);
+  if (_wpFocusId === cardId) _studioRender();
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+function _wpHandleMessage(m, e) {
+  const [baseId, kStr] = m.cardId.split('::');
+  const k = Number(kStr);
+  const card = state.cards.find(c => c.id === baseId);
+  const p = card && card.data && card.data._wfPath;
+  if (!p || !p.steps[k]) return;
+  if (m.type === 'iw-state') {
+    p.steps[k].state = m.state;
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  } else if (m.type === 'iw-goto') {
+    _wpGo(baseId, k + 1);
+  } else if (m.type === 'iw-insert' && m.text) {
+    const si = p.steps.findIndex(s => s.role === 'studio');
+    if (si < 0) { toast('This path has no Writing Studio'); return; }
+    const win = _iwFrameWin(baseId + '::' + si);
+    if (p.cur === si && win) { try { win.postMessage({ type: 'iw-insert-text', text: String(m.text).slice(0, 2000) }, '*'); } catch {} }
+    else {
+      const st = p.steps[si].state || (p.steps[si].state = {});
+      st.draft = String(st.draft || '') + (st.draft ? ' ' : '') + esc(String(m.text).slice(0, 2000)) + ' ';
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    }
+    toast('Added to your draft');
+  } else if (m.type === 'iw-copy' && m.text) {
+    navigator.clipboard?.writeText(String(m.text)).then(() => toast('Copied'), () => {});
+  } else if (m.type === 'iw-submit-draft') {
+    const reply = (ok, msg) => { try { e.source.postMessage({ type: 'iw-submitted', ok, msg }, '*'); } catch {} };
+    if (typeof currentBoardId === 'undefined' || !currentBoardId || !authToken) {
+      reply(false, 'Saved on the board. Sign in to hand it in to your teacher.');
+      return;
+    }
+    const words = Math.max(0, Number(m.words) || 0);
+    const target = Math.max(1, Number(m.target) || 1);
+    apiFetch('/api/boards/' + currentBoardId + '/progress', {
+      method: 'POST',
+      body: { cardId: baseId, score: words, maxScore: target, pct: Math.min(100, Math.round(words / target * 100)),
+        answers: [{ type: 'writing', words, text: String(m.text || '').slice(0, 20000) }] },
+    }).then(r => reply(r.ok, r.ok ? '' : 'Could not hand it in - it is still saved on the board.'))
+      .catch(() => reply(false, 'No connection - your draft is still saved on the board.'));
+  } else if (m.type === 'iw-drafts') {
+    _wfShowDrafts(baseId);
+  }
+}
+
+/* ═══ СТУДИЯ - ОКНО ПОВЕРХ ДОСКИ ═════════════════════════════════════════
+   Доска - холст, студия - режим фокуса: любая интерактивная карточка (и путь
+   урока письма) открывается окном на весь экран, доска уходит в фон. Ответы
+   те же - это та же карточка, только крупно; по закрытии карточка на доске
+   перерисовывается с тем, что ученик успел сделать. */
+function openCardStudio(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  closeCardStudio(true);
+  _wpFocusId = cardId;
+  const ov = document.createElement('div');
+  ov.id = 'card-studio';
+  ov.className = 'card-studio';
+  ov.setAttribute('role', 'dialog');
+  ov.setAttribute('aria-modal', 'true');
+  document.body.appendChild(ov);
+  document.body.classList.add('studio-open');
+  _studioRender();
+  if (card.data._wfPath) reRenderCard(card);
+}
+function _studioRender() {
+  const ov = document.getElementById('card-studio');
+  const card = state.cards.find(c => c.id === _wpFocusId);
+  if (!ov || !card) return;
+  ov.innerHTML = '';
+  const box = document.createElement('div');
+  box.className = 'card-studio-box';
+  ov.appendChild(box);
+  if (card.data._wfPath) { _wpRender(box, card, true); return; }
+  const d = card.data;
+  box.innerHTML = `<div class="card-studio-head"><div><span class="wp-kicker">Studio</span><b class="wp-title">${esc(d.title || 'Activity')}</b></div>
+    <button type="button" class="wp-btn wp-close">✕ Back to the board</button></div><div class="card-studio-stage"></div>`;
+  box.querySelector('.wp-close').addEventListener('click', () => closeCardStudio());
+  const f = document.createElement('iframe');
+  f.sandbox = 'allow-scripts';
+  f.srcdoc = _buildInteractiveWSHtml(d._wfRole ? { ...d, _wfCtx: _wfCtxFor(card) } : d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner, Math.min(1280, window.innerWidth - 64));
+  f.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#F6F6EF';
+  box.querySelector('.card-studio-stage').appendChild(f);
+  _iwRegisterFrame(card.id, f);
+}
+function closeCardStudio(silent) {
+  const ov = document.getElementById('card-studio');
+  if (!ov) return;
+  ov.remove();
+  document.body.classList.remove('studio-open');
+  const id = _wpFocusId;
+  _wpFocusId = null;
+  const card = id && state.cards.find(c => c.id === id);
+  // Карточка на доске снова своя: перерисовка забирает то, что сделано в окне.
+  if (card && !silent) reRenderCard(card);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('card-studio')) closeCardStudio(); });
+
 /* ── Урок письма: порядок блоков, мастерская, присланные черновики ──
    Порядок - тот, в котором блоки легли в урок (_wfOrder), а не по
    координатам: сетка кадра кладёт карточки колонками, и «сверху вниз»
@@ -3816,9 +4041,10 @@ async function _wfShowDrafts(cardId) {
     const rows = (results || []).filter(x => x.card_id === cardId).map(x => {
       let ans = x.answers;
       if (typeof ans === 'string') { try { ans = JSON.parse(ans); } catch { ans = []; } }
-      const w = (Array.isArray(ans) ? ans : []).find(a => a && a.type === 'writing') || {};
+      const w = (Array.isArray(ans) ? ans : []).find(a => a && a.type === 'writing');
+      if (!w) return null;
       return { name: x.student_name || x.student_email || 'Student', at: x.submitted_at, words: w.words || x.score || 0, target: x.max_score || 0, text: w.text || '' };
-    });
+    }).filter(Boolean);
     if (!rows.length) { body.innerHTML = '<p class="wf-drafts-empty">No drafts yet. When a student presses <b>Submit Final Draft</b>, their text appears here.</p>'; return; }
     body.innerHTML = rows.map(x => `<article class="wf-draft">
       <header><b>${esc(x.name)}</b><span>${x.words}${x.target ? ' / ' + x.target : ''} words · ${esc(new Date(x.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span></header>
@@ -3999,6 +4225,10 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
         } catch {}
         try { e.source.postMessage({ type: 'iw-word-info', cardId: m.cardId, word: m.word, info }, '*'); } catch {}
       })();
+    }
+    /* Шаги виджета-пути приходят с id вида «карточка::шаг». */
+    if (typeof m.cardId === 'string' && m.cardId.includes('::') && _iwSourceValid(m.cardId, e.source)) {
+      _wpHandleMessage(m, e);
     }
     /* ── Урок письма: блоки подготовки говорят с мастерской ── */
     if (m.type === 'iw-goto' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
@@ -14027,7 +14257,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '976';
+const TEACHEDOS_ASSET_VERSION = '978';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16579,7 +16809,10 @@ function placeBoardLessonStageSet() {
      начинаться с неё, а не с карточки, плавающей рядом с кадром. */
   const videoUrl = (set.media && wantsVideo) ? set.media.url : null;
 
-  try {
+  if (writingFlow) {
+    try { _wfPlacePath(set, results, label); }
+    catch (err) { console.warn('[stages] writing path placement failed', err); return false; }
+  } else try {
     _placeLessonOnBoard(results, '', videoUrl, {
       source: readingText,
       level: set.base.level || 'B1',

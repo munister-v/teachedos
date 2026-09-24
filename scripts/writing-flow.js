@@ -251,6 +251,30 @@ document.addEventListener('click',function(e){
     return { content, script };
   }
 
+  /* ── Genre guide: what this kind of text must do, and its phrases ───── */
+  function guideHtml(d) {
+    const g = d._wfGuide || {};
+    let k = 0;
+    const groups = Object.entries(g.phrases || {});
+    const content = `<div class="wf-intro"><span class="wf-ic">🧭</span><span><b>${esc(g.label || 'Genre guide')}</b> · ${esc(g.registerLabel || '')}. ${esc(g.tone || '')}</span></div>
+      <details class="wf-panel" open><summary>What your text must do<span class="wf-count">${(g.requirements || []).length}</span></summary>
+        <div class="wf-list">${(g.requirements || []).map((r, i) => `<div class="wf-ph"><div class="wf-ph-main"><b>${i + 1}. ${md(r)}</b></div></div>`).join('')}</div></details>
+      ${groups.map(([name, list]) => `<details class="wf-panel" open><summary>${esc(name)}<span class="wf-count">${list.length}</span></summary><div class="wf-list">${list.map(ph => {
+        k++;
+        const clean = String(ph).replace(/\s*\((?:no name|name known)\)\s*$/i, '');
+        return `<div class="wf-ph"><div class="wf-ph-main"><b>${md(ph)}</b></div><div class="wf-ph-acts">
+          <button class="wf-mini" type="button" data-copy="${esc(clean)}">Copy</button>
+          <button class="wf-mini" type="button" data-ins="${esc(clean.replace(/…$/, ''))}">＋ Insert</button></div></div>`;
+      }).join('')}</div></details>`).join('')}
+      ${footHtml(d, `${k} phrases for this genre`)}`;
+    const script = `
+document.addEventListener('click',function(e){
+  var c=e.target.closest('[data-copy]'); if(c){ wfCopy(c.getAttribute('data-copy'),c); return; }
+  var i=e.target.closest('[data-ins]'); if(i){ wfInsert(i.getAttribute('data-ins'),i); }
+});`;
+    return { content, script };
+  }
+
   /* ── Plan / criteria: tick it off as you go ─────────────────────────── */
   function checklistHtml(d) {
     const criteria = d._wfRole === 'criteria';
@@ -292,6 +316,7 @@ document.addEventListener('DOMContentLoaded',function(){
   function buildHtml(d, cardId, ownerView, cardW, heightReporter) {
     const part = d._wfRole === 'ideas' ? ideasHtml(d)
       : d._wfRole === 'phrases' ? phrasesHtml(d)
+      : d._wfRole === 'guide' ? guideHtml(d)
       : checklistHtml(d);
     return `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
 ${part.content}

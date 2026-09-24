@@ -1165,6 +1165,18 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
       <summary>Phrases from this lesson</summary>
       <div class="iw-ws-acc-body iw-ws-chips">${lessonPhrases.map(p =>
         `<button type="button" class="iw-ws-chip" data-ins="${esc(p.phrase)}" title="${esc(p.note || 'Click to insert')}">${md(p.phrase)}</button>`).join('')}</div></details>` : '';
+    /* Памятка жанра (js/writing-genres.js): требования и фразы по местам в
+       тексте - Opening / Body / Closing / Sign-off, щелчок - в черновик. */
+    const guide = d._wfCtx && d._wfCtx.guide;
+    const guideAcc = guide && guide.phrases ? `<details class="iw-ws-acc" open>
+      <summary>${md(guide.label || 'Genre guide')}</summary>
+      <div class="iw-ws-acc-body">
+        ${(guide.requirements || []).map(r => `<p class="iw-ws-req-note">• ${md(r)}</p>`).join('')}
+        ${Object.entries(guide.phrases).map(([sec, list]) => `<p class="iw-ws-sec">${md(sec)}</p><div class="iw-ws-chips">${list.map(ph => {
+          const clean = String(ph).replace(/\s*\((?:no name|name known)\)\s*$/i, '').replace(/…$/, '');
+          return `<button type="button" class="iw-ws-chip" data-ins="${esc(clean)}" title="Click to insert">${md(ph)}</button>`;
+        }).join('')}</div>`).join('')}
+      </div></details>` : '';
     const drafts = ownerView && d._wfRole === 'studio'
       ? `<button type="button" class="iw-ws-drafts" onclick="iwWsDrafts()">Student drafts</button>` : '';
     contentHtml = `<div class="iw-ws">
@@ -1179,7 +1191,7 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
             <input type="checkbox" class="iw-ws-req" data-ri="${i}"><span>${md(r)}</span>
           </label></li>`).join('')}</ul>
         </div>
-        ${lessonAcc}${accordion(writing.phrases)}${accordion(writing.model)}
+        ${guideAcc}${lessonAcc}${accordion(writing.phrases)}${accordion(writing.model)}
         ${writing.extras.map(c => accordion(c, isPlan(c))).join('')}
       </aside>
       <section class="iw-ws-main">
@@ -1928,6 +1940,9 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-ws-phr:hover{background:var(--paper)}
 .iw-ws-phr:hover b::after{content:' ＋';color:${ink};font-weight:800}
 .iw-ws-chips{flex-direction:row !important;flex-wrap:wrap;gap:6px !important}
+.iw-ws-sec{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);margin-top:6px}
+.iw-ws-req-note{font:12.5px/1.45 system-ui;color:var(--ink)}
+.iw-ws-chips{display:flex}
 .iw-ws-chip{border:1.5px solid var(--line-2);background:#fff;border-radius:999px;padding:5px 11px;font:600 12.5px system-ui;color:var(--ink);cursor:pointer;transition:all .12s}
 .iw-ws-chip:hover{background:${accent};border-color:var(--ink)}
 .iw-ws-plan{display:flex;gap:8px;align-items:flex-start;font:13px/1.45 system-ui;color:var(--ink);cursor:pointer}

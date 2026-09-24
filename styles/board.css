@@ -6798,3 +6798,52 @@ body.laser-on #board iframe{pointer-events:none!important;}
 .wf-draft header b{font-size:15px}
 .wf-draft header span{font-size:12.5px;color:#5D614B}
 .wf-draft-text{font-size:14.5px;line-height:1.65;white-space:normal}
+
+/* ═══ Writing path widget + studio window ═══════════════════════════════
+   One card leads the student step by step; "Open Studio" is the same path
+   as a full-screen window over the board (focus mode). */
+.board-card.wp-card{padding:0 !important;overflow:hidden;border-radius:22px !important;background:#fff !important;border:1px solid rgba(36,40,44,.12) !important}
+.wp{display:flex;flex-direction:column;height:100%;background:#fff;color:#24282C;font-family:var(--font-ui,system-ui,sans-serif)}
+.wp-head{flex-shrink:0;padding:14px 18px 10px;background:#24282C;color:#F6F6EF;cursor:grab}
+.wp.is-focus .wp-head{cursor:default;padding:18px 28px 14px}
+.wp-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wp-name{min-width:0}
+.wp-kicker{display:block;font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#CDF649;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wp-title{display:block;margin-top:3px;font-size:19px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-studio-head .wp-title{color:#24282C}
+.card-studio-head .wp-kicker{color:#5D614B}
+.wp-btn{flex-shrink:0;height:38px;padding:0 16px;border-radius:12px;border:1px solid rgba(36,40,44,.2);background:#fff;color:#24282C;font:700 13px var(--font-ui,system-ui,sans-serif);cursor:pointer;white-space:nowrap}
+.wp-btn:hover:not(:disabled){border-color:#24282C}
+.wp-btn:disabled{opacity:.45;cursor:default}
+.wp-open{background:#CDF649;border-color:#CDF649}
+.wp-open:hover{filter:brightness(.96)}
+.wp-head .wp-close{background:transparent;color:#F6F6EF;border-color:rgba(246,246,239,.35)}
+.wp-head .wp-close:hover{border-color:#F6F6EF}
+.wp-steps{display:flex;align-items:center;gap:0;margin-top:14px;overflow-x:auto;scrollbar-width:none}
+.wp-steps::-webkit-scrollbar{display:none}
+.wp-step{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;height:32px;padding:0 12px 0 4px;border-radius:999px;border:0;background:transparent;color:rgba(246,246,239,.7);font:650 12.5px var(--font-ui,system-ui,sans-serif);cursor:pointer}
+.wp-step i{font-style:normal;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(246,246,239,.14);color:#F6F6EF;font-size:11.5px;font-weight:800}
+.wp-step:hover{color:#fff}
+.wp-step.done i{background:rgba(205,246,73,.3);color:#CDF649}
+.wp-step.on{background:#F6F6EF;color:#24282C}
+.wp-step.on i{background:#CDF649;color:#24282C}
+.wp-step.studio:not(.on){color:#CDF649}
+.wp-line{flex:0 0 14px;height:2px;background:rgba(246,246,239,.2);border-radius:2px}
+.wp-stage{flex:1;min-height:0;position:relative;background:#F6F6EF}
+.wp-away{display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#5D614B}
+.wp-nav{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-top:1px solid rgba(36,40,44,.1);background:#fff}
+.wp.is-focus .wp-nav{padding:12px 28px}
+.wp-where{font-size:13px;color:#5D614B;font-weight:600;text-align:center;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wp-next{background:#24282C;color:#fff;border-color:#24282C}
+.wp-next:hover:not(:disabled){background:#000}
+.wp-next.to-studio{background:#CDF649;color:#24282C;border-color:#24282C}
+.wp-end{font-size:12.5px;color:#5D614B;font-weight:600;padding:0 8px}
+.card-studio{position:fixed;inset:0;z-index:95000;background:rgba(36,40,44,.55);display:flex;align-items:stretch;justify-content:center;padding:20px;animation:studioIn .2s ease}
+@keyframes studioIn{from{opacity:0}to{opacity:1}}
+.card-studio-box{width:min(1320px,100%);display:flex;flex-direction:column;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.35)}
+.card-studio-box > .wp{height:100%}
+.card-studio-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 24px;border-bottom:1px solid rgba(36,40,44,.1)}
+.card-studio-stage{flex:1;min-height:0;background:#F6F6EF}
+body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
+.ws-focus-btn{margin-left:auto;margin-right:6px;height:22px;padding:0 8px;border:0;border-radius:7px;background:rgba(255,255,255,.85);color:#24282C;font:700 11px var(--font-ui,system-ui,sans-serif);cursor:pointer}
+.ws-focus-btn:hover{background:#fff}

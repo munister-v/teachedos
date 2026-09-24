@@ -345,7 +345,7 @@ function normaliseInput(body) {
   /* Жанр урока письма несёт и регистр (aiEngine.js: REGISTER_RULES) - по
      нему модель выбирает фразы, критерии и правила вроде сокращений. */
   const genre = ['article', 'story', 'email', 'report', 'blog', 'dialogue', 'review',
-    'personal-email', 'casual-message', 'formal-letter', 'complaint', 'opinion-essay'].includes(raw.genre) ? raw.genre : '';
+    'personal-email', 'casual-message', 'formal-letter', 'complaint', 'opinion-essay', 'business-email'].includes(raw.genre) ? raw.genre : '';
   const length = ['short', 'medium', 'long'].includes(raw.length) ? raw.length : '';
   const source = limitText(raw.source, 18000);
   const vocab = limitText(raw.vocab, 8000);

@@ -1,3 +1,5 @@
+/* Жанровые памятки школы (требования и фразы). Копия для браузера - js/writing-genres.js; tests/writingGenres.test.js следит, чтобы они не разошлись. */
+const WRITING_GENRES = require('./writingGenres');
 // ── Free cloud LLM generator for teacher tools ──────────────────────────────
 // Replaces the old `vps-fast-v1` rule engine with a real LLM, using any
 // OpenAI-compatible chat-completions endpoint. Defaults to Groq's free tier.
@@ -462,7 +464,7 @@ function shapeSpec(input) {
     review: 'a review (film / book / product / place)',
     'personal-email': 'a personal email to a friend', 'casual-message': 'a short casual message (chat / note to a friend)',
     'formal-letter': 'a formal letter of inquiry', complaint: 'a formal letter of complaint',
-    'opinion-essay': 'an opinion essay',
+    'opinion-essay': 'an opinion essay', 'business-email': 'a professional business email',
   };
   const genre = GENRES[String(input.genre || '').toLowerCase()] || '';
   /* Регистр - главный параметр урока письма: от него зависят и образец, и
@@ -471,7 +473,7 @@ function shapeSpec(input) {
      официальной жалобе. */
   const REGISTER_OF = {
     'personal-email': 'informal', story: 'informal', 'casual-message': 'informal', email: 'informal', blog: 'informal', dialogue: 'informal',
-    'formal-letter': 'formal', complaint: 'formal', report: 'formal',
+    'formal-letter': 'formal', complaint: 'formal', report: 'formal', 'business-email': 'formal',
     'opinion-essay': 'academic', article: 'academic', review: 'academic',
   };
   const REGISTER_RULES = {
@@ -481,7 +483,7 @@ function shapeSpec(input) {
   };
   const register = REGISTER_OF[String(input.genre || '').toLowerCase()] || '';
   const registerText = register && input.lesson === 'writing'
-    ? ` REGISTER: ${REGISTER_RULES[register]} Everything you produce - model text, phrases, linking words, criteria and checklist items - must fit this register, and any checklist must include one check for it.`
+    ? ` REGISTER: ${REGISTER_RULES[register]} Everything you produce - model text, phrases, linking words, criteria and checklist items - must fit this register, and any checklist must include one check for it.${WRITING_GENRES.promptText(input.genre)}`
     : '';
   const genreText = genre ? ` Write it as ${genre}.` : '';
   head += registerText;
