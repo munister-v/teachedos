@@ -45,12 +45,12 @@
    сильнее [hidden] - «Learners» стоял с пустым значением. */
 .detail-row[hidden] { display:none !important; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=968">
+<link rel="stylesheet" href="styles/teached-brand.css?v=969">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=968">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=968">
-<link rel="stylesheet" href="styles/controls.css?v=968">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=968">
+<link rel="stylesheet" href="styles/figma-theme.css?v=969">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=969">
+<link rel="stylesheet" href="styles/controls.css?v=969">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=969">
 </head>
 <body class="fx">
 <header class="lesson-nav">
@@ -120,8 +120,8 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=968"></script>
-<script src="scripts/lesson-cover.js?v=968"></script>
+<script src="scripts/app-core.js?v=969"></script>
+<script src="scripts/lesson-cover.js?v=969"></script>
 <script>
   const FALLBACK_COLORS = ['#F3DF6B','#49F6F0','#6BAFF3','#F6F6EF','#9F8CE8','#F3A46B'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -472,6 +472,6 @@
   window.addEventListener('resize', refitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=968" defer></script>
+  <script src="scripts/signin-entry.js?v=969" defer></script>
 </body>
 </html>

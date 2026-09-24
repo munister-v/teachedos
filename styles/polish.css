@@ -65,7 +65,8 @@ body.tw-page.fx:not(#_):not(#__) .homework-hero { display:none !important; }
 body.tw-page.fx:not(#_):not(#__) .suite-switcher {
   display:inline-flex !important; gap:2px !important; padding:4px !important; margin:0 0 26px !important;
   background:#fff !important; border:1px solid var(--p-line) !important; border-radius:14px !important;
-  box-shadow:0 1px 2px rgba(36,40,44,.04) !important; width:auto !important;
+  box-shadow:0 1px 2px rgba(36,40,44,.04) !important;
+  width:fit-content !important; max-width:100% !important; align-self:flex-start !important;
 }
 body.tw-page.fx:not(#_):not(#__) .suite-tab {
   height:36px !important; display:inline-flex !important; align-items:center !important;
@@ -88,7 +89,16 @@ body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .insight-card, .hw-metric) {
   box-shadow:var(--p-card-shadow) !important; color:var(--p-ink) !important; overflow:hidden !important;
 }
 body.tw-page.fx:not(#_):not(#__) .hw-metric { flex-direction:column !important; align-items:flex-start !important; justify-content:center !important; gap:4px !important; }
-body.tw-page.fx:not(#_):not(#__) .journal-suite .stat-card { flex-direction:column !important; align-items:flex-start !important; justify-content:center !important; gap:4px !important; }
+body.tw-page.fx:not(#_):not(#__).journal-suite .stat-card { flex-direction:column !important; align-items:flex-start !important; justify-content:center !important; gap:4px !important; text-align:left !important; }
+body.tw-page.fx:not(#_):not(#__).journal-suite .stat-card > * { text-align:left !important; }
+/* Courses: label, number, hint - stacked, number first. */
+body.tw-page.fx:not(#_):not(#__) .insight-card { flex-direction:column !important; align-items:flex-start !important; justify-content:center !important; gap:2px !important; }
+body.tw-page.fx:not(#_):not(#__) .insight-card .insight-value { order:-1 !important; }
+body.tw-page.fx:not(#_):not(#__) .insight-card .insight-label { margin-top:6px !important; }
+/* Profile: the four figures on one row. */
+body.tw-page.fx:not(#_):not(#__).profile-page .stats-grid { grid-template-columns:repeat(4, minmax(0, 1fr)) !important; }
+body.tw-page.fx:not(#_):not(#__).profile-page .stat-n { font-size:26px !important; line-height:1 !important; font-weight:800 !important; letter-spacing:-.035em !important; color:var(--p-ink) !important; }
+body.tw-page.fx:not(#_):not(#__).profile-page .stat-card { min-height:88px !important; padding:16px 18px !important; }
 body.tw-page.fx:not(#_):not(#__) :is(.stat-val, .stat-num, .insight-value, .hw-metric b) {
   font-size:32px !important; line-height:1 !important; font-weight:800 !important;
   letter-spacing:-.04em !important; color:var(--p-ink) !important; font-variant-numeric:tabular-nums;
@@ -98,7 +108,7 @@ body.tw-page.fx:not(#_):not(#__) :is(.stat-lbl, .stat-label, .insight-label, .hw
   font-size:13px !important; font-weight:600 !important; letter-spacing:0 !important;
   text-transform:none !important; color:var(--p-olive) !important;
 }
-body.tw-page.fx:not(#_):not(#__) .insight-hint { font-size:12px !important; color:var(--p-sage) !important; margin-top:2px !important; }
+body.tw-page.fx:not(#_):not(#__) .insight-hint { font-size:12px !important; color:var(--p-olive) !important; margin-top:2px !important; }
 /* A colour mark per tile - the one place a row of equal numbers gets rhythm. */
 body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card)::before {
   content:'' !important; position:absolute !important; left:0 !important; top:20px !important; bottom:20px !important;
