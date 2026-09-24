@@ -411,3 +411,56 @@ body.fx.os-desktop:not(#_) #win-schedule .win-main {
 }
 body.fx.os-desktop:not(#_) #win-schedule .sch-body { flex:1 1 auto !important; min-height:0 !important; }
 body.fx.os-desktop:not(#_) #win-schedule .sch-grid-wrap { flex:1 1 auto !important; min-height:0 !important; overflow:auto !important; }
+
+/* ── Окна: плавность и поведение (24.09.2026) ─────────────────────────────
+   harmony.css держит у .win transition только opacity/transform c !important,
+   поэтому «развернуть / вернуть / прилипнуть» прыгали без анимации.
+   wm-anim ставит WM на время смены геометрии. */
+body.fx .win.wm-anim:not(#_) {
+  transition:
+    left .3s cubic-bezier(.2,.8,.2,1), top .3s cubic-bezier(.2,.8,.2,1),
+    width .3s cubic-bezier(.2,.8,.2,1), height .3s cubic-bezier(.2,.8,.2,1),
+    box-shadow .2s ease !important;
+}
+/* Перетаскивание идёт transform'ом (композитор); размытие стекла больше не
+   падает 34 -> 8 при захвате - стекло не «моргало» в начале и конце. */
+body.fx .win.dragging:not(#_) { will-change:transform; }
+body.fx.os-desktop.wall-glass .win:is(.dragging,.resizing):not(#_) {
+  backdrop-filter:blur(34px) saturate(1.4) !important;
+  -webkit-backdrop-filter:blur(34px) saturate(1.4) !important;
+}
+body.fx .win.dragging:not(#_) { box-shadow:0 40px 90px rgba(36,40,44,.24), 0 12px 32px rgba(36,40,44,.12) !important; }
+
+/* Превью прилипания - в цветах листа, со скруглением окна. */
+body.fx .win-snap-preview:not(#_) {
+  background:rgba(205,246,73,.16) !important;
+  border:2px solid rgba(36,40,44,.30) !important;
+  border-radius:18px !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  transition:opacity .14s ease, left .18s cubic-bezier(.2,.8,.2,1), top .18s cubic-bezier(.2,.8,.2,1),
+             width .18s cubic-bezier(.2,.8,.2,1), height .18s cubic-bezier(.2,.8,.2,1) !important;
+}
+
+/* Неактивное окно, как в macOS: светофор серый, пока курсор не над ним. */
+body.fx.os-desktop .win:not(.focused) .win-controls:not(:hover) .tl[class] {
+  background:#CACCC6 !important;
+  border-color:rgba(36,40,44,.10) !important;
+}
+
+/* Прокрутка внутри окна не утаскивает страницу за собой. */
+body.fx .win :is(.win-main, .win-sidebar, .sch-grid-wrap, #students-list, .notes-sidebar) { overscroll-behavior:contain; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.fx .win.wm-anim:not(#_) { transition:none !important; }
+}
+/* Окно из дока вырастает из иконки (вектор --genie-* ставит WM.open). */
+body.fx .win.zooming:not(#_) { animation:winZoomIn .3s cubic-bezier(.2,.8,.2,1) both !important; transform-origin:50% 50%; }
+@keyframes winZoomIn {
+  0%   { opacity:0; transform:translate(var(--genie-x,0px), var(--genie-y,40px)) scale(var(--genie-s,.1)); }
+  55%  { opacity:1; }
+  100% { opacity:1; transform:none; }
+}
+/* Док: плитки 63px при scale(1.18) налезали на соседей и вылезали из дока.
+   Сдержанный подъём с пружиной, нажатие - лёгкое «вдавливание». */
+body.fx.os-desktop #dock .di:hover:not(#_) { transform:translateY(-5px) scale(1.06) translateZ(0) !important; }
+body.fx.os-desktop #dock .di:active:not(#_) { transform:translateY(-1px) scale(.96) translateZ(0) !important; transition-duration:.08s !important; }

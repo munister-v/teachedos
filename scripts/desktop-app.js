@@ -251,6 +251,7 @@ const WM = (function () {
   const SNAP_EDGE = 24;  // px from edge to trigger snap
   let focusedId = null;
   let cascade = 0;
+  const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const state = loadState();
 
@@ -344,8 +345,18 @@ const WM = (function () {
         if (!win.style.left) win.style.left = (r.left + off) + 'px';
         if (!win.style.top)  win.style.top  = (r.top  + off) + 'px';
       }
-      win.classList.add('appear');
-      setTimeout(() => win.classList.remove('appear'), 300);
+      /* Открытие из дока - окно вырастает из своей иконки, как в macOS;
+         без видимой иконки (телефон, скрытый док) - прежнее появление. */
+      const dockVisible = di && di.getClientRects().length && di.getBoundingClientRect().width > 0;
+      if (dockVisible && !REDUCED) {
+        setGenieVector(win, di);
+        win.classList.remove('appear');
+        win.classList.add('zooming');
+        setTimeout(() => win.classList.remove('zooming'), 320);
+      } else {
+        win.classList.add('appear');
+        setTimeout(() => win.classList.remove('appear'), 300);
+      }
     }
     requestAnimationFrame(() => clamp(win));
     focus(id);
@@ -423,9 +434,25 @@ const WM = (function () {
     return { x: Math.round(GAP - pr.left), y: Math.round(top - pr.top), w: Math.round(window.innerWidth - GAP * 2), h: Math.round(bottom - top) };
   }
 
+  /* Плавная смена геометрии (развернуть / вернуть / прилипнуть): класс
+     wm-anim включает переход left/top/width/height на время анимации. */
+  function animateGeom(win, apply) {
+    if (REDUCED || !win.classList.contains('open')) { apply(); return; }
+    win.classList.add('wm-anim');
+    void win.offsetWidth;
+    apply();
+    clearTimeout(win._wmAnimT);
+    win._wmAnimT = setTimeout(() => win.classList.remove('wm-anim'), 340);
+  }
+
   function maximize(id, skipSave) {
     const win = winOf(id);
     if (!win) return;
+    if (!skipSave) return animateGeom(win, () => maximizeNow(id, false));
+    return maximizeNow(id, true);
+  }
+  function maximizeNow(id, skipSave) {
+    const win = winOf(id);
     if (win.classList.contains('maximized')) {
       // restore from stored pre-max geom
       win.classList.remove('maximized');
@@ -458,11 +485,23 @@ const WM = (function () {
     document.body.appendChild(snapEl);
     return snapEl;
   }
-  function snapRectFor(x, y) {
-    const W = window.innerWidth, H = window.innerHeight;
-    if (y < SNAP_EDGE)        return { x:0, y:0, w:W, h:H, zone:'top' };       // maximize
-    if (x < SNAP_EDGE)        return { x:0, y:0, w:W/2, h:H, zone:'left' };
-    if (x > W - SNAP_EDGE)    return { x:W/2, y:0, w:W/2, h:H, zone:'right' };
+  /* Зоны прилипания - в рабочей области между строкой меню и доком:
+     к верхнему краю - на весь экран, к боковому - половина, в угол - четверть. */
+  function snapRectFor(x, y, win) {
+    const W = window.innerWidth;
+    const a = workArea(win);
+    const G = 8, half = Math.round((a.w - G) / 2), halfH = Math.round((a.h - G) / 2);
+    const nearTop = y < a.y + SNAP_EDGE;
+    const corner = Math.min(160, a.h / 4);
+    const inTop = y < a.y + corner, inBottom = y > a.y + a.h - corner;
+    if (x < SNAP_EDGE || x > W - SNAP_EDGE) {
+      const left = x < SNAP_EDGE;
+      const sx = left ? a.x : a.x + half + G;
+      if (inTop)    return { x: sx, y: a.y, w: half, h: halfH, zone: left ? 'tl' : 'tr' };
+      if (inBottom) return { x: sx, y: a.y + halfH + G, w: half, h: halfH, zone: left ? 'bl' : 'br' };
+      return { x: sx, y: a.y, w: half, h: a.h, zone: left ? 'left' : 'right' };
+    }
+    if (nearTop) return { x: a.x, y: a.y, w: a.w, h: a.h, zone: 'top' };
     return null;
   }
   function showSnap(rect) {
@@ -489,7 +528,7 @@ const WM = (function () {
         if (e.target.classList.contains('tl')) return;
         if (win.classList.contains('maximized')) return; // can't drag maximized
         const r = win.getBoundingClientRect();
-        drag = { win, ox: e.clientX, oy: e.clientY, wx: r.left, wy: r.top, snapTo: null };
+        drag = { win, ox: e.clientX, oy: e.clientY, wx: r.left, wy: r.top, nx: r.left, ny: r.top, snapTo: null, raf: 0 };
         win.classList.add('dragging');
         focus(idOf(win));
         e.preventDefault();
@@ -538,11 +577,19 @@ const WM = (function () {
       const maxY = window.innerHeight - TOPBAR_H;
       nx = Math.max(0, Math.min(nx, Math.max(0, maxX)));
       ny = Math.max(0, Math.min(ny, maxY));
-      drag.win.style.left = nx + 'px';
-      drag.win.style.top  = ny + 'px';
+      drag.nx = nx; drag.ny = ny;
+      /* Двигаем композитором (transform) раз в кадр; left/top пишутся один
+         раз на отпускании - без перекладки на каждое событие мыши. */
+      if (!drag.raf) {
+        const d = drag;
+        d.raf = requestAnimationFrame(() => {
+          d.raf = 0;
+          d.win.style.transform = `translate3d(${d.nx - d.wx}px, ${d.ny - d.wy}px, 0)`;
+        });
+      }
 
       // snap preview based on pointer location
-      const snap = snapRectFor(e.clientX, e.clientY);
+      const snap = snapRectFor(e.clientX, e.clientY, drag.win);
       if (snap) { drag.snapTo = snap; showSnap(snap); }
       else      { drag.snapTo = null; hideSnap(); }
     }
@@ -561,27 +608,36 @@ const WM = (function () {
       if (ny < 0) { nh += ny; ny = 0; }
       if (nx + nw > window.innerWidth)  nw = window.innerWidth  - nx;
       if (ny + nh > window.innerHeight) nh = window.innerHeight - ny;
-      rez.win.style.left   = nx + 'px';
-      rez.win.style.top    = ny + 'px';
-      rez.win.style.width  = nw + 'px';
-      rez.win.style.height = nh + 'px';
+      rez.next = { nx, ny, nw, nh };
+      if (!rez.raf) {
+        const r = rez;
+        r.raf = requestAnimationFrame(() => {
+          r.raf = 0;
+          const g = r.next;
+          r.win.style.left = g.nx + 'px'; r.win.style.top = g.ny + 'px';
+          r.win.style.width = g.nw + 'px'; r.win.style.height = g.nh + 'px';
+        });
+      }
     }
   });
 
   document.addEventListener('mouseup', () => {
     if (drag) {
+      if (drag.raf) cancelAnimationFrame(drag.raf);
+      drag.win.style.transform = '';
+      drag.win.style.left = drag.nx + 'px';
+      drag.win.style.top  = drag.ny + 'px';
       drag.win.classList.remove('dragging');
       if (drag.snapTo) {
-        const s = drag.snapTo, id = idOf(drag.win);
+        const s = drag.snapTo, id = idOf(drag.win), w = drag.win;
         if (s.zone === 'top') {
           maximize(id);
         } else {
-          // remember pre-snap for restore via maximize toggle? Just apply size:
-          drag.win.classList.remove('maximized');
-          drag.win.style.left   = s.x + 'px';
-          drag.win.style.top    = s.y + 'px';
-          drag.win.style.width  = s.w + 'px';
-          drag.win.style.height = s.h + 'px';
+          w.classList.remove('maximized');
+          animateGeom(w, () => {
+            w.style.left = s.x + 'px'; w.style.top = s.y + 'px';
+            w.style.width = s.w + 'px'; w.style.height = s.h + 'px';
+          });
           saveGeom(id);
         }
       } else {
@@ -591,6 +647,12 @@ const WM = (function () {
       drag = null;
     }
     if (rez) {
+      if (rez.raf) { cancelAnimationFrame(rez.raf); rez.raf = 0; }
+      if (rez.next) {
+        const g = rez.next;
+        rez.win.style.left = g.nx + 'px'; rez.win.style.top = g.ny + 'px';
+        rez.win.style.width = g.nw + 'px'; rez.win.style.height = g.nh + 'px';
+      }
       rez.win.classList.remove('resizing');
       saveGeom(idOf(rez.win));
       rez = null;
@@ -600,6 +662,10 @@ const WM = (function () {
   // Esc closes focused window
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && focusedId) {
+      /* Esc в поле ввода - выйти из поля, а не закрыть окно с набранным. */
+      const ae = document.activeElement;
+      if (ae && (ae.matches?.('input, textarea, select') || ae.isContentEditable)) { ae.blur(); return; }
+      if (document.querySelector('.wp-overlay, #wp-overlay, .modal-overlay.open')) return;
       const win = winOf(focusedId);
       if (win && win.classList.contains('open')) {
         const has = document.querySelector('.modal-backdrop, .spotlight-open');
