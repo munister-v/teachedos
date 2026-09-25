@@ -1214,8 +1214,18 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
         <div class="iw-ws-done" id="iw-ws-done"></div>
       </section>
     </div>`;
+    /* С черновиком учителю уходит и то, по чему его проверять: задание,
+       требования студии (они же критерии предпроверки) и уровень. */
+    const wsMeta = JSON.stringify({
+      title: String(writing.prompt.title || d.title || 'Writing').slice(0, 200),
+      prompt: String(writing.prompt.text || '').slice(0, 3000),
+      criteria: reqItems.slice(0, 15),
+      level: String(d.level || (d._ttOrigin && d._ttOrigin.level) || ''),
+      genre: String(d.genre || (d._ttOrigin && d._ttOrigin.genre) || ''),
+    }).replace(/</g, '\\u003c');
     scriptHtml = `
 var IW_TARGET=${wordTarget};
+var IW_WS_META=${wsMeta};
 function iwWords(){
   var t=(document.getElementById('iw-editor').innerText||'').trim();
   return t? t.split(/\\s+/).length : 0;
@@ -1274,7 +1284,7 @@ function iwWsSubmit(restoring){
       document.getElementById('iw-ws-done').textContent='Handing in…';
       var ed=document.getElementById('iw-editor');
       if(window.__IW_CARD__) parent.postMessage({type:'iw-submit-draft',cardId:window.__IW_CARD__,
-        html:ed.innerHTML.slice(0,40000),text:(ed.innerText||'').slice(0,20000),words:iwWords(),target:IW_TARGET},'*');
+        html:ed.innerHTML.slice(0,40000),text:(ed.innerText||'').slice(0,20000),words:iwWords(),target:IW_TARGET,meta:IW_WS_META},'*');
     }
   }
   iwWsSave();
@@ -1284,7 +1294,7 @@ window.addEventListener('message',function(e){
   if(m.type==='iw-insert-text' && m.text) iwInsert(m.text);
   if(m.type==='iw-submitted'){
     var el=document.getElementById('iw-ws-done');
-    if(el) el.textContent = m.ok ? '✓ Handed in to your teacher - '+iwWords()+' words.' : (m.msg || 'Saved on the board.');
+    if(el) el.textContent = m.ok ? '✓ Handed in to your teacher - '+iwWords()+' words. Their feedback will appear in your cabinet.' : (m.msg || 'Saved on the board.');
   }
 });
 document.addEventListener('DOMContentLoaded',function(){

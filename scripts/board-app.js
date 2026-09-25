@@ -4532,17 +4532,36 @@ function _wpHandleMessage(m, e) {
       reply(false, 'Saved on the board. Sign in to hand it in to your teacher.');
       return;
     }
-    const words = Math.max(0, Number(m.words) || 0);
-    const target = Math.max(1, Number(m.target) || 1);
-    apiFetch('/api/boards/' + currentBoardId + '/progress', {
-      method: 'POST',
-      body: { cardId: baseId, score: words, maxScore: target, pct: Math.min(100, Math.round(words / target * 100)),
-        answers: [{ type: 'writing', words, text: String(m.text || '').slice(0, 20000) }] },
-    }).then(r => reply(r.ok, r.ok ? '' : 'Could not hand it in - it is still saved on the board.'))
-      .catch(() => reply(false, 'No connection - your draft is still saved on the board.'));
+    _wsHandIn(baseId, m, reply);
   } else if (m.type === 'iw-drafts') {
     _wfShowDrafts(baseId);
   }
+}
+
+/* Сдача письма. Черновик уходит в очередь проверки учителя (/writing:
+   там его уже ждёт предпроверка ИИ по критериям урока), а в /progress -
+   как и раньше, для журнала и аналитики: слова из цели. Ответ ученику
+   решает очередь проверки - именно она и есть «сдал учителю». */
+function _wsHandIn(cardId, m, reply) {
+  const words = Math.max(0, Number(m.words) || 0);
+  const target = Math.max(1, Number(m.target) || 1);
+  const meta = (m.meta && typeof m.meta === 'object') ? m.meta : {};
+  const text = String(m.text || '').slice(0, 20000);
+  apiFetch('/api/boards/' + currentBoardId + '/progress', {
+    method: 'POST',
+    body: { cardId, score: words, maxScore: target, pct: Math.min(100, Math.round(words / target * 100)),
+      answers: [{ type: 'writing', words, text }] },
+  }).catch(() => {});
+  apiFetch('/api/boards/' + currentBoardId + '/writing/' + encodeURIComponent(String(cardId).split('::')[0]), {
+    method: 'POST',
+    body: { text, html: String(m.html || '').slice(0, 40000), words, target,
+      title: meta.title || '', prompt: meta.prompt || '', criteria: Array.isArray(meta.criteria) ? meta.criteria : [],
+      level: meta.level || '', genre: meta.genre || '' },
+  }).then(async r => {
+    if (r.ok) return reply(true, '');
+    const d = await r.json().catch(() => ({}));
+    reply(false, d.error || 'Could not hand it in - it is still saved on the board.');
+  }).catch(() => reply(false, 'No connection - your draft is still saved on the board.'));
 }
 
 /* ── Учитель: кто работает в этой студии ─────────────────────────────────
@@ -5092,14 +5111,7 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
       if (typeof currentBoardId === 'undefined' || !currentBoardId || !authToken) {
         reply(false, 'Saved on the board. Sign in to hand it in to your teacher.');
       } else {
-        const words = Math.max(0, Number(m.words) || 0);
-        const target = Math.max(1, Number(m.target) || 1);
-        apiFetch('/api/boards/' + currentBoardId + '/progress', {
-          method: 'POST',
-          body: { cardId: m.cardId, score: words, maxScore: target, pct: Math.min(100, Math.round(words / target * 100)),
-            answers: [{ type: 'writing', words, text: String(m.text || '').slice(0, 20000) }] },
-        }).then(r => reply(r.ok, r.ok ? '' : 'Could not hand it in - it is still saved on the board.'))
-          .catch(() => reply(false, 'No connection - your draft is still saved on the board.'));
+        _wsHandIn(m.cardId, m, reply);
       }
     }
     if (m.type === 'iw-drafts' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
@@ -10889,7 +10901,10 @@ function _ttSyncFormReadiness(opts = {}) {
     || (tool.id === 'add-text' && !!source);
   if (!topic && !topicOptional) missing.push({ wrap:'tb-wrap-topic', input:'tbuilder-topic', label:'topic' });
   if (needsSource && !source) missing.push({ wrap:'tb-wrap-source', input:'tbuilder-source', label:'source text' });
-  if (needsVocab && !vocab) missing.push({ wrap:'tb-wrap-vocab', input:'tbuilder-vocab', label:'target vocabulary' });
+  /* Студия вокабуляра «по теме» / «из текста»: список может быть пуст -
+     «Create draft» сам сначала добудет слова из темы или текста выше. */
+  const canExtract = tool.id === 'vocab-workout' && _wizExtractReady();
+  if (needsVocab && !vocab && !canExtract) missing.push({ wrap:'tb-wrap-vocab', input:'tbuilder-vocab', label:'target vocabulary' });
   if (opts.attempted) missing.forEach(item => { const wrap = document.getElementById(item.wrap); if (wrap) wrap.dataset.ttAttempted = '1'; });
 
   _ttSetRequiredFieldState('tb-wrap-topic', 'tbuilder-topic', !topicOptional, !!topic);
@@ -15093,7 +15108,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '984';
+const TEACHEDOS_ASSET_VERSION = '985';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15130,7 +15145,14 @@ async function generateTeacherToolBuilder(mode = 'fast') {
   if (!activeTeacherToolBuilder) return;
   /* Студия строит набор, а не один материал, поэтому уходит своей дорогой -
      до проверок и кеша одиночного инструмента, которые ей не подходят. */
-  if (activeTeacherToolBuilder.id === 'vocab-workout') { await runBoardWorkout(); return; }
+  if (activeTeacherToolBuilder.id === 'vocab-workout') {
+    if (!String(document.getElementById('tbuilder-vocab')?.value || '').trim() && _wizExtractReady()) {
+      const ok = await extractLessonVocab();
+      if (!ok) return;
+    }
+    await runBoardWorkout();
+    return;
+  }
   /* Инструмент с этапами строит не один материал, а урок: текст плюс
      отмеченные задания вокруг него. Уходит своей дорогой до кеша и
      проверок одиночного инструмента, как и студия. */
@@ -17288,7 +17310,9 @@ function renderBoardLessonStagePreview(set) {
       const redoBtn = canRedo
         ? `<button type="button" class="tb-act-btn" onclick="redoStageText()" title="Write it again, differently">Redo${dependents ? ` (rebuilds ${dependents} task${dependents === 1 ? '' : 's'} too)` : ''}</button>`
         : '';
-      const cardsHtml = textCards.length
+      const cardsHtml = textCards.length && WP_PATH_SKILLS.includes(set.skill)
+        ? `<div class="tbuilder-section">${_ttStageEditableHtml('__text', textOut)}</div>`
+        : textCards.length
         ? textCards.map(c => `
             <div class="tbuilder-section">
               <h4>${esc(c.title || '')}</h4>
@@ -17311,7 +17335,7 @@ function renderBoardLessonStagePreview(set) {
               <button type="button" class="tb-act-btn" onclick="dropStageActivity('${esc(activity.key)}')" title="Leave this one out of the lesson">Drop</button>
             </span>
           </div>
-          ${_ttStageImageStrip(activity, out) || `<p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>`}
+          ${_ttStageImageStrip(activity, out) || (WP_PATH_SKILLS.includes(set.skill) ? _ttStageEditableHtml(activity.key, out) : `<p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>`)}
         </div>`).join('');
     } else {
       inner = `<div class="tb-stage-meta">Nothing ticked for this stage.</div>`;
@@ -17332,7 +17356,7 @@ function renderBoardLessonStagePreview(set) {
      же виджет, что будет на доске, шаги и студии живые. Разбор по частям с
      правкой - под «Teacher view». */
   if (WP_PATH_SKILLS.includes(set.skill)) {
-    body.innerHTML = _wpPreviewShellHtml(set) + `<details class="tb-wf-teacher"><summary>Teacher view - every part, editable</summary>${html}</details>` + failHtml;
+    body.innerHTML = _wpPreviewShellHtml(set) + `<details class="tb-wf-teacher"${_ttTeacherViewOpen ? ' open' : ''} ontoggle="_ttTeacherViewOpen=this.open"><summary>Teacher view - edit any part</summary><p class="tb-stage-meta tb-ed-hint">Click any text below to change it. The student preview above and the board get your version.</p>${html}</details>` + failHtml;
     _wpPreviewMount(set);
     return;
   }
@@ -17482,6 +17506,77 @@ async function redoStageActivity(key) {
    рендереры одиночного инструмента пишут прямо в #tbuilder-output и
    завязаны на редактирование одного активного результата - шесть штук
    на экран они положить не могут. */
+/* ── Правка частей урока прямо в превью ────────────────────────────────
+   «Teacher view» обещал правку, а давал только Redo/Drop: не нравится одно
+   слово - перегенерируй всё задание. Теперь каждая часть показывается
+   полями: заголовок и текст карточки, вопрос и варианты, слово и значение.
+   Правка пишется прямо в результат задания (set.built[].out / textOut),
+   из которого строятся и превью ученика, и то, что ляжет на доску. */
+let _ttTeacherViewOpen = false;
+function _ttStageEditableHtml(key, out) {
+  if (!out) return '';
+  const k = esc(key);
+  const field = (path, value, rows, cls = '') => rows
+    ? `<textarea class="tb-ed ${cls}" data-k="${k}" data-p="${path}" rows="${rows}" spellcheck="true">${esc(value)}</textarea>`
+    : `<input class="tb-ed ${cls}" data-k="${k}" data-p="${path}" value="${esc(value)}" spellcheck="true">`;
+  const cards = (out.struct && Array.isArray(out.struct.cards)) ? out.struct.cards : (Array.isArray(out.cards) ? out.cards : []);
+  if (cards.length) {
+    return cards.map((c, i) => `<div class="tb-ed-card">
+      ${field(`cards.${i}.title`, c.title || '', 0, 'tb-ed-title')}
+      ${field(`cards.${i}.text`, c.text || '', Math.min(12, Math.max(2, String(c.text || '').split('\n').length + 1)))}
+    </div>`).join('');
+  }
+  if (Array.isArray(out.questions) && out.questions.length) {
+    return out.questions.map((q, i) => {
+      const stemKey = q.q != null ? 'q' : q.text != null ? 'text' : 'prompt';
+      const opts = q.type === 'mcq' && Array.isArray(q.options)
+        ? `<div class="tb-ed-opts">${q.options.map((o, j) => `<label class="${o === q.answer ? 'is-answer' : ''}">${o === q.answer ? '✓' : '•'} ${field(`questions.${i}.options.${j}`, o, 0)}</label>`).join('')}</div>`
+        : q.type === 'gap-fill' ? `<label class="tb-ed-ans">Answer ${field(`questions.${i}.answer`, q.answer || '', 0)}</label>` : '';
+      return `<div class="tb-ed-card"><span class="tb-ed-n">${i + 1}</span>${field(`questions.${i}.${stemKey}`, q[stemKey] || '', 2)}${opts}</div>`;
+    }).join('');
+  }
+  if (Array.isArray(out.items) && out.items.length) {
+    return out.items.map((it, i) => `<div class="tb-ed-card tb-ed-item">
+      ${field(`items.${i}.word`, it.word || '', 0, 'tb-ed-title')}
+      ${field(`items.${i}.${it.definition != null ? 'definition' : 'example'}`, it.definition != null ? it.definition : (it.example || ''), 2)}
+    </div>`).join('');
+  }
+  return `<p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>`;
+}
+function _ttStageEditTarget(set, key) {
+  if (key === '__text') return set.textOut;
+  const entry = set.built.find(b => b.activity.key === key);
+  return entry ? entry.out : null;
+}
+let _ttEdRefreshT = null;
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('tb-ed') || !lastLessonStageSet) return;
+  const set = lastLessonStageSet;
+  const out = _ttStageEditTarget(set, el.dataset.k);
+  if (!out) return;
+  const path = el.dataset.p.split('.');
+  // Одни и те же карточки лежат то в struct.cards, то в cards - правим оба.
+  const roots = path[0] === 'cards' ? [out.struct, out].filter(r => r && Array.isArray(r.cards)) : [out];
+  roots.forEach(root => {
+    let node = root;
+    for (let i = 0; i < path.length - 1; i++) { node = node && node[/^\d+$/.test(path[i]) ? Number(path[i]) : path[i]]; }
+    if (!node) return;
+    const last = path[path.length - 1];
+    const prev = node[last];
+    node[last] = el.value;
+    // Правильный вариант в mcq хранится строкой - вслед за правкой варианта.
+    if (path[0] === 'questions' && path[2] === 'options') {
+      const q = root.questions[Number(path[1])];
+      if (q && q.answer === prev) q.answer = el.value;
+    }
+  });
+  if (el.dataset.k === '__text' && Array.isArray(out.cards) && !out.struct) out.text = out.cards.map(c => c.text).join('\n\n');
+  set.edited = true;
+  clearTimeout(_ttEdRefreshT);
+  _ttEdRefreshT = setTimeout(() => { if (WP_PATH_SKILLS.includes(set.skill)) _wpPreviewMount(set); }, 700);
+});
+
 function _ttStagePlainPreview(out) {
   if (!out) return '';
   /* Результат из карточек (lead-in, three-titles, choose-summary,
@@ -17922,6 +18017,11 @@ function _wizRenderSourceTools(src) {
   if (!host) return;
   if (!src || (!src.ocr && !src.link && !src.extractTool && !src.news)) { host.hidden = true; host.innerHTML = ''; return; }
   host.hidden = false;
+  /* У студии вокабуляра блок добычи слов стоит НАД списком: раньше он жил
+     у скрытого поля источника - под списком и «названием набора», то есть
+     за нижним краем окна, и учитель просто не видел, куда вводить тему. */
+  const anchorWrap = document.getElementById(src.mode === 'workout' ? 'tb-wrap-vocab' : 'tb-wrap-source');
+  if (anchorWrap && host.nextElementSibling !== anchorWrap) anchorWrap.parentNode.insertBefore(host, anchorWrap);
   if (src.news) { _wizRenderNews(host); return; }
   if (src.extractTool) {
     /* Студия ждёт готовый список слов, а не текст или тему - поэтому это
@@ -17929,15 +18029,31 @@ function _wizRenderSourceTools(src) {
        мини-форма: своё поле ввода и кнопка, которая добывает список и
        кладёт его в #tbuilder-vocab, где студия его уже ждёт. */
     host.innerHTML = src.extractField === 'topic'
-      ? `<div class="tb-wiz-tool">
-           <span class="tb-wiz-tool-note">Fill in the topic above, then:</span>
-           <button type="button" class="tbuilder-btn ghost" onclick="extractLessonVocab()">Choose the words</button>
-           <span class="tb-wiz-tool-note" id="tb-wiz-extract-note"></span>
+      ? `<div class="tb-wiz-tool tb-wiz-vtopic">
+           <label class="tb-wiz-lbl" for="tb-wiz-topic">Topic</label>
+           <div class="tb-wiz-row">
+             <input id="tb-wiz-topic" autocomplete="off" placeholder="e.g. at the doctor's, injuries, travel problems" oninput="_wizTopicInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();extractLessonVocab();}">
+             <select id="tb-wiz-vcount" aria-label="How many words"><option value="8">8 words</option><option value="12" selected>12 words</option><option value="16">16 words</option><option value="20">20 words</option></select>
+             <button type="button" class="tbuilder-btn lime" id="tb-wiz-extract-btn" onclick="extractLessonVocab()">✦ Choose the words</button>
+           </div>
+           <span class="tb-wiz-tool-note" id="tb-wiz-extract-note">Words for the topic at the level above. Then remove or add any in the list below.</span>
          </div>`
-      : `<div class="tb-wiz-tool">
-           <textarea id="tb-wiz-extract-src" rows="4" placeholder="Paste the text here…" style="flex:1 1 100%;min-width:0"></textarea>
-           <button type="button" class="tbuilder-btn ghost" onclick="extractLessonVocab()">Pull out the words</button>
-           <span class="tb-wiz-tool-note" id="tb-wiz-extract-note"></span>
+      : `<div class="tb-wiz-tool tb-wiz-vtext">
+           <input type="file" id="tb-wiz-shot" accept="image/*" hidden onchange="readLessonScreenshot(this.files && this.files[0]); this.value='';">
+           <div class="tb-wiz-drop tb-wiz-drop-slim" id="tb-wiz-drop" tabindex="0" role="button"
+                aria-label="Add a photo or screenshot of the text: drop a file, paste from the clipboard, or click to choose one"
+                onclick="document.getElementById('tb-wiz-shot').click()"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('tb-wiz-shot').click();}">
+             <span class="tb-wiz-drop-ic" aria-hidden="true">🖼</span>
+             <span class="tb-wiz-drop-tx"><b>Text is a picture? Drop it here or press ${_ttPasteKeyLabel()}</b><small>Coursebook page, photo, screenshot - the text is read in your browser</small></span>
+           </div>
+           <span class="tb-wiz-tool-note" id="tb-wiz-shot-note"></span>
+           <textarea id="tb-wiz-extract-src" rows="5" placeholder="…or paste the text here" oninput="_wizPickRender()" style="flex:1 1 100%;min-width:0"></textarea>
+           <div class="tb-wiz-pick" id="tb-wiz-pick" hidden></div>
+           <div class="tb-wiz-row">
+             <button type="button" class="tbuilder-btn lime" id="tb-wiz-extract-btn" onclick="extractLessonVocab()">✦ Pull out the words for me</button>
+             <span class="tb-wiz-tool-note" id="tb-wiz-extract-note">Or click words in the text yourself - select several words to add a phrase.</span>
+           </div>
          </div>`;
     return;
   }
@@ -18329,7 +18445,13 @@ async function extractLessonVocab() {
   const base = readTeacherToolBuilderInput();
   const input = { ...base, tool: { id: src.extractTool } };
   if (src.extractField === 'topic') {
-    if (!base.topic.trim()) { say('Fill in the topic first.'); return; }
+    const topic = (document.getElementById('tb-wiz-topic')?.value || base.topic || '').trim();
+    if (!topic) { say('Type the topic first.'); document.getElementById('tb-wiz-topic')?.focus(); return; }
+    input.topic = topic;
+    input.count = parseInt(document.getElementById('tb-wiz-vcount')?.value || '12', 10) || 12;
+    // Тема становится и названием набора, если учитель своё не задал.
+    const name = document.getElementById('tbuilder-topic');
+    if (name && !name.value.trim()) { name.value = topic; name.dispatchEvent(new Event('input', { bubbles: true })); }
   } else {
     const text = (document.getElementById('tb-wiz-extract-src')?.value || '').trim();
     if (!text) { say('Paste the text first.'); return; }
@@ -18337,23 +18459,128 @@ async function extractLessonVocab() {
   }
 
   say('Choosing the words…');
+  const btn = document.getElementById('tb-wiz-extract-btn');
+  if (btn) btn.disabled = true;
   await _ensureGenLoaded();
   let out = null;
   try { out = await requestServerTeacherTool(input, 20000); }
   catch (err) { console.warn('[wizard] vocab extraction failed', err); }
 
+  if (btn) btn.disabled = false;
   const words = Array.isArray(out?.items) ? out.items.map(i => i.word).filter(Boolean) : [];
-  if (!words.length) { say('No words came back - sign in, or add a few words by hand below.'); return; }
+  if (!words.length) { say('No words came back - sign in, or add a few words by hand below.'); return false; }
 
+  /* Слова, которые учитель уже выбрал сам (кликом по тексту), не теряются:
+     добытые ИИ дописываются к ним, повторы отбрасываются. */
   const field = document.getElementById('tbuilder-vocab');
   if (field) {
-    field.value = words.join('\n');
+    const have = _wizVocabLines();
+    const seen = new Set(have.map(_wizVocabKey));
+    const merged = have.concat(words.filter(w => { const k = _wizVocabKey(w); if (seen.has(k)) return false; seen.add(k); return true; }));
+    field.value = merged.join('\n');
     field.dispatchEvent(new Event('input', { bubbles: true }));
   }
-  say(`${words.length} words added below. Tick the activities you want and build the lesson.`);
+  _wizPickRender();
+  say(`${words.length} words added below. Remove any you don't need, then tick the activities and create the draft.`);
+  return true;
 }
 
+/* ── Выбор слов кликом по тексту ─────────────────────────────────────────
+   Текст (вставленный или распознанный с картинки) рисуется словами-кнопками:
+   щелчок кладёт слово в список или убирает его, выделение нескольких слов
+   мышью добавляет фразу целиком («to sprain an ankle»). Подсвечено всё, что
+   уже есть в списке - и выбранное руками, и добытое ИИ. */
+function _wizVocabLines() {
+  return String(document.getElementById('tbuilder-vocab')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
+}
+function _wizVocabKey(line) {
+  return String(line || '').split(/\s+[-–—=]\s+|\s*=\s*/)[0].replace(/\((?:n|v|adj|adv|phr)\.?\)/gi, '').trim().toLowerCase();
+}
+function _wizSetVocab(lines) {
+  const field = document.getElementById('tbuilder-vocab');
+  if (!field) return;
+  field.value = lines.join('\n');
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function _wizToggleVocab(phrase) {
+  const clean = String(phrase || '').replace(/[“”"«»()\[\]]/g, '').replace(/\s+/g, ' ').replace(/^[^A-Za-zÀ-ÿ']+|[^A-Za-zÀ-ÿ']+$/g, '').trim();
+  if (!clean) return;
+  const key = clean.toLowerCase();
+  const lines = _wizVocabLines();
+  const at = lines.findIndex(l => _wizVocabKey(l) === key);
+  if (at >= 0) lines.splice(at, 1); else lines.push(/^[A-Z][a-z]/.test(clean) && !/\s/.test(clean) ? clean.toLowerCase() : clean);
+  _wizSetVocab(lines);
+  _wizPickMark();
+}
+let _wizPickT = null;
+function _wizPickRender() {
+  clearTimeout(_wizPickT);
+  _wizPickT = setTimeout(() => {
+    const box = document.getElementById('tb-wiz-pick');
+    const src = document.getElementById('tb-wiz-extract-src');
+    if (!box || !src) return;
+    const text = src.value.trim();
+    if (!text) { box.hidden = true; box.innerHTML = ''; return; }
+    const html = text.split(/\n+/).map(par => '<p>' + par.split(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’-]*)/).map((part, i) =>
+      i % 2 ? `<span class="tb-pick-w" data-w="${esc(part)}">${esc(part)}</span>` : esc(part)).join('') + '</p>').join('');
+    box.innerHTML = `<div class="tb-pick-head">Click words to add them · select several words for a phrase</div><div class="tb-pick-text">${html}</div>`;
+    box.hidden = false;
+    _wizPickMark();
+  }, 150);
+}
+function _wizPickMark() {
+  const box = document.getElementById('tb-wiz-pick');
+  if (!box || box.hidden) return;
+  const keys = new Set(_wizVocabLines().map(_wizVocabKey));
+  const multi = [...keys].filter(k => k.includes(' '));
+  const words = [...box.querySelectorAll('.tb-pick-w')];
+  words.forEach(w => w.classList.toggle('on', keys.has(w.dataset.w.toLowerCase())));
+  // Фразы подсвечиваются по всем своим словам подряд.
+  multi.forEach(phrase => {
+    const parts = phrase.split(' ').filter(p => /^[a-zà-ÿ]/i.test(p));
+    for (let i = 0; i + parts.length <= words.length; i++) {
+      if (parts.every((p, j) => words[i + j].dataset.w.toLowerCase() === p)) {
+        for (let j = 0; j < parts.length; j++) words[i + j].classList.add('on', 'phr');
+      }
+    }
+  });
+}
+function _wizExtractReady() {
+  const src = typeof boardWizardSource === 'function' ? boardWizardSource() : null;
+  if (!src || !src.extractTool) return false;
+  const v = src.extractField === 'topic'
+    ? document.getElementById('tb-wiz-topic')?.value
+    : document.getElementById('tb-wiz-extract-src')?.value;
+  return !!String(v || '').trim();
+}
+function _wizTopicInput() {
+  _ttSyncFormReadiness();
+}
+document.addEventListener('mouseup', e => {
+  const box = e.target.closest && e.target.closest('#tb-wiz-pick');
+  if (!box) return;
+  const sel = window.getSelection();
+  const text = sel ? String(sel).trim() : '';
+  if (text && /\s/.test(text) && box.contains(sel.anchorNode)) {
+    _wizToggleVocab(text);
+    sel.removeAllRanges();
+    return;
+  }
+  const w = e.target.closest('.tb-pick-w');
+  if (w && !text) _wizToggleVocab(w.dataset.w);
+});
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'tbuilder-vocab') _wizPickMark();
+  if (e.target && e.target.id === 'tb-wiz-extract-src') _ttSyncFormReadiness();
+});
+
 function _wizFillSource(text) {
+  const extract = document.getElementById('tb-wiz-extract-src');
+  if (extract) {
+    extract.value = text;
+    _wizPickRender();
+    return;
+  }
   const field = document.getElementById('tbuilder-source');
   if (!field) return;
   field.value = text;

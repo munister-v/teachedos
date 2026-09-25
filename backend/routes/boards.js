@@ -530,4 +530,69 @@ router.delete('/:id/cards/:cardId/comments/:commentId', requireAuth, async (req,
   }
 });
 
+/* ── Writing hand-in ────────────────────────────────────────────────────
+   The Writing Studio's "Submit Final Draft". The draft lands in the board
+   owner's review queue (/api/writing, Homework → Writing to review) and
+   the AI pre-check runs in the background, so the student gets an answer
+   at once and the teacher finds the review ready when they open it. */
+router.post('/:id/writing/:cardId', async (req, res) => {
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    const cardId = String(req.params.cardId).split('::')[0].slice(0, 80);
+    if (!boardHasVisibleCard(access, cardId, req.user.id)) return res.status(404).json({ error: 'Card not found' });
+    if (access.access_role === 'owner') return res.status(400).json({ error: 'This is your own board - students hand in here.' });
+    const b = req.body || {};
+    const text = String(b.text || '').slice(0, 20000);
+    if (!text.trim()) return res.status(400).json({ error: 'The draft is empty' });
+    const str = (v, n) => String(v == null ? '' : v).slice(0, n);
+    const criteria = (Array.isArray(b.criteria) ? b.criteria : []).map(c => str(c, 300)).filter(Boolean).slice(0, 15);
+    const words = Math.max(0, parseInt(b.words, 10) || text.trim().split(/\s+/).length);
+    const card = (Array.isArray(access.data?.cards) ? access.data.cards : []).find(c => String(c?.id) === cardId);
+    const level = str(b.level || card?.data?.level || card?.data?._ttOrigin?.level || '', 10);
+    const { rows } = await pool.query(`
+      INSERT INTO writing_submissions
+        (board_id, card_id, student_id, teacher_id, title, prompt, genre, level, criteria, text, html, words, target_words)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+      ON CONFLICT (board_id, card_id, student_id) DO UPDATE SET
+        history = CASE WHEN writing_submissions.text <> '' THEN
+                    (writing_submissions.history || jsonb_build_array(jsonb_build_object(
+                      'text', writing_submissions.text, 'words', writing_submissions.words,
+                      'submitted_at', writing_submissions.submitted_at, 'grade', writing_submissions.grade,
+                      'feedback', writing_submissions.feedback, 'returned_at', writing_submissions.returned_at)))
+                  ELSE writing_submissions.history END,
+        title=$5, prompt=$6, genre=$7, level=$8, criteria=$9, text=$10, html=$11, words=$12, target_words=$13,
+        status='submitted', ai_status='pending', ai_check=NULL, feedback='', grade=NULL, scores='[]',
+        submitted_at=NOW(), returned_at=NULL, seen_at=NULL
+      RETURNING id`,
+      [req.params.id, cardId, req.user.id, access.owner_id, str(b.title, 200), str(b.prompt, 3000), str(b.genre, 80), level,
+       JSON.stringify(criteria), text, str(b.html, 40000), words, Math.max(0, parseInt(b.target, 10) || 0)]);
+    const id = rows[0].id;
+    res.json({ ok: true, id });
+
+    const { createNotification } = require('./notifications');
+    createNotification(access.owner_id, 'writing', `${req.user.name || 'A student'} handed in writing`,
+      `${str(b.title, 80) || 'Writing'} · ${words} words`, `homework.html#writing=${id}`);
+    runWritingPreCheck(id);
+  } catch (err) {
+    console.error('[boards] writing hand-in error:', err.message);
+    if (!res.headersSent) res.status(500).json({ error: 'Server error' });
+  }
+});
+
+async function runWritingPreCheck(id) {
+  const { preCheck } = require('../lib/writingReview');
+  try {
+    const { rows } = await pool.query('SELECT * FROM writing_submissions WHERE id=$1', [id]);
+    if (!rows[0]) return;
+    const check = await preCheck(rows[0]);
+    await pool.query(`UPDATE writing_submissions SET ai_check=$2, ai_status='done', scores=$3 WHERE id=$1 AND status='submitted'`,
+      [id, JSON.stringify(check), JSON.stringify(check.scores)]);
+  } catch (err) {
+    console.warn('[writing] pre-check failed:', err.message);
+    await pool.query(`UPDATE writing_submissions SET ai_status='failed' WHERE id=$1`, [id]).catch(() => {});
+  }
+}
+
 module.exports = router;
+module.exports.runWritingPreCheck = runWritingPreCheck;

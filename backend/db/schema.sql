@@ -816,3 +816,40 @@ CREATE TABLE IF NOT EXISTS studio_work (
   PRIMARY KEY (board_id, card_id, user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_studio_work_card ON studio_work (board_id, card_id);
+
+-- ── Writing hand-ins ───────────────────────────────────────────────────────
+-- A student hands in a Writing Studio draft; the AI pre-checks it against the
+-- lesson's criteria; the board owner reviews, writes feedback, grades and
+-- returns it. One row per student per studio card; earlier versions (after a
+-- rewrite) are kept in `history` so the class can compare drafts.
+CREATE TABLE IF NOT EXISTS writing_submissions (
+  id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  board_id      UUID         NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  card_id       TEXT         NOT NULL,
+  student_id    UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  teacher_id    UUID                  REFERENCES users(id) ON DELETE SET NULL,
+  title         TEXT         NOT NULL DEFAULT '',
+  prompt        TEXT         NOT NULL DEFAULT '',
+  genre         TEXT         NOT NULL DEFAULT '',
+  level         TEXT         NOT NULL DEFAULT '',
+  criteria      JSONB        NOT NULL DEFAULT '[]',
+  text          TEXT         NOT NULL DEFAULT '',
+  html          TEXT         NOT NULL DEFAULT '',
+  words         INTEGER      NOT NULL DEFAULT 0,
+  target_words  INTEGER      NOT NULL DEFAULT 0,
+  -- submitted | returned
+  status        VARCHAR(20)  NOT NULL DEFAULT 'submitted',
+  -- pending | done | failed
+  ai_status     VARCHAR(20)  NOT NULL DEFAULT 'pending',
+  ai_check      JSONB,
+  feedback      TEXT         NOT NULL DEFAULT '',
+  grade         INTEGER,
+  scores        JSONB        NOT NULL DEFAULT '[]',
+  history       JSONB        NOT NULL DEFAULT '[]',
+  submitted_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  returned_at   TIMESTAMPTZ,
+  seen_at       TIMESTAMPTZ,
+  UNIQUE (board_id, card_id, student_id)
+);
+CREATE INDEX IF NOT EXISTS idx_writing_sub_teacher ON writing_submissions(teacher_id, status, submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_writing_sub_student ON writing_submissions(student_id, submitted_at DESC);
