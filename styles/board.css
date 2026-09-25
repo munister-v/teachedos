@@ -6804,6 +6804,13 @@ body.laser-on #board iframe{pointer-events:none!important;}
    as a full-screen window over the board (focus mode). */
 .board-card.wp-card{padding:0 !important;overflow:hidden;border-radius:22px !important;background:#fff !important;border:1px solid rgba(36,40,44,.12) !important}
 .wp{display:flex;flex-direction:column;height:100%;background:#fff;color:#24282C;font-family:var(--font-ui,system-ui,sans-serif)}
+/* Превью урока в конструкторе: тот же виджет, уменьшенный под колонку */
+.tb-wp-prev{position:relative;width:100%;overflow:hidden;border-radius:16px;border:1px solid rgba(36,40,44,.12);background:#F6F6EF}
+.wp-prev-card{position:absolute;top:0;left:0;border-radius:22px;overflow:hidden;background:#fff}
+.wp-prev-card > .wp-away{height:100%}
+.tb-wp-full{height:32px;padding:0 12px;border-radius:10px;border:1px solid #24282C;background:#CDF649;color:#24282C;font:750 12.5px var(--font-ui,system-ui,sans-serif);cursor:pointer;white-space:nowrap}
+.tb-wp-full:hover{filter:brightness(.96)}
+.tb-wp-prev-note{margin:0;font-size:12px;line-height:1.45;color:#5D614B}
 .wp-head{flex-shrink:0;padding:14px 18px 10px;background:#24282C;color:#F6F6EF;cursor:grab}
 .wp.is-focus .wp-head{cursor:default;padding:18px 28px 14px}
 .wp-top{display:flex;align-items:center;justify-content:space-between;gap:12px}

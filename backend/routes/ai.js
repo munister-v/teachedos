@@ -1831,23 +1831,13 @@ router.get('/quality', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ── YouTube transcript (no API key, no auth - used by the Teacher Tools hub) ──
+const { decodeEntities, captionSegments, readableTranscript } = require('../lib/transcript');
 const TRANSCRIPT_CACHE = new Map();
 function ytVideoId(url) {
   const s = String(url || '').trim();
   const m = s.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/);
   if (m) return m[1];
   return /^[A-Za-z0-9_-]{11}$/.test(s) ? s : null;
-}
-function decodeEntities(t) {
-  return String(t)
-    .replace(/&amp;#39;|&#39;/g, "'").replace(/&amp;quot;|&quot;/g, '"')
-    .replace(/&amp;amp;|&amp;/g, '&').replace(/&gt;/g, '>').replace(/&lt;/g, '<')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    /* Шестнадцатеричные мнемоники - половина живых страниц пишет апостроф
-       именно так, и без этой строки он доезжал до учителя как «&#x27;»
-       прямо в тексте урока. */
-    .replace(/&#[xX]([0-9a-fA-F]+);/g, (_, n) => String.fromCharCode(parseInt(n, 16)));
 }
 function ytSeconds(value) {
   const raw = String(value || '').trim().toLowerCase();
@@ -1858,18 +1848,6 @@ function ytSeconds(value) {
     return Math.min(21600, parts.reduce((total, part) => total * 60 + part, 0));
   }
   return null;
-}
-function captionSegments(xml) {
-  const out = [];
-  const re = /<text\b([^>]*)>([\s\S]*?)<\/text>/g;
-  let match;
-  while ((match = re.exec(String(xml || '')))) {
-    const start = Number((match[1].match(/\bstart="([\d.]+)"/) || [])[1]);
-    const dur = Number((match[1].match(/\bdur="([\d.]+)"/) || [])[1] || 0);
-    const text = decodeEntities(match[2].replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
-    if (text && Number.isFinite(start)) out.push({ start, dur, text });
-  }
-  return out;
 }
 // Public InnerTube web key. The ANDROID client returns caption baseUrls that
 // still work when fetched directly - unlike the watch-page baseUrls, which
@@ -1933,7 +1911,8 @@ router.get('/youtube-transcript', webToolsLimiter, async (req, res) => {
       ? entry.segments.filter(segment => (start == null || segment.start + segment.dur >= start) && (end == null || segment.start <= end))
       : entry.segments;
     const transcript = selected.length ? selected.map(segment => segment.text).join(' ') : entry.transcript;
-    res.json({ transcript, title: entry.title, videoId: id, transcriptLanguage: entry.language, start, end, cached: Boolean(TRANSCRIPT_CACHE.get(cacheKey)) });
+    const readable = selected.length ? readableTranscript(selected).join('\n\n') : transcript;
+    res.json({ transcript, readable, title: entry.title, videoId: id, transcriptLanguage: entry.language, start, end, cached: Boolean(TRANSCRIPT_CACHE.get(cacheKey)) });
   } catch (err) {
     console.error('[ai/youtube-transcript]', err.message);
     res.status(502).json({ error: 'Could not fetch the transcript right now' });

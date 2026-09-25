@@ -144,8 +144,12 @@ async function fetchCambridge(word) {
   }
   const pos = (html.match(/class="pos dpos"[^>]*>([^<]+)</) || [])[1] || null;
   // Британское произношение первым: это учебный словарь, и в нём оно основное.
-  const pron = pronunciation(html, 'uk') || pronunciation(html, 'us');
-  return { senses, pos, pron };
+  /* Оба: карточка слова на доске показывает UK и US строками, и без второго
+     там стоял прочерк (или транскрипция, которую придумала модель). */
+  const uk = pronunciation(html, 'uk');
+  const us = pronunciation(html, 'us');
+  const pron = uk || us;
+  return { senses, pos, pron, prons: { uk: uk || null, us: us || null } };
 }
 
 /* Какое значение показать ученику.
@@ -187,6 +191,15 @@ function blank(word) {
   return { word, definition: null, cefr: null, example: null, pos: null, ipa: null, audio: null, source: null };
 }
 
+// Британская и американская транскрипция с озвучкой - для карточек слов.
+function regions(entry) {
+  const p = (entry && entry.prons) || {};
+  return {
+    ipaUK: (p.uk && p.uk.ipa) || null, audioUK: (p.uk && p.uk.audio) || null,
+    ipaUS: (p.us && p.us.ipa) || null, audioUS: (p.us && p.us.audio) || null,
+  };
+}
+
 /* Как учитель пишет слово и что об этом знает словарь - разные вещи.
    «a cough», «a blister», «feels sick», «back hurts / back aches» -
    статьи с такими заголовками нет, а слово есть. Поэтому пробуем
@@ -216,6 +229,13 @@ function lookupVariants(w) {
 async function lookupOne(w) {
   let entry = defIndex.get(w);
   if (entry && entry.pron === undefined) entry = null;
+  /* Статьи, сохранённые до того, как появились оба произношения, один раз
+     перечитываются; не вышло - остаётся старая, слово не пропадает. */
+  if (entry && entry.prons === undefined) {
+    const again = await fetchCambridge(w);
+    if (again) { defIndex.put(w, again); return again; }
+    return entry;
+  }
   /* Кэш вечный: статьи, найденные до того, как у значения появилась своя
      часть речи, перечитываются один раз при первом же запросе. */
   if (entry && Array.isArray(entry.senses) && entry.senses.length && entry.senses[0].pos === undefined) entry = null;
@@ -280,6 +300,7 @@ async function lookup(word, level, depth) {
              озвучка «choking» и «choke» звучит по-разному. */
           ipa: (entry.pron && entry.pron.ipa) || base.ipa || null,
           audio: (entry.pron && entry.pron.audio) || base.audio || null,
+          ...(entry.prons && (entry.prons.uk || entry.prons.us) ? regions(entry) : {}),
         };
       }
     }
@@ -304,6 +325,7 @@ async function lookup(word, level, depth) {
        уровню определения не нашлось. */
     ipa: (entry.pron && entry.pron.ipa) || null,
     audio: (entry.pron && entry.pron.audio) || null,
+    ...regions(entry),
     source: sense ? 'cambridge' : null,
   };
 }
