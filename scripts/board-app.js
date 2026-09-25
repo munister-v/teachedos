@@ -3804,10 +3804,11 @@ const WP_KINDS = {
   reading:   { kicker: 'Reading path',   studio: 'Reading Studio',   studioStages: ['post'],            follow: ['follow'] },
   listening: { kicker: 'Listening path', studio: 'Listening Studio', studioStages: ['while', 'post'],   follow: ['follow'] },
   grammar:   { kicker: 'Grammar path',   studio: 'Grammar Studio',   studioStages: ['notice', 'drill'], follow: ['use'] },
+  vocabulary: { kicker: 'Vocabulary path' },
 };
 // Шаги, которые рисует writing-flow.js; остальное - обычная интерактивная карточка.
 const WP_FLOW_ROLES = ['ideas', 'phrases', 'plan', 'criteria', 'guide'];
-const WP_STUDIO_ROLES = ['studio', 'speak-studio', 'task-studio'];
+const WP_STUDIO_ROLES = ['studio', 'speak-studio', 'task-studio', 'vocab-studio'];
 // В «продолжении» эти задания - разговор: их место в Speaking Studio.
 const WP_SPEAK_TOOLS = ['conversation-starters', 'roleplay-cards', 'discussion', 'debate-cards'];
 let _wpFocusId = null;
@@ -3841,12 +3842,16 @@ function _wpBuildPath(set, results, kind, opts = {}) {
 function _wfPlacePath(set, results, label, kind, opts = {}) {
   const path = _wpBuildPath(set, results, kind, opts);
   if (!path) return null;
+  return _wpPlacePathCard(set.base, label, path);
+}
+function _wpPlacePathCard(base, label, path) {
+  const kind = path.kind;
   const W = 1040, H = 780;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, W, H);
   snapshot();
   const card = addCard('worksheet', Math.round(center.x - W / 2), Math.round(center.y - H / 2), {
-    title: label, level: set.base.level || 'B1', topic: set.base.topic || '', cat: kind, _ttSrc: 1, _interactive: true,
+    title: label, level: base.level || 'B1', topic: base.topic || '', cat: kind, _ttSrc: 1, _interactive: true,
     _wfPath: path,
   }, W, H);
   if (card) setTimeout(() => zoomToCard(card.id, true), 80);
@@ -3903,8 +3908,24 @@ function _wpSkillSteps(kind, results, videoUrl, videoTitle) {
 }
 // Только то, что нужно разметке шага: без служебных полей генерации.
 function _wfPlacePathSafe(set, results, label, kind, videoUrl) {
-  try { return !!_wfPlacePath(set, results, label, kind, { videoUrl, videoTitle: set.media && set.media.title }); }
-  catch (err) { console.warn('[stages] ' + kind + ' path placement failed', err); return false; }
+  try { return _wfPlacePath(set, results, label, kind, { videoUrl, videoTitle: set.media && set.media.title }) || null; }
+  catch (err) { console.warn('[stages] ' + kind + ' path placement failed', err); return null; }
+}
+/* Путь для библиотеки: сам урок, без работы в нём - ни шага, ни ответов, ни
+   прикреплённых учеников. Из библиотеки он ложится снова путём, а не
+   россыпью карточек. */
+function _wpLibraryPath(card) {
+  const d = card && card.data;
+  if (!d || !d._wfPath) return null;
+  const p = JSON.parse(JSON.stringify(d._wfPath));
+  p.cur = 0; p.done = []; p.assigned = []; delete p.launch;
+  p.steps.forEach(st => {
+    st.state = null;
+    // Пустые карточки слов (запрос ещё шёл или не удался) не сохраняем - доберутся заново.
+    [st.out, st.out && st.out.material && st.out.material.out, st.out && st.out.material && st.out.material.transcript]
+      .forEach(o => { if (o && o._wordHelp && !Object.keys(o._wordHelp).length) delete o._wordHelp; });
+  });
+  return { label: d.title || 'Lesson', level: d.level || '', topic: d.topic || '', path: p };
 }
 function _wpSlim(out) {
   const keep = ['title', 'kind', 'cat', 'level', 'topic', 'boardKind', 'questions', 'items', 'cards', 'vocab', '_ttMaterial', '_titleChoice', '_ytStage', '_wfRole', 'accent', 'outs', '_wordHelp', '_stage', '_tool'];
@@ -3914,7 +3935,12 @@ function _wpSlim(out) {
 }
 function _wpPhrases(p) {
   const WF = window.TeachEdWritingFlow;
-  return WF ? p.steps.filter(s => s.role === 'phrases').flatMap(s => WF.phrasesOf(s.out)).slice(0, 30) : [];
+  // Слова урока лексики - тоже «фразы урока»: студии говорения и письма
+  // показывают их сбоку, ученик отмечает, какие уже употребил.
+  const words = p.steps.filter(s => s.role === 'vocab-studio')
+    .flatMap(s => (s.out.words || []).map(w => ({ phrase: w.word, note: w.meaning || '' })));
+  const phrases = WF ? p.steps.filter(s => s.role === 'phrases').flatMap(s => WF.phrasesOf(s.out)) : [];
+  return words.concat(phrases).slice(0, 40);
 }
 
 /* ── Превью в конструкторе ───────────────────────────────────────────────
@@ -4226,6 +4252,10 @@ function _wpRender(el, card, focus) {
     });
   } else if (step.role === 'task-studio') {
     _wpTaskStudio(stage, card, i, focus);
+  } else if (step.role === 'vocab-studio') {
+    _wpVocabStudio(stage, card, i);
+  } else if (step.role === 'game') {
+    _wpGameStep(stage, card, i);
   } else {
     const width = focus ? Math.min(1280, window.innerWidth - 64) : card.w - 24;
     stage.appendChild(_wpFrame(card.id + '::' + i, _wpStepHtml(card, i, width)));
@@ -4248,8 +4278,210 @@ function _wpRender(el, card, focus) {
     _ssStop(); _studioRender();
   }));
   root.querySelector('.wp-rv-refresh')?.addEventListener('click', () => _wpReviewRefresh());
-  if (!card.__preview) setTimeout(() => _wpFillWordHelp(_wpCard(card.id)), 0);
+  if (!card.__preview) setTimeout(() => { const c = _wpCard(card.id); _wpFillWordHelp(c); _wpFillVocabPron(c); }, 0);
 }
+/* ── Урок лексики: путь вместо россыпи игр ───────────────────────────────
+   Разбор слов в конструкторе (commitWordWorkout) кладёт ОДНУ карточку:
+   Vocabulary Studio → игры и упражнения по этим словам → «используй сам»
+   (обсуждение и ситуации - в Speaking Studio, письмо - в Writing Studio). */
+function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
+  const words = entries.map(e => ({ word: e.word, pos: e.pos || '', meaning: e.gloss || '', example: e.example || '',
+    ipaUK: e.ipa || '', audioUK: e.audio || '' }));
+  const steps = [{ role: 'vocab-studio', title: 'Vocabulary Studio', out: { title: 'The words', words }, state: null }];
+  const gameStep = (title, gameType, content, level) => {
+    const m = _gameMetaFor(gameType);
+    return { role: 'game', title: String(title).slice(0, 28), out: { title, src: m.src, naturalW: m.w, naturalH: m.h, customContent: content, level: level || base.level }, state: null };
+  };
+  tplBuilt.forEach(({ t, content }) => steps.push(gameStep(t.title, t.game, content)));
+  const speakOuts = [];
+  let writing = null;
+  built.forEach(({ activity, out }) => {
+    out.title = activity.title;
+    if (activity.tool === 'creative-writing') { writing = { role: 'studio', title: 'Writing Studio', out: _wpSlim(out), state: null }; return; }
+    if (activity.tool === 'discussion' || activity.tool === 'comm-situations') { speakOuts.push(_wpSlim(out)); return; }
+    let g = null;
+    try { const gs = _ttGamePayloads(out) || []; g = gs.find(x => x.gameType === activity.game) || gs[0] || null; } catch {}
+    if (g) steps.push(gameStep(activity.title, g.gameType, g.content, out.level));
+    else steps.push({ role: 'task', title: String(activity.title).slice(0, 28), out: _wpSlim(out), state: null });
+  });
+  if (speakOuts.length) steps.push({ role: 'speak-studio', title: 'Speaking Studio', out: { title: 'Speaking Studio', outs: speakOuts }, state: null });
+  if (writing) steps.push(writing);
+  const path = { kind: 'vocabulary', steps, cur: 0, done: [], guide: null, genre: '', assigned: [] };
+  const card = _wpPlacePathCard(base, `Vocabulary: ${base.topic || 'words'}`, path);
+  if (card) {
+    _wpFillVocabPron(card);
+    _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
+      title: card.data.title, cat: 'vocabulary', level: base.level, topic: base.topic,
+      kind: `Vocabulary path · ${words.length} words`, toolId: 'vocab-workout',
+    });
+  }
+  return card;
+}
+
+/* Британская и американская транскрипция и запись - из словаря, пачкой. */
+const _wpPronAsked = new Set();
+async function _wpFillVocabPron(card) {
+  const p = card && card.data && card.data._wfPath;
+  if (!p || _wpPronAsked.has(card.id)) return;
+  const words = p.steps.filter(s => s.role === 'vocab-studio').flatMap(s => s.out.words || []).filter(w => w.word && !w._pron);
+  if (!words.length) return;
+  _wpPronAsked.add(card.id);
+  try {
+    for (let i = 0; i < words.length; i += 20) {
+      const chunk = words.slice(i, i + 20);
+      const r = await apiFetch('/api/dictionary/define?' + new URLSearchParams({ words: chunk.map(w => w.word).join(','), level: card.data.level || '' }));
+      const { results } = await r.json();
+      chunk.forEach((w, j) => {
+        const x = (results || [])[j] || {};
+        w.ipaUK = w.ipaUK || x.ipaUK || x.ipa || '';
+        w.ipaUS = w.ipaUS || x.ipaUS || '';
+        w.audioUK = w.audioUK || x.audioUK || x.audio || '';
+        w.audioUS = w.audioUS || x.audioUS || '';
+        if (!w.pos && x.pos) w.pos = x.pos;
+        if (!w.example && x.example) w.example = x.example;
+        w._pron = 1;
+      });
+    }
+  } catch { _wpPronAsked.delete(card.id); return; }
+  const c = _wpCard(card.id);
+  if (!c) return;
+  if (!c.__preview && _wpOwnerOf(c)) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  if (c.data._wfPath.steps[_wpCur(c)]?.role !== 'vocab-studio') return;
+  if (_wpFocusId === c.id) _studioRender(); else _wpRedraw(c);
+}
+
+/* Vocabulary Studio: слова по одному. Learn - всё открыто; Test myself -
+   значение закрыто, пока ученик не вспомнит сам. «I know it» / «Still
+   learning» раскладывают слова, и повтор идёт только по тем, что ещё учатся.
+   Состояние шага: { i, mode, known: [word], learning: [word], onlyLearning }. */
+function _wpVocabStudio(stage, card, k) {
+  const words = (card.data._wfPath.steps[k].out.words || []).filter(w => w && w.word);
+  const st = Object.assign({ i: 0, mode: 'learn', known: [], learning: [], onlyLearning: false }, _wpState(card, k) || {});
+  const box = document.createElement('div');
+  box.className = 'vs';
+  stage.appendChild(box);
+  let shown = false;
+  let audio = null;
+  const save = () => _wpSetState(card, k, { i: st.i, mode: st.mode, known: st.known, learning: st.learning, onlyLearning: st.onlyLearning });
+  const list = () => st.onlyLearning ? words.filter(w => !st.known.includes(w.word)) : words;
+  const hl = (ex, w) => {
+    const e = esc(ex || '');
+    const re = new RegExp('\\b(' + String(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+') + '\\w*)', 'i');
+    return e.replace(re, '<mark>$1</mark>');
+  };
+  const play = (w, region) => {
+    const url = region === 'uk' ? w.audioUK : w.audioUS;
+    try { audio && audio.pause(); } catch {}
+    if (url) { audio = new Audio(url); audio.play().catch(() => speakWord(w.word, region)); }
+    else speakWord(w.word, region);
+  };
+  const ipa = v => v ? `/${esc(String(v).replace(/^\/|\/$/g, ''))}/` : '<span class="vs-none">-</span>';
+  function paint() {
+    const L = list();
+    if (st.i >= L.length) st.i = Math.max(0, L.length - 1);
+    const w = L[st.i];
+    const knownN = words.filter(x => st.known.includes(x.word)).length;
+    const hide = st.mode === 'test' && !shown;
+    box.innerHTML = `
+      <aside class="vs-side">
+        <div class="vs-prog"><b>${knownN} / ${words.length}</b> known<i class="vs-bar"><i style="width:${words.length ? Math.round(knownN / words.length * 100) : 0}%"></i></i></div>
+        <div class="vs-list">${words.map(x => {
+          const on = w && x.word === w.word;
+          const tag = st.known.includes(x.word) ? 'known' : st.learning.includes(x.word) ? 'learning' : '';
+          return `<button type="button" class="vs-item${on ? ' on' : ''}${tag ? ' ' + tag : ''}" data-w="${esc(x.word)}"><i></i>${esc(x.word)}</button>`;
+        }).join('')}</div>
+      </aside>
+      <section class="vs-main">
+        <div class="vs-top">
+          <div class="vs-modes"><button type="button" data-mode="learn" class="${st.mode === 'learn' ? 'on' : ''}">Learn</button><button type="button" data-mode="test" class="${st.mode === 'test' ? 'on' : ''}">Test myself</button></div>
+          <label class="vs-only"><input type="checkbox"${st.onlyLearning ? ' checked' : ''}> Only words I'm still learning</label>
+        </div>
+        ${w ? `<article class="vs-card">
+          <div class="vs-word">${esc(w.word)}${w.pos ? `<span class="vs-pos">${esc(w.pos)}</span>` : ''}</div>
+          <div class="vs-pron">
+            <button type="button" class="vs-say" data-say="uk" title="Hear it - British">🔊 UK <span>${ipa(w.ipaUK)}</span></button>
+            <button type="button" class="vs-say" data-say="us" title="Hear it - American">🔊 US <span>${ipa(w.ipaUS)}</span></button>
+          </div>
+          ${hide ? `<button type="button" class="vs-reveal">Say what it means - then show the meaning</button>`
+            : `<p class="vs-meaning">${esc(w.meaning || 'No meaning given.')}</p>${w.example ? `<p class="vs-ex">${hl(w.example, w.word)}</p>` : ''}`}
+        </article>
+        <div class="vs-acts">
+          <button type="button" class="vs-nav" data-go="-1"${st.i === 0 ? ' disabled' : ''}>‹</button>
+          <button type="button" class="vs-learning${st.learning.includes(w.word) ? ' on' : ''}" data-mark="learning">Still learning</button>
+          <button type="button" class="vs-known${st.known.includes(w.word) ? ' on' : ''}" data-mark="known">✓ I know it</button>
+          <button type="button" class="vs-nav" data-go="1"${st.i >= L.length - 1 ? ' disabled' : ''}>›</button>
+        </div>
+        <p class="vs-count">Word ${st.i + 1} of ${L.length}</p>`
+        : `<div class="vs-done"><b>All ${words.length} words are known.</b><span>Untick “Only words I'm still learning” to go through them again, or go on to the practice.</span></div>`}
+      </section>`;
+  }
+  box.addEventListener('click', e => {
+    const L = list();
+    const w = L[st.i];
+    const t = e.target;
+    const item = t.closest('[data-w]');
+    if (item) { const j = L.findIndex(x => x.word === item.dataset.w); if (j < 0) { st.onlyLearning = false; st.i = words.findIndex(x => x.word === item.dataset.w); } else st.i = j; shown = false; save(); paint(); return; }
+    const mode = t.closest('[data-mode]');
+    if (mode) { st.mode = mode.dataset.mode; shown = false; save(); paint(); return; }
+    const say = t.closest('[data-say]');
+    if (say && w) { play(w, say.dataset.say); return; }
+    if (t.closest('.vs-reveal')) { shown = true; paint(); return; }
+    const go = t.closest('[data-go]');
+    if (go) { st.i = Math.max(0, Math.min(L.length - 1, st.i + Number(go.dataset.go))); shown = false; save(); paint(); return; }
+    const mark = t.closest('[data-mark]');
+    if (mark && w) {
+      const known = mark.dataset.mark === 'known';
+      st.known = st.known.filter(x => x !== w.word);
+      st.learning = st.learning.filter(x => x !== w.word);
+      (known ? st.known : st.learning).push(w.word);
+      shown = false;
+      // Выучено - дальше; в режиме «только учу» слово само уходит из списка.
+      if (!(st.onlyLearning && known)) st.i = Math.min(L.length - 1, st.i + 1);
+      save(); paint();
+    }
+  });
+  box.addEventListener('change', e => {
+    if (e.target.closest('.vs-only')) { st.onlyLearning = e.target.checked; st.i = 0; shown = false; save(); paint(); }
+  });
+  box.addEventListener('keydown', e => e.stopPropagation());
+  paint();
+}
+
+/* Игра - шагом пути: та же страница games/*.html, что и у игровой карточки,
+   с тем же содержимым (teachedos-custom-game-content), вписанная в шаг. */
+function _wpGameStep(stage, card, k) {
+  const o = card.data._wfPath.steps[k].out || {};
+  const box = document.createElement('div');
+  box.className = 'wp-game';
+  const W = o.naturalW || 720, H = o.naturalH || 480;
+  const f = document.createElement('iframe');
+  f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+  f.dataset.cardId = card.id + '::' + k;
+  f.style.cssText = `width:${W}px;height:${H}px;border:0;display:block;transform-origin:0 0;background:#fff`;
+  f._deliverGameContent = force => {
+    if (!o.customContent || (f._delivered && !force)) return;
+    try { const href = f.contentWindow.location.href; if (!href || href === 'about:blank') return; } catch {}
+    try {
+      f.contentWindow.postMessage({ type: 'teachedos-custom-game-content', title: o.title || 'Game', level: o.level || '', content: o.customContent }, '*');
+      f._delivered = true;
+    } catch {}
+  };
+  f.addEventListener('load', () => { f._deliverGameContent(); setTimeout(() => f._deliverGameContent(), 200); setTimeout(() => f._deliverGameContent(), 600); });
+  f.src = o.src;
+  box.appendChild(f);
+  stage.appendChild(box);
+  const fit = () => {
+    const bw = box.clientWidth, bh = box.clientHeight;
+    if (!bw || !bh) return;
+    const sc = Math.min(bw / W, bh / H);
+    f.style.transform = `scale(${sc})`;
+    f.style.marginLeft = Math.max(0, Math.round((bw - W * sc) / 2)) + 'px';
+    f.style.marginTop = Math.max(0, Math.round((bh - H * sc) / 2)) + 'px';
+  };
+  requestAnimationFrame(fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(box);
+}
+
 function _ssStop() { try { window.__ssActive?.destroy(); } catch {} window.__ssActive = null; }
 function _wpGo(cardId, k) {
   _ssStop();
@@ -14773,7 +15005,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '982';
+const TEACHEDOS_ASSET_VERSION = '983';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -15083,7 +15315,9 @@ async function runPendingLibraryItemImport() {
     if (!r.ok || !p) { toast('That task could not be opened'); return false; }
     window.__fromLibraryItem = true;
     try {
-      if (p.type === 'lesson' && Array.isArray(p.results)) {
+      if (p.type === 'lesson' && p.path && p.path.path && Array.isArray(p.path.path.steps)) {
+        _wpPlacePathCard({ level: p.path.level, topic: p.path.topic }, p.path.label, JSON.parse(JSON.stringify(p.path.path)));
+      } else if (p.type === 'lesson' && Array.isArray(p.results)) {
         _placeLessonOnBoard(p.results, '', p.videoUrl || null, p.ctx || {});
       } else if (p.type === 'output' && p.output) {
         if (!_ttPlaceOutputOnBoard(p.output, p.mode || 'worksheet')) _ttPlaceWorksheetOnBoard(p.output);
@@ -15599,7 +15833,8 @@ function renderWordReview() {
       <div><b>Check the words</b><span class="wr-sum">${_wrSummary()}</span></div>
       <span class="wr-top-actions">
         <button type="button" class="wr-wide" onclick="toggleWordReviewWide()" aria-pressed="${document.getElementById('tool-builder-panel')?.classList.contains('tb-review-wide') ? 'true' : 'false'}">${document.getElementById('tool-builder-panel')?.classList.contains('tb-review-wide') ? '⤡ Back to the form' : '⤢ Full view'}</button>
-        <button type="button" class="wr-add" onclick="commitWordWorkout()"${n && live.length ? '' : ' disabled'}>Add ${n} to the board</button>
+        <label class="wr-aspath" title="One card: Vocabulary Studio, then the games, then speaking and writing - each student in their own studio"><input type="checkbox"${r.asPath !== false ? ' checked' : ''} onchange="_wordReview.asPath=this.checked;renderWordReview()"> One lesson path</label>
+        <button type="button" class="wr-add" onclick="commitWordWorkout()"${n && live.length ? '' : ' disabled'}>${r.asPath !== false ? 'Add the lesson to the board' : `Add ${n} to the board`}</button>
       </span>
     </div>
     <div class="wr-games">${chips || '<span class="wr-note">No activities picked</span>'}</div>
@@ -15885,8 +16120,16 @@ async function commitWordWorkout() {
     return;
   }
 
-  if (tplBuilt.length) _placeWordTemplateGames(tplBuilt, base);
-  if (built.length) placeBoardWorkoutSet(base, built);
+  /* Одним путём (по умолчанию) или, как раньше, отдельными карточками. */
+  let asPath = r.asPath !== false;
+  if (asPath) {
+    try { asPath = !!_wpPlaceVocabPath(base, entries, tplBuilt, built); }
+    catch (err) { console.warn('[workout] vocabulary path failed', err); asPath = false; }
+  }
+  if (!asPath) {
+    if (tplBuilt.length) _placeWordTemplateGames(tplBuilt, base);
+    if (built.length) placeBoardWorkoutSet(base, built);
+  }
 
   if (chip) chip.textContent = `${total} on board`;
   if (body) {
@@ -16713,7 +16956,7 @@ async function _wpFillWordHelp(card) {
     if (m && m.transcript && !m.transcript._wordHelp) mats.push(m.transcript);
   });
   if (!mats.length) return;
-  mats.forEach(o => { o._wordHelp = {}; });   // до запроса: повторный рендер не пошлёт второй
+  mats.forEach(o => { o._wordHelp = {}; });   // до запроса: повторный рендер не пошлёт второй (в библиотеку пустое не едет)
   const level = card.data.level || '';
   let any = false;
   for (const o of mats) {
@@ -17352,10 +17595,11 @@ function placeBoardLessonStageSet() {
   if (!parts) return false;
   const { results, homework, label, videoUrl, readingText, writingFlow, speakingFlow, skillPath } = parts;
 
+  let pathCard = null;
   if (writingFlow || speakingFlow) {
-    try { _wfPlacePath(set, results, label, speakingFlow ? 'speaking' : 'writing'); }
+    try { pathCard = _wfPlacePath(set, results, label, speakingFlow ? 'speaking' : 'writing'); }
     catch (err) { console.warn('[stages] writing path placement failed', err); return false; }
-  } else if (skillPath && _wfPlacePathSafe(set, results, label, skillPath, videoUrl)) {
+  } else if (skillPath && (pathCard = _wfPlacePathSafe(set, results, label, skillPath, videoUrl))) {
     // путь лёг; если нет - ниже обычная раскладка кадром
   } else try {
     _placeLessonOnBoard(results, '', videoUrl, {
@@ -17393,7 +17637,7 @@ function placeBoardLessonStageSet() {
   const n = results.length + homework.length;
   toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
   _ttSaveToLibrary({
-    type: 'lesson', results, videoUrl,
+    type: 'lesson', results, videoUrl, path: _wpLibraryPath(pathCard) || undefined,
     ctx: { source: readingText, level: set.base.level || 'B1', topic: set.base.topic || '', frameIcon: '📗',
       frameLabel: label, frameKind: 'Lesson from builder', inlineCards: true, visualVocabulary: true },
   }, {

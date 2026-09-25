@@ -3655,6 +3655,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .wr-top b{display:block;font:700 14px var(--font);color:#24282C}
 .wr-top span{display:block;font:500 11.5px var(--font);color:#5D614B;margin-top:2px}
 .wr-add{border:0;border-radius:10px;background:#CDF649;color:#24282C;font:800 13px var(--font);padding:9px 14px;cursor:pointer;white-space:nowrap}
+.wr-aspath{display:inline-flex;align-items:center;gap:6px;font:700 12.5px var(--font);color:#24282C;white-space:nowrap;cursor:pointer}
 .wr-add:disabled{opacity:.4;cursor:default}
 .wr-games{display:flex;flex-wrap:wrap;gap:6px}
 .wr-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(36,40,44,.16);border-radius:999px;background:#fff;padding:4px 10px;font:650 11.5px var(--font);color:#24282C;cursor:pointer}
@@ -6896,6 +6897,52 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 .wts-tab.seen i{background:rgba(205,246,73,.45)}
 .wts-frame{flex:1;min-height:0;position:relative;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;overflow:hidden}
 .wts-frame iframe{position:absolute;inset:0}
+
+/* ═══ Vocabulary Studio и игра шагом пути ═════════════════════════════ */
+.wp-game{position:absolute;inset:0;overflow:hidden;background:#fff}
+.vs{position:absolute;inset:0;display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:16px;padding:16px;box-sizing:border-box;background:#F6F6EF;color:#24282C;font-family:var(--font-ui,system-ui,sans-serif)}
+.vs-side{display:flex;flex-direction:column;gap:10px;min-height:0;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;padding:12px}
+.vs-prog{font-size:12.5px;color:#5D614B;display:flex;flex-direction:column;gap:6px}
+.vs-prog b{font-size:15px;color:#24282C}
+.vs-bar{display:block;height:6px;border-radius:999px;background:#F6F6EF;overflow:hidden}
+.vs-bar i{display:block;height:100%;background:#CDF649;transition:width .25s}
+.vs-list{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:2px}
+.vs-item{display:flex;align-items:center;gap:8px;text-align:left;border:0;background:transparent;border-radius:10px;padding:7px 9px;font:600 13.5px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
+.vs-item i{flex-shrink:0;width:9px;height:9px;border-radius:50%;border:2px solid #CACCC6}
+.vs-item:hover{background:#F6F6EF}
+.vs-item.on{background:#24282C;color:#fff}
+.vs-item.known i{background:#CDF649;border-color:#8FB125}
+.vs-item.learning i{background:#FFB547;border-color:#E08A00}
+.vs-main{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.vs-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.vs-modes{display:inline-flex;background:#fff;border:1px solid rgba(36,40,44,.12);border-radius:12px;padding:3px}
+.vs-modes button{height:32px;padding:0 14px;border:0;border-radius:9px;background:transparent;font:700 12.5px var(--font-ui,system-ui,sans-serif);color:#5D614B;cursor:pointer}
+.vs-modes button.on{background:#24282C;color:#fff}
+.vs-only{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#5D614B;cursor:pointer}
+.vs-card{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:22px;padding:24px 28px;box-shadow:0 18px 40px -30px rgba(36,40,44,.4)}
+.vs-word{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1.1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;justify-content:center}
+.vs-pos{font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6B42FD;background:#EFEAFF;border-radius:999px;padding:3px 9px}
+.vs-pron{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.vs-say{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:12px;border:1px solid rgba(36,40,44,.16);background:#F6F6EF;font:700 12px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
+.vs-say span{font:600 14px ui-monospace,Menlo,monospace}
+.vs-say:hover{border-color:#24282C;background:#fff}
+.vs-none{color:#A3A48D}
+.vs-meaning{margin:0;font-size:19px;line-height:1.4;max-width:560px}
+.vs-ex{margin:0;font-size:15px;line-height:1.5;color:#5D614B;font-style:italic;max-width:560px}
+.vs-ex mark{background:#E6FAA6;color:#24282C;font-style:normal;font-weight:700;border-radius:4px;padding:0 3px}
+.vs-reveal{height:44px;padding:0 18px;border-radius:12px;border:1px dashed #24282C;background:#FBFDF0;font:700 13.5px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
+.vs-acts{display:flex;align-items:center;justify-content:center;gap:10px}
+.vs-nav{width:42px;height:42px;border-radius:12px;border:1px solid rgba(36,40,44,.16);background:#fff;font-size:20px;cursor:pointer;color:#24282C}
+.vs-nav:disabled{opacity:.35;cursor:default}
+.vs-learning,.vs-known{height:42px;padding:0 18px;border-radius:12px;font:750 13.5px var(--font-ui,system-ui,sans-serif);cursor:pointer}
+.vs-learning{border:1px solid #E08A00;background:#fff;color:#8A5200}
+.vs-learning.on{background:#FFE1B0}
+.vs-known{border:1px solid #24282C;background:#CDF649;color:#24282C}
+.vs-known.on{box-shadow:inset 0 0 0 2px #24282C}
+.vs-count{margin:0;text-align:center;font-size:12.5px;color:#5D614B}
+.vs-done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;background:#fff;border-radius:22px;border:1px solid rgba(36,40,44,.1);padding:24px}
+.vs-done b{font-size:20px}
+.vs-done span{font-size:14px;color:#5D614B;max-width:420px}
 
 /* Учитель: ученики этой студии */
 .wp-st-card{width:min(640px,100%)}
