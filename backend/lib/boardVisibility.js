@@ -15,6 +15,11 @@
      private        the author's own note. Removed outright for anybody else,
                     matching what the canvas already does visually.
 
+     assigned       a lesson path (studio) the teacher attached to some of the
+                    students: _wfPath.assigned lists them. The others on the
+                    board do not receive it at all - with a group split
+                    between studios, each student sees only their own.
+
      studentHidden  the teacher is holding it back - an answer, a key. Everyone
                     except the board owner receives a content-free placeholder
                     that keeps its position, so a student sees that something is
@@ -34,6 +39,9 @@ function same(a, b) {
 function cardVisibility(card, viewerId, ownerId) {
   var d = (card && card.data) || {};
   if (d.private && !same(d.private, viewerId)) return 'omit';
+  var assigned = d._wfPath && Array.isArray(d._wfPath.assigned) ? d._wfPath.assigned : null;
+  if (assigned && assigned.length && !same(viewerId, ownerId)
+      && !assigned.some(function (id) { return same(id, viewerId); })) return 'omit';
   if (d.studentHidden && !d.revealed && !same(viewerId, ownerId)) return 'redact';
   return 'full';
 }

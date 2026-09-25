@@ -50,6 +50,8 @@ async function loadBoardAccess(boardId, userId) {
 }
 
 function boardHasVisibleCard(access, cardId, viewerId) {
+  // A step of a lesson path reports as "card::step" - the card is what counts.
+  cardId = String(cardId || '').split('::')[0];
   const visible = filterBoardData(access?.data, viewerId, access?.owner_id);
   const card = Array.isArray(visible?.cards)
     ? visible.cards.find(item => String(item?.id) === String(cardId))
@@ -369,6 +371,71 @@ router.get('/:id/recordings/:rid/audio', async (req, res) => {
     res.send(r.audio);
   } catch (err) {
     res.status(500).end();
+  }
+});
+
+/* ── Studio work ─────────────────────────────────────────────────────────
+   A lesson path on the board is the lesson; each student works through it
+   in their own studio. What they did (step, done marks, answers per step)
+   is theirs, kept here per student - not on the shared card, which the
+   teacher's next edit would overwrite and every other student would see. */
+const WORK_MAX_BYTES = 400 * 1024;
+
+// GET /api/boards/:id/studio-work - my own work on every path of the board
+router.get('/:id/studio-work', async (req, res) => {
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    const { rows } = await pool.query(
+      'SELECT card_id, work, updated_at FROM studio_work WHERE board_id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]);
+    const work = {};
+    rows.forEach(r => { work[r.card_id] = r.work; });
+    res.json({ work });
+  } catch (err) {
+    console.error('[boards] studio work error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PUT /api/boards/:id/studio-work/:cardId - save my work on one path
+router.put('/:id/studio-work/:cardId', async (req, res) => {
+  try {
+    const work = req.body && req.body.work;
+    if (!work || typeof work !== 'object' || Array.isArray(work)) return res.status(400).json({ error: 'work required' });
+    const json = JSON.stringify(work);
+    if (Buffer.byteLength(json) > WORK_MAX_BYTES) return res.status(413).json({ error: 'Too much to save' });
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    const cardId = String(req.params.cardId).slice(0, 80);
+    if (!boardHasVisibleCard(access, cardId, req.user.id)) return res.status(404).json({ error: 'Card not found' });
+    await pool.query(
+      `INSERT INTO studio_work (board_id, card_id, user_id, work, updated_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       ON CONFLICT (board_id, card_id, user_id) DO UPDATE SET work = $4, updated_at = NOW()`,
+      [req.params.id, cardId, req.user.id, json]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[boards] studio work save error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/boards/:id/studio-work/:cardId/students - the owner: everyone's studio
+router.get('/:id/studio-work/:cardId/students', async (req, res) => {
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access || access.access_role !== 'owner') return res.status(403).json({ error: 'Board owner access required' });
+    const { rows } = await pool.query(
+      `SELECT w.user_id, w.work, w.updated_at, u.name, u.email, u.avatar
+         FROM studio_work w JOIN users u ON u.id = w.user_id
+        WHERE w.board_id = $1 AND w.card_id = $2
+        ORDER BY w.updated_at DESC`,
+      [req.params.id, String(req.params.cardId)]);
+    res.json({ students: rows });
+  } catch (err) {
+    console.error('[boards] studio work list error:', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

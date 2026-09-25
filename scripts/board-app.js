@@ -3766,50 +3766,142 @@ function _ttPlayCardSize(d) {
   return { w, h: Math.max(420, Math.min(900, Math.round(chrome + tallest))) };
 }
 
-/* ═══ ВИДЖЕТ-ПУТЬ УРОКА ПИСЬМА ════════════════════════════════════════════
-   Урок письма ведёт ученика за руку: идеи → образец → памятка жанра →
-   фразы → план и критерии → Writing Studio. На доске это ОДНА карточка,
-   а не россыпь блоков, в которой непонятно, с чего начать: на экране всегда
-   один шаг, сверху - где ты в пути, снизу - «дальше». Кнопка «Open Studio»
+/* ═══ ВИДЖЕТ-ПУТЬ УРОКА ═══════════════════════════════════════════════════
+   Урок ведёт ученика за руку: на доске это ОДНА карточка, а не россыпь
+   блоков, в которой непонятно, с чего начать: на экране всегда один шаг,
+   сверху - где ты в пути, снизу - «дальше». Кнопка «Open Studio»
    разворачивает путь окном на весь экран - доска для урока это холст, а
    студия - режим фокуса.
 
-   Шаг - это та же разметка, что у отдельных карточек (writing-flow.js /
-   worksheet-play.js), в своём iframe с id «карточка::шаг». Ответы шага
-   живут в card.data._wfPath.steps[k].state. */
-const WP_TITLES = { ideas: 'Ideas', model: 'Model text', guide: 'Genre guide', phrases: 'Phrases', plan: 'Plan', criteria: 'Checklist', studio: 'Writing Studio' };
+     writing    идеи → образец → памятка жанра → фразы → план/критерии →
+                Writing Studio
+     speaking   разминка → образец диалога → фразы → Speaking Studio
+     reading    до чтения → текст → Reading Studio (текст слева, задания
+                после чтения справа) → продолжение
+     listening  до прослушивания → Listening Studio (видео и, если учитель
+                его дал, транскрипт слева, задания справа) → продолжение
+     grammar    текст → правило → Grammar Studio (правило слева, упражнения
+                справа) → «используй сам»
+   Продолжение «поговорить» собирается в Speaking Studio, «написать» -
+   в Writing Studio: одни и те же студии для всех навыков.
+
+   Шаг - та же разметка, что у отдельных карточек (writing-flow.js /
+   worksheet-play.js), в своём iframe с id «карточка::шаг» (у студии с
+   материалом ещё «::m» - материал и «::tN» - задание N).
+
+   ЧЬЯ РАБОТА. Путь на карточке - это урок. Ученик на облачной доске
+   проходит его в СВОЕЙ студии: шаг, отметки и ответы лежат у него
+   (studio_work на сервере), а не в общей карточке - иначе следующая правка
+   учителя стирала бы их, а соседи по доске видели бы чужие ответы.
+   Учитель (и гость без входа) работает в самой карточке, как раньше.
+   Учитель прикрепляет учеников к студиям (_wfPath.assigned: кто не
+   прикреплён, этого пути не получает вовсе - boardVisibility.js), открывает
+   путь у них на экранах (_wfPath.launch) и заходит в студию любого из них. */
+const WP_TITLES = { ideas: 'Ideas', model: 'Model text', guide: 'Genre guide', phrases: 'Phrases', plan: 'Plan', criteria: 'Checklist', studio: 'Writing Studio', rule: 'The rule' };
+const WP_KINDS = {
+  writing:   { kicker: 'Writing path' },
+  speaking:  { kicker: 'Speaking path' },
+  reading:   { kicker: 'Reading path',   studio: 'Reading Studio',   studioStages: ['post'],            follow: ['follow'] },
+  listening: { kicker: 'Listening path', studio: 'Listening Studio', studioStages: ['while', 'post'],   follow: ['follow'] },
+  grammar:   { kicker: 'Grammar path',   studio: 'Grammar Studio',   studioStages: ['notice', 'drill'], follow: ['use'] },
+};
+// Шаги, которые рисует writing-flow.js; остальное - обычная интерактивная карточка.
+const WP_FLOW_ROLES = ['ideas', 'phrases', 'plan', 'criteria', 'guide'];
+const WP_STUDIO_ROLES = ['studio', 'speak-studio', 'task-studio'];
+// В «продолжении» эти задания - разговор: их место в Speaking Studio.
+const WP_SPEAK_TOOLS = ['conversation-starters', 'roleplay-cards', 'discussion', 'debate-cards'];
 let _wpFocusId = null;
 
-function _wfPlacePath(set, results, label, kind) {
+function _wfPlacePath(set, results, label, kind, opts = {}) {
   const speaking = kind === 'speaking';
-  const WG = window.TeachEdWritingGenres;
-  const guide = !speaking && WG ? WG.guideFor(set.base.genre) : null;
-  const speakOuts = speaking ? results.filter(o => o._wfRole === 'speak').map(_wpSlim) : [];
-  let steps = results.filter(o => !(speaking && o._wfRole === 'speak')).map(out => {
-    const role = out._wfRole || (out._ttMaterial ? 'model' : '');
-    const title = speaking && role === 'model' ? 'Model dialogue' : WP_TITLES[role] || String(out.title || 'Task').slice(0, 28);
-    return { role, title, out: _wpSlim(out), state: null };
-  });
-  steps.sort((a, b) => ((a.out._ytStage ?? 9) - (b.out._ytStage ?? 9)));
-  if (speaking) steps.push({ role: 'speak-studio', title: 'Speaking Studio', out: { title: 'Speaking Studio', outs: speakOuts }, state: null });
-  if (guide) {
-    const at = steps.findIndex(s => s.role === 'phrases' || s.role === 'plan' || s.role === 'criteria' || s.role === 'studio');
-    steps.splice(at < 0 ? steps.length : at, 0, { role: 'guide', title: 'Genre guide', out: { title: guide.label }, state: null });
+  let steps;
+  let guide = null;
+  if (kind === 'writing' || kind === 'speaking') {
+    const WG = window.TeachEdWritingGenres;
+    guide = !speaking && WG ? WG.guideFor(set.base.genre) : null;
+    const speakOuts = speaking ? results.filter(o => o._wfRole === 'speak').map(_wpSlim) : [];
+    steps = results.filter(o => !(speaking && o._wfRole === 'speak')).map(out => {
+      const role = out._wfRole || (out._ttMaterial ? 'model' : '');
+      const title = speaking && role === 'model' ? 'Model dialogue' : WP_TITLES[role] || String(out.title || 'Task').slice(0, 28);
+      return { role, title, out: _wpSlim(out), state: null };
+    });
+    steps.sort((a, b) => ((a.out._ytStage ?? 9) - (b.out._ytStage ?? 9)));
+    if (speaking) steps.push({ role: 'speak-studio', title: 'Speaking Studio', out: { title: 'Speaking Studio', outs: speakOuts }, state: null });
+    if (guide) {
+      const at = steps.findIndex(s => s.role === 'phrases' || s.role === 'plan' || s.role === 'criteria' || s.role === 'studio');
+      steps.splice(at < 0 ? steps.length : at, 0, { role: 'guide', title: 'Genre guide', out: { title: guide.label }, state: null });
+    }
+  } else {
+    steps = _wpSkillSteps(kind, results, opts.videoUrl, opts.videoTitle);
   }
+  if (!steps.length) return null;
   const W = 1040, H = 780;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, W, H);
   snapshot();
   const card = addCard('worksheet', Math.round(center.x - W / 2), Math.round(center.y - H / 2), {
-    title: label, level: set.base.level || 'B1', topic: set.base.topic || '', cat: 'writing', _ttSrc: 1, _interactive: true,
-    _wfPath: { kind: speaking ? 'speaking' : 'writing', steps, cur: 0, done: [], guide, genre: set.base.genre || '' },
+    title: label, level: set.base.level || 'B1', topic: set.base.topic || '', cat: kind, _ttSrc: 1, _interactive: true,
+    _wfPath: { kind, steps, cur: 0, done: [], guide, genre: set.base.genre || '', assigned: [] },
   }, W, H);
   if (card) setTimeout(() => zoomToCard(card.id, true), 80);
   return card;
 }
+
+/* Чтение, аудирование, грамматика: этапы урока → шаги пути. Задания этапов
+   «после чтения» / «во время и после прослушивания» / «заметь и
+   потренируй» собираются в одну студию, где материал всегда под рукой:
+   отвечать на вопросы к тексту, не видя текста, - это проверка памяти, а
+   не чтения. */
+function _wpSkillSteps(kind, results, videoUrl, videoTitle) {
+  const K = WP_KINDS[kind];
+  const ordered = results.slice().sort((a, b) => ((a._ytStage ?? 9) - (b._ytStage ?? 9)));
+  const text = ordered.find(o => o._ttMaterial) || null;
+  const rule = kind === 'grammar' ? ordered.find(o => o._tool === 'grammar-rules') || null : null;
+  const steps = [];
+  const tasks = [];
+  const speakOuts = [];
+  let studioAt = -1, speakAt = -1;
+  ordered.forEach(o => {
+    const stage = o._stage || '';
+    if (o === text) {
+      // Транскрипт до прослушивания превратил бы аудирование в чтение:
+      // он живёт только в студии, под видео, и закрыт по умолчанию.
+      if (kind !== 'listening') steps.push({ role: 'model', title: 'The text', out: _wpSlim(o), state: null });
+      return;
+    }
+    if (K.studioStages.includes(stage)) {
+      if (studioAt < 0) { studioAt = steps.length; steps.push(null); }
+      tasks.push(_wpSlim(o));
+      return;
+    }
+    if (K.follow.includes(stage) && WP_SPEAK_TOOLS.includes(o._tool)) {
+      if (speakAt < 0) { speakAt = steps.length; steps.push(null); }
+      speakOuts.push(_wpSlim(o));
+      return;
+    }
+    if (K.follow.includes(stage) && (o._tool === 'creative-writing' || o._tool === 'email-reply')) {
+      steps.push({ role: 'studio', title: 'Writing Studio', out: _wpSlim(o), state: null });
+      return;
+    }
+    steps.push({ role: o === rule ? 'rule' : 'task', title: o === rule ? 'The rule' : String(o.title || 'Task').slice(0, 28), out: _wpSlim(o), state: null });
+  });
+  const embedUrl = kind === 'listening' && videoUrl ? parseVideoEmbed(videoUrl) : null;
+  const material = embedUrl ? { kind: 'video', label: 'The video', embedUrl, title: videoTitle || 'Video', transcript: text ? _wpSlim(text) : null }
+    : rule ? { kind: 'rule', label: 'The rule', out: _wpSlim(rule) }
+    : text ? { kind: 'text', label: kind === 'listening' ? 'Transcript' : 'The text', out: _wpSlim(text) }
+    : null;
+  if (studioAt >= 0) steps[studioAt] = { role: 'task-studio', title: K.studio, out: { title: K.studio, material, tasks }, state: null };
+  else if (embedUrl) steps.push({ role: 'task-studio', title: K.studio, out: { title: K.studio, material, tasks: [] }, state: null });
+  if (speakAt >= 0) steps[speakAt] = { role: 'speak-studio', title: 'Speaking Studio', out: { title: 'Speaking Studio', outs: speakOuts }, state: null };
+  return steps.filter(Boolean);
+}
 // Только то, что нужно разметке шага: без служебных полей генерации.
+function _wfPlacePathSafe(set, results, label, kind, videoUrl) {
+  try { return !!_wfPlacePath(set, results, label, kind, { videoUrl, videoTitle: set.media && set.media.title }); }
+  catch (err) { console.warn('[stages] ' + kind + ' path placement failed', err); return false; }
+}
 function _wpSlim(out) {
-  const keep = ['title', 'kind', 'cat', 'level', 'topic', 'boardKind', 'questions', 'items', 'cards', 'vocab', '_ttMaterial', '_titleChoice', '_ytStage', '_wfRole', 'accent', 'outs'];
+  const keep = ['title', 'kind', 'cat', 'level', 'topic', 'boardKind', 'questions', 'items', 'cards', 'vocab', '_ttMaterial', '_titleChoice', '_ytStage', '_wfRole', 'accent', 'outs', '_wordHelp', '_stage', '_tool'];
   const o = {};
   keep.forEach(k => { if (out[k] !== undefined) o[k] = out[k]; });
   return o;
@@ -3818,74 +3910,267 @@ function _wpPhrases(p) {
   const WF = window.TeachEdWritingFlow;
   return WF ? p.steps.filter(s => s.role === 'phrases').flatMap(s => WF.phrasesOf(s.out)).slice(0, 30) : [];
 }
+
+/* ── Чья работа на экране ─────────────────────────────────────────────── */
+const _wpWork = {};        // cardId → { cur, done, states, t } - моя студия (ученик)
+let _wpReview = null;      // учитель в студии ученика: { cardId, list, i }
+const _wpSaveT = {};
+let _wpWorkBoard = null;
+function _wpPersonal() {
+  return !!(typeof currentBoardId !== 'undefined' && currentBoardId && authToken && typeof isOwner !== 'undefined' && !isOwner);
+}
+function _wpW(card) {
+  if (_wpReview && _wpReview.cardId === card.id) return _wpReview.list[_wpReview.i].work;
+  if (_wpPersonal()) {
+    // Работа привязана к доске: при переходе на другую доску карта обнуляется.
+    if (_wpWorkBoard !== currentBoardId) { Object.keys(_wpWork).forEach(k => delete _wpWork[k]); _wpWorkBoard = currentBoardId; }
+    return _wpWork[card.id] || (_wpWork[card.id] = { cur: 0, done: [], states: {} });
+  }
+  return null;
+}
+function _wpCur(card) { const w = _wpW(card); return (w ? w.cur : card.data._wfPath.cur) || 0; }
+function _wpDone(card) { const w = _wpW(card); return (w ? w.done : card.data._wfPath.done) || []; }
+function _wpState(card, k) {
+  const w = _wpW(card);
+  return (w ? (w.states || {})[k] : card.data._wfPath.steps[k] && card.data._wfPath.steps[k].state) ?? null;
+}
+function _wpSetState(card, k, s) {
+  const w = _wpW(card);
+  if (w) { (w.states || (w.states = {}))[k] = s; }
+  else if (card.data._wfPath.steps[k]) card.data._wfPath.steps[k].state = s;
+  _wpPersist(card);
+}
+function _wpSetCur(card, k) {
+  const w = _wpW(card);
+  const o = w || card.data._wfPath;
+  if (!Array.isArray(o.done)) o.done = [];
+  if (k > (o.cur || 0)) o.done[o.cur || 0] = true;
+  o.cur = k;
+  _wpPersist(card);
+}
+function _wpPersist(card) {
+  if (_wpReview && _wpReview.cardId === card.id) return;   // учитель смотрит - ничего не пишем
+  if (!_wpPersonal()) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); return; }
+  const id = card.id;
+  const w = _wpWork[id];
+  if (!w) return;
+  w.t = Date.now();
+  try { localStorage.setItem(`teached_sw_${currentBoardId}_${id}`, JSON.stringify(w)); } catch {}
+  clearTimeout(_wpSaveT[id]);
+  _wpSaveT[id] = setTimeout(() => {
+    apiFetch(`/api/boards/${currentBoardId}/studio-work/${encodeURIComponent(id)}`, { method: 'PUT', body: { work: w } }).catch(() => {});
+  }, 800);
+}
+/* Ученик открыл доску: его студии - с сервера; то, что успело лечь только
+   в этот браузер (не было сети), берётся, если оно новее. */
+async function _wpLoadMyWork() {
+  if (!_wpPersonal()) return;
+  const boardId = currentBoardId;
+  let server = {};
+  try {
+    const r = await apiFetch(`/api/boards/${boardId}/studio-work`);
+    if (r.ok) server = (await r.json()).work || {};
+  } catch {}
+  if (boardId !== currentBoardId) return;
+  if (_wpWorkBoard !== boardId) { Object.keys(_wpWork).forEach(k => delete _wpWork[k]); _wpWorkBoard = boardId; }
+  // Всё, что у ученика есть, - и по путям, которых ему сейчас не видно:
+  // учитель может прикрепить его обратно, и работа должна быть на месте.
+  const ids = new Set(Object.keys(server));
+  state.cards.forEach(c => { if (c.data && c.data._wfPath) ids.add(c.id); });
+  ids.forEach(id => {
+    let local = null;
+    try { local = JSON.parse(localStorage.getItem(`teached_sw_${boardId}_${id}`) || 'null'); } catch {}
+    const s = server[id];
+    const w = (local && (!s || (local.t || 0) > (s.t || 0))) ? local : s;
+    if (w) _wpWork[id] = { cur: 0, done: [], states: {}, ...w };
+  });
+  state.cards.forEach(c => { if (c.data && c.data._wfPath) reRenderCard(c); });
+  _wpCheckLaunch();
+}
+/* Учитель нажал «Open on their screens» - путь раскрывается у каждого, кто
+   к нему прикреплён, один раз на каждое нажатие. */
+function _wpCheckLaunch() {
+  if (!_wpPersonal()) return;
+  const cards = state.cards.filter(c => c.data && c.data._wfPath && c.data._wfPath.launch);
+  let open = null;
+  cards.forEach(c => {
+    const key = `teached_wp_launch_${currentBoardId}_${c.id}`;
+    let seen = 0;
+    try { seen = Number(localStorage.getItem(key)) || 0; } catch {}
+    if (c.data._wfPath.launch > seen) {
+      try { localStorage.setItem(key, String(c.data._wfPath.launch)); } catch {}
+      if (!open || c.data._wfPath.launch > open.data._wfPath.launch) open = c;
+    }
+  });
+  if (open && _wpFocusId !== open.id) { openCardStudio(open.id); toast('Your teacher opened this studio for you'); }
+}
+/* Сравнение без работы учителя в карточке: если у пути поменялось только
+   это (учитель листает свой экземпляр), у ученика ничего не перерисовываем -
+   перерисовка сбросила бы набранное и оборвала запись в Speaking Studio. */
+function _wpContentKey(c) {
+  const p = c.data._wfPath;
+  return JSON.stringify({ ...c, x: 0, y: 0, z: 0, data: { ...c.data, _wfPath: { ...p, cur: 0, done: [], launch: 0, assigned: [], steps: (p.steps || []).map(s => ({ ...s, state: null })) } } });
+}
+
 function _wpStepHtml(card, k, width) {
   const p = card.data._wfPath;
   const st = p.steps[k];
-  const d = { ...st.out, title: st.out.title || st.title, _state: st.state || null,
-    _wfRole: st.role === 'model' ? '' : st.role, _wfGuide: p.guide || null, _wfSpeak: p.kind === 'speaking',
+  const d = { ...st.out, title: st.out.title || st.title, _state: _wpState(card, k),
+    _wfRole: WP_FLOW_ROLES.includes(st.role) || st.role === 'studio' ? st.role : '', _wfGuide: p.guide || null, _wfSpeak: p.kind === 'speaking',
     _wfCtx: { next: null, phrases: _wpPhrases(p), guide: p.guide || null } };
   const id = card.id + '::' + k;
   const owner = (typeof isOwner === 'undefined') ? true : !!isOwner;
-  if (['ideas', 'phrases', 'plan', 'criteria', 'guide'].includes(st.role) && window.TeachEdWritingFlow) {
+  if (WP_FLOW_ROLES.includes(st.role) && window.TeachEdWritingFlow) {
     return window.TeachEdWritingFlow.buildHtml(d, id, owner, width);
   }
-  if (st.role === 'studio') d._wfRole = 'studio';
   return _buildInteractiveWSHtml(d, id, owner, width);
 }
+function _wpFrame(id, html) {
+  const f = document.createElement('iframe');
+  f.sandbox = 'allow-scripts';
+  f.srcdoc = html;
+  f.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#F6F6EF';
+  _iwRegisterFrame(id, f);
+  return f;
+}
+
+/* Студия с материалом (Reading / Listening / Grammar Studio): слева то, по
+   чему работают, - текст, видео с транскриптом, правило; справа задания
+   вкладками. Состояние шага: { t: открытая вкладка, tasks: {i: ответы},
+   seen: [i…], mat: состояние материала, hideMat }. */
+function _wpTaskStudio(stage, card, k, focus) {
+  const p = card.data._wfPath;
+  const out = p.steps[k].out || {};
+  const tasks = Array.isArray(out.tasks) ? out.tasks : [];
+  const mat = out.material || null;
+  const st = Object.assign({ t: 0, tasks: {}, seen: [] }, _wpState(card, k) || {});
+  const ti = Math.max(0, Math.min(tasks.length - 1, st.t || 0));
+  const owner = (typeof isOwner === 'undefined') ? true : !!isOwner;
+  const wrap = document.createElement('div');
+  wrap.className = 'wts' + (st.hideMat || !mat ? ' no-mat' : '') + (mat && mat.kind === 'video' ? ' is-video' : '');
+  const width = focus ? Math.min(1280, window.innerWidth - 64) : card.w - 24;
+  wrap.innerHTML = `
+    ${mat ? `<aside class="wts-mat"><div class="wts-mat-head"><b>${esc(mat.label || 'Material')}</b><button type="button" class="wts-hide" title="More room for the tasks">Hide</button></div><div class="wts-mat-body"></div></aside>` : ''}
+    <section class="wts-work">
+      <div class="wts-tabs">
+        ${mat ? `<button type="button" class="wts-show"${st.hideMat ? '' : ' hidden'}>☰ ${esc(mat.label || 'Material')}</button>` : ''}
+        ${tasks.map((t, i) => `<button type="button" class="wts-tab${i === ti ? ' on' : ''}${(st.seen || []).includes(i) && i !== ti ? ' seen' : ''}" data-t="${i}"><i>${i + 1}</i>${esc(String(t.title || 'Task').slice(0, 34))}</button>`).join('')}
+      </div>
+      <div class="wts-frame">${tasks.length ? '' : '<div class="wp-away">Watch the video - the teacher will give you the tasks.</div>'}</div>
+    </section>`;
+  stage.appendChild(wrap);
+  if (mat) {
+    const body = wrap.querySelector('.wts-mat-body');
+    const matW = focus ? 520 : 420;
+    if (mat.kind === 'video') {
+      body.innerHTML = `<div class="wts-video"><iframe src="${esc(mat.embedUrl)}" title="${esc(mat.title || 'Video')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        ${mat.transcript ? '<details class="wts-tr"><summary>Transcript</summary><div class="wts-tr-body"></div></details>' : ''}`;
+      if (mat.transcript) {
+        const trBody = body.querySelector('.wts-tr-body');
+        body.querySelector('.wts-tr').addEventListener('toggle', function once(e) {
+          if (!e.target.open || trBody.firstChild) return;
+          trBody.appendChild(_wpFrame(card.id + '::' + k + '::m', _buildInteractiveWSHtml({ ...mat.transcript, _state: st.mat || null }, card.id + '::' + k + '::m', owner, matW)));
+        });
+      }
+    } else {
+      body.appendChild(_wpFrame(card.id + '::' + k + '::m', _buildInteractiveWSHtml({ ...mat.out, _state: st.mat || null }, card.id + '::' + k + '::m', owner, matW)));
+    }
+  }
+  /* Вкладка меняет только задание справа: материал слева не перезагружается,
+     и место в тексте, где читал ученик, остаётся на месте. */
+  let cur = ti;
+  const showTask = i => {
+    if (!tasks.length) return;
+    const frame = wrap.querySelector('.wts-frame');
+    frame.innerHTML = '';
+    const now = Object.assign({ tasks: {} }, _wpState(card, k) || {});
+    const id = card.id + '::' + k + '::t' + i;
+    // Ширина по живой колонке (в ней решается, узкая ли раскладка задания);
+    // пока карточка не в документе - по сетке.
+    const hidden = wrap.classList.contains('no-mat');
+    const taskW = frame.clientWidth || (mat && !hidden ? Math.round(width * 0.58) - 40 : width);
+    frame.appendChild(_wpFrame(id, _buildInteractiveWSHtml({ ...tasks[i], _state: (now.tasks || {})[i] || null }, id, owner, taskW)));
+  };
+  const setSt = patch => _wpSetState(card, k, Object.assign({ t: 0, tasks: {}, seen: [] }, _wpState(card, k) || {}, patch));
+  showTask(cur);
+  wrap.querySelectorAll('.wts-tab').forEach(b => b.addEventListener('click', () => {
+    const i = Number(b.dataset.t);
+    if (i === cur) return;
+    const seen = new Set((_wpState(card, k) || {}).seen || []); seen.add(cur);
+    cur = i;
+    setSt({ t: i, seen: [...seen] });
+    wrap.querySelectorAll('.wts-tab').forEach(x => { const j = Number(x.dataset.t); x.classList.toggle('on', j === i); x.classList.toggle('seen', seen.has(j) && j !== i); });
+    showTask(i);
+  }));
+  const toggleMat = hide => {
+    setSt({ hideMat: hide });
+    wrap.classList.toggle('no-mat', hide);
+    const sh = wrap.querySelector('.wts-show'); if (sh) sh.hidden = !hide;
+    setTimeout(() => showTask(cur), 350);   // задание перестраивается под новую ширину колонки
+  };
+  wrap.querySelector('.wts-hide')?.addEventListener('click', () => toggleMat(true));
+  wrap.querySelector('.wts-show')?.addEventListener('click', () => toggleMat(false));
+}
+
 function _wpRender(el, card, focus) {
   const p = card.data._wfPath;
   const n = p.steps.length;
-  const i = Math.max(0, Math.min(n - 1, p.cur || 0));
-  const done = p.done || [];
+  const i = Math.max(0, Math.min(n - 1, _wpCur(card)));
+  const done = _wpDone(card);
+  const K = WP_KINDS[p.kind] || WP_KINDS.writing;
+  const owner = (typeof isOwner === 'undefined') ? true : !!isOwner;
+  const cloudOwner = owner && typeof currentBoardId !== 'undefined' && !!currentBoardId && !!authToken;
+  const review = _wpReview && _wpReview.cardId === card.id && focus ? _wpReview : null;
+  const assigned = Array.isArray(p.assigned) ? p.assigned.length : 0;
   el.classList.add('wp-card');
   el.dataset.interactive = '1';
   const root = document.createElement('div');
-  root.className = 'wp' + (focus ? ' is-focus' : '');
+  root.className = 'wp' + (focus ? ' is-focus' : '') + (review ? ' is-review' : '');
   const next = p.steps[i + 1];
-  const nextLabel = !next ? '' : next.role === 'studio' ? 'Go to the Writing Studio →'
-    : next.role === 'speak-studio' ? 'Go to the Speaking Studio →' : `Next: ${next.title} →`;
+  const nextLabel = !next ? '' : WP_STUDIO_ROLES.includes(next.role) ? `Go to the ${next.title} →` : `Next: ${next.title} →`;
+  const who = review ? review.list[review.i] : null;
   root.innerHTML = `
     <div class="wp-head">
       <div class="wp-top">
-        <div class="wp-name"><span class="wp-kicker">${p.kind === 'speaking' ? 'Speaking path' : 'Writing path'}${p.guide ? ' · ' + esc(p.guide.label) + ' · ' + esc(p.guide.registerLabel) : ''}</span>
-          <b class="wp-title">${esc(card.data.title || 'Writing lesson')}</b></div>
-        ${focus ? '<button type="button" class="wp-btn wp-close">✕ Back to the board</button>' : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
+        <div class="wp-name"><span class="wp-kicker">${review ? `${esc(who.name || who.email || 'Student')}'s studio · ${esc(_wpAgo(who.updated_at))}` : esc(K.kicker)}${!review && p.guide ? ' · ' + esc(p.guide.label) + ' · ' + esc(p.guide.registerLabel) : ''}</span>
+          <b class="wp-title">${esc(card.data.title || 'Lesson')}</b></div>
+        <div class="wp-acts">
+          ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
+          ${cloudOwner && !review ? `<button type="button" class="wp-btn wp-students">👥 Students${assigned ? ` · ${assigned}` : ''}</button>` : ''}
+          ${focus ? '<button type="button" class="wp-btn wp-close">✕ Back to the board</button>' : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
+        </div>
       </div>
-      <div class="wp-steps">${p.steps.map((s, k) => `<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${s.role === 'studio' ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k + 1}</i><span>${esc(s.title)}</span></button>`).join('<span class="wp-line"></span>')}</div>
+      <div class="wp-steps">${p.steps.map((s, k) => `<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${WP_STUDIO_ROLES.includes(s.role) ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k + 1}</i><span>${esc(s.title)}</span></button>`).join('<span class="wp-line"></span>')}</div>
     </div>
     <div class="wp-stage"></div>
     <div class="wp-nav">
       <button type="button" class="wp-btn wp-prev"${i === 0 ? ' disabled' : ''}>← Back</button>
-      <span class="wp-where">Step ${i + 1} of ${n} · ${esc(p.steps[i].title)}</span>
-      ${next ? `<button type="button" class="wp-btn wp-next${next.role === 'studio' || next.role === 'speak-studio' ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : '<span class="wp-end">Last step</span>'}
+      <span class="wp-where">${review ? 'Looking at their work - nothing you do here is saved · ' : ''}Step ${i + 1} of ${n} · ${esc(p.steps[i].title)}</span>
+      ${next ? `<button type="button" class="wp-btn wp-next${WP_STUDIO_ROLES.includes(next.role) ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : '<span class="wp-end">Last step</span>'}
     </div>`;
   el.appendChild(root);
   const stage = root.querySelector('.wp-stage');
+  const step = p.steps[i];
   if (!focus && _wpFocusId === card.id) {
     stage.innerHTML = '<div class="wp-away">This path is open in the Studio window.</div>';
-  } else if (p.steps[i].role === 'speak-studio' && window.TeachEdSpeakingStudio) {
-    const stp = p.steps[i];
+  } else if (step.role === 'speak-studio' && window.TeachEdSpeakingStudio) {
     const box = document.createElement('div');
     box.className = 'wp-ss';
     stage.appendChild(box);
-    const owner = (typeof isOwner === 'undefined') ? true : !!isOwner;
     const args = { cardId: card.id, boardId: currentBoardId, owner, api: apiFetch };
     // Один живой экземпляр: при перерисовке прежний отдаёт микрофон.
     try { window.__ssActive?.destroy(); } catch {}
     window.__ssActive = window.TeachEdSpeakingStudio.mount(box, {
-      ...args, outs: stp.out.outs || [], phrases: _wpPhrases(p), state: stp.state,
-      authed: !!(currentBoardId && authToken),
-      save: stState => { stp.state = stState; scheduleSave && scheduleSave(); saveLocal && saveLocal(); },
+      ...args, outs: step.out.outs || [], phrases: _wpPhrases(p), state: _wpState(card, i),
+      authed: !!(currentBoardId && authToken) && !review,
+      save: stState => { const c = state.cards.find(x => x.id === card.id); if (c) _wpSetState(c, i, stState); },
       onRecordings: () => window.TeachEdSpeakingStudio.showRecordings(args),
     });
+  } else if (step.role === 'task-studio') {
+    _wpTaskStudio(stage, card, i, focus);
   } else {
-    const f = document.createElement('iframe');
-    f.sandbox = 'allow-scripts';
     const width = focus ? Math.min(1280, window.innerWidth - 64) : card.w - 24;
-    f.srcdoc = _wpStepHtml(card, i, width);
-    f.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#F6F6EF';
-    stage.appendChild(f);
-    _iwRegisterFrame(card.id + '::' + i, f);
+    stage.appendChild(_wpFrame(card.id + '::' + i, _wpStepHtml(card, i, width)));
   }
   // Доска не должна тащить карточку, когда работают внутри шага.
   [stage, root.querySelector('.wp-nav'), root.querySelector('.wp-steps')].forEach(x => x.addEventListener('mousedown', ev => ev.stopPropagation()));
@@ -3898,6 +4183,13 @@ function _wpRender(el, card, focus) {
   root.querySelector('.wp-next')?.addEventListener('click', () => _wpGo(card.id, i + 1));
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
   root.querySelector('.wp-close')?.addEventListener('click', () => closeCardStudio());
+  root.querySelector('.wp-students')?.addEventListener('click', () => _wpStudentsPanel(card.id));
+  root.querySelectorAll('.wp-rv').forEach(b => b.addEventListener('click', () => {
+    if (!_wpReview) return;
+    _wpReview.i = Math.max(0, Math.min(_wpReview.list.length - 1, _wpReview.i + Number(b.dataset.rv)));
+    _ssStop(); _studioRender();
+  }));
+  root.querySelector('.wp-rv-refresh')?.addEventListener('click', () => _wpReviewRefresh());
 }
 function _ssStop() { try { window.__ssActive?.destroy(); } catch {} window.__ssActive = null; }
 function _wpGo(cardId, k) {
@@ -3906,40 +4198,45 @@ function _wpGo(cardId, k) {
   const p = card && card.data._wfPath;
   if (!p) return;
   k = Math.max(0, Math.min(p.steps.length - 1, k));
-  if (k === p.cur) return;
-  if (!Array.isArray(p.done)) p.done = [];
-  if (k > p.cur) p.done[p.cur] = true;
-  p.cur = k;
-  reRenderCard(card);
+  if (k === _wpCur(card)) return;
+  _wpSetCur(card, k);
   if (_wpFocusId === cardId) _studioRender();
-  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  else reRenderCard(card);
 }
 function _wpHandleMessage(m, e) {
-  const [baseId, kStr] = m.cardId.split('::');
+  const [baseId, kStr, sub] = m.cardId.split('::');
   const k = Number(kStr);
   const card = state.cards.find(c => c.id === baseId);
   const p = card && card.data && card.data._wfPath;
   if (!p || !p.steps[k]) return;
   if (m.type === 'iw-state') {
-    p.steps[k].state = m.state;
-    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    if (sub) {
+      // Студия с материалом: ответы задания N или состояние самого материала.
+      const st = Object.assign({ t: 0, tasks: {}, seen: [] }, _wpState(card, k) || {});
+      if (sub === 'm') st.mat = m.state;
+      else if (/^t\d+$/.test(sub)) st.tasks = { ...(st.tasks || {}), [sub.slice(1)]: m.state };
+      _wpSetState(card, k, st);
+    } else {
+      _wpSetState(card, k, m.state);
+    }
   } else if (m.type === 'iw-goto') {
     _wpGo(baseId, k + 1);
   } else if (m.type === 'iw-insert' && m.text) {
     const si = p.steps.findIndex(s => s.role === 'studio');
     if (si < 0) { toast('This path has no Writing Studio'); return; }
     const win = _iwFrameWin(baseId + '::' + si);
-    if (p.cur === si && win) { try { win.postMessage({ type: 'iw-insert-text', text: String(m.text).slice(0, 2000) }, '*'); } catch {} }
+    if (_wpCur(card) === si && win) { try { win.postMessage({ type: 'iw-insert-text', text: String(m.text).slice(0, 2000) }, '*'); } catch {} }
     else {
-      const st = p.steps[si].state || (p.steps[si].state = {});
+      const st = { ...(_wpState(card, si) || {}) };
       st.draft = String(st.draft || '') + (st.draft ? ' ' : '') + esc(String(m.text).slice(0, 2000)) + ' ';
-      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      _wpSetState(card, si, st);
     }
     toast('Added to your draft');
   } else if (m.type === 'iw-copy' && m.text) {
     navigator.clipboard?.writeText(String(m.text)).then(() => toast('Copied'), () => {});
   } else if (m.type === 'iw-submit-draft') {
     const reply = (ok, msg) => { try { e.source.postMessage({ type: 'iw-submitted', ok, msg }, '*'); } catch {} };
+    if (_wpReview && _wpReview.cardId === baseId) { reply(false, 'This is the student\'s draft - it was not sent again.'); return; }
     if (typeof currentBoardId === 'undefined' || !currentBoardId || !authToken) {
       reply(false, 'Saved on the board. Sign in to hand it in to your teacher.');
       return;
@@ -3957,15 +4254,144 @@ function _wpHandleMessage(m, e) {
   }
 }
 
+/* ── Учитель: кто работает в этой студии ─────────────────────────────────
+   Список учеников доски: галочка - прикреплён к этому пути (никто не
+   отмечен - путь у всех, каждый в своей студии). Рядом - где каждый сейчас
+   и когда был последний раз; «Open studio» - зайти в его студию и увидеть
+   его ответы. «Open on their screens» раскрывает путь у прикреплённых. */
+function _wpAgo(t) {
+  if (!t) return 'not started';
+  const s = Math.max(0, Math.round((Date.now() - new Date(t).getTime()) / 1000));
+  return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+async function _wpStudentsPanel(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card || !card.data._wfPath || !currentBoardId) return;
+  document.getElementById('wp-students')?.remove();
+  const box = document.createElement('div');
+  box.id = 'wp-students';
+  box.className = 'wf-drafts';
+  box.innerHTML = `<div class="wf-drafts-card wp-st-card" role="dialog" aria-modal="true" aria-label="Students in this studio">
+    <div class="wf-drafts-head"><b>Students · ${esc(card.data.title || 'Lesson')}</b><button type="button" class="wf-drafts-x" aria-label="Close">✕</button></div>
+    <div class="wf-drafts-body">Loading…</div></div>`;
+  document.body.appendChild(box);
+  let poll = null;
+  const close = () => { clearInterval(poll); box.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape' && !document.getElementById('card-studio')) close(); };
+  document.addEventListener('keydown', onKey);
+  box.addEventListener('click', e => { if (e.target === box || e.target.closest('.wf-drafts-x')) close(); });
+  const body = box.querySelector('.wf-drafts-body');
+  let members = [];
+  let works = [];
+  const load = async () => {
+    const [rm, rw] = await Promise.all([
+      apiFetch('/api/members/' + currentBoardId).then(r => r.ok ? r.json() : { members: [] }).catch(() => ({ members: [] })),
+      apiFetch(`/api/boards/${currentBoardId}/studio-work/${encodeURIComponent(cardId)}/students`).then(r => r.ok ? r.json() : { students: [] }).catch(() => ({ students: [] })),
+    ]);
+    members = rm.members || [];
+    works = rw.students || [];
+  };
+  const paint = () => {
+    const c = state.cards.find(x => x.id === cardId);
+    if (!c) { close(); return; }
+    const p = c.data._wfPath;
+    const assigned = new Set((p.assigned || []).map(String));
+    const byUser = new Map(works.map(w => [String(w.user_id), w]));
+    // Работа есть и у тех, кого уже нет в списке доски, - её тоже показываем.
+    const people = members.map(m => ({ id: String(m.user_id), name: m.name, email: m.email }));
+    works.forEach(w => { if (!people.some(x => x.id === String(w.user_id))) people.push({ id: String(w.user_id), name: w.name, email: w.email, gone: true }); });
+    if (!people.length) {
+      body.innerHTML = `<p class="wf-drafts-empty">No students on this board yet. Invite them with <b>Share</b> - each one then works through this lesson in their own studio.</p>`;
+      return;
+    }
+    const n = p.steps.length;
+    body.innerHTML = `
+      <p class="wp-st-lead">${assigned.size ? `Only the ticked students get this lesson. Each works in their own studio.` : `Nobody ticked - everyone on the board gets this lesson, each in their own studio. Tick students to give it only to them (for example, one group reads while another speaks).`}</p>
+      <div class="wp-st-list">${people.map(u => {
+        const w = byUser.get(u.id);
+        const wk = w && w.work || null;
+        const cur = wk ? Math.max(0, Math.min(n - 1, wk.cur || 0)) : 0;
+        const doneN = wk ? (wk.done || []).filter(Boolean).length : 0;
+        const pct = wk ? Math.round(Math.max(doneN, cur) / Math.max(1, n - 1) * 100) : 0;
+        return `<div class="wp-st-row">
+          ${u.gone ? '<span class="wp-st-tick is-off" title="No longer on this board"></span>' : `<label class="wp-st-tick"><input type="checkbox" data-u="${esc(u.id)}"${assigned.has(u.id) ? ' checked' : ''}><span></span></label>`}
+          <div class="wp-st-who"><b>${esc(u.name || u.email || 'Student')}</b>
+            <span>${wk ? `Step ${cur + 1} of ${n} · ${esc(p.steps[cur].title)} · ${esc(_wpAgo(w.updated_at))}` : 'Not started yet'}</span>
+            <i class="wp-st-bar"><i style="width:${Math.min(100, pct)}%"></i></i></div>
+          <button type="button" class="wp-btn wp-st-open" data-open="${esc(u.id)}"${w ? '' : ' disabled'}>Open studio</button>
+        </div>`;
+      }).join('')}</div>
+      <div class="wp-st-foot">
+        <span>${p.launch ? `Last opened on their screens ${esc(_wpAgo(p.launch))}` : 'Students open the lesson themselves, or you open it for them.'}</span>
+        <button type="button" class="wp-btn wp-next wp-st-launch">Open on their screens</button>
+      </div>`;
+  };
+  await load();
+  paint();
+  poll = setInterval(async () => { if (!document.body.contains(box)) { clearInterval(poll); return; } await load(); paint(); }, 8000);
+  body.addEventListener('change', e => {
+    const cb = e.target.closest('input[data-u]');
+    if (!cb) return;
+    const c = state.cards.find(x => x.id === cardId);
+    if (!c) return;
+    const p = c.data._wfPath;
+    const set = new Set((p.assigned || []).map(String));
+    if (cb.checked) set.add(cb.dataset.u); else set.delete(cb.dataset.u);
+    p.assigned = [...set];
+    scheduleSave && scheduleSave();
+    reRenderCard(c);
+    paint();
+  });
+  body.addEventListener('click', e => {
+    const o = e.target.closest('[data-open]');
+    if (o) {
+      const list = works.filter(w => w.work).map(w => ({ ...w, user_id: String(w.user_id) }));
+      const i = list.findIndex(w => w.user_id === o.dataset.open);
+      if (i < 0) return;
+      close();
+      _wpOpenReview(cardId, list, i);
+      return;
+    }
+    if (e.target.closest('.wp-st-launch')) {
+      const c = state.cards.find(x => x.id === cardId);
+      if (!c) return;
+      c.data._wfPath.launch = Date.now();
+      scheduleSave && scheduleSave();
+      toast((c.data._wfPath.assigned || []).length ? 'Opened for the ticked students' : 'Opened for everyone on the board');
+      paint();
+    }
+  });
+}
+function _wpOpenReview(cardId, list, i) {
+  _wpReview = { cardId, list: list.map(w => ({ ...w, work: { cur: 0, done: [], states: {}, ...(w.work || {}) } })), i };
+  openCardStudio(cardId);
+}
+async function _wpReviewRefresh() {
+  if (!_wpReview) return;
+  const rv = _wpReview;
+  try {
+    const r = await apiFetch(`/api/boards/${currentBoardId}/studio-work/${encodeURIComponent(rv.cardId)}/students`);
+    const { students } = await r.json();
+    const uid = rv.list[rv.i].user_id;
+    rv.list = (students || []).filter(w => w.work).map(w => ({ ...w, user_id: String(w.user_id), work: { cur: 0, done: [], states: {}, ...w.work } }));
+    rv.i = Math.max(0, rv.list.findIndex(w => w.user_id === uid));
+    if (!rv.list.length) { closeCardStudio(); return; }
+    _ssStop(); _studioRender();
+    toast('Updated');
+  } catch { toast('Could not load their work'); }
+}
+
 /* ═══ СТУДИЯ - ОКНО ПОВЕРХ ДОСКИ ═════════════════════════════════════════
    Доска - холст, студия - режим фокуса: любая интерактивная карточка (и путь
-   урока письма) открывается окном на весь экран, доска уходит в фон. Ответы
-   те же - это та же карточка, только крупно; по закрытии карточка на доске
+   урока) открывается окном на весь экран, доска уходит в фон. Ответы те же -
+   это та же карточка, только крупно; по закрытии карточка на доске
    перерисовывается с тем, что ученик успел сделать. */
 function openCardStudio(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card) return;
+  const review = _wpReview;
   closeCardStudio(true);
+  if (review && review.cardId === cardId) _wpReview = review;
   _wpFocusId = cardId;
   const ov = document.createElement('div');
   ov.id = 'card-studio';
@@ -3999,17 +4425,18 @@ function _studioRender() {
 }
 function closeCardStudio(silent) {
   const ov = document.getElementById('card-studio');
-  if (!ov) return;
+  if (!ov) { _wpReview = null; return; }
   _ssStop();
   ov.remove();
   document.body.classList.remove('studio-open');
   const id = _wpFocusId;
   _wpFocusId = null;
+  _wpReview = null;
   const card = id && state.cards.find(c => c.id === id);
   // Карточка на доске снова своя: перерисовка забирает то, что сделано в окне.
   if (card && !silent) reRenderCard(card);
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('card-studio')) closeCardStudio(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('card-studio') && !document.getElementById('wp-students')) closeCardStudio(); });
 
 /* ── Урок письма: порядок блоков, мастерская, присланные черновики ──
    Порядок - тот, в котором блоки легли в урок (_wfOrder), а не по
@@ -4180,11 +4607,15 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
   window.addEventListener('message', e => {
     const m = e.data;
     if (!m) return;
-    if (m.type === 'iw-state' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
+    /* Шаг пути («карточка::шаг») - не карточка: его ответы ниже, в
+       _wpHandleMessage. Раньше return здесь обрывал обработчик, и ответы в
+       шагах пути письма не сохранялись вовсе. */
+    if (m.type === 'iw-state' && m.cardId && !String(m.cardId).includes('::') && _iwSourceValid(m.cardId, e.source)) {
       const card = (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === m.cardId) : null;
-      if (!card || !card.data) return;
-      card.data._state = m.state;
-      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      if (card && card.data) {
+        card.data._state = m.state;
+        scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      }
     }
     /* Карточка с материалом сама сообщает, сколько места ей нужно: снаружи
        содержимое srcdoc-iframe не измерить, а оценка по числу символов
@@ -4295,6 +4726,8 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
       _wfShowDrafts(m.cardId);
     }
     if (m.type === 'iw-progress' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
+      // Учитель в студии ученика проверяет его ответы - это не результат учителя.
+      if (_wpReview && _wpReview.cardId === String(m.cardId).split('::')[0]) return;
       try {
         if (typeof currentBoardId !== 'undefined' && currentBoardId && typeof apiFetch === 'function') {
           apiFetch('/api/boards/' + currentBoardId + '/progress', {
@@ -14280,7 +14713,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '980';
+const TEACHEDOS_ASSET_VERSION = '981';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16814,8 +17247,14 @@ function placeBoardLessonStageSet() {
   const SPEAK_ROLES = { 'extract-vocab': 'phrases', 'comm-situations': 'phrases', 'essential-vocab': 'phrases', 'rubric-maker': 'criteria',
     'roleplay-cards': 'speak', 'discussion': 'speak', 'debate-cards': 'speak', 'four-opinions': 'speak', 'pros-cons': 'speak' };
   const taskIdx = stageIndex.task != null ? stageIndex.task : 3;
+  /* Чтение, аудирование, грамматика - тоже путь со своей студией
+     (_wpSkillSteps): шагу нужно знать этап и инструмент задания. */
+  const skillPath = ['reading', 'listening', 'grammar'].includes(set.skill) ? set.skill : '';
+  if (skillPath && set.textOut) set.textOut._stage = 'text';
   lesson.forEach(({ activity, out }) => {
     out.title = activity.title;
+    out._stage = activity.stage;
+    out._tool = activity.tool;
     out._ytStage = stageIndex[activity.stage] != null ? stageIndex[activity.stage] : 9;
     if (speakingFlow) {
       const role = SPEAK_ROLES[activity.tool] || '';
@@ -16844,6 +17283,8 @@ function placeBoardLessonStageSet() {
   if (writingFlow || speakingFlow) {
     try { _wfPlacePath(set, results, label, speakingFlow ? 'speaking' : 'writing'); }
     catch (err) { console.warn('[stages] writing path placement failed', err); return false; }
+  } else if (skillPath && _wfPlacePathSafe(set, results, label, skillPath, videoUrl)) {
+    // путь лёг; если нет - ниже обычная раскладка кадром
   } else try {
     _placeLessonOnBoard(results, '', videoUrl, {
       source: readingText,
@@ -19888,6 +20329,7 @@ async function initUserBoard() {
         applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
         if (!_communityImportApplied) loadBoardData(board.data);
+        if (!isOwner) _wpLoadMyWork();
         document.title = board.name + ' · TeachEd';
         document.getElementById('board-name-display').textContent = board.name;
         const _tbn = document.getElementById('tb-board-name'); if(_tbn) _tbn.textContent = '📌 ' + board.name;
@@ -19932,6 +20374,7 @@ async function initUserBoard() {
           updateFollowUI();
           applyRoleUI();
           if (!_communityImportApplied) loadBoardData(board.data);
+          if (!isOwner) _wpLoadMyWork();
           document.title = board.name + ' · TeachEd';
           document.getElementById('board-name-display').textContent = board.name;
           const _tbn2 = document.getElementById('tb-board-name'); if(_tbn2) _tbn2.textContent = '📌 ' + board.name;
@@ -20763,7 +21206,14 @@ function wsSendCursor(bx, by) {
 function applyRemoteState(remote) {
   // Full replace - server is source of truth for collab.
   remote = migrateLegacyCommentStickies(remote);
-  state.cards.forEach(c => getCardEl(c.id)?.remove());
+  /* Путь урока, у которого поменялось только место на доске или работа
+     учителя в его экземпляре, не перерисовываем: у ученика в нём набранный
+     текст, запись в Speaking Studio. Двигаем готовый элемент. */
+  const livePath = new Map();
+  if (!isOwner) state.cards.forEach(c => { if (c.data && c.data._wfPath) livePath.set(c.id, _wpContentKey(c)); });
+  const keep = new Set((remote.cards || []).filter(c => c && c.data && c.data._wfPath && livePath.has(c.id)
+    && livePath.get(c.id) === _wpContentKey(c) && getCardEl(c.id)).map(c => c.id));
+  state.cards.forEach(c => { if (!keep.has(c.id)) getCardEl(c.id)?.remove(); });
   arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
   state.cards  = remote.cards || [];
   state.annotations = normalizeAnnotations(remote.annotations);
@@ -20771,12 +21221,19 @@ function applyRemoteState(remote) {
   state.strokes = Array.isArray(remote.strokes) ? remote.strokes : (state.strokes || []);
   state.nextId = Math.max(state.nextId, remote.nextId || 0);
   clearSelection();
-  state.cards.forEach(c => board.appendChild(renderCard(c)));
+  state.cards.forEach(c => {
+    if (!keep.has(c.id)) { board.appendChild(renderCard(c)); return; }
+    const el = getCardEl(c.id);
+    Object.assign(el.style, { left: c.x + 'px', top: c.y + 'px', width: c.w + 'px', height: c.h + 'px', zIndex: String(getCardZ(c)) });
+  });
   renderAllArrows();
   renderAllAnnotations();
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
   updateEmpty();
   saveStatus.textContent = '☁ synced';
+  // Путь, которого больше нет (учитель открепил ученика), закрывается у него.
+  if (_wpFocusId && !state.cards.some(c => c.id === _wpFocusId)) closeCardStudio(true);
+  _wpCheckLaunch();
 }
 
 // Remote cursors

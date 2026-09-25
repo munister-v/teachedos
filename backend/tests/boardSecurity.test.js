@@ -49,3 +49,18 @@ test('viewer payload omits private cards and redacts unrevealed cards', () => {
   assert.equal(view.cards[1].x, 10);
   assert.deepEqual(view.arrows.map(arrow => arrow.id), ['keep']);
 });
+
+test('a path attached to some students reaches only them and the owner', () => {
+  const board = {
+    cards: [
+      { id: 'p1', type: 'worksheet', data: { title: 'Group A', _wfPath: { steps: [], assigned: ['anna'] } } },
+      { id: 'p2', type: 'worksheet', data: { title: 'Everyone', _wfPath: { steps: [], assigned: [] } } },
+    ],
+    arrows: [{ id: 'a', fromCard: 'p1', toCard: 'p2' }],
+  };
+  const ids = viewer => filterBoardData(board, viewer, 'teacher').cards.map(c => c.id);
+  assert.deepEqual(ids('teacher'), ['p1', 'p2']);
+  assert.deepEqual(ids('anna'), ['p1', 'p2']);
+  assert.deepEqual(ids('boris'), ['p2']);
+  assert.equal(filterBoardData(board, 'boris', 'teacher').arrows.length, 0);
+});

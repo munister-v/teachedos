@@ -802,3 +802,17 @@ CREATE TABLE IF NOT EXISTS speaking_recordings (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_speaking_rec_board ON speaking_recordings (board_id, card_id, created_at DESC);
+
+-- Studio work: each student's own copy of a lesson path (its step, done
+-- marks and every step's answers). The path card on the board holds the
+-- lesson itself; with several students on one board each of them works in
+-- their own studio, and the teacher opens any of them from the card.
+CREATE TABLE IF NOT EXISTS studio_work (
+  board_id   UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  card_id    TEXT NOT NULL,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  work       JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (board_id, card_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_studio_work_card ON studio_work (board_id, card_id);

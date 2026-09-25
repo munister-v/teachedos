@@ -6848,6 +6848,70 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 .ws-focus-btn{margin-left:auto;margin-right:6px;height:22px;padding:0 8px;border:0;border-radius:7px;background:rgba(255,255,255,.85);color:#24282C;font:700 11px var(--font-ui,system-ui,sans-serif);cursor:pointer}
 .ws-focus-btn:hover{background:#fff}
 
+/* Кнопки в шапке пути и студия ученика глазами учителя */
+.wp-acts{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.wp-head .wp-students{background:transparent;color:#F6F6EF;border-color:rgba(246,246,239,.35)}
+.wp-head .wp-students:hover{border-color:#F6F6EF}
+.wp-head .wp-rv,.wp-head .wp-rv-refresh{width:38px;padding:0;background:transparent;color:#F6F6EF;border-color:rgba(246,246,239,.35);font-size:17px}
+.wp-rv-n{font:700 12.5px var(--font-ui,system-ui,sans-serif);color:rgba(246,246,239,.75);white-space:nowrap}
+.wp.is-review .wp-head{background:#3B2F7A}
+.wp.is-review .wp-kicker{color:#E1DAFF}
+
+/* ═══ Студия с материалом: Reading / Listening / Grammar Studio ══════════ */
+.wts{position:absolute;inset:0;display:grid;grid-template-columns:minmax(280px,min(420px,42%)) 1fr;gap:12px;padding:12px;box-sizing:border-box;background:#F6F6EF}
+.wp.is-focus .wts{grid-template-columns:minmax(300px,min(520px,42%)) 1fr;padding:16px 20px;gap:16px}
+.wts.no-mat{grid-template-columns:1fr}
+.wts.no-mat .wts-mat{display:none}
+.wts-mat{display:flex;flex-direction:column;min-height:0;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;overflow:hidden}
+.wts-mat-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px 9px 14px;border-bottom:1px solid rgba(36,40,44,.08)}
+.wts-mat-head b{font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B}
+.wts-hide{height:28px;padding:0 10px;border-radius:8px;border:1px solid rgba(36,40,44,.16);background:#fff;color:#24282C;font:650 12px var(--font-ui,system-ui,sans-serif);cursor:pointer}
+.wts-hide:hover{border-color:#24282C}
+.wts-mat-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto}
+.wts-mat-body > iframe{flex:1;min-height:0}
+.wts-video{position:relative;flex-shrink:0;aspect-ratio:16/9;background:#24282C}
+.wts-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.wts-tr{flex:1;min-height:0;display:flex;flex-direction:column;border-top:1px solid rgba(36,40,44,.08)}
+.wts-tr summary{flex-shrink:0;padding:10px 14px;cursor:pointer;font:700 13px var(--font-ui,system-ui,sans-serif);color:#24282C}
+.wts-tr[open]{min-height:260px}
+.wts-tr-body{flex:1;min-height:240px;display:flex}
+.wts-tr-body iframe{flex:1}
+.wts-work{display:flex;flex-direction:column;min-width:0;min-height:0;gap:10px}
+.wts-tabs{flex-shrink:0;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}
+.wts-tabs::-webkit-scrollbar{display:none}
+.wts-tab,.wts-show{flex-shrink:0;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 5px;border-radius:999px;border:1px solid rgba(36,40,44,.14);background:#fff;color:#24282C;font:650 12.5px var(--font-ui,system-ui,sans-serif);cursor:pointer;white-space:nowrap}
+.wts-show{padding:0 12px}
+.wts-show[hidden]{display:none}
+.wts-tab i{font-style:normal;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#F6F6EF;font-size:11.5px;font-weight:800}
+.wts-tab:hover,.wts-show:hover{border-color:#24282C}
+.wts-tab.on{background:#24282C;border-color:#24282C;color:#fff}
+.wts-tab.on i{background:#CDF649;color:#24282C}
+.wts-tab.seen i{background:rgba(205,246,73,.45)}
+.wts-frame{flex:1;min-height:0;position:relative;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;overflow:hidden}
+.wts-frame iframe{position:absolute;inset:0}
+
+/* Учитель: ученики этой студии */
+.wp-st-card{width:min(640px,100%)}
+.wp-st-lead{margin:0;font-size:13.5px;line-height:1.5;color:#5D614B}
+.wp-st-list{display:flex;flex-direction:column;border:1px solid rgba(36,40,44,.1);border-radius:16px;overflow:hidden}
+.wp-st-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid rgba(36,40,44,.07)}
+.wp-st-row:last-child{border-bottom:0}
+.wp-st-tick{flex-shrink:0;width:24px;height:24px;cursor:pointer;position:relative}
+.wp-st-tick input{position:absolute;opacity:0;pointer-events:none}
+.wp-st-tick span{position:absolute;inset:0;border-radius:7px;border:2px solid rgba(36,40,44,.3);transition:all .15s}
+.wp-st-tick input:checked + span{background:#CDF649;border-color:#24282C}
+.wp-st-tick input:checked + span::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 13px/1 system-ui;color:#24282C}
+.wp-st-tick input:focus-visible + span{box-shadow:0 0 0 3px rgba(107,66,253,.35)}
+.wp-st-tick.is-off{cursor:default;border-radius:7px;border:2px dashed rgba(36,40,44,.2)}
+.wp-st-who{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.wp-st-who b{font-size:14.5px}
+.wp-st-who > span{font-size:12.5px;color:#5D614B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wp-st-bar{display:block;height:5px;border-radius:999px;background:#F6F6EF;overflow:hidden;max-width:260px}
+.wp-st-bar i{display:block;height:100%;background:#CDF649}
+.wp-st-open{height:34px;padding:0 12px;font-size:12.5px}
+.wp-st-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.wp-st-foot span{font-size:12.5px;color:#5D614B}
+
 /* ═══ Speaking Studio (scripts/speaking-studio.js) ═══════════════════════ */
 .wp-ss{position:absolute;inset:0;overflow:auto;background:#F6F6EF}
 .ss{display:grid;grid-template-columns:minmax(210px,270px) 1fr;gap:16px;min-height:100%;padding:16px;box-sizing:border-box;font-family:var(--font-ui,system-ui,sans-serif);color:#24282C}
