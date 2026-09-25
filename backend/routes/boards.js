@@ -381,11 +381,21 @@ router.get('/:id/recordings/:rid/audio', async (req, res) => {
    teacher's next edit would overwrite and every other student would see. */
 const WORK_MAX_BYTES = 400 * 1024;
 
-// GET /api/boards/:id/studio-work - my own work on every path of the board
+// GET /api/boards/:id/studio-work - my own work on every path of the board;
+// ?all=1 - the owner: every student's work on every path (the class overview)
 router.get('/:id/studio-work', async (req, res) => {
   try {
     const access = await loadBoardAccess(req.params.id, req.user.id);
     if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (req.query.all) {
+      if (access.access_role !== 'owner') return res.status(403).json({ error: 'Board owner access required' });
+      const { rows } = await pool.query(
+        `SELECT w.card_id, w.user_id, w.work, w.updated_at, u.name, u.email, u.avatar
+           FROM studio_work w JOIN users u ON u.id = w.user_id
+          WHERE w.board_id = $1 ORDER BY w.updated_at DESC`,
+        [req.params.id]);
+      return res.json({ rows });
+    }
     const { rows } = await pool.query(
       'SELECT card_id, work, updated_at FROM studio_work WHERE board_id = $1 AND user_id = $2',
       [req.params.id, req.user.id]);

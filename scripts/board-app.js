@@ -4278,7 +4278,7 @@ function _wpRender(el, card, focus) {
     _ssStop(); _studioRender();
   }));
   root.querySelector('.wp-rv-refresh')?.addEventListener('click', () => _wpReviewRefresh());
-  if (!card.__preview) setTimeout(() => { const c = _wpCard(card.id); _wpFillWordHelp(c); _wpFillVocabPron(c); }, 0);
+  if (!card.__preview) setTimeout(() => { const c = _wpCard(card.id); _wpFillWordHelp(c); _wpFillVocabPron(c); _wpClassBtnSync(); }, 0);
 }
 /* ── Урок лексики: путь вместо россыпи игр ───────────────────────────────
    Разбор слов в конструкторе (commitWordWorkout) кладёт ОДНУ карточку:
@@ -4603,7 +4603,7 @@ async function _wpStudentsPanel(cardId) {
         const wk = w && w.work || null;
         const cur = wk ? Math.max(0, Math.min(n - 1, wk.cur || 0)) : 0;
         const doneN = wk ? (wk.done || []).filter(Boolean).length : 0;
-        const pct = wk ? Math.round(Math.max(doneN, cur) / Math.max(1, n - 1) * 100) : 0;
+        const pct = wk ? Math.round(Math.min(n, doneN) / Math.max(1, n) * 100) : 0;
         return `<div class="wp-st-row">
           ${u.gone ? '<span class="wp-st-tick is-off" title="No longer on this board"></span>' : `<label class="wp-st-tick"><input type="checkbox" data-u="${esc(u.id)}"${assigned.has(u.id) ? ' checked' : ''}><span></span></label>`}
           <div class="wp-st-who"><b>${esc(u.name || u.email || 'Student')}</b>
@@ -4653,6 +4653,94 @@ async function _wpStudentsPanel(cardId) {
     }
   });
 }
+/* ── Учитель: весь класс на одном экране ─────────────────────────────────
+   Строки - ученики доски, столбцы - уроки-пути на ней. В клетке: где ученик,
+   сколько пройдено, когда был; у урока лексики - сколько слов уже знает.
+   Клик по клетке - студия этого ученика в этом уроке. Обновляется сама. */
+function _wpClassBtnSync() {
+  const b = document.getElementById('btn-class');
+  if (!b) return;
+  const show = typeof isOwner !== 'undefined' && isOwner && !!currentBoardId && !!authToken
+    && state.cards.some(c => c.data && c.data._wfPath);
+  b.style.display = show ? '' : 'none';
+}
+async function _wpClassPanel() {
+  if (!currentBoardId || !isOwner) return;
+  document.getElementById('wp-class')?.remove();
+  const box = document.createElement('div');
+  box.id = 'wp-class';
+  box.className = 'wf-drafts';
+  box.innerHTML = `<div class="wf-drafts-card wp-cl-card" role="dialog" aria-modal="true" aria-label="Class">
+    <div class="wf-drafts-head"><b>Class · how everyone is doing</b><button type="button" class="wf-drafts-x" aria-label="Close">✕</button></div>
+    <div class="wf-drafts-body">Loading…</div></div>`;
+  document.body.appendChild(box);
+  let poll = null;
+  const close = () => { clearInterval(poll); box.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape' && !document.getElementById('card-studio')) close(); };
+  document.addEventListener('keydown', onKey);
+  box.addEventListener('click', e => { if (e.target === box || e.target.closest('.wf-drafts-x')) close(); });
+  const body = box.querySelector('.wf-drafts-body');
+  let members = [], rows = [];
+  const load = async () => {
+    const [rm, rw] = await Promise.all([
+      apiFetch('/api/members/' + currentBoardId).then(r => r.ok ? r.json() : { members: [] }).catch(() => ({ members: [] })),
+      apiFetch(`/api/boards/${currentBoardId}/studio-work?all=1`).then(r => r.ok ? r.json() : { rows: [] }).catch(() => ({ rows: [] })),
+    ]);
+    members = rm.members || [];
+    rows = rw.rows || [];
+  };
+  const paint = () => {
+    const paths = state.cards.filter(c => c.data && c.data._wfPath && Array.isArray(c.data._wfPath.steps));
+    const people = members.map(m => ({ id: String(m.user_id), name: m.name || m.email || 'Student' }));
+    rows.forEach(w => { if (!people.some(x => x.id === String(w.user_id))) people.push({ id: String(w.user_id), name: w.name || w.email || 'Student', gone: true }); });
+    if (!paths.length) { body.innerHTML = '<p class="wf-drafts-empty">No lessons on this board yet.</p>'; return; }
+    if (!people.length) { body.innerHTML = '<p class="wf-drafts-empty">No students on this board yet. Invite them with <b>Share</b>.</p>'; return; }
+    const at = new Map(rows.map(w => [String(w.card_id) + '|' + String(w.user_id), w]));
+    const cell = (c, u) => {
+      const p = c.data._wfPath;
+      const assigned = (p.assigned || []).map(String);
+      if (assigned.length && !assigned.includes(u.id)) return '<td class="wp-cl-off" title="Not attached to this lesson">-</td>';
+      const w = at.get(c.id + '|' + u.id);
+      if (!w || !w.work) return '<td class="wp-cl-none">not started</td>';
+      const n = p.steps.length;
+      const cur = Math.max(0, Math.min(n - 1, w.work.cur || 0));
+      const doneN = (w.work.done || []).filter(Boolean).length;
+      // Пройдено - то, что отмечено; дойти до последнего шага ещё не значит его сделать.
+      const pct = Math.round(Math.min(n, doneN) / Math.max(1, n) * 100);
+      let extra = '';
+      const vk = p.steps.findIndex(s => s.role === 'vocab-studio');
+      if (vk >= 0) {
+        const vs = (w.work.states || {})[vk];
+        const total = (p.steps[vk].out.words || []).length;
+        if (total) extra = `<span class="wp-cl-words">${(vs && vs.known ? vs.known.length : 0)} / ${total} words</span>`;
+      }
+      const fresh = Date.now() - new Date(w.updated_at).getTime() < 120000;
+      return `<td><button type="button" class="wp-cl-cell" data-c="${esc(c.id)}" data-u="${esc(u.id)}" title="Open ${esc(u.name)}'s studio">
+        <b>${esc(p.steps[cur].title)}</b><span>Step ${cur + 1} of ${n}</span>
+        <i class="wp-st-bar"><i style="width:${pct}%"></i></i>${extra}
+        <em${fresh ? ' class="live"' : ''}>${fresh ? '● working now' : esc(_wpAgo(w.updated_at))}</em></button></td>`;
+    };
+    body.innerHTML = `<div class="wp-cl-wrap"><table class="wp-cl">
+      <thead><tr><th></th>${paths.map(c => `<th><button type="button" class="wp-cl-path" data-zoom="${esc(c.id)}" title="Show it on the board"><span>${esc((WP_KINDS[c.data._wfPath.kind] || {}).kicker || 'Lesson')}</span>${esc(c.data.title || 'Lesson')}</button></th>`).join('')}</tr></thead>
+      <tbody>${people.map(u => `<tr><th>${esc(u.name)}${u.gone ? ' <small>(left)</small>' : ''}</th>${paths.map(c => cell(c, u)).join('')}</tr>`).join('')}</tbody>
+    </table></div>
+    <p class="wp-st-lead">Updates by itself every few seconds. Click a cell to open that student's studio.</p>`;
+  };
+  await load(); paint();
+  poll = setInterval(async () => { if (!document.body.contains(box)) { clearInterval(poll); return; } await load(); paint(); }, 8000);
+  body.addEventListener('click', e => {
+    const z = e.target.closest('[data-zoom]');
+    if (z) { close(); zoomToCard(z.dataset.zoom, true); return; }
+    const b = e.target.closest('.wp-cl-cell');
+    if (!b) return;
+    const list = rows.filter(w => String(w.card_id) === b.dataset.c && w.work).map(w => ({ ...w, user_id: String(w.user_id) }));
+    const i = list.findIndex(w => w.user_id === b.dataset.u);
+    if (i < 0) return;
+    close();
+    _wpOpenReview(b.dataset.c, list, i);
+  });
+}
+
 function _wpOpenReview(cardId, list, i) {
   _wpReview = { cardId, list: list.map(w => ({ ...w, work: { cur: 0, done: [], states: {}, ...(w.work || {}) } })), i };
   openCardStudio(cardId);
@@ -15005,7 +15093,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '983';
+const TEACHEDOS_ASSET_VERSION = '984';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20528,6 +20616,7 @@ function applyRoleUI() {
   });
   const moreExport = document.getElementById('more-export-board');
   if (moreExport) moreExport.style.display = isOwner ? '' : 'none';
+  _wpClassBtnSync();
   document.body.classList.toggle('board-readonly', !boardCanEdit);
   // Upgrade pill: show for signed-in free users
   const upBtn = document.getElementById('btn-upgrade');

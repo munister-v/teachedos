@@ -6944,6 +6944,26 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 .vs-done b{font-size:20px}
 .vs-done span{font-size:14px;color:#5D614B;max-width:420px}
 
+/* Учитель: весь класс */
+.wp-cl-card{width:min(1080px,100%)}
+.wp-cl-wrap{overflow:auto;border:1px solid rgba(36,40,44,.1);border-radius:16px}
+.wp-cl{border-collapse:collapse;width:100%;font-size:13px}
+.wp-cl th,.wp-cl td{border-bottom:1px solid rgba(36,40,44,.07);padding:6px;text-align:left;vertical-align:top}
+.wp-cl thead th{position:sticky;top:0;background:#fff;z-index:1}
+.wp-cl tbody th{white-space:nowrap;font-weight:750;padding:12px 10px;position:sticky;left:0;background:#fff}
+.wp-cl tbody th small{font-weight:500;color:#5D614B}
+.wp-cl-path{display:flex;flex-direction:column;gap:2px;border:0;background:transparent;text-align:left;font:750 13px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer;min-width:150px;padding:6px 4px}
+.wp-cl-path span{font:800 9.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B}
+.wp-cl-path:hover{text-decoration:underline}
+.wp-cl-cell{display:flex;flex-direction:column;gap:3px;width:100%;min-width:150px;text-align:left;border:1px solid rgba(36,40,44,.1);border-radius:12px;background:#fff;padding:8px 10px;cursor:pointer;font:inherit;color:#24282C}
+.wp-cl-cell:hover{border-color:#24282C}
+.wp-cl-cell b{font-size:13px}
+.wp-cl-cell span{font-size:12px;color:#5D614B}
+.wp-cl-cell em{font-style:normal;font-size:11.5px;color:#5D614B}
+.wp-cl-cell em.live{color:#3E8E1F;font-weight:700}
+.wp-cl-cell .wp-cl-words{color:#6B42FD;font-weight:700}
+.wp-cl-none,.wp-cl-off{color:#A3A48D;font-size:12px;padding-top:14px!important}
+
 /* Учитель: ученики этой студии */
 .wp-st-card{width:min(640px,100%)}
 .wp-st-lead{margin:0;font-size:13.5px;line-height:1.5;color:#5D614B}
