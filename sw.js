@@ -1,5 +1,5 @@
-const CACHE = 'teachedos-v1003';
-const VERSION = '1003';
+const CACHE = 'teachedos-v1004';
+const VERSION = '1004';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 

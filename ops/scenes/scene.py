@@ -79,6 +79,18 @@ def blob(cx, cy, rx, ry, n=9, bump=0.18, seed=1):
     return d + "Z"
 
 
+# Keep in step with FILL in scripts/scene-studio.js.
+PALETTE = dict(
+    paper="#FFFEFA", wall="#F3F0E6", wood="#E9D8BA", glass="#DDEBF1", tint="#ECE8DC", lime="#CDF649",
+    ink="#24282C", earth="#DCCFB6", sage="#E4EBDC", sky="#E3ECF2", blush="#F6E6DF", sand="#F5ECD9",
+    lav="#EAE6F2", mint="#E0F0E8", steel="#DDE1E5", brick="#DDA58F", grass="#C9DFA9", leaf="#C2DAA0",
+    red="#E48A70", sun="#FFF1BF", sage2="#C8D8BC", sky2="#C8DDEA", blush2="#F0CDBF", sand2="#EBD9B4",
+    lav2="#D8CFEA", mint2="#BFE2D1", asphalt="#CFCBC3", shadow="rgba(36,40,44,.12)", skyg="url(#scsky)",
+)
+STROKE = dict(main=1.7, det=1.1, hair=0.6, soft=0.8)
+SKY = '<linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient>'
+
+
 class Scene:
     def __init__(self, sid, w, h):
         self.id, self.w, self.h = sid, w, h
@@ -108,6 +120,52 @@ class Scene:
     def fill(self, d, f):
         return self.add(d, None, f)
 
+    def soft(self, d):
+        """Faint lines: wallpaper, tiles, floorboards."""
+        return self.add(d, "soft", None)
+
+    def shadow(self, cx, y, rx, ry=3.5):
+        return self.add(ellipse(cx, y, rx, ry), None, "shadow")
+
+    def wallpaper(self, box, fill, pattern=None, dado=None):
+        """A room's back wall: a colour, a faint pattern and an optional dado rail."""
+        x, y, w, h = box
+        self.fill(rect(x, y, w, h), fill)
+        if pattern == "stripes":
+            self.soft("".join(line(i, y, i, y + h) for i in range(int(x) + 10, int(x + w), 14)))
+        elif pattern == "dots":
+            self.soft("".join(circle(i + (7 if (j // 16) % 2 else 0), j, 0.9)
+                              for j in range(int(y) + 12, int(y + h) - 4, 16) for i in range(int(x) + 8, int(x + w) - 4, 14)))
+        elif pattern == "tiles":
+            top = y + h * 0.45
+            self.soft("".join(line(x, j, x + w, j) for j in range(int(top), int(y + h), 12))
+                      + "".join(line(i, top, i, y + h) for i in range(int(x) + 12, int(x + w), 12)))
+        elif pattern == "planks":
+            self.soft("".join(line(x, j, x + w, j) for j in range(int(y) + 16, int(y + h), 16)))
+        elif pattern == "bricks":
+            rows = range(int(y) + 10, int(y + h), 10)
+            self.soft("".join(line(x, j, x + w, j) for j in rows)
+                      + "".join(line(i + (10 if (j // 10) % 2 else 0), j, i + (10 if (j // 10) % 2 else 0), j + 10)
+                                for j in rows for i in range(int(x), int(x + w) - 10, 20)))
+        if dado:
+            yd = y + h - dado
+            self.fill(rect(x, yd, w, dado), fill + "2" if fill + "2" in PALETTE else "tint")
+            self.soft(line(x, yd, x + w, yd) + line(x, yd + 3, x + w, yd + 3))
+
+    def sky(self, sun=None):
+        self.fill(rect(0, 0, self.w, self.h), "skyg")
+        if sun:
+            cx, cy = sun
+            self.fill(circle(cx, cy, 46), "sun")
+            self.fill(circle(cx, cy, 30), "sun")
+
+    def lawn(self, x0, x1, y):
+        self.fill(rect(x0, y - 6, x1 - x0, 6), "grass")
+        import random
+        rnd = random.Random(int(x0))
+        self.soft("".join(line(x, y - 5, x + rnd.uniform(-3, 3), y - 5 - rnd.uniform(4, 9))
+                          for x in range(int(x0) + 3, int(x1), 5)))
+
     def room(self, rid, word, box, label, **card):
         self.rooms.append(dict(id=rid, word=word, box=list(box), label=list(label), **card))
 
@@ -122,14 +180,13 @@ class Scene:
 
     def svg(self, path):
         """A plain preview (all layers, pins as dots) for checking the drawing."""
-        col = dict(paper="#FBFAF6", wall="#F3F0E6", wood="#E8DFCB", glass="#E4ECEE", tint="#ECE8DC",
-                   lime="#CDF649", ink="#24282C", earth="#E6DFD0")
-        sw = dict(main=1.7, det=1.1, hair=0.6)
+        col, sw = PALETTE, STROKE
         out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.w} {self.h}" width="{self.w}" height="{self.h}">',
+               f'<defs>{SKY}</defs>',
                f'<rect width="{self.w}" height="{self.h}" fill="#FBFAF6"/>']
         for it in self.items:
             fill = col.get(it["f"], "none") if it["f"] else "none"
-            stroke = f'stroke="#24282C" stroke-width="{sw[it["s"]]}"' if it["s"] else 'stroke="none"'
+            stroke = (f'stroke="#24282C" stroke-width="{sw[it["s"]]}"' + (' stroke-opacity=".16"' if it["s"] == "soft" else "")) if it["s"] else 'stroke="none"'
             out.append(f'<path d="{it["d"]}" fill="{fill}" {stroke} stroke-linejoin="round" stroke-linecap="round"/>')
         for p in self.parts:
             x, y = p["pin"]

@@ -51,6 +51,7 @@ def bust(x, y_counter, d=1, coat="paper"):
 
 # ── sky and ground ────────────────────────────────────────────────────────
 S.at(0)
+S.sky(sun=(110, 250))
 S.fill(rect(0, G, 1400, 40), "earth")
 S.M(line(0, G, 1400, G), step=0)
 for x in range(6, 1400, 14):
@@ -61,6 +62,17 @@ S.H(wave(1290, 190, 1370, 190, 3, 4) + wave(1304, 179, 1350, 179, 2, 3))
 # ── the building ──────────────────────────────────────────────────────────
 S.at(150)
 S.fill(rect(XL, RFs, XT - XL, G - RFs), "wall")
+S.wallpaper((212, F1s, 258, G - F1s), "sand", "stripes", dado=40)        # reception
+S.wallpaper((478, F1s, 282, G - F1s), "mint", None, dado=40)             # waiting room
+S.wallpaper((768, F1s, 420, G - F1s), "blush", "tiles")                  # A&E
+S.wallpaper((212, F2s, 508, F1 - F2s), "sky", "dots", dado=36)          # ward
+S.wallpaper((728, F2s, 460, F1 - F2s), "mint", "tiles")                  # theatre
+S.wallpaper((212, RFs, 348, F2 - RFs), "lav", None)                      # X-ray
+S.wallpaper((568, RFs, 312, F2 - RFs), "sage", "stripes", dado=36)       # consulting room
+S.wallpaper((888, RFs, 300, F2 - RFs), "sand", "planks")                 # pharmacy
+S.wallpaper((1200, RFs, 58, G - RFs), "steel", None)                     # lift shaft
+S.lawn(0, 200, G)
+S.lawn(1270, 1400, G)
 S.M(rect(XL, RFs, 12, 640 - RFs), "ink", step=40)                    # left wall (door below)
 S.M(rect(1188, RFs, 12, G - RFs), "ink", step=40)                    # right wall / lift shaft
 S.M(rect(1258, 96, 12, G - 96), "ink", step=40)                      # lift tower
@@ -100,7 +112,7 @@ S.M(rect(14, 640, 128, 98, 6), "paper", step=60)                     # ambulance
 S.M(pts([(142, 664), (172, 664), (192, 700), (194, 738), (142, 738)], True), "paper")
 S.D(pts([(148, 670), (168, 670), (184, 698), (148, 698)], True), "glass")
 S.D(rect(14, 708, 180, 9), "lime")
-S.D("M72 668H84V656H96V668H108V680H96V692H84V680H72Z")               # the cross
+S.D("M72 668H84V656H96V668H108V680H96V692H84V680H72Z", "sky2")       # the cross
 S.D(rect(128, 630, 20, 10, 3), "lime")                               # lights / siren
 S.H(line(122, 626, 116, 618) + line(138, 626, 138, 616) + line(154, 626, 160, 618))
 S.D(line(142, 700, 142, 738) + rect(150, 712, 12, 4, 2))
@@ -114,7 +126,7 @@ S.at(1300)
 S.M(rect(222, 640, 76, 120), "glass")
 S.D(line(260, 640, 260, G) + rect(222, 632, 76, 8))
 S.H(line(232, 660, 246, 674) + line(270, 660, 284, 674))
-bust(392, 690, d=-1, coat="glass")
+bust(392, 690, d=-1, coat="lav2")
 S.M(rect(326, 684, 128, 6, 2), "wood")
 S.M(rect(330, 690, 120, 70), "wood")
 S.H(line(330, 720, 450, 720))
@@ -129,9 +141,9 @@ for cx in (500, 560, 620, 680):
     S.D(line(cx + 4, 719, cx + 4, G) + line(cx + 38, 719, cx + 38, G))
 # seated patient on the second chair, facing right
 x, ys = 572, 664
-S.D(rect(x + 14, 712, 30, 8, 3) + rect(x + 36, 716, 8, 42, 3), "tint")      # thigh and shin
+S.D(rect(x + 14, 712, 30, 8, 3) + rect(x + 36, 716, 8, 42, 3), "sky2")      # thigh and shin
 S.D(ellipse(x + 44, G - 2, 8, 3), "ink")
-S.M(f"M{x - 2} 714L{x} {ys}Q{x + 12} {ys - 6} {x + 24} {ys}L{x + 26} 714Z", "tint")
+S.M(f"M{x - 2} 714L{x} {ys}Q{x + 12} {ys - 6} {x + 24} {ys}L{x + 26} 714Z", "sand2")
 S.D(rect(x + 9, ys - 8, 6, 8), "wood")
 S.M(circle(x + 13, ys - 17, 9), "wood")
 S.D(f"M{x + 4} {ys - 20}Q{x + 12} {ys - 30} {x + 22} {ys - 21}Q{x + 12} {ys - 24} {x + 4} {ys - 20}Z", "ink")
@@ -147,12 +159,13 @@ S.D(rect(800, 680, 34, 10, 5), "tint")
 S.D(rect(806, 700, 134, 5) + line(816, 705, 816, 744) + line(926, 705, 926, 744) + line(812, 744, 930, 744))
 S.D(circle(816, 752, 7) + circle(926, 752, 7), "ink")
 S.D(line(946, 690, 958, 676))
-standing(986, G, coat="lime", d=-1, arms=[(958, 678)])
+S.shadow(986, G - 1, 22)
+standing(986, G, coat="lime", d=-1, arms=[(958, 678)], legs="sage2")
 S.M(circle(1044, 732, 27), None)                                    # wheelchair
 S.D(circle(1044, 732, 4), "ink")
 S.D(circle(1080, 752, 7), "paper")
 S.D("M1026 712H1072L1080 745M1030 712L1024 664H1016" + line(1072, 712, 1078, 690))
-S.D(rect(1028, 706, 48, 6, 2), "tint")
+S.D(rect(1028, 706, 48, 6, 2), "sky2")
 S.D(line(1150, G, 1172, 610) + line(1162, G, 1180, 612))            # crutches
 S.D(rect(1164, 604, 20, 6, 2) + rect(1172, 604, 20, 6, 2), "tint")
 S.D(line(1156, 700, 1170, 702) + line(1166, 700, 1178, 702))
@@ -179,7 +192,8 @@ def bed(x0, x1, head_x, bandage=False):
         S.D(f"M{head_x - 9} 474Q{head_x} 466 {head_x + 9} 474L{head_x + 9} 479Q{head_x} 471 {head_x - 9} 479Z", "paper")
     else:
         S.D(f"M{head_x - 9} 476Q{head_x - 4} 466 {head_x + 6} 469Q{head_x} 472 {head_x - 9} 476Z", "ink")
-    S.M(f"M{head_x + 8} 494Q{head_x + 10} 480 {head_x + 30} 478Q{x1 - 40} 474 {x1 - 18} 482Q{x1 - 4} 486 {x1 - 2} 494Z", "glass")
+    S.shadow((x0 + x1) / 2, F1 - 1, (x1 - x0) / 2)
+    S.M(f"M{head_x + 8} 494Q{head_x + 10} 480 {head_x + 30} 478Q{x1 - 40} 474 {x1 - 18} 482Q{x1 - 4} 486 {x1 - 2} 494Z", "sky2")
     S.H(wave(head_x + 30, 482, x1 - 30, 482, 3, 2))
 
 
@@ -190,13 +204,14 @@ for fx, fy in ((392, 468), (401, 462), (410, 468)):
     S.D(line(401, 486, fx, fy + 4))
     S.D(circle(fx, fy, 4), "lime")
 S.D(line(420, 364, 468, 364))                                        # curtain
-S.D(pts([(424, 366), (446, 366), (442, 450), (448, 536), (426, 536), (430, 450)], True), "tint")
+S.D(pts([(424, 366), (446, 366), (442, 450), (448, 536), (426, 536), (430, 450)], True), "blush2")
 S.H(wave(434, 370, 436, 532, 5, 2))
 bed(452, 600, 476)
 S.D(line(612, F1, 612, 402) + line(604, F1, 620, F1) + line(604, 402, 620, 402))   # drip stand
 S.M(rect(598, 404, 16, 28, 4), "glass")
 S.D("M606 432Q604 470 560 492")
-standing(668, F1, coat="glass", d=-1, arms=[(640, 476)])            # nurse
+S.shadow(668, F1 - 1, 22)
+standing(668, F1, coat="sky2", d=-1, arms=[(640, 476)], legs="sky2")   # nurse
 S.D(pts([(628, 460), (644, 458), (646, 484), (630, 486)], True), "paper")   # clipboard
 S.H(line(632, 468, 642, 467) + line(632, 474, 642, 473))
 
@@ -209,8 +224,9 @@ S.M(rect(880, 470, 150, 9, 3), "paper")                              # operating
 S.D(rect(946, 479, 18, 60) + rect(926, 538, 58, 10, 2), "tint")
 S.M(circle(894, 460, 8), "wood")
 S.D(f"M886 457Q894 449 902 457Z", "glass")
-S.M("M904 470Q912 452 940 452Q990 448 1024 462L1028 470Z", "glass")
-standing(1072, F1, coat="glass", d=-1, cap="glass", mask=True, arms=[(1034, 462)])   # surgeon
+S.M("M904 470Q912 452 940 452Q990 448 1024 462L1028 470Z", "mint2")
+S.shadow(1072, F1 - 1, 22)
+standing(1072, F1, coat="mint2", d=-1, cap="mint2", mask=True, arms=[(1034, 462)], legs="mint2")   # surgeon
 S.M(rect(778, 396, 70, 48, 4), "ink")                                # heart monitor
 ecg = [(784, 424), (798, 424), (802, 410), (808, 436), (812, 420), (818, 424), (842, 424)]
 S.fill(pts(ecg + [(x, y + 2.4) for x, y in reversed(ecg)], True), "lime")
@@ -238,7 +254,8 @@ for i, w in enumerate((18, 14, 11, 8, 6, 4)):
     S.D(line(610 - w, 172 + i * 9, 610 + w, 172 + i * 9)) if i == 0 else S.H(line(610 - w, 172 + i * 9, 610 + w, 172 + i * 9))
 S.M(rect(716, 168, 80, 56), "glass")
 S.D(line(756, 168, 756, 224) + rect(712, 224, 88, 4))
-doc = standing(672, F2, coat="paper", d=1, arms=[(694, 262)])
+S.shadow(672, F2 - 1, 22)
+doc = standing(672, F2, coat="paper", d=1, arms=[(694, 262)], legs="steel")
 nx, ny = doc["neck"]
 S.D(f"M{nx - 7} {ny}Q{nx - 10} {ny + 24} {nx - 2} {ny + 30}Q{nx + 8} {ny + 30} {nx + 6} {ny + 16}", None)
 S.D(circle(nx + 6, ny + 14, 3.5), "lime")
@@ -263,7 +280,7 @@ for y in (190, 232):
     while x < 1164:
         w = rnd.choice((10, 12, 16, 20))
         h = rnd.choice((14, 18, 22))
-        f = rnd.choice(("paper", "tint", "glass", "lime", "paper"))
+        f = rnd.choice(("paper", "sky2", "blush2", "lime", "paper", "lav2", "mint2"))
         if rnd.random() < 0.35:
             S.D(rect(x, y - h, 10, h, 3) + rect(x + 2, y - h - 4, 6, 4), f)
             x += 14
@@ -281,7 +298,7 @@ S.H(line(958, 277, 976, 277))
 # outside, right
 S.at(5300)
 S.D(line(1330, G, 1334, 640) + line(1344, G, 1340, 640), "wood")
-S.M(blob(1338, 596, 50, 50, 9, 0.2, seed=3), "tint")
+S.M(blob(1338, 596, 50, 50, 9, 0.2, seed=3), "leaf")
 S.H(blob(1324, 590, 16, 12, 5, 0.2, 4) + blob(1352, 608, 14, 10, 5, 0.2, 6))
 
 # ── rooms ─────────────────────────────────────────────────────────────────

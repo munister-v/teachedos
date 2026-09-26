@@ -31,6 +31,7 @@ def roof_in(x):
 
 # ── sky and ground ────────────────────────────────────────────────────────
 S.at(0)
+S.sky(sun=(1260, 120))
 S.fill(rect(0, G, 1400, 40), "earth")
 S.M(line(0, G, 1400, G), step=0)
 for x in range(6, 1400, 14):
@@ -41,7 +42,14 @@ S.H(wave(90, 110, 170, 110, 3, 4) + wave(104, 99, 150, 99, 2, 3))
 # ── the house shell ───────────────────────────────────────────────────────
 S.at(150)
 S.fill(rect(XL, ATs, XR - XL, G - ATs), "wall")                     # back walls
-S.fill(pts([(262, AT), (272, AT), (630, 138), (988, AT), (998, AT)], True), "tint")  # attic back
+S.wallpaper((262, FFs, 208, G - FFs), "sand", "stripes", dado=46)          # hall
+S.wallpaper((478, FFs, 312, G - FFs), "blush", "dots")                     # living room
+S.wallpaper((798, FFs, 200, G - FFs), "mint", "tiles")                     # kitchen
+S.wallpaper((262, ATs, 258, FF - ATs), "lav", "stripes")                   # landing
+S.wallpaper((528, ATs, 212, FF - ATs), "sky", "tiles")                     # bathroom
+S.wallpaper((748, ATs, 250, FF - ATs), "sage", "dots", dado=40)            # bedroom
+S.fill(pts([(262, AT), (272, AT), (630, 138), (988, AT), (998, AT)], True), "sand")  # attic back
+S.soft("".join(line(x, AT, x, 138 + abs(x - 630) * k) for x in range(300, 980, 34)))
 S.M(rect(XL, ATs, WT, 620 - ATs), "ink", step=40)                    # left wall, above the door
 S.M(rect(XR - WT, ATs, WT, G - ATs), "ink", step=40)                 # right wall
 S.M(rect(262, AT, 736, 12), "ink", step=40)                          # attic floor
@@ -59,7 +67,7 @@ for a, b, y in ((262, 470, G), (478, 790, G), (798, 998, G), (462, 520, FF), (52
 
 # roof
 roof = pts([(214, 352), (630, 120), (1046, 352), (1040, 360), (630, 138), (220, 360)], True)
-S.M(roof, "wood", step=80)
+S.M(roof, "brick", step=80)
 for x in list(range(236, 624, 13)) + list(range(642, 1030, 13)):
     y1, y2 = roof_out(x), roof_in(x)
     S.H(line(x, y1 + 1.5, x + (-4 if x < 630 else 4), y2 - 1))
@@ -69,7 +77,7 @@ S.D(rect(1040, 352, 16, 9, 4))
 # chimney
 S.at(700)
 ch = pts([(740, roof_out(740)), (740, 92), (780, 92), (780, roof_out(780))])
-S.M(ch + "Z", "wall")
+S.M(ch + "Z", "brick")
 S.M(rect(734, 84, 52, 8), "paper")
 S.M(rect(750, 64, 16, 20), "paper")
 S.D(rect(747, 62, 22, 4))
@@ -98,8 +106,10 @@ S.D(pts([(1046, FF), (1046, FF - 8), (1040, FF - 4)]))
 S.at(1100)
 S.M(pts([(98, G), (104, 640), (100, 600), (108, 598), (112, 632), (122, 596), (128, 600), (118, 640), (122, G)]), "wood")
 crown = blob(112, 528, 92, 78, 11, 0.2, seed=4)
-S.M(crown, "tint", step=60)
+S.M(crown, "leaf", step=60)
 S.H(blob(90, 520, 30, 22, 6, 0.2, 7) + blob(140, 548, 26, 18, 6, 0.2, 9) + blob(118, 494, 24, 16, 5, 0.2, 3))
+S.lawn(0, 250, G)
+S.lawn(1232, 1400, G)
 # fence and gate
 S.at(1400)
 for x in range(20, 176, 16):
@@ -111,7 +121,7 @@ S.H(line(176, 700, 176, G) + line(224, 700, 224, G))
 # flowers
 for x, h in ((36, 680), (54, 672), (72, 684), (92, 676), (112, 686), (132, 678)):
     S.D(line(x, G - 2, x, h + 6) + wave(x, G - 18, x - 7, G - 26, 1, 2))
-    S.D(pts([(x - 6, h), (x - 3, h + 8), (x + 3, h + 8), (x + 6, h), (x + 3, h + 4), (x, h - 2), (x - 3, h + 4)], True), "lime")
+    S.D(pts([(x - 6, h), (x - 3, h + 8), (x + 3, h + 8), (x + 6, h), (x + 3, h + 4), (x, h - 2), (x - 3, h + 4)], True), "lime" if x % 36 else "red")
 
 # porch canopy, doorstep, doorbell
 S.at(1700)
@@ -126,7 +136,7 @@ S.D(rect(XL, 616, WT, 6), "ink")                                      # lintel
 S.at(1900)
 # front door, opened into the hall
 leaf = [(262, 622), (298, 632), (298, 756), (262, 760)]
-S.M(pts(leaf, True), "wood")
+S.M(pts(leaf, True), "red")
 S.H(pts([(268, 636), (292, 642), (292, 686), (268, 684)], True) + pts([(268, 702), (292, 704), (292, 746), (268, 750)], True))
 S.D(pts([(270, 652), (288, 657), (288, 660), (270, 655)], True), "ink")   # letterbox
 S.D(circle(292, 694, 2.5), "ink")
@@ -165,32 +175,34 @@ S.D(line(590, 598, 590, 662) + line(540, 630, 640, 630))
 S.D(rect(534, 662, 112, 5), "paper")
 S.H(line(548, 606, 562, 620) + line(600, 606, 616, 622))
 S.D(line(522, 592, 658, 592))
-S.D(pts([(524, 594), (548, 594), (544, 640), (548, 692), (526, 692), (530, 640)], True), "tint")
-S.D(pts([(632, 594), (656, 594), (652, 640), (656, 692), (634, 692), (638, 640)], True), "tint")
+S.D(pts([(524, 594), (548, 594), (544, 640), (548, 692), (526, 692), (530, 640)], True), "sky2")
+S.D(pts([(632, 594), (656, 594), (652, 640), (656, 692), (634, 692), (638, 640)], True), "sky2")
 S.H(wave(534, 598, 536, 688, 4, 2) + wave(644, 598, 646, 688, 4, 2))
 # floor lamp
 S.D(ellipse(500, 757, 11, 3), "ink")
 S.D(line(500, 756, 500, 624))
 S.M(pts([(490, 598), (510, 598), (518, 624), (482, 624)], True), "lime")
 # sofa
-S.M(rect(536, 676, 118, 42, 8), "tint")
-S.M(rect(526, 716, 138, 34, 5), "tint")
-S.D(rect(540, 706, 56, 16, 5) + rect(596, 706, 54, 16, 5), "tint")
-S.M(rect(516, 700, 24, 50, 8), "tint")
-S.M(rect(650, 700, 24, 50, 8), "tint")
+S.shadow(595, 759, 80)
+S.M(rect(536, 676, 118, 42, 8), "sage2")
+S.M(rect(526, 716, 138, 34, 5), "sage2")
+S.D(rect(540, 706, 56, 16, 5) + rect(596, 706, 54, 16, 5), "sage")
+S.M(rect(516, 700, 24, 50, 8), "sage2")
+S.M(rect(650, 700, 24, 50, 8), "sage2")
 S.D(rect(530, 750, 6, 10) + rect(654, 750, 6, 10), "ink")
 S.D(pts([(548, 704), (552, 686), (574, 684), (576, 704)], True), "lime")  # cushion
 S.H(line(556, 694, 570, 693))
 # rug, coffee table, plant
-S.D(pts([(538, 756), (708, 756), (714, 761), (532, 761)], True), "wood")
+S.D(pts([(538, 756), (708, 756), (714, 761), (532, 761)], True), "red")
 S.H(line(528, 756, 524, 761) + line(712, 756, 718, 761))
 S.M(rect(562, 732, 82, 6, 2), "wood")
 S.D(rect(568, 738, 5, 18) + rect(633, 738, 5, 18), "wood")
-S.D(pts([(674, 738), (694, 738), (690, 756), (678, 756)], True), "tint")
+S.D(pts([(674, 738), (694, 738), (690, 756), (678, 756)], True), "brick")
 for a, b, c in ((684, 738, 668), (684, 738, 700), (684, 738, 686)):
-    S.D(f"M{a} {b}Q{(a + c) / 2 - 6} {b - 30} {c} {b - 40}Q{c + 4} {b - 20} {a} {b}Z", "tint")
+    S.D(f"M{a} {b}Q{(a + c) / 2 - 6} {b - 30} {c} {b - 40}Q{c + 4} {b - 20} {a} {b}Z", "leaf")
 # fireplace, fire, mantel clock
 S.M(rect(696, 662, 88, 94), "paper")
+S.soft("".join(line(696, j, 784, j) for j in range(672, 756, 10)))
 S.M(rect(690, 654, 100, 8, 2), "wood")
 S.D(f"M714 756V700A26 26 0 0 1 766 700V756Z", "ink")
 S.D("M724 756Q726 734 734 728Q732 742 740 736Q742 720 750 716Q748 736 756 740Q760 748 758 756Z", "lime")
@@ -204,6 +216,7 @@ S.H(line(738, 639, 738, 633) + line(738, 639, 743, 641))
 
 # ── kitchen ───────────────────────────────────────────────────────────────
 S.at(3300)
+S.shadow(900, 759, 100)
 S.M(rect(806, 620, 46, 140, 4), "paper")                             # fridge
 S.D(line(806, 664, 852, 664))
 S.D(rect(844, 632, 3, 20, 1.5) + rect(844, 672, 3, 30, 1.5), "ink")
@@ -226,7 +239,7 @@ S.D("M978 702V686Q978 680 972 680Q966 680 966 688")                  # tap
 S.M(rect(940, 612, 50, 58), "glass")                                 # window
 S.D(line(965, 612, 965, 670) + rect(936, 670, 58, 4))
 S.H(line(946, 620, 958, 632))
-S.M(rect(858, 590, 74, 50, 2), "wood")                               # wall cupboards
+S.M(rect(858, 590, 74, 50, 2), "sand2")                              # wall cupboards
 S.D(line(895, 590, 895, 640) + circle(889, 628, 1.8) + circle(901, 628, 1.8))
 
 # ── landing ───────────────────────────────────────────────────────────────
@@ -243,8 +256,9 @@ S.D("M548 506V424Q548 414 558 414H566", None)                        # shower pi
 S.D(pts([(564, 412), (578, 418), (576, 424), (562, 418)], True), "ink")
 for i in range(5):
     S.H(line(570 + i * 2, 424, 566 + i * 7, 468))
-S.D(pts([(536, 406), (556, 406), (552, 460), (558, 500), (538, 500)], True), "tint")
+S.D(pts([(536, 406), (556, 406), (552, 460), (558, 500), (538, 500)], True), "lav2")
 S.H(wave(544, 408, 546, 496, 4, 2))
+S.shadow(590, 547, 56)
 S.M("M532 504H646Q644 544 616 546H564Q536 544 532 504Z", "paper")    # bath
 S.D(line(538, 512, 640, 512))
 S.D(rect(548, 544, 8, 4) + rect(620, 544, 8, 4), "ink")
@@ -264,20 +278,21 @@ S.H(line(705, 428, 731, 428) + line(705, 432, 731, 432))
 
 # ── bedroom ───────────────────────────────────────────────────────────────
 S.at(4700)
+S.shadow(880, 547, 80)
 S.M(rect(756, 396, 50, 152, 3), "wood")                              # wardrobe
 S.D(line(781, 404, 781, 544) + rect(752, 390, 58, 6, 1))
 S.D(circle(777, 470, 1.8) + circle(785, 470, 1.8), "ink")
 S.M(rect(832, 398, 76, 60), "glass")                                 # window
 S.D(line(870, 398, 870, 458) + rect(828, 458, 84, 4))
-S.D(pts([(822, 392), (838, 392), (836, 430), (840, 470), (822, 470)], True), "tint")
-S.D(pts([(902, 392), (918, 392), (918, 470), (900, 470), (904, 430)], True), "tint")
+S.D(pts([(822, 392), (838, 392), (836, 430), (840, 470), (822, 470)], True), "blush2")
+S.D(pts([(902, 392), (918, 392), (918, 470), (900, 470), (904, 430)], True), "blush2")
 S.D(line(818, 390, 922, 390))
 S.M(rect(946, 468, 12, 80, 3), "wood")                               # headboard
 S.M(rect(812, 500, 10, 48, 2), "wood")                               # footboard
 S.M(rect(820, 508, 128, 18), "paper")                                # mattress
 S.D(rect(822, 526, 124, 6), "wood")
 S.M(rect(906, 490, 40, 18, 8), "paper")                              # pillow
-S.M("M820 504Q860 496 902 500Q912 506 910 524Q870 530 820 528Z", "tint")  # duvet
+S.M("M820 504Q860 496 902 500Q912 506 910 524Q870 530 820 528Z", "sky2")  # duvet
 S.H(wave(840, 504, 846, 524, 2, 2) + wave(872, 502, 878, 524, 2, 2))
 S.D(rect(830, 532, 5, 16) + rect(936, 532, 5, 16), "ink")
 S.M(rect(962, 510, 30, 38, 2), "wood")                               # bedside table
@@ -291,7 +306,7 @@ S.M(rect(470, 290, 62, 46, 2), "wood")                               # boxes
 S.M(rect(482, 256, 40, 34, 2), "wood")
 S.M(rect(534, 306, 36, 30, 2), "wood")
 S.D(line(470, 300, 532, 300) + line(482, 266, 522, 266) + line(552, 306, 552, 336))
-S.M(rect(700, 306, 70, 30, 6), "tint")                               # suitcase
+S.M(rect(700, 306, 70, 30, 6), "red")                                # suitcase
 S.D("M724 306V300H746V306" + line(700, 316, 770, 316))
 S.D(rect(710, 316, 4, 20) + rect(756, 316, 4, 20))
 S.D(line(596, roof_in(596), 596, 206))                               # light bulb
@@ -306,7 +321,7 @@ S.H("M611 152Q622 156 624 166Q630 160 636 166Q638 156 649 152" + "M618 162Q626 1
 
 # ── garage ────────────────────────────────────────────────────────────────
 S.at(5800)
-S.fill(rect(XR, FFs, 210, G - FFs), "wall")
+S.wallpaper((XR, FFs, 210, G - FFs), "steel", "bricks")
 S.M(rect(XR, FF, 230, 12), "ink", step=40)                           # garage roof
 S.M(rect(1220, FFs, 12, G - FFs), "ink", step=40)
 S.H(line(XR, G - 5, 1220, G - 5))
@@ -337,9 +352,9 @@ S.D(pts([(1196, 732), (1206, 690), (1216, 690)]))
 
 # ── right garden: hedge and bin ───────────────────────────────────────────
 S.at(6400)
-S.M(blob(1290, 724, 44, 36, 9, 0.22, seed=12) , "tint")
+S.M(blob(1290, 724, 44, 36, 9, 0.22, seed=12) , "leaf")
 S.H(blob(1276, 722, 14, 10, 5, 0.2, 2) + blob(1304, 734, 12, 9, 5, 0.2, 5))
-S.fill(rect(1250, 750, 80, 10), "tint")
+S.fill(rect(1250, 750, 80, 10), "leaf")
 S.M(pts([(1346, 710), (1382, 710), (1378, 758), (1350, 758)], True), "tint")
 S.D(rect(1342, 702, 44, 8, 2), "ink")
 S.D(circle(1376, 755, 5), "paper")

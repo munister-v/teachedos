@@ -42,7 +42,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1003`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1004`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -57,21 +57,35 @@
   const areas = sc => sc.rooms.concat(sc.zones || []);
   const inside = (b, a) => b[0] >= a[0] - 1 && b[1] >= a[1] - 1 && b[0] + b[2] <= a[0] + a[2] + 1 && b[1] + b[3] <= a[1] + a[3] + 1;
 
-  const FILL = { paper: '#FFFEFA', wall: '#F3F0E6', wood: '#E8DFCB', glass: '#E2EBEE', tint: '#ECE8DC', lime: '#CDF649', ink: '#24282C', earth: '#E6DFD0' };
-  const SW = { main: 1.7, det: 1.1, hair: 0.6 };
+  // Keep in step with PALETTE in ops/scenes/scene.py.
+  const FILL = {
+    paper: '#FFFEFA', wall: '#F3F0E6', wood: '#E9D8BA', glass: '#DDEBF1', tint: '#ECE8DC', lime: '#CDF649',
+    ink: '#24282C', earth: '#DCCFB6', sage: '#E4EBDC', sky: '#E3ECF2', blush: '#F6E6DF', sand: '#F5ECD9',
+    lav: '#EAE6F2', mint: '#E0F0E8', steel: '#DDE1E5', brick: '#DDA58F', grass: '#C9DFA9', leaf: '#C2DAA0',
+    red: '#E48A70', sun: '#FFF1BF', sage2: '#C8D8BC', sky2: '#C8DDEA', blush2: '#F0CDBF', sand2: '#EBD9B4',
+    lav2: '#D8CFEA', mint2: '#BFE2D1', asphalt: '#CFCBC3', shadow: 'rgba(36,40,44,.12)', skyg: 'url(#scsky)',
+  };
+  const SW = { main: 1.7, det: 1.1, hair: 0.6, soft: 0.8 };
+  const DEFS = '<defs><linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient></defs>';
+  const artCache = new Map();
   const drawnOnce = new Set();
 
   function artSvg(sc, animate) {
     const k = 0.32; // ms of the drawing script → ms on screen
     const body = sc.items.map(it => {
       const fill = it.f ? FILL[it.f] || 'none' : 'none';
-      const stroke = it.s ? ` stroke="#24282C" stroke-width="${SW[it.s]}"` : '';
+      const stroke = it.s ? ` stroke="#24282C" stroke-width="${SW[it.s]}"${it.s === 'soft' ? ' stroke-opacity=".16"' : ''}` : '';
       if (!animate) return `<path d="${it.d}" fill="${fill}"${stroke}/>`;
       const delay = Math.round(it.t * k);
       if (it.s === 'main') return `<path class="sc-draw" pathLength="1" style="animation-delay:${delay}ms,${delay}ms" d="${it.d}" fill="${fill}"${stroke}/>`;
       return `<path class="sc-fade" style="animation-delay:${delay + 120}ms" d="${it.d}" fill="${fill}"${stroke}/>`;
     }).join('');
-    return `<g stroke-linejoin="round" stroke-linecap="round">${body}</g>`;
+    return `${DEFS}<g stroke-linejoin="round" stroke-linecap="round">${body}</g>`;
+  }
+  /* the still drawing, made once per scene (word-card thumbnails, print) */
+  function stillArt(sc) {
+    if (!artCache.has(sc.id)) artCache.set(sc.id, artSvg(sc, false));
+    return artCache.get(sc.id);
   }
 
   const CSS = `
@@ -88,7 +102,7 @@
 .sc-seg{display:inline-flex;background:#F2F1EB;border-radius:10px;padding:3px}
 .sc-seg button{border:0;background:transparent;border-radius:8px;padding:6px 9px;font:700 11px 'SF Mono',ui-monospace,Menlo,monospace;color:var(--muted);cursor:pointer}
 .sc-seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.sc-stage{position:relative;overflow:hidden;min-height:0;cursor:grab;user-select:none;-webkit-user-select:none}
+.sc-stage{position:relative;overflow:hidden;min-height:0;cursor:grab;user-select:none;-webkit-user-select:none;background:linear-gradient(#EEF3F6,#F8F6F0)}
 .sc-stage.drag{cursor:grabbing}
 .sc-stage.aim{cursor:crosshair}
 .sc-stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -98,7 +112,15 @@
 .sc-fade{opacity:0;animation:scfade .6s ease forwards}
 @keyframes scfade{to{opacity:1}}
 .sc-layer{position:absolute;inset:0;pointer-events:none}
-.sc-pin{position:absolute;pointer-events:auto;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);background:var(--lime);cursor:pointer;padding:0;display:grid;place-items:center;font:800 10px/1 'SF Mono',ui-monospace,monospace;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.sc-pin{position:absolute;pointer-events:auto;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;background:var(--lime);cursor:pointer;padding:0;display:grid;place-items:center;font:800 10px/1 'SF Mono',ui-monospace,monospace;color:var(--ink);box-shadow:0 0 0 1.5px var(--ink),0 3px 8px rgba(20,22,24,.28);transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
+.sc-pin[data-w]:hover::after{content:attr(data-w);position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);background:var(--ink);color:#fff;font:650 11.5px/1 -apple-system,system-ui,sans-serif;padding:6px 8px;border-radius:7px;white-space:nowrap;pointer-events:none}
+.sc-spot{position:absolute;pointer-events:none;border-radius:16px;box-shadow:0 0 0 4000px rgba(28,30,33,.34),inset 0 0 0 2.5px var(--lime);transition:left .35s ease,top .35s ease,width .35s ease,height .35s ease;animation:scfade .3s ease}
+.sc-ripple{position:absolute;pointer-events:none;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:3px solid var(--lime);animation:scrip .6s ease-out forwards}
+.sc-ripple.bad{border-color:#e2542b}
+@keyframes scrip{to{transform:scale(4.5);opacity:0}}
+.sc-thumb{height:150px;margin:-4px -4px 12px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.sc-thumb svg{width:100%;height:100%;display:block}
+.sc-x{margin-left:auto;border:0;background:#fff;border-radius:9px;width:30px;height:30px;cursor:pointer;color:var(--muted)}
 .sc-pin:hover,.sc-pin.on{transform:translate(-50%,-50%) scale(1.45);z-index:3}
 .sc-pin.on{background:var(--ink);color:var(--lime)}
 .sc-pin.saved::after{content:'';position:absolute;right:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--ink);border:1.5px solid #fff}
@@ -109,7 +131,7 @@
 @keyframes scpulse{0%{box-shadow:0 0 0 0 rgba(205,246,73,.9)}100%{box-shadow:0 0 0 16px rgba(205,246,73,0)}}
 .sc-tag{position:absolute;pointer-events:auto;transform:translate(0,-50%);font:800 10.5px/1 -apple-system,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:rgba(251,250,246,.85);border:0;padding:4px 6px;border-radius:5px;cursor:pointer}
 .sc-tag:hover,.sc-tag.on{background:var(--lime)}
-.sc-lbl{position:absolute;pointer-events:none;transform:translate(11px,-50%);font:650 12px/1.1 -apple-system,system-ui,sans-serif;color:var(--ink);background:rgba(255,255,255,.92);padding:3px 6px;border-radius:5px;box-shadow:0 0 0 1px var(--line);white-space:nowrap}
+.sc-lbl{position:absolute;pointer-events:none;transform:translate(12px,-50%);font:650 12px/1.1 -apple-system,system-ui,sans-serif;color:var(--ink);background:#fff;padding:4px 7px;border-radius:6px;box-shadow:0 1px 4px rgba(20,22,24,.18);white-space:nowrap}
 .sc-lbl.placed{background:var(--lime);box-shadow:none}
 .sc-hl{position:absolute;pointer-events:none;border:2.5px solid var(--ink);border-radius:10px;background:rgba(205,246,73,.28);transition:all .25s;animation:scfade .2s ease}
 .sc-hl.bad{border-color:#e2542b;background:rgba(226,84,43,.14)}
@@ -175,13 +197,13 @@
 .sc-muted{font-size:13px;color:var(--muted)}
 .sc-loading{display:grid;place-items:center;height:100%;color:var(--muted);font-size:14px}
 /* canvas preview */
-.sc-prev{--ink:#24282C;--lime:#CDF649;--paper:#FBFAF6;position:relative;height:100%;border-radius:14px;overflow:hidden;background:var(--paper,#FBFAF6);font-family:-apple-system,system-ui,sans-serif;color:#24282C}
-.sc-prev svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:78%}
-.sc-prev-in{position:absolute;left:0;right:0;top:0;padding:26px 32px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.sc-prev{--ink:#24282C;--lime:#CDF649;--paper:#FBFAF6;position:relative;height:100%;border-radius:14px;overflow:hidden;background:linear-gradient(#DCEAF3,#F7F4EC);font-family:-apple-system,system-ui,sans-serif;color:#24282C}
+.sc-prev svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:74%}
+.sc-prev-in{position:absolute;left:18px;top:18px;right:18px;padding:18px 22px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;background:rgba(255,254,250,.9);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:14px;box-shadow:0 6px 24px rgba(20,22,24,.12)}
 .sc-kick{font:700 11px/1 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;display:flex;gap:8px;align-items:center}
 .sc-kick span:first-child{background:#CDF649;padding:6px 9px;border-radius:6px}
 .sc-kick span{color:#6B6E60}
-.sc-prev h2{margin:12px 0 0;font:700 40px/1.05 'Iowan Old Style','Palatino Linotype',Georgia,serif;letter-spacing:-.02em}
+.sc-prev h2{margin:10px 0 0;font:700 34px/1.05 'Iowan Old Style','Palatino Linotype',Georgia,serif;letter-spacing:-.02em}
 .sc-prev p{margin:8px 0 0;font:16px/1.45 Georgia,serif;color:#6B6E60;max-width:520px}
 .sc-prev .sc-btn{flex:none;margin-top:4px}
 `;
@@ -222,7 +244,7 @@
     const box = el.firstElementChild;
     load(out.scene || 'house').then(sc => {
       const n = sc.parts.filter(p => rank(p.level) <= rank(lvl)).length + sc.rooms.filter(r => rank(r.level) <= rank(lvl)).length;
-      box.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${artSvg(sc, false)}</svg>
+      box.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${stillArt(sc)}</svg>
         <div class="sc-prev-in"><div><div class="sc-kick"><span>${esc(sc.kicker || 'Picture Studio')}</span><span>${esc(lvl)} level · ${n} words · 6 tasks</span></div>
           <h2>${esc(out.title || sc.title)}</h2><p>${esc(sc.dek || '')}</p></div>
           <button type="button" class="sc-btn lime sc-open">Open the Picture Studio →</button></div>`;
@@ -396,11 +418,17 @@
       const mode = st.tab;
       let html = '';
       const pinned = mode === 'explore' || mode === 'tf' || mode === 'talk';
+      const spotIt = mode === 'explore' && st.sel ? byId(st.sel) : null;
+      if (spotIt && !isRoom(spotIt)) {
+        const g = geom(), pad = 10, [bx, by, bw, bh] = spotIt.box;
+        const [x, y] = toPx(bx, by);
+        html += `<span class="sc-spot" style="left:${x - pad}px;top:${y - pad}px;width:${bw * g.s + pad * 2}px;height:${bh * g.s + pad * 2}px"></span>`;
+      }
       if (pinned) {
         rooms().forEach(r => { const [x, y] = toPx(...r.label); html += `<button type="button" class="sc-tag${st.sel === r.id ? ' on' : ''}" data-id="${r.id}" style="left:${x}px;top:${y}px">${esc(r.word)}</button>`; });
         items().forEach(p => {
           const [x, y] = toPx(...p.pin);
-          html += `<button type="button" class="sc-pin${st.sel === p.id ? ' on' : ''}${st.saved.includes(p.word) ? ' saved' : ''}" data-id="${p.id}" style="left:${x}px;top:${y}px" aria-label="${esc(p.word)}"></button>`;
+          html += `<button type="button" class="sc-pin${st.sel === p.id ? ' on' : ''}${st.saved.includes(p.word) ? ' saved' : ''}" data-id="${p.id}"${st.labels || st.sel === p.id ? '' : ` data-w="${esc(p.word)}"`} style="left:${x}px;top:${y}px" aria-label="${esc(p.word)}"></button>`;
           if (st.labels || st.sel === p.id) html += `<span class="sc-lbl" style="left:${x}px;top:${y}px">${esc(p.word)}</span>`;
         });
       }
@@ -451,7 +479,7 @@
 
     function onStageClick(x, y) {
       if (st.tab === 'find') return findClick(x, y);
-      if (st.tab === 'explore') { const it = hit(x, y, items()); if (it) select(it.id, false); }
+      if (st.tab === 'explore') { const it = hit(x, y, items()); if (it) select(it.id, false); else if (st.sel) { st.sel = null; save(); paint(); } }
     }
 
     /* zoomed into an area that does not hold this thing: back to the whole picture */
@@ -474,8 +502,10 @@
     function wordCard(it) {
       const saved = st.saved.includes(it.word);
       const ex = esc(it.ex || '').replace(new RegExp(`\\b(${esc(it.word).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w*)`, 'i'), '<mark>$1</mark>');
-      return `<div class="sc-card">
-        <div class="sc-term"><b>${esc(it.word)}</b><button type="button" class="sc-say" data-say="${esc(it.word)}" aria-label="Say it">🔊</button></div>
+      const [bx, by, bw, bh] = it.box, pad = Math.max(bw, bh) * 0.18 + 8;
+      const thumb = isRoom(it) ? '' : `<div class="sc-thumb"><svg viewBox="${bx - pad} ${by - pad} ${bw + pad * 2} ${bh + pad * 2}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${stillArt(sc)}</svg></div>`;
+      return `<div class="sc-card">${thumb}
+        <div class="sc-term"><b>${esc(it.word)}</b><button type="button" class="sc-say" data-say="${esc(it.word)}" aria-label="Say it">🔊</button><button type="button" class="sc-x" data-act="unsel" aria-label="Close">✕</button></div>
         <div class="sc-sub"><span class="sc-ipa">/${esc(it.ipa)}/</span><span class="sc-tagm">${esc(it.pos || 'noun')}</span><span class="sc-tagm">${esc(it.level)}</span>${it.us && it.us !== it.word ? `<span class="sc-tagm">US: ${esc(it.us)}</span>` : ''}</div>
         <p class="sc-def">${esc(it.def)}</p>
         ${it.ex ? `<p class="sc-ex">${ex} <button type="button" class="sc-say" style="width:26px;height:26px;font-size:12px;vertical-align:middle;background:#fff" data-say="${esc(it.ex)}" aria-label="Say the example">🔊</button></p>` : ''}
@@ -515,11 +545,20 @@
         <div class="sc-fb" id="sc-fb"></div>
         <div class="sc-row"><span class="sc-muted">Word ${f.round + 1} of ${f.order.length}</span><span style="flex:1"></span><button type="button" class="sc-btn ghost" data-act="find-skip">Show me</button></div>`;
     }
+    function ripple(x, y, bad) {
+      const [px, py] = toPx(x, y);
+      const r = document.createElement('span');
+      r.className = 'sc-ripple' + (bad ? ' bad' : '');
+      r.style.left = px + 'px'; r.style.top = py + 'px';
+      stage.appendChild(r);
+      setTimeout(() => r.remove(), 650);
+    }
     function findClick(x, y) {
       const f = st.find;
       if (!f || f.round >= f.order.length || f.lock) return;
       const target = byId(f.order[f.round]);
       const [bx, by, bw, bh] = target.box;
+      ripple(x, y, !(x >= bx && x <= bx + bw && y >= by && y <= by + bh));
       const fb = panel.querySelector('#sc-fb');
       if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) {
         if (!f.tries) f.score++;
@@ -725,6 +764,7 @@
           st.saved.push(it.word); save(); paint();
         } catch (err) { b.disabled = false; b.textContent = 'Could not save - try again'; }
       }
+      if (act === 'unsel') { st.sel = null; save(); paint(); }
       if (act === 'find-again') { newFind(); paint(); }
       if (act === 'find-skip') {
         const f = st.find, target = byId(f.order[f.round]);
@@ -774,7 +814,7 @@
     function printSheet() {
       const list = items().slice().sort((a, b) => (a.pin[1] - b.pin[1]) || (a.pin[0] - b.pin[0]));
       const pins = list.map((p, i) => `<g><circle cx="${p.pin[0]}" cy="${p.pin[1]}" r="11" fill="#fff" stroke="#24282C" stroke-width="2"/><text x="${p.pin[0]}" y="${p.pin[1] + 4}" text-anchor="middle" font-size="12" font-weight="800" font-family="Helvetica,Arial">${i + 1}</text></g>`).join('');
-      const art = `<svg viewBox="${viewBox(sc)}" width="100%">${artSvg(sc, false)}${pins}</svg>`;
+      const art = `<svg viewBox="${viewBox(sc)}" width="100%">${stillArt(sc)}${pins}</svg>`;
       const bank = shuffle(list.map(p => p.word), 3).join(' · ');
       const title = esc(out.title || sc.title);
       const lines = list.map((p, i) => `<li><b>${i + 1}.</b> <span></span></li>`).join('');

@@ -26,25 +26,30 @@ def tilted_ellipse(cx, cy, rx, ry, deg, n=36):
 
 # ── sky, road, pavement ───────────────────────────────────────────────────
 S.at(0)
-S.fill(rect(0, G, 1400, 40), "earth")
+S.sky(sun=(960, 330))
+S.fill(rect(0, G, 1400, 40), "asphalt")
 S.M(line(0, G, 1400, G), step=0)
 for x in range(20, 1400, 70):
-    S.H(line(x, 781, x + 34, 781) + line(x, 783, x + 34, 783))
+    S.fill(rect(x, 779, 34, 4), "paper")
 S.H(wave(520, 330, 620, 330, 3, 5) + wave(540, 318, 600, 318, 2, 4))
 S.H(wave(930, 300, 1010, 300, 3, 4) + wave(944, 289, 990, 289, 2, 3))
-S.M(pts([(1090, G), (1090, 748), (1400, 748), (1400, G)], True), "tint")
+S.M(pts([(1090, G), (1090, 748), (1400, 748), (1400, G)], True), "sand2")
 S.D(line(1090, 748, 1098, 748) + line(1098, 748, 1098, G))
 for x in range(1130, 1400, 46):
     S.H(line(x, 748, x, G))
 
+S.lawn(0, 330, G)
+S.D(line(1226, 748, 1228, 640) + line(1236, 748, 1234, 640), "wood")
+S.M(blob(1232, 600, 40, 44, 9, 0.2, seed=8), "leaf")
 # ── petrol station ────────────────────────────────────────────────────────
 S.at(200)
-S.M(rect(10, 396, 300, 26, 2), "wood", step=60)                      # canopy
+S.M(rect(10, 396, 300, 26, 2), "paper", step=60)                     # canopy
 S.D(rect(10, 422, 300, 8), "lime")
 S.M(rect(40, 430, 12, G - 430), "paper")
 S.M(rect(268, 430, 12, G - 430), "paper")
 S.D(rect(96, 746, 100, 14, 2), "tint")                               # island
-S.M(rect(110, 560, 72, 186, 8), "paper")                             # pump
+S.shadow(146, 747, 48)
+S.M(rect(110, 560, 72, 186, 8), "red")                               # pump
 S.D(rect(122, 578, 48, 34, 3), "glass")
 S.H(line(128, 588, 150, 588) + line(128, 596, 162, 596) + line(128, 604, 146, 604))
 S.D(rect(122, 624, 48, 40, 3))
@@ -62,7 +67,8 @@ dx = math.sqrt(arch_r ** 2 - 14 ** 2)
 body = (f"M346 688L338 640L342 596L360 570L392 562L460 448Q600 426 760 446L866 560L1030 584"
         f"L1056 600L1062 640L1058 688L{FW[0] + dx:.1f} 688A68 68 0 0 0 {FW[0] - dx:.1f} 688"
         f"L{RW[0] + dx:.1f} 688A68 68 0 0 0 {RW[0] - dx:.1f} 688Z")
-S.M(body, "paper", step=160)
+S.shadow(700, 760, 360, 6)
+S.M(body, "sky2", step=160)
 # glass: rear quarter, rear door, front door, windscreen
 S.D(pts([(400, 556), (466, 458), (500, 454), (500, 556)], True), "glass")
 S.D(pts([(512, 453), (632, 446), (632, 556), (512, 556)], True), "glass")
@@ -74,15 +80,15 @@ S.D(line(380, 562, 866, 562))                                        # waistline
 # ── interior (seen through the body) ──────────────────────────────────────
 S.at(1500)
 S.H(line(404, 672, 860, 672))
-S.M(rect(352, 594, 72, 46, 6), "tint")                               # suitcase in the boot
+S.M(rect(352, 594, 72, 46, 6), "red")                                # suitcase in the boot
 S.D("M376 594V586H400V594" + line(352, 610, 424, 610))
-S.M(pts([(434, 614), (454, 506), (482, 508), (466, 614)], True), "tint")   # back seat
-S.M(rect(432, 610, 110, 28, 7), "tint")
-S.D(rect(446, 482, 30, 22, 7), "tint")
+S.M(pts([(434, 614), (454, 506), (482, 508), (466, 614)], True), "sand2")   # back seat
+S.M(rect(432, 610, 110, 28, 7), "sand2")
+S.D(rect(446, 482, 30, 22, 7), "sand2")
 S.D(line(460, 504, 460, 510))
-S.M(pts([(608, 608), (630, 500), (658, 502), (640, 608)], True), "tint")   # front seat
-S.M(rect(604, 604, 98, 28, 7), "tint")
-S.D(rect(622, 474, 32, 24, 8), "tint")                               # headrest
+S.M(pts([(608, 608), (630, 500), (658, 502), (640, 608)], True), "sand2")   # front seat
+S.M(rect(604, 604, 98, 28, 7), "sand2")
+S.D(rect(622, 474, 32, 24, 8), "sand2")                              # headrest
 S.D(line(638, 498, 638, 504))
 S.D(pts([(650, 512), (655, 510), (694, 624), (689, 626)], True), "lime")   # seat belt
 S.D(rect(686, 622, 12, 8, 2), "ink")
@@ -105,15 +111,15 @@ S.H(line(640, 446, 640, 688) + line(800, 562, 796, 686))             # door seam
 S.H("M536 562V626Q536 640 540 648" + line(508, 446, 506, 562))
 S.D(rect(700, 576, 26, 7, 3), "ink")                                 # door handles
 S.D(rect(560, 576, 26, 7, 3), "ink")
-S.M(pts([(788, 556), (806, 540), (826, 542), (824, 558), (800, 562)], True), "paper")  # wing mirror
+S.M(pts([(788, 556), (806, 540), (826, 542), (824, 558), (800, 562)], True), "sky2")   # wing mirror
 S.D(line(846, 556, 820, 526) + line(820, 526, 824, 524))             # wiper
 S.D(pts([(1024, 586), (1052, 596), (1056, 612), (1026, 610)], True), "glass")   # headlight
 S.H(line(1032, 594, 1048, 604))
 S.D(rect(1052, 618, 8, 10, 2), "lime")                               # indicator
-S.D(pts([(340, 598), (358, 598), (358, 630), (339, 630)], True), "wood")         # rear light
+S.D(pts([(340, 598), (358, 598), (358, 630), (339, 630)], True), "red")          # rear light
 S.H(line(340, 606, 358, 606) + line(340, 614, 358, 614) + line(340, 622, 358, 622))
-S.M(pts([(1040, 640), (1063, 640), (1060, 688), (1036, 688)], True), "tint")     # bumpers
-S.M(pts([(336, 640), (356, 640), (356, 688), (346, 688)], True), "tint")
+S.M(pts([(1040, 640), (1063, 640), (1060, 688), (1036, 688)], True), "steel")    # bumpers
+S.M(pts([(336, 640), (356, 640), (356, 688), (346, 688)], True), "steel")
 S.D(circle(402, 600, 9), "paper")                                    # petrol cap
 S.D(circle(402, 600, 4))
 S.M(rect(316, 688, 40, 8, 3), "paper")                               # exhaust pipe
@@ -121,13 +127,13 @@ S.H(wave(312, 692, 272, 676, 3, 4) + wave(300, 700, 262, 700, 3, 3))
 
 # bonnet, opened
 S.at(2900)
-S.M(pts([(866, 560), (1008, 458), (1016, 466), (872, 568)], True), "paper", step=60)
+S.M(pts([(866, 560), (1008, 458), (1016, 466), (872, 568)], True), "sky2", step=60)
 S.D(line(996, 590, 986, 474))                                        # prop rod
 # engine bay
 S.M(rect(1016, 596, 14, 76, 2), "paper")                             # radiator
 for y in range(602, 670, 6):
     S.H(line(1018, y, 1028, y))
-S.M(rect(900, 600, 96, 68, 5), "wood")                               # engine
+S.M(rect(900, 600, 96, 68, 5), "steel")                              # engine
 for x in range(912, 992, 12):
     S.H(line(x, 612, x, 656))
 S.D(rect(906, 592, 82, 10, 3), "tint")
@@ -150,8 +156,8 @@ for (cx, cy) in (RW, FW):
 S.at(3800)
 S.M(rect(1156, 470, 8, 278), "paper")
 S.M(rect(1138, 376, 44, 96, 8), "ink", step=60)
-S.D(circle(1160, 398, 11), "paper")
-S.D(circle(1160, 424, 11), "paper")
+S.D(circle(1160, 398, 11), "red")
+S.D(circle(1160, 424, 11), "sun")
 S.D(circle(1160, 450, 11), "lime")
 S.H(circle(1160, 450, 17))
 S.M(rect(1272, 316, 8, 432), "paper")                                # street light
@@ -160,7 +166,8 @@ S.M(pts([(1206, 298), (1240, 298), (1236, 310), (1210, 310)], True), "wood")
 S.D(ellipse(1223, 312, 12, 3), "lime")
 S.H(line(1212, 318, 1204, 336) + line(1223, 318, 1223, 340) + line(1234, 318, 1242, 336))
 S.M(rect(1348, 560, 6, 188), "paper")                                # road sign
-S.M(circle(1351, 530, 30), "paper")
+S.M(circle(1351, 530, 30), "red")
+S.D(circle(1351, 530, 24), "paper")
 S.D(circle(1351, 530, 24))
 S.D("M1336 519Q1340 513 1345 514Q1350 516 1349 522Q1348 528 1342 529Q1350 530 1350 537Q1349 545 1342 546Q1337 546 1335 541")  # 3
 S.D(ellipse(1360, 530, 6, 12))                                                          # 0
