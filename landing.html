@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=994">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=994">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=995">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=995">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=994">
+<link rel="manifest" href="manifest.json?v=995">
 <!-- Под строкой состояния на телефоне стоит закреплённая шапка, а она белая.
      Прежний #F3F3F6 не совпадал ни с ней, ни с фоном страницы (#EFEFF2), и
      сверху была видна лишняя полоска другого оттенка. -->
@@ -1818,10 +1818,93 @@ section{scroll-margin-top:64px;}
 :focus-visible{outline:3px solid var(--pink)!important;outline-offset:3px!important;}
 @view-transition{navigation:none;}
 ::view-transition-old(root),::view-transition-new(root){animation:none!important;}
+
+/* ── Hero: what's new (replaces the old "Loved by 30+" proof line) ── */
+.hero-new{display:inline-flex;align-items:center;gap:10px;margin:2px auto 0;padding:6px 8px 6px 6px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid rgba(36,40,44,.10);box-shadow:0 6px 20px -12px rgba(36,40,44,.35);color:var(--ink);font-size:13.5px;font-weight:600;text-decoration:none;transition:transform .2s,box-shadow .2s;max-width:100%}
+.hero-new:hover{transform:translateY(-1px);box-shadow:0 10px 26px -12px rgba(36,40,44,.4)}
+.hero-new .hn-tag{background:#24282C;color:#CDF649;font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:6px 9px;border-radius:999px;flex:none}
+.hero-new .hn-go{width:24px;height:24px;border-radius:50%;background:#CDF649;display:grid;place-items:center;font-size:13px;flex:none}
+@media(max-width:860px){.hero-new{font-size:12.5px;text-align:left;margin-bottom:6px}}
+
+/* ── Just shipped ── */
+.nw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.nw-card{position:relative;overflow:hidden;border-radius:var(--radius);background:#fff;border:1px solid rgba(36,40,44,.07);box-shadow:0 2px 8px rgba(36,40,44,.05);padding:26px;display:flex;flex-direction:column;gap:20px;transition:transform .2s,box-shadow .2s}
+.nw-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(36,40,44,.09)}
+.nw-wide{grid-column:1/-1;display:grid;grid-template-columns:1fr 1.05fr;align-items:center;gap:34px}
+.nw-flip .nw-copy{order:2}.nw-flip .nw-hear{order:1}
+.nw-ink{background:#24282C;border-color:#24282C;color:#fff}
+.nw-lime{background:#CDF649;border-color:rgba(205,246,73,.6)}
+.nw-kick{display:inline-flex;font:700 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;border-radius:999px;background:rgba(36,40,44,.07);color:#5D614B;margin-bottom:12px}
+.nw-ink .nw-kick{background:rgba(205,246,73,.16);color:#CDF649}
+.nw-lime .nw-kick{background:rgba(36,40,44,.1);color:#24282C}
+.nw-h{font-family:var(--serif);font-size:clamp(20px,2.2vw,26px);font-weight:650;letter-spacing:-.025em;line-height:1.15;margin:0 0 10px;color:inherit}
+.nw-p{font-size:14px;line-height:1.6;color:var(--ink2);margin:0;max-width:520px}
+.nw .nw-card h3.nw-h{color:#24282C !important}.nw .nw-card.nw-ink h3.nw-h{color:#fff !important}
+.nw-ink .nw-p{color:rgba(255,255,255,.72)}
+.nw-lime .nw-p{color:rgba(36,40,44,.75)}
+.nw-points{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+.nw-points span{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:rgba(36,40,44,.06);color:#24282C}
+.nw-ink .nw-points span{background:rgba(255,255,255,.1);color:#fff}
+
+/* magazine mock */
+.nw-mag{position:relative;background:#FBFAF6;color:#24282C;border-radius:16px;padding:22px 22px 26px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+.nm-meta{font:700 9.5px/1 var(--mono);letter-spacing:.12em;color:#8A8D7A}
+.nm-h{font:700 23px/1.12 'Iowan Old Style','Palatino Linotype',Georgia,serif;letter-spacing:-.01em;margin:10px 0 6px}
+.nm-dek{font:italic 13.5px/1.45 Georgia,serif;color:#5D614B;margin-bottom:12px}
+.nm-body{font:14px/1.65 Georgia,serif;margin:0}
+.nm-cap{float:left;font:700 40px/.85 'Iowan Old Style',Georgia,serif;margin:4px 6px 0 0}
+.nm-body mark{background:rgba(205,246,73,.8);border-radius:3px;padding:0 2px}
+.nm-pop{position:absolute;right:-10px;bottom:-18px;width:250px;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 18px 40px -12px rgba(0,0,0,.45);border:1px solid rgba(36,40,44,.08)}
+.np-w{font-weight:700;font-size:14px}.np-w i{font-style:normal;font-weight:500;color:#8A8D7A;font-size:12px}
+.np-d{font-size:12.5px;color:#5D614B;margin:4px 0 10px;line-height:1.4}
+.np-b{display:flex;gap:6px}.np-b span{font-size:11px;font-weight:650;padding:6px 9px;border-radius:9px;background:rgba(36,40,44,.06)}.np-b .on{background:#24282C;color:#CDF649}
+
+/* vault mock */
+.nw-vault{margin-top:auto}
+.nv-card{background:#fff;border-radius:16px;padding:20px;text-align:center;box-shadow:0 14px 30px -18px rgba(36,40,44,.5)}
+.nv-w{font:700 24px/1.1 'Iowan Old Style',Georgia,serif}
+.nv-src{font-size:11.5px;color:#8A8D7A;margin-top:6px}
+.nv-grades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.nv-grades span{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;font-size:12px;font-weight:700;background:rgba(255,255,255,.7);color:#24282C}
+.nv-grades small{font-size:10px;font-weight:600;opacity:.65}
+.nv-grades .e{background:#24282C;color:#CDF649}
+
+/* writing mock */
+.nw-write{margin-top:auto;background:#F6F6EF;border-radius:16px;padding:16px 18px}
+.nwr-t{font:14.5px/1.6 Georgia,serif;margin:0 0 12px}
+.nwr-t s{color:#B0452A;text-decoration-thickness:1.5px}
+.nwr-t ins{text-decoration:none;background:rgba(205,246,73,.7);border-radius:3px;padding:0 2px;font-weight:600}
+.nwr-bands{display:flex;flex-wrap:wrap;gap:6px}
+.nwr-bands span{font-size:11.5px;font-weight:600;background:#fff;border:1px solid rgba(36,40,44,.08);border-radius:9px;padding:5px 8px;color:#5D614B}
+.nwr-bands b{color:#24282C;margin-left:3px}
+.nwr-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12.5px;font-weight:600}
+.nwr-sent{background:#24282C;color:#CDF649;border-radius:999px;padding:5px 10px;font-size:11.5px}
+
+/* hear mock */
+.nh-video{position:relative;aspect-ratio:16/8.4;border-radius:16px;overflow:hidden;background:radial-gradient(120% 90% at 30% 20%,#4a4f45 0%,#24282C 60%,#15171a 100%);display:grid;place-items:center}
+.nh-play{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);color:#fff;display:grid;place-items:center;font-size:18px;border:1px solid rgba(255,255,255,.25)}
+.nh-cap{position:absolute;left:16px;right:16px;bottom:14px;text-align:center;color:#fff;font-size:13.5px;line-height:1.4;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.nh-cap mark{background:#CDF649;color:#24282C;border-radius:3px;padding:0 3px;text-shadow:none}
+.nh-row{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.nh-acc{font-size:11.5px;font-weight:650;padding:6px 10px;border-radius:999px;background:rgba(36,40,44,.06)}
+.nh-acc.on{background:#24282C;color:#fff}
+.nh-rec{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:11.5px;font-weight:650;padding:6px 10px;border-radius:999px;background:rgba(205,246,73,.55)}
+.nh-rec i{width:8px;height:8px;border-radius:50%;background:#C2410C}
+.nh-wave{display:flex;align-items:center;gap:2px;height:22px}
+.nh-wave b{width:3px;border-radius:2px;background:#24282C;opacity:.7}
+.nh-wave b:nth-child(1){height:6px}.nh-wave b:nth-child(2){height:12px}.nh-wave b:nth-child(3){height:18px}.nh-wave b:nth-child(4){height:10px}.nh-wave b:nth-child(5){height:20px}.nh-wave b:nth-child(6){height:14px}.nh-wave b:nth-child(7){height:8px}.nh-wave b:nth-child(8){height:16px}.nh-wave b:nth-child(9){height:22px}.nh-wave b:nth-child(10){height:12px}.nh-wave b:nth-child(11){height:7px}.nh-wave b:nth-child(12){height:4px}
+
+@media(max-width:860px){
+  .nw-grid{grid-template-columns:1fr}
+  .nw-wide{grid-template-columns:1fr;gap:22px}
+  .nw-flip .nw-copy{order:1}.nw-flip .nw-hear{order:2}
+  .nm-pop{position:relative;right:auto;bottom:auto;width:auto;margin-top:14px}
+  .nw-card{padding:20px}
+}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=994">
+<link rel="stylesheet" href="styles/teached-brand.css?v=995">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=994">
+<link rel="stylesheet" href="styles/figma-landing.css?v=995">
 </head>
 <body class="landing-page fx">
 
@@ -1837,6 +1920,7 @@ section{scroll-margin-top:64px;}
       <span class="brand-wordmark">Teach<em>Ed</em></span>
     </a>
     <div class="nav-links" id="nav-links" onclick="this.closest('nav').classList.remove('nav-open')">
+      <a class="nav-lnk" href="#new">What's new</a>
       <a class="nav-lnk" href="#features">Features</a>
       <a class="nav-lnk" href="#tools">Tools</a>
       <a class="nav-lnk" href="#how">How it works</a>
@@ -1901,13 +1985,11 @@ section{scroll-margin-top:64px;}
     <p class="hero-phone-note">On a phone? The teacher workspace opens on a computer for now, and the phone app is coming to the App Store. Students can sign in here as usual.</p>
     <script>(function(){try{var u=navigator.userAgent||'';if(/iPhone|iPod|Android.+Mobile|Windows Phone/i.test(u)||(matchMedia('(pointer: coarse)').matches&&!matchMedia('(hover: hover)').matches&&Math.min(screen.width,screen.height)<600))document.documentElement.classList.add('is-phone');}catch(e){}})();</script>
 
-    <div class="hero-proof">
-      <div class="hp-avatars"><span>SK</span><span>MR</span><span>OP</span><span>+</span></div>
-      <div class="hp-text">
-        <div class="hp-stars">★★★★★</div>
-        Loved by <b>30+</b> language teachers
-      </div>
-    </div>
+    <a class="hero-new" href="#new">
+      <span class="hn-tag">New</span>
+      <span>Real news as graded reading, a word Vault, AI-checked writing</span>
+      <span class="hn-go" aria-hidden="true">→</span>
+    </a>
 
     <!-- App preview -->
     <div class="preview-stage">
@@ -2048,6 +2130,83 @@ section{scroll-margin-top:64px;}
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════ JUST SHIPPED ═══════════════════════════════════════ -->
+<section id="new" class="nw">
+  <div class="container">
+    <div class="sec-eye">Just shipped</div>
+    <h2 class="sec-h">Read the real world.<br>Keep every word. <em>Get it marked.</em></h2>
+    <p class="sec-sub">A lesson loop that doesn't end when the class does: students read today's news at their level, save the words they need, meet them again at the right moment, and hand in writing that comes back checked.</p>
+
+    <div class="nw-grid">
+
+      <!-- Magazine Reading Studio -->
+      <article class="nw-card nw-ink nw-wide">
+        <div class="nw-copy">
+          <div class="nw-kick">News &amp; Articles</div>
+          <h3 class="nw-h">Today's news, rewritten as a magazine long read at the level you teach</h3>
+          <p class="nw-p">Paste a link or pick a story. TeachEd keeps the facts, rewrites it for A1–C2, and builds the vocabulary, gap-fills and discussion from the article's own sentences - nothing asks about words the class never saw.</p>
+          <div class="nw-points"><span>A1–C2</span><span>Real sources</span><span>Tap any word</span><span>Discussion prompts</span></div>
+        </div>
+        <div class="nw-mag" aria-hidden="true">
+          <div class="nm-meta">SCIENCE · B1 · 3 MIN READ</div>
+          <div class="nm-h">The city that learned to listen to its trees</div>
+          <div class="nm-dek">Sensors in 400 trees now tell a city when to water them.</div>
+          <p class="nm-body"><b class="nm-cap">W</b>hen the summer heat came early, the park team was ready. The data had already <mark>raised concerns</mark> about the oldest trees…</p>
+          <div class="nm-pop">
+            <div class="np-w">raise concerns <i>/reɪz kənˈsɜːnz/</i></div>
+            <div class="np-d">to make people start to worry about something</div>
+            <div class="np-b"><span>▶ Hear it</span><span class="on">＋ Save to my Vault</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- The Vault -->
+      <article class="nw-card nw-lime">
+        <div class="nw-copy">
+          <div class="nw-kick">The Vault</div>
+          <h3 class="nw-h">Saved words come back just before they're forgotten</h3>
+          <p class="nw-p">Spaced repetition for everything a student saves - with the sentence it came from, and a reminder by push or email at the hour they choose.</p>
+        </div>
+        <div class="nw-vault" aria-hidden="true">
+          <div class="nv-card"><div class="nv-w">a turning point</div><div class="nv-src">from “The city that learned to listen…”</div></div>
+          <div class="nv-grades"><span class="a">Again<small>10 min</small></span><span class="h">Hard<small>1 d</small></span><span class="g">Good<small>3 d</small></span><span class="e">Easy<small>8 d</small></span></div>
+        </div>
+      </article>
+
+      <!-- Writing review -->
+      <article class="nw-card">
+        <div class="nw-copy">
+          <div class="nw-kick">Writing, checked</div>
+          <h3 class="nw-h">Hand-ins arrive pre-checked. You mark, they learn.</h3>
+          <p class="nw-p">AI reads each draft against task, organisation, vocabulary and grammar and suggests corrections. You adjust the bands, add a note, and it goes back to the student's cabinet.</p>
+        </div>
+        <div class="nw-write" aria-hidden="true">
+          <p class="nwr-t">Last year I <s>have visited</s> <ins>visited</ins> Rome and it was a real turning point <s>for</s> <ins>in</ins> my life.</p>
+          <div class="nwr-bands">
+            <span>Task <b>4</b></span><span>Organisation <b>3</b></span><span>Vocabulary <b>4</b></span><span>Grammar <b>3</b></span>
+          </div>
+          <div class="nwr-foot"><span>Grade <b>70%</b></span><span class="nwr-sent">Returned to Anna ✓</span></div>
+        </div>
+      </article>
+
+      <!-- Hear it in real videos -->
+      <article class="nw-card nw-wide nw-flip">
+        <div class="nw-copy">
+          <div class="nw-kick">Hear it in real videos</div>
+          <h3 class="nw-h">Every word and phrase, said by real people</h3>
+          <p class="nw-p">One click plays the phrase in real clips - talks, films, interviews - in American, British or Australian English. Students record themselves and compare, right in the lesson.</p>
+          <div class="nw-points"><span>US · UK · AU</span><span>Slow down</span><span>Record &amp; compare</span></div>
+        </div>
+        <div class="nw-hear" aria-hidden="true">
+          <div class="nh-video"><span class="nh-play">▶</span><div class="nh-cap">…and that was a real <mark>turning point</mark> for the whole team.</div></div>
+          <div class="nh-row"><span class="nh-acc on">🇺🇸 US</span><span class="nh-acc">🇬🇧 UK</span><span class="nh-acc">🇦🇺 AU</span><span class="nh-rec"><i></i>Your try</span><span class="nh-wave"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
 
 <!-- ═══════════════════════════════════════ FEATURES BENTO ═══════════════════════════════════════ -->
 <section id="features">
@@ -2630,6 +2789,7 @@ section{scroll-margin-top:64px;}
       </div>
       <details class="footer-col" open>
         <summary><h4>Product</h4></summary>
+        <a href="#new">What's new</a>
         <a href="#features">Features</a>
         <a href="#tools">AI tools</a>
         <a href="lesson-packs.html">Lesson Packs</a>
@@ -2663,7 +2823,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=994">
+<link rel="stylesheet" href="styles/auth.css?v=995">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
@@ -2711,7 +2871,7 @@ window.TEACHED_AUTH_CONFIG = {
   subtitle: () => 'Lessons, boards and games in one place',
 };
 </script>
-<script src="scripts/auth-modal.js?v=994" defer></script>
+<script src="scripts/auth-modal.js?v=995" defer></script>
 <script>
 // Deep link: /landing.html?auth=register|login or #signin opens the modal
 document.addEventListener('DOMContentLoaded', () => {
