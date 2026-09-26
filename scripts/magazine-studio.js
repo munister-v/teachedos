@@ -40,6 +40,8 @@
 .mg-credit a{color:var(--muted)}
 .mg-p{margin:0 0 22px;font:400 19px/1.75 'Iowan Old Style','Palatino Linotype',Georgia,serif;color:var(--graphite)}
 .mg-p.dc::first-letter{float:left;font:700 76px/.82 'Iowan Old Style',Georgia,serif;margin:6px 10px 0 0;color:var(--ink)}
+.mg-qsave{display:block;margin-top:10px;border:0;background:none;padding:0;font:650 12px -apple-system,system-ui,sans-serif;color:#5b7a00;cursor:pointer;font-style:normal}
+.mg-qsave:disabled{cursor:default}
 .mg-quote{margin:34px -24px;padding:10px 0 10px 28px;border-left:4px solid var(--lime);font:italic 500 28px/1.3 'Iowan Old Style',Georgia,serif;color:var(--ink);letter-spacing:-.01em}
 .mg-w{all:unset;cursor:pointer;background:linear-gradient(transparent 62%,rgba(205,246,73,.65) 62%);border-radius:2px;transition:background .15s}
 .mg-w:hover,.mg-w.on{background:rgba(205,246,73,.9)}
@@ -162,7 +164,7 @@
     const paras = Array.isArray(out.paragraphs) ? out.paragraphs : [];
     const quotes = Array.isArray(out.pullQuotes) ? out.pullQuotes : [];
     const quoteAt = { 1: quotes[0], [Math.max(3, Math.floor(paras.length * 0.66))]: quotes[1] };
-    const body = paras.map((p, i) => `<p class="mg-p${i === 0 ? ' dc' : ''}">${smartParagraph(p, vocab)}</p>${quoteAt[i] ? `<blockquote class="mg-quote">“${esc(quoteAt[i])}”</blockquote>` : ''}`).join('');
+    const body = paras.map((p, i) => `<p class="mg-p${i === 0 ? ' dc' : ''}">${smartParagraph(p, vocab)}</p>${quoteAt[i] ? `<blockquote class="mg-quote">“${esc(quoteAt[i])}”${opts.canSave ? `<button type="button" class="mg-qsave" data-quote="${esc(quoteAt[i])}">${(st.quotes || []).includes(quoteAt[i]) ? '✓ Quote saved' : '＋ Save quote for writing'}</button>` : ''}</blockquote>` : ''}`).join('');
     const src = out.source || {};
 
     el.innerHTML = `<div class="mg">
@@ -203,7 +205,7 @@
         ${ex ? `<p class="mg-ex">${ex}</p>` : ''}
         <div class="mg-mini"></div>
         <div class="mg-pop-acts">
-          <button type="button" class="mg-btn ${isSaved ? 'ghost' : 'lime'} mg-save"${isSaved || !opts.canSave ? ' disabled' : ''}>${isSaved ? '✓ In your vocabulary' : opts.canSave ? '+ Add to Vocabulary' : 'Sign in to save words'}</button>
+          <button type="button" class="mg-btn ${isSaved ? 'ghost' : 'lime'} mg-save"${isSaved || !opts.canSave ? ' disabled' : ''}>${isSaved ? '✓ In your Vault' : opts.canSave ? '+ Save to my Vault' : 'Sign in to save words'}</button>
           <button type="button" class="mg-btn dark mg-more" title="Bigger, other accents, record yourself">⤢</button>
         </div>`;
       document.body.appendChild(pop);
@@ -227,15 +229,28 @@
         const b = ev.currentTarget;
         b.disabled = true; b.textContent = 'Saving…';
         try {
-          const res = await opts.api('/api/journal/vocab', { method: 'POST', body: { word: v.term, translation: v.definition, example: v.example || '' } });
+          const res = await opts.api('/api/vault/save', { method: 'POST', body: { text: v.term, meaning: v.definition, example: v.example || '', boardId: opts.boardId, sourceTitle: out.headline || '' } });
           if (!res.ok) throw new Error();
+          opts.onSaved && opts.onSaved({ kind: 'word', word: v.term, translation: v.definition, example: v.example || '', source_title: out.headline || '' });
           st.saved.push(v.term); save();
-          b.className = 'mg-btn ghost mg-save'; b.textContent = '✓ In your vocabulary';
+          b.className = 'mg-btn ghost mg-save'; b.textContent = '✓ In your Vault';
           el.querySelectorAll(`.mg-w[data-v="${btn.dataset.v}"]`).forEach(w => w.classList.add('saved'));
         } catch (e) { b.disabled = false; b.textContent = 'Could not save - try again'; }
       });
     }
-    el.addEventListener('click', e => {
+    el.addEventListener('click', async e => {
+      const q = e.target.closest('.mg-qsave');
+      if (q && !(st.quotes || []).includes(q.dataset.quote)) {
+        q.disabled = true; q.textContent = 'Saving…';
+        try {
+          const res = await opts.api('/api/vault/save', { method: 'POST', body: { kind: 'quote', text: q.dataset.quote, boardId: opts.boardId, sourceTitle: out.headline || '' } });
+          if (!res.ok) throw new Error();
+          st.quotes = (st.quotes || []).concat(q.dataset.quote); save();
+          opts.onSaved && opts.onSaved({ kind: 'quote', word: q.dataset.quote, source_title: out.headline || '' });
+          q.textContent = '✓ Quote saved - it waits in your Writing Studio';
+        } catch (err) { q.disabled = false; q.textContent = 'Could not save - try again'; }
+        return;
+      }
       const w = e.target.closest('.mg-w');
       if (w) { e.stopPropagation(); openPop(w); return; }
     });

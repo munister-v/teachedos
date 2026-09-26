@@ -1198,6 +1198,16 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
       <summary>Phrases from this lesson</summary>
       <div class="iw-ws-acc-body iw-ws-chips">${lessonPhrases.map(p =>
         `<button type="button" class="iw-ws-chip" data-ins="${esc(p.phrase)}" title="${esc(p.note || 'Click to insert')}">${md(p.phrase)}</button>`).join('')}</div></details>` : '';
+    /* «Мостик» от чтения к письму: слова и цитаты, которые ученик сохранил,
+       читая (Vault) - слова этой доски первыми. Щелчок - в черновик. */
+    const saved = d._wfCtx && d._wfCtx.saved;
+    const savedAcc = saved && ((saved.words || []).length || (saved.quotes || []).length) ? `<details class="iw-ws-acc iw-ws-saved" open>
+      <summary>From your reading</summary>
+      <div class="iw-ws-acc-body">
+        ${(saved.quotes || []).map(q => `<button type="button" class="iw-ws-quote" data-ins="“${esc(q.text)}”" title="Click to quote it in your draft">“${esc(q.text)}”${q.source ? `<small>${esc(q.source)}</small>` : ''}</button>`).join('')}
+        ${(saved.words || []).length ? `<div class="iw-ws-chips">${saved.words.map(w => `<button type="button" class="iw-ws-chip${w.here ? ' here' : ''}" data-ins="${esc(w.phrase)}" title="${esc(w.note || 'Click to insert')}">${esc(w.phrase)}</button>`).join('')}</div>` : ''}
+        <p class="iw-ws-saved-note">Words and quotes you saved while reading. Click one to put it in your draft.</p>
+      </div></details>` : '';
     /* Памятка жанра (js/writing-genres.js): требования и фразы по местам в
        тексте - Opening / Body / Closing / Sign-off, щелчок - в черновик. */
     const guide = d._wfCtx && d._wfCtx.guide;
@@ -1224,7 +1234,7 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
             <input type="checkbox" class="iw-ws-req" data-ri="${i}"><span>${md(r)}</span>
           </label></li>`).join('')}</ul>
         </div>
-        ${guideAcc}${lessonAcc}${accordion(writing.phrases)}${accordion(writing.model)}
+        ${savedAcc}${guideAcc}${lessonAcc}${accordion(writing.phrases)}${accordion(writing.model)}
         ${writing.extras.map(c => accordion(c, isPlan(c))).join('')}
       </aside>
       <section class="iw-ws-main">
@@ -1828,6 +1838,11 @@ strong{font-weight:650}
 .iw-wh-row{margin-top:6px}
 .iw-wh-label{display:block;font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--olive);margin-bottom:2px}
 .iw-wh-ipa{display:flex;align-items:center;gap:8px;font:600 14px ui-monospace,monospace;color:var(--ink)}
+.iw-ws-quote{display:block;width:100%;text-align:left;border:0;border-left:3px solid ${accent};background:#FAFAF6;border-radius:0 10px 10px 0;padding:8px 10px;margin:0 0 8px;font:italic 13px/1.45 Georgia,serif;color:var(--ink);cursor:pointer}
+.iw-ws-quote small{display:block;margin-top:4px;font:600 10px/1.3 -apple-system,system-ui,sans-serif;font-style:normal;color:var(--muted,#6B6E60);text-transform:uppercase;letter-spacing:.06em}
+.iw-ws-quote:hover{background:color-mix(in srgb,${accent} 18%,#fff)}
+.iw-ws-chip.here{border-color:${accent}}
+.iw-ws-saved-note{margin:8px 0 0;font-size:11px;color:var(--muted,#6B6E60)}
 .iw-wh-hear{display:block;width:100%;margin-top:10px;padding:8px 10px;border:0;border-radius:10px;background:#24282C;color:#fff;font:650 12px/1.3 -apple-system,system-ui,sans-serif;cursor:pointer;text-align:center}
 .iw-wh-hear:hover{background:#000}
 .iw-hear-pill{position:fixed;z-index:45;padding:8px 12px;border:0;border-radius:999px;background:#24282C;color:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap}

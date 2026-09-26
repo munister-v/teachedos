@@ -215,7 +215,7 @@ router.get('/:id/attendance', async (req, res) => {
 /* ── VOCABULARY ── */
 router.get('/vocab/list', async (req, res) => {
   const { rows } = await pool.query(
-    'SELECT * FROM vocabulary WHERE user_id=$1 ORDER BY created_at DESC LIMIT 200',
+    "SELECT * FROM vocabulary WHERE user_id=$1 AND kind='word' ORDER BY created_at DESC LIMIT 200",
     [req.user.id]
   );
   const learned = rows.filter(r=>r.learned).length;

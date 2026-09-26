@@ -853,3 +853,17 @@ CREATE TABLE IF NOT EXISTS writing_submissions (
 );
 CREATE INDEX IF NOT EXISTS idx_writing_sub_teacher ON writing_submissions(teacher_id, status, submitted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_writing_sub_student ON writing_submissions(student_id, submitted_at DESC);
+
+-- ── The Vault: the student's own words and quotes on a spaced-repetition
+-- schedule (backend/lib/srs.js). Existing rows become due at once.
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS kind            VARCHAR(12) NOT NULL DEFAULT 'word';   -- word | quote
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS source_board_id UUID REFERENCES boards(id) ON DELETE SET NULL;
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS source_title    TEXT NOT NULL DEFAULT '';
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS due_at          TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS interval_days   REAL NOT NULL DEFAULT 0;
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS ease            REAL NOT NULL DEFAULT 2.5;
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS reps            INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS lapses          INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS last_reviewed_at TIMESTAMPTZ;
+ALTER TABLE vocabulary ALTER COLUMN word TYPE VARCHAR(400);
+CREATE INDEX IF NOT EXISTS idx_vocabulary_due ON vocabulary(user_id, due_at) WHERE kind = 'word';

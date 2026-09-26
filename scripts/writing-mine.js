@@ -27,6 +27,7 @@
 .wm-item span{font-size:12px;color:var(--text-2)}
 .wm-grade{grid-row:1/3;grid-column:2;text-align:right;font:750 24px/1 var(--font)}
 .wm-grade small{display:block;font:600 10px/1.5 var(--font);color:var(--text-2);text-transform:uppercase;letter-spacing:.06em}
+.wm-new[hidden]{display:none}
 .wm-new{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:var(--lime);color:#24282C;font:750 10px/1.6 var(--font);vertical-align:2px}
 .wm-wait{color:var(--text-2);font:600 12px var(--font)}
 .wm-detail{border:1px solid var(--border);border-radius:18px;background:var(--bg-card);overflow:hidden}

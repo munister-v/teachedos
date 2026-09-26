@@ -4102,7 +4102,7 @@ function _wpStepHtml(card, k, width) {
   const st = p.steps[k];
   const d = { ...st.out, title: st.out.title || st.title, _state: _wpState(card, k),
     _wfRole: WP_FLOW_ROLES.includes(st.role) || st.role === 'studio' ? st.role : '', _wfGuide: p.guide || null, _wfSpeak: p.kind === 'speaking',
-    _wfCtx: { next: null, phrases: _wpPhrases(p), guide: p.guide || null } };
+    _wfCtx: { next: null, phrases: _wpPhrases(p), guide: p.guide || null, saved: st.role === 'studio' ? _vaultCtx() : null } };
   const id = card.id + '::' + k;
   const owner = _wpOwnerOf(card);
   if (WP_FLOW_ROLES.includes(st.role) && window.TeachEdWritingFlow) {
@@ -4114,6 +4114,7 @@ function _wpFrame(id, html) {
   const f = document.createElement('iframe');
   f.sandbox = 'allow-scripts';
   f.srcdoc = html;
+  f.dataset.cardId = id;
   f.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#F6F6EF';
   _iwRegisterFrame(id, f);
   return f;
@@ -4246,7 +4247,7 @@ function _wpRender(el, card, focus) {
     // Один живой экземпляр: при перерисовке прежний отдаёт микрофон.
     try { window.__ssActive?.destroy(); } catch {}
     window.__ssActive = window.TeachEdSpeakingStudio.mount(box, {
-      ...args, outs: step.out.outs || [], phrases: _wpPhrases(p), state: _wpState(card, i),
+      ...args, outs: step.out.outs || [], phrases: _wpPhrases(p).concat(((_vaultCtx() || {}).words || []).map(w => ({ phrase: w.phrase, note: `Saved while reading${w.note ? ' - ' + w.note : ''}` }))).slice(0, 48), state: _wpState(card, i),
       authed: !!(currentBoardId && authToken) && !review && !card.__preview,
       save: stState => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, stState); },
       onRecordings: () => window.TeachEdSpeakingStudio.showRecordings(args),
@@ -4266,7 +4267,8 @@ function _wpRender(el, card, focus) {
       try { window.__mgActive?.destroy(); } catch {}
       window.__mgActive = window.TeachedMagazine.mount(box, {
         out: step.out, state: _wpState(card, i), api: apiFetch,
-        canSave: !!authToken && !card.__preview,
+        canSave: !!authToken && !card.__preview, boardId: currentBoardId || null,
+        onSaved: item => _vaultRemember(item),
         save: s => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, s); },
       });
     }
@@ -4454,6 +4456,11 @@ function _wpVocabStudio(stage, card, k) {
     const mark = t.closest('[data-mark]');
     if (mark && w) {
       const known = mark.dataset.mark === 'known';
+      // «Ещё учу» у ученика - слово уходит в его Vault на повторение.
+      if (!known && authToken && !_wpOwnerOf(card) && !card.__preview) {
+        apiFetch('/api/vault/save', { method: 'POST', body: { text: w.word, meaning: w.meaning || '', example: w.example || '', boardId: currentBoardId || null, sourceTitle: card.data.title || '' } })
+          .then(() => _vaultRemember({ kind: 'word', word: w.word, translation: w.meaning || '' })).catch(() => {});
+      }
       st.known = st.known.filter(x => x !== w.word);
       st.learning = st.learning.filter(x => x !== w.word);
       (known ? st.known : st.learning).push(w.word);
@@ -4887,7 +4894,79 @@ function _wfCtxFor(card) {
   const phrases = d._wfRole === 'studio' && window.TeachEdWritingFlow
     ? flow.filter(c => c.data._wfRole === 'phrases').flatMap(c => window.TeachEdWritingFlow.phrasesOf(c.data)).slice(0, 30)
     : [];
-  return { next, phrases, hasStudio: !!studio };
+  return { next, phrases, hasStudio: !!studio, saved: d._wfRole === 'studio' ? _vaultCtx() : null };
+}
+
+/* ── The Vault на доске ─────────────────────────────────────────────────
+   Ученик открыл урок: (1) подгружаем сохранённые им слова и цитаты - они
+   ждут в боковой панели Writing / Speaking Studio («From your reading»),
+   (2) если есть слова к повторению - маленькая разминка в углу. */
+window.__vaultSaved = null;
+async function _vaultBoardInit() {
+  if (!authToken || isOwner) return;
+  _vaultLoadSaved();
+  if (!window.TeachedVault) return;
+  const sum = await window.TeachedVault.summary(apiFetch);
+  if (!sum || !sum.due) return;
+  const key = `teachedos_vault_warmup_${currentBoardId}_${new Date().toISOString().slice(0, 10)}`;
+  try { if (sessionStorage.getItem(key)) return; } catch {}
+  document.getElementById('vault-warmup')?.remove();
+  const chip = document.createElement('button');
+  chip.id = 'vault-warmup';
+  chip.type = 'button';
+  chip.className = 'vault-warmup';
+  const n = Math.min(sum.due, 8);
+  chip.innerHTML = `<span class="vw-ic">🔁</span><span><b>Warm-up: ${n} word${n === 1 ? '' : 's'} from your Vault</b><small>About ${Math.max(1, Math.round(n / 4))} min · before the lesson</small></span><span class="vw-x" data-x aria-label="Not now">✕</span>`;
+  chip.addEventListener('click', e => {
+    try { sessionStorage.setItem(key, '1'); } catch {}
+    chip.remove();
+    if (e.target.closest('[data-x]')) return;
+    window.TeachedVault.open({ api: apiFetch, limit: 8, warmup: true });
+  });
+  document.body.appendChild(chip);
+}
+async function _vaultLoadSaved() {
+  try {
+    const r = await apiFetch(`/api/vault/saved?board=${encodeURIComponent(currentBoardId || '')}&limit=40`);
+    const d = await r.json();
+    window.__vaultSaved = Array.isArray(d.items) ? d.items : [];
+  } catch { window.__vaultSaved = []; }
+  /* Студии отрисовались раньше, чем пришли сохранённые слова: перерисуем
+     те, где есть мастерская письма или говорения, - один раз, сразу после
+     открытия доски, пока ученик ещё ничего не набрал. */
+  if (!window.__vaultSaved.length || !state || !state.cards) return;
+  state.cards.filter(c => c.data && (c.data._wfRole === 'studio'
+    || (c.data._wfPath && (c.data._wfPath.steps || []).some(st => st.role === 'studio' || st.role === 'speak-studio'))))
+    .forEach(c => {
+      const el = document.querySelector(`.board-card[data-id="${c.id}"]`);
+      if (!el || el.contains(document.activeElement)) return;
+      // Только содержимое фрейма, сама карточка (и её регистрация) остаётся.
+      el.querySelectorAll('iframe').forEach(f => {
+        if (!/Writing workspace/.test(f.srcdoc || '') || /From your reading/.test(f.srcdoc || '')) return;
+        const key = f.dataset.cardId || '';
+        const k = key.includes('::') ? Number(key.split('::')[1]) : -1;
+        if (k < 0 && c.data._wfRole !== 'studio') return;
+        try {
+          f.srcdoc = k >= 0
+            ? _wpStepHtml(c, k, f.clientWidth || c.w - 24)
+            : _buildInteractiveWSHtml({ ...c.data, _wfCtx: _wfCtxFor(c) }, c.id, !!isOwner, c.w);
+        } catch (err) { console.warn('[vault] studio refresh', err); }
+      });
+    });
+}
+/* Сохранённое - для боковой панели студий: слова этой доски первыми. */
+function _vaultCtx() {
+  const items = window.__vaultSaved || [];
+  if (!items.length) return null;
+  const words = items.filter(i => i.kind !== 'quote').slice(0, 16).map(i => ({ phrase: i.word, note: i.translation || '', here: !!i.here }));
+  const quotes = items.filter(i => i.kind === 'quote').slice(0, 6).map(i => ({ text: i.word, source: i.source_title || '' }));
+  return words.length || quotes.length ? { words, quotes } : null;
+}
+function _vaultRemember(item) {
+  if (!window.__vaultSaved) window.__vaultSaved = [];
+  if (!window.__vaultSaved.some(i => i.kind === item.kind && String(i.word).toLowerCase() === String(item.word).toLowerCase())) {
+    window.__vaultSaved.unshift({ ...item, here: true });
+  }
 }
 
 /* Учитель читает сданные черновики прямо с карточки мастерской. Текст,
@@ -15132,7 +15211,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '989';
+const TEACHEDOS_ASSET_VERSION = '990';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -21050,7 +21129,7 @@ async function initUserBoard() {
         applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
         if (!_communityImportApplied) loadBoardData(board.data);
-        if (!isOwner) _wpLoadMyWork();
+        if (!isOwner) { _wpLoadMyWork(); _vaultBoardInit(); }
         document.title = board.name + ' · TeachEd';
         document.getElementById('board-name-display').textContent = board.name;
         const _tbn = document.getElementById('tb-board-name'); if(_tbn) _tbn.textContent = '📌 ' + board.name;
@@ -21095,7 +21174,7 @@ async function initUserBoard() {
           updateFollowUI();
           applyRoleUI();
           if (!_communityImportApplied) loadBoardData(board.data);
-          if (!isOwner) _wpLoadMyWork();
+          if (!isOwner) { _wpLoadMyWork(); _vaultBoardInit(); }
           document.title = board.name + ' · TeachEd';
           document.getElementById('board-name-display').textContent = board.name;
           const _tbn2 = document.getElementById('tb-board-name'); if(_tbn2) _tbn2.textContent = '📌 ' + board.name;
