@@ -7079,3 +7079,13 @@ body:not(#_):not(#__) .ss-notes{min-height:70px !important;border-radius:14px !i
 .tb-ed-opts label,.tb-ed-ans{display:flex;align-items:center;gap:6px;font:12px var(--font);color:#5D614B;}
 .tb-ed-opts label.is-answer{color:#2f6b00;font-weight:650;}
 .tb-ed-item{display:grid;grid-template-columns:minmax(120px,.4fr) 1fr;gap:8px;}
+
+/* «Hear it in real videos» — YouGlish clips from the vocabulary / speaking studios. */
+.tb-workout-hear{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;border:1px solid rgba(93,97,75,.16);border-radius:12px;background:#fff;cursor:pointer}
+.tb-workout-hear input{width:18px;height:18px;margin-top:2px;accent-color:#24282C}
+.tb-workout-hear b{display:block;font:650 13px var(--font);color:#24282C}
+.tb-workout-hear small{display:block;font:12px/1.4 var(--font);color:#5D614B;margin-top:2px}
+.vs-say.vs-hear{background:#24282C;color:#fff;border-color:#24282C}
+.vs-say.vs-hear:hover{background:#000}
+.ss-chip-hear{display:inline-grid;place-items:center;width:18px;height:18px;margin-left:6px;border-radius:50%;background:#24282C;color:#fff;font-size:8px;vertical-align:1px}
+.ss-chip-hear:hover{background:#000}

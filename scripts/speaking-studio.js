@@ -83,7 +83,7 @@
     host.innerHTML = `
       <div class="ss">
         <aside class="ss-side">
-          ${o.phrases && o.phrases.length ? `<details class="ss-acc" open><summary>Phrases from this lesson</summary><div class="ss-chips">${o.phrases.map(p => `<button type="button" class="ss-chip" data-ph="${esc(p.phrase)}" title="${esc(p.note || '')}">${md(p.phrase)}</button>`).join('')}</div></details>` : ''}
+          ${o.phrases && o.phrases.length ? `<details class="ss-acc" open><summary>Phrases from this lesson</summary><div class="ss-chips">${o.phrases.map(p => `<button type="button" class="ss-chip" data-ph="${esc(p.phrase)}" title="${esc(p.note || '')}">${md(p.phrase)}${window.TeachedHear && /\s/.test(String(p.phrase).trim()) ? `<span class="ss-chip-hear" data-hear="${esc(p.phrase)}" title="Hear it in real videos, then record your own line">▶</span>` : ''}</button>`).join('')}</div></details>` : ''}
           ${fnGroups.map(([g, list], gi) => `<details class="ss-acc"${gi < 3 ? ' open' : ''}><summary>${esc(g)}</summary><div class="ss-chips">${list.map(p => `<button type="button" class="ss-chip" data-ph="${esc(p)}">${esc(p)}</button>`).join('')}</div></details>`).join('')}
           <p class="ss-side-note">Tap a phrase when you have used it.</p>
         </aside>
@@ -224,6 +224,9 @@
     }
 
     host.addEventListener('click', e => {
+      // ▶ у фразы урока: как её говорят в фильмах и на TED, и своя реплика.
+      const hear = e.target.closest('.ss-chip-hear');
+      if (hear && window.TeachedHear) { window.TeachedHear.open(hear.dataset.hear); return; }
       const chip = e.target.closest('.ss-chip');
       if (chip) {
         const ph = chip.dataset.ph;

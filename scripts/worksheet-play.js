@@ -429,6 +429,8 @@ const IW_STOPWORDS = new Set(('a an the is are was were be been being of to in o
 const IW_WORD_HELP_SCRIPT = `
 (function(){
   var W = window.__IW_WORDS__ || {};
+  window.iwHear = window.iwHear || function(term){ try { parent.postMessage({ type:'iw-hear', cardId: window.__IW_CARD__, term: String(term||'').slice(0,80) }, '*'); } catch(e) {} };
+  var iwHear = window.iwHear;
   var STOP = ${JSON.stringify([...IW_STOPWORDS])}.reduce(function(o,w){o[w]=1;return o;},{});
   var norm = function(s){ return String(s||'').toLowerCase().replace(/[\\u2019]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\\s+/g,' ').trim(); };
   var box = null, audio = null, openWord = null;
@@ -455,6 +457,7 @@ const IW_WORD_HELP_SCRIPT = `
     if (info.synonyms) html += row('Synonyms', '<div>' + esc(info.synonyms) + '</div>');
     if (info.example)  html += row('Example', '<div class="iw-wh-eg">' + esc(info.example) + '</div>');
     if (!info.meaning && !info.ipa && !info.synonyms && !info.example && !canSay) html += '<div class="iw-wh-row iw-wh-loading">No dictionary entry for this word.</div>';
+    html += '<button type="button" class="iw-wh-hear" data-hear="' + esc(info.word) + '">&#9654; Hear it in movies &amp; TED</button>';
     return html;
   }
 
@@ -484,6 +487,8 @@ const IW_WORD_HELP_SCRIPT = `
     box.style.top = (down ? r.bottom + 8 : Math.max(10, r.top - h - 8)) + 'px';
 
     box.querySelector('.iw-wh-x').addEventListener('click', close);
+    var hear = box.querySelector('.iw-wh-hear');
+    if (hear) hear.addEventListener('click', function(){ iwHear(info.word); close(); });
     var say = box.querySelector('.iw-wh-say');
     if (say) say.addEventListener('click', function(){
       say.classList.add('is-playing');
@@ -550,6 +555,34 @@ const IW_WORD_HELP_SCRIPT = `
     if (box && !(e.target.closest && e.target.closest('.iw-wh'))) close();
   });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+
+  /* Фраза целиком («it's up to you», «break the ice»): выделил мышью - рядом
+     появляется кнопка, и страница показывает, как это говорят живые люди. */
+  var pill = null;
+  function dropPill(){ if (pill) { pill.remove(); pill = null; } }
+  document.addEventListener('mouseup', function(e){
+    if (e.target.closest && e.target.closest('.iw-hear-pill')) return;
+    setTimeout(function(){
+      dropPill();
+      var sel = window.getSelection();
+      var text = sel ? String(sel).replace(/\s+/g,' ').trim() : '';
+      if (!text || !sel.rangeCount) return;
+      var n = text.split(' ').length;
+      if (n < 2 || n > 8 || text.length > 80) return;
+      var anchor = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement);
+      if (!anchor || !anchor.closest || !anchor.closest('.iw-read-p, .iw-read, .iw-mat, p')) return;
+      var r = sel.getRangeAt(0).getBoundingClientRect();
+      pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'iw-hear-pill';
+      pill.innerHTML = '&#9654; Hear &ldquo;' + esc(text.length > 28 ? text.slice(0, 26) + '…' : text) + '&rdquo; in real videos';
+      pill.style.left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - 280)) + 'px';
+      pill.style.top = Math.max(8, r.top - 42) + 'px';
+      pill.addEventListener('click', function(){ iwHear(text.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, '')); dropPill(); sel.removeAllRanges(); });
+      document.body.appendChild(pill);
+    }, 10);
+  });
+  document.addEventListener('scroll', dropPill, true);
 
   /* Помечаются только те слова, по которым есть что показать: подчёркивание
      и курсор - обещание, и слово без данных его бы не сдержало. */
@@ -1128,13 +1161,13 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
   else if (items.length) {
     contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${items.map((it, i) => `<div class="iw-flash" onclick="iwFlipOrNext(this)">
       <div class="iw-flash-inner">
-        <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${md(it.word||'')}</span></div>
+        <div class="iw-flash-front"><span class="iw-flash-num">${i+1}</span><span class="iw-flash-word">${md(it.word||'')}</span>${d._hear ? `<button type="button" class="iw-hear-btn" data-hear="${esc(it.word||'')}" onclick="event.stopPropagation();iwHearCard(this.dataset.hear)">&#9654; Hear it in real videos</button>` : ''}</div>
         <div class="iw-flash-back"><span class="iw-flash-def">${md(it.example || it.definition || '-')}</span></div>
       </div>
     </div>`).join('')}</div></div>`;
     // Флешкарты не сдаются - ни чёрной плашки снизу, ни отметки не нужно,
     // только тап по карточке, чтобы её перевернуть.
-    scriptHtml = '';
+    scriptHtml = d._hear ? `function iwHearCard(t){ try { parent.postMessage({ type:'iw-hear', cardId: window.__IW_CARD__, term: String(t||'').slice(0,80) }, '*'); } catch(e) {} }` : '';
   }
 
   // ─── MODE: Writing workspace (creative writing, homework task) ───
@@ -1795,6 +1828,12 @@ strong{font-weight:650}
 .iw-wh-row{margin-top:6px}
 .iw-wh-label{display:block;font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--olive);margin-bottom:2px}
 .iw-wh-ipa{display:flex;align-items:center;gap:8px;font:600 14px ui-monospace,monospace;color:var(--ink)}
+.iw-wh-hear{display:block;width:100%;margin-top:10px;padding:8px 10px;border:0;border-radius:10px;background:#24282C;color:#fff;font:650 12px/1.3 -apple-system,system-ui,sans-serif;cursor:pointer;text-align:center}
+.iw-wh-hear:hover{background:#000}
+.iw-hear-pill{position:fixed;z-index:45;padding:8px 12px;border:0;border-radius:999px;background:#24282C;color:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap}
+.iw-hear-pill:hover{background:#000}
+.iw-hear-btn{margin-top:14px;padding:7px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;color:var(--ink);cursor:pointer}
+.iw-hear-btn:hover{border-color:${accent}}
 .iw-wh-say{width:30px;height:30px;flex-shrink:0;border:1px solid var(--line-2);border-radius:9px;background:#fff;cursor:pointer;font-size:14px;line-height:1}
 .iw-wh-say:hover{background:color-mix(in srgb,${accent} 22%,#fff);border-color:${accent}}
 .iw-wh-say.is-playing{background:${accent};border-color:${accent}}

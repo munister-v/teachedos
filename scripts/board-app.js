@@ -4306,7 +4306,9 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   });
   if (speakOuts.length) steps.push({ role: 'speak-studio', title: 'Speaking Studio', out: { title: 'Speaking Studio', outs: speakOuts }, state: null });
   if (writing) steps.push(writing);
-  const path = { kind: 'vocabulary', steps, cur: 0, done: [], guide: null, genre: '', assigned: [] };
+  const hear = !!document.getElementById('tbuilder-hear')?.checked;
+  try { localStorage.setItem('teachedos_vocab_hear', hear ? '1' : '0'); } catch {}
+  const path = { kind: 'vocabulary', steps, cur: 0, done: [], guide: null, genre: '', assigned: [], hear };
   const card = _wpPlacePathCard(base, `Vocabulary: ${base.topic || 'words'}`, path);
   if (card) {
     _wpFillVocabPron(card);
@@ -4376,6 +4378,8 @@ function _wpVocabStudio(stage, card, k) {
     else speakWord(w.word, region);
   };
   const ipa = v => v ? `/${esc(String(v).replace(/^\/|\/$/g, ''))}/` : '<span class="vs-none">-</span>';
+  // «Add video examples» в конструкторе: у каждого слова - живые клипы.
+  const hearOn = !!(card.data._wfPath.hear && window.TeachedHear);
   function paint() {
     const L = list();
     if (st.i >= L.length) st.i = Math.max(0, L.length - 1);
@@ -4401,6 +4405,7 @@ function _wpVocabStudio(stage, card, k) {
           <div class="vs-pron">
             <button type="button" class="vs-say" data-say="uk" title="Hear it - British">🔊 UK <span>${ipa(w.ipaUK)}</span></button>
             <button type="button" class="vs-say" data-say="us" title="Hear it - American">🔊 US <span>${ipa(w.ipaUS)}</span></button>
+            ${hearOn ? `<button type="button" class="vs-say vs-hear" data-hear="${esc(w.word)}" title="Real people saying it: movies, TED, interviews">▶ In real videos</button>` : ''}
           </div>
           ${hide ? `<button type="button" class="vs-reveal">Say what it means - then show the meaning</button>`
             : `<p class="vs-meaning">${esc(w.meaning || 'No meaning given.')}</p>${w.example ? `<p class="vs-ex">${hl(w.example, w.word)}</p>` : ''}`}
@@ -4423,6 +4428,8 @@ function _wpVocabStudio(stage, card, k) {
     if (item) { const j = L.findIndex(x => x.word === item.dataset.w); if (j < 0) { st.onlyLearning = false; st.i = words.findIndex(x => x.word === item.dataset.w); } else st.i = j; shown = false; save(); paint(); return; }
     const mode = t.closest('[data-mode]');
     if (mode) { st.mode = mode.dataset.mode; shown = false; save(); paint(); return; }
+    const hearBtn = t.closest('[data-hear]');
+    if (hearBtn && window.TeachedHear) { window.TeachedHear.open(hearBtn.dataset.hear); return; }
     const say = t.closest('[data-say]');
     if (say && w) { play(w, say.dataset.say); return; }
     if (t.closest('.vs-reveal')) { shown = true; paint(); return; }
@@ -15108,7 +15115,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '986';
+const TEACHEDOS_ASSET_VERSION = '987';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
