@@ -1066,6 +1066,9 @@ const BOARD_LESSON_SKILLS = [
   /* Свежая статья → журнальный лонгрид на уровне класса со своей лексикой
      и воркшитом (Magazine Reading Studio, scripts/magazine-studio.js). */
   {key:'magazine',   title:'News & Articles', hint:'Today\'s story as a magazine long read, with its words and a workout.', icon:'📰', magazine:true},
+  /* Тематическая картинка-воркшит: дом, машина, больница… Каждая вещь на
+     рисунке - слово (Picture Studio, scripts/scene-studio.js). */
+  {key:'scenes',     title:'Picture Worksheets', hint:'A big drawing of a place - every thing in it is a word to find, name and use.', icon:'🖼️', scenes:true},
 ];
 
 /* ─── BOARD_LESSON_SOURCES ─── второй вопрос: откуда берём материал ─────

@@ -3879,10 +3879,11 @@ const WP_KINDS = {
   grammar:   { kicker: 'Grammar path',   studio: 'Grammar Studio',   studioStages: ['notice', 'drill'], follow: ['use'] },
   vocabulary: { kicker: 'Vocabulary path' },
   magazine:   { kicker: 'News & Articles · Magazine' },
+  scene:      { kicker: 'Picture Studio' },
 };
 // Шаги, которые рисует writing-flow.js; остальное - обычная интерактивная карточка.
 const WP_FLOW_ROLES = ['ideas', 'phrases', 'plan', 'criteria', 'guide'];
-const WP_STUDIO_ROLES = ['studio', 'speak-studio', 'task-studio', 'vocab-studio', 'magazine-studio'];
+const WP_STUDIO_ROLES = ['studio', 'speak-studio', 'task-studio', 'vocab-studio', 'magazine-studio', 'scene-studio'];
 // В «продолжении» эти задания - разговор: их место в Speaking Studio.
 const WP_SPEAK_TOOLS = ['conversation-starters', 'roleplay-cards', 'discussion', 'debate-cards'];
 let _wpFocusId = null;
@@ -4339,6 +4340,23 @@ function _wpRender(el, card, focus) {
     else {
       try { window.__mgActive?.destroy(); } catch {}
       window.__mgActive = window.TeachedMagazine.mount(box, {
+        out: step.out, state: _wpState(card, i), api: apiFetch,
+        canSave: !!authToken && !card.__preview, boardId: currentBoardId || null,
+        onSaved: item => _vaultRemember(item),
+        save: s => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, s); },
+      });
+    }
+  } else if (step.role === 'scene-studio' && window.TeachedScene) {
+    /* Картинка-воркшит (дом, машина, больница…): на доске - рисунок с
+       кнопкой, в Studio - слова на рисунке и шесть заданий
+       (scripts/scene-studio.js, рисунки - data/scenes/*.json). */
+    const box = document.createElement('div');
+    box.className = 'wp-mg';
+    stage.appendChild(box);
+    if (!focus) window.TeachedScene.preview(box, step.out, () => openCardStudio(card.id));
+    else {
+      try { window.__scActive?.destroy(); } catch {}
+      window.__scActive = window.TeachedScene.mount(box, {
         out: step.out, state: _wpState(card, i), api: apiFetch,
         canSave: !!authToken && !card.__preview, boardId: currentBoardId || null,
         onSaved: item => _vaultRemember(item),
@@ -15341,7 +15359,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '999';
+const TEACHEDOS_ASSET_VERSION = '1000';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18130,7 +18148,7 @@ function renderLessonWizard() {
     if (kicker) kicker.textContent = 'Lesson builder / step 1 of 2';
     if (title)  title.textContent  = 'What are we working on today?';
     if (sub)    sub.textContent    = 'Pick the skill. The tools are chosen for you.';
-    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine); return `
+    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
       <button type="button" class="tb-wiz-card${ready ? '' : ' is-soon'}"
         ${ready ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
         <span class="tb-wiz-ic">${esc(s.icon)}</span>
@@ -18141,6 +18159,7 @@ function renderLessonWizard() {
   }
 
   const skill = (BOARD_LESSON_SKILLS || []).find(s => s.key === boardLessonWizard.skill);
+  if (skill && skill.scenes) { _wizRenderScenes(host, skill); return; }
   if (kicker) kicker.textContent = `Lesson builder / ${skill ? skill.title : ''} / step 2 of 2`;
   if (title)  title.textContent  = boardLessonWizard.skill === 'vocabulary'
     ? 'Where does the word list come from?'
@@ -18162,6 +18181,50 @@ function renderLessonWizard() {
       <span class="tb-wiz-go">→</span>
     </button>`).join('')}</div>
     <button type="button" class="tb-wiz-back" onclick="backLessonWizard()">← Back</button>`;
+}
+
+/* ── Picture worksheets: тема → уровень → одна карточка-путь ──────────────
+   Рисунок и слова лежат в data/scenes/<id>.json; на доску идёт только
+   { scene, level, title } - сами слова карточку не раздувают. */
+function _wizRenderScenes(host, skill) {
+  const kicker = document.getElementById('tbuilder-kicker');
+  const title  = document.getElementById('tbuilder-title');
+  const sub    = document.getElementById('tbuilder-sub');
+  if (kicker) kicker.textContent = `Lesson builder / ${skill.title} / step 2 of 2`;
+  if (title)  title.textContent  = 'Which picture?';
+  if (sub)    sub.textContent    = 'One big drawing, every thing in it a word - with six tasks and a printable worksheet.';
+  const SC = window.TeachedScene;
+  const lvl = boardLessonWizard.sceneLevel || ((document.getElementById('tbuilder-level') || {}).value) || 'A2';
+  const level = (SC ? SC.levels : ['A1', 'A2', 'B1']).includes(lvl) ? lvl : (/^(B2|C1|C2)$/.test(lvl) ? 'B1' : 'A2');
+  boardLessonWizard.sceneLevel = level;
+  host.innerHTML = `<div class="tb-news-levels" style="margin:0 0 12px"><span class="tb-news-levels-label">Words for</span>${(SC ? SC.levels : ['A1', 'A2', 'B1']).map(l => `<button type="button" class="tb-news-level${l === level ? ' is-on' : ''}" onclick="boardLessonWizard.sceneLevel='${l}';renderLessonWizard()">${l}${l === 'B1' ? '+' : ''}</button>`).join('')}</div>
+    <div class="tb-wiz-grid">${(SC ? SC.catalog : []).map(t => `
+    <button type="button" class="tb-wiz-card${t.ready ? '' : ' is-soon'}" ${t.ready ? `onclick="placeSceneCard('${esc(t.id)}')"` : 'disabled'}>
+      <span class="tb-wiz-ic">${esc(t.icon)}</span>
+      <span class="tb-wiz-tx"><b>${esc(t.title)}</b><small>${esc(t.hint)}</small></span>
+      ${t.ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">next</span>'}
+    </button>`).join('')}</div>
+    <button type="button" class="tb-wiz-back" onclick="backLessonWizard()">← Back</button>`;
+}
+
+async function placeSceneCard(sceneId) {
+  const SC = window.TeachedScene;
+  if (!SC) return;
+  const level = (boardLessonWizard && boardLessonWizard.sceneLevel) || 'A2';
+  let sc;
+  try { sc = await SC.load(sceneId); } catch { toast('The picture could not be loaded - try again'); return; }
+  const out = { scene: sceneId, level, title: sc.title };
+  const path = { kind: 'scene', steps: [{ role: 'scene-studio', title: 'Picture Studio', out, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [] };
+  const card = _wpPlacePathCard({ level, topic: sc.title }, sc.title, path);
+  if (!card) return;
+  const rk = l => ['A1', 'A2', 'B1'].indexOf(l);
+  const n = sc.parts.concat(sc.rooms).filter(p => rk(p.level) <= rk(level)).length;
+  _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
+    title: sc.title, cat: 'vocabulary', level, topic: sc.title,
+    kind: `Picture worksheet · ${n} words`, toolId: 'scene',
+  });
+  closeTeacherToolBuilder();
+  toast('Picture worksheet added - open it to explore');
 }
 
 function pickLessonSkill(key) {
