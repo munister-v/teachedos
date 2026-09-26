@@ -10,6 +10,7 @@ const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth
 const { sendEmail, sendEmailQuietly, resetPasswordEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, newSignInEmail } = require('../lib/email');
 const { recordTelemetry } = require('../lib/telemetry');
 const { deviceLabel } = require('../lib/device');
+const totp = require('../lib/totp');
 const stripe = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
 
 /* Email the owner when an account signs in from a browser/device it has not
@@ -626,6 +627,10 @@ router.post('/login', authLimiter, async (req, res) => {
       `UPDATE users SET failed_login_count=0, locked_at=NULL, last_login_at=NOW() WHERE id=$1`,
       [user.id]
     );
+    if (await hasSecondFactor(user.id)) {
+      logAuthEvent(user.id, user.email, 'login.2fa.challenge', req);
+      return res.json(secondFactorChallenge(user, 'password'));
+    }
     await notifyIfNewDevice(req, user);
     logAuthEvent(user.id, user.email, 'login.ok', req);
     const payload = await issueLoginSession(req, user);
@@ -706,6 +711,10 @@ router.post('/google', authLimiter, async (req, res) => {
     }
 
     await pool.query(`UPDATE users SET last_login_at=NOW(), failed_login_count=0, locked_at=NULL WHERE id=$1`, [user.id]).catch(() => {});
+    if (!isNewUser && await hasSecondFactor(user.id)) {
+      logAuthEvent(user.id, user.email, 'login.2fa.challenge', req, 'google');
+      return res.json(secondFactorChallenge(user, 'google'));
+    }
     if (!isNewUser) await notifyIfNewDevice(req, user);
     logAuthEvent(user.id, user.email, isNewUser ? 'google.signup' : 'google.login', req);
     const payload = await issueLoginSession(req, user);
@@ -851,6 +860,102 @@ router.post('/verify-email/resend', requireAuth, verifyLimiter, async (req, res)
     console.error('[auth/verify-resend]', err.message);
     res.status(502).json({ error: 'Could not send the email right now. Please try again later.' });
   }
+});
+
+// ── Two-step verification ───────────────────────────────────────────────────
+// After the password (or Google) step, an account with 2FA gets a short-lived
+// signed ticket instead of a session; POST /login/2fa trades ticket + code
+// for the session.
+const TWOFA_PURPOSE = 'login-2fa';
+async function hasSecondFactor(userId) {
+  const { rows } = await pool.query('SELECT totp_enabled_at FROM users WHERE id = $1', [userId]);
+  return !!rows[0]?.totp_enabled_at;
+}
+function secondFactorChallenge(user, via) {
+  const ticket = jwt.sign({ sub: user.id, purpose: TWOFA_PURPOSE, via }, process.env.JWT_SECRET, { expiresIn: '5m' });
+  return { twoFactor: true, ticket, email: user.email };
+}
+// Checks an authenticator code or an unused backup code (spent on success).
+async function checkSecondFactor(userId, code) {
+  const { rows } = await pool.query('SELECT totp_secret, totp_enabled_at, totp_backup_hashes FROM users WHERE id = $1', [userId]);
+  const u = rows[0];
+  if (!u?.totp_enabled_at) return { ok: false };
+  const c = String(code || '').trim();
+  if (/^\d{3}\s?\d{3}$/.test(c)) return { ok: totp.verify(u.totp_secret, c.replace(/\s/g, '')) };
+  const h = totp.hashBackup(c);
+  const list = Array.isArray(u.totp_backup_hashes) ? u.totp_backup_hashes : [];
+  if (!c || !list.includes(h)) return { ok: false };
+  await pool.query('UPDATE users SET totp_backup_hashes = $2 WHERE id = $1', [userId, JSON.stringify(list.filter(x => x !== h))]);
+  return { ok: true, backup: true, left: list.length - 1 };
+}
+
+// POST /api/auth/login/2fa {ticket, code}
+router.post('/login/2fa', authLimiter, async (req, res) => {
+  let payload;
+  try {
+    payload = jwt.verify(String(req.body?.ticket || ''), process.env.JWT_SECRET);
+    if (payload?.purpose !== TWOFA_PURPOSE) throw new Error('bad');
+  } catch {
+    return res.status(401).json({ error: 'The sign-in took too long. Please sign in again.', restart: true });
+  }
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at,
+              plan_source, timezone, timezone_mode, created_at, is_suspended
+       FROM users WHERE id = $1`, [payload.sub]);
+    const user = rows[0];
+    if (!user || user.is_suspended) return res.status(401).json({ error: 'Please sign in again.', restart: true });
+    const check = await checkSecondFactor(user.id, req.body?.code);
+    if (!check.ok) {
+      logAuthEvent(user.id, user.email, 'login.2fa.fail', req);
+      return res.status(401).json({ error: 'That code is not right. Check the time on your phone and try the newest code.' });
+    }
+    await pool.query(`UPDATE users SET last_login_at=NOW(), failed_login_count=0, locked_at=NULL WHERE id=$1`, [user.id]).catch(() => {});
+    await notifyIfNewDevice(req, user);
+    logAuthEvent(user.id, user.email, payload.via === 'google' ? 'google.login' : 'login.ok', req, check.backup ? 'backup code' : '2fa');
+    const out = await issueLoginSession(req, user);
+    if (check.backup) out.backupCodesLeft = check.left;
+    res.json(out);
+  } catch (err) {
+    console.error('[auth/login-2fa]', err.message);
+    res.status(500).json({ error: 'Could not sign in right now. Please try again.' });
+  }
+});
+
+// POST /api/auth/2fa/setup - a fresh secret, not active until confirmed
+router.post('/2fa/setup', requireAuth, async (req, res) => {
+  if (req.user.two_factor) return res.status(400).json({ error: 'Two-step verification is already on.' });
+  const secret = totp.generateSecret();
+  await pool.query('UPDATE users SET totp_secret = $2 WHERE id = $1 AND totp_enabled_at IS NULL', [req.user.id, secret]);
+  res.json({ secret, otpauth: totp.otpauthUrl(secret, req.user.email) });
+});
+
+// POST /api/auth/2fa/enable {code} - proves the app is set up; returns backup codes once
+router.post('/2fa/enable', requireAuth, authLimiter, async (req, res) => {
+  const { rows } = await pool.query('SELECT totp_secret, totp_enabled_at FROM users WHERE id = $1', [req.user.id]);
+  const u = rows[0];
+  if (u?.totp_enabled_at) return res.status(400).json({ error: 'Two-step verification is already on.' });
+  if (!u?.totp_secret || !totp.verify(u.totp_secret, req.body?.code)) {
+    return res.status(400).json({ error: 'That code is not right. Type the 6 digits your app shows now.' });
+  }
+  const codes = totp.backupCodes();
+  await pool.query('UPDATE users SET totp_enabled_at = NOW(), totp_backup_hashes = $2 WHERE id = $1',
+    [req.user.id, JSON.stringify(codes.map(totp.hashBackup))]);
+  logAuthEvent(req.user.id, req.user.email, '2fa.enabled', req);
+  res.json({ ok: true, backupCodes: codes });
+});
+
+// POST /api/auth/2fa/disable {password?, code}
+router.post('/2fa/disable', requireAuth, authLimiter, async (req, res) => {
+  const { rows } = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
+  if (rows[0]?.password_hash && !(await bcrypt.compare(String(req.body?.password || ''), rows[0].password_hash))) {
+    return res.status(403).json({ error: 'That password is not right.' });
+  }
+  const check = await checkSecondFactor(req.user.id, req.body?.code);
+  if (!check.ok) return res.status(403).json({ error: 'That code is not right.' });
+  await pool.query("UPDATE users SET totp_enabled_at = NULL, totp_secret = NULL, totp_backup_hashes = '[]' WHERE id = $1", [req.user.id]);
+  logAuthEvent(req.user.id, req.user.email, '2fa.disabled', req);
+  res.json({ ok: true });
 });
 
 // ── Account deletion ────────────────────────────────────────────────────────

@@ -30,7 +30,7 @@ async function authenticateToken(token) {
     text: `SELECT s.id AS session_id, u.id, u.email, u.name, u.role, u.avatar, u.plan,
                   u.plan_status, u.billing_cycle, u.plan_started_at, u.plan_expires_at,
                   u.plan_source, u.meeting_url, u.zoom_url, u.timezone, u.timezone_mode,
-                  u.created_at, u.email_verified_at, (u.password_hash IS NOT NULL) AS has_password, COALESCE(u.is_suspended, FALSE) AS is_suspended
+                  u.created_at, u.email_verified_at, (u.password_hash IS NOT NULL) AS has_password, (u.totp_enabled_at IS NOT NULL) AS two_factor, COALESCE(u.is_suspended, FALSE) AS is_suspended
              FROM sessions s
              JOIN users u ON u.id=s.user_id
             WHERE ${sessionWhere.text} AND s.expires_at > NOW()

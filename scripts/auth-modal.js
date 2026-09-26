@@ -353,7 +353,69 @@ function humanError(e) {
     if (!isLogin && !isForgot) $('af-name')?.focus(); else $('af-email')?.focus();
   }
 
+  /* ── Two-step verification: the code step after password / Google ── */
+  let twoFactorTicket = '';
+  function showTwoFactorStep(d) {
+    mode = '2fa';
+    twoFactorTicket = d.ticket;
+    const title = $('auth-title');
+    if (title) title.textContent = 'Enter your verification code';
+    $('auth-subtitle').textContent = `Open your authenticator app for ${d.email || 'your account'}`;
+    const btn = $('auth-submit');
+    btn.classList.remove('loading'); btn.disabled = false; btn.setAttribute('aria-busy', 'false');
+    const lbl = btn.querySelector('.auth-btn-lbl');
+    if (lbl) lbl.textContent = 'Verify';
+    const err = $('auth-err'); if (err) err.style.display = 'none';
+    ['auth-role-row', 'auth-google-area'].forEach(id => { const el = $(id); if (el) el.style.display = 'none'; });
+    const note = $('auth-security-note');
+    if (note) note.textContent = 'Lost your phone? Type one of your backup codes instead.';
+    $('auth-toggle-text').textContent = 'Not you?';
+    const toggleLink = $('auth-toggle-link');
+    toggleLink.textContent = 'Back to sign in';
+    toggleLink.onclick = () => { mode = 'login'; twoFactorTicket = ''; renderFields(); setupGoogle(); };
+    const f = $('auth-fields');
+    f.innerHTML = '';
+    const form = document.createElement('form');
+    form.id = 'auth-form';
+    form.noValidate = true;
+    form.addEventListener('submit', e => { e.preventDefault(); submitAuth(); });
+    form.innerHTML = `<div class="auth-field-wrap"><label class="auth-field-label" for="af-code">6-digit code</label>
+      <input class="auth-inp" id="af-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="16" placeholder="123 456" spellcheck="false" style="letter-spacing:.2em;font-size:18px;text-align:center;"></div>`;
+    f.appendChild(form);
+    const inp = $('af-code');
+    inp.addEventListener('input', () => { if (/^\d{6}$/.test(inp.value.replace(/\s/g, ''))) submitAuth(); });
+    setTimeout(() => inp.focus(), 30);
+  }
+  async function submitTwoFactor() {
+    const code = ($('af-code')?.value || '').trim();
+    const err = $('auth-err');
+    const btn = $('auth-submit');
+    if (!code) { err.textContent = 'Type the code from your app.'; err.style.display = 'block'; return; }
+    if (btn.disabled) return;
+    err.style.display = 'none';
+    btn.classList.add('loading'); btn.disabled = true; btn.setAttribute('aria-busy', 'true');
+    try {
+      const r = await fetch(API + '/api/auth/login/2fa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: twoFactorTicket, code }) });
+      const d = await r.json();
+      if (!r.ok) {
+        if (d.restart) { mode = 'login'; renderFields(); setupGoogle(); }
+        throw new Error(d.error || 'That code is not right.');
+      }
+      if (typeof d.backupCodesLeft === 'number') {
+        try { sessionStorage.setItem('teachedos_backup_left', String(d.backupCodesLeft)); } catch (_) {}
+      }
+      mode = 'login';
+      await handleSuccess(d);
+    } catch (e) {
+      const errEl = $('auth-err');
+      errEl.textContent = humanError(e); errEl.style.display = 'block';
+      btn.classList.remove('loading'); btn.disabled = false; btn.setAttribute('aria-busy', 'false');
+      const inp = $('af-code'); if (inp) { inp.value = ''; inp.focus(); }
+    }
+  }
+
   window.submitAuth = async function () {
+    if (mode === '2fa') return submitTwoFactor();
     const email = $('af-email')?.value.trim();
     const pass = $('af-pass')?.value;
     const name = $('af-name')?.value?.trim();
@@ -381,6 +443,7 @@ function humanError(e) {
       const r = await fetch(API + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Something went wrong');
+      if (d.twoFactor) { showTwoFactorStep(d); return; }
       await handleSuccess(d);
     } catch (e) {
       err.textContent = humanError(e); err.style.display = 'block';
@@ -450,6 +513,7 @@ function humanError(e) {
     if (mode === 'forgot') return;
     const ok = await initGsi();
     const area = $('auth-google-area');
+    if (mode === '2fa') { if (area) area.style.display = 'none'; return; }
     if (!ok) { if (area) area.style.display = 'none'; return; }
     const wrap = $('auth-google-btn');
     if (!area || !wrap) return;
@@ -463,7 +527,7 @@ function humanError(e) {
         const width = Math.min(336, Math.max(240, ($('auth-modal')?.clientWidth || 400) - 60));
         google.accounts.id.renderButton(wrap, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', width, logo_alignment: 'center', locale: 'en' });
       } catch (e) { console.warn('[auth-modal] gsi renderButton', e); area.style.display = 'none'; return; }
-      area.style.display = wrap.childElementCount ? 'block' : 'none';
+      area.style.display = wrap.childElementCount && mode !== '2fa' && mode !== 'forgot' ? 'block' : 'none';
     });
   }
   async function onGoogle(resp) {
@@ -475,6 +539,7 @@ function humanError(e) {
       const r = await fetch(API + '/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: resp.credential, role, acceptTerms: mode === 'register' }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
+      if (d.twoFactor) { showTwoFactorStep(d); return; }
       await handleSuccess(d);
     } catch (e) {
       if (err) { err.textContent = humanError(e); err.style.display = 'block'; }

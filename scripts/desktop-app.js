@@ -2719,6 +2719,38 @@ async function setupGoogleSignIn() {
   });
 }
 
+/* Two-step verification after the password / Google step: a small dialog
+   for the 6-digit code (or a backup code), then the normal success path. */
+function _osTwoFactor(d) {
+  document.getElementById('os-2fa')?.remove();
+  const box = document.createElement('div');
+  box.id = 'os-2fa';
+  box.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(20,22,24,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif';
+  box.innerHTML = `<form style="width:min(380px,100%);background:#fff;border-radius:20px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.3);color:#24282C">
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px">Enter your verification code</div>
+    <div style="font-size:13px;color:#5D614B;margin-bottom:14px">Open your authenticator app for ${esc(d.email || 'your account')}. Lost your phone? Use a backup code.</div>
+    <input id="os-2fa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="16" placeholder="123 456" style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1.5px solid rgba(36,40,44,.18);font-size:20px;letter-spacing:.2em;text-align:center">
+    <div id="os-2fa-err" style="display:none;margin-top:10px;font-size:12.5px;color:#9A2C0C;background:#FDE3DA;border-radius:9px;padding:8px 10px"></div>
+    <div style="display:flex;gap:8px;margin-top:16px"><button type="button" id="os-2fa-cancel" style="flex:1;padding:11px;border-radius:999px;border:1px solid rgba(36,40,44,.16);background:#fff;font-weight:600;cursor:pointer">Cancel</button>
+    <button type="submit" style="flex:2;padding:11px;border-radius:999px;border:0;background:#CDF649;color:#24282C;font-weight:700;cursor:pointer">Verify</button></div></form>`;
+  document.body.appendChild(box);
+  const inp = box.querySelector('#os-2fa-code'), errEl = box.querySelector('#os-2fa-err');
+  box.querySelector('#os-2fa-cancel').onclick = () => box.remove();
+  const submit = async () => {
+    errEl.style.display = 'none';
+    try {
+      const r = await fetch(API_BASE + '/api/auth/login/2fa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: d.ticket, code: inp.value.trim() }) });
+      const out = await r.json();
+      if (!r.ok) { if (out.restart) box.remove(); throw new Error(out.error || 'That code is not right.'); }
+      box.remove();
+      _applyOsAuthSuccess(out);
+    } catch (e) { errEl.textContent = e.message; errEl.style.display = 'block'; inp.value = ''; inp.focus(); }
+  };
+  box.querySelector('form').addEventListener('submit', e => { e.preventDefault(); submit(); });
+  inp.addEventListener('input', () => { if (/^\d{6}$/.test(inp.value.replace(/\s/g, ''))) submit(); });
+  setTimeout(() => inp.focus(), 30);
+}
+
 async function handleGoogleCredential(response) {
   const errEl = document.getElementById('os-auth-err');
   if (errEl) { errEl.style.display = 'none'; errEl.style.color = ''; }
@@ -2731,6 +2763,7 @@ async function handleGoogleCredential(response) {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
+    if (d.twoFactor) { _osTwoFactor(d); return; }
     _applyOsAuthSuccess(d);
   } catch (err) {
     if (errEl) { errEl.textContent = _osHumanAuthError(err); errEl.style.display = 'block'; }
@@ -2982,11 +3015,12 @@ async function submitOsAuth() {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error||'Error');
+    if (d.twoFactor) { _osTwoFactor(d); throw new Error('__2fa'); }
     succeeded = true;
     if (isReg) d.isNewUser = true;
     _applyOsAuthSuccess(d);
   } catch(err) {
-    errEl.textContent = _osHumanAuthError(err); errEl.style.display='block';
+    if (err.message !== '__2fa') { errEl.textContent = _osHumanAuthError(err); errEl.style.display='block'; }
   }
   if (!succeeded) {
     btn.disabled = false;

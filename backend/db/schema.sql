@@ -882,3 +882,9 @@ UPDATE users SET email_verified_at = created_at
  WHERE email_verified_at IS NULL AND created_at < '2026-09-26T12:00:00Z';
 UPDATE users SET email_verified_at = NOW()
  WHERE email_verified_at IS NULL AND google_id IS NOT NULL;
+
+-- Two-step verification (TOTP), 2026-09-26. totp_secret is set during setup
+-- and only counts once totp_enabled_at is set; backup codes are SHA-256.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret        TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled_at    TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_backup_hashes JSONB NOT NULL DEFAULT '[]';

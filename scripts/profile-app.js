@@ -517,7 +517,7 @@ function showSettingsGroup(name, { updateHash = true } = {}) {
     b.classList.toggle('active', on);
     b.setAttribute('aria-selected', on ? 'true' : 'false');
   });
-  if (name === 'security') loadSessions();
+  if (name === 'security') { loadSessions(); paintTwoFactor(); }
   if (updateHash) history.replaceState(null, '', '#settings/' + name);
 }
 document.addEventListener('click', e => {
@@ -1253,4 +1253,118 @@ async function openDeleteAccount() {
     }
   });
   setTimeout(() => inp.focus(), 30);
+}
+
+
+/* ── Two-step verification ─────────────────────────────────────────────── */
+function paintTwoFactor() {
+  const st = document.getElementById('twofa-status');
+  if (!st || !me) return;
+  const on = !!me.two_factor;
+  st.className = 'email-status ' + (on ? 'ok' : 'todo');
+  st.textContent = on ? 'On' : 'Off';
+  document.getElementById('twofa-on').hidden = on;
+  document.getElementById('twofa-off').hidden = !on;
+}
+function twofaDialog(html) {
+  const back = document.createElement('div');
+  back.className = 'da-back';
+  back.innerHTML = `<div class="da" role="dialog" aria-modal="true" style="width:min(460px,100%)">${html}</div>`;
+  document.body.appendChild(back);
+  const close = () => { back.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  back.addEventListener('mousedown', e => { if (e.target === back) close(); });
+  back.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
+  return { back, close };
+}
+function loadQrLib() {
+  if (window.qrcode) return Promise.resolve(true);
+  return new Promise(res => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+    sc.onload = () => res(!!window.qrcode);
+    sc.onerror = () => res(false);
+    document.head.appendChild(sc);
+  });
+}
+async function openTwoFactorSetup() {
+  let setup;
+  try {
+    const r = await apiFetch('/api/auth/2fa/setup', { method: 'POST' });
+    setup = await r.json();
+    if (!r.ok) throw new Error(setup.error || 'Could not start');
+  } catch (e) { toast(e.message); return; }
+  const { back, close } = twofaDialog(`
+    <h3>Turn on two-step verification</h3>
+    <p>1. Scan this with your authenticator app, or type the key by hand.</p>
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">
+      <div id="twofa-qr" style="width:148px;height:148px;flex:none;border-radius:12px;background:#F6F6EF;display:grid;place-items:center;font-size:11px;color:#8A8D7A">QR…</div>
+      <div style="min-width:0"><div class="setting-label" style="margin-bottom:6px">Key</div>
+        <code style="display:block;font-size:13px;line-height:1.5;word-break:break-all;background:#F6F6EF;border-radius:9px;padding:8px 10px;user-select:all">${esc(setup.secret.replace(/(.{4})/g, '$1 ').trim())}</code></div>
+    </div>
+    <p>2. Type the 6-digit code the app shows.</p>
+    <div class="da-err" id="twofa-err"></div>
+    <input class="setting-input" id="twofa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123 456" style="letter-spacing:.2em;font-size:18px;text-align:center">
+    <div class="da-acts"><button type="button" class="setting-btn secondary" data-close>Cancel</button><button type="button" class="setting-btn" id="twofa-go">Turn on</button></div>`);
+  loadQrLib().then(ok => {
+    const box = back.querySelector('#twofa-qr');
+    if (!box) return;
+    if (!ok) { box.textContent = 'Use the key →'; return; }
+    const qr = window.qrcode(0, 'M'); qr.addData(setup.otpauth); qr.make();
+    box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    const svg = box.querySelector('svg'); if (svg) { svg.style.width = '100%'; svg.style.height = '100%'; }
+  });
+  const inp = back.querySelector('#twofa-code'), err = back.querySelector('#twofa-err'), go = back.querySelector('#twofa-go');
+  setTimeout(() => inp.focus(), 30);
+  const submit = async () => {
+    err.style.display = 'none'; go.disabled = true;
+    try {
+      const r = await apiFetch('/api/auth/2fa/enable', { method: 'POST', body: { code: inp.value.replace(/\s/g, '') } });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'That code is not right.');
+      me = { ...me, two_factor: true };
+      paintTwoFactor();
+      showBackupCodes(back, d.backupCodes, close);
+    } catch (e) { err.textContent = e.message; err.style.display = 'block'; go.disabled = false; inp.select(); }
+  };
+  go.addEventListener('click', submit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+}
+function showBackupCodes(back, codes, close) {
+  const text = codes.join('\n');
+  back.querySelector('.da').innerHTML = `
+    <h3>Two-step verification is on ✓</h3>
+    <p>Save these backup codes somewhere safe. Each one signs you in once if you lose your phone. They are shown only now.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#F6F6EF;border-radius:12px;padding:12px;font:600 14px ui-monospace,Menlo,monospace;text-align:center;margin-bottom:6px">${codes.map(c => `<span>${esc(c)}</span>`).join('')}</div>
+    <div class="da-acts"><button type="button" class="setting-btn secondary" id="bk-copy">Copy</button><button type="button" class="setting-btn secondary" id="bk-save">Download .txt</button><button type="button" class="setting-btn" id="bk-done">Done</button></div>`;
+  back.querySelector('#bk-copy').onclick = () => { navigator.clipboard?.writeText(text).then(() => toast('Backup codes copied')); };
+  back.querySelector('#bk-save').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([`TeachEd backup codes for ${me.email}\n\n${text}\n`], { type: 'text/plain' }));
+    a.download = 'teached-backup-codes.txt'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  back.querySelector('#bk-done').onclick = close;
+}
+function openTwoFactorDisable() {
+  const withPassword = me.has_password !== false;
+  const { back, close } = twofaDialog(`
+    <h3>Turn off two-step verification?</h3>
+    <p>Your account will be protected by ${withPassword ? 'your password' : 'Google sign-in'} only.</p>
+    <div class="da-err" id="twofa-err"></div>
+    ${withPassword ? '<div class="setting-group"><div class="setting-label">Password</div><input class="setting-input" id="twofa-pass" type="password" autocomplete="current-password"></div>' : ''}
+    <div class="setting-group"><div class="setting-label">Code from your app (or a backup code)</div><input class="setting-input" id="twofa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="16"></div>
+    <div class="da-acts"><button type="button" class="setting-btn secondary" data-close>Cancel</button><button type="button" class="setting-btn da-go" id="twofa-go">Turn off</button></div>`);
+  const err = back.querySelector('#twofa-err'), go = back.querySelector('#twofa-go');
+  go.addEventListener('click', async () => {
+    err.style.display = 'none'; go.disabled = true;
+    try {
+      const r = await apiFetch('/api/auth/2fa/disable', { method: 'POST', body: { password: back.querySelector('#twofa-pass')?.value || '', code: back.querySelector('#twofa-code').value.trim() } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || 'Could not turn it off');
+      me = { ...me, two_factor: false };
+      paintTwoFactor(); close(); toast('Two-step verification is off');
+    } catch (e) { err.textContent = e.message; err.style.display = 'block'; go.disabled = false; }
+  });
 }
