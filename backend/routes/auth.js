@@ -7,8 +7,9 @@ const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
 const { attachBoardInvites } = require('../lib/boardInvites');
 const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth');
-const { sendEmail, sendEmailQuietly, resetPasswordEmail, passwordChangedEmail, welcomeEmail } = require('../lib/email');
+const { sendEmail, sendEmailQuietly, resetPasswordEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE } = require('../lib/email');
 const { recordTelemetry } = require('../lib/telemetry');
+const stripe = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
 
 function logAuthEvent(userId, email, event, req, detail) {
   pool.query(
@@ -391,7 +392,7 @@ async function loadActiveInvite(token) {
 
 // POST /api/auth/register
 router.post('/register', authLimiter, async (req, res) => {
-  const { email, password, name, role = 'teacher', avatar = '🧑‍🏫' } = req.body;
+  const { email, password, name, role = 'teacher', avatar = '🧑‍🏫', acceptTerms } = req.body;
   const safeRole = role === 'student' ? 'student' : 'teacher';
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail) return res.status(400).json({ error: 'Please enter a valid email address.' });
@@ -418,12 +419,13 @@ router.post('/register', authLimiter, async (req, res) => {
       ]
     );
     const user  = rows[0];
+    if (acceptTerms === true) await pool.query('UPDATE users SET terms_accepted_at = NOW() WHERE id = $1', [user.id]).catch(() => {});
     // a teacher may already have added this address to a board
     await attachBoardInvites(pool, user).catch((e) => console.error('[auth/register] board invites', e.message));
     const payload = await issueLoginSession(req, user);
     logAuthEvent(user.id, user.email, 'signup', req);
     res.status(201).json({ ...payload, isNewUser: true });
-    sendEmailQuietly({ to: user.email, ...welcomeEmail({ name: user.name, role: user.role }) }, 'auth/welcome');
+    sendEmailQuietly({ to: user.email, ...welcomeEmail({ name: user.name, role: user.role, verifyLink: verifyLink(user) }) }, 'auth/welcome');
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email already registered' });
@@ -511,6 +513,10 @@ router.post('/invites/:token/accept', authLimiter, async (req, res) => {
         SIGNUP_BONUS_PLAN.source,
       ]
     );
+    if (invite.email && String(invite.email).toLowerCase() === normalizedEmail) {
+      // the invitation was emailed to this address, so it is already proven
+      await client.query('UPDATE users SET email_verified_at = NOW() WHERE id = $1', [created.rows[0].id]);
+    }
     const user = created.rows[0];
     await attachBoardInvites(client, user);
     const token = await createLoginSession(req, user, client);
@@ -616,7 +622,7 @@ router.post('/google', authLimiter, async (req, res) => {
   if (!googleClient) {
     return res.status(503).json({ error: 'Google sign-in is not configured on this server.' });
   }
-  const { credential, role } = req.body;
+  const { credential, role, acceptTerms } = req.body;
   if (!credential) {
     return res.status(400).json({ error: 'Missing Google credential' });
   }
@@ -648,14 +654,14 @@ router.post('/google', authLimiter, async (req, res) => {
       }
       if (!user.google_id) {
         await pool.query(
-          `UPDATE users SET google_id = $2, oauth_provider = COALESCE(oauth_provider, 'google') WHERE id = $1`,
+          `UPDATE users SET google_id = $2, oauth_provider = COALESCE(oauth_provider, 'google'), email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = $1`,
           [user.id, googleId]
         );
       }
     } else {
       const inserted = await pool.query(
-        `INSERT INTO users (email, name, role, avatar, google_id, oauth_provider, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source)
-         VALUES ($1, $2, $3, $4, $5, 'google', $6, $7, $8, NOW(), NOW() + INTERVAL '1 year', $9)
+        `INSERT INTO users (email_verified_at, email, name, role, avatar, google_id, oauth_provider, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source)
+         VALUES (NOW(), $1, $2, $3, $4, $5, 'google', $6, $7, $8, NOW(), NOW() + INTERVAL '1 year', $9)
          RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, timezone, timezone_mode, created_at`,
         [
           email,
@@ -671,6 +677,7 @@ router.post('/google', authLimiter, async (req, res) => {
       );
       user = inserted.rows[0];
       isNewUser = true;
+      if (acceptTerms === true) await pool.query('UPDATE users SET terms_accepted_at = NOW() WHERE id = $1', [user.id]).catch(() => {});
       await attachBoardInvites(pool, user).catch((e) => console.error('[auth/google] board invites', e.message));
     }
 
@@ -759,7 +766,17 @@ router.get('/sessions', requireAuth, async (req, res) => {
      ORDER BY created_at DESC`,
     [req.user.id]
   );
-  res.json({ sessions: rows });
+  res.json({ sessions: rows.map(r => ({ ...r, current: r.id === req.authSessionId })) });
+});
+
+// DELETE /api/auth/sessions - sign out every device except this one
+router.delete('/sessions', requireAuth, async (req, res) => {
+  const { rowCount } = await pool.query(
+    'DELETE FROM sessions WHERE user_id = $1 AND id <> $2',
+    [req.user.id, req.authSessionId]
+  );
+  logAuthEvent(req.user.id, req.user.email, 'session.revoked', req, `others:${rowCount}`);
+  res.json({ ok: true, revoked: rowCount });
 });
 
 // DELETE /api/auth/sessions/:id - revoke a session
@@ -770,6 +787,91 @@ router.delete('/sessions/:id', requireAuth, async (req, res) => {
   );
   logAuthEvent(req.user.id, req.user.email, 'session.revoked', req, req.params.id);
   res.json({ ok: true });
+});
+
+// ── Email verification ──────────────────────────────────────────────────────
+const verifyLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5,
+  keyGenerator: (req) => req.user?.id || req.ip,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many emails sent. Please try again in an hour.' } });
+
+// POST /api/auth/verify-email {token} - no sign-in needed: the link may be
+// opened on a phone where the user is not logged in.
+router.post('/verify-email', authLimiter, async (req, res) => {
+  const token = String(req.body?.token || '');
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload?.purpose !== VERIFY_PURPOSE || !payload.sub) throw new Error('bad');
+  } catch {
+    return res.status(400).json({ error: 'This confirmation link is invalid or has expired. Sign in and send a new one from the banner.' });
+  }
+  const { rows } = await pool.query(
+    `UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW())
+     WHERE id = $1 AND email = $2 RETURNING email, role`,
+    [payload.sub, payload.email]
+  );
+  if (!rows.length) return res.status(400).json({ error: 'This link was sent to an address that is no longer on the account.' });
+  logAuthEvent(payload.sub, rows[0].email, 'email.verified', req);
+  res.json({ ok: true, email: rows[0].email, role: rows[0].role });
+});
+
+// POST /api/auth/verify-email/resend - a fresh link to the signed-in user
+router.post('/verify-email/resend', requireAuth, verifyLimiter, async (req, res) => {
+  if (req.user.email_verified_at) return res.json({ ok: true, already: true });
+  try {
+    await sendEmail({ to: req.user.email, ...verifyEmail({ name: req.user.name, link: verifyLink(req.user) }) });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[auth/verify-resend]', err.message);
+    res.status(502).json({ error: 'Could not send the email right now. Please try again later.' });
+  }
+});
+
+// ── Account deletion ────────────────────────────────────────────────────────
+// DELETE /api/auth/me {password} | {confirm: <email>} for Google-only accounts.
+// Boards, lessons, homework, sessions and saved words go with the user
+// (ON DELETE CASCADE); journal entries and community posts are removed here
+// because their foreign keys only null the owner.
+router.delete('/me', requireAuth, authLimiter, async (req, res) => {
+  const { password, confirm } = req.body || {};
+  try {
+    const { rows } = await pool.query('SELECT password_hash, stripe_subscription_id, plan_status FROM users WHERE id = $1', [req.user.id]);
+    const u = rows[0];
+    if (!u) return res.status(404).json({ error: 'Account not found' });
+    if (req.user.role === 'admin') return res.status(400).json({ error: 'Administrator accounts cannot be deleted from the profile.' });
+    if (u.password_hash) {
+      if (typeof password !== 'string' || !(await bcrypt.compare(password, u.password_hash))) {
+        logAuthEvent(req.user.id, req.user.email, 'account.delete.fail', req, 'wrong password');
+        return res.status(403).json({ error: 'That password is not right.' });
+      }
+    } else if (normalizeEmail(confirm) !== req.user.email) {
+      return res.status(403).json({ error: 'Type your email address exactly to confirm.' });
+    }
+    // a live Stripe subscription would keep charging a deleted account
+    if (u.stripe_subscription_id && stripe) {
+      await stripe.subscriptions.cancel(u.stripe_subscription_id).catch(e => console.error('[auth/delete] stripe cancel', e.message));
+    }
+    logAuthEvent(req.user.id, req.user.email, 'account.deleted', req);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM student_journal WHERE student_id = $1', [req.user.id]);
+      await client.query('DELETE FROM shared_materials WHERE owner_id = $1', [req.user.id]);
+      await client.query('DELETE FROM users WHERE id = $1', [req.user.id]);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw e;
+    } finally {
+      client.release();
+    }
+    sendEmailQuietly({ to: req.user.email, ...accountDeletedEmail({ name: req.user.name }) }, 'auth/deleted');
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[auth/delete-me]', err.message);
+    res.status(500).json({ error: 'Could not delete the account. Please try again.' });
+  }
 });
 
 // POST /api/auth/make-admin  - promote user to admin using ADMIN_SECRET

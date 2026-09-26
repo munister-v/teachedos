@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=992"></script>
+<script src="scripts/phone-gate.js?v=993"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=992">
-<link rel="preload" as="style" href="styles/unify.css?v=992">
-<link rel="manifest" href="manifest.json?v=992">
+<link rel="preload" as="style" href="styles/harmony.css?v=993">
+<link rel="preload" as="style" href="styles/unify.css?v=993">
+<link rel="manifest" href="manifest.json?v=993">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -333,6 +333,26 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
 .emoji-opt:hover { background: var(--accent-2); }
 .emoji-opt.selected { border-color: var(--accent); background: var(--accent-3); }
 
+/* ── Signed-in devices ── */
+.sess-list { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.sess-row { display:flex; align-items:center; gap:12px; padding:11px 12px; border:1.5px solid var(--border); border-radius:12px; background:#fff; }
+.sess-ico { width:36px; height:36px; border-radius:10px; background:var(--bg); display:grid; place-items:center; font-size:18px; flex:none; }
+.sess-main { flex:1; min-width:0; }
+.sess-name { font-size:14px; font-weight:650; color:var(--text); display:flex; align-items:center; gap:8px; }
+.sess-now { font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; background:#CDF649; color:#24282C; border-radius:6px; padding:2px 6px; }
+.sess-meta { font-size:12px; color:var(--text-3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sess-out { border:1.5px solid var(--border); background:#fff; color:var(--text-2); border-radius:9px; padding:6px 11px; font:600 12.5px var(--font); cursor:pointer; flex:none; }
+.sess-out:hover { border-color:rgba(255,78,0,.35); color:#24282C; background:rgba(255,78,0,.06); }
+.sess-empty { font-size:13px; color:var(--text-3); padding:6px 2px; }
+/* ── Delete account dialog ── */
+.da-back { position:fixed; inset:0; z-index:9500; background:rgba(20,22,24,.55); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; }
+.da { width:min(440px,100%); background:#fff; border-radius:20px; padding:24px; box-shadow:0 30px 80px rgba(0,0,0,.3); }
+.da h3 { font-size:18px; font-weight:700; color:#24282C; margin:0 0 8px; }
+.da p { font-size:13.5px; line-height:1.5; color:var(--text-2); margin:0 0 14px; }
+.da-err { display:none; font-size:12.5px; color:#9A2C0C; background:#FDE3DA; border-radius:9px; padding:8px 10px; margin-bottom:12px; }
+.da-acts { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+.da-go { background:#C2410C !important; color:#fff !important; border:0 !important; }
+.da-go:disabled { opacity:.45; cursor:default; transform:none; box-shadow:none; }
 /* ── Danger zone ── */
 .danger-zone { border: 1.5px solid rgba(255,78,0,.25); border-radius: 14px; padding: 20px; }
 .danger-zone-title { font-size: 14px; font-weight:650; color:#24282C; margin-bottom: 12px; }
@@ -466,10 +486,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=992" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=992">
-<link rel="stylesheet" href="styles/harmony.css?v=992">
-<link rel="stylesheet" href="styles/unify.css?v=992">
+<script src="theme.js?v=993" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=993">
+<link rel="stylesheet" href="styles/harmony.css?v=993">
+<link rel="stylesheet" href="styles/unify.css?v=993">
 <style>
 @media (max-width: 860px) {
   body{background:#F6F6EF;}
@@ -778,12 +798,12 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=992">
-<link rel="stylesheet" href="styles/tool-window.css?v=992">
+<link rel="stylesheet" href="styles/teached-brand.css?v=993">
+<link rel="stylesheet" href="styles/tool-window.css?v=993">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=992">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=992">
-<link rel="stylesheet" href="styles/controls.css?v=992">
+<link rel="stylesheet" href="styles/figma-theme.css?v=993">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=993">
+<link rel="stylesheet" href="styles/controls.css?v=993">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -794,7 +814,7 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
 body.profile-page .stats-grid .stat-card::before { display: none; }
 </style>
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=992">
+<link rel="stylesheet" href="styles/polish.css?v=993">
 </head>
 <body class="tw-page profile-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1075,6 +1095,14 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
         <button class="setting-btn" onclick="savePassword()">Change Password</button>
       </div>
 
+      <!-- Signed-in devices -->
+      <div class="card" id="sessions-card">
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> Signed-in devices</div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;">Every browser and app where your account is signed in. Sign out anything you don't recognise, then change your password.</div>
+        <div id="sessions-list" class="sess-list"><div class="sess-empty">Loading…</div></div>
+        <button class="setting-btn secondary" id="sessions-others" onclick="signOutOtherSessions()" hidden>Sign out all other devices</button>
+      </div>
+
       <!-- Meeting Rooms -->
       <div class="card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting rooms</div>
@@ -1232,16 +1260,21 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
           <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">This will permanently delete all your boards and their data. This cannot be undone.</p>
           <button class="setting-btn danger" onclick="deleteAllBoards()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Delete all boards</button>
         </div>
+        <div class="danger-zone" style="margin-top:12px;">
+          <div class="danger-zone-title">Delete my account</div>
+          <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">Your account, boards, lessons, homework, saved words and journal are deleted for good, and you are signed out everywhere. A paid subscription is cancelled.</p>
+          <button class="setting-btn danger" onclick="openDeleteAccount()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Delete my account</button>
+        </div>
       </div>
     </div>
 
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=992"></script>
-<script src="scripts/profile-app.js?v=992"></script>
-<script src="scripts/autogrow.js?v=992" defer></script>
-<script src="pwa-boot.js?v=992" defer></script>
+<script src="scripts/app-core.js?v=993"></script>
+<script src="scripts/profile-app.js?v=993"></script>
+<script src="scripts/autogrow.js?v=993" defer></script>
+<script src="pwa-boot.js?v=993" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1260,12 +1293,13 @@ body.profile-page .stats-grid .stat-card::before { display: none; }
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=992"></script>
-<script src="scripts/nav-boost.js?v=992" defer></script>
-<script src="scripts/mobile-perf.js?v=992" defer></script>
-<script src="scripts/mobile-nav.js?v=992"></script>
-<script src="scripts/mobile-zoom-guard.js?v=992" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=992" defer></script>
-  <script src="scripts/signin-entry.js?v=992" defer></script>
+<script src="pwa.js?v=993"></script>
+<script src="scripts/nav-boost.js?v=993" defer></script>
+<script src="scripts/mobile-perf.js?v=993" defer></script>
+<script src="scripts/mobile-nav.js?v=993"></script>
+<script src="scripts/mobile-zoom-guard.js?v=993" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=993" defer></script>
+  <script src="scripts/signin-entry.js?v=993" defer></script>
+<script src="scripts/verify-banner.js?v=993" defer></script>
 </body>
 </html>

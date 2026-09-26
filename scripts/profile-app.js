@@ -337,18 +337,7 @@ async function renderOverview(forceOffline = false) {
     }
   }
 
-  // Sessions count
-  try {
-    const rs = await apiFetch('/api/auth/sessions');
-    if (rs.ok) {
-      const d = await rs.json();
-      document.getElementById('stat-sessions').textContent = d.sessions?.length || 1;
-    } else {
-      document.getElementById('stat-sessions').textContent = '1';
-    }
-  } catch {
-    document.getElementById('stat-sessions').textContent = '1';
-  }
+  await loadSessions();
   updateMobileProfileSummary({ offline: forceOffline });
 }
 
@@ -1085,3 +1074,112 @@ async function submitIBANPayment() {
 
 // ── Start ─────────────────────────────────────────────────────
 init();
+
+
+/* ── Signed-in devices ─────────────────────────────────────────────────── */
+function describeAgent(ua) {
+  ua = String(ua || '');
+  const browser = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox\//.test(ua) ? 'Firefox'
+    : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : /okhttp|CFNetwork|Dart|TeachEd/i.test(ua) ? 'TeachEd app' : 'Browser';
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+    : /Mac OS X|Macintosh/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : /Linux/.test(ua) ? 'Linux' : '';
+  const icon = /iPhone|Android/.test(os) ? '📱' : os === 'iPad' ? '📲' : '💻';
+  return { name: os ? `${browser} on ${os}` : browser, icon };
+}
+function sessionWhen(iso) {
+  const d = new Date(iso), mins = Math.round((Date.now() - d) / 60000);
+  if (mins < 2) return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  if (mins < 60 * 24) return `${Math.round(mins / 60)} h ago`;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' });
+}
+async function loadSessions() {
+  const list = document.getElementById('sessions-list');
+  const stat = document.getElementById('stat-sessions');
+  try {
+    const r = await apiFetch('/api/auth/sessions');
+    if (!r.ok) throw new Error();
+    const { sessions = [] } = await r.json();
+    if (stat) stat.textContent = sessions.length || 1;
+    if (!list) return;
+    list.innerHTML = sessions.map(x => {
+      const a = describeAgent(x.user_agent);
+      return `<div class="sess-row">
+        <div class="sess-ico" aria-hidden="true">${a.icon}</div>
+        <div class="sess-main"><div class="sess-name">${esc(a.name)}${x.current ? '<span class="sess-now">This device</span>' : ''}</div>
+        <div class="sess-meta">Signed in ${esc(sessionWhen(x.created_at))}${x.ip ? ` · ${esc(String(x.ip).replace(/^::ffff:/, ''))}` : ''}</div></div>
+        ${x.current ? '' : `<button type="button" class="sess-out" onclick="revokeSession('${esc(x.id)}', this)">Sign out</button>`}
+      </div>`;
+    }).join('') || '<div class="sess-empty">No active sessions.</div>';
+    const others = document.getElementById('sessions-others');
+    if (others) others.hidden = sessions.filter(x => !x.current).length < 2;
+  } catch {
+    if (stat) stat.textContent = '1';
+    if (list) list.innerHTML = '<div class="sess-empty">Could not load your devices.</div>';
+  }
+}
+async function revokeSession(id, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Signing out…'; }
+  try {
+    const r = await apiFetch('/api/auth/sessions/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!r.ok) throw new Error();
+    toast('Signed out on that device');
+  } catch { toast('Could not sign out that device'); }
+  loadSessions();
+}
+async function signOutOtherSessions() {
+  try {
+    const r = await apiFetch('/api/auth/sessions', { method: 'DELETE' });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error();
+    toast(d.revoked ? `Signed out on ${d.revoked} other device${d.revoked === 1 ? '' : 's'}` : 'No other devices');
+  } catch { toast('Could not sign out other devices'); }
+  loadSessions();
+}
+
+/* ── Delete account ────────────────────────────────────────────────────── */
+async function openDeleteAccount() {
+  let me = null;
+  try { const r = await apiFetch('/api/auth/me'); if (r.ok) me = (await r.json()).user; } catch {}
+  if (!me) { toast('Could not load your account'); return; }
+  const withPassword = me.has_password !== false;
+  const back = document.createElement('div');
+  back.className = 'da-back';
+  back.innerHTML = `<div class="da" role="dialog" aria-modal="true" aria-labelledby="da-t">
+    <h3 id="da-t">Delete your account?</h3>
+    <p>This removes <b>${esc(me.email)}</b> and everything in it. It can't be undone.</p>
+    <div class="da-err" id="da-err"></div>
+    <div class="setting-group">
+      <div class="setting-label">${withPassword ? 'Enter your password to confirm' : 'Type your email address to confirm'}</div>
+      <input class="setting-input" id="da-inp" type="${withPassword ? 'password' : 'email'}" maxlength="254" autocomplete="${withPassword ? 'current-password' : 'off'}" placeholder="${withPassword ? 'Password' : esc(me.email)}">
+    </div>
+    <div class="da-acts"><button type="button" class="setting-btn secondary" data-da="cancel">Cancel</button><button type="button" class="setting-btn da-go" data-da="go" disabled>Delete for good</button></div>
+  </div>`;
+  document.body.appendChild(back);
+  const inp = back.querySelector('#da-inp'), go = back.querySelector('[data-da="go"]'), err = back.querySelector('#da-err');
+  const close = () => { back.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); if (e.key === 'Enter' && !go.disabled) go.click(); };
+  document.addEventListener('keydown', onKey);
+  back.addEventListener('mousedown', e => { if (e.target === back) close(); });
+  back.querySelector('[data-da="cancel"]').addEventListener('click', close);
+  inp.addEventListener('input', () => {
+    go.disabled = withPassword ? !inp.value : inp.value.trim().toLowerCase() !== me.email.toLowerCase();
+  });
+  go.addEventListener('click', async () => {
+    go.disabled = true; go.textContent = 'Deleting…'; err.style.display = 'none';
+    try {
+      const r = await apiFetch('/api/auth/me', { method: 'DELETE', body: withPassword ? { password: inp.value } : { confirm: inp.value.trim() } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || 'Could not delete the account');
+      try {
+        ['teachedos_token', 'teachedos_role', 'teachedos_user_email', 'teachedos_email_verified'].forEach(k => localStorage.removeItem(k));
+      } catch {}
+      back.querySelector('.da').innerHTML = '<h3>Your account was deleted</h3><p>We sent a confirmation to your email. Taking you to the start page…</p>';
+      setTimeout(() => { location.href = '/'; }, 2200);
+    } catch (e) {
+      err.textContent = e.message; err.style.display = 'block';
+      go.textContent = 'Delete for good'; go.disabled = false; inp.focus();
+    }
+  });
+  setTimeout(() => inp.focus(), 30);
+}

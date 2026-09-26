@@ -873,3 +873,12 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_push  BOOLEAN  NOT NULL 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_email BOOLEAN  NOT NULL DEFAULT TRUE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_hour  SMALLINT NOT NULL DEFAULT 18;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_reminded_on  DATE;
+
+-- Email verification, terms consent (2026-09-26). Accounts older than this
+-- change are treated as verified: they signed up before it was asked.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at  TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at  TIMESTAMPTZ;
+UPDATE users SET email_verified_at = created_at
+ WHERE email_verified_at IS NULL AND created_at < '2026-09-26T12:00:00Z';
+UPDATE users SET email_verified_at = NOW()
+ WHERE email_verified_at IS NULL AND google_id IS NOT NULL;

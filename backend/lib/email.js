@@ -206,7 +206,7 @@ function passwordChangedEmail({ how = 'changed' }) {
 }
 
 /* One short welcome after sign-up: what to do first, by role. */
-function welcomeEmail({ name, role }) {
+function welcomeEmail({ name, role, verifyLink = '' }) {
   const first = String(name || '').trim().split(/\s+/)[0] || 'there';
   const teacher = role !== 'student';
   const title = `Welcome to TeachEd, ${first}`;
@@ -221,8 +221,11 @@ function welcomeEmail({ name, role }) {
         'Your account is ready.',
         'Your teacher’s boards, homework and upcoming classes are all on your dashboard.',
       ];
-  const link = teacher ? `${SITE}/board.html` : `${SITE}/student.html`;
-  const label = teacher ? 'Open my workspace' : 'Open my dashboard';
+  // A password sign-up still has to prove the address: the welcome carries
+  // the confirmation button, so the new user gets one email, not two.
+  if (verifyLink) lines.unshift('First, confirm this is your email address with the button below - it keeps your account recoverable.');
+  const link = verifyLink || (teacher ? `${SITE}/board.html` : `${SITE}/student.html`);
+  const label = verifyLink ? 'Confirm my email' : (teacher ? 'Open my workspace' : 'Open my dashboard');
   return {
     subject: 'Welcome to TeachEd',
     html: layout({
@@ -232,6 +235,53 @@ function welcomeEmail({ name, role }) {
       button: { href: link, label },
     }),
     text: textVersion({ title, lines, link, linkLabel: label }),
+  };
+}
+
+/* The confirmation link carries a signed token (user id + the address it was
+   sent to), so no table is needed; changing the address voids old links. */
+const VERIFY_PURPOSE = 'verify-email';
+function verifyLink(user) {
+  const jwt = require('jsonwebtoken');
+  const token = jwt.sign({ sub: user.id, email: user.email, purpose: VERIFY_PURPOSE }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return `${SITE}/verify-email.html?token=${encodeURIComponent(token)}`;
+}
+
+/* Confirm the address a password account was created with. */
+function verifyEmail({ name, link }) {
+  const first = String(name || '').trim().split(/\s+/)[0] || 'there';
+  const title = `Confirm your email, ${first}`;
+  const lines = [
+    'Press the button to confirm this is the address for your TeachEd account.',
+    'A confirmed address is how you get back in if you ever forget your password. The link works for 7 days.',
+  ];
+  const note = "If you didn't create a TeachEd account, ignore this email.";
+  return {
+    subject: 'Confirm your TeachEd email',
+    html: layout({
+      preheader: 'One click to confirm your address.',
+      title,
+      paragraphs: lines.map(escHtml),
+      button: { href: link, label: 'Confirm my email' },
+      after: [escHtml(note), `If the button doesn't open, copy this address:<br><a href="${link}" style="color:#7a7d80;word-break:break-all;">${link}</a>`],
+    }),
+    text: textVersion({ title, lines: [...lines, '', note], link, linkLabel: 'Confirm my email' }),
+  };
+}
+
+/* Sent after an account is deleted: the record that it happened. */
+function accountDeletedEmail({ name }) {
+  const first = String(name || '').trim().split(/\s+/)[0] || 'there';
+  const title = 'Your TeachEd account was deleted';
+  const lines = [
+    `Hi ${first}, your TeachEd account and everything in it - boards, lessons, homework, saved words - has been deleted, and you were signed out on every device.`,
+    'You can create a new account with this address at any time.',
+  ];
+  const note = "If you didn't do this, write to hello@teachedos.app - replies to this email are not read.";
+  return {
+    subject: 'Your TeachEd account was deleted',
+    html: layout({ preheader: 'Confirmation that your account is gone.', title, paragraphs: lines.map(escHtml), after: [escHtml(note)] }),
+    text: textVersion({ title, lines: [...lines, '', note] }),
   };
 }
 
@@ -267,5 +317,5 @@ function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
 module.exports = {
   vaultReminderEmail,
   sendEmail, sendEmailQuietly, emailConfigured, SITE, layout, textVersion,
-  resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail,
+  resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE,
 };

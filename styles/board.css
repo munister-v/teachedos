@@ -1851,6 +1851,7 @@ body.alt-duplicating *{cursor:copy!important;}
 .auth-password-help.ready{color:#5D614B;}
 .auth-security-note{display:flex;align-items:flex-start;gap:6px;margin:10px 3px 0;color:#5D614B;font:650 11px/1.42 var(--font);}
 .auth-security-note::before{content:'•';color:#5D614B;font-size:16px;line-height:11px;}
+.auth-security-note a{color:#24282C;text-decoration:underline;text-underline-offset:2px;}
 /* Forgot password link */
 .auth-forgot-row{text-align:right;margin:-4px 0 10px;}
 .auth-forgot-link{background:none;border:none;color:#5D614B;font:600 12px var(--font);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;transition:color .12s;}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm Email · TeachEd</title>
+<link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="styles/auth.css?v=993">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+  .state-section { display: none; }
+  .state-section.visible { display: block; }
+</style>
+<link rel="stylesheet" href="styles/teached-brand.css?v=993">
+<!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
+<link rel="stylesheet" href="styles/figma-theme.css?v=993">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=993">
+<link rel="stylesheet" href="styles/controls.css?v=993">
+</head>
+<body class="fx">
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-titlebar">
+      <img class="auth-tb-logo" src="logo-sm.png" alt="" width="20" height="20" aria-hidden="true">
+      <span class="auth-tb-name">TeachEd</span>
+    </div>
+    <div class="auth-body">
+    <div class="auth-head">
+      <img class="auth-logo" src="logo-sm.png" alt="TeachEd">
+      <div class="auth-title">Confirm your email</div>
+    </div>
+
+    <div id="section-loading" class="state-section visible">
+      <div class="auth-spinner-wrap"><div class="auth-spinner"></div>Confirming your address…</div>
+    </div>
+
+    <div id="section-ok" class="state-section">
+      <div style="text-align:center;padding:8px 0 20px;">
+        <div style="font-size:2.5rem;margin-bottom:12px;">✅</div>
+        <div style="font-size:17px;font-weight:650;color:var(--auth-ink);margin-bottom:8px;">Email confirmed</div>
+        <div class="auth-sub" style="font-size:13px;line-height:1.55;"><strong id="ok-email" style="color:var(--auth-ink)"></strong> is confirmed. If you ever forget your password, the reset link comes here.</div>
+      </div>
+      <a id="ok-next" href="/board.html" class="auth-btn" style="text-decoration:none;display:flex;">Continue to TeachEd</a>
+    </div>
+
+    <div id="section-invalid" class="state-section">
+      <div style="text-align:center;padding:8px 0 20px;">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🔗</div>
+        <div style="font-size:17px;font-weight:650;color:var(--auth-ink);margin-bottom:8px;">This link did not work</div>
+        <div class="auth-sub" id="invalid-msg" style="font-size:13px;line-height:1.55;"></div>
+      </div>
+      <a href="/board.html" class="auth-btn" style="text-decoration:none;display:flex;">Sign in</a>
+    </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '';
+  const token = new URLSearchParams(location.search).get('token') || '';
+  const show = id => {
+    document.querySelectorAll('.state-section').forEach(s => s.classList.remove('visible'));
+    document.getElementById(id).classList.add('visible');
+  };
+  const bad = msg => { document.getElementById('invalid-msg').textContent = msg; show('section-invalid'); };
+  if (!token) { bad('The confirmation link is incomplete. Open it from the email again, or send a new one after signing in.'); return; }
+  // keep the token out of the address bar and history once it is read
+  history.replaceState(null, '', location.pathname);
+  fetch(API + '/api/auth/verify-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok) return bad(d.error || 'This link is invalid or has expired.');
+      try { localStorage.setItem('teachedos_email_verified', '1'); } catch (_) {}
+      document.getElementById('ok-email').textContent = d.email;
+      document.getElementById('ok-next').href = d.role === 'student' ? '/student.html' : '/board.html';
+      show('section-ok');
+    })
+    .catch(() => bad('Could not reach TeachEd. Check your connection and open the link again.'));
+})();
+</script>
+</body>
+</html>

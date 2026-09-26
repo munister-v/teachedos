@@ -5,7 +5,7 @@ const fs     = require('fs');
 const path   = require('path');
 const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth');
-const { sendEmailQuietly, passwordChangedEmail } = require('../lib/email');
+const { sendEmailQuietly, passwordChangedEmail, verifyEmail, verifyLink } = require('../lib/email');
 
 /* ── Фон рабочего стола ────────────────────────────────────────────────
    Свой фон учителя живёт файлом в data/wallpapers (вне backend/: деплой
@@ -129,17 +129,25 @@ router.patch('/me', async (req, res) => {
     // Check uniqueness
     const { rows: ex } = await pool.query('SELECT id FROM users WHERE email=$1 AND id<>$2', [e, req.user.id]);
     if (ex.length) return res.status(409).json({ error: 'Email already in use' });
-    params.push(e); sets.push(`email = $${params.length}`);
+    if (e !== req.user.email) {
+      // a new address has to be confirmed again
+      params.push(e); sets.push(`email = $${params.length}`);
+      sets.push('email_verified_at = NULL');
+    }
   }
 
-  if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
+  if (!sets.length) return email ? res.json({ user: req.user }) : res.status(400).json({ error: 'Nothing to update' });
 
   const { rows } = await pool.query(
     `UPDATE users SET ${sets.join(', ')} WHERE id = $1
      RETURNING id, email, name, role, avatar, timezone, timezone_mode, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url`,
     params
   );
-  res.json({ user: rows[0] });
+  const u = rows[0];
+  if (u && u.email !== req.user.email) {
+    sendEmailQuietly({ to: u.email, ...verifyEmail({ name: u.name, link: verifyLink(u) }) }, 'users/verify-new-email');
+  }
+  res.json({ user: u });
 });
 
 // PATCH /api/users/me/password

@@ -174,6 +174,8 @@ function humanError(e) {
   }
 
   async function handleSuccess(d) {
+    // the "email confirmed" memo belongs to whoever was signed in before
+    try { localStorage.removeItem('teachedos_email_verified'); } catch (_) {}
     if (mode === 'register') d.isNewUser = true;
     if (typeof cfg.onSuccess === 'function') {
       await cfg.onSuccess(d);
@@ -315,11 +317,14 @@ function humanError(e) {
     toggleLink.onclick = isForgot ? () => { mode = 'login'; renderFields(); setupGoogle(); } : window.toggleAuthMode;
     $('auth-role-row').style.display = (!isLogin && !isForgot) ? 'block' : 'none';
     const googleArea = $('auth-google-area');
-    if (googleArea) googleArea.style.display = isLogin ? 'block' : 'none';
+    if (googleArea) googleArea.style.display = isForgot ? 'none' : 'block';
     const securityNote = $('auth-security-note');
-    if (securityNote) securityNote.textContent = isForgot
+    // Register: the consent line (it covers the Google button too); the
+    // password rule lives once, under the password field.
+    if (securityNote) securityNote.innerHTML = isForgot
       ? 'For privacy, we only confirm that a reset message may have been sent.'
-      : (isLogin ? 'Protected sign-in · you can end active sessions from your profile.' : 'Use 10 or more characters. You can manage active sessions after sign-in.');
+      : (isLogin ? 'Protected sign-in · you can end active sessions from your profile.'
+        : '<span>By creating an account you agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>');
 
     const f = $('auth-fields');
     if (isForgot) {
@@ -372,7 +377,7 @@ function humanError(e) {
     if (lbl) lbl.textContent = mode === 'login' ? 'Signing in…' : 'Creating account…';
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const body = mode === 'login' ? { email, password: pass } : { email, password: pass, name, role };
+      const body = mode === 'login' ? { email, password: pass } : { email, password: pass, name, role, acceptTerms: true };
       const r = await fetch(API + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Something went wrong');
@@ -416,7 +421,7 @@ function humanError(e) {
       const ex = document.getElementById('teached-gsi-script');
       if (ex) { ex.addEventListener('load', res, { once: true }); ex.addEventListener('error', rej, { once: true }); return; }
       const s = document.createElement('script');
-      s.id = 'teached-gsi-script'; s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.defer = true;
+      s.id = 'teached-gsi-script'; s.src = 'https://accounts.google.com/gsi/client?hl=en'; s.async = true; s.defer = true;
       s.onload = res; s.onerror = rej; document.head.appendChild(s);
     });
   }
@@ -442,6 +447,7 @@ function humanError(e) {
     // навсегда оставалась пустая полоса с одиноким разделителем «OR» над
     // пустым местом высотой в кнопку. На телефоне, где под формой каждый
     // пиксель на счету, это ещё и отодвигало поля вниз без всякой причины.
+    if (mode === 'forgot') return;
     const ok = await initGsi();
     const area = $('auth-google-area');
     if (!ok) { if (area) area.style.display = 'none'; return; }
@@ -466,7 +472,7 @@ function humanError(e) {
     const btn = $('auth-submit');
     if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
     try {
-      const r = await fetch(API + '/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: resp.credential, role }) });
+      const r = await fetch(API + '/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: resp.credential, role, acceptTerms: mode === 'register' }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Google sign-in failed');
       await handleSuccess(d);

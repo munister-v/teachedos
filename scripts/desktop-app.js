@@ -2647,7 +2647,7 @@ function loadGsiScript() {
     }
     const s = document.createElement('script');
     s.id = 'gsi-script';
-    s.src = 'https://accounts.google.com/gsi/client';
+    s.src = 'https://accounts.google.com/gsi/client?hl=en';
     s.async = true; s.defer = true;
     s.onload = resolve;
     s.onerror = () => reject(new Error('Failed to load Google Identity Services'));
