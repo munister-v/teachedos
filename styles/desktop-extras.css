@@ -212,17 +212,19 @@ body.fx.os-desktop.wall-glass .win {
   -webkit-backdrop-filter:blur(34px) saturate(1.4) !important;
 }
 
-/* Левая колонка окна досок - тёмное стекло со светлым текстом, как в макете. */
+/* Левая колонка окна досок - светлое матовое стекло с тёмным текстом.
+   Тёмная плита (.74 графита) на светлом стекле окна весила больше, чем
+   само содержимое окна, и отвлекала от досок. */
 body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans {
-  background:rgba(36,40,44,.74) !important;
-  border:1px solid rgba(255,255,255,.14) !important;
+  background:rgba(255,255,255,.42) !important;
+  border:1px solid rgba(255,255,255,.6) !important;
   backdrop-filter:blur(24px) saturate(1.2);
   -webkit-backdrop-filter:blur(24px) saturate(1.2);
 }
-body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-section-label { color:rgba(255,255,255,.8) !important; }
-body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item { color:#FFFFFF !important; }
-body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item:hover { background:rgba(255,255,255,.12) !important; }
-body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item.active { background:rgba(255,255,255,.2) !important; color:#FFFFFF !important; }
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-section-label { color:#5D614B !important; }
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item { color:#24282C !important; }
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item:hover { background:rgba(255,255,255,.5) !important; }
+body.fx.os-desktop.wall-glass:not(#_) #sidebar-plans .sb-item.active { background:rgba(255,255,255,.85) !important; color:#24282C !important; font-weight:600 !important; }
 
 /* Плитки досок - матовые, а не белые карточки. */
 body.fx.os-desktop.wall-glass .curr-grid .lesson-card:not(.featured):not(.ink):not(.lime) {
@@ -316,7 +318,9 @@ body.fx.os-desktop:not(#_) #wg-today .wg-next-time {
 }
 body.fx.os-desktop:not(#_) #wg-today .wg-today-title {
   grid-area:who; margin:10px 0 0 !important; font-size:13px !important; font-weight:600 !important;
-  line-height:1.25 !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  line-height:1.25 !important; overflow:hidden;
+  /* two lines, so "lesson with Nigel Ericsson" is not cut to "Nigel Eric…" */
+  white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
 }
 body.fx.os-desktop:not(#_) #wg-today .wg-today-title:not(.is-wrap)::before { content:'lesson with '; font-weight:500; color:var(--fx-mute); }
 body.fx.os-desktop:not(#_) #wg-today .wg-today-title.is-wrap { white-space:normal; font-size:15px !important; }

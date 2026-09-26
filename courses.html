@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=995"></script>
+<script src="scripts/phone-gate.js?v=996"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=995">
+<link rel="manifest" href="manifest.json?v=996">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=995">
-<link rel="preload" as="style" href="styles/unify.css?v=995">
+<link rel="preload" as="style" href="styles/harmony.css?v=996">
+<link rel="preload" as="style" href="styles/unify.css?v=996">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
@@ -278,6 +278,17 @@ button{font-family:var(--font);cursor:pointer;}
 .lessons-grid .lesson-card.has-cover .lc-remove{z-index:3;background:rgba(255,255,255,.92);}
 .lessons-grid .lesson-card .lc-num{font-size:10px;font-weight:650;color:#5D614B !important;font-family:var(--mono);letter-spacing:.04em;}
 .lessons-grid .lesson-card .lc-name{font-size:13px;font-weight:650;color:#24282C !important;line-height:1.3;}
+/* the cover already carries the title - no second copy under it */
+.lessons-grid .lesson-card.has-cover .lc-name{display:none;}
+.course-more-desk{position:relative;}
+.course-more-desk > summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:100%;min-height:36px;padding:0 10px;border-radius:999px;border:1px solid rgba(36,40,44,.14);background:#fff;font-weight:700;letter-spacing:.08em;color:#24282C;}
+.course-more-desk > summary::-webkit-details-marker{display:none;}
+.course-more-desk[open] > summary{background:rgba(36,40,44,.06);}
+.course-more-desk .cmd-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:14px;box-shadow:0 18px 40px -16px rgba(20,22,24,.35);padding:6px;}
+.course-more-desk .cmd-menu button{width:100%;text-align:left;border:0;background:none;padding:10px 12px;border-radius:10px;font:600 13px var(--font, inherit);color:#9A2C0C;cursor:pointer;}
+.course-more-desk .cmd-menu button:hover{background:rgba(255,78,0,.08);}
+.course-more-desk .cmd-menu small{display:block;font-weight:500;color:#8A8D7A;font-size:11.5px;margin-top:2px;}
+@media (max-width:860px){.course-more-desk{display:none;}}
 .lessons-grid .lesson-card .lc-meta{font-size:11px;color:#5D614B !important;}
 .lc-remove{
   position:absolute;top:8px;right:8px;width:20px;height:20px;
@@ -414,10 +425,10 @@ button{font-family:var(--font);cursor:pointer;}
   #course-view{animation-duration:.001ms}
 }
 </style>
-<script src="theme.js?v=995" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=995">
-<link rel="stylesheet" href="styles/harmony.css?v=995">
-<link rel="stylesheet" href="styles/unify.css?v=995">
+<script src="theme.js?v=996" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=996">
+<link rel="stylesheet" href="styles/harmony.css?v=996">
+<link rel="stylesheet" href="styles/unify.css?v=996">
 <style>
 .course-skeleton{
   display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:4px;
@@ -484,15 +495,15 @@ button{font-family:var(--font);cursor:pointer;}
   .lesson-card:hover{transform:none;box-shadow:none;}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=995">
-<link rel="stylesheet" href="styles/tool-window.css?v=995">
+<link rel="stylesheet" href="styles/teached-brand.css?v=996">
+<link rel="stylesheet" href="styles/tool-window.css?v=996">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=995">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=995">
-<link rel="stylesheet" href="styles/controls.css?v=995">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=995">
+<link rel="stylesheet" href="styles/figma-theme.css?v=996">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=996">
+<link rel="stylesheet" href="styles/controls.css?v=996">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=996">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=995">
+<link rel="stylesheet" href="styles/polish.css?v=996">
 </head>
 <body class="tw-page mp-shell fx">
 
@@ -534,7 +545,7 @@ button{font-family:var(--font);cursor:pointer;}
   <div id="sidebar">
     <div id="sb-head">
       <div id="sb-head-title">My Courses</div>
-      <button class="btn-new-course" onclick="openCourseForm()">+ New</button>
+      <button class="btn-new-course" onclick="openCourseForm()">+ New course</button>
     </div>
     <div id="course-plan-note" style="padding:0 16px 10px;font-size:11px;line-height:1.5;color:var(--text3);"></div>
     <div id="course-list"></div>
@@ -636,8 +647,8 @@ button{font-family:var(--font);cursor:pointer;}
   <symbol id="i-courses" viewBox="0 0 24 24"><path d="M4 6.5c2.5-1 5-1 7 .5v11c-2-1.5-4.5-1.5-7-.5zM20 6.5c-2.5-1-5-1-7 .5v11c2-1.5 4.5-1.5 7-.5z"/><path d="M12 7v11"/></symbol>
 </svg>
 
-<script src="scripts/app-core.js?v=995"></script>
-<script src="scripts/lesson-cover.js?v=995"></script>
+<script src="scripts/app-core.js?v=996"></script>
+<script src="scripts/lesson-cover.js?v=996"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 const apiClient = window.TeachEdApp.createApiClient(() => token);
@@ -936,7 +947,7 @@ async function loadAll() {
 function renderSidebar() {
   const list = document.getElementById('course-list');
   if (!courses.length) {
-    list.innerHTML = '<div class="course-empty-state">No courses yet.<br>Use <strong>+ New</strong> to create one.</div>';
+    list.innerHTML = '<div class="course-empty-state">No courses yet.<br>Use <strong>+ New course</strong> to create one.</div>';
     return;
   }
   list.innerHTML = courses.map(c => `
@@ -990,10 +1001,13 @@ function renderCourseView({ course, modules, unassigned }) {
       </div>
     </div>
     <div class="ch-actions">
-      <button class="btn btn-ghost course-action-module" onclick="openModuleForm('${course.id}')">+ Module</button>
+      <button class="btn btn-ghost course-action-module" onclick="openModuleForm('${course.id}')">+ Add module</button>
       <button class="btn btn-soft course-action-import" onclick="createTemplateModules('${course.id}')">Import ready lessons</button>
       <button class="btn btn-ghost course-action-edit" onclick="openCourseForm('edit','${course.id}')">Edit</button>
-      <button class="btn btn-danger course-action-delete" onclick="deleteCourse('${course.id}')">Delete</button>
+      <details class="course-more-desk">
+        <summary aria-label="More course actions">•••</summary>
+        <div class="cmd-menu"><button type="button" onclick="this.closest('details').open=false;deleteCourse('${course.id}')">Delete course<small>Lesson boards stay, only unlinked</small></button></div>
+      </details>
       <details class="course-mobile-more">
         <summary aria-label="More course actions">More</summary>
         <div class="course-more-menu">
@@ -1063,7 +1077,7 @@ function lessonCardHTML(b, courseId, moduleId, idx) {
   /* Обложка доски: сохранённая владельцем (из /api/boards) или автоматическая. */
   const own = (allBoards || []).find(x => String(x.id) === String(b.id));
   const cover = window.TeachEdCover ? TeachEdCover.render(own?.cover || b.cover || null, { title: b.name || 'Lesson' }) : '';
-  return `<a class="lesson-card has-cover" href="board.html?id=${b.id}" style="text-decoration:none;display:block;">
+  return `<a class="lesson-card has-cover" href="board.html?id=${b.id}" title="${esc(b.name)}" style="text-decoration:none;display:block;">
     <div class="lc-cover">${cover}</div>
     ${num ? `<div class="lc-num">${num}</div>` : ''}
     <div class="lc-name">${esc(b.name)}</div>
@@ -1077,7 +1091,6 @@ function renderCourseInsights(modules, unassigned) {
   const moduleCount = modules.length;
   const assigned = modules.reduce((sum, m) => sum + (m.boards?.length || 0), 0);
   const backlog = unassigned.length;
-  const avg = moduleCount ? (assigned / moduleCount).toFixed(1) : '0.0';
   document.getElementById('course-insights').innerHTML = `
     <div class="insight-card">
       <div class="insight-label">Modules</div>
@@ -1095,9 +1108,9 @@ function renderCourseInsights(modules, unassigned) {
       <div class="insight-hint">Needs module placement</div>
     </div>
     <div class="insight-card">
-      <div class="insight-label">Avg Lessons / Module</div>
-      <div class="insight-value">${avg}</div>
-      <div class="insight-hint">Balance across modules</div>
+      <div class="insight-label">Level</div>
+      <div class="insight-value">${esc(activeCourse?.level || '—')}</div>
+      <div class="insight-hint">CEFR target of the course</div>
     </div>`;
 }
 
@@ -1593,13 +1606,19 @@ function toast(msg) {
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=995" defer></script>
-<script src="scripts/mobile-perf.js?v=995" defer></script>
-<script src="scripts/mobile-nav.js?v=995"></script>
-<script src="scripts/mobile-zoom-guard.js?v=995" defer></script>
-<script src="scripts/autogrow.js?v=995" defer></script>
-<script src="pwa-boot.js?v=995" defer></script>
-  <script src="scripts/signin-entry.js?v=995" defer></script>
-<script src="scripts/nav-bell.js?v=995" defer></script>
+<script src="scripts/nav-boost.js?v=996" defer></script>
+<script src="scripts/mobile-perf.js?v=996" defer></script>
+<script src="scripts/mobile-nav.js?v=996"></script>
+<script src="scripts/mobile-zoom-guard.js?v=996" defer></script>
+<script src="scripts/autogrow.js?v=996" defer></script>
+<script src="pwa-boot.js?v=996" defer></script>
+  <script src="scripts/signin-entry.js?v=996" defer></script>
+<script src="scripts/nav-bell.js?v=996" defer></script>
+<script src="scripts/empty-stats.js?v=996" defer></script>
+<script>
+document.addEventListener('mousedown', e => {
+  document.querySelectorAll('details.course-more-desk[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; });
+});
+</script>
 </body>
 </html>

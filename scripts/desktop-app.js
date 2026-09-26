@@ -3257,3 +3257,27 @@ setInterval(loadNotifications, 120000);
     if (cachedDash?.sharedBoards) applyTeacherDashboardCache({ sharedBoards: cachedDash.sharedBoards }, { offlineNotice: true });
   });
 })();
+
+/* ══════════════════════ "MORE BELOW" HINT ══════════════════════
+   macOS hides scrollbars until you scroll, so a window whose last row of
+   boards is cut off looked finished. While there is more below, the bottom
+   edge of the window's content fades out. */
+(function () {
+  const check = (el) => el.classList.toggle('more-below', el.scrollTop + el.clientHeight < el.scrollHeight - 6);
+  const seen = new WeakSet();
+  function wire() {
+    document.querySelectorAll('.win .win-main').forEach(el => {
+      check(el);
+      if (seen.has(el)) return;
+      seen.add(el);
+      el.addEventListener('scroll', () => check(el), { passive: true });
+      new ResizeObserver(() => check(el)).observe(el);
+      new MutationObserver(() => check(el)).observe(el, { childList: true, subtree: true });
+    });
+  }
+  const st = document.createElement('style');
+  st.textContent = '.win .win-main.more-below{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent)}';
+  document.head.appendChild(st);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  setInterval(wire, 3000);
+})();

@@ -7,9 +7,32 @@ const { OAuth2Client } = require('google-auth-library');
 const pool    = require('../db/pool');
 const { attachBoardInvites } = require('../lib/boardInvites');
 const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth');
-const { sendEmail, sendEmailQuietly, resetPasswordEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE } = require('../lib/email');
+const { sendEmail, sendEmailQuietly, resetPasswordEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, newSignInEmail } = require('../lib/email');
 const { recordTelemetry } = require('../lib/telemetry');
+const { deviceLabel } = require('../lib/device');
 const stripe = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
+
+/* Email the owner when an account signs in from a browser/device it has not
+   used in the last 180 days. Skipped for the very first sign-in (there is no
+   history to compare with) and never blocks the sign-in itself. */
+const SIGNIN_EVENTS = ['login.ok', 'google.login', 'signup', 'google.signup', 'invite.accept'];
+async function notifyIfNewDevice(req, user) {
+  try {
+    const device = deviceLabel(req.headers['user-agent']);
+    const { rows } = await pool.query(
+      `SELECT user_agent FROM auth_events
+       WHERE user_id = $1 AND event = ANY($2) AND created_at > NOW() - INTERVAL '180 days'
+       ORDER BY created_at DESC LIMIT 300`,
+      [user.id, SIGNIN_EVENTS]
+    );
+    if (!rows.length) return;
+    if (rows.some(r => deviceLabel(r.user_agent) === device)) return;
+    const when = new Date().toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: user.timezone || 'UTC' }) + (user.timezone ? '' : ' UTC');
+    sendEmailQuietly({ to: user.email, ...newSignInEmail({ name: user.name, device, ip: String(req.ip || '').replace(/^::ffff:/, ''), when }) }, 'auth/new-device');
+  } catch (e) {
+    console.error('[auth/new-device]', e.message);
+  }
+}
 
 function logAuthEvent(userId, email, event, req, detail) {
   pool.query(
@@ -603,6 +626,7 @@ router.post('/login', authLimiter, async (req, res) => {
       `UPDATE users SET failed_login_count=0, locked_at=NULL, last_login_at=NOW() WHERE id=$1`,
       [user.id]
     );
+    await notifyIfNewDevice(req, user);
     logAuthEvent(user.id, user.email, 'login.ok', req);
     const payload = await issueLoginSession(req, user);
     res.json(payload);
@@ -682,6 +706,7 @@ router.post('/google', authLimiter, async (req, res) => {
     }
 
     await pool.query(`UPDATE users SET last_login_at=NOW(), failed_login_count=0, locked_at=NULL WHERE id=$1`, [user.id]).catch(() => {});
+    if (!isNewUser) await notifyIfNewDevice(req, user);
     logAuthEvent(user.id, user.email, isNewUser ? 'google.signup' : 'google.login', req);
     const payload = await issueLoginSession(req, user);
     payload.isNewUser = isNewUser;

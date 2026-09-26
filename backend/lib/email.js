@@ -269,6 +269,29 @@ function verifyEmail({ name, link }) {
   };
 }
 
+/* A sign-in from a browser/device this account has not used before. */
+function newSignInEmail({ name, device, ip, when }) {
+  const first = String(name || '').trim().split(/\s+/)[0] || 'there';
+  const title = 'New sign-in to your TeachEd account';
+  const lines = [
+    `Hi ${first}, your account was just signed in from a device we haven't seen before:`,
+    `${device}${ip ? ` · IP ${ip}` : ''} · ${when}`,
+    'If this was you, there is nothing to do.',
+  ];
+  const warn = "If it wasn't you, sign that device out and change your password now.";
+  const link = `${SITE}/profile.html#settings/security`;
+  return {
+    subject: 'New sign-in to TeachEd',
+    html: layout({
+      preheader: `${device} signed in to your account.`,
+      title,
+      paragraphs: [...lines.map(escHtml), `<strong>${escHtml(warn)}</strong>`],
+      button: { href: link, label: 'Review signed-in devices' },
+    }),
+    text: textVersion({ title, lines: [...lines, '', warn], link, linkLabel: 'Review signed-in devices' }),
+  };
+}
+
 /* To the OLD address after a change, so a takeover does not go unnoticed. */
 function emailChangedEmail({ name, newEmail }) {
   const first = String(name || '').trim().split(/\s+/)[0] || 'there';
@@ -334,5 +357,5 @@ function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
 module.exports = {
   vaultReminderEmail,
   sendEmail, sendEmailQuietly, emailConfigured, SITE, layout, textVersion,
-  resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, emailChangedEmail,
+  resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, emailChangedEmail, newSignInEmail,
 };

@@ -876,10 +876,49 @@ function renderCard(card) {
 }
 
 /* card type renderers */
+/* Card headers used to lead with an emoji (📚 ▶ ⭐ ✍️ 🗣…), which looked
+   like stickers next to the line icons everywhere else. Each one maps to a
+   stroke glyph of the same meaning; anything unknown gets the plain card. */
+const CARD_HEAD_GLYPHS = (() => {
+  const doc = '<path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z"/><path d="M13.5 3.5V8h4.5M9 12h6M9 15.5h6"/>';
+  const book = '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15.5H5.5A1.5 1.5 0 0 1 4 18z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15.5h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>';
+  const pen = '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>';
+  const talk = '<path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H11l-4 3.5v-3.5h-.5a2 2 0 0 1-2-2z"/><path d="M8.5 9.5h7M8.5 12h4.5"/>';
+  const play = '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M10.5 9.3v5.4l4.5-2.7z"/>';
+  const star = '<path d="M12 4l2.4 5 5.3.6-3.9 3.7 1 5.3L12 16l-4.8 2.6 1-5.3-3.9-3.7 5.3-.6z"/>';
+  const check = '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.2l2.4 2.4 4.8-5"/>';
+  const list = '<path d="M9 7h11M9 12h11M9 17h11"/><circle cx="5" cy="7" r=".9"/><circle cx="5" cy="12" r=".9"/><circle cx="5" cy="17" r=".9"/>';
+  const cal = '<rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>';
+  const user = '<circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/>';
+  const flag = '<path d="M5.5 20.5V4"/><path d="M5.5 4.5h11l-2 4 2 4h-11"/>';
+  const clock = '<circle cx="12" cy="13" r="7"/><path d="M12 9.5V13l2.5 1.5M9.5 3.5h5"/>';
+  const grid = '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>';
+  const poll = '<path d="M5 20V11M10 20V5M15 20v-7M20 20V8"/>';
+  const target = '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/>';
+  const ear = '<path d="M5 13v-1a7 7 0 0 1 14 0v1"/><rect x="4" y="13" width="4" height="6" rx="1.5"/><rect x="16" y="13" width="4" height="6" rx="1.5"/>';
+  const brain = '<path d="M9 4.5a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.3A3 3 0 0 0 7.5 18 2.5 2.5 0 0 0 12 19V5.5a2.5 2.5 0 0 0-3-1zM15 4.5a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.3 3 3 0 0 1-3 5.2A2.5 2.5 0 0 1 12 19"/>';
+  const gear = '<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M6 18l1.6-1.6M16.4 7.6 18 6"/>';
+  const hex = '<path d="M12 3.5l7.4 4.25v8.5L12 20.5l-7.4-4.25v-8.5z"/>';
+  const dot = '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/>';
+  const build = '<path d="M4 20h16M6 20V10l6-5 6 5v10"/><path d="M10 20v-5h4v5"/>';
+  return {
+    '📚': book, '📖': book, '📄': doc, '📝': pen, '✍️': pen, '✍': pen, '🗣': talk, '💬': talk,
+    '▶': play, '🎬': play, '📺': play, '⭐': star, '✅': check, '📋': list, '📅': cal, '👤': user,
+    '🏁': flag, '⏱': clock, '▦': grid, '⊞': grid, '🗳': poll, '🎯': target, '🎧': ear, '🧠': brain,
+    '⚙️': gear, '⬡': hex, '◉': dot, '🏗': build,
+    '🎮': '<rect x="3" y="7.5" width="18" height="10" rx="5"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="15.5" cy="11.5" r=".9"/><circle cx="17.5" cy="13.8" r=".9"/>',
+  };
+})();
+function cardHeadIcon(icon) {
+  const key = String(icon || '').trim();
+  const paths = CARD_HEAD_GLYPHS[key] || CARD_HEAD_GLYPHS[key.replace(/\uFE0F/g, '')] || CARD_HEAD_GLYPHS['📄'];
+  return `<svg class="card-head-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+}
+
 function makeHeader(icon, title, cardId) {
   const hdr = document.createElement('div');
   hdr.className = 'card-header';
-  hdr.innerHTML = `<span class="card-drag-ic">${icon}</span><span class="card-title-text">${esc(title)}</span>`;
+  hdr.innerHTML = `<span class="card-drag-ic" data-icon="${esc(icon || '')}">${cardHeadIcon(icon)}</span><span class="card-title-text">${esc(title)}</span>`;
   // Private toggle - hidden by default; only appears on hover/select.
   // When the card IS marked private, show the lock at full opacity so it's
   // discoverable that the card is private.
@@ -891,7 +930,9 @@ function makeHeader(icon, title, cardId) {
   privBtn.style.marginRight = '2px';
   privBtn.style.fontSize = '12px';
   privBtn.title = isPrivate ? 'Card is private - click to make visible to others' : 'Make card private';
-  privBtn.textContent = isPrivate ? '🔒' : '🔓';
+  privBtn.innerHTML = isPrivate
+    ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 6.8-1.2"/></svg>';
   privBtn.addEventListener('mousedown', e => e.stopPropagation());
   privBtn.addEventListener('click', e => {
     e.stopPropagation();
@@ -928,7 +969,7 @@ function toggleCardPrivate(cardId) {
     const oldHdr = el.querySelector(':scope > .card-header');
     if (oldHdr) {
       const newHdr = makeHeader(
-        oldHdr.querySelector('.card-drag-ic')?.textContent || '📄',
+        oldHdr.querySelector('.card-drag-ic')?.dataset.icon || '📄',
         oldHdr.querySelector('.card-title-text')?.textContent || '',
         cardId
       );
@@ -2417,7 +2458,7 @@ function renderGame(el, card) {
   const hdr = document.createElement('div');
   hdr.className = 'card-header';
   hdr.style.cursor = 'move';
-  hdr.innerHTML = `<span class="card-drag-ic">🎮</span><span class="card-title-text">${esc(card.data.title||'Game')}</span>`;
+  hdr.innerHTML = `<span class="card-drag-ic" data-icon="🎮">${cardHeadIcon('🎮')}</span><span class="card-title-text">${esc(card.data.title||'Game')}</span>`;
   const scoreBadge = document.createElement('span');
   scoreBadge.className = 'game-score-badge';
   scoreBadge.dataset.cardId = card.id;
@@ -2662,10 +2703,10 @@ function openGameFullPage(card) {
 
 /* ══════════════════════ LESSON RENDERER ══════════════════════ */
 const LESSON_STATUS_MAP = {
-  locked:      { label:'🔒 Locked',      cls:'locked' },
-  available:   { label:'▶️ Available',   cls:'available' },
-  'in-progress':{ label:'⏳ In Progress',cls:'in-progress' },
-  done:        { label:'✅ Done',         cls:'done' },
+  locked:      { label:'Locked',      cls:'locked' },
+  available:   { label:'Available',   cls:'available' },
+  'in-progress':{ label:'In progress',cls:'in-progress' },
+  done:        { label:'Done',         cls:'done' },
 };
 const SKILL_MAP = { Grammar:'g', Vocabulary:'v', Speaking:'s', Reading:'r', Writing:'w', Listening:'l', Functional:'s' };
 const LEVEL_COLORS = { A1:'a1',A2:'a2',B1:'b1',B2:'b2b',C1:'c1',C2:'c2' };
@@ -2686,8 +2727,8 @@ function renderLesson(el, card) {
       <span class="lesson-status ${st.cls}">${st.label}</span>
       ${d.level ? `<span class="badge ${LEVEL_COLORS[d.level]||'b1'}">${d.level}</span>` : ''}
       ${d.skill ? `<span class="badge lesson-${SKILL_MAP[d.skill]||'g'}">${d.skill}</span>` : ''}
-      ${d.duration ? `<span class="badge" style="background:rgba(36,40,44,.05);color:var(--text-3)">⏱ ${d.duration}</span>` : ''}
-      ${d.module ? `<span class="badge" style="background:rgba(136,107,243,.08);color:#6B42FD;font-size:9px;">📂 ${esc(d.module)}</span>` : ''}
+      ${d.duration ? `<span class="badge" style="background:rgba(36,40,44,.05);color:var(--text-3)">${d.duration}</span>` : ''}
+      ${d.module ? `<span class="badge" style="background:rgba(36,40,44,.06);color:#3A3E42;font-size:9px;">${esc(d.module)}</span>` : ''}
     </div>`;
 
   // Description
@@ -2718,9 +2759,9 @@ function renderLesson(el, card) {
   const footerHtml = `
     <div class="lesson-footer">
       ${d.link ? `<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:#6B42FD;text-decoration:none;font-weight:600;" onclick="event.stopPropagation()">🔗 Material</a>` : ''}
-      <button class="lesson-present-btn" onclick="event.stopPropagation();openLessonPresent('${card.id}')">▶ Present</button>
+      <button class="lesson-present-btn" onclick="event.stopPropagation();openLessonPresent('${card.id}')">Present</button>
       ${isOwner ? `<button class="lesson-status-btn" onclick="event.stopPropagation();cycleLessonStatus('${card.id}')" title="Cycle status">↻</button>` : ''}
-      <button class="lesson-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
+      <button class="lesson-edit-btn" onclick="openCardEditor('${card.id}')">Edit</button>
     </div>`;
 
   body.innerHTML = metaHtml + descHtml + objHtml + attachHtml + notesHtml + footerHtml;
@@ -2740,8 +2781,6 @@ function renderAssignment(el, card) {
   const pct = total ? Math.round(submitted / total * 100) : 0;
   const qs = d.questions || [];
   const totalPts = qs.reduce((s,q) => s + (q.points||1), 0) || d.maxScore || 0;
-  const typeColors = { Quiz:'#FF8C3A', Essay:'#886BF3', Speaking:'#6BAFF3', Project:'#A3A48D', Mixed:'#9F8CE8' };
-  const typeColor = typeColors[d.type] || '#FF8C3A';
   const typeIcons = { Quiz:'📝', Essay:'✍️', Speaking:'🗣', Project:'🏗', Mixed:'🎯' };
   const qtypeLabels = { 'gap-fill':'Gap-fill', 'mcq':'MCQ', 'match':'Match', 'truefalse':'T/F', 'open':'Open' };
 
@@ -2754,7 +2793,7 @@ function renderAssignment(el, card) {
   // Stats row
   const statsRow = `
     <div class="assign-stats-row">
-      <span class="assign-type-pill" style="background:${typeColor}16;color:${typeColor}">${d.type||'Quiz'}</span>
+      <span class="assign-type-pill">${esc(d.type||'Quiz')}</span>
       ${d.level ? `<span class="badge ${d.level.toLowerCase()}">${d.level}</span>` : ''}
       ${qs.length ? `<span class="assign-stat">📋 <strong>${qs.length}</strong> q</span>` : ''}
       ${totalPts ? `<span class="assign-stat">⭐ <strong>${totalPts}</strong> pts</span>` : ''}
@@ -2789,8 +2828,8 @@ function renderAssignment(el, card) {
   const prevResult = (() => { try { return JSON.parse(sessionStorage.getItem('quiz_result_' + card.id)); } catch { return null; } })();
 
   const actionsHtml = isOwner
-    ? `<button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">✏️ Edit</button>
-       <button class="assign-build-btn" onclick="openAssignmentGameBuilderMenu('${card.id}', event)">🛠 Builder</button>`
+    ? `<button class="assign-edit-btn" onclick="openCardEditor('${card.id}')">Edit</button>
+       <button class="assign-build-btn" onclick="openAssignmentGameBuilderMenu('${card.id}', event)">Builder</button>`
     : (qs.length
         ? (prevResult
           ? `<div class="assign-prev-score">
@@ -15211,7 +15250,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '995';
+const TEACHEDOS_ASSET_VERSION = '996';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -22107,7 +22146,8 @@ function updateFollowUI() {
   if (!btn) return;
   btn.style.display = isOwner ? 'flex' : 'none';
   btn.classList.toggle('active', followMode);
-  btn.textContent = followMode ? '👁 Follow Me: ON' : '👁 Follow Me';
+  const eye = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:5px"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  btn.innerHTML = eye + (followMode ? 'Following: on' : 'Follow me');
 }
 
 function toggleFollowMode() {

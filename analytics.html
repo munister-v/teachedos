@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=995"></script>
+<script src="scripts/phone-gate.js?v=996"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -324,21 +324,33 @@ body.analytics-locked .grid2{display:none !important;}
 .analytics-lock .al-kicker{font-size:12px;font-weight:600;color:#5D614B;margin-bottom:6px;}
 .analytics-lock .al-title{font-size:24px;font-weight:700;letter-spacing:-.02em;color:#24282C;margin-bottom:8px;}
 .analytics-lock .al-copy{font-size:14px;line-height:1.5;color:#5D614B;margin:0 0 18px;}
+.al-sample{position:relative;margin:0 0 20px;padding:16px;border-radius:14px;background:#F6F6EF;border:1px solid rgba(36,40,44,.08);}
+.al-sample-tag{position:absolute;top:10px;right:12px;font:700 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#8A8D7A;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:999px;padding:4px 8px;}
+.al-s-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.al-s-tiles div{background:#fff;border-radius:11px;padding:10px 12px;}
+.al-s-tiles b{display:block;font-size:20px;font-weight:700;letter-spacing:-.03em;color:#24282C;}
+.al-s-tiles span{font-size:11.5px;color:#5D614B;}
+.al-s-rows{display:flex;flex-direction:column;gap:7px;}
+.al-s-row{display:grid;grid-template-columns:80px 1fr 38px;align-items:center;gap:10px;font-size:12.5px;color:#24282C;}
+.al-s-row i{height:7px;border-radius:7px;background:rgba(36,40,44,.08);overflow:hidden;}
+.al-s-row em{display:block;height:100%;background:#CDF649;border-radius:7px;}
+.al-s-row.warn em{background:#24282C;}
+.al-s-row b{text-align:right;font-weight:650;}
 .analytics-lock .al-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;background:#CDF649;color:#24282C;font-weight:650;font-size:14px;text-decoration:none;}
 .analytics-lock .al-btn:hover{background:#D3F36B;}
 </style>
-<script src="theme.js?v=995" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=995">
-<link rel="stylesheet" href="styles/harmony.css?v=995">
-<link rel="stylesheet" href="styles/unify.css?v=995">
-<link rel="stylesheet" href="styles/teached-brand.css?v=995">
-<link rel="stylesheet" href="styles/tool-window.css?v=995">
+<script src="theme.js?v=996" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=996">
+<link rel="stylesheet" href="styles/harmony.css?v=996">
+<link rel="stylesheet" href="styles/unify.css?v=996">
+<link rel="stylesheet" href="styles/teached-brand.css?v=996">
+<link rel="stylesheet" href="styles/tool-window.css?v=996">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=995">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=995">
-<link rel="stylesheet" href="styles/controls.css?v=995">
+<link rel="stylesheet" href="styles/figma-theme.css?v=996">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=996">
+<link rel="stylesheet" href="styles/controls.css?v=996">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=995">
+<link rel="stylesheet" href="styles/polish.css?v=996">
 </head>
 <body class="tw-page suite-page analytics-suite fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -539,7 +551,7 @@ body.analytics-locked .grid2{display:none !important;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=995"></script>
+<script src="scripts/app-core.js?v=996"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const ANALYTICS_CACHE_KEY = 'teachedos_analytics_cache_v1';
@@ -646,6 +658,19 @@ function applyAnalyticsGateUI() {
       lock.innerHTML = `<div class="al-kicker">Teacher Pro · School</div>
         <div class="al-title">See how every class is doing</div>
         <p class="al-copy">${esc(upgradeMessage('analytics'))} Progress per board, lesson status, assignments, quiz results and who needs attention, in one place.</p>
+        <div class="al-sample" aria-label="Example of the analytics view">
+          <span class="al-sample-tag">Example</span>
+          <div class="al-s-tiles">
+            <div><b>86%</b><span>Homework handed in</span></div>
+            <div><b>74%</b><span>Average quiz score</span></div>
+            <div><b>2</b><span>Need attention</span></div>
+          </div>
+          <div class="al-s-rows">
+            <div class="al-s-row"><span>Anna P.</span><i><em style="width:92%"></em></i><b>92%</b></div>
+            <div class="al-s-row"><span>Nigel E.</span><i><em style="width:71%"></em></i><b>71%</b></div>
+            <div class="al-s-row warn"><span>Oleh K.</span><i><em style="width:38%"></em></i><b>38%</b></div>
+          </div>
+        </div>
         <a class="al-btn" href="profile.html#plans">See packages</a>`;
     }
   }
@@ -1222,13 +1247,14 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 init();
 </script>
 
-<script src="scripts/nav-boost.js?v=995" defer></script>
-<script src="scripts/mobile-perf.js?v=995" defer></script>
-<script src="scripts/mobile-nav.js?v=995"></script>
-<script src="scripts/mobile-zoom-guard.js?v=995" defer></script>
-<script src="scripts/autogrow.js?v=995" defer></script>
-<script src="pwa-boot.js?v=995" defer></script>
-  <script src="scripts/signin-entry.js?v=995" defer></script>
-<script src="scripts/nav-bell.js?v=995" defer></script>
+<script src="scripts/nav-boost.js?v=996" defer></script>
+<script src="scripts/mobile-perf.js?v=996" defer></script>
+<script src="scripts/mobile-nav.js?v=996"></script>
+<script src="scripts/mobile-zoom-guard.js?v=996" defer></script>
+<script src="scripts/autogrow.js?v=996" defer></script>
+<script src="pwa-boot.js?v=996" defer></script>
+  <script src="scripts/signin-entry.js?v=996" defer></script>
+<script src="scripts/nav-bell.js?v=996" defer></script>
+<script src="scripts/empty-stats.js?v=996" defer></script>
 </body>
 </html>

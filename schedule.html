@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=995"></script>
-<link rel="manifest" href="manifest.json?v=995">
+<script src="scripts/phone-gate.js?v=996"></script>
+<link rel="manifest" href="manifest.json?v=996">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=995">
-<link rel="preload" as="style" href="styles/unify.css?v=995">
+<link rel="preload" as="style" href="styles/harmony.css?v=996">
+<link rel="preload" as="style" href="styles/unify.css?v=996">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -181,6 +181,7 @@ a{text-decoration:none;color:inherit;}
   position:absolute;left:0;right:0;height:2px;background:var(--accent);z-index:10;
   pointer-events:none;
 }
+.now-ghost{position:absolute;left:0;right:0;height:0;border-top:1px dashed rgba(36,40,44,.28);z-index:9;pointer-events:none;}
 .now-line::before{
   content:'';position:absolute;left:-5px;top:-4px;
   width:10px;height:10px;border-radius:50%;background:var(--accent);
@@ -425,10 +426,10 @@ a{text-decoration:none;color:inherit;}
   .form-group input[type=checkbox]{ width:22px; height:22px; }
 }
 </style>
-<script src="theme.js?v=995" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=995">
-<link rel="stylesheet" href="styles/harmony.css?v=995">
-<link rel="stylesheet" href="styles/unify.css?v=995">
+<script src="theme.js?v=996" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=996">
+<link rel="stylesheet" href="styles/harmony.css?v=996">
+<link rel="stylesheet" href="styles/unify.css?v=996">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -460,15 +461,15 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=995">
-<link rel="stylesheet" href="styles/tool-window.css?v=995">
+<link rel="stylesheet" href="styles/teached-brand.css?v=996">
+<link rel="stylesheet" href="styles/tool-window.css?v=996">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=995">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=995">
-<link rel="stylesheet" href="styles/controls.css?v=995">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=995">
+<link rel="stylesheet" href="styles/figma-theme.css?v=996">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=996">
+<link rel="stylesheet" href="styles/controls.css?v=996">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=996">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=995">
+<link rel="stylesheet" href="styles/polish.css?v=996">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -583,15 +584,10 @@ a{text-decoration:none;color:inherit;}
       </div>
     </div>
 
-    <div class="side-section desktop-schedule-only">
-      <div class="side-label">Stats</div>
-      <div class="stat-row">
-        <div class="stat-pill"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Classes</div></div>
-        <div class="stat-pill"><div class="stat-num" id="stat-hours">0</div><div class="stat-lbl">Hrs/week</div></div>
-        <div class="stat-pill"><div class="stat-num" id="stat-groups">0</div><div class="stat-lbl">Groups</div></div>
-      </div>
+    <div class="side-section desktop-schedule-only" style="flex:1">
+      <div class="side-label">All Classes</div>
+      <div id="cls-list"></div>
     </div>
-
     <div class="side-section desktop-schedule-only">
       <div class="side-label">Time Zone</div>
       <div class="stat-pill" style="text-align:left;padding:12px 14px;">
@@ -602,10 +598,6 @@ a{text-decoration:none;color:inherit;}
       <div id="tz-student-zones" style="margin-top:8px;display:none;"></div>
     </div>
 
-    <div class="side-section desktop-schedule-only" style="flex:1">
-      <div class="side-label">All Classes</div>
-      <div id="cls-list"></div>
-    </div>
   </div>
 
   <!-- Main timetable -->
@@ -769,7 +761,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=995"></script>
+<script src="scripts/app-core.js?v=996"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1256,14 +1248,27 @@ function updateNowLine() {
     const t = new Date(); t.setHours(0,0,0,0);
     return d.getTime() === t.getTime();
   });
-  if (todayInWeek < 0) { line.style.display = 'none'; return; }
+  const ghosts = document.querySelectorAll('.day-col .now-ghost');
+  if (todayInWeek < 0) { line.style.display = 'none'; ghosts.forEach(g => { g.style.display = 'none'; }); return; }
   // Move now-line to today's column
   const todayCol = document.getElementById(`day-${todayInWeek}`);
   if (!todayCol.contains(line)) todayCol.appendChild(line);
   const minutes = (now.getHours() - HOUR_START) * 60 + now.getMinutes();
   const top = minutes / 60 * PX_PER_HOUR;
+  const visible = minutes >= 0 && now.getHours() < HOUR_END;
   line.style.top = top + 'px';
-  line.style.display = minutes >= 0 ? 'block' : 'none';
+  line.style.display = visible ? 'block' : 'none';
+  // A faint line through the other days, so "now" reads across the whole
+  // week and not only in today's column.
+  for (let d = 0; d < 7; d++) {
+    const col = document.getElementById(`day-${d}`);
+    if (!col) continue;
+    let g = col.querySelector('.now-ghost');
+    if (d === todayInWeek) { if (g) g.style.display = 'none'; continue; }
+    if (!g) { g = document.createElement('div'); g.className = 'now-ghost'; col.appendChild(g); }
+    g.style.top = top + 'px';
+    g.style.display = visible ? 'block' : 'none';
+  }
 }
 
 function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); renderWeekBrief(); }
@@ -1495,7 +1500,7 @@ function renderGrid() {
     col.classList.toggle('today', weekDates[d].getTime() === today.getTime());
     col.classList.toggle('weekend', d >= 5);
     // Clear blocks (keep now-line if present)
-    Array.from(col.children).forEach(c => { if (!c.id.includes('now-line')) c.remove(); });
+    Array.from(col.children).forEach(c => { if (!c.id.includes('now-line') && !c.classList.contains('now-ghost')) c.remove(); });
     // Hour lines
     for (let h = HOUR_START; h <= HOUR_END; h++) {
       const line = document.createElement('div');
@@ -1828,11 +1833,11 @@ function slotColor(slot) {
   return !c || /^#ff4b8b$/i.test(c) ? '#CDF649' : c;
 }
 function renderStats() {
-  document.getElementById('stat-total').textContent = schedule.length;
+  (document.getElementById('stat-total') || {}).textContent = schedule.length;
   const hrs = schedule.reduce((acc,s) => acc + slotMinutes(s)/60, 0);
-  document.getElementById('stat-hours').textContent = hrs.toFixed(1);
+  (document.getElementById('stat-hours') || {}).textContent = hrs.toFixed(1);
   const groups = new Set(schedule.map(s=>s.group_name).filter(Boolean));
-  document.getElementById('stat-groups').textContent = groups.size;
+  (document.getElementById('stat-groups') || {}).textContent = groups.size;
   renderWeekBrief();
   updateMobileScheduleSummary();
 }
@@ -2211,15 +2216,15 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="scripts/schedule-booking.js?v=995"></script>
-<script src="pwa.js?v=995"></script>
-<script src="scripts/nav-boost.js?v=995" defer></script>
-<script src="scripts/mobile-perf.js?v=995" defer></script>
-<script src="scripts/mobile-nav.js?v=995"></script>
-<script src="scripts/autogrow.js?v=995" defer></script>
-<script src="pwa-boot.js?v=995" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=995" defer></script>
-  <script src="scripts/signin-entry.js?v=995" defer></script>
-<script src="scripts/nav-bell.js?v=995" defer></script>
+<script src="scripts/schedule-booking.js?v=996"></script>
+<script src="pwa.js?v=996"></script>
+<script src="scripts/nav-boost.js?v=996" defer></script>
+<script src="scripts/mobile-perf.js?v=996" defer></script>
+<script src="scripts/mobile-nav.js?v=996"></script>
+<script src="scripts/autogrow.js?v=996" defer></script>
+<script src="pwa-boot.js?v=996" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=996" defer></script>
+  <script src="scripts/signin-entry.js?v=996" defer></script>
+<script src="scripts/nav-bell.js?v=996" defer></script>
 </body>
 </html>

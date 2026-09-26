@@ -1775,6 +1775,8 @@ body.alt-duplicating *{cursor:copy!important;}
   cursor:move;flex-shrink:0;border-bottom:1px solid rgba(36,40,44,.05);
 }
 .card-drag-ic{font-size:12px;opacity:.30;flex-shrink:0;}
+.card-drag-ic .card-head-svg{width:14px;height:14px;display:block;}
+.card-drag-ic{opacity:.55;}
 .card-title-text{font-size:11px;font-weight:600;color:var(--text-2);flex:1;line-height:1.2;word-break:break-word;letter-spacing:0;text-transform:uppercase;}
 .card-close{
   width:20px;height:20px;border-radius:4px;border:none;cursor:pointer;
@@ -2865,10 +2867,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
   font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;font-family:var(--font);
   letter-spacing:0;transition:background .15s,color .15s;
 }
-.lesson-status.locked    {background:rgba(163,164,141,.12);color:#5D614B;}
-.lesson-status.available {background:color-mix(in srgb,var(--accent) 10%,transparent); color:var(--accent-text);}
-.lesson-status.in-progress{background:rgba(243,164,107,.12); color:#24282C;}
-.lesson-status.done      {background:rgba(211,243,107,.14);  color:#5D614B;}
+.lesson-status{display:inline-flex;align-items:center;gap:5px;}
+.lesson-status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55;}
+.lesson-status.locked    {background:rgba(36,40,44,.05);color:#8A8D7A;}
+.lesson-status.available {background:rgba(36,40,44,.06);color:#24282C;}
+.lesson-status.available::before{background:#CDF649;opacity:1;box-shadow:0 0 0 1px rgba(36,40,44,.25);}
+.lesson-status.in-progress{background:rgba(205,246,73,.3);color:#24282C;}
+.lesson-status.done      {background:#24282C;color:#CDF649;}
 .lesson-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
 .lesson-desc{font-size:11px;color:var(--text-3);line-height:1.5;flex:1;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
@@ -2887,11 +2892,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .lesson-notes-indicator{font-size:9px;color:var(--text-3);display:flex;align-items:center;gap:3px;}
 .lesson-footer{display:flex;gap:6px;align-items:center;border-top:1px solid rgba(36,40,44,.05);padding-top:7px;margin-top:2px;}
 .lesson-edit-btn{
-  padding:4px 10px;border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);border-radius:6px;
-  font-size:11px;font-weight:500;cursor:pointer;color:var(--accent-text);background:transparent;
+  padding:4px 10px;border:1px solid rgba(36,40,44,.16);border-radius:6px;
+  font-size:11px;font-weight:600;cursor:pointer;color:#24282C;background:#fff;
   transition:.12s;margin-left:auto;
 }
-.lesson-edit-btn:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);}
+.lesson-edit-btn:hover{background:rgba(36,40,44,.05);}
 .lesson-present-btn{
   padding:4px 10px;border:1px solid rgba(211,243,107,.30);border-radius:6px;
   font-size:11px;font-weight:500;cursor:pointer;color:#5D614B;background:transparent;
@@ -2899,11 +2904,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 }
 .lesson-present-btn:hover{background:rgba(211,243,107,.10);}
 .lesson-status-btn{
-  padding:3px 8px;border:1px solid rgba(136,107,243,.2);border-radius:6px;
+  padding:3px 8px;border:1px solid rgba(36,40,44,.14);border-radius:6px;
   font-size:9px;font-weight:600;cursor:pointer;color:var(--text-3);background:transparent;
   transition:.15s;
 }
-.lesson-status-btn:hover{background:rgba(136,107,243,.08);color:#6B42FD;}
+.lesson-status-btn:hover{background:rgba(36,40,44,.06);color:#24282C;}
 
 /* Lesson present mode */
 #lesson-present-overlay{
@@ -2971,7 +2976,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .assign-type-pill{
   display:inline-flex;align-items:center;gap:4px;
   font-size:9px;font-weight:650;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;
-  padding:2px 8px;border-radius:20px;
+  padding:2px 8px;border-radius:20px;background:rgba(36,40,44,.07);color:#3A3E42;
 }
 .assign-stats-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .assign-stat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-3);font-weight:600;}

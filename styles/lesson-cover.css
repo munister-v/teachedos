@@ -15,7 +15,7 @@
 .tcv-align-left .tcv-text { text-align:left; padding-right:26cqw; }
 .tcv-title {
   line-height:1.02; letter-spacing:-.01em; overflow-wrap:anywhere;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
   text-wrap:balance;
 }
 .tcv-sub {

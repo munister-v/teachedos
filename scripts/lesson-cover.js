@@ -128,7 +128,9 @@
   function fontSize(font, text) {
     const base = { display: 8.6, sans: 7, serif: 7.2, hand: 9.4, mono: 5.8 }[font] || 7;
     const n = String(text || '').length;
-    const k = n > 50 ? .6 : n > 38 ? .7 : n > 26 ? .82 : n > 16 ? .92 : 1;
+    // longer titles shrink sooner, so a cover shows the whole name (it used
+    // to cut 'Names, Countries & Be…' at two lines)
+    const k = n > 50 ? .5 : n > 38 ? .58 : n > 26 ? .68 : n > 16 ? .8 : 1;
     return (base * k).toFixed(2);
   }
 
