@@ -172,6 +172,37 @@ class Scene:
     def part(self, pid, word, pin, box, **card):
         self.parts.append(dict(id=pid, word=word, pin=list(pin), box=list(box), **card))
 
+    # ── people ────────────────────────────────────────────────────────────────
+    def standing(self, x, yf, coat="paper", h=118, d=1, arms=None, cap=None, mask=False, legs="tint"):
+        """A standing figure, feet at (x, yf), facing d (1 right, -1 left).
+        arms: None (hanging) or [(hx, hy)] hand points for the arm nearer the viewer."""
+        ht = yf - h
+        ys, yh = ht + 22, yf - 46
+        self.D(rect(x - 10, yh - 4, 7, yf - yh, 2) + rect(x + 3, yh - 4, 7, yf - yh, 2), legs)
+        self.D(ellipse(x - 6 + 3 * d, yf - 2, 7, 3) + ellipse(x + 6 + 3 * d, yf - 2, 7, 3), "ink")
+        self.M(f"M{x - 13} {ys + 3}Q{x - 15} {ys} {x - 10} {ys}H{x + 10}Q{x + 15} {ys} {x + 13} {ys + 3}"
+            f"L{x + 17} {yh}H{x - 17}Z", coat)
+        self.D(rect(x - 3, ys - 6, 6, 7), "wood")
+        self.M(circle(x + 2 * d, ht + 9, 9), "wood")
+        self.D(f"M{x - 8 + 2 * d} {ht + 6}Q{x + 2 * d} {ht - 4} {x + 9 + 2 * d} {ht + 5}Q{x + 2 * d} {ht + 2} {x - 8 + 2 * d} {ht + 6}Z", "ink")
+        if cap:
+            self.D(f"M{x - 9 + 2 * d} {ht + 6}Q{x + 2 * d} {ht - 7} {x + 11 + 2 * d} {ht + 6}Z", cap)
+        if mask:
+            self.D(rect(x - 2 + 5 * d - 5, ht + 10, 12, 6, 2), "lime")
+        hands = arms or [(x + 16 * d, ys + 44)]
+        for hx, hy in hands:
+            self.D(f"M{x + 12 * d} {ys + 4}L{hx} {hy}", None)
+            self.D(circle(hx, hy, 3), "wood")
+        return dict(head=(x + 2 * d, ht + 9), neck=(x, ys), ys=ys, yh=yh)
+
+
+    def bust(self, x, y_counter, d=1, coat="paper"):
+        """Head and shoulders of someone standing behind a counter."""
+        self.M(f"M{x - 18} {y_counter}L{x - 16} {y_counter - 26}Q{x} {y_counter - 32} {x + 16} {y_counter - 26}L{x + 18} {y_counter}Z", coat)
+        self.D(rect(x - 3, y_counter - 36, 6, 8), "wood")
+        self.M(circle(x + d, y_counter - 44, 9), "wood")
+        self.D(f"M{x - 8} {y_counter - 47}Q{x} {y_counter - 57} {x + 9} {y_counter - 48}Q{x} {y_counter - 51} {x - 8} {y_counter - 47}Z", "ink")
+
     def save(self, path, **extra):
         data = dict(id=self.id, w=self.w, h=self.h, **self.meta, **extra,
                     rooms=self.rooms, parts=self.parts, items=self.items)
