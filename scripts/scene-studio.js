@@ -19,7 +19,7 @@
 
   const CATALOG = [
     { id: 'house', title: 'The House', icon: '🏠', hint: 'Rooms, furniture, the garden and the garage.', ready: true },
-    { id: 'car', title: 'The Car', icon: '🚗', hint: 'Parts of a car, on the road and at the garage.' },
+    { id: 'car', title: 'The Car', icon: '🚗', hint: 'A car seen right through, the street and the petrol station.', ready: true },
     { id: 'hospital', title: 'The Hospital', icon: '🏥', hint: 'Wards, people, equipment, what happens there.' },
     { id: 'kitchen', title: 'The Kitchen', icon: '🍳', hint: 'Cooking, utensils and food.' },
     { id: 'airport', title: 'The Airport', icon: '✈️', hint: 'Check-in to the gate.' },
@@ -42,13 +42,20 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1000`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1001`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
     }
     return cache.get(id);
   }
+
+  /* the part of the drawing shown at first ("view"), and the zoom areas:
+     rooms (which are words too) and zones (zoom only, e.g. "Inside the car") */
+  const home = sc => { const v = sc.view || [0, 0, sc.w, sc.h]; return { x: v[0], y: v[1], w: v[2], h: v[3] }; };
+  const viewBox = sc => { const h = home(sc); return `${h.x} ${h.y} ${h.w} ${h.h}`; };
+  const areas = sc => sc.rooms.concat(sc.zones || []);
+  const inside = (b, a) => b[0] >= a[0] - 1 && b[1] >= a[1] - 1 && b[0] + b[2] <= a[0] + a[2] + 1 && b[1] + b[3] <= a[1] + a[3] + 1;
 
   const FILL = { paper: '#FFFEFA', wall: '#F3F0E6', wood: '#E8DFCB', glass: '#E2EBEE', tint: '#ECE8DC', lime: '#CDF649', ink: '#24282C', earth: '#E6DFD0' };
   const SW = { main: 1.7, det: 1.1, hair: 0.6 };
@@ -215,7 +222,7 @@
     const box = el.firstElementChild;
     load(out.scene || 'house').then(sc => {
       const n = sc.parts.filter(p => rank(p.level) <= rank(lvl)).length + sc.rooms.filter(r => rank(r.level) <= rank(lvl)).length;
-      box.innerHTML = `<svg viewBox="0 0 ${sc.w} ${sc.h}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${artSvg(sc, false)}</svg>
+      box.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${artSvg(sc, false)}</svg>
         <div class="sc-prev-in"><div><div class="sc-kick"><span>${esc(sc.kicker || 'Picture Studio')}</span><span>${esc(lvl)} level · ${n} words · 6 tasks</span></div>
           <h2>${esc(out.title || sc.title)}</h2><p>${esc(sc.dek || '')}</p></div>
           <button type="button" class="sc-btn lime sc-open">Open the Picture Studio →</button></div>`;
@@ -260,11 +267,11 @@
     function build() {
       const animate = !drawnOnce.has(sc.id);
       drawnOnce.add(sc.id);
-      stage.innerHTML = `<svg viewBox="0 0 ${sc.w} ${sc.h}" preserveAspectRatio="xMidYMid meet">${artSvg(sc, animate)}</svg><div class="sc-layer"></div>`;
+      stage.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMid meet">${artSvg(sc, animate)}</svg><div class="sc-layer"></div>`;
       svg = stage.querySelector('svg');
       layer = stage.querySelector('.sc-layer');
-      vb = { x: 0, y: 0, w: sc.w, h: sc.h };
-      if (st.room !== 'all') { const r = sc.rooms.find(x => x.id === st.room); if (r) vb = fitBox(r.box); }
+      vb = home(sc);
+      if (st.room !== 'all') { const r = areas(sc).find(x => x.id === st.room); if (r) vb = fitBox(r.box); }
       applyVb();
       paintBar();
       paint();
@@ -356,7 +363,7 @@
     /* ── top bar ── */
     function paintBar() {
       bar.innerHTML = `<div class="sc-rooms"><button type="button" class="sc-chip${st.room === 'all' ? ' on' : ''}" data-room="all">Whole picture</button>
-        ${sc.rooms.map(r => `<button type="button" class="sc-chip${st.room === r.id ? ' on' : ''}" data-room="${r.id}">${esc(r.word[0].toUpperCase() + r.word.slice(1))}</button>`).join('')}</div>
+        ${areas(sc).map(r => { const t = r.chip || r.word; return `<button type="button" class="sc-chip${st.room === r.id ? ' on' : ''}" data-room="${r.id}">${esc(t[0].toUpperCase() + t.slice(1))}</button>`; }).join('')}</div>
         <div class="sc-tools">
           <span class="sc-seg" title="Which words are on the picture">${LEVELS.map(l => `<button type="button" data-level="${l}" class="${st.level === l ? 'on' : ''}">${l}</button>`).join('')}</span>
           <button type="button" class="sc-ib${st.labels ? ' on' : ''}" data-act="labels" title="Show the words on the picture">Aa</button>
@@ -369,8 +376,8 @@
       const room = e.target.closest('[data-room]');
       if (room) {
         st.room = room.dataset.room; save();
-        const r = sc.rooms.find(x => x.id === st.room);
-        animateTo(r ? fitBox(r.box) : { x: 0, y: 0, w: sc.w, h: sc.h });
+        const r = areas(sc).find(x => x.id === st.room);
+        animateTo(r ? fitBox(r.box) : home(sc));
         bar.querySelectorAll('[data-room]').forEach(b => b.classList.toggle('on', b === room));
         return;
       }
@@ -447,6 +454,14 @@
       if (st.tab === 'explore') { const it = hit(x, y, items()); if (it) select(it.id, false); }
     }
 
+    /* zoomed into an area that does not hold this thing: back to the whole picture */
+    function unzoomFor(it) {
+      if (st.room === 'all') return;
+      const a = areas(sc).find(x => x.id === st.room);
+      if (a && inside(it.box, a.box)) return;
+      st.room = 'all'; paintBar(); animateTo(home(sc));
+    }
+
     /* ── Explore ── */
     function select(id, fromPin) {
       st.sel = id; save();
@@ -473,11 +488,11 @@
       const it = st.sel ? byId(st.sel) : null;
       const groups = {};
       items().forEach(p => (groups[p.room] = groups[p.room] || []).push(p));
-      const roomName = id => id === 'outside' ? 'Outside' : ((sc.rooms.find(r => r.id === id) || {}).word || id);
+      const roomName = id => (sc.groups || {})[id] || (id === 'outside' ? 'Outside' : ((sc.rooms.find(r => r.id === id) || {}).word || id));
       panel.innerHTML = `<h3>${esc(out.title || sc.title)}</h3>
-        <p class="sc-hint">Tap anything in the picture - or a word below - to hear it and see what it means. Pick a room at the top to zoom in.</p>
+        <p class="sc-hint">Tap anything in the picture - or a word below - to hear it and see what it means. Pick a part at the top to zoom in.</p>
         ${it ? wordCard(it) : `<div class="sc-card"><p class="sc-def" style="margin:0"><b>${items().length + rooms().length} words</b> at ${esc(st.level)} level. ${st.saved.length ? `You have saved ${st.saved.length}.` : 'Save the new ones to your Vault to practise them later.'}</p></div>`}
-        <div class="sc-group">Rooms</div><div class="sc-words">${rooms().map(r => `<button type="button" class="sc-w${st.sel === r.id ? ' on' : ''}${st.saved.includes(r.word) ? ' saved' : ''}" data-pick="${r.id}">${esc(r.word)}<span class="lv">${r.level}</span></button>`).join('')}</div>
+        <div class="sc-group">${esc(sc.roomsTitle || 'Rooms')}</div><div class="sc-words">${rooms().map(r => `<button type="button" class="sc-w${st.sel === r.id ? ' on' : ''}${st.saved.includes(r.word) ? ' saved' : ''}" data-pick="${r.id}">${esc(r.word)}<span class="lv">${r.level}</span></button>`).join('')}</div>
         ${Object.keys(groups).map(g => `<div class="sc-group">${esc(roomName(g))}</div><div class="sc-words">${groups[g].map(p => `<button type="button" class="sc-w${st.sel === p.id ? ' on' : ''}${st.saved.includes(p.word) ? ' saved' : ''}" data-pick="${p.id}">${esc(p.word)}<span class="lv">${p.level}</span></button>`).join('')}</div>`).join('')}`;
     }
 
@@ -543,8 +558,7 @@
         <div class="sc-fb" id="sc-fb"></div>
         <div class="sc-row"><button type="button" class="sc-btn dark" data-act="name-check">Check</button><button type="button" class="sc-btn ghost" data-act="name-hint">Hint</button><span style="flex:1"></span><button type="button" class="sc-btn ghost" data-act="name-skip">Skip</button></div>
         <p class="sc-muted" style="margin-top:14px">Word ${n.round + 1} of ${n.order.length}${n.hint ? ' · with a hint, it counts half' : ''}</p>`;
-      const r = sc.rooms.find(x => x.id === (it.room || it.id));
-      if (r && st.room !== 'all' && st.room !== r.id) { st.room = 'all'; paintBar(); animateTo({ x: 0, y: 0, w: sc.w, h: sc.h }); }
+      unzoomFor(it);
       setTimeout(() => panel.querySelector('#sc-name')?.focus(), 30);
     }
     function nameCheck() {
@@ -677,8 +691,7 @@
       if (pick) {
         const it = byId(pick.dataset.pick);
         st.sel = it.id; save(); paint();
-        const r = sc.rooms.find(x => x.id === (isRoom(it) ? it.id : it.room));
-        if (st.room !== 'all' && (!r || r.id !== st.room)) { st.room = 'all'; paintBar(); animateTo({ x: 0, y: 0, w: sc.w, h: sc.h }); }
+        unzoomFor(it);
         flashBox(it.box, false, 1000);
         say(it.word);
         return;
@@ -761,7 +774,7 @@
     function printSheet() {
       const list = items().slice().sort((a, b) => (a.pin[1] - b.pin[1]) || (a.pin[0] - b.pin[0]));
       const pins = list.map((p, i) => `<g><circle cx="${p.pin[0]}" cy="${p.pin[1]}" r="11" fill="#fff" stroke="#24282C" stroke-width="2"/><text x="${p.pin[0]}" y="${p.pin[1] + 4}" text-anchor="middle" font-size="12" font-weight="800" font-family="Helvetica,Arial">${i + 1}</text></g>`).join('');
-      const art = `<svg viewBox="0 0 ${sc.w} ${sc.h}" width="100%">${artSvg(sc, false)}${pins}</svg>`;
+      const art = `<svg viewBox="${viewBox(sc)}" width="100%">${artSvg(sc, false)}${pins}</svg>`;
       const bank = shuffle(list.map(p => p.word), 3).join(' · ');
       const title = esc(out.title || sc.title);
       const lines = list.map((p, i) => `<li><b>${i + 1}.</b> <span></span></li>`).join('');
