@@ -235,7 +235,37 @@ function welcomeEmail({ name, role }) {
   };
 }
 
+/* The Vault: words due for review. A short list of the hardest ones, one
+   button straight into the review, and a one-click way to stop these. */
+function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
+  const first = String(name || '').trim().split(/\s+/)[0] || 'there';
+  const title = `${due} word${due === 1 ? '' : 's'} ${due === 1 ? 'is' : 'are'} waiting in your Vault`;
+  const link = `${SITE}/student.html#vault`;
+  const list = words.slice(0, 3);
+  const lines = [
+    `Hi ${first}, these come back today, just before you forget them:`,
+    ...list.map(w => `• ${w.word}${w.translation ? ` - ${w.translation}` : ''}`),
+    'Two or three minutes is enough.',
+  ];
+  return {
+    subject: title,
+    html: layout({
+      preheader: list.map(w => w.word).join(' · '),
+      title,
+      paragraphs: [
+        escHtml(lines[0]),
+        list.map(w => `<b style="color:#24282C;">${escHtml(w.word)}</b>${w.translation ? ` <span style="color:#7a7d80;">- ${escHtml(w.translation)}</span>` : ''}`).join('<br>'),
+        escHtml('Two or three minutes is enough.'),
+      ],
+      button: { href: link, label: 'Review now' },
+      footnote: `You get this once a day when words are due. <a href="${escHtml(unsubscribe)}" style="color:#a3a48d;">Stop these emails</a>`,
+    }),
+    text: textVersion({ title, lines, link, linkLabel: 'Review now', footnote: `Stop these emails: ${unsubscribe}` }),
+  };
+}
+
 module.exports = {
+  vaultReminderEmail,
   sendEmail, sendEmailQuietly, emailConfigured, SITE, layout, textVersion,
   resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail,
 };

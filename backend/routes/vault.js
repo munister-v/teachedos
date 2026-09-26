@@ -7,7 +7,43 @@ const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { schedule, preview, MASTERED_DAYS } = require('../lib/srs');
 
+/* One-click "stop these emails" from the reminder itself (no sign-in: the
+   link carries an HMAC of the user id). Pushes stay as they were. */
+router.get('/unsubscribe', async (req, res) => {
+  const { unsubscribeToken } = require('../jobs/vaultReminders');
+  const u = String(req.query.u || '');
+  const ok = /^[0-9a-f-]{36}$/i.test(u) && String(req.query.t || '') === unsubscribeToken(u);
+  if (ok) await pool.query('UPDATE users SET vault_remind_email = FALSE WHERE id = $1', [u]).catch(() => {});
+  res.type('html').send(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TeachEd</title>
+<body style="margin:0;background:#F6F6EF;font-family:-apple-system,system-ui,sans-serif;color:#24282C;display:grid;place-items:center;min-height:100vh">
+<div style="background:#fff;border:1px solid #CACCC6;border-radius:20px;padding:34px 38px;max-width:420px;text-align:center">
+<h1 style="font-size:21px;margin:0 0 10px">${ok ? 'No more Vault emails' : 'This link did not work'}</h1>
+<p style="color:#5D614B;line-height:1.5;margin:0 0 20px">${ok ? 'You will not get review reminders by email. You can switch them back on in your cabinet: The Vault → Reminders.' : 'Open your cabinet and switch reminders off in The Vault → Reminders.'}</p>
+<a href="/student.html" style="display:inline-block;background:#CDF649;color:#24282C;font-weight:800;padding:12px 22px;border-radius:12px;border:1.5px solid #24282C;text-decoration:none">Open my cabinet</a></div></body>`);
+});
+
 router.use(requireAuth);
+
+// GET/PUT /api/vault/reminders - {push, email, hour}
+router.get('/reminders', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT vault_remind_push AS push, vault_remind_email AS email, vault_remind_hour AS hour, timezone,
+              EXISTS (SELECT 1 FROM push_subscriptions WHERE user_id = $1) AS subscribed
+         FROM users WHERE id = $1`, [req.user.id]);
+    res.json(rows[0] || {});
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+});
+router.put('/reminders', async (req, res) => {
+  try {
+    const b = req.body || {};
+    const hour = Math.max(0, Math.min(23, parseInt(b.hour, 10)));
+    await pool.query(
+      `UPDATE users SET vault_remind_push = $2, vault_remind_email = $3, vault_remind_hour = $4 WHERE id = $1`,
+      [req.user.id, !!b.push, !!b.email, Number.isFinite(hour) ? hour : 18]);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+});
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const str = (v, n) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n);

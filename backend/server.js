@@ -323,6 +323,8 @@ async function main() {
     scheduleDeadlineReminders();
     const { scheduleHousekeeping } = require('./jobs/housekeeping');
     scheduleHousekeeping();
+    const { scheduleVaultReminders } = require('./jobs/vaultReminders');
+    scheduleVaultReminders();
   }
 }
 

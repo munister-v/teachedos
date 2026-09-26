@@ -867,3 +867,9 @@ ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS lapses          INTEGER NOT NULL
 ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS last_reviewed_at TIMESTAMPTZ;
 ALTER TABLE vocabulary ALTER COLUMN word TYPE VARCHAR(400);
 CREATE INDEX IF NOT EXISTS idx_vocabulary_due ON vocabulary(user_id, due_at) WHERE kind = 'word';
+
+-- Vault reminders: once a day at the student's local hour, when words are due.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_push  BOOLEAN  NOT NULL DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_email BOOLEAN  NOT NULL DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_hour  SMALLINT NOT NULL DEFAULT 18;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_reminded_on  DATE;
