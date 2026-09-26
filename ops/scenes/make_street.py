@@ -175,8 +175,7 @@ S.D(rect(698, 654, 8, 6, 2) + rect(740, 652, 8, 8, 2), "sky2")
 S.M(pts([(812, 646), (832, 646), (838, B), (806, B)], True), "ink")          # menu board
 S.fill(rect(816, 654, 16, 3) + rect(816, 662, 14, 3) + rect(816, 670, 16, 3), "paper")
 # tree in a pit
-S.D(line(1194, B, 1196, 560) + line(1204, B, 1202, 560), "wood")
-S.M(blob(1199, 520, 38, 46, 9, 0.2, seed=13), "leaf")
+S.tree(1199, B, 520, 38, 46, seed=13)
 S.D(rect(1182, 686, 36, 5, 2), "ink")
 
 # bus stop

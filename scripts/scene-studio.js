@@ -44,7 +44,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1008`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1009`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -66,6 +66,8 @@
     lav: '#EAE6F2', mint: '#E0F0E8', steel: '#DDE1E5', brick: '#DDA58F', grass: '#C9DFA9', leaf: '#C2DAA0',
     red: '#E48A70', sun: '#FFF1BF', sage2: '#C8D8BC', sky2: '#C8DDEA', blush2: '#F0CDBF', sand2: '#EBD9B4',
     lav2: '#D8CFEA', mint2: '#BFE2D1', asphalt: '#CFCBC3', shadow: 'rgba(36,40,44,.12)', skyg: 'url(#scsky)', glassa: 'rgba(196,222,236,.42)',
+    skin1: '#F3D5B5', skin2: '#DDAA80', skin3: '#A87550', hairb: '#6B4A34', hairy: '#E2BC62',
+    leaf2: '#A6C882', leaf3: '#D6E8BD', bark: '#B08A62', shade: 'rgba(36,40,44,.07)',
   };
   const SW = { main: 1.7, det: 1.1, hair: 0.6, soft: 0.8 };
   const DEFS = '<defs><linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient></defs>';
@@ -77,10 +79,11 @@
     const body = sc.items.map(it => {
       const fill = it.f ? FILL[it.f] || 'none' : 'none';
       const stroke = it.s ? ` stroke="#24282C" stroke-width="${SW[it.s]}"${it.s === 'soft' ? ' stroke-opacity=".16"' : ''}` : '';
-      if (!animate) return `<path d="${it.d}" fill="${fill}"${stroke}/>`;
+      const cls = it.s ? ` class="w-${it.s}` : ' class="';
+      if (!animate) return `<path${cls}" d="${it.d}" fill="${fill}"${stroke}/>`;
       const delay = Math.round(it.t * k);
-      if (it.s === 'main') return `<path class="sc-draw" pathLength="1" style="animation-delay:${delay}ms,${delay}ms" d="${it.d}" fill="${fill}"${stroke}/>`;
-      return `<path class="sc-fade" style="animation-delay:${delay + 120}ms" d="${it.d}" fill="${fill}"${stroke}/>`;
+      if (it.s === 'main') return `<path${cls} sc-draw" pathLength="1" style="animation-delay:${delay}ms,${delay}ms" d="${it.d}" fill="${fill}"${stroke}/>`;
+      return `<path${cls} sc-fade" style="animation-delay:${delay + 120}ms" d="${it.d}" fill="${fill}"${stroke}/>`;
     }).join('');
     return `${DEFS}<g stroke-linejoin="round" stroke-linecap="round">${body}</g>`;
   }
@@ -108,6 +111,11 @@
 .sc-stage.drag{cursor:grabbing}
 .sc-stage.aim{cursor:crosshair}
 .sc-stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sc-stage svg.crisp path{vector-effect:non-scaling-stroke}
+.sc-stage svg.crisp .w-main{stroke-width:calc(1.5px * var(--k,1))}
+.sc-stage svg.crisp .w-det{stroke-width:calc(1px * var(--k,1))}
+.sc-stage svg.crisp .w-hair{stroke-width:calc(.6px * var(--k,1))}
+.sc-stage svg.crisp .w-soft{stroke-width:.8px}
 .sc-draw{stroke-dasharray:1;stroke-dashoffset:1;fill-opacity:0;animation:scdraw .9s ease forwards,scfill .5s ease forwards}
 @keyframes scdraw{to{stroke-dashoffset:0}}
 @keyframes scfill{to{fill-opacity:1}}
@@ -295,6 +303,9 @@
       drawnOnce.add(sc.id);
       stage.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMid meet">${artSvg(sc, animate)}</svg><div class="sc-layer"></div>`;
       svg = stage.querySelector('svg');
+      // once the draw-in is over, strokes switch to screen-true widths
+      const maxT = animate ? Math.max(0, ...sc.items.map(it => it.t)) * 0.32 + 1200 : 0;
+      setTimeout(() => { if (!dead && svg) svg.classList.add('crisp'); }, maxT);
       layer = stage.querySelector('.sc-layer');
       vb = home(sc);
       if (st.room !== 'all') { const r = areas(sc).find(x => x.id === st.room); if (r) vb = fitBox(r.box); }
@@ -315,6 +326,10 @@
     }
     function applyVb() {
       svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+      /* line weight follows the zoom only partly: bold enough on the whole
+         picture, still fine when you zoom right in (see .crisp) */
+      const g = geom();
+      svg.style.setProperty('--k', Math.max(0.85, Math.min(1.5, Math.sqrt(g.s))).toFixed(3));
       placeLayer();
     }
     function animateTo(target) {

@@ -86,6 +86,8 @@ PALETTE = dict(
     lav="#EAE6F2", mint="#E0F0E8", steel="#DDE1E5", brick="#DDA58F", grass="#C9DFA9", leaf="#C2DAA0",
     red="#E48A70", sun="#FFF1BF", sage2="#C8D8BC", sky2="#C8DDEA", blush2="#F0CDBF", sand2="#EBD9B4",
     lav2="#D8CFEA", mint2="#BFE2D1", asphalt="#CFCBC3", shadow="rgba(36,40,44,.12)", skyg="url(#scsky)", glassa="rgba(196,222,236,.42)",
+    skin1="#F3D5B5", skin2="#DDAA80", skin3="#A87550", hairb="#6B4A34", hairy="#E2BC62",
+    leaf2="#A6C882", leaf3="#D6E8BD", bark="#B08A62", shade="rgba(36,40,44,.07)",
 )
 STROKE = dict(main=1.7, det=1.1, hair=0.6, soft=0.8)
 SKY = '<linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient>'
@@ -147,6 +149,11 @@ class Scene:
             self.soft("".join(line(x, j, x + w, j) for j in rows)
                       + "".join(line(i + (10 if (j // 10) % 2 else 0), j, i + (10 if (j // 10) % 2 else 0), j + 10)
                                 for j in rows for i in range(int(x), int(x + w) - 10, 20)))
+        # soft shade where the wall meets the floor and the ceiling: depth
+        for i, hh in enumerate((14, 7, 3)):
+            self.fill(rect(x, y + h - hh, w, hh), "shade")
+        for hh in (8, 3):
+            self.fill(rect(x, y, w, hh), "shade")
         if dado:
             yd = y + h - dado
             self.fill(rect(x, yd, w, dado), fill + "2" if fill + "2" in PALETTE else "tint")
@@ -173,59 +180,133 @@ class Scene:
         self.parts.append(dict(id=pid, word=word, pin=list(pin), box=list(box), **card))
 
     # ── people ────────────────────────────────────────────────────────────────
-    def standing(self, x, yf, coat="paper", h=None, d=1, arms=None, cap=None, mask=False, legs="tint", k=1.0):
-        """A standing figure, feet at (x, yf), facing d (1 right, -1 left), k = scale.
-        arms: None (hanging) or [(hx, hy)] hand points for the arm nearer the viewer."""
+    # ── people ────────────────────────────────────────────────────────────
+    SKINS = ("wood", "skin1", "skin2", "skin3")
+    HAIRS = ("short", "long", "bun", "curly", "short", "long")
+    HAIRC = ("ink", "hairb", "hairy", "hairb", "ink", "brick")
+
+    def _pick(self, seed, opts):
+        return opts[int(abs(seed)) % len(opts)]
+
+    def limb(self, x1, y1, x2, y2, w, fill, cap=True):
+        """An arm or a leg: a rounded band from (x1, y1) to (x2, y2)."""
+        L = math.hypot(x2 - x1, y2 - y1) or 1
+        nx, ny = -(y2 - y1) / L * w / 2, (x2 - x1) / L * w / 2
+        r = w / 2
+        f = lambda v: F(v)
+        d = (f"M{f(x1 + nx)} {f(y1 + ny)}L{f(x2 + nx)} {f(y2 + ny)}"
+             f"A{f(r)} {f(r)} 0 0 1 {f(x2 - nx)} {f(y2 - ny)}L{f(x1 - nx)} {f(y1 - ny)}"
+             + (f"A{f(r)} {f(r)} 0 0 1 {f(x1 + nx)} {f(y1 + ny)}Z" if cap else "Z"))
+        self.D(d, fill)
+
+    def head(self, hx, hy, r, d, skin, hair, hairc, cap=None, mask=False):
+        """A friendly head: hair, face, eyes and a small smile."""
         n = lambda v: round(v, 1)
+        if cap:
+            hair = "none"
+        if hair == "long":
+            self.D(f"M{n(hx - r * 1.08)} {n(hy)}Q{n(hx)} {n(hy - r * 1.9)} {n(hx + r * 1.08)} {n(hy)}"
+                   f"L{n(hx + r * 1.12)} {n(hy + r * 1.35)}Q{n(hx)} {n(hy + r * 1.55)} {n(hx - r * 1.12)} {n(hy + r * 1.35)}Z", hairc)
+        if hair == "bun":
+            self.D(circle(n(hx - d * r * 0.55), n(hy - r * 1.05), n(r * 0.48)), hairc)
+        self.M(circle(n(hx), n(hy), n(r)), skin)
+        if hair in ("short", "long", "bun"):
+            self.D(f"M{n(hx - r * 1.02)} {n(hy - r * 0.05)}Q{n(hx - r * 0.2)} {n(hy - r * 1.55)} {n(hx + r * 1.02)} {n(hy - r * 0.2)}"
+                   f"Q{n(hx + d * r * 0.1)} {n(hy - r * 0.55)} {n(hx - r * 1.02)} {n(hy - r * 0.05)}Z", hairc)
+        elif hair == "curly":
+            self.D("".join(circle(n(hx + r * math.cos(a) * 0.82), n(hy - r * 0.35 + r * math.sin(a) * 0.62), n(r * 0.38))
+                           for a in [math.radians(t) for t in (-180, -145, -110, -70, -35, 0)]), hairc)
+        if cap:
+            self.D(f"M{n(hx - r * 1.15)} {n(hy - r * 0.2)}Q{n(hx)} {n(hy - r * 1.85)} {n(hx + r * 1.15)} {n(hy - r * 0.2)}Z", cap)
+        ex = hx + d * r * 0.18
+        self.fill(circle(n(ex - r * 0.3), n(hy + r * 0.05), n(max(0.9, r * 0.1))) + circle(n(ex + r * 0.3), n(hy + r * 0.05), n(max(0.9, r * 0.1))), "ink")
+        if mask:
+            self.D(rect(n(hx - r * 0.85), n(hy + r * 0.2), n(r * 1.7), n(r * 0.65), 2), "lime")
+        else:
+            self.D(f"M{n(ex - r * 0.28)} {n(hy + r * 0.42)}Q{n(ex)} {n(hy + r * 0.62)} {n(ex + r * 0.28)} {n(hy + r * 0.42)}")
+
+    def standing(self, x, yf, coat="paper", h=None, d=1, arms=None, cap=None, mask=False, legs="tint", k=1.0,
+                 skin=None, hair=None, hairc=None):
+        """A standing figure, feet at (x, yf), facing d (1 right, -1 left), k = scale.
+        arms: None (hanging) or [(hx, hy)] hand points for the arm nearer the viewer;
+        with two points, the second is the far arm."""
+        n = lambda v: round(v, 1)
+        seed = x * 7 + yf
+        skin = skin or self._pick(seed, self.SKINS)
+        hair = hair or self._pick(seed / 3, self.HAIRS)
+        hairc = hairc or self._pick(seed / 5, self.HAIRC)
         h = h or 118 * k
+        s = h / (118 * k)                     # a shorter figure (a child) keeps its width
         ht = yf - h
-        ys, yh = ht + 22 * k, yf - 46 * k
-        self.D(rect(n(x - 10 * k), n(yh - 4 * k), n(7 * k), n(yf - yh), 2) + rect(n(x + 3 * k), n(yh - 4 * k), n(7 * k), n(yf - yh), 2), legs)
-        self.D(ellipse(n(x + (3 * d - 6) * k), yf - 2, n(7 * k), 3) + ellipse(n(x + (6 + 3 * d) * k), yf - 2, n(7 * k), 3), "ink")
+        ys, yh = ht + 22 * k * s, yf - 46 * k * s
+        near = (arms or [None])[0] or (x + 16 * d * k, ys + 44 * k * s)
+        far = arms[1] if arms and len(arms) > 1 else (x - 10 * d * k, ys + 44 * k * s)
+        # far arm, behind the body
+        self.limb(n(x - 9 * d * k), n(ys + 5 * k), n(far[0]), n(far[1]), n(6.5 * k), coat)
+        self.D(circle(n(far[0]), n(far[1]), n(3.4 * k)), skin)
+        # legs and shoes
+        for lx in (x - 5.5 * k, x + 5.5 * k):
+            self.limb(n(lx), n(yh - 6 * k), n(lx + d * 0.5 * k), n(yf - 4 * k), n(7.5 * k), legs, cap=False)
+            self.D(f"M{n(lx - 4 * k)} {n(yf)}V{n(yf - 5 * k)}Q{n(lx)} {n(yf - 8 * k)} {n(lx + d * 9 * k)} {n(yf - 3 * k)}V{n(yf)}Z", "ink")
+        # body
         self.M(f"M{n(x - 13 * k)} {n(ys + 3 * k)}Q{n(x - 15 * k)} {n(ys)} {n(x - 10 * k)} {n(ys)}H{n(x + 10 * k)}Q{n(x + 15 * k)} {n(ys)} {n(x + 13 * k)} {n(ys + 3 * k)}"
                f"L{n(x + 17 * k)} {n(yh)}H{n(x - 17 * k)}Z", coat)
-        self.D(rect(n(x - 3 * k), n(ys - 6 * k), n(6 * k), n(7 * k)), "wood")
-        hx, hy, r = n(x + 2 * d * k), n(ht + 9 * k), n(9 * k)
-        self.M(circle(hx, hy, r), "wood")
-        self.D(f"M{n(hx - 10 * k)} {n(hy - 3 * k)}Q{hx} {n(hy - 13 * k)} {n(hx + 7 * k)} {n(hy - 4 * k)}Q{hx} {n(hy - 7 * k)} {n(hx - 10 * k)} {n(hy - 3 * k)}Z", "ink")
-        if cap:
-            self.D(f"M{n(hx - 11 * k)} {n(hy - 3 * k)}Q{hx} {n(hy - 16 * k)} {n(hx + 9 * k)} {n(hy - 3 * k)}Z", cap)
-        if mask:
-            self.D(rect(n(hx + (5 * d - 7) * k), n(hy + 1 * k), n(12 * k), n(6 * k), 2), "lime")
-        hands = arms or [(x + 16 * d * k, ys + 44 * k)]
-        for ax, ay in hands:
-            self.D(f"M{n(x + 12 * d * k)} {n(ys + 4 * k)}L{n(ax)} {n(ay)}", None)
-            self.D(circle(n(ax), n(ay), n(3 * k)), "wood")
+        self.D(f"M{n(x - 5 * k)} {n(ys)}L{n(x)} {n(ys + 7 * k)}L{n(x + 5 * k)} {n(ys)}", "paper")     # collar
+        # near arm
+        self.limb(n(x + 11 * d * k), n(ys + 5 * k), n(near[0]), n(near[1]), n(6.5 * k), coat)
+        self.D(circle(n(near[0]), n(near[1]), n(3.4 * k)), skin)
+        # neck and head
+        self.D(rect(n(x - 3 * k), n(ys - 6 * k), n(6 * k), n(7 * k)), skin)
+        hx, hy = n(x + 2 * d * k), n(ht + 9 * k)
+        self.head(hx, hy, 9 * k, d, skin, hair, hairc, cap=cap, mask=mask)
         return dict(head=(hx, hy), neck=(x, ys), ys=ys, yh=yh)
 
-    def bust(self, x, y_counter, d=1, coat="paper", k=1.0):
+    def bust(self, x, y_counter, d=1, coat="paper", k=1.0, skin=None, hair=None, hairc=None):
         """Head and shoulders of someone standing behind a counter."""
         n = lambda v: round(v, 1)
+        seed = x * 5 + y_counter
+        skin = skin or self._pick(seed, self.SKINS)
+        hair = hair or self._pick(seed / 3, self.HAIRS)
+        hairc = hairc or self._pick(seed / 5, self.HAIRC)
         y = y_counter
         self.M(f"M{n(x - 18 * k)} {y}L{n(x - 16 * k)} {n(y - 26 * k)}Q{x} {n(y - 32 * k)} {n(x + 16 * k)} {n(y - 26 * k)}L{n(x + 18 * k)} {y}Z", coat)
-        self.D(rect(n(x - 3 * k), n(y - 36 * k), n(6 * k), n(8 * k)), "wood")
-        hx, hy = n(x + d * k), n(y - 44 * k)
-        self.M(circle(hx, hy, n(9 * k)), "wood")
-        self.D(f"M{n(hx - 9 * k)} {n(hy - 3 * k)}Q{hx} {n(hy - 13 * k)} {n(hx + 8 * k)} {n(hy - 4 * k)}Q{hx} {n(hy - 7 * k)} {n(hx - 9 * k)} {n(hy - 3 * k)}Z", "ink")
+        self.D(f"M{n(x - 5 * k)} {n(y - 30 * k)}L{x} {n(y - 23 * k)}L{n(x + 5 * k)} {n(y - 30 * k)}", "paper")
+        self.D(rect(n(x - 3 * k), n(y - 36 * k), n(6 * k), n(8 * k)), skin)
+        self.head(n(x + d * k), n(y - 44 * k), 9 * k, d, skin, hair, hairc)
 
-    def sitting(self, x, ys, yf, coat="paper", legs="tint", d=-1, arms=None, k=1.0):
+    def sitting(self, x, ys, yf, coat="paper", legs="tint", d=-1, arms=None, k=1.0, skin=None, hair=None, hairc=None):
         """A seated figure: hips at (x, ys) on the seat, feet on the floor at yf,
         facing d (-1 left, 1 right). arms: hand points for the near arm."""
+        n = lambda v: round(v, 1)
+        seed = x * 3 + ys
+        skin = skin or self._pick(seed, self.SKINS)
+        hair = hair or self._pick(seed / 3, self.HAIRS)
+        hairc = hairc or self._pick(seed / 5, self.HAIRC)
         t = 50 * k
         top = ys - t
-        self.M(f"M{x - 12 * k} {ys}L{x - 11 * k} {top + 4}Q{x} {top - 3} {x + 11 * k} {top + 4}L{x + 12 * k} {ys}Z", coat)
-        self.D(rect(x - 3, top - 6, 6, 7), "wood")
-        hx, hy = x + 2 * d, top - 15 * k
-        self.M(circle(hx, hy, 9 * k), "wood")
-        self.D(f"M{hx - 9 * k} {hy - 2}Q{hx} {hy - 13 * k} {hx + 9 * k} {hy - 3}Q{hx} {hy - 6} {hx - 9 * k} {hy - 2}Z", "ink")
         kx = x + d * 30 * k
-        self.D(rect(min(x, kx) - 2, ys - 9 * k, abs(kx - x) + 4, 9 * k, 3), legs)
-        self.D(rect(kx - 4 * k, ys - 5, 8 * k, yf - ys + 2, 3), legs)
-        self.D(ellipse(kx + d * 4, yf - 2, 7 * k, 3), "ink")
-        for hx2, hy2 in (arms or [(x + d * 24 * k, ys - 14 * k)]):
-            self.D(f"M{x + d * 6} {top + 6}L{hx2} {hy2}")
-            self.D(circle(hx2, hy2, 3 * k), "wood")
+        self.limb(n(x), n(ys - 4 * k), n(kx), n(ys - 4 * k), n(9 * k), legs)          # thigh
+        self.limb(n(kx), n(ys - 4 * k), n(kx), n(yf - 4 * k), n(7.5 * k), legs, cap=False)   # shin
+        self.D(f"M{n(kx - 4 * k)} {n(yf)}V{n(yf - 5 * k)}Q{n(kx)} {n(yf - 8 * k)} {n(kx + d * 9 * k)} {n(yf - 3 * k)}V{n(yf)}Z", "ink")
+        self.M(f"M{n(x - 12 * k)} {ys}L{n(x - 11 * k)} {n(top + 4)}Q{x} {n(top - 3)} {n(x + 11 * k)} {n(top + 4)}L{n(x + 12 * k)} {ys}Z", coat)
+        self.D(f"M{n(x - 5 * k)} {n(top)}L{x} {n(top + 7 * k)}L{n(x + 5 * k)} {n(top)}", "paper")
+        hand = (arms or [(x + d * 24 * k, ys - 14 * k)])[0]
+        self.limb(n(x + d * 6 * k), n(top + 6 * k), n(hand[0]), n(hand[1]), n(6.5 * k), coat)
+        self.D(circle(n(hand[0]), n(hand[1]), n(3.2 * k)), skin)
+        self.D(rect(n(x - 3), n(top - 6), 6, 7), skin)
+        hx, hy = n(x + 2 * d), n(top - 15 * k)
+        self.head(hx, hy, 9 * k, d, skin, hair, hairc)
         return dict(head=(hx, hy), top=top)
+
+    def tree(self, x, yg, cy, rx, ry, seed=1):
+        """A tree: a bark trunk with two branches and a crown in three greens."""
+        self.shadow(x, yg, rx * 0.7, 4)
+        self.M(f"M{x - 7} {yg}Q{x - 4} {cy + ry * 0.5} {x - 5} {cy}H{x + 5}Q{x + 4} {cy + ry * 0.5} {x + 7} {yg}Z", "bark")
+        self.D(f"M{x} {cy + ry * 0.6}L{x - rx * 0.35} {cy + ry * 0.1}M{x + 1} {cy + ry * 0.45}L{x + rx * 0.3} {cy}")
+        self.M(blob(x, cy, rx, ry, 11, 0.2, seed=seed), "leaf")
+        self.fill(blob(x + rx * 0.18, cy + ry * 0.3, rx * 0.72, ry * 0.52, 9, 0.2, seed=seed + 1), "leaf2")
+        self.fill(blob(x - rx * 0.3, cy - ry * 0.35, rx * 0.42, ry * 0.3, 7, 0.2, seed=seed + 2), "leaf3")
+        self.H(blob(x + rx * 0.05, cy + ry * 0.3, rx * 0.72, ry * 0.52, 9, 0.2, seed=seed + 1))
 
     def save(self, path, **extra):
         data = dict(id=self.id, w=self.w, h=self.h, **self.meta, **extra,

@@ -196,8 +196,7 @@ S.D(rect(1296, 700, 12, 8, 2), "paper")
 for cx in (1150, 1262):
     S.M(circle(cx, 744, 15), "ink")
     S.D(circle(cx, 744, 6), "paper")
-S.D(line(1356, G, 1358, 650) + line(1370, G, 1368, 650), "wood")          # tree
-S.M(blob(1362, 612, 34, 44, 9, 0.2, seed=6), "leaf")
+S.tree(1363, G, 612, 34, 44, seed=6)                                         # tree
 S.M(rect(1318, 726, 70, 6, 2), "wood")                                     # bench
 S.D(rect(1318, 708, 70, 5, 2) + line(1324, 732, 1324, G) + line(1382, 732, 1382, G), "wood")
 
