@@ -21,7 +21,7 @@
     { id: 'house', title: 'The House', icon: '🏠', hint: 'Rooms, furniture, the garden and the garage.', ready: true },
     { id: 'car', title: 'The Car', icon: '🚗', hint: 'A car seen right through, the street and the petrol station.', ready: true },
     { id: 'hospital', title: 'The Hospital', icon: '🏥', hint: 'A&E to the helipad: the people, the rooms, what happens there.', ready: true },
-    { id: 'kitchen', title: 'The Kitchen', icon: '🍳', hint: 'Cooking, utensils and food.' },
+    { id: 'kitchen', title: 'The Kitchen', icon: '🍳', hint: 'Machines, cupboards, cooking tools and a table laid for breakfast.', ready: true },
     { id: 'airport', title: 'The Airport', icon: '✈️', hint: 'Check-in to the gate.' },
     { id: 'street', title: 'The High Street', icon: '🏪', hint: 'Shops, places and directions.' },
   ];
@@ -42,7 +42,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1004`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1005`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
