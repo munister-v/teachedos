@@ -269,6 +269,23 @@ function verifyEmail({ name, link }) {
   };
 }
 
+/* To the OLD address after a change, so a takeover does not go unnoticed. */
+function emailChangedEmail({ name, newEmail }) {
+  const first = String(name || '').trim().split(/\s+/)[0] || 'there';
+  const title = 'Your TeachEd email was changed';
+  const masked = String(newEmail || '').replace(/^(.{2})[^@]*(@.*)$/, '$1•••$2');
+  const lines = [
+    `Hi ${first}, the email address on your TeachEd account was changed to ${masked}. This address will no longer be used for sign-in or password resets.`,
+    'Every other device was signed out.',
+  ];
+  const warn = "If this wasn't you, write to hello@teachedos.app right away so we can lock the account.";
+  return {
+    subject: 'Your TeachEd email address was changed',
+    html: layout({ preheader: 'Security notice for your TeachEd account.', title, paragraphs: [...lines.map(escHtml), `<strong>${escHtml(warn)}</strong>`] }),
+    text: textVersion({ title, lines: [...lines, '', warn] }),
+  };
+}
+
 /* Sent after an account is deleted: the record that it happened. */
 function accountDeletedEmail({ name }) {
   const first = String(name || '').trim().split(/\s+/)[0] || 'there';
@@ -317,5 +334,5 @@ function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
 module.exports = {
   vaultReminderEmail,
   sendEmail, sendEmailQuietly, emailConfigured, SITE, layout, textVersion,
-  resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE,
+  resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, emailChangedEmail,
 };

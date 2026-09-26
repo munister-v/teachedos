@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found · TeachEd</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/styles/auth.css?v=994">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+  .state-section { display: none; }
+  .state-section.visible { display: block; }
+</style>
+<link rel="stylesheet" href="/styles/teached-brand.css?v=994">
+<!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
+<link rel="stylesheet" href="/styles/figma-theme.css?v=994">
+<link rel="stylesheet" href="/styles/mobile-chrome.css?v=994">
+<link rel="stylesheet" href="/styles/controls.css?v=994">
+</head>
+<body class="fx">
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-titlebar">
+      <img class="auth-tb-logo" src="/logo-sm.png" alt="" width="20" height="20" aria-hidden="true">
+      <span class="auth-tb-name">TeachEd</span>
+    </div>
+    <div class="auth-body" style="text-align:center;">
+      <div style="font:800 64px/1 var(--te-font-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif);letter-spacing:-.04em;color:var(--auth-ink,#24282C);margin:6px 0 10px;">4<span style="display:inline-block;width:.78em;height:.78em;border-radius:50%;background:#CDF649;vertical-align:-.04em;margin:0 .03em;box-shadow:inset 0 0 0 .1em #24282C;"></span>4</div>
+      <div class="auth-title" style="margin-bottom:8px;">This page doesn't exist</div>
+      <div class="auth-sub" style="font-size:13.5px;line-height:1.55;margin-bottom:22px;">
+        <code id="nf-path" style="font-size:12px;background:rgba(36,40,44,.06);border-radius:6px;padding:2px 6px;word-break:break-all;"></code><br>
+        The link may be old or mistyped. Your boards and lessons are safe.
+      </div>
+      <a href="/" class="auth-btn" style="text-decoration:none;display:flex;">Go to TeachEd</a>
+      <a href="/board.html" class="auth-back">Open my boards →</a>
+    </div>
+  </div>
+</div>
+<script>
+  document.getElementById('nf-path').textContent = location.pathname.length > 80 ? location.pathname.slice(0, 77) + '…' : location.pathname;
+</script>
+</body>
+</html>

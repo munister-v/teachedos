@@ -89,10 +89,16 @@ function effectiveTimeZoneLabel() {
   return me.timezone || browserTimeZone() || DEFAULT_TIME_ZONE;
 }
 
+/* Browsers still report a few zones by their old names (Chrome: Europe/Kiev).
+   Only the label changes - the stored IANA id stays whatever the browser
+   and the server both accept. */
+const ZONE_NAMES = { 'Europe/Kiev': 'Europe/Kyiv', 'Asia/Calcutta': 'Asia/Kolkata', 'Asia/Saigon': 'Asia/Ho_Chi_Minh', 'Asia/Rangoon': 'Asia/Yangon', 'Asia/Katmandu': 'Asia/Kathmandu', 'Europe/Uzhgorod': 'Europe/Kyiv', 'Europe/Zaporozhye': 'Europe/Kyiv' };
+const zoneLabel = (z) => ZONE_NAMES[z] || z;
+
 function describeTimeZone(timeZone) {
   const zone = timeZone || DEFAULT_TIME_ZONE;
-  const local = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: zone });
-  return `${zone} · ${local}`;
+  const local = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: zone });
+  return `${zoneLabel(zone)} · ${local}`;
 }
 
 function renderTimeZoneOptions() {
@@ -116,10 +122,10 @@ function updateTimeZonePreview() {
   const current = document.getElementById('tz-current-label');
   const preview = document.getElementById('tz-preview-time');
   const detected = document.getElementById('tz-detected-label');
-  if (detected) detected.textContent = browserTimeZone();
-  if (current) current.textContent = zone;
+  if (detected) detected.textContent = zoneLabel(browserTimeZone());
+  if (current) current.textContent = zoneLabel(zone);
   if (preview) {
-    preview.textContent = new Date().toLocaleString([], {
+    preview.textContent = new Date().toLocaleString('en-GB', {
       timeZone: zone,
       weekday: 'short',
       hour: '2-digit',
@@ -175,6 +181,7 @@ function switchTab(name) {
 
 function openPlansSection() {
   switchTab('settings');
+  showSettingsGroup('plan', { updateHash: false });
   const target = location.hash === '#billing' ? 'iban-payment-section' : 'plan-card';
   setTimeout(() => {
     const el = document.getElementById(target) || document.getElementById('plan-card');
@@ -222,6 +229,7 @@ async function init() {
     setDisplay('nb-user-info', '');
     updateMobileProfileSummary({ offline: !r.ok });
     if (location.hash === '#plans' || location.hash === '#billing') openPlansSection();
+    else if (location.hash.startsWith('#settings')) switchTab('settings');
   } catch (e) {
     if (cached?.me) {
       me = cached.me;
@@ -302,7 +310,7 @@ async function renderOverview(forceOffline = false) {
           <div class="rbi-icon">📌</div>
           <div>
             <div class="rbi-name">${esc(b.name)}</div>
-            <div class="rbi-meta">${b.card_count || 0} cards · ${new Date(b.updated_at).toLocaleDateString()}</div>
+            <div class="rbi-meta">${b.card_count || 0} cards · ${new Date(b.updated_at).toLocaleDateString('en-GB')}</div>
           </div>
         </a>`).join('');
     }
@@ -380,7 +388,7 @@ function renderBoardsGrid(boards) {
         <div class="bc-name-wrap">
           <div class="bc-name" id="bc-name-${esc(b.id)}" onclick="startBoardRename('${esc(b.id)}')" title="Click to rename">${esc(b.name)}</div>
         </div>
-        <div class="bc-meta">${b.card_count || 0} cards · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
+        <div class="bc-meta">${b.card_count || 0} cards · Updated ${new Date(b.updated_at).toLocaleDateString('en-GB')}</div>
       </div>
       <div class="bc-actions">
         <button class="bc-btn primary" onclick="window.location.href='board.html?id=${esc(b.id)}'">Open</button>
@@ -473,7 +481,7 @@ async function loadSharedBoards(forceOffline = false) {
         <div style="font-size:28px;width:52px;height:52px;border-radius:14px;background:#F6F6EF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📌</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:650;color:var(--text);">${esc(b.name)}</div>
-          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString()}</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">${b.owner_avatar} ${esc(b.owner_name)} · Updated ${new Date(b.updated_at).toLocaleDateString('en-GB')}</div>
         </div>
         <span style="font-size:10px;font-weight:650;padding:3px 10px;border-radius:20px;background:rgba(136,107,243,.1);color:#6B42FD;">${b.role}</span>
       </a>`).join('');
@@ -498,9 +506,31 @@ async function loadSharedBoards(forceOffline = false) {
 }
 
 // ── Settings ──────────────────────────────────────────────────
+/* Settings are four sections (Account · Security · Classroom · Plan) instead
+   of one long sheet. #settings/<section> in the address opens one directly. */
+const SETTINGS_GROUPS = ['account', 'security', 'rooms', 'plan'];
+function showSettingsGroup(name, { updateHash = true } = {}) {
+  if (!SETTINGS_GROUPS.includes(name)) name = 'account';
+  document.querySelectorAll('#tab-settings [data-sgroup]').forEach(c => c.classList.toggle('sg-hidden', c.dataset.sgroup !== name));
+  document.querySelectorAll('#tab-settings .set-tab').forEach(b => {
+    const on = b.dataset.sg === name;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  if (name === 'security') loadSessions();
+  if (updateHash) history.replaceState(null, '', '#settings/' + name);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('#tab-settings .set-tab');
+  if (b) showSettingsGroup(b.dataset.sg);
+});
+
 function initSettings() {
+  const m = location.hash.match(/^#settings\/(\w+)/);
+  showSettingsGroup(m ? m[1] : (document.querySelector('#tab-settings .set-tab.active')?.dataset.sg || 'account'), { updateHash: false });
   document.getElementById('set-name').value = me.name;
   document.getElementById('set-email').value = me.email || '';
+  initEmailCard();
   renderEmojiGrid();
   initTimeZoneSettings();
   initMeetingRooms();
@@ -861,17 +891,58 @@ async function saveName() {
   } catch { toast('Failed to save name'); }
 }
 
+/* Email card: whether the address is confirmed, and the password field that
+   appears once the address is edited (the server asks for it). */
+function initEmailCard() {
+  const inp = document.getElementById('set-email');
+  const group = document.getElementById('email-pass-group');
+  const status = document.getElementById('email-status');
+  const note = document.getElementById('email-note');
+  const save = document.getElementById('email-save');
+  if (!inp || !status) return;
+  if (me.email_verified_at) {
+    status.className = 'email-status ok'; status.textContent = 'Confirmed';
+  } else {
+    status.className = 'email-status todo';
+    status.innerHTML = 'Not confirmed<button type="button" id="email-resend">send link</button>';
+    document.getElementById('email-resend').onclick = async (e) => {
+      e.target.disabled = true;
+      try {
+        const r = await apiFetch('/api/auth/verify-email/resend', { method: 'POST' });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || 'Could not send');
+        toast(`Link sent to ${me.email}`);
+      } catch (err) { toast(err.message); e.target.disabled = false; }
+    };
+  }
+  if (me.has_password === false) {
+    inp.readOnly = true;
+    if (save) save.hidden = true;
+    if (note) note.textContent = 'You sign in with Google, so this address comes from your Google account.';
+    return;
+  }
+  inp.oninput = () => { if (group) group.hidden = inp.value.trim().toLowerCase() === String(me.email || '').toLowerCase(); };
+}
+
 async function saveEmail() {
   const email = document.getElementById('set-email').value.trim();
+  const passInp = document.getElementById('set-email-pass');
   if (!email) { toast('Email cannot be empty'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Invalid email address'); return; }
+  if (email.toLowerCase() === String(me.email || '').toLowerCase()) { toast('That is already your email'); return; }
+  if (!passInp?.value) { toast('Enter your current password'); passInp?.focus(); return; }
   try {
-    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { email } });
-    if (!r.ok) { const d = await r.json(); toast(d.error || 'Failed'); return; }
+    const r = await apiFetch('/api/users/me', { method: 'PATCH', body: { email, password: passInp.value } });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); toast(d.error || 'Failed'); return; }
     const { user } = await r.json();
-    me = { ...me, ...user };
+    me = { ...me, ...user, email_verified_at: null };
+    passInp.value = '';
+    document.getElementById('email-pass-group').hidden = true;
     document.getElementById('profile-email-big').textContent = me.email;
-    toast('Email updated!');
+    try { localStorage.setItem('teachedos_user_email', me.email); localStorage.removeItem('teachedos_email_verified'); } catch {}
+    initEmailCard();
+    loadSessions();
+    toast(`Email changed - we sent a confirmation link to ${me.email}`, 4000);
   } catch { toast('Failed to save email'); }
 }
 

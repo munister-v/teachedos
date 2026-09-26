@@ -109,14 +109,16 @@ body.tw-page.fx:not(#_):not(#__) :is(.stat-lbl, .stat-label, .insight-label, .hw
   text-transform:none !important; color:var(--p-olive) !important;
 }
 body.tw-page.fx:not(#_):not(#__) .insight-hint { font-size:12px !important; color:var(--p-olive) !important; margin-top:2px !important; }
-/* A colour mark per tile - the one place a row of equal numbers gets rhythm. */
+/* A mark per tile - the one place a row of equal numbers gets rhythm. Lime,
+   then the ink and its two olive neutrals: the product chrome is lime and
+   graphite only; the brand's bright secondaries belong to lesson covers. */
 body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card)::before {
   content:'' !important; position:absolute !important; left:0 !important; top:20px !important; bottom:20px !important;
   width:4px !important; border-radius:0 4px 4px 0 !important; background:var(--p-lime) !important;
 }
-body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+2)::before { background:#9F8CE8 !important; }
-body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+3)::before { background:#6BAFF3 !important; }
-body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+4)::before { background:#F3A46B !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+2)::before { background:#24282C !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+3)::before { background:#5D614B !important; }
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card, .hw-metric, .insight-card):nth-child(4n+4)::before { background:#A3A48D !important; }
 body.tw-page.fx:not(#_):not(#__) .stat-icon {
   width:44px !important; height:44px !important; flex-shrink:0 !important; border-radius:14px !important;
   display:flex !important; align-items:center !important; justify-content:center !important;

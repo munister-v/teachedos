@@ -5,7 +5,8 @@ const fs     = require('fs');
 const path   = require('path');
 const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth');
-const { sendEmailQuietly, passwordChangedEmail, verifyEmail, verifyLink } = require('../lib/email');
+const rateLimit = require('express-rate-limit');
+const { sendEmailQuietly, passwordChangedEmail, verifyEmail, verifyLink, emailChangedEmail } = require('../lib/email');
 
 /* ── Фон рабочего стола ────────────────────────────────────────────────
    Свой фон учителя живёт файлом в data/wallpapers (вне backend/: деплой
@@ -115,9 +116,17 @@ router.post('/me/wallpaper', async (req, res) => {
 // GET /api/users/me - full profile
 router.get('/me', (req, res) => res.json({ user: req.user }));
 
+// Changing the address needs the current password: an open session alone
+// (a borrowed laptop, a stolen cookie) must not be enough to take the account.
+const emailChangeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 8,
+  keyGenerator: (req) => req.user?.id || req.ip,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' } });
+const changesEmail = (req) => typeof req.body?.email === 'string' && req.body.email.trim().toLowerCase() !== req.user.email;
+
 // PATCH /api/users/me - update name / avatar / email
-router.patch('/me', async (req, res) => {
-  const { name, avatar, email } = req.body;
+router.patch('/me', (req, res, next) => (changesEmail(req) ? emailChangeLimiter(req, res, next) : next()), async (req, res) => {
+  const { name, avatar, email, password } = req.body;
   const sets   = [];
   const params = [req.user.id];
 
@@ -130,6 +139,16 @@ router.patch('/me', async (req, res) => {
     const { rows: ex } = await pool.query('SELECT id FROM users WHERE email=$1 AND id<>$2', [e, req.user.id]);
     if (ex.length) return res.status(409).json({ error: 'Email already in use' });
     if (e !== req.user.email) {
+      const { rows: pw } = await pool.query('SELECT password_hash FROM users WHERE id=$1', [req.user.id]);
+      if (!pw[0]?.password_hash) {
+        return res.status(400).json({ error: 'This account signs in with Google, so its email address comes from Google.' });
+      }
+      if (typeof password !== 'string' || !password) {
+        return res.status(403).json({ error: 'Enter your current password to change the email.' });
+      }
+      if (!(await bcrypt.compare(password, pw[0].password_hash))) {
+        return res.status(403).json({ error: 'That password is not right.' });
+      }
       // a new address has to be confirmed again
       params.push(e); sets.push(`email = $${params.length}`);
       sets.push('email_verified_at = NULL');
@@ -145,7 +164,10 @@ router.patch('/me', async (req, res) => {
   );
   const u = rows[0];
   if (u && u.email !== req.user.email) {
+    // like a password change: every other device signs in again
+    await pool.query('DELETE FROM sessions WHERE user_id=$1 AND id<>$2', [req.user.id, req.authSessionId]).catch(() => {});
     sendEmailQuietly({ to: u.email, ...verifyEmail({ name: u.name, link: verifyLink(u) }) }, 'users/verify-new-email');
+    sendEmailQuietly({ to: req.user.email, ...emailChangedEmail({ name: u.name, newEmail: u.email }) }, 'users/email-changed');
   }
   res.json({ user: u });
 });

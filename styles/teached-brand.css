@@ -724,7 +724,7 @@ body:has(.week-nav) .btn-add:not([style*="background:transparent"]) { background
 body:has(.week-nav) .stat-pill:nth-child(1) { box-shadow:inset 0 3px 0 var(--te-violet) !important; }
 body:has(.week-nav) .stat-pill:nth-child(2) { box-shadow:inset 0 3px 0 var(--te-blue) !important; }
 body:has(.week-nav) .stat-pill:nth-child(3) { box-shadow:inset 0 3px 0 var(--te-coral) !important; }
-body:has(.week-nav) .wn-today,body:has(.week-nav) .mp-week-today { background:var(--te-surface-violet) !important; color:#6B42FD !important; border-color:rgba(107,66,253,.28) !important; }
+body:has(.week-nav) .wn-today,body:has(.week-nav) .mp-week-today { background:rgba(205,246,73,.28) !important; color:var(--te-ink) !important; border-color:rgba(36,40,44,.14) !important; }
 
 /* Board: retain its dedicated editing language. The selected drawing mode is
    violet, and the additive action stays lime. Share used to be its own coral

@@ -621,17 +621,8 @@ body { font-family: var(--font) !important; }
   color: #5D614B;
   border: 1px solid rgba(211,243,107,.25);
 }
-.badge.a2 { background: rgba(63,159,255,.12); color: #6B42FD; }
-.badge.b1 { background: rgba(159,140,232,.14); color: #6B42FD; }
-.badge.b2 { background: rgba(163,164,141,.14); color: #5D614B; }
-.badge.grammar { background: rgba(255,78,0,.12); color: #24282C; }
-.badge.vocab { background: rgba(36,40,44,.06); color: #5D614B; }
-.badge.speaking { background: rgba(159,140,232,.12); color: #6B42FD; }
+.badge:is(.a1,.a2,.b1,.b2,.c1,.c2,.grammar,.vocab,.speaking,.pink,.amber) { background: rgba(36,40,44,.07); color: #3A3E42; }
 .badge.draft { background: rgba(36,40,44,.06); color: #5D614B; }
-.badge.pink { background: rgba(136,107,243,.12); color: #6B42FD; }
-.badge.amber { background: rgba(243,164,107,.14); color: #24282C; }
-.badge.a1 { background: rgba(107,175,243,.14); color: #6B42FD; }
-.badge.c1 { background: rgba(255,140,58,.14); color: #24282C; }
 
 /* Element grid - light Miro */
 .el-item {

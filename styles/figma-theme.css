@@ -367,12 +367,12 @@ body.fx:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
 /* ── Остальной словарь страниц ──────────────────────────────────────────── */
 /* Рейка на lesson-packs и профиле собрана не на .side-btn, а на .sb-item и
    .setting-btn - те же элементы, другие имена. */
-body.fx:not(#_) :is(.sb-item,.ltab,.setting-btn) {
+body.fx:not(#_) :is(.sb-item,.ltab) {
   border-radius:10px !important; font-weight:500 !important;
   color:var(--fx-ink) !important; background:transparent !important;
   border:none !important; box-shadow:none !important;
 }
-body.fx:not(#_) :is(.sb-item,.ltab,.setting-btn):hover {
+body.fx:not(#_) :is(.sb-item,.ltab):hover {
   background:rgba(255,255,255,.5) !important;
 }
 body.fx:not(#_) :is(.sb-item.active,.ltab.active) {
@@ -405,6 +405,24 @@ body.fx:not(#_) :is(.card-title,.sec-title,.stat-val,.stat-num) {
   color:var(--fx-ink) !important; letter-spacing:-.02em !important;
 }
 body.fx:not(#_) :is(.btn-outline,.btn-sm,.setting-btn) { border-radius:999px !important; }
+/* Profile settings: .setting-btn is a form action, not a rail item (it used
+   to share the rail's transparent look and read as plain text). The action
+   is lime, the alternative is an outline, the destructive one is tinted. */
+body.fx:not(#_) .setting-btn {
+  display:inline-flex !important; align-items:center !important; gap:7px !important;
+  min-height:38px !important; padding:0 18px !important;
+  background:var(--fx-lime,#CDF649) !important; color:var(--fx-ink,#24282C) !important;
+  border:1px solid var(--fx-lime,#CDF649) !important; font-weight:650 !important; font-size:13.5px !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset !important;
+}
+body.fx:not(#_) .setting-btn:hover { background:#D8FA6A !important; transform:translateY(-1px); box-shadow:0 6px 16px -8px rgba(36,40,44,.35) !important; }
+body.fx:not(#_) .setting-btn.secondary { background:#fff !important; border-color:rgba(36,40,44,.16) !important; }
+body.fx:not(#_) .setting-btn.secondary:hover { background:rgba(36,40,44,.04) !important; }
+body.fx:not(#_) .setting-btn.danger { background:rgba(255,78,0,.07) !important; border-color:rgba(255,78,0,.28) !important; color:#9A2C0C !important; }
+body.fx:not(#_) .setting-btn.danger:hover { background:rgba(255,78,0,.13) !important; }
+body.fx:not(#_) .setting-btn.da-go { background:#C2410C !important; border-color:#C2410C !important; color:#fff !important; }
+body.fx:not(#_) .setting-btn[hidden] { display:none !important; }
+body.fx:not(#_) .setting-btn:disabled { opacity:.45 !important; transform:none !important; box-shadow:none !important; cursor:default !important; }
 
 /* ── Акцент ─────────────────────────────────────────────────────────────── */
 /* Фиолетовый акцент старой темы в макете не встречается ни разу: цветом
@@ -416,6 +434,7 @@ body.fx:not(#_) {
   --accent-2:rgba(205,246,73,.28);
   --accent-3:rgba(36,40,44,.14);
   --te-violet:#24282C;
+  --accent2:#CDF649;
   --te-surface-violet:rgba(205,246,73,.20);
   --control-violet:#24282C;
   --lime:#CDF649;
