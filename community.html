@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=985"></script>
+<script src="scripts/phone-gate.js?v=986"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=985">
+<link rel="manifest" href="manifest.json?v=986">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -79,10 +79,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 @media(max-width:900px){.side{display:none}.shell{display:block}.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding:18px 14px 92px}#nav{display:none}.hero-card{padding:24px 20px;border-radius:22px}h1{font-size:42px;letter-spacing:-.045em}.share-card{border-radius:22px}.community-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat-pill{padding:10px}.stat-num{font-size:19px}.section-head{align-items:flex-start;gap:12px;flex-direction:column}.section-head .btn{width:100%;text-align:center}.filters-row{display:grid;grid-template-columns:1fr 1fr}.filters-row input{grid-column:1/-1;min-width:0;max-width:none}.filters-row select{max-width:none}.card-actions{flex-direction:column}.mini-btn{min-height:44px}.comm-tab{padding:12px 14px}.board-card,.game-tile-comm{min-height:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=985" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=985">
-<link rel="stylesheet" href="styles/harmony.css?v=985">
-<link rel="stylesheet" href="styles/unify.css?v=985">
+<script src="theme.js?v=986" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=986">
+<link rel="stylesheet" href="styles/harmony.css?v=986">
+<link rel="stylesheet" href="styles/unify.css?v=986">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -325,17 +325,29 @@ body.share-drawer-open { overflow:hidden; }
 @media (prefers-reduced-motion:reduce) {
   body:not(#_):not(#__) .share-card, .share-backdrop { transition:none !important; }
 }
+
+/* ── Compact header: boards first ─────────────────────────────────────── */
+body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transparent !important; box-shadow:none !important; border:0 !important; padding:0 !important; backdrop-filter:none !important; }
+.cm-head { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:6px 4px 4px; }
+.cm-head h1 { margin:0 !important; font-size:34px !important; line-height:1.05 !important; letter-spacing:-.03em !important; }
+.cm-head p { margin:6px 0 0; font-size:14px; color:var(--text2,#5D614B); }
+.cm-head-actions { display:flex; gap:10px; flex-shrink:0; }
+.cm-head-actions .btn { min-height:44px; white-space:nowrap; }
+.side-btn { position:relative; }
+.side-count { order:3; margin-left:auto; font:700 11px var(--mono,monospace); color:var(--text3,#5D614B); opacity:.75; }
+.side-btn { display:flex; align-items:center; }
+.side-btn .side-count:empty { display:none; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=985">
-<link rel="stylesheet" href="styles/tool-window.css?v=985">
+<link rel="stylesheet" href="styles/teached-brand.css?v=986">
+<link rel="stylesheet" href="styles/tool-window.css?v=986">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=985">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=985">
-<link rel="stylesheet" href="styles/controls.css?v=985">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=985">
-<link rel="stylesheet" href="styles/community-cards.css?v=985">
+<link rel="stylesheet" href="styles/figma-theme.css?v=986">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=986">
+<link rel="stylesheet" href="styles/controls.css?v=986">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=986">
+<link rel="stylesheet" href="styles/community-cards.css?v=986">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=985">
+<link rel="stylesheet" href="styles/polish.css?v=986">
 </head>
 <body class="tw-page fx">
 <nav id="nav">
@@ -357,27 +369,26 @@ body.share-drawer-open { overflow:hidden; }
 <div class="shell">
   <aside class="side" id="side">
     <div class="side-title">Community</div>
-    <button class="side-btn comm-tab active" type="button" data-tab="boards" onclick="switchCommTab('boards')"><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="7" height="7" rx="1.5"/><rect x="13.5" y="4" width="7" height="7" rx="1.5"/><rect x="3.5" y="13" width="7" height="7" rx="1.5"/><rect x="13.5" y="13" width="7" height="7" rx="1.5"/></svg></span>Lessons &amp; Spaces</button>
-    <button class="side-btn comm-tab" type="button" data-tab="library" onclick="switchCommTab('library')"><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M6 4h12a2 2 0 0 1 2 2v14H8a2 2 0 0 1-2-2V4z"/><path d="M9.5 8h6"/></svg></span>Library</button>
-    <button class="side-btn comm-tab" type="button" data-tab="games" onclick="switchCommTab('games')"><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="9" rx="4.5"/><path d="M7.5 12.5h3M9 11v3"/><circle cx="16" cy="11.5" r=".9" fill="currentColor" stroke="none"/><circle cx="18" cy="13.5" r=".9" fill="currentColor" stroke="none"/></svg></span>Games</button>
+    <button class="side-btn comm-tab active" type="button" data-tab="boards" onclick="switchCommTab('boards')"><span class="side-count" id="stat-boards"></span><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="7" height="7" rx="1.5"/><rect x="13.5" y="4" width="7" height="7" rx="1.5"/><rect x="3.5" y="13" width="7" height="7" rx="1.5"/><rect x="13.5" y="13" width="7" height="7" rx="1.5"/></svg></span>Lessons &amp; Spaces</button>
+    <button class="side-btn comm-tab" type="button" data-tab="library" onclick="switchCommTab('library')"><span class="side-count" id="stat-library"></span><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M6 4h12a2 2 0 0 1 2 2v14H8a2 2 0 0 1-2-2V4z"/><path d="M9.5 8h6"/></svg></span>Library</button>
+    <button class="side-btn comm-tab" type="button" data-tab="games" onclick="switchCommTab('games')"><span class="side-count" id="stat-games"></span><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="9" rx="4.5"/><path d="M7.5 12.5h3M9 11v3"/><circle cx="16" cy="11.5" r=".9" fill="currentColor" stroke="none"/><circle cx="18" cy="13.5" r=".9" fill="currentColor" stroke="none"/></svg></span>Games</button>
     <div class="side-title">Quick actions</div>
     <button class="side-btn" type="button" onclick="focusCommunityPublisher()"><span class="side-ic">＋</span>Share a lesson</button>
     <a class="side-btn" href="board.html"><span class="side-ic">↗</span>Open my board</a>
   </aside>
   <main class="wrap">
   <section class="hero">
-    <div class="hero-card">
-      <div class="eyebrow">TeachEd Community</div>
-      <h1>Ready-made lessons teachers share with each other.</h1>
-      <p class="hero-copy">Turn a finished board into a copyable lesson: name it, add a level, skill, duration and a short teaching note. Other teachers can open it and take the structure for themselves.</p>
-      <div class="hero-actions">
-        <button class="btn lime" onclick="focusCommunityPublisher()">＋ Share a lesson</button>
-        <a class="btn ghost" href="board.html">Open my board</a>
+    <!-- Шапка - одна строка: раньше заголовок, абзац и три счётчика
+         занимали полэкрана, и сами уроки начинались ниже сгиба. Счётчики
+         переехали в боковое меню, форма публикации - только по кнопке. -->
+    <div class="cm-head">
+      <div class="cm-head-copy">
+        <h1>Community</h1>
+        <p>Ready-made lessons and boards from other teachers - copy one to your board in a click.</p>
       </div>
-      <div class="community-stats" aria-label="Community summary">
-        <div class="stat-pill"><div class="stat-num" id="stat-boards">0</div><div class="stat-label">Lessons &amp; Spaces</div></div>
-        <div class="stat-pill"><div class="stat-num" id="stat-library">0</div><div class="stat-label">Library</div></div>
-        <div class="stat-pill"><div class="stat-num" id="stat-games">0</div><div class="stat-label">Games</div></div>
+      <div class="cm-head-actions">
+        <a class="btn ghost" href="board.html">Open my board</a>
+        <button class="btn lime" onclick="focusCommunityPublisher()">＋ Share a lesson</button>
       </div>
     </div>
     <aside class="share-card" id="share-card" role="dialog" aria-modal="true" aria-labelledby="publisher-heading" aria-hidden="true">
@@ -471,7 +482,7 @@ body.share-drawer-open { overflow:hidden; }
   <!-- ══════ BOARDS SECTION ══════ -->
   <div id="tab-boards">
     <div class="section-head">
-      <div><div class="section-title">Community lessons &amp; spaces</div><div class="section-sub" id="community-count">Lessons and whole boards teachers share, ready to copy.</div></div>
+      <div><div class="section-title">Lessons &amp; Spaces</div><div class="section-sub" id="community-count">Lessons and whole boards teachers share, ready to copy.</div></div>
       <button class="btn ghost" onclick="loadBoards()">Refresh</button>
     </div>
     <div class="cm-toolbar">
@@ -552,9 +563,9 @@ body.share-drawer-open { overflow:hidden; }
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=985"></script>
-<script src="scripts/lesson-cover.js?v=985"></script>
-<script src="scripts/vocab-loader.js?v=985"></script>
+<script src="scripts/app-core.js?v=986"></script>
+<script src="scripts/lesson-cover.js?v=986"></script>
+<script src="scripts/vocab-loader.js?v=986"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -2240,11 +2251,11 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=985" defer></script>
-<script src="scripts/mobile-nav.js?v=985"></script>
-<script src="scripts/mobile-zoom-guard.js?v=985" defer></script>
-<script src="scripts/autogrow.js?v=985" defer></script>
-<script src="pwa-boot.js?v=985" defer></script>
-  <script src="scripts/signin-entry.js?v=985" defer></script>
+<script src="scripts/mobile-perf.js?v=986" defer></script>
+<script src="scripts/mobile-nav.js?v=986"></script>
+<script src="scripts/mobile-zoom-guard.js?v=986" defer></script>
+<script src="scripts/autogrow.js?v=986" defer></script>
+<script src="pwa-boot.js?v=986" defer></script>
+  <script src="scripts/signin-entry.js?v=986" defer></script>
 </body>
 </html>
