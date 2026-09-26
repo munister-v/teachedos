@@ -760,53 +760,90 @@ const WGM = (function () {
     updateRestoreChip();
   }
 
-  /* Сохранённое место держим в пределах экрана. Позиция запоминается в
-     пикселях, и виджет, поставленный на широком мониторе, на ноутбуке
-     уезжал за правый край - «Next class» был виден наполовину. Сохранённое
-     значение не трогаем: вернётся на широкий экран - встанет где стоял. */
+  /* Координаты - в системе того, внутри чего виджет лежит: карточки живут
+     в #desktop (он начинается под меню, на 57px), панель расписания -
+     position:fixed от окна. Раньше позиция бралась от окна для всех, и при
+     первом же перетаскивании карточка прыгала вниз на высоту меню. */
+  function frame(w) {
+    const host = w.offsetParent;
+    const r = host ? host.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+    // Верх не выше меню, низ не ниже окна - в координатах контейнера.
+    const top = Math.max(0, 60 - r.top);
+    return { left: r.left, top: r.top, minX: 8, minY: top + 4, maxX: Math.max(8, Math.min(r.width, window.innerWidth - r.left) - w.offsetWidth - 8), maxY: Math.max(top + 4, Math.min(r.height, window.innerHeight - r.top) - w.offsetHeight - 8) };
+  }
+  function place(w, x, y) {
+    const f = frame(w);
+    w.style.left = Math.max(f.minX, Math.min(x, f.maxX)) + 'px';
+    w.style.top = Math.max(f.minY, Math.min(y, f.maxY)) + 'px';
+    // Карточка, привязанная к правому или нижнему краю, иначе растягивалась бы.
+    w.style.right = 'auto';
+    w.style.bottom = 'auto';
+  }
+  /* Сохранённое место держим в пределах экрана; само сохранённое значение
+     не трогаем - вернётся широкий экран, встанет где стоял. */
   function applyPosition(w) {
     const s = state[w.id];
     if (!s || s.left == null) return;
-    const width = w.offsetWidth || 240;
-    const height = w.offsetHeight || 120;
-    const maxX = Math.max(8, window.innerWidth - width - 8);
-    const maxY = Math.max(56, window.innerHeight - height - 8);
-    w.style.left = Math.max(8, Math.min(s.left, maxX)) + 'px';
-    w.style.top = Math.max(56, Math.min(s.top, maxY)) + 'px';
-    w.style.right = 'auto';
+    place(w, s.left, s.top);
   }
   let _wgResizeRaf = 0;
-  /* Виджет дорастает, когда приходят его данные («Nothing scheduled»
-     длиннее прочерков) - поправляем место и после загрузки. */
-  const _wgReclamp = () => document.querySelectorAll('.widget').forEach(applyPosition);
+  const all = () => document.querySelectorAll('.widget, [data-wg]');
+  const _wgReclamp = () => all().forEach(applyPosition);
   window.addEventListener('load', () => { _wgReclamp(); setTimeout(_wgReclamp, 1500); setTimeout(_wgReclamp, 4000); });
   window.addEventListener('resize', () => {
     cancelAnimationFrame(_wgResizeRaf);
-    _wgResizeRaf = requestAnimationFrame(() => document.querySelectorAll('.widget').forEach(applyPosition));
+    _wgResizeRaf = requestAnimationFrame(_wgReclamp);
   });
 
+  function ensureResetChip() {
+    let chip = document.getElementById('wg-reset');
+    if (!chip) {
+      chip = document.createElement('button');
+      chip.id = 'wg-reset';
+      chip.type = 'button';
+      chip.textContent = '↺ Reset layout';
+      chip.title = 'Put every widget back in its place';
+      chip.addEventListener('click', () => {
+        all().forEach(w => { const st = state[w.id]; if (st) { delete st.left; delete st.top; } w.style.left = w.style.top = w.style.right = w.style.bottom = ''; });
+        persist();
+        updateResetChip();
+      });
+      document.body.appendChild(chip);
+    }
+    return chip;
+  }
+  function updateResetChip() {
+    const moved = Object.values(state).some(v => v && v.left != null);
+    ensureResetChip().style.display = moved ? 'inline-flex' : 'none';
+  }
+
   function attach(w) {
-    if (w._wgmAttached) return;
+    if (w._wgmAttached || !w.id) return;
     w._wgmAttached = true;
+    w.classList.add('wg-movable');
 
     const s = state[w.id];
     if (s && s.hidden) { w.dataset.wgHidden = '1'; w.style.display = 'none'; }
     applyPosition(w);
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'widget-close';
-    closeBtn.type = 'button';
-    closeBtn.title = 'Hide widget';
-    closeBtn.setAttribute('aria-label', 'Hide widget');
-    closeBtn.textContent = '×';
-    closeBtn.addEventListener('click', e => { e.stopPropagation(); hideWidget(w); });
-    w.appendChild(closeBtn);
+    let closeBtn = null;
+    if (w.classList.contains('widget')) {
+      closeBtn = document.createElement('button');
+      closeBtn.className = 'widget-close';
+      closeBtn.type = 'button';
+      closeBtn.title = 'Hide widget';
+      closeBtn.setAttribute('aria-label', 'Hide widget');
+      closeBtn.textContent = '×';
+      closeBtn.addEventListener('click', e => { e.stopPropagation(); hideWidget(w); });
+      w.appendChild(closeBtn);
+    }
 
     let drag = null;
     const dragStart = (cx, cy, target) => {
-      if (target === closeBtn || target.closest?.('button:not(.widget-close)')) return false;
+      if ((closeBtn && target === closeBtn) || target.closest?.('button:not(.widget-close), a, input, select, textarea')) return false;
+      const f = frame(w);
       const r = w.getBoundingClientRect();
-      drag = { ox: cx, oy: cy, wx: r.left, wy: r.top, moved: false };
+      drag = { ox: cx, oy: cy, wx: r.left - f.left, wy: r.top - f.top, moved: false };
       return true;
     };
     const dragMove = (cx, cy) => {
@@ -815,13 +852,7 @@ const WGM = (function () {
       if (!drag.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
       drag.moved = true;
       w.classList.add('wg-dragging');
-      const maxX = window.innerWidth - w.offsetWidth;
-      const maxY = window.innerHeight - w.offsetHeight;
-      const x = Math.max(0, Math.min(drag.wx + dx, maxX));
-      const y = Math.max(0, Math.min(drag.wy + dy, maxY));
-      w.style.left = x + 'px';
-      w.style.top = y + 'px';
-      w.style.right = 'auto';
+      place(w, drag.wx + dx, drag.wy + dy);
     };
     const dragEnd = () => {
       if (!drag) return;
@@ -831,25 +862,25 @@ const WGM = (function () {
         state[w.id].left = parseFloat(w.style.left);
         state[w.id].top = parseFloat(w.style.top);
         persist();
+        updateResetChip();
+        // Отпустили после перетаскивания - это не клик по панели.
+        w._wgJustDragged = true;
+        setTimeout(() => { w._wgJustDragged = false; }, 0);
       }
       drag = null;
     };
+    w.addEventListener('click', e => { if (w._wgJustDragged) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 
     w.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
       if (dragStart(e.clientX, e.clientY, e.target)) e.preventDefault();
     });
     document.addEventListener('mousemove', e => dragMove(e.clientX, e.clientY));
     document.addEventListener('mouseup', dragEnd);
 
-    // Touch: same free left/top drag as mouse, so widgets are repositionable
-    // on tablets/touchscreens too (previously mouse-only - touch did nothing).
     w.addEventListener('touchstart', e => {
       const t = e.touches[0];
-      if (!t) return;
-      if (dragStart(t.clientX, t.clientY, e.target)) {
-        // Only claim the gesture once it turns into an actual drag - matches
-        // the mouse threshold so a plain tap still lets buttons/links work.
-      }
+      if (t) dragStart(t.clientX, t.clientY, e.target);
     }, { passive: true });
     document.addEventListener('touchmove', e => {
       if (!drag) return;
@@ -863,8 +894,9 @@ const WGM = (function () {
   }
 
   function init() {
-    document.querySelectorAll('.widget').forEach(attach);
+    all().forEach(attach);
     updateRestoreChip();
+    updateResetChip();
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
