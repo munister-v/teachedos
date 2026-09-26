@@ -14,6 +14,7 @@ tint, lime, ink, earth.
 """
 import json
 import math
+from html import escape as esc
 
 F = lambda v: f"{v:.1f}".rstrip("0").rstrip(".")
 
@@ -133,10 +134,10 @@ class Scene:
         for p in self.parts:
             x, y = p["pin"]
             out.append(f'<circle cx="{x}" cy="{y}" r="6" fill="#CDF649" stroke="#24282C" stroke-width="1.5"/>')
-            out.append(f'<text x="{x + 8}" y="{y - 6}" font-size="10" font-family="Helvetica" fill="#b0461f">{p["word"]}</text>')
+            out.append(f'<text x="{x + 8}" y="{y - 6}" font-size="10" font-family="Helvetica" fill="#b0461f">{esc(p["word"])}</text>')
         for r in self.rooms:
             x, y = r["label"]
-            out.append(f'<text x="{x}" y="{y}" font-size="11" font-weight="700" font-family="Helvetica" fill="#24282C">{r["word"].upper()}</text>')
+            out.append(f'<text x="{x}" y="{y}" font-size="11" font-weight="700" font-family="Helvetica" fill="#24282C">{esc(r["word"].upper())}</text>')
         out.append("</svg>")
         with open(path, "w") as fh:
             fh.write("\n".join(out))
