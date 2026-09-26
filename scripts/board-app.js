@@ -588,6 +588,7 @@ function restoreState(json) {
   state.groups = [];
   clearSelection();
   s.cards.forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); board.appendChild(renderCard(c)); });
+  _refreshFrameTools();
   state.arrows = s.arrows;
   state.annotations = normalizeAnnotations(s.annotations);
   state.strokes = Array.isArray(s.strokes) ? s.strokes : [];
@@ -6811,6 +6812,14 @@ function removeCard(id) {
   if (removed.type === 'frame' && typeof renumberFrames === 'function') renumberFrames();
   if (typeof updateMultiSelBox === 'function') updateMultiSelBox();
   scheduleSave();
+}
+
+/* A frame is drawn before the cards after it in state.cards exist, so its
+   toolbar (Plan/Play, Tidy) could not see its own children on load. Once the
+   whole board is in, frames are drawn once more. */
+function _refreshFrameTools() {
+  try { state.cards.filter(c => c.type === 'frame').forEach(f => reRenderCard(f)); }
+  catch (e) { console.warn('[frames] refresh', e); }
 }
 
 function reRenderCard(card) {
@@ -15332,7 +15341,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '998';
+const TEACHEDOS_ASSET_VERSION = '999';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19961,6 +19970,7 @@ function loadBoard(expectedBoardId) {
     const _cardFrag = document.createDocumentFragment();
     (data.cards || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); _cardFrag.appendChild(renderCard(c)); });
     board.appendChild(_cardFrag);
+    _refreshFrameTools();
     state.arrows = data.arrows || [];
     state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
     state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
@@ -21413,6 +21423,7 @@ function loadBoardData(data) {
   const _cardFrag = document.createDocumentFragment();
   (data.cards || []).forEach((c, i) => { normalizeCardLayer(c, i + 1); state.cards.push(c); _cardFrag.appendChild(renderCard(c)); });
   board.appendChild(_cardFrag);
+  _refreshFrameTools();
   state.arrows = data.arrows || [];
   state.annotations = normalizeAnnotations(data.annotations);
   state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
