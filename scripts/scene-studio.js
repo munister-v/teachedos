@@ -25,7 +25,7 @@
     { id: 'airport', title: 'The Airport', icon: '✈️', hint: 'Check-in, security, the gate, baggage reclaim and a plane at the jet bridge.', ready: true },
     { id: 'school', title: 'The School', icon: '🏫', hint: 'A classroom, the library, the canteen, the gym and the school bus.', ready: true },
     { id: 'supermarket', title: 'The Supermarket', icon: '🛒', hint: 'Fruit and veg, the bakery, the fridge and freezer, shelves and the checkout.', ready: true },
-    { id: 'street', title: 'The High Street', icon: '🏪', hint: 'Shops, places and directions.' },
+    { id: 'street', title: 'The High Street', icon: '🏪', hint: 'Shops with flats above, a café, a zebra crossing and a bus stop.', ready: true },
   ];
   const LEVELS = ['A1', 'A2', 'B1'];
   const rank = l => Math.max(0, LEVELS.indexOf(l));
@@ -44,7 +44,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1007`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1008`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
