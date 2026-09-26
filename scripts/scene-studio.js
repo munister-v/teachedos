@@ -23,6 +23,8 @@
     { id: 'hospital', title: 'The Hospital', icon: '🏥', hint: 'A&E to the helipad: the people, the rooms, what happens there.', ready: true },
     { id: 'kitchen', title: 'The Kitchen', icon: '🍳', hint: 'Machines, cupboards, cooking tools and a table laid for breakfast.', ready: true },
     { id: 'airport', title: 'The Airport', icon: '✈️', hint: 'Check-in, security, the gate, baggage reclaim and a plane at the jet bridge.', ready: true },
+    { id: 'school', title: 'The School', icon: '🏫', hint: 'A classroom, the library, the canteen, the gym and the school bus.', ready: true },
+    { id: 'supermarket', title: 'The Supermarket', icon: '🛒', hint: 'Fruit and veg, the bakery, the fridge and freezer, shelves and the checkout.', ready: true },
     { id: 'street', title: 'The High Street', icon: '🏪', hint: 'Shops, places and directions.' },
   ];
   const LEVELS = ['A1', 'A2', 'B1'];
@@ -42,7 +44,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1006`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1007`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -63,7 +65,7 @@
     ink: '#24282C', earth: '#DCCFB6', sage: '#E4EBDC', sky: '#E3ECF2', blush: '#F6E6DF', sand: '#F5ECD9',
     lav: '#EAE6F2', mint: '#E0F0E8', steel: '#DDE1E5', brick: '#DDA58F', grass: '#C9DFA9', leaf: '#C2DAA0',
     red: '#E48A70', sun: '#FFF1BF', sage2: '#C8D8BC', sky2: '#C8DDEA', blush2: '#F0CDBF', sand2: '#EBD9B4',
-    lav2: '#D8CFEA', mint2: '#BFE2D1', asphalt: '#CFCBC3', shadow: 'rgba(36,40,44,.12)', skyg: 'url(#scsky)',
+    lav2: '#D8CFEA', mint2: '#BFE2D1', asphalt: '#CFCBC3', shadow: 'rgba(36,40,44,.12)', skyg: 'url(#scsky)', glassa: 'rgba(196,222,236,.42)',
   };
   const SW = { main: 1.7, det: 1.1, hair: 0.6, soft: 0.8 };
   const DEFS = '<defs><linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient></defs>';
@@ -124,7 +126,9 @@
 .sc-pin:hover,.sc-pin.on{transform:translate(-50%,-50%) scale(1.45);z-index:3}
 .sc-pin.on{background:var(--ink);color:var(--lime)}
 .sc-pin.saved::after{content:'';position:absolute;right:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--ink);border:1.5px solid #fff}
-.sc-pin.num{width:24px;height:24px;background:#fff}
+.sc-pin.num{width:22px;height:22px;background:#fff}
+.sc-dot{position:absolute;pointer-events:none;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px #fff}
+.sc-lead{position:absolute;pointer-events:none;width:1.5px;height:18px;margin-left:-.75px;background:var(--ink)}
 .sc-pin.num.ok{background:var(--lime)}
 .sc-pin.drop{transform:translate(-50%,-50%) scale(1.35);background:var(--lime)}
 .sc-pin.pulse{width:24px;height:24px;animation:scpulse 1.2s ease infinite;background:var(--ink);color:var(--lime)}
@@ -442,8 +446,10 @@
           const it = byId(id); if (!it) return;
           const [x, y] = toPx(...at(it));
           const ok = st.label.placed.includes(id);
-          html += `<button type="button" class="sc-pin num${ok ? ' ok' : ''}" data-slot="${id}" style="left:${x}px;top:${y}px">${i + 1}</button>`;
-          if (ok) html += `<span class="sc-lbl placed" style="left:${x}px;top:${y}px">${esc(it.word)}</span>`;
+          // the number sits beside the thing, joined to a dot on it, so it hides nothing
+          html += `<span class="sc-dot" style="left:${x}px;top:${y}px"></span><span class="sc-lead" style="left:${x}px;top:${y - 18}px"></span>`;
+          html += `<button type="button" class="sc-pin num${ok ? ' ok' : ''}" data-slot="${id}" style="left:${x}px;top:${y - 26}px">${i + 1}</button>`;
+          if (ok) html += `<span class="sc-lbl placed" style="left:${x + 4}px;top:${y - 26}px">${esc(it.word)}</span>`;
         });
       }
       if (flash) {

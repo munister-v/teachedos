@@ -293,7 +293,7 @@ R("ward", "ward", (212, F2s, 508, F1 - F2s), (222, 370), "B1", "wɔːd",
   "A big room in a hospital with beds for patients.", "She's on the children's ward.")
 R("theatre", "operating theatre", (728, F2s, 460, F1 - F2s), (738, 370), "B1", "ˈɒpəreɪtɪŋ ˌθɪətə",
   "The room where doctors do operations.", "The patient is in the operating theatre now.", "operating room (OR)")
-R("xray", "X-ray department", (212, RFs, 348, F2 - RFs), (310, 158), "B1", "ˈeks reɪ dɪˌpɑːtmənt",
+R("xraydept", "X-ray department", (212, RFs, 348, F2 - RFs), (310, 158), "B1", "ˈeks reɪ dɪˌpɑːtmənt",
   "The part of a hospital where they take X-rays.", "Take this form to the X-ray department on the second floor.", "radiology")
 R("surgery", "consulting room", (568, RFs, 312, F2 - RFs), (640, 158), "B1", "kənˈsʌltɪŋ ruːm",
   "The room where a doctor talks to you and examines you.", "The doctor will see you in the consulting room.", "exam room")

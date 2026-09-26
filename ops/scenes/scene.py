@@ -85,7 +85,7 @@ PALETTE = dict(
     ink="#24282C", earth="#DCCFB6", sage="#E4EBDC", sky="#E3ECF2", blush="#F6E6DF", sand="#F5ECD9",
     lav="#EAE6F2", mint="#E0F0E8", steel="#DDE1E5", brick="#DDA58F", grass="#C9DFA9", leaf="#C2DAA0",
     red="#E48A70", sun="#FFF1BF", sage2="#C8D8BC", sky2="#C8DDEA", blush2="#F0CDBF", sand2="#EBD9B4",
-    lav2="#D8CFEA", mint2="#BFE2D1", asphalt="#CFCBC3", shadow="rgba(36,40,44,.12)", skyg="url(#scsky)",
+    lav2="#D8CFEA", mint2="#BFE2D1", asphalt="#CFCBC3", shadow="rgba(36,40,44,.12)", skyg="url(#scsky)", glassa="rgba(196,222,236,.42)",
 )
 STROKE = dict(main=1.7, det=1.1, hair=0.6, soft=0.8)
 SKY = '<linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient>'
@@ -173,35 +173,59 @@ class Scene:
         self.parts.append(dict(id=pid, word=word, pin=list(pin), box=list(box), **card))
 
     # ── people ────────────────────────────────────────────────────────────────
-    def standing(self, x, yf, coat="paper", h=118, d=1, arms=None, cap=None, mask=False, legs="tint"):
-        """A standing figure, feet at (x, yf), facing d (1 right, -1 left).
+    def standing(self, x, yf, coat="paper", h=None, d=1, arms=None, cap=None, mask=False, legs="tint", k=1.0):
+        """A standing figure, feet at (x, yf), facing d (1 right, -1 left), k = scale.
         arms: None (hanging) or [(hx, hy)] hand points for the arm nearer the viewer."""
+        n = lambda v: round(v, 1)
+        h = h or 118 * k
         ht = yf - h
-        ys, yh = ht + 22, yf - 46
-        self.D(rect(x - 10, yh - 4, 7, yf - yh, 2) + rect(x + 3, yh - 4, 7, yf - yh, 2), legs)
-        self.D(ellipse(x - 6 + 3 * d, yf - 2, 7, 3) + ellipse(x + 6 + 3 * d, yf - 2, 7, 3), "ink")
-        self.M(f"M{x - 13} {ys + 3}Q{x - 15} {ys} {x - 10} {ys}H{x + 10}Q{x + 15} {ys} {x + 13} {ys + 3}"
-            f"L{x + 17} {yh}H{x - 17}Z", coat)
-        self.D(rect(x - 3, ys - 6, 6, 7), "wood")
-        self.M(circle(x + 2 * d, ht + 9, 9), "wood")
-        self.D(f"M{x - 8 + 2 * d} {ht + 6}Q{x + 2 * d} {ht - 4} {x + 9 + 2 * d} {ht + 5}Q{x + 2 * d} {ht + 2} {x - 8 + 2 * d} {ht + 6}Z", "ink")
+        ys, yh = ht + 22 * k, yf - 46 * k
+        self.D(rect(n(x - 10 * k), n(yh - 4 * k), n(7 * k), n(yf - yh), 2) + rect(n(x + 3 * k), n(yh - 4 * k), n(7 * k), n(yf - yh), 2), legs)
+        self.D(ellipse(n(x + (3 * d - 6) * k), yf - 2, n(7 * k), 3) + ellipse(n(x + (6 + 3 * d) * k), yf - 2, n(7 * k), 3), "ink")
+        self.M(f"M{n(x - 13 * k)} {n(ys + 3 * k)}Q{n(x - 15 * k)} {n(ys)} {n(x - 10 * k)} {n(ys)}H{n(x + 10 * k)}Q{n(x + 15 * k)} {n(ys)} {n(x + 13 * k)} {n(ys + 3 * k)}"
+               f"L{n(x + 17 * k)} {n(yh)}H{n(x - 17 * k)}Z", coat)
+        self.D(rect(n(x - 3 * k), n(ys - 6 * k), n(6 * k), n(7 * k)), "wood")
+        hx, hy, r = n(x + 2 * d * k), n(ht + 9 * k), n(9 * k)
+        self.M(circle(hx, hy, r), "wood")
+        self.D(f"M{n(hx - 10 * k)} {n(hy - 3 * k)}Q{hx} {n(hy - 13 * k)} {n(hx + 7 * k)} {n(hy - 4 * k)}Q{hx} {n(hy - 7 * k)} {n(hx - 10 * k)} {n(hy - 3 * k)}Z", "ink")
         if cap:
-            self.D(f"M{x - 9 + 2 * d} {ht + 6}Q{x + 2 * d} {ht - 7} {x + 11 + 2 * d} {ht + 6}Z", cap)
+            self.D(f"M{n(hx - 11 * k)} {n(hy - 3 * k)}Q{hx} {n(hy - 16 * k)} {n(hx + 9 * k)} {n(hy - 3 * k)}Z", cap)
         if mask:
-            self.D(rect(x - 2 + 5 * d - 5, ht + 10, 12, 6, 2), "lime")
-        hands = arms or [(x + 16 * d, ys + 44)]
-        for hx, hy in hands:
-            self.D(f"M{x + 12 * d} {ys + 4}L{hx} {hy}", None)
-            self.D(circle(hx, hy, 3), "wood")
-        return dict(head=(x + 2 * d, ht + 9), neck=(x, ys), ys=ys, yh=yh)
+            self.D(rect(n(hx + (5 * d - 7) * k), n(hy + 1 * k), n(12 * k), n(6 * k), 2), "lime")
+        hands = arms or [(x + 16 * d * k, ys + 44 * k)]
+        for ax, ay in hands:
+            self.D(f"M{n(x + 12 * d * k)} {n(ys + 4 * k)}L{n(ax)} {n(ay)}", None)
+            self.D(circle(n(ax), n(ay), n(3 * k)), "wood")
+        return dict(head=(hx, hy), neck=(x, ys), ys=ys, yh=yh)
 
-
-    def bust(self, x, y_counter, d=1, coat="paper"):
+    def bust(self, x, y_counter, d=1, coat="paper", k=1.0):
         """Head and shoulders of someone standing behind a counter."""
-        self.M(f"M{x - 18} {y_counter}L{x - 16} {y_counter - 26}Q{x} {y_counter - 32} {x + 16} {y_counter - 26}L{x + 18} {y_counter}Z", coat)
-        self.D(rect(x - 3, y_counter - 36, 6, 8), "wood")
-        self.M(circle(x + d, y_counter - 44, 9), "wood")
-        self.D(f"M{x - 8} {y_counter - 47}Q{x} {y_counter - 57} {x + 9} {y_counter - 48}Q{x} {y_counter - 51} {x - 8} {y_counter - 47}Z", "ink")
+        n = lambda v: round(v, 1)
+        y = y_counter
+        self.M(f"M{n(x - 18 * k)} {y}L{n(x - 16 * k)} {n(y - 26 * k)}Q{x} {n(y - 32 * k)} {n(x + 16 * k)} {n(y - 26 * k)}L{n(x + 18 * k)} {y}Z", coat)
+        self.D(rect(n(x - 3 * k), n(y - 36 * k), n(6 * k), n(8 * k)), "wood")
+        hx, hy = n(x + d * k), n(y - 44 * k)
+        self.M(circle(hx, hy, n(9 * k)), "wood")
+        self.D(f"M{n(hx - 9 * k)} {n(hy - 3 * k)}Q{hx} {n(hy - 13 * k)} {n(hx + 8 * k)} {n(hy - 4 * k)}Q{hx} {n(hy - 7 * k)} {n(hx - 9 * k)} {n(hy - 3 * k)}Z", "ink")
+
+    def sitting(self, x, ys, yf, coat="paper", legs="tint", d=-1, arms=None, k=1.0):
+        """A seated figure: hips at (x, ys) on the seat, feet on the floor at yf,
+        facing d (-1 left, 1 right). arms: hand points for the near arm."""
+        t = 50 * k
+        top = ys - t
+        self.M(f"M{x - 12 * k} {ys}L{x - 11 * k} {top + 4}Q{x} {top - 3} {x + 11 * k} {top + 4}L{x + 12 * k} {ys}Z", coat)
+        self.D(rect(x - 3, top - 6, 6, 7), "wood")
+        hx, hy = x + 2 * d, top - 15 * k
+        self.M(circle(hx, hy, 9 * k), "wood")
+        self.D(f"M{hx - 9 * k} {hy - 2}Q{hx} {hy - 13 * k} {hx + 9 * k} {hy - 3}Q{hx} {hy - 6} {hx - 9 * k} {hy - 2}Z", "ink")
+        kx = x + d * 30 * k
+        self.D(rect(min(x, kx) - 2, ys - 9 * k, abs(kx - x) + 4, 9 * k, 3), legs)
+        self.D(rect(kx - 4 * k, ys - 5, 8 * k, yf - ys + 2, 3), legs)
+        self.D(ellipse(kx + d * 4, yf - 2, 7 * k, 3), "ink")
+        for hx2, hy2 in (arms or [(x + d * 24 * k, ys - 14 * k)]):
+            self.D(f"M{x + d * 6} {top + 6}L{hx2} {hy2}")
+            self.D(circle(hx2, hy2, 3 * k), "wood")
+        return dict(head=(hx, hy), top=top)
 
     def save(self, path, **extra):
         data = dict(id=self.id, w=self.w, h=self.h, **self.meta, **extra,
