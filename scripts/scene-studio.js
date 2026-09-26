@@ -47,7 +47,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1010`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1011`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -876,5 +876,21 @@
     };
   }
 
-  window.TeachedScene = { preview, mount, load, catalog: CATALOG, levels: LEVELS };
+  /* the still picture only, for gallery cards (Community) */
+  function thumb(el, id) {
+    css();
+    load(id).then(sc => {
+      el.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="width:100%;height:100%;display:block">${stillArt(sc)}</svg>`;
+    }).catch(() => { el.textContent = ''; });
+  }
+  /* how many words (things + places) and true/false sentences at a level */
+  function stats(sc, level) {
+    const r = rank(level || 'B1');
+    return {
+      words: sc.parts.filter(p => rank(p.level) <= r).length + sc.rooms.filter(p => rank(p.level) <= r).length,
+      tf: (sc.truefalse || []).filter(q => rank(q.level) <= r).length,
+    };
+  }
+
+  window.TeachedScene = { preview, mount, load, thumb, stats, catalog: CATALOG, levels: LEVELS };
 })();

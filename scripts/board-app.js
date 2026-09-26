@@ -15359,7 +15359,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1010';
+const TEACHEDOS_ASSET_VERSION = '1011';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18207,10 +18207,10 @@ function _wizRenderScenes(host, skill) {
     <button type="button" class="tb-wiz-back" onclick="backLessonWizard()">← Back</button>`;
 }
 
-async function placeSceneCard(sceneId) {
+async function placeSceneCard(sceneId, levelArg) {
   const SC = window.TeachedScene;
   if (!SC) return;
-  const level = (boardLessonWizard && boardLessonWizard.sceneLevel) || 'A2';
+  const level = levelArg || (boardLessonWizard && boardLessonWizard.sceneLevel) || 'A2';
   let sc;
   try { sc = await SC.load(sceneId); } catch { toast('The picture could not be loaded - try again'); return; }
   const out = { scene: sceneId, level, title: sc.title };
@@ -20596,8 +20596,27 @@ function runPendingToolOpen() {
    в одних і тих самих сімох точках завантаження дошки (гість, свій кабінет,
    чужа дошка, офлайн-кеш і так далі). Один вхід замість двох умов у кожній:
    інакше набір довелося б дописувати сімома правками і в одній з них забути. */
+/* ═══ PICTURE WORKSHEET FROM COMMUNITY - ?addScene=<id>&sceneLevel=A2 ═══
+   Вкладка Interactive Worksheets в Community отправляет сюда тему и
+   уровень; карточка ложится так же, как из мастера (placeSceneCard). */
+(function capturePendingScene() {
+  const p = new URLSearchParams(location.search);
+  const id = p.get('addScene');
+  if (!id || !/^[a-z0-9-]{2,40}$/.test(id)) return;
+  const lv = p.get('sceneLevel');
+  window.__pendingScene = { id, level: /^(A1|A2|B1)$/.test(lv || '') ? lv : 'A2' };
+})();
+function runPendingScene() {
+  const sc = window.__pendingScene;
+  if (!sc) return false;
+  window.__pendingScene = null;
+  setTimeout(() => { try { placeSceneCard(sc.id, sc.level); } catch (e) { console.warn('[scene] import failed', e); } }, 250);
+  return true;
+}
+
 function runPendingToolImports() {
   let done = false;
+  if (window.__pendingScene) done = runPendingScene() || done;
   if (window.__pendingToolOpen) done = runPendingToolOpen() || done;
   if (window.__pendingToolMaterialImport) done = runPendingToolMaterialImport() || done;
   if (window.__pendingToolMaterialSetImport) done = runPendingToolMaterialSetImport() || done;
@@ -24933,6 +24952,9 @@ function startReconnectLoop() {
   }
   if (!authToken && (window.__pendingToolMaterialImport || window.__pendingToolMaterialSetImport)) {
     toast('Sign in to add teacher tool material to your board');
+  }
+  if (!authToken && window.__pendingScene) {
+    toast('Sign in to add the interactive worksheet to your board');
   }
   updateAuthUI();
 })();
