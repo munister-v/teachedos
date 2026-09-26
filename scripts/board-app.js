@@ -3805,10 +3805,11 @@ const WP_KINDS = {
   listening: { kicker: 'Listening path', studio: 'Listening Studio', studioStages: ['while', 'post'],   follow: ['follow'] },
   grammar:   { kicker: 'Grammar path',   studio: 'Grammar Studio',   studioStages: ['notice', 'drill'], follow: ['use'] },
   vocabulary: { kicker: 'Vocabulary path' },
+  magazine:   { kicker: 'News & Articles · Magazine' },
 };
 // Шаги, которые рисует writing-flow.js; остальное - обычная интерактивная карточка.
 const WP_FLOW_ROLES = ['ideas', 'phrases', 'plan', 'criteria', 'guide'];
-const WP_STUDIO_ROLES = ['studio', 'speak-studio', 'task-studio', 'vocab-studio'];
+const WP_STUDIO_ROLES = ['studio', 'speak-studio', 'task-studio', 'vocab-studio', 'magazine-studio'];
 // В «продолжении» эти задания - разговор: их место в Speaking Studio.
 const WP_SPEAK_TOOLS = ['conversation-starters', 'roleplay-cards', 'discussion', 'debate-cards'];
 let _wpFocusId = null;
@@ -4254,6 +4255,21 @@ function _wpRender(el, card, focus) {
     _wpTaskStudio(stage, card, i, focus);
   } else if (step.role === 'vocab-studio') {
     _wpVocabStudio(stage, card, i);
+  } else if (step.role === 'magazine-studio' && window.TeachedMagazine) {
+    /* Журнальная читалка: на доске - обложка статьи с кнопкой, в Studio -
+       сама читалка и воркшит (scripts/magazine-studio.js). */
+    const box = document.createElement('div');
+    box.className = 'wp-mg';
+    stage.appendChild(box);
+    if (!focus) window.TeachedMagazine.preview(box, step.out, () => openCardStudio(card.id));
+    else {
+      try { window.__mgActive?.destroy(); } catch {}
+      window.__mgActive = window.TeachedMagazine.mount(box, {
+        out: step.out, state: _wpState(card, i), api: apiFetch,
+        canSave: !!authToken && !card.__preview,
+        save: s => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, s); },
+      });
+    }
   } else if (step.role === 'game') {
     _wpGameStep(stage, card, i);
   } else {
@@ -13476,6 +13492,7 @@ function _ttAppendActivityCard(frame, type, data, w, h) {
 }
 
 function openTeacherToolBuilder(toolId, opts = {}) {
+  document.getElementById('tool-builder-panel')?.classList.remove('tb-magazine-mode');
   const tool = BOARD_TEACHER_TOOLS.find(t => t.id === toolId);
   if (!tool) return;
   /* Инструмент, открытый из списка, - это не урок из мастера. Без сброса
@@ -15115,7 +15132,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '988';
+const TEACHEDOS_ASSET_VERSION = '989';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17904,7 +17921,7 @@ function renderLessonWizard() {
     if (kicker) kicker.textContent = 'Lesson builder / step 1 of 2';
     if (title)  title.textContent  = 'What are we working on today?';
     if (sub)    sub.textContent    = 'Pick the skill. The tools are chosen for you.';
-    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout); return `
+    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine); return `
       <button type="button" class="tb-wiz-card${ready ? '' : ' is-soon'}"
         ${ready ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
         <span class="tb-wiz-ic">${esc(s.icon)}</span>
@@ -17993,6 +18010,20 @@ function pickLessonSource(key) {
       const field = document.getElementById('tbuilder-vocab');
       if (field) setTimeout(() => { try { field.focus(); } catch (_) {} }, 60);
     }
+    return;
+  }
+  /* News & Articles: вся работа - в ленте новостей и одной кнопке, поля
+     конструктора не нужны (см. .tb-magazine-mode в board.css). */
+  if (src.mode === 'magazine') {
+    openTeacherToolBuilder('add-text', { keepWizard: true });
+    document.getElementById('tool-builder-panel')?.classList.add('tb-magazine-mode');
+    const kicker = document.getElementById('tbuilder-kicker');
+    const title  = document.getElementById('tbuilder-title');
+    const sub    = document.getElementById('tbuilder-sub');
+    if (kicker) kicker.textContent = 'Lesson builder / News & Articles';
+    if (title)  title.textContent  = 'Magazine Reading Studio';
+    if (sub)    sub.textContent    = src.hint;
+    _wizRenderSourceTools(src);
     return;
   }
   /* У «своего текста» инструмента-генератора нет: работа идёт с тем, что
@@ -18159,11 +18190,13 @@ function _wizRenderNews(host) {
         <div class="tb-news-levels" role="radiogroup" aria-label="Retell at level">
           <span class="tb-news-levels-label">Retell at</span>
           ${NEWS_LEVELS.map(l => `<button type="button" role="radio" aria-checked="${st.level === l}" class="tb-news-level${st.level === l ? ' is-on' : ''}" onclick="setNewsLevel('${l}')">${l}</button>`).join('')}
-          <button type="button" role="radio" aria-checked="${st.level === 'original'}" class="tb-news-level${st.level === 'original' ? ' is-on' : ''}" onclick="setNewsLevel('original')" title="Keep the article's own wording">Original</button>
+          ${boardLessonWizard && boardLessonWizard.skill === 'magazine' ? '' : `<button type="button" role="radio" aria-checked="${st.level === 'original'}" class="tb-news-level${st.level === 'original' ? ' is-on' : ''}" onclick="setNewsLevel('original')" title="Keep the article's own wording">Original</button>`}
         </div>
-        <button type="button" class="tbuilder-btn lime" onclick="useNewsStory()" ${st.busy ? 'disabled' : ''}>
+        ${boardLessonWizard && boardLessonWizard.skill === 'magazine'
+          ? `<button type="button" class="tbuilder-btn lime" onclick="buildMagazineFromStory()" ${st.busy ? 'disabled' : ''}>${st.busy ? 'Working…' : `✦ Generate magazine article &amp; workout · ${esc(st.level === 'original' ? 'B2' : st.level)}`}</button>`
+          : `<button type="button" class="tbuilder-btn lime" onclick="useNewsStory()" ${st.busy ? 'disabled' : ''}>
           ${st.busy ? 'Working…' : st.level === 'original' ? 'Use the original text' : `Retell it at ${esc(st.level)}`}
-        </button>
+        </button>`}
       </div>` : ''}
       <span class="tb-wiz-tool-note" id="tb-news-note">${esc(st.note || 'Pick a story. It is retold at your level, the facts stay the same.')}</span>
     </div>`;
@@ -18232,6 +18265,54 @@ function setNewsLevel(level) {
   const sel = document.getElementById('tbuilder-level');
   if (sel && level !== 'original') { sel.value = level; sel.dispatchEvent(new Event('change', { bubbles: true })); }
   _wizNewsRerender();
+}
+
+/* ── News & Articles → Magazine Reading Studio ─────────────────────────
+   Сервер сам читает статью из закрытого списка изданий, пересказывает её
+   журнальным лонгридом на уровне класса и отдаёт лексику и задания
+   (/api/ai/magazine). Обложка - стоковое фото по теме, не снимок издания:
+   права на фото новостей у них. На доску ложится ОДНА карточка-путь. */
+async function buildMagazineFromStory() {
+  const st = _wizNewsState;
+  const story = st && st.items && st.items[st.picked];
+  if (!story || st.busy) return;
+  const say = msg => { st.note = msg; const n = document.getElementById('tb-news-note'); if (n) n.textContent = msg; };
+  const level = st.level === 'original' ? 'B2' : st.level;
+  const topic = (st.topics || []).find(t => t.key === st.topic);
+  st.busy = true;
+  _wizNewsRerender();
+  say(`Reading the story and writing a ${level} magazine version - about half a minute…`);
+  try {
+    const res = await apiFetch('/api/ai/magazine', { method: 'POST', body: { url: story.url, level, topicTitle: topic ? topic.title : '' } });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.magazine) { say(data?.error || 'The magazine article could not be built. Try another story.'); return; }
+    const mag = data.magazine;
+    say('Finding a cover photo…');
+    try {
+      const q = mag.imageQuery || mag.category || 'news';
+      const r = await apiFetch(`/api/images/search?q=${encodeURIComponent(q)}&topic=${encodeURIComponent(mag.category || '')}&limit=1`);
+      const img = await r.json().catch(() => null);
+      if (img && img.url) mag.image = img.url;
+    } catch {}
+    const base = { level, topic: mag.headline };
+    const path = { kind: 'magazine', steps: [{ role: 'magazine-studio', title: 'Magazine Reading Studio', out: mag, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [] };
+    const card = _wpPlacePathCard(base, mag.headline || story.title, path);
+    if (card) {
+      _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
+        title: card.data.title, cat: 'reading', level, topic: mag.category,
+        kind: `Magazine article · ${mag.vocab.length} phrases`, toolId: 'magazine',
+      });
+      say('Done - the article is on the board.');
+      closeTeacherToolBuilder();
+      toast('Magazine article added - open it to read');
+    }
+  } catch (err) {
+    console.warn('[magazine] failed', err);
+    say('The magazine article could not be built right now.');
+  } finally {
+    st.busy = false;
+    _wizNewsRerender();
+  }
 }
 
 async function useNewsStory() {

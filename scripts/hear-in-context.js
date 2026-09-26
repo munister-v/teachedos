@@ -39,7 +39,7 @@
   }
 
   const CSS = `
-.th-back{position:fixed;inset:0;z-index:9000;background:rgba(20,22,24,.62);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:28px;animation:thfade .18s ease}
+.th-back{position:fixed;inset:0;z-index:97000;background:rgba(20,22,24,.62);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:28px;animation:thfade .18s ease}
 @keyframes thfade{from{opacity:0}}
 @keyframes thrise{from{opacity:0;transform:translateY(10px) scale(.985)}}
 .th-sheet{--ink:#24282C;--muted:#5D614B;--lime:#CDF649;--paper:#F6F6EF;--line:rgba(36,40,44,.12);
@@ -100,6 +100,8 @@
 .th-note{font-size:12px;color:var(--muted);line-height:1.45;text-align:center}
 .th-tip{font-size:12px;color:var(--muted);line-height:1.5;padding:12px 14px;border-radius:14px;border:1px dashed rgba(36,40,44,.2)}
 .th-tip b{color:var(--ink)}
+.th-mini-msg{font-size:12px;color:#8a8d7a;text-align:center;padding:6px 0}
+.th-mini-msg:empty{display:none}
 @media (max-width:980px){.th-sheet{grid-template-columns:1fr}.th-head{flex-wrap:wrap}.th-accents{margin-left:0}}
 `;
 
@@ -468,5 +470,40 @@
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restore); else restore();
 
-  window.TeachedHear = { open, close };
+  /* A compact player inside another component (the magazine popover, the
+     video challenge). opts.captions:false hides the subtitles - for a
+     "which phrase did you hear?" round. Returns { next(), replay(), destroy() }. */
+  let miniSeq = 0;
+  function mount(el, term, opts = {}) {
+    injectCss();
+    const id = 'th-mini-' + (++miniSeq);
+    el.innerHTML = `<div id="${id}"></div><div class="th-mini-msg">Loading examples…</div>`;
+    const msg = el.querySelector('.th-mini-msg');
+    let widget = null, dead = false;
+    loadYG().then(YG => {
+      if (dead || !document.getElementById(id)) return;
+      widget = new YG.Widget(id, {
+        width: opts.width || el.clientWidth || 320,
+        components: (opts.captions === false ? 0 : 8) + 64,
+        autoStart: opts.autoStart === false ? 0 : 1,
+        restrictionMode: 1,
+        captionSize: 16,
+        backgroundColor: '#0d0e0f', panelsBackgroundColor: '#16181A', textColor: '#E7E8E2',
+        captionColor: '#FFFFFF', keywordColor: '#CDF649', queryColor: '#CDF649', markerColor: '#CDF649', linkColor: '#CDF649',
+        events: {
+          onFetchDone(ev) { if (msg) msg.textContent = ev && ev.totalResult ? '' : 'No clips for this one.'; if (opts.onReady) opts.onReady(ev && ev.totalResult || 0); },
+          onError() { if (msg) msg.textContent = 'This clip is unavailable.'; },
+        },
+      });
+      widget.fetch(term, 'english', opts.accent || undefined);
+    }).catch(() => { if (msg) msg.textContent = 'Video examples could not load.'; });
+    return {
+      next() { try { widget && widget.next(); } catch (e) {} },
+      replay() { try { widget && widget.replay(); } catch (e) {} },
+      pause() { try { widget && widget.pause(); } catch (e) {} },
+      destroy() { dead = true; try { widget && widget.close && widget.close(); } catch (e) {} el.innerHTML = ''; },
+    };
+  }
+
+  window.TeachedHear = { open, close, mount };
 })();

@@ -7089,3 +7089,13 @@ body:not(#_):not(#__) .ss-notes{min-height:70px !important;border-radius:14px !i
 .vs-say.vs-hear:hover{background:#000}
 .ss-chip-hear{display:inline-grid;place-items:center;width:18px;height:18px;margin-left:6px;border-radius:50%;background:#24282C;color:#fff;font-size:8px;vertical-align:1px}
 .ss-chip-hear:hover{background:#000}
+
+/* Magazine Reading Studio */
+.wp-mg{position:absolute;inset:0;padding:10px}
+.wp.is-focus .wp-mg{padding:0}
+#tool-builder-panel.tb-magazine-mode .tb-field-wrap:not(#tb-wrap-source):not(.tb-wiz-source-tools),
+#tool-builder-panel.tb-magazine-mode #tb-wrap-source,
+#tool-builder-panel.tb-magazine-mode #tb-wrap-count,
+#tool-builder-panel.tb-magazine-mode #tbuilder-gen-btn,
+#tool-builder-panel.tb-magazine-mode .tbuilder-foot{display:none!important}
+#tool-builder-panel.tb-magazine-mode .tbuilder-brief{display:none!important}

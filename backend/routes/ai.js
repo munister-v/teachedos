@@ -2082,6 +2082,33 @@ router.get('/news-article', requireAuth, newsLimiter, async (req, res) => {
   }
 });
 
+// ── POST /api/ai/magazine - Magazine Reading Studio ───────────────────────────
+// {url, level, topicTitle} → a graded magazine long read with vocabulary and
+// workout (backend/lib/magazine.js). The article is read here, from the same
+// closed list of publishers as /news-article - never from a client-sent text.
+const magazineLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.AI_MAGAZINE_PER_HOUR || 30),
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many magazine articles this hour. Try again later.' },
+});
+router.post('/magazine', requireAuth, requireTeacher, magazineLimiter, async (req, res) => {
+  try {
+    const { buildMagazine } = require('../lib/magazine');
+    const art = await newsFeeds.readArticle(req.body && req.body.url);
+    if (art.error) return res.status(art.status || 502).json({ error: art.error });
+    const level = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(req.body.level) ? req.body.level : 'B1';
+    const mag = await buildMagazine({
+      title: art.title, text: art.text, source: art.source, url: art.url || req.body.url,
+      published: art.published, level, topicTitle: String(req.body.topicTitle || '').slice(0, 30),
+    });
+    res.json({ magazine: mag });
+  } catch (err) {
+    console.error('[ai/magazine]', err.message);
+    res.status(502).json({ error: 'The magazine article could not be built right now - try again or pick another story.' });
+  }
+});
+
 // ── POST /api/ai/lesson-board - AI Memory Studio board generation ────────────
 // No login required (teachers use it freely). Rate-limited per IP.
 const lessonBoardLimiter = rateLimit({

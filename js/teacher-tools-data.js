@@ -1063,6 +1063,9 @@ const BOARD_LESSON_SKILLS = [
      конвейер для того же результата не нужен - мастер лишь даёт студии
      троих родителей: список слов, слова из текста, слова по теме. */
   {key:'vocabulary', title:'Vocabulary', hint:'A word set and the practice around it.',      icon:'🧠', workout:true},
+  /* Свежая статья → журнальный лонгрид на уровне класса со своей лексикой
+     и воркшитом (Magazine Reading Studio, scripts/magazine-studio.js). */
+  {key:'magazine',   title:'News & Articles', hint:'Today\'s story as a magazine long read, with its words and a workout.', icon:'📰', magazine:true},
 ];
 
 /* ─── BOARD_LESSON_SOURCES ─── второй вопрос: откуда берём материал ─────
@@ -1105,6 +1108,9 @@ const BOARD_LESSON_SOURCES = [
      Workout» (routeTo), а `extractTool` (если есть) сначала добывает
      список слов и кладёт его в поле vocab, прежде чем открыть чек-лист
      активностей. Три источника этого списка: свой, из текста, по теме. */
+  {key:'magazine-news', mode:'magazine', field:'source', icon:'📰', title:'Pick today\'s story', news:true,
+   skills:['magazine'],
+   hint:'The Guardian, BBC and others. Retold at your level as a magazine long read, with Smart Words, video examples and a workout.'},
   {key:'vocab-own',   mode:'workout', field:'vocab',  icon:'🔤', title:'My word list',
    skills:['vocabulary'], routeTo:'vocab-workout',
    hint:'Type or paste the words. Tick which activities you want, and they all land on the board.'},
