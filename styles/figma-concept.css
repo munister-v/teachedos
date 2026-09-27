@@ -376,7 +376,7 @@ body.fx.board-page .tb-board-chip-title {
   font-size:15px !important; font-weight:650 !important; color:var(--fx-ink) !important;
 }
 body.fx.board-page #board-wrap {
-  background-color:#F6F6EF !important;
+  background-color:var(--board-bg-color,#F6F6EF) !important;
   background-image:none !important;
 }
 body.fx.board-page #miro-toolbar {

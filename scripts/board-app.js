@@ -713,6 +713,7 @@ function addCard(type, x, y, data={}, w, h) {
   if (!_suppressSnapshot) snapshot();
   const def = getDefaults(type);
   const cardData = type === 'text' ? defaultTextData(data) : { ...data };
+  if (type === 'image' && !cardData.natW) cardData._autoSize = 1;
   const card = { id:'c'+(state.nextId++), type, x, y,
                  w: w||def.w, h: h||def.h, z: nextCardZ(), data: cardData,
                  color: data.color || (type==='sticky' ? STICKY_COLORS[0] : null) };
@@ -1283,8 +1284,10 @@ function renderText(el, card) {
   editor.addEventListener('input', () => {
     card.data.html = editor.innerHTML;
     card.data.text = editor.innerText;
+    _textHug(card, el, !card.data.bgColor || card.data.bgColor === 'transparent');
     scheduleSave();
   });
+  requestAnimationFrame(() => _textHug(card, el, false));
   editor.addEventListener('blur', () => {
     editor.contentEditable = 'false';
     editor.classList.remove('editing');
@@ -1578,14 +1581,40 @@ function renderVideo(el, card) {
 }
 
 /* ══════════════════════ IMAGE RENDERER ══════════════════════ */
+/* The picture decides the card's shape. The natural size is remembered for
+   the aspect-locked resize; a freshly added picture (_autoSize, set in
+   addCard / the image editor) also resizes its card to that shape - its own
+   pixel size, scaled down to fit IMG_MAX_SIDE - around the same centre.
+   Cards that were already on a board keep the rect the teacher gave them. */
+const IMG_MAX_SIDE = 560, IMG_MIN_SIDE = 120;
+function _imgFitNatural(card, img, el) {
+  const nw = img.naturalWidth, nh = img.naturalHeight;
+  if (!nw || !nh || !card.data) return;
+  card.data.natW = nw; card.data.natH = nh;
+  if (!card.data._autoSize) return;
+  delete card.data._autoSize;
+  // Big photos shrink to fit; tiny icons and thin strips grow to a usable side.
+  let k = Math.min(1, IMG_MAX_SIDE / Math.max(nw, nh));
+  k = Math.max(k, Math.min(IMG_MIN_SIDE / Math.min(nw, nh), 2 * IMG_MAX_SIDE / Math.max(nw, nh)));
+  const cap = el && el.querySelector('.image-caption');
+  const w = Math.round(nw * k), h = Math.round(nh * k) + (cap ? cap.offsetHeight : 0);
+  card.x = Math.round(card.x + (card.w - w) / 2);
+  card.y = Math.round(card.y + (card.h - h) / 2);
+  card.w = w; card.h = h;
+  const node = el || getCardEl(card.id);
+  if (node) { node.style.width = w + 'px'; node.style.height = h + 'px'; updateCardPos(card); }
+  _scheduleArrows && _scheduleArrows(); _scheduleMinimap && _scheduleMinimap();
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
 function renderImage(el, card) {
   // No header bar - the image shows raw (Miro-style). Edit / lock / delete
   // live in the floating menu above the selected card (layer-popover).
   const body = document.createElement('div');
   body.className = 'card-body image-body';
-  // Fit: 'cover' fills the card edge-to-edge (default, no ugly letterbox bars);
-  // 'contain' shows the whole image. Toggled per-card via the on-hover button.
-  const fit = card.data.fit === 'contain' ? 'contain' : 'cover';
+  // Fit: 'contain' shows the whole image (default - a picture is never
+  // cropped); 'cover' fills the card edge-to-edge. Toggled per-card via the
+  // on-hover button. New cards take the image's own proportions anyway.
+  const fit = card.data.fit === 'cover' ? 'cover' : 'contain';
   body.dataset.fit = fit;
 
   if (card.data.src) {
@@ -1597,7 +1626,7 @@ function renderImage(el, card) {
     img.decoding = 'async';
     img.alt = card.data.caption || card.data.title || 'Image';
     img.style.objectFit = fit;
-    img.addEventListener('load', () => wrap.classList.remove('is-loading'));
+    img.addEventListener('load', () => { wrap.classList.remove('is-loading'); _imgFitNatural(card, img, el); });
     img.addEventListener('error', () => {
       wrap.classList.remove('is-loading');
       wrap.classList.add('is-error');
@@ -1856,7 +1885,9 @@ function _mtMoreDo(action) {
 }
 
 function renderFrame(el, card) {
-  el.style.setProperty('--frame-bg', card.data.bg || 'rgba(36,40,44,.05)');
+  // No colour picked yet → leave the variable unset so the stylesheet's white shows.
+  if (card.data.bg) el.style.setProperty('--frame-bg', card.data.bg);
+  else el.style.removeProperty('--frame-bg');
   el.style.setProperty('--frame-border', card.data.border || 'rgba(36,40,44,.30)');
   // Assign a number if missing (legacy frames)
   if (!card.data.num) {
@@ -4197,7 +4228,13 @@ function _wpFrame(id, html) {
 /* Студия с материалом (Reading / Listening / Grammar Studio): слева то, по
    чему работают, - текст, видео с транскриптом, правило; справа задания
    вкладками. Состояние шага: { t: открытая вкладка, tasks: {i: ответы},
-   seen: [i…], mat: состояние материала, hideMat }. */
+   seen: [i…], mat: состояние материала, hideMat, w: открыта «Watch & read» }.
+
+   У видео с транскриптом первая страница студии - «Watch & read»: видео
+   слева, транскрипт на всю правую половину, чтобы текст можно было читать,
+   а не выглядывать из-под видео. Вкладки заданий дальше - как всегда: видео
+   слева, задание справа, транскрипт свёрнут под видео. Видео при смене
+   вкладок не перезагружается - меняется только правая колонка. */
 function _wpTaskStudio(stage, card, k, focus) {
   const p = card.data._wfPath;
   const out = p.steps[k].out || {};
@@ -4206,17 +4243,22 @@ function _wpTaskStudio(stage, card, k, focus) {
   const st = Object.assign({ t: 0, tasks: {}, seen: [] }, _wpState(card, k) || {});
   const ti = Math.max(0, Math.min(tasks.length - 1, st.t || 0));
   const owner = _wpOwnerOf(card);
+  const watchable = !!(mat && mat.kind === 'video' && mat.transcript);
+  // Не выбирали ни разу - открываем «Watch & read», если заданий ещё не касались.
+  const started = (st.seen || []).length || Object.keys(st.tasks || {}).length;
+  const watchFirst = watchable && (st.w === undefined ? !started : !!st.w);
   const wrap = document.createElement('div');
-  wrap.className = 'wts' + (st.hideMat || !mat ? ' no-mat' : '') + (mat && mat.kind === 'video' ? ' is-video' : '');
+  wrap.className = 'wts' + (st.hideMat || !mat ? ' no-mat' : '') + (mat && mat.kind === 'video' ? ' is-video' : '') + (watchFirst ? ' is-watch' : '');
   const width = focus ? Math.min(1280, window.innerWidth - 64) : card.w - 24;
   wrap.innerHTML = `
     ${mat ? `<aside class="wts-mat"><div class="wts-mat-head"><b>${esc(mat.label || 'Material')}</b><button type="button" class="wts-hide" title="More room for the tasks">Hide</button></div><div class="wts-mat-body"></div></aside>` : ''}
     <section class="wts-work">
       <div class="wts-tabs">
         ${mat ? `<button type="button" class="wts-show"${st.hideMat ? '' : ' hidden'}>☰ ${esc(mat.label || 'Material')}</button>` : ''}
-        ${tasks.map((t, i) => `<button type="button" class="wts-tab${i === ti ? ' on' : ''}${(st.seen || []).includes(i) && i !== ti ? ' seen' : ''}" data-t="${i}"><i>${i + 1}</i>${esc(String(t.title || 'Task').slice(0, 34))}</button>`).join('')}
+        ${watchable ? `<button type="button" class="wts-tab wts-watch${watchFirst ? ' on' : ''}" data-t="-1"><i>▶</i>Watch &amp; read</button>` : ''}
+        ${tasks.map((t, i) => `<button type="button" class="wts-tab${i === ti && !watchFirst ? ' on' : ''}${(st.seen || []).includes(i) && i !== ti ? ' seen' : ''}" data-t="${i}"><i>${i + 1}</i>${esc(String(t.title || 'Task').slice(0, 34))}</button>`).join('')}
       </div>
-      <div class="wts-frame">${tasks.length ? '' : '<div class="wp-away">Watch the video - the teacher will give you the tasks.</div>'}</div>
+      <div class="wts-frame">${tasks.length || watchable ? '' : '<div class="wp-away">Watch the video - the teacher will give you the tasks.</div>'}</div>
     </section>`;
   stage.appendChild(wrap);
   if (mat) {
@@ -4229,7 +4271,7 @@ function _wpTaskStudio(stage, card, k, focus) {
         const trBody = body.querySelector('.wts-tr-body');
         body.querySelector('.wts-tr').addEventListener('toggle', function once(e) {
           if (!e.target.open || trBody.firstChild) return;
-          trBody.appendChild(_wpFrame(card.id + '::' + k + '::m', _buildInteractiveWSHtml({ ...mat.transcript, _state: st.mat || null }, card.id + '::' + k + '::m', owner, matW)));
+          trBody.appendChild(_wpFrame(card.id + '::' + k + '::m', _buildInteractiveWSHtml({ ...mat.transcript, _state: (_wpState(card, k) || {}).mat || null }, card.id + '::' + k + '::m', owner, matW)));
         });
       }
     } else {
@@ -4238,10 +4280,19 @@ function _wpTaskStudio(stage, card, k, focus) {
   }
   /* Вкладка меняет только задание справа: материал слева не перезагружается,
      и место в тексте, где читал ученик, остаётся на месте. */
-  let cur = ti;
+  let cur = watchFirst ? -1 : ti;
   const showTask = i => {
-    if (!tasks.length) return;
     const frame = wrap.querySelector('.wts-frame');
+    if (i === -1) {
+      // Один транскрипт на странице: свёрнутый под видео уступает место большому.
+      const tr = wrap.querySelector('.wts-tr');
+      if (tr) { tr.open = false; tr.querySelector('.wts-tr-body').innerHTML = ''; }
+      frame.innerHTML = '';
+      const now = _wpState(card, k) || {};
+      frame.appendChild(_wpFrame(card.id + '::' + k + '::m', _buildInteractiveWSHtml({ ...mat.transcript, _state: now.mat || null }, card.id + '::' + k + '::m', owner, frame.clientWidth || Math.round(width / 2) - 40)));
+      return;
+    }
+    if (!tasks.length) { frame.innerHTML = '<div class="wp-away">Watch the video - the teacher will give you the tasks.</div>'; return; }
     frame.innerHTML = '';
     const now = Object.assign({ tasks: {} }, _wpState(card, k) || {});
     const id = card.id + '::' + k + '::t' + i;
@@ -4256,11 +4307,13 @@ function _wpTaskStudio(stage, card, k, focus) {
   wrap.querySelectorAll('.wts-tab').forEach(b => b.addEventListener('click', () => {
     const i = Number(b.dataset.t);
     if (i === cur) return;
-    const seen = new Set((_wpState(card, k) || {}).seen || []); seen.add(cur);
+    const seen = new Set((_wpState(card, k) || {}).seen || []); if (cur >= 0) seen.add(cur);
     cur = i;
-    setSt({ t: i, seen: [...seen] });
+    setSt(i < 0 ? { w: true } : { t: i, seen: [...seen], w: false });
     wrap.querySelectorAll('.wts-tab').forEach(x => { const j = Number(x.dataset.t); x.classList.toggle('on', j === i); x.classList.toggle('seen', seen.has(j) && j !== i); });
-    showTask(i);
+    wrap.classList.toggle('is-watch', i < 0);
+    // Колонки меняют ширину - кадр строится, когда сетка уже перестроилась.
+    requestAnimationFrame(() => showTask(i));
   }));
   const toggleMat = hide => {
     setSt({ hideMat: hide });
@@ -5733,6 +5786,8 @@ function applyTextStyles(card, editor) {
   editor.style.fontFamily = d.fontFamily || 'var(--font)';
   editor.style.textAlign = d.align || 'left';
   if (d.fontSize) editor.style.fontSize = d.fontSize + 'px';
+  // New font or size → the box re-fits the text (no-op until it is on the board).
+  if (card.type === 'text' && editor.isConnected) _textHug(card, editor.closest('.board-card'), !d.bgColor || d.bgColor === 'transparent');
 }
 
 function shouldScaleTextOnResize(card) {
@@ -5753,8 +5808,31 @@ function textResizeScaleForDir(dir, sw, sh, nw, nh) {
   return Math.sqrt(Math.max(0.01, wRatio * hRatio));
 }
 
+/* A plain text box hugs its text: the height is whatever the words need at
+   the current width, so nothing is ever cut off or left spilling past the
+   selection outline. `shrink` also lets it get shorter - on typing and
+   resizing; a board that is just being drawn only ever grows a box, so a
+   tall coloured panel someone made on purpose keeps its height. */
+function _textHug(card, el, shrink) {
+  if (!card || card.type !== 'text' || !shouldScaleTextOnResize(card)) return;
+  el = el || getCardEl(card.id);
+  if (!el || !el.isConnected) return;
+  const prev = el.style.height;
+  el.style.height = 'auto';
+  const need = Math.ceil(el.offsetHeight);
+  el.style.height = prev;
+  if (!need) return;
+  const h = shrink ? Math.max(40, need) : Math.max(card.h, need);
+  if (Math.abs(h - card.h) < 1) return;
+  card.h = h;
+  el.style.height = h + 'px';
+  _scheduleArrows(); _scheduleMinimap();
+}
+
 function applyTextResizeScale(card, el, resizeInfo, nw, nh) {
   if (!shouldScaleTextOnResize(card) || !resizeInfo) return;
+  // A text box dragged by its side just re-wraps; only corners scale the type.
+  if (card.type === 'text' && !/[ns]/.test(resizeInfo.dir || 'se')) return;
   const base = resizeInfo.textFontSize || 16;
   const ratio = textResizeScaleForDir(resizeInfo.dir || 'se', resizeInfo.sw, resizeInfo.sh, nw, nh);
   const next = Math.max(8, Math.min(96, Math.round(base * ratio)));
@@ -6103,7 +6181,8 @@ function openCardEditor(cardId) {
 
   } else if (card.type === 'image') {
     const curSrc = card.data.src || card.data.url || '';
-    const fit = card.data.fit === 'contain' ? 'contain' : 'cover';
+    _edImageSrcAtOpen = card.data.src || '';
+    const fit = card.data.fit === 'cover' ? 'cover' : 'contain';
     body.innerHTML = `
       <div><div class="ed-label">Image</div>
         <div class="ed-image-preview${curSrc ? '' : ' is-empty'}" id="ed-image-preview">
@@ -6381,7 +6460,9 @@ function saveCardEditor() {
     // field wins only when it actually holds a value (so upload isn't clobbered).
     const urlVal = g('ed-link')?.value.trim() || '';
     if (urlVal) { card.data.url = urlVal; card.data.src = urlVal; }
-    card.data.fit = g('ed-fit')?.value === 'contain' ? 'contain' : 'cover';
+    card.data.fit = g('ed-fit')?.value === 'cover' ? 'cover' : 'contain';
+    // A new picture takes its own proportions once it loads (see _imgFitNatural).
+    if (card.data.src && card.data.src !== _edImageSrcAtOpen) { card.data._autoSize = 1; delete card.data.natW; delete card.data.natH; }
   } else if (card.type === 'video') {
     card.data.title = g('ed-title')?.value.trim() || 'Video';
     card.data.url   = g('ed-link')?.value.trim() || '';
@@ -6406,7 +6487,7 @@ function edImagePreview(val) {
   if (!box) return;
   const v = String(val || '').trim();
   if (v) {
-    const fit = document.getElementById('ed-fit')?.value === 'contain' ? 'contain' : 'cover';
+    const fit = document.getElementById('ed-fit')?.value === 'cover' ? 'cover' : 'contain';
     box.classList.remove('is-empty');
     box.innerHTML = `<img src="${esc(v)}" alt="" style="object-fit:${fit}">`;
   } else {
@@ -6419,6 +6500,7 @@ function edImagePreview(val) {
    board's quick-drop so big photos don't bloat the saved board. The uploaded
    data URL is written straight onto the card and the URL field is cleared, so
    saveCardEditor keeps the upload instead of an empty URL clobbering it. */
+let _edImageSrcAtOpen = '';
 async function edUploadImage() {
   if (!editorCardId) return;
   const inp = document.createElement('input');
@@ -7712,8 +7794,16 @@ document.addEventListener('mousemove', e => {
       game:{w:200,h:160}, video:{w:240,h:160}, image:{w:160,h:120}, student:{w:180,h:120},
     };
     const min = minSizes[card.type] || {w:140,h:80};
-    // Shift = preserve aspect ratio (any card type, like Miro)
-    const lockAspect = e.shiftKey || (resizeStart.shiftHeld && card.type === 'video');
+    // Shift = preserve aspect ratio (any card type, like Miro). Pictures keep
+    // their own proportions by default so a resize never crops them; Shift
+    // frees them.
+    const isImg = card.type === 'image';
+    // Plain text: corners scale the whole box with its type, sides re-wrap;
+    // the height then follows the text (_textHug) either way.
+    const isText = card.type === 'text' && shouldScaleTextOnResize(card);
+    const lockAspect = isImg ? !e.shiftKey
+      : isText ? /[ns]/.test(dir)
+      : (e.shiftKey || (resizeStart.shiftHeld && card.type === 'video'));
     const dx = (e.clientX - mx) / state.scale;
     const dy = (e.clientY - my) / state.scale;
 
@@ -7737,7 +7827,8 @@ document.addEventListener('mousemove', e => {
     }
     // Aspect-lock with Shift
     if (lockAspect && sw > 0 && sh > 0) {
-      const ratio = sw / sh;
+      const ratio = isImg && card.data.natW && card.data.natH && !card.data.caption
+        ? card.data.natW / card.data.natH : sw / sh;
       // Pick the dominant change as the source
       const dwAbs = Math.abs(nw - sw), dhAbs = Math.abs(nh - sh);
       if (dwAbs >= dhAbs) {
@@ -7755,6 +7846,10 @@ document.addEventListener('mousemove', e => {
     el.style.height = nh + 'px';
     if (hasN || hasW) updateCardPos(card);
     applyTextResizeScale(card, el, resizeStart, nw, nh);
+    if (isText) {
+      _textHug(card, el, true);
+      if (hasN) { card.y = sy + sh - card.h; updateCardPos(card); }
+    }
     if (card.type === 'game') applyGameScale(el, card);
     _scheduleArrows(); _scheduleMinimap(); return;
   }
@@ -15359,7 +15454,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1011';
+const TEACHEDOS_ASSET_VERSION = '1012';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -25775,6 +25870,15 @@ document.addEventListener('keydown', e => {
     closeBgModal();
   }
 });
+/* The board page's stylesheets pin the canvas background with !important
+   (board.html classroom polish, figma-concept.css), so a plain inline style
+   never showed. The colour goes through --board-bg-color, which those rules
+   read; images and patterns are written inline as !important. */
+function _bwBg(el, prop, val) {
+  if (!el) return;
+  if (val) el.style.setProperty(prop, val, 'important');
+  else el.style.removeProperty(prop);
+}
 function getBgState() {
   try { return JSON.parse(localStorage.getItem(BG_KEY)) || {}; } catch { return {}; }
 }
@@ -25783,7 +25887,7 @@ function applyBgColor(color) {
   if (!color) return;
   const c = color.trim();
   if (!/^#[0-9a-fA-F]{3,8}$|^rgb/.test(c)) return;
-  if (boardWrap) boardWrap.style.backgroundColor = c;
+  _bwBg(boardWrap, '--board-bg-color', c);
   const cur = getBgState();
   cur.color = c;
   saveBgState(cur);
@@ -25792,15 +25896,13 @@ function applyBgColor(color) {
 }
 function applyBgImage(url) {
   if (!url) { clearBgImage(); return; }
-  if (boardWrap) boardWrap.style.backgroundImage = `url("${url}")`;
-  if (boardWrap) boardWrap.style.backgroundSize = 'cover';
+  _bwBg(boardWrap, 'background-image', `url("${url}")`);
+  _bwBg(boardWrap, 'background-size', 'cover');
   const cur = getBgState(); cur.image = url; saveBgState(cur);
 }
 function clearBgImage() {
-  if (boardWrap) {
-    boardWrap.style.backgroundImage = '';
-    boardWrap.style.backgroundSize = '';
-  }
+  _bwBg(boardWrap, 'background-image', '');
+  _bwBg(boardWrap, 'background-size', '');
   const cur = getBgState(); delete cur.image; saveBgState(cur);
   const inp = document.getElementById('bg-image-url'); if (inp) inp.value = '';
   // Restore dots if enabled
@@ -25817,16 +25919,16 @@ function handleBgImageFile(input) {
 function toggleBgDots(show) {
   if (!boardWrap) return;
   if (show) {
-    boardWrap.style.backgroundImage = '';
-    // Restore the default dotted pattern by re-applying via stylesheet rule via CSS variables
-    boardWrap.style.removeProperty('background-image');
-    boardWrap.style.removeProperty('background-size');
+    // Back to the stylesheet's canvas (or the pattern picked in Settings)
+    _bwBg(boardWrap, 'background-image', '');
+    _bwBg(boardWrap, 'background-size', '');
+    if (boardSettings.bgPicked) setBoardBg(boardSettings.bg, false);
     // If a custom image is set, keep it
     const st = getBgState();
     if (st.image) applyBgImage(st.image);
   } else {
     // Hide dots
-    boardWrap.style.backgroundImage = 'none';
+    _bwBg(boardWrap, 'background-image', 'none');
   }
   const cur = getBgState(); cur.showDots = !!show; saveBgState(cur);
 }
@@ -25838,7 +25940,7 @@ function toggleBgDots(show) {
     setTimeout(restoreBg, 200);
     return;
   }
-  if (st.color) boardWrap.style.backgroundColor = st.color;
+  if (st.color) _bwBg(boardWrap, '--board-bg-color', st.color);
   if (st.image) applyBgImage(st.image);
   if (st.showDots === false) toggleBgDots(false);
 })();
@@ -26584,23 +26686,29 @@ function setRadius(r, save=true) {
 
 function setBoardBg(type, save=true) {
   boardSettings.bg = type;
+  // A choice made here marks the pattern as the teacher's; until then the
+  // page's own canvas design stays (a stored default 'dots' is not a choice).
+  if (save) boardSettings.bgPicked = true;
   const bw = document.getElementById('board-wrap');
   if (!bw) return;
+  if (!boardSettings.bgPicked) { if (save) { updateSettingsUI(); saveSettings(); } return; }
+  // A background photo from the Background panel stays on top of any pattern.
+  if (getBgState().image) { if (save) { updateSettingsUI(); saveSettings(); } return; }
   if (type === 'dots') {
-    bw.style.backgroundImage = 'radial-gradient(circle,var(--board-dot1) 1px,transparent 1px),radial-gradient(circle,var(--board-dot2) 1px,transparent 1px)';
-    bw.style.backgroundSize = '28px 28px,14px 14px';
+    _bwBg(bw, 'background-image', 'radial-gradient(circle,var(--board-dot1) 1px,transparent 1px),radial-gradient(circle,var(--board-dot2) 1px,transparent 1px)');
+    _bwBg(bw, 'background-size', '28px 28px,14px 14px');
   } else if (type === 'grid') {
-    bw.style.backgroundImage = 'linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px)';
-    bw.style.backgroundSize = '28px 28px';
+    _bwBg(bw, 'background-image', 'linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px)');
+    _bwBg(bw, 'background-size', '28px 28px');
   } else if (type === 'lines') {
-    bw.style.backgroundImage = 'linear-gradient(var(--border) 1px,transparent 1px)';
-    bw.style.backgroundSize = '100% 28px';
+    _bwBg(bw, 'background-image', 'linear-gradient(var(--border) 1px,transparent 1px)');
+    _bwBg(bw, 'background-size', '100% 28px');
   } else {
     // Blank background: clear the image AND the size left over from the
     // previous pattern (otherwise switching dots → blank kept the 28x28
     // sizing which prevents future toggles from re-applying correctly).
-    bw.style.backgroundImage = 'none';
-    bw.style.backgroundSize = '';
+    _bwBg(bw, 'background-image', 'none');
+    _bwBg(bw, 'background-size', '');
   }
   if (save) { updateSettingsUI(); saveSettings(); }
 }
@@ -26633,6 +26741,8 @@ function toggleMotion() {
 
 function resetSettings() {
   boardSettings = { theme:'pink', accent:null, radius:'14px', bg:'dots', fontScale:1, sidebarWidth:'248px', reduceMotion:false };
+  const bw = document.getElementById('board-wrap');
+  if (bw && !getBgState().image) { _bwBg(bw, 'background-image', ''); _bwBg(bw, 'background-size', ''); }
   document.documentElement.removeAttribute('data-theme');
   document.documentElement.style.cssText = '';
   saveSettings();

@@ -437,27 +437,25 @@ const IW_WORD_HELP_SCRIPT = `
   function close(){ if(box){ box.remove(); box = null; } if(audio){ audio.pause(); audio = null; } openWord = null; }
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  function row(label, inner){ return '<div class="iw-wh-row"><span class="iw-wh-label">' + label + '</span>' + inner + '</div>'; }
-
-  /* Слово известно (пришло готовым в __IW_WORDS__ или уже подгружено), но
-     объяснить нечего - словарь такого слова просто не знает (имя, опечатка,
-     служебное слово). Пустой попап хуже отсутствия попапа. */
+  /* Окно слова - одна строка шапки и значение, ничего больше: слово, часть
+     речи, транскрипция, 🔊, ▶ (живые видео) и ×, под ними - определение.
+     Подписи строк, синонимы и словарный пример убраны: пример из словаря
+     часто про другое значение слова, а окно, выросшее на полкарточки,
+     закрывало сам текст, ради которого его открыли. Слово без словарной
+     статьи (имя, опечатка) честно говорит об этом - пустое окно хуже. */
   function bodyHtml(info){
     var canSay = !!info.audio || !!window.speechSynthesis;
     var html = '<div class="iw-wh-head"><span class="iw-wh-word">' + esc(info.word) + '</span>'
       + (info.pos ? '<span class="iw-wh-pos">' + esc(info.pos) + '</span>' : '')
-      + '<button type="button" class="iw-wh-x" aria-label="Close">&times;</button></div>';
+      + (!info.loading && info.ipa ? '<span class="iw-wh-ipa">/' + esc(info.ipa) + '/</span>' : '')
+      + '<span class="iw-wh-tools">'
+      + (!info.loading && canSay ? '<button type="button" class="iw-wh-say" aria-label="Listen" title="Listen">&#128266;</button>' : '')
+      + (!info.loading ? '<button type="button" class="iw-wh-hear" data-hear="' + esc(info.word) + '" aria-label="Hear it in movies and TED" title="Hear it in movies &amp; TED">&#9654;</button>' : '')
+      + '<button type="button" class="iw-wh-x" aria-label="Close">&times;</button></span></div>';
     if (info.loading) { html += '<div class="iw-wh-row iw-wh-loading">Looking it up…</div>'; return html; }
-    if (info.ipa || canSay) {
-      html += row('Phonetics &amp; pronunciation', '<div class="iw-wh-ipa">'
-        + (canSay ? '<button type="button" class="iw-wh-say" aria-label="Listen">&#128266;</button>' : '')
-        + '<span>' + (info.ipa ? '/' + esc(info.ipa) + '/' : '') + '</span></div>');
-    }
-    if (info.meaning)  html += row('Meaning', '<div>' + esc(info.meaning) + '</div>');
-    if (info.synonyms) html += row('Synonyms', '<div>' + esc(info.synonyms) + '</div>');
-    if (info.example)  html += row('Example', '<div class="iw-wh-eg">' + esc(info.example) + '</div>');
-    if (!info.meaning && !info.ipa && !info.synonyms && !info.example && !canSay) html += '<div class="iw-wh-row iw-wh-loading">No dictionary entry for this word.</div>';
-    html += '<button type="button" class="iw-wh-hear" data-hear="' + esc(info.word) + '">&#9654; Hear it in movies &amp; TED</button>';
+    if (info.meaning) html += '<div class="iw-wh-row iw-wh-mean">' + esc(info.meaning) + '</div>';
+    else if (info.synonyms) html += '<div class="iw-wh-row iw-wh-mean">' + esc(info.synonyms) + '</div>';
+    else if (!info.ipa && !canSay) html += '<div class="iw-wh-row iw-wh-loading">No dictionary entry for this word.</div>';
     return html;
   }
 
@@ -1830,29 +1828,30 @@ strong{font-weight:650}
    (IW_HEIGHT_REPORTER), и всплывающий блок в потоке документа растил бы её
    на каждое нажатие. Окно iframe и есть видимая часть карточки, поэтому
    координат из getBoundingClientRect достаточно. */
-.iw-wh{position:fixed;z-index:40;width:min(280px,calc(100% - 24px));padding:12px 14px;border:1px solid var(--line-2);border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(36,40,44,.16);font:13px/1.5 -apple-system,system-ui,sans-serif;color:var(--ink)}
-.iw-wh-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.iw-wh{position:fixed;z-index:40;width:min(300px,calc(100% - 24px));padding:9px 10px 10px 12px;border:1px solid rgba(36,40,44,.18);border-radius:12px;background:#fff;box-shadow:0 10px 28px rgba(36,40,44,.22);font:13.5px/1.45 -apple-system,system-ui,sans-serif;color:var(--ink);isolation:isolate}
+.iw-wh-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 7px}
 .iw-wh-word{font:800 14px system-ui;color:${ink}}
-.iw-wh-pos{font:11px system-ui;color:var(--olive)}
-.iw-wh-x{margin-left:auto;width:26px;height:26px;flex-shrink:0;border:0;border-radius:8px;background:var(--paper);color:var(--olive);font:700 14px system-ui;cursor:pointer;line-height:1}
-.iw-wh-row{margin-top:6px}
-.iw-wh-label{display:block;font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--olive);margin-bottom:2px}
-.iw-wh-ipa{display:flex;align-items:center;gap:8px;font:600 14px ui-monospace,monospace;color:var(--ink)}
+.iw-wh-pos{font:italic 11.5px system-ui;color:var(--olive)}
+.iw-wh-ipa{font:500 12px ui-monospace,monospace;color:var(--olive)}
+.iw-wh-tools{margin-left:auto;display:inline-flex;align-items:center;gap:4px;align-self:center}
+.iw-wh-x{width:24px;height:24px;flex-shrink:0;border:0;border-radius:7px;background:var(--paper);color:var(--olive);font:700 14px system-ui;cursor:pointer;line-height:1}
+.iw-wh-row{margin-top:5px}
+.iw-wh-mean{color:var(--ink)}
+.iw-wh-loading{color:var(--olive)}
 .iw-ws-quote{display:block;width:100%;text-align:left;border:0;border-left:3px solid ${accent};background:#FAFAF6;border-radius:0 10px 10px 0;padding:8px 10px;margin:0 0 8px;font:italic 13px/1.45 Georgia,serif;color:var(--ink);cursor:pointer}
 .iw-ws-quote small{display:block;margin-top:4px;font:600 10px/1.3 -apple-system,system-ui,sans-serif;font-style:normal;color:var(--muted,#6B6E60);text-transform:uppercase;letter-spacing:.06em}
 .iw-ws-quote:hover{background:color-mix(in srgb,${accent} 18%,#fff)}
 .iw-ws-chip.here{border-color:${accent}}
 .iw-ws-saved-note{margin:8px 0 0;font-size:11px;color:var(--muted,#6B6E60)}
-.iw-wh-hear{display:block;width:100%;margin-top:10px;padding:8px 10px;border:0;border-radius:10px;background:#24282C;color:#fff;font:650 12px/1.3 -apple-system,system-ui,sans-serif;cursor:pointer;text-align:center}
+.iw-wh-hear{width:24px;height:24px;flex-shrink:0;border:0;border-radius:7px;background:#24282C;color:#fff;font:10px/1 -apple-system,system-ui,sans-serif;cursor:pointer}
 .iw-wh-hear:hover{background:#000}
 .iw-hear-pill{position:fixed;z-index:45;padding:8px 12px;border:0;border-radius:999px;background:#24282C;color:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap}
 .iw-hear-pill:hover{background:#000}
 .iw-hear-btn{margin-top:14px;padding:7px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;color:var(--ink);cursor:pointer}
 .iw-hear-btn:hover{border-color:${accent}}
-.iw-wh-say{width:30px;height:30px;flex-shrink:0;border:1px solid var(--line-2);border-radius:9px;background:#fff;cursor:pointer;font-size:14px;line-height:1}
+.iw-wh-say{width:24px;height:24px;flex-shrink:0;border:1px solid var(--line-2);border-radius:7px;background:#fff;cursor:pointer;font-size:12px;line-height:1;padding:0}
 .iw-wh-say:hover{background:color-mix(in srgb,${accent} 22%,#fff);border-color:${accent}}
 .iw-wh-say.is-playing{background:${accent};border-color:${accent}}
-.iw-wh-eg{color:var(--olive);font-style:italic}
 /* Глоссарий: слово и значение в два столбца, как в языковом банке листа. */
 .iw-gloss{display:flex;flex-direction:column;gap:1px}
 .iw-gloss-row{display:grid;grid-template-columns:minmax(90px,29%) 1fr;gap:14px;padding:8px 0;border-top:1px solid var(--line)}

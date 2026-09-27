@@ -6920,6 +6920,13 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 .wts-tab.seen i{background:rgba(205,246,73,.45)}
 .wts-frame{flex:1;min-height:0;position:relative;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;overflow:hidden}
 .wts-frame iframe{position:absolute;inset:0}
+/* «Watch & read» - первая страница студии с видео и транскриптом: видео по
+   центру левой половины, транскрипт на всю правую. */
+.wts.is-watch,.wp.is-focus .wts.is-watch,.wts.is-watch.no-mat{grid-template-columns:1fr 1fr}
+.wts.is-watch.no-mat .wts-mat{display:flex}
+.wts.is-watch .wts-mat-body{justify-content:center;background:#24282C}
+.wts.is-watch .wts-tr,.wts.is-watch .wts-hide,.wts.is-watch .wts-show{display:none}
+.wts-watch i{background:#CDF649;font-size:9px}
 
 /* ═══ Vocabulary Studio и игра шагом пути ═════════════════════════════ */
 .wp-game{position:absolute;inset:0;overflow:hidden;background:#fff}
