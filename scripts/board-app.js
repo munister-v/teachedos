@@ -5415,8 +5415,12 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
           const r = await apiFetch('/api/dictionary/define?' + qs.toString());
           const d = await r.json();
           const hit = d && d.results && d.results[0];
-          if (hit) info = { word: hit.word || m.word, pos: hit.pos || null, ipa: hit.ipaUK || hit.ipa || null,
-            audio: hit.audio || null, meaning: hit.definition || null, example: hit.example || null };
+          // American or British, as the class chose (scripts/accent.js).
+          const us = !window.TeachedAccent || window.TeachedAccent.get() === 'us';
+          if (hit) info = { word: hit.word || m.word, pos: hit.pos || null,
+            ipa: us ? (hit.ipaUS || null) : (hit.ipaUK || hit.ipa || null),
+            audio: us ? (hit.audioUS || null) : (hit.audioUK || hit.audio || null),
+            lang: us ? 'en-US' : 'en-GB', meaning: hit.definition || null, example: hit.example || null };
         } catch {}
         try { e.source.postMessage({ type: 'iw-word-info', cardId: m.cardId, word: m.word, info }, '*'); } catch {}
       })();
@@ -15554,7 +15558,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1027';
+const TEACHEDOS_ASSET_VERSION = '1028';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

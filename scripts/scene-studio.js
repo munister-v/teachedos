@@ -74,7 +74,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1027`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1028`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -267,6 +267,8 @@
     return vs.find(v => /en-GB/i.test(v.lang) && /Daniel|Serena|Kate|Google UK/i.test(v.name)) || vs.find(v => /en-GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
   }
   function say(text) {
+    // American or British, whichever the class picked (scripts/accent.js)
+    if (window.TeachedAccent) { window.TeachedAccent.speak(text, { rate: 0.9 }); return; }
     if (!window.speechSynthesis) return;
     try {
       speechSynthesis.cancel();
@@ -315,9 +317,35 @@
     const stage = el.querySelector('.sc-stage');
     const panel = el.querySelector('.sc-panel');
 
+    /* US mode shows the American word ("refrigerator", "couch") with the
+       British one as a note; the British IPA is dropped because it does not
+       fit the American word or accent - the card fetches ipaUS instead. */
+    let raw = null;
+    const accent = () => (window.TeachedAccent ? window.TeachedAccent.get() : 'uk');
+    const swapWord = (text, uk, us) => String(text || '').replace(new RegExp(`\\b${String(uk).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), m => (m[0] === m[0].toUpperCase() ? us[0].toUpperCase() + us.slice(1) : us));
+    function variant(data) {
+      if (accent() !== 'us') return data;
+      return Object.assign({}, data, { parts: data.parts.map(p => Object.assign({}, p, p.us && p.us !== p.word ? { word: p.us, ukWord: p.word, ex: swapWord(p.ex, p.word, p.us) } : {}, { ukIpa: p.ipa, ipa: null })),
+        rooms: data.rooms.map(r => Object.assign({}, r, { ukIpa: r.ipa, ipa: null })) });
+    }
+    const usIpa = {};
+    function fetchIpa(it) {
+      if (accent() !== 'us' || !opts.api || !it || it.ipa || usIpa[it.word] !== undefined || /\s/.test(it.word)) return;
+      usIpa[it.word] = null;
+      opts.api('/api/dictionary/define?w=' + encodeURIComponent(it.word)).then(r => r.ok ? r.json() : null).then(d => {
+        const v = d && (d.ipaUS || null);
+        usIpa[it.word] = v;
+        if (v && !dead && st.sel === it.id && st.tab === 'explore') paint();
+      }).catch(() => {});
+    }
+    const onAccent = () => { if (!raw || dead) return; sc = variant(raw); paintBar(); paint(); };
+    window.addEventListener('teached-accent', onAccent);
+    cleanup.push(() => window.removeEventListener('teached-accent', onAccent));
+
     load(out.scene || 'house').then(data => {
       if (dead) return;
-      sc = data;
+      raw = data;
+      sc = variant(data);
       build();
     }).catch(() => { stage.innerHTML = '<div class="sc-loading">The picture could not be loaded. Check your connection and open it again.</div>'; });
 
@@ -439,6 +467,7 @@
         ${areas(sc).map(r => { const t = r.chip || r.word; return `<button type="button" class="sc-chip${st.room === r.id ? ' on' : ''}" data-room="${r.id}">${esc(t[0].toUpperCase() + t.slice(1))}</button>`; }).join('')}</div>
         <div class="sc-tools">
           <span class="sc-seg" title="Which words are on the picture">${LEVELS.map(l => `<button type="button" data-level="${l}" class="${st.level === l ? 'on' : ''}">${l}</button>`).join('')}</span>
+          ${window.TeachedAccent ? window.TeachedAccent.toggleHtml() : ''}
           <button type="button" class="sc-ib${st.labels ? ' on' : ''}" data-act="labels" title="Show the words on the picture">Aa</button>
           <button type="button" class="sc-ib" data-act="zin" title="Zoom in">＋</button>
           <button type="button" class="sc-ib" data-act="zout" title="Zoom out">－</button>
@@ -553,13 +582,14 @@
       if (it) say(it.word);
     }
     function wordCard(it) {
+      fetchIpa(it);
       const saved = st.saved.includes(it.word);
       const ex = esc(it.ex || '').replace(new RegExp(`\\b(${esc(it.word).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w*)`, 'i'), '<mark>$1</mark>');
       const [bx, by, bw, bh] = it.box, pad = Math.max(bw, bh) * 0.18 + 8;
       const thumb = isRoom(it) ? '' : `<div class="sc-thumb"><svg viewBox="${bx - pad} ${by - pad} ${bw + pad * 2} ${bh + pad * 2}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${stillArt(sc)}</svg></div>`;
       return `<div class="sc-card">${thumb}
         <div class="sc-term"><b>${esc(it.word)}</b><button type="button" class="sc-say" data-say="${esc(it.word)}" aria-label="Say it">🔊</button><button type="button" class="sc-x" data-act="unsel" aria-label="Close">✕</button></div>
-        <div class="sc-sub">${it.ipa ? `<span class="sc-ipa">/${esc(it.ipa)}/</span>` : ''}<span class="sc-tagm">${esc(it.pos || 'noun')}</span><span class="sc-tagm">${esc(it.level)}</span>${it.us && it.us !== it.word ? `<span class="sc-tagm">US: ${esc(it.us)}</span>` : ''}</div>
+        <div class="sc-sub">${(it.ipa || usIpa[it.word]) ? `<span class="sc-ipa">/${esc(it.ipa || usIpa[it.word])}/</span>` : ''}<span class="sc-tagm">${esc(it.pos || 'noun')}</span><span class="sc-tagm">${esc(it.level)}</span>${it.ukWord ? `<span class="sc-tagm">UK: ${esc(it.ukWord)}</span>` : it.us && it.us !== it.word ? `<span class="sc-tagm">US: ${esc(it.us)}</span>` : ''}</div>
         <p class="sc-def">${esc(it.def)}</p>
         ${it.ex ? `<p class="sc-ex">${ex} <button type="button" class="sc-say" style="width:26px;height:26px;font-size:12px;vertical-align:middle;background:#fff" data-say="${esc(it.ex)}" aria-label="Say the example">🔊</button></p>` : ''}
         <div class="sc-acts">
@@ -659,7 +689,7 @@
       const inp = panel.querySelector('#sc-name');
       const fb = panel.querySelector('#sc-fb');
       const val = norm(inp.value);
-      const okWords = [it.word, it.us].filter(Boolean).map(norm);
+      const okWords = [it.word, it.us, it.ukWord].filter(Boolean).map(norm);
       if (okWords.includes(val) || (it.word.endsWith('s') && norm(it.word).slice(0, -1) === val)) {
         n.score += n.hint ? 0.5 : 1; n.got.push(it.id);
         inp.className = 'sc-input ok'; fb.className = 'sc-fb ok'; fb.textContent = `Yes - ${it.word}!`;

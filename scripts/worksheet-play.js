@@ -500,7 +500,7 @@ const IW_WORD_HELP_SCRIPT = `
         audio.play().catch(done);
       } else if (window.speechSynthesis) {
         var u = new SpeechSynthesisUtterance(info.word);
-        u.lang = 'en-GB'; u.onend = done; u.onerror = done;
+        u.lang = info.lang || 'en-US'; u.onend = done; u.onerror = done;
         window.speechSynthesis.speak(u);
       } else done();
     });

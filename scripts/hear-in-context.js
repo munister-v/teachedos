@@ -201,7 +201,7 @@
       const hit = d && d.results && d.results[0];
       const box = document.getElementById('th-def');
       if (!hit || !box || state !== s) return;
-      const ipa = hit.ipaUK || hit.ipa || hit.ipaUS;
+      const ipa = (window.TeachedAccent && window.TeachedAccent.get() === 'uk') ? (hit.ipaUK || hit.ipa || hit.ipaUS) : (hit.ipaUS || hit.ipaUK || hit.ipa);
       box.innerHTML = [
         ipa ? `<span class="th-ipa">/${esc(String(ipa).replace(/^\/|\/$/g, ''))}/</span>` : '',
         hit.pos ? `<span class="th-pos">${esc(hit.pos)}</span>` : '',

@@ -47,6 +47,13 @@
 .mg-w:hover,.mg-w.on{background:rgba(205,246,73,.9)}
 .mg-w.saved{background:linear-gradient(transparent 62%,rgba(36,40,44,.18) 62%)}
 .mg-w:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.mg-t{cursor:pointer;border-radius:3px;transition:background .12s}
+.mg-t:hover,.mg-t.on{background:rgba(205,246,73,.45)}
+.mg-t.saved{text-decoration:underline;text-decoration-color:rgba(36,40,44,.35);text-decoration-thickness:2px;text-underline-offset:3px}
+.mg-say{border:0;background:#F2F1EB;border-radius:9px;width:30px;height:30px;cursor:pointer;font-size:14px;flex:none}
+.mg-say.is-playing{background:var(--lime)}
+.mg-loading{margin:12px 0 0;font-size:14px;color:var(--muted)}
+.mg-credit .ta-seg{margin-left:auto}
 .mg-end{margin-top:36px;padding:18px 20px;border-radius:14px;background:#fff;border:1px solid var(--line);font-size:14px;color:var(--muted);display:flex;align-items:center;gap:12px}
 .mg-end b{color:var(--ink)}
 .mg-pop{position:fixed;z-index:96500;width:360px;max-height:calc(100vh - 24px);overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.25),0 0 0 1px var(--line);padding:18px;font-family:inherit;color:var(--ink);animation:mgpop .16s ease}
@@ -146,11 +153,17 @@
       const start = m.index + m[1].length;
       const hit = m[2];
       const idx = vocab.findIndex(v => v.term.toLowerCase() === hit.toLowerCase().replace(/\s+/g, ' '));
-      html += esc(text.slice(pos, start));
-      html += idx >= 0 ? `<button type="button" class="mg-w" data-v="${idx}">${esc(hit)}</button>` : esc(hit);
+      html += tokens(text.slice(pos, start));
+      html += idx >= 0 ? `<button type="button" class="mg-w" data-v="${idx}">${esc(hit)}</button>` : tokens(hit);
       pos = start + hit.length;
     }
-    return html + esc(text.slice(pos));
+    return html + tokens(text.slice(pos));
+  }
+  /* The rest of the text: every word can be tapped to hear it, look it up
+     and save it - the taught phrases alone were not enough for students who
+     met other new words in the same story. */
+  function tokens(text) {
+    return String(text).split(/(\p{L}[\p{L}'’-]*)/u).map((part, i) => (i % 2 ? `<span class="mg-t">${esc(part)}</span>` : esc(part))).join('');
   }
 
   function mount(el, opts) {
@@ -171,9 +184,9 @@
       <article class="mg-read">
         <header class="mg-hero" ${heroStyle(out)}><div class="mg-hero-in">${metaLine(out)}<h1 class="mg-h1">${esc(out.headline)}</h1><p class="mg-dek">${esc(out.dek)}</p></div></header>
         <div class="mg-body">
-          <div class="mg-credit"><span>Retold for ${esc(out.level)} learners from <b>${esc(src.name || 'the news')}</b>${src.published ? ` · ${esc(when(src.published))}` : ''}</span>${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener">Original ↗</a>` : ''}</div>
+          <div class="mg-credit"><span>Retold for ${esc(out.level)} learners from <b>${esc(src.name || 'the news')}</b>${src.published ? ` · ${esc(when(src.published))}` : ''}</span>${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener">Original ↗</a>` : ''}${window.TeachedAccent ? window.TeachedAccent.toggleHtml() : ''}</div>
           ${body}
-          <div class="mg-end"><span style="font-size:22px">✦</span><span><b>Tap any highlighted phrase</b> for its meaning here, a video of real people saying it, and to save it to your vocabulary. Then do the tasks on the right.</span></div>
+          <div class="mg-end"><span style="font-size:22px">✦</span><span><b>Tap any highlighted phrase</b> for its meaning here and a video of real people saying it - or <b>tap any other word</b> to hear it and save it to your Vault. Then do the tasks on the right.</span></div>
         </div>
       </article>
       <aside class="mg-side">
@@ -187,7 +200,7 @@
     const panel = el.querySelector('#mg-panel');
 
     /* ── Smart Word popover ── */
-    function closePop() { if (popPlayer) { popPlayer.destroy(); popPlayer = null; } if (pop) { pop._ro && pop._ro.disconnect(); pop.remove(); pop = null; } el.querySelectorAll('.mg-w.on').forEach(w => w.classList.remove('on')); }
+    function closePop() { if (popPlayer) { popPlayer.destroy(); popPlayer = null; } if (pop) { pop._ro && pop._ro.disconnect(); pop.remove(); pop = null; } el.querySelectorAll('.mg-w.on,.mg-t.on').forEach(w => w.classList.remove('on')); }
     function openPop(btn) {
       closePop();
       const v = vocab[Number(btn.dataset.v)];
@@ -200,7 +213,7 @@
       pop.setAttribute('role', 'dialog');
       pop.innerHTML = `<div class="mg-pop-h"><div><div class="mg-pop-term">${esc(v.term)}</div>
           <div class="mg-pop-sub">${v.ipa ? `<span class="mg-ipa">/${esc(v.ipa)}/</span>` : ''}${v.pos ? `<span class="mg-pos">${esc(v.pos)}</span>` : ''}${v.kind && v.kind !== v.pos ? `<span class="mg-pos">${esc(v.kind)}</span>` : ''}</div></div>
-          <button type="button" class="mg-pop-x" aria-label="Close">✕</button></div>
+          ${window.TeachedAccent ? '<button type="button" class="mg-say" aria-label="Listen" title="Listen">🔊</button>' : ''}<button type="button" class="mg-pop-x" aria-label="Close">✕</button></div>
         <p class="mg-def">${esc(v.definition)}</p>
         ${ex ? `<p class="mg-ex">${ex}</p>` : ''}
         <div class="mg-mini"></div>
@@ -224,6 +237,7 @@
       if (window.ResizeObserver) { const ro = new ResizeObserver(place); ro.observe(pop); pop._ro = ro; }
       if (window.TeachedHear && window.TeachedHear.mount) popPlayer = window.TeachedHear.mount(pop.querySelector('.mg-mini'), v.term, { width: 324 });
       pop.querySelector('.mg-pop-x').addEventListener('click', closePop);
+      bindSay(pop, v.term, null);
       pop.querySelector('.mg-more').addEventListener('click', () => { const t = v.term; closePop(); window.TeachedHear && window.TeachedHear.open(t); });
       pop.querySelector('.mg-save').addEventListener('click', async ev => {
         const b = ev.currentTarget;
@@ -238,6 +252,95 @@
         } catch (e) { b.disabled = false; b.textContent = 'Could not save - try again'; }
       });
     }
+    /* 🔊: the dictionary recording in the chosen accent, else the browser voice */
+    function bindSay(root, text, entry) {
+      const b = root.querySelector('.mg-say');
+      if (!b || !window.TeachedAccent) return;
+      b.addEventListener('click', () => {
+        b.classList.add('is-playing');
+        const done = () => b.classList.remove('is-playing');
+        if (entry) window.TeachedAccent.play(entry, text, done);
+        else window.TeachedAccent.speak(text, { onend: done });
+      });
+    }
+
+    /* Any other word of the story: dictionary meaning (Cambridge learner's,
+       /api/dictionary/define), IPA and recording in the chosen accent, the
+       sentence it came from as the example, and Save to my Vault. */
+    const dict = {};
+    const wordKey = s => String(s || '').toLowerCase().replace(/[’]/g, "'").replace(/^[^a-z]+|[^a-z]+$/g, '');
+    /* the sentence around the tapped word, by its position in the paragraph */
+    function sentenceOf(span) {
+      const p = span.closest('.mg-p');
+      if (!p) return '';
+      const r = document.createRange();
+      r.setStart(p, 0); r.setEndBefore(span);
+      const text = p.textContent, at = r.toString().length;
+      let a = at, b = at;
+      while (a > 0 && !/[.!?]/.test(text[a - 1])) a--;
+      while (b < text.length && !/[.!?]/.test(text[b])) b++;
+      return text.slice(a, Math.min(text.length, b + 1)).trim().slice(0, 240);
+    }
+    function openWordPop(span) {
+      closePop();
+      const word = wordKey(span.textContent);
+      if (!word) return;
+      span.classList.add('on');
+      const example = sentenceOf(span);
+      pop = document.createElement('div');
+      pop.className = 'mg-pop';
+      pop.setAttribute('role', 'dialog');
+      document.body.appendChild(pop);
+      const place = () => {
+        if (!pop) return;
+        const r = span.getBoundingClientRect();
+        const h = pop.offsetHeight, vh = window.innerHeight;
+        pop.style.left = Math.min(Math.max(12, r.left - 20), window.innerWidth - 372) + 'px';
+        let top = r.bottom + 10;
+        if (top + h > vh - 12) top = r.top - h - 10;
+        pop.style.top = Math.max(12, Math.min(top, vh - h - 12)) + 'px';
+      };
+      const draw = d => {
+        if (!pop) return;
+        const isSaved = st.saved.includes(word);
+        const ipa = d && window.TeachedAccent ? window.TeachedAccent.ipa(d) : d && d.ipa;
+        pop.innerHTML = `<div class="mg-pop-h"><div><div class="mg-pop-term">${esc(word)}</div>
+            <div class="mg-pop-sub">${ipa ? `<span class="mg-ipa">/${esc(ipa)}/</span>` : ''}${d && d.pos ? `<span class="mg-pos">${esc(d.pos)}</span>` : ''}${d && d.cefr ? `<span class="mg-pos">${esc(d.cefr)}</span>` : ''}</div></div>
+            ${window.TeachedAccent ? '<button type="button" class="mg-say" aria-label="Listen" title="Listen">🔊</button>' : ''}<button type="button" class="mg-pop-x" aria-label="Close">✕</button></div>
+          ${!d ? '<p class="mg-loading">Looking it up…</p>' : d.definition ? `<p class="mg-def">${esc(d.definition)}</p>` : '<p class="mg-loading">No dictionary entry - you can still listen and save it.</p>'}
+          ${example ? `<p class="mg-ex">${esc(example).replace(new RegExp(`(^|[^\\p{L}])(${esc(span.textContent).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(?=[^\\p{L}]|$)`, 'u'), '$1<mark>$2</mark>')}</p>` : ''}
+          <div class="mg-pop-acts">
+            <button type="button" class="mg-btn ${isSaved ? 'ghost' : 'lime'} mg-save"${isSaved || !opts.canSave || !d ? ' disabled' : ''}>${isSaved ? '✓ In your Vault' : opts.canSave ? '+ Save to my Vault' : 'Sign in to save words'}</button>
+            <button type="button" class="mg-btn dark mg-more" title="Real people saying it">▶</button>
+          </div>`;
+        place();
+        pop.querySelector('.mg-pop-x').addEventListener('click', closePop);
+        bindSay(pop, word, d);
+        pop.querySelector('.mg-more').addEventListener('click', () => { closePop(); window.TeachedHear && window.TeachedHear.open(word); });
+        const sv = pop.querySelector('.mg-save');
+        sv.addEventListener('click', async () => {
+          sv.disabled = true; sv.textContent = 'Saving…';
+          const meaning = (d && d.definition) || '';
+          try {
+            const res = await opts.api('/api/vault/save', { method: 'POST', body: { text: word, meaning, example, boardId: opts.boardId, sourceTitle: out.headline || '' } });
+            if (!res.ok) throw new Error();
+            opts.onSaved && opts.onSaved({ kind: 'word', word, translation: meaning, example, source_title: out.headline || '' });
+            st.saved.push(word); st.wordDefs = Object.assign({}, st.wordDefs, { [word]: meaning }); save();
+            sv.className = 'mg-btn ghost mg-save'; sv.textContent = '✓ In your Vault';
+            el.querySelectorAll('.mg-t').forEach(x => { if (wordKey(x.textContent) === word) x.classList.add('saved'); });
+          } catch (err) { sv.disabled = false; sv.textContent = 'Could not save - try again'; }
+        });
+      };
+      draw(dict[word] || null);
+      if (dict[word] || !opts.api) { if (!opts.api) draw({ word }); return; }
+      opts.api('/api/dictionary/define?' + new URLSearchParams({ w: word, level: out.level || '' }))
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => { dict[word] = Object.assign({ word }, d || {}); if (pop && span.classList.contains('on')) draw(dict[word]); })
+        .catch(() => { dict[word] = { word }; if (pop && span.classList.contains('on')) draw(dict[word]); });
+    }
+    const onAccent = () => { const o = pop && el.querySelector('.mg-t.on'); if (o) openWordPop(o); };
+    window.addEventListener('teached-accent', onAccent);
+
     el.addEventListener('click', async e => {
       const q = e.target.closest('.mg-qsave');
       if (q && !(st.quotes || []).includes(q.dataset.quote)) {
@@ -253,13 +356,16 @@
       }
       const w = e.target.closest('.mg-w');
       if (w) { e.stopPropagation(); openPop(w); return; }
+      const t = e.target.closest('.mg-t');
+      if (t) { e.stopPropagation(); openWordPop(t); return; }
     });
-    const outside = e => { if (pop && !pop.contains(e.target) && !e.target.closest('.mg-w')) closePop(); };
+    const outside = e => { if (pop && !pop.contains(e.target) && !e.target.closest('.mg-w,.mg-t')) closePop(); };
     const onKey = e => { if (e.key === 'Escape') closePop(); };
     document.addEventListener('mousedown', outside);
     document.addEventListener('keydown', onKey);
     el.querySelector('.mg-read').addEventListener('scroll', closePop);
     st.saved.forEach(t => { const i = vocab.findIndex(v => v.term === t); el.querySelectorAll(`.mg-w[data-v="${i}"]`).forEach(w => w.classList.add('saved')); });
+    el.querySelectorAll('.mg-t').forEach(x => { if (st.saved.includes(wordKey(x.textContent))) x.classList.add('saved'); });
 
     /* ── Workout ── */
     const fills = Array.isArray(out.fillBlanks) ? out.fillBlanks : [];
@@ -330,7 +436,7 @@
         <textarea class="mg-note" id="mg-note" placeholder="I ${st.stance ? st.stance.toLowerCase() : 'agree'} because…">${esc(st.note)}</textarea>
         <div class="mg-rec"><button type="button" class="mg-btn lime" data-act="rec">● Record my answer</button><span class="mg-empty" id="mg-rec-note"></span></div>
         ${(d.questions || []).length ? `<ol class="mg-qs">${d.questions.map(q => `<li>${esc(q)}</li>`).join('')}</ol>` : ''}
-        ${st.saved.length ? `<p class="mg-hint" style="margin-top:18px">Phrases you saved:</p><div class="mg-saved">${st.saved.map(t => `<div><b>${esc(t)}</b><span>${esc((vocab.find(v => v.term === t) || {}).definition || '')}</span></div>`).join('')}</div>` : ''}`;
+        ${st.saved.length ? `<p class="mg-hint" style="margin-top:18px">Words and phrases you saved:</p><div class="mg-saved">${st.saved.map(t => `<div><b>${esc(t)}</b><span>${esc((vocab.find(v => v.term === t) || {}).definition || (st.wordDefs || {})[t] || '')}</span></div>`).join('')}</div>` : ''}`;
     }
     function paint() {
       if (st.tab !== 'video' && vidPlayer) { vidPlayer.destroy(); vidPlayer = null; }

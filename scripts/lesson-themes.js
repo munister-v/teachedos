@@ -127,7 +127,7 @@
       head: '#0B1424', headInk: '#F2F6FF', headMuted: '#A9B4CC', surface: '#FFFFFF', paper: '#F2F4FA',
       line: '#F062C8', glow: '0 0 0 2px rgba(230,250,80,.55), 6px 6px 0 rgba(140,116,246,.55)',
       accent: '#E6FA50', accentInk: '#0B1424', ink: '#0F1829', muted: '#4A5670',
-      font: "'JetBrains Mono',ui-monospace,monospace", fontCase: 'uppercase', icon: '▣', ifFont: "'Courier New',ui-monospace,monospace",
+      font: "'Silkscreen','JetBrains Mono',ui-monospace,monospace", fontCase: 'uppercase', icon: '▣', ifFont: "'Courier New',ui-monospace,monospace",
       decor: PIC.pixDecor, navPic: PIC.pixCursor, headLights: PAT.pixstrip },
     { id: 'adventure', name: 'Treasure Hunt', ic: '🗺️', hint: 'Old maps, jungle and treasure',
       bg: `${PAT.map}, radial-gradient(ellipse at 20% 0%, rgba(242,184,75,.22), transparent 55%), linear-gradient(180deg, #25331F, #141C11)`,
@@ -229,8 +229,8 @@ body{background:${t.paper}}
     const t = byId(id);
     if (!t) return '';
     return `${HI}{background:${t.bg} !important;background-attachment:fixed !important;color:${t.headInk}}
-${HI} > h1,${HI} > .back,${HI} > .subtitle,${HI} > p,${HI} header h1,${HI} header p{color:${t.headInk} !important;font-family:${t.font};text-transform:${t.fontCase};text-shadow:0 2px 14px rgba(0,0,0,.35)}
-${HI} > .subtitle,${HI} > p{color:${t.headMuted} !important;text-transform:none;font-family:inherit}
+${HI} > h1,${HI} > .back,${HI} > .subtitle,${HI} > p,${HI} header h1,${HI} header p{color:${t.headInk} !important;font-family:${t.font} !important;text-transform:${t.fontCase};text-shadow:0 2px 14px rgba(0,0,0,.35)}
+${HI} > .subtitle,${HI} > p{color:${t.headMuted} !important;text-transform:none;font-family:inherit !important}
 ${HI} .card,${HI} .final,${HI} .word-card,${HI} .win-msg{background:${t.surface} !important;border:1px solid ${t.line} !important;box-shadow:${t.glow} !important;color:${t.ink}}
 ${HI} .choice,${HI} .opt,${HI} .key{border-color:color-mix(in srgb,${t.line} 55%,transparent)}
 ${HI} .choice:hover,${HI} .opt:hover,${HI} .key:hover:not(:disabled){background:color-mix(in srgb,${t.accent} 30%,#fff) !important}
