@@ -89,3 +89,8 @@ html body:not(#a1):not(#a2) .auth-card { border-radius:20px !important; }
    can't split the word (it read "Teach  Ed" on billing, legal and student) */
 .logo-word { display:inline; white-space:nowrap; }
 .logo-word em { margin:0 !important; padding:0 !important; }
+
+/* Student homework runner: active task in lime (not ink), step counter in
+   the UI face */
+html body:not(#a1):not(#a2) .side-card.active { border-color:var(--te-lime,#CDF649) !important; box-shadow:0 0 0 1px var(--te-lime,#CDF649) inset !important; }
+html body:not(#a1):not(#a2) #runner-step { font-family:var(--te-font-ui) !important; letter-spacing:.02em !important; }

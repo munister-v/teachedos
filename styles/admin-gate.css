@@ -11,10 +11,10 @@
   --gate-canvas:#F6F6EF;
   --gate-accent:#CDF649;
   --gate-accent-ink:#5D614B;
-  --gate-pink:#9F8CE8;
-  --gate-violet:#6B42FD;
+  --gate-pink:#F8DBDB;
+  --gate-violet:#24282C;
   --gate-danger:#FF4E00;
-  --gate-focus:rgba(107,66,253,.24);
+  --gate-focus:rgba(205,246,73,.45);
 }
 *{box-sizing:border-box}
 html,body{min-height:100%;margin:0}
@@ -22,7 +22,7 @@ body.admin-gate-page{min-height:100dvh;background:var(--gate-canvas);color:var(-
 body.admin-gate-page::before{position:fixed;inset:0;z-index:-1;content:"";opacity:.62;background-image:radial-gradient(circle,rgba(36,40,44,.065) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.45),transparent 74%);pointer-events:none}
 .admin-gate-shell{display:grid;min-height:100dvh;place-items:center;padding:clamp(20px,4vw,56px)}
 .admin-gate-card{display:grid;grid-template-columns:minmax(260px,.94fr) minmax(330px,1.06fr);width:min(100%,820px);min-height:488px;overflow:hidden;border:1px solid var(--gate-line);border-radius:16px;background:var(--gate-surface);box-shadow:0 22px 54px rgba(36,40,44,.12),0 2px 4px rgba(36,40,44,.06)}
-.admin-gate-context{display:flex;flex-direction:column;min-width:0;padding:34px;background:var(--gate-ink);color:#FFFFFF;border-right:4px solid var(--gate-pink)}
+.admin-gate-context{display:flex;flex-direction:column;min-width:0;padding:34px;background:var(--gate-ink);color:#FFFFFF;border-right:0}
 .admin-gate-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:760;letter-spacing:0}
 .admin-gate-mark{display:grid;width:34px;height:34px;place-items:center;border-radius:10px;background:var(--gate-accent);color:var(--gate-ink);font-size:10px;font-weight:850;letter-spacing:.04em}
 .admin-gate-context-copy{margin:auto 0 28px}
@@ -38,11 +38,11 @@ body.admin-gate-page::before{position:fixed;inset:0;z-index:-1;content:"";opacit
 label{display:block;margin:0 0 8px;color:var(--gate-ink);font-size:12px;font-weight:700;line-height:1.35}
 input{width:100%;height:48px;margin:0 0 18px;padding:0 14px;border:1px solid var(--gate-line);border-radius:12px;background:#fff;color:var(--gate-ink);font:inherit;font-size:16px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
 input:hover{border-color:#CACCC6}
-input:focus{border-color:var(--gate-violet);box-shadow:0 0 0 3px var(--gate-focus)}
+input:focus{border-color:var(--gate-accent);box-shadow:0 0 0 3px var(--gate-focus)}
 .admin-gate-password{position:relative}
 .admin-gate-password input{padding-right:72px}
 #admin-gate-toggle{position:absolute;top:6px;right:6px;min-width:58px;height:36px;border:0;border-radius:9px;background:transparent;color:#5D614B;font:inherit;font-size:12px;font-weight:740;cursor:pointer;transition:background .18s ease,color .18s ease}
-#admin-gate-toggle:hover{background:#9F8CE8;color:var(--gate-violet)}
+#admin-gate-toggle:hover{background:var(--gate-pink);color:var(--gate-ink)}
 #admin-gate-error{min-height:20px;margin:0 0 12px;color:var(--gate-danger);font-size:12px;font-weight:600;line-height:1.45}
 #admin-gate-submit{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:48px;border:1px solid var(--gate-accent);border-radius:12px;background:var(--gate-accent);color:var(--gate-ink);font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:background .18s ease,transform .18s ease,box-shadow .18s ease}
 #admin-gate-submit:hover{background:#d3f36b;box-shadow:0 9px 22px rgba(205,246,73,.30)}

@@ -15,7 +15,7 @@ h1{font-size:1.6rem;font-weight:800;margin-bottom:4px;text-align:center}
 .count{font-weight:700;color:var(--olive);font-size:.9rem;margin-bottom:12px}
 .stage{position:relative;width:100%;max-width:420px;aspect-ratio:4/3}
 /* Колода - стопка рубашкой вверх; сданная карта лежит поверх неё лицом. */
-.deck{position:absolute;inset:0;border-radius:18px;background:var(--lime);box-shadow:6px 6px 0 var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;cursor:pointer;border:2px solid var(--ink)}
+.deck{position:absolute;inset:0;border-radius:18px;background:var(--lime);box-shadow:0 6px 0 rgba(36,40,44,.18);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;cursor:pointer;border:2px solid var(--lime)}
 .deck.empty{background:var(--paper);border-style:dashed;box-shadow:none;cursor:default;color:var(--olive)}
 .card{position:absolute;inset:0;border-radius:18px;background:#fff;border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:22px;display:flex;flex-direction:column;gap:10px;animation:deal .28s ease}
 .card[hidden]{display:none}
@@ -24,12 +24,14 @@ h1{font-size:1.6rem;font-weight:800;margin-bottom:4px;text-align:center}
 .card .meaning{font-size:.95rem;color:var(--olive);line-height:1.45}
 .card .task{margin-top:auto;padding:12px 14px;border-radius:12px;background:var(--paper);font-weight:700;font-size:1rem;line-height:1.4}
 .row{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center}
-button{font-family:inherit;font-weight:700;font-size:.95rem;border-radius:12px;padding:11px 18px;cursor:pointer;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+button{font-family:inherit;font-weight:700;font-size:.95rem;border-radius:12px;padding:11px 18px;cursor:pointer;border:2px solid rgba(36,40,44,.16);background:#fff;color:var(--ink)}
+button:not(:disabled):hover{border-color:rgba(36,40,44,.32)}
+button.primary{border-color:var(--ink)}
 button.primary{background:var(--ink);color:var(--lime)}
 button:disabled{opacity:.35;cursor:default}
 @media (max-width:600px){button{min-height:44px}.card .word{font-size:1.6rem}}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1025">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1026">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -107,7 +109,7 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 reshuffle();
 </script>
-<script src="../scripts/game-handoff.js?v=1025"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=1025"></script>
+<script src="../scripts/game-handoff.js?v=1026"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=1026"></script>
 </body>
 </html>

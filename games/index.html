@@ -295,10 +295,19 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1025">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=1025">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1026">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=1026">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=1025">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=1026">
+<style id="brand-labels">
+/* 2026-09-27: game tags, pills and the eyebrow in the UI face like the rest
+   of the app - the brand board has no monospace */
+body :is(.card-pill, .card-tag, .hero-eyebrow, .nav-count) {
+  font-family:var(--te-font-ui, "TeachEd UI", Manrope, sans-serif) !important;
+  font-weight:600 !important;
+  letter-spacing:.06em !important;
+}
+</style>
 </head>
 <body class="fx">
 
@@ -696,7 +705,7 @@ body {
   <a href="../index.html">← Back to TeachEd</a> &nbsp;·&nbsp; <span id="footer-game-count">games available</span>
 </footer>
 
-<script src="../scripts/assign-game.js?v=1025"></script>
+<script src="../scripts/assign-game.js?v=1026"></script>
 <script>
 let activeGameTag = 'all';
 const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', speaking:'Speaking', ai:'Creator', create:'Create & Share'};
@@ -817,6 +826,6 @@ enhanceGameCards();
 initGameFilters();
 addAssignButtons();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=1025"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=1026"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@ h1{font-size:1.6rem;font-weight:800;margin-bottom:4px;text-align:center}
 .subtitle{color:var(--olive);font-size:.9rem;margin-bottom:14px;text-align:center}
 .count{font-weight:700;color:var(--olive);font-size:.9rem;margin-bottom:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px;width:100%;max-width:520px}
-.box{aspect-ratio:1;border-radius:12px;border:2px solid var(--ink);background:var(--lime);box-shadow:3px 3px 0 var(--ink);font-weight:800;font-size:1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:var(--ink)}
+.box{aspect-ratio:1;border-radius:12px;border:2px solid var(--lime);background:var(--lime);box-shadow:0 4px 0 rgba(36,40,44,.18);font-weight:800;font-size:1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:var(--ink)}
 .box:hover{transform:translateY(-1px)}
 .box.opened{background:#fff;box-shadow:none;border-color:var(--gray);color:var(--olive);font-size:.72rem;font-weight:700;padding:4px;text-align:center;line-height:1.2;word-break:break-word}
 /* Открытая коробка - поверх сетки, как в Wordwall: слово крупно, значение
@@ -29,10 +29,11 @@ h1{font-size:1.6rem;font-weight:800;margin-bottom:4px;text-align:center}
 .lid-task{padding:11px 13px;border-radius:12px;background:var(--paper);font-weight:700;line-height:1.4;margin-bottom:16px}
 button{font-family:inherit;font-weight:700;font-size:.95rem;border-radius:12px;padding:11px 18px;cursor:pointer;border:2px solid var(--ink);background:var(--ink);color:var(--lime)}
 .row{display:flex;gap:10px;margin-top:18px}
-.ghost{background:#fff;color:var(--ink)}
+.ghost{background:#fff;color:var(--ink);border-color:rgba(36,40,44,.16)}
+.ghost:hover{border-color:rgba(36,40,44,.32)}
 @media (max-width:600px){button{min-height:44px}}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1025">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1026">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -99,7 +100,7 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 reset();
 </script>
-<script src="../scripts/game-handoff.js?v=1025"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=1025"></script>
+<script src="../scripts/game-handoff.js?v=1026"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=1026"></script>
 </body>
 </html>
