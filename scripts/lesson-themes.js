@@ -38,13 +38,11 @@
       <path d='M120 130l2.4 7 7 2.4-7 2.4-2.4 7-2.4-7-7-2.4 7-2.4z' opacity='.5'/><circle cx='70' cy='160' r='1.3' opacity='.5'/>
       <circle cx='180' cy='100' r='1' opacity='.45'/><circle cx='20' cy='120' r='.9' opacity='.4'/></g></svg>`),
     grid: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><path d='M44 .5H.5V44' fill='none' stroke='#00E5FF' stroke-opacity='.13'/></svg>`),
-    pumpkin: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><g opacity='.2'>
-      <g transform='translate(46 58)'><ellipse rx='17' ry='13' fill='#FF8A1F'/><ellipse rx='7' ry='13' fill='none' stroke='#C45A08' stroke-width='1.4'/>
-        <path d='M0-13c0-4 2-7 5-8' stroke='#7DB45A' stroke-width='3' fill='none' stroke-linecap='round'/></g>
-      <g transform='translate(165 160) scale(.8)'><ellipse rx='17' ry='13' fill='#FF8A1F'/><ellipse rx='7' ry='13' fill='none' stroke='#C45A08' stroke-width='1.4'/>
-        <path d='M0-13c0-4 2-7 5-8' stroke='#7DB45A' stroke-width='3' fill='none' stroke-linecap='round'/></g>
-      <path d='M150 50q6-8 12-2q4-6 8 0q4-6 8 2q6-6 12 2q-10 2-14 8q-3-4-6-4q-3 0-6 4q-4-6-14-8z' fill='#fff'/>
-      <path d='M40 170q5-6 9-1q3-5 6 0q3-5 6 1q5-5 9 1q-8 2-11 6q-2-3-4-3t-4 3q-3-4-11-6z' fill='#fff'/></g></svg>`),
+    // Летучие мыши - свои; тыквы - из Halloween Pumpkin Pack (img/themes/pumpkins, см. README там).
+    bats: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g opacity='.22' fill='#fff'>
+      <path d='M150 50q6-8 12-2q4-6 8 0q4-6 8 2q6-6 12 2q-10 2-14 8q-3-4-6-4q-3 0-6 4q-4-6-14-8z'/>
+      <path d='M40 190q5-6 9-1q3-5 6 0q3-5 6 1q5-5 9 1q-8 2-11 6q-2-3-4-3t-4 3q-3-4-11-6z'/></g></svg>`),
+    pumpkins: "url('/img/themes/pumpkins/tile.png')",
     map: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g fill='none' stroke='#F2B84B' stroke-opacity='.16' stroke-width='1.6'>
       <path d='M10 200Q60 150 110 170T210 90' stroke-dasharray='6 7'/><path d='M200 70l14 14M214 70l-14 14'/>
       <circle cx='60' cy='60' r='18'/><path d='M60 36v48M36 60h48M60 42l4 18-4 18-4-18z'/></g></svg>`),
@@ -77,11 +75,12 @@
       accent: '#FF3EA5', accentInk: '#16000C', ink: '#14122A', muted: '#4F4A82',
       font: "'JetBrains Mono',ui-monospace,monospace", fontCase: 'uppercase', icon: '⚙', ifFont: "'Courier New',ui-monospace,monospace" },
     { id: 'halloween', name: 'Pumpkin Night', ic: '🎃', hint: 'Pumpkins, bats and an orange moon',
-      bg: `${PAT.pumpkin}, radial-gradient(circle at 85% 12%, rgba(255,176,80,.45), transparent 16%), linear-gradient(180deg, #2A1438, #140A1C)`,
+      bg: `${PAT.bats}, ${PAT.pumpkins}, radial-gradient(circle at 85% 12%, rgba(255,176,80,.45), transparent 16%), linear-gradient(180deg, #2A1438, #140A1C)`,
       head: '#160C1F', headInk: '#FFE9CF', headMuted: '#D9AE88', surface: '#FFF4E6', paper: '#FFEBD6',
       line: '#FF8A1F', glow: '0 0 0 1px rgba(255,138,31,.4), 0 16px 36px -14px rgba(0,0,0,.7)',
       accent: '#FF8A1F', accentInk: '#1A0F24', ink: '#2A1628', muted: '#6E4436',
-      font: "'Caveat','Comic Sans MS',cursive", fontCase: 'none', fontScale: 1.25, icon: '🎃', ifFont: "'Comic Sans MS','Chalkboard SE',cursive" },
+      font: "'Caveat','Comic Sans MS',cursive", fontCase: 'none', fontScale: 1.25, icon: '🎃', ifFont: "'Comic Sans MS','Chalkboard SE',cursive",
+      iconImg: '/img/themes/pumpkins/p14.png', decor: '/img/themes/pumpkins/p01.png', navPic: '/img/themes/pumpkins/p16.png' },
     { id: 'adventure', name: 'Treasure Hunt', ic: '🗺️', hint: 'Old maps, jungle and treasure',
       bg: `${PAT.map}, radial-gradient(ellipse at 20% 0%, rgba(242,184,75,.22), transparent 55%), linear-gradient(180deg, #25331F, #141C11)`,
       head: '#1A2417', headInk: '#F3EBD3', headMuted: '#C2B993', surface: '#F6EEDA', paper: '#F1E6C8',
@@ -138,7 +137,13 @@ ${T} .wts-video{background:#000}
 .lf${T} .lf-node.is-done .lf-num{background:var(--lt-accent);color:var(--lt-accent-ink)}
 .lf${T} .lf-name{font-family:var(--lt-font);text-transform:${t.fontCase}}
 .lf${T} .lf-line path.on{stroke:var(--lt-accent)}
-.lf${T} .lf-w.is-known{background:var(--lt-accent);color:var(--lt-accent-ink)}`;
+.lf${T} .lf-w.is-known{background:var(--lt-accent);color:var(--lt-accent-ink)}` + (t.iconImg ? `
+${T} .wp-step.done i::after{content:'';display:inline-block;width:20px;height:20px;background:url('${t.iconImg}') center/contain no-repeat}
+.lf${T} .lf-node.is-done .lf-num{font-size:0;background:url('${t.iconImg}') center/contain no-repeat transparent}` : '') + (t.decor ? `
+.lf${T}::after{content:'';position:absolute;right:22px;bottom:16px;width:96px;height:96px;background:url('${t.decor}') center/contain no-repeat;pointer-events:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+${T} .wp-head{position:relative}
+${T} .wp-head::after{content:'';position:absolute;right:22px;bottom:6px;width:40px;height:40px;background:url('${t.decor}') center/contain no-repeat;pointer-events:none;opacity:.95}` : '') + (t.navPic ? `
+${T} .wp-nav{background:url('${t.navPic}') 122px 50%/32px no-repeat,var(--lt-head)}` : '');
   }
   function ensureBoardCss() {
     if (document.getElementById('lt-skins')) return;
@@ -178,7 +183,8 @@ ${HI} > .subtitle,${HI} > p{color:${t.headMuted} !important;text-transform:none;
 ${HI} .card,${HI} .final,${HI} .word-card,${HI} .win-msg{background:${t.surface} !important;border:1px solid ${t.line} !important;box-shadow:${t.glow} !important;color:${t.ink}}
 ${HI} .choice,${HI} .opt,${HI} .key{border-color:color-mix(in srgb,${t.line} 55%,transparent)}
 ${HI} .choice:hover,${HI} .opt:hover,${HI} .key:hover:not(:disabled){background:color-mix(in srgb,${t.accent} 30%,#fff) !important}
-:root{--lime:${t.accent} !important;--accent:${t.ink} !important}`;
+:root{--lime:${t.accent} !important;--accent:${t.ink} !important}` + (t.decor ? `
+${HI}::after{content:'';position:fixed;right:14px;bottom:10px;width:78px;height:78px;background:url('${t.decor}') center/contain no-repeat;pointer-events:none;z-index:5}` : '');
   }
   function skinGame(iframe, id) {
     const css = gameCss(id);
