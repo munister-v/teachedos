@@ -4556,7 +4556,7 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   if (writing) steps.push(writing);
   const hear = !!document.getElementById('tbuilder-hear')?.checked;
   try { localStorage.setItem('teachedos_vocab_hear', hear ? '1' : '0'); } catch {}
-  const path = { kind: 'vocabulary', steps, cur: 0, done: [], guide: null, genre: '', assigned: [], hear };
+  const path = { kind: 'vocabulary', steps, cur: 0, done: [], guide: null, genre: '', assigned: [], hear, ...(_wordGameTheme ? { theme: _wordGameTheme } : {}) };
   const card = _wpPlacePathCard(base, `Vocabulary: ${base.topic || 'words'}`, path);
   if (card) {
     _wpFillVocabPron(card);
@@ -15554,7 +15554,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1017';
+const TEACHEDOS_ASSET_VERSION = '1018';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16119,9 +16119,15 @@ function renderBoardWorkoutPicks() {
     <details class="tb-tpl-more"${[...picked].some(k => !String(k).startsWith('tpl:')) ? ' open' : ''}>
       <summary>Worksheets and speaking tasks</summary>
       <div class="tb-workout-list">${tasks}</div>
-    </details>`;
+    </details>
+    ${window.TeachedThemes ? `<div class="tb-tpl-head" style="margin-top:14px"><span>Theme / Vibe · how the games look</span></div><div class="tb-game-theme">${window.TeachedThemes.gridHtml(_wordGameTheme)}</div>` : ''}`;
+  const th = list.querySelector('.tb-game-theme');
+  if (th) window.TeachedThemes.bindGrid(th, id => { _wordGameTheme = id; });
   onBoardWorkoutPickChange();
 }
+/* Тема для игр, которые построит этот конструктор слов (и для пути лексики):
+   Halloween, New Year, Space… - одна на весь набор. */
+let _wordGameTheme = '';
 
 function boardWorkoutPickAll() {
   const boxes = [...document.querySelectorAll('#tbuilder-workout-list .tb-tpl input')];
@@ -16811,7 +16817,7 @@ function _placeWordTemplateGames(list, base) {
     const m = metas[i], row = Math.floor(i / COLS), col = i % COLS;
     const y = y0 + rowH.slice(0, row).reduce((a, b) => a + b + GAP, 0);
     const id = addCard('game', x0 + col * (CARD_W + GAP), y,
-      { title: `${t.title}: ${base.topic}`, src: m.src, naturalW: m.w, naturalH: m.h, customContent: content, level: base.level },
+      { title: `${t.title}: ${base.topic}`, src: m.src, naturalW: m.w, naturalH: m.h, customContent: content, level: base.level, ...(_wordGameTheme ? { theme: _wordGameTheme } : {}) },
       CARD_W, heights[i]);
     if (i === 0) _lastPlacedGameId = (id && id.id) ? id.id : id;
   });
@@ -25744,6 +25750,12 @@ function openGamesModal() {
   if (!ov) return;
   buildGamesTabs();
   renderGamesGrid();
+  // Тема для игр, которые отсюда ляжут на доску.
+  const tr = document.getElementById('games-theme-row');
+  if (tr && window.TeachedThemes) {
+    tr.innerHTML = `<div style="font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin-bottom:6px">Theme / Vibe for new games</div>${window.TeachedThemes.gridHtml(_libGameTheme)}`;
+    window.TeachedThemes.bindGrid(tr, id => { _libGameTheme = id; });
+  }
   ov.style.display = 'flex';
   setTimeout(() => { const s = document.getElementById('games-search'); if (s) s.focus(); }, 50);
 }
@@ -25803,7 +25815,9 @@ function renderGamesGrid(filter) {
 }
 function filterGames(q) { renderGamesGrid(q); }
 
+let _libGameTheme = '';
 function addGameCard(src, title, w, h, extraData) {
+  if (_libGameTheme && !(extraData && extraData.theme)) extraData = { ...(extraData || {}), theme: _libGameTheme };
   const r = boardWrap.getBoundingClientRect();
   const pos = screenToBoard(r.left + r.width/2, r.top + r.height/2) || { x: 200, y: 200 };
   // Cap to 80% of the visible board area so the card fits without scrolling
@@ -25839,7 +25853,7 @@ document.addEventListener('drop', e => {
   const cardH = Math.min(Math.floor(r2.height*0.82), h);
   const fp = findFreePlacement(pos.x, pos.y, cardW, cardH);
   addCard('game', fp.x - cardW/2, fp.y - cardH/2,
-    { title, src, naturalW: w, naturalH: h }, cardW, cardH);
+    { title, src, naturalW: w, naturalH: h, ...(_libGameTheme ? { theme: _libGameTheme } : {}) }, cardW, cardH);
   closeGamesModal();
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 });

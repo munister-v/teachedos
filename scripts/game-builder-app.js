@@ -427,6 +427,16 @@ const GAME_TYPES = [
 const STORAGE_KEY = 'teachedos_custom_games';
 let selectedType = null;
 let editingId = null;
+/* Тема оформления игры (Halloween, New Year, Space…): только внешний вид,
+   игра та же. Едет с игрой в библиотеку и на доску (card.data.theme). */
+let gameTheme = '';
+function renderThemeField(cur) {
+  gameTheme = cur || '';
+  const host = document.getElementById('game-theme');
+  if (!host || !window.TeachedThemes) return;
+  host.innerHTML = window.TeachedThemes.gridHtml(gameTheme);
+  window.TeachedThemes.bindGrid(host, id => { gameTheme = id; refreshLivePreview(true); });
+}
 let activeFilter = 'All';
 let activeTplLevel = 'All';
 let bulkMode = false;
@@ -889,6 +899,7 @@ function openBuilder() {
   document.getElementById('game-title').value = '';
   document.getElementById('game-level').value = 'B1';
   document.getElementById('game-tags').value = '';
+  renderThemeField('');
   ['game-title', 'game-tags'].forEach(id => {
     const input = document.getElementById(id);
     input.oninput = clearGameGenerationNotice;
@@ -1817,6 +1828,7 @@ function makeGameObject() {
     typeId: selectedType.id, icon: selectedType.icon, typeName: selectedType.name,
     gameSrc: selectedType.gameSrc, w: selectedType.w, h: selectedType.h,
     title, level, tags, content, quality: gameQuality(content), createdAt: new Date().toISOString(),
+    ...(gameTheme ? { theme: gameTheme } : {}),
   };
 }
 
@@ -1874,6 +1886,7 @@ function editGame(id) {
   document.getElementById('game-title').value = game.title;
   document.getElementById('game-level').value = game.level || 'B1';
   document.getElementById('game-tags').value = (game.tags || []).join(', ');
+  renderThemeField(game.theme || '');
   document.getElementById('save-btn').textContent = 'Update Game';
   renderTemplateSwitcher();
   renderPresetBar();
@@ -2043,6 +2056,7 @@ function addToBoard(id) {
     customGameId: game.id, title: game.title, src: type.gameSrc,
     customContent: game.content, level: game.level,
     naturalW: type.w, naturalH: type.h,
+    ...(game.theme ? { theme: game.theme } : {}),
   };
   const payload = JSON.stringify(customData);
   try {
@@ -2174,6 +2188,7 @@ function _mountLiveGame(type, content, title, stage) {
   iframe.src = type.gameSrc;
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${w}px;height:${h}px;`;
+  if (gameTheme && window.TeachedThemes) window.TeachedThemes.skinGame(iframe, gameTheme);
 
   let delivered = false;
   const deliver = () => {
@@ -2261,6 +2276,7 @@ function mountPreviewGame(type, content, title) {
   iframe.src = type.gameSrc;
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${w}px;height:${h}px;border:none;display:block;transform-origin:top left;`;
+  if (gameTheme && window.TeachedThemes) window.TeachedThemes.skinGame(iframe, gameTheme);
 
   let delivered = false;
   const deliver = () => {
