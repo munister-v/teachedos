@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeachEd - home desktop in the brand-board style (2026-09-27)
+
+   The teacher pages now share one card and a dark sidebar
+   (app-sidebar.css, brand-harmony.css). The home desktop keeps its own
+   metaphor - wallpaper, windows, widgets, dock - but speaks the same
+   language: solid white 20px surfaces instead of frosted glass, one dark
+   lead widget with a lime number, the pink pulse tile, and a dark dock that
+   matches the sidebar on every other page.
+═══════════════════════════════════════════════════════════════ */
+
+/* Windows and widgets: solid surfaces, one radius, hairline */
+body.os-desktop:not(#d1):not(#d2):not(#d3) :is(.win, .widget:not(#wg-pulse):not(#wg-vocab), #fx-ghost-panel) {
+  background:#FFFFFF !important;
+  border:1px solid rgba(36,40,44,.08) !important;
+  border-radius:20px !important;
+  box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-pulse { border-radius:20px !important; box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) .win :is(.win-titlebar, .win-bar, .titlebar) { background:transparent !important; }
+
+/* Lead widget: "all boards" goes dark with a lime number */
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab {
+  background:var(--te-ink,#24282C) !important;
+  border:1px solid var(--te-ink,#24282C) !important;
+  border-radius:20px !important;
+  box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  color:#CACCC6 !important;
+}
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab .wg-vocab-word {
+  color:var(--te-lime,#CDF649) !important;
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+}
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab :is(.wg-vocab-label, .wg-vocab-lang, .wg-vocab-trans, .wg-vocab-ex) { color:#CACCC6 !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab > svg { color:#CACCC6 !important; opacity:.7; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab .widget-close { color:#CACCC6 !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab .wg-vocab-next {
+  background:var(--te-lime,#CDF649) !important;
+  border-color:var(--te-lime,#CDF649) !important;
+  color:var(--te-ink,#24282C) !important;
+}
+
+/* Widget labels: UI face, like the kickers on the other pages */
+body.os-desktop:not(#d1):not(#d2):not(#d3) :is(.wg-vocab-label, .wg-pulse-title, .wg-today-label, [class*="kicker"], [class*="eyebrow"]) {
+  font-family:var(--te-font-ui) !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+}
+
+/* Dock: dark, like the sidebar; lime for the open app */
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock {
+  background:var(--te-ink,#24282C) !important;
+  border:0 !important;
+  border-radius:22px !important;
+  box-shadow:0 18px 40px -18px rgba(20,22,24,.55) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di-icon {
+  background:rgba(255,255,255,.08) !important;
+  color:#FFFFFF !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di-icon svg { color:#FFFFFF !important; stroke:currentColor; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di:hover .di-icon { background:rgba(255,255,255,.16) !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di.open .di-icon {
+  background:var(--te-lime,#CDF649) !important;
+  color:var(--te-ink,#24282C) !important;
+}
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di.open .di-icon svg { color:var(--te-ink,#24282C) !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di-dot { background:var(--te-lime,#CDF649) !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di-label { color:#FFFFFF !important; }
+
+/* Window titles: display face at 600 in sentence case, as on the other pages */
+body.os-desktop:not(#d1):not(#d2):not(#d3) .win :is(.studio-title, .win-title, h1, h2) {
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+  text-transform:none !important;
+}
+body.os-desktop:not(#d1):not(#d2):not(#d3) .win :is(.studio-kicker, .studio-eyebrow, [class*="kicker"], [class*="eyebrow"]) {
+  font-family:var(--te-font-ui) !important;
+  font-size:11px !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+  text-transform:uppercase !important;
+  color:#5D614B !important;
+}
+
+/* People read as pink everywhere (sidebar, journal, schedule) */
+body.os-desktop:not(#d1):not(#d2):not(#d3) :is(.st-row-avatar.is-initials, .st-detail-avatar.is-initials) {
+  background:var(--te-pink,#F8DBDB) !important;
+  color:var(--te-pink-ink,#8A2E52) !important;
+}
