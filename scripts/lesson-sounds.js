@@ -14,7 +14,7 @@
   const KEY = 'teached_sound';
   let ctx = null, master = null, noiseBuf = null;
   let amb = null;            // { theme, stop() }
-  const HAS_AMBIENT = { halloween: 1, winter: 1 };
+  const HAS_AMBIENT = { halloween: 1, winter: 1, pixel: 1 };
 
   const enabled = () => { try { return localStorage.getItem(KEY) === '1'; } catch { return false; } };
   function audio() {
@@ -108,6 +108,12 @@
       s.connect(f).connect(g).connect(master); s.start(); lfo.start();
       nodes.push(s, lfo, g);
       every(12, 26, t => (Math.random() < 0.6 ? crow : creak)(t));
+    } else if (theme === 'pixel') {
+      // тихий чиптюн: короткие арпеджио квадратной волной и редкие «блипы»
+      const chords = [[261.63, 329.63, 392, 523.25], [220, 261.63, 329.63, 440], [174.61, 220, 261.63, 349.23], [196, 246.94, 293.66, 392]];
+      let ci = 0;
+      every(3.2, 4.4, t => { chords[ci++ % chords.length].forEach((f, i) => tone(f * 2, t + i * 0.11, 0.09, 'square', 0.018)); });
+      every(6, 12, t => { const f = 1046.5 + Math.random() * 520; tone(f, t, 0.05, 'square', 0.02); tone(f * 1.5, t + 0.06, 0.05, 'square', 0.016); });
     } else if (theme === 'winter') {
       const scale = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66];   // пентатоника
       every(1.4, 3.4, t => { bell(scale[Math.floor(Math.random() * scale.length)], t, 0.05); if (Math.random() < 0.3) bell(scale[Math.floor(Math.random() * scale.length)], t + 0.35, 0.035); });
