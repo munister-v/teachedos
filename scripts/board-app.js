@@ -1880,6 +1880,7 @@ function _mtMoreDo(action) {
   else if (action === 'voting')        toolbarQuickAdd('voting');
   else if (action === 'games')         openGamesModal?.();
   else if (action === 'lesson-collector') openLessonCollectorModal?.();
+  else if (action === 'lesson-flow')   window.TeachedFlow?.openBuilder();
   else if (action === 'practice-all')  quickPracticeAllVocab?.();
   else if (action === 'clear-strokes') eraseDrawing?.();
 }
@@ -3346,6 +3347,8 @@ function _wsStripKicker(d, card) {
 
 function renderWorksheet(el, card) {
   const d = card.data || {};
+  // Карта урока из нескольких студий (scripts/lesson-flow.js).
+  if (d._wfFlow && window.TeachedFlow) { window.TeachedFlow.render(el, card); return; }
   // Урок письма - один виджет-путь, а не россыпь карточек (см. _wpRender).
   if (d._wfPath && Array.isArray(d._wfPath.steps) && d._wfPath.steps.length) { _wpRender(el, card, false); return; }
   const meta = (typeof BOARD_TOOL_META !== 'undefined' && BOARD_TOOL_META[d.cat]) || BOARD_TOOL_META?.utility
@@ -4039,6 +4042,11 @@ function _wpSlim(out) {
   keep.forEach(k => { if (out[k] !== undefined) o[k] = out[k]; });
   return o;
 }
+// Одна фраза - один чип: слова урока, фразы пути и Vault часто повторяются.
+function _wpDedupPhrases(list) {
+  const seen = new Set();
+  return list.filter(x => { const k = String(x && x.phrase || '').toLowerCase().trim(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+}
 function _wpPhrases(p) {
   const WF = window.TeachEdWritingFlow;
   // Слова урока лексики - тоже «фразы урока»: студии говорения и письма
@@ -4174,7 +4182,7 @@ async function _wpLoadMyWork() {
     const w = (local && (!s || (local.t || 0) > (s.t || 0))) ? local : s;
     if (w) _wpWork[id] = { cur: 0, done: [], states: {}, ...w };
   });
-  state.cards.forEach(c => { if (c.data && c.data._wfPath) reRenderCard(c); });
+  state.cards.forEach(c => { if (c.data && (c.data._wfPath || c.data._wfFlow)) reRenderCard(c); });
   _wpCheckLaunch();
 }
 /* Учитель нажал «Open on their screens» - путь раскрывается у каждого, кто
@@ -4328,7 +4336,11 @@ function _wpTaskStudio(stage, card, k, focus) {
 function _wpRender(el, card, focus) {
   const p = card.data._wfPath;
   const n = p.steps.length;
-  const i = Math.max(0, Math.min(n - 1, _wpCur(card)));
+  /* Станция карты урока (lesson-flow.js): в окне только её шаги, на
+     последнем - «Finish station», закрытие - назад на карту. */
+  const lf = focus && window.TeachedFlow ? window.TeachedFlow.ctxFor(card.id) : null;
+  const lo = lf ? lf.from : 0, hi = lf ? lf.to : n - 1;
+  const i = Math.max(lo, Math.min(hi, _wpCur(card)));
   const done = _wpDone(card);
   const K = WP_KINDS[p.kind] || WP_KINDS.writing;
   const owner = _wpOwnerOf(card);
@@ -4339,7 +4351,7 @@ function _wpRender(el, card, focus) {
   el.dataset.interactive = '1';
   const root = document.createElement('div');
   root.className = 'wp' + (focus ? ' is-focus' : '') + (review ? ' is-review' : '');
-  const next = p.steps[i + 1];
+  const next = i < hi ? p.steps[i + 1] : null;
   const nextLabel = !next ? '' : WP_STUDIO_ROLES.includes(next.role) ? `Go to the ${next.title} →` : `Next: ${next.title} →`;
   const who = review ? review.list[review.i] : null;
   root.innerHTML = `
@@ -4350,16 +4362,16 @@ function _wpRender(el, card, focus) {
         <div class="wp-acts">
           ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
           ${cloudOwner && !review ? `<button type="button" class="wp-btn wp-students">👥 Students${assigned ? ` · ${assigned}` : ''}</button>` : ''}
-          ${focus ? `<button type="button" class="wp-btn wp-close">${card.__preview ? '✕ Close' : '✕ Back to the board'}</button>` : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
+          ${focus ? `<button type="button" class="wp-btn wp-close">${card.__preview ? '✕ Close' : lf ? '← Lesson map' : '✕ Back to the board'}</button>` : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
         </div>
       </div>
-      <div class="wp-steps">${p.steps.map((s, k) => `<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${WP_STUDIO_ROLES.includes(s.role) ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k + 1}</i><span>${esc(s.title)}</span></button>`).join('<span class="wp-line"></span>')}</div>
+      <div class="wp-steps">${p.steps.map((s, k) => k < lo || k > hi ? '' : `<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${WP_STUDIO_ROLES.includes(s.role) ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k - lo + 1}</i><span>${esc(s.title)}</span></button>`).filter(Boolean).join('<span class="wp-line"></span>')}</div>
     </div>
     <div class="wp-stage"></div>
     <div class="wp-nav">
-      <button type="button" class="wp-btn wp-prev"${i === 0 ? ' disabled' : ''}>← Back</button>
-      <span class="wp-where">${review ? 'Looking at their work - nothing you do here is saved · ' : ''}Step ${i + 1} of ${n} · ${esc(p.steps[i].title)}</span>
-      ${next ? `<button type="button" class="wp-btn wp-next${WP_STUDIO_ROLES.includes(next.role) ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : '<span class="wp-end">Last step</span>'}
+      <button type="button" class="wp-btn wp-prev"${i <= lo ? ' disabled' : ''}>← Back</button>
+      <span class="wp-where">${review ? 'Looking at their work - nothing you do here is saved · ' : ''}${lf ? esc(lf.label) + ' · ' : ''}Step ${i - lo + 1} of ${hi - lo + 1} · ${esc(p.steps[i].title)}</span>
+      ${next ? `<button type="button" class="wp-btn wp-next${WP_STUDIO_ROLES.includes(next.role) ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : lf && !review ? '<button type="button" class="wp-btn wp-next to-studio lf-finish">✓ Finish station</button>' : '<span class="wp-end">Last step</span>'}
     </div>`;
   el.appendChild(root);
   const stage = root.querySelector('.wp-stage');
@@ -4374,7 +4386,7 @@ function _wpRender(el, card, focus) {
     // Один живой экземпляр: при перерисовке прежний отдаёт микрофон.
     try { window.__ssActive?.destroy(); } catch {}
     window.__ssActive = window.TeachEdSpeakingStudio.mount(box, {
-      ...args, outs: step.out.outs || [], phrases: _wpPhrases(p).concat(((_vaultCtx() || {}).words || []).map(w => ({ phrase: w.phrase, note: `Saved while reading${w.note ? ' - ' + w.note : ''}` }))).slice(0, 48), state: _wpState(card, i),
+      ...args, outs: step.out.outs || [], phrases: _wpDedupPhrases((window.TeachedFlow ? window.TeachedFlow.phrases(card.id) : []).concat(_wpPhrases(p), ((_vaultCtx() || {}).words || []).map(w => ({ phrase: w.phrase, note: `Saved while reading${w.note ? ' - ' + w.note : ''}` })))).slice(0, 48), state: _wpState(card, i),
       authed: !!(currentBoardId && authToken) && !review && !card.__preview,
       save: stState => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, stState); },
       onRecordings: () => window.TeachEdSpeakingStudio.showRecordings(args),
@@ -4430,9 +4442,10 @@ function _wpRender(el, card, focus) {
   });
   root.querySelectorAll('.wp-step').forEach(b => b.addEventListener('click', () => _wpGo(card.id, Number(b.dataset.k))));
   root.querySelector('.wp-prev').addEventListener('click', () => _wpGo(card.id, i - 1));
-  root.querySelector('.wp-next')?.addEventListener('click', () => _wpGo(card.id, i + 1));
+  root.querySelector('.wp-next:not(.lf-finish)')?.addEventListener('click', () => _wpGo(card.id, i + 1));
+  root.querySelector('.lf-finish')?.addEventListener('click', () => window.TeachedFlow.finish(card.id));
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
-  root.querySelector('.wp-close')?.addEventListener('click', () => closeCardStudio());
+  root.querySelector('.wp-close')?.addEventListener('click', () => lf ? window.TeachedFlow.back() : closeCardStudio());
   root.querySelector('.wp-students')?.addEventListener('click', () => _wpStudentsPanel(card.id));
   root.querySelectorAll('.wp-rv').forEach(b => b.addEventListener('click', () => {
     if (!_wpReview) return;
@@ -4519,7 +4532,9 @@ async function _wpFillVocabPron(card) {
    learning» раскладывают слова, и повтор идёт только по тем, что ещё учатся.
    Состояние шага: { i, mode, known: [word], learning: [word], onlyLearning }. */
 function _wpVocabStudio(stage, card, k) {
-  const words = (card.data._wfPath.steps[k].out.words || []).filter(w => w && w.word);
+  const own = (card.data._wfPath.steps[k].out.words || []).filter(w => w && w.word);
+  // Станция карты урока: слова из видео и нажатые учеником - в тот же список.
+  const words = own.concat(window.TeachedFlow ? window.TeachedFlow.extraWords(card.id, own) : []);
   const st = Object.assign({ i: 0, mode: 'learn', known: [], learning: [], onlyLearning: false }, _wpState(card, k) || {});
   const box = document.createElement('div');
   box.className = 'vs';
@@ -4608,6 +4623,7 @@ function _wpVocabStudio(stage, card, k) {
       st.known = st.known.filter(x => x !== w.word);
       st.learning = st.learning.filter(x => x !== w.word);
       (known ? st.known : st.learning).push(w.word);
+      if (window.TeachedFlow) window.TeachedFlow.onVocabMark(card.id, w.word, known);
       shown = false;
       // Выучено - дальше; в режиме «только учу» слово само уходит из списка.
       if (!(st.onlyLearning && known)) st.i = Math.min(L.length - 1, st.i + 1);
@@ -4624,7 +4640,9 @@ function _wpVocabStudio(stage, card, k) {
 /* Игра - шагом пути: та же страница games/*.html, что и у игровой карточки,
    с тем же содержимым (teachedos-custom-game-content), вписанная в шаг. */
 function _wpGameStep(stage, card, k) {
-  const o = card.data._wfPath.steps[k].out || {};
+  const o0 = card.data._wfPath.steps[k].out || {};
+  // Станция лексики в карте урока: слова урока доезжают и в игры.
+  const o = window.TeachedFlow ? { ...o0, customContent: window.TeachedFlow.mergeGame(card.id, o0.customContent, o0.src) } : o0;
   const box = document.createElement('div');
   box.className = 'wp-game';
   const W = o.naturalW || 720, H = o.naturalH || 480;
@@ -4663,6 +4681,8 @@ function _wpGo(cardId, k) {
   const p = card && card.data._wfPath;
   if (!p) return;
   k = Math.max(0, Math.min(p.steps.length - 1, k));
+  const lf = _wpFocusId === cardId && window.TeachedFlow ? window.TeachedFlow.ctxFor(cardId) : null;
+  if (lf) k = Math.max(lf.from, Math.min(lf.to, k));
   if (k === _wpCur(card)) return;
   _wpSetCur(card, k);
   if (_wpFocusId === cardId) _studioRender();
@@ -5007,6 +5027,7 @@ function closeCardStudio(silent) {
   const card = id && _wpCard(id);
   // Карточка на доске снова своя: перерисовка забирает то, что сделано в окне.
   if (card && !silent) _wpRedraw(card);
+  if (window.TeachedFlow) window.TeachedFlow.onClose();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('card-studio') && !document.getElementById('wp-students')) closeCardStudio(); });
 
@@ -5324,6 +5345,10 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
         } catch {}
         try { e.source.postMessage({ type: 'iw-word-info', cardId: m.cardId, word: m.word, info }, '*'); } catch {}
       })();
+    }
+    // Слово, открытое в тексте, - в слова карты урока, если текст - её станция.
+    if (m.type === 'iw-word-seen' && m.cardId && m.word && _iwSourceValid(m.cardId, e.source) && window.TeachedFlow) {
+      window.TeachedFlow.onWordSeen(m.cardId, String(m.word).slice(0, 60), String(m.meaning || '').slice(0, 200));
     }
     /* Шаги виджета-пути приходят с id вида «карточка::шаг». */
     if (typeof m.cardId === 'string' && m.cardId.includes('::') && _iwSourceValid(m.cardId, e.source)) {
@@ -15454,7 +15479,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1012';
+const TEACHEDOS_ASSET_VERSION = '1013';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

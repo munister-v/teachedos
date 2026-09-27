@@ -466,6 +466,8 @@ const IW_WORD_HELP_SCRIPT = `
      на реальные данные не должна прыгать заново к слову или мигать. */
   function render(el, info){
     box.innerHTML = bodyHtml(info);
+    // Открытое слово - в слова урока (карта урока собирает их для следующих студий).
+    if (!info.loading && info.meaning) { try { parent.postMessage({ type:'iw-word-seen', cardId: window.__IW_CARD__, word: String(info.word||'').slice(0,60), meaning: String(info.meaning).slice(0,200) }, '*'); } catch(e) {} }
 
     /* Карточка текста невысокая, а окошко со всеми четырьмя строками бывает
        выше половины её высоты. Простое «не влезло снизу - показать сверху»
@@ -1660,8 +1662,8 @@ strong{font-weight:650}
 .iw-opt-text{flex:1;min-width:0}
 .iw-opt.selected .iw-opt-key{background:var(--ink);border-color:var(--ink);color:var(--lime)}
 .iw-opt.correct .iw-opt-key,.iw-opt.wrong .iw-opt-key{background:transparent;border-color:currentColor;color:inherit}
-.iw-opt:hover{border-color:var(--ink);background:var(--panel)}
-.iw-opt.selected{border-color:var(--ink);background:color-mix(in srgb,var(--lime) 30%,#fff);color:var(--ink);font-weight:600}
+.iw-opt:hover{border-color:rgba(36,40,44,.32);background:var(--panel)}
+.iw-opt.selected{border-color:rgba(36,40,44,.16);background:color-mix(in srgb,var(--lime) 30%,#fff);color:var(--ink);font-weight:600}
 .iw-opt.correct{border-color:#A3A48D;background:#49F6F0;color:#5D614B;font-weight:600}
 .iw-opt.wrong{border-color:#FF4E00;background:#F3A46B;color:#24282C;opacity:.7}
 .iw-opt[disabled]{pointer-events:none}
@@ -1932,7 +1934,7 @@ strong{font-weight:650}
 .iw-wtile-rest{font:13.5px/1.6 system-ui;color:var(--ink)}
 .iw-warm-note{width:100%;margin-top:10px;border:1px solid var(--line-2);border-radius:10px;padding:9px 11px;
   font:13.5px/1.5 system-ui;color:var(--ink);background:var(--panel);resize:vertical;outline:none}
-.iw-warm-note:focus{border-color:var(--ink)}
+.iw-warm-note:focus{border-color:rgba(36,40,44,.32)}
 .iw-warm-note::placeholder{color:var(--olive);font-weight:600}
 .iw-warm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
 .iw-warm-count{font:700 12px system-ui;color:var(--olive);white-space:nowrap}
@@ -2012,7 +2014,7 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-ws-plan input{flex-shrink:0;width:15px;height:15px;margin-top:2px;accent-color:${ink};cursor:pointer}
 .iw-ws-plan input:checked+span{color:var(--olive);text-decoration:line-through}
 .iw-ws-drafts{margin-left:10px;height:26px;padding:0 10px;border:1.5px solid var(--line-2);border-radius:8px;background:#fff;font:700 11.5px system-ui;color:var(--ink);cursor:pointer;vertical-align:middle}
-.iw-ws-drafts:hover{border-color:var(--ink)}
+.iw-ws-drafts:hover{border-color:rgba(36,40,44,.32)}
 .iw-ws-submit{min-height:48px;font-size:15px !important}
 /* ── Узкая карточка = телефон ──
    Ширина кадра равна ширине карточки, поэтому этот порог и есть «телефон»:

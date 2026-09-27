@@ -42,7 +42,7 @@
 /* Выделение диапазона */
 .bk-select {
   position:absolute; left:3px; right:3px; z-index:3; pointer-events:none;
-  border-radius:10px; background:rgba(205,246,73,.45); border:2px solid #24282C;
+  border-radius:10px; background:rgba(205,246,73,.45); border:2px solid rgba(36,40,44,.16);
   font:650 11px/1 var(--font, inherit); color:#24282C; padding:6px 7px; box-sizing:border-box;
 }
 

@@ -190,7 +190,7 @@ body.fx.landing-page .ld { border-color:var(--fx-lime) !important; }
 body.fx.landing-page :is(.hndl,.car) {
   background:var(--fx-ink) !important; border-color:var(--fx-ink) !important;
 }
-body.fx.landing-page .tb.r { color:var(--fx-ink) !important; border-color:var(--fx-ink) !important; }
+body.fx.landing-page .tb.r { color:var(--fx-ink) !important; border-color:rgba(36,40,44,.16) !important; }
 
 
 /* ── Остатки розового мимо токенов ──────────────────────────────────────── */

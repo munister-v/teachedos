@@ -66,11 +66,11 @@
 .tas-empty{padding:14px;font-size:13px;color:#5C5C66;line-height:1.45;}
 .tas-empty a{color:#24282C;font-weight:600;}
 .tas-in{width:100%;box-sizing:border-box;border:1px solid rgba(36,40,44,.16);border-radius:10px;padding:9px 11px;font-size:14px;font-family:inherit;color:#24282C;background:#fff;}
-.tas-in:focus{outline:2px solid #CDF649;outline-offset:1px;border-color:#24282C;}
+.tas-in:focus{outline:2px solid #CDF649;outline-offset:1px;border-color:rgba(36,40,44,.32);}
 textarea.tas-in{min-height:58px;resize:vertical;}
 .tas-due{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 .tas-due button{border:1px solid rgba(36,40,44,.14);background:#fff;border-radius:999px;padding:5px 11px;font-weight:600;font-size:12px;font-family:inherit;color:#24282C;cursor:pointer;}
-.tas-due button.on{background:#CDF649;border-color:#24282C;}
+.tas-due button.on{background:#CDF649;border-color:#CDF649;}
 .tas-due input{width:auto;flex:1;min-width:130px;}
 .tas-foot{display:flex;align-items:center;gap:10px;padding:12px 18px 16px;border-top:1px solid rgba(36,40,44,.08);}
 .tas-msg{flex:1;font-size:12.5px;color:#5C5C66;}

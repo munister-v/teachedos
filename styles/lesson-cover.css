@@ -130,7 +130,7 @@
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
   border:1.5px dashed #A3A48D; background:#F6F6EF; color:#24282C; transition:border-color .15s;
 }
-.lce-own-add:hover { border-color:#24282C; }
+.lce-own-add:hover { border-color:rgba(36,40,44,.32); }
 .lce-own-add span { font:600 18px/1 var(--font-ui, system-ui, sans-serif); }
 .lce-own-add small { font:600 10px var(--font-ui, system-ui, sans-serif); color:#5D614B; }
 .lce-own-links { display:flex; gap:14px; }
@@ -165,7 +165,7 @@
   font-size:17px; cursor:pointer; line-height:1;
 }
 .lce-stk:hover { border-color:#CACCC6; }
-.lce-stk.on { border-color:#24282C; background:#CDF649; }
+.lce-stk.on { border-color:#CDF649; background:#CDF649; }
 .lce-none { font:700 10px var(--font-ui, system-ui, sans-serif); color:#5D614B; }
 .lce-check { display:flex; align-items:center; gap:8px; font:600 12.5px var(--font-ui, system-ui, sans-serif); color:#24282C; cursor:pointer; }
 .lce-check input { width:16px !important; height:16px !important; min-height:0 !important; accent-color:#24282C; }
@@ -193,7 +193,7 @@
   background:#fff; border-top:1px solid rgba(36,40,44,.08);
 }
 .tcv-btn {
-  height:40px; padding:0 18px; border-radius:12px; border:1px solid #24282C; background:#CDF649; color:#24282C;
+  height:40px; padding:0 18px; border-radius:12px; border:1px solid #CDF649; background:#CDF649; color:#24282C;
   font:750 13.5px var(--font-ui, system-ui, sans-serif); cursor:pointer;
 }
 .tcv-btn.ghost { background:#fff; border-color:#CACCC6; }

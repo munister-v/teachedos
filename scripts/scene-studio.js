@@ -47,7 +47,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1012`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1013`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -183,7 +183,7 @@
 .sc-w.on{background:var(--ink);color:#fff}
 .sc-w.saved{box-shadow:inset 0 -3px 0 var(--lime)}
 .sc-w.used{opacity:.3;cursor:default}
-.sc-w.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.sc-w.sel{border-color:#CDF649;box-shadow:inset 0 0 0 1px #CDF649}
 .sc-w.bad{animation:scshake .3s}
 @keyframes scshake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .sc-q{font:700 24px/1.25 'Iowan Old Style',Georgia,serif;margin:4px 0 12px;display:flex;align-items:center;gap:10px}
@@ -207,7 +207,7 @@
 .sc-frames button{border:1px dashed rgba(36,40,44,.3);background:#fff;border-radius:999px;padding:6px 10px;font:600 12px inherit;font-family:inherit;cursor:pointer}
 .sc-prompts{display:grid;gap:6px;margin:6px 0 10px}
 .sc-prompts button{text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;font:15px/1.4 Georgia,serif;color:var(--ink);cursor:pointer}
-.sc-prompts button.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:#F7F6F1}
+.sc-prompts button.on{border-color:#CDF649;box-shadow:inset 0 0 0 1px #CDF649;background:#F7F6F1}
 .sc-note{width:100%;min-height:130px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:15px/1.5 inherit;font-family:inherit;resize:vertical;box-sizing:border-box}
 .sc-muted{font-size:13px;color:var(--muted)}
 .sc-loading{display:grid;place-items:center;height:100%;color:var(--muted);font-size:14px}

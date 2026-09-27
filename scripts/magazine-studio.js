@@ -81,7 +81,7 @@
 .mg-match-col{display:grid;gap:8px;align-content:start}
 .mg-chip{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;text-align:left;font:600 13px/1.35 inherit;font-family:inherit;cursor:pointer;color:var(--ink);transition:background .15s,border-color .15s}
 .mg-chip.def{font-weight:450;font-size:12.5px}
-.mg-chip.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.mg-chip.sel{border-color:#CDF649;box-shadow:inset 0 0 0 1px #CDF649}
 .mg-chip.ok{background:#EEF8D2;border-color:#9bc21a;color:#2f4a00;cursor:default}
 .mg-chip.bad{animation:mgshake .3s}
 @keyframes mgshake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}

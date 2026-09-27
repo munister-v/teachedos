@@ -102,7 +102,7 @@ body.fx #win-tools .lib-main { overflow-y:auto; }
   border:1px solid rgba(36,40,44,.14); border-radius:999px; background:#fff; color:#5D614B;
 }
 .lib-search input, body.fx .lib-search input { flex:1; min-width:0; height:auto !important; padding:0 !important; border:0 !important; outline:0 !important; box-shadow:none !important; border-radius:0 !important; background:none !important; font:500 14px var(--font-ui, inherit); color:#24282C; }
-.lib-search:focus-within { border-color:#24282C; }
+.lib-search:focus-within { border-color:rgba(36,40,44,.32); }
 #lib-skill { height:42px; padding:0 12px; border:1px solid rgba(36,40,44,.14); border-radius:999px; background:#fff; font:500 13px var(--font-ui, inherit); color:#24282C; }
 .lib-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px; padding:0 24px 24px; align-content:start; }
 .lib-card {
