@@ -143,6 +143,11 @@
       if (kind === 'correct') bell(1318.5, t, 0.16);
       else if (kind === 'wrong') { tone(196, t, 0.3, 'triangle', 0.12); noise(t, 0.12, 'lowpass', 500, 1, 0.08); }
       else { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => bell(f, t + i * 0.16, 0.13)); sleigh(t + 0.7); }
+    } else if (theme === 'pixel') {
+      // 8-bit: square waves, like an arcade "coin", "bonk" and level-up
+      if (kind === 'correct') { tone(988, t, 0.07, 'square', 0.06); tone(1319, t + 0.07, 0.22, 'square', 0.06); }
+      else if (kind === 'wrong') { const o = tone(330, t, 0.28, 'square', 0.06); o.frequency.setValueAtTime(247, t + 0.1); o.frequency.setValueAtTime(165, t + 0.18); }
+      else [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, t + i * 0.09, i === 4 ? 0.45 : 0.1, 'square', 0.055));
     } else {
       if (kind === 'correct') { tone(880, t, 0.25, 'sine', 0.14); tone(1320, t + 0.08, 0.3, 'sine', 0.1); }
       else if (kind === 'wrong') { const o = tone(240, t, 0.3, 'square', 0.05); o.frequency.exponentialRampToValueAtTime(140, t + 0.3); }
