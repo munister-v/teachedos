@@ -26,7 +26,7 @@ html::before, html::after {
   content:''; position:fixed; z-index:0; border-radius:50%; filter:blur(70px); pointer-events:none;
 }
 html::before { width:420px; height:420px; left:-120px; top:-140px; background:rgba(205,246,73,.45); }
-html::after  { width:380px; height:380px; right:-120px; bottom:-140px; background:rgba(159,140,232,.28); }
+html::after  { width:380px; height:380px; right:-120px; bottom:-140px; background:rgba(248,219,219,.9); }
 
 .ip-card {
   position:relative; z-index:1; width:min(460px, 100%); overflow:hidden;
@@ -78,7 +78,7 @@ html::after  { width:380px; height:380px; right:-120px; bottom:-140px; backgroun
 .ip-perk-ic svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
 .ip-perk-ic.c1 { background:#6BAFF3; }
 .ip-perk-ic.c2 { background:#F3DF6B; }
-.ip-perk-ic.c3 { background:#9F8CE8; }
+.ip-perk-ic.c3 { background:#F8DBDB; color:#8A2E52; }
 
 .ip-actions { display:grid; gap:10px; }
 .ip-btn {

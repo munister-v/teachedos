@@ -354,8 +354,8 @@ body.fx:not(#_) :is(.nav,#nav,#layout,#page,.wrap,.shell,footer) {
      читалось как шов поперёк экрана. */
   html:has(body.fx) {
     background:
-      radial-gradient(ellipse 70% 60% at 4% 2%,   #F3A46B 0%, transparent 62%),
-      radial-gradient(ellipse 55% 50% at 100% 18%,#CACCC6 0%, transparent 62%),
+      radial-gradient(ellipse 70% 60% at 4% 2%,   rgba(205,246,73,.34) 0%, transparent 62%),
+      radial-gradient(ellipse 55% 50% at 100% 18%,#F8DBDB 0%, transparent 62%),
       radial-gradient(ellipse 70% 60% at 0% 100%, #F6F6EF 0%, transparent 64%),
       linear-gradient(150deg, #F6F6EF 0%, #F6F6EF 50%, #F6F6EF 100%) !important;
     background-attachment:fixed !important;
@@ -446,8 +446,8 @@ body.fx:not(#_) {
    внутри приложения, поэтому одна правка приводит к языку макета оба места. */
 body.fx:not(#_) .auth-page {
   background:
-    radial-gradient(ellipse 70% 60% at 4% 2%,   #F3A46B 0%, transparent 62%),
-    radial-gradient(ellipse 55% 50% at 100% 18%,#CACCC6 0%, transparent 62%),
+    radial-gradient(ellipse 70% 60% at 4% 2%,   rgba(205,246,73,.34) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 50% at 100% 18%,#F8DBDB 0%, transparent 62%),
     linear-gradient(150deg, #F6F6EF 0%, #F6F6EF 50%, #F6F6EF 100%) !important;
 }
 body.fx:not(#_) .auth-card {

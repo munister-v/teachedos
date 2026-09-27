@@ -125,3 +125,33 @@ body.tw-page:not(#h1):not(#h2):not(#h3) :is(.student-avatar, .st-avatar, .roster
   background:var(--te-pink,#F8DBDB) !important;
   color:var(--te-pink-ink,#8A2E52) !important;
 }
+
+/* Fields: soft line, darker on hover, lime on focus - no near-black
+   outlines (quiz builder, search boxes and forms had rgba(36,40,44,.58)) */
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea) {
+  border-color:rgba(36,40,44,.16) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea):hover {
+  border-color:rgba(36,40,44,.32) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea):focus {
+  border-color:var(--te-lime,#CDF649) !important;
+  box-shadow:0 0 0 3px rgba(205,246,73,.45) !important;
+  outline:none !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(label, .auto-gen-meta, .al-sample-tag) {
+  font-family:var(--te-font-ui) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) .btn-lime {
+  border-color:var(--te-lime,#CDF649) !important;
+  box-shadow:none !important;
+}
+
+/* Selected states: lime, not ink */
+body.tw-page:not(#h1):not(#h2):not(#h3) .color-opt.sel {
+  border-color:#FFFFFF !important;
+  box-shadow:0 0 0 2px var(--te-lime,#CDF649) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) .q-item.active {
+  border-color:var(--te-lime,#CDF649) !important;
+}

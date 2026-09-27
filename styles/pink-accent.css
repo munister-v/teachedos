@@ -78,9 +78,14 @@ body.os-desktop:not(#_):not(#_) #wg-pulse .wg-pulse-all {
 
 /* Sign-in / register card: labels in the UI face like the rest of the app,
    one 20px radius with the app cards */
-html body:not(#a1):not(#a2) .auth-field-label {
+html body:not(#a1):not(#a2) :is(.auth-field-label, .ip-chip) {
   font-family:var(--te-font-ui) !important;
   font-weight:600 !important;
   letter-spacing:.08em !important;
 }
 html body:not(#a1):not(#a2) .auth-card { border-radius:20px !important; }
+
+/* "Teach<em>Ed</em>" is wrapped in .logo-word so a flex gap on the logo row
+   can't split the word (it read "Teach  Ed" on billing, legal and student) */
+.logo-word { display:inline; white-space:nowrap; }
+.logo-word em { margin:0 !important; padding:0 !important; }

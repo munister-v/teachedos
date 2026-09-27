@@ -14,8 +14,7 @@ html body:not(#u1):not(#u2):not(#u3) #sidebar {
   color:#CACCC6 !important;
 }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo { color:#FFFFFF !important; border-color:rgba(255,255,255,.08) !important; }
-/* the logo is a flex row, so its 10px gap split "Teach" from <em>Ed</em> */
-html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo em { font-style:normal !important; margin:0 0 0 -10px !important; padding:0 !important; color:#FFFFFF !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo em { font-style:normal !important; margin:0 !important; padding:0 !important; color:#FFFFFF !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo img { background:var(--te-lime,#CDF649) !important; border-radius:8px !important; padding:3px !important; box-sizing:border-box !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar :is(.sb-profile, .sb-section, .sb-footer) { border-color:rgba(255,255,255,.08) !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-avatar {
@@ -75,3 +74,19 @@ html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:first-child {
 }
 html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:first-child .vs-num { color:var(--te-lime,#CDF649) !important; }
 html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:first-child .vs-label { color:#CACCC6 !important; }
+
+/* Progress tab: numbers in the display face, today marked lime not ink */
+html body:not(#u1):not(#u2):not(#u3) :is(.pg-num, [class*="-num"]) {
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+}
+html body:not(#u1):not(#u2):not(#u3) .pg-c.today {
+  outline:0 !important;
+  box-shadow:0 0 0 2px var(--te-lime,#CDF649) !important;
+}
+html body:not(#u1):not(#u2):not(#u3) .pg-tile {
+  border-color:rgba(36,40,44,.08) !important;
+  box-shadow:none !important;
+  border-radius:20px !important;
+}

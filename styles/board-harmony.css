@@ -32,3 +32,14 @@ body.board-page:not(#b1):not(#b2):not(#b3) :is(#zoom-controls, #minimap) {
   border-radius:14px !important;
   border:1px solid rgba(36,40,44,.08) !important;
 }
+
+/* Panel fields (settings, card editor): soft line, lime focus */
+body.board-page:not(#b1):not(#b2):not(#b3) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea) {
+  border-color:rgba(36,40,44,.16) !important;
+}
+body.board-page:not(#b1):not(#b2):not(#b3) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea):hover {
+  border-color:rgba(36,40,44,.32) !important;
+}
+body.board-page:not(#b1):not(#b2):not(#b3) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea):focus {
+  border-color:var(--te-lime,#CDF649) !important;
+}
