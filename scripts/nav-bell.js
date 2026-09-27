@@ -101,6 +101,13 @@
     if (!panel || !btn) return;
     const r = btn.getBoundingClientRect();
     panel.style.top = `${Math.round(r.bottom + 8)}px`;
+    // In the left sidebar the bell sits near the left edge: open to its right.
+    if (r.right < window.innerWidth / 2) {
+      panel.style.top = `${Math.round(r.top)}px`;
+      panel.style.left = `${Math.round(r.right + 12)}px`;
+      panel.style.right = 'auto';
+      return;
+    }
     panel.style.right = `${Math.max(12, Math.round(window.innerWidth - r.right - 8))}px`;
   }
 

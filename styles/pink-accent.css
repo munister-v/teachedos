@@ -5,8 +5,8 @@
    lime ("розовый круто смотрится с салатовым"). Lime still moves a lesson
    forward and violet still says "you are here"; pink takes over the soft
    secondary fills that used to be lavender (icon tiles, avatars, soft hover,
-   invite chips), and hot pink is kept for tiny counters only - it is too
-   loud for text or large surfaces.
+   invite chips), and hot pink is kept for tiny counters only, with ink digits
+   (4.5:1; white would be 3.2:1) - it is too loud for large surfaces.
 
    Loaded last on every page, so it can win with plain !important.
 ═══════════════════════════════════════════════════════════════ */
@@ -70,7 +70,7 @@ body.os-desktop:not(#_):not(#_) #wg-pulse .wg-pulse-all {
 #nav .nb-badge,
 #mb-notif-badge {
   background:var(--te-rose) !important;
-  color:#FFFFFF !important;
+  color:var(--te-ink,#24282C) !important;
 }
 
 /* Homework: overdue reads pink, not alarm-orange */
