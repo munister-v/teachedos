@@ -3955,6 +3955,8 @@ function _wfPlacePath(set, results, label, kind, opts = {}) {
 }
 function _wpPlacePathCard(base, label, path) {
   const kind = path.kind;
+  // Тема, выбранная в превью конструктора, едет с уроком на доску.
+  if (!path.theme && _wpPreview.theme) { path.theme = _wpPreview.theme; _wpPreview.theme = ''; }
   const W = 1040, H = 780;
   const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
   const center = findFreePlacement(c0.x, c0.y, W, H);
@@ -4103,6 +4105,7 @@ function _wpPreviewMount(set) {
   // Меньше доски: в колонке превью карточка в 1040 px ужималась втрое.
   _wpPreview.card = { id: '__wpprev', type: 'worksheet', x: 0, y: 0, w: 820, h: 640, __preview: true,
     data: { title: label, level: set.base.level || 'B1', _interactive: true, _wfPath: JSON.parse(JSON.stringify(path)) } };
+  if (_wpPreview.theme) _wpPreview.card.data._wfPath.theme = _wpPreview.theme;
   _wpPreviewRender();
   _wpFillWordHelp(_wpPreview.card);
 }
@@ -4223,10 +4226,26 @@ function _wpStepHtml(card, k, width) {
   }
   return _buildInteractiveWSHtml(d, id, owner, width);
 }
+/* Тема урока (scripts/lesson-themes.js): своя у пути, иначе - у карты урока,
+   в которую он входит станцией. */
+function _ltThemeFor(card) {
+  const d = card && card.data;
+  if (!d) return '';
+  if (d._wfPath && d._wfPath.theme) return d._wfPath.theme;
+  if (d._wfFlow) return d._wfFlow.theme || '';
+  const hub = window.TeachedFlow && !card.__preview ? window.TeachedFlow.hubsFor(card.id).find(h => h.data._wfFlow.theme) : null;
+  return hub ? hub.data._wfFlow.theme : '';
+}
+function _ltThemedHtml(id, html) {
+  const css = window.TeachedThemes ? window.TeachedThemes.iframeCss(_ltThemeFor(_wpCard(String(id).split('::')[0]))) : '';
+  if (!css) return html;
+  const tag = `<style id="lt-skin">${css}</style>`;
+  return html.includes('</head>') ? html.replace('</head>', tag + '</head>') : tag + html;
+}
 function _wpFrame(id, html) {
   const f = document.createElement('iframe');
   f.sandbox = 'allow-scripts';
-  f.srcdoc = html;
+  f.srcdoc = _ltThemedHtml(id, html);
   f.dataset.cardId = id;
   f.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#F6F6EF';
   _iwRegisterFrame(id, f);
@@ -4351,6 +4370,9 @@ function _wpRender(el, card, focus) {
   el.dataset.interactive = '1';
   const root = document.createElement('div');
   root.className = 'wp' + (focus ? ' is-focus' : '') + (review ? ' is-review' : '');
+  const theme = _ltThemeFor(card);
+  if (window.TeachedThemes) window.TeachedThemes.apply(root, theme);
+  const canTheme = !review && window.TeachedThemes && (card.__preview || (_wpOwnerOf(card) && !_wpPersonal()));
   const next = i < hi ? p.steps[i + 1] : null;
   const nextLabel = !next ? '' : WP_STUDIO_ROLES.includes(next.role) ? `Go to the ${next.title} →` : `Next: ${next.title} →`;
   const who = review ? review.list[review.i] : null;
@@ -4361,6 +4383,7 @@ function _wpRender(el, card, focus) {
           <b class="wp-title">${esc(card.data.title || 'Lesson')}</b></div>
         <div class="wp-acts">
           ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
+          ${canTheme ? `<button type="button" class="wp-btn wp-theme" title="Theme / Vibe - how the lesson looks for students">🎨${theme ? ' ' + esc((window.TeachedThemes.get(theme) || {}).name || '') : ' Theme'}</button>` : ''}
           ${cloudOwner && !review ? `<button type="button" class="wp-btn wp-students">👥 Students${assigned ? ` · ${assigned}` : ''}</button>` : ''}
           ${focus ? `<button type="button" class="wp-btn wp-close">${card.__preview ? '✕ Close' : lf ? '← Lesson map' : '✕ Back to the board'}</button>` : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
         </div>
@@ -4447,6 +4470,21 @@ function _wpRender(el, card, focus) {
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
   root.querySelector('.wp-close')?.addEventListener('click', () => lf ? window.TeachedFlow.back() : closeCardStudio());
   root.querySelector('.wp-students')?.addEventListener('click', () => _wpStudentsPanel(card.id));
+  root.querySelector('.wp-theme')?.addEventListener('click', ev => {
+    ev.stopPropagation();
+    window.TeachedThemes.picker(ev.currentTarget, card.data._wfPath.theme || '', id => {
+      const c = _wpCard(card.id);
+      if (!c) return;
+      if (!c.__preview) snapshot();
+      c.data._wfPath.theme = id || undefined;
+      if (c.__preview) {                               // ляжет на доску вместе с уроком
+        _wpPreview.theme = id;
+        document.querySelectorAll('.tb-wp-theme .lt-grid-o').forEach(x => x.classList.toggle('on', x.dataset.t === (id || '')));
+      }
+      if (_wpFocusId === c.id) _studioRender();
+      if (c.__preview) _wpPreviewRender(); else { reRenderCard(c); scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+    });
+  });
   root.querySelectorAll('.wp-rv').forEach(b => b.addEventListener('click', () => {
     if (!_wpReview) return;
     _wpReview.i = Math.max(0, Math.min(_wpReview.list.length - 1, _wpReview.i + Number(b.dataset.rv)));
@@ -4660,6 +4698,7 @@ function _wpGameStep(stage, card, k) {
   };
   f.addEventListener('load', () => { f._deliverGameContent(); setTimeout(() => f._deliverGameContent(), 200); setTimeout(() => f._deliverGameContent(), 600); });
   f.src = o.src;
+  if (window.TeachedThemes) window.TeachedThemes.skinGame(f, _ltThemeFor(card));
   box.appendChild(f);
   stage.appendChild(box);
   const fit = () => {
@@ -15479,7 +15518,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1013';
+const TEACHEDOS_ASSET_VERSION = '1014';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17753,11 +17792,23 @@ function _wpPreviewShellHtml(set) {
       ${writing ? `<label class="tb-wf-reg">Register <select id="tb-wf-reg">${genreOpts}</select></label>
       <button type="button" class="tb-wf-rebuild" id="tb-wf-rebuild" hidden onclick="_wfRebuildWithGenre()">Rebuild</button>` : ''}
     </div>
+    ${window.TeachedThemes ? `<div class="tb-wp-theme"><span>Theme / Vibe</span>${window.TeachedThemes.gridHtml(_wpPreview.theme || '')}</div>` : ''}
     <div class="tb-wp-prev" id="tb-wp-prev"></div>
     <p class="tb-wp-prev-note">Nothing here is saved and there is no answer key - this is exactly what a student gets.</p>
   </div>`;
 }
+function _wpPreviewBindTheme() {
+  const row = document.querySelector('.tb-wp-theme');
+  if (!row || row.dataset.bound || !window.TeachedThemes) return;
+  row.dataset.bound = '1';
+  window.TeachedThemes.bindGrid(row, id => {
+    _wpPreview.theme = id;
+    const c = _wpPreview.card;
+    if (c) { c.data._wfPath.theme = id || undefined; _wpPreviewRender(); }
+  });
+}
 function _wpPreviewBindRegister() {
+  _wpPreviewBindTheme();
   const reg = document.getElementById('tb-wf-reg');
   const genre = document.getElementById('tbuilder-genre');
   if (!reg || !genre || reg.dataset.bound) return;

@@ -174,6 +174,7 @@
     const go = all ? 'Go through it again' : doneN ? 'Continue' : 'Start the lesson';
     const root = document.createElement('div');
     root.className = 'lf';
+    if (window.TeachedThemes) window.TeachedThemes.apply(root, f.theme || '');
     root.innerHTML = `
       <div class="lf-bg"${cover ? ` style="background-image:url('${E(cover).replace(/'/g, '%27')}')"` : ''}></div><div class="lf-shade"></div>
       <header class="lf-head">
@@ -465,6 +466,7 @@
       picked = new Set(order.map(c => c.id));
     }
     let speakLast = f ? f.speakLast !== false : true;
+    let theme = f ? f.theme || '' : '';
     const images = state.cards.filter(c => c.type === 'image' && c.data && c.data.src).sort((a, b) => b.w * b.h - a.w * a.h).slice(0, 6);
     const thumbs = [...new Set(paths.map(ytThumb).filter(Boolean))].slice(0, 3);
     const covers = images.map(c => ({ key: 'c:' + c.id, src: c.data.src })).concat(thumbs.map(u => ({ key: 'u:' + u, src: u })));
@@ -487,6 +489,7 @@
         <label class="lf-bx-opt"><input type="checkbox" class="lf-bx-sl"${speakLast ? ' checked' : ''}> Speaking at the end - a Speaking Studio inside a path becomes the last station</label>
         <div class="lf-bx-l">The stations</div>
         <ol class="lf-bx-st"></ol>
+        ${window.TeachedThemes ? `<div class="lf-bx-l">Theme / Vibe <small>every station takes it, unless a path has its own</small></div>${window.TeachedThemes.gridHtml(theme)}` : ''}
         ${covers.length ? `<div class="lf-bx-l">Cover</div><div class="lf-bx-covers">${covers.map(c => `<button type="button" class="lf-bx-cv" data-k="${E(c.key)}" style="background-image:url('${E(c.src).replace(/'/g, '%27')}')"></button>`).join('')}<button type="button" class="lf-bx-cv none" data-k="">None</button></div>` : ''}
       </div>
       <div class="lf-bx-foot"><button type="button" class="lf-btn2 lf-bx-cancel">Cancel</button><button type="button" class="lf-btn2 primary lf-bx-ok">${hub ? 'Save the stations' : 'Create the lesson map'}</button></div>
@@ -531,6 +534,7 @@
     });
     $('.lf-bx-sl').addEventListener('change', e => { speakLast = e.target.checked; paint(); });
     bd.querySelectorAll('.lf-bx-cv').forEach(b => b.addEventListener('click', () => { cover = b.dataset.k; paint(); }));
+    if (window.TeachedThemes) window.TeachedThemes.bindGrid(bd, id => { theme = id; });
     const close = () => bd.remove();
     $('.lf-bx-x').addEventListener('click', close);
     $('.lf-bx-cancel').addEventListener('click', close);
@@ -545,7 +549,8 @@
       if (hub) {
         snapshot();
         hub.data.title = title;
-        Object.assign(hub.data._wfFlow, { stations: st, coverId, coverUrl, speakLast });
+        Object.assign(hub.data._wfFlow, { stations: st, coverId, coverUrl, speakLast, theme });
+        st.forEach(x => { const pc = cardOf(x.id); if (pc) reRenderCard(pc); });
         reRenderCard(hub);
         scheduleSave && scheduleSave(); saveLocal && saveLocal();
         close();
@@ -556,10 +561,11 @@
       const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
       const at = findFreePlacement(c0.x, c0.y, W, H);
       const card = addCard('worksheet', Math.round(at.x - W / 2), Math.round(at.y - H / 2), {
-        title, _interactive: true, _wfFlow: { stations: st, coverId, coverUrl, speakLast, linear: true },
+        title, _interactive: true, _wfFlow: { stations: st, coverId, coverUrl, speakLast, theme, linear: true },
       }, W, H);
       close();
       if (card) {
+        if (theme) st.forEach(x => { const pc = cardOf(x.id); if (pc) reRenderCard(pc); });
         scheduleSave && scheduleSave(); saveLocal && saveLocal();
         setTimeout(() => zoomToCard(card.id, true), 80);
         toast && toast(`Lesson map ready - ${st.length} stations`);
