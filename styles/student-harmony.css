@@ -1,0 +1,77 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeachEd - student cabinet in the brand-board style (2026-09-27)
+
+   The student sidebar matches the teacher's: ink column, avatar with a
+   lime ring, lime counters, UI-face labels. Vocabulary stats follow the
+   teacher stat family - one dark lead card, display numbers at 600.
+═══════════════════════════════════════════════════════════════ */
+html body:not(#u1):not(#u2):not(#u3) #sidebar {
+  background:var(--te-ink,#24282C) !important;
+  border:0 !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  color:#CACCC6 !important;
+}
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo { color:#FFFFFF !important; border-color:rgba(255,255,255,.08) !important; }
+/* the logo is a flex row, so its 10px gap split "Teach" from <em>Ed</em> */
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo em { font-style:normal !important; margin:0 0 0 -10px !important; padding:0 !important; color:#FFFFFF !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo img { background:var(--te-lime,#CDF649) !important; border-radius:8px !important; padding:3px !important; box-sizing:border-box !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar :is(.sb-profile, .sb-section, .sb-footer) { border-color:rgba(255,255,255,.08) !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-avatar {
+  background:var(--te-pink,#F8DBDB) !important;
+  border:0 !important;
+  box-shadow:0 0 0 3px var(--te-lime,#CDF649) !important;
+}
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-name { color:#FFFFFF !important; letter-spacing:.02em !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar :is(.sb-role, .sb-section-title, .sb-counter-label, .sb-milestone-labels, .sb-milestone-level) {
+  font-family:var(--te-font-ui) !important;
+  color:#A3A48D !important;
+  letter-spacing:.08em !important;
+}
+html body:not(#u1):not(#u2):not(#u3) #sidebar :is(.sb-counter, .sb-milestone) {
+  background:rgba(255,255,255,.06) !important;
+  border:0 !important;
+  box-shadow:none !important;
+  border-radius:16px !important;
+}
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-counter-num {
+  color:var(--te-lime,#CDF649) !important;
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+}
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-milestone-bar { background:rgba(255,255,255,.1) !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-milestone-fill { background:var(--te-lime,#CDF649) !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-footer :is(a, button) { color:#FFFFFF !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-signout {
+  background:rgba(255,255,255,.08) !important;
+  border:0 !important;
+}
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-signout:hover { background:var(--te-pink,#F8DBDB) !important; color:var(--te-ink,#24282C) !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar :is(p, div, span):not([class]) { color:#CACCC6; }
+
+html body:not(#u1):not(#u2):not(#u3) :is(.welcome, .welcome-text) {
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+}
+
+html body:not(#u1):not(#u2):not(#u3) .vs-card {
+  background:#FFFFFF !important;
+  border:1px solid rgba(36,40,44,.08) !important;
+  border-radius:20px !important;
+  box-shadow:none !important;
+}
+html body:not(#u1):not(#u2):not(#u3) .vs-card::before, html body:not(#u1):not(#u2):not(#u3) .vs-card::after { display:none !important; }
+html body:not(#u1):not(#u2):not(#u3) .vs-num {
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+}
+html body:not(#u1):not(#u2):not(#u3) .vs-label { font-family:var(--te-font-ui) !important; font-weight:600 !important; letter-spacing:.08em !important; }
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:first-child {
+  background:var(--te-ink,#24282C) !important;
+  border-color:var(--te-ink,#24282C) !important;
+}
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:first-child .vs-num { color:var(--te-lime,#CDF649) !important; }
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:first-child .vs-label { color:#CACCC6 !important; }

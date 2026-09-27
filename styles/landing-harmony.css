@@ -1,0 +1,37 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeachEd - landing in the brand-board style (2026-09-27)
+
+   The landing already speaks bento; this brings it in line with the app:
+   no monospace in labels and kickers, stats in the display face with one
+   dark lead tile, and the pink accent on the "Writing, checked" tile so the
+   three brand surfaces (ink, lime, pink) all appear once.
+═══════════════════════════════════════════════════════════════ */
+html body:not(#l1):not(#l2):not(#l3) :is(.bento-tag, .cat-count, .stat-l, .nw-kick, .sec-eye, .fp-cap, .plan-name,
+       .hn-tag, .nm-meta, .cap, .pv-eye, .tb, .cnt) {
+  font-family:var(--te-font-ui) !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+}
+
+html body:not(#l1):not(#l2):not(#l3) .stat-n {
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+}
+html body:not(#l1):not(#l2):not(#l3) .stats-grid > .stat-c:first-child {
+  background:var(--te-ink,#24282C) !important;
+  border-color:var(--te-ink,#24282C) !important;
+}
+html body:not(#l1):not(#l2):not(#l3) .stats-grid > .stat-c:first-child .stat-n { color:var(--te-lime,#CDF649) !important; }
+html body:not(#l1):not(#l2):not(#l3) .stats-grid > .stat-c:first-child .stat-n em { color:var(--te-lime,#CDF649) !important; }
+html body:not(#l1):not(#l2):not(#l3) .stats-grid > .stat-c:first-child .stat-l { color:#CACCC6 !important; }
+
+html body:not(#l1):not(#l2):not(#l3) .nw-card:not(.nw-ink):not(.nw-lime):not(.nw-wide) {
+  background:var(--te-pink,#F8DBDB) !important;
+  border-color:var(--te-pink,#F8DBDB) !important;
+}
+html body:not(#l1):not(#l2):not(#l3) .nw-card:not(.nw-ink):not(.nw-lime):not(.nw-wide) .nw-kick {
+  background:rgba(255,255,255,.7) !important;
+  color:var(--te-pink-ink,#8A2E52) !important;
+  border-color:transparent !important;
+}

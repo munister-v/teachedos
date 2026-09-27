@@ -75,3 +75,12 @@ body.os-desktop:not(#_):not(#_) #wg-pulse .wg-pulse-all {
 
 /* Homework: overdue reads pink, not alarm-orange */
 .hw-card.overdue { border-color:rgba(243,86,149,.38) !important; }
+
+/* Sign-in / register card: labels in the UI face like the rest of the app,
+   one 20px radius with the app cards */
+html body:not(#a1):not(#a2) .auth-field-label {
+  font-family:var(--te-font-ui) !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+}
+html body:not(#a1):not(#a2) .auth-card { border-radius:20px !important; }
