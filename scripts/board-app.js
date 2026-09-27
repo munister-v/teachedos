@@ -2533,6 +2533,37 @@ function renderGame(el, card) {
     assignBtn.addEventListener('click', e => { e.stopPropagation(); TeachEdAssign.forBoardCard(card); });
     hdr.appendChild(assignBtn);
   }
+  /* Тема игры (Pumpkin Night, New Year, Space…): фон и поле игры в её стиле,
+     смысл тот же. Звук темы включает 🔊 - по умолчанию он выключен. */
+  const gTheme = card.data.theme || '';
+  const gT = gTheme && window.TeachedThemes ? window.TeachedThemes.get(gTheme) : null;
+  if (gT) { hdr.style.background = gT.head; hdr.style.color = gT.headInk; }
+  if (window.TeachedThemes && typeof isOwner !== 'undefined' && isOwner && boardCanEdit) {
+    const themeBtn = document.createElement('button');
+    themeBtn.type = 'button';
+    themeBtn.className = 'game-assign-btn game-theme-btn';
+    themeBtn.textContent = gT ? gT.ic : '🎨';
+    themeBtn.title = gT ? `Theme: ${gT.name} - click to change` : 'Theme - Halloween, New Year, Space…';
+    themeBtn.addEventListener('mousedown', e => e.stopPropagation());
+    themeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      window.TeachedThemes.picker(themeBtn, gTheme, id => {
+        snapshot();
+        card.data.theme = id || undefined;
+        reRenderCard(card);
+        scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      });
+    });
+    hdr.appendChild(themeBtn);
+  }
+  if (gT && window.TeachedSounds) {
+    const w = document.createElement('span');
+    w.innerHTML = window.TeachedSounds.btnHtml('game-assign-btn');
+    const sb = w.firstChild;
+    sb.addEventListener('mousedown', e => e.stopPropagation());
+    sb.addEventListener('click', e => { e.stopPropagation(); window.TeachedSounds.toggle(gTheme); });
+    hdr.appendChild(sb);
+  }
   const closeBtn = document.createElement('button');
   closeBtn.className = 'card-close'; closeBtn.textContent = '×';
   closeBtn.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
@@ -2570,6 +2601,7 @@ function renderGame(el, card) {
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   iframe.style.cssText = `width:${naturalW}px;height:${naturalH}px;border:none;display:block;transform-origin:center center;flex-shrink:0;`;
   iframe.dataset.cardId = card.id;
+  if (gT) { window.TeachedThemes.skinGame(iframe, gTheme); body.style.background = gT.head; }
   /* Каждая игра - самостоятельная страница со своим кремовым/розовым фоном
      тела (это фирменный цвет приложения, games/*.html грузятся и напрямую,
      не только на доске). На доске игра лежит уменьшенной внутри плитки, и
@@ -4383,6 +4415,7 @@ function _wpRender(el, card, focus) {
           <b class="wp-title">${esc(card.data.title || 'Lesson')}</b></div>
         <div class="wp-acts">
           ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
+          ${theme && focus && window.TeachedSounds ? window.TeachedSounds.btnHtml('wp-btn') : ''}
           ${canTheme ? `<button type="button" class="wp-btn wp-theme" title="Theme / Vibe - how the lesson looks for students">🎨${theme ? ' ' + esc((window.TeachedThemes.get(theme) || {}).name || '') : ' Theme'}</button>` : ''}
           ${cloudOwner && !review ? `<button type="button" class="wp-btn wp-students">👥 Students${assigned ? ` · ${assigned}` : ''}</button>` : ''}
           ${focus ? `<button type="button" class="wp-btn wp-close">${card.__preview ? '✕ Close' : lf ? '← Lesson map' : '✕ Back to the board'}</button>` : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
@@ -4470,6 +4503,8 @@ function _wpRender(el, card, focus) {
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
   root.querySelector('.wp-close')?.addEventListener('click', () => lf ? window.TeachedFlow.back() : closeCardStudio());
   root.querySelector('.wp-students')?.addEventListener('click', () => _wpStudentsPanel(card.id));
+  root.querySelector('.lt-sound')?.addEventListener('click', ev => { ev.stopPropagation(); window.TeachedSounds.toggle(theme); });
+  if (focus && window.TeachedSounds && !card.__preview) window.TeachedSounds.ambient(theme);
   root.querySelector('.wp-theme')?.addEventListener('click', ev => {
     ev.stopPropagation();
     window.TeachedThemes.picker(ev.currentTarget, card.data._wfPath.theme || '', id => {
@@ -5067,6 +5102,7 @@ function closeCardStudio(silent) {
   // Карточка на доске снова своя: перерисовка забирает то, что сделано в окне.
   if (card && !silent) _wpRedraw(card);
   if (window.TeachedFlow) window.TeachedFlow.onClose();
+  if (window.TeachedSounds) window.TeachedSounds.ambient(null);
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('card-studio') && !document.getElementById('wp-students')) closeCardStudio(); });
 
@@ -15518,7 +15554,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1016';
+const TEACHEDOS_ASSET_VERSION = '1017';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

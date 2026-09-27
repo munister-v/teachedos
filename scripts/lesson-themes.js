@@ -43,9 +43,30 @@
       <path d='M150 50q6-8 12-2q4-6 8 0q4-6 8 2q6-6 12 2q-10 2-14 8q-3-4-6-4q-3 0-6 4q-4-6-14-8z'/>
       <path d='M40 190q5-6 9-1q3-5 6 0q3-5 6 1q5-5 9 1q-8 2-11 6q-2-3-4-3t-4 3q-3-4-11-6z'/></g></svg>`),
     pumpkins: "url('/img/themes/pumpkins/tile.png')",
+    snow: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><g stroke='#fff' stroke-linecap='round' fill='none'>
+      <g transform='translate(40 50)' stroke-opacity='.45' stroke-width='1.6'><path d='M0-12V12M-10.4-6L10.4 6M-10.4 6L10.4-6M0-12l-3-3M0-12l3-3M0 12l-3 3M0 12l3 3'/></g>
+      <g transform='translate(170 120) scale(.7)' stroke-opacity='.35' stroke-width='1.6'><path d='M0-12V12M-10.4-6L10.4 6M-10.4 6L10.4-6'/></g>
+      <g transform='translate(90 190) scale(1.2)' stroke-opacity='.3' stroke-width='1.4'><path d='M0-12V12M-10.4-6L10.4 6M-10.4 6L10.4-6M0-12l-3-3M0-12l3-3'/></g></g>
+      <g fill='#fff'><circle cx='120' cy='30' r='1.6' opacity='.6'/><circle cx='210' cy='40' r='1.2' opacity='.5'/><circle cx='20' cy='130' r='1.4' opacity='.55'/>
+      <circle cx='140' cy='210' r='1.8' opacity='.5'/><circle cx='220' cy='200' r='1.2' opacity='.5'/><circle cx='70' cy='110' r='1' opacity='.5'/></g></svg>`),
+    lights: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='120' height='26'><path d='M0 6Q30 20 60 6T120 6' stroke='#2A3B2A' stroke-width='1.5' fill='none'/>
+      <g><ellipse cx='16' cy='14' rx='3.6' ry='5' fill='#F4C542'/><ellipse cx='44' cy='15' rx='3.6' ry='5' fill='#E23B4E'/><ellipse cx='76' cy='14' rx='3.6' ry='5' fill='#5BC0EB'/><ellipse cx='104' cy='15' rx='3.6' ry='5' fill='#7ED957'/></g></svg>`),
     map: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g fill='none' stroke='#F2B84B' stroke-opacity='.16' stroke-width='1.6'>
       <path d='M10 200Q60 150 110 170T210 90' stroke-dasharray='6 7'/><path d='M200 70l14 14M214 70l-14 14'/>
       <circle cx='60' cy='60' r='18'/><path d='M60 36v48M36 60h48M60 42l4 18-4 18-4-18z'/></g></svg>`),
+  };
+
+  // Свои рисунки для New Year: ёлка с игрушками и подарок (data-URI, без файлов).
+  const PIC = {
+    tree: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='100' height='110' viewBox='0 0 100 110'>
+      <rect x='44' y='90' width='12' height='14' rx='2' fill='#8A5A2B'/>
+      <path d='M50 8L78 44H64L86 70H68L92 94H8L32 70H14L36 44H22Z' fill='#2F8F4E' stroke='#1E5E34' stroke-width='2' stroke-linejoin='round'/>
+      <path d='M24 72Q50 84 76 70M30 48Q50 58 70 46' stroke='#F4C542' stroke-width='2' fill='none'/>
+      <circle cx='40' cy='60' r='4' fill='#E23B4E'/><circle cx='62' cy='80' r='4.5' fill='#5BC0EB'/><circle cx='56' cy='38' r='3.5' fill='#F4C542'/><circle cx='30' cy='84' r='4' fill='#F4C542'/><circle cx='70' cy='58' r='3.5' fill='#E23B4E'/>
+      <path d='M50 0L53 7L60 7L54 11L56 18L50 14L44 18L46 11L40 7L47 7Z' fill='#F4C542' stroke='#C9981C'/></svg>`),
+    gift: svg(`<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'>
+      <rect x='8' y='24' width='44' height='30' rx='3' fill='#E23B4E' stroke='#A81F31' stroke-width='2'/><rect x='5' y='16' width='50' height='10' rx='2' fill='#F05A6C' stroke='#A81F31' stroke-width='2'/>
+      <rect x='26' y='16' width='8' height='38' fill='#F4C542'/><path d='M30 16Q18 2 14 12Q12 18 30 16Q42 18 46 12Q42 2 30 16Z' fill='#F4C542' stroke='#C9981C'/></svg>`),
   };
 
   const THEMES = [
@@ -81,6 +102,13 @@
       accent: '#FF8A1F', accentInk: '#1A0F24', ink: '#2A1628', muted: '#6E4436',
       font: "'Caveat','Comic Sans MS',cursive", fontCase: 'none', fontScale: 1.25, icon: '🎃', ifFont: "'Comic Sans MS','Chalkboard SE',cursive",
       iconImg: '/img/themes/pumpkins/p14.png', decor: '/img/themes/pumpkins/p01.png', navPic: '/img/themes/pumpkins/p16.png' },
+    { id: 'winter', name: 'New Year', ic: '🎄', hint: 'Snowflakes, fairy lights and presents',
+      bg: `${PAT.snow}, radial-gradient(ellipse at 50% -20%, rgba(244,197,66,.28), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(226,59,78,.22), transparent 50%), linear-gradient(180deg, #123055, #0A1B33)`,
+      head: '#0B1E36', headInk: '#F2F7FF', headMuted: '#A9C0DD', surface: '#F7FBFF', paper: '#EAF3FF',
+      line: '#D4AF37', glow: '0 0 0 1px rgba(212,175,55,.45), 0 0 22px rgba(244,197,66,.18)',
+      accent: '#F4C542', accentInk: '#1B1A10', ink: '#12223A', muted: '#4A5E7A',
+      font: "'Fraunces',Georgia,serif", fontCase: 'none', icon: '❄', ifFont: "Georgia,serif",
+      decor: PIC.tree, navPic: PIC.gift, headLights: PAT.lights },
     { id: 'adventure', name: 'Treasure Hunt', ic: '🗺️', hint: 'Old maps, jungle and treasure',
       bg: `${PAT.map}, radial-gradient(ellipse at 20% 0%, rgba(242,184,75,.22), transparent 55%), linear-gradient(180deg, #25331F, #141C11)`,
       head: '#1A2417', headInk: '#F3EBD3', headMuted: '#C2B993', surface: '#F6EEDA', paper: '#F1E6C8',
@@ -91,6 +119,7 @@
   const byId = id => THEMES.find(t => t.id === id && t.id) || null;
 
   /* ── доска: студии и карта урока ── */
+  const pic = v => (String(v).startsWith('url(') ? v : `url('${v}')`);
   function boardCss(t) {
     const T = `.lt-${t.id}`;
     const fs = t.fontScale || 1;
@@ -140,10 +169,12 @@ ${T} .wts-video{background:#000}
 .lf${T} .lf-w.is-known{background:var(--lt-accent);color:var(--lt-accent-ink)}` + (t.iconImg ? `
 ${T} .wp-step.done i::after{content:'';display:inline-block;width:20px;height:20px;background:url('${t.iconImg}') center/contain no-repeat}
 .lf${T} .lf-node.is-done .lf-num{font-size:0;background:url('${t.iconImg}') center/contain no-repeat transparent}` : '') + (t.decor ? `
-.lf${T}::after{content:'';position:absolute;right:22px;bottom:16px;width:96px;height:96px;background:url('${t.decor}') center/contain no-repeat;pointer-events:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+.lf${T}::after{content:'';position:absolute;right:22px;bottom:16px;width:96px;height:96px;background:${pic(t.decor)} center/contain no-repeat;pointer-events:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
 ${T} .wp-head{position:relative}
-${T} .wp-head::after{content:'';position:absolute;right:22px;bottom:6px;width:40px;height:40px;background:url('${t.decor}') center/contain no-repeat;pointer-events:none;opacity:.95}` : '') + (t.navPic ? `
-${T} .wp-nav{background:url('${t.navPic}') 122px 50%/32px no-repeat,var(--lt-head)}` : '');
+${T} .wp-head::after{content:'';position:absolute;right:22px;bottom:6px;width:40px;height:40px;background:${pic(t.decor)} center/contain no-repeat;pointer-events:none;opacity:.95}` : '') + (t.navPic ? `
+${T} .wp-nav{background:${pic(t.navPic)} 122px 50%/32px no-repeat,var(--lt-head)}` : '') + (t.headLights ? `
+${T} .wp-head{background:${t.headLights} 0 100%/120px 26px repeat-x,var(--lt-head);padding-bottom:22px}
+.lf${T} .lf-head{background:${t.headLights} 0 0/120px 26px repeat-x;padding-top:34px}` : '');
   }
   function ensureBoardCss() {
     if (document.getElementById('lt-skins')) return;
@@ -184,7 +215,8 @@ ${HI} .card,${HI} .final,${HI} .word-card,${HI} .win-msg{background:${t.surface}
 ${HI} .choice,${HI} .opt,${HI} .key{border-color:color-mix(in srgb,${t.line} 55%,transparent)}
 ${HI} .choice:hover,${HI} .opt:hover,${HI} .key:hover:not(:disabled){background:color-mix(in srgb,${t.accent} 30%,#fff) !important}
 :root{--lime:${t.accent} !important;--accent:${t.ink} !important}` + (t.decor ? `
-${HI}::after{content:'';position:fixed;right:14px;bottom:10px;width:78px;height:78px;background:url('${t.decor}') center/contain no-repeat;pointer-events:none;z-index:5}` : '');
+${HI}::after{content:'';position:absolute;right:12px;top:18px;width:58px;height:58px;background:${pic(t.decor)} center/contain no-repeat;pointer-events:none;z-index:5}` : '') + (t.headLights ? `
+${HI}::before{content:'';position:fixed;left:0;right:0;top:0;height:26px;background:${t.headLights} 0 0/120px 26px repeat-x;pointer-events:none;z-index:5}` : '');
   }
   function skinGame(iframe, id) {
     const css = gameCss(id);
@@ -208,9 +240,54 @@ ${HI}::after{content:'';position:fixed;right:14px;bottom:10px;width:78px;height:
       }
       st.textContent = css;
     };
-    iframe.addEventListener('load', put);
+    iframe.addEventListener('load', () => { put(); listenGame(iframe, id); });
     put();
+    listenGame(iframe, id);
   }
+
+  /* Звуки ответов в игре (scripts/lesson-sounds.js). Очки игры приходят
+     сообщениями (teachedos-score / game-progress / game-finished); ошибку
+     игры не сообщают, но почти все красят её классом wrong / incorrect -
+     его и слушаем, как и correct / matched. До первого нажатия в игре не
+     звучит ничего: отрисовка первого вопроса - не ответ. */
+  const gameFrames = new WeakMap();
+  function listenGame(iframe, id) {
+    if (!window.TeachedSounds) return;
+    let doc;
+    try { doc = iframe.contentDocument; } catch { return; }
+    const rec = gameFrames.get(iframe) || { score: 0 };
+    rec.theme = id;
+    gameFrames.set(iframe, rec);
+    if (!doc || !doc.body || doc.__ltObs || !id) return;
+    doc.__ltObs = true;
+    let armed = false;
+    const arm = () => { armed = true; };
+    doc.addEventListener('pointerdown', arm, true);
+    doc.addEventListener('keydown', arm, true);
+    const BAD = /(^|[\s_-])(wrong|incorrect|error|miss|bad|fail)/i, GOOD = /(^|[\s_-])(correct|right|matched|success|ok|found)(?![a-z])/i;
+    new MutationObserver(list => {
+      if (!armed || !rec.theme) return;
+      for (const m of list) {
+        if (m.type !== 'attributes' || m.attributeName !== 'class') continue;
+        const now = m.target.className && typeof m.target.className === 'string' ? m.target.className : '';
+        const was = m.oldValue || '';
+        if (BAD.test(now) && !BAD.test(was)) { window.TeachedSounds.fx('wrong', rec.theme); return; }
+        if (GOOD.test(now) && !GOOD.test(was)) { window.TeachedSounds.fx('correct', rec.theme); return; }
+      }
+    }).observe(doc.body, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+  }
+  window.addEventListener('message', e => {
+    const m = e.data;
+    if (!m || typeof m !== 'object' || !window.TeachedSounds) return;
+    const f = [...document.querySelectorAll('iframe')].find(x => x.contentWindow === e.source);
+    const rec = f && gameFrames.get(f);
+    if (!rec || !rec.theme) return;
+    if (m.type === 'game-finished') window.TeachedSounds.fx('finish', rec.theme);
+    else if ((m.type === 'teachedos-score' || m.type === 'game-progress') && typeof m.score === 'number') {
+      if (m.score > rec.score) window.TeachedSounds.fx('correct', rec.theme);
+      rec.score = m.score;
+    }
+  });
 
   /* ── выбор темы: всплывающее меню у кнопки ── */
   function picker(anchor, current, onPick) {
