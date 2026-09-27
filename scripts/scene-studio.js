@@ -17,21 +17,48 @@
   'use strict';
   if (window.TeachedScene) return;
 
-  const CATALOG = [
-    { id: 'house', title: 'The House', icon: '🏠', hint: 'Rooms, furniture, the garden and the garage.', ready: true },
-    { id: 'car', title: 'The Car', icon: '🚗', hint: 'A car seen right through, the street and the petrol station.', ready: true },
-    { id: 'hospital', title: 'The Hospital', icon: '🏥', hint: 'A&E to the helipad: the people, the rooms, what happens there.', ready: true },
-    { id: 'kitchen', title: 'The Kitchen', icon: '🍳', hint: 'Machines, cupboards, cooking tools and a table laid for breakfast.', ready: true },
-    { id: 'airport', title: 'The Airport', icon: '✈️', hint: 'Check-in, security, the gate, baggage reclaim and a plane at the jet bridge.', ready: true },
-    { id: 'school', title: 'The School', icon: '🏫', hint: 'A classroom, the library, the canteen, the gym and the school bus.', ready: true },
-    { id: 'supermarket', title: 'The Supermarket', icon: '🛒', hint: 'Fruit and veg, the bakery, the fridge and freezer, shelves and the checkout.', ready: true },
-    { id: 'street', title: 'The High Street', icon: '🏪', hint: 'Shops with flats above, a café, a zebra crossing and a bus stop.', ready: true },
-    { id: 'station', title: 'The Train Station', icon: '🚆', hint: 'The ticket hall and a platform with a train waiting.', ready: true },
-    { id: 'park', title: 'The Park', icon: '🌳', hint: 'The playground, a pond with ducks, a picnic and people having fun.', ready: true },
-    { id: 'restaurant', title: 'The Restaurant', icon: '🍽️', hint: 'An open kitchen, tables, waiters and the bar.', ready: true },
+  /* Visual Worlds: темы собраны по «вселенным» - у каждой свой упор в
+     лексике и своя тема оформления (lesson-themes.js), которая ложится на
+     урок сама. Названия - свои, «inspired by»: идеи, жанры и лексика не
+     охраняются, чужие товарные знаки и кадры не используются, рисунки -
+     собственные, в стиле платформы. */
+  const WORLDS = [
+    { id: 'life', title: 'Everyday Life', icon: '🏙️', focus: 'Things, places and routines for real-life English', theme: '' },
+    { id: 'gothic', title: 'Gothic & Mystery', icon: '🦇', focus: 'Emotions, secrets and descriptive adjectives', theme: 'gothic' },
+    { id: 'magic', title: 'Magic & Fantasy', icon: '🪄', focus: 'Action verbs, instructions and recipes', theme: 'magic' },
+    { id: 'scifi', title: 'Sci-Fi & Tech', icon: '🚀', focus: 'Technology, science and hypotheses', theme: 'space' },
+    { id: 'adventure', title: 'Adventure & Exploration', icon: '🗺️', focus: 'Movement, directions and survival', theme: 'adventure' },
   ];
-  const LEVELS = ['A1', 'A2', 'B1'];
+  const CATALOG = [
+    { id: 'house', world: 'life', title: 'The House', icon: '🏠', hint: 'Rooms, furniture, the garden and the garage.', ready: true },
+    { id: 'car', world: 'life', title: 'The Car', icon: '🚗', hint: 'A car seen right through, the street and the petrol station.', ready: true },
+    { id: 'hospital', world: 'life', title: 'The Hospital', icon: '🏥', hint: 'A&E to the helipad: the people, the rooms, what happens there.', ready: true },
+    { id: 'kitchen', world: 'life', title: 'The Kitchen', icon: '🍳', hint: 'Machines, cupboards, cooking tools and a table laid for breakfast.', ready: true },
+    { id: 'airport', world: 'life', title: 'The Airport', icon: '✈️', hint: 'Check-in, security, the gate, baggage reclaim and a plane at the jet bridge.', ready: true },
+    { id: 'school', world: 'life', title: 'The School', icon: '🏫', hint: 'A classroom, the library, the canteen, the gym and the school bus.', ready: true },
+    { id: 'supermarket', world: 'life', title: 'The Supermarket', icon: '🛒', hint: 'Fruit and veg, the bakery, the fridge and freezer, shelves and the checkout.', ready: true },
+    { id: 'street', world: 'life', title: 'The High Street', icon: '🏪', hint: 'Shops with flats above, a café, a zebra crossing and a bus stop.', ready: true },
+    { id: 'station', world: 'life', title: 'The Train Station', icon: '🚆', hint: 'The ticket hall and a platform with a train waiting.', ready: true },
+    { id: 'park', world: 'life', title: 'The Park', icon: '🌳', hint: 'The playground, a pond with ducks, a picnic and people having fun.', ready: true },
+    { id: 'restaurant', world: 'life', title: 'The Restaurant', icon: '🍽️', hint: 'An open kitchen, tables, waiters and the bar.', ready: true },
+    { id: 'office', world: 'life', title: 'The Coworking Office', icon: '💻', hint: 'Hot desks, a whiteboard brainstorm, a video call and the coffee machine.', ready: true },
+    { id: 'gym', world: 'life', title: 'The Gym', icon: '🏋️', hint: 'Treadmills, dumbbells, a yoga mat, a trainer and the water fountain.', ready: true },
+    { id: 'gothicdorm', world: 'gothic', title: 'The Gothic Dorm', icon: '🕯️', inspired: 'Inspired by gothic mystery classics', hint: 'An old academy dorm: dusty books, a hidden passage, a gargoyle at the window.', ready: true },
+    { id: 'potions', world: 'magic', title: 'The Potions Classroom', icon: '🧪', inspired: 'Inspired by fantasy classics', hint: 'Cauldrons, a spell book, floating candles and a wand - follow the recipe.', ready: true },
+    { id: 'herolab', world: 'scifi', theme: 'cyber', title: 'The Hero Lab', icon: '🦾', inspired: 'Inspired by superhero films', hint: 'An inventor\'s workshop: gadgets, a robot suit, screens and a containment cell.', ready: true },
+    { id: 'starship', world: 'scifi', title: 'The Starship Bridge', icon: '🛸', inspired: 'Inspired by space operas', hint: 'The captain\'s chair, the navigation console and a galaxy on the big screen.', ready: true },
+    { id: 'treasure', world: 'adventure', title: 'The Treasure Cave', icon: '💎', inspired: 'Inspired by adventure films', hint: 'A cave with traps, an old map, stone statues and a chest of gold.', ready: true },
+    { id: 'frontier', world: 'adventure', title: 'The Frontier Town', icon: '🤠', inspired: 'Inspired by classic Westerns', hint: 'The main street: the saloon, the sheriff\'s office, a stagecoach and the desert.', ready: true },
+  ];
+  // Тема оформления для картинки: своя у темы или по её миру.
+  const themeFor = id => { const t = CATALOG.find(x => x.id === id); if (!t) return ''; if (t.theme != null) return t.theme; const w = WORLDS.find(x => x.id === t.world); return w ? w.theme : ''; };
+  const LEVELS = ['A1', 'A2', 'B1', 'B2'];
   const rank = l => Math.max(0, LEVELS.indexOf(l));
+  /* Умные уровни: одна и та же картинка, разные слова. A1 - базовые вещи,
+     A2 - A1-A2, B1 - A2-B1 и действия (фразы B1), B2 - B1-B2 и все фразы
+     («feed the ducks», «cast a spell»): к B1 окно, дверь и стол уже не
+     задание. Места (rooms) - ещё и зоны увеличения, они копятся всегда. */
+  const inLevel = (l, level) => { const r = rank(l), L = rank(level); return L <= 1 ? r <= L : r >= L - 1 && r <= L; };
 
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const shuffle = (arr, seed) => {
@@ -47,7 +74,7 @@
   const cache = new Map();
   function load(id) {
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1014`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1015`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -71,6 +98,7 @@
     lav2: '#D8CFEA', mint2: '#BFE2D1', asphalt: '#CFCBC3', shadow: 'rgba(36,40,44,.12)', skyg: 'url(#scsky)', glassa: 'rgba(196,222,236,.42)',
     skin1: '#F3D5B5', skin2: '#DDAA80', skin3: '#A87550', hairb: '#6B4A34', hairy: '#E2BC62',
     leaf2: '#A6C882', leaf3: '#D6E8BD', bark: '#B08A62', shade: 'rgba(36,40,44,.07)',
+    night: '#4A4163', night2: '#2E2842', stone: '#D9D2C6', stone2: '#BFB5A6', candle: '#FFE39A', gold: '#E6C36A', violet: '#C9B8EA', cyan: '#AEEFF4', navy: '#3A4777', deep: '#232B52', plum: '#9A7BB5', moss: '#A9C088', rust: '#CD9160', dune: '#EBD5A4', cactus: '#A3C98F', slate: '#8C93A6', neon: '#FF7EC1', screen: '#CDF7FA',
   };
   const SW = { main: 1.7, det: 1.1, hair: 0.6, soft: 0.8 };
   const DEFS = '<defs><linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient></defs>';
@@ -160,6 +188,7 @@
 .sc-panel h3{margin:0;font:700 20px/1.2 inherit;font-family:inherit;letter-spacing:-.01em}
 .sc-hint{margin:6px 0 14px;font-size:13px;color:var(--muted);line-height:1.45}
 .sc-score{display:inline-block;margin-left:8px;font:700 12px 'SF Mono',ui-monospace,monospace;color:var(--ok)}
+.sc-insp{margin-top:-4px;font-size:11.5px;font-style:italic;opacity:.75}
 .sc-card{border-radius:16px;background:#F7F6F1;padding:16px 16px 14px;margin-bottom:16px}
 .sc-term{display:flex;align-items:center;gap:10px}
 .sc-term b{font:700 26px/1.1 'Iowan Old Style','Palatino Linotype',Georgia,serif}
@@ -258,10 +287,10 @@
     el.innerHTML = `<div class="sc-prev"><div class="sc-loading">Drawing…</div></div>`;
     const box = el.firstElementChild;
     load(out.scene || 'house').then(sc => {
-      const n = sc.parts.filter(p => rank(p.level) <= rank(lvl)).length + sc.rooms.filter(r => rank(r.level) <= rank(lvl)).length;
+      const n = stats(sc, lvl).words;
       box.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${stillArt(sc)}</svg>
         <div class="sc-prev-in"><div><div class="sc-kick"><span>${esc(sc.kicker || 'Picture Studio')}</span><span>${esc(lvl)} level · ${n} words · 6 tasks</span></div>
-          <h2>${esc(out.title || sc.title)}</h2><p>${esc(sc.dek || '')}</p></div>
+          <h2>${esc(out.title || sc.title)}</h2><p>${esc(sc.dek || '')}</p>${sc.inspired ? `<p class="sc-insp">${esc(sc.inspired)}</p>` : ''}</div>
           <button type="button" class="sc-btn lime sc-open">Open the Picture Studio →</button></div>`;
       box.querySelector('.sc-open').addEventListener('click', ev => { ev.stopPropagation(); onOpen && onOpen(); });
     }).catch(() => { box.innerHTML = '<div class="sc-loading">The picture could not be loaded.</div>'; });
@@ -293,7 +322,7 @@
     }).catch(() => { stage.innerHTML = '<div class="sc-loading">The picture could not be loaded. Check your connection and open it again.</div>'; });
 
     /* what is on the picture at this level */
-    const items = () => sc.parts.filter(p => rank(p.level) <= rank(st.level));
+    const items = () => sc.parts.filter(p => inLevel(p.level, st.level));
     const rooms = () => sc.rooms.filter(r => rank(r.level) <= rank(st.level));
     const all = () => items().concat(rooms());
     const byId = id => sc.parts.find(p => p.id === id) || sc.rooms.find(r => r.id === id);
@@ -530,7 +559,7 @@
       const thumb = isRoom(it) ? '' : `<div class="sc-thumb"><svg viewBox="${bx - pad} ${by - pad} ${bw + pad * 2} ${bh + pad * 2}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${stillArt(sc)}</svg></div>`;
       return `<div class="sc-card">${thumb}
         <div class="sc-term"><b>${esc(it.word)}</b><button type="button" class="sc-say" data-say="${esc(it.word)}" aria-label="Say it">🔊</button><button type="button" class="sc-x" data-act="unsel" aria-label="Close">✕</button></div>
-        <div class="sc-sub"><span class="sc-ipa">/${esc(it.ipa)}/</span><span class="sc-tagm">${esc(it.pos || 'noun')}</span><span class="sc-tagm">${esc(it.level)}</span>${it.us && it.us !== it.word ? `<span class="sc-tagm">US: ${esc(it.us)}</span>` : ''}</div>
+        <div class="sc-sub">${it.ipa ? `<span class="sc-ipa">/${esc(it.ipa)}/</span>` : ''}<span class="sc-tagm">${esc(it.pos || 'noun')}</span><span class="sc-tagm">${esc(it.level)}</span>${it.us && it.us !== it.word ? `<span class="sc-tagm">US: ${esc(it.us)}</span>` : ''}</div>
         <p class="sc-def">${esc(it.def)}</p>
         ${it.ex ? `<p class="sc-ex">${ex} <button type="button" class="sc-say" style="width:26px;height:26px;font-size:12px;vertical-align:middle;background:#fff" data-say="${esc(it.ex)}" aria-label="Say the example">🔊</button></p>` : ''}
         <div class="sc-acts">
@@ -541,8 +570,8 @@
     function paintExplore() {
       const it = st.sel ? byId(st.sel) : null;
       const groups = {};
-      items().forEach(p => (groups[p.room] = groups[p.room] || []).push(p));
-      const roomName = id => (sc.groups || {})[id] || (id === 'outside' ? 'Outside' : ((sc.rooms.find(r => r.id === id) || {}).word || id));
+      items().forEach(p => { const g = p.act ? '__acts' : p.room; (groups[g] = groups[g] || []).push(p); });
+      const roomName = id => id === '__acts' ? 'What people do here' : (sc.groups || {})[id] || (id === 'outside' ? 'Outside' : ((sc.rooms.find(r => r.id === id) || {}).word || id));
       panel.innerHTML = `<h3>${esc(out.title || sc.title)}</h3>
         <p class="sc-hint">Tap anything in the picture - or a word below - to hear it and see what it means. Pick a part at the top to zoom in.</p>
         ${it ? wordCard(it) : `<div class="sc-card"><p class="sc-def" style="margin:0"><b>${items().length + rooms().length} words</b> at ${esc(st.level)} level. ${st.saved.length ? `You have saved ${st.saved.length}.` : 'Save the new ones to your Vault to practise them later.'}</p></div>`}
@@ -710,7 +739,7 @@
     /* ── Talk & write ── */
     let rec = null, recUrl = null;
     function paintTalk() {
-      const prompts = (sc.prompts || {})[st.level] || [];
+      const prompts = (sc.prompts || {})[st.level] || (sc.prompts || {}).B1 || [];
       panel.innerHTML = `<h3>Talk &amp; Write</h3>
         <p class="sc-hint">Choose a question. Talk about it with a partner, then write your answer. Use words from the picture.</p>
         <div class="sc-prompts">${prompts.map((p, i) => `<button type="button" class="${st.prompt === i ? 'on' : ''}" data-prompt="${i}">${esc(p)}</button>`).join('')}</div>
@@ -887,10 +916,11 @@
   function stats(sc, level) {
     const r = rank(level || 'B1');
     return {
-      words: sc.parts.filter(p => rank(p.level) <= r).length + sc.rooms.filter(p => rank(p.level) <= r).length,
+      words: sc.parts.filter(p => inLevel(p.level, level || 'B1')).length + sc.rooms.filter(p => rank(p.level) <= r).length,
+      phrases: sc.parts.filter(p => p.act && inLevel(p.level, level || 'B1')).length,
       tf: (sc.truefalse || []).filter(q => rank(q.level) <= r).length,
     };
   }
 
-  window.TeachedScene = { preview, mount, load, thumb, stats, catalog: CATALOG, levels: LEVELS };
+  window.TeachedScene = { preview, mount, load, thumb, stats, catalog: CATALOG, worlds: WORLDS, themeFor, levels: LEVELS };
 })();

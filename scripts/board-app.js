@@ -15518,7 +15518,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1014';
+const TEACHEDOS_ASSET_VERSION = '1015';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18365,15 +18365,24 @@ function _wizRenderScenes(host, skill) {
   if (title)  title.textContent  = 'Which picture?';
   if (sub)    sub.textContent    = 'One big drawing, every thing in it a word - with six tasks and a printable worksheet.';
   const SC = window.TeachedScene;
+  const LV = SC ? SC.levels : ['A1', 'A2', 'B1'];
   const lvl = boardLessonWizard.sceneLevel || ((document.getElementById('tbuilder-level') || {}).value) || 'A2';
-  const level = (SC ? SC.levels : ['A1', 'A2', 'B1']).includes(lvl) ? lvl : (/^(B2|C1|C2)$/.test(lvl) ? 'B1' : 'A2');
+  const level = LV.includes(lvl) ? lvl : (/^(C1|C2)$/.test(lvl) ? LV[LV.length - 1] : 'A2');
   boardLessonWizard.sceneLevel = level;
-  host.innerHTML = `<div class="tb-news-levels" style="margin:0 0 12px"><span class="tb-news-levels-label">Words for</span>${(SC ? SC.levels : ['A1', 'A2', 'B1']).map(l => `<button type="button" class="tb-news-level${l === level ? ' is-on' : ''}" onclick="boardLessonWizard.sceneLevel='${l}';renderLessonWizard()">${l}${l === 'B1' ? '+' : ''}</button>`).join('')}</div>
-    <div class="tb-wiz-grid">${(SC ? SC.catalog : []).map(t => `
+  /* Visual Worlds: вкладки по «вселенным», у каждой - упор в лексике. */
+  const worlds = (SC && SC.worlds) || [];
+  const world = boardLessonWizard.sceneWorld || 'all';
+  const cat = (SC ? SC.catalog : []).filter(t => world === 'all' || t.world === world);
+  const W = worlds.find(w => w.id === world);
+  const LVL_NOTE = { A1: 'basic things - window, door, table', A2: 'things and places', B1: 'less common words plus what people do', B2: 'advanced words, collocations and actions' };
+  host.innerHTML = `<div class="tb-news-levels" style="margin:0 0 10px"><span class="tb-news-levels-label">Words for</span>${LV.map(l => `<button type="button" class="tb-news-level${l === level ? ' is-on' : ''}" onclick="boardLessonWizard.sceneLevel='${l}';renderLessonWizard()">${l}</button>`).join('')}<span class="tb-sc-lvnote">${esc(LVL_NOTE[level] || '')}</span></div>
+    ${worlds.length ? `<div class="tb-sc-worlds"><button type="button" class="tb-sc-world${world === 'all' ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='all';renderLessonWizard()">All pictures</button>${worlds.map(w => `<button type="button" class="tb-sc-world${world === w.id ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='${w.id}';renderLessonWizard()">${w.icon} ${esc(w.title)}</button>`).join('')}</div>
+    ${W ? `<p class="tb-sc-focus"><b>${W.icon} ${esc(W.title)}</b> · ${esc(W.focus)}${W.theme && window.TeachedThemes ? ` · lands in the <i>${esc((window.TeachedThemes.get(W.theme) || {}).name || '')}</i> theme` : ''}</p>` : ''}` : ''}
+    <div class="tb-wiz-grid">${cat.map(t => `
     <button type="button" class="tb-wiz-card${t.ready ? '' : ' is-soon'}" ${t.ready ? `onclick="placeSceneCard('${esc(t.id)}')"` : 'disabled'}>
       <span class="tb-wiz-ic">${esc(t.icon)}</span>
-      <span class="tb-wiz-tx"><b>${esc(t.title)}</b><small>${esc(t.hint)}</small></span>
-      ${t.ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">next</span>'}
+      <span class="tb-wiz-tx"><b>${esc(t.title)}</b><small>${esc(t.hint)}</small>${t.inspired ? `<small class="tb-sc-insp">${esc(t.inspired)}</small>` : ''}</span>
+      ${t.ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">soon</span>'}
     </button>`).join('')}</div>
     <button type="button" class="tb-wiz-back" onclick="backLessonWizard()">← Back</button>`;
 }
@@ -18385,11 +18394,12 @@ async function placeSceneCard(sceneId, levelArg) {
   let sc;
   try { sc = await SC.load(sceneId); } catch { toast('The picture could not be loaded - try again'); return; }
   const out = { scene: sceneId, level, title: sc.title };
-  const path = { kind: 'scene', steps: [{ role: 'scene-studio', title: 'Picture Studio', out, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [] };
+  // Картинка из «мира» (Gothic, Magic…) ложится сразу в его тему; учитель может сменить 🎨.
+  const theme = SC.themeFor ? SC.themeFor(sceneId) : '';
+  const path = { kind: 'scene', steps: [{ role: 'scene-studio', title: 'Picture Studio', out, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [], ...(theme ? { theme } : {}) };
   const card = _wpPlacePathCard({ level, topic: sc.title }, sc.title, path);
   if (!card) return;
-  const rk = l => ['A1', 'A2', 'B1'].indexOf(l);
-  const n = sc.parts.concat(sc.rooms).filter(p => rk(p.level) <= rk(level)).length;
+  const n = SC.stats(sc, level).words;
   _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
     title: sc.title, cat: 'vocabulary', level, topic: sc.title,
     kind: `Picture worksheet · ${n} words`, toolId: 'scene',
@@ -20775,7 +20785,7 @@ function runPendingToolOpen() {
   const id = p.get('addScene');
   if (!id || !/^[a-z0-9-]{2,40}$/.test(id)) return;
   const lv = p.get('sceneLevel');
-  window.__pendingScene = { id, level: /^(A1|A2|B1)$/.test(lv || '') ? lv : 'A2' };
+  window.__pendingScene = { id, level: /^(A1|A2|B1|B2)$/.test(lv || '') ? lv : 'A2' };
 })();
 function runPendingScene() {
   const sc = window.__pendingScene;

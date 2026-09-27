@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1014"></script>
+<script src="scripts/phone-gate.js?v=1015"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=1014">
+<link rel="manifest" href="manifest.json?v=1015">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -98,10 +98,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 .ws-modal-body{min-height:0}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=1014" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1014">
-<link rel="stylesheet" href="styles/harmony.css?v=1014">
-<link rel="stylesheet" href="styles/unify.css?v=1014">
+<script src="theme.js?v=1015" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1015">
+<link rel="stylesheet" href="styles/harmony.css?v=1015">
+<link rel="stylesheet" href="styles/unify.css?v=1015">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -357,16 +357,16 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
 .side-btn { display:flex; align-items:center; }
 .side-btn .side-count:empty { display:none; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1014">
-<link rel="stylesheet" href="styles/tool-window.css?v=1014">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1015">
+<link rel="stylesheet" href="styles/tool-window.css?v=1015">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1014">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1014">
-<link rel="stylesheet" href="styles/controls.css?v=1014">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1014">
-<link rel="stylesheet" href="styles/community-cards.css?v=1014">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1015">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1015">
+<link rel="stylesheet" href="styles/controls.css?v=1015">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1015">
+<link rel="stylesheet" href="styles/community-cards.css?v=1015">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1014">
+<link rel="stylesheet" href="styles/polish.css?v=1015">
 </head>
 <body class="tw-page fx">
 <nav id="nav">
@@ -590,7 +590,9 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
       <span class="ws-levels-label">Words for</span>
       <button class="level-pill" data-wslevel="A1" onclick="setWsLevel('A1')">A1</button>
       <button class="level-pill active" data-wslevel="A2" onclick="setWsLevel('A2')">A2</button>
-      <button class="level-pill" data-wslevel="B1" onclick="setWsLevel('B1')">B1+</button>
+      <button class="level-pill" data-wslevel="B1" onclick="setWsLevel('B1')">B1</button>
+      <button class="level-pill" data-wslevel="B2" onclick="setWsLevel('B2')">B2</button>
+      <select id="ws-world" onchange="renderWorksheets()" style="max-width:220px;margin-left:8px" aria-label="Visual world"><option value="">All worlds</option></select>
       <input id="ws-search" placeholder="Search themes and words…" style="max-width:320px;margin-left:auto" oninput="renderWorksheets()">
     </div>
     <section class="ws-grid" id="ws-grid"></section>
@@ -599,10 +601,10 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=1014"></script>
-<script src="scripts/lesson-cover.js?v=1014"></script>
-<script src="scripts/vocab-loader.js?v=1014"></script>
-<script src="scripts/scene-studio.js?v=1014"></script>
+<script src="scripts/app-core.js?v=1015"></script>
+<script src="scripts/lesson-cover.js?v=1015"></script>
+<script src="scripts/vocab-loader.js?v=1015"></script>
+<script src="scripts/scene-studio.js?v=1015"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -1925,7 +1927,7 @@ function openImportModal(type, data) {
     document.getElementById('import-modal-sub').textContent = `${data.cardCount} card${data.cardCount !== 1 ? 's' : ''} · choose a board to import into`;
   } else if (type === 'scene') {
     document.getElementById('import-modal-title').textContent = `Add "${data.title}" to a board`;
-    document.getElementById('import-modal-sub').textContent = `Interactive worksheet · ${data.level === 'B1' ? 'B1+' : data.level} words · choose which board`;
+    document.getElementById('import-modal-sub').textContent = `Interactive worksheet · ${data.level} words · choose which board`;
   } else {
     document.getElementById('import-modal-title').textContent = `Add game to board`;
     document.getElementById('import-modal-sub').textContent = `"${data.title}" · choose which board`;
@@ -2280,7 +2282,10 @@ async function renderWorksheets() {
   const grid = document.getElementById('ws-grid');
   const SC = window.TeachedScene;
   if (!grid || !SC) return;
-  const themes = SC.catalog.filter(t => t.ready);
+  const wsel = document.getElementById('ws-world');
+  if (wsel && wsel.options.length === 1 && SC.worlds) SC.worlds.forEach(w => wsel.add(new Option(`${w.icon} ${w.title}`, w.id)));
+  const world = wsel ? wsel.value : '';
+  const themes = SC.catalog.filter(t => t.ready && (!world || t.world === world));
   const q = (document.getElementById('ws-search')?.value || '').trim().toLowerCase();
   const scenes = await Promise.all(themes.map(t => SC.load(t.id).catch(() => null)));
   const rows = themes.map((t, i) => ({ t, sc: scenes[i] })).filter(r => r.sc);
@@ -2288,7 +2293,7 @@ async function renderWorksheets() {
   const shown = rows.filter(r => !q || r.t.title.toLowerCase().includes(q) || r.t.hint.toLowerCase().includes(q) || hits(r).length);
   let total = 0;
   rows.forEach(r => { total += SC.stats(r.sc, _wsLevel).words; });
-  setText('ws-sub', `${rows.length} themes · ${total} words at ${_wsLevel === 'B1' ? 'B1+' : _wsLevel} level · six tasks each and a printable worksheet. Try one, then add it to a board.`);
+  setText('ws-sub', `${rows.length} themes · ${total} words at ${_wsLevel} level · six tasks each and a printable worksheet. Try one, then add it to a board.`);
   if (!shown.length) { grid.innerHTML = '<div class="empty">No theme has that word yet. Try another one.</div>'; return; }
   grid.innerHTML = shown.map(r => {
     const st = SC.stats(r.sc, _wsLevel);
@@ -2297,9 +2302,9 @@ async function renderWorksheets() {
       <div class="ws-thumb" data-thumb="${esc(r.t.id)}" onclick="tryWorksheet('${esc(r.t.id)}')" title="Try it"></div>
       <div class="ws-body">
         <div class="ws-title"><span>${esc(r.t.icon)}</span>${esc(r.t.title)}</div>
-        <div class="ws-hint">${esc(r.t.hint)}</div>
+        <div class="ws-hint">${esc(r.t.hint)}</div>${r.t.inspired ? `<div class="ws-hint" style="font-style:italic;opacity:.75">${esc(r.t.inspired)}</div>` : ''}
         ${h.length ? `<div class="ws-hit">Has: ${h.map(w => `<mark>${esc(w)}</mark>`).join(', ')}</div>` : ''}
-        <div class="tags" style="margin:6px 0 10px"><span class="tag" style="background:rgba(205,246,73,.2);color:var(--accent)">${_wsLevel === 'B1' ? 'B1+' : _wsLevel}</span><span class="tag">${st.words} words</span><span class="tag">${st.tf} true/false</span><span class="tag">6 tasks</span></div>
+        <div class="tags" style="margin:6px 0 10px"><span class="tag" style="background:rgba(205,246,73,.2);color:var(--accent)">${_wsLevel}</span><span class="tag">${st.words} words</span>${st.phrases ? `<span class="tag">${st.phrases} phrases</span>` : ''}<span class="tag">${st.tf} true/false</span><span class="tag">6 tasks</span></div>
         <div class="card-actions"><button class="mini-btn alt" onclick="tryWorksheet('${esc(r.t.id)}')">Try it</button><button class="mini-btn" onclick="addWorksheetToBoard('${esc(r.t.id)}')">Add to board →</button></div>
       </div>
     </div>`;
@@ -2371,12 +2376,12 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=1014" defer></script>
-<script src="scripts/mobile-nav.js?v=1014"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1014" defer></script>
-<script src="scripts/autogrow.js?v=1014" defer></script>
-<script src="pwa-boot.js?v=1014" defer></script>
-  <script src="scripts/signin-entry.js?v=1014" defer></script>
-<script src="scripts/nav-bell.js?v=1014" defer></script>
+<script src="scripts/mobile-perf.js?v=1015" defer></script>
+<script src="scripts/mobile-nav.js?v=1015"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1015" defer></script>
+<script src="scripts/autogrow.js?v=1015" defer></script>
+<script src="pwa-boot.js?v=1015" defer></script>
+  <script src="scripts/signin-entry.js?v=1015" defer></script>
+<script src="scripts/nav-bell.js?v=1015" defer></script>
 </body>
 </html>

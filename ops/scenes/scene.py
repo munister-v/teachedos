@@ -88,6 +88,7 @@ PALETTE = dict(
     lav2="#D8CFEA", mint2="#BFE2D1", asphalt="#CFCBC3", shadow="rgba(36,40,44,.12)", skyg="url(#scsky)", glassa="rgba(196,222,236,.42)",
     skin1="#F3D5B5", skin2="#DDAA80", skin3="#A87550", hairb="#6B4A34", hairy="#E2BC62",
     leaf2="#A6C882", leaf3="#D6E8BD", bark="#B08A62", shade="rgba(36,40,44,.07)",
+    night="#4A4163", night2="#2E2842", stone="#D9D2C6", stone2="#BFB5A6", candle="#FFE39A", gold="#E6C36A", violet="#C9B8EA", cyan="#AEEFF4", navy="#3A4777", deep="#232B52", plum="#9A7BB5", moss="#A9C088", rust="#CD9160", dune="#EBD5A4", cactus="#A3C98F", slate="#8C93A6", neon="#FF7EC1", screen="#CDF7FA",
 )
 STROKE = dict(main=1.7, det=1.1, hair=0.6, soft=0.8)
 SKY = '<linearGradient id="scsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCEAF3"/><stop offset="1" stop-color="#F7F4EC"/></linearGradient>'
@@ -308,7 +309,26 @@ class Scene:
         self.fill(blob(x - rx * 0.3, cy - ry * 0.35, rx * 0.42, ry * 0.3, 7, 0.2, seed=seed + 2), "leaf3")
         self.H(blob(x + rx * 0.05, cy + ry * 0.3, rx * 0.72, ry * 0.52, 9, 0.2, seed=seed + 1))
 
+    def merge_acts(self, extra):
+        """Smart levels: the B1-B2 phrases from acts.py, pinned next to their anchor."""
+        from acts import ACTS, PROMPTS_B2
+        by = {p["id"]: p for p in self.parts}
+        for pid, phrase, level, anchor, d, ex in ACTS.get(self.id, []):
+            a = by[anchor]
+            bx, by_, bw, bh = a["box"]
+            # a little up and right of the thing's own pin, never outside its box
+            px = min(bx + bw - 2, a["pin"][0] + min(14, bw / 3))
+            py = max(by_ + 2, a["pin"][1] - min(14, bh / 3))
+            self.parts.append(dict(id="act_" + pid, word=phrase, pin=[round(px, 1), round(py, 1)], box=list(a["box"]),
+                                   level=level, room=a.get("room"), ipa="", pos="phrase", act=1, anchor=anchor,
+                                   **{"def": d}, ex=ex))
+        if self.id in PROMPTS_B2 and isinstance(extra.get("prompts"), dict):
+            extra["prompts"].setdefault("B2", PROMPTS_B2[self.id])
+
     def save(self, path, **extra):
+        self.merge_acts(extra)
+        ids = [p["id"] for p in self.parts] + [r["id"] for r in self.rooms]
+        assert len(ids) == len(set(ids)), "duplicate ids in " + self.id
         data = dict(id=self.id, w=self.w, h=self.h, **self.meta, **extra,
                     rooms=self.rooms, parts=self.parts, items=self.items)
         with open(path, "w") as fh:
