@@ -1,0 +1,77 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeachEd - pink accent (2026-09-27)
+
+   The client asked for the soft pink from the designer's board next to our
+   lime ("розовый круто смотрится с салатовым"). Lime still moves a lesson
+   forward and violet still says "you are here"; pink takes over the soft
+   secondary fills that used to be lavender (icon tiles, avatars, soft hover,
+   invite chips), and hot pink is kept for tiny counters only - it is too
+   loud for text or large surfaces.
+
+   Loaded last on every page, so it can win with plain !important.
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --te-pink:#F8DBDB;          /* "smash hit" - soft surface */
+  --te-pink-ink:#8A2E52;      /* text on pink (AA on #F8DBDB) */
+  --te-pink-line:rgba(138,46,82,.22);
+  --te-rose:#F35695;          /* "double bounce" - counters only, white text */
+  --te-surface-pink:#F8DBDB;
+  --te-surface-violet:#F8DBDB !important;
+  --calm-accent-soft:#F8DBDB !important;
+  --tw-accent-soft:#F8DBDB !important;
+}
+
+/* Soft buttons: hover in pink instead of lavender */
+body:not(.board-page) :where(
+  .btn-ghost:hover,.btn.btn-ghost:hover,.btn-soft:hover,.btn.btn-soft:hover,
+  .btn.ghost:hover,.btn.soft:hover,.mini-btn.alt:hover,.mini-btn.ghost:hover,
+  .ready-actions .btn-soft:hover
+) {
+  background:var(--te-pink) !important;
+  color:var(--te-ink,#24282C) !important;
+  border-color:var(--te-pink-line) !important;
+}
+
+/* Icon tiles */
+body:not(.board-page) :where(.ready-icon,.tool-icon,.feature-icon,.icon-tile,.mp-quick-ic,.mp-quick-ic2),
+body.mp-shell :where(.ready-icon,.ch-icon) {
+  background:var(--te-pink) !important;
+  color:var(--te-pink-ink) !important;
+}
+
+/* People: student avatars in the schedule widget and lists */
+.sp-av {
+  background:var(--te-pink) !important;
+  color:var(--te-pink-ink) !important;
+}
+.st-chip.format,
+.st-badge.invited {
+  background:var(--te-pink) !important;
+  color:var(--te-pink-ink) !important;
+}
+body.os-desktop .note-item.active .note-item-title {
+  background:var(--te-pink) !important;
+  color:var(--te-pink-ink) !important;
+}
+
+/* Desktop: Student pulse becomes the one pink tile on the home screen,
+   the way the designer's dashboard sets one coloured card among white ones */
+body.os-desktop:not(#_):not(#_) #wg-pulse {
+  background:var(--te-pink) !important;
+  border-color:var(--te-pink-line) !important;
+}
+body.os-desktop:not(#_):not(#_) #wg-pulse .wg-pulse-title { color:var(--te-pink-ink) !important; }
+body.os-desktop:not(#_):not(#_) #wg-pulse .wg-pulse-all {
+  background:rgba(255,255,255,.7) !important;
+  color:var(--te-pink-ink) !important;
+}
+
+/* Unread counters */
+#nav .nb-badge,
+#mb-notif-badge {
+  background:var(--te-rose) !important;
+  color:#FFFFFF !important;
+}
+
+/* Homework: overdue reads pink, not alarm-orange */
+.hw-card.overdue { border-color:rgba(243,86,149,.38) !important; }
