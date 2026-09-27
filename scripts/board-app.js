@@ -5555,7 +5555,7 @@ function printWorksheet(cardId) {
     /* MCQ */
     .ws-opts{display:flex;flex-direction:column;gap:8px;margin-top:12px}
     .ws-opt{display:flex;align-items:flex-start;gap:11px;font-size:14px;line-height:1.45;color:${accent};font-weight:600;padding:11px 13px;border-radius:12px;background:#fff;border:2px solid ${LINE}}
-    .ws-opt.correct{background:${LIME};color:${accent};font-weight:600;border-color:${accent}}
+    .ws-opt.correct{background:${LIME};color:${accent};font-weight:600;border-color:${LIME}}
     .ws-mark{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:8px;background:${CREAM};border:0;font:800 13px -apple-system,Arial;color:${accent}}
     .ws-opt.correct .ws-mark{background:${accent};color:${LIME}}
     /* True / False */
@@ -15554,7 +15554,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1022';
+const TEACHEDOS_ASSET_VERSION = '1023';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
