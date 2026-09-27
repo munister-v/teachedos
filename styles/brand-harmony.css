@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════════════════════════════
+   TeachEd - brand harmony (2026-09-27)
+
+   One pass over the ten teacher pages (body.tw-page) so they read as one
+   product, after the designer's board (Clawerly / Halo Lab):
+   - flat sand canvas, no lime glow;
+   - one card: white, 20px, hairline, no shadow; list tiles 16px;
+   - stats: the lead card dark with a lime number, "attention" pink;
+   - labels and tags in the UI face - the board has no monospace;
+   - buttons: lime primary without the ink outline ("no black outlines",
+     2026-09-27), ink for the secondary colour action instead of blue.
+   Loaded after app-sidebar.css; three :not(#hN) beat the older layers.
+═══════════════════════════════════════════════════════════════ */
+
+/* Canvas */
+body.tw-page:not(#h1):not(#h2):not(#h3) {
+  background:#F6F6EF !important;
+  background-image:none !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3)::before, body.tw-page:not(#h1):not(#h2):not(#h3)::after { background-image:none !important; }
+
+/* Panels */
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.card, .section, .hw-focus, .hw-toolbar, .wr-queue,
+      .gradebook-pulse, .gradebook-controls, .journal-controls, .table-wrap,
+      .analytics-lock, .dict-card, .empty, .shell, aside.side, .side-section, .up-next,
+      .profile-hero-card) {
+  background:#FFFFFF !important;
+  border:1px solid rgba(36,40,44,.08) !important;
+  border-radius:20px !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+
+/* List tiles: the glassy 13px tiles become solid 16px cards */
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.hw-card, .tpl-card, .type-card, .pack-card, .recent-board-item, .lesson-preset, .cls-item, .stat-pill) {
+  background:#FFFFFF !important;
+  border:1px solid rgba(36,40,44,.08) !important;
+  border-radius:16px !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.hw-card, .tpl-card, .type-card, .pack-card, .recent-board-item):hover {
+  border-color:rgba(36,40,44,.2) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) .hw-card.active { border-color:var(--te-lime,#CDF649) !important; box-shadow:0 0 0 2px var(--te-lime,#CDF649) inset !important; }
+
+/* Stats: one family on every page */
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card, .hw-metric) {
+  background:#FFFFFF !important;
+  border:1px solid rgba(36,40,44,.08) !important;
+  border-radius:20px !important;
+  box-shadow:none !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card, .hw-metric)::before, body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card, .hw-metric)::after { display:none !important; }
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-val, .stat-num, .stat-n, .hw-metric b) {
+  font-family:var(--te-font-display) !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+  color:var(--te-ink,#24282C) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card.primary, :not(:has(> .stat-card.primary)) > .stat-card:first-child:not(.attention):not(.good), .hw-metric:first-child) {
+  background:var(--te-ink,#24282C) !important;
+  border-color:var(--te-ink,#24282C) !important;
+  color:#CACCC6 !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card.primary, :not(:has(> .stat-card.primary)) > .stat-card:first-child:not(.attention):not(.good), .hw-metric:first-child) :is(.stat-val, .stat-num, .stat-n, b) {
+  color:var(--te-lime,#CDF649) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card.primary, :not(:has(> .stat-card.primary)) > .stat-card:first-child:not(.attention):not(.good), .hw-metric:first-child) :not(.stat-val):not(.stat-num):not(.stat-n):not(b) {
+  color:#CACCC6 !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3)  :is(.stat-card.primary, :not(:has(> .stat-card.primary)) > .stat-card:first-child:not(.attention):not(.good)) :is([class*="icon"], [class*="-ic"]) {
+  background:rgba(255,255,255,.1) !important;
+  color:var(--te-lime,#CDF649) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card.attention, .hw-metric:last-child) {
+  background:var(--te-pink,#F8DBDB) !important;
+  border-color:var(--te-pink,#F8DBDB) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.stat-card.attention, .hw-metric:last-child) :not(.stat-val):not(.stat-num):not(.stat-n):not(b) {
+  color:var(--te-pink-ink,#8A2E52) !important;
+}
+
+/* Labels, kickers and tags: UI face, not monospace */
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.mono, .eyebrow, .label, [class*="kicker"], [class*="eyebrow"], .side-label, .sb-label,
+      .form-label, .time-label, .cb-time, .hw-kind, .hw-stat, .pill, .tag, .pc-dur, .pc-open,
+      .pc-level, .level-badge, .side-count, .sb-badge, .ltab, .tcv-kind, .th-access,
+      .dict-hot, .side-ic, .pub-inside-lbl, .publisher-audit-title) {
+  font-family:var(--te-font-ui) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.eyebrow, [class*="kicker"], [class*="eyebrow"], .side-label, .sb-label, .hw-kind) {
+  font-size:11px !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+  text-transform:uppercase !important;
+  color:#5D614B !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.tag, .hw-stat, .pc-dur, .pc-open) { font-weight:500 !important; letter-spacing:0 !important; }
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.dict-word, .tcv-title, .tab, .hw-list-summary) { font-weight:600 !important; }
+
+/* Buttons */
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.btn-primary, .btn.btn-primary, .btn.lime, .journal-add) {
+  border-color:var(--te-lime,#CDF649) !important;
+  box-shadow:none !important;
+  color:var(--te-ink,#24282C) !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.btn-primary, .btn.btn-primary, .btn.lime, .journal-add):hover {
+  background:#D3F36B !important;
+  border-color:#D3F36B !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) .btn.blue {
+  background:var(--te-ink,#24282C) !important;
+  border-color:var(--te-ink,#24282C) !important;
+  color:#FFFFFF !important;
+}
+body.tw-page:not(#h1):not(#h2):not(#h3) .btn.blue:hover { background:#3A3F44 !important; border-color:#3A3F44 !important; }
+body.tw-page:not(#h1):not(#h2):not(#h3) .attend-btn { border-color:rgba(36,40,44,.16) !important; }
+body.tw-page:not(#h1):not(#h2):not(#h3) .attend-btn:hover { border-color:rgba(36,40,44,.32) !important; }
+body.tw-page:not(#h1):not(#h2):not(#h3) :where(.btn) { border-radius:12px !important; }
+
+/* Journal roster: people read as pink, like the sidebar avatar */
+body.tw-page:not(#h1):not(#h2):not(#h3) :is(.student-avatar, .st-avatar, .roster-avatar, .jr-ava, .cm-ava) {
+  background:var(--te-pink,#F8DBDB) !important;
+  color:var(--te-pink-ink,#8A2E52) !important;
+}
