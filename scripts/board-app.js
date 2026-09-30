@@ -4558,7 +4558,8 @@ function _wpRender(el, card, focus) {
    (обсуждение и ситуации - в Speaking Studio, письмо - в Writing Studio). */
 function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   const words = entries.map(e => ({ word: e.word, pos: e.pos || '', meaning: e.gloss || '', example: e.example || '',
-    ipaUK: e.ipa || '', audioUK: e.audio || '', meaningKept: !!e.fromTeacher }));
+    ipaUK: e.ipa || '', audioUK: e.audio || '', meaningKept: !!e.fromTeacher,
+    ...(e.enriched ? { collocations: e.collocations, gap: e.gap, chunk: e.chunk, speak: e.speak } : {}) }));
   const steps = [{ role: 'vocab-studio', title: 'Vocabulary Studio', out: { title: 'The words', words }, state: null }];
   const gameStep = (title, gameType, content, level) => {
     const m = _gameMetaFor(gameType);
@@ -4567,6 +4568,15 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   /* Flash cards повторяют Vocabulary Studio (слово, значение, пример), поэтому
      в пути их нет; отдельной карточкой на доске они по-прежнему доступны. */
   tplBuilt.filter(({ t }) => t.key !== 'flashcards').forEach(({ t, content }) => steps.push(gameStep(t.title, t.game, content)));
+  /* Чанки: собрать устойчивый блок и найти пропущенного партнёра слова -
+     вместо ещё одного «слово - перевод». Есть только у слов, по которым
+     движок ответил. */
+  const chunkItems = entries.filter(e => e.chunk && e.chunk.split(/\s+/).length >= 3)
+    .map(e => ({ s: e.chunk, t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
+  if (chunkItems.length >= 2) steps.push(gameStep('Chunk puzzle', 'ww/unjumble', { sentences: chunkItems }));
+  const linkItems = entries.filter(e => e.link && e.link.s && e.link.a)
+    .map(e => String(e.link.s).replace(/_{3,}/, `___ (${e.link.a})`));
+  if (linkItems.length >= 2) steps.push(gameStep('Missing link', 'ww/complete', { sentences: linkItems }));
   const speakOuts = [];
   let writing = null;
   built.forEach(({ activity, out }) => {
@@ -4587,12 +4597,12 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   /* Название - общая тема набора, а не список слов. Тему учителя берём как
      есть; без неё ставим нейтральное имя, а настоящую тему подбирает
      _wpEnrichVocab. Переименовать можно в шапке студии. */
-  const label = base.topicAuto ? `New vocabulary · ${words.length} words` : (base.topic || 'Vocabulary');
+  const label = base.topicAuto ? (base.theme || `New vocabulary · ${words.length} words`) : (base.topic || 'Vocabulary');
   const card = _wpPlacePathCard(base, label, path);
   if (card) {
-    if (base.topicAuto) card.data._titleAuto = true;
+    if (base.topicAuto && !base.theme) card.data._titleAuto = true;
     _wpFillVocabPron(card);
-    _wpEnrichVocab(card);
+    if (!entries.some(e => e.enriched)) _wpEnrichVocab(card);
     _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
       title: card.data.title, cat: 'vocabulary', level: base.level, topic: base.topic,
       kind: `Vocabulary path · ${words.length} words`, toolId: 'vocab-workout',
@@ -4713,6 +4723,12 @@ function _wpVocabStudio(stage, card, k) {
     const key = parts.reduce((b, x, j) => x.trim().length > (parts[b] || '').trim().length ? j : b, 0);
     return parts.map((x, j) => j === key ? `<strong>${esc(x)}</strong>` : esc(x)).join('');
   };
+  // Чанк целиком: ключевое слово плотно, «компаньоны» мягче.
+  const chunkHtml = (chunk, word) => {
+    const e = esc(chunk);
+    const re = new RegExp('(' + rx(esc(word)) + '\\w*)', 'i');
+    return re.test(e) ? e.replace(re, '<b>$1</b>').replace(/(^|<\/b>)([^<]+)/g, (m, a, t) => a + '<span>' + t + '</span>') : '<span>' + e + '</span>';
+  };
   const play = (w, region) => {
     const url = region === 'uk' ? w.audioUK : w.audioUS;
     try { audio && audio.pause(); } catch {}
@@ -4764,6 +4780,7 @@ function _wpVocabStudio(stage, card, k) {
           <article class="vs-card">
             <span class="vs-stamp no">Still learning</span><span class="vs-stamp yes">I know it</span>
             <div class="vs-word">${headline(w.word)}${w.pos ? `<span class="vs-pos">${esc(w.pos)}</span>` : ''}</div>
+            ${w.chunk && String(w.chunk).toLowerCase() !== String(w.word).toLowerCase() ? `<div class="vs-chunk" title="Learn it as a block">${chunkHtml(w.chunk, w.word)}</div>` : ''}
             <div class="vs-pron">
               <button type="button" class="vs-say" data-say="uk" title="Hear it - British"><b>UK</b> <span>${ipa(w.ipaUK)}</span></button>
               <button type="button" class="vs-say" data-say="us" title="Hear it - American"><b>US</b> <span>${ipa(w.ipaUS)}</span></button>
@@ -16402,6 +16419,10 @@ async function runBoardWorkout() {
     e.pos = e.pos || inf.pos || null; // позначка вчителя «(n)» точніша за словник
     e.fromTeacher = !!e.gloss && !found[k];
   });
+  if (chip) chip.textContent = 'writing context sentences…';
+  if (body) body.innerHTML = `<div class="tbuilder-empty">Writing context sentences, chunks and speaking tasks for ${entries.length} words…</div>`;
+  const rich = await _ttEnrichEntries(entries, base);
+  if (rich && rich.theme) base.theme = rich.theme;
   base.rawVocab = base.rawVocab || base.vocab;
   base.count = entries.length;
 
@@ -16922,14 +16943,15 @@ async function _wordTemplateContent(t, ctx) {
     case 'wordsearch':
       return need(2, 'of 3-15 letters') || { content: { words: kept.map(e => e.word), pairs: kept.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) }, note };
     case 'speaking':
-      return { content: { cards: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null, pos: e.pos || '' })) } };
+      return { content: { cards: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null, pos: e.pos || '', tasks: e.speak || [] })) } };
     case 'box':
       return { content: { items: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'wheel':
       // Колесо показывает значение выпавшего слова, поэтому пары, а не только слова.
       return need(2, '') || { content: { words: kept.map(e => e.word), pairs: kept.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) } };
     case 'unjumble': {
-      const sentences = kept.map(e => ({ s: e.example, t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
+      // Заготовка «The word X means Y» - не предложение в контексте: её не собирают.
+      const sentences = kept.filter(e => !e.exampleAuto).map(e => ({ s: e.example, t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
       return sentences.length ? { content: { sentences }, note } : { why: 'no example sentences for these words - add one in the list' };
     }
     case 'complete': {
@@ -16938,9 +16960,13 @@ async function _wordTemplateContent(t, ctx) {
          предложение из значения. На вход - только вошедшие слова, чтобы
          число предложений совпало с тем, что обещал разбор. */
       const examples = Object.create(null);
-      kept.forEach(e => { if (e.example) examples[e.word.toLowerCase()] = e.example; });
-      const out = generateTeacherToolLocal({ ...base, tool: { id: 'sentences-vocab' }, count: kept.length, vocabExamples: examples,
-        vocab: kept.map(e => e.gloss ? `${e.word} - ${e.gloss.replace(/\s*\n\s*/g, ' ')}` : e.word).join('\n') });
+      /* Слово без настоящего предложения в игру не берём: пропуск в
+         «The word ___ means …» показывает определение, а не слово в контексте. */
+      const real = kept.filter(e => e.example && !e.exampleAuto);
+      if (!real.length) return { why: 'no real example sentences - write one in the list, or sign in so the engine can' };
+      real.forEach(e => { examples[e.word.toLowerCase()] = e.example; });
+      const out = generateTeacherToolLocal({ ...base, tool: { id: 'sentences-vocab' }, count: real.length, vocabExamples: examples,
+        vocab: real.map(e => e.gloss ? `${e.word} - ${e.gloss.replace(/\s*\n\s*/g, ' ')}` : e.word).join('\n') });
       const g = out ? (_ttGamePayloads(out) || []).find(x => x.gameType === 'fill-blank') : null;
       return g ? { content: g.content, note } : { why: 'no sentences with gaps could be made' };
     }
@@ -17461,6 +17487,35 @@ function _ttTopicFromWords(words) {
    2. Движок - для того, чего в словаре нет («severe burn», «doesn't agree
       with me»): у него есть тема и уровень, он пишет определение под класс.
    Что не нашлось ни там, ни там, остаётся без значения. */
+/* Настоящие предложения-контексты, чанки и задания одним запросом ИИ.
+   Без них у слова без словарного примера игры строили «The word X means Y» -
+   определение вместо слова в контексте. Нет ответа - остаётся как было. */
+async function _ttEnrichEntries(entries, base) {
+  if (!authToken || !entries.length) return null;
+  let d = null;
+  try {
+    const r = await apiFetch('/api/ai/vocab-enrich', { method: 'POST', body: {
+      words: entries.map(e => e.word), level: base.level || '', topic: base.topicAuto ? '' : (base.topic || '') } });
+    if (r.ok) d = await r.json().catch(() => null);
+  } catch {}
+  if (!d || !Array.isArray(d.items)) return null;
+  const by = new Map(d.items.map(x => [String(x.word).toLowerCase(), x]));
+  entries.forEach(e => {
+    const x = by.get(String(e.word).toLowerCase());
+    if (!x) return;
+    // Значение фразы целиком - вместо статьи одного из её слов; слова учителя не трогаем.
+    if (x.meaning && !e.fromTeacher && (!e.gloss || /\s/.test(e.word))) e.gloss = x.meaning;
+    if (x.example && (e.exampleAuto || !e.example)) { e.example = x.example; e.exampleAuto = false; }
+    e.collocations = x.collocations || [];
+    e.speak = x.speak || [];
+    e.gap = x.gap || '';
+    e.chunk = x.chunk || '';
+    e.link = x.link || null;
+    e.enriched = true;
+  });
+  return d;
+}
+
 const TT_DEFINE_BATCH = 20;
 /* opts.examples - сборщик примеров из словаря (слово в нижнем регистре →
    предложение). opts.defsFor - для каких слов значение действительно нужно:
