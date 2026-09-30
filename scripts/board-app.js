@@ -11795,6 +11795,115 @@ function ytSelectAllTools(on) {
   _ytSyncRunBtn();
 }
 
+/* ── Слова и фразы из скрипта видео ───────────────────────────────────────
+   «Pick them for me» - как раньше, слова выбирает движок. «I'll choose from
+   the script» - учитель загружает скрипт, кликает слова (или выделяет фразу),
+   и блок Key vocabulary собирается из ЕГО слов: значение из словаря, пример -
+   настоящая фраза из видео. Выбранные слова заодно уходят в задания на
+   пропуски, чтобы урок работал с ними же. */
+let _ytChosen = [];
+function _ytWordsManual() { return document.querySelector('input[name="yt-words-mode"]:checked')?.value === 'manual'; }
+function _ytWordsMode() {
+  const on = _ytWordsManual();
+  const box = document.getElementById('yt-words-manual');
+  if (box) box.hidden = !on;
+  if (on && _ytLastTranscript && _ytLastUrl === _ytSourceKey((document.getElementById('yt-lesson-url')?.value || '').trim(), _ytFragment())) _ytRenderPick();
+}
+async function _ytLoadScript() {
+  const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
+  const note = document.getElementById('yt-words-note');
+  const btn = document.getElementById('yt-script-btn');
+  if (!_ytValidUrl(url)) { if (note) note.textContent = 'Paste the video link first.'; return; }
+  if (!authToken) { if (note) note.textContent = 'Sign in to load the script.'; return; }
+  const fragment = _ytFragment();
+  const key = _ytSourceKey(url, fragment);
+  if (_ytLastUrl === key && _ytLastTranscript) { _ytRenderPick(); return; }
+  if (btn) btn.disabled = true;
+  if (note) note.textContent = '⏳ Loading the script…';
+  try {
+    const params = new URLSearchParams({ url });
+    if (fragment.start != null && !Number.isNaN(fragment.start)) params.set('start', String(fragment.start));
+    if (fragment.end != null && !Number.isNaN(fragment.end)) params.set('end', String(fragment.end));
+    const r = await apiFetch('/api/ai/youtube-transcript?' + params.toString());
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d?.transcript) throw new Error(d?.error || 'No transcript available');
+    _ytLastUrl = key; _ytLastTranscript = d.transcript; _ytLastTitle = (d.title || '').trim();
+    _ytRenderSourcePreview(url);
+    _ytRenderPick();
+  } catch (e) {
+    if (note) note.textContent = '⚠ ' + e.message;
+  } finally { if (btn) btn.disabled = false; }
+}
+function _ytRenderPick() {
+  const box = document.getElementById('yt-pick');
+  const note = document.getElementById('yt-words-note');
+  if (!box) return;
+  const text = _ytCleanTranscript(_ytLastTranscript).slice(0, 14000);
+  if (!text) { box.hidden = true; return; }
+  // Скрипт - одна длинная строка: режем на абзацы по 3-4 предложения.
+  const sents = text.split(/(?<=[.!?])\s+/);
+  const paras = [];
+  for (let i = 0; i < sents.length; i += 4) paras.push(sents.slice(i, i + 4).join(' '));
+  const html = paras.map(par => '<p>' + par.split(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’-]*)/).map((part, i) =>
+    i % 2 ? `<span class="tb-pick-w" data-w="${esc(part)}">${esc(part)}</span>` : esc(part)).join('') + '</p>').join('');
+  box.innerHTML = `<div class="tb-pick-head">Click words to add them · select several words for a phrase</div><div class="tb-pick-text">${html}</div>`;
+  box.hidden = false;
+  if (note) note.textContent = 'Click a word, or select several words to make a phrase.';
+  _ytPickMark();
+  _ytRenderChosen();
+}
+function _ytToggleWord(phrase) {
+  const clean = String(phrase || '').replace(/[“”"«»()\[\]]/g, '').replace(/\s+/g, ' ').replace(/^[^A-Za-zÀ-ÿ']+|[^A-Za-zÀ-ÿ']+$/g, '').trim();
+  if (!clean) return;
+  const key = clean.toLowerCase();
+  const at = _ytChosen.findIndex(w => w.toLowerCase() === key);
+  if (at >= 0) _ytChosen.splice(at, 1);
+  else if (_ytChosen.length < 30) _ytChosen.push(/\s/.test(clean) ? clean : clean.toLowerCase());
+  _ytPickMark(); _ytRenderChosen();
+}
+function _ytPickMark() {
+  const box = document.getElementById('yt-pick');
+  if (!box || box.hidden) return;
+  const keys = new Set(_ytChosen.map(w => w.toLowerCase()));
+  const words = [...box.querySelectorAll('.tb-pick-w')];
+  words.forEach(w => w.classList.remove('on', 'phr'));
+  words.forEach(w => { if (keys.has(w.dataset.w.toLowerCase())) w.classList.add('on'); });
+  _ytChosen.filter(k => /\s/.test(k)).forEach(phrase => {
+    const parts = phrase.toLowerCase().split(' ');
+    for (let i = 0; i + parts.length <= words.length; i++) {
+      if (parts.every((p, j) => words[i + j].dataset.w.toLowerCase() === p)) for (let j = 0; j < parts.length; j++) words[i + j].classList.add('on', 'phr');
+    }
+  });
+}
+function _ytRenderChosen() {
+  const el = document.getElementById('yt-chosen');
+  if (!el) return;
+  el.innerHTML = _ytChosen.length
+    ? _ytChosen.map((w, i) => `<span class="yt-chip">${esc(w)}<button type="button" aria-label="Remove ${esc(w)}" onclick="_ytChosen.splice(${i},1);_ytPickMark();_ytRenderChosen()">×</button></span>`).join('') + `<span class="yt-words-note">${_ytChosen.length} chosen</span>`
+    : '';
+}
+document.addEventListener('mouseup', e => {
+  const box = e.target.closest && e.target.closest('#yt-pick');
+  if (!box) return;
+  const sel = window.getSelection();
+  const text = sel ? String(sel).trim() : '';
+  if (text && /\s/.test(text) && box.contains(sel.anchorNode)) { _ytToggleWord(text); sel.removeAllRanges(); return; }
+  const w = e.target.closest('.tb-pick-w');
+  if (w && !text) _ytToggleWord(w.dataset.w);
+});
+/* Блок Key vocabulary из слов учителя: значения из словаря, примеры - из видео. */
+async function _ytManualVocab(words, transcript, level, title) {
+  const sents = _ytCleanTranscript(transcript).split(/(?<=[.!?])\s+/);
+  const defs = await _ttLookupDefinitions(words, { level, topic: title || 'Video lesson' }, {});
+  const items = words.map(w => {
+    const re = new RegExp('\\b' + w.split(/\s+/).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+') + '\\w*', 'i');
+    const ex = sents.find(s => re.test(s)) || '';
+    return { word: /^[a-z]/.test(w) && !/\s/.test(w) ? w.charAt(0).toUpperCase() + w.slice(1) : w, definition: defs[w.toLowerCase()] || '', example: ex.slice(0, 260) };
+  });
+  return { boardKind: 'vocab', kind: 'Extraction', cat: 'vocabulary', level, topic: title || 'Video lesson',
+    title: `${level} · Vocabulary: ${title || 'Video lesson'}`, items };
+}
+
 async function runYtLesson() {
   if (_ytRunning) return;
   const url = (document.getElementById('yt-lesson-url')?.value || '').trim();
@@ -11802,12 +11911,15 @@ async function runYtLesson() {
   const visualVocabulary = document.getElementById('yt-lesson-visual-vocab')?.checked !== false;
   const fragment = _ytFragment();
   const picks = [...document.querySelectorAll('.yt-tool-cb:checked')].map(cb => cb.value);
+  const chosenWords = _ytWordsManual() ? _ytChosen.slice() : [];
+  // Слова выбраны руками - значит, блок Key vocabulary нужен, даже если галочку сняли.
+  if (chosenWords.length && !picks.includes('extract-vocab')) picks.push('extract-vocab');
   if (!_ytValidUrl(url)) { _ytStatus('⚠ Paste a valid YouTube link first.'); return; }
   if (!picks.length)     { _ytStatus('⚠ Pick at least one exercise.'); return; }
   if (Number.isNaN(fragment.start) || Number.isNaN(fragment.end) || (fragment.start != null && fragment.end != null && fragment.end <= fragment.start)) { _ytStatus('⚠ Use times like 0:45 and make sure end is after start.'); return; }
   if (!authToken)        { _ytStatus('🔒 Sign in to build a lesson with AI.'); return; }
   _ytSavePrefs();
-  await _ytGenerate(url, level, picks, null, { visualVocabulary, fragment });
+  await _ytGenerate(url, level, picks, null, { visualVocabulary, fragment, chosenWords });
 }
 
 // Core build: fetch transcript (cached per-URL) → generate exercises in a
@@ -12003,13 +12115,20 @@ async function _ytGenerate(url, level, picks, transcriptOverride, options = {}) 
       /* Ключ кэша учитывает опись материалов и длительность: иначе повторная
          сборка вернула бы прошлый план, составленный вслепую. */
       const ck = _ytCacheKey(url, toolId, level,
-        source + (extraFields ? '|' + JSON.stringify(extraFields) : ''));
-      let out = _ytCacheGet(ck);
-      if (out) reused++;
+        source + (extraFields ? '|' + JSON.stringify(extraFields) : '') + (toolId === 'gap' && (options.chosenWords || []).length ? '|w:' + options.chosenWords.join(',') : ''));
+      const chosen = options.chosenWords || [];
+      let out = toolId === 'extract-vocab' && chosen.length ? null : _ytCacheGet(ck);
+      if (toolId === 'extract-vocab' && chosen.length) {
+        // Слова выбрал учитель: без движка и без кэша.
+        out = await _ytManualVocab(chosen, transcript, level, videoTitle);
+      } else if (out) reused++;
       else {
         out = await requestServerTeacherTool(
           { tool: { id: toolId }, level, count: _ytCountFor(toolId, level),
-            topic: videoTitle || 'Video lesson', source, ...(extraFields || {}) },
+            topic: videoTitle || 'Video lesson', source,
+            // Пропуски строятся вокруг тех же слов, что и словарь урока.
+            ...(toolId === 'gap' && chosen.length ? { vocab: chosen.join('\n') } : {}),
+            ...(extraFields || {}) },
           35000, signal);
         if (!(out && (out.questions?.length || out.items?.length || out.cards?.length))) out = null;
         if (out) _ytCacheSet(ck, out);
@@ -12110,7 +12229,7 @@ function _ytRetryFailed() {
   const picks = _ytFailedPicks.slice();
   _ytFailedPicks = [];
   const visualVocabulary = document.getElementById('yt-lesson-visual-vocab')?.checked !== false;
-  _ytGenerate(url, level, picks, _ytLastTranscript, { visualVocabulary, fragment:_ytFragment() });
+  _ytGenerate(url, level, picks, _ytLastTranscript, { visualVocabulary, fragment:_ytFragment(), chosenWords: _ytWordsManual() ? _ytChosen.slice() : [] });
 }
 
 // Lay the generated worksheets out in a grid (≤3 per row) inside one titled frame.

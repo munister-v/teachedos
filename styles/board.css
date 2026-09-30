@@ -7307,3 +7307,14 @@ body:not(#_):not(#__) .ss-notes{min-height:70px !important;border-radius:14px !i
 .tb-sc-focus b{color:#24282C}
 .tb-sc-insp{display:block;margin-top:3px;font-style:italic;color:#8A8C7C}
 .tb-sc-lvnote{margin-left:8px;font-size:12px;color:#5D614B}
+
+/* YouTube → Lesson: words and phrases picked from the script */
+.yt-words{margin:12px 0 4px}
+.yt-words-mode{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 8px;font:600 13px var(--font);color:#24282C}
+.yt-words-mode label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.yt-words-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.yt-words-note{font:500 12px var(--font);color:#5D614B}
+.yt-pick{max-height:220px;overflow:auto;border:1px solid rgba(93,97,75,.18);border-radius:12px;background:#fff}
+.yt-chosen{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.yt-chip{display:inline-flex;align-items:center;gap:4px;background:#CDF649;border-radius:999px;padding:3px 4px 3px 10px;font:650 12.5px var(--font);color:#24282C}
+.yt-chip button{border:0;background:rgba(36,40,44,.12);border-radius:50%;width:18px;height:18px;line-height:1;font-size:13px;cursor:pointer;color:#24282C}
