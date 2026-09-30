@@ -333,10 +333,17 @@ router.get('/quiz-history', requireAuth, async (req, res) => {
 router.get('/dashboard', requireAuth, async (req, res) => {
   try {
     // Boards enrolled in
+    /* teacher_id и booking_token добавлены для светофора баланса на
+       дашборде ученика: при 0 уроков осталось кнопка «Add more lessons»
+       ведёт на публичную бронь (book.html?t=), тем же способом, каким
+       учитель делится ссылкой в Schedule. booking_token это и есть публичный
+       URL-ключ (см. GET /api/booking/link) - отдавать его ученику не шире,
+       чем отдавать саму ссылку, которую учитель и так рассылает открыто. */
     const { rows: boards } = await pool.query(`
       SELECT b.id, b.name, b.thumbnail, b.updated_at, bc.role,
-             u.name AS teacher_name, u.avatar AS teacher_avatar,
-             u.timezone AS teacher_timezone, u.timezone_mode AS teacher_timezone_mode
+             u.id AS teacher_id, u.name AS teacher_name, u.avatar AS teacher_avatar,
+             u.timezone AS teacher_timezone, u.timezone_mode AS teacher_timezone_mode,
+             u.booking_token
       FROM board_collaborators bc
       JOIN boards b ON b.id = bc.board_id
       JOIN users  u ON u.id = b.user_id

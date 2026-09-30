@@ -15910,7 +15910,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1047';
+const TEACHEDOS_ASSET_VERSION = '1048';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16047,7 +16047,9 @@ async function generateTeacherToolBuilder(mode = 'fast') {
         lastTeacherToolBuilderOutput = null;
         const why = _stageFailureReason();
         if (chip) chip.textContent = _stageFailureChip();
-        if (body) body.innerHTML = `<div class="tbuilder-empty">${why ? esc(why) + ' ' : 'AI could not create this material. '}Your draft was not changed.</div>`;
+        if (body) body.innerHTML = why
+          ? `<div class="tbuilder-empty">${esc(why)} Your draft was not changed.</div>`
+          : '<div class="tbuilder-empty">AI could not create this material. Your draft was not changed.</div>';
         _ttSetGenerating(false);
         return;
       }
