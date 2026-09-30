@@ -39,7 +39,13 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .ww-action{min-width:150px;padding:5px 22px;border:2px solid rgba(36,40,44,.16);border-radius:8px;background:#fff;font-weight:700;font-size:17px;line-height:1.3}
 .ww-action:disabled{opacity:.35;cursor:default}
 .ww-icon:not(.flat):hover,.ww-action:not(:disabled):hover{border-color:rgba(36,40,44,.32)}
-.ww-action[hidden],.ww-nav[hidden]{display:none}
+.ww-action[hidden],.ww-nav[hidden],.ww-arrow[hidden]{display:none}
+/* .ww-arrow sets its own display:inline-flex just below - an author rule
+   that otherwise beats the UA default for [hidden]. ww.js's setNav() hides
+   prev/next whenever a game passes no onPrev/onNext (matchup.html: paging
+   happens through the main action button, not the arrows) - without this
+   line that arrow stayed fully visible and clickable while doing nothing,
+   so tapping "next page" here silently did nothing. */
 .ww-nav{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
 .ww-arrow{width:26px;height:26px;border:0;background:none;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .ww-arrow svg{width:22px;height:22px}

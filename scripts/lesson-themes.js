@@ -246,7 +246,19 @@ body{background:${t.paper}}
   function gameCss(id) {
     const t = byId(id);
     if (!t) return '';
-    return `${HI}{background:${t.bg} !important;background-attachment:fixed !important;color:${t.headInk}}
+    return `${HI}{background:${t.bg} !important;background-attachment:fixed !important;color:${t.ink}}
+/* Тот же файл выше говорит правду: тёмным остаётся только фон ВОКРУГ панелей,
+   сами панели и игровые поля - светлые, с тёмными чернилами темы. body{color}
+   тут стоит в t.ink (тёмные чернила), а не t.headInk - именно потому, что
+   почти весь документ это светлые поверхности (карточки, кнопки, меню), и
+   только ДВЕ полосы (.ww-top/.ww-bottom у новых игр-шаблонов Wordwall,
+   games/ww/*.html) сидят прямо на тёмном фоне без своей подложки. Было
+   наоборот (body красился в headInk), и всё, что не красит себя само -
+   слово на карточке, заголовок колонки Group sort, определение в Match up,
+   кнопки New task/Undo/Deal - гасло почти до невидимости на своих белых
+   поверхностях (прогон 30.09.2026, «Цвета не видано»). SVG-иконки той же
+   ценой чинятся даром: currentColor в ww.js следует за этим же наследованием. */
+${HI} .ww-timer,${HI} .ww-center,${HI} .ww-score,${HI} .ww-nav>span,${HI} .ww-lives{color:${t.headInk} !important}
 ${HI} > h1,${HI} > .back,${HI} > .subtitle,${HI} > p,${HI} header h1,${HI} header p{color:${t.headInk} !important;font-family:${t.font} !important;text-transform:${t.fontCase};text-shadow:0 2px 14px rgba(0,0,0,.35)}
 ${HI} > .subtitle,${HI} > p{color:${t.headMuted} !important;text-transform:none;font-family:inherit !important}
 ${HI} .card,${HI} .final,${HI} .word-card,${HI} .win-msg{background:${t.surface} !important;border:1px solid ${t.line} !important;box-shadow:${t.glow} !important;color:${t.ink}}
