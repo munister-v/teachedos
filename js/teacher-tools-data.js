@@ -101,6 +101,7 @@ const BOARD_TEACHER_TOOLS = [
   {id:'essay-topics',cat:'writing',title:'Essay Topics',desc:'Generate essay prompts and questions on any topic.',kind:'Prompt'},
   {id:'lead-in',cat:'speaking',title:'Lead-in Activities',desc:'Create quick warm-up activities to introduce a topic.',kind:'Warm-up'},
   {id:'interesting-facts',cat:'speaking',title:'Interesting Facts',desc:'Generate fact-based discussion starters about a topic.',kind:'Content'},
+  {id:'cliffhanger-challenge',cat:'speaking',title:'Cliffhanger Challenge',desc:'A short teaser that stops at the best moment - students record what happened next.',kind:'Homework'},
   {id:'video-hook',cat:'listening',title:'The Hook (before the video)',desc:'A no-spoiler teaser: guess what is about to happen from the title or first frame.',kind:'Warm-up'},
   {id:'this-or-that',cat:'speaking',title:'This or That',desc:'Five quick “Would you rather…” dilemmas that make students take a side.',kind:'Warm-up'},
   {id:'emoji-vibe',cat:'speaking',title:'Emoji Vibe Check',desc:'Pick the emoji that fits, then explain it in two sentences.',kind:'Warm-up'},
@@ -880,6 +881,14 @@ const BOARD_LESSON_STAGES = {
         key: 'input',
         label: 'Useful language',
         question: 'What language do they need before they speak?',
+        /* Один фокус, а не всё сразу: разбор того, что в диалоге, ИЛИ
+           расширение темы. Каждый вариант - связка из двух пунктов. */
+        groups: [
+          {mode: 'one', label: 'Focus · pick one', bundles: [
+            {key: 'sp-focus-dialogue', title: 'Dialogue breakdown', hint: 'The model dialogue on the board, plus the expressions worth stealing from it - each with the line it came from.', keys: ['sp-model', 'sp-phr']},
+            {key: 'sp-focus-topic',    title: 'Topic expansion',    hint: 'New situations with mini-dialogues, plus extra words for the topic beyond the dialogue.', keys: ['sp-situ', 'sp-vocab']},
+          ]},
+        ],
         options: [
           {key:'sp-model', media:'text',              title:'The model dialogue on the board', hint:'The example they hear the language in. Untick it and the tasks are still built from it.', on:true},
           /* Фразы берутся ИЗ диалога, а не «по теме вообще»: иначе на доске
@@ -894,21 +903,30 @@ const BOARD_LESSON_STAGES = {
         key: 'practice',
         label: 'Practice first',
         question: 'How do they rehearse before the real task?',
+        /* Короткая репетиция: примерить фразу и проверить себя на типичной ошибке. */
+        groups: [
+          {mode: 'many', label: 'Quick rehearsal · recommended pair', keys: ['sp-sent', 'sp-err']},
+          {mode: 'many', label: 'Plus · optional',                    keys: ['sp-rephr']},
+        ],
         options: [
-          {key:'sp-sent',  tool:'sentences-vocab',   title:'Say it in a sentence',     hint:'One model sentence per phrase from the dialogue.', ai:true, after:'source'},
+          {key:'sp-sent',  tool:'sentences-vocab',   title:'Say it in a sentence',     hint:'Fit the key phrase into a short context - quick integration.', ai:true, after:'source', on:true},
           {key:'sp-rephr', tool:'rephrase-word',     title:'Say it another way',       hint:'Rewrite a sentence using a given key word.', ai:true, after:'source'},
-          {key:'sp-err',   tool:'error-correction',  title:'Common mistakes to fix',   hint:'Sentences with the errors this language usually attracts.', ai:true, after:'source'},
+          {key:'sp-err',   tool:'error-correction',  title:'Common mistakes to fix',   hint:'A typical slip with this phrase (a preposition, word order) shown so it does not travel into their speech.', ai:true, after:'source', on:true},
         ],
       },
       {
         key: 'task',
         label: 'The speaking task',
         question: 'What are they actually going to do?',
+        groups: [
+          {mode: 'one',  label: 'Main task · pick one', keys: ['sp-role', 'sp-debate', 'sp-four', 'sp-disc']},
+          {mode: 'many', label: 'Plus · optional',      keys: ['sp-pros']},
+        ],
         options: [
-          {key:'sp-role',  tool:'roleplay-cards', title:'Role play cards',   hint:'Two roles, a situation, and what each side wants.', ai:true, after:'source', on:true},
-          {key:'sp-disc',  tool:'discussion',     title:'Discussion questions',hint:'Questions that pick up where the dialogue left off.', ai:true, after:'source'},
-          {key:'sp-debate',tool:'debate-cards',   title:'Debate cards',      hint:'Two sides with arguments to defend.', ai:true},
-          {key:'sp-four',  tool:'four-opinions',  title:'Four opinions to react to', hint:'Four stated positions they agree or argue with.', ai:true},
+          {key:'sp-role',  tool:'roleplay-cards', title:'Role play cards · pairs or with you', hint:'Two roles, a situation, and what each side wants - a natural barrier to get over.', ai:true, after:'source', on:true},
+          {key:'sp-debate',tool:'debate-cards',   title:'Debate cards · pairs or with you',    hint:'Two opposite sides with arguments to defend.', ai:true},
+          {key:'sp-four',  tool:'four-opinions',  title:'Four opinions to react to · solo or with an AI partner', hint:'A sharp stated position ready to react to - no need to invent a situation.', ai:true},
+          {key:'sp-disc',  tool:'discussion',     title:'Discussion questions · solo or with an AI partner',     hint:'Questions that pick up where the dialogue left off.', ai:true, after:'source'},
           {key:'sp-pros',  tool:'pros-cons',      title:'Pros and cons',     hint:'Both sides listed, then they take one.', ai:true},
         ],
       },
@@ -917,17 +935,31 @@ const BOARD_LESSON_STAGES = {
       {
         key: 'feedback',
         label: 'How it is judged',
-        question: 'Do they need to see what a good answer looks like?',
+        question: 'What does a good answer look like - for you, and for them?',
+        groups: [
+          {mode: 'many', label: 'Two views of the same goal', keys: ['sp-rubric-t', 'sp-goal']},
+        ],
         options: [
-          {key:'sp-rubric', tool:'rubric-maker', title:'Success criteria', hint:'What you are listening for, in words the student can use themselves.', ai:true},
+          {key:'sp-rubric-t', tool:'rubric-maker', title:'Teacher’s rubric · only you see it', hint:'A short list of what to listen for (for example: at least two new phrases, no tense slips). Students never receive it.', ai:true, after:'source', teacher:true,
+           extra:'This rubric is for the TEACHER only: a short shortlist of what to watch and listen for during the speaking task - the minimum number of new phrases, the typical errors with the target language, fluency and task achievement. Not written for the student.'},
+          {key:'sp-goal',     tool:'rubric-maker', title:'What you will achieve · for the student', hint:'Three or four “I can…” statements the student sees as their goal for this lesson.', ai:true, after:'source',
+           extra:'Write this for the STUDENT as 3-4 short "I can…" success statements in simple first-person language, tied to the new phrases from this lesson (for example: "I can express my opinion on … using three new phrases").'},
         ],
       },
       {
         key: 'homework',
         label: 'Homework',
-        question: 'Should the lesson leave homework behind?',
+        question: 'What should they do at home to keep it going?',
+        groups: [
+          {mode: 'one',  label: 'Homework format · pick one', keys: ['sp-hw-voice', 'sp-hw-game', 'sp-hw-write']},
+          {mode: 'many', label: 'Plus · optional',            keys: ['sp-hw']},
+        ],
         options: [
-          {key:'sp-hw', tool:'homework-set', title:'Build homework from this lesson', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
+          {key:'sp-hw-voice', tool:'cliffhanger-challenge', title:'🎙 Voice or video cliffhanger', hint:'A short teaser that stops at the best moment - record 30-45 seconds on what happened next, using two new phrases.', ai:true, after:'source', homework:true},
+          {key:'sp-hw-game',  tool:'extract-vocab', game:'flashcards', title:'🎮 Interactive game & vocab box', hint:'The lesson’s phrases as a game with instant feedback - play, do not memorise.', ai:true, after:'source', homework:true},
+          {key:'sp-hw-write', tool:'creative-writing', title:'📝 Creative writing', hint:'A mini post or mini dialogue in the voice of a character, built on the lesson’s phrases.', ai:true, after:'source', homework:true,
+           extra:'Homework: ask for a short creative mini-post or mini-dialogue (60-90 words) from the point of view of a character or on the lesson topic, and require at least three phrases from the lesson.'},
+          {key:'sp-hw', tool:'homework-set', title:'Full homework set', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
         ],
       },
     ],

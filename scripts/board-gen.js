@@ -1071,6 +1071,16 @@ function _ttGenThisOrThat(input){
     title:`${input.level} · This or That: ${t}`,
     cards: qs.map((q,i)=>({ title:`Would you rather… ${i+1}`, text:`A: ${q[0]}\nB: ${q[1]}\n💬 Why? Give me one reason.` })) };
 }
+function _ttGenCliffhanger(input){
+  const t=input.topic||'the lesson';
+  return { boardKind:'cards', kind:'Homework', cat:'speaking', level:input.level, topic:t,
+    title:`${input.level} · Cliffhanger Challenge: ${t}`,
+    cards:[
+      { title:'The teaser', text:`A short scene about “${t}” that stops at the most exciting moment.\n(Add your own teaser here - two or three sentences.)` },
+      { title:'Your challenge', text:'What do you think happened next?\nRecord a 30-45 second voice or video answer.' },
+      { title:'Use at least two', text:'Use two new phrases from today’s lesson in your answer.' },
+    ]};
+}
 function _ttGenVideoHook(input){
   const t=input.topic||'the video';
   return { boardKind:'cards', kind:'Warm-up', cat:'listening', level:input.level, topic:t,
@@ -1977,6 +1987,7 @@ function generateTeacherToolLocal(input){
   if (id === 'interesting-facts')     return _ttGenInterestingFacts(input);
   if (id === 'this-or-that')          return _ttGenThisOrThat(input);
   if (id === 'video-hook')            return _ttGenVideoHook(input);
+  if (id === 'cliffhanger-challenge') return _ttGenCliffhanger(input);
   if (id === 'emoji-vibe')            return _ttGenEmojiVibe(input);
   if (id === 'pros-cons')             return _ttGenProsCons(input);
   if (id === 'comm-situations')       return _ttGenCommSituations(input);

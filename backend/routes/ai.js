@@ -229,6 +229,7 @@ const TOOL_META = {
   'lead-in': ['speaking', 'Warm-up'],
   'interesting-facts': ['speaking', 'Content'],
   'video-hook': ['listening', 'Warm-up'],
+  'cliffhanger-challenge': ['speaking', 'Homework'],
   'this-or-that': ['speaking', 'Warm-up'],
   'emoji-vibe': ['speaking', 'Warm-up'],
   'pros-cons': ['speaking', 'Discussion'],
@@ -787,6 +788,13 @@ function makeWarmupFormat(input) {
     ];
     return { ...base(input, 'cards'), cards: qs.map(([x, y], i) => ({ title: `Would you rather… ${i + 1}`, text: `A: ${x}\nB: ${y}\n💬 Why? Give me one reason.` })), vocab: [] };
   }
+  if (input.toolId === 'cliffhanger-challenge') {
+    return { ...base(input, 'cards'), cards: [
+      { title: 'The teaser', text: `Imagine a scene about ${t}. The story stops at the most exciting moment... (your teacher will add the teaser).` },
+      { title: 'Your challenge', text: 'What do you think happened next? Record a 30-45 second voice or video message.' },
+      { title: 'Use at least two', text: 'Use two new phrases from today’s lesson in your answer.' },
+    ], vocab: [] };
+  }
   if (input.toolId === 'video-hook') {
     return { ...base(input, 'cards'), cards: [
       { title: 'Look and guess', text: 'Look at the title and the first frame (do not press play yet).\nWhat do you think is going to happen? Who is in it? Where are they?\nSay one guess and one reason.' },
@@ -801,7 +809,7 @@ function makeWarmupFormat(input) {
 }
 
 function makeCards(input) {
-  if (input.toolId === 'this-or-that' || input.toolId === 'emoji-vibe' || input.toolId === 'video-hook') return makeWarmupFormat(input);
+  if (['this-or-that', 'emoji-vibe', 'video-hook', 'cliffhanger-challenge'].includes(input.toolId)) return makeWarmupFormat(input);
   const words = vocabList(input, Math.max(8, input.count));
   const stages = {
     'lesson-pack': ['Warmer', 'Input', 'Controlled practice', 'Production', 'Feedback', 'Homework'],

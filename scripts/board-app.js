@@ -3965,7 +3965,7 @@ function _wpBuildPath(set, results, kind, opts = {}) {
     const speakOuts = speaking ? results.filter(o => o._wfRole === 'speak').map(_wpSlim) : [];
     steps = results.filter(o => !(speaking && o._wfRole === 'speak')).map(out => {
       const role = out._wfRole || (out._ttMaterial ? 'model' : '');
-      const title = speaking && role === 'model' ? 'Model dialogue' : WP_TITLES[role] || String(out.title || 'Task').slice(0, 28);
+      const title = speaking && role === 'model' ? 'Model dialogue' : speaking && role === 'criteria' ? 'What you will achieve' : WP_TITLES[role] || String(out.title || 'Task').slice(0, 28);
       return { role, title, out: _wpSlim(out), state: null };
     });
     steps.sort((a, b) => ((a.out._ytStage ?? 9) - (b.out._ytStage ?? 9)));
@@ -13468,7 +13468,7 @@ const TT_NO_COUNT_SET = new Set([
   // it returns (task + word list + model, 4 opinions, pros/cons, …) and ignores
   // the Items value - so showing "Items: 40" only misleads (you set 40, get 3).
   'link-words','creative-writing','four-opinions','pros-cons','lead-in',
-  'interesting-facts','this-or-that','emoji-vibe','video-hook','find-quotes','essay-topics',
+  'interesting-facts','this-or-that','emoji-vibe','video-hook','cliffhanger-challenge','find-quotes','essay-topics',
   // Vocab tools whose output is strictly ONE item per target word the teacher
   // pastes - the count is dictated by the word list, not a number. Showing
   // "Items: 25" only misleads (paste 6 words, get 6 cards → "6 of 25"). The
@@ -15866,7 +15866,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1041';
+const TEACHEDOS_ASSET_VERSION = '1042';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17372,7 +17372,9 @@ function onWfToggle(id, on) {
 }
 
 function boardStagePickedKeys() {
-  return [...document.querySelectorAll('#tbuilder-stages .tb-workout-item input:checked')].map(i => i.value);
+  // Пакет-вариант (data-keys) ставит сразу несколько ключей.
+  return [...document.querySelectorAll('#tbuilder-stages .tb-workout-item input:checked')]
+    .flatMap(i => i.dataset.keys ? i.dataset.keys.split(',') : [i.value]);
 }
 
 /* Варианты этапа. Если у этапа есть groups: группа mode:'one' - радиокнопки
@@ -17394,6 +17396,19 @@ function _stageOptionsHtml(st, picked, si) {
   }
   const byKey = new Map(st.options.map(o => [o.key, o]));
   return st.groups.map((g, gi) => {
+    /* Пакеты: один вариант ставит сразу несколько ключей (фокус «разбор
+       диалога» = образец + фразы из него). Отмечен первый пакет, у которого
+       отмечены все ключи. */
+    if (Array.isArray(g.bundles)) {
+      const on = g.bundles.find(b => b.keys.every(k => picked.has(k)));
+      const rows = g.bundles.map(b => `
+          <label class="tb-workout-item${on === b ? ' is-on' : ''}">
+            <input type="radio" name="stg-${si}-${gi}" data-was="${on === b ? 1 : 0}" data-keys="${esc(b.keys.join(','))}" onclick="_stageRadioClick(this)" value="${esc(b.key)}" ${on === b ? 'checked' : ''}>
+            <span style="min-width:0"><b>${esc(b.title)}</b><small>${esc(b.hint)}</small></span>
+            ${b.keys.some(k => (byKey.get(k) || {}).ai) ? '<span class="tb-workout-ai">AI</span>' : ''}
+          </label>`).join('');
+      return `<div class="tb-stage-group"><div class="tb-stage-group-h">${esc(g.label)}</div><div class="tb-workout-list">${rows}</div></div>`;
+    }
     const opts = g.keys.map(k => byKey.get(k)).filter(Boolean);
     if (!opts.length) return '';
     const one = g.mode === 'one' ? opts.find(o => picked.has(o.key)) : null;
@@ -18508,7 +18523,10 @@ function _stageLessonParts(set) {
      сверяем список карточек доски до и после её укладки. Это работает
      при любом способе укладки, в отличие от попытки угадать id заранее. */
   const homework = set.built.filter(b => b.activity.homework);
-  let   lesson   = set.built.filter(b => !b.activity.homework);
+  /* Материал только для учителя (рубрика «что слушать»): на доску ложится
+     отдельной карточкой, скрытой от учеников, а не шагом пути. */
+  const teacherOnly = set.built.filter(b => b.activity.teacher && !b.activity.homework);
+  let   lesson   = set.built.filter(b => !b.activity.homework && !b.activity.teacher);
 
   /* ЗАГОЛОВОК ЖИВЁТ НА ТЕКСТЕ, А НЕ ОТДЕЛЬНОЙ КАРТОЧКОЙ.
 
@@ -18617,7 +18635,7 @@ function _stageLessonParts(set) {
      начинаться с неё, а не с карточки, плавающей рядом с кадром. */
   const videoUrl = (set.media && wantsVideo) ? set.media.url : null;
   const pathKind = writingFlow ? 'writing' : speakingFlow ? 'speaking' : skillPath;
-  return { results, homework, label, videoUrl, readingText, pathKind, writingFlow, speakingFlow, skillPath };
+  return { results, homework, teacherOnly, label, videoUrl, readingText, pathKind, writingFlow, speakingFlow, skillPath };
 }
 
 /* «Дальше в другую студию» из этапа Follow-up. Отмеченные варианты handoff не
@@ -18665,7 +18683,7 @@ function placeBoardLessonStageSet() {
   if (!set) return false;
   const parts = _stageLessonParts(set);
   if (!parts) return false;
-  const { results, homework, label, videoUrl, readingText, writingFlow, speakingFlow, skillPath } = parts;
+  const { results, homework, teacherOnly, label, videoUrl, readingText, writingFlow, speakingFlow, skillPath } = parts;
 
   let pathCard = null;
   if (writingFlow || speakingFlow) {
@@ -18698,11 +18716,25 @@ function placeBoardLessonStageSet() {
     setTimeout(() => state.cards.filter(c => c.data && c.data._wfRole).forEach(c => reRenderCard(c)), 900);
   }
 
+  if ((teacherOnly || []).length) {
+    const beforeT = new Set((state.cards || []).map(c => c.id));
+    placeBoardWorkoutSet(set.base, teacherOnly);
+    (state.cards || []).filter(c => !beforeT.has(c.id)).forEach(c => {
+      c.data = c.data || {};
+      c.data.studentHidden = true;          // ученикам уходит только заглушка (boardVisibility.js)
+      try { reRenderCard(c); } catch (_) {}
+    });
+    try { scheduleSave && scheduleSave(); saveLocal && saveLocal(); } catch (_) {}
+    toast('Teacher’s rubric added - students do not see it');
+  }
+
   if (homework.length) {
     const before = new Set((state.cards || []).map(c => c.id));
     placeBoardWorkoutSet(set.base, homework);
     const newIds = (state.cards || []).map(c => c.id).filter(id => !before.has(id));
-    const title = `Homework: ${set.textOut.title || set.base.topic || 'lesson'}`;
+    // Дата в названии: в кабинете ученика домашки складываются в историю занятий.
+    const when = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const title = `Homework: ${set.textOut.title || set.base.topic || 'lesson'} · ${when}`;
     _ttCreateHomeworkFromCards(newIds, title, homework.map(h => h.activity.title).join('; '));
   }
 

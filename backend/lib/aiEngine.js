@@ -929,6 +929,12 @@ function shapeSpec(input) {
       schema: '{"cards":[{"title":"The Reality Check","text":"When did you last need this yourself?\\nPairs, 2 min, then one example from each pair."},{"title":"The Grey Area","text":"..."},{"title":"Common Misconception","text":"..."}],"vocab":["word"]}',
     };
   }
+  if (toolId === 'cliffhanger-challenge') {
+    return {
+      task: `${cardsHead} Generate a homework "Cliffhanger Challenge" at ${level} level built on the source text/lesson. Exactly 3 cards: 1) "The teaser" - a NEW short scene (50-70 words, original - inspired by the topic and situation of the lesson, not copied from any book, film or series) that stops at the most exciting moment; 2) "Your challenge" - the question "What do you think happened next?" and the instruction to record a 30-45 second voice or video answer; 3) "Use at least two" - 4-5 useful phrases from the lesson, of which the student must use at least two. Keep the language simple enough for ${level}. Include "vocab" of those phrases.${context}`,
+      schema: '{"cards":[{"title":"The teaser","text":"..."},{"title":"Your challenge","text":"..."},{"title":"Use at least two","text":"phrase 1\nphrase 2\nphrase 3"}],"vocab":["phrase"]}',
+    };
+  }
   if (toolId === 'video-hook') {
     return {
       task: `${cardsHead} Generate "The Hook", a no-spoiler warm-up BEFORE students watch the video, at ${level} level. Use the transcript only to know what the video is about - never reveal how it ends or quote answers. Exactly 3 cards: 1) "Look and guess" - ask students to look at the title and first frame and guess what is about to happen, who is in it, where they are (2-3 short prompts, plus a sentence starter "I think … because …"); 2) "One provocative question" - a surprising or emotional question tied to the central idea of the video that students answer BEFORE watching, to be checked while they watch; 3) "Check your guess" - a short instruction to pause after about a minute and compare with their guess. Keep language simple enough for ${level}. Include "vocab" of 4-6 words they may hear.${context}`,
