@@ -1228,6 +1228,8 @@ function studentDetailRender() {
         <div class="st-fin-k">Remaining lessons</div>
         <div class="st-fin-n"><b>${Number(s.lessons_left)}</b> lesson${Number(s.lessons_left) === 1 ? '' : 's'}</div>
         <div class="st-fin-f"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>${esc(_paymentLine(s))}</div>
+        ${s.paid_claim_at ? '<div class="st-fin-f" style="color:#2e7d32;font-weight:700">Says they paid - check your account</div>' : ''}
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsAddPack('${esc(String(s.journal_id))}')">${s.paid_claim_at ? '✓ Payment received' : 'Payment received'} · +${Number(s.pack_size) || 8} lessons</button>
       </div>`
     : `<div class="st-fin is-empty">
         <div class="st-fin-h">Financial block</div>
@@ -1254,6 +1256,17 @@ function studentDetailRender() {
       ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
     </div>
     ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}`;
+}
+
+/* «Оплата пришла»: пакет одним нажатием. Деньги платформа не трогает. */
+async function studentsAddPack(journalId) {
+  try {
+    const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(journalId)}/pack`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken }, body: '{}',
+    });
+    if (!r.ok) return;
+    await studentsReloadRoster();
+  } catch (_) {}
 }
 
 /* ── Добавление ученика прямо с рабочего стола ──────────────────────

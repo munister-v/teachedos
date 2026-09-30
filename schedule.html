@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1034"></script>
-<link rel="manifest" href="manifest.json?v=1034">
+<script src="scripts/phone-gate.js?v=1035"></script>
+<link rel="manifest" href="manifest.json?v=1035">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1034">
-<link rel="preload" as="style" href="styles/unify.css?v=1034">
+<link rel="preload" as="style" href="styles/harmony.css?v=1035">
+<link rel="preload" as="style" href="styles/unify.css?v=1035">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -438,6 +438,12 @@ a{text-decoration:none;color:inherit;}
 .bal-left{border:0;background:rgba(36,40,44,.07);border-radius:999px;padding:3px 9px;font:750 11px var(--mono);color:var(--text);cursor:pointer}
 .bal-row.zero .bal-left{background:#E5543A;color:#fff}
 .bal-row.low .bal-left{background:#F5D27A}
+.bal-add{display:flex;gap:6px;margin-top:8px}
+.bal-add input{min-width:0;height:34px;border:1px solid var(--border);border-radius:9px;padding:0 9px;font:500 12px var(--font);background:#fff;color:var(--text)}
+.bal-add #bal-new-name{flex:1}
+.bal-add #bal-new-n{width:52px}
+.bal-add button{height:34px;padding:0 11px;border:1px solid var(--text);border-radius:9px;background:#CDF649;font:750 12px var(--font);cursor:pointer;color:#24282C}
+.bal-empty{font-size:11.5px;color:var(--text3);line-height:1.45;margin-bottom:2px}
 .bal-pack{border:1px solid var(--text);background:#CDF649;border-radius:8px;padding:4px 8px;font:750 11px var(--font);color:#24282C;cursor:pointer;white-space:nowrap}
 .bal-pack:hover{background:#bfe63a}
 .bal-paid{border-color:#2e7d32;background:#dff7c0}
@@ -460,10 +466,10 @@ a{text-decoration:none;color:inherit;}
 .lesson-done button.main{background:#CDF649;color:#24282C}
 .lesson-done button:hover{filter:brightness(1.12)}
 </style>
-<script src="theme.js?v=1034" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1034">
-<link rel="stylesheet" href="styles/harmony.css?v=1034">
-<link rel="stylesheet" href="styles/unify.css?v=1034">
+<script src="theme.js?v=1035" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1035">
+<link rel="stylesheet" href="styles/harmony.css?v=1035">
+<link rel="stylesheet" href="styles/unify.css?v=1035">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -495,18 +501,18 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1034">
-<link rel="stylesheet" href="styles/tool-window.css?v=1034">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1035">
+<link rel="stylesheet" href="styles/tool-window.css?v=1035">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1034">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1034">
-<link rel="stylesheet" href="styles/controls.css?v=1034">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=1034">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1035">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1035">
+<link rel="stylesheet" href="styles/controls.css?v=1035">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=1035">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1034">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1034">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1034">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1034">
+<link rel="stylesheet" href="styles/polish.css?v=1035">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1035">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1035">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1035">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -621,6 +627,11 @@ a{text-decoration:none;color:inherit;}
     <div class="side-section desktop-schedule-only" id="bal-section" hidden>
       <div class="bal-head"><div class="side-label">Lesson balances</div><button type="button" class="bal-link" onclick="editPayDetails()" title="What your students see when it is time to pay">Payment details</button></div>
       <div id="bal-list"></div>
+      <form class="bal-add" onsubmit="addStudentQuick(event)" title="Not on the platform yet? Add them now - lessons are counted from today">
+        <input id="bal-new-name" placeholder="＋ New student's name" maxlength="80" aria-label="New student's name">
+        <input id="bal-new-n" type="number" min="0" max="200" value="8" aria-label="Lessons already paid for" title="Lessons already paid for">
+        <button type="submit">Add</button>
+      </form>
     </div>
 
     <div class="side-section desktop-schedule-only" style="flex:1">
@@ -730,7 +741,7 @@ a{text-decoration:none;color:inherit;}
 
     <div class="form-group" id="f-student-wrap" style="margin-bottom:14px" hidden>
       <label class="form-label">Student <span style="font-size:10px;color:var(--text3);font-weight:600;">(a finished lesson comes off their package)</span></label>
-      <select class="form-select" id="f-student"><option value="">- None -</option></select>
+      <select class="form-select" id="f-student" onchange="onStudentPick(this)"><option value="">- None -</option></select>
     </div>
     <div class="form-group" id="f-status-wrap" style="margin-bottom:14px" hidden>
       <label class="form-label" id="f-status-label">This lesson</label>
@@ -813,7 +824,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=1034"></script>
+<script src="scripts/app-core.js?v=1035"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1220,11 +1231,11 @@ async function loadBalances() {
   const sel = document.getElementById('f-student');
   if (sel) {
     const keep = sel.value;
-    sel.innerHTML = '<option value="">- None -</option>' + journalStudents.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    sel.innerHTML = '<option value="">- None -</option>' + journalStudents.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('') + '<option value="__new">＋ New student…</option>';
     sel.value = keep;
   }
   const wrap = document.getElementById('f-student-wrap');
-  if (wrap) wrap.hidden = !journalStudents.length;
+  if (wrap) wrap.hidden = false;
   renderBalances();
   renderGrid();
   checkFinishedLessons();
@@ -1247,8 +1258,9 @@ function renderBalances() {
   const sec = document.getElementById('bal-section');
   const list = document.getElementById('bal-list');
   if (!sec || !list) return;
-  if (!token || !journalStudents.length) { sec.hidden = true; return; }
+  if (!token) { sec.hidden = true; return; }
   sec.hidden = false;
+  if (!journalStudents.length) { list.innerHTML = '<div class="bal-empty">Add your students here even before they join the platform - lessons and payments are counted from today.</div>'; return; }
   const rows = [...journalStudents].sort((a, b) => (a.lessons_left - b.lessons_left) || a.name.localeCompare(b.name));
   list.innerHTML = rows.map(s => {
     const n = Number(s.lessons_left) || 0;
@@ -1260,6 +1272,37 @@ function renderBalances() {
       <button type="button" class="bal-pack${claimed ? ' bal-paid' : ''}" onclick="addPack('${esc(s.id)}')" title="${claimed ? 'Payment received - add the package' : 'Payment received? Add the package'}">${claimed ? '✓ ' : ''}+${size}</button>
     </div>`;
   }).join('');
+}
+
+// A student who is not on the platform yet still gets a package and lesson
+// count: they live in the journal, and are linked automatically by email later.
+async function createJournalStudent(name, lessons) {
+  const d = await apiFetch('/api/journal', { method: 'POST', body: JSON.stringify({ name, lessons_left: lessons }) });
+  await loadBalances();
+  return d.student || d;
+}
+async function addStudentQuick(ev) {
+  ev.preventDefault();
+  const name = document.getElementById('bal-new-name').value.trim();
+  if (!name) { document.getElementById('bal-new-name').focus(); return; }
+  const n = Math.max(0, Math.min(200, parseInt(document.getElementById('bal-new-n').value, 10) || 0));
+  try {
+    await createJournalStudent(name, n);
+    document.getElementById('bal-new-name').value = '';
+    toast(`${name} added · ${n} lessons ✅`, 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+async function onStudentPick(sel) {
+  if (sel.value !== '__new') return;
+  const name = (prompt('New student\'s name (they do not need an account yet):') || '').trim();
+  if (!name) { sel.value = ''; return; }
+  const v = prompt('Lessons already paid for:', '8');
+  const n = Math.max(0, Math.min(200, parseInt(v, 10) || 0));
+  try {
+    const st = await createJournalStudent(name, n);
+    sel.value = st.id || '';
+    toast(`${name} added ✅`, 'ok');
+  } catch (e) { sel.value = ''; toast(e.message, 'err'); }
 }
 
 async function addPack(id) {
@@ -2450,16 +2493,16 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="scripts/schedule-booking.js?v=1034"></script>
-<script src="pwa.js?v=1034"></script>
-<script src="scripts/nav-boost.js?v=1034" defer></script>
-<script src="scripts/mobile-perf.js?v=1034" defer></script>
-<script src="scripts/mobile-nav.js?v=1034"></script>
-<script src="scripts/autogrow.js?v=1034" defer></script>
-<script src="pwa-boot.js?v=1034" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1034" defer></script>
-  <script src="scripts/signin-entry.js?v=1034" defer></script>
-<script src="scripts/nav-bell.js?v=1034" defer></script>
+<script src="scripts/schedule-booking.js?v=1035"></script>
+<script src="pwa.js?v=1035"></script>
+<script src="scripts/nav-boost.js?v=1035" defer></script>
+<script src="scripts/mobile-perf.js?v=1035" defer></script>
+<script src="scripts/mobile-nav.js?v=1035"></script>
+<script src="scripts/autogrow.js?v=1035" defer></script>
+<script src="pwa-boot.js?v=1035" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1035" defer></script>
+  <script src="scripts/signin-entry.js?v=1035" defer></script>
+<script src="scripts/nav-bell.js?v=1035" defer></script>
 <div class="lesson-done" id="lesson-done" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

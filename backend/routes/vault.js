@@ -6,6 +6,7 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { schedule, preview, MASTERED_DAYS } = require('../lib/srs');
+const { createNotification } = require('./notifications');
 
 /* One-click "stop these emails" from the reminder itself (no sign-in: the
    link carries an HMAC of the user id). Pushes stay as they were. */
@@ -140,6 +141,49 @@ router.get('/saved', async (req, res) => {
     res.json({ items: rows });
   } catch (err) {
     console.error('[vault] saved', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/vault/send {studentIds, items:[{text, meaning, example}], boardId, title}
+// The teacher's lesson pad: phrases caught during the lesson go straight into
+// each student's Vault (their personal dictionary with spaced repetition), due
+// right away, so they are the first thing the student reviews at home.
+// Only the teacher's own students: on one of their boards, or in their journal.
+router.post('/send', async (req, res) => {
+  try {
+    const b = req.body || {};
+    const ids = [...new Set((Array.isArray(b.studentIds) ? b.studentIds : []).map(String).filter(x => UUID.test(x)))].slice(0, 60);
+    const items = (Array.isArray(b.items) ? b.items : [])
+      .map(i => ({ text: str(i && i.text, 400), meaning: str(i && i.meaning, 255), example: str(i && i.example, 600) }))
+      .filter(i => i.text).slice(0, 60);
+    if (!ids.length || !items.length) return res.status(400).json({ error: 'students and phrases are required' });
+    const boardId = UUID.test(String(b.boardId || '')) ? b.boardId : null;
+    const { rows: allowed } = await pool.query(
+      `SELECT u FROM (
+         SELECT bc.user_id AS u FROM board_collaborators bc JOIN boards bd ON bd.id = bc.board_id WHERE bd.user_id = $1
+         UNION SELECT student_id FROM student_journal WHERE teacher_id = $1 AND student_id IS NOT NULL
+       ) t WHERE u = ANY($2::uuid[])`, [req.user.id, ids]);
+    if (!allowed.length) return res.status(403).json({ error: 'These are not your students' });
+    const title = str(b.title, 200) || `Lesson with ${req.user.name || 'your teacher'}`;
+    let added = 0;
+    for (const { u } of allowed) {
+      let n = 0;
+      for (const it of items) {
+        const dup = await pool.query('SELECT 1 FROM vocabulary WHERE user_id=$1 AND kind=\'word\' AND lower(word)=lower($2) LIMIT 1', [u, it.text]);
+        if (dup.rows[0]) continue;
+        await pool.query(
+          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title)
+           VALUES ($1,$2,$3,$4,'word',$5,$6)`, [u, it.text, it.meaning, it.example, boardId, title]);
+        n++;
+      }
+      added += n;
+      if (n) await createNotification(u, 'vocab', `${n} new phrase${n === 1 ? '' : 's'} from your lesson`,
+        `${req.user.name || 'Your teacher'} added them to your dictionary - practise them before the next lesson.`, 'student.html').catch(() => {});
+    }
+    res.json({ ok: true, students: allowed.length, added });
+  } catch (err) {
+    console.error('[vault] send', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
