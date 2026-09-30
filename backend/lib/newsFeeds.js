@@ -146,6 +146,33 @@ async function topicItems(topicKey) {
   return { topic: topic.key, items: items.slice(0, 40) };
 }
 
+/* Поиск по ключевому слову: по свежим статьям ВСЕХ лент сразу (заголовок и
+   анонс). Ленты отдают только последние материалы, поэтому это поиск по
+   новому, а не по архиву издания. Слово из заголовка весит больше, чем из
+   анонса; статьи, где нашлись все слова запроса, идут выше остальных. */
+async function search(query) {
+  const terms = [...new Set(String(query || '').toLowerCase().split(/[^a-z0-9'’\u00c0-\u024f]+/i).filter(w => w.length >= 2))].slice(0, 6);
+  if (!terms.length) return { query: '', items: [] };
+  const lists = await Promise.all(Object.keys(FEEDS).map(feedItems));
+  const seen = new Set();
+  const scored = [];
+  for (const it of lists.flat()) {
+    const k = it.url.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    const title = it.title.toLowerCase(), sum = (it.summary || '').toLowerCase();
+    let hits = 0, score = 0;
+    for (const t of terms) {
+      const re = new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const inT = re.test(title), inS = re.test(sum);
+      if (inT || inS) { hits++; score += (inT ? 3 : 0) + (inS ? 1 : 0); }
+    }
+    if (hits) scored.push({ it, hits, score });
+  }
+  scored.sort((a, b) => (b.hits - a.hits) || (b.score - a.score) || (b.it.published || '').localeCompare(a.it.published || ''));
+  return { query: terms.join(' '), items: scored.slice(0, 40).map(x => x.it) };
+}
+
 /* Текст статьи - только абзацы <p> внутри самого длинного <article>/<main>.
    Общий извлекатель /web-text снимает теги со всего блока, и на новостях
    в текст попадали подписи к фото («Photograph: …», «Image source»),
@@ -210,6 +237,7 @@ async function readArticle(rawUrl) {
 module.exports = {
   topics: () => TOPICS.map(t => ({ key: t.key, title: t.title, sources: [...new Set(t.feeds.map(f => FEEDS[f].source))] })),
   topicItems,
+  search,
   readArticle,
   articleFromHtml,
   parseFeed,

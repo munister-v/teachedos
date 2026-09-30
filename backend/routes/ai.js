@@ -2064,6 +2064,7 @@ const newsLimiter = rateLimit({
 });
 router.get('/news', requireAuth, newsLimiter, async (req, res) => {
   try {
+    if (req.query.q) return res.json(await newsFeeds.search(String(req.query.q).slice(0, 80)));
     if (!req.query.topic) return res.json({ topics: newsFeeds.topics() });
     res.json(await newsFeeds.topicItems(String(req.query.topic)));
   } catch (err) {

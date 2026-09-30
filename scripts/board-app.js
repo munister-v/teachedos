@@ -18890,7 +18890,7 @@ function _wizRenderNews(host) {
   const list = items == null
     ? `<div class="tb-news-empty">Loading headlines…</div>`
     : !items.length
-    ? `<div class="tb-news-empty">No stories came back for this topic. Try another one.</div>`
+    ? `<div class="tb-news-empty">${st.query ? `No fresh articles mention “${esc(st.query)}”. Try a shorter or more general word.` : 'No stories came back for this topic. Try another one.'}</div>`
     : items.map((it, i) => `
       <button type="button" class="tb-news-item${st.picked === i ? ' is-picked' : ''}" onclick="pickNewsStory(${i})" aria-pressed="${st.picked === i}">
         ${it.image ? `<img class="tb-news-thumb" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '<span class="tb-news-thumb is-blank" aria-hidden="true">📰</span>'}
@@ -18901,9 +18901,14 @@ function _wizRenderNews(host) {
       </button>`).join('');
   host.innerHTML = `
     <div class="tb-news">
+      <form class="tb-news-search" onsubmit="searchNews(this.q.value);return false" role="search">
+        <input type="search" name="q" value="${esc(st.query || '')}" placeholder="Search articles by keyword, e.g. sleep, AI, coral reef" maxlength="80" aria-label="Search articles by keyword" autocomplete="off">
+        <button type="submit" class="tbuilder-btn lime">Search</button>
+        ${st.query ? `<button type="button" class="tbuilder-btn" onclick="searchNews('')">Clear</button>` : ''}
+      </form>
       <div class="tb-news-topics" role="tablist" aria-label="News topic">
         ${(topics.length ? topics : [{ key: st.topic, title: 'Science' }]).map(t => `
-          <button type="button" role="tab" class="tb-news-topic${t.key === st.topic ? ' is-on' : ''}" aria-selected="${t.key === st.topic}"
+          <button type="button" role="tab" class="tb-news-topic${!st.query && t.key === st.topic ? ' is-on' : ''}" aria-selected="${!st.query && t.key === st.topic}"
             onclick="loadNewsTopic('${esc(t.key)}')">${esc(t.title)}</button>`).join('')}
       </div>
       <div class="tb-news-list" id="tb-news-list">${list}</div>
@@ -18950,9 +18955,38 @@ async function loadNewsTopics() {
   loadNewsTopic(st.topic);
 }
 
+/* Поиск по ключевому слову среди свежих статей всех источников. Пустой
+   запрос возвращает обычную рубрику. */
+async function searchNews(q) {
+  const st = _wizNewsState;
+  if (!st) return;
+  q = String(q || '').trim();
+  if (!q) { st.query = ''; return loadNewsTopic(st.topic); }
+  st.query = q;
+  st.items = null;
+  st.picked = null;
+  st.loading = true;
+  st.note = '';
+  _wizNewsRerender();
+  const ticket = st.ticket = (st.ticket || 0) + 1;
+  let items = [];
+  try {
+    const res = await apiFetch(`/api/ai/news?q=${encodeURIComponent(q)}`);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) st.note = data?.error || 'The search did not work right now.';
+    items = Array.isArray(data?.items) ? data.items : [];
+  } catch (_) { st.note = 'The search did not work right now.'; }
+  if (ticket !== st.ticket) return;
+  st.loading = false;
+  st.items = items;
+  st.note = st.note || (items.length ? `${items.length} recent article${items.length === 1 ? '' : 's'} for “${q}” from The Guardian, BBC, ScienceDaily, The Conversation and Al Jazeera.` : '');
+  _wizNewsRerender();
+}
+
 async function loadNewsTopic(key) {
   const st = _wizNewsState;
   if (!st) return;
+  st.query = '';
   st.topic = key;
   st.items = null;
   st.picked = null;

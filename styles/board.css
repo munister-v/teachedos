@@ -3847,6 +3847,10 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 /* Новости: рубрики, список заголовков со своей прокруткой (иначе 40
    строк вытолкнули бы поле текста за экран) и выбранная статья с уровнем. */
 .tb-news{display:flex;flex-direction:column;gap:8px;}
+.tb-news-search{display:flex;gap:6px;margin-bottom:8px}
+.tb-news-search input{flex:1;min-width:0;height:38px;border:1px solid rgba(93,97,75,.22);border-radius:12px;padding:0 12px;font:500 13.5px var(--font);background:#fff;color:#24282C}
+.tb-news-search input:focus{outline:none;border-color:#9bc21a;box-shadow:0 0 0 3px rgba(205,246,73,.35)}
+.tb-news-search .tbuilder-btn{height:38px;padding:0 14px;white-space:nowrap}
 .tb-news-topics{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
 .tb-news-topics::-webkit-scrollbar{display:none;}
 .tb-news-topic{flex:0 0 auto;border:1px solid rgba(93,97,75,.18);background:#fff;border-radius:999px;padding:6px 11px;cursor:pointer;
