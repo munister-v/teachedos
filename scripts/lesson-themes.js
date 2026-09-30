@@ -178,10 +178,12 @@ ${T} .wp-away{color:var(--lt-head-ink)}
 ${T} .wts,${T} .vs,${T} .wp-ss{background:transparent}
 ${T} .wts-mat,${T} .wts-frame,${T} .vs-side,${T} .vs-card,${T} .ss-card,${T} .ss-acc,${T} .ss-clock,${T} .wp-cl-cell{background:var(--lt-surface);border:1px solid var(--lt-line);box-shadow:var(--lt-glow);color:var(--lt-ink)}
 ${T} .wts-mat-head b,${T} .vs-prog,${T} .ss-acc summary{color:var(--lt-muted)}
-${T} .wts-tab,${T} .wts-show,${T} .ss-chip,${T} .ss-nav,${T} .ss-recs,${T} .ss-ghost,${T} .vs-say,${T} .vs-nav,${T} .vs-learning{background:var(--lt-surface);border-color:var(--lt-line);color:var(--lt-ink)}
-${T} .wts-tab.on,${T} .vs-known,${T} .ss-go,${T} .ss-chip.used,${T} .vs-modes .on{background:var(--lt-accent);border-color:var(--lt-accent);color:var(--lt-accent-ink)}
+${T} .wts-tab,${T} .wts-show,${T} .ss-chip,${T} .ss-nav,${T} .ss-recs,${T} .ss-ghost,${T} .vs-say,${T} .vs-nav{background:var(--lt-surface);border-color:var(--lt-line);color:var(--lt-ink)}
+${T} .wts-tab.on,${T} .ss-go,${T} .ss-chip.used,${T} .vs-modes .on{background:var(--lt-accent);border-color:var(--lt-accent);color:var(--lt-accent-ink)}
 ${T} .wts-tab.on i{background:var(--lt-accent-ink);color:var(--lt-accent)}
-${T} .wts-tab i,${T} .vs-item i{background:var(--lt-paper)}
+${T} .wts-tab i{background:var(--lt-paper)}
+${T} .vs-dot{background:var(--lt-line)}${T} .vs-dot.known{background:var(--lt-accent)}${T} .vs-dot.on{background:var(--lt-ink)}
+${T} .vs-round i,${T} .vs-opt{background:var(--lt-surface);color:var(--lt-ink)}${T} .vs-known:hover i,${T} .vs-known.on i{background:var(--lt-accent);border-color:var(--lt-accent);color:var(--lt-accent-ink)}${T} .vs-round{color:var(--lt-muted)}${T} .vs-ctx{background:var(--lt-paper);border-color:var(--lt-line)}${T} .vs-ctx p{color:var(--lt-ink)}
 ${T} .vs-word,${T} .ss-card h2,${T} .ss-card h3{font-family:var(--lt-font)}
 ${T} .vs-reveal{background:var(--lt-paper);border-color:var(--lt-line);color:var(--lt-ink)}
 ${T} .vs-bar i{background:var(--lt-accent)}

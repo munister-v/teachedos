@@ -254,7 +254,7 @@ async function lookupOne(w) {
   return fresh;
 }
 
-async function lookup(word, level, depth) {
+async function lookupRaw(word, level, depth) {
   const w = String(word || '').trim();
   if (!w || w.length > 60) return blank(w);
 
@@ -328,6 +328,18 @@ async function lookup(word, level, depth) {
     ...regions(entry),
     source: sense ? 'cambridge' : null,
   };
+}
+
+/* Фраза, найденная только по последнему слову («educational journey» ->
+   статья «journey»), - не то значение и не то произношение. Ответ помечается
+   partial: фронт такую фразу отдаёт движку, который объясняет её целиком. */
+async function lookup(word, level, depth) {
+  const r = await lookupRaw(word, level, depth);
+  const phrase = String(word || '').trim().replace(/^(?:a|an|the)\s+/i, '').split('/')[0].trim();
+  if (r && r.definition && /\s/.test(phrase) && r.matched && !/\s/.test(String(r.matched).trim())) {
+    r.partial = true;
+  }
+  return r;
 }
 
 /* Пачкой, а не по одному запросу на слово: у задания их шесть-двенадцать,

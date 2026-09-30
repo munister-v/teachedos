@@ -6930,49 +6930,102 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 
 /* ═══ Vocabulary Studio и игра шагом пути ═════════════════════════════ */
 .wp-game{position:absolute;inset:0;overflow:hidden;background:#fff}
-.vs{position:absolute;inset:0;display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:16px;padding:16px;box-sizing:border-box;background:#F6F6EF;color:#24282C;font-family:var(--font-ui,system-ui,sans-serif)}
-.vs-side{display:flex;flex-direction:column;gap:10px;min-height:0;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;padding:12px}
-.vs-prog{font-size:12.5px;color:#5D614B;display:flex;flex-direction:column;gap:6px}
-.vs-prog b{font-size:15px;color:#24282C}
-.vs-bar{display:block;height:6px;border-radius:999px;background:#F6F6EF;overflow:hidden}
-.vs-bar i{display:block;height:100%;background:#CDF649;transition:width .25s}
-.vs-list{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:2px}
-.vs-item{display:flex;align-items:center;gap:8px;text-align:left;border:0;background:transparent;border-radius:10px;padding:7px 9px;font:600 13.5px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
-.vs-item i{flex-shrink:0;width:9px;height:9px;border-radius:50%;border:2px solid #CACCC6}
-.vs-item:hover{background:#F6F6EF}
-.vs-item.on{background:#24282C;color:#fff}
-.vs-item.known i{background:#CDF649;border-color:#8FB125}
-.vs-item.learning i{background:#FFB547;border-color:#E08A00}
-.vs-main{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.vs{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;padding:16px 20px;box-sizing:border-box;background:#F6F6EF;color:#24282C;font-family:var(--font-ui,system-ui,sans-serif);overflow:hidden}
 .vs-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.vs-prog{font-size:12.5px;color:#5D614B}
+.vs-prog b{font-size:14px;color:#24282C}
 .vs-modes{display:inline-flex;background:#fff;border:1px solid rgba(36,40,44,.12);border-radius:12px;padding:3px}
 .vs-modes button{height:32px;padding:0 14px;border:0;border-radius:9px;background:transparent;font:700 12.5px var(--font-ui,system-ui,sans-serif);color:#5D614B;cursor:pointer}
 .vs-modes button.on{background:#24282C;color:#fff}
 .vs-only{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#5D614B;cursor:pointer}
-.vs-card{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:22px;padding:24px 28px;box-shadow:0 18px 40px -30px rgba(36,40,44,.4)}
-.vs-word{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1.1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;justify-content:center}
+/* Прогресс как в сторис: одна полоска на слово */
+.vs-dots{display:flex;gap:4px;align-items:center;height:14px;flex-shrink:0}
+.vs-dot{flex:1 1 0;min-width:4px;max-width:44px;height:6px;padding:0;border:0;border-radius:999px;background:#DADBD2;cursor:pointer;transition:background .2s,height .15s,transform .15s;position:relative}
+.vs-dot::after{content:'';position:absolute;inset:-6px -1px}
+.vs-dot:hover{background:#B9BBB0}
+.vs-dot.known{background:#CDF649}
+.vs-dot.learning{background:#FFB547}
+.vs-dot.on{height:10px;background:#24282C;transform:scaleX(1.15)}
+.vs-stage{flex:1;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center}
+.vs-deck{min-width:0;min-height:0;height:100%;display:flex;justify-content:center;align-items:stretch;perspective:900px}
+.vs-card{position:relative;width:100%;max-width:720px;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:26px;padding:26px 30px;box-shadow:0 22px 46px -30px rgba(36,40,44,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .18s,box-shadow .18s}
+.vs-card.dragging{transition:none;cursor:grabbing}
+.vs-card.to-yes{box-shadow:0 0 0 3px #CDF649,0 22px 46px -26px rgba(143,177,37,.7)}
+.vs-card.to-no{box-shadow:0 0 0 3px #FFB547,0 22px 46px -26px rgba(224,138,0,.6)}
+.vs-stamp{position:absolute;top:16px;padding:5px 12px;border-radius:10px;font:800 12px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .12s}
+.vs-stamp.yes{right:18px;background:#CDF649;color:#24282C;transform:rotate(6deg)}
+.vs-stamp.no{left:18px;background:#FFE1B0;color:#8A5200;transform:rotate(-6deg)}
+.vs-card.to-yes .vs-stamp.yes,.vs-card.to-no .vs-stamp.no{opacity:1}
+.vs-word{font-size:clamp(28px,4.6vw,44px);font-weight:500;letter-spacing:-.03em;line-height:1.12;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;justify-content:center}
+.vs-word strong{font-weight:850}
 .vs-pos{font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6B42FD;background:#EFEAFF;border-radius:999px;padding:3px 9px}
 .vs-pron{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.vs-say{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:12px;border:1px solid rgba(36,40,44,.16);background:#F6F6EF;font:700 12px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
-.vs-say span{font:600 14px ui-monospace,Menlo,monospace}
-.vs-say:hover{border-color:rgba(36,40,44,.32);background:#fff}
+.vs-say{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(36,40,44,.14);background:#F6F6EF;font:700 12px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer;transition:transform .12s,background .12s}
+.vs-say b{font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#5D614B}
+.vs-say span{font:600 13.5px ui-monospace,Menlo,monospace}
+.vs-say:hover{background:#fff;border-color:rgba(36,40,44,.3)}
+.vs-say:active{transform:scale(.94)}
 .vs-none{color:#A3A48D}
 .vs-meaning{margin:0;font-size:19px;line-height:1.4;max-width:560px}
-.vs-ex{margin:0;font-size:15px;line-height:1.5;color:#5D614B;font-style:italic;max-width:560px}
-.vs-ex mark{background:#E6FAA6;color:#24282C;font-style:normal;font-weight:700;border-radius:4px;padding:0 3px}
+.vs-ctx{margin:0;max-width:560px;width:100%;box-sizing:border-box;text-align:left;background:#FBFDF0;border:1px solid rgba(36,40,44,.08);border-left:4px solid #CDF649;border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.vs-ctx p{margin:0;font-size:15px;line-height:1.5;color:#3A3E32;font-style:italic}
+.vs-ctx mark{background:#E6FAA6;color:#24282C;font-style:normal;font-weight:700;border-radius:4px;padding:0 3px}
+.vs-ctx-k{font:800 10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#8A8D7A}
+.vs-hear-chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px 0 6px;border-radius:999px;border:0;background:#24282C;color:#fff;font:700 12px var(--font-ui,system-ui,sans-serif);cursor:pointer;transition:transform .12s}
+.vs-hear-chip i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#CDF649;color:#24282C;font-size:8px;font-style:normal}
+.vs-hear-chip:hover{background:#000}
+.vs-hear-chip:active{transform:scale(.95)}
+.vs-colloc{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;max-width:560px}
+.vs-colloc em{font-style:normal;font-weight:650;font-size:13px;background:#EFEAFF;color:#4B2FC4;border-radius:999px;padding:4px 11px}
+.vs-quiz{width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.vs-try{height:34px;padding:0 14px;border-radius:999px;border:1px dashed rgba(36,40,44,.22);background:transparent;font:700 12.5px var(--font-ui,system-ui,sans-serif);color:#5D614B;cursor:pointer}
+.vs-try:hover{background:#FBFDF0;color:#24282C}
+.vs-gap{margin:0;font-size:16px;line-height:1.5}
+.vs-gap b{border-radius:6px;padding:0 6px}
+.vs-gap b.blank{background:#F1F1E8;color:#A3A48D;letter-spacing:.1em}
+.vs-gap b.ok{background:#CDF649}
+.vs-opts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.vs-opt{height:36px;padding:0 14px;border-radius:12px;border:1px solid rgba(36,40,44,.16);background:#fff;font:700 13.5px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
+.vs-opt:hover:not(:disabled){border-color:#24282C}
+.vs-opt.ok{background:#CDF649;border-color:#CDF649}
+.vs-opt.bad{background:#FFE1DA;border-color:#E5543A;animation:vs-shake .3s}
+@keyframes vs-shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .vs-reveal{height:44px;padding:0 18px;border-radius:12px;border:1px dashed rgba(36,40,44,.16);background:#FBFDF0;font:700 13.5px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
-.vs-acts{display:flex;align-items:center;justify-content:center;gap:10px}
-.vs-nav{width:42px;height:42px;border-radius:12px;border:1px solid rgba(36,40,44,.16);background:#fff;font-size:20px;cursor:pointer;color:#24282C}
+/* Круглые кнопки по бокам карточки вместо ряда «школьных» кнопок */
+.vs-round{display:flex;flex-direction:column;align-items:center;gap:6px;width:84px;padding:0;border:0;background:transparent;cursor:pointer;font:750 12px var(--font-ui,system-ui,sans-serif);color:#5D614B}
+.vs-round i{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:#fff;font-style:normal;font-size:24px;line-height:1;border:2px solid;transition:transform .15s,box-shadow .15s,background .15s}
+.vs-round:hover i{transform:scale(1.08)}
+.vs-round:active i{transform:scale(.92)}
+.vs-learning i{border-color:#E08A00;color:#B26A00}
+.vs-learning:hover i,.vs-learning.on i{background:#FFE1B0}
+.vs-known i{border-color:#8FB125;color:#3E5A00}
+.vs-known:hover i,.vs-known.on i{background:#CDF649;border-color:#CDF649}
+.vs-round.on i{box-shadow:0 0 0 3px rgba(36,40,44,.18)}
+.vs-foot{display:flex;align-items:center;justify-content:center;gap:12px;flex-shrink:0}
+.vs-nav{width:36px;height:36px;border-radius:50%;border:1px solid rgba(36,40,44,.16);background:#fff;font-size:18px;cursor:pointer;color:#24282C}
 .vs-nav:disabled{opacity:.35;cursor:default}
-.vs-learning,.vs-known{height:42px;padding:0 18px;border-radius:12px;font:750 13.5px var(--font-ui,system-ui,sans-serif);cursor:pointer}
-.vs-learning{border:1px solid #E08A00;background:#fff;color:#8A5200}
-.vs-learning.on{background:#FFE1B0}
-.vs-known{border:1px solid #CDF649;background:#CDF649;color:#24282C}
-.vs-known.on{box-shadow:inset 0 0 0 2px #24282C}
-.vs-count{margin:0;text-align:center;font-size:12.5px;color:#5D614B}
+.vs-count{text-align:center;font-size:12.5px;color:#5D614B}
 .vs-done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;background:#fff;border-radius:22px;border:1px solid rgba(36,40,44,.1);padding:24px}
 .vs-done b{font-size:20px}
 .vs-done span{font-size:14px;color:#5D614B;max-width:420px}
+@media (max-width:640px){
+  .vs{padding:12px}
+  .vs-stage{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}
+  .vs-deck{grid-column:1/-1;grid-row:1}
+  .vs-round{flex-direction:row;width:auto;justify-content:center;gap:8px}
+  .vs-round i{width:44px;height:44px;font-size:20px}
+  .vs-learning{grid-row:2;grid-column:1}.vs-known{grid-row:2;grid-column:2}
+  .vs-card{padding:20px 16px}
+}
+@media (prefers-reduced-motion:reduce){.vs-card,.vs-dot,.vs-say,.vs-round i{transition:none}.vs-opt.bad{animation:none}}
+
+/* Название урока в шапке: нажми, чтобы переименовать */
+.wp-rename{all:unset;box-sizing:border-box;display:block;max-width:100%;margin-top:3px;font-size:19px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text;border-radius:8px;padding:0 4px;margin-left:-4px;color:inherit}
+.wp-rename i{font-style:normal;font-size:13px;margin-left:8px;opacity:.35;transition:opacity .15s}
+.wp-rename:hover{background:rgba(255,255,255,.1)}
+.wp-rename:hover i,.wp-rename:focus-visible i{opacity:.9}
+.wp-rename:focus-visible{outline:2px solid #CDF649;outline-offset:2px}
+.wp-title-edit{display:block;box-sizing:border-box;width:min(560px,100%);margin-top:1px;font:800 19px var(--font-ui,system-ui,sans-serif);letter-spacing:-.02em;color:#24282C;background:#fff;border:2px solid #CDF649;border-radius:9px;padding:2px 8px;outline:none}
 
 /* Учитель: весь класс */
 .wp-cl-card{width:min(1080px,100%)}

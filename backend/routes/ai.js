@@ -2177,6 +2177,55 @@ Rules: 5 stages that sum to ${duration}. All activities must be practical and re
   }
 });
 
+/* POST /api/ai/vocab-enrich - карточки Vocabulary Studio одним запросом:
+   общая тема набора, значение В КОНТЕКСТЕ (для фраз и метафор - переносное,
+   а не статья первого слова), коллокации и предложение с пропуском.
+   Словарь Cambridge фраз не знает, а по последнему слову даёт чужое значение
+   («educational journey» -> «journey»: the act of travelling...). */
+router.post('/vocab-enrich', requireAuth, requireTeacher, lessonBoardLimiter, async (req, res) => {
+  try {
+    const level = String(req.body?.level || 'B1').slice(0, 4);
+    const topic = String(req.body?.topic || '').slice(0, 120);
+    const words = (Array.isArray(req.body?.words) ? req.body.words : [])
+      .map(w => String(w || '').trim().slice(0, 60)).filter(Boolean).slice(0, 40);
+    if (!words.length) return res.status(400).json({ error: 'words required' });
+    if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
+    await reserveAiQuota(req.user, { mode: 'vocab-enrich', source: words.join(', ') });
+
+    const prompt = `You are an ESL vocabulary coach. Return ONLY a JSON object (no markdown, no prose) with this exact shape:
+{"theme":"...","items":[{"word":"...","meaning":"...","collocations":["...","..."],"gap":"..."}]}
+
+Level: ${level}
+${topic ? `Teacher's topic: ${topic}\n` : ''}Target words and phrases (keep them exactly as written, same order):
+${words.map((w, i) => `${i + 1}. ${w}`).join('\n')}
+
+Rules:
+- theme: ONE short general theme for the whole set, 2-4 words, Title Case, not a list of the words (e.g. "Education and Study", "Illness and Recovery"). Never start with "Vocabulary".
+- meaning: a clear student-friendly definition at ${level} level, max 14 words. For phrases, idioms and collocations give the meaning of the WHOLE expression as people actually use it (figurative or professional sense included) - never the dictionary entry of one word inside it. Do not repeat the word itself.
+- collocations: 2-3 short natural word partnerships that go with this word or phrase (e.g. "make a decision", "tough decision"). For a fixed phrase give 2 short typical sentence frames instead.
+- gap: ONE natural example sentence at ${level} level containing the target exactly as written, with the target replaced by ______ (six underscores). If the word needs another form in the sentence, keep the sentence grammatical with the base form.`;
+
+    const result = await aiEngine.rawGenerate(prompt);
+    METRICS.total++;
+    METRICS.llmOk++;
+    METRICS.lastAt = new Date().toISOString();
+    METRICS.lastModel = aiEngine.getLastModel() || aiEngine.MODEL;
+    METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
+    recordActualAiCost(req.user, recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage));
+    recordUsage('llm_ok');
+    const items = (Array.isArray(result?.items) ? result.items : []).map(x => ({
+      word: String(x?.word || '').trim(),
+      meaning: String(x?.meaning || '').trim().slice(0, 200),
+      collocations: (Array.isArray(x?.collocations) ? x.collocations : []).map(c => String(c || '').trim().slice(0, 60)).filter(Boolean).slice(0, 3),
+      gap: /_{3,}/.test(String(x?.gap || '')) ? String(x.gap).trim().slice(0, 240) : '',
+    })).filter(x => x.word);
+    res.json({ theme: String(result?.theme || '').trim().slice(0, 60), items, quota: await readAiQuota(req.user) });
+  } catch (err) {
+    console.error('[ai/vocab-enrich]', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+  }
+});
+
 // ── POST /api/ai/wordset-guest - no login required ──────────────────────────
 // Powers the "AI assist" box on games/create.html for visitors without a
 // teacher account. IP-limited and capped to keep free-tier usage in check.

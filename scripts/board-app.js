@@ -4405,6 +4405,7 @@ function _wpRender(el, card, focus) {
   const theme = _ltThemeFor(card);
   if (window.TeachedThemes) window.TeachedThemes.apply(root, theme);
   const canTheme = !review && window.TeachedThemes && (card.__preview || (_wpOwnerOf(card) && !_wpPersonal()));
+  const canRename = !review && !card.__preview && !!owner && !_wpPersonal();
   const next = i < hi ? p.steps[i + 1] : null;
   const nextLabel = !next ? '' : WP_STUDIO_ROLES.includes(next.role) ? `Go to the ${next.title} →` : `Next: ${next.title} →`;
   const who = review ? review.list[review.i] : null;
@@ -4412,7 +4413,7 @@ function _wpRender(el, card, focus) {
     <div class="wp-head">
       <div class="wp-top">
         <div class="wp-name"><span class="wp-kicker">${review ? `${esc(who.name || who.email || 'Student')}'s studio · ${esc(_wpAgo(who.updated_at))}` : esc(K.kicker)}${!review && p.guide ? ' · ' + esc(p.guide.label) + ' · ' + esc(p.guide.registerLabel) : ''}</span>
-          <b class="wp-title">${esc(card.data.title || 'Lesson')}</b></div>
+          ${canRename ? `<button type="button" class="wp-title wp-rename" title="Rename this lesson">${esc(card.data.title || 'Lesson')}<i aria-hidden="true">✎</i></button>` : `<b class="wp-title">${esc(card.data.title || 'Lesson')}</b>`}</div>
         <div class="wp-acts">
           ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
           ${theme && focus && window.TeachedSounds ? window.TeachedSounds.btnHtml('wp-btn') : ''}
@@ -4501,6 +4502,29 @@ function _wpRender(el, card, focus) {
   root.querySelector('.wp-next:not(.lf-finish)')?.addEventListener('click', () => _wpGo(card.id, i + 1));
   root.querySelector('.lf-finish')?.addEventListener('click', () => window.TeachedFlow.finish(card.id));
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
+  root.querySelector('.wp-rename')?.addEventListener('click', e => {
+    const btn = e.currentTarget;
+    const inp = document.createElement('input');
+    inp.className = 'wp-title wp-title-edit';
+    inp.value = card.data.title || '';
+    inp.maxLength = 80;
+    inp.setAttribute('aria-label', 'Lesson title');
+    btn.replaceWith(inp);
+    inp.focus(); inp.select();
+    let done = false;
+    const finish = save => {
+      if (done) return; done = true;
+      const v = inp.value.trim();
+      if (save && v && v !== card.data.title) {
+        card.data.title = v; delete card.data._titleAuto;
+        scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      }
+      _wpRedraw(card);
+      if (_wpFocusId === card.id) _studioRender();
+    };
+    inp.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Enter') finish(true); else if (ev.key === 'Escape') finish(false); });
+    inp.addEventListener('blur', () => finish(true));
+  });
   root.querySelector('.wp-close')?.addEventListener('click', () => lf ? window.TeachedFlow.back() : closeCardStudio());
   root.querySelector('.wp-students')?.addEventListener('click', () => _wpStudentsPanel(card.id));
   root.querySelector('.lt-sound')?.addEventListener('click', ev => { ev.stopPropagation(); window.TeachedSounds.toggle(theme); });
@@ -4534,7 +4558,7 @@ function _wpRender(el, card, focus) {
    (обсуждение и ситуации - в Speaking Studio, письмо - в Writing Studio). */
 function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   const words = entries.map(e => ({ word: e.word, pos: e.pos || '', meaning: e.gloss || '', example: e.example || '',
-    ipaUK: e.ipa || '', audioUK: e.audio || '' }));
+    ipaUK: e.ipa || '', audioUK: e.audio || '', meaningKept: !!e.fromTeacher }));
   const steps = [{ role: 'vocab-studio', title: 'Vocabulary Studio', out: { title: 'The words', words }, state: null }];
   const gameStep = (title, gameType, content, level) => {
     const m = _gameMetaFor(gameType);
@@ -4557,15 +4581,56 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   const hear = !!document.getElementById('tbuilder-hear')?.checked;
   try { localStorage.setItem('teachedos_vocab_hear', hear ? '1' : '0'); } catch {}
   const path = { kind: 'vocabulary', steps, cur: 0, done: [], guide: null, genre: '', assigned: [], hear, ...(_wordGameTheme ? { theme: _wordGameTheme } : {}) };
-  const card = _wpPlacePathCard(base, `Vocabulary: ${base.topic || 'words'}`, path);
+  /* Название - общая тема набора, а не список слов. Тему учителя берём как
+     есть; без неё ставим нейтральное имя, а настоящую тему подбирает
+     _wpEnrichVocab. Переименовать можно в шапке студии. */
+  const label = base.topicAuto ? `New vocabulary · ${words.length} words` : (base.topic || 'Vocabulary');
+  const card = _wpPlacePathCard(base, label, path);
   if (card) {
+    if (base.topicAuto) card.data._titleAuto = true;
     _wpFillVocabPron(card);
+    _wpEnrichVocab(card);
     _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
       title: card.data.title, cat: 'vocabulary', level: base.level, topic: base.topic,
       kind: `Vocabulary path · ${words.length} words`, toolId: 'vocab-workout',
     });
   }
   return card;
+}
+
+/* Тема набора, значение фраз в контексте, коллокации и предложение с
+   пропуском - одним запросом после того, как карточка легла на доску.
+   Значение учителя не трогаем; фразы без его пояснения получают значение
+   всей фразы, а не статью одного из слов. Не ответил движок - карточка
+   остаётся такой, какая есть. */
+const _wpEnrichAsked = new Set();
+async function _wpEnrichVocab(card) {
+  const p = card && card.data && card.data._wfPath;
+  if (!p || _wpEnrichAsked.has(card.id) || !authToken || !_wpOwnerOf(card)) return;
+  const words = p.steps.filter(s => s.role === 'vocab-studio').flatMap(s => s.out.words || []).filter(w => w.word);
+  if (!words.length) return;
+  _wpEnrichAsked.add(card.id);
+  let d = null;
+  try {
+    const r = await apiFetch('/api/ai/vocab-enrich', { method: 'POST', body: {
+      words: words.map(w => w.word), level: card.data.level || '', topic: card.data._titleAuto ? '' : (card.data.topic || '') } });
+    if (r.ok) d = await r.json().catch(() => null);
+  } catch {}
+  if (!d) { _wpEnrichAsked.delete(card.id); return; }
+  const c = _wpCard(card.id);
+  if (!c) return;
+  const byWord = new Map((d.items || []).map(x => [String(x.word).toLowerCase(), x]));
+  words.forEach(w => {
+    const x = byWord.get(String(w.word).toLowerCase());
+    if (!x) return;
+    if (x.meaning && (!w.meaning || (/\s/.test(w.word) && !w.meaningKept))) w.meaning = x.meaning;
+    if (x.collocations && x.collocations.length) w.collocations = x.collocations;
+    if (x.gap) w.gap = x.gap;
+  });
+  if (d.theme && c.data._titleAuto) { c.data.title = d.theme; delete c.data._titleAuto; }
+  if (!c.__preview) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  const cur = c.data._wfPath.steps[_wpCur(c)];
+  if (cur && cur.role === 'vocab-studio' && _wpFocusId === c.id) _studioRender(); else _wpRedraw(c);
 }
 
 /* Британская и американская транскрипция и запись - из словаря, пачкой. */
@@ -4583,6 +4648,7 @@ async function _wpFillVocabPron(card) {
       const { results } = await r.json();
       chunk.forEach((w, j) => {
         const x = (results || [])[j] || {};
+        if (x.partial) { w._pron = 1; return; }
         w.ipaUK = w.ipaUK || x.ipaUK || x.ipa || '';
         w.ipaUS = w.ipaUS || x.ipaUS || '';
         w.audioUK = w.audioUK || x.audioUK || x.audio || '';
@@ -4600,9 +4666,14 @@ async function _wpFillVocabPron(card) {
   if (_wpFocusId === c.id) _studioRender(); else _wpRedraw(c);
 }
 
-/* Vocabulary Studio: слова по одному. Learn - всё открыто; Test myself -
-   значение закрыто, пока ученик не вспомнит сам. «I know it» / «Still
-   learning» раскладывают слова, и повтор идёт только по тем, что ещё учатся.
+/* Vocabulary Studio: слова по одному, как стопка карточек. Прогресс - полоска
+   точек сверху (по одной на слово), а не список: «ещё двенадцать» демотивирует.
+   Карточку можно смахнуть: вправо - «I know it», влево - «Still learning»
+   (то же делают круглые кнопки по бокам и стрелки клавиатуры).
+   Learn - всё открыто; Test myself - значение закрыто, пока ученик не
+   вспомнит сам. На карточке: фраза, произношение, значение, контекст
+   (пример и клипы из реальных видео), коллокации и мини-проверка «вставь
+   слово». Повтор идёт только по словам, которые ещё учатся.
    Состояние шага: { i, mode, known: [word], learning: [word], onlyLearning }. */
 function _wpVocabStudio(stage, card, k) {
   const own = (card.data._wfPath.steps[k].out.words || []).filter(w => w && w.word);
@@ -4614,12 +4685,20 @@ function _wpVocabStudio(stage, card, k) {
   stage.appendChild(box);
   let shown = false;
   let audio = null;
+  let quiz = null; // { word, picked } - мини-проверка на текущей карточке
   const save = () => _wpSetState(card, k, { i: st.i, mode: st.mode, known: st.known, learning: st.learning, onlyLearning: st.onlyLearning });
   const list = () => st.onlyLearning ? words.filter(w => !st.known.includes(w.word)) : words;
+  const rx = w => String(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
   const hl = (ex, w) => {
     const e = esc(ex || '');
-    const re = new RegExp('\\b(' + String(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+') + '\\w*)', 'i');
-    return e.replace(re, '<mark>$1</mark>');
+    return e.replace(new RegExp('\\b(' + rx(w) + '\\w*)', 'i'), '<mark>$1</mark>');
+  };
+  // В длинной фразе жирным выделено главное слово - самое длинное.
+  const headline = word => {
+    const parts = String(word).split(/(\s+)/);
+    if (parts.filter(x => x.trim()).length < 3) return esc(word);
+    const key = parts.reduce((b, x, j) => x.trim().length > (parts[b] || '').trim().length ? j : b, 0);
+    return parts.map((x, j) => j === key ? `<strong>${esc(x)}</strong>` : esc(x)).join('');
   };
   const play = (w, region) => {
     const url = region === 'uk' ? w.audioUK : w.audioUS;
@@ -4628,6 +4707,21 @@ function _wpVocabStudio(stage, card, k) {
     else speakWord(w.word, region);
   };
   const ipa = v => v ? `/${esc(String(v).replace(/^\/|\/$/g, ''))}/` : '<span class="vs-none">-</span>';
+  // Предложение с пропуском: заготовка движка, а если её нет - пример со словом.
+  const gapOf = w => {
+    if (w.gap && /_{3,}/.test(w.gap)) return w.gap;
+    const ex = String(w.example || '');
+    const re = new RegExp('\\b' + rx(w.word) + '\\b', 'i');
+    return ex && re.test(ex) ? ex.replace(re, '______') : '';
+  };
+  const optionsFor = (w, i) => {
+    const others = words.filter(x => x.word !== w.word).map(x => x.word);
+    const pick = [];
+    for (let n = 0; n < others.length && pick.length < 2; n++) pick.push(others[(i + n * 3) % others.length]);
+    const opts = [...new Set(pick)].concat(w.word);
+    const r = (i % opts.length + opts.length) % opts.length;
+    return opts.slice(r).concat(opts.slice(0, r));
+  };
   // «Add video examples» в конструкторе: у каждого слова - живые клипы.
   const hearOn = !!(card.data._wfPath.hear && window.TeachedHear);
   function paint() {
@@ -4636,77 +4730,139 @@ function _wpVocabStudio(stage, card, k) {
     const w = L[st.i];
     const knownN = words.filter(x => st.known.includes(x.word)).length;
     const hide = st.mode === 'test' && !shown;
+    const hearBtn = w && hearOn ? `<button type="button" class="vs-hear-chip" data-hear="${esc(w.word)}" title="Real people saying it: movies, TED, interviews"><i>▶</i> Hear it in real videos</button>` : '';
+    const gap = w && !hide ? gapOf(w) : '';
+    const q = w && quiz && quiz.word === w.word ? quiz : null;
+    const dots = words.map(x => {
+      const on = w && x.word === w.word;
+      const tag = st.known.includes(x.word) ? 'known' : st.learning.includes(x.word) ? 'learning' : '';
+      return `<button type="button" class="vs-dot${on ? ' on' : ''}${tag ? ' ' + tag : ''}" data-w="${esc(x.word)}" title="${esc(x.word)}" aria-label="${esc(x.word)}"></button>`;
+    }).join('');
     box.innerHTML = `
-      <aside class="vs-side">
-        <div class="vs-prog"><b>${knownN} / ${words.length}</b> known<i class="vs-bar"><i style="width:${words.length ? Math.round(knownN / words.length * 100) : 0}%"></i></i></div>
-        <div class="vs-list">${words.map(x => {
-          const on = w && x.word === w.word;
-          const tag = st.known.includes(x.word) ? 'known' : st.learning.includes(x.word) ? 'learning' : '';
-          return `<button type="button" class="vs-item${on ? ' on' : ''}${tag ? ' ' + tag : ''}" data-w="${esc(x.word)}"><i></i>${esc(x.word)}</button>`;
-        }).join('')}</div>
-      </aside>
-      <section class="vs-main">
-        <div class="vs-top">
-          <div class="vs-modes"><button type="button" data-mode="learn" class="${st.mode === 'learn' ? 'on' : ''}">Learn</button><button type="button" data-mode="test" class="${st.mode === 'test' ? 'on' : ''}">Test myself</button></div>
-          <label class="vs-only"><input type="checkbox"${st.onlyLearning ? ' checked' : ''}> Only words I'm still learning</label>
+      <div class="vs-top">
+        <div class="vs-modes"><button type="button" data-mode="learn" class="${st.mode === 'learn' ? 'on' : ''}">Learn</button><button type="button" data-mode="test" class="${st.mode === 'test' ? 'on' : ''}">Test myself</button></div>
+        <div class="vs-prog"><b>${knownN} / ${words.length}</b> known</div>
+        <label class="vs-only"><input type="checkbox"${st.onlyLearning ? ' checked' : ''}> Only words I'm still learning</label>
+      </div>
+      <div class="vs-dots" role="group" aria-label="Words">${dots}</div>
+      ${w ? `<div class="vs-stage">
+        <button type="button" class="vs-round vs-learning${st.learning.includes(w.word) ? ' on' : ''}" data-mark="learning" aria-label="Still learning"><i>↺</i><span>Still learning</span></button>
+        <div class="vs-deck">
+          <article class="vs-card">
+            <span class="vs-stamp no">Still learning</span><span class="vs-stamp yes">I know it</span>
+            <div class="vs-word">${headline(w.word)}${w.pos ? `<span class="vs-pos">${esc(w.pos)}</span>` : ''}</div>
+            <div class="vs-pron">
+              <button type="button" class="vs-say" data-say="uk" title="Hear it - British"><b>UK</b> <span>${ipa(w.ipaUK)}</span></button>
+              <button type="button" class="vs-say" data-say="us" title="Hear it - American"><b>US</b> <span>${ipa(w.ipaUS)}</span></button>
+            </div>
+            ${hide ? `<button type="button" class="vs-reveal">Say what it means - then show the meaning</button>`
+              : `<p class="vs-meaning">${esc(w.meaning || 'No meaning given.')}</p>
+                ${w.example || hearBtn ? `<blockquote class="vs-ctx"><span class="vs-ctx-k">In context</span>${w.example ? `<p>${hl(w.example, w.word)}</p>` : ''}${hearBtn}</blockquote>` : ''}
+                ${w.collocations && w.collocations.length ? `<div class="vs-colloc"><span class="vs-ctx-k">Goes with</span>${w.collocations.map(c => `<em>${esc(c)}</em>`).join('')}</div>` : ''}
+                ${gap ? `<div class="vs-quiz${q ? ' open' : ''}">
+                  ${q ? `<p class="vs-gap">${esc(gap).replace('______', q.picked && q.picked === w.word ? `<b class="ok">${esc(w.word)}</b>` : '<b class="blank">______</b>')}</p>
+                    <div class="vs-opts">${optionsFor(w, st.i).map(o => `<button type="button" class="vs-opt${q.picked === o ? (o === w.word ? ' ok' : ' bad') : ''}" data-opt="${esc(o)}"${q.picked === w.word ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>`
+                    : `<button type="button" class="vs-try" data-quiz="1">Quick check: fill the gap</button>`}
+                </div>` : ''}`}
+          </article>
         </div>
-        ${w ? `<article class="vs-card">
-          <div class="vs-word">${esc(w.word)}${w.pos ? `<span class="vs-pos">${esc(w.pos)}</span>` : ''}</div>
-          <div class="vs-pron">
-            <button type="button" class="vs-say" data-say="uk" title="Hear it - British">🔊 UK <span>${ipa(w.ipaUK)}</span></button>
-            <button type="button" class="vs-say" data-say="us" title="Hear it - American">🔊 US <span>${ipa(w.ipaUS)}</span></button>
-            ${hearOn ? `<button type="button" class="vs-say vs-hear" data-hear="${esc(w.word)}" title="Real people saying it: movies, TED, interviews">▶ In real videos</button>` : ''}
-          </div>
-          ${hide ? `<button type="button" class="vs-reveal">Say what it means - then show the meaning</button>`
-            : `<p class="vs-meaning">${esc(w.meaning || 'No meaning given.')}</p>${w.example ? `<p class="vs-ex">${hl(w.example, w.word)}</p>` : ''}`}
-        </article>
-        <div class="vs-acts">
-          <button type="button" class="vs-nav" data-go="-1"${st.i === 0 ? ' disabled' : ''}>‹</button>
-          <button type="button" class="vs-learning${st.learning.includes(w.word) ? ' on' : ''}" data-mark="learning">Still learning</button>
-          <button type="button" class="vs-known${st.known.includes(w.word) ? ' on' : ''}" data-mark="known">✓ I know it</button>
-          <button type="button" class="vs-nav" data-go="1"${st.i >= L.length - 1 ? ' disabled' : ''}>›</button>
-        </div>
-        <p class="vs-count">Word ${st.i + 1} of ${L.length}</p>`
-        : `<div class="vs-done"><b>All ${words.length} words are known.</b><span>Untick “Only words I'm still learning” to go through them again, or go on to the practice.</span></div>`}
-      </section>`;
+        <button type="button" class="vs-round vs-known${st.known.includes(w.word) ? ' on' : ''}" data-mark="known" aria-label="I know it"><i>✓</i><span>I know it</span></button>
+      </div>
+      <div class="vs-foot">
+        <button type="button" class="vs-nav" data-go="-1"${st.i === 0 ? ' disabled' : ''} aria-label="Previous word">‹</button>
+        <span class="vs-count">Word ${st.i + 1} of ${L.length} · swipe the card or use the buttons</span>
+        <button type="button" class="vs-nav" data-go="1"${st.i >= L.length - 1 ? ' disabled' : ''} aria-label="Next word">›</button>
+      </div>`
+      : `<div class="vs-done"><b>All ${words.length} words are known.</b><span>Untick “Only words I'm still learning” to go through them again, or go on to the practice.</span></div>`}`;
+  }
+  function mark(w, known) {
+    const L = list();
+    // «Ещё учу» у ученика - слово уходит в его Vault на повторение.
+    if (!known && authToken && !_wpOwnerOf(card) && !card.__preview) {
+      apiFetch('/api/vault/save', { method: 'POST', body: { text: w.word, meaning: w.meaning || '', example: w.example || '', boardId: currentBoardId || null, sourceTitle: card.data.title || '' } })
+        .then(() => _vaultRemember({ kind: 'word', word: w.word, translation: w.meaning || '' })).catch(() => {});
+    }
+    st.known = st.known.filter(x => x !== w.word);
+    st.learning = st.learning.filter(x => x !== w.word);
+    (known ? st.known : st.learning).push(w.word);
+    if (window.TeachedFlow) window.TeachedFlow.onVocabMark(card.id, w.word, known);
+    shown = false; quiz = null;
+    // Выучено - дальше; в режиме «только учу» слово само уходит из списка.
+    if (!(st.onlyLearning && known)) st.i = Math.min(L.length - 1, st.i + 1);
+    save(); paint();
   }
   box.addEventListener('click', e => {
     const L = list();
     const w = L[st.i];
     const t = e.target;
     const item = t.closest('[data-w]');
-    if (item) { const j = L.findIndex(x => x.word === item.dataset.w); if (j < 0) { st.onlyLearning = false; st.i = words.findIndex(x => x.word === item.dataset.w); } else st.i = j; shown = false; save(); paint(); return; }
+    if (item) { const j = L.findIndex(x => x.word === item.dataset.w); if (j < 0) { st.onlyLearning = false; st.i = words.findIndex(x => x.word === item.dataset.w); } else st.i = j; shown = false; quiz = null; save(); paint(); return; }
     const mode = t.closest('[data-mode]');
-    if (mode) { st.mode = mode.dataset.mode; shown = false; save(); paint(); return; }
+    if (mode) { st.mode = mode.dataset.mode; shown = false; quiz = null; save(); paint(); return; }
     const hearBtn = t.closest('[data-hear]');
     if (hearBtn && window.TeachedHear) { window.TeachedHear.open(hearBtn.dataset.hear); return; }
     const say = t.closest('[data-say]');
     if (say && w) { play(w, say.dataset.say); return; }
     if (t.closest('.vs-reveal')) { shown = true; paint(); return; }
+    if (t.closest('[data-quiz]') && w) { quiz = { word: w.word, picked: '' }; paint(); return; }
+    const opt = t.closest('[data-opt]');
+    if (opt && w && quiz) { quiz.picked = opt.dataset.opt; paint(); return; }
     const go = t.closest('[data-go]');
-    if (go) { st.i = Math.max(0, Math.min(L.length - 1, st.i + Number(go.dataset.go))); shown = false; save(); paint(); return; }
-    const mark = t.closest('[data-mark]');
-    if (mark && w) {
-      const known = mark.dataset.mark === 'known';
-      // «Ещё учу» у ученика - слово уходит в его Vault на повторение.
-      if (!known && authToken && !_wpOwnerOf(card) && !card.__preview) {
-        apiFetch('/api/vault/save', { method: 'POST', body: { text: w.word, meaning: w.meaning || '', example: w.example || '', boardId: currentBoardId || null, sourceTitle: card.data.title || '' } })
-          .then(() => _vaultRemember({ kind: 'word', word: w.word, translation: w.meaning || '' })).catch(() => {});
-      }
-      st.known = st.known.filter(x => x !== w.word);
-      st.learning = st.learning.filter(x => x !== w.word);
-      (known ? st.known : st.learning).push(w.word);
-      if (window.TeachedFlow) window.TeachedFlow.onVocabMark(card.id, w.word, known);
-      shown = false;
-      // Выучено - дальше; в режиме «только учу» слово само уходит из списка.
-      if (!(st.onlyLearning && known)) st.i = Math.min(L.length - 1, st.i + 1);
-      save(); paint();
-    }
+    if (go) { st.i = Math.max(0, Math.min(L.length - 1, st.i + Number(go.dataset.go))); shown = false; quiz = null; save(); paint(); return; }
+    const m = t.closest('[data-mark]');
+    if (m && w) mark(w, m.dataset.mark === 'known');
   });
   box.addEventListener('change', e => {
-    if (e.target.closest('.vs-only')) { st.onlyLearning = e.target.checked; st.i = 0; shown = false; save(); paint(); }
+    if (e.target.closest('.vs-only')) { st.onlyLearning = e.target.checked; st.i = 0; shown = false; quiz = null; save(); paint(); }
   });
-  box.addEventListener('keydown', e => e.stopPropagation());
+  // Свайп: вправо - знаю, влево - ещё учу. Короткое движение возвращает карточку.
+  let drag = null;
+  box.addEventListener('pointerdown', e => {
+    const el = e.target.closest('.vs-card');
+    if (!el || e.button > 0 || e.target.closest('button,a,input,.vs-quiz')) return;
+    drag = { el, x: e.clientX, y: e.clientY, dx: 0, live: false, id: e.pointerId };
+  });
+  box.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.live) {
+      if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+      if (Math.abs(dx) < 6) return;
+      drag.live = true;
+      try { drag.el.setPointerCapture(e.pointerId); } catch {}
+      drag.el.classList.add('dragging');
+    }
+    drag.dx = dx;
+    drag.el.style.transform = `translateX(${dx}px) rotate(${dx / 28}deg)`;
+    drag.el.classList.toggle('to-yes', dx > 40);
+    drag.el.classList.toggle('to-no', dx < -40);
+  });
+  const endDrag = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const { el, dx, live } = drag;
+    drag = null;
+    if (!live) return;
+    el.classList.remove('dragging');
+    const w = list()[st.i];
+    if (Math.abs(dx) > 110 && w) {
+      el.style.transform = `translateX(${dx > 0 ? 700 : -700}px) rotate(${dx > 0 ? 18 : -18}deg)`;
+      el.style.opacity = '0';
+      setTimeout(() => mark(w, dx > 0), 170);
+    } else {
+      el.style.transform = '';
+      el.classList.remove('to-yes', 'to-no');
+    }
+  };
+  box.addEventListener('pointerup', endDrag);
+  box.addEventListener('pointercancel', endDrag);
+  box.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.target.closest('input,textarea') || e.altKey || e.ctrlKey || e.metaKey) return;
+    const w = list()[st.i];
+    if (!w) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); mark(w, true); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); mark(w, false); }
+  });
   paint();
 }
 
@@ -16204,7 +16360,7 @@ async function runBoardWorkout() {
   const listed = entries.length;
   const trimmed = Math.max(0, listed - TT_WORDLIST_MAX);
   entries = entries.slice(0, TT_WORDLIST_MAX);
-  if (!base.topic) base.topic = _ttTopicFromWords(entries.map(e => e.word));
+  if (!base.topic) { base.topic = _ttTopicFromWords(entries.map(e => e.word)); base.topicAuto = true; }
 
   /* Значения ищутся ОДИН раз на весь список, до генерации. Слово без
      пояснения давало пустую пару: «Match» с пустой правой колонкой, а
@@ -17312,6 +17468,10 @@ async function _ttLookupDefinitions(words, base, opts = {}) {
       const d = await r.json().catch(() => null);
       (d && d.results || []).forEach((x, xi) => {
         if (!x) return;
+        /* Фраза, найденная только по последнему слову («educational journey»
+           -> «journey»), - чужое значение и чужое произношение: пропускаем,
+           фразу объяснит движок. */
+        if (x.partial) return;
         if (info) info[String(chunk[xi] || x.word).toLowerCase()] = {
           matched: x.matched || x.word, audio: x.audio || null, ipa: x.ipa || null, pos: x.pos || null,
           senses: Array.isArray(x.senses) ? x.senses : (x.definition ? [{ def: x.definition, cefr: x.cefr, example: x.example }] : []),
