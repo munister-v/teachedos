@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1035">
+<link rel="stylesheet" href="styles/fonts.css?v=1036">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -131,16 +131,16 @@ a{text-decoration:none;color:inherit;}
   background:#24282C;color:#fff;box-shadow:0 4px 20px rgba(36,40,44,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=1035" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1035">
-<link rel="stylesheet" href="styles/harmony.css?v=1035">
-<link rel="stylesheet" href="styles/unify.css?v=1035">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1035">
+<script src="theme.js?v=1036" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1036">
+<link rel="stylesheet" href="styles/harmony.css?v=1036">
+<link rel="stylesheet" href="styles/unify.css?v=1036">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1036">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1035">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1035">
-<link rel="stylesheet" href="styles/controls.css?v=1035">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1035">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1036">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1036">
+<link rel="stylesheet" href="styles/controls.css?v=1036">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1036">
 </head>
 <body class="fx">
 
@@ -190,9 +190,9 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 
 <!-- Проигрыватель листа, общий с доской: без него лист ученику не показать. -->
-<script src="scripts/accent.js?v=1035"></script>
-<script src="scripts/hear-in-context.js?v=1035"></script>
-<script src="scripts/worksheet-play.js?v=1035"></script>
+<script src="scripts/accent.js?v=1036"></script>
+<script src="scripts/hear-in-context.js?v=1036"></script>
+<script src="scripts/worksheet-play.js?v=1036"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -438,6 +438,19 @@ function renderCardForStudent(host, card) {
     });
     wrap.appendChild(disp); wrap.appendChild(btn);
     host.appendChild(wrap);
+  } else if (card.type === 'worksheet' && card.data && card.data._wfPath) {
+    /* Урок-путь (Vocabulary Studio, игры, Speaking/Writing) проходят на самой
+       доске, в студии; отсюда - одна кнопка «Start» и отметка, когда закончил. */
+    const steps = (card.data._wfPath.steps || []).length;
+    const bid = (current.assignment && current.assignment.board_id) || (current.board && current.board.id) || '';
+    host.classList.add('is-message');
+    host.innerHTML = `<div class="card-empty" style="max-width:420px;margin:auto;text-align:center">
+      <div style="font-size:40px;margin-bottom:8px">📚</div>
+      <b style="font-size:18px;display:block;margin-bottom:6px">${esc(card.data.title || 'Lesson')}</b>
+      <p style="margin-bottom:16px;color:#5D614B">${steps > 1 ? steps + ' steps: words, practice games, speaking. ' : ''}It opens on the board - come back here and press “I finished” when you are done.</p>
+      <a class="runner-btn primary" style="display:inline-block;text-decoration:none" href="board.html?id=${encodeURIComponent(bid)}&open=${encodeURIComponent(card.id)}">▶ Start</a>
+      <div style="margin-top:12px"><button class="runner-btn" onclick="markCardDone('${esc(card.id)}')">I finished</button></div>
+    </div>`;
   } else if (card.type === 'worksheet' && card.data && typeof _buildInteractiveWSHtml === 'function') {
     /* Тот же проигрыватель, что и на доске (scripts/worksheet-play.js). До
        этого лист сюда просто не доезжал: ученик видел «isn't directly playable
@@ -607,10 +620,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=1035" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1035" defer></script>
-<script src="scripts/autogrow.js?v=1035" defer></script>
-<script src="pwa-boot.js?v=1035" defer></script>
-  <script src="scripts/signin-entry.js?v=1035" defer></script>
+<script src="scripts/nav-boost.js?v=1036" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1036" defer></script>
+<script src="scripts/autogrow.js?v=1036" defer></script>
+<script src="pwa-boot.js?v=1036" defer></script>
+  <script src="scripts/signin-entry.js?v=1036" defer></script>
 </body>
 </html>

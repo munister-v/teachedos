@@ -95,7 +95,7 @@ textarea.tas-in{min-height:58px;resize:vertical;}
     ov.innerHTML = `<div class="tas" role="dialog" aria-modal="true" aria-label="Assign to students">
       <div class="tas-head"><b>Assign to students</b><button type="button" class="tas-x" aria-label="Close">×</button></div>
       <div class="tas-body">
-        <div class="tas-game"><span>${esc(opts.icon || '🎮')}</span><div><b>${esc(opts.title)}</b><br><small>Students play it from their Assignments; the score comes back to you.</small></div></div>
+        <div class="tas-game"><span>${esc(opts.icon || '🎮')}</span><div><b>${esc(opts.title)}</b><br><small>It appears in the students' Assignments with a Start button, and they get a notification.</small></div></div>
         <div><span class="tas-lbl">Students <button type="button" class="tas-all" hidden>Select all</button></span><div class="tas-list"><div class="tas-empty">Loading your students…</div></div></div>
         <div><span class="tas-lbl">Due</span><div class="tas-due">
           <button type="button" data-days="1">Tomorrow</button><button type="button" data-days="3">In 3 days</button><button type="button" data-days="7" class="on">In a week</button><button type="button" data-days="">No date</button>
@@ -178,7 +178,7 @@ textarea.tas-in{min-height:58px;resize:vertical;}
   function forBoardCard(card) {
     open({
       title: (card.data && card.data.title) || 'Game',
-      icon: '🎮',
+      icon: card.data && card.data._wfPath ? '📚' : '🎮',
       async getTarget() {
         if (typeof currentBoardId === 'undefined' || !currentBoardId || typeof currentUser === 'undefined' || !currentUser) {
           throw new Error('Save this board to your account first (sign in), then assign.');

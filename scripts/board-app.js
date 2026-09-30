@@ -4406,6 +4406,7 @@ function _wpRender(el, card, focus) {
   if (window.TeachedThemes) window.TeachedThemes.apply(root, theme);
   const canTheme = !review && window.TeachedThemes && (card.__preview || (_wpOwnerOf(card) && !_wpPersonal()));
   const canRename = !review && !card.__preview && !!owner && !_wpPersonal();
+  const canAssign = !review && !card.__preview && !!owner && !_wpPersonal() && !!window.TeachEdAssign;
   const next = i < hi ? p.steps[i + 1] : null;
   const nextLabel = !next ? '' : WP_STUDIO_ROLES.includes(next.role) ? `Go to the ${next.title} →` : `Next: ${next.title} →`;
   const who = review ? review.list[review.i] : null;
@@ -4416,6 +4417,7 @@ function _wpRender(el, card, focus) {
           ${canRename ? `<button type="button" class="wp-title wp-rename" title="Rename this lesson">${esc(card.data.title || 'Lesson')}<i aria-hidden="true">✎</i></button>` : `<b class="wp-title">${esc(card.data.title || 'Lesson')}</b>`}</div>
         <div class="wp-acts">
           ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
+          ${canAssign ? `<button type="button" class="wp-btn wp-assign" title="Give this lesson to students as homework - they get it under Assignments with a Start button">📚 Assign as homework</button>` : ''}
           ${theme && focus && window.TeachedSounds ? window.TeachedSounds.btnHtml('wp-btn') : ''}
           ${canTheme ? `<button type="button" class="wp-btn wp-theme" title="Theme / Vibe - how the lesson looks for students">🎨${theme ? ' ' + esc((window.TeachedThemes.get(theme) || {}).name || '') : ' Theme'}</button>` : ''}
           ${cloudOwner && !review ? `<button type="button" class="wp-btn wp-students">👥 Students${assigned ? ` · ${assigned}` : ''}</button>` : ''}
@@ -4502,6 +4504,7 @@ function _wpRender(el, card, focus) {
   root.querySelector('.wp-next:not(.lf-finish)')?.addEventListener('click', () => _wpGo(card.id, i + 1));
   root.querySelector('.lf-finish')?.addEventListener('click', () => window.TeachedFlow.finish(card.id));
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
+  root.querySelector('.wp-assign')?.addEventListener('click', () => TeachEdAssign.forBoardCard(card));
   root.querySelector('.wp-rename')?.addEventListener('click', e => {
     const btn = e.currentTarget;
     const inp = document.createElement('input');
@@ -20801,6 +20804,16 @@ if (isBoardPhone() && state.cards.length) {
 
 updateEmpty();
 renderMinimap();
+
+/* Кнопка Start из домашки: ?open=<id карточки> сразу открывает её студию. */
+Promise.resolve(loaded).then(() => {
+  const p = new URLSearchParams(location.search);
+  const cid = p.get('open');
+  if (!cid) return;
+  p.delete('open');
+  history.replaceState({}, '', location.pathname + (p.toString() ? '?' + p.toString() : ''));
+  setTimeout(() => { try { if (_wpCard(cid) && _wpCard(cid).data && _wpCard(cid).data._wfPath) openCardStudio(cid); } catch {} }, 400);
+}).catch(() => {});
 
 /* ════════ COMMUNITY IMPORT - ?communityImport=<base64> ════════ */
 // Parsed early; applied only after the user confirms AND after initUserBoard() has settled,

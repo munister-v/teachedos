@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { createNotification } = require('./notifications');
 
 router.use(requireAuth);
 
@@ -64,6 +65,14 @@ async function seatTeacherStudents(teacherId, boardId, rawIds) {
   return ok;
 }
 
+/* Личное уведомление ученику: что задали и к какому сроку. Кабинет ученика
+   (Assignments) показывает сам список с кнопкой Start. */
+async function notifyAssigned(teacherName, hw, studentIds) {
+  const due = hw.due_at ? new Date(hw.due_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
+  const body = `${teacherName || 'Your teacher'} gave you "${hw.title}"${due ? ` - due ${due}` : ''}. Open Assignments and press Start.`;
+  await Promise.all(studentIds.map(id => createNotification(id, 'homework', 'New homework', body, 'student.html').catch(() => {})));
+}
+
 router.post('/', requireTeacher, async (req, res) => {
   try {
     const {
@@ -114,6 +123,7 @@ router.post('/', requireTeacher, async (req, res) => {
            ON CONFLICT DO NOTHING`,
           [hw.id, ...params]
         );
+        await notifyAssigned(req.user.name, hw, filteredIds);
       }
     }
 
@@ -243,6 +253,7 @@ router.post('/:id/assign', requireTeacher, async (req, res) => {
        RETURNING *`,
       [hw.id, ...params]
     );
+    if (rows.length) await notifyAssigned(req.user.name, hw, rows.map(r => r.student_id));
     res.json({ assigned: rows.length, assignments: rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
