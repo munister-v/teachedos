@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1036"></script>
-<link rel="manifest" href="manifest.json?v=1036">
+<script src="scripts/phone-gate.js?v=1037"></script>
+<link rel="manifest" href="manifest.json?v=1037">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1036">
-<link rel="preload" as="style" href="styles/unify.css?v=1036">
+<link rel="preload" as="style" href="styles/harmony.css?v=1037">
+<link rel="preload" as="style" href="styles/unify.css?v=1037">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -444,6 +444,10 @@ a{text-decoration:none;color:inherit;}
 .bal-add #bal-new-n{width:52px}
 .bal-add button{height:34px;padding:0 11px;border:1px solid var(--text);border-radius:9px;background:#CDF649;font:750 12px var(--font);cursor:pointer;color:#24282C}
 .bal-empty{font-size:11.5px;color:var(--text3);line-height:1.45;margin-bottom:2px}
+.bal-recap{margin:-2px 0 8px;padding:9px 10px;border:1px dashed var(--border);border-radius:10px;background:#FBFDF0;font-size:11.5px;line-height:1.45;color:var(--text)}
+.bal-recap .bal-recap-btns{display:flex;gap:6px;margin-top:7px}
+.bal-recap button{border:1px solid var(--text);background:#fff;border-radius:8px;padding:4px 9px;font:700 11px var(--font);cursor:pointer;color:var(--text)}
+.bal-recap button.main{background:#CDF649}
 .bal-pack{border:1px solid var(--text);background:#CDF649;border-radius:8px;padding:4px 8px;font:750 11px var(--font);color:#24282C;cursor:pointer;white-space:nowrap}
 .bal-pack:hover{background:#bfe63a}
 .bal-paid{border-color:#2e7d32;background:#dff7c0}
@@ -466,10 +470,10 @@ a{text-decoration:none;color:inherit;}
 .lesson-done button.main{background:#CDF649;color:#24282C}
 .lesson-done button:hover{filter:brightness(1.12)}
 </style>
-<script src="theme.js?v=1036" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1036">
-<link rel="stylesheet" href="styles/harmony.css?v=1036">
-<link rel="stylesheet" href="styles/unify.css?v=1036">
+<script src="theme.js?v=1037" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1037">
+<link rel="stylesheet" href="styles/harmony.css?v=1037">
+<link rel="stylesheet" href="styles/unify.css?v=1037">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -501,18 +505,18 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1036">
-<link rel="stylesheet" href="styles/tool-window.css?v=1036">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1037">
+<link rel="stylesheet" href="styles/tool-window.css?v=1037">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1036">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1036">
-<link rel="stylesheet" href="styles/controls.css?v=1036">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=1036">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1037">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1037">
+<link rel="stylesheet" href="styles/controls.css?v=1037">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=1037">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1036">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1036">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1036">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1036">
+<link rel="stylesheet" href="styles/polish.css?v=1037">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1037">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1037">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1037">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -824,7 +828,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=1036"></script>
+<script src="scripts/app-core.js?v=1037"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1266,11 +1270,14 @@ function renderBalances() {
     const n = Number(s.lessons_left) || 0;
     const size = Number(s.pack_size) || 8;
     const claimed = !!s.paid_claim_at;
+    const rc = recapOpen[s.id];
+    const recap = rc ? `<div class="bal-recap">${rc.text ? esc(rc.text) : 'Nothing recorded for this package yet.'}
+        <div class="bal-recap-btns"><button type="button" class="main" onclick="sendRecap('${esc(s.id)}')">Send to ${esc(s.name.split(' ')[0])}</button><button type="button" onclick="copyRecap('${esc(s.id)}')">Copy</button></div></div>` : '';
     return `<div class="bal-row ${balanceClass(n)}">
-      <div class="bal-name">${esc(s.name)}${claimed ? '<small>says they paid</small>' : n <= 0 ? '<small>ask for the next package</small>' : ''}</div>
+      <div class="bal-name">${esc(s.name)}${claimed ? '<small>says they paid</small>' : n <= 0 ? '<small>ask for the next package</small>' : ''}${n <= 1 ? `<small><button type="button" class="bal-link" onclick="toggleRecap('${esc(s.id)}')">${rc ? 'Hide recap' : 'Package recap'}</button></small>` : ''}</div>
       <button type="button" class="bal-left" onclick="setBalance('${esc(s.id)}')" title="Click to correct the number">${n} left</button>
       <button type="button" class="bal-pack${claimed ? ' bal-paid' : ''}" onclick="addPack('${esc(s.id)}')" title="${claimed ? 'Payment received - add the package' : 'Payment received? Add the package'}">${claimed ? '✓ ' : ''}+${size}</button>
-    </div>`;
+    </div>${recap}`;
   }).join('');
 }
 
@@ -1305,11 +1312,38 @@ async function onStudentPick(sel) {
   } catch (e) { sel.value = ''; toast(e.message, 'err'); }
 }
 
+// Package recap: what the student got since the last top-up, ready to send or paste.
+const recapOpen = {};
+async function toggleRecap(id) {
+  if (recapOpen[id]) { delete recapOpen[id]; renderBalances(); return; }
+  recapOpen[id] = { text: '' };
+  renderBalances();
+  try {
+    const d = await apiFetch(`/api/journal/${id}/snapshot`);
+    const left = Number(d.lessons_left) || 0;
+    const ask = left <= 0 ? 'Your package is finished - shall we book the next one?' : `${left} lesson${left === 1 ? '' : 's'} left - the next package can start when you are ready.`;
+    recapOpen[id].text = [d.snapshot.text, ask].filter(Boolean).join(' ');
+  } catch (e) { toast(e.message, 'err'); }
+  renderBalances();
+}
+async function sendRecap(id) {
+  try {
+    await apiFetch(`/api/journal/${id}/recap`, { method: 'POST', body: JSON.stringify({}) });
+    toast('Recap sent ✅', 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+async function copyRecap(id) {
+  const text = recapOpen[id] && recapOpen[id].text;
+  if (!text) return;
+  try { await navigator.clipboard.writeText(text); toast('Copied ✅', 'ok'); } catch { prompt('Copy the recap:', text); }
+}
+
 async function addPack(id) {
   try {
     const d = await apiFetch(`/api/journal/${id}/pack`, { method: 'POST', body: JSON.stringify({}) });
     const s = journalStudent(id);
     if (s) Object.assign(s, d.student);
+    delete recapOpen[id];
     renderBalances();
     toast(`+${d.added} lessons · ${d.student.lessons_left} left ✅`, 'ok');
   } catch (e) { toast(e.message, 'err'); }
@@ -2493,16 +2527,16 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="scripts/schedule-booking.js?v=1036"></script>
-<script src="pwa.js?v=1036"></script>
-<script src="scripts/nav-boost.js?v=1036" defer></script>
-<script src="scripts/mobile-perf.js?v=1036" defer></script>
-<script src="scripts/mobile-nav.js?v=1036"></script>
-<script src="scripts/autogrow.js?v=1036" defer></script>
-<script src="pwa-boot.js?v=1036" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1036" defer></script>
-  <script src="scripts/signin-entry.js?v=1036" defer></script>
-<script src="scripts/nav-bell.js?v=1036" defer></script>
+<script src="scripts/schedule-booking.js?v=1037"></script>
+<script src="pwa.js?v=1037"></script>
+<script src="scripts/nav-boost.js?v=1037" defer></script>
+<script src="scripts/mobile-perf.js?v=1037" defer></script>
+<script src="scripts/mobile-nav.js?v=1037"></script>
+<script src="scripts/autogrow.js?v=1037" defer></script>
+<script src="pwa-boot.js?v=1037" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1037" defer></script>
+  <script src="scripts/signin-entry.js?v=1037" defer></script>
+<script src="scripts/nav-bell.js?v=1037" defer></script>
 <div class="lesson-done" id="lesson-done" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

@@ -905,3 +905,7 @@ ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS paid_claim_at TIMESTAMPTZ;
 -- Where students send the money (card, IBAN, PayPal...). Free text, shown only
 -- to the teacher's own students; the platform never touches the payment.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS pay_details TEXT;
+
+-- Progress snapshot: when the current lesson package began (last top-up).
+-- NULL = since the student was added.
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pack_started_at TIMESTAMPTZ;

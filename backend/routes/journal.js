@@ -43,6 +43,36 @@ router.post('/', async (req, res) => {
 const CHARGING = new Set(['present', 'no_show']);
 const LESSON_STATUSES = new Set(['present', 'cancelled', 'no_show']);
 
+/* ── PROGRESS SNAPSHOT ───────────────────────────────────────────────────
+   Что ученик получил за текущий пакет (с последнего пополнения): уроки,
+   новые фразы в словаре, сделанная домашка. Только то, что платформа
+   действительно знает - нулевые пункты в текст не попадают. */
+async function packSnapshot(j) {
+  const since = j.pack_started_at || j.created_at;
+  let uid = j.student_id || null;
+  if (!uid && j.email) {
+    const u = await pool.query('SELECT id FROM users WHERE lower(email)=lower($1) LIMIT 1', [j.email]);
+    uid = u.rows[0] ? u.rows[0].id : null;
+  }
+  const { rows } = await pool.query(
+    `SELECT
+       (SELECT COUNT(*) FROM attendance a WHERE a.journal_id=$1 AND a.status='present' AND a.date >= $2::timestamptz::date)::int AS lessons,
+       (SELECT COUNT(*) FROM attendance a WHERE a.journal_id=$1 AND a.status='no_show' AND a.date >= $2::timestamptz::date)::int AS no_show,
+       (SELECT COUNT(*) FROM vocabulary v WHERE $3::uuid IS NOT NULL AND v.user_id=$3 AND v.created_at >= $2)::int AS phrases,
+       (SELECT COUNT(*) FROM vocabulary v WHERE $3::uuid IS NOT NULL AND v.user_id=$3 AND v.last_reviewed_at >= $2)::int AS reviewed,
+       (SELECT COUNT(*) FROM homework_assignment ha JOIN homework h ON h.id=ha.homework_id
+         WHERE $3::uuid IS NOT NULL AND ha.student_id=$3 AND h.user_id=$4 AND ha.status IN ('submitted','graded') AND ha.submitted_at >= $2)::int AS homework`,
+    [j.id, since, uid, j.teacher_id]);
+  const n = rows[0];
+  const bits = [];
+  if (n.lessons) bits.push(`${n.lessons} lesson${n.lessons === 1 ? '' : 's'}`);
+  if (n.phrases) bits.push(`${n.phrases} new word${n.phrases === 1 ? '' : 's'} and phrase${n.phrases === 1 ? '' : 's'} in the dictionary`);
+  if (n.reviewed) bits.push(`${n.reviewed} reviewed`);
+  if (n.homework) bits.push(`${n.homework} homework task${n.homework === 1 ? '' : 's'} done`);
+  const since_day = new Date(since).toISOString().slice(0, 10);
+  return { ...n, since: since_day, text: bits.length ? `Since ${since_day}: ${bits.join(', ')}.` : '' };
+}
+
 /* Ученик: где он числится у преподавателей, остаток и реквизиты для перевода.
    Записи журнала связаны с аккаунтом по student_id или по почте (как и домашка). */
 router.get('/me/balance', async (req, res) => {
@@ -57,6 +87,13 @@ router.get('/me/balance', async (req, res) => {
         ORDER BY j.created_at`,
       [req.user.id, req.user.email || '']
     );
+    // Отчёт нужен, только когда пакет на исходе.
+    const full = await pool.query(
+      `SELECT * FROM student_journal WHERE id = ANY($1::uuid[])`, [rows.map(r => r.journal_id)]);
+    const byId = new Map(full.rows.map(r => [r.id, r]));
+    for (const r of rows) {
+      r.snapshot = Number(r.lessons_left) <= 1 && byId.get(r.journal_id) ? await packSnapshot(byId.get(r.journal_id)) : null;
+    }
     res.json({ balances: rows });
   } catch (err) {
     console.error('[journal/me/balance]', err.message);
@@ -108,6 +145,31 @@ router.get('/sessions', async (req, res) => {
   res.json({ sessions: rows });
 });
 
+/* Отчёт по текущему пакету и мягкое напоминание о продлении. */
+router.get('/:id/snapshot', async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM student_journal WHERE id=$1 AND teacher_id=$2', [req.params.id, req.user.id]);
+  if (!rows.length) return res.status(404).json({ error: 'not found' });
+  res.json({ snapshot: await packSnapshot(rows[0]), name: rows[0].name, lessons_left: rows[0].lessons_left });
+});
+router.post('/:id/recap', async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM student_journal WHERE id=$1 AND teacher_id=$2', [req.params.id, req.user.id]);
+  const j = rows[0];
+  if (!j) return res.status(404).json({ error: 'not found' });
+  const snap = await packSnapshot(j);
+  const left = Number(j.lessons_left);
+  const ask = left <= 0 ? 'Your package is finished - shall we book the next one?' : `${left} lesson${left === 1 ? '' : 's'} left - the next package can start when you are ready.`;
+  const text = [snap.text, ask].filter(Boolean).join(' ');
+  let who = j.student_id;
+  if (!who && j.email) {
+    const u = await pool.query('SELECT id FROM users WHERE lower(email)=lower($1) LIMIT 1', [j.email]);
+    who = u.rows[0] ? u.rows[0].id : null;
+  }
+  if (!who) return res.status(409).json({ error: 'This student is not on TeachEd yet - copy the text and send it in your messenger', text });
+  const sent = await createNotification(who, 'recap', 'Your progress this package', `${text} - ${req.user.name || 'your teacher'}`, 'portal.html');
+  if (!sent) return res.status(502).json({ error: 'The message could not be sent', text });
+  res.json({ ok: true, text });
+});
+
 /* «+пакет» одним нажатием: остаток растёт, пометка «я оплатил» и просрочка
    оплаты снимаются - деньги пришли. */
 router.post('/:id/pack', async (req, res) => {
@@ -116,7 +178,7 @@ router.post('/:id/pack', async (req, res) => {
   const n = Math.max(1, Math.min(200, parseInt(req.body?.lessons, 10) || cur[0].pack_size || 8));
   const { rows } = await pool.query(
     `UPDATE student_journal
-        SET lessons_left = lessons_left + $3, paid_claim_at = NULL,
+        SET lessons_left = lessons_left + $3, paid_claim_at = NULL, pack_started_at = NOW(),
             payment_due = CASE WHEN payment_due <= CURRENT_DATE THEN NULL ELSE payment_due END
       WHERE id=$1 AND teacher_id=$2 RETURNING *, to_char(payment_due, 'YYYY-MM-DD') AS payment_due`,
     [req.params.id, req.user.id, n]
