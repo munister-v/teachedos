@@ -2290,6 +2290,36 @@ Rules:
   }
 });
 
+/* POST /api/ai/transcribe?lang=en&prompt=… - тело: сырое аудио (WAV, до ~5 минут).
+   Учитель перетаскивает аудиофайл с компьютера в мастер урока; браузер режет
+   его на куски по 5 минут в моно 16 кГц, каждый идёт сюда, текст склеивается
+   на странице. Считается по квоте учителя как небольшой запрос. */
+const transcribeLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: Number(process.env.AI_TRANSCRIBE_PER_HOUR || 60),
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many audio files this hour. Try again later.' },
+});
+router.post('/transcribe', requireAuth, requireTeacher, transcribeLimiter,
+  require('express').raw({ type: () => true, limit: '12mb' }), async (req, res) => {
+  let reservation = null;
+  try {
+    if (!aiEngine.transcribeEnabled()) return res.status(503).json({ error: 'Turning audio into a script is not available on this server' });
+    const buf = Buffer.isBuffer(req.body) ? req.body : null;
+    if (!buf || buf.length < 2000) return res.status(400).json({ error: 'No audio received' });
+    reservation = await reserveAiQuota(req.user, { mode: 'transcribe', source: '' });
+    const text = await aiEngine.transcribeAudio(buf, 'audio/wav', {
+      language: String(req.query.lang || 'en'), prompt: String(req.query.prompt || ''),
+    });
+    await settleAiQuota(req.user, reservation, 0.006).catch(() => {});
+    recordUsage('llm_ok');
+    res.json({ text });
+  } catch (err) {
+    if (reservation) await releaseAiQuota(req.user, reservation).catch(() => {});
+    console.error('[ai/transcribe]', err.message);
+    res.status(err.status === 429 ? 429 : (err.status || 500)).json({ error: err.message || 'Could not read the audio' });
+  }
+});
+
 /* POST /api/ai/homework-feedback {assignmentId, cardId, text}
    Мгновенный разбор письменной домашки для ученика: что удалось (цитаты из его
    текста) и что поправить, мягко и на уровне класса. Тратится ИИ-квота

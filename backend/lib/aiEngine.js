@@ -1396,4 +1396,31 @@ async function rawGenerate(userPrompt) {
   throw lastErr || new Error('All AI providers failed');
 }
 
-module.exports = { enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, getLastTrace, getLastTier, listModels, FREE_MODELS };
+/* Распознавание речи (Whisper) на том же ключе, что и остальной ИИ. Groq и
+   OpenAI отдают один и тот же /audio/transcriptions; модель выбирается по
+   адресу, а при необходимости переопределяется AI_TRANSCRIBE_MODEL (и
+   AI_TRANSCRIBE_URL / AI_TRANSCRIBE_KEY, если распознавание живёт отдельно). */
+function transcribeEnabled() { return !!(process.env.AI_TRANSCRIBE_KEY || PRIMARY_KEY); }
+async function transcribeAudio(buffer, mime, opts = {}) {
+  const key = process.env.AI_TRANSCRIBE_KEY || PRIMARY_KEY;
+  if (!key) throw Object.assign(new Error('Speech recognition is not configured on this server'), { status: 503 });
+  const base = (process.env.AI_TRANSCRIBE_URL || PRIMARY_URL).replace(/\/+$/, '');
+  const model = process.env.AI_TRANSCRIBE_MODEL || (/groq\.com/i.test(base) ? 'whisper-large-v3-turbo' : 'whisper-1');
+  const fd = new FormData();
+  fd.append('file', new Blob([buffer], { type: mime || 'audio/wav' }), 'audio.wav');
+  fd.append('model', model);
+  fd.append('response_format', 'json');
+  fd.append('temperature', '0');
+  if (opts.language) fd.append('language', String(opts.language).slice(0, 5));
+  if (opts.prompt) fd.append('prompt', String(opts.prompt).slice(-400));
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 90000);
+  try {
+    const r = await fetch(base + '/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: fd, signal: ctrl.signal });
+    const d = await r.json().catch(() => null);
+    if (!r.ok) throw Object.assign(new Error((d && d.error && (d.error.message || d.error)) || `Speech recognition failed (HTTP ${r.status})`), { status: r.status === 429 ? 429 : 502 });
+    return String((d && d.text) || '').trim();
+  } finally { clearTimeout(timer); }
+}
+
+module.exports = { transcribeAudio, transcribeEnabled, enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, getLastTrace, getLastTier, listModels, FREE_MODELS };

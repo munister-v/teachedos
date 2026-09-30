@@ -15866,7 +15866,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1043';
+const TEACHEDOS_ASSET_VERSION = '1044';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18860,7 +18860,7 @@ function renderLessonWizard() {
     ? 'Where does the word list come from?'
     : 'Where does the material come from?';
   if (sub)    sub.textContent    = boardLessonWizard.skill === 'listening'
-    ? 'A video to listen to, or a transcript you already have.'
+    ? 'A video, an audio file from your computer, or a transcript you already have.'
     : boardLessonWizard.skill === 'vocabulary'
     ? 'Bring your own list, or let it be picked for you.'
     : 'Bring your own, or let the text be written for you.';
@@ -18868,7 +18868,7 @@ function renderLessonWizard() {
     .filter(s => !s.skills || s.skills.includes(boardLessonWizard.skill));
   /* У аудирования ссылка идёт первой: готовый транскрипт под рукой - это
      редкость, а ссылка на видео - обычный случай. */
-  if (boardLessonWizard.skill === 'listening') sources.sort((a, b) => Number(!!b.link) - Number(!!a.link));
+  if (boardLessonWizard.skill === 'listening') { const rank = s => (s.link ? 0 : s.audio ? 1 : 2); sources.sort((a, b) => rank(a) - rank(b)); }
   host.innerHTML = `<div class="tb-wiz-grid">${sources.map(s => `
     <button type="button" class="tb-wiz-card" onclick="pickLessonSource('${esc(s.key)}')">
       <span class="tb-wiz-ic">${esc(s.icon)}</span>
@@ -19030,7 +19030,7 @@ function pickLessonSource(key) {
 function _wizRenderSourceTools(src) {
   const host = document.getElementById('tb-wiz-source-tools');
   if (!host) return;
-  if (!src || (!src.ocr && !src.link && !src.extractTool && !src.news)) { host.hidden = true; host.innerHTML = ''; return; }
+  if (!src || (!src.ocr && !src.link && !src.audio && !src.extractTool && !src.news)) { host.hidden = true; host.innerHTML = ''; return; }
   host.hidden = false;
   /* У студии вокабуляра блок добычи слов стоит НАД списком: раньше он жил
      у скрытого поля источника - под списком и «названием набора», то есть
@@ -19070,6 +19070,29 @@ function _wizRenderSourceTools(src) {
              <span class="tb-wiz-tool-note" id="tb-wiz-extract-note">Or click words in the text yourself - select several words to add a phrase.</span>
            </div>
          </div>`;
+    return;
+  }
+  if (src.audio) {
+    host.innerHTML = `
+      <div class="tb-wiz-tool">
+        <input type="file" id="tb-wiz-audio-file" accept="audio/*,video/mp4,.mp3,.m4a,.wav,.ogg,.aac,.flac" hidden onchange="transcribeLessonAudio(this.files && this.files[0]); this.value='';">
+        <div class="tb-wiz-drop" id="tb-wiz-audio-drop" tabindex="0" role="button"
+             aria-label="Add an audio file: drop it here or click to choose one"
+             onclick="document.getElementById('tb-wiz-audio-file').click()"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('tb-wiz-audio-file').click();}">
+          <span class="tb-wiz-drop-ic" aria-hidden="true">🎧</span>
+          <span class="tb-wiz-drop-tx">
+            <b>Drop an audio file here</b>
+            <small>mp3, m4a, wav … up to 30 minutes. Click to choose a file from your computer.</small>
+          </span>
+        </div>
+        <span class="tb-wiz-tool-note" id="tb-wiz-audio-note">The script is written for you and lands in the text box below. The audio itself stays on your computer - play it in class.</span>
+      </div>`;
+    // Плеера на доске у файла нет: снимаем галочку «видео», остальное как у аудирования.
+    setTimeout(() => {
+      const v = document.querySelector('#tbuilder-stages input[value="lis-video"]');
+      if (v && v.checked) { v.checked = false; if (typeof onBoardStagePickChange === 'function') onBoardStagePickChange(); }
+    }, 60);
     return;
   }
   if (src.ocr) {
@@ -19475,6 +19498,106 @@ function _ttPasteKeyLabel() {
 function _ttPickImageFile(list) {
   return Array.from(list || []).find(f => f && /^image\//.test(f.type)) || null;
 }
+
+/* ── Аудио с компьютера → скрипт ─────────────────────────────────────────
+   Файл (mp3, m4a, wav …) перетаскивают в рамку. Браузер декодирует его,
+   переводит в моно 16 кГц и режет на куски по 5 минут (WAV ~9 МБ), каждый
+   уходит на /api/ai/transcribe, тексты склеиваются в скрипт в поле источника.
+   Сам файл на сервер не сохраняется: на уроке его включают у себя на
+   компьютере. До 30 минут за раз. */
+function _audioResample(data, from, to) {
+  if (from === to) return data;
+  const ratio = from / to, n = Math.floor(data.length / ratio), out = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const p = i * ratio, a = Math.floor(p), b = Math.min(a + 1, data.length - 1);
+    out[i] = data[a] + (data[b] - data[a]) * (p - a);
+  }
+  return out;
+}
+function _audioWavBlob(samples, rate) {
+  const buf = new ArrayBuffer(44 + samples.length * 2), v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) { const s = Math.max(-1, Math.min(1, samples[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true); }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+async function _audioToWavChunks(file, chunkSec = 300, maxSec = 1800) {
+  const ab = await file.arrayBuffer();
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) throw new Error('This browser cannot read audio files.');
+  let ac;
+  try { ac = new Ctx({ sampleRate: 16000 }); } catch (_) { ac = new Ctx(); }
+  let buf;
+  try { buf = await new Promise((res, rej) => ac.decodeAudioData(ab, res, rej)); }
+  catch (_) { throw new Error('This file could not be read. Try mp3, m4a or wav.'); }
+  finally { try { ac.close(); } catch (_) {} }
+  const mono = new Float32Array(buf.length);
+  for (let c = 0; c < buf.numberOfChannels; c++) { const ch = buf.getChannelData(c); for (let i = 0; i < mono.length; i++) mono[i] += ch[i] / buf.numberOfChannels; }
+  const data = _audioResample(mono, buf.sampleRate, 16000);
+  const minutes = data.length / 16000 / 60;
+  if (minutes > maxSec / 60) throw new Error(`This audio is ${Math.round(minutes)} minutes long - cut it to 30 minutes or less first.`);
+  const out = [];
+  for (let i = 0; i < data.length; i += chunkSec * 16000) out.push(_audioWavBlob(data.subarray(i, i + chunkSec * 16000), 16000));
+  return out;
+}
+function _audioReadable(text) {
+  const s = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  const sents = s.split(/(?<=[.!?])\s+/), paras = [];
+  for (let i = 0; i < sents.length; i += 4) paras.push(sents.slice(i, i + 4).join(' '));
+  return paras.join('\n\n');
+}
+async function transcribeLessonAudio(file) {
+  const note = document.getElementById('tb-wiz-audio-note');
+  const say = msg => { if (note) note.textContent = msg; };
+  if (!file) return;
+  if (!authToken) { say('Sign in to turn audio into a script.'); return; }
+  if (!/^(audio|video)\//.test(file.type) && !/\.(mp3|m4a|wav|ogg|oga|aac|flac|mp4|mov|webm)$/i.test(file.name)) { say('That is not an audio file. Try mp3, m4a or wav.'); return; }
+  const zone = document.getElementById('tb-wiz-audio-drop');
+  zone && zone.classList.add('is-busy');
+  try {
+    say('Reading the file…');
+    const chunks = await _audioToWavChunks(file);
+    const parts = [];
+    for (let i = 0; i < chunks.length; i++) {
+      say(chunks.length > 1 ? `Writing the script… part ${i + 1} of ${chunks.length}` : 'Writing the script…');
+      const tail = (parts[parts.length - 1] || '').slice(-200);
+      const r = await fetch(API + '/api/ai/transcribe?lang=en&prompt=' + encodeURIComponent(tail), {
+        method: 'POST', headers: { Authorization: 'Bearer ' + authToken, 'Content-Type': 'audio/wav' }, body: chunks[i],
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || `Could not write the script (HTTP ${r.status})`);
+      parts.push(d.text || '');
+    }
+    const text = _audioReadable(parts.join(' '));
+    if (!text) throw new Error('No speech was found in this file.');
+    _wizFillSource(text);
+    if (boardLessonWizard) boardLessonWizard.media = null;     // плеера нет: файл остаётся у учителя
+    const topic = document.getElementById('tbuilder-topic');
+    if (topic && !topic.value.trim()) { topic.value = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 60); topic.dispatchEvent(new Event('input', { bubbles: true })); }
+    say(`Script ready - ${text.split(/\s+/).length} words. Listen along and fix names or slang in the text below if needed.`);
+  } catch (e) {
+    say(e.message || 'Could not write the script.');
+  } finally { zone && zone.classList.remove('is-busy'); }
+}
+document.addEventListener('dragover', e => {
+  const zone = document.getElementById('tb-wiz-audio-drop');
+  if (!zone || !e.target.closest || !e.target.closest('#tb-wiz-audio-drop')) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; zone.classList.add('is-over');
+});
+document.addEventListener('dragleave', e => {
+  if (e.target.closest && e.target.closest('#tb-wiz-audio-drop')) document.getElementById('tb-wiz-audio-drop')?.classList.remove('is-over');
+});
+document.addEventListener('drop', e => {
+  const zone = document.getElementById('tb-wiz-audio-drop');
+  if (!zone || !e.target.closest || !e.target.closest('#tb-wiz-audio-drop')) return;
+  e.preventDefault(); zone.classList.remove('is-over');
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) transcribeLessonAudio(f);
+});
 
 function _wizOcrDropzone() {
   return document.getElementById('tb-wiz-drop');

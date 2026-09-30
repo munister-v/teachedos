@@ -65,12 +65,61 @@ async function seatTeacherStudents(teacherId, boardId, rawIds) {
   return ok;
 }
 
+/* Слова домашки - в личный словарь ученика (Vault) сразу, чтобы отрабатывать
+   их между уроками: целевые фразы заданий (голос, письмо) и слова игр на
+   карточках. Повторы не добавляются. Возвращает, сколько нового получил
+   КАЖДЫЙ ученик (для уведомления). */
+async function addHomeworkWordsToVault(hw, studentIds) {
+  try {
+    const { rows } = await pool.query('SELECT data FROM boards WHERE id=$1', [hw.board_id]);
+    const cards = (rows[0] && rows[0].data && rows[0].data.cards) || [];
+    const need = new Set((Array.isArray(hw.required_cards) ? hw.required_cards : []).map(String));
+    const found = new Map();
+    const add = (text, meaning, example) => {
+      const t = String(text || '').replace(/\s+/g, ' ').trim();
+      if (!t || t.length > 80 || /^\d+$/.test(t)) return;
+      const k = t.toLowerCase();
+      if (!found.has(k)) found.set(k, { text: t, meaning: String(meaning || '').replace(/\s+/g, ' ').trim().slice(0, 255), example: String(example || '').replace(/\s+/g, ' ').trim().slice(0, 600) });
+    };
+    cards.filter(c => need.has(String(c.id))).forEach(c => {
+      const d = c.data || {};
+      ((d._hwTask && d._hwTask.phrases) || []).forEach(p => add(p));
+      const cc = d.customContent || {};
+      [...(cc.pairs || []), ...(cc.items || []), ...(cc.cards || [])].forEach(x => x && add(x.a || x.word || x.term, x.b || x.meaning || x.definition, x.example));
+    });
+    const words = [...found.values()].slice(0, 40);
+    const added = new Map();
+    if (!words.length) return added;
+    for (const sid of studentIds) {
+      let n = 0;
+      for (const w of words) {
+        const dup = await pool.query("SELECT 1 FROM vocabulary WHERE user_id=$1 AND kind='word' AND lower(word)=lower($2) LIMIT 1", [sid, w.text]);
+        if (dup.rows[0]) continue;
+        await pool.query(
+          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title)
+           VALUES ($1,$2,$3,$4,'word',$5,$6)`, [sid, w.text, w.meaning, w.example, hw.board_id, String(hw.title || 'Homework').slice(0, 200)]);
+        n++;
+      }
+      added.set(sid, n);
+    }
+    return added;
+  } catch (err) {
+    console.error('[homework] vault words:', err.message);
+    return new Map();
+  }
+}
+
 /* Личное уведомление ученику: что задали и к какому сроку. Кабинет ученика
    (Assignments) показывает сам список с кнопкой Start. */
 async function notifyAssigned(teacherName, hw, studentIds) {
   const due = hw.due_at ? new Date(hw.due_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
-  const body = `${teacherName || 'Your teacher'} gave you "${hw.title}"${due ? ` - due ${due}` : ''}. Open Assignments and press Start.`;
-  await Promise.all(studentIds.map(id => createNotification(id, 'homework', 'New homework', body, 'student.html').catch(() => {})));
+  const added = await addHomeworkWordsToVault(hw, studentIds);
+  await Promise.all(studentIds.map(id => {
+    const n = added.get(id) || 0;
+    const body = `${teacherName || 'Your teacher'} gave you "${hw.title}"${due ? ` - due ${due}` : ''}. Open Assignments and press Start.`
+      + (n ? ` ${n} new word${n === 1 ? '' : 's'} ${n === 1 ? 'is' : 'are'} in your dictionary to practise.` : '');
+    return createNotification(id, 'homework', 'New homework', body, 'student.html').catch(() => {});
+  }));
 }
 
 router.post('/', requireTeacher, async (req, res) => {

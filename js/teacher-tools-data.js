@@ -1149,6 +1149,11 @@ const BOARD_LESSON_SOURCES = [
   {key:'link',  mode:'source',   field:'source', icon:'🔗', title:'A link', link:true,
    skills:['reading','listening'],
    hint:'A YouTube video (its transcript) or a web page.'},
+  /* Аудио с компьютера: файл перетаскивают в рамку, а скрипт пишет распознавание
+     речи (/api/ai/transcribe). Дальше урок строится по нему, как по своему тексту. */
+  {key:'audio', mode:'source',   field:'source', icon:'🎧', title:'Audio from my computer', audio:true,
+   skills:['listening'],
+   hint:'Drop an mp3, m4a or wav - the system listens to it and writes the script for the tasks.'},
   /* Свежая статья из открытых изданий (Guardian, BBC, ScienceDaily …),
      пересказанная на уровне класса (news-graded). mode:'source' - после
      пересказа текст ведёт себя как учительский: дальше обычный урок чтения
