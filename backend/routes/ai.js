@@ -2290,6 +2290,72 @@ Rules:
   }
 });
 
+/* POST /api/ai/homework-feedback {assignmentId, cardId, text}
+   Мгновенный разбор письменной домашки для ученика: что удалось (цитаты из его
+   текста) и что поправить, мягко и на уровне класса. Тратится ИИ-квота
+   УЧИТЕЛЯ, выдавшего задание (не ученика), и не больше пяти проверок на
+   задание. Цитаты в ответе сверяются с текстом ученика - выдуманные
+   отбрасываются. */
+const hwFeedbackLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many checks for now - try again in a while.' },
+});
+const HW_CHECKS = new Map();   // "assignment:card" -> сколько проверок уже сделано
+router.post('/homework-feedback', requireAuth, hwFeedbackLimiter, async (req, res) => {
+  let teacher = null, reservation = null;
+  try {
+    const { assignmentId, cardId } = req.body || {};
+    const text = String(req.body?.text || '').replace(/\r/g, '').trim().slice(0, 1500);
+    if (text.split(/\s+/).filter(Boolean).length < 8) return res.status(400).json({ error: 'Write a little more first - at least a couple of sentences.' });
+    if (!/^[0-9a-f-]{36}$/i.test(String(assignmentId || ''))) return res.status(400).json({ error: 'assignment required' });
+    const { rows } = await pool.query(
+      `SELECT h.user_id AS teacher_id, h.board_id FROM homework_assignment a JOIN homework h ON h.id = a.homework_id
+        WHERE a.id = $1 AND a.student_id = $2`, [assignmentId, req.user.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Assignment not found' });
+    const br = await pool.query('SELECT data FROM boards WHERE id = $1', [rows[0].board_id]);
+    const card = ((br.rows[0] && br.rows[0].data && br.rows[0].data.cards) || []).find(c => String(c.id) === String(cardId));
+    const task = card && card.data && card.data._hwTask;
+    if (!task || task.kind !== 'write') return res.status(400).json({ error: 'This task has no writing check' });
+    const key = assignmentId + ':' + cardId;
+    if ((HW_CHECKS.get(key) || 0) >= 5) return res.status(429).json({ error: 'You have used all 5 checks for this task - send it to your teacher.' });
+    if (!aiEngine.enabled()) return res.status(503).json({ error: 'The writing check is not available right now' });
+    teacher = (await pool.query('SELECT * FROM users WHERE id = $1', [rows[0].teacher_id])).rows[0];
+    if (!teacher) return res.status(404).json({ error: 'Teacher not found' });
+    reservation = await reserveAiQuota(teacher, { mode: 'hw-feedback', source: text });
+
+    const level = String(task.level || card.data.level || 'B1').slice(0, 4);
+    const phrases = (Array.isArray(task.phrases) ? task.phrases : []).map(x => String(x).slice(0, 80)).slice(0, 8);
+    const prompt = `You are a warm, encouraging English tutor giving instant feedback on a short piece of homework from a ${level} learner. Return ONLY a JSON object:
+{"summary":"1-2 friendly sentences","praise":[{"quote":"words copied EXACTLY from the student's text","comment":"why it is good, e.g. great collocation"}],"fixes":[{"quote":"words copied EXACTLY from the student's text","suggestion":"the corrected words","why":"a short simple reason"}],"used":["target phrases the student used"],"missing":["target phrases not used yet"]}
+Task prompt: ${String(task.prompt || '').slice(0, 400)}
+Target phrases: ${phrases.join(' | ') || '(none)'}
+Student text:
+"""${text}"""
+Rules: praise 1-3 real strengths, especially a well-used target phrase or a natural collocation ("great collocation!"). fixes: at most 3 of the most useful corrections (grammar, word choice, missing article/preposition), each quote must be a short exact substring of the student's text. Be kind, simple, and never rewrite the whole text. If there is nothing to fix, return an empty fixes array.`;
+    const raw = await aiEngine.rawGenerate(prompt);
+    METRICS.total++; METRICS.llmOk++; METRICS.lastAt = new Date().toISOString();
+    METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
+    const usd = recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage);
+    recordActualAiCost(teacher, usd);
+    await settleAiQuota(teacher, reservation, usd).catch(() => {});
+    HW_CHECKS.set(key, (HW_CHECKS.get(key) || 0) + 1);
+
+    const lower = text.toLowerCase();
+    const inText = q => { const s = String(q || '').trim(); return s && lower.includes(s.toLowerCase()) ? text.substr(lower.indexOf(s.toLowerCase()), s.length) : null; };
+    const s = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+    const praise = (Array.isArray(raw && raw.praise) ? raw.praise : []).map(x => ({ quote: inText(x && x.quote), comment: s(x && x.comment).slice(0, 160) }))
+      .filter(x => x.quote && x.comment).slice(0, 3);
+    const fixes = (Array.isArray(raw && raw.fixes) ? raw.fixes : []).map(x => ({ quote: inText(x && x.quote), suggestion: s(x && x.suggestion).slice(0, 160), why: s(x && x.why).slice(0, 160) }))
+      .filter(x => x.quote && x.suggestion).slice(0, 3);
+    const list = arr => (Array.isArray(arr) ? arr : []).map(x => s(x).slice(0, 80)).filter(Boolean).slice(0, 8);
+    res.json({ summary: s(raw && raw.summary).slice(0, 300), praise, fixes, used: list(raw && raw.used), missing: list(raw && raw.missing), checksLeft: 5 - (HW_CHECKS.get(key) || 0) });
+  } catch (err) {
+    if (teacher && reservation) await releaseAiQuota(teacher, reservation).catch(() => {});
+    console.error('[ai/homework-feedback]', err.message);
+    res.status(err.code === 'AI_MONTHLY_BUDGET_REACHED' ? 503 : (err.status || 500)).json({ error: err.code === 'AI_MONTHLY_BUDGET_REACHED' ? 'The writing check is resting for now - send your text to your teacher.' : (err.message || 'AI engine error') });
+  }
+});
+
 // ── POST /api/ai/wordset-guest - no login required ──────────────────────────
 // Powers the "AI assist" box on games/create.html for visitors without a
 // teacher account. IP-limited and capped to keep free-tier usage in check.

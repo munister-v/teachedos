@@ -15866,7 +15866,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1042';
+const TEACHEDOS_ASSET_VERSION = '1043';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17167,10 +17167,26 @@ function _placeWordTemplateGames(list, base) {
 
    Место ищется через findFreePlacement внутри самих укладчиков, поэтому
    карточки не ложатся стопкой. */
+/* Домашка-«действие»: карточка несёт data._hwTask, и страница домашки ученика
+   (scripts/hw-tasks.js) рисует запись голоса или письмо с разбором. */
+function _hwTaskFor(activity, out) {
+  const cards = Array.isArray(out && out.cards) ? out.cards : [];
+  const shortLines = s => String(s || '').split(/\n+/).map(x => x.replace(/^[-•\d.\s]+/, '').trim()).filter(x => x && x.length < 40);
+  if (activity.hwTask === 'voice') {
+    const phrases = (Array.isArray(out.vocab) && out.vocab.length ? out.vocab : shortLines(cards[2] && cards[2].text)).slice(0, 6);
+    return { kind: 'voice', teaser: String((cards[0] && cards[0].text) || ''), challenge: String((cards[1] && cards[1].text) || ''), phrases };
+  }
+  if (activity.hwTask === 'write') {
+    return { kind: 'write', prompt: String((cards[0] && cards[0].text) || out.title || 'Write a short text.').slice(0, 600),
+      phrases: (Array.isArray(out.vocab) ? out.vocab : []).slice(0, 6), level: out.level || '' };
+  }
+  return null;
+}
+
 function placeBoardWorkoutSet(base, built) {
   const leftovers = [];
 
-  built.forEach(({ activity, out }) => {
+  const placeOne = ({ activity, out }) => {
     /* Игровые payload'ы считаются из того же результата, что и в меню
        «Add to board → Play as game». Берём игру, названную у активности, а
        если конкретно её собрать не вышло - любую, которую результат потянул. */
@@ -17203,6 +17219,14 @@ function placeBoardWorkoutSet(base, built) {
     }
 
     leftovers.push({ activity, out });
+  };
+  built.forEach(b => {
+    const before = new Set((state.cards || []).map(c => c.id));
+    placeOne(b);
+    if (!b.activity.hwTask) return;
+    const task = _hwTaskFor(b.activity, b.out);
+    if (!task) return;
+    (state.cards || []).filter(c => !before.has(c.id)).forEach(c => { c.data = c.data || {}; c.data._hwTask = task; });
   });
 
   if (!leftovers.length) return;

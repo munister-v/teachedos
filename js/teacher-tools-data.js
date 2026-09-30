@@ -955,9 +955,9 @@ const BOARD_LESSON_STAGES = {
           {mode: 'many', label: 'Plus · optional',            keys: ['sp-hw']},
         ],
         options: [
-          {key:'sp-hw-voice', tool:'cliffhanger-challenge', title:'🎙 Voice or video cliffhanger', hint:'A short teaser that stops at the best moment - record 30-45 seconds on what happened next, using two new phrases.', ai:true, after:'source', homework:true},
+          {key:'sp-hw-voice', tool:'cliffhanger-challenge', hwTask:'voice', title:'🎙 Voice or video cliffhanger', hint:'A short teaser that stops at the best moment - record 30-45 seconds on what happened next, using two new phrases.', ai:true, after:'source', homework:true},
           {key:'sp-hw-game',  tool:'extract-vocab', game:'flashcards', title:'🎮 Interactive game & vocab box', hint:'The lesson’s phrases as a game with instant feedback - play, do not memorise.', ai:true, after:'source', homework:true},
-          {key:'sp-hw-write', tool:'creative-writing', title:'📝 Creative writing', hint:'A mini post or mini dialogue in the voice of a character, built on the lesson’s phrases.', ai:true, after:'source', homework:true,
+          {key:'sp-hw-write', tool:'creative-writing', hwTask:'write', title:'📝 Creative writing', hint:'A mini post or mini dialogue in the voice of a character, built on the lesson’s phrases.', ai:true, after:'source', homework:true,
            extra:'Homework: ask for a short creative mini-post or mini-dialogue (60-90 words) from the point of view of a character or on the lesson topic, and require at least three phrases from the lesson.'},
           {key:'sp-hw', tool:'homework-set', title:'Full homework set', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
         ],

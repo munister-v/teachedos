@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1042"></script>
+<script src="scripts/phone-gate.js?v=1043"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1042">
-<link rel="preload" as="style" href="styles/unify.css?v=1042">
+<link rel="preload" as="style" href="styles/harmony.css?v=1043">
+<link rel="preload" as="style" href="styles/unify.css?v=1043">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1042">
+<link rel="stylesheet" href="styles/fonts.css?v=1043">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -264,21 +264,21 @@ button{font-family:var(--font);cursor:pointer;}
 }
 
 </style>
-<script src="theme.js?v=1042" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1042">
-<link rel="stylesheet" href="styles/harmony.css?v=1042">
-<link rel="stylesheet" href="styles/unify.css?v=1042">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1042">
-<link rel="stylesheet" href="styles/tool-window.css?v=1042">
+<script src="theme.js?v=1043" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1043">
+<link rel="stylesheet" href="styles/harmony.css?v=1043">
+<link rel="stylesheet" href="styles/unify.css?v=1043">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1043">
+<link rel="stylesheet" href="styles/tool-window.css?v=1043">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1042">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1042">
-<link rel="stylesheet" href="styles/controls.css?v=1042">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1043">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1043">
+<link rel="stylesheet" href="styles/controls.css?v=1043">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1042">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1042">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1042">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1042">
+<link rel="stylesheet" href="styles/polish.css?v=1043">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1043">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1043">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1043">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -715,6 +715,31 @@ function renderList() {
   }).join('');
 }
 
+/* Присланное учеником: голос (слушать) и письмо (текст + разбор). */
+function workHtml(a, att, hw) {
+  const items = att.filter(t => t.data && (t.data.task === 'voice' || t.data.task === 'write'));
+  if (!items.length) return '';
+  return '<div class="hw-work" data-asg="'+esc(a.id)+'" style="margin:-4px 0 12px 40px;padding:10px 12px;border-radius:12px;background:rgba(205,246,73,.12);font-size:13px;line-height:1.5;">'+items.map(t => {
+    if (t.data.task === 'voice') return '<div>🎙 Voice answer' + (t.data.durationMs ? ' · ' + Math.round(t.data.durationMs/1000) + 's' : '') + ' <button type="button" class="btn ghost" style="padding:3px 10px;font-size:12px;" data-rec="'+esc(t.data.recordingId||'')+'" data-card="'+esc(t.card_id)+'">▶ Listen</button><span class="hw-audio"></span></div>';
+    return '<div>📝 <b>Writing</b><div style="white-space:pre-wrap;margin:4px 0;">'+esc(t.data.text||'')+'</div>' +
+      (t.data.used && t.data.used.length ? '<div style="color:var(--text2)">Used: '+t.data.used.map(esc).join(', ')+'</div>' : '') +
+      (t.data.feedback && t.data.feedback.summary ? '<div style="color:var(--text2)">AI feedback the student saw: '+esc(t.data.feedback.summary)+'</div>' : '') + '</div>';
+  }).join('')+'</div>';
+}
+function hydrateWork(root, hw) {
+  root.querySelectorAll('[data-rec]').forEach(btn => btn.addEventListener('click', async () => {
+    const id = btn.dataset.rec;
+    if (!id) { toast('The recording is missing'); return; }
+    btn.disabled = true;
+    try {
+      const r = await fetch(API + '/api/boards/' + encodeURIComponent(hw.board_id) + '/recordings/' + encodeURIComponent(id) + '/audio', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const url = URL.createObjectURL(await r.blob());
+      btn.parentNode.querySelector('.hw-audio').innerHTML = '<audio controls autoplay src="'+url+'" style="display:block;margin-top:6px;width:100%;"></audio>';
+      btn.remove();
+    } catch (e) { btn.disabled = false; toast('Could not load the recording: ' + e.message); }
+  }));
+}
 async function openDetail(id) {
   try {
     const d = offlineMode ? localDetail(id) : await api('/api/homework/' + id).catch(() => localDetail(id));
@@ -733,8 +758,9 @@ async function openDetail(id) {
         const att = byAsgn[a.id] || [];
         const completed = typeof a.final_score === 'number' || ['submitted','graded'].includes(a.status) ? required.length : att.filter(t => t.status === 'done').length;
         const pct = required.length ? Math.round((completed/required.length) * 100) : 0;
-        return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(205,246,73,.2);font-weight:700;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:650;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+String(a.status).replace('_',' ')+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:700;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+'</div></div>';
+        return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(205,246,73,.2);font-weight:700;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:650;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+String(a.status).replace('_',' ')+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:700;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+'</div></div>' + workHtml(a, att, hw);
       }).join('') : '<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No students assigned yet</div>');
+    hydrateWork(det, hw);
     det.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
   } catch (e) { toast('Error: ' + e.message); }
 }
@@ -862,16 +888,16 @@ function toast(msg) { const t = document.getElementById('toast'); t.textContent 
 init();
 </script>
 
-<script src="scripts/writing-shared.js?v=1042"></script>
-<script src="scripts/writing-review.js?v=1042"></script>
-<script src="scripts/nav-boost.js?v=1042" defer></script>
-<script src="scripts/mobile-perf.js?v=1042" defer></script>
-<script src="scripts/mobile-nav.js?v=1042"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1042" defer></script>
-<script src="scripts/autogrow.js?v=1042" defer></script>
-<script src="pwa-boot.js?v=1042" defer></script>
-  <script src="scripts/signin-entry.js?v=1042" defer></script>
-<script src="scripts/nav-bell.js?v=1042" defer></script>
-<script src="scripts/empty-stats.js?v=1042" defer></script>
+<script src="scripts/writing-shared.js?v=1043"></script>
+<script src="scripts/writing-review.js?v=1043"></script>
+<script src="scripts/nav-boost.js?v=1043" defer></script>
+<script src="scripts/mobile-perf.js?v=1043" defer></script>
+<script src="scripts/mobile-nav.js?v=1043"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1043" defer></script>
+<script src="scripts/autogrow.js?v=1043" defer></script>
+<script src="pwa-boot.js?v=1043" defer></script>
+  <script src="scripts/signin-entry.js?v=1043" defer></script>
+<script src="scripts/nav-bell.js?v=1043" defer></script>
+<script src="scripts/empty-stats.js?v=1043" defer></script>
 </body>
 </html>
