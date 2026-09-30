@@ -5257,6 +5257,35 @@ function openCardStudio(cardId) {
   document.body.classList.add('studio-open');
   _studioRender();
   if (card.data._wfPath) _wpRedraw(card);
+  _wpBindSwipe(ov);
+}
+/* Свайп между шагами урока в Studio - один слушатель на весь оверлей,
+   поставлен один раз при открытии (не на каждой перерисовке шага, иначе
+   он копился бы заново). .wp-prev/.wp-next уже несут disabled на первом/
+   последнем шаге, и .click() на disabled-кнопке ничего не делает - лишняя
+   проверка тут не нужна.
+
+   Жест внутри шага-iframe (Play-карточки игр, ww/*.html) сюда не долетает
+   вовсе: sandbox="allow-scripts" без allow-same-origin - это отдельный
+   browsing context, touch не всплывает через границу фрейма. Для шагов,
+   которые рисуют себя прямо в .wp-stage (vocab-studio, task-studio,
+   speak-studio…), порог в 80px и перекос 1.6:1 к горизонтали отличают свайп
+   от прокрутки текста или перетаскивания внутри самого задания. */
+function _wpBindSwipe(ov) {
+  let x0 = null, y0 = null;
+  ov.addEventListener('touchstart', e => {
+    const t = e.touches[0]; if (!t) return;
+    x0 = t.clientX; y0 = t.clientY;
+  }, { passive: true });
+  ov.addEventListener('touchend', e => {
+    if (x0 == null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = y0 = null;
+    if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    const btn = ov.querySelector(dx < 0 ? '.wp-next:not(.lf-finish)' : '.wp-prev');
+    btn?.click();
+  }, { passive: true });
 }
 function _studioRender() {
   const ov = document.getElementById('card-studio');
@@ -5294,6 +5323,21 @@ function closeCardStudio(silent) {
   if (window.TeachedSounds) window.TeachedSounds.ambient(null);
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('card-studio') && !document.getElementById('wp-students')) closeCardStudio(); });
+/* Стрелки клавиатуры = та же пара кнопок ← Back / Next →, что жмёт мышь.
+   Только внутри открытой Studio (лист или наведение по шагам всё равно
+   не пускает стрелки дальше своей карточки), и не тогда, когда стрелка
+   явно нужна где-то ещё: поле ввода, редактируемый текст, зажатый модификатор
+   (Cmd/Ctrl+← это «в начало строки» в инпуте, Alt/Option+← у некоторых раскладок
+   свой смысл). */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const ov = document.getElementById('card-studio');
+  if (!ov) return;
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
+  const btn = ov.querySelector(e.key === 'ArrowLeft' ? '.wp-prev' : '.wp-next:not(.lf-finish)');
+  if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+});
 
 /* ── Урок письма: порядок блоков, мастерская, присланные черновики ──
    Порядок - тот, в котором блоки легли в урок (_wfOrder), а не по
@@ -15866,7 +15910,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1045';
+const TEACHEDOS_ASSET_VERSION = '1046';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
