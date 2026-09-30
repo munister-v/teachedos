@@ -929,6 +929,12 @@ function shapeSpec(input) {
       schema: '{"cards":[{"title":"The Reality Check","text":"When did you last need this yourself?\\nPairs, 2 min, then one example from each pair."},{"title":"The Grey Area","text":"..."},{"title":"Common Misconception","text":"..."}],"vocab":["word"]}',
     };
   }
+  if (toolId === 'video-hook') {
+    return {
+      task: `${cardsHead} Generate "The Hook", a no-spoiler warm-up BEFORE students watch the video, at ${level} level. Use the transcript only to know what the video is about - never reveal how it ends or quote answers. Exactly 3 cards: 1) "Look and guess" - ask students to look at the title and first frame and guess what is about to happen, who is in it, where they are (2-3 short prompts, plus a sentence starter "I think … because …"); 2) "One provocative question" - a surprising or emotional question tied to the central idea of the video that students answer BEFORE watching, to be checked while they watch; 3) "Check your guess" - a short instruction to pause after about a minute and compare with their guess. Keep language simple enough for ${level}. Include "vocab" of 4-6 words they may hear.${context}`,
+      schema: '{"cards":[{"title":"Look and guess","text":"..."},{"title":"One provocative question","text":"..."},{"title":"Check your guess","text":"..."}],"vocab":["word"]}',
+    };
+  }
   if (toolId === 'this-or-that') {
     return {
       task: `${cardsHead} Generate exactly 5 "Would you rather…" warm-up cards on the topic for ${level} learners. Each card: "title" = "Would you rather… N", "text" = two vivid, concrete, slightly extreme options on separate lines starting "A: " and "B: " (short, easy to picture, no answer is obviously right), then a last line "💬 Why? Give me one reason." Vary the flavour: two silly, two personal, one tied closely to the topic. No trivia and no lecture - a choice takes five seconds. Include "vocab" of the key words the options use.${context}`,

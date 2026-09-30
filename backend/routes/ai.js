@@ -228,6 +228,7 @@ const TOOL_META = {
   'essay-topics': ['writing', 'Prompt'],
   'lead-in': ['speaking', 'Warm-up'],
   'interesting-facts': ['speaking', 'Content'],
+  'video-hook': ['listening', 'Warm-up'],
   'this-or-that': ['speaking', 'Warm-up'],
   'emoji-vibe': ['speaking', 'Warm-up'],
   'pros-cons': ['speaking', 'Discussion'],
@@ -786,6 +787,13 @@ function makeWarmupFormat(input) {
     ];
     return { ...base(input, 'cards'), cards: qs.map(([x, y], i) => ({ title: `Would you rather… ${i + 1}`, text: `A: ${x}\nB: ${y}\n💬 Why? Give me one reason.` })), vocab: [] };
   }
+  if (input.toolId === 'video-hook') {
+    return { ...base(input, 'cards'), cards: [
+      { title: 'Look and guess', text: 'Look at the title and the first frame (do not press play yet).\nWhat do you think is going to happen? Who is in it? Where are they?\nSay one guess and one reason.' },
+      { title: 'One provocative question', text: `Before we watch: what would surprise you most about ${t}?\nWrite your guess - we will check it while we watch.` },
+      { title: 'After the first minute', text: 'Pause after about a minute.\nWas your guess right? What clue told you?' },
+    ], vocab: [] };
+  }
   const rows = [['😄', '😴', '😤', '🤔', '😎'], ['🌍', '⏰', '💡', '🎯', '🤝'], ['👍', '👎', '🤷', '❤️', '😱']];
   const ask = [`Pick the emoji that matches your morning. Explain in two sentences.`, `Pick the emoji you connect with “${t}”. Why that one?`, `Pick the emoji that shows how you feel about “${t}”. What made you choose it?`];
   const heads = ['Your morning', `Your link with ${t}`, `Your opinion on ${t}`];
@@ -793,7 +801,7 @@ function makeWarmupFormat(input) {
 }
 
 function makeCards(input) {
-  if (input.toolId === 'this-or-that' || input.toolId === 'emoji-vibe') return makeWarmupFormat(input);
+  if (input.toolId === 'this-or-that' || input.toolId === 'emoji-vibe' || input.toolId === 'video-hook') return makeWarmupFormat(input);
   const words = vocabList(input, Math.max(8, input.count));
   const stages = {
     'lesson-pack': ['Warmer', 'Input', 'Controlled practice', 'Production', 'Feedback', 'Homework'],

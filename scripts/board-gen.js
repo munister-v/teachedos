@@ -1071,6 +1071,16 @@ function _ttGenThisOrThat(input){
     title:`${input.level} · This or That: ${t}`,
     cards: qs.map((q,i)=>({ title:`Would you rather… ${i+1}`, text:`A: ${q[0]}\nB: ${q[1]}\n💬 Why? Give me one reason.` })) };
 }
+function _ttGenVideoHook(input){
+  const t=input.topic||'the video';
+  return { boardKind:'cards', kind:'Warm-up', cat:'listening', level:input.level, topic:t,
+    title:`${input.level} · The Hook: ${t}`,
+    cards:[
+      { title:'Look and guess', text:`Look at the title and the first frame of the video (do not press play yet).\nWhat do you think is going to happen? Who is in it? Where are they?\nSay one guess and one reason.` },
+      { title:'One provocative question', text:`Before we watch: what would surprise you most about “${t}”?\nWrite your guess - we will check it while we watch.` },
+      { title:'After the first minute', text:`Pause after about a minute.\nWas your guess right? What clue told you?` },
+    ]};
+}
 function _ttGenEmojiVibe(input){
   const t=input.topic||'the topic';
   const rows=[['😄','😴','😤','🤔','😎'],['🌍','⏰','💡','🎯','🤝'],['👍','👎','🤷','❤️','😱']];
@@ -1966,6 +1976,7 @@ function generateTeacherToolLocal(input){
   if (id === 'lead-in')               return _ttGenLeadIn(input);
   if (id === 'interesting-facts')     return _ttGenInterestingFacts(input);
   if (id === 'this-or-that')          return _ttGenThisOrThat(input);
+  if (id === 'video-hook')            return _ttGenVideoHook(input);
   if (id === 'emoji-vibe')            return _ttGenEmojiVibe(input);
   if (id === 'pros-cons')             return _ttGenProsCons(input);
   if (id === 'comm-situations')       return _ttGenCommSituations(input);

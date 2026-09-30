@@ -13468,7 +13468,7 @@ const TT_NO_COUNT_SET = new Set([
   // it returns (task + word list + model, 4 opinions, pros/cons, …) and ignores
   // the Items value - so showing "Items: 40" only misleads (you set 40, get 3).
   'link-words','creative-writing','four-opinions','pros-cons','lead-in',
-  'interesting-facts','this-or-that','emoji-vibe','find-quotes','essay-topics',
+  'interesting-facts','this-or-that','emoji-vibe','video-hook','find-quotes','essay-topics',
   // Vocab tools whose output is strictly ONE item per target word the teacher
   // pastes - the count is dictated by the word list, not a number. Showing
   // "Items: 25" only misleads (paste 6 words, get 6 cards → "6 of 25"). The
@@ -15866,7 +15866,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1040';
+const TEACHEDOS_ASSET_VERSION = '1041';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18031,6 +18031,8 @@ async function runBoardLessonStages() {
     if (chip) chip.textContent = `building ${i + 1} of ${opts.length}…`;
     if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(o.title)}” — ${i + 1} of ${opts.length}.</div>`;
     const input = { ...base, tool: { id: o.tool } };
+    // Формулировка задания под роль на этапе (например, T/F до просмотра).
+    if (o.extra) input.extra = [base.extra, o.extra].filter(Boolean).join(' ');
     /* Вот ради чего этапы живут в конструкторе: задание получает тот
        самый текст, который ученик только что прочитал. Собранное
        отдельными инструментами оно спрашивало бы про тему вообще. */

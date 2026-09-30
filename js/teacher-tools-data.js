@@ -101,6 +101,7 @@ const BOARD_TEACHER_TOOLS = [
   {id:'essay-topics',cat:'writing',title:'Essay Topics',desc:'Generate essay prompts and questions on any topic.',kind:'Prompt'},
   {id:'lead-in',cat:'speaking',title:'Lead-in Activities',desc:'Create quick warm-up activities to introduce a topic.',kind:'Warm-up'},
   {id:'interesting-facts',cat:'speaking',title:'Interesting Facts',desc:'Generate fact-based discussion starters about a topic.',kind:'Content'},
+  {id:'video-hook',cat:'listening',title:'The Hook (before the video)',desc:'A no-spoiler teaser: guess what is about to happen from the title or first frame.',kind:'Warm-up'},
   {id:'this-or-that',cat:'speaking',title:'This or That',desc:'Five quick “Would you rather…” dilemmas that make students take a side.',kind:'Warm-up'},
   {id:'emoji-vibe',cat:'speaking',title:'Emoji Vibe Check',desc:'Pick the emoji that fits, then explain it in two sentences.',kind:'Warm-up'},
   {id:'pros-cons',cat:'speaking',title:'Pros and Cons',desc:'List arguments for and against a topic for debate practice.',kind:'Discussion'},
@@ -767,10 +768,18 @@ const BOARD_LESSON_STAGES = {
         key: 'pre',
         label: 'Before listening',
         question: 'How do you get them ready for it?',
+        /* Один формат разогрева под настроение урока; остальное - по желанию. */
+        groups: [
+          {mode: 'one',  label: 'Warm-up style · pick one', keys: ['lis-hook', 'lis-lead', 'lis-pretf', 'lis-warm']},
+          {mode: 'many', label: 'Plus · optional',          keys: ['lis-defs']},
+        ],
         options: [
-          {key:'lis-warm', tool:'warmup-listening',      title:'Prediction and key words', hint:'What they expect to hear, plus the words they will need.', ai:true, after:'source', on:true},
-          {key:'lis-defs', tool:'word-definition-match', title:'Match words to meanings',  hint:'Pairs for matching, cards or a memory game.', game:'memory-match'},
-          {key:'lis-lead', tool:'lead-in',               title:'Short lead-in questions',  hint:'Two or three questions that open the topic.', ai:true, after:'source'},
+          {key:'lis-hook',  tool:'video-hook',            title:'🎯 The hook',              hint:'A teaser to guess from the title or the first frame: what is about to happen?', ai:true, after:'source', on:true},
+          {key:'lis-lead',  tool:'lead-in',               title:'💬 Discussion starters',   hint:'Two or three questions to think about and talk over.', ai:true, after:'source'},
+          {key:'lis-pretf', tool:'true-false',            title:'🧩 True / False quiz',     hint:'Guess which statements are true - the video settles it.', ai:true, after:'source',
+           extra:'These statements are read BEFORE the video: make them surprising facts or myths about what the video says, so students guess and then check while watching. Do not make them easy to answer from general knowledge alone.'},
+          {key:'lis-warm',  tool:'warmup-listening',      title:'🔑 Vocabulary preview',    hint:'Prediction plus the key words - go by intuition, not memorising.', ai:true, after:'source'},
+          {key:'lis-defs',  tool:'word-definition-match', title:'Match words to meanings',  hint:'Pairs for matching, cards or a memory game - for hard terms.', game:'memory-match'},
         ],
       },
       /* Единственный этап, который не про задания, а про то, ЧТО лежит на
