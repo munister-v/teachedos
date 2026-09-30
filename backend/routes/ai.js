@@ -228,6 +228,8 @@ const TOOL_META = {
   'essay-topics': ['writing', 'Prompt'],
   'lead-in': ['speaking', 'Warm-up'],
   'interesting-facts': ['speaking', 'Content'],
+  'this-or-that': ['speaking', 'Warm-up'],
+  'emoji-vibe': ['speaking', 'Warm-up'],
   'pros-cons': ['speaking', 'Discussion'],
   'type-gap': ['grammar', 'Gap Fill'],
   'word-bank': ['grammar', 'Word Bank'],
@@ -771,7 +773,27 @@ function makeQuiz(input) {
   return { ...base(input, 'quiz'), questions, sections: teacherFlow(input) };
 }
 
+/* Разминки без модели: рамки под тему, факты не выдумываем. */
+function makeWarmupFormat(input) {
+  const t = input.topic || 'the topic';
+  if (input.toolId === 'this-or-that') {
+    const qs = [
+      [`talk about ${t} for an hour`, `write about ${t} for an hour`],
+      [`know everything about ${t}`, `be able to explain ${t} to anyone`],
+      [`try ${t} alone`, `try ${t} with your best friend`],
+      [`have ${t} in your life every day`, `only once a year, but perfectly`],
+      [`be an expert in ${t} but nobody asks you`, `know a little about ${t} and be asked about it all the time`],
+    ];
+    return { ...base(input, 'cards'), cards: qs.map(([x, y], i) => ({ title: `Would you rather… ${i + 1}`, text: `A: ${x}\nB: ${y}\n💬 Why? Give me one reason.` })), vocab: [] };
+  }
+  const rows = [['😄', '😴', '😤', '🤔', '😎'], ['🌍', '⏰', '💡', '🎯', '🤝'], ['👍', '👎', '🤷', '❤️', '😱']];
+  const ask = [`Pick the emoji that matches your morning. Explain in two sentences.`, `Pick the emoji you connect with “${t}”. Why that one?`, `Pick the emoji that shows how you feel about “${t}”. What made you choose it?`];
+  const heads = ['Your morning', `Your link with ${t}`, `Your opinion on ${t}`];
+  return { ...base(input, 'cards'), cards: rows.map((r, i) => ({ title: heads[i], text: `${r.join('   ')}\n${ask[i]}` })), vocab: [] };
+}
+
 function makeCards(input) {
+  if (input.toolId === 'this-or-that' || input.toolId === 'emoji-vibe') return makeWarmupFormat(input);
   const words = vocabList(input, Math.max(8, input.count));
   const stages = {
     'lesson-pack': ['Warmer', 'Input', 'Controlled practice', 'Production', 'Feedback', 'Homework'],

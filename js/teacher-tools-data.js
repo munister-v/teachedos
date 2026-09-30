@@ -101,6 +101,8 @@ const BOARD_TEACHER_TOOLS = [
   {id:'essay-topics',cat:'writing',title:'Essay Topics',desc:'Generate essay prompts and questions on any topic.',kind:'Prompt'},
   {id:'lead-in',cat:'speaking',title:'Lead-in Activities',desc:'Create quick warm-up activities to introduce a topic.',kind:'Warm-up'},
   {id:'interesting-facts',cat:'speaking',title:'Interesting Facts',desc:'Generate fact-based discussion starters about a topic.',kind:'Content'},
+  {id:'this-or-that',cat:'speaking',title:'This or That',desc:'Five quick “Would you rather…” dilemmas that make students take a side.',kind:'Warm-up'},
+  {id:'emoji-vibe',cat:'speaking',title:'Emoji Vibe Check',desc:'Pick the emoji that fits, then explain it in two sentences.',kind:'Warm-up'},
   {id:'pros-cons',cat:'speaking',title:'Pros and Cons',desc:'List arguments for and against a topic for debate practice.',kind:'Discussion'},
   {id:'type-gap',cat:'grammar',title:'Type Anything into Gap',desc:'Create open cloze gaps where students type a suitable word.',kind:'Gap Fill'},
   {id:'word-bank',cat:'grammar',title:'Fill from Word Bank',desc:'Gap-fill where students choose answers from a provided word bank.',kind:'Word Bank'},
@@ -730,6 +732,8 @@ const BOARD_LESSON_STAGES = {
           {key:'follow-role',   tool:'roleplay-cards',        title:'Role play',            hint:'Two-role cards built on the situation in the text.', ai:true, after:'source'},
           {key:'follow-write',  tool:'creative-writing',      title:'Let’s write',      hint:'A writing task with a frame, based on the text.', ai:true, after:'source'},
           {key:'follow-colloc', tool:'collocations',          title:'More work on the words',hint:'Collocations from the text plus short practice.', ai:true, after:'source'},
+          {key:'follow-go-vocab', handoff:'vocab', title:'Continue in Vocabulary Studio', hint:'Words from the text, then the games - the builder opens with the list already filled in.'},
+          {key:'follow-go-speak', handoff:'speak', title:'Continue in Speaking Studio',   hint:'Speaking tasks built on the same text - the builder opens next.'},
         ],
       },
       /* Домашка отдельным этапом, а не галочкой у заданий: она уезжает не
@@ -794,13 +798,18 @@ const BOARD_LESSON_STAGES = {
         key: 'post',
         label: 'After listening',
         question: 'How do you check they understood?',
+        /* Проверка понимания - ОДНА основная механика; углубление - по желанию. */
+        groups: [
+          {mode: 'one',  label: 'Quick check · pick one', keys: ['lis-choose', 'lis-tfng', 'lis-abcd', 'lis-tf']},
+          {mode: 'many', label: 'Go deeper · optional',   keys: ['lis-vocab', 'lis-open']},
+        ],
         options: [
-          {key:'lis-choose', tool:'choose-summary',   title:'Choose the right summary', hint:'Several summaries, students pick the one that fits.', ai:true, after:'source'},
+          {key:'lis-choose', tool:'choose-summary',   title:'Summary choice', hint:'Several summaries - students pick the one that fits. Quickest check of the gist.', ai:true, after:'source', on:true},
           {key:'lis-tf',     tool:'true-false',       title:'True / False statements',  hint:'Fast check that they followed it.', ai:true, after:'source'},
-          {key:'lis-tfng',   tool:'tf-not-given',     title:'True / False / Not Given', hint:'Exam-style: some statements the speaker never mentions.', ai:true, after:'source'},
-          {key:'lis-abcd',   tool:'abcd-text',        title:'ABC questions',            hint:'Multiple choice with one correct answer.', ai:true, after:'source'},
-          {key:'lis-open',   tool:'open-questions',   title:'Open questions',           hint:'Comprehension questions in their own words.', ai:true, after:'source', on:true},
-          {key:'lis-vocab',  tool:'vocab-in-context', title:'What the words meant here',hint:'Multiple choice on the sense a word had in this video.', ai:true, after:'source'},
+          {key:'lis-tfng',   tool:'tf-not-given',     title:'True / False / Not Given', hint:'Facts and traps - checks attention to detail.', ai:true, after:'source'},
+          {key:'lis-abcd',   tool:'abcd-text',        title:'ABC quiz',                 hint:'The classic multiple choice, one correct answer.', ai:true, after:'source'},
+          {key:'lis-open',   tool:'open-questions',   title:'Open discussion questions',hint:'A springboard from listening into speaking.', ai:true, after:'source', on:true},
+          {key:'lis-vocab',  tool:'vocab-in-context', title:'Contextual meaning',       hint:'What the words meant in this video - checks the vocabulary you taught.', ai:true, after:'source'},
         ],
       },
       {
@@ -812,6 +821,9 @@ const BOARD_LESSON_STAGES = {
           {key:'lis-role',   tool:'roleplay-cards',        title:'Role play',             hint:'Two-role cards built on the situation in the video.', ai:true, after:'source'},
           {key:'lis-write',  tool:'creative-writing',      title:'Let’s write',           hint:'A writing task with a frame, based on the video.', ai:true, after:'source'},
           {key:'lis-colloc', tool:'collocations',          title:'More work on the words',hint:'Collocations from the transcript plus short practice.', ai:true, after:'source'},
+          /* Не задания, а ПЕРЕХОД в другую студию с тем же текстом. */
+          {key:'lis-go-vocab', handoff:'vocab', title:'Continue in Vocabulary Studio', hint:'Words from the video, then the games - the builder opens with the list already filled in.'},
+          {key:'lis-go-speak', handoff:'speak', title:'Continue in Speaking Studio',   hint:'Speaking tasks built on the same text - the builder opens next.'},
         ],
       },
       {
@@ -841,11 +853,18 @@ const BOARD_LESSON_STAGES = {
         key: 'warm',
         label: 'Warm-up',
         question: 'How do you get them talking at all?',
+        /* Один формат разогрева под настроение урока; остальное - по желанию. */
+        groups: [
+          {mode: 'one',  label: 'Warm-up format · pick one', keys: ['sp-facts', 'sp-thisthat', 'sp-emoji', 'sp-ladder']},
+          {mode: 'many', label: 'Plus · optional',           keys: ['sp-start', 'sp-lead']},
+        ],
         options: [
-          {key:'sp-start',  tool:'conversation-starters', title:'Conversation starters', hint:'Easy openers on the topic, before anything harder.', ai:true, on:true},
-          {key:'sp-lead',   tool:'lead-in',               title:'Short lead-in questions',hint:'Two or three questions that open the topic.', ai:true, after:'source'},
-          {key:'sp-ladder', tool:'question-ladder',       title:'Question ladder',        hint:'Questions that climb from simple to demanding.', ai:true},
-          {key:'sp-facts',  tool:'interesting-facts',     title:'Facts to react to',      hint:'Surprising facts they respond to instead of inventing an opinion cold.', ai:true},
+          {key:'sp-facts',    tool:'interesting-facts',     title:'⚡ Shocking fact',     hint:'A surprising fact to react to - a feeling first, an opinion second.', ai:true, on:true},
+          {key:'sp-thisthat', tool:'this-or-that',          title:'⚖️ This or that',      hint:'Five quick “would you rather” dilemmas. Ask: why? One reason.', ai:true},
+          {key:'sp-emoji',    tool:'emoji-vibe',            title:'🖼 Emoji vibe check',  hint:'Pick the emoji that fits your morning or the topic, explain in two sentences.', ai:true},
+          {key:'sp-ladder',   tool:'question-ladder',       title:'🪜 The ladder',        hint:'Questions that climb: easy start, personal experience, then a bigger one.', ai:true},
+          {key:'sp-start',    tool:'conversation-starters', title:'Conversation starters', hint:'Easy openers on the topic, before anything harder.', ai:true},
+          {key:'sp-lead',     tool:'lead-in',               title:'Short lead-in questions',hint:'Two or three questions that open the topic.', ai:true, after:'source'},
         ],
       },
       {

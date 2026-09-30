@@ -7318,3 +7318,15 @@ body:not(#_):not(#__) .ss-notes{min-height:70px !important;border-radius:14px !i
 .yt-chosen{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .yt-chip{display:inline-flex;align-items:center;gap:4px;background:#CDF649;border-radius:999px;padding:3px 4px 3px 10px;font:650 12.5px var(--font);color:#24282C}
 .yt-chip button{border:0;background:rgba(36,40,44,.12);border-radius:50%;width:18px;height:18px;line-height:1;font-size:13px;cursor:pointer;color:#24282C}
+
+/* Stages with groups (one main mechanic + optional extras) and the hand-off bar */
+.tb-stage-group{margin-top:10px}
+.tb-stage-group:first-of-type{margin-top:0}
+.tb-stage-group-h{font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin:2px 2px 6px}
+.tb-workout-item input[type=radio]{width:18px;height:18px;accent-color:#24282C;flex-shrink:0}
+.tb-workout-item.is-handoff{border-style:dashed}
+.lesson-handoff{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:calc(100vw - 24px);background:#24282C;color:#fff;border-radius:16px;padding:10px 12px 10px 16px;box-shadow:0 20px 50px rgba(0,0,0,.4);font-family:var(--font)}
+.lesson-handoff .lh-t{font:800 12px var(--font);letter-spacing:.02em;color:#CACCC6;margin-right:4px}
+.lesson-handoff .lh-b{border:0;border-radius:11px;padding:9px 13px;background:#CDF649;color:#24282C;font:750 13px var(--font);cursor:pointer}
+.lesson-handoff .lh-b.done{background:rgba(255,255,255,.14);color:#fff}
+.lesson-handoff .lh-x{border:0;background:transparent;color:#CACCC6;font-size:20px;line-height:1;cursor:pointer;padding:2px 6px}

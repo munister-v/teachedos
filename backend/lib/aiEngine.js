@@ -929,6 +929,18 @@ function shapeSpec(input) {
       schema: '{"cards":[{"title":"The Reality Check","text":"When did you last need this yourself?\\nPairs, 2 min, then one example from each pair."},{"title":"The Grey Area","text":"..."},{"title":"Common Misconception","text":"..."}],"vocab":["word"]}',
     };
   }
+  if (toolId === 'this-or-that') {
+    return {
+      task: `${cardsHead} Generate exactly 5 "Would you rather…" warm-up cards on the topic for ${level} learners. Each card: "title" = "Would you rather… N", "text" = two vivid, concrete, slightly extreme options on separate lines starting "A: " and "B: " (short, easy to picture, no answer is obviously right), then a last line "💬 Why? Give me one reason." Vary the flavour: two silly, two personal, one tied closely to the topic. No trivia and no lecture - a choice takes five seconds. Include "vocab" of the key words the options use.${context}`,
+      schema: '{"cards":[{"title":"Would you rather… 1","text":"A: ...\nB: ...\n💬 Why? Give me one reason."}],"vocab":["word"]}',
+    };
+  }
+  if (toolId === 'emoji-vibe') {
+    return {
+      task: `${cardsHead} Generate exactly 3 "Emoji vibe check" warm-up cards for ${level} learners. Each card: "title" = a short prompt name (1 = today's mood or morning, 2 = an association with the topic, 3 = a feeling about an issue in the topic), "text" = line 1: exactly five clearly different emojis separated by three spaces; line 2: one instruction to pick one emoji and explain the choice in two sentences, with a useful sentence starter ("I picked … because …"). Nothing that needs a picture file. Include "vocab" of feelings/opinion words that fit.${context}`,
+      schema: '{"cards":[{"title":"Your morning","text":"😄   😴   😤   🤔   😎\nPick the emoji that matches your morning. I picked … because …"}],"vocab":["word"]}',
+    };
+  }
   if (toolId === 'interesting-facts') {
     return {
       task: `${cardsHead} Generate 5-6 surprising, engaging facts about the topic suitable for ${level} learners. Each card: "title" = "Fact N: [short hook]", "text" = the fact in 2-3 sentences followed by "💬 Discussion: [open question]". Make facts real or plausible. Include "vocab" of interesting topic words.${context}`,

@@ -1057,6 +1057,30 @@ function _ttGenInterestingFacts(input){
     ]};
 }
 
+/* Разминки-форматы без модели: рамки под тему, ничего не выдумываем. */
+function _ttGenThisOrThat(input){
+  const t=input.topic||'the topic';
+  const qs=[
+    [`talk about ${t} for an hour`,`write about ${t} for an hour`],
+    [`know everything about ${t}`,`be able to explain ${t} to anyone`],
+    [`try ${t} alone`,`try ${t} with your best friend`],
+    [`have ${t} in your life every day`,`have it once a year, but perfectly`],
+    [`be an expert in ${t} that nobody asks`,`know a little about ${t} and be asked all the time`],
+  ];
+  return { boardKind:'cards', kind:'Warm-up', cat:'speaking', level:input.level, topic:t,
+    title:`${input.level} · This or That: ${t}`,
+    cards: qs.map((q,i)=>({ title:`Would you rather… ${i+1}`, text:`A: ${q[0]}\nB: ${q[1]}\n💬 Why? Give me one reason.` })) };
+}
+function _ttGenEmojiVibe(input){
+  const t=input.topic||'the topic';
+  const rows=[['😄','😴','😤','🤔','😎'],['🌍','⏰','💡','🎯','🤝'],['👍','👎','🤷','❤️','😱']];
+  const ask=['Pick the emoji that matches your morning. I picked … because …',`Pick the emoji you connect with “${t}”. Why that one?`,`Pick the emoji that shows how you feel about “${t}”. What made you choose it?`];
+  const heads=['Your morning',`Your link with ${t}`,`Your opinion on ${t}`];
+  return { boardKind:'cards', kind:'Warm-up', cat:'speaking', level:input.level, topic:t,
+    title:`${input.level} · Emoji Vibe Check: ${t}`,
+    cards: rows.map((r,i)=>({ title:heads[i], text:`${r.join('   ')}\n${ask[i]}` })) };
+}
+
 function _ttGenProsCons(input){
   const topic=input.topic||'the topic';
   // Перші три слова тексту - це майже завжди сама тема ("Remote, Work, Grew"),
@@ -1941,6 +1965,8 @@ function generateTeacherToolLocal(input){
   if (id === 'debate-cards')          return _ttGenDebate(input);
   if (id === 'lead-in')               return _ttGenLeadIn(input);
   if (id === 'interesting-facts')     return _ttGenInterestingFacts(input);
+  if (id === 'this-or-that')          return _ttGenThisOrThat(input);
+  if (id === 'emoji-vibe')            return _ttGenEmojiVibe(input);
   if (id === 'pros-cons')             return _ttGenProsCons(input);
   if (id === 'comm-situations')       return _ttGenCommSituations(input);
   if (id === 'four-opinions')         return _ttGenFourOpinions(input);

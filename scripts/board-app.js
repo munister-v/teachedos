@@ -13468,7 +13468,7 @@ const TT_NO_COUNT_SET = new Set([
   // it returns (task + word list + model, 4 opinions, pros/cons, …) and ignores
   // the Items value - so showing "Items: 40" only misleads (you set 40, get 3).
   'link-words','creative-writing','four-opinions','pros-cons','lead-in',
-  'interesting-facts','find-quotes','essay-topics',
+  'interesting-facts','this-or-that','emoji-vibe','find-quotes','essay-topics',
   // Vocab tools whose output is strictly ONE item per target word the teacher
   // pastes - the count is dictated by the word list, not a number. Showing
   // "Items: 25" only misleads (paste 6 words, get 6 cards → "6 of 25"). The
@@ -15866,7 +15866,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1029';
+const TEACHEDOS_ASSET_VERSION = '1040';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17375,6 +17375,45 @@ function boardStagePickedKeys() {
   return [...document.querySelectorAll('#tbuilder-stages .tb-workout-item input:checked')].map(i => i.value);
 }
 
+/* Варианты этапа. Если у этапа есть groups: группа mode:'one' - радиокнопки
+   («одна основная механика»; повторный клик снимает выбор), mode:'many' -
+   обычные галочки «по желанию». Без groups - как раньше, список галочек.
+   В группе «одна» из старых сохранённых отметок остаётся первая. */
+function _stageOptionsHtml(st, picked, si) {
+  const item = (o, radioName, on) => `
+          <label class="tb-workout-item${on ? ' is-on' : ''}${o.handoff ? ' is-handoff' : ''}">
+            <input type="${radioName ? 'radio' : 'checkbox'}"${radioName ? ` name="${radioName}" data-was="${on ? 1 : 0}" onclick="_stageRadioClick(this)"` : ' onchange="onBoardStagePickChange()"'} value="${esc(o.key)}" ${on ? 'checked' : ''}>
+            <span style="min-width:0">
+              <b>${esc(o.title)}</b>
+              <small>${esc(o.hint)}</small>
+            </span>
+            ${o.ai ? '<span class="tb-workout-ai">AI</span>' : ''}${o.handoff ? '<span class="tb-workout-ai">→ next</span>' : ''}
+          </label>`;
+  if (!Array.isArray(st.groups) || !st.groups.length) {
+    return `<div class="tb-workout-list">${st.options.map(o => item(o, '', picked.has(o.key))).join('')}</div>`;
+  }
+  const byKey = new Map(st.options.map(o => [o.key, o]));
+  return st.groups.map((g, gi) => {
+    const opts = g.keys.map(k => byKey.get(k)).filter(Boolean);
+    if (!opts.length) return '';
+    const one = g.mode === 'one' ? opts.find(o => picked.has(o.key)) : null;
+    const rows = g.mode === 'one'
+      ? opts.map(o => item(o, `stg-${si}-${gi}`, one === o)).join('')
+      : opts.map(o => item(o, '', picked.has(o.key))).join('');
+    return `<div class="tb-stage-group"><div class="tb-stage-group-h">${esc(g.label)}</div><div class="tb-workout-list">${rows}</div></div>`;
+  }).join('');
+}
+/* Радиокнопку можно снять повторным нажатием: «одна основная механика» -
+   это «не больше одной», а не «обязательно одна». */
+function _stageRadioClick(inp) {
+  if (inp.dataset.was === '1') { inp.checked = false; inp.dataset.was = '0'; }
+  else {
+    document.querySelectorAll(`input[type=radio][name="${inp.name}"]`).forEach(r => { r.dataset.was = '0'; });
+    inp.dataset.was = '1';
+  }
+  onBoardStagePickChange();
+}
+
 function renderBoardLessonStages(toolId) {
   const host = document.getElementById('tbuilder-stages');
   const cfg = boardLessonStagesFor(toolId);
@@ -17406,17 +17445,7 @@ function renderBoardLessonStages(toolId) {
         <span class="tb-stage-title">${esc(st.label)}</span>
       </div>
       <p class="tb-stage-q">${esc(st.question)}</p>
-      <div class="tb-workout-list">
-        ${st.options.map(o => `
-          <label class="tb-workout-item${picked.has(o.key) ? ' is-on' : ''}">
-            <input type="checkbox" value="${esc(o.key)}" ${picked.has(o.key) ? 'checked' : ''} onchange="onBoardStagePickChange()">
-            <span style="min-width:0">
-              <b>${esc(o.title)}</b>
-              <small>${esc(o.hint)}</small>
-            </span>
-            ${o.ai ? '<span class="tb-workout-ai">AI</span>' : ''}
-          </label>`).join('')}
-      </div>
+      ${_stageOptionsHtml(st, picked, si)}
     </div>`).join('') + `<div class="tb-stage-meta" id="tbuilder-stages-meta"></div>`;
   onBoardStagePickChange();
 }
@@ -18589,6 +18618,46 @@ function _stageLessonParts(set) {
   return { results, homework, label, videoUrl, readingText, pathKind, writingFlow, speakingFlow, skillPath };
 }
 
+/* «Дальше в другую студию» из этапа Follow-up. Отмеченные варианты handoff не
+   строят задания сами: после того как урок лёг на доску, внизу появляется
+   полоса с кнопками. Vocabulary Studio открывается с уже добытым из текста
+   списком слов и выбором игр, Speaking Studio - с тем же текстом как образцом. */
+function _showLessonHandoff(set, text) {
+  const keys = set.keys || [];
+  const opts = (set.cfg.stages || []).reduce((a, s) => a.concat(s.options || []), []).filter(o => o.handoff && keys.includes(o.key));
+  document.getElementById('lesson-handoff')?.remove();
+  const clean = String(text || '').trim();
+  if (!opts.length || !clean) return;
+  const bar = document.createElement('div');
+  bar.id = 'lesson-handoff';
+  bar.className = 'lesson-handoff';
+  bar.setAttribute('role', 'region');
+  bar.setAttribute('aria-label', 'Continue the lesson');
+  const label = { vocab: '📚 Vocabulary Studio', speak: '🗣 Speaking Studio' };
+  bar.innerHTML = `<span class="lh-t">Continue your lesson</span>${opts.map(o => `<button type="button" class="lh-b" data-h="${o.handoff}">${label[o.handoff] || esc(o.title)} →</button>`).join('')}<button type="button" class="lh-x" aria-label="Close">×</button>`;
+  document.body.appendChild(bar);
+  const level = (set.base && set.base.level) || 'B1';
+  bar.addEventListener('click', e => {
+    if (e.target.closest('.lh-x')) { bar.remove(); return; }
+    const b = e.target.closest('.lh-b');
+    if (!b) return;
+    const kind = b.dataset.h;
+    b.classList.add('done'); b.textContent = (label[kind] || '') + ' ✓';
+    _lessonHandoffOpen(kind, clean, level);
+    if (![...bar.querySelectorAll('.lh-b')].some(x => !x.classList.contains('done'))) setTimeout(() => bar.remove(), 600);
+  });
+}
+function _lessonHandoffOpen(kind, text, level) {
+  const setLevel = () => { const sel = document.getElementById('tbuilder-level'); if (sel) { sel.value = level; sel.dispatchEvent(new Event('change', { bubbles: true })); } };
+  if (kind === 'vocab') {
+    openLessonWizard(); pickLessonSkill('vocabulary'); pickLessonSource('vocab-text');
+    setTimeout(async () => { setLevel(); _wizFillSource(text.slice(0, 12000)); try { await extractLessonVocab(); } catch (_) {} }, 250);
+  } else if (kind === 'speak') {
+    openLessonWizard(); pickLessonSkill('speaking'); pickLessonSource('own');
+    setTimeout(() => { setLevel(); _wizFillSource(text.slice(0, 12000)); }, 250);
+  }
+}
+
 function placeBoardLessonStageSet() {
   const set = lastLessonStageSet;
   if (!set) return false;
@@ -18637,6 +18706,7 @@ function placeBoardLessonStageSet() {
 
   const n = results.length + homework.length;
   toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
+  try { _showLessonHandoff(set, readingText || (set.base && set.base.source) || ''); } catch (err) { console.warn('[stages] handoff', err); }
   _ttSaveToLibrary({
     type: 'lesson', results, videoUrl, path: _wpLibraryPath(pathCard) || undefined,
     ctx: { source: readingText, level: set.base.level || 'B1', topic: set.base.topic || '', frameIcon: '📗',
