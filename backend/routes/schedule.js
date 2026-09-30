@@ -23,6 +23,14 @@ function safeMeetingUrl(raw) {
   } catch { return null; }
 }
 
+
+/* Ученик из журнала преподавателя: чужую запись привязать нельзя. */
+async function ownJournalId(teacherId, journalId) {
+  if (!journalId || !/^[0-9a-f-]{36}$/i.test(String(journalId))) return null;
+  const { rows } = await pool.query('SELECT id FROM student_journal WHERE id=$1 AND teacher_id=$2', [journalId, teacherId]);
+  return rows[0] ? rows[0].id : null;
+}
+
 async function notifyStudentsLive(slot) {
   if (!pushConfigured) return;
   try {
@@ -136,6 +144,8 @@ router.get('/live', requireAuth, async (req, res) => {
 router.post('/', requireAuth, requireTeacher, async (req, res) => {
   const { id, day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date, board_id } = req.body;
   try {
+    const hasJ = Object.prototype.hasOwnProperty.call(req.body, 'journal_id');
+    const journalId = hasJ ? await ownJournalId(req.user.id, req.body.journal_id) : null;
     if (id) {
       const { rows } = await pool.query(
         `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4, group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12, board_id=$13
@@ -143,6 +153,7 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
         [day, start_time, end_time, title || 'Class', group_name, level, room, color || '#CDF649', recurring !== false, safeMeetingUrl(meeting_url), is_live || false, specific_date || null, board_id || null, id, req.user.id]
       );
       if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
+      if (hasJ) { await pool.query('UPDATE schedule SET journal_id=$1 WHERE id=$2 AND user_id=$3', [journalId, id, req.user.id]); rows[0].journal_id = journalId; }
       return res.json({ slot: normSlot(rows[0]) });
     }
     const { rows } = await pool.query(
@@ -150,6 +161,7 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
       [req.user.id, day, start_time, end_time, title || 'Class', group_name, level, room, color || '#CDF649', recurring !== false, safeMeetingUrl(meeting_url), is_live || false, specific_date || null, board_id || null]
     );
+    if (journalId) { await pool.query('UPDATE schedule SET journal_id=$1 WHERE id=$2', [journalId, rows[0].id]); rows[0].journal_id = journalId; }
     res.status(201).json({ slot: normSlot(rows[0]) });
   } catch (err) {
     console.error('[schedule] POST error:', err.message);
@@ -162,6 +174,8 @@ router.patch('/:id', requireAuth, requireTeacher, async (req, res) => {
   if (req.params.id === 'live') return res.status(404).json({ error: 'Not found' });
   const { day, start_time, end_time, title, group_name, level, room, color, recurring, meeting_url, is_live, specific_date, board_id } = req.body;
   try {
+    const hasJ = Object.prototype.hasOwnProperty.call(req.body, 'journal_id');
+    const journalId = hasJ ? await ownJournalId(req.user.id, req.body.journal_id) : null;
     const { rows } = await pool.query(
       `UPDATE schedule SET day=$1, start_time=$2, end_time=$3, title=$4,
         group_name=$5, level=$6, room=$7, color=$8, recurring=$9, meeting_url=$10, is_live=$11, specific_date=$12, board_id=$13
@@ -171,6 +185,7 @@ router.patch('/:id', requireAuth, requireTeacher, async (req, res) => {
        specific_date||null, board_id||null, req.params.id, req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Slot not found' });
+    if (hasJ) { await pool.query('UPDATE schedule SET journal_id=$1 WHERE id=$2 AND user_id=$3', [journalId, req.params.id, req.user.id]); rows[0].journal_id = journalId; }
     res.json({ slot: normSlot(rows[0]) });
   } catch (err) {
     console.error('[schedule] PATCH error:', err.message);

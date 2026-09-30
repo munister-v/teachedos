@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1033"></script>
-<link rel="manifest" href="manifest.json?v=1033">
+<script src="scripts/phone-gate.js?v=1034"></script>
+<link rel="manifest" href="manifest.json?v=1034">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1033">
-<link rel="preload" as="style" href="styles/unify.css?v=1033">
+<link rel="preload" as="style" href="styles/harmony.css?v=1034">
+<link rel="preload" as="style" href="styles/unify.css?v=1034">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -425,11 +425,45 @@ a{text-decoration:none;color:inherit;}
   .form-group label{ min-height:44px; display:inline-flex; align-items:center; gap:8px; }
   .form-group input[type=checkbox]{ width:22px; height:22px; }
 }
+/* Lesson balances: package, paid?, and what happened at each lesson */
+.bal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.bal-head .side-label{margin:0}
+.bal-link{border:0;background:transparent;color:var(--text2);font:600 10.5px var(--font);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.bal-link:hover{color:var(--text)}
+.bal-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;margin-bottom:6px}
+.bal-row.zero{border-color:#E5543A;background:#FFF1EE}
+.bal-row.low{border-color:#E0A21B;background:#FFF9E8}
+.bal-name{flex:1;min-width:0;font-size:12px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bal-name small{display:block;font-size:10px;font-weight:600;color:var(--text3)}
+.bal-left{border:0;background:rgba(36,40,44,.07);border-radius:999px;padding:3px 9px;font:750 11px var(--mono);color:var(--text);cursor:pointer}
+.bal-row.zero .bal-left{background:#E5543A;color:#fff}
+.bal-row.low .bal-left{background:#F5D27A}
+.bal-pack{border:1px solid var(--text);background:#CDF649;border-radius:8px;padding:4px 8px;font:750 11px var(--font);color:#24282C;cursor:pointer;white-space:nowrap}
+.bal-pack:hover{background:#bfe63a}
+.bal-paid{border-color:#2e7d32;background:#dff7c0}
+.lesson-status{display:flex;gap:6px;flex-wrap:wrap}
+.lesson-status button{flex:1 1 auto;border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 10px;font:650 12px var(--font);color:var(--text);cursor:pointer}
+.lesson-status button:hover{border-color:var(--text)}
+.lesson-status button.on{background:#24282C;border-color:#24282C;color:#fff}
+.cb-stu{font-size:9px;font-weight:700;margin-top:2px;color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cls-block.light .cb-stu{color:rgba(36,40,44,.86)}
+.cls-block.compact .cb-stu{display:none}
+.cls-block.st-present::after,.cls-block.st-no_show::after,.cls-block.st-cancelled::after{content:'';position:absolute;right:6px;bottom:5px;width:16px;height:16px;border-radius:50%;background:#fff center/10px no-repeat}
+.cls-block.st-present::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5l2.6 2.6L10 3.4' fill='none' stroke='%232e7d32' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.cls-block.st-no_show::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 3l6 6M9 3l-6 6' fill='none' stroke='%23c0392b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")}
+.cls-block.st-cancelled{opacity:.55}
+.lesson-done{position:fixed;right:18px;bottom:18px;z-index:400;width:min(360px,calc(100vw - 32px));background:#24282C;color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.lesson-done b{display:block;font-size:13.5px}
+.lesson-done p{margin:4px 0 10px;font-size:12px;color:rgba(255,255,255,.78)}
+.lesson-done .ld-btns{display:flex;flex-wrap:wrap;gap:6px}
+.lesson-done button{border:0;border-radius:9px;padding:8px 11px;font:700 12px var(--font);cursor:pointer;background:rgba(255,255,255,.12);color:#fff}
+.lesson-done button.main{background:#CDF649;color:#24282C}
+.lesson-done button:hover{filter:brightness(1.12)}
 </style>
-<script src="theme.js?v=1033" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1033">
-<link rel="stylesheet" href="styles/harmony.css?v=1033">
-<link rel="stylesheet" href="styles/unify.css?v=1033">
+<script src="theme.js?v=1034" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1034">
+<link rel="stylesheet" href="styles/harmony.css?v=1034">
+<link rel="stylesheet" href="styles/unify.css?v=1034">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -461,18 +495,18 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1033">
-<link rel="stylesheet" href="styles/tool-window.css?v=1033">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1034">
+<link rel="stylesheet" href="styles/tool-window.css?v=1034">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1033">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1033">
-<link rel="stylesheet" href="styles/controls.css?v=1033">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=1033">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1034">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1034">
+<link rel="stylesheet" href="styles/controls.css?v=1034">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=1034">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1033">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1033">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1033">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1033">
+<link rel="stylesheet" href="styles/polish.css?v=1034">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1034">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1034">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1034">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -584,6 +618,11 @@ a{text-decoration:none;color:inherit;}
       </div>
     </div>
 
+    <div class="side-section desktop-schedule-only" id="bal-section" hidden>
+      <div class="bal-head"><div class="side-label">Lesson balances</div><button type="button" class="bal-link" onclick="editPayDetails()" title="What your students see when it is time to pay">Payment details</button></div>
+      <div id="bal-list"></div>
+    </div>
+
     <div class="side-section desktop-schedule-only" style="flex:1">
       <div class="side-label">All Classes</div>
       <div id="cls-list"></div>
@@ -689,6 +728,19 @@ a{text-decoration:none;color:inherit;}
       </div>
     </div>
 
+    <div class="form-group" id="f-student-wrap" style="margin-bottom:14px" hidden>
+      <label class="form-label">Student <span style="font-size:10px;color:var(--text3);font-weight:600;">(a finished lesson comes off their package)</span></label>
+      <select class="form-select" id="f-student"><option value="">- None -</option></select>
+    </div>
+    <div class="form-group" id="f-status-wrap" style="margin-bottom:14px" hidden>
+      <label class="form-label" id="f-status-label">This lesson</label>
+      <div class="lesson-status" id="f-status">
+        <button type="button" data-st="present" onclick="markLessonFromModal('present')">✓ Completed · −1</button>
+        <button type="button" data-st="cancelled" onclick="markLessonFromModal('cancelled')">↺ Cancelled · no charge</button>
+        <button type="button" data-st="no_show" onclick="markLessonFromModal('no_show')">✕ No-show · −1</button>
+      </div>
+    </div>
+
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Group</label>
@@ -761,7 +813,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=1033"></script>
+<script src="scripts/app-core.js?v=1034"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1137,11 +1189,187 @@ async function init() {
   updateWeekHeader();
   await loadSchedule();
   if (weekOffset === 0) scrollToNow();
+  loadBalances().then(loadLessonStatuses);
   loadStudentZones();
   loadBoardsForPicker();
   document.getElementById('f-start').addEventListener('change', renderModalTzPreview);
   document.getElementById('f-end').addEventListener('change', renderModalTzPreview);
 }
+
+// ── Lesson balances and lesson outcomes ───────────────────────────────
+// Money never passes through the platform: the student pays the teacher, the
+// teacher adds a package with one click, and every finished lesson comes off
+// the package. Data lives in the Journal (student_journal / attendance).
+let journalStudents = [];
+let lessonStatus = {};            // `${journalId}|${YYYY-MM-DD}` -> present | cancelled | no_show
+const LESSON_LABEL = { present: 'Completed', cancelled: 'Cancelled', no_show: 'No-show' };
+const dismissedLessons = new Set();
+
+function journalStudent(id) { return journalStudents.find(s => String(s.id) === String(id)); }
+function slotDate(slot) {
+  return slot.specific_date ? slot.specific_date.slice(0, 10) : localYMD(getWeekDates()[Number(slot.day)]);
+}
+function balanceClass(n) { return n <= 0 ? 'zero' : n === 1 ? 'low' : ''; }
+
+async function loadBalances() {
+  if (!token) return;
+  try {
+    const d = await apiFetch('/api/journal');
+    journalStudents = d.students || [];
+  } catch { journalStudents = []; }
+  const sel = document.getElementById('f-student');
+  if (sel) {
+    const keep = sel.value;
+    sel.innerHTML = '<option value="">- None -</option>' + journalStudents.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    sel.value = keep;
+  }
+  const wrap = document.getElementById('f-student-wrap');
+  if (wrap) wrap.hidden = !journalStudents.length;
+  renderBalances();
+  renderGrid();
+  checkFinishedLessons();
+}
+
+async function loadLessonStatuses() {
+  if (!token) return;
+  const dates = getWeekDates();
+  const days = [localYMD(dates[0]), localYMD(dates[6]), localYMD(new Date())].sort();
+  try {
+    const d = await apiFetch(`/api/journal/sessions?from=${days[0]}&to=${days[2]}`);
+    lessonStatus = {};
+    (d.sessions || []).forEach(x => { lessonStatus[`${x.journal_id}|${x.date}`] = x.status; });
+    renderGrid();
+    checkFinishedLessons();
+  } catch {}
+}
+
+function renderBalances() {
+  const sec = document.getElementById('bal-section');
+  const list = document.getElementById('bal-list');
+  if (!sec || !list) return;
+  if (!token || !journalStudents.length) { sec.hidden = true; return; }
+  sec.hidden = false;
+  const rows = [...journalStudents].sort((a, b) => (a.lessons_left - b.lessons_left) || a.name.localeCompare(b.name));
+  list.innerHTML = rows.map(s => {
+    const n = Number(s.lessons_left) || 0;
+    const size = Number(s.pack_size) || 8;
+    const claimed = !!s.paid_claim_at;
+    return `<div class="bal-row ${balanceClass(n)}">
+      <div class="bal-name">${esc(s.name)}${claimed ? '<small>says they paid</small>' : n <= 0 ? '<small>ask for the next package</small>' : ''}</div>
+      <button type="button" class="bal-left" onclick="setBalance('${esc(s.id)}')" title="Click to correct the number">${n} left</button>
+      <button type="button" class="bal-pack${claimed ? ' bal-paid' : ''}" onclick="addPack('${esc(s.id)}')" title="${claimed ? 'Payment received - add the package' : 'Payment received? Add the package'}">${claimed ? '✓ ' : ''}+${size}</button>
+    </div>`;
+  }).join('');
+}
+
+async function addPack(id) {
+  try {
+    const d = await apiFetch(`/api/journal/${id}/pack`, { method: 'POST', body: JSON.stringify({}) });
+    const s = journalStudent(id);
+    if (s) Object.assign(s, d.student);
+    renderBalances();
+    toast(`+${d.added} lessons · ${d.student.lessons_left} left ✅`, 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+async function setBalance(id) {
+  const s = journalStudent(id);
+  if (!s) return;
+  const v = prompt(`Lessons left for ${s.name}:`, String(s.lessons_left));
+  if (v === null) return;
+  const n = Math.max(0, Math.min(500, parseInt(v, 10)));
+  if (Number.isNaN(n)) return;
+  try {
+    const d = await apiFetch(`/api/journal/${id}`, { method: 'PATCH', body: JSON.stringify({ lessons_left: n }) });
+    Object.assign(s, d.student);
+    renderBalances();
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+async function editPayDetails() {
+  try {
+    const cur = (await apiFetch('/api/journal/pay-details')).pay_details || '';
+    const v = prompt('Payment details your students see when they pay (card, IBAN, PayPal…). The platform never handles the money.', cur);
+    if (v === null) return;
+    await apiFetch('/api/journal/pay-details', { method: 'PUT', body: JSON.stringify({ pay_details: v }) });
+    toast('Payment details saved ✅', 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+async function setLessonOutcome(slot, date, status) {
+  const s = journalStudent(slot.journal_id);
+  if (!s) return;
+  const d = await apiFetch(`/api/journal/${slot.journal_id}/lesson`, { method: 'POST', body: JSON.stringify({ date, slot_id: slot.id, status }) });
+  const key = `${slot.journal_id}|${date}`;
+  if (d.status) lessonStatus[key] = d.status; else delete lessonStatus[key];
+  s.lessons_left = d.lessons_left;
+  renderBalances();
+  renderGrid();
+  const label = d.status ? LESSON_LABEL[d.status] : 'Cleared';
+  toast(`${label} · ${s.name}: ${d.lessons_left} left${d.lessons_left <= 0 && d.status === 'present' ? ' - time to ask for the next package' : ''}`, d.lessons_left <= 0 ? 'err' : 'ok');
+}
+
+async function markLessonFromModal(status) {
+  const slot = schedule.find(x => String(x.id) === String(editingId));
+  if (!slot || !slot.journal_id) return;
+  const date = slotDate(slot);
+  const key = `${slot.journal_id}|${date}`;
+  try {
+    await setLessonOutcome(slot, date, lessonStatus[key] === status ? 'reset' : status);
+    syncStatusButtons(slot);
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+function syncStatusButtons(slot) {
+  const wrap = document.getElementById('f-status-wrap');
+  const linked = !!(slot && slot.journal_id && journalStudent(slot.journal_id));
+  wrap.hidden = !linked;
+  if (!linked) return;
+  const date = slotDate(slot);
+  document.getElementById('f-status-label').textContent = `This lesson · ${new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`;
+  const cur = lessonStatus[`${slot.journal_id}|${date}`];
+  document.querySelectorAll('#f-status button').forEach(b => b.classList.toggle('on', b.dataset.st === cur));
+}
+
+// When a lesson with a student has ended and has no outcome yet, ask once.
+function checkFinishedLessons() {
+  const box = document.getElementById('lesson-done');
+  if (!box || !token || !journalStudents.length) return;
+  const now = new Date();
+  const today = localYMD(now);
+  const dow = (now.getDay() + 6) % 7;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const due = schedule.filter(sl => {
+    if (!sl.journal_id || !journalStudent(sl.journal_id)) return false;
+    if (sl.specific_date ? sl.specific_date.slice(0, 10) !== today : Number(sl.day) !== dow) return false;
+    if (nowMin < timeToMinutes(sl.end_time)) return false;
+    return !lessonStatus[`${sl.journal_id}|${today}`] && !dismissedLessons.has(`${sl.id}|${today}`);
+  }).sort((a, b) => timeToMinutes(a.end_time) - timeToMinutes(b.end_time));
+  const sl = due[0];
+  if (!sl) { box.hidden = true; return; }
+  const s = journalStudent(sl.journal_id);
+  box.dataset.slot = sl.id;
+  box.innerHTML = `<b>Lesson finished · ${esc(sl.title)}</b>
+    <p>${esc(s.name)} has ${Number(s.lessons_left) || 0} lesson${Number(s.lessons_left) === 1 ? '' : 's'} left. Take one off?</p>
+    <div class="ld-btns">
+      <button type="button" class="main" onclick="answerFinished('present')">✓ Completed · −1</button>
+      <button type="button" onclick="answerFinished('no_show')">✕ No-show · −1</button>
+      <button type="button" onclick="answerFinished('cancelled')">↺ Cancelled</button>
+      <button type="button" onclick="answerFinished('later')">Later</button>
+    </div>`;
+  box.hidden = false;
+}
+
+async function answerFinished(status) {
+  const box = document.getElementById('lesson-done');
+  const sl = schedule.find(x => String(x.id) === String(box.dataset.slot));
+  if (!sl) { box.hidden = true; return; }
+  const today = localYMD(new Date());
+  if (status === 'later') { dismissedLessons.add(`${sl.id}|${today}`); checkFinishedLessons(); return; }
+  try { await setLessonOutcome(sl, today, status); } catch (e) { toast(e.message, 'err'); return; }
+  checkFinishedLessons();
+}
+setInterval(checkFinishedLessons, 30000);
 
 // Boards for the "Lesson board" picker in the class modal.
 let _scheduleBoards = [];
@@ -1271,8 +1499,8 @@ function updateNowLine() {
   }
 }
 
-function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); renderWeekBrief(); }
-function goToday() { weekOffset = 0; mpSelectedDow = (new Date().getDay() + 6) % 7; updateWeekHeader(); renderGrid(); renderMobileProSchedule(); renderWeekBrief(); scrollToNow(); }
+function shiftWeek(dir) { weekOffset += dir; updateWeekHeader(); loadLessonStatuses(); renderGrid(); renderMobileProSchedule(); renderWeekBrief(); }
+function goToday() { weekOffset = 0; mpSelectedDow = (new Date().getDay() + 6) % 7; updateWeekHeader(); loadLessonStatuses(); renderGrid(); renderMobileProSchedule(); renderWeekBrief(); scrollToNow(); }
 
 // ── Up Next focus card ────────────────────────────────────────────────
 // Next datetime a slot occurs at or after `now` (recurring weekly or one-off).
@@ -1631,6 +1859,7 @@ function buildBlock(slot, layout) {
     el.style.width = `calc(${layout.widthPct}% - 4px)`;
   }
   el.dataset.slotId = slot.id;
+  if (slot.journal_id) { const st = lessonStatus[`${slot.journal_id}|${slotDate(slot)}`]; if (st) el.classList.add('st-' + st); }
   if (slot.is_live) el.style.boxShadow = '0 0 0 2px #FF4E00, 0 4px 14px rgba(255,78,0,.3)';
   el.innerHTML = `
     ${slot.is_live ? '<div style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#FF4E00;animation:pulse-dot 1.2s infinite;"></div>' : ''}
@@ -1639,6 +1868,7 @@ function buildBlock(slot, layout) {
     ${slot.group_name||slot.level ? `<div class="cb-meta">${[slot.group_name,slot.level].filter(Boolean).join(' · ')}</div>` : ''}
     ${slot.room ? `<div class="cb-meta">${esc(slot.room)}</div>` : ''}
     <div class="cb-time">${slot.start_time.slice(0,5)} - ${slot.end_time.slice(0,5)}</div>
+    ${slot.journal_id && journalStudent(slot.journal_id) ? `<div class="cb-stu">${esc(journalStudent(slot.journal_id).name)}</div>` : ''}
     ${slotMeetingUrl(slot)||slot.is_live ? `<button type="button" class="slot-action ${slot.is_live ? 'live' : ''}" onclick="event.stopPropagation();toggleLiveSlot('${slot.id}',${!slot.is_live})">${slot.is_live ? 'End live' : 'Go live'}</button>` : ''}
     ${slot.board_id ? `<button type="button" class="slot-action" onclick="event.stopPropagation();openClassBoard('${esc(String(slot.board_id))}')">Open board</button>` : ''}`;
   el.style.position = 'absolute';
@@ -1756,6 +1986,7 @@ function schedulePayload(slot, patch = {}) {
     room: slot.room || null,
     meeting_url: slot.meeting_url || null,
     board_id: slot.board_id || null,
+    journal_id: slot.journal_id || null,
     color: slotColor(slot),
     recurring: slot.recurring !== false && !slot.specific_date,
     specific_date: slot.specific_date ? slot.specific_date.slice(0,10) : null,
@@ -1959,6 +2190,8 @@ function openModal(slot = null, preset = null) {
   document.getElementById('f-meeting-url').value = ownLink || regularMeetingUrl();
   document.getElementById('f-meeting-default').checked = !!regularMeetingUrl() && (!ownLink || ownLink === regularMeetingUrl());
   document.getElementById('f-board').value       = data.board_id || '';
+  document.getElementById('f-student').value     = data.journal_id || '';
+  syncStatusButtons(isEdit ? slot : null);
 
   const isRecurring = isEdit ? (slot.recurring !== false && !slot.specific_date) : (data.recurring !== false);
   document.getElementById('f-recurring').checked = isRecurring;
@@ -2071,6 +2304,7 @@ async function saveClass() {
     room:          document.getElementById('f-room').value.trim() || null,
     meeting_url:   useRegular ? null : (meetUrl || null),
     board_id:      document.getElementById('f-board').value || null,
+    journal_id:    document.getElementById('f-student').value || null,
     color:         selectedColor,
     recurring:     isRecurring,
     specific_date: specificDate,
@@ -2216,15 +2450,16 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="scripts/schedule-booking.js?v=1033"></script>
-<script src="pwa.js?v=1033"></script>
-<script src="scripts/nav-boost.js?v=1033" defer></script>
-<script src="scripts/mobile-perf.js?v=1033" defer></script>
-<script src="scripts/mobile-nav.js?v=1033"></script>
-<script src="scripts/autogrow.js?v=1033" defer></script>
-<script src="pwa-boot.js?v=1033" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1033" defer></script>
-  <script src="scripts/signin-entry.js?v=1033" defer></script>
-<script src="scripts/nav-bell.js?v=1033" defer></script>
+<script src="scripts/schedule-booking.js?v=1034"></script>
+<script src="pwa.js?v=1034"></script>
+<script src="scripts/nav-boost.js?v=1034" defer></script>
+<script src="scripts/mobile-perf.js?v=1034" defer></script>
+<script src="scripts/mobile-nav.js?v=1034"></script>
+<script src="scripts/autogrow.js?v=1034" defer></script>
+<script src="pwa-boot.js?v=1034" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1034" defer></script>
+  <script src="scripts/signin-entry.js?v=1034" defer></script>
+<script src="scripts/nav-bell.js?v=1034" defer></script>
+<div class="lesson-done" id="lesson-done" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

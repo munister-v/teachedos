@@ -10,7 +10,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <title>Student Portal - TeachEd</title>
-<script src="theme.js?v=1033" defer></script>
+<script src="theme.js?v=1034" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -38,6 +38,16 @@ body{
 .hero-name{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.03em}
 .hero-email{font-size:13px;color:var(--text-3);margin-top:4px}
 .hero-spacer{flex:1}
+.pay-card{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:18px}
+.pay-card.low{border-color:#E0A21B;background:#FFF9E8}
+.pay-card.zero{border-color:#E5543A;background:#FFF1EE}
+.pay-card .pc-main{flex:1;min-width:220px}
+.pay-card b{display:block;font-size:15px;letter-spacing:-.01em}
+.pay-card p{margin-top:4px;font-size:13px;color:var(--text-2);line-height:1.45}
+.pay-card .pc-details{margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(36,40,44,.06);font:600 12.5px var(--mono);white-space:pre-wrap;word-break:break-word;color:var(--text)}
+.pay-card button{border:0;border-radius:12px;padding:11px 16px;background:var(--lime);color:#24282C;font:750 13px var(--font);cursor:pointer}
+.pay-card button:hover{filter:brightness(.95)}
+.pay-card .pc-ok{font-size:12.5px;font-weight:700;color:#2e7d32}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
 .stat{background:rgba(255,255,255,.88);border:1.5px solid var(--border);border-radius:18px;padding:16px;text-align:left;box-shadow:0 8px 24px rgba(36,40,44,.05),0 1px 0 rgba(255,255,255,.85) inset}
 .stat-n{font-size:28px;font-weight:700;color:var(--accent);font-family:var(--mono);line-height:1}
@@ -98,15 +108,15 @@ body{
   .board-card:hover{transform:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1033">
-<link rel="stylesheet" href="styles/harmony.css?v=1033">
-<link rel="stylesheet" href="styles/unify.css?v=1033">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1033">
+<link rel="stylesheet" href="styles/mobile.css?v=1034">
+<link rel="stylesheet" href="styles/harmony.css?v=1034">
+<link rel="stylesheet" href="styles/unify.css?v=1034">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1034">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1033">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1033">
-<link rel="stylesheet" href="styles/controls.css?v=1033">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1033">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1034">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1034">
+<link rel="stylesheet" href="styles/controls.css?v=1034">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1034">
 </head>
 <body class="fx">
 
@@ -140,6 +150,8 @@ body{
       <div class="p-lessons-label" style="font-size:10px;font-weight:600;color:#24282C;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-top:3px">lessons left</div>
     </div>
   </div>
+
+  <div id="pay-cards"></div>
 
   <!-- Stats -->
   <div class="stats-row">
@@ -181,7 +193,7 @@ body{
 
 </main>
 
-<script src="scripts/app-core.js?v=1033"></script>
+<script src="scripts/app-core.js?v=1034"></script>
 <script>
 const token = localStorage.getItem('teachedos_token');
 let isTeacherView = false;
@@ -237,6 +249,40 @@ async function init(){
   document.getElementById('main').style.display='';
 }
 
+
+/* Остаток уроков и «Я оплатил». Платформа денег не касается: ученик переводит
+   преподавателю сам, здесь только отметка, которую тот подтверждает. */
+async function loadPayCards(){
+  const host=document.getElementById('pay-cards');
+  if(!host||isTeacherView) return;
+  let list=[];
+  try{ const r=await apiFetch('/api/journal/me/balance'); if(!r.ok) return; list=(await r.json()).balances||[]; }catch{ return; }
+  host.innerHTML=list.map(b=>{
+    const n=Number(b.lessons_left)||0;
+    const cls=n<=0?'zero':n===1?'low':'';
+    const need=n<=1;
+    const claimed=!!b.paid_claim_at;
+    const who=esc(b.teacher_name||'your teacher');
+    return `<div class="pay-card ${cls}">
+      <div class="pc-main">
+        <b>${n} lesson${n===1?'':'s'} left with ${who}</b>
+        <p>${n<=0?'Your package is used up. To keep having lessons, please pay for the next one.':need?'This is your last lesson in the package. You can pay for the next one now.':'Your package is going well - nothing to do.'}</p>
+        ${need&&b.pay_details?`<div class="pc-details">${esc(b.pay_details)}</div>`:''}
+      </div>
+      ${need?(claimed?'<span class="pc-ok">✓ Sent - waiting for '+who+' to confirm</span>':`<button type="button" onclick="iPaid('${esc(b.journal_id)}',this)">I paid</button>`):''}
+    </div>`;
+  }).join('');
+}
+async function iPaid(id,btn){
+  btn.disabled=true;
+  try{
+    const r=await apiFetch('/api/journal/me/paid',{method:'POST',body:JSON.stringify({journal_id:id})});
+    if(!r.ok) throw new Error('Could not send');
+    toast('Your teacher was told ✅');
+    loadPayCards();
+  }catch(e){ btn.disabled=false; toast(e.message||'Could not send'); }
+}
+
 function render(d, studentId){
   const { student, boards, vocab, quizHistory, stats, teacherNotes, viewerTimezone } = d;
   const studentZone = safeTimeZone(student.timezone || DEFAULT_TIME_ZONE);
@@ -251,6 +297,7 @@ function render(d, studentId){
     ? `${student.email} · ${studentZone}`
     : `${student.email} · ${formatZoneNow(studentZone)}`;
   document.getElementById('p-lessons').textContent = stats.lessonsLeft||'-';
+  loadPayCards();
   document.getElementById('s-boards').textContent = stats.boards;
   document.getElementById('s-done').textContent = stats.done;
   document.getElementById('s-vocab').textContent = stats.vocabLearned+'/'+stats.vocabTotal;
@@ -343,8 +390,8 @@ async function saveNote(){
 
 init();
 </script>
-<script src="scripts/nav-boost.js?v=1033" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1033" defer></script>
-  <script src="scripts/signin-entry.js?v=1033" defer></script>
+<script src="scripts/nav-boost.js?v=1034" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1034" defer></script>
+  <script src="scripts/signin-entry.js?v=1034" defer></script>
 </body>
 </html>

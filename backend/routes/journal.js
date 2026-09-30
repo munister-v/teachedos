@@ -37,6 +37,143 @@ router.post('/', async (req, res) => {
   res.status(201).json({ student: rows[0] });
 });
 
+/* ── LESSON BALANCE ──────────────────────────────────────────────────────
+   Деньги платформа не трогает: ученик переводит преподавателю сам. Здесь
+   только пакеты уроков и статусы уроков в расписании. */
+const CHARGING = new Set(['present', 'no_show']);
+const LESSON_STATUSES = new Set(['present', 'cancelled', 'no_show']);
+
+/* Ученик: где он числится у преподавателей, остаток и реквизиты для перевода.
+   Записи журнала связаны с аккаунтом по student_id или по почте (как и домашка). */
+router.get('/me/balance', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT j.id AS journal_id, j.lessons_left, j.pack_size, j.paid_claim_at,
+              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
+              t.name AS teacher_name, t.pay_details
+         FROM student_journal j
+         JOIN users t ON t.id = j.teacher_id
+        WHERE j.student_id = $1 OR ($2::text <> '' AND lower(j.email) = lower($2))
+        ORDER BY j.created_at`,
+      [req.user.id, req.user.email || '']
+    );
+    res.json({ balances: rows });
+  } catch (err) {
+    console.error('[journal/me/balance]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* «Я оплатил»: пометка для преподавателя, пакет она не продлевает. */
+router.post('/me/paid', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE student_journal SET paid_claim_at = COALESCE(paid_claim_at, NOW())
+        WHERE id = $1 AND (student_id = $2 OR ($3::text <> '' AND lower(email) = lower($3)))
+        RETURNING id, teacher_id, name, pack_size`,
+      [req.body?.journal_id || null, req.user.id, req.user.email || '']
+    );
+    if (!rows.length) return res.status(404).json({ error: 'not found' });
+    const st = rows[0];
+    await createNotification(st.teacher_id, 'payment', `${st.name} says they paid`,
+      `Check your card or account, then confirm +${st.pack_size} lessons in Schedule.`, 'schedule.html').catch(() => {});
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[journal/me/paid]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* Преподаватель: реквизиты, которые видят его ученики. */
+router.get('/pay-details', async (req, res) => {
+  const { rows } = await pool.query('SELECT pay_details FROM users WHERE id=$1', [req.user.id]);
+  res.json({ pay_details: (rows[0] && rows[0].pay_details) || '' });
+});
+router.put('/pay-details', async (req, res) => {
+  const text = String(req.body?.pay_details ?? '').trim().slice(0, 500);
+  await pool.query('UPDATE users SET pay_details=$2 WHERE id=$1', [req.user.id, text || null]);
+  res.json({ ok: true, pay_details: text });
+});
+
+/* Статусы уроков за период - для отметок в сетке расписания. */
+router.get('/sessions', async (req, res) => {
+  const ymd = v => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? v : null);
+  const from = ymd(req.query.from), to = ymd(req.query.to);
+  if (!from || !to) return res.status(400).json({ error: 'from and to must be YYYY-MM-DD' });
+  const { rows } = await pool.query(
+    `SELECT a.journal_id, a.slot_id, to_char(a.date, 'YYYY-MM-DD') AS date, a.status, a.charged
+       FROM attendance a WHERE a.teacher_id=$1 AND a.date BETWEEN $2 AND $3`,
+    [req.user.id, from, to]
+  );
+  res.json({ sessions: rows });
+});
+
+/* «+пакет» одним нажатием: остаток растёт, пометка «я оплатил» и просрочка
+   оплаты снимаются - деньги пришли. */
+router.post('/:id/pack', async (req, res) => {
+  const { rows: cur } = await pool.query('SELECT pack_size FROM student_journal WHERE id=$1 AND teacher_id=$2', [req.params.id, req.user.id]);
+  if (!cur.length) return res.status(404).json({ error: 'not found' });
+  const n = Math.max(1, Math.min(200, parseInt(req.body?.lessons, 10) || cur[0].pack_size || 8));
+  const { rows } = await pool.query(
+    `UPDATE student_journal
+        SET lessons_left = lessons_left + $3, paid_claim_at = NULL,
+            payment_due = CASE WHEN payment_due <= CURRENT_DATE THEN NULL ELSE payment_due END
+      WHERE id=$1 AND teacher_id=$2 RETURNING *, to_char(payment_due, 'YYYY-MM-DD') AS payment_due`,
+    [req.params.id, req.user.id, n]
+  );
+  const st = rows[0];
+  let who = st.student_id;
+  if (!who && st.email) {
+    const u = await pool.query('SELECT id FROM users WHERE lower(email)=lower($1) LIMIT 1', [st.email]);
+    who = u.rows[0] ? u.rows[0].id : null;
+  }
+  if (who) {
+    await createNotification(who, 'payment', 'Lessons added',
+      `${n} lessons were added to your package - ${st.lessons_left} left.`, 'portal.html').catch(() => {});
+  }
+  res.json({ student: st, added: n });
+});
+
+/* Итог урока по расписанию: present (состоялся) и no_show списывают занятие,
+   cancelled - нет. Повторный вызов на ту же дату меняет статус и возвращает
+   или списывает ровно разницу. status "reset" убирает отметку. */
+router.post('/:id/lesson', async (req, res) => {
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.date || '')) ? req.body.date : null;
+  const status = String(req.body?.status || '');
+  if (!date || !(LESSON_STATUSES.has(status) || status === 'reset')) return res.status(400).json({ error: 'date and a valid status are required' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: own } = await client.query('SELECT id, lessons_left FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [req.params.id, req.user.id]);
+    if (!own.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not found' }); }
+    const slot = /^[0-9a-f-]{36}$/i.test(String(req.body?.slot_id || '')) ? req.body.slot_id : null;
+    const { rows: prevRows } = await client.query('SELECT * FROM attendance WHERE journal_id=$1 AND date=$2 FOR UPDATE', [req.params.id, date]);
+    const prev = prevRows[0] || null;
+    const wasCharged = !!prev && CHARGING.has(prev.status) && prev.charged !== false;
+    const wantCharge = CHARGING.has(status);
+    let left = own[0].lessons_left, charged = null;
+    if (wasCharged && !wantCharge) left += 1;                  // возврат
+    if (wantCharge && !wasCharged) { charged = left > 0; if (charged) left -= 1; }
+    else if (wantCharge && wasCharged) charged = true;
+    if (status === 'reset') {
+      if (prev) await client.query('DELETE FROM attendance WHERE id=$1', [prev.id]);
+    } else if (prev) {
+      await client.query('UPDATE attendance SET status=$2, charged=$3, slot_id=COALESCE($4, slot_id) WHERE id=$1', [prev.id, status, charged, slot]);
+    } else {
+      await client.query(
+        `INSERT INTO attendance (teacher_id, journal_id, date, status, charged, slot_id) VALUES ($1,$2,$3,$4,$5,$6)`,
+        [req.user.id, req.params.id, date, status, charged, slot]);
+    }
+    await client.query('UPDATE student_journal SET lessons_left=$2 WHERE id=$1', [req.params.id, left]);
+    await client.query('COMMIT');
+    res.json({ ok: true, status: status === 'reset' ? null : status, lessons_left: left });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[journal/lesson]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  } finally { client.release(); }
+});
+
 /* ── STUDENT PULSE ─────────────────────────────────────────────────────
    Виджет рабочего стола: что по ученикам требует действия прямо сейчас.
    Три сигнала, все из уже существующих данных учителя:

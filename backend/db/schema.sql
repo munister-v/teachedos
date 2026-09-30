@@ -888,3 +888,20 @@ UPDATE users SET email_verified_at = NOW()
 ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret        TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled_at    TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_backup_hashes JSONB NOT NULL DEFAULT '[]';
+
+-- ── Lesson balance driven by the schedule (30.09.2026) ─────────────────────
+-- A schedule slot can belong to one journal student; the lesson's outcome is
+-- stored per date in attendance (present = completed, cancelled, no_show) and
+-- moves lessons_left: present and no_show cost one lesson, cancelled does not.
+-- attendance.charged records whether a lesson was really taken off the balance
+-- (NULL = rows written before this column existed, which always charged), so
+-- changing a status later refunds exactly what was taken.
+ALTER TABLE schedule ADD COLUMN IF NOT EXISTS journal_id UUID REFERENCES student_journal(id) ON DELETE SET NULL;
+ALTER TABLE attendance ADD COLUMN IF NOT EXISTS slot_id UUID;
+ALTER TABLE attendance ADD COLUMN IF NOT EXISTS charged BOOLEAN;
+-- The student says "I paid" (paid_claim_at); the teacher confirms with +pack.
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pack_size INTEGER NOT NULL DEFAULT 8;
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS paid_claim_at TIMESTAMPTZ;
+-- Where students send the money (card, IBAN, PayPal...). Free text, shown only
+-- to the teacher's own students; the platform never touches the payment.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS pay_details TEXT;
