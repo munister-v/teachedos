@@ -39,6 +39,13 @@ html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-counter-num {
   font-family:var(--te-font-display) !important;
   font-weight:600 !important;
 }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-counter.balance-low { box-shadow:inset 0 0 0 1.5px rgba(255,140,58,.6) !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-counter.balance-low .sb-counter-num { color:#FF8C3A !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-counter.balance-zero {
+  background:rgba(255,78,0,.14) !important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,78,0,.65) !important;
+}
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-counter.balance-zero .sb-counter-num { color:#FF6A2B !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-milestone-bar { background:rgba(255,255,255,.1) !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-milestone-fill { background:var(--te-lime,#CDF649) !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-footer :is(a, button) { color:#FFFFFF !important; }
