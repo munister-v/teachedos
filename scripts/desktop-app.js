@@ -1250,6 +1250,7 @@ function studentDetailRender() {
     <div class="st-detail-mail">${esc(s.email || '')}</div>
     ${badges}
     ${money}
+    ${(s.dna_interests && s.dna_interests.length) || s.dna_goal ? `<div class="st-detail-h">Profile</div><div class="st-chips">${s.dna_goal ? `<span class="st-chip format">${esc(({ work: 'Work & career', travel: 'Travel', series: 'Series & films', move: 'Moving abroad', exams: 'Exams', fun: 'Just for fun' })[s.dna_goal] || s.dna_goal)}</span>` : ''}${(s.dna_interests || []).map(k => `<span class="st-chip ghost">${esc(k)}</span>`).join('')}${s.dna_level ? `<span class="st-chip boards">self: ${esc(s.dna_level)}</span>` : ''}</div>` : ''}
     ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
     <div class="st-detail-actions">
       <a class="st-detail-btn" href="journal.html">View profile →</a>

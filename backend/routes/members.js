@@ -149,7 +149,7 @@ router.get('/roster', requireAuth, async (req, res) => {
              BOOL_OR(s.board_size > 1) AS in_group,
              j.id AS journal_id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at,
              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
-             q.quiz_avg, q.quiz_count
+             q.quiz_avg, q.quiz_count, d.goal AS dna_goal, d.interests AS dna_interests, d.level AS dna_level
         FROM seats s
         JOIN users u ON u.id = s.user_id
         LEFT JOIN LATERAL (
@@ -158,6 +158,7 @@ router.get('/roster', requireAuth, async (req, res) => {
            ORDER BY (student_id = u.id) DESC NULLS LAST, created_at DESC
            LIMIT 1
         ) j ON TRUE
+        LEFT JOIN student_dna d ON d.user_id = u.id
         LEFT JOIN LATERAL (
           SELECT ROUND(AVG(qr.pct))::int AS quiz_avg, COUNT(*)::int AS quiz_count
             -- quiz_results.board_id is text, boards.id is uuid: compared as
@@ -166,7 +167,7 @@ router.get('/roster', requireAuth, async (req, res) => {
             FROM quiz_results qr JOIN mine m ON m.id::text = qr.board_id::text
            WHERE qr.user_id = u.id
         ) q ON TRUE
-       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.payment_due, j.pack_size, j.paid_claim_at, q.quiz_avg, q.quiz_count
+       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.payment_due, j.pack_size, j.paid_claim_at, q.quiz_avg, q.quiz_count, d.goal, d.interests, d.level
        ORDER BY u.name
     `, [req.user.id]);
 

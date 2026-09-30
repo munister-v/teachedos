@@ -106,8 +106,10 @@ function parseFeed(xml, feedKey) {
       .sort((a, b2) => a.w - b2.w);
     /* Самая маленькая картинка шире 100px: для строки списка большая не нужна. */
     const image = (images.find(i => i.w >= 100) || images[0] || {}).url || '';
-    const summary = stripTags(tag(b, 'description') || tag(b, 'summary')).replace(/\s*Continue reading\.*\s*$/i, '').slice(0, 260);
-    out.push({ title: title.slice(0, 220), url: link.replace(/\?at_medium=RSS.*$/, '').replace(/\?traffic_source=rss$/, ''), summary, published: ts ? new Date(ts).toISOString() : '', source: feed.source, image });
+    const rawSummary = stripTags(tag(b, 'description') || tag(b, 'summary')).replace(/\s*Continue reading\.*\s*$/i, '');
+    // Не обрывать на полуслове.
+    const cut = rawSummary.length > 260 ? rawSummary.slice(0, 260).replace(/\s+\S*$/, '') + '…' : rawSummary;
+    out.push({ title: title.slice(0, 220), url: link.replace(/\?at_medium=RSS.*$/, '').replace(/\?traffic_source=rss$/, ''), summary: cut, published: ts ? new Date(ts).toISOString() : '', source: feed.source, image });
   }
   return out;
 }
@@ -171,6 +173,27 @@ async function search(query) {
   }
   scored.sort((a, b) => (b.hits - a.hits) || (b.score - a.score) || (b.it.published || '').localeCompare(a.it.published || ''));
   return { query: terms.join(' '), items: scored.slice(0, 40).map(x => x.it) };
+}
+
+/* Подборка по интересам: из каждого интереса берём лучшие свежие статьи по
+   очереди (первая из каждого, потом вторая...), без повторов. */
+async function pickForInterests(interests, n = 3) {
+  const { interestByKey } = require('./interests');
+  const defs = (interests || []).map(k => interestByKey.get(k)).filter(Boolean);
+  if (!defs.length) return { items: (await topicItems('science')).items.slice(0, n), interests: [] };
+  const lists = await Promise.all(defs.map(async d => ({ key: d.key, label: d.label, items: (await search(d.q.join(' '))).items.slice(0, 6) })));
+  const seen = new Set();
+  const out = [];
+  for (let round = 0; round < 6 && out.length < n; round++) {
+    for (const l of lists) {
+      const it = l.items[round];
+      if (!it || seen.has(it.url)) continue;
+      seen.add(it.url);
+      out.push({ ...it, interest: l.label });
+      if (out.length >= n) break;
+    }
+  }
+  return { items: out, interests: defs.map(d => d.label) };
 }
 
 /* Текст статьи - только абзацы <p> внутри самого длинного <article>/<main>.
@@ -238,6 +261,7 @@ module.exports = {
   topics: () => TOPICS.map(t => ({ key: t.key, title: t.title, sources: [...new Set(t.feeds.map(f => FEEDS[f].source))] })),
   topicItems,
   search,
+  pickForInterests,
   readArticle,
   articleFromHtml,
   parseFeed,

@@ -2064,6 +2064,22 @@ const newsLimiter = rateLimit({
 });
 router.get('/news', requireAuth, newsLimiter, async (req, res) => {
   try {
+    if (req.query.student) {
+      /* Smart Feed: подборка по интересам ученика из «ДНК-профиля». Только для
+         учителя и только его ученика (доска или журнал). */
+      const sid = String(req.query.student);
+      if (!/^[0-9a-f-]{36}$/i.test(sid)) return res.status(400).json({ error: 'bad student' });
+      const own = await pool.query(
+        `SELECT 1 FROM (
+           SELECT bc.user_id u FROM board_collaborators bc JOIN boards b ON b.id = bc.board_id WHERE b.user_id = $1
+           UNION SELECT student_id FROM student_journal WHERE teacher_id = $1 AND student_id IS NOT NULL
+         ) t WHERE u = $2 LIMIT 1`, [req.user.id, sid]);
+      if (!own.rows.length) return res.status(403).json({ error: 'Not your student' });
+      const d = await pool.query('SELECT goal, interests, level FROM student_dna WHERE user_id=$1', [sid]);
+      const dna = d.rows[0] || null;
+      const out = await newsFeeds.pickForInterests(dna ? dna.interests : [], 6);
+      return res.json({ items: out.items, interests: out.interests, level: dna && dna.level, personal: !!dna });
+    }
     if (req.query.q) return res.json(await newsFeeds.search(String(req.query.q).slice(0, 80)));
     if (!req.query.topic) return res.json({ topics: newsFeeds.topics() });
     res.json(await newsFeeds.topicItems(String(req.query.topic)));

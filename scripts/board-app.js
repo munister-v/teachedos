@@ -18909,9 +18909,14 @@ function _wizRenderNews(host) {
         <button type="submit" class="tbuilder-btn lime">Search</button>
         ${st.query ? `<button type="button" class="tbuilder-btn" onclick="searchNews('')">Clear</button>` : ''}
       </form>
+      ${(st.students || []).length ? `<label class="tb-news-for">Picked for
+        <select onchange="smartNews(this.value)" aria-label="Pick a student to get articles matching their interests">
+          <option value="">- choose a student -</option>
+          ${st.students.map(s => `<option value="${esc(s.id)}"${st.forStudent === s.id ? ' selected' : ''}>${esc(s.name)}${s.interests && s.interests.length ? '' : ' (no profile yet)'}</option>`).join('')}
+        </select></label>` : ''}
       <div class="tb-news-topics" role="tablist" aria-label="News topic">
         ${(topics.length ? topics : [{ key: st.topic, title: 'Science' }]).map(t => `
-          <button type="button" role="tab" class="tb-news-topic${!st.query && t.key === st.topic ? ' is-on' : ''}" aria-selected="${!st.query && t.key === st.topic}"
+          <button type="button" role="tab" class="tb-news-topic${!st.query && !st.forStudent && t.key === st.topic ? ' is-on' : ''}" aria-selected="${!st.query && !st.forStudent && t.key === st.topic}"
             onclick="loadNewsTopic('${esc(t.key)}')">${esc(t.title)}</button>`).join('')}
       </div>
       <div class="tb-news-list" id="tb-news-list">${list}</div>
@@ -18924,7 +18929,7 @@ function _wizRenderNews(host) {
         </div>
         <div class="tb-news-levels" role="radiogroup" aria-label="Retell at level">
           <span class="tb-news-levels-label">Retell at</span>
-          ${NEWS_LEVELS.map(l => `<button type="button" role="radio" aria-checked="${st.level === l}" class="tb-news-level${st.level === l ? ' is-on' : ''}" onclick="setNewsLevel('${l}')">${l}</button>`).join('')}
+          ${NEWS_LEVELS.map(l => `<button type="button" role="radio" aria-checked="${st.level === l}" class="tb-news-level${st.level === l ? ' is-on' : ''}" onclick="setNewsLevel('${l}', true)">${l}</button>`).join('')}
           ${boardLessonWizard && boardLessonWizard.skill === 'magazine' ? '' : `<button type="button" role="radio" aria-checked="${st.level === 'original'}" class="tb-news-level${st.level === 'original' ? ' is-on' : ''}" onclick="setNewsLevel('original')" title="Keep the article's own wording">Original</button>`}
         </div>
         ${boardLessonWizard && boardLessonWizard.skill === 'magazine'
@@ -18935,6 +18940,7 @@ function _wizRenderNews(host) {
       </div>` : ''}
       <span class="tb-wiz-tool-note" id="tb-news-note">${esc(st.note || 'Pick a story. It is retold at your level, the facts stay the same.')}</span>
     </div>`;
+  if (!st.students && !st.loadingStudents) loadNewsStudents();
   if (!st.topics) loadNewsTopics();
   else if (items == null && !st.loading) loadNewsTopic(st.topic);
 }
@@ -18958,12 +18964,52 @@ async function loadNewsTopics() {
   loadNewsTopic(st.topic);
 }
 
+/* Smart Feed: статьи под интересы выбранного ученика («ДНК-профиль»). */
+async function loadNewsStudents() {
+  const st = _wizNewsState;
+  if (!st) return;
+  st.loadingStudents = true;
+  try {
+    const r = await apiFetch('/api/members/roster');
+    const d = r.ok ? await r.json() : { students: [] };
+    st.students = (d.students || []).filter(s => !s.pending && /^[0-9a-f-]{36}$/i.test(String(s.id)))
+      .map(s => ({ id: s.id, name: s.name || s.email || 'Student', interests: s.dna_interests || [] }));
+  } catch (_) { st.students = []; }
+  st.loadingStudents = false;
+  _wizNewsRerender();
+}
+async function smartNews(id) {
+  const st = _wizNewsState;
+  if (!st) return;
+  if (!id) { st.forStudent = ''; return loadNewsTopic(st.topic); }
+  const who = (st.students || []).find(s => s.id === id);
+  st.forStudent = id; st.query = ''; st.items = null; st.picked = null; st.loading = true; st.note = '';
+  _wizNewsRerender();
+  const ticket = st.ticket = (st.ticket || 0) + 1;
+  let items = [];
+  try {
+    const res = await apiFetch(`/api/ai/news?student=${encodeURIComponent(id)}`);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) st.note = data?.error || 'Could not pick articles right now.';
+    else st.note = data.personal
+      ? `Picked for ${who ? who.name : 'your student'}: ${(data.interests || []).join(', ')}${data.level ? ` · level ${data.level}` : ''}.`
+      : `${who ? who.name : 'This student'} has not filled in the interests profile yet - here is today's science.`;
+    items = Array.isArray(data?.items) ? data.items : [];
+    if (data && data.level && !st.levelTouched) setNewsLevel(data.level);
+  } catch (_) { st.note = 'Could not pick articles right now.'; }
+  if (ticket !== st.ticket) return;
+  st.loading = false;
+  st.items = items;
+  _wizNewsRerender();
+}
+
 /* Поиск по ключевому слову среди свежих статей всех источников. Пустой
    запрос возвращает обычную рубрику. */
 async function searchNews(q) {
   const st = _wizNewsState;
   if (!st) return;
   q = String(q || '').trim();
+  st.forStudent = '';
   if (!q) { st.query = ''; return loadNewsTopic(st.topic); }
   st.query = q;
   st.items = null;
@@ -18990,6 +19036,7 @@ async function loadNewsTopic(key) {
   const st = _wizNewsState;
   if (!st) return;
   st.query = '';
+  st.forStudent = '';
   st.topic = key;
   st.items = null;
   st.picked = null;
@@ -19020,9 +19067,10 @@ function pickNewsStory(i) {
   document.querySelector('.tb-news-pick .tbuilder-btn')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
-function setNewsLevel(level) {
+function setNewsLevel(level, fromUser) {
   const st = _wizNewsState;
   if (!st || st.busy) return;
+  if (fromUser) st.levelTouched = true;
   st.level = level;
   /* Уровень урока и уровень пересказа - одно и то же: задания вокруг
      текста строятся по полю Level конструктора. */

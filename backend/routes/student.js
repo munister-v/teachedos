@@ -2,6 +2,8 @@ const express  = require('express');
 const router   = express.Router();
 const pool     = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const interests = require('../lib/interests');
+const newsFeeds = require('../lib/newsFeeds');
 const { VAPID_PUBLIC, pushConfigured } = require('../lib/pushConfig');
 
 function parseTimeParts(value) {
@@ -90,6 +92,38 @@ function buildUpcomingSlot(slot, now = new Date()) {
 }
 
 // GET /api/student/vapid-public-key
+/* ── ДНК-профиль: цель, интересы, уровень. Ученик заполняет сам при первом входе. */
+router.get('/dna', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT goal, interests, level FROM student_dna WHERE user_id=$1', [req.user.id]);
+    res.json({ dna: rows[0] || null, goals: interests.GOALS, interests: interests.INTERESTS.map(({ key, label, emoji }) => ({ key, label, emoji })), levels: interests.LEVELS });
+  } catch (err) { console.error('[student/dna]', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+router.put('/dna', requireAuth, async (req, res) => {
+  try {
+    const d = interests.clean(req.body);
+    if (!d.interests.length) return res.status(400).json({ error: 'Pick at least one interest' });
+    await pool.query(
+      `INSERT INTO student_dna (user_id, goal, interests, level) VALUES ($1,$2,$3,$4)
+       ON CONFLICT (user_id) DO UPDATE SET goal=$2, interests=$3, level=$4, updated_at=NOW()`,
+      [req.user.id, d.goal, d.interests, d.level]);
+    res.json({ ok: true, dna: d });
+  } catch (err) { console.error('[student/dna]', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* Ежедневная лента ученика: 3 свежие статьи по его интересам. */
+router.get('/feed', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT goal, interests, level FROM student_dna WHERE user_id=$1', [req.user.id]);
+    const dna = rows[0] || null;
+    const out = await newsFeeds.pickForInterests(dna ? dna.interests : [], 3);
+    res.json({ items: out.items, interests: out.interests, level: dna && dna.level, personal: !!dna });
+  } catch (err) {
+    console.error('[student/feed]', err.message);
+    res.status(502).json({ error: 'The feed could not be loaded right now' });
+  }
+});
+
 router.get('/vapid-public-key', (req, res) => {
   res.json({ key: pushConfigured ? VAPID_PUBLIC : null, configured: pushConfigured });
 });
