@@ -6973,7 +6973,11 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 .vs-ctx-k{font:800 10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#8A8D7A}
 .vs-hear-chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px 0 6px;border-radius:999px;border:0;background:#24282C;color:#fff;font:700 12px var(--font-ui,system-ui,sans-serif);cursor:pointer;transition:transform .12s}
 .vs-hear-chip i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#CDF649;color:#24282C;font-size:8px;font-style:normal}
-.vs-hear-chip:hover{background:#000}
+.vs-hear-chip{position:relative;box-shadow:0 0 0 0 rgba(205,246,73,.55);animation:vs-pulse 2.4s ease-out infinite}
+.vs-hear-chip i{animation:vs-beat 2.4s ease-in-out infinite}
+@keyframes vs-pulse{0%{box-shadow:0 0 0 0 rgba(205,246,73,.55)}70%,100%{box-shadow:0 0 0 10px rgba(205,246,73,0)}}
+@keyframes vs-beat{0%,60%,100%{transform:scale(1)}30%{transform:scale(1.18)}}
+.vs-hear-chip:hover{background:#000;animation:none}
 .vs-hear-chip:active{transform:scale(.95)}
 .vs-colloc{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;max-width:560px}
 .vs-colloc em{font-style:normal;font-weight:650;font-size:13px;background:#EFEAFF;color:#4B2FC4;border-radius:999px;padding:4px 11px}
@@ -7017,7 +7021,7 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
   .vs-learning{grid-row:2;grid-column:1}.vs-known{grid-row:2;grid-column:2}
   .vs-card{padding:20px 16px}
 }
-@media (prefers-reduced-motion:reduce){.vs-card,.vs-dot,.vs-say,.vs-round i{transition:none}.vs-opt.bad{animation:none}}
+@media (prefers-reduced-motion:reduce){.vs-card,.vs-dot,.vs-say,.vs-round i{transition:none}.vs-opt.bad,.vs-hear-chip,.vs-hear-chip i{animation:none}}
 
 /* Название урока в шапке: нажми, чтобы переименовать */
 .wp-rename{all:unset;box-sizing:border-box;display:block;max-width:100%;margin-top:3px;font-size:19px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text;border-radius:8px;padding:0 4px;margin-left:-4px;color:inherit}

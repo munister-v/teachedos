@@ -4564,13 +4564,16 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
     const m = _gameMetaFor(gameType);
     return { role: 'game', title: String(title).slice(0, 28), out: { title, src: m.src, naturalW: m.w, naturalH: m.h, customContent: content, level: level || base.level }, state: null };
   };
-  tplBuilt.forEach(({ t, content }) => steps.push(gameStep(t.title, t.game, content)));
+  /* Flash cards повторяют Vocabulary Studio (слово, значение, пример), поэтому
+     в пути их нет; отдельной карточкой на доске они по-прежнему доступны. */
+  tplBuilt.filter(({ t }) => t.key !== 'flashcards').forEach(({ t, content }) => steps.push(gameStep(t.title, t.game, content)));
   const speakOuts = [];
   let writing = null;
   built.forEach(({ activity, out }) => {
     out.title = activity.title;
     if (activity.tool === 'creative-writing') { writing = { role: 'studio', title: 'Writing Studio', out: _wpSlim(out), state: null }; return; }
     if (activity.tool === 'discussion' || activity.tool === 'comm-situations') { speakOuts.push(_wpSlim(out)); return; }
+    if (activity.tool === 'flashcards') return;
     let g = null;
     try { const gs = _ttGamePayloads(out) || []; g = gs.find(x => x.gameType === activity.game) || gs[0] || null; } catch {}
     if (g) steps.push(gameStep(activity.title, g.gameType, g.content, out.level));
@@ -4626,6 +4629,16 @@ async function _wpEnrichVocab(card) {
     if (x.meaning && (!w.meaning || (/\s/.test(w.word) && !w.meaningKept))) w.meaning = x.meaning;
     if (x.collocations && x.collocations.length) w.collocations = x.collocations;
     if (x.gap) w.gap = x.gap;
+    if (x.speak && x.speak.length) w.speak = x.speak;
+  });
+  // Speaking cards в пути: задания под каждое слово, а не общий набор.
+  c.data._wfPath.steps.forEach(st => {
+    const cards = st.role === 'game' && /ww\/speaking/.test(st.out.src || '') && st.out.customContent && st.out.customContent.cards;
+    if (!Array.isArray(cards)) return;
+    cards.forEach(cd => {
+      const x = byWord.get(String(cd.word).toLowerCase());
+      if (x && x.speak && x.speak.length) cd.tasks = x.speak;
+    });
   });
   if (d.theme && c.data._titleAuto) { c.data.title = d.theme; delete c.data._titleAuto; }
   if (!c.__preview) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
@@ -16909,7 +16922,7 @@ async function _wordTemplateContent(t, ctx) {
     case 'wordsearch':
       return need(2, 'of 3-15 letters') || { content: { words: kept.map(e => e.word), pairs: kept.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) }, note };
     case 'speaking':
-      return { content: { cards: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
+      return { content: { cards: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null, pos: e.pos || '' })) } };
     case 'box':
       return { content: { items: kept.map(e => ({ word: e.word, meaning: e.gloss, audio: e.audio || null })) } };
     case 'wheel':

@@ -2193,7 +2193,7 @@ router.post('/vocab-enrich', requireAuth, requireTeacher, lessonBoardLimiter, as
     await reserveAiQuota(req.user, { mode: 'vocab-enrich', source: words.join(', ') });
 
     const prompt = `You are an ESL vocabulary coach. Return ONLY a JSON object (no markdown, no prose) with this exact shape:
-{"theme":"...","items":[{"word":"...","meaning":"...","collocations":["...","..."],"gap":"..."}]}
+{"theme":"...","items":[{"word":"...","meaning":"...","collocations":["...","..."],"gap":"...","speak":["...","..."]}]}
 
 Level: ${level}
 ${topic ? `Teacher's topic: ${topic}\n` : ''}Target words and phrases (keep them exactly as written, same order):
@@ -2203,6 +2203,7 @@ Rules:
 - theme: ONE short general theme for the whole set, 2-4 words, Title Case, not a list of the words (e.g. "Education and Study", "Illness and Recovery"). Never start with "Vocabulary".
 - meaning: a clear student-friendly definition at ${level} level, max 14 words. For phrases, idioms and collocations give the meaning of the WHOLE expression as people actually use it (figurative or professional sense included) - never the dictionary entry of one word inside it. Do not repeat the word itself.
 - collocations: 2-3 short natural word partnerships that go with this word or phrase (e.g. "make a decision", "tough decision"). For a fixed phrase give 2 short typical sentence frames instead.
+- speak: 2 different short speaking tasks a teacher can read aloud, written for THIS word, each using the word or phrase itself. Match the task to the kind of word: phrasal verbs, actions and situations ("get expelled") get a personal-experience or hypothetical question ("When did someone you know get in serious trouble? What happened?"); abstract ideas and collocations ("educational journey") get an opinion or evaluation question ("Is the journey more important than the destination in education? Why?"); concrete nouns get a description, association or choice task. Never write generic prompts like "Give an example from real life" or "What do you think about...".
 - gap: ONE natural example sentence at ${level} level containing the target exactly as written, with the target replaced by ______ (six underscores). If the word needs another form in the sentence, keep the sentence grammatical with the base form.`;
 
     const result = await aiEngine.rawGenerate(prompt);
@@ -2218,6 +2219,7 @@ Rules:
       meaning: String(x?.meaning || '').trim().slice(0, 200),
       collocations: (Array.isArray(x?.collocations) ? x.collocations : []).map(c => String(c || '').trim().slice(0, 60)).filter(Boolean).slice(0, 3),
       gap: /_{3,}/.test(String(x?.gap || '')) ? String(x.gap).trim().slice(0, 240) : '',
+      speak: (Array.isArray(x?.speak) ? x.speak : []).map(q => String(q || '').trim().slice(0, 200)).filter(Boolean).slice(0, 3),
     })).filter(x => x.word);
     res.json({ theme: String(result?.theme || '').trim().slice(0, 60), items, quota: await readAiQuota(req.user) });
   } catch (err) {
