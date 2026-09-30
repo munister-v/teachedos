@@ -15910,7 +15910,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1046';
+const TEACHEDOS_ASSET_VERSION = '1047';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19824,26 +19824,33 @@ function _wizToggleVocab(phrase) {
   const at = lines.findIndex(l => _wizVocabKey(l) === key);
   if (at >= 0) lines.splice(at, 1); else lines.push(/^[A-Z][a-z]/.test(clean) && !/\s/.test(clean) ? clean.toLowerCase() : clean);
   _wizSetVocab(lines);
-  _wizPickMark();
+  _pickMarkAll();
 }
-let _wizPickT = null;
-function _wizPickRender() {
-  clearTimeout(_wizPickT);
-  _wizPickT = setTimeout(() => {
-    const box = document.getElementById('tb-wiz-pick');
-    const src = document.getElementById('tb-wiz-extract-src');
-    if (!box || !src) return;
-    const text = src.value.trim();
-    if (!text) { box.hidden = true; box.innerHTML = ''; return; }
-    const html = text.split(/\n+/).map(par => '<p>' + par.split(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’-]*)/).map((part, i) =>
-      i % 2 ? `<span class="tb-pick-w" data-w="${esc(part)}">${esc(part)}</span>` : esc(part)).join('') + '</p>').join('');
-    box.innerHTML = `<div class="tb-pick-head">Click words to add them · select several words for a phrase</div><div class="tb-pick-text">${html}</div>`;
-    box.hidden = false;
-    _wizPickMark();
-  }, 150);
+/* Пары (поле источника → блок-пикер под ним). Раньше был один такой пикер,
+   и он жил у студии вокабуляра (#tb-wiz-extract-src / #tb-wiz-pick) - у
+   Listening/Reading/Speaking/Writing/Grammar его не было вовсе, хотя их текст
+   лежит в том же смысле «источник» (#tbuilder-source), только в другом поле.
+   Рендер и подсветка теперь параметризованы id-парой, а не завязаны на один
+   конкретный блок - новый навык с текстовым источником получает пикер
+   бесплатно, просто назвав свою пару полей здесь. */
+const TB_PICK_BOXES = [
+  { src: 'tb-wiz-extract-src', box: 'tb-wiz-pick' },
+  { src: 'tbuilder-source',    box: 'tb-src-pick' },
+];
+function _pickRenderBox(srcId, boxId) {
+  const box = document.getElementById(boxId);
+  const src = document.getElementById(srcId);
+  if (!box || !src) return;
+  const text = src.value.trim();
+  if (!text) { box.hidden = true; box.innerHTML = ''; return; }
+  const html = text.split(/\n+/).map(par => '<p>' + par.split(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’-]*)/).map((part, i) =>
+    i % 2 ? `<span class="tb-pick-w" data-w="${esc(part)}">${esc(part)}</span>` : esc(part)).join('') + '</p>').join('');
+  box.innerHTML = `<div class="tb-pick-head">Click words to add them · select several words for a phrase</div><div class="tb-pick-text">${html}</div>`;
+  box.hidden = false;
+  _pickMarkBox(boxId);
 }
-function _wizPickMark() {
-  const box = document.getElementById('tb-wiz-pick');
+function _pickMarkBox(boxId) {
+  const box = document.getElementById(boxId);
   if (!box || box.hidden) return;
   const keys = new Set(_wizVocabLines().map(_wizVocabKey));
   const multi = [...keys].filter(k => k.includes(' '));
@@ -19859,6 +19866,38 @@ function _wizPickMark() {
     }
   });
 }
+// Только открытые блоки красятся заново - закрытый пуст, метить нечего.
+function _pickMarkAll() { TB_PICK_BOXES.forEach(p => _pickMarkBox(p.box)); }
+let _wizPickT = null;
+function _wizPickRender() {
+  clearTimeout(_wizPickT);
+  _wizPickT = setTimeout(() => _pickRenderBox('tb-wiz-extract-src', 'tb-wiz-pick'), 150);
+}
+function _wizPickMark() { _pickMarkBox('tb-wiz-pick'); }
+/* Пикер поля «Source text» - кнопка-переключатель, а не всегда открытый блок:
+   на этапе Listening/Reading текст часто длинный (транскрипт видео, скрипт
+   аудио), и держать его весь продублированным словами-кнопками под курсором
+   по умолчанию - не то же самое, что маленькое поле студии вокабуляра, где
+   пикер был к месту всегда открытым. */
+let _srcPickT = null;
+function _srcPickRender() {
+  clearTimeout(_srcPickT);
+  _srcPickT = setTimeout(() => {
+    const has = !!document.getElementById('tbuilder-source')?.value.trim();
+    const btn = document.getElementById('tbuilder-pick-source');
+    if (btn) btn.hidden = !has;
+    const box = document.getElementById('tb-src-pick');
+    if (!box) return;
+    if (!has) { box.hidden = true; box.innerHTML = ''; return; }
+    if (!box.hidden) _pickRenderBox('tbuilder-source', 'tb-src-pick');
+  }, 150);
+}
+function _srcPickToggle() {
+  const box = document.getElementById('tb-src-pick');
+  if (!box) return;
+  if (box.hidden) _pickRenderBox('tbuilder-source', 'tb-src-pick');
+  else { box.hidden = true; box.innerHTML = ''; }
+}
 function _wizExtractReady() {
   const src = typeof boardWizardSource === 'function' ? boardWizardSource() : null;
   if (!src || !src.extractTool) return false;
@@ -19871,7 +19910,7 @@ function _wizTopicInput() {
   _ttSyncFormReadiness();
 }
 document.addEventListener('mouseup', e => {
-  const box = e.target.closest && e.target.closest('#tb-wiz-pick');
+  const box = e.target.closest && e.target.closest(TB_PICK_BOXES.map(p => '#' + p.box).join(','));
   if (!box) return;
   const sel = window.getSelection();
   const text = sel ? String(sel).trim() : '';
@@ -19884,7 +19923,7 @@ document.addEventListener('mouseup', e => {
   if (w && !text) _wizToggleVocab(w.dataset.w);
 });
 document.addEventListener('input', e => {
-  if (e.target && e.target.id === 'tbuilder-vocab') _wizPickMark();
+  if (e.target && e.target.id === 'tbuilder-vocab') _pickMarkAll();
   if (e.target && e.target.id === 'tb-wiz-extract-src') _ttSyncFormReadiness();
 });
 
