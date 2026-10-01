@@ -7331,3 +7331,21 @@ body:not(#_):not(#__) .ss-notes{min-height:70px !important;border-radius:14px !i
 .lesson-handoff .lh-b.done{background:rgba(255,255,255,.14);color:#fff}
 .lesson-handoff .lh-x{border:0;background:transparent;color:#CACCC6;font-size:20px;line-height:1;cursor:pointer;padding:2px 6px}
 .tb-wiz-drop.is-busy{opacity:.6;pointer-events:none}
+
+/* sticky colours: twelve distinct tiles + own colour + eyedropper */
+#sticky-palette{width:196px;}
+.sticky-color-grid{grid-template-columns:repeat(4,38px);gap:6px;}
+.sticky-color-tile{width:38px;height:38px;border-radius:9px;}
+.sticky-custom-row{display:flex;gap:6px;align-items:center}
+.sticky-custom{flex:1;display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border-radius:10px;background:#F6F6EF;font:650 13px var(--font);color:#24282C;cursor:pointer}
+.sticky-custom input{width:22px;height:22px;border:0;padding:0;background:none;cursor:pointer;border-radius:50%}
+.sticky-eyedrop{width:38px;height:38px;border:0;border-radius:10px;background:#24282C;color:#CDF649;display:grid;place-items:center;cursor:pointer}
+.sticky-eyedrop:hover{filter:brightness(1.2)}
+/* avatar menu: boards */
+.um-label{padding:6px 14px 2px;font:700 10px var(--mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3,#7A7E68)}
+.um-board{display:flex;align-items:center;gap:9px}
+.um-board .um-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid #A3A48D;flex:none}
+.um-board.on .um-dot{background:#CDF649;border-color:#24282C}
+.um-board.on{font-weight:700}
+.um-bn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sticky-palette-action[hidden]{display:none!important}

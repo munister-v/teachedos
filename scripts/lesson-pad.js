@@ -40,12 +40,12 @@
     const st = document.createElement('style');
     st.id = 'lp-css';
     st.textContent = `
-.lp{position:fixed;left:84px;bottom:18px;z-index:900;font-family:var(--font-ui,system-ui,sans-serif);color:#24282C}
+.lp{position:fixed;right:16px;top:calc(var(--tb-h,48px) + 14px);z-index:900;font-family:var(--font-ui,system-ui,sans-serif);color:#24282C}
 .lp[hidden]{display:none}
-.lp-fab{display:flex;align-items:center;gap:8px;height:42px;padding:0 16px 0 12px;border-radius:999px;border:1px solid rgba(36,40,44,.18);background:#24282C;color:#fff;font:700 13px var(--font-ui,system-ui,sans-serif);cursor:pointer;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
-.lp-fab i{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#CDF649;color:#24282C;font:800 11.5px ui-monospace,Menlo,monospace;font-style:normal}
-.lp-fab:hover{background:#000}
-.lp-panel{position:absolute;left:0;bottom:52px;width:min(360px,calc(100vw - 100px));max-height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;background:#fff;border:1px solid rgba(36,40,44,.14);border-radius:18px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45);overflow:hidden}
+.lp-fab{display:flex;align-items:center;gap:8px;height:42px;padding:0 18px 0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.55);background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.12)),rgba(70,72,78,.55);-webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);color:#fff;font:700 13.5px var(--font-ui,system-ui,sans-serif);cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.18),0 10px 28px -10px rgba(0,0,0,.55);text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.lp-fab i{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#CDF649;color:#24282C;font:800 11.5px ui-monospace,Menlo,monospace;font-style:normal;text-shadow:none}
+.lp-fab:hover{background:linear-gradient(180deg,rgba(255,255,255,.44),rgba(255,255,255,.18)),rgba(70,72,78,.62)}
+.lp-panel{position:absolute;right:0;top:52px;width:min(360px,calc(100vw - 100px));max-height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;background:#fff;border:1px solid rgba(36,40,44,.14);border-radius:18px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45);overflow:hidden}
 .lp-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px}
 .lp-head b{font-size:14px}.lp-head span{font-size:11.5px;color:#5D614B}
 .lp-x{border:0;background:transparent;font-size:18px;line-height:1;color:#5D614B;cursor:pointer;padding:4px 6px}

@@ -936,7 +936,10 @@ function dockApp(id) {
   }
   openApp(id);
 }
-function openPricingFromHash() { if (['#pricing','#plans','#billing'].includes(location.hash)) setTimeout(() => openApp('pricing'), 120); }
+function openPricingFromHash() {
+  if (['#pricing','#plans','#billing'].includes(location.hash)) setTimeout(() => openApp('pricing'), 120);
+  else if (location.hash === '#students') setTimeout(() => openApp('students'), 120);
+}
 window.addEventListener('hashchange', openPricingFromHash);
 openPricingFromHash();
 function openNotesFromHash() { if (location.hash === '#notes') setTimeout(() => openApp('notes'), 120); }

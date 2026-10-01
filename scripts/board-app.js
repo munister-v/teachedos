@@ -15910,7 +15910,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1050';
+const TEACHEDOS_ASSET_VERSION = '1052';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -22268,7 +22268,29 @@ function showUserMenu() {
   const m = document.getElementById('user-menu');
   const open = m.style.display === 'none' || !m.style.display;
   m.style.display = open ? 'block' : 'none';
+  if (open) loadMenuBoards();
   _syncMobileSheetBackdrop();
+}
+
+/* Меню аватара: переключатель между досками (по ученику). Остальные разделы
+   сайта живут на главной и в доке, на самой доске они только мешают. */
+async function loadMenuBoards() {
+  const host = document.getElementById('um-boards'), label = document.getElementById('um-boards-label');
+  if (!host || !label) return;
+  if (!isOwner) { host.hidden = true; label.hidden = true; return; }
+  try {
+    const r = await apiFetch('/api/boards');
+    const { boards } = await r.json();
+    const list = (boards || []).slice(0, 8);
+    if (list.length < 2) { host.hidden = true; label.hidden = true; return; }
+    host.innerHTML = list.map(b => `<div class="user-menu-item um-board${b.id === currentBoardId ? ' on' : ''}" data-id="${esc(b.id)}" data-name="${esc(b.name)}">
+      <span class="um-dot"></span><span class="um-bn">${esc(b.name)}</span></div>`).join('');
+    host.querySelectorAll('.um-board').forEach(el => el.onclick = () => {
+      document.getElementById('user-menu').style.display = 'none';
+      if (el.dataset.id !== currentBoardId) switchBoard(el.dataset.id, el.dataset.name);
+    });
+    host.hidden = false; label.hidden = false;
+  } catch { host.hidden = true; label.hidden = true; }
 }
 document.addEventListener('click', e => {
   if (!document.getElementById('auth-chip')?.contains(e.target) &&
@@ -23885,16 +23907,28 @@ document.addEventListener('click', e => {
 let _miroTool = 'select';
 let _stickyAddCount = 0;
 
-const STICKY_PALETTE_COLORS = [
-  '#F3DF6B','#F3DF6B',
-  '#F3A46B','#F3A46B',
-  '#9F8CE8','#9F8CE8',
-  '#6BAFF3','#9F8CE8',
-  '#49F6F0','#6BAFF3',
-  '#49F6F0','#D3F36B',
-  '#D3F36B','#CDF649',
-  '#F6F6EF','#24282C',
-];
+/* Двенадцать разных цветов (раньше половина плиток повторялась) + свой цвет и пипетка. */
+const STICKY_PALETTE_COLORS = STICKY_COLORS.slice();
+const STICKY_CUSTOM_KEY = 'teachedos_sticky_custom';
+function stickyCustomColors() {
+  try { return JSON.parse(localStorage.getItem(STICKY_CUSTOM_KEY) || '[]').filter(c => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 6); } catch { return []; }
+}
+function rememberStickyColor(c) {
+  c = String(c || '').toLowerCase();
+  if (!/^#[0-9a-f]{6}$/.test(c)) return;
+  const list = [c, ...stickyCustomColors().filter(x => x.toLowerCase() !== c)].slice(0, 6);
+  try { localStorage.setItem(STICKY_CUSTOM_KEY, JSON.stringify(list)); } catch {}
+  const g = document.getElementById('sticky-color-grid');
+  if (g) { g.dataset.ready = ''; buildStickyPalette(); }
+}
+async function pickStickyColorWithEyedropper() {
+  if (!('EyeDropper' in window)) { toast('The eyedropper needs Chrome or Edge. Use the colour wheel instead.'); return; }
+  try {
+    const { sRGBHex } = await new window.EyeDropper().open();
+    rememberStickyColor(sRGBHex);
+    addStickyFromPalette(sRGBHex);
+  } catch (_) { /* отмена */ }
+}
 
 function openStickyPalette() {
   const panel = document.getElementById('sticky-palette');
@@ -23928,12 +23962,20 @@ function positionStickyPalette() {
   panel.style.left = (r.right + 8) + 'px';
 }
 
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'sticky-custom-input') {
+    const c = e.target.value;
+    rememberStickyColor(c);
+    addStickyFromPalette(c);
+  }
+});
+
 function buildStickyPalette() {
   const grid = document.getElementById('sticky-color-grid');
   if (!grid || grid.dataset.ready === '1') return;
   grid.innerHTML = '';
   const def = getDefaults('sticky');
-  STICKY_PALETTE_COLORS.forEach(color => {
+  [...STICKY_PALETTE_COLORS, ...stickyCustomColors()].forEach(color => {
     const btn = document.createElement('button');
     btn.className = 'sticky-color-tile';
     btn.type = 'button';
