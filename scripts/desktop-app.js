@@ -1079,6 +1079,7 @@ function studentsFilter(filter, el) {
 
 /* id выбранного ученика: список слева, его карточка справа — как в почте. */
 let studentsSelectedId = null;
+let studentsWantedId = new URLSearchParams(location.search).get('student');
 
 /* Аватар ученика. В базе это ЭМОДЗИ (профиль так и предлагает - «choose
    your avatar emoji»), фотографий продукт пока не загружает. Ссылка всё же
@@ -1143,6 +1144,11 @@ function studentsRender() {
     return;
   }
 
+  // ссылка из меню доски: index.html?student=<id>#students открывает его карточку
+  if (studentsWantedId && STUDENTS.some(s => String(s.id) === studentsWantedId)) {
+    studentsSelectedId = studentsWantedId;
+    studentsWantedId = null;
+  }
   // выбранным остаётся тот же ученик, пока он в отфильтрованном списке
   if (!filtered.some(s => String(s.id) === String(studentsSelectedId))) {
     studentsSelectedId = filtered[0].id;

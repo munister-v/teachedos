@@ -1108,6 +1108,7 @@ function renderSticky(el, card) {
   });
   body.appendChild(text);
   el.appendChild(body);
+  applyStickyTextStyle(card, el);
   // Miro-style: double-click body → enter edit mode
   el.addEventListener('dblclick', e => {
     if (e.target.closest('.sticky-toolbar,.sticky-close')) return;
@@ -1237,23 +1238,23 @@ function renderText(el, card) {
     <select class="text-format-select" data-act="font" aria-label="Font">
       ${textFontOptions().map(f => `<option value="${esc(f.value)}"${(card.data.fontFamily||'var(--font)')===f.value?' selected':''}>${esc(f.label)}</option>`).join('')}
     </select>
-    <input class="text-size-input" data-act="font-size" type="number" min="8" max="96" step="1"
-      value="${card.data.fontSize || 14}" aria-label="Font size">
+    <div class="fmt-step">
+      <button type="button" data-step="-1" title="Smaller">−</button>
+      <input class="text-size-input fmt-step-input" data-act="font-size" type="number" min="8" max="96" step="1"
+        value="${card.data.fontSize || 14}" aria-label="Font size">
+      <button type="button" data-step="1" title="Larger">+</button>
+    </div>
     <span class="tb-sep"></span>
-    <button class="text-format-btn" data-cmd="bold" aria-label="Bold"><b>B</b></button>
-    <button class="text-format-btn" data-cmd="italic" aria-label="Italic"><i>I</i></button>
-    <button class="text-format-btn" data-cmd="underline" aria-label="Underline"><u>U</u></button>
+    <button class="fmt-btn text-format-btn" data-cmd="bold" title="Bold" aria-label="Bold">${FMT_ICON.bold}</button>
+    <button class="fmt-btn text-format-btn" data-cmd="italic" title="Italic" aria-label="Italic">${FMT_ICON.italic}</button>
+    <button class="fmt-btn text-format-btn" data-cmd="underline" title="Underline" aria-label="Underline">${FMT_ICON.underline}</button>
+    <button class="fmt-btn text-format-btn" data-align-cycle title="Align" aria-label="Align"></button>
     <span class="tb-sep"></span>
-    <button class="text-format-btn" data-align="left" aria-label="Align left">⇤</button>
-    <button class="text-format-btn" data-align="center" aria-label="Align center">↔</button>
-    <button class="text-format-btn" data-align="right" aria-label="Align right">⇥</button>
+    <button class="fmt-btn text-link-btn" title="Insert link" aria-label="Insert link">${FMT_ICON.link}</button>
+    <button class="fmt-btn fmt-color text-color-btn" data-act="text-color" title="Text colour" aria-label="Text colour"></button>
+    <button class="fmt-btn fmt-color text-color-btn" data-act="bg-color" title="Highlight / background" aria-label="Background colour"></button>
     <span class="tb-sep"></span>
-    <button class="text-link-btn" aria-label="Insert link">🔗</button>
-    <input class="text-color-control" type="color" data-act="text-color" aria-label="Text color" value="${cssColorToHex(card.data.textColor || '#24282C')}">
-    <input class="text-color-control" type="color" data-act="bg-color" aria-label="Card background color" value="${cssColorToHex(card.data.bgColor || '#ffffff')}">
-    <button class="text-bg-clear" aria-label="Transparent background">⊘</button>
-    <span class="tb-sep"></span>
-    <button class="text-lock-btn${card.data.locked?' active':''}" aria-label="${card.data.locked?'Unlock position':'Lock position'}">${card.data.locked?'🔒':'📌'}</button>`;
+    <button class="fmt-btn text-lock-btn${card.data.locked?' active':''}" title="${card.data.locked?'Unlock position':'Lock position'}" aria-label="${card.data.locked?'Unlock position':'Lock position'}">${card.data.locked?FMT_ICON.lock:FMT_ICON.unlock}</button>`;
 
   const editor = document.createElement('div');
   editor.className = 'text-rich-editor';
@@ -2061,6 +2062,11 @@ function renderSticker(el, card) {
 }
 
 /* ════════════════════════ SHAPE CARD ════════════════════════ */
+/* A fresh shape is a plain colour: no black outline, no white plate. Fill,
+   border and opacity are changed from the bar over the selected shape. */
+function newShapeData(shape) {
+  return { shape: shape || 'rect', fill: '#CDF649', stroke: 'none', sw: 0, text: '', textColor: '#24282C', fontSize: 14 };
+}
 function _shapePoints(shape) {
   const sw = 2;
   switch(shape) {
@@ -2110,9 +2116,13 @@ function renderShape(el, card) {
   const { tag, attrs } = _shapePoints(d.shape || 'rect');
   const shEl = document.createElementNS(ns, tag);
   Object.entries(attrs).forEach(([k,v]) => shEl.setAttribute(k, v));
-  shEl.setAttribute('fill', d.fill || '#ffffff');
-  shEl.setAttribute('stroke', d.stroke || '#24282C');
-  shEl.setAttribute('stroke-width', d.sw || 2);
+  shEl.setAttribute('fill', fmtIsNone(d.fill) && d.fill != null ? 'none' : (d.fill || '#ffffff'));
+  shEl.setAttribute('stroke', d.sw === undefined && d.stroke === undefined ? '#24282C' : shapeStroke(d));
+  shEl.setAttribute('stroke-width', d.sw === undefined ? 2 : (Number(d.sw) > 0 ? d.sw : 0));
+  /* Pixels, not 1/100 of the box: with preserveAspectRatio=none a "2" was thick
+     on the long side of a wide shape and thin on the short one. */
+  shEl.setAttribute('vector-effect', 'non-scaling-stroke');
+  shEl.setAttribute('stroke-linejoin', 'round');
   if (d.opacity != null) shEl.setAttribute('fill-opacity', d.opacity);
   svg.appendChild(shEl);
   el.appendChild(svg);
@@ -6203,6 +6213,10 @@ function positionTextToolbar(toolbar, cardEl) {
   requestAnimationFrame(() => {
     if (getComputedStyle(toolbar).display === 'none') return;
     toolbar.classList.remove('is-below');
+    /* Measure the resting position: the bar slides (transition on transform),
+       so reading it mid-slide put the "fix" in the wrong place and a wide bar
+       ended up half off-screen. */
+    toolbar.style.transition = 'none';
     toolbar.style.setProperty('--text-toolbar-shift', '0px');
     const safe = isBoardPhone() ? 10 : 12;
     const r = toolbar.getBoundingClientRect();
@@ -6212,6 +6226,7 @@ function positionTextToolbar(toolbar, cardEl) {
     if (next.left < safe) shift = safe - next.left;
     if (next.right > window.innerWidth - safe) shift = window.innerWidth - safe - next.right;
     toolbar.style.setProperty('--text-toolbar-shift', `${Math.round(shift)}px`);
+    requestAnimationFrame(() => { toolbar.style.transition = ''; });
   });
 }
 
@@ -6234,18 +6249,19 @@ function bindTextToolbar(toolbar, editor, card, el) {
       scheduleSave();
     });
   });
-  toolbar.querySelectorAll('[data-align]').forEach(btn => {
-    btn.classList.toggle('active', (card.data.align || 'left') === btn.dataset.align);
-    btn.addEventListener('click', e => {
+  const alignBtn = toolbar.querySelector('[data-align-cycle]');
+  if (alignBtn) {
+    const paintAlign = () => { const a = card.data.align || 'left'; alignBtn.innerHTML = FMT_ICON[a] || FMT_ICON.left; alignBtn.title = 'Align: ' + a; };
+    paintAlign();
+    alignBtn.addEventListener('click', e => {
       e.stopPropagation();
       snapshot();
-      card.data.align = btn.dataset.align;
-      toolbar.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      card.data.align = FMT_ALIGNS[(FMT_ALIGNS.indexOf(card.data.align || 'left') + 1) % 3];
+      paintAlign();
       applyTextStyles(card, editor);
       scheduleSave();
     });
-  });
+  }
   toolbar.querySelector('[data-act="font"]')?.addEventListener('change', e => {
     snapshot();
     card.data.fontFamily = e.target.value;
@@ -6271,23 +6287,35 @@ function bindTextToolbar(toolbar, editor, card, el) {
     });
     sizeInput.addEventListener('mousedown', e => e.stopPropagation());
     sizeInput.addEventListener('click',     e => e.stopPropagation());
+    toolbar.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      sizeInput.value = Math.max(8, Math.min(96, (parseInt(sizeInput.value) || 14) + Number(b.dataset.step)));
+      applySize(true);
+    }));
   }
-  toolbar.querySelector('[data-act="text-color"]')?.addEventListener('input', e => {
-    card.data.textColor = e.target.value;
-    applyTextStyles(card, editor);
-    scheduleSave();
-  });
-  toolbar.querySelector('[data-act="bg-color"]')?.addEventListener('input', e => {
-    card.data.bgColor = e.target.value;
-    applyTextStyles(card, editor);
-    scheduleSave();
-  });
-  toolbar.querySelector('.text-bg-clear')?.addEventListener('click', e => {
+  const textBtn = toolbar.querySelector('[data-act="text-color"]');
+  const bgBtn   = toolbar.querySelector('[data-act="bg-color"]');
+  const paintCols = () => {
+    if (textBtn) paintColorBtn(textBtn, 'text', card.data.textColor || '#24282C');
+    if (bgBtn)   paintColorBtn(bgBtn, 'fill', card.data.bgColor);
+  };
+  paintCols();
+  textBtn?.addEventListener('click', e => {
     e.stopPropagation();
-    snapshot();
-    card.data.bgColor = 'transparent';
-    applyTextStyles(card, editor);
-    scheduleSave();
+    openFmtColorPop(textBtn, {
+      colors: FMT_COLORS, get: () => card.data.textColor || '#24282C', snap: () => snapshot(),
+      apply: c => { card.data.textColor = c; applyTextStyles(card, editor); scheduleSave(); },
+      onRefresh: paintCols,
+    });
+  });
+  bgBtn?.addEventListener('click', e => {
+    e.stopPropagation();
+    openFmtColorPop(bgBtn, {
+      colors: FMT_COLORS, none: 'No background', noneValue: 'transparent',
+      get: () => card.data.bgColor || 'transparent', snap: () => snapshot(),
+      apply: c => { card.data.bgColor = c; applyTextStyles(card, editor); scheduleSave(); },
+      onRefresh: paintCols,
+    });
   });
   toolbar.querySelector('.text-link-btn')?.addEventListener('click', e => {
     e.stopPropagation();
@@ -6554,12 +6582,12 @@ function openCardEditor(cardId) {
         </select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div><div class="ed-label">Fill Color</div>
-          <input type="color" class="ed-input" id="ed-shape-fill" value="${card.data.fill||'#ffffff'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+          <input type="color" class="ed-input" id="ed-shape-fill" value="${cssColorToHex(card.data.fill)}" oninput="this.dataset.t=1" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
         <div><div class="ed-label">Stroke Color</div>
-          <input type="color" class="ed-input" id="ed-shape-stroke" value="${card.data.stroke&&card.data.stroke.startsWith('#')?card.data.stroke:'#24282C'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
+          <input type="color" class="ed-input" id="ed-shape-stroke" value="${card.data.stroke&&card.data.stroke.startsWith('#')?card.data.stroke:'#24282C'}" oninput="this.dataset.t=1" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
       </div>
       <div><div class="ed-label">Stroke Width</div>
-        <input type="range" class="ed-input" id="ed-shape-sw" min="0" max="10" value="${card.data.sw||2}" style="padding:4px 0;"/></div>
+        <input type="range" class="ed-input" id="ed-shape-sw" min="0" max="10" value="${card.data.sw||0}" style="padding:4px 0;"/></div>
       <div><div class="ed-label">Label Text</div>
         <input class="ed-input" id="ed-shape-text" value="${esc(card.data.text||'')}"/></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -6759,9 +6787,9 @@ function saveCardEditor() {
     card.data.remaining = card.data.minutes * 60 + card.data.seconds;
   } else if (card.type === 'shape') {
     card.data.shape     = g('ed-shape-type')?.value || card.data.shape;
-    card.data.fill      = g('ed-shape-fill')?.value  || card.data.fill;
-    card.data.stroke    = g('ed-shape-stroke')?.value || card.data.stroke;
-    card.data.sw        = Number(g('ed-shape-sw')?.value ?? card.data.sw ?? 2);
+    if (g('ed-shape-fill')?.dataset.t)   card.data.fill   = g('ed-shape-fill').value;
+    if (g('ed-shape-stroke')?.dataset.t) card.data.stroke = g('ed-shape-stroke').value;
+    card.data.sw        = Number(g('ed-shape-sw')?.value ?? card.data.sw ?? 0);
     card.data.text      = g('ed-shape-text')?.value   ?? card.data.text ?? '';
     card.data.textColor = g('ed-shape-tc')?.value     || card.data.textColor;
     card.data.fontSize  = Number(g('ed-shape-fs')?.value || card.data.fontSize || 14);
@@ -7489,6 +7517,364 @@ function ensureLayerPopover() {
   return pop;
 }
 
+/* ═══════════════ FORMAT BAR: sticky · shape · text ═══════════════
+   One toolbar language for the three things people style most. Colours open a
+   small popover (palette, "no fill", own colour, eyedropper) instead of a row
+   of loose dots or the browser's raw colour input; size is a − 16 + stepper;
+   alignment is one button that cycles. Same look in the floating bar over a
+   sticky/shape (layer-popover) and in the text box's own bar. */
+const FMT_ICON = {
+  bold:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 2.5h4a2.5 2.5 0 0 1 0 5h-4zM4.5 7.5h4.6a2.5 2.5 0 0 1 0 5H4.5z"/></svg>',
+  italic:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M10 2.5H6.5M9.5 13.5H6M9 2.5L7 13.5"/></svg>',
+  underline:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4.5 2.5v5a3.5 3.5 0 0 0 7 0v-5M3 14h10"/></svg>',
+  left:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 3.5h11M2.5 6.5h7M2.5 9.5h11M2.5 12.5h7"/></svg>',
+  center:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 3.5h11M4.5 6.5h7M2.5 9.5h11M4.5 12.5h7"/></svg>',
+  right:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 3.5h11M6.5 6.5h7M2.5 9.5h11M6.5 12.5h7"/></svg>',
+  link:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8M9.2 6.8a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.8-.8"/></svg>',
+  lock:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>',
+  unlock:'<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 5.6-1.5"/></svg>',
+  chev:'<svg class="fmt-chev" viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5l3 3 3-3"/></svg>',
+  dropper:'<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3-1.3 1.3-3-3zM9 4.2l3 3-5.6 5.6H3.4v-3z"/></svg>'
+};
+const FMT_COLORS = [
+  '#24282C','#5D614B','#A3A48D','#CACCC6','#F6F6EF','#FFFFFF',
+  '#FFE44D','#F3DF6B','#D3F36B','#CDF649','#49F6F0','#6BAFF3',
+  '#9F8CE8','#F3A46B','#FF8C3A','#FF4E00','#6B42FD','#3F9FFF',
+];
+const FMT_ALIGNS = ['left', 'center', 'right'];
+
+function fmtIsNone(c) { return !c || c === 'none' || c === 'transparent'; }
+function fmtHex(v) {
+  v = String(v || '').trim().replace(/^#?/, '#');
+  if (/^#[0-9a-f]{3}$/i.test(v)) v = '#' + v.slice(1).split('').map(ch => ch + ch).join('');
+  return /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
+}
+function fmtBtn(inner, title, cls) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'fmt-btn' + (cls ? ' ' + cls : '');
+  b.title = title; b.setAttribute('aria-label', title);
+  if (inner) b.innerHTML = inner;
+  return b;
+}
+function fmtSep() { const s = document.createElement('span'); s.className = 'lp-sep'; return s; }
+
+/* Swatch on the button: a filled dot (fill), a ring (border) or a coloured "A" (text). */
+function paintColorBtn(btn, kind, color) {
+  btn.textContent = '';
+  const mark = document.createElement('span');
+  const none = fmtIsNone(color);
+  if (kind === 'fill') {
+    mark.className = 'fmt-dot' + (none ? ' none' : '');
+    if (!none) mark.style.background = color;
+  } else if (kind === 'border') {
+    mark.className = 'fmt-ring' + (none ? ' none' : '');
+    if (!none) mark.style.borderColor = color;
+  } else {
+    mark.className = 'fmt-a'; mark.textContent = 'A';
+    mark.style.setProperty('--c', none ? '#24282C' : color);
+  }
+  btn.appendChild(mark);
+  btn.insertAdjacentHTML('beforeend', FMT_ICON.chev);
+}
+
+let _fmtPop = null, _fmtPopAnchor = null;
+function closeFmtPop() {
+  _fmtPop?.remove();
+  _fmtPopAnchor?.classList.remove('open');
+  _fmtPop = null; _fmtPopAnchor = null;
+}
+document.addEventListener('mousedown', e => {
+  if (_fmtPop && !e.target.closest('.fmt-pop') && !e.target.closest('.fmt-btn.open')) closeFmtPop();
+}, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && _fmtPop) closeFmtPop(); }, true);
+
+/* cfg: { colors, get(), apply(color), snap?(), none?:'No fill', noneValue?, extra?(refresh)->Node } */
+function openFmtColorPop(anchor, cfg) {
+  const again = _fmtPopAnchor === anchor;
+  closeFmtPop();
+  if (again) return;
+  let snapped = false;
+  const apply = c => { if (!snapped) { cfg.snap && cfg.snap(); snapped = true; } cfg.apply(c); refresh(); };
+
+  const pop = document.createElement('div');
+  pop.className = 'fmt-pop';
+  pop.addEventListener('mousedown', e => { if (!e.target.closest('input')) e.preventDefault(); e.stopPropagation(); });
+  pop.addEventListener('click', e => e.stopPropagation());
+
+  let noneBtn = null;
+  if (cfg.none) {
+    noneBtn = document.createElement('button');
+    noneBtn.type = 'button'; noneBtn.className = 'fmt-none';
+    noneBtn.innerHTML = '<span class="fmt-dot none"></span>';
+    noneBtn.append(cfg.none);
+    noneBtn.onclick = () => apply(cfg.noneValue ?? 'none');
+    pop.appendChild(noneBtn);
+  }
+
+  const cells = [];
+  const grid = document.createElement('div');
+  grid.className = 'fmt-grid';
+  const addCell = c => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'fmt-cell';
+    b.dataset.color = c; b.style.background = c; b.title = c;
+    b.setAttribute('aria-label', 'Colour ' + c);
+    b.onclick = () => apply(c);
+    cells.push(b); grid.appendChild(b);
+  };
+  cfg.colors.forEach(addCell);
+  const mine = stickyCustomColors().filter(c => !cfg.colors.some(x => sameColor(x, c)));
+  mine.forEach(addCell);
+  pop.appendChild(grid);
+
+  const row = document.createElement('div');
+  row.className = 'fmt-custom-row';
+  const wheel = document.createElement('label');
+  wheel.className = 'fmt-wheel'; wheel.title = 'Pick any colour';
+  const picker = document.createElement('input');
+  picker.type = 'color';
+  picker.addEventListener('input', () => apply(picker.value));
+  picker.addEventListener('change', () => rememberStickyColor(picker.value));
+  wheel.appendChild(picker);
+  const hex = document.createElement('input');
+  hex.type = 'text'; hex.className = 'fmt-hex'; hex.maxLength = 7;
+  hex.placeholder = '#RRGGBB'; hex.spellcheck = false;
+  hex.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { const h = fmtHex(hex.value); if (h) { apply(h); rememberStickyColor(h); } }
+  });
+  hex.addEventListener('change', () => { const h = fmtHex(hex.value); if (h) { apply(h); rememberStickyColor(h); } });
+  row.append(wheel, hex);
+  if ('EyeDropper' in window) {
+    const dp = document.createElement('button');
+    dp.type = 'button'; dp.className = 'fmt-dropper'; dp.title = 'Pick a colour from the screen';
+    dp.innerHTML = FMT_ICON.dropper;
+    dp.onclick = async () => {
+      try { const { sRGBHex } = await new window.EyeDropper().open(); apply(sRGBHex); rememberStickyColor(sRGBHex); } catch (_) {}
+    };
+    row.appendChild(dp);
+  }
+  pop.appendChild(row);
+  if (cfg.extra) { const x = cfg.extra(() => refresh()); if (x) pop.appendChild(x); }
+
+  function refresh() {
+    const cur = cfg.get();
+    cells.forEach(c => c.classList.toggle('active', sameColor(c.dataset.color, cur)));
+    noneBtn?.classList.toggle('active', fmtIsNone(cur));
+    const h = fmtHex(cur);
+    if (h) picker.value = h;
+    if (document.activeElement !== hex) hex.value = h || '';
+    cfg.onRefresh && cfg.onRefresh();
+  }
+  refresh();
+
+  document.body.appendChild(pop);
+  anchor.classList.add('open');
+  _fmtPop = pop; _fmtPopAnchor = anchor;
+  const r = anchor.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let top = r.bottom + 8;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 8);
+  pop.style.top = top + 'px';
+  pop.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, r.left + r.width / 2 - w / 2)) + 'px';
+}
+
+/* − 16 + */
+function fmtStepper(get, min, max, snap, apply) {
+  const wrap = document.createElement('div');
+  wrap.className = 'fmt-step';
+  const minus = document.createElement('button'); minus.type = 'button'; minus.textContent = '−'; minus.title = 'Smaller';
+  const plus = document.createElement('button'); plus.type = 'button'; plus.textContent = '+'; plus.title = 'Larger';
+  const input = document.createElement('input');
+  input.type = 'number'; input.className = 'fmt-step-input'; input.min = min; input.max = max; input.step = 1; input.value = get();
+  input.setAttribute('aria-label', 'Font size');
+  const clamp = v => Math.max(min, Math.min(max, Math.round(Number(v)) || get()));
+  let snapped = false;
+  const ensure = () => { if (!snapped) { snap(); snapped = true; } };
+  const nudge = d => { snapped = false; ensure(); const v = clamp(get() + d); input.value = v; apply(v); };
+  minus.onclick = () => nudge(-1);
+  plus.onclick = () => nudge(1);
+  input.addEventListener('focus', () => { snapped = false; });
+  input.addEventListener('input', () => { ensure(); apply(clamp(input.value)); });
+  input.addEventListener('change', () => { input.value = clamp(input.value); });
+  input.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') input.blur(); });
+  input.addEventListener('mousedown', e => e.stopPropagation());
+  wrap.append(minus, input, plus);
+  return wrap;
+}
+
+function fmtAlignBtn(get, set) {
+  const b = fmtBtn('', 'Align');
+  const paint = () => { const a = get(); b.innerHTML = FMT_ICON[a] || FMT_ICON.center; b.title = 'Align: ' + a; };
+  b.onclick = () => {
+    const next = FMT_ALIGNS[(FMT_ALIGNS.indexOf(get()) + 1) % 3];
+    set(next); paint();
+  };
+  paint();
+  return b;
+}
+
+/* ── sticky ── */
+function applyStickyTextStyle(card, el) {
+  const t = (el || getCardEl(card.id))?.querySelector('.sticky-text');
+  if (!t) return;
+  const d = card.data || {};
+  t.style.color = d.textColor || '';
+  t.style.textAlign = d.align || '';
+  t.style.alignItems = d.align === 'left' ? 'flex-start' : d.align === 'right' ? 'flex-end' : '';
+  t.style.fontWeight = d.bold === true ? '800' : d.bold === false ? '500' : '';
+  if (d.fontSize) t.style.fontSize = d.fontSize + 'px';
+}
+function setCardData(card, patch) {
+  card.data = Object.assign(card.data || {}, patch);
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+function stickyFillCfg(card) {
+  return {
+    colors: STICKY_COLORS,
+    get: () => card.color,
+    snap: () => snapshot(),
+    apply: c => {
+      card.color = c;
+      const el = getCardEl(card.id);
+      if (el) el.style.backgroundColor = c;
+      syncStickyColorUI(card);
+      scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    },
+  };
+}
+
+/* ── shape ── */
+function shapeStroke(d) { return (Number(d.sw) > 0 && !fmtIsNone(d.stroke)) ? d.stroke : 'none'; }
+function applyShapeStyle(card) {
+  const el = getCardEl(card.id); if (!el) return;
+  const sh = el.querySelector('svg > *'), d = card.data || {};
+  if (sh) {
+    sh.setAttribute('fill', fmtIsNone(d.fill) ? 'none' : d.fill);
+    sh.setAttribute('fill-opacity', d.opacity == null ? 1 : d.opacity);
+    sh.setAttribute('stroke', shapeStroke(d));
+    sh.setAttribute('stroke-width', Number(d.sw) > 0 ? d.sw : 0);
+  }
+  const t = el.querySelector('.shape-text');
+  if (t) { t.style.color = d.textColor || '#24282C'; t.style.fontSize = (d.fontSize || 14) + 'px'; }
+}
+function shapeFillCfg(card) {
+  return {
+    colors: FMT_COLORS, none: 'No fill', noneValue: 'none',
+    get: () => card.data.fill,
+    snap: () => snapshot(),
+    apply: c => { setCardData(card, { fill: c }); applyShapeStyle(card); },
+    extra: refresh => {
+      const w = document.createElement('div'); w.className = 'fmt-opacity';
+      const lab = document.createElement('span'); lab.textContent = 'Opacity';
+      const r = document.createElement('input');
+      r.type = 'range'; r.min = 10; r.max = 100;
+      r.value = Math.round((card.data.opacity == null ? 1 : card.data.opacity) * 100);
+      let snapped = false;
+      r.addEventListener('input', () => {
+        if (!snapped) { snapshot(); snapped = true; }
+        setCardData(card, { opacity: Number(r.value) / 100 }); applyShapeStyle(card);
+      });
+      r.addEventListener('change', () => { snapped = false; });
+      w.append(lab, r);
+      return w;
+    },
+  };
+}
+function shapeBorderCfg(card, onChange) {
+  return {
+    colors: FMT_COLORS, none: 'No border', noneValue: 'none',
+    get: () => shapeStroke(card.data),
+    snap: () => snapshot(),
+    apply: c => {
+      if (fmtIsNone(c)) setCardData(card, { stroke: 'none', sw: 0 });
+      else setCardData(card, { stroke: c, sw: Number(card.data.sw) > 0 ? card.data.sw : 2 });
+      applyShapeStyle(card); onChange && onChange();
+    },
+    extra: refresh => {
+      const w = document.createElement('div'); w.className = 'fmt-widths';
+      [1, 2, 4, 8].forEach(n => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.title = n + ' px'; b.dataset.w = n;
+        const bar = document.createElement('i'); bar.style.height = n + 'px'; b.appendChild(bar);
+        b.onclick = () => {
+          snapshot();
+          const col = fmtIsNone(card.data.stroke) ? '#24282C' : card.data.stroke;
+          setCardData(card, { stroke: col, sw: n }); applyShapeStyle(card); onChange && onChange(); refresh(); paint();
+        };
+        w.appendChild(b);
+      });
+      const paint = () => w.querySelectorAll('button').forEach(b =>
+        b.classList.toggle('active', Number(card.data.sw) === Number(b.dataset.w)));
+      paint();
+      return w;
+    },
+  };
+}
+
+/* The group that goes first in the floating bar for sticky / note / shape. */
+function renderFormatGroup(pop, card) {
+  pop.querySelector('.lp-fmt')?.remove();
+  pop.querySelector('.lp-fmt-after')?.remove();
+  if (!card || !['sticky', 'note', 'shape'].includes(card.type)) return;
+  const g = document.createElement('div');
+  g.className = 'lp-fmt';
+  const d = () => (card.data = card.data || {});
+  const el = () => getCardEl(card.id);
+  const sizeStep = apply => fmtStepper(() => currentTextFontSize(card, el()) , 8, 96, () => snapshot(), v => { apply(v); scheduleSave && scheduleSave(); saveLocal && saveLocal(); });
+
+  if (card.type === 'sticky' || card.type === 'note') {
+    const fill = fmtBtn('', 'Colour', 'fmt-color');
+    paintColorBtn(fill, 'fill', card.color);
+    const cfg = stickyFillCfg(card);
+    cfg.onRefresh = () => paintColorBtn(fill, 'fill', card.color);
+    fill.onclick = () => openFmtColorPop(fill, cfg);
+    g.appendChild(fill);
+    if (card.type === 'sticky') {
+      g.appendChild(fmtSep());
+      g.appendChild(sizeStep(v => { d().fontSize = v; applyStickyTextStyle(card); }));
+      const bold = fmtBtn(FMT_ICON.bold, 'Bold');
+      bold.classList.toggle('active', d().bold === true);
+      bold.onclick = () => { snapshot(); d().bold = d().bold === true ? false : true; applyStickyTextStyle(card); bold.classList.toggle('active', d().bold === true); scheduleSave && scheduleSave(); saveLocal && saveLocal(); };
+      g.appendChild(bold);
+      g.appendChild(fmtAlignBtn(() => d().align || 'center', a => { snapshot(); d().align = a; applyStickyTextStyle(card); scheduleSave && scheduleSave(); saveLocal && saveLocal(); }));
+      const tc = fmtBtn('', 'Text colour', 'fmt-color');
+      paintColorBtn(tc, 'text', d().textColor);
+      tc.onclick = () => openFmtColorPop(tc, {
+        colors: FMT_COLORS, get: () => d().textColor || '#24282C', snap: () => snapshot(),
+        apply: c => { setCardData(card, { textColor: c }); applyStickyTextStyle(card); },
+        onRefresh: () => paintColorBtn(tc, 'text', d().textColor),
+      });
+      g.appendChild(tc);
+    }
+  } else if (card.type === 'shape') {
+    const fill = fmtBtn('', 'Fill colour', 'fmt-color');
+    const fcfg = shapeFillCfg(card);
+    fcfg.onRefresh = () => paintColorBtn(fill, 'fill', d().fill);
+    paintColorBtn(fill, 'fill', d().fill);
+    fill.onclick = () => openFmtColorPop(fill, fcfg);
+    const border = fmtBtn('', 'Border', 'fmt-color');
+    paintColorBtn(border, 'border', shapeStroke(d()));
+    const bcfg = shapeBorderCfg(card, () => paintColorBtn(border, 'border', shapeStroke(d())));
+    bcfg.onRefresh = () => paintColorBtn(border, 'border', shapeStroke(d()));
+    border.onclick = () => openFmtColorPop(border, bcfg);
+    g.append(fill, border, fmtSep());
+    g.appendChild(fmtStepper(() => Number(d().fontSize) || 14, 8, 96, () => snapshot(), v => { setCardData(card, { fontSize: v }); applyShapeStyle(card); }));
+    const tc = fmtBtn('', 'Text colour', 'fmt-color');
+    paintColorBtn(tc, 'text', d().textColor);
+    tc.onclick = () => openFmtColorPop(tc, {
+      colors: FMT_COLORS, get: () => d().textColor || '#24282C', snap: () => snapshot(),
+      apply: c => { setCardData(card, { textColor: c }); applyShapeStyle(card); },
+      onRefresh: () => paintColorBtn(tc, 'text', d().textColor),
+    });
+    g.appendChild(tc);
+  }
+  pop.insertBefore(g, pop.firstChild);
+  const after = fmtSep(); after.classList.add('lp-fmt-after');
+  pop.insertBefore(after, g.nextSibling);
+}
+
 // Frame color presets (bg color, border color, label)
 const FRAME_COLORS = [
   { bg:'rgba(255,255,255,0)',    border:'rgba(36,40,44,.18)',      label:'Clear',  icon:'<svg width="12" height="12" viewBox="0 0 12 12"><pattern id="chk" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#CACCC6"/><rect x="2" y="2" width="2" height="2" fill="#CACCC6"/></pattern><rect width="12" height="12" fill="white"/><rect width="12" height="12" fill="url(#chk)" opacity=".5"/></svg>' },
@@ -7513,47 +7899,9 @@ function showLayerPopover(cardId) {
   pop.querySelector('[data-layer="lock"]').classList.toggle('active', !!card?.data?.locked);
   pop.querySelector('[data-layer="lock"]').title = card?.data?.locked ? 'Unlock' : 'Lock movement';
 
-  // Card color row - sticky / note cards get a small inline palette
-  let cardColorRow = pop.querySelector('.card-color-row');
-  if (card && (card.type === 'sticky' || card.type === 'note')) {
-    if (!cardColorRow) {
-      cardColorRow = document.createElement('div');
-      cardColorRow.className = 'card-color-row';
-      // Insert right after the Edit/Duplicate buttons (before first sep)
-      const firstSep = pop.querySelector('.layer-sep');
-      pop.insertBefore(cardColorRow, firstSep);
-      // Add a trailing separator if not already there
-      if (cardColorRow.nextSibling && !cardColorRow.nextSibling.classList?.contains('layer-sep')) {
-        const sep = document.createElement('div'); sep.className = 'layer-sep';
-        pop.insertBefore(sep, cardColorRow.nextSibling);
-      }
-    }
-    cardColorRow.innerHTML = '';
-    stickyPaletteFor(card, 8).forEach(c => {
-      const sw = document.createElement('button');
-      sw.type = 'button';
-      sw.className = 'card-color-swatch';
-      sw.dataset.color = c;
-      sw.style.background = c;
-      sw.title = c;
-      sw.setAttribute('aria-label', 'Card colour ' + c);
-      if (sameColor(card.color, c)) sw.classList.add('active');
-      sw.addEventListener('click', e => {
-        e.stopPropagation();
-        applyStickyColor(card, c);
-      });
-      cardColorRow.appendChild(sw);
-    });
-  } else if (cardColorRow) {
-    // Clean up trailing separator if present
-    const next = cardColorRow.nextSibling;
-    cardColorRow.remove();
-    if (next && next.classList?.contains('layer-sep')) {
-      // Keep only if not directly after another sep
-      const prev = next.previousSibling;
-      if (!prev || prev.classList?.contains('layer-sep')) next.remove();
-    }
-  }
+  // Sticky / note / shape: fill, size, bold, align, text colour (see FORMAT BAR above)
+  closeFmtPop();
+  renderFormatGroup(pop, card);
 
   // Accent color row - worksheet / activity / vocab cards get a vivid accent
   // palette that drives the card's accent line, headers and interactive controls.
@@ -7641,6 +7989,7 @@ function showLayerPopover(cardId) {
 }
 
 function hideLayerPopover() {
+  closeFmtPop();
   const pop = document.getElementById('layer-popover');
   if (pop) pop.classList.remove('show');
   _syncMqStatusLift();
@@ -10450,7 +10799,7 @@ document.getElementById('ctx-sticky').addEventListener('click', () =>
 document.getElementById('ctx-text').addEventListener('click', () =>
   addCard('text', ctxPos.x-100, ctxPos.y-45, defaultTextData({ text:'Text' })));
 document.getElementById('ctx-shape').addEventListener('click', () =>
-  addCard('shape', ctxPos.x-100, ctxPos.y-80, { shape:'rect', fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 }));
+  addCard('shape', ctxPos.x-100, ctxPos.y-80, newShapeData('rect')));
 document.getElementById('ctx-video').addEventListener('click', () => {
   ctxMenu.style.display = 'none';
   pendingVideoPos = ctxPos;
@@ -15910,7 +16259,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1052';
+const TEACHEDOS_ASSET_VERSION = '1053';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -22268,8 +22617,34 @@ function showUserMenu() {
   const m = document.getElementById('user-menu');
   const open = m.style.display === 'none' || !m.style.display;
   m.style.display = open ? 'block' : 'none';
-  if (open) loadMenuBoards();
+  if (open) { loadMenuBoards(); loadMenuStudents(); }
   _syncMobileSheetBackdrop();
+}
+
+/* «Student file» ведёт в досье того, чья это доска: берём учеников из состава
+   доски. Группа даёт по строке на каждого, пустая доска - общий список.
+   Ученик чужих досок досье учителя не видит, поэтому там пункта нет. */
+async function loadMenuStudents() {
+  const host = document.getElementById('um-students');
+  if (!host) return;
+  host.textContent = '';
+  if (!isOwner || !currentBoardId) return;
+  const link = (href, label) => {
+    const a = document.createElement('a');
+    a.className = 'user-menu-item';
+    a.href = href;
+    a.innerHTML = '<svg class="umi-ic" aria-hidden="true"><use href="#bi-user"/></svg>';
+    a.append(label);
+    host.appendChild(a);
+  };
+  try {
+    const r = await apiFetch('/api/members/' + currentBoardId);
+    const { members } = r.ok ? await r.json() : { members: [] };
+    const students = (members || []).filter(m => m.role === 'student').slice(0, 4);
+    if (!students.length) { link('index.html#students', 'Students'); return; }
+    students.forEach(m => link('index.html?student=' + encodeURIComponent(m.user_id) + '#students',
+      students.length === 1 ? (m.name || 'Student') + "'s file" : (m.name || 'Student')));
+  } catch { link('index.html#students', 'Students'); }
 }
 
 /* Меню аватара: переключатель между досками (по ученику). Остальные разделы
@@ -24219,7 +24594,7 @@ function _doPlace(clientX, clientY, sized) {
   setMiroTool('select');
   if (type === 'shape') {
     const def = getDefaults('shape');
-    const data = extraData || { shape:'rect', fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 };
+    const data = extraData || newShapeData('rect');
     const c = bp.draggedRect
       ? addCard('shape', bp.x, bp.y, data, bp.w, bp.h)
       : addCard('shape', bp.x - def.w/2, bp.y - def.h/2, data);
@@ -24310,7 +24685,7 @@ function quickAddShape(shape) {
   closeShapePanel();
   _closeMoreShapes && _closeMoreShapes();
   // Enter placement mode: user clicks canvas where they want the shape
-  enterPlaceMode('shape', { shape, fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 });
+  enterPlaceMode('shape', newShapeData(shape));
 }
 
 /* ── Shape panel: secondary "More shapes" pop-out ─────────────── */
@@ -24472,7 +24847,7 @@ function quickAddCard(type, bx, by) {
     pickImageFile(pos);
     return;
   } else if (type === 'shape') {
-    card = addCard('shape', x, y, { shape:'rect', fill:'#ffffff', stroke:'#24282C', sw:2, text:'', textColor:'#24282C', fontSize:14 });
+    card = addCard('shape', x, y, newShapeData('rect'));
   } else if (type === 'mindmap') {
     const colors = MINDMAP_COLORS.slice(0, 7);
     card = addCard('mindmap', x, y, { text:'Topic', color: colors[Math.floor(Math.random()*colors.length)] });

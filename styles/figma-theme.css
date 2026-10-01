@@ -232,14 +232,16 @@ body.fx:not(#_) .panel-title {
    inline-стиле карточки. Пока они попадали в этот общий набор, !important
    перебивал inline: палитра исправно меняла card.color, а на экране все
    стикеры оставались одинаково кремовыми - это и был «баг со сменой цвета».
-   Поэтому они исключены и здесь, и в hover-правиле ниже. */
+   Поэтому они исключены и здесь, и в hover-правиле ниже.
+   То же с фигурами и текстом: у них нет «карточки», есть только сама фигура или
+   сами слова, а стекло рисовало за ними серый прямоугольник. */
 body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
   .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item,
   .stat,.stage,.preset,.lib-item,.activity-btn,.quality-card,
   .hw-card,.hw-metric,.tpl-card,.type-card,.library-item,
   .stat-card,.insight-card,.stat-pill,.side-section
-):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame) {
+):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame):not(.card-shape):not(.card-text) {
   background:rgba(255,255,255,.55) !important;
   border:1px solid rgba(255,255,255,.6) !important;
   border-radius:var(--fx-r-card) !important;
@@ -267,7 +269,7 @@ body.fx:not(#_) #side :is(.side-section,.stat-pill,.wb-metric) {
 body.fx:not(#_) :is(
   .card,.tool-card,.course-card,.course-item,.board-card,.pack-card,
   .lesson-preset,.game-tile-comm,.lesson-preview-card,.recent-board-item
-):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame):hover {
+):not(.dark):not(.ink):not(.lime):not(.featured):not(.card-sticky):not(.card-note):not(.card-frame):not(.card-shape):not(.card-text):hover {
   background:rgba(255,255,255,.78) !important;
 }
 /* Полоска-градиент поверх карточки из unify.css в макете отсутствует. */
