@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1049">
-<link rel="preload" as="style" href="styles/unify.css?v=1049">
-<link rel="manifest" href="manifest.json?v=1049">
+<link rel="preload" as="style" href="styles/harmony.css?v=1050">
+<link rel="preload" as="style" href="styles/unify.css?v=1050">
+<link rel="manifest" href="manifest.json?v=1050">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1049">
+<link rel="stylesheet" href="styles/fonts.css?v=1050">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -587,16 +587,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1049">
-<link rel="stylesheet" href="styles/harmony.css?v=1049">
-<link rel="stylesheet" href="styles/unify.css?v=1049">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1049">
+<link rel="stylesheet" href="styles/mobile.css?v=1050">
+<link rel="stylesheet" href="styles/harmony.css?v=1050">
+<link rel="stylesheet" href="styles/unify.css?v=1050">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1050">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1049">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1049">
-<link rel="stylesheet" href="styles/controls.css?v=1049">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1049">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1049">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1050">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1050">
+<link rel="stylesheet" href="styles/controls.css?v=1050">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1050">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1050">
+<link rel="stylesheet" href="styles/student-engage.css?v=1050">
 </head>
 <body class="fx">
 
@@ -636,14 +637,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
 
     <div class="sb-section">
-      <div class="sb-section-title">My Milestones</div>
-      <div class="sb-milestone" id="sb-milestone">
-        <div class="sb-milestone-labels">
-          <span class="sb-milestone-level from" id="ms-from">-</span>
-          <span class="sb-milestone-level to" id="ms-to">-</span>
-        </div>
-        <div class="sb-milestone-bar">
-          <div class="sb-milestone-fill" id="ms-fill" style="width:0%"></div>
+      <div class="sb-section-title">Streak</div>
+      <div class="te-streak" id="te-streak">
+        <div class="te-streak-main"><span class="te-flame" aria-hidden="true">🔥</span><b id="te-streak-n">0</b><span id="te-streak-l">days in a row</span></div>
+        <div class="te-week" id="te-week" role="img" aria-label="Activity this week"></div>
+        <div class="te-hint" id="te-streak-hint">Do one small thing today to start a streak.</div>
+        <div class="te-lvl">
+          <div class="sb-milestone" id="sb-milestone">
+            <div class="sb-milestone-labels">
+              <span class="sb-milestone-level from" id="ms-from">-</span>
+              <span class="sb-milestone-level to" id="ms-to">-</span>
+            </div>
+            <div class="sb-milestone-bar">
+              <div class="sb-milestone-fill" id="ms-fill" style="width:0%"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -846,8 +854,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1049"></script>
-<script src="scripts/student-feed.js?v=1049"></script>
+<script src="scripts/app-core.js?v=1050"></script>
+<script src="scripts/student-feed.js?v=1050"></script>
+<script src="scripts/student-engage.js?v=1050"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -934,6 +943,7 @@ function renderDashboardFromCache(cache, options = {}) {
   renderSchedule(schedule, boards);
   if (Array.isArray(cache.vocabData)) {
     _vocabData = cache.vocabData;
+    if (window.studentEngage) window.studentEngage.vocab(cache.vocabData);
     renderVocab();
     document.getElementById('ms-words').textContent = cache.vocabData.length;
   }
@@ -1073,6 +1083,7 @@ async function init() {
 // ── Sidebar boards ──
 function renderSidebarBoards(boards) {
   const container = document.getElementById('sb-classes');
+  if (window.studentEngage) window.studentEngage.boards(boards);
   if (!boards.length) return;
 
   container.innerHTML = boards.map(b => `
@@ -1126,15 +1137,20 @@ function renderBalanceState(boards, totalAll, left) {
 
   if (!totalAll) return; // nothing tracked yet - don't alarm a brand-new student
 
+  const withToken = boards.find(b => b.booking_token);
+  const renew = () => {
+    const label = `Renew package (${left} ${left === 1 ? 'lesson' : 'lessons'} left)`;
+    const html = withToken
+      ? `<a id="sb-balance-action" class="sb-balance-action" href="book.html?t=${encodeURIComponent(withToken.booking_token)}">${label}</a>`
+      : `<div id="sb-balance-action" class="sb-balance-action is-text">Ask ${esc(boards[0]?.teacher_name || 'your teacher')} to renew your package</div>`;
+    wrap.insertAdjacentHTML('beforeend', html);
+  };
   if (left === 0) {
     wrap.classList.add('balance-zero');
-    const withToken = boards.find(b => b.booking_token);
-    const actionHtml = withToken
-      ? `<a id="sb-balance-action" class="sb-balance-action" href="book.html?t=${encodeURIComponent(withToken.booking_token)}">+ Add more lessons</a>`
-      : `<div id="sb-balance-action" class="sb-balance-action is-text">Ask ${esc(boards[0]?.teacher_name || 'your teacher')} to add more lessons</div>`;
-    wrap.insertAdjacentHTML('beforeend', actionHtml);
+    renew();
   } else if (left <= 2) {
     wrap.classList.add('balance-low');
+    renew();
   }
 }
 
@@ -1147,6 +1163,7 @@ function renderStats(boards, stats) {
   // Progress tab
   // The Progress tab itself is drawn by loadProgress() from real results.
   document.getElementById('ms-streak').textContent = stats.streak > 0 ? stats.streak : '0';
+  if (window.studentEngage) window.studentEngage.streakOnly(stats.streak);
   document.getElementById('ms-copy').textContent = boards.length
     ? `You are enrolled in ${boards.length} board${boards.length === 1 ? '' : 's'} and have finished ${stats.done} lesson${stats.done === 1 ? '' : 's'} so far.`
     : 'Your teacher has not connected any boards yet. As soon as lessons appear, this dashboard will surface them here.';
@@ -1154,6 +1171,7 @@ function renderStats(boards, stats) {
 
 // ── Schedule ──
 function renderSchedule(schedule, boards) {
+  if (window.studentEngage) window.studentEngage.schedule(schedule);
   const list = document.getElementById('schedule-list');
   const summary = document.getElementById('schedule-timezone-summary');
   const viewerZone = safeTimeZone(currentUser?.timezone || browserTimeZone());
@@ -1310,6 +1328,7 @@ async function loadProgress() {
     tile(words.total ? `${words.learned}<small> / ${words.total}</small>` : '0', 'Words learned', words.total ? `${words.total - words.learned} to learn` : 'add words in Vocabulary', words.total ? pct(words.learned, words.total) : null);
 
   const ms = document.getElementById('ms-streak'); if (ms) ms.textContent = d.streak || 0;
+  if (window.studentEngage) window.studentEngage.progress(d);
 
   // Calendar: rows are weeks (Mon-Sun), the last row ends with this week.
   const act = d.activity || [];
@@ -1490,6 +1509,7 @@ async function loadVocab() {
     if (!r.ok) return;
     const { words, learned, toLearn } = await r.json();
     _vocabData = words;
+    if (window.studentEngage) window.studentEngage.vocab(words);
     document.getElementById('v-learned').textContent = learned;
     document.getElementById('v-tolearn').textContent = toLearn;
     document.getElementById('ms-words').textContent = words.length;
@@ -1553,19 +1573,19 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1049"></script>
-<script src="scripts/vault-review.js?v=1049"></script>
-<script src="scripts/vault-cabinet.js?v=1049"></script>
-<script src="scripts/writing-shared.js?v=1049"></script>
-<script src="scripts/writing-mine.js?v=1049"></script>
-<script src="scripts/autogrow.js?v=1049" defer></script>
-<script src="pwa-boot.js?v=1049" defer></script>
-<script src="pwa.js?v=1049"></script>
-<script src="scripts/nav-boost.js?v=1049" defer></script>
-<script src="scripts/mobile-perf.js?v=1049" defer></script>
-<script src="scripts/mobile-nav.js?v=1049"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1049" defer></script>
-  <script src="scripts/signin-entry.js?v=1049" defer></script>
-<script src="scripts/verify-banner.js?v=1049" defer></script>
+<script src="scripts/hear-in-context.js?v=1050"></script>
+<script src="scripts/vault-review.js?v=1050"></script>
+<script src="scripts/vault-cabinet.js?v=1050"></script>
+<script src="scripts/writing-shared.js?v=1050"></script>
+<script src="scripts/writing-mine.js?v=1050"></script>
+<script src="scripts/autogrow.js?v=1050" defer></script>
+<script src="pwa-boot.js?v=1050" defer></script>
+<script src="pwa.js?v=1050"></script>
+<script src="scripts/nav-boost.js?v=1050" defer></script>
+<script src="scripts/mobile-perf.js?v=1050" defer></script>
+<script src="scripts/mobile-nav.js?v=1050"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1050" defer></script>
+  <script src="scripts/signin-entry.js?v=1050" defer></script>
+<script src="scripts/verify-banner.js?v=1050" defer></script>
 </body>
 </html>

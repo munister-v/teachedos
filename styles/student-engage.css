@@ -1,0 +1,68 @@
+/* Student cabinet: streak, next lesson, phrase of the day, weekly words, balance CTA, tab menu.
+   Own classes only (te-*), so it does not fight the harmony layers. Accent lime is kept for the one
+   action that matters on each card. */
+.te-today{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:4px 0 22px}
+.te-card{position:relative;background:#fff;border:1px solid rgba(36,40,44,.08);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.te-card.dark{background:#24282C;border-color:#24282C;color:#fff}
+.te-k{font:700 10.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#7A7E68}
+.te-card.dark .te-k{color:#CACCC6}
+.te-big{font-size:22px;line-height:1.15;font-weight:700;letter-spacing:-.03em;color:inherit}
+.te-sub{font-size:13px;line-height:1.45;color:#5D614B}
+.te-card.dark .te-sub{color:#CACCC6}
+.te-ex{font-size:13px;font-style:italic;color:#5D614B;line-height:1.45}
+.te-card.dark .te-ex{color:#E6E7DF}
+.te-btn{align-self:flex-start;margin-top:auto;border:0;border-radius:12px;padding:9px 16px;font:800 13px inherit;font-family:inherit;cursor:pointer;background:#CDF649;color:#24282C}
+.te-btn:hover{filter:brightness(1.05)}
+.te-btn[disabled]{opacity:.6;cursor:default}
+.te-link{color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:6px;height:100%}
+.te-count{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;background:#CDF649;color:#24282C;align-self:flex-start}
+.te-bar{height:8px;border-radius:999px;background:rgba(36,40,44,.1);overflow:hidden;margin-top:4px}
+.te-bar i{display:block;height:100%;border-radius:999px;background:#24282C;transition:width .6s}
+.te-bar.done i{background:#CDF649;box-shadow:inset 0 0 0 1px rgba(36,40,44,.2)}
+.te-empty{font-size:13px;color:#7A7E68}
+
+/* sidebar (dark ink): board shortcut, streak, balance button */
+html body #sidebar .te-board{display:flex;align-items:center;gap:10px;margin:10px 22px 4px;padding:11px 14px;border-radius:14px;background:#CDF649;color:#24282C;font-weight:800;font-size:13px;text-decoration:none}
+html body #sidebar .te-board,html body #sidebar .te-board span{color:#24282C !important}
+html body #sidebar .te-board[hidden]{display:none}
+html body #sidebar .te-board svg{width:18px;height:18px;flex:none;stroke:#24282C;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html body #sidebar .te-board:hover{filter:brightness(1.06)}
+html body #sidebar .te-streak{margin:0 22px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 14px;color:#fff}
+.te-streak-main{display:flex;align-items:baseline;gap:8px}
+.te-flame{font-size:22px;line-height:1}
+.te-streak-main b{font-size:30px;letter-spacing:-.04em;line-height:1;color:#fff}
+.te-streak-main span:last-child{font-size:12px;color:#CACCC6;font-weight:600}
+.te-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.te-week span{display:grid;justify-items:center;gap:4px;font:700 9.5px ui-monospace,Menlo,monospace;color:#CACCC6}
+.te-week i{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.28);display:block}
+.te-week .on i{background:#CDF649;border-color:#CDF649}
+.te-week .today i{box-shadow:0 0 0 2px #24282C,0 0 0 3.5px #fff}
+.te-streak .te-hint{font-size:11.5px;color:#CACCC6;margin-top:8px;line-height:1.35}
+.te-lvl{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)}
+html body #sidebar .te-lvl .sb-milestone{margin:0;padding:0;background:transparent !important;border:0 !important;box-shadow:none !important}
+
+/* balance: low and zero become a real button */
+html body #sidebar .sb-counter.balance-low{box-shadow:inset 0 0 0 1.5px #F2B01E !important;background:rgba(242,176,30,.12) !important}
+html body #sidebar .sb-counter.balance-low .sb-counter-num{color:#F2B01E !important}
+html body #sidebar .sb-balance-action{display:block;margin-top:10px;text-align:center;border-radius:12px;padding:10px 12px;font:800 12.5px inherit;font-family:inherit;background:#FF5A1F;color:#fff !important;text-decoration:none}
+html body #sidebar .sb-counter.balance-low .sb-balance-action{background:#F2B01E;color:#24282C !important}
+html body #sidebar .sb-balance-action.is-text{background:rgba(255,255,255,.1);color:#E6E7DF !important;font-weight:600}
+
+/* vocabulary strip: two figures instead of four cards */
+html body .vocab-stats{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+html body .vocab-stats > .vs-card:nth-child(n+3){display:none !important}
+
+/* tabs: a quiet More menu */
+.tab-more{position:relative;margin-left:auto}
+.tab-more-btn{border:0;background:transparent;padding:10px 12px;font:inherit;font-weight:600;color:var(--text-2,#5D614B);cursor:pointer;white-space:nowrap}
+.tab-more.has-active .tab-more-btn{color:#24282C;box-shadow:inset 0 -2px 0 #24282C}
+.tab-more-menu{position:absolute;right:0;top:100%;z-index:30;min-width:150px;background:#fff;border:1px solid rgba(36,40,44,.12);border-radius:14px;box-shadow:0 14px 40px rgba(36,40,44,.18);padding:6px;display:none;flex-direction:column}
+.tab-more.open .tab-more-menu{display:flex}
+.tab-more-menu .tab{border:0 !important;border-radius:9px;text-align:left;padding:9px 12px !important;box-shadow:none !important;margin:0 !important}
+.tab-more-menu .tab:hover{background:rgba(36,40,44,.06)}
+.tab-more-menu .tab.active{background:#24282C;color:#fff}
+
+/* For you: daily trigger */
+.tab-new{display:inline-block;margin-left:6px;font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:#CDF649;color:#24282C;vertical-align:1px}
+.tab-new::before{content:"\1F525 "}
+@media (prefers-reduced-motion:no-preference){.tab-new{animation:te-pop 1.8s ease-in-out infinite}@keyframes te-pop{50%{transform:scale(1.08)}}}

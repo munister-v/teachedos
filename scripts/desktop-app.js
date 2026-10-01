@@ -292,10 +292,21 @@ const WM = (function () {
     persist();
   }
 
+  /* Окна-«выдвижные списки» всегда открываются компактно слева, как задумано в разметке
+     (размер из index.html). Сохранённое «развёрнуто» или широкий размер для них
+     не восстанавливаются: список досок на весь экран выглядит как потерянная страница. */
+  const COMPACT = { plans: { maxW: 680, maxH: 640 } };
+
   function applyGeom(id) {
     const win = winOf(id);
     const s = state[id];
     if (!win || !s) return false;
+    const compact = COMPACT[id];
+    if (compact && (s.maximized || s.w > compact.maxW || s.h > compact.maxH)) {
+      delete state[id];
+      persist();
+      return false;
+    }
     if (s.maximized) {
       maximize(id, /*skipSave*/ true);
     } else if (s.w && s.h) {
