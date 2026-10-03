@@ -696,3 +696,12 @@
 .tb-wf-prev{min-width:0;max-width:100%}
 .tb-wf-frame iframe{position:absolute;top:0;left:0}
 body:not(#_):not(#__) #tb-wf-reg{height:34px !important;min-height:34px !important;padding:0 30px 0 10px !important;border-radius:10px !important;font-size:12.5px !important;width:auto !important}
+
+/* Lesson builder, step 1 (pick a skill): seven short cards do not need the
+   1180px review width. A narrower box with two columns keeps the whole list
+   in view and the arrows next to their labels. */
+#tool-builder-panel .tbuilder-box:has(.tb-wiz-grid) { width:min(780px,100%); }
+#tool-builder-panel .tbuilder-box .tb-wiz-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:12px 0 4px; }
+@media (max-width:640px) {
+  #tool-builder-panel .tbuilder-box .tb-wiz-grid { grid-template-columns:1fr; }
+}
