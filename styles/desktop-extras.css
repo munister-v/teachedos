@@ -508,3 +508,7 @@ body.fx.os-desktop:not(#_) #fx-ghost-panel .sp-card { border-radius:16px; }
 }
 body:hover #wg-reset { opacity:.9; }
 #wg-reset:hover { opacity:1 !important; background:#24282C; }
+
+/* "All clear" is good news: the Student pulse card turns lime instead of the
+   alert pink it uses when there are items to act on. */
+body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse.is-clear { background:#EEF9C9 !important; }

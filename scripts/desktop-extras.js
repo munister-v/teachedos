@@ -519,6 +519,7 @@ function renderPulse() {
       : `<div class="wg-pulse-empty">Loading…</div>`;
     return;
   }
+  document.getElementById('wg-pulse')?.classList.toggle('is-clear', !_pulse.items.length);
   if (!_pulse.items.length) {
     host.innerHTML = `<div class="wg-pulse-empty"><b>All clear.</b> No packages ending, no homework waiting, no overdue payments.${
       _pulse.students ? '' : ' Add students in the <a href="journal.html">Journal</a> to follow them here.'}</div>`;
