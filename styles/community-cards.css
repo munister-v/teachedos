@@ -147,3 +147,68 @@ body:not(#_):not(#__) .pub-inside .lesson-preview-canvas {
   .cm-pill { flex-shrink:0; }
 }
 @media (prefers-reduced-motion:reduce) { .cm-card, .cm-card:hover { transition:none; transform:none; } }
+
+
+/* ── Library tab: shared and own resources ───────────────────────────────
+   One card layout for lessons, quizzes, games and boards: kind and level on
+   top, a two-line title, who made it, a three-line description, up to three
+   tags, and the actions pinned to the bottom so every row lines up. */
+body:not(#_):not(#__) .lib-grid { grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; align-items:stretch; }
+body:not(#_):not(#__) #tab-library .section-title { font-size:22px; }
+body:not(#_):not(#__) #tab-library .lib-second { margin-top:44px; padding-top:28px; border-top:1px solid rgba(36,40,44,.1); }
+body:not(#_):not(#__) #tab-library .cm-toolbar { margin-bottom:18px; }
+.lib-card {
+  display:flex; flex-direction:column; gap:10px; min-width:0; padding:18px 18px 16px;
+  background:#fff; border:1px solid rgba(36,40,44,.1); border-radius:20px;
+  box-shadow:0 1px 2px rgba(36,40,44,.04), 0 10px 26px -18px rgba(36,40,44,.35);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.lib-card:hover { transform:translateY(-2px); box-shadow:0 2px 4px rgba(36,40,44,.05), 0 20px 36px -22px rgba(36,40,44,.45); }
+.lib-top { display:flex; align-items:center; gap:6px; }
+.lib-kind, .lib-level {
+  display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:999px;
+  font:750 10.5px var(--font-mono, ui-monospace, monospace); letter-spacing:.07em; text-transform:uppercase;
+}
+.lib-kind { background:#EEF9C9; color:#24282C; }
+.lib-card[data-kind="quiz"] .lib-kind { background:#F8DBDB; }
+.lib-card[data-kind="game"] .lib-kind { background:#24282C; color:#CDF649; }
+.lib-card[data-kind="board"] .lib-kind, .lib-card[data-kind="other"] .lib-kind { background:#ECECE4; }
+.lib-level { border:1px solid rgba(36,40,44,.2); color:#24282C; }
+.lib-saves { margin-left:auto; font:600 11.5px var(--font-ui, system-ui, sans-serif); color:#5D614B; white-space:nowrap; }
+.lib-title {
+  margin:4px 0 0; font:700 17px/1.28 var(--font-ui, system-ui, sans-serif); letter-spacing:-.015em; color:#24282C;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.56em;
+}
+.lib-by { margin-top:-4px; font:600 12px var(--font-ui, system-ui, sans-serif); color:#5D614B; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lib-desc {
+  margin:0; font-size:13.5px; line-height:1.5; color:#4b4f43;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+}
+.lib-tags { display:flex; flex-wrap:nowrap; gap:6px; overflow:hidden; }
+.lib-tag {
+  flex-shrink:0; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  padding:3px 9px; border-radius:999px; background:rgba(93,97,75,.09); color:#4b4f43;
+  font:650 11px var(--font-ui, system-ui, sans-serif);
+}
+.lib-foot { display:flex; align-items:center; gap:8px; margin-top:auto; padding-top:8px; }
+.lib-btn {
+  display:inline-flex; align-items:center; justify-content:center; height:36px; padding:0 15px; border-radius:11px;
+  border:1px solid rgba(36,40,44,.2); background:#fff; color:#24282C; text-decoration:none; cursor:pointer;
+  font:700 12.5px var(--font-ui, system-ui, sans-serif); transition:border-color .15s, background .15s, filter .15s;
+}
+.lib-btn:hover { border-color:rgba(36,40,44,.45); }
+.lib-btn.primary { background:#CDF649; border-color:#CDF649; font-weight:800; }
+.lib-btn.primary:hover { filter:brightness(.95); }
+.lib-btn.wide { flex:1; }
+.lib-icon {
+  display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; margin-left:auto; flex-shrink:0;
+  border-radius:11px; border:1px solid transparent; background:transparent; color:#5D614B; cursor:pointer;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.lib-icon svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.lib-icon:hover { color:#B3261E; background:#FBEDEC; border-color:#F2C9C6; }
+@media (max-width:640px) { body:not(#_):not(#__) .lib-grid { grid-template-columns:1fr; } }
+@media (prefers-reduced-motion:reduce) { .lib-card, .lib-card:hover { transition:none; transform:none; } }
+/* two filters only: keep them pill-sized instead of letting ui-fixes stretch them across the row */
+body.tw-page:not(#_) #tab-library .cm-filters .cm-pill { flex:0 0 190px !important; }
+body.tw-page:not(#_) #tab-library .cm-filters .cm-pill select { width:100% !important; }
