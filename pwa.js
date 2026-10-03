@@ -627,14 +627,23 @@
        давала 4.0:1, ниже порога. На #116B33 - 5.2:1, заголовок 6.6:1. */
     .teachedos-status.online{background:#5D614B;color:#fff}
     .teachedos-status-copy{flex:1;min-width:0}
-    .teachedos-status-title{font-size:13px;font-weight:900;line-height:1.25}
-    .teachedos-status-sub{font-size:11px;line-height:1.5;opacity:.84;margin-top:3px}
+    .teachedos-status-title{font-size:14px;font-weight:800;line-height:1.25;letter-spacing:-.01em}
+    .teachedos-status-sub{font-size:12px;line-height:1.45;opacity:.78;margin-top:3px}
     .teachedos-status-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .teachedos-status-btn{
-      border:none;border-radius:999px;padding:8px 11px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;
+      border:none;border-radius:999px;padding:8px 14px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;
       background:rgba(255,255,255,.14);color:inherit;
     }
-    .teachedos-status-btn.primary{background:#fff;color:#24282C}
+    .teachedos-status-btn.primary{background:#CDF649;color:#24282C}
+    .teachedos-status-btn:hover{filter:brightness(1.08)}
+    /* A toast, not a banner: on a wide screen it sits top-right at a readable
+       width instead of stretching across the whole window, and carries the
+       brand lime on its edge and its main button. */
+    @media (min-width: 641px){
+      .teachedos-status{left:auto;right:20px;width:min(400px,calc(100vw - 40px))}
+    }
+    .teachedos-status.offline{box-shadow:0 14px 36px rgba(36,40,44,.22),inset 3px 0 0 #CDF649}
+    .teachedos-status.online{background:#24282C;box-shadow:0 14px 36px rgba(36,40,44,.22),inset 3px 0 0 #7BD88F}
     /* Крестик - запасной выход, а не элемент композиции: заливка делала из
        него серый квадрат рядом с кнопками. Когда у баннера есть свои кнопки
        («Dismiss», «Try again»), крестик убирается совсем - два способа
