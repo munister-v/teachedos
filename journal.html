@@ -218,6 +218,7 @@ a{text-decoration:none;color:inherit;}
 <link rel="stylesheet" href="styles/app-sidebar.css?v=1053">
 <link rel="stylesheet" href="styles/brand-harmony.css?v=1053">
 <link rel="stylesheet" href="styles/toast.css?v=1053">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1053">
 </head>
 <body class="tw-page suite-page journal-suite fx">
 
@@ -496,6 +497,7 @@ function renderStats() {
   document.getElementById('s-total').textContent = students.length;
   document.getElementById('s-lessons').textContent = students.reduce((s,x) => s + (x.lessons_left||0), 0);
   document.getElementById('s-low').textContent = students.filter(x => (x.lessons_left||0) <= 2).length;
+  document.getElementById('s-low').closest('.stat-card').classList.toggle('is-zero', !students.some(x => (x.lessons_left||0) <= 2));
   document.getElementById('s-ready').textContent = students.filter(x => (x.lessons_left||0) >= 3).length;
 }
 

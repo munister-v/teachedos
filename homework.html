@@ -280,6 +280,7 @@ button{font-family:var(--font);cursor:pointer;}
 <link rel="stylesheet" href="styles/app-sidebar.css?v=1053">
 <link rel="stylesheet" href="styles/brand-harmony.css?v=1053">
 <link rel="stylesheet" href="styles/toast.css?v=1053">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1053">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -658,7 +659,7 @@ function updateMetrics(list = homeworkList){
   const submitted = list.reduce((n,h)=>n+(h.submitted_count||0),0);
   const overdue = list.filter(h => homeworkStatus(h)==='overdue').length;
   const pct = assigned ? Math.round((submitted/assigned)*100) : 0;
-  setText('m-total', total); setText('m-assigned', assigned); setText('m-submitted', submitted); setText('m-overdue', overdue); setText('hero-completion', pct + '%');
+  setText('m-total', total); setText('m-assigned', assigned); setText('m-submitted', submitted); setText('m-overdue', overdue); document.getElementById('m-overdue').closest('.hw-metric').classList.toggle('is-zero', !overdue); setText('hero-completion', pct + '%');
 }
 
 function updateHomeworkFocus(list = homeworkList) {

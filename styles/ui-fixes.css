@@ -86,3 +86,28 @@ body.profile-page.tw-page:not(#s1):not(#s2):not(#s3) #nav .nav-user span:not(#na
 .bal-add #bal-new-name { flex:1 1 100% !important; }
 .bal-add #bal-new-n { flex:0 0 64px !important; width:64px !important; }
 .bal-add button { flex:1 1 auto !important; }
+
+/* ── Five stat tiles: no orphan on a second row ───────────────
+   Analytics shows five tiles; at laptop width four fitted and the fifth sat
+   alone below. With five tiles they now share one row, stacked icon/value. */
+@media (min-width:760px) {
+  body.tw-page.fx:not(#_):not(#__) :is(.stats-row,.stats-grid):has(> :nth-child(5):last-child) {
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important; gap:10px !important;
+  }
+  body.tw-page.fx:not(#_):not(#__) :is(.stats-row,.stats-grid):has(> :nth-child(5):last-child) > .stat-card {
+    flex-direction:column !important; align-items:flex-start !important; gap:8px !important; padding:16px !important; min-height:0 !important;
+  }
+}
+
+/* ── Courses: "My courses" header ─────────────────────────────
+   The title and the "+ New course" button shared one narrow line and
+   overlapped. The button now sits on its own line under the title. */
+body.tw-page:not(#s1):not(#s2):not(#s3):not(#s4) #sb-head { flex-wrap:wrap !important; row-gap:8px !important; }
+body.tw-page:not(#s1):not(#s2):not(#s3):not(#s4) #sb-head .btn-new-course { flex:1 1 100% !important; margin-left:0 !important; text-align:center; }
+
+/* ── Alert tiles at zero ──────────────────────────────────────
+   "Overdue 0" and "Low balance 0" were pink, which reads as a warning when
+   there is nothing to warn about. At zero they take the neutral tile look. */
+body.tw-page.fx:not(#_):not(#__) :is(.stat-card.attention, .hw-metric).is-zero {
+  background:#fff !important; border-color:var(--p-line,rgba(36,40,44,.1)) !important;
+}
