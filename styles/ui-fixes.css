@@ -51,7 +51,9 @@ body.tw-page:not(#_) .comm-tab:not(.side-btn).active {
    one row and shrink evenly. */
 body.tw-page:not(#_) .cm-filters { display:flex !important; flex-wrap:wrap !important; gap:8px !important; }
 body.tw-page:not(#_) .cm-filters .cm-pill { flex:1 1 112px !important; min-width:0 !important; }
-body.tw-page:not(#_) .cm-filters .cm-pill select { width:100% !important; text-overflow:ellipsis; }
+body.tw-page:not(#_) .cm-filters .cm-pill select { width:100% !important; text-overflow:ellipsis; padding-left:12px !important; padding-right:30px !important; }
+/* the last pill carries the longest label ("Lessons & Spaces") */
+body.tw-page:not(#_) .cm-filters .cm-pill:has(#board-type) { flex:1.6 1 150px !important; }
 
 /* ── Profile: stats ───────────────────────────────────────────
    Four tiles in a narrow column wrapped "Total Boards" and "Member since"
@@ -66,8 +68,15 @@ body.profile-page:not(#_) .stats-grid .stat-body { width:100%; text-align:left !
 body.profile-page:not(#_) .stats-grid .stat-n { white-space:nowrap; font-size:22px; }
 body.profile-page:not(#_) .stats-grid .stat-label { white-space:nowrap; font-size:12px; }
 
-/* ── Profile: the account chip is the "current page" in the dark rail ── */
-body.profile-page:not(#_) #nav .nav-user { box-shadow:inset 0 0 0 1px rgba(205,246,73,.45); background:rgba(205,246,73,.08) !important; border-radius:14px !important; }
+/* ── Profile: the account block is the "current page" in the dark rail ──
+   The rail rules carry three :not(#sN) ids, so this needs the same weight
+   to win; a soft lime plate and a lime name mark it as active. */
+body.profile-page.tw-page:not(#s1):not(#s2):not(#s3) #nav .nav-user {
+  background:rgba(205,246,73,.10) !important;
+  box-shadow:inset 0 0 0 1px rgba(205,246,73,.38) !important;
+  border-radius:18px !important;
+}
+body.profile-page.tw-page:not(#s1):not(#s2):not(#s3) #nav .nav-user span:not(#nav-avatar) { color:#CDF649 !important; }
 
 /* ── Schedule: "Lesson balances" quick-add ────────────────────
    The name field shared one row with the count and the button, so its
