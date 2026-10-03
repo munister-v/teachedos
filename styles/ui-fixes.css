@@ -122,3 +122,17 @@ body.tw-page:not(#a):not(#b):not(#c):not(#d):not(#e) .empty .empty-icon:empty {
   background:rgba(205,246,73,.28) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2324282C' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20'/%3E%3Ccircle cx='10' cy='8' r='3.2'/%3E%3Cpath d='M20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.4 4.9a3.2 3.2 0 0 1 0 6.2'/%3E%3C/svg%3E") center/26px no-repeat !important;
   border:0 !important; box-shadow:none !important;
 }
+
+/* ── Shape system ─────────────────────────────────────────────
+   Corner radii had drifted: Courses used 24 / 18 / 14, Schedule 22 / 18,
+   Community 24 / 13. One scale now: 24 modals and sheets, 20 page panels,
+   16 cards inside panels, 12 small blocks and buttons. */
+body.tw-page:not(#_):not(#__) :is(#sidebar, #main) { border-radius:20px !important; }
+body.tw-page:not(#_):not(#__) :is(.module-block, .lesson-card.has-cover, .sb-packs-link) { border-radius:16px !important; }
+body.tw-page:not(#_):not(#__) :is(.share-card, .modal) { border-radius:24px !important; }
+body.tw-page:not(#_):not(#__) .publisher-audit { border-radius:12px !important; }
+
+/* ── Side navigation icons ────────────────────────────────────
+   The Community rail drew 13px glyphs in a 22px chip while Profile and
+   Gradebook use 20px. 16px sits correctly in the chip. */
+body.tw-page:not(#_):not(#__) .side-btn .side-ic svg { width:16px !important; height:16px !important; }
