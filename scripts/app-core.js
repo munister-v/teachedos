@@ -134,13 +134,14 @@
     var el = document.createElement('div');
     el.id = 'teached-session-banner';
     el.setAttribute('style', [
-      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:999999',
-      'background:#FF4E00', 'color:#fff', 'padding:12px 20px',
-      'text-align:center', 'font:14px/1.4 system-ui,sans-serif',
-      'box-shadow:0 2px 8px rgba(36,40,44,.25)'
+      'position:fixed', 'top:16px', 'right:16px', 'left:16px', 'margin-left:auto', 'max-width:400px', 'z-index:999999',
+      'background:#24282C', 'color:#fff', 'padding:14px 16px', 'border-radius:16px',
+      'font:13px/1.45 system-ui,-apple-system,sans-serif',
+      'box-shadow:0 14px 36px rgba(36,40,44,.24), inset 3px 0 0 #CDF649'
     ].join(';'));
-    el.innerHTML = 'Your session has expired. ' +
-      '<a href="/index.html" style="color:#fff;font-weight:600;text-decoration:underline">Sign in again →</a>';
+    el.innerHTML = '<div style="font-weight:800;font-size:14px">Your session has expired</div>' +
+      '<div style="opacity:.78;margin:3px 0 10px">Sign in again to pick up where you left off.</div>' +
+      '<a href="/index.html" style="display:inline-block;background:#CDF649;color:#24282C;font-weight:800;font-size:12px;padding:8px 14px;border-radius:999px;text-decoration:none">Sign in</a>';
     if (document.body) document.body.prepend(el);
     else document.addEventListener('DOMContentLoaded', function() { document.body.prepend(el); });
     if (!window.__teachedNoRedirectOn401) {

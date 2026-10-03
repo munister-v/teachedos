@@ -1,0 +1,22 @@
+/* ═══════════════════════════════════════════════════════════════
+   One look for the in-page toast (#toast) on every page.
+   Before: bottom-right on some pages, bottom-centre on others, olive,
+   grey-olive and orange fills, three different radii. Now a dark card with a
+   brand edge: lime for a plain message, green for ok, orange for an error.
+═══════════════════════════════════════════════════════════════ */
+body:not(#_) #toast {
+  background:#24282C !important;
+  color:#fff !important;
+  border:0 !important;
+  border-radius:14px !important;
+  padding:12px 18px 12px 16px !important;
+  font:650 13px/1.35 var(--font, 'Manrope', system-ui, sans-serif) !important;
+  max-width:min(420px, calc(100vw - 32px));
+  box-shadow:0 14px 36px rgba(36,40,44,.24), inset 3px 0 0 #CDF649 !important;
+  backdrop-filter:none !important;
+}
+body:not(#_) #toast:is(.ok, .success) { box-shadow:0 14px 36px rgba(36,40,44,.24), inset 3px 0 0 #7BD88F !important; }
+body:not(#_) #toast:is(.err, .error) { box-shadow:0 14px 36px rgba(36,40,44,.24), inset 3px 0 0 #FF4E00 !important; }
+@media (min-width:641px) {
+  body:not(#_) #toast:not(.toast-clipboard) { left:auto; right:20px; bottom:20px; }
+}
