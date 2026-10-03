@@ -68,3 +68,12 @@ body.profile-page:not(#_) .stats-grid .stat-label { white-space:nowrap; font-siz
 
 /* ── Profile: the account chip is the "current page" in the dark rail ── */
 body.profile-page:not(#_) #nav .nav-user { box-shadow:inset 0 0 0 1px rgba(205,246,73,.45); background:rgba(205,246,73,.08) !important; border-radius:14px !important; }
+
+/* ── Schedule: "Lesson balances" quick-add ────────────────────
+   The name field shared one row with the count and the button, so its
+   placeholder showed as "New student's". Name on its own row, count and
+   button below. */
+.bal-add { flex-wrap:wrap !important; }
+.bal-add #bal-new-name { flex:1 1 100% !important; }
+.bal-add #bal-new-n { flex:0 0 64px !important; width:64px !important; }
+.bal-add button { flex:1 1 auto !important; }
