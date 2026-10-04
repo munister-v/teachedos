@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Group sort</title>
-<link rel="stylesheet" href="ww.css?v=1058">
+<link rel="stylesheet" href="ww.css?v=1059">
 <style>
 /* Group sort: слева куча плиток, справа колонки групп с заголовками.
    Плитку тянут в колонку (или тапают плитку, потом колонку). */
@@ -16,6 +16,10 @@
 .gs .ww-tile{min-height:var(--th,32px);padding:var(--tp,4px 9px);font-size:var(--tf,clamp(12px,2vw,15px));touch-action:none;cursor:grab}
 .gs-groups{display:grid;gap:8px;min-height:0}
 .gs-groups>*{min-height:0}
+.gs-head.edit{cursor:text;outline:none;border-radius:6px}
+.gs-head.edit:hover,.gs-head.edit:focus{background:#F4FCD9;box-shadow:inset 0 0 0 1px #CDF649}
+.gs-head.edit::after{content:' ✎';font-size:.75em;opacity:.45}
+.gs-head.edit:focus::after{content:''}
 .gs-col{display:flex;flex-direction:column;min-height:0;border:2px dashed var(--gray);border-radius:6px;background:#fff}
 .gs-head{padding:6px 8px;text-align:center;font-weight:800;font-size:clamp(13px,2.3vw,17px);border-bottom:2px solid var(--gray)}
 .gs-in{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;padding:6px;overflow:auto}
@@ -26,11 +30,11 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=1058"></script>
+<script src="ww.js?v=1059"></script>
 <script>
 var DEMO=[{name:'Illness',words:['fever','cough','headache','insomnia']},{name:'Injury',words:['bruise','burn','sprain','cut']}];
 var ww=WW.init({template:'Group sort',instructions:'Drag and drop each item into its correct group.',timer:'up',score:true,action:{label:'Submit Answers'}});
-var cats=[],items=[],where={},checked=false;
+var cats=[],items=[],where={},checked=false,canEdit=false;
 function render(){
   ww.stage.innerHTML='';
   var root=document.createElement('div');root.className='gs';
@@ -46,7 +50,7 @@ function render(){
   if(cats.length>4)groups.style.gridTemplateRows='repeat('+Math.ceil(cats.length/4)+',minmax(0,1fr))';
   var cols={};
   cats.forEach(function(c,i){var col=document.createElement('div');col.className='gs-col';col.dataset.g=String(i);
-    col.innerHTML='<div class="gs-head">'+WW.esc(c.name)+'</div>';var inn=document.createElement('div');inn.className='gs-in';col.appendChild(inn);cols[i]=inn;groups.appendChild(col);});
+    col.innerHTML='<div class="gs-head'+(canEdit?' edit':'')+'"'+(canEdit?' contenteditable="true" spellcheck="false" title="Click to rename this column" data-i="'+i+'"':'')+'>'+WW.esc(c.name)+'</div>';var inn=document.createElement('div');inn.className='gs-in';col.appendChild(inn);cols[i]=inn;groups.appendChild(col);});
   items.forEach(function(it,k){
     var t=document.createElement('div');t.className='ww-tile';t.textContent=it.w;t.dataset.k=k;ww.paint(t,k);
     var g=where[k];
@@ -54,6 +58,13 @@ function render(){
     (g!=null?cols[g]:pile).appendChild(t);
   });
   root.appendChild(pile);root.appendChild(groups);ww.stage.appendChild(root);
+  /* Учитель переименовывает колонку: Enter или клик мимо - сохранить на доске. */
+  groups.querySelectorAll('.gs-head.edit').forEach(function(h){
+    h.onpointerdown=function(e){e.stopPropagation();};
+    h.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();h.blur();}};
+    h.onblur=function(){var v=h.textContent.trim().slice(0,40),i=+h.dataset.i;if(!v){h.textContent=cats[i].name;return;}
+      if(v===cats[i].name)return;cats[i].name=v;ww.post({type:'game-rename-groups',names:cats.map(function(c){return c.name;})});};
+  });
   var all=items.every(function(_,k){return where[k]!=null;});
   if(checked)ww.setAction('Finish',finish);else ww.setAction('Submit Answers',submit,!all);
 }
@@ -66,12 +77,13 @@ ww.onStart=function(){where={};checked=false;items=WW.shuffle(items);render();};
 window.applyCustomContent=function(content,title){
   var c=((content&&content.categories)||[]).map(function(x){return{name:String(x.name||x.category||'').trim(),words:(x.words||[]).map(function(w){return String(w).trim();}).filter(Boolean)};}).filter(function(x){return x.name&&x.words.length;});
   if(c.length<2)return;
+  canEdit=!!(content&&content.canEdit);
   cats=c;items=[];c.forEach(function(x,gi){x.words.forEach(function(w){items.push({w:w,g:gi});});});
   ww.setTitle(title||'Group sort');document.title=(title||'Group sort')+' · Group sort';ww.showStart();
 };
 window.applyCustomContent({categories:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=1058"></script>
+<script src="../../scripts/game-handoff.js?v=1059"></script>
 </body>
 </html>

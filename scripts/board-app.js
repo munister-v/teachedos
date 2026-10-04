@@ -4964,7 +4964,7 @@ function _wpGameStep(stage, card, k) {
   // Станция лексики в карте урока: слова урока доезжают и в игры.
   const o1 = window.TeachedFlow ? { ...o0, customContent: window.TeachedFlow.mergeGame(card.id, o0.customContent, o0.src) } : o0;
   // Транскрипция, запись, пример и шаблон из Vocabulary Studio - и в игры пути.
-  const o = o1.customContent ? { ...o1, customContent: { ...o1.customContent, lex: _wpLexicon(card), accent: card.data._wfPath.accent || 'both' } } : o1;
+  const o = o1.customContent ? { ...o1, customContent: { ...o1.customContent, lex: _wpLexicon(card), accent: card.data._wfPath.accent || 'both', canEdit: !!(card.__preview || _wpOwnerOf(card)) } } : o1;
   const box = document.createElement('div');
   box.className = 'wp-game';
   const W = o.naturalW || 720, H = o.naturalH || 480;
@@ -4972,6 +4972,14 @@ function _wpGameStep(stage, card, k) {
   f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
   f.dataset.cardId = card.id + '::' + k;
   f.style.cssText = `width:${W}px;height:${H}px;border:0;display:block;transform-origin:0 0;background:#fff`;
+  // Учитель переименовал колонки Group sort прямо в игре - сохраняем в шаг.
+  f._onGameEdit = d => {
+    if (!(card.__preview || _wpOwnerOf(card)) || !d || !Array.isArray(d.names)) return;
+    const cats = o0.customContent && o0.customContent.categories;
+    if (!Array.isArray(cats)) return;
+    d.names.forEach((n, i) => { const v = String(n || '').trim().slice(0, 40); if (v && cats[i]) { if (cats[i].category != null && cats[i].name == null) cats[i].category = v; else cats[i].name = v; } });
+    if (!card.__preview) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  };
   f._deliverGameContent = force => {
     if (!o.customContent || (f._delivered && !force)) return;
     try { const href = f.contentWindow.location.href; if (!href || href === 'about:blank') return; } catch {}
@@ -16309,7 +16317,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1058';
+const TEACHEDOS_ASSET_VERSION = '1059';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23868,6 +23876,12 @@ boardWrap.addEventListener('mousemove', e => {
 // ── Game Score postMessage ───────────────────────────────────
 // Listen for the game-ready handshake and deliver custom content immediately
 // (the iframe load handler is only a fallback). See renderGameCard.
+window.addEventListener('message', e => {
+  if (!e.data || e.data.type !== 'game-rename-groups') return;
+  document.querySelectorAll('iframe[data-card-id]').forEach(iframe => {
+    if (iframe.contentWindow === e.source && typeof iframe._onGameEdit === 'function') iframe._onGameEdit(e.data);
+  });
+});
 window.addEventListener('message', e => {
   if (!e.data || e.data.type !== 'game-ready') return;
   document.querySelectorAll('iframe[data-card-id]').forEach(iframe => {

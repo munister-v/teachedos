@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Matching pairs</title>
-<link rel="stylesheet" href="ww.css?v=1058">
+<link rel="stylesheet" href="ww.css?v=1059">
 <style>
 /* Matching pairs: серые карты рубашкой вверх, открываются по две. Совпало -
    обе остаются открытыми в цвете пары. Раунды по ROUND пар через весь список. */
@@ -19,23 +19,62 @@
 .mp-face span{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
 .mp-back{background:#5D614B;box-shadow:inset 0 -5px 0 rgba(36,40,44,.35),0 2px 3px rgba(36,40,44,.25)}
 .mp-face{transform:rotateY(180deg);background:#fff;border:2px solid var(--gray)}
+.mp-card.sel .mp-face{box-shadow:0 0 0 3px #CDF649;border-color:#CDF649}
+.mp-card.done.fast{opacity:.35}
+.mp-face.au{font-size:30px!important}
+.mp-streak{position:absolute;top:4px;right:10px;z-index:20;padding:4px 12px;border-radius:999px;background:#FF8C3A;color:#fff;font-weight:900;font-size:15px;box-shadow:0 4px 14px rgba(255,140,58,.5);animation:ww-pop .3s ease}
+.mp-banner{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center}
+.mp-banner div{background:#fff;color:#24282C;border-radius:16px;padding:18px 26px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.25);animation:ww-pop .3s ease;max-width:86%}
+.mp-banner b{display:block;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#7A7E68}
+.mp-banner strong{display:block;font-size:24px;margin:4px 0}
+.mp-review{background:#fff;color:#24282C;border-radius:16px;padding:16px 20px;width:min(560px,94%);max-height:100%;overflow:auto;box-shadow:0 12px 34px rgba(0,0,0,.2)}
+.mp-review h3{margin:0 0 4px;font-size:20px}
+.mp-review p{margin:0 0 10px;color:#5D614B;font-size:14px}
+.mp-review li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid rgba(36,40,44,.1);list-style:none}
+.mp-review li b{min-width:28%;font-size:16px}
+.mp-review li span{flex:1;font-size:14px}
+.mp-review li i{font-style:normal;font-weight:800;color:#E5484D;font-size:13px}
+.mp-review ul{padding:0;margin:0 0 12px}
+.mp-review button{border:0;border-radius:10px;background:#CDF649;color:#24282C;font-weight:800;padding:9px 18px;font-size:15px;cursor:pointer}
 .mp-card.done .mp-face{background:var(--c);color:var(--f);border-color:transparent;box-shadow:inset 0 -5px 0 rgba(36,40,44,.22)}
 </style>
 </head>
 <body>
-<script src="ww.js?v=1058"></script>
+<script src="ww.js?v=1059"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
 var ROUND=10;
 var ww=WW.init({template:'Matching pairs',instructions:'Tap a pair of tiles at a time to reveal if they match.',timer:'up',score:true});
 var items=[],deck=[],round=0,cards=[],open=[],lock=false;
-function rounds(){return Math.max(1,Math.ceil(deck.length/ROUND));}
+/* Раунды меняют тип задания: 1 - классический Memory, 2 - всё открыто,
+   соединяй на скорость, 3 - вместо определения пример с пропуском или звук.
+   Серия верных пар подряд даёт множитель очков; ошибки копятся по словам
+   и в конце выводятся списком «повторить». */
+var MODES=[{id:'memory',name:'Classic memory',hint:'Find the pairs - cards are face down.'},{id:'speed',name:'Speed match',hint:'All cards are open - match them as fast as you can!'},{id:'context',name:'In context',hint:'Match each word with its sentence or its sound.'}];
+var streak=0,best=0,miss={},matched=0;
+function chunks(){return Math.max(1,Math.ceil(deck.length/ROUND));}
+function rounds(){return Math.max(3,chunks());}
+function mode(){return MODES[round%3].id;}
+function gapOf(p){
+  var ex=String((WW.lex(p.word)||{}).example||p.example||'');if(!ex)return '';
+  var w=p.word.replace(/^to\s+/i,'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+');
+  var pt=w.split('\\s+'),rest=pt.slice(1).join('\\s+');
+  var re=new RegExp('\\b'+pt[0]+'\\w*'+(rest?'\\s+'+rest:''),'i');
+  return re.test(ex)?ex.replace(re,'_____'):'';
+}
 function layout(n){var W=ww.stage.clientWidth,H=ww.stage.clientHeight,best=4,bestS=0;for(var c=3;c<=8;c++){var r=Math.ceil(n/c);var s=Math.min(W/c,(H/r)*0.75);if(s>bestS){bestS=s;best=c;}}return best;}
 function deal(){
-  var set=deck.slice(round*ROUND,(round+1)*ROUND);
-  cards=[];set.forEach(function(p,k){cards.push({k:k,text:p.word,p:p});cards.push({k:k,text:p.meaning,p:p});});
-  cards=WW.shuffle(cards);open=[];lock=false;render();
-  ww.setCenter(rounds()>1?('Round '+(round+1)+' of '+rounds()):'',true);
+  var ci=round%chunks(),set=deck.slice(ci*ROUND,(ci+1)*ROUND),m=mode();
+  cards=[];set.forEach(function(p,k){cards.push({k:k,text:p.word,p:p});
+    var other=p.meaning,au=false;
+    if(m==='context'){var g=gapOf(p);if(g)other=g;else{other='🔊';au=true;}}
+    cards.push({k:k,text:other,p:p,au:au});});
+  cards=WW.shuffle(cards);open=[];lock=false;streak=0;
+  var M=MODES[round%3];
+  ww.setCenter('Round '+(round+1)+' of '+rounds()+' · '+M.name,true);
+  render();
+  var bn=document.createElement('div');bn.className='mp-banner';bn.innerHTML='<div><b>Round '+(round+1)+' of '+rounds()+'</b><strong>'+M.name+'</strong>'+M.hint+'</div>';
+  ww.stage.appendChild(bn);lock=true;setTimeout(function(){bn.remove();lock=false;},1700);
 }
 function render(){
   ww.stage.innerHTML='';
@@ -58,11 +97,15 @@ function render(){
     var lines=Math.max(2,Math.floor((ch-10)/(fs*1.15)));
     var cap=Math.floor(lines*((cw-12)/(fs*0.62)));
     var txt=c.text.length>cap?c.text.slice(0,Math.max(4,cap-1)).replace(/\s+\S*$/,'')+'…':c.text;
-    b.innerHTML='<div class="mp-in"><div class="mp-f mp-back"></div><div class="mp-f mp-face" style="font-size:'+fs.toFixed(1)+'px"><span style="-webkit-line-clamp:'+lines+'" title="'+WW.esc(c.text)+'">'+WW.esc(txt)+'</span></div></div>';
+    var up=mode()==='speed'&&!c.done;
+    if(up){b.classList.add('open');if(c.open)b.classList.add('sel');}
+    if(c.done&&mode()==='speed')b.classList.add('fast');
+    b.innerHTML='<div class="mp-in"><div class="mp-f mp-back"></div><div class="mp-f mp-face'+(c.au?' au':'')+'" style="font-size:'+fs.toFixed(1)+'px"><span style="-webkit-line-clamp:'+lines+'" title="'+WW.esc(c.text)+'">'+WW.esc(txt)+'</span></div></div>';
     var f=ww.fill(c.k);b.style.setProperty('--c',f[0]);b.style.setProperty('--f',f[1]);
     b.onclick=function(){tap(i);};g.appendChild(b);
   });
   ww.stage.appendChild(g);
+  if(streak>=2){var st=document.createElement('div');st.className='mp-streak';st.textContent='🔥 '+streak+' in a row · x'+Math.min(3,streak);ww.stage.appendChild(st);}
   /* Подгон по факту: расчёт даёт кегль и число строк, но длина слов бывает
      такой, что последняя строка всё равно срезается. Меряем и укорачиваем,
      пока текст не поместится целиком. */
@@ -76,21 +119,37 @@ function render(){
 function tap(i){
   var c=cards[i];if(!ww.running||lock||c.open||c.done)return;
   c.open=true;open.push(i);render();
+  if(c.au){var x=WW.lex(c.p.word)||{};var url=x.audioUK||x.audioUS||c.p.audio;if(url)WW.say(url);else WW.tts(c.p.word.replace(/^to\s+/i,''),'uk');}
   if(open.length<2)return;
   var a=cards[open[0]],b=cards[open[1]];lock=true;
+  var fast=mode()==='speed';
   if(a.k===b.k&&a!==b){
-    setTimeout(function(){a.done=b.done=true;a.open=b.open=false;open=[];lock=false;ww.addScore(1);ww.beep(true);ww.progress(ww.score,deck.length);render();
-      if(cards.every(function(x){return x.done;}))next();},350);
+    streak++;best=Math.max(best,streak);matched++;
+    var mult=Math.min(3,Math.max(1,streak));
+    setTimeout(function(){a.done=b.done=true;a.open=b.open=false;open=[];lock=false;ww.addScore(mult);
+      if(streak>=3){ww.jingle('win');if(streak%3===0)WW.confetti(40);}else ww.beep(true);
+      ww.progress(matched,deck.length*Math.ceil(rounds()/chunks()));render();
+      if(cards.every(function(x){return x.done;}))next();},fast?150:350);
   }else{
-    ww.beep(false);
-    setTimeout(function(){a.open=b.open=false;open=[];lock=false;render();},900);
+    streak=0;ww.beep(false);
+    [a,b].forEach(function(x){miss[x.p.word]=(miss[x.p.word]||0)+1;});
+    setTimeout(function(){a.open=b.open=false;open=[];lock=false;render();},fast?350:900);
   }
 }
 function next(){
   if(round+1<rounds()){round++;setTimeout(deal,500);return;}
-  ww.finish({score:ww.score,max:deck.length,answers:deck.map(function(p){return{q:p.word,a:p.meaning};})});
+  review();
 }
-ww.onStart=function(){deck=WW.shuffle(items);round=0;deal();};
+/* Работа над ошибками: слова, на которых ошибались чаще всего. */
+function review(){
+  var bad=deck.filter(function(p){return miss[p.word];}).sort(function(x,y){return miss[y.word]-miss[x.word];}).slice(0,8);
+  function done(){ww.finish({score:ww.score,max:ww.score,answers:deck.map(function(p){return{q:p.word,a:p.meaning,ok:!miss[p.word]};})});}
+  if(!bad.length){WW.confetti(90);done();return;}
+  ww.stage.innerHTML='<div class="mp-banner"><div class="mp-review"><h3>Words to review</h3><p>Spend 1-2 minutes on these - they caused the most mistakes. Best streak: '+best+'.</p><ul>'+
+    bad.map(function(p){return '<li><b>'+WW.esc(p.word)+'</b><span>'+WW.esc(p.meaning)+'</span><i>×'+miss[p.word]+'</i></li>';}).join('')+'</ul><button type="button">Finish</button></div></div>';
+  ww.stage.querySelector('.mp-review button').onclick=done;
+}
+ww.onStart=function(){deck=WW.shuffle(items);round=0;streak=0;best=0;miss={};matched=0;deal();};
 window.applyCustomContent=function(content,title){
   var p=WW.pairsFrom(content).filter(function(x){return x.meaning;});
   if(p.length<2)return;
@@ -100,6 +159,6 @@ window.addEventListener('resize',function(){if(cards.length)render();});
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=1058"></script>
+<script src="../../scripts/game-handoff.js?v=1059"></script>
 </body>
 </html>
