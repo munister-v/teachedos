@@ -66,6 +66,46 @@
     return out.slice(0, 20);
   }
 
+  /* Разминка и финал вокруг основной дискуссии: студия - три мини-этапа,
+     а не сразу «тяжёлые» вопросы. */
+  function warmups(topic, words) {
+    const w = words.slice(0, 6);
+    const t = topic || 'this topic';
+    return [
+      { kind: 'Warm-up · Just a minute', text: `Talk about “${t}” for 60 seconds without stopping. No long pauses, no “erm”!`, help: [], timer: 60 },
+      { kind: 'Warm-up · Quick fire', text: `Say the first thing that comes to mind for each word: ${w.length ? w.join(' · ') : 'trust · money · love · lie'}.`, help: [] },
+      { kind: 'Warm-up · This or that', text: 'Online or in person? Trust your gut or check the facts? Save or spend? Pick one each time and say why in one sentence.', help: [] },
+    ];
+  }
+  function wrapups(topic) {
+    return [
+      { kind: 'Wrap-up · Verdict', text: `Your final answer: what is the most important thing you learned about “${topic || 'this topic'}” today? Say it in two sentences.`, help: [] },
+      { kind: 'Wrap-up · Reflection', text: 'Which three new words or phrases did you use today? Make one new sentence with each.', help: [] },
+    ];
+  }
+  const CHALLENGES = [
+    { k: 'Devil’s advocate', t: 'Argue the side you do NOT agree with - your job is to convince your partner.' },
+    { k: 'Just a minute', t: 'Answer for a full 60 seconds without stopping or repeating yourself.' },
+    { k: 'Taboo', t: 'Answer without using the words “good”, “bad” or “very”.' },
+    { k: 'Use three', t: 'Use at least three phrases from the left in your answer.' },
+    { k: 'Story time', t: 'Start your answer with a real story from your life or someone you know.' },
+  ];
+  /* Охота за словами: распознанная речь сверяется с фразами урока и
+     функциональными фразами. «…» в фразе - разрыв, нужны все куски. */
+  const normT = x => ' ' + String(x || '').toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9' …]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  function phraseHit(phrase, said) {
+    const parts = String(phrase).toLowerCase().replace(/[’']/g, "'").split(/…|\.\.\./).map(x => x.replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+    if (!parts.length) return false;
+    return parts.every(pt => {
+      const ws = pt.split(' ');
+      // Одиночное слово урока ловится и в другой форме: backfire → backfired.
+      if (ws.length === 1 && ws[0].length > 4) return new RegExp(' ' + ws[0].slice(0, Math.max(4, ws[0].length - 2)) + "[a-z']*", '').test(said);
+      if (said.includes(' ' + pt + ' ') || said.includes(' ' + pt)) return true;
+      // Глагол во фразе мог стоять в другой форме: took advantage of → take advantage of.
+      return ws.length >= 3 && said.includes(' ' + ws.slice(1).join(' ') + ' ');
+    });
+  }
+
   function pickMime() {
     const list = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
     if (typeof MediaRecorder === 'undefined') return '';
@@ -73,11 +113,17 @@
   }
 
   function mount(host, o) {
-    const prompts = promptsOf(o.outs);
-    const st = Object.assign({ i: 0, prep: 60, speak: 90, used: [], notes: {}, handed: {} }, o.state || {});
+    const core = promptsOf(o.outs);
+    const st = Object.assign({ i: 0, prep: 60, speak: 90, used: [], notes: {}, handed: {}, mode: o.owner ? 'one' : 'self', full: true, players: ['Student A', 'Student B'], who: 0, score: {} }, o.state || {});
+    const lessonWords = (o.phrases || []).map(p => String(p.phrase || '').trim()).filter(Boolean);
+    let prompts = [];
+    const buildPrompts = () => { prompts = st.full ? warmups(o.topic, lessonWords).concat(core, wrapups(o.topic)) : core.slice(); if (st.i >= prompts.length) st.i = 0; };
+    buildPrompts();
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let sr = null, live = false, heard = '';
     let phase = 'ready';      // ready | prep | speak | done
     let left = 0, timer = null, rec = null, chunks = [], stream = null, clip = null, clipMime = '', t0 = 0, recordOn = true;
-    const save = () => o.save && o.save({ i: st.i, prep: st.prep, speak: st.speak, used: st.used, notes: st.notes, handed: st.handed });
+    const save = () => o.save && o.save({ i: st.i, prep: st.prep, speak: st.speak, used: st.used, notes: st.notes, handed: st.handed, mode: st.mode, full: st.full, players: st.players, who: st.who, score: st.score });
 
     const fnGroups = Object.entries(FUNCTIONS);
     host.innerHTML = `
@@ -88,6 +134,12 @@
           <p class="ss-side-note">Tap a phrase when you have used it.</p>
         </aside>
         <section class="ss-main">
+          <div class="ss-modebar">
+            <div class="ss-seg ss-modes" role="group" aria-label="Lesson mode">${[['self', '🎧 Self-study'], ['one', '👥 1-on-1'], ['group', '🏆 Group']].map(([k, l]) => `<button type="button" data-ssmode="${k}">${l}</button>`).join('')}</div>
+            ${o.owner || o.preview ? `<div class="ss-seg ss-fulls" title="Warm-up and wrap-up around the questions, or just the questions">${[['1', 'Full studio'], ['0', 'Just the task']].map(([k, l]) => `<button type="button" data-full="${k}">${l}</button>`).join('')}</div>` : ''}
+          </div>
+          <div class="ss-stages"></div>
+          <div class="ss-board"></div>
           <div class="ss-top">
             <button type="button" class="ss-nav" data-go="-1" aria-label="Previous task">‹</button>
             <span class="ss-count"></span>
@@ -97,7 +149,9 @@
           <article class="ss-card">
             <span class="ss-kind"></span>
             <p class="ss-text"></p>
+            <div class="ss-chal"></div>
             <div class="ss-help"></div>
+            <div class="ss-live" hidden></div>
           </article>
           <div class="ss-clock">
             <div class="ss-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" class="ss-ring-bg"/><circle cx="60" cy="60" r="54" class="ss-ring-fg"/></svg>
@@ -132,7 +186,66 @@
       $('.ss-help').innerHTML = p && p.help.length ? p.help.map(h => `<details><summary>${md(h.title || '')}</summary><div>${lines(h.text).map(l => `<p>${md(l)}</p>`).join('')}</div></details>`).join('') : '';
       $('.ss-notes').value = st.notes[st.i] || '';
       host.querySelectorAll('[data-go]').forEach(b => { b.disabled = (b.dataset.go === '-1' ? st.i === 0 : st.i >= prompts.length - 1); });
+      // Этапы: Warm-up · Discussion · Wrap-up.
+      const nW = st.full ? 3 : 0, nC = core.length;
+      const stage = !st.full ? 1 : st.i < nW ? 0 : st.i < nW + nC ? 1 : 2;
+      $('.ss-stages').innerHTML = st.full ? [['Warm-up', 0], ['Discussion', nW], ['Wrap-up', nW + nC]].map(([l, at], j) => `<button type="button" class="ss-stage${j === stage ? ' on' : ''}${j < stage ? ' done' : ''}" data-jump="${at}"><i>${j + 1}</i>${l}</button>`).join('<span class="ss-stage-line"></span>') : '';
+      const ch = st.chal && st.chal[st.i];
+      $('.ss-chal').innerHTML = stage === 1 ? (ch != null ? `<div class="ss-chal-card"><b>⚡ ${esc(CHALLENGES[ch].k)}</b> ${esc(CHALLENGES[ch].t)}</div>` : '') + `<button type="button" class="ss-chal-btn" data-act="chal">🎲 ${ch != null ? 'Another challenge' : 'Add a challenge'}</button>` : '';
+      paintMode();
     }
+    function paintMode() {
+      host.querySelector('.ss').dataset.mode = st.mode;
+      host.querySelectorAll('[data-ssmode]').forEach(b => b.classList.toggle('on', b.dataset.ssmode === st.mode));
+      host.querySelectorAll('[data-full]').forEach(b => b.classList.toggle('on', (b.dataset.full === '1') === !!st.full));
+      const b = $('.ss-board');
+      if (!b) return;
+      const listenBtn = SR ? `<button type="button" class="ss-listen${live ? ' on' : ''}" data-act="listen">${live ? '■ Stop listening' : '🎙 Listen for lesson words'}</button>` : '<span class="ss-hint">Word catching needs Chrome.</span>';
+      if (st.mode === 'group') {
+        const total = i => (st.score[i] || []).length;
+        b.innerHTML = `<div class="ss-lb">${st.players.map((n, i) => `<button type="button" class="ss-pl${st.who === i ? ' on' : ''}" data-who="${i}"><span>${esc(n)}</span><b>${total(i)}</b></button>`).join('')}
+          <button type="button" class="ss-pl add" data-act="addpl" title="Add a student or team">＋</button></div>
+          <div class="ss-lb-note">${listenBtn}<span>Tap who is speaking. Phrases they say fly into their column.</span></div>`;
+      } else if (st.mode === 'one') {
+        const n = st.used.length;
+        b.innerHTML = `<div class="ss-lb-note">${listenBtn}<span>Talk it through together. Tap phrases on the left as the student uses them${SR ? ' - or let the mic catch them' : ''}. <b>${n}</b> used so far.</span></div>`;
+      } else {
+        const targets = lessonWords.slice(0, 5);
+        b.innerHTML = targets.length ? `<div class="ss-targets"><b>Use these in your answer:</b> ${targets.map(t => `<span class="${st.used.includes(t) ? 'hit' : ''}">${esc(t)}</span>`).join('')}</div>` : '';
+      }
+    }
+    function credit(ph) {
+      if (st.used.includes(ph)) return;
+      st.used = st.used.concat(ph);
+      if (st.mode === 'group') { const k = st.who; st.score[k] = (st.score[k] || []).concat(ph); }
+      paintUsed(); paintMode(); save();
+      // Вспышка: фраза «улетает» в колонку ученика.
+      const chip = [...host.querySelectorAll('.ss-chip')].find(c => c.dataset.ph === ph);
+      if (chip) { chip.classList.remove('caught'); void chip.offsetWidth; chip.classList.add('caught'); }
+      const fly = document.createElement('div'); fly.className = 'ss-fly'; fly.textContent = '+ ' + ph.replace(/[,…]+$/, '');
+      host.querySelector('.ss-main').appendChild(fly); setTimeout(() => fly.remove(), 1400);
+    }
+    function catchIn(text) {
+      const said = normT(text);
+      host.querySelectorAll('.ss-chip').forEach(c => { if (phraseHit(c.dataset.ph, said)) credit(c.dataset.ph); });
+      lessonWords.forEach(w => { if (phraseHit(w, said)) credit(w); });
+    }
+    function startListen() {
+      if (!SR || live) return;
+      try {
+        sr = new SR(); sr.lang = 'en-GB'; sr.continuous = true; sr.interimResults = true;
+        sr.onresult = e => {
+          let txt = '';
+          for (let k = e.resultIndex; k < e.results.length; k++) txt += e.results[k][0].transcript + ' ';
+          heard = (heard + ' ' + txt).slice(-600);
+          const lv = $('.ss-live'); lv.hidden = false; lv.textContent = '🎙 ' + txt.trim();
+          catchIn(txt);
+        };
+        sr.onend = () => { if (live) { try { sr.start(); } catch {} } };
+        sr.start(); live = true; paintMode();
+      } catch { live = false; }
+    }
+    function stopListen() { live = false; try { sr && sr.stop(); } catch {} sr = null; const lv = $('.ss-live'); if (lv) lv.hidden = true; if (host.isConnected) paintMode(); }
     function paintUsed() {
       host.querySelectorAll('.ss-chip').forEach(b => b.classList.toggle('used', st.used.includes(b.dataset.ph)));
     }
@@ -182,6 +295,7 @@
         }
       }
       paintClock(st.speak);
+      if (SR && !live) { startListen(); host.__autoListen = true; }
       tick(st.speak, finish);
     }
     function finish() {
@@ -189,7 +303,12 @@
       phase = 'done'; left = 0;
       if (rec && rec.state !== 'inactive') { rec.stop(); }
       rec = null;
+      if (host.__autoListen) { host.__autoListen = false; stopListen(); }
       paintClock(st.speak);
+      if (st.mode === 'self' && lessonWords.length) {
+        const t = lessonWords.slice(0, 5), got = t.filter(x => st.used.includes(x)).length;
+        msg(got ? `Great! You used ${got} of ${t.length} target words.` : `None of the ${t.length} target words yet - try again and weave them in.`);
+      }
     }
     function showClip() {
       if (!clip || !clip.size) return;
@@ -230,9 +349,19 @@
       const chip = e.target.closest('.ss-chip');
       if (chip) {
         const ph = chip.dataset.ph;
-        st.used = st.used.includes(ph) ? st.used.filter(x => x !== ph) : st.used.concat(ph);
-        paintUsed(); save(); return;
+        if (!st.used.includes(ph)) { credit(ph); return; }
+        st.used = st.used.filter(x => x !== ph);
+        Object.keys(st.score).forEach(k => { st.score[k] = st.score[k].filter(x => x !== ph); });
+        paintUsed(); paintMode(); save(); return;
       }
+      const md0 = e.target.closest('[data-ssmode]');
+      if (md0) { st.mode = md0.dataset.ssmode; save(); paintMode(); return; }
+      const fl = e.target.closest('[data-full]');
+      if (fl) { st.full = fl.dataset.full === '1'; st.i = 0; buildPrompts(); save(); paintPrompt(); return; }
+      const jp = e.target.closest('[data-jump]');
+      if (jp) { go(Number(jp.dataset.jump) - st.i); return; }
+      const who = e.target.closest('[data-who]');
+      if (who) { st.who = Number(who.dataset.who); save(); paintMode(); return; }
       const nav = e.target.closest('[data-go]');
       if (nav) { go(Number(nav.dataset.go)); return; }
       if (e.target.closest('.ss-recs')) { o.onRecordings && o.onRecordings(); return; }
@@ -245,6 +374,9 @@
       else if (a === 'again') { phase = 'ready'; left = st.prep || st.speak; clip = null; $('.ss-play').innerHTML = ''; paintClock(left); }
       else if (a === 'next') go(1);
       else if (a === 'hand') handIn(act);
+      else if (a === 'listen') { live ? stopListen() : startListen(); }
+      else if (a === 'chal') { st.chal = st.chal || {}; const cur = st.chal[st.i]; let n; do { n = Math.floor(Math.random() * CHALLENGES.length); } while (n === cur && CHALLENGES.length > 1); st.chal[st.i] = n; save(); paintPrompt(); }
+      else if (a === 'addpl') { const n = prompt('Name of the student or team:'); if (n && n.trim()) { st.players = st.players.concat(n.trim().slice(0, 24)); save(); paintMode(); } }
     });
     $('.ss-prep').value = String(st.prep);
     $('.ss-speak').value = String(st.speak);
@@ -257,7 +389,7 @@
 
     left = st.prep || st.speak;
     paintPrompt(); paintUsed(); paintClock(left);
-    return { destroy() { clearInterval(timer); if (rec && rec.state !== 'inactive') rec.stop(); stream && stream.getTracks().forEach(t => t.stop()); } };
+    return { destroy() { clearInterval(timer); stopListen(); if (rec && rec.state !== 'inactive') rec.stop(); stream && stream.getTracks().forEach(t => t.stop()); } };
   }
 
   /* Teacher: every recording of this card, playable. Audio needs the auth

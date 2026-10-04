@@ -4469,6 +4469,7 @@ function _wpRender(el, card, focus) {
     window.__ssActive = window.TeachEdSpeakingStudio.mount(box, {
       ...args, outs: step.out.outs || [], phrases: _wpDedupPhrases((window.TeachedFlow ? window.TeachedFlow.phrases(card.id) : []).concat(_wpPhrases(p), ((_vaultCtx() || {}).words || []).map(w => ({ phrase: w.phrase, note: `Saved while reading${w.note ? ' - ' + w.note : ''}` })))).slice(0, 48), state: _wpState(card, i),
       authed: !!(currentBoardId && authToken) && !review && !card.__preview,
+      preview: !!card.__preview, topic: String(card.data.title || '').replace(/^[^:]*:\s*/, ''),
       save: stState => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, stState); },
       onRecordings: () => window.TeachEdSpeakingStudio.showRecordings(args),
     });
@@ -16354,7 +16355,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1064';
+const TEACHEDOS_ASSET_VERSION = '1065';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
