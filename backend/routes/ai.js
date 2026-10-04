@@ -2242,7 +2242,7 @@ router.post('/pick-vocab', requireAuth, requireTeacher, lessonBoardLimiter, asyn
     if (text.trim().length < 40) return res.status(400).json({ error: 'text required' });
     if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
     await reserveAiQuota(req.user, { mode: 'pick-vocab', source: text.slice(0, 200) });
-    const prompt = `You are an ESL teacher. From the transcript below pick ${count} words or phrases worth teaching to ${level} learners: useful, a little above their level, not proper names, not basic words. Prefer phrasal verbs, collocations and fixed phrases with their preposition (e.g. "take advantage of", "susceptible to"). Copy each item from the text, in its dictionary form (base form of verbs, "to" not needed). Return ONLY JSON: {"items":["...","..."]}
+    const prompt = `You are an ESL teacher. From the transcript below pick ${count} words or phrases worth teaching to ${level} learners: useful, a little above their level, not proper names, not basic words. Prefer idioms, phrasal verbs, strong collocations and words with their preposition (e.g. "take advantage of", "be susceptible to", "a mastermind", "overwhelmed"). Every item must be something a ${level} student probably does NOT know yet. Never pick grammar frames or basic phrases ("be able to", "be alone", "a lot of"), never loose word strings that are not a real lexical unit ("behavior like this", "attention around it"), never proper names. Copy each item from the text in its dictionary form (base form of verbs, no "to"). Return ONLY JSON: {"items":["...","..."]}
 
 Transcript:
 ${text}`;
