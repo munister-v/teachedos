@@ -7621,8 +7621,7 @@ body:not(#_) .text-format-toolbar select.text-format-select:hover{background-col
 
 /* Emoji sticker: no plate under it. figma-theme's glass rule
    (body.fx:not(#_) :is(.board-card…)) out-ranked the plain .card-sticker one. */
-body.fx:not(#_) .board-card.card-sticker,
-body:not(#_) .board-card.card-sticker{
+html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
   background:transparent!important;border-color:transparent!important;
   box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
 }
