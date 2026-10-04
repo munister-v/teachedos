@@ -79,7 +79,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .ww-over-row button{padding:8px 18px;border:0;border-radius:8px;background:#fff;color:var(--ink);font-weight:800;font-size:16px}
 .ww-over-row button.primary{background:var(--lime)}
 
-.ww-menu{position:absolute;left:12px;bottom:56px;z-index:70;display:flex;flex-direction:column;min-width:170px;padding:6px;border:2px solid var(--ink);border-radius:10px;background:#fff;box-shadow:0 8px 20px rgba(36,40,44,.2)}
+.ww-menu{position:absolute;left:12px;bottom:56px;z-index:70;display:flex;flex-direction:column;min-width:170px;padding:6px;border:1px solid rgba(36,40,44,.16);border-radius:10px;background:#fff;box-shadow:0 8px 20px rgba(36,40,44,.2)}
 .ww-menu[hidden]{display:none}
 .ww-menu button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:6px;font-weight:700;font-size:15px}
 .ww-menu button:hover{background:var(--paper)}
@@ -92,7 +92,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .ww-answers li b{min-width:34%;font-weight:800}
 .ww-answers li.bad b{color:var(--bad)}
 .ww-answers li.ok b{color:var(--ok)}
-.ww-answers .close{position:sticky;top:0;float:right;border:2px solid var(--ink);border-radius:8px;background:#fff;padding:4px 12px;font-weight:800}
+.ww-answers .close{position:sticky;top:0;float:right;border:1px solid rgba(36,40,44,.16);border-radius:8px;background:#fff;padding:4px 12px;font-weight:800}
 
 
 /* Перетаскивание: выбранная тапом плитка и цель под пальцем. */
@@ -102,7 +102,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .ww-slot.is-filled{border-style:solid;border-color:transparent;background:transparent}
 
 /* Кнопка «послушать слово» (запись Cambridge). */
-.ww-say{width:30px;height:30px;flex:0 0 auto;border:2px solid var(--ink);border-radius:8px;background:#fff;font-size:14px;line-height:1;padding:0;cursor:pointer}
+.ww-say{width:30px;height:30px;flex:0 0 auto;border:1px solid rgba(36,40,44,.16);border-radius:8px;background:#fff;font-size:14px;line-height:1;padding:0;cursor:pointer}
 .ww-say:active{transform:translateY(1px)}
 
 

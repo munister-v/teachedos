@@ -17,7 +17,7 @@ h1{font-size:1.6rem;font-weight:800;margin-bottom:4px;text-align:center}
 /* Колода - стопка рубашкой вверх; сданная карта лежит поверх неё лицом. */
 .deck{position:absolute;inset:0;border-radius:18px;background:var(--lime);box-shadow:0 6px 0 rgba(36,40,44,.18);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;cursor:pointer;border:2px solid var(--lime)}
 .deck.empty{background:var(--paper);border-style:dashed;box-shadow:none;cursor:default;color:var(--olive)}
-.card{position:absolute;inset:0;border-radius:18px;background:#fff;border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:22px;display:flex;flex-direction:column;gap:10px;animation:deal .28s ease}
+.card{position:absolute;inset:0;border-radius:18px;background:#fff;border:1px solid rgba(36,40,44,.16);box-shadow:0 10px 28px rgba(36,40,44,.14);padding:22px;display:flex;flex-direction:column;gap:10px;animation:deal .28s ease}
 .card[hidden]{display:none}
 @keyframes deal{from{transform:translateY(-14px) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
 .card .word{font-size:2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
@@ -31,7 +31,7 @@ button.primary{background:var(--ink);color:var(--lime)}
 button:disabled{opacity:.35;cursor:default}
 @media (max-width:600px){button{min-height:44px}.card .word{font-size:1.6rem}}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1057">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1058">
 </head>
 <body>
 <a class="back" href="index.html">← Games</a>
@@ -109,7 +109,7 @@ window.addEventListener('message',e=>{
 try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 reshuffle();
 </script>
-<script src="../scripts/game-handoff.js?v=1057"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=1057"></script>
+<script src="../scripts/game-handoff.js?v=1058"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=1058"></script>
 </body>
 </html>
