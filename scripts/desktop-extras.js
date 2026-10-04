@@ -638,6 +638,25 @@ function renderSchedPreview(all) {
     </div>
     <div class="sp-count"><b>${weekly.length}</b> ${weekly.length === 1 ? 'class' : 'classes'} this week</div>
     <div class="sp-list">${pills || '<div class="sp-empty">No classes this week yet. Open the schedule to add one.</div>'}</div>`;
+  renderWeekChart(weekly, today);
+}
+/* Маленький график недели: столбик на день, высота - число уроков. */
+function renderWeekChart(weekly, today) {
+  const box = document.getElementById('wk-bars');
+  if (!box) return;
+  const per = SP_DAYS.map((_, i) => weekly.filter(s => s.day === i).length);
+  const max = Math.max(1, ...per);
+  box.innerHTML = per.map((n, i) => `<div class="wk-col${i === today ? ' is-today' : ''}" title="${SP_DAYS[i]}: ${n} ${n === 1 ? 'class' : 'classes'}">
+    <i style="height:${n ? Math.max(10, Math.round(n / max * 100)) : 4}%"></i><span>${SP_DAYS[i][0]}</span></div>`).join('');
+  const t = document.querySelector('#wg-week .wk-total');
+  if (t) t.textContent = weekly.length;
+  const w = document.getElementById('wg-week');
+  if (w && !w.dataset.wired) {
+    w.dataset.wired = '1';
+    const open = () => { if (typeof dockApp === 'function') dockApp('schedule'); };
+    w.addEventListener('click', e => { if (!e.target.closest('.widget-close')) open(); });
+    w.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  }
 }
 async function loadSchedPreview() {
   const box = document.getElementById('fx-ghost-panel');

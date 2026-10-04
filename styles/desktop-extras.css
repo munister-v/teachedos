@@ -519,3 +519,22 @@ body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse.is-clear { backgro
   body.fx.os-desktop:not(#_) #fx-ghost-panel { display:block !important; }
   body.fx.os-desktop:not(#_) #fx-ghost-panel .sp-list { display:none; }
 }
+
+/* ── Неделя столбиками (#wg-week) - на месте убранного виджета досок ── */
+body.fx.os-desktop:not(#_) #wg-week {
+  top:73px; right:20px; width:174px !important; height:156px !important; min-height:0 !important;
+  padding:14px !important; box-sizing:border-box; display:flex; flex-direction:column; cursor:pointer;
+  background:#24282C !important; border:1px solid #24282C !important; border-radius:20px !important;
+  box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important; backdrop-filter:none !important; color:#CACCC6;
+}
+#wg-week { display:none; }
+body.fx.os-desktop #wg-week { display:flex; }
+#wg-week .wk-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
+#wg-week .wk-label{font:600 10px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#CACCC6;}
+#wg-week .wk-total{font-size:30px;font-weight:600;letter-spacing:-.04em;color:#CDF649;line-height:1;}
+#wg-week .wk-bars{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;align-items:end;margin-top:8px;min-height:0;}
+#wg-week .wk-col{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;}
+#wg-week .wk-col i{display:block;width:100%;max-width:14px;border-radius:5px;background:rgba(202,204,198,.35);}
+#wg-week .wk-col.is-today i{background:#CDF649;}
+#wg-week .wk-col span{font:600 9.5px var(--mono,monospace);color:#8E918A;}
+#wg-week .wk-col.is-today span{color:#CDF649;}
