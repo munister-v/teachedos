@@ -512,3 +512,10 @@ body:hover #wg-reset { opacity:.9; }
 /* "All clear" is good news: the Student pulse card turns lime instead of the
    alert pink it uses when there are items to act on. */
 body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse.is-clear { background:#EEF9C9 !important; }
+
+/* Неделя расписания пропадала на экранах ниже 760px (ноутбук): теперь она
+   есть всегда, а на невысоком экране без списка занятий (2026-10-04). */
+@media (max-width:1280px), (max-height:760px) {
+  body.fx.os-desktop:not(#_) #fx-ghost-panel { display:block !important; }
+  body.fx.os-desktop:not(#_) #fx-ghost-panel .sp-list { display:none; }
+}

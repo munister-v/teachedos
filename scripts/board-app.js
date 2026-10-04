@@ -16442,7 +16442,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1070';
+const TEACHEDOS_ASSET_VERSION = '1071';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -27094,6 +27094,8 @@ document.addEventListener('paste', e => {
   }
   // 2. Plain-text URL pointing at an image (or a data:image URL)
   const txt = cd.getData?.('text/plain') || '';
+  // 1b. Ссылка на YouTube / Vimeo - сразу видео-карточка (кнопки Video в меню больше нет).
+  if (_addVideoFromLink(txt, pendingImagePos ? resolveBoardPlacement(pendingImagePos) : null)) { e.preventDefault(); pendingImagePos = null; return; }
   if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(txt) ||
       /^data:image\//i.test(txt)) {
     e.preventDefault();
@@ -27147,10 +27149,31 @@ document.addEventListener('paste', e => {
   });
 });
 
+function _addVideoFromLink(text, pos) {
+  const url = String(text || '').trim();
+  if (!/^https?:\/\/\S+$/.test(url)) return false;
+  const embedUrl = parseVideoEmbed(url);
+  if (!embedUrl) return false;
+  const p = pos || resolveBoardPlacement(null);
+  const title = /youtu/.test(url) ? 'YouTube Video' : /vimeo/.test(url) ? 'Vimeo Video' : 'Video';
+  addCard('video', p.x, p.y, { title, url, embedUrl }, 320, 220);
+  toast && toast('🎬 Video added');
+  return true;
+}
+// Ссылку на видео можно и перетащить на доску (из адресной строки или вкладки).
+document.addEventListener('dragover', e => {
+  if (boardWrap && boardWrap.contains(e.target) && Array.from(e.dataTransfer?.types || []).includes('text/uri-list')) e.preventDefault();
+});
+document.addEventListener('drop', e => {
+  if (!boardWrap || !boardWrap.contains(e.target) || e.dataTransfer?.files?.length) return;
+  const link = (e.dataTransfer?.getData('text/uri-list') || e.dataTransfer?.getData('text/plain') || '').split('\n')[0];
+  if (_addVideoFromLink(link, screenToBoard(e.clientX, e.clientY))) e.preventDefault();
+});
+
 function parseVideoEmbed(url) {
   if (!url) return null;
   // YouTube
-  let m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
+  let m = url.match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/(?:embed|shorts|live)\/)([A-Za-z0-9_-]{11})/);
   if (m) return `https://www.youtube-nocookie.com/embed/${m[1]}?rel=0&modestbranding=1`;
   // Vimeo
   m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);

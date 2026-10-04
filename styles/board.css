@@ -7631,3 +7631,4 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
   font:700 11.5px var(--font,system-ui,sans-serif);letter-spacing:.04em;padding:6px 10px;border-radius:9px;cursor:pointer;}
 #sticker-panel .sp-gif:hover{background:#CDF649;border-color:#CDF649;}
 .mt-more-item[hidden]{display:none!important;}
+.mtm-sep[hidden]{display:none!important;}

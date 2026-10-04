@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1070"></script>
+<script src="scripts/phone-gate.js?v=1071"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=1070">
+<link rel="manifest" href="manifest.json?v=1071">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -17,13 +17,13 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>TeachEd · Board</title>
-<link rel="stylesheet" href="styles/board.css?v=1070">
-<link rel="stylesheet" href="styles/auth.css?v=1070">
-<link rel="stylesheet" href="styles/mobile.css?v=1070">
-<link rel="stylesheet" href="styles/harmony.css?v=1070">
-<link rel="stylesheet" href="styles/unify.css?v=1070">
-<link rel="stylesheet" href="styles/tool-builder-refined.css?v=1070">
-<link rel="stylesheet" href="styles/cover-fonts.css?v=1070">
+<link rel="stylesheet" href="styles/board.css?v=1071">
+<link rel="stylesheet" href="styles/auth.css?v=1071">
+<link rel="stylesheet" href="styles/mobile.css?v=1071">
+<link rel="stylesheet" href="styles/harmony.css?v=1071">
+<link rel="stylesheet" href="styles/unify.css?v=1071">
+<link rel="stylesheet" href="styles/tool-builder-refined.css?v=1071">
+<link rel="stylesheet" href="styles/cover-fonts.css?v=1071">
 <style id="board-classroom-polish">
 /* Classroom canvas: visually connects the board with the generated lesson sheets. */
 #toolbar{
@@ -275,18 +275,18 @@
 }
 #board .card-frame .frame-add-activity:hover{background:var(--board-calm-ink-hover)!important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1070">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1070">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1071">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1071">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1070">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1070">
-<link rel="stylesheet" href="styles/controls.css?v=1070">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1071">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1071">
+<link rel="stylesheet" href="styles/controls.css?v=1071">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=1070">
+<link rel="stylesheet" href="styles/figma-concept.css?v=1071">
 <!-- Слой телефона: контракт возможностей доски, см. scripts/board-mobile.js -->
-<link rel="stylesheet" href="styles/board-mobile.css?v=1070">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1070">
-<link rel="stylesheet" href="styles/board-harmony.css?v=1070">
+<link rel="stylesheet" href="styles/board-mobile.css?v=1071">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1071">
+<link rel="stylesheet" href="styles/board-harmony.css?v=1071">
 </head>
 <body class="board-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -757,7 +757,7 @@
        разворачивается в одиннадцать активностей сразу. Место ему рядом с
        играми и инструментами, то есть здесь: это третья точка входа в
        материал урока, а не ещё один инструмент в списке. -->
-  <button class="mt-btn" id="mt-workout" aria-label="Vocabulary Workout" data-tip="Vocabulary Workout" onclick="openTeacherToolBuilder('vocab-workout')">
+  <button class="mt-btn" id="mt-workout" aria-label="Vocabulary Workout" data-tip="Vocabulary Workout" onclick="openTeacherToolBuilder('vocab-workout')" style="display:none;">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l1.7 5.1L19 10.3l-5.3 1.7L12 17.5 10.3 12 5 10.3l5.3-1.7z"/><path d="M18.5 16l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z"/></svg>
   </button>
   <div class="mt-sep"></div>
@@ -778,23 +778,33 @@
 
 <!-- More tools popover - anchored to the + button -->
 <div id="mt-more-pop" role="menu" aria-hidden="true">
-  <button class="mt-more-item" onclick="_mtMoreDo('mindmap')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-shape"/></svg></span><span class="mtm-lbl">Mind map</span><span class="mtm-kbd">M</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('table')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-grid"/></svg></span><span class="mtm-lbl">Table</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('image')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-frame"/></svg></span><span class="mtm-lbl">Image</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('mindmap')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-shape"/></svg></span><span class="mtm-lbl">Mind map</span><span class="mtm-kbd">M</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('table')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-grid"/></svg></span><span class="mtm-lbl">Table</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('image')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-frame"/></svg></span><span class="mtm-lbl">Image</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('gif')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-courses"/></svg></span><span class="mtm-lbl">GIF</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('video')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-homework"/></svg></span><span class="mtm-lbl">Video</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('video')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-homework"/></svg></span><span class="mtm-lbl">Video</span></button>
   <button class="mt-more-item" onclick="_mtMoreDo('voting')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-progress"/></svg></span><span class="mtm-lbl">Voting</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('games')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-sticker"/></svg></span><span class="mtm-lbl">Games</span></button>
-  <div class="mtm-sep"></div>
-  <button class="mt-more-item" onclick="_mtMoreDo('lesson-flow')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-progress"/></svg></span><span class="mtm-lbl">Lesson flow</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('lesson-collector')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-text"/></svg></span><span class="mtm-lbl">Lesson Collector</span></button>
-  <button class="mt-more-item" onclick="_mtMoreDo('practice-all')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-text"/></svg></span><span class="mtm-lbl">Practice all vocab</span></button>
-  <div class="mtm-sep"></div>
-  <button class="mt-more-item" onclick="_mtMoreDo('clear-strokes')"><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-trash"/></svg></span><span class="mtm-lbl">Clear drawing</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('games')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-sticker"/></svg></span><span class="mtm-lbl">Games</span></button>
+  <div class="mtm-sep" hidden></div>
+  <button class="mt-more-item" onclick="_mtMoreDo('lesson-flow')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-progress"/></svg></span><span class="mtm-lbl">Lesson flow</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('lesson-collector')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-text"/></svg></span><span class="mtm-lbl">Lesson Collector</span></button>
+  <button class="mt-more-item" onclick="_mtMoreDo('practice-all')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-text"/></svg></span><span class="mtm-lbl">Practice all vocab</span></button>
+  <div class="mtm-sep" hidden></div>
+  <button class="mt-more-item" onclick="_mtMoreDo('clear-strokes')" hidden><span class="mtm-ic"><svg aria-hidden="true"><use href="#bi-trash"/></svg></span><span class="mtm-lbl">Clear drawing</span></button>
 </div>
 
 <!-- SHAPE PANEL - Miro-style: list of connectors + shapes with labels + shortcuts -->
 <div id="shape-panel">
+  <!-- Mind map и Table переехали сюда из «+» (2026-10-04) -->
+  <button class="sp-row" onclick="closeShapePanel?.();toolbarQuickAdd('mindmap')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="3.2"/><circle cx="4" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="4" cy="17" r="2"/><circle cx="18" cy="17" r="2"/><path d="M8.4 9.2 5.6 6.4M13.6 9.2l2.8-2.8M8.4 12.8l-2.8 2.8M13.6 12.8l2.8 2.8"/></svg>
+    <span class="sp-row-lbl">Mind map</span><span class="sp-row-kbd">M</span>
+  </button>
+  <button class="sp-row" onclick="closeShapePanel?.();toolbarQuickAdd('table')">
+    <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="16" height="14" rx="2"/><path d="M3 9h16M3 13.5h16M9 4v14M14 4v14"/></svg>
+    <span class="sp-row-lbl">Table</span>
+  </button>
+  <div class="sp-sep" style="height:1px;background:rgba(36,40,44,.1);margin:4px 6px;"></div>
   <!-- Connectors first (Line / Arrow / Elbow / Block Arrow) -->
   <button class="sp-row" onclick="_startConnectorFromPanel('straight')">
     <svg class="sp-row-ic" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 19L19 3"/></svg>
@@ -2202,30 +2212,30 @@ window.TEACHED_AUTH_CONFIG = {
   focusTrap: true,
 };
 </script>
-<script src="scripts/auth-modal.js?v=1070"></script>
-<script src="js/teacher-tools-data.js?v=1070"></script>
-<script src="scripts/tt-text-core.js?v=1070"></script>
+<script src="scripts/auth-modal.js?v=1071"></script>
+<script src="js/teacher-tools-data.js?v=1071"></script>
+<script src="scripts/tt-text-core.js?v=1071"></script>
 <!-- Перед board-app.js: доска зовёт эти имена как свои (общий файл с домашкой). -->
-<script src="js/writing-genres.js?v=1070"></script>
-<script src="scripts/writing-flow.js?v=1070"></script>
-<script src="scripts/accent.js?v=1070"></script>
-<script src="scripts/hear-in-context.js?v=1070"></script>
-<script src="scripts/magazine-studio.js?v=1070"></script>
-<script src="scripts/scene-studio.js?v=1070"></script>
-<script src="scripts/vault-review.js?v=1070"></script>
-<script src="scripts/speaking-studio.js?v=1070"></script>
-<script src="scripts/worksheet-play.js?v=1070"></script>
-<script src="scripts/lesson-sounds.js?v=1070"></script>
-<script src="scripts/lesson-themes.js?v=1070"></script>
-<script src="scripts/board-app.js?v=1070"></script>
-<script src="scripts/lesson-flow.js?v=1070"></script>
-<script src="scripts/lesson-pad.js?v=1070"></script>
-<script src="scripts/board-laser.js?v=1070"></script>
-<script src="scripts/assign-game.js?v=1070"></script>
-<script src="js/board-vocab.js?v=1070"></script>
-<script src="js/board-reveal.js?v=1070"></script>
-<script src="js/teacher-tool-board-composer.js?v=1070"></script>
-<script src="scripts/board-mobile.js?v=1070"></script>
+<script src="js/writing-genres.js?v=1071"></script>
+<script src="scripts/writing-flow.js?v=1071"></script>
+<script src="scripts/accent.js?v=1071"></script>
+<script src="scripts/hear-in-context.js?v=1071"></script>
+<script src="scripts/magazine-studio.js?v=1071"></script>
+<script src="scripts/scene-studio.js?v=1071"></script>
+<script src="scripts/vault-review.js?v=1071"></script>
+<script src="scripts/speaking-studio.js?v=1071"></script>
+<script src="scripts/worksheet-play.js?v=1071"></script>
+<script src="scripts/lesson-sounds.js?v=1071"></script>
+<script src="scripts/lesson-themes.js?v=1071"></script>
+<script src="scripts/board-app.js?v=1071"></script>
+<script src="scripts/lesson-flow.js?v=1071"></script>
+<script src="scripts/lesson-pad.js?v=1071"></script>
+<script src="scripts/board-laser.js?v=1071"></script>
+<script src="scripts/assign-game.js?v=1071"></script>
+<script src="js/board-vocab.js?v=1071"></script>
+<script src="js/board-reveal.js?v=1071"></script>
+<script src="js/teacher-tool-board-composer.js?v=1071"></script>
+<script src="scripts/board-mobile.js?v=1071"></script>
 
 <!-- Student Quiz Overlay -->
 <div id="student-quiz-overlay" onclick="if(event.target===this)closeStudentQuiz()" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.55);z-index:9999;align-items:center;justify-content:center;">
@@ -2233,8 +2243,8 @@ window.TEACHED_AUTH_CONFIG = {
   </div>
 </div>
 
-<script src="scripts/autogrow.js?v=1070" defer></script>
-<script src="pwa-boot.js?v=1070" defer></script>
+<script src="scripts/autogrow.js?v=1071" defer></script>
+<script src="pwa-boot.js?v=1071" defer></script>
 
 <!-- Reconnecting banner -->
 <div id="reconnect-banner">
@@ -2335,11 +2345,11 @@ window.TEACHED_AUTH_CONFIG = {
     </section>
   </div>
 </div>
-<script src="pwa.js?v=1070"></script>
-<script src="scripts/nav-boost.js?v=1070" defer></script>
-<script src="scripts/mobile-perf.js?v=1070" defer></script>
-<script src="scripts/mobile-nav.js?v=1070"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1070" defer></script>
+<script src="pwa.js?v=1071"></script>
+<script src="scripts/nav-boost.js?v=1071" defer></script>
+<script src="scripts/mobile-perf.js?v=1071" defer></script>
+<script src="scripts/mobile-nav.js?v=1071"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1071" defer></script>
 <!-- whatsapp-feedback intentionally removed from board page -->
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
@@ -2376,6 +2386,6 @@ window.TEACHED_AUTH_CONFIG = {
   <button type="button" class="laser-dot" data-laser-color="red" aria-label="Pink laser (1)" style="--c:#FF2E9A"></button>
   <button type="button" class="laser-dot" data-laser-color="green" aria-label="Lime laser (2)" style="--c:#CDF649"></button>
 </div>
-<script src="scripts/verify-banner.js?v=1070" defer></script>
+<script src="scripts/verify-banner.js?v=1071" defer></script>
 </body>
 </html>
