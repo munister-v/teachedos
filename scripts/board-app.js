@@ -16442,7 +16442,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1067';
+const TEACHEDOS_ASSET_VERSION = '1068';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17651,7 +17651,8 @@ async function _wordTemplateContent(t, ctx) {
       return need(2, '') || { content: { words: kept.map(e => e.word), pairs: kept.map(e => ({ a: e.word, b: e.gloss, audio: e.audio || null })) } };
     case 'unjumble': {
       // Заготовка «The word X means Y» - не предложение в контексте: её не собирают.
-      const sentences = kept.filter(e => !e.exampleAuto).map(e => ({ s: e.example, t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
+      // Без строки «слово - значение» над плитками: ученик собирает само предложение в контексте.
+      const sentences = kept.filter(e => !e.exampleAuto).map(e => ({ s: e.example, t: '' }));
       return sentences.length ? { content: { sentences }, note } : { why: 'no example sentences for these words - add one in the list' };
     }
     case 'complete': {
