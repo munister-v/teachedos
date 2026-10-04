@@ -2232,6 +2232,30 @@ Rules: 5 stages that sum to ${duration}. All activities must be practical and re
   }
 });
 
+/* POST /api/ai/pick-vocab - учитель вставил скрипт: ИИ выбирает из него
+   слова и фразы под уровень класса, ровно как они стоят в тексте. */
+router.post('/pick-vocab', requireAuth, requireTeacher, lessonBoardLimiter, async (req, res) => {
+  try {
+    const level = String(req.body?.level || 'B1').slice(0, 4);
+    const text = String(req.body?.text || '').slice(0, 12000);
+    const count = Math.max(4, Math.min(20, Number(req.body?.count) || 10));
+    if (text.trim().length < 40) return res.status(400).json({ error: 'text required' });
+    if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
+    await reserveAiQuota(req.user, { mode: 'pick-vocab', source: text.slice(0, 200) });
+    const prompt = `You are an ESL teacher. From the transcript below pick ${count} words or phrases worth teaching to ${level} learners: useful, a little above their level, not proper names, not basic words. Prefer phrasal verbs, collocations and fixed phrases with their preposition (e.g. "take advantage of", "susceptible to"). Copy each item from the text, in its dictionary form (base form of verbs, "to" not needed). Return ONLY JSON: {"items":["...","..."]}
+
+Transcript:
+${text}`;
+    const result = await aiEngine.rawGenerate(prompt);
+    recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
+    const items = (Array.isArray(result?.items) ? result.items : []).map(x => String(x || '').trim().slice(0, 60)).filter(Boolean).slice(0, count);
+    res.json({ items, quota: await readAiQuota(req.user) });
+  } catch (err) {
+    console.error('[ai/pick-vocab]', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+  }
+});
+
 /* POST /api/ai/vocab-enrich - карточки Vocabulary Studio одним запросом:
    общая тема набора, значение В КОНТЕКСТЕ (для фраз и метафор - переносное,
    а не статья первого слова), коллокации и предложение с пропуском.

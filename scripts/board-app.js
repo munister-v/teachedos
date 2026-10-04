@@ -14054,6 +14054,7 @@ function _ttAdaptFields(tool) {
     vocWrap?.classList.toggle('tb-field-required', vocabRequired);
     if (vocLabel) vocLabel.textContent = vocabRequired ? 'Your Vocabulary' : 'Vocabulary (recommended)';
     if (vocTA) vocTA.placeholder = TT_VOCAB_PLACEHOLDERS[tool.id] || 'One word or phrase per line…';
+    if (typeof _srcPickRender === 'function') _srcPickRender();
   } else if (needsSource) {
     // source-primary: vocab optional
     vocWrap?.classList.remove('tb-field-hidden','tb-field-required');
@@ -16317,7 +16318,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1059';
+const TEACHEDOS_ASSET_VERSION = '1060';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18687,7 +18688,7 @@ function renderBoardLessonStagePreview(set) {
      же виджет, что будет на доске, шаги и студии живые. Разбор по частям с
      правкой - под «Teacher view». */
   if (WP_PATH_SKILLS.includes(set.skill)) {
-    body.innerHTML = _wpPreviewShellHtml(set) + `<details class="tb-wf-teacher"${_ttTeacherViewOpen ? ' open' : ''} ontoggle="_ttTeacherViewOpen=this.open"><summary>Teacher view - edit any part</summary><p class="tb-stage-meta tb-ed-hint">Click any text below to change it. The student preview above and the board get your version.</p>${html}</details>` + failHtml;
+    body.innerHTML = _wpPreviewShellHtml(set) + `<section class="tb-wf-teacher${_ttTeacherViewOpen ? ' open' : ''}"><button type="button" class="tb-wf-teacher-btn" onclick="_ttTeacherViewToggle(this)" aria-expanded="${_ttTeacherViewOpen}"><i>${_ttTeacherViewOpen ? '▾' : '▸'}</i> Teacher view - edit any part</button><div class="tb-wf-teacher-body"><p class="tb-stage-meta tb-ed-hint">Click any text below to change it. The student preview above and the board get your version.</p>${html}</div></section>` + failHtml;
     _wpPreviewMount(set);
     return;
   }
@@ -18856,6 +18857,16 @@ async function redoStageActivity(key) {
    Правка пишется прямо в результат задания (set.built[].out / textOut),
    из которого строятся и превью ученика, и то, что ляжет на доску. */
 let _ttTeacherViewOpen = false;
+/* Обычный блок вместо <details>: в прокручиваемой grid-колонке Chrome
+   показывал раскрытый <details> пустым. */
+function _ttTeacherViewToggle(btn) {
+  const sec = btn.closest('.tb-wf-teacher');
+  _ttTeacherViewOpen = !sec.classList.contains('open');
+  sec.classList.toggle('open', _ttTeacherViewOpen);
+  btn.setAttribute('aria-expanded', String(_ttTeacherViewOpen));
+  btn.querySelector('i').textContent = _ttTeacherViewOpen ? '▾' : '▸';
+  if (_ttTeacherViewOpen) setTimeout(() => btn.scrollIntoView({ block: 'start', behavior: 'smooth' }), 30);
+}
 function _ttStageEditableHtml(key, out) {
   if (!out) return '';
   const k = esc(key);
@@ -20297,6 +20308,8 @@ function _srcPickRender() {
     const has = !!document.getElementById('tbuilder-source')?.value.trim();
     const btn = document.getElementById('tbuilder-pick-source');
     if (btn) btn.hidden = !has;
+    const bar = document.getElementById('tb-src-vocab-bar');
+    if (bar) bar.hidden = !has || !!document.getElementById('tb-wrap-vocab')?.classList.contains('tb-field-hidden');
     const box = document.getElementById('tb-src-pick');
     if (!box) return;
     if (!has) { box.hidden = true; box.innerHTML = ''; return; }
@@ -20308,6 +20321,30 @@ function _srcPickToggle() {
   if (!box) return;
   if (box.hidden) _pickRenderBox('tbuilder-source', 'tb-src-pick');
   else { box.hidden = true; box.innerHTML = ''; }
+  const b = document.getElementById('tb-src-pickme');
+  if (b) { b.classList.toggle('on', !box.hidden); b.textContent = box.hidden ? '🖱 Pick words myself' : '✓ Done picking'; }
+  if (!box.hidden) box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+/* Подбор лексики по уровню из скрипта: ИИ берёт слова и фразы ИЗ ТЕКСТА
+   (в том виде, как они там стоят) и добавляет их в список ниже. */
+async function _srcSuggestVocab(btn) {
+  const text = document.getElementById('tbuilder-source')?.value.trim();
+  const note = document.getElementById('tb-src-vocab-note');
+  if (!text || !authToken) { if (note) note.textContent = authToken ? 'Paste a text first.' : 'Sign in to get suggestions.'; return; }
+  const level = document.getElementById('tbuilder-level')?.value || 'B1';
+  btn.disabled = true; const was = btn.textContent; btn.textContent = 'Picking words…';
+  try {
+    const r = await apiFetch('/api/ai/pick-vocab', { method: 'POST', body: { text: text.slice(0, 12000), level, count: 10 } });
+    const d = r.ok ? await r.json() : null;
+    const list = (d && d.items) || [];
+    const ta = document.getElementById('tbuilder-vocab');
+    const have = new Set(String(ta.value).split('\n').map(x => x.trim().toLowerCase()).filter(Boolean));
+    const add = list.filter(x => !have.has(x.toLowerCase()));
+    ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + add.join('\n');
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    if (note) note.textContent = add.length ? `Added ${add.length} for ${level}. Remove any you don't need.` : 'No new words found.';
+  } catch { if (note) note.textContent = 'Could not pick words - try again.'; }
+  btn.disabled = false; btn.textContent = was;
 }
 function _wizExtractReady() {
   const src = typeof boardWizardSource === 'function' ? boardWizardSource() : null;

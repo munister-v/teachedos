@@ -685,7 +685,11 @@
 .tb-wf-nav button:hover{border-color:rgba(36,40,44,.32)}
 .tb-wf-nav span{font-size:12px;color:#5D614B}
 .tb-wf-teacher{margin-top:14px;border-top:1px solid rgba(36,40,44,.1);padding-top:10px}
-.tb-wf-teacher > summary{cursor:pointer;font:700 13px var(--font-ui,system-ui,sans-serif);color:#24282C;padding:4px 0 8px}
+.tb-wf-teacher-btn{display:flex;align-items:center;gap:6px;width:100%;border:0;background:transparent;cursor:pointer;font:700 13px var(--font-ui,system-ui,sans-serif);color:#24282C;padding:4px 0 8px;text-align:left}
+.tb-wf-teacher-btn i{font-style:normal;width:12px}
+.tb-wf-teacher-body{display:none}
+.tb-wf-teacher.open .tb-wf-teacher-body{display:block}
+#tool-builder-panel .tbuilder-output:has(.tb-wf-teacher){display:block}
 /* Builder labels are mono caps by default; the switches are sentences. */
 #tb-wf-setup .tb-wf-tog{display:flex !important;align-items:center !important;gap:12px !important;margin:0 !important;padding:9px 2px !important;
   font:inherit !important;text-transform:none !important;letter-spacing:0 !important;color:#24282C !important}
@@ -705,3 +709,14 @@ body:not(#_):not(#__) #tb-wf-reg{height:34px !important;min-height:34px !importa
 @media (max-width:640px) {
   #tool-builder-panel .tbuilder-box .tb-wiz-grid { grid-template-columns:1fr; }
 }
+
+/* Слова для отработки прямо из скрипта */
+.tb-src-vocab-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.tb-src-vocab-bar>span{font:700 12px var(--font-ui,system-ui,sans-serif);color:#5D614B;margin-right:2px}
+.tb-svb-btn{border:1px solid rgba(36,40,44,.16);background:#fff;border-radius:999px;padding:6px 12px;font:700 12.5px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
+.tb-svb-btn:hover{border-color:rgba(36,40,44,.32)}
+.tb-svb-btn.ai{background:#CDF649;border-color:#CDF649}
+.tb-svb-btn.on{background:#24282C;color:#fff;border-color:#24282C}
+.tb-svb-btn:disabled{opacity:.6;cursor:wait}
+#tb-src-vocab-note{flex-basis:100%;font:500 11.5px var(--font-ui,system-ui,sans-serif);color:#5D614B}
+#tb-src-vocab-note:empty{display:none}
