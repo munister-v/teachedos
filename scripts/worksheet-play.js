@@ -726,6 +726,33 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
       </div>
     </div>`;
 
+  /* Обсуждение - карточки-слайды по одной (Focus Mode), крупно, с полезными
+     фразами для начала ответа и случайным выбором вопроса. Письменный ответ
+     не главное: «✓ We talked about it», заметки - по желанию. */
+  const IW_DISC_PHRASES = ['I reckon that…', 'It seems to me…', 'From my point of view…', 'I see your point, but…', 'What about you?'];
+  const discHtml = (pairs) => `<div class="iw-disc" data-at="0">
+      <div class="iw-disc-top"><span class="iw-disc-pos">1 / ${pairs.length}</span><button type="button" class="iw-disc-rand" onclick="iwDiscRand(this)">🎲 Surprise me</button></div>
+      ${pairs.map(({ q, qi }, i) => `<div class="iw-disc-card${i ? ' off' : ''}" data-qi="${qi}">
+        <span class="iw-disc-k">Let's talk</span>
+        <p class="iw-disc-q">${md(q.text || '')}</p>
+        <div class="iw-disc-ph">${IW_DISC_PHRASES.map(x => `<span>${esc(x)}</span>`).join('')}</div>
+        <div class="iw-disc-acts"><button type="button" class="iw-disc-done" onclick="iwDiscDone(this)">✓ We talked about it</button><button type="button" class="iw-disc-note" onclick="iwDiscNotes(this)">✎ Notes</button></div>
+        <textarea class="iw-open-input iw-disc-input" data-qi="${qi}" placeholder="Key words or notes (optional)…" rows="2" hidden></textarea>
+      </div>`).join('')}
+      <div class="iw-disc-nav"><button type="button" onclick="iwDiscGo(this,-1)">← Previous</button><button type="button" class="nx" onclick="iwDiscGo(this,1)">Next question →</button></div>
+    </div>
+    <script>
+    function iwDiscShow(root,i){ var c=[].slice.call(root.querySelectorAll('.iw-disc-card')); i=Math.max(0,Math.min(c.length-1,i)); root.dataset.at=i;
+      c.forEach(function(x,j){ x.classList.toggle('off',j!==i); }); root.querySelector('.iw-disc-pos').textContent=(i+1)+' / '+c.length;
+      if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60); }
+    function iwDiscGo(b,d){ var r=b.closest('.iw-disc'); iwDiscShow(r,+r.dataset.at+d); }
+    function iwDiscRand(b){ var r=b.closest('.iw-disc'), c=r.querySelectorAll('.iw-disc-card'), left=[]; [].forEach.call(c,function(x,j){ if(!x.dataset.done&&j!==+r.dataset.at) left.push(j); });
+      if(!left.length) for(var j=0;j<c.length;j++) if(j!==+r.dataset.at) left.push(j); if(left.length) iwDiscShow(r,left[Math.floor(Math.random()*left.length)]); }
+    function iwDiscDone(b){ var c=b.closest('.iw-disc-card'); c.dataset.done=c.dataset.done?'':'1'; c.classList.toggle('done',!!c.dataset.done); b.textContent=c.dataset.done?'✓ Discussed':'✓ We talked about it';
+      if(c.dataset.done){ var r=b.closest('.iw-disc'); var n=+r.dataset.at+1; if(n<r.querySelectorAll('.iw-disc-card').length) setTimeout(function(){ iwDiscShow(r,n); },450); } }
+    function iwDiscNotes(b){ var t=b.closest('.iw-disc-card').querySelector('.iw-disc-input'); t.hidden=!t.hidden; if(!t.hidden) t.focus(); if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60); }
+    <\/script>`;
+
   /* Пропуски - кирпичики в банке слов, которые перетаскивают ПРЯМО В
      предложение, а не отдельный список пронумерованных полей рядом с
      отдельным списком предложений: учителю и ученику раньше приходилось
@@ -763,7 +790,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
     /* Без чёрной плашки «Reveal All / Turn All Back» - см. dCardHtml и
        _iwDcardDoneScript: карточка сама отмечается точкой в углу, когда в
        ней есть ответ, и учителю незачем массово переворачивать колоду. */
-    contentHtml = `<div class="iw-deck">${qs.map((q, qi) => dCardHtml(q, qi)).join('')}</div>`;
+    contentHtml = discHtml(qs.map((q, qi) => ({ q, qi })));
   }
 
   // ─── MODE: Questions (quiz-based tools) ───
@@ -893,7 +920,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
         const allOpen = stationQs.length > 1 && stationQs.every(({ q }) => q.type === 'open');
         const allBlankGap = stationQs.length > 1
           && stationQs.every(({ q }) => q.type === 'gap-fill' && /_{3,}/.test(String(q.text||'')));
-        const inner = allOpen ? `<div class="iw-deck iw-deck-mini">${stationQs.map(({ q, qi }) => dCardHtml(q, qi)).join('')}</div>`
+        const inner = allOpen ? discHtml(stationQs)
           : allBlankGap ? gapFillDragHtml(stationQs)
           : stationQs.map(({ qi }) => qCards[qi]).join('');
         return `<section class="iw-mc-station" data-mi="${mi}">
@@ -1129,6 +1156,7 @@ function iwMcAnswered(q){
   /* Пропуск не завёрнут в .iw-q (это плитка внутри цельного банка слов,
      не отдельная карточка) - готовность читаем напрямую с _iwGradeTarget. */
   if(q.classList.contains('iw-blank')) return !!q.dataset.done;
+  if(q.classList.contains('iw-disc-card')) return !!q.dataset.done || !!(q.querySelector('.iw-open-input')||{}).value;
   var w=q.querySelector('.iw-opts,.iw-tf');
   if(w) return !!w.querySelector('.selected');
   var g=q.querySelector('.iw-gap-input'); if(g) return !!g.value.trim();
@@ -1144,7 +1172,7 @@ function iwMcSync(){
        тело секции, «Gap-Fill» - плитки-пропуски (.iw-blank) в свой банк:
        ни те, ни другие не обёрнуты в .iw-q, и старый запрос их не видел -
        такая станция никогда не отмечалась пройденной. */
-    var qs=[].slice.call(sec.querySelectorAll('.iw-q,.iw-dcard,.iw-blank'));
+    var qs=[].slice.call(sec.querySelectorAll('.iw-q,.iw-dcard,.iw-blank,.iw-disc-card'));
     var ok=qs.length>0 && qs.every(iwMcAnswered);
     sec.classList.toggle('is-done',ok);
     if(ok) done++;
@@ -1158,7 +1186,7 @@ function iwMcSync(){
 /* По одному вопросу на экране: станции листаются вопрос за вопросом,
    шапка станции видна над её вопросом. */
 var iwMcAt=0;
-function iwMcUnits(){ return [].slice.call(document.querySelectorAll('.iw-mc-body > *')); }
+function iwMcUnits(){ return [].slice.call(document.querySelectorAll('.iw-mc-body > *')).filter(function(x){ return x.tagName!=='SCRIPT'; }); }
 function iwMcShow(){
   var u=iwMcUnits(); if(!u.length) return;
   iwMcAt=Math.max(0,Math.min(u.length-1,iwMcAt));
@@ -2133,6 +2161,25 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
 .iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:44px;border-radius:999px;font-size:14.5px;font-weight:600;padding:7px 16px 7px 7px}
 .iw-opt-key{border-radius:50%!important;width:30px!important;height:30px!important;font-size:13px!important}
 .iw-mc-off{display:none!important}
+.iw-disc{display:flex;flex-direction:column;gap:12px}
+.iw-disc-top{display:flex;justify-content:space-between;align-items:center}
+.iw-disc-pos{font:800 12px system-ui;color:var(--olive);letter-spacing:.06em}
+.iw-disc-rand{border:0;border-radius:999px;background:var(--lime);padding:7px 14px;font:800 13px system-ui;color:#24282C;cursor:pointer}
+.iw-disc-card{padding:26px 26px 20px;border-radius:20px;background:linear-gradient(135deg,#fff 0%,#F4FCD9 100%);border:1px solid var(--line);animation:iwreveal .3s ease}
+.iw-disc-card.off{display:none}
+.iw-disc-card.done{background:linear-gradient(135deg,#fff 0%,#E0F7F5 100%)}
+.iw-disc-k{font:800 11px system-ui;letter-spacing:.12em;text-transform:uppercase;color:#C2185B}
+.iw-disc-q{font-size:21px;line-height:1.4;font-weight:700;margin:8px 0 16px;color:var(--ink)}
+.iw-disc-ph{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.iw-disc-ph span{font:600 12.5px system-ui;padding:5px 10px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--olive)}
+.iw-disc-acts{display:flex;gap:8px;flex-wrap:wrap}
+.iw-disc-done{border:0;border-radius:999px;background:#24282C;color:#fff;padding:9px 16px;font:800 13px system-ui;cursor:pointer}
+.iw-disc-card.done .iw-disc-done{background:#2f6b00}
+.iw-disc-note{border:1px solid var(--line-2);border-radius:999px;background:#fff;padding:9px 14px;font:700 13px system-ui;color:var(--olive);cursor:pointer}
+.iw-disc-input{margin-top:10px;width:100%;box-sizing:border-box}
+.iw-disc-nav{display:flex;justify-content:space-between}
+.iw-disc-nav button{border:1px solid var(--line-2);background:var(--panel);border-radius:999px;padding:8px 16px;font:700 13px system-ui;color:var(--ink);cursor:pointer}
+.iw-disc-nav .nx{background:var(--lime);border-color:var(--lime)}
 .iw-mc-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
 .iw-mc-nav span{font:700 12.5px system-ui;color:var(--olive)}
 .iw-mc-nav button{border:1px solid var(--line-2);background:var(--panel);border-radius:999px;padding:8px 16px;font:700 13px system-ui;color:var(--ink);cursor:pointer}

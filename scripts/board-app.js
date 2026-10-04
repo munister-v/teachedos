@@ -4402,7 +4402,7 @@ function _wpTaskStudio(stage, card, k, focus) {
     const sh = wrap.querySelector('.wts-show'); if (sh) sh.hidden = !hide;
     setTimeout(() => showTask(cur), 350);   // задание перестраивается под новую ширину колонки
   };
-  wrap.querySelector('.wts-hide')?.addEventListener('click', () => toggleMat(true));
+  wrap.querySelector('.wts-hide:not(.wts-addvid)')?.addEventListener('click', () => toggleMat(true));
   wrap.querySelector('.wts-show')?.addEventListener('click', () => toggleMat(false));
 }
 
@@ -16354,7 +16354,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1063';
+const TEACHEDOS_ASSET_VERSION = '1064';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

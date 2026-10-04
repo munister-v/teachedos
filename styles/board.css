@@ -6897,7 +6897,7 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 /* ═══ Студия с материалом: Reading / Listening / Grammar Studio ══════════ */
 .wts{position:absolute;inset:0;display:grid;grid-template-columns:minmax(280px,min(420px,42%)) 1fr;gap:12px;padding:12px;box-sizing:border-box;background:#F6F6EF}
 .wp.is-focus .wts{grid-template-columns:minmax(300px,min(520px,42%)) 1fr;padding:16px 20px;gap:16px}
-.wts.no-mat{grid-template-columns:1fr}
+.wts.no-mat,.wp.is-focus .wts.no-mat{grid-template-columns:1fr}
 .wts.no-mat .wts-mat{display:none}
 .wts-mat{display:flex;flex-direction:column;min-height:0;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;overflow:hidden}
 .wts-mat-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px 9px 14px;border-bottom:1px solid rgba(36,40,44,.08)}
