@@ -127,3 +127,13 @@ button{font-family:inherit;color:inherit;cursor:pointer}
   .ww-say{width:40px;height:40px}
   .ww-arrow{width:40px;height:40px}
 }
+/* Произношение из словаря урока */
+.ww-prons{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.ww-pron{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(36,40,44,.2);border-radius:999px;background:#fff;color:#24282C;padding:3px 10px;font:600 13px ui-monospace,Menlo,monospace;cursor:pointer}
+.ww-pron b{font:800 11px var(--font,sans-serif);color:#7A7E68}
+.ww-pron i{font-style:normal;font-size:12px}
+.ww-pron:hover{background:#CDF649;border-color:#CDF649}
+.ww-confetti{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden}
+.ww-confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:ww-fall linear forwards}
+@keyframes ww-fall{to{top:105%;transform:rotate(720deg) translateX(40px)}}
+@media (prefers-reduced-motion:reduce){.ww-confetti{display:none}}

@@ -6967,6 +6967,9 @@ body.studio-open #toolbar, body.studio-open #zoom-controls{visibility:hidden}
 .vs-word{font-size:clamp(28px,4.6vw,44px);font-weight:500;letter-spacing:-.03em;line-height:1.12;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;justify-content:center}
 .vs-word strong{font-weight:850}
 .vs-pos{font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:#6B42FD;background:#EFEAFF;border-radius:999px;padding:3px 9px}
+.vs-accent{display:flex;gap:2px;padding:3px;border-radius:999px;background:#fff;border:1px solid rgba(36,40,44,.16)}
+.vs-accent button{border:0;background:transparent;border-radius:999px;padding:4px 10px;font:750 12px var(--font-ui,system-ui,sans-serif);color:#5D614B;cursor:pointer}
+.vs-accent button.on{background:#CDF649;color:#24282C}
 .vs-pattern{font-size:clamp(17px,2.6vw,22px);letter-spacing:-.01em;line-height:1.3;color:#24282C;font-weight:700}
 .vs-pattern .vs-prep{color:#C2185B;background:#FCE4EC;border-radius:6px;padding:0 6px;font-weight:800}
 .vs-pattern .vs-slot{font-style:normal;font-weight:500;color:#8A8E78}

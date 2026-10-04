@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Speaking cards</title>
-<link rel="stylesheet" href="ww.css?v=1056">
+<link rel="stylesheet" href="ww.css?v=1057">
 <style>
 /* Speaking cards: колода рубашкой слева, сданная карта справа, снизу
    Shuffle / Undo / Deal. Карта - слово учителя и задание «скажи». */
@@ -23,6 +23,10 @@
 .sc-w{font-weight:800;font-size:clamp(20px,4.6vw,32px);line-height:1.05}
 .sc-m{font-weight:600;color:var(--olive);font-size:clamp(12px,2.2vw,15px);line-height:1.3}
 .sc-t{margin-top:4px;padding:7px 9px;border-radius:6px;background:var(--paper);font-weight:700;font-size:clamp(12px,2.2vw,15px);line-height:1.3}
+.sc-reveal{border:2px dashed rgba(36,40,44,.3);background:var(--paper);border-radius:10px;padding:8px 14px;font:800 14px var(--font,sans-serif);color:#24282C;cursor:pointer}
+.sc-reveal:hover{border-color:#CDF649;background:#F4FCD9}
+.sc-ex{font-style:italic;font-size:clamp(12px,2vw,14px);color:#24282C;line-height:1.3}
+.sc-card .ww-pron{font-size:12px;padding:2px 8px}
 .sc-new{margin-top:2px;border:1px solid rgba(36,40,44,.2);background:#fff;border-radius:999px;padding:5px 12px;font:700 12px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
 .sc-new:hover{background:#CDF649;border-color:#CDF649}
 .sc-btns{display:flex;gap:8px}
@@ -30,7 +34,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=1056"></script>
+<script src="ww.js?v=1057"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'}];
 var TASKS=['Use it in a sentence about yourself.','Explain it without saying the word.','Ask your partner a question with it.','Tell a 3-sentence story with it.','Say when you last had, saw or needed it.'];
@@ -82,10 +86,12 @@ function tasksFor(it,i){
   var r=pool.length?i%pool.length:0;
   var rot=pool.slice(r).concat(pool.slice(0,r)).map(function(t){return t.replace(/\{w\}/g,function(){return it.word;});});
   var own=(it.tasks||[]).filter(Boolean);
-  var all=own.concat(rot);
+  /* Первым - «объясни своими словами», значение открывается по Reveal:
+     в уроке 1 на 1 это самое живое задание. */
+  var all=['Explain "'+it.word+'" in your own words and give an example - then press Reveal to check.'].concat(own,rot);
   return all.length?all:TASKS;
 }
-var tIdx={};
+var tIdx={},shown={};
 var ww=WW.init({template:'Speaking cards',instructions:'Deal out random cards from a shuffled deck.',timer:'none',score:false,action:{label:'Deal'}});
 var items=[],order=[],pos=-1;
 /* Три кнопки вместо одной главной: Shuffle / Undo / Deal, как в референсе. */
@@ -111,8 +117,11 @@ function render(){
   deck.onclick=deal;
   var spot=document.createElement('div');spot.className='sc-spot';
   if(pos>=0){var it=items[order[pos]];var f=ww.fill(order[pos]);
-    spot.innerHTML='<div class="sc-card" style="--c:'+f[0]+'"><div class="sc-w">'+WW.esc(it.word)+'</div>'+(it.audio?WW.sayBtn(it.audio):'')+(it.meaning?'<div class="sc-m">'+WW.esc(it.meaning)+'</div>':'')+'<div class="sc-t">'+WW.esc(tasksFor(it,order[pos])[(tIdx[order[pos]]||0)%tasksFor(it,order[pos]).length])+'</div><button type="button" class="sc-new" title="A different speaking task for this word">↻ New task</button></div>';
-    var nb=spot.querySelector('.sc-new');if(nb)nb.onclick=newTask;}
+    var lx=WW.lex(it.word)||{},open=!!shown[order[pos]];
+    spot.innerHTML='<div class="sc-card" style="--c:'+f[0]+'"><div class="sc-w">'+WW.esc(it.word)+'</div>'+WW.pron(it.word,it.audio)+
+      (it.meaning?(open?'<div class="sc-m">'+WW.esc(it.meaning)+'</div>'+(lx.example?'<div class="sc-ex">'+WW.esc(lx.example)+'</div>':''):'<button type="button" class="sc-reveal">👁 Reveal the meaning</button>'):'')+'<div class="sc-t">'+WW.esc(tasksFor(it,order[pos])[(tIdx[order[pos]]||0)%tasksFor(it,order[pos]).length])+'</div><button type="button" class="sc-new" title="A different speaking task for this word">↻ New task</button></div>';
+    var nb=spot.querySelector('.sc-new');if(nb)nb.onclick=newTask;
+    var rv=spot.querySelector('.sc-reveal');if(rv)rv.onclick=function(){shown[order[pos]]=1;render();};}
   root.appendChild(deck);root.appendChild(spot);ww.stage.appendChild(root);
   ww.setAction('Deal',deal,left<=0);
   var un=document.getElementById('sc-undo');if(un)un.disabled=pos<0;
@@ -130,12 +139,12 @@ window.applyCustomContent=function(content,title){
   var raw=(content&&(content.cards||content.pairs||content.items))||[],by={};
   raw.forEach(function(r){var k=String(r.a||r.word||r.w||r.term||r.en||'').trim().toLowerCase();if(k)by[k]=r;});
   p.forEach(function(it){var r=by[it.word.toLowerCase()]||{};it.pos=r.pos||'';it.tasks=Array.isArray(r.tasks)?r.tasks.map(String):(r.prompt?[String(r.prompt)]:[]);});
-  tIdx={};
+  tIdx={};shown={};
   items=p;ww.setTitle(title||'Speaking cards');document.title=(title||'Speaking cards')+' · Speaking cards';ww.showStart();
 };
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=1056"></script>
+<script src="../../scripts/game-handoff.js?v=1057"></script>
 </body>
 </html>

@@ -4805,6 +4805,7 @@ function _wpVocabStudio(stage, card, k) {
     const w = L[st.i];
     const knownN = words.filter(x => st.known.includes(x.word)).length;
     const hide = st.mode === 'test' && !shown;
+    const acc = card.data._wfPath.accent || 'both';
     const hearBtn = w && hearOn ? `<button type="button" class="vs-hear-chip" data-hear="${esc(w.word)}" title="Real people saying it: movies, TED, interviews"><i>▶</i> Hear it in real videos</button>` : '';
     const gap = w && !hide ? gapOf(w) : '';
     const q = w && quiz && quiz.word === w.word ? quiz : null;
@@ -4817,6 +4818,7 @@ function _wpVocabStudio(stage, card, k) {
       <div class="vs-top">
         <div class="vs-modes"><button type="button" data-mode="learn" class="${st.mode === 'learn' ? 'on' : ''}">Learn</button><button type="button" data-mode="test" class="${st.mode === 'test' ? 'on' : ''}">Test myself</button></div>
         <div class="vs-prog"><b>${knownN} / ${words.length}</b> known</div>
+        ${_wpOwnerOf(card) ? `<div class="vs-accent" title="Which pronunciation the cards and games show">${['uk', 'us', 'both'].map(a => `<button type="button" data-accent="${a}" class="${(card.data._wfPath.accent || 'both') === a ? 'on' : ''}">${a === 'both' ? 'UK + US' : a.toUpperCase()}</button>`).join('')}</div>` : ''}
         <label class="vs-only"><input type="checkbox"${st.onlyLearning ? ' checked' : ''}> Only words I'm still learning</label>
       </div>
       <div class="vs-dots" role="group" aria-label="Words">${dots}</div>
@@ -4829,8 +4831,8 @@ function _wpVocabStudio(stage, card, k) {
             ${w.pattern && String(w.pattern).toLowerCase() !== String(w.word).toLowerCase() ? `<div class="vs-pattern" title="Use it like this">${patternHtml(w.pattern, w.word)}</div>` : ''}
             ${w.chunk && !w.pattern && String(w.chunk).toLowerCase() !== String(w.word).toLowerCase() ? `<div class="vs-chunk" title="Learn it as a block">${chunkHtml(w.chunk, w.word)}</div>` : ''}
             <div class="vs-pron">
-              <button type="button" class="vs-say" data-say="uk" title="Hear it - British"><b>UK</b> <span>${ipa(w.ipaUK)}</span></button>
-              <button type="button" class="vs-say" data-say="us" title="Hear it - American"><b>US</b> <span>${ipa(w.ipaUS)}</span></button>
+              ${acc !== 'us' ? `<button type="button" class="vs-say" data-say="uk" title="Hear it - British"><b>UK</b> <span>${ipa(w.ipaUK)}</span></button>` : ''}
+              ${acc !== 'uk' ? `<button type="button" class="vs-say" data-say="us" title="Hear it - American"><b>US</b> <span>${ipa(w.ipaUS)}</span></button>` : ''}
             </div>
             ${hide ? `<button type="button" class="vs-reveal">Say what it means - then show the meaning</button>`
               : `<p class="vs-meaning">${esc(w.meaning || 'No meaning given.')}</p>
@@ -4874,6 +4876,8 @@ function _wpVocabStudio(stage, card, k) {
     const t = e.target;
     const item = t.closest('[data-w]');
     if (item) { const j = L.findIndex(x => x.word === item.dataset.w); if (j < 0) { st.onlyLearning = false; st.i = words.findIndex(x => x.word === item.dataset.w); } else st.i = j; shown = false; quiz = null; save(); paint(); return; }
+    const accB = t.closest('[data-accent]');
+    if (accB && _wpOwnerOf(card)) { card.data._wfPath.accent = accB.dataset.accent; if (!card.__preview) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); } paint(); return; }
     const mode = t.closest('[data-mode]');
     if (mode) { st.mode = mode.dataset.mode; shown = false; quiz = null; save(); paint(); return; }
     const hearBtn = t.closest('[data-hear]');
@@ -4943,12 +4947,24 @@ function _wpVocabStudio(stage, card, k) {
   paint();
 }
 
+function _wpLexicon(card) {
+  const lex = {};
+  (card.data._wfPath.steps || []).filter(s => s.role === 'vocab-studio').flatMap(s => s.out.words || []).forEach(w => {
+    if (!w || !w.word) return;
+    lex[String(w.word).toLowerCase()] = { ipaUK: w.ipaUK || '', ipaUS: w.ipaUS || '', audioUK: w.audioUK || '', audioUS: w.audioUS || '',
+      example: _wpFakeExample(w.example) ? '' : (w.example || ''), pattern: w.pattern || '', meaning: w.meaning || '' };
+  });
+  return lex;
+}
+
 /* Игра - шагом пути: та же страница games/*.html, что и у игровой карточки,
    с тем же содержимым (teachedos-custom-game-content), вписанная в шаг. */
 function _wpGameStep(stage, card, k) {
   const o0 = card.data._wfPath.steps[k].out || {};
   // Станция лексики в карте урока: слова урока доезжают и в игры.
-  const o = window.TeachedFlow ? { ...o0, customContent: window.TeachedFlow.mergeGame(card.id, o0.customContent, o0.src) } : o0;
+  const o1 = window.TeachedFlow ? { ...o0, customContent: window.TeachedFlow.mergeGame(card.id, o0.customContent, o0.src) } : o0;
+  // Транскрипция, запись, пример и шаблон из Vocabulary Studio - и в игры пути.
+  const o = o1.customContent ? { ...o1, customContent: { ...o1.customContent, lex: _wpLexicon(card), accent: card.data._wfPath.accent || 'both' } } : o1;
   const box = document.createElement('div');
   box.className = 'wp-game';
   const W = o.naturalW || 720, H = o.naturalH || 480;
@@ -16293,7 +16309,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1056';
+const TEACHEDOS_ASSET_VERSION = '1057';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {

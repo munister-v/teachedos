@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Spin the wheel</title>
-<link rel="stylesheet" href="ww.css?v=1056">
+<link rel="stylesheet" href="ww.css?v=1057">
 <style>
 /* Spin the wheel: сектора цветами листа, стрелка слева, белая втулка.
    После остановки - карточка слова; «Eliminate» убирает его с колеса. */
@@ -17,15 +17,60 @@
 .wh-w{font-weight:800;font-size:clamp(28px,7vw,46px);line-height:1.05}
 .wh-m{font-weight:600;font-size:clamp(14px,2.6vw,18px);margin-top:6px;line-height:1.35}
 .wh-row{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.wh-opts{position:absolute;top:2px;left:4px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.wh-seg{display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:999px;background:#fff;border:1px solid rgba(36,40,44,.16);font-size:12px;font-weight:800;color:#5D614B}
+.wh-seg span{padding:0 6px}
+.wh-seg button{border:0;background:transparent;border-radius:999px;padding:3px 9px;font-weight:800;font-size:12px;color:#5D614B;cursor:pointer}
+.wh-seg button.on{background:#CDF649;color:#24282C}
+.wh-score{position:absolute;top:2px;right:4px;z-index:30;display:flex;flex-direction:column;gap:5px}
+.wh-team{display:flex;align-items:center;gap:8px;min-width:110px;justify-content:space-between;padding:5px 10px;border-radius:10px;background:#fff;border:2px solid var(--c);font-weight:800;font-size:14px;color:#24282C}
+.wh-team b{font-size:18px}
+.wh-team.pop{animation:ww-pop .4s ease}
+.wh-card{animation:wh-in .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes wh-in{from{transform:scale(.4) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+.wh-card .ww-prons{margin-top:8px}
+.wh-ch{margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.85);color:#24282C;font-weight:700;font-size:clamp(13px,2.3vw,16px);line-height:1.3}
+.wh-ch small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#7A7E68;margin-bottom:2px}
+.wh-show{margin-top:8px;border:0;background:transparent;text-decoration:underline;font-weight:700;font-size:13px;color:inherit;cursor:pointer}
+.wh-time{margin-top:10px;height:8px;border-radius:99px;background:rgba(36,40,44,.15);overflow:hidden}
+.wh-time i{display:block;height:100%;background:#24282C;transition:width 1s linear}
+.wh-sec{font-weight:800;font-size:13px;margin-top:4px}
+.wh-row{flex-wrap:wrap}
+.wh-row button.ok{background:#CDF649;border-color:#CDF649}
 .wh-row button{border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);padding:5px 16px;font-weight:800;font-size:15px}
 </style>
 </head>
 <body>
-<script src="ww.js?v=1056"></script>
+<script src="ww.js?v=1057"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'},{a:'bruise',b:'a dark mark after a hit'},{a:'burn',b:'an injury from heat'}];
 var ww=WW.init({template:'Spin the wheel',instructions:'Spin the wheel to see which item comes up next.',timer:'none',score:false,action:{label:'Spin It'}});
 var items=[],live=[],angle=0,spinning=false,cv,ctx,size=0,spins=0;
+/* Настройки урока: таймер на ответ, команды со счётом, задания-вызовы. */
+var OPT={timer:0,teams:0,challenge:true};try{Object.assign(OPT,JSON.parse(localStorage.getItem('ww_wheel_opts')||'{}'));}catch(e){}
+var scores=[],timerId=null;
+var CHALLENGES=[
+  'Make a sentence with "{w}" about your own life.',
+  'Ask your partner a question with "{w}".',
+  'Say a sentence with a mistake in it using "{w}" - your partner corrects it.',
+  'Name a synonym or an opposite of "{w}", then use one of them in a sentence.',
+  'Explain "{w}" without saying it - your partner guesses.',
+  'Tell a 3-sentence story with "{w}" in it.',
+  'Use "{w}" in a sentence about a famous person or a film.',
+  'Agree or disagree: make a statement with "{w}" and give a reason.'];
+function saveOpt(){try{localStorage.setItem('ww_wheel_opts',JSON.stringify(OPT));}catch(e){}}
+function optsHtml(){
+  function seg(label,key,vals,names){return '<div class="wh-seg"><span>'+label+'</span>'+vals.map(function(v,i){return '<button type="button" data-o="'+key+'" data-v="'+v+'" class="'+(String(OPT[key])===String(v)?'on':'')+'">'+names[i]+'</button>';}).join('')+'</div>';}
+  return seg('Timer','timer',[0,15,30],['Off','15s','30s'])+seg('Teams','teams',[0,2,3],['Off','2','3'])+seg('Tasks','challenge',[true,false],['On','Off']);
+}
+function scoreHtml(){
+  if(!OPT.teams)return '';
+  return scores.map(function(n,i){var f=ww.fill(i*3);return '<div class="wh-team" data-t="'+i+'" style="--c:'+f[0]+'">Team '+(i+1)+' <b>'+n+'</b></div>';}).join('');
+}
+function paintSide(){
+  var o=ww.stage.querySelector('.wh-opts'),sc=ww.stage.querySelector('.wh-score');
+  if(o)o.innerHTML=optsHtml();if(sc)sc.innerHTML=scoreHtml();
+}
 function sectorLabels(list){
   if(list.length<2)return list.slice();var pre=list[0];
   list.forEach(function(w){var k=0;while(k<pre.length&&k<w.length&&pre[k]===w[k])k++;pre=pre.slice(0,k);});
@@ -35,14 +80,18 @@ function sectorLabels(list){
 function setup(){
   ww.stage.innerHTML='';
   var root=document.createElement('div');root.className='wh';
-  size=Math.floor(Math.min(ww.stage.clientWidth-60,ww.stage.clientHeight-8));
+  var sw=ww.stage.clientWidth;size=Math.floor(Math.min(ww.stage.clientHeight-8,Math.max(sw-300,sw*.6)));
   var dpr=window.devicePixelRatio||1;
   cv=document.createElement('canvas');cv.width=size*dpr;cv.height=size*dpr;cv.style.width=size+'px';cv.style.height=size+'px';
   ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
   var ptr=document.createElement('div');ptr.className='wh-ptr';ptr.style.left='calc(50% - '+(size/2+26)+'px)';
   var res=document.createElement('div');res.className='wh-res';res.hidden=true;
+  var op=document.createElement('div');op.className='wh-opts';root.appendChild(op);
+  var sc=document.createElement('div');sc.className='wh-score';root.appendChild(sc);
+  op.onclick=function(e){var b=e.target.closest('[data-o]');if(!b)return;var k=b.dataset.o,v=b.dataset.v;
+    OPT[k]=k==='challenge'?v==='true':+v;if(k==='teams')scores=new Array(OPT.teams).fill(0);saveOpt();paintSide();};
   root.appendChild(cv);root.appendChild(ptr);root.appendChild(res);ww.stage.appendChild(root);
-  draw();
+  draw();paintSide();
 }
 function draw(){
   var n=live.length,r=size/2-4,c=size/2,slice=2*Math.PI/Math.max(1,n),labels=sectorLabels(live.map(function(i){return items[i].word;}));
@@ -72,16 +121,33 @@ function spin(){
   })(t0);
 }
 function show(idx){
-  var k=live[idx],it=items[k],f=ww.fill(k);spins++;ww.beep(true);ww.progress(spins,items.length);
+  var k=live[idx],it=items[k],f=ww.fill(k);spins++;ww.jingle('win');ww.progress(spins,items.length);
   var res=ww.stage.querySelector('.wh-res');
-  res.innerHTML='<div class="wh-card" style="--c:'+f[0]+';--f:'+f[1]+'"><div class="wh-w">'+WW.esc(it.word)+'</div>'+(it.meaning?'<div class="wh-m">'+WW.esc(it.meaning)+'</div>':'')+
-    '<div class="wh-row"><button type="button" data-e>Eliminate</button><button type="button" data-k>OK</button></div></div>';
+  var ch=CHALLENGES[(k+spins)%CHALLENGES.length].replace(/\{w\}/g,it.word);
+  var meaning=it.meaning||((WW.lex(it.word)||{}).meaning)||'';
+  var teamBtns=OPT.teams?scores.map(function(_,i){return '<button type="button" class="ok" data-win="'+i+'">✓ Team '+(i+1)+'</button>';}).join(''):'<button type="button" class="ok" data-win="-1">✓ Well done</button>';
+  res.innerHTML='<div class="wh-card" style="--c:'+f[0]+';--f:'+f[1]+'"><div class="wh-w">'+WW.esc(it.word)+'</div>'+WW.pron(it.word,it.audio)+
+    (OPT.challenge?'<div class="wh-ch"><small>Your task</small>'+WW.esc(ch)+'</div>'+(meaning?'<div class="wh-m" hidden>'+WW.esc(meaning)+'</div><button type="button" class="wh-show">Show the meaning</button>':''):(meaning?'<div class="wh-m">'+WW.esc(meaning)+'</div>':''))+
+    (OPT.timer?'<div class="wh-time"><i style="width:100%"></i></div><div class="wh-sec">'+OPT.timer+'s</div>':'')+
+    '<div class="wh-row">'+teamBtns+'<button type="button" data-k>Try later</button><button type="button" data-e>Eliminate</button></div></div>';
   res.hidden=false;
-  res.querySelector('[data-k]').onclick=function(){res.hidden=true;};
-  res.querySelector('[data-e]').onclick=function(){res.hidden=true;live.splice(idx,1);draw();
-    if(!live.length)ww.finish({message:'Every word has been used',answers:items.map(function(x){return{q:x.word,a:x.meaning};})});};
+  clearInterval(timerId);
+  if(OPT.timer){var left=OPT.timer,bar=res.querySelector('.wh-time i'),sec=res.querySelector('.wh-sec');
+    requestAnimationFrame(function(){bar.style.width=((left-1)/OPT.timer*100)+'%';});
+    timerId=setInterval(function(){left--;if(left>0){bar.style.width=((left-1)/OPT.timer*100)+'%';sec.textContent=left+'s';if(left<=5)ww.jingle('tick');}
+      else{clearInterval(timerId);sec.textContent='Time!';ww.jingle('end');}},1000);}
+  var sh=res.querySelector('.wh-show');if(sh)sh.onclick=function(){res.querySelector('.wh-m').hidden=false;sh.remove();};
+  function remove(){live.splice(live.indexOf(k),1);draw();
+    if(!live.length)ww.finish({message:OPT.teams?scores.map(function(n,i){return 'Team '+(i+1)+': '+n;}).join(' · '):'Every word has been used',answers:items.map(function(x){return{q:x.word,a:x.meaning};})});}
+  function close(){clearInterval(timerId);res.hidden=true;}
+  res.querySelector('[data-k]').onclick=close;
+  res.querySelector('[data-e]').onclick=function(){close();remove();};
+  /* Верный ответ: очко команде, конфетти, слово уходит с колеса. */
+  res.querySelectorAll('[data-win]').forEach(function(b){b.onclick=function(){var t=+b.dataset.win;
+    if(t>=0){scores[t]++;paintSide();var el=ww.stage.querySelector('.wh-team[data-t="'+t+'"]');if(el)el.classList.add('pop');}
+    WW.confetti(70);ww.jingle('win');close();remove();};});
 }
-ww.onStart=function(){live=WW.shuffle(items.map(function(_,i){return i;}));angle=0;spins=0;setup();ww.setAction('Spin It',spin);};
+ww.onStart=function(){live=WW.shuffle(items.map(function(_,i){return i;}));angle=0;spins=0;scores=new Array(OPT.teams).fill(0);setup();ww.setAction('Spin It',spin);};
 window.addEventListener('resize',function(){if(live.length)setup();});
 window.applyCustomContent=function(content,title){
   var p=WW.pairsFrom(content);
@@ -93,6 +159,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=1056"></script>
+<script src="../../scripts/game-handoff.js?v=1057"></script>
 </body>
 </html>

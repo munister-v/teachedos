@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Wordsearch</title>
-<link rel="stylesheet" href="ww.css?v=1056">
+<link rel="stylesheet" href="ww.css?v=1057">
 <style>
 /* Wordsearch: сетка букв слева, список слов плашками справа. Слово
    выделяют протяжкой по буквам (или тапом по первой и последней). Весь
@@ -20,15 +20,25 @@
 .ws-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;align-content:start;max-height:100%;overflow:auto;padding:2px}
 .ws-w{padding:6px 8px;border:3px solid var(--ink);border-radius:10px;background:#fff;font-weight:800;font-size:clamp(12px,2.2vw,16px);text-align:center;word-break:break-word}
 .ws-w.found{color:var(--f);background:var(--c);border-color:var(--c);text-decoration:line-through}
+.ws-side{display:flex;flex-direction:column;gap:8px;max-height:100%;min-height:0}
+.ws-tog{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:#fff;border:1px solid rgba(36,40,44,.16)}
+.ws-tog button{border:0;background:transparent;border-radius:999px;padding:4px 12px;font-weight:800;font-size:13px;color:#5D614B}
+.ws-tog button.on{background:#CDF649;color:#24282C}
+.ws-list.defs{grid-template-columns:1fr}
+.ws-list.defs .ws-w{text-align:left;font-weight:600;font-size:clamp(12px,1.9vw,14px);line-height:1.3;border-width:2px}
+.ws-list.defs .ws-w b{display:block;font-weight:800;text-decoration:none}
+.ws-list.defs .ws-w.found{text-decoration:none}
+.ws-list.defs .ws-w.found span{opacity:.8}
 @media (max-width:560px){.ws{grid-template-columns:1fr;grid-template-rows:auto auto}.ws-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 </head>
 <body>
-<script src="ww.js?v=1056"></script>
+<script src="ww.js?v=1057"></script>
 <script>
 var DEMO=[{a:'headache'},{a:'fever'},{a:'cough'},{a:'rash'},{a:'sore throat'},{a:'insomnia'},{a:'bruise'},{a:'burn'}];
 var ROUND=10;
 var ww=WW.init({template:'Wordsearch',instructions:'Words are hidden in a letter grid. Find them as fast as you can.',timer:'up',score:true,center:'Tap a hidden word'});
+var MEAN={},defMode=false;try{defMode=localStorage.getItem('ww_ws_defs')==='1';}catch(e){}
 var all=[],queue=[],words=[],grid=[],placed=[],N=10,found={},selA=null,dragPath=[],roundNo=0,totalRounds=1;
 function norm(w){return String(w).toUpperCase().replace(/[^A-Z]/g,'');}
 function build(){
@@ -69,8 +79,19 @@ function render(){
     g.appendChild(d);
   }
   var list=document.createElement('div');list.className='ws-list';
-  placed.forEach(function(p,i){var b=document.createElement('div');b.className='ws-w'+(found[i]?' found':'');b.textContent=p.w;ww.paint(b,i);list.appendChild(b);});
-  root.appendChild(g);root.appendChild(list);ww.stage.appendChild(root);
+  /* Режим «определения»: справа только значение, слово ученик вспоминает сам. */
+  var hasDefs=placed.some(function(p){return MEAN[p.w];});
+  var side=document.createElement('div');side.className='ws-side';
+  if(hasDefs){var tg=document.createElement('div');tg.className='ws-tog';
+    tg.innerHTML='<button type="button" data-m="0" class="'+(defMode?'':'on')+'">Words</button><button type="button" data-m="1" class="'+(defMode?'on':'')+'">Definitions</button>';
+    tg.onclick=function(e){var b=e.target.closest('[data-m]');if(!b)return;defMode=b.dataset.m==='1';try{localStorage.setItem('ww_ws_defs',defMode?'1':'0');}catch(er){}render();};
+    side.appendChild(tg);}
+  var dm=defMode&&hasDefs;if(dm)list.classList.add('defs');
+  placed.forEach(function(p,i){var b=document.createElement('div');b.className='ws-w'+(found[i]?' found':'');
+    if(dm&&MEAN[p.w]){b.innerHTML=(found[i]?'<b>'+WW.esc(p.w)+'</b>':'')+'<span>'+WW.esc(MEAN[p.w])+'</span>';}else b.textContent=p.w;
+    ww.paint(b,i);list.appendChild(b);});
+  side.appendChild(list);
+  root.appendChild(g);root.appendChild(side);ww.stage.appendChild(root);
   ww.setCenter(totalRounds>1?('Tap a hidden word · '+roundNo+' of '+totalRounds):'Tap a hidden word');
   wire(g);
 }
@@ -111,7 +132,7 @@ function roundDone(){
 ww.onStart=function(){queue=WW.shuffle(all);totalRounds=Math.ceil(all.length/ROUND);roundNo=0;nextRound();};
 window.addEventListener('resize',function(){if(ww.running)render();});
 window.applyCustomContent=function(content,title){
-  var src=[];(WW.pairsFrom(content)||[]).forEach(function(p){src.push(p.word);});
+  var src=[];MEAN={};(WW.pairsFrom(content)||[]).forEach(function(p){src.push(p.word);if(p.meaning)MEAN[p.word]=p.meaning;});
   ((content&&content.words)||[]).forEach(function(w){src.push(String(w));});
   var seen={};all=src.filter(function(w){var k=norm(w);if(k.length<3||k.length>15||seen[k])return false;seen[k]=1;return true;});
   if(all.length<2)return;
@@ -120,6 +141,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=1056"></script>
+<script src="../../scripts/game-handoff.js?v=1057"></script>
 </body>
 </html>

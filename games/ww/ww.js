@@ -47,6 +47,21 @@
       o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.32);
     } catch (e) {}
   }
+  /* Короткая мелодия: win - победный джингл, tick - тик таймера, end - время вышло. */
+  function jingle(kind) {
+    if (muted) return;
+    var seq = kind === 'win' ? [523, 659, 784, 1047] : kind === 'tick' ? [1200] : kind === 'end' ? [392, 262] : [660, 880];
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      seq.forEach(function (f, i) {
+        var t = audioCtx.currentTime + i * (kind === 'end' ? .22 : .11), o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = kind === 'tick' ? 'square' : 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(kind === 'tick' ? .05 : .16, t + .02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === 'tick' ? .06 : .2));
+        o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + .25);
+      });
+    } catch (e) {}
+  }
 
   /* opts: template, instructions, timer ('up'|'down'|'none'), seconds (для down),
      score (bool), lives (число, 0 - нет), action ({label}), nav (bool), center (текст) */
@@ -112,7 +127,7 @@
     document.body.appendChild(menu); document.body.appendChild(start); document.body.appendChild(end); document.body.appendChild(answers);
 
     var api = {
-      stage: stage, fills: FILLS, esc: esc, shuffle: shuffle, beep: beep, post: post,
+      stage: stage, fills: FILLS, esc: esc, shuffle: shuffle, beep: beep, jingle: jingle, post: post,
       fill: function (i) { return FILLS[((i % FILLS.length) + FILLS.length) % FILLS.length]; },
       paint: function (node, i) { var f = api.fill(i); node.style.setProperty('--c', f[0]); node.style.setProperty('--f', f[1]); return node; },
       title: '', running: false, score: 0,
@@ -210,6 +225,7 @@
   function listen() {
     window.addEventListener('message', function (e) {
       if (e.data && e.data.type === 'teachedos-custom-game-content' && typeof window.applyCustomContent === 'function') {
+        setLex(e.data.content);
         window.applyCustomContent(e.data.content, e.data.title);
       }
     });
@@ -290,5 +306,47 @@
     if (b) { e.stopPropagation(); say(b.getAttribute('data-say')); }
   });
 
-  window.WW = { init: init, pairsFrom: pairsFrom, listen: listen, say: say, sayBtn: sayBtn, shuffle: shuffle, esc: esc, fills: FILLS, fmt: fmt, dnd: dnd };
+  /* Словарь урока (content.lex от пути): транскрипция и запись по акценту,
+     который выбрал учитель (content.accent: uk / us / both). */
+  var LEX = {}, ACC = 'both';
+  function setLex(content) { LEX = (content && content.lex) || {}; ACC = (content && content.accent) || 'both'; }
+  function lex(word) { return LEX[String(word || '').toLowerCase()] || null; }
+  function tts(word, region) {
+    try {
+      var u = new SpeechSynthesisUtterance(word); u.lang = region === 'us' ? 'en-US' : 'en-GB'; u.rate = .9;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function pron(word, fallbackAudio) {
+    var x = lex(word) || {}, out = [];
+    ['uk', 'us'].forEach(function (r) {
+      if (ACC !== 'both' && ACC !== r) return;
+      var ipa = r === 'uk' ? x.ipaUK : x.ipaUS, au = (r === 'uk' ? x.audioUK : x.audioUS) || (r === 'uk' || ACC === 'us' ? fallbackAudio : '');
+      out.push('<button type="button" class="ww-pron" data-pron="' + esc(word) + '" data-region="' + r + '"' + (au ? ' data-audio="' + esc(au) + '"' : '') + ' aria-label="Listen, ' + r.toUpperCase() + '"><b>' + r.toUpperCase() + '</b>' +
+        (ipa ? '<span>/' + esc(String(ipa).replace(/^\/|\/$/g, '')) + '/</span>' : '') + '<i>🔊</i></button>');
+    });
+    return '<div class="ww-prons">' + out.join('') + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-pron]');
+    if (!b) return;
+    e.stopPropagation();
+    var au = b.getAttribute('data-audio');
+    if (au) { try { if (_audio) _audio.pause(); _audio = new Audio(au); _audio.play().catch(function () { tts(b.getAttribute('data-pron'), b.getAttribute('data-region')); }); } catch (er) {} }
+    else tts(b.getAttribute('data-pron'), b.getAttribute('data-region'));
+  });
+  /* Конфетти - праздник правильного ответа (без файлов). */
+  function confetti(n) {
+    var box = document.createElement('div'); box.className = 'ww-confetti';
+    for (var i = 0; i < (n || 60); i++) {
+      var p = document.createElement('i');
+      p.style.left = Math.random() * 100 + '%'; p.style.background = FILLS[i % FILLS.length][0];
+      p.style.animationDelay = Math.random() * .4 + 's'; p.style.animationDuration = 1.2 + Math.random() * 1.2 + 's';
+      p.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+      box.appendChild(p);
+    }
+    document.body.appendChild(box); setTimeout(function () { box.remove(); }, 2800);
+  }
+
+  window.WW = { lex: lex, pron: pron, tts: tts, confetti: confetti, init: init, pairsFrom: pairsFrom, listen: listen, say: say, sayBtn: sayBtn, shuffle: shuffle, esc: esc, fills: FILLS, fmt: fmt, dnd: dnd };
 })();
