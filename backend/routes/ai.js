@@ -2248,7 +2248,7 @@ router.post('/vocab-enrich', requireAuth, requireTeacher, lessonBoardLimiter, as
     await reserveAiQuota(req.user, { mode: 'vocab-enrich', source: words.join(', ') });
 
     const prompt = `You are an ESL vocabulary coach. Return ONLY a JSON object (no markdown, no prose) with this exact shape:
-{"theme":"...","items":[{"word":"...","meaning":"...","collocations":["...","..."],"example":"...","gap":"...","chunk":"...","link":{"s":"...","a":"..."},"speak":["...","..."]}]}
+{"theme":"...","items":[{"word":"...","meaning":"...","pattern":"...","collocations":["...","..."],"example":"...","phrase":"...","gap":"...","chunk":"...","link":{"s":"...","a":"..."},"speak":["...","..."]}]}
 
 Level: ${level}
 ${topic ? `Teacher's topic: ${topic}\n` : ''}Target words and phrases (keep them exactly as written, same order):
@@ -2257,12 +2257,14 @@ ${words.map((w, i) => `${i + 1}. ${w}`).join('\n')}
 Rules:
 - theme: ONE short general theme for the whole set, 2-4 words, Title Case, not a list of the words (e.g. "Education and Study", "Illness and Recovery"). Never start with "Vocabulary".
 - meaning: a clear student-friendly definition at ${level} level, max 14 words. For phrases, idioms and collocations give the meaning of the WHOLE expression as people actually use it (figurative or professional sense included) - never the dictionary entry of one word inside it. Do not repeat the word itself.
-- collocations: 2-3 short natural word partnerships that go with this word or phrase (e.g. "make a decision", "tough decision"). For a fixed phrase give 2 short typical sentence frames instead.
+- pattern: how the target is really used, with its usual preposition or object slot, using "sb" for somebody and "sth" for something (e.g. "steer clear of sth", "backfire on sb", "blame sb for sth", "depend on sb/sth", "tycoon" -> "a business tycoon"). If it takes no preposition or object, give the target itself.
+- collocations: 4-5 short natural word partnerships that go with this word or phrase (e.g. "make a decision", "tough decision", "final decision"), including the preposition when there is one. For a fixed phrase give short typical frames.
 - speak: 2 different short speaking tasks a teacher can read aloud, written for THIS word, each using the word or phrase itself. Match the task to the kind of word: phrasal verbs, actions and situations ("get expelled") get a personal-experience or hypothetical question ("When did someone you know get in serious trouble? What happened?"); abstract ideas and collocations ("educational journey") get an opinion or evaluation question ("Is the journey more important than the destination in education? Why?"); concrete nouns get a description, association or choice task. Never write generic prompts like "Give an example from real life" or "What do you think about...".
-- example: ONE natural sentence at ${level} level that shows the target used in real context, containing the target EXACTLY as written (same form, no inflection). Never a definition and never "X means Y".
+- example: ONE short, simple, everyday sentence (max 14 words, easier than ${level} if possible) that shows the target used in real context together with its preposition/object from "pattern". The verb may be inflected ("backfired"). Never a definition, never "X means Y", never about the word itself.
+- phrase: the exact substring of "example" (copied character for character) that covers the whole usage of the target incl. its preposition and object, e.g. "backfired on her", "steer clear of trouble".
 - chunk: a ready-made lexical chunk of 3-5 words that contains the target and is what native speakers actually say (e.g. for "decision": "make a tough decision"; for "depend": "depend on your parents"; for a phrase already 3+ words, the phrase itself with a natural continuation). Keep the target exactly as written.
 - link: the "missing partner" exercise. "s" = a short natural sentence with the target's usual partner (verb, preposition or adjective) replaced by ______ (six underscores) and the target left in place; "a" = that missing partner word (one word). Example: {"s":"You need to ______ a decision before Friday.","a":"make"} for "decision". If the target has no single-word partner, use a preposition or verb that always goes with it.
-- gap: ONE natural example sentence at ${level} level containing the target exactly as written, with the target replaced by ______ (six underscores). If the word needs another form in the sentence, keep the sentence grammatical with the base form.`;
+- gap: a NEW simple sentence, completely different from "example" (other situation, other people), where the target exactly as written is replaced by ______ (six underscores); keep its preposition visible after the gap. Keep the sentence grammatical with the base form.`;
 
     const result = await aiEngine.rawGenerate(prompt);
     METRICS.total++;
@@ -2275,7 +2277,9 @@ Rules:
     const items = (Array.isArray(result?.items) ? result.items : []).map(x => ({
       word: String(x?.word || '').trim(),
       meaning: String(x?.meaning || '').trim().slice(0, 200),
-      collocations: (Array.isArray(x?.collocations) ? x.collocations : []).map(c => String(c || '').trim().slice(0, 60)).filter(Boolean).slice(0, 3),
+      collocations: (Array.isArray(x?.collocations) ? x.collocations : []).map(c => String(c || '').trim().slice(0, 60)).filter(Boolean).slice(0, 5),
+      pattern: String(x?.pattern || '').trim().slice(0, 80),
+      phrase: String(x?.phrase || '').trim().slice(0, 120),
       example: String(x?.example || '').trim().slice(0, 240),
       chunk: String(x?.chunk || '').trim().slice(0, 80),
       link: (x?.link && /_{3,}/.test(String(x.link.s || '')) && String(x.link.a || '').trim())

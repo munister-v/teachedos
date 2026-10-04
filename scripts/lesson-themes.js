@@ -177,13 +177,14 @@ ${T} .wp-next,${T} .wp-next.to-studio{background:var(--lt-accent);color:var(--lt
 ${T} .wp-away{color:var(--lt-head-ink)}
 ${T} .wts,${T} .vs,${T} .wp-ss{background:transparent}
 ${T} .wts-mat,${T} .wts-frame,${T} .vs-side,${T} .vs-card,${T} .ss-card,${T} .ss-acc,${T} .ss-clock,${T} .wp-cl-cell{background:var(--lt-surface);border:1px solid var(--lt-line);box-shadow:var(--lt-glow);color:var(--lt-ink)}
-${T} .wts-mat-head b,${T} .vs-prog,${T} .ss-acc summary{color:var(--lt-muted)}
+${T} .wts-mat-head b,${T} .ss-acc summary{color:var(--lt-muted)}
+${T} .vs-prog,${T} .vs-only,${T} .vs-count{color:var(--lt-head-muted)}${T} .vs-prog b{color:var(--lt-head-ink)}
 ${T} .wts-tab,${T} .wts-show,${T} .ss-chip,${T} .ss-nav,${T} .ss-recs,${T} .ss-ghost,${T} .vs-say,${T} .vs-nav{background:var(--lt-surface);border-color:var(--lt-line);color:var(--lt-ink)}
 ${T} .wts-tab.on,${T} .ss-go,${T} .ss-chip.used,${T} .vs-modes .on{background:var(--lt-accent);border-color:var(--lt-accent);color:var(--lt-accent-ink)}
 ${T} .wts-tab.on i{background:var(--lt-accent-ink);color:var(--lt-accent)}
 ${T} .wts-tab i{background:var(--lt-paper)}
 ${T} .vs-dot{background:var(--lt-line)}${T} .vs-dot.known{background:var(--lt-accent)}${T} .vs-dot.on{background:var(--lt-ink)}
-${T} .vs-round i,${T} .vs-opt{background:var(--lt-surface);color:var(--lt-ink)}${T} .vs-known:hover i,${T} .vs-known.on i{background:var(--lt-accent);border-color:var(--lt-accent);color:var(--lt-accent-ink)}${T} .vs-round{color:var(--lt-muted)}${T} .vs-ctx{background:var(--lt-paper);border-color:var(--lt-line)}${T} .vs-ctx p{color:var(--lt-ink)}
+${T} .vs-round i,${T} .vs-opt{background:var(--lt-surface);color:var(--lt-ink)}${T} .vs-known:hover i,${T} .vs-known.on i{background:var(--lt-accent);border-color:var(--lt-accent);color:var(--lt-accent-ink)}${T} .vs-round{color:var(--lt-head-muted)}${T} .vs-ctx{background:var(--lt-paper);border-color:var(--lt-line)}${T} .vs-ctx p{color:var(--lt-ink)}
 ${T} .vs-word,${T} .ss-card h2,${T} .ss-card h3{font-family:var(--lt-font)}
 ${T} .vs-reveal{background:var(--lt-paper);border-color:var(--lt-line);color:var(--lt-ink)}
 ${T} .vs-bar i{background:var(--lt-accent)}
@@ -258,6 +259,8 @@ body{background:${t.paper}}
    кнопки New task/Undo/Deal - гасло почти до невидимости на своих белых
    поверхностях (прогон 30.09.2026, «Цвета не видано»). SVG-иконки той же
    ценой чинятся даром: currentColor в ww.js следует за этим же наследованием. */
+${HI} .ww-stage{color:${t.headInk}}
+${HI} .ww-stage :is(.ww-slot,.ww-answers,.cs-bank,.cs-gap,.gs-col,.cw-cell,.mp-face,.sc-card,.ws-grid,.ws-w,.card,.word-card,.ob-close,.wh-row button){color:${t.ink}}
 ${HI} .ww-timer,${HI} .ww-center,${HI} .ww-score,${HI} .ww-nav>span,${HI} .ww-lives{color:${t.headInk} !important}
 ${HI} > h1,${HI} > .back,${HI} > .subtitle,${HI} > p,${HI} header h1,${HI} header p{color:${t.headInk} !important;font-family:${t.font} !important;text-transform:${t.fontCase};text-shadow:0 2px 14px rgba(0,0,0,.35)}
 ${HI} > .subtitle,${HI} > p{color:${t.headMuted} !important;text-transform:none;font-family:inherit !important}

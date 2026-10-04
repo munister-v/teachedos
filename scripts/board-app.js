@@ -4572,7 +4572,7 @@ function _wpRender(el, card, focus) {
 function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
   const words = entries.map(e => ({ word: e.word, pos: e.pos || '', meaning: e.gloss || '', example: e.example || '',
     ipaUK: e.ipa || '', audioUK: e.audio || '', meaningKept: !!e.fromTeacher,
-    ...(e.enriched ? { collocations: e.collocations, gap: e.gap, chunk: e.chunk, speak: e.speak } : {}) }));
+    ...(e.enriched ? { collocations: e.collocations, gap: e.gap, chunk: e.chunk, speak: e.speak, pattern: e.pattern, phrase: e.phrase, _v2: 1 } : {}) }));
   const steps = [{ role: 'vocab-studio', title: 'Vocabulary Studio', out: { title: 'The words', words }, state: null }];
   const gameStep = (title, gameType, content, level) => {
     const m = _gameMetaFor(gameType);
@@ -4630,6 +4630,8 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
    всей фразы, а не статью одного из слов. Не ответил движок - карточка
    остаётся такой, какая есть. */
 const _wpEnrichAsked = new Set();
+const _wpReenrichTried = new Set();
+const _wpFakeExample = ex => /^\s*the word\b.*\bmeans?\b/i.test(String(ex || ''));
 async function _wpEnrichVocab(card) {
   const p = card && card.data && card.data._wfPath;
   if (!p || _wpEnrichAsked.has(card.id) || !authToken || !_wpOwnerOf(card)) return;
@@ -4651,7 +4653,11 @@ async function _wpEnrichVocab(card) {
     if (!x) return;
     if (x.meaning && (!w.meaning || (/\s/.test(w.word) && !w.meaningKept))) w.meaning = x.meaning;
     if (x.collocations && x.collocations.length) w.collocations = x.collocations;
+    // Заглушка «The word X means …» - не пример: меняем на настоящее предложение.
+    if (x.example && (!w.example || _wpFakeExample(w.example) || x.phrase)) { w.example = x.example; w.phrase = x.phrase || ''; }
+    if (x.pattern) w.pattern = x.pattern;
     if (x.gap) w.gap = x.gap;
+    w._v2 = 1;
     if (x.speak && x.speak.length) w.speak = x.speak;
   });
   // Speaking cards в пути: задания под каждое слово, а не общий набор.
@@ -4716,6 +4722,8 @@ function _wpVocabStudio(stage, card, k) {
   // Станция карты урока: слова из видео и нажатые учеником - в тот же список.
   const words = own.concat(window.TeachedFlow ? window.TeachedFlow.extraWords(card.id, own) : []);
   const st = Object.assign({ i: 0, mode: 'learn', known: [], learning: [], onlyLearning: false }, _wpState(card, k) || {});
+  // Старые наборы - без шаблона с предлогом и с заглушками вместо примеров: дообогатить.
+  if (own.some(w => !w._v2) && !_wpReenrichTried.has(card.id)) { _wpReenrichTried.add(card.id); _wpEnrichVocab(card); }
   const box = document.createElement('div');
   box.className = 'vs';
   stage.appendChild(box);
@@ -4725,9 +4733,25 @@ function _wpVocabStudio(stage, card, k) {
   const save = () => _wpSetState(card, k, { i: st.i, mode: st.mode, known: st.known, learning: st.learning, onlyLearning: st.onlyLearning });
   const list = () => st.onlyLearning ? words.filter(w => !st.known.includes(w.word)) : words;
   const rx = w => String(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
-  const hl = (ex, w) => {
+  const hl = (ex, w, phrase) => {
     const e = esc(ex || '');
+    const ph = esc(phrase || '');
+    if (ph && e.toLowerCase().includes(ph.toLowerCase())) {
+      const j = e.toLowerCase().indexOf(ph.toLowerCase());
+      return e.slice(0, j) + '<mark>' + e.slice(j, j + ph.length) + '</mark>' + e.slice(j + ph.length);
+    }
     return e.replace(new RegExp('\\b(' + rx(w) + '\\w*)', 'i'), '<mark>$1</mark>');
+  };
+  // Шаблон «steer clear of sth»: предлог - своим цветом, sb/sth - серым.
+  const PREPS = /^(of|on|at|in|into|for|from|to|with|about|by|off|out|up|down|over|away|after|against|through|around|back)$/i;
+  const patternHtml = (pat, word) => {
+    const wl = String(word).toLowerCase().split(/\s+/);
+    return String(pat).split(/(\s+|\/)/).map(x => {
+      if (!x.trim() || x === '/') return esc(x);
+      if (/^(sb|sth|somebody|something|someone|smb|smth|doing)$/i.test(x)) return `<i class="vs-slot">${esc(x)}</i>`;
+      if (PREPS.test(x) && !wl.includes(x.toLowerCase())) return `<b class="vs-prep">${esc(x)}</b>`;
+      return esc(x);
+    }).join('');
   };
   // В длинной фразе жирным выделено главное слово - самое длинное.
   const headline = word => {
@@ -4750,8 +4774,15 @@ function _wpVocabStudio(stage, card, k) {
   };
   const ipa = v => v ? `/${esc(String(v).replace(/^\/|\/$/g, ''))}/` : '<span class="vs-none">-</span>';
   // Предложение с пропуском: заготовка движка, а если её нет - пример со словом.
+  // Проверка - на НОВОМ предложении: повтор примера выше ничего не проверяет.
   const gapOf = w => {
-    if (w.gap && /_{3,}/.test(w.gap)) return w.gap;
+    if (w.gap && /_{3,}/.test(w.gap)) {
+      const norm = x => String(x || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim();
+      const ex = norm(w.example);
+      const parts = String(w.gap).split(/_{3,}/).map(norm);
+      if (!ex || !parts.every(x => !x || ex.includes(x))) return w.gap.replace(/_{3,}/, '______');
+    }
+    if (w._v2) return '';
     const ex = String(w.example || '');
     const re = new RegExp('\\b' + rx(w.word) + '\\b', 'i');
     return ex && re.test(ex) ? ex.replace(re, '______') : '';
@@ -4793,19 +4824,20 @@ function _wpVocabStudio(stage, card, k) {
           <article class="vs-card">
             <span class="vs-stamp no">Still learning</span><span class="vs-stamp yes">I know it</span>
             <div class="vs-word">${headline(w.word)}${w.pos ? `<span class="vs-pos">${esc(w.pos)}</span>` : ''}</div>
-            ${w.chunk && String(w.chunk).toLowerCase() !== String(w.word).toLowerCase() ? `<div class="vs-chunk" title="Learn it as a block">${chunkHtml(w.chunk, w.word)}</div>` : ''}
+            ${w.pattern && String(w.pattern).toLowerCase() !== String(w.word).toLowerCase() ? `<div class="vs-pattern" title="Use it like this">${patternHtml(w.pattern, w.word)}</div>` : ''}
+            ${w.chunk && !w.pattern && String(w.chunk).toLowerCase() !== String(w.word).toLowerCase() ? `<div class="vs-chunk" title="Learn it as a block">${chunkHtml(w.chunk, w.word)}</div>` : ''}
             <div class="vs-pron">
               <button type="button" class="vs-say" data-say="uk" title="Hear it - British"><b>UK</b> <span>${ipa(w.ipaUK)}</span></button>
               <button type="button" class="vs-say" data-say="us" title="Hear it - American"><b>US</b> <span>${ipa(w.ipaUS)}</span></button>
             </div>
             ${hide ? `<button type="button" class="vs-reveal">Say what it means - then show the meaning</button>`
               : `<p class="vs-meaning">${esc(w.meaning || 'No meaning given.')}</p>
-                ${w.example || hearBtn ? `<blockquote class="vs-ctx"><span class="vs-ctx-k">In context</span>${w.example ? `<p>${hl(w.example, w.word)}</p>` : ''}${hearBtn}</blockquote>` : ''}
+                ${(w.example && !_wpFakeExample(w.example)) || hearBtn ? `<blockquote class="vs-ctx"><span class="vs-ctx-k">In context</span>${w.example && !_wpFakeExample(w.example) ? `<p>${hl(w.example, w.word, w.phrase)}</p>` : ''}${hearBtn}</blockquote>` : ''}
                 ${w.collocations && w.collocations.length ? `<div class="vs-colloc"><span class="vs-ctx-k">Goes with</span>${w.collocations.map(c => `<em>${esc(c)}</em>`).join('')}</div>` : ''}
                 ${gap ? `<div class="vs-quiz${q ? ' open' : ''}">
                   ${q ? `<p class="vs-gap">${esc(gap).replace('______', q.picked && q.picked === w.word ? `<b class="ok">${esc(w.word)}</b>` : '<b class="blank">______</b>')}</p>
                     <div class="vs-opts">${optionsFor(w, st.i).map(o => `<button type="button" class="vs-opt${q.picked === o ? (o === w.word ? ' ok' : ' bad') : ''}" data-opt="${esc(o)}"${q.picked === w.word ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>`
-                    : `<button type="button" class="vs-try" data-quiz="1">Quick check: fill the gap</button>`}
+                    : `<button type="button" class="vs-try" data-quiz="1">Quick check: use it in a new sentence</button>`}
                 </div>` : ''}`}
           </article>
         </div>
@@ -16259,7 +16291,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1054';
+const TEACHEDOS_ASSET_VERSION = '1055';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18095,6 +18127,8 @@ async function _ttEnrichEntries(entries, base) {
     e.speak = x.speak || [];
     e.gap = x.gap || '';
     e.chunk = x.chunk || '';
+    e.pattern = x.pattern || '';
+    e.phrase = x.phrase || '';
     e.link = x.link || null;
     e.enriched = true;
   });
