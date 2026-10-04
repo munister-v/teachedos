@@ -452,6 +452,7 @@ const IW_WORD_HELP_SCRIPT = `
       + (!info.loading && canSay ? '<button type="button" class="iw-wh-say" aria-label="Listen" title="Listen">&#128266;</button>' : '')
       + (!info.loading ? '<button type="button" class="iw-wh-hear" data-hear="' + esc(info.word) + '" aria-label="Hear it in movies and TED" title="Hear it in movies &amp; TED">&#9654;</button>' : '')
       + '<button type="button" class="iw-wh-x" aria-label="Close">&times;</button></span></div>';
+    if (!info.loading) html += '<div class="iw-wh-row"><button type="button" class="iw-wh-add" title="Save this word to the dictionary for this lesson">＋ Save to dictionary</button></div>';
     if (info.loading) { html += '<div class="iw-wh-row iw-wh-loading">Looking it up…</div>'; return html; }
     if (info.meaning) html += '<div class="iw-wh-row iw-wh-mean">' + esc(info.meaning) + '</div>';
     else if (info.synonyms) html += '<div class="iw-wh-row iw-wh-mean">' + esc(info.synonyms) + '</div>';
@@ -487,6 +488,11 @@ const IW_WORD_HELP_SCRIPT = `
     box.style.top = (down ? r.bottom + 8 : Math.max(10, r.top - h - 8)) + 'px';
 
     box.querySelector('.iw-wh-x').addEventListener('click', close);
+    var add = box.querySelector('.iw-wh-add');
+    if (add) add.addEventListener('click', function(){
+      try { parent.postMessage({ type:'iw-word-save', cardId: window.__IW_CARD__, word: String(info.word||'').slice(0,80), meaning: String(info.meaning||info.synonyms||'').slice(0,250), example: String(info.example||'').slice(0,400) }, '*'); } catch(e) {}
+      add.textContent = '✓ Added'; add.disabled = true;
+    });
     var hear = box.querySelector('.iw-wh-hear');
     if (hear) hear.addEventListener('click', function(){ iwHear(info.word); close(); });
     var say = box.querySelector('.iw-wh-say');
@@ -1845,6 +1851,8 @@ strong{font-weight:650}
 .iw-ws-quote:hover{background:color-mix(in srgb,${accent} 18%,#fff)}
 .iw-ws-chip.here{border-color:${accent}}
 .iw-ws-saved-note{margin:8px 0 0;font-size:11px;color:var(--muted,#6B6E60)}
+.iw-wh-add{margin-top:6px;border:0;border-radius:999px;background:#CDF649;color:#24282C;font:700 12px/1 -apple-system,system-ui,sans-serif;padding:6px 11px;cursor:pointer}
+.iw-wh-add:disabled{background:#E6FAA6;cursor:default}
 .iw-wh-hear{width:24px;height:24px;flex-shrink:0;border:0;border-radius:7px;background:#24282C;color:#fff;font:10px/1 -apple-system,system-ui,sans-serif;cursor:pointer}
 .iw-wh-hear:hover{background:#000}
 .iw-hear-pill{position:fixed;z-index:45;padding:8px 12px;border:0;border-radius:999px;background:#24282C;color:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap}

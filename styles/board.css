@@ -7503,3 +7503,24 @@ body:not(#_) .text-format-toolbar select.text-format-select{
   -webkit-appearance:menulist;appearance:menulist;
 }
 body:not(#_) .text-format-toolbar select.text-format-select:hover{background-color:rgba(36,40,44,.1) !important;}
+
+/* Dictation / shadowing в Listening Studio */
+.dsh{background:#fff;border-radius:14px;padding:14px 16px;color:#24282C;height:100%;overflow:auto;box-sizing:border-box}
+.dsh-top p{margin:8px 0 12px;font-size:13.5px;color:#5D614B}
+.dsh-modes{display:inline-flex;gap:2px;padding:3px;border-radius:999px;border:1px solid rgba(36,40,44,.16)}
+.dsh-modes button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font:700 13px var(--font-ui,system-ui,sans-serif);color:#5D614B;cursor:pointer}
+.dsh-modes button.on{background:#CDF649;color:#24282C}
+.dsh-row{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-top:1px solid rgba(36,40,44,.08)}
+.dsh-n{font:800 14px var(--font-ui,system-ui,sans-serif);min-width:18px;padding-top:7px}
+.dsh-play{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:1px solid rgba(36,40,44,.16);background:#fff;cursor:pointer;font-size:13px}
+.dsh-play:hover{background:#CDF649;border-color:#CDF649}
+.dsh-main{flex:1;min-width:0}
+.dsh-in{width:100%;box-sizing:border-box;border:1px solid rgba(36,40,44,.16);border-radius:10px;padding:8px 10px;font:500 14px var(--font-ui,system-ui,sans-serif)}
+.dsh-in:focus{outline:none;border-color:#9bc21a;box-shadow:0 0 0 3px rgba(205,246,73,.35)}
+.dsh-res{margin-top:6px;font-size:14px;line-height:1.5}
+.dsh-res .ok{color:#2f6b00}.dsh-res .bad{color:#C2185B;text-decoration:underline wavy}
+.dsh-pct{margin-left:6px;font-size:12px;background:#F4FCD9;border-radius:6px;padding:1px 6px}
+.dsh-say{font-size:15px;line-height:1.45;padding-top:6px}
+.dsh-main audio{margin-top:6px;height:32px;width:100%}
+.dsh-chk{flex:0 0 auto;border:0;border-radius:10px;background:#24282C;color:#fff;font:700 13px var(--font-ui,system-ui,sans-serif);padding:8px 14px;cursor:pointer}
+.dsh-chk.rec{background:#C2185B}

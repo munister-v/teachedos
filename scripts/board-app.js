@@ -4320,7 +4320,7 @@ function _wpTaskStudio(stage, card, k, focus) {
   wrap.className = 'wts' + (st.hideMat || !mat ? ' no-mat' : '') + (mat && mat.kind === 'video' ? ' is-video' : '') + (watchFirst ? ' is-watch' : '');
   const width = focus ? Math.min(1280, window.innerWidth - 64) : card.w - 24;
   wrap.innerHTML = `
-    ${mat ? `<aside class="wts-mat"><div class="wts-mat-head"><b>${esc(mat.label || 'Material')}</b><button type="button" class="wts-hide" title="More room for the tasks">Hide</button></div><div class="wts-mat-body"></div></aside>` : ''}
+    ${mat ? `<aside class="wts-mat"><div class="wts-mat-head"><b>${esc(mat.label || 'Material')}</b>${owner && !card.__preview && mat.kind === 'text' && card.data._wfPath.kind === 'listening' ? '<button type="button" class="wts-hide wts-addvid" title="Put the video above the transcript">▶ Add the video</button>' : ''}<button type="button" class="wts-hide" title="More room for the tasks">Hide</button></div><div class="wts-mat-body"></div></aside>` : ''}
     <section class="wts-work">
       <div class="wts-tabs">
         ${mat ? `<button type="button" class="wts-show"${st.hideMat ? '' : ' hidden'}>☰ ${esc(mat.label || 'Material')}</button>` : ''}
@@ -4330,6 +4330,16 @@ function _wpTaskStudio(stage, card, k, focus) {
       <div class="wts-frame">${tasks.length || watchable ? '' : '<div class="wp-away">Watch the video - the teacher will give you the tasks.</div>'}</div>
     </section>`;
   stage.appendChild(wrap);
+  const addVid = wrap.querySelector('.wts-addvid');
+  if (addVid) addVid.onclick = e => {
+    e.stopPropagation();
+    const url = prompt('Paste the YouTube link for this lesson:');
+    const embedUrl = url && parseVideoEmbed(url.trim());
+    if (!embedUrl) { if (url) alert('That does not look like a YouTube or Vimeo link.'); return; }
+    out.material = { kind: 'video', label: 'The video', embedUrl, title: card.data.title || 'Video', transcript: mat.out };
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+    if (_wpFocusId === card.id) _studioRender(); else _wpRedraw(card);
+  };
   if (mat) {
     const body = wrap.querySelector('.wts-mat-body');
     const matW = focus ? 520 : 420;
@@ -4363,6 +4373,8 @@ function _wpTaskStudio(stage, card, k, focus) {
     }
     if (!tasks.length) { frame.innerHTML = '<div class="wp-away">Watch the video - the teacher will give you the tasks.</div>'; return; }
     frame.innerHTML = '';
+    // Диктант / shadowing - настоящая работа на слух, а не ещё один gap-fill.
+    if (_wpIsDictation(tasks[i])) { frame.appendChild(_wpDictation(tasks[i])); return; }
     const now = Object.assign({ tasks: {} }, _wpState(card, k) || {});
     const id = card.id + '::' + k + '::t' + i;
     // Ширина по живой колонке (в ней решается, узкая ли раскладка задания);
@@ -5503,6 +5515,27 @@ function _vaultCtx() {
   const quotes = items.filter(i => i.kind === 'quote').slice(0, 6).map(i => ({ text: i.word, source: i.source_title || '' }));
   return words.length || quotes.length ? { words, quotes } : null;
 }
+async function _iwSaveWord(m) {
+  if (!authToken) { toast('Sign in to keep your words'); return; }
+  const item = { text: String(m.word).slice(0, 80), meaning: String(m.meaning || '').slice(0, 250), example: String(m.example || '').slice(0, 400) };
+  const title = String((typeof currentBoardName !== 'undefined' && currentBoardName) || document.title || 'Lesson').slice(0, 120);
+  try {
+    if (typeof isOwner !== 'undefined' && isOwner && currentBoardId) {
+      const r0 = await apiFetch('/api/members/' + encodeURIComponent(currentBoardId));
+      const d0 = r0.ok ? await r0.json() : { members: [] };
+      const ids = (d0.members || []).filter(x => x.role !== 'viewer').map(x => x.user_id).filter(Boolean);
+      if (!ids.length) { toast('No students on this board yet - invite them first'); return; }
+      const r = await apiFetch('/api/vault/send', { method: 'POST', body: { studentIds: ids, boardId: currentBoardId, title, items: [item] } });
+      const d = await r.json().catch(() => ({}));
+      toast(r.ok ? (d.added ? `“${item.text}” sent to ${d.students} student${d.students === 1 ? '' : 's'}' dictionaries` : 'Your students already have this word') : (d.error || 'Could not send'));
+    } else {
+      const r = await apiFetch('/api/vault/save', { method: 'POST', body: { text: item.text, meaning: item.meaning, example: item.example, boardId: currentBoardId || null, sourceTitle: title } });
+      if (r.ok) { _vaultRemember({ kind: 'word', word: item.text, translation: item.meaning }); toast(`“${item.text}” is in your words for today`); }
+      else toast('Could not save the word');
+    }
+  } catch { toast('Could not save the word'); }
+}
+
 function _vaultRemember(item) {
   if (!window.__vaultSaved) window.__vaultSaved = [];
   if (!window.__vaultSaved.some(i => i.kind === item.kind && String(i.word).toLowerCase() === String(item.word).toLowerCase())) {
@@ -5726,6 +5759,9 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
         try { e.source.postMessage({ type: 'iw-word-info', cardId: m.cardId, word: m.word, info }, '*'); } catch {}
       })();
     }
+    /* «＋ Add to my words» в окне слова. Ученик - в свой словарь (Vault) с
+       пометкой урока; учитель - сразу всем ученикам этой доски. */
+    if (m.type === 'iw-word-save' && m.cardId && m.word && _iwSourceValid(m.cardId, e.source)) _iwSaveWord(m);
     // Слово, открытое в тексте, - в слова карты урока, если текст - её станция.
     if (m.type === 'iw-word-seen' && m.cardId && m.word && _iwSourceValid(m.cardId, e.source) && window.TeachedFlow) {
       window.TeachedFlow.onWordSeen(m.cardId, String(m.word).slice(0, 60), String(m.meaning || '').slice(0, 200));
@@ -16318,7 +16354,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1060';
+const TEACHEDOS_ASSET_VERSION = '1061';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18561,13 +18597,106 @@ async function runBoardLessonStages() {
     base, cfg, textOut, built, failed, keys, toolId,
     /* Плеер и решение «класть ли транскрипт» нужны укладчику, а он
        вызывается позже и отдельно, уже без формы перед глазами. */
-    media: (boardLessonWizard && boardLessonWizard.media) || null,
+    media: (boardLessonWizard && boardLessonWizard.media) || _wizLinkMedia(),
     skill: (boardLessonWizard && boardLessonWizard.skill) || null,
   };
   lastTeacherToolBuilderOutput = textOut;
   renderBoardLessonStagePreview(lastLessonStageSet);
   _ttSetAddToBoard(true);
   if (chip) chip.textContent = built.length ? `text + ${built.length}` : 'text ready';
+}
+
+/* ── Dictation / shadowing ───────────────────────────────────────────────
+   Предложения задания (пропуски заполнены ответами) звучат голосом.
+   Dictation: слушаешь (можно медленнее), пишешь, «Check» сверяет по словам.
+   Shadowing: слушаешь и сразу повторяешь вслух; можно записать себя и
+   сравнить с образцом. Ничего не уходит на сервер. */
+function _wpIsDictation(t) {
+  return !!t && (t._tool === 'listening-dictation' || /dictation|shadow/i.test(String(t.title || '')));
+}
+function _wpDictSentences(t) {
+  return (Array.isArray(t.questions) ? t.questions : []).map(q => {
+    let s = String(q.text || q.q || q.prompt || '');
+    const a = Array.isArray(q.answer) ? q.answer[0] : q.answer;
+    s = s.replace(/_{2,}|\[\s*\.{0,3}\s*\]/, a != null ? String(a) : '');
+    return s.replace(/\s+([.,!?;:])/g, '$1').replace(/\s+/g, ' ').trim();
+  }).filter(x => x.split(' ').length >= 3);
+}
+function _wpDictation(t) {
+  const list = _wpDictSentences(t);
+  const box = document.createElement('div');
+  box.className = 'dsh';
+  let mode = 'dict', rec = null, chunks = [], recUrl = {};
+  const speak = (txt, slow) => {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(txt);
+      const us = window.TeachedAccent && window.TeachedAccent.get() === 'us';
+      u.lang = us ? 'en-US' : 'en-GB'; u.rate = slow ? .72 : .95;
+      speechSynthesis.speak(u);
+    } catch {}
+  };
+  const norm = x => String(x).toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9' ]+/g, ' ').trim().split(/\s+/).filter(Boolean);
+  const check = (i, val) => {
+    const words = list[i].split(/\s+/), want = words.map(w => norm(w)[0] || ''), got = norm(val);
+    // Выравнивание (LCS): пропущенное слово не сбивает всё, что после него.
+    const L = Array.from({ length: want.length + 1 }, () => new Array(got.length + 1).fill(0));
+    for (let x = want.length - 1; x >= 0; x--) for (let y = got.length - 1; y >= 0; y--)
+      L[x][y] = want[x] === got[y] ? L[x + 1][y + 1] + 1 : Math.max(L[x + 1][y], L[x][y + 1]);
+    const hit = new Set();
+    for (let x = 0, y = 0; x < want.length && y < got.length;) {
+      if (want[x] === got[y]) { hit.add(x); x++; y++; } else if (L[x + 1][y] >= L[x][y + 1]) x++; else y++;
+    }
+    const ok = hit.size;
+    const html = words.map((w, j) => `<span class="${hit.has(j) ? 'ok' : 'bad'}">${esc(w)}</span>`).join(' ');
+    return { html, pct: Math.round(ok / Math.max(1, want.length) * 100) };
+  };
+  function paint() {
+    box.innerHTML = `<div class="dsh-top"><div class="dsh-modes"><button type="button" data-m="dict" class="${mode === 'dict' ? 'on' : ''}">✍️ Dictation</button><button type="button" data-m="shadow" class="${mode === 'shadow' ? 'on' : ''}">🗣 Shadowing</button></div>
+      <p>${mode === 'dict' ? 'Listen to each sentence and type exactly what you hear. Use 🐢 to hear it slower, then press Check.' : 'Listen, then repeat straight away - copy the rhythm and stress. Record yourself and compare.'}</p></div>
+      ${list.length ? list.map((s, i) => `<div class="dsh-row" data-i="${i}"><span class="dsh-n">${i + 1}</span>
+        <button type="button" class="dsh-play" data-play="${i}" title="Listen">▶</button>
+        ${mode === 'dict' ? `<button type="button" class="dsh-play slow" data-slow="${i}" title="Listen slowly">🐢</button>
+          <div class="dsh-main"><input class="dsh-in" data-in="${i}" placeholder="Type what you hear…" autocomplete="off" spellcheck="false"><div class="dsh-res" data-res="${i}"></div></div>
+          <button type="button" class="dsh-chk" data-chk="${i}">Check</button>`
+        : `<div class="dsh-main"><div class="dsh-say">${esc(s)}</div>${recUrl[i] ? `<audio controls src="${recUrl[i]}"></audio>` : ''}</div>
+          <button type="button" class="dsh-chk rec" data-rec="${i}">${rec && rec.i === i ? '■ Stop' : '● Record me'}</button>`}
+      </div>`).join('') : '<div class="wp-away">No sentences in this task yet.</div>'}`;
+  }
+  box.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.m) { mode = b.dataset.m; paint(); return; }
+    if (b.dataset.play != null) { speak(list[+b.dataset.play], false); return; }
+    if (b.dataset.slow != null) { speak(list[+b.dataset.slow], true); return; }
+    if (b.dataset.chk != null) {
+      const i = +b.dataset.chk, inp = box.querySelector(`[data-in="${i}"]`), r = check(i, inp.value);
+      box.querySelector(`[data-res="${i}"]`).innerHTML = `${r.html} <b class="dsh-pct">${r.pct}%</b>`;
+      return;
+    }
+    if (b.dataset.rec != null) {
+      const i = +b.dataset.rec;
+      if (rec && rec.i === i) { rec.r.stop(); return; }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        chunks = []; const r = new MediaRecorder(stream);
+        r.ondataavailable = ev => chunks.push(ev.data);
+        r.onstop = () => { stream.getTracks().forEach(x => x.stop()); recUrl[i] = URL.createObjectURL(new Blob(chunks)); rec = null; paint(); };
+        rec = { i, r }; r.start(); speak(list[i], false); paint();
+      } catch { toast('Allow the microphone to record yourself'); }
+    }
+  });
+  box.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.in != null) box.querySelector(`[data-chk="${e.target.dataset.in}"]`).click(); });
+  paint();
+  return box;
+}
+
+/* Ссылка на YouTube лежит в поле, но «Get the text» не нажимали (или
+   плеер сбросился) - видео всё равно должно поехать в урок. */
+function _wizLinkMedia() {
+  const url = String(document.getElementById('tb-wiz-link')?.value || document.getElementById('tbuilder-youtube')?.value || '').trim();
+  if (!url || typeof parseVideoEmbed !== 'function') return null;
+  const embedUrl = parseVideoEmbed(url);
+  return embedUrl ? { url, embedUrl, title: document.getElementById('tbuilder-topic')?.value.trim() || 'Video' } : null;
 }
 
 /* Задание с картинками показывается картинками, а не списком запросов.
