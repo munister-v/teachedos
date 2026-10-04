@@ -2232,6 +2232,43 @@ Rules: 5 stages that sum to ${duration}. All activities must be practical and re
   }
 });
 
+/* POST /api/ai/writing-prep - этапы подготовки полной Writing Studio
+   для задания урока: идеи с образцом, полезный язык, план, критерии. */
+router.post('/writing-prep', requireAuth, requireTeacher, lessonBoardLimiter, async (req, res) => {
+  try {
+    const level = String(req.body?.level || 'B1').slice(0, 4);
+    const task = String(req.body?.task || '').slice(0, 1500);
+    const topic = String(req.body?.topic || '').slice(0, 160);
+    const words = (Array.isArray(req.body?.words) ? req.body.words : []).map(w => String(w || '').trim().slice(0, 60)).filter(Boolean).slice(0, 20);
+    if (task.trim().length < 10) return res.status(400).json({ error: 'task required' });
+    if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
+    await reserveAiQuota(req.user, { mode: 'writing-prep', source: task.slice(0, 200) });
+    const prompt = `You are an ESL writing teacher preparing ${level} students for this writing task:
+"${task}"
+${topic ? `Lesson topic: ${topic}\n` : ''}${words.length ? `Lesson vocabulary to reuse: ${words.join(', ')}\n` : ''}
+Return ONLY JSON:
+{"ideas":[{"title":"...","text":"..."}],"phrases":[{"word":"...","definition":"..."}],"plan":["..."],"criteria":["..."]}
+Rules:
+- ideas: 3 different angles or points of view a student could take for THIS task. title = short angle (max 6 words); text = a model idea of 2 short sentences at ${level}.
+- phrases: 8 useful items for writing THIS text: first the lesson vocabulary that fits (as written), then linking words / functional phrases for this text type. definition = how to use it, max 10 words.
+- plan: 4-5 lines, one per paragraph or part, each "Part name: what to write" for THIS task.
+- criteria: 5 short checks a student can tick, specific to this task (e.g. "I used at least 3 words from the lesson").`;
+    const result = await aiEngine.rawGenerate(prompt);
+    recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
+    const str = (x, n) => String(x || '').trim().slice(0, n);
+    res.json({
+      ideas: (Array.isArray(result?.ideas) ? result.ideas : []).map(x => ({ title: str(x?.title, 60), text: str(x?.text, 400) })).filter(x => x.title && x.text).slice(0, 4),
+      phrases: (Array.isArray(result?.phrases) ? result.phrases : []).map(x => ({ word: str(x?.word, 60), definition: str(x?.definition, 120) })).filter(x => x.word).slice(0, 12),
+      plan: (Array.isArray(result?.plan) ? result.plan : []).map(x => str(x, 200)).filter(Boolean).slice(0, 6),
+      criteria: (Array.isArray(result?.criteria) ? result.criteria : []).map(x => str(x, 160)).filter(Boolean).slice(0, 6),
+      quota: await readAiQuota(req.user),
+    });
+  } catch (err) {
+    console.error('[ai/writing-prep]', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+  }
+});
+
 /* POST /api/ai/pick-vocab - учитель вставил скрипт: ИИ выбирает из него
    слова и фразы под уровень класса, ровно как они стоят в тексте. */
 router.post('/pick-vocab', requireAuth, requireTeacher, lessonBoardLimiter, async (req, res) => {

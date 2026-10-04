@@ -3988,7 +3988,72 @@ function _wpBuildPath(set, results, kind, opts = {}) {
     steps = _wpSkillSteps(kind, results, opts.videoUrl, opts.videoTitle);
   }
   if (!steps.length) return null;
-  return { kind, steps, cur: 0, done: [], guide, genre: set.base.genre || '', assigned: [] };
+  const plan = kind === 'writing' ? {} : { mode: _wpPlanOpts.mode, speakFull: _wpPlanOpts.speakFull, writeFull: _wpPlanOpts.writeFull };
+  return { kind, steps, cur: 0, done: [], guide, genre: set.base.genre || '', assigned: [], ...plan };
+}
+/* Настройки урока при планировании: режим (кто и как занимается) и
+   «одно задание / полная студия» для Speaking и Writing. */
+const _wpPlanOpts = { mode: 'one', speakFull: true, writeFull: true };
+function _wpPlanRowHtml() {
+  const seg = (key, opts) => `<div class="tb-plan-seg">${opts.map(([v, l]) => `<button type="button" data-plan="${key}" data-v="${v}" class="${String(_wpPlanOpts[key]) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+  return `<div class="tb-plan">
+    <div class="tb-plan-row"><span>Lesson mode</span>${seg('mode', [['self', '🎧 Self-study'], ['one', '👥 1-on-1'], ['group', '🏆 Group']])}</div>
+    <div class="tb-plan-row"><span>Speaking</span>${seg('speakFull', [[true, 'Full studio'], [false, 'Just the task']])}</div>
+    <div class="tb-plan-row"><span>Writing</span>${seg('writeFull', [[true, 'Full studio'], [false, 'Just the task']])}</div>
+    <small>Full studio = warm-up, preparation stages and a wrap-up around the task. Just the task = one focused activity (good for a short lesson or the next one).</small>
+  </div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-plan]');
+  if (!b) return;
+  const k = b.dataset.plan, v = b.dataset.v;
+  _wpPlanOpts[k] = k === 'mode' ? v : v === 'true';
+  b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  const c = _wpPreview.card;
+  if (c) { c.data._wfPath[k] = _wpPlanOpts[k]; _wpPreviewRender(); }
+});
+
+/* ── Полная Writing Studio: перед письмом - идеи, полезный язык, план и
+   критерии, собранные ИИ под задание этого урока. */
+const _wpPrepCache = new Map();
+const _wpPrepBusy = new Set();
+const WP_PREP_ROLES = ['ideas', 'phrases', 'plan', 'criteria'];
+async function _wpWritePrep(card, si) {
+  const p = card.data._wfPath, step = p.steps[si];
+  if (!step || _wpPrepBusy.has(card.id) || !authToken) return;
+  const task = _wpStepText(step.out).slice(0, 1500);
+  if (!task) return;
+  _wpPrepBusy.add(card.id);
+  const key = task + '|' + (card.data.level || '');
+  let d = _wpPrepCache.get(key);
+  try {
+    if (!d) {
+      const r = await apiFetch('/api/ai/writing-prep', { method: 'POST', body: { task, level: card.data.level || 'B1', topic: String(card.data.title || ''),
+        words: _wpPhrases(p).map(x => x.phrase).slice(0, 20) } });
+      d = r.ok ? await r.json() : null;
+      if (d) _wpPrepCache.set(key, d);
+    }
+  } catch {}
+  _wpPrepBusy.delete(card.id);
+  const c = _wpCard(card.id);
+  if (!d || !c) { toast('Could not build the writing preparation - try again.'); return; }
+  const P = c.data._wfPath, at = P.steps.findIndex(x => x.role === 'studio');
+  if (at < 0 || (at > 0 && WP_PREP_ROLES.includes(P.steps[at - 1].role))) return;
+  const add = [];
+  if (d.ideas && d.ideas.length) add.push({ role: 'ideas', title: 'Brainstorm', _prep: 1, out: { title: 'Brainstorm: your ideas', cards: d.ideas }, state: null });
+  if (d.phrases && d.phrases.length) add.push({ role: 'phrases', title: 'Useful language', _prep: 1, out: { title: 'Useful language', items: d.phrases }, state: null });
+  if (d.plan && d.plan.length) add.push({ role: 'plan', title: 'Plan', _prep: 1, out: { title: 'Plan your text', cards: d.plan.map(l => { const m = l.match(/^([^:]{2,40}):\s*(.+)$/); return m ? { title: m[1], text: m[2] } : { title: '', text: l }; }) }, state: null });
+  if (d.criteria && d.criteria.length) add.push({ role: 'criteria', title: 'Success criteria', _prep: 1, out: { title: 'What a good answer has', cards: [{ title: 'Check your text', text: d.criteria.join('\n') }] }, state: null });
+  if (!add.length) return;
+  P.steps.splice(at, 0, ...add);
+  if ((P.cur || 0) >= at) P.cur = at;
+  if (!c.__preview) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  if (c.__preview) _wpPreviewRender(); else if (_wpFocusId === c.id) _studioRender(); else _wpRedraw(c);
+}
+function _wpStepText(out) {
+  if (!out) return '';
+  const cards = (out.struct && out.struct.cards) || out.cards || [];
+  return [out.title, out.text, ...cards.map(c => (c.title || '') + ': ' + (c.text || ''))].filter(Boolean).join('\n').trim();
 }
 function _wfPlacePath(set, results, label, kind, opts = {}) {
   const path = _wpBuildPath(set, results, kind, opts);
@@ -4470,6 +4535,7 @@ function _wpRender(el, card, focus) {
       ...args, outs: step.out.outs || [], phrases: _wpDedupPhrases((window.TeachedFlow ? window.TeachedFlow.phrases(card.id) : []).concat(_wpPhrases(p), ((_vaultCtx() || {}).words || []).map(w => ({ phrase: w.phrase, note: `Saved while reading${w.note ? ' - ' + w.note : ''}` })))).slice(0, 48), state: _wpState(card, i),
       authed: !!(currentBoardId && authToken) && !review && !card.__preview,
       preview: !!card.__preview, topic: String(card.data.title || '').replace(/^[^:]*:\s*/, ''),
+      mode: p.mode, full: p.speakFull,
       save: stState => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, stState); },
       onRecordings: () => window.TeachEdSpeakingStudio.showRecordings(args),
     });
@@ -4514,6 +4580,27 @@ function _wpRender(el, card, focus) {
     _wpGameStep(stage, card, i);
   } else {
     const width = focus ? Math.min(1280, window.innerWidth - 64) : card.w - 24;
+    // Writing Studio в уроке другого навыка: полная студия - с подготовкой.
+    const prepped = i > 0 && WP_PREP_ROLES.includes(p.steps[i - 1].role);
+    if (step.role === 'studio' && p.kind !== 'writing' && !prepped && (_wpOwnerOf(card) || card.__preview)) {
+      if (p.writeFull === true) {
+        const bar = document.createElement('div'); bar.className = 'wp-prepbar';
+        bar.innerHTML = _wpPrepBusy.has(card.id) || authToken ? '<span>✍️ Building the preparation stages: brainstorm → useful language → plan → success criteria…</span>' : '<span>Sign in to build the preparation stages.</span>';
+        stage.appendChild(bar);
+        _wpWritePrep(card, i);
+      } else if (p.writeFull === undefined) {
+        const bar = document.createElement('div'); bar.className = 'wp-prepbar';
+        bar.innerHTML = '<span>✍️ Make it a full Writing Studio: brainstorm → useful language → plan → write → check.</span><button type="button" data-prep="1">Add the preparation</button><button type="button" class="ghost" data-prep="0">Just the task</button>';
+        bar.addEventListener('click', ev => {
+          const b = ev.target.closest('[data-prep]'); if (!b) return;
+          const c = _wpCard(card.id); if (!c) return;
+          c.data._wfPath.writeFull = b.dataset.prep === '1';
+          if (!c.__preview) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+          if (c.data._wfPath.writeFull) { bar.innerHTML = '<span>✍️ Building the preparation stages…</span>'; _wpWritePrep(c, i); } else bar.remove();
+        });
+        stage.appendChild(bar);
+      }
+    }
     stage.appendChild(_wpFrame(card.id + '::' + i, _wpStepHtml(card, i, width)));
   }
   // Доска не должна тащить карточку, когда работают внутри шага.
@@ -16355,7 +16442,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1065';
+const TEACHEDOS_ASSET_VERSION = '1066';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18907,6 +18994,7 @@ function _wpPreviewShellHtml(set) {
       <button type="button" class="tb-wf-rebuild" id="tb-wf-rebuild" hidden onclick="_wfRebuildWithGenre()">Rebuild</button>` : ''}
     </div>
     ${window.TeachedThemes ? `<div class="tb-wp-theme"><span>Theme / Vibe</span>${window.TeachedThemes.gridHtml(_wpPreview.theme || '')}</div>` : ''}
+    ${writing ? '' : _wpPlanRowHtml()}
     <div class="tb-wp-prev" id="tb-wp-prev"></div>
     <p class="tb-wp-prev-note">Nothing here is saved and there is no answer key - this is exactly what a student gets.</p>
   </div>`;

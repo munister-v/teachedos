@@ -114,10 +114,13 @@
 
   function mount(host, o) {
     const core = promptsOf(o.outs);
-    const st = Object.assign({ i: 0, prep: 60, speak: 90, used: [], notes: {}, handed: {}, mode: o.owner ? 'one' : 'self', full: true, players: ['Student A', 'Student B'], who: 0, score: {} }, o.state || {});
+    const st = Object.assign({ i: 0, prep: 60, speak: 90, used: [], notes: {}, handed: {}, mode: o.mode || (o.owner ? 'one' : 'self'), full: o.full !== false, players: ['Student A', 'Student B'], who: 0, score: {} }, o.state || {});
     const lessonWords = (o.phrases || []).map(p => String(p.phrase || '').trim()).filter(Boolean);
     let prompts = [];
-    const buildPrompts = () => { prompts = st.full ? warmups(o.topic, lessonWords).concat(core, wrapups(o.topic)) : core.slice(); if (st.i >= prompts.length) st.i = 0; };
+    // Спринт: по 10 секунд на вопрос, ход переходит к следующему.
+    const sprint = core.length ? [{ kind: 'Sprint · pass the turn', sprint: true, help: [],
+      text: '10 seconds each! Give a quick opinion, then pass the turn:\n' + core.slice(0, 5).map((c, j) => `${j + 1}. ${String(c.text).split(/(?<=[?.!])\s/)[0]}`).join('\n') }] : [];
+    const buildPrompts = () => { prompts = st.full ? warmups(o.topic, lessonWords).concat(core, sprint, wrapups(o.topic)) : core.slice(); if (st.i >= prompts.length) st.i = 0; };
     buildPrompts();
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     let sr = null, live = false, heard = '';
@@ -187,11 +190,14 @@
       $('.ss-notes').value = st.notes[st.i] || '';
       host.querySelectorAll('[data-go]').forEach(b => { b.disabled = (b.dataset.go === '-1' ? st.i === 0 : st.i >= prompts.length - 1); });
       // Этапы: Warm-up · Discussion · Wrap-up.
-      const nW = st.full ? 3 : 0, nC = core.length;
+      const nW = st.full ? 3 : 0, nC = core.length + (st.full ? sprint.length : 0);
       const stage = !st.full ? 1 : st.i < nW ? 0 : st.i < nW + nC ? 1 : 2;
       $('.ss-stages').innerHTML = st.full ? [['Warm-up', 0], ['Discussion', nW], ['Wrap-up', nW + nC]].map(([l, at], j) => `<button type="button" class="ss-stage${j === stage ? ' on' : ''}${j < stage ? ' done' : ''}" data-jump="${at}"><i>${j + 1}</i>${l}</button>`).join('<span class="ss-stage-line"></span>') : '';
       const ch = st.chal && st.chal[st.i];
-      $('.ss-chal').innerHTML = stage === 1 ? (ch != null ? `<div class="ss-chal-card"><b>⚡ ${esc(CHALLENGES[ch].k)}</b> ${esc(CHALLENGES[ch].t)}</div>` : '') + `<button type="button" class="ss-chal-btn" data-act="chal">🎲 ${ch != null ? 'Another challenge' : 'Add a challenge'}</button>` : '';
+      const pr = prompts[st.i] || {};
+      $('.ss-text').innerHTML = pr.text ? String(pr.text).split('\n').map(l => md(l)).join('<br>') : $('.ss-text').innerHTML;
+      $('.ss-chal').innerHTML = pr.sprint ? `<button type="button" class="ss-chal-btn ss-sprint" data-act="sprint">⏱ Start 10 seconds${st.mode === 'group' ? ' - ' + esc(st.players[st.who] || '') : ''}</button>`
+        : stage === 1 ? (st.mode === 'group' ? `<button type="button" class="ss-chal-btn" data-act="sides">🎭 Assign sides</button> ` : '') + (ch != null ? `<div class="ss-chal-card"><b>⚡ ${esc(CHALLENGES[ch].k)}</b> ${esc(CHALLENGES[ch].t)}</div>` : '') + `<button type="button" class="ss-chal-btn" data-act="chal">🎲 ${ch != null ? 'Another challenge' : 'Add a challenge'}</button>` : '';
       paintMode();
     }
     function paintMode() {
@@ -203,7 +209,9 @@
       const listenBtn = SR ? `<button type="button" class="ss-listen${live ? ' on' : ''}" data-act="listen">${live ? '■ Stop listening' : '🎙 Listen for lesson words'}</button>` : '<span class="ss-hint">Word catching needs Chrome.</span>';
       if (st.mode === 'group') {
         const total = i => (st.score[i] || []).length;
-        b.innerHTML = `<div class="ss-lb">${st.players.map((n, i) => `<button type="button" class="ss-pl${st.who === i ? ' on' : ''}" data-who="${i}"><span>${esc(n)}</span><b>${total(i)}</b></button>`).join('')}
+        const wrap = st.full && st.i >= prompts.length - 2;
+        const best = st.players.map((n, i) => [n, total(i)]).sort((a, b2) => b2[1] - a[1])[0];
+        b.innerHTML = (wrap && best && best[1] ? `<div class="ss-winner">🏆 Most lesson language: <b>${esc(best[0])}</b> - ${best[1]} phrase${best[1] === 1 ? '' : 's'}</div>` : '') + `<div class="ss-lb">${st.players.map((n, i) => `<button type="button" class="ss-pl${st.who === i ? ' on' : ''}" data-who="${i}"><span>${esc(n)}${st.sides && st.sides[i] ? ` <em class="ss-side-${st.sides[i] === 'For' ? 'for' : 'ag'}">${st.sides[i]}</em>` : ''}</span><b>${total(i)}</b></button>`).join('')}
           <button type="button" class="ss-pl add" data-act="addpl" title="Add a student or team">＋</button></div>
           <div class="ss-lb-note">${listenBtn}<span>Tap who is speaking. Phrases they say fly into their column.</span></div>`;
       } else if (st.mode === 'one') {
@@ -375,6 +383,11 @@
       else if (a === 'next') go(1);
       else if (a === 'hand') handIn(act);
       else if (a === 'listen') { live ? stopListen() : startListen(); }
+      else if (a === 'sides') { const n = st.players.length, order = st.players.map((_, j) => j).sort(() => Math.random() - .5); st.sides = {}; order.forEach((j, k) => { st.sides[j] = k % 2 ? 'Against' : 'For'; }); save(); paintMode(); msg('Defend your side even if you disagree - your job is to convince the others!'); }
+      else if (a === 'sprint') {
+        clearInterval(timer); phase = 'speak'; left = 10; paintClock(10);
+        tick(10, () => { phase = 'ready'; left = 10; if (st.mode === 'group') { st.who = (st.who + 1) % st.players.length; save(); } paintClock(10); paintPrompt(); msg('Time! Pass the turn.'); });
+      }
       else if (a === 'chal') { st.chal = st.chal || {}; const cur = st.chal[st.i]; let n; do { n = Math.floor(Math.random() * CHALLENGES.length); } while (n === cur && CHALLENGES.length > 1); st.chal[st.i] = n; save(); paintPrompt(); }
       else if (a === 'addpl') { const n = prompt('Name of the student or team:'); if (n && n.trim()) { st.players = st.players.concat(n.trim().slice(0, 24)); save(); paintMode(); } }
     });
