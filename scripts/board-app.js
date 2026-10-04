@@ -16354,7 +16354,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1061';
+const TEACHEDOS_ASSET_VERSION = '1062';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18614,78 +18614,137 @@ async function runBoardLessonStages() {
 function _wpIsDictation(t) {
   return !!t && (t._tool === 'listening-dictation' || /dictation|shadow/i.test(String(t.title || '')));
 }
-function _wpDictSentences(t) {
+function _wpDictItems(t) {
   return (Array.isArray(t.questions) ? t.questions : []).map(q => {
-    let s = String(q.text || q.q || q.prompt || '');
-    const a = Array.isArray(q.answer) ? q.answer[0] : q.answer;
-    s = s.replace(/_{2,}|\[\s*\.{0,3}\s*\]/, a != null ? String(a) : '');
-    return s.replace(/\s+([.,!?;:])/g, '$1').replace(/\s+/g, ' ').trim();
-  }).filter(x => x.split(' ').length >= 3);
+    const raw = String(q.text || q.q || q.prompt || '');
+    const ans = String(Array.isArray(q.answer) ? q.answer[0] : (q.answer || '')).trim();
+    const m = raw.match(/_{2,}|\[\s*\.{0,3}\s*\]/);
+    const clean = x => x.replace(/\s+([.,!?;:])/g, '$1').replace(/\s+/g, ' ').trim();
+    if (!m || !ans) return null;
+    return { before: clean(raw.slice(0, m.index)), after: clean(raw.slice(m.index + m[0].length)), ans, full: clean(raw.replace(m[0], ans)) };
+  }).filter(Boolean);
+}
+function _wpLev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
 }
 function _wpDictation(t) {
-  const list = _wpDictSentences(t);
+  const list = _wpDictItems(t);
   const box = document.createElement('div');
   box.className = 'dsh';
-  let mode = 'dict', rec = null, chunks = [], recUrl = {};
-  const speak = (txt, slow) => {
+  let mode = 'dict', rate = 1, sh = 0, rec = null;
+  const st = list.map(() => ({ heard: false, val: '', res: '', tries: 0 }));
+  const shs = list.map(() => ({ url: '', said: '', pct: null }));
+  const speak = (txt, onend) => {
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(txt);
       const us = window.TeachedAccent && window.TeachedAccent.get() === 'us';
-      u.lang = us ? 'en-US' : 'en-GB'; u.rate = slow ? .72 : .95;
+      u.lang = us ? 'en-US' : 'en-GB'; u.rate = rate * .95;
+      if (onend) u.onend = onend;
       speechSynthesis.speak(u);
-    } catch {}
+    } catch { onend && onend(); }
   };
-  const norm = x => String(x).toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9' ]+/g, ' ').trim().split(/\s+/).filter(Boolean);
-  const check = (i, val) => {
-    const words = list[i].split(/\s+/), want = words.map(w => norm(w)[0] || ''), got = norm(val);
-    // Выравнивание (LCS): пропущенное слово не сбивает всё, что после него.
-    const L = Array.from({ length: want.length + 1 }, () => new Array(got.length + 1).fill(0));
-    for (let x = want.length - 1; x >= 0; x--) for (let y = got.length - 1; y >= 0; y--)
-      L[x][y] = want[x] === got[y] ? L[x + 1][y + 1] + 1 : Math.max(L[x + 1][y], L[x][y + 1]);
-    const hit = new Set();
-    for (let x = 0, y = 0; x < want.length && y < got.length;) {
-      if (want[x] === got[y]) { hit.add(x); x++; y++; } else if (L[x + 1][y] >= L[x][y + 1]) x++; else y++;
-    }
-    const ok = hit.size;
-    const html = words.map((w, j) => `<span class="${hit.has(j) ? 'ok' : 'bad'}">${esc(w)}</span>`).join(' ');
-    return { html, pct: Math.round(ok / Math.max(1, want.length) * 100) };
+  const norm = x => String(x).toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const words = x => norm(x).split(' ').filter(Boolean);
+  // Мягкая проверка: опечатка - жёлтым и подсказка, а не «неверно».
+  const grade = i => {
+    const it = list[i], s = st[i], got = norm(s.val), want = norm(it.ans);
+    if (!got) return;
+    if (got === want) { s.res = 'ok'; return; }
+    s.tries++;
+    const near = _wpLev(got, want) <= Math.max(1, Math.round(want.length / 6));
+    s.res = near ? 'near' : 'bad';
   };
-  function paint() {
-    box.innerHTML = `<div class="dsh-top"><div class="dsh-modes"><button type="button" data-m="dict" class="${mode === 'dict' ? 'on' : ''}">✍️ Dictation</button><button type="button" data-m="shadow" class="${mode === 'shadow' ? 'on' : ''}">🗣 Shadowing</button></div>
-      <p>${mode === 'dict' ? 'Listen to each sentence and type exactly what you hear. Use 🐢 to hear it slower, then press Check.' : 'Listen, then repeat straight away - copy the rhythm and stress. Record yourself and compare.'}</p></div>
-      ${list.length ? list.map((s, i) => `<div class="dsh-row" data-i="${i}"><span class="dsh-n">${i + 1}</span>
-        <button type="button" class="dsh-play" data-play="${i}" title="Listen">▶</button>
-        ${mode === 'dict' ? `<button type="button" class="dsh-play slow" data-slow="${i}" title="Listen slowly">🐢</button>
-          <div class="dsh-main"><input class="dsh-in" data-in="${i}" placeholder="Type what you hear…" autocomplete="off" spellcheck="false"><div class="dsh-res" data-res="${i}"></div></div>
-          <button type="button" class="dsh-chk" data-chk="${i}">Check</button>`
-        : `<div class="dsh-main"><div class="dsh-say">${esc(s)}</div>${recUrl[i] ? `<audio controls src="${recUrl[i]}"></audio>` : ''}</div>
-          <button type="button" class="dsh-chk rec" data-rec="${i}">${rec && rec.i === i ? '■ Stop' : '● Record me'}</button>`}
-      </div>`).join('') : '<div class="wp-away">No sentences in this task yet.</div>'}`;
+  const hint = i => {
+    const it = list[i], s = st[i];
+    if (s.res === 'ok') return '<span class="dsh-ok">✓ Correct</span>';
+    if (!s.res) return '';
+    const len = it.ans.split(/\s+/).map(w => w.length).join(' + ');
+    if (s.res === 'near') return `<span class="dsh-near">Almost - check the spelling. It starts with “${esc(it.ans[0])}”, ${len} letters.</span>`;
+    if (s.tries >= 3) return `<span class="dsh-bad">Answer: <b>${esc(it.ans)}</b></span>`;
+    return `<span class="dsh-bad">Not quite - listen again.${s.tries >= 2 ? ` Hint: starts with “${esc(it.ans[0])}”, ${len} letters.` : ''}</span>`;
+  };
+  const speed = () => `<div class="dsh-speed" title="Playback speed">${[.75, 1].map(r => `<button type="button" data-rate="${r}" class="${rate === r ? 'on' : ''}">${r}x</button>`).join('')}</div>`;
+  function paintDict() {
+    return list.map((it, i) => { const s = st[i]; return `<div class="dsh-row" data-i="${i}"><span class="dsh-n">${i + 1}</span>
+      <button type="button" class="dsh-play${s.heard ? '' : ' pulse'}" data-play="${i}" title="Listen">▶</button>
+      <div class="dsh-main"><div class="dsh-line">${esc(it.before)} <input class="dsh-gap ${s.res}" data-in="${i}" value="${esc(s.val)}" size="${Math.max(6, it.ans.length + 2)}" ${s.heard ? '' : 'disabled placeholder="▶ first"'} ${s.res === 'ok' ? 'readonly' : ''} autocomplete="off" spellcheck="false"> ${esc(it.after)}</div>
+        <div class="dsh-hint">${hint(i)}</div></div></div>`; }).join('');
   }
-  box.addEventListener('click', async e => {
+  function paintShadow() {
+    const it = list[sh], s = shs[sh];
+    const said = new Set(words(s.said));
+    return `<div class="dsh-card"><div class="dsh-step">Line ${sh + 1} of ${list.length}</div>
+      <div class="dsh-say">${s.said ? it.full.split(/\s+/).map(w => `<span class="${said.has(norm(w)) ? 'ok' : 'miss'}">${esc(w)}</span>`).join(' ') : esc(it.full)}</div>
+      <div class="dsh-acts"><button type="button" class="dsh-big" data-listen>▶ Listen</button>
+        <button type="button" class="dsh-big rec${rec ? ' on' : ''}" data-rec>${rec ? '■ Stop' : '● Repeat & record'}</button></div>
+      ${s.pct != null ? `<div class="dsh-score"><b>${s.pct}%</b> of the words matched${s.said ? ` · we heard: “${esc(s.said)}”` : ''}</div>` : ''}
+      ${s.url ? `<audio controls src="${s.url}"></audio>` : ''}
+      <div class="dsh-pager"><button type="button" data-sh="-1"${sh ? '' : ' disabled'}>← Previous</button><button type="button" data-sh="1"${sh < list.length - 1 ? '' : ' disabled'}>Next line →</button></div></div>`;
+  }
+  function paint() {
+    box.innerHTML = `<div class="dsh-top"><div class="dsh-modes"><button type="button" data-m="dict" class="${mode === 'dict' ? 'on' : ''}">1 · Dictation</button><button type="button" data-m="shadow" class="${mode === 'shadow' ? 'on' : ''}">2 · Shadowing</button></div>${speed()}</div>
+      <p class="dsh-help">${mode === 'dict' ? 'Press ▶, listen, then type the missing words. Small spelling slips get a hint, not a red cross.' : 'Listen to one line, then say it straight after the speaker - same rhythm and stress. We record you and check how much matched.'}</p>
+      ${list.length ? (mode === 'dict' ? paintDict() : paintShadow()) : '<div class="wp-away">No sentences in this task yet.</div>'}`;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  async function record() {
+    if (rec) { rec.stop(); return; }
+    const i = sh, s = shs[i];
+    let stream = null, mr = null, chunks = [], sr = null;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { toast('Allow the microphone to record yourself'); return; }
+    mr = new MediaRecorder(stream); mr.ondataavailable = e => chunks.push(e.data);
+    mr.onstop = () => { stream.getTracks().forEach(x => x.stop()); s.url = URL.createObjectURL(new Blob(chunks)); paint(); };
+    s.said = ''; s.pct = null;
+    if (SR) {
+      sr = new SR(); sr.lang = 'en-GB'; sr.interimResults = false; sr.continuous = true;
+      sr.onresult = e => { s.said = [...e.results].map(r => r[0].transcript).join(' '); };
+      try { sr.start(); } catch {}
+    }
+    mr.start();
+    rec = { stop() {
+      try { mr.stop(); } catch {} try { sr && sr.stop(); } catch {}
+      rec = null;
+      setTimeout(() => {
+        const want = words(list[i].full), got = new Set(words(s.said));
+        s.pct = SR ? Math.round(want.filter(w => got.has(w)).length / Math.max(1, want.length) * 100) : null;
+        paint();
+      }, 700);
+    } };
+    paint();
+  }
+  box.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.m) { mode = b.dataset.m; paint(); return; }
-    if (b.dataset.play != null) { speak(list[+b.dataset.play], false); return; }
-    if (b.dataset.slow != null) { speak(list[+b.dataset.slow], true); return; }
-    if (b.dataset.chk != null) {
-      const i = +b.dataset.chk, inp = box.querySelector(`[data-in="${i}"]`), r = check(i, inp.value);
-      box.querySelector(`[data-res="${i}"]`).innerHTML = `${r.html} <b class="dsh-pct">${r.pct}%</b>`;
+    if (b.dataset.rate) { rate = +b.dataset.rate; paint(); return; }
+    if (b.dataset.play != null) {
+      const i = +b.dataset.play;
+      speak(list[i].full, () => { if (!st[i].heard) { st[i].heard = true; paint(); box.querySelector(`[data-in="${i}"]`)?.focus(); } });
+      setTimeout(() => { if (!st[i].heard) { st[i].heard = true; paint(); } }, 2500);
       return;
     }
-    if (b.dataset.rec != null) {
-      const i = +b.dataset.rec;
-      if (rec && rec.i === i) { rec.r.stop(); return; }
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        chunks = []; const r = new MediaRecorder(stream);
-        r.ondataavailable = ev => chunks.push(ev.data);
-        r.onstop = () => { stream.getTracks().forEach(x => x.stop()); recUrl[i] = URL.createObjectURL(new Blob(chunks)); rec = null; paint(); };
-        rec = { i, r }; r.start(); speak(list[i], false); paint();
-      } catch { toast('Allow the microphone to record yourself'); }
-    }
+    if (b.dataset.listen != null) { speak(list[sh].full); return; }
+    if (b.dataset.rec != null) { record(); return; }
+    if (b.dataset.sh) { sh = Math.max(0, Math.min(list.length - 1, sh + +b.dataset.sh)); paint(); }
   });
-  box.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.in != null) box.querySelector(`[data-chk="${e.target.dataset.in}"]`).click(); });
+  box.addEventListener('input', e => { const i = e.target.dataset.in; if (i != null) st[+i].val = e.target.value; });
+  box.addEventListener('keydown', e => {
+    const i = e.target.dataset.in;
+    if (i != null && e.key === 'Enter') { e.preventDefault(); grade(+i); paint(); const nx = box.querySelector(`[data-in="${+i + 1}"]`); if (st[+i].res === 'ok' && nx && !nx.disabled) nx.focus(); else box.querySelector(`[data-in="${i}"]`)?.focus(); }
+  });
+  // Уход с поля - проверка на месте, без перерисовки (иначе пропадёт клик по ▶ рядом).
+  box.addEventListener('focusout', e => {
+    const i = e.target.dataset && e.target.dataset.in;
+    if (i == null || !st[+i].val || st[+i].res === 'ok') return;
+    grade(+i);
+    e.target.className = 'dsh-gap ' + st[+i].res;
+    if (st[+i].res === 'ok') e.target.readOnly = true;
+    const h = e.target.closest('.dsh-row').querySelector('.dsh-hint'); if (h) h.innerHTML = hint(+i);
+  });
   paint();
   return box;
 }

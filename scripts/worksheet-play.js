@@ -909,7 +909,8 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
         <div class="iw-mc-bar"><span class="iw-mc-fill" id="iw-mc-fill"></span></div>
         <p class="iw-mc-note" id="iw-mc-note">Progress: 0 of ${missionOrder.length} stations complete</p>
       </div>
-      <div class="iw-mc">${stations}</div>` +
+      <div class="iw-mc iw-mc-paged">${stations}</div>
+      <div class="iw-mc-nav"><button type="button" class="iw-mc-prev" onclick="iwMcGo(-1)">← Back</button><span id="iw-mc-pos"></span><button type="button" class="iw-mc-next" onclick="iwMcGo(1)">Next →</button></div>` +
       IW_FOOT;
     } else {
       contentHtml = `<div class="iw-stepper">${stepHud}<div class="iw-step-track">${qBlocks}</div></div>` +
@@ -1154,6 +1155,22 @@ function iwMcSync(){
   if(note) note.textContent='Progress: '+done+' of '+secs.length+' stations complete';
   if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60);
 }
+/* По одному вопросу на экране: станции листаются вопрос за вопросом,
+   шапка станции видна над её вопросом. */
+var iwMcAt=0;
+function iwMcUnits(){ return [].slice.call(document.querySelectorAll('.iw-mc-body > *')); }
+function iwMcShow(){
+  var u=iwMcUnits(); if(!u.length) return;
+  iwMcAt=Math.max(0,Math.min(u.length-1,iwMcAt));
+  u.forEach(function(el,i){ el.classList.toggle('iw-mc-off', i!==iwMcAt); });
+  [].slice.call(document.querySelectorAll('.iw-mc-station')).forEach(function(sec){ sec.classList.toggle('iw-mc-off', !sec.contains(u[iwMcAt])); });
+  var pos=document.getElementById('iw-mc-pos'); if(pos) pos.textContent='Question '+(iwMcAt+1)+' of '+u.length;
+  var pv=document.querySelector('.iw-mc-prev'), nx=document.querySelector('.iw-mc-next');
+  if(pv) pv.disabled=iwMcAt===0; if(nx) nx.disabled=iwMcAt===u.length-1;
+  if(typeof iwReportHeight==='function') setTimeout(iwReportHeight,60);
+}
+function iwMcGo(d){ iwMcAt+=d; iwMcShow(); }
+document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcShow,0); });
 document.addEventListener('click',function(){ setTimeout(iwMcSync,0); });
 document.addEventListener('input',function(){ setTimeout(iwMcSync,0); });
 document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0); });`;
@@ -2112,8 +2129,15 @@ body.iw-ws-sent .iw-ws-bar{opacity:.4;pointer-events:none}
    и вердиктом (зелёный/красный). */
 .iw-stepper .iw-qtext,.iw-mc-body .iw-qtext{font-size:16px}
 .iw-stepper .iw-qtext{font-size:22px}
-.iw-stepper .iw-opts,.iw-mc-body .iw-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-.iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:52px;border-radius:12px;font-size:14.5px;font-weight:600;padding:10px 12px}
+.iw-stepper .iw-opts,.iw-mc-body .iw-opts{display:flex;flex-direction:column;gap:7px;max-width:640px;margin:0 auto;width:100%}
+.iw-stepper .iw-opt,.iw-mc-body .iw-opt{min-height:44px;border-radius:999px;font-size:14.5px;font-weight:600;padding:7px 16px 7px 7px}
+.iw-opt-key{border-radius:50%!important;width:30px!important;height:30px!important;font-size:13px!important}
+.iw-mc-off{display:none!important}
+.iw-mc-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.iw-mc-nav span{font:700 12.5px system-ui;color:var(--olive)}
+.iw-mc-nav button{border:1px solid var(--line-2);background:var(--panel);border-radius:999px;padding:8px 16px;font:700 13px system-ui;color:var(--ink);cursor:pointer}
+.iw-mc-nav .iw-mc-next{background:var(--lime);border-color:var(--lime)}
+.iw-mc-nav button:disabled{opacity:.4;cursor:default}
 .iw-stepper .iw-opt.correct,.iw-mc-body .iw-opt.correct{background:#5D614B!important;border-color:#5D614B;color:#fff}
 .iw-stepper .iw-opt.wrong,.iw-mc-body .iw-opt.wrong{background:#FF4E00!important;border-color:#FF4E00;color:#fff;opacity:.85}
 .iw-stepper .iw-tf,.iw-mc-body .iw-tf{justify-content:flex-start}
