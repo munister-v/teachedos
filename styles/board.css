@@ -6786,22 +6786,25 @@ body.board-page:not(#_) #sidebar{ background:#FFFFFF !important; backdrop-filter
 /* ── Laser pointer (scripts/board-laser.js) ─────────────────────────────── */
 #laser-layer{position:absolute;inset:0;pointer-events:none;z-index:9500;}
 /* the glowing dot is the cursor; games in cards must not swallow the stroke */
-body.laser-on #board-wrap, body.laser-on #board-wrap *{cursor:none!important;}
-body.laser-on #board iframe{pointer-events:none!important;}
-#mt-laser.active .mt-laser-dot{filter:drop-shadow(0 0 3px var(--laser,#FF2B2B));}
+/* Laser = cursor: the arrow stays, clicks reach cards and games. */
+#mt-select.laser{box-shadow:inset 0 0 0 2px var(--laser,#FF2E9A)!important;}
 .laser-pop{
   position:fixed;z-index:10050;transform:translateY(-50%);
-  display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;
-  background:#fff;border:1px solid rgba(36,40,44,.12);border-radius:999px;
-  box-shadow:0 8px 24px rgba(36,40,44,.14);
+  display:flex;align-items:center;gap:6px;padding:6px;
+  background:#fff;border:1px solid rgba(36,40,44,.12);border-radius:14px;
+  box-shadow:0 8px 24px rgba(36,40,44,.14);font:600 12.5px var(--font,system-ui,sans-serif);
 }
 .laser-pop[hidden]{display:none;}
-.laser-pop button{
+.laser-pop .laser-mode{border:0;background:transparent;color:#24282C;padding:7px 11px;border-radius:10px;cursor:pointer;font:inherit;white-space:nowrap;}
+.laser-pop .laser-mode:hover{background:#F6F6EF;}
+.laser-pop .laser-mode.on{background:#CDF649;}
+.laser-pop kbd{font:600 10px var(--mono,monospace);opacity:.55;margin-left:3px;}
+.laser-pop .laser-sep{width:1px;height:20px;background:rgba(36,40,44,.12);margin:0 2px;}
+.laser-pop .laser-dot{
   width:20px;height:20px;border-radius:50%;border:2px solid #fff;padding:0;cursor:pointer;
   background:var(--c);box-shadow:0 0 0 1px rgba(36,40,44,.18),0 0 8px var(--c);
 }
-.laser-pop button.on{box-shadow:0 0 0 2px #24282C,0 0 10px var(--c);}
-.laser-pop-hint{font:500 11.5px var(--font,system-ui,sans-serif);color:#5C5C66;white-space:nowrap;}
+.laser-pop .laser-dot.on{box-shadow:0 0 0 2px rgba(36,40,44,.45),0 0 10px var(--c);}
 
 /* ── Assign a game to students (scripts/assign-game.js) ─────────────────── */
 .game-assign-btn{
@@ -7611,3 +7614,21 @@ body:not(#_) .text-format-toolbar select.text-format-select:hover{background-col
 /* Align & distribute bar: the user asked to take it off the board (2026-10-04) -
    rarely used, and its pressed state turned black. Ctrl+G / Ctrl+Shift+G still work. */
 #align-bar{display:none !important;}
+
+/* Sticky note: no colour dots on hover - colours change only from the bar above
+   a selected sticky (user, 2026-10-04). */
+.sticky-toolbar{display:none !important;}
+
+/* Emoji sticker: no plate under it. figma-theme's glass rule
+   (body.fx:not(#_) :is(.board-card…)) out-ranked the plain .card-sticker one. */
+body.fx:not(#_) .board-card.card-sticker,
+body:not(#_) .board-card.card-sticker{
+  background:transparent!important;border-color:transparent!important;
+  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+/* GIFs live in the sticker/emoji panel now, not in More tools (2026-10-04). */
+#sticker-panel .sp-head{align-items:center;}
+#sticker-panel .sp-gif{margin-left:auto;margin-right:6px;border:1px solid rgba(36,40,44,.16);background:#fff;color:#24282C;
+  font:700 11.5px var(--font,system-ui,sans-serif);letter-spacing:.04em;padding:6px 10px;border-radius:9px;cursor:pointer;}
+#sticker-panel .sp-gif:hover{background:#CDF649;border-color:#CDF649;}
+.mt-more-item[hidden]{display:none!important;}

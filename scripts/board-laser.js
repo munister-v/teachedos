@@ -16,7 +16,8 @@
 (function () {
   'use strict';
 
-  const COLORS = { red: '#FF2B2B', green: '#2BFF5A' };
+  // Ключи red/green остались ради совместимости сообщений; цвета - яркий розовый и фирменный салатовый.
+  const COLORS = { red: '#FF2E9A', green: '#CDF649' };
   const FADE_MS = 5000;       // trail is gone five seconds after the stroke ends
   const SEND_MS = 50;         // batch points into one message per 50 ms (the WS allows 60 msg/s)
   const DOT_IDLE_MS = 1200;   // a remote dot with no news disappears after this
@@ -164,53 +165,40 @@
   const inBoard = e => boardWrap.contains(e.target) &&
     !e.target.closest('input, textarea, [contenteditable="true"], .zoom-controls, #zoom-controls, #minimap');
 
-  function onDown(e) {
-    if (!active || e.button !== 0 || !inBoard(e)) return;
-    e.preventDefault(); e.stopPropagation();
-    const p = screenToBoard(e.clientX, e.clientY);
-    drawing = { pts: [[p.x, p.y]], color, endedAt: null, remote: false, uid: 'me' };
-    strokes.push(drawing);
-    dots.me = { x: p.x, y: p.y, color, at: Date.now() };
-    queue({ start: true, pt: [p.x, p.y], dot: [p.x, p.y] });
-    kick();
-  }
-  function onMove(e) {
-    if (!active) return;
-    if (!drawing && !inBoard(e)) { if (dots.me) { delete dots.me; queue({ off: true }); kick(); } return; }
-    const p = screenToBoard(e.clientX, e.clientY);
-    dots.me = { x: p.x, y: p.y, color, at: Date.now() };
-    if (drawing) {
-      const last = drawing.pts[drawing.pts.length - 1];
-      // skip sub-pixel jitter; distance is measured on screen, not on the board
-      if (Math.hypot((p.x - last[0]) * state.scale, (p.y - last[1]) * state.scale) >= 1.5) {
-        drawing.pts.push([p.x, p.y]);
-        queue({ pt: [p.x, p.y], dot: [p.x, p.y] });
-      }
-      e.preventDefault(); e.stopPropagation();
-    } else {
-      queue({ dot: [p.x, p.y] });
-    }
-    kick();
-  }
-  function onUp(e) {
+  /* Указка работает как курсор (2026-10-04): клики, перетаскивание и
+     выделение доходят до доски как обычно, а за курсором тянется светящийся
+     след. Пауза в движении > 250 мс заканчивает штрих, и он гаснет. */
+  let lastMove = 0;
+  function endStroke() {
     if (!drawing) return;
     drawing.endedAt = Date.now();
     drawing = null;
     queue({ end: true });
-    if (e) { e.preventDefault(); e.stopPropagation(); }
     kick();
   }
-  // Capture phase on window: the board's own handlers (select box, card drag,
-  // pan) never see a laser stroke. Wheel is left alone, so zoom/scroll still work.
-  window.addEventListener('pointerdown', onDown, true);
+  function onMove(e) {
+    if (!active) return;
+    if (!inBoard(e)) { endStroke(); if (dots.me) { delete dots.me; queue({ off: true }); kick(); } return; }
+    const p = screenToBoard(e.clientX, e.clientY);
+    dots.me = { x: p.x, y: p.y, color, at: Date.now() };
+    lastMove = Date.now();
+    if (!drawing) {
+      drawing = { pts: [[p.x, p.y]], color, endedAt: null, remote: false, uid: 'me' };
+      strokes.push(drawing);
+      queue({ start: true, pt: [p.x, p.y], dot: [p.x, p.y] });
+    } else {
+      const last = drawing.pts[drawing.pts.length - 1];
+      if (Math.hypot((last[0] - p.x) * state.scale, (last[1] - p.y) * state.scale) >= 1.5) {
+        drawing.pts.push([p.x, p.y]);
+        queue({ pt: [p.x, p.y], dot: [p.x, p.y] });
+      }
+    }
+    kick();
+  }
   window.addEventListener('pointermove', onMove, true);
-  window.addEventListener('pointerup', onUp, true);
-  window.addEventListener('pointercancel', onUp, true);
-  // mouse* too: parts of the board listen to mousedown rather than pointerdown
-  window.addEventListener('mousedown', e => { if (active && inBoard(e) && e.button === 0) { e.preventDefault(); e.stopPropagation(); } }, true);
-  window.addEventListener('click', e => { if (active && inBoard(e)) { e.preventDefault(); e.stopPropagation(); } }, true);
-  window.addEventListener('dblclick', e => { if (active && inBoard(e)) { e.preventDefault(); e.stopPropagation(); } }, true);
-  window.addEventListener('blur', () => onUp());
+  window.addEventListener('blur', endStroke);
+  setInterval(() => { if (drawing && Date.now() - lastMove > 250) endStroke(); }, 100);
+  const onUp = endStroke;
   // Holding still is pointing too: re-send the dot so it does not time out
   // on the students' screens (DOT_IDLE_MS) while the teacher keeps it on a word.
   setInterval(() => { if (active && dots.me) queue({ dot: [dots.me.x, dots.me.y] }); }, 500);
@@ -218,30 +206,33 @@
   /* ── Tool on/off, colour ────────────────────────────────────────────── */
   // Looked up when used: the colour popover sits at the end of <body>,
   // after this script tag.
-  const $btn = () => document.getElementById('mt-laser');
+  const $btn = () => document.getElementById('mt-select');
   const $pop = () => document.getElementById('laser-pop');
+  let menuOpen = false;
 
   function paintUi() {
     const btn = $btn(), pop = $pop();
     document.body.classList.toggle('laser-on', active);
-    if (btn) {
-      btn.classList.toggle('active', active);
-      btn.style.setProperty('--laser', COLORS[color]);
-    }
+    if (btn) { btn.classList.toggle('laser', active); btn.style.setProperty('--laser', COLORS[color]); }
     if (pop) {
-      pop.hidden = !active;
+      pop.hidden = !menuOpen;
+      pop.querySelectorAll('[data-laser-mode]').forEach(b => b.classList.toggle('on', (b.dataset.laserMode === 'laser') === active));
       pop.querySelectorAll('[data-laser-color]').forEach(b => b.classList.toggle('on', b.dataset.laserColor === color));
-      if (active && btn) {
+      if (menuOpen && btn) {
         const r = btn.getBoundingClientRect();
-        pop.style.left = (r.right + 8) + 'px';
+        pop.style.left = (r.right + 10) + 'px';
         pop.style.top = (r.top + r.height / 2) + 'px';
       }
     }
   }
+  function menu(e) { if (e) e.stopPropagation(); menuOpen = !menuOpen; paintUi(); }
+  document.addEventListener('pointerdown', e => {
+    if (menuOpen && !e.target.closest('#laser-pop, #mt-select')) { menuOpen = false; paintUi(); }
+  }, true);
 
   function on() {
     if (active) return;
-    if (typeof setMiroTool === 'function') setMiroTool('laser');   // drops pen/connect/comment/placement
+    if (typeof setMiroTool === 'function') setMiroTool('select');   // указка - это курсор
     active = true;
     paintUi();
   }
@@ -252,7 +243,7 @@
     if (dots.me) { delete dots.me; queue({ off: true }); }
     paintUi(); kick();
   }
-  function toggle() { active ? (off(), typeof setMiroTool === 'function' && setMiroTool('select')) : on(); }
+  function toggle() { active ? off() : on(); }
   function setColor(c) {
     color = c === 'green' ? 'green' : 'red';
     try { localStorage.setItem('teached_laser_color', color); } catch (_) {}
@@ -264,21 +255,23 @@
   if (typeof setMiroTool === 'function') {
     const orig = setMiroTool;
     window.setMiroTool = setMiroTool = function (tool) {   // eslint-disable-line no-func-assign
-      if (tool !== 'laser' && active) off();
+      if (tool !== 'select' && active) off();
       return orig.apply(this, arguments);
     };
   }
 
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('#laser-pop [data-laser-color]');
-    if (b) { e.stopPropagation(); setColor(b.dataset.laserColor); }
+    if (b) { e.stopPropagation(); setColor(b.dataset.laserColor); if (!active) on(); return; }
+    const m = e.target.closest && e.target.closest('#laser-pop [data-laser-mode]');
+    if (m) { e.stopPropagation(); m.dataset.laserMode === 'laser' ? on() : off(); menuOpen = false; paintUi(); }
   });
 
   document.addEventListener('keydown', e => {
     const t = e.target;
     if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'Escape' && active) { e.preventDefault(); e.stopImmediatePropagation(); off(); setMiroTool('select'); return; }
+    if (e.key === 'Escape' && active) { e.preventDefault(); e.stopImmediatePropagation(); off(); return; }
     if (e.key === 'k' || e.key === 'K') { e.preventDefault(); e.stopImmediatePropagation(); toggle(); return; }
     // while the laser is on, 1 / 2 pick the colour without leaving the board
     if (active && e.key === '1') { e.preventDefault(); setColor('red'); }
@@ -288,5 +281,5 @@
   window.addEventListener('resize', paintUi, { passive: true });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paintUi); else paintUi();
 
-  window.TeachEdLaser = { toggle, on, off, setColor, remote, isOn: () => active };
+  window.TeachEdLaser = { toggle, on, off, setColor, remote, menu, isOn: () => active };
 })();
