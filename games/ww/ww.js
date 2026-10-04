@@ -214,6 +214,7 @@
         word: String(p.a || p.word || p.w || p.term || p.en || '').trim(),
         meaning: String(p.b || p.meaning || p.definition || p.d || p.uk || '').trim(),
         example: String(p.example || p.ex || '').trim(),
+        gap: String(p.gap || '').trim(),
         audio: p.audio || null,
         img: p.img || null
       };

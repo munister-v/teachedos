@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Unjumble</title>
-<link rel="stylesheet" href="ww.css?v=1066">
+<link rel="stylesheet" href="ww.css?v=1067">
 <style>
 /* Unjumble: слова предложения крупными плитками прямо в строке, их
    меняют местами (перетащить на другое слово или тапнуть два подряд).
@@ -14,6 +14,7 @@
 .uj-line{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 8px;padding:10px 6px;border-bottom:4px solid var(--gray);max-width:100%}
 .uj-w{padding:6px 12px;border:3px solid #fff;border-radius:6px;background:#24282C;color:#fff;font-weight:800;font-size:clamp(17px,3.8vw,28px);line-height:1.1;
   box-shadow:0 0 0 2px #24282C,0 3px 4px rgba(36,40,44,.3);touch-action:none;cursor:grab}
+.uj-w.is-right{background:#CDF649;color:#24282C;box-shadow:0 0 0 2px #CDF649,0 3px 4px rgba(36,40,44,.3)}
 .uj-w.is-sel{outline:3px solid #CDF649;outline-offset:3px}
 .uj-w.is-over{outline:3px dashed #CDF649;outline-offset:3px}
 .uj-punct{font-weight:900;font-size:clamp(20px,4.4vw,34px)}
@@ -22,7 +23,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=1066"></script>
+<script src="ww.js?v=1067"></script>
 <script>
 var DEMO=[{s:'I have a terrible headache today.',t:'headache - a pain in your head'},{s:'She stayed at home with a high fever.',t:'fever - a high body temperature'},{s:'Are you listening to music?',t:''}];
 var ww=WW.init({template:'Unjumble',instructions:'Drag and drop words to rearrange each sentence into its correct order.',timer:'up',score:true});
@@ -38,7 +39,7 @@ function render(){
   var root=document.createElement('div');root.className='uj'+(st.done==='ok'?' ok':'');
   if(it.t){var h=document.createElement('div');h.className='uj-hint';h.textContent=it.t;root.appendChild(h);}
   var line=document.createElement('div');line.className='uj-line';
-  st.order.forEach(function(wi,k){var b=document.createElement('div');b.className='uj-w';b.textContent=st.words[wi];b.dataset.k=k;line.appendChild(b);});
+  st.order.forEach(function(wi,k){var b=document.createElement('div');b.className='uj-w'+(st.words[wi]===st.words[k]?' is-right':'');b.textContent=st.words[wi];b.dataset.k=k;line.appendChild(b);});
   if(st.punct){var p=document.createElement('span');p.className='uj-punct';p.textContent=st.punct;line.appendChild(p);}
   root.appendChild(line);ww.stage.appendChild(root);
   ww.setCenter(st.done?'':bonus(st)+' moves for bonus');
@@ -67,6 +68,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({sentences:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=1066"></script>
+<script src="../../scripts/game-handoff.js?v=1067"></script>
 </body>
 </html>

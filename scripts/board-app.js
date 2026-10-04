@@ -16442,7 +16442,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1066';
+const TEACHEDOS_ASSET_VERSION = '1067';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17637,7 +17637,7 @@ async function _wordTemplateContent(t, ctx) {
     case 'matchup': case 'quiz': case 'flashcards': case 'findmatch': case 'pairs':
       return need(2, 'with a meaning') || { content: { pairs: kept.map(pair) }, note };
     case 'crossword':
-      return need(2, 'of 2-15 letters with a meaning') || { content: { pairs: kept.map(pair) }, note };
+      return need(2, 'of 2-15 letters with a meaning') || { content: { pairs: kept.map(e => ({ ...pair(e), gap: e.gap || '' })) }, note };
     case 'hangman': case 'anagram':
       return need(1, 'made only of letters, with a meaning') || { content: { pairs: kept.map(pair) }, note };
     case 'wordsearch':
@@ -18258,6 +18258,28 @@ function _ttTopicFromWords(words) {
 /* Настоящие предложения-контексты, чанки и задания одним запросом ИИ.
    Без них у слова без словарного примера игры строили «The word X means Y» -
    определение вместо слова в контексте. Нет ответа - остаётся как было. */
+/* «steer clear» → «steer clear of»: если по pattern фраза всегда идёт с
+   предлогом, он входит в сам чанк, а не только в пример. Слова учителя
+   с объектом посередине («blame sb for sth») не трогаем. */
+const WR_PREPS = new Set('of on in at to for with from about into onto over against by up out off away down back'.split(' '));
+function _wrAddPreposition(e) {
+  const word = String(e.word || '').trim();
+  if (!/\s/.test(word) || !e.pattern) return;
+  const pat = String(e.pattern || '').toLowerCase().replace(/\b(sb|sth|someone|something|somebody)\b|\//g, ' ').replace(/\s+/g, ' ').trim();
+  const core = word.toLowerCase().replace(/^to\s+/, '');
+  if (!pat.startsWith(core + ' ')) return;
+  const rest = pat.slice(core.length).trim().split(' ');
+  const prep = rest[0];
+  if (!WR_PREPS.has(prep) || new RegExp('\\s' + prep + '$', 'i').test(word)) return;
+  // Сразу за словом в pattern - предлог, а не объект («blame sb for sth» сюда не доходит).
+  const after = String(e.pattern).toLowerCase().slice(String(e.pattern).toLowerCase().indexOf(core) + core.length).trim();
+  if (!after.startsWith(prep + ' ') && after !== prep) return;
+  e.wordBare = word;
+  e.word = word + ' ' + prep;
+  // В «gap» предлог стоял после пропуска - теперь он внутри ответа.
+  if (e.gap) e.gap = e.gap.replace(new RegExp('_{3,}\\s+' + prep + '\\b', 'i'), '______');
+}
+
 async function _ttEnrichEntries(entries, base) {
   if (!authToken || !entries.length) return null;
   let d = null;
@@ -18279,6 +18301,7 @@ async function _ttEnrichEntries(entries, base) {
     e.gap = x.gap || '';
     e.chunk = x.chunk || '';
     e.pattern = x.pattern || '';
+    _wrAddPreposition(e);
     e.phrase = x.phrase || '';
     e.link = x.link || null;
     e.enriched = true;

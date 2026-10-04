@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Crossword</title>
-<link rel="stylesheet" href="ww.css?v=1066">
+<link rel="stylesheet" href="ww.css?v=1067">
 <style>
 /* Crossword: сетка слева, подсказки (значения) справа, Across / Down.
    Буквы вводятся с клавиатуры, курсор идёт по слову сам. Весь список -
@@ -27,7 +27,8 @@
    длиной в три строки, и список подсказок тогда длиннее самой сетки.
    Полный текст остаётся в подсказке курсора. */
 .cw-clues li{list-style:none;padding:3px 6px;border-radius:5px;cursor:pointer;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.cw-clues li.cur{background:#CDF649}
+.cw-clues li.cur{background:#CDF649;color:#24282C !important}
+.cw-clues li.cur *{color:#24282C !important}
 .cw-clues li b{margin-right:5px}
 @media (max-width:560px){
   /* Сетка идёт от левого края и прокручивается: при центрировании
@@ -40,7 +41,7 @@
 </style>
 </head>
 <body>
-<script src="ww.js?v=1066"></script>
+<script src="ww.js?v=1067"></script>
 <script>
 var DEMO=[{a:'headache',b:'a pain in your head'},{a:'fever',b:'a high body temperature'},{a:'cough',b:'a noisy push of air from your throat'},{a:'rash',b:'red spots on the skin'},{a:'sore throat',b:'pain when you swallow'},{a:'insomnia',b:'when you cannot sleep'}];
 var ROUND=10;
@@ -86,6 +87,17 @@ function nextRound(){
     for(var k=0;k<p.W.length;k++){var kk=key(p.r+dr*k,p.c+dc*k);cells[kk]=cells[kk]||{ch:p.W[k],v:'',words:[]};cells[kk].words.push(i);}});
   cur=null;render();focusWord(0);
 }
+/* Подсказка - предложение в контексте с пропуском, а не определение:
+   «His parents warned him to ______ of trouble.» Нет такого предложения -
+   остаётся значение. */
+var GAP='______';
+function clueOf(it){
+  if(it.gap&&it.gap.indexOf(GAP)>=0)return it.gap;
+  var ex=it.example||'';if(!ex||/^the word /i.test(ex))return it.meaning;
+  var w=String(it.word).replace(/^to\s+/i,'').trim();if(!w)return it.meaning;
+  var re=new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+  return re.test(ex)?ex.replace(re,GAP):it.meaning;
+}
 function wordCells(i){var p=placed[i],dr=p.d==='d'?1:0,dc=p.d==='a'?1:0,out=[];for(var k=0;k<p.W.length;k++)out.push(key(p.r+dr*k,p.c+dc*k));return out;}
 function render(){
   ww.stage.innerHTML='';
@@ -109,12 +121,13 @@ function render(){
     inp.onfocus=function(){d.classList.add('cur');if(cur==null||cells[k].words.indexOf(cur)<0){cur=cells[k].words[0];renderSoft();}};
     inp.onblur=function(){d.classList.remove('cur');};
     inp.oninput=function(){var v=norm(inp.value).slice(-1);cell.v=v;inp.value=v;if(v)step(k,1);};
-    inp.onkeydown=function(e){if(e.key==='Backspace'&&!inp.value){step(k,-1);e.preventDefault();}};
+    inp.onkeydown=function(e){if(e.key==='Backspace'&&!inp.value){step(k,-1);e.preventDefault();}
+      else if(e.key==='Enter'){e.preventDefault();if(checked)after();else submit();}};
     d.appendChild(inp);g.appendChild(d);});
   var cl=document.createElement('div');cl.className='cw-clues';
   ['a','d'].forEach(function(dd){var list=placed.filter(function(p){return p.d===dd;}).sort(function(a,b){return a.n-b.n;});if(!list.length)return;
     var h=document.createElement('h4');h.textContent=dd==='a'?'Across':'Down';cl.appendChild(h);
-    list.forEach(function(p){var li=document.createElement('li');li.className=p.i===cur?'cur':'';li.innerHTML='<b>'+p.n+'</b>'+WW.esc(p.it.meaning);li.title=p.it.meaning;li.onclick=function(){focusWord(p.i);};cl.appendChild(li);});});
+    list.forEach(function(p){var li=document.createElement('li');li.className=p.i===cur?'cur':'';var q=clueOf(p.it);li.innerHTML='<b>'+p.n+'</b>'+WW.esc(q);li.title=q+(q!==p.it.meaning?' – '+p.it.meaning:'');li.onclick=function(){focusWord(p.i);};cl.appendChild(li);});});
   if(narrow){var sc=document.createElement('div');sc.className='cw-scroll';sc.appendChild(g);root.appendChild(sc);}
   else root.appendChild(g);
   root.appendChild(cl);ww.stage.appendChild(root);
@@ -140,6 +153,6 @@ window.applyCustomContent=function(content,title){
 window.applyCustomContent({pairs:DEMO},'Illness vocabulary');
 WW.listen();
 </script>
-<script src="../../scripts/game-handoff.js?v=1066"></script>
+<script src="../../scripts/game-handoff.js?v=1067"></script>
 </body>
 </html>
