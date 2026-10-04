@@ -4787,6 +4787,8 @@ function _wpVocabStudio(stage, card, k) {
     const re = new RegExp('\\b' + rx(w.word) + '\\b', 'i');
     return ex && re.test(ex) ? ex.replace(re, '______') : '';
   };
+  // «to backfire» в пропуске после «may ___» - без «to».
+  const noTo = x => String(x).replace(/^to\s+/i, '');
   const optionsFor = (w, i) => {
     const others = words.filter(x => x.word !== w.word).map(x => x.word);
     const pick = [];
@@ -4835,8 +4837,8 @@ function _wpVocabStudio(stage, card, k) {
                 ${(w.example && !_wpFakeExample(w.example)) || hearBtn ? `<blockquote class="vs-ctx"><span class="vs-ctx-k">In context</span>${w.example && !_wpFakeExample(w.example) ? `<p>${hl(w.example, w.word, w.phrase)}</p>` : ''}${hearBtn}</blockquote>` : ''}
                 ${w.collocations && w.collocations.length ? `<div class="vs-colloc"><span class="vs-ctx-k">Goes with</span>${w.collocations.map(c => `<em>${esc(c)}</em>`).join('')}</div>` : ''}
                 ${gap ? `<div class="vs-quiz${q ? ' open' : ''}">
-                  ${q ? `<p class="vs-gap">${esc(gap).replace('______', q.picked && q.picked === w.word ? `<b class="ok">${esc(w.word)}</b>` : '<b class="blank">______</b>')}</p>
-                    <div class="vs-opts">${optionsFor(w, st.i).map(o => `<button type="button" class="vs-opt${q.picked === o ? (o === w.word ? ' ok' : ' bad') : ''}" data-opt="${esc(o)}"${q.picked === w.word ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>`
+                  ${q ? `<p class="vs-gap">${esc(gap).replace('______', q.picked && q.picked === w.word ? `<b class="ok">${esc(noTo(w.word))}</b>` : '<b class="blank">______</b>')}</p>
+                    <div class="vs-opts">${optionsFor(w, st.i).map(o => `<button type="button" class="vs-opt${q.picked === o ? (o === w.word ? ' ok' : ' bad') : ''}" data-opt="${esc(o)}"${q.picked === w.word ? ' disabled' : ''}>${esc(noTo(o))}</button>`).join('')}</div>`
                     : `<button type="button" class="vs-try" data-quiz="1">Quick check: use it in a new sentence</button>`}
                 </div>` : ''}`}
           </article>
@@ -16291,7 +16293,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1055';
+const TEACHEDOS_ASSET_VERSION = '1056';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
