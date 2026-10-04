@@ -16354,7 +16354,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1062';
+const TEACHEDOS_ASSET_VERSION = '1063';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18635,7 +18635,7 @@ function _wpDictation(t) {
   const list = _wpDictItems(t);
   const box = document.createElement('div');
   box.className = 'dsh';
-  let mode = 'dict', rate = 1, sh = 0, rec = null;
+  let mode = 'dict', rate = 1, sh = 0, di = 0, rec = null;
   const st = list.map(() => ({ heard: false, val: '', res: '', tries: 0 }));
   const shs = list.map(() => ({ url: '', said: '', pct: null }));
   const speak = (txt, onend) => {
@@ -18670,10 +18670,12 @@ function _wpDictation(t) {
   };
   const speed = () => `<div class="dsh-speed" title="Playback speed">${[.75, 1].map(r => `<button type="button" data-rate="${r}" class="${rate === r ? 'on' : ''}">${r}x</button>`).join('')}</div>`;
   function paintDict() {
-    return list.map((it, i) => { const s = st[i]; return `<div class="dsh-row" data-i="${i}"><span class="dsh-n">${i + 1}</span>
+    // По одному предложению на экране, как и в Shadowing.
+    return [di].map(i => { const it = list[i], s = st[i]; return `<div class="dsh-step">Sentence ${i + 1} of ${list.length}</div><div class="dsh-row" data-i="${i}"><span class="dsh-n">${i + 1}</span>
       <button type="button" class="dsh-play${s.heard ? '' : ' pulse'}" data-play="${i}" title="Listen">▶</button>
       <div class="dsh-main"><div class="dsh-line">${esc(it.before)} <input class="dsh-gap ${s.res}" data-in="${i}" value="${esc(s.val)}" size="${Math.max(6, it.ans.length + 2)}" ${s.heard ? '' : 'disabled placeholder="▶ first"'} ${s.res === 'ok' ? 'readonly' : ''} autocomplete="off" spellcheck="false"> ${esc(it.after)}</div>
-        <div class="dsh-hint">${hint(i)}</div></div></div>`; }).join('');
+        <div class="dsh-hint">${hint(i)}</div></div></div>
+      <div class="dsh-pager"><button type="button" data-di="-1"${i ? '' : ' disabled'}>← Previous</button><button type="button" data-di="1"${i < list.length - 1 ? '' : ' disabled'}>Next sentence →</button></div>`; }).join('');
   }
   function paintShadow() {
     const it = list[sh], s = shs[sh];
@@ -18729,12 +18731,13 @@ function _wpDictation(t) {
     }
     if (b.dataset.listen != null) { speak(list[sh].full); return; }
     if (b.dataset.rec != null) { record(); return; }
+    if (b.dataset.di) { di = Math.max(0, Math.min(list.length - 1, di + +b.dataset.di)); paint(); return; }
     if (b.dataset.sh) { sh = Math.max(0, Math.min(list.length - 1, sh + +b.dataset.sh)); paint(); }
   });
   box.addEventListener('input', e => { const i = e.target.dataset.in; if (i != null) st[+i].val = e.target.value; });
   box.addEventListener('keydown', e => {
     const i = e.target.dataset.in;
-    if (i != null && e.key === 'Enter') { e.preventDefault(); grade(+i); paint(); const nx = box.querySelector(`[data-in="${+i + 1}"]`); if (st[+i].res === 'ok' && nx && !nx.disabled) nx.focus(); else box.querySelector(`[data-in="${i}"]`)?.focus(); }
+    if (i != null && e.key === 'Enter') { e.preventDefault(); grade(+i); paint(); box.querySelector(`[data-in="${i}"]`)?.focus(); }
   });
   // Уход с поля - проверка на месте, без перерисовки (иначе пропадёт клик по ▶ рядом).
   box.addEventListener('focusout', e => {
