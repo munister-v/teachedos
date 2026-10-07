@@ -16443,7 +16443,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1074';
+const TEACHEDOS_ASSET_VERSION = '1075';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -27178,7 +27178,46 @@ document.addEventListener('paste', e => {
     _toastClipboard('🖼 Image pasted from URL');
     return;
   }
+  // 3. Text copied from Miro (or anywhere) - one sticky per line
+  if (_pasteStickiesFromText(txt)) { e.preventDefault(); pendingImagePos = null; return; }
 });
+
+/* Стикеры из Miro: выделить их там, Ctrl+C, здесь Ctrl+V. Miro кладёт в
+   буфер текст стикеров (по строке на стикер), цвета и размеры он не отдаёт, поэтому
+   каждая непустая строка становится стикером в сетке по центру экрана; цвета
+   чередуются. Ctrl+Z убирает весь набор разом. Одну длинную строку или
+   абзац это не трогает: вставка срабатывает на 1-80 коротких строк. */
+function _pasteStickiesFromText(text) {
+  const lines = String(text || '').split(/\r?\n/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (!lines.length || lines.length > 80) return false;
+  if (lines.some(l => l.length > 200)) return false;
+  if (lines.length === 1 && (lines[0].length > 120 || /^(https?:|data:)/i.test(lines[0]))) return false;
+  if (typeof boardCanEdit !== 'undefined' && currentUser && currentBoardId && !boardCanEdit) return false;
+  const def = getDefaults('sticky');
+  const GAP = 16, cols = Math.min(5, Math.ceil(Math.sqrt(lines.length)));
+  const rows = Math.ceil(lines.length / cols);
+  const W = cols * def.w + (cols - 1) * GAP, H = rows * def.h + (rows - 1) * GAP;
+  const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+  const at = findFreePlacement(c0.x, c0.y, W, H);
+  const x0 = Math.round(at.x - W / 2), y0 = Math.round(at.y - H / 2);
+  snapshot();
+  _suppressSnapshot++;
+  const made = [];
+  try {
+    lines.forEach((line, i) => {
+      const card = addCard('sticky', x0 + (i % cols) * (def.w + GAP), y0 + Math.floor(i / cols) * (def.h + GAP),
+        { text: line, color: STICKY_COLORS[i % STICKY_COLORS.length] });
+      if (card) made.push(card);
+    });
+  } finally { _suppressSnapshot--; }
+  if (!made.length) return false;
+  clearSelection && clearSelection();
+  state.selected = new Set(made.map(c => c.id));
+  made.forEach(c => getCardEl(c.id)?.classList.add('selected'));
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  _toastClipboard(`📝 ${made.length} sticky note${made.length === 1 ? '' : 's'} pasted`);
+  return true;
+}
 
 /* Global drag-drop onto the board itself */
 ['dragover','drop'].forEach(ev => {
