@@ -1012,7 +1012,8 @@ function renderNextClass(next, todaysCount) {
   }
 
   const toMin = t => { const [h, m] = String(t).split(':'); return +h * 60 + +m; };
-  const who = next.group_name || next.title || 'Class';
+  const _g = next.group_name && !/^1\s*:\s*1$/.test(String(next.group_name).trim()) ? next.group_name : '';
+  const who = next.student_name || _g || next.title || 'Class';
   const dur = toMin(next.end_time) - toMin(next.start_time);
 
   if (label) label.textContent = 'Next class';

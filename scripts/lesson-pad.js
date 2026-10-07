@@ -131,7 +131,7 @@
         <div class="lp-list">${rows || '<div class="lp-empty">Nothing yet. When you say something worth remembering - “it turns out that…”, “make a tough decision” - drop it here.</div>'}</div>
         <div class="lp-foot">
           <div class="lp-who">${who}</div>
-          <button type="button" class="lp-send" data-act="send"${entries.length && picked.size ? '' : ' disabled'}>Send to their dictionary &amp; homework${entries.length ? ` · ${entries.length}` : ''}</button>
+          <button type="button" class="lp-send" data-act="send"${entries.length && picked.size ? '' : ' disabled'}>Send to their Word Bank${entries.length ? ` · ${entries.length}` : ''}</button>
           <div class="lp-msg" id="lp-msg" role="status"></div>
           ${entries.length ? '<button type="button" class="lp-clear" data-act="clear">Clear the pad</button>' : ''}
         </div>
@@ -214,7 +214,7 @@
       entries = []; save();
       render();
       const m2 = host.querySelector('#lp-msg');
-      if (m2) { m2.textContent = d.added ? `✓ ${d.added} phrase${d.added === 1 ? '' : 's'} sent - they are in the students' dictionaries.` : 'They already have all of these.'; m2.className = 'lp-msg ok'; }
+      if (m2) { m2.textContent = d.added ? `✓ ${d.added} phrase${d.added === 1 ? '' : 's'} sent - they are in the students' Word Bank, ready to practise.` : 'They already have all of these.'; m2.className = 'lp-msg ok'; }
     } catch (e) {
       say(e.message || 'Could not send', 'err');
       btn.disabled = false;

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
+const { sendEmail, teacherMessageEmail, emailConfigured, SITE } = require('../lib/email');
 
 router.use(requireAuth);
 
@@ -320,24 +321,64 @@ router.post('/:id/pulse-hide', async (req, res) => {
   res.json({ ok: true });
 });
 
-/* Напоминание уходит уведомлением в TeachEd (колокольчик ученика). Если
-   ученик не зарегистрирован, сказать ему можно только письмом - это
-   решает клиент (mailto), сервер честно отвечает 409. */
+/* Напоминание и сообщение учителя уходят С ПЛАТФОРМЫ: уведомлением в кабинет
+   ученика (колокольчик) и письмом на его почту от TeachEd (ответ приходит
+   учителю). Ученик без аккаунта получает только письмо; нет ни аккаунта, ни
+   почты - сервер честно отвечает 409. Telegram - позже: в журнале уже есть
+   поле telegram, не хватает бота. */
 const REMIND_TEXT = {
   package: st => ({ title: 'Your lesson package is ending', body: st.lessons_left > 0 ? `${st.lessons_left} lesson${st.lessons_left === 1 ? '' : 's'} left in your package.` : 'Your lesson package is used up.' }),
   payment: () => ({ title: 'Payment reminder', body: 'Your payment for lessons is overdue. Please get in touch with your teacher.' }),
 };
-router.post('/:id/remind', async (req, res) => {
-  const kind = String(req.body?.kind || '');
-  if (!REMIND_TEXT[kind]) return res.status(400).json({ error: 'bad kind' });
+const _recentSend = new Map();   // teacher:journal:kind -> time, против двойного клика
+const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || '').trim());
+
+async function deliverToStudent(req, st, { type, title, body }) {
+  const out = { cabinet: false, email: false };
+  const teacherName = req.user.name || 'Your teacher';
+  let email = st.email || '', name = st.name || '';
+  if (st.student_id) {
+    out.cabinet = await createNotification(st.student_id, type, title, `${body} - ${teacherName}`, 'student.html');
+    const u = await pool.query('SELECT email, name FROM users WHERE id=$1', [st.student_id]);
+    if (u.rows[0]) { email = u.rows[0].email || email; name = u.rows[0].name || name; }
+  }
+  if (validEmail(email)) {
+    try {
+      const t = await pool.query('SELECT email FROM users WHERE id=$1', [req.user.id]);
+      const replyTo = validEmail(t.rows[0] && t.rows[0].email) ? t.rows[0].email : undefined;
+      const msg = teacherMessageEmail({ studentName: name, teacherName, title, text: body, link: st.student_id ? `${SITE}/student.html` : '' });
+      await sendEmail({ to: String(email).trim(), subject: msg.subject, html: msg.html, text: msg.text, replyTo });
+      out.email = emailConfigured();
+    } catch (err) { console.error('[journal/deliver] email failed:', err.message); }
+  }
+  return out;
+}
+async function sendToJournalStudent(req, res, make) {
   const { rows } = await pool.query('SELECT * FROM student_journal WHERE id=$1 AND teacher_id=$2', [req.params.id, req.user.id]);
   const st = rows[0];
   if (!st) return res.status(404).json({ error: 'not found' });
-  if (!st.student_id) return res.status(409).json({ error: 'This student is not on TeachEd yet', email: st.email || '' });
-  const msg = REMIND_TEXT[kind](st);
-  const sent = await createNotification(st.student_id, 'reminder', msg.title, `${msg.body} - ${req.user.name || 'your teacher'}`, 'student.html');
-  if (!sent) return res.status(502).json({ error: 'The reminder could not be sent' });
-  res.json({ ok: true });
+  const m = make(st);
+  if (m.error) return res.status(400).json({ error: m.error });
+  const key = `${req.user.id}:${st.id}:${m.type}`;
+  if (Date.now() - (_recentSend.get(key) || 0) < 15000) return res.status(429).json({ error: 'Just sent - wait a moment' });
+  if (!st.student_id && !validEmail(st.email)) return res.status(409).json({ error: 'This student is not on TeachEd and has no email in the Journal yet' });
+  _recentSend.set(key, Date.now());
+  const out = await deliverToStudent(req, st, m);
+  if (!out.cabinet && !out.email) { _recentSend.delete(key); return res.status(502).json({ error: 'It could not be sent' }); }
+  res.json({ ok: true, ...out });
+}
+router.post('/:id/remind', (req, res) => {
+  const kind = String(req.body?.kind || '');
+  if (!REMIND_TEXT[kind]) return res.status(400).json({ error: 'bad kind' });
+  sendToJournalStudent(req, res, st => ({ type: 'reminder', ...REMIND_TEXT[kind](st) }))
+    .catch(err => { console.error('[journal/remind]', err.message); res.status(500).json({ error: 'Server error' }); });
+});
+router.post('/:id/message', (req, res) => {
+  const text = String(req.body?.text || '').trim().slice(0, 1000);
+  sendToJournalStudent(req, res, () => text
+    ? { type: 'message', title: `Message from ${req.user.name || 'your teacher'}`, body: text }
+    : { error: 'Write a message first' })
+    .catch(err => { console.error('[journal/message]', err.message); res.status(500).json({ error: 'Server error' }); });
 });
 
 router.patch('/:id', async (req, res) => {

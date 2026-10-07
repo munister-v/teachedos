@@ -32,8 +32,8 @@ function getTransport() {
   return _transport;
 }
 
-async function sendEmail({ to, subject, html, text }) {
-  const replyTo = process.env.REPLY_TO || undefined;
+async function sendEmail({ to, subject, html, text, replyTo: replyOverride }) {
+  const replyTo = replyOverride || process.env.REPLY_TO || undefined;
   // ── 1. Resend ──────────────────────────────────────────────────────────────
   if (process.env.RESEND_API_KEY) {
     const from = process.env.FROM_EMAIL || 'TeachEd <noreply@teached.tech>';
@@ -325,11 +325,32 @@ function accountDeletedEmail({ name }) {
   };
 }
 
-/* The Vault: words due for review. A short list of the hardest ones, one
+/* A message or reminder from a teacher, sent through the platform: the student
+   sees it from TeachEd (not the teacher's mailbox), and a reply goes to the
+   teacher when the message carries their address. */
+function teacherMessageEmail({ studentName, teacherName, title, text, link }) {
+  const first = String(studentName || '').trim().split(/\s+/)[0] || 'there';
+  const teacher = String(teacherName || '').trim() || 'Your teacher';
+  const body = String(text || '').trim();
+  const lines = [`Hi ${first},`, body, `- ${teacher}`];
+  return {
+    subject: title,
+    html: layout({
+      preheader: body.slice(0, 90),
+      title,
+      paragraphs: [escHtml(lines[0]), escHtml(body).replace(/\n/g, '<br>'), escHtml(lines[2])],
+      button: link ? { href: link, label: 'Open my cabinet' } : null,
+      footnote: `You get this because ${escHtml(teacher)} teaches you on TeachEd. You can reply to this email.`,
+    }),
+    text: textVersion({ title, lines, link, linkLabel: 'Open my cabinet' }),
+  };
+}
+
+/* Word Bank: words due for review. A short list of the hardest ones, one
    button straight into the review, and a one-click way to stop these. */
 function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
   const first = String(name || '').trim().split(/\s+/)[0] || 'there';
-  const title = `${due} word${due === 1 ? '' : 's'} ${due === 1 ? 'is' : 'are'} waiting in your Vault`;
+  const title = `${due} word${due === 1 ? '' : 's'} ${due === 1 ? 'is' : 'are'} waiting in your Word Bank`;
   const link = `${SITE}/student.html#vault`;
   const list = words.slice(0, 3);
   const lines = [
@@ -355,6 +376,7 @@ function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
 }
 
 module.exports = {
+  teacherMessageEmail,
   vaultReminderEmail,
   sendEmail, sendEmailQuietly, emailConfigured, SITE, layout, textVersion,
   resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, emailChangedEmail, newSignInEmail,

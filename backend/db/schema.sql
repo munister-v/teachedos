@@ -817,6 +817,16 @@ CREATE TABLE IF NOT EXISTS studio_work (
 );
 CREATE INDEX IF NOT EXISTS idx_studio_work_card ON studio_work (board_id, card_id);
 
+-- Student layer: what a student draws, writes and sticks on top of a board
+-- they cannot edit (pen strokes, text notes, emoji). One row per student.
+CREATE TABLE IF NOT EXISTS student_layer (
+  board_id   UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  layer      JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (board_id, user_id)
+);
+
 -- ── Writing hand-ins ───────────────────────────────────────────────────────
 -- A student hands in a Writing Studio draft; the AI pre-checks it against the
 -- lesson's criteria; the board owner reviews, writes feedback, grades and

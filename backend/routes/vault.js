@@ -1,4 +1,4 @@
-// The Vault: every word (and quote) a student saves while reading, on a
+// Word Bank: every word (and quote) a student saves while reading, on a
 // spaced-repetition schedule. Words come back as a review in the cabinet and
 // as a warm-up when a lesson board opens; quotes and words also wait in the
 // Writing / Speaking Studio side panel ("From your reading").
@@ -18,8 +18,8 @@ router.get('/unsubscribe', async (req, res) => {
   res.type('html').send(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TeachEd</title>
 <body style="margin:0;background:#F6F6EF;font-family:-apple-system,system-ui,sans-serif;color:#24282C;display:grid;place-items:center;min-height:100vh">
 <div style="background:#fff;border:1px solid #CACCC6;border-radius:20px;padding:34px 38px;max-width:420px;text-align:center">
-<h1 style="font-size:21px;margin:0 0 10px">${ok ? 'No more Vault emails' : 'This link did not work'}</h1>
-<p style="color:#5D614B;line-height:1.5;margin:0 0 20px">${ok ? 'You will not get review reminders by email. You can switch them back on in your cabinet: The Vault → Reminders.' : 'Open your cabinet and switch reminders off in The Vault → Reminders.'}</p>
+<h1 style="font-size:21px;margin:0 0 10px">${ok ? 'No more Word Bank emails' : 'This link did not work'}</h1>
+<p style="color:#5D614B;line-height:1.5;margin:0 0 20px">${ok ? 'You will not get review reminders by email. You can switch them back on in your cabinet: Word Bank → Reminders.' : 'Open your cabinet and switch reminders off in Word Bank → Reminders.'}</p>
 <a href="/student.html" style="display:inline-block;background:#CDF649;color:#24282C;font-weight:800;padding:12px 22px;border-radius:12px;border:1.5px solid #24282C;text-decoration:none">Open my cabinet</a></div></body>`);
 });
 
@@ -179,7 +179,7 @@ router.post('/send', async (req, res) => {
       }
       added += n;
       if (n) await createNotification(u, 'vocab', `${n} new phrase${n === 1 ? '' : 's'} from your lesson`,
-        `${req.user.name || 'Your teacher'} added them to your dictionary - practise them before the next lesson.`, 'student.html').catch(() => {});
+        `${req.user.name || 'Your teacher'} added them to your Word Bank - practise them before the next lesson.`, 'student.html#practise').catch(() => {});
     }
     res.json({ ok: true, students: allowed.length, added });
   } catch (err) {

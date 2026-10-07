@@ -1,4 +1,4 @@
-/* Student cabinet → The Vault: how many saved words are due, a Review button
+/* Student cabinet → Word Bank: how many saved words are due, a Review button
    (scripts/vault-review.js) on top of the Tasks and Vocabulary tabs. */
 (function () {
   'use strict';
@@ -42,11 +42,12 @@
     document.querySelectorAll('.vc').forEach(e => e.remove());
     if (!s || !s.total) return;
     const html = `<div class="vc-ic">🔁</div>
-      <div class="vc-tx"><b>The Vault${s.due ? ` · ${s.due} word${s.due === 1 ? '' : 's'} to review` : ''}</b>
+      <div class="vc-tx"><b>Word Bank${s.due ? ` · ${s.due} word${s.due === 1 ? '' : 's'} to review` : ''}</b>
         <span>${s.due ? 'Words you saved come back just before you forget them. A few minutes a day is enough.' : `All caught up. Next review ${when(s.next_due)}.`}</span></div>
       <div class="vc-stats"><div><b>${s.total}</b>saved</div><div><b>${s.mastered}</b>mastered</div></div>
       <button type="button" class="vc-rem" aria-haspopup="dialog">🔔 Reminders</button>
-      <button type="button" class="vc-btn"${s.due ? '' : ' disabled'}>${s.due ? 'Review now' : 'Nothing due'}</button>`;
+      ${s.total >= 2 ? '<button type="button" class="vc-btn vc-prac">▶ Practise</button>' : ''}
+      <button type="button" class="vc-btn vc-rev"${s.due ? '' : ' disabled'}>${s.due ? 'Review now' : 'Nothing due'}</button>`;
     ['assignments-notif', 'vocab-list'].forEach(id => {
       const anchor = document.getElementById(id);
       if (!anchor) return;
@@ -55,7 +56,8 @@
       box.innerHTML = html;
       anchor.parentNode.insertBefore(box, anchor);
       box.querySelector('.vc-rem').addEventListener('click', ev => { ev.stopPropagation(); toggleReminders(box); });
-      box.querySelector('.vc-btn').addEventListener('click', () => window.TeachedVault.open({ api, limit: 20, onDone: () => { paint(); if (typeof loadVocab === 'function') loadVocab(); } }));
+      box.querySelector('.vc-prac')?.addEventListener('click', () => window.TeachedVault.practise({ api }));
+      box.querySelector('.vc-rev').addEventListener('click', () => window.TeachedVault.open({ api, limit: 20, onDone: () => { paint(); if (typeof loadVocab === 'function') loadVocab(); } }));
     });
   }
   /* Reminders: once a day at the chosen hour (their own time zone), only
@@ -102,6 +104,7 @@
     st.textContent = CSS;
     document.head.appendChild(st);
     paint();
+    if (/[#&]practise\b/.test(location.hash)) setTimeout(() => window.TeachedVault.practise({ api }), 600);
     if (/[#&]vault\b/.test(location.hash)) setTimeout(() => window.TeachedVault.open({ api, limit: 20, onDone: paint }), 600);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

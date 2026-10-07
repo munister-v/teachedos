@@ -2,6 +2,7 @@ const { cleanCover, cleanCoverImage } = require('../lib/cover');
 const router = require('express').Router();
 const { filterBoardData } = require('../lib/boardVisibility');
 const { sanitizeBoardData } = require('../lib/boardSanitize');
+const { sanitizeLayer } = require('../lib/studentLayer');
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { recordTelemetry } = require('../lib/telemetry');
@@ -445,6 +446,54 @@ router.get('/:id/studio-work/:cardId/students', async (req, res) => {
     res.json({ students: rows });
   } catch (err) {
     console.error('[boards] studio work list error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* ── Student layer ───────────────────────────────────────────────────────
+   Students cannot edit the board, but they can draw, write and stick emoji
+   on top of it. Their layer is theirs: the owner sees all of them. */
+const LAYER_MAX_BYTES = 300 * 1024;
+
+// GET /api/boards/:id/student-layer - my own layer; ?all=1 - the owner: every student's
+router.get('/:id/student-layer', async (req, res) => {
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (req.query.all) {
+      if (access.access_role !== 'owner') return res.status(403).json({ error: 'Board owner access required' });
+      const { rows } = await pool.query(
+        `SELECT l.user_id, l.layer, l.updated_at, u.name, u.avatar
+           FROM student_layer l JOIN users u ON u.id = l.user_id
+          WHERE l.board_id = $1 ORDER BY l.updated_at`,
+        [req.params.id]);
+      return res.json({ layers: rows.map(r => ({ user_id: r.user_id, name: r.name, avatar: r.avatar, layer: sanitizeLayer(r.layer) })) });
+    }
+    const { rows } = await pool.query(
+      'SELECT layer FROM student_layer WHERE board_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    res.json({ layer: sanitizeLayer(rows[0] && rows[0].layer) });
+  } catch (err) {
+    console.error('[boards] student layer error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PUT /api/boards/:id/student-layer - save my layer
+router.put('/:id/student-layer', async (req, res) => {
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (access.access_role === 'owner') return res.status(400).json({ error: 'The board owner edits the board itself' });
+    const layer = sanitizeLayer(req.body && req.body.layer);
+    const json = JSON.stringify(layer);
+    if (Buffer.byteLength(json) > LAYER_MAX_BYTES) return res.status(413).json({ error: 'Too much to save' });
+    await pool.query(
+      `INSERT INTO student_layer (board_id, user_id, layer, updated_at) VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (board_id, user_id) DO UPDATE SET layer = $3, updated_at = NOW()`,
+      [req.params.id, req.user.id, json]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[boards] student layer save error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

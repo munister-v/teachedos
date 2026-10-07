@@ -10,15 +10,15 @@
      доберётся. Прелоад запускает загрузку сразу, параллельно с остальным
      head. auth.css внизу body трогать не нужно - модалка изначально скрыта,
      грузить её стили заранее незачем. -->
-<link rel="preload" as="style" href="styles/teached-brand.css?v=1072">
-<link rel="preload" as="style" href="styles/figma-landing.css?v=1072">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=1073">
+<link rel="preload" as="style" href="styles/figma-landing.css?v=1073">
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <!-- Favicons -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="manifest" href="manifest.json?v=1072">
+<link rel="manifest" href="manifest.json?v=1073">
 <!-- Под строкой состояния на телефоне стоит закреплённая шапка, а она белая.
      Прежний #F3F3F6 не совпадал ни с ней, ни с фоном страницы (#EFEFF2), и
      сверху была видна лишняя полоска другого оттенка. -->
@@ -1902,12 +1902,12 @@ section{scroll-margin-top:64px;}
   .nw-card{padding:20px}
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1072">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1072">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1073">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1073">
 <!-- Язык макета ТИЧ.ЭД (Figma) на лендинге: подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-landing.css?v=1072">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1072">
-<link rel="stylesheet" href="styles/landing-harmony.css?v=1072">
+<link rel="stylesheet" href="styles/figma-landing.css?v=1073">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1073">
+<link rel="stylesheet" href="styles/landing-harmony.css?v=1073">
 </head>
 <body class="landing-page fx">
 
@@ -1990,7 +1990,7 @@ section{scroll-margin-top:64px;}
 
     <a class="hero-new" href="#new">
       <span class="hn-tag">New</span>
-      <span>Real news as graded reading, a word Vault, AI-checked writing</span>
+      <span>Real news as graded reading, a Word Bank, AI-checked writing</span>
       <span class="hn-go" aria-hidden="true">→</span>
     </a>
 
@@ -2159,15 +2159,15 @@ section{scroll-margin-top:64px;}
           <div class="nm-pop">
             <div class="np-w">raise concerns <i>/reɪz kənˈsɜːnz/</i></div>
             <div class="np-d">to make people start to worry about something</div>
-            <div class="np-b"><span>▶ Hear it</span><span class="on">＋ Save to my Vault</span></div>
+            <div class="np-b"><span>▶ Hear it</span><span class="on">＋ Save to my Word Bank</span></div>
           </div>
         </div>
       </article>
 
-      <!-- The Vault -->
+      <!-- Word Bank -->
       <article class="nw-card nw-lime">
         <div class="nw-copy">
-          <div class="nw-kick">The Vault</div>
+          <div class="nw-kick">Word Bank</div>
           <h3 class="nw-h">Saved words come back just before they're forgotten</h3>
           <p class="nw-p">Spaced repetition for everything a student saves - with the sentence it came from, and a reminder by push or email at the hour they choose.</p>
         </div>
@@ -2826,7 +2826,7 @@ section{scroll-margin-top:64px;}
 </footer>
 
 <!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
-<link rel="stylesheet" href="styles/auth.css?v=1072">
+<link rel="stylesheet" href="styles/auth.css?v=1073">
 <style id="landing-auth-motion">
 /* Entrance flourish for the shared #auth-overlay/#auth-modal (scripts/auth-
    modal.js) - landing-specific, same idea as board.css's .board-auth-*
@@ -2874,7 +2874,7 @@ window.TEACHED_AUTH_CONFIG = {
   subtitle: () => 'Lessons, boards and games in one place',
 };
 </script>
-<script src="scripts/auth-modal.js?v=1072" defer></script>
+<script src="scripts/auth-modal.js?v=1073" defer></script>
 <script>
 // Deep link: /landing.html?auth=register|login or #signin opens the modal
 document.addEventListener('DOMContentLoaded', () => {

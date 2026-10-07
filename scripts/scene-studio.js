@@ -58,7 +58,7 @@
      A2 - A1-A2, B1 - A2-B1 и действия (фразы B1), B2 - B1-B2 и все фразы
      («feed the ducks», «cast a spell»): к B1 окно, дверь и стол уже не
      задание. Места (rooms) - ещё и зоны увеличения, они копятся всегда. */
-  const inLevel = (l, level) => { const r = rank(l), L = rank(level); return L <= 1 ? r <= L : r >= L - 1 && r <= L; };
+  const inLevel = (l, level) => { if (l === '*') return true; const r = rank(l), L = rank(level); return L <= 1 ? r <= L : r >= L - 1 && r <= L; };
 
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const shuffle = (arr, seed) => {
@@ -72,9 +72,27 @@
 
   /* ── data ── */
   const cache = new Map();
-  function load(id) {
+  /* A teacher's own picture: the whole scene (photo as a data URL, a pin and
+     a word per thing) rides in the card as out.custom. It has no rooms, no
+     drawing script and no true/false list - just words on a picture. */
+  function buildCustom(c) {
+    const W = c.w || 1200, H = c.h || 800;
+    const parts = (c.parts || []).filter(p => p && p.word).map((p, i) => {
+      const side = Math.round(Math.max(W, H) * 0.09), x = p.pin[0], y = p.pin[1];
+      const bx = Math.min(Math.max(0, x - side / 2), Math.max(0, W - side)), by = Math.min(Math.max(0, y - side / 2), Math.max(0, H - side));
+      return { id: p.id || 'p' + (i + 1), word: String(p.word).trim(), pin: [x, y], box: [bx, by, side, side], level: '*', room: 'custom',
+        pos: p.pos || 'noun', ipa: p.ipa || '', def: p.def || '', ex: p.ex || '' };
+    });
+    return { id: c.id || 'custom', w: W, h: H, title: c.title || 'My picture', kicker: 'Picture Studio · Your picture',
+      dek: 'A picture chosen by your teacher - every pin is a word.', image: c.image, items: [], rooms: [], zones: [], parts,
+      groups: { custom: 'Words in this picture' }, truefalse: [],
+      prompts: { '*': ['Describe the picture. What can you see?', 'Which thing in the picture do you use most? Why?', 'Choose three words and make a sentence with each.'] },
+      frames: ['There is a … in the picture.', 'I can see …', 'The … is next to the …', 'The … looks …'] };
+  }
+  function load(id, out) {
+    if (out && out.custom) return Promise.resolve(buildCustom(Object.assign({ id: id || 'custom' }, out.custom)));
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1072`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1073`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -106,6 +124,7 @@
   const drawnOnce = new Set();
 
   function artSvg(sc, animate) {
+    if (sc.image) return `<image href="${esc(sc.image)}" x="0" y="0" width="${sc.w}" height="${sc.h}" preserveAspectRatio="xMidYMid slice"/>`;
     const k = 0.32; // ms of the drawing script → ms on screen
     const body = sc.items.map(it => {
       const fill = it.f ? FILL[it.f] || 'none' : 'none';
@@ -288,10 +307,10 @@
     const lvl = out.level || 'A2';
     el.innerHTML = `<div class="sc-prev"><div class="sc-loading">Drawing…</div></div>`;
     const box = el.firstElementChild;
-    load(out.scene || 'house').then(sc => {
+    load(out.scene || 'house', out).then(sc => {
       const n = stats(sc, lvl).words;
       box.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${stillArt(sc)}</svg>
-        <div class="sc-prev-in"><div><div class="sc-kick"><span>${esc(sc.kicker || 'Picture Studio')}</span><span>${esc(lvl)} level · ${n} words · 6 tasks</span></div>
+        <div class="sc-prev-in"><div><div class="sc-kick"><span>${esc(sc.kicker || 'Picture Studio')}</span><span>${sc.image ? '' : esc(lvl) + ' level · '}${n} words · ${sc.image ? 'tasks and worksheet' : '6 tasks'}</span></div>
           <h2>${esc(out.title || sc.title)}</h2><p>${esc(sc.dek || '')}</p>${sc.inspired ? `<p class="sc-insp">${esc(sc.inspired)}</p>` : ''}</div>
           <button type="button" class="sc-btn lime sc-open">Open the Picture Studio →</button></div>`;
       box.querySelector('.sc-open').addEventListener('click', ev => { ev.stopPropagation(); onOpen && onOpen(); });
@@ -342,7 +361,7 @@
     window.addEventListener('teached-accent', onAccent);
     cleanup.push(() => window.removeEventListener('teached-accent', onAccent));
 
-    load(out.scene || 'house').then(data => {
+    load(out.scene || 'house', out).then(data => {
       if (dead) return;
       raw = data;
       sc = variant(data);
@@ -466,7 +485,7 @@
       bar.innerHTML = `<div class="sc-rooms"><button type="button" class="sc-chip${st.room === 'all' ? ' on' : ''}" data-room="all">Whole picture</button>
         ${areas(sc).map(r => { const t = r.chip || r.word; return `<button type="button" class="sc-chip${st.room === r.id ? ' on' : ''}" data-room="${r.id}">${esc(t[0].toUpperCase() + t.slice(1))}</button>`; }).join('')}</div>
         <div class="sc-tools">
-          <span class="sc-seg" title="Which words are on the picture">${LEVELS.map(l => `<button type="button" data-level="${l}" class="${st.level === l ? 'on' : ''}">${l}</button>`).join('')}</span>
+          ${sc.image ? '' : `<span class="sc-seg" title="Which words are on the picture">${LEVELS.map(l => `<button type="button" data-level="${l}" class="${st.level === l ? 'on' : ''}">${l}</button>`).join('')}</span>`}
           ${window.TeachedAccent ? window.TeachedAccent.toggleHtml() : ''}
           <button type="button" class="sc-ib${st.labels ? ' on' : ''}" data-act="labels" title="Show the words on the picture">Aa</button>
           <button type="button" class="sc-ib" data-act="zin" title="Zoom in">＋</button>
@@ -589,11 +608,11 @@
       const thumb = isRoom(it) ? '' : `<div class="sc-thumb"><svg viewBox="${bx - pad} ${by - pad} ${bw + pad * 2} ${bh + pad * 2}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${stillArt(sc)}</svg></div>`;
       return `<div class="sc-card">${thumb}
         <div class="sc-term"><b>${esc(it.word)}</b><button type="button" class="sc-say" data-say="${esc(it.word)}" aria-label="Say it">🔊</button><button type="button" class="sc-x" data-act="unsel" aria-label="Close">✕</button></div>
-        <div class="sc-sub">${(it.ipa || usIpa[it.word]) ? `<span class="sc-ipa">/${esc(it.ipa || usIpa[it.word])}/</span>` : ''}<span class="sc-tagm">${esc(it.pos || 'noun')}</span><span class="sc-tagm">${esc(it.level)}</span>${it.ukWord ? `<span class="sc-tagm">UK: ${esc(it.ukWord)}</span>` : it.us && it.us !== it.word ? `<span class="sc-tagm">US: ${esc(it.us)}</span>` : ''}</div>
+        <div class="sc-sub">${(it.ipa || usIpa[it.word]) ? `<span class="sc-ipa">/${esc(it.ipa || usIpa[it.word])}/</span>` : ''}<span class="sc-tagm">${esc(it.pos || 'noun')}</span>${it.level === '*' ? '' : `<span class="sc-tagm">${esc(it.level)}</span>`}${it.ukWord ? `<span class="sc-tagm">UK: ${esc(it.ukWord)}</span>` : it.us && it.us !== it.word ? `<span class="sc-tagm">US: ${esc(it.us)}</span>` : ''}</div>
         <p class="sc-def">${esc(it.def)}</p>
         ${it.ex ? `<p class="sc-ex">${ex} <button type="button" class="sc-say" style="width:26px;height:26px;font-size:12px;vertical-align:middle;background:#fff" data-say="${esc(it.ex)}" aria-label="Say the example">🔊</button></p>` : ''}
         <div class="sc-acts">
-          <button type="button" class="sc-btn ${saved ? 'ghost' : 'lime'}" data-act="vault"${saved || !opts.canSave ? ' disabled' : ''}>${saved ? '✓ In your Vault' : opts.canSave ? '+ Save to my Vault' : 'Sign in to save'}</button>
+          <button type="button" class="sc-btn ${saved ? 'ghost' : 'lime'}" data-act="vault"${saved || !opts.canSave ? ' disabled' : ''}>${saved ? '✓ In your Word Bank' : opts.canSave ? '+ Save to my Word Bank' : 'Sign in to save'}</button>
           <button type="button" class="sc-btn dark" data-act="hear"${window.TeachedHear ? '' : ' disabled'}>▶ Real videos</button>
         </div></div>`;
     }
@@ -604,9 +623,9 @@
       const roomName = id => id === '__acts' ? 'What people do here' : (sc.groups || {})[id] || (id === 'outside' ? 'Outside' : ((sc.rooms.find(r => r.id === id) || {}).word || id));
       panel.innerHTML = `<h3>${esc(out.title || sc.title)}</h3>
         <p class="sc-hint">Tap anything in the picture - or a word below - to hear it and see what it means. Pick a part at the top to zoom in.</p>
-        ${it ? wordCard(it) : `<div class="sc-card"><p class="sc-def" style="margin:0"><b>${items().length + rooms().length} words</b> at ${esc(st.level)} level. ${st.saved.length ? `You have saved ${st.saved.length}.` : 'Save the new ones to your Vault to practise them later.'}</p></div>`}
-        <div class="sc-group">${esc(sc.roomsTitle || 'Rooms')}</div><div class="sc-words">${rooms().map(r => `<button type="button" class="sc-w${st.sel === r.id ? ' on' : ''}${st.saved.includes(r.word) ? ' saved' : ''}" data-pick="${r.id}">${esc(r.word)}<span class="lv">${r.level}</span></button>`).join('')}</div>
-        ${Object.keys(groups).map(g => `<div class="sc-group">${esc(roomName(g))}</div><div class="sc-words">${groups[g].map(p => `<button type="button" class="sc-w${st.sel === p.id ? ' on' : ''}${st.saved.includes(p.word) ? ' saved' : ''}" data-pick="${p.id}">${esc(p.word)}<span class="lv">${p.level}</span></button>`).join('')}</div>`).join('')}`;
+        ${it ? wordCard(it) : `<div class="sc-card"><p class="sc-def" style="margin:0"><b>${items().length + rooms().length} words</b>${sc.image ? '' : ` at ${esc(st.level)} level`}. ${st.saved.length ? `You have saved ${st.saved.length}.` : 'Save the new ones to your Word Bank to practise them later.'}</p></div>`}
+        ${rooms().length ? `<div class="sc-group">${esc(sc.roomsTitle || 'Rooms')}</div>` : ''}<div class="sc-words">${rooms().map(r => `<button type="button" class="sc-w${st.sel === r.id ? ' on' : ''}${st.saved.includes(r.word) ? ' saved' : ''}" data-pick="${r.id}">${esc(r.word)}<span class="lv">${r.level}</span></button>`).join('')}</div>
+        ${Object.keys(groups).map(g => `<div class="sc-group">${esc(roomName(g))}</div><div class="sc-words">${groups[g].map(p => `<button type="button" class="sc-w${st.sel === p.id ? ' on' : ''}${st.saved.includes(p.word) ? ' saved' : ''}" data-pick="${p.id}">${esc(p.word)}${p.level === '*' ? '' : `<span class="lv">${p.level}</span>`}</button>`).join('')}</div>`).join('')}`;
     }
 
     /* ── Find it ── */
@@ -756,6 +775,7 @@
       const right = answered.filter(q => st.tf[q.i] === q.a).length;
       panel.innerHTML = `<h3>True or false? ${answered.length ? `<span class="sc-score">${right}/${list.length}</span>` : ''}</h3>
         <p class="sc-hint">Look at the picture. Is it true? If it's false, say what is true: <i>“No, the bike is in the garage.”</i></p>
+        ${list.length ? '' : '<p class="sc-muted">This picture has no true-or-false sentences. Try Find, Name and Label instead.</p>'}
         <ol class="sc-tf">${list.map(q => {
           const a = st.tf[q.i];
           const cls = a == null ? '' : a === q.a ? ' ok' : ' bad';
@@ -769,7 +789,7 @@
     /* ── Talk & write ── */
     let rec = null, recUrl = null;
     function paintTalk() {
-      const prompts = (sc.prompts || {})[st.level] || (sc.prompts || {}).B1 || [];
+      const prompts = (sc.prompts || {})[st.level] || (sc.prompts || {}).B1 || (sc.prompts || {})['*'] || [];
       panel.innerHTML = `<h3>Talk &amp; Write</h3>
         <p class="sc-hint">Choose a question. Talk about it with a partner, then write your answer. Use words from the picture.</p>
         <div class="sc-prompts">${prompts.map((p, i) => `<button type="button" class="${st.prompt === i ? 'on' : ''}" data-prompt="${i}">${esc(p)}</button>`).join('')}</div>
@@ -935,6 +955,124 @@
     };
   }
 
+
+  /* ── "Your own picture": the teacher uploads a photo, taps things on it
+     and types a word for each. Result goes to onDone({ title, custom }). ── */
+  const MAKER_CSS = `
+.scm{position:fixed;inset:0;z-index:100000;background:rgba(36,40,44,.55);display:grid;place-items:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;color:#24282C}
+.scm-box{background:#FBFAF6;border-radius:22px;width:min(1120px,100%);height:min(760px,100%);display:grid;grid-template-columns:minmax(0,1fr) 340px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.scm-stagewrap{display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid rgba(36,40,44,.12)}
+.scm-head{padding:16px 18px 10px}.scm-head b{font-size:17px}.scm-head p{margin:4px 0 0;font-size:13px;color:#6B6E60}
+.scm-stage{flex:1;min-height:0;display:grid;place-items:center;padding:0 18px 18px}
+.scm-pic{position:relative;max-width:100%;max-height:100%;line-height:0;cursor:crosshair;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+.scm-pic img{display:block;max-width:100%;max-height:min(600px,calc(100vh - 220px));user-select:none;-webkit-user-drag:none}
+.scm-pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:#CDF649;border:2px solid #24282C;font:800 12px/22px inherit;font-family:inherit;text-align:center;color:#24282C;cursor:grab;touch-action:none}
+.scm-pin.on{background:#24282C;color:#CDF649}
+.scm-drop{display:grid;place-items:center;gap:10px;text-align:center;border:2px dashed rgba(36,40,44,.3);border-radius:16px;padding:48px 28px;max-width:420px}
+.scm-drop button,.scm-side button.scm-go{border:0;border-radius:12px;background:#CDF649;color:#24282C;font:700 14px inherit;font-family:inherit;padding:11px 18px;cursor:pointer}
+.scm-side{display:flex;flex-direction:column;min-height:0;padding:16px}
+.scm-side input[type=text]{width:100%;box-sizing:border-box;border:1px solid rgba(36,40,44,.18);border-radius:10px;padding:9px 11px;font:14px inherit;font-family:inherit;background:#fff}
+.scm-list{flex:1;min-height:0;overflow:auto;margin:12px 0;display:flex;flex-direction:column;gap:8px}
+.scm-row{display:grid;grid-template-columns:24px 1fr 26px;gap:6px;align-items:start;padding:8px;border-radius:12px;background:#fff;border:1px solid rgba(36,40,44,.1)}
+.scm-row.on{border-color:#24282C}
+.scm-row i{font-style:normal;font:800 12px/24px inherit;text-align:center;background:#CDF649;border-radius:50%;width:24px;height:24px}
+.scm-row .d{grid-column:2/3;margin-top:5px}.scm-row .d input{font-size:12.5px;padding:6px 9px}
+.scm-row button{border:0;background:none;color:#6B6E60;font-size:16px;cursor:pointer}
+.scm-empty{font-size:13px;color:#6B6E60;line-height:1.5;padding:6px 2px}
+.scm-foot{display:flex;gap:8px;align-items:center}.scm-foot .scm-cancel{border:0;background:#F2F1EB;border-radius:12px;padding:11px 16px;font:600 14px inherit;font-family:inherit;cursor:pointer}
+.scm-foot .scm-go{flex:1}.scm-go:disabled{opacity:.45;cursor:default}
+@media (max-width:820px){.scm-box{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;height:100%}.scm-stagewrap{border-right:0}}`;
+  function maker(opts) {
+    opts = opts || {};
+    if (!document.getElementById('scm-css')) { const t = document.createElement('style'); t.id = 'scm-css'; t.textContent = MAKER_CSS; document.head.appendChild(t); }
+    const ov = document.createElement('div');
+    ov.className = 'scm';
+    ov.innerHTML = `<div class="scm-box" role="dialog" aria-modal="true" aria-label="Make a picture worksheet">
+      <div class="scm-stagewrap"><div class="scm-head"><b>Your own picture</b><p>Add a photo or drawing, tap each thing you want to teach, then type its word.</p></div><div class="scm-stage"></div></div>
+      <div class="scm-side"><input type="text" class="scm-title" placeholder="Title, e.g. My living room" maxlength="60" aria-label="Title">
+        <div class="scm-list"></div>
+        <div class="scm-foot"><button type="button" class="scm-cancel">Cancel</button><button type="button" class="scm-go" disabled>Create worksheet</button></div></div></div>`;
+    document.body.appendChild(ov);
+    const stage = ov.querySelector('.scm-stage'), list = ov.querySelector('.scm-list'), go = ov.querySelector('.scm-go'), titleEl = ov.querySelector('.scm-title');
+    const S = { image: null, w: 0, h: 0, pins: [], sel: -1 };
+    const close = () => { document.removeEventListener('keydown', onKey, true); ov.remove(); };
+    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    document.addEventListener('keydown', onKey, true);
+    ov.querySelector('.scm-cancel').onclick = close;
+    ov.addEventListener('mousedown', e => { if (e.target === ov) close(); });
+
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*'; input.style.display = 'none'; ov.appendChild(input);
+    async function takeFile(file) {
+      if (!file) return;
+      try {
+        const prep = opts.prepareImage ? await opts.prepareImage(file) : null;
+        const src = prep ? prep.dataUrl : await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(file); });
+        const dim = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok([im.naturalWidth, im.naturalHeight]); im.onerror = no; im.src = src; });
+        S.image = src; S.w = dim[0] || 1200; S.h = dim[1] || 800; S.pins = []; S.sel = -1;
+        if (!titleEl.value.trim()) titleEl.value = (file.name || '').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').slice(0, 60);
+        paint();
+      } catch (err) { alert((err && err.message) || 'That image could not be used.'); }
+    }
+    input.onchange = () => takeFile(input.files && input.files[0]);
+
+    function paintStage() {
+      if (!S.image) {
+        stage.innerHTML = `<div class="scm-drop"><div style="font-size:34px">🖼️</div><b>Choose a picture</b><span style="font-size:13px;color:#6B6E60">A photo of a room, a street, a scene from a book - anything with things to name.</span><button type="button">Choose an image</button></div>`;
+        const d = stage.firstElementChild;
+        d.querySelector('button').onclick = () => input.click();
+        d.addEventListener('dragover', e => e.preventDefault());
+        d.addEventListener('drop', e => { e.preventDefault(); takeFile(e.dataTransfer.files && e.dataTransfer.files[0]); });
+        return;
+      }
+      stage.innerHTML = `<div class="scm-pic"><img alt="" src="${esc(S.image)}">${S.pins.map((p, i) => `<button type="button" class="scm-pin${i === S.sel ? ' on' : ''}" data-i="${i}" style="left:${p.x / S.w * 100}%;top:${p.y / S.h * 100}%">${i + 1}</button>`).join('')}</div>`;
+      const pic = stage.firstElementChild;
+      pic.addEventListener('click', e => {
+        if (e.target.closest('.scm-pin')) return;
+        const r = pic.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        S.pins.push({ x: Math.round((e.clientX - r.left) / r.width * S.w), y: Math.round((e.clientY - r.top) / r.height * S.h), word: '', def: '' });
+        S.sel = S.pins.length - 1; paint(true);
+      });
+      pic.querySelectorAll('.scm-pin').forEach(b => {
+        b.addEventListener('pointerdown', e => {
+          e.preventDefault(); e.stopPropagation();
+          const i = +b.dataset.i, r = pic.getBoundingClientRect(); let moved = false;
+          b.setPointerCapture(e.pointerId);
+          const mv = ev => { moved = true; const p = S.pins[i]; p.x = Math.round(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)) * S.w); p.y = Math.round(Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) * S.h); b.style.left = p.x / S.w * 100 + '%'; b.style.top = p.y / S.h * 100 + '%'; };
+          const up = () => { b.removeEventListener('pointermove', mv); b.removeEventListener('pointerup', up); if (!moved) { S.sel = i; paint(true); } };
+          b.addEventListener('pointermove', mv); b.addEventListener('pointerup', up);
+        });
+      });
+    }
+    function paintList(focusNew) {
+      if (!S.pins.length) { list.innerHTML = `<div class="scm-empty">${S.image ? 'Tap the picture to add the first word.' : 'Choose a picture first.'}</div>`; return; }
+      list.innerHTML = S.pins.map((p, i) => `<div class="scm-row${i === S.sel ? ' on' : ''}" data-i="${i}"><i>${i + 1}</i>
+        <div><input type="text" class="w" value="${esc(p.word)}" maxlength="40" placeholder="Word or phrase" aria-label="Word ${i + 1}"></div><button type="button" class="rm" aria-label="Remove word ${i + 1}">✕</button>
+        <div class="d"><input type="text" class="m" value="${esc(p.def)}" maxlength="140" placeholder="Meaning (optional)" aria-label="Meaning ${i + 1}"></div></div>`).join('');
+      if (focusNew) { const f = list.querySelector(`.scm-row[data-i="${S.sel}"] .w`); if (f) { f.focus(); f.scrollIntoView({ block: 'nearest' }); } }
+    }
+    list.addEventListener('input', e => {
+      const row = e.target.closest('.scm-row'); if (!row) return;
+      const p = S.pins[+row.dataset.i];
+      if (e.target.classList.contains('w')) p.word = e.target.value; else if (e.target.classList.contains('m')) p.def = e.target.value;
+      ready();
+    });
+    list.addEventListener('focusin', e => { const row = e.target.closest('.scm-row'); if (row && +row.dataset.i !== S.sel) { S.sel = +row.dataset.i; stage.querySelectorAll('.scm-pin').forEach((b, i) => b.classList.toggle('on', i === S.sel)); list.querySelectorAll('.scm-row').forEach(r => r.classList.toggle('on', +r.dataset.i === S.sel)); } });
+    list.addEventListener('click', e => { const rm = e.target.closest('.rm'); if (!rm) return; S.pins.splice(+rm.closest('.scm-row').dataset.i, 1); S.sel = -1; paint(); });
+    function ready() { go.disabled = !(S.image && S.pins.filter(p => p.word.trim()).length >= 2); go.title = go.disabled ? 'Add at least two words' : ''; }
+    function paint(focusNew) { paintStage(); paintList(focusNew); ready(); }
+    go.onclick = () => {
+      const parts = S.pins.filter(p => p.word.trim()).map((p, i) => ({ id: 'p' + (i + 1), word: p.word.trim(), pin: [p.x, p.y], def: p.def.trim() }));
+      if (parts.length < 2) return;
+      const title = titleEl.value.trim() || 'My picture';
+      close();
+      opts.onDone && opts.onDone({ title, custom: { w: S.w, h: S.h, title, image: S.image, parts } });
+    };
+    paint();
+    if (!S.image) setTimeout(() => input.click(), 50);
+  }
+
   /* the still picture only, for gallery cards (Community) */
   function thumb(el, id) {
     css();
@@ -952,5 +1090,5 @@
     };
   }
 
-  window.TeachedScene = { preview, mount, load, thumb, stats, catalog: CATALOG, worlds: WORLDS, themeFor, levels: LEVELS };
+  window.TeachedScene = { preview, mount, load, thumb, stats, maker, catalog: CATALOG, worlds: WORLDS, themeFor, levels: LEVELS };
 })();

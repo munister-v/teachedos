@@ -1878,7 +1878,7 @@ function _mtMoreDo(action) {
   else if (action === 'image')         toolbarOpenModal('image');
   else if (action === 'gif')           toolbarAddGif();
   else if (action === 'video')         toolbarOpenModal('video');
-  else if (action === 'voting')        toolbarQuickAdd('voting');
+  else if (action === 'voting')        { setMiroTool('select'); quickAddVoting(); }
   else if (action === 'games')         openGamesModal?.();
   else if (action === 'lesson-collector') openLessonCollectorModal?.();
   else if (action === 'lesson-flow')   window.TeachedFlow?.openBuilder();
@@ -4073,6 +4073,7 @@ function _wpPlacePathCard(base, label, path) {
     _wfPath: path,
   }, W, H);
   if (card) setTimeout(() => zoomToCard(card.id, true), 80);
+  if (card && _lessonChain.active) _lessonChainAdvance();
   return card;
 }
 
@@ -5538,7 +5539,7 @@ function _wfCtxFor(card) {
   return { next, phrases, hasStudio: !!studio, saved: d._wfRole === 'studio' ? _vaultCtx() : null };
 }
 
-/* ── The Vault на доске ─────────────────────────────────────────────────
+/* ── Word Bank на доске ─────────────────────────────────────────────────
    Ученик открыл урок: (1) подгружаем сохранённые им слова и цитаты - они
    ждут в боковой панели Writing / Speaking Studio («From your reading»),
    (2) если есть слова к повторению - маленькая разминка в углу. */
@@ -5557,7 +5558,7 @@ async function _vaultBoardInit() {
   chip.type = 'button';
   chip.className = 'vault-warmup';
   const n = Math.min(sum.due, 8);
-  chip.innerHTML = `<span class="vw-ic">🔁</span><span><b>Warm-up: ${n} word${n === 1 ? '' : 's'} from your Vault</b><small>About ${Math.max(1, Math.round(n / 4))} min · before the lesson</small></span><span class="vw-x" data-x aria-label="Not now">✕</span>`;
+  chip.innerHTML = `<span class="vw-ic">🔁</span><span><b>Warm-up: ${n} word${n === 1 ? '' : 's'} from your Word Bank</b><small>About ${Math.max(1, Math.round(n / 4))} min · before the lesson</small></span><span class="vw-x" data-x aria-label="Not now">✕</span>`;
   chip.addEventListener('click', e => {
     try { sessionStorage.setItem(key, '1'); } catch {}
     chip.remove();
@@ -16442,7 +16443,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1072';
+const TEACHEDOS_ASSET_VERSION = '1073';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17585,6 +17586,7 @@ async function commitWordWorkout() {
   if (!asPath) {
     if (tplBuilt.length) _placeWordTemplateGames(tplBuilt, base);
     if (built.length) placeBoardWorkoutSet(base, built);
+    _lessonChainAdvance();
   }
 
   if (chip) chip.textContent = `${total} on board`;
@@ -18709,7 +18711,7 @@ async function runBoardLessonStages() {
     base, cfg, textOut, built, failed, keys, toolId,
     /* Плеер и решение «класть ли транскрипт» нужны укладчику, а он
        вызывается позже и отдельно, уже без формы перед глазами. */
-    media: (boardLessonWizard && boardLessonWizard.media) || _wizLinkMedia(),
+    media: (boardLessonWizard && boardLessonWizard.media) || _wizLinkMedia() || _wizRememberedMedia(),
     skill: (boardLessonWizard && boardLessonWizard.skill) || null,
   };
   lastTeacherToolBuilderOutput = textOut;
@@ -18866,6 +18868,15 @@ function _wpDictation(t) {
 
 /* Ссылка на YouTube лежит в поле, но «Get the text» не нажимали (или
    плеер сбросился) - видео всё равно должно поехать в урок. */
+/* Видео, взятое по ссылке, не должно теряться, если мастер заново создали
+   между импортом и созданием урока: помним его вместе с началом транскрипта и
+   отдаём, только пока в поле исходника всё тот же текст. */
+let _lastWizMedia = null;
+function _wizRememberedMedia() {
+  if (!_lastWizMedia) return null;
+  const cur = String(document.getElementById('tbuilder-source')?.value || '').trim();
+  return cur && cur.startsWith(_lastWizMedia.head.trim()) ? _lastWizMedia.media : null;
+}
 function _wizLinkMedia() {
   const url = String(document.getElementById('tb-wiz-link')?.value || document.getElementById('tbuilder-youtube')?.value || '').trim();
   if (!url || typeof parseVideoEmbed !== 'function') return null;
@@ -19436,30 +19447,57 @@ function _stageLessonParts(set) {
    строят задания сами: после того как урок лёг на доску, внизу появляется
    полоса с кнопками. Vocabulary Studio открывается с уже добытым из текста
    списком слов и выбором игр, Speaking Studio - с тем же текстом как образцом. */
+/* Цепочка студий. Отмеченное в «Follow-up» «Continue in … Studio» больше не
+   ждёт нажатия на полосу: как только урок лёг на доску, в ТОМ ЖЕ окне
+   открывается конструктор следующей студии уже с материалом (Vocabulary -
+   список слов из текста, Speaking - тот же текст), его можно править и
+   создавать. Когда он положил урок на доску, открывается следующий. Полоса
+   внизу показывает, что дальше, и даёт Open / Skip / Stop. */
+const _lessonChain = { queue: [], active: null, text: '', level: 'B1' };
+const _CHAIN_LABEL = { vocab: '📚 Vocabulary Studio', speak: '🗣 Speaking Studio' };
+function _chainBar() {
+  let bar = document.getElementById('lesson-handoff');
+  if (!_lessonChain.queue.length && !_lessonChain.active) { bar?.remove(); return; }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'lesson-handoff'; bar.className = 'lesson-handoff';
+    bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Continue the lesson');
+    bar.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.classList.contains('lh-x')) _lessonChainStop();
+      else if (b.classList.contains('lh-skip')) { _lessonChain.active = null; _lessonChainNext(); }
+      else if (b.classList.contains('lh-b')) { const k = _lessonChain.active || (_lessonChain.queue[0] || {}).kind; if (k) { if (!_lessonChain.active) _lessonChainNext(); else _lessonHandoffOpen(k, _lessonChain.text, _lessonChain.level); } }
+    });
+    document.body.appendChild(bar);
+  }
+  const cur = _lessonChain.active || (_lessonChain.queue[0] || {}).kind;
+  const rest = (_lessonChain.active ? _lessonChain.queue : _lessonChain.queue.slice(1)).map(o => o.kind);
+  bar.innerHTML = `<span class="lh-t">Your lesson continues</span><button type="button" class="lh-b">${_CHAIN_LABEL[cur] || ''} - open</button>${rest.length ? `<span class="lh-t">then ${rest.map(k => _CHAIN_LABEL[k]).join(', ')}</span>` : ''}<button type="button" class="lh-b done lh-skip">Skip</button><button type="button" class="lh-x" aria-label="Stop">×</button>`;
+}
+function _lessonChainStop() { _lessonChain.queue = []; _lessonChain.active = null; _chainBar(); }
+function _lessonChainNext() {
+  const next = _lessonChain.queue.shift();
+  if (!next) { _lessonChain.active = null; _chainBar(); return; }
+  _lessonChain.active = next.kind;
+  _chainBar();
+  _lessonHandoffOpen(next.kind, _lessonChain.text, _lessonChain.level);
+}
+/* Урок следующей студии лёг на доску - открываем после него следующую. */
+function _lessonChainAdvance() {
+  if (!_lessonChain.active) return;
+  _lessonChain.active = null;
+  setTimeout(_lessonChainNext, 900);
+}
 function _showLessonHandoff(set, text) {
   const keys = set.keys || [];
   const opts = (set.cfg.stages || []).reduce((a, s) => a.concat(s.options || []), []).filter(o => o.handoff && keys.includes(o.key));
-  document.getElementById('lesson-handoff')?.remove();
   const clean = String(text || '').trim();
   if (!opts.length || !clean) return;
-  const bar = document.createElement('div');
-  bar.id = 'lesson-handoff';
-  bar.className = 'lesson-handoff';
-  bar.setAttribute('role', 'region');
-  bar.setAttribute('aria-label', 'Continue the lesson');
-  const label = { vocab: '📚 Vocabulary Studio', speak: '🗣 Speaking Studio' };
-  bar.innerHTML = `<span class="lh-t">Continue your lesson</span>${opts.map(o => `<button type="button" class="lh-b" data-h="${o.handoff}">${label[o.handoff] || esc(o.title)} →</button>`).join('')}<button type="button" class="lh-x" aria-label="Close">×</button>`;
-  document.body.appendChild(bar);
-  const level = (set.base && set.base.level) || 'B1';
-  bar.addEventListener('click', e => {
-    if (e.target.closest('.lh-x')) { bar.remove(); return; }
-    const b = e.target.closest('.lh-b');
-    if (!b) return;
-    const kind = b.dataset.h;
-    b.classList.add('done'); b.textContent = (label[kind] || '') + ' ✓';
-    _lessonHandoffOpen(kind, clean, level);
-    if (![...bar.querySelectorAll('.lh-b')].some(x => !x.classList.contains('done'))) setTimeout(() => bar.remove(), 600);
-  });
+  _lessonChain.queue = opts.map(o => ({ kind: o.handoff }));
+  _lessonChain.active = null;
+  _lessonChain.text = clean;
+  _lessonChain.level = (set.base && set.base.level) || 'B1';
+  setTimeout(_lessonChainNext, 700);
 }
 function _lessonHandoffOpen(kind, text, level) {
   const setLevel = () => { const sel = document.getElementById('tbuilder-level'); if (sel) { sel.value = level; sel.dispatchEvent(new Event('change', { bubbles: true })); } };
@@ -19534,6 +19572,7 @@ function placeBoardLessonStageSet() {
 
   const n = results.length + homework.length;
   toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
+  _lessonChainAdvance();
   try { _showLessonHandoff(set, readingText || (set.base && set.base.source) || ''); } catch (err) { console.warn('[stages] handoff', err); }
   _ttSaveToLibrary({
     type: 'lesson', results, videoUrl, path: _wpLibraryPath(pathCard) || undefined,
@@ -19672,7 +19711,12 @@ function _wizRenderScenes(host, skill) {
   host.innerHTML = `<div class="tb-news-levels" style="margin:0 0 10px"><span class="tb-news-levels-label">Words for</span>${LV.map(l => `<button type="button" class="tb-news-level${l === level ? ' is-on' : ''}" onclick="boardLessonWizard.sceneLevel='${l}';renderLessonWizard()">${l}</button>`).join('')}<span class="tb-sc-lvnote">${esc(LVL_NOTE[level] || '')}</span></div>
     ${worlds.length ? `<div class="tb-sc-worlds"><button type="button" class="tb-sc-world${world === 'all' ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='all';renderLessonWizard()">All pictures</button>${worlds.map(w => `<button type="button" class="tb-sc-world${world === w.id ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='${w.id}';renderLessonWizard()">${w.icon} ${esc(w.title)}</button>`).join('')}</div>
     ${W ? `<p class="tb-sc-focus"><b>${W.icon} ${esc(W.title)}</b> · ${esc(W.focus)}${W.theme && window.TeachedThemes ? ` · lands in the <i>${esc((window.TeachedThemes.get(W.theme) || {}).name || '')}</i> theme` : ''}</p>` : ''}` : ''}
-    <div class="tb-wiz-grid">${cat.map(t => `
+    <div class="tb-wiz-grid">${world === 'all' && SC && SC.maker ? `
+    <button type="button" class="tb-wiz-card" onclick="makeOwnSceneCard()">
+      <span class="tb-wiz-ic">🖼️</span>
+      <span class="tb-wiz-tx"><b>Your own picture</b><small>Upload any photo or drawing, tap things on it and type the words.</small></span>
+      <span class="tb-wiz-go">+</span>
+    </button>` : ''}${cat.map(t => `
     <button type="button" class="tb-wiz-card${t.ready ? '' : ' is-soon'}" ${t.ready ? `onclick="placeSceneCard('${esc(t.id)}')"` : 'disabled'}>
       <span class="tb-wiz-ic">${esc(t.icon)}</span>
       <span class="tb-wiz-tx"><b>${esc(t.title)}</b><small>${esc(t.hint)}</small>${t.inspired ? `<small class="tb-sc-insp">${esc(t.inspired)}</small>` : ''}</span>
@@ -19700,6 +19744,32 @@ async function placeSceneCard(sceneId, levelArg) {
   });
   closeTeacherToolBuilder();
   toast('Picture worksheet added - open it to explore');
+}
+
+/* Своя картинка: учитель загружает фото и расставляет слова (scene-studio.js,
+   TeachedScene.maker). Сцена целиком едет в карточке как out.custom -
+   фото уже оптимизировано так же, как картинка на доске. */
+function makeOwnSceneCard() {
+  const SC = window.TeachedScene;
+  if (!SC || !SC.maker) return;
+  SC.maker({ prepareImage: prepareBoardImageFile, onDone: placeCustomScene });
+}
+
+async function placeCustomScene({ title, custom }) {
+  const SC = window.TeachedScene;
+  if (!SC) return;
+  const level = (boardLessonWizard && boardLessonWizard.sceneLevel) || 'A2';
+  const sc = await SC.load('custom', { custom });
+  const out = { scene: 'custom', level, title, custom };
+  const path = { kind: 'scene', steps: [{ role: 'scene-studio', title: 'Picture Studio', out, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [] };
+  const card = _wpPlacePathCard({ level, topic: title }, title, path);
+  if (!card) return;
+  _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
+    title, cat: 'vocabulary', level, topic: title,
+    kind: `Picture worksheet · ${SC.stats(sc, level).words} words · own picture`, toolId: 'scene',
+  });
+  closeTeacherToolBuilder();
+  toast('Your picture worksheet is on the board - open it to explore');
 }
 
 function pickLessonSkill(key) {
@@ -20463,6 +20533,7 @@ async function importLessonLink() {
     if (isYt && boardLessonWizard) {
       const embedUrl = (typeof parseVideoEmbed === 'function') ? parseVideoEmbed(url) : null;
       boardLessonWizard.media = embedUrl ? { url, embedUrl, title: data.title || 'Video' } : null;
+      _lastWizMedia = embedUrl ? { media: boardLessonWizard.media, head: text.slice(0, 160) } : null;
     }
     say(`Brought ${text.split(/\s+/).length} words${data.title ? ` from “${data.title}”` : ''}. Check it below.`);
   } catch (err) {
@@ -23951,6 +24022,8 @@ function wsConnect() {
       }
       updateFollowUI();
       updatePresenceBar();
+    } else if (msg.type === 'student_layer') {
+      window.TeachedStudentLayer?.onLive(msg);
     } else if (msg.type === 'permission_denied') {
       boardCanEdit = false;
       applyRoleUI();

@@ -143,18 +143,72 @@
       <div class="te-sub">${n >= WEEK_GOAL ? 'Goal reached. Nice work.' : n ? `${WEEK_GOAL - n} more to hit the goal.` : 'Add words from lessons, the feed or the phrase of the day.'}</div>`;
   }
 
+
+  /* ── Zeros that do not feel like failure ──────────────────────────── */
+  const SOFT = {
+    'v-learned': ['🌱 Add your first word', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); }],
+    'v-tolearn': ['✨ All caught up'],
+    'v-pace': ['🔥 Warming up'],
+    'v-record': ['🏆 Set your first one'],
+    'ms-words': ['＋ Add one', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); }],
+    'ms-streak': ['Starts today'],
+  };
+  function softZero(id) {
+    const el = $(id), cfg = SOFT[id];
+    if (!el || !cfg) return;
+    const t = el.textContent.trim();
+    if (t === '0') { el.textContent = cfg[0]; el.classList.add('is-soft'); el.setAttribute('data-soft', '1'); }
+    else if (t !== cfg[0]) { el.classList.remove('is-soft'); el.removeAttribute('data-soft'); }
+  }
+  function softZeros() {
+    Object.keys(SOFT).forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      softZero(id);
+      new MutationObserver(() => softZero(id)).observe(el, { childList: true, characterData: true, subtree: true });
+      if (SOFT[id][1]) { const card = el.closest('.vs-card, .ms-stat'); if (card) card.addEventListener('click', () => { if (el.dataset.soft) SOFT[id][1](); }); }
+    });
+  }
+
+  /* ── First steps: a small quest instead of a wall of zeros ────────── */
+  function quest() {
+    const host = $('te-today');
+    if (!host) return;
+    const doneLessons = boardList.reduce((a, b) => a + (Number(b.done_lessons) || 0), 0);
+    const steps = [
+      { ok: vocabList.length > 0, icon: '🌱', t: 'Add your first word', go: () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); } },
+      { ok: doneLessons > 0, icon: '🎯', t: 'Finish your first lesson task', go: () => { const b = boardList[0]; if (b) location.href = 'board.html?id=' + encodeURIComponent(b.id); } },
+      { ok: _streakN > 0, icon: '🔥', t: 'Light the streak - do one thing today' },
+    ];
+    const n = steps.filter(s => s.ok).length;
+    let box = $('te-quest');
+    if (n === steps.length || store.get('te_quest_hidden') === '1') { box && box.remove(); return; }
+    if (!box) { host.insertAdjacentHTML('afterend', '<div class="te-quest" id="te-quest"></div>'); box = $('te-quest'); }
+    const cheer = n === 0 ? 'Your adventure starts here. Three small steps.' : n === 1 ? 'Nice start! Two to go.' : 'So close. One more!';
+    box.innerHTML = `<div class="te-q-head"><b>First steps</b><span>${n}/${steps.length}</span><button type="button" class="te-q-x" aria-label="Hide" title="Hide">×</button></div>
+      <div class="te-bar"><i style="width:${Math.round(n / steps.length * 100)}%"></i></div>
+      <div class="te-q-cheer">${cheer}</div>
+      <div class="te-q-steps">${steps.map((s, i) => `<button type="button" class="te-q-step${s.ok ? ' ok' : ''}" data-i="${i}"${s.ok || !s.go ? ' tabindex="-1"' : ''}><i>${s.ok ? '✓' : s.icon}</i><span>${esc(s.t)}</span></button>`).join('')}</div>`;
+    box.querySelector('.te-q-x').addEventListener('click', () => { store.set('te_quest_hidden', '1'); box.remove(); });
+    box.querySelectorAll('.te-q-step').forEach(b => b.addEventListener('click', () => { const s = steps[+b.dataset.i]; if (!s.ok && s.go) s.go(); }));
+  }
+  let _streakN = 0;
+
   /* ── Streak ──────────────────────────────────────────────────────── */
   function streak(d) {
     const box = $('te-streak');
     if (!box) return;
     const n = d.streak || 0;
+    _streakN = n; quest();
     const act = new Map((d.activity || []).map(a => [a.day, a.n]));
     const todayKey = d.today || today();
     const t = new Date(todayKey + 'T12:00:00');
     const mon = new Date(t); mon.setDate(t.getDate() - ((t.getDay() + 6) % 7));
     const letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    $('te-streak-n').textContent = n;
-    $('te-streak-l').textContent = n === 1 ? 'day in a row' : 'days in a row';
+    // 0 is not "nothing done": it is a streak that starts today.
+    $('te-streak-n').textContent = n > 0 ? n : 'Day 1';
+    $('te-streak-l').textContent = n === 0 ? 'starts today' : n === 1 ? 'day in a row' : 'days in a row';
+    box.classList.toggle('is-new', n === 0);
     $('te-week').innerHTML = letters.map((l, i) => {
       const x = new Date(mon); x.setDate(mon.getDate() + i);
       const key = x.toLocaleDateString('en-CA');
@@ -163,7 +217,7 @@
     }).join('');
     const doneToday = (act.get(todayKey) || 0) > 0;
     $('te-streak-hint').textContent = doneToday ? 'Today counts. See you tomorrow.'
-      : n > 0 ? `Open a task today to keep your ${n}-day streak.` : 'Do one small thing today to start a streak.';
+      : n > 0 ? `Open a task today to keep your ${n}-day streak.` : 'Do one small thing today and the flame is lit.';
   }
 
   /* ── Tabs ────────────────────────────────────────────────────────── */
@@ -215,6 +269,7 @@
     moreMenu();
     feedBadge();
     chunk(); goal(); nextLesson();
+    softZeros();
     setInterval(nextLesson, 60e3);
   }
 
@@ -222,10 +277,10 @@
     boards(list) {
       boardList = list || [];
       boardLink();
-      nextLesson();
+      nextLesson(); quest();
     },
     schedule(list) { scheduleList = Array.isArray(list) ? list : []; nextLesson(); },
-    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); goal(); },
+    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); goal(); quest(); },
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },
   };

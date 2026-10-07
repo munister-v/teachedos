@@ -265,9 +265,20 @@ body.fx.os-desktop:not(.wall-glass) #fx-ghost-panel { background:#FFFFFF; border
 .sp-day span { font-size:11px; color:#5D614B; }
 .sp-day b { font-size:14px; font-weight:650; color:#24282C; }
 .sp-day.has::after { content:''; position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; background:#24282C; opacity:.5; }
-.sp-day.is-today { background:#CDF649; }
-.sp-day.is-today span { color:#24282C; }
-.sp-count { margin:14px 6px 8px; font-size:13px; color:#5D614B; }
+.sp-day { appearance:none; border:0; background:transparent; font:inherit; cursor:pointer; transition:background .15s; }
+.sp-day:hover { background:rgba(205,246,73,.35); }
+.sp-day:focus-visible { outline:2px solid #24282C; outline-offset:1px; }
+.sp-day.is-today b { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; text-decoration-color:#9AB82A; }
+.sp-day.is-sel { background:#CDF649; }
+.sp-day.is-sel span { color:#24282C; }
+.sp-count { display:flex; align-items:center; justify-content:space-between; width:calc(100% - 12px); margin:10px 6px 6px; padding:6px 0; border:0; background:none; font:inherit; font-size:13px; color:#5D614B; cursor:pointer; text-align:left; }
+.sp-count:focus-visible { outline:2px solid #24282C; outline-offset:2px; border-radius:6px; }
+.sp-chev { width:7px; height:7px; border-right:2px solid #5D614B; border-bottom:2px solid #5D614B; transform:rotate(45deg); margin:-3px 4px 0 0; transition:transform .2s; }
+.sp-count[aria-expanded="true"] .sp-chev { transform:rotate(-135deg); margin-top:3px; }
+.sp-dayhead { font:600 10px var(--mono,monospace); letter-spacing:.1em; text-transform:uppercase; color:#8E918A; margin:6px 2px 0; }
+.sp-list.is-open { max-height:min(46vh,340px); overflow-y:auto; }
+.sp-list.is-open .sp-pill { display:flex !important; }
+.sp-add { background:none; font-family:inherit; cursor:pointer; }
 .sp-count b { font-size:15px; color:#24282C; }
 .sp-list { display:flex; flex-direction:column; gap:8px; padding:0 2px; }
 .sp-pill { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.86); border:1px solid rgba(255,255,255,.9);
@@ -517,7 +528,6 @@ body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse.is-clear { backgro
    есть всегда, а на невысоком экране без списка занятий (2026-10-04). */
 @media (max-width:1280px), (max-height:760px) {
   body.fx.os-desktop:not(#_) #fx-ghost-panel { display:block !important; }
-  body.fx.os-desktop:not(#_) #fx-ghost-panel .sp-list { display:none; }
 }
 
 /* ── Неделя столбиками (#wg-week) - на месте убранного виджета досок ── */
@@ -538,3 +548,14 @@ body.fx.os-desktop #wg-week { display:flex; }
 #wg-week .wk-col.is-today i{background:#CDF649;}
 #wg-week .wk-col span{font:600 9.5px var(--mono,monospace);color:#8E918A;}
 #wg-week .wk-col.is-today span{color:#CDF649;}
+
+/* Student Pulse → Message */
+.pm-ov{position:fixed;inset:0;z-index:99500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,22,24,.45);backdrop-filter:blur(6px)}
+.pm-sheet{width:min(460px,100%);background:#FBFAF6;color:#24282C;border-radius:22px;padding:22px;box-shadow:0 40px 100px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif}
+.pm-sheet h3{margin:0 0 4px;font-size:18px}
+.pm-sheet p{margin:0 0 12px;font-size:13px;color:#5D614B;line-height:1.45}
+.pm-sheet textarea{width:100%;box-sizing:border-box;border:1px solid rgba(36,40,44,.18);border-radius:14px;padding:12px 14px;font:15px/1.45 inherit;font-family:inherit;background:#fff;resize:vertical}
+.pm-row{display:flex;align-items:center;gap:8px;margin-top:12px}
+.pm-row span{flex:1;font-size:12.5px;color:#9A2C0C}
+.pm-row button{border:0;border-radius:12px;padding:10px 16px;font:700 13px inherit;font-family:inherit;cursor:pointer}
+.pm-cancel{background:#EFEEE7;color:#24282C}.pm-send{background:#CDF649;color:#24282C}.pm-send:disabled{opacity:.5}

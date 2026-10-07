@@ -93,55 +93,8 @@ async function desktopSignOut() {
 /* Ключи совпадают с WALL_PRESETS в backend/routes/users.js. Цвета взяты из
    палитры TeachEd (нейтральный «тёмно-белый», лайм, лавандовый); окна и
    виджеты белые, поэтому и тёмный фон остаётся читаемым. */
-const WALL_PRESETS = [
-  /* Стандартный фон - небо из макета «Главная стр» (Figma): серые облака
-     сверху, бирюза снизу. На нём окна становятся стеклом (glass). Прежний
-     ровный светлый остался пресетом 'plain'. */
-  { key: null,       group: 'colour', title: 'TeachEd sky', glass: true, css: 'radial-gradient(55% 38% at 28% 16%, rgba(255,255,255,.38) 0%, transparent 70%), radial-gradient(45% 30% at 78% 26%, rgba(255,255,255,.24) 0%, transparent 70%), radial-gradient(70% 45% at 60% 100%, rgba(62,150,150,.55) 0%, transparent 70%), linear-gradient(180deg, #8C9194 0%, #A3A9AB 36%, #9DB6B5 64%, #6AA8A6 100%)' },
-  { key: 'plain',    group: 'colour', title: 'Plain',    css: '#F6F6EF' },
-  { key: 'mist',     group: 'colour', title: 'Mist',     css: 'radial-gradient(120% 90% at 15% 10%, #FFFFFF 0%, transparent 55%), linear-gradient(160deg, #E9ECF2 0%, #DCE1EA 100%)' },
-  { key: 'dawn',     group: 'colour', title: 'Lime dawn', css: 'radial-gradient(90% 70% at 85% 0%, rgba(205,242,79,.55) 0%, transparent 60%), linear-gradient(170deg, #F6F8EE 0%, #E7EAE3 100%)' },
-  { key: 'meadow',   group: 'colour', title: 'Meadow',   css: 'radial-gradient(80% 60% at 10% 90%, rgba(168,208,43,.35) 0%, transparent 60%), radial-gradient(70% 60% at 90% 20%, rgba(124,138,123,.25) 0%, transparent 60%), #E8ECE4' },
-  { key: 'lavender', group: 'colour', title: 'Lavender', css: 'radial-gradient(90% 80% at 80% 15%, #F6F2FF 0%, transparent 55%), linear-gradient(165deg, #EEE8FF 0%, #DCD3F5 100%)' },
-  { key: 'dusk',     group: 'colour', title: 'Dusk',     css: 'radial-gradient(90% 70% at 20% 0%, rgba(205,242,79,.18) 0%, transparent 55%), linear-gradient(170deg, #2A2A33 0%, #16161B 100%)', dark: true },
-  { key: 'graphite', group: 'colour', title: 'Graphite', css: 'linear-gradient(165deg, #B9BBC3 0%, #8E9099 100%)', dark: true },
-  /* Узоры - тоже чистый CSS, в цветах TeachEd. */
-  { key: 'dots',     group: 'pattern', title: 'Dot grid',   css: 'radial-gradient(circle, rgba(22,22,22,.16) 1.2px, transparent 1.6px) 0 0 / 22px 22px, #F2F2F5' },
-  { key: 'paper',    group: 'pattern', title: 'Grid paper', css: 'linear-gradient(rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, linear-gradient(90deg, rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, #F7F7F9' },
-  { key: 'lime-dots', group: 'pattern', title: 'Lime dots', css: 'radial-gradient(circle, rgba(168,194,31,.55) 2px, transparent 2.6px) 0 0 / 30px 30px, linear-gradient(170deg, #F7F9EF 0%, #ECEFE4 100%)' },
-  { key: 'stripes',  group: 'pattern', title: 'Lavender stripes', css: 'repeating-linear-gradient(135deg, rgba(255,255,255,.5) 0 14px, transparent 14px 28px), linear-gradient(160deg, #ECE6FF 0%, #DDD5F6 100%)' },
-  { key: 'night-grid', group: 'pattern', title: 'Night grid', css: 'linear-gradient(rgba(205,242,79,.07) 1px, transparent 1px) 0 0 / 32px 32px, linear-gradient(90deg, rgba(205,242,79,.07) 1px, transparent 1px) 0 0 / 32px 32px, radial-gradient(80% 60% at 50% 0%, #2E2E3A 0%, #15151B 100%)', dark: true },
-  /* Фото - «избранные изображения» Wikimedia Commons, свободные лицензии.
-     CC BY / BY-SA требуют автора, лицензию и ссылку: они в подсказке плитки
-     и в подписи в углу стола, пока фон выбран. Файлы - img/wallpapers,
-     2560px WebP, превью 360px рядом (-thumb). */
-  { key: 'carpathians', group: 'photo', title: 'Carpathians', credit: 'Rbrechko', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:21-224-5054_NNP_Synevyr_RB_18.jpg' },
-  { key: 'fjord', group: 'photo', title: 'Fjord', credit: 'Ximonic (Simo Räsänen)', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Afternoon_at_Tennfjorden,_Raftsundet,_Hinn%C3%B8ya,_Norway,_2015_September.jpg' },
-  { key: 'lake', group: 'photo', title: 'Mountain lake', credit: 'Myrabella', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Gentau_Pic_du_Midi_Ossau.jpg' },
-  { key: 'laurel', group: 'photo', title: 'Misty laurels', credit: 'Dietmar Rabich', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:Fanal_(Madeira,_Portugal),_Lorbeerwald_--_2025_--_1532.jpg' },
-  { key: 'fog', group: 'photo', title: 'Fog', credit: 'W.carter', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:Forested_hills_in_Lysekil_in_fog_-_B%26W.jpg' },
-  { key: 'hills', group: 'photo', title: 'Green hills', credit: 'Kreuzschnabel', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:2015_Swaledale_from_Kisdon_Hill.jpg' },
-  { key: 'moss', group: 'photo', title: 'Moss', credit: 'W.carter', license: 'CC0', source: 'https://commons.wikimedia.org/wiki/File:Bilberry_bush_and_moss_in_Gullmarsskogen_ravine.jpg' },
-  { key: 'alley', group: 'photo', title: 'Forest path', credit: 'Dietmar Rabich', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:D%C3%BClmen,_B%C3%B6rnste,_Waldweg_--_2015_--_4649.jpg' },
-  { key: 'frost', group: 'photo', title: 'Frosty dawn', credit: 'Amadvr', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Karula_vaade.jpg' },
-  { key: 'sunset', group: 'photo', title: 'Sunset trees', credit: 'Dietmar Rabich', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:D%C3%BClmen,_Umland_--_2014_--_7056.jpg' },
-  { key: 'harbour', group: 'photo', title: 'Harbour', credit: 'Moahim', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:2018_-_Nyhavn_on_sunset.jpg' },
-  { key: 'canals', group: 'photo', title: 'Canals', credit: 'Diliff', license: 'CC BY 2.5', source: 'https://commons.wikimedia.org/wiki/File:Amsterdam_Canals_-_July_2006.jpg' },
-  { key: 'river-night', group: 'photo', title: 'River at night', credit: 'Max Dawncat', license: 'CC BY 2.0', source: 'https://commons.wikimedia.org/wiki/File:2018_-_May_-_Salzach_River_at_night_in_Salzburg.jpg', dark: true },
-];
-/* Путь абсолютный: фон ставится через CSS-переменную, а относительный
-   url() в ней считается от файла стилей (styles/), а не от страницы. */
-WALL_PRESETS.forEach(p => {
-  if (p.group !== 'photo') return;
-  const at = f => new URL(`img/wallpapers/${f}`, document.baseURI).href;
-  p.css = `url("${at(p.key + '.webp')}") center / cover no-repeat, #6B6F78`;
-  p.thumb = `url("${at(p.key + '-thumb.webp')}") center / cover no-repeat, #D5D7DC`;
-});
-const WALL_GROUPS = [
-  { key: 'colour', title: 'Colours' },
-  { key: 'photo', title: 'Photos' },
-  { key: 'pattern', title: 'Patterns' },
-];
+const WALL_PRESETS = window.TeachedWall.presets;
+const WALL_GROUPS = window.TeachedWall.groups;
 const WALL_CACHE_KEY = 'teachedos_wallpaper';
 let _wallValue = null;
 
@@ -537,6 +490,9 @@ function renderPulse() {
     }
     if (it.kind === 'payment' && it.journal_id) {
       acts.push(`<button type="button" class="wg-pulse-act" onclick="pulsePaid(${i})"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Paid</button>`);
+    }
+    if (it.journal_id) {
+      acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseMessage(${i})"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Message</button>`);
     } else if (it.email) {
       acts.push(`<a class="wg-pulse-act" href="mailto:${esc(it.email)}"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Message</a>`);
     }
@@ -551,6 +507,11 @@ function renderPulse() {
   }).join('') + (more > 0 ? `<a class="wg-pulse-more" href="journal.html">+${more} more in the Journal</a>` : '');
 }
 
+/* Куда ушло: в кабинет ученика (колокольчик) и/или письмом от TeachEd. */
+function _pulseSentNote(name, d) {
+  const where = [d && d.cabinet ? 'their cabinet' : '', d && d.email ? 'their email' : ''].filter(Boolean).join(' and ');
+  return `Sent to ${_pulseShortName(name)}${where ? ': ' + where : ''}`;
+}
 async function pulseRemind(i) {
   const it = _pulse.items && _pulse.items[i];
   if (!it || !it.journal_id) return;
@@ -559,21 +520,47 @@ async function pulseRemind(i) {
   const r = await dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/remind`, { method: 'POST', body: { kind: it.kind } }).catch(() => null);
   if (r && r.ok) {
     _pulse.busy[it.key] = 'sent';
-    dxToast(`Reminder sent to ${_pulseShortName(it.name)}`);
-  } else if (r && r.status === 409) {
-    /* Ученика нет в TeachEd - напомнить можно только письмом. */
-    delete _pulse.busy[it.key];
-    const subj = it.kind === 'payment' ? 'Payment reminder' : 'Your lesson package';
-    const body = it.kind === 'payment'
-      ? 'Hi! Just a reminder that the payment for our lessons is overdue. Thank you!'
-      : `Hi! ${it.lessons_left > 0 ? `You have ${it.lessons_left} lesson${it.lessons_left === 1 ? '' : 's'} left in your package.` : 'Your lesson package is used up.'} Shall we renew it?`;
-    if (it.email) location.href = `mailto:${it.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
-    else dxToast(`${_pulseShortName(it.name)} is not on TeachEd and has no email in the Journal.`);
+    dxToast(_pulseSentNote(it.name, r.data));
   } else {
     delete _pulse.busy[it.key];
-    dxToast('The reminder could not be sent. Try again.');
+    dxToast((r && r.data && r.data.error) || 'The reminder could not be sent. Try again.');
   }
   renderPulse();
+}
+
+/* «Message»: свои слова ученику. Уходит с платформы, не из почтового клиента
+   учителя: в кабинет ученика и на его почту. */
+function pulseMessage(i) {
+  const it = _pulse.items && _pulse.items[i];
+  if (!it || !it.journal_id) return;
+  document.getElementById('pulse-msg-ov')?.remove();
+  const ov = document.createElement('div');
+  ov.id = 'pulse-msg-ov';
+  ov.className = 'pm-ov';
+  const first = String(it.name || '').trim().split(/\s+/)[0] || 'there';
+  const start = it.kind === 'payment' ? `Hi ${first}! A quick reminder about the payment for our lessons. Thank you!`
+    : it.kind === 'package' ? `Hi ${first}! Your lesson package is almost over. Shall we renew it?` : '';
+  ov.innerHTML = `<div class="pm-sheet" role="dialog" aria-modal="true" aria-labelledby="pm-t">
+    <h3 id="pm-t">Message to ${esc(_pulseShortName(it.name))}</h3>
+    <p>It goes to their TeachEd cabinet and to their email, from TeachEd. They can reply to you by email.</p>
+    <textarea id="pm-text" maxlength="1000" rows="5" placeholder="Write your message…">${esc(start)}</textarea>
+    <div class="pm-row"><span id="pm-note"></span><button type="button" class="pm-cancel">Cancel</button><button type="button" class="pm-send">Send</button></div></div>`;
+  document.body.appendChild(ov);
+  const ta = ov.querySelector('#pm-text'), note = ov.querySelector('#pm-note'), send = ov.querySelector('.pm-send');
+  const close = () => ov.remove();
+  ov.addEventListener('mousedown', e => { if (e.target === ov) close(); });
+  ov.querySelector('.pm-cancel').addEventListener('click', close);
+  ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  send.addEventListener('click', async () => {
+    const text = ta.value.trim();
+    if (!text) { note.textContent = 'Write a message first.'; return; }
+    send.disabled = true; note.textContent = 'Sending…';
+    const r = await dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/message`, { method: 'POST', body: { text } }).catch(() => null);
+    if (r && r.ok) { close(); dxToast(_pulseSentNote(it.name, r.data)); return; }
+    send.disabled = false;
+    note.textContent = (r && r.data && r.data.error) || 'It could not be sent. Try again.';
+  });
+  setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 30);
 }
 
 async function pulsePaid(i) {
@@ -603,41 +590,57 @@ const SP_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 function _spInitials(name) {
   return String(name || 'C').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || 'C';
 }
+/* Кого показывать в строке занятия: ученик из журнала, потом группа,
+   и только потом название ("1:1" - это пресет, а не имя). */
+function _spWho(s) {
+  const g = s.group_name && !/^1\s*:\s*1$/.test(String(s.group_name).trim()) ? s.group_name : '';
+  return s.student_name || g || s.title || 'Class';
+}
+const _sp = { all: [], sel: null, open: false };
+function _spPill(s, today, withDay) {
+  const who = _spWho(s);
+  const when = withDay ? (s.day === today ? 'Today' : s.day === (today + 1) % 7 ? 'Tomorrow' : SP_DAYS[s.day]) + ' · ' : '';
+  return `<div class="sp-pill"><span class="sp-av">${esc(_spInitials(who))}</span>
+    <span class="sp-txt"><b>${esc(who)}</b><small>${when}${esc(String(s.start_time).slice(0, 5))}${s.level ? ' · ' + esc(s.level) : ''}</small></span></div>`;
+}
 function renderSchedPreview(all) {
   const box = document.getElementById('fx-ghost-panel');
   if (!box) return;
+  if (all) _sp.all = all;
   const now = new Date();
   const today = (now.getDay() + 6) % 7; // 0=Пн, как в базе
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  if (_sp.sel == null) _sp.sel = today;
+  const sel = _sp.sel;
   const toMin = t => { const [h, m] = String(t || '0:0').split(':'); return +h * 60 + +m; };
   const monday = new Date(now); monday.setDate(now.getDate() - today);
-  const weekly = (all || []).filter(s => s.recurring !== false && !s.specific_date);
-  const order = s => ((s.day - today + 7) % 7) * 1440 + toMin(s.start_time);
-  // Конец раньше начала = урок через полночь (23:30-00:30): он не закончился.
-  const endMin = s => { const e = toMin(s.end_time); return e < toMin(s.start_time) ? e + 1440 : e; };
-  const upcoming = weekly
-    .filter(s => !(s.day === today && endMin(s) <= nowMin))
-    .sort((a, b) => order(a) - order(b));
+  const weekly = _sp.all.filter(s => s.recurring !== false && !s.specific_date);
+  const byTime = (a, b) => toMin(a.start_time) - toMin(b.start_time);
   const month = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   const days = SP_DAYS.map((d, i) => {
     const dt = new Date(monday); dt.setDate(monday.getDate() + i);
     const has = weekly.some(s => s.day === i);
-    return `<div class="sp-day${i === today ? ' is-today' : ''}${has ? ' has' : ''}"><span>${d}</span><b>${dt.getDate()}</b></div>`;
+    return `<button type="button" class="sp-day${i === sel ? ' is-sel' : ''}${i === today ? ' is-today' : ''}${has ? ' has' : ''}" data-spday="${i}" aria-pressed="${i === sel}"><span>${d}</span><b>${dt.getDate()}</b></button>`;
   }).join('');
-  const pills = upcoming.slice(0, 4).map(s => {
-    const who = s.group_name || s.title || 'Class';
-    const when = s.day === today ? 'Today' : s.day === (today + 1) % 7 ? 'Tomorrow' : SP_DAYS[s.day];
-    return `<div class="sp-pill"><span class="sp-av">${esc(_spInitials(who))}</span>
-      <span class="sp-txt"><b>${esc(who)}</b><small>${when} · ${esc(String(s.start_time).slice(0, 5))}${s.level ? ' · ' + esc(s.level) : ''}</small></span></div>`;
-  }).join('');
+  let list;
+  if (_sp.open) {
+    // Развёрнуто: вся неделя по дням.
+    list = SP_DAYS.map((d, i) => {
+      const rows = weekly.filter(s => s.day === i).sort(byTime);
+      return rows.length ? `<div class="sp-dayhead">${d}${i === today ? ' · today' : ''}</div>` + rows.map(s => _spPill(s, today, false)).join('') : '';
+    }).join('') || '<div class="sp-empty">No classes this week yet.</div>';
+  } else {
+    const rows = weekly.filter(s => s.day === sel).sort(byTime);
+    const label = sel === today ? 'today' : sel === (today + 1) % 7 ? 'tomorrow' : 'on ' + SP_DAYS[sel];
+    list = rows.map(s => _spPill(s, today, false)).join('') || `<div class="sp-empty">No classes ${label}.</div>`;
+  }
   box.innerHTML = `
     <div class="sp-card">
       <div class="sp-head"><span class="sp-title">Schedule</span><span class="sp-month">${esc(month)}</span>
-        <span class="sp-add">Add <i>+</i></span></div>
+        <button type="button" class="sp-add" data-spopen>Add <i>+</i></button></div>
       <div class="sp-week">${days}</div>
     </div>
-    <div class="sp-count"><b>${weekly.length}</b> ${weekly.length === 1 ? 'class' : 'classes'} this week</div>
-    <div class="sp-list">${pills || '<div class="sp-empty">No classes this week yet. Open the schedule to add one.</div>'}</div>`;
+    <button type="button" class="sp-count" data-spexpand aria-expanded="${_sp.open}"><span><b>${weekly.length}</b> ${weekly.length === 1 ? 'class' : 'classes'} this week</span><i class="sp-chev" aria-hidden="true"></i></button>
+    <div class="sp-list${_sp.open ? ' is-open' : ''}">${list}</div>`;
   renderWeekChart(weekly, today);
 }
 /* Маленький график недели: столбик на день, высота - число уроков. */
@@ -663,9 +666,16 @@ async function loadSchedPreview() {
   if (!box || !_authToken) return;
   if (!box.dataset.wired) {
     box.dataset.wired = '1';
-    const open = () => { if (typeof dockApp === 'function') dockApp('schedule'); };
-    box.addEventListener('click', open);
-    box.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    /* Раньше клик в любое место панели открывал окно Schedule. Теперь день
+       просто переключает список, счётчик разворачивает неделю, а окно
+       открывается только кнопкой Add. */
+    box.addEventListener('click', e => {
+      e.stopPropagation();
+      const day = e.target.closest('[data-spday]');
+      if (day) { _sp.sel = +day.dataset.spday; _sp.open = false; renderSchedPreview(); return; }
+      if (e.target.closest('[data-spexpand]')) { _sp.open = !_sp.open; renderSchedPreview(); return; }
+      if (e.target.closest('[data-spopen]') && typeof dockApp === 'function') dockApp('schedule');
+    });
   }
   const r = await dxJson('/api/schedule').catch(() => null);
   if (r && r.ok) renderSchedPreview(r.data?.schedule || []);

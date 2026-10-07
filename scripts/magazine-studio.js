@@ -186,7 +186,7 @@
         <div class="mg-body">
           <div class="mg-credit"><span>Retold for ${esc(out.level)} learners from <b>${esc(src.name || 'the news')}</b>${src.published ? ` · ${esc(when(src.published))}` : ''}</span>${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener">Original ↗</a>` : ''}${window.TeachedAccent ? window.TeachedAccent.toggleHtml() : ''}</div>
           ${body}
-          <div class="mg-end"><span style="font-size:22px">✦</span><span><b>Tap any highlighted phrase</b> for its meaning here and a video of real people saying it - or <b>tap any other word</b> to hear it and save it to your Vault. Then do the tasks on the right.</span></div>
+          <div class="mg-end"><span style="font-size:22px">✦</span><span><b>Tap any highlighted phrase</b> for its meaning here and a video of real people saying it - or <b>tap any other word</b> to hear it and save it to your Word Bank. Then do the tasks on the right.</span></div>
         </div>
       </article>
       <aside class="mg-side">
@@ -218,7 +218,7 @@
         ${ex ? `<p class="mg-ex">${ex}</p>` : ''}
         <div class="mg-mini"></div>
         <div class="mg-pop-acts">
-          <button type="button" class="mg-btn ${isSaved ? 'ghost' : 'lime'} mg-save"${isSaved || !opts.canSave ? ' disabled' : ''}>${isSaved ? '✓ In your Vault' : opts.canSave ? '+ Save to my Vault' : 'Sign in to save words'}</button>
+          <button type="button" class="mg-btn ${isSaved ? 'ghost' : 'lime'} mg-save"${isSaved || !opts.canSave ? ' disabled' : ''}>${isSaved ? '✓ In your Word Bank' : opts.canSave ? '+ Save to my Word Bank' : 'Sign in to save words'}</button>
           <button type="button" class="mg-btn dark mg-more" title="Bigger, other accents, record yourself">⤢</button>
         </div>`;
       document.body.appendChild(pop);
@@ -247,7 +247,7 @@
           if (!res.ok) throw new Error();
           opts.onSaved && opts.onSaved({ kind: 'word', word: v.term, translation: v.definition, example: v.example || '', source_title: out.headline || '' });
           st.saved.push(v.term); save();
-          b.className = 'mg-btn ghost mg-save'; b.textContent = '✓ In your Vault';
+          b.className = 'mg-btn ghost mg-save'; b.textContent = '✓ In your Word Bank';
           el.querySelectorAll(`.mg-w[data-v="${btn.dataset.v}"]`).forEach(w => w.classList.add('saved'));
         } catch (e) { b.disabled = false; b.textContent = 'Could not save - try again'; }
       });
@@ -266,7 +266,7 @@
 
     /* Any other word of the story: dictionary meaning (Cambridge learner's,
        /api/dictionary/define), IPA and recording in the chosen accent, the
-       sentence it came from as the example, and Save to my Vault. */
+       sentence it came from as the example, and Save to my Word Bank. */
     const dict = {};
     const wordKey = s => String(s || '').toLowerCase().replace(/[’]/g, "'").replace(/^[^a-z]+|[^a-z]+$/g, '');
     /* the sentence around the tapped word, by its position in the paragraph */
@@ -310,7 +310,7 @@
           ${!d ? '<p class="mg-loading">Looking it up…</p>' : d.definition ? `<p class="mg-def">${esc(d.definition)}</p>` : '<p class="mg-loading">No dictionary entry - you can still listen and save it.</p>'}
           ${example ? `<p class="mg-ex">${esc(example).replace(new RegExp(`(^|[^\\p{L}])(${esc(span.textContent).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(?=[^\\p{L}]|$)`, 'u'), '$1<mark>$2</mark>')}</p>` : ''}
           <div class="mg-pop-acts">
-            <button type="button" class="mg-btn ${isSaved ? 'ghost' : 'lime'} mg-save"${isSaved || !opts.canSave || !d ? ' disabled' : ''}>${isSaved ? '✓ In your Vault' : opts.canSave ? '+ Save to my Vault' : 'Sign in to save words'}</button>
+            <button type="button" class="mg-btn ${isSaved ? 'ghost' : 'lime'} mg-save"${isSaved || !opts.canSave || !d ? ' disabled' : ''}>${isSaved ? '✓ In your Word Bank' : opts.canSave ? '+ Save to my Word Bank' : 'Sign in to save words'}</button>
             <button type="button" class="mg-btn dark mg-more" title="Real people saying it">▶</button>
           </div>`;
         place();
@@ -326,7 +326,7 @@
             if (!res.ok) throw new Error();
             opts.onSaved && opts.onSaved({ kind: 'word', word, translation: meaning, example, source_title: out.headline || '' });
             st.saved.push(word); st.wordDefs = Object.assign({}, st.wordDefs, { [word]: meaning }); save();
-            sv.className = 'mg-btn ghost mg-save'; sv.textContent = '✓ In your Vault';
+            sv.className = 'mg-btn ghost mg-save'; sv.textContent = '✓ In your Word Bank';
             el.querySelectorAll('.mg-t').forEach(x => { if (wordKey(x.textContent) === word) x.classList.add('saved'); });
           } catch (err) { sv.disabled = false; sv.textContent = 'Could not save - try again'; }
         });

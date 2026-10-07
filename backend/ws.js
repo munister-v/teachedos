@@ -4,6 +4,7 @@ const { WebSocketServer } = require('ws');
 const pool = require('./db/pool');
 const { filterBoardData } = require('./lib/boardVisibility');
 const { sanitizeBoardData } = require('./lib/boardSanitize');
+const { sanitizeLayer } = require('./lib/studentLayer');
 const { authenticateToken } = require('./middleware/auth');
 
 const APP_PROTOCOL = 'teached-v1';
@@ -231,6 +232,18 @@ function setup(server) {
         case 'stroke_delete':
           broadcast(boardId, { ...msg, userId }, ws);
           break;
+        // A student's own pen / notes / stickers: saved over HTTP, relayed
+        // live to the board owner only (other students never see them).
+        case 'student_layer': {
+          if (accessRole === 'owner') break;
+          const layer = sanitizeLayer(msg.layer);
+          const room = rooms.get(boardId);
+          const ownerId = (roomMeta.get(boardId) || {}).boardOwnerId;
+          if (!room) break;
+          const payload = JSON.stringify({ type: 'student_layer', userId, name: authenticated.user.name, avatar: authenticated.user.avatar, layer });
+          room.forEach(c => { if (c !== ws && c.readyState === 1 && String(c.userId) === String(ownerId)) c.send(payload); });
+          break;
+        }
         // Cursor / presence
         case 'cursor':
           broadcast(boardId, {

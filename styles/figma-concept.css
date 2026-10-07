@@ -767,6 +767,16 @@ body.fx.board-page #miro-toolbar {
   max-height:calc(100vh - var(--tb-h) - 28px) !important;
   overflow-y:auto !important;
 }
+/* Рейка стояла у верхнего края. Теперь по центру левой стороны: top и bottom
+   заданы, высота по содержимому, auto-поля делят остаток поровну (без
+   transform, чтобы поповеры внутри не теряли привязку к окну). Только на
+   десктопе: на телефоне рейка устроена иначе. */
+@media (min-width:821px) {
+  body.fx.board-page #miro-toolbar {
+    top:var(--tb-h) !important; bottom:0 !important;
+    height:fit-content !important; margin-block:auto !important;
+  }
+}
 
 /* ── Мобильная раскладка дашборда ───────────────────────────────────────── */
 /* Макет мобильный экран не покрывает, но язык у продукта должен быть один:
