@@ -194,7 +194,7 @@ router.get('/portal/:studentId', requireAuth, async (req, res) => {
       // teacher's private notes for a student who shares boards with both.
       // The student's own self-view keeps the old unscoped lookup.
       const { rows: je } = await pool.query(
-        `SELECT j.*, COUNT(a.id) FILTER (WHERE a.status='present') AS attended,
+        `SELECT j.*, to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due, COUNT(a.id) FILTER (WHERE a.status='present') AS attended,
                 COUNT(a.id) AS total_sessions
          FROM student_journal j
          LEFT JOIN attendance a ON a.journal_id = j.id

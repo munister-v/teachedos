@@ -69,18 +69,25 @@
         '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="14" rx="2"/><path d="M8 21h8M12 18v3M7 9h6M7 12.5h10"/></svg>' +
         '<span>Open my board</span></a>');
     }
-    // today cards under the welcome line
+    // today cards under the welcome line: homework first, the phrase, and the
+    // next lesson as the loud card on the right
     const welcome = document.querySelector('.welcome');
     if (welcome && !$('te-today')) {
       welcome.insertAdjacentHTML('afterend',
         '<div class="te-today" id="te-today">' +
-        '<div class="te-card" id="te-next"></div>' +
+        '<div class="te-card" id="te-hw"></div>' +
         '<div class="te-card dark" id="te-chunk"></div>' +
-        '<div class="te-card" id="te-goal"></div></div>');
+        '<div class="te-card te-next-card" id="te-next"></div></div>');
     }
+    // weekly words goal: a quiet strip in the vocabulary section, not a hero card
+    const vs = document.querySelector('.vocab-stats');
+    if (vs && !$('te-goal')) vs.insertAdjacentHTML('beforebegin', '<div class="te-card te-goal-strip" id="te-goal"></div>');
+    // balance and payment in the top bar, before the bell
+    const bell = $('notif-dot') && $('notif-dot').parentElement;
+    if (bell && !$('te-bal')) bell.insertAdjacentHTML('beforebegin', '<div class="te-bal" id="te-bal" hidden></div>');
   }
 
-  /* ── Next lesson ─────────────────────────────────────────────────── */
+  /* ── Next lesson: the loud card ──────────────────────────────────── */
   function nextLesson() {
     const box = $('te-next');
     if (!box) return;
@@ -90,20 +97,92 @@
       .filter(x => x.t > now - 15 * 60e3)
       .sort((a, b) => a.t - b.t)[0];
     if (!up) {
-      box.innerHTML = '<div class="te-k">Next lesson</div><div class="te-big">Not booked yet</div><div class="te-sub">Pick a time with your teacher and it will appear here.</div>';
+      const tok = (boardList.find(b => b.booking_token) || {}).booking_token;
+      box.innerHTML = '<div class="te-k">Next lesson</div><div class="te-big">Not booked yet</div><div class="te-sub">Pick a time with your teacher and it will appear here.</div>' +
+        (tok ? `<a class="te-join" href="book.html?t=${encodeURIComponent(tok)}">Book a lesson →</a>` : '');
       return;
     }
     const d = new Date(up.t);
     const mins = Math.round((up.t - now) / 60e3);
     const days = Math.round((new Date(up.t).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5);
-    const when = mins <= 0 ? 'now' : mins < 60 ? `in ${mins} min` : days === 0 ? `in ${Math.round(mins / 60)} h`
+    const count = mins <= 0 ? 'starting now' : mins < 60 ? `in ${mins} min` : mins < 24 * 60 ? `in ${Math.floor(mins / 60)} h ${mins % 60 ? (mins % 60) + ' min' : ''}`.trim()
       : days === 1 ? 'tomorrow' : `in ${days} days`;
-    const day = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const day = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : d.toLocaleDateString('en-GB', { weekday: 'long' });
     const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const board = boardList.find(b => b.teacher_id === up.s.user_id) || boardList[0];
-    const inner = `<div class="te-k">Next lesson</div><div class="te-big">${esc(day)}, ${esc(time)}</div>
-      <div class="te-sub">${esc(up.s.title || up.s.topic || 'Lesson')}</div><span class="te-count">${esc(when)}</span>`;
-    box.innerHTML = board ? `<a class="te-link" href="board.html?id=${esc(board.id)}" title="Open the lesson board">${inner}</a>` : inner;
+    const teacher = up.s.teacher_name || (board && board.teacher_name) || '';
+    const url = /^https?:\/\//i.test(up.s.meeting_url || '') ? up.s.meeting_url : '';
+    const join = url ? `<a class="te-join" href="${esc(url)}" target="_blank" rel="noopener">Join lesson →</a>`
+      : board ? `<a class="te-join" href="board.html?id=${esc(board.id)}">Open the board →</a>` : '';
+    box.innerHTML = `<div class="te-k">Next lesson</div><div class="te-big">${esc(day)}, ${esc(time)}</div>
+      <div class="te-count-big">${esc(count)}</div>
+      <div class="te-sub">${teacher ? `with ${esc(teacher)}${up.s.title ? ' · ' : ''}` : ''}${esc(up.s.title || up.s.topic || (teacher ? '' : 'Lesson'))}</div>${join}`;
+  }
+
+  /* ── Homework: on top, never hidden under a tab ──────────────────── */
+  let hwTodo = null;
+  function homework() {
+    const box = $('te-hw');
+    if (!box) return;
+    if (hwTodo == null) { box.innerHTML = '<div class="te-k">Homework</div><div class="te-sub">Looking for your tasks…</div>'; return; }
+    if (!hwTodo.length) {
+      box.innerHTML = '<div class="te-k">Homework</div><div class="te-big">All clear! 🎉</div><div class="te-sub">New assignments will appear here.</div>';
+      return;
+    }
+    const now = Date.now();
+    const rows = hwTodo.slice().sort((a, b) => (a.due_at ? new Date(a.due_at) : 8e15) - (b.due_at ? new Date(b.due_at) : 8e15));
+    const badge = a => {
+      if (!a.due_at) return '<span class="te-badge">No deadline</span>';
+      const t = new Date(a.due_at).getTime(), left = t - now;
+      if (left < 0) return '<span class="te-badge late">Overdue</span>';
+      const day = new Date(t).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      return `<span class="te-badge${left < 48 * 3600e3 ? ' soon' : ''}">Due ${esc(day)}</span>`;
+    };
+    box.innerHTML = `<div class="te-k">Homework · ${rows.length} to do</div>
+      ${rows.slice(0, 2).map(a => `<a class="te-hw-row" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}"><span class="te-hw-t">${esc(a.title)}</span>${badge(a)}</a>`).join('')}
+      ${rows.length > 2 ? `<div class="te-sub">+${rows.length - 2} more in Assignments</div>` : ''}
+      <a class="te-btn te-hw-go" href="homework-do.html?a=${encodeURIComponent(rows[0].assignment_id)}">Do homework →</a>`;
+  }
+
+  /* One main action instead of a row of small buttons. */
+  function mainAction() {
+    const b = $('te-main');
+    if (!b) return;
+    if (hwTodo && hwTodo.length) { b.textContent = '→ Do homework'; b.dataset.mode = 'hw'; }
+    else { b.textContent = '→ Continue learning words'; b.dataset.mode = 'words'; }
+  }
+  function actions() {
+    const box = document.querySelector('.vocab-actions');
+    if (!box || $('te-main')) return;
+    // the old row (language pair, refresh) goes away; learning words stays the main action
+    box.innerHTML = '<button type="button" class="va-btn primary" id="te-main">→ Continue learning words</button><button type="button" class="te-quiet" id="te-add">+ Add a word</button>';
+    $('te-main').addEventListener('click', () => {
+      if ($('te-main').dataset.mode === 'hw' && hwTodo && hwTodo[0]) location.href = 'homework-do.html?a=' + encodeURIComponent(hwTodo[0].assignment_id);
+      else if (typeof window.learnWords === 'function') window.learnWords();
+    });
+    $('te-add').addEventListener('click', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); });
+    mainAction();
+  }
+
+  /* ── Balance and payment: one calm line in the top bar ───────────── */
+  const bal = { jLeft: null, bLeft: null, paymentDue: null, token: null, teacher: '' };   // journal balance wins over the board count
+  function balance() {
+    const box = $('te-bal');
+    if (!box) return;
+    const left = bal.jLeft != null ? bal.jLeft : bal.bLeft;
+    if (left == null) { box.hidden = true; return; }
+    let pay = '';
+    if (bal.paymentDue && /^\d{4}-\d{2}-\d{2}$/.test(bal.paymentDue)) {
+      const d = new Date(bal.paymentDue + 'T12:00:00');
+      pay = ` · next payment ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
+    }
+    const low = left <= 2;
+    box.hidden = false;
+    box.className = 'te-bal' + (left === 0 ? ' zero' : low ? ' low' : '');
+    const text = `🎟 <b>${left}</b> lesson${left === 1 ? '' : 's'} left${esc(pay)}`;
+    box.innerHTML = low
+      ? (bal.token ? `<a href="book.html?t=${encodeURIComponent(bal.token)}">${text} · renew →</a>` : `<span title="Ask ${esc(bal.teacher || 'your teacher')} to renew your package">${text} · renew?</span>`)
+      : `<span>${text}</span>`;
   }
 
   /* ── Phrase of the day ───────────────────────────────────────────── */
@@ -242,20 +321,10 @@
     document.addEventListener('click', () => { wrap.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); });
     menu.addEventListener('click', () => { wrap.classList.remove('open'); setTimeout(sync, 0); });
     new MutationObserver(sync).observe(menu, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    // Writing joins the menu too: the row keeps only Assignments, Vocabulary and Progress.
+    const adopt = () => { const w = tabs.querySelector(':scope > [data-tab="writing"]'); if (w) menu.prepend(w); };
+    adopt(); new MutationObserver(adopt).observe(tabs, { childList: true });
     sync();
-  }
-
-  function feedBadge() {
-    const tabs = $('tabs');
-    if (!tabs) return;
-    const apply = () => {
-      const t = tabs.querySelector('[data-tab="feed"]');
-      if (!t || t.querySelector('.tab-new') || store.get('te_feed_seen') === today()) return;
-      t.insertAdjacentHTML('beforeend', '<span class="tab-new">New</span>');
-      t.addEventListener('click', () => { store.set('te_feed_seen', today()); const b = t.querySelector('.tab-new'); if (b) b.remove(); });
-    };
-    apply();
-    new MutationObserver(apply).observe(tabs, { childList: true });
   }
 
   function boardLink() {
@@ -267,8 +336,7 @@
     ensureMarkup();
     boardLink();
     moreMenu();
-    feedBadge();
-    chunk(); goal(); nextLesson();
+    chunk(); goal(); nextLesson(); homework(); actions(); balance();
     softZeros();
     setInterval(nextLesson, 60e3);
   }
@@ -278,11 +346,14 @@
       boardList = list || [];
       boardLink();
       nextLesson(); quest();
+      if (boardList[0]) bal.teacher = boardList[0].teacher_name || '';
     },
     schedule(list) { scheduleList = Array.isArray(list) ? list : []; nextLesson(); },
     vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); goal(); quest(); },
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },
+    homework(todo) { hwTodo = Array.isArray(todo) ? todo : []; homework(); mainAction(); },
+    balance(b) { Object.assign(bal, b || {}); balance(); },
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

@@ -26,6 +26,20 @@
     st.id = 'sf-css';
     st.textContent = `
 .tabs .tab{white-space:nowrap}
+#sf-fab{position:fixed;right:0;top:46%;z-index:4500;display:flex;align-items:center;gap:8px;border:0;border-radius:18px 0 0 18px;padding:14px 16px 14px 14px;background:#CDF649;color:#24282C;font:800 13px -apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif;cursor:pointer;box-shadow:-8px 10px 30px -10px rgba(36,40,44,.45),0 0 0 1.5px #24282C inset;transition:transform .18s,padding .18s}
+#sf-fab:hover{transform:translateX(-4px)}
+#sf-fab .sf-fab-ic{font-size:18px}
+#sf-fab .sf-fab-new{position:absolute;left:-5px;top:-5px;width:13px;height:13px;border-radius:50%;background:#FF4E00;border:2px solid #fff}
+#sf-fab.is-open{opacity:0;pointer-events:none}
+#sf-scrim{position:fixed;inset:0;z-index:4600;background:rgba(36,40,44,.35);opacity:0;transition:opacity .2s}
+#sf-scrim.open{opacity:1}
+#sf-drawer{position:fixed;top:0;right:0;bottom:0;z-index:4700;width:min(560px,100vw);background:#FBFAF6;box-shadow:-30px 0 80px rgba(0,0,0,.3);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+#sf-drawer.open{transform:none}
+.sf-d-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid rgba(36,40,44,.1);font-size:16px}
+.sf-d-x{margin-left:auto;width:36px;height:36px;border:0;border-radius:11px;background:#EFEEE7;cursor:pointer;font-size:15px}
+#sf-drawer .sf-pane{flex:1;overflow:auto;padding:16px 20px 24px}
+@media (max-width:820px){#sf-fab{top:auto;bottom:86px;border-radius:18px 0 0 18px}#sf-fab .sf-fab-t{display:none}#sf-fab{padding:12px}}
+
 .sf-ov{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(36,40,44,.5);padding:16px}
 .sf-card{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:22px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.35);font-family:inherit;color:#24282C}
 .sf-card h2{font-size:22px;letter-spacing:-.02em;margin-bottom:4px}
@@ -107,30 +121,45 @@
     document.body.appendChild(ov);
   }
 
-  /* ── Вкладка ──────────────────────────────────────────────────────── */
+  /* ── Боковая кнопка «For you» ─────────────────────────────────────────────
+     Не вкладка в ряду: яркая кнопка у правого края открывает панель со
+     статьями и «Explain a phrase» поверх страницы. Ничего не перекрывает,
+     пока не нажали, и ряд вкладок остаётся коротким. */
   function mountTab() {
-    const tabs = document.getElementById('tabs');
-    if (!tabs || document.getElementById('pane-feed')) return;
-    const btn = document.createElement('button');
-    btn.className = 'tab'; btn.dataset.tab = 'feed'; btn.textContent = 'For you';
-    tabs.insertBefore(btn, tabs.children[1] || null);
-    btn.addEventListener('click', () => { if (typeof activateTab === 'function') activateTab('feed'); loadFeed(); });
-    const anyPane = document.querySelector('.tab-pane');
-    const pane = document.createElement('div');
-    pane.className = 'tab-pane'; pane.id = 'pane-feed';
-    pane.innerHTML = '<div id="sf-body"><div class="sf-empty">Loading your reading…</div></div>';
-    anyPane.parentNode.appendChild(pane);
+    if (document.getElementById('sf-fab')) return;
+    const fab = document.createElement('button');
+    fab.type = 'button'; fab.id = 'sf-fab';
+    fab.setAttribute('aria-haspopup', 'dialog');
+    fab.innerHTML = '<span class="sf-fab-ic">✨</span><span class="sf-fab-t">For you</span>';
+    let seen = false;
+    try { seen = localStorage.getItem('te_feed_seen') === new Date().toLocaleDateString('en-CA'); } catch (_) {}
+    if (!seen) fab.insertAdjacentHTML('beforeend', '<i class="sf-fab-new" aria-hidden="true"></i>');
+    const drawer = document.createElement('aside');
+    drawer.id = 'sf-drawer'; drawer.setAttribute('role', 'dialog'); drawer.setAttribute('aria-label', 'For you'); drawer.hidden = true;
+    drawer.innerHTML = '<div class="sf-d-head"><b>✨ For you today</b><button type="button" class="sf-d-x" aria-label="Close">✕</button></div><div class="sf-pane" id="pane-feed"><div id="sf-body"><div class="sf-empty">Loading your reading…</div></div></div>';
+    const scrim = document.createElement('div');
+    scrim.id = 'sf-scrim'; scrim.hidden = true;
+    document.body.append(scrim, drawer, fab);
+    const open = () => {
+      drawer.hidden = false; scrim.hidden = false;
+      requestAnimationFrame(() => { drawer.classList.add('open'); scrim.classList.add('open'); });
+      fab.classList.add('is-open');
+      fab.querySelector('.sf-fab-new')?.remove();
+      try { localStorage.setItem('te_feed_seen', new Date().toLocaleDateString('en-CA')); } catch (_) {}
+      loadFeed();
+    };
+    const close = () => {
+      drawer.classList.remove('open'); scrim.classList.remove('open'); fab.classList.remove('is-open');
+      setTimeout(() => { drawer.hidden = true; scrim.hidden = true; }, 220);
+    };
+    fab.addEventListener('click', () => (drawer.hidden ? open() : close()));
+    scrim.addEventListener('click', close);
+    drawer.querySelector('.sf-d-x').addEventListener('click', close);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !drawer.hidden) close(); });
+    const pane = drawer.querySelector('#pane-feed');
     pane.addEventListener('click', onPane);
     pane.addEventListener('submit', e => { e.preventDefault(); const v = pane.querySelector('.sf-ask input').value.trim(); if (v) { const r = pane.querySelector('.sf-ask').getBoundingClientRect(); explain(v, r.left + 20, r.bottom + 6); } });
-    // и на телефоне: нижняя панель
-    const m = document.querySelector('.mtab');
-    if (m && m.parentNode) {
-      const mb = document.createElement('button');
-      mb.className = 'mtab'; mb.type = 'button'; mb.dataset.tab = 'feed';
-      mb.innerHTML = '<span class="mtab-ic">✨</span><span>For you</span>';
-      mb.addEventListener('click', () => { if (typeof activateTab === 'function') activateTab('feed'); loadFeed(); });
-      m.parentNode.insertBefore(mb, m.parentNode.children[1] || null);
-    }
+    window.openForYou = open;
   }
 
   function wrapWords(text) {
@@ -197,7 +226,7 @@
     pop.querySelector('.sf-ipa').textContent = ipa ? ' /' + ipa.replace(/^\/|\/$/g, '') + '/' : '';
     pop.querySelector('.sf-mean').innerHTML = multi ? '<input type="text" maxlength="200" placeholder="what it means (optional)" aria-label="Meaning">'
       : meaning ? esc(meaning) + (example ? `<em>“${esc(example)}”</em>` : '') : 'No entry found - you can still save it.';
-    pop.insertAdjacentHTML('beforeend', `<div class="sf-row">${snd || !multi ? '<button type="button" data-say>🔊 Listen</button>' : ''}<button type="button" class="main" data-save>+ My dictionary</button></div>`);
+    pop.insertAdjacentHTML('beforeend', `<div class="sf-row">${snd || !multi ? '<button type="button" data-say>🔊 Listen</button>' : ''}<button type="button" class="main" data-save>+ Word Bank</button></div>`);
     pop.querySelector('[data-say]')?.addEventListener('click', () => {
       try { audio && audio.pause(); } catch {}
       if (snd) { audio = new Audio(snd); audio.play().catch(() => speak(t)); } else speak(t);
