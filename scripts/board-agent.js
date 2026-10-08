@@ -29,6 +29,7 @@
   let plan = null;        // last answer waiting for Apply
   let planFor = '';       // the command that produced it
   let busy = false;
+  let lastCommand = '';   // what was sent last; ArrowUp in an empty field brings it back
 
   /* ── Bar ────────────────────────────────────────────────────────────── */
   const bar = document.createElement('div');
@@ -217,8 +218,12 @@
   async function ask() {
     const command = input.value.trim();
     if (busy || command.length < 2) return;
+    /* Как в мессенджере: отправленное уходит из поля сразу, понял его
+       ассистент или нет. Вернуть последнюю команду - стрелка вверх. */
+    lastCommand = command;
+    input.value = '';
     const studio = studioIntent(command);
-    if (studio && openStudio(studio)) { input.value = ''; return; }
+    if (studio && openStudio(studio)) return;
     clearPlan();
     setBusy(true);
     try {
@@ -474,7 +479,9 @@
   /* ── Wiring ─────────────────────────────────────────────────────────── */
   $('.ba-row').addEventListener('submit', e => {
     e.preventDefault();
-    if (plan && input.value.trim() === planFor) apply(plan);
+    // The field is empty after sending, so Enter on an empty field applies the plan.
+    const typed = input.value.trim();
+    if (plan && (!typed || typed === planFor)) apply(plan);
     else ask();
   });
   $('.ba-apply').addEventListener('click', () => apply(plan));
@@ -482,6 +489,7 @@
   $('.ba-close').addEventListener('click', close);
   bar.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); close(); }
+    if (e.key === 'ArrowUp' && !input.value && lastCommand) { e.preventDefault(); input.value = lastCommand; input.select(); }
     e.stopPropagation();   // typing here must not reach the board's shortcuts
   });
   // Keep the bar's own clicks from starting a canvas drag or clearing the selection.
