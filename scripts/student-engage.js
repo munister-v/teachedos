@@ -144,24 +144,15 @@
       <a class="te-btn te-hw-go" href="homework-do.html?a=${encodeURIComponent(rows[0].assignment_id)}">Do homework →</a>`;
   }
 
-  /* One main action instead of a row of small buttons. */
-  function mainAction() {
-    const b = $('te-main');
-    if (!b) return;
-    if (hwTodo && hwTodo.length) { b.textContent = '→ Do homework'; b.dataset.mode = 'hw'; }
-    else { b.textContent = '→ Continue learning words'; b.dataset.mode = 'words'; }
-  }
+  /* One main action in the vocabulary block: practise words. Homework has its
+     own card on top, so its button is not repeated here. */
+  function mainAction() {}
   function actions() {
     const box = document.querySelector('.vocab-actions');
     if (!box || $('te-main')) return;
-    // the old row (language pair, refresh) goes away; learning words stays the main action
-    box.innerHTML = '<button type="button" class="va-btn primary" id="te-main">→ Continue learning words</button><button type="button" class="te-quiet" id="te-add">+ Add a word</button>';
-    $('te-main').addEventListener('click', () => {
-      if ($('te-main').dataset.mode === 'hw' && hwTodo && hwTodo[0]) location.href = 'homework-do.html?a=' + encodeURIComponent(hwTodo[0].assignment_id);
-      else if (typeof window.learnWords === 'function') window.learnWords();
-    });
+    box.innerHTML = '<button type="button" class="va-btn primary" id="te-main">→ Practise words</button><button type="button" class="te-outline" id="te-add">+ Add word</button>';
+    $('te-main').addEventListener('click', () => { if (typeof window.learnWords === 'function') window.learnWords(); });
     $('te-add').addEventListener('click', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); });
-    mainAction();
   }
 
   /* ── Balance and payment: one calm line in the top bar ───────────── */
@@ -225,8 +216,6 @@
 
   /* ── Zeros that do not feel like failure ──────────────────────────── */
   const SOFT = {
-    'v-learned': ['🌱 Add your first word'],   // the card itself opens My words (see sheets below)
-    'v-tolearn': ['✨ All caught up'],
     'v-pace': ['🔥 Warming up'],
     'v-record': ['🏆 Set your first one'],
     'ms-words': ['＋ Add one', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); }],
@@ -249,28 +238,9 @@
     });
   }
 
-  /* ── First steps: a small quest instead of a wall of zeros ────────── */
-  function quest() {
-    const host = $('te-today');
-    if (!host) return;
-    const doneLessons = boardList.reduce((a, b) => a + (Number(b.done_lessons) || 0), 0);
-    const steps = [
-      { ok: vocabList.length > 0, icon: '🌱', t: 'Add your first word', go: () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); } },
-      { ok: doneLessons > 0, icon: '🎯', t: 'Finish your first lesson task', go: () => { const b = boardList[0]; if (b) location.href = 'board.html?id=' + encodeURIComponent(b.id); } },
-      { ok: _streakN > 0, icon: '🔥', t: 'Light the streak - do one thing today' },
-    ];
-    const n = steps.filter(s => s.ok).length;
-    let box = $('te-quest');
-    if (n === steps.length || store.get('te_quest_hidden') === '1') { box && box.remove(); return; }
-    if (!box) { host.insertAdjacentHTML('afterend', '<div class="te-quest" id="te-quest"></div>'); box = $('te-quest'); }
-    const cheer = n === 0 ? 'Your adventure starts here. Three small steps.' : n === 1 ? 'Nice start! Two to go.' : 'So close. One more!';
-    box.innerHTML = `<div class="te-q-head"><b>First steps</b><span>${n}/${steps.length}</span><button type="button" class="te-q-x" aria-label="Hide" title="Hide">×</button></div>
-      <div class="te-bar"><i style="width:${Math.round(n / steps.length * 100)}%"></i></div>
-      <div class="te-q-cheer">${cheer}</div>
-      <div class="te-q-steps">${steps.map((s, i) => `<button type="button" class="te-q-step${s.ok ? ' ok' : ''}" data-i="${i}"${s.ok || !s.go ? ' tabindex="-1"' : ''}><i>${s.ok ? '✓' : s.icon}</i><span>${esc(s.t)}</span></button>`).join('')}</div>`;
-    box.querySelector('.te-q-x').addEventListener('click', () => { store.set('te_quest_hidden', '1'); box.remove(); });
-    box.querySelectorAll('.te-q-step').forEach(b => b.addEventListener('click', () => { const s = steps[+b.dataset.i]; if (!s.ok && s.go) s.go(); }));
-  }
+  /* The one-off "First steps" block is retired: the home view keeps to the
+     lesson, the homework and the words. Remove one left by an older script. */
+  function quest() { const old = $('te-quest'); if (old) old.remove(); }
   let _streakN = 0;
 
   /* ── Streak ──────────────────────────────────────────────────────── */
@@ -401,6 +371,7 @@
   }
 
   window.studentEngage = {
+    chunks: CHUNKS,
     boards(list) {
       boardList = list || [];
       boardLink();

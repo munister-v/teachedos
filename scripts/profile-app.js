@@ -228,7 +228,7 @@ async function init() {
     setText('nb-user-info', me.name.split(' ')[0]);
     setDisplay('nb-user-info', '');
     updateMobileProfileSummary({ offline: !r.ok });
-    if (location.hash === '#plans' || location.hash === '#billing') openPlansSection();
+    if (me.role !== 'student' && (location.hash === '#plans' || location.hash === '#billing')) openPlansSection();
     else if (location.hash.startsWith('#settings')) switchTab('settings');
   } catch (e) {
     if (cached?.me) {
@@ -259,12 +259,22 @@ async function renderOverview(forceOffline = false) {
   const navName = document.getElementById('nav-name');
   if (navAvatar) navAvatar.textContent = me.avatar || (me.name || 'T')[0];
   // Имя, как в чипе на всех остальных страницах, а не роль.
-  if (navName) navName.textContent = (me.name || '').split(/\s+/)[0] || (me.role === 'admin' ? 'Admin' : 'Teacher');
+  if (navName) navName.textContent = (me.name || '').split(/\s+/)[0] || (me.role === 'admin' ? 'Admin' : me.role === 'student' ? 'Student' : 'Teacher');
   document.getElementById('profile-avatar-big').textContent = me.avatar || 'T';
   document.getElementById('profile-name-big').textContent = me.name;
   document.getElementById('profile-email-big').textContent = me.email;
   document.getElementById('profile-timezone-big').textContent = describeTimeZone(effectiveTimeZoneLabel());
-  document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? 'Admin' : 'Teacher');
+  const isStudent = me.role === 'student';
+  document.getElementById('profile-role-badge').textContent = (me.role === 'admin' ? 'Admin' : isStudent ? 'Student' : 'Teacher');
+  // Students get here from their cabinet: no pricing, no teacher sections, and
+  // Homework leads back to their own page (see [data-teacher-only] in profile.html).
+  document.body.classList.toggle('role-student', isStudent);
+  // Inline, because the sidebar theme forces display on #nav links with its own !important.
+  if (isStudent) document.querySelectorAll('[data-teacher-only]').forEach(el => el.style.setProperty('display', 'none', 'important'));
+  const hwLink = document.getElementById('nav-homework');
+  if (hwLink && isStudent) hwLink.href = 'student.html';
+  const logo = document.querySelector('#nav .nav-logo');
+  if (logo && isStudent) logo.href = 'student.html';
 
   const planBadges = { free:'', pro:'Pro', school:'School' };
   const planBadge = planBadges[me.plan];

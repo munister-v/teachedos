@@ -147,3 +147,19 @@ html body #sidebar .te-streak[role="button"]:hover{background:rgba(255,255,255,.
 .te-sheet-body{overflow:auto;padding:6px 22px 22px}
 .te-sheet-body > .tab-pane.in-sheet{display:block}
 @media (max-width:700px){.te-sheet-ov{padding:0;align-items:flex-end}.te-sheet{border-radius:22px 22px 0 0;max-height:88vh}}
+
+/* ── Home, second pass ────────────────────────────────────────────────
+   Vocabulary: two compact counters instead of two tall cards, one main
+   button and an outline one. Sidebar: no second big avatar. */
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:nth-child(-n+2){display:flex !important;flex-direction:row !important;align-items:center;justify-content:flex-start;gap:10px;min-height:0 !important;padding:12px 16px !important;border-radius:16px !important;background:#fff !important;color:#24282C !important;text-align:left}
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:first-child{background:#fff !important;color:#24282C !important;border:1px solid rgba(36,40,44,.08) !important}
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card:nth-child(-n+2) :is(.vs-icon,.vs-label,.vs-num){margin:0 !important;color:#24282C !important}
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card .vs-icon{font-size:18px !important}
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card .vs-label{font-size:11px !important;color:#5D614B !important}
+html body:not(#u1):not(#u2):not(#u3) .vocab-stats > .vs-card .vs-num{margin-left:auto !important;font-size:22px !important;line-height:1 !important}
+.vs-card[role="button"]:hover{box-shadow:0 0 0 1px rgba(36,40,44,.14),0 8px 20px -14px rgba(36,40,44,.4)}
+.te-outline{min-height:46px;padding:0 20px;border-radius:14px;border:1.5px solid rgba(36,40,44,.22);background:transparent;color:#24282C;font:700 14px inherit;font-family:inherit;cursor:pointer}
+.te-outline:hover{background:#fff;border-color:rgba(36,40,44,.4)}
+.te-outline:focus-visible{outline:2px solid #24282C;outline-offset:2px}
+html body #sidebar .sb-profile .sb-avatar{display:none !important}
+html body #sidebar .sb-profile{padding-top:14px !important;padding-bottom:12px !important}

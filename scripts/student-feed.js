@@ -2,9 +2,12 @@
 
    - При первом входе ученик отвечает на три вопроса (зачем учит, что
      интересно, какой уровень) - учитель получает готовое досье.
-   - Вкладка «For you»: 3 свежие статьи по его интересам (GET /api/student/feed).
-     Показываем заголовок и анонс издания со ссылкой на оригинал; полный текст
-     чужих статей внутри платформы не воспроизводим.
+   - «For you»: не лента статей, а пять коротких карточек на день, как сторис:
+     фраза дня с вопросом на 10 секунд, мини-опрос по интересам с готовой
+     фразой для ответа, «угадай выражение», один заголовок дня и финиш.
+     Статьи (GET /api/student/feed) остались одной карточкой и списком в конце:
+     заголовок и анонс издания со ссылкой на оригинал; полный текст чужих
+     статей внутри платформы не воспроизводим.
    - Слова анонса кликабельны: значение уровня ученика, озвучка, пример и
      «в мой словарь» одним нажатием (Vault, повторение по интервалам).
    - «Explain a phrase»: ученик вставляет выражение из статьи. Слово ищется в
@@ -26,19 +29,20 @@
     st.id = 'sf-css';
     st.textContent = `
 .tabs .tab{white-space:nowrap}
-#sf-fab{position:fixed;right:0;top:46%;z-index:4500;display:flex;align-items:center;gap:8px;border:0;border-radius:18px 0 0 18px;padding:14px 16px 14px 14px;background:#CDF649;color:#24282C;font:800 13px -apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif;cursor:pointer;box-shadow:-8px 10px 30px -10px rgba(36,40,44,.45);transition:transform .18s,padding .18s}
-#sf-fab:hover{transform:translateX(-4px)}
+#sf-fab{position:fixed;right:22px;bottom:22px;z-index:4500;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 18px 12px 14px;background:#CDF649;color:#24282C;font:800 13px -apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif;cursor:pointer;box-shadow:0 12px 30px -10px rgba(36,40,44,.5);transition:transform .18s}
+#sf-fab:hover{transform:translateY(-2px)}
+#sf-fab:focus-visible{outline:2px solid #24282C;outline-offset:3px}
 #sf-fab .sf-fab-ic{font-size:18px}
-#sf-fab .sf-fab-new{position:absolute;left:-5px;top:-5px;width:13px;height:13px;border-radius:50%;background:#FF4E00;border:2px solid #fff}
+#sf-fab .sf-fab-new{position:absolute;right:2px;top:-3px;width:13px;height:13px;border-radius:50%;background:#FF4E00;border:2px solid #fff}
 #sf-fab.is-open{opacity:0;pointer-events:none}
 #sf-scrim{position:fixed;inset:0;z-index:4600;background:rgba(36,40,44,.35);opacity:0;transition:opacity .2s}
 #sf-scrim.open{opacity:1}
-#sf-drawer{position:fixed;top:0;right:0;bottom:0;z-index:4700;width:min(560px,100vw);background:#FBFAF6;box-shadow:-30px 0 80px rgba(0,0,0,.3);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+#sf-drawer{position:fixed;top:0;right:0;bottom:0;z-index:4700;width:min(460px,100vw);background:#FBFAF6;box-shadow:-30px 0 80px rgba(0,0,0,.3);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
 #sf-drawer.open{transform:none}
 .sf-d-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid rgba(36,40,44,.1);font-size:16px}
 .sf-d-x{margin-left:auto;width:36px;height:36px;border:0;border-radius:11px;background:#EFEEE7;cursor:pointer;font-size:15px}
 #sf-drawer .sf-pane{flex:1;overflow:auto;padding:16px 20px 24px}
-@media (max-width:820px){#sf-fab{top:auto;bottom:86px;border-radius:18px 0 0 18px}#sf-fab .sf-fab-t{display:none}#sf-fab{padding:12px}}
+@media (max-width:820px){#sf-fab{right:14px;bottom:86px;padding:12px}#sf-fab .sf-fab-t{display:none}}
 
 .sf-ov{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(36,40,44,.5);padding:16px}
 .sf-card{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:22px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.35);font-family:inherit;color:#24282C}
@@ -75,6 +79,49 @@
 .sf-pop button{border:0;border-radius:10px;padding:8px 12px;font:700 12.5px inherit;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}
 .sf-pop button.main{background:#CDF649;color:#24282C}
 .sf-pop input{width:100%;box-sizing:border-box;margin-top:8px;height:36px;border-radius:9px;border:0;padding:0 10px;font:500 13px inherit;font-family:inherit}
+.sf-bars{display:flex;gap:5px;margin:0 0 14px}
+.sf-bars i{flex:1;height:4px;border-radius:999px;background:rgba(36,40,44,.14)}
+.sf-bars i.on{background:#24282C}
+.sf-story{border-radius:24px;padding:22px 20px 20px;min-height:340px;display:flex;flex-direction:column;gap:10px;background:#fff;color:#24282C;box-shadow:0 0 0 1px rgba(36,40,44,.08)}
+.sf-story.ink{background:#24282C;color:#fff;box-shadow:none}
+.sf-story.lime{background:linear-gradient(160deg,#DBFB6C,#CDF649);box-shadow:none}
+.sf-kick{font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;opacity:.7}
+.sf-big{font-size:30px;line-height:1.12;font-weight:800;letter-spacing:-.03em;overflow-wrap:anywhere}
+.sf-story h4{font-size:21px;line-height:1.25;letter-spacing:-.02em;margin:0}
+.sf-ask-q{font-size:15px;font-weight:650;line-height:1.4;margin-top:4px}
+.sf-opts{display:grid;gap:8px;margin-top:6px}
+.sf-opt{text-align:left;border:0;border-radius:14px;padding:13px 15px;font:650 14.5px/1.35 inherit;font-family:inherit;cursor:pointer;background:rgba(36,40,44,.07);color:inherit;transition:transform .12s,background .15s}
+.sf-story.ink .sf-opt{background:rgba(255,255,255,.12)}
+.sf-story.lime .sf-opt{background:rgba(255,255,255,.6)}
+.sf-opt:hover:not(:disabled){transform:translateY(-1px)}
+.sf-opt:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.sf-opt:disabled{cursor:default}
+.sf-opt.ok{background:#CDF649 !important;color:#24282C}
+.sf-story.lime .sf-opt.ok{background:#24282C !important;color:#CDF649}
+.sf-opt.bad{background:rgba(255,90,31,.22) !important}
+.sf-opt.dim{opacity:.5}
+.sf-after{margin-top:6px;font-size:14px;line-height:1.5}
+.sf-after b{font-size:15px}
+.sf-after em{display:block;margin-top:4px;opacity:.85}
+.sf-mini{align-self:flex-start;border:0;border-radius:11px;padding:9px 14px;font:750 13px inherit;font-family:inherit;cursor:pointer;background:#CDF649;color:#24282C;text-decoration:none;display:inline-block}
+.sf-story.lime .sf-mini{background:#24282C;color:#CDF649}
+.sf-mini.ghost{background:rgba(127,127,127,.18);color:inherit}
+.sf-mini:disabled{opacity:.6;cursor:default}
+.sf-row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.sf-nav{display:flex;align-items:center;gap:10px;margin-top:14px}
+.sf-nav .sf-btn{margin-left:auto}
+.sf-more{margin-top:16px;display:grid;gap:8px}
+.sf-more a{display:block;background:#fff;border-radius:14px;padding:11px 14px;color:#24282C;text-decoration:none;font-size:13.5px;font-weight:650;line-height:1.35;box-shadow:0 0 0 1px rgba(36,40,44,.08)}
+.sf-more a small{display:block;font-weight:500;color:#7A7E68;margin-top:2px}
+.sf-more a:hover{background:#F6F6EF}
+@media (prefers-reduced-motion:no-preference){
+.sf-story{animation:sf-in .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes sf-in{from{opacity:0;transform:translateX(18px)}}
+.sf-opt.ok{animation:sf-pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes sf-pop{50%{transform:scale(1.04)}}
+.sf-opt.bad{animation:sf-shake .3s}
+@keyframes sf-shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+}
 .sf-empty{padding:26px;text-align:center;color:#5D614B;background:#fff;border:1px dashed rgba(93,97,75,.3);border-radius:16px}
 `;
     document.head.appendChild(st);
@@ -136,7 +183,7 @@
     if (!seen) fab.insertAdjacentHTML('beforeend', '<i class="sf-fab-new" aria-hidden="true"></i>');
     const drawer = document.createElement('aside');
     drawer.id = 'sf-drawer'; drawer.setAttribute('role', 'dialog'); drawer.setAttribute('aria-label', 'For you'); drawer.hidden = true;
-    drawer.innerHTML = '<div class="sf-d-head"><b>✨ For you today</b><button type="button" class="sf-d-x" aria-label="Close">✕</button></div><div class="sf-pane" id="pane-feed"><div id="sf-body"><div class="sf-empty">Loading your reading…</div></div></div>';
+    drawer.innerHTML = '<div class="sf-d-head"><b>✨ For you today</b><button type="button" class="sf-d-x" aria-label="Close">✕</button></div><div class="sf-pane" id="pane-feed"><div id="sf-body"><div class="sf-empty">Getting today’s cards…</div></div></div>';
     const scrim = document.createElement('div');
     scrim.id = 'sf-scrim'; scrim.hidden = true;
     document.body.append(scrim, drawer, fab);
@@ -166,38 +213,213 @@
     return esc(text).replace(/([A-Za-z][A-Za-z'’-]{2,})/g, '<span class="sf-w">$1</span>');
   }
 
+  /* ── Карточки дня ─────────────────────────────────────────────────────
+     Пять карточек, одна на экране, полоски сверху как в сторис. Набор зависит
+     только от даты и интересов ученика, так что в течение дня он один и тот же.
+     Опросы без «правильного» ответа: любой выбор открывает готовую фразу,
+     которой это можно сказать по-английски. */
+  const POLLS = [
+    { tag: 'travel', q: 'Your flight is delayed by six hours. What do you do?', opts: [
+      ['Find food and wait it out', "I'd grab something to eat and wait it out."],
+      ['Ask for a different flight', "I'd ask them to put me on another flight."],
+      ['Leave the airport and explore', "I'd head into town and make the most of it."]] },
+    { tag: 'travel', q: 'A weekend trip. Which one?', opts: [
+      ['A big city with museums', "I'm more of a city person."],
+      ['Mountains, no signal', "I'd rather switch off in the mountains."],
+      ['The sea, doing nothing', 'I just want to lie on a beach and do nothing.']] },
+    { tag: 'series', q: 'Your friend spoils the ending of your favourite series. You…', opts: [
+      ['Laugh it off', "It's fine, no big deal."],
+      ['Stop talking to them for a day', "I'm giving them the silent treatment."],
+      ['Spoil something back', "Two can play at that game."]] },
+    { tag: 'series', q: 'How do you watch a new season?', opts: [
+      ['All of it in one night', 'I binge the whole thing in one go.'],
+      ['One episode a day', 'I like to pace myself.'],
+      ['I wait for reviews first', "I'll wait and see what people say."]] },
+    { tag: 'pop', q: 'Your favourite artist announces a concert. Tickets cost a fortune.', opts: [
+      ['Buy them anyway', "I'm going, no matter what it costs."],
+      ['Watch the videos later', "I'll catch the highlights online."],
+      ['Wait for the price to drop', "I'll hold off and hope they get cheaper."]] },
+    { tag: 'crime', q: 'You hear a strange noise downstairs at 3 a.m.', opts: [
+      ['Go and check', "I'd go and see what's going on."],
+      ['Pretend I heard nothing', "I'd stay put and hope it goes away."],
+      ['Call someone', "I'd call someone straight away."]] },
+    { tag: 'tech', q: 'Your phone dies for a whole day. How do you feel?', opts: [
+      ['Honestly, relieved', "It's a relief, to be honest."],
+      ['Lost', "I feel completely lost without it."],
+      ['Fine until I need a map', "I'm fine until I have to find my way."]] },
+    { tag: 'gaming', q: 'You are stuck on the same level for an hour.', opts: [
+      ['Keep going until I win', "I'm not giving up until I beat it."],
+      ['Look up a guide', "I'll just look it up."],
+      ['Rage quit', "I'm done. I'm out."]] },
+    { tag: 'sport', q: 'It is raining and you planned a run.', opts: [
+      ['Go anyway', "A bit of rain won't stop me."],
+      ['Work out at home', "I'll do something at home instead."],
+      ['Call it a rest day', "I'm taking the day off."]] },
+    { tag: 'food', q: 'The waiter brings the wrong dish. You…', opts: [
+      ['Eat it. It looks good', "It's fine, I'll just have this."],
+      ['Politely send it back', "Sorry, I think this isn't what I ordered."],
+      ['Say nothing and never return', "I wouldn't make a fuss."]] },
+    { tag: 'health', q: 'It is midnight and you are not sleepy.', opts: [
+      ['Scroll my phone', "I end up scrolling for hours."],
+      ['Read something boring', "I read until I nod off."],
+      ['Get up and do things', "I might as well get something done."]] },
+    { tag: 'work', q: 'A meeting could have been an email. You…', opts: [
+      ['Say it out loud', "With respect, this could have been an email."],
+      ['Quietly answer other emails', "I'd multitask and get on with my work."],
+      ['Enjoy the break', "I'd take it as a breather."]] },
+    { tag: 'business', q: 'You get two job offers on the same day.', opts: [
+      ['Take the better salary', "I'd go for the one that pays more."],
+      ['Take the better team', "I'd pick the people over the money."],
+      ['Ask both for more', "I'd use one offer to negotiate the other."]] },
+    { tag: 'science', q: 'A free ticket to Mars, one way.', opts: [
+      ['Yes. When do we leave?', "Sign me up."],
+      ['No way', "Not in a million years."],
+      ['Only with good Wi-Fi', "Only if I can stay in touch."]] },
+    { tag: 'fashion', q: 'You arrive and someone wears the same outfit.', opts: [
+      ['Take a photo together', "We should get a photo. Great minds think alike."],
+      ['Avoid them all evening', "I'd steer clear of them."],
+      ['Compliment their taste', "You've got great taste, obviously."]] },
+    { tag: 'environment', q: 'One small green habit you could keep?', opts: [
+      ['Carry my own bottle', "I always bring my own bottle."],
+      ['Walk short distances', "I'd rather walk if it's close."],
+      ['Buy less stuff', "I'm trying to cut down on what I buy."]] },
+    { tag: '', q: 'Someone gives you a compliment. You say…', opts: [
+      ['Thanks!', "Thanks, that's really kind of you."],
+      ['"Oh, this old thing?"', "Oh, this? I've had it for ages."],
+      ['A compliment back', "Thanks! I love yours too."]] },
+    { tag: '', q: 'A friend is twenty minutes late. Again.', opts: [
+      ['I say nothing', "No worries, I just got here myself."],
+      ['I make a joke', "Fashionably late, as always."],
+      ['I tell them honestly', "To be honest, it's starting to bother me."]] },
+    { tag: '', q: 'Monday morning. Your mood?', opts: [
+      ['Ready for it', "I'm up for it."],
+      ['Not before coffee', "Don't talk to me before my coffee."],
+      ['Is it Friday yet?', "Is it Friday yet?"]] },
+  ];
+
+  let deck = [], at = 0, feed = null;
+  const dayNo = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60e3) / 864e5);
+
+  function quizCard(chunks, i, day, reverse) {
+    const n = chunks.length;
+    const right = chunks[i % n];
+    const picks = [right, chunks[(i + 5) % n], chunks[(i + 13) % n]];
+    const pos = day % 3;                       // where the right answer sits today
+    const order = [1, 2]; order.splice(pos, 0, 0);
+    return {
+      type: 'quiz', reverse, phrase: right[0], meaning: right[1], example: right[2],
+      opts: order.map(k => (reverse ? picks[k][0] : picks[k][1])), right: pos, answer: null,
+    };
+  }
+
+  function buildDeck() {
+    const day = dayNo();
+    const chunks = (window.studentEngage && window.studentEngage.chunks) || [];
+    const mine = new Set((dna && dna.interests) || []);
+    const pool = POLLS.filter(p => mine.has(p.tag));
+    const polls = pool.length ? pool : POLLS.filter(p => !p.tag);
+    const cards = [];
+    if (chunks.length > 14) cards.push(quizCard(chunks, day + 3, day, false));   // not today's phrase: its meaning is on the home page
+    cards.push({ type: 'poll', ...polls[day % polls.length], answer: null });
+    if (chunks.length > 14) cards.push(quizCard(chunks, day + 17, day + 1, true));
+    const art = feed && feed.items && feed.items[0];
+    if (art) cards.push({ type: 'news', art, answer: null });
+    cards.push({ type: 'done' });
+    return cards;
+  }
+
+  function cardHtml(c) {
+    if (c.type === 'quiz') {
+      const done = c.answer != null;
+      return `<div class="sf-story ink">
+        <div class="sf-kick">${c.reverse ? 'Guess the phrase' : 'Phrase hack · 10 seconds'}</div>
+        ${c.reverse ? `<div class="sf-ask-q">Which one means:</div><h4>“${esc(c.meaning)}”</h4>`
+          : `<div class="sf-big">${esc(c.phrase)}</div><div class="sf-ask-q">What does it mean?</div>`}
+        <div class="sf-opts">${c.opts.map((o, i) => `<button type="button" class="sf-opt${done ? (i === c.right ? ' ok' : i === c.answer ? ' bad' : ' dim') : ''}" data-opt="${i}"${done ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>
+        ${done ? `<div class="sf-after" aria-live="polite"><b>${c.answer === c.right ? 'Yes! 🎉' : 'Not quite.'}</b> <b>${esc(c.phrase)}</b> = ${esc(c.meaning)}<em>“${esc(c.example)}”</em>
+          <div class="sf-row2"><button type="button" class="sf-mini" data-add${c.added ? ' disabled' : ''}>${c.added ? '✓ In your words' : '+ Add to my words'}</button><button type="button" class="sf-mini ghost" data-say="${esc(c.example)}">🔊 Listen</button></div></div>` : ''}
+      </div>`;
+    }
+    if (c.type === 'poll') {
+      const done = c.answer != null;
+      return `<div class="sf-story lime">
+        <div class="sf-kick">Quick poll · no wrong answer</div>
+        <h4>${esc(c.q)}</h4>
+        <div class="sf-opts">${c.opts.map((o, i) => `<button type="button" class="sf-opt${done ? (i === c.answer ? ' ok' : ' dim') : ''}" data-opt="${i}"${done ? ' disabled' : ''}>${esc(o[0])}</button>`).join('')}</div>
+        ${done ? `<div class="sf-after" aria-live="polite">Say it like this:<br><b>“${esc(c.opts[c.answer][1])}”</b>
+          <div class="sf-row2"><button type="button" class="sf-mini" data-say="${esc(c.opts[c.answer][1])}">🔊 Listen</button></div></div>` : ''}
+      </div>`;
+    }
+    if (c.type === 'news') {
+      const a = c.art, sum = String(a.summary || '');
+      const short = sum.length > 190 ? sum.slice(0, 190).replace(/\s+\S*$/, '') + '…' : sum;
+      return `<div class="sf-story">
+        <div class="sf-kick">Headline of the day${a.interest ? ' · ' + esc(a.interest) : ''}</div>
+        <h4>${esc(a.title)}</h4>
+        ${short ? `<p class="sf-sum" style="margin:0;font-size:15px;line-height:1.55">${wrapWords(short)}</p><small style="color:#7A7E68">${esc(a.source)} · tap a word to see what it means</small>` : `<small style="color:#7A7E68">${esc(a.source)}</small>`}
+        <div class="sf-ask-q">Would you read this?</div>
+        <div class="sf-row2" style="margin-top:0"><button type="button" class="sf-opt${c.answer === 0 ? ' ok' : c.answer === 1 ? ' dim' : ''}" data-opt="0">👍 I would</button><button type="button" class="sf-opt${c.answer === 1 ? ' ok' : c.answer === 0 ? ' dim' : ''}" data-opt="1">👎 Not for me</button></div>
+        ${c.answer === 0 ? `<a class="sf-mini" href="${esc(a.url)}" target="_blank" rel="noopener">Read it ↗</a>` : c.answer === 1 ? '<div class="sf-after">Fair enough. Tomorrow brings a new one.</div>' : ''}
+      </div>`;
+    }
+    const quizzes = deck.filter(x => x.type === 'quiz'), got = quizzes.filter(x => x.answer === x.right).length;
+    const rest = ((feed && feed.items) || []).slice(1);
+    return `<div class="sf-story">
+        <div class="sf-kick">That's today</div>
+        <div class="sf-big">Done ✨</div>
+        <div class="sf-after">${quizzes.length ? `${got} of ${quizzes.length} phrases right. ` : ''}New cards tomorrow.</div>
+        <div class="sf-ask-q">Saw a phrase you did not get?</div>
+        <form class="sf-ask" style="margin:0"><input type="text" maxlength="80" placeholder="e.g. “it turns out”" aria-label="Explain a phrase"><button type="submit" class="sf-btn">Explain</button></form>
+        <button type="button" class="sf-link" data-edit style="align-self:flex-start;margin-top:auto">${dna ? 'Change my interests' : 'Tell us what you like'}</button>
+      </div>
+      ${rest.length ? `<div class="sf-more"><div class="sf-kick" style="color:#5D614B">Want to read? Two more headlines</div>${rest.map(a => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}<small>${esc(a.source)} ↗</small></a>`).join('')}</div>` : ''}`;
+  }
+
+  function draw() {
+    const body = document.getElementById('sf-body');
+    if (!body || !deck.length) return;
+    const c = deck[at], last = at === deck.length - 1;
+    const waiting = (c.type === 'quiz' || c.type === 'poll') && c.answer == null;
+    body.innerHTML = `<div class="sf-bars" role="img" aria-label="Card ${at + 1} of ${deck.length}">${deck.map((_, i) => `<i class="${i <= at ? 'on' : ''}"></i>`).join('')}</div>
+      ${cardHtml(c)}
+      <div class="sf-nav">${at ? '<button type="button" class="sf-link" data-prev>← Back</button>' : ''}${last ? '' : `<button type="button" class="sf-btn" data-next>${waiting ? 'Skip' : 'Next →'}</button>`}</div>`;
+  }
+
   async function loadFeed() {
     if (feedLoaded) return;
     const body = document.getElementById('sf-body');
     if (!body) return;
     feedLoaded = true;
+    feed = null;
+    // The cards do not depend on the news: if the feed is down, the day still has its deck.
+    try { const r = await api('/api/student/feed'); const d = await json(r); if (r.ok && d) feed = d; } catch {}
+    deck = buildDeck(); at = 0;
+    draw();
+  }
+
+  async function addPhrase(c, btn) {
+    btn.disabled = true;
     try {
-      const r = await api('/api/student/feed');
-      const d = await json(r);
-      if (!r.ok || !d) throw new Error((d && d.error) || 'The feed could not be loaded');
-      const items = d.items || [];
-      body.innerHTML = `
-        <div class="sf-head"><h3>${d.personal ? 'Picked for you today' : 'Today’s reading'}</h3><span>${d.personal && d.interests.length ? esc(d.interests.join(' · ')) + ' · ' : ''}<button type="button" class="sf-link" data-edit>${d.personal ? 'Change interests' : 'Tell us what you like'}</button></span></div>
-        <form class="sf-ask"><input type="text" maxlength="80" placeholder="Explain a phrase from an article, e.g. “it turns out”" aria-label="Explain a phrase"><button type="submit" class="sf-btn">Explain</button></form>
-        ${items.length ? items.map(a => `<article class="sf-art">
-            ${a.interest ? `<span class="sf-tag">${esc(a.interest)}</span>` : ''}
-            <h4>${esc(a.title)}</h4>
-            <small>${esc(a.source)}</small>
-            ${a.summary ? `<p class="sf-sum">${wrapWords(a.summary)}</p>` : ''}
-            <a class="sf-open" href="${esc(a.url)}" target="_blank" rel="noopener">Read the full article ↗</a>
-          </article>`).join('') : '<div class="sf-empty">No fresh articles right now - try again in a little while.</div>'}
-        <p style="font-size:12px;color:#7A7E68;margin-top:6px">Tap any word in the summaries to see what it means and save it to your dictionary.</p>`;
-    } catch (err) {
-      feedLoaded = false;
-      body.innerHTML = `<div class="sf-empty">${esc(err.message)}<br><button type="button" class="sf-link" data-retry>Try again</button></div>`;
-    }
+      const r = await api('/api/journal/vocab', { method: 'POST', body: { word: c.phrase, translation: c.meaning, example: c.example } });
+      if (!r.ok) throw new Error('failed');
+      c.added = true; btn.textContent = '✓ In your words';
+      if (typeof window.loadVocab === 'function') window.loadVocab();
+    } catch { btn.disabled = false; btn.textContent = 'Could not add. Try again'; }
   }
 
   function onPane(e) {
     if (e.target.closest('[data-edit]')) { onboarding(); return; }
-    if (e.target.closest('[data-retry]')) { loadFeed(); return; }
+    const c = deck[at];
+    const opt = e.target.closest('[data-opt]');
+    if (opt && c) { c.answer = +opt.dataset.opt; draw(); document.querySelector('#sf-body [data-next], #sf-body .sf-mini')?.focus({ preventScroll: true }); return; }
+    if (e.target.closest('[data-next]')) { at = Math.min(deck.length - 1, at + 1); draw(); return; }
+    if (e.target.closest('[data-prev]')) { at = Math.max(0, at - 1); draw(); return; }
+    const say = e.target.closest('[data-say]');
+    if (say) { speak(say.dataset.say); return; }
+    const add = e.target.closest('[data-add]');
+    if (add && c) { addPhrase(c, add); return; }
     const w = e.target.closest('.sf-w');
-    if (w) { const r = w.getBoundingClientRect(); explain(w.textContent, r.left, r.bottom + 6, w.closest('.sf-art')?.querySelector('h4')?.textContent || ''); }
+    if (w) { const r = w.getBoundingClientRect(); explain(w.textContent, r.left, r.bottom + 6, w.closest('.sf-story')?.querySelector('h4')?.textContent || ''); }
   }
 
   /* ── Значение слова / фразы ──────────────────────────────────────── */
