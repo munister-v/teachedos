@@ -375,7 +375,7 @@ function readingTextParts(input) {
       const parts = [asModel
         ? '"✍️ Model text" - a MODEL the student will imitate: a real, complete example of the requested genre, following that genre\'s conventions (an email opens with a greeting and closes with a sign-off; a review states a verdict; an article has a headline). Not a prose passage about the topic.'
         : asFormContext
-        ? '"📖 Reading text" - a short, natural text that USES the target grammar repeatedly and unmistakably (at least six clear instances), in a real situation that makes that form the natural choice. Never explain or mention the grammar: this is the example the student meets before the rule, not an article about the rule.'
+        ? '"📖 Reading text" - a short LIVING piece that USES the target grammar repeatedly and unmistakably (at least six clear instances): a dialogue between two people, a short story or a micro-text such as a message or a diary entry - choose the one in which this form is the natural choice. If the teacher direction names an interest or a context (for example Travel), set the whole situation there (used to / would with Travel: "I used to carry paper maps..."). Keep every word that is not the target structure simple and familiar, a step BELOW the level, so the reader\'s attention goes to the grammar and not to new vocabulary. Do not mark the target forms in any way - finding them is the student\'s first task. Never explain or mention the grammar: this is the example the student meets before the rule, not an article about the rule.'
         : '"📖 Reading text" - a short title on the first line, then the text'];
       if (wantGlossary) parts.push(glossarySpec);
       if (wantBefore)   parts.push('"Before reading" - 2-3 prediction/lead-in questions');
@@ -885,9 +885,13 @@ function shapeSpec(input) {
     };
   }
   if (toolId === 'grammar-rules') {
+    /* Формула вместо лекции: первая карточка - строка-схема, которую можно
+       показать на доске одним взглядом; значение - простыми словами; примеры
+       берутся из того же текста, что ученик только что прочитал. Карточки
+       «Practice» здесь больше нет: отработку ведут следующие этапы урока. */
     return {
-      task: `${cardsHead} Explain the target grammar point clearly for a ${level} learner as 4 cards in this order: "Rule" (concise explanation + form), "Examples" (3-5 model sentences), "Common mistakes" (typical errors + the fix), "Practice" (3-5 short practice prompts with answers). Put key terms in "vocab".${context}`,
-      schema: '{"cards":[{"title":"Rule","text":"..."},{"title":"Examples","text":"..."},{"title":"Common mistakes","text":"..."},{"title":"Practice","text":"..."}],"vocab":["term"]}',
+      task: `${cardsHead} Present the target grammar point for a ${level} learner as 4 cards in this order: 1) "Formula" - the form as a visual formula, one pattern per line, built with "+" (for example "If + Past Simple, would + verb"); give the positive pattern first, then the negative and the question on their own lines; no sentences of explanation in this card; 2) "Meaning" - when we use it, in two or three short plain sentences without grammar jargon, and one line "Not for:" naming the situation it is confused with; 3) "Examples" - 3-4 model sentences with the target form in **bold**${input.source ? ', taken from or set in the source text' : ''}; 4) "Common mistakes" - 2-3 typical errors as "❌ wrong → ✅ right". Keep all vocabulary simple and familiar for ${level}, a step below the level, so the focus stays on the structure. Put key terms in "vocab".${context}`,
+      schema: '{"cards":[{"title":"Formula","text":"If + Past Simple, would + verb\\n..."},{"title":"Meaning","text":"..."},{"title":"Examples","text":"..."},{"title":"Common mistakes","text":"❌ ... → ✅ ..."}],"vocab":["term"]}',
     };
   }
   // ── Listening ────────────────────────────────────────────────────────────────

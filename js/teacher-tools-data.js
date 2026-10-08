@@ -1051,47 +1051,62 @@ const BOARD_LESSON_STAGES = {
      но лежали в панели вперемешку с остальными семьюдесятью. */
   grammar: {
     label: 'Grammar lesson',
+    /* Четыре обязательных блока, отмеченных заранее: контекст и «найди
+       форму», правило с формулой и CCQ, первичная отработка, выход в речь.
+       Остальное - по желанию учителя. Ключи этапов (context / notice /
+       drill / use) держат на себе сборку пути (WP_KINDS.grammar), их не
+       переименовывать. */
     stages: [
       {
         key: 'context',
-        label: 'The form in context',
+        label: 'Context & discovery',
         question: 'Where do they meet the form before it is named?',
         options: [
-          {key:'gr-text', media:'text',        title:'A short text using it', hint:'The form in real sentences first. Untick it and the tasks are still built from it.', on:true},
-          {key:'gr-rule', tool:'grammar-rules',title:'The rule card',         hint:'The rule in plain words, with examples and the usual traps.', ai:true, after:'source', on:true},
+          {key:'gr-text', media:'text',        title:'A short dialogue or story using it', hint:'The form in a living situation first, set in the topic or interest you give. Untick it and the tasks are still built from it.', on:true},
+          {key:'gr-rule', tool:'grammar-rules',title:'Formula and meaning',  hint:'The form as a visual formula, what it means in plain words, examples and the usual traps.', ai:true, after:'source', on:true},
         ],
       },
       {
         key: 'notice',
-        label: 'Notice it',
-        question: 'How do they work out what changes?',
+        label: 'Meaning & form',
+        question: 'How do you check they got the meaning, not just the form?',
         options: [
+          {key:'gr-find',  tool:'open-questions', title:'Find it in the text', hint:'They read again and pick out every example of the form.', ai:true, after:'source', on:true,
+           extra:'This is a NOTICING task, not comprehension. Ask the student to find the target grammar structure in the source text. Question 1: "How many examples of the target form can you find in the text? Highlight them." with the exact number and the list as the answer. The remaining questions each quote the start of one sentence from the text and ask the student to copy out the exact words that carry the target form; the answer is those words verbatim. Never explain the rule here.'},
+          {key:'gr-ccq',   tool:'abcd-text',      title:'Concept check (CCQs)', hint:'Two or three quick questions on what the form MEANS: real or imagined, finished or not, now or before.', ai:true, after:'source', on:true,
+           extra:'These are CONCEPT-CHECKING QUESTIONS (CCQs) about the MEANING of the target grammar, not about the story. Write exactly 3. Each takes one sentence with the target form from the source text and asks a simple meaning question about it, for example "Is this about the real past or an imagined present?", "Did it happen once or many times?", "Is the action finished?". Give 2-3 very short options, one clearly right. Use words simpler than the grammar being checked and never use grammar terminology in the options.'},
           {key:'gr-two',   tool:'two-options',    title:'This one or that one', hint:'Two forms with a slash: they pick the right one.', ai:true, after:'source'},
           {key:'gr-tense', tool:'tense-contrast', title:'Tense contrast',       hint:'The same sentence in two tenses, side by side.', ai:true},
         ],
       },
       {
         key: 'drill',
-        label: 'Practice',
-        question: 'What do they actually do with it?',
+        label: 'Controlled practice',
+        question: 'How do they get the form right before they have to speak?',
         options: [
-          {key:'gr-gap',   tool:'gap',            title:'Fill in the gap',        hint:'Sentences with the form removed.', ai:true, after:'source', on:true},
+          {key:'gr-halves',tool:'matching-halves', title:'Match the sentence halves', hint:'Each beginning needs the ending that makes the form work.', ai:true, after:'source', on:true,
+           extra:'Every pair must be one sentence using the target grammar, split exactly where the structure turns (for example between the if-clause and the result clause, or between the auxiliary and the main verb), so matching needs the grammar and not just the meaning. Keep the sentences in the same situation as the source text.'},
+          {key:'gr-err',   tool:'error-correction',title:'Find the mistake',      hint:'Sentences carrying the errors this form attracts.', ai:true},
+          {key:'gr-order', tool:'word-order',     title:'Put the words in order', hint:'Scrambled sentences to rebuild.', ai:true},
+          {key:'gr-gap',   tool:'gap',            title:'Fill in the gap',        hint:'Sentences with the form removed.', ai:true, after:'source'},
           {key:'gr-brack', tool:'gaps-brackets',  title:'Open the brackets',      hint:'The verb given in brackets, put into the right form.', ai:true},
           {key:'gr-abcd',  tool:'gaps-abcd',      title:'Gaps with four options', hint:'Multiple choice for each gap.', ai:true},
-          {key:'gr-order', tool:'word-order',     title:'Put the words in order', hint:'Scrambled sentences to rebuild.', ai:true},
           {key:'gr-rew',   tool:'rewrite',        title:'Rewrite the sentence',   hint:'Same meaning, required structure.', ai:true},
-          {key:'gr-err',   tool:'error-correction',title:'Find the mistake',      hint:'Sentences carrying the errors this form attracts.', ai:true, after:'source'},
         ],
       },
       /* Грамматика, оставшаяся упражнением, забывается к следующему уроку.
-         Последний этап заставляет форму прозвучать в собственной речи. */
+         Последний этап заставляет форму прозвучать в собственной речи:
+         вопросы уходят в Speaking Studio (WP_SPEAK_TOOLS). */
       {
         key: 'use',
-        label: 'Use it for real',
+        label: 'Active production',
         question: 'Where do they say it themselves?',
         options: [
+          {key:'gr-disc', tool:'discussion',      title:'Questions that need it',hint:'Speaking Studio prompts the form is hard to avoid in.', ai:true, on:true,
+           extra:'These are PRODUCTION prompts for the target grammar: personal, open questions that cannot be answered naturally without the target form (for the second conditional: "If you won $1,000,000, what would you change in your town?"). Set them in the same topic or interest as the lesson. Each question should invite a long answer and a follow-up "Why?". Do not name the grammar in the question.'},
+          {key:'gr-deb',  tool:'debate-cards',    title:'A debate card',         hint:'A motion to argue for and against, with the form doing the work.', ai:true,
+           extra:'The motion and the arguments must need the target grammar to be argued (hypotheticals for conditionals, past habits for used to, and so on). Model it in the useful language.'},
           {key:'gr-say',  tool:'sentences-vocab', title:'Say it about yourself', hint:'A model sentence per structure, then their own.', ai:true},
-          {key:'gr-disc', tool:'discussion',      title:'Questions that need it',hint:'Speaking prompts the form is hard to avoid in.', ai:true},
           {key:'gr-role', tool:'roleplay-cards',  title:'Role play',             hint:'A situation where the structure does real work.', ai:true, after:'source'},
         ],
       },

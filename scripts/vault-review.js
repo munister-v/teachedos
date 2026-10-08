@@ -52,7 +52,7 @@
 .vt-stats b{font:700 22px inherit;margin:0}
 .vt-stats span{font-size:11px;color:#6B6E60}
 
-.vp{width:min(920px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;background:#FBFAF6;border-radius:26px;box-shadow:0 40px 100px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;color:#24282C;overflow:hidden}
+.vp{width:min(1240px,100%);height:calc(100vh - 32px);max-height:calc(100vh - 32px);display:flex;flex-direction:column;background:#FBFAF6;border-radius:26px;box-shadow:0 40px 100px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;color:#24282C;overflow:hidden}
 .vp-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 22px 0}
 .vp-tab{border:1px solid rgba(36,40,44,.14);background:#fff;border-radius:999px;padding:8px 14px;font:650 13px inherit;font-family:inherit;color:#24282C;cursor:pointer}
 .vp-tab.on{background:#24282C;color:#CDF649;border-color:#24282C}
@@ -202,6 +202,18 @@
     back.addEventListener('mousedown', e => { if (e.target === back) close(); });
     document.addEventListener('keydown', onKey);
 
+    /* A different look each time, so practice is not always the same white
+       sheet: one of the game themes (Space, Neon City, Treasure Hunt…) picked
+       at random when the window opens and kept while it is open. */
+    let themeId = '';
+    try {
+      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1078'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+      const themed = window.TeachedThemes.list.filter(t => t.id);
+      themeId = themed[Math.floor(Math.random() * themed.length)].id;
+      const t = window.TeachedThemes.get(themeId);
+      if (t && t.paper) stage.style.background = t.paper;
+    } catch (_) { themeId = ''; }
+
     let items = [];
     try { const d = await json(api, '/api/vault/saved?limit=60'); items = (d.items || []).filter(x => (x.kind || 'word') === 'word' && x.word); }
     catch (e) { stage.innerHTML = `<div class="vt-done"><p>${esc(e.message)}</p></div>`; return; }
@@ -230,6 +242,7 @@
       f.setAttribute('title', t[1]);
       const deliver = () => { try { f.contentWindow.postMessage({ type: 'teachedos-custom-game-content', title: t[1], level: '', content: content[k] }, '*'); } catch (e) {} };
       f.addEventListener('load', () => { deliver(); setTimeout(deliver, 200); setTimeout(deliver, 600); });
+      if (themeId && window.TeachedThemes) window.TeachedThemes.skinGame(f, themeId);
       f.src = `games/ww/${k}.html`;
       stage.appendChild(f);
       const fit = () => {

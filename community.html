@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1077"></script>
+<script src="scripts/phone-gate.js?v=1078"></script>
 <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json?v=1077">
+<link rel="manifest" href="manifest.json?v=1078">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -98,10 +98,10 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 .ws-modal-body{min-height:0}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
-<script src="theme.js?v=1077" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1077">
-<link rel="stylesheet" href="styles/harmony.css?v=1077">
-<link rel="stylesheet" href="styles/unify.css?v=1077">
+<script src="theme.js?v=1078" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1078">
+<link rel="stylesheet" href="styles/harmony.css?v=1078">
+<link rel="stylesheet" href="styles/unify.css?v=1078">
 <style>
   body .publisher-intro{
     margin:-6px 0 16px;
@@ -357,22 +357,22 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
 .side-btn { display:flex; align-items:center; }
 .side-btn .side-count:empty { display:none; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1077">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1077">
-<link rel="stylesheet" href="styles/tool-window.css?v=1077">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1078">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1078">
+<link rel="stylesheet" href="styles/tool-window.css?v=1078">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1077">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1077">
-<link rel="stylesheet" href="styles/controls.css?v=1077">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1077">
-<link rel="stylesheet" href="styles/community-cards.css?v=1077">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1078">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1078">
+<link rel="stylesheet" href="styles/controls.css?v=1078">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1078">
+<link rel="stylesheet" href="styles/community-cards.css?v=1078">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1077">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1077">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1077">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1077">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1077">
-<link rel="stylesheet" href="styles/toast.css?v=1077">
+<link rel="stylesheet" href="styles/polish.css?v=1078">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1078">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1078">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1078">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1078">
+<link rel="stylesheet" href="styles/toast.css?v=1078">
 </head>
 <body class="tw-page fx">
 <nav id="nav">
@@ -610,11 +610,11 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
 </div>
 <div id="toast"></div>
 
-<script src="scripts/app-core.js?v=1077"></script>
-<script src="scripts/lesson-cover.js?v=1077"></script>
-<script src="scripts/vocab-loader.js?v=1077"></script>
-<script src="scripts/accent.js?v=1077"></script>
-<script src="scripts/scene-studio.js?v=1077"></script>
+<script src="scripts/app-core.js?v=1078"></script>
+<script src="scripts/lesson-cover.js?v=1078"></script>
+<script src="scripts/vocab-loader.js?v=1078"></script>
+<script src="scripts/accent.js?v=1078"></script>
+<script src="scripts/scene-studio.js?v=1078"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -646,55 +646,8 @@ function updateCommunityStats() {
 function makeCard(type, x, y, w, h, data) {
   return { id:'c'+Math.random().toString(36).slice(2), type, x, y, w, h, data };
 }
-const SAMPLE_POSTS = [
-  {
-    id:'sample-1', title:'A2 Articles: a/an/the', level:'A2', author:'TeachEd', language:'English', audience:'Adults',
-    cover:{ style:'pattern', bg:'#24282C', pattern:'grid', accent:'#CDF649', font:'display', ink:'#CDF649', title:'Articles: a / an / the', sub:'Grammar · 45 min', sticker:'🧩' },
-    desc:'Warm-up, presentation cards, controlled practice and speaking prompts for Slavic learners.',
-    skill:'Grammar', duration:45,
-    tags:['grammar','A2'],
-    snapshot: { name:'A2 Articles: a/an/the', cards:[
-      makeCard('sticky',60,60,260,120,{text:'🎯 Goal: Use a / an / the correctly in sentences.',color:'#F3DF6B'}),
-      makeCard('sticky',340,60,260,120,{text:'📌 RULE: Use "a" before consonant sounds.\nUse "an" before vowel sounds.',color:'#49F6F0'}),
-      makeCard('sticky',620,60,260,120,{text:'📌 Use "the" when the listener knows which one you mean.',color:'#6BAFF3'}),
-      makeCard('sticky',60,220,260,120,{text:'✏️ Fill in: ___ apple, ___ book, ___ university, ___ hour.',color:'#F6F6EF'}),
-      makeCard('sticky',340,220,260,120,{text:'✏️ Fill in: She is ___ teacher. ___ teacher is very kind.',color:'#F6F6EF'}),
-      makeCard('sticky',620,220,260,120,{text:'💬 Speaking: "Tell me about a place you love." Use a/an/the.',color:'#9F8CE8'}),
-      makeCard('text',60,380,820,40,{text:'Common mistakes for Slavic speakers: no article system in UA/RU/PL → needs drilling!',size:13,bold:false,color:'#A3A48D'}),
-    ], links:[] }
-  },
-  {
-    id:'sample-2', title:'B1 Present Perfect Stories', level:'B1', author:'TeachEd', language:'English', audience:'Teens',
-    cover:{ style:'gradient', bg:'#6B42FD', bg2:'#FF4E00', font:'hand', ink:'#FFFFFF', title:'Present Perfect Stories', sub:'Have you ever…?', sticker:'✈️' },
-    desc:'Timeline board with examples, mini quiz and pair-speaking story cards.',
-    skill:'Grammar', duration:45,
-    tags:['grammar','speaking'],
-    snapshot: { name:'B1 Present Perfect Stories', cards:[
-      makeCard('sticky',60,60,300,110,{text:'⏰ FORM:\nhas/have + past participle\n"I have visited Paris."',color:'#49F6F0'}),
-      makeCard('sticky',380,60,300,110,{text:'🔑 USE 1: Experience (ever/never)\n"Have you ever eaten sushi?"',color:'#F3DF6B'}),
-      makeCard('sticky',700,60,300,110,{text:'🔑 USE 2: Result matters now\n"I\'ve lost my keys." (still lost!)',color:'#6BAFF3'}),
-      makeCard('sticky',60,200,300,110,{text:'✏️ QUIZ: Correct or wrong?\n"I have went to school yesterday." ✗',color:'#F6F6EF'}),
-      makeCard('sticky',380,200,300,110,{text:'💬 SPEAKING: Share 3 life experiences.\n"I have never… / I have always…"',color:'#9F8CE8'}),
-      makeCard('sticky',700,200,300,110,{text:'📝 WRITE: A short story using PP at least 4 times.',color:'#F3DF6B'}),
-    ], links:[] }
-  },
-  {
-    id:'sample-3', title:'B2 Debate Club', level:'B2', author:'TeachEd', language:'English', audience:'Adults',
-    cover:{ style:'photo', photo:'river-night', font:'serif', ink:'#FFFFFF', title:'Debate Club', sub:'Is social media good for us?', sticker:'🏆', shade:40 },
-    desc:'Opinion cards, roles, vocabulary bank and feedback checklist for a full speaking lesson.',
-    skill:'Speaking', duration:60,
-    tags:['speaking','debate'],
-    snapshot: { name:'B2 Debate Club', cards:[
-      makeCard('sticky',60,60,280,110,{text:'📢 Topic: "Social media does more harm than good."\nFor / Against',color:'#F6F6EF'}),
-      makeCard('sticky',360,60,280,110,{text:'🎭 Roles:\n• Moderator\n• Team A (For)\n• Team B (Against)\n• Jury',color:'#49F6F0'}),
-      makeCard('sticky',660,60,280,110,{text:'📚 Vocabulary:\npersuasive, counterargument, evidence, concede, rebut',color:'#6BAFF3'}),
-      makeCard('sticky',60,200,280,110,{text:'✅ Opening: State your position clearly (30 sec)',color:'#F3DF6B'}),
-      makeCard('sticky',360,200,280,110,{text:'✅ Middle: Give 2 arguments + examples (2 min)',color:'#F3DF6B'}),
-      makeCard('sticky',660,200,280,110,{text:'✅ Closing: Summarise, rebut opponent (1 min)',color:'#F3DF6B'}),
-      makeCard('sticky',60,340,880,100,{text:'🏆 Jury criteria: clarity of arguments · use of vocabulary · confidence · listening & rebuttal',color:'#9F8CE8'}),
-    ], links:[] }
-  },
-];
+/* The built-in demo lessons (sticky-note outlines: Articles, Debate…) are gone:
+   Community now shows only what teachers really published. */
 
 function readPosts(){ try { return JSON.parse(localStorage.getItem(POST_KEY) || '[]'); } catch { return []; } }
 function writePosts(posts){ localStorage.setItem(POST_KEY, JSON.stringify(posts)); }
@@ -728,8 +681,7 @@ function assignmentToCommunityPost(assignment, dataOverride) {
     updatedAt: assignment.updated_at || '',
     /* Кадр урока был выбран при публикации (sourceFrameId в publishBoard())
        -> это «Lesson»; пусто -> опубликована вся доска -> «Space». Локальные
-       демо-посты (SAMPLE_POSTS) не задают это поле и по умолчанию считаются
-       уроками - это и есть их смысл. */
+       посты (readPosts) не задают это поле и по умолчанию считаются уроками. */
     isSpace: !(assignment.sourceFrameId || assignment.source_frame_id || data.sourceFrameId || data.source_frame_id),
     createdAt: assignment.published_at || assignment.created_at || new Date().toISOString(),
   };
@@ -737,7 +689,7 @@ function assignmentToCommunityPost(assignment, dataOverride) {
 
 function getCommunityPosts() {
   const seen = new Set();
-  return [..._serverCommunityLessons, ...readPosts(), ...SAMPLE_POSTS].filter(post => {
+  return [..._serverCommunityLessons, ...readPosts()].filter(post => {
     const key = post.serverId ? `server:${post.serverId}` : `local:${post.id}`;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -2389,12 +2341,12 @@ loadBoards();
   </div>
 </div>
 
-<script src="scripts/mobile-perf.js?v=1077" defer></script>
-<script src="scripts/mobile-nav.js?v=1077"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1077" defer></script>
-<script src="scripts/autogrow.js?v=1077" defer></script>
-<script src="pwa-boot.js?v=1077" defer></script>
-  <script src="scripts/signin-entry.js?v=1077" defer></script>
-<script src="scripts/nav-bell.js?v=1077" defer></script>
+<script src="scripts/mobile-perf.js?v=1078" defer></script>
+<script src="scripts/mobile-nav.js?v=1078"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1078" defer></script>
+<script src="scripts/autogrow.js?v=1078" defer></script>
+<script src="pwa-boot.js?v=1078" defer></script>
+  <script src="scripts/signin-entry.js?v=1078" defer></script>
+<script src="scripts/nav-bell.js?v=1078" defer></script>
 </body>
 </html>

@@ -367,8 +367,12 @@ body.fx.board-page #toolbar {
   padding:0 22px !important;
 }
 body.fx.board-page .tb-logo-mark, body.fx.board-page .tb-slash { display:none !important; }
+/* The board name is context, not an action: it used to be a lime pill and
+   pulled the eye more than anything else in the bar. Now it is plain text
+   that only shows a plate on hover. */
+body.fx.board-page .tb-board-chip:hover { background:rgba(36,40,44,.06) !important; }
 body.fx.board-page .tb-board-chip {
-  background:var(--fx-lime) !important; border:none !important;
+  background:transparent !important; border:none !important;
   border-radius:999px !important; padding:8px 16px !important;
   box-shadow:none !important;
 }

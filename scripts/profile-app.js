@@ -312,7 +312,7 @@ async function renderOverview(forceOffline = false) {
         <div class="pf-empty-icon" aria-hidden="true">\ud83d\udccc</div>
         <div class="pf-empty-title">No boards yet</div>
         <div class="pf-empty-text">Your lesson boards will show up here once you make one.</div>
-        <a class="pf-empty-btn" href="board.html">Create your first board</a>
+        <a class="pf-empty-btn" data-teacher-only href="board.html">Create your first board</a>
       </div>`;
     } else {
       rbl.innerHTML = recentBoards.map(b => `
@@ -341,7 +341,7 @@ async function renderOverview(forceOffline = false) {
         <div class="pf-empty-icon" aria-hidden="true">\ud83d\udccc</div>
         <div class="pf-empty-title">No boards yet</div>
         <div class="pf-empty-text">Your lesson boards will show up here once you make one.</div>
-        <a class="pf-empty-btn" href="board.html">Create your first board</a>
+        <a class="pf-empty-btn" data-teacher-only href="board.html">Create your first board</a>
       </div>`;
     } else {
       rbl.innerHTML = cachedBoards.slice(0, 5).map(b => `

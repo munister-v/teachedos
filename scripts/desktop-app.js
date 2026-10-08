@@ -1564,6 +1564,36 @@ async function reloadBoards() {
 }
 window.reloadBoards = reloadBoards;
 
+/* "Create board" used to be a plain link to board.html, and that page opens
+   the last board you worked on - so with one board you could never get a
+   second one from here. Create it first, then open it by id. */
+let _creatingBoard = false;
+async function createBoardFromDesktop(ev) {
+  if (ev) ev.preventDefault();
+  if (_creatingBoard) return;
+  const token = localStorage.getItem('teachedos_token') || '';
+  if (!token) { location.href = 'board.html'; return; }
+  _creatingBoard = true;
+  const link = ev && ev.currentTarget;
+  const label = link ? link.textContent : '';
+  if (link) link.textContent = 'Creating…';
+  const fail = msg => { if (link) link.textContent = label; alert(msg); };
+  try {
+    const r = await fetch((typeof API !== 'undefined' ? API : '') + '/api/boards', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ name: 'New board' }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 402) { fail('You have reached the board limit of your plan. Delete a board or upgrade to make a new one.'); return; }
+    if (!r.ok || !d.board) { fail(d.error || 'The board could not be created. Try again.'); return; }
+    location.href = 'board.html?id=' + encodeURIComponent(d.board.id);
+  } catch (_) {
+    fail('The board could not be created. Check your connection and try again.');
+  } finally { _creatingBoard = false; }
+}
+window.createBoardFromDesktop = createBoardFromDesktop;
+
 function boardsRender() {
   const grid = document.getElementById('plans-grid');
   if (!grid) return;
