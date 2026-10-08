@@ -513,12 +513,14 @@ body.fx.os-desktop:not(#_) #fx-ghost-panel { padding:12px !important; }
 body.fx.os-desktop:not(#_) #fx-ghost-panel .sp-card { border-radius:16px; }
 #wg-reset {
   display:none; position:fixed; left:50%; bottom:118px; transform:translateX(-50%); z-index:70;
-  align-items:center; gap:6px; border:0; border-radius:999px; padding:8px 14px;
-  background:rgba(36,40,44,.82); color:#fff; font:600 12px -apple-system, system-ui, sans-serif; cursor:pointer;
-  backdrop-filter:blur(12px); box-shadow:0 10px 24px -10px rgba(0,0,0,.4); opacity:.0; transition:opacity .2s;
+  align-items:center; gap:6px; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:8px 14px;
+  /* frosted glass on a dark tint, so the white label holds on a light wallpaper too */
+  background:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),rgba(36,40,44,.58); color:#fff;
+  font:600 12px -apple-system, system-ui, sans-serif; cursor:pointer;
+  -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); box-shadow:0 8px 32px rgba(0,0,0,.3); opacity:.0; transition:opacity .2s, background .2s;
 }
 body:hover #wg-reset { opacity:.9; }
-#wg-reset:hover { opacity:1 !important; background:#24282C; }
+#wg-reset:hover { opacity:1 !important; background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16)),rgba(36,40,44,.58); }
 
 /* "All clear" is good news: the Student pulse card turns lime instead of the
    alert pink it uses when there are items to act on. */
