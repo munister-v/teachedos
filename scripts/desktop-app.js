@@ -22,9 +22,11 @@ function updateClock() {
   // а не одни часы. Полная форма - только на страницах с концептом (body.fx).
   const el = document.getElementById('mb-clock');
   if (document.body.classList.contains('fx')) {
+    // Short and quiet: "Wed, Oct 7 · 15:49". The year and the full month name
+    // only made the corner heavier.
     const wd = now.toLocaleDateString('en-US', { weekday: 'short' });
-    const mo = now.toLocaleDateString('en-US', { month: 'long' }).toLowerCase();
-    el.textContent = `${wd}, ${now.getDate()} ${mo} ${now.getFullYear()}  ${h}:${m}`;
+    const mo = now.toLocaleDateString('en-US', { month: 'short' });
+    el.textContent = `${wd}, ${mo} ${now.getDate()} · ${h}:${m}`;
   } else {
     el.textContent = h + ':' + m;
   }
@@ -1618,7 +1620,7 @@ function boardsRender() {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
       ${boardsFilterMode === 'shared' ? 'No boards shared with you yet.' : 'No boards yet.'}
       <div style="margin-top:10px;">
-        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}" style="color:var(--accent);font-weight:600;text-decoration:none;">
+        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}"${boardsFilterMode === 'shared' ? '' : ' onclick="createBoardFromDesktop(event)"'} style="color:var(--accent);font-weight:600;text-decoration:none;">
           ${boardsFilterMode === 'shared' ? 'Open Profile →' : 'Create your first board →'}
         </a>
       </div></div>`;
@@ -1641,8 +1643,7 @@ function boardsRender() {
         <div class="lc-title">${escB(b.name || 'Untitled')}</div>
         ${owner}
         <div class="lc-meta">
-          <span class="lc-dur">${cards} card${cards === 1 ? '' : 's'}</span>
-          ${updated ? `<span class="lc-dur">${updated}</span>` : ''}
+          <span class="lc-dur">${cards} card${cards === 1 ? '' : 's'}${updated ? ` · ${updated}` : ''}</span>
         </div>
       </div>
     </div>`;

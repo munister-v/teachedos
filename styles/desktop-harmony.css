@@ -99,3 +99,104 @@ body.os-desktop:not(#d1):not(#d2):not(#d3) :is(.st-row-avatar.is-initials, .st-d
   background:var(--te-pink,#F8DBDB) !important;
   color:var(--te-pink-ink,#8A2E52) !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Glass is back (2026-10-08).
+
+   The solid white surfaces above read as hard slabs on a dark wallpaper and
+   disappeared on a light one. Windows, widgets and the menu bar are frosted
+   again: they take a little of whatever the teacher put behind them.
+═══════════════════════════════════════════════════════════════ */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) :is(.win, .widget:not(#wg-pulse):not(#wg-vocab), #fx-ghost-panel) {
+  background:rgba(255,255,255,.72) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(180%) !important; backdrop-filter:blur(28px) saturate(180%) !important;
+  border:1px solid rgba(255,255,255,.55) !important;
+  box-shadow:0 24px 60px -28px rgba(20,22,24,.55), inset 0 0 0 .5px rgba(36,40,44,.06) !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-vocab {
+  background:rgba(36,40,44,.72) !important; border:1px solid rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(160%) !important; backdrop-filter:blur(28px) saturate(160%) !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse { -webkit-backdrop-filter:blur(28px) saturate(160%) !important; backdrop-filter:blur(28px) saturate(160%) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.win-body, .win-main, .win-sidebar) { background:transparent !important; }
+
+/* Menu bar: the same glass, a hairline under it, a quieter clock */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar {
+  background:rgba(255,255,255,.75) !important;
+  -webkit-backdrop-filter:blur(20px) saturate(180%) !important; backdrop-filter:blur(20px) saturate(180%) !important;
+  border:0 !important; border-bottom:1px solid rgba(0,0,0,.08) !important; box-shadow:none !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar .mb-menu { margin-left:6px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar #mb-clock { font-size:12px !important; font-weight:500 !important; color:#8E8E93 !important; letter-spacing:0 !important; white-space:nowrap; }
+
+/* ── "Your lesson boards" window ─────────────────────────────────
+   A fixed 200px navigation column, 32px of air, and a content column whose
+   header, search and grid all run the full width. */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans #sidebar-plans { background:transparent !important; box-shadow:none !important; border-radius:0 !important; margin:0 !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .win-sidebar {
+  width:200px !important; min-width:200px !important; flex:0 0 200px !important;
+  padding:54px 12px 24px 20px !important; border:0 !important; box-sizing:border-box;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-section-label {
+  font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important;
+  color:#8E8E93 !important; margin:0 0 8px !important; padding:0 10px !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-section-label ~ .sb-section-label { margin-top:24px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item.sb-secondary { display:none !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item:not(.sb-secondary) {
+  display:flex !important; align-items:center; font-size:14px !important; font-weight:400 !important; color:#1C1C1E !important;
+  padding:6px 10px !important; margin:0 0 2px !important; border-radius:8px !important;
+  background:transparent !important; border:0 !important; box-shadow:none !important; transition:background .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item:hover { background:rgba(0,0,0,.04) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item.active { background:rgba(0,0,0,.05) !important; font-weight:600 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .win-main { padding:32px !important; gap:0; box-sizing:border-box; min-width:0; }
+
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-hero {
+  display:grid !important; grid-template-columns:minmax(0,1fr) auto; column-gap:16px; align-items:start;
+  margin:0 0 20px !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-hero > :is(.studio-eyebrow,.studio-title,.studio-copy) { grid-column:1; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-eyebrow {
+  font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important;
+  color:#8E8E93 !important; margin:0 0 6px !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-title {
+  font-size:28px !important; line-height:1.15 !important; font-weight:700 !important; color:#0F172A !important; margin:0 0 6px !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-copy {
+  font-size:14px !important; line-height:1.4 !important; color:#636366 !important; text-transform:none !important; margin:0 !important; max-width:none !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-actions { grid-column:2; grid-row:1 / span 3; align-self:start; margin:0 !important; display:flex; gap:8px; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary {
+  display:inline-flex !important; align-items:center; height:38px; padding:0 18px !important; border-radius:999px !important;
+  background:var(--te-lime,#CDF649) !important; color:#000 !important; border:0 !important; box-shadow:none !important;
+  font-size:13.5px !important; font-weight:700 !important; white-space:nowrap; text-decoration:none !important;
+  transition:filter .2s ease, transform .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { filter:brightness(1.04); transform:translateY(-1px); }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:focus-visible { outline:2px solid #0F172A; outline-offset:2px; }
+
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search {
+  display:flex !important; align-items:center; gap:8px; width:100% !important; max-width:none !important; box-sizing:border-box;
+  height:40px; margin:0 0 20px !important; padding:0 12px !important;
+  background:rgba(118,118,128,.08) !important; border:1px solid transparent !important; border-radius:12px !important; box-shadow:none !important;
+  color:#8E8E93 !important; transition:border-color .2s ease, background .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search:focus-within { border-color:var(--te-lime,#CDF649) !important; background:rgba(118,118,128,.05) !important; box-shadow:0 0 0 3px rgba(205,246,73,.35) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search input { flex:1; min-width:0; background:transparent !important; border:0 !important; outline:0 !important; font-size:14px !important; color:#1C1C1E !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search input::placeholder { color:#8E8E93 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search svg { color:#8E8E93 !important; flex:none; }
+
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-grid {
+  display:grid !important; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)) !important; gap:20px !important;
+  padding:0 !important; margin:0 !important; align-content:start;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card { background:transparent !important; border:0 !important; box-shadow:none !important; padding:0 !important; border-radius:12px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-cover { border-radius:12px !important; border:1px solid rgba(0,0,0,.08) !important; overflow:hidden; aspect-ratio:16 / 10; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-cover > * { width:100% !important; height:100% !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-body { padding:10px 2px 0 !important; background:transparent !important; border:0 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .lc-title { font-size:15px !important; font-weight:600 !important; color:#1C1C1E !important; margin:0 0 2px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card :is(.lc-meta,.lc-dur,.lc-desc) { font-size:12px !important; color:#8E8E93 !important; background:none !important; padding:0 !important; border:0 !important; }
+@media (prefers-reduced-motion:reduce){ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { transform:none; } }
