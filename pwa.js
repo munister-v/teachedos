@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '1075';
+  const TEACHEDOS_ASSET_VERSION = '1076';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -883,11 +883,27 @@
         return /\/api\/auth\//.test(url.pathname);
       } catch { return false; }
     };
-    const announceExpired = () => {
-      if (saidExpired) return;
+    /* 401 и 403 - ещё не «сессия истекла». 403 сервер отдаёт и живой сессии:
+       ученик задел учительский адрес, доска чужая, тариф не тот. Даже 401
+       бывает частным («текущий пароль неверен»). Баннер вылезал у вошедшего
+       человека на каждой такой мелочи. Поэтому сначала спрашиваем сам сервер,
+       жив ли токен, и говорим об истечении, только если он ответил 401. */
+    let checking = false;
+    const announceExpired = from => {
+      if (saidExpired || checking) return;
       let token = null;
       try { token = localStorage.getItem('teachedos_token'); } catch {}
       if (!token) return;
+      let me;
+      try { me = new URL('/api/auth/me', new URL(from || '', location.href)).href; } catch { return; }
+      checking = true;
+      original.call(window, me, { headers: { Authorization: 'Bearer ' + token } })
+        .then(r => { if (r.status === 401) sayExpired(); })
+        .catch(() => {})
+        .finally(() => { checking = false; });
+    };
+    const sayExpired = () => {
+      if (saidExpired) return;
       saidExpired = true;
       const signIn = {
         label: 'Sign in', primary: true,
@@ -909,7 +925,7 @@
       for (const entry of entries) {
         if (typeof entry.responseStatus !== 'number') continue;
         if (!/\/api\//.test(entry.name) || /\/api\/auth\//.test(entry.name)) continue;
-        if (entry.responseStatus === 401 || entry.responseStatus === 403) { announceExpired(); return; }
+        if (entry.responseStatus === 401 || entry.responseStatus === 403) { announceExpired(entry.name); return; }
       }
     };
 
@@ -922,7 +938,7 @@
       if (!watched || !result || typeof result.then !== 'function') return result;
       return result.then(response => {
         announceBack();
-        if (!authCall && (response.status === 401 || response.status === 403)) announceExpired();
+        if (!authCall && (response.status === 401 || response.status === 403)) announceExpired(response.url || (typeof input === 'string' ? input : input && input.url));
         return response;
       }, error => { failures++; announceDown(); throw error; });
     };

@@ -88,7 +88,7 @@ html body .vocab-stats > .vs-card:nth-child(n+3){display:none !important}
 .te-today{grid-template-columns:minmax(0,1fr) minmax(0,.9fr) minmax(0,1.15fr)}
 @media (max-width:1100px){.te-today{grid-template-columns:1fr 1fr}.te-next-card{grid-column:1/-1}}
 @media (max-width:700px){.te-today{grid-template-columns:1fr}}
-.te-next-card{background:linear-gradient(150deg,#D8FA5E 0%,#CDF649 55%,#B9EA2E 100%) !important;border:1.5px solid #24282C !important;color:#24282C;box-shadow:0 18px 44px -18px rgba(150,190,20,.75),0 0 0 4px rgba(205,246,73,.28);gap:8px}
+.te-next-card{background:linear-gradient(150deg,#D8FA5E 0%,#CDF649 55%,#B9EA2E 100%) !important;border:0 !important;color:#24282C;box-shadow:0 18px 44px -18px rgba(150,190,20,.75);gap:8px}
 .te-next-card .te-k{color:#4C5A10}
 .te-next-card .te-big{font-size:28px}
 .te-next-card .te-sub{color:#2F3A06}
@@ -119,3 +119,31 @@ html body .vocab-stats > .vs-card:nth-child(n+3){display:none !important}
 .te-bal.low{background:#FFF1D6;border-color:#F0B654}
 .te-bal.zero{background:#FFE0D8;border-color:#E88A70}
 @media (max-width:700px){.te-bal{font-size:11.5px;padding:0 10px}}
+
+/* ── No tab row on the home view ──────────────────────────────────────
+   Homework is already the first card, the word list opens from the
+   vocabulary figures and Progress from the streak card (student-engage.js),
+   so the row keeps only "More" and, on a page opened from it, "← Home". */
+html body #tabs > .tab:is([data-tab="assignments"],[data-tab="vocabulary"],[data-tab="progress"]){display:none !important}
+html body:not(#_):not(#_) #tabs{background:none !important;border:0 !important;box-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;padding:0 !important;min-height:0;align-items:center;margin-bottom:10px}
+.te-home{border:0;background:#fff;color:#24282C;font:650 13px inherit;font-family:inherit;border-radius:999px;padding:8px 14px;cursor:pointer;box-shadow:0 0 0 1px rgba(36,40,44,.1)}
+.te-home[hidden]{display:none}
+.te-home:hover{background:#F6F6EF}
+
+/* Streak card and vocabulary figures are doors now */
+html body #sidebar .te-streak[role="button"]{cursor:pointer;transition:background .15s}
+html body #sidebar .te-streak[role="button"]:hover{background:rgba(255,255,255,.1)}
+.te-streak[role="button"]:focus-visible,.vs-card[role="button"]:focus-visible{outline:2px solid #CDF649;outline-offset:2px}
+.te-more{margin-top:10px;font-size:12px;font-weight:700;color:#CDF649}
+.vs-card[role="button"]{cursor:pointer}
+
+.te-sheet-ov{position:fixed;inset:0;z-index:98000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,22,24,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.te-sheet{width:min(880px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;background:#FBFAF6;color:#24282C;border-radius:24px;box-shadow:0 40px 100px rgba(0,0,0,.35);font-family:var(--font,system-ui)}
+.te-sheet-head{display:flex;align-items:center;gap:12px;padding:18px 22px 10px}
+.te-sheet-head b{font-size:20px;letter-spacing:-.01em}
+.te-sheet-x{margin-left:auto;width:36px;height:36px;border:0;border-radius:11px;background:#EFEEE7;color:#24282C;cursor:pointer;font-size:15px}
+.te-sheet-x:hover{background:#E3E6D8}
+.te-sheet-x:focus-visible{outline:2px solid #24282C;outline-offset:2px}
+.te-sheet-body{overflow:auto;padding:6px 22px 22px}
+.te-sheet-body > .tab-pane.in-sheet{display:block}
+@media (max-width:700px){.te-sheet-ov{padding:0;align-items:flex-end}.te-sheet{border-radius:22px 22px 0 0;max-height:88vh}}

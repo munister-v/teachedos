@@ -8,6 +8,7 @@ const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
 const newsFeeds = require('../lib/newsFeeds');
+const boardAgent = require('../lib/boardAgent');
 const { effectivePlanKey } = require('../lib/billing');
 
 /* Потолки платных планов подняты вслед за сведением резерва с фактом: пока
@@ -2289,6 +2290,33 @@ ${text}`;
     res.json({ items, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/pick-vocab]', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+  }
+});
+
+/* POST /api/ai/board-agent - командная строка доски (Ctrl/Cmd+K). Учитель
+   пишет, что сделать; сюда приходит команда и краткий список карточек, отсюда
+   уходит ответ и план действий. План чистит boardAgent.sanitizePlan: до доски
+   доходят только известные операции над карточками, которые клиент сам прислал. */
+const boardAgentLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: Number(process.env.AI_BOARD_AGENT_PER_HOUR || 60),
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many board commands. Try again in an hour.' },
+});
+
+router.post('/board-agent', requireAuth, requireTeacher, boardAgentLimiter, async (req, res) => {
+  try {
+    const command = String(req.body?.command || '').trim().slice(0, 1200);
+    const cards = boardAgent.normalizeCards(req.body?.cards);
+    if (command.length < 2) return res.status(400).json({ error: 'command required' });
+    if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
+    await reserveAiQuota(req.user, { mode: 'board-agent', source: command + cards.map(c => c.text).join('\n') });
+    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport }));
+    recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
+    res.json({ ...boardAgent.sanitizePlan(raw, cards), quota: await readAiQuota(req.user) });
+  } catch (err) {
+    console.error('[ai/board-agent]', err.message);
     res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
   }
 });

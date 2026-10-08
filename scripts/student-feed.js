@@ -26,7 +26,7 @@
     st.id = 'sf-css';
     st.textContent = `
 .tabs .tab{white-space:nowrap}
-#sf-fab{position:fixed;right:0;top:46%;z-index:4500;display:flex;align-items:center;gap:8px;border:0;border-radius:18px 0 0 18px;padding:14px 16px 14px 14px;background:#CDF649;color:#24282C;font:800 13px -apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif;cursor:pointer;box-shadow:-8px 10px 30px -10px rgba(36,40,44,.45),0 0 0 1.5px #24282C inset;transition:transform .18s,padding .18s}
+#sf-fab{position:fixed;right:0;top:46%;z-index:4500;display:flex;align-items:center;gap:8px;border:0;border-radius:18px 0 0 18px;padding:14px 16px 14px 14px;background:#CDF649;color:#24282C;font:800 13px -apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif;cursor:pointer;box-shadow:-8px 10px 30px -10px rgba(36,40,44,.45);transition:transform .18s,padding .18s}
 #sf-fab:hover{transform:translateX(-4px)}
 #sf-fab .sf-fab-ic{font-size:18px}
 #sf-fab .sf-fab-new{position:absolute;left:-5px;top:-5px;width:13px;height:13px;border-radius:50%;background:#FF4E00;border:2px solid #fff}

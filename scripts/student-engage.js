@@ -225,7 +225,7 @@
 
   /* ── Zeros that do not feel like failure ──────────────────────────── */
   const SOFT = {
-    'v-learned': ['🌱 Add your first word', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); }],
+    'v-learned': ['🌱 Add your first word'],   // the card itself opens My words (see sheets below)
     'v-tolearn': ['✨ All caught up'],
     'v-pace': ['🔥 Warming up'],
     'v-record': ['🏆 Set your first one'],
@@ -312,8 +312,15 @@
     menu.append(sched, games);
     tabs.appendChild(wrap);
     const btn = wrap.querySelector('.tab-more-btn');
+    // The row no longer shows Assignments / Vocabulary / Progress, so a page
+    // opened from More needs its own way back to the home view.
+    const home = document.createElement('button');
+    home.type = 'button'; home.className = 'te-home'; home.id = 'te-home'; home.hidden = true; home.textContent = '← Home';
+    home.addEventListener('click', () => { if (typeof window.activateTab === 'function') window.activateTab('assignments'); });
+    tabs.prepend(home);
     const sync = () => {
       const on = menu.querySelector('.tab.active');
+      home.hidden = !on;
       wrap.classList.toggle('has-active', !!on);
       btn.textContent = (on ? on.textContent : 'More') + ' ▾';
     };
@@ -327,6 +334,57 @@
     sync();
   }
 
+  /* ── Sheets: Progress and My words open over the page ────────────────
+     They used to be tabs. Progress now opens from the streak card in the
+     sidebar and the word list from the vocabulary figures. The pane itself is
+     moved into the sheet and put back on close, so everything that fills it
+     by id (loadProgress, renderVocab) keeps working unchanged. */
+  function closeSheet() {
+    const ov = $('te-sheet');
+    if (!ov) return;
+    ov._restore();
+    ov.remove();
+    if (ov._from && document.contains(ov._from)) ov._from.focus();
+  }
+  function openSheet(name, title, from) {
+    const pane = $('pane-' + name);
+    if (!pane) return;
+    closeSheet();
+    const ov = document.createElement('div');
+    ov.className = 'te-sheet-ov'; ov.id = 'te-sheet';
+    ov.innerHTML = `<div class="te-sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="te-sheet-head"><b>${esc(title)}</b><button type="button" class="te-sheet-x" aria-label="Close">✕</button></div><div class="te-sheet-body"></div></div>`;
+    const mark = document.createComment('te-sheet');
+    pane.before(mark);
+    ov._restore = () => { pane.classList.remove('in-sheet'); mark.replaceWith(pane); };
+    ov._from = from || null;
+    ov.querySelector('.te-sheet-body').appendChild(pane);
+    pane.classList.add('in-sheet');
+    ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('.te-sheet-x')) closeSheet(); });
+    document.body.appendChild(ov);
+    ov.querySelector('.te-sheet-x').focus();
+  }
+  function asButton(el, label, go) {
+    if (!el || el.dataset.teGo) return;
+    el.dataset.teGo = '1';
+    el.setAttribute('role', 'button'); el.tabIndex = 0; el.setAttribute('aria-label', label);
+    el.addEventListener('click', e => { if (!e.target.closest('a,button')) go(el); });
+    el.addEventListener('keydown', e => { if (e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); go(el); } });
+  }
+  function sheets() {
+    const st = $('te-streak');
+    if (st && !st.querySelector('.te-more')) st.insertAdjacentHTML('beforeend', '<div class="te-more">See your progress →</div>');
+    asButton(st, 'Open your progress', el => {
+      if (typeof window.closeSidebar === 'function') window.closeSidebar();
+      openSheet('progress', 'Your progress', el);
+    });
+    document.querySelectorAll('.vocab-stats > .vs-card').forEach((card, i) => {
+      if (i < 2) asButton(card, 'Open my words', el => openSheet('vocabulary', 'My words', el));
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+    // the phone's bottom tabs show the same panes in place: hand the pane back first
+    document.querySelectorAll('.mtab').forEach(t => t.addEventListener('click', closeSheet, true));
+  }
+
   function boardLink() {
     const a = $('te-board');
     if (a && boardList[0]) { a.href = 'board.html?id=' + encodeURIComponent(boardList[0].id); a.hidden = false; }
@@ -338,6 +396,7 @@
     moreMenu();
     chunk(); goal(); nextLesson(); homework(); actions(); balance();
     softZeros();
+    sheets();
     setInterval(nextLesson, 60e3);
   }
 

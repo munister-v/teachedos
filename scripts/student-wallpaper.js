@@ -20,7 +20,7 @@
   let value = null;
 
   const CSS = `
-body.sw-has{background:var(--sw-wall) fixed !important}
+body.sw-has:not(#_):not(#_){background:var(--sw-wall) fixed !important}
 body.sw-has .sidebar{background:rgba(255,255,255,.66) !important;backdrop-filter:blur(26px) saturate(1.35);-webkit-backdrop-filter:blur(26px) saturate(1.35);border-right-color:rgba(255,255,255,.55)}
 body.sw-has .topbar{background:rgba(255,255,255,.5);backdrop-filter:blur(22px) saturate(1.3);-webkit-backdrop-filter:blur(22px) saturate(1.3);border-bottom-color:rgba(255,255,255,.5)}
 body.sw-has .content{margin:14px 18px 18px;border-radius:26px;background:rgba(255,255,255,.52);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border:1px solid rgba(255,255,255,.6);box-shadow:0 20px 50px -24px rgba(36,40,44,.35)}
@@ -36,8 +36,8 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
 .sw-x{margin-left:auto;width:36px;height:36px;border:0;border-radius:11px;background:#EFEEE7;cursor:pointer;font-size:15px}
 .sw-group h3{font:700 10px 'SF Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#6B6E60;margin:16px 0 8px}
 .sw-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
-.sw-tile{display:flex;flex-direction:column;gap:6px;border:0;background:none;padding:0;cursor:pointer;text-align:left;font:inherit}
-.sw-swatch{display:grid;place-items:center;height:68px;border-radius:14px;border:2px solid transparent;box-shadow:0 0 0 1px rgba(36,40,44,.12);font-size:11px;color:#5D614B;text-align:center;padding:4px}
+.sw-tile{display:flex;flex-direction:column;align-items:stretch;width:100%;min-width:0;gap:6px;border:0;background:none;padding:0;cursor:pointer;text-align:left;font:inherit}
+.sw-swatch{display:grid;place-items:center;width:100%;box-sizing:border-box;height:68px;border-radius:14px;border:2px solid transparent;box-shadow:0 0 0 1px rgba(36,40,44,.12);font-size:11px;color:#5D614B;text-align:center;padding:4px}
 .sw-tile.on .sw-swatch{border-color:#24282C;box-shadow:0 0 0 2px #CDF649}
 .sw-label{font-size:12px;font-weight:600}
 .sw-note{margin:14px 0 0;font-size:12.5px;color:#5D614B;min-height:18px}
