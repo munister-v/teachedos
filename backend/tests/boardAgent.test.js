@@ -89,3 +89,17 @@ test('board agent: "open" names a known studio, once, with words only for vocabu
   assert.deepStrictEqual(other.actions, [{ op: 'open', studio: 'reading' }]);
   assert.ok(agent.buildPrompt({ command: 'create vocabulary studio', cards }).includes('"op":"open"'));
 });
+
+test('board agent: a lesson-studio card brings its words into the prompt, bounded', () => {
+  const studio = { id: 'c9', type: 'worksheet', text: 'ONLINE SAFETY', x: 0, y: 0, selected: true,
+    words: ['phishing', 'password — a secret word', '', 'x'.repeat(300), ...Array.from({ length: 40 }, (_, i) => 'w' + i)] };
+  const [card] = agent.normalizeCards([studio]);
+  assert.strictEqual(card.words.length, 30);
+  assert.strictEqual(card.words[0], 'phishing');
+  assert.ok(card.words.every(w => w.length <= 90));
+  const p = agent.buildPrompt({ command: 'use the words from this studio and create a reading studio', cards: [studio] });
+  assert.ok(p.includes('"words":["phishing"'));
+  assert.ok(p.includes('create a reading studio'));
+  // cards without words stay as they were
+  assert.strictEqual(agent.normalizeCards([{ id: 'c1', type: 'sticky', text: 'a', words: 'nope' }])[0].words, undefined);
+});

@@ -154,3 +154,157 @@ html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4)
   html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4) #toolbar #btn-share:hover{ transform:none; }
 }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2026-10-09. Top bar: two islands and NOTHING between them.
+
+   The bar used to be one frosted band across the whole width with its content
+   at the two ends: on a dark board that was a white stripe of empty space
+   over the canvas. Now the bar itself is invisible and click-through; the left
+   and right groups (.tb-island, board.html) are separate glass pills, and the
+   canvas runs to the very top of the screen behind them. --tb-h is untouched,
+   so the rail, the panels and every popover stay where they were.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.tb-island{ display:contents; }
+@media not all and (max-width:860px) and (pointer:coarse) {
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar{
+  background:none !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  border:0 !important; box-shadow:none !important;
+  padding:8px 12px 0 !important; align-items:flex-start !important; gap:0 !important;
+  pointer-events:none;
+  --isl-bg:rgba(255,255,255,.80); --isl-line:rgba(36,40,44,.10); --isl-ink:#24282C; --isl-ink-2:#5D614B; --isl-hover:rgba(0,0,0,.06);
+  --isl-on:#FFFFFF; --isl-shadow:0 8px 24px -12px rgba(20,22,24,.35);
+}
+html body.board-page.board-canvas-dark:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar{
+  --isl-bg:rgba(47,47,57,.82); --isl-line:rgba(255,255,255,.10); --isl-ink:#F4F4F8; --isl-ink-2:#B9BAC6; --isl-hover:rgba(255,255,255,.10);
+  --isl-on:#24282C; --isl-shadow:0 10px 28px -12px rgba(0,0,0,.6);
+}
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar > *{ pointer-events:auto; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar > .tb-spacer{ pointer-events:none; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-island{
+  display:flex; align-items:center; gap:4px; height:46px; padding:0 8px; min-width:0;
+  background:var(--isl-bg); border:1px solid var(--isl-line); border-radius:16px;
+  -webkit-backdrop-filter:blur(20px) saturate(170%); backdrop-filter:blur(20px) saturate(170%);
+  box-shadow:var(--isl-shadow);
+}
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-island-l{ padding-left:4px; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo{ padding:7px 6px !important; margin:0 2px 0 0 !important; width:auto !important; }
+/* the cat is drawn in ink: on the dark island it turns light */
+html body.board-page.board-canvas-dark:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo-img{ filter:invert(1) brightness(1.6); }
+/* colours of everything inside follow the island */
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-board-chip,.tb-board-chip-title,.tb-board-chip-menu,.tb-auth-chip,#auth-login-btn){ color:var(--isl-ink) !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-icon-btn,#btn-more,#btn-follow-me,#btn-upgrade){ color:var(--isl-ink-2) !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-icon-btn,#btn-more,#btn-follow-me,#btn-upgrade):hover{ color:var(--isl-ink) !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-board-chip,.tb-icon-btn,#btn-follow-me,.tb-auth-chip,#btn-more,#auth-login-btn,#btn-upgrade,#btn-call):hover{ background:var(--isl-hover) !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar #btn-follow-me.active{ background:var(--isl-ink) !important; color:var(--isl-on) !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-icon-btn,#btn-follow-me,#btn-more,.tb-auth-chip,.tb-btn-primary,.tb-board-chip-menu,#auth-login-btn,#btn-upgrade):focus-visible{ outline-color:var(--isl-ink) !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar #btn-share{ margin:0 4px 0 6px !important; }
+/* the canvas goes all the way up, behind the islands */
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2) #board-wrap{ top:0 !important; }
+}
+
+/* ── Canvas tone ────────────────────────────────────────────────────────────
+   New boards are dark (#26262E with a dot grid, scripts/board-app.js "ТОН
+   ХОЛСТА"). Whatever is drawn straight on the canvas in ink has to turn light
+   there: free text, connection lines, the rail that is itself ink. */
+body.board-page:not(#b1):not(#b2) #board-wrap{
+  background-image:radial-gradient(circle,var(--board-dot,rgba(36,40,44,.10)) 1.1px,transparent 1.4px) !important;
+  background-size:22px 22px !important;
+}
+body.board-page.board-canvas-dark .board-card.card-text:not(.generated-panel-card){ color:#F4F4F8; }
+body.board-page.board-canvas-dark .board-card.card-text:not(.generated-panel-card) :is(.card-body,.text-rich-editor,.card-text-selectable,[contenteditable]){ color:#F4F4F8; caret-color:#CDF649; }
+body.board-page.board-canvas-dark .board-card.card-text:not(.generated-panel-card) :is(.text-rich-editor,[contenteditable]):empty::before{ color:rgba(244,244,248,.45); }
+body.board-page.board-canvas-dark #arrows-svg .arrow-path:not(.prereq){ stroke:#D9DAE3; }
+body.board-page.board-canvas-dark #arrows-svg :is(.arrow-path:hover,.arrow-path.selected-arrow):not(.prereq){ stroke:#FFFFFF; }
+body.board-page.board-canvas-dark #arrows-svg :is(#arrowhead,#arrowhead-start,#arrowhead-sel,#arrowhead-hover) polygon{ fill:#D9DAE3; }
+body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar{
+  background:rgba(47,47,57,.92) !important; border:1px solid rgba(255,255,255,.10) !important;
+  box-shadow:0 18px 40px -18px rgba(0,0,0,.7) !important;
+}
+body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) :is(#zoom-controls,#minimap){ border-color:rgba(255,255,255,.14) !important; }
+body.board-page.board-canvas-dark #student-dock{ background:rgba(47,47,57,.92); border:1px solid rgba(255,255,255,.10); box-shadow:0 18px 40px -18px rgba(0,0,0,.7); }
+
+/* ── Rail: the first button is the way into everything, so it is the lime one */
+body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools{
+  background:#CDF649 !important; border-color:#CDF649 !important; color:#24282C !important;
+  box-shadow:0 6px 18px -6px rgba(205,246,73,.55) !important;
+}
+body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools svg{ color:#24282C !important; }
+body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools:hover{ background:#D8FA6B !important; }
+
+/* ── Board assistant: a pill at the bottom, swiped right when not needed ──── */
+#board-agent-pill{
+  position:fixed; left:50%; bottom:20px; z-index:940; transform:translateX(calc(-50% + var(--ba-dx,0px)));
+  display:inline-flex; align-items:center; gap:9px; height:40px; padding:0 12px 0 14px;
+  border:1px solid rgba(36,40,44,.12); border-radius:999px; background:rgba(255,255,255,.92); color:#5D614B;
+  font:600 13.5px var(--font,system-ui,sans-serif); cursor:pointer; touch-action:pan-y; user-select:none; -webkit-user-select:none;
+  -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+  box-shadow:0 10px 28px -12px rgba(20,22,24,.45); transition:transform .22s ease, opacity .22s ease, background .15s ease;
+}
+#board-agent-pill[hidden],#board-agent-tab[hidden]{ display:none; }
+#board-agent-pill svg{ color:#7A9A12; flex:none; }
+#board-agent-pill:hover{ background:#fff; color:#24282C; }
+#board-agent-pill kbd{ font:650 10.5px var(--mono,ui-monospace,monospace); padding:2px 6px; border-radius:6px; background:rgba(36,40,44,.07); color:#5D614B; }
+#board-agent-pill.is-dragging,#board-agent.is-dragging{ transition:none; opacity:.75; cursor:grabbing; }
+#board-agent{ transform:translateX(calc(-50% + var(--ba-dx,0px))); touch-action:pan-y; }
+#board-agent-pill:focus-visible,#board-agent-tab:focus-visible{ outline:2px solid #CDF649; outline-offset:2px; }
+#board-agent-tab{
+  position:fixed; right:0; bottom:86px; z-index:940; width:30px; height:44px; padding:0 0 0 3px;
+  display:grid; place-items:center; border:0; border-radius:12px 0 0 12px; cursor:pointer;
+  background:#CDF649; color:#24282C; box-shadow:-6px 8px 20px -10px rgba(20,22,24,.5);
+  transition:width .15s ease;
+}
+#board-agent-tab:hover{ width:38px; }
+body.board-canvas-dark #board-agent-pill{ background:rgba(47,47,57,.9); border-color:rgba(255,255,255,.12); color:#D6D7E0; }
+body.board-canvas-dark #board-agent-pill:hover{ background:#3A3A45; color:#fff; }
+body.board-canvas-dark #board-agent-pill svg{ color:#CDF649; }
+body.board-canvas-dark #board-agent-pill kbd{ background:rgba(255,255,255,.10); color:#D6D7E0; }
+/* modals, present mode and the phone keep the bottom edge to themselves */
+body:is(.board-presenting,.board-readonly,.board-phone-shell) :is(#board-agent-pill,#board-agent-tab){ display:none; }
+body:has(#tool-builder-panel.open) :is(#board-agent-pill,#board-agent-tab){ display:none; }
+body:has(.vb) #board-agent-pill{ bottom:76px; }
+@media (max-width:860px){ #board-agent-pill kbd{ display:none; } #board-agent-pill{ bottom:84px; } }
+@media (prefers-reduced-motion:reduce){ #board-agent-pill,#board-agent-tab{ transition:none; } }
+
+/* ── Studios panel: assistant row and the Studios / Games switch ─────────── */
+#tool-builder-panel .tb-wiz-ask{
+  display:flex; align-items:center; gap:10px; margin:0 0 14px; padding:6px 6px 6px 14px;
+  border:1.5px solid rgba(36,40,44,.58); border-radius:14px; background:#fff;
+}
+#tool-builder-panel .tb-wiz-ask:focus-within{ border-color:#24282C; box-shadow:0 0 0 3px rgba(205,246,73,.55); }
+#tool-builder-panel .tb-wiz-ask svg{ flex:none; color:#5D614B; }
+/* controls.css держит у всех полей рамку 3:1 через body:not(#_):not(#__);
+   здесь рамку несёт обёртка строки, поэтому у самого поля её нет. */
+body:not(#_):not(#__):not(#___) #tool-builder-panel .tb-wiz-ask input#tb-wiz-ask{ border-width:0 !important; }
+#tool-builder-panel .tb-wiz-ask input#tb-wiz-ask{
+  flex:1 1 auto; min-width:0; min-height:0 !important; height:36px !important; padding:0 !important;
+  border:0 !important; border-radius:0 !important; background:none !important; box-shadow:none !important; outline:0 !important;
+  font:500 15px var(--font,system-ui,sans-serif) !important; color:#24282C !important;
+}
+#tool-builder-panel .tb-wiz-ask-go{
+  flex:none; height:36px; padding:0 16px; border:0; border-radius:10px; cursor:pointer;
+  background:#CDF649; color:#24282C; font:700 13.5px var(--font,system-ui,sans-serif);
+}
+#tool-builder-panel .tb-wiz-ask-go:hover{ background:#D8FA6B; }
+#tool-builder-panel .tb-wiz-tabs{ display:inline-flex; gap:2px; margin:0 0 12px; padding:3px; border-radius:12px; background:rgba(36,40,44,.07); }
+#tool-builder-panel .tb-wiz-tab{
+  height:32px; padding:0 16px; border:0; border-radius:9px; cursor:pointer; background:none;
+  font:650 13px var(--font,system-ui,sans-serif); color:#5D614B;
+}
+#tool-builder-panel .tb-wiz-tab.is-on{ background:#fff; color:#24282C; box-shadow:0 1px 3px rgba(36,40,44,.16); }
+#tool-builder-panel .tb-wiz-tab:not(.is-on):hover{ color:#24282C; }
+#tool-builder-panel :is(.tb-wiz-tab,.tb-wiz-ask-go):focus-visible{ outline:2px solid #24282C; outline-offset:2px; }
+.gh-back{ height:30px; padding:0 12px; border:1px solid rgba(36,40,44,.58); border-radius:999px; background:#fff; color:#24282C; font:650 12.5px var(--font,system-ui,sans-serif); cursor:pointer; }
+.gh-back:hover{ background:#F6F6EF; }
+
+/* Dark canvas: the small chrome in the corner goes dark with it, the first-run
+   card stays a solid light sheet (it was 82% white and turned grey). */
+body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) :is(#minimap,#zoom-controls){
+  background:rgba(47,47,57,.92) !important; border-color:rgba(255,255,255,.12) !important;
+  box-shadow:0 14px 34px -16px rgba(0,0,0,.7) !important; color:#E6E7EE !important;
+}
+body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) #minimap :is(.mm-label,.minimap-label,span,div){ color:#B9BAC6 !important; }
+body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) #zoom-controls :is(button,.zc-btn,.zc-pct,svg){ color:#E6E7EE !important; }
+body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) #zoom-controls :is(button,.zc-btn):hover{ background:rgba(255,255,255,.10) !important; }
+body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) #zoom-controls .zc-sep{ background:rgba(255,255,255,.14) !important; }
+body.board-page.board-canvas-dark #empty-state{ background:#FFFFFF !important; }

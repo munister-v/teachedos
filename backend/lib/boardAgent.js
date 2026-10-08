@@ -39,6 +39,12 @@ function normalizeCards(cards) {
     };
     if (COLORS.includes(c.color)) card.color = c.color;
     if (c.selected) card.selected = true;
+    /* Карточка-студия лексики несёт свои слова: заголовок о них ничего не
+       говорит, а команда «слова из этой студии» ссылается именно на них. */
+    if (Array.isArray(c.words)) {
+      const words = c.words.map(w => oneLine(w, 90)).filter(Boolean).slice(0, 30);
+      if (words.length) card.words = words;
+    }
     out.push(card);
     if (out.length >= MAX_CARDS) break;
   }
@@ -76,6 +82,7 @@ Allowed actions (use only these, with ids taken from the card list below):
 - {"op":"open","studio":"vocabulary"|"listening"|"reading"|"speaking"|"writing"|"grammar"|"magazine"|"scenes","words":["word — meaning"]}  open a lesson studio (the lesson builder) for the teacher
   Studios: vocabulary = Vocabulary Studio / word workout (a word set and games around it); listening = a video or audio lesson; reading = a text lesson; speaking; writing; grammar; magazine = News & Articles; scenes = Picture Worksheets.
   "words" only for vocabulary: one line per word, copied from the cards the command means (the selected ones), keeping "word — meaning" when the card has it. Up to 30.
+  A card with a "words" list is a lesson studio on the board and those are its words. "Use the words from this studio and create a reading studio" (any language) is ONE "open" action with studio "reading" and no "words": the browser carries the selected studio's words into the new studio itself. The same for speaking, writing and grammar. Never answer that with stickies.
 - {"op":"game","game":"memory-match"|"flashcards"|"word-categories"|"hangman"|"spin-wheel","title":"...","pairs":[{"a":"word","b":"meaning"}],"words":["..."],"categories":[{"name":"...","words":["..."]}]}
   memory-match and flashcards need "pairs" (3 or more); hangman and spin-wheel need "words" (3 or more); word-categories needs "categories" (2 or more).
 

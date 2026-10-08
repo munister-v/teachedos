@@ -6311,7 +6311,12 @@ function cssColorToHex(value) {
 
 function applyTextStyles(card, editor) {
   const d = card.data = defaultTextData(card.data || {});
-  editor.style.color = d.textColor || '#24282C';
+  /* Цвет по умолчанию не пишем инлайном: у свободного текста он зависит от
+     тона холста (чернила на светлом, светлый на тёмном - board-harmony.css).
+     Инлайном идёт только цвет, который учитель выбрал сам. */
+  const _plain = !d.bgColor || d.bgColor === 'transparent';
+  const _ink = !d.textColor || /^#24282c$/i.test(d.textColor);   // чернила - это и есть «по умолчанию» (defaultTextData)
+  editor.style.color = (_plain && _ink) ? '' : (d.textColor || '#24282C');
   editor.style.background = d.bgColor || 'transparent';
   editor.style.fontFamily = d.fontFamily || 'var(--font)';
   editor.style.textAlign = d.align || 'left';
@@ -16443,7 +16448,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1088';
+const TEACHEDOS_ASSET_VERSION = '1100';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19649,10 +19654,24 @@ function renderLessonWizard() {
   const sub    = document.getElementById('tbuilder-sub');
 
   if (!boardLessonWizard.skill) {
-    if (kicker) kicker.textContent = 'Lesson builder / step 1 of 2';
+    if (kicker) kicker.textContent = 'Lesson builder & assistant';
     if (title)  title.textContent  = 'What are we working on today?';
-    if (sub)    sub.textContent    = 'Pick the skill. The tools are chosen for you.';
-    host.innerHTML = `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
+    if (sub)    sub.textContent    = 'Say it in your own words, or pick a studio.';
+    /* Помощник доски и студии - один вход. Строка сверху принимает то же, что
+       командная строка внизу доски («сделай чтение по словам этой студии»,
+       «отсортируй стикеры»), а игры, которые стояли отдельной кнопкой на
+       рейке, открываются отсюда же второй вкладкой. */
+    const canAsk = !!window.TeachEdBoardAgent && !(currentUser && currentUser.role === 'student');
+    host.innerHTML = `${canAsk ? `<form class="tb-wiz-ask" onsubmit="event.preventDefault();lessonWizardAsk()">
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M9 1.6l1.95 5.45L16.4 9l-5.45 1.95L9 16.4 7.05 10.95 1.6 9l5.45-1.95z"/></svg>
+        <input id="tb-wiz-ask" type="text" maxlength="1200" autocomplete="off" aria-label="Tell the board what to do or describe a lesson" placeholder="Tell the board what to do or describe a lesson…">
+        <button type="submit" class="tb-wiz-ask-go">Ask <span aria-hidden="true">↵</span></button>
+      </form>` : ''}
+      <div class="tb-wiz-tabs" role="tablist">
+        <button type="button" class="tb-wiz-tab is-on" role="tab" aria-selected="true">Studios</button>
+        <button type="button" class="tb-wiz-tab" role="tab" aria-selected="false" onclick="closeTeacherToolBuilder();openGamesModal()">Games</button>
+      </div>
+      <div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
       <button type="button" class="tb-wiz-card${ready ? '' : ' is-soon'}"
         ${ready ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
         <span class="tb-wiz-ic">${esc(s.icon)}</span>
@@ -19770,6 +19789,16 @@ async function placeCustomScene({ title, custom }) {
   });
   closeTeacherToolBuilder();
   toast('Your picture worksheet is on the board - open it to explore');
+}
+
+/* Строка помощника в мастере: команда уходит в ту же командную строку доски
+   (scripts/board-agent.js) - она сама решит, открыть студию или править доску. */
+function lessonWizardAsk() {
+  const field = document.getElementById('tb-wiz-ask');
+  const command = field ? field.value.trim() : '';
+  if (command.length < 2 || !window.TeachEdBoardAgent) { if (field) field.focus(); return; }
+  closeTeacherToolBuilder();
+  window.TeachEdBoardAgent.run(command);
 }
 
 function pickLessonSkill(key) {
@@ -21606,6 +21635,8 @@ function serializeBoard() {
            annotations: normalizeAnnotations(state.annotations),
            strokes: state.strokes || [],
            groups: (state.groups || []).map(g => ({ ...g, cardIds: [...g.cardIds] })),
+           // Тон холста этой доски (см. «ТОН ХОЛСТА» у фона доски).
+           canvas: state.canvas || undefined,
            /* Чья это доска. Снимок много лет был анонимным, а локальный кэш
               один на все доски (SAVE_KEY), поэтому его нельзя было отличить
               от снимка другой доски - см. разбор в loadBoard(). */
@@ -23384,6 +23415,7 @@ function loadBoardData(data) {
   state.annotations = normalizeAnnotations(data.annotations);
   state.strokes = Array.isArray(data.strokes) ? data.strokes : [];
   state.groups = (data.groups || []).map(g => ({ ...g, cardIds: new Set(g.cardIds) }));
+  _loadCanvasTone(data);
   if (data.savedAt) { lastSavedAt = new Date(data.savedAt); lastSavedHash = boardHash(); }
   // Bug fix: reset transient overlays on every board load
   if (typeof updateMultiSelBox === 'function') updateMultiSelBox();
@@ -27696,7 +27728,84 @@ document.addEventListener('keydown', e => {
 });
 
 /* ════════════════════════ BACKGROUND CUSTOMIZATION ════════════════════════ */
-const BG_PRESETS = ['#F2F2F5','#FFFFFF','#FAFAF7','#F9F9FC','#FFF0F0','#F0F7FF','#F0FFF4','#F9F0FF','#FFE4E1','#E0F2FE','#DCFCE7','#FEF3C7','#FCE7F3','#E5E7EB','#1C1C1E','#0F172A'];
+/* ════════════════════════ ТОН ХОЛСТА ════════════════════════
+   Новая доска по умолчанию тёмная (#26262E с точками): на ней карточки,
+   студии и стикеры читаются как светящиеся листы, а глаза не устают от
+   белого поля. Решение принадлежит ДОСКЕ и едет в её данных
+   (data.canvas = { tone, color? }), поэтому учитель и ученики видят одно и
+   то же - раньше фон жил только в localStorage каждого браузера.
+
+   Доска, на которой уже что-то есть и у которой тона нет, остаётся светлой:
+   на ней рисовали тёмной ручкой и писали тёмным текстом по светлому, и на
+   тёмном холсте всё это пропало бы. Тёмными становятся только пустые доски.
+
+   Кто сильнее: цвет, выбранный для этой доски (canvas.color) → цвет,
+   выбранный в этом браузере раньше (BG_KEY) → тон доски. У того, кто доску
+   править не может, наоборот: сначала свой цвет, потом цвет доски. */
+const CANVAS_TONES = { dark: '#26262E', light: '#F6F6EF' };
+const CANVAS_TONE_KEY = 'teachedos_canvas_tones';
+function _colorIsDark(c) {
+  c = String(c || '').trim();
+  let r, g, b;
+  let m = c.match(/^#([0-9a-f]{3,8})$/i);
+  if (m) {
+    let h = m[1];
+    if (h.length <= 4) h = h.split('').map(x => x + x).join('');
+    r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16);
+  } else if ((m = c.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i))) { r = +m[1]; g = +m[2]; b = +m[3]; }
+  else return false;
+  return (0.299 * r + 0.587 * g + 0.114 * b) < 110;
+}
+function _rememberCanvasTone(tone) {
+  if (!currentBoardId) return;
+  try {
+    const all = JSON.parse(localStorage.getItem(CANVAS_TONE_KEY) || '{}');
+    all[currentBoardId] = tone;
+    const keys = Object.keys(all);
+    keys.slice(0, Math.max(0, keys.length - 40)).forEach(k => delete all[k]);
+    localStorage.setItem(CANVAS_TONE_KEY, JSON.stringify(all));
+  } catch (_) {}
+}
+function applyCanvasTone() {
+  const bw = document.getElementById('board-wrap');
+  if (!bw) return;
+  const cv = state.canvas || {};
+  const local = getBgState();
+  const mine = (typeof boardCanEdit === 'undefined' || boardCanEdit) ? (cv.color || local.color) : (local.color || cv.color);
+  const color = mine || CANVAS_TONES[cv.tone] || CANVAS_TONES.light;
+  _bwBg(bw, '--board-bg-color', color);
+  const dark = _colorIsDark(color);
+  document.body.classList.toggle('board-canvas-dark', dark);
+  document.documentElement.style.setProperty('--board-dot', dark ? 'rgba(255,255,255,.085)' : 'rgba(36,40,44,.10)');
+  _rememberCanvasTone(dark ? 'dark' : 'light');
+}
+function _loadCanvasTone(data) {
+  const c = data && data.canvas;
+  if (c && typeof c === 'object' && (c.tone === 'dark' || c.tone === 'light')) {
+    state.canvas = { tone: c.tone };
+    if (typeof c.color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.color)) state.canvas.color = c.color;
+  } else {
+    const used = (data && ((data.cards || []).length || (data.strokes || []).length || (data.arrows || []).length)) || 0;
+    state.canvas = { tone: used ? 'light' : 'dark' };
+  }
+  applyCanvasTone();
+}
+/* До ответа сервера - тон, который у этой доски был в прошлый раз: без этого
+   тёмная доска на каждом открытии вспыхивала бы светлой. */
+(function () {
+  try {
+    const id = new URLSearchParams(location.search).get('id') || localStorage.getItem('teachedos_board_id');
+    const tone = id && JSON.parse(localStorage.getItem(CANVAS_TONE_KEY) || '{}')[id];
+    if (tone === 'dark' && !getBgStateEarly().color) {
+      document.body.classList.add('board-canvas-dark');
+      document.documentElement.style.setProperty('--board-bg-color', CANVAS_TONES.dark);
+      document.documentElement.style.setProperty('--board-dot', 'rgba(255,255,255,.085)');
+    }
+  } catch (_) {}
+  function getBgStateEarly() { try { return JSON.parse(localStorage.getItem('teachedos_board_bg')) || {}; } catch { return {}; } }
+})();
+
+const BG_PRESETS = ['#26262E','#F6F6EF','#FFFFFF','#F2F2F5','#FAFAF7','#FFF0F0','#F0F7FF','#F0FFF4','#F9F0FF','#FFE4E1','#E0F2FE','#DCFCE7','#FEF3C7','#FCE7F3','#E5E7EB','#1C1C1E','#0F172A','#404040'];
 const BG_KEY = 'teachedos_board_bg';
 
 function openBgModal() {
@@ -27704,7 +27813,8 @@ function openBgModal() {
   if (!ov) return;
   buildBgGrid();
   const saved = getBgState();
-  const cur = saved.color || '#F6F6EF';
+  const cv = state.canvas || {};
+  const cur = cv.color || saved.color || CANVAS_TONES[cv.tone] || '#F6F6EF';
   document.getElementById('bg-custom-color').value = cur;
   document.getElementById('bg-custom-hex').value   = cur;
   syncBgHexInput();
@@ -27736,7 +27846,7 @@ function _isLightColor(hex) {
 function buildBgGrid() {
   const grid = document.getElementById('bg-color-grid');
   if (!grid) return;
-  const currentColor = (getBgState().color || '').toLowerCase();
+  const currentColor = ((state.canvas && state.canvas.color) || getBgState().color || CANVAS_TONES[(state.canvas || {}).tone] || '').toLowerCase();
   grid.innerHTML = BG_PRESETS.map(c => {
     const isActive = c.toLowerCase() === currentColor;
     const isLight = _isLightColor(c);
@@ -27773,10 +27883,18 @@ function applyBgColor(color) {
   if (!color) return;
   const c = color.trim();
   if (!/^#[0-9a-fA-F]{3,8}$|^rgb/.test(c)) return;
-  _bwBg(boardWrap, '--board-bg-color', c);
-  const cur = getBgState();
-  cur.color = c;
-  saveBgState(cur);
+  /* Цвет выбран для ЭТОЙ доски: кто может её править, тот меняет её фон для
+     всех, и только её - в браузер он не пишется, иначе выбор на одной доске
+     перекрашивал бы все остальные. Кто править не может, красит у себя. */
+  if (typeof boardCanEdit === 'undefined' || boardCanEdit) {
+    state.canvas = { tone: _colorIsDark(c) ? 'dark' : 'light', color: c };
+    try { scheduleSave && scheduleSave(); saveLocal && saveLocal(); } catch (_) {}
+  } else {
+    const cur = getBgState();
+    cur.color = c;
+    saveBgState(cur);
+  }
+  applyCanvasTone();
   const hex = document.getElementById('bg-custom-hex'); if (hex) hex.value = c;
   const col = document.getElementById('bg-custom-color'); if (col && /^#[0-9a-fA-F]{6}$/.test(c)) col.value = c;
 }
@@ -27826,7 +27944,7 @@ function toggleBgDots(show) {
     setTimeout(restoreBg, 200);
     return;
   }
-  if (st.color) _bwBg(boardWrap, '--board-bg-color', st.color);
+  applyCanvasTone();
   if (st.image) applyBgImage(st.image);
   if (st.showDots === false) toggleBgDots(false);
 })();
@@ -27852,6 +27970,16 @@ let _drawState = (() => {
   catch { return Object.assign({}, _drawDefaults); }
 })();
 function _saveDrawState() { try { localStorage.setItem(DRAW_STATE_KEY, JSON.stringify(_drawState)); } catch {} }
+/* Чернильная ручка на тёмном холсте не видна, белая на светлом тоже: если
+   цвет ручки - один из этих двух «цветов по умолчанию», он идёт за холстом.
+   Цвет, выбранный учителем сам (любой другой), не трогаем. */
+function _penColorForCanvas() {
+  const dark = document.body.classList.contains('board-canvas-dark');
+  const c = String(_drawState.pen.color || '').toUpperCase();
+  if (dark && c === '#24282C') return '#FFFFFF';
+  if (!dark && c === '#FFFFFF') return '#24282C';
+  return _drawState.pen.color;
+}
 
 const PEN_COLORS    = ['#24282C','#FF4E00','#FF8C3A','#FFE44D','#5D614B','#49F6F0','#3F9FFF','#6B42FD','#886BF3','#CDF649','#A3A48D','#FFFFFF','#6BAFF3','#9F8CE8'];
 const MARKER_COLORS = ['#FFE44D','#F3DF6B','#F3A46B','#FF8C3A','#D3F36B','#CDF649','#49F6F0','#6BAFF3','#9F8CE8','#886BF3','#FFFFFF','#CACCC6','#A3A48D','#FF4E00'];
@@ -28259,7 +28387,7 @@ function _beginDraw(e) {
   _currentStroke = {
     id: 's' + (state.nextId++),
     tool: _drawTool,
-    color: conf.color,
+    color: _drawTool === 'pen' ? _penColorForCanvas() : conf.color,
     size: conf.size,
     points: [p0],
   };

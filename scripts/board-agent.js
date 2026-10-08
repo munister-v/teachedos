@@ -74,6 +74,7 @@
   function open() {
     if (!canUse()) return;
     bar.hidden = false;
+    syncPill();
     refreshScope();
     input.focus();
     input.select();
@@ -82,8 +83,91 @@
     bar.hidden = true;
     clearPlan();
     input.blur();
+    syncPill();
   }
   function toggle() { bar.hidden ? open() : close(); }
+  /* Команда извне (строка помощника в мастере студий): открыть строку и
+     сразу отправить. */
+  function run(command) {
+    open();
+    if (bar.hidden) return;
+    input.value = String(command || '');
+    ask();
+  }
+
+  /* ── Пилюля внизу доски ─────────────────────────────────────────────────
+     Помощник больше не кнопка на рейке: он лежит внизу по центру сложенной
+     пилюлей и раскрывается по нажатию или Ctrl/Cmd+K. Не нужен - его
+     смахивают вправо (или тянут мышью): он уезжает за край, и у правого
+     края остаётся язычок, который возвращает его обратно. Выбор помнится. */
+  const PARK_KEY = 'teachedos_agent_parked';
+  const pill = document.createElement('button');
+  pill.type = 'button';
+  pill.id = 'board-agent-pill';
+  pill.hidden = true;
+  pill.setAttribute('aria-label', 'Tell the board what to do (Ctrl+K). Swipe right to hide');
+  pill.innerHTML = `<svg width="15" height="15" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M9 1.6l1.95 5.45L16.4 9l-5.45 1.95L9 16.4 7.05 10.95 1.6 9l5.45-1.95z"/></svg><span>Tell the board what to do…</span><kbd>${/Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘K' : 'Ctrl K'}</kbd>`;
+  const tab = document.createElement('button');
+  tab.type = 'button';
+  tab.id = 'board-agent-tab';
+  tab.hidden = true;
+  tab.setAttribute('aria-label', 'Bring the board assistant back');
+  tab.title = 'Board assistant';
+  tab.innerHTML = '<svg width="15" height="15" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M9 1.6l1.95 5.45L16.4 9l-5.45 1.95L9 16.4 7.05 10.95 1.6 9l5.45-1.95z"/></svg>';
+  document.body.appendChild(pill);
+  document.body.appendChild(tab);
+
+  let parked = false;
+  try { parked = localStorage.getItem(PARK_KEY) === '1'; } catch (_) {}
+  const allowed = () => typeof authToken !== 'undefined' && !!authToken
+    && !(currentUser && currentUser.role === 'student')
+    && !(currentUser && currentBoardId && !boardCanEdit);
+  function syncPill() {
+    const ok = allowed();
+    pill.hidden = !ok || parked || !bar.hidden;
+    tab.hidden = !ok || !parked || !bar.hidden;
+  }
+  function park(on) {
+    parked = !!on;
+    try { localStorage.setItem(PARK_KEY, parked ? '1' : '0'); } catch (_) {}
+    if (parked && !bar.hidden) { bar.hidden = true; clearPlan(); input.blur(); }
+    syncPill();
+  }
+  /* Жест: тянем вправо дальше 56px - убираем. Короткое нажатие без сдвига -
+     обычный клик, он раскрывает строку. */
+  function swipeToPark(el, onTap) {
+    let x0 = null, dx = 0, moved = false;
+    el.addEventListener('pointerdown', e => {
+      if (e.button) return;
+      if (e.target.closest('input,button:not(#board-agent-pill)')) return;
+      x0 = e.clientX; dx = 0; moved = false;
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    el.addEventListener('pointermove', e => {
+      if (x0 == null) return;
+      dx = Math.max(0, e.clientX - x0);
+      if (dx > 6) moved = true;
+      if (moved) { el.style.setProperty('--ba-dx', dx + 'px'); el.classList.add('is-dragging'); }
+    });
+    const end = e => {
+      if (x0 == null) return;
+      x0 = null;
+      el.classList.remove('is-dragging');
+      el.style.removeProperty('--ba-dx');
+      if (moved && dx > 56) park(true);
+      else if (!moved && onTap && e.type === 'pointerup') onTap();
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
+  swipeToPark(pill, open);
+  swipeToPark(bar, null);
+  pill.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  tab.addEventListener('click', () => { park(false); });
+  ['mousedown', 'pointerdown', 'wheel'].forEach(ev => [pill, tab].forEach(el => el.addEventListener(ev, e => e.stopPropagation())));
+  // Вход, роль и права приходят после загрузки доски - пилюля ждёт их.
+  syncPill();
+  setInterval(syncPill, 1500);
 
   function clearPlan() {
     plan = null; planFor = '';
@@ -127,6 +211,9 @@
         text: cardText(c).replace(/\s+/g, ' ').trim().slice(0, 220),
         color: c.type === 'sticky' ? colorName(c.color) : undefined,
         selected: sel || undefined,
+        // Карточка-студия лексики: её слова, чтобы «сделай игру из слов этой
+        // студии» не упиралось в один заголовок.
+        words: (() => { const w = studioWords(c); return w.length ? w.map(x => x.gloss && x.kept ? `${x.word} - ${x.gloss}` : x.word) : undefined; })(),
       }));
     return { cards, viewport: { x: Math.round(centre.x), y: Math.round(centre.y) } };
   }
@@ -177,13 +264,31 @@
     });
   }
 
+  /* «Возьми слова из этой студии и создай студию по чтению»: тут две студии,
+     но одна из них - ИСТОЧНИК слов, а не цель. Раньше такая фраза (десять слов
+     и два названия студий) шла к ассистенту на сервере, а тот видел у карточки
+     студии только заголовок и открывал мастер чтения на первом шаге, пустым.
+     Теперь: «слова» + «из/по/используй» + одно название другой студии = открыть
+     ЭТУ студию и подставить слова из выделенного. */
+  const WORDS_REF = /\b(words?|vocab\w*|word\s*list)\b|слов\w*|слів\w*|лексик\w*/i;
+  const FROM_REF = /(?<![\p{L}])(from|using|use|take|based\s+on|out\s+of|with|on|из|із|з|по|используй\w*|возьми\w*|бери\w*|взять|візьми\w*|використ\w*|на\s+основе|на\s+основі)(?![\p{L}])/iu;
+  const SELECTION_REF = /(этой|этих|этого|цієї|цих|цього|this|these|selected|выделенн\w*|виділен\w*)\s+(студи\w*|студі\w*|studio|карточ\w*|картк\w*|cards?|урок\w*|lesson|слов\w*|слів\w*|words?)/i;
+
+  /* → { key, useWords } или null. useWords: слова брать из выделенного. */
   function studioIntent(raw) {
     const command = fixTypos(raw);
     const words = command.split(/\s+/).filter(Boolean);
+    const hit = STUDIOS.filter(s => s.re.test(command)).map(s => s.key);
+    const others = hit.filter(k => k !== 'vocabulary');
+    const wordsRef = hit.includes('vocabulary') || WORDS_REF.test(command);
+    const fromRef = FROM_REF.test(command) || SELECTION_REF.test(command);
+    const asks = STUDIO_WORD.test(command) || OPEN_VERB.test(command);
+    if (words.length <= 24 && others.length === 1 && asks && ((wordsRef && fromRef) || SELECTION_REF.test(command))) {
+      return { key: others[0], useWords: true };
+    }
     if (words.length > 9) return null;                      // это уже просьба, а не «открой»
     if (!STUDIO_WORD.test(command) && !(OPEN_VERB.test(command) && words.length <= 4)) return null;
-    const hit = STUDIOS.filter(s => s.re.test(command));
-    return hit.length === 1 ? hit[0].key : null;           // «reading and writing» - пусть решает ассистент
+    return hit.length === 1 ? { key: hit[0], useWords: hit[0] === 'vocabulary' } : null;   // «reading and writing» - пусть решает ассистент
   }
 
   function selectedWordLines() {
@@ -195,21 +300,104 @@
       .slice(0, 30);
   }
 
-  function openStudio(key, given) {
+  /* Слова карточки-студии: Vocabulary Studio хранит их в шаге vocab-studio
+     (card.data._wfPath), и ни в одном «тексте карточки» их нет - там только
+     заголовок. */
+  function studioWords(c) {
+    const p = c && c.data && c.data._wfPath;
+    if (!p || !Array.isArray(p.steps)) return [];
+    const seen = new Set();
+    return p.steps.filter(s => s && s.role === 'vocab-studio')
+      .flatMap(s => (s.out && s.out.words) || [])
+      .filter(w => w && String(w.word || '').trim())
+      .map(w => ({ word: String(w.word).trim(), gloss: String(w.meaning || '').trim(), kept: !!w.meaningKept }))
+      .filter(w => { const k = w.word.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+      .slice(0, 30);
+  }
+  function studioTitle(c) {
+    const t = String((c.data && c.data.title) || '').replace(/\s+/g, ' ').trim().replace(/^(vocabulary|reading|speaking|writing|grammar|listening) studio\s*[·:\-–]\s*/i, '');
+    return /^(new vocabulary|vocabulary)\b/i.test(t) && /\d+\s+words?$/i.test(t) ? '' : t;
+  }
+  /* «word — gloss», «word - gloss», «word: gloss» → слово и пояснение. */
+  function splitLine(line) {
+    const m = String(line).match(/^(.{1,60}?)\s+[-–—=:]\s+(.+)$/) || String(line).match(/^([^:]{1,60}):\s+(.+)$/);
+    return m ? { word: m[1].trim(), gloss: m[2].trim(), kept: true } : { word: String(line).trim(), gloss: '', kept: false };
+  }
+
+  /* Откуда брать слова: выделенная студия-путь, иначе выделенные карточки
+     со словами, иначе единственная студия лексики на доске (ближайшая к
+     центру экрана, если их несколько) - «из этой студии» без выделения
+     значит именно её. */
+  function wordSource(allowBoard) {
+    const sel = state.cards.filter(c => state.selected.has(c.id));
+    const pick = sel.find(c => studioWords(c).length);
+    if (pick) return { words: studioWords(pick), title: studioTitle(pick), level: pick.data.level || '', from: 'studio' };
+    const lines = selectedWordLines();
+    if (lines.length >= 2) return { words: lines.map(splitLine).filter(w => w.word), title: '', level: '', from: 'cards' };
+    if (allowBoard) {
+      const centre = getBoardViewportCenter() || { x: 0, y: 0 };
+      const all = state.cards.filter(c => studioWords(c).length)
+        .sort((a, b) => Math.hypot(a.x + a.w / 2 - centre.x, a.y + a.h / 2 - centre.y) - Math.hypot(b.x + b.w / 2 - centre.x, b.y + b.h / 2 - centre.y));
+      if (all.length) return { words: studioWords(all[0]), title: studioTitle(all[0]), level: all[0].data.level || '', from: 'studio' };
+    }
+    return null;
+  }
+
+  /* Поля конструктора заполняются сразу и ещё раз чуть позже: часть
+     обработчиков конструктора (черновик, готовность формы) отрабатывает
+     уже после открытия. */
+  function fillBuilder(f) {
+    const put = (id, value) => {
+      const el = document.getElementById(id);
+      if (!el || value == null || value === '') return;
+      if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === value || o.text === value)) return;
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    const run = () => { put('tbuilder-level', f.level); put('tbuilder-topic', f.topic); put('tbuilder-vocab', f.vocab); };
+    run();
+    setTimeout(run, 160);
+  }
+
+  /* В какую «вторую страницу» мастера вести, когда слова уже есть. */
+  const WORD_SOURCE = {
+    vocabulary: 'vocab-own',   // список слов → Vocabulary Studio
+    reading:    'words',       // «Just my word list»: текст пишется вокруг слов
+    speaking:   'topic',       // у говорения/письма/грамматики своего списка нет:
+    writing:    'topic',       // тема + слова в поле «Target vocabulary»
+    grammar:    'topic',
+  };
+  const STUDIO_NAME = { vocabulary: 'Vocabulary Studio', reading: 'Reading', speaking: 'Speaking', writing: 'Writing', grammar: 'Grammar' };
+
+  function openStudio(key, given, opts) {
+    opts = opts || {};
     if (typeof openLessonWizard !== 'function' || typeof pickLessonSkill !== 'function') return false;
-    const lines = key !== 'vocabulary' ? [] : (Array.isArray(given) && given.length ? given.slice(0, 30) : selectedWordLines());
+    const useWords = key === 'vocabulary' || !!opts.useWords;
+    const src = useWords ? wordSource(!!opts.useWords) : null;
+    let words = src ? src.words : [];
+    if (words.length < 2 && Array.isArray(given) && given.length >= 2) words = given.slice(0, 30).map(splitLine);
+    const route = WORD_SOURCE[key];
+    const fill = words.length >= 2 && route && typeof pickLessonSource === 'function';
     close();
     openLessonWizard();
     pickLessonSkill(key);
-    if (lines.length >= 2 && typeof pickLessonSource === 'function') {
-      pickLessonSource('vocab-own');
-      setTimeout(() => {
-        const field = document.getElementById('tbuilder-vocab');
-        if (!field) return;
-        field.value = lines.join('\n');
-        field.dispatchEvent(new Event('input', { bubbles: true }));
-      }, 120);
-      toast(`Vocabulary Studio · ${lines.length} words from the board`);
+    if (fill) {
+      pickLessonSource(route);
+      const plain = words.map(w => w.word);
+      if (key === 'vocabulary') {
+        // своё пояснение учителя едет вместе со словом («phishing - a message designed to…»)
+        fillBuilder({ vocab: words.map(w => (w.kept && w.gloss) ? `${w.word} - ${w.gloss}` : w.word).join('\n') });
+      } else {
+        fillBuilder({
+          vocab: plain.join('\n'),
+          topic: (src && src.title) || (key === 'reading' ? '' : plain.slice(0, 3).join(', ')),
+          level: src && src.level,
+        });
+      }
+      toast(`${STUDIO_NAME[key] || key} · ${words.length} words${src && src.title ? ` from “${src.title.slice(0, 28)}”` : ' from the board'}`);
+    } else if (opts.useWords && WORD_SOURCE[key]) {
+      toast('Select the Vocabulary Studio (or word cards) first, then ask again');
     }
     return true;
   }
@@ -223,7 +411,7 @@
     lastCommand = command;
     input.value = '';
     const studio = studioIntent(command);
-    if (studio && openStudio(studio)) return;
+    if (studio && openStudio(studio.key, null, { useWords: studio.useWords })) return;
     clearPlan();
     setBusy(true);
     try {
@@ -306,7 +494,7 @@
 
     // Opening a studio changes nothing on the board - no Apply step.
     const opener = actions.find(a => a.op === 'open');
-    if (opener) { input.value = ''; openStudio(opener.studio, opener.words); return; }
+    if (opener) { input.value = ''; openStudio(opener.studio, opener.words, { useWords: WORDS_REF.test(command) || SELECTION_REF.test(command) }); return; }
     // Nothing the board can do: show what it CAN do instead of a dead end.
     if (!actions.length) showStudioChips();
     // "Where is…" only moves the camera, so there is nothing to confirm.
@@ -506,5 +694,5 @@
     toggle();
   }, true);
 
-  window.TeachEdBoardAgent = { open, close, toggle };
+  window.TeachEdBoardAgent = { open, close, toggle, run, park };
 })();
