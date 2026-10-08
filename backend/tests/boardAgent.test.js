@@ -74,3 +74,18 @@ test('board agent: garbage in, empty plan out', () => {
     assert.ok(plan.reply);
   }
 });
+
+test('board agent: "open" names a known studio, once, with words only for vocabulary', () => {
+  const plan = agent.sanitizePlan({
+    reply: 'Opening Vocabulary Studio.',
+    actions: [
+      { op: 'open', studio: 'vocabulary', words: ['phishing — a message designed to trick people', '', 42] },
+      { op: 'open', studio: 'listening' },
+      { op: 'open', studio: 'javascript:alert(1)' },
+    ],
+  }, cards);
+  assert.deepStrictEqual(plan.actions, [{ op: 'open', studio: 'vocabulary', words: ['phishing — a message designed to trick people', '42'] }]);
+  const other = agent.sanitizePlan({ actions: [{ op: 'open', studio: 'reading', words: ['x'] }] }, cards);
+  assert.deepStrictEqual(other.actions, [{ op: 'open', studio: 'reading' }]);
+  assert.ok(agent.buildPrompt({ command: 'create vocabulary studio', cards }).includes('"op":"open"'));
+});

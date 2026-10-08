@@ -92,7 +92,7 @@
   function load(id, out) {
     if (out && out.custom) return Promise.resolve(buildCustom(Object.assign({ id: id || 'custom' }, out.custom)));
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1086`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1087`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));

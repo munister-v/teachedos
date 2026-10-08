@@ -151,7 +151,33 @@
   const OPEN_VERB = /\b(open|create|make|start|new|build|launch|show|go\s+to)\b|відкри\w*|откр\w*|створ\w*|созд\w*|зроб\w*|сдела\w*|запуст\w*|покаж\w*|хочу|нов\w*/i;
   const STUDIO_WORD = /\b(studio|lesson|builder|workout)\b|студі\w*|студи\w*|урок\w*/i;
 
-  function studioIntent(command) {
+  /* Опечатки: «vocabluary», «lisening», «spaeking», «studoi». Слово длиннее
+     четырёх букв, которое на одну-две правки отстоит от названия студии,
+     считается этим названием - иначе быстрый путь молча уступал серверу. */
+  const CANON = ['vocabulary', 'vocab', 'listening', 'reading', 'speaking', 'writing', 'grammar', 'magazine', 'picture', 'studio', 'workout', 'lesson', 'create', 'open'];
+  function edits(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 3;
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      for (let j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  function fixTypos(command) {
+    return command.replace(/[a-z]{5,}/gi, w => {
+      const low = w.toLowerCase();
+      if (CANON.includes(low)) return w;
+      const near = CANON.filter(c => c.length >= 5 && edits(low, c) <= (c.length >= 8 ? 2 : 1));
+      return near.length === 1 ? near[0] : w;
+    });
+  }
+
+  function studioIntent(raw) {
+    const command = fixTypos(raw);
     const words = command.split(/\s+/).filter(Boolean);
     if (words.length > 9) return null;                      // это уже просьба, а не «открой»
     if (!STUDIO_WORD.test(command) && !(OPEN_VERB.test(command) && words.length <= 4)) return null;
@@ -168,9 +194,9 @@
       .slice(0, 30);
   }
 
-  function openStudio(key) {
+  function openStudio(key, given) {
     if (typeof openLessonWizard !== 'function' || typeof pickLessonSkill !== 'function') return false;
-    const lines = key === 'vocabulary' ? selectedWordLines() : [];
+    const lines = key !== 'vocabulary' ? [] : (Array.isArray(given) && given.length ? given.slice(0, 30) : selectedWordLines());
     close();
     openLessonWizard();
     pickLessonSkill(key);
@@ -202,10 +228,24 @@
       show(data, command);
     } catch (err) {
       showMessage(err && err.message ? err.message : 'Something went wrong. Try again.', true);
+      showStudioChips();
     } finally {
       setBusy(false);
       if (!bar.hidden) input.focus();
     }
+  }
+
+  const STUDIO_LABELS = { vocabulary: 'Vocabulary', listening: 'Listening', reading: 'Reading', speaking: 'Speaking', writing: 'Writing', grammar: 'Grammar', magazine: 'News', scenes: 'Pictures' };
+  function showStudioChips() {
+    const li = document.createElement('li');
+    li.className = 'ba-chips';
+    li.innerHTML = '<span>Open a studio:</span>' + Object.keys(STUDIO_LABELS)
+      .map(k => `<button type="button" data-studio="${k}">${STUDIO_LABELS[k]}</button>`).join('');
+    li.addEventListener('click', e => {
+      const b = e.target.closest('[data-studio]');
+      if (b) openStudio(b.dataset.studio);
+    });
+    stepsEl.appendChild(li);
   }
 
   function showMessage(text, isError) {
@@ -237,6 +277,7 @@
     if (a.op === 'group') return `Group ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'focus') return `Go to ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'game') return `Add a ${GAME_LABELS[a.game] || 'game'}: “${a.title}”`;
+    if (a.op === 'open') return `Open ${STUDIO_LABELS[a.studio] || a.studio} Studio`;
     return '';
   }
 
@@ -258,6 +299,11 @@
     replyEl.textContent = data.reply || '';
     stepsEl.textContent = '';
 
+    // Opening a studio changes nothing on the board - no Apply step.
+    const opener = actions.find(a => a.op === 'open');
+    if (opener) { input.value = ''; openStudio(opener.studio, opener.words); return; }
+    // Nothing the board can do: show what it CAN do instead of a dead end.
+    if (!actions.length) showStudioChips();
     // "Where is…" only moves the camera, so there is nothing to confirm.
     if (actions.length && actions.every(a => a.op === 'focus')) {
       apply(actions, true);

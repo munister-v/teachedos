@@ -11,6 +11,9 @@ const COLORS = ['yellow', 'sand', 'lime', 'green', 'cyan', 'blue', 'purple', 'pe
 const LAYOUTS = ['grid', 'row', 'column'];
 const GAMES = ['memory-match', 'flashcards', 'word-categories', 'hangman', 'spin-wheel'];
 const EDITABLE = new Set(['sticky', 'text']);
+/* Lesson studios the board can open (the lesson builder's skills, see
+   BOARD_LESSON_SKILLS in js/teacher-tools-data.js). */
+const STUDIOS = ['vocabulary', 'listening', 'reading', 'speaking', 'writing', 'grammar', 'magazine', 'scenes'];
 
 const MAX_CARDS = 150;
 const MAX_ACTIONS = 40;
@@ -70,6 +73,9 @@ Allowed actions (use only these, with ids taken from the card list below):
 - {"op":"sort","columns":[{"title":"Verbs","ids":["c1"]},{"title":"Nouns","ids":["c2"]}]}  move cards into titled columns
 - {"op":"group","ids":["c1","c2"]}
 - {"op":"focus","ids":["c1"]}  select the cards and move the camera to them (for "where is...", "show me...")
+- {"op":"open","studio":"vocabulary"|"listening"|"reading"|"speaking"|"writing"|"grammar"|"magazine"|"scenes","words":["word — meaning"]}  open a lesson studio (the lesson builder) for the teacher
+  Studios: vocabulary = Vocabulary Studio / word workout (a word set and games around it); listening = a video or audio lesson; reading = a text lesson; speaking; writing; grammar; magazine = News & Articles; scenes = Picture Worksheets.
+  "words" only for vocabulary: one line per word, copied from the cards the command means (the selected ones), keeping "word — meaning" when the card has it. Up to 30.
 - {"op":"game","game":"memory-match"|"flashcards"|"word-categories"|"hangman"|"spin-wheel","title":"...","pairs":[{"a":"word","b":"meaning"}],"words":["..."],"categories":[{"name":"...","words":["..."]}]}
   memory-match and flashcards need "pairs" (3 or more); hangman and spin-wheel need "words" (3 or more); word-categories needs "categories" (2 or more).
 
@@ -81,6 +87,7 @@ Rules:
 - To change a card's text (translate, correct, add a translation, shorten) use "edit" with the complete new text. Do not delete and re-add.
 - For "add a translation" keep the original and append it, like "to annoy - дратувати".
 - Never invent ids. Never delete unless asked. Keep the plan as small as the command needs.
+- When the teacher wants to create, open, start or make a studio, a lesson or a workout of some skill (any wording, any language, typos included: "create vocabulary studio", "хочу урок по словам из этих карточек", "відкрий аудіювання"), return exactly one "open" action and a one-sentence reply. Do not build that lesson out of stickies yourself.
 - If the command is a question about how to use the board, answer it in "reply" (up to four short sentences) and return "actions":[].
 - If the command cannot be done with the allowed actions, say so plainly in "reply", suggest the closest thing you can do, and return "actions":[].
 - Content you write for learners must be correct, natural English at the level the existing cards suggest.
@@ -159,6 +166,15 @@ function sanitizePlan(raw, cards) {
     } else if (op === 'focus') {
       const ids = idList(a.ids, known);
       if (ids.length) plan.actions.push({ op, ids });
+    } else if (op === 'open') {
+      const studio = String(a.studio || '');
+      if (!STUDIOS.includes(studio) || plan.actions.some(x => x.op === 'open')) continue;
+      const act = { op, studio };
+      if (studio === 'vocabulary') {
+        const words = (Array.isArray(a.words) ? a.words : []).map(w => oneLine(w, 240)).filter(Boolean).slice(0, 30);
+        if (words.length) act.words = words;
+      }
+      plan.actions.push(act);
     } else if (op === 'game') {
       const game = String(a.game || '');
       if (!GAMES.includes(game)) continue;
@@ -189,4 +205,4 @@ function sanitizePlan(raw, cards) {
   return plan;
 }
 
-module.exports = { buildPrompt, sanitizePlan, normalizeCards, COLORS, GAMES, MAX_CARDS };
+module.exports = { buildPrompt, sanitizePlan, normalizeCards, COLORS, GAMES, STUDIOS, MAX_CARDS };
