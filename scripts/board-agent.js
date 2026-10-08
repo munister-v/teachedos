@@ -130,10 +130,69 @@
     return { cards, viewport: { x: Math.round(centre.x), y: Math.round(centre.y) } };
   }
 
+  /* ── «Open the Vocabulary Studio» ────────────────────────────────────
+     Ассистент на сервере умеет только менять карточки, поэтому на «create
+     vocabulary studio» он отвечал планом из стикеров или «не понял». Открыть
+     студию - это не правка доски, а переход в конструктор урока, и решается
+     здесь, без запроса: короткая команда, где названа студия (по-английски,
+     по-украински или по-русски), открывает мастер на этом навыке. Если
+     выделены карточки со словами, Vocabulary Studio открывается сразу с ними
+     («phishing — a message designed to…» → слово и пояснение учителя). */
+  const STUDIOS = [
+    { key: 'vocabulary', re: /\b(vocab\w*|words?|word\s*list|workout)\b|лексик\w*|словник\w*|словар\w*|(^|\s)сло(ва|в)(?![а-яіїєґ])/i },
+    { key: 'listening',  re: /\b(listen\w*|video|youtube|audio)\b|аудіюв\w*|аудирован\w*|слуха\w*|відео|видео/i },
+    { key: 'reading',    re: /\b(reading|read)\b|читан\w*|чтени\w*|читання/i },
+    { key: 'speaking',   re: /\b(speak\w*|debate)\b|говорін\w*|говорени\w*|розмов\w*|разговор\w*/i },
+    { key: 'writing',    re: /\b(writ\w*|essay)\b|письм\w*|писан\w*/i },
+    { key: 'grammar',    re: /\bgrammar\b|граматик\w*|грамматик\w*/i },
+    { key: 'magazine',   re: /\b(news|magazine|article)s?\b|новин\w*|новост\w*|стат(ья|ті|ьи)\w*|журнал\w*/i },
+    { key: 'scenes',     re: /\b(picture|scene|worksheet)s?\b|картин\w*|малюн\w*/i },
+  ];
+  const OPEN_VERB = /\b(open|create|make|start|new|build|launch|show|go\s+to)\b|відкри\w*|откр\w*|створ\w*|созд\w*|зроб\w*|сдела\w*|запуст\w*|покаж\w*|хочу|нов\w*/i;
+  const STUDIO_WORD = /\b(studio|lesson|builder|workout)\b|студі\w*|студи\w*|урок\w*/i;
+
+  function studioIntent(command) {
+    const words = command.split(/\s+/).filter(Boolean);
+    if (words.length > 9) return null;                      // это уже просьба, а не «открой»
+    if (!STUDIO_WORD.test(command) && !(OPEN_VERB.test(command) && words.length <= 4)) return null;
+    const hit = STUDIOS.filter(s => s.re.test(command));
+    return hit.length === 1 ? hit[0].key : null;           // «reading and writing» - пусть решает ассистент
+  }
+
+  function selectedWordLines() {
+    return state.cards
+      .filter(c => state.selected.has(c.id) && c.type !== 'frame' && c.type !== 'game')
+      .sort((a, b) => (a.y - b.y) || (a.x - b.x))
+      .map(c => cardText(c).replace(/\s+/g, ' ').trim())
+      .filter(t => t && t.length <= 240)
+      .slice(0, 30);
+  }
+
+  function openStudio(key) {
+    if (typeof openLessonWizard !== 'function' || typeof pickLessonSkill !== 'function') return false;
+    const lines = key === 'vocabulary' ? selectedWordLines() : [];
+    close();
+    openLessonWizard();
+    pickLessonSkill(key);
+    if (lines.length >= 2 && typeof pickLessonSource === 'function') {
+      pickLessonSource('vocab-own');
+      setTimeout(() => {
+        const field = document.getElementById('tbuilder-vocab');
+        if (!field) return;
+        field.value = lines.join('\n');
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      }, 120);
+      toast(`Vocabulary Studio · ${lines.length} words from the board`);
+    }
+    return true;
+  }
+
   /* ── Ask ────────────────────────────────────────────────────────────── */
   async function ask() {
     const command = input.value.trim();
     if (busy || command.length < 2) return;
+    const studio = studioIntent(command);
+    if (studio && openStudio(studio)) { input.value = ''; return; }
     clearPlan();
     setBusy(true);
     try {
