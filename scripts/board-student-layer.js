@@ -302,21 +302,22 @@
 #sl-chip b{background:#CDF649;color:#24282C;border-radius:999px;padding:1px 8px}
 #sl-chip.off{opacity:.65}
 body.board-presenting #student-dock{display:none}
-body.sl-only-dock #miro-toolbar{display:none !important}
-@media (min-width:821px){body.sl-beside-toolbar:not(.board-readonly) #student-dock{left:84px}}
+body.sl-student :is(#mt-tools,#mt-agent){display:none !important}
+@media (min-width:821px){body.sl-dock:not(.board-readonly) #student-dock{left:84px}}
 @media (max-width:820px){#student-dock{left:50%;top:auto;bottom:12px;transform:translateX(-50%);flex-direction:row}#student-dock .sl-sep{width:1px;height:26px;margin:0 2px}#student-dock .sl-fly,#student-dock .sl-fly[data-fly]{left:0;top:auto;bottom:calc(100% + 10px)}}`;
     document.head.appendChild(s);
   }
   let flyFor = '';
   function paintDock() {
     if (!dock) { dock = document.createElement('div'); dock.id = 'student-dock'; dock.setAttribute('role', 'toolbar'); dock.setAttribute('aria-label', 'Drawing tools'); document.body.appendChild(dock); bindDock(); }
-    /* The dock sits where the teacher's toolbar is. A student who was given
-       edit rights had both at once, one on top of the other. A student gets
-       the dock alone; any other guest (a co-teacher) keeps the toolbar and
-       the dock moves beside it. */
-    const student = !!(currentUser && currentUser.role === 'student');
-    document.body.classList.toggle('sl-only-dock', student);
-    document.body.classList.toggle('sl-beside-toolbar', !student);
+    /* The dock sits where the board toolbar is. On a view-only board that
+       toolbar is hidden and the dock takes its place; a guest who was given
+       edit rights has both, and they used to lie one on top of the other - so
+       there the dock moves beside the toolbar. A student keeps the tools they
+       were trusted with, minus the two that are the teacher's (lesson builder,
+       board assistant). */
+    document.body.classList.add('sl-dock');
+    document.body.classList.toggle('sl-student', !!(currentUser && currentUser.role === 'student'));
     const hasAny = mine.strokes.length || mine.notes.length;
     dock.innerHTML = `${btn('move', 'Move around the board')}<div class="sl-sep"></div>${btn('pen', 'Pen')}${btn('text', 'Write')}${btn('sticker', 'Stickers')}${btn('erase', 'Eraser')}<div class="sl-sep"></div>
       <button type="button" class="sl-b" data-act="undo" aria-label="Undo" title="Undo"${order.length ? '' : ' disabled'}><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">${IC.undo}</svg></button>
