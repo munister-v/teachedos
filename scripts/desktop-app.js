@@ -1851,14 +1851,7 @@ function notesRender() {
   NOTES.forEach(n => {
     const el = document.createElement('div');
     el.className = 'note-item' + (n.id===activeNote?' active':'');
-    const date = n.updated_at ? new Date(n.updated_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
-    el.innerHTML = `
-      <div style="display:flex;align-items:center;gap:6px;">
-        ${n.pinned ? '<span style="font-size:10px;color:var(--accent);">📌</span>' : ''}
-        <div class="note-item-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(n.title||'Untitled')}</div>
-      </div>
-      <div class="note-item-preview">${esc((n.body||'').slice(0,60))}</div>
-      <div class="note-item-date">${date}</div>`;
+    el.innerHTML = noteItemHtml(n);
     el.onclick = () => notesOpen(n.id);
     list.appendChild(el);
   });
@@ -1964,6 +1957,18 @@ function notesAutoSave() {
   }, 900);
 }
 
+/* One row of the notes list: the title, then one quiet line - the first line
+   of the text that is not the title itself (a note is usually titled by its
+   first line) and the date. */
+function noteItemHtml(n) {
+  const date = n.updated_at ? new Date(n.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+  const title = n.title || 'Untitled note';
+  const firstLine = String(n.body || '').split(/\n+/).map(l => l.trim()).find(l => l && l !== title.trim()) || '';
+  return `
+    <div class="note-item-title">${n.pinned ? '<span class="note-item-pin" aria-label="Pinned">📌</span>' : ''}${esc(title)}</div>
+    <div class="note-item-preview">${esc(firstLine.slice(0, 60) || 'No text yet')}${date ? ` · ${date}` : ''}</div>`;
+}
+
 function notesRenderListOnly() {
   const active = document.activeElement;
   const ta = document.getElementById('notes-ta');
@@ -1975,14 +1980,7 @@ function notesRenderListOnly() {
     NOTES.forEach(n => {
       const el = document.createElement('div');
       el.className = 'note-item' + (n.id===activeNote?' active':'');
-      const date = n.updated_at ? new Date(n.updated_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
-      el.innerHTML = `
-        <div style="display:flex;align-items:center;gap:6px;">
-          ${n.pinned ? '<span style="font-size:10px;color:var(--accent);">📌</span>' : ''}
-          <div class="note-item-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(n.title||'Untitled')}</div>
-        </div>
-        <div class="note-item-preview">${esc((n.body||'').slice(0,60))}</div>
-        <div class="note-item-date">${date}</div>`;
+      el.innerHTML = noteItemHtml(n);
       el.onclick = () => notesOpen(n.id);
       list.appendChild(el);
     });

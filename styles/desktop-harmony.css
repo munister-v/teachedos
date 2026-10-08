@@ -200,3 +200,39 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .lc-title { font-size:15px !important; font-weight:600 !important; color:#1C1C1E !important; margin:0 0 2px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card :is(.lc-meta,.lc-dur,.lc-desc) { font-size:12px !important; color:#8E8E93 !important; background:none !important; padding:0 !important; border:0 !important; }
 @media (prefers-reduced-motion:reduce){ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { transform:none; } }
+
+
+/* ── Notes: a plain list, no coloured blocks ─────────────────────
+   One "+ New Note" capsule on top, then rows of title + first line · date.
+   The open note gets the same light grey plate as the active item in the
+   boards window, not a violet card. */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes #sidebar-notes {
+  width:220px !important; min-width:220px !important; flex:0 0 220px !important; box-sizing:border-box;
+  padding:54px 12px 20px 16px !important; background:transparent !important; border:0 !important; box-shadow:none !important;
+  border-radius:0 !important; margin:0 !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-new-btn {
+  display:inline-flex !important; align-items:center; justify-content:center; gap:6px; height:36px; width:auto !important;
+  padding:0 16px !important; margin:0 0 14px 4px !important; border-radius:999px !important; border:0 !important;
+  background:var(--te-lime,#CDF649) !important; color:#000 !important; box-shadow:none !important;
+  font-size:13.5px !important; font-weight:700 !important; cursor:pointer; transition:filter .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-new-btn:hover { filter:brightness(1.04); }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-list { display:flex; flex-direction:column; gap:2px; padding:0 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item {
+  padding:8px 10px !important; margin:0 !important; border-radius:8px !important; border:0 !important; box-shadow:none !important;
+  background:transparent !important; color:#1C1C1E !important; cursor:pointer; transition:background .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item:hover { background:rgba(0,0,0,.04) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item.active { background:rgba(0,0,0,.05) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item-title {
+  font-size:14px !important; font-weight:400 !important; color:#1C1C1E !important; background:none !important;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0 0 2px !important; padding:0 !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item.active .note-item-title { font-weight:600 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item-pin { font-size:10px; margin-right:5px; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item-preview {
+  font-size:12px !important; line-height:1.35 !important; color:#8E8E93 !important; background:none !important;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0 !important; font-family:inherit !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .studio-actions { margin:6px 0 0 !important; }
