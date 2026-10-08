@@ -6820,8 +6820,9 @@ body.board-page:not(#_) #sidebar{ background:#FFFFFF !important; backdrop-filter
 #board-agent.busy .ba-ic{animation:ba-spin 1.1s linear infinite;}
 @keyframes ba-spin{to{transform:rotate(360deg);}}
 #board-agent .ba-input{
-  flex:1 1 auto;min-width:0;border:0;outline:0;background:transparent;color:inherit;
-  font:inherit;font-size:15px;padding:8px 0;
+  flex:1 1 auto;min-width:0;height:auto!important;border:0!important;outline:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;color:inherit;
+  font:inherit;font-size:15px;padding:8px 0!important;
 }
 #board-agent .ba-input::placeholder{color:#A3A48D;}
 #board-agent .ba-scope{

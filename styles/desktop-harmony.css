@@ -1,34 +1,38 @@
 /* ═══════════════════════════════════════════════════════════════
-   TeachEd - home desktop in the brand-board style (2026-09-27)
+   TeachEd - home desktop (2026-09-27, glass again 2026-10-08)
 
-   The teacher pages now share one card and a dark sidebar
-   (app-sidebar.css, brand-harmony.css). The home desktop keeps its own
-   metaphor - wallpaper, windows, widgets, dock - but speaks the same
-   language: solid white 20px surfaces instead of frosted glass, one dark
-   lead widget with a lime number, the pink pulse tile, and a dark dock that
-   matches the sidebar on every other page.
+   The home desktop keeps its own metaphor - wallpaper, windows, widgets,
+   dock - and speaks the language of the other teacher pages: one radius,
+   one type scale, lime for the one action that creates something.
+
+   Surfaces are frosted glass. For two weeks they were solid white, which
+   read as hard slabs on a dark wallpaper and vanished on a light one; now
+   windows, widgets, the menu bar and the dock all take a little of whatever
+   the teacher put behind them.
+
+   This file loads last on index.html, so the desktop's look is settled here.
 ═══════════════════════════════════════════════════════════════ */
 
-/* Windows and widgets: solid surfaces, one radius, hairline */
+/* Windows and widgets: frosted surfaces, one radius, hairline */
 body.os-desktop:not(#d1):not(#d2):not(#d3) :is(.win, .widget:not(#wg-pulse):not(#wg-vocab), #fx-ghost-panel) {
-  background:#FFFFFF !important;
-  border:1px solid rgba(36,40,44,.08) !important;
+  background:rgba(255,255,255,.72) !important;
+  border:1px solid rgba(255,255,255,.55) !important;
   border-radius:20px !important;
-  box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important;
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
+  box-shadow:0 24px 60px -28px rgba(20,22,24,.55), inset 0 0 0 .5px rgba(36,40,44,.06) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(180%) !important;
+  backdrop-filter:blur(28px) saturate(180%) !important;
 }
-body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-pulse { border-radius:20px !important; box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
-body.os-desktop:not(#d1):not(#d2):not(#d3) .win :is(.win-titlebar, .win-bar, .titlebar) { background:transparent !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-pulse { border-radius:20px !important; box-shadow:0 24px 60px -28px rgba(20,22,24,.55) !important; -webkit-backdrop-filter:blur(28px) saturate(160%) !important; backdrop-filter:blur(28px) saturate(160%) !important; }
+body.os-desktop:not(#d1):not(#d2):not(#d3) .win :is(.win-titlebar, .win-bar, .titlebar, .win-body, .win-main) { background:transparent !important; }
 
 /* Lead widget: "all boards" goes dark with a lime number */
 body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab {
-  background:var(--te-ink,#24282C) !important;
-  border:1px solid var(--te-ink,#24282C) !important;
+  background:rgba(36,40,44,.72) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
   border-radius:20px !important;
-  box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important;
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
+  box-shadow:0 24px 60px -28px rgba(20,22,24,.55) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(160%) !important;
+  backdrop-filter:blur(28px) saturate(160%) !important;
   color:#CACCC6 !important;
 }
 body.os-desktop:not(#d1):not(#d2):not(#d3) #wg-vocab .wg-vocab-word {
@@ -53,14 +57,14 @@ body.os-desktop:not(#d1):not(#d2):not(#d3) :is(.wg-vocab-label, .wg-pulse-title,
   letter-spacing:.08em !important;
 }
 
-/* Dock: dark, like the sidebar; lime for the open app */
+/* Dock: dark glass; lime for the open app */
 body.os-desktop:not(#d1):not(#d2):not(#d3) #dock {
-  background:var(--te-ink,#24282C) !important;
-  border:0 !important;
+  background:rgba(36,40,44,.72) !important;
+  border:1px solid rgba(255,255,255,.1) !important;
   border-radius:22px !important;
   box-shadow:0 18px 40px -18px rgba(20,22,24,.55) !important;
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
+  -webkit-backdrop-filter:blur(24px) saturate(160%) !important;
+  backdrop-filter:blur(24px) saturate(160%) !important;
 }
 body.os-desktop:not(#d1):not(#d2):not(#d3) #dock .di-icon {
   background:rgba(255,255,255,.08) !important;
@@ -89,9 +93,10 @@ body.os-desktop:not(#d1):not(#d2):not(#d3) .win :is(.studio-kicker, .studio-eyeb
   font-family:var(--te-font-ui) !important;
   font-size:11px !important;
   font-weight:600 !important;
-  letter-spacing:.08em !important;
+  letter-spacing:.06em !important;
   text-transform:uppercase !important;
-  color:#5D614B !important;
+  color:#8E8E93 !important;
+  margin:0 0 6px !important;
 }
 
 /* People read as pink everywhere (sidebar, journal, schedule) */
@@ -101,27 +106,11 @@ body.os-desktop:not(#d1):not(#d2):not(#d3) :is(.st-row-avatar.is-initials, .st-d
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
-   Glass is back (2026-10-08).
-
-   The solid white surfaces above read as hard slabs on a dark wallpaper and
-   disappeared on a light one. Windows, widgets and the menu bar are frosted
-   again: they take a little of whatever the teacher put behind them.
-═══════════════════════════════════════════════════════════════ */
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) :is(.win, .widget:not(#wg-pulse):not(#wg-vocab), #fx-ghost-panel) {
-  background:rgba(255,255,255,.72) !important;
-  -webkit-backdrop-filter:blur(28px) saturate(180%) !important; backdrop-filter:blur(28px) saturate(180%) !important;
-  border:1px solid rgba(255,255,255,.55) !important;
-  box-shadow:0 24px 60px -28px rgba(20,22,24,.55), inset 0 0 0 .5px rgba(36,40,44,.06) !important;
-}
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-vocab {
-  background:rgba(36,40,44,.72) !important; border:1px solid rgba(255,255,255,.12) !important;
-  -webkit-backdrop-filter:blur(28px) saturate(160%) !important; backdrop-filter:blur(28px) saturate(160%) !important;
-}
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse { -webkit-backdrop-filter:blur(28px) saturate(160%) !important; backdrop-filter:blur(28px) saturate(160%) !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.win-body, .win-main, .win-sidebar) { background:transparent !important; }
-
-/* Menu bar: the same glass, a hairline under it, a quieter clock */
+/* Everything below is the wide-screen desktop. At 860px and under the windows
+   are full-screen pages with their own layout (mobile.css), so none of this
+   applies there - see the last block of the file. */
+@media (min-width:861px) {
+/* ── Menu bar: the same glass, a hairline under it, a quieter clock ── */
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar {
   background:rgba(255,255,255,.75) !important;
   -webkit-backdrop-filter:blur(20px) saturate(180%) !important; backdrop-filter:blur(20px) saturate(180%) !important;
@@ -130,90 +119,121 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar {
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar .mb-menu { margin-left:6px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar #mb-clock { font-size:12px !important; font-weight:500 !important; color:#8E8E93 !important; letter-spacing:0 !important; white-space:nowrap; }
 
-/* ── "Your lesson boards" window ─────────────────────────────────
-   A fixed 200px navigation column, 32px of air, and a content column whose
-   header, search and grid all run the full width. */
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans #sidebar-plans { background:transparent !important; box-shadow:none !important; border-radius:0 !important; margin:0 !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .win-sidebar {
-  width:200px !important; min-width:200px !important; flex:0 0 200px !important;
-  padding:54px 12px 24px 20px !important; border:0 !important; box-sizing:border-box;
+/* ── Widget labels: the same small grey caps as the window eyebrows ── */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) :is(.wg-today-label, .wk-label, .wg-streak-label, .sp-month) {
+  font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important; color:#8E8E93 !important;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-section-label {
+
+/* ═══════════════════════════════════════════════════════════════
+   Every window, one layout.
+
+   A fixed 200px navigation column, then a content column with 32px of air
+   whose header, search and list all run the full width. Group labels are
+   small grey caps; items are plain 14px text and the open one sits on a
+   light grey plate. The header is an eyebrow, a 28px title and one line of
+   copy, with the window's action in the same row on the right.
+
+   Lime marks the action that creates something (a board, a note, a
+   student). A link to another page is a quiet pill.
+═══════════════════════════════════════════════════════════════ */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .win-sidebar {
+  width:200px !important; min-width:200px !important; flex:0 0 200px !important; box-sizing:border-box;
+  /* the title bar with the traffic lights floats over the top 46px of the window */
+  padding:54px 12px 24px 20px !important; margin:0 !important;
+  background:transparent !important; border:0 !important; border-radius:0 !important; box-shadow:none !important;
+  -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-section-label {
   font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important;
   color:#8E8E93 !important; margin:0 0 8px !important; padding:0 10px !important;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-section-label ~ .sb-section-label { margin-top:24px !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item.sb-secondary { display:none !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item:not(.sb-secondary) {
-  display:flex !important; align-items:center; font-size:14px !important; font-weight:400 !important; color:#1C1C1E !important;
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-section-label ~ .sb-section-label { margin-top:24px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-item.sb-secondary { display:none !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-item:not(.sb-secondary) {
+  display:flex !important; align-items:center; gap:8px; font-size:14px !important; font-weight:400 !important; color:#1C1C1E !important;
   padding:6px 10px !important; margin:0 0 2px !important; border-radius:8px !important;
   background:transparent !important; border:0 !important; box-shadow:none !important; transition:background .2s ease;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item:hover { background:rgba(0,0,0,.04) !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .sb-item.active { background:rgba(0,0,0,.05) !important; font-weight:600 !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .win-main { padding:32px !important; gap:0; box-sizing:border-box; min-width:0; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-item:hover { background:rgba(0,0,0,.04) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-item.active { background:rgba(0,0,0,.05) !important; font-weight:600 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-item .sb-item-badge { margin-left:auto; }
 
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-hero {
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win:not(#win-pricing) .win-main:not(.lib-main) { padding:32px !important; gap:0; box-sizing:border-box; min-width:0; }
+/* a window without a navigation column: its content starts under the traffic lights */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win:not(#win-pricing) .win-body > .win-main:first-child { padding-top:54px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .win-main.lib-main { padding:32px 0 0 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .lib-top { padding:0 32px 20px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .lib-grid { padding:0 32px 32px !important; gap:20px !important; }
+
+/* header: eyebrow, title, copy on the left; the action on the right */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .studio-hero {
   display:grid !important; grid-template-columns:minmax(0,1fr) auto; column-gap:16px; align-items:start;
   margin:0 0 20px !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-hero > :is(.studio-eyebrow,.studio-title,.studio-copy) { grid-column:1; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-eyebrow {
-  font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important;
-  color:#8E8E93 !important; margin:0 0 6px !important;
-}
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-title {
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .studio-hero > :is(.studio-eyebrow,.studio-title,.studio-copy) { grid-column:1; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.studio-title, .lib-title) {
   font-size:28px !important; line-height:1.15 !important; font-weight:700 !important; color:#0F172A !important; margin:0 0 6px !important;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-copy {
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.studio-copy, .lib-sub) {
   font-size:14px !important; line-height:1.4 !important; color:#636366 !important; text-transform:none !important; margin:0 !important; max-width:none !important;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-actions { grid-column:2; grid-row:1 / span 3; align-self:start; margin:0 !important; display:flex; gap:8px; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .lib-sub { margin-bottom:16px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .studio-actions { grid-column:2; grid-row:1 / span 3; align-self:start; margin:0 !important; display:flex; align-items:center; gap:8px; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .studio-chip {
+  align-items:center; height:36px; line-height:36px; box-sizing:border-box; padding:0 14px !important; border-radius:999px !important;
+  background:rgba(0,0,0,.05) !important; color:#1C1C1E !important; border:0 !important; box-shadow:none !important;
+  font-size:13.5px !important; font-weight:600 !important; white-space:nowrap; text-decoration:none !important;
+  transition:background .2s ease, filter .2s ease, transform .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .studio-chip:hover { background:rgba(0,0,0,.09) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .studio-chip:focus-visible { outline:2px solid #0F172A; outline-offset:2px; }
+/* the one creating action of the boards window */
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary {
-  display:inline-flex !important; align-items:center; height:38px; padding:0 18px !important; border-radius:999px !important;
-  background:var(--te-lime,#CDF649) !important; color:#000 !important; border:0 !important; box-shadow:none !important;
-  font-size:13.5px !important; font-weight:700 !important; white-space:nowrap; text-decoration:none !important;
-  transition:filter .2s ease, transform .2s ease;
+  height:38px; padding:0 18px !important; background:var(--te-lime,#CDF649) !important; color:#000 !important; font-weight:700 !important;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { filter:brightness(1.04); transform:translateY(-1px); }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:focus-visible { outline:2px solid #0F172A; outline-offset:2px; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { background:var(--te-lime,#CDF649) !important; filter:brightness(1.04); transform:translateY(-1px); }
 
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search {
-  display:flex !important; align-items:center; gap:8px; width:100% !important; max-width:none !important; box-sizing:border-box;
-  height:40px; margin:0 0 20px !important; padding:0 12px !important;
+/* search: a soft grey field, lime ring on focus */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search, .st-search, #lib-skill) {
+  height:40px !important; box-sizing:border-box;
   background:rgba(118,118,128,.08) !important; border:1px solid transparent !important; border-radius:12px !important; box-shadow:none !important;
-  color:#8E8E93 !important; transition:border-color .2s ease, background .2s ease;
+  color:#1C1C1E !important; font-size:14px !important; transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search:focus-within { border-color:var(--te-lime,#CDF649) !important; background:rgba(118,118,128,.05) !important; box-shadow:0 0 0 3px rgba(205,246,73,.35) !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search input { flex:1; min-width:0; background:transparent !important; border:0 !important; outline:0 !important; font-size:14px !important; color:#1C1C1E !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search input::placeholder { color:#8E8E93 !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-search svg { color:#8E8E93 !important; flex:none; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) { display:flex !important; align-items:center; gap:8px; padding:0 12px !important; color:#8E8E93 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .curr-search { width:100% !important; max-width:none !important; margin:0 0 20px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.st-search, #lib-skill) { padding:0 12px !important; outline:0 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search):focus-within,
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.st-search, #lib-skill):focus {
+  border-color:var(--te-lime,#CDF649) !important; background:rgba(118,118,128,.05) !important; box-shadow:0 0 0 3px rgba(205,246,73,.35) !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) input { flex:1; min-width:0; background:transparent !important; border:0 !important; outline:0 !important; box-shadow:none !important; font-size:14px !important; color:#1C1C1E !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) input::placeholder, html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .st-search::placeholder { color:#8E8E93 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) svg { color:#8E8E93 !important; flex:none; }
 
+/* ── Students: the list column's own header lines up with the rest ── */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-students .st-list-head { padding:0 12px 10px 0 !important; gap:8px; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-students .st-add-btn { width:40px !important; height:40px !important; border-radius:12px !important; }
+
+/* ── Boards window: bigger cards ── */
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .curr-grid {
   display:grid !important; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)) !important; gap:20px !important;
   padding:0 !important; margin:0 !important; align-content:start;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card { background:transparent !important; border:0 !important; box-shadow:none !important; padding:0 !important; border-radius:12px !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card { background:transparent !important; border:0 !important; box-shadow:none !important; padding:0 !important; border-radius:12px !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-cover { border-radius:12px !important; border:1px solid rgba(0,0,0,.08) !important; overflow:hidden; aspect-ratio:16 / 10; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-cover > * { width:100% !important; height:100% !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-body { padding:10px 2px 0 !important; background:transparent !important; border:0 !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .lc-title { font-size:15px !important; font-weight:600 !important; color:#1C1C1E !important; margin:0 0 2px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card :is(.lc-meta,.lc-dur,.lc-desc) { font-size:12px !important; color:#8E8E93 !important; background:none !important; padding:0 !important; border:0 !important; }
-@media (prefers-reduced-motion:reduce){ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { transform:none; } }
 
-
-/* ── Notes: a plain list, no coloured blocks ─────────────────────
-   One "+ New Note" capsule on top, then rows of title + first line · date.
-   The open note gets the same light grey plate as the active item in the
-   boards window, not a violet card. */
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes #sidebar-notes {
-  width:220px !important; min-width:220px !important; flex:0 0 220px !important; box-sizing:border-box;
-  padding:54px 12px 20px 16px !important; background:transparent !important; border:0 !important; box-shadow:none !important;
-  border-radius:0 !important; margin:0 !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
-}
+/* ── Notes: a plain list on the left, a calm page on the right ──
+   One "+ New Note" capsule on top, then rows of title + first line · date;
+   the open note gets the light grey plate, not a violet card. The editor is
+   a soft field without an outline. */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .win-sidebar { width:220px !important; min-width:220px !important; flex:0 0 220px !important; padding-left:16px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-new-btn {
-  display:inline-flex !important; align-items:center; justify-content:center; gap:6px; height:36px; width:auto !important;
-  padding:0 16px !important; margin:0 0 14px 4px !important; border-radius:999px !important; border:0 !important;
+  display:flex !important; align-items:center; justify-content:center; gap:6px; height:36px;
+  padding:0 16px !important; margin:0 0 14px !important; border-radius:999px !important; border:0 !important;
   background:var(--te-lime,#CDF649) !important; color:#000 !important; box-shadow:none !important;
   font-size:13.5px !important; font-weight:700 !important; cursor:pointer; transition:filter .2s ease;
 }
@@ -235,4 +255,36 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item-p
   font-size:12px !important; line-height:1.35 !important; color:#8E8E93 !important; background:none !important;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0 !important; font-family:inherit !important;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .studio-actions { margin:6px 0 0 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .studio-actions { display:none !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-toolbar { display:flex; gap:4px; padding:0 !important; margin:0 0 8px !important; background:none !important; border:0 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-tb-btn {
+  width:32px !important; height:32px !important; display:grid !important; place-items:center; padding:0 !important;
+  background:transparent !important; border:0 !important; border-radius:8px !important; box-shadow:none !important; color:#636366 !important; cursor:pointer;
+  transition:background .2s ease, color .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-tb-btn:hover { background:rgba(0,0,0,.05) !important; color:#1C1C1E !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-tb-btn.active { background:rgba(0,0,0,.08) !important; color:#1C1C1E !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-editor-area {
+  flex:1; min-height:160px; padding:16px !important; resize:none;
+  background:rgba(118,118,128,.06) !important; border:1px solid transparent !important; border-radius:12px !important; box-shadow:none !important; outline:0 !important;
+  font-size:15px !important; line-height:1.55 !important; color:#1C1C1E !important; transition:border-color .2s ease, box-shadow .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-editor-area:focus { border-color:var(--te-lime,#CDF649) !important; box-shadow:0 0 0 3px rgba(205,246,73,.3) !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-editor-area::placeholder { color:#8E8E93 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-footer { display:flex; padding:8px 2px 0 !important; background:none !important; border:0 !important; font-size:12px !important; color:#8E8E93 !important; font-family:inherit !important; }
+
+@media (prefers-reduced-motion:reduce){ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { transform:none; } }
+}
+
+/* Phones and narrow tablets: a window is a full-screen page there, and a page
+   is solid - text on frosted glass over a photo is hard to read at arm's length. */
+@media (max-width:860px) {
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) :is(.win, .widget:not(#wg-pulse):not(#wg-vocab), #fx-ghost-panel) {
+  background:#FFFFFF !important; border:1px solid rgba(36,40,44,.08) !important;
+  -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-vocab { background:var(--te-ink,#24282C) !important; border-color:var(--te-ink,#24282C) !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #dock { background:var(--te-ink,#24282C) !important; border:0 !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+}

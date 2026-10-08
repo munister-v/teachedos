@@ -296,15 +296,18 @@ const WM = (function () {
 
   /* Окна-«выдвижные списки» всегда открываются компактно слева, как задумано в разметке
      (размер из index.html). Сохранённое «развёрнуто» или широкий размер для них
-     не восстанавливаются: список досок на весь экран выглядит как потерянная страница. */
-  const COMPACT = { plans: { maxW: 680, maxH: 640 } };
+     не восстанавливаются: список досок на весь экран выглядит как потерянная страница.
+     minW - обратная граница: у окна теперь колонка навигации в 200px и сетка
+     карточек от 220px, и размер, сохранённый при прежних 613px, оставлял бы в ней
+     один столбец. Такой размер тоже сбрасывается к разметке. */
+  const COMPACT = { plans: { minW: 720, maxW: 900, maxH: 680 } };
 
   function applyGeom(id) {
     const win = winOf(id);
     const s = state[id];
     if (!win || !s) return false;
     const compact = COMPACT[id];
-    if (compact && (s.maximized || s.w > compact.maxW || s.h > compact.maxH)) {
+    if (compact && (s.maximized || s.w > compact.maxW || s.h > compact.maxH || (compact.minW && s.w && s.w < compact.minW))) {
       delete state[id];
       persist();
       return false;

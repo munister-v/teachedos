@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1082"></script>
+<script src="scripts/phone-gate.js?v=1083"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1082">
-<link rel="preload" as="style" href="styles/unify.css?v=1082">
-<link rel="manifest" href="manifest.json?v=1082">
+<link rel="preload" as="style" href="styles/harmony.css?v=1083">
+<link rel="preload" as="style" href="styles/unify.css?v=1083">
+<link rel="manifest" href="manifest.json?v=1083">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -497,10 +497,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=1082" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1082">
-<link rel="stylesheet" href="styles/harmony.css?v=1082">
-<link rel="stylesheet" href="styles/unify.css?v=1082">
+<script src="theme.js?v=1083" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1083">
+<link rel="stylesheet" href="styles/harmony.css?v=1083">
+<link rel="stylesheet" href="styles/unify.css?v=1083">
 <style>
 @media (max-width: 860px) {
   body{background:#F6F6EF;}
@@ -809,13 +809,13 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1082">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1082">
-<link rel="stylesheet" href="styles/tool-window.css?v=1082">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1083">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1083">
+<link rel="stylesheet" href="styles/tool-window.css?v=1083">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1082">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1082">
-<link rel="stylesheet" href="styles/controls.css?v=1082">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1083">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1083">
+<link rel="stylesheet" href="styles/controls.css?v=1083">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -826,15 +826,17 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
 body.profile-page .stats-grid .stat-card::before { display: none; }
 </style>
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1082">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1082">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1082">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1082">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1082">
-<link rel="stylesheet" href="styles/toast.css?v=1082">
+<link rel="stylesheet" href="styles/polish.css?v=1083">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1083">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1083">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1083">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1083">
+<link rel="stylesheet" href="styles/toast.css?v=1083">
 <style>
-/* A student opens this page too (Profile link in the cabinet): the plan, pricing
-   and the teacher's Community / Schedule are not theirs. profile-app.js sets the class. */
+/* A student opens this page too (Profile link in the cabinet). What is the
+   teacher's - plan and pricing, Community, Schedule, Courses, their own boards
+   and the board counters - is marked data-teacher-only and hidden for a
+   student; "Shared with me" and Settings stay. profile-app.js sets the class. */
 html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-student #profile-plan-badge{display:none !important}
 </style>
 </head>
@@ -899,10 +901,10 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
     <div class="st-item active" data-tab="overview" onclick="switchTab('overview')">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></span> Overview
     </div>
-    <a class="st-item" href="courses.html" style="text-decoration:none;display:flex;">
+    <a class="st-item" data-teacher-only href="courses.html" style="text-decoration:none;display:flex;">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span> Courses
     </a>
-    <div class="st-item" data-tab="boards" onclick="switchTab('boards')">
+    <div class="st-item" data-teacher-only data-tab="boards" onclick="switchTab('boards')">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></span> My Boards
     </div>
     <div class="st-item" data-tab="shared" onclick="switchTab('shared')">
@@ -1008,14 +1010,14 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
       <div class="card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg> Stats</div>
         <div class="stats-grid" id="stats-grid">
-          <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div></div>
-          <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-cards">-</div><div class="stat-label">Total Cards</div></div></div>
+          <div class="stat-card" data-teacher-only><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div></div>
+          <div class="stat-card" data-teacher-only><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-cards">-</div><div class="stat-label">Total Cards</div></div></div>
           <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-since">-</div><div class="stat-label">Member since</div></div></div>
           <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-sessions">-</div><div class="stat-label">Active sessions</div></div></div>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" data-teacher-only>
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg> Recent boards</div>
         <div id="recent-boards-list">
           <div style="color:var(--text-3);font-size:14px;">Loading…</div>
@@ -1308,10 +1310,10 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=1082"></script>
-<script src="scripts/profile-app.js?v=1082"></script>
-<script src="scripts/autogrow.js?v=1082" defer></script>
-<script src="pwa-boot.js?v=1082" defer></script>
+<script src="scripts/app-core.js?v=1083"></script>
+<script src="scripts/profile-app.js?v=1083"></script>
+<script src="scripts/autogrow.js?v=1083" defer></script>
+<script src="pwa-boot.js?v=1083" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1330,14 +1332,14 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=1082"></script>
-<script src="scripts/nav-boost.js?v=1082" defer></script>
-<script src="scripts/mobile-perf.js?v=1082" defer></script>
-<script src="scripts/mobile-nav.js?v=1082"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1082" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=1082" defer></script>
-  <script src="scripts/signin-entry.js?v=1082" defer></script>
-<script src="scripts/verify-banner.js?v=1082" defer></script>
-<script src="scripts/nav-bell.js?v=1082" defer></script>
+<script src="pwa.js?v=1083"></script>
+<script src="scripts/nav-boost.js?v=1083" defer></script>
+<script src="scripts/mobile-perf.js?v=1083" defer></script>
+<script src="scripts/mobile-nav.js?v=1083"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1083" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=1083" defer></script>
+  <script src="scripts/signin-entry.js?v=1083" defer></script>
+<script src="scripts/verify-banner.js?v=1083" defer></script>
+<script src="scripts/nav-bell.js?v=1083" defer></script>
 </body>
 </html>

@@ -383,10 +383,14 @@
   ['mousedown', 'pointerdown', 'wheel'].forEach(ev => bar.addEventListener(ev, e => e.stopPropagation()));
 
   document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K')) {
-      e.preventDefault();
-      toggle();
-    }
+    if (!((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K'))) return;
+    // Someone typing in a card, a form or a studio keeps their own Ctrl+K
+    // (in editors it usually means "insert link"); the bar's own field may close it.
+    const t = e.target;
+    const typing = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+    if (typing && !bar.contains(t)) return;
+    e.preventDefault();
+    toggle();
   }, true);
 
   window.TeachEdBoardAgent = { open, close, toggle };

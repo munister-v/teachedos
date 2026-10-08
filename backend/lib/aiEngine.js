@@ -558,7 +558,9 @@ function shapeSpec(input) {
     }
     if (toolId === 'matching-halves') {
       return {
-        task: `${head} Produce exactly ${count} items split into two halves to be matched - sentence beginnings/endings or collocations at ${level} level. "left" = the first half, "right" = the matching second half. Each pair must combine into one natural, grammatical sentence or phrase.${context}`,
+        /* В уроке грамматики половинки режутся там, где поворачивает сама
+           форма: иначе их можно собрать по смыслу, не глядя на грамматику. */
+        task: `${head} Produce exactly ${count} items split into two halves to be matched - sentence beginnings/endings or collocations at ${level} level. "left" = the first half, "right" = the matching second half. Each pair must combine into one natural, grammatical sentence or phrase.${input.lesson === 'grammar' ? ` Every pair is ONE sentence that uses the target grammar ("${topic}"), cut exactly where the structure turns (between the if-clause and the result, between the auxiliary and the main verb, before the time expression), so that only one ending is GRAMMATICALLY possible for each beginning and the halves cannot be paired by meaning alone. Keep the sentences in the same situation as the source text.` : ''}${context}`,
         schema: '{"pairs":[{"left":"first half","right":"second half"}]}',
       };
     }
@@ -604,6 +606,32 @@ function shapeSpec(input) {
     const isGist = toolId === 'gist-detail';
     const isOdd = toolId === 'odd-one-out';
     const isWarmup = toolId === 'warmup-listening';
+
+    /* Урок грамматики. Те же инструменты здесь значат другое, чем сами по
+       себе (этапы grammar в js/teacher-tools-data.js): «открытые вопросы» -
+       это поиск формы в тексте, а не обсуждение его содержания; «ABCD по
+       тексту» - вопросы на понимание ЗНАЧЕНИЯ формы (CCQ), а не сюжета;
+       «обсуждение» - выход в собственную речь, где без формы не ответить.
+       Раньше это объяснялось припиской учителя, и она спорила с основным
+       промтом: модель выдавала обычные вопросы на понимание текста. */
+    if (input.lesson === 'grammar' && toolId === 'open-questions') {
+      return {
+        task: `${head} This is a GUIDED-DISCOVERY task for the target grammar ("${topic}"), done BEFORE the rule is shown. It is not a comprehension task. Produce exactly ${count} questions in this order. 1) Ask the student to read the text again and highlight every sentence that does what this grammar does, described in plain words by its FUNCTION (for example "where the speaker imagines something that is not real", "where someone talks about a habit they no longer have"), and to say how many they found. 2) Ask them to copy two of those sentences. 3) and later: questions that make them look at the FORM in those sentences and work the pattern out themselves ("Look at the verbs after 'if'. What tense are they?", "Which small word comes before the second verb?"). Never state the rule and never use the name of the grammar point or any terminology beyond "verb", "tense", "word". Keep the wording a step simpler than ${level}. Use type "open".${context}`,
+        schema: '{"questions":[{"type":"open","text":"Read the text again. Highlight every sentence where … How many did you find?","points":1},{"type":"open","text":"Copy two of them here.","points":1},{"type":"open","text":"Look at … in those sentences. What do you notice?","points":1}]}',
+      };
+    }
+    if (input.lesson === 'grammar' && toolId === 'abcd-text') {
+      return {
+        task: `${head} These are CONCEPT-CHECKING QUESTIONS (CCQs) for the target grammar ("${topic}"): they check that the student understands what the form MEANS, not what happens in the story. Produce exactly ${count}. Each one quotes ONE short sentence from the source text that contains the target form, then asks a simple question about its meaning - for example "Is this about the real past or an imagined present?", "Did it happen once or many times?", "Is the action finished?", "Is the speaker sure?". Each question checks a different aspect of the meaning. "options" = exactly 3 very short answers of similar length (2-5 words), one clearly right; "answer" = the right option copied verbatim. The questions and options must use words simpler than the grammar being checked: no grammar terminology and never the target form itself in an option. Use type "mcq".${context}`,
+        schema: '{"questions":[{"type":"mcq","text":"\\"If I won the lottery, I would buy a boat.\\" Does the speaker have the money now?","options":["Yes, they do","No, they do not","We cannot know"],"answer":"No, they do not","points":1}]}',
+      };
+    }
+    if (input.lesson === 'grammar' && toolId === 'discussion') {
+      return {
+        task: `${head} These are PRODUCTION prompts for the target grammar ("${topic}"): the last step of the lesson, where the student has to use the form in their own speech. Produce exactly ${count} open questions about the STUDENT'S OWN life, opinions and imagination that cannot be answered naturally without the target form (for the second conditional: "If you won $1,000,000, what would you change in your town?"; for used to: "What did you use to believe as a child that makes you laugh now?"). ${input.source ? 'Stay in the same topic and world as the source text, but ask about the student, not about the text.' : 'Stay in the topic or interest the teacher named.'} Each question must invite a long answer and make a follow-up "Why?" natural. Model the form in the question where that is natural, but never name the grammar. Order them from the easiest to answer to the one worth arguing about. No yes/no questions. Use type "open".${context}`,
+        schema: '{"questions":[{"type":"open","text":"If you could …, what would you …?","points":1}]}',
+      };
+    }
 
     if (toolId === 'tf-not-given') {
       return {
@@ -1427,4 +1455,5 @@ async function transcribeAudio(buffer, mime, opts = {}) {
   } finally { clearTimeout(timer); }
 }
 
-module.exports = { transcribeAudio, transcribeEnabled, enabled, generate, rawGenerate, MODEL, BASE_URL, getLastModel, getLastTrace, getLastTier, listModels, FREE_MODELS };
+// shapeSpec is exported for the tests only: it is where a tool's prompt and JSON shape are decided.
+module.exports = { transcribeAudio, transcribeEnabled, enabled, generate, rawGenerate, shapeSpec, MODEL, BASE_URL, getLastModel, getLastTrace, getLastTier, listModels, FREE_MODELS };

@@ -149,6 +149,21 @@
     }
   }
 
+  /* A 401 is not always an expired session: "current password is incorrect"
+     answers 401 too, and it used to throw a signed-in teacher out to the sign-in
+     page four seconds later. Ask the server whether the token itself still
+     works, and only then say the session is over. */
+  var _sessionCheck = false;
+  function _confirmSessionExpired(token) {
+    if (_sessionExpiredShown || _sessionCheck) return;
+    if (!token) { _handleSessionExpired(); return; }
+    _sessionCheck = true;
+    fetch(API_BASE + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(function(r) { if (r.status === 401) _handleSessionExpired(); })
+      .catch(function() {})
+      .then(function() { _sessionCheck = false; });
+  }
+
   function createApiClient(getToken) {
     // Paths where 401 is expected and should NOT trigger the banner.
     var AUTH_PATHS = ['/api/auth/login', '/api/auth/me', '/api/auth/google', '/api/auth/register'];
@@ -166,7 +181,7 @@
       return fetch(API_BASE + path, Object.assign({}, options, { headers: headers, body: body }))
         .then(function(resp) {
           if (resp.status === 401 && AUTH_PATHS.indexOf(path) === -1) {
-            _handleSessionExpired();
+            _confirmSessionExpired(token);
           }
           return resp;
         });

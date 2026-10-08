@@ -272,7 +272,7 @@ async function renderOverview(forceOffline = false) {
   // Inline, because the sidebar theme forces display on #nav links with its own !important.
   if (isStudent) document.querySelectorAll('[data-teacher-only]').forEach(el => el.style.setProperty('display', 'none', 'important'));
   const hwLink = document.getElementById('nav-homework');
-  if (hwLink && isStudent) hwLink.href = 'student.html';
+  if (hwLink && isStudent) { hwLink.href = 'student.html'; hwLink.textContent = 'My cabinet'; }
   const logo = document.querySelector('#nav .nav-logo');
   if (logo && isStudent) logo.href = 'student.html';
 

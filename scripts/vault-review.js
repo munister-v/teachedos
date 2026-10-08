@@ -207,12 +207,18 @@
        at random when the window opens and kept while it is open. */
     let themeId = '';
     try {
-      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1082'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1083'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
       const themed = window.TeachedThemes.list.filter(t => t.id);
       themeId = themed[Math.floor(Math.random() * themed.length)].id;
-      const t = window.TeachedThemes.get(themeId);
-      if (t && t.paper) stage.style.background = t.paper;
     } catch (_) { themeId = ''; }
+    /* The game is a 3:2 screen inside a wider stage. The stage takes the game's
+       own backdrop, so the bands left and right read as part of the same scene. */
+    const matchStage = f => {
+      try {
+        const bg = getComputedStyle(f.contentDocument.body).backgroundColor;
+        if (bg && !/rgba?\(0, 0, 0, 0\)|transparent/.test(bg)) stage.style.background = bg;
+      } catch (_) {}
+    };
 
     let items = [];
     try { const d = await json(api, '/api/vault/saved?limit=60'); items = (d.items || []).filter(x => (x.kind || 'word') === 'word' && x.word); }
@@ -241,7 +247,7 @@
       f.style.width = W + 'px'; f.style.height = H + 'px';
       f.setAttribute('title', t[1]);
       const deliver = () => { try { f.contentWindow.postMessage({ type: 'teachedos-custom-game-content', title: t[1], level: '', content: content[k] }, '*'); } catch (e) {} };
-      f.addEventListener('load', () => { deliver(); setTimeout(deliver, 200); setTimeout(deliver, 600); });
+      f.addEventListener('load', () => { deliver(); setTimeout(deliver, 200); setTimeout(deliver, 600); setTimeout(() => matchStage(f), 80); setTimeout(() => matchStage(f), 700); });
       if (themeId && window.TeachedThemes) window.TeachedThemes.skinGame(f, themeId);
       f.src = `games/ww/${k}.html`;
       stage.appendChild(f);

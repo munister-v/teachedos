@@ -298,6 +298,20 @@
   ];
 
   let deck = [], at = 0, feed = null;
+  /* Today's answers survive closing the panel: the deck is the same all day,
+     so coming back should show where you stopped, not five blank cards. */
+  const DECK_KEY = 'te_feed_deck';
+  function saveDeck() {
+    try { localStorage.setItem(DECK_KEY, JSON.stringify({ day: dayNo(), at, cards: deck.map(c => ({ answer: c.answer ?? null, added: !!c.added })) })); } catch (_) {}
+  }
+  function restoreDeck() {
+    try {
+      const d = JSON.parse(localStorage.getItem(DECK_KEY) || 'null');
+      if (!d || d.day !== dayNo() || !Array.isArray(d.cards) || d.cards.length !== deck.length) return;
+      d.cards.forEach((c, i) => { if (deck[i].type !== 'done') { deck[i].answer = c.answer; deck[i].added = c.added; } });
+      at = Math.max(0, Math.min(deck.length - 1, Number(d.at) || 0));
+    } catch (_) {}
+  }
   const dayNo = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60e3) / 864e5);
 
   function quizCard(chunks, i, day, reverse) {
@@ -394,6 +408,7 @@
     // The cards do not depend on the news: if the feed is down, the day still has its deck.
     try { const r = await api('/api/student/feed'); const d = await json(r); if (r.ok && d) feed = d; } catch {}
     deck = buildDeck(); at = 0;
+    restoreDeck();
     draw();
   }
 
@@ -402,7 +417,7 @@
     try {
       const r = await api('/api/journal/vocab', { method: 'POST', body: { word: c.phrase, translation: c.meaning, example: c.example } });
       if (!r.ok) throw new Error('failed');
-      c.added = true; btn.textContent = '✓ In your words';
+      c.added = true; btn.textContent = '✓ In your words'; saveDeck();
       if (typeof window.loadVocab === 'function') window.loadVocab();
     } catch { btn.disabled = false; btn.textContent = 'Could not add. Try again'; }
   }
@@ -411,9 +426,9 @@
     if (e.target.closest('[data-edit]')) { onboarding(); return; }
     const c = deck[at];
     const opt = e.target.closest('[data-opt]');
-    if (opt && c) { c.answer = +opt.dataset.opt; draw(); document.querySelector('#sf-body [data-next], #sf-body .sf-mini')?.focus({ preventScroll: true }); return; }
-    if (e.target.closest('[data-next]')) { at = Math.min(deck.length - 1, at + 1); draw(); return; }
-    if (e.target.closest('[data-prev]')) { at = Math.max(0, at - 1); draw(); return; }
+    if (opt && c) { c.answer = +opt.dataset.opt; saveDeck(); draw(); document.querySelector('#sf-body [data-next], #sf-body .sf-mini')?.focus({ preventScroll: true }); return; }
+    if (e.target.closest('[data-next]')) { at = Math.min(deck.length - 1, at + 1); saveDeck(); draw(); return; }
+    if (e.target.closest('[data-prev]')) { at = Math.max(0, at - 1); saveDeck(); draw(); return; }
     const say = e.target.closest('[data-say]');
     if (say) { speak(say.dataset.say); return; }
     const add = e.target.closest('[data-add]');

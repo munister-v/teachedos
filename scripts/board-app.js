@@ -16443,7 +16443,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1082';
+const TEACHEDOS_ASSET_VERSION = '1083';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -27188,7 +27188,16 @@ document.addEventListener('paste', e => {
    чередуются. Ctrl+Z убирает весь набор разом. Одну длинную строку или
    абзац это не трогает: вставка срабатывает на 1-80 коротких строк. */
 function _pasteStickiesFromText(text) {
-  const lines = String(text || '').split(/\r?\n/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const raw = String(text || '').split(/\r?\n/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  /* Стикер «to distract-» + «відволікати» с ручным переносом внутри приходит
+     двумя строками. Строка, которая кончается дефисом, тире, двоеточием или
+     косой чертой (или следующая начинается с тире), - это тот же стикер. */
+  const lines = [];
+  for (const l of raw) {
+    const prev = lines[lines.length - 1];
+    if (prev && (/[-–—:\/]$/.test(prev) || /^[-–—]/.test(l))) lines[lines.length - 1] = prev + ' ' + l;
+    else lines.push(l);
+  }
   if (!lines.length || lines.length > 80) return false;
   if (lines.some(l => l.length > 200)) return false;
   if (lines.length === 1 && (lines[0].length > 120 || /^(https?:|data:)/i.test(lines[0]))) return false;

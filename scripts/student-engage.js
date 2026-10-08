@@ -140,13 +140,12 @@
     };
     box.innerHTML = `<div class="te-k">Homework · ${rows.length} to do</div>
       ${rows.slice(0, 2).map(a => `<a class="te-hw-row" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}"><span class="te-hw-t">${esc(a.title)}</span>${badge(a)}</a>`).join('')}
-      ${rows.length > 2 ? `<div class="te-sub">+${rows.length - 2} more in Assignments</div>` : ''}
+      ${rows.length > 2 ? `<div class="te-sub">+${rows.length - 2} more below</div>` : ''}
       <a class="te-btn te-hw-go" href="homework-do.html?a=${encodeURIComponent(rows[0].assignment_id)}">Do homework →</a>`;
   }
 
   /* One main action in the vocabulary block: practise words. Homework has its
      own card on top, so its button is not repeated here. */
-  function mainAction() {}
   function actions() {
     const box = document.querySelector('.vocab-actions');
     if (!box || $('te-main')) return;
@@ -238,17 +237,11 @@
     });
   }
 
-  /* The one-off "First steps" block is retired: the home view keeps to the
-     lesson, the homework and the words. Remove one left by an older script. */
-  function quest() { const old = $('te-quest'); if (old) old.remove(); }
-  let _streakN = 0;
-
   /* ── Streak ──────────────────────────────────────────────────────── */
   function streak(d) {
     const box = $('te-streak');
     if (!box) return;
     const n = d.streak || 0;
-    _streakN = n; quest();
     const act = new Map((d.activity || []).map(a => [a.day, a.n]));
     const todayKey = d.today || today();
     const t = new Date(todayKey + 'T12:00:00');
@@ -375,14 +368,14 @@
     boards(list) {
       boardList = list || [];
       boardLink();
-      nextLesson(); quest();
+      nextLesson();
       if (boardList[0]) bal.teacher = boardList[0].teacher_name || '';
     },
     schedule(list) { scheduleList = Array.isArray(list) ? list : []; nextLesson(); },
-    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); goal(); quest(); },
+    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); goal(); },
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },
-    homework(todo) { hwTodo = Array.isArray(todo) ? todo : []; homework(); mainAction(); },
+    homework(todo) { hwTodo = Array.isArray(todo) ? todo : []; homework(); },
     balance(b) { Object.assign(bal, b || {}); balance(); },
   };
 

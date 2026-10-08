@@ -236,8 +236,11 @@
 
     var pos = { x: 700, y: 420 };
     try {
-      if (has('screenToBoard') && window.boardWrap) {
-        var r = window.boardWrap.getBoundingClientRect();
+      // boardWrap is a top-level const in board-app.js, so it is not on window:
+      // the card always landed at the fallback spot instead of the middle of the screen.
+      var wrap = document.getElementById('board-wrap');
+      if (has('screenToBoard') && wrap) {
+        var r = wrap.getBoundingClientRect();
         pos = window.screenToBoard(r.left + r.width / 2, r.top + r.height / 2) || pos;
       }
     } catch (e) { /* fall back to the default spot */ }
