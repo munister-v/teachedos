@@ -133,6 +133,15 @@ html body #sidebar .te-streak[role="button"]:hover{background:rgba(255,255,255,.
 .te-sheet-x:focus-visible{outline:2px solid #24282C;outline-offset:2px}
 .te-sheet-body{overflow:auto;padding:6px 22px 22px}
 .te-sheet-body > .tab-pane.in-sheet{display:block}
+/* the word rows were drawn for the page: on the sheet the lime translation and the pale "Learned" tag need ink */
+.te-sheet-body > .vocab-word-item{background:#fff;border:1px solid rgba(36,40,44,.08);border-radius:14px;margin:0 0 8px}
+.te-sheet-body .vw-trans{color:#5D614B}
+.te-sheet-body .vw-badge{border:0;cursor:pointer;font-family:inherit}
+.te-sheet-body .vw-badge.learned{background:#E6FAA6;color:#3A4A00}
+.te-sheet-body .vw-badge.new{background:#24282C;color:#fff}
+.te-sheet-body .vw-badge:disabled{opacity:.5;cursor:default}
+.te-sheet-empty{padding:30px 18px;text-align:center;color:#5D614B;font-size:14px;line-height:1.6}
+.te-sheet-empty .te-outline{margin-top:14px;min-height:40px}
 @media (max-width:700px){.te-sheet-ov{padding:0;align-items:flex-end}.te-sheet{border-radius:22px 22px 0 0;max-height:88vh}}
 
 /* ── Home, second pass ────────────────────────────────────────────────

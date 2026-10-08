@@ -302,29 +302,69 @@
      sidebar and the word list from the vocabulary figures. The pane itself is
      moved into the sheet and put back on close, so everything that fills it
      by id (loadProgress, renderVocab) keeps working unchanged. */
+  let wordsKind = null;   // 'learned' | 'new' while the words sheet is open
   function closeSheet() {
     const ov = $('te-sheet');
     if (!ov) return;
+    wordsKind = null;
     ov._restore();
     ov.remove();
     if (ov._from && document.contains(ov._from)) ov._from.focus();
   }
-  function openSheet(name, title, from) {
-    const pane = $('pane-' + name);
-    if (!pane) return;
+  function sheetShell(title, from) {
     closeSheet();
     const ov = document.createElement('div');
     ov.className = 'te-sheet-ov'; ov.id = 'te-sheet';
     ov.innerHTML = `<div class="te-sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="te-sheet-head"><b>${esc(title)}</b><button type="button" class="te-sheet-x" aria-label="Close">✕</button></div><div class="te-sheet-body"></div></div>`;
-    const mark = document.createComment('te-sheet');
-    pane.before(mark);
-    ov._restore = () => { pane.classList.remove('in-sheet'); mark.replaceWith(pane); };
+    ov._restore = () => {};
     ov._from = from || null;
-    ov.querySelector('.te-sheet-body').appendChild(pane);
-    pane.classList.add('in-sheet');
     ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('.te-sheet-x')) closeSheet(); });
     document.body.appendChild(ov);
     ov.querySelector('.te-sheet-x').focus();
+    return ov;
+  }
+  function openSheet(name, title, from) {
+    const pane = $('pane-' + name);
+    if (!pane) return;
+    const ov = sheetShell(title, from);
+    const mark = document.createComment('te-sheet');
+    pane.before(mark);
+    ov._restore = () => { pane.classList.remove('in-sheet'); mark.replaceWith(pane); };
+    ov.querySelector('.te-sheet-body').appendChild(pane);
+    pane.classList.add('in-sheet');
+  }
+
+  /* Words: "Learned words" shows what is learned, "To learn" what is not - the
+     whole list, not the first thirty of everything. A word changes list the
+     moment its button is pressed (loadVocab comes back through vocab() below). */
+  function drawWords() {
+    const ov = $('te-sheet');
+    if (!ov || !wordsKind) return;
+    const learned = wordsKind === 'learned';
+    const rows = vocabList.filter(w => !!w.learned === learned);
+    ov.querySelector('.te-sheet-head b').textContent = `${learned ? 'Learned words' : 'Words to learn'} · ${rows.length}`;
+    ov.querySelector('.te-sheet-body').innerHTML = rows.length
+      ? rows.map(w => `<div class="vocab-word-item">
+          <div style="flex:1;min-width:0;">
+            <div class="vw-word">${esc(w.word)}</div>
+            ${w.translation ? `<div class="vw-trans">${esc(w.translation)}</div>` : ''}
+            ${w.example ? `<div class="vw-example">“${esc(w.example)}”</div>` : ''}
+          </div>
+          <button type="button" class="vw-badge ${learned ? 'learned' : 'new'}" data-word="${esc(w.id)}">${learned ? '✓ Learned' : 'Mark learned'}</button>
+        </div>`).join('')
+      : `<div class="te-sheet-empty">${learned
+          ? 'Nothing here yet. Mark a word as learned and it moves to this list.'
+          : 'All caught up. Add a new word to keep going.'}${learned ? '' : '<br><button type="button" class="te-outline" data-add-word>+ Add word</button>'}</div>`;
+  }
+  function openWords(kind, from) {
+    const ov = sheetShell('', from);
+    wordsKind = kind;
+    ov.querySelector('.te-sheet-body').addEventListener('click', e => {
+      const b = e.target.closest('[data-word]');
+      if (b) { b.disabled = true; if (typeof window.toggleVocabLearned === 'function') window.toggleVocabLearned(b.dataset.word, wordsKind !== 'learned'); return; }
+      if (e.target.closest('[data-add-word]')) { closeSheet(); if (typeof window.openVocabModal === 'function') window.openVocabModal(); }
+    });
+    drawWords();
   }
   function asButton(el, label, go) {
     if (!el || el.dataset.teGo) return;
@@ -341,7 +381,8 @@
       openSheet('progress', 'Your progress', el);
     });
     document.querySelectorAll('.vocab-stats > .vs-card').forEach((card, i) => {
-      if (i < 2) asButton(card, 'Open my words', el => openSheet('vocabulary', 'My words', el));
+      if (i === 0) asButton(card, 'Open learned words', el => openWords('learned', el));
+      if (i === 1) asButton(card, 'Open words to learn', el => openWords('new', el));
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
     // the phone's bottom tabs show the same panes in place: hand the pane back first
@@ -372,7 +413,7 @@
       if (boardList[0]) bal.teacher = boardList[0].teacher_name || '';
     },
     schedule(list) { scheduleList = Array.isArray(list) ? list : []; nextLesson(); },
-    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); goal(); },
+    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); goal(); drawWords(); },
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },
     homework(todo) { hwTodo = Array.isArray(todo) ? todo : []; homework(); },
