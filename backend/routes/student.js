@@ -341,6 +341,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
        чем отдавать саму ссылку, которую учитель и так рассылает открыто. */
     const { rows: boards } = await pool.query(`
       SELECT b.id, b.name, b.thumbnail, b.updated_at, bc.role,
+             b.cover, (b.cover_image IS NOT NULL) AS has_cover_image,
              u.id AS teacher_id, u.name AS teacher_name, u.avatar AS teacher_avatar,
              u.timezone AS teacher_timezone, u.timezone_mode AS teacher_timezone_mode,
              u.booking_token
@@ -492,6 +493,10 @@ router.get('/progress', requireAuth, async (req, res) => {
         SELECT submitted_at FROM homework_assignment WHERE student_id = $1 AND submitted_at IS NOT NULL
         UNION ALL
         SELECT submitted_at FROM quiz_results WHERE user_id = $1
+        UNION ALL
+        /* Повторение слов из Word Bank - тоже «сделал что-то сегодня»:
+           кабинет зовёт к нему кнопкой в карточке серии. */
+        SELECT last_reviewed_at FROM vocabulary WHERE user_id = $1 AND last_reviewed_at IS NOT NULL
       )
       SELECT to_char((t AT TIME ZONE $2)::date, 'YYYY-MM-DD') AS day, COUNT(*)::int AS n
         FROM ev WHERE t > NOW() - INTERVAL '400 days'

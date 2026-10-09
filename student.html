@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1112">
-<link rel="preload" as="style" href="styles/unify.css?v=1112">
-<link rel="manifest" href="manifest.json?v=1112">
+<link rel="preload" as="style" href="styles/harmony.css?v=1120">
+<link rel="preload" as="style" href="styles/unify.css?v=1120">
+<link rel="manifest" href="manifest.json?v=1120">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -17,8 +17,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1112">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1112">
+<link rel="stylesheet" href="styles/fonts.css?v=1120">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1120">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -488,7 +488,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .modal-submit{
   flex:2;padding:10px;border-radius:10px;border:none;
-  background:var(--accent);color:#24282C;font-family:var(--font);
+  /* not var(--accent): the brand layers make it ink on this page, and the
+     label (ink) vanished on an ink button */
+  background:#CDF649;color:#24282C;font-family:var(--font);
   font-weight:650;cursor:pointer;font-size:13px;transition:.15s;
 }
 .modal-submit:hover{opacity:.88}
@@ -588,17 +590,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1112">
-<link rel="stylesheet" href="styles/harmony.css?v=1112">
-<link rel="stylesheet" href="styles/unify.css?v=1112">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1112">
+<link rel="stylesheet" href="styles/mobile.css?v=1120">
+<link rel="stylesheet" href="styles/harmony.css?v=1120">
+<link rel="stylesheet" href="styles/unify.css?v=1120">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1120">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1112">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1112">
-<link rel="stylesheet" href="styles/controls.css?v=1112">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1112">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1112">
-<link rel="stylesheet" href="styles/student-engage.css?v=1112">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1120">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1120">
+<link rel="stylesheet" href="styles/controls.css?v=1120">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1120">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1120">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1120">
+<link rel="stylesheet" href="styles/student-engage.css?v=1120">
 </head>
 <body class="fx">
 
@@ -619,7 +622,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <aside class="sidebar" id="sidebar">
     <div class="sb-logo"><img src="logo-sm.png" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
 
-    <div class="sb-profile">
+    <!-- Name and role are in the greeting and the avatar on the right; here they
+         were an empty header. Kept hidden: the page writes them by id. The board
+         button and the lesson balance take this place (scripts/student-engage.js). -->
+    <div class="sb-profile" hidden>
       <div class="sb-avatar" id="sb-avatar">🎓</div>
       <div class="sb-name" id="sb-name">Student</div>
       <div class="sb-role">Student</div>
@@ -632,7 +638,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="sb-counter" id="sb-counter-wrap">
+    <!-- Replaced by the balance card under "Open my board"; hidden, still written by id. -->
+    <div class="sb-counter" id="sb-counter-wrap" hidden>
       <div class="sb-counter-num" id="sb-lessons-left">-</div>
       <div class="sb-counter-label">Lessons Left</div>
     </div>
@@ -855,11 +862,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1112"></script>
-<script src="scripts/student-feed.js?v=1112"></script>
-<script src="scripts/student-engage.js?v=1112"></script>
-<script src="scripts/wallpaper-presets.js?v=1112"></script>
-<script src="scripts/student-wallpaper.js?v=1112"></script>
+<script src="scripts/app-core.js?v=1120"></script>
+<script src="scripts/student-feed.js?v=1120"></script>
+<script src="scripts/lesson-cover.js?v=1120"></script>
+<script src="scripts/student-engage.js?v=1120"></script>
+<script src="scripts/wallpaper-presets.js?v=1120"></script>
+<script src="scripts/student-wallpaper.js?v=1120"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1090,16 +1098,32 @@ async function init() {
 }
 
 // ── Sidebar boards ──
+const _boardCoverUrls = {};
+function loadBoardCovers(boards) {
+  (boards || []).filter(b => b.has_cover_image && !_boardCoverUrls[b.id]).forEach(async b => {
+    try {
+      const r = await apiFetch(`/api/boards/${encodeURIComponent(b.id)}/cover-image`);
+      if (!r.ok) return;
+      _boardCoverUrls[b.id] = URL.createObjectURL(await r.blob());
+      const box = document.querySelector(`.sb-class[data-board="${CSS.escape(String(b.id))}"] .sb-class-cv`);
+      if (box && window.TeachEdCover) box.innerHTML = TeachEdCover.render(b.cover, { title: b.name || 'Board', imageUrl: _boardCoverUrls[b.id] });
+    } catch (_) {}
+  });
+}
 function renderSidebarBoards(boards) {
   const container = document.getElementById('sb-classes');
   if (window.studentEngage) window.studentEngage.boards(boards);
   if (!boards.length) return;
 
+  /* The same card the teacher sees for this board: its designed cover
+     (scripts/lesson-cover.js), name and teacher under it. An uploaded photo
+     needs the token, so it is fetched and shown as a blob (loadBoardCovers). */
+  const cover = b => window.TeachEdCover
+    ? TeachEdCover.render(b.cover, { title: b.name || 'Board', imageUrl: _boardCoverUrls[b.id] || '' })
+    : (b.thumbnail ? `<img src="${esc(b.thumbnail)}" alt="">` : '');
   container.innerHTML = boards.map(b => `
-    <a class="sb-class" href="board.html?id=${b.id}">
-      <div class="sb-class-thumb">
-        ${b.thumbnail ? `<img src="${esc(b.thumbnail)}" alt="">` : `<div class="sb-class-thumb-ph">📋</div>`}
-      </div>
+    <a class="sb-class sb-class-cover" href="board.html?id=${b.id}" data-board="${esc(b.id)}">
+      <div class="sb-class-cv">${cover(b)}</div>
       <div class="sb-class-info">
         <div class="sb-class-name">${esc(b.name)}</div>
         <div class="sb-class-meta">
@@ -1113,6 +1137,7 @@ function renderSidebarBoards(boards) {
       </div>
     </a>
   `).join('');
+  loadBoardCovers(boards);
 
   // Calculate lessons left
   const totalAll = boards.reduce((s,b) => s + b.total_lessons, 0);
@@ -1586,9 +1611,9 @@ async function toggleVocabLearned(id, learned) {
 }
 
 function learnWords() {
-  // Find first board and open it, or show vocab tab
-  const firstBoard = document.querySelector('.sb-class');
-  if (firstBoard) { firstBoard.click(); return; }
+  /* Practise means practising: the Word Bank studio. It used to open the
+     first board instead, which has nothing to do with the words. */
+  if (window.TeachedVault) { window.TeachedVault.practise({ api: apiFetch }); return; }
   document.querySelector('[data-tab="vocabulary"]').click();
 }
 
@@ -1596,19 +1621,19 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1112"></script>
-<script src="scripts/vault-review.js?v=1112"></script>
-<script src="scripts/vault-cabinet.js?v=1112"></script>
-<script src="scripts/writing-shared.js?v=1112"></script>
-<script src="scripts/writing-mine.js?v=1112"></script>
-<script src="scripts/autogrow.js?v=1112" defer></script>
-<script src="pwa-boot.js?v=1112" defer></script>
-<script src="pwa.js?v=1112"></script>
-<script src="scripts/nav-boost.js?v=1112" defer></script>
-<script src="scripts/mobile-perf.js?v=1112" defer></script>
-<script src="scripts/mobile-nav.js?v=1112"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1112" defer></script>
-  <script src="scripts/signin-entry.js?v=1112" defer></script>
-<script src="scripts/verify-banner.js?v=1112" defer></script>
+<script src="scripts/hear-in-context.js?v=1120"></script>
+<script src="scripts/vault-review.js?v=1120"></script>
+<script src="scripts/vault-cabinet.js?v=1120"></script>
+<script src="scripts/writing-shared.js?v=1120"></script>
+<script src="scripts/writing-mine.js?v=1120"></script>
+<script src="scripts/autogrow.js?v=1120" defer></script>
+<script src="pwa-boot.js?v=1120" defer></script>
+<script src="pwa.js?v=1120"></script>
+<script src="scripts/nav-boost.js?v=1120" defer></script>
+<script src="scripts/mobile-perf.js?v=1120" defer></script>
+<script src="scripts/mobile-nav.js?v=1120"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1120" defer></script>
+  <script src="scripts/signin-entry.js?v=1120" defer></script>
+<script src="scripts/verify-banner.js?v=1120" defer></script>
 </body>
 </html>

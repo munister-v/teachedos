@@ -196,11 +196,14 @@ router.patch('/:id/cover', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/boards/:id/cover-image - own photo of the cover (owner only).
+// GET /api/boards/:id/cover-image - own photo of the cover: the owner and the
+// people the board is shared with (the student's cabinet shows the same card).
 router.get('/:id/cover-image', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT cover_image FROM boards WHERE id = $1 AND user_id = $2 AND cover_image IS NOT NULL',
+      `SELECT cover_image FROM boards b
+        WHERE b.id = $1 AND b.cover_image IS NOT NULL
+          AND (b.user_id = $2 OR EXISTS (SELECT 1 FROM board_collaborators bc WHERE bc.board_id = b.id AND bc.user_id = $2))`,
       [req.params.id, req.user.id]
     );
     const m = rows[0] && /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(rows[0].cover_image);

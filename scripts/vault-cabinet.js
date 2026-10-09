@@ -48,7 +48,11 @@
       <button type="button" class="vc-rem" aria-haspopup="dialog">🔔 Reminders</button>
       ${s.total >= 2 ? '<button type="button" class="vc-btn vc-prac">▶ Practise</button>' : ''}
       <button type="button" class="vc-btn vc-rev"${s.due ? '' : ' disabled'}>${s.due ? 'Review now' : 'Nothing due'}</button>`;
-    ['assignments-notif', 'vocab-list'].forEach(id => {
+    /* On the home view the rings strip (scripts/student-engage.js #te-words)
+       already carries these numbers, Practise and the reminders: a second bar
+       under it would repeat the same buttons. The bar stays on the word list. */
+    if (window.studentEngage && window.studentEngage.vault) window.studentEngage.vault();
+    (document.getElementById('te-words') ? ['vocab-list'] : ['assignments-notif', 'vocab-list']).forEach(id => {
       const anchor = document.getElementById(id);
       if (!anchor) return;
       const box = document.createElement('div');
@@ -97,6 +101,8 @@
     });
     setTimeout(() => document.addEventListener('click', function off() { pop.remove(); document.removeEventListener('click', off); }), 0);
   }
+
+  window.TeachedVaultCabinet = { reminders: toggleReminders, repaint: paint };
 
   function start() {
     if (!localStorage.getItem('teachedos_token')) return;
