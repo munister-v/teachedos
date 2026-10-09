@@ -60,6 +60,43 @@
 .vp-stage{position:relative;flex:1;min-height:340px;margin:14px 22px 22px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 1px 0 rgba(36,40,44,.08)}
 .vp-stage iframe{border:0;display:block;transform-origin:0 0;background:#fff;position:absolute;left:0;top:0}
 .vp-note{padding:6px 24px 0;font-size:12.5px;color:#6B6E60}
+/* Practise is a studio, not a dialog: the whole screen goes the colour of the
+   game, so there is no white sheet and no bands around it. */
+.vt-back.vt-imm{padding:0;background:#1E1E26;backdrop-filter:none}
+.vp.vp-imm{width:100vw;height:100vh;max-height:100vh;border-radius:0;box-shadow:none;background:var(--vp-bg,#1E1E26);color:#F4F4F8;transition:background .3s}
+.vp-imm .vp-head{display:flex;align-items:center;gap:14px;padding:12px 18px 0;flex-wrap:wrap}
+.vp-imm .vt-top{padding:0}
+.vp-imm .vt-kick{color:#C9CAD4}
+.vp-imm .vt-x{background:rgba(255,255,255,.14);color:#fff}
+.vp-imm .vt-x:hover{background:rgba(255,255,255,.26)}
+.vp-imm .vp-tabs{padding:0;flex:1;min-width:0}
+.vp-imm .vp-tab{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.28);color:#F4F4F8;padding:7px 13px;font-size:12.5px}
+.vp-imm .vp-tab:hover:not(:disabled){background:rgba(255,255,255,.2)}
+.vp-imm .vp-tab.on{background:#CDF649;color:#24282C;border-color:#CDF649}
+.vp-imm .vp-tab.done::after{content:' ✓'}
+.vp-imm .vp-note{padding:8px 20px 0;color:#C9CAD4}
+.vp-imm .vp-stage{margin:6px 0 0;border-radius:0;background:transparent;box-shadow:none;min-height:0}
+.vp-imm .vp-stage iframe{background:transparent}
+.vp-imm .vt-done{color:#F4F4F8}
+.vp-imm .vt-done p{color:#C9CAD4}
+@media (max-width:640px){
+.vp-imm .vp-head{gap:8px;padding:10px 12px 0}
+.vp-imm .vp-tabs{order:3;flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.vp-imm .vp-tab{flex:none;white-space:nowrap}
+.vp-imm .vt-x{margin-left:auto}
+.vp-imm .vp-note{padding:6px 14px 0;font-size:12px}
+.vp-next{bottom:78px;max-width:calc(100% - 24px)}
+}
+.vp-next{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 18px;border-radius:999px;background:rgba(24,24,30,.92);border:1px solid rgba(255,255,255,.2);color:#F4F4F8;font:600 14px/1.2 -apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.vp-next b{color:#CDF649}
+.vp-next button{height:34px;padding:0 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:transparent;color:#F4F4F8;font:650 13px inherit;font-family:inherit;cursor:pointer}
+.vp-next button.go{background:#CDF649;border-color:#CDF649;color:#24282C}
+.vp-end{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(20,20,26,.86);text-align:center;padding:24px}
+.vp-end b{font:700 34px/1.1 'Iowan Old Style',Georgia,serif}
+.vp-end p{margin:0 0 10px;color:#C9CAD4;font-size:15px}
+.vp-end .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.vp-end button{height:42px;padding:0 20px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#F4F4F8;font:700 14px inherit;font-family:inherit;cursor:pointer}
+.vp-end button.go{background:#CDF649;border-color:#CDF649;color:#24282C}
 `;
   function css() {
     if (document.getElementById('vt-css')) return;
@@ -191,32 +228,40 @@
     if (!api) return;
     css();
     const back = document.createElement('div');
-    back.className = 'vt-back';
-    back.innerHTML = `<div class="vp" role="dialog" aria-modal="true" aria-label="Practise your Word Bank"><div class="vt-top" style="padding-bottom:0"><span class="vt-kick">Word Bank · practise</span><button class="vt-x" type="button" aria-label="Close">✕</button></div><div class="vp-tabs"></div><div class="vp-note"></div><div class="vp-stage"><div class="vt-done"><p>Opening your words…</p></div></div></div>`;
+    back.className = 'vt-back vt-imm';
+    back.innerHTML = `<div class="vp vp-imm" role="dialog" aria-modal="true" aria-label="Practise your Word Bank"><div class="vp-head"><div class="vt-top"><span class="vt-kick">Word Bank · practise</span></div><div class="vp-tabs"></div><button class="vt-x" type="button" aria-label="Close">✕</button></div><div class="vp-note"></div><div class="vp-stage"><div class="vt-done"><p>Opening your words…</p></div></div></div>`;
     document.body.appendChild(back);
+    const sheet = back.querySelector('.vp');
     const tabs = back.querySelector('.vp-tabs'), note = back.querySelector('.vp-note'), stage = back.querySelector('.vp-stage');
-    let ro = null;
-    const close = () => { if (ro) ro.disconnect(); back.remove(); document.removeEventListener('keydown', onKey); };
+    let ro = null, advTimer = null, frame = null;
+    const onMsg = e => {
+      const d = e.data || {};
+      if (frame && e.source === frame.contentWindow && d.type === 'game-finished' && d.status === 'done') finished();
+    };
+    const close = () => { clearInterval(advTimer); if (ro) ro.disconnect(); back.remove(); document.removeEventListener('keydown', onKey); window.removeEventListener('message', onMsg); };
     const onKey = e => { if (e.key === 'Escape') close(); };
     back.querySelector('.vt-x').addEventListener('click', close);
     back.addEventListener('mousedown', e => { if (e.target === back) close(); });
     document.addEventListener('keydown', onKey);
+    window.addEventListener('message', onMsg);
 
     /* A different look each time, so practice is not always the same white
        sheet: one of the game themes (Space, Neon City, Treasure Hunt…) picked
        at random when the window opens and kept while it is open. */
     let themeId = '';
     try {
-      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1108'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1112'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
       const themed = window.TeachedThemes.list.filter(t => t.id);
       themeId = themed[Math.floor(Math.random() * themed.length)].id;
     } catch (_) { themeId = ''; }
-    /* The game is a 3:2 screen inside a wider stage. The stage takes the game's
-       own backdrop, so the bands left and right read as part of the same scene. */
+    /* The whole screen takes the game's own backdrop, so nothing around the game
+       reads as a frame. Looks at html, body and the stage, whichever is painted. */
     const matchStage = f => {
       try {
-        const bg = getComputedStyle(f.contentDocument.body).backgroundColor;
-        if (bg && !/rgba?\(0, 0, 0, 0\)|transparent/.test(bg)) stage.style.background = bg;
+        const d = f.contentDocument;
+        const paint = el => { const bg = el && getComputedStyle(el).backgroundColor; return bg && !/rgba?\(0, 0, 0, 0\)|transparent/.test(bg) ? bg : ''; };
+        const bg = paint(d.body) || paint(d.documentElement) || paint(d.querySelector('.ww-stage'));
+        if (bg) sheet.style.setProperty('--vp-bg', bg);
       } catch (_) {}
     };
 
@@ -234,26 +279,73 @@
       stage.innerHTML = `<div class="vt-done"><span style="font-size:34px">🏦</span><b>Not enough words yet</b><p>You need at least two saved words with a meaning. Save new words while you read, or ask your teacher to send you some.</p></div>`;
       tabs.remove(); return;
     }
-    const W = 720, H = 480;
-    let cur = TASKS.find(t => ready[t[0]])[0];
+    let W = 720, H = 480;
+    const order = TASKS.map(t => t[0]).filter(k => ready[k]);
+    const doneSet = new Set();
+    let cur = order[0];
     tabs.innerHTML = TASKS.map(([k, label]) => `<button type="button" class="vp-tab" data-k="${k}"${ready[k] ? '' : ' disabled title="Needs words saved with an example sentence"'}>${label}</button>`).join('');
+    const clearNext = () => { clearInterval(advTimer); advTimer = null; const n = stage.querySelector('.vp-next, .vp-end'); if (n) n.remove(); };
+    /* A task is over: the next one starts by itself after a short look at the
+       score. Touching the game (answers, play again) or pressing Stay stops it. */
+    const finished = () => {
+      doneSet.add(cur);
+      tabs.querySelectorAll('.vp-tab').forEach(b => b.classList.toggle('done', doneSet.has(b.dataset.k)));
+      clearNext();
+      const at = order.indexOf(cur), nk = order[at + 1];
+      if (!nk) { setTimeout(() => { if (stage.isConnected && !stage.querySelector('.vp-next')) endScreen(); }, 2600); return; }
+      const label = TASKS.find(t => t[0] === nk)[1];
+      const bar = document.createElement('div');
+      bar.className = 'vp-next';
+      let left = 5;
+      const paintBar = auto => { bar.innerHTML = `<span>Next: <b>${esc(label)}</b>${auto ? ` in ${left}` : ''}</span><button type="button" class="go" data-go>${auto ? 'Go now' : 'Next'}</button>${auto ? '<button type="button" data-stay>Stay</button>' : ''}`; };
+      paintBar(true);
+      stage.appendChild(bar);
+      bar.addEventListener('click', e => {
+        if (e.target.closest('[data-go]')) { show(nk); return; }
+        if (e.target.closest('[data-stay]')) { clearInterval(advTimer); advTimer = null; paintBar(false); }
+      });
+      advTimer = setInterval(() => {
+        if (!bar.isConnected) { clearInterval(advTimer); return; }
+        if (document.activeElement === frame) { clearInterval(advTimer); advTimer = null; paintBar(false); return; }
+        if (--left <= 0) { show(nk); return; }
+        paintBar(true);
+      }, 1000);
+    };
+    const endScreen = () => {
+      clearNext();
+      const end = document.createElement('div');
+      end.className = 'vp-end';
+      end.innerHTML = `<span style="font-size:42px">🎉</span><b>Your words are practised</b><p>${order.length} tasks done with ${pairs.length} words.</p><div class="row"><button type="button" class="go" data-again>Practise again</button><button type="button" data-close>Close</button></div>`;
+      end.addEventListener('click', e => {
+        if (e.target.closest('[data-again]')) { doneSet.clear(); tabs.querySelectorAll('.vp-tab').forEach(b => b.classList.remove('done')); show(order[0]); }
+        else if (e.target.closest('[data-close]')) close();
+      });
+      stage.appendChild(end);
+    };
     const show = k => {
+      clearNext();
       cur = k;
       tabs.querySelectorAll('.vp-tab').forEach(b => b.classList.toggle('on', b.dataset.k === k));
       const t = TASKS.find(x => x[0] === k);
-      note.textContent = `${t[2]} ${k === 'complete' ? sentences.length : pairs.length} words from your Word Bank.`;
+      note.textContent = `Step ${order.indexOf(k) + 1} of ${order.length}. ${t[2]} ${k === 'complete' ? sentences.length : pairs.length} words from your Word Bank.`;
       stage.innerHTML = '';
       const f = document.createElement('iframe');
-      f.style.width = W + 'px'; f.style.height = H + 'px';
+      frame = f;
       f.setAttribute('title', t[1]);
       const deliver = () => { try { f.contentWindow.postMessage({ type: 'teachedos-custom-game-content', title: t[1], level: '', content: content[k] }, '*'); } catch (e) {} };
       f.addEventListener('load', () => { deliver(); setTimeout(deliver, 200); setTimeout(deliver, 600); setTimeout(() => matchStage(f), 80); setTimeout(() => matchStage(f), 700); });
       if (themeId && window.TeachedThemes) window.TeachedThemes.skinGame(f, themeId);
       f.src = `games/ww/${k}.html`;
       stage.appendChild(f);
+      /* The game is laid out on a virtual screen as tall as always and as wide as
+         the real one allows (up to 900), then scaled to fill the stage. */
       const fit = () => {
         const bw = stage.clientWidth, bh = stage.clientHeight; if (!bw || !bh) return;
+        /* A phone gets the game at its real size (it has its own small-screen
+           layout); a wide screen gets a virtual screen scaled to fill it. */
+        if (bw < 640) { W = bw; H = bh; } else { H = 480; W = Math.max(720, Math.min(900, Math.round(H * bw / bh))); }
         const sc = Math.min(bw / W, bh / H);
+        f.style.width = W + 'px'; f.style.height = H + 'px';
         f.style.transform = `scale(${sc})`;
         f.style.left = Math.max(0, Math.round((bw - W * sc) / 2)) + 'px';
         f.style.top = Math.max(0, Math.round((bh - H * sc) / 2)) + 'px';
