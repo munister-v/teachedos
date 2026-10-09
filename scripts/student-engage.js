@@ -405,7 +405,11 @@
     const sched = tabs.querySelector('[data-tab="schedule"]'), games = tabs.querySelector('[data-tab="games"]');
     if (!sched || !games) return;
     const wrap = document.createElement('div');
-    wrap.className = 'tab-more'; wrap.id = 'tab-more';
+    /* The menu itself is not shown any more (the owner: students do not need
+       Writing / Schedule / Games here). The tabs still live in this holder, so
+       a returned writing opened from its notification (student.html#writing=…)
+       works, and "← Home" below brings the student back. */
+    wrap.className = 'tab-more'; wrap.id = 'tab-more'; wrap.hidden = true;
     wrap.innerHTML = '<button type="button" class="tab-more-btn" aria-haspopup="menu" aria-expanded="false">More ▾</button><div class="tab-more-menu" role="menu"></div>';
     const menu = wrap.querySelector('.tab-more-menu');
     menu.append(sched, games);

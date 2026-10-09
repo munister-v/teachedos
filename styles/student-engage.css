@@ -334,3 +334,7 @@ html body #sidebar .te-balcard.low .te-balrow b{color:#F2B01E}
 html body #sidebar .te-balcard.zero .te-balrow{border-color:#FF8C3A}
 html body #sidebar .te-balcard.zero .te-balrow b{color:#FF8C3A}
 html body #sidebar .te-balrow:focus-visible{outline:2px solid #CDF649;outline-offset:2px}
+
+/* No More menu for the student; its holder stays for the tabs inside it */
+html body #tabs > .tab-more{display:none !important}
+html body #tabs:not(:has(> .te-home:not([hidden]))){display:none !important}
