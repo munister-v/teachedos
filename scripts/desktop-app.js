@@ -513,6 +513,9 @@ const WM = (function () {
   /* Зоны прилипания - в рабочей области между строкой меню и доком:
      к верхнему краю - на весь экран, к боковому - половина, в угол - четверть. */
   function snapRectFor(x, y, win) {
+    /* Окно не растягивается само, когда его подводят к краю: просили
+       оставлять размер как есть, на весь экран - кнопкой или двойным кликом. */
+    return null;
     const W = window.innerWidth;
     const a = workArea(win);
     const G = 8, half = Math.round((a.w - G) / 2), halfH = Math.round((a.h - G) / 2);
@@ -572,6 +575,36 @@ const WM = (function () {
     }
 
     win.addEventListener('mousedown', () => focus(idOf(win)));
+
+    /* Таскать окно можно за любое место, не только за заголовок: зажала и
+       повела больше чем на 5px - окно поехало; просто клик остаётся кликом.
+       Поля ввода, кнопки, ссылки, полосы прокрутки и выделение текста не
+       перехватываем. */
+    win.addEventListener('mousedown', e => {
+      if (e.button !== 0 || drag || rez) return;
+      if (win.classList.contains('maximized')) return;
+      const t = e.target;
+      if (t.closest('.win-titlebar, [class^="win-rz-"], input, textarea, select, option, button, a, label, [contenteditable=""], [contenteditable="true"], canvas, video, iframe, [draggable="true"], .no-win-drag')) return;
+      // a click on a scroll container's scrollbar
+      if (t.scrollHeight > t.clientHeight && e.offsetX > t.clientWidth) return;
+      if (t.scrollWidth > t.clientWidth && e.offsetY > t.clientHeight) return;
+      const sx = e.clientX, sy = e.clientY;
+      const move = ev => {
+        if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) < 5) return;
+        cleanup();
+        if (window.getSelection && String(window.getSelection())) return;   // selecting text
+        const r = win.getBoundingClientRect();
+        drag = { win, ox: sx, oy: sy, wx: r.left, wy: r.top, nx: r.left, ny: r.top, snapTo: null, raf: 0 };
+        win.classList.add('dragging');
+        // the click that ends this drag must not open a row/card under the cursor
+        const eat = ce => { ce.stopPropagation(); ce.preventDefault(); };
+        win.addEventListener('click', eat, { capture: true, once: true });
+        setTimeout(() => win.removeEventListener('click', eat, true), 400);
+      };
+      const cleanup = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', cleanup); };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', cleanup);
+    });
 
     // Remove legacy single-handle if it still exists
     const legacy = win.querySelector('.win-rz');

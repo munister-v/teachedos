@@ -477,6 +477,19 @@ async function deliverToStudent(req, st, { type, title, body }) {
   const out = { cabinet: false, email: false };
   const teacherName = req.user.name || 'Your teacher';
   let email = st.email || '', name = st.name || '';
+  /* A Journal row typed in by hand has an email but no link to the account:
+     the reminder went out only as an email and never reached the student's
+     cabinet. If a student account has that email, link the row now and
+     deliver to the cabinet too. */
+  if (!st.student_id && validEmail(email)) {
+    try {
+      const u = await pool.query(`SELECT id FROM users WHERE lower(email)=lower($1) AND role='student' LIMIT 1`, [String(email).trim()]);
+      if (u.rows[0]) {
+        st.student_id = u.rows[0].id;
+        await pool.query('UPDATE student_journal SET student_id=$1 WHERE id=$2 AND student_id IS NULL', [st.student_id, st.id]);
+      }
+    } catch (err) { console.error('[journal/deliver] link by email failed:', err.message); }
+  }
   if (st.student_id) {
     out.cabinet = await createNotification(st.student_id, type, title, `${body} - ${teacherName}`, 'student.html');
     const u = await pool.query('SELECT email, name FROM users WHERE id=$1', [st.student_id]);
