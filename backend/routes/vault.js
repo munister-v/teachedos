@@ -4,7 +4,7 @@
 // Writing / Speaking Studio side panel ("From your reading").
 const router = require('express').Router();
 const pool = require('../db/pool');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { schedule, preview, MASTERED_DAYS } = require('../lib/srs');
 const { createNotification } = require('./notifications');
 
@@ -71,7 +71,7 @@ router.get('/due', async (req, res) => {
   try {
     const limit = Math.max(1, Math.min(50, parseInt(req.query.limit, 10) || 20));
     const { rows } = await pool.query(
-      `SELECT id, word, translation, example, source_title, reps, ease, interval_days, lapses, due_at
+      `SELECT id, word, translation, example, collocations, gap, source_title, reps, ease, interval_days, lapses, due_at
          FROM vocabulary
         WHERE user_id = $1 AND kind = 'word' AND due_at <= NOW()
         ORDER BY lapses DESC, due_at ASC
@@ -92,10 +92,15 @@ router.post('/:id/review', async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM vocabulary WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!rows[0]) return res.status(404).json({ error: 'Not found' });
     const s = schedule(rows[0], grade);
+    /* The student types the word before seeing it. A wrong answer is kept
+       (the last one and how many) for the teacher's Homework page. */
+    const wrong = req.body.correct === false;
+    const typed = wrong ? str(req.body.typed, 200) : '';
     await pool.query(
-      `UPDATE vocabulary SET reps=$3, ease=$4, interval_days=$5, lapses=$6, due_at=$7, learned=$8, last_reviewed_at=NOW()
+      `UPDATE vocabulary SET reps=$3, ease=$4, interval_days=$5, lapses=$6, due_at=$7, learned=$8, last_reviewed_at=NOW(),
+              wrong_count = wrong_count + $9, last_wrong = CASE WHEN $9 = 1 THEN $10 ELSE last_wrong END
         WHERE id=$1 AND user_id=$2`,
-      [req.params.id, req.user.id, s.reps, s.ease, s.interval_days, s.lapses, s.due_at, s.learned]);
+      [req.params.id, req.user.id, s.reps, s.ease, s.interval_days, s.lapses, s.due_at, s.learned, wrong ? 1 : 0, typed || null]);
     res.json({ ok: true, due_at: s.due_at, interval_days: s.interval_days });
   } catch (err) {
     console.error('[vault] review', err.message);
@@ -155,7 +160,11 @@ router.post('/send', async (req, res) => {
     const b = req.body || {};
     const ids = [...new Set((Array.isArray(b.studentIds) ? b.studentIds : []).map(String).filter(x => UUID.test(x)))].slice(0, 60);
     const items = (Array.isArray(b.items) ? b.items : [])
-      .map(i => ({ text: str(i && i.text, 400), meaning: str(i && i.meaning, 255), example: str(i && i.example, 600) }))
+      .map(i => ({
+        text: str(i && i.text, 400), meaning: str(i && i.meaning, 255), example: str(i && i.example, 600),
+        collocations: (Array.isArray(i && i.collocations) ? i.collocations : []).map(c => str(c, 60)).filter(Boolean).slice(0, 5).join(' · '),
+        gap: /_{3,}/.test(String((i && i.gap) || '')) ? str(i.gap, 300) : '',
+      }))
       .filter(i => i.text).slice(0, 60);
     if (!ids.length || !items.length) return res.status(400).json({ error: 'students and phrases are required' });
     const boardId = UUID.test(String(b.boardId || '')) ? b.boardId : null;
@@ -173,8 +182,8 @@ router.post('/send', async (req, res) => {
         const dup = await pool.query('SELECT 1 FROM vocabulary WHERE user_id=$1 AND kind=\'word\' AND lower(word)=lower($2) LIMIT 1', [u, it.text]);
         if (dup.rows[0]) continue;
         await pool.query(
-          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title)
-           VALUES ($1,$2,$3,$4,'word',$5,$6)`, [u, it.text, it.meaning, it.example, boardId, title]);
+          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title, sent_by, collocations, gap)
+           VALUES ($1,$2,$3,$4,'word',$5,$6,$7,$8,$9)`, [u, it.text, it.meaning, it.example, boardId, title, req.user.id, it.collocations, it.gap]);
         n++;
       }
       added += n;
@@ -188,4 +197,61 @@ router.post('/send', async (req, res) => {
   }
 });
 
+/* GET /api/vault/sent - the teacher's side of the Word Bank.
+   Words that are in the students' banks because of this teacher: sent from
+   the Lesson pad or with homework (sent_by), or saved from one of the
+   teacher's boards. Grouped the way they were given: one student, one board,
+   one day. For each word: was it practised, how many slips, what was typed. */
+function groupSent(rows) {
+  const sets = new Map();
+  for (const r of rows) {
+    const day = new Date(r.created_at).toISOString().slice(0, 10);
+    const key = `${r.user_id}|${r.source_board_id || ''}|${day}`;
+    if (!sets.has(key)) {
+      sets.set(key, {
+        id: key, student_id: r.user_id, student_name: r.student_name || 'Student', student_avatar: r.student_avatar || '',
+        board_id: r.source_board_id || null, board_name: r.board_name || '', title: r.source_title || '',
+        sent_at: r.created_at, by_teacher: false, words: [],
+      });
+    }
+    const set = sets.get(key);
+    if (r.by_me) set.by_teacher = true;
+    if (new Date(r.created_at) < new Date(set.sent_at)) set.sent_at = r.created_at;
+    set.words.push({
+      word: r.word, meaning: r.translation || '',
+      practised: !!r.last_reviewed_at, last_reviewed_at: r.last_reviewed_at || null,
+      slips: Math.max(Number(r.lapses) || 0, Number(r.wrong_count) || 0), last_wrong: r.last_wrong || '',
+      mastered: Number(r.interval_days) >= MASTERED_DAYS, due: new Date(r.due_at) <= new Date(),
+    });
+  }
+  return [...sets.values()].map(s => ({
+    ...s,
+    total: s.words.length,
+    practised: s.words.filter(w => w.practised).length,
+    with_slips: s.words.filter(w => w.slips > 0).length,
+    mastered: s.words.filter(w => w.mastered).length,
+  })).sort((a, b) => new Date(b.sent_at) - new Date(a.sent_at));
+}
+router.get('/sent', requireTeacher, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT v.id, v.user_id, u.name AS student_name, u.avatar AS student_avatar, v.word, v.translation,
+              v.source_board_id, b.name AS board_name, v.source_title, v.created_at,
+              v.lapses, v.wrong_count, v.last_wrong, v.last_reviewed_at, v.interval_days, v.due_at,
+              (v.sent_by = $1) AS by_me
+         FROM vocabulary v
+         JOIN users u ON u.id = v.user_id
+         LEFT JOIN boards b ON b.id = v.source_board_id
+        WHERE v.kind = 'word' AND v.user_id <> $1 AND (v.sent_by = $1 OR b.user_id = $1)
+          AND v.created_at > NOW() - INTERVAL '120 days'
+        ORDER BY v.created_at DESC
+        LIMIT 2000`, [req.user.id]);
+    res.json({ sets: groupSent(rows) });
+  } catch (err) {
+    console.error('[vault] sent', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
+module.exports._test = { groupSent };

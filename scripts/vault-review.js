@@ -44,6 +44,32 @@
 .vt-g small{font:600 11px inherit;opacity:.7}
 .vt-g.again{background:#FDE3DA;color:#9A2C0C}.vt-g.hard{background:#F3EBD2;color:#6E5410}.vt-g.good{background:#E6F4C4;color:#35520A}.vt-g.easy{background:#24282C;color:#CDF649}
 .vt-g:hover{filter:brightness(.97)}
+.vt-ask{align-items:stretch;text-align:left;gap:14px;min-height:0}
+.vt-task{font:700 11px/1.2 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#6B6E60}
+.vt-q{font:500 23px/1.4 'Iowan Old Style','Palatino Linotype',Georgia,serif;color:#24282C}
+.vt-blank{display:inline-block;width:5.5em;height:1.05em;margin:0 .15em;vertical-align:-.12em;border-bottom:3px solid #24282C;border-radius:2px;background:rgba(205,246,73,.45)}
+.vt-mean-s{margin-top:0;font-size:15.5px;color:#4A4E3C;max-width:none}
+.vt-lbl{display:block;font:700 10px/1.2 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#8A8D7A;margin-bottom:4px}
+.vt-hint{font-size:14px;color:#4A4E3C}
+.vt-form{margin:0}
+.vt-in{width:100%;box-sizing:border-box;height:54px;padding:0 16px;border-radius:14px;border:2px solid #24282C;background:#fff;color:#24282C;font:600 19px inherit;font-family:inherit;outline:0}
+.vt-in:focus{box-shadow:0 0 0 4px rgba(205,246,73,.7)}
+.vt-in.shake{animation:vtsh .35s}
+@keyframes vtsh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.vt-under{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:8px}
+.vt-verdict{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:10px;font-size:15px;font-weight:750;padding:7px 14px;border-radius:999px}
+.vt-verdict span{font-weight:500;font-size:13.5px}
+.vt-verdict.ok{background:#E6F4C4;color:#35520A}
+.vt-verdict.near{background:#F3EBD2;color:#6E5410}
+.vt-verdict.bad{background:#FDE3DA;color:#9A2C0C}
+.vt-say{margin-left:10px;width:40px;height:40px;border:0;border-radius:50%;background:#EFEEE7;cursor:pointer;font-size:17px;vertical-align:middle}
+.vt-say:hover{background:#E3E6D8}
+.vt-colls{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:500px}
+.vt-colls .vt-lbl{flex:1 0 100%;text-align:center;margin-bottom:2px}
+.vt-colls i{font-style:normal;font-size:14px;padding:5px 11px;border-radius:999px;background:#F2F1EB;color:#24282C}
+.vt-g.dflt{box-shadow:0 0 0 2px #24282C}
+.vt-in:focus-visible,.vt-say:focus-visible,.vt-link:focus-visible,.vt-g:focus-visible,.vt-show:focus-visible{outline:2px solid #24282C;outline-offset:2px}
+@media (max-width:520px){.vt-q{font-size:20px}.vt-card{padding:24px 20px 22px}}
 .vt-done{padding:40px 30px;text-align:center}
 .vt-done b{display:block;font:700 30px/1.1 'Iowan Old Style',Georgia,serif;margin:10px 0 8px}
 .vt-done p{margin:0 auto 20px;color:#6B6E60;font-size:15px;line-height:1.5;max-width:420px}
@@ -117,6 +143,50 @@
     try { return await json(api, '/api/vault/summary'); } catch (e) { return null; }
   }
 
+  /* ── Active recall ────────────────────────────────────────────────────
+     The review card used to show the English word and ask "do you know it?".
+     That trains recognition: the word looks familiar, the student presses
+     Show answer and feels they knew it, yet cannot produce it when speaking.
+     Now the front of the card is the meaning and a sentence with the word
+     taken out, and the student TYPES the word. The answer is checked, so the
+     schedule moves on what they could actually recall, not on what they felt. */
+  const stripTo = w => String(w || '').trim().replace(/^to\s+/i, '');
+  /* "spoil" in "She spoiled the surprise" → { text: "She ______ the surprise", hit: "spoiled" } */
+  function gapParts(word, example) {
+    const w = stripTo(word), ex = String(example || '').trim();
+    if (!w || !ex) return null;
+    const stem = w.split(/\s+/).map((t, k, a) => escRe(k === a.length - 1 && t.length >= 4 ? t.replace(/(e|y)$/i, '') : t) + '\\w*').join('\\s+');
+    const m = ex.match(new RegExp(`(^|[^\\w])(${stem})`, 'i'));
+    if (!m) return null;
+    const at = m.index + m[1].length, hit = m[2];
+    return { text: `${ex.slice(0, at)}______${ex.slice(at + hit.length)}`, hit };
+  }
+  const normAnswer = v => String(v || '').toLowerCase().replace(/[’`]/g, "'").replace(/[^a-z0-9' -]+/g, ' ').replace(/\s+/g, ' ').trim()
+    .replace(/^(to|a|an|the)\s+/, '');
+  function editDistance(a, b) {
+    if (a === b) return 0;
+    const prev = Array.from({ length: b.length + 1 }, (_, k) => k);
+    for (let x = 1; x <= a.length; x++) {
+      let diag = prev[0]; prev[0] = x;
+      for (let y = 1; y <= b.length; y++) {
+        const up = prev[y];
+        prev[y] = Math.min(prev[y] + 1, prev[y - 1] + 1, diag + (a[x - 1] === b[y - 1] ? 0 : 1));
+        diag = up;
+      }
+    }
+    return prev[b.length];
+  }
+  /* right - the word (or the form the sentence needs); almost - one slip in
+     the spelling (two in a long word); wrong - anything else. */
+  function judge(typed, targets) {
+    const t = normAnswer(typed);
+    if (!t) return 'wrong';
+    const list = [...new Set(targets.map(normAnswer).filter(Boolean))];
+    if (list.includes(t)) return 'right';
+    const near = list.some(x => { const d = editDistance(t, x); return x.length >= 9 ? d <= 2 : x.length >= 5 ? d <= 1 : false; });
+    return near ? 'almost' : 'wrong';
+  }
+
   async function open(opts = {}) {
     const api = opts.api;
     if (!api) return;
@@ -127,6 +197,8 @@
     document.body.appendChild(back);
     const body = back.querySelector('.vt-body');
     let queue = [], i = 0, shown = false, player = null, total = 0, reviewed = 0, again = 0;
+    let typed = '', result = 'seen', hint = false, allowed = [], enterGrade = '';
+    const missed = new Set();
     const stopPlayer = () => { if (player) { player.destroy(); player = null; } };
     const close = () => { stopPlayer(); back.remove(); document.removeEventListener('keydown', onKey); opts.onDone && opts.onDone({ reviewed, again }); };
     back.querySelector('.vt-x').addEventListener('click', close);
@@ -145,51 +217,143 @@
     function highlight(ex, word) {
       const e = esc(ex || '');
       // «raise concerns» must still light up «raised concerns»: every word may take an ending.
-      const re = new RegExp(`(${esc(word).trim().split(/\s+/).map(w => escRe(w.replace(/e$/, ''))).join('\\w*\\s+')}\\w*)`, 'i');
+      const re = new RegExp(`(${esc(stripTo(word)).trim().split(/\s+/).map(w => escRe(w.replace(/e$/, ''))).join('\\w*\\s+')}\\w*)`, 'i');
       return e.replace(re, '<mark>$1</mark>');
     }
+    /* What the front of the card asks with: the stored sentence with a gap,
+       else the example with the word taken out, else the meaning alone. A
+       word with neither cannot be asked for - it is shown the old way. */
+    function ask(c) {
+      if (c._ask) return c._ask;
+      const stored = /_{3,}/.test(c.gap || '') ? { text: String(c.gap).replace(/_{3,}/, '______'), hit: '' } : null;
+      const fromEx = gapParts(c.word, c.example);
+      const g = stored || fromEx;
+      const meaning = String(c.translation || '').trim();
+      c._ask = { gap: g ? g.text : '', hit: g ? g.hit : '', meaning, recall: !!(g || meaning) };
+      return c._ask;
+    }
+    const audioCache = new Map();
+    async function say(word) {
+      const w = stripTo(word);
+      let url = audioCache.get(w);
+      if (url === undefined) {
+        try { const d = await json(api, '/api/dictionary/define?w=' + encodeURIComponent(w)); url = d && !d.partial && d.audio ? d.audio : ''; }
+        catch (_) { url = ''; }
+        audioCache.set(w, url);
+      }
+      if (url) { try { await new Audio(url).play(); return; } catch (_) {} }
+      try {
+        const u = new SpeechSynthesisUtterance(w);
+        u.lang = 'en-GB'; u.rate = .92;
+        window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+      } catch (_) {}
+    }
+    const VERDICT = {
+      right: ['ok', '✓ Correct'],
+      almost: ['near', 'Almost. Check the spelling'],
+      hinted: ['near', '✓ Correct, with a hint'],
+      wrong: ['bad', 'Not this time'],
+      skip: ['bad', 'You did not recall it'],
+      seen: ['', ''],
+    };
     function paint() {
       stopPlayer();
-      const c = queue[i];
+      const c = queue[i], a = ask(c);
       const pct = Math.min(100, Math.round(reviewed / Math.max(1, queue.length) * 100));
-      body.innerHTML = `<div class="vt-bar"><i style="width:${pct}%"></i></div>
-        <div class="vt-card">
-          <div class="vt-word">${esc(c.word)}</div>
+      const head = `<div class="vt-bar"><i style="width:${pct}%"></i></div>`;
+      if (!shown) {
+        body.innerHTML = head + (a.recall
+          ? `<div class="vt-card vt-ask">
+              <div class="vt-task">Which word is it? Type it.</div>
+              ${a.gap ? `<div class="vt-q">${esc(a.gap).replace(/_{6}/, '<span class="vt-blank"></span>')}</div>` : ''}
+              ${a.meaning ? `<div class="${a.gap ? 'vt-mean vt-mean-s' : 'vt-q'}">${a.gap ? '<span class="vt-lbl">Meaning</span>' : ''}${esc(a.meaning)}</div>` : ''}
+              ${hint ? `<div class="vt-hint">Starts with <b>${esc(stripTo(c.word).slice(0, 1).toUpperCase())}</b>, ${stripTo(c.word).split(/\s+/).length > 1 ? stripTo(c.word).split(/\s+/).length + ' words' : stripTo(c.word).length + ' letters'}</div>` : ''}
+              <form class="vt-form" autocomplete="off"><input class="vt-in" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Type the word" placeholder="type the word or phrase"></form>
+            </div>
+            <div class="vt-acts"><button type="button" class="vt-show" data-act="check">Check<kbd>Enter</kbd></button>
+              <div class="vt-under">${hint ? '' : '<button type="button" class="vt-link" data-act="hint">Give me a hint</button>'}<button type="button" class="vt-link" data-act="skip">I do not remember</button></div></div>`
+          : `<div class="vt-card">
+              <div class="vt-word">${esc(c.word)}</div>
+              ${c.source_title ? `<div class="vt-src">from “${esc(c.source_title)}”</div>` : ''}
+              <div class="vt-src" style="margin-top:14px">This word has no meaning saved yet. Say what it means, then check.</div>
+            </div>
+            <div class="vt-acts"><button type="button" class="vt-show" data-act="show">Show answer<kbd>Space</kbd></button></div>`);
+        const inp = body.querySelector('.vt-in');
+        if (inp) {
+          inp.value = typed;
+          setTimeout(() => { try { inp.focus(); } catch (_) {} }, 30);
+          body.querySelector('.vt-form').addEventListener('submit', e => { e.preventDefault(); check(); });
+        }
+        return;
+      }
+      const [cls, label] = VERDICT[result] || VERDICT.seen;
+      const colls = String(c.collocations || '').split(/\s*·\s*/).map(x => x.trim()).filter(Boolean);
+      const filled = a.gap && !c.example ? a.gap.replace('______', stripTo(c.word)) : '';
+      const gradesFor = result === 'right' ? ['hard', 'good', 'easy'] : result === 'hinted' ? ['again', 'hard', 'good'] : result === 'almost' ? ['again', 'hard'] : result === 'seen' ? ['again', 'hard', 'good', 'easy'] : ['again'];
+      const dflt = result === 'right' ? 'good' : result === 'hinted' ? 'hard' : result === 'seen' ? '' : 'again';
+      const NAMES = { again: 'Again', hard: 'Hard', good: 'Good', easy: 'Easy' }, KEYS = { again: 1, hard: 2, good: 3, easy: 4 };
+      body.innerHTML = head + `<div class="vt-card">
+          ${label ? `<div class="vt-verdict ${cls}">${label}${typed && (result === 'almost' || result === 'wrong') ? `<span>you typed <s>${esc(typed)}</s></span>` : ''}</div>` : ''}
+          <div class="vt-word">${esc(c.word)}<button type="button" class="vt-say" data-act="say" aria-label="Listen to the word" title="Listen">🔊</button></div>
+          ${c.translation ? `<div class="vt-mean">${esc(c.translation)}</div>` : ''}
+          ${c.example ? `<div class="vt-ex">${highlight(c.example, c.word)}</div>` : filled ? `<div class="vt-ex">${highlight(filled, c.word)}</div>` : ''}
+          ${colls.length ? `<div class="vt-colls"><span class="vt-lbl">Goes with</span>${colls.map(x => `<i>${esc(x)}</i>`).join('')}</div>` : ''}
           ${c.source_title ? `<div class="vt-src">from “${esc(c.source_title)}”</div>` : ''}
-          ${shown ? `<div class="vt-sep"></div>${c.translation ? `<div class="vt-mean">${esc(c.translation)}</div>` : ''}${c.example ? `<div class="vt-ex">${highlight(c.example, c.word)}</div>` : ''}` : '<div class="vt-src" style="margin-top:14px">Say what it means - then check.</div>'}
           ${window.TeachedHear && window.TeachedHear.mount ? `<button type="button" class="vt-link" data-act="video">▶ See it used by real people</button><div class="vt-mini" hidden></div>` : ''}
         </div>
-        <div class="vt-acts">${shown
-          ? `<div class="vt-grades">${[['again', 'Again', 1], ['hard', 'Hard', 2], ['good', 'Good', 3], ['easy', 'Easy', 4]].map(([g, l, k]) => `<button type="button" class="vt-g ${g}" data-g="${g}">${l}<small>${esc((c.next || {})[g] || '')}<kbd>${k}</kbd></small></button>`).join('')}</div>`
-          : `<button type="button" class="vt-show" data-act="show">Show answer<kbd>Space</kbd></button>`}</div>`;
+        <div class="vt-acts"><div class="vt-grades" style="grid-template-columns:repeat(${gradesFor.length},1fr)">${gradesFor.map(g => `<button type="button" class="vt-g ${g}${g === dflt ? ' dflt' : ''}" data-g="${g}">${gradesFor.length === 1 ? 'Got it, show it again soon' : NAMES[g]}<small>${esc((c.next || {})[g] || '')}<kbd>${g === dflt ? 'Enter' : KEYS[g]}</kbd></small></button>`).join('')}</div>
+          ${result === 'right' ? '<div class="vt-under"><button type="button" class="vt-link" data-g="again">It was a guess, show it again</button></div>' : ''}</div>`;
+      allowed = gradesFor.concat(result === 'right' ? ['again'] : []);
+      enterGrade = dflt;
+    }
+    function check() {
+      const inp = body.querySelector('.vt-in');
+      const c = queue[i], a = ask(c);
+      typed = inp ? inp.value.trim() : '';
+      if (!typed) { if (inp) { inp.focus(); inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 400); } return; }
+      result = judge(typed, [c.word, a.hit]);
+      if (result === 'right' && hint) result = 'hinted';   // right, but not a clean recall: no Easy for it
+      shown = true; paint();
     }
     function paintDone(empty) {
       stopPlayer();
       body.innerHTML = `<div class="vt-done"><span style="font-size:34px">${empty ? '✨' : '🏁'}</span>
         <b>${empty ? 'Nothing due right now' : 'Done for today'}</b>
-        <p>${empty ? 'Every word in your Word Bank is scheduled for later. Save new words while you read - they will come back here.' : `You reviewed ${reviewed} card${reviewed === 1 ? '' : 's'}. Words you knew come back later; the hard ones come back sooner.`}</p>
-        ${empty ? '' : `<div class="vt-stats"><div><b>${total}</b><br><span>words</span></div><div><b>${total - again}</b><br><span>knew first time</span></div><div><b>${again}</b><br><span>to practise</span></div></div>`}
+        <p>${empty ? 'Every word in your Word Bank is scheduled for later. Save new words while you read - they will come back here.' : `You reviewed ${reviewed} card${reviewed === 1 ? '' : 's'}. Words you recalled come back later; the ones you missed come back sooner.`}</p>
+        ${empty ? '' : `<div class="vt-stats"><div><b>${total}</b><br><span>words</span></div><div><b>${total - missed.size}</b><br><span>recalled first time</span></div><div><b>${missed.size}</b><br><span>to practise</span></div></div>`}
         <button type="button" class="vt-show" data-act="close">${opts.warmup ? 'Start the lesson' : 'Close'}</button></div>`;
     }
     async function grade(g) {
       const c = queue[i];
-      if (!c || !shown) return;
+      if (!c || !shown || !allowed.includes(g)) return;
       reviewed++;
-      if (g === 'again') { again++; queue.push({ ...c, next: c.next }); }
-      json(api, `/api/vault/${c.id}/review`, { method: 'POST', body: { grade: g } }).catch(() => {});
-      i++; shown = false;
+      if (result !== 'right' && result !== 'seen' && result !== 'hinted') missed.add(c.id);
+      if (g === 'again') { again++; queue.push({ ...c, next: c.next, _ask: c._ask }); }
+      const sent = result === 'seen' ? { grade: g } : { grade: g, typed, correct: result === 'right' || result === 'hinted' };
+      json(api, `/api/vault/${c.id}/review`, { method: 'POST', body: sent }).catch(() => {});
+      i++; shown = false; typed = ''; result = 'seen'; hint = false;
       if (i >= queue.length) paintDone(false); else paint();
     }
     function onKey(e) {
       if (e.key === 'Escape') { close(); return; }
       if (!queue[i]) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } return; }
-      if (e.key === ' ' && !shown) { e.preventDefault(); shown = true; paint(); return; }
+      const typing = e.target && e.target.classList && e.target.classList.contains('vt-in');
+      if (!shown) {
+        if (typing) return;                                   // the form handles Enter
+        if (e.key === ' ' && !ask(queue[i]).recall) { e.preventDefault(); result = 'seen'; shown = true; paint(); }
+        return;
+      }
+      if (e.key === 'Enter' && enterGrade) { e.preventDefault(); grade(enterGrade); return; }
       const g = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' }[e.key];
-      if (g && shown) grade(g);
+      if (g) grade(g);
     }
     body.addEventListener('click', e => {
       const act = e.target.closest('[data-act]')?.dataset.act;
-      if (act === 'show') { shown = true; paint(); }
+      if (act === 'check') check();
+      if (act === 'hint') { const inp = body.querySelector('.vt-in'); typed = inp ? inp.value : ''; hint = true; paint(); }
+      if (act === 'skip') { typed = ''; result = 'skip'; shown = true; paint(); }
+      if (act === 'show') { result = 'seen'; shown = true; paint(); }
+      if (act === 'say') say(queue[i].word);
       if (act === 'close') close();
       if (act === 'video') {
         const box = body.querySelector('.vt-mini');
@@ -250,7 +414,7 @@
        at random when the window opens and kept while it is open. */
     let themeId = '';
     try {
-      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1120'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1123'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
       const themed = window.TeachedThemes.list.filter(t => t.id);
       themeId = themed[Math.floor(Math.random() * themed.length)].id;
     } catch (_) { themeId = ''; }
@@ -358,6 +522,6 @@
     show(cur);
   }
 
-  window.TeachedVault = { open, summary, practise };
+  window.TeachedVault = { open, summary, practise, _test: { gapParts, judge, normAnswer } };
 
 })();

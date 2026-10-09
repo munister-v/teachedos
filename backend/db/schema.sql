@@ -931,3 +931,17 @@ CREATE TABLE IF NOT EXISTS student_dna (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Word Bank, teacher's side and active recall.
+-- sent_by: the teacher who put the word there (Lesson pad, homework), so the
+-- Homework page can show what was sent and how it is going.
+-- collocations / gap: what the review card shows (a sentence with the word
+-- taken out on the front, word partnerships on the back).
+-- wrong_count / last_wrong: the student types the word in the review; what
+-- they typed when it was wrong is what the teacher wants to see.
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS sent_by      UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS collocations TEXT NOT NULL DEFAULT '';
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS gap          TEXT NOT NULL DEFAULT '';
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS wrong_count  INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS last_wrong   VARCHAR(200);
+CREATE INDEX IF NOT EXISTS idx_vocabulary_sent_by ON vocabulary(sent_by) WHERE sent_by IS NOT NULL;

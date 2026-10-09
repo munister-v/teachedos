@@ -32,7 +32,7 @@
     try { entries = JSON.parse(localStorage.getItem(KEY(boardId)) || '[]').filter(e => e && e.text); } catch { entries = []; }
   }
   function save() {
-    try { localStorage.setItem(KEY(boardId), JSON.stringify(entries.map(({ id, text, meaning, example }) => ({ id, text, meaning, example })))); } catch {}
+    try { localStorage.setItem(KEY(boardId), JSON.stringify(entries.map(({ id, text, meaning, example, collocations, gap }) => ({ id, text, meaning, example, collocations, gap })))); } catch {}
   }
 
   function css() {
@@ -73,6 +73,7 @@
 .lp-send:disabled{opacity:.5;cursor:default}
 .lp-msg{font-size:12px;font-weight:650;min-height:0}
 .lp-msg.err{color:#c0392b}.lp-msg.ok{color:#2e7d32}
+.lp-msg a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .lp-clear{border:0;background:transparent;font:600 11.5px var(--font-ui,system-ui,sans-serif);color:#5D614B;text-decoration:underline;cursor:pointer;align-self:flex-start;padding:0}
 @media (max-width:700px){.lp{left:12px;bottom:76px}}
 `;
@@ -162,7 +163,10 @@
           if (!e.example && d.example) e.example = d.example;
         }
       } catch {}
-      if (e.meaning) { e.busy = false; save(); render(); return; }
+      /* The meaning is there, so the row is ready. The word still goes to the
+         engine with the next batch: the review card needs its collocations and
+         a sentence with a gap, and the dictionary has neither. */
+      if (e.meaning) { e.busy = false; save(); render(); }
     }
     e.queued = true;
     clearTimeout(aiTimer);
@@ -179,7 +183,12 @@
       const by = new Map(((d && d.items) || []).map(x => [String(x.word).toLowerCase(), x]));
       batch.forEach(e => {
         const x = by.get(e.text.toLowerCase());
-        if (x) { if (!e.meaning) e.meaning = x.meaning || ''; if (!e.example) e.example = x.example || ''; }
+        if (x) {
+          if (!e.meaning) e.meaning = x.meaning || '';
+          if (!e.example) e.example = x.example || '';
+          e.collocations = Array.isArray(x.collocations) ? x.collocations.slice(0, 5) : [];
+          e.gap = x.gap || '';
+        }
       });
     } catch {}
     batch.forEach(e => { e.busy = false; });
@@ -208,13 +217,20 @@
     try {
       const r = await api('/api/vault/send', { method: 'POST', body: {
         studentIds: [...picked], boardId, title: (G('currentBoardName') || document.title || '').toString().slice(0, 120),
-        items: entries.map(e => ({ text: e.text, meaning: e.meaning, example: e.example })) } });
+        items: entries.map(e => ({ text: e.text, meaning: e.meaning, example: e.example, collocations: e.collocations || [], gap: e.gap || '' })) } });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || 'Could not send');
       entries = []; save();
       render();
       const m2 = host.querySelector('#lp-msg');
-      if (m2) { m2.textContent = d.added ? `✓ ${d.added} phrase${d.added === 1 ? '' : 's'} sent - they are in the students' Word Bank, ready to practise.` : 'They already have all of these.'; m2.className = 'lp-msg ok'; }
+      /* Where to look afterwards: the Homework page shows every sending with
+         who practised what and where they slipped. */
+      if (m2) {
+        m2.className = 'lp-msg ok';
+        m2.innerHTML = d.added
+          ? `✓ ${d.added} phrase${d.added === 1 ? '' : 's'} sent to the Word Bank. See who practised them in <a href="homework.html" target="_blank" rel="noopener">Homework → Words</a>.`
+          : 'They already have all of these.';
+      }
     } catch (e) {
       say(e.message || 'Could not send', 'err');
       btn.disabled = false;

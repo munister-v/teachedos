@@ -96,8 +96,8 @@ async function addHomeworkWordsToVault(hw, studentIds) {
         const dup = await pool.query("SELECT 1 FROM vocabulary WHERE user_id=$1 AND kind='word' AND lower(word)=lower($2) LIMIT 1", [sid, w.text]);
         if (dup.rows[0]) continue;
         await pool.query(
-          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title)
-           VALUES ($1,$2,$3,$4,'word',$5,$6)`, [sid, w.text, w.meaning, w.example, hw.board_id, String(hw.title || 'Homework').slice(0, 200)]);
+          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title, sent_by)
+           VALUES ($1,$2,$3,$4,'word',$5,$6,$7)`, [sid, w.text, w.meaning, w.example, hw.board_id, String(hw.title || 'Homework').slice(0, 200), hw.user_id]);
         n++;
       }
       added.set(sid, n);

@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1120"></script>
+<script src="scripts/phone-gate.js?v=1123"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1120">
-<link rel="preload" as="style" href="styles/unify.css?v=1120">
+<link rel="preload" as="style" href="styles/harmony.css?v=1123">
+<link rel="preload" as="style" href="styles/unify.css?v=1123">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1120">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1120">
+<link rel="stylesheet" href="styles/fonts.css?v=1123">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1123">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -219,6 +219,27 @@ button{font-family:var(--font);cursor:pointer;}
 .pill.in_progress{background:rgba(243,164,107,.14);color:#24282C;}
 .pill.submitted{background:rgba(211,243,107,.14);color:#5D614B;}
 .pill.graded{background:rgba(136,107,243,.14);color:var(--purple);}
+.pill.active{background:rgba(205,246,73,.5);color:#24282C;}
+.pill.unassigned,.pill.overdue{background:rgba(243,164,107,.22);color:#6B3A0C;}
+.pill.words{background:rgba(73,246,240,.25);color:#0E4A48;}
+.hw-card.unassigned{border-color:rgba(243,164,107,.55);border-style:dashed;}
+.hw-card.words{border-color:rgba(73,246,240,.6);}
+.hw-kind.words{background:rgba(73,246,240,.2);border-color:rgba(73,246,240,.5);color:#0E4A48;}
+.hw-assign{margin:0 0 14px;padding:14px;border-radius:14px;background:rgba(243,164,107,.12);border:1px solid rgba(243,164,107,.4);}
+.hw-assign b{display:block;font-size:14px;margin-bottom:4px;color:var(--text);}
+.hw-assign p{margin:0 0 10px;font-size:12.5px;color:var(--text2);line-height:1.45;}
+.hw-assign-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.hw-assign-list label{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);}
+.hw-assign-list label:has(input:checked){background:var(--lime);border-color:#24282C;}
+.hw-words{width:100%;border-collapse:collapse;font-size:13px;}
+.hw-words th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:6px 10px 6px 0;border-bottom:1px solid var(--border);}
+.hw-words td{padding:9px 10px 9px 0;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text);}
+.hw-words tr:last-child td{border-bottom:0;}
+.hw-words td small{display:block;color:var(--text2);font-size:12px;line-height:1.4;}
+.hw-words .typed{display:inline-block;padding:1px 7px;border-radius:6px;background:rgba(255,78,0,.12);color:#8E2517;font-family:var(--mono,monospace);font-size:12px;}
+.hw-words-note{margin:12px 0 0;font-size:12.5px;color:var(--text2);line-height:1.5;}
+.hw-bar{height:8px;border-radius:999px;background:rgba(36,40,44,.1);overflow:hidden;margin:6px 0 2px;}
+.hw-bar i{display:block;height:100%;border-radius:999px;background:#24282C;}
 
 #toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:600;
   background:#24282C;color:#fff;box-shadow:0 4px 20px rgba(36,40,44,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
@@ -265,23 +286,23 @@ button{font-family:var(--font);cursor:pointer;}
 }
 
 </style>
-<script src="theme.js?v=1120" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1120">
-<link rel="stylesheet" href="styles/harmony.css?v=1120">
-<link rel="stylesheet" href="styles/unify.css?v=1120">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1120">
-<link rel="stylesheet" href="styles/tool-window.css?v=1120">
+<script src="theme.js?v=1123" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1123">
+<link rel="stylesheet" href="styles/harmony.css?v=1123">
+<link rel="stylesheet" href="styles/unify.css?v=1123">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1123">
+<link rel="stylesheet" href="styles/tool-window.css?v=1123">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1120">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1120">
-<link rel="stylesheet" href="styles/controls.css?v=1120">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1123">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1123">
+<link rel="stylesheet" href="styles/controls.css?v=1123">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1120">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1120">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1120">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1120">
-<link rel="stylesheet" href="styles/toast.css?v=1120">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1120">
+<link rel="stylesheet" href="styles/polish.css?v=1123">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1123">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1123">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1123">
+<link rel="stylesheet" href="styles/toast.css?v=1123">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1123">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -372,6 +393,8 @@ button{font-family:var(--font);cursor:pointer;}
       <button class="filter-btn" type="button" data-filter="active" aria-pressed="false" onclick="setFilter('active')">Active</button>
       <button class="filter-btn" type="button" data-filter="submitted" aria-pressed="false" onclick="setFilter('submitted')">Submitted</button>
       <button class="filter-btn" type="button" data-filter="overdue" aria-pressed="false" onclick="setFilter('overdue')">Overdue</button>
+      <button class="filter-btn" type="button" data-filter="unassigned" aria-pressed="false" onclick="setFilter('unassigned')">Not assigned</button>
+      <button class="filter-btn" type="button" data-filter="words" aria-pressed="false" onclick="setFilter('words')">Words</button>
     </div>
     <label class="hw-search" id="hw-search-wrap">⌕ <input id="hw-search" placeholder="Search homework, board, student…" autocomplete="off" oninput="onHwSearchInput(event)">
       <button class="hw-search-clear" type="button" aria-label="Clear search" onclick="clearHwSearch()">✕</button>
@@ -443,6 +466,7 @@ const LOCAL_BOARDS_KEY = 'teachedos_homework_boards_v2';
 const LOCAL_STUDENTS_KEY = 'teachedos_homework_students_v2';
 
 let homeworkList = [];
+let wordSets = [];      // words sent to students' Word Banks (Lesson pad, homework): /api/vault/sent
 let boards = [];
 let students = [];
 let currentBoardCards = [];
@@ -554,9 +578,10 @@ function _setHwLoading(loading){
 async function loadAll() {
   _setHwLoading(true);
   try {
-    const [hw, br] = await Promise.allSettled([api('/api/homework'), api('/api/boards')]);
+    const [hw, br, ws] = await Promise.allSettled([api('/api/homework'), api('/api/boards'), api('/api/vault/sent')]);
     offlineMode = false;
     homeworkList = hw.status === 'fulfilled' ? (hw.value.homework || []) : [];
+    wordSets = ws.status === 'fulfilled' ? (ws.value.sets || []) : [];
     boards = br.status === 'fulfilled' ? (br.value.boards || []) : [];
     if (hw.status === 'rejected' && br.status === 'rejected') { loadLocal(); return; }
     renderList();
@@ -634,12 +659,16 @@ document.addEventListener('keydown', e => {
 })();
 function homeworkStatus(h){
   if (h.status === 'submitted' || h.status === 'graded') return h.status;
+  /* Nobody was given this set (the lesson builder creates it with the lesson):
+     it is not "in progress", it is waiting to be assigned. */
+  if (!h.local && !offlineMode && !(h.assigned_count || 0)) return 'unassigned';
   if (h.due_at && new Date(h.due_at) < new Date() && (h.submitted_count || 0) < (h.assigned_count || 0)) return 'overdue';
   return 'active';
 }
 function filteredHomework(){
   const q = (document.getElementById('hw-search')?.value || '').trim().toLowerCase();
-  const priority = { overdue: 0, active: 1, submitted: 2, graded: 3 };
+  const priority = { overdue: 0, unassigned: 1, active: 2, submitted: 3, graded: 4 };
+  if (activeFilter === 'words') return [];
   return homeworkList.filter(h => {
     const st = homeworkStatus(h);
     if (activeFilter !== 'all' && activeFilter !== st && !(activeFilter === 'submitted' && st === 'graded')) return false;
@@ -676,6 +705,12 @@ function updateHomeworkFocus(list = homeworkList) {
     detail.textContent = 'Review missed work first, then follow up with the affected students.';
     action.textContent = 'Review overdue';
     action.dataset.filter = 'overdue';
+  } else if (list.some(h => homeworkStatus(h) === 'unassigned') && !active.length) {
+    const n = list.filter(h => homeworkStatus(h) === 'unassigned').length;
+    title.textContent = `${n} homework set${n === 1 ? ' is' : 's are'} not assigned to anyone`;
+    detail.textContent = 'They were created with a lesson. Open one and pick the students, or delete the ones you do not need.';
+    action.textContent = 'View not assigned';
+    action.dataset.filter = 'unassigned';
   } else if (active.length) {
     title.textContent = `${active.length} active homework set${active.length === 1 ? '' : 's'} in progress`;
     detail.textContent = 'Keep the current tasks moving and check who still has work to submit.';
@@ -699,23 +734,82 @@ function renderList() {
   updateHomeworkFocus(homeworkList);
   const el = document.getElementById('hw-list');
   const list = filteredHomework();
+  const words = filteredWordSets();
   const summary = document.getElementById('hw-list-summary');
-  if (summary) summary.textContent = `${list.length} of ${homeworkList.length} homework set${homeworkList.length === 1 ? '' : 's'} shown`;
-  if (!list.length) {
-    el.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon" aria-hidden="true"></div><div class="empty-title">No homework in this view</div><div class="empty-sub">Create a task, change the filter, or search by board/student name. This page now works locally too.</div></div>';
+  if (summary) summary.textContent = `${list.length} of ${homeworkList.length} homework set${homeworkList.length === 1 ? '' : 's'} shown` + (wordSets.length ? ` · ${words.length} word set${words.length === 1 ? '' : 's'}` : '');
+  if (!list.length && !words.length) {
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon" aria-hidden="true"></div><div class="empty-title">No homework in this view</div><div class="empty-sub">Create a task, change the filter, or search by board/student name.</div></div>';
     return;
   }
-  el.innerHTML = list.map(h => {
+  /* The id goes into data-id, not into an inline handler: the old
+     onclick='openDetail("\"uuid\"")' passed the id WITH its quotes, the server
+     did not know such a homework and every card answered "Homework not found". */
+  el.innerHTML = words.map(wordSetCard).join('') + list.map(h => {
     const required = Array.isArray(h.required_cards) ? h.required_cards.length : 0;
     const due = h.due_at ? new Date(h.due_at).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
     const status = homeworkStatus(h);
-    return '<button type="button" class="hw-card '+status+'" onclick=\'openDetail('+JSON.stringify(JSON.stringify(h.id))+')\' aria-label="Open homework: '+esc(h.title)+'">'+
-      '<div class="hw-topline"><span class="hw-kind">'+(offlineMode || h.local ? 'local' : 'live')+' · '+status+'</span><span class="pill '+(status==='overdue'?'in_progress':status)+'">'+status.replace('_',' ')+'</span></div>'+
+    const label = status === 'unassigned' ? 'not assigned' : status.replace('_',' ');
+    return '<button type="button" class="hw-card '+status+'" data-hw="'+esc(h.id)+'" aria-label="Open homework: '+esc(h.title)+'">'+
+      '<div class="hw-topline"><span class="hw-kind">'+(offlineMode || h.local ? 'local' : 'homework')+'</span><span class="pill '+status+'">'+label+'</span></div>'+
       '<div class="hw-title">'+esc(h.title)+'</div>'+
       '<div class="hw-sub">'+esc(h.board_name || boardName(h.board_id) || 'Board')+(h.course_name ? ' · ' + esc(h.course_name) : '')+'</div>'+
       (due ? '<div class="hw-sub">Due: '+esc(due)+'</div>' : '')+
       '<div class="hw-stats"><div class="hw-stat">'+(h.assigned_count || 0)+' assigned</div><div class="hw-stat">'+(h.submitted_count || 0)+' submitted</div><div class="hw-stat">'+required+' card'+(required!==1?'s':'')+'</div></div></button>';
   }).join('');
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('#hw-list .hw-card');
+  if (!c) return;
+  if (c.dataset.words != null) openWordSet(c.dataset.words);
+  else if (c.dataset.hw != null) openDetail(c.dataset.hw);
+});
+
+/* ── Words sent to the Word Bank ──────────────────────────────────────
+   The Lesson pad on a board (and every homework with word games) puts words
+   straight into the student's Word Bank. That is not a homework set, so this
+   page used to show nothing: the teacher could not tell whether the words
+   arrived or were practised. Each sending is a card here: one student, one
+   board, one day. */
+function wordSetDay(s){ return new Date(s.sent_at).toLocaleDateString('en-GB', { day:'numeric', month:'short' }); }
+function wordSetStatus(s){ return s.practised >= s.total ? 'submitted' : 'active'; }
+function filteredWordSets(){
+  if (activeFilter === 'unassigned' || activeFilter === 'overdue') return [];
+  const q = (document.getElementById('hw-search')?.value || '').trim().toLowerCase();
+  return wordSets.filter(s => {
+    if (activeFilter === 'active' && wordSetStatus(s) !== 'active') return false;
+    if (activeFilter === 'submitted' && wordSetStatus(s) !== 'submitted') return false;
+    if (!q) return true;
+    return [s.student_name, s.board_name, s.title, s.words.map(w => w.word).join(' ')].join(' ').toLowerCase().includes(q);
+  });
+}
+function wordSetCard(s){
+  const done = wordSetStatus(s) === 'submitted';
+  return '<button type="button" class="hw-card words" data-words="'+esc(s.id)+'" aria-label="Open words sent to '+esc(s.student_name)+'">'+
+    '<div class="hw-topline"><span class="hw-kind words">Words · Word Bank</span><span class="pill '+(done ? 'submitted' : 'words')+'">'+(done ? 'practised' : s.practised ? 'in progress' : 'not opened yet')+'</span></div>'+
+    '<div class="hw-title">'+s.total+' word'+(s.total===1?'':'s')+' · '+esc(wordSetDay(s))+'</div>'+
+    '<div class="hw-sub">'+esc(s.student_name)+(s.board_name ? ' · ' + esc(s.board_name) : '')+'</div>'+
+    '<div class="hw-stats"><div class="hw-stat">'+s.practised+' of '+s.total+' practised</div><div class="hw-stat">'+s.with_slips+' with mistakes</div>'+(s.mastered ? '<div class="hw-stat">'+s.mastered+' mastered</div>' : '')+'</div></button>';
+}
+function openWordSet(id){
+  const s = wordSets.find(x => x.id === id);
+  if (!s) { toast('These words are no longer in the list. Refresh the page.'); return; }
+  const det = document.getElementById('hw-detail');
+  const pct = s.total ? Math.round(s.practised / s.total * 100) : 0;
+  const when = w => w.last_reviewed_at ? new Date(w.last_reviewed_at).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '';
+  const rows = s.words.slice().sort((a, b) => (b.slips - a.slips) || (Number(a.practised) - Number(b.practised))).map(w =>
+    '<tr><td><b>'+esc(w.word)+'</b>'+(w.meaning ? '<small>'+esc(w.meaning)+'</small>' : '')+'</td>'+
+    '<td>'+(w.mastered ? 'Mastered' : w.practised ? 'Practised '+esc(when(w)) : 'Not practised yet')+'</td>'+
+    '<td>'+(w.slips ? w.slips+' mistake'+(w.slips===1?'':'s')+(w.last_wrong ? '<small>typed <span class="typed">'+esc(w.last_wrong)+'</span></small>' : '') : (w.practised ? 'None' : ''))+'</td></tr>').join('');
+  det.classList.add('open');
+  det.innerHTML = '<div class="detail-head"><div><div class="detail-title">'+s.total+' word'+(s.total===1?'':'s')+' for '+esc(s.student_name)+'</div>'+
+    '<div class="detail-meta">Sent to the Word Bank on '+esc(wordSetDay(s))+(s.board_name ? ' · board “'+esc(s.board_name)+'”' : '')+(s.by_teacher ? '' : ' · saved from your board')+'</div></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+(s.board_id ? '<button class="btn btn-ghost" data-open-board="'+esc(s.board_id)+'">Open board</button>' : '')+'</div></div>'+
+    '<div style="font-size:13px;color:var(--text2);">'+s.practised+' of '+s.total+' practised · '+s.with_slips+' with mistakes'+(s.mastered ? ' · '+s.mastered+' mastered' : '')+'</div>'+
+    '<div class="hw-bar"><i style="width:'+pct+'%"></i></div>'+
+    '<table class="hw-words"><thead><tr><th>Word</th><th>Status</th><th>Mistakes</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<p class="hw-words-note">The words reached the student the moment you sent them: they are in the Word Bank and the student got a notification. “Practised” means the word was answered in a review at least once. In a review the student types the word from its meaning, so a mistake here is a word they could not recall or spell.</p>';
+  det.querySelector('[data-open-board]')?.addEventListener('click', e => openBoard(e.currentTarget.dataset.openBoard));
+  det.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
 }
 
 /* Присланное учеником: голос (слушать) и письмо (текст + разбор). */
@@ -756,6 +850,7 @@ async function openDetail(id) {
     det.classList.add('open');
     det.innerHTML = '<div class="detail-head"><div><div class="detail-title">'+esc(hw.title)+'</div><div class="detail-meta">'+required.length+' required card'+(required.length!==1?'s':'')+' · Pass threshold '+(hw.pass_threshold || 60)+'% · '+(offlineMode || hw.local ? 'local mode' : 'live')+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-ghost" onclick=\'openBoard("'+esc(hw.board_id)+'")\'>Open board</button><button class="btn btn-danger" onclick=\'deleteHomework("'+esc(hw.id)+'")\'>Delete</button></div></div>'+
       (hw.instructions ? '<div style="font-size:13px;color:var(--text2);background:var(--bg);padding:12px 14px;border-radius:14px;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;">'+esc(hw.instructions)+'</div>' : '')+
+      (offlineMode || hw.local ? '' : '<div class="hw-assign" id="hw-assign" data-id="'+esc(hw.id)+'"><b>'+(assignments.length ? 'Give it to more students' : 'Nobody has this homework yet')+'</b><p>'+(assignments.length ? 'Pick the students who should also get it.' : 'It was created with the lesson, but it is not in any student’s Assignments. Pick who should get it.')+'</p><div class="hw-assign-list" id="hw-assign-list"><span style="font-size:12.5px;color:var(--text2);">Loading your students…</span></div><button class="btn btn-primary" id="hw-assign-go" type="button" disabled>Assign</button></div>')+
       '<div style="font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Students ('+assignments.length+')</div>'+
       (assignments.length ? assignments.map(a => {
         const att = byAsgn[a.id] || [];
@@ -764,8 +859,41 @@ async function openDetail(id) {
         return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(205,246,73,.2);font-weight:700;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:650;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+String(a.status).replace('_',' ')+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:700;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+'</div></div>' + workHtml(a, att, hw);
       }).join('') : '<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No students assigned yet</div>');
     hydrateWork(det, hw);
+    hydrateAssign(det, hw, assignments);
     det.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
   } catch (e) { toast('Error: ' + e.message); }
+}
+/* Students who can still be given this set: the teacher's own (roster), minus
+   those who already have it. */
+async function hydrateAssign(det, hw, assignments) {
+  const box = det.querySelector('#hw-assign');
+  if (!box) return;
+  const list = box.querySelector('#hw-assign-list'), go = box.querySelector('#hw-assign-go');
+  const have = new Set(assignments.map(a => String(a.student_id)));
+  let roster = [];
+  try { roster = ((await api('/api/members/roster')).students || []).filter(x => !x.pending && /^[0-9a-f-]{36}$/i.test(String(x.id))); }
+  catch (e) { list.innerHTML = '<span style="font-size:12.5px;color:var(--text2);">Could not load your students: '+esc(e.message)+'</span>'; return; }
+  const free = roster.filter(x => !have.has(String(x.id)));
+  if (!free.length) {
+    if (assignments.length) { box.remove(); return; }
+    list.innerHTML = '<span style="font-size:12.5px;color:var(--text2);">You have no students with an account yet. Invite one from a board (Share → Invite), then come back.</span>';
+    return;
+  }
+  list.innerHTML = free.map(x => '<label><input type="checkbox" value="'+esc(x.id)+'"'+(free.length === 1 ? ' checked' : '')+'>'+esc(x.name || x.email)+'</label>').join('');
+  const picked = () => [...list.querySelectorAll('input:checked')].map(i => i.value);
+  const sync = () => { const n = picked().length; go.disabled = !n; go.textContent = n > 1 ? 'Assign to ' + n : 'Assign'; };
+  list.addEventListener('change', sync); sync();
+  go.addEventListener('click', async () => {
+    const ids = picked();
+    if (!ids.length) return;
+    go.disabled = true; go.textContent = 'Assigning…';
+    try {
+      const r = await api('/api/homework/' + encodeURIComponent(hw.id) + '/assign', { method:'POST', body:{ student_ids: ids } });
+      toast(r.assigned ? 'Assigned to ' + r.assigned + ' student' + (r.assigned === 1 ? '' : 's') + '. They got a notification.' : 'They already have it');
+      await loadAll();
+      openDetail(hw.id);
+    } catch (e) { toast('Error: ' + e.message); sync(); }
+  });
 }
 function localDetail(id){
   const hw = homeworkList.find(h => String(h.id) === String(id));
@@ -891,16 +1019,16 @@ function toast(msg) { const t = document.getElementById('toast'); t.textContent 
 init();
 </script>
 
-<script src="scripts/writing-shared.js?v=1120"></script>
-<script src="scripts/writing-review.js?v=1120"></script>
-<script src="scripts/nav-boost.js?v=1120" defer></script>
-<script src="scripts/mobile-perf.js?v=1120" defer></script>
-<script src="scripts/mobile-nav.js?v=1120"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1120" defer></script>
-<script src="scripts/autogrow.js?v=1120" defer></script>
-<script src="pwa-boot.js?v=1120" defer></script>
-  <script src="scripts/signin-entry.js?v=1120" defer></script>
-<script src="scripts/nav-bell.js?v=1120" defer></script>
-<script src="scripts/empty-stats.js?v=1120" defer></script>
+<script src="scripts/writing-shared.js?v=1123"></script>
+<script src="scripts/writing-review.js?v=1123"></script>
+<script src="scripts/nav-boost.js?v=1123" defer></script>
+<script src="scripts/mobile-perf.js?v=1123" defer></script>
+<script src="scripts/mobile-nav.js?v=1123"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1123" defer></script>
+<script src="scripts/autogrow.js?v=1123" defer></script>
+<script src="pwa-boot.js?v=1123" defer></script>
+  <script src="scripts/signin-entry.js?v=1123" defer></script>
+<script src="scripts/nav-bell.js?v=1123" defer></script>
+<script src="scripts/empty-stats.js?v=1123" defer></script>
 </body>
 </html>
