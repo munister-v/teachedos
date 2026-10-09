@@ -145,12 +145,7 @@ body.tw-page:not(#s1):not(#s2):not(#s3) #nav .nav-user #nav-name {
   body.tw-page:not(#s1):not(#s2):not(#s3) #nav .nav-user { padding:0 3px !important; }
 }
 
-/* Dark theme: the same glass, tinted ink */
-@media (prefers-color-scheme:dark) {
-  html:not([data-theme="light"]) body.tw-page:not(#s1):not(#s2):not(#s3) #nav { background:rgba(28,30,34,.62) !important; border-bottom-color:rgba(255,255,255,.08) !important; box-shadow:none !important; }
-  html:not([data-theme="light"]) body.tw-page:not(#s1):not(#s2):not(#s3) #nav :is(.nav-link, .nb-bell, .nav-user) { color:#F2F3EE !important; }
-  html:not([data-theme="light"]) body.tw-page:not(#s1):not(#s2):not(#s3) #nav :is(.nav-link:hover, .nav-link.active, .nav-user) { background:rgba(255,255,255,.1) !important; }
-}
+/* Dark theme (explicit only: the pages themselves do not follow the OS) */
 html[data-theme="dark"] body.tw-page:not(#s1):not(#s2):not(#s3) #nav { background:rgba(28,30,34,.62) !important; border-bottom-color:rgba(255,255,255,.08) !important; box-shadow:none !important; }
 html[data-theme="dark"] body.tw-page:not(#s1):not(#s2):not(#s3) #nav :is(.nav-link, .nb-bell, .nav-user) { color:#F2F3EE !important; }
 html[data-theme="dark"] body.tw-page:not(#s1):not(#s2):not(#s3) #nav :is(.nav-link:hover, .nav-link.active, .nav-user) { background:rgba(255,255,255,.1) !important; }

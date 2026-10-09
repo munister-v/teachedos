@@ -182,13 +182,6 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
   border:0 !important;border-bottom:1px solid rgba(36,40,44,.07) !important;
   box-shadow:var(--lg-edge),0 10px 30px -22px rgba(18,20,24,.4) !important;
 }
-@media (prefers-color-scheme:dark){
-  html:not([data-theme="light"]):not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(#nav){
-    background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
-    -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
-    border-bottom:var(--lg-border-dark) !important;box-shadow:var(--lg-edge-dark) !important;
-  }
-}
 html[data-theme="dark"]:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(#nav){
   background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
   -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
@@ -210,7 +203,7 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card.words){border:1.5px solid rgba(73,246,240,.6) !important}
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card.submitted){border:1.5px solid #F2D45C !important}
 /* the dark lead figure stays ink, as dark glass */
-html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-metric:first-child, .stat-card.primary, .panel.dark, .card.dark){
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-metric:first-child, .stat-card.primary, :not(:has(> .stat-card.primary)) > .stat-card:first-child:not(.attention):not(.good), .panel.dark, .card.dark){
   background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;border:var(--lg-border-dark) !important;
   -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;box-shadow:var(--lg-edge-dark),var(--lg-drop) !important;
 }
