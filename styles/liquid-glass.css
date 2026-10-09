@@ -176,9 +176,23 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
    gradebook, analytics, courses, community, lesson packs, profile, the
    builders): the dark nav rail, the cards, the segmented switchers ───── */
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(#nav){
+  /* the top bar is light glass, like the desktop's menubar */
+  background:var(--lg-sheen),rgba(255,255,255,.66) !important;
+  -webkit-backdrop-filter:var(--lg-blur) !important;backdrop-filter:var(--lg-blur) !important;
+  border:0 !important;border-bottom:1px solid rgba(36,40,44,.07) !important;
+  box-shadow:var(--lg-edge),0 10px 30px -22px rgba(18,20,24,.4) !important;
+}
+@media (prefers-color-scheme:dark){
+  html:not([data-theme="light"]):not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(#nav){
+    background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
+    -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
+    border-bottom:var(--lg-border-dark) !important;box-shadow:var(--lg-edge-dark) !important;
+  }
+}
+html[data-theme="dark"]:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(#nav){
   background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
   -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
-  border-right:var(--lg-border-dark) !important;box-shadow:var(--lg-edge-dark) !important;
+  border-bottom:var(--lg-border-dark) !important;box-shadow:var(--lg-edge-dark) !important;
 }
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.panel, .hero-card, .share-card, .hw-focus, .hw-toolbar, .section, .topic-bar, .preset-bar,
   .hw-card, .hw-metric:not(.is-dark):not(:first-child), .wr-queue, #hw-detail, .stat-card, .quality-card, .lib-item, .library-item, .tpl-card, .type-card, .course-card, .pack-card, .gb-table-wrap, .card){
