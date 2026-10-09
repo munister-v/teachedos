@@ -16448,7 +16448,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1151';
+const TEACHEDOS_ASSET_VERSION = '1152';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -22992,7 +22992,10 @@ async function finishBoardAuth(data) {
   try { localStorage.setItem('teachedos_user', JSON.stringify(data.user)); } catch {}
   closeAuthModal();
   updateAuthUI();
-  if (data.user.role === 'student' && !URL_BOARD_ID) {
+  /* A new student goes to their cabinet even when they signed up on a
+     board link: the board is in their cabinet, and landing on it right after
+     registration scared them. */
+  if (data.user.role === 'student' && (!URL_BOARD_ID || data.isNewUser)) {
     location.href = 'student.html';
     return;
   }
@@ -23076,7 +23079,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1151',
+          icon: 'icons/icon-192.png?v=1152',
           tag: 'board-live-' + s.id,
         });
       }

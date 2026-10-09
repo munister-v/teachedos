@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#F6F6EF">
 <meta name="robots" content="noindex">
 <title>TeachEd - Join the class</title>
-<link rel="icon" type="image/png" href="logo-sm.png?v=1151"/>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1151">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1151">
-<link rel="stylesheet" href="styles/auth.css?v=1151">
-<link rel="stylesheet" href="styles/invite-page.css?v=1151">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1151">
+<link rel="icon" type="image/png" href="logo-sm.png?v=1152"/>
+<link rel="stylesheet" href="styles/teached-brand.css?v=1152">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1152">
+<link rel="stylesheet" href="styles/auth.css?v=1152">
+<link rel="stylesheet" href="styles/invite-page.css?v=1152">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1152">
 </head>
 <body>
   <!-- Where a teacher's join link lands: who invites you, to which board,
@@ -20,7 +20,7 @@
   <main class="ip-card is-loading" id="card">
     <header class="ip-head">
       <div class="ip-top">
-        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1151" alt="">TeachEd</a>
+        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1152" alt="">TeachEd</a>
         <span class="ip-chip" id="chip">Class invite</span>
       </div>
       <div class="ip-from">
@@ -135,7 +135,12 @@ async function joinBoard() {
     }
     if (!r.ok) return setStatus(d.error || `Could not join (HTTP ${r.status})`, 'err');
     setStatus(d.owner ? 'This is your own board - opening it.' : 'You are in! Opening the board…', 'ok');
-    setTimeout(() => { location.href = `board.html?id=${encodeURIComponent(d.boardId)}`; }, 500);
+    /* A student who has just registered lands in their own cabinet, where
+       this board now shows up - opening straight onto a lesson board
+       scared new students. Teachers and returning students go to the board. */
+    const role = localStorage.getItem('teachedos_role');
+    const target = (window.__justRegistered && role === 'student' && !d.owner) ? 'student.html' : `board.html?id=${encodeURIComponent(d.boardId)}`;
+    setTimeout(() => { location.href = target; }, 500);
   } catch {
     setStatus('Network error - try again.', 'err');
   } finally {
@@ -156,6 +161,7 @@ window.TEACHED_AUTH_CONFIG = {
     localStorage.setItem('teachedos_role', d.user.role);
     if (d.user.email) localStorage.setItem('teachedos_user_email', d.user.email);
     if (d.isNewUser) {
+      window.__justRegistered = true;
       localStorage.setItem('teachedos_onboarding_pending', '1');
       localStorage.setItem('teachedos_onboarding_pending_' + (d.user.email || 'anon'), '1');
     }
@@ -167,7 +173,7 @@ window.TEACHED_AUTH_CONFIG = {
 
 loadInfo();
 </script>
-<script src="scripts/auth-modal.js?v=1151"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1151" defer></script>
+<script src="scripts/auth-modal.js?v=1152"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1152" defer></script>
 </body>
 </html>
