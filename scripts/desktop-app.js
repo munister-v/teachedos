@@ -2455,9 +2455,24 @@ function fetchMe() {
   // не «показал бы страницу быстрее», а выкинул бы учителя на форму входа
   // посреди медленной сети. Белый экран лечится страховкой в index.html,
   // которая снимает html{opacity:0} через 2.5 с независимо от сети и скриптов.
-  _mePromise = fetch(API_BASE + '/api/auth/me', {
+  /* Деплой перезапускает API: несколько секунд nginx отвечает 502/503, а
+     сеть может моргнуть. Это не «плохой токен» - повторяем, пока сервер не
+     ответит по-настоящему (до ~25 с), и только 401/403 считаем выходом. */
+  const once = () => fetch(API_BASE + '/api/auth/me', {
     headers: { Authorization: 'Bearer ' + _authToken }
   }).then(async r => ({ ok: r.ok, status: r.status, user: r.ok ? (await r.json()).user : null }));
+  _mePromise = (async () => {
+    const waits = [800, 1500, 2500, 4000, 6000, 8000];
+    for (let i = 0; ; i++) {
+      try {
+        const res = await once();
+        if (res.ok || res.status === 401 || res.status === 403 || res.status < 500 || i >= waits.length) return res;
+      } catch (e) {
+        if (i >= waits.length) throw e;
+      }
+      await new Promise(r => setTimeout(r, waits[i]));
+    }
+  })();
   return _mePromise;
 }
 
@@ -2571,9 +2586,12 @@ async function checkAuthAndRoute() {
   try {
     const res = await fetchMe();
     if (!res.ok) {
-      clearAuthState();
-      showAuthOverlay();
-      return;
+      if (res.status === 401 || res.status === 403) {
+        clearAuthState();
+        showAuthOverlay();
+        return;
+      }
+      throw new Error('auth/me ' + res.status);   // сервер недоступен - не выход
     }
     const user = res.user;
     _currentUser = user;
@@ -2597,9 +2615,16 @@ async function checkAuthAndRoute() {
   } catch {
     // On the VPS domain the API is same-origin and should be immediate. If auth
     // fails here, avoid showing a fake desktop that looks like a broken login.
+    /* Сервер не ответил даже после повторов (деплой, сеть). Токен НЕ
+       стираем: раньше здесь был clearAuthState(), и каждый деплой выкидывал
+       учителя на форму входа. Показываем то, что есть в кэше, и тихо
+       перезагружаемся, когда сервер вернётся. */
     if (location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) {
-      clearAuthState();
-      showAuthOverlay();
+      if (readTeacherDashboardCache()) revealPage();
+      const retry = () => fetch(API_BASE + '/health', { cache: 'no-store' })
+        .then(r => { if (r.ok) location.reload(); else setTimeout(retry, 5000); })
+        .catch(() => setTimeout(retry, 5000));
+      setTimeout(retry, 3000);
       return;
     }
 

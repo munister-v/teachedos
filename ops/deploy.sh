@@ -78,7 +78,19 @@ rsync -a --delete --delete-excluded \
   fi
 ) || log "minify step error (continuing deploy)"
 
-systemctl restart teached-api.service
+# Restart the API only when the backend changed. A restart takes the API
+# down for a few seconds (nginx answers 502), and a frontend-only release
+# has no reason to do that to everyone who is signed in.
+BACKEND_CHANGED=1
+if [[ "$FORCE_DEPLOY" != 1 && "$DEPLOYED" != none ]] && git cat-file -e "$DEPLOYED^{commit}" 2>/dev/null \
+   && git diff --quiet "$DEPLOYED" "$REMOTE" -- backend/; then
+  BACKEND_CHANGED=0
+fi
+if [[ "$BACKEND_CHANGED" == 1 ]]; then
+  systemctl restart teached-api.service
+else
+  log "backend unchanged since $DEPLOYED - API not restarted"
+fi
 ready=0
 for _ in {1..20}; do
   if systemctl is-active --quiet teached-api.service && curl -fsS http://127.0.0.1:4000/health >/dev/null 2>&1; then

@@ -16448,7 +16448,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1143';
+const TEACHEDOS_ASSET_VERSION = '1144';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -26856,6 +26856,8 @@ function startReconnectLoop() {
     }
     try {
       const r = await apiFetchTimeout('/api/auth/me', {}, 10000);
+      // 5xx = API restarting on deploy, not a bad token: go to the reconnect loop.
+      if (r.status >= 500) throw new Error('auth/me ' + r.status);
       const d = await r.json();
       if (r.ok && d.user) {
         currentUser = d.user;
