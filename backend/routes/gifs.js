@@ -6,7 +6,7 @@
 // search returned nothing at all. The browser now asks us; we ask whoever is
 // connected:
 //   1. GIPHY, when GIPHY_API_KEY is in .env (free key at developers.giphy.com);
-//   2. Openverse otherwise: no key, GIF files only, open licences. Fewer
+//   2. Openverse otherwise (anonymous, page_size capped at 20): no key, GIF files only, open licences. Fewer
 //      reaction GIFs and looser matches than GIPHY, but it is never empty.
 const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
@@ -74,7 +74,7 @@ async function search(q, limit) {
     return { source: 'giphy', results: fromGiphy(await getJson(u)) };
   }
   const u = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q || 'celebration')}`
-    + `&extension=gif&mature=false&page_size=${Math.min(50, limit * 2)}`;
+    + `&extension=gif&mature=false&page_size=20`;
   return { source: 'openverse', results: fromOpenverse(await getJson(u)).slice(0, limit) };
 }
 
