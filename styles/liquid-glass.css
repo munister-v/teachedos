@@ -285,13 +285,12 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
 @keyframes lg-rise{ from{opacity:0;scale:.97;translate:0 14px} to{opacity:1;scale:1;translate:0 0} }
 @keyframes lg-fade{ from{opacity:0} to{opacity:1} }
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#user-menu, #more-menu, #sb-more-menu, #ctx-menu, #board-menu, #export-menu, #shape-panel, #mt-more-pop, #tbuilder-add-menu, #laser-pop, #mb-acct-menu, #notif-panel, .nb-panel, .lp-panel){
-  animation:lg-pop .26s var(--lg-spring) both;transform-origin:top right;
+  animation:lg-pop .26s var(--lg-spring) backwards;transform-origin:top right;
 }
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.modal-box, .te-sheet, .sw-sheet, .yt-modal-card, #student-quiz-modal, .lc, #settings-panel, #share-panel, #shortcuts-panel, #vh-panel){
-  animation:lg-rise .38s var(--lg-spring) both;
+  animation:lg-rise .38s var(--lg-spring) backwards;
 }
-html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.modal-overlay, .lc-ov, .te-sheet-ov, .sw-ov){animation:lg-fade .22s ease both}
-
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) 
 /* lime buttons get a glass gloss: a highlight along the top, a soft glow */
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.te-board, .btn-primary, .btn.lime, .lc-top:not(.ghost), .sp-go, .te-card.is-next .te-join, .te-card.is-next .te-btn){
   box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(0,0,0,.08),0 6px 18px -8px rgba(140,180,20,.55) !important;
