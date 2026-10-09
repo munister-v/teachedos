@@ -128,44 +128,14 @@
   }
 
   /* ── Онбординг ─────────────────────────────────────────────────────── */
-  function onboarding() {
-    css();
-    const state = { goal: (dna && dna.goal) || '', interests: new Set((dna && dna.interests) || []), level: (dna && dna.level) || '' };
-    const ov = document.createElement('div');
-    ov.className = 'sf-ov';
-    const draw = () => {
-      ov.innerHTML = `<div class="sf-card" role="dialog" aria-modal="true" aria-label="Tell us about you">
-        <h2>Let's make it yours 👋</h2>
-        <p class="sf-sub">Three quick questions. Your teacher sees the answers, and your daily reading is picked from them.</p>
-        <div class="sf-q">Why are you learning English?</div>
-        <div class="sf-chips">${catalog.goals.map(g => `<button type="button" class="sf-chip${state.goal === g.key ? ' on' : ''}" data-goal="${esc(g.key)}">${esc(g.label)}</button>`).join('')}</div>
-        <div class="sf-q">What are you into? <span style="text-transform:none;letter-spacing:0;font-weight:600">(pick a few)</span></div>
-        <div class="sf-chips">${catalog.interests.map(i => `<button type="button" class="sf-chip${state.interests.has(i.key) ? ' on' : ''}" data-int="${esc(i.key)}">${esc(i.emoji)} ${esc(i.label)}</button>`).join('')}</div>
-        <div class="sf-q">Your level (a guess is fine)</div>
-        <div class="sf-chips">${catalog.levels.map(l => `<button type="button" class="sf-chip${state.level === l ? ' on' : ''}" data-lvl="${l}">${l}</button>`).join('')}<button type="button" class="sf-chip${state.level === '' ? ' on' : ''}" data-lvl="">Not sure</button></div>
-        <div class="sf-err" id="sf-err"></div>
-        <div class="sf-actions"><button type="button" class="sf-link" data-skip>Later</button><button type="button" class="sf-btn" data-save${state.interests.size ? '' : ' disabled'}>Done</button></div>
-      </div>`;
-    };
-    draw();
-    ov.addEventListener('click', async e => {
-      const g = e.target.closest('[data-goal]'), i = e.target.closest('[data-int]'), l = e.target.closest('[data-lvl]');
-      if (g) { state.goal = g.dataset.goal; draw(); }
-      else if (i) { const k = i.dataset.int; if (state.interests.has(k)) state.interests.delete(k); else if (state.interests.size < 8) state.interests.add(k); draw(); }
-      else if (l) { state.level = l.dataset.lvl; draw(); }
-      else if (e.target.closest('[data-skip]')) { try { sessionStorage.setItem('sf_skip', '1'); } catch {} ov.remove(); }
-      else if (e.target.closest('[data-save]')) {
-        const btn = e.target.closest('[data-save]'); btn.disabled = true;
-        try {
-          const r = await api('/api/student/dna', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal: state.goal, interests: [...state.interests], level: state.level }) });
-          if (!r.ok) throw new Error(((await json(r)) || {}).error || 'Could not save');
-          dna = { goal: state.goal, interests: [...state.interests], level: state.level };
-          level = dna.level || 'B1';
-          ov.remove(); feedLoaded = false; loadFeed();
-        } catch (err) { btn.disabled = false; ov.querySelector('#sf-err').textContent = err.message; }
-      }
+  function onboarding(opts = {}) {
+    /* The step-by-step onboarding lives in student-onboarding.js: profile,
+       level, a short tour and the first sprint. Here it is only started. */
+    if (!window.StudentOnboarding || !catalog) return;
+    window.StudentOnboarding.start({
+      api, dna, catalog, teacherLevel: catalog.teacherLevel, edit: !!opts.edit,
+      onSaved: out => { dna = out; level = dna.level || 'B1'; feedLoaded = false; loadFeed(); },
     });
-    document.body.appendChild(ov);
   }
 
   /* ── Боковая кнопка «For you» ─────────────────────────────────────────────
@@ -423,7 +393,7 @@
   }
 
   function onPane(e) {
-    if (e.target.closest('[data-edit]')) { onboarding(); return; }
+    if (e.target.closest('[data-edit]')) { onboarding({ edit: true }); return; }
     const c = deck[at];
     const opt = e.target.closest('[data-opt]');
     if (opt && c) { c.answer = +opt.dataset.opt; saveDeck(); draw(); document.querySelector('#sf-body [data-next], #sf-body .sf-mini')?.focus({ preventScroll: true }); return; }
@@ -491,7 +461,8 @@
         const r = await api('/api/student/dna');
         const d = await json(r);
         if (!r.ok || !d) return;
-        dna = d.dna; catalog = { goals: d.goals, interests: d.interests, levels: d.levels };
+        dna = d.dna; catalog = { goals: d.goals, interests: d.interests, levels: d.levels, teacherLevel: d.teacher_level };
+        if (!d.has_teacher && window.StudentOnboarding) window.StudentOnboarding.noTeacherBanner();
         level = (dna && dna.level) || 'B1';
         let skipped = false; try { skipped = sessionStorage.getItem('sf_skip') === '1'; } catch {}
         if (!dna && !skipped) onboarding();

@@ -2,13 +2,15 @@
    лента новостей. Ключи хранятся в базе, подписи и слова для поиска живут
    здесь - список можно менять без миграции. */
 const GOALS = [
-  { key: 'work',   label: 'Work & career' },
-  { key: 'travel', label: 'Travel' },
-  { key: 'series', label: 'Series & films' },
-  { key: 'move',   label: 'Moving abroad' },
-  { key: 'exams',  label: 'Exams' },
-  { key: 'fun',    label: 'Just for fun' },
+  { key: 'work',    label: 'Career & work',                 emoji: '💼' },
+  { key: 'travel',  label: 'Travel & life abroad',          emoji: '✈️' },
+  { key: 'fluency', label: 'Fluency & speaking confidence', emoji: '🗣' },
+  { key: 'exams',   label: 'Exams & education',             emoji: '📚' },
 ];
+// Older answers stay valid (the profile still shows them), they are just not offered any more.
+const LEGACY_GOALS = ['series', 'move', 'fun'];
+// Minutes a day between lessons, asked at onboarding.
+const DAILY = [1, 5, 15];
 
 // q - слова, по которым ищутся свежие статьи в лентах (newsFeeds.search).
 const INTERESTS = [
@@ -26,10 +28,12 @@ const INTERESTS = [
   { key: 'food',       label: 'Food',           emoji: '🍜', q: ['food', 'restaurant', 'coffee', 'recipe', 'chef'] },
   { key: 'environment', label: 'Nature & climate', emoji: '🌍', q: ['climate', 'environment', 'wildlife', 'energy', 'ocean'] },
   { key: 'fashion',    label: 'Fashion & style', emoji: '👗', q: ['fashion', 'style', 'design', 'clothes'] },
+  { key: 'psychology', label: 'Psychology',     emoji: '🧠', q: ['psychology', 'mind', 'behaviour', 'habits', 'relationships'] },
+  { key: 'lifestyle',  label: 'Lifestyle',      emoji: '🍷', q: ['lifestyle', 'wellbeing', 'home', 'wine', 'weekend'] },
 ];
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-const goalKeys = new Set(GOALS.map(g => g.key));
+const goalKeys = new Set([...GOALS.map(g => g.key), ...LEGACY_GOALS]);
 const interestByKey = new Map(INTERESTS.map(i => [i.key, i]));
 
 function clean(body) {
@@ -37,7 +41,8 @@ function clean(body) {
   const goal = goalKeys.has(b.goal) ? b.goal : null;
   const interests = [...new Set((Array.isArray(b.interests) ? b.interests : []).map(String).filter(k => interestByKey.has(k)))].slice(0, 8);
   const level = LEVELS.includes(b.level) ? b.level : null;
-  return { goal, interests, level };
+  const daily_minutes = DAILY.includes(Number(b.daily_minutes)) ? Number(b.daily_minutes) : null;
+  return { goal, interests, level, daily_minutes };
 }
 
-module.exports = { GOALS, INTERESTS, LEVELS, interestByKey, clean };
+module.exports = { GOALS, INTERESTS, LEVELS, DAILY, interestByKey, clean };

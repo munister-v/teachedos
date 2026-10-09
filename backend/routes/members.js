@@ -150,7 +150,7 @@ router.get('/roster', requireAuth, async (req, res) => {
              BOOL_OR(s.board_size > 1) AS in_group,
              j.id AS journal_id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at, j.is_trial,
              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
-             q.quiz_avg, q.quiz_count, d.goal AS dna_goal, d.interests AS dna_interests, d.level AS dna_level
+             q.quiz_avg, q.quiz_count, d.goal AS dna_goal, d.interests AS dna_interests, d.level AS dna_level, d.daily_minutes AS dna_daily
         FROM seats s
         JOIN users u ON u.id = s.user_id
         LEFT JOIN LATERAL (

@@ -4,6 +4,7 @@ const pool     = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const interests = require('../lib/interests');
 const newsFeeds = require('../lib/newsFeeds');
+const starterWords = require('../lib/starterWords');
 const { VAPID_PUBLIC, pushConfigured } = require('../lib/pushConfig');
 
 function parseTimeParts(value) {
@@ -95,8 +96,25 @@ function buildUpcomingSlot(slot, now = new Date()) {
 /* ── ДНК-профиль: цель, интересы, уровень. Ученик заполняет сам при первом входе. */
 router.get('/dna', requireAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT goal, interests, level FROM student_dna WHERE user_id=$1', [req.user.id]);
-    res.json({ dna: rows[0] || null, goals: interests.GOALS, interests: interests.INTERESTS.map(({ key, label, emoji }) => ({ key, label, emoji })), levels: interests.LEVELS });
+    const { rows } = await pool.query('SELECT goal, interests, level, daily_minutes FROM student_dna WHERE user_id=$1', [req.user.id]);
+    /* Onboarding: a level the teacher already set in their Journal ('A2' is
+       only the column default, so it does not count), and whether the
+       student has a teacher at all - a board shared with them or a Journal
+       row that points at them. */
+    const t = await pool.query(
+      `SELECT (SELECT level FROM student_journal WHERE student_id=$1 AND level IS NOT NULL AND level <> 'A2' ORDER BY created_at DESC LIMIT 1) AS teacher_level,
+              (EXISTS (SELECT 1 FROM board_collaborators WHERE user_id=$1) OR EXISTS (SELECT 1 FROM student_journal WHERE student_id=$1)) AS has_teacher`,
+      [req.user.id]).catch(() => ({ rows: [{}] }));
+    const tl = String((t.rows[0] || {}).teacher_level || '').toUpperCase().slice(0, 2);
+    res.json({
+      dna: rows[0] || null,
+      goals: interests.GOALS,
+      interests: interests.INTERESTS.map(({ key, label, emoji }) => ({ key, label, emoji })),
+      levels: interests.LEVELS,
+      daily: interests.DAILY,
+      teacher_level: interests.LEVELS.includes(tl) ? tl : null,
+      has_teacher: !!(t.rows[0] || {}).has_teacher,
+    });
   } catch (err) { console.error('[student/dna]', err.message); res.status(500).json({ error: 'Server error' }); }
 });
 router.put('/dna', requireAuth, async (req, res) => {
@@ -104,11 +122,32 @@ router.put('/dna', requireAuth, async (req, res) => {
     const d = interests.clean(req.body);
     if (!d.interests.length) return res.status(400).json({ error: 'Pick at least one interest' });
     await pool.query(
-      `INSERT INTO student_dna (user_id, goal, interests, level) VALUES ($1,$2,$3,$4)
-       ON CONFLICT (user_id) DO UPDATE SET goal=$2, interests=$3, level=$4, updated_at=NOW()`,
-      [req.user.id, d.goal, d.interests, d.level]);
+      `INSERT INTO student_dna (user_id, goal, interests, level, daily_minutes) VALUES ($1,$2,$3,$4,$5)
+       ON CONFLICT (user_id) DO UPDATE SET goal=$2, interests=$3, level=$4, daily_minutes=COALESCE($5, student_dna.daily_minutes), updated_at=NOW()`,
+      [req.user.id, d.goal, d.interests, d.level, d.daily_minutes]);
     res.json({ ok: true, dna: d });
   } catch (err) { console.error('[student/dna]', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* POST /api/student/starter-words - five easy phrases for the first sprint,
+   picked by the student's interests and goal. Only while the Word Bank is
+   (almost) empty, so it never piles onto a real vocabulary. */
+router.post('/starter-words', requireAuth, async (req, res) => {
+  try {
+    const have = await pool.query(`SELECT COUNT(*)::int AS n FROM vocabulary WHERE user_id=$1 AND kind='word'`, [req.user.id]);
+    if (have.rows[0].n >= 3) return res.json({ ok: true, added: 0 });
+    const d = (await pool.query('SELECT goal, interests FROM student_dna WHERE user_id=$1', [req.user.id])).rows[0] || {};
+    let added = 0;
+    for (const w of starterWords.pick(d.interests || [], d.goal, 5)) {
+      const r = await pool.query(
+        `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_title)
+         SELECT $1, $2::text, $3::text, $4::text, 'word', 'Starter pack'
+          WHERE NOT EXISTS (SELECT 1 FROM vocabulary WHERE user_id=$1 AND kind='word' AND lower(word)=lower($2::text))`,
+        [req.user.id, w.word, w.meaning, w.example]);
+      added += r.rowCount;
+    }
+    res.json({ ok: true, added });
+  } catch (err) { console.error('[student/starter-words]', err.message); res.status(500).json({ error: 'Server error' }); }
 });
 
 /* Ежедневная лента ученика: 3 свежие статьи по его интересам. */

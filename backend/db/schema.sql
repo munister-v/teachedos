@@ -932,6 +932,9 @@ CREATE TABLE IF NOT EXISTS student_dna (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Minutes a day the student plans between lessons (onboarding: 1 / 5 / 15).
+ALTER TABLE student_dna ADD COLUMN IF NOT EXISTS daily_minutes SMALLINT;
+
 -- Word Bank, teacher's side and active recall.
 -- sent_by: the teacher who put the word there (Lesson pad, homework), so the
 -- Homework page can show what was sent and how it is going.

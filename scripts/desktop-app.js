@@ -1346,7 +1346,7 @@ function studentDetailRender() {
     ${badges}
     ${money}
     ${home}
-    ${(s.dna_interests && s.dna_interests.length) || s.dna_goal ? `<div class="st-detail-h">Profile</div><div class="st-chips">${s.dna_goal ? `<span class="st-chip format">${esc(({ work: 'Work & career', travel: 'Travel', series: 'Series & films', move: 'Moving abroad', exams: 'Exams', fun: 'Just for fun' })[s.dna_goal] || s.dna_goal)}</span>` : ''}${(s.dna_interests || []).map(k => `<span class="st-chip ghost">${esc(k)}</span>`).join('')}${s.dna_level ? `<span class="st-chip boards">self: ${esc(s.dna_level)}</span>` : ''}</div>` : ''}
+    ${(s.dna_interests && s.dna_interests.length) || s.dna_goal ? `<div class="st-detail-h">Profile</div><div class="st-chips">${s.dna_goal ? `<span class="st-chip format">${esc(({ work: 'Career & work', travel: 'Travel & life abroad', fluency: 'Fluency & speaking', exams: 'Exams & education', series: 'Series & films', move: 'Moving abroad', fun: 'Just for fun' })[s.dna_goal] || s.dna_goal)}</span>` : ''}${(s.dna_interests || []).map(k => `<span class="st-chip ghost">${esc(k)}</span>`).join('')}${s.dna_level ? `<span class="st-chip boards">self: ${esc(s.dna_level)}</span>` : ''}${s.dna_daily ? `<span class="st-chip ghost">⚡ ${esc(s.dna_daily)} min a day</span>` : ''}</div>` : ''}
     ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
     <div class="st-detail-actions">
       <a class="st-detail-btn" href="journal.html">View profile →</a>
@@ -2772,13 +2772,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1153" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1154" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1153" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1154" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
