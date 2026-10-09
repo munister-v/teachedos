@@ -51,11 +51,16 @@
     { key: 'starry-night', group: 'art', title: 'Starry Night', credit: 'Vincent van Gogh', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg', dark: true },
     { key: 'great-wave', group: 'art', title: 'The Great Wave', credit: 'Katsushika Hokusai', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg' },
     { key: 'wheatfield', group: 'art', title: 'Wheatfield with Crows', credit: 'Vincent van Gogh', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Vincent_van_Gogh_-_Wheatfield_with_crows_-_Google_Art_Project.jpg' },
+    /* Свои иллюстрации TeachEd (нарисованы для нас, без чужих прав). */
+    { key: 'pastel-clouds', group: 'illo', title: 'Pink clouds' },
+    { key: 'pixel-night', group: 'illo', title: 'Pixel night', dark: true },
+    { key: 'neon-city', group: 'illo', title: 'Neon city', dark: true },
+    { key: 'sunset-ridges', group: 'illo', title: 'Sunset hills' },
   ];
   /* Путь абсолютный: фон ставится через CSS-переменную, а относительный
      url() в ней считается от файла стилей (styles/), а не от страницы. */
   WALL_PRESETS.forEach(p => {
-    if (!['photo', 'city', 'arch', 'art'].includes(p.group)) return;
+    if (!['photo', 'city', 'art', 'illo'].includes(p.group)) return;
     const at = f => new URL(`img/wallpapers/${f}`, document.baseURI).href;
     p.css = `url("${at(p.key + '.webp')}") center / cover no-repeat, #6B6F78`;
     p.thumb = `url("${at(p.key + '-thumb.webp')}") center / cover no-repeat, #D5D7DC`;
@@ -71,6 +76,7 @@
     { key: 'photo', title: 'Photos' },
     { key: 'city', title: 'Cities' },
     { key: 'art', title: 'Art' },
+    { key: 'illo', title: 'Illustrations' },
     { key: 'pattern', title: 'Patterns' },
   ];
   window.TeachedWall = { presets: WALL_PRESETS, groups: WALL_GROUPS };
