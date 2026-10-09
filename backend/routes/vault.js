@@ -197,6 +197,54 @@ router.post('/send', async (req, res) => {
   }
 });
 
+/* The one-minute sprint (Practise words in the cabinet).
+   GET  /api/vault/sprint - up to 12 words: the ones due now first (hardest
+        first), then the newest of this week, then the rest by date.
+   POST /api/vault/sprint {grade: easy|medium|again, results:[{id, correct, typed}]}
+        One grade for the whole pool at the end; a word the student got wrong
+        goes back as "again" whatever the grade. */
+router.get('/sprint', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, word, translation, example, collocations, gap, (due_at <= NOW()) AS due
+         FROM vocabulary
+        WHERE user_id = $1 AND kind = 'word'
+        ORDER BY (due_at <= NOW()) DESC, (created_at > NOW() - INTERVAL '7 days') DESC, lapses DESC, created_at DESC
+        LIMIT 12`, [req.user.id]);
+    res.json({ words: rows });
+  } catch (err) {
+    console.error('[vault] sprint', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+router.post('/sprint', async (req, res) => {
+  try {
+    const overall = { easy: 'easy', medium: 'hard', again: 'again' }[req.body && req.body.grade] || 'hard';
+    const results = (Array.isArray(req.body && req.body.results) ? req.body.results : [])
+      .filter(r => r && UUID.test(String(r.id))).slice(0, 12);
+    if (!results.length) return res.status(400).json({ error: 'results required' });
+    const { rows } = await pool.query('SELECT * FROM vocabulary WHERE user_id = $1 AND id = ANY($2::uuid[])', [req.user.id, results.map(r => r.id)]);
+    const by = new Map(rows.map(r => [r.id, r]));
+    let done = 0;
+    for (const r of results) {
+      const card = by.get(r.id);
+      if (!card) continue;
+      const wrong = r.correct === false;
+      const s = schedule(card, wrong ? 'again' : overall);
+      await pool.query(
+        `UPDATE vocabulary SET reps=$3, ease=$4, interval_days=$5, lapses=$6, due_at=$7, learned=$8, last_reviewed_at=NOW(),
+                wrong_count = wrong_count + $9, last_wrong = CASE WHEN $9 = 1 AND $10::text IS NOT NULL THEN $10 ELSE last_wrong END
+          WHERE id=$1 AND user_id=$2`,
+        [card.id, req.user.id, s.reps, s.ease, s.interval_days, s.lapses, s.due_at, s.learned, wrong ? 1 : 0, wrong ? (str(r.typed, 200) || null) : null]);
+      done++;
+    }
+    res.json({ ok: true, words: done });
+  } catch (err) {
+    console.error('[vault] sprint save', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 /* GET /api/vault/sent - the teacher's side of the Word Bank.
    Words that are in the students' banks because of this teacher: sent from
    the Lesson pad or with homework (sent_by), or saved from one of the

@@ -367,6 +367,15 @@ router.get('/my/inbox', async (req, res) => {
          JOIN users u     ON u.id = h.user_id
     LEFT JOIN courses c   ON c.id = h.course_id
         WHERE a.student_id=$1
+          /* Unfinished work leaves the student's list when it can no longer
+             be done: none of its cards are on the board any more, or the
+             deadline passed two days ago. The student cannot remove it
+             themselves; the teacher still sees it as overdue. */
+          AND (a.status IN ('submitted','graded') OR (
+                (h.due_at IS NULL OR h.due_at > NOW() - INTERVAL '2 days')
+            AND EXISTS (SELECT 1 FROM boards b2, jsonb_array_elements(CASE WHEN jsonb_typeof(b2.data->'cards') = 'array' THEN b2.data->'cards' ELSE '[]'::jsonb END) card2
+                         WHERE b2.id = h.board_id
+                           AND card2->>'id' IN (SELECT jsonb_array_elements_text(CASE WHEN jsonb_typeof(h.required_cards) = 'array' THEN h.required_cards ELSE '[]'::jsonb END)))))
         ORDER BY (a.status='assigned') DESC, h.due_at NULLS LAST, a.assigned_at DESC`,
       [req.user.id]
     );

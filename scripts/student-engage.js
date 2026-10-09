@@ -190,7 +190,10 @@
       (on > 0.5 ? `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="8.5" stroke-linecap="round" stroke-dasharray="${on.toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)"/>` : '');
   }
   function practise() {
-    if (window.TeachedVault && typeof window.apiFetch === 'function') window.TeachedVault.practise({ api: window.apiFetch });
+    /* One guided minute, not five games behind tabs (vault-review.js sprint). */
+    if (window.TeachedVault && typeof window.apiFetch === 'function') {
+      window.TeachedVault.sprint({ api: window.apiFetch, onDone: () => { loadVault(); if (typeof window.loadProgress === 'function') window.loadProgress(); } });
+    }
   }
   function review(onDone) {
     if (window.TeachedVault && typeof window.apiFetch === 'function') {

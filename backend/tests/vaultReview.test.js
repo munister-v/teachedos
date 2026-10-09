@@ -53,3 +53,16 @@ test('sent words: one card per student, board and day, with what was practised a
   assert.strictEqual(main.words.find(w => w.word === 'to spoil').slips, 2);
   assert.strictEqual(main.words.find(w => w.word === 'to spoil').last_wrong, 'spoyl');
 });
+
+const { sprintPlan, partnerOf } = sandbox.window.TeachedVault._test;
+test('sprint: a collocation gives the partner, five tasks in three mechanics', () => {
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(partnerOf({ w: 'spoil', colls: ['spoil the mood'], meaning: 'x' }))), { left: 'spoil', right: 'the mood', kind: 'partner' });
+  assert.strictEqual(partnerOf({ w: 'decision', colls: ['make a tough decision'], meaning: '' }).right, 'make a tough');
+  assert.strictEqual(partnerOf({ w: 'fomo', colls: [], meaning: 'fear of missing out' }).kind, 'meaning');
+  const words = ['spoil', 'tackle', 'pitch', 'boost', 'notice', 'woo'].map((w, i) => ({ id: 'id' + i, word: 'to ' + w, translation: 'meaning of ' + w,
+    example: `They ${w} it every day.`, collocations: `${w} the thing`, gap: '' }));
+  const plan = sprintPlan(words);
+  assert.strictEqual(plan.map(t => t.type).join(','), 'match,choice,choice,build,build');
+  assert.strictEqual(plan[0].pairs.length, 3);
+  plan.filter(t => t.type === 'choice').forEach(t => { assert.ok(t.options.includes(t.answer)); assert.strictEqual(t.options.length, 4); });
+});

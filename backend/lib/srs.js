@@ -4,7 +4,7 @@
 //   again - forgot: back in 10 minutes, ease drops, counts as a lapse
 //   hard  - remembered with effort: a little longer than last time
 //   good  - the normal step: 1 day, 3 days, then interval × ease
-//   easy  - too easy: a bigger jump, ease grows
+//   easy  - known well: 4 days the first time, then a bigger jump, ease grows
 //
 // A word whose interval reaches 21 days counts as mastered.
 
@@ -31,7 +31,7 @@ function schedule(card, grade, now = Date.now()) {
       ease = Math.max(MIN_EASE, ease - 0.15);
       interval = reps === 0 ? 1 : Math.max(1, interval * 1.2);
     } else if (grade === 'easy') {
-      interval = reps === 0 ? 3 : Math.max(interval + 1, interval * ease * 1.3);
+      interval = reps === 0 ? 4 : Math.max(interval + 1, interval * ease * 1.3);
       ease += 0.15;
     } else { // good
       interval = reps === 0 ? 1 : reps === 1 ? 3 : Math.max(interval + 1, interval * ease);

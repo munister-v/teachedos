@@ -52,7 +52,7 @@
 .vt-lbl{display:block;font:700 10px/1.2 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#8A8D7A;margin-bottom:4px}
 .vt-hint{font-size:14px;color:#4A4E3C}
 .vt-form{margin:0}
-.vt-in{width:100%;box-sizing:border-box;height:54px;padding:0 16px;border-radius:14px;border:2px solid #24282C;background:#fff;color:#24282C;font:600 19px inherit;font-family:inherit;outline:0}
+.vt-in{width:100%;box-sizing:border-box;height:54px;padding:0 16px;border-radius:14px;border:2px solid #24282C;background:#fff;color:#24282C;font-weight:600;font-size:19px;font-family:inherit;outline:0}
 .vt-in:focus{box-shadow:0 0 0 4px rgba(205,246,73,.7)}
 .vt-in.shake{animation:vtsh .35s}
 @keyframes vtsh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -187,6 +187,23 @@
     return near ? 'almost' : 'wrong';
   }
 
+  const audioCache = new Map();
+  async function sayWord(api, word) {
+    const w = stripTo(word);
+    let url = audioCache.get(w);
+    if (url === undefined) {
+      try { const d = await json(api, '/api/dictionary/define?w=' + encodeURIComponent(w)); url = d && !d.partial && d.audio ? d.audio : ''; }
+      catch (_) { url = ''; }
+      audioCache.set(w, url);
+    }
+    if (url) { try { await new Audio(url).play(); return; } catch (_) {} }
+    try {
+      const u = new SpeechSynthesisUtterance(w);
+      u.lang = 'en-GB'; u.rate = .92;
+      window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+    } catch (_) {}
+  }
+
   async function open(opts = {}) {
     const api = opts.api;
     if (!api) return;
@@ -232,22 +249,7 @@
       c._ask = { gap: g ? g.text : '', hit: g ? g.hit : '', meaning, recall: !!(g || meaning) };
       return c._ask;
     }
-    const audioCache = new Map();
-    async function say(word) {
-      const w = stripTo(word);
-      let url = audioCache.get(w);
-      if (url === undefined) {
-        try { const d = await json(api, '/api/dictionary/define?w=' + encodeURIComponent(w)); url = d && !d.partial && d.audio ? d.audio : ''; }
-        catch (_) { url = ''; }
-        audioCache.set(w, url);
-      }
-      if (url) { try { await new Audio(url).play(); return; } catch (_) {} }
-      try {
-        const u = new SpeechSynthesisUtterance(w);
-        u.lang = 'en-GB'; u.rate = .92;
-        window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
-      } catch (_) {}
-    }
+    const say = word => sayWord(api, word);
     const VERDICT = {
       right: ['ok', '✓ Correct'],
       almost: ['near', 'Almost. Check the spelling'],
@@ -289,9 +291,10 @@
       const [cls, label] = VERDICT[result] || VERDICT.seen;
       const colls = String(c.collocations || '').split(/\s*·\s*/).map(x => x.trim()).filter(Boolean);
       const filled = a.gap && !c.example ? a.gap.replace('______', stripTo(c.word)) : '';
-      const gradesFor = result === 'right' ? ['hard', 'good', 'easy'] : result === 'hinted' ? ['again', 'hard', 'good'] : result === 'almost' ? ['again', 'hard'] : result === 'seen' ? ['again', 'hard', 'good', 'easy'] : ['again'];
-      const dflt = result === 'right' ? 'good' : result === 'hinted' ? 'hard' : result === 'seen' ? '' : 'again';
-      const NAMES = { again: 'Again', hard: 'Hard', good: 'Good', easy: 'Easy' }, KEYS = { again: 1, hard: 2, good: 3, easy: 4 };
+      /* Three grades, as in the method: Again (forgot), Hard (with effort), Easy (know it well). */
+      const gradesFor = result === 'right' ? ['hard', 'easy'] : result === 'hinted' ? ['again', 'hard'] : result === 'almost' ? ['again', 'hard'] : result === 'seen' ? ['again', 'hard', 'easy'] : ['again'];
+      const dflt = result === 'right' ? 'easy' : result === 'hinted' ? 'hard' : result === 'seen' ? '' : 'again';
+      const NAMES = { again: 'Again', hard: 'Hard', easy: 'Easy' }, KEYS = { again: 1, hard: 2, easy: 3 };
       body.innerHTML = head + `<div class="vt-card">
           ${label ? `<div class="vt-verdict ${cls}">${label}${typed && (result === 'almost' || result === 'wrong') ? `<span>you typed <s>${esc(typed)}</s></span>` : ''}</div>` : ''}
           <div class="vt-word">${esc(c.word)}<button type="button" class="vt-say" data-act="say" aria-label="Listen to the word" title="Listen">🔊</button></div>
@@ -344,7 +347,7 @@
         return;
       }
       if (e.key === 'Enter' && enterGrade) { e.preventDefault(); grade(enterGrade); return; }
-      const g = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' }[e.key];
+      const g = { 1: 'again', 2: 'hard', 3: 'easy' }[e.key];
       if (g) grade(g);
     }
     body.addEventListener('click', e => {
@@ -414,7 +417,7 @@
        at random when the window opens and kept while it is open. */
     let themeId = '';
     try {
-      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1123'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1125'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
       const themed = window.TeachedThemes.list.filter(t => t.id);
       themeId = themed[Math.floor(Math.random() * themed.length)].id;
     } catch (_) { themeId = ''; }
@@ -522,6 +525,252 @@
     show(cur);
   }
 
-  window.TeachedVault = { open, summary, practise, _test: { gapParts, judge, normAnswer } };
+  /* ── One-minute sprint ───────────────────────────────────────────────
+     "Practise words" used to open five games behind five tabs, and the
+     student had to choose and switch. The sprint leads by the hand: five
+     short tasks in a row on up to twelve words (due ones first, then this
+     week's), three mechanics - match the partners, pick the word for the
+     sentence, hear it and build it. Nothing to click except the words. One
+     grade for the whole pool at the end; a word answered wrong comes back
+     soon whatever the grade. */
+  const shuffle = a => { const x = a.slice(); for (let k = x.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [x[k], x[r]] = [x[r], x[k]]; } return x; };
+  /* "spoil the surprise" for "to spoil" → { left: "spoil", right: "the surprise" } */
+  function partnerOf(e) {
+    const stem = e.w.split(/\s+/).map(t => escRe(t.length >= 4 ? t.replace(/(e|y)$/i, '') : t) + '\\w*').join('\\s+');
+    for (const c of e.colls) {
+      const m = c.match(new RegExp(`(^|\\s)(${stem})(?=\\s|$)`, 'i'));
+      if (!m) continue;
+      const rest = (c.slice(0, m.index) + ' ' + c.slice(m.index + m[0].length)).replace(/\s+/g, ' ').trim();
+      if (rest.length >= 2 && rest.length <= 40) return { left: e.w, right: rest, kind: 'partner' };
+    }
+    if (e.meaning && e.meaning.length <= 70) return { left: e.w, right: e.meaning, kind: 'meaning' };
+    return null;
+  }
+  function sprintPlan(words) {
+    const pool = words.map(x => {
+      const w = stripTo(x.word);
+      const stored = /_{3,}/.test(x.gap || '') ? String(x.gap).replace(/_{3,}/, '______') : '';
+      const g = stored ? null : gapParts(x.word, x.example);
+      return { id: x.id, word: x.word, w, meaning: String(x.translation || '').trim(), example: x.example || '',
+        colls: String(x.collocations || '').split(/\s*·\s*/).map(c => c.trim()).filter(Boolean), gap: stored || (g ? g.text : ''), hit: g ? g.hit : '' };
+    }).filter(e => e.w);
+    const used = new Set(), tasks = [];
+    const take = (list, n) => { const fresh = list.filter(e => !used.has(e.id)); const got = fresh.concat(list.filter(e => used.has(e.id))).slice(0, n); got.forEach(e => used.add(e.id)); return got; };
+    // 1. match: three pairs
+    const pairable = pool.map(e => ({ e, p: partnerOf(e) })).filter(x => x.p);
+    const byKind = pairable.filter(x => x.p.kind === 'partner').concat(pairable.filter(x => x.p.kind === 'meaning'));
+    if (byKind.length >= 3) {
+      const three = byKind.slice(0, 3);
+      three.forEach(x => used.add(x.e.id));
+      tasks.push({ type: 'match', pairs: three.map(x => ({ id: x.e.id, left: x.p.left, right: x.p.right })), partners: three.every(x => x.p.kind === 'partner') });
+    }
+    // 2-3. the word for the sentence (or for the meaning)
+    const askable = pool.filter(e => e.gap || e.meaning);
+    take(shuffle(askable), 2).forEach(e => {
+      const others = shuffle(pool.filter(o => o.id !== e.id && o.w.toLowerCase() !== e.w.toLowerCase())).slice(0, 3).map(o => o.w);
+      if (others.length) tasks.push({ type: 'choice', id: e.id, prompt: e.gap, meaning: e.meaning, answer: e.gap && e.hit ? e.hit : e.w, word: e.w, options: shuffle([e.gap && e.hit ? e.hit : e.w, ...others]) });
+    });
+    // 4-5. hear it and build it
+    take(shuffle(pool), 2).forEach(e => tasks.push({ type: 'build', id: e.id, word: e.w, meaning: e.meaning, tiles: /^[a-z]{3,12}$/i.test(e.w) }));
+    return tasks.slice(0, 5);
+  }
+  const SP_CSS = `
+.sp{width:100vw;height:100vh;display:flex;flex-direction:column;background:#1B1D22;color:#F4F4F8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif}
+.sp-top{display:flex;align-items:center;gap:16px;padding:14px 18px}
+.sp-dots{display:flex;gap:6px;flex:1}
+.sp-dots i{flex:1;max-width:90px;height:6px;border-radius:6px;background:rgba(255,255,255,.16)}
+.sp-dots i.on{background:#CDF649}.sp-dots i.ok{background:#CDF649}.sp-dots i.bad{background:#FF8C3A}
+.sp-time{font:700 15px 'SF Mono',ui-monospace,Menlo,monospace;color:#C9CAD4;min-width:44px;text-align:right}
+.sp-x{width:40px;height:40px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:15px;cursor:pointer}
+.sp-stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:10px 20px 40px;text-align:center}
+.sp-k{font:700 11px 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#C9CAD4}
+.sp-q{font:500 clamp(22px,3.4vw,34px)/1.35 'Iowan Old Style','Palatino Linotype',Georgia,serif;max-width:820px}
+.sp-q .gap{display:inline-block;min-width:4.5em;border-bottom:3px solid #CDF649;margin:0 .15em;color:#CDF649}
+.sp-sub{font-size:16px;color:#C9CAD4;max-width:640px;line-height:1.45}
+.sp-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px 40px;width:min(720px,100%)}
+.sp-col{display:flex;flex-direction:column;gap:12px}
+.sp-t{min-height:58px;padding:10px 18px;border-radius:16px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;font-weight:650;font-size:18px;font-family:inherit;cursor:pointer;transition:background .12s,border-color .12s,transform .12s}
+.sp-t:hover:not(:disabled){background:rgba(255,255,255,.14)}
+.sp-t.sel{border-color:#CDF649;background:rgba(205,246,73,.16)}
+.sp-t.ok{border-color:#CDF649;background:#CDF649;color:#24282C;cursor:default}
+.sp-t.bad{border-color:#FF8C3A;background:rgba(255,140,58,.25);animation:vtsh .35s}
+.sp-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(620px,100%)}
+.sp-slots{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;min-height:60px}
+.sp-slot{width:50px;height:58px;border-radius:12px;border:2px dashed rgba(255,255,255,.3);display:grid;place-items:center;font:700 26px inherit;color:#fff;background:none;cursor:pointer;font-family:inherit}
+.sp-slot.full{border-style:solid;border-color:#CDF649;background:rgba(205,246,73,.14)}
+.sp-letters{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.sp-l{width:50px;height:58px;border-radius:12px;border:0;background:#F4F4F8;color:#24282C;font-weight:700;font-size:26px;font-family:inherit;cursor:pointer}
+.sp-l:disabled{opacity:.18;cursor:default}
+.sp-in{width:min(440px,100%);height:58px;padding:0 18px;border-radius:14px;border:2px solid #CDF649;background:rgba(255,255,255,.08);color:#fff;font-weight:600;font-size:22px;font-family:inherit;text-align:center;outline:0}
+.sp-row{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
+.sp-say{width:58px;height:58px;border-radius:50%;border:0;background:#CDF649;font-size:24px;cursor:pointer}
+.sp-skip{border:0;background:none;color:#C9CAD4;font-weight:600;font-size:14px;font-family:inherit;text-decoration:underline;cursor:pointer;padding:8px}
+.sp-fb{min-height:26px;font-size:17px;font-weight:700}
+.sp-fb.ok{color:#CDF649}.sp-fb.bad{color:#FFB37A}
+.sp-big{font:700 clamp(30px,5vw,46px)/1.1 'Iowan Old Style',Georgia,serif}
+.sp-stats{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.sp-stats div{min-width:150px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.08);font-size:13px;color:#C9CAD4}
+.sp-stats b{display:block;font-size:30px;color:#fff;margin-bottom:2px}
+.sp-grades{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.sp-g{min-height:52px;padding:0 20px;border-radius:14px;border:2px solid rgba(255,255,255,.22);background:transparent;color:#fff;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}
+.sp-g small{display:block;font-weight:500;font-size:12px;color:#C9CAD4}
+.sp-g.on{border-color:#CDF649;background:rgba(205,246,73,.16)}
+.sp-go{min-height:54px;padding:0 34px;border-radius:16px;border:0;background:#CDF649;color:#24282C;font-weight:800;font-size:16px;font-family:inherit;cursor:pointer}
+.sp :is(.sp-t,.sp-l,.sp-slot,.sp-g,.sp-go,.sp-say,.sp-x,.sp-skip):focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media (max-width:640px){.sp-cols{gap:10px 14px}.sp-t{font-size:16px;padding:8px 10px}.sp-opts{grid-template-columns:1fr}.sp-l,.sp-slot{width:44px;height:52px;font-size:22px}}
+`;
+  async function sprint(opts = {}) {
+    const api = opts.api;
+    if (!api) return;
+    css();
+    if (!document.getElementById('sp-css')) { const st = document.createElement('style'); st.id = 'sp-css'; st.textContent = SP_CSS; document.head.appendChild(st); }
+    const back = document.createElement('div');
+    back.className = 'vt-back vt-imm';
+    back.innerHTML = `<div class="sp" role="dialog" aria-modal="true" aria-label="Word sprint"><div class="sp-top"><span class="vt-kick" style="color:#C9CAD4">Word Bank · sprint</span><div class="sp-dots"></div><span class="sp-time">0:00</span><button class="sp-x" type="button" aria-label="Close">✕</button></div><div class="sp-stage"><div class="sp-sub">Getting your words…</div></div></div>`;
+    document.body.appendChild(back);
+    const stage = back.querySelector('.sp-stage'), dots = back.querySelector('.sp-dots'), clock = back.querySelector('.sp-time');
+    let tick = null, keyFn = null, started = 0, finished = false;
+    const close = () => { clearInterval(tick); back.remove(); document.removeEventListener('keydown', onKey); if (opts.onDone) opts.onDone({ finished }); };
+    const onKey = e => { if (e.key === 'Escape') { close(); return; } if (keyFn) keyFn(e); };
+    back.querySelector('.sp-x').addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+
+    let words = [];
+    try { words = (await json(api, '/api/vault/sprint')).words || []; }
+    catch (e) { stage.innerHTML = `<div class="sp-sub">${esc(e.message)}</div>`; return; }
+    const tasks = words.length >= 3 ? sprintPlan(words) : [];
+    if (tasks.length < 2) {
+      stage.innerHTML = `<span style="font-size:40px">🏦</span><div class="sp-big">Not enough words yet</div><div class="sp-sub">A sprint needs at least three words with a meaning. Save words while you read, or ask your teacher to send you some.</div><button type="button" class="sp-go" data-close>Close</button>`;
+      stage.querySelector('[data-close]').addEventListener('click', close);
+      return;
+    }
+    const marks = [];                     // per task: true / false
+    const res = new Map();                // word id → { correct, typed }
+    const note = (id, ok, typed) => { const cur = res.get(id); res.set(id, { correct: (cur ? cur.correct : true) && ok, typed: !ok && typed ? typed : (cur ? cur.typed : '') }); };
+    const paintDots = at => { dots.innerHTML = tasks.map((_, k) => `<i class="${k < marks.length ? (marks[k] ? 'ok' : 'bad') : k === at ? 'on' : ''}"></i>`).join(''); };
+    started = Date.now();
+    tick = setInterval(() => { const sec = Math.floor((Date.now() - started) / 1000); clock.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }, 500);
+    const next = (at, ok, wait) => { marks[at] = ok; paintDots(at); keyFn = null; setTimeout(() => { if (back.isConnected) run(at + 1); }, wait); };
+
+    function run(at) {
+      if (at >= tasks.length) { finish(); return; }
+      paintDots(at);
+      const t = tasks[at];
+      if (t.type === 'match') runMatch(t, at);
+      else if (t.type === 'choice') runChoice(t, at);
+      else runBuild(t, at);
+    }
+    function runMatch(t, at) {
+      const rights = shuffle(t.pairs);
+      stage.innerHTML = `<div class="sp-k">${t.partners ? 'Which words go together?' : 'Match the word and its meaning'}</div>
+        <div class="sp-cols"><div class="sp-col">${shuffle(t.pairs).map(p => `<button type="button" class="sp-t" data-l="${esc(p.id)}">${esc(p.left)}</button>`).join('')}</div>
+        <div class="sp-col">${rights.map(p => `<button type="button" class="sp-t" data-r="${esc(p.id)}">${esc(p.right)}</button>`).join('')}</div></div><div class="sp-fb"></div>`;
+      let sel = null, left = t.pairs.length, clean = true;
+      stage.querySelector('.sp-cols').addEventListener('click', e => {
+        const b = e.target.closest('.sp-t');
+        if (!b || b.disabled) return;
+        if (b.dataset.l) { stage.querySelectorAll('[data-l]').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); sel = b; return; }
+        if (!sel) { const first = stage.querySelector('[data-l]:not(:disabled)'); first.classList.add('sel'); sel = first; }
+        if (sel.dataset.l === b.dataset.r) {
+          [sel, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); x.disabled = true; });
+          note(sel.dataset.l, true); sel = null; left--;
+          if (!left) next(at, clean, 550);
+        } else {
+          clean = false; note(sel.dataset.l, false); note(b.dataset.r, false);
+          b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 400);
+        }
+      });
+    }
+    function runChoice(t, at) {
+      const q = t.prompt ? esc(t.prompt).replace(/_{6}/, '<span class="gap">&nbsp;</span>') : esc(t.meaning);
+      stage.innerHTML = `<div class="sp-k">${t.prompt ? 'Which word fits?' : 'Which word means this?'}</div><div class="sp-q">${q}</div>
+        <div class="sp-opts">${t.options.map((o, k) => `<button type="button" class="sp-t" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div><div class="sp-fb"></div>`;
+      let done = false;
+      const pick = b => {
+        if (done || !b) return;
+        done = true;
+        const ok = b.dataset.o === t.answer;
+        note(t.id, ok, ok ? '' : b.dataset.o);
+        stage.querySelectorAll('.sp-t').forEach(x => { x.disabled = true; if (x.dataset.o === t.answer) x.classList.add('ok'); });
+        if (!ok) b.classList.add('bad');
+        const gap = stage.querySelector('.gap'); if (gap) gap.textContent = t.answer;
+        next(at, ok, ok ? 750 : 1700);
+      };
+      stage.querySelector('.sp-opts').addEventListener('click', e => pick(e.target.closest('.sp-t')));
+      keyFn = e => { const k = Number(e.key); if (k >= 1 && k <= t.options.length) pick(stage.querySelectorAll('.sp-t')[k - 1]); };
+    }
+    function runBuild(t, at) {
+      const letters = t.tiles ? shuffle(t.word.toLowerCase().split('')) : [];
+      if (t.tiles && letters.join('') === t.word.toLowerCase() && letters.length > 1) letters.reverse();
+      stage.innerHTML = `<div class="sp-k">Listen and ${t.tiles ? 'build' : 'type'} the word</div>
+        <div class="sp-row"><button type="button" class="sp-say" aria-label="Listen again" title="Listen again">🔊</button>${t.meaning ? `<div class="sp-sub" style="text-align:left">${esc(t.meaning)}</div>` : ''}</div>
+        ${t.tiles ? `<div class="sp-slots">${letters.map((_, k) => `<button type="button" class="sp-slot" data-s="${k}" aria-label="Letter ${k + 1}"></button>`).join('')}</div>
+          <div class="sp-letters">${letters.map((l, k) => `<button type="button" class="sp-l" data-k="${k}">${esc(l)}</button>`).join('')}</div>`
+          : `<form class="sp-form" autocomplete="off"><input class="sp-in" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Type the word"></form>`}
+        <div class="sp-fb"></div><button type="button" class="sp-skip">I do not know</button>`;
+      const fb = stage.querySelector('.sp-fb');
+      let done = false;
+      const end = (ok, typed) => {
+        if (done) return; done = true;
+        note(t.id, ok, typed);
+        fb.className = 'sp-fb ' + (ok ? 'ok' : 'bad');
+        fb.textContent = ok ? '✓ Correct' : `It is “${t.word}”`;
+        next(at, ok, ok ? 750 : 1900);
+      };
+      stage.querySelector('.sp-say').addEventListener('click', () => sayWord(api, t.word));
+      stage.querySelector('.sp-skip').addEventListener('click', () => end(false, ''));
+      setTimeout(() => { if (!done) sayWord(api, t.word); }, 250);
+      if (!t.tiles) {
+        const inp = stage.querySelector('.sp-in');
+        setTimeout(() => { try { inp.focus(); } catch (_) {} }, 40);
+        stage.querySelector('.sp-form').addEventListener('submit', e => { e.preventDefault(); const v = inp.value.trim(); if (v) end(judge(v, [t.word]) === 'right', v); });
+        return;
+      }
+      const placed = [];                    // tile indexes in order
+      const paint = () => {
+        stage.querySelectorAll('.sp-slot').forEach((sl, k) => { const ti = placed[k]; sl.textContent = ti == null ? '' : letters[ti]; sl.classList.toggle('full', ti != null); });
+        stage.querySelectorAll('.sp-l').forEach((b, k) => { b.disabled = placed.includes(k); });
+        if (placed.length === letters.length) { const v = placed.map(k => letters[k]).join(''); if (v === t.word.toLowerCase()) end(true, ''); else { fb.className = 'sp-fb bad'; fb.textContent = 'Not yet. Tap a letter to take it back.'; tries++; if (tries >= 2) end(false, v); } }
+        else if (!done) { fb.textContent = ''; }
+      };
+      let tries = 0;
+      const put = k => { if (done || placed.includes(k) || placed.length >= letters.length) return; placed.push(k); paint(); };
+      stage.querySelector('.sp-letters').addEventListener('click', e => { const b = e.target.closest('.sp-l'); if (b) put(Number(b.dataset.k)); });
+      stage.querySelector('.sp-slots').addEventListener('click', e => { const sl = e.target.closest('.sp-slot'); if (!sl || done) return; const k = Number(sl.dataset.s); if (k < placed.length) { placed.splice(k, 1); paint(); } });
+      keyFn = e => {
+        if (done) return;
+        if (e.key === 'Backspace') { e.preventDefault(); placed.pop(); paint(); return; }
+        if (/^[a-z]$/i.test(e.key)) { const k = letters.findIndex((l, x) => l === e.key.toLowerCase() && !placed.includes(x)); if (k >= 0) put(k); }
+      };
+    }
+    function finish() {
+      clearInterval(tick);
+      finished = true;
+      const right = marks.filter(Boolean).length, sec = Math.max(1, Math.round((Date.now() - started) / 1000));
+      let grade = right === marks.length ? 'easy' : right >= Math.ceil(marks.length / 2) ? 'medium' : 'again';
+      const G = [['easy', 'Easy', 'back in 4 days'], ['medium', 'Medium', 'back tomorrow'], ['again', 'Again', 'back today']];
+      paintDots(-1);
+      const draw = () => {
+        stage.innerHTML = `<span style="font-size:40px">✨</span><div class="sp-big">Sprint complete</div>
+          <div class="sp-stats"><div><b>${right}/${marks.length}</b>correct</div><div><b>${sec}s</b>your time</div><div><b>🔥</b>today counts for your streak</div></div>
+          <div class="sp-sub">How did these words feel? Words you missed come back today anyway.</div>
+          <div class="sp-grades">${G.map(([k, l, d]) => `<button type="button" class="sp-g${k === grade ? ' on' : ''}" data-g="${k}">${l}<small>${d}</small></button>`).join('')}</div>
+          <button type="button" class="sp-go">Complete ↵</button>`;
+        stage.querySelectorAll('.sp-g').forEach(b => b.addEventListener('click', () => { grade = b.dataset.g; draw(); }));
+        stage.querySelector('.sp-go').addEventListener('click', complete);
+      };
+      let sent = false;
+      const complete = async () => {
+        if (sent) return; sent = true;
+        try { await json(api, '/api/vault/sprint', { method: 'POST', body: { grade, results: [...res].map(([id, r]) => ({ id, correct: r.correct, typed: r.typed })) } }); } catch (_) {}
+        close();
+      };
+      keyFn = e => { if (e.key === 'Enter') { e.preventDefault(); complete(); } };
+      draw();
+    }
+    run(0);
+  }
+
+  window.TeachedVault = { open, summary, practise, sprint, _test: { gapParts, judge, normAnswer, sprintPlan, partnerOf } };
 
 })();

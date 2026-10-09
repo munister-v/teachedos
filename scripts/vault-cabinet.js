@@ -60,7 +60,7 @@
       box.innerHTML = html;
       anchor.parentNode.insertBefore(box, anchor);
       box.querySelector('.vc-rem').addEventListener('click', ev => { ev.stopPropagation(); toggleReminders(box); });
-      box.querySelector('.vc-prac')?.addEventListener('click', () => window.TeachedVault.practise({ api }));
+      box.querySelector('.vc-prac')?.addEventListener('click', () => window.TeachedVault.sprint({ api, onDone: paint }));
       box.querySelector('.vc-rev').addEventListener('click', () => window.TeachedVault.open({ api, limit: 20, onDone: () => { paint(); if (typeof loadVocab === 'function') loadVocab(); } }));
     });
   }
@@ -110,7 +110,7 @@
     st.textContent = CSS;
     document.head.appendChild(st);
     paint();
-    if (/[#&]practise\b/.test(location.hash)) setTimeout(() => window.TeachedVault.practise({ api }), 600);
+    if (/[#&]practise\b/.test(location.hash)) setTimeout(() => window.TeachedVault.sprint({ api, onDone: paint }), 600);
     if (/[#&]vault\b/.test(location.hash)) setTimeout(() => window.TeachedVault.open({ api, limit: 20, onDone: paint }), 600);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
