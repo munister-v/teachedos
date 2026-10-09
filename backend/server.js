@@ -207,6 +207,7 @@ app.use('/api/vault', require('./routes/vault'));
 app.use('/api/library', require('./routes/library'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/images', require('./routes/images'));
+app.use('/api/gifs', require('./routes/gifs'));
 app.use('/api/dictionary', require('./routes/dictionary'));
 
 // ── 404 ────────────────────────────────────────────────────────────────────

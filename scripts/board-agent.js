@@ -694,5 +694,5 @@
     toggle();
   }, true);
 
-  window.TeachEdBoardAgent = { open, close, toggle, run, park };
+  window.TeachEdBoardAgent = { open, close, toggle, run, park, wordSource };
 })();

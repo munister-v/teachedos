@@ -1678,7 +1678,7 @@ function renderImage(el, card) {
 }
 
 /* ══════════════════════ GIF CARD ══════════════════════
-   Animated GIF card - Tenor search + direct URL input.
+   Animated GIF card - search through our server + direct URL input.
    Stores: { src, tenorId, query, caption }              */
 function renderGif(el, card) {
   const d = card.data;
@@ -1726,7 +1726,7 @@ function renderGif(el, card) {
     const empty = document.createElement('button');
     empty.type = 'button';
     empty.className = 'gif-empty';
-    empty.innerHTML = `<span class="gif-empty-ic">🎞️</span><span class="gif-empty-title">Add a GIF</span><span class="gif-empty-sub">Search Tenor or paste a URL</span>`;
+    empty.innerHTML = `<span class="gif-empty-ic">🎞️</span><span class="gif-empty-title">Add a GIF</span><span class="gif-empty-sub">Search GIFs or paste a URL</span>`;
     empty.addEventListener('click', ev => { ev.stopPropagation(); openGifPanel(card.id); });
     body.appendChild(empty);
   }
@@ -1734,48 +1734,20 @@ function renderGif(el, card) {
   el.appendChild(body);
 }
 
-/* ══════════════════════ GIF PANEL (Tenor search) ══════════════════════ */
-// Tenor API v1 - free public key (official Tenor test key, rate-limited but no registration needed)
-const TENOR_KEY = 'LIVDSRZULELA';
-const TENOR_BASE = 'https://api.tenor.com/v1';
-
-async function _tenorSearch(q, limit = 16) {
-  const url = `${TENOR_BASE}/search?q=${encodeURIComponent(q)}&key=${TENOR_KEY}&limit=${limit}&media_filter=minimal&contentfilter=low`;
+/* ══════════════════════ GIF PANEL ═════════════════════════════════════
+   Поиск идёт через наш сервер (/api/gifs/search), а не из браузера в Tenor:
+   Tenor закрыл публичный API (HTTP 403 «Tenor API is discontinued»), и поиск
+   гифок молча возвращал пустоту. Сервер берёт GIPHY, если в .env есть ключ,
+   иначе открытые GIF из Openverse (без ключа, но совпадения слабее). */
+let _gifSource = '';
+async function _gifSearch(q, limit = 16) {
+  if (!authToken) return [];
   try {
-    const res = await fetch(url);
+    const res = await apiFetch('/api/gifs/search?limit=' + limit + (q ? '&q=' + encodeURIComponent(q) : ''));
     if (!res.ok) return [];
     const data = await res.json();
-    return (data.results || []).map(r => {
-      const gif  = r.media?.[0]?.gif;
-      const tiny = r.media?.[0]?.tinygif || r.media?.[0]?.nanogif;
-      return {
-        id:      r.id,
-        url:     gif?.url  || '',
-        preview: tiny?.url || gif?.url || '',
-        title:   r.title  || q,
-        dims:    gif?.dims || [320, 240],
-      };
-    }).filter(r => r.url);
-  } catch { return []; }
-}
-
-async function _tenorFeatured(limit = 16) {
-  const url = `${TENOR_BASE}/trending?key=${TENOR_KEY}&limit=${limit}&media_filter=minimal&contentfilter=low&q=teaching+classroom`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.results || []).map(r => {
-      const gif  = r.media?.[0]?.gif;
-      const tiny = r.media?.[0]?.tinygif || r.media?.[0]?.nanogif;
-      return {
-        id:      r.id,
-        url:     gif?.url  || '',
-        preview: tiny?.url || gif?.url || '',
-        title:   r.title  || 'GIF',
-        dims:    gif?.dims || [320, 240],
-      };
-    }).filter(r => r.url);
+    _gifSource = data.source || '';
+    return (Array.isArray(data.results) ? data.results : []).filter(r => r && r.url);
   } catch { return []; }
 }
 
@@ -1804,10 +1776,15 @@ async function _loadGifGrid(q) {
   if (!grid) return;
   grid.innerHTML = '';
   if (spinner) spinner.style.display = 'flex';
-  const results = q ? await _tenorSearch(q) : await _tenorFeatured();
+  const results = await _gifSearch(q || 'teaching classroom');
   if (spinner) spinner.style.display = 'none';
+  const credit = document.getElementById('gif-tenor-credit');
+  if (credit) {
+    credit.innerHTML = _gifSource === 'giphy' ? '<a href="https://giphy.com" target="_blank" rel="noopener">Powered by GIPHY</a>'
+      : _gifSource === 'openverse' ? '<a href="https://openverse.org" target="_blank" rel="noopener">GIFs from Openverse, open licences</a>' : '';
+  }
   if (!results.length) {
-    grid.innerHTML = '<div class="gif-no-results">No GIFs found. Try a different search.</div>';
+    grid.innerHTML = `<div class="gif-no-results">${authToken ? 'No GIFs found. Try a different search.' : 'Sign in to search GIFs, or paste a GIF link below.'}</div>`;
     return;
   }
   results.forEach(gif => {
@@ -16448,7 +16425,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1100';
+const TEACHEDOS_ASSET_VERSION = '1107';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19638,11 +19615,18 @@ function _wizShow(on) {
 }
 
 function openLessonWizard() {
-  boardLessonWizard = { skill: null, source: null };
+  boardLessonWizard = { skill: null, source: null, pane: 'lesson', game: null };
   lastLessonStageSet = null;
   document.getElementById('tool-builder-panel')?.classList.add('open');
   renderLessonWizard();
   prewarmTeacherAiEngine();
+}
+
+function setWizardPane(pane) {
+  if (!boardLessonWizard) return;
+  boardLessonWizard.pane = pane === 'elements' ? 'elements' : 'lesson';
+  boardLessonWizard.game = null;
+  renderLessonWizard();
 }
 
 function renderLessonWizard() {
@@ -19654,9 +19638,17 @@ function renderLessonWizard() {
   const sub    = document.getElementById('tbuilder-sub');
 
   if (!boardLessonWizard.skill) {
+    /* Игра выбрана: вместо каталога окно условий (слова, тема, грамматика). */
+    if (boardLessonWizard.game && window.TeachEdElements) {
+      window.TeachEdElements.mountSetup(host, boardLessonWizard.game, { kicker, title, sub });
+      return;
+    }
+    const pane = boardLessonWizard.pane === 'elements' && window.TeachEdElements ? 'elements' : 'lesson';
     if (kicker) kicker.textContent = 'Lesson builder & assistant';
     if (title)  title.textContent  = 'What are we working on today?';
-    if (sub)    sub.textContent    = 'Say it in your own words, or pick a studio.';
+    if (sub)    sub.textContent    = pane === 'elements'
+      ? 'Pick a game, a widget or a GIF. A game asks what it should practise first.'
+      : 'Say it in your own words, or pick a studio.';
     /* Помощник доски и студии - один вход. Строка сверху принимает то же, что
        командная строка внизу доски («сделай чтение по словам этой студии»,
        «отсортируй стикеры»), а игры, которые стояли отдельной кнопкой на
@@ -19668,16 +19660,17 @@ function renderLessonWizard() {
         <button type="submit" class="tb-wiz-ask-go">Ask <span aria-hidden="true">↵</span></button>
       </form>` : ''}
       <div class="tb-wiz-tabs" role="tablist">
-        <button type="button" class="tb-wiz-tab is-on" role="tab" aria-selected="true">Studios</button>
-        <button type="button" class="tb-wiz-tab" role="tab" aria-selected="false" onclick="closeTeacherToolBuilder();openGamesModal()">Games</button>
+        <button type="button" class="tb-wiz-tab${pane === 'lesson' ? ' is-on' : ''}" role="tab" aria-selected="${pane === 'lesson'}" onclick="setWizardPane('lesson')">Full lesson</button>
+        <button type="button" class="tb-wiz-tab${pane === 'elements' ? ' is-on' : ''}" role="tab" aria-selected="${pane === 'elements'}" onclick="setWizardPane('elements')">Single elements</button>
       </div>
-      <div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
+      ${pane === 'elements' ? '<div id="tb-el-host"></div>' : `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
       <button type="button" class="tb-wiz-card${ready ? '' : ' is-soon'}"
         ${ready ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
         <span class="tb-wiz-ic">${esc(s.icon)}</span>
         <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
         ${ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">next</span>'}
-      </button>`; }).join('')}</div>`;
+      </button>`; }).join('')}</div>`}`;
+    if (pane === 'elements') window.TeachEdElements.mount(document.getElementById('tb-el-host'));
     return;
   }
 
@@ -27528,8 +27521,13 @@ let _gamesActiveTag = 'All';
 const GAME_TAGS = ['All','Vocabulary','Grammar','Spelling','Speed','Speaking'];
 
 function openGamesModal() {
+  /* Игры теперь лежат в панели студий (Single elements): все старые входы -
+     рейка, клавиша G, меню «+», команда помощника - ведут туда. */
+  const student = !!(currentUser && currentUser.role === 'student');
+  if (window.TeachEdElements && !student) { window.TeachEdElements.open('games'); return; }
   const ov = document.getElementById('games-overlay');
   if (!ov) return;
+  const gb = ov.querySelector('.gh-back'); if (gb) gb.hidden = student;
   buildGamesTabs();
   renderGamesGrid();
   // Тема для игр, которые отсюда ляжут на доску.
