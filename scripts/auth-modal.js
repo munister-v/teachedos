@@ -528,6 +528,20 @@ function humanError(e) {
         google.accounts.id.renderButton(wrap, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', width, logo_alignment: 'center', locale: 'en' });
       } catch (e) { console.warn('[auth-modal] gsi renderButton', e); area.style.display = 'none'; return; }
       area.style.display = wrap.childElementCount && mode !== '2fa' && mode !== 'forgot' ? 'block' : 'none';
+      /* Show the button once Google's iframe has loaded and swapped in the
+         personalised "Continue as" row, not while it changes shape. */
+      wrap.classList.remove('is-ready');
+      const reveal = () => setTimeout(() => wrap.classList.add('is-ready'), 220);
+      const frame = wrap.querySelector('iframe');
+      if (frame) { frame.addEventListener('load', reveal, { once: true }); setTimeout(() => wrap.classList.add('is-ready'), 1500); }
+      else {
+        const mo = new MutationObserver(() => {
+          const f = wrap.querySelector('iframe');
+          if (f) { mo.disconnect(); f.addEventListener('load', reveal, { once: true }); }
+        });
+        mo.observe(wrap, { childList: true, subtree: true });
+        setTimeout(() => { mo.disconnect(); wrap.classList.add('is-ready'); }, 1500);
+      }
     });
   }
   async function onGoogle(resp) {

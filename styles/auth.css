@@ -498,3 +498,11 @@
 @media (max-width: 540px) {
   #auth-overlay.auth-overlay { padding-top: 16px; }
 }
+
+/* The card only fades in: the slide-up + scale entry (landing's inline CSS,
+   board.css .board-auth-card) read as a twitch next to Google's late swap
+   of its button. The Google slot itself fades in once its iframe settles
+   (auth-modal.js), so the plain pill -> "Continue as" swap is not seen. */
+#auth-overlay .auth-card { transform: none !important; }
+#auth-overlay .auth-google-btn { opacity: 0; transition: opacity .25s ease; }
+#auth-overlay .auth-google-btn.is-ready { opacity: 1; }
