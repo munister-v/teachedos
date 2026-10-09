@@ -2,7 +2,7 @@
    One material for the surfaces that float over content - bars, widgets,
    windows, menus, sheets - on the student cabinet, the teacher's desktop and
    the board. Loaded last on those pages. Every selector carries the same
-   eight-id prefix and lists its targets in :where() (which adds nothing), so
+   eight-id prefix on <html> (so <body> can still be qualified by page class) and lists its targets in :where() (which adds nothing), so
    these rules beat the pages' own :not(#_) layers (up to six ids) and, among
    themselves, the later rule wins - no specificity surprises.
 
@@ -23,7 +23,8 @@
   --lg-fill-thin:rgba(255,255,255,.5);
   --lg-fill-regular:rgba(255,255,255,.68);
   --lg-fill-thick:rgba(255,255,255,.84);
-  --lg-fill-dark:rgba(30,32,37,.62);
+  --lg-fill-dark:rgba(30,32,37,.86);          /* over a flat page: close to the brand ink */
+  --lg-fill-dark-photo:rgba(30,32,37,.6);     /* over a photo or a wallpaper */
   --lg-blur:blur(22px) saturate(1.9) brightness(1.12);
   --lg-blur-thick:blur(30px) saturate(1.6);
   --lg-blur-dark:blur(26px) saturate(1.5) brightness(.85);
@@ -35,10 +36,18 @@
   --lg-drop-big:0 30px 80px -28px rgba(18,20,24,.5),0 4px 14px rgba(18,20,24,.08);
   --lg-border:1px solid rgba(255,255,255,.55);
   --lg-border-dark:1px solid rgba(255,255,255,.14);
+  /* A soft brand-coloured ambient behind pages that have no wallpaper: glass
+     over a flat colour has nothing to show, so it reads as grey. */
+  --lg-ambient:
+    radial-gradient(55% 45% at 10% 6%, rgba(205,246,73,.34), transparent 62%),
+    radial-gradient(48% 42% at 94% 10%, rgba(159,140,232,.26), transparent 62%),
+    radial-gradient(52% 48% at 86% 96%, rgba(73,226,220,.20), transparent 62%),
+    radial-gradient(46% 42% at 4% 96%, rgba(248,205,205,.40), transparent 62%),
+    #F3F3EC;
 }
 
 /* ── thin: bars, islands, widgets, windows ───────────────────────────── */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(
   /* board */      #toolbar .tb-island, #zoom-controls, #minimap, #board-agent-pill, #presence-bar, #reveal-bar, #board-present-bar, #align-bar, #board-search-bar, #mobile-quickbar,
   /* desktop */    .widget, .win,
   /* student */    .te-card:not(.is-next), .te-next-card:not(.is-next)
@@ -53,30 +62,30 @@ html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):
    student's top bar) carry their glass on ::before. With backdrop-filter on
    the bar itself, a menu inside it could only blur the bar, and the widgets
    under the menu showed through sharp. */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(#menubar, .topbar){
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#menubar, .topbar){
   background:transparent !important;border-color:rgba(255,255,255,.5) !important;
   -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
   box-shadow:0 10px 30px -18px rgba(18,20,24,.35) !important;isolation:isolate;
 }
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(#menubar, .topbar)::before{
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#menubar, .topbar)::before{
   content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
   background:var(--lg-sheen),var(--lg-fill-thin);
   -webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);box-shadow:var(--lg-edge);
 }
 /* on a phone the top bar is sticky, which already anchors ::before */
-@media (min-width:861px){ html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .topbar{position:relative} }
+@media (min-width:861px){ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .topbar{position:relative} }
 
 /* Windows and widgets hold small grey text: a little more body, so a dark
    photo behind does not swallow it. Student Pulse keeps its pink, as glass. */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(.widget, .win){
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.widget, .win){
   background:var(--lg-sheen),rgba(255,255,255,.6) !important;
 }
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) #wg-pulse{
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #wg-pulse{
   background:var(--lg-sheen),rgba(250,222,222,.66) !important;
 }
 
 /* ── regular: menus, popovers ─────────────────────────────────────────── */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(
   #user-menu, #more-menu, #sb-more-menu, #ctx-menu, #board-menu, #export-menu, #shape-panel, #mt-more-pop, #tbuilder-add-menu, #laser-pop,
   #mb-acct-menu, #i-menu, #notif-panel, .nb-panel, .cascade-menu, .tbuilder-more-menu
 ){
@@ -88,7 +97,7 @@ html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):
 }
 
 /* ── thick: big panels, modal boxes, sheets ───────────────────────────── */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(
   #share-panel, #settings-panel, #shortcuts-panel, #vh-panel, #frame-panel, #gif-panel, #sticker-panel, #ai-assistant-panel, #tool-builder-panel,
   .yt-modal-card, #student-quiz-modal, .modal-box, .te-sheet, .sw-sheet, .lp-panel
 ){
@@ -97,74 +106,147 @@ html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):
   -webkit-backdrop-filter:var(--lg-blur-thick) !important;backdrop-filter:var(--lg-blur-thick) !important;
   box-shadow:var(--lg-edge),var(--lg-drop-big) !important;
 }
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(.modal-box, .te-sheet, .sw-sheet, .yt-modal-card, #student-quiz-modal){border-radius:28px !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.modal-box, .te-sheet, .sw-sheet, .yt-modal-card, #student-quiz-modal){border-radius:28px !important}
 
 /* ── dark: the board's tool rail, the dock, the student's sidebar ─────── */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(#miro-toolbar, #dock, .sidebar#sidebar, .te-words, .lp-fab){
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#miro-toolbar, #dock, .sidebar#sidebar, .te-words, .lp-fab){
   background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
   border:var(--lg-border-dark) !important;
   -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
   box-shadow:var(--lg-edge-dark),var(--lg-drop) !important;
 }
+/* over a photo (the student's wallpaper, the teacher's desktop) the dark
+   panes are thinner, so the picture shows through */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.sw-has) :where(.sidebar#sidebar, .te-words),
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.os-desktop) :where(#dock){
+  background:var(--lg-sheen-dark),var(--lg-fill-dark-photo) !important;
+}
 /* the student's sidebar floats as a pane, like the iPad sidebar */
 @media (min-width:861px){
-  html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .sidebar#sidebar{
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .sidebar#sidebar{
     margin:12px 0 12px 12px;height:calc(100vh - 24px);border-radius:26px !important;
   }
 }
 
 /* ── overlays dim, they do not blur (see the note at the top) ─────────── */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(.modal-overlay, .lc-ov, .te-sheet-ov, .sw-ov, #settings-overlay, #share-overlay, #vh-overlay, #boards-overlay, #games-overlay, #vocab-overlay, #upgrade-overlay, #task-builder-overlay){
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.modal-overlay, .lc-ov, .te-sheet-ov, .sw-ov, #settings-overlay, #share-overlay, #vh-overlay, #boards-overlay, #games-overlay, #vocab-overlay, #upgrade-overlay, #task-builder-overlay){
   background:rgba(16,18,22,.34) !important;
   -webkit-backdrop-filter:blur(3px) !important;backdrop-filter:blur(3px) !important;
 }
 
 /* ── capsules: buttons that sit on a glass bar ────────────────────────── */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(#toolbar .tb-island, #zoom-controls, .topbar, #menubar) :where(button, .tb-icon-btn, a.tb-btn, .tb-guide, .sw-btn){
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#toolbar .tb-island, #zoom-controls, .topbar, #menubar) :where(button, .tb-icon-btn, a.tb-btn, .tb-guide, .sw-btn){
   border-radius:999px !important;
 }
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(#toolbar .tb-island, #zoom-controls, #board-agent-pill){border-radius:999px !important}
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) #miro-toolbar{border-radius:28px !important}
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(.widget, .win, #minimap){border-radius:26px !important}
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(.te-card, .te-next-card, .te-words){border-radius:26px !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#toolbar .tb-island, #zoom-controls, #board-agent-pill){border-radius:999px !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #miro-toolbar{border-radius:28px !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.widget, .win, #minimap){border-radius:26px !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.te-card, .te-next-card, .te-words){border-radius:26px !important}
 /* glass buttons inside glass panes */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(.te-card, .widget) :where(.te-btn, .te-join):not(:where(.te-card.is-next *)){
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.te-card, .widget) :where(.te-btn, .te-join):not(:where(.te-card.is-next *)){
   background:rgba(255,255,255,.5) !important;border:1px solid rgba(255,255,255,.7) !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 4px 12px -6px rgba(18,20,24,.25) !important;border-radius:999px !important;
 }
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .te-card.is-next :where(.te-btn, .te-join){border-radius:999px !important}
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) :where(.te-hw-row, .te-task){background:rgba(255,255,255,.42) !important;border-radius:16px}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .te-card.is-next :where(.te-btn, .te-join){border-radius:999px !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.te-hw-row, .te-task){background:rgba(255,255,255,.42) !important;border-radius:16px}
 
 /* ── the student's tab bar on a phone: a floating capsule (iOS 26) ─────── */
 @media (max-width:860px){
-  html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mobile-tabs{
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs{
     left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));height:62px;padding:0 6px;border-radius:31px;
     background:var(--lg-sheen),var(--lg-fill-regular) !important;border:var(--lg-border) !important;
     -webkit-backdrop-filter:var(--lg-blur) !important;backdrop-filter:var(--lg-blur) !important;
     box-shadow:var(--lg-edge),var(--lg-drop) !important;
   }
-  html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mobile-tabs .mtab{height:62px;color:#5D614B}
-  html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mobile-tabs .mtab.active{color:#24282C}
-  html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mobile-tabs .mtab.active::before{
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs .mtab{height:62px;color:#5D614B}
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs .mtab.active{color:#24282C}
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs .mtab.active::before{
     top:7px;bottom:7px;left:4px;right:4px;width:auto;height:auto;transform:none;border-radius:24px;z-index:-1;
     background:rgba(255,255,255,.75);box-shadow:inset 0 1px 0 #fff,0 2px 8px -2px rgba(18,20,24,.18);
   }
-  html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mobile-tabs .mtab{isolation:isolate}
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs .mtab{isolation:isolate}
 }
+
+/* ── the ambient behind pages without a wallpaper ─────────────────────── */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page, .lg-page, .lg-cabinet:not(.sw-has)){
+  background:var(--lg-ambient) fixed !important;
+}
+
+/* ── teacher's tool pages (tool-window.css: homework, schedule, journal,
+   gradebook, analytics, courses, community, lesson packs, profile, the
+   builders): the dark nav rail, the cards, the segmented switchers ───── */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(#nav){
+  background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
+  -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
+  border-right:var(--lg-border-dark) !important;box-shadow:var(--lg-edge-dark) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.panel, .hero-card, .share-card, .hw-focus, .hw-toolbar, .section, .topic-bar, .preset-bar,
+  .hw-card, .hw-metric:not(.is-dark):not(:first-child), .wr-queue, #hw-detail, .stat-card, .quality-card, .lib-item, .library-item, .tpl-card, .type-card, .course-card, .pack-card, .gb-table-wrap, .card){
+  background:var(--lg-sheen),rgba(255,255,255,.58) !important;
+  border:var(--lg-border) !important;
+  -webkit-backdrop-filter:var(--lg-blur) !important;backdrop-filter:var(--lg-blur) !important;
+  box-shadow:var(--lg-edge),0 10px 30px -18px rgba(18,20,24,.35) !important;
+}
+/* homework cards keep their status outline (active lime, not assigned
+   dashed orange, overdue pink, words cyan) - it is information */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card){border:revert-layer !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card.active){border:1.5px solid #CDF649 !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card.unassigned){border:1.5px dashed rgba(243,164,107,.75) !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card.overdue){border:1.5px solid rgba(243,86,149,.45) !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card.words){border:1.5px solid rgba(73,246,240,.6) !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-card.submitted){border:1.5px solid #F2D45C !important}
+/* the dark lead figure stays ink, as dark glass */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.hw-metric:first-child, .stat-card.primary, .panel.dark, .card.dark){
+  background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;border:var(--lg-border-dark) !important;
+  -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;box-shadow:var(--lg-edge-dark),var(--lg-drop) !important;
+}
+/* segmented switchers: a glass capsule with a white lens on the active item */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page, .lg-page) :where(.suite-switcher, .view-toggle, .tabs){
+  background:var(--lg-sheen),rgba(255,255,255,.5) !important;border:var(--lg-border) !important;border-radius:999px !important;
+  -webkit-backdrop-filter:var(--lg-blur) !important;backdrop-filter:var(--lg-blur) !important;box-shadow:var(--lg-edge),0 6px 18px -12px rgba(18,20,24,.3) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page, .lg-page) :where(.suite-switcher, .view-toggle, .tabs) :where(a, button){border-radius:999px !important}
+/* filter chips and secondary buttons: small glass capsules */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.filter-btn, .smart-pill, .mini-btn, .btn-ghost, .btn.ghost):not(.active){
+  background:rgba(255,255,255,.55) !important;border:1px solid rgba(255,255,255,.75) !important;border-radius:999px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 10px -6px rgba(18,20,24,.25) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(.btn, .tool-btn, .filter-btn, .smart-pill){border-radius:999px !important}
+
+/* ── the student's homework page (homework-do.html, body.lg-page) ─────── */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(.hw-item){
+  background:var(--lg-sheen),rgba(255,255,255,.6) !important;border:var(--lg-border) !important;border-radius:22px !important;
+  -webkit-backdrop-filter:var(--lg-blur) !important;backdrop-filter:var(--lg-blur) !important;box-shadow:var(--lg-edge),0 10px 28px -18px rgba(18,20,24,.35) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(.tab){border-radius:999px !important;border-color:transparent !important;background:transparent !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(.tab.active){background:#24282C !important;color:#fff !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(#runner){background:var(--lg-ambient) !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(#runner-top, #runner-review){
+  background:var(--lg-sheen),rgba(255,255,255,.62) !important;
+  -webkit-backdrop-filter:var(--lg-blur) !important;backdrop-filter:var(--lg-blur) !important;
+  border-bottom:1px solid rgba(255,255,255,.6) !important;box-shadow:var(--lg-edge) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(#runner-side){
+  background:var(--lg-sheen),rgba(255,255,255,.55) !important;
+  -webkit-backdrop-filter:var(--lg-blur) !important;backdrop-filter:var(--lg-blur) !important;
+  border-left:1px solid rgba(255,255,255,.6) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(#runner-card-host){border-radius:24px !important;box-shadow:0 18px 44px -24px rgba(18,20,24,.4) !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.lg-page) :where(.runner-btn){border-radius:999px !important}
 
 /* ── the phone tab bar (scripts/mobile-nav.js): a floating glass capsule ─
    mobile-chrome.css pinned it to the screen edges as a white slab so nothing
    showed under it; in iOS 26 showing what is under it is the point, so it
    floats above the home indicator again, as glass. */
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mob-nav{
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mob-nav{
   left:12px !important;right:12px !important;bottom:calc(8px + env(safe-area-inset-bottom,0px)) !important;
   height:64px !important;padding:5px !important;border-radius:32px !important;
   background:var(--lg-sheen),var(--lg-fill-regular) !important;border:var(--lg-border) !important;
   -webkit-backdrop-filter:blur(20px) saturate(1.9) brightness(1.1) !important;backdrop-filter:blur(20px) saturate(1.9) brightness(1.1) !important;
   box-shadow:var(--lg-edge),var(--lg-drop) !important;
 }
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mob-nav .mob-nav-tab{border-radius:26px !important}
-html body:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) .mob-nav .mob-nav-tab.active{
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mob-nav .mob-nav-tab{border-radius:26px !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mob-nav .mob-nav-tab.active{
   background:rgba(255,255,255,.72) !important;box-shadow:inset 0 1px 0 #fff,0 2px 10px -3px rgba(18,20,24,.2) !important;
 }
 
