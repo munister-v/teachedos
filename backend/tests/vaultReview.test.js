@@ -66,3 +66,11 @@ test('sprint: a collocation gives the partner, five tasks in three mechanics', (
   assert.strictEqual(plan[0].pairs.length, 3);
   plan.filter(t => t.type === 'choice').forEach(t => { assert.ok(t.options.includes(t.answer)); assert.strictEqual(t.options.length, 4); });
 });
+
+test('lessons calendar: weekly slots become dates, days already marked are left out', () => {
+  const { plannedDates } = require('../routes/journal')._test;
+  const from = new Date('2026-10-09T10:00:00Z');                       // a Friday
+  const got = plannedDates([{ day: 0, recurring: true, specific_date: null }, { day: 3, recurring: true, specific_date: null }, { specific_date: '2026-10-20' }, { specific_date: '2026-10-01' }],
+    new Set(['2026-10-12']), from, 14);
+  assert.deepStrictEqual(got, ['2026-10-15', '2026-10-19', '2026-10-20', '2026-10-22']);
+});

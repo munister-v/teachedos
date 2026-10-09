@@ -77,7 +77,7 @@
         '<div class="te-card te-next-card" id="te-next"></div>' +
         '<div class="te-card" id="te-hw"></div>' +
         '<div class="te-card" id="te-chunk"></div></div>' +
-        '<div class="te-words" id="te-words"></div>');
+        '<div class="te-row2"><div class="te-words" id="te-words"></div><div class="te-card te-tasks" id="te-tasks"></div></div>');
     }
     /* The old vocabulary block (title, four figures, a row of buttons) is now
        the rings strip above. It stays in the page, hidden: other code still
@@ -136,6 +136,7 @@
     const box = $('te-hw');
     if (!box) return;
     focus();
+    tasks();
     if (hwTodo == null) { box.innerHTML = '<div class="te-k">Homework</div><div class="te-sub">Looking for your tasks…</div>'; return; }
     if (!hwTodo.length) {
       box.innerHTML = '<div class="te-k">Homework</div><div class="te-big">All clear! 🎉</div><div class="te-sub">New assignments will appear here.</div>';
@@ -209,15 +210,19 @@
     const bank = vault ? vault.total : 0, due = vault ? vault.due : 0;
     const C = ['#CDF649', '#49F6F0', '#9F8CE8'];
     const stat = (go, c, num, label) => `<button type="button" class="te-ws" data-go="${go}"><i style="background:${c}"></i><b>${num}</b><span>${label}</span></button>`;
-    box.innerHTML = `<div class="te-rings" role="img" aria-label="${week} of ${WEEK_GOAL} words this week, ${learned} of ${total} learned, ${due} to review">
-        <svg viewBox="0 0 100 100" aria-hidden="true">${ring(43, week / WEEK_GOAL, C[0])}${ring(31.5, total ? learned / total : 0, C[1])}${ring(20, bank ? (bank - due) / bank : 0, C[2])}</svg></div>
-      <div class="te-wstats">
-        ${stat('week', C[0], `${week}<small>/${WEEK_GOAL}</small>`, 'this week')}
-        ${stat('learned', C[1], `${learned}<small>/${total}</small>`, 'learned')}
-        ${stat('review', C[2], due, 'to review')}
+    const pct = Math.min(100, Math.round(week / WEEK_GOAL * 100));
+    box.innerHTML = `<div class="te-whead">
+        <div class="te-rings" role="img" aria-label="${week} of ${WEEK_GOAL} words this week, ${learned} of ${total} learned, ${due} to review">
+          <svg viewBox="0 0 100 100" aria-hidden="true">${ring(43, week / WEEK_GOAL, C[0])}${ring(31.5, total ? learned / total : 0, C[1])}${ring(20, bank ? (bank - due) / bank : 0, C[2])}</svg></div>
+        <div class="te-wtitle"><b>Word Bank</b><span>${week} of ${WEEK_GOAL} words this week · ${pct}%</span></div>
+        <div class="te-wstats">
+          ${stat('review', C[2], due, 'ready')}
+          ${stat('week', C[0], Math.max(0, total - learned), 'to learn')}
+          ${stat('learned', C[1], learned, 'learned')}
+        </div>
       </div>
       <div class="te-wact">
-        <button type="button" class="te-wmain" id="te-main">▶ Practise words</button>
+        <button type="button" class="te-wmain" id="te-main">▶ Start 1-minute sprint${bank ? ` (${Math.min(bank, 7)} words)` : ''}</button>
         <button type="button" class="te-wadd" id="te-add">+ Add word</button>
         <button type="button" class="te-wbell" id="te-bell" aria-label="Review reminders" title="Review reminders" aria-haspopup="dialog">🔔</button>
       </div>`;
@@ -239,6 +244,30 @@
     if (s) { vault = s; words(); }
   }
 
+  /* ── Teacher's tasks: a widget, not a strip across the page ───────────
+     The list under the cards used to be a banner plus full-width rows. The
+     widget shows what is still to do; everything, with the finished work,
+     opens in a sheet. */
+  function tasks() {
+    const box = $('te-tasks');
+    if (!box) return;
+    const todo = (hwTodo || []).slice().sort((a, b) => (a.due_at ? new Date(a.due_at) : 8e15) - (b.due_at ? new Date(b.due_at) : 8e15));
+    const now = Date.now();
+    const row = a => {
+      const late = a.due_at && new Date(a.due_at).getTime() < now;
+      const due = a.due_at ? new Date(a.due_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
+      return `<a class="te-task" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}">
+        <span class="te-task-tx"><b>${esc(a.title)}</b><small>${esc(a.teacher_name || 'Your teacher')}${due ? ` · <i class="${late ? 'late' : ''}">${late ? 'was due' : 'due'} ${esc(due)}</i>` : ''}</small></span>
+        <span class="te-task-go">${a.status === 'in_progress' ? 'Continue' : 'Start'}</span></a>`;
+    };
+    box.innerHTML = `<div class="te-k">Teacher's tasks${todo.length ? ` · ${todo.length}` : ''}</div>
+      ${hwTodo == null ? '<div class="te-sub">Looking for your tasks…</div>'
+        : todo.length ? todo.slice(0, 3).map(row).join('') + (todo.length > 3 ? `<div class="te-sub">+${todo.length - 3} more</div>` : '')
+        : '<div class="te-sub">Nothing to do right now. New tasks from your teacher appear here.</div>'}
+      <button type="button" class="te-tasks-all" id="te-tasks-all">All tasks and results</button>`;
+    box.querySelector('#te-tasks-all').addEventListener('click', e => openSheet('assignments', 'Tasks and results', e.currentTarget));
+  }
+
   /* ── Balance: a card in the sidebar, under "Open my board" ───────────
      It used to be a red pill between the bell and the avatar, where it read
      as an alarm. The same line also said "Your lessons will appear here"
@@ -257,10 +286,13 @@
     const low = left <= 2;
     box.hidden = false;
     box.className = 'te-balcard' + (left === 0 ? ' zero' : low ? ' low' : '');
-    const action = !low ? ''
-      : bal.token ? `<a class="te-balcard-a" href="book.html?t=${encodeURIComponent(bal.token)}">Renew →</a>`
-      : `<span class="te-balcard-t">Ask ${esc(bal.teacher || 'your teacher')} to renew</span>`;
-    box.innerHTML = `<div class="te-balcard-m"><b>${left}</b><span>lesson${left === 1 ? '' : 's'} left${pay ? `<small>${esc(pay)}</small>` : ''}</span></div>${action}`;
+    /* One row: the number and, behind it, the calendar of lessons held and
+       planned (scripts/lesson-calendar.js). Renewing lives inside. */
+    box.innerHTML = `<button type="button" class="te-balrow" id="te-balrow" aria-haspopup="dialog"><span>🎟 Lesson balance${pay ? `<small>${esc(pay)}</small>` : ''}</span><b>${left} left</b></button>`;
+    box.querySelector('#te-balrow').addEventListener('click', () => {
+      if (typeof window.closeSidebar === 'function') window.closeSidebar();
+      if (window.TeachedLessonCal && typeof window.apiFetch === 'function') window.TeachedLessonCal.open({ api: window.apiFetch });
+    });
     const ms = $('ms-lessons');
     if (ms) { ms.textContent = left; ms.classList.remove('is-soft'); }
   }
@@ -489,7 +521,15 @@
     document.querySelectorAll('.mtab').forEach(t => t.addEventListener('click', closeSheet, true));
   }
 
+  function profile() {
+    const p = document.querySelector('.sb-profile'), role = p && p.querySelector('.sb-role');
+    if (!p || !role) return;
+    p.hidden = false;
+    const b = boardList[0] || {};
+    role.textContent = [b.teacher_name ? `with ${b.teacher_name}` : 'Student', b.level || ''].filter(Boolean).join(' · ');
+  }
   function boardLink() {
+    profile();
     const a = $('te-board');
     if (a && boardList[0]) { a.href = 'board.html?id=' + encodeURIComponent(boardList[0].id); a.hidden = false; }
   }

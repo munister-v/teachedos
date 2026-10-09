@@ -1255,6 +1255,7 @@ function studentDetailRender() {
         <div class="st-fin-n"><b>${Number(s.lessons_left)}</b> lesson${Number(s.lessons_left) === 1 ? '' : 's'}</div>
         <div class="st-fin-f"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>${esc(_paymentLine(s))}</div>
         ${s.paid_claim_at ? '<div class="st-fin-f" style="color:#2e7d32;font-weight:700">Says they paid - check your account</div>' : ''}
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsOpenCalendar('${esc(String(s.journal_id))}')">Lessons calendar</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsAddPack('${esc(String(s.journal_id))}')">${s.paid_claim_at ? '✓ Payment received' : 'Payment received'} · +${Number(s.pack_size) || 8} lessons</button>
       </div>`
     : `<div class="st-fin is-empty">
@@ -1286,6 +1287,18 @@ function studentDetailRender() {
 }
 
 /* «Оплата пришла»: пакет одним нажатием. Деньги платформа не трогает. */
+/* Which lessons were held and which are planned for this student; a click on
+   a day marks or changes a lesson (scripts/lesson-calendar.js). */
+function studentsOpenCalendar(journalId) {
+  if (!window.TeachedLessonCal) return;
+  const api = (path, opts = {}) => fetch(API_BASE + path, {
+    method: opts.method || 'GET',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  window.TeachedLessonCal.open({ api, journalId, teacher: true, onChange: () => studentsReloadRoster() });
+}
+window.studentsOpenCalendar = studentsOpenCalendar;
 async function studentsAddPack(journalId) {
   try {
     const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(journalId)}/pack`, {

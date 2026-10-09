@@ -102,6 +102,69 @@ router.get('/me/balance', async (req, res) => {
   }
 });
 
+/* ── Lessons calendar ──────────────────────────────────────────────────
+   One picture of the package for the student and for the teacher: lessons
+   that took place (attendance), the ones planned (schedule slots tied to this
+   student) and what is left.
+   GET /api/journal/me/calendar   - the student's own (first teacher's entry)
+   GET /api/journal/:id/calendar  - the teacher's view of one student */
+const isoDay = d => d.toISOString().slice(0, 10);
+function plannedDates(slots, taken, from = new Date(), days = 62) {
+  const out = new Set();
+  const start = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+  for (const sl of slots) {
+    if (sl.specific_date) {
+      const d = String(sl.specific_date).slice(0, 10);
+      if (d >= isoDay(start)) out.add(d);
+      continue;
+    }
+    if (sl.recurring === false) continue;
+    for (let k = 0; k < days; k++) {
+      const d = new Date(start.getTime() + k * 864e5);
+      if ((d.getUTCDay() + 6) % 7 === Number(sl.day)) out.add(isoDay(d));   // schedule.day: 0 = Monday
+    }
+  }
+  return [...out].filter(d => !taken.has(d)).sort();
+}
+async function lessonCalendar(j) {
+  const [att, slots, teacher] = await Promise.all([
+    pool.query(`SELECT to_char(date, 'YYYY-MM-DD') AS date, status FROM attendance WHERE journal_id = $1 AND date > CURRENT_DATE - INTERVAL '400 days' ORDER BY date`, [j.id]),
+    pool.query(`SELECT day, recurring, to_char(specific_date, 'YYYY-MM-DD') AS specific_date FROM schedule WHERE user_id = $1 AND journal_id = $2`, [j.teacher_id, j.id]),
+    pool.query('SELECT name, booking_token FROM users WHERE id = $1', [j.teacher_id]),
+  ]);
+  const taken = new Set(att.rows.map(r => r.date));
+  return {
+    journal_id: j.id, name: j.name, level: j.level || '', teacher_name: (teacher.rows[0] || {}).name || '',
+    booking_token: (teacher.rows[0] || {}).booking_token || null,
+    lessons_left: Number(j.lessons_left) || 0, pack_size: Number(j.pack_size) || 8,
+    lessons: att.rows, scheduled: plannedDates(slots.rows, taken),
+  };
+}
+router.get('/me/calendar', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM student_journal
+        WHERE student_id = $1 OR ($2::text <> '' AND lower(email) = lower($2))
+        ORDER BY (student_id = $1) DESC NULLS LAST, created_at LIMIT 1`, [req.user.id, req.user.email || '']);
+    if (!rows[0]) return res.json({ calendar: null });
+    res.json({ calendar: await lessonCalendar(rows[0]) });
+  } catch (err) {
+    console.error('[journal/me/calendar]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+router.get('/:id/calendar', async (req, res) => {
+  try {
+    if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) return res.status(404).json({ error: 'not found' });
+    const { rows } = await pool.query('SELECT * FROM student_journal WHERE id = $1 AND teacher_id = $2', [req.params.id, req.user.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'not found' });
+    res.json({ calendar: await lessonCalendar(rows[0]) });
+  } catch (err) {
+    console.error('[journal/calendar]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 /* «Я оплатил»: пометка для преподавателя, пакет она не продлевает. */
 router.post('/me/paid', async (req, res) => {
   try {
@@ -488,3 +551,4 @@ router.delete('/vocab/:id', async (req, res) => {
 });
 
 module.exports = router;
+module.exports._test = { plannedDates };
