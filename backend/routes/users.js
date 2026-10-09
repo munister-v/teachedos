@@ -23,7 +23,7 @@ const WALL_PRESETS = new Set([
   'dots', 'paper', 'lime-dots', 'stripes', 'night-grid',
   'carpathians', 'fjord', 'lake', 'laurel', 'fog', 'hills', 'moss', 'alley', 'frost', 'sunset', 'harbour', 'canals', 'river-night',
   'kyiv', 'new-york', 'chicago', 'london', 'paris', 'rome', 'tokyo',
-  'valencia', 'alhambra', 'athens', 'chefchaouen', 'kyoto', 'starry-night', 'impression', 'great-wave', 'water-lilies', 'temeraire', 'wheatfield',
+  'starry-night', 'great-wave', 'wheatfield',
 ]);
 const WALL_MAX_BYTES = 4 * 1024 * 1024;
 
