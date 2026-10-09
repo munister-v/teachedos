@@ -1731,10 +1731,13 @@ function boardsRender() {
   }
 
   if (!list.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
+    /* Readable on glass: dark text and a dark pill link. The grid gives its
+       children a pale card (figma-concept.css); with grey text and a lime
+       link on it the empty note was hard to read. */
+    grid.innerHTML = `<div class="boards-empty-note" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:36px 20px;color:#3A3E36;font-size:14px;font-weight:500;">
       ${boardsFilterMode === 'shared' ? 'No boards shared with you yet.' : 'No boards yet.'}
       <div style="margin-top:10px;">
-        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}"${boardsFilterMode === 'shared' ? '' : ' onclick="createBoardFromDesktop(event)"'} style="color:var(--accent);font-weight:600;text-decoration:none;">
+        <a href="${boardsFilterMode === 'shared' ? 'profile.html' : 'board.html'}"${boardsFilterMode === 'shared' ? '' : ' onclick="createBoardFromDesktop(event)"'} style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:#24282C;color:#FFFFFF;font-weight:600;text-decoration:none;">
           ${boardsFilterMode === 'shared' ? 'Open Profile →' : 'Create your first board →'}
         </a>
       </div></div>`;
@@ -2769,13 +2772,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1152" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1153" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1152" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1153" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
