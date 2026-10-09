@@ -47,11 +47,23 @@
     { key: 'paris', group: 'city', title: 'Paris', credit: 'DXR', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Notre-Dame_de_Paris_and_%C3%8Ele_de_la_Cit%C3%A9_at_dusk_140516_1.jpg', dark: true },
     { key: 'rome', group: 'city', title: 'Rome', credit: 'Jebulon', license: 'CC0', source: 'https://commons.wikimedia.org/wiki/File:Castel_Sant%27Angelo_at_dusk,_Rome,_Italy.jpg', dark: true },
     { key: 'tokyo', group: 'city', title: 'Tokyo', credit: 'Basile Morin', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:Shinjuku_Gyoen_National_Garden_and_NTT_DoCoMo_Yoyogi_Building,_Tokyo,_Japan.jpg' },
+    /* Архитектура - избранные снимки Commons; искусство - картины в общественном достоянии. */
+    { key: 'valencia', group: 'arch', title: 'Valencia arches', credit: 'Diliff', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:L%27Umbracle,_Valencia,_Spain_-_Jan_2007.jpg' },
+    { key: 'alhambra', group: 'arch', title: 'Alhambra', credit: 'Jebulon', license: 'CC0', source: 'https://commons.wikimedia.org/wiki/File:Patio_de_los_Arrayanes_detail_Alhambra_Granada_Spain.jpg' },
+    { key: 'athens', group: 'arch', title: 'Athens courtyard', credit: 'Jebulon', license: 'CC0', source: 'https://commons.wikimedia.org/wiki/File:Courtyard_Zappeion_Athens,_Greece.jpg' },
+    { key: 'chefchaouen', group: 'arch', title: 'Blue street', credit: 'Fbrandao.1963', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:2018_01_(Blue)_-_Chaouen.jpg' },
+    { key: 'kyoto', group: 'arch', title: 'Kimono forest', credit: 'Basile Morin', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:Kimono_Forest_at_night,_Arashiyama_Station,_Arashiyama,_Kyoto,_Japan.jpg', dark: true },
+    { key: 'starry-night', group: 'art', title: 'Starry Night', credit: 'Vincent van Gogh', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg', dark: true },
+    { key: 'impression', group: 'art', title: 'Impression, Sunrise', credit: 'Claude Monet', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Monet_-_Impression,_Sunrise.jpg' },
+    { key: 'great-wave', group: 'art', title: 'The Great Wave', credit: 'Katsushika Hokusai', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg' },
+    { key: 'water-lilies', group: 'art', title: 'Water Lilies', credit: 'Claude Monet', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Claude_Monet_-_Water_Lilies_-_1906,_Ryerson.jpg' },
+    { key: 'temeraire', group: 'art', title: 'The Fighting Temeraire', credit: 'J. M. W. Turner', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:The_Fighting_Temeraire,_JMW_Turner,_National_Gallery.jpg' },
+    { key: 'wheatfield', group: 'art', title: 'Wheatfield with Crows', credit: 'Vincent van Gogh', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Vincent_van_Gogh_-_Wheatfield_with_crows_-_Google_Art_Project.jpg' },
   ];
   /* Путь абсолютный: фон ставится через CSS-переменную, а относительный
      url() в ней считается от файла стилей (styles/), а не от страницы. */
   WALL_PRESETS.forEach(p => {
-    if (p.group !== 'photo' && p.group !== 'city') return;
+    if (!['photo', 'city', 'arch', 'art'].includes(p.group)) return;
     const at = f => new URL(`img/wallpapers/${f}`, document.baseURI).href;
     p.css = `url("${at(p.key + '.webp')}") center / cover no-repeat, #6B6F78`;
     p.thumb = `url("${at(p.key + '-thumb.webp')}") center / cover no-repeat, #D5D7DC`;
@@ -66,6 +78,8 @@
     { key: 'colour', title: 'Colours' },
     { key: 'photo', title: 'Photos' },
     { key: 'city', title: 'Cities' },
+    { key: 'arch', title: 'Architecture' },
+    { key: 'art', title: 'Art' },
     { key: 'pattern', title: 'Patterns' },
   ];
   window.TeachedWall = { presets: WALL_PRESETS, groups: WALL_GROUPS };

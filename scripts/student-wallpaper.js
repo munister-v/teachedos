@@ -69,7 +69,7 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
   }
   function tile(p) {
     const v = p.key ? `preset:${p.key}` : '';
-    return `<button type="button" class="sw-tile${(v || '') === (value || '') ? ' on' : ''}" data-v="${v}"${p.credit ? ` title="Photo: ${esc(p.credit)} (${esc(p.license)}), Wikimedia Commons"` : ''}><span class="sw-swatch" style="background:${(p.thumb || p.css).replace(/"/g, '&quot;')}"></span><span class="sw-label">${esc(p.title)}</span></button>`;
+    return `<button type="button" class="sw-tile${(v || '') === (value || '') ? ' on' : ''}" data-v="${v}"${p.credit ? ` title="${p.group === 'art' ? 'Art' : 'Photo'}: ${esc(p.credit)} (${esc(p.license)}), Wikimedia Commons"` : ''}><span class="sw-swatch" style="background:${(p.thumb || p.css).replace(/"/g, '&quot;')}"></span><span class="sw-label">${esc(p.title)}</span></button>`;
   }
   function grid() {
     const g = document.getElementById('sw-grid'); if (!g) return;

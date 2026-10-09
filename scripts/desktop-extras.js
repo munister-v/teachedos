@@ -122,7 +122,7 @@ function applyWallpaper(value) {
   /* Стекло окон - только там, где за ним есть что размывать: снимок, тёмный
      фон или небо по умолчанию. На ровных светлых цветах и узорах стекло
      растворяется в фоне, там окна остаются белыми (figma-theme.css). */
-  const glass = !preset || !!(preset.glass || preset.dark || preset.group === 'photo' || preset.group === 'city');
+  const glass = !preset || !!(preset.glass || preset.dark || ['photo', 'city', 'arch', 'art'].includes(preset.group));
   document.body.classList.toggle('wall-glass', glass);
   /* Тёмный фон: подписи на самом столе (скрытые виджеты, пустые места)
      переключаются на светлые. Свой снимок считаем светлым - окна и
@@ -177,7 +177,7 @@ function closeWallpaperPicker() { document.getElementById('wp-overlay')?.classLi
 function _wpTile(p) {
   const value = p.key ? `preset:${p.key}` : '';
   const on = (value || '') === (_wallValue || '');
-  const tip = p.credit ? ` title="Photo: ${esc(p.credit)} (${esc(p.license)}), Wikimedia Commons"` : '';
+  const tip = p.credit ? ` title="${p.group === 'art' ? 'Art' : 'Photo'}: ${esc(p.credit)} (${esc(p.license)}), Wikimedia Commons"` : '';
   return `<button type="button" class="wp-tile${on ? ' is-on' : ''}" data-value="${value}" onclick="pickWallpaper('${value}')"${tip}>
     <span class="wp-swatch" style="background:${(p.thumb || p.css).replace(/"/g, '&quot;')}"></span><span class="wp-label">${esc(p.title)}</span></button>`;
 }
@@ -211,7 +211,7 @@ function renderWallCredit(preset) {
     document.body.appendChild(el);
   }
   el.href = preset.source;
-  el.textContent = `Photo: ${preset.credit} · ${preset.license}`;
+  el.textContent = `${preset.group === 'art' ? 'Art' : 'Photo'}: ${preset.credit} · ${preset.license}`;
 }
 
 async function pickWallpaper(value) {
