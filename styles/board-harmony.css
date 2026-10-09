@@ -190,7 +190,7 @@ html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4)
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-island-l{ padding-left:4px; }
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo{ padding:7px 6px !important; margin:0 2px 0 0 !important; width:auto !important; }
 /* the cat is drawn in ink: on the dark island it turns light */
-html body.board-page.board-canvas-dark:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo-img{ filter:invert(1) brightness(1.6); }
+html body.board-page.board-canvas-dark:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo-img{ content:url("../icons/mark-lime.svg"); filter:none; }
 /* colours of everything inside follow the island */
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-board-chip,.tb-board-chip-title,.tb-board-chip-menu,.tb-auth-chip,#auth-login-btn){ color:var(--isl-ink) !important; }
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-icon-btn,#btn-more,#btn-follow-me,#btn-upgrade){ color:var(--isl-ink-2) !important; }

@@ -40,7 +40,7 @@ html::after  { width:380px; height:380px; right:-120px; bottom:-140px; backgroun
 .ip-head { position:relative; padding:22px 26px 26px; background:var(--ip-ink); color:var(--ip-paper); }
 .ip-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; }
 .ip-logo { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; letter-spacing:-.01em; color:var(--ip-paper); text-decoration:none; }
-.ip-logo img { width:24px; height:24px; filter:invert(1) brightness(1.05); }
+.ip-logo img { width:24px; height:24px; content:url("../icons/mark-lime.svg"); }
 .ip-chip {
   padding:5px 11px; border-radius:999px; background:var(--ip-lime); color:var(--ip-ink);
   font-family:var(--font-mono, ui-monospace, Menlo, monospace); font-size:10.5px; font-weight:700;

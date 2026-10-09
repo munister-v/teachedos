@@ -133,6 +133,14 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
   background:rgba(16,18,22,.34) !important;
   -webkit-backdrop-filter:blur(3px) !important;backdrop-filter:blur(3px) !important;
 }
+/* graphite board: the islands turn dark glass, otherwise their light text
+   (board-harmony.css flips it for the dark canvas) sat on pale glass */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-canvas-dark :where(#toolbar .tb-island, #zoom-controls, #minimap){
+  background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
+  border:var(--lg-border-dark) !important;
+  -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
+  box-shadow:var(--lg-edge-dark),0 12px 30px -16px rgba(0,0,0,.7) !important;
+}
 
 /* ── capsules: buttons that sit on a glass bar ────────────────────────── */
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#toolbar .tb-island, #zoom-controls, .topbar, #menubar) :where(button, .tb-icon-btn, a.tb-btn, .tb-guide, .sw-btn){

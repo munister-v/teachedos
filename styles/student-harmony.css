@@ -15,7 +15,7 @@ html body:not(#u1):not(#u2):not(#u3) #sidebar {
 }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo { color:#FFFFFF !important; border-color:rgba(255,255,255,.08) !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo em { font-style:normal !important; margin:0 !important; padding:0 !important; color:#FFFFFF !important; }
-html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo img { background:var(--te-lime,#CDF649) !important; border-radius:8px !important; padding:3px !important; box-sizing:border-box !important; }
+html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-logo img { content:url("../icons/mark-lime.svg"); background:none !important; border-radius:0 !important; padding:0 !important; box-sizing:border-box !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar :is(.sb-profile, .sb-section, .sb-footer) { border-color:rgba(255,255,255,.08) !important; }
 html body:not(#u1):not(#u2):not(#u3) #sidebar .sb-avatar {
   background:var(--te-pink,#F8DBDB) !important;
