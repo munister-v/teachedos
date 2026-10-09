@@ -90,20 +90,20 @@ function listVersionedScripts() {
 let pins = 0;
 for (const file of listVersionedScripts()) {
   const before = readFileSync(file, 'utf8');
-  const after = before.replace(/(\.(?:css|js|json))\?v=\d+/g, `$1?v=${next}`);
+  const after = before.replace(/(\.(?:css|js|json|png|svg|ico))\?v=\d+/g, `$1?v=${next}`);
   if (after === before) continue;
   writeFileSync(file, after);
-  pins += (before.match(/\.(?:css|js|json)\?v=\d+/g) || []).length;
+  pins += (before.match(/\.(?:css|js|json|png|svg|ico)\?v=\d+/g) || []).length;
 }
 
 let touched = 0, links = 0;
 for (const file of listStaticHtml()) {
   const before = readFileSync(file, 'utf8');
-  const after = before.replace(/(\.(?:css|js|json))\?v=\d+/g, `$1?v=${next}`);
+  const after = before.replace(/(\.(?:css|js|json|png|svg|ico))\?v=\d+/g, `$1?v=${next}`);
   if (after !== before) {
     writeFileSync(file, after);
     touched++;
-    links += (before.match(/\.(?:css|js|json)\?v=\d+/g) || []).length;
+    links += (before.match(/\.(?:css|js|json|png|svg|ico)\?v=\d+/g) || []).length;
   }
 }
 

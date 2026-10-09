@@ -1,5 +1,5 @@
-const CACHE = 'teachedos-v1149';
-const VERSION = '1149';
+const CACHE = 'teachedos-v1150';
+const VERSION = '1150';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const base = path => new URL(path, self.registration.scope).pathname;
 
@@ -36,8 +36,8 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: base('icons/icon-192.png'),
-      badge: base('icons/icon-192.png'),
+      icon: base('icons/icon-192.png?v=1149'),
+      badge: base('icons/icon-192.png?v=1149'),
       data: { url: data.url },
       vibrate: [200, 100, 200],
     })
