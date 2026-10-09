@@ -148,13 +148,13 @@ router.get('/roster', requireAuth, async (req, res) => {
              (ARRAY_AGG(s.board_id::text) FILTER (WHERE s.is_home))[1] AS home_board_id,
              BOOL_OR(s.board_size = 1) AS individual,
              BOOL_OR(s.board_size > 1) AS in_group,
-             j.id AS journal_id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at,
+             j.id AS journal_id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at, j.is_trial,
              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
              q.quiz_avg, q.quiz_count, d.goal AS dna_goal, d.interests AS dna_interests, d.level AS dna_level
         FROM seats s
         JOIN users u ON u.id = s.user_id
         LEFT JOIN LATERAL (
-          SELECT id, level, lessons_left, format, telegram, phone, payment_due, pack_size, paid_claim_at FROM student_journal
+          SELECT id, level, lessons_left, format, telegram, phone, payment_due, pack_size, paid_claim_at, is_trial FROM student_journal
            WHERE teacher_id = $1 AND (student_id = u.id OR LOWER(email) = LOWER(u.email))
            ORDER BY (student_id = u.id) DESC NULLS LAST, created_at DESC
            LIMIT 1
@@ -168,7 +168,7 @@ router.get('/roster', requireAuth, async (req, res) => {
             FROM quiz_results qr JOIN mine m ON m.id::text = qr.board_id::text
            WHERE qr.user_id = u.id
         ) q ON TRUE
-       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.payment_due, j.pack_size, j.paid_claim_at, q.quiz_avg, q.quiz_count, d.goal, d.interests, d.level
+       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.payment_due, j.pack_size, j.paid_claim_at, j.is_trial, q.quiz_avg, q.quiz_count, d.goal, d.interests, d.level
        ORDER BY u.name
     `, [req.user.id]);
 
@@ -179,7 +179,7 @@ router.get('/roster', requireAuth, async (req, res) => {
        Без них добавленный через «+» ученик пропадал из списка до регистрации. */
     const seen = rows.map(r => r.journal_id).filter(Boolean);
     const { rows: pending } = await pool.query(`
-      SELECT j.id AS journal_id, j.name, j.email, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at,
+      SELECT j.id AS journal_id, j.name, j.email, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at, j.is_trial,
              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
              EXISTS (SELECT 1 FROM invites i JOIN boards b ON b.id = i.board_id
                       WHERE b.user_id = $1 AND i.accepted_at IS NULL

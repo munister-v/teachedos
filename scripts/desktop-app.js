@@ -1209,6 +1209,7 @@ function studentSelect(id) {
 /* Статус ученика одной плашкой: что учителю важно знать первым. */
 function studentStatus(s) {
   if (s.pending) return s.invited ? { t: 'Invite sent', c: 'invited' } : { t: 'Not on a board yet', c: 'quiet' };
+  if (s.is_trial) return { t: '✨ Free trial', c: 'trial' };
   const due = s.payment_due ? Math.round((Date.parse(s.payment_due + 'T00:00:00') - new Date().setHours(0, 0, 0, 0)) / 86400000) : null;
   if (due !== null && due < 0) return { t: 'Payment due', c: 'due' };
   if (_hasJournal(s) && Number(s.lessons_left) <= 2) return { t: 'Low balance', c: 'low' };
@@ -1252,10 +1253,11 @@ function studentDetailRender() {
     ? `<div class="st-fin">
         <div class="st-fin-h">Financial block</div>
         <div class="st-fin-k">Remaining lessons</div>
-        <div class="st-fin-n"><b>${Number(s.lessons_left)}</b> lesson${Number(s.lessons_left) === 1 ? '' : 's'}</div>
+        <div class="st-fin-n">${s.is_trial ? '<b>✨</b> Free trial' : `<b>${Number(s.lessons_left)}</b> lesson${Number(s.lessons_left) === 1 ? '' : 's'}`}</div>
         <div class="st-fin-f"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>${esc(_paymentLine(s))}</div>
         ${s.paid_claim_at ? '<div class="st-fin-f" style="color:#2e7d32;font-weight:700">Says they paid - check your account</div>' : ''}
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsOpenCalendar('${esc(String(s.journal_id))}')">Lessons calendar</button>
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsSetTrial('${esc(String(s.journal_id))}', ${s.is_trial ? 'false' : 'true'})">${s.is_trial ? 'End the trial' : '✨ Mark as trial student'}</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsAddPack('${esc(String(s.journal_id))}')">${s.paid_claim_at ? '✓ Payment received' : 'Payment received'} · +${Number(s.pack_size) || 8} lessons</button>
       </div>`
     : `<div class="st-fin is-empty">
@@ -1315,6 +1317,19 @@ function studentsOpenCalendar(journalId) {
   window.TeachedLessonCal.open({ api, journalId, teacher: true, onChange: () => studentsReloadRoster() });
 }
 window.studentsOpenCalendar = studentsOpenCalendar;
+/* Trial student: free first lesson, no "0 left" in the cabinet. The first
+   package ends it on the server by itself. */
+async function studentsSetTrial(journalId, on) {
+  try {
+    const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(journalId)}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+      body: JSON.stringify({ is_trial: !!on }),
+    });
+    if (!r.ok) throw new Error('failed');
+    await studentsReloadRoster();
+  } catch (_) { alert('Could not save. Try again.'); }
+}
+window.studentsSetTrial = studentsSetTrial;
 async function studentsSetHome(studentId, boardId, sel) {
   if (sel) sel.disabled = true;
   try {

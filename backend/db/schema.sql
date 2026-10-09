@@ -1010,3 +1010,10 @@ CREATE INDEX IF NOT EXISTS idx_balance_ledger_journal ON balance_ledger(journal_
 -- One per teacher is kept by the route that sets it (PUT /api/members/home-board).
 ALTER TABLE board_collaborators ADD COLUMN IF NOT EXISTS is_home BOOLEAN NOT NULL DEFAULT FALSE;
 CREATE INDEX IF NOT EXISTS idx_board_collab_home ON board_collaborators(user_id) WHERE is_home;
+
+-- ── Trial students (09.10.2026) ────────────────────────────────────────────
+-- A newcomer on a free first lesson has 0 lessons and no package. While
+-- is_trial is on, the cabinet shows "Free trial session" instead of a red
+-- "0 left / Renew", a held lesson is free unless the teacher says otherwise,
+-- and the Pulse does not nag about the balance. The first package turns it off.
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS is_trial BOOLEAN NOT NULL DEFAULT FALSE;

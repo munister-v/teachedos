@@ -420,6 +420,8 @@ router.get('/my/inbox', async (req, res) => {
                 WHERE t.assignment_id = a.id AND t.status = 'done'
                   AND t.card_id IN (SELECT jsonb_array_elements_text(CASE WHEN jsonb_typeof(h.required_cards) = 'array' THEN h.required_cards ELSE '[]'::jsonb END)))::int AS done_cards,
               (SELECT fa.duration_ms FROM homework_feedback_audio fa WHERE fa.assignment_id = a.id) AS voice_ms,
+              -- when the draft was last saved, on any device ("Auto-saved at 14:20")
+              (SELECT MAX(t.updated_at) FROM homework_attempt t WHERE t.assignment_id = a.id) AS last_saved_at,
               -- тип первой заданной карточки: кабинет ученика показывает игры
               -- во вкладке Games, а лист или квиз из одной карточки - нет
               (SELECT card->>'type' FROM boards b, jsonb_array_elements(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN b.data->'cards' ELSE '[]'::jsonb END) card

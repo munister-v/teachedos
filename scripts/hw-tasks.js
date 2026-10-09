@@ -14,7 +14,8 @@
 
    Учитель видит присланное в Homework (workHtml, см. homework.html).
 
-   HwTasks.render(host, card, ctx) - ctx: { api, assignmentId, boardId, attempt, save(payload), toast } */
+   HwTasks.render(host, card, ctx) - ctx: { api, assignmentId, boardId, attempt, save(payload), toast, locked }
+   HwTasks.flush() - сохранить недописанный черновик письма сейчас (перед «Сдать»). */
 (function () {
   'use strict';
   if (window.HwTasks) return;
@@ -153,21 +154,50 @@
       ${(fb.missing || []).length ? `<div class="hwt-li" style="color:#5D614B">Not used yet: ${fb.missing.map(esc).join(', ')}</div>` : ''}
     </div>`;
   }
+  /* Черновик письма живёт на сервере: через 1.5 с после ввода, при уходе из
+     поля и при сворачивании вкладки. Раньше текст сохранялся только по «Send
+     to my teacher», и закрытая вкладка уносила половину эссе. Черновик -
+     data.draft; data.text - то, что отправлено учителю, его он не трогает. */
+  let pendingDraft = null;            // () => Promise - несохранённый черновик
+  async function flush() { const f = pendingDraft; pendingDraft = null; if (f) await f(); }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+  const hhmm = d => new Date(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   function renderWrite(host, card, ctx) {
     const task = card.data._hwTask;
     const phrases = Array.isArray(task.phrases) ? task.phrases : [];
     const prev = ctx.attempt && ctx.attempt.data && ctx.attempt.data.task === 'write' ? ctx.attempt.data : null;
+    const sent = prev && prev.text ? prev : null;
+    const startText = prev ? (prev.draft != null ? prev.draft : prev.text || '') : '';
     host.innerHTML = `<div class="hwt">
       <div class="hwt-q">${esc(task.prompt || 'Write a short text.').replace(/\n/g, '<br>')}</div>
       ${phrases.length ? `<div class="hwt-chips" data-chips>${phrases.map(p => `<span class="hwt-chip" data-p="${esc(p)}">${esc(p)}</span>`).join('')}</div>` : ''}
-      <textarea data-text maxlength="1500" placeholder="Write here…">${prev ? esc(prev.text) : ''}</textarea>
-      <div class="hwt-count" data-count></div>
+      <textarea data-text maxlength="1500" placeholder="Write here…">${esc(startText)}</textarea>
+      <div class="hwt-count"><span data-count></span><span data-saved>${prev && prev.draft_at ? ` · Auto-saved at ${hhmm(prev.draft_at)}` : ''}</span></div>
       <div class="hwt-rec"><button type="button" class="hwt-btn" data-check>✨ Check my writing</button><button type="button" class="hwt-btn dark" data-send>Send to my teacher</button></div>
-      <div class="hwt-msg" data-msg>${prev ? '<span class="hwt-done">✓ Sent to your teacher</span>' : ''}</div>
-      <div data-fb>${prev && prev.feedback ? feedbackHtml(prev.text, prev.feedback) : ''}</div>
+      <div class="hwt-msg" data-msg>${sent ? '<span class="hwt-done">✓ Sent to your teacher</span>' : ''}</div>
+      <div data-fb>${sent && sent.feedback ? feedbackHtml(sent.text, sent.feedback) : ''}</div>
     </div>`;
     const $ = s => host.querySelector(s);
     let fb = prev && prev.feedback || null;
+    let lastSent = sent, savedDraft = startText, timer = null;
+    const ta = $('[data-text]'), savedEl = $('[data-saved]');
+    const saveDraft = async () => {
+      clearTimeout(timer); timer = null;
+      if (pendingDraft === saveDraft) pendingDraft = null;
+      const t = ta.value;                    // the field itself: the card may already be swapped out
+      if (ctx.locked || t === savedDraft) return;
+      const at = new Date().toISOString();
+      try {
+        await ctx.save({ status: lastSent ? 'done' : 'in_progress',
+          data: { task: 'write', draft: t, draft_at: at, text: lastSent ? lastSent.text : '', feedback: lastSent ? lastSent.feedback : null, used: lastSent ? lastSent.used : [], at: lastSent ? lastSent.at : null } });
+        savedDraft = t;
+        savedEl.textContent = ` · Auto-saved at ${hhmm(at)}`;
+      } catch (_) { /* следующий ввод попробует снова */ }
+    };
+    const later = () => { if (ctx.locked) return; clearTimeout(timer); pendingDraft = saveDraft; timer = setTimeout(saveDraft, 1500); };
+    ta.addEventListener('input', later);
+    ta.addEventListener('blur', () => { if (pendingDraft === saveDraft) saveDraft(); });
+    if (ctx.locked) ta.readOnly = true;
     const msg = (t, cls) => { const m = $('[data-msg]'); m.textContent = t; m.className = 'hwt-msg ' + (cls || ''); };
     const sync = () => {
       const t = $('[data-text]').value;
@@ -192,7 +222,10 @@
       if (wordsIn(t) < 8) { msg('Write a little more first.', 'err'); return; }
       ev.target.disabled = true; ev.target.textContent = 'Sending…';
       try {
-        await ctx.save({ score: 1, max_score: 1, status: 'done', data: { task: 'write', text: t, feedback: fb, used: usedPhrases(t, phrases), at: new Date().toISOString() } });
+        clearTimeout(timer); if (pendingDraft === saveDraft) pendingDraft = null;
+        const data = { task: 'write', text: t, feedback: fb, used: usedPhrases(t, phrases), at: new Date().toISOString(), draft: t, draft_at: new Date().toISOString() };
+        await ctx.save({ score: 1, max_score: 1, status: 'done', data });
+        lastSent = data; savedDraft = t;
         msg('✓ Sent to your teacher', 'ok');
       } catch (e) { msg(e.message || 'Could not send - try again.', 'err'); }
       finally { ev.target.disabled = false; ev.target.textContent = 'Send again'; }
@@ -207,5 +240,6 @@
       if (card.data._hwTask.kind === 'voice') renderVoice(host, card, ctx); else renderWrite(host, card, ctx);
     },
     feedbackHtml: (text, fb) => { css(); return feedbackHtml(text, fb || {}); },
+    flush,
   };
 })();

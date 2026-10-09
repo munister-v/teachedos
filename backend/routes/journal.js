@@ -25,15 +25,15 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, email='', level='A2', lessons_left=0, payment_due=null, format=null, telegram=null, phone=null } = req.body;
+  const { name, email='', level='A2', lessons_left=0, payment_due=null, format=null, telegram=null, phone=null, is_trial=false } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
   if (payment_due && !/^\d{4}-\d{2}-\d{2}$/.test(String(payment_due))) return res.status(400).json({ error: 'payment_due must be YYYY-MM-DD' });
   const fmt = ['individual', 'group'].includes(format) ? format : null;
   const { rows } = await pool.query(
-    `INSERT INTO student_journal (teacher_id,name,email,level,lessons_left,payment_due,format,telegram,phone)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+    `INSERT INTO student_journal (teacher_id,name,email,level,lessons_left,payment_due,format,telegram,phone,is_trial)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
     [req.user.id, name.trim(), email.trim(), level, Math.max(0, parseInt(lessons_left, 10) || 0), payment_due || null,
-     fmt, cleanContact(telegram, 64), cleanContact(phone, 32)]
+     fmt, cleanContact(telegram, 64), cleanContact(phone, 32), is_trial === true]
   );
   const st = rows[0];
   await ledger(pool, { journalId: st.id, teacherId: req.user.id, delta: st.lessons_left, after: st.lessons_left, reason: 'manual', note: 'Starting balance' }).catch(() => {});
@@ -95,7 +95,7 @@ async function packSnapshot(j) {
 router.get('/me/balance', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT j.id AS journal_id, j.lessons_left, j.pack_size, j.paid_claim_at,
+      `SELECT j.id AS journal_id, j.lessons_left, j.pack_size, j.paid_claim_at, j.is_trial,
               to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
               t.name AS teacher_name, t.pay_details
          FROM student_journal j
@@ -178,7 +178,7 @@ async function lessonCalendar(j) {
   return {
     journal_id: j.id, name: j.name, level: j.level || '', teacher_name: (teacher.rows[0] || {}).name || '',
     booking_token: (teacher.rows[0] || {}).booking_token || null,
-    lessons_left: Number(j.lessons_left) || 0, pack_size: Number(j.pack_size) || 8,
+    lessons_left: Number(j.lessons_left) || 0, pack_size: Number(j.pack_size) || 8, is_trial: !!j.is_trial,
     lessons: att.rows.map(r => ({ date: r.date, status: r.status, charged: wasChargedRow(r) })),
     scheduled: plannedDates(slots.rows, taken), unmarked: unmarkedDates(slots.rows, taken),
     history: hist.rows,
@@ -289,7 +289,7 @@ router.post('/:id/pack', async (req, res) => {
   const n = Math.max(1, Math.min(200, parseInt(req.body?.lessons, 10) || cur[0].pack_size || 8));
   const { rows } = await pool.query(
     `UPDATE student_journal
-        SET lessons_left = lessons_left + $3, paid_claim_at = NULL, pack_started_at = NOW(),
+        SET lessons_left = lessons_left + $3, paid_claim_at = NULL, pack_started_at = NOW(), is_trial = FALSE,
             payment_due = CASE WHEN payment_due <= CURRENT_DATE THEN NULL ELSE payment_due END
       WHERE id=$1 AND teacher_id=$2 RETURNING *, to_char(payment_due, 'YYYY-MM-DD') AS payment_due`,
     [req.params.id, req.user.id, n]
@@ -323,13 +323,14 @@ router.post('/:id/lesson', async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const { rows: own } = await client.query('SELECT id, lessons_left FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [req.params.id, req.user.id]);
+    const { rows: own } = await client.query('SELECT id, lessons_left, is_trial FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [req.params.id, req.user.id]);
     if (!own.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not found' }); }
     const slot = /^[0-9a-f-]{36}$/i.test(String(req.body?.slot_id || '')) ? req.body.slot_id : null;
     const { rows: prevRows } = await client.query('SELECT * FROM attendance WHERE journal_id=$1 AND date=$2 FOR UPDATE', [req.params.id, date]);
     const prev = prevRows[0] || null;
     const wasCharged = wasChargedRow(prev);
-    const wantCharge = status !== 'reset' && (charge != null ? charge : CHARGING.has(status));
+    // a trial student's lessons are free unless the teacher says otherwise
+    const wantCharge = status !== 'reset' && (charge != null ? charge : !own[0].is_trial && CHARGING.has(status));
     let left = own[0].lessons_left, charged = false, delta = 0;
     if (wasCharged && !wantCharge) { left += 1; delta = 1; }    // возврат
     if (wantCharge && !wasCharged) { charged = left > 0; if (charged) { left -= 1; delta = -1; } }
@@ -389,7 +390,7 @@ router.post('/:id/adjust', async (req, res) => {
 router.get('/pulse', async (req, res) => {
   try {
     const { rows: studs } = await pool.query(
-      `SELECT j.id, j.name, j.email, j.student_id, j.lessons_left,
+      `SELECT j.id, j.name, j.email, j.student_id, j.lessons_left, j.is_trial,
               to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due, j.pulse_hidden,
               u.avatar, u.name AS user_name,
               (SELECT MAX(a.date) FROM attendance a WHERE a.journal_id = j.id AND a.status='present') AS last_lesson,
@@ -406,7 +407,7 @@ router.get('/pulse', async (req, res) => {
       const base = { journal_id: st.id, name: st.name, email: st.email || '', avatar: st.avatar || '', registered: !!st.student_id };
       const left = Number(st.lessons_left);
       const recent = st.last_lesson && new Date(st.last_lesson).getTime() > monthAgo;
-      if ((left >= 1 && left <= 2) || (left === 0 && recent)) {
+      if (!st.is_trial && ((left >= 1 && left <= 2) || (left === 0 && recent))) {
         const key = `pkg:${left}`;
         if (!hidden[key]) items.push({ ...base, kind: 'package', key, lessons_left: left, severity: left === 0 ? 3 : 2 });
       }
@@ -521,7 +522,7 @@ router.post('/:id/message', (req, res) => {
 });
 
 router.patch('/:id', async (req, res) => {
-  const { name, email, level, lessons_left, notes, payment_due, format, telegram, phone } = req.body;
+  const { name, email, level, lessons_left, notes, payment_due, format, telegram, phone, is_trial } = req.body;
   const sets=[]; const p=[req.params.id, req.user.id];
   if (format!==undefined)       { p.push(['individual','group'].includes(format) ? format : null); sets.push(`format=$${p.length}`); }
   if (telegram!==undefined)     { p.push(cleanContact(telegram, 64)); sets.push(`telegram=$${p.length}`); }
@@ -531,6 +532,7 @@ router.patch('/:id', async (req, res) => {
   if (level!==undefined)        { p.push(level);        sets.push(`level=$${p.length}`); }
   if (lessons_left!==undefined) { p.push(Math.max(0, Math.min(1000, parseInt(lessons_left, 10) || 0))); sets.push(`lessons_left=$${p.length}`); }
   if (notes!==undefined)        { p.push(notes);        sets.push(`notes=$${p.length}`); }
+  if (is_trial!==undefined)     { p.push(is_trial === true); sets.push(`is_trial=$${p.length}`); }
   if (payment_due!==undefined) {
     if (payment_due && !/^\d{4}-\d{2}-\d{2}$/.test(String(payment_due))) return res.status(400).json({ error: 'payment_due must be YYYY-MM-DD' });
     p.push(payment_due || null); sets.push(`payment_due=$${p.length}`);

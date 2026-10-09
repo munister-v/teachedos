@@ -133,7 +133,7 @@
     const join = url && boardHref ? `<a class="te-join" href="${esc(boardHref)}" data-meet="${esc(url)}" title="Opens the video call in a new tab and your board here">Join lesson →</a>`
       : url ? `<a class="te-join" href="${esc(url)}" target="_blank" rel="noopener">Join lesson →</a>`
       : board ? `<a class="te-join" href="${esc(boardHref)}">Open the board →</a>` : '';
-    box.innerHTML = `<div class="te-k">Next lesson</div><div class="te-big">${esc(day)}, ${esc(time)}</div>
+    box.innerHTML = `<div class="te-k">${bal.trial ? 'Your free trial lesson' : 'Next lesson'}</div><div class="te-big">${esc(day)}, ${esc(time)}</div>
       <div class="te-count-big">${esc(count)}</div>
       <div class="te-sub">${teacher ? `with ${esc(teacher)}${up.s.title ? ' · ' : ''}` : ''}${esc(up.s.title || up.s.topic || (teacher ? '' : 'Lesson'))}</div>${join}`;
     const both = box.querySelector('.te-join[data-meet]');
@@ -306,11 +306,25 @@
      It used to be a red pill between the bell and the avatar, where it read
      as an alarm. The same line also said "Your lessons will appear here"
      from another source at the same time; this card is the one place now. */
-  const bal = { jLeft: null, bLeft: null, paymentDue: null, token: null, teacher: '' };   // journal balance wins over the board count
+  const bal = { jLeft: null, bLeft: null, paymentDue: null, token: null, teacher: '', trial: false };   // journal balance wins over the board count
   function balance() {
     const box = $('te-balcard');
     if (!box) return;
     const left = bal.jLeft != null ? bal.jLeft : bal.bLeft;
+    /* A trial student (journal is_trial): no package yet and nothing to
+       renew - the first lesson is free, so no red "0 left". */
+    if (bal.trial) {
+      box.hidden = false;
+      box.className = 'te-balcard trial';
+      box.innerHTML = `<button type="button" class="te-balrow" id="te-balrow" aria-haspopup="dialog"><span>✨ Free trial session<small>Your first lesson is on us</small></span><b>Trial</b></button>`;
+      box.querySelector('#te-balrow').addEventListener('click', () => {
+        if (typeof window.closeSidebar === 'function') window.closeSidebar();
+        if (window.TeachedLessonCal && typeof window.apiFetch === 'function') window.TeachedLessonCal.open({ api: window.apiFetch });
+      });
+      const ms = $('ms-lessons');
+      if (ms) { ms.textContent = '✨'; ms.classList.add('is-soft'); }
+      return;
+    }
     if (left == null) { box.hidden = true; return; }
     let pay = '';
     if (bal.paymentDue && /^\d{4}-\d{2}-\d{2}$/.test(bal.paymentDue)) {
@@ -617,7 +631,7 @@
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },
     homework(todo, all) { hwTodo = Array.isArray(todo) ? todo : []; hwAll = Array.isArray(all) ? all : hwTodo; homework(); },
-    balance(b) { Object.assign(bal, b || {}); balance(); },
+    balance(b) { Object.assign(bal, b || {}); balance(); nextLesson(); },
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

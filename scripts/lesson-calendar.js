@@ -172,6 +172,7 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
       }
       const who = teacher ? `${esc(cal.name)}${cal.level ? ' · ' + esc(cal.level) : ''}` : (cal.teacher_name ? `with ${esc(cal.teacher_name)}` : '');
       const left = cal.lessons_left;
+      const trial = !!cal.is_trial;
       const action = teacher
         ? `<div class="lc-acts"><button type="button" class="lc-top" data-pack>+${cal.pack_size} lessons</button><button type="button" class="lc-top ghost" data-adj aria-expanded="${adjOpen}">Adjust</button></div>
            <div class="lc-adj"${adjOpen ? '' : ' hidden'}><button type="button" data-delta="-1" aria-label="Take one lesson off">−1</button><button type="button" data-delta="1" aria-label="Add one lesson">+1</button><input type="text" maxlength="120" placeholder="Why? (optional, the student sees it)" aria-label="Reason for the correction"></div>`
@@ -185,17 +186,18 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
       const unmarkedPast = [...todo].length;
       const foot = !teacher ? ''
         : warn ? `<p class="lc-foot warn">${esc(warn)}</p>`
+        : trial ? '<p class="lc-foot">Trial student: lessons are marked free and the balance is not touched. The first package (+N lessons) ends the trial.</p>'
         : picked ? `<p class="lc-foot">${esc(dayName(picked))}: what happened? Held and missed lessons and late cancellations take one off the balance; a free lesson and a cancellation do not.</p>`
         : unmarkedPast ? `<p class="lc-foot warn">${unmarkedPast} past lesson${unmarkedPast === 1 ? ' is' : 's are'} not marked yet (orange outline). Click a day to mark it - the balance follows.</p>`
         : '<p class="lc-foot">Click a day to mark a lesson or change it. The balance follows.</p>';
       box.innerHTML = `<div class="lc-head"><div><b>Attendance & balance</b>${who ? `<span>${who}</span>` : ''}</div><button type="button" class="lc-x" aria-label="Close">✕</button></div>
         ${!teacher && cals.length > 1 ? `<div class="lc-tabs" role="tablist">${cals.map((c, k) => `<button type="button" role="tab" aria-selected="${k === at}" class="${k === at ? 'on' : ''}" data-tab="${k}">${esc(c.teacher_name || 'Teacher ' + (k + 1))}</button>`).join('')}</div>` : ''}
-        <div class="lc-bal"><div><small>Remaining balance</small><b>${left} lesson${left === 1 ? '' : 's'}</b></div>${action}</div>
+        <div class="lc-bal">${trial ? `<div><small>Trial student</small><b>✨ Free trial</b></div>` : `<div><small>Remaining balance</small><b>${left} lesson${left === 1 ? '' : 's'}</b></div>`}${trial && !teacher ? '<span class="lc-note">Your first lesson is free. A package starts after it.</span>' : action}</div>
         <div class="lc-cal">
           <div class="lc-nav"><b>${MONTHS[view.m]} ${view.y}</b><button type="button" data-nav="-1" aria-label="Previous month">‹</button><button type="button" data-nav="1" aria-label="Next month">›</button></div>
           <div class="lc-grid">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(w => `<span class="lc-wd">${w}</span>`).join('')}${cells.join('')}</div>
           <div class="lc-key">${key}</div>
-          ${picked ? `<div class="lc-menu" data-for="${picked}">${MARKS.filter(m => m.k !== 'reset' || pickedMark).map(m => `<button type="button" data-mark="${m.k}"${pickedMark === m.k ? ' class="on"' : ''}>${m.label}${m.fx ? `<small>${m.fx}</small>` : ''}</button>`).join('')}</div>` : ''}
+          ${picked ? `<div class="lc-menu" data-for="${picked}">${MARKS.filter(m => (m.k !== 'reset' || pickedMark) && !(trial && (m.k === 'free' || m.k === 'late'))).map(m => { const t = trial && m.charge ? { ...m, label: m.k === 'held' ? 'Trial lesson' : m.label, fx: '0' } : m; return `<button type="button" data-mark="${t.k}"${pickedMark === t.k || (trial && t.k === 'held' && pickedMark === 'free') ? ' class="on"' : ''}>${t.label}${t.fx ? `<small>${t.fx}</small>` : ''}</button>`; }).join('')}</div>` : ''}
         </div>
         ${foot}${history(cal)}`;
       box.querySelector('.lc-x').addEventListener('click', close);
@@ -210,7 +212,7 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
         b.disabled = true;
         try {
           const body = { date: picked, status: m.status };
-          if (m.charge != null) body.charge = m.charge;
+          if (m.charge != null) body.charge = cals[at].is_trial ? false : m.charge;
           const d = await post(`/api/journal/${encodeURIComponent(opts.journalId)}/lesson`, body);
           warn = d.uncharged ? `The balance was already 0, so ${dayName(picked)} was marked without taking a lesson off. Add a package to count it.` : '';
           picked = null;

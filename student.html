@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1129">
-<link rel="preload" as="style" href="styles/unify.css?v=1129">
-<link rel="manifest" href="manifest.json?v=1129">
+<link rel="preload" as="style" href="styles/harmony.css?v=1130">
+<link rel="preload" as="style" href="styles/unify.css?v=1130">
+<link rel="manifest" href="manifest.json?v=1130">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -17,8 +17,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1129">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1129">
+<link rel="stylesheet" href="styles/fonts.css?v=1130">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1130">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -590,18 +590,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1129">
-<link rel="stylesheet" href="styles/harmony.css?v=1129">
-<link rel="stylesheet" href="styles/unify.css?v=1129">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1129">
+<link rel="stylesheet" href="styles/mobile.css?v=1130">
+<link rel="stylesheet" href="styles/harmony.css?v=1130">
+<link rel="stylesheet" href="styles/unify.css?v=1130">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1130">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1129">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1129">
-<link rel="stylesheet" href="styles/controls.css?v=1129">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1129">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1129">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1129">
-<link rel="stylesheet" href="styles/student-engage.css?v=1129">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1130">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1130">
+<link rel="stylesheet" href="styles/controls.css?v=1130">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1130">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1130">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1130">
+<link rel="stylesheet" href="styles/student-engage.css?v=1130">
 </head>
 <body class="fx">
 
@@ -862,14 +862,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1129"></script>
-<script src="scripts/student-feed.js?v=1129"></script>
-<script src="scripts/lesson-cover.js?v=1129"></script>
-<script src="scripts/lesson-calendar.js?v=1129"></script>
-<script src="scripts/hw-state.js?v=1129"></script>
-<script src="scripts/student-engage.js?v=1129"></script>
-<script src="scripts/wallpaper-presets.js?v=1129"></script>
-<script src="scripts/student-wallpaper.js?v=1129"></script>
+<script src="scripts/app-core.js?v=1130"></script>
+<script src="scripts/student-feed.js?v=1130"></script>
+<script src="scripts/lesson-cover.js?v=1130"></script>
+<script src="scripts/lesson-calendar.js?v=1130"></script>
+<script src="scripts/hw-state.js?v=1130"></script>
+<script src="scripts/student-engage.js?v=1130"></script>
+<script src="scripts/wallpaper-presets.js?v=1130"></script>
+<script src="scripts/student-wallpaper.js?v=1130"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1342,8 +1342,8 @@ function renderPortalData(data) {
   if (data.journalEntry && window.studentEngage) {
     const je = data.journalEntry;
     // A package the teacher actually tracks (lessons, a payment date or lessons held); otherwise stay quiet.
-    if (Number(je.lessons_left) > 0 || je.payment_due || Number(je.total_sessions) > 0) {
-      window.studentEngage.balance({ jLeft: je.lessons_left != null ? Number(je.lessons_left) : null, paymentDue: je.payment_due || null });
+    if (je.is_trial || Number(je.lessons_left) > 0 || je.payment_due || Number(je.total_sessions) > 0) {
+      window.studentEngage.balance({ jLeft: je.lessons_left != null ? Number(je.lessons_left) : null, paymentDue: je.payment_due || null, trial: !!je.is_trial });
     }
   }
   if (data.stats) {
@@ -1497,7 +1497,7 @@ async function loadHomework() {
         <span class="hw-card-ic">${a.first_card_type === 'game' && n === 1 ? '🎮' : '📝'}</span>
         <span class="hw-card-main">
           <span class="hw-card-title" style="display:block">${esc(a.title)}</span>
-          <span class="hw-card-meta" style="display:block">${esc(a.teacher_name || 'Teacher')}${dueTxt && !finished ? ` · <span class="${late ? 'late' : ''}">${late ? 'Was due' : 'Due'} ${esc(dueTxt)}</span>` : ''}${s.key === 'IN_PROGRESS' ? ` · ${esc(s.note)}` : ''}</span>
+          <span class="hw-card-meta" style="display:block">${esc(a.teacher_name || 'Teacher')}${dueTxt && !finished ? ` · <span class="${late ? 'late' : ''}">${late ? 'Was due' : 'Due'} ${esc(dueTxt)}</span>` : ''}${s.key === 'IN_PROGRESS' ? ` · ${esc(s.line)}` : ''}</span>
           ${s.key === 'IN_PROGRESS' ? `<span class="st-bar" aria-hidden="true"><i style="width:${s.pct}%"></i></span>` : ''}
           ${s.badge ? `<span class="st-badge ${s.badge.cls}" style="margin-top:6px">${esc(s.badge.text)}</span>` : ''}
           ${s.key === 'REVIEWED' && a.teacher_note ? `<span class="hw-card-note" style="display:block">“${esc(a.teacher_note)}”</span>` : a.instructions && !finished ? `<span class="hw-card-note" style="display:block">${esc(a.instructions)}</span>` : ''}
@@ -1631,19 +1631,19 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1129"></script>
-<script src="scripts/vault-review.js?v=1129"></script>
-<script src="scripts/vault-cabinet.js?v=1129"></script>
-<script src="scripts/writing-shared.js?v=1129"></script>
-<script src="scripts/writing-mine.js?v=1129"></script>
-<script src="scripts/autogrow.js?v=1129" defer></script>
-<script src="pwa-boot.js?v=1129" defer></script>
-<script src="pwa.js?v=1129"></script>
-<script src="scripts/nav-boost.js?v=1129" defer></script>
-<script src="scripts/mobile-perf.js?v=1129" defer></script>
-<script src="scripts/mobile-nav.js?v=1129"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1129" defer></script>
-  <script src="scripts/signin-entry.js?v=1129" defer></script>
-<script src="scripts/verify-banner.js?v=1129" defer></script>
+<script src="scripts/hear-in-context.js?v=1130"></script>
+<script src="scripts/vault-review.js?v=1130"></script>
+<script src="scripts/vault-cabinet.js?v=1130"></script>
+<script src="scripts/writing-shared.js?v=1130"></script>
+<script src="scripts/writing-mine.js?v=1130"></script>
+<script src="scripts/autogrow.js?v=1130" defer></script>
+<script src="pwa-boot.js?v=1130" defer></script>
+<script src="pwa.js?v=1130"></script>
+<script src="scripts/nav-boost.js?v=1130" defer></script>
+<script src="scripts/mobile-perf.js?v=1130" defer></script>
+<script src="scripts/mobile-nav.js?v=1130"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1130" defer></script>
+  <script src="scripts/signin-entry.js?v=1130" defer></script>
+<script src="scripts/verify-banner.js?v=1130" defer></script>
 </body>
 </html>

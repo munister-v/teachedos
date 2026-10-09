@@ -9,8 +9,8 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1129">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1129">
+<link rel="stylesheet" href="styles/fonts.css?v=1130">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1130">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -160,17 +160,17 @@ a{text-decoration:none;color:inherit;}
   background:#24282C;color:#fff;box-shadow:0 4px 20px rgba(36,40,44,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=1129" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1129">
-<link rel="stylesheet" href="styles/harmony.css?v=1129">
-<link rel="stylesheet" href="styles/unify.css?v=1129">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1129">
+<script src="theme.js?v=1130" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1130">
+<link rel="stylesheet" href="styles/harmony.css?v=1130">
+<link rel="stylesheet" href="styles/unify.css?v=1130">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1130">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1129">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1129">
-<link rel="stylesheet" href="styles/controls.css?v=1129">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1129">
-<link rel="stylesheet" href="styles/toast.css?v=1129">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1130">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1130">
+<link rel="stylesheet" href="styles/controls.css?v=1130">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1130">
+<link rel="stylesheet" href="styles/toast.css?v=1130">
 </head>
 <body class="fx">
 
@@ -221,11 +221,11 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 
 <!-- Проигрыватель листа, общий с доской: без него лист ученику не показать. -->
-<script src="scripts/accent.js?v=1129"></script>
-<script src="scripts/hear-in-context.js?v=1129"></script>
-<script src="scripts/worksheet-play.js?v=1129"></script>
-<script src="scripts/hw-tasks.js?v=1129"></script>
-<script src="scripts/hw-state.js?v=1129"></script>
+<script src="scripts/accent.js?v=1130"></script>
+<script src="scripts/hear-in-context.js?v=1130"></script>
+<script src="scripts/worksheet-play.js?v=1130"></script>
+<script src="scripts/hw-tasks.js?v=1130"></script>
+<script src="scripts/hw-state.js?v=1130"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -294,7 +294,7 @@ function render() {
         <div class="hw-icon">${esc(a.teacher_avatar||'🧑‍🏫')}</div>
         <div class="hw-body">
           <div class="hw-name">${esc(a.title)}</div>
-          <div class="hw-meta">From ${esc(a.teacher_name)}${a.course_name ? ' · ' + esc(a.course_name) : ''}${due ? ' · Due ' + esc(due) : ''} · ${req} card${req!==1?'s':''}</div>
+          <div class="hw-meta">From ${esc(a.teacher_name)}${a.course_name ? ' · ' + esc(a.course_name) : ''}${due ? ' · Due ' + esc(due) : ''} · ${req} card${req!==1?'s':''}${s.saved ? ' · ' + esc(s.saved) : ''}</div>
           ${s.key === 'IN_PROGRESS' ? `<span class="hw-bar" aria-hidden="true"><i style="width:${s.pct}%"></i></span>` : ''}
         </div>
         <div class="hw-right">
@@ -452,7 +452,7 @@ function renderSide() {
     const name = c ? (c.data?.title || c.data?.question || c.type) : '(missing card)';
     const meta = att && att.score != null ? ` · ${att.score}${att.max_score?'/'+att.max_score:''}` : '';
     div.innerHTML = `<span>${i+1}. ${esc(name)}${meta}</span><span class="done-tag">${att && att.status === 'done' ? '✓' : ''}</span>`;
-    div.onclick = () => { stepIdx = i; showCurrent(); renderSide(); };
+    div.onclick = () => { if (window.HwTasks && HwTasks.flush) HwTasks.flush(); stepIdx = i; showCurrent(); renderSide(); };
     side.appendChild(div);
   });
 }
@@ -495,7 +495,7 @@ function renderCardForStudent(host, card) {
     HwTasks.render(host, card, {
       api, assignmentId: current.assignment.id, boardId: (current.assignment && current.assignment.board_id) || current.board.id,
       attempt: current.attempts.find(t => t.card_id === card.id) || null,
-      save: payload => saveTaskAttempt(card.id, payload), toast,
+      save: payload => saveTaskAttempt(card.id, payload), toast, locked: isLocked(),
     });
     return;
   }
@@ -668,6 +668,7 @@ async function recordAttempt(cardId, payload) {
 }
 
 function step(delta) {
+  if (window.HwTasks && HwTasks.flush) HwTasks.flush();
   const next = stepIdx + delta;
   if (next < 0 || next >= requiredCards.length) return;
   stepIdx = next;
@@ -685,6 +686,7 @@ async function submitAssignment() {
   btn.disabled = true;
   try {
     if (iwSaveT) { clearTimeout(iwSaveT); iwSaveT = null; if (iwPending) { const q = iwPending; iwPending = null; await recordAttempt(q.cardId, q.payload); } }
+    if (window.HwTasks && HwTasks.flush) await HwTasks.flush();
     await Promise.allSettled([...inflight]);
     const r = await api('/api/homework/my/' + current.assignment.id + '/submit', { method: 'POST' });
     toast(`✅ Handed in${typeof r.final_score === 'number' ? ' - score: ' + r.final_score + '%' : ''}. Your teacher will review it.`);
@@ -800,10 +802,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=1129" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1129" defer></script>
-<script src="scripts/autogrow.js?v=1129" defer></script>
-<script src="pwa-boot.js?v=1129" defer></script>
-  <script src="scripts/signin-entry.js?v=1129" defer></script>
+<script src="scripts/nav-boost.js?v=1130" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1130" defer></script>
+<script src="scripts/autogrow.js?v=1130" defer></script>
+<script src="pwa-boot.js?v=1130" defer></script>
+  <script src="scripts/signin-entry.js?v=1130" defer></script>
 </body>
 </html>
