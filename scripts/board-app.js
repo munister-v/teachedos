@@ -16448,7 +16448,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1139';
+const TEACHEDOS_ASSET_VERSION = '1140';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -27756,9 +27756,9 @@ document.addEventListener('keydown', e => {
    (data.canvas = { tone, color? }), поэтому учитель и ученики видят одно и
    то же - раньше фон жил только в localStorage каждого браузера.
 
-   Доска, на которой уже что-то есть и у которой тона нет, остаётся светлой:
-   на ней рисовали тёмной ручкой и писали тёмным текстом по светлому, и на
-   тёмном холсте всё это пропало бы. Тёмными становятся только пустые доски.
+   Доска без своего тона тоже тёмная (так попросили учителя: графит везде).
+   Тёмная ручка и тёмные линии на таком холсте перекрашиваются в светлые
+   стилями board-canvas-dark, светлый тон можно выбрать в «Background».
 
    Кто сильнее: цвет, выбранный для этой доски (canvas.color) → цвет,
    выбранный в этом браузере раньше (BG_KEY) → тон доски. У того, кто доску
@@ -27806,8 +27806,10 @@ function _loadCanvasTone(data) {
     state.canvas = { tone: c.tone };
     if (typeof c.color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.color)) state.canvas.color = c.color;
   } else {
-    const used = (data && ((data.cards || []).length || (data.strokes || []).length || (data.arrows || []).length)) || 0;
-    state.canvas = { tone: used ? 'light' : 'dark' };
+    /* Графит - фон по умолчанию у всех досок, и у старых тоже. Тёмные
+       надписи и линии ручкой на нём светлеют сами (board-harmony.css,
+       board-canvas-dark), так что старое содержимое не пропадает. */
+    state.canvas = { tone: 'dark' };
   }
   applyCanvasTone();
 }

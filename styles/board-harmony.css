@@ -215,6 +215,8 @@ body.board-page.board-canvas-dark .board-card.card-text:not(.generated-panel-car
 body.board-page.board-canvas-dark .board-card.card-text:not(.generated-panel-card) :is(.card-body,.text-rich-editor,.card-text-selectable,[contenteditable]){ color:#F4F4F8; caret-color:#CDF649; }
 body.board-page.board-canvas-dark .board-card.card-text:not(.generated-panel-card) :is(.text-rich-editor,[contenteditable]):empty::before{ color:rgba(244,244,248,.45); }
 body.board-page.board-canvas-dark #arrows-svg .arrow-path:not(.prereq){ stroke:#D9DAE3; }
+/* ink pen strokes drawn on a light canvas stay visible on graphite */
+body.board-page.board-canvas-dark #draw-svg path:is([stroke="#24282C" i],[stroke="#000" i],[stroke="#000000" i],[stroke="#1C1C1E" i],[stroke="#111" i],[stroke="#111111" i],[stroke="#222" i],[stroke="#222222" i],[stroke="#333" i],[stroke="#333333" i],[stroke="black" i]){ stroke:#E8E9EE; }
 body.board-page.board-canvas-dark #arrows-svg :is(.arrow-path:hover,.arrow-path.selected-arrow):not(.prereq){ stroke:#FFFFFF; }
 body.board-page.board-canvas-dark #arrows-svg :is(#arrowhead,#arrowhead-start,#arrowhead-sel,#arrowhead-hover) polygon{ fill:#D9DAE3; }
 body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar{
