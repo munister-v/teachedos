@@ -267,6 +267,15 @@ const WM = (function () {
   function winOf(id) { return document.getElementById('win-' + id); }
   function idOf(win) { return win.id.replace('win-', ''); }
 
+  /* Верхняя граница окна: низ строки меню (в координатах родителя окна).
+     Иначе заголовок уезжал под шапку и окно нельзя было схватить. */
+  function minY(win) {
+    const mb = document.getElementById('menubar');
+    if (!mb || !mb.getClientRects().length) return 0;
+    const pr = win && win.offsetParent ? win.offsetParent.getBoundingClientRect() : { top: 0 };
+    return Math.max(0, Math.round(mb.getBoundingClientRect().bottom - pr.top));
+  }
+
   function clamp(win) {
     if (win.classList.contains('maximized')) return;
     const w = win.offsetWidth, h = win.offsetHeight;
@@ -275,7 +284,7 @@ const WM = (function () {
     let x = parseFloat(win.style.left) || 0;
     let y = parseFloat(win.style.top)  || 0;
     x = Math.max(0, Math.min(x, maxX));
-    y = Math.max(0, Math.min(y, maxY));
+    y = Math.max(minY(win), Math.min(y, maxY));
     win.style.left = x + 'px';
     win.style.top  = y + 'px';
   }
@@ -316,7 +325,7 @@ const WM = (function () {
       maximize(id, /*skipSave*/ true);
     } else if (s.w && s.h) {
       win.style.left   = Math.max(0, Math.min(s.x, window.innerWidth  - 80)) + 'px';
-      win.style.top    = Math.max(0, Math.min(s.y, window.innerHeight - TOPBAR_H)) + 'px';
+      win.style.top    = Math.max(minY(win), Math.min(s.y, window.innerHeight - TOPBAR_H)) + 'px';
       win.style.width  = Math.max(MIN_W, s.w) + 'px';
       win.style.height = Math.max(MIN_H, s.h) + 'px';
     }
@@ -592,7 +601,7 @@ const WM = (function () {
       const maxX = window.innerWidth  - drag.win.offsetWidth;
       const maxY = window.innerHeight - TOPBAR_H;
       nx = Math.max(0, Math.min(nx, Math.max(0, maxX)));
-      ny = Math.max(0, Math.min(ny, maxY));
+      ny = Math.max(minY(drag.win), Math.min(ny, maxY));
       drag.nx = nx; drag.ny = ny;
       /* Двигаем композитором (transform) раз в кадр; left/top пишутся один
          раз на отпускании - без перекладки на каждое событие мыши. */
@@ -621,7 +630,7 @@ const WM = (function () {
       if (nh < MIN_H) { if (rez.dir.includes('n')) ny -= (MIN_H - nh); nh = MIN_H; }
       // clamp to viewport
       if (nx < 0) { nw += nx; nx = 0; }
-      if (ny < 0) { nh += ny; ny = 0; }
+      { const my = minY(rez.win); if (ny < my) { nh -= (my - ny); ny = my; } }
       if (nx + nw > window.innerWidth)  nw = window.innerWidth  - nx;
       if (ny + nh > window.innerHeight) nh = window.innerHeight - ny;
       rez.next = { nx, ny, nw, nh };
