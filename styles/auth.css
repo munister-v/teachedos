@@ -446,3 +446,55 @@
   .auth-role-ic { font-size: 2rem !important; margin-bottom: 6px !important; }
   .auth-role-name { font-size: 13px !important; }
 }
+
+/* ═══ Sign-in, cleaner (2026-10-09) ═══════════════════════════════
+   1. The card no longer jumps. It was centred vertically, so every change
+      in its height moved the whole card: Google's button iframe loads
+      late and resizes ("Continue as <name>" is taller than the plain
+      pill), the error line appears, the mode switches. Now the card is
+      pinned to a fixed top offset and only grows downward, and the Google
+      slot is exactly one button tall.
+   2. Fields: soft filled inputs without a border, a white field with a
+      lime ring on focus, sentence-case labels instead of mono caps. Chrome
+      autofill stays on our fill: the #auth-overlay override above set
+      box-shadow:none !important and so cancelled the autofill inset
+      shadow, which is why saved logins came back blue. */
+#auth-overlay.auth-overlay { align-items: flex-start; padding-top: max(24px, 11vh); }
+#auth-overlay .auth-card { margin: 0 auto auto; }
+#auth-overlay .auth-google-btn { min-height: 44px; height: 44px; overflow: hidden; }
+#auth-overlay .auth-google-btn iframe { margin: 0 auto !important; }
+
+#auth-overlay .auth-field-label {
+  font-family: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.2;
+  letter-spacing: 0; text-transform: none; color: #5D614B; margin: 0 0 7px 2px;
+}
+#auth-overlay .auth-inp {
+  height: 48px; padding: 0 16px;
+  border: 1px solid transparent !important; border-radius: 14px;
+  background: #F2F3EE !important;
+  font-size: 15px; font-weight: 500;
+  transition: background-color .16s, border-color .16s, box-shadow .16s;
+}
+#auth-overlay .auth-inp:hover { background: #ECEDE6 !important; }
+#auth-overlay .auth-inp:focus {
+  background: #FFFFFF !important;
+  border-color: #B9DE3A !important;
+  box-shadow: 0 0 0 4px rgba(205,246,73,.28) !important;
+}
+#auth-overlay .auth-password-field .auth-inp { padding-right: 48px; }
+#auth-overlay .auth-inp:-webkit-autofill,
+#auth-overlay .auth-inp:-webkit-autofill:hover {
+  -webkit-box-shadow: 0 0 0 40px #F2F3EE inset !important;
+  -webkit-text-fill-color: var(--auth-ink) !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+#auth-overlay .auth-inp:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 40px #FFFFFF inset, 0 0 0 4px rgba(205,246,73,.28) !important;
+}
+#auth-overlay .auth-field-wrap { margin-bottom: 14px; }
+#auth-overlay .auth-btn { height: 50px; border-radius: 14px; font-size: 15px; }
+#auth-overlay .auth-security-note { display: block; font-family: inherit; font-size: 12px; font-weight: 500; line-height: 1.45; color: #7A7E68; text-align: center; margin-top: 12px; }
+#auth-overlay .auth-security-note::before { display: none; }
+@media (max-width: 540px) {
+  #auth-overlay.auth-overlay { padding-top: 16px; }
+}
