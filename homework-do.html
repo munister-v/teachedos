@@ -9,8 +9,8 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1128">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1128">
+<link rel="stylesheet" href="styles/fonts.css?v=1129">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1129">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -54,6 +54,26 @@ a{text-decoration:none;color:inherit;}
 .pill.submitted{background:rgba(205,246,73,.45);color:#24282C;}
 .pill.graded{background:rgba(136,107,243,.14);color:var(--purple);}
 .score-chip{font-weight:700;font-size:14px;font-family:var(--mono);}
+/* Состояние карточки (scripts/hw-state.js): жёлтое «ждёт проверки», зелёное
+   «есть отзыв», пока ученик его не открыл. */
+.st-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:750;white-space:nowrap;}
+.st-badge.pending{background:#FFE98A;color:#5C4A00;}
+.st-badge.feedback{background:#C9F2D6;color:#0D5E2E;}
+.st-badge.feedback::before{content:'';width:7px;height:7px;border-radius:50%;background:#1E9E55;}
+.st-badge.reviewed{background:#E3E6D8;color:#3A3F2A;}
+.hw-bar{display:block;height:4px;border-radius:4px;background:var(--border);margin-top:7px;max-width:220px;overflow:hidden;}
+.hw-bar > i{display:block;height:100%;background:#24282C;border-radius:4px;}
+
+/* Отзыв учителя над карточками: после сдачи работа только для чтения. */
+#runner-review{border-bottom:1px solid var(--border);background:var(--card);padding:14px 18px;display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow:auto;}
+#runner-review[hidden]{display:none;}
+.rv-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rv-head b{font-size:15px;}
+.rv-score{font:700 14px var(--mono);}
+.rv-note{font-size:14px;line-height:1.55;white-space:pre-wrap;color:var(--text);background:var(--bg);border-radius:12px;padding:10px 12px;}
+.rv-voice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rv-voice audio{width:min(420px,100%);}
+.rv-sub{font-size:12.5px;color:var(--text-2);}
 
 .empty{padding:60px 20px;text-align:center;color:var(--text3);}
 .empty-icon{font-size:48px;margin-bottom:10px;}
@@ -107,6 +127,14 @@ a{text-decoration:none;color:inherit;}
 .side-card.done{background:rgba(211,243,107,.08);color:#5D614B;border-color:rgba(211,243,107,.3);}
 .side-card .done-tag{font-family:var(--mono);font-size:10px;font-weight:650;}
 .side-instructions{font-size:12px;color:var(--text-2);background:var(--bg);padding:10px;border-radius:10px;line-height:1.5;white-space:pre-wrap;}
+#side-list{display:flex;flex-direction:column;gap:10px;}
+/* Незнакомое слово - сразу в Word Bank, с пометкой «из домашки». */
+.sw-open{width:100%;min-height:40px;border:1.5px dashed var(--border2);border-radius:10px;background:transparent;font-size:12.5px;font-weight:650;color:var(--text);}
+.sw-form{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;background:var(--bg);}
+.sw-form input{min-height:40px;padding:0 10px;border-radius:9px;border:1.5px solid var(--border2);font:500 14px var(--font);color:var(--text);background:#fff;}
+.sw-row{display:flex;gap:6px;}
+.sw-row .runner-btn{flex:1;min-height:40px;}
+.sw-done{font-size:12px;color:var(--text-2);line-height:1.45;}
 
 @media (max-width:760px){
   #runner-top{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;padding:max(env(safe-area-inset-top,0px),10px) 12px 10px;}
@@ -132,17 +160,17 @@ a{text-decoration:none;color:inherit;}
   background:#24282C;color:#fff;box-shadow:0 4px 20px rgba(36,40,44,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=1128" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1128">
-<link rel="stylesheet" href="styles/harmony.css?v=1128">
-<link rel="stylesheet" href="styles/unify.css?v=1128">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1128">
+<script src="theme.js?v=1129" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1129">
+<link rel="stylesheet" href="styles/harmony.css?v=1129">
+<link rel="stylesheet" href="styles/unify.css?v=1129">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1129">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1128">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1128">
-<link rel="stylesheet" href="styles/controls.css?v=1128">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1128">
-<link rel="stylesheet" href="styles/toast.css?v=1128">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1129">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1129">
+<link rel="stylesheet" href="styles/controls.css?v=1129">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1129">
+<link rel="stylesheet" href="styles/toast.css?v=1129">
 </head>
 <body class="fx">
 
@@ -160,8 +188,8 @@ a{text-decoration:none;color:inherit;}
   <div class="tabs">
     <button class="tab active" data-status="all"        onclick="switchTab('all')">All</button>
     <button class="tab"        data-status="todo"       onclick="switchTab('todo')">To do</button>
-    <button class="tab"        data-status="submitted"  onclick="switchTab('submitted')">Submitted</button>
-    <button class="tab"        data-status="graded"     onclick="switchTab('graded')">Graded</button>
+    <button class="tab"        data-status="submitted"  onclick="switchTab('submitted')">Pending review</button>
+    <button class="tab"        data-status="graded"     onclick="switchTab('graded')">Reviewed</button>
   </div>
   <div id="list"></div>
 </div>
@@ -179,23 +207,25 @@ a{text-decoration:none;color:inherit;}
     <button class="runner-btn primary" id="btn-next" onclick="step(1)">Next →</button>
     <button class="runner-btn primary" id="btn-submit" onclick="submitAssignment()" style="display:none;">Submit homework</button>
   </div>
+  <div id="runner-review" hidden aria-live="polite"></div>
   <div id="runner-main">
     <div id="runner-cardwrap">
       <div id="runner-card-host">
         <div class="card-empty">Loading…</div>
       </div>
     </div>
-    <aside id="runner-side"></aside>
+    <aside id="runner-side"><div id="side-words"></div><div id="side-list"></div></aside>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <!-- Проигрыватель листа, общий с доской: без него лист ученику не показать. -->
-<script src="scripts/accent.js?v=1128"></script>
-<script src="scripts/hear-in-context.js?v=1128"></script>
-<script src="scripts/worksheet-play.js?v=1128"></script>
-<script src="scripts/hw-tasks.js?v=1128"></script>
+<script src="scripts/accent.js?v=1129"></script>
+<script src="scripts/hear-in-context.js?v=1129"></script>
+<script src="scripts/worksheet-play.js?v=1129"></script>
+<script src="scripts/hw-tasks.js?v=1129"></script>
+<script src="scripts/hw-state.js?v=1129"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -256,19 +286,62 @@ function render() {
   list.innerHTML = filtered.map(a => {
     const req = Array.isArray(a.required_cards) ? a.required_cards.length : 0;
     const due = a.due_at ? new Date(a.due_at).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
+    const s = HwState.of(a);
+    const right = s.badge ? `<span class="st-badge ${s.badge.cls}">${esc(s.badge.text)}</span>`
+      : `<span class="pill ${a.status}">${s.key === 'IN_PROGRESS' ? esc(s.note) : 'Not started'}</span>`;
     return `
       <div class="hw-item" onclick='openRunner(${JSON.stringify(a.assignment_id)})'>
         <div class="hw-icon">${esc(a.teacher_avatar||'🧑‍🏫')}</div>
         <div class="hw-body">
           <div class="hw-name">${esc(a.title)}</div>
           <div class="hw-meta">From ${esc(a.teacher_name)}${a.course_name ? ' · ' + esc(a.course_name) : ''}${due ? ' · Due ' + esc(due) : ''} · ${req} card${req!==1?'s':''}</div>
+          ${s.key === 'IN_PROGRESS' ? `<span class="hw-bar" aria-hidden="true"><i style="width:${s.pct}%"></i></span>` : ''}
         </div>
         <div class="hw-right">
-          ${typeof a.final_score === 'number' ? `<span class="score-chip" style="color:${a.final_score>=a.pass_threshold?'var(--green)':'var(--red)'};">${a.final_score}</span>` : ''}
-          <span class="pill ${a.status}">${a.status.replace('_',' ')}</span>
+          ${s.key === 'REVIEWED' && typeof a.final_score === 'number' ? `<span class="score-chip" style="color:${a.final_score>=a.pass_threshold?'var(--green)':'var(--red)'};">${a.final_score}</span>` : ''}
+          ${right}
         </div>
       </div>`;
   }).join('');
+}
+
+/* Сданная работа - только для чтения: сервер больше не принимает попыток
+   (409), а сверху показывается отзыв учителя или «ждёт проверки». */
+const isLocked = () => !!current && ['submitted', 'graded'].includes(current.assignment.status);
+let voiceUrl = null;
+function renderReview() {
+  const box = document.getElementById('runner-review');
+  const a = current.assignment;
+  if (voiceUrl) { URL.revokeObjectURL(voiceUrl); voiceUrl = null; }
+  if (!isLocked()) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  const when = d => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+  if (a.status === 'submitted') {
+    box.innerHTML = `<div class="rv-head"><span class="st-badge pending">⏳ Pending teacher review</span><span class="rv-sub">Handed in ${esc(when(a.submitted_at))}. ${esc(a.teacher_name || 'Your teacher')} will check it - you will get a notification.</span></div>`;
+    return;
+  }
+  const score = typeof a.final_score === 'number' ? `<span class="rv-score" style="color:${a.final_score >= (a.pass_threshold || 60) ? 'var(--green)' : 'var(--red)'}">${a.final_score}%</span>` : '';
+  box.innerHTML = `<div class="rv-head"><b>${esc(a.teacher_name || 'Your teacher')}'s review</b>${score}<span class="rv-sub">${esc(when(a.graded_at))}</span></div>
+    ${a.voice_ms != null ? `<div class="rv-voice"><button type="button" class="runner-btn primary" id="rv-play">🎧 Listen to voice feedback${a.voice_ms ? ` · ${Math.max(1, Math.round(a.voice_ms / 1000))}s` : ''}</button></div>` : ''}
+    ${a.teacher_note ? `<div class="rv-note">${esc(a.teacher_note)}</div>` : a.voice_ms == null ? '<div class="rv-sub">Your teacher checked this homework without a comment.</div>' : ''}`;
+  const play = document.getElementById('rv-play');
+  if (play) play.addEventListener('click', async () => {
+    play.disabled = true;
+    try {
+      const r = await fetch(API + '/api/homework/my/' + encodeURIComponent(a.id) + '/voice', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      voiceUrl = URL.createObjectURL(await r.blob());
+      play.parentNode.innerHTML = `<audio controls autoplay src="${voiceUrl}"></audio>`;
+    } catch (e) { play.disabled = false; toast('Could not load the recording: ' + e.message); }
+  });
+  if (!a.feedback_seen_at) {
+    a.feedback_seen_at = new Date().toISOString();
+    api('/api/homework/my/' + a.id + '/seen', { method: 'POST' }).catch(() => {});
+  }
+}
+function progressOf() {
+  const done = current.attempts.filter(t => t.status === 'done' && requiredCards.includes(t.card_id)).length;
+  return { done, pct: requiredCards.length ? Math.round(done / requiredCards.length * 100) : 0 };
 }
 
 /* ── runner ── */
@@ -277,15 +350,22 @@ async function openRunner(assignmentId) {
     const r = await api('/api/homework/my/' + assignmentId);
     current = r;
     requiredCards = Array.isArray(r.assignment.required_cards) ? r.assignment.required_cards : [];
-    stepIdx = 0;
+    /* Продолжить с первой несделанной карточки, а не с начала. */
+    const firstOpen = requiredCards.findIndex(cid => !r.attempts.some(t => t.card_id === cid && t.status === 'done'));
+    stepIdx = isLocked() || firstOpen < 0 ? 0 : firstOpen;
     document.getElementById('runner').classList.add('open');
     document.getElementById('runner-title').textContent = r.assignment.title;
+    renderReview();
+    savedWords = [];
+    renderSaveWord(false);
     renderSide();
     showCurrent();
   } catch (e) { toast('Error: ' + e.message); }
 }
 function closeRunner() {
   document.getElementById('runner').classList.remove('open');
+  document.getElementById('runner-review').hidden = true;
+  if (voiceUrl) { URL.revokeObjectURL(voiceUrl); voiceUrl = null; }
   current = null;
   // Reload the inbox so the status pill updates
   (async () => {
@@ -293,8 +373,61 @@ function closeRunner() {
   })();
 }
 
+/* Полоса сверху - сделанная доля задания (как на карточке в кабинете), а не
+   номер открытой карточки: на последней карточке с пустыми ответами она
+   раньше стояла на 100%. */
+function paintProgress() {
+  const bar = document.querySelector('#runner-progress > div');
+  const p = progressOf();
+  if (bar) bar.style.width = p.pct + '%';
+  const st = document.getElementById('runner-step');
+  if (st && requiredCards.length) st.textContent = `Card ${stepIdx+1} of ${requiredCards.length} · ${p.pct}% done${isLocked() ? ' · handed in' : ''}`;
+}
+
+/* «Не знаю это слово»: в Word Bank ученика с источником HOMEWORK (ссылка на
+   эту домашку). Выделенный на странице текст подставляется сам. Блок живёт
+   отдельно от списка задач: тот перерисовывается после каждого сохранения
+   и стёр бы набранное. */
+let savedWords = [];
+function renderSaveWord(open) {
+  const box = document.getElementById('side-words');
+  if (!box) return;
+  const list = savedWords.length ? `<div class="sw-done">✓ In your Word Bank: ${savedWords.map(esc).join(', ')}</div>` : '';
+  if (!open) {
+    box.innerHTML = `<button type="button" class="sw-open" id="sw-open">＋ Unknown word? Save it</button>${list}`;
+    document.getElementById('sw-open').addEventListener('click', () => renderSaveWord(true));
+    return;
+  }
+  const sel = String(window.getSelection ? window.getSelection() : '').replace(/\s+/g, ' ').trim();
+  box.innerHTML = `<form class="sw-form" id="sw-form" autocomplete="off">
+      <input id="sw-word" maxlength="120" placeholder="Word or phrase" aria-label="Word or phrase" value="${esc(sel.length <= 60 ? sel : '')}">
+      <input id="sw-mean" maxlength="255" placeholder="Meaning (optional)" aria-label="Meaning, optional">
+      <div class="sw-row"><button type="submit" class="runner-btn primary">Save word</button><button type="button" class="runner-btn ghost" id="sw-cancel">Cancel</button></div>
+    </form>${list}`;
+  const word = document.getElementById('sw-word');
+  word.focus();
+  document.getElementById('sw-cancel').addEventListener('click', () => renderSaveWord(false));
+  document.getElementById('sw-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = word.value.trim();
+    if (!text || !current) { word.focus(); return; }
+    const btn = e.target.querySelector('[type=submit]');
+    btn.disabled = true;
+    try {
+      const r = await api('/api/vault/save', { method: 'POST', body: {
+        text, meaning: document.getElementById('sw-mean').value.trim(),
+        assignmentId: current.assignment.id, sourceTitle: current.assignment.title,
+      } });
+      if (!savedWords.includes(text)) savedWords.push(text);
+      toast(r.existed ? 'Already in your Word Bank' : `“${text}” is in your Word Bank`);
+      renderSaveWord(false);
+    } catch (err) { btn.disabled = false; toast('Could not save: ' + err.message); }
+  });
+}
+
 function renderSide() {
-  const side = document.getElementById('runner-side');
+  if (current) paintProgress();
+  const side = document.getElementById('side-list');
   const cards = current.board.data.cards || [];
   const byId = {}; cards.forEach(c => byId[c.id] = c);
   side.innerHTML = '';
@@ -327,15 +460,12 @@ function renderSide() {
 function showCurrent() {
   const host = document.getElementById('runner-card-host');
   // A set whose cards were all removed read "Card 1 of 0".
-  document.getElementById('runner-step').textContent = requiredCards.length
-    ? `Card ${stepIdx+1} of ${requiredCards.length}`
-    : 'No cards in this homework';
-  const progress = document.querySelector('#runner-progress > div');
-  if (progress) progress.style.width = (((stepIdx+1)/requiredCards.length)*100) + '%';
+  if (!requiredCards.length) document.getElementById('runner-step').textContent = 'No cards in this homework';
+  paintProgress();
   document.getElementById('btn-prev').disabled = stepIdx === 0;
   const isLast = stepIdx === requiredCards.length - 1;
   document.getElementById('btn-next').style.display = isLast ? 'none' : '';
-  document.getElementById('btn-submit').style.display = isLast ? '' : 'none';
+  document.getElementById('btn-submit').style.display = isLast && !isLocked() ? '' : 'none';
 
   const cid = requiredCards[stepIdx];
   const card = (current.board.data.cards || []).find(c => c.id === cid);
@@ -349,6 +479,7 @@ function showCurrent() {
 }
 
 async function saveTaskAttempt(cardId, payload) {
+  if (isLocked()) { lockedToast(); throw new Error('This homework is already handed in'); }
   const r = await api('/api/homework/my/' + current.assignment.id + '/attempt', { method: 'POST', body: { card_id: cardId, ...payload } });
   const exist = current.attempts.findIndex(t => t.card_id === cardId);
   if (exist >= 0) current.attempts[exist] = r.attempt; else current.attempts.push(r.attempt);
@@ -498,17 +629,34 @@ function renderCardForStudent(host, card) {
 }
 
 function markCardDone(cardId) {
+  if (isLocked()) { lockedToast(); return; }
   recordAttempt(cardId, { score:1, max_score:1, status:'done' });
   toast('Marked as done');
   setTimeout(() => { if (stepIdx < requiredCards.length-1) step(1); }, 250);
 }
 
+let lockedToldAt = 0;
+function lockedToast() {
+  if (Date.now() - lockedToldAt < 8000) return;
+  lockedToldAt = Date.now();
+  toast('This homework is handed in - changes are not saved');
+}
+
+/* Сохранения в полёте: «Сдать» сначала дожидается их, иначе последний ответ
+   (черновик листа уходит с задержкой 1.2с) пришёл бы уже после сдачи. */
+const inflight = new Set();
 async function recordAttempt(cardId, payload) {
+  if (!current) return;
+  if (isLocked()) { lockedToast(); return; }
+  const aid = current.assignment.id;
+  const p = api('/api/homework/my/' + aid + '/attempt', {
+    method: 'POST',
+    body: { card_id: cardId, ...payload },
+  });
+  inflight.add(p);
   try {
-    const r = await api('/api/homework/my/' + current.assignment.id + '/attempt', {
-      method: 'POST',
-      body: { card_id: cardId, ...payload },
-    });
+    const r = await p;
+    if (!current || current.assignment.id !== aid) return;
     // Update local cache
     const exist = current.attempts.findIndex(t => t.card_id === cardId);
     if (exist >= 0) current.attempts[exist] = r.attempt;
@@ -516,7 +664,7 @@ async function recordAttempt(cardId, payload) {
     renderSide();
   } catch (e) {
     console.warn('attempt save failed', e.message);
-  }
+  } finally { inflight.delete(p); }
 }
 
 function step(delta) {
@@ -527,12 +675,22 @@ function step(delta) {
 }
 
 async function submitAssignment() {
-  if (!confirm('Submit this homework? Your teacher will receive your results.')) return;
+  if (isLocked()) return;
+  const p = progressOf();
+  const left = requiredCards.length - p.done;
+  if (!confirm(left > 0
+    ? `${left} of ${requiredCards.length} task${requiredCards.length === 1 ? '' : 's'} not finished yet. Submit anyway? After that you cannot change your answers.`
+    : 'Submit this homework? Your teacher will review it, and you cannot change your answers after that.')) return;
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
   try {
+    if (iwSaveT) { clearTimeout(iwSaveT); iwSaveT = null; if (iwPending) { const q = iwPending; iwPending = null; await recordAttempt(q.cardId, q.payload); } }
+    await Promise.allSettled([...inflight]);
     const r = await api('/api/homework/my/' + current.assignment.id + '/submit', { method: 'POST' });
-    toast(`✅ Submitted${typeof r.final_score === 'number' ? ' - score: ' + r.final_score : ''}`);
-    setTimeout(closeRunner, 1000);
+    toast(`✅ Handed in${typeof r.final_score === 'number' ? ' - score: ' + r.final_score + '%' : ''}. Your teacher will review it.`);
+    setTimeout(closeRunner, 1200);
   } catch (e) { toast('Error: ' + e.message); }
+  finally { btn.disabled = false; }
 }
 
 /* ── worksheet iframe → сохранить работу ученика ──
@@ -543,7 +701,7 @@ async function submitAssignment() {
    Лист сохраняется на каждый ввод (250мс), а здесь за каждым сохранением стоит
    запрос к серверу - гасим до одного раза в 1.2с, иначе сочинение на 180 слов
    это сотни запросов. */
-let iwSaveT = null;
+let iwSaveT = null, iwPending = null;
 window.addEventListener('message', e => {
   const d = e.data;
   if (!d || typeof d !== 'object' || d.type !== 'iw-state' || !d.cardId || !current) return;
@@ -575,8 +733,10 @@ window.addEventListener('message', e => {
     if (Array.isArray(cd.cards) && cd.cards.length) { payload.score = s.submitted ? 1 : 0; payload.max_score = 1; }
     else if (qs.length) { payload.score = Math.min(answeredQs, qs.length); payload.max_score = qs.length; }
   }
+  if (isLocked()) return;
   clearTimeout(iwSaveT);
-  iwSaveT = setTimeout(() => recordAttempt(d.cardId, payload), 1200);
+  iwPending = { cardId: d.cardId, payload };
+  iwSaveT = setTimeout(() => { iwSaveT = null; iwPending = null; recordAttempt(d.cardId, payload); }, 1200);
 });
 
 /* Счёт за проверяемую часть листа лист считает сам и присылает после проверки. */
@@ -640,10 +800,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=1128" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1128" defer></script>
-<script src="scripts/autogrow.js?v=1128" defer></script>
-<script src="pwa-boot.js?v=1128" defer></script>
-  <script src="scripts/signin-entry.js?v=1128" defer></script>
+<script src="scripts/nav-boost.js?v=1129" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1129" defer></script>
+<script src="scripts/autogrow.js?v=1129" defer></script>
+<script src="pwa-boot.js?v=1129" defer></script>
+  <script src="scripts/signin-entry.js?v=1129" defer></script>
 </body>
 </html>

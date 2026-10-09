@@ -46,7 +46,7 @@
         <span>${s.due ? 'Words you saved come back just before you forget them. A few minutes a day is enough.' : `All caught up. Next review ${when(s.next_due)}.`}</span></div>
       <div class="vc-stats"><div><b>${s.total}</b>saved</div><div><b>${s.mastered}</b>mastered</div></div>
       <button type="button" class="vc-rem" aria-haspopup="dialog">🔔 Reminders</button>
-      ${s.total >= 2 ? '<button type="button" class="vc-btn vc-prac">▶ Practise</button>' : ''}
+      ${s.total >= 2 ? '<button type="button" class="vc-btn vc-prac">⚡ Daily Sprint</button>' : ''}
       <button type="button" class="vc-btn vc-rev"${s.due ? '' : ' disabled'}>${s.due ? 'Review now' : 'Nothing due'}</button>`;
     /* On the home view the rings strip (scripts/student-engage.js #te-words)
        already carries these numbers, Practise and the reminders: a second bar

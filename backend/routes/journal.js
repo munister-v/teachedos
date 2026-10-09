@@ -35,7 +35,9 @@ router.post('/', async (req, res) => {
     [req.user.id, name.trim(), email.trim(), level, Math.max(0, parseInt(lessons_left, 10) || 0), payment_due || null,
      fmt, cleanContact(telegram, 64), cleanContact(phone, 32)]
   );
-  res.status(201).json({ student: rows[0] });
+  const st = rows[0];
+  await ledger(pool, { journalId: st.id, teacherId: req.user.id, delta: st.lessons_left, after: st.lessons_left, reason: 'manual', note: 'Starting balance' }).catch(() => {});
+  res.status(201).json({ student: st });
 });
 
 /* ── LESSON BALANCE ──────────────────────────────────────────────────────
@@ -43,6 +45,20 @@ router.post('/', async (req, res) => {
    только пакеты уроков и статусы уроков в расписании. */
 const CHARGING = new Set(['present', 'no_show']);
 const LESSON_STATUSES = new Set(['present', 'cancelled', 'no_show']);
+/* Did this attendance row take a lesson off the balance? charged is NULL on
+   rows written before the column existed: those charged by status. */
+const wasChargedRow = r => !!r && (r.charged === true || (r.charged == null && CHARGING.has(r.status)));
+
+/* Every change of lessons_left is written here (balance_ledger), so the
+   calendar can say why the number is what it is. reason: lesson | refund |
+   pack | manual. db is the pool or the client of an open transaction. */
+async function ledger(db, { journalId, teacherId, delta, after, reason, date = null, note = null }) {
+  if (!delta) return;
+  await db.query(
+    `INSERT INTO balance_ledger (journal_id, teacher_id, delta, balance_after, reason, lesson_date, note)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    [journalId, teacherId || null, delta, after, reason, date, note ? String(note).slice(0, 200) : null]);
+}
 
 /* ── PROGRESS SNAPSHOT ───────────────────────────────────────────────────
    Что ученик получил за текущий пакет (с последнего пополнения): уроки,
@@ -126,28 +142,59 @@ function plannedDates(slots, taken, from = new Date(), days = 62) {
   }
   return [...out].filter(d => !taken.has(d)).sort();
 }
+/* Lessons that should have happened and nobody marked: slot dates in the
+   last `days` days (not before the slot was created) with no attendance row.
+   The teacher sees them as "not marked yet"; before, past planned days just
+   vanished from the calendar. */
+function unmarkedDates(slots, taken, today = new Date(), days = 62) {
+  const out = new Set();
+  const end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  const start = new Date(end.getTime() - days * 864e5);
+  for (const sl of slots) {
+    const born = sl.created_at ? isoDay(new Date(sl.created_at)) : isoDay(start);
+    if (sl.specific_date) {
+      const d = String(sl.specific_date).slice(0, 10);
+      if (d >= isoDay(start) && d < isoDay(end)) out.add(d);
+      continue;
+    }
+    if (sl.recurring === false) continue;
+    for (let k = 0; k < days; k++) {
+      const d = new Date(start.getTime() + k * 864e5);
+      const key = isoDay(d);
+      if (key >= born && (d.getUTCDay() + 6) % 7 === Number(sl.day)) out.add(key);
+    }
+  }
+  return [...out].filter(d => !taken.has(d)).sort();
+}
 async function lessonCalendar(j) {
-  const [att, slots, teacher] = await Promise.all([
-    pool.query(`SELECT to_char(date, 'YYYY-MM-DD') AS date, status FROM attendance WHERE journal_id = $1 AND date > CURRENT_DATE - INTERVAL '400 days' ORDER BY date`, [j.id]),
-    pool.query(`SELECT day, recurring, to_char(specific_date, 'YYYY-MM-DD') AS specific_date FROM schedule WHERE user_id = $1 AND journal_id = $2`, [j.teacher_id, j.id]),
+  const [att, slots, teacher, hist] = await Promise.all([
+    pool.query(`SELECT to_char(date, 'YYYY-MM-DD') AS date, status, charged FROM attendance WHERE journal_id = $1 AND date > CURRENT_DATE - INTERVAL '400 days' ORDER BY date`, [j.id]),
+    pool.query(`SELECT day, recurring, to_char(specific_date, 'YYYY-MM-DD') AS specific_date, created_at FROM schedule WHERE user_id = $1 AND journal_id = $2`, [j.teacher_id, j.id]),
     pool.query('SELECT name, booking_token FROM users WHERE id = $1', [j.teacher_id]),
+    pool.query(`SELECT created_at, delta, balance_after, reason, to_char(lesson_date, 'YYYY-MM-DD') AS lesson_date, note
+                  FROM balance_ledger WHERE journal_id = $1 ORDER BY created_at DESC LIMIT 30`, [j.id]),
   ]);
   const taken = new Set(att.rows.map(r => r.date));
   return {
     journal_id: j.id, name: j.name, level: j.level || '', teacher_name: (teacher.rows[0] || {}).name || '',
     booking_token: (teacher.rows[0] || {}).booking_token || null,
     lessons_left: Number(j.lessons_left) || 0, pack_size: Number(j.pack_size) || 8,
-    lessons: att.rows, scheduled: plannedDates(slots.rows, taken),
+    lessons: att.rows.map(r => ({ date: r.date, status: r.status, charged: wasChargedRow(r) })),
+    scheduled: plannedDates(slots.rows, taken), unmarked: unmarkedDates(slots.rows, taken),
+    history: hist.rows,
   };
 }
 router.get('/me/calendar', async (req, res) => {
   try {
+    /* A student with two teachers has two packages: one calendar each
+       (calendars), the first one also as calendar for older pages. */
     const { rows } = await pool.query(
       `SELECT * FROM student_journal
         WHERE student_id = $1 OR ($2::text <> '' AND lower(email) = lower($2))
-        ORDER BY (student_id = $1) DESC NULLS LAST, created_at LIMIT 1`, [req.user.id, req.user.email || '']);
-    if (!rows[0]) return res.json({ calendar: null });
-    res.json({ calendar: await lessonCalendar(rows[0]) });
+        ORDER BY (student_id = $1) DESC NULLS LAST, created_at LIMIT 6`, [req.user.id, req.user.email || '']);
+    if (!rows[0]) return res.json({ calendar: null, calendars: [] });
+    const calendars = await Promise.all(rows.map(lessonCalendar));
+    res.json({ calendar: calendars[0], calendars });
   } catch (err) {
     console.error('[journal/me/calendar]', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -248,6 +295,7 @@ router.post('/:id/pack', async (req, res) => {
     [req.params.id, req.user.id, n]
   );
   const st = rows[0];
+  await ledger(pool, { journalId: st.id, teacherId: req.user.id, delta: n, after: st.lessons_left, reason: 'pack' }).catch(() => {});
   let who = st.student_id;
   if (!who && st.email) {
     const u = await pool.query('SELECT id FROM users WHERE lower(email)=lower($1) LIMIT 1', [st.email]);
@@ -263,9 +311,14 @@ router.post('/:id/pack', async (req, res) => {
 /* Итог урока по расписанию: present (состоялся) и no_show списывают занятие,
    cancelled - нет. Повторный вызов на ту же дату меняет статус и возвращает
    или списывает ровно разницу. status "reset" убирает отметку. */
+/* charge (optional): the teacher's choice whether this lesson costs one - a
+   trial or make-up lesson held for free (present, charge:false), a late
+   cancellation that still counts (cancelled, charge:true). Left out, the
+   status decides, as before. */
 router.post('/:id/lesson', async (req, res) => {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.date || '')) ? req.body.date : null;
   const status = String(req.body?.status || '');
+  const charge = typeof req.body?.charge === 'boolean' ? req.body.charge : null;
   if (!date || !(LESSON_STATUSES.has(status) || status === 'reset')) return res.status(400).json({ error: 'date and a valid status are required' });
   const client = await pool.connect();
   try {
@@ -275,11 +328,11 @@ router.post('/:id/lesson', async (req, res) => {
     const slot = /^[0-9a-f-]{36}$/i.test(String(req.body?.slot_id || '')) ? req.body.slot_id : null;
     const { rows: prevRows } = await client.query('SELECT * FROM attendance WHERE journal_id=$1 AND date=$2 FOR UPDATE', [req.params.id, date]);
     const prev = prevRows[0] || null;
-    const wasCharged = !!prev && CHARGING.has(prev.status) && prev.charged !== false;
-    const wantCharge = CHARGING.has(status);
-    let left = own[0].lessons_left, charged = null;
-    if (wasCharged && !wantCharge) left += 1;                  // возврат
-    if (wantCharge && !wasCharged) { charged = left > 0; if (charged) left -= 1; }
+    const wasCharged = wasChargedRow(prev);
+    const wantCharge = status !== 'reset' && (charge != null ? charge : CHARGING.has(status));
+    let left = own[0].lessons_left, charged = false, delta = 0;
+    if (wasCharged && !wantCharge) { left += 1; delta = 1; }    // возврат
+    if (wantCharge && !wasCharged) { charged = left > 0; if (charged) { left -= 1; delta = -1; } }
     else if (wantCharge && wasCharged) charged = true;
     if (status === 'reset') {
       if (prev) await client.query('DELETE FROM attendance WHERE id=$1', [prev.id]);
@@ -291,11 +344,34 @@ router.post('/:id/lesson', async (req, res) => {
         [req.user.id, req.params.id, date, status, charged, slot]);
     }
     await client.query('UPDATE student_journal SET lessons_left=$2 WHERE id=$1', [req.params.id, left]);
+    await ledger(client, { journalId: req.params.id, teacherId: req.user.id, delta, after: left, reason: delta > 0 ? 'refund' : 'lesson', date, note: status === 'reset' ? 'mark cleared' : status });
     await client.query('COMMIT');
-    res.json({ ok: true, status: status === 'reset' ? null : status, lessons_left: left });
+    /* uncharged: the lesson should have cost one but the balance was empty. */
+    res.json({ ok: true, status: status === 'reset' ? null : status, charged, lessons_left: left, uncharged: wantCharge && !charged });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('[journal/lesson]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  } finally { client.release(); }
+});
+
+/* Поправка остатка вручную из календаря: delta ±N с причиной, в историю. */
+router.post('/:id/adjust', async (req, res) => {
+  const delta = Math.max(-50, Math.min(200, parseInt(req.body?.delta, 10) || 0));
+  if (!delta) return res.status(400).json({ error: 'delta required' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query('SELECT lessons_left FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [req.params.id, req.user.id]);
+    if (!rows.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not found' }); }
+    const before = Number(rows[0].lessons_left) || 0, after = Math.max(0, before + delta);
+    await client.query('UPDATE student_journal SET lessons_left=$2 WHERE id=$1', [req.params.id, after]);
+    await ledger(client, { journalId: req.params.id, teacherId: req.user.id, delta: after - before, after, reason: 'manual', note: String(req.body?.note || '').trim() || null });
+    await client.query('COMMIT');
+    res.json({ ok: true, lessons_left: after });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[journal/adjust]', err.message);
     res.status(500).json({ error: 'Server error' });
   } finally { client.release(); }
 });
@@ -453,7 +529,7 @@ router.patch('/:id', async (req, res) => {
   if (name!==undefined)         { p.push(name);         sets.push(`name=$${p.length}`); }
   if (email!==undefined)        { p.push(email);        sets.push(`email=$${p.length}`); }
   if (level!==undefined)        { p.push(level);        sets.push(`level=$${p.length}`); }
-  if (lessons_left!==undefined) { p.push(lessons_left); sets.push(`lessons_left=$${p.length}`); }
+  if (lessons_left!==undefined) { p.push(Math.max(0, Math.min(1000, parseInt(lessons_left, 10) || 0))); sets.push(`lessons_left=$${p.length}`); }
   if (notes!==undefined)        { p.push(notes);        sets.push(`notes=$${p.length}`); }
   if (payment_due!==undefined) {
     if (payment_due && !/^\d{4}-\d{2}-\d{2}$/.test(String(payment_due))) return res.status(400).json({ error: 'payment_due must be YYYY-MM-DD' });
@@ -461,10 +537,15 @@ router.patch('/:id', async (req, res) => {
   }
   if (!sets.length) return res.status(400).json({ error: 'nothing to update' });
   const { rows } = await pool.query(
-    `UPDATE student_journal SET ${sets.join(',')} WHERE id=$1 AND teacher_id=$2 RETURNING *`, p
+    `WITH o AS (SELECT lessons_left AS old_left FROM student_journal WHERE id=$1 AND teacher_id=$2)
+     UPDATE student_journal SET ${sets.join(',')} WHERE id=$1 AND teacher_id=$2 RETURNING student_journal.*, (SELECT old_left FROM o) AS old_left`, p
   );
   if (!rows.length) return res.status(404).json({ error: 'not found' });
-  res.json({ student: rows[0] });
+  const { old_left, ...st } = rows[0];
+  if (lessons_left !== undefined && st.lessons_left !== old_left) {
+    await ledger(pool, { journalId: st.id, teacherId: req.user.id, delta: st.lessons_left - old_left, after: st.lessons_left, reason: 'manual', note: 'Balance edited' }).catch(() => {});
+  }
+  res.json({ student: st });
 });
 
 router.delete('/:id', async (req, res) => {
@@ -497,10 +578,12 @@ router.post('/:id/attendance', async (req, res) => {
   // double-submit (double-click, retry, two tabs) no-ops here too instead of
   // deducting a second lesson for the same attendance record.
   if (status === 'present' && rows.length) {
-    await pool.query(
-      `UPDATE student_journal SET lessons_left = GREATEST(0, lessons_left - 1) WHERE id=$1`,
+    const { rows: dd } = await pool.query(
+      `UPDATE student_journal SET lessons_left = lessons_left - 1 WHERE id=$1 AND lessons_left > 0 RETURNING lessons_left`,
       [req.params.id]
     );
+    await pool.query('UPDATE attendance SET charged=$2 WHERE id=$1', [rows[0].id, !!dd[0]]);
+    if (dd[0]) await ledger(pool, { journalId: req.params.id, teacherId: req.user.id, delta: -1, after: dd[0].lessons_left, reason: 'lesson', date, note: 'present' }).catch(() => {});
   }
   res.json({ ok: true, record: rows[0] || null });
 });
@@ -551,4 +634,4 @@ router.delete('/vocab/:id', async (req, res) => {
 });
 
 module.exports = router;
-module.exports._test = { plannedDates };
+module.exports._test = { plannedDates, unmarkedDates, wasChargedRow };

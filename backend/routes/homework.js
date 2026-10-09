@@ -96,8 +96,8 @@ async function addHomeworkWordsToVault(hw, studentIds) {
         const dup = await pool.query("SELECT 1 FROM vocabulary WHERE user_id=$1 AND kind='word' AND lower(word)=lower($2) LIMIT 1", [sid, w.text]);
         if (dup.rows[0]) continue;
         await pool.query(
-          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title, sent_by)
-           VALUES ($1,$2,$3,$4,'word',$5,$6,$7)`, [sid, w.text, w.meaning, w.example, hw.board_id, String(hw.title || 'Homework').slice(0, 200), hw.user_id]);
+          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title, sent_by, source_type, source_ref_id)
+           VALUES ($1,$2,$3,$4,'word',$5,$6,$7,'HOMEWORK',$8)`, [sid, w.text, w.meaning, w.example, hw.board_id, String(hw.title || 'Homework').slice(0, 200), hw.user_id, hw.id]);
         n++;
       }
       added.set(sid, n);
@@ -191,7 +191,8 @@ router.get('/', async (req, res) => {
               b.name AS board_name,
               c.name AS course_name,
               COUNT(DISTINCT a.id)::int        AS assigned_count,
-              COUNT(DISTINCT a.id) FILTER (WHERE a.status IN ('submitted','graded'))::int AS submitted_count
+              COUNT(DISTINCT a.id) FILTER (WHERE a.status IN ('submitted','graded'))::int AS submitted_count,
+              COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'submitted')::int AS to_review_count
          FROM homework h
          LEFT JOIN boards  b ON b.id = h.board_id
          LEFT JOIN courses c ON c.id = h.course_id
@@ -215,8 +216,10 @@ router.get('/:id', async (req, res) => {
     if (!hw) return res.status(404).json({ error: 'Homework not found' });
 
     const { rows: assignments } = await pool.query(
-      `SELECT a.*, u.name AS student_name, u.email AS student_email, u.avatar AS student_avatar
+      `SELECT a.*, u.name AS student_name, u.email AS student_email, u.avatar AS student_avatar,
+              fa.duration_ms AS voice_ms
          FROM homework_assignment a
+         LEFT JOIN homework_feedback_audio fa ON fa.assignment_id = a.id
          JOIN users u ON u.id = a.student_id
         WHERE a.homework_id=$1
         ORDER BY u.name`,
@@ -324,24 +327,78 @@ router.delete('/:id/assign/:studentId', requireTeacher, async (req, res) => {
   }
 });
 
-/* ── POST /api/homework/:id/grade/:assignmentId ── teacher overrides grade */
+/* ── POST /api/homework/:id/grade/:assignmentId ── the teacher publishes a review
+   {final_score?, teacher_note, voice?: {mime, durationMs, audio (base64)}, removeVoice?}
+   Only for work the student handed in (submitted) or that was reviewed before
+   (graded - publishing again replaces the review). The student's card lights
+   "Feedback available" again and the student gets a notification. A score left
+   out keeps the one counted on submit. */
+const VOICE_MIME = /^audio\/(webm|ogg|mp4|mpeg|aac|x-m4a)(;.*)?$/i;
 router.post('/:id/grade/:assignmentId', requireTeacher, async (req, res) => {
+  const client = await pool.connect();
   try {
     const hw = await loadOwnHomework(req.params.id, req.user.id);
     if (!hw) return res.status(404).json({ error: 'Homework not found' });
-    const score = req.body.final_score == null ? null
-                  : Math.max(0, Math.min(100, parseInt(req.body.final_score, 10)));
-    const note = String(req.body.teacher_note || '');
-    await pool.query(
+    const b = req.body || {};
+    const score = b.final_score == null || b.final_score === '' ? null
+                  : Math.max(0, Math.min(100, parseInt(b.final_score, 10) || 0));
+    const note = String(b.teacher_note || '').trim().slice(0, 4000);
+    let voice = null;
+    if (b.voice && b.voice.audio) {
+      if (!VOICE_MIME.test(String(b.voice.mime || ''))) return res.status(400).json({ error: 'Unsupported recording' });
+      const buf = Buffer.from(String(b.voice.audio), 'base64');
+      if (!buf.length || buf.length > 6 * 1024 * 1024) return res.status(413).json({ error: 'The recording is too long' });
+      voice = { buf, mime: String(b.voice.mime).split(';')[0].toLowerCase(), ms: Math.max(0, Math.min(300000, parseInt(b.voice.durationMs, 10) || 0)) };
+    }
+    await client.query('BEGIN');
+    const { rows } = await client.query(
       `UPDATE homework_assignment
-          SET status='graded', graded_at=NOW(), final_score=$1, teacher_note=$2
-        WHERE id=$3 AND homework_id=$4`,
+          SET status='graded', graded_at=NOW(), final_score=COALESCE($1, final_score), teacher_note=$2, feedback_seen_at=NULL
+        WHERE id=$3 AND homework_id=$4 AND status IN ('submitted','graded')
+        RETURNING id, student_id, final_score`,
       [score, note, req.params.assignmentId, hw.id]
     );
-    res.json({ ok: true });
+    if (!rows[0]) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'The student has not handed this homework in yet' });
+    }
+    if (voice) {
+      await client.query(
+        `INSERT INTO homework_feedback_audio (assignment_id, mime, duration_ms, audio) VALUES ($1,$2,$3,$4)
+         ON CONFLICT (assignment_id) DO UPDATE SET mime=EXCLUDED.mime, duration_ms=EXCLUDED.duration_ms, audio=EXCLUDED.audio, created_at=NOW()`,
+        [rows[0].id, voice.mime, voice.ms, voice.buf]);
+    } else if (b.removeVoice) {
+      await client.query('DELETE FROM homework_feedback_audio WHERE assignment_id=$1', [rows[0].id]);
+    }
+    const { rows: v } = await client.query('SELECT duration_ms FROM homework_feedback_audio WHERE assignment_id=$1', [rows[0].id]);
+    await client.query('COMMIT');
+    const hasVoice = !!v[0];
+    const what = hasVoice && note ? 'a voice message and a written review' : hasVoice ? 'a voice message' : note ? 'a written review' : 'your result';
+    createNotification(rows[0].student_id, 'homework', 'Your homework is checked',
+      `${req.user.name || 'Your teacher'} left ${what} on "${hw.title}".`,
+      `homework-do.html?a=${rows[0].id}`).catch(() => {});
+    res.json({ ok: true, final_score: rows[0].final_score, voice_ms: hasVoice ? v[0].duration_ms : null });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[homework] grade error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  } finally { client.release(); }
+});
+
+/* ── GET /api/homework/:id/voice/:assignmentId ── the teacher plays back their own voice review */
+router.get('/:id/voice/:assignmentId', requireTeacher, async (req, res) => {
+  try {
+    const hw = await loadOwnHomework(req.params.id, req.user.id);
+    if (!hw) return res.status(404).end();
+    const { rows } = await pool.query(
+      `SELECT fa.mime, fa.audio FROM homework_feedback_audio fa
+         JOIN homework_assignment a ON a.id = fa.assignment_id
+        WHERE fa.assignment_id=$1 AND a.homework_id=$2`, [req.params.assignmentId, hw.id]);
+    if (!rows[0]) return res.status(404).end();
+    res.set('Content-Type', rows[0].mime);
+    res.set('Cache-Control', 'private, no-cache');
+    res.send(rows[0].audio);
+  } catch (err) { res.status(500).end(); }
 });
 
 /* ════════════════════════ STUDENT ENDPOINTS ════════════════════════ */
@@ -352,12 +409,17 @@ router.get('/my/inbox', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT a.id   AS assignment_id,
               a.status, a.assigned_at, a.submitted_at, a.graded_at, a.final_score,
-              a.teacher_note,
+              a.teacher_note, a.feedback_seen_at,
               h.id   AS homework_id, h.title, h.instructions, h.due_at,
               h.required_cards, h.pass_threshold,
               h.board_id,
               u.id   AS teacher_id, u.name AS teacher_name, u.avatar AS teacher_avatar,
               c.name AS course_name,
+              -- the card shows how far the draft got: required cards finished
+              (SELECT COUNT(*) FROM homework_attempt t
+                WHERE t.assignment_id = a.id AND t.status = 'done'
+                  AND t.card_id IN (SELECT jsonb_array_elements_text(CASE WHEN jsonb_typeof(h.required_cards) = 'array' THEN h.required_cards ELSE '[]'::jsonb END)))::int AS done_cards,
+              (SELECT fa.duration_ms FROM homework_feedback_audio fa WHERE fa.assignment_id = a.id) AS voice_ms,
               -- тип первой заданной карточки: кабинет ученика показывает игры
               -- во вкладке Games, а лист или квиз из одной карточки - нет
               (SELECT card->>'type' FROM boards b, jsonb_array_elements(CASE WHEN jsonb_typeof(b.data->'cards') = 'array' THEN b.data->'cards' ELSE '[]'::jsonb END) card
@@ -392,7 +454,8 @@ router.get('/my/:assignmentId', async (req, res) => {
     const { rows: ar } = await pool.query(
       `SELECT a.*, h.title, h.instructions, h.required_cards, h.pass_threshold,
               h.board_id, h.due_at,
-              u.name AS teacher_name, u.avatar AS teacher_avatar
+              u.name AS teacher_name, u.avatar AS teacher_avatar,
+              (SELECT fa.duration_ms FROM homework_feedback_audio fa WHERE fa.assignment_id = a.id) AS voice_ms
          FROM homework_assignment a
          JOIN homework h ON h.id = a.homework_id
          JOIN users u    ON u.id = h.user_id
@@ -434,6 +497,11 @@ router.post('/my/:assignmentId/attempt', async (req, res) => {
     );
     if (!ar.length) return res.status(404).json({ error: 'Assignment not found' });
     const aid = ar[0].id;
+    /* Handed-in work is what the teacher reviews: a game replayed or a
+       sheet edited afterwards must not change it under the review. */
+    if (ar[0].status === 'submitted' || ar[0].status === 'graded') {
+      return res.status(409).json({ error: 'This homework is already handed in', status: ar[0].status });
+    }
 
     // Upsert the attempt
     const { rows } = await pool.query(
@@ -476,7 +544,7 @@ router.post('/my/:assignmentId/attempt', async (req, res) => {
 router.post('/my/:assignmentId/submit', async (req, res) => {
   try {
     const { rows: ar } = await pool.query(
-      `SELECT a.*, h.required_cards, h.pass_threshold
+      `SELECT a.*, h.required_cards, h.pass_threshold, h.title, h.user_id AS teacher_id
          FROM homework_assignment a
          JOIN homework h ON h.id = a.homework_id
         WHERE a.id=$1 AND a.student_id=$2`,
@@ -492,16 +560,52 @@ router.post('/my/:assignmentId/submit', async (req, res) => {
     const required = Array.isArray(a.required_cards) ? a.required_cards : [];
     const final = computeFinalScore(attempts, required);
 
+    /* Once: a second submit (two tabs, a reviewed homework opened again)
+       would put a reviewed homework back to "waiting for review". */
     const { rows } = await pool.query(
       `UPDATE homework_assignment
           SET status='submitted', submitted_at=NOW(), final_score=$1
-        WHERE id=$2 RETURNING *`,
+        WHERE id=$2 AND status IN ('assigned','in_progress') RETURNING *`,
       [final, a.id]
     );
+    if (!rows[0]) return res.status(409).json({ error: 'This homework is already handed in', status: a.status });
+    const done = attempts.filter(t => t.status === 'done' && required.includes(t.card_id)).length;
+    createNotification(a.teacher_id, 'homework', `${req.user.name || 'A student'} handed in homework`,
+      `"${a.title}" - ${done}/${required.length} task${required.length === 1 ? '' : 's'} done${final == null ? '' : `, auto score ${final}%`}. Open it to leave a review.`,
+      `homework.html?hw=${a.homework_id}&a=${a.id}`).catch(() => {});
     res.json({ assignment: rows[0], final_score: final });
   } catch (err) {
     console.error('[homework] submit error:', err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+/* ── GET /api/homework/my/:assignmentId/voice ── the teacher's voice review */
+router.get('/my/:assignmentId/voice', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT fa.mime, fa.audio FROM homework_feedback_audio fa
+         JOIN homework_assignment a ON a.id = fa.assignment_id
+        WHERE a.id=$1 AND a.student_id=$2 AND a.status='graded'`, [req.params.assignmentId, req.user.id]);
+    if (!rows[0]) return res.status(404).end();
+    res.set('Content-Type', rows[0].mime);
+    res.set('Cache-Control', 'private, no-cache');
+    res.send(rows[0].audio);
+  } catch (err) { res.status(500).end(); }
+});
+
+/* ── POST /api/homework/my/:assignmentId/seen ── the student opened the review:
+   "Feedback available" goes out on the cabinet card. */
+router.post('/my/:assignmentId/seen', async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE homework_assignment SET feedback_seen_at=NOW()
+        WHERE id=$1 AND student_id=$2 AND status='graded' AND feedback_seen_at IS NULL`,
+      [req.params.assignmentId, req.user.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[homework] seen error:', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

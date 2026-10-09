@@ -472,7 +472,7 @@
       ev.target.disabled = true;
       const own = pop.querySelector('input');
       try {
-        const r = await api('/api/vault/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: t, meaning: own ? own.value.trim() : meaning, example, sourceTitle: source || 'Daily reading' }) });
+        const r = await api('/api/vault/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: t, meaning: own ? own.value.trim() : meaning, example, sourceTitle: source || 'Daily reading', sourceType: 'READING' }) });
         ev.target.textContent = r.ok ? '✓ Saved' : 'Could not save';
         if (r.ok && typeof loadVocab === 'function') loadVocab();
       } catch { ev.target.textContent = 'Could not save'; }

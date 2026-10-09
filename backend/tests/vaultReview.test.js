@@ -54,17 +54,44 @@ test('sent words: one card per student, board and day, with what was practised a
   assert.strictEqual(main.words.find(w => w.word === 'to spoil').last_wrong, 'spoyl');
 });
 
-const { sprintPlan, partnerOf } = sandbox.window.TeachedVault._test;
-test('sprint: a collocation gives the partner, five tasks in three mechanics', () => {
+const { sprintPlan, partnerOf, sourceLabel } = sandbox.window.TeachedVault._test;
+test('sprint: a collocation gives the partner, otherwise the meaning', () => {
   assert.deepStrictEqual(JSON.parse(JSON.stringify(partnerOf({ w: 'spoil', colls: ['spoil the mood'], meaning: 'x' }))), { left: 'spoil', right: 'the mood', kind: 'partner' });
   assert.strictEqual(partnerOf({ w: 'decision', colls: ['make a tough decision'], meaning: '' }).right, 'make a tough');
   assert.strictEqual(partnerOf({ w: 'fomo', colls: [], meaning: 'fear of missing out' }).kind, 'meaning');
-  const words = ['spoil', 'tackle', 'pitch', 'boost', 'notice', 'woo'].map((w, i) => ({ id: 'id' + i, word: 'to ' + w, translation: 'meaning of ' + w,
-    example: `They ${w} it every day.`, collocations: `${w} the thing`, gap: '' }));
-  const plan = sprintPlan(words);
-  assert.strictEqual(plan.map(t => t.type).join(','), 'match,choice,choice,build,build');
-  assert.strictEqual(plan[0].pairs.length, 3);
-  plan.filter(t => t.type === 'choice').forEach(t => { assert.ok(t.options.includes(t.answer)); assert.strictEqual(t.options.length, 4); });
+});
+
+const tenWords = () => ['spoil', 'tackle', 'pitch', 'boost', 'notice', 'woo', 'gather', 'blame', 'spark', 'claim'].map((w, i) => ({ id: 'id' + i, word: 'to ' + w,
+  translation: 'meaning of ' + w, example: `They ${w} it every day.`, collocations: `${w} the ${['mood', 'issue', 'idea', 'sales', 'change', 'voters', 'data', 'others', 'debate', 'prize'][i]}`, gap: '',
+  source_type: 'LESSON_BOARD', created_at: '2026-10-08T10:00:00Z' }));
+test('sprint: three timed rounds - match 15 s, gap-fill 25 s, audio 20 s - over ten different words', () => {
+  const rounds = sprintPlan(tenWords());
+  assert.strictEqual(rounds.map(r => `${r.type}:${r.secs}`).join(','), 'match:15,gap:25,audio:20');
+  assert.strictEqual(rounds.reduce((n, r) => n + r.secs, 0), 60);
+  assert.strictEqual(rounds[0].pairs.length, 4);
+  assert.ok(rounds[0].pairs.every(p => /^the /.test(p.right)), 'collocation partners, not meanings');
+  assert.strictEqual(rounds[1].items.length, 3);
+  rounds[1].items.forEach(t => { assert.ok(t.options.includes(t.answer)); assert.strictEqual(t.options.length, 4); });
+  assert.strictEqual(rounds[2].items.length, 3);
+  const ids = [...rounds[0].pairs.map(p => p.id), ...rounds[1].items.map(t => t.id), ...rounds[2].items.map(t => t.id)];
+  assert.strictEqual(new Set(ids).size, 10, 'every word once');
+  assert.strictEqual(rounds[1].items[0].src, 'from Lesson Oct 8');
+});
+
+test('sprint: two words with the same partner - the second is matched by its meaning', () => {
+  const words = tenWords().slice(0, 4).map(w => ({ ...w, collocations: w.word.replace('to ', '') + ' the thing' }));
+  const pairs = sprintPlan(words)[0].pairs;
+  assert.strictEqual(new Set(pairs.map(p => p.right)).size, pairs.length);
+  assert.strictEqual(pairs.filter(p => p.right === 'the thing').length, 1);
+});
+
+test('sprint: every word says where it came from', () => {
+  const at = '2026-10-08T10:00:00Z';
+  assert.strictEqual(sourceLabel({ source_type: 'LESSON_BOARD', created_at: at }), 'from Lesson Oct 8');
+  assert.strictEqual(sourceLabel({ source_type: 'HOMEWORK', source_title: 'Past Simple practice', created_at: at }), 'from Homework · Past Simple practice');
+  assert.strictEqual(sourceLabel({ source_type: 'PHRASE_OF_THE_DAY', created_at: at }), 'Phrase of the day · Oct 8');
+  assert.strictEqual(sourceLabel({ source_type: 'READING', created_at: at }), 'from your reading · Oct 8');
+  assert.strictEqual(sourceLabel({ source_title: 'Old board' }), 'from “Old board”');
 });
 
 test('lessons calendar: weekly slots become dates, days already marked are left out', () => {

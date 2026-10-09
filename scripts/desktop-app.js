@@ -1263,6 +1263,21 @@ function studentDetailRender() {
         <div class="st-fin-k">Not in your journal yet - no lesson package or payments tracked.</div>
         <button type="button" class="st-detail-btn" onclick="studentsAddFor('${esc(String(s.id))}')">Add lesson package</button>
       </div>`;
+  /* The student's own board: "Open my board" and "Join lesson" in their
+     cabinet open it (PUT /api/members/home-board). Not chosen - the board
+     edited last, which changes every time a board is saved. */
+  const firstName = String(s.name || 'the student').split(' ')[0];
+  const home = !s.pending && Array.isArray(s.boards) && s.boards.length
+    ? `<div class="st-home">
+        <div class="st-detail-h">${esc(firstName)}'s board</div>
+        <select class="st-home-pick" aria-label="${esc(firstName)}'s own board" onchange="studentsSetHome('${esc(String(s.id))}', this.value, this)">
+          <option value=""${s.home_board_id ? '' : ' selected'}>Not chosen - the last edited board</option>
+          ${s.boards.map(b => `<option value="${esc(String(b.id))}"${String(b.id) === String(s.home_board_id || '') ? ' selected' : ''}>${esc(b.name)}</option>`).join('')}
+        </select>
+        <p class="st-home-note">“Open my board” and “Join lesson” in ${esc(firstName)}'s cabinet open this board.</p>
+        ${s.home_board_id ? `<a class="st-detail-btn" href="board.html?id=${encodeURIComponent(s.home_board_id)}">Open ${esc(firstName)}'s board</a>` : ''}
+      </div>`
+    : '';
   const tg = s.telegram ? String(s.telegram).replace(/^@/, '').replace(/[^A-Za-z0-9_]/g, '') : '';
   const wa = s.phone ? String(s.phone).replace(/\D/g, '') : '';
   const contacts = [
@@ -1277,6 +1292,7 @@ function studentDetailRender() {
     <div class="st-detail-mail">${esc(s.email || '')}</div>
     ${badges}
     ${money}
+    ${home}
     ${(s.dna_interests && s.dna_interests.length) || s.dna_goal ? `<div class="st-detail-h">Profile</div><div class="st-chips">${s.dna_goal ? `<span class="st-chip format">${esc(({ work: 'Work & career', travel: 'Travel', series: 'Series & films', move: 'Moving abroad', exams: 'Exams', fun: 'Just for fun' })[s.dna_goal] || s.dna_goal)}</span>` : ''}${(s.dna_interests || []).map(k => `<span class="st-chip ghost">${esc(k)}</span>`).join('')}${s.dna_level ? `<span class="st-chip boards">self: ${esc(s.dna_level)}</span>` : ''}</div>` : ''}
     ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
     <div class="st-detail-actions">
@@ -1299,6 +1315,22 @@ function studentsOpenCalendar(journalId) {
   window.TeachedLessonCal.open({ api, journalId, teacher: true, onChange: () => studentsReloadRoster() });
 }
 window.studentsOpenCalendar = studentsOpenCalendar;
+async function studentsSetHome(studentId, boardId, sel) {
+  if (sel) sel.disabled = true;
+  try {
+    const r = await fetch(API_BASE + '/api/members/home-board', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+      body: JSON.stringify({ studentId, boardId: boardId || null }),
+    });
+    if (!r.ok) throw new Error('failed');
+    const s = STUDENTS.find(x => String(x.id) === String(studentId));
+    if (s) s.home_board_id = boardId || null;
+    studentDetailRender();
+  } catch (_) {
+    if (sel) { sel.disabled = false; alert('Could not save the board. Try again.'); }
+  }
+}
+window.studentsSetHome = studentsSetHome;
 async function studentsAddPack(journalId) {
   try {
     const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(journalId)}/pack`, {

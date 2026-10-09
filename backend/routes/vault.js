@@ -6,6 +6,8 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { schedule, preview, MASTERED_DAYS } = require('../lib/srs');
+const { pickSprint } = require('../lib/sprint');
+const { phraseFor, localDay } = require('../lib/phrases');
 const { createNotification } = require('./notifications');
 
 /* One-click "stop these emails" from the reminder itself (no sign-in: the
@@ -71,7 +73,7 @@ router.get('/due', async (req, res) => {
   try {
     const limit = Math.max(1, Math.min(50, parseInt(req.query.limit, 10) || 20));
     const { rows } = await pool.query(
-      `SELECT id, word, translation, example, collocations, gap, source_title, reps, ease, interval_days, lapses, due_at
+      `SELECT id, word, translation, example, collocations, gap, source_title, source_type, created_at, reps, ease, interval_days, lapses, due_at
          FROM vocabulary
         WHERE user_id = $1 AND kind = 'word' AND due_at <= NOW()
         ORDER BY lapses DESC, due_at ASC
@@ -108,24 +110,42 @@ router.post('/:id/review', async (req, res) => {
   }
 });
 
-// POST /api/vault/save {text, kind: word|quote, meaning, example, boardId, sourceTitle}
+/* Where a saved word came from (vocabulary.source_type / source_ref_id):
+   a homework the student is doing (assignmentId - the student's own) →
+   HOMEWORK + the homework; a board → LESSON_BOARD + the board; the cabinet's
+   news feed → READING; the phrase of the day saved offline →
+   PHRASE_OF_THE_DAY; otherwise MANUAL. */
+async function sourceOf(b, userId) {
+  const boardId = UUID.test(String(b.boardId || '')) ? b.boardId : null;
+  if (UUID.test(String(b.assignmentId || ''))) {
+    const { rows } = await pool.query(
+      `SELECT h.id, h.title, h.board_id FROM homework_assignment a JOIN homework h ON h.id = a.homework_id
+        WHERE a.id = $1 AND a.student_id = $2`, [b.assignmentId, userId]);
+    if (rows[0]) return { type: 'HOMEWORK', ref: rows[0].id, boardId: boardId || rows[0].board_id, title: str(b.sourceTitle, 200) || rows[0].title };
+  }
+  if (boardId) return { type: 'LESSON_BOARD', ref: boardId, boardId, title: str(b.sourceTitle, 200) };
+  const type = ['READING', 'PHRASE_OF_THE_DAY'].includes(b.sourceType) ? b.sourceType : 'MANUAL';
+  return { type, ref: null, boardId: null, title: str(b.sourceTitle, 200) };
+}
+
+// POST /api/vault/save {text, kind: word|quote, meaning, example, boardId, sourceTitle, assignmentId?, sourceType?}
 router.post('/save', async (req, res) => {
   try {
     const b = req.body || {};
     const kind = b.kind === 'quote' ? 'quote' : 'word';
     const text = str(b.text || b.word, kind === 'quote' ? 400 : 120);
     if (!text) return res.status(400).json({ error: 'text required' });
-    const boardId = UUID.test(String(b.boardId || '')) ? b.boardId : null;
+    const src = await sourceOf(b, req.user.id);
     // Saving the same word twice keeps one card (and its schedule).
     const dup = await pool.query(
       'SELECT id FROM vocabulary WHERE user_id = $1 AND kind = $2 AND lower(word) = lower($3) LIMIT 1',
       [req.user.id, kind, text]);
     if (dup.rows[0]) return res.json({ ok: true, id: dup.rows[0].id, existed: true });
     const { rows } = await pool.query(
-      `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-      [req.user.id, text, str(b.meaning || b.translation, 255), str(b.example, 600), kind, boardId, str(b.sourceTitle, 200)]);
-    res.status(201).json({ ok: true, id: rows[0].id });
+      `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title, source_type, source_ref_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+      [req.user.id, text, str(b.meaning || b.translation, 255), str(b.example, 600), kind, src.boardId, src.title, src.type, src.ref]);
+    res.status(201).json({ ok: true, id: rows[0].id, source_type: src.type });
   } catch (err) {
     console.error('[vault] save', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -139,7 +159,7 @@ router.get('/saved', async (req, res) => {
     const board = UUID.test(String(req.query.board || '')) ? req.query.board : null;
     const limit = Math.max(1, Math.min(60, parseInt(req.query.limit, 10) || 40));
     const { rows } = await pool.query(
-      `SELECT id, word, translation, example, kind, source_title, (source_board_id = $2::uuid) AS here, created_at
+      `SELECT id, word, translation, example, kind, source_title, source_type, (source_board_id = $2::uuid) AS here, created_at
          FROM vocabulary WHERE user_id = $1
         ORDER BY (source_board_id = $2::uuid) DESC NULLS LAST, created_at DESC
         LIMIT $3`, [req.user.id, board, limit]);
@@ -182,8 +202,8 @@ router.post('/send', async (req, res) => {
         const dup = await pool.query('SELECT 1 FROM vocabulary WHERE user_id=$1 AND kind=\'word\' AND lower(word)=lower($2) LIMIT 1', [u, it.text]);
         if (dup.rows[0]) continue;
         await pool.query(
-          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title, sent_by, collocations, gap)
-           VALUES ($1,$2,$3,$4,'word',$5,$6,$7,$8,$9)`, [u, it.text, it.meaning, it.example, boardId, title, req.user.id, it.collocations, it.gap]);
+          `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_board_id, source_title, sent_by, collocations, gap, source_type, source_ref_id)
+           VALUES ($1,$2,$3,$4,'word',$5,$6,$7,$8,$9,'LESSON_BOARD',$5)`, [u, it.text, it.meaning, it.example, boardId, title, req.user.id, it.collocations, it.gap]);
         n++;
       }
       added += n;
@@ -197,21 +217,29 @@ router.post('/send', async (req, res) => {
   }
 });
 
-/* The one-minute sprint (Practise words in the cabinet).
-   GET  /api/vault/sprint - up to 12 words: the ones due now first (hardest
-        first), then the newest of this week, then the rest by date.
+/* The one-minute Daily Sprint (Practise words in the cabinet).
+   GET  /api/vault/sprint - ten words: 5 due by the forgetting curve, 3 fresh
+        from the last lesson (72 h), 2 new from homework and the phrase of the
+        day (lib/sprint.js). Each word says where it came from, so the sprint
+        can show "from Lesson Oct 8".
    POST /api/vault/sprint {grade: easy|medium|again, results:[{id, correct, typed}]}
         One grade for the whole pool at the end; a word the student got wrong
-        goes back as "again" whatever the grade. */
+        goes back as "again" whatever the grade. Words the minute ran out on
+        are not sent and keep their schedule. */
 router.get('/sprint', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT id, word, translation, example, collocations, gap, (due_at <= NOW()) AS due
+      `SELECT id, word, translation, example, collocations, gap, source_type, source_title, source_ref_id,
+              created_at, due_at, last_reviewed_at, reps, lapses, learned, (due_at <= NOW()) AS due
          FROM vocabulary
         WHERE user_id = $1 AND kind = 'word'
-        ORDER BY (due_at <= NOW()) DESC, (created_at > NOW() - INTERVAL '7 days') DESC, lapses DESC, created_at DESC
-        LIMIT 12`, [req.user.id]);
-    res.json({ words: rows });
+        ORDER BY (due_at <= NOW()) DESC, created_at DESC
+        LIMIT 400`, [req.user.id]);
+    const words = pickSprint(rows).map(w => ({
+      id: w.id, word: w.word, translation: w.translation, example: w.example, collocations: w.collocations, gap: w.gap, due: w.due,
+      source_type: w.source_type, source_title: w.source_title, created_at: w.created_at, bucket: w.bucket, status: w.status,
+    }));
+    res.json({ words });
   } catch (err) {
     console.error('[vault] sprint', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -241,6 +269,45 @@ router.post('/sprint', async (req, res) => {
     res.json({ ok: true, words: done });
   } catch (err) {
     console.error('[vault] sprint save', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* ── Phrase of the day ─────────────────────────────────────────────────
+   GET  /api/vault/phrase - today's phrase at the student's level: the
+        teacher's (journal), else the student's own (profile), else B1.
+   POST /api/vault/phrase - "+ Add to my words": today's phrase goes into the
+        Word Bank with source_type PHRASE_OF_THE_DAY, due at once. */
+async function todaysPhrase(user) {
+  const { rows } = await pool.query(
+    `SELECT COALESCE(
+              (SELECT j.level FROM student_journal j
+                WHERE j.student_id = $1 OR ($2::text <> '' AND lower(j.email) = lower($2))
+                ORDER BY (j.student_id = $1) DESC NULLS LAST, j.created_at DESC LIMIT 1),
+              (SELECT level FROM student_dna WHERE user_id = $1)) AS level,
+            (SELECT timezone FROM users WHERE id = $1) AS tz`, [user.id, user.email || '']);
+  const p = phraseFor(rows[0] && rows[0].level, localDay(rows[0] && rows[0].tz));
+  const have = await pool.query("SELECT id FROM vocabulary WHERE user_id = $1 AND kind = 'word' AND lower(word) = lower($2) LIMIT 1", [user.id, p.phrase]);
+  return { ...p, saved: !!have.rows[0], id: have.rows[0] ? have.rows[0].id : null };
+}
+router.get('/phrase', async (req, res) => {
+  try { res.json(await todaysPhrase(req.user)); }
+  catch (err) {
+    console.error('[vault] phrase', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+router.post('/phrase', async (req, res) => {
+  try {
+    const p = await todaysPhrase(req.user);
+    if (p.saved) return res.json({ ok: true, id: p.id, existed: true });
+    const { rows } = await pool.query(
+      `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_title, source_type)
+       VALUES ($1,$2,$3,$4,'word',$5,'PHRASE_OF_THE_DAY') RETURNING id`,
+      [req.user.id, p.phrase, p.meaning, p.example, `Phrase of the day · ${p.level}`]);
+    res.status(201).json({ ok: true, id: rows[0].id });
+  } catch (err) {
+    console.error('[vault] phrase save', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

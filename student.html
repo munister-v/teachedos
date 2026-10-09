@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1128">
-<link rel="preload" as="style" href="styles/unify.css?v=1128">
-<link rel="manifest" href="manifest.json?v=1128">
+<link rel="preload" as="style" href="styles/harmony.css?v=1129">
+<link rel="preload" as="style" href="styles/unify.css?v=1129">
+<link rel="manifest" href="manifest.json?v=1129">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
@@ -17,8 +17,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1128">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1128">
+<link rel="stylesheet" href="styles/fonts.css?v=1129">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1129">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -590,18 +590,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1128">
-<link rel="stylesheet" href="styles/harmony.css?v=1128">
-<link rel="stylesheet" href="styles/unify.css?v=1128">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1128">
+<link rel="stylesheet" href="styles/mobile.css?v=1129">
+<link rel="stylesheet" href="styles/harmony.css?v=1129">
+<link rel="stylesheet" href="styles/unify.css?v=1129">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1129">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1128">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1128">
-<link rel="stylesheet" href="styles/controls.css?v=1128">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1128">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1128">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1128">
-<link rel="stylesheet" href="styles/student-engage.css?v=1128">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1129">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1129">
+<link rel="stylesheet" href="styles/controls.css?v=1129">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1129">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1129">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1129">
+<link rel="stylesheet" href="styles/student-engage.css?v=1129">
 </head>
 <body class="fx">
 
@@ -862,13 +862,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1128"></script>
-<script src="scripts/student-feed.js?v=1128"></script>
-<script src="scripts/lesson-cover.js?v=1128"></script>
-<script src="scripts/lesson-calendar.js?v=1128"></script>
-<script src="scripts/student-engage.js?v=1128"></script>
-<script src="scripts/wallpaper-presets.js?v=1128"></script>
-<script src="scripts/student-wallpaper.js?v=1128"></script>
+<script src="scripts/app-core.js?v=1129"></script>
+<script src="scripts/student-feed.js?v=1129"></script>
+<script src="scripts/lesson-cover.js?v=1129"></script>
+<script src="scripts/lesson-calendar.js?v=1129"></script>
+<script src="scripts/hw-state.js?v=1129"></script>
+<script src="scripts/student-engage.js?v=1129"></script>
+<script src="scripts/wallpaper-presets.js?v=1129"></script>
+<script src="scripts/student-wallpaper.js?v=1129"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1474,7 +1475,7 @@ async function loadHomework() {
     _hwAssignments = assignments;
     renderGamesTab();
     const todo = assignments.filter(a => a.status === 'assigned' || a.status === 'in_progress');
-    if (window.studentEngage) window.studentEngage.homework(todo);
+    if (window.studentEngage) window.studentEngage.homework(todo, assignments);
     const done = assignments.filter(a => a.status === 'submitted' || a.status === 'graded');
     if (!assignments.length) {
       list.innerHTML = '<div class="empty-state">No assignments yet. When your teacher gives you homework or a game, it appears here.</div>';
@@ -1485,24 +1486,32 @@ async function loadHomework() {
       const due = a.due_at ? new Date(a.due_at) : null;
       const late = due && due.getTime() < now && (a.status === 'assigned' || a.status === 'in_progress');
       const dueTxt = due ? due.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
-      const finished = a.status === 'submitted' || a.status === 'graded';
-      const score = typeof a.final_score === 'number'
+      /* Четыре состояния (scripts/hw-state.js): Start → Continue с процентом →
+         жёлтое «ждёт проверки» → зелёное «есть отзыв» и кнопка послушать/прочитать. */
+      const s = window.HwState ? window.HwState.of(a) : { key: '', finished: a.status === 'submitted' || a.status === 'graded', action: 'Open', badge: null };
+      const finished = s.finished;
+      const score = s.key === 'REVIEWED' && typeof a.final_score === 'number'
         ? `<span class="hw-card-score${a.final_score >= (a.pass_threshold || 60) ? ' pass' : ''}">${a.final_score}%</span>` : '';
-      const go = finished ? 'Review' : a.status === 'in_progress' ? 'Continue' : 'Start';
       const n = Array.isArray(a.required_cards) ? a.required_cards.length : 0;
-      return `<a class="hw-card${finished ? ' done' : ''}" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}">
+      return `<a class="hw-card${finished ? ' done' : ''}${s.fresh ? ' fresh' : ''}" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}">
         <span class="hw-card-ic">${a.first_card_type === 'game' && n === 1 ? '🎮' : '📝'}</span>
         <span class="hw-card-main">
           <span class="hw-card-title" style="display:block">${esc(a.title)}</span>
-          <span class="hw-card-meta" style="display:block">${esc(a.teacher_name || 'Teacher')}${dueTxt ? ` · <span class="${late ? 'late' : ''}">${late ? 'Was due' : 'Due'} ${esc(dueTxt)}</span>` : ''}${a.status === 'graded' ? ' · checked' : a.status === 'submitted' ? ' · sent' : ''}</span>
-          ${a.teacher_note ? `<span class="hw-card-note" style="display:block">“${esc(a.teacher_note)}”</span>` : a.instructions && !finished ? `<span class="hw-card-note" style="display:block">${esc(a.instructions)}</span>` : ''}
+          <span class="hw-card-meta" style="display:block">${esc(a.teacher_name || 'Teacher')}${dueTxt && !finished ? ` · <span class="${late ? 'late' : ''}">${late ? 'Was due' : 'Due'} ${esc(dueTxt)}</span>` : ''}${s.key === 'IN_PROGRESS' ? ` · ${esc(s.note)}` : ''}</span>
+          ${s.key === 'IN_PROGRESS' ? `<span class="st-bar" aria-hidden="true"><i style="width:${s.pct}%"></i></span>` : ''}
+          ${s.badge ? `<span class="st-badge ${s.badge.cls}" style="margin-top:6px">${esc(s.badge.text)}</span>` : ''}
+          ${s.key === 'REVIEWED' && a.teacher_note ? `<span class="hw-card-note" style="display:block">“${esc(a.teacher_note)}”</span>` : a.instructions && !finished ? `<span class="hw-card-note" style="display:block">${esc(a.instructions)}</span>` : ''}
         </span>
-        ${score}<span class="hw-card-go">${go}</span>
+        ${score}<span class="hw-card-go">${esc(s.action)}</span>
       </a>`;
     };
+    // A review the student has not opened yet goes first.
+    const fresh = done.filter(a => a.status === 'graded' && !a.feedback_seen_at);
+    const rest = done.filter(a => !fresh.includes(a));
     list.innerHTML =
+      (fresh.length ? `<div class="hw-sec">New feedback · ${fresh.length}</div>${fresh.map(card).join('')}` : '') +
       (todo.length ? `<div class="hw-sec">To do · ${todo.length}</div>${todo.map(card).join('')}` : '<div class="empty-state">All done - nothing waiting for you. 🎉</div>') +
-      (done.length ? `<div class="hw-sec">Done</div>${done.slice(0, 12).map(card).join('')}` : '');
+      (rest.length ? `<div class="hw-sec">Handed in</div>${rest.slice(0, 12).map(card).join('')}` : '');
     if (todo.length) {
       document.getElementById('assignments-notif').innerHTML = `
         <div class="notif-banner">
@@ -1622,19 +1631,19 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1128"></script>
-<script src="scripts/vault-review.js?v=1128"></script>
-<script src="scripts/vault-cabinet.js?v=1128"></script>
-<script src="scripts/writing-shared.js?v=1128"></script>
-<script src="scripts/writing-mine.js?v=1128"></script>
-<script src="scripts/autogrow.js?v=1128" defer></script>
-<script src="pwa-boot.js?v=1128" defer></script>
-<script src="pwa.js?v=1128"></script>
-<script src="scripts/nav-boost.js?v=1128" defer></script>
-<script src="scripts/mobile-perf.js?v=1128" defer></script>
-<script src="scripts/mobile-nav.js?v=1128"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1128" defer></script>
-  <script src="scripts/signin-entry.js?v=1128" defer></script>
-<script src="scripts/verify-banner.js?v=1128" defer></script>
+<script src="scripts/hear-in-context.js?v=1129"></script>
+<script src="scripts/vault-review.js?v=1129"></script>
+<script src="scripts/vault-cabinet.js?v=1129"></script>
+<script src="scripts/writing-shared.js?v=1129"></script>
+<script src="scripts/writing-mine.js?v=1129"></script>
+<script src="scripts/autogrow.js?v=1129" defer></script>
+<script src="pwa-boot.js?v=1129" defer></script>
+<script src="pwa.js?v=1129"></script>
+<script src="scripts/nav-boost.js?v=1129" defer></script>
+<script src="scripts/mobile-perf.js?v=1129" defer></script>
+<script src="scripts/mobile-nav.js?v=1129"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1129" defer></script>
+  <script src="scripts/signin-entry.js?v=1129" defer></script>
+<script src="scripts/verify-banner.js?v=1129" defer></script>
 </body>
 </html>

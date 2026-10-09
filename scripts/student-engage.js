@@ -120,41 +120,75 @@
       : days === 1 ? 'tomorrow' : `in ${days} days`;
     const day = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : d.toLocaleDateString('en-GB', { weekday: 'long' });
     const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    const board = boardList.find(b => b.teacher_id === up.s.user_id) || boardList[0];
+    /* The lesson's board: the one the teacher tied to this slot, else the
+       student's own board with this teacher (is_home), else any of theirs. */
+    const mine = boardList.filter(b => b.teacher_id === up.s.user_id);
+    const board = (up.s.board_id && boardList.find(b => String(b.id) === String(up.s.board_id)))
+      || mine.find(b => b.is_home) || mine[0] || boardList[0];
     const teacher = up.s.teacher_name || (board && board.teacher_name) || '';
     const url = /^https?:\/\//i.test(up.s.meeting_url || '') ? up.s.meeting_url : '';
-    const join = url ? `<a class="te-join" href="${esc(url)}" target="_blank" rel="noopener">Join lesson →</a>`
-      : board ? `<a class="te-join" href="board.html?id=${esc(board.id)}">Open the board →</a>` : '';
+    const boardHref = board ? 'board.html?id=' + encodeURIComponent(board.id) : '';
+    /* Join lesson = the video call in a new tab and the board here, both at
+       once. Without a call link it is just the board. */
+    const join = url && boardHref ? `<a class="te-join" href="${esc(boardHref)}" data-meet="${esc(url)}" title="Opens the video call in a new tab and your board here">Join lesson →</a>`
+      : url ? `<a class="te-join" href="${esc(url)}" target="_blank" rel="noopener">Join lesson →</a>`
+      : board ? `<a class="te-join" href="${esc(boardHref)}">Open the board →</a>` : '';
     box.innerHTML = `<div class="te-k">Next lesson</div><div class="te-big">${esc(day)}, ${esc(time)}</div>
       <div class="te-count-big">${esc(count)}</div>
       <div class="te-sub">${teacher ? `with ${esc(teacher)}${up.s.title ? ' · ' : ''}` : ''}${esc(up.s.title || up.s.topic || (teacher ? '' : 'Lesson'))}</div>${join}`;
+    const both = box.querySelector('.te-join[data-meet]');
+    if (both) both.addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      window.open(both.dataset.meet, '_blank', 'noopener');
+      location.href = both.getAttribute('href');
+    });
   }
 
-  /* ── Homework: on top, never hidden under a tab ──────────────────── */
-  let hwTodo = null;
+  /* ── Homework: on top, never hidden under a tab ──────────────────────
+     The card follows the homework (scripts/hw-state.js): Start → Continue
+     with how much is done → ⏳ pending teacher review → 💬 feedback available,
+     and the button becomes "Listen to voice feedback" / "Read review". A new
+     review comes first, then what is still to do, then what waits for the
+     teacher. */
+  let hwTodo = null, hwAll = null;
+  const freshFeedback = () => (hwAll || []).filter(a => a.status === 'graded' && !a.feedback_seen_at);
   function homework() {
     const box = $('te-hw');
     if (!box) return;
     focus();
     tasks();
     if (hwTodo == null) { box.innerHTML = '<div class="te-k">Homework</div><div class="te-sub">Looking for your tasks…</div>'; return; }
-    if (!hwTodo.length) {
+    const fresh = freshFeedback();
+    const pending = (hwAll || []).filter(a => a.status === 'submitted');
+    if (!hwTodo.length && !fresh.length && !pending.length) {
       box.innerHTML = '<div class="te-k">Homework</div><div class="te-big">All clear! 🎉</div><div class="te-sub">New assignments will appear here.</div>';
       return;
     }
     const now = Date.now();
-    const rows = hwTodo.slice().sort((a, b) => (a.due_at ? new Date(a.due_at) : 8e15) - (b.due_at ? new Date(b.due_at) : 8e15));
+    const todo = hwTodo.slice().sort((a, b) => (a.due_at ? new Date(a.due_at) : 8e15) - (b.due_at ? new Date(b.due_at) : 8e15));
+    const state = a => window.HwState ? window.HwState.of(a) : { key: '', badge: null, action: 'Open →', note: '', pct: 0 };
     const badge = a => {
+      const s = state(a);
+      if (s.badge) return `<span class="st-badge ${s.badge.cls}">${esc(s.badge.text)}</span>`;
+      if (s.key === 'IN_PROGRESS') return `<span class="te-badge">${esc(s.note)}</span>`;
       if (!a.due_at) return '<span class="te-badge">No deadline</span>';
       const t = new Date(a.due_at).getTime(), left = t - now;
       if (left < 0) return '<span class="te-badge late">Overdue</span>';
       const day = new Date(t).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
       return `<span class="te-badge${left < 48 * 3600e3 ? ' soon' : ''}">Due ${esc(day)}</span>`;
     };
-    box.innerHTML = `<div class="te-k">Homework · ${rows.length} to do</div>
-      ${rows.slice(0, 2).map(a => `<a class="te-hw-row" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}"><span class="te-hw-t">${esc(a.title)}</span>${badge(a)}</a>`).join('')}
-      ${rows.length > 2 ? `<div class="te-sub">+${rows.length - 2} more below</div>` : ''}
-      <a class="te-btn te-hw-go" href="homework-do.html?a=${encodeURIComponent(rows[0].assignment_id)}">Do homework →</a>`;
+    const rows = fresh.concat(todo, pending);
+    const lead = rows[0], ls = state(lead);
+    const head = fresh.length ? `💬 ${fresh.length === 1 ? 'Feedback available' : fresh.length + ' new reviews'}`
+      : todo.length ? `${todo.length} to do` : 'waiting for review';
+    box.innerHTML = `<div class="te-k">Homework · ${esc(head)}</div>
+      ${rows.slice(0, 2).map(a => {
+        const s = state(a);
+        return `<a class="te-hw-row" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}"><span class="te-hw-t">${esc(a.title)}${s.key === 'IN_PROGRESS' ? `<span class="st-bar" aria-hidden="true"><i style="width:${s.pct}%"></i></span>` : ''}</span>${badge(a)}</a>`;
+      }).join('')}
+      ${rows.length > 2 ? `<div class="te-sub">+${rows.length - 2} more in Assignments</div>` : ''}
+      <a class="te-btn te-hw-go" href="homework-do.html?a=${encodeURIComponent(lead.assignment_id)}">${esc(ls.action || 'Open →')}</a>`;
   }
 
   /* ── What is next ────────────────────────────────────────────────────
@@ -168,7 +202,7 @@
   function nextKind() {
     const up = upcoming();
     if (up && up.t - Date.now() < 24 * 3600e3) return 'lesson';
-    if (hwTodo && hwTodo.length) return 'hw';
+    if ((hwTodo && hwTodo.length) || freshFeedback().length) return 'hw';
     if (hasWords()) return 'words';
     return up ? 'lesson' : null;
   }
@@ -191,7 +225,7 @@
       (on > 0.5 ? `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="8.5" stroke-linecap="round" stroke-dasharray="${on.toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)"/>` : '');
   }
   function practise() {
-    /* One guided minute, not five games behind tabs (vault-review.js sprint). */
+    /* One timed minute in three rounds, not five games behind tabs (vault-review.js sprint). */
     if (window.TeachedVault && typeof window.apiFetch === 'function') {
       window.TeachedVault.sprint({ api: window.apiFetch, onDone: () => { loadVault(); if (typeof window.loadProgress === 'function') window.loadProgress(); } });
     }
@@ -222,7 +256,7 @@
         </div>
       </div>
       <div class="te-wact">
-        <button type="button" class="te-wmain" id="te-main">▶ Start 1-minute sprint${bank ? ` (${Math.min(bank, 7)} words)` : ''}</button>
+        <button type="button" class="te-wmain" id="te-main">⚡ Start Daily Sprint${bank ? ` · ${Math.min(bank, 10)} words, 60 s` : ''}</button>
         <button type="button" class="te-wadd" id="te-add">+ Add word</button>
         <button type="button" class="te-wbell" id="te-bell" aria-label="Review reminders" title="Review reminders" aria-haspopup="dialog">🔔</button>
       </div>`;
@@ -297,23 +331,41 @@
     if (ms) { ms.textContent = left; ms.classList.remove('is-soft'); }
   }
 
-  /* ── Phrase of the day ───────────────────────────────────────────── */
+  /* ── Phrase of the day ───────────────────────────────────────────────
+     The server picks it for the student's level (GET /api/vault/phrase:
+     the teacher's level in the journal, else the student's own) and saves it
+     with source PHRASE_OF_THE_DAY. Offline, the local list stands in. */
+  let phraseDay = null;     // { phrase, meaning, example, level, saved }
+  let phraseAsked = false;
+  async function loadPhrase() {
+    if (phraseAsked || typeof window.apiFetch !== 'function') return;
+    phraseAsked = true;
+    try {
+      const r = await window.apiFetch('/api/vault/phrase');
+      if (r.ok) { phraseDay = await r.json(); chunk(); }
+    } catch (_) { /* the local phrase stays */ }
+  }
   function chunk() {
     const box = $('te-chunk');
     if (!box) return;
-    const [phrase, meaning, ex] = chunkFor(Date.now());
-    const have = vocabList.some(w => (w.word || '').toLowerCase() === phrase.toLowerCase());
-    box.innerHTML = `<div class="te-k">Phrase of the day</div><div class="te-big">${esc(phrase)}</div>
+    const local = chunkFor(Date.now());
+    const [phrase, meaning, ex] = phraseDay ? [phraseDay.phrase, phraseDay.meaning, phraseDay.example] : local;
+    const have = (phraseDay && phraseDay.saved) || vocabList.some(w => (w.word || '').toLowerCase() === phrase.toLowerCase());
+    box.innerHTML = `<div class="te-k">Phrase of the day${phraseDay && phraseDay.level ? ` · ${esc(phraseDay.level)}` : ''}</div><div class="te-big">${esc(phrase)}</div>
       <div class="te-sub">${esc(meaning)}</div><div class="te-ex">“${esc(ex)}”</div>
       <button class="te-btn" type="button" id="te-chunk-add"${have ? ' disabled' : ''}>${have ? '✓ In your words' : '+ Add to my words'}</button>`;
     const btn = $('te-chunk-add');
     if (btn && !have) btn.addEventListener('click', async () => {
       btn.disabled = true;
       try {
-        const r = await window.apiFetch('/api/journal/vocab', { method: 'POST', body: { word: phrase, translation: meaning, example: ex } });
+        const r = phraseDay
+          ? await window.apiFetch('/api/vault/phrase', { method: 'POST', body: {} })
+          : await window.apiFetch('/api/vault/save', { method: 'POST', body: { text: phrase, meaning, example: ex, sourceType: 'PHRASE_OF_THE_DAY', sourceTitle: 'Phrase of the day' } });
         if (!r.ok) throw new Error('failed');
+        if (phraseDay) phraseDay.saved = true;
         btn.textContent = '✓ In your words';
         if (typeof window.loadVocab === 'function') window.loadVocab();
+        loadVault();
         if (typeof window.showToast === 'function') window.showToast('Added to your words');
       } catch {
         btn.disabled = false;
@@ -546,8 +598,9 @@
     softZeros();
     sheets();
     setInterval(nextLesson, 60e3);
-    // the Word Bank module loads after this file
+    // the Word Bank module and apiFetch load after this file
     setTimeout(loadVault, 0); setTimeout(loadVault, 1500);
+    setTimeout(loadPhrase, 0); setTimeout(loadPhrase, 1500);
   }
 
   window.studentEngage = {
@@ -563,7 +616,7 @@
     vault: loadVault,
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },
-    homework(todo) { hwTodo = Array.isArray(todo) ? todo : []; homework(); },
+    homework(todo, all) { hwTodo = Array.isArray(todo) ? todo : []; hwAll = Array.isArray(all) ? all : hwTodo; homework(); },
     balance(b) { Object.assign(bal, b || {}); balance(); },
   };
 

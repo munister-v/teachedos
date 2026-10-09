@@ -484,7 +484,7 @@ function renderPulse() {
     const busy = _pulse.busy[it.key];
     const acts = [];
     if (it.kind === 'homework') {
-      acts.push(`<a class="wg-pulse-act" href="homework.html?id=${encodeURIComponent(it.homework_id)}"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg>Review</a>`);
+      acts.push(`<a class="wg-pulse-act" href="homework.html?hw=${encodeURIComponent(it.homework_id)}&a=${encodeURIComponent(it.assignment_id)}"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg>Review</a>`);
     } else {
       acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseRemind(${i})" ${busy ? 'disabled' : ''}><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>${busy === 'sent' ? 'Sent' : 'Remind'}</button>`);
     }

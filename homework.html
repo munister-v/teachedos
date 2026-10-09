@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1128"></script>
+<script src="scripts/phone-gate.js?v=1129"></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1128">
-<link rel="preload" as="style" href="styles/unify.css?v=1128">
+<link rel="preload" as="style" href="styles/harmony.css?v=1129">
+<link rel="preload" as="style" href="styles/unify.css?v=1129">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1128">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1128">
+<link rel="stylesheet" href="styles/fonts.css?v=1129">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1129">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -238,6 +238,22 @@ button{font-family:var(--font);cursor:pointer;}
 .hw-words td small{display:block;color:var(--text2);font-size:12px;line-height:1.4;}
 .hw-words .typed{display:inline-block;padding:1px 7px;border-radius:6px;background:rgba(255,78,0,.12);color:#8E2517;font-family:var(--mono,monospace);font-size:12px;}
 .hw-words-note{margin:12px 0 0;font-size:12.5px;color:var(--text2);line-height:1.5;}
+/* Review of handed-in work: score, note, voice message, Publish.
+   "to review" is yellow, as on the student's card; tool-window.css paints
+   every .pill.submitted with an id-strength selector, hence the ids here. */
+.pill.submitted,
+body.tw-page:not(#_) :is(#hw-list, #hw-detail) .pill.submitted{background:#FFE98A;color:#5C4A00;}
+.hw-review{margin:-2px 0 14px 40px;padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--border2);display:flex;flex-direction:column;gap:10px;}
+.hw-review[hidden]{display:none;}
+.hw-review-row,.hw-review-actions,.hw-voice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hw-review-score{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:650;color:var(--text);}
+.hw-review-score input{width:76px;min-height:40px;padding:6px 10px;border-radius:10px;border:1.5px solid var(--border2);font:700 15px var(--mono);background:#fff;color:var(--text);}
+.hw-review-hint{font-size:12px;color:var(--text2);}
+.hw-voice .btn{min-height:38px;padding:6px 14px;}
+.hw-voice-have,.hw-voice-out{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;}
+.hw-voice audio{max-width:100%;height:38px;}
+.hw-voice-live{font:700 13px var(--mono);color:#C0392B;}
+@media (max-width:760px){.hw-review{margin-left:0;}}
 .hw-bar{height:8px;border-radius:999px;background:rgba(36,40,44,.1);overflow:hidden;margin:6px 0 2px;}
 .hw-bar i{display:block;height:100%;border-radius:999px;background:#24282C;}
 
@@ -286,23 +302,23 @@ button{font-family:var(--font);cursor:pointer;}
 }
 
 </style>
-<script src="theme.js?v=1128" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1128">
-<link rel="stylesheet" href="styles/harmony.css?v=1128">
-<link rel="stylesheet" href="styles/unify.css?v=1128">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1128">
-<link rel="stylesheet" href="styles/tool-window.css?v=1128">
+<script src="theme.js?v=1129" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1129">
+<link rel="stylesheet" href="styles/harmony.css?v=1129">
+<link rel="stylesheet" href="styles/unify.css?v=1129">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1129">
+<link rel="stylesheet" href="styles/tool-window.css?v=1129">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1128">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1128">
-<link rel="stylesheet" href="styles/controls.css?v=1128">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1129">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1129">
+<link rel="stylesheet" href="styles/controls.css?v=1129">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1128">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1128">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1128">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1128">
-<link rel="stylesheet" href="styles/toast.css?v=1128">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1128">
+<link rel="stylesheet" href="styles/polish.css?v=1129">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1129">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1129">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1129">
+<link rel="stylesheet" href="styles/toast.css?v=1129">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1129">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -391,7 +407,7 @@ button{font-family:var(--font);cursor:pointer;}
     <div class="hw-filters">
       <button class="filter-btn active" type="button" data-filter="all" aria-pressed="true" onclick="setFilter('all')">All</button>
       <button class="filter-btn" type="button" data-filter="active" aria-pressed="false" onclick="setFilter('active')">Active</button>
-      <button class="filter-btn" type="button" data-filter="submitted" aria-pressed="false" onclick="setFilter('submitted')">Submitted</button>
+      <button class="filter-btn" type="button" data-filter="submitted" aria-pressed="false" onclick="setFilter('submitted')">To review</button>
       <button class="filter-btn" type="button" data-filter="overdue" aria-pressed="false" onclick="setFilter('overdue')">Overdue</button>
       <button class="filter-btn" type="button" data-filter="unassigned" aria-pressed="false" onclick="setFilter('unassigned')">Not assigned</button>
       <button class="filter-btn" type="button" data-filter="words" aria-pressed="false" onclick="setFilter('words')">Words</button>
@@ -542,6 +558,15 @@ async function init() {
     const { user } = await r.json();
     updateUser(user);
     await loadAll();
+    /* From the notification "… handed in homework": homework.html?hw=<id>&a=<assignment>
+       opens that homework with the student's review form unfolded. */
+    const q = new URLSearchParams(location.search);
+    const hwId = q.get('hw') || q.get('id');
+    if (hwId && homeworkList.some(h => String(h.id) === hwId)) {
+      await openDetail(hwId);
+      const btn = q.get('a') && document.querySelector('.hw-rv-open[data-review="' + CSS.escape(q.get('a')) + '"]');
+      if (btn) { btn.click(); btn.closest('.detail-row')?.scrollIntoView({ block: 'center' }); }
+    }
   } catch (e) {
     loadLocal();
     toast('Server unavailable - local homework mode is active');
@@ -659,6 +684,9 @@ document.addEventListener('keydown', e => {
 })();
 function homeworkStatus(h){
   if (h.status === 'submitted' || h.status === 'graded') return h.status;
+  /* Someone handed it in and the review is not published yet: this is the
+     teacher's next job, ahead of everything else. */
+  if ((h.to_review_count || 0) > 0) return 'submitted';
   /* Nobody was given this set (the lesson builder creates it with the lesson):
      it is not "in progress", it is waiting to be assigned. */
   if (!h.local && !offlineMode && !(h.assigned_count || 0)) return 'unassigned';
@@ -667,7 +695,7 @@ function homeworkStatus(h){
 }
 function filteredHomework(){
   const q = (document.getElementById('hw-search')?.value || '').trim().toLowerCase();
-  const priority = { overdue: 0, unassigned: 1, active: 2, submitted: 3, graded: 4 };
+  const priority = { submitted: 0, overdue: 1, unassigned: 2, active: 3, graded: 4 };
   if (activeFilter === 'words') return [];
   return homeworkList.filter(h => {
     const st = homeworkStatus(h);
@@ -700,7 +728,13 @@ function updateHomeworkFocus(list = homeworkList) {
   const detail = document.getElementById('hw-focus-detail');
   const action = document.getElementById('hw-focus-action');
   if (!title || !detail || !action) return;
-  if (overdue.length) {
+  const toReview = list.reduce((n, h) => n + (h.to_review_count || 0), 0);
+  if (toReview) {
+    title.textContent = `${toReview} handed-in homework ${toReview === 1 ? 'waits' : 'wait'} for your review`;
+    detail.textContent = 'Open it, listen or read, then publish a review: a written note, a voice message or both. The student sees “Feedback available”.';
+    action.textContent = 'Review now';
+    action.dataset.filter = 'submitted';
+  } else if (overdue.length) {
     title.textContent = `${overdue.length} overdue homework set${overdue.length === 1 ? '' : 's'}`;
     detail.textContent = 'Review missed work first, then follow up with the affected students.';
     action.textContent = 'Review overdue';
@@ -748,7 +782,7 @@ function renderList() {
     const required = Array.isArray(h.required_cards) ? h.required_cards.length : 0;
     const due = h.due_at ? new Date(h.due_at).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
     const status = homeworkStatus(h);
-    const label = status === 'unassigned' ? 'not assigned' : status.replace('_',' ');
+    const label = status === 'unassigned' ? 'not assigned' : status === 'submitted' ? (h.to_review_count ? h.to_review_count + ' to review' : 'to review') : status.replace('_',' ');
     return '<button type="button" class="hw-card '+status+'" data-hw="'+esc(h.id)+'" aria-label="Open homework: '+esc(h.title)+'">'+
       '<div class="hw-topline"><span class="hw-kind">'+(offlineMode || h.local ? 'local' : 'homework')+'</span><span class="pill '+status+'">'+label+'</span></div>'+
       '<div class="hw-title">'+esc(h.title)+'</div>'+
@@ -837,6 +871,122 @@ function hydrateWork(root, hw) {
     } catch (e) { btn.disabled = false; toast('Could not load the recording: ' + e.message); }
   }));
 }
+/* ── Review: what the student sees after handing in ──────────────────────
+   Handed-in work (submitted) gets a Review button: a score (the one counted
+   on submit is filled in), a written note and/or a voice message. Publishing
+   it turns the student's card green - "Feedback available" - and sends a
+   notification. Publishing again replaces the review. */
+function asgLabel(a) {
+  if (a.status === 'submitted') return 'to review';
+  if (a.status === 'graded') return a.feedback_seen_at ? 'reviewed · seen' : 'reviewed';
+  if (a.status === 'assigned') return 'not started';
+  return String(a.status).replace('_', ' ');
+}
+function reviewHtml(a, hw) {
+  if (!['submitted', 'graded'].includes(a.status)) return '';
+  const voice = a.voice_ms != null;
+  return '<div class="hw-review" data-asg="'+esc(a.id)+'" hidden>'+
+    '<div class="hw-review-row"><label class="hw-review-score">Score <input type="number" min="0" max="100" inputmode="numeric" value="'+(typeof a.final_score === 'number' ? a.final_score : '')+'" aria-label="Score, percent"> %</label>'+
+      '<span class="hw-review-hint">Counted on submit: '+(typeof a.final_score === 'number' ? a.final_score + '%' : 'no score')+'. Change it if your check differs.</span></div>'+
+    '<textarea class="form-textarea hw-review-note" rows="4" maxlength="4000" placeholder="What went well, what to fix, what to practise next…">'+esc(a.teacher_note || '')+'</textarea>'+
+    '<div class="hw-voice" data-voice="'+(voice ? '1' : '')+'">'+
+      (voice ? '<span class="hw-voice-have">🎧 Your voice message · '+Math.max(1, Math.round((a.voice_ms || 0) / 1000))+'s <button type="button" class="btn btn-ghost hw-voice-play">▶ Play</button><button type="button" class="btn btn-ghost hw-voice-drop">Remove</button></span>' : '')+
+      '<button type="button" class="btn btn-ghost hw-voice-rec">🎙 '+(voice ? 'Record again' : 'Record a voice message')+'</button>'+
+      '<span class="hw-voice-out"></span>'+
+    '</div>'+
+    '<div class="hw-review-actions"><button type="button" class="btn btn-primary hw-review-go">'+(a.status === 'graded' ? 'Update review' : 'Publish review')+'</button><span class="hw-review-hint">The student gets a notification and sees “Feedback available”.</span></div>'+
+  '</div>';
+}
+const blobToBase64 = blob => new Promise((ok, bad) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = () => bad(fr.error); fr.readAsDataURL(blob); });
+function recMime() {
+  if (!window.MediaRecorder) return '';
+  return ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (_) { return false; } }) || '';
+}
+function hydrateReview(root, hw, assignments) {
+  root.querySelectorAll('.hw-rv-open').forEach(btn => btn.addEventListener('click', () => {
+    const box = root.querySelector('.hw-review[data-asg="' + CSS.escape(btn.dataset.review) + '"]');
+    if (!box) return;
+    box.hidden = !box.hidden;
+    if (!box.hidden) { box.querySelector('.hw-review-note').focus(); box.scrollIntoView({ block: 'nearest' }); }
+  }));
+  root.querySelectorAll('.hw-review').forEach(box => {
+    const aid = box.dataset.asg;
+    const voiceBox = box.querySelector('.hw-voice'), out = box.querySelector('.hw-voice-out'), recBtn = box.querySelector('.hw-voice-rec');
+    let rec = null, chunks = [], clip = null, removeVoice = false, started = 0, tick = null, stream = null, clipUrl = null;
+    const stopStream = () => { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } clearInterval(tick); };
+    const showClip = () => {
+      if (clipUrl) URL.revokeObjectURL(clipUrl);
+      clipUrl = URL.createObjectURL(clip.blob);
+      out.innerHTML = '<audio controls src="'+clipUrl+'"></audio><button type="button" class="btn btn-ghost hw-voice-del">Delete</button>';
+      out.querySelector('.hw-voice-del').addEventListener('click', () => { clip = null; out.innerHTML = ''; recBtn.textContent = '🎙 Record a voice message'; });
+      recBtn.textContent = '🎙 Record again';
+    };
+    recBtn.addEventListener('click', async () => {
+      if (rec && rec.state === 'recording') { rec.stop(); return; }
+      const mime = recMime();
+      if (!navigator.mediaDevices || !window.MediaRecorder) { toast('This browser cannot record audio'); return; }
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      catch (e) { toast('No access to the microphone'); return; }
+      chunks = [];
+      rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = () => {
+        stopStream();
+        const type = (rec.mimeType || mime || 'audio/webm').split(';')[0];
+        clip = { blob: new Blob(chunks, { type }), mime: type, ms: Date.now() - started };
+        showClip();
+      };
+      started = Date.now();
+      rec.start();
+      out.innerHTML = '<span class="hw-voice-live">● Recording 0:00</span>';
+      recBtn.textContent = '■ Stop';
+      tick = setInterval(() => {
+        const sec = Math.floor((Date.now() - started) / 1000);
+        const live = out.querySelector('.hw-voice-live');
+        if (live) live.textContent = '● Recording ' + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+        if (sec >= 300 && rec.state === 'recording') rec.stop();   // five minutes at most
+      }, 500);
+    });
+    box.querySelector('.hw-voice-play')?.addEventListener('click', async e => {
+      const b = e.currentTarget;
+      b.disabled = true;
+      try {
+        const r = await fetch(API + '/api/homework/' + encodeURIComponent(hw.id) + '/voice/' + encodeURIComponent(aid), { headers: { Authorization: 'Bearer ' + token } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const url = URL.createObjectURL(await r.blob());
+        b.outerHTML = '<audio controls autoplay src="'+url+'"></audio>';
+      } catch (err) { b.disabled = false; toast('Could not load the recording: ' + err.message); }
+    });
+    box.querySelector('.hw-voice-drop')?.addEventListener('click', e => {
+      removeVoice = true;
+      e.currentTarget.closest('.hw-voice-have').remove();
+      toast('The voice message goes when you publish');
+    });
+    box.querySelector('.hw-review-go').addEventListener('click', async e => {
+      const go = e.currentTarget;
+      if (rec && rec.state === 'recording') { toast('Stop the recording first'); return; }
+      const note = box.querySelector('.hw-review-note').value.trim();
+      const raw = box.querySelector('.hw-review-score input').value.trim();
+      const hadVoice = voiceBox.dataset.voice === '1' && !removeVoice;
+      if (!note && !clip && !hadVoice && !confirm('Publish a review without a note or a voice message? The student only sees the score.')) return;
+      go.disabled = true; go.textContent = 'Publishing…';
+      try {
+        const body = { teacher_note: note, final_score: raw === '' ? null : Math.max(0, Math.min(100, parseInt(raw, 10) || 0)) };
+        if (clip) body.voice = { mime: clip.mime, durationMs: clip.ms, audio: await blobToBase64(clip.blob) };
+        else if (removeVoice) body.removeVoice = true;
+        await api('/api/homework/' + encodeURIComponent(hw.id) + '/grade/' + encodeURIComponent(aid), { method: 'POST', body });
+        const who = (assignments.find(x => String(x.id) === String(aid)) || {}).student_name || 'The student';
+        toast('Review published. ' + who + ' got a notification.');
+        stopStream();
+        await loadAll();
+        openDetail(hw.id);
+      } catch (err) {
+        go.disabled = false; go.textContent = 'Publish review';
+        toast('Could not publish: ' + err.message);
+      }
+    });
+  });
+}
 async function openDetail(id) {
   try {
     const d = offlineMode ? localDetail(id) : await api('/api/homework/' + id).catch(() => localDetail(id));
@@ -856,9 +1006,10 @@ async function openDetail(id) {
         const att = byAsgn[a.id] || [];
         const completed = typeof a.final_score === 'number' || ['submitted','graded'].includes(a.status) ? required.length : att.filter(t => t.status === 'done').length;
         const pct = required.length ? Math.round((completed/required.length) * 100) : 0;
-        return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(205,246,73,.2);font-weight:700;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:650;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+String(a.status).replace('_',' ')+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:700;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+'</div></div>' + workHtml(a, att, hw);
+        return '<div class="detail-row" style="align-items:center;gap:12px;"><div style="flex:1;display:flex;align-items:center;gap:10px;"><span style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(205,246,73,.2);font-weight:700;">'+esc(a.student_avatar || '👤')+'</span><div><div style="font-size:13px;font-weight:650;color:var(--text);">'+esc(a.student_name)+'</div><div style="font-size:11px;color:var(--text3);">'+esc(a.student_email)+'</div></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text2);font-family:var(--mono);">'+completed+'/'+required.length+' · '+pct+'%</div><span class="pill '+a.status+'">'+esc(asgLabel(a))+'</span>'+(typeof a.final_score === 'number' ? '<span style="font-weight:700;font-size:13px;color:'+(a.final_score>=(hw.pass_threshold||60)?'var(--green)':'var(--red)')+';">'+a.final_score+'</span>' : '')+(['submitted','graded'].includes(a.status) ? '<button type="button" class="btn '+(a.status === 'submitted' ? 'btn-primary' : 'btn-ghost')+' hw-rv-open" data-review="'+esc(a.id)+'" style="min-height:36px;padding:6px 14px;">'+(a.status === 'submitted' ? 'Review' : 'Edit review')+'</button>' : '')+'</div></div>' + workHtml(a, att, hw) + reviewHtml(a, hw);
       }).join('') : '<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No students assigned yet</div>');
     hydrateWork(det, hw);
+    hydrateReview(det, hw, assignments);
     hydrateAssign(det, hw, assignments);
     det.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
   } catch (e) { toast('Error: ' + e.message); }
@@ -1019,16 +1170,16 @@ function toast(msg) { const t = document.getElementById('toast'); t.textContent 
 init();
 </script>
 
-<script src="scripts/writing-shared.js?v=1128"></script>
-<script src="scripts/writing-review.js?v=1128"></script>
-<script src="scripts/nav-boost.js?v=1128" defer></script>
-<script src="scripts/mobile-perf.js?v=1128" defer></script>
-<script src="scripts/mobile-nav.js?v=1128"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1128" defer></script>
-<script src="scripts/autogrow.js?v=1128" defer></script>
-<script src="pwa-boot.js?v=1128" defer></script>
-  <script src="scripts/signin-entry.js?v=1128" defer></script>
-<script src="scripts/nav-bell.js?v=1128" defer></script>
-<script src="scripts/empty-stats.js?v=1128" defer></script>
+<script src="scripts/writing-shared.js?v=1129"></script>
+<script src="scripts/writing-review.js?v=1129"></script>
+<script src="scripts/nav-boost.js?v=1129" defer></script>
+<script src="scripts/mobile-perf.js?v=1129" defer></script>
+<script src="scripts/mobile-nav.js?v=1129"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1129" defer></script>
+<script src="scripts/autogrow.js?v=1129" defer></script>
+<script src="pwa-boot.js?v=1129" defer></script>
+  <script src="scripts/signin-entry.js?v=1129" defer></script>
+<script src="scripts/nav-bell.js?v=1129" defer></script>
+<script src="scripts/empty-stats.js?v=1129" defer></script>
 </body>
 </html>

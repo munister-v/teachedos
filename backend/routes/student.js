@@ -340,7 +340,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
        URL-ключ (см. GET /api/booking/link) - отдавать его ученику не шире,
        чем отдавать саму ссылку, которую учитель и так рассылает открыто. */
     const { rows: boards } = await pool.query(`
-      SELECT b.id, b.name, b.thumbnail, b.updated_at, bc.role,
+      SELECT b.id, b.name, b.thumbnail, b.updated_at, bc.role, bc.is_home,
              b.cover, (b.cover_image IS NOT NULL) AS has_cover_image,
              u.id AS teacher_id, u.name AS teacher_name, u.avatar AS teacher_avatar,
              u.timezone AS teacher_timezone, u.timezone_mode AS teacher_timezone_mode,
@@ -349,7 +349,9 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       JOIN boards b ON b.id = bc.board_id
       JOIN users  u ON u.id = b.user_id
       WHERE bc.user_id = $1
-      ORDER BY b.updated_at DESC
+      -- the board the teacher chose as the student's own comes first:
+      -- "Open my board" takes the first one
+      ORDER BY bc.is_home DESC, b.updated_at DESC
     `, [req.user.id]);
 
     // Progress per board
@@ -382,7 +384,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     try {
       const { rows: sch } = await pool.query(`
         SELECT s.id, s.user_id, s.day, s.start_time, s.end_time, s.title, s.group_name, s.level, s.room,
-               s.color, s.recurring, to_char(s.specific_date, 'YYYY-MM-DD') AS specific_date, COALESCE(s.meeting_url, u.meeting_url) AS meeting_url, s.is_live,
+               s.color, s.recurring, to_char(s.specific_date, 'YYYY-MM-DD') AS specific_date, COALESCE(s.meeting_url, u.meeting_url) AS meeting_url, s.is_live, s.board_id,
                u.name AS teacher_name, u.avatar AS teacher_avatar, u.timezone AS teacher_timezone
         FROM schedule s
         JOIN users u ON u.id = s.user_id

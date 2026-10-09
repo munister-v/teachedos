@@ -137,7 +137,7 @@ router.get('/roster', requireAuth, async (req, res) => {
       WITH mine AS (
         SELECT id FROM boards WHERE user_id = $1
       ), seats AS (
-        SELECT bc.board_id, bc.user_id,
+        SELECT bc.board_id, bc.user_id, bc.is_home,
                COUNT(*) OVER (PARTITION BY bc.board_id) AS board_size
           FROM board_collaborators bc
           JOIN mine m ON m.id = bc.board_id
@@ -145,6 +145,7 @@ router.get('/roster', requireAuth, async (req, res) => {
       )
       SELECT u.id, u.name, u.email, u.avatar, u.last_login_at,
              ARRAY_AGG(DISTINCT s.board_id::text) AS board_ids,
+             (ARRAY_AGG(s.board_id::text) FILTER (WHERE s.is_home))[1] AS home_board_id,
              BOOL_OR(s.board_size = 1) AS individual,
              BOOL_OR(s.board_size > 1) AS in_group,
              j.id AS journal_id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at,
@@ -186,6 +187,12 @@ router.get('/roster', requireAuth, async (req, res) => {
         FROM student_journal j
        WHERE j.teacher_id = $1 AND NOT (j.id = ANY($2::uuid[]))
        ORDER BY j.name`, [req.user.id, seen]);
+    /* Names of the student's boards for the "Student's board" picker. */
+    const names = boardIds.size
+      ? new Map((await pool.query('SELECT id::text, name, updated_at FROM boards WHERE id = ANY($1::uuid[])', [[...boardIds]])).rows.map(b => [b.id, b]))
+      : new Map();
+    const boardsOf = r => (r.board_ids || []).map(id => names.get(id)).filter(Boolean)
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).map(b => ({ id: b.id, name: b.name || 'Board' }));
     const withFormat = r => r.format
       ? { ...r, individual: r.format === 'individual', in_group: r.format === 'group' }
       : r;
@@ -194,6 +201,7 @@ router.get('/roster', requireAuth, async (req, res) => {
         ...rows.map(r => withFormat({
           ...r,
           boardCount: (r.board_ids || []).length,
+          boards: boardsOf(r),
           online: online.has(String(r.id)),
         })),
         ...pending.map(j => withFormat({
@@ -206,6 +214,41 @@ router.get('/roster', requireAuth, async (req, res) => {
     console.error('[members] roster error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+/* ──────────────────────────────────────────────────────────────
+   PUT /api/members/home-board {studentId, boardId|null}
+   The student's own board with this teacher: "Open my board" and "Join
+   lesson" in the cabinet open it. One per student and teacher - setting it
+   clears the flag on the teacher's other boards; null clears it. The board
+   must be the teacher's and the student already on it.
+────────────────────────────────────────────────────────────── */
+router.put('/home-board', requireAuth, async (req, res) => {
+  const UUIDRE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const studentId = String(req.body?.studentId || '');
+  const boardId = req.body?.boardId ? String(req.body.boardId) : null;
+  if (!UUIDRE.test(studentId) || (boardId && !UUIDRE.test(boardId))) return res.status(400).json({ error: 'studentId and boardId are required' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    if (boardId) {
+      const { rows } = await client.query(
+        `SELECT 1 FROM board_collaborators bc JOIN boards b ON b.id = bc.board_id
+          WHERE bc.board_id = $1 AND bc.user_id = $2 AND b.user_id = $3`, [boardId, studentId, req.user.id]);
+      if (!rows.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'This student is not on that board' }); }
+    }
+    await client.query(
+      `UPDATE board_collaborators bc SET is_home = COALESCE(bc.board_id = $3::uuid, FALSE)
+         FROM boards b
+        WHERE b.id = bc.board_id AND b.user_id = $1 AND bc.user_id = $2 AND (bc.is_home OR bc.board_id = $3::uuid)`,
+      [req.user.id, studentId, boardId]);
+    await client.query('COMMIT');
+    res.json({ ok: true, home_board_id: boardId });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[members] home-board error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  } finally { client.release(); }
 });
 
 /* ──────────────────────────────────────────────────────────────

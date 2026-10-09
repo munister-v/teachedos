@@ -276,7 +276,7 @@
               <div class="vt-under">${hint ? '' : '<button type="button" class="vt-link" data-act="hint">Give me a hint</button>'}<button type="button" class="vt-link" data-act="skip">I do not remember</button></div></div>`
           : `<div class="vt-card">
               <div class="vt-word">${esc(c.word)}</div>
-              ${c.source_title ? `<div class="vt-src">from “${esc(c.source_title)}”</div>` : ''}
+              ${sourceLabel(c) ? `<div class="vt-src">${esc(sourceLabel(c))}${c.source_type === 'LESSON_BOARD' && c.source_title ? ` · “${esc(c.source_title)}”` : ''}</div>` : ''}
               <div class="vt-src" style="margin-top:14px">This word has no meaning saved yet. Say what it means, then check.</div>
             </div>
             <div class="vt-acts"><button type="button" class="vt-show" data-act="show">Show answer<kbd>Space</kbd></button></div>`);
@@ -301,7 +301,7 @@
           ${c.translation ? `<div class="vt-mean">${esc(c.translation)}</div>` : ''}
           ${c.example ? `<div class="vt-ex">${highlight(c.example, c.word)}</div>` : filled ? `<div class="vt-ex">${highlight(filled, c.word)}</div>` : ''}
           ${colls.length ? `<div class="vt-colls"><span class="vt-lbl">Goes with</span>${colls.map(x => `<i>${esc(x)}</i>`).join('')}</div>` : ''}
-          ${c.source_title ? `<div class="vt-src">from “${esc(c.source_title)}”</div>` : ''}
+          ${sourceLabel(c) ? `<div class="vt-src">${esc(sourceLabel(c))}${c.source_type === 'LESSON_BOARD' && c.source_title ? ` · “${esc(c.source_title)}”` : ''}</div>` : ''}
           ${window.TeachedHear && window.TeachedHear.mount ? `<button type="button" class="vt-link" data-act="video">▶ See it used by real people</button><div class="vt-mini" hidden></div>` : ''}
         </div>
         <div class="vt-acts"><div class="vt-grades" style="grid-template-columns:repeat(${gradesFor.length},1fr)">${gradesFor.map(g => `<button type="button" class="vt-g ${g}${g === dflt ? ' dflt' : ''}" data-g="${g}">${gradesFor.length === 1 ? 'Got it, show it again soon' : NAMES[g]}<small>${esc((c.next || {})[g] || '')}<kbd>${g === dflt ? 'Enter' : KEYS[g]}</kbd></small></button>`).join('')}</div>
@@ -417,7 +417,7 @@
        at random when the window opens and kept while it is open. */
     let themeId = '';
     try {
-      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1128'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+      if (!window.TeachedThemes) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'scripts/lesson-themes.js?v=1129'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
       const themed = window.TeachedThemes.list.filter(t => t.id);
       themeId = themed[Math.floor(Math.random() * themed.length)].id;
     } catch (_) { themeId = ''; }
@@ -525,14 +525,24 @@
     show(cur);
   }
 
-  /* ── One-minute sprint ───────────────────────────────────────────────
-     "Practise words" used to open five games behind five tabs, and the
-     student had to choose and switch. The sprint leads by the hand: five
-     short tasks in a row on up to twelve words (due ones first, then this
-     week's), three mechanics - match the partners, pick the word for the
-     sentence, hear it and build it. Nothing to click except the words. One
-     grade for the whole pool at the end; a word answered wrong comes back
-     soon whatever the grade. */
+  /* ── Daily Sprint: one minute, three rounds ──────────────────────────
+     "⚡ Start Daily Sprint" takes ten words from the server (5 due by the
+     forgetting curve, 3 fresh from the last lesson, 2 new from homework and
+     the phrase of the day - backend/lib/sprint.js) and runs three rounds
+     against the clock, sixty seconds in all:
+       1. Collocation Matcher  15 s - join the partners (spoil ── the mood)
+       2. Context Gap-Fill     25 s - the word for the sentence with a gap
+       3. Audio Unscramble     20 s - hear the word, build it or type it
+     A round ends when its time is up or its tasks are done; the clock stops
+     while an answer is shown. Every word says where it came from ("from
+     Lesson Oct 8"). Only the words the student got to are graded - a word
+     the minute ran out on keeps its schedule. One grade for the pool at the
+     end; a word answered wrong comes back soon whatever the grade. */
+  const ROUNDS = [
+    { type: 'match', secs: 15, n: 4, title: 'Collocation Matcher', short: 'Match' },
+    { type: 'gap', secs: 25, n: 3, title: 'Context Gap-Fill', short: 'Gap-fill' },
+    { type: 'audio', secs: 20, n: 3, title: 'Audio Unscramble', short: 'Listen' },
+  ];
   const shuffle = a => { const x = a.slice(); for (let k = x.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [x[k], x[r]] = [x[r], x[k]]; } return x; };
   /* "spoil the surprise" for "to spoil" → { left: "spoil", right: "the surprise" } */
   function partnerOf(e) {
@@ -546,44 +556,79 @@
     if (e.meaning && e.meaning.length <= 70) return { left: e.w, right: e.meaning, kind: 'meaning' };
     return null;
   }
+  /* Where a word came from (vocabulary.source_type), the way the sprint and
+     the review card say it: "from Lesson Oct 8", "from Homework · Past Simple". */
+  const shortDay = d => { const t = d ? new Date(d) : null; return t && !isNaN(t) ? t.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''; };
+  function sourceLabel(w) {
+    const day = shortDay(w && w.created_at), title = String((w && w.source_title) || '').trim();
+    const cut = s => (s.length > 30 ? s.slice(0, 29) + '…' : s);
+    switch (w && w.source_type) {
+      case 'LESSON_BOARD': return `from Lesson${day ? ' ' + day : ''}`;
+      case 'HOMEWORK': return `from Homework${title ? ' · ' + cut(title) : day ? ' ' + day : ''}`;
+      case 'PHRASE_OF_THE_DAY': return `Phrase of the day${day ? ' · ' + day : ''}`;
+      case 'READING': return `from your reading${day ? ' · ' + day : ''}`;
+      case 'MANUAL': return `added by you${day ? ' · ' + day : ''}`;
+      default: return title ? `from “${cut(title)}”` : '';
+    }
+  }
   function sprintPlan(words) {
     const pool = words.map(x => {
       const w = stripTo(x.word);
       const stored = /_{3,}/.test(x.gap || '') ? String(x.gap).replace(/_{3,}/, '______') : '';
       const g = stored ? null : gapParts(x.word, x.example);
-      return { id: x.id, word: x.word, w, meaning: String(x.translation || '').trim(), example: x.example || '',
+      return { id: x.id, word: x.word, w, meaning: String(x.translation || '').trim(), example: x.example || '', src: sourceLabel(x),
         colls: String(x.collocations || '').split(/\s*·\s*/).map(c => c.trim()).filter(Boolean), gap: stored || (g ? g.text : ''), hit: g ? g.hit : '' };
     }).filter(e => e.w);
-    const used = new Set(), tasks = [];
+    const used = new Set(), rounds = [];
     const take = (list, n) => { const fresh = list.filter(e => !used.has(e.id)); const got = fresh.concat(list.filter(e => used.has(e.id))).slice(0, n); got.forEach(e => used.add(e.id)); return got; };
-    // 1. match: three pairs
-    const pairable = pool.map(e => ({ e, p: partnerOf(e) })).filter(x => x.p);
-    const byKind = pairable.filter(x => x.p.kind === 'partner').concat(pairable.filter(x => x.p.kind === 'meaning'));
-    if (byKind.length >= 3) {
-      const three = byKind.slice(0, 3);
-      three.forEach(x => used.add(x.e.id));
-      tasks.push({ type: 'match', pairs: three.map(x => ({ id: x.e.id, left: x.p.left, right: x.p.right })), partners: three.every(x => x.p.kind === 'partner') });
+    // 1. partners: collocations first, the meaning when a word has none or its
+    //    partner is already taken - two pairs never share an answer
+    const meaningOf = e => (e.meaning && e.meaning.length <= 70 ? { left: e.w, right: e.meaning, kind: 'meaning' } : null);
+    const options = pool.map(e => { const p = partnerOf(e); return { e, opts: [p, p && p.kind === 'partner' ? meaningOf(e) : null].filter(Boolean) }; })
+      .filter(x => x.opts.length);
+    const ordered = options.filter(x => x.opts[0].kind === 'partner').concat(options.filter(x => x.opts[0].kind !== 'partner'));
+    const rights = new Set(), pairs = [];
+    for (const x of ordered) {
+      if (pairs.length >= ROUNDS[0].n) break;
+      const p = x.opts.find(o => !rights.has(o.right.toLowerCase()));
+      if (!p) continue;
+      rights.add(p.right.toLowerCase()); pairs.push({ e: x.e, p });
     }
-    // 2-3. the word for the sentence (or for the meaning)
-    const askable = pool.filter(e => e.gap || e.meaning);
-    take(shuffle(askable), 2).forEach(e => {
+    if (pairs.length >= 2) {
+      pairs.forEach(x => used.add(x.e.id));
+      const kinds = new Set(pairs.map(x => x.p.kind));
+      rounds.push({ ...ROUNDS[0], ask: kinds.size > 1 ? 'match each word with its partner or meaning' : kinds.has('partner') ? 'which words go together?' : 'match the word and its meaning',
+        pairs: pairs.map(x => ({ id: x.e.id, left: x.p.left, right: x.p.right, src: x.e.src })) });
+    }
+    // 2. the word for the sentence (or for the meaning, when there is no sentence)
+    const gaps = [];
+    take(shuffle(pool.filter(e => e.gap || e.meaning)), ROUNDS[1].n).forEach(e => {
+      const answer = e.gap && e.hit ? e.hit : e.w;
       const others = shuffle(pool.filter(o => o.id !== e.id && o.w.toLowerCase() !== e.w.toLowerCase())).slice(0, 3).map(o => o.w);
-      if (others.length) tasks.push({ type: 'choice', id: e.id, prompt: e.gap, meaning: e.meaning, answer: e.gap && e.hit ? e.hit : e.w, word: e.w, options: shuffle([e.gap && e.hit ? e.hit : e.w, ...others]) });
+      if (others.length >= 2) gaps.push({ id: e.id, prompt: e.gap, meaning: e.meaning, answer, word: e.w, src: e.src, options: shuffle([answer, ...others]) });
     });
-    // 4-5. hear it and build it
-    take(shuffle(pool), 2).forEach(e => tasks.push({ type: 'build', id: e.id, word: e.w, meaning: e.meaning, tiles: /^[a-z]{3,12}$/i.test(e.w) }));
-    return tasks.slice(0, 5);
+    if (gaps.length) rounds.push({ ...ROUNDS[1], items: gaps });
+    // 3. hear it, then build it from letters (a short single word) or type it
+    const audio = take(shuffle(pool), ROUNDS[2].n).map(e => ({ id: e.id, word: e.w, meaning: e.meaning, src: e.src, tiles: /^[a-z]{3,12}$/i.test(e.w) }));
+    if (audio.length) rounds.push({ ...ROUNDS[2], items: audio });
+    return rounds;
   }
   const SP_CSS = `
 .sp{width:100vw;height:100vh;display:flex;flex-direction:column;background:#1B1D22;color:#F4F4F8;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif}
 .sp-top{display:flex;align-items:center;gap:16px;padding:14px 18px}
-.sp-dots{display:flex;gap:6px;flex:1}
-.sp-dots i{flex:1;max-width:90px;height:6px;border-radius:6px;background:rgba(255,255,255,.16)}
-.sp-dots i.on{background:#CDF649}.sp-dots i.ok{background:#CDF649}.sp-dots i.bad{background:#FF8C3A}
-.sp-time{font:700 15px 'SF Mono',ui-monospace,Menlo,monospace;color:#C9CAD4;min-width:44px;text-align:right}
-.sp-x{width:40px;height:40px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:15px;cursor:pointer}
-.sp-stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:10px 20px 40px;text-align:center}
+.sp-dots{display:flex;gap:8px;flex:1;min-width:0}
+.sp-seg{flex:1;max-width:180px;min-width:0;display:flex;flex-direction:column;gap:5px}
+.sp-seg span{font:700 10.5px/1 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#8E909C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-seg.on span{color:#CDF649}
+.sp-seg i{display:block;height:6px;border-radius:6px;background:rgba(255,255,255,.16);overflow:hidden}
+.sp-seg i b{display:block;height:100%;width:0;background:#CDF649;border-radius:6px}
+.sp-time{font:800 22px 'SF Mono',ui-monospace,Menlo,monospace;color:#F4F4F8;min-width:58px;text-align:right}
+.sp-time.low{color:#FFB37A}
+.sp-x{width:40px;height:40px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:15px;cursor:pointer;flex:none}
+.sp-stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:10px 20px 40px;text-align:center;overflow:auto}
 .sp-k{font:700 11px 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#C9CAD4}
+.sp-src{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;background:rgba(205,246,73,.12);border:1px solid rgba(205,246,73,.35);color:#E5F7A6;font-size:12.5px;font-weight:600}
+.sp-srcs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .sp-q{font:500 clamp(22px,3.4vw,34px)/1.35 'Iowan Old Style','Palatino Linotype',Georgia,serif;max-width:820px}
 .sp-q .gap{display:inline-block;min-width:4.5em;border-bottom:3px solid #CDF649;margin:0 .15em;color:#CDF649}
 .sp-sub{font-size:16px;color:#C9CAD4;max-width:640px;line-height:1.45}
@@ -608,6 +653,10 @@
 .sp-fb{min-height:26px;font-size:17px;font-weight:700}
 .sp-fb.ok{color:#CDF649}.sp-fb.bad{color:#FFB37A}
 .sp-big{font:700 clamp(30px,5vw,46px)/1.1 'Iowan Old Style',Georgia,serif}
+.sp-plan{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.sp-plan div{min-width:170px;padding:14px 18px;border-radius:18px;background:rgba(255,255,255,.08);text-align:left;font-size:13px;color:#C9CAD4}
+.sp-plan b{display:block;font-size:16px;color:#fff;margin:2px 0}
+.sp-plan small{font:700 11px 'SF Mono',ui-monospace,Menlo,monospace;color:#CDF649}
 .sp-stats{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .sp-stats div{min-width:150px;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.08);font-size:13px;color:#C9CAD4}
 .sp-stats b{display:block;font-size:30px;color:#fff;margin-bottom:2px}
@@ -617,7 +666,7 @@
 .sp-g.on{border-color:#CDF649;background:rgba(205,246,73,.16)}
 .sp-go{min-height:54px;padding:0 34px;border-radius:16px;border:0;background:#CDF649;color:#24282C;font-weight:800;font-size:16px;font-family:inherit;cursor:pointer}
 .sp :is(.sp-t,.sp-l,.sp-slot,.sp-g,.sp-go,.sp-say,.sp-x,.sp-skip):focus-visible{outline:2px solid #fff;outline-offset:2px}
-@media (max-width:640px){.sp-cols{gap:10px 14px}.sp-t{font-size:16px;padding:8px 10px}.sp-opts{grid-template-columns:1fr}.sp-l,.sp-slot{width:44px;height:52px;font-size:22px}}
+@media (max-width:640px){.sp-top{gap:10px;padding:12px}.sp-seg span{font-size:9.5px}.sp-time{font-size:18px;min-width:46px}.sp-cols{gap:10px 14px}.sp-t{font-size:16px;padding:8px 10px}.sp-opts{grid-template-columns:1fr}.sp-l,.sp-slot{width:44px;height:52px;font-size:22px}}
 `;
   async function sprint(opts = {}) {
     const api = opts.api;
@@ -626,10 +675,10 @@
     if (!document.getElementById('sp-css')) { const st = document.createElement('style'); st.id = 'sp-css'; st.textContent = SP_CSS; document.head.appendChild(st); }
     const back = document.createElement('div');
     back.className = 'vt-back vt-imm';
-    back.innerHTML = `<div class="sp" role="dialog" aria-modal="true" aria-label="Word sprint"><div class="sp-top"><span class="vt-kick" style="color:#C9CAD4">Word Bank · sprint</span><div class="sp-dots"></div><span class="sp-time">0:00</span><button class="sp-x" type="button" aria-label="Close">✕</button></div><div class="sp-stage"><div class="sp-sub">Getting your words…</div></div></div>`;
+    back.innerHTML = `<div class="sp" role="dialog" aria-modal="true" aria-label="Daily sprint"><div class="sp-top"><span class="vt-kick" style="color:#C9CAD4">⚡ Daily Sprint</span><div class="sp-dots"></div><span class="sp-time" aria-live="off">1:00</span><button class="sp-x" type="button" aria-label="Close">✕</button></div><div class="sp-stage"><div class="sp-sub">Getting your words…</div></div></div>`;
     document.body.appendChild(back);
     const stage = back.querySelector('.sp-stage'), dots = back.querySelector('.sp-dots'), clock = back.querySelector('.sp-time');
-    let tick = null, keyFn = null, started = 0, finished = false;
+    let tick = null, keyFn = null, finished = false;
     const close = () => { clearInterval(tick); back.remove(); document.removeEventListener('keydown', onKey); if (opts.onDone) opts.onDone({ finished }); };
     const onKey = e => { if (e.key === 'Escape') { close(); return; } if (keyFn) keyFn(e); };
     back.querySelector('.sp-x').addEventListener('click', close);
@@ -638,88 +687,118 @@
     let words = [];
     try { words = (await json(api, '/api/vault/sprint')).words || []; }
     catch (e) { stage.innerHTML = `<div class="sp-sub">${esc(e.message)}</div>`; return; }
-    const tasks = words.length >= 3 ? sprintPlan(words) : [];
-    if (tasks.length < 2) {
+    const rounds = words.length >= 3 ? sprintPlan(words) : [];
+    if (!rounds.length) {
       stage.innerHTML = `<span style="font-size:40px">🏦</span><div class="sp-big">Not enough words yet</div><div class="sp-sub">A sprint needs at least three words with a meaning. Save words while you read, or ask your teacher to send you some.</div><button type="button" class="sp-go" data-close>Close</button>`;
       stage.querySelector('[data-close]').addEventListener('click', close);
       return;
     }
-    const marks = [];                     // per task: true / false
     const res = new Map();                // word id → { correct, typed }
     const note = (id, ok, typed) => { const cur = res.get(id); res.set(id, { correct: (cur ? cur.correct : true) && ok, typed: !ok && typed ? typed : (cur ? cur.typed : '') }); };
-    const paintDots = at => { dots.innerHTML = tasks.map((_, k) => `<i class="${k < marks.length ? (marks[k] ? 'ok' : 'bad') : k === at ? 'on' : ''}"></i>`).join(''); };
-    started = Date.now();
-    tick = setInterval(() => { const sec = Math.floor((Date.now() - started) / 1000); clock.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }, 500);
-    const next = (at, ok, wait) => { marks[at] = ok; paintDots(at); keyFn = null; setTimeout(() => { if (back.isConnected) run(at + 1); }, wait); };
+    const total = rounds.reduce((n, r) => n + r.secs, 0);
 
-    function run(at) {
-      if (at >= tasks.length) { finish(); return; }
-      paintDots(at);
-      const t = tasks[at];
-      if (t.type === 'match') runMatch(t, at);
-      else if (t.type === 'choice') runChoice(t, at);
-      else runBuild(t, at);
+    /* The clock: each round has its own budget; the big number is what is
+       left of the whole minute. It stands still while an answer is shown. */
+    let ri = -1, left = 0, paused = true, last = 0, token = 0, onTimeUp = null;
+    const after = k => rounds.slice(k + 1).reduce((n, r) => n + r.secs * 1000, 0);
+    const paintClock = () => {
+      const ms = Math.max(0, left) + after(ri);
+      const sec = Math.ceil(ms / 1000);
+      clock.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+      clock.classList.toggle('low', ri === rounds.length - 1 && left < 6000);
+      dots.querySelectorAll('.sp-seg').forEach((seg, k) => {
+        seg.classList.toggle('on', k === ri);
+        seg.querySelector('b').style.width = (k < ri ? 100 : k > ri ? 0 : Math.min(100, 100 - Math.max(0, left) / (rounds[k].secs * 10))) + '%';
+      });
+    };
+    dots.innerHTML = rounds.map((r, k) => `<div class="sp-seg" title="${esc(r.title)} · ${r.secs} s"><span>${k + 1} ${esc(r.short)} · ${r.secs}s</span><i><b></b></i></div>`).join('');
+    const hold = (ms, then) => { paused = true; const my = token; setTimeout(() => { if (!back.isConnected || my !== token) return; paused = false; last = Date.now(); then(); }, ms); };
+    const srcChip = s => (s ? `<span class="sp-src">${esc(s)}</span>` : '');
+
+    function startRound(k) {
+      ri = k; token++; keyFn = null;
+      const r = rounds[k];
+      left = r.secs * 1000;
+      onTimeUp = () => { keyFn = null; token++; stage.innerHTML = `<div class="sp-big">Time!</div><div class="sp-sub">${k + 1 < rounds.length ? `Next: ${esc(rounds[k + 1].title)}` : 'That was the minute.'}</div>`; paused = true; setTimeout(() => { if (back.isConnected) nextRound(); }, 900); };
+      paused = false; last = Date.now();
+      paintClock();
+      if (r.type === 'match') runMatch(r);
+      else if (r.type === 'gap') runGap(r, 0);
+      else runAudio(r, 0);
     }
-    function runMatch(t, at) {
-      const rights = shuffle(t.pairs);
-      stage.innerHTML = `<div class="sp-k">${t.partners ? 'Which words go together?' : 'Match the word and its meaning'}</div>
-        <div class="sp-cols"><div class="sp-col">${shuffle(t.pairs).map(p => `<button type="button" class="sp-t" data-l="${esc(p.id)}">${esc(p.left)}</button>`).join('')}</div>
-        <div class="sp-col">${rights.map(p => `<button type="button" class="sp-t" data-r="${esc(p.id)}">${esc(p.right)}</button>`).join('')}</div></div><div class="sp-fb"></div>`;
-      let sel = null, left = t.pairs.length, clean = true;
+    function nextRound() {
+      if (ri + 1 < rounds.length) startRound(ri + 1);
+      else finish();
+    }
+    const roundDone = () => { keyFn = null; hold(450, nextRound); };
+
+    function runMatch(r) {
+      const srcs = [...new Set(r.pairs.map(p => p.src).filter(Boolean))];
+      stage.innerHTML = `<div class="sp-k">Round 1 · ${esc(r.title)} · ${esc(r.ask)}</div>
+        ${srcs.length ? `<div class="sp-srcs">${srcs.map(srcChip).join('')}</div>` : ''}
+        <div class="sp-cols"><div class="sp-col">${shuffle(r.pairs).map(p => `<button type="button" class="sp-t" data-l="${esc(p.id)}">${esc(p.left)}</button>`).join('')}</div>
+        <div class="sp-col">${shuffle(r.pairs).map(p => `<button type="button" class="sp-t" data-r="${esc(p.id)}">${esc(p.right)}</button>`).join('')}</div></div><div class="sp-fb"></div>`;
+      let sel = null, rest = r.pairs.length;
       stage.querySelector('.sp-cols').addEventListener('click', e => {
         const b = e.target.closest('.sp-t');
-        if (!b || b.disabled) return;
+        if (!b || b.disabled || paused) return;
         if (b.dataset.l) { stage.querySelectorAll('[data-l]').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); sel = b; return; }
         if (!sel) { const first = stage.querySelector('[data-l]:not(:disabled)'); first.classList.add('sel'); sel = first; }
         if (sel.dataset.l === b.dataset.r) {
           [sel, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); x.disabled = true; });
-          note(sel.dataset.l, true); sel = null; left--;
-          if (!left) next(at, clean, 550);
+          note(sel.dataset.l, true); sel = null; rest--;
+          if (!rest) roundDone();
         } else {
-          clean = false; note(sel.dataset.l, false); note(b.dataset.r, false);
+          note(sel.dataset.l, false); note(b.dataset.r, false);
           b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 400);
         }
       });
     }
-    function runChoice(t, at) {
+    function runGap(r, i) {
+      if (i >= r.items.length) { roundDone(); return; }
+      const t = r.items[i];
       const q = t.prompt ? esc(t.prompt).replace(/_{6}/, '<span class="gap">&nbsp;</span>') : esc(t.meaning);
-      stage.innerHTML = `<div class="sp-k">${t.prompt ? 'Which word fits?' : 'Which word means this?'}</div><div class="sp-q">${q}</div>
-        <div class="sp-opts">${t.options.map((o, k) => `<button type="button" class="sp-t" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div><div class="sp-fb"></div>`;
+      stage.innerHTML = `<div class="sp-k">Round 2 · ${esc(r.title)} · ${i + 1} of ${r.items.length}</div>${srcChip(t.src)}<div class="sp-q">${q}</div>
+        ${t.prompt ? '' : '<div class="sp-sub">Which word means this?</div>'}
+        <div class="sp-opts">${t.options.map(o => `<button type="button" class="sp-t" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div><div class="sp-fb"></div>`;
       let done = false;
       const pick = b => {
-        if (done || !b) return;
+        if (done || !b || paused) return;
         done = true;
         const ok = b.dataset.o === t.answer;
         note(t.id, ok, ok ? '' : b.dataset.o);
         stage.querySelectorAll('.sp-t').forEach(x => { x.disabled = true; if (x.dataset.o === t.answer) x.classList.add('ok'); });
         if (!ok) b.classList.add('bad');
         const gap = stage.querySelector('.gap'); if (gap) gap.textContent = t.answer;
-        next(at, ok, ok ? 750 : 1700);
+        keyFn = null;
+        hold(ok ? 550 : 1300, () => runGap(r, i + 1));
       };
       stage.querySelector('.sp-opts').addEventListener('click', e => pick(e.target.closest('.sp-t')));
       keyFn = e => { const k = Number(e.key); if (k >= 1 && k <= t.options.length) pick(stage.querySelectorAll('.sp-t')[k - 1]); };
     }
-    function runBuild(t, at) {
+    function runAudio(r, i) {
+      if (i >= r.items.length) { roundDone(); return; }
+      const t = r.items[i];
       const letters = t.tiles ? shuffle(t.word.toLowerCase().split('')) : [];
       if (t.tiles && letters.join('') === t.word.toLowerCase() && letters.length > 1) letters.reverse();
-      stage.innerHTML = `<div class="sp-k">Listen and ${t.tiles ? 'build' : 'type'} the word</div>
+      stage.innerHTML = `<div class="sp-k">Round 3 · ${esc(r.title)} · ${i + 1} of ${r.items.length} · listen and ${t.tiles ? 'build' : 'type'} the word</div>${srcChip(t.src)}
         <div class="sp-row"><button type="button" class="sp-say" aria-label="Listen again" title="Listen again">🔊</button>${t.meaning ? `<div class="sp-sub" style="text-align:left">${esc(t.meaning)}</div>` : ''}</div>
         ${t.tiles ? `<div class="sp-slots">${letters.map((_, k) => `<button type="button" class="sp-slot" data-s="${k}" aria-label="Letter ${k + 1}"></button>`).join('')}</div>
           <div class="sp-letters">${letters.map((l, k) => `<button type="button" class="sp-l" data-k="${k}">${esc(l)}</button>`).join('')}</div>`
           : `<form class="sp-form" autocomplete="off"><input class="sp-in" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Type the word"></form>`}
         <div class="sp-fb"></div><button type="button" class="sp-skip">I do not know</button>`;
       const fb = stage.querySelector('.sp-fb');
-      let done = false;
+      let done = false, tries = 0;
       const end = (ok, typed) => {
-        if (done) return; done = true;
+        if (done) return; done = true; keyFn = null;
         note(t.id, ok, typed);
         fb.className = 'sp-fb ' + (ok ? 'ok' : 'bad');
         fb.textContent = ok ? '✓ Correct' : `It is “${t.word}”`;
-        next(at, ok, ok ? 750 : 1900);
+        hold(ok ? 550 : 1400, () => runAudio(r, i + 1));
       };
       stage.querySelector('.sp-say').addEventListener('click', () => sayWord(api, t.word));
       stage.querySelector('.sp-skip').addEventListener('click', () => end(false, ''));
-      setTimeout(() => { if (!done) sayWord(api, t.word); }, 250);
+      setTimeout(() => { if (!done) sayWord(api, t.word); }, 200);
       if (!t.tiles) {
         const inp = stage.querySelector('.sp-in');
         setTimeout(() => { try { inp.focus(); } catch (_) {} }, 40);
@@ -733,7 +812,6 @@
         if (placed.length === letters.length) { const v = placed.map(k => letters[k]).join(''); if (v === t.word.toLowerCase()) end(true, ''); else { fb.className = 'sp-fb bad'; fb.textContent = 'Not yet. Tap a letter to take it back.'; tries++; if (tries >= 2) end(false, v); } }
         else if (!done) { fb.textContent = ''; }
       };
-      let tries = 0;
       const put = k => { if (done || placed.includes(k) || placed.length >= letters.length) return; placed.push(k); paint(); };
       stage.querySelector('.sp-letters').addEventListener('click', e => { const b = e.target.closest('.sp-l'); if (b) put(Number(b.dataset.k)); });
       stage.querySelector('.sp-slots').addEventListener('click', e => { const sl = e.target.closest('.sp-slot'); if (!sl || done) return; const k = Number(sl.dataset.s); if (k < placed.length) { placed.splice(k, 1); paint(); } });
@@ -745,32 +823,57 @@
     }
     function finish() {
       clearInterval(tick);
-      finished = true;
-      const right = marks.filter(Boolean).length, sec = Math.max(1, Math.round((Date.now() - started) / 1000));
-      let grade = right === marks.length ? 'easy' : right >= Math.ceil(marks.length / 2) ? 'medium' : 'again';
+      finished = true; paused = true; token++; ri = rounds.length; left = 0;
+      paintClock();
+      const graded = [...res.values()], right = graded.filter(r => r.correct).length, missed = Math.max(0, words.length - res.size);
+      let grade = !graded.length ? 'again' : right === graded.length ? 'easy' : right >= Math.ceil(graded.length / 2) ? 'medium' : 'again';
       const G = [['easy', 'Easy', 'back in 4 days'], ['medium', 'Medium', 'back tomorrow'], ['again', 'Again', 'back today']];
-      paintDots(-1);
       const draw = () => {
         stage.innerHTML = `<span style="font-size:40px">✨</span><div class="sp-big">Sprint complete</div>
-          <div class="sp-stats"><div><b>${right}/${marks.length}</b>correct</div><div><b>${sec}s</b>your time</div><div><b>🔥</b>today counts for your streak</div></div>
-          <div class="sp-sub">How did these words feel? Words you missed come back today anyway.</div>
-          <div class="sp-grades">${G.map(([k, l, d]) => `<button type="button" class="sp-g${k === grade ? ' on' : ''}" data-g="${k}">${l}<small>${d}</small></button>`).join('')}</div>
-          <button type="button" class="sp-go">Complete ↵</button>`;
+          <div class="sp-stats"><div><b>${right}/${graded.length}</b>words right</div>${missed ? `<div><b>${missed}</b>the minute ran out on - they keep their place</div>` : ''}<div><b>🔥</b>today counts for your streak</div></div>
+          ${graded.length ? `<div class="sp-sub">How did these words feel? Words you missed come back today anyway.</div>
+          <div class="sp-grades">${G.map(([k, l, d]) => `<button type="button" class="sp-g${k === grade ? ' on' : ''}" data-g="${k}">${l}<small>${d}</small></button>`).join('')}</div>` : ''}
+          <button type="button" class="sp-go">${graded.length ? 'Complete ↵' : 'Close'}</button>`;
         stage.querySelectorAll('.sp-g').forEach(b => b.addEventListener('click', () => { grade = b.dataset.g; draw(); }));
         stage.querySelector('.sp-go').addEventListener('click', complete);
       };
       let sent = false;
       const complete = async () => {
         if (sent) return; sent = true;
-        try { await json(api, '/api/vault/sprint', { method: 'POST', body: { grade, results: [...res].map(([id, r]) => ({ id, correct: r.correct, typed: r.typed })) } }); } catch (_) {}
+        if (graded.length) {
+          try { await json(api, '/api/vault/sprint', { method: 'POST', body: { grade, results: [...res].map(([id, r]) => ({ id, correct: r.correct, typed: r.typed })) } }); } catch (_) {}
+        }
         close();
       };
       keyFn = e => { if (e.key === 'Enter') { e.preventDefault(); complete(); } };
       draw();
     }
-    run(0);
+
+    // Ready screen: the clock starts on Go, not while the words load.
+    stage.innerHTML = `<div class="sp-big">${words.length} words · ${total} seconds</div>
+      <div class="sp-plan">${rounds.map((r, k) => `<div><small>ROUND ${k + 1} · ${r.secs} s</small><b>${esc(r.title)}</b>${r.type === 'match' ? 'join the partners' : r.type === 'gap' ? 'the word for the sentence' : 'hear it, build it'}</div>`).join('')}</div>
+      <div class="sp-srcs">${[...new Set(words.map(sourceLabel).filter(Boolean))].slice(0, 5).map(srcChip).join('')}</div>
+      <button type="button" class="sp-go" data-go>⚡ Go</button>`;
+    let going = false;
+    const go = () => {
+      if (going) return;
+      going = true; keyFn = null;
+      tick = setInterval(() => {
+        const now = Date.now();
+        if (!paused && ri >= 0 && ri < rounds.length) {
+          left -= now - last;
+          if (left <= 0) { left = 0; paused = true; paintClock(); if (onTimeUp) onTimeUp(); return; }
+        }
+        last = now;
+        paintClock();
+      }, 100);
+      startRound(0);
+    };
+    stage.querySelector('[data-go]').addEventListener('click', go);
+    keyFn = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+    setTimeout(() => { try { stage.querySelector('[data-go]').focus(); } catch (_) {} }, 40);
   }
 
-  window.TeachedVault = { open, summary, practise, sprint, _test: { gapParts, judge, normAnswer, sprintPlan, partnerOf } };
+  window.TeachedVault = { open, summary, practise, sprint, sourceLabel, _test: { gapParts, judge, normAnswer, sprintPlan, partnerOf, sourceLabel } };
 
 })();

@@ -945,3 +945,68 @@ ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS gap          TEXT NOT NULL DEFAU
 ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS wrong_count  INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS last_wrong   VARCHAR(200);
 CREATE INDEX IF NOT EXISTS idx_vocabulary_sent_by ON vocabulary(sent_by) WHERE sent_by IS NOT NULL;
+
+-- ── Homework review (09.10.2026) ───────────────────────────────────────────
+-- The homework card in the student's cabinet follows the assignment: not
+-- started → in progress (draft saved, % done) → handed in (waiting for the
+-- teacher) → reviewed. feedback_seen_at stays NULL while a published review is
+-- still new to the student ("Feedback available"); opening it sets the time.
+ALTER TABLE homework_assignment ADD COLUMN IF NOT EXISTS feedback_seen_at TIMESTAMPTZ;
+-- Reviews published before the column existed are not news any more.
+UPDATE homework_assignment SET feedback_seen_at = graded_at
+ WHERE status = 'graded' AND feedback_seen_at IS NULL AND graded_at < '2026-10-09T12:00:00Z';
+-- The teacher's spoken feedback: one clip per assignment, kept in the database
+-- like speaking_recordings (a minute of Opus is ~300 KB).
+CREATE TABLE IF NOT EXISTS homework_feedback_audio (
+  assignment_id UUID PRIMARY KEY REFERENCES homework_assignment(id) ON DELETE CASCADE,
+  mime          VARCHAR(60) NOT NULL,
+  duration_ms   INTEGER NOT NULL DEFAULT 0,
+  audio         BYTEA NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── Where a word came from (09.10.2026) ────────────────────────────────────
+-- source_type: LESSON_BOARD (saved on a board, sent from the Lesson pad),
+-- HOMEWORK (saved while doing homework, or the words of an assigned set),
+-- PHRASE_OF_THE_DAY, READING (the cabinet's news feed), MANUAL (+ Add word).
+-- source_ref_id: the board for LESSON_BOARD, the homework for HOMEWORK.
+-- source_board_id stays: the studios look words up by the board they are on.
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS source_type   VARCHAR(20);
+ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS source_ref_id UUID;
+-- Words an assigned homework put into the bank carry the homework's title and
+-- board and the teacher who set it.
+UPDATE vocabulary v SET source_type = 'HOMEWORK', source_ref_id = h.id
+  FROM homework h
+ WHERE v.source_type IS NULL AND v.sent_by = h.user_id AND v.source_board_id = h.board_id AND v.source_title = h.title;
+UPDATE vocabulary SET source_type = CASE WHEN source_board_id IS NOT NULL OR sent_by IS NOT NULL THEN 'LESSON_BOARD' ELSE 'MANUAL' END,
+       source_ref_id = source_board_id
+ WHERE source_type IS NULL;
+ALTER TABLE vocabulary ALTER COLUMN source_type SET DEFAULT 'MANUAL';
+CREATE INDEX IF NOT EXISTS idx_vocabulary_source ON vocabulary(user_id, source_type, created_at DESC) WHERE kind = 'word';
+
+-- ── Lesson balance: who changed it and why (09.10.2026) ────────────────────
+-- attendance.charged already said whether a lesson came off the balance; the
+-- teacher now chooses it (a trial or make-up lesson held for free, a late
+-- cancellation that still costs one). Every change of lessons_left lands in
+-- balance_ledger, so the teacher and the student see why the number is what
+-- it is. reason: lesson | refund | pack | manual.
+CREATE TABLE IF NOT EXISTS balance_ledger (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  journal_id    UUID NOT NULL REFERENCES student_journal(id) ON DELETE CASCADE,
+  teacher_id    UUID REFERENCES users(id) ON DELETE SET NULL,
+  delta         INTEGER NOT NULL,
+  balance_after INTEGER NOT NULL,
+  reason        VARCHAR(12) NOT NULL,
+  lesson_date   DATE,
+  note          VARCHAR(200),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_balance_ledger_journal ON balance_ledger(journal_id, created_at DESC);
+
+-- ── The student's own board (09.10.2026) ───────────────────────────────────
+-- "Open my board" and "Join lesson" open one board per student and teacher,
+-- the one the teacher keeps the lessons on. Before, the cabinet took whichever
+-- shared board was saved last, so the link moved every time a board changed.
+-- One per teacher is kept by the route that sets it (PUT /api/members/home-board).
+ALTER TABLE board_collaborators ADD COLUMN IF NOT EXISTS is_home BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_board_collab_home ON board_collaborators(user_id) WHERE is_home;
