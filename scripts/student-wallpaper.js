@@ -55,8 +55,8 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
   function apply(v) {
     value = v || null;
     const key = value && value.startsWith('preset:') ? value.slice(7) : null;
-    // null / "TeachEd sky" is the teacher's default; students keep their plain page until they choose.
-    const c = value && (key !== null || value.startsWith('custom:')) ? css(value) : null;
+    // null = the TeachEd default photo, for students too (they used to keep a plain page).
+    const c = css(value);
     document.body.classList.toggle('sw-has', !!c);
     if (c) document.body.style.setProperty('--sw-wall', c); else document.body.style.removeProperty('--sw-wall');
     try { value ? localStorage.setItem(CACHE_KEY, value) : localStorage.removeItem(CACHE_KEY); } catch (_) {}
@@ -69,7 +69,7 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
   }
   function tile(p) {
     const v = p.key ? `preset:${p.key}` : '';
-    return `<button type="button" class="sw-tile${(v || '') === (value || '') ? ' on' : ''}" data-v="${v}"${p.credit ? ` title="Photo: ${esc(p.credit)} (${esc(p.license)}), Wikimedia Commons"` : ''}><span class="sw-swatch" style="background:${(p.thumb || p.css).replace(/"/g, '&quot;')}"></span><span class="sw-label">${esc(p.key === null ? 'None (plain)' : p.title)}</span></button>`;
+    return `<button type="button" class="sw-tile${(v || '') === (value || '') ? ' on' : ''}" data-v="${v}"${p.credit ? ` title="Photo: ${esc(p.credit)} (${esc(p.license)}), Wikimedia Commons"` : ''}><span class="sw-swatch" style="background:${(p.thumb || p.css).replace(/"/g, '&quot;')}"></span><span class="sw-label">${esc(p.title)}</span></button>`;
   }
   function grid() {
     const g = document.getElementById('sw-grid'); if (!g) return;

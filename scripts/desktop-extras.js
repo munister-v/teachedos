@@ -122,7 +122,7 @@ function applyWallpaper(value) {
   /* Стекло окон - только там, где за ним есть что размывать: снимок, тёмный
      фон или небо по умолчанию. На ровных светлых цветах и узорах стекло
      растворяется в фоне, там окна остаются белыми (figma-theme.css). */
-  const glass = !preset || !!(preset.glass || preset.dark || preset.group === 'photo');
+  const glass = !preset || !!(preset.glass || preset.dark || preset.group === 'photo' || preset.group === 'city');
   document.body.classList.toggle('wall-glass', glass);
   /* Тёмный фон: подписи на самом столе (скрытые виджеты, пустые места)
      переключаются на светлые. Свой снимок считаем светлым - окна и

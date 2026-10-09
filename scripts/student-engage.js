@@ -257,11 +257,9 @@
       </div>
       <div class="te-wact">
         <button type="button" class="te-wmain" id="te-main">⚡ Start Daily Sprint${bank ? ` · ${Math.min(bank, 10)} words, 60 s` : ''}</button>
-        <button type="button" class="te-wadd" id="te-add">+ Add word</button>
         <button type="button" class="te-wbell" id="te-bell" aria-label="Review reminders" title="Review reminders" aria-haspopup="dialog">🔔</button>
       </div>`;
     box.querySelector('#te-main').addEventListener('click', practise);
-    box.querySelector('#te-add').addEventListener('click', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); });
     box.querySelector('#te-bell').addEventListener('click', e => { e.stopPropagation(); if (window.TeachedVaultCabinet) window.TeachedVaultCabinet.reminders(box); });
     box.querySelectorAll('.te-ws').forEach(b => b.addEventListener('click', () => {
       const go = b.dataset.go;

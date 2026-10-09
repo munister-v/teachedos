@@ -22,6 +22,7 @@ const WALL_PRESETS = new Set([
   'plain', 'mist', 'dawn', 'meadow', 'lavender', 'dusk', 'graphite',
   'dots', 'paper', 'lime-dots', 'stripes', 'night-grid',
   'carpathians', 'fjord', 'lake', 'laurel', 'fog', 'hills', 'moss', 'alley', 'frost', 'sunset', 'harbour', 'canals', 'river-night',
+  'kyiv', 'new-york', 'chicago', 'london', 'paris', 'rome', 'tokyo',
 ]);
 const WALL_MAX_BYTES = 4 * 1024 * 1024;
 

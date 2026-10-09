@@ -39,18 +39,33 @@
     { key: 'harbour', group: 'photo', title: 'Harbour', credit: 'Moahim', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:2018_-_Nyhavn_on_sunset.jpg' },
     { key: 'canals', group: 'photo', title: 'Canals', credit: 'Diliff', license: 'CC BY 2.5', source: 'https://commons.wikimedia.org/wiki/File:Amsterdam_Canals_-_July_2006.jpg' },
     { key: 'river-night', group: 'photo', title: 'River at night', credit: 'Max Dawncat', license: 'CC BY 2.0', source: 'https://commons.wikimedia.org/wiki/File:2018_-_May_-_Salzach_River_at_night_in_Salzburg.jpg', dark: true },
+    /* Города - тоже избранные снимки Wikimedia Commons. */
+    { key: 'kyiv', group: 'city', title: 'Kyiv', credit: 'Moahim', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:2017_-_%D0%9A%D0%B8%D1%97%D0%B2_-_%D0%A1%D0%B2%D1%96%D1%82%D0%B0%D0%BD%D0%BE%D0%BA_%D0%BD%D0%B0%D0%B4_%D0%94%D0%BD%D1%96%D0%BF%D1%80%D0%BE%D0%BC.jpg' },
+    { key: 'new-york', group: 'city', title: 'New York', credit: 'Superbass', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:2024-11-17-Lower_Manhattan-0593.jpg', dark: true },
+    { key: 'chicago', group: 'city', title: 'Chicago', credit: 'Diego Delso', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Skyline_de_Chicago_desde_el_centro,_Illinois,_Estados_Unidos,_2012-10-20,_DD_06.jpg' },
+    { key: 'london', group: 'city', title: 'London', credit: 'Colin and Kim Hansen', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:City_of_London_skyline_from_London_City_Hall_-_Sept_2015_-_Crop_Aligned.jpg' },
+    { key: 'paris', group: 'city', title: 'Paris', credit: 'DXR', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Notre-Dame_de_Paris_and_%C3%8Ele_de_la_Cit%C3%A9_at_dusk_140516_1.jpg', dark: true },
+    { key: 'rome', group: 'city', title: 'Rome', credit: 'Jebulon', license: 'CC0', source: 'https://commons.wikimedia.org/wiki/File:Castel_Sant%27Angelo_at_dusk,_Rome,_Italy.jpg', dark: true },
+    { key: 'tokyo', group: 'city', title: 'Tokyo', credit: 'Basile Morin', license: 'CC BY-SA 4.0', source: 'https://commons.wikimedia.org/wiki/File:Shinjuku_Gyoen_National_Garden_and_NTT_DoCoMo_Yoyogi_Building,_Tokyo,_Japan.jpg' },
   ];
   /* Путь абсолютный: фон ставится через CSS-переменную, а относительный
      url() в ней считается от файла стилей (styles/), а не от страницы. */
   WALL_PRESETS.forEach(p => {
-    if (p.group !== 'photo') return;
+    if (p.group !== 'photo' && p.group !== 'city') return;
     const at = f => new URL(`img/wallpapers/${f}`, document.baseURI).href;
     p.css = `url("${at(p.key + '.webp')}") center / cover no-repeat, #6B6F78`;
     p.thumb = `url("${at(p.key + '-thumb.webp')}") center / cover no-repeat, #D5D7DC`;
   });
+  /* Фон по умолчанию (key: null) - снимок Карпат, а не ровный цвет: так
+     попросили, чтобы у всех с первого входа был красивый стол. Кто хочет
+     светлый - выбирает «Plain». */
+  const DEFAULT_PHOTO = WALL_PRESETS.find(p => p.key === 'carpathians');
+  const DEFAULT = WALL_PRESETS.find(p => p.key === null);
+  if (DEFAULT && DEFAULT_PHOTO) Object.assign(DEFAULT, { title: 'TeachEd default', css: DEFAULT_PHOTO.css, thumb: DEFAULT_PHOTO.thumb, credit: DEFAULT_PHOTO.credit, license: DEFAULT_PHOTO.license, source: DEFAULT_PHOTO.source, glass: true });
   const WALL_GROUPS = [
     { key: 'colour', title: 'Colours' },
     { key: 'photo', title: 'Photos' },
+    { key: 'city', title: 'Cities' },
     { key: 'pattern', title: 'Patterns' },
   ];
   window.TeachedWall = { presets: WALL_PRESETS, groups: WALL_GROUPS };
