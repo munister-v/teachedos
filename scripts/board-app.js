@@ -11912,6 +11912,29 @@ function _ttRefreshBriefReview() {
   document.getElementById('tb-wrap-vocab')?.classList.toggle('tb-field-attention', duplicateCount > 0);
 }
 
+/* Слова, скопированные из мессенджера (Telegram, WhatsApp, iMessage), приходят
+   вместе с шапкой каждого сообщения: «Kristina, [10/9/26 11:09]» и время.
+   Оставляем только текст сообщений, по строке на сообщение. Обычный список
+   слов (без шапок) возвращается как есть. */
+function _ttStripChatMeta(raw) {
+  const text = String(raw == null ? '' : raw);
+  const stamp = String.raw`\d{1,2}[./-]\d{1,2}[./-]\d{2,4}[,\s]+\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AaPp][Mm])?`;
+  const tgHead = new RegExp(String.raw`^[^\n\[]{0,60}?,?\s*\[` + stamp + String.raw`\]\s*(?:[^:\n]{1,40}:\s*)?(.*)$`);
+  const waHead = new RegExp(String.raw`^\[?` + stamp + String.raw`\]?\s*[-–]?\s*[^:\n]{1,40}:\s*(.*)$`);
+  const lone = new RegExp(String.raw`^\[?` + stamp + String.raw`\]?$|^\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AaPp][Mm])?$`);
+  let found = false;
+  const out = [];
+  text.split(/\r?\n/).forEach(line => {
+    const t = line.trim();
+    if (!t) return;
+    const m = t.match(tgHead) || t.match(waHead);
+    if (m) { found = true; if (m[1].trim()) out.push(m[1].trim()); return; }
+    if (lone.test(t)) { found = true; return; }
+    out.push(t);
+  });
+  return found ? out.join('\n') : text;
+}
+
 function tidyTeacherToolVocabulary() {
   const field = document.getElementById('tbuilder-vocab');
   if (!field) return;
@@ -16425,7 +16448,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1136';
+const TEACHEDOS_ASSET_VERSION = '1137';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -29468,3 +29491,17 @@ window.boardPhoneBridge = {
     return !!(card && card.data && card.data.locked);
   }
 };
+
+
+/* Вставка списка слов из чата в Vocab Studio: убираем имена и время. */
+document.addEventListener('paste', e => {
+  const t = e.target;
+  if (!t || t.id !== 'tbuilder-vocab') return;
+  const raw = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+  const clean = _ttStripChatMeta(raw);
+  if (clean === raw) return;
+  e.preventDefault();
+  const a = t.selectionStart, b = t.selectionEnd;
+  t.setRangeText(clean, a, b, 'end');
+  t.dispatchEvent(new Event('input', { bubbles: true }));
+});

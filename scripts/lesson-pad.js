@@ -95,6 +95,16 @@
       if (en && e.target.matches('.lp-mean')) { en.meaning = e.target.value; save(); }
     });
     host.addEventListener('keydown', e => { e.stopPropagation(); });
+    /* Список слов из чата: без имён и времени, каждая строка - отдельное слово. */
+    host.addEventListener('paste', e => {
+      const t = e.target;
+      if (!t || !t.matches || !t.matches('.lp-add input')) return;
+      const raw = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+      if (!/\n/.test(raw.trim())) return;
+      e.preventDefault();
+      const clean = typeof _ttStripChatMeta === 'function' ? _ttStripChatMeta(raw) : raw;
+      clean.split(/\n+/).reverse().forEach(add);
+    });
     return host;
   }
 
