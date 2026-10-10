@@ -1020,3 +1020,16 @@ CREATE INDEX IF NOT EXISTS idx_board_collab_home ON board_collaborators(user_id)
 -- "0 left / Renew", a held lesson is free unless the teacher says otherwise,
 -- and the Pulse does not nag about the balance. The first package turns it off.
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS is_trial BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- ── Teacher onboarding (10.10.2026) ─────────────────────────────────────────
+-- What the teacher teaches (onboarding step 2), the reschedule rule (step 4)
+-- and when the setup was finished (NULL = never shown or skipped mid-way).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS teach_levels JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS teach_focus  JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reschedule_notice_hours SMALLINT NOT NULL DEFAULT 24;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS late_cancel_deduct BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarded_at TIMESTAMPTZ;
+-- A board made for one journal student (onboarding step 5): whoever joins it
+-- through its link becomes that journal entry's account (student_id), so the
+-- level, package and balance the teacher typed follow the real student.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS journal_id UUID REFERENCES student_journal(id) ON DELETE SET NULL;

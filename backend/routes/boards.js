@@ -80,7 +80,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/boards - create new board
 router.post('/', requireTeacher, async (req, res) => {
-  const { name = 'New Board' } = req.body;
+  const { name = 'New Board', journal_id = null } = req.body;
   const plan = normalizePlanKey(req.user.plan);
   const boardLimit = PLAN_CATALOG[plan]?.limits?.boards ?? PLAN_CATALOG.free.limits.boards;
 
@@ -104,10 +104,12 @@ router.post('/', requireTeacher, async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    `INSERT INTO boards (user_id, name)
-     VALUES ($1, $2)
-     RETURNING id, name, data, thumbnail, updated_at, created_at`,
-    [req.user.id, name.trim().slice(0, 255)]
+    `INSERT INTO boards (user_id, name, journal_id)
+     VALUES ($1, $2, (SELECT id FROM student_journal WHERE id::text = $3 AND teacher_id = $1))
+     RETURNING id, name, data, thumbnail, updated_at, created_at, journal_id`,
+    /* journal_id: доска для одного ученика из журнала (онбординг, шаг 5) -
+       только своя запись, чужая молча превращается в NULL. */
+    [req.user.id, name.trim().slice(0, 255), journal_id ? String(journal_id) : null]
   );
   recordTelemetry({ category: 'product', eventType: 'board.created', actorId: req.user.id, boardId: rows[0].id, metadata: { surface: 'board' } });
   res.status(201).json({ board: rows[0] });

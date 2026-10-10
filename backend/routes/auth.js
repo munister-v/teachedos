@@ -732,9 +732,13 @@ router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user });
 });
 
+const TEACH_LEVELS = ['A1-A2', 'B1-B2', 'C1-C2'];
+const TEACH_FOCUS = ['general', 'business', 'exams', 'kids', 'speaking'];
+
 // PATCH /api/auth/me - update profile fields
 router.patch('/me', requireAuth, async (req, res) => {
-  const { name, avatar, meeting_url, zoom_url, timezone, timezone_mode } = req.body;
+  const { name, avatar, meeting_url, zoom_url, timezone, timezone_mode,
+          teach_levels, teach_focus, reschedule_notice_hours, late_cancel_deduct, onboarded } = req.body;
   const updates = [];
   const params  = [];
 
@@ -769,13 +773,39 @@ router.patch('/me', requireAuth, async (req, res) => {
     updates.push(`timezone_mode = $${params.length + 1}`); params.push(nextMode);
   }
 
+  /* Онбординг учителя: что он преподаёт, правило переноса, отметка «готово».
+     Списки - только из известных значений, чтобы в профиль не уезжал мусор. */
+  const pick = (v, allowed) => Array.isArray(v) ? [...new Set(v.map(String))].filter(x => allowed.includes(x)) : null;
+  if (teach_levels !== undefined) {
+    const v = pick(teach_levels, TEACH_LEVELS);
+    if (!v) return res.status(400).json({ error: 'teach_levels must be a list' });
+    updates.push(`teach_levels = $${params.length + 1}`); params.push(JSON.stringify(v));
+  }
+  if (teach_focus !== undefined) {
+    const v = pick(teach_focus, TEACH_FOCUS);
+    if (!v) return res.status(400).json({ error: 'teach_focus must be a list' });
+    updates.push(`teach_focus = $${params.length + 1}`); params.push(JSON.stringify(v));
+  }
+  if (reschedule_notice_hours !== undefined) {
+    const h = Number(reschedule_notice_hours);
+    if (![0, 12, 24, 48].includes(h)) return res.status(400).json({ error: 'reschedule_notice_hours must be 0, 12, 24 or 48' });
+    updates.push(`reschedule_notice_hours = $${params.length + 1}`); params.push(h);
+  }
+  if (late_cancel_deduct !== undefined) {
+    updates.push(`late_cancel_deduct = $${params.length + 1}`); params.push(late_cancel_deduct === true);
+  }
+  if (onboarded !== undefined) {
+    updates.push(onboarded === true ? 'onboarded_at = COALESCE(onboarded_at, NOW())' : 'onboarded_at = NULL');
+  }
+
   if (!updates.length) return res.status(400).json({ error: 'No fields to update' });
   params.push(req.user.id);
 
   try {
     const { rows } = await pool.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}
-       RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode`,
+       RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode,
+                 teach_levels, teach_focus, reschedule_notice_hours, late_cancel_deduct, onboarded_at`,
       params
     );
     res.json({ user: rows[0] });

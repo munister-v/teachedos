@@ -80,7 +80,7 @@ router.post('/:boardId/join-link', requireAuth, async (req, res) => {
 async function boardByJoinToken(token) {
   if (!token || String(token).length > 64) return null;
   const { rows } = await pool.query(
-    `SELECT b.id, b.name, b.user_id, u.name AS teacher_name, u.plan AS teacher_plan
+    `SELECT b.id, b.name, b.user_id, b.journal_id, u.name AS teacher_name, u.plan AS teacher_plan
        FROM boards b JOIN users u ON u.id = b.user_id
       WHERE b.join_token = $1`,
     [String(token)]
@@ -115,6 +115,17 @@ router.post('/join/:token', requireAuth, async (req, res) => {
        VALUES ($1, $2, 'student') ON CONFLICT (board_id, user_id) DO NOTHING`,
       [b.id, req.user.id]
     );
+    /* Доска, заведённая под одного ученика из журнала (онбординг учителя,
+       шаг 5): первый вошедший по ссылке и есть этот ученик - запись журнала
+       получает его аккаунт, и уровень, пакет и баланс, которые учитель уже
+       вписал, начинают относиться к реальному человеку. Только пока запись
+       ни с кем не связана: чужой аккаунт уже привязанную не перехватит. */
+    if (b.journal_id) {
+      await pool.query(
+        `UPDATE student_journal SET student_id = $1, email = CASE WHEN COALESCE(email, '') = '' THEN $2 ELSE email END
+          WHERE id = $3 AND teacher_id = $4 AND student_id IS NULL`,
+        [req.user.id, req.user.email || '', b.journal_id, b.user_id]).catch(err => console.warn('[members] journal link:', err.message));
+    }
     res.json({ boardId: b.id, boardName: b.name, joined: rowCount > 0 });
   } catch (err) {
     console.error('[members] join error:', err.message);

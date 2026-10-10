@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F6F6EF">
+<title>Lesson notes · TeachEd</title>
+<link rel="icon" href="favicon.ico?v=1158">
+<link rel="stylesheet" href="styles/fonts.css?v=1158">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1158">
+<!--
+  Lesson notes: what a student gets when they open a board on a phone.
+
+  The board is not built for a phone screen (10.10.2026 decision: phones get
+  a native app later), so phone-gate.js sends students here instead of the
+  canvas. The page reads the same board through the same API - cards the
+  teacher holds back arrive already redacted by the server - and lays it out
+  as a scrollable outline: frames as sections, text, words and pictures in
+  reading order. Plus the way to the student's own words.
+-->
+<style>
+  :root{--ink:#24282C;--soft:#5C5C66;--line:rgba(36,40,44,.10);--paper:#F6F6EF;--lime:#CDF649;--card:#fff;
+    --font:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:680px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))}
+  .top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .top a{color:var(--ink);font-weight:700;text-decoration:none;font-size:15px}
+  .top .sp{flex:1}
+  .plaque{display:flex;gap:12px;padding:14px 16px;border-radius:16px;background:#24282C;color:#fff;font-size:14.5px;line-height:1.45}
+  .plaque span{font-size:22px;line-height:1}
+  .plaque b{display:block;font-size:15px;margin-bottom:2px}
+  h1{margin:22px 0 4px;font-size:26px;line-height:1.2;letter-spacing:-.02em}
+  .meta{color:var(--soft);font-size:14px}
+  .btns{display:flex;gap:10px;margin:16px 0 6px}
+  .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:14px;
+    background:var(--lime);color:var(--ink);font-weight:700;font-size:15.5px;text-decoration:none;border:0}
+  .btn.ghost{background:#fff;border:1px solid var(--line)}
+  section{margin-top:22px}
+  h2{margin:0 0 10px;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px;white-space:pre-line;overflow-wrap:anywhere}
+  .item.word b{font-size:17px}
+  .item.word i{font-style:normal;color:var(--soft)}
+  .item.hold{color:var(--soft);font-size:14px;background:transparent;border-style:dashed}
+  .item.media{padding:6px}
+  .item.media img{display:block;width:100%;height:auto;border-radius:10px}
+  .item.game{color:var(--soft);font-size:14px}
+  .item.game b{color:var(--ink)}
+  .empty,.err{margin-top:28px;color:var(--soft);text-align:center}
+  a.vid{color:var(--ink);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="student.html">← My room</a><span class="sp"></span></div>
+  <div class="plaque" role="note"><span>💻</span><div><b>The board works best on a tablet or laptop.</b>On your phone you can read the lesson notes and practise your words.</div></div>
+  <h1 id="title">Lesson notes</h1>
+  <div class="meta" id="meta"></div>
+  <div class="btns">
+    <a class="btn" href="student.html#vocabulary">📚 My words</a>
+    <a class="btn ghost" href="student.html">📝 My tasks</a>
+  </div>
+  <div id="notes"><div class="empty">Loading the lesson…</div></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000'
+    : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
+  let token = '';
+  try { token = localStorage.getItem('teachedos_token') || ''; } catch (_) {}
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const plain = s => String(s || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d)>/gi, '\n').replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
+  const $ = id => document.getElementById(id);
+  const boardId = new URLSearchParams(location.search).get('id') || '';
+
+  if (!token) { location.replace('landing.html#signin'); return; }
+  if (!boardId) { $('notes').innerHTML = '<div class="empty">Open a lesson from your room.</div>'; return; }
+
+  function cardHtml(c) {
+    const d = c.data || {};
+    if (d.hiddenForViewer) return '<div class="item hold">🔒 Your teacher will show this in class.</div>';
+    if (c.type === 'image' && d.src) return `<div class="item media"><img src="${esc(d.src)}" alt="${esc(d.alt || d.caption || '')}" loading="lazy"></div>`;
+    if (c.type === 'video') {
+      const u = d.url || d.src || '';
+      return u ? `<div class="item">🎬 <a class="vid" href="${esc(u)}" target="_blank" rel="noopener">${esc(d.title || 'Watch the video')}</a></div>` : '';
+    }
+    if (c.type === 'game') return `<div class="item game">🎮 <b>${esc(d.title || 'Game')}</b> - play it on a tablet or laptop, or in My tasks if it was set as homework.</div>`;
+    if (c.type === 'vocab' || (d.word && (d.translation || d.example))) {
+      return `<div class="item word"><b>${esc(d.word || d.title)}</b>${d.translation ? ` <i>· ${esc(d.translation)}</i>` : ''}${d.example ? `\n${esc(plain(d.example))}` : ''}</div>`;
+    }
+    const parts = [d.title, d.text, d.html, d.body, d.desc,
+      Array.isArray(d.items) ? d.items.map(i => '• ' + plain(i && i.text != null ? i.text : i)).join('\n') : '',
+      Array.isArray(d.questions) ? d.questions.map((q, i) => `${i + 1}. ${plain(q && (q.text || q.prompt) || '')}`).join('\n') : '',
+    ].map(plain).filter(Boolean);
+    const text = [...new Set(parts)].join('\n');
+    return text ? `<div class="item">${esc(text)}</div>` : '';
+  }
+
+  // Frames become sections; everything else goes under the frame it sits in.
+  function outline(cards) {
+    const frames = cards.filter(c => c.type === 'frame').sort((a, b) => (a.y - b.y) || (a.x - b.x));
+    const inside = (c, f) => c.x >= f.x && c.y >= f.y && c.x + (c.w || 0) <= f.x + f.w + 2 && c.y + (c.h || 0) <= f.y + f.h + 2;
+    const order = (a, b) => (Math.round(a.y / 40) - Math.round(b.y / 40)) || (a.x - b.x);
+    const rest = cards.filter(c => c.type !== 'frame' && !['arrow', 'shape', 'sticker', 'drawing', 'timer', 'voting'].includes(c.type));
+    const used = new Set();
+    const sections = frames.map(f => {
+      const items = rest.filter(c => !used.has(c.id) && inside(c, f)).sort(order);
+      items.forEach(c => used.add(c.id));
+      return { title: (f.data && (f.data.title || f.data.name)) || '', items };
+    }).filter(s => s.items.length);
+    const loose = rest.filter(c => !used.has(c.id)).sort(order);
+    if (loose.length) sections.push({ title: sections.length ? 'More from the board' : '', items: loose });
+    return sections;
+  }
+
+  fetch(API + '/api/boards/' + encodeURIComponent(boardId), { headers: { Authorization: 'Bearer ' + token } })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok) throw new Error(d.error || 'This lesson is not available');
+      const b = d.board || d;
+      $('title').textContent = b.name || 'Lesson notes';
+      document.title = (b.name || 'Lesson notes') + ' · TeachEd';
+      $('meta').textContent = b.owner_name ? 'With ' + b.owner_name : '';
+      const cards = ((b.data && b.data.cards) || []).filter(Boolean);
+      const html = outline(cards).map(s => {
+        const items = s.items.map(cardHtml).filter(Boolean).join('');
+        return items ? `<section>${s.title ? `<h2>${esc(s.title)}</h2>` : ''}${items}</section>` : '';
+      }).join('');
+      $('notes').innerHTML = html || '<div class="empty">Nothing to read here yet - your teacher is still preparing this lesson.</div>';
+    })
+    .catch(e => { $('notes').innerHTML = `<div class="err">${esc(e.message)}</div>`; });
+})();
+</script>
+</body>
+</html>

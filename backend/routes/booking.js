@@ -84,7 +84,7 @@ async function freeSlots(teacher) {
 async function teacherByToken(token) {
   if (!TOKEN_RE.test(String(token || ''))) return null;
   const { rows } = await pool.query(
-    `SELECT id, name, email, avatar, timezone, booking_minutes FROM users WHERE booking_token=$1`, [token]);
+    `SELECT id, name, email, avatar, timezone, booking_minutes, reschedule_notice_hours, late_cancel_deduct FROM users WHERE booking_token=$1`, [token]);
   return rows[0] || null;
 }
 
@@ -203,7 +203,9 @@ router.get('/public/:token', async (req, res) => {
     const t = await teacherByToken(req.params.token);
     if (!t) return res.status(404).json({ error: 'This booking link is not active.' });
     const { days, minutes } = await freeSlots(t);
-    res.json({ teacher: { name: t.name || 'Your teacher', avatar: t.avatar || '' }, timezone: t.timezone || 'Europe/Kyiv', minutes, days });
+    // Правила переноса из онбординга учителя: ученик видит их до того, как записался.
+    res.json({ teacher: { name: t.name || 'Your teacher', avatar: t.avatar || '' }, timezone: t.timezone || 'Europe/Kyiv', minutes, days,
+      rules: { noticeHours: t.reschedule_notice_hours ?? 24, lateCancelCounts: !!t.late_cancel_deduct } });
   } catch (err) {
     console.error('[booking] public get:', err.message);
     res.status(500).json({ error: 'Server error' });
