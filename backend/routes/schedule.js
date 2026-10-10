@@ -34,15 +34,24 @@ async function ownJournalId(teacherId, journalId) {
 async function notifyStudentsLive(slot) {
   if (!pushConfigured) return;
   try {
-    // Find all students enrolled in any board of this teacher
-    const { rows: subs } = await pool.query(`
-      SELECT ps.subscription FROM push_subscriptions ps
-      WHERE ps.user_id IN (
-        SELECT DISTINCT bc.user_id FROM board_collaborators bc
-        JOIN boards b ON b.id = bc.board_id
-        WHERE b.user_id = $1
-      )
-    `, [slot.user_id]);
+    /* Кому: урок одного ученика (slot.journal_id) будит только его. Раньше
+       «Live class started» прилетал всем ученикам учителя со всех досок, и
+       чужой индивидуальный урок звенел у всей группы - лучший способ
+       приучить выключать уведомления. Групповой слот без ученика - как было:
+       все ученики досок учителя. */
+    const { rows: subs } = slot.journal_id
+      ? await pool.query(`
+          SELECT ps.subscription FROM push_subscriptions ps
+            JOIN student_journal j ON j.student_id = ps.user_id
+           WHERE j.id = $1 AND j.teacher_id = $2`, [slot.journal_id, slot.user_id])
+      : await pool.query(`
+          SELECT ps.subscription FROM push_subscriptions ps
+          WHERE ps.user_id IN (
+            SELECT DISTINCT bc.user_id FROM board_collaborators bc
+            JOIN boards b ON b.id = bc.board_id
+            WHERE b.user_id = $1
+          )
+        `, [slot.user_id]);
 
     // a lesson without its own link uses the teacher's regular one
     let url = slot.meeting_url;

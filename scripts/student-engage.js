@@ -349,6 +349,44 @@
     });
     const ms = $('ms-lessons');
     if (ms) { ms.textContent = left; ms.classList.remove('is-soft'); }
+    if (left === 0 && bal.jLeft === 0) zeroModal();
+  }
+
+  /* Package used up: say it once a day, in the middle of the screen, with the
+     one thing to do about it (renewing lives in the lesson calendar). The
+     sidebar card stays red the rest of the time. */
+  function zeroModal() {
+    const key = 'te_zero_balance_seen';
+    if (store.get(key) === today() || document.querySelector('.te-zero')) return;
+    store.set(key, today());
+    const ov = document.createElement('div');
+    ov.className = 'te-zero';
+    ov.innerHTML = `<div class="te-zero-card" role="dialog" aria-modal="true" aria-labelledby="te-zero-t">
+      <div class="te-zero-ic" aria-hidden="true">🎟</div>
+      <h2 id="te-zero-t">No lessons left</h2>
+      <p>Your lesson package${bal.teacher ? ` with ${esc(bal.teacher)}` : ''} is used up. Renew it to keep your place in the schedule.</p>
+      <div class="te-zero-btns"><button type="button" class="te-zero-go">Renew my lessons</button><button type="button" class="te-zero-later">Later</button></div></div>`;
+    const close = () => ov.remove();
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    ov.querySelector('.te-zero-later').onclick = close;
+    ov.querySelector('.te-zero-go').onclick = () => {
+      close();
+      if (window.TeachedLessonCal && typeof window.apiFetch === 'function') window.TeachedLessonCal.open({ api: window.apiFetch });
+    };
+    if (!document.getElementById('te-zero-css')) {
+      const st = document.createElement('style');
+      st.id = 'te-zero-css';
+      st.textContent = `.te-zero{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(24,26,28,.42)}
+.te-zero-card{width:min(400px,100%);padding:26px 24px 20px;border-radius:20px;background:#fff;color:#24282C;text-align:center;box-shadow:0 24px 60px rgba(24,26,28,.3)}
+.te-zero-ic{font-size:34px}.te-zero-card h2{margin:8px 0 6px;font-size:22px}.te-zero-card p{margin:0 0 18px;color:#5C5C66;line-height:1.5}
+.te-zero-btns{display:flex;flex-direction:column;gap:8px}
+.te-zero-btns button{min-height:48px;border:0;border-radius:12px;font:700 15px inherit;font-family:inherit;cursor:pointer}
+.te-zero-go{background:#CDF649;color:#24282C}.te-zero-later{background:#F6F6EF;color:#24282C}`;
+      document.head.appendChild(st);
+    }
+    document.body.appendChild(ov);
+    ov.querySelector('.te-zero-go').focus();
   }
 
   /* ── Phrase of the day ───────────────────────────────────────────────

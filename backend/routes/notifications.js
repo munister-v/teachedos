@@ -50,6 +50,11 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+/* Bell entries that also buzz the phone - only for students, only for
+   things they act on (see lib/notify.js for the why and the rate limit).
+   The teacher's side (handed in, booked, paid) stays in the bell. */
+const PUSH_TYPES = new Set(['homework', 'writing', 'recap', 'lesson', 'balance']);
+
 // Internal helper - create notification (used by other routes)
 async function createNotification(userId, type, title, body, link) {
   try {
@@ -58,6 +63,10 @@ async function createNotification(userId, type, title, body, link) {
        VALUES ($1,$2,$3,$4,$5)`,
       [userId, type, title, body || null, link || null]
     );
+    if (PUSH_TYPES.has(type)) {
+      require('../lib/notify').pushToUser(userId, { title, body: body || '', url: link || '/student.html', tag: type }, { onlyRole: 'student' })
+        .catch(() => {});
+    }
     return true;
   } catch { return false; }
 }

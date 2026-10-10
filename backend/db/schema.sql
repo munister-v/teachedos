@@ -1033,3 +1033,14 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarded_at TIMESTAMPTZ;
 -- through its link becomes that journal entry's account (student_id), so the
 -- level, package and balance the teacher typed follow the real student.
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS journal_id UUID REFERENCES student_journal(id) ON DELETE SET NULL;
+
+-- ── Lesson reminders (10.10.2026) ───────────────────────────────────────────
+-- "Lesson in an hour": one row per schedule slot and start time, so the job
+-- (jobs/lessonReminders.js, every 5 minutes) never sends the same one twice,
+-- whatever the process restarts.
+CREATE TABLE IF NOT EXISTS lesson_reminders (
+  schedule_id UUID        NOT NULL REFERENCES schedule(id) ON DELETE CASCADE,
+  starts_at   TIMESTAMPTZ NOT NULL,
+  sent_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (schedule_id, starts_at)
+);

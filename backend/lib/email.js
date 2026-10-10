@@ -346,6 +346,26 @@ function teacherMessageEmail({ studentName, teacherName, title, text, link }) {
   };
 }
 
+/* The lesson package has run out (balance went to 0). One plain email, sent
+   once at the moment it happens: who to talk to and where to renew. */
+function zeroBalanceEmail({ studentName, teacherName, link }) {
+  const first = String(studentName || '').trim().split(/\s+/)[0] || 'there';
+  const teacher = String(teacherName || '').trim() || 'your teacher';
+  const title = 'Your lesson package is used up';
+  const body = `That was the last lesson of your package with ${teacher}. To keep your place in the schedule, renew it in your cabinet or just message ${teacher}.`;
+  return {
+    subject: title,
+    html: layout({
+      preheader: `No lessons left with ${teacher}`,
+      title,
+      paragraphs: [escHtml(`Hi ${first},`), escHtml(body)],
+      button: link ? { href: link, label: 'Renew in my cabinet' } : null,
+      footnote: `You get this once, when the package runs out. ${escHtml(teacher)} teaches you on TeachEd.`,
+    }),
+    text: textVersion({ title, lines: [`Hi ${first},`, body], link, linkLabel: 'Renew in my cabinet' }),
+  };
+}
+
 /* Word Bank: words due for review. A short list of the hardest ones, one
    button straight into the review, and a one-click way to stop these. */
 function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
@@ -377,6 +397,7 @@ function vaultReminderEmail({ name, due, words = [], unsubscribe }) {
 
 module.exports = {
   teacherMessageEmail,
+  zeroBalanceEmail,
   vaultReminderEmail,
   sendEmail, sendEmailQuietly, emailConfigured, SITE, layout, textVersion,
   resetPasswordEmail, studentInviteEmail, accountInviteEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, emailChangedEmail, newSignInEmail,

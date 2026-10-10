@@ -2,7 +2,7 @@ const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
-const { sendEmail, teacherMessageEmail, emailConfigured, SITE } = require('../lib/email');
+const { sendEmail, sendEmailQuietly, teacherMessageEmail, zeroBalanceEmail, emailConfigured, SITE } = require('../lib/email');
 
 router.use(requireAuth);
 
@@ -58,6 +58,36 @@ async function ledger(db, { journalId, teacherId, delta, after, reason, date = n
     `INSERT INTO balance_ledger (journal_id, teacher_id, delta, balance_after, reason, lesson_date, note)
      VALUES ($1,$2,$3,$4,$5,$6,$7)`,
     [journalId, teacherId || null, delta, after, reason, date, note ? String(note).slice(0, 200) : null]);
+  /* ledger() runs inside the caller's transaction: wait until it has had
+     time to commit, then look again - a rolled-back write or a mistake the
+     teacher corrected straight away must not tell the student "no lessons". */
+  if (after === 0 && delta < 0) {
+    setTimeout(() => notifyZeroBalance(journalId).catch(err => console.warn('[journal] zero balance notice:', err.message)), 20000).unref?.();
+  }
+}
+
+/* Package used up: the student hears it once, at the moment it happens - a
+   bell entry (+ push), an email, and the cabinet shows a renew card; the
+   teacher gets a bell entry. Not for trial students (no package to renew). */
+async function notifyZeroBalance(journalId) {
+  const { rows } = await pool.query(
+    `SELECT j.name, j.email AS j_email, j.student_id, j.teacher_id, j.is_trial, u.email AS u_email, t.name AS teacher_name
+       FROM student_journal j JOIN users t ON t.id = j.teacher_id LEFT JOIN users u ON u.id = j.student_id
+      WHERE j.id = $1`, [journalId]);
+  const r = rows[0];
+  if (!r || r.is_trial) return;
+  const { rows: now } = await pool.query('SELECT lessons_left FROM student_journal WHERE id = $1', [journalId]);
+  if (!now[0] || Number(now[0].lessons_left) !== 0) return;
+  const teacher = r.teacher_name || 'your teacher';
+  if (r.student_id) {
+    await createNotification(r.student_id, 'balance', 'No lessons left',
+      `Your package with ${teacher} is used up. Renew it to keep your lessons going.`, 'student.html');
+  }
+  await createNotification(r.teacher_id, 'payment', `${r.name} has no lessons left`, 'Their package is used up.', 'index.html#students');
+  const to = r.u_email || r.j_email;
+  if (to && emailConfigured) {
+    sendEmailQuietly({ to, ...zeroBalanceEmail({ studentName: r.name, teacherName: teacher, link: `${SITE}/student.html` }) }, 'zero-balance');
+  }
 }
 
 /* ── PROGRESS SNAPSHOT ───────────────────────────────────────────────────

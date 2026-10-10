@@ -580,3 +580,5 @@ router.get('/progress', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+// the lesson reminder job works out "the next start" the same way the cabinet does
+module.exports.buildUpcomingSlot = buildUpcomingSlot;
