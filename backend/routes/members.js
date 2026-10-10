@@ -110,22 +110,29 @@ router.post('/join/:token', requireAuth, async (req, res) => {
       boardId: b.id, ownerPlan: normalizePlanKey(b.teacher_plan), inviteeId: req.user.id,
     });
     if (limited) return res.status(402).json({ ...limited, error: 'This board is full - ask your teacher to make room' });
+    /* Персональная ссылка (доска одного ученика из журнала, онбординг шаг 5).
+       Ссылку занимает первый вошедший: запись журнала атомарно получает его
+       аккаунт. Следующий человек с той же ссылкой (переслали в общий чат,
+       открыл брат) получает отказ и НЕ садится на доску - иначе он видел бы
+       чужие уроки и числился бы этим учеником. Уже сидящий на доске проходит. */
+    if (b.journal_id) {
+      const claim = await pool.query(
+        `UPDATE student_journal SET student_id = $1, email = CASE WHEN COALESCE(email, '') = '' THEN $2 ELSE email END
+          WHERE id = $3 AND teacher_id = $4 AND (student_id IS NULL OR student_id = $1)
+          RETURNING id`,
+        [req.user.id, req.user.email || '', b.journal_id, b.user_id]);
+      if (!claim.rowCount) {
+        const seated = await pool.query('SELECT 1 FROM board_collaborators WHERE board_id=$1 AND user_id=$2', [b.id, req.user.id]);
+        if (!seated.rowCount) {
+          return res.status(403).json({ error: 'This link is personal and already in use - ask your teacher for your own link', code: 'PERSONAL_LINK_TAKEN' });
+        }
+      }
+    }
     const { rowCount } = await pool.query(
       `INSERT INTO board_collaborators (board_id, user_id, role)
        VALUES ($1, $2, 'student') ON CONFLICT (board_id, user_id) DO NOTHING`,
       [b.id, req.user.id]
     );
-    /* Доска, заведённая под одного ученика из журнала (онбординг учителя,
-       шаг 5): первый вошедший по ссылке и есть этот ученик - запись журнала
-       получает его аккаунт, и уровень, пакет и баланс, которые учитель уже
-       вписал, начинают относиться к реальному человеку. Только пока запись
-       ни с кем не связана: чужой аккаунт уже привязанную не перехватит. */
-    if (b.journal_id) {
-      await pool.query(
-        `UPDATE student_journal SET student_id = $1, email = CASE WHEN COALESCE(email, '') = '' THEN $2 ELSE email END
-          WHERE id = $3 AND teacher_id = $4 AND student_id IS NULL`,
-        [req.user.id, req.user.email || '', b.journal_id, b.user_id]).catch(err => console.warn('[members] journal link:', err.message));
-    }
     res.json({ boardId: b.id, boardName: b.name, joined: rowCount > 0 });
   } catch (err) {
     console.error('[members] join error:', err.message);

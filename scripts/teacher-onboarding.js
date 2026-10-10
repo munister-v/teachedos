@@ -28,6 +28,8 @@
       : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech'));
   const token = () => { try { return localStorage.getItem('teachedos_token') || ''; } catch (_) { return ''; } };
   const STEP_KEY = 'teached_onboarding_step';
+  const BOARD_KEY = 'teached_onboarding_board';       // the board built in step 2
+  const JOURNAL_KEY = 'teached_onboarding_journal';   // the student made in step 4 (no duplicates on retry)
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} },
@@ -40,6 +42,7 @@
       body: opts.body == null ? undefined : JSON.stringify(opts.body),
     });
     const d = await r.json().catch(() => ({}));
+    if (r.status === 402) throw new Error('Your plan has no room for another board. Skip this step, or free a board or upgrade in Billing.');
     if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
     return d;
   }
@@ -170,7 +173,7 @@
 
   async function finish() {
     try { await api('/api/auth/me', { method: 'PATCH', body: { onboarded: true } }); } catch (_) {}
-    store.del(STEP_KEY);
+    store.del(STEP_KEY); store.del(BOARD_KEY); store.del(JOURNAL_KEY);
     document.querySelector('.tob-ov')?.remove();
     document.querySelector('.tob-chipbar')?.remove();
   }
@@ -253,6 +256,7 @@
       if (btn) btn.disabled = true;
       try {
         const { board } = await api('/api/boards', { method: 'POST', body: { name: `My first lesson · ${topic}` } });
+        store.set(BOARD_KEY, board.id);   // step 4 gives this board to the first student
         store.set(STEP_KEY, '3');
         location.href = `board.html?id=${encodeURIComponent(board.id)}&onboard=vocab&topic=${encodeURIComponent(topic)}&level=${encodeURIComponent(level)}`;
       } catch (e) { if (btn) btn.disabled = false; err(body, e.message); }
@@ -311,7 +315,9 @@
     if (s && s.url) {
       const msg = `Hi ${s.name}! Here is your link to our lessons on TeachEd: ${s.url}`;
       body.innerHTML = `${kicker(4)}<h2>Send this link to ${esc(s.name)}</h2>
-        <p class="tob-lead">When ${esc(s.name)} opens it and signs up, they land on your board, and the level and lesson balance you set follow them.</p>
+        <p class="tob-lead">${s.shared
+          ? `Everyone you send it to and who signs up lands on the same board.`
+          : `It is personal: the first person to open it and sign up becomes ${esc(s.name)} - their level and lesson balance follow them. Anyone else with the link is turned away.`}</p>
         <div class="tob-link"><code>${esc(s.url)}</code><button type="button" class="tob-btn" data-copy>Copy link</button></div>
         <div class="tob-share"><a href="https://t.me/share/url?url=${encodeURIComponent(s.url)}&text=${encodeURIComponent(`Hi ${s.name}! Your link to our lessons on TeachEd`)}" target="_blank" rel="noopener">Send in Telegram</a>
           <a href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send in WhatsApp</a></div>`;
@@ -340,13 +346,39 @@
       if (!name) { err(body, 'Add the student\'s name.'); return; }
       ev.target.disabled = true;
       try {
-        const { student } = await api('/api/journal', { method: 'POST', body: {
-          name, level: body.querySelector('#tob-slevel').value, format: body.querySelector('#tob-sformat').value,
-          lessons_left: Math.max(0, parseInt(body.querySelector('#tob-slessons').value, 10) || 0),
-        } });
-        const { board } = await api('/api/boards', { method: 'POST', body: { name: `${name} · lessons`, journal_id: student.id } });
+        const format = body.querySelector('#tob-sformat').value;
+        /* One journal entry per attempt: a retry after an error (plan limit,
+           network) reuses it instead of adding the same student twice. */
+        let saved = null;
+        try { saved = JSON.parse(store.get(JOURNAL_KEY) || 'null'); } catch (_) {}
+        let journalId = saved && saved.name === name ? saved.id : null;   // a renamed retry is a new student
+        if (!journalId) {
+          const { student } = await api('/api/journal', { method: 'POST', body: {
+            name, level: body.querySelector('#tob-slevel').value, format,
+            lessons_left: Math.max(0, parseInt(body.querySelector('#tob-slessons').value, 10) || 0),
+          } });
+          journalId = student.id;
+          store.set(JOURNAL_KEY, JSON.stringify({ id: journalId, name }));
+        }
+        /* A personal link belongs to one student: the board is tied to the
+           journal entry and the first person to open it becomes that student.
+           A pair or group shares one link, so their board is not tied. */
+        const tie = format === 'individual' ? journalId : null;
+        /* The lesson built in step 2 becomes this student's board (the free
+           plan has three boards; onboarding should not spend two). */
+        let boardId = store.get(BOARD_KEY);
+        if (boardId) {
+          try { await api('/api/boards/' + encodeURIComponent(boardId), { method: 'PATCH', body: { journal_id: tie } }); }
+          catch (_) { boardId = null; }   // the board is gone - make a new one
+        }
+        if (!boardId) {
+          const { board } = await api('/api/boards', { method: 'POST', body: { name: `${name} · lessons`, journal_id: tie } });
+          boardId = board.id;
+        }
+        const board = { id: boardId };
         const link = await api(`/api/members/${encodeURIComponent(board.id)}/join-link`, { method: 'POST', body: {} });
-        state.student = { name, url: link.url, boardId: board.id };
+        store.del(JOURNAL_KEY); store.del(BOARD_KEY);
+        state.student = { name, url: link.url, boardId: board.id, shared: !tie };
         render();
       } catch (e) { ev.target.disabled = false; err(body, e.message); }
     };

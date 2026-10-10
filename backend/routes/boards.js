@@ -219,7 +219,7 @@ router.get('/:id/cover-image', requireAuth, async (req, res) => {
 });
 
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { data, state: stateBody, name, thumbnail } = req.body;
+  const { data, state: stateBody, name, thumbnail, journal_id } = req.body;
   const rawBoardData = data || stateBody;
   const boardData = rawBoardData === undefined ? undefined : sanitizeBoardData(rawBoardData);
   const sets   = [];
@@ -239,6 +239,12 @@ router.patch('/:id', requireAuth, async (req, res) => {
   if (boardData !== undefined)  { params.push(boardData);                      sets.push(`data = $${params.length}`); }
   if (name !== undefined)       { params.push(name.trim().slice(0, 255));      sets.push(`name = $${params.length}`); }
   if (thumbnail !== undefined)  { params.push(thumbnail);                      sets.push(`thumbnail = $${params.length}`); }
+  /* Доска одного ученика из журнала (онбординг: урок из шага 2 становится
+     доской первого ученика). Только своя запись; null снимает привязку. */
+  if (journal_id !== undefined) {
+    params.push(journal_id ? String(journal_id) : null);
+    sets.push(`journal_id = (SELECT id FROM student_journal WHERE id::text = $${params.length} AND teacher_id = $2)`);
+  }
 
   if (!sets.length) return res.status(400).json({ error: 'Nothing to update' });
 
