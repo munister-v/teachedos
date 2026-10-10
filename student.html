@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1156">
-<link rel="preload" as="style" href="styles/unify.css?v=1156">
-<link rel="manifest" href="manifest.json?v=1156">
+<link rel="preload" as="style" href="styles/harmony.css?v=1157">
+<link rel="preload" as="style" href="styles/unify.css?v=1157">
+<link rel="manifest" href="manifest.json?v=1157">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1156">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1156">
+<link rel="icon" href="favicon.ico?v=1157" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1157">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1157">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1157">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1156">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
+<link rel="stylesheet" href="styles/fonts.css?v=1157">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1157">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -77,11 +77,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   animation:glow-pulse 3s ease-in-out infinite;
 }
 .sb-name{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
-.sb-role{font-size:10px;color:var(--text-3);font-family:var(--mono);margin-top:3px;letter-spacing:.06em}
+.sb-role{font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:3px;letter-spacing:.06em}
 
 .sb-section{padding:18px 22px 14px}
 .sb-section-title{
-  font-size:10px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;
+  font-size:11px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;
   color:var(--text-3);margin-bottom:12px;font-family:var(--mono);
 }
 
@@ -103,11 +103,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-class-name{font-size:12px;font-weight:650;color:var(--text);line-height:1.2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-class-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .sb-class-badge{
-  font-size:9px;font-weight:600;padding:1px 6px;border-radius:4px;
+  font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;
   background:rgba(205,246,73,.12);color:var(--accent);font-family:var(--mono);
 }
 .sb-class-badge.type{background:rgba(36,40,44,.03);color:#24282C}
-.sb-class-teacher{font-size:10px;color:var(--text-3);display:flex;align-items:center;gap:3px;margin-top:3px}
+.sb-class-teacher{font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:3px;margin-top:3px}
 .sb-class-teacher-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
 
 /* Lessons counter */
@@ -116,7 +116,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
 }
 .sb-counter-num{font-size:42px;font-weight:700;font-family:var(--display);color:var(--text);line-height:1}
-.sb-counter-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-top:6px;font-family:var(--mono)}
+.sb-counter-label{font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-top:6px;font-family:var(--mono)}
 
 /* Balance traffic light */
 .sb-counter.balance-low{border-color:rgba(255,140,58,.45)}
@@ -206,7 +206,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   border:1px solid rgba(36,40,44,.08);text-align:center;
 }
 .ms-stat-value{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1}
-.ms-stat-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
+.ms-stat-label{font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
 
 /* Content area */
 .content{padding:28px;flex:1}
@@ -240,7 +240,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.4;
 }
 .vs-icon{font-size:20px;margin-bottom:6px;display:block}
-.vs-label{font-size:9px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:6px}
+.vs-label{font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:6px}
 .vs-num{font-size:26px;font-weight:700;font-family:var(--mono);color:var(--accent);line-height:1}
 
 /* Action buttons */
@@ -328,7 +328,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .vw-trans{font-size:13px;color:var(--accent);flex:1}
 .vw-example{font-size:11px;color:var(--text-3);font-style:italic}
 .vw-badge{
-  font-size:10px;font-weight:600;font-family:var(--mono);padding:3px 10px;
+  font-size:11px;font-weight:600;font-family:var(--mono);padding:3px 10px;
   border-radius:20px;cursor:pointer;transition:.15s;border:none;
 }
 .vw-badge.learned{background:rgba(211,243,107,.12);color:#D3F36B}
@@ -338,7 +338,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .progress-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .game-card-teacher{border-color:#24282C;position:relative}
 .game-card-teacher .game-card-cat b{color:var(--text)}
-.game-card-badge{position:absolute;top:8px;right:8px;font:700 10.5px var(--mono);padding:2px 7px;border-radius:999px;background:#CDF649;color:#24282C}
+.game-card-badge{position:absolute;top:8px;right:8px;font:700 11px var(--mono);padding:2px 7px;border-radius:999px;background:#CDF649;color:#24282C}
 .game-card-badge.done{background:var(--bg-card-2)}
 /* Progress tab (loadProgress) */
 .pg-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -353,8 +353,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .pg-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .pg-key{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-3)}
 .pg-cal{display:grid;grid-template-columns:52px repeat(7,26px);gap:5px;align-items:center}
-.pg-cal .wd{font-size:10.5px;color:var(--text-3);text-align:center}
-.pg-cal .wk{font-size:10.5px;color:var(--text-3);white-space:nowrap}
+.pg-cal .wd{font-size:11px;color:var(--text-3);text-align:center}
+.pg-cal .wk{font-size:11px;color:var(--text-3);white-space:nowrap}
 .pg-c{display:inline-block;width:12px;height:12px;border-radius:3px}
 .pg-cal .pg-c{width:26px;height:26px;border-radius:6px;cursor:default}
 .pg-cal .pg-c.today{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #24282C}
@@ -381,7 +381,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .prog-card-num{font-size:28px;font-weight:700;font-family:var(--mono);color:var(--accent);line-height:1}
 .prog-card-label{font-size:11px;color:var(--text-3);font-weight:600;margin-top:6px}
 .prog-bar-wrap{margin-top:12px}
-.prog-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px}
+.prog-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px}
 .prog-bar{height:5px;border-radius:3px;background:rgba(36,40,44,.08);overflow:hidden}
 .prog-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--lavender))}
 
@@ -395,7 +395,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .game-card:hover{border-color:var(--accent-border);transform:translateY(-2px)}
 .game-card-icon{font-size:1.6rem}
 .game-card-name{font-size:12px;font-weight:650;color:var(--text)}
-.game-card-cat{font-size:10px;color:var(--text-3)}
+.game-card-cat{font-size:11px;color:var(--text-3)}
 
 /* Schedule items */
 .sch-item{
@@ -409,11 +409,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;
 }
 .sch-day{font-size:16px;font-weight:700;color:var(--accent);font-family:var(--mono);line-height:1}
-.sch-mon{font-size:9px;font-weight:600;color:var(--text-3);font-family:var(--mono);text-transform:uppercase}
+.sch-mon{font-size:11px;font-weight:600;color:var(--text-3);font-family:var(--mono);text-transform:uppercase}
 .sch-info{flex:1}
 .sch-title{font-size:13px;font-weight:650;color:var(--text)}
 .sch-meta{font-size:11px;color:var(--text-3);margin-top:2px}
-.sch-level{font-size:10px;font-weight:600;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:var(--accent-glow);color:var(--accent)}
+.sch-level{font-size:11px;font-weight:600;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:var(--accent-glow);color:var(--accent)}
 .sch-board-link{
   flex-shrink:0;width:32px;height:32px;border-radius:9px;
   display:flex;align-items:center;justify-content:center;font-size:15px;
@@ -530,7 +530,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .mtab{
   flex:1;min-width:0;border:none;border-radius:0;background:transparent;color:rgba(255,255,255,.36);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  height:56px;padding:0 4px;font-family:var(--font);font-size:9px;font-weight:650;letter-spacing:.04em;
+  height:56px;padding:0 4px;font-family:var(--font);font-size:11px;font-weight:650;letter-spacing:.04em;
   text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;
   position:relative;transition:color .15s, opacity .15s;
 }
@@ -593,25 +593,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1156">
-<link rel="stylesheet" href="styles/harmony.css?v=1156">
-<link rel="stylesheet" href="styles/unify.css?v=1156">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
+<link rel="stylesheet" href="styles/mobile.css?v=1157">
+<link rel="stylesheet" href="styles/harmony.css?v=1157">
+<link rel="stylesheet" href="styles/unify.css?v=1157">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1157">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
-<link rel="stylesheet" href="styles/controls.css?v=1156">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1156">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1156">
-<link rel="stylesheet" href="styles/student-engage.css?v=1156">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1157">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1157">
+<link rel="stylesheet" href="styles/controls.css?v=1157">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1157">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1157">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1157">
+<link rel="stylesheet" href="styles/student-engage.css?v=1157">
 <!-- Liquid Glass (iOS 26): bars, widgets, menus, sheets. Last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1156">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1157">
 </head>
 <body class="fx lg-cabinet">
 
 <div id="loading-screen">
-  <img class="ls-logo" src="logo-sm.png?v=1156" alt="TeachEd" width="56" height="56">
+  <img class="ls-logo" src="logo-sm.png?v=1157" alt="TeachEd" width="56" height="56">
   <div class="spinner"></div>
   <div style="font-size:13px;font-weight:600;color:var(--text-3);">Loading dashboard…</div>
 </div>
@@ -625,7 +625,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <div class="sb-logo"><img src="logo-sm.png?v=1156" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
+    <div class="sb-logo"><img src="logo-sm.png?v=1157" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
 
     <!-- Name and role are in the greeting and the avatar on the right; here they
          were an empty header. Kept hidden: the page writes them by id. The board
@@ -869,15 +869,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1156"></script>
-<script src="scripts/student-onboarding.js?v=1156"></script>
-<script src="scripts/student-feed.js?v=1156"></script>
-<script src="scripts/lesson-cover.js?v=1156"></script>
-<script src="scripts/lesson-calendar.js?v=1156"></script>
-<script src="scripts/hw-state.js?v=1156"></script>
-<script src="scripts/student-engage.js?v=1156"></script>
-<script src="scripts/wallpaper-presets.js?v=1156"></script>
-<script src="scripts/student-wallpaper.js?v=1156"></script>
+<script src="scripts/app-core.js?v=1157"></script>
+<script src="scripts/student-onboarding.js?v=1157"></script>
+<script src="scripts/student-feed.js?v=1157"></script>
+<script src="scripts/lesson-cover.js?v=1157"></script>
+<script src="scripts/lesson-calendar.js?v=1157"></script>
+<script src="scripts/hw-state.js?v=1157"></script>
+<script src="scripts/student-engage.js?v=1157"></script>
+<script src="scripts/wallpaper-presets.js?v=1157"></script>
+<script src="scripts/student-wallpaper.js?v=1157"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1320,7 +1320,7 @@ async function checkLiveSessions() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${session.teacher_name || 'Your teacher'} started: ${session.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1156', tag: 'live-session-' + session.id,
+          icon: 'icons/icon-192.png?v=1157', tag: 'live-session-' + session.id,
         });
       }
     }
@@ -1660,19 +1660,19 @@ function learnWords() {
 init();
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1156"></script>
-<script src="scripts/vault-review.js?v=1156"></script>
-<script src="scripts/vault-cabinet.js?v=1156"></script>
-<script src="scripts/writing-shared.js?v=1156"></script>
-<script src="scripts/writing-mine.js?v=1156"></script>
-<script src="scripts/autogrow.js?v=1156" defer></script>
-<script src="pwa-boot.js?v=1156" defer></script>
-<script src="pwa.js?v=1156"></script>
-<script src="scripts/nav-boost.js?v=1156" defer></script>
-<script src="scripts/mobile-perf.js?v=1156" defer></script>
-<script src="scripts/mobile-nav.js?v=1156"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1156" defer></script>
-  <script src="scripts/signin-entry.js?v=1156" defer></script>
-<script src="scripts/verify-banner.js?v=1156" defer></script>
+<script src="scripts/hear-in-context.js?v=1157"></script>
+<script src="scripts/vault-review.js?v=1157"></script>
+<script src="scripts/vault-cabinet.js?v=1157"></script>
+<script src="scripts/writing-shared.js?v=1157"></script>
+<script src="scripts/writing-mine.js?v=1157"></script>
+<script src="scripts/autogrow.js?v=1157" defer></script>
+<script src="pwa-boot.js?v=1157" defer></script>
+<script src="pwa.js?v=1157"></script>
+<script src="scripts/nav-boost.js?v=1157" defer></script>
+<script src="scripts/mobile-perf.js?v=1157" defer></script>
+<script src="scripts/mobile-nav.js?v=1157"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1157" defer></script>
+  <script src="scripts/signin-entry.js?v=1157" defer></script>
+<script src="scripts/verify-banner.js?v=1157" defer></script>
 </body>
 </html>

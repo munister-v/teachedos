@@ -2278,11 +2278,11 @@ function toolsRender() {
   grid.innerHTML = unique.map(t => {
     const tagHtml = t.tags.map(tag => {
       const c = TAG_COLORS[tag] || {};
-      return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:${c.bg};color:${c.color};">${tag}</span>`;
+      return `<span style="font-size:11px;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;background:${c.bg};color:${c.color};">${tag}</span>`;
     }).join('');
     const badgeHtml = t.badge ? (() => {
       const c = TAG_COLORS[t.badge] || {};
-      return `<span style="font-size:9px;font-family:var(--font-mono);padding:2px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.color}40;font-weight:600;">${t.badge}</span>`;
+      return `<span style="font-size:11px;font-family:var(--font-mono);padding:2px 9px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.color}40;font-weight:600;">${t.badge}</span>`;
     })() : '';
     return `<div class="tool-card" onclick="toolOpen('${t.id}')" style="background:rgba(93,97,75,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:background .18s,border-color .18s,transform .15s;position:relative;overflow:hidden;" onmouseenter="this.style.background='rgba(93,97,75,0.09)';this.style.borderColor='rgba(202,204,198,0.28)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.background='rgba(93,97,75,0.04)';this.style.borderColor='var(--border)';this.style.transform=''">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
@@ -2792,13 +2792,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1156" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1157" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1156" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1157" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
@@ -2813,17 +2813,17 @@ function showAuthOverlay() {
           </div>
         </div>
         <div id="os-role-row" style="display:none;margin-bottom:16px;">
-          <div style="font-size:10px;font-weight:600;color:#5D614B;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
+          <div style="font-size:11px;font-weight:600;color:#5D614B;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">I am a…</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button type="button" id="role-teacher" onclick="selectOsRole('teacher')" aria-pressed="true" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(205,246,73,.65);background:rgba(205,246,73,.18);cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🧑‍🏫</div>
               <div style="font-size:12px;font-weight:650;color:#24282C;">Teacher</div>
-              <div style="font-size:10px;color:#5D614B;margin-top:2px;">Create &amp; manage</div>
+              <div style="font-size:11px;color:#5D614B;margin-top:2px;">Create &amp; manage</div>
             </button>
             <button type="button" id="role-student" onclick="selectOsRole('student')" aria-pressed="false" style="padding:14px 8px;border-radius:13px;border:1px solid rgba(36,40,44,.14);background:#FFFFFF;cursor:pointer;text-align:center;transition:.2s;font:inherit;width:100%;">
               <div style="font-size:1.6rem;line-height:1;margin-bottom:4px;">🎓</div>
               <div style="font-size:12px;font-weight:650;color:#24282C;">Student</div>
-              <div style="font-size:10px;color:#5D614B;margin-top:2px;">Learn &amp; progress</div>
+              <div style="font-size:11px;color:#5D614B;margin-top:2px;">Learn &amp; progress</div>
             </button>
           </div>
         </div>

@@ -187,7 +187,7 @@ body {
   margin-top: auto;
 }
 .card-tag {
-  font-size: 10px; font-family: var(--mono); font-weight: 600;
+  font-size: 11px; font-family: var(--mono); font-weight: 600;
   letter-spacing: 0.06em; text-transform: uppercase;
   padding: 3px 9px; border-radius: 999px;
   background: var(--bg-2, #F6F6EF); color: var(--text-3);
@@ -202,7 +202,7 @@ body {
 .card-tag.local    { background: rgba(136,107,243,0.10);  color: #6B42FD; border-color: rgba(136,107,243,0.22); }
 .card-tag.create   { background: rgba(63,159,255,0.10);  color: #6B42FD; border-color: rgba(63,159,255,0.22); }
 .card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-5px 0 12px;}
-.card-pill{font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(93,97,75,.08);color:var(--text-3);border:1px solid var(--border);}
+.card-pill{font-size:11px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 7px;background:rgba(93,97,75,.08);color:var(--text-3);border:1px solid var(--border);}
 /* Two games (Four Opinions, LinguaQuiz) have a Ukrainian-only interface in an
    otherwise English hub - not a bug, just worth knowing before you open one
    mid-lesson. Same pill shape as the rest of the meta row, distinct color so
@@ -224,7 +224,7 @@ body {
 
 /* ── SECTION LABEL ── */
 .section-label {
-  font-size: 10px; font-family: var(--mono); font-weight: 600;
+  font-size: 11px; font-family: var(--mono); font-weight: 600;
   letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--text-3); margin: 32px 0 14px;
   display: flex; align-items: center; gap: 10px;
@@ -295,10 +295,10 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1156">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=1156">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1157">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=1157">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=1156">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=1157">
 <style id="brand-labels">
 /* 2026-09-27: game tags, pills and the eyebrow in the UI face like the rest
    of the app - the brand board has no monospace */
@@ -705,7 +705,7 @@ body :is(.card-pill, .card-tag, .hero-eyebrow, .nav-count) {
   <a href="../index.html">← Back to TeachEd</a> &nbsp;·&nbsp; <span id="footer-game-count">games available</span>
 </footer>
 
-<script src="../scripts/assign-game.js?v=1156"></script>
+<script src="../scripts/assign-game.js?v=1157"></script>
 <script>
 let activeGameTag = 'all';
 const tagLabels = {vocab:'Vocabulary', grammar:'Grammar', spelling:'Spelling', speed:'Speed', speaking:'Speaking', ai:'Creator', create:'Create & Share'};
@@ -826,6 +826,6 @@ enhanceGameCards();
 initGameFilters();
 addAssignButtons();
 </script>
-<script src="../scripts/mobile-zoom-guard.js?v=1156"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=1157"></script>
 </body>
 </html>

@@ -55,7 +55,7 @@ body:not(#_):not(#__) #community-grid { grid-template-columns:repeat(auto-fill, 
 .cm-by { display:flex; align-items:center; gap:8px; min-width:0; font-size:12.5px; color:#5D614B; }
 .cm-ava {
   width:24px; height:24px; flex-shrink:0; border-radius:50%; background:#CDF649; color:#24282C;
-  display:flex; align-items:center; justify-content:center; font:800 10px var(--font-ui, system-ui, sans-serif); overflow:hidden;
+  display:flex; align-items:center; justify-content:center; font:800 11px var(--font-ui, system-ui, sans-serif); overflow:hidden;
 }
 .cm-author { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
 .cm-date { flex-shrink:0; font-variant-numeric:tabular-nums; }
@@ -68,10 +68,10 @@ body:not(#_):not(#__) #community-grid { grid-template-columns:repeat(auto-fill, 
   display:flex; align-items:center; gap:7px; min-width:0; overflow:hidden; white-space:nowrap;
   font:750 11.5px var(--font-ui, system-ui, sans-serif); letter-spacing:.04em; text-transform:uppercase; color:#24282C;
 }
-.cm-facts i { font-style:normal; color:#A3A48D; font-size:9px; }
+.cm-facts i { font-style:normal; color:#A3A48D; font-size:11px; }
 .cm-flag { display:inline-flex; width:20px; height:14px; flex-shrink:0; border-radius:3px; overflow:hidden; box-shadow:0 0 0 1px rgba(36,40,44,.12); }
 .cm-flag svg { width:100%; height:100%; display:block; }
-.cm-flag-txt { width:auto; padding:0 3px; align-items:center; font-size:9px; background:#F6F6EF; }
+.cm-flag-txt { width:auto; padding:0 3px; align-items:center; font-size:11px; background:#F6F6EF; }
 .cm-acts { position:relative; z-index:1; display:flex; align-items:center; gap:6px; flex-shrink:0; }
 .cm-share {
   width:32px; height:32px; border-radius:10px; border:1px solid rgba(36,40,44,.14); background:#fff; color:#24282C;
@@ -107,7 +107,7 @@ body:not(#_):not(#__) #community-grid { grid-template-columns:repeat(auto-fill, 
 .pub-card .cm-card { box-shadow:0 14px 34px -22px rgba(36,40,44,.5); }
 .pub-card .cm-card:hover { transform:none; }
 .pub-inside { display:flex; flex-direction:column; gap:6px; }
-.pub-inside-lbl { font:700 10px var(--font-mono, ui-monospace, monospace); letter-spacing:.08em; text-transform:uppercase; color:#5D614B; }
+.pub-inside-lbl { font:700 11px var(--font-mono, ui-monospace, monospace); letter-spacing:.08em; text-transform:uppercase; color:#5D614B; }
 body:not(#_):not(#__) .pub-inside .lesson-preview-canvas {
   position:relative; height:52px; margin:0; overflow:hidden; border-radius:12px;
   border:1px solid rgba(36,40,44,.1); background:#F6F6EF;
@@ -167,7 +167,7 @@ body:not(#_):not(#__) #tab-library .cm-toolbar { margin-bottom:18px; }
 .lib-top { display:flex; align-items:center; gap:6px; }
 .lib-kind, .lib-level {
   display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:999px;
-  font:750 10.5px var(--font-mono, ui-monospace, monospace); letter-spacing:.07em; text-transform:uppercase;
+  font:750 11px var(--font-mono, ui-monospace, monospace); letter-spacing:.07em; text-transform:uppercase;
 }
 .lib-kind { background:#EEF9C9; color:#24282C; }
 .lib-card[data-kind="quiz"] .lib-kind { background:#F8DBDB; }

@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1156"></script>
-<link rel="manifest" href="manifest.json?v=1156">
+<script src="scripts/phone-gate.js?v=1157"></script>
+<link rel="manifest" href="manifest.json?v=1157">
 <meta name="theme-color" content="#FFFFFF"/>
-<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1156">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1156">
+<link rel="icon" href="favicon.ico?v=1157" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1157">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1157">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1157">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1156">
-<link rel="preload" as="style" href="styles/unify.css?v=1156">
+<link rel="preload" as="style" href="styles/harmony.css?v=1157">
+<link rel="preload" as="style" href="styles/unify.css?v=1157">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -70,7 +70,7 @@ a{text-decoration:none;color:inherit;}
 .nav-user:hover{border-color:#CDF649;background:rgba(205,246,73,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(205,246,73,.15);color:#CDF649;font-size:10px;font-weight:700;
+  background:rgba(205,246,73,.15);color:#CDF649;font-size:11px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 .nav-user:hover{border-color:rgba(93,97,75,.32);}
@@ -180,10 +180,10 @@ a{text-decoration:none;color:inherit;}
   display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .m-name{font-size:13px;font-weight:650;color:var(--text);}
 .m-email{font-size:11px;color:var(--text3);}
-.m-role{font-size:10px;font-weight:650;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
+.m-role{font-size:11px;font-weight:650;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
 .role-student{background:rgba(136,107,243,.12);color:#6B42FD;}
 .role-editor {background:rgba(211,243,107,.12);color:#5D614B;}
-.progress-chip{font-size:10px;font-weight:650;padding:3px 7px;border-radius:20px;white-space:nowrap;}
+.progress-chip{font-size:11px;font-weight:650;padding:3px 7px;border-radius:20px;white-space:nowrap;}
 .progress-chip.attention{background:#F3A46B;color:#24282C;}
 .progress-chip.active{background:#F3DF6B;color:#24282C;}
 .progress-chip.on-track{background:#49F6F0;color:#5D614B;}
@@ -199,7 +199,7 @@ a{text-decoration:none;color:inherit;}
 .gb-table th{
   position:sticky;top:0;background:#fff;z-index:2;
   padding:10px 8px;text-align:center;font-weight:650;color:#5D614B;
-  text-transform:uppercase;letter-spacing:.06em;font-size:10px;
+  text-transform:uppercase;letter-spacing:.06em;font-size:11px;
   border-bottom:2px solid var(--border);white-space:nowrap;
 }
 .gb-table th.th-name{text-align:left;position:sticky;left:0;z-index:3;background:#fff;min-width:160px;}
@@ -252,13 +252,13 @@ a{text-decoration:none;color:inherit;}
 .gradebook-pulse::after{content:'';position:absolute;width:190px;height:190px;right:-90px;top:-130px;border-radius:50%;background:rgba(205,246,73,.18);pointer-events:none;}
 .gradebook-pulse>*{position:relative;z-index:1;}
 .gp-main{min-width:0;flex:1;}
-.gp-kicker{font:800 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
+.gp-kicker{font:800 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
 .gp-title{margin-top:4px;font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--text);}
 .gp-copy{margin-top:4px;max-width:560px;font-size:12px;line-height:1.45;color:var(--text2);}
 .gp-metrics{display:flex;align-items:stretch;gap:8px;flex-shrink:0;}
 .gp-metric{min-width:72px;padding:9px 10px;border:1px solid var(--border);border-radius:11px;background:rgba(255,255,255,.68);}
 .gp-metric-num{font-size:17px;line-height:1;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
-.gp-metric-label{margin-top:5px;font-size:9px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.gp-metric-label{margin-top:5px;font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
 .gp-metric.attention{border-color:rgba(255,78,0,.22);background:rgba(246,246,239,.75);}
 .gp-metric.attention .gp-metric-num{color:#24282C;}
 .gp-actions{display:flex;gap:8px;flex-shrink:0;}
@@ -281,7 +281,7 @@ a{text-decoration:none;color:inherit;}
 .gb-filter-note{width:100%;padding-top:2px;font-size:11px;color:var(--text3);font-weight:600;}
 .filtered-empty{padding:28px 12px;text-align:center;color:var(--text3);font-size:13px;line-height:1.45;}
 .gb-empty-row td{padding:28px 12px!important;text-align:center!important;color:var(--text3);font-size:12px;font-weight:600;}
-.gb-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;color:var(--text3);font-size:10px;font-weight:650;}
+.gb-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;color:var(--text3);font-size:11px;font-weight:650;}
 .gb-legend-item{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
 .gb-legend .sc{width:18px;height:18px;border-radius:6px;font-size:0;}
 
@@ -350,7 +350,7 @@ a{text-decoration:none;color:inherit;}
   padding:10px 12px;
 }
 .gb-mobile-box-n{font-size:16px;font-weight:700;color:var(--text);line-height:1;}
-.gb-mobile-box-l{font-size:10px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+.gb-mobile-box-l{font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
 .gb-mobile-lessons{display:flex;flex-wrap:wrap;gap:6px;}
 .gb-mobile-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;}
 
@@ -410,10 +410,10 @@ a{text-decoration:none;color:inherit;}
   .gb-mobile-progress{grid-template-columns:1fr 1fr 1fr;}
 }
 </style>
-<script src="theme.js?v=1156" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1156">
-<link rel="stylesheet" href="styles/harmony.css?v=1156">
-<link rel="stylesheet" href="styles/unify.css?v=1156">
+<script src="theme.js?v=1157" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1157">
+<link rel="stylesheet" href="styles/harmony.css?v=1157">
+<link rel="stylesheet" href="styles/unify.css?v=1157">
 <style>
 /* harmony.css's .mp-shell dark dashboard background + light text ("identity
    polish 198") load after this page's own <style> block, so they win with
@@ -423,22 +423,22 @@ a{text-decoration:none;color:inherit;}
    media query - both come back here regardless of viewport.) */
 #page.mp-shell{background:var(--bg) !important;color:var(--text) !important;}
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
-<link rel="stylesheet" href="styles/tool-window.css?v=1156">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1157">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1157">
+<link rel="stylesheet" href="styles/tool-window.css?v=1157">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
-<link rel="stylesheet" href="styles/controls.css?v=1156">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1157">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1157">
+<link rel="stylesheet" href="styles/controls.css?v=1157">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1156">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1156">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1156">
-<link rel="stylesheet" href="styles/toast.css?v=1156">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1156">
+<link rel="stylesheet" href="styles/polish.css?v=1157">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1157">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1157">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1157">
+<link rel="stylesheet" href="styles/toast.css?v=1157">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1157">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1156">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1157">
 </head>
 <body class="tw-page suite-page gradebook-suite fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -453,7 +453,7 @@ a{text-decoration:none;color:inherit;}
 </defs></svg>
 
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1156" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1157" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -635,7 +635,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=1156"></script>
+<script src="scripts/app-core.js?v=1157"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech')));
 const GRADEBOOK_CACHE_KEY = 'teachedos_gradebook_cache_v1';
@@ -920,7 +920,7 @@ function bsRenderList() {
     list.innerHTML = items.map(m => `
       <div class="bs-item" title="${esc(m.email||'')}">
         <span class="bs-item-name">${esc(m.name || m.email || 'Student')}</span>
-        <span style="font-size:10px;color:var(--text3);">${esc(m.role || 'student')}</span>
+        <span style="font-size:11px;color:var(--text3);">${esc(m.role || 'student')}</span>
       </div>
     `).join('');
   }
@@ -1071,7 +1071,7 @@ function renderGradebook() {
   // Summary row
   const summCells = colDone.map((n, i) => {
     const p = displayed.length ? Math.round(n / displayed.length * 100) : 0;
-    return `<td style="font-size:10px;color:${p>=80?'var(--green)':p>=50?'var(--orange)':'var(--text3)'};">${n}/${displayed.length}</td>`;
+    return `<td style="font-size:11px;color:${p>=80?'var(--green)':p>=50?'var(--orange)':'var(--text3)'};">${n}/${displayed.length}</td>`;
   }).join('');
 
   document.getElementById('gb-tbody').innerHTML = rows + `
@@ -1430,15 +1430,15 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 
 init();
 </script>
-<script src="pwa.js?v=1156"></script>
-<script src="scripts/nav-boost.js?v=1156" defer></script>
-<script src="scripts/mobile-perf.js?v=1156" defer></script>
-<script src="scripts/mobile-nav.js?v=1156"></script>
-<script src="scripts/autogrow.js?v=1156" defer></script>
-<script src="pwa-boot.js?v=1156" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1156" defer></script>
-  <script src="scripts/signin-entry.js?v=1156" defer></script>
-<script src="scripts/nav-bell.js?v=1156" defer></script>
-<script src="scripts/empty-stats.js?v=1156" defer></script>
+<script src="pwa.js?v=1157"></script>
+<script src="scripts/nav-boost.js?v=1157" defer></script>
+<script src="scripts/mobile-perf.js?v=1157" defer></script>
+<script src="scripts/mobile-nav.js?v=1157"></script>
+<script src="scripts/autogrow.js?v=1157" defer></script>
+<script src="pwa-boot.js?v=1157" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1157" defer></script>
+  <script src="scripts/signin-entry.js?v=1157" defer></script>
+<script src="scripts/nav-bell.js?v=1157" defer></script>
+<script src="scripts/empty-stats.js?v=1157" defer></script>
 </body>
 </html>

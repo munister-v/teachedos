@@ -111,7 +111,7 @@ body.fx #win-tools .lib-main { overflow-y:auto; }
 }
 .lib-card::before { content:''; position:absolute; inset:0 0 auto 0; height:4px; background:#CDF649; }
 .lib-card-top { display:flex; flex-wrap:wrap; gap:4px; }
-.lib-chip { font-size:10.5px; font-weight:650; color:#5D614B; background:#F6F6EF; border-radius:999px; padding:3px 8px; }
+.lib-chip { font-size:11px; font-weight:650; color:#5D614B; background:#F6F6EF; border-radius:999px; padding:3px 8px; }
 .lib-card-title { margin:0; font-size:15px; font-weight:650; line-height:1.3; color:#24282C; letter-spacing:-.01em; }
 .lib-card-desc { margin:0; font-size:12.5px; line-height:1.45; color:#5D614B; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .lib-card-meta { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11.5px; color:#5D614B; margin-top:auto; }
@@ -275,7 +275,7 @@ body.fx.os-desktop:not(.wall-glass) #fx-ghost-panel { background:#FFFFFF; border
 .sp-count:focus-visible { outline:2px solid #24282C; outline-offset:2px; border-radius:6px; }
 .sp-chev { width:7px; height:7px; border-right:2px solid #5D614B; border-bottom:2px solid #5D614B; transform:rotate(45deg); margin:-3px 4px 0 0; transition:transform .2s; }
 .sp-count[aria-expanded="true"] .sp-chev { transform:rotate(-135deg); margin-top:3px; }
-.sp-dayhead { font:600 10px var(--mono,monospace); letter-spacing:.1em; text-transform:uppercase; color:#8E918A; margin:6px 2px 0; }
+.sp-dayhead { font:600 11px var(--mono,monospace); letter-spacing:.1em; text-transform:uppercase; color:#8E918A; margin:6px 2px 0; }
 .sp-list.is-open { max-height:min(46vh,340px); overflow-y:auto; }
 .sp-list.is-open .sp-pill { display:flex !important; }
 .sp-add { background:none; font-family:inherit; cursor:pointer; }
@@ -542,13 +542,13 @@ body.fx.os-desktop:not(#_) #wg-week {
 #wg-week { display:none; }
 body.fx.os-desktop #wg-week { display:flex; }
 #wg-week .wk-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
-#wg-week .wk-label{font:600 10px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#CACCC6;}
+#wg-week .wk-label{font:600 11px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#CACCC6;}
 #wg-week .wk-total{font-size:30px;font-weight:600;letter-spacing:-.04em;color:#CDF649;line-height:1;}
 #wg-week .wk-bars{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;align-items:end;margin-top:8px;min-height:0;}
 #wg-week .wk-col{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;}
 #wg-week .wk-col i{display:block;width:100%;max-width:14px;border-radius:5px;background:rgba(202,204,198,.35);}
 #wg-week .wk-col.is-today i{background:#CDF649;}
-#wg-week .wk-col span{font:600 9.5px var(--mono,monospace);color:#8E918A;}
+#wg-week .wk-col span{font:600 11px var(--mono,monospace);color:#8E918A;}
 #wg-week .wk-col.is-today span{color:#CDF649;}
 
 /* Student Pulse → Message */

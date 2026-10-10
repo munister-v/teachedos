@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1156"></script>
+<script src="scripts/phone-gate.js?v=1157"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1156">
-<link rel="preload" as="style" href="styles/unify.css?v=1156">
-<link rel="manifest" href="manifest.json?v=1156">
-<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1156">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1156">
+<link rel="preload" as="style" href="styles/harmony.css?v=1157">
+<link rel="preload" as="style" href="styles/unify.css?v=1157">
+<link rel="manifest" href="manifest.json?v=1157">
+<link rel="icon" href="favicon.ico?v=1157" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1157">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1157">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1157">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,7 +37,7 @@ a{text-decoration:none;color:inherit}
 .nav-spacer{flex:1}
 .nav-user{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2);padding:3px 10px 3px 7px;border-radius:20px;border:1px solid rgba(205,246,73,.22);background:rgba(93,97,75,.07)}
 #nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(205,246,73,.15);font-size:11px;font-weight:700}
-.shell{display:flex;align-items:flex-start;max-width:1380px;margin:0 auto}.wrap{flex:1;min-width:0;max-width:1180px;padding:34px 22px 60px}.side{width:196px;flex:0 0 196px;position:sticky;top:44px;padding:24px 8px 40px 14px}.side-title{font:900 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:16px 10px 7px}.side-title:first-child{margin-top:0}.side-btn{width:100%;min-height:40px;border:0;background:transparent;border-radius:12px;display:flex;align-items:center;gap:9px;padding:8px 10px;color:var(--text2);font-weight:650;font-size:13px;text-align:left;transition:background .16s;cursor:pointer}.side-btn:hover{background:rgba(36,40,44,.06);color:var(--text)}.side-ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:800;flex:0 0 auto}
+.shell{display:flex;align-items:flex-start;max-width:1380px;margin:0 auto}.wrap{flex:1;min-width:0;max-width:1180px;padding:34px 22px 60px}.side{width:196px;flex:0 0 196px;position:sticky;top:44px;padding:24px 8px 40px 14px}.side-title{font:900 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:16px 10px 7px}.side-title:first-child{margin-top:0}.side-btn{width:100%;min-height:40px;border:0;background:transparent;border-radius:12px;display:flex;align-items:center;gap:9px;padding:8px 10px;color:var(--text2);font-weight:650;font-size:13px;text-align:left;transition:background .16s;cursor:pointer}.side-btn:hover{background:rgba(36,40,44,.06);color:var(--text)}.side-ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:800;flex:0 0 auto}
 .hero{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:28px}
 .hero-card{background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.65);border-radius:28px;box-shadow:0 18px 50px rgba(36,40,44,.09);backdrop-filter:blur(16px);padding:34px;background:radial-gradient(circle at top right,rgba(205,246,73,.28),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.92),rgba(246,246,239,.82))}
 .eyebrow{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:12px}
@@ -69,13 +69,13 @@ h1{font-size:clamp(28px,4vw,48px);line-height:.95;letter-spacing:-.06em;max-widt
 .type-icon{font-size:28px;line-height:1}
 .type-name{font-size:14px;font-weight:700;color:var(--text)}
 .type-desc{font-size:11px;color:var(--text3);line-height:1.4}
-.type-badge{position:absolute;top:10px;right:10px;font:800 9px var(--mono);padding:3px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
+.type-badge{position:absolute;top:10px;right:10px;font:800 11px var(--mono);padding:3px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
 .builder{display:none;background:#fff;border:1.5px solid var(--border);border-radius:22px;padding:24px;margin-bottom:22px}
 .builder.show{display:block}
 .builder-title{font-size:18px;font-weight:700;margin-bottom:4px}
 .builder-sub{font-size:12px;color:var(--text3);margin-bottom:18px}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-.label{font:800 10px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
+.label{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
 input,textarea,select{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:11px 12px;font:600 13px var(--font);outline:none;background:#fff;color:var(--text);transition:border-color .18s,box-shadow .18s}
 input:focus,textarea:focus,select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(205,246,73,.15)}
 textarea{min-height:60px;resize:vertical}
@@ -84,16 +84,16 @@ textarea{min-height:60px;resize:vertical}
 .pair-row input{margin:0}
 .pair-remove{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,78,0,.2);background:rgba(255,78,0,.04);color:#24282C;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
 .pair-remove:hover{background:rgba(255,78,0,.12)}
-.pair-row-num{font:800 10px var(--mono);color:var(--text3);text-align:center}
+.pair-row-num{font:800 11px var(--mono);color:var(--text3);text-align:center}
 .preset-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;padding:12px 16px;background:rgba(205,246,73,.06);border:1.5px solid rgba(205,246,73,.2);border-radius:14px}
 .topic-bar{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;padding:14px 16px;background:#24282C;border:1px solid #24282C;border-radius:18px;color:#fff;box-shadow:0 6px 22px rgba(36,40,44,.18)}
 .topic-bar-head{display:flex;align-items:center;gap:10px}
 .topic-bar-icon{font-size:18px}
 .topic-bar-label{font:800 14px var(--font);letter-spacing:-.01em}
-.topic-bar-meta{margin-left:auto;font:700 10px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.topic-bar-meta{margin-left:auto;font:700 11px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 .topic-bar-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .topic-ctl{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
-.topic-ctl > span{font:700 10px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.topic-ctl > span{font:700 11px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 .topic-ctl select{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:9px 12px;font:600 13px var(--font);outline:none;cursor:pointer;transition:border-color .15s,background .15s}
 .topic-ctl select:hover{border-color:rgba(205,246,73,.5);background:rgba(255,255,255,.10)}
 .topic-ctl select:focus{border-color:#CDF649;background:rgba(205,246,73,.10)}
@@ -115,7 +115,7 @@ textarea{min-height:60px;resize:vertical}
 .item-counter.err{background:var(--red-soft);color:#24282C}
 .quality-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}
 .quality-metric{border:1.5px solid var(--border);border-radius:14px;background:#fff;padding:10px}
-.quality-metric b{display:block;font-size:18px;letter-spacing:-.04em}.quality-metric span{display:block;font:850 9px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-top:2px}
+.quality-metric b{display:block;font-size:18px;letter-spacing:-.04em}.quality-metric span{display:block;font:850 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-top:2px}
 .quality-metric.good b{color:var(--green)}.quality-metric.warn b{color:var(--orange)}.quality-metric.bad b{color:var(--red)}
 .quality-warnings{grid-column:1/-1;display:grid;gap:6px}.quality-warning{padding:8px 10px;border-radius:12px;background:rgba(243,164,107,.1);border:1px solid rgba(243,164,107,.22);font-size:12px;color:#24282C;line-height:1.35}
 .smart-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.smart-pill{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:7px 12px;font:850 11px var(--font);cursor:pointer;color:var(--text2)}.smart-pill:hover{border-color:var(--pink);color:var(--pink);transform:translateY(-1px)}
@@ -136,7 +136,7 @@ textarea{min-height:60px;resize:vertical}
 .game-name{font-size:15px;font-weight:700;line-height:1.2}
 .game-meta{font-size:11px;color:var(--text3);margin-top:2px}
 .game-tags{display:flex;gap:6px;flex-wrap:wrap}
-.tag{font:800 10px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(93,97,75,.08);color:var(--text2)}
+.tag{font:800 11px var(--mono);padding:4px 8px;border-radius:999px;background:rgba(93,97,75,.08);color:var(--text2)}
 .tag.lime{background:rgba(205,246,73,.18);color:var(--accent)}
 .tag.pink{background:rgba(136,107,243,.1);color:var(--pink)}
 .tag.blue{background:rgba(63,159,255,.1);color:var(--blue)}
@@ -169,7 +169,7 @@ textarea{min-height:60px;resize:vertical}
 .dict-word{font:800 11px var(--font);padding:5px 8px;border-radius:999px;background:rgba(93,97,75,.08);color:var(--text2)}
 .dict-actions{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1;margin-top:auto}
 .dict-actions .btn{flex:1;min-width:92px}
-.dict-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1;font:800 10px var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.dict-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1;font:800 11px var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
 .dict-hot{background:rgba(136,107,243,.10);color:#24282C;padding:4px 8px;border-radius:999px}
 .dict-mini-stats{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
 .dict-mini{padding:7px 11px;border-radius:999px;background:#fff;border:1px solid var(--border);font:900 11px var(--font);color:var(--text2)}
@@ -189,7 +189,7 @@ textarea{min-height:60px;resize:vertical}
 .gb-live{display:none;border:1px solid var(--border);border-radius:18px;background:#fff;padding:14px;box-shadow:0 10px 30px rgba(36,40,44,.05)}
 .builder.has-live > .gb-live{display:block}
 .gb-live-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
-.gb-live-eyebrow{font:800 9px/1 var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.gb-live-eyebrow{font:800 11px/1 var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
 .gb-live-title{font:900 15px/1.2 var(--font);letter-spacing:-.02em;color:var(--text)}
 .gb-live-actions{display:flex;gap:6px;flex-shrink:0}
 .gb-live-stage{border:1px solid var(--border);border-radius:14px;background:#F6F6EF;overflow:hidden;min-height:260px;display:flex;align-items:center;justify-content:center}
@@ -236,7 +236,7 @@ textarea{min-height:60px;resize:vertical}
 .pm-thumb.selected{border-color:#CDF649;box-shadow:0 0 0 3px rgba(205,246,73,.3)}
 /* Плита модалки чернильная (#111116): #555 и #777 на ней — тёмное по
    тёмному, 2,5–4,2:1. Подписи в тёмном окне светлые. */
-.pm-credit{font-size:10px;color:#5D614B;text-align:center}
+.pm-credit{font-size:11px;color:#5D614B;text-align:center}
 .pm-empty{grid-column:1/-1;text-align:center;padding:32px;color:#CACCC6;font-size:.9rem}
 .pm-spinner{grid-column:1/-1;text-align:center;padding:32px;color:#CACCC6;font-size:.85rem}
 
@@ -268,27 +268,27 @@ textarea{min-height:60px;resize:vertical}
 .lt-grid-o small{font:650 11px system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lt-grid-o.on{border-color:#CDF649;box-shadow:0 0 0 2px rgba(205,246,73,.45)}
 </style>
-<script src="theme.js?v=1156" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1156">
-<link rel="stylesheet" href="styles/harmony.css?v=1156">
-<link rel="stylesheet" href="styles/unify.css?v=1156">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=1156">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
-<link rel="stylesheet" href="styles/tool-window.css?v=1156">
+<script src="theme.js?v=1157" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1157">
+<link rel="stylesheet" href="styles/harmony.css?v=1157">
+<link rel="stylesheet" href="styles/unify.css?v=1157">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=1157">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1157">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1157">
+<link rel="stylesheet" href="styles/tool-window.css?v=1157">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
-<link rel="stylesheet" href="styles/controls.css?v=1156">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1157">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1157">
+<link rel="stylesheet" href="styles/controls.css?v=1157">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1156">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1156">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1156">
-<link rel="stylesheet" href="styles/toast.css?v=1156">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1156">
+<link rel="stylesheet" href="styles/polish.css?v=1157">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1157">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1157">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1157">
+<link rel="stylesheet" href="styles/toast.css?v=1157">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1157">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1156">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1157">
 </head>
 <body class="tools-workbench tw-page fx">
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -303,7 +303,7 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1156" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1157" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="community.html">Community</a>
   <a class="nav-link active" href="game-builder.html">Game Builder</a>
@@ -556,9 +556,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1156"></script>
-<script src="scripts/vocab-loader.js?v=1156"></script>
-<script src="scripts/game-builder-app.js?v=1156"></script>
+<script src="scripts/app-core.js?v=1157"></script>
+<script src="scripts/vocab-loader.js?v=1157"></script>
+<script src="scripts/game-builder-app.js?v=1157"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -572,12 +572,12 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF649">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=1156" defer></script>
-<script src="scripts/lesson-themes.js?v=1156"></script>
-<script src="scripts/mobile-nav.js?v=1156"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1156" defer></script>
-<script src="scripts/autogrow.js?v=1156" defer></script>
-<script src="pwa-boot.js?v=1156" defer></script>
-  <script src="scripts/signin-entry.js?v=1156" defer></script>
+<script src="scripts/mobile-perf.js?v=1157" defer></script>
+<script src="scripts/lesson-themes.js?v=1157"></script>
+<script src="scripts/mobile-nav.js?v=1157"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1157" defer></script>
+<script src="scripts/autogrow.js?v=1157" defer></script>
+<script src="pwa-boot.js?v=1157" defer></script>
+  <script src="scripts/signin-entry.js?v=1157" defer></script>
 </body>
 </html>

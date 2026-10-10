@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1156"></script>
+<script src="scripts/phone-gate.js?v=1157"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json?v=1156">
-<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1156">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1156">
+<link rel="manifest" href="manifest.json?v=1157">
+<link rel="icon" href="favicon.ico?v=1157" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1157">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1157">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1157">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -42,7 +42,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .sidebar-head h2{font-size:.95rem;font-weight:650}
 .add-btn{position:relative}
 .add-btn select{appearance:none;-webkit-appearance:none;background:var(--lime);border:none;border-radius:8px;padding:7px 28px 7px 10px;font-weight:600;font-size:.82rem;cursor:pointer;color:var(--ink)}
-.add-btn::after{content:'▼';position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:.6rem}
+.add-btn::after{content:'▼';position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px}
 .q-list{flex:1;overflow-y:auto;padding:8px}
 .q-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:12px;cursor:pointer;border:2px solid transparent;margin-bottom:4px;transition:.15s;background:#F6F6EF}
 .q-item:hover{background:var(--cream);border-color:var(--lime)}
@@ -50,7 +50,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .q-drag{color:#5D614B;font-size:.8rem;cursor:grab;padding:2px}
 .q-num{font-size:.75rem;font-weight:650;color:#5D614B;min-width:22px}
 .q-info{flex:1;min-width:0}
-.q-type-badge{font-size:.65rem;font-weight:650;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:2px}
+.q-type-badge{font-size:11px;font-weight:650;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:2px}
 .badge-mcq{background:#F6F6EF;color:#6B42FD}
 .badge-tf{background:#49F6F0;color:#5D614B}
 .badge-fib{background:#F6F6EF;color:#24282C}
@@ -167,11 +167,11 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 }
 .auto-gen{margin:14px;padding:14px;background:#24282C;color:#fff;border-radius:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(36,40,44,.12)}
 .auto-gen-head{display:flex;align-items:center;gap:8px;font:800 13px var(--font-sans, system-ui)}
-.auto-gen-meta{margin-left:auto;font:700 9px 'SFMono-Regular','SF Mono',ui-monospace,monospace;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.auto-gen-meta{margin-left:auto;font:700 11px 'SFMono-Regular','SF Mono',ui-monospace,monospace;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
 .auto-gen-row{display:flex;flex-direction:column;gap:4px}
 .auto-gen-row.split{flex-direction:row;gap:8px}
 .auto-gen-row .half{flex:1;display:flex;flex-direction:column;gap:4px}
-.auto-gen-row label,.auto-gen-row .half > span{font:700 10px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.auto-gen-row label,.auto-gen-row .half > span{font:700 11px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.45)}
 .auto-gen select{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#fff;border-radius:8px;padding:8px 10px;font:600 12px var(--font-sans, system-ui);outline:none;cursor:pointer;transition:border-color .15s}
 .auto-gen select:hover{border-color:rgba(205,246,73,.45)}
 .auto-gen select:focus{border-color:#CDF649}
@@ -243,22 +243,22 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   .preview-opt{ padding:12px 14px; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1156">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
-<link rel="stylesheet" href="styles/tool-window.css?v=1156">
+<link rel="stylesheet" href="styles/mobile.css?v=1157">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1157">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1157">
+<link rel="stylesheet" href="styles/tool-window.css?v=1157">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
-<link rel="stylesheet" href="styles/controls.css?v=1156">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1157">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1157">
+<link rel="stylesheet" href="styles/controls.css?v=1157">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1156">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1156">
-<link rel="stylesheet" href="styles/toast.css?v=1156">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1156">
+<link rel="stylesheet" href="styles/polish.css?v=1157">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1157">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1157">
+<link rel="stylesheet" href="styles/toast.css?v=1157">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1157">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1156">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1157">
 </head>
 <body class="tw-page fx">
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -269,7 +269,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <!-- NAV -->
 <nav class="nav">
-  <a class="nav-brand" href="index.html"><img src="logo-sm.png?v=1156" alt="" width="22" height="22">TeachEd</a>
+  <a class="nav-brand" href="index.html"><img src="logo-sm.png?v=1157" alt="" width="22" height="22">TeachEd</a>
   <span class="nav-title">Quiz Builder</span>
   <div class="nav-actions">
     <button class="btn btn-outline" id="previewBtn" onclick="togglePreview()">Preview</button>
@@ -335,7 +335,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
           <option value="sa">Short Answer</option>
           <option value="mp">Match Pairs</option>
         </select>
-        <span style="pointer-events:none;font-size:.6rem;position:absolute;right:8px;top:50%;transform:translateY(-50%)"></span>
+        <span style="pointer-events:none;font-size:11px;position:absolute;right:8px;top:50%;transform:translateY(-50%)"></span>
       </div>
     </div>
     <div class="q-list" id="qList"></div>
@@ -394,7 +394,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocab-loader.js?v=1156"></script>
+<script src="scripts/vocab-loader.js?v=1157"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -852,7 +852,7 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
-<script src="scripts/autogrow.js?v=1156" defer></script>
-<script src="pwa-boot.js?v=1156" defer></script>
+<script src="scripts/autogrow.js?v=1157" defer></script>
+<script src="pwa-boot.js?v=1157" defer></script>
 </body>
 </html>

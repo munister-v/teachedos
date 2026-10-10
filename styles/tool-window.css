@@ -175,7 +175,7 @@ body.tw-page:not(#_) .side-ic {
      same violet scaled to ~70% toward black - reads as the same colour,
      clears 5.4:1. */
   color:#6B42FD !important;
-  font-size:10px !important;
+  font-size:11px !important;
   font-weight:700 !important;
 }
 body.tw-page:not(#_) .side-btn.active .side-ic {
@@ -953,16 +953,16 @@ body.tw-page:not(#_) #nav #nav-name {
     height:28px !important;
   }
   body.tw-page:not(#_) .side-title {
-    font-size:10px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) .side-btn {
     min-height:32px !important;
   }
   body.tw-page:not(#_) :is(.eyebrow,.page-eyebrow,.hero-eyebrow) {
-    font-size:10px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) :is(.stat span,.hw-metric span,.quality-card span,.hero-stat span) {
-    font-size:9.5px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) .btn.sm {
     min-height:28px !important;
@@ -974,28 +974,28 @@ body.tw-page:not(#_) #nav #nav-name {
     min-height:32px !important;
   }
   body.tw-page:not(#_) :is(.label,.form-label,.field label) {
-    font-size:9.5px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) .hw-focus-kicker {
-    font-size:9.5px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) #sidebar .sb-item {
     min-height:32px !important;
   }
   body.tw-page:not(#_) #sidebar :is(.sb-badge,.side-count) {
-    font-size:10px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) #sidebar .sb-build {
     min-height:32px !important;
   }
   body.tw-page:not(#_) :is(.stat-lbl,.stat-label,.insight-label) {
-    font-size:9.5px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) .sec-kicker {
-    font-size:9.5px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) .panel-body>.panel-title {
-    font-size:10px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) :is(.btn,.tool-btn,.filter-btn,.mdo-btn,.smart-pill,.pane-tab,.mini-btn) {
     min-height:32px !important;
@@ -1004,10 +1004,10 @@ body.tw-page:not(#_) #nav #nav-name {
     min-height:38px !important;
   }
   body.tw-page:not(#_) :is(.chip,.pill,.hw-stat,.hw-kind) {
-    font-size:10px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) #sidebar :is(.sb-label,.sb-title,.side-section-title) {
-    font-size:10px !important;
+    font-size:11px !important;
   }
   body.tw-page:not(#_) :is(.ltab,.suite-tab,.comm-tab,.journal-filter,.un-btn,.mod-btn) {
     min-height:30px !important;

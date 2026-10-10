@@ -4,7 +4,7 @@
 .te-today{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:4px 0 22px}
 .te-card{position:relative;background:#fff;border:1px solid rgba(36,40,44,.08);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .te-card.dark{background:#24282C;border-color:#24282C;color:#fff}
-.te-k{font:700 10.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#7A7E68}
+.te-k{font:700 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#7A7E68}
 .te-card.dark .te-k{color:#CACCC6}
 .te-big{font-size:22px;line-height:1.15;font-weight:700;letter-spacing:-.03em;color:inherit}
 .te-sub{font-size:13px;line-height:1.45;color:#5D614B}
@@ -34,7 +34,7 @@ html body #sidebar .te-streak{margin:0 22px 14px;background:rgba(255,255,255,.06
 .te-streak-main b{font-size:30px;letter-spacing:-.04em;line-height:1;color:#fff}
 .te-streak-main span:last-child{font-size:12px;color:#CACCC6;font-weight:600}
 .te-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
-.te-week span{display:grid;justify-items:center;gap:4px;font:700 9.5px ui-monospace,Menlo,monospace;color:#CACCC6}
+.te-week span{display:grid;justify-items:center;gap:4px;font:700 11px ui-monospace,Menlo,monospace;color:#CACCC6}
 .te-week i{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.28);display:block}
 .te-week .on i{background:#CDF649;border-color:#CDF649}
 .te-week .today i{box-shadow:0 0 0 2px #24282C,0 0 0 3.5px #fff}
@@ -64,7 +64,7 @@ html body .vocab-stats > .vs-card:nth-child(n+3){display:none !important}
 .tab-more-menu .tab.active{background:#24282C;color:#fff}
 
 /* For you: daily trigger */
-.tab-new{display:inline-block;margin-left:6px;font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:#CDF649;color:#24282C;vertical-align:1px}
+.tab-new{display:inline-block;margin-left:6px;font-size:11px;font-weight:800;border-radius:999px;padding:2px 7px;background:#CDF649;color:#24282C;vertical-align:1px}
 .tab-new::before{content:"\1F525 "}
 @media (prefers-reduced-motion:no-preference){.tab-new{animation:te-pop 1.8s ease-in-out infinite}@keyframes te-pop{50%{transform:scale(1.08)}}}
 
@@ -215,7 +215,7 @@ html body:not(#u1):not(#u2):not(#u3) .te-gone{display:none !important}
 .te-ws i{width:9px;height:9px;border-radius:50%;display:block}
 .te-ws b{font-size:22px;line-height:1.1;font-weight:700;letter-spacing:-.03em;color:#fff}
 .te-ws b small{font-size:13px;font-weight:600;letter-spacing:0;color:#C9CAD4;margin-left:1px}
-.te-ws span{grid-column:1/-1;margin-top:3px;font:700 10px/1.25 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#C9CAD4}
+.te-ws span{grid-column:1/-1;margin-top:3px;font:700 11px/1.25 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#C9CAD4}
 .te-wact{flex:none;display:flex;align-items:center;gap:8px}
 .te-wmain{min-height:46px;padding:0 22px;border-radius:14px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font:800 14.5px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
 .te-wmain:hover{background:rgba(255,255,255,.22)}

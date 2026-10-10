@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1156"></script>
-<link rel="manifest" href="manifest.json?v=1156">
+<script src="scripts/phone-gate.js?v=1157"></script>
+<link rel="manifest" href="manifest.json?v=1157">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
-<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1156">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1156">
+<link rel="icon" href="favicon.ico?v=1157" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1157">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1157">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1157">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1156">
-<link rel="preload" as="style" href="styles/unify.css?v=1156">
+<link rel="preload" as="style" href="styles/harmony.css?v=1157">
+<link rel="preload" as="style" href="styles/unify.css?v=1157">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -69,7 +69,7 @@ a{text-decoration:none;color:inherit;}
 .nav-user:hover{border-color:#CDF649;background:rgba(205,246,73,.09);}
 #nav-avatar{
   width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(205,246,73,.15);color:#CDF649;font-size:10px;font-weight:700;
+  background:rgba(205,246,73,.15);color:#CDF649;font-size:11px;font-weight:700;
   overflow:hidden;flex-shrink:0;
 }
 #nav-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,78,0,.1);color:var(--accent);font-size:11px;font-weight:700;}
@@ -83,7 +83,7 @@ a{text-decoration:none;color:inherit;}
   display:flex;flex-direction:column;overflow-y:auto;
 }
 .side-section{padding:16px 14px 10px;}
-.side-label{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.side-label{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
 .btn-add{
   width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:12px;
   font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;
@@ -123,7 +123,7 @@ a{text-decoration:none;color:inherit;}
 .cls-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .cls-info{flex:1;min-width:0;}
 .cls-title{font-size:12px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cls-meta{font-size:10px;color:var(--text3);margin-top:2px;}
+.cls-meta{font-size:11px;color:var(--text3);margin-top:2px;}
 .cls-del{
   width:20px;height:20px;border-radius:50%;border:none;background:transparent;
   color:var(--text3);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
@@ -137,7 +137,7 @@ a{text-decoration:none;color:inherit;}
 .stat-pill{flex:1;min-width:80px;padding:10px;border-radius:12px;border:1px solid var(--border);text-align:center;background:#fff;transition:transform .2s cubic-bezier(.34,1.3,.64,1),box-shadow .18s ease;}
 .stat-pill:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(36,40,44,.1);}
 .stat-num{font-size:20px;font-weight:700;color:var(--accent);}
-.stat-lbl{font-size:10px;color:var(--text3);font-weight:600;margin-top:1px;}
+.stat-lbl{font-size:11px;color:var(--text3);font-weight:600;margin-top:1px;}
 
 /* ── Main grid ── */
 #main{flex:1;overflow:auto;display:flex;flex-direction:column;background:linear-gradient(180deg,#fff 0%,#FFFFFF 100%);}
@@ -146,9 +146,9 @@ a{text-decoration:none;color:inherit;}
   background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:space-between;gap:16px;
   position:sticky;top:0;z-index:110;backdrop-filter:blur(14px);
 }
-.scb-kicker{font:800 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
+.scb-kicker{font:800 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
 .scb-title{margin-top:3px;font-size:16px;font-weight:700;letter-spacing:-.025em;color:var(--text);font-variant-numeric:tabular-nums;}
-.scb-note{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text2);font-size:10px;font-weight:650;white-space:nowrap;}
+.scb-note{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text2);font-size:11px;font-weight:650;white-space:nowrap;}
 .scb-note::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 0 3px rgba(205,246,73,.16);}
 .grid-head{display:flex;border-bottom:2px solid var(--border);background:rgba(255,255,255,.95);position:sticky;top:68px;z-index:100;}
 .gh-time{width:56px;flex-shrink:0;border-right:1px solid var(--border);}
@@ -168,7 +168,7 @@ a{text-decoration:none;color:inherit;}
 .time-col{width:56px;flex-shrink:0;border-right:1px solid var(--border);}
 .time-label{
   height:60px;display:flex;align-items:flex-start;justify-content:center;
-  padding-top:4px;font-size:10px;font-family:var(--mono);color:var(--text3);
+  padding-top:4px;font-size:11px;font-family:var(--mono);color:var(--text3);
 }
 .day-col{flex:1;border-right:1px solid var(--border);position:relative;min-height:900px;background:rgba(255,255,255,.35);}
 .day-col.today{background:linear-gradient(180deg,rgba(205,246,73,.13),rgba(255,255,255,.48) 22%,rgba(255,255,255,.35));}
@@ -208,11 +208,11 @@ a{text-decoration:none;color:inherit;}
   transform:translate(-50%,-150%);display:none;
 }
 .cb-title{font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cb-meta{font-size:9px;color:rgba(255,255,255,.82);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cb-time{font-size:9px;font-family:var(--mono);color:rgba(255,255,255,.76);margin-top:1px;}
-.slot-action{margin-top:4px;padding:3px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.58);background:rgba(255,255,255,.18);color:#fff;font:800 10px var(--font);cursor:pointer;width:100%;}
+.cb-meta{font-size:11px;color:rgba(255,255,255,.82);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cb-time{font-size:11px;font-family:var(--mono);color:rgba(255,255,255,.76);margin-top:1px;}
+.slot-action{margin-top:4px;padding:3px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.58);background:rgba(255,255,255,.18);color:#fff;font:800 11px var(--font);cursor:pointer;width:100%;}
 .slot-action.live{background:rgba(255,78,0,.25);}
-.slot-once{position:absolute;top:4px;right:5px;font-size:9px;background:rgba(36,40,44,.25);color:#fff;padding:1px 5px;border-radius:4px;font-weight:650;}
+.slot-once{position:absolute;top:4px;right:5px;font-size:11px;background:rgba(36,40,44,.25);color:#fff;padding:1px 5px;border-radius:4px;font-weight:650;}
 .cls-block.light{border-left-color:rgba(36,40,44,.28);}
 .cls-block.light .cb-title{color:#24282C;}
 .cls-block.light .cb-meta{color:rgba(36,40,44,.74);}
@@ -235,7 +235,7 @@ a{text-decoration:none;color:inherit;}
 .up-next.is-live{color:#fff;border-color:transparent;}
 .up-next.is-live{background:linear-gradient(135deg,#5D614B,#FF4E00);box-shadow:0 8px 24px rgba(255,78,0,.30);}
 .up-next.empty{background:var(--card);color:var(--text2);border:1px dashed var(--border2);box-shadow:none;}
-.un-eyebrow{font-size:9.5px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);opacity:.72;display:flex;align-items:center;gap:6px;}
+.un-eyebrow{font-size:11px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);opacity:.72;display:flex;align-items:center;gap:6px;}
 .un-live-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse-dot 1.2s infinite;}
 .un-title{font-size:15px;font-weight:650;margin-top:6px;line-height:1.25;}
 .un-when{font-size:12.5px;font-weight:650;margin-top:4px;}
@@ -257,9 +257,9 @@ a{text-decoration:none;color:inherit;}
 .week-brief-wrap{padding:0 14px 8px;}
 .week-brief{border:1px solid var(--border);border-radius:16px;padding:14px;background:linear-gradient(145deg,#fff,#F6F6EF);box-shadow:0 10px 24px rgba(36,40,44,.07);}
 .wb-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
-.wb-kicker{font:800 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
+.wb-kicker{font:800 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
 .wb-title{font-size:14px;font-weight:700;color:var(--text);margin-top:4px;letter-spacing:-.02em;}
-.wb-status{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:rgba(205,246,73,.18);color:var(--accent);font-size:10px;font-weight:650;white-space:nowrap;}
+.wb-status{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:rgba(205,246,73,.18);color:var(--accent);font-size:11px;font-weight:650;white-space:nowrap;}
 .wb-status.warn{background:#F6F6EF;color:#24282C;}
 .wb-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:13px;}
 .wb-metric{min-width:0;padding:9px 7px;border-radius:10px;background:#fff;border:1px solid rgba(93,97,75,.1);text-align:center;}
@@ -267,9 +267,9 @@ a{text-decoration:none;color:inherit;}
 /* Было white-space:nowrap: «Boards linked» шире плитки на 7px и обрезалось
    по краю, показывая «Boards linke». Плитки в ряду равной ширины, длина
    подписи у них разная - значит переносим, а не режем. */
-.wb-lbl{font-size:9px;font-weight:600;color:var(--text3);margin-top:2px;line-height:1.25;}
+.wb-lbl{font-size:11px;font-weight:600;color:var(--text3);margin-top:2px;line-height:1.25;}
 .wb-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:13px;}
-.wb-day{min-width:0;border:0;background:transparent;padding:0;cursor:pointer;text-align:center;color:var(--text3);font:700 9px var(--mono);}
+.wb-day{min-width:0;border:0;background:transparent;padding:0;cursor:pointer;text-align:center;color:var(--text3);font:700 11px var(--mono);}
 .wb-day:focus-visible{outline:2px solid var(--accent2);outline-offset:3px;border-radius:7px;}
 .wb-day-label{display:block;margin-bottom:5px;}
 .wb-bar{display:block;height:28px;border-radius:7px;background:rgba(93,97,75,.09);overflow:hidden;position:relative;}
@@ -314,7 +314,7 @@ a{text-decoration:none;color:inherit;}
 .lesson-preset:hover{border-color:rgba(205,246,73,.9);background:#fff;transform:translateY(-1px);}
 .lesson-preset:focus-visible{outline:2px solid #24282C;outline-offset:2px;box-shadow:0 0 0 5px rgba(205,246,73,.55);}
 .lesson-preset-title{display:block;font-size:12px;font-weight:700;color:var(--text);}
-.lesson-preset-sub{display:block;font-size:10px;color:var(--text3);margin-top:3px;line-height:1.25;}
+.lesson-preset-sub{display:block;font-size:11px;color:var(--text3);margin-top:3px;line-height:1.25;}
 .color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
 .day-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}
 .day-chip{min-width:48px;height:38px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:#F6F6EF;color:var(--text2);font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .15s;}
@@ -394,7 +394,7 @@ a{text-decoration:none;color:inherit;}
     border:1px solid rgba(205,246,73,.14);
     box-shadow:0 18px 40px rgba(36,40,44,.08);
   }
-  .mobile-schedule-eyebrow{font-size:10px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+  .mobile-schedule-eyebrow{font-size:11px;font-weight:650;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
   .mobile-schedule-title{font-size:24px;font-weight:700;color:var(--text);line-height:1.05;letter-spacing:-.04em;}
   .mobile-schedule-copy{margin-top:8px;font-size:13px;color:var(--text2);line-height:1.55;}
   .mobile-schedule-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
@@ -429,13 +429,13 @@ a{text-decoration:none;color:inherit;}
 /* Lesson balances: package, paid?, and what happened at each lesson */
 .bal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
 .bal-head .side-label{margin:0}
-.bal-link{border:0;background:transparent;color:var(--text2);font:600 10.5px var(--font);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.bal-link{border:0;background:transparent;color:var(--text2);font:600 11px var(--font);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .bal-link:hover{color:var(--text)}
 .bal-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;margin-bottom:6px}
 .bal-row.zero{border-color:#E5543A;background:#FFF1EE}
 .bal-row.low{border-color:#E0A21B;background:#FFF9E8}
 .bal-name{flex:1;min-width:0;font-size:12px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bal-name small{display:block;font-size:10px;font-weight:600;color:var(--text3)}
+.bal-name small{display:block;font-size:11px;font-weight:600;color:var(--text3)}
 .bal-left{border:0;background:rgba(36,40,44,.07);border-radius:999px;padding:3px 9px;font:750 11px var(--mono);color:var(--text);cursor:pointer}
 .bal-row.zero .bal-left{background:#E5543A;color:#fff}
 .bal-row.low .bal-left{background:#F5D27A}
@@ -456,7 +456,7 @@ a{text-decoration:none;color:inherit;}
 .lesson-status button{flex:1 1 auto;border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 10px;font:650 12px var(--font);color:var(--text);cursor:pointer}
 .lesson-status button:hover{border-color:var(--text)}
 .lesson-status button.on{background:#24282C;border-color:#24282C;color:#fff}
-.cb-stu{font-size:9px;font-weight:700;margin-top:2px;color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-stu{font-size:11px;font-weight:700;margin-top:2px;color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cls-block.light .cb-stu{color:rgba(36,40,44,.86)}
 .cls-block.compact .cb-stu{display:none}
 .cls-block.st-present::after,.cls-block.st-no_show::after,.cls-block.st-cancelled::after{content:'';position:absolute;right:6px;bottom:5px;width:16px;height:16px;border-radius:50%;background:#fff center/10px no-repeat}
@@ -471,10 +471,10 @@ a{text-decoration:none;color:inherit;}
 .lesson-done button.main{background:#CDF649;color:#24282C}
 .lesson-done button:hover{filter:brightness(1.12)}
 </style>
-<script src="theme.js?v=1156" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1156">
-<link rel="stylesheet" href="styles/harmony.css?v=1156">
-<link rel="stylesheet" href="styles/unify.css?v=1156">
+<script src="theme.js?v=1157" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1157">
+<link rel="stylesheet" href="styles/harmony.css?v=1157">
+<link rel="stylesheet" href="styles/unify.css?v=1157">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -506,23 +506,23 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
-<link rel="stylesheet" href="styles/tool-window.css?v=1156">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1157">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1157">
+<link rel="stylesheet" href="styles/tool-window.css?v=1157">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
-<link rel="stylesheet" href="styles/controls.css?v=1156">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=1156">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1157">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1157">
+<link rel="stylesheet" href="styles/controls.css?v=1157">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=1157">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1156">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1156">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1156">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1156">
-<link rel="stylesheet" href="styles/toast.css?v=1156">
+<link rel="stylesheet" href="styles/polish.css?v=1157">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1157">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1157">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1157">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1157">
+<link rel="stylesheet" href="styles/toast.css?v=1157">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1156">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1157">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -549,7 +549,7 @@ a{text-decoration:none;color:inherit;}
 
 <!-- Navbar -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1156" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1157" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -728,7 +728,7 @@ a{text-decoration:none;color:inherit;}
     <!-- Several days at once: a class that runs on Tuesday and Friday is two
          weekly slots, and picking them here saves filling the form twice. -->
     <div class="form-group" id="f-days-group" style="margin-bottom:14px">
-      <label class="form-label">Days <span style="font-size:10px;color:var(--text3);font-weight:600;">(pick one or several)</span></label>
+      <label class="form-label">Days <span style="font-size:11px;color:var(--text3);font-weight:600;">(pick one or several)</span></label>
       <div class="day-chips" id="f-days" role="group" aria-label="Days of the week"></div>
       <select class="form-select" id="f-day" hidden aria-hidden="true" tabindex="-1">
         <option value="0">Monday</option><option value="1">Tuesday</option>
@@ -750,7 +750,7 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="form-group" id="f-student-wrap" style="margin-bottom:14px" hidden>
-      <label class="form-label">Student <span style="font-size:10px;color:var(--text3);font-weight:600;">(a finished lesson comes off their package)</span></label>
+      <label class="form-label">Student <span style="font-size:11px;color:var(--text3);font-weight:600;">(a finished lesson comes off their package)</span></label>
       <select class="form-select" id="f-student" onchange="onStudentPick(this)"><option value="">- None -</option></select>
     </div>
     <div class="form-group" id="f-status-wrap" style="margin-bottom:14px" hidden>
@@ -787,7 +787,7 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="form-group" style="margin-bottom:14px">
-      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting URL <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional - Zoom or Meet link)</span></label>
+      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting URL <span style="font-size:11px;color:var(--text3);font-weight:600;">(optional - Zoom or Meet link)</span></label>
       <input class="form-input" id="f-meeting-url" type="url" placeholder="https://meet.google.com/… or https://zoom.us/j/…" oninput="syncMeetingDefault()">
       <label class="meet-default">
         <input type="checkbox" id="f-meeting-default" onchange="toggleMeetingDefault(this.checked)">
@@ -796,7 +796,7 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="form-group" style="margin-bottom:14px">
-      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Lesson board <span style="font-size:10px;color:var(--text3);font-weight:600;">(optional - open this board from the class)</span></label>
+      <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Lesson board <span style="font-size:11px;color:var(--text3);font-weight:600;">(optional - open this board from the class)</span></label>
       <select class="form-select" id="f-board"><option value="">- None -</option></select>
     </div>
 
@@ -820,7 +820,7 @@ a{text-decoration:none;color:inherit;}
 
     <!-- Student timezone preview -->
     <div id="f-tz-preview" style="display:none;margin-bottom:14px;padding:10px 12px;border-radius:10px;background:rgba(205,246,73,.06);border:1px solid rgba(205,246,73,.15);">
-      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--mono);">Student time zones</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--mono);">Student time zones</div>
       <div id="f-tz-preview-list" style="font-size:12px;color:var(--text2);line-height:1.6;"></div>
     </div>
 
@@ -834,7 +834,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=1156"></script>
+<script src="scripts/app-core.js?v=1157"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -930,7 +930,7 @@ function renderStudentZonesSidebar() {
   container.style.display = 'block';
   const { describeTimeZoneDifference } = window.TeachEdApp;
   container.innerHTML = `
-    <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--mono);">Student time zones</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--mono);">Student time zones</div>
     ${otherZones.map(z => {
       const diff = describeTimeZoneDifference(teacherZone, z.timezone, new Date(), {
         sameLabel: 'same time',
@@ -942,9 +942,9 @@ function renderStudentZonesSidebar() {
       return `<div style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;margin-bottom:4px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:11px;font-weight:650;color:var(--text);">${z.timezone.split('/').pop().replace(/_/g,' ')}</span>
-          <span style="font-size:10px;font-weight:600;color:var(--accent);font-family:var(--mono);">${diff}</span>
+          <span style="font-size:11px;font-weight:600;color:var(--accent);font-family:var(--mono);">${diff}</span>
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${localNow} · ${names}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">${localNow} · ${names}</div>
       </div>`;
     }).join('')}`;
 }
@@ -978,7 +978,7 @@ function renderModalTzPreview() {
     const names = z.sample_names.slice(0, 2).join(', ') + (z.student_count > 2 ? ` +${z.student_count - 2}` : '');
     const zoneName = z.timezone.split('/').pop().replace(/_/g, ' ');
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;">
-      <span>${zoneName} <span style="color:var(--text3);font-size:10px;">(${names})</span></span>
+      <span>${zoneName} <span style="color:var(--text3);font-size:11px;">(${names})</span></span>
       <span style="font-weight:650;font-family:var(--mono);font-size:11px;">${studentStart} - ${studentEnd}</span>
     </div>`;
   }).join('');
@@ -2125,7 +2125,7 @@ function renderSideList() {
     el.innerHTML = `
       <div class="cls-dot" style="background:${slotColor(slot)};${slot.is_live?'box-shadow:0 0 0 3px rgba(255,78,0,.4);':''}"></div>
       <div class="cls-info">
-        <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:10px;color:#24282C;font-weight:650;">LIVE</span>':''}${slot.specific_date?'<span style="font-size:9px;background:rgba(205,246,73,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600;">Once</span>':''}</div>
+        <div class="cls-title">${esc(slot.title)}${slot.is_live?' <span style="font-size:11px;color:#24282C;font-weight:650;">LIVE</span>':''}${slot.specific_date?'<span style="font-size:11px;background:rgba(205,246,73,.1);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600;">Once</span>':''}</div>
         <div class="cls-meta">${dateLabel} ${slot.start_time.slice(0,5)}-${slot.end_time.slice(0,5)}${slot.group_name?' · '+esc(slot.group_name):''}${slotMeetingUrl(slot)?' · ':''}</div>
       </div>
       <button class="cls-del" onclick="deleteClass(event,'${slot.id}')">×</button>`;
@@ -2533,16 +2533,16 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="scripts/schedule-booking.js?v=1156"></script>
-<script src="pwa.js?v=1156"></script>
-<script src="scripts/nav-boost.js?v=1156" defer></script>
-<script src="scripts/mobile-perf.js?v=1156" defer></script>
-<script src="scripts/mobile-nav.js?v=1156"></script>
-<script src="scripts/autogrow.js?v=1156" defer></script>
-<script src="pwa-boot.js?v=1156" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1156" defer></script>
-  <script src="scripts/signin-entry.js?v=1156" defer></script>
-<script src="scripts/nav-bell.js?v=1156" defer></script>
+<script src="scripts/schedule-booking.js?v=1157"></script>
+<script src="pwa.js?v=1157"></script>
+<script src="scripts/nav-boost.js?v=1157" defer></script>
+<script src="scripts/mobile-perf.js?v=1157" defer></script>
+<script src="scripts/mobile-nav.js?v=1157"></script>
+<script src="scripts/autogrow.js?v=1157" defer></script>
+<script src="pwa-boot.js?v=1157" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1157" defer></script>
+  <script src="scripts/signin-entry.js?v=1157" defer></script>
+<script src="scripts/nav-bell.js?v=1157" defer></script>
 <div class="lesson-done" id="lesson-done" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

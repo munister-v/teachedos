@@ -936,7 +936,7 @@ function renderPresetBar() {
   if (!presetList || !presetList.length) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
   chips.innerHTML = presetList.map((p, i) =>
-    `<div class="preset-chip" onclick="applyPreset(${i})">${esc(p.name)} <span style="opacity:.5;font-size:10px">${esc(p.level)}</span></div>`
+    `<div class="preset-chip" onclick="applyPreset(${i})">${esc(p.name)} <span style="opacity:.5;font-size:11px">${esc(p.level)}</span></div>`
   ).join('');
 }
 
