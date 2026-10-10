@@ -75,13 +75,22 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
 /* on a phone the top bar is sticky, which already anchors ::before */
 @media (min-width:861px){ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .topbar{position:relative} }
 
-/* Windows and widgets hold small grey text: a little more body, so a dark
-   photo behind does not swallow it. Student Pulse keeps its pink, as glass. */
+/* Windows and widgets hold small grey text and overlap each other. At .6 the
+   lime and blue tiles of the window behind bled through as blobs, and a dark
+   wallpaper turned the lower half of a window grey (10.10.2026). So they are
+   frosted paper, not clear glass: almost opaque, with a heavy blur that only
+   leaves a hint of colour at the edges. Student Pulse keeps its pink. */
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.widget, .win){
-  background:var(--lg-sheen),rgba(255,255,255,.6) !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 40%),rgba(252,252,249,.9) !important;
+  -webkit-backdrop-filter:blur(40px) saturate(1.3) !important;backdrop-filter:blur(40px) saturate(1.3) !important;
+  border:1px solid rgba(255,255,255,.8) !important;
+  box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(36,40,44,.06),0 24px 60px -24px rgba(18,20,24,.45),0 3px 10px rgba(18,20,24,.08) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .win{
+  background:rgba(253,253,251,.97) !important;
 }
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #wg-pulse{
-  background:var(--lg-sheen),rgba(250,222,222,.66) !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0) 45%),rgba(252,233,233,.95) !important;
 }
 
 /* ── regular: menus, popovers ─────────────────────────────────────────── */
