@@ -399,6 +399,7 @@ const WM = (function () {
         const off = (cascade++ % 6) * 18;
         if (!win.style.left) win.style.left = (r.left + off) + 'px';
         if (!win.style.top)  win.style.top  = (r.top  + off) + 'px';
+        fitHeight(win);
       }
       /* Открытие из дока - окно вырастает из своей иконки, как в macOS;
          без видимой иконки (телефон, скрытый док) - прежнее появление. */
@@ -487,6 +488,36 @@ const WM = (function () {
        вьюпорте: переводим, иначе окно уезжало под строку меню. */
     const pr = win && win.offsetParent ? win.offsetParent.getBoundingClientRect() : { left: 0, top: 0 };
     return { x: Math.round(GAP - pr.left), y: Math.round(top - pr.top), w: Math.round(window.innerWidth - GAP * 2), h: Math.round(bottom - top) };
+  }
+
+  /* Window heights in index.html were set for a 768-px laptop, so on a taller
+     screen a window ended halfway down with its content cut by the scroll
+     fade - one row of boards and a crop of the next (10.10.2026). A window
+     with no saved size now reaches down to the dock, within a cap (the boards
+     list stays compact, see COMPACT), and shrinks on a short screen. */
+  const FIT_CAP = { plans: 680 };
+  function fitHeight(win) {
+    if (!win || win.classList.contains('maximized')) return;
+    const a = workArea(win);
+    const top = parseFloat(win.style.top) || win.getBoundingClientRect().top;
+    /* and stops above a widget that sits under it (Student Pulse lives under
+       the boards window) - a window may be dragged over it, but should not
+       open on top of it */
+    const pr = win.offsetParent ? win.offsetParent.getBoundingClientRect() : { left: 0, top: 0 };
+    const left = (parseFloat(win.style.left) || 0) + pr.left, right = left + win.offsetWidth;
+    let bottom = a.y + a.h;
+    document.querySelectorAll('.widget').forEach(w => {
+      if (!w.getClientRects().length) return;
+      const r = w.getBoundingClientRect();
+      /* a widget pinned to the bottom grows upward as it loads: reserve its ceiling */
+      const cs = getComputedStyle(w), mh = parseFloat(cs.maxHeight);
+      const wTop = cs.top === 'auto' || (isFinite(mh) && cs.bottom !== 'auto') ? Math.min(r.top, r.bottom - (isFinite(mh) ? mh : r.height)) : r.top;
+      if (r.width && r.right > left && r.left < right && wTop - pr.top > top + MIN_H) bottom = Math.min(bottom, wTop - pr.top - 14);
+    });
+    const avail = Math.round(bottom - top);
+    if (avail <= 0) return;
+    const cap = FIT_CAP[idOf(win)] || 760;
+    win.style.height = Math.max(MIN_H, Math.min(cap, avail)) + 'px';
   }
 
   /* Плавная смена геометрии (развернуть / вернуть / прилипнуть): класс
@@ -781,7 +812,7 @@ const WM = (function () {
     document.querySelectorAll('.win').forEach(attachHandles);
     // Restore previously-saved geometry for any window opened on load
     document.querySelectorAll('.win.open').forEach(win => {
-      applyGeom(idOf(win));
+      if (!applyGeom(idOf(win))) fitHeight(win);
       focus(idOf(win));
     });
   }
@@ -1765,7 +1796,10 @@ function boardsRender() {
   }
 
   const escB = v => String(v ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
-  grid.innerHTML = list.map(b => {
+  /* A new board is one click from the list itself, not only from the header button. */
+  const newTile = boardsFilterMode === 'shared' || q ? '' :
+    `<a class="bd-new" href="board.html" onclick="createBoardFromDesktop(event)"><span class="bd-new-plus" aria-hidden="true">+</span><span class="bd-new-label">New board</span></a>`;
+  grid.innerHTML = newTile + list.map(b => {
     const cards = b.card_count || 0;
     const updated = b.updated_at ? new Date(b.updated_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
     const owner = b.owner_name ? `<div class="lc-desc">Shared by ${escB(b.owner_name)}</div>` : '';
@@ -2796,13 +2830,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1161" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1162" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1161" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1162" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

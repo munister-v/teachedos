@@ -225,6 +225,24 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-body { padding:10px 2px 0 !important; background:transparent !important; border:0 !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .lc-title { font-size:15px !important; font-weight:600 !important; color:#1C1C1E !important; margin:0 0 2px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card :is(.lc-meta,.lc-dur,.lc-desc) { font-size:12px !important; color:#8E8E93 !important; background:none !important; padding:0 !important; border:0 !important; }
+/* the cover lifts on hover, like a card picked up; the title stays one line */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-cover { box-shadow:0 1px 2px rgba(18,20,24,.06); transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card:hover .bd-cover { transform:translateY(-3px); box-shadow:0 14px 28px -14px rgba(18,20,24,.4), 0 2px 6px rgba(18,20,24,.08); }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .lc-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card:hover .lc-title { text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px; }
+/* "New board" - the first tile, the size of a cover */
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-new {
+  aspect-ratio:16 / 10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  border:1.5px dashed rgba(36,40,44,.2) !important; border-radius:12px !important; background:rgba(36,40,44,.025) !important;
+  box-shadow:none !important; padding:0 !important; min-height:0 !important; height:auto !important; box-sizing:border-box;
+  color:#5C5C66; font-size:13.5px; font-weight:600; text-decoration:none; transition:background .2s ease, border-color .2s ease, color .2s ease;
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-new-plus {
+  width:40px; height:40px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+  background:#CDF649; color:#24282C; font-size:24px; font-weight:500; line-height:1; transition:transform .22s cubic-bezier(.2,.8,.2,1);
+}
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-new:hover { background:rgba(205,246,73,.14) !important; border-color:rgba(36,40,44,.34) !important; color:#24282C; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-new:hover .bd-new-plus { transform:scale(1.08); }
 
 /* ── Notes: a plain list on the left, a calm page on the right ──
    One "+ New Note" capsule on top, then rows of title + first line · date;

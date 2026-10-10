@@ -73,13 +73,13 @@ function humanError(e) {
     <!-- Титульная полоса как у окон рабочего стола: вход перестал быть
          «ещё одной карточкой по центру» и читается как окно TeachEd. -->
     <div class="auth-titlebar">
-      <img class="auth-tb-logo" src="logo-sm.png?v=1161" alt="" width="20" height="20" aria-hidden="true">
+      <img class="auth-tb-logo" src="logo-sm.png?v=1162" alt="" width="20" height="20" aria-hidden="true">
       <span class="auth-tb-name">TeachEd</span>
       <button type="button" class="auth-close" aria-label="Close sign-in" onclick="closeAuthModal()">×</button>
     </div>
     <div class="auth-body">
     <div class="auth-head">
-      <img class="auth-logo" src="logo-sm.png?v=1161" alt="TeachEd" width="48" height="48">
+      <img class="auth-logo" src="logo-sm.png?v=1162" alt="TeachEd" width="48" height="48">
       <div id="auth-title" class="auth-title">Sign in to your workspace</div>
       <div id="auth-subtitle" class="auth-sub">Lessons, boards and games in one place</div>
     </div>

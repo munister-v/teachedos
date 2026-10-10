@@ -506,6 +506,11 @@ body.fx.os-desktop:not(#_) :is(.widget .fx-btn, .wg-vocab-next, .wg-next-launch)
 body.fx.os-desktop:not(#_) .wg-next-launch:disabled { background:rgba(36,40,44,.08) !important; color:#8A8D7A !important; box-shadow:none !important; }
 body.fx.os-desktop:not(#_) .wg-next-time { font-size:40px !important; letter-spacing:-.04em !important; font-weight:750 !important; }
 body.fx.os-desktop:not(#_) #wg-pulse { width:320px !important; }
+/* A fixed ceiling: the widget grows upward from the dock, and the boards
+   window above it is sized to stop at that ceiling (fitHeight in
+   desktop-app.js). More items scroll inside. */
+body.fx.os-desktop:not(#_) #wg-pulse { max-height:236px !important; }
+body.fx.os-desktop:not(#_) #wg-pulse .wg-pulse-list { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
 body.fx.os-desktop:not(#_) .wg-pulse-head { margin-bottom:10px !important; }
 body.fx.os-desktop:not(#_) .wg-pulse-all { font-size:12px !important; font-weight:600 !important; color:#24282C !important; text-decoration:none !important;
   padding:4px 10px !important; border-radius:999px !important; background:rgba(36,40,44,.06) !important; margin-left:auto !important; }
