@@ -51,6 +51,8 @@
   background:linear-gradient(0deg, rgba(36,40,44,var(--tcv-shade,.3)), rgba(36,40,44,calc(var(--tcv-shade,.3) * .55)));
 }
 .tcv-photo .tcv-title { text-shadow:0 .4cqw 2cqw rgba(0,0,0,.28); }
+/* light text on a light colour (lesson-cover.js adds tcv-lift) */
+.tcv-lift :is(.tcv-title, .tcv-sub, .tcv-kind) { text-shadow:0 .3cqw 1.6cqw rgba(16,24,48,.38), 0 0 .6cqw rgba(16,24,48,.18); }
 
 /* Patterns: drawn in --tcv-accent over the base colour. Simple ones are
    gradients, shaped ones an SVG mask filled with the accent. */

@@ -170,7 +170,7 @@
     const state = a => window.HwState ? window.HwState.of(a) : { key: '', badge: null, action: 'Open →', note: '', pct: 0 };
     const badge = a => {
       const s = state(a);
-      if (s.badge) return `<span class="st-badge ${s.badge.cls}">${esc(s.badge.text)}</span>`;
+      if (s.badge) return `<span class="st-badge ${s.badge.cls}" title="${esc(s.badge.text)}">${esc(s.badge.short || s.badge.text)}</span>`;
       if (s.key === 'IN_PROGRESS') return `<span class="te-badge">${esc(s.note)}</span>`;
       if (!a.due_at) return '<span class="te-badge">No deadline</span>';
       const t = new Date(a.due_at).getTime(), left = t - now;
@@ -600,6 +600,9 @@
     profile();
     const a = $('te-board');
     if (a && boardList[0]) { a.href = 'board.html?id=' + encodeURIComponent(boardList[0].id); a.hidden = false; }
+    // the same board in the phone tab bar
+    const m = $('mtab-board');
+    if (m && boardList[0]) { m.href = 'board.html?id=' + encodeURIComponent(boardList[0].id); m.hidden = false; }
   }
 
   function init() {

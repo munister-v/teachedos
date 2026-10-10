@@ -25,7 +25,7 @@
     home:     ['index', 'community', 'lesson-packs'],
     board:    ['board', 'courses', 'game-builder'],
     schedule: ['schedule'],
-    progress: ['gradebook', 'analytics', 'journal', 'student', 'homework'],
+    progress: ['gradebook', 'analytics', 'journal', 'homework'],
     profile:  ['profile'],
   };
 
@@ -36,6 +36,11 @@
 
   // board.html has its own bottom quickbar - skip the global mob-nav there.
   if (page === 'board') return;
+  /* The student's cabinet has its own tab bar (#mobile-tabs: Home, My board,
+     Words, Progress). This bar is the teacher's - Home is the teacher's
+     desktop, Progress the teacher's gradebook - and on student.html it covered
+     the student's own and sent students to teacher pages (since 2026-05). */
+  if (page === 'student') return;
   var activeId = PAGE_MAP[page] || '';
 
   var TABS = [

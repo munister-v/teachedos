@@ -34,9 +34,10 @@
           : `Auto-saved ${at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, ${time}`;
       }
     }
-    else if (key === 'SUBMITTED') { badge = { cls: 'pending', text: '⏳ Pending teacher review' }; action = 'View my work'; }
+    else if (key === 'SUBMITTED') { badge = { cls: 'pending', text: '⏳ Pending teacher review', short: '⏳ In review' }; action = 'View my work'; }
     else {
-      badge = fresh ? { cls: 'feedback', text: '💬 Feedback available' } : { cls: 'reviewed', text: '✓ Reviewed' };
+      // short: for narrow rows (the cabinet's Homework widget), so the title keeps its room
+      badge = fresh ? { cls: 'feedback', text: '💬 Feedback available', short: '💬 Feedback' } : { cls: 'reviewed', text: '✓ Reviewed', short: '✓ Reviewed' };
       action = voice ? '🎧 Listen to voice feedback' : 'Read review';
     }
     const line = [note, saved].filter(Boolean).join(' · ');

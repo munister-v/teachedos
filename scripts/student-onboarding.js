@@ -40,7 +40,7 @@
     st.id = 'so-css';
     st.textContent = `
 .so-ov{position:fixed;inset:0;z-index:5200;display:grid;place-items:center;padding:16px;background:rgba(24,26,30,.42);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);font-family:var(--font,inherit)}
-.so-card{position:relative;width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.8);border-radius:28px;padding:26px 26px 22px;box-shadow:0 40px 100px -30px rgba(0,0,0,.5);color:#24282C}
+.so-card{position:relative;width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#fff;border:1px solid rgba(255,255,255,.8);border-radius:28px;padding:26px 26px 22px;box-shadow:0 40px 100px -30px rgba(0,0,0,.5);color:#24282C}
 .so-steps{display:flex;gap:6px;margin-bottom:18px}
 .so-steps i{flex:1;height:4px;border-radius:4px;background:rgba(36,40,44,.1)}
 .so-steps i.on{background:#24282C}

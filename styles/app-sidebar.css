@@ -83,8 +83,12 @@ body.tw-page:not(#s1):not(#s2):not(#s3) #nav .nav-link.active {
 }
 body.tw-page:not(#s1):not(#s2):not(#s3) #nav .nav-spacer { flex:1 1 auto !important; }
 
+/* relative, not static: the unread badge (#nav .nb-badge, absolute) anchors to
+   the bell. With static it anchored to the page and sat half off-screen in the
+   top-right corner of every tool page. Relative keeps the bell where static
+   put it. */
 body.tw-page:not(#s1):not(#s2):not(#s3) #nav .nb-bell {
-  position:static !important;
+  position:relative !important;
   order:5;
   width:34px !important; height:34px !important;
   margin:0 4px 0 0 !important;

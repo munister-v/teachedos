@@ -142,6 +142,11 @@
     const ink = c.ink;
     let bg = '';
     const cls = ['tcv-cover', `tcv-font-${c.font}`, `tcv-align-${c.align}`];
+    /* White text on a light ground (white on the sky blue #6BAFF3 is 2.8:1)
+       gets a soft shadow under it, as photo covers already do. */
+    const lum = hex => { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return null; const n = parseInt(m[1], 16); const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(n >> 16) + 0.7152 * f((n >> 8) & 255) + 0.0722 * f(n & 255); };
+    const inkL = lum(ink), groundL = c.style === 'gradient' ? Math.max(lum(c.bg) || 0, lum(c.bg2) || 0) : lum(c.bg);
+    if (c.style !== 'photo' && c.style !== 'upload' && inkL != null && groundL != null && inkL > 0.6 && (inkL + 0.05) / (groundL + 0.05) < 3.2) cls.push('tcv-lift');
     if (c.style === 'color') bg = `background:${c.bg};`;
     else if (c.style === 'gradient') bg = `background:linear-gradient(135deg,${c.bg},${c.bg2});`;
     else if (c.style === 'pattern') { bg = `background:${c.bg};--tcv-accent:${c.accent};`; cls.push('tcv-pattern', `tcv-p-${c.pattern}`); }

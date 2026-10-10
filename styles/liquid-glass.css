@@ -134,8 +134,9 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
   -webkit-backdrop-filter:blur(3px) !important;backdrop-filter:blur(3px) !important;
 }
 /* graphite board: the islands turn dark glass, otherwise their light text
-   (board-harmony.css flips it for the dark canvas) sat on pale glass */
-html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-canvas-dark :where(#toolbar .tb-island, #zoom-controls, #minimap){
+   (board-harmony.css flips it for the dark canvas) sat on pale glass. The AI
+   pill ("Tell the board what to do") is flipped there too and was missing. */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-canvas-dark :where(#toolbar .tb-island, #zoom-controls, #minimap, #board-agent-pill){
   background:var(--lg-sheen-dark),var(--lg-fill-dark) !important;
   border:var(--lg-border-dark) !important;
   -webkit-backdrop-filter:var(--lg-blur-dark) !important;backdrop-filter:var(--lg-blur-dark) !important;
@@ -173,12 +174,22 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
     background:rgba(255,255,255,.75);box-shadow:inset 0 1px 0 #fff,0 2px 8px -2px rgba(18,20,24,.18);
   }
   html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs .mtab{isolation:isolate}
+  /* labels at the project's 11px floor (they were 9px caps); "My board" is a
+     link that stays hidden until the board is known - .mtab's display:flex
+     would otherwise override [hidden] */
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs .mtab{font-size:11px;letter-spacing:0;text-transform:none;text-decoration:none}
+  html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .mobile-tabs .mtab[hidden]{display:none}
 }
 
 /* ── the ambient behind pages without a wallpaper ─────────────────────── */
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page, .lg-page, .lg-cabinet:not(.sw-has)){
   background:var(--lg-ambient) fixed !important;
 }
+
+/* the page wrappers on tool pages are see-through: an opaque #main-content
+   was a square sheet of page colour under the glass cards, its straight
+   bottom and right edges showing against the ambient (profile.html) */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body:where(.tw-page) :where(#main-content, main.page-wrap){background:transparent !important}
 
 /* ── teacher's tool pages (tool-window.css: homework, schedule, journal,
    gradebook, analytics, courses, community, lesson packs, profile, the
