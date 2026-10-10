@@ -151,14 +151,22 @@
      and the button becomes "Listen to voice feedback" / "Read review". A new
      review comes first, then what is still to do, then what waits for the
      teacher. */
-  let hwTodo = null, hwAll = null;
+  let hwTodo = null, hwAll = null, hwFailed = false;
+  /* Shown instead of "Looking for your tasks…" when the inbox did not load:
+     that line used to stay for good. */
+  const hwRetry = '<div class="te-sub">Could not load your tasks. <button type="button" class="te-retry" data-hw-retry>Try again</button></div>';
+  document.addEventListener('click', e => {
+    if (!e.target.closest || !e.target.closest('[data-hw-retry]')) return;
+    hwFailed = false; homework();
+    if (typeof window.loadHomework === 'function') window.loadHomework();
+  });
   const freshFeedback = () => (hwAll || []).filter(a => a.status === 'graded' && !a.feedback_seen_at);
   function homework() {
     const box = $('te-hw');
     if (!box) return;
     focus();
     tasks();
-    if (hwTodo == null) { box.innerHTML = '<div class="te-k">Homework</div><div class="te-sub">Looking for your tasks…</div>'; return; }
+    if (hwTodo == null) { box.innerHTML = '<div class="te-k">Homework</div>' + (hwFailed ? hwRetry : '<div class="te-sub">Looking for your tasks…</div>'); return; }
     const fresh = freshFeedback();
     const pending = (hwAll || []).filter(a => a.status === 'submitted');
     if (!hwTodo.length && !fresh.length && !pending.length) {
@@ -293,7 +301,7 @@
         <span class="te-task-go">${a.status === 'in_progress' ? 'Continue' : 'Start'}</span></a>`;
     };
     box.innerHTML = `<div class="te-k">Teacher's tasks${todo.length ? ` · ${todo.length}` : ''}</div>
-      ${hwTodo == null ? '<div class="te-sub">Looking for your tasks…</div>'
+      ${hwTodo == null ? (hwFailed ? hwRetry : '<div class="te-sub">Looking for your tasks…</div>')
         : todo.length ? todo.slice(0, 3).map(row).join('') + (todo.length > 3 ? `<div class="te-sub">+${todo.length - 3} more</div>` : '')
         : '<div class="te-sub">Nothing to do right now. New tasks from your teacher appear here.</div>'}
       <button type="button" class="te-tasks-all" id="te-tasks-all">All tasks and results</button>`;
@@ -631,7 +639,8 @@
     vault: loadVault,
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },
-    homework(todo, all) { hwTodo = Array.isArray(todo) ? todo : []; hwAll = Array.isArray(all) ? all : hwTodo; homework(); },
+    homework(todo, all) { hwFailed = false; hwTodo = Array.isArray(todo) ? todo : []; hwAll = Array.isArray(all) ? all : hwTodo; homework(); },
+    homeworkFailed() { if (hwTodo == null) { hwFailed = true; homework(); } },
     balance(b) { Object.assign(bal, b || {}); balance(); nextLesson(); },
   };
 

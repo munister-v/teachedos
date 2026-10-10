@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1155"></script>
+<script src="scripts/phone-gate.js?v=1156"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json?v=1155">
-<link rel="icon" href="favicon.ico?v=1155" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1155">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1155">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1155">
+<link rel="manifest" href="manifest.json?v=1156">
+<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1156">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1156">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,7 +21,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 /* NAV */
 .nav{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(36,40,44,.06)}
 .nav-brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:650;font-size:1.05rem}
-.nav-brand .emoji{font-size:1.3rem}
+.nav-brand img{width:22px;height:22px;border-radius:6px;display:block}
 .nav-title{font-size:1rem;font-weight:600;color:var(--text2)}
 .nav-actions{display:flex;gap:8px}
 .btn{padding:8px 16px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:.15s}
@@ -243,22 +243,22 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
   .preview-opt{ padding:12px 14px; }
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1155">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1155">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1155">
-<link rel="stylesheet" href="styles/tool-window.css?v=1155">
+<link rel="stylesheet" href="styles/mobile.css?v=1156">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
+<link rel="stylesheet" href="styles/tool-window.css?v=1156">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1155">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1155">
-<link rel="stylesheet" href="styles/controls.css?v=1155">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
+<link rel="stylesheet" href="styles/controls.css?v=1156">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1155">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1155">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1155">
-<link rel="stylesheet" href="styles/toast.css?v=1155">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1155">
+<link rel="stylesheet" href="styles/polish.css?v=1156">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1156">
+<link rel="stylesheet" href="styles/toast.css?v=1156">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1156">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1155">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1156">
 </head>
 <body class="tw-page fx">
 <!-- Mobile: Quiz Builder is authoring-heavy → desktop only -->
@@ -269,7 +269,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <!-- NAV -->
 <nav class="nav">
-  <a class="nav-brand" href="index.html"><span class="emoji">🍋</span>TeachEd</a>
+  <a class="nav-brand" href="index.html"><img src="logo-sm.png?v=1156" alt="" width="22" height="22">TeachEd</a>
   <span class="nav-title">Quiz Builder</span>
   <div class="nav-actions">
     <button class="btn btn-outline" id="previewBtn" onclick="togglePreview()">Preview</button>
@@ -394,7 +394,7 @@ textarea:focus,input[type=text]:focus,input[type=number]:focus,select.field:focu
 
 <div class="toast" id="toast"></div>
 
-<script src="scripts/vocab-loader.js?v=1155"></script>
+<script src="scripts/vocab-loader.js?v=1156"></script>
 <script>
 // ── State ──
 let questions = [];
@@ -852,7 +852,7 @@ async function migrateLocalQuizzes(){
 bootstrap();
 setTimeout(()=>migrateLocalQuizzes().catch(()=>{}),1200);
 </script>
-<script src="scripts/autogrow.js?v=1155" defer></script>
-<script src="pwa-boot.js?v=1155" defer></script>
+<script src="scripts/autogrow.js?v=1156" defer></script>
+<script src="pwa-boot.js?v=1156" defer></script>
 </body>
 </html>

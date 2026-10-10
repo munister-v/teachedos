@@ -311,7 +311,8 @@
   box-shadow: 0 24px 64px rgba(36,40,44,.14), 0 0 0 1px rgba(255,255,255,.55), inset 0 1.5px 0 rgba(255,255,255,.85);
 }
 .auth-back {
-  display: block; text-align: center; margin-top: 18px;
+  /* 44px: a finger target, it was 16px tall */
+  display: flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 8px;
   font-size: 13px; color: var(--auth-ink3); text-decoration: none; font-weight: 600;
   transition: color .14s;
 }
@@ -380,6 +381,12 @@
   /* Логотип и слово TeachEd в полосе дублировали шапку карточки: тот же знак
      48px и название стояли на сто пикселей ниже. На телефоне оставляем один. */
   .auth-tb-logo, .auth-tb-name { display: none !important; }
+  /* Без своего знака в теле и без крестика (404.html) полоса оставалась
+     пустой белой плашкой над листом: там знак и название остаются. */
+  .auth-card:not(:has(.auth-logo, .auth-close)) :is(.auth-tb-logo, .auth-tb-name) { display: block !important; }
+  /* Со своим знаком и без крестика (reset-password, verify-email) полосе
+     нечего держать - она уходит. */
+  .auth-card:has(.auth-logo):not(:has(.auth-close)) .auth-titlebar { display: none !important; }
   /* Колонкой должно быть тело листа, а не карточка: содержимое лежит внутри
      .auth-body, поэтому margin-top:auto на .auth-toggle прежде ни на что не
      влиял и под «Register» оставалось до 270px пустоты. */

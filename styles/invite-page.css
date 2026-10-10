@@ -39,7 +39,7 @@ html::after  { width:380px; height:380px; right:-120px; bottom:-140px; backgroun
 /* ── Ink ticket ─────────────────────────────────────────────────────── */
 .ip-head { position:relative; padding:22px 26px 26px; background:var(--ip-ink); color:var(--ip-paper); }
 .ip-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; }
-.ip-logo { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; letter-spacing:-.01em; color:var(--ip-paper); text-decoration:none; }
+.ip-logo { display:flex; align-items:center; min-height:44px; gap:8px; font-size:15px; font-weight:700; letter-spacing:-.01em; color:var(--ip-paper); text-decoration:none; }
 .ip-logo img { width:24px; height:24px; content:url("../icons/mark-lime.svg"); }
 .ip-chip {
   padding:5px 11px; border-radius:999px; background:var(--ip-lime); color:var(--ip-ink);
@@ -105,6 +105,10 @@ html::after  { width:380px; height:380px; right:-120px; bottom:-140px; backgroun
   border-top:1px solid rgba(36,40,44,.08);
 }
 .ip-foot a { color:var(--ip-ink); }
+/* A finger needs ~44px. These links sat inline at 17px tall - "Sign in here"
+   is the only way on for a student who lands on mobile.html. The negative
+   margin keeps the footer's line height. */
+.ip-foot a { display:inline-flex; align-items:center; min-height:44px; padding:0 6px; margin:-12px -6px; }
 
 /* ── Form (account invite) ──────────────────────────────────────────── */
 .ip-form { display:grid; gap:14px; }

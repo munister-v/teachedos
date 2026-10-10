@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1155" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1155">
+<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
 <title>Lesson · TeachEd</title>
 <style>
   *,*::before,*::after{box-sizing:border-box}
@@ -16,7 +16,7 @@
   .lesson-nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;height:62px;padding:0 max(18px,calc((100vw - 1280px)/2));border-bottom:1px solid rgba(36,40,44,.08);background:rgba(246,246,239,.88);backdrop-filter:blur(18px) saturate(1.4)}
   .lesson-brand{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;font-size:14px;font-weight:780;letter-spacing:-.02em}.lesson-brand img{width:24px;height:24px;border-radius:7px}.lesson-nav-sep{width:1px;height:22px;background:var(--line)}
   .lesson-back{display:inline-flex;align-items:center;min-height:42px;padding:0 10px;border-radius:11px;color:#5D614B;font-size:13px;font-weight:700}.lesson-back:hover{background:rgba(36,40,44,.055)}
-  .lesson-nav-space{flex:1}.lesson-link-action{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.7);color:#5D614B;font-size:12px;font-weight:760}.lesson-link-action:hover{border-color:rgba(205,246,73,.75);background:rgba(205,246,73,.16)}
+  .lesson-nav-space{flex:1}.lesson-link-action{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.7);color:#5D614B;font-size:12px;font-weight:760}.lesson-link-action:hover{border-color:rgba(205,246,73,.75);background:rgba(205,246,73,.16)}.lesson-link-action[hidden]{display:none}
   .lesson-shell{width:min(1240px,100%);margin:0 auto;padding:28px 22px 56px}.lesson-breadcrumb{display:flex;align-items:center;gap:8px;margin:0 0 14px;color:#5D614B;font:700 11px var(--mono);letter-spacing:.035em}.lesson-breadcrumb a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
   .lesson-hero{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:28px;align-items:end;padding:30px;border:1px solid rgba(255,255,255,.7);border-radius:26px;background:radial-gradient(circle at 88% 8%,rgba(205,246,73,.3),transparent 29%),linear-gradient(135deg,#fff,#F6F6EF);box-shadow:0 16px 44px rgba(36,40,44,.08)}
   .lesson-eyebrow{margin-bottom:12px;color:#5D614B;font:800 10px var(--mono);letter-spacing:.13em;text-transform:uppercase}.lesson-title{max-width:800px;margin:0;font-size:clamp(32px,5vw,56px);line-height:.98;letter-spacing:-.055em}.lesson-description{max-width:780px;margin:16px 0 0;color:#5D614B;font-size:16px;line-height:1.55}.lesson-byline{display:flex;align-items:center;gap:8px;margin-top:18px;color:#5D614B;font-size:13px;font-weight:670}.lesson-author-mark{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;border-radius:50%;background:rgba(205,246,73,.32);color:#5D614B;font:900 10px var(--mono)}
@@ -45,23 +45,23 @@
    сильнее [hidden] - «Learners» стоял с пустым значением. */
 .detail-row[hidden] { display:none !important; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1155">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1155">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1155">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1155">
-<link rel="stylesheet" href="styles/controls.css?v=1155">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1155">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1155">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
+<link rel="stylesheet" href="styles/controls.css?v=1156">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1156">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
 </head>
 <body class="fx">
 <header class="lesson-nav">
-  <a class="lesson-brand" href="community.html"><img src="logo-sm.png?v=1155" alt="TeachEd"><span>TeachEd</span></a>
+  <a class="lesson-brand" href="community.html"><img src="logo-sm.png?v=1156" alt="TeachEd"><span>TeachEd</span></a>
   <span class="lesson-nav-sep" aria-hidden="true"></span>
   <a class="lesson-back" href="community.html">← Community</a>
   <span class="lesson-nav-space"></span>
   <button class="lesson-link-action" id="lesson-share-btn" type="button" onclick="shareLesson()" hidden>Share</button>
-  <button class="lesson-link-action" type="button" onclick="copyLessonLink()">Copy link</button>
+  <button class="lesson-link-action" id="lesson-copy-btn" type="button" onclick="copyLessonLink()">Copy link</button>
 </header>
 
 <main class="lesson-shell" id="lesson-shell">
@@ -122,8 +122,8 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=1155"></script>
-<script src="scripts/lesson-cover.js?v=1155"></script>
+<script src="scripts/app-core.js?v=1156"></script>
+<script src="scripts/lesson-cover.js?v=1156"></script>
 <script>
   const FALLBACK_COLORS = ['#F3DF6B','#49F6F0','#6BAFF3','#F6F6EF','#9F8CE8','#F3A46B'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -170,6 +170,8 @@
   function showMissingLesson(message) {
     const text = message || 'This link does not include a readable lesson snapshot. Return to Community and open the lesson again.';
     document.getElementById('lesson-loading').innerHTML = `<h1>Lesson unavailable</h1><p>${escapeHtml(text)}</p><a href="community.html">Back to Community</a>`;
+    // nothing to pass on: Share and Copy link would hand out the broken link
+    ['lesson-share-btn', 'lesson-copy-btn'].forEach(id => { const b = document.getElementById(id); if (b) b.hidden = true; });
   }
 
   function setText(id, value) {
@@ -474,6 +476,6 @@
   window.addEventListener('resize', refitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=1155" defer></script>
+  <script src="scripts/signin-entry.js?v=1156" defer></script>
 </body>
 </html>

@@ -6,11 +6,11 @@
 <meta name="theme-color" content="#24282C">
 <meta name="robots" content="noindex">
 <title>TeachEd - Book a lesson</title>
-<link rel="icon" type="image/png" href="logo-sm.png?v=1155"/>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1155">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1155">
-<link rel="stylesheet" href="styles/controls.css?v=1155">
-<link rel="stylesheet" href="styles/invite-page.css?v=1155">
+<link rel="icon" type="image/png" href="logo-sm.png?v=1156"/>
+<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
+<link rel="stylesheet" href="styles/controls.css?v=1156">
+<link rel="stylesheet" href="styles/invite-page.css?v=1156">
 <style>
   /* Страница бронирования по ссылке учителя (routes/booking.js). Ученику не
      нужен аккаунт: день -> время -> имя и почта -> готово. Цвета листа. */
@@ -36,13 +36,13 @@
   .bk-done-h { margin:6px 0 0; font-size:26px; font-weight:750; letter-spacing:-.03em; color:#24282C; }
   .bk-when { display:inline-block; margin:10px 0 4px; padding:10px 14px; border-radius:12px; background:#F6F6EF; border:1px solid rgba(36,40,44,.12); font-weight:650; color:#24282C; }
 </style>
-<link rel="stylesheet" href="styles/pink-accent.css?v=1155">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
 </head>
 <body>
   <main class="ip-card is-loading" id="card">
     <header class="ip-head">
       <div class="ip-top">
-        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1155" alt="">TeachEd</a>
+        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1156" alt="">TeachEd</a>
         <span class="ip-chip" id="chip">Book a lesson</span>
       </div>
       <div class="ip-from">
@@ -90,20 +90,24 @@ let DATA = null, pickedDate = '', pickedTime = '';
 const dayLabel = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }); };
 const shortMonth = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }); };
 
-function dead(title, sub) {
+// chip: the reason in two words. With nothing to pick the body was an empty
+// white strip under the title: it goes, or holds "Try again" when offline.
+function dead(title, sub, chip = 'Link not active', retry = false) {
   $('card').classList.remove('is-loading');
   $('card').classList.add('is-dead');
-  $('chip').textContent = 'Link not active';
+  $('chip').textContent = chip;
   $('title').textContent = title;
   $('sub').textContent = sub; $('sub').hidden = false;
   $('pick').hidden = true;
+  if (retry) $('body').innerHTML = '<div class="ip-actions"><button class="ip-btn primary" type="button" onclick="location.reload()">Try again</button></div>';
+  else $('body').hidden = true;
 }
 
 async function load() {
-  if (!/^[0-9a-f]{24}$/.test(TOKEN)) return dead('This link is incomplete', 'Open the whole booking link your teacher sent you.');
+  if (!/^[0-9a-f]{24}$/.test(TOKEN)) return dead('This link is incomplete', 'Open the whole booking link your teacher sent you.', 'Incomplete link');
   let r, d;
   try { r = await fetch(`${API}/api/booking/public/${TOKEN}`); d = await r.json(); }
-  catch { return dead('Could not load free times', 'Check your connection and try again.'); }
+  catch { return dead('Could not load free times', 'Check your connection and try again.', 'Offline', true); }
   if (!r.ok) return dead('This booking link is not active', 'Ask your teacher for a new link.');
   DATA = d;
   $('card').classList.remove('is-loading');

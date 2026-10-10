@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" href="favicon.ico?v=1155" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1155">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1155">
+<link rel="icon" href="favicon.ico?v=1156" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1156">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1156">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>My homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1155">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1155">
+<link rel="stylesheet" href="styles/fonts.css?v=1156">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -61,6 +61,10 @@ a{text-decoration:none;color:inherit;}
 .st-badge.feedback{background:#C9F2D6;color:#0D5E2E;}
 .st-badge.feedback::before{content:'';width:7px;height:7px;border-radius:50%;background:#1E9E55;}
 .st-badge.reviewed{background:#E3E6D8;color:#3A3F2A;}
+/* On a phone "⏳ Pending teacher review" took the row and squeezed the title
+   to a word per line: the list shows the short label there, as the cabinet does. */
+.st-badge .b-short{display:none}
+@media (max-width:600px){.hw-item .st-badge .b-long{display:none}.hw-item .st-badge .b-short{display:inline}}
 .hw-bar{display:block;height:4px;border-radius:4px;background:var(--border);margin-top:7px;max-width:220px;overflow:hidden;}
 .hw-bar > i{display:block;height:100%;background:#24282C;border-radius:4px;}
 
@@ -116,6 +120,15 @@ a{text-decoration:none;color:inherit;}
    пустой белый лист во весь экран, а инструкция и список задач уезжали
    под него. Заглушка живёт по своему содержимому. */
 #runner-card-host.is-message{height:auto;min-height:150px;}
+/* Under a game or worksheet frame until it paints: a sandboxed frame can take
+   seconds on a cold start, and the card was a blank white sheet till then. The
+   frame covers it once it draws; it is removed after load for frames whose
+   page is transparent. */
+.card-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-3);font-size:14px}
+.card-loading::before{content:"";width:28px;height:28px;border-radius:50%;border:3px solid rgba(36,40,44,.12);border-top-color:#24282C;animation:card-spin .8s linear infinite}
+@keyframes card-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.card-loading::before{animation-duration:2.4s}}
+#runner-card-host > iframe{position:relative;z-index:1}
 
 #runner-side{
   width:280px;flex-shrink:0;border-left:1px solid var(--border);background:var(--card);
@@ -160,19 +173,19 @@ a{text-decoration:none;color:inherit;}
   background:#24282C;color:#fff;box-shadow:0 4px 20px rgba(36,40,44,.25);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;}
 #toast.show{transform:translateY(0);opacity:1;}
 </style>
-<script src="theme.js?v=1155" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1155">
-<link rel="stylesheet" href="styles/harmony.css?v=1155">
-<link rel="stylesheet" href="styles/unify.css?v=1155">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1155">
+<script src="theme.js?v=1156" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1156">
+<link rel="stylesheet" href="styles/harmony.css?v=1156">
+<link rel="stylesheet" href="styles/unify.css?v=1156">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1155">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1155">
-<link rel="stylesheet" href="styles/controls.css?v=1155">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1155">
-<link rel="stylesheet" href="styles/toast.css?v=1155">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1156">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1156">
+<link rel="stylesheet" href="styles/controls.css?v=1156">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
+<link rel="stylesheet" href="styles/toast.css?v=1156">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1155">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1156">
 </head>
 <body class="fx lg-page">
 
@@ -193,7 +206,7 @@ a{text-decoration:none;color:inherit;}
     <button class="tab"        data-status="submitted"  onclick="switchTab('submitted')">Pending review</button>
     <button class="tab"        data-status="graded"     onclick="switchTab('graded')">Reviewed</button>
   </div>
-  <div id="list"></div>
+  <div id="list"><div class="card-loading" style="position:static;padding:48px 0">Loading your homework…</div></div>
 </div>
 
 <!-- RUNNER -->
@@ -223,11 +236,11 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 
 <!-- Проигрыватель листа, общий с доской: без него лист ученику не показать. -->
-<script src="scripts/accent.js?v=1155"></script>
-<script src="scripts/hear-in-context.js?v=1155"></script>
-<script src="scripts/worksheet-play.js?v=1155"></script>
-<script src="scripts/hw-tasks.js?v=1155"></script>
-<script src="scripts/hw-state.js?v=1155"></script>
+<script src="scripts/accent.js?v=1156"></script>
+<script src="scripts/hear-in-context.js?v=1156"></script>
+<script src="scripts/worksheet-play.js?v=1156"></script>
+<script src="scripts/hw-tasks.js?v=1156"></script>
+<script src="scripts/hw-state.js?v=1156"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teached.tech');
@@ -289,7 +302,7 @@ function render() {
     const req = Array.isArray(a.required_cards) ? a.required_cards.length : 0;
     const due = a.due_at ? new Date(a.due_at).toLocaleString([], {dateStyle:'medium', timeStyle:'short'}) : '';
     const s = HwState.of(a);
-    const right = s.badge ? `<span class="st-badge ${s.badge.cls}">${esc(s.badge.text)}</span>`
+    const right = s.badge ? `<span class="st-badge ${s.badge.cls}" title="${esc(s.badge.text)}"><span class="b-long">${esc(s.badge.text)}</span><span class="b-short">${esc(s.badge.short || s.badge.text)}</span></span>`
       : `<span class="pill ${a.status}">${s.key === 'IN_PROGRESS' ? esc(s.note) : 'Not started'}</span>`;
     return `
       <div class="hw-item" onclick='openRunner(${JSON.stringify(a.assignment_id)})'>
@@ -517,6 +530,7 @@ function renderCardForStudent(host, card) {
       iframe.addEventListener('load', () => { send(); setTimeout(send, 400); }, { once: true });
     }
     host.appendChild(iframe);
+    frameLoading(host, iframe);
   } else if (card.type === 'checklist') {
     const items = card.data.items || [];
     const att = current.attempts.find(t => t.card_id === card.id);
@@ -624,10 +638,27 @@ function renderCardForStudent(host, card) {
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
     iframe.dataset.cardId = card.id;
     host.appendChild(iframe);
+    frameLoading(host, iframe);
   } else {
     host.classList.add('is-message');
     host.innerHTML = `<div class="card-empty"><div>This card type (${esc(card.type)}) isn't directly playable yet.<br>Mark as done when finished.</div><button class="runner-btn primary" onclick="markCardDone('${esc(card.id)}')">Mark as done</button></div>`;
   }
+}
+
+function frameLoading(host, iframe) {
+  const el = document.createElement('div');
+  el.className = 'card-loading';
+  el.textContent = 'Opening the task…';
+  host.insertBefore(el, iframe);
+  /* A game page is same-origin and may be transparent: the layer goes once it
+     has loaded. A worksheet frame (sandboxed, opaque origin) runs in its own
+     process and fires load before it first paints, so the layer stays under it
+     and the sheet's own paper covers it when it draws. */
+  iframe.addEventListener('load', () => {
+    let sameOrigin = false;
+    try { sameOrigin = !!iframe.contentDocument; } catch (_) {}
+    if (sameOrigin) setTimeout(() => el.remove(), 600);
+  }, { once: true });
 }
 
 function markCardDone(cardId) {
@@ -804,10 +835,10 @@ function toast(msg){
 }
 </script>
 
-<script src="scripts/nav-boost.js?v=1155" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1155" defer></script>
-<script src="scripts/autogrow.js?v=1155" defer></script>
-<script src="pwa-boot.js?v=1155" defer></script>
-  <script src="scripts/signin-entry.js?v=1155" defer></script>
+<script src="scripts/nav-boost.js?v=1156" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1156" defer></script>
+<script src="scripts/autogrow.js?v=1156" defer></script>
+<script src="pwa-boot.js?v=1156" defer></script>
+  <script src="scripts/signin-entry.js?v=1156" defer></script>
 </body>
 </html>

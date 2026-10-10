@@ -7,15 +7,15 @@
 <meta name="robots" content="noindex">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>TeachEd - Accept Invite</title>
-<link rel="icon" type="image/png" href="logo-sm.png?v=1155"/>
+<link rel="icon" type="image/png" href="logo-sm.png?v=1156"/>
 <!-- Тот же набор, что у join.html: страница целиком на ip-* из invite-page.css.
      Общие слои (harmony, unify, figma-theme) перекрашивали заголовок в чернила
      на тёмной шапке (1.2:1) и делали карточку полупрозрачной. -->
-<link rel="stylesheet" href="styles/teached-brand.css?v=1155">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1155">
-<link rel="stylesheet" href="styles/controls.css?v=1155">
-<link rel="stylesheet" href="styles/invite-page.css?v=1155">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1155">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
+<link rel="stylesheet" href="styles/controls.css?v=1156">
+<link rel="stylesheet" href="styles/invite-page.css?v=1156">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
 </head>
 <body>
   <!-- A personal invite (admin -> teacher, or teacher -> student by email):
@@ -24,7 +24,7 @@
   <main class="ip-card is-loading" id="card">
     <header class="ip-head">
       <div class="ip-top">
-        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1155" alt="">TeachEd</a>
+        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1156" alt="">TeachEd</a>
         <span class="ip-chip" id="chip">Invite</span>
       </div>
       <h1 class="ip-title" id="title">Finish your account</h1>
@@ -96,10 +96,11 @@ function chip(text) {
   return el;
 }
 
-function dead(title, message, offline) {
+// chip: the reason in two words - a cut-off link is not a closed invite
+function dead(title, message, offline, chip = 'Invite closed') {
   $('card').classList.remove('is-loading');
   $('card').classList.add('is-dead');
-  $('chip').textContent = offline ? 'Offline' : 'Invite closed';
+  $('chip').textContent = offline ? 'Offline' : chip;
   $('title').textContent = title;
   $('sub').textContent = message;
   $('accept-form').hidden = true;
@@ -108,7 +109,7 @@ function dead(title, message, offline) {
 }
 
 async function loadInvite() {
-  if (!tokenParam) return dead('This link is incomplete', 'Open the whole link from your invitation email - part of it is missing.');
+  if (!tokenParam) return dead('This link is incomplete', 'Open the whole link from your invitation email - part of it is missing.', false, 'Incomplete link');
   try {
     const r = await fetch(`${API}/api/auth/invites/${encodeURIComponent(tokenParam)}`);
     const d = await r.json().catch(() => ({}));
@@ -175,7 +176,7 @@ $('accept-form').addEventListener('submit', async e => {
 
 loadInvite();
 </script>
-<script src="scripts/nav-boost.js?v=1155" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1155" defer></script>
+<script src="scripts/nav-boost.js?v=1156" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1156" defer></script>
 </body>
 </html>

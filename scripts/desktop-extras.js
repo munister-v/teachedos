@@ -613,7 +613,12 @@ function renderSchedPreview(all) {
   const sel = _sp.sel;
   const toMin = t => { const [h, m] = String(t || '0:0').split(':'); return +h * 60 + +m; };
   const monday = new Date(now); monday.setDate(now.getDate() - today);
-  const weekly = _sp.all.filter(s => s.recurring !== false && !s.specific_date);
+  /* Неделя - это недельные слоты и разовые уроки с датой в этой неделе.
+     Разовые здесь отбрасывались целиком: урок, назначенный на четверг этой
+     недели, в панели не появлялся. */
+  const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const weekDays = SP_DAYS.map((_, i) => { const dt = new Date(monday); dt.setDate(monday.getDate() + i); return ymd(dt); });
+  const weekly = _sp.all.filter(s => s.specific_date ? weekDays.includes(String(s.specific_date).slice(0, 10)) : s.recurring !== false);
   const byTime = (a, b) => toMin(a.start_time) - toMin(b.start_time);
   const month = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   const days = SP_DAYS.map((d, i) => {

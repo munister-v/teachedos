@@ -37,21 +37,40 @@ updateClock(); setInterval(updateClock, 30000);
 let topZ = 200;
 const zMap = {};
 
+/* Идёт ли слот в этот день. Недельный - по дню недели (0=Пн … 6=Вс, как в
+   базе), разовый (specific_date) - только в свою дату. Здесь везде был один
+   день недели, и разовый урок с прошлой субботы стоял в этой («LIVE NOW» на
+   главной), а в календаре месяца - во всех субботах. schedule.html считает
+   так же, как здесь. */
+function slotYMD(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function slotOnDate(s, date) {
+  if (s && s.specific_date) return String(s.specific_date).slice(0, 10) === slotYMD(date);
+  return !!s && Number(s.day) === (date.getDay() + 6) % 7;
+}
+/* Уроки этой недели (пн-вс): недельные слоты и разовые, чья дата в ней. */
+function slotsThisWeek(list) {
+  const now = new Date();
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (now.getDay() + 6) % 7);
+  const days = Array.from({ length: 7 }, (_, i) => slotYMD(new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i)));
+  return (list || []).filter(s => !s.specific_date || days.includes(String(s.specific_date).slice(0, 10)));
+}
+
 function getTeacherMobileSnapshot() {
-  /* 0=Пн … 6=Вс, как в базе и как везде в расписании. Тут стоял голый
+  /* День - через slotOnDate (0=Пн … 6=Вс, как в базе). Тут стоял голый
      getDay() (0=Вс), то есть телефон каждый день показывал ЗАВТРАШНИЕ
      занятия, а в среду - «no class today» при двух занятиях в этот день.
      Ср. pickNextClass и schedule.html, они считают так же. */
-  const today = (new Date().getDay() + 6) % 7;
   const toMin = t => {
     if (!t || !String(t).includes(':')) return 0;
     const [h, m] = String(t).split(':');
     return Number(h) * 60 + Number(m);
   };
-  const todays = (Array.isArray(SCHEDULE_RAW) ? SCHEDULE_RAW : [])
-    .filter(s => s.day === today)
-    .sort((a, b) => String(a.start_time || '').localeCompare(String(b.start_time || '')));
   const now = new Date();
+  const todays = (Array.isArray(SCHEDULE_RAW) ? SCHEDULE_RAW : [])
+    .filter(s => slotOnDate(s, now))
+    .sort((a, b) => String(a.start_time || '').localeCompare(String(b.start_time || '')));
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const upcoming = todays.filter(s => toMin(s.end_time) > nowMin);
   return { todays, upcoming, next: upcoming[0] || null };
@@ -161,7 +180,7 @@ function updateMobileTeacherOverview() {
     setText('mp-avatar', (initials + lastInitial) || 'T');
     setText('mp-greeting-meta', dayStr);
     setText('mp-greeting-name', `Hi, ${firstName}`);
-    const weekCount = Array.isArray(SCHEDULE_RAW) ? SCHEDULE_RAW.length : 0;
+    const weekCount = slotsThisWeek(Array.isArray(SCHEDULE_RAW) ? SCHEDULE_RAW : []).length;
     setText('mp-stat-lessons', String(todays.length || 0));
     setText('mp-stat-week', String(weekCount));
     setText('mp-stat-students', String(studentCount));
@@ -173,7 +192,9 @@ function updateMobileTeacherOverview() {
       const nowM = nowMin;
       const nextM = toMin(next.start_time);
       const minsUntil = Math.max(0, nextM - nowM);
-      const inLabel = minsUntil === 0 ? 'LIVE NOW' : `IN ${minsUntil} MIN`;
+      // "IN 472 MIN" read like a code: hours past the first one, as "Starts in 7h 52m" does
+      const inLabel = minsUntil === 0 ? 'LIVE NOW'
+        : minsUntil < 60 ? `IN ${minsUntil} MIN` : `IN ${Math.floor(minsUntil / 60)}H ${minsUntil % 60}M`;
       setText('mp-next-eyebrow', `NEXT LESSON · ${inLabel}`);
       setText('mp-next-title', next.group_name || next.title || 'Upcoming class');
       const parts = [startStr, next.level, next.room].filter(Boolean);
@@ -1010,12 +1031,11 @@ let _nextClassAt = null;
    начались. Общий помощник для живой загрузки и для офлайн-снимка, чтобы
    виджет не показывал разное в зависимости от того, откуда пришли данные. */
 function pickNextClass(schedule) {
-  const today = (new Date().getDay() + 6) % 7; // 0=Пн … 6=Вс, как в базе
   const toMin = t => { const [h, m] = String(t).split(':'); return +h * 60 + +m; };
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const todays = (schedule || [])
-    .filter(s => s.day === today)
+    .filter(s => slotOnDate(s, now))
     .sort((a, b) => String(a.start_time).localeCompare(String(b.start_time)));
   return { next: todays.find(s => toMin(s.start_time) >= nowMin) || null, todaysCount: todays.length };
 }
@@ -1826,9 +1846,9 @@ const EVENT_CLS = ['', 'blue', 'green', 'orange'];
 function eventsForDate(y, m, d) {
   // В базе день недели 0=Пн … 6=Вс (как в schedule.html и виджетах), а
   // getDay() считает от воскресенья - без сдвига урок уезжал на день раньше.
-  const dow = (new Date(y, m, d).getDay() + 6) % 7;
+  const date = new Date(y, m, d);
   return SCHEDULE_RAW
-    .filter(s => s.day === dow)
+    .filter(s => slotOnDate(s, date))
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
     .map((s, i) => ({
       text: `${s.start_time.slice(0,5)} ${String(s.group_name || s.title || 'Class').split(/\s+/)[0]}`,
@@ -2772,13 +2792,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1155" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1156" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1155" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1156" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
@@ -3375,15 +3395,14 @@ setInterval(loadNotifications, 120000);
 
   // Today's classes from schedule
   fetch(API + '/api/schedule', auth).then(r => r.json()).then(d => {
-    const today = (new Date().getDay() + 6) % 7; // 0=Mon … 6=Sun (matches schedule DB)
     const all = d.schedule || [];
     if (typeof SCHEDULE_RAW !== 'undefined') {
       SCHEDULE_RAW = all;
       if (typeof schRender === 'function') schRender();
     }
     writeTeacherDashboardCache({ schedule: all });
-    const todays = all.filter(s => s.day === today).sort((a,b) => a.start_time.localeCompare(b.start_time));
     const now = new Date();
+    const todays = all.filter(s => slotOnDate(s, now)).sort((a,b) => a.start_time.localeCompare(b.start_time));
     const nowMin = now.getHours() * 60 + now.getMinutes();
     const toMin = t => { const [h,m] = t.split(':'); return +h * 60 + +m; };
     const done = todays.filter(s => toMin(s.end_time) <= nowMin).length;

@@ -168,7 +168,9 @@ router.get('/roster', requireAuth, async (req, res) => {
             FROM quiz_results qr JOIN mine m ON m.id::text = qr.board_id::text
            WHERE qr.user_id = u.id
         ) q ON TRUE
-       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.payment_due, j.pack_size, j.paid_claim_at, j.is_trial, q.quiz_avg, q.quiz_count, d.goal, d.interests, d.level
+       -- every d.* column the SELECT reads must be here: d.daily_minutes was
+       -- added above without it (v1154) and the whole roster answered 500
+       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.payment_due, j.pack_size, j.paid_claim_at, j.is_trial, q.quiz_avg, q.quiz_count, d.goal, d.interests, d.level, d.daily_minutes
        ORDER BY u.name
     `, [req.user.id]);
 

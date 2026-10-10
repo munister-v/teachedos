@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#F6F6EF">
 <meta name="robots" content="noindex">
 <title>TeachEd - Join the class</title>
-<link rel="icon" type="image/png" href="logo-sm.png?v=1155"/>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1155">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1155">
-<link rel="stylesheet" href="styles/auth.css?v=1155">
-<link rel="stylesheet" href="styles/invite-page.css?v=1155">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1155">
+<link rel="icon" type="image/png" href="logo-sm.png?v=1156"/>
+<link rel="stylesheet" href="styles/teached-brand.css?v=1156">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1156">
+<link rel="stylesheet" href="styles/auth.css?v=1156">
+<link rel="stylesheet" href="styles/invite-page.css?v=1156">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1156">
 </head>
 <body>
   <!-- Where a teacher's join link lands: who invites you, to which board,
@@ -20,7 +20,7 @@
   <main class="ip-card is-loading" id="card">
     <header class="ip-head">
       <div class="ip-top">
-        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1155" alt="">TeachEd</a>
+        <a class="ip-logo" href="/"><img src="logo-sm.png?v=1156" alt="">TeachEd</a>
         <span class="ip-chip" id="chip">Class invite</span>
       </div>
       <div class="ip-from">
@@ -79,10 +79,11 @@ function showActions() {
   $('member').hidden = !signedIn;
 }
 
-function dead(message, offline) {
+// chip: the reason in two words - a cut-off link is not an expired one
+function dead(message, offline, chip = 'Link expired') {
   $('card').classList.remove('is-loading');
   $('card').classList.add('is-dead');
-  $('chip').textContent = offline ? 'Offline' : 'Link expired';
+  $('chip').textContent = offline ? 'Offline' : chip;
   $('title').textContent = offline ? 'Cannot reach TeachEd' : 'This link does not work';
   $('sub').textContent = message;
   $('sub').hidden = false;
@@ -97,12 +98,12 @@ function dead(message, offline) {
 }
 
 async function loadInfo() {
-  if (!JOIN_TOKEN) return dead('The link is incomplete - copy the whole link from your teacher and open it again.');
+  if (!JOIN_TOKEN) return dead('The link is incomplete - copy the whole link from your teacher and open it again.', false, 'Incomplete link');
   try {
     const r = await fetch(`${API}/api/members/join/${encodeURIComponent(JOIN_TOKEN)}`);
     const d = await r.json().catch(() => ({}));
     if (r.status === 404) return dead('Your teacher may have made a new one. Ask them to send it again.');
-    if (!r.ok) return dead(d.error || 'Ask your teacher for a new link.');
+    if (!r.ok) return dead(d.error || 'Ask your teacher for a new link.', false, 'Link not valid');
     $('card').classList.remove('is-loading');
     $('title').textContent = d.board.name || 'Your class board';
     $('ava').textContent = initials(d.teacher.name);
@@ -173,7 +174,7 @@ window.TEACHED_AUTH_CONFIG = {
 
 loadInfo();
 </script>
-<script src="scripts/auth-modal.js?v=1155"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1155" defer></script>
+<script src="scripts/auth-modal.js?v=1156"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1156" defer></script>
 </body>
 </html>
