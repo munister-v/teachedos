@@ -768,7 +768,7 @@ function renderCard(card) {
     el.classList.add('card-covered');
     el.dataset.id = card.id;
     el.style.cssText = `left:${card.x}px;top:${card.y}px;width:${card.w}px;height:${card.h}px;z-index:${getCardZ(card)};`;
-    el.innerHTML = '<div class="card-cover"><span class="card-cover-ic">🙈</span><span class="card-cover-t">Hidden by teacher</span></div>';
+    el.innerHTML = '<div class="card-cover"><span class="card-cover-ic">🙈</span><span class="card-cover-t">Your teacher will reveal this</span></div>';
     return el;
   }
 
