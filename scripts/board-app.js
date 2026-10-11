@@ -442,6 +442,47 @@ function zoomToCard(cardId, animate) {
   }
 }
 
+/* A saved camera is useless when no card is at least half in view. "Any card
+   touches the viewport" was too weak: a student opened a one-card board with
+   the card hanging off the left edge under the tool rail, and the rescue did
+   not fire (11.10.2026). Big boards zoomed into one region still pass - some
+   card there is in view. */
+function _savedCameraMissesContent() {
+  const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
+  const rail = isBoardPhone() ? 0 : (parseFloat(getComputedStyle(document.body).getPropertyValue('--mt-w')) || 0);   // the tool rail lies over the canvas
+  const viewArea = Math.max(1, (pw - rail) * ph);
+  return !state.cards.some(c => {
+    const x = c.x * state.scale + state.pan.x, y = c.y * state.scale + state.pan.y;
+    const w = c.w * state.scale, h = c.h * state.scale;
+    if (!(w > 0 && h > 0)) return false;
+    const vx = Math.max(0, Math.min(x + w, pw) - Math.max(x, rail));
+    const vy = Math.max(0, Math.min(y + h, ph) - Math.max(y, 0));
+    return vx * vy >= 0.5 * Math.min(w * h, viewArea);
+  });
+}
+
+/* The rescue view. fitAll frames everything, which for one long card (a
+   20-question quiz) meant 26% - a strip of unreadable text. When framing
+   all of it would go below half size and the content is taller than the
+   screen, fit its width instead and start at the top: the student reads
+   down from the first question. */
+function _fitForReading() {
+  fitAll(false);
+  if (!(state.scale < 0.5) || !state.cards.length) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  state.cards.forEach(c => { minX = Math.min(minX, c.x); minY = Math.min(minY, c.y); maxX = Math.max(maxX, c.x + c.w); maxY = Math.max(maxY, c.y + c.h); });
+  const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight, cw = maxX - minX, ch = maxY - minY;
+  if (!(cw > 0 && ch > 0) || ch / cw <= ph / pw) return;
+  const rail = isBoardPhone() ? 0 : (parseFloat(getComputedStyle(document.body).getPropertyValue('--mt-w')) || 0);
+  const vw = Math.max(50, pw - rail), PAD = isBoardPhone() ? 16 : 48, TOP = isBoardPhone() ? 70 : 76;
+  const scale = Math.min(1.1, (vw - PAD * 2) / cw);
+  if (!(scale > state.scale)) return;
+  state.scale = scale;
+  state.pan.x = rail + (vw - cw * scale) / 2 - minX * scale;
+  state.pan.y = TOP - minY * scale;
+  applyTransform();
+}
+
 function fitAll(animate) {
   if (!state.cards.length && !state.annotations.length) return;
   // Cancel momentum
@@ -3419,7 +3460,12 @@ function renderWorksheet(el, card) {
     return;
   }
 
-  const showAns = d.showAnswers !== false; // default: show the key
+  /* The key is the teacher's. A student sees it only after the teacher shows
+     it to the class (d.keyShared, "Show key to class"); before 11.10.2026 the
+     default "show the key" applied to everyone, so a student opening a quiz
+     saw every right answer highlighted. The tool row is the owner's too. */
+  const _wsOwner = (typeof isOwner === 'undefined') ? true : !!isOwner;
+  const showAns = _wsOwner ? d.showAnswers !== false : d.keyShared === true;
   el.classList.add('tt-note'); el.style.setProperty('--tt-accent', accent); // category accent edge
   const hdr = makeHeader(meta.icon || '📄', _wsTopicInFrame(card, d) ? [d.level, d.kind].filter(Boolean).join(' · ') : (d.title || 'Worksheet'), card.id);
   el.appendChild(hdr);
@@ -3457,7 +3503,7 @@ function renderWorksheet(el, card) {
         ${_wsPlanTotal(cards)}<span class="ws-pill level">${n} ${unit}</span>
       </div>
       ${stepper}
-      <span class="ws-tools">
+      ${_wsOwner ? `<span class="ws-tools">
         ${_wsLevelOrigin(card) ? `<span class="ws-level" title="Rebuild this block one CEFR step easier or harder">
           <button class="ws-btn ws-level-btn" ${d._levelBusy ? 'disabled' : ''} onclick="regenerateWorksheetAtLevel('${card.id}',-1)" aria-label="One level easier">−</button>
           <b class="ws-level-now">${d._levelBusy ? '…' : esc(String(d.level || 'B1'))}</b>
@@ -3465,10 +3511,11 @@ function renderWorksheet(el, card) {
         </span>` : ''}
         ${_wsLevelOrigin(card) ? `<button class="ws-btn" ${d._itemBusy ? 'disabled' : ''} onclick="regenerateWorksheetItem('${card.id}')" title="Replace one question, word or lesson card">${d._itemBusy ? '…' : '↻ Replace'}</button>` : ''}
         ${_wsHasInteractive(d) ? `<button class="ws-btn ws-play-btn" onclick="activateWorksheet('${card.id}')" title="Students can interact with this worksheet">▶ Play</button>` : ''}
-        ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
+        ${hasKey ? `<button class="ws-btn" onclick="toggleWorksheetAnswers('${card.id}')" title="Show/hide the answer key on your screen">${showAns ? '🔑 Key on' : '👁 Key off'}</button>` : ''}
+        ${hasKey ? `<button class="ws-btn${d.keyShared === true ? ' is-on' : ''}" onclick="toggleWorksheetKeyForClass('${card.id}')" title="Students see the answers only after you show them">${d.keyShared === true ? '🙈 Hide key from class' : '📣 Show key to class'}</button>` : ''}
         <button class="ws-btn" onclick="printWorksheet('${card.id}')" title="Print or save as PDF">Print</button>
         ${d._ttOrigin && d._ttOrigin.toolId ? `<button class="ws-btn" onclick="openSourceTool('${card.id}')" title="Open the tool this came from">↩ ${esc(d._ttOrigin.toolTitle || 'Tool')}</button>` : ''}
-      </span>
+      </span>` : ''}
     </header>`;
 
   const listHtml = _ttWorksheetListHTML(d, showAns, accent);
@@ -5916,6 +5963,19 @@ function toggleWorksheetAnswers(cardId) {
   reRenderCard(card);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
+
+/* Show the answer key to the students (or take it back). Separate from the
+   teacher's own Key on/off: that one is about the teacher's screen. */
+function toggleWorksheetKeyForClass(cardId) {
+  if (typeof isOwner !== 'undefined' && !isOwner) return;
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  card.data.keyShared = card.data.keyShared === true ? false : true;
+  reRenderCard(card);
+  if (typeof wsBroadcastState === 'function') try { wsBroadcastState(); } catch (_) {}
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+window.toggleWorksheetKeyForClass = toggleWorksheetKeyForClass;
 
 /* Open a clean A4 print/PDF view of the worksheet, respecting the answer-key
    toggle. Pure HTML - no canvas - so text is crisp and never clipped. */
@@ -16448,7 +16508,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1163';
+const TEACHEDOS_ASSET_VERSION = '1164';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -21907,13 +21967,7 @@ function loadBoard(expectedBoardId) {
     // измеренному вьюпорту: при нулевой ширине ни одна карточка не попадает
     // в «видимое», и спасение срабатывало там, где спасать нечего.
     if (state.cards.length && boardWrap.clientWidth > 50 && boardWrap.clientHeight > 50) {
-      const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
-      const onScreen = state.cards.some(c => {
-        const x = c.x * state.scale + state.pan.x, y = c.y * state.scale + state.pan.y;
-        const w = c.w * state.scale, h = c.h * state.scale;
-        return x < pw && x + w > 0 && y < ph && y + h > 0;
-      });
-      if (!onScreen) fitAll(false);
+      if (_savedCameraMissesContent()) _fitForReading();
     }
     updateEmpty();
     updateGroupOutlines();
@@ -23079,7 +23133,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1163',
+          icon: 'icons/icon-192.png?v=1164',
           tag: 'board-live-' + s.id,
         });
       }
@@ -23479,13 +23533,7 @@ function loadBoardData(data) {
      0.08 - и доска с карточками открывалась как пустой холст. Именно так
      это и сломалось в проде. */
   if (state.cards.length && boardWrap.clientWidth > 50 && boardWrap.clientHeight > 50) {
-    const pw = boardWrap.clientWidth, ph = boardWrap.clientHeight;
-    const onScreen = state.cards.some(c => {
-      const x = c.x * state.scale + state.pan.x, y = c.y * state.scale + state.pan.y;
-      const w = c.w * state.scale, h = c.h * state.scale;
-      return x < pw && x + w > 0 && y < ph && y + h > 0;
-    });
-    if (!onScreen) fitAll(false);
+    if (_savedCameraMissesContent()) _fitForReading();
   }
   renderAllArrows();
   if (typeof renderAllStrokes === 'function') renderAllStrokes();

@@ -400,7 +400,7 @@
     phraseAsked = true;
     try {
       const r = await window.apiFetch('/api/vault/phrase');
-      if (r.ok) { phraseDay = await r.json(); chunk(); }
+      if (r.ok) { phraseDay = await r.json(); chunk(); if (phraseDay.level && window.teStudentLevel) window.teStudentLevel(phraseDay.level); }
     } catch (_) { /* the local phrase stays */ }
   }
   function chunk() {

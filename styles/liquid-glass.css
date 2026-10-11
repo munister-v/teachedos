@@ -360,3 +360,18 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
 @media (prefers-reduced-transparency:reduce){
   :root{--lg-fill-thin:rgba(255,255,255,.94);--lg-fill-regular:#fff;--lg-fill-thick:#fff;--lg-fill-dark:#24282C}
 }
+
+/* ── the student's tabs on a wallpaper (11.10.2026 audit) ─────────────────
+   Home lays its cards on the photo; the other tabs (Words, Progress,
+   Schedule, Games) put headings, empty states and the time-zone note straight
+   on it - olive text on autumn leaves. They sit on one frosted sheet instead. */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.sw-has :is(#pane-vocabulary, #pane-progress, #pane-schedule, #pane-games).active{
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 120px),rgba(252,252,249,.92);
+  -webkit-backdrop-filter:blur(30px) saturate(1.3);backdrop-filter:blur(30px) saturate(1.3);
+  border:1px solid rgba(255,255,255,.8);border-radius:26px;padding:20px 22px;
+  box-shadow:inset 0 1px 0 #fff,0 24px 60px -24px rgba(18,20,24,.45),0 3px 10px rgba(18,20,24,.08);
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.sw-has :is(#pane-vocabulary, #pane-progress, #pane-schedule, #pane-games) .empty-state{color:#5C5C66 !important}
+/* the sidebar is dark glass: its empty note was olive on graphite */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #sidebar .sb-classes-empty{text-align:center;padding:16px;font-size:12.5px;color:rgba(255,255,255,.62)}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #sidebar :is(.sb-role, .sb-section-title){color:rgba(255,255,255,.62) !important}
