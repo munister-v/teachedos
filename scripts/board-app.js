@@ -5917,6 +5917,18 @@ if (typeof window !== 'undefined' && !window.__iwStateListener) {
     if (m.type === 'iw-drafts' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
       _wfShowDrafts(m.cardId);
     }
+    /* Лист без ключа (backend/lib/answerKey.js) сверяет ответ ученика на
+       сервере: кадр присылает один данный ответ, ответ сервера уходит обратно
+       в тот же кадр. */
+    if (m.type === 'iw-check' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
+      const reply = result => { try { e.source.postMessage({ type: 'iw-check-result', reqId: m.reqId, result }, '*'); } catch {} };
+      const baseId = String(m.cardId).split('::')[0];
+      if (typeof currentBoardId === 'undefined' || !currentBoardId || typeof apiFetch !== 'function') { reply(null); return; }
+      apiFetch('/api/boards/' + encodeURIComponent(currentBoardId) + '/cards/' + encodeURIComponent(baseId) + '/check', {
+        method: 'POST', body: { ref: String(m.ref || ''), value: String(m.value ?? ''), right: String(m.right ?? '') }
+      }).then(r => r.ok ? r.json() : null).then(reply, () => reply(null));
+      return;
+    }
     if (m.type === 'iw-progress' && m.cardId && _iwSourceValid(m.cardId, e.source)) {
       // Учитель в студии ученика проверяет его ответы - это не результат учителя.
       if (_wpReview && _wpReview.cardId === String(m.cardId).split('::')[0]) return;

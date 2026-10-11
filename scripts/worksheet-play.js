@@ -367,6 +367,33 @@ function _ttWordTarget(text) {
    только тогда показывает «начать заново». */
 const IW_FOOT = `<div class="iw-bottom"><button class="iw-submit iw-reset" id="iw-tryagain" style="display:none" onclick="iwReset()">↺ Try again</button></div><div class="iw-score" id="iw-score"></div>`;
 
+/* ПРОВЕРКА ОТВЕТА НА СЕРВЕРЕ.
+
+   Ученику лист приходит без ключа (backend/lib/answerKey.js): у вопроса нет
+   answer, вместо него _ref - путь к вопросу внутри данных карточки. Сверять
+   выбор не с чем, поэтому кадр отправляет доске один данный ответ, доска -
+   POST /api/boards/:id/cards/:cardId/check, ответ возвращается сюда же.
+   У учителя и в домашке ключ на месте, и проверка остаётся мгновенной, как
+   была: кадр спрашивает сервер только там, где data-answer/data-expect нет. */
+const IW_ASK_SCRIPT = `
+var _iwAskN=0,_iwAskCb={},_iwAskCache={},_iwAskPending=0,_iwIdle=[];
+function iwAsk(o,cb){
+  var key=JSON.stringify([o.ref,o.value,o.right||'']);
+  if(_iwAskCache[key]){ cb(_iwAskCache[key]); return; }
+  var id=++_iwAskN, done=false; _iwAskPending++;
+  function finish(r){
+    if(done) return; done=true; delete _iwAskCb[id]; _iwAskPending--;
+    if(r) _iwAskCache[key]=r;
+    try{ cb(r||null); } finally { if(!_iwAskPending){ var f=_iwIdle; _iwIdle=[]; f.forEach(function(fn){ fn(); }); } }
+  }
+  _iwAskCb[id]=finish;
+  setTimeout(function(){ finish(null); },10000);
+  try{ parent.postMessage({type:'iw-check',cardId:window.__IW_CARD__,reqId:id,ref:o.ref,value:o.value,right:o.right||''},'*'); }catch(e){ finish(null); }
+}
+function iwWhenIdle(fn){ if(!_iwAskPending) fn(); else _iwIdle.push(fn); }
+window.addEventListener('message',function(e){ var m=e.data; if(!m||m.type!=='iw-check-result'||e.source!==parent) return; var cb=_iwAskCb[m.reqId]; if(cb) cb(m.result||null); });
+`;
+
 const IW_HEIGHT_REPORTER = `
 var _iwRH=0;
 function iwReportHeight(){
@@ -761,8 +788,15 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
      пары), только вклеен ВНУТРЬ строки через модификатор .iw-blank, а не
      стоит отдельной плашкой. */
   const gapFillDragHtml = (pairs) => {
-    const bankChips = pairs.map(({ q }, i) => {
-      return `<div class="iw-drag iw-gap-brick" draggable="true" data-left="${esc(q.answer||'')}">${md(q.answer||'')}</div>`;
+    /* Без ключа банк приходит готовым (d._gapBank): слова есть, какое в
+       какой пропуск - нет. */
+    const keyless = pairs.some(({ q }) => q._ref && q.answer === undefined);
+    const missions = new Set(pairs.map(({ q }) => q._mission || ''));
+    const words = keyless
+      ? (Array.isArray(d._gapBank) ? d._gapBank : []).filter(w => missions.has(w.m || '')).map(w => w.a)
+      : pairs.map(({ q }) => q.answer || '');
+    const bankChips = words.map(a => {
+      return `<div class="iw-drag iw-gap-brick" draggable="true" data-left="${esc(a)}">${md(a)}</div>`;
     });
     // Тасуем чипы банка - порядок предложений остаётся учебным (по порядку урока).
     for (let i = bankChips.length - 1; i > 0; i--) {
@@ -771,7 +805,8 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
     }
     const lines = pairs.map(({ q, qi }) => {
       const ans = String(q.answer || '').trim();
-      const blank = `<span class="iw-target iw-blank" data-qi="${qi}" data-expect="${esc(ans)}"><span class="iw-slot"></span></span>`;
+      const key = q._ref && q.answer === undefined ? `data-ref="${esc(q._ref)}"` : `data-expect="${esc(ans)}"`;
+      const blank = `<span class="iw-target iw-blank" data-qi="${qi}" ${key}><span class="iw-slot"></span></span>`;
       const rendered = md(q.text || '');
       const withBlank = /_{3,}/.test(rendered) ? rendered.replace(/_{3,}/, blank) : rendered + ' ' + blank;
       return `<p class="iw-gapline"><b>${qi+1}.</b> ${withBlank}</p>`;
@@ -800,8 +835,11 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
     const isOddOneOut = kind.includes('odd');
     const qCards = qs.map((q, qi) => {
       let inner = '';
+      // Ключа нет - проверяет сервер по _ref (IW_ASK_SCRIPT).
+      const keyless = !!q._ref && q.answer === undefined;
+      const refAttr = keyless ? ` data-ref="${esc(q._ref)}"` : '';
       if (q.type === 'mcq' && Array.isArray(q.options)) {
-        inner = `<div class="iw-opts" data-qi="${qi}" data-answer="${esc(q.answer)}">${
+        inner = `<div class="iw-opts" data-qi="${qi}"${keyless ? refAttr : ` data-answer="${esc(q.answer)}"`}>${
           q.options.map((o, oi) => `<button class="iw-opt" data-oi="${oi}" data-val="${esc(o)}" onclick="pickMCQ(this)"><span class="iw-opt-key">${String.fromCharCode(65+oi)}</span><span class="iw-opt-text">${md(o)}</span></button>`).join('')
         }</div>`;
       } else if (q.type === 'truefalse') {
@@ -810,7 +848,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
            не «нажми на нужную из двух табличек». data-val/selected остаются
            теми же, что и раньше (pickTF/iwGrade их не знают, что сменилась
            обёртка) - меняется только то, как это нарисовано. */
-        inner = `<div class="iw-tf" data-qi="${qi}" data-answer="${correct}">
+        inner = `<div class="iw-tf" data-qi="${qi}"${keyless ? refAttr : ` data-answer="${correct}"`}>
           <div class="iw-tf-switch">
             <button class="iw-tf-btn" data-val="true" onclick="pickTF(this)">True</button>
             <button class="iw-tf-btn" data-val="false" onclick="pickTF(this)">False</button>
@@ -818,7 +856,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
           </div>
         </div>`;
       } else if (q.type === 'gap-fill') {
-        inner = `<div class="iw-gap" data-qi="${qi}" data-answer="${esc(q.answer||'')}">
+        inner = `<div class="iw-gap" data-qi="${qi}"${keyless ? refAttr : ` data-answer="${esc(q.answer||'')}"`}>
           <input type="text" class="iw-gap-input" placeholder="Type your answer…" autocomplete="off" onkeydown="iwGapEnter(event,this)" onblur="iwGapBlur(this)">
         </div>`;
       } else if (q.type === 'match' && Array.isArray(q.pairs)) {
@@ -826,9 +864,9 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
         const isSorting = cats.length <= 5 && cats.length < q.pairs.length;
         const shuffled = q.pairs.map((p,i)=>({...p,_i:i})).sort(()=>Math.random()-.5);
         if (isSorting) {
-          inner = `<div class="iw-sort" data-qi="${qi}">
+          inner = `<div class="iw-sort" data-qi="${qi}"${q._ref ? ` data-ref="${esc(q._ref)}"` : ''}>
             <div class="iw-sort-bank" id="sbank-${qi}">
-              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}" data-expect="${esc(p.right)}">${md(p.left)}</div>`).join('')}
+              ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}"${q._ref ? '' : ` data-expect="${esc(p.right)}"`}>${md(p.left)}</div>`).join('')}
             </div>
             <div class="iw-sort-cols">${cats.map(cat => `<div class="iw-sort-col" data-cat="${esc(cat)}">
               <div class="iw-sort-header">${md(cat)}</div>
@@ -852,12 +890,12 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
              содержимое чужого по источнику фрейма, ради него crossorigin и
              ставился на листе. */
           const withPics = q.pairs.some(p => _ttPairPic(p));
-          inner = `<div class="iw-match${withPics ? ' has-pics' : ''}" data-qi="${qi}">
+          inner = `<div class="iw-match${withPics ? ' has-pics' : ''}" data-qi="${qi}"${q._ref ? ` data-ref="${esc(q._ref)}"` : ''}>
             <div class="iw-match-bank" id="bank-${qi}">
               ${shuffled.map(p => `<div class="iw-drag" draggable="true" data-left="${esc(p.left)}">${md(p.left)}</div>`).join('')}
             </div>
             <div class="iw-match-targets">
-              ${q.pairs.map(p => `<div class="iw-target" data-right="${esc(p.right)}" data-expect="${esc(p.left)}">
+              ${q.pairs.map(p => `<div class="iw-target" data-right="${esc(p.right)}"${q._ref ? '' : ` data-expect="${esc(p.left)}"`}>
                 <span class="iw-slot"></span>
                 ${_ttPairPic(p)
                   ? `<img class="iw-pic" src="${esc(_ttPairPic(p))}" alt="" loading="lazy" referrerpolicy="no-referrer">`
@@ -966,7 +1004,7 @@ function _buildInteractiveWSHtml(d, cardId, ownerView, cardW) {
       </div>`;
     }
 
-    scriptHtml = `
+    scriptHtml = IW_ASK_SCRIPT + `
 /* Instant feedback. A pick used to do nothing visible until Check Answers at
    the bottom of the deck, so a student answering eight questions found out
    about the first one seven questions later. The answer is graded the moment
@@ -999,6 +1037,7 @@ function iwAfterPick(ok){
 function iwMaybeFinish(){
   const el=document.getElementById('iw-score');
   if(el && el.style.display==='block') return;
+  if(_iwAskPending) return;
   if(document.querySelector('.iw-opts:not([data-locked]),.iw-tf:not([data-locked])')) return;
   /* Раньше присутствие матчинга или сортировки отменяло автосчёт: их
      оценивала только кнопка внизу. Теперь они оцениваются на укладке, и
@@ -1010,14 +1049,30 @@ function iwMaybeFinish(){
   if(!document.querySelector('.iw-opts,.iw-tf,.iw-gap,.iw-target,.iw-sort')) return;
   checkAll();
 }
-function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
+/* Без ключа (data-ref вместо data-answer) верный вариант называет сервер -
+   после него вопрос оценивается тем же iwGrade, что и с ключом. */
+function iwKeyFor(w,val,cb){
+  if(!w.dataset.ref||w.hasAttribute('data-answer')){ cb(true); return; }
+  w.dataset.pending='1';
+  iwAsk({ref:w.dataset.ref,value:val},function(r){ delete w.dataset.pending; if(r&&r.answer!=null) w.setAttribute('data-answer',String(r.answer)); cb(!!(r&&r.answer!=null)); });
+}
+function iwPickAndGrade(w,btn){ iwKeyFor(w,btn.dataset.val,function(ok){ if(!ok){ btn.classList.remove('selected'); return; } iwAfterPick(iwGrade(w)); }); }
+function pickMCQ(btn){ const w=btn.parentNode; if(w.dataset.locked||w.dataset.pending) return; w.querySelectorAll('.iw-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwPickAndGrade(w,btn); }
 /* closest('.iw-tf'), не parentNode: рычажок тумблера завёл лишний уровень
    вложенности (.iw-tf-switch) между кнопкой и держателем data-answer -
    с parentNode ответ сверялся с несуществующим атрибутом и падал в "wrong"
    независимо от выбора. */
-function pickTF(btn){ const w=btn.closest('.iw-tf'); if(!w||w.dataset.locked) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwAfterPick(iwGrade(w)); }
+function pickTF(btn){ const w=btn.closest('.iw-tf'); if(!w||w.dataset.locked||w.dataset.pending) return; w.querySelectorAll('.iw-tf-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwPickAndGrade(w,btn); }
 function pickOdd(btn){ const w=btn.parentNode; w.querySelectorAll('.iw-ooo-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); iwSave(); }
-function checkGap(w,silent){ const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; w.dataset.locked='1'; inp.readOnly=true; const ok=inp.value.trim().toLowerCase()===String(ans||'').trim().toLowerCase(); inp.classList.remove(ok?'wrong':'correct'); inp.classList.add(ok?'correct':'wrong'); _iwQDone(w,ok); if(silent) return; iwSave(); iwBeep(ok); iwMaybeFinish(); }
+function checkGap(w,silent){
+  const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; w.dataset.locked='1'; inp.readOnly=true;
+  const apply=function(ok){ w.dataset.ok=ok?'1':'0'; inp.classList.remove(ok?'wrong':'correct'); inp.classList.add(ok?'correct':'wrong'); _iwQDone(w,ok); if(silent) return; iwSave(); iwBeep(ok); iwMaybeFinish(); };
+  if(w.dataset.ref&&!w.hasAttribute('data-answer')){
+    iwAsk({ref:w.dataset.ref,value:inp.value},function(r){ if(!r){ delete w.dataset.locked; inp.readOnly=false; return; } apply(!!r.ok); });
+    return;
+  }
+  apply(inp.value.trim().toLowerCase()===String(ans||'').trim().toLowerCase());
+}
 function iwGapBlur(inp){ const w=inp.closest('.iw-gap'); if(!w||w.dataset.locked||!inp.value.trim()) return; checkGap(w); }
 function iwGapEnter(e, inp){
   if(e.key!=='Enter') return;
@@ -1033,7 +1088,7 @@ function checkAll(silent){
   let score=0,total=0;
   document.querySelectorAll('.iw-opts').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-opt').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-opt.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
   document.querySelectorAll('.iw-tf').forEach(w=>{ w.dataset.locked='1'; const ans=w.dataset.answer; w.querySelectorAll('.iw-tf-btn').forEach(b=>{ b.disabled=true; if(b.dataset.val===ans) b.classList.add('correct'); else if(b.classList.contains('selected')) b.classList.add('wrong'); }); const sel=w.querySelector('.iw-tf-btn.selected'); total++; if(sel&&sel.dataset.val===ans) score++; });
-  document.querySelectorAll('.iw-gap').forEach(w=>{ total++; const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; inp.readOnly=true; if(inp.value.trim().toLowerCase()===ans.trim().toLowerCase()){inp.classList.add('correct');score++;}else inp.classList.add('wrong'); });
+  document.querySelectorAll('.iw-gap').forEach(w=>{ total++; const inp=w.querySelector('.iw-gap-input'),ans=w.dataset.answer; inp.readOnly=true; const ok=w.hasAttribute('data-answer') ? inp.value.trim().toLowerCase()===String(ans).trim().toLowerCase() : w.dataset.ok==='1'; if(ok){inp.classList.add('correct');score++;}else inp.classList.add('wrong'); });
   /* Балл даётся за попадание С ПЕРВОГО РАЗА. Неверное слово возвращается в
      банк и ученик кладёт снова, так что к концу верно стоит всё; без отметки
      о промахе (data-missed) любой лист закрывался бы на 100% перебором. */
@@ -1121,18 +1176,19 @@ function iwRestore(s){
     // Reopening the sheet has to bring the marks back with the answers -
     // re-grade what was already answered, and only what was answered, so an
     // untouched question is still open rather than pre-revealed.
-    document.querySelectorAll('.iw-opts,.iw-tf').forEach(w=>{ if(w.querySelector('.selected')) iwGrade(w); });
+    document.querySelectorAll('.iw-opts,.iw-tf').forEach(w=>{ const sel=w.querySelector('.selected'); if(sel) iwKeyFor(w,sel.dataset.val,function(ok){ if(ok) iwGrade(w); }); });
     document.querySelectorAll('.iw-gap').forEach(w=>{ const inp=w.querySelector('.iw-gap-input'); if(inp&&inp.value.trim()) checkGap(w,true); });
     /* Уложенное в прошлый заход возвращается уже проверенным: неверное
        никогда не сохраняется (оно уходит обратно в банк), поэтому здесь
        достаточно проставить отметку, не гоняя ученика по второму кругу. */
     document.querySelectorAll('.iw-target').forEach(t=>{
       const v=t.querySelector('.iw-slot').textContent.trim();
-      if(v&&v===t.dataset.expect){ t.classList.add('correct'); t.dataset.done='1'; }
+      if(!v) return;
+      _iwVerdictTarget(t,v,function(ok){ if(ok){ t.classList.add('correct'); t.dataset.done='1'; } _iwMatchDone(t.closest('.iw-match,.iw-gapfill')); });
     });
     document.querySelectorAll('.iw-match,.iw-gapfill').forEach(m=>{ if(typeof _iwMatchDone==='function') _iwMatchDone(m); });
-    document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ const col=d.closest('.iw-sort-col'); if(col&&d.dataset.expect===col.dataset.cat){ d.classList.add('sort-correct'); d.dataset.done='1'; } });
-    if(s.checked) checkAll(true);
+    document.querySelectorAll('.iw-sort-drop .iw-drag').forEach(d=>{ const col=d.closest('.iw-sort-col'); if(col) _iwVerdictSort(d,col,function(ok){ if(ok){ d.classList.add('sort-correct'); d.dataset.done='1'; } }); });
+    if(s.checked) iwWhenIdle(function(){ checkAll(true); });
   }catch(e){}
 }
 /* Точка в углу флип-карточки вместо чёрной кнопки «Reveal All / Turn All
@@ -1482,8 +1538,12 @@ document.addEventListener('DOMContentLoaded',function(){
        (см. iw-word-lookup в IW_WORD_HELP_SCRIPT), поэтому нужна ВСЕГДА на
        материале, а не только когда пачка вышла непустой. */
     scriptHtml += IW_WORD_HELP_SCRIPT;
+    /* Без ключа верный заголовок называет сервер после выбора (IW_ASK_SCRIPT). */
+    const titleRef = titleChoice && titleChoice._ref && titleChoice.answer === undefined ? titleChoice._ref : '';
+    if (titleRef) scriptHtml += IW_ASK_SCRIPT;
     if (titleChoice) scriptHtml += `
 var _iwTitleAns = ${JSON.stringify(String(titleChoice.answer || ''))};
+var _iwTitleRef = ${JSON.stringify(titleRef)};
 function iwTitleToggle(){
   var tp = document.getElementById('iw-tp');
   if (tp && !tp.classList.contains('is-done')) tp.classList.toggle('is-open');
@@ -1494,7 +1554,15 @@ function iwTitleToggle(){
    этого места задание сюда и переехало. */
 function iwTitlePick(btn){
   var tp = document.getElementById('iw-tp');
-  if (!tp || tp.classList.contains('is-done')) return;
+  if (!tp || tp.classList.contains('is-done') || tp.dataset.pending) return;
+  if (_iwTitleRef && !_iwTitleAns) {
+    tp.dataset.pending = '1';
+    iwAsk({ ref: _iwTitleRef, value: btn.getAttribute('data-val') }, function(r){
+      delete tp.dataset.pending;
+      if (r && r.answer != null) { _iwTitleAns = String(r.answer); iwTitlePick(btn); }
+    });
+    return;
+  }
   var ok = btn.getAttribute('data-val') === _iwTitleAns;
   btn.classList.add(ok ? 'correct' : 'wrong');
   if (!ok) {
@@ -2240,7 +2308,7 @@ function _iwDragScript(accent) {
    оценивается, а пальцем нет. Проверка живёт здесь, ниже по коду её никто
    не дублирует. */
 function _iwPlace(tgt,chip,silent){
-  const m=tgt.closest('.iw-match,.iw-gapfill'); if(!m||m.dataset.locked) return;
+  const m=tgt.closest('.iw-match,.iw-gapfill'); if(!m||m.dataset.locked||tgt.dataset.pending) return;
   const slot=tgt.querySelector('.iw-slot'); const prev=slot.textContent.trim();
   if(prev){ const old=m.querySelector('.iw-drag.placed[data-left="'+CSS.escape(prev)+'"]'); if(old) old.classList.remove('placed'); }
   slot.textContent=chip.dataset.left; slot.classList.add('filled');
@@ -2253,8 +2321,27 @@ function _iwPlace(tgt,chip,silent){
    мягко возвращается в банк: ученику не нужно искать, что он сделал не так,
    а учителю - объяснять, где кнопка проверки. Первая попытка запоминается
    (data-missed), иначе перебором любой лист закрывался бы на 100%. */
+/* Верно ли слово в поле. С ключом - data-expect; без ключа спрашиваем
+   сервер (пропуск - по своему data-ref, пара матчинга - по data-ref всего
+   задания и data-right поля), а верный ответ запоминаем в data-expect, чтобы
+   итоговый подсчёт и повторное открытие работали как раньше. */
+function _iwVerdictTarget(tgt,val,cb){
+  if(tgt.dataset.expect!==undefined){ cb(val===tgt.dataset.expect); return; }
+  const m=tgt.closest('.iw-match'); const ref=tgt.dataset.ref||(m&&m.dataset.ref);
+  if(!ref||typeof iwAsk!=='function'){ cb(false); return; }
+  tgt.dataset.pending='1';
+  iwAsk({ref:ref,value:val,right:tgt.dataset.right||''},function(r){ delete tgt.dataset.pending; const ok=!!(r&&r.ok); if(ok) tgt.dataset.expect=val; cb(ok); });
+}
+function _iwVerdictSort(chip,col,cb){
+  if(chip.dataset.expect!==undefined){ cb(chip.dataset.expect===col.dataset.cat); return; }
+  const s=chip.closest('.iw-sort'); if(!s||!s.dataset.ref||typeof iwAsk!=='function'){ cb(false); return; }
+  chip.dataset.pending='1';
+  iwAsk({ref:s.dataset.ref,value:chip.dataset.left,right:col.dataset.cat},function(r){ delete chip.dataset.pending; const ok=!!(r&&r.ok); if(ok) chip.dataset.expect=col.dataset.cat; cb(ok); });
+}
 function _iwGradeTarget(tgt,chip){
-  const ok=tgt.querySelector('.iw-slot').textContent.trim()===tgt.dataset.expect;
+  _iwVerdictTarget(tgt,tgt.querySelector('.iw-slot').textContent.trim(),function(ok){ _iwMarkTarget(tgt,chip,ok); });
+}
+function _iwMarkTarget(tgt,chip,ok){
   if(ok){ tgt.classList.add('correct'); tgt.dataset.done='1'; if(chip) chip.draggable=false; }
   else{
     if(!tgt.dataset.missed) tgt.dataset.missed='1';
@@ -2285,8 +2372,10 @@ function _iwMatchDone(m){
 }
 /* То же для сортировки: фишка оценивается, попав в колонку. */
 function _iwGradeSortChip(chip){
-  const col=chip.closest('.iw-sort-col'); if(!col) return;
-  const ok=chip.dataset.expect===col.dataset.cat;
+  const col=chip.closest('.iw-sort-col'); if(!col||chip.dataset.pending) return;
+  _iwVerdictSort(chip,col,function(ok){ _iwMarkSortChip(chip,ok); });
+}
+function _iwMarkSortChip(chip,ok){
   if(ok){ chip.classList.add('sort-correct'); chip.dataset.done='1'; chip.draggable=false; }
   else{
     if(!chip.dataset.missed) chip.dataset.missed='1';

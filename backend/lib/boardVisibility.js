@@ -1,5 +1,7 @@
 'use strict';
 
+const { stripAnswers, cardHidesKey } = require('./answerKey');
+
 /* ═══════════════════ WHO IS ENTITLED TO SEE WHICH CARD ═══════════════════
 
    A card a viewer may not see must not reach them AS DATA. Hiding it in the
@@ -25,6 +27,10 @@
                     that keeps its position, so a student sees that something is
                     there and is yet to come. Setting revealed:true releases it.
 
+     worksheet key  a worksheet's right answers. Everyone except the owner gets
+                    the card without them until the teacher shows the key to the
+                    class (keyShared) - see answerKey.js.
+
    Redaction keeps geometry and drops everything the card says. Arrows pointing
    at a card that was removed go with it, otherwise the client renders lines to
    nowhere. */
@@ -43,6 +49,7 @@ function cardVisibility(card, viewerId, ownerId) {
   if (assigned && assigned.length && !same(viewerId, ownerId)
       && !assigned.some(function (id) { return same(id, viewerId); })) return 'omit';
   if (d.studentHidden && !d.revealed && !same(viewerId, ownerId)) return 'redact';
+  if (cardHidesKey(card, viewerId, ownerId) && stripAnswers(card) !== card) return 'nokey';
   return 'full';
 }
 
@@ -72,7 +79,7 @@ function filterBoardData(data, viewerId, ownerId) {
   data.cards.forEach(function (c) {
     var v = cardVisibility(c, viewerId, ownerId);
     if (v === 'omit') { if (c && c.id != null) omitted[c.id] = true; return; }
-    cards.push(v === 'redact' ? redactCard(c) : c);
+    cards.push(v === 'redact' ? redactCard(c) : v === 'nokey' ? stripAnswers(c) : c);
   });
 
   var out = Object.assign({}, data, { cards: cards });

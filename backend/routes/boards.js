@@ -1,6 +1,7 @@
 const { cleanCover, cleanCoverImage } = require('../lib/cover');
 const router = require('express').Router();
 const { filterBoardData } = require('../lib/boardVisibility');
+const { checkAnswer } = require('../lib/answerKey');
 const { sanitizeBoardData } = require('../lib/boardSanitize');
 const { sanitizeLayer } = require('../lib/studentLayer');
 const pool   = require('../db/pool');
@@ -316,6 +317,29 @@ router.post('/:id/progress', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('[boards] quiz progress error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* POST /api/boards/:id/cards/:cardId/check - Play mode marks one answer.
+   A student's copy of a worksheet arrives without its key (lib/answerKey.js),
+   so the iframe sends the committed answer here instead of comparing it with a
+   data-answer attribute: { ref, value, right? } -> { ok, answer? }. */
+router.post('/:id/cards/:cardId/check', async (req, res) => {
+  const { ref, value, right } = req.body || {};
+  const cardId = String(req.params.cardId || '').split('::')[0];
+  try {
+    const access = await loadBoardAccess(req.params.id, req.user.id);
+    if (!access) return res.status(403).json({ error: 'No access to this board' });
+    if (!boardHasVisibleCard(access, cardId, req.user.id)) return res.status(404).json({ error: 'Card not found' });
+    const card = (access.data?.cards || []).find(c => String(c?.id) === cardId);
+    if (!card || card.type !== 'worksheet') return res.status(404).json({ error: 'Card not found' });
+    const clip = v => (v == null ? '' : String(v)).slice(0, 2000);
+    const result = checkAnswer(card.data, ref, clip(value), clip(right));
+    if (!result) return res.status(404).json({ error: 'Question not found' });
+    res.json(result);
+  } catch (err) {
+    console.error('[boards] answer check error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

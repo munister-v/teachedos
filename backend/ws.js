@@ -356,4 +356,4 @@ function onlineUserIdsAsync(boardIds) {
   });
 }
 
-module.exports = { setup, onlineUserIds, onlineUserIdsAsync };
+module.exports = { setup, onlineUserIds, onlineUserIdsAsync, viewFor };
