@@ -190,7 +190,7 @@ html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4)
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-island-l{ padding-left:4px; }
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo{ padding:7px 6px !important; margin:0 2px 0 0 !important; width:auto !important; }
 /* the cat is drawn in ink: on the dark island it turns light */
-html body.board-page.board-canvas-dark:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo-img{ content:url("../icons/mark-lime.svg"); filter:none; }
+html body.board-page.board-canvas-dark:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo-img{ content:url("../icons/mark-lime.svg?v=2"); filter:none; }
 /* The 30px mark filled the round end of the 46px capsule edge to edge and
    read as a lime block stuck on the bar (11.10.2026). 24px, centred on the
    capsule's end circle (its centre is 23px in), with a round hover. */
