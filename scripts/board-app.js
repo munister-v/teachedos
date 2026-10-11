@@ -3433,14 +3433,16 @@ function renderWorksheet(el, card) {
        из игры или выделив карточку и нажав Delete. */
     const strip = document.createElement('div');
     strip.className = 'ws-drag-strip';
-    strip.innerHTML = `<span>${esc(_wsTopicInFrame(card, d) ? [d.level, d.kind].filter(Boolean).join(' · ') : (d.title || 'Interactive Activity'))}</span><button class="ws-focus-btn" title="Open in a studio window">⤢ Studio</button><button class="ws-back-btn" title="Back to static view">✕ Exit</button>`;
+    strip.innerHTML = `<span>${esc(_wsTopicInFrame(card, d) ? [d.level, d.kind].filter(Boolean).join(' · ') : (d.title || 'Interactive Activity'))}</span><button class="ws-focus-btn" title="Open in a studio window">⤢ Studio</button>${_wpOwnerOf(card) ? '<button class="ws-back-btn" title="Back to static view">✕ Exit</button>' : ''}`;
     strip.querySelector('.ws-focus-btn').addEventListener('click', ev => { ev.stopPropagation(); openCardStudio(card.id); });
     strip.title = 'Drag to move';
     strip.addEventListener('mousedown', e => {
       if (e.target.closest('.ws-back-btn')) return;
       if (!state.selected.has(card.id)) { clearSelection(); selectCard(card.id); }
     });
-    strip.querySelector('.ws-back-btn').addEventListener('click', e => {
+    /* only the teacher ends Play: a student's Exit left them a static sheet
+       with no way back (Play is the teacher's button) */
+    strip.querySelector('.ws-back-btn')?.addEventListener('click', e => {
       e.stopPropagation();
       deactivateWorksheet(card.id);
     });
@@ -6876,7 +6878,7 @@ function openCardEditor(cardId) {
       <textarea id="card-comment-input" placeholder="Add a comment…"
         style="flex:1;resize:none;height:56px;padding:7px 10px;border:1px solid rgba(36,40,44,.10);border-radius:9px;font-size:12px;font-family:var(--font);outline:none;background:#fff;color:#24282C;"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitCardComment();}"></textarea>
-      <button onclick="submitCardComment()" style="align-self:flex-end;padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;">Send</button>
+      <button onclick="submitCardComment()" style="align-self:flex-end;padding:8px 12px;background:var(--accent);color:var(--on-accent,#24282C);border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;">Send</button>
     </div>`;
   body.appendChild(commentsDiv);
   loadCardComments(cardId);
@@ -15176,7 +15178,8 @@ function prewarmTeacherAiEngine() {
   _ttAiPrewarmAt = Date.now();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 700);
-  apiFetch('/api/ai/status', { signal: controller.signal })
+  // /status is admin-only since the AI audit: for a teacher it was a 403 in the console on every board
+  apiFetch('/api/ai/quota', { signal: controller.signal })
     .catch(() => {})
     .finally(() => clearTimeout(timer));
 }
@@ -16520,7 +16523,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1165';
+const TEACHEDOS_ASSET_VERSION = '1166';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23145,7 +23148,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1165',
+          icon: 'icons/icon-192.png?v=1166',
           tag: 'board-live-' + s.id,
         });
       }
@@ -23188,7 +23191,12 @@ function applyRoleUI() {
     })();
     if (isOwner) { badge.textContent = ''; badge.style.display = 'none'; }
     else {
-      badge.textContent = boardCanEdit ? 'Editor' : 'View only';
+      /* A student draws and writes on their own layer (board-student-layer.js)
+         with a full tool dock - "View only" next to that dock read as a
+         contradiction. They are a student here; the tooltip says the rest. */
+      const studentHere = !boardCanEdit && currentUser.role === 'student';
+      badge.textContent = boardCanEdit ? 'Editor' : studentHere ? 'Student' : 'View only';
+      badge.title = studentHere ? 'Your notes and drawings sit on top of the board - the teacher’s cards stay as they are' : '';
       badge.style.cssText += 'background:#F6F6EF;color:#5D614B;display:inline;';
     }
   }

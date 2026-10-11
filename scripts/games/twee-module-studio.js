@@ -297,6 +297,14 @@ function setTheme(color) {
   document.body.style.setProperty("--accent-2", `color-mix(in srgb, ${color} 14%, white 86%)`);
   // Тот же тон, но пригодный для текста на светлом тинте (>=4,5:1).
   document.body.style.setProperty("--accent-ink", `color-mix(in srgb, ${color} 52%, #111)`);
+  /* white on the lighter module colours (#4d91ff, #4fb58b) was 3:1 on the main
+     button - such a colour gets ink text instead */
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(color || ""));
+  if (m) {
+    const n = parseInt(m[1], 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    const L = 0.2126 * f(n >> 16) + 0.7152 * f((n >> 8) & 255) + 0.0722 * f(n & 255);
+    document.body.style.setProperty("--accent-on", (1.05 / (L + 0.05)) >= 4.5 ? "#fff" : "#24282C");
+  }
   document.body.style.setProperty("--border", `color-mix(in srgb, ${color} 22%, transparent 78%)`);
   document.body.style.setProperty("--shadow", `0 24px 48px color-mix(in srgb, ${color} 12%, transparent 88%)`);
 }

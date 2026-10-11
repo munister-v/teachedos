@@ -40,10 +40,10 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .play-again{margin-top:12px;width:100%;padding:14px;border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;background:var(--accent);color:#fff;display:none}
 .loading{text-align:center;padding:32px;color:#5D614B;font-size:.9rem}
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1165">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=1165">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1166">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=1166">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=1165">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=1166">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -174,6 +174,10 @@ function renderGrid(){
       if(t.url){
         var img=document.createElement('img');
         img.src=t.url; img.alt=t.word; img.loading='lazy';
+        // a picture that does not load (Wikimedia thumbnails do go missing) becomes the letter tile
+        img.onerror=function(){ var ph=document.createElement('div'); ph.className='ph';
+          ph.style.background='linear-gradient(135deg,'+((t.palette||[])[0]||'#CDF649')+','+((t.palette||[])[1]||'#49F6F0')+')';
+          ph.textContent=(t.word||'?')[0].toUpperCase(); if(img.parentNode) img.parentNode.replaceChild(ph,img); };
         el.appendChild(img);
       } else {
         var ph=document.createElement('div');
@@ -261,6 +265,6 @@ window.addEventListener('message',function(e){
 window.parent.postMessage({type:'game-ready'},'*');
 restart();
 </script>
-<script src="../scripts/game-handoff.js?v=1165"></script>
+<script src="../scripts/game-handoff.js?v=1166"></script>
 </body>
 </html>
