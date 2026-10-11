@@ -2940,7 +2940,9 @@ body.board-page .empty-action.primary {
 #notif-panel [class*="empty"] { color: rgba(255,255,255,.70) !important; }
 #notif-panel [class*="head"] { border-bottom: 1px solid rgba(202,204,198,.12) !important; }
 #notif-panel button, #notif-panel [class*="mark"] { color: #CDF649 !important; }
-#notif-panel [class*="item"] { border-bottom: 1px solid rgba(202,204,198,.08) !important; }
+/* [class*="item"] also caught .np-item-title / -body / -time: a rule under every line of text */
+#notif-panel .np-item { border-bottom: 0 !important; }
+#notif-panel .np-item + .np-item { margin-top: 4px; }
 
 /* Геометрия и краска панели уведомлений - здесь, одним местом. */
 #notif-panel {

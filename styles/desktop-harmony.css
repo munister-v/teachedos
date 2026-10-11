@@ -95,7 +95,7 @@ body.os-desktop:not(#d1):not(#d2):not(#d3) .win :is(.studio-kicker, .studio-eyeb
   font-weight:600 !important;
   letter-spacing:.06em !important;
   text-transform:uppercase !important;
-  color:#8E8E93 !important;
+  color:#6E6E73 !important;
   margin:0 0 6px !important;
 }
 
@@ -117,11 +117,11 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar {
   border:0 !important; border-bottom:1px solid rgba(0,0,0,.08) !important; box-shadow:none !important;
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar .mb-menu { margin-left:6px !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar #mb-clock { font-size:12px !important; font-weight:500 !important; color:#8E8E93 !important; letter-spacing:0 !important; white-space:nowrap; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #menubar #mb-clock { font-size:12px !important; font-weight:500 !important; color:#6E6E73 !important; letter-spacing:0 !important; white-space:nowrap; }
 
 /* ── Widget labels: the same small grey caps as the window eyebrows ── */
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) :is(.wg-today-label, .wk-label, .wg-streak-label, .sp-month) {
-  font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important; color:#8E8E93 !important;
+  font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important; color:#6E6E73 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -145,7 +145,7 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .win-sidebar {
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-section-label {
   font-size:11px !important; font-weight:600 !important; letter-spacing:.06em !important; text-transform:uppercase !important;
-  color:#8E8E93 !important; margin:0 0 8px !important; padding:0 10px !important;
+  color:#6E6E73 !important; margin:0 0 8px !important; padding:0 10px !important;
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-section-label ~ .sb-section-label { margin-top:24px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .sb-item.sb-secondary { display:none !important; }
@@ -199,7 +199,7 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, 
   background:rgba(118,118,128,.08) !important; border:1px solid transparent !important; border-radius:12px !important; box-shadow:none !important;
   color:#1C1C1E !important; font-size:14px !important; transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) { display:flex !important; align-items:center; gap:8px; padding:0 12px !important; color:#8E8E93 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) { display:flex !important; align-items:center; gap:8px; padding:0 12px !important; color:#6E6E73 !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .curr-search { width:100% !important; max-width:none !important; margin:0 0 20px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.st-search, #lib-skill) { padding:0 12px !important; outline:0 !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search):focus-within,
@@ -207,8 +207,8 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.st-search, #l
   border-color:var(--te-lime,#CDF649) !important; background:rgba(118,118,128,.05) !important; box-shadow:0 0 0 3px rgba(205,246,73,.35) !important;
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) input { flex:1; min-width:0; background:transparent !important; border:0 !important; outline:0 !important; box-shadow:none !important; font-size:14px !important; color:#1C1C1E !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) input::placeholder, html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .st-search::placeholder { color:#8E8E93 !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) svg { color:#8E8E93 !important; flex:none; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) input::placeholder, html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .st-search::placeholder { color:#6E6E73 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.curr-search, .lib-search) svg { color:#6E6E73 !important; flex:none; }
 
 /* ── Students: the list column's own header lines up with the rest ── */
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-students .st-list-head { padding:0 12px 10px 0 !important; gap:8px; }
@@ -224,7 +224,7 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-cover > * { width:100% !important; height:100% !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-body { padding:10px 2px 0 !important; background:transparent !important; border:0 !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .lc-title { font-size:15px !important; font-weight:600 !important; color:#1C1C1E !important; margin:0 0 2px !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card :is(.lc-meta,.lc-dur,.lc-desc) { font-size:12px !important; color:#8E8E93 !important; background:none !important; padding:0 !important; border:0 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card :is(.lc-meta,.lc-dur,.lc-desc) { font-size:12px !important; color:#6E6E73 !important; background:none !important; padding:0 !important; border:0 !important; }
 /* the cover lifts on hover, like a card picked up; the title stays one line */
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card .bd-cover { box-shadow:0 1px 2px rgba(18,20,24,.06); transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-card:hover .bd-cover { transform:translateY(-3px); box-shadow:0 14px 28px -14px rgba(18,20,24,.4), 0 2px 6px rgba(18,20,24,.08); }
@@ -270,7 +270,7 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item-t
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item.active .note-item-title { font-weight:600 !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item-pin { font-size:10px; margin-right:5px; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .note-item-preview {
-  font-size:12px !important; line-height:1.35 !important; color:#8E8E93 !important; background:none !important;
+  font-size:12px !important; line-height:1.35 !important; color:#6E6E73 !important; background:none !important;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0 !important; font-family:inherit !important;
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .studio-actions { display:none !important; }
@@ -288,8 +288,8 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-edito
   font-size:15px !important; line-height:1.55 !important; color:#1C1C1E !important; transition:border-color .2s ease, box-shadow .2s ease;
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-editor-area:focus { border-color:var(--te-lime,#CDF649) !important; box-shadow:0 0 0 3px rgba(205,246,73,.3) !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-editor-area::placeholder { color:#8E8E93 !important; }
-html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-footer { display:flex; padding:8px 2px 0 !important; background:none !important; border:0 !important; font-size:12px !important; color:#8E8E93 !important; font-family:inherit !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-editor-area::placeholder { color:#6E6E73 !important; }
+html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-notes .notes-footer { display:flex; padding:8px 2px 0 !important; background:none !important; border:0 !important; font-size:12px !important; color:#6E6E73 !important; font-family:inherit !important; }
 
 @media (prefers-reduced-motion:reduce){ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-chip.primary:hover { transform:none; } }
 }

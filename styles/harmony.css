@@ -1287,13 +1287,14 @@ body { font-family: var(--font) !important; }
     font-family: var(--font) !important;
     color: #FFFFFF !important;
   }
+  /* one typeface in the palette; the mono subtitles read like code */
   .sp-result-sub {
-    font-family: var(--font-mono) !important;
-    color: rgba(255,255,255,0.45) !important;
+    font-family: var(--font) !important;
+    color: rgba(255,255,255,0.64) !important;
   }
   .sp-section-hd {
-    font-family: var(--font-mono) !important;
-    color: rgba(255,255,255,0.40) !important;
+    font-family: var(--font) !important;
+    color: rgba(255,255,255,0.58) !important;
   }
 
   /* ── Notification panel: dark ──
@@ -1316,7 +1317,9 @@ body { font-family: var(--font) !important; }
   #notif-panel [class*="head"] { border-bottom: 1px solid rgba(202,204,198,0.12) !important; }
   #notif-panel [class*="mark"],
   #notif-panel button { color: var(--lime) !important; }
-  #notif-panel [class*="item"] { border-bottom: 1px solid rgba(202,204,198,0.08) !important; }
+  /* [class*="item"] also caught .np-item-title / -body / -time: a rule under every line of text */
+  #notif-panel .np-item { border-bottom: 0 !important; }
+  #notif-panel .np-item + .np-item { margin-top: 4px; }
 
   /* ── Curriculum / Boards in window ── */
   .curr-title {

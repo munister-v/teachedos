@@ -3295,8 +3295,9 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .timer-controls{display:flex;gap:8px;}
 .timer-btn{padding:6px 14px;border-radius:8px;border:none;font-family:var(--font);font-size:12px;font-weight:650;
   cursor:pointer;transition:.15s;}
-.timer-start{background:#FF4E00;color:#fff;}  .timer-start:hover{background:#FF4E00;}
-.timer-pause{background:#F3A46B;color:#fff;}  .timer-pause:hover{background:#FF8C3A;}
+/* ink on the warm buttons: white on #FF4E00 was 3.3:1, on #F3A46B 2:1 */
+.timer-start{background:#FF4E00;color:#24282C;}  .timer-start:hover{background:#FF6A26;}
+.timer-pause{background:#F3A46B;color:#24282C;}  .timer-pause:hover{background:#FF8C3A;}
 .timer-reset{background:rgba(36,40,44,.06);color:var(--text-2);}  .timer-reset:hover{background:rgba(36,40,44,.1);}
 .timer-label{font-size:11px;color:var(--text-3);text-align:center;}
 .timer-set{display:flex;gap:4px;align-items:center;}
@@ -4100,7 +4101,7 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 	  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 14px 32px rgba(211,243,107,.18),0 2px 6px rgba(93,97,75,.05);
 	}
 	.ws-strip-main{min-width:0;display:flex;flex-direction:column;gap:8px;}
-	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(36,40,44,.56);}
+	.ws-strip-kicker{font:800 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:rgba(36,40,44,.72);}
 	/* Where this block sits in the lesson. Solid ink on the lime masthead rather
 	   than another tint of it - it has to survive being read at board zoom, and
 	   flat colours also keep html2canvas happy on export. */

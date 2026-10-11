@@ -2365,12 +2365,12 @@ const SP_ITEMS = [
   { icon:'✍️', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
   { icon:'💳', iconBg:'linear-gradient(145deg,#5D614B,#A3A48D)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
   // External pages
-  { icon:'📌', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Visual Board', sub:'Go to board.html', kbd:'⌘', action:()=>location.href='board.html' },
-  { icon:'📚', iconBg:'linear-gradient(145deg,#A3A48D,#886BF3)', title:'Courses', sub:'Go to courses.html', kbd:'⌘', action:()=>location.href='courses.html' },
+  { icon:'📌', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Visual Board', sub:'Your whiteboard for the lesson', kbd:'⌘', action:()=>location.href='board.html' },
+  { icon:'📚', iconBg:'linear-gradient(145deg,#A3A48D,#886BF3)', title:'Courses', sub:'Lesson packs and courses', kbd:'⌘', action:()=>location.href='courses.html' },
   { icon:'🌍', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Community', sub:'Share ready boards with teachers', kbd:'⌘', action:()=>location.href='community.html' },
-  { icon:'📊', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Analytics', sub:'Go to analytics.html', kbd:'⌘', action:()=>location.href='analytics.html' },
-  { icon:'📒', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Gradebook', sub:'Go to gradebook.html', kbd:'⌘', action:()=>location.href='gradebook.html' },
-  { icon:'👤', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Profile', sub:'Go to profile.html', kbd:'⌘', action:()=>location.href='profile.html' },
+  { icon:'📊', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Analytics', sub:'Lessons, students and income in numbers', kbd:'⌘', action:()=>location.href='analytics.html' },
+  { icon:'📒', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Gradebook', sub:'Marks and progress by student', kbd:'⌘', action:()=>location.href='gradebook.html' },
+  { icon:'👤', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Profile', sub:'Your public page and settings', kbd:'⌘', action:()=>location.href='profile.html' },
   // Students quick jump (rebuilt later when STUDENTS loads from API)
 ];
 
@@ -2830,13 +2830,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1162" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1163" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1162" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1163" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

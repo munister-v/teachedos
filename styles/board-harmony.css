@@ -191,6 +191,13 @@ html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4)
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo{ padding:7px 6px !important; margin:0 2px 0 0 !important; width:auto !important; }
 /* the cat is drawn in ink: on the dark island it turns light */
 html body.board-page.board-canvas-dark:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo-img{ content:url("../icons/mark-lime.svg"); filter:none; }
+/* The 30px mark filled the round end of the 46px capsule edge to edge and
+   read as a lime block stuck on the bar (11.10.2026). 24px, centred on the
+   capsule's end circle (its centre is 23px in), with a round hover. */
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo{ padding:0 !important; width:38px !important; height:38px !important; margin:0 4px 0 0 !important; justify-content:center; border-radius:999px !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo-img{ width:24px !important; height:24px !important; }
+html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo:hover{ background:rgba(255,255,255,.08) !important; }
+html body.board-page:not(.board-canvas-dark):not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar .tb-logo:hover{ background:rgba(36,40,44,.06) !important; }
 /* colours of everything inside follow the island */
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-board-chip,.tb-board-chip-title,.tb-board-chip-menu,.tb-auth-chip,#auth-login-btn){ color:var(--isl-ink) !important; }
 html body.board-page:not(.board-phone-shell):not(#b1):not(#b2):not(#b3):not(#b4):not(#b5) #toolbar :is(.tb-icon-btn,#btn-more,#btn-follow-me,#btn-upgrade){ color:var(--isl-ink-2) !important; }
