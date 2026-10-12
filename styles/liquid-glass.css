@@ -72,6 +72,10 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
   background:var(--lg-sheen),var(--lg-fill-thin);
   -webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);box-shadow:var(--lg-edge);
 }
+/* nobody else on the board: the presence bar is empty, and as a glass pill
+   it showed up as a stray dash between the live dot and Follow me */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #presence-bar:empty{display:none !important}
+
 /* on a phone the top bar is sticky, which already anchors ::before */
 @media (min-width:861px){ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .topbar{position:relative} }
 

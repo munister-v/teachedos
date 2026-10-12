@@ -11129,10 +11129,16 @@ function renderMinimap() {
   const oy = (MH - (maxY-minY)*scale)/2 - minY*scale;
 
   // Draw cards
+  /* Картинки и текст рисовались чернилами на 10-12% - на графитовой доске
+     мини-карта с одной картинкой выглядела пустой рамкой. На тёмном холсте
+     у них светлая заливка. */
+  const darkCanvas = document.body.classList.contains('board-canvas-dark');
+  const colors = { sticky:'#F3DF6B', plan:'rgba(205,246,73,.25)', student:'rgba(63,159,255,.25)',
+                   note:'rgba(243,164,107,.25)', event:'rgba(163,164,141,.25)',
+                   text: darkCanvas ? 'rgba(255,255,255,.2)' : 'rgba(36,40,44,.1)',
+                   image: darkCanvas ? 'rgba(255,255,255,.3)' : 'rgba(36,40,44,.12)' };
   state.cards.forEach(c => {
-    const colors = { sticky:'#F3DF6B', plan:'rgba(205,246,73,.25)', student:'rgba(63,159,255,.25)',
-                     note:'rgba(243,164,107,.25)', event:'rgba(163,164,141,.25)', text:'rgba(36,40,44,.1)', image:'rgba(36,40,44,.12)' };
-    ctx.fillStyle = c.color || colors[c.type] || 'rgba(202,204,198,.4)';
+    ctx.fillStyle = c.color || colors[c.type] || (darkCanvas ? 'rgba(255,255,255,.26)' : 'rgba(202,204,198,.4)');
     ctx.strokeStyle = 'rgba(205,246,73,.2)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -16523,7 +16529,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1167';
+const TEACHEDOS_ASSET_VERSION = '1168';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23148,7 +23154,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1167',
+          icon: 'icons/icon-192.png?v=1168',
           tag: 'board-live-' + s.id,
         });
       }
@@ -27869,7 +27875,9 @@ function applyCanvasTone() {
   const color = mine || CANVAS_TONES[cv.tone] || CANVAS_TONES.light;
   _bwBg(bw, '--board-bg-color', color);
   const dark = _colorIsDark(color);
+  const was = document.body.classList.contains('board-canvas-dark');
   document.body.classList.toggle('board-canvas-dark', dark);
+  if (was !== dark && typeof renderMinimap === 'function') renderMinimap();
   document.documentElement.style.setProperty('--board-dot', dark ? 'rgba(255,255,255,.085)' : 'rgba(36,40,44,.10)');
   _rememberCanvasTone(dark ? 'dark' : 'light');
 }

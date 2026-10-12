@@ -233,13 +233,16 @@ body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) #miro-tool
 body.board-page.board-canvas-dark:not(#b1):not(#b2):not(#b3):not(#b4) :is(#zoom-controls,#minimap){ border-color:rgba(255,255,255,.14) !important; }
 body.board-page.board-canvas-dark #student-dock{ background:rgba(47,47,57,.92); border:1px solid rgba(255,255,255,.10); box-shadow:0 18px 40px -18px rgba(0,0,0,.7); }
 
-/* ── Rail: the first button is the way into everything, so it is the lime one */
+/* ── Rail: the first button is the way into everything, so it stands out -
+   but as a lime outline with a lime spark, not a lime tile. A filled tile is
+   how the rail marks the chosen tool, and with two of them on top of each
+   other (Build a lesson + Select) it was not clear which tool was on. */
 body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools{
-  background:#CDF649 !important; border-color:#CDF649 !important; color:#24282C !important;
-  box-shadow:0 6px 18px -6px rgba(205,246,73,.55) !important;
+  background:rgba(205,246,73,.12) !important; border:1px solid rgba(205,246,73,.55) !important; color:#CDF649 !important;
+  box-shadow:none !important;
 }
-body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools svg{ color:#24282C !important; }
-body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools:hover{ background:#D8FA6B !important; }
+body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools svg{ color:#CDF649 !important; }
+body.board-page:not(#b1):not(#b2):not(#b3):not(#b4) #miro-toolbar .mt-btn.mt-tools:hover{ background:rgba(205,246,73,.22) !important; border-color:#CDF649 !important; }
 
 /* ── Board assistant: a pill at the bottom, swiped right when not needed ──── */
 #board-agent-pill{

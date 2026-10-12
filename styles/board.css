@@ -7421,7 +7421,8 @@ body:not(#_):not(#__) .ss-notes{min-height:70px !important;border-radius:14px !i
 /* avatar menu: boards */
 .um-label{padding:6px 14px 2px;font:700 10px var(--mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3,#7A7E68)}
 .um-board{display:flex;align-items:center;gap:9px}
-.um-board .um-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid #A3A48D;flex:none}
+/* the dot takes the icon's 16px column, so board names line up with the items below */
+.um-board .um-dot{box-sizing:border-box;width:8px;height:8px;margin:0 4px;border-radius:50%;border:1.5px solid #A3A48D;flex:none}
 .um-board.on .um-dot{background:#CDF649;border-color:#24282C}
 .um-board.on{font-weight:700}
 .um-bn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

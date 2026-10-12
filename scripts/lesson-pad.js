@@ -94,7 +94,7 @@
       const en = row && entries.find(x => x.id === row.dataset.id);
       if (en && e.target.matches('.lp-mean')) { en.meaning = e.target.value; save(); }
     });
-    host.addEventListener('keydown', e => { e.stopPropagation(); });
+    host.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape' && open) { open = false; render(); host.querySelector('.lp-fab')?.focus(); } });
     /* Список слов из чата: без имён и времени, каждая строка - отдельное слово. */
     host.addEventListener('paste', e => {
       const t = e.target;
@@ -257,6 +257,20 @@
     else if (act === 'pick') { const id = t.dataset.s; if (picked.has(id)) picked.delete(id); else picked.add(id); render(); }
     else if (act === 'send') send();
   }
+
+  /* Блокнот и меню верхней панели открывались одновременно: меню профиля
+     ложилось поверх панели, а его размытый фон втягивал лаймовую кнопку
+     «Send» в лаймовое пятно. Кнопка в верхней панели закрывает блокнот,
+     Escape - тоже. Клик по доске не закрывает: фразы ловят прямо по ходу. */
+  document.addEventListener('pointerdown', e => {
+    if (!open || !host || host.contains(e.target)) return;
+    if (!e.target.closest || !e.target.closest('#toolbar')) return;
+    open = false; render();
+  }, true);
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || !open || !host) return;
+    open = false; render();
+  });
 
   // Выделил на доске - Alt+Shift+L - фраза в блокноте.
   document.addEventListener('keydown', e => {
