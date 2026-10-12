@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1170"></script>
+<script src="scripts/phone-gate.js?v=1173"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1170">
-<link rel="preload" as="style" href="styles/unify.css?v=1170">
-<link rel="manifest" href="manifest.json?v=1170">
-<link rel="icon" href="favicon.ico?v=1170" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1170">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1170">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1170">
+<link rel="preload" as="style" href="styles/harmony.css?v=1173">
+<link rel="preload" as="style" href="styles/unify.css?v=1173">
+<link rel="manifest" href="manifest.json?v=1173">
+<link rel="icon" href="favicon.ico?v=1173" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1173">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1173">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1173">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,7 +22,7 @@
   --accent:#24282C;--lime:#CDF649;--lime-dark:#CDF649;--bg:#F6F6EF;--card:#fff;
   --border:rgba(93,97,75,.14);--border2:rgba(93,97,75,.28);--text:#24282C;--text2:#5D614B;--text3:#5D614B;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
-  --mono:'SFMono-Regular','SF Mono',ui-monospace,Menlo,Monaco,Consolas,monospace;
+  --mono:'SFMono-Regular','SF Mono',var(--te-font-mono,ui-monospace,Menlo,Monaco,Consolas,monospace);
   --pink:#886BF3;--pink-soft:#F3A46B;
   --green:#D3F36B;--green-soft:#49F6F0;--red:#FF4E00;--red-soft:#F6F6EF;
   --blue:#3F9FFF;--blue-soft:#6BAFF3;--orange:#F3A46B;--orange-soft:#F3DF6B;
@@ -90,10 +90,10 @@ textarea{min-height:60px;resize:vertical}
 .topic-bar-head{display:flex;align-items:center;gap:10px}
 .topic-bar-icon{font-size:18px}
 .topic-bar-label{font:800 14px var(--font);letter-spacing:-.01em}
-.topic-bar-meta{margin-left:auto;font:700 11px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.topic-bar-meta{margin-left:auto;font:700 11px 'SFMono-Regular','SF Mono',var(--te-font-mono,ui-monospace,monospace);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 .topic-bar-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .topic-ctl{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
-.topic-ctl > span{font:700 11px 'SFMono-Regular','SF Mono',ui-monospace,monospace;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.topic-ctl > span{font:700 11px 'SFMono-Regular','SF Mono',var(--te-font-mono,ui-monospace,monospace);letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 .topic-ctl select{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:9px 12px;font:600 13px var(--font);outline:none;cursor:pointer;transition:border-color .15s,background .15s}
 .topic-ctl select:hover{border-color:rgba(205,246,73,.5);background:rgba(255,255,255,.10)}
 .topic-ctl select:focus{border-color:#CDF649;background:rgba(205,246,73,.10)}
@@ -268,27 +268,27 @@ textarea{min-height:60px;resize:vertical}
 .lt-grid-o small{font:650 11px system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lt-grid-o.on{border-color:#CDF649;box-shadow:0 0 0 2px rgba(205,246,73,.45)}
 </style>
-<script src="theme.js?v=1170" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1170">
-<link rel="stylesheet" href="styles/harmony.css?v=1170">
-<link rel="stylesheet" href="styles/unify.css?v=1170">
-<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=1170">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1170">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1170">
-<link rel="stylesheet" href="styles/tool-window.css?v=1170">
+<script src="theme.js?v=1173" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1173">
+<link rel="stylesheet" href="styles/harmony.css?v=1173">
+<link rel="stylesheet" href="styles/unify.css?v=1173">
+<link rel="stylesheet" href="styles/teacher-tools-refined.css?v=1173">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1173">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1173">
+<link rel="stylesheet" href="styles/tool-window.css?v=1173">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1170">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1170">
-<link rel="stylesheet" href="styles/controls.css?v=1170">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1173">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1173">
+<link rel="stylesheet" href="styles/controls.css?v=1173">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1170">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1170">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1170">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1170">
-<link rel="stylesheet" href="styles/toast.css?v=1170">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1170">
+<link rel="stylesheet" href="styles/polish.css?v=1173">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1173">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1173">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1173">
+<link rel="stylesheet" href="styles/toast.css?v=1173">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1173">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1170">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1173">
 </head>
 <body class="tools-workbench tw-page fx">
 <!-- Mobile: Game Builder is authoring-heavy (drag-drop) → desktop only -->
@@ -303,7 +303,7 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1170" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1173" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <a class="nav-link" href="community.html">Community</a>
   <a class="nav-link active" href="game-builder.html">Game Builder</a>
@@ -556,9 +556,9 @@ textarea{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1170"></script>
-<script src="scripts/vocab-loader.js?v=1170"></script>
-<script src="scripts/game-builder-app.js?v=1170"></script>
+<script src="scripts/app-core.js?v=1173"></script>
+<script src="scripts/vocab-loader.js?v=1173"></script>
+<script src="scripts/game-builder-app.js?v=1173"></script>
 
 <!-- Photo picker modal (word-image-match) -->
 <div class="pm-overlay" id="pmOverlay" style="display:none" onclick="if(event.target===this)closePhotoPicker()">
@@ -572,12 +572,12 @@ textarea{min-height:60px;resize:vertical}
     <div class="pm-credit">Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#CDF649">Unsplash</a></div>
   </div>
 </div>
-<script src="scripts/mobile-perf.js?v=1170" defer></script>
-<script src="scripts/lesson-themes.js?v=1170"></script>
-<script src="scripts/mobile-nav.js?v=1170"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1170" defer></script>
-<script src="scripts/autogrow.js?v=1170" defer></script>
-<script src="pwa-boot.js?v=1170" defer></script>
-  <script src="scripts/signin-entry.js?v=1170" defer></script>
+<script src="scripts/mobile-perf.js?v=1173" defer></script>
+<script src="scripts/lesson-themes.js?v=1173"></script>
+<script src="scripts/mobile-nav.js?v=1173"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1173" defer></script>
+<script src="scripts/autogrow.js?v=1173" defer></script>
+<script src="pwa-boot.js?v=1173" defer></script>
+  <script src="scripts/signin-entry.js?v=1173" defer></script>
 </body>
 </html>

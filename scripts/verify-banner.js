@@ -15,7 +15,7 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   const CSS = `
-.vb{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:10px 10px 10px 16px;border-radius:16px;background:#24282C;color:#fff;box-shadow:0 18px 50px -12px rgba(0,0,0,.45);font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;animation:vbIn .25s ease}
+.vb{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:10px 10px 10px 16px;border-radius:16px;background:#24282C;color:#fff;box-shadow:0 18px 50px -12px rgba(0,0,0,.45);font:500 13px/1.35 var(--te-font-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif);animation:vbIn .25s ease}
 @keyframes vbIn{from{opacity:0;transform:translate(-50%,10px)}}
 .vb-dot{width:8px;height:8px;border-radius:50%;background:#CDF649;flex:none;box-shadow:0 0 0 4px rgba(205,246,73,.18)}
 .vb-t b{font-weight:650}.vb-t span{color:rgba(255,255,255,.66)}

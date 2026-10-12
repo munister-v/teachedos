@@ -29,7 +29,7 @@
     st.id = 'sf-css';
     st.textContent = `
 .tabs .tab{white-space:nowrap}
-#sf-fab{position:fixed;right:22px;bottom:22px;z-index:4500;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 18px 12px 14px;background:#CDF649;color:#24282C;font:800 13px -apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif;cursor:pointer;box-shadow:0 12px 30px -10px rgba(36,40,44,.5);transition:transform .18s}
+#sf-fab{position:fixed;right:22px;bottom:22px;z-index:4500;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 18px 12px 14px;background:#CDF649;color:#24282C;font:800 13px var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif);cursor:pointer;box-shadow:0 12px 30px -10px rgba(36,40,44,.5);transition:transform .18s}
 #sf-fab:hover{transform:translateY(-2px)}
 #sf-fab:focus-visible{outline:2px solid #24282C;outline-offset:3px}
 #sf-fab .sf-fab-ic{font-size:18px}
@@ -48,7 +48,7 @@
 .sf-card{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:22px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.35);font-family:inherit;color:#24282C}
 .sf-card h2{font-size:22px;letter-spacing:-.02em;margin-bottom:4px}
 .sf-card p.sf-sub{font-size:13.5px;color:#5D614B;margin-bottom:16px;line-height:1.45}
-.sf-q{font:800 11px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin:16px 0 8px}
+.sf-q{font:800 11px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin:16px 0 8px}
 .sf-chips{display:flex;flex-wrap:wrap;gap:7px}
 .sf-chip{border:1.5px solid rgba(36,40,44,.16);background:#fff;border-radius:999px;padding:8px 13px;font:650 13.5px inherit;cursor:pointer;color:#24282C;font-family:inherit}
 .sf-chip:hover{border-color:#24282C}
@@ -62,7 +62,7 @@
 .sf-head h3{font-size:18px;letter-spacing:-.01em}
 .sf-head span{font-size:12.5px;color:#5D614B}
 .sf-art{background:#fff;border:1px solid rgba(93,97,75,.16);border-radius:16px;padding:16px 18px;margin-bottom:12px}
-.sf-art .sf-tag{display:inline-block;font:800 11px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;background:#EFEAFF;color:#4B2FC4;border-radius:999px;padding:3px 9px}
+.sf-art .sf-tag{display:inline-block;font:800 11px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.08em;text-transform:uppercase;background:#EFEAFF;color:#4B2FC4;border-radius:999px;padding:3px 9px}
 .sf-art h4{font-size:17px;line-height:1.3;margin:8px 0 4px;letter-spacing:-.01em}
 .sf-art small{color:#7A7E68;font-size:12px}
 .sf-art .sf-sum{margin:8px 0 10px;font-size:15px;line-height:1.6}
@@ -73,7 +73,7 @@
 .sf-ask input{flex:1;min-width:0;height:42px;border:1.5px solid rgba(36,40,44,.2);border-radius:12px;padding:0 12px;font:500 14px inherit;font-family:inherit}
 .sf-pop{position:fixed;z-index:5100;width:min(320px,calc(100vw - 24px));background:#24282C;color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 20px 50px rgba(0,0,0,.4);font-size:13.5px;line-height:1.5}
 .sf-pop b{font-size:17px;display:block}
-.sf-pop .sf-ipa{font:600 12.5px ui-monospace,Menlo,monospace;color:#CACCC6}
+.sf-pop .sf-ipa{font:600 12.5px var(--te-font-mono,ui-monospace,Menlo,monospace);color:#CACCC6}
 .sf-pop em{display:block;color:#CACCC6;margin-top:4px}
 .sf-pop .sf-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .sf-pop button{border:0;border-radius:10px;padding:8px 12px;font:700 12.5px inherit;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}
@@ -85,7 +85,7 @@
 .sf-story{border-radius:24px;padding:22px 20px 20px;min-height:340px;display:flex;flex-direction:column;gap:10px;background:#fff;color:#24282C;box-shadow:0 0 0 1px rgba(36,40,44,.08)}
 .sf-story.ink{background:#24282C;color:#fff;box-shadow:none}
 .sf-story.lime{background:linear-gradient(160deg,#DBFB6C,#CDF649);box-shadow:none}
-.sf-kick{font:800 11px ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;opacity:.7}
+.sf-kick{font:800 11px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.12em;text-transform:uppercase;opacity:.7}
 .sf-big{font-size:30px;line-height:1.12;font-weight:800;letter-spacing:-.03em;overflow-wrap:anywhere}
 .sf-story h4{font-size:21px;line-height:1.25;letter-spacing:-.02em;margin:0}
 .sf-ask-q{font-size:15px;font-weight:650;line-height:1.4;margin-top:4px}

@@ -494,7 +494,7 @@ body.fx.os-desktop:not(#_) .widget .ic { top:16px !important; right:16px !import
 body.fx.os-desktop:not(#_) .widget:hover .ic { opacity:0 !important; }
 /* Подписи-заголовки у всех карточек одинаковые */
 body.fx.os-desktop:not(#_) :is(.wg-streak-label, .wg-vocab-label, .wg-today-label, .wg-pulse-title) {
-  font:600 11px/1.2 'SF Mono', ui-monospace, Menlo, monospace !important;
+  font:600 11px/1.2 'SF Mono', var(--te-font-mono,ui-monospace, Menlo, monospace) !important;
   letter-spacing:.12em !important; text-transform:uppercase !important; color:#6B6E60 !important;
 }
 body.fx.os-desktop:not(#_) :is(.wg-streak-n, .wg-vocab-word) { font-size:46px !important; letter-spacing:-.05em !important; }
@@ -522,7 +522,7 @@ body.fx.os-desktop:not(#_) #fx-ghost-panel .sp-card { border-radius:16px; }
   align-items:center; gap:6px; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:8px 14px;
   /* frosted glass on a dark tint, so the white label holds on a light wallpaper too */
   background:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),rgba(36,40,44,.58); color:#fff;
-  font:600 12px -apple-system, system-ui, sans-serif; cursor:pointer;
+  font:600 12px var(--te-font-ui,-apple-system, system-ui, sans-serif); cursor:pointer;
   -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); box-shadow:0 8px 32px rgba(0,0,0,.3); opacity:.0; transition:opacity .2s, background .2s;
 }
 body:hover #wg-reset { opacity:.9; }
@@ -559,7 +559,7 @@ body.fx.os-desktop #wg-week { display:flex; }
 
 /* Student Pulse → Message */
 .pm-ov{position:fixed;inset:0;z-index:99500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,22,24,.45);backdrop-filter:blur(6px)}
-.pm-sheet{width:min(460px,100%);background:#FBFAF6;color:#24282C;border-radius:22px;padding:22px;box-shadow:0 40px 100px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif}
+.pm-sheet{width:min(460px,100%);background:#FBFAF6;color:#24282C;border-radius:22px;padding:22px;box-shadow:0 40px 100px rgba(0,0,0,.35);font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif)}
 .pm-sheet h3{margin:0 0 4px;font-size:18px}
 .pm-sheet p{margin:0 0 12px;font-size:13px;color:#5D614B;line-height:1.45}
 .pm-sheet textarea{width:100%;box-sizing:border-box;border:1px solid rgba(36,40,44,.18);border-radius:14px;padding:12px 14px;font:15px/1.45 inherit;font-family:inherit;background:#fff;resize:vertical}

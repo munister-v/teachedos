@@ -66,7 +66,7 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
 .lc-empty{padding:26px 10px;text-align:center;font-size:14px;line-height:1.5;color:#C9CAD4}
 .lc-menu{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
 .lc-menu button{min-height:44px;padding:4px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-weight:650;font-size:12.5px;line-height:1.2;font-family:inherit;cursor:pointer}
-.lc-menu button small{display:block;font:700 11px 'SF Mono',ui-monospace,Menlo,monospace;color:#A9ABB8;margin-top:2px}
+.lc-menu button small{display:block;font:700 11px 'SF Mono',var(--te-font-mono,ui-monospace,Menlo,monospace);color:#A9ABB8;margin-top:2px}
 .lc-menu button.on{background:#CDF649;border-color:#CDF649;color:#24282C}
 .lc-menu button.on small{color:#3F4A0C}
 .lc-hist{margin-top:14px}
@@ -75,7 +75,7 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
 .lc-hist li{display:flex;gap:10px;align-items:baseline;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05);font-size:12.5px;color:#E6E7EE}
 .lc-hist li span{flex:1;min-width:0}
 .lc-hist li em{font-style:normal;color:#A9ABB8}
-.lc-hist li b{font:800 13px 'SF Mono',ui-monospace,Menlo,monospace;color:#CDF649}
+.lc-hist li b{font:800 13px 'SF Mono',var(--te-font-mono,ui-monospace,Menlo,monospace);color:#CDF649}
 .lc-hist li b.neg{color:#FFB37A}
 .lc :is(.lc-x,.lc-top,.lc-nav button,button.lc-d,.lc-menu button,.lc-tabs button,.lc-adj button,.lc-hist summary):focus-visible{outline:2px solid #fff;outline-offset:2px}
 @media (max-width:420px){.lc{padding:16px}.lc-menu{grid-template-columns:repeat(2,1fr)}}

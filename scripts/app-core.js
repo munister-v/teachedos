@@ -136,7 +136,7 @@
     el.setAttribute('style', [
       'position:fixed', 'top:16px', 'right:16px', 'left:16px', 'margin-left:auto', 'max-width:400px', 'z-index:999999',
       'background:#24282C', 'color:#fff', 'padding:14px 16px', 'border-radius:16px',
-      'font:13px/1.45 system-ui,-apple-system,sans-serif',
+      'font:13px/1.45 system-ui,var(--te-font-ui,-apple-system,sans-serif)',
       'box-shadow:0 14px 36px rgba(36,40,44,.24), inset 3px 0 0 #CDF649'
     ].join(';'));
     el.innerHTML = '<div style="font-weight:800;font-size:14px">Your session has expired</div>' +

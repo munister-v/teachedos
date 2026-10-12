@@ -46,7 +46,7 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-steps{display:flex;gap:6px;margin-bottom:18px}
 .so-steps i{flex:1;height:4px;border-radius:4px;background:rgba(36,40,44,.1)}
 .so-steps i.on{background:#24282C}
-.so-kick{font:700 11px ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#7A7E68;margin-bottom:6px}
+.so-kick{font:700 11px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.12em;text-transform:uppercase;color:#7A7E68;margin-bottom:6px}
 .so-card h2{font-size:24px;line-height:1.15;letter-spacing:-.025em;margin:0 0 6px}
 .so-sub{font-size:14px;line-height:1.45;color:#5D614B;margin:0 0 18px}
 .so-plates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}

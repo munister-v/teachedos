@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1170"></script>
+<script src="scripts/phone-gate.js?v=1173"></script>
 <base href="/">
-<link rel="manifest" href="manifest.json?v=1170">
+<link rel="manifest" href="manifest.json?v=1173">
 <meta name="theme-color" content="#FFFFFF"/>
-<link rel="icon" href="favicon.ico?v=1170" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1170">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1170">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1170">
+<link rel="icon" href="favicon.ico?v=1173" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1173">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1173">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1173">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1170">
-<link rel="preload" as="style" href="styles/unify.css?v=1170">
+<link rel="preload" as="style" href="styles/harmony.css?v=1173">
+<link rel="preload" as="style" href="styles/unify.css?v=1173">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -36,7 +36,7 @@ try { if (localStorage.getItem('teachedos_admin_token')) document.documentElemen
   --card-r:14px;--shadow:0 4px 24px rgba(36,40,44,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:#F6F6EF;color:var(--text);min-height:100vh;display:flex;overflow-x:hidden}
+body{font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);background:#F6F6EF;color:var(--text);min-height:100vh;display:flex;overflow-x:hidden}
 
 /* ── Login screen ───────────────────────────────────────────────────────── */
 #login-screen{
@@ -52,13 +52,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .login-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
 .login-box input{
   width:100%;padding:12px 16px;border:2px solid #CACCC6;border-radius:12px;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:15px;margin-bottom:12px;outline:none;
+  font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:15px;margin-bottom:12px;outline:none;
   transition:border-color .2s;
 }
 .login-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(205,246,73,.15)}
 .btn-primary{
   width:100%;padding:13px;background:var(--accent);color:#fff;border:none;
-  border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:16px;font-weight:650;
+  border-radius:12px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:16px;font-weight:650;
   cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);
 }
 .btn-primary:hover{background:var(--accent2)}
@@ -98,7 +98,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .sb-uname{font-size:13px;font-weight:600;color:#fff}
 .sb-uemail{font-size:11px;color:rgba(255,255,255,.4)}
 .sb-logout{margin-top:10px;width:100%;padding:8px;background:rgba(255,255,255,.07);
-  border:none;border-radius:10px;color:rgba(255,255,255,.5);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  border:none;border-radius:10px;color:rgba(255,255,255,.5);font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);
   font-size:13px;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
 .sb-logout:hover{background:rgba(205,246,73,.2);color:#fff}
 
@@ -147,7 +147,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .empty-note{font-size:13px;color:var(--muted);padding:10px 0}
 .audit-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .command-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
-.command-btn{display:flex;align-items:flex-start;gap:12px;text-align:left;border:1px solid var(--border);background:#F6F6EF;border-radius:14px;padding:14px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);will-change:transform}
+.command-btn{display:flex;align-items:flex-start;gap:12px;text-align:left;border:1px solid var(--border);background:#F6F6EF;border-radius:14px;padding:14px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);will-change:transform}
 .command-btn:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(36,40,44,.10)}
 .command-btn:active{transform:scale(.97)}
 .command-ico{font-size:22px;line-height:1}
@@ -160,7 +160,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .spotlight-sub{font-size:13px;color:rgba(255,255,255,.62);margin-top:4px}
 .spotlight-kbd{font-size:11px;font-weight:700;color:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:4px 8px;background:rgba(255,255,255,.06)}
 .spotlight-input-wrap{position:relative;z-index:1}
-.spotlight-input{width:100%;padding:14px 16px;border:none;border-radius:14px;background:#fff;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:15px;font-weight:650;outline:none}
+.spotlight-input{width:100%;padding:14px 16px;border:none;border-radius:14px;background:#fff;color:var(--text);font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:15px;font-weight:650;outline:none}
 .spotlight-results{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
 .spotlight-group{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px;min-height:112px}
 .spotlight-group-title{font-size:11px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
@@ -168,7 +168,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .spotlight-result:last-child{margin-bottom:0}
 .spotlight-main{font-size:13px;font-weight:700;color:#fff;word-break:break-word}
 .spotlight-meta{font-size:11px;color:rgba(255,255,255,.58);margin-top:2px;line-height:1.35}
-.spotlight-action{border:none;border-radius:8px;padding:5px 8px;background:#fff;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.spotlight-action{border:none;border-radius:8px;padding:5px 8px;background:#fff;color:var(--text);font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
 .spotlight-empty{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;padding:8px 0}
 .brief-card{display:grid;grid-template-columns:180px 1fr;gap:22px;align-items:center;background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:22px;margin-bottom:24px}
 .brief-score{width:148px;height:148px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:conic-gradient(var(--accent) calc(var(--score,0)*1%),#F6F6EF 0);position:relative}
@@ -180,7 +180,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .brief-highlights{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
 .brief-highlight{padding:11px 12px;border-radius:12px;background:#F6F6EF;border:1px solid var(--border);font-size:12px;color:var(--text2);font-weight:600;line-height:1.4}
 .brief-actions{display:flex;gap:8px;flex-wrap:wrap}
-.brief-action{border:none;border-radius:999px;padding:8px 12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:#F6F6EF;color:#6B42FD;
+.brief-action{border:none;border-radius:999px;padding:8px 12px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:12px;font-weight:700;cursor:pointer;background:#F6F6EF;color:#6B42FD;
   transition:all .22s cubic-bezier(.34,1.56,.64,1)}
 .brief-action:active{transform:scale(.95)}
 .brief-action.watch{background:#F6F6EF;color:#24282C}
@@ -194,7 +194,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display'
 .table-header-title{font-size:17px;font-weight:650;flex:1}
 .search-box{
   padding:8px 14px;border:2px solid #CACCC6;border-radius:10px;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:14px;outline:none;width:220px;
+  font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:14px;outline:none;width:220px;
   transition:border-color .22s ease,box-shadow .22s ease;
 }
 .search-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(205,246,73,.15)}
@@ -213,7 +213,7 @@ tr{transition:background .15s ease}
 .badge-student{background:#F6F6EF;color:#5D614B}
 .avatar-cell{font-size:20px}
 .btn-sm{
-  padding:5px 12px;border:none;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  padding:5px 12px;border:none;border-radius:8px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);
   font-size:12px;font-weight:600;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);
 }
 .btn-sm:active{transform:scale(.95)}
@@ -232,7 +232,7 @@ tr{transition:background .15s ease}
 .pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border)}
 .page-btn{
   padding:6px 14px;border:2px solid #CACCC6;border-radius:8px;background:#fff;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);
+  font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:13px;font-weight:600;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);
 }
 .page-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
 .page-btn:active:not(:disabled){transform:scale(.95)}
@@ -257,23 +257,23 @@ tr{transition:background .15s ease}
 .form-label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;display:block}
 .form-input{
   width:100%;padding:11px 14px;border:2px solid #CACCC6;border-radius:11px;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:14px;outline:none;
+  font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:14px;outline:none;
   transition:border-color .22s ease,box-shadow .22s ease;
 }
 .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(205,246,73,.15)}
 .form-select{
   width:100%;padding:11px 14px;border:2px solid #CACCC6;border-radius:11px;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:14px;outline:none;background:#fff;cursor:pointer;
+  font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:14px;outline:none;background:#fff;cursor:pointer;
   transition:border-color .22s ease,box-shadow .22s ease;
 }
 .form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(205,246,73,.15)}
 .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
 .btn-cancel{padding:10px 20px;background:#F6F6EF;border:none;border-radius:10px;
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+  font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:14px;font-weight:600;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
 .btn-cancel:hover{background:#F6F6EF}
 .btn-cancel:active{transform:scale(.97)}
 .btn-save{padding:10px 24px;background:var(--accent);color:#fff;border:none;
-  border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:14px;font-weight:650;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+  border-radius:10px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:14px;font-weight:650;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
 .btn-save:hover{background:var(--accent2)}
 .btn-save:active{transform:scale(.97)}
 
@@ -295,7 +295,7 @@ tr{transition:background .15s ease}
   padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;background:var(--accent-bg);color:var(--accent);
 }
 .filter-row{display:flex;gap:8px;flex-wrap:wrap;padding:0 22px 16px}
-.filter-chip{border:1px solid var(--border);background:#fff;color:var(--text2);border-radius:20px;padding:6px 12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:650;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.filter-chip{border:1px solid var(--border);background:#fff;color:var(--text2);border-radius:20px;padding:6px 12px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:12px;font-weight:650;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
 .filter-chip:hover,.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .filter-chip:active{transform:scale(.95)}
 
@@ -397,7 +397,7 @@ tr{transition:background .15s ease}
 .queue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .queue-list{display:flex;flex-direction:column;gap:10px}
 .preset-row{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 14px}
-.preset-btn{border:1px solid var(--border);background:#F6F6EF;color:var(--text);border-radius:999px;padding:7px 11px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.preset-btn{border:1px solid var(--border);background:#F6F6EF;color:var(--text);border-radius:999px;padding:7px 11px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
 .preset-btn:hover{border-color:var(--accent);background:#fff}
 .ops-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;margin-top:24px}
 .ops-card{background:#fff;border-radius:var(--card-r);box-shadow:var(--shadow);padding:22px;
@@ -440,7 +440,7 @@ tr{transition:background .15s ease}
 .analytics-range{display:flex;gap:8px;flex-wrap:wrap}
 .range-btn{
   padding:8px 12px;border:none;border-radius:999px;background:#fff;color:var(--text2);
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:650;cursor:pointer;
+  font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',Arial,sans-serif);font-size:12px;font-weight:650;cursor:pointer;
   box-shadow:inset 0 0 0 1px var(--border2);transition:all .22s cubic-bezier(.34,1.56,.64,1);
 }
 .range-btn:hover{box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
@@ -677,18 +677,18 @@ html{scroll-behavior:smooth}
 .empty-state-title{font:800 15px var(--font);color:var(--text);margin-bottom:4px}
 .empty-state-sub{font-size:13px}
 </style>
-<script src="theme.js?v=1170" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1170">
-<link rel="stylesheet" href="styles/harmony.css?v=1170">
-<link rel="stylesheet" href="styles/unify.css?v=1170">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1170">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1170">
-<link rel="stylesheet" href="styles/admin-refresh.css?v=1170">
-<link rel="stylesheet" href="styles/admin-control.css?v=1170">
+<script src="theme.js?v=1173" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1173">
+<link rel="stylesheet" href="styles/harmony.css?v=1173">
+<link rel="stylesheet" href="styles/unify.css?v=1173">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1173">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1173">
+<link rel="stylesheet" href="styles/admin-refresh.css?v=1173">
+<link rel="stylesheet" href="styles/admin-control.css?v=1173">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1170">
-<link rel="stylesheet" href="styles/controls.css?v=1170">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1170">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1173">
+<link rel="stylesheet" href="styles/controls.css?v=1173">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1173">
 </head>
 <body class="admin-page fx">
 
@@ -2278,15 +2278,15 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=1170"></script>
-<script src="scripts/admin-refresh.js?v=1170" defer></script>
-<script src="scripts/admin-security.js?v=1170" defer></script>
-  <script src="scripts/admin-control.js?v=1170" defer></script>
-<script src="pwa.js?v=1170"></script>
-<script src="scripts/autogrow.js?v=1170" defer></script>
-<script src="pwa-boot.js?v=1170" defer></script>
-<script src="scripts/nav-boost.js?v=1170" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1170" defer></script>
-<script src="scripts/mobile-perf.js?v=1170" defer></script>
+<script src="scripts/admin-app.js?v=1173"></script>
+<script src="scripts/admin-refresh.js?v=1173" defer></script>
+<script src="scripts/admin-security.js?v=1173" defer></script>
+  <script src="scripts/admin-control.js?v=1173" defer></script>
+<script src="pwa.js?v=1173"></script>
+<script src="scripts/autogrow.js?v=1173" defer></script>
+<script src="pwa-boot.js?v=1173" defer></script>
+<script src="scripts/nav-boost.js?v=1173" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1173" defer></script>
+<script src="scripts/mobile-perf.js?v=1173" defer></script>
 </body>
 </html>

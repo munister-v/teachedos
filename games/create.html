@@ -11,7 +11,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--accent:#24282C;--lime:#CDF649}
 html{scroll-behavior:smooth}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:var(--te-font-ui,-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif);background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem;transition:opacity .15s}
 .back:active{opacity:.5}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
@@ -112,10 +112,10 @@ td.rm button{background:none;color:#24282C;padding:4px 8px;font-size:1rem}
   .icon-pick{min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1170">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=1170">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1173">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=1173">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=1170">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=1173">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -191,8 +191,8 @@ td.rm button{background:none;color:#24282C;padding:4px 8px;font-size:1rem}
   <div class="sets" id="setsList"></div>
 </div>
 
-<script src="../scripts/vocabulary.js?v=1170"></script>
-<script src="../scripts/custom-sets.js?v=1170"></script>
+<script src="../scripts/vocabulary.js?v=1173"></script>
+<script src="../scripts/custom-sets.js?v=1173"></script>
 <script>
 const API = (window.TEACHED_API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : ((location.hostname === 'teached.tech' || location.hostname.endsWith('.teached.tech')) ? location.origin : 'https://teachedos-api.onrender.com')));
 
@@ -525,7 +525,7 @@ renderSets();
 loadStatus();
 checkImport();
 </script>
-<script src="../scripts/game-handoff.js?v=1170"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=1170"></script>
+<script src="../scripts/game-handoff.js?v=1173"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=1173"></script>
 </body>
 </html>

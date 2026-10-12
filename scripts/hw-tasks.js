@@ -29,7 +29,7 @@
     st.textContent = `
 .hwt{max-width:640px;margin:0 auto;padding:18px;font-family:inherit;color:#24282C;display:flex;flex-direction:column;gap:14px}
 .hwt-teaser{background:#24282C;color:#fff;border-radius:18px;padding:18px 20px;font-size:16px;line-height:1.6}
-.hwt-teaser small{display:block;font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#CDF649;margin-bottom:8px}
+.hwt-teaser small{display:block;font:800 10.5px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.1em;text-transform:uppercase;color:#CDF649;margin-bottom:8px}
 .hwt-q{font-size:17px;font-weight:750;letter-spacing:-.01em}
 .hwt-chips{display:flex;flex-wrap:wrap;gap:6px}
 .hwt-chip{border-radius:999px;padding:5px 12px;font:650 13px inherit;font-family:inherit;background:#EFEAFF;color:#4B2FC4}
@@ -40,7 +40,7 @@
 .hwt-btn.dark{background:#24282C;color:#fff}
 .hwt-btn.ghost{background:#fff;color:#24282C;border:1.5px solid rgba(36,40,44,.2)}
 .hwt-btn:disabled{opacity:.5;cursor:default}
-.hwt-time{font:800 22px ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.hwt-time{font:800 22px var(--te-font-mono,ui-monospace,Menlo,monospace);font-variant-numeric:tabular-nums}
 .hwt-dot{width:12px;height:12px;border-radius:50%;background:#e5543a;animation:hwt-p 1s infinite}
 @keyframes hwt-p{50%{opacity:.25}}
 .hwt-msg{font-size:13px;font-weight:650;min-height:18px}

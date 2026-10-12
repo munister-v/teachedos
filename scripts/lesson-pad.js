@@ -43,7 +43,7 @@
 .lp{position:fixed;right:16px;top:calc(var(--tb-h,48px) + 14px);z-index:900;font-family:var(--font-ui,system-ui,sans-serif);color:#24282C}
 .lp[hidden]{display:none}
 .lp-fab{display:flex;align-items:center;gap:8px;height:42px;padding:0 18px 0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),rgba(36,40,44,.58);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);color:#fff;font:650 13.5px var(--font-ui,system-ui,sans-serif);cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:background .2s ease}
-.lp-fab i{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#CDF649;color:#24282C;font:800 11.5px ui-monospace,Menlo,monospace;font-style:normal;text-shadow:none}
+.lp-fab i{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#CDF649;color:#24282C;font:800 11.5px var(--te-font-mono,ui-monospace,Menlo,monospace);font-style:normal;text-shadow:none}
 .lp-fab:hover{background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16)),rgba(36,40,44,.58)}
 .lp-panel{position:absolute;right:0;top:52px;width:min(360px,calc(100vw - 100px));max-height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;background:#fff;border:1px solid rgba(36,40,44,.14);border-radius:18px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45);overflow:hidden}
 .lp-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px}

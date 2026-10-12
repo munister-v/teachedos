@@ -28,8 +28,8 @@
 #nav .nb-bell:hover,#nav .nb-bell[aria-expanded="true"]{background:#fff}
 #nav .nb-bell:focus-visible{outline:3px solid rgba(205,246,73,.72);outline-offset:1px}
 #nav .nb-bell svg{width:17px;height:17px}
-#nav .nb-badge{position:absolute;top:-4px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#CDF649;color:#24282C;border:2px solid #F4F3EE;font:700 9.5px/13px -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;text-align:center;box-sizing:border-box}
-.nb-panel{position:fixed;z-index:9200;width:min(380px,calc(100vw - 24px));max-height:min(520px,calc(100vh - 90px));display:flex;flex-direction:column;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;box-shadow:0 24px 60px -18px rgba(20,22,24,.35);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#24282C;overflow:hidden;animation:nbIn .16s ease}
+#nav .nb-badge{position:absolute;top:-4px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#CDF649;color:#24282C;border:2px solid #F4F3EE;font:700 9.5px/13px var(--te-font-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif);text-align:center;box-sizing:border-box}
+.nb-panel{position:fixed;z-index:9200;width:min(380px,calc(100vw - 24px));max-height:min(520px,calc(100vh - 90px));display:flex;flex-direction:column;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;box-shadow:0 24px 60px -18px rgba(20,22,24,.35);font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif);color:#24282C;overflow:hidden;animation:nbIn .16s ease}
 @keyframes nbIn{from{opacity:0;transform:translateY(-4px)}}
 .nb-head{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;border-bottom:1px solid rgba(36,40,44,.07)}
 .nb-head b{font-size:14px;font-weight:700}

@@ -66,7 +66,7 @@
         'min-height:44px;padding:0 16px;' +
         'border:none;border-radius:999px;' +
         'background:#24282C;color:#CDF649;' +
-        'font:700 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;' +
+        'font:700 14px/1 var(--te-font-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif);' +
         'letter-spacing:-.01em;cursor:pointer;' +
         'box-shadow:0 6px 20px rgba(36,40,44,.22),0 1px 3px rgba(36,40,44,.14);' +
         '-webkit-tap-highlight-color:transparent;' +

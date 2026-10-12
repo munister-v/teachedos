@@ -6,7 +6,7 @@
 <title>Word Search</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;user-select:none;-webkit-user-select:none}
+body{font-family:var(--te-font-ui,-apple-system,'Helvetica Neue',Arial,sans-serif);background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;user-select:none;-webkit-user-select:none}
 .back{align-self:flex-start;color:#24282C;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:.9rem;cursor:pointer;background:none;border:none}
 h1{font-size:1.4rem;font-weight:800;color:#24282C;margin-bottom:2px}
 .hud{display:flex;justify-content:space-between;width:100%;max-width:440px;margin:8px 0}
@@ -14,7 +14,7 @@ h1{font-size:1.4rem;font-weight:800;color:#24282C;margin-bottom:2px}
 #timer{font-weight:800;color:#24282C}
 .grid-wrap{width:100%;max-width:440px;background:#fff;border-radius:16px;padding:12px;box-shadow:0 4px 18px rgba(36,40,44,.09);margin-bottom:12px;overflow:hidden}
 #grid{display:grid;gap:0;width:100%}
-.cell{display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-weight:700;font-size:1rem;border-radius:4px;cursor:pointer;transition:background .1s;aspect-ratio:1}
+.cell{display:flex;align-items:center;justify-content:center;font-family:var(--te-font-mono,'Courier New',monospace);font-weight:700;font-size:1rem;border-radius:4px;cursor:pointer;transition:background .1s;aspect-ratio:1}
 .cell.selecting{background:#CDF649}
 .cell.found{background:#886BF3;color:#fff}
 .cell.selecting.found{background:#886BF3;color:#fff}
@@ -37,9 +37,9 @@ h1{font-size:1.4rem;font-weight:800;color:#24282C;margin-bottom:2px}
   .grid-wrap{padding:6px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/teached-brand.css?v=1170">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=1173">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=1170">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=1173">
 </head>
 <body class="fx">
 <button class="back" onclick="if(window.parent===window){location.href='index.html'}else{window.parent.postMessage({type:'closeGame'},'*')}">← Games</button>
@@ -56,9 +56,9 @@ h1{font-size:1.4rem;font-weight:800;color:#24282C;margin-bottom:2px}
   <button class="btn-play" onclick="init()">Play Again</button>
 </div>
 
-<script src="../scripts/game-handoff.js?v=1170"></script>
-<script src="../scripts/game-pause.js?v=1170"></script>
-<script src="../scripts/vocabulary.js?v=1170"></script>
+<script src="../scripts/game-handoff.js?v=1173"></script>
+<script src="../scripts/game-pause.js?v=1173"></script>
+<script src="../scripts/vocabulary.js?v=1173"></script>
 <script>
 let WORDS=['COMFORT','NEGOTIATE','PREJUDICE','ABUNDANCE','VULNERABLE','DELIBERATE','PHENOMENON','INEVITABLE'];
 (function loadFromUrl(){

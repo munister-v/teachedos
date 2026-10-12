@@ -191,7 +191,7 @@
    password one) got the same 16px, letting long input text run under the
    eye icon. */
 .auth-password-field .auth-inp { padding-right: 44px; }
-.auth-field-label{display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;}
+.auth-field-label{display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 var(--te-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);letter-spacing:.06em;text-transform:uppercase;}
 .auth-password-help{margin:6px 1px 0;color:var(--auth-ink2);font-size:11px;font-weight:650;line-height:1.4;}
 .auth-password-help.needs-input{color:#24282C;}
 .auth-password-help.ready{color:#5D614B;}
@@ -305,7 +305,7 @@
     radial-gradient(ellipse 60% 50% at 20% 15%, rgba(205,246,73,.12) 0%, transparent 58%),
     radial-gradient(ellipse 55% 45% at 84% 80%, rgba(136,107,243,.08) 0%, transparent 56%),
     #F6F6EF;
-  padding: 24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  padding: 24px 16px; font-family: var(--te-font-ui,-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif);
 }
 .auth-page .auth-card {
   box-shadow: 0 24px 64px rgba(36,40,44,.14), 0 0 0 1px rgba(255,255,255,.55), inset 0 1.5px 0 rgba(255,255,255,.85);

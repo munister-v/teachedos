@@ -1346,7 +1346,7 @@ function showBackupCodes(back, codes, close) {
   back.querySelector('.da').innerHTML = `
     <h3>Two-step verification is on ✓</h3>
     <p>Save these backup codes somewhere safe. Each one signs you in once if you lose your phone. They are shown only now.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#F6F6EF;border-radius:12px;padding:12px;font:600 14px ui-monospace,Menlo,monospace;text-align:center;margin-bottom:6px">${codes.map(c => `<span>${esc(c)}</span>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#F6F6EF;border-radius:12px;padding:12px;font:600 14px var(--te-font-mono,ui-monospace,Menlo,monospace);text-align:center;margin-bottom:6px">${codes.map(c => `<span>${esc(c)}</span>`).join('')}</div>
     <div class="da-acts"><button type="button" class="setting-btn secondary" id="bk-copy">Copy</button><button type="button" class="setting-btn secondary" id="bk-save">Download .txt</button><button type="button" class="setting-btn" id="bk-done">Done</button></div>`;
   back.querySelector('#bk-copy').onclick = () => { navigator.clipboard?.writeText(text).then(() => toast('Backup codes copied')); };
   back.querySelector('#bk-save').onclick = () => {

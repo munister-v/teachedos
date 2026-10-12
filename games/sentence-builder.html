@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--accent:#24282C}
-body{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+body{font-family:var(--te-font-ui,-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif);background:#F6F6EF;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .back{align-self:flex-start;color:var(--accent);font-weight:700;text-decoration:none;margin-bottom:16px;font-size:.9rem}
 h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .subtitle{color:#5D614B;font-size:.9rem;margin-bottom:20px}
@@ -27,7 +27,7 @@ h1{font-size:1.7rem;font-weight:800;color:var(--accent);margin-bottom:4px}
 .placed-chip{padding:8px 14px;background:#CDF649;border-radius:10px;font-weight:700;font-size:.95rem;color:#fff;cursor:pointer;transition:.15s}
 .placed-chip:hover{background:#FF4E00}
 .btn-row{display:flex;gap:10px}
-button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
+button{flex:1;padding:11px;border:none;border-radius:12px;font-family:var(--te-font-ui,-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif);font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s}
 .btn-check{background:var(--accent);color:#fff}
 .btn-check:hover{background:#FF4E00}
 .btn-clear{background:#F6F6EF;color:#5D614B}
@@ -44,10 +44,10 @@ button{flex:1;padding:11px;border:none;border-radius:12px;font-family:-apple-sys
   .btn-check,.btn-clear,.play-again{min-height:44px;}
 }
 </style>
-<link rel="stylesheet" href="../styles/mobile-guard.css?v=1170">
-<link rel="stylesheet" href="../styles/teached-brand.css?v=1170">
+<link rel="stylesheet" href="../styles/mobile-guard.css?v=1173">
+<link rel="stylesheet" href="../styles/teached-brand.css?v=1173">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="../styles/figma-theme.css?v=1170">
+<link rel="stylesheet" href="../styles/figma-theme.css?v=1173">
 </head>
 <body class="fx">
 <a class="back" href="index.html">← Games</a>
@@ -200,7 +200,7 @@ try{window.parent.postMessage({type:'game-ready'},'*');}catch(e){}
 
 start();
 </script>
-<script src="../scripts/game-handoff.js?v=1170"></script>
-<script src="../scripts/mobile-zoom-guard.js?v=1170"></script>
+<script src="../scripts/game-handoff.js?v=1173"></script>
+<script src="../scripts/mobile-zoom-guard.js?v=1173"></script>
 </body>
 </html>

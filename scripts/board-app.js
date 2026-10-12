@@ -6017,16 +6017,16 @@ function printWorksheet(cardId) {
                     showAns ? 'Answer key' : 'Student copy'].filter(Boolean).join(' · ');
   const css = `
     *{box-sizing:border-box}
-    body{font:14px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#24282C;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font:14px/1.6 var(--te-font-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif);color:#24282C;margin:0;padding:34px 40px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     /* Same masthead as the board, deliberately shorter: on screen it can fill
        the head of the card, on paper a full-bleed lime block is a lot of toner
        for decoration, so it wraps just the title and its kicker. */
     .ws-print-head{background:${LIME};border:2px solid ${accent};border-radius:16px;
       padding:16px 18px;margin-bottom:20px;page-break-inside:avoid;break-inside:avoid}
-    .ws-print-head .kicker{font:800 10px ui-monospace,monospace;letter-spacing:.13em;
+    .ws-print-head .kicker{font:800 10px var(--te-font-mono,ui-monospace,monospace);letter-spacing:.13em;
       text-transform:uppercase;color:rgba(36,40,44,.62);margin-bottom:5px}
     h1{font-size:24px;margin:0;letter-spacing:-.03em;font-weight:600;line-height:1.06;color:${accent}}
-    .meta{font:800 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin:0 0 18px}
+    .meta{font:800 10px var(--te-font-mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin:0 0 18px}
     /* question / stage card shell */
     .ws-q{position:relative;border:1px solid #CACCC6;border-radius:14px;padding:14px 16px;margin-bottom:12px;page-break-inside:avoid}
     .ws-q:not(.ws-q-card){border-left:4px solid ${accent}}
@@ -6051,14 +6051,14 @@ function printWorksheet(cardId) {
     /* Question groups - same structure as the board (see _ttGroupQuestions). */
     .ws-group{margin:0 0 18px;break-inside:auto}
     .ws-group-head{margin:0 0 9px}
-    .ws-group-title{margin:0;font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#24282C}
+    .ws-group-title{margin:0;font:800 10px var(--te-font-mono,ui-monospace,monospace);letter-spacing:.14em;text-transform:uppercase;color:#24282C}
     .ws-rubric{margin:3px 0 0;font-size:12.5px;line-height:1.4;font-weight:600;color:#5D614B}
     .ws-chips{display:flex;flex-wrap:wrap;gap:8px}
     .ws-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 13px;border-radius:13px;background:${CREAM};border:2px solid ${LINE};font-size:13.5px;line-height:1.45}
     .ws-chip b{font-weight:650;color:${accent}}
     .ws-chip-def{color:#5D614B;font-weight:600}
     .ws-chip .ws-gap{min-width:72px;margin:0}
-    .ws-section{font:800 10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#5D614B;margin:0 0 9px}
+    .ws-section{font:800 10px var(--te-font-mono,ui-monospace,monospace);letter-spacing:.14em;text-transform:uppercase;color:#5D614B;margin:0 0 9px}
     .ws-gap{display:inline-block;min-width:104px;height:1.15em;margin:0 5px;border-bottom:2px solid ${accent};vertical-align:-.22em}
     .ws-gap.filled{min-width:0;height:auto;padding:1px 9px;border-bottom:0;border-radius:7px;background:${LIME};color:${accent};font-weight:650;vertical-align:baseline}
     .ws-open{height:0;margin:15px 0 6px;border-bottom:2px solid ${LINE}}
@@ -6078,8 +6078,8 @@ function printWorksheet(cardId) {
     .ws-stage-rail{display:none}
     .ws-card-head{display:flex;align-items:center;gap:9px;color:#24282C;font-weight:650;font-size:15px}
     .ws-card-title{flex:1}
-    .ws-stage-label{font:800 8.5px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#5D614B}
-    .ws-stage-time{font:800 8.5px ui-monospace,monospace;letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
+    .ws-stage-label{font:800 8.5px var(--te-font-mono,ui-monospace,monospace);letter-spacing:.06em;text-transform:uppercase;color:#5D614B}
+    .ws-stage-time{font:800 8.5px var(--te-font-mono,ui-monospace,monospace);letter-spacing:.03em;color:var(--stage-accent,${accent});margin-left:auto;padding-left:6px}
     .ws-q-card.ws-anchor{border-style:dashed}
     .ws-card-txt{font-size:13px;line-height:1.65;color:#5D614B;margin-top:9px;white-space:normal}
     .ws-card-txt strong{color:#24282C;font-weight:650}
@@ -6100,9 +6100,9 @@ function printWorksheet(cardId) {
     /* aims/objectives checklist + grammar example block */
     .ws-aims-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
     .ws-aim-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#5D614B}
-    .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:${LIME};color:${accent};display:inline-flex;align-items:center;justify-content:center;font:900 10px ui-monospace,monospace;margin-top:1px}
+    .ws-aim-check{flex-shrink:0;width:16px;height:16px;border-radius:5px;background:${LIME};color:${accent};display:inline-flex;align-items:center;justify-content:center;font:900 10px var(--te-font-mono,ui-monospace,monospace);margin-top:1px}
     .ws-grammar-block{background:${CREAM};border:2px solid ${LINE};border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
-    .ws-grammar-line{font:600 12.5px/1.55 ui-monospace,monospace;color:#24282C}
+    .ws-grammar-line{font:600 12.5px/1.55 var(--te-font-mono,ui-monospace,monospace);color:#24282C}
     /* Print always shows full stage text - no clamp, so the "Show more" toggle
        (only meaningful on-screen) never appears here. */
     /* Lesson Pack stages: two print columns instead of one long vertical run
@@ -6287,7 +6287,7 @@ function _wsEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 
 function _wsCSS(){
   const G='#5D614B';
-  return `*{box-sizing:border-box}body{margin:0;padding:14px 16px 20px;background:#fff;font:13.5px/1.6 -apple-system,system-ui,sans-serif;color:#5D614B}.ph{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:${G};margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${G}}.inst{font-size:12px;color:#5D614B;margin:0 0 12px;font-style:italic}.wb{background:#F6F6EF;border-radius:8px;padding:7px 12px;margin:0 0 12px;font-size:12.5px}.wb b{color:${G}}.item{margin:0 0 13px}.item-n{font-weight:600;color:${G};margin-right:3px}label.opt{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer;font-size:13px}label.opt:hover{color:${G}}input[type=radio]{accent-color:${G};width:14px;height:14px;flex-shrink:0;cursor:pointer}input[type=text]{border:none;border-bottom:1.5px solid ${G};width:110px;font:13.5px system-ui;outline:none;background:transparent;color:#5D614B;padding:1px 3px}select{border:1px solid #CACCC6;border-radius:6px;padding:3px 8px;font:13px system-ui;outline:none;cursor:pointer;max-width:320px}select:focus{border-color:${G}}textarea{width:100%;border:1px solid #CACCC6;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none;min-height:72px;margin-top:4px}textarea:focus{border-color:${G}}.reveal-btn{background:${G};color:#fff;border:none;padding:7px 14px;border-radius:8px;font:700 11.5px system-ui;cursor:pointer;margin-top:6px}.reveal-btn:hover{opacity:.88}.key{display:none;margin-top:10px;background:#F6F6EF;border-left:3px solid ${G};padding:9px 13px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}.key.open{display:block}.ka{color:${G};font-weight:600}`;
+  return `*{box-sizing:border-box}body{margin:0;padding:14px 16px 20px;background:#fff;font:13.5px/1.6 var(--te-font-ui,-apple-system,system-ui,sans-serif);color:#5D614B}.ph{font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:${G};margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${G}}.inst{font-size:12px;color:#5D614B;margin:0 0 12px;font-style:italic}.wb{background:#F6F6EF;border-radius:8px;padding:7px 12px;margin:0 0 12px;font-size:12.5px}.wb b{color:${G}}.item{margin:0 0 13px}.item-n{font-weight:600;color:${G};margin-right:3px}label.opt{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer;font-size:13px}label.opt:hover{color:${G}}input[type=radio]{accent-color:${G};width:14px;height:14px;flex-shrink:0;cursor:pointer}input[type=text]{border:none;border-bottom:1.5px solid ${G};width:110px;font:13.5px system-ui;outline:none;background:transparent;color:#5D614B;padding:1px 3px}select{border:1px solid #CACCC6;border-radius:6px;padding:3px 8px;font:13px system-ui;outline:none;cursor:pointer;max-width:320px}select:focus{border-color:${G}}textarea{width:100%;border:1px solid #CACCC6;border-radius:8px;padding:8px 10px;font:13.5px system-ui;resize:vertical;outline:none;min-height:72px;margin-top:4px}textarea:focus{border-color:${G}}.reveal-btn{background:${G};color:#fff;border:none;padding:7px 14px;border-radius:8px;font:700 11.5px system-ui;cursor:pointer;margin-top:6px}.reveal-btn:hover{opacity:.88}.key{display:none;margin-top:10px;background:#F6F6EF;border-left:3px solid ${G};padding:9px 13px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8}.key.open{display:block}.ka{color:${G};font-weight:600}`;
 }
 
 function _wsMCItems(items){
@@ -10636,7 +10636,7 @@ function renderAllArrows() {
       fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="
         background:rgba(255,255,255,.92);border:1px solid rgba(93,97,75,.2);border-radius:6px;
         padding:2px 7px;font-size:10px;font-weight:600;color:#5D614B;
-        font-family:'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;text-align:center;white-space:nowrap;
+        font-family:'SFMono-Regular', 'SF Mono', var(--te-font-mono,ui-monospace, Menlo, Monaco, Consolas, monospace);text-align:center;white-space:nowrap;
         overflow:hidden;text-overflow:ellipsis;">${arrow.label}</div>`;
       g.appendChild(fo);
     }
@@ -16529,7 +16529,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1170';
+const TEACHEDOS_ASSET_VERSION = '1173';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23154,7 +23154,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1170',
+          icon: 'icons/icon-192.png?v=1173',
           tag: 'board-live-' + s.id,
         });
       }
@@ -27635,7 +27635,7 @@ function openGamesModal() {
   // Тема для игр, которые отсюда ляжут на доску.
   const tr = document.getElementById('games-theme-row');
   if (tr && window.TeachedThemes) {
-    tr.innerHTML = `<div style="font:800 10.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin-bottom:6px">Theme / Vibe for new games</div>${window.TeachedThemes.gridHtml(_libGameTheme)}`;
+    tr.innerHTML = `<div style="font:800 10.5px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.1em;text-transform:uppercase;color:#5D614B;margin-bottom:6px">Theme / Vibe for new games</div>${window.TeachedThemes.gridHtml(_libGameTheme)}`;
     window.TeachedThemes.bindGrid(tr, id => { _libGameTheme = id; });
   }
   ov.style.display = 'flex';

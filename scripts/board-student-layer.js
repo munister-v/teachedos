@@ -82,7 +82,7 @@
   }
   function noteBox(n) {
     if (n.kind === 'sticker') return { x: n.x - 32, y: n.y - 32, w: 64, h: 64 };
-    ctx.font = '600 17px -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
+    ctx.font = '600 17px "TeachEd UI", -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
     const lines = wrapLines(n.text, NOTE_W - NOTE_PAD * 2);
     return { x: n.x, y: n.y, w: NOTE_W, h: lines.length * NOTE_LH + NOTE_PAD * 2, lines };
   }
@@ -108,7 +108,7 @@
       ctx.beginPath(); ctx.roundRect ? ctx.roundRect(b.x, b.y, b.w, b.h, 10) : ctx.rect(b.x, b.y, b.w, b.h); ctx.fill();
       ctx.restore();
       ctx.fillStyle = '#24282C'; ctx.textBaseline = 'alphabetic';
-      ctx.font = '600 17px -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
+      ctx.font = '600 17px "TeachEd UI", -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
       b.lines.forEach((l, i) => ctx.fillText(l, b.x + NOTE_PAD, b.y + NOTE_PAD + 17 + i * NOTE_LH));
     });
   }
@@ -129,7 +129,7 @@
         const b = bounds(o.layer);
         if (b && o.name) {
           ctx.save();
-          ctx.font = '700 13px -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
+          ctx.font = '700 13px "TeachEd UI", -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
           const w = ctx.measureText(o.name).width + 16;
           ctx.fillStyle = '#24282C'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(b.x, b.y - 26, w, 20, 10) : ctx.rect(b.x, b.y - 26, w, 20); ctx.fill();
           ctx.fillStyle = '#CDF649'; ctx.fillText(o.name, b.x + 8, b.y - 12);
@@ -208,7 +208,7 @@
     const r = boardWrap.getBoundingClientRect();
     editor = document.createElement('textarea');
     editor.className = 'sl-editor'; editor.placeholder = 'Type here…'; editor.maxLength = 500; editor.rows = 2;
-    editor.style.cssText = `position:absolute;left:${cx - r.left}px;top:${cy - r.top}px;width:${NOTE_W * state.scale}px;min-width:150px;z-index:70;font:600 ${Math.max(14, 17 * state.scale)}px -apple-system,Helvetica,Arial,sans-serif;padding:8px 10px;border:2px solid #24282C;border-radius:10px;background:#FFF3A3;color:#24282C;resize:none;outline:none;box-shadow:0 6px 18px rgba(36,40,44,.2)`;
+    editor.style.cssText = `position:absolute;left:${cx - r.left}px;top:${cy - r.top}px;width:${NOTE_W * state.scale}px;min-width:150px;z-index:70;font:600 ${Math.max(14, 17 * state.scale)}px var(--te-font-ui,-apple-system,Helvetica,Arial,sans-serif);padding:8px 10px;border:2px solid #24282C;border-radius:10px;background:#FFF3A3;color:#24282C;resize:none;outline:none;box-shadow:0 6px 18px rgba(36,40,44,.2)`;
     editor.dataset.x = p[0]; editor.dataset.y = p[1];
     editor.addEventListener('keydown', ev => {
       ev.stopPropagation();
@@ -298,7 +298,7 @@
 #student-dock .sl-wd i{display:block;width:18px;background:#24282C;border-radius:9px}
 #student-dock .sl-em{width:34px;height:34px;border:0;border-radius:10px;background:#F2F1EB;font-size:20px;cursor:pointer}
 #student-dock .sl-em.on{background:#CDF649}
-#sl-chip{position:fixed;left:16px;bottom:16px;z-index:960;display:none;align-items:center;gap:8px;border:0;border-radius:999px;padding:9px 14px;background:#24282C;color:#fff;font:600 13px -apple-system,Helvetica,Arial,sans-serif;cursor:pointer;box-shadow:0 10px 24px -10px rgba(0,0,0,.4)}
+#sl-chip{position:fixed;left:16px;bottom:16px;z-index:960;display:none;align-items:center;gap:8px;border:0;border-radius:999px;padding:9px 14px;background:#24282C;color:#fff;font:600 13px var(--te-font-ui,-apple-system,Helvetica,Arial,sans-serif);cursor:pointer;box-shadow:0 10px 24px -10px rgba(0,0,0,.4)}
 #sl-chip b{background:#CDF649;color:#24282C;border-radius:999px;padding:1px 8px}
 #sl-chip.off{opacity:.65}
 body.board-presenting #student-dock{display:none}

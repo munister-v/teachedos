@@ -109,7 +109,7 @@
       head: '#0B0B18', headInk: '#F2F0FF', headMuted: '#A7A2D6', surface: '#F4F2FF', paper: '#EEEBFF',
       line: '#FF3EA5', glow: '0 0 0 1px rgba(255,62,165,.4), 0 0 24px rgba(0,229,255,.28)',
       accent: '#FF3EA5', accentInk: '#16000C', ink: '#14122A', muted: '#4F4A82',
-      font: "'JetBrains Mono',ui-monospace,monospace", fontCase: 'uppercase', icon: '⚙', ifFont: "'Courier New',ui-monospace,monospace" },
+      font: "'JetBrains Mono',var(--te-font-mono,ui-monospace,monospace)", fontCase: 'uppercase', icon: '⚙', ifFont: "'Courier New',var(--te-font-mono,ui-monospace,monospace)" },
     { id: 'halloween', name: 'Pumpkin Night', ic: '🎃', hint: 'Pumpkins, bats and an orange moon',
       bg: `${PAT.bats}, ${PAT.pumpkins}, radial-gradient(circle at 85% 12%, rgba(255,176,80,.45), transparent 16%), linear-gradient(180deg, #2A1438, #140A1C)`,
       head: '#160C1F', headInk: '#FFE9CF', headMuted: '#D9AE88', surface: '#FFF4E6', paper: '#FFEBD6',
@@ -129,7 +129,7 @@
       head: '#0B1424', headInk: '#F2F6FF', headMuted: '#A9B4CC', surface: '#FFFFFF', paper: '#F2F4FA',
       line: '#F062C8', glow: '0 0 0 2px rgba(230,250,80,.55), 6px 6px 0 rgba(140,116,246,.55)',
       accent: '#E6FA50', accentInk: '#0B1424', ink: '#0F1829', muted: '#4A5670',
-      font: "'Silkscreen','JetBrains Mono',ui-monospace,monospace", fontCase: 'uppercase', icon: '▣', ifFont: "'Courier New',ui-monospace,monospace",
+      font: "'Silkscreen','JetBrains Mono',var(--te-font-mono,ui-monospace,monospace)", fontCase: 'uppercase', icon: '▣', ifFont: "'Courier New',var(--te-font-mono,ui-monospace,monospace)",
       decor: PIC.pixDecor, navPic: PIC.pixCursor, headLights: PAT.pixstrip, iconImg: PIC.pixStarRaw,
       // Аркадные кнопки: почти квадратные углы и неоновая «ступенька» вместо тени - без чёрных обводок.
       boardExtra: T => `

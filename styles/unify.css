@@ -431,7 +431,7 @@ body:not(.board-page) .board-card::before,
 .badge.level {
   background: var(--u-ink-soft);
   color: var(--u-ink);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono', var(--te-font-mono,ui-monospace, monospace);
   font-weight:650;
   letter-spacing: 0.06em;
 }
@@ -2488,7 +2488,7 @@ body:is(.analytics-suite, .gradebook-suite) .section { animation-delay: .09s; }
 
   #page-loading::after {
     content: "Loading workspace";
-    font: 800 12px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+    font: 800 12px/1.2 var(--te-font-ui,-apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif);
     letter-spacing: .08em;
     text-transform: uppercase;
     color: #5D614B;

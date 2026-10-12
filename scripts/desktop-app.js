@@ -2830,13 +2830,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1170" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1173" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1170" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1173" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
@@ -2866,7 +2866,7 @@ function showAuthOverlay() {
           </div>
         </div>
         <div id="os-auth-fields"></div>
-        <button id="os-auth-btn" class="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#24282C,#24282C);color:#CDF649;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;font-weight:650;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(36,40,44,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(205,246,73,.3);border-top-color:#CDF649;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
+        <button id="os-auth-btn" class="os-auth-btn" onclick="submitOsAuth()" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(140deg,#24282C,#24282C);color:#CDF649;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif);font-weight:650;font-size:15px;cursor:pointer;margin-top:8px;transition:filter .15s,transform .12s,box-shadow .15s;letter-spacing:-.01em;box-shadow:0 6px 28px rgba(36,40,44,.28),inset 0 1px 0 rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;gap:8px;"><span id="os-btn-spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(205,246,73,.3);border-top-color:#CDF649;animation:_osSpin .55s linear infinite;flex-shrink:0;"></span><span id="os-btn-lbl">Sign in</span></button>
         <style>@keyframes _osSpin{to{transform:rotate(360deg)}}</style>
         <div id="os-forgot-row" style="text-align:right;margin-top:2px;margin-bottom:6px;">
           <button type="button" onclick="startForgotPassword()" style="color:#5D614B;font-size:12px;font-weight:600;cursor:pointer;background:none;border:none;padding:0;font:inherit;text-decoration:underline;text-underline-offset:2px;">Forgot password?</button>
@@ -2989,7 +2989,7 @@ function _osTwoFactor(d) {
   document.getElementById('os-2fa')?.remove();
   const box = document.createElement('div');
   box.id = 'os-2fa';
-  box.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(20,22,24,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif';
+  box.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(20,22,24,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif)';
   box.innerHTML = `<form style="width:min(380px,100%);background:#fff;border-radius:20px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.3);color:#24282C">
     <div style="font-size:18px;font-weight:700;margin-bottom:6px">Enter your verification code</div>
     <div style="font-size:13px;color:#5D614B;margin-bottom:14px">Open your authenticator app for ${esc(d.email || 'your account')}. Lost your phone? Use a backup code.</div>
@@ -3114,7 +3114,7 @@ function renderOsAuthFields() {
   const INP_S = 'width:100%;padding:13px 44px 13px 16px;border:1px solid rgba(36,40,44,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#24282C;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
   const INP_PLAIN = 'width:100%;padding:13px 16px;border:1px solid rgba(36,40,44,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#24282C;outline:none;margin-bottom:0;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
   const WRAP_S = 'position:relative;margin-bottom:12px;';
-  const LABEL_S = 'display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
+  const LABEL_S = 'display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 var(--te-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);letter-spacing:.06em;text-transform:uppercase;';
   const EYE_S  = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;cursor:pointer;color:#5D614B;display:flex;align-items:center;justify-content:center;border-radius:7px;padding:0;';
   const EYE_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path class="eo" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle class="eo" cx="12" cy="12" r="3"/>
@@ -3193,7 +3193,7 @@ function startForgotPassword() {
   err.style.display = 'none';
   const f = document.getElementById('os-auth-fields');
   const WRAP_S = 'position:relative;margin-bottom:12px;';
-  const LABEL_S = 'display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;';
+  const LABEL_S = 'display:block;margin:0 0 6px;color:#5D614B;font:700 11px/1.2 var(--te-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);letter-spacing:.06em;text-transform:uppercase;';
   const INP = 'width:100%;padding:13px 16px;border:1px solid rgba(36,40,44,.14);border-radius:13px;font-family:inherit;font-size:14px;font-weight:650;color:#24282C;outline:none;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;background:#FFFFFF;box-sizing:border-box;';
   f.innerHTML = `<div class="os-auth-field" style="${WRAP_S}"><label for="os-af-email" style="${LABEL_S}">Email address</label><input id="os-af-email" type="email" maxlength="254" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Your email address" aria-label="Email address" autocomplete="email" style="${INP}" onfocus="this.style.borderColor='rgba(205,246,73,.55)';this.style.boxShadow='0 0 0 4px rgba(205,246,73,.24)'" onblur="this.style.borderColor='rgba(36,40,44,.14)';this.style.boxShadow='none'">`;
   f.querySelector('input').addEventListener('keydown', e => { if(e.key==='Enter') submitForgotPassword(); });

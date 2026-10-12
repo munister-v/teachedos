@@ -1763,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', function(){ if(typeof iwGoto==='fu
    своя шкала серых. */
 :root{--ink:#24282C;--lime:#CDF649;--paper:#F6F6EF;--gray:#CACCC6;--olive:#5D614B;--sage:#A3A48D;--panel:#fff;
   --line:rgba(36,40,44,.12);--line-2:rgba(36,40,44,.22);--r:14px}
-body{font:14px/1.55 -apple-system,system-ui,sans-serif;color:var(--ink);padding:18px 20px 24px;background:var(--paper);overflow-x:hidden}
+body{font:14px/1.55 var(--te-font-ui,-apple-system,system-ui,sans-serif);color:var(--ink);padding:18px 20px 24px;background:var(--paper);overflow-x:hidden}
 strong{font-weight:650}
 .iw-title{font:700 10.5px system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--olive);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line-2)}
 /* ── Questions ── */
@@ -1925,7 +1925,7 @@ strong{font-weight:650}
 .iw-mission{font:700 10px system-ui;letter-spacing:.07em;text-transform:uppercase;color:${ink};opacity:.55;margin-bottom:6px}
 /* Номер абзаца висит на поле: на него ссылаются в заданиях и вслух, но в
    строке текста он был бы лишним словом. */
-.iw-read-p{position:relative;font:15px/1.65 -apple-system,system-ui,sans-serif;color:var(--ink);margin:0 0 12px;padding-left:26px}
+.iw-read-p{position:relative;font:15px/1.65 var(--te-font-ui,-apple-system,system-ui,sans-serif);color:var(--ink);margin:0 0 12px;padding-left:26px}
 .iw-read-p:last-child{margin-bottom:0}
 .iw-read-n{position:absolute;left:0;top:2px;width:18px;text-align:right;font:700 10px system-ui;color:var(--olive);user-select:none}
 .iw-read-p strong{background:color-mix(in srgb,${accent} 38%,transparent);padding:0 2px;border-radius:3px}
@@ -1949,28 +1949,28 @@ strong{font-weight:650}
    (IW_HEIGHT_REPORTER), и всплывающий блок в потоке документа растил бы её
    на каждое нажатие. Окно iframe и есть видимая часть карточки, поэтому
    координат из getBoundingClientRect достаточно. */
-.iw-wh{position:fixed;z-index:40;width:min(300px,calc(100% - 24px));padding:9px 10px 10px 12px;border:1px solid rgba(36,40,44,.18);border-radius:12px;background:#fff;box-shadow:0 10px 28px rgba(36,40,44,.22);font:13.5px/1.45 -apple-system,system-ui,sans-serif;color:var(--ink);isolation:isolate}
+.iw-wh{position:fixed;z-index:40;width:min(300px,calc(100% - 24px));padding:9px 10px 10px 12px;border:1px solid rgba(36,40,44,.18);border-radius:12px;background:#fff;box-shadow:0 10px 28px rgba(36,40,44,.22);font:13.5px/1.45 var(--te-font-ui,-apple-system,system-ui,sans-serif);color:var(--ink);isolation:isolate}
 .iw-wh-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 7px}
 .iw-wh-word{font:800 14px system-ui;color:${ink}}
 .iw-wh-pos{font:italic 11.5px system-ui;color:var(--olive)}
-.iw-wh-ipa{font:500 12px ui-monospace,monospace;color:var(--olive)}
+.iw-wh-ipa{font:500 12px var(--te-font-mono,ui-monospace,monospace);color:var(--olive)}
 .iw-wh-tools{margin-left:auto;display:inline-flex;align-items:center;gap:4px;align-self:center}
 .iw-wh-x{width:24px;height:24px;flex-shrink:0;border:0;border-radius:7px;background:var(--paper);color:var(--olive);font:700 14px system-ui;cursor:pointer;line-height:1}
 .iw-wh-row{margin-top:5px}
 .iw-wh-mean{color:var(--ink)}
 .iw-wh-loading{color:var(--olive)}
 .iw-ws-quote{display:block;width:100%;text-align:left;border:0;border-left:3px solid ${accent};background:#FAFAF6;border-radius:0 10px 10px 0;padding:8px 10px;margin:0 0 8px;font:italic 13px/1.45 Georgia,serif;color:var(--ink);cursor:pointer}
-.iw-ws-quote small{display:block;margin-top:4px;font:600 10px/1.3 -apple-system,system-ui,sans-serif;font-style:normal;color:var(--muted,#6B6E60);text-transform:uppercase;letter-spacing:.06em}
+.iw-ws-quote small{display:block;margin-top:4px;font:600 10px/1.3 var(--te-font-ui,-apple-system,system-ui,sans-serif);font-style:normal;color:var(--muted,#6B6E60);text-transform:uppercase;letter-spacing:.06em}
 .iw-ws-quote:hover{background:color-mix(in srgb,${accent} 18%,#fff)}
 .iw-ws-chip.here{border-color:${accent}}
 .iw-ws-saved-note{margin:8px 0 0;font-size:11px;color:var(--muted,#6B6E60)}
-.iw-wh-add{margin-top:6px;border:0;border-radius:999px;background:#CDF649;color:#24282C;font:700 12px/1 -apple-system,system-ui,sans-serif;padding:6px 11px;cursor:pointer}
+.iw-wh-add{margin-top:6px;border:0;border-radius:999px;background:#CDF649;color:#24282C;font:700 12px/1 var(--te-font-ui,-apple-system,system-ui,sans-serif);padding:6px 11px;cursor:pointer}
 .iw-wh-add:disabled{background:#E6FAA6;cursor:default}
-.iw-wh-hear{width:24px;height:24px;flex-shrink:0;border:0;border-radius:7px;background:#24282C;color:#fff;font:10px/1 -apple-system,system-ui,sans-serif;cursor:pointer}
+.iw-wh-hear{width:24px;height:24px;flex-shrink:0;border:0;border-radius:7px;background:#24282C;color:#fff;font:10px/1 var(--te-font-ui,-apple-system,system-ui,sans-serif);cursor:pointer}
 .iw-wh-hear:hover{background:#000}
-.iw-hear-pill{position:fixed;z-index:45;padding:8px 12px;border:0;border-radius:999px;background:#24282C;color:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap}
+.iw-hear-pill{position:fixed;z-index:45;padding:8px 12px;border:0;border-radius:999px;background:#24282C;color:#fff;font:650 12px/1.2 var(--te-font-ui,-apple-system,system-ui,sans-serif);box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap}
 .iw-hear-pill:hover{background:#000}
-.iw-hear-btn{margin-top:14px;padding:7px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font:650 12px/1.2 -apple-system,system-ui,sans-serif;color:var(--ink);cursor:pointer}
+.iw-hear-btn{margin-top:14px;padding:7px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font:650 12px/1.2 var(--te-font-ui,-apple-system,system-ui,sans-serif);color:var(--ink);cursor:pointer}
 .iw-hear-btn:hover{border-color:${accent}}
 .iw-wh-say{width:24px;height:24px;flex-shrink:0;border:1px solid var(--line-2);border-radius:7px;background:#fff;cursor:pointer;font-size:12px;line-height:1;padding:0}
 .iw-wh-say:hover{background:color-mix(in srgb,${accent} 22%,#fff);border-color:${accent}}
@@ -1980,7 +1980,7 @@ strong{font-weight:650}
 .iw-gloss-row{display:grid;grid-template-columns:minmax(90px,29%) 1fr;gap:14px;padding:8px 0;border-top:1px solid var(--line)}
 .iw-gloss-row:first-child{border-top:0}
 .iw-gloss-term{font:700 14px system-ui;color:var(--ink)}
-.iw-gloss-def{font:14px/1.5 -apple-system,system-ui,sans-serif;color:var(--olive)}
+.iw-gloss-def{font:14px/1.5 var(--te-font-ui,-apple-system,system-ui,sans-serif);color:var(--olive)}
 /* ── Card-flip (collocations, phrasal, idioms) ── */
 .iw-card-flip{perspective:600px;cursor:pointer;min-height:130px}
 .iw-card-inner{position:relative;width:100%;height:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}

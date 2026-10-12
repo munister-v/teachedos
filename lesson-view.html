@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1170" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1170">
+<link rel="icon" href="favicon.ico?v=1173" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1173">
 <title>Lesson · TeachEd</title>
 <style>
   *,*::before,*::after{box-sizing:border-box}
-  :root{--ink:#24282C;--muted:#5D614B;--line:rgba(36,40,44,.1);--soft:#F6F6EF;--paper:#fff;--lime:#CDF649;--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;--mono:"SFMono-Regular","SF Mono",ui-monospace,Menlo,Monaco,Consolas,monospace}
+  :root{--ink:#24282C;--muted:#5D614B;--line:rgba(36,40,44,.1);--soft:#F6F6EF;--paper:#fff;--lime:#CDF649;--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;--mono:"SFMono-Regular","SF Mono",var(--te-font-mono,ui-monospace,Menlo,Monaco,Consolas,monospace)}
   html{background:var(--soft)}
   body{min-width:320px;margin:0;background:var(--soft);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   button,a{font:inherit}a{color:inherit;text-decoration:none}button{cursor:pointer}
@@ -45,18 +45,18 @@
    сильнее [hidden] - «Learners» стоял с пустым значением. */
 .detail-row[hidden] { display:none !important; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1170">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1170">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1173">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1173">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1170">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1170">
-<link rel="stylesheet" href="styles/controls.css?v=1170">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1170">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1170">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1173">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1173">
+<link rel="stylesheet" href="styles/controls.css?v=1173">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1173">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1173">
 </head>
 <body class="fx">
 <header class="lesson-nav">
-  <a class="lesson-brand" href="community.html"><img src="logo-sm.png?v=1170" alt="TeachEd"><span>TeachEd</span></a>
+  <a class="lesson-brand" href="community.html"><img src="logo-sm.png?v=1173" alt="TeachEd"><span>TeachEd</span></a>
   <span class="lesson-nav-sep" aria-hidden="true"></span>
   <a class="lesson-back" href="community.html">← Community</a>
   <span class="lesson-nav-space"></span>
@@ -122,8 +122,8 @@
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=1170"></script>
-<script src="scripts/lesson-cover.js?v=1170"></script>
+<script src="scripts/app-core.js?v=1173"></script>
+<script src="scripts/lesson-cover.js?v=1173"></script>
 <script>
   const FALLBACK_COLORS = ['#F3DF6B','#49F6F0','#6BAFF3','#F6F6EF','#9F8CE8','#F3A46B'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -476,6 +476,6 @@
   window.addEventListener('resize', refitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=1170" defer></script>
+  <script src="scripts/signin-entry.js?v=1173" defer></script>
 </body>
 </html>
