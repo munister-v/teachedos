@@ -70,7 +70,7 @@
 .lp-who input{display:none}
 .lp-note{font-size:11.5px;color:#5D614B;line-height:1.4}
 .lp-send{height:42px;border:0;border-radius:12px;background:#CDF649;font:800 13.5px var(--font-ui,system-ui,sans-serif);color:#24282C;cursor:pointer}
-.lp-send:disabled{opacity:.5;cursor:default}
+.lp-send:disabled{background:#ECECE4;color:#5D614B;cursor:default}
 .lp-msg{font-size:12px;font-weight:650;min-height:0}
 .lp-msg.err{color:#c0392b}.lp-msg.ok{color:#2e7d32}
 .lp-msg a{color:inherit;text-decoration:underline;text-underline-offset:2px}

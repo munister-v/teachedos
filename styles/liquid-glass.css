@@ -379,3 +379,23 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
 /* the sidebar is dark glass: its empty note was olive on graphite */
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #sidebar .sb-classes-empty{text-align:center;padding:16px;font-size:12.5px;color:rgba(255,255,255,.62)}
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #sidebar :is(.sb-role, .sb-section-title){color:rgba(255,255,255,.62) !important}
+
+/* ── readability on the board (12.10.2026) ────────────────────────────────
+   On the graphite board the light menus at .68 let the dark canvas through
+   and turned grey, and their secondary text (the email, the BOARDS label,
+   the Lesson pad hints) was 10-11.5px olive on that grey. Over a dark board
+   the menus and the pad are near-solid paper; the small text is a size up
+   and a shade darker; menu rows are 14px. */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-canvas-dark :where(#user-menu, #more-menu, #ctx-menu, #board-menu, #export-menu, #shape-panel, #laser-pop, .cascade-menu, .lp-panel){
+  background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0) 40%),rgba(250,250,246,.96) !important;
+}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-page #user-menu .user-menu-item{font-size:14px;min-height:36px;padding:8px 10px}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-page #user-menu .umi-ic{opacity:.85}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-page #user-menu-email{font-size:12.5px !important;color:#4A4E3C !important}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body.board-page #user-menu .um-label{font-size:11px;color:#4A4E3C;padding-top:8px}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .lp-head b{font-size:15px}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.lp-head span, .lp-note, .lp-clear){font-size:12.5px;color:#4A4E3C}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .lp-empty{font-size:13.5px;color:#4A4E3C}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body .lp-row small{font-size:12.5px;color:#5D614B}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #minimap-label{font-size:11px}
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body #board-agent-pill kbd{font-size:11.5px}
