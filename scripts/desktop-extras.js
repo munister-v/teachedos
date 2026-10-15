@@ -481,6 +481,7 @@ function _pulseNextLesson(journalId) {
   if (!journalId || !Array.isArray(_sp.all)) return null;
   const now = new Date();
   let best = null;
+  const ymdOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   for (const s of _sp.all) {
     if (s.journal_id !== journalId) continue;
     const [h, m] = String(s.start_time || '0:0').split(':').map(Number);
@@ -494,6 +495,8 @@ function _pulseNextLesson(journalId) {
       at.setDate(at.getDate() + ((s.day - dow + 7) % 7));
       if (at <= now) at.setDate(at.getDate() + 7);
     } else continue;
+    if (spCancelled(s, ymdOf(at)) && !s.specific_date) at.setDate(at.getDate() + 7);   // эта неделя отменена - следующая
+    else if (spCancelled(s, ymdOf(at))) continue;
     if (at > now && (!best || at < best)) best = at;
   }
   return best;
@@ -557,7 +560,7 @@ function renderPulse() {
         `<button type="button" class="wg-pulse-act" onclick="pulseArchive(${i},'forever')">For good</button>`,
         `<button type="button" class="wg-pulse-act is-quiet" onclick="pulseArchiveAsk(null)">Cancel</button>`);
     } else if (st === 'topped') {
-      acts.push(`<button type="button" class="wg-pulse-act is-go" onclick="pulseSchedule()">${icon('calendar')}Schedule</button>`,
+      acts.push(`<button type="button" class="wg-pulse-act is-go" onclick="pulseSchedule(${i})">${icon('calendar')}Schedule</button>`,
         `<button type="button" class="wg-pulse-act" onclick="pulseArchive(${i},'forever')">${icon('check')}Got it</button>`);
     } else {
       if (it.kind === 'homework') {
@@ -585,7 +588,9 @@ function renderPulse() {
     const note = st === 'urgent' ? `Lesson ${_pulseWhen(it._next)} - not ${it.kind === 'payment' ? 'paid' : 'topped up'} yet. Reminder sent ${_pulseAgo(it.reminded_at)}.`
       : st === 'waiting' ? `Reminder sent ${_pulseAgo(it.reminded_at)}${it._next ? ` · next lesson ${_pulseWhen(it._next)}` : ''}`
       : (it.kind === 'package' || it.kind === 'payment') && it._next ? `Next lesson ${_pulseWhen(it._next)}` : '';
-    return `<div class="wg-pulse-item is-${st}">
+    // карточку с учеником можно перетащить на день в Schedule - запланировать урок
+    const drag = it.journal_id ? ` draggable="true" data-jid="${esc(it.journal_id)}" title="Drag onto a day in Schedule to book a lesson"` : '';
+    return `<div class="wg-pulse-item is-${st}"${drag}>
       ${_pulseAvatar(it)}
       <div class="wg-pulse-body">
         <div class="wg-pulse-line"><b>${esc(_pulseShortName(it.name))}</b> - ${esc(_pulseText(it))}</div>
@@ -595,7 +600,19 @@ function renderPulse() {
     </div>`;
   }).join('') + (more > 0 ? `<a class="wg-pulse-more" href="journal.html">+${more} more in the Journal</a>` : '');
 }
-function pulseSchedule() { if (typeof dockApp === 'function') dockApp('schedule'); }
+function pulseSchedule(i) {
+  const it = i != null && _pulse.items ? _pulse.items[i] : null;
+  if (it && it.journal_id && window.TeachedDesk) { window.TeachedDesk.quickAdd({ journalId: it.journal_id }); return; }
+  if (typeof dockApp === 'function') dockApp('schedule');
+}
+document.addEventListener('dragstart', e => {
+  const it = e.target.closest && e.target.closest('.wg-pulse-item[data-jid]');
+  if (!it) return;
+  e.dataTransfer.setData('text/x-teached-journal', it.dataset.jid);
+  e.dataTransfer.effectAllowed = 'copy';
+  document.body.classList.add('is-booking-drag');
+});
+document.addEventListener('dragend', () => document.body.classList.remove('is-booking-drag'));
 function pulseArchiveAsk(key) { _pulse.archiving = key; renderPulse(); }
 
 /* Куда ушло: в кабинет ученика (колокольчик) и/или письмом от TeachEd. */
@@ -623,8 +640,9 @@ async function pulseRemind(i) {
 
 /* «Message»: свои слова ученику. Уходит с платформы, не из почтового клиента
    учителя: в кабинет ученика и на его почту. */
-function pulseMessage(i) {
-  const it = _pulse.items && _pulse.items[i];
+function pulseMessage(i) { pulseMessageFor(_pulse.items && _pulse.items[i]); }
+/* it: { journal_id, name, kind?, lessons_left?, text? } - text задаёт готовое начало письма */
+function pulseMessageFor(it) {
   if (!it || !it.journal_id) return;
   document.getElementById('pulse-msg-ov')?.remove();
   const ov = document.createElement('div');
@@ -640,7 +658,7 @@ function pulseMessage(i) {
       ? ['Payment', `Hi ${first}! A quick reminder about the payment for our lessons${next ? `, before ${lesson}` : ''}. Thank you!`]
       : ['Package', `Hi ${first}! Your lesson package is ${it.lessons_left > 0 ? 'almost over' : 'used up'}. Shall we renew it before ${lesson}?`],
   ];
-  const start = it._state === 'urgent' ? TPL[0][1] : (it.kind === 'payment' || it.kind === 'package') ? TPL[1][1] : '';
+  const start = it.text != null ? it.text : it._state === 'urgent' ? TPL[0][1] : (it.kind === 'payment' || it.kind === 'package') ? TPL[1][1] : '';
   ov.innerHTML = `<div class="pm-sheet" role="dialog" aria-modal="true" aria-labelledby="pm-t">
     <h3 id="pm-t">Message to ${esc(_pulseShortName(it.name))}</h3>
     <p>It goes to their TeachEd cabinet and to their email, from TeachEd. They can reply to you by email.</p>
@@ -707,13 +725,31 @@ function _spWho(s) {
   const g = s.group_name && !/^1\s*:\s*1$/.test(String(s.group_name).trim()) ? s.group_name : '';
   return s.student_name || g || s.title || 'Class';
 }
-const _sp = { all: [], sel: null, open: false };
-function _spPill(s, today, withDay) {
+const _sp = { all: [], sel: null, open: false, marks: {} };
+/* Строка урока (15.10.2026) - маленький интерфейс: имя открывает карточку
+   ученика, при наведении - 💬 написать, ✏️ перенести, ✕ отменить
+   (scripts/desk-actions.js), клик по строке показывает урок в виджете
+   Next lesson. Отменённый на эту дату урок зачёркнут и не считается. */
+function _spPill(s, today, withDay, ymd) {
   const who = _spWho(s);
   const when = withDay ? (s.day === today ? 'Today' : s.day === (today + 1) % 7 ? 'Tomorrow' : SP_DAYS[s.day]) + ' · ' : '';
-  return `<div class="sp-pill"><span class="sp-av">${esc(_spInitials(who))}</span>
-    <span class="sp-txt"><b>${esc(who)}</b><small>${when}${esc(String(s.start_time).slice(0, 5))}${s.level ? ' · ' + esc(s.level) : ''}</small></span></div>`;
+  const off = spCancelled(s, ymd);
+  const grp = s.group_name && !/^1\s*:\s*1$/.test(String(s.group_name).trim());
+  const act = (k, ic, label) => `<button type="button" class="sp-act" data-spact="${k}" title="${label}" aria-label="${label}">${ic}</button>`;
+  return `<div class="sp-pill${off ? ' is-off' : ''}${grp ? ' is-group' : ''}" data-slot="${esc(s.id)}" data-ymd="${esc(ymd || '')}">
+    <span class="sp-av">${s.student_avatar && !/^https?:/.test(s.student_avatar) ? esc(s.student_avatar) : esc(_spInitials(who))}</span>
+    <span class="sp-txt"><button type="button" class="sp-who" data-spact="who">${esc(who)}</button><small>${when}${esc(String(s.start_time).slice(0, 5))}${s.level ? ' · ' + esc(s.level) : ''}${off ? ' · cancelled' : ''}${grp ? ' · group' : ''}</small></span>
+    ${off ? '' : `<span class="sp-acts">${s.journal_id ? act('msg', '💬', 'Message the student') : ''}${act('move', '✏️', 'Move this lesson')}${act('cancel', '✕', 'Cancel this lesson')}</span>`}
+  </div>`;
 }
+/* Отметки посещаемости недели: «cancelled» на дату убирает урок из счёта,
+   из Next lesson и из «следующего урока» в Pulse. */
+function spCancelled(s, ymd) {
+  const m = s && s.journal_id && ymd && _sp.marks ? _sp.marks[`${s.journal_id}|${ymd}`] : null;
+  // отметка знает свой урок (slot_id): второй урок того же ученика в этот день не задевает
+  return !!(m && m.status === 'cancelled' && (!m.slot_id || m.slot_id === s.id));
+}
+window.spCancelled = spCancelled;
 function renderSchedPreview(all) {
   const box = document.getElementById('fx-ghost-panel');
   if (!box) return;
@@ -729,30 +765,32 @@ function renderSchedPreview(all) {
      недели, в панели не появлялся. */
   const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const weekDays = SP_DAYS.map((_, i) => { const dt = new Date(monday); dt.setDate(monday.getDate() + i); return ymd(dt); });
-  const weekly = _sp.all.filter(s => s.specific_date ? weekDays.includes(String(s.specific_date).slice(0, 10)) : s.recurring !== false);
+  const weekAll = _sp.all.filter(s => s.specific_date ? weekDays.includes(String(s.specific_date).slice(0, 10)) : s.recurring !== false);
+  const weekly = weekAll.filter(s => !spCancelled(s, weekDays[s.day]));
   const byTime = (a, b) => toMin(a.start_time) - toMin(b.start_time);
   const month = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   const days = SP_DAYS.map((d, i) => {
     const dt = new Date(monday); dt.setDate(monday.getDate() + i);
     const has = weekly.some(s => s.day === i);
-    return `<button type="button" class="sp-day${i === sel ? ' is-sel' : ''}${i === today ? ' is-today' : ''}${has ? ' has' : ''}" data-spday="${i}" aria-pressed="${i === sel}"><span>${d}</span><b>${dt.getDate()}</b></button>`;
+    return `<button type="button" class="sp-day${i === sel ? ' is-sel' : ''}${i === today ? ' is-today' : ''}${has ? ' has' : ''}" data-spday="${i}" data-ymd="${ymd(dt)}" aria-pressed="${i === sel}"><span>${d}</span><b>${dt.getDate()}</b></button>`;
   }).join('');
   let list;
   if (_sp.open) {
     // Развёрнуто: вся неделя по дням.
     list = SP_DAYS.map((d, i) => {
-      const rows = weekly.filter(s => s.day === i).sort(byTime);
-      return rows.length ? `<div class="sp-dayhead">${d}${i === today ? ' · today' : ''}</div>` + rows.map(s => _spPill(s, today, false)).join('') : '';
+      const rows = weekAll.filter(s => s.day === i).sort(byTime);
+      return rows.length ? `<div class="sp-dayhead">${d}${i === today ? ' · today' : ''}</div>` + rows.map(s => _spPill(s, today, false, weekDays[i])).join('') : '';
     }).join('') || '<div class="sp-empty">No classes this week yet.</div>';
   } else {
-    const rows = weekly.filter(s => s.day === sel).sort(byTime);
+    const rows = weekAll.filter(s => s.day === sel).sort(byTime);
     const label = sel === today ? 'today' : sel === (today + 1) % 7 ? 'tomorrow' : 'on ' + SP_DAYS[sel];
-    list = rows.map(s => _spPill(s, today, false)).join('') || `<div class="sp-empty">No classes ${label}.</div>`;
+    list = rows.map(s => _spPill(s, today, false, weekDays[sel])).join('') || `<div class="sp-empty">No classes ${label}.</div>`;
   }
   box.innerHTML = `
     <div class="sp-card">
-      <div class="sp-head"><span class="sp-title">Schedule</span><span class="sp-month">${esc(month)}</span>
-        <button type="button" class="sp-add" data-spopen>Add <i>+</i></button></div>
+      <div class="sp-head"><button type="button" class="sp-title" data-spopen title="Open the full schedule">Schedule</button><span class="sp-month">${esc(month)}</span>
+        <button type="button" class="sp-add" data-spadd title="Add a lesson">Add <i>+</i></button>
+        <button type="button" class="sp-fold" data-spfold aria-label="Collapse the schedule" title="Collapse">⌃</button></div>
       <div class="sp-week">${days}</div>
     </div>
     <button type="button" class="sp-count" data-spexpand aria-expanded="${_sp.open}"><span><b>${weekly.length}</b> ${weekly.length === 1 ? 'class' : 'classes'} this week</span><i class="sp-chev" aria-hidden="true"></i></button>
@@ -870,14 +908,55 @@ async function loadSchedPreview() {
        открывается только кнопкой Add. */
     box.addEventListener('click', e => {
       e.stopPropagation();
+      const D = window.TeachedDesk;
+      const pill = e.target.closest('.sp-pill');
+      const slot = pill && _sp.all.find(x => x.id === pill.dataset.slot);
+      const act = e.target.closest('[data-spact]');
+      if (act && slot && D) { D.slotAction(act.dataset.spact, slot, pill.dataset.ymd, act); return; }
+      // строка урока - в виджет Next lesson (повторный клик возвращает ближайший)
+      if (slot && typeof nextClassPin === 'function') { nextClassPin(slot, pill.dataset.ymd); return; }
       const day = e.target.closest('[data-spday]');
       if (day) { _sp.sel = +day.dataset.spday; _sp.open = false; renderSchedPreview(); return; }
       if (e.target.closest('[data-spexpand]')) { _sp.open = !_sp.open; renderSchedPreview(); return; }
+      if (e.target.closest('[data-spadd]') && D) { D.quickAdd({ anchor: e.target.closest('[data-spadd]'), ymd: box.querySelector('.sp-day.is-sel')?.dataset.ymd }); return; }
+      if (e.target.closest('[data-spfold]') && typeof WGM !== 'undefined' && WGM.toggleCollapse) { WGM.toggleCollapse(box); return; }
       if (e.target.closest('[data-spopen]') && typeof dockApp === 'function') dockApp('schedule');
+    });
+    /* Карточку из Student pulse можно бросить на день недели: откроется
+       быстрое создание урока с этим учеником на этот день. */
+    box.addEventListener('dragover', e => {
+      const day = e.target.closest('[data-spday]');
+      if (!day || !e.dataTransfer.types.includes('text/x-teached-journal')) return;
+      e.preventDefault();
+      box.querySelectorAll('.sp-day.is-drop').forEach(d => d !== day && d.classList.remove('is-drop'));
+      day.classList.add('is-drop');
+    });
+    box.addEventListener('dragleave', e => { const day = e.target.closest('[data-spday]'); if (day && !day.contains(e.relatedTarget)) day.classList.remove('is-drop'); });
+    box.addEventListener('drop', e => {
+      const day = e.target.closest('[data-spday]');
+      const jid = e.dataTransfer.getData('text/x-teached-journal');
+      box.querySelectorAll('.sp-day.is-drop').forEach(d => d.classList.remove('is-drop'));
+      if (!day || !jid || !window.TeachedDesk) return;
+      e.preventDefault();
+      window.TeachedDesk.quickAdd({ anchor: day, ymd: day.dataset.ymd, journalId: jid });
     });
   }
   const r = await dxJson('/api/schedule').catch(() => null);
-  if (r && r.ok) renderSchedPreview(r.data?.schedule || []);
+  /* Отметки за эту и следующую неделю: отменённое на дату не показываем
+     ни в счёте недели, ни в Next lesson. */
+  const now = new Date();
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (now.getDay() + 6) % 7);
+  const ymdOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const end = new Date(mon); end.setDate(mon.getDate() + 13);
+  const ms = await dxJson(`/api/journal/sessions?from=${ymdOf(mon)}&to=${ymdOf(end)}`).catch(() => null);
+  if (ms && ms.ok) { _sp.marks = {}; (ms.data?.sessions || []).forEach(m => { _sp.marks[`${m.journal_id}|${m.date}`] = { status: m.status, slot_id: m.slot_id || null }; }); }
+  if (r && r.ok) {
+    const all = r.data?.schedule || [];
+    renderSchedPreview(all);
+    // тот же список - виджету Next lesson и окну Schedule, чтобы после правки всё совпадало
+    if (typeof SCHEDULE_RAW !== 'undefined') { SCHEDULE_RAW = all; if (typeof schRender === 'function') schRender(); }
+    if (typeof renderNextClass === 'function') renderNextClass(all);
+  }
   // Pulse считает «следующий урок» по расписанию - теперь оно есть
   if (_pulse.items) renderPulse();
 }

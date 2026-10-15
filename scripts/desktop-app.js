@@ -858,25 +858,79 @@ const WGM = (function () {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
   }
 
+  /* Вместо плашки «1 widgets hidden · restore» (15.10.2026) - маленькая
+     шестерёнка в углу. За ней меню рабочего стола: какие виджеты показывать,
+     какие свернуть в полоску, вернуть их на места, сменить фон. Сюда же
+     потом ляжет остальная настройка стола. */
+  const WG_NAMES = [
+    ['wg-today', 'Next lesson'], ['wg-week', 'This week'], ['wg-pulse', 'Student pulse', true], ['fx-ghost-panel', 'Schedule', true],
+  ];
   function ensureRestoreChip() {
-    let chip = document.getElementById('wg-restore');
-    if (chip) return chip;
-    chip = document.createElement('div');
-    chip.id = 'wg-restore';
-    chip.innerHTML = '<span id="wg-restore-count">0</span> widgets hidden · restore';
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('.widget[data-wg-hidden="1"]').forEach(w => showWidget(w));
-    });
-    document.body.appendChild(chip);
-    return chip;
+    let btn = document.getElementById('wg-menu-btn');
+    if (btn) return btn;
+    btn = document.createElement('button');
+    btn.id = 'wg-menu-btn';
+    btn.type = 'button';
+    btn.title = 'Widgets and desktop';
+    btn.setAttribute('aria-label', 'Widgets and desktop');
+    btn.setAttribute('aria-haspopup', 'menu');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><i id="wg-restore-count" hidden></i>';
+    btn.addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });
+    document.body.appendChild(btn);
+    return btn;
+  }
+  function toggleMenu(force) {
+    let m = document.getElementById('wg-menu');
+    if (m && force !== true) { m.remove(); return; }
+    if (!m) { m = document.createElement('div'); m.id = 'wg-menu'; m.setAttribute('role', 'menu'); document.body.appendChild(m); }
+    const rows = WG_NAMES.map(([id, name, foldable]) => {
+      const w = document.getElementById(id);
+      if (!w) return '';
+      const shown = w.dataset.wgHidden !== '1';
+      const folded = w.classList.contains('is-collapsed');
+      return `<div class="wgm-row"><label><input type="checkbox" data-wgshow="${id}"${shown ? ' checked' : ''}> ${name}</label>${
+        foldable && shown ? `<button type="button" class="wgm-fold" data-wgfold="${id}">${folded ? 'Expand' : 'Collapse'}</button>` : ''}</div>`;
+    }).join('');
+    m.innerHTML = `<div class="wgm-h">Widgets</div>${rows}<div class="wgm-sep"></div>
+      <button type="button" class="wgm-item" data-wgreset>Put widgets back in place</button>
+      <button type="button" class="wgm-item" data-wgwall>Change background…</button>`;
+  }
+  document.addEventListener('click', e => {
+    const m = document.getElementById('wg-menu');
+    if (!m) return;
+    if (!m.contains(e.target)) { if (!e.target.closest('#wg-menu-btn')) m.remove(); return; }
+    const fold = e.target.closest('[data-wgfold]');
+    if (fold) { toggleCollapse(document.getElementById(fold.dataset.wgfold)); toggleMenu(true); return; }
+    if (e.target.closest('[data-wgreset]')) {
+      all().forEach(w => { const st = state[w.id]; if (st) { delete st.left; delete st.top; } w.style.left = w.style.top = w.style.right = w.style.bottom = ''; });
+      persist(); m.remove(); return;
+    }
+    if (e.target.closest('[data-wgwall]')) { m.remove(); if (typeof openWallpaperPicker === 'function') openWallpaperPicker(); }
+  });
+  document.addEventListener('change', e => {
+    const c = e.target.closest && e.target.closest('#wg-menu [data-wgshow]');
+    if (!c) return;
+    const w = document.getElementById(c.dataset.wgshow);
+    if (w) (c.checked ? showWidget : hideWidget)(w);
+    toggleMenu(true);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('wg-menu')?.remove(); });
+
+  /* Свернуть в полоску: остаётся заголовок, список прячется. Помнится. */
+  function toggleCollapse(w, force) {
+    if (!w || !w.id) return;
+    const on = force != null ? force : !w.classList.contains('is-collapsed');
+    w.classList.toggle('is-collapsed', on);
+    state[w.id] = state[w.id] || {};
+    state[w.id].collapsed = on;
+    persist();
   }
 
   function updateRestoreChip() {
-    const hidden = document.querySelectorAll('.widget[data-wg-hidden="1"]');
-    const chip = ensureRestoreChip();
-    chip.style.display = hidden.length ? 'flex' : 'none';
+    const hidden = WG_NAMES.filter(([id]) => document.getElementById(id)?.dataset.wgHidden === '1').length;
+    ensureRestoreChip();
     const n = document.getElementById('wg-restore-count');
-    if (n) n.textContent = hidden.length;
+    if (n) { n.hidden = !hidden; n.textContent = hidden; }
   }
 
   function hideWidget(w) {
@@ -943,6 +997,7 @@ const WGM = (function () {
 
     const s = state[w.id];
     if (s && s.hidden) { w.dataset.wgHidden = '1'; w.style.display = 'none'; }
+    if (s && s.collapsed) w.classList.add('is-collapsed');
     applyPosition(w);
 
     let closeBtn = null;
@@ -959,7 +1014,7 @@ const WGM = (function () {
 
     let drag = null;
     const dragStart = (cx, cy, target) => {
-      if ((closeBtn && target === closeBtn) || target.closest?.('button:not(.widget-close), a, input, select, textarea')) return false;
+      if ((closeBtn && target === closeBtn) || target.closest?.('button:not(.widget-close), a, input, select, textarea, [draggable="true"]')) return false;
       const f = frame(w);
       const r = w.getBoundingClientRect();
       drag = { ox: cx, oy: cy, wx: r.left - f.left, wy: r.top - f.top, moved: false };
@@ -1020,7 +1075,7 @@ const WGM = (function () {
   } else {
     init();
   }
-  return { hideWidget, showWidget };
+  return { hideWidget, showWidget, toggleCollapse };
 })();
 
 function openApp(id) {
@@ -1061,7 +1116,9 @@ function pickNextClass(schedule) {
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const byStart = (a, b) => _ncMin(a.start_time) - _ncMin(b.start_time);
-  const todays = (schedule || []).filter(s => slotOnDate(s, now)).sort(byStart);
+  const ymd = d => slotYMD(d);
+  const live = (s, d) => !(typeof window.spCancelled === 'function' && window.spCancelled(s, ymd(d)));
+  const todays = (schedule || []).filter(s => slotOnDate(s, now) && live(s, now)).sort(byStart);
   const next = todays.find(s => {
     const st = _ncMin(s.start_time); let en = _ncMin(s.end_time);
     if (en <= st) en = st + 60;   // урок через полночь или без конца
@@ -1071,7 +1128,7 @@ function pickNextClass(schedule) {
   if (!next) {
     for (let k = 1; k <= 7 && !later; k++) {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + k);
-      const first = (schedule || []).filter(s => slotOnDate(s, d)).sort(byStart)[0];
+      const first = (schedule || []).filter(s => slotOnDate(s, d) && live(s, d)).sort(byStart)[0];
       if (first) later = { slot: first, date: d };
     }
   }
@@ -1106,9 +1163,22 @@ function _ncTag(s) {
   return [topic, s.level || s.student_level || ''].filter(Boolean).join(' · ');
 }
 
+/* Клик по уроку в Schedule показывает его здесь (15.10.2026); повторный
+   клик или две минуты - и виджет возвращается к ближайшему уроку. */
+let _ncPin = null;
+function nextClassPin(slot, ymd) {
+  _ncPin = _ncPin && _ncPin.slot.id === slot.id && _ncPin.ymd === ymd ? null : { slot, ymd, at: Date.now() };
+  const card = document.getElementById('wg-today');
+  if (card) { card.classList.remove('is-pinned-flash'); void card.offsetWidth; card.classList.add('is-pinned-flash'); }
+  renderNextClass(_nc.schedule || []);
+}
 function renderNextClass(schedule) {
   _nc.schedule = schedule || [];
-  const { next, todaysCount, later } = pickNextClass(_nc.schedule);
+  if (_ncPin && (Date.now() - _ncPin.at > 120000 || !_nc.schedule.some(x => x.id === _ncPin.slot.id))) _ncPin = null;
+  const picked = pickNextClass(_nc.schedule);
+  const pin = _ncPin;
+  const { todaysCount, later } = picked;
+  const next = pin ? (_nc.schedule.find(x => x.id === pin.slot.id) || pin.slot) : picked.next;
   const label  = document.querySelector('#wg-today .wg-today-label');
   const title  = document.querySelector('#wg-today .wg-today-title');
   const meta   = document.querySelector('#wg-today .wg-today-meta');
@@ -1119,6 +1189,7 @@ function renderNextClass(schedule) {
   const card   = document.getElementById('wg-today');
   if (!title) return;
   card?.classList.remove('is-live', 'is-soon', 'is-empty');
+  card?.classList.toggle('is-pinned', !!pin);
 
   const paintAvatar = s => {
     if (!avatar) return;
@@ -1175,15 +1246,22 @@ function renderNextClass(schedule) {
   paintAvatar(next);
 
   const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
-  const until = st - nowMin;
-  const live = until <= 0;
-  const soon = !live && until <= NC_LIVE_MIN;
+  // минуты до начала с учётом даты: выбранный урок может быть и в другой день
+  const [py, pm, pd] = (pin ? pin.ymd : slotYMD(now)).split('-').map(Number);
+  const startAt = new Date(py, pm - 1, pd, st / 60 | 0, st % 60);
+  const until = (startAt - now) / 60000;
+  if (pin && label) label.textContent = 'Selected class';
+  const live = until <= 0 && until + dur > 0;
+  const soon = !live && until > 0 && until <= NC_LIVE_MIN;
   card?.classList.toggle('is-live', live);
   card?.classList.toggle('is-soon', soon);
   if (badge) {
-    const m = Math.max(0, Math.round(until)), h = Math.floor(m / 60);
-    const when = live ? `started ${Math.max(0, Math.round(-until))} min ago` : `in ${h ? `${h}h ${m % 60}m` : `${m}m`}`;
+    const m = Math.max(0, Math.round(until)), h = Math.floor(m / 60), d = Math.floor(h / 24);
+    const ended = until + dur <= 0;
+    const when = ended ? `${startAt.toLocaleDateString('en-GB', { weekday: 'short' })} · finished`
+      : live ? `started ${Math.max(0, Math.round(-until))} min ago`
+      : d >= 1 ? `${startAt.toLocaleDateString('en-GB', { weekday: 'short' })} · in ${d}d ${h % 24}h`
+      : `in ${h ? `${h}h ${m % 60}m` : `${m}m`}`;
     // «in 5h 47m · 60 min · B2» - когда, сколько длится и про что
     badge.textContent = [when, `${dur} min`, _ncTag(next)].filter(Boolean).join(' · ');
   }
@@ -2868,13 +2946,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1178" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1179" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1178" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1179" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
