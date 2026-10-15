@@ -539,25 +539,37 @@ body.fx.os-desktop:not(#_) #wg-week {
 }
 #wg-week { display:none; }
 body.fx.os-desktop #wg-week { display:flex; }
-#wg-week .wk-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
-#wg-week .wk-label{font:600 11px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#CACCC6;}
-#wg-week .wk-total{font-size:30px;font-weight:600;letter-spacing:-.04em;color:#CDF649;line-height:1;}
-/* On the frosted paper tile (desktop-harmony) lime text read at 1.2:1: the
-   total and today's letter are ink, today's bar stays lime with an ink edge,
-   busy days are graphite and empty days a faint stub. */
-body.os-desktop #wg-week .wk-label{color:#5D614B;}
-body.os-desktop #wg-week .wk-total{color:#24282C;font-weight:700;}
-body.os-desktop #wg-week .wk-col i{background:rgba(36,40,44,.62);}
-body.os-desktop #wg-week .wk-col i[data-n="0"]{background:rgba(36,40,44,.14);}
-body.os-desktop #wg-week .wk-col.is-today i{background:#CDF649;box-shadow:inset 0 0 0 1.5px rgba(36,40,44,.55);}
-body.os-desktop #wg-week .wk-col span{color:#6B6E60;}
-body.os-desktop #wg-week .wk-col.is-today span{color:#24282C;font-weight:800;}
-#wg-week .wk-bars{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;align-items:end;margin-top:8px;min-height:0;}
-#wg-week .wk-col{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;}
-#wg-week .wk-col i{display:block;width:100%;max-width:14px;border-radius:5px;background:rgba(202,204,198,.35);}
-#wg-week .wk-col.is-today i{background:#CDF649;}
-#wg-week .wk-col span{font:600 11px var(--mono,monospace);color:#8E918A;}
-#wg-week .wk-col.is-today span{color:#CDF649;}
+#wg-week .wk-head{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;}
+#wg-week .wk-label{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#5D614B;}
+#wg-week .wk-set{border:0;background:none;padding:0 2px;font-size:12px;line-height:1;color:#8E918A;cursor:pointer;opacity:0;transition:opacity .15s;}
+#wg-week:hover .wk-set,#wg-week .wk-set:focus-visible{opacity:1;}
+#wg-week .wk-set:hover{color:#24282C;}
+#wg-week .wk-total{display:flex;align-items:baseline;gap:3px;font-size:28px;font-weight:700;letter-spacing:-.04em;color:#24282C;line-height:1;}
+#wg-week .wk-total small{font-size:11px;font-weight:650;letter-spacing:0;color:#5D614B;}
+#wg-week .wk-sub{margin-top:2px;min-height:15px;font-size:11.5px;font-weight:600;color:#5D614B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#wg-week .wk-bars{flex:1;display:flex;flex-direction:column;margin-top:6px;min-height:0;}
+#wg-week .wk-plot{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;align-items:end;}
+#wg-week .wk-col{height:100%;display:flex;align-items:flex-end;justify-content:center;}
+#wg-week .wk-col i{display:block;width:100%;max-width:14px;border-radius:5px;box-sizing:border-box;transition:transform .15s;}
+#wg-week .wk-col:hover i{transform:scaleX(1.18);}
+/* past: what was taught - solid ink; today: lime; future: the plan, see-through with a dashed edge */
+#wg-week .wk-col.is-past i{background:#24282C;}
+#wg-week .wk-col.is-today i{background:#CDF649;box-shadow:inset 0 0 0 1.5px rgba(36,40,44,.55);}
+#wg-week .wk-col.is-future i{background:rgba(36,40,44,.12);border:1.5px dashed rgba(36,40,44,.45);}
+#wg-week .wk-col i[data-n="0"]{background:rgba(36,40,44,.12);border:0;box-shadow:none;}
+#wg-week .wk-goal{position:absolute;left:-2px;right:-2px;height:0;border-top:1.5px dashed rgba(138,46,82,.55);pointer-events:none;}
+#wg-week .wk-curve{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;opacity:.95;}
+#wg-week .wk-days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px;}
+#wg-week .wk-days span{text-align:center;font:600 11px var(--mono,monospace);color:#6B6E60;}
+#wg-week .wk-days span.is-today{color:#24282C;font-weight:800;}
+#wg-week .wk-pop{position:absolute;inset:6px;z-index:5;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:16px;background:#fff;box-shadow:0 12px 30px -10px rgba(20,22,24,.4);cursor:default;}
+#wg-week .wk-pop label{display:flex;flex-direction:column;gap:2px;font-size:11px;font-weight:650;color:#5D614B;}
+#wg-week .wk-pop em{font-style:normal;font-weight:500;color:#8E918A;}
+#wg-week .wk-pop input,#wg-week .wk-pop select{height:26px;min-width:0;border:1px solid #CACCC6;border-radius:8px;padding:0 6px;font:600 12.5px inherit;font-family:inherit;color:#24282C;background:#fff;}
+#wg-week .wk-pop input{flex:1;width:100%;box-sizing:border-box;}
+#wg-week .wk-pop-row{display:flex;gap:6px;}
+#wg-week .wk-pop button{flex:1;height:26px;border:0;border-radius:8px;font:700 12px inherit;font-family:inherit;cursor:pointer;background:#CDF649;color:#24282C;}
+#wg-week .wk-pop .wk-pop-x{background:rgba(36,40,44,.08);}
 
 /* Student Pulse → Message */
 .pm-ov{position:fixed;inset:0;z-index:99500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,22,24,.45);backdrop-filter:blur(6px)}
@@ -569,3 +581,26 @@ body.os-desktop #wg-week .wk-col.is-today span{color:#24282C;font-weight:800;}
 .pm-row span{flex:1;font-size:12.5px;color:#9A2C0C}
 .pm-row button{border:0;border-radius:12px;padding:10px 16px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer}
 .pm-cancel{background:#EFEEE7;color:#24282C}.pm-send{background:#CDF649;color:#24282C}.pm-send:disabled{opacity:.5}
+
+/* ── Student pulse states (15.10.2026) ─────────────────────────────────
+   waiting: a reminder went out, the ball is with the student - muted;
+   urgent:  reminded, not paid, and the next lesson is within 48 h - lit up;
+   topped:  the package was topped up - green, "schedule the next lesson?" */
+.wg-pulse-note { margin-top:2px; font-size:12px; line-height:1.35; color:#6B6E60; }
+.wg-pulse-item.is-waiting { opacity:.62; transition:opacity .15s; }
+.wg-pulse-item.is-waiting:hover, .wg-pulse-item.is-waiting:focus-within { opacity:1; }
+.wg-pulse-item.is-urgent {
+  margin:-6px -8px; padding:6px 8px; border-radius:14px;
+  background:rgba(255,255,255,.72); box-shadow:inset 0 0 0 1.5px #F35695;
+}
+.wg-pulse-item.is-urgent .wg-pulse-note { color:#8A2E52; font-weight:600; }
+.wg-pulse-item.is-topped {
+  margin:-6px -8px; padding:6px 8px; border-radius:14px; background:#EEF9C9; box-shadow:inset 0 0 0 1px rgba(93,97,75,.25);
+}
+.wg-pulse-act.is-sent { color:#8E918A; opacity:1; }
+.wg-pulse-act.is-go { color:#24282C; font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.wg-pulse-act.is-quiet { color:#8E918A; }
+.wg-pulse-ask { font-size:12.5px; font-weight:650; color:#24282C; align-self:center; }
+.pm-tpl { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+.pm-chip { height:30px; padding:0 12px; border-radius:999px; border:1px solid rgba(36,40,44,.18); background:#fff; color:#24282C; font:600 12.5px inherit; font-family:inherit; cursor:pointer; }
+.pm-chip:hover { background:#EEF9C9; border-color:#CDF649; }

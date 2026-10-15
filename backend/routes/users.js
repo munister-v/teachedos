@@ -62,10 +62,32 @@ router.use(requireAuth);
 
 router.get('/me/desktop', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT desktop_wallpaper FROM users WHERE id=$1', [req.user.id]);
-    res.json({ wallpaper: rows[0]?.desktop_wallpaper || null });
+    const { rows } = await pool.query('SELECT desktop_wallpaper, week_prefs FROM users WHERE id=$1', [req.user.id]);
+    res.json({ wallpaper: rows[0]?.desktop_wallpaper || null, week: rows[0]?.week_prefs || {} });
   } catch (err) {
     console.error('[users/desktop]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* Виджет This week: дневная норма уроков (линия цели) и цена урока (подпись
+   «$320» под числом). Цена необязательна - без неё виджет считает только уроки. */
+const WEEK_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'UAH', 'PLN', 'CZK', 'CAD', 'AUD', 'CHF']);
+router.put('/me/week-prefs', async (req, res) => {
+  const b = req.body || {};
+  const goal = Math.round(Number(b.goal));
+  const price = Math.round(Number(b.price) * 100) / 100;
+  const cur = String(b.currency || '').toUpperCase();
+  const next = {
+    goal: goal >= 1 && goal <= 20 ? goal : 4,
+    ...(price > 0 && price < 100000 ? { price } : {}),
+    currency: WEEK_CURRENCIES.has(cur) ? cur : 'USD',
+  };
+  try {
+    await pool.query('UPDATE users SET week_prefs=$2 WHERE id=$1', [req.user.id, next]);
+    res.json({ week: next });
+  } catch (err) {
+    console.error('[users/week-prefs]', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

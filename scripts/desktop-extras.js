@@ -139,6 +139,7 @@ async function loadWallpaper() {
   if (!_authToken) return;
   const r = await dxJson('/api/users/me/desktop').catch(() => null);
   if (r && r.ok) applyWallpaper(r.data?.wallpaper || null);
+  if (r && r.ok && r.data?.week) { _weekPrefs = { goal: 4, currency: 'USD', ...r.data.week }; renderWeekChart(); }
 }
 
 function openWallpaperPicker() {
@@ -466,10 +467,62 @@ function _pulseShortName(name) {
   return p.length > 1 ? `${p[0]} ${p[1][0]}.` : (p[0] || 'Student');
 }
 function _pulseText(it) {
+  if (it.kind === 'topped') return `Package topped up${it.lessons_left ? ` - ${it.lessons_left} lesson${it.lessons_left === 1 ? '' : 's'}` : ''}. Schedule the next lesson?`;
   if (it.kind === 'package') return it.lessons_left > 0 ? `Package ending in ${it.lessons_left} lesson${it.lessons_left === 1 ? '' : 's'}.` : 'Package used up.';
   if (it.kind === 'payment') return `Overdue payment (${it.overdue_days} day${it.overdue_days === 1 ? '' : 's'}).`;
   return `Homework pending review${it.title ? `: ${it.title}` : ''}.`;
 }
+
+/* Следующий урок ученика - из расписания, которое уже загрузил виджет
+   Schedule (_sp.all), по часам учителя: сервер живёт в UTC и про часовой пояс
+   учителя не знает. Недельный слот - ближайший такой день недели, разовый -
+   его дата. */
+function _pulseNextLesson(journalId) {
+  if (!journalId || !Array.isArray(_sp.all)) return null;
+  const now = new Date();
+  let best = null;
+  for (const s of _sp.all) {
+    if (s.journal_id !== journalId) continue;
+    const [h, m] = String(s.start_time || '0:0').split(':').map(Number);
+    let at;
+    if (s.specific_date) {
+      const [y, mo, d] = String(s.specific_date).slice(0, 10).split('-').map(Number);
+      at = new Date(y, mo - 1, d, h, m);
+    } else if (s.recurring !== false) {
+      at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+      const dow = (now.getDay() + 6) % 7;
+      at.setDate(at.getDate() + ((s.day - dow + 7) % 7));
+      if (at <= now) at.setDate(at.getDate() + 7);
+    } else continue;
+    if (at > now && (!best || at < best)) best = at;
+  }
+  return best;
+}
+function _pulseWhen(at) {
+  const now = new Date();
+  const day = at.toDateString() === now.toDateString() ? 'Today'
+    : new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toDateString() === at.toDateString() ? 'Tomorrow'
+    : at.toLocaleDateString('en-GB', { weekday: 'short' });
+  return `${day} ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+}
+function _pulseAgo(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!(ms >= 0)) return 'just now';
+  const h = Math.floor(ms / 3600e3), d = Math.floor(h / 24);
+  return d >= 1 ? `${d} day${d === 1 ? '' : 's'} ago` : h >= 1 ? `${h} h ago` : 'just now';
+}
+const PULSE_SOON_H = 48;   // урок ближе этого, а денег нет - карточка снова зовёт
+/* Состояние карточки: open (надо действовать), waiting (напомнил, ждём ученика,
+   приглушена), urgent (напомнил, а урок уже близко), topped (пополнил). */
+function _pulseState(it) {
+  it._next = _pulseNextLesson(it.journal_id);
+  if (it.kind === 'topped') return 'topped';
+  if (it.kind !== 'package' && it.kind !== 'payment') return 'open';
+  const soon = it._next && (it._next - Date.now()) / 3600e3 <= PULSE_SOON_H;
+  if (it.reminded_at) return soon ? 'urgent' : 'waiting';
+  return 'open';
+}
+const PULSE_ORDER = { urgent: 0, open: 1, topped: 2, waiting: 3 };
 
 function renderPulse() {
   const host = document.getElementById('wg-pulse-list');
@@ -480,68 +533,89 @@ function renderPulse() {
       : `<div class="wg-pulse-empty">Loading…</div>`;
     return;
   }
-  document.getElementById('wg-pulse')?.classList.toggle('is-clear', !_pulse.items.length);
-  if (!_pulse.items.length) {
+  _pulse.items.forEach(it => { it._state = _pulseState(it); });
+  // «пополнил» показываем, только если следующий урок ещё не стоит в расписании
+  const list = _pulse.items.filter(it => !(it._state === 'topped' && it._next))
+    .sort((x, y) => PULSE_ORDER[x._state] - PULSE_ORDER[y._state] || y.severity - x.severity);
+  document.getElementById('wg-pulse')?.classList.toggle('is-clear', !list.length);
+  if (!list.length) {
     host.innerHTML = `<div class="wg-pulse-empty"><b>You're all caught up.</b> No packages ending, no homework waiting, no overdue payments.${
       _pulse.students ? '' : ' Add students in the <a href="journal.html">Journal</a> to follow them here.'}</div>`;
     return;
   }
-  const items = _pulse.items.slice(0, 4);
-  const more = _pulse.items.length - items.length;
-  host.innerHTML = items.map((it, i) => {
+  const items = list.slice(0, 4);
+  const more = list.length - items.length;
+  host.innerHTML = items.map(it => {
+    const i = _pulse.items.indexOf(it);
     const busy = _pulse.busy[it.key];
+    const st = it._state;
+    const icon = n => `<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
     const acts = [];
-    if (it.kind === 'homework') {
-      acts.push(`<a class="wg-pulse-act" href="homework.html?hw=${encodeURIComponent(it.homework_id)}&a=${encodeURIComponent(it.assignment_id)}"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg>Review</a>`);
+    if (_pulse.archiving === it.key) {
+      acts.push(`<span class="wg-pulse-ask">Hide it</span>`,
+        `<button type="button" class="wg-pulse-act" onclick="pulseArchive(${i},'today')">For today</button>`,
+        `<button type="button" class="wg-pulse-act" onclick="pulseArchive(${i},'forever')">For good</button>`,
+        `<button type="button" class="wg-pulse-act is-quiet" onclick="pulseArchiveAsk(null)">Cancel</button>`);
+    } else if (st === 'topped') {
+      acts.push(`<button type="button" class="wg-pulse-act is-go" onclick="pulseSchedule()">${icon('calendar')}Schedule</button>`,
+        `<button type="button" class="wg-pulse-act" onclick="pulseArchive(${i},'forever')">${icon('check')}Got it</button>`);
     } else {
-      acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseRemind(${i})" ${busy ? 'disabled' : ''}><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>${busy === 'sent' ? 'Sent ✓' : 'Remind'}</button>`);
+      if (it.kind === 'homework') {
+        acts.push(`<a class="wg-pulse-act" href="homework.html?hw=${encodeURIComponent(it.homework_id)}&a=${encodeURIComponent(it.assignment_id)}">${icon('note')}Review</a>`);
+      } else if (st === 'urgent') {
+        acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseSchedule()">${icon('calendar')}Reschedule</button>`);
+      } else {
+        /* После напоминания кнопка серая «Sent» двое суток - мяч у ученика;
+           потом можно напомнить ещё раз. */
+        const fresh = it.reminded_at && Date.now() - new Date(it.reminded_at).getTime() < 48 * 3600e3;
+        acts.push(busy === 'sending' ? `<button type="button" class="wg-pulse-act" disabled>${icon('send')}Sending…</button>`
+          : fresh ? `<button type="button" class="wg-pulse-act is-sent" disabled>${icon('check')}Sent</button>`
+          : `<button type="button" class="wg-pulse-act" onclick="pulseRemind(${i})">${icon('send')}${it.reminded_at ? 'Remind again' : 'Remind'}</button>`);
+      }
+      if (it.kind === 'payment' && it.journal_id && st !== 'urgent') {
+        acts.push(`<button type="button" class="wg-pulse-act" onclick="pulsePaid(${i})">${icon('check')}Paid</button>`);
+      }
+      if (it.journal_id) {
+        acts.push(`<button type="button" class="wg-pulse-act${st === 'urgent' ? ' is-go' : ''}" onclick="pulseMessage(${i})">${icon('chat')}Message</button>`);
+      } else if (it.email) {
+        acts.push(`<a class="wg-pulse-act" href="mailto:${esc(it.email)}">${icon('chat')}Message</a>`);
+      }
+      if (it.journal_id) acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseArchiveAsk('${esc(it.key)}')">${icon('archive')}Archive</button>`);
     }
-    if (it.kind === 'payment' && it.journal_id) {
-      acts.push(`<button type="button" class="wg-pulse-act" onclick="pulsePaid(${i})"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Paid</button>`);
-    }
-    if (it.journal_id) {
-      acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseMessage(${i})"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Message</button>`);
-    } else if (it.email) {
-      acts.push(`<a class="wg-pulse-act" href="mailto:${esc(it.email)}"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Message</a>`);
-    }
-    if (it.journal_id) acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseArchive(${i})"><svg class="ic" aria-hidden="true"><use href="#i-archive"/></svg>Archive</button>`);
-    return `<div class="wg-pulse-item">
+    const note = st === 'urgent' ? `Lesson ${_pulseWhen(it._next)} - not ${it.kind === 'payment' ? 'paid' : 'topped up'} yet. Reminder sent ${_pulseAgo(it.reminded_at)}.`
+      : st === 'waiting' ? `Reminder sent ${_pulseAgo(it.reminded_at)}${it._next ? ` · next lesson ${_pulseWhen(it._next)}` : ''}`
+      : (it.kind === 'package' || it.kind === 'payment') && it._next ? `Next lesson ${_pulseWhen(it._next)}` : '';
+    return `<div class="wg-pulse-item is-${st}">
       ${_pulseAvatar(it)}
       <div class="wg-pulse-body">
         <div class="wg-pulse-line"><b>${esc(_pulseShortName(it.name))}</b> - ${esc(_pulseText(it))}</div>
+        ${note ? `<div class="wg-pulse-note">${esc(note)}</div>` : ''}
         <div class="wg-pulse-acts">${acts.join('')}</div>
       </div>
     </div>`;
   }).join('') + (more > 0 ? `<a class="wg-pulse-more" href="journal.html">+${more} more in the Journal</a>` : '');
 }
+function pulseSchedule() { if (typeof dockApp === 'function') dockApp('schedule'); }
+function pulseArchiveAsk(key) { _pulse.archiving = key; renderPulse(); }
 
 /* Куда ушло: в кабинет ученика (колокольчик) и/или письмом от TeachEd. */
 function _pulseSentNote(name, d) {
   const where = [d && d.cabinet ? 'their cabinet' : '', d && d.email ? 'their email' : ''].filter(Boolean).join(' and ');
   return `Sent to ${_pulseShortName(name)}${where ? ': ' + where : ''}`;
 }
+/* Напоминание не прячет карточку (15.10.2026, вслед за v1176): она серая и
+   ждёт - иначе учитель забывает, что напоминал. Время отправки хранит сервер. */
 async function pulseRemind(i) {
   const it = _pulse.items && _pulse.items[i];
   if (!it || !it.journal_id) return;
   _pulse.busy[it.key] = 'sending';
   renderPulse();
-  const r = await dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/remind`, { method: 'POST', body: { kind: it.kind } }).catch(() => null);
+  const r = await dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/remind`, { method: 'POST', body: { kind: it.kind, key: it.key } }).catch(() => null);
+  delete _pulse.busy[it.key];
   if (r && r.ok) {
-    _pulse.busy[it.key] = 'sent';
+    it.reminded_at = (r.data && r.data.reminded_at) || new Date().toISOString();
     dxToast(_pulseSentNote(it.name, r.data));
-    /* Напомнил - дело сделано (15.10.2026): строка с «Sent» больше ничего
-       не просила, но висела до перезагрузки. Прячем сигнал в этом состоянии
-       (как Archive): «pkg:0» не вернётся, а «pay:» с новой датой - вернётся.
-       Последний ушёл - карточка говорит «You're all caught up». */
-    if (it.journal_id) dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/pulse-hide`, { method: 'POST', body: { key: it.key } }).catch(() => null);
-    setTimeout(() => {
-      if (!_pulse.items) return;
-      _pulse.items = _pulse.items.filter(x => x.key !== it.key || x.journal_id !== it.journal_id);
-      delete _pulse.busy[it.key];
-      renderPulse();
-    }, 1400);
   } else {
-    delete _pulse.busy[it.key];
     dxToast((r && r.data && r.data.error) || 'The reminder could not be sent. Try again.');
   }
   renderPulse();
@@ -557,15 +631,28 @@ function pulseMessage(i) {
   ov.id = 'pulse-msg-ov';
   ov.className = 'pm-ov';
   const first = String(it.name || '').trim().split(/\s+/)[0] || 'there';
-  const start = it.kind === 'payment' ? `Hi ${first}! A quick reminder about the payment for our lessons. Thank you!`
-    : it.kind === 'package' ? `Hi ${first}! Your lesson package is almost over. Shall we renew it?` : '';
+  const next = it._next || _pulseNextLesson(it.journal_id);
+  const lesson = next ? `our lesson on ${next.toLocaleDateString('en-GB', { weekday: 'long' })}` : 'our next lesson';
+  /* Готовые фразы в один клик: учитель отправляет за два нажатия. */
+  const TPL = [
+    ['Continuing?', `Hi ${first}! Are you planning to continue? ${next ? `${lesson[0].toUpperCase()}${lesson.slice(1)} is still unconfirmed.` : 'Let me know and I will book our next lesson.'}`],
+    it.kind === 'payment'
+      ? ['Payment', `Hi ${first}! A quick reminder about the payment for our lessons${next ? `, before ${lesson}` : ''}. Thank you!`]
+      : ['Package', `Hi ${first}! Your lesson package is ${it.lessons_left > 0 ? 'almost over' : 'used up'}. Shall we renew it before ${lesson}?`],
+  ];
+  const start = it._state === 'urgent' ? TPL[0][1] : (it.kind === 'payment' || it.kind === 'package') ? TPL[1][1] : '';
   ov.innerHTML = `<div class="pm-sheet" role="dialog" aria-modal="true" aria-labelledby="pm-t">
     <h3 id="pm-t">Message to ${esc(_pulseShortName(it.name))}</h3>
     <p>It goes to their TeachEd cabinet and to their email, from TeachEd. They can reply to you by email.</p>
+    ${it.kind === 'package' || it.kind === 'payment' ? `<div class="pm-tpl">${TPL.map(([l], k) => `<button type="button" class="pm-chip" data-tpl="${k}">${esc(l)}</button>`).join('')}</div>` : ''}
     <textarea id="pm-text" maxlength="1000" rows="5" placeholder="Write your message…">${esc(start)}</textarea>
     <div class="pm-row"><span id="pm-note"></span><button type="button" class="pm-cancel">Cancel</button><button type="button" class="pm-send">Send</button></div></div>`;
   document.body.appendChild(ov);
   const ta = ov.querySelector('#pm-text'), note = ov.querySelector('#pm-note'), send = ov.querySelector('.pm-send');
+  ov.querySelector('.pm-tpl')?.addEventListener('click', e => {
+    const b = e.target.closest('[data-tpl]');
+    if (b) { ta.value = TPL[+b.dataset.tpl][1]; ta.focus(); }
+  });
   const close = () => ov.remove();
   ov.addEventListener('mousedown', e => { if (e.target === ov) close(); });
   ov.querySelector('.pm-cancel').addEventListener('click', close);
@@ -591,12 +678,17 @@ async function pulsePaid(i) {
   loadPulse();
 }
 
-async function pulseArchive(i) {
+async function pulseArchive(i, how) {
   const it = _pulse.items && _pulse.items[i];
-  if (!it || !it.journal_id) return;
-  const r = await dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/pulse-hide`, { method: 'POST', body: { key: it.key } }).catch(() => null);
-  if (!r || !r.ok) { dxToast('Could not archive. Try again.'); return; }
+  _pulse.archiving = null;
+  if (!it || !it.journal_id) { renderPulse(); return; }
+  // «на сегодня» - до полуночи по часам учителя
+  const end = new Date(); end.setHours(24, 0, 0, 0);
+  const body = how === 'today' ? { key: it.key, for: 'today', until: end.toISOString() } : { key: it.key };
+  const r = await dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/pulse-hide`, { method: 'POST', body }).catch(() => null);
+  if (!r || !r.ok) { dxToast('Could not archive. Try again.'); renderPulse(); return; }
   _pulse.items = _pulse.items.filter(x => x !== it);
+  if (how === 'today') dxToast(`${_pulseShortName(it.name)}: hidden until tomorrow`);
   renderPulse();
 }
 
@@ -668,23 +760,105 @@ function renderSchedPreview(all) {
   renderWeekChart(weekly, today);
 }
 /* Маленький график недели: столбик на день, высота - число уроков. */
+/* ── This week (15.10.2026) ─────────────────────────────────────────────
+   Большое число - уроки недели с единицей, под ним заработок (если учитель
+   указал цену урока) и сколько недели уже позади. Прошедшие дни - сплошные
+   столбики, сегодня - лаймовый, будущие - полупрозрачные с пунктиром (это
+   план из расписания). Пунктир поперёк - дневная норма; столбик выше неё -
+   день выполнен. Линия по верхушкам столбиков - градиент лайм → бирюза →
+   розовый, как кривая нагрузки в макете. Наведение на столбик показывает
+   этот день в подписи: «Tue · 4 lessons · $160».
+   Уроки считаются по расписанию: отметки посещаемости ведут не все. */
+let _weekPrefs = { goal: 4, currency: 'USD' };
+let _weekLast = null;
+const WEEK_CUR = { USD: '$', EUR: '€', GBP: '£', UAH: '₴', PLN: ' zł', CZK: ' Kč', CAD: 'C$', AUD: 'A$', CHF: ' CHF' };
+function _weekMoney(n) {
+  const p = Number(_weekPrefs.price);
+  if (!(p > 0)) return '';
+  const sum = Math.round(n * p * 100) / 100;
+  const num = sum.toLocaleString('en-US', { maximumFractionDigits: sum % 1 ? 2 : 0 });
+  const sym = WEEK_CUR[_weekPrefs.currency] || '$';
+  return sym.startsWith(' ') ? num + sym : sym + num;   // «$320», но «320 zł»
+}
 function renderWeekChart(weekly, today) {
+  if (weekly) _weekLast = { weekly, today };
+  if (!_weekLast) return;
+  ({ weekly, today } = _weekLast);
   const box = document.getElementById('wk-bars');
   if (!box) return;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const toMin = t => { const [h, m] = String(t || '0:0').split(':'); return +h * 60 + +m; };
   const per = SP_DAYS.map((_, i) => weekly.filter(s => s.day === i).length);
-  /* scale to at least 3 a day, so one class a day is not a wall of full bars */
-  const max = Math.max(3, ...per);
-  box.innerHTML = per.map((n, i) => `<div class="wk-col${i === today ? ' is-today' : ''}" title="${SP_DAYS[i]}: ${n} ${n === 1 ? 'class' : 'classes'}">
-    <i data-n="${n}" style="height:${n ? Math.max(18, Math.round(n / max * 100)) : 4}%"></i><span>${SP_DAYS[i][0]}</span></div>`).join('');
+  const done = weekly.filter(s => s.day < today || (s.day === today && toMin(s.end_time || s.start_time) <= nowMin)).length;
+  const total = weekly.length;
+  const goal = Math.max(1, Number(_weekPrefs.goal) || 4);
+  const max = Math.max(3, goal + 1, ...per);
+  const pct = n => Math.round(n / max * 100);
+  const h = n => (n ? Math.max(14, pct(n)) : 4);
+  const pts = per.map((n, i) => [i * 100 + 50, 100 - h(n)]);
+  const curve = pts.map((p, k) => { if (!k) return `M${p[0]},${p[1]}`; const q = pts[k - 1], cx = (q[0] + p[0]) / 2; return `C${cx},${q[1]} ${cx},${p[1]} ${p[0]},${p[1]}`; }).join(' ');
+  box.innerHTML = `<div class="wk-plot">${per.map((n, i) => {
+      const when = i < today ? 'is-past' : i === today ? 'is-today' : 'is-future';
+      const tip = `${SP_DAYS[i]} · ${n} lesson${n === 1 ? '' : 's'}${n && _weekMoney(n) ? ' · ' + _weekMoney(n) : ''}${n >= goal ? ' · goal met' : ''}`;
+      return `<div class="wk-col ${when}${n >= goal ? ' is-goal' : ''}" data-tip="${esc(tip)}"><i data-n="${n}" style="height:${h(n)}%"></i></div>`;
+    }).join('')}
+      <div class="wk-goal" style="bottom:${pct(goal)}%" title="Daily goal: ${goal} lessons"></div>
+      <svg class="wk-curve" viewBox="0 0 700 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="wk-grad" x1="0" x2="1"><stop offset="0" stop-color="#CDF649"/><stop offset=".55" stop-color="#49F6F0"/><stop offset="1" stop-color="#F35695"/></linearGradient></defs>
+        <path d="${curve}" fill="none" stroke="url(#wk-grad)" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      </svg></div>
+    <div class="wk-days">${SP_DAYS.map((d, i) => `<span class="${i === today ? 'is-today' : ''}">${d[0]}</span>`).join('')}</div>`;
   const t = document.querySelector('#wg-week .wk-total');
-  if (t) t.textContent = weekly.length;
+  if (t) t.innerHTML = `${total}<small>${total === 1 ? 'lesson' : 'lessons'}</small>`;
+  const sub = document.querySelector('#wg-week .wk-sub');
+  const base = [_weekMoney(total), total ? `${Math.round(done / total * 100)}% done` : 'nothing planned'].filter(Boolean).join(' · ');
+  if (sub) { sub.textContent = base; sub.dataset.base = base; }
   const w = document.getElementById('wg-week');
   if (w && !w.dataset.wired) {
     w.dataset.wired = '1';
     const open = () => { if (typeof dockApp === 'function') dockApp('schedule'); };
-    w.addEventListener('click', e => { if (!e.target.closest('.widget-close')) open(); });
-    w.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    w.addEventListener('click', e => {
+      if (e.target.closest('.widget-close, .wk-pop')) return;
+      if (e.target.closest('.wk-set')) { e.stopPropagation(); weekPrefsOpen(); return; }
+      open();
+    });
+    w.addEventListener('keydown', e => { if (e.target === w && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } });
+    // день под курсором - в подписи вместо итогов недели
+    w.addEventListener('mouseover', e => {
+      const col = e.target.closest('.wk-col'); const sb = w.querySelector('.wk-sub');
+      if (sb) sb.textContent = col ? col.dataset.tip : sb.dataset.base || '';
+    });
+    w.addEventListener('mouseleave', () => { const sb = w.querySelector('.wk-sub'); if (sb) sb.textContent = sb.dataset.base || ''; });
   }
+}
+
+/* Норма в день и цена урока: маленькое окно прямо на виджете. */
+function weekPrefsOpen() {
+  const w = document.getElementById('wg-week');
+  if (!w) return;
+  w.querySelector('.wk-pop')?.remove();
+  const pop = document.createElement('form');
+  pop.className = 'wk-pop';
+  pop.innerHTML = `<label>Lessons a day goal<input type="number" name="goal" min="1" max="20" value="${esc(_weekPrefs.goal || 4)}"></label>
+    <label>Price per lesson <em>optional</em><span class="wk-pop-row"><input type="number" name="price" min="0" step="0.5" placeholder="40" value="${_weekPrefs.price ? esc(_weekPrefs.price) : ''}">
+      <select name="currency">${Object.keys(WEEK_CUR).map(c => `<option${c === _weekPrefs.currency ? ' selected' : ''}>${c}</option>`).join('')}</select></span></label>
+    <div class="wk-pop-row"><button type="button" class="wk-pop-x">Cancel</button><button type="submit">Save</button></div>`;
+  w.appendChild(pop);
+  pop.querySelector('input').focus();
+  const close = () => pop.remove();
+  pop.querySelector('.wk-pop-x').addEventListener('click', close);
+  pop.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') close(); });
+  pop.addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = new FormData(pop);
+    const body = { goal: +f.get('goal'), price: +f.get('price') || 0, currency: f.get('currency') };
+    const r = await dxJson('/api/users/me/week-prefs', { method: 'PUT', body }).catch(() => null);
+    if (!r || !r.ok) { dxToast('Could not save. Try again.'); return; }
+    _weekPrefs = r.data.week || body;
+    close();
+    renderWeekChart();
+  });
 }
 async function loadSchedPreview() {
   const box = document.getElementById('fx-ghost-panel');
@@ -704,6 +878,8 @@ async function loadSchedPreview() {
   }
   const r = await dxJson('/api/schedule').catch(() => null);
   if (r && r.ok) renderSchedPreview(r.data?.schedule || []);
+  // Pulse считает «следующий урок» по расписанию - теперь оно есть
+  if (_pulse.items) renderPulse();
 }
 
 // Если пользователь уже известен к моменту загрузки файла (кэш дашборда).

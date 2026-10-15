@@ -421,7 +421,7 @@ router.get('/pulse', async (req, res) => {
   try {
     const { rows: studs } = await pool.query(
       `SELECT j.id, j.name, j.email, j.student_id, j.lessons_left, j.is_trial,
-              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due, j.pulse_hidden,
+              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due, j.pulse_hidden, j.pulse_reminded, j.pulse_snooze,
               u.avatar, u.name AS user_name,
               (SELECT MAX(a.date) FROM attendance a WHERE a.journal_id = j.id AND a.status='present') AS last_lesson,
               (CURRENT_DATE - j.payment_due) AS overdue_days
@@ -432,19 +432,33 @@ router.get('/pulse', async (req, res) => {
     );
     const items = [];
     const monthAgo = Date.now() - 31 * 864e5;
+    const now = Date.now();
     for (const st of studs) {
       const hidden = st.pulse_hidden || {};
+      const reminded = st.pulse_reminded || {};
+      const snooze = st.pulse_snooze || {};
+      // Archive for today: скрыт до указанного времени, потом вернётся сам
+      const off = key => hidden[key] || (snooze[key] && new Date(snooze[key]).getTime() > now);
       const base = { journal_id: st.id, name: st.name, email: st.email || '', avatar: st.avatar || '', registered: !!st.student_id };
       const left = Number(st.lessons_left);
       const recent = st.last_lesson && new Date(st.last_lesson).getTime() > monthAgo;
-      if (!st.is_trial && ((left >= 1 && left <= 2) || (left === 0 && recent))) {
+      /* Напоминание о пакете живёт на ученике, а не на ключе «pkg:1»: прошёл
+         урок, стало «pkg:0» - учитель всё равно уже напоминал. */
+      const pkgReminded = Object.keys(reminded).filter(k => k.startsWith('pkg:')).map(k => reminded[k]).sort().pop() || null;
+      const inPkg = !st.is_trial && ((left >= 1 && left <= 2) || (left === 0 && recent));
+      if (inPkg) {
         const key = `pkg:${left}`;
-        if (!hidden[key]) items.push({ ...base, kind: 'package', key, lessons_left: left, severity: left === 0 ? 3 : 2 });
+        if (!off(key)) items.push({ ...base, kind: 'package', key, lessons_left: left, severity: left === 0 ? 3 : 2, reminded_at: pkgReminded });
+      } else if (pkgReminded && left > 0 && now - new Date(pkgReminded).getTime() < 21 * 864e5) {
+        /* Напоминали, и пакет пополнен: зелёная карточка «запланировать урок?».
+           Браузер покажет её, только если следующего урока в расписании нет. */
+        const key = `top:${String(pkgReminded).slice(0, 19)}`;
+        if (!off(key)) items.push({ ...base, kind: 'topped', key, lessons_left: left, severity: 0, reminded_at: pkgReminded });
       }
       if (st.payment_due && Number(st.overdue_days) > 0) {
         const due = st.payment_due;
         const key = `pay:${due}`;
-        if (!hidden[key]) items.push({ ...base, kind: 'payment', key, overdue_days: Number(st.overdue_days), payment_due: due, severity: 3 });
+        if (!off(key)) items.push({ ...base, kind: 'payment', key, overdue_days: Number(st.overdue_days), payment_due: due, severity: 3, reminded_at: reminded[key] || null });
       }
     }
     /* Домашка привязана к пользователю-ученику, а не к записи журнала:
@@ -481,11 +495,24 @@ router.get('/pulse', async (req, res) => {
    сигнал уходит сам, когда учитель её оценит. */
 router.post('/:id/pulse-hide', async (req, res) => {
   const key = String(req.body?.key || '').slice(0, 80);
-  if (!/^(pkg|pay|hw):/.test(key)) return res.status(400).json({ error: 'bad key' });
+  if (!/^(pkg|pay|hw|top):/.test(key)) return res.status(400).json({ error: 'bad key' });
+  const today = req.body?.for === 'today';
+  /* «На сегодня» - до конца суток по часам учителя (браузер присылает until),
+     но не дольше 36 часов, чтобы сигнал не потерялся навсегда. */
+  let until = Date.parse(req.body?.until || '');
+  if (!(until > Date.now()) || until - Date.now() > 36 * 3600e3) until = Date.now() + 24 * 3600e3;
   const { rows } = await pool.query(
-    `UPDATE student_journal SET pulse_hidden = pulse_hidden || jsonb_build_object($3::text, NOW())
-      WHERE id=$1 AND teacher_id=$2 RETURNING id`,
-    [req.params.id, req.user.id, key]
+    today
+      ? `UPDATE student_journal SET pulse_snooze = pulse_snooze || jsonb_build_object($3::text, $4::text)
+          WHERE id=$1 AND teacher_id=$2 RETURNING id`
+      : key.startsWith('top:')
+      // пополнение принято к сведению: напоминание о пакете больше не нужно
+      ? `UPDATE student_journal SET pulse_hidden = pulse_hidden || jsonb_build_object($3::text, NOW()),
+                pulse_reminded = (SELECT COALESCE(jsonb_object_agg(k, v), '{}'::jsonb) FROM jsonb_each(pulse_reminded) AS e(k, v) WHERE k NOT LIKE 'pkg:%')
+          WHERE id=$1 AND teacher_id=$2 RETURNING id`
+      : `UPDATE student_journal SET pulse_hidden = pulse_hidden || jsonb_build_object($3::text, NOW())
+          WHERE id=$1 AND teacher_id=$2 RETURNING id`,
+    today ? [req.params.id, req.user.id, key, new Date(until).toISOString()] : [req.params.id, req.user.id, key]
   );
   if (!rows.length) return res.status(404).json({ error: 'not found' });
   res.json({ ok: true });
@@ -536,7 +563,7 @@ async function deliverToStudent(req, st, { type, title, body }) {
   }
   return out;
 }
-async function sendToJournalStudent(req, res, make) {
+async function sendToJournalStudent(req, res, make, after) {
   const { rows } = await pool.query('SELECT * FROM student_journal WHERE id=$1 AND teacher_id=$2', [req.params.id, req.user.id]);
   const st = rows[0];
   if (!st) return res.status(404).json({ error: 'not found' });
@@ -548,12 +575,21 @@ async function sendToJournalStudent(req, res, make) {
   _recentSend.set(key, Date.now());
   const out = await deliverToStudent(req, st, m);
   if (!out.cabinet && !out.email) { _recentSend.delete(key); return res.status(502).json({ error: 'It could not be sent' }); }
-  res.json({ ok: true, ...out });
+  const extra = after ? await after(st).catch(() => ({})) : {};
+  res.json({ ok: true, ...out, ...extra });
 }
 router.post('/:id/remind', (req, res) => {
   const kind = String(req.body?.kind || '');
   if (!REMIND_TEXT[kind]) return res.status(400).json({ error: 'bad kind' });
-  sendToJournalStudent(req, res, st => ({ type: 'reminder', ...REMIND_TEXT[kind](st) }))
+  // ключ сигнала: карточка в Pulse помнит, когда ушло напоминание
+  const sig = String(req.body?.key || '').slice(0, 80);
+  const after = /^(pkg|pay):/.test(sig) ? async st => {
+    const { rows } = await pool.query(
+      `UPDATE student_journal SET pulse_reminded = pulse_reminded || jsonb_build_object($2::text, to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+        WHERE id=$1 RETURNING pulse_reminded->>$2 AS at`, [st.id, sig]);
+    return { reminded_at: rows[0] ? rows[0].at : null };
+  } : null;
+  sendToJournalStudent(req, res, st => ({ type: 'reminder', ...REMIND_TEXT[kind](st) }), after)
     .catch(err => { console.error('[journal/remind]', err.message); res.status(500).json({ error: 'Server error' }); });
 });
 router.post('/:id/message', (req, res) => {

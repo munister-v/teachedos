@@ -1044,3 +1044,13 @@ CREATE TABLE IF NOT EXISTS lesson_reminders (
   sent_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (schedule_id, starts_at)
 );
+
+-- Student pulse, 15.10.2026: a reminder no longer hides the signal. The card
+-- waits ("Reminder sent 2 days ago") until the student pays or the teacher
+-- archives it, and lights up again when the next lesson is close.
+--   pulse_reminded: { "<signal key>": "<when the reminder went out>" }
+--   pulse_snooze:   { "<signal key>": "<hidden until>" }  (Archive for today)
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pulse_reminded JSONB NOT NULL DEFAULT '{}';
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pulse_snooze JSONB NOT NULL DEFAULT '{}';
+-- This week widget: { goal: lessons a day, price: per lesson, currency }
+ALTER TABLE users ADD COLUMN IF NOT EXISTS week_prefs JSONB NOT NULL DEFAULT '{}';
