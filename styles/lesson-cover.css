@@ -200,3 +200,6 @@
 }
 .tcv-btn.ghost { background:#fff; border-color:#CACCC6; }
 .tcv-btn:disabled { opacity:.6; cursor:wait; }
+
+/* More photos: free stock search under our own photos (scripts/stock-photos.js) */
+.lce-stock-h { margin:14px 0 8px; font:700 10px var(--te-font-mono, ui-monospace, monospace); letter-spacing:.14em; text-transform:uppercase; color:#5D614B; }

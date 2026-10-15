@@ -78,6 +78,8 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
     own.push(`<button type="button" class="sw-tile" data-up="1"><span class="sw-swatch">📷 Drop a photo or click</span><span class="sw-label">${value && value.startsWith('custom:') ? 'Replace your photo' : 'Upload a photo'}</span></button>`);
     g.innerHTML = `<section class="sw-group"><h3>Your own</h3><div class="sw-row">${own.join('')}</div></section>` +
       W.groups.map(gr => `<section class="sw-group"><h3>${esc(gr.title)}</h3><div class="sw-row">${W.presets.filter(p => p.group === gr.key).map(tile).join('')}</div></section>`).join('');
+    const stock = document.querySelector('#sw-ov .sw-stock-group');
+    if (stock) g.firstElementChild.after(stock);
   }
   const say = t => { const n = document.getElementById('sw-note'); if (n) n.textContent = t; };
 
@@ -134,7 +136,7 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
     let ov = document.getElementById('sw-ov');
     if (!ov) {
       ov = document.createElement('div'); ov.id = 'sw-ov'; ov.className = 'sw-ov';
-      ov.innerHTML = `<div class="sw-sheet" role="dialog" aria-modal="true" aria-labelledby="sw-title"><div class="sw-head"><div><h2 id="sw-title">Your background</h2><p>Pick one, or use your own photo. It follows you to any device.</p></div><button type="button" class="sw-x" aria-label="Close">✕</button></div><div id="sw-grid"></div><input type="file" id="sw-file" accept="image/jpeg,image/png,image/webp" hidden><p class="sw-note" id="sw-note"></p></div>`;
+      ov.innerHTML = `<div class="sw-sheet" role="dialog" aria-modal="true" aria-labelledby="sw-title"><div class="sw-head"><div><h2 id="sw-title">Your background</h2><p>Pick one, or use your own photo. It follows you to any device.</p></div><button type="button" class="sw-x" aria-label="Close">✕</button></div><div id="sw-grid"></div><section class="sw-group sw-stock-group"><h3>Free photos</h3><div id="sw-stock"></div></section><input type="file" id="sw-file" accept="image/jpeg,image/png,image/webp" hidden><p class="sw-note" id="sw-note"></p></div>`;
       ov.addEventListener('click', e => {
         if (e.target === ov || e.target.closest('.sw-x')) { ov.classList.remove('open'); return; }
         if (e.target.closest('[data-up]')) { document.getElementById('sw-file').click(); return; }
@@ -146,6 +148,9 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
       ov.addEventListener('drop', e => { e.preventDefault(); ov.classList.remove('is-drop'); const f = Array.from(e.dataTransfer.files || []).find(x => /^image\//.test(x.type)); if (f) upload(f); });
       document.addEventListener('keydown', e => { if (e.key === 'Escape') ov.classList.remove('open'); });
       document.body.appendChild(ov);
+      const stock = ov.querySelector('#sw-stock');
+      if (stock && window.TeachedStock) window.TeachedStock.mount(stock, { onPick: async ({ url }) => upload(await window.TeachedStock.toFile(url)) });
+      else if (stock) stock.closest('section').remove();
     }
     grid(); say('');
     ov.classList.add('open');

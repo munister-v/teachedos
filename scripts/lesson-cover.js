@@ -209,6 +209,7 @@
        рабочего стола, поэтому у стиля 'upload' своей вкладки нет. */
     const tabFor = c => (c ? (c.style === 'upload' ? 'photo' : c.style) : 'auto');
     let tab = tabFor(cover);
+    const stockState = {};
     const info = () => (typeof opts.info === 'function' ? opts.info() : opts.info) || {};
     const current = () => cover || auto(info());
     const touch = patch => {
@@ -236,7 +237,8 @@
       return `
         <div class="lce-photos">${own}${PHOTOS.map(p => `<button type="button" class="lce-photo${c.style === 'photo' && c.photo === p ? ' on' : ''}" data-photo="${p}" style="background-image:url('img/wallpapers/${p}-thumb.webp')" aria-label="${p}"></button>`).join('')}</div>
         ${image ? `<div class="lce-own-links"><label class="lce-link">Replace your photo<input type="file" accept="image/*" hidden data-upload></label><button type="button" class="lce-link" data-clear-upload>Remove</button></div>` : ''}
-        ${shadeRow(c)}`;
+        ${shadeRow(c)}
+        ${window.TeachedStock ? '<div class="lce-stock-h">More photos</div><div class="lce-stock" data-stock></div>' : ''}`;
     }
     const shadeRow = c => `<div class="lce-row"><span class="lce-lbl">Darken</span><input type="range" min="0" max="70" step="1" value="${c.shade}" data-shade class="lce-range"><span class="lce-val">${c.shade}%</span></div>`;
 
@@ -263,6 +265,15 @@
           <div class="lce-row"><span class="lce-lbl">Sticker</span><div class="lce-stickers">${STICKERS.map(s => `<button type="button" class="lce-stk${c.sticker === s ? ' on' : ''}" data-sticker="${esc(s)}">${s || '<span class="lce-none">none</span>'}</button>`).join('')}</div></div>
           ${inf.level ? `<label class="lce-check"><input type="checkbox" data-badge ${c.badge ? 'checked' : ''}> Show the level badge (${esc(inf.level)})</label>` : ''}
         </div>`;
+      /* Фото со стока становится «своим фото» обложки: тот же кроп 1200×450 и
+         то же сохранение, что у загруженного (15.10.2026). paint() перерисовывает
+         всё окно, поэтому последний поиск живёт в stockState. */
+      const sh = host.querySelector('[data-stock]');
+      if (sh && window.TeachedStock) window.TeachedStock.mount(sh, { state: stockState, onPick: async ({ url }) => {
+        image = await fileToCoverImage(await window.TeachedStock.toFile(url));
+        tab = 'photo';
+        touch({ style: 'upload', ink: '#FFFFFF', shade: Math.max(current().shade, 25) });
+      } });
     }
 
     host.addEventListener('click', e => {

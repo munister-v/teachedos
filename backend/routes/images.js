@@ -299,6 +299,54 @@ router.get('/search', async (req, res) => {
   res.json({ url, urls: proxied, query: used });
 });
 
+/* GET /api/images/stock?q=…[&limit=N] - широкие снимки для обложек досок и
+   фонов (15.10.2026): своих фото там 14, учителю их мало. Pexels и Pixabay
+   (ключи уже стоят для поиска картинок к словам), горизонтальные, без
+   перевода и индекса - это не подбор к слову, а выбор человеком из сетки.
+   Адреса - через наш прокси, как и у /search: обложка и фон живут годами. */
+const stockCache = new Map();
+async function pexelsWide(query, limit) {
+  if (!PEXELS_KEY) return [];
+  const d = await safeFetch(
+    `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=${limit}&orientation=landscape`,
+    { Authorization: PEXELS_KEY }
+  );
+  return (Array.isArray(d?.photos) ? d.photos : []).map(p => ({
+    url: p.src?.large2x || p.src?.landscape || p.src?.large || null,
+    thumb: p.src?.medium || p.src?.small || null,
+    credit: p.photographer ? `Photo by ${p.photographer} on Pexels` : 'Pexels',
+  })).filter(r => r.url && r.thumb);
+}
+async function pixabayWide(query, limit) {
+  if (!PIXABAY_KEY) return [];
+  const d = await safeFetch(
+    `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(query)}&image_type=photo&orientation=horizontal&safesearch=true&per_page=${Math.max(3, limit)}&min_width=1200`
+  );
+  return (Array.isArray(d?.hits) ? d.hits : []).map(h => ({
+    url: h.largeImageURL || h.webformatURL || null,
+    thumb: h.webformatURL || h.previewURL || null,
+    credit: `Photo by ${h.user} on Pixabay`,
+  })).filter(r => r.url && r.thumb);
+}
+router.get('/stock', async (req, res) => {
+  const q = String(req.query.q || '').replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 80);
+  const limit = Math.min(24, Math.max(1, parseInt(req.query.limit) || 18));
+  if (!q) return res.json({ results: [] });
+  const key = `${q}|${limit}`;
+  if (stockCache.has(key)) return res.json({ results: stockCache.get(key) });
+  const [px, pb] = await Promise.all([pexelsWide(q, limit), pixabayWide(q, limit)]);
+  // по очереди из двух банков, чтобы первая строка не была целиком одним
+  const mixed = [];
+  for (let i = 0; mixed.length < limit && (i < px.length || i < pb.length); i++) {
+    if (px[i]) mixed.push(px[i]);
+    if (pb[i] && mixed.length < limit) mixed.push(pb[i]);
+  }
+  const prox = u => `/api/images/proxy?u=${encodeURIComponent(u)}`;
+  const results = mixed.map(r => ({ url: prox(r.url), thumb: prox(r.thumb), credit: r.credit }));
+  if (results.length) cacheSet(stockCache, key, results);
+  res.json({ results });
+});
+
 /* GET /api/images/proxy?u=… - чужая картинка через наш домен.
 
    Зачем вообще: карточки урока печатают, экспортируют в PNG и открывают

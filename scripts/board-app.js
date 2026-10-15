@@ -4609,6 +4609,8 @@ function _wpRender(el, card, focus) {
   const next = i < hi ? p.steps[i + 1] : null;
   const nextLabel = !next ? '' : WP_STUDIO_ROLES.includes(next.role) ? `Go to the ${next.title} →` : `Next: ${next.title} →`;
   const who = review ? review.list[review.i] : null;
+  const goHome = focus && !card.__preview && !lf && !review && _wpStudentHome();
+  const handIn = focus && !review && !lf && !card.__preview && !!_hwDirect && _hwDirect.cid === card.id && !!(currentUser && currentUser.role === 'student');
   root.innerHTML = `
     <div class="wp-head">
       <div class="wp-top">
@@ -4620,7 +4622,7 @@ function _wpRender(el, card, focus) {
           ${theme && focus && window.TeachedSounds ? window.TeachedSounds.btnHtml('wp-btn') : ''}
           ${canTheme ? `<button type="button" class="wp-btn wp-theme" title="Theme / Vibe - how the lesson looks for students">🎨${theme ? ' ' + esc((window.TeachedThemes.get(theme) || {}).name || '') : ' Theme'}</button>` : ''}
           ${cloudOwner && !review ? `<button type="button" class="wp-btn wp-students">👥 Students${assigned ? ` · ${assigned}` : ''}</button>` : ''}
-          ${focus ? `<button type="button" class="wp-btn wp-close">${card.__preview ? '✕ Close' : lf ? '← Lesson map' : '✕ Back to the board'}</button>` : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
+          ${focus ? `<button type="button" class="wp-btn wp-close">${card.__preview ? '✕ Close' : lf ? '← Lesson map' : goHome ? '⌂ Home' : '✕ Back to the board'}</button>` : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
         </div>
       </div>
       <div class="wp-steps">${p.steps.map((s, k) => k < lo || k > hi ? '' : `<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${WP_STUDIO_ROLES.includes(s.role) ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k - lo + 1}</i><span>${esc(s.title)}</span></button>`).filter(Boolean).join('<span class="wp-line"></span>')}</div>
@@ -4629,7 +4631,7 @@ function _wpRender(el, card, focus) {
     <div class="wp-nav">
       <button type="button" class="wp-btn wp-prev"${i <= lo ? ' disabled' : ''}>← Back</button>
       <span class="wp-where">${review ? 'Looking at their work - nothing you do here is saved · ' : ''}${lf ? esc(lf.label) + ' · ' : ''}Step ${i - lo + 1} of ${hi - lo + 1} · ${esc(p.steps[i].title)}</span>
-      ${next ? `<button type="button" class="wp-btn wp-next${WP_STUDIO_ROLES.includes(next.role) ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : lf && !review ? '<button type="button" class="wp-btn wp-next to-studio lf-finish">✓ Finish station</button>' : '<span class="wp-end">Last step</span>'}
+      ${next ? `<button type="button" class="wp-btn wp-next${WP_STUDIO_ROLES.includes(next.role) ? ' to-studio' : ''}">${esc(nextLabel)}</button>` : lf && !review ? '<button type="button" class="wp-btn wp-next to-studio lf-finish">✓ Finish station</button>' : handIn ? '<button type="button" class="wp-btn wp-next to-studio wp-handin">✓ Hand in</button>' : '<span class="wp-end">Last step</span>'}
     </div>`;
   el.appendChild(root);
   const stage = root.querySelector('.wp-stage');
@@ -4750,7 +4752,8 @@ function _wpRender(el, card, focus) {
     inp.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Enter') finish(true); else if (ev.key === 'Escape') finish(false); });
     inp.addEventListener('blur', () => finish(true));
   });
-  root.querySelector('.wp-close')?.addEventListener('click', () => lf ? window.TeachedFlow.back() : closeCardStudio());
+  root.querySelector('.wp-close')?.addEventListener('click', () => lf ? window.TeachedFlow.back() : goHome ? _wpGoHome() : closeCardStudio());
+  root.querySelector('.wp-handin')?.addEventListener('click', e => _wpHandIn(e.currentTarget));
   root.querySelector('.wp-students')?.addEventListener('click', () => _wpStudentsPanel(card.id));
   root.querySelector('.lt-sound')?.addEventListener('click', ev => { ev.stopPropagation(); window.TeachedSounds.toggle(theme); });
   if (focus && window.TeachedSounds && !card.__preview) window.TeachedSounds.ambient(theme);
@@ -5521,6 +5524,48 @@ async function _wpReviewRefresh() {
    урока) открывается окном на весь экран, доска уходит в фон. Ответы те же -
    это та же карточка, только крупно; по закрытии карточка на доске
    перерисовывается с тем, что ученик успел сделать. */
+/* Ученику на доске делать нечего (15.10.2026): из студии он уходит домой, в
+   свой кабинет. Кроме живого урока - когда на доске есть кто-то ещё, выход
+   остаётся «на доску», иначе ученик выпал бы из урока учителя. */
+function _wpStudentHome() {
+  if (!(currentUser && currentUser.role === 'student')) return false;
+  if (_hwDirect) return true;
+  return !Object.keys(typeof remoteCursors === 'object' && remoteCursors ? remoteCursors : {}).length;
+}
+function _wpGoHome() {
+  closeCardStudio();
+  // board-student-layer.js сохраняет работу ученика на pagehide
+  location.href = 'student.html';
+}
+/* «✓ Hand in» на последнем шаге домашки: карточка отмечается сделанной, а
+   если это была единственная (обычно так и есть - «Assign as homework» из
+   студии), домашка сдаётся. Иначе - обратно к списку заданий этой домашки. */
+async function _wpHandIn(btn) {
+  const hw = _hwDirect;
+  if (!hw) return;
+  btn.disabled = true;
+  const base = '/api/homework/my/' + encodeURIComponent(hw.aid);
+  try {
+    const info = await apiFetch(base).then(r => r.ok ? r.json() : null);
+    const req = (info && info.assignment && Array.isArray(info.assignment.required_cards)) ? info.assignment.required_cards.map(String) : [hw.cid];
+    const doneIds = new Set(((info && info.attempts) || []).filter(t => t.status === 'done').map(t => String(t.card_id)));
+    const r = await apiFetch(base + '/attempt', { method: 'POST', body: { card_id: hw.cid, score: 1, max_score: 1, status: 'done' } });
+    if (!r.ok && r.status !== 409) throw new Error('save');
+    doneIds.add(String(hw.cid));
+    if (req.some(id => !doneIds.has(id))) { location.href = 'homework-do.html?a=' + encodeURIComponent(hw.aid); return; }
+    if (r.status !== 409) {
+      if (!confirm('Hand in this homework? Your teacher will review it, and you cannot change it after that.')) { btn.disabled = false; return; }
+      const sub = await apiFetch(base + '/submit', { method: 'POST' });
+      if (!sub.ok && sub.status !== 409) throw new Error('submit');
+    }
+    toast('✅ Handed in. Your teacher will review it.');
+    setTimeout(_wpGoHome, 900);
+  } catch (e) {
+    btn.disabled = false;
+    toast('Could not hand it in - check the connection and try again');
+  }
+}
+
 function openCardStudio(cardId) {
   const card = _wpCard(cardId);
   if (!card) return;
@@ -5578,8 +5623,8 @@ function _studioRender() {
   if (card.data._wfPath) { _wpRender(box, card, true); return; }
   const d = card.data;
   box.innerHTML = `<div class="card-studio-head"><div><span class="wp-kicker">Studio</span><b class="wp-title">${esc(d.title || 'Activity')}</b></div>
-    <button type="button" class="wp-btn wp-close">✕ Back to the board</button></div><div class="card-studio-stage"></div>`;
-  box.querySelector('.wp-close').addEventListener('click', () => closeCardStudio());
+    <button type="button" class="wp-btn wp-close">${_wpStudentHome() ? '⌂ Home' : '✕ Back to the board'}</button></div><div class="card-studio-stage"></div>`;
+  box.querySelector('.wp-close').addEventListener('click', () => _wpStudentHome() ? _wpGoHome() : closeCardStudio());
   const f = document.createElement('iframe');
   f.sandbox = 'allow-scripts';
   f.srcdoc = _buildInteractiveWSHtml(d._wfRole ? { ...d, _wfCtx: _wfCtxFor(card) } : d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner, Math.min(1280, window.innerWidth - 64));
@@ -16614,7 +16659,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1175';
+const TEACHEDOS_ASSET_VERSION = '1176';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -22344,7 +22389,15 @@ if (isBoardPhone() && state.cards.length) {
 updateEmpty();
 renderMinimap();
 
-/* Кнопка Start из домашки: ?open=<id карточки> сразу открывает её студию. */
+/* Кнопка Start из домашки: ?open=<id карточки> сразу открывает её студию.
+   С ?hw=<id выдачи> (homework-do.html пересылает сюда сам, без своего экрана
+   «▶ Start») студия знает, что это домашка: выход ведёт ученика домой, а на
+   последнем шаге есть «✓ Hand in». */
+var _hwDirect = (function () {
+  const p = new URLSearchParams(location.search);
+  const aid = p.get('hw'), cid = p.get('open');
+  return aid && cid && /^[\w-]{1,64}$/.test(aid) ? { aid, cid } : null;
+})();
 Promise.resolve(loaded).then(() => {
   const p = new URLSearchParams(location.search);
   const cid = p.get('open');
@@ -23247,7 +23300,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1175',
+          icon: 'icons/icon-192.png?v=1176',
           tag: 'board-live-' + s.id,
         });
       }
@@ -28017,6 +28070,14 @@ function openBgModal() {
   syncBgHexInput();
   if (saved.image) document.getElementById('bg-image-url').value = saved.image.startsWith('data:') ? '' : saved.image;
   document.getElementById('bg-show-dots').checked = saved.showDots !== false;
+  // Свободные фото (Pexels/Pixabay через наш прокси): фоном ложится адрес, не data:-URL
+  const stock = document.getElementById('bg-stock');
+  if (stock && window.TeachedStock && !stock.childElementCount) {
+    window.TeachedStock.mount(stock, { onPick: ({ url }) => {
+      applyBgImage(url);
+      const inp = document.getElementById('bg-image-url'); if (inp) inp.value = url;
+    } });
+  }
   ov.classList.add('open');
   ov.style.display = 'flex';
   document.body.style.overflow = 'hidden';

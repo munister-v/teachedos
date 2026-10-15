@@ -154,6 +154,7 @@ function openWallpaperPicker() {
           <button type="button" class="wp-x" aria-label="Close" onclick="closeWallpaperPicker()"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
         </div>
         <div class="wp-grid" id="wp-grid"></div>
+        <section class="wp-group wp-stock-group"><h3>Free photos</h3><div id="wp-stock"></div></section>
         <input type="file" id="wp-file" accept="image/jpeg,image/png,image/webp" hidden onchange="uploadWallpaper(this.files && this.files[0]); this.value='';">
         <p class="wp-note" id="wp-note">Your photo is saved to your account, so it follows you to any computer.</p>
       </div>`;
@@ -167,6 +168,10 @@ function openWallpaperPicker() {
       if (f) uploadWallpaper(f);
     });
     document.body.appendChild(ov);
+    // Фото со стока уходит тем же путём, что и своё: сжатие, загрузка, проверка.
+    const stock = ov.querySelector('#wp-stock');
+    if (stock && window.TeachedStock) window.TeachedStock.mount(stock, { onPick: async ({ url }) => uploadWallpaper(await window.TeachedStock.toFile(url)) });
+    else stock?.closest('section')?.remove();
   }
   renderWallpaperGrid();
   ov.classList.add('open');
@@ -195,6 +200,9 @@ function renderWallpaperGrid() {
   grid.innerHTML = `<section class="wp-group"><h3>Your own</h3><div class="wp-row">${own.join('')}</div></section>` +
     WALL_GROUPS.map(g => `<section class="wp-group"><h3>${esc(g.title)}</h3><div class="wp-row">${
       WALL_PRESETS.filter(p => p.group === g.key).map(_wpTile).join('')}</div></section>`).join('');
+  // поиск фото - сразу под «Your own», а не под всеми пресетами; узел один и переживает перерисовку
+  const stock = document.querySelector('#wp-overlay .wp-stock-group');
+  if (stock) grid.firstElementChild.after(stock);
 }
 
 /* Подпись к фото на самом столе: CC BY / BY-SA требуют автора, лицензию и
@@ -474,7 +482,7 @@ function renderPulse() {
   }
   document.getElementById('wg-pulse')?.classList.toggle('is-clear', !_pulse.items.length);
   if (!_pulse.items.length) {
-    host.innerHTML = `<div class="wg-pulse-empty"><b>All clear.</b> No packages ending, no homework waiting, no overdue payments.${
+    host.innerHTML = `<div class="wg-pulse-empty"><b>You're all caught up.</b> No packages ending, no homework waiting, no overdue payments.${
       _pulse.students ? '' : ' Add students in the <a href="journal.html">Journal</a> to follow them here.'}</div>`;
     return;
   }
@@ -486,7 +494,7 @@ function renderPulse() {
     if (it.kind === 'homework') {
       acts.push(`<a class="wg-pulse-act" href="homework.html?hw=${encodeURIComponent(it.homework_id)}&a=${encodeURIComponent(it.assignment_id)}"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg>Review</a>`);
     } else {
-      acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseRemind(${i})" ${busy ? 'disabled' : ''}><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>${busy === 'sent' ? 'Sent' : 'Remind'}</button>`);
+      acts.push(`<button type="button" class="wg-pulse-act" onclick="pulseRemind(${i})" ${busy ? 'disabled' : ''}><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>${busy === 'sent' ? 'Sent ✓' : 'Remind'}</button>`);
     }
     if (it.kind === 'payment' && it.journal_id) {
       acts.push(`<button type="button" class="wg-pulse-act" onclick="pulsePaid(${i})"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Paid</button>`);
@@ -521,6 +529,17 @@ async function pulseRemind(i) {
   if (r && r.ok) {
     _pulse.busy[it.key] = 'sent';
     dxToast(_pulseSentNote(it.name, r.data));
+    /* Напомнил - дело сделано (15.10.2026): строка с «Sent» больше ничего
+       не просила, но висела до перезагрузки. Прячем сигнал в этом состоянии
+       (как Archive): «pkg:0» не вернётся, а «pay:» с новой датой - вернётся.
+       Последний ушёл - карточка говорит «You're all caught up». */
+    if (it.journal_id) dxJson(`/api/journal/${encodeURIComponent(it.journal_id)}/pulse-hide`, { method: 'POST', body: { key: it.key } }).catch(() => null);
+    setTimeout(() => {
+      if (!_pulse.items) return;
+      _pulse.items = _pulse.items.filter(x => x.key !== it.key || x.journal_id !== it.journal_id);
+      delete _pulse.busy[it.key];
+      renderPulse();
+    }, 1400);
   } else {
     delete _pulse.busy[it.key];
     dxToast((r && r.data && r.data.error) || 'The reminder could not be sent. Try again.');

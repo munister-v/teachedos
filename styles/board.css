@@ -7745,3 +7745,8 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
   font:600 12.5px var(--font);cursor:pointer;}
 .gif-chip:hover{background:#F6F6EF;}
 .gif-chip.is-on{background:#CDF649;border-color:#CDF649;}
+
+/* Board background: free stock photos (scripts/stock-photos.js) */
+.bg-stock{margin-top:12px;}
+.bg-stock .tsp-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));max-height:260px;overflow-y:auto;}
+#bg-overlay .bg-card{max-height:calc(100dvh - 32px);overflow-y:auto;}

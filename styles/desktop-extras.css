@@ -472,8 +472,7 @@ body.fx.os-desktop #dock .di:active:not(#_) { transform:translateY(-1px) scale(.
 
 /* ── Виджеты рабочего стола: один язык, всё двигается ─────────────────────
    Единое стекло, как у окна досок; за любую карточку можно взять и
-   перенести (scripts/desktop-app.js → WGM), «Reset layout» возвращает всё
-   на места. Крестик «скрыть» - только при наведении. */
+   перенести (scripts/desktop-app.js → WGM). Крестик «скрыть» - только при наведении. */
 body.fx.os-desktop:not(#_) :is(.widget, #fx-ghost-panel) {
   border-radius:22px !important;
   background:rgba(255,255,255,.72) !important;
@@ -521,17 +520,6 @@ body.fx.os-desktop:not(#_) .wg-pulse-all { font-size:12px !important; font-weigh
 body.fx.os-desktop:not(#_) .wg-pulse-empty { font-size:13px !important; line-height:1.5 !important; color:#4A4E44 !important; }
 body.fx.os-desktop:not(#_) #fx-ghost-panel { padding:12px !important; }
 body.fx.os-desktop:not(#_) #fx-ghost-panel .sp-card { border-radius:16px; }
-#wg-reset {
-  display:none; position:fixed; left:50%; bottom:118px; transform:translateX(-50%); z-index:70;
-  align-items:center; gap:6px; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:8px 14px;
-  /* frosted glass on a dark tint, so the white label holds on a light wallpaper too */
-  background:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),rgba(36,40,44,.58); color:#fff;
-  font:600 12px var(--te-font-ui,-apple-system, system-ui, sans-serif); cursor:pointer;
-  -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); box-shadow:0 8px 32px rgba(0,0,0,.3); opacity:.0; transition:opacity .2s, background .2s;
-}
-body:hover #wg-reset { opacity:.9; }
-#wg-reset:hover { opacity:1 !important; background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16)),rgba(36,40,44,.58); }
-
 /* "All clear" is good news: the Student pulse card turns lime instead of the
    alert pink it uses when there are items to act on. */
 body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse.is-clear { background:#EEF9C9 !important; }
