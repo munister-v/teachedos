@@ -331,7 +331,8 @@ router.post('/:id/pack', async (req, res) => {
     const u = await pool.query('SELECT id FROM users WHERE lower(email)=lower($1) LIMIT 1', [st.email]);
     who = u.rows[0] ? u.rows[0].id : null;
   }
-  if (who) {
+  // notify:false - учитель снял «Send a receipt» в окне +8 (schedule-plus.js)
+  if (who && req.body?.notify !== false) {
     await createNotification(who, 'payment', 'Lessons added',
       `${n} lessons were added to your package - ${st.lessons_left} left.`, 'portal.html').catch(() => {});
   }
