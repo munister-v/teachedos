@@ -1779,7 +1779,7 @@ function renderGif(el, card) {
    Поиск идёт через наш сервер (/api/gifs/search), а не из браузера в Tenor:
    Tenor закрыл публичный API (HTTP 403 «Tenor API is discontinued»), и поиск
    гифок молча возвращал пустоту. Сервер берёт GIPHY, если в .env есть ключ,
-   иначе открытые GIF из Openverse (без ключа, но совпадения слабее). */
+   иначе открытые GIF с Wikimedia Commons (без ключа, но совпадения слабее). */
 let _gifSource = '';
 async function _gifSearch(q, limit = 16) {
   if (!authToken) return [];
@@ -1794,6 +1794,7 @@ async function _gifSearch(q, limit = 16) {
 
 let _gifTargetCardId = null;
 let _gifSearchTimer = null;
+let _gifTicket = 0;
 
 function openGifPanel(cardId) {
   _gifTargetCardId = cardId || null;
@@ -1802,8 +1803,21 @@ function openGifPanel(cardId) {
   panel.classList.add('open');
   const input = document.getElementById('gif-search-input');
   if (input) { input.value = ''; input.focus(); }
-  _loadGifGrid('teaching celebration classroom');
+  // «teaching celebration classroom» не находилось нигде, кроме GIPHY:
+  // окно открывалось сразу с «No GIFs found». Первая подборка - первый чип.
+  _gifMarkChip('celebration');
+  _loadGifGrid('celebration');
 }
+
+function _gifMarkChip(q) {
+  document.querySelectorAll('#gif-chips .gif-chip').forEach(b => b.classList.toggle('is-on', b.dataset.q === q));
+}
+document.addEventListener('click', e => {
+  const chip = e.target.closest && e.target.closest('#gif-chips .gif-chip');
+  if (chip) { const input = document.getElementById('gif-search-input'); if (input) input.value = ''; _gifMarkChip(chip.dataset.q); _loadGifGrid(chip.dataset.q); return; }
+  // щелчок мимо окна (по затемнению доски) закрывает его
+  if (e.target && e.target.id === 'gif-panel') closeGifPanel();
+});
 
 function closeGifPanel() {
   const panel = document.getElementById('gif-panel');
@@ -1817,12 +1831,14 @@ async function _loadGifGrid(q) {
   if (!grid) return;
   grid.innerHTML = '';
   if (spinner) spinner.style.display = 'flex';
-  const results = await _gifSearch(q || 'teaching classroom');
+  const ticket = ++_gifTicket;
+  const results = await _gifSearch(q || 'celebration');
+  if (ticket !== _gifTicket) return;   // a newer search is already on its way
   if (spinner) spinner.style.display = 'none';
   const credit = document.getElementById('gif-tenor-credit');
   if (credit) {
     credit.innerHTML = _gifSource === 'giphy' ? '<a href="https://giphy.com" target="_blank" rel="noopener">Powered by GIPHY</a>'
-      : _gifSource === 'openverse' ? '<a href="https://openverse.org" target="_blank" rel="noopener">GIFs from Openverse, open licences</a>' : '';
+      : _gifSource === 'commons' ? '<a href="https://commons.wikimedia.org" target="_blank" rel="noopener">GIFs from Wikimedia Commons, open licences</a>' : '';
   }
   if (!results.length) {
     grid.innerHTML = `<div class="gif-no-results">${authToken ? 'No GIFs found. Try a different search.' : 'Sign in to search GIFs, or paste a GIF link below.'}</div>`;
@@ -1872,7 +1888,7 @@ function _selectGif(gif) {
 
 function _gifSearchDebounced(q) {
   clearTimeout(_gifSearchTimer);
-  _gifSearchTimer = setTimeout(() => { if (q.trim().length > 1) _loadGifGrid(q.trim()); }, 450);
+  _gifSearchTimer = setTimeout(() => { if (q.trim().length > 1) { _gifMarkChip(''); _loadGifGrid(q.trim()); } }, 450);
 }
 
 function _gifPasteUrl() {
@@ -2407,12 +2423,12 @@ function renderVoting(el, card) {
   const question = document.createElement('div');
   question.className = 'vote-question';
   question.textContent = d.question;
-  question.title = 'Double-click to edit question';
+  const canEditPoll = !(currentUser && currentUser.role === 'student');
+  if (canEditPoll) question.title = 'Double-click to edit the poll';
   question.addEventListener('mousedown', ev => ev.stopPropagation());
   question.addEventListener('dblclick', ev => {
     ev.stopPropagation();
-    const q = prompt('Poll question:', d.question);
-    if (q !== null && q.trim()) { snapshot(); d.question = q.trim(); question.textContent = d.question; scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+    if (canEditPoll) openPollEditor(card);
   });
 
   const opts = document.createElement('div');
@@ -2445,23 +2461,6 @@ function renderVoting(el, card) {
       renderVoting(el, card);
       scheduleSave && scheduleSave(); saveLocal && saveLocal();
     });
-    row.addEventListener('dblclick', ev => {
-      ev.stopPropagation();
-      const txt = prompt('Edit option:', opt);
-      if (txt !== null) {
-        snapshot();
-        if (txt.trim()) d.options[idx] = txt.trim();
-        else { d.options.splice(idx, 1); /* also drop votes pointing here, shift higher ones */
-          for (const u in d.votes) {
-            if (d.votes[u] === idx) delete d.votes[u];
-            else if (d.votes[u] > idx) d.votes[u]--;
-          }
-        }
-        el.innerHTML = '';
-        renderVoting(el, card);
-        scheduleSave && scheduleSave(); saveLocal && saveLocal();
-      }
-    });
     opts.appendChild(row);
   });
 
@@ -2471,19 +2470,11 @@ function renderVoting(el, card) {
   const actions = document.createElement('div');
   actions.className = 'vote-actions';
   const addBtn = document.createElement('button');
-  addBtn.textContent = '+ Option';
+  addBtn.textContent = '✎ Edit';
+  addBtn.title = 'Change the question and the options';
   addBtn.addEventListener('mousedown', ev => ev.stopPropagation());
-  addBtn.addEventListener('click', ev => {
-    ev.stopPropagation();
-    const txt = prompt('New option:');
-    if (txt && txt.trim()) {
-      snapshot();
-      d.options.push(txt.trim());
-      el.innerHTML = '';
-      renderVoting(el, card);
-      scheduleSave && scheduleSave(); saveLocal && saveLocal();
-    }
-  });
+  addBtn.addEventListener('click', ev => { ev.stopPropagation(); openPollEditor(card); });
+  if (!canEditPoll) addBtn.style.display = 'none';
   const revealBtn = document.createElement('button');
   revealBtn.textContent = d.revealed ? '🙈 Hide' : '👀 Reveal';
   revealBtn.title = 'Reveal results to non-voters';
@@ -2520,12 +2511,106 @@ function renderVoting(el, card) {
   el.appendChild(body);
 }
 
+/* Опрос сначала настраивается, потом ложится на доску (15.10.2026): раньше
+   на доску падало «New poll? / Option A, B, C», а вопрос и варианты правились
+   только двойным щелчком через prompt(), о котором никто не знал. */
 function quickAddVoting() {
+  openPollEditor(null);
+}
+
+function _placePoll(data) {
   const pos = getBoardViewportCenter() || { x: 200, y: 200 };
   const def = getDefaults('voting');
-  addCard('voting', pos.x - def.w/2, pos.y - def.h/2,
-    { question: 'New poll?', options: ['Option A', 'Option B', 'Option C'], votes: {}, revealed: true });
+  const h = Math.max(def.h, 120 + data.options.length * 44);
+  addCard('voting', pos.x - def.w/2, pos.y - h/2, data, def.w, h);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+/* Окно опроса: вопрос, 2-8 вариантов, показывать ли итоги до голосования.
+   card = null - новый опрос; иначе правка, и голоса едут за своими вариантами. */
+function openPollEditor(card) {
+  document.getElementById('poll-ed-ov')?.remove();
+  const d = card ? card.data : null;
+  const MAX = 8;
+  // каждый вариант помнит, каким он был по счёту, чтобы голоса не перепутались
+  let rows = d ? d.options.map((t, i) => ({ t, was: i })) : [{ t: '', was: -1 }, { t: '', was: -1 }, { t: '', was: -1 }];
+  const ov = document.createElement('div');
+  ov.id = 'poll-ed-ov';
+  ov.className = 'poll-ed-ov';
+  ov.innerHTML = `<form class="poll-ed" role="dialog" aria-modal="true" aria-labelledby="poll-ed-title" novalidate>
+      <div class="poll-ed-head"><span class="poll-ed-ic" aria-hidden="true">🗳</span>
+        <div><div class="poll-ed-title" id="poll-ed-title">${card ? 'Edit poll' : 'New poll'}</div>
+        <div class="poll-ed-sub">Students tap an option to vote. You can change it later with ✎ on the card.</div></div>
+        <button type="button" class="poll-ed-x" aria-label="Close">×</button></div>
+      <label class="poll-ed-lbl" for="poll-ed-q">Question</label>
+      <input id="poll-ed-q" class="poll-ed-in" type="text" maxlength="200" autocomplete="off" placeholder="Which topic should we do next?" value="${esc(d ? d.question : '')}">
+      <div class="poll-ed-lbl">Answer options</div>
+      <div class="poll-ed-opts"></div>
+      <button type="button" class="poll-ed-add">+ Add option</button>
+      <label class="poll-ed-chk"><input type="checkbox" id="poll-ed-rev"${!d || d.revealed ? ' checked' : ''}> Show results before a student votes</label>
+      <div class="poll-ed-err" aria-live="polite"></div>
+      <div class="poll-ed-foot"><button type="button" class="poll-ed-cancel">Cancel</button>
+        <button type="submit" class="poll-ed-ok">${card ? 'Save poll' : 'Add to board'}</button></div>
+    </form>`;
+  document.body.appendChild(ov);
+  const form = ov.querySelector('form');
+  const list = ov.querySelector('.poll-ed-opts');
+  const addBtn = ov.querySelector('.poll-ed-add');
+  const err = ov.querySelector('.poll-ed-err');
+  const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); };
+  const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+
+  function paint(focusIdx) {
+    list.innerHTML = rows.map((r, i) => `<div class="poll-ed-row"><span class="poll-ed-n">${String.fromCharCode(65 + i)}</span>
+      <input class="poll-ed-in" type="text" maxlength="120" autocomplete="off" data-i="${i}" placeholder="Option ${String.fromCharCode(65 + i)}" value="${esc(r.t)}">
+      <button type="button" class="poll-ed-del" data-del="${i}" aria-label="Remove option ${String.fromCharCode(65 + i)}"${rows.length <= 2 ? ' disabled' : ''}>×</button></div>`).join('');
+    addBtn.disabled = rows.length >= MAX;
+    if (focusIdx != null) list.querySelector(`[data-i="${focusIdx}"]`)?.focus();
+  }
+  paint();
+  list.addEventListener('input', e => { const i = +e.target.dataset.i; if (rows[i]) rows[i].t = e.target.value; });
+  list.addEventListener('click', e => {
+    const b = e.target.closest('[data-del]');
+    if (b && rows.length > 2) { rows.splice(+b.dataset.del, 1); paint(); }
+  });
+  // Enter в последнем варианте добавляет следующий; в остальных - переходит ниже
+  list.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const i = +e.target.dataset.i;
+    if (i < rows.length - 1) { list.querySelector(`[data-i="${i + 1}"]`)?.focus(); return; }
+    if (rows[i].t.trim() && rows.length < MAX) { rows.push({ t: '', was: -1 }); paint(rows.length - 1); }
+    else form.requestSubmit();
+  });
+  ov.querySelector('#poll-ed-q').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); list.querySelector('[data-i="0"]')?.focus(); }
+  });
+  addBtn.addEventListener('click', () => { if (rows.length < MAX) { rows.push({ t: '', was: -1 }); paint(rows.length - 1); } });
+  ov.querySelector('.poll-ed-x').addEventListener('click', close);
+  ov.querySelector('.poll-ed-cancel').addEventListener('click', close);
+  ov.addEventListener('mousedown', e => { if (e.target === ov) close(); });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const question = ov.querySelector('#poll-ed-q').value.trim();
+    const kept = rows.map(r => ({ t: r.t.trim(), was: r.was })).filter(r => r.t);
+    if (!question) { err.textContent = 'Type the question.'; ov.querySelector('#poll-ed-q').focus(); return; }
+    if (kept.length < 2) { err.textContent = 'A poll needs at least two options.'; list.querySelector('input')?.focus(); return; }
+    const revealed = ov.querySelector('#poll-ed-rev').checked;
+    close();
+    if (!card) { _placePoll({ question, options: kept.map(r => r.t), votes: {}, revealed }); return; }
+    snapshot();
+    const votes = {};
+    for (const u in (d.votes || {})) {
+      const ni = kept.findIndex(r => r.was === d.votes[u]);
+      if (ni >= 0) votes[u] = ni;
+    }
+    Object.assign(d, { question, options: kept.map(r => r.t), votes, revealed });
+    reRenderCard(card);
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  });
+  requestAnimationFrame(() => ov.querySelector('#poll-ed-q').focus());
 }
 
 function renderGame(el, card) {
@@ -16529,7 +16614,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1174';
+const TEACHEDOS_ASSET_VERSION = '1175';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19712,10 +19797,20 @@ function _wizShow(on) {
   const layout = document.getElementById('tbuilder-layout');
   if (wiz) wiz.hidden = !on;
   if (layout) layout.style.display = on ? 'none' : '';
-  /* У самого мастера свой «← Back» под карточками - две кнопки назад на
-     одном экране означали бы два разных «назад». */
+  /* «← Back» в шапке, рядом с «×»: на шаге 2 мастера кнопка под карточками
+     уходила за край длинного списка картинок, и вернуться было нечем
+     (15.10.2026). Теперь шапка - единственный «назад» и в мастере, и в
+     конструкторе; у окна условий игры свой «← All elements» над формой. */
   const btn = document.getElementById('tbuilder-back');
-  if (btn) btn.hidden = on || !(boardLessonWizard && boardLessonWizard.skill);
+  const w = boardLessonWizard;
+  if (btn) btn.hidden = on ? !(w && w.skill && !w.game) : !(w && w.skill);
+}
+
+/* Один «назад» для шапки: в мастере - к выбору студии, в конструкторе - к шагу 2. */
+function tbuilderBack() {
+  const wiz = document.getElementById('tbuilder-wizard');
+  if (wiz && !wiz.hidden) backLessonWizard();
+  else backToLessonWizard();
 }
 
 function openLessonWizard() {
@@ -19799,8 +19894,7 @@ function renderLessonWizard() {
       <span class="tb-wiz-ic">${esc(s.icon)}</span>
       <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
       <span class="tb-wiz-go">→</span>
-    </button>`).join('')}</div>
-    <button type="button" class="tb-wiz-back" onclick="backLessonWizard()">← Back</button>`;
+    </button>`).join('')}</div>`;
 }
 
 /* ── Picture worksheets: тема → уровень → одна карточка-путь ──────────────
@@ -19837,8 +19931,7 @@ function _wizRenderScenes(host, skill) {
       <span class="tb-wiz-ic">${esc(t.icon)}</span>
       <span class="tb-wiz-tx"><b>${esc(t.title)}</b><small>${esc(t.hint)}</small>${t.inspired ? `<small class="tb-sc-insp">${esc(t.inspired)}</small>` : ''}</span>
       ${t.ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">soon</span>'}
-    </button>`).join('')}</div>
-    <button type="button" class="tb-wiz-back" onclick="backLessonWizard()">← Back</button>`;
+    </button>`).join('')}</div>`;
 }
 
 async function placeSceneCard(sceneId, levelArg) {
@@ -23154,7 +23247,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1174',
+          icon: 'icons/icon-192.png?v=1175',
           tag: 'board-live-' + s.id,
         });
       }

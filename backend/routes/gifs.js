@@ -6,8 +6,12 @@
 // search returned nothing at all. The browser now asks us; we ask whoever is
 // connected:
 //   1. GIPHY, when GIPHY_API_KEY is in .env (free key at developers.giphy.com);
-//   2. Openverse otherwise (anonymous, page_size capped at 20): no key, GIF files only, open licences. Fewer
-//      reaction GIFs and looser matches than GIPHY, but it is never empty.
+//   2. Wikimedia Commons otherwise: no key, GIF files only, open licences. Fewer
+//      reaction GIFs and looser matches than GIPHY.
+// Until 15.10.2026 step 2 was Openverse. Its GIFs are the same Commons files,
+// but a search it had not cached took 12-19 s, our timeout is 6 s, so nearly
+// every search ended in 502 and the panel said "No GIFs found". Commons
+// answers the same search in about a second.
 const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
 const { requireAuth } = require('../middleware/auth');
@@ -54,38 +58,61 @@ function fromGiphy(d) {
   }).filter(g => g.id && g.url);
 }
 
-function fromOpenverse(d) {
-  return (Array.isArray(d && d.results) ? d.results : [])
-    .filter(r => r && r.url && /^https:\/\//.test(r.url) && String(r.filetype || '').toLowerCase() === 'gif')
-    .map(r => ({
-      id: String(r.id || ''),
-      url: r.url,
-      preview: r.url,
-      title: String(r.title || '').trim() || 'GIF',
-      dims: [num(r.width, 320), num(r.height, 240)],
+// Commons search pages → board GIFs. Icons smaller than a sticker and files
+// heavier than 6 MB (a whole animated slideshow) are left out.
+function fromCommons(d) {
+  const pages = d && d.query && d.query.pages;
+  return (pages && typeof pages === 'object' ? Object.values(pages) : [])
+    .filter(p => p && Array.isArray(p.imageinfo) && p.imageinfo[0])
+    .sort((a, b) => (a.index || 0) - (b.index || 0))
+    .map(p => ({ p, ii: p.imageinfo[0] }))
+    .filter(({ ii }) => ii.mime === 'image/gif' && /^https:\/\//.test(ii.url || '')
+      && num(ii.width, 0) >= 120 && num(ii.height, 0) >= 80 && num(ii.size, 0) <= 6 * 1024 * 1024)
+    .map(({ p, ii }) => ({
+      id: 'wm' + String(p.pageid || ''),
+      url: ii.url,
+      preview: /^https:\/\//.test(ii.thumburl || '') ? ii.thumburl : ii.url,
+      title: String(p.title || '').replace(/^File:/, '').replace(/\.gif$/i, '').trim() || 'GIF',
+      dims: [num(ii.width, 320), num(ii.height, 240)],
     }))
-    .filter(g => g.id);
+    .filter(g => g.id !== 'wm');
+}
+
+function commonsUrl(terms) {
+  return 'https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search'
+    + '&gsrnamespace=6&gsrlimit=40&gsrsearch=' + encodeURIComponent('filemime:image/gif ' + terms)
+    + '&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=240';
+}
+
+async function searchCommons(q, limit) {
+  const words = (q || 'animated smile').split(' ').filter(Boolean).slice(0, 6);
+  let list = fromCommons(await getJson(commonsUrl(words.join(' '))));
+  // every word must match on Commons; with few hits, any of the words will do
+  if (list.length < 6 && words.length > 1) {
+    const seen = new Set(list.map(g => g.id));
+    for (const g of fromCommons(await getJson(commonsUrl(words.join(' OR '))))) if (!seen.has(g.id)) list.push(g);
+  }
+  return { source: 'commons', results: list.slice(0, limit) };
 }
 
 async function search(q, limit) {
   if (GIPHY_KEY) {
     const u = `https://api.giphy.com/v1/gifs/${q ? 'search' : 'trending'}?api_key=${encodeURIComponent(GIPHY_KEY)}`
       + `&limit=${limit}&rating=g&lang=en${q ? '&q=' + encodeURIComponent(q) : ''}`;
-    return { source: 'giphy', results: fromGiphy(await getJson(u)) };
+    try { return { source: 'giphy', results: fromGiphy(await getJson(u)) }; }
+    catch (err) { console.warn('[gifs] GIPHY failed, using Commons:', err.message); }
   }
-  const u = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q || 'celebration')}`
-    + `&extension=gif&mature=false&page_size=20`;
-  return { source: 'openverse', results: fromOpenverse(await getJson(u)).slice(0, limit) };
+  return searchCommons(q, limit);
 }
 
 router.get('/status', (req, res) => {
-  res.json({ source: GIPHY_KEY ? 'giphy' : 'openverse', keyed: !!GIPHY_KEY });
+  res.json({ source: GIPHY_KEY ? 'giphy' : 'commons', keyed: !!GIPHY_KEY });
 });
 
 router.get('/search', async (req, res) => {
   const q = String(req.query.q || '').replace(/\s+/g, ' ').trim().slice(0, 80);
   const limit = Math.min(24, Math.max(1, Number(req.query.limit) || 16));
-  const key = `${GIPHY_KEY ? 'g' : 'o'}|${limit}|${q.toLowerCase()}`;
+  const key = `${GIPHY_KEY ? 'g' : 'c'}|${limit}|${q.toLowerCase()}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return res.json(hit.value);
   try {
@@ -102,4 +129,4 @@ router.get('/search', async (req, res) => {
 });
 
 module.exports = router;
-module.exports._test = { fromGiphy, fromOpenverse };
+module.exports._test = { fromGiphy, fromCommons };

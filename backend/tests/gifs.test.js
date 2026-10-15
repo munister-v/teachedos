@@ -15,17 +15,24 @@ test('gifs: GIPHY rows become board GIFs, rows without a file are dropped', () =
   assert.strictEqual(list[0].preview, 'https://media.giphy.com/a1s.gif');
 });
 
-test('gifs: Openverse keeps only real GIF files over https', () => {
-  const list = _test.fromOpenverse({ results: [
-    { id: 'o1', title: 'Party', url: 'https://upload.wikimedia.org/p.gif', filetype: 'gif', width: 300, height: 200 },
-    { id: 'o2', title: 'Photo', url: 'https://upload.wikimedia.org/p.jpg', filetype: 'jpg' },
-    { id: 'o3', title: 'Insecure', url: 'http://example.com/p.gif', filetype: 'gif' },
-  ] });
-  assert.deepStrictEqual(list.map(g => g.id), ['o1']);
-  assert.strictEqual(list[0].url, 'https://upload.wikimedia.org/p.gif');
+test('gifs: Commons keeps real GIF files over https, drops icons and huge files', () => {
+  const ii = (o) => [Object.assign({ mime: 'image/gif', width: 300, height: 200, size: 50000 }, o)];
+  const list = _test.fromCommons({ query: { pages: {
+    2: { pageid: 2, index: 2, title: 'File:Clap.gif', imageinfo: ii({ url: 'https://upload.wikimedia.org/c.gif', thumburl: 'https://upload.wikimedia.org/thumb/c.gif' }) },
+    1: { pageid: 1, index: 1, title: 'File:Party.gif', imageinfo: ii({ url: 'https://upload.wikimedia.org/p.gif' }) },
+    3: { pageid: 3, index: 3, title: 'File:Photo.jpg', imageinfo: ii({ url: 'https://upload.wikimedia.org/p.jpg', mime: 'image/jpeg' }) },
+    4: { pageid: 4, index: 4, title: 'File:Icon.gif', imageinfo: ii({ url: 'https://upload.wikimedia.org/i.gif', width: 19, height: 19 }) },
+    5: { pageid: 5, index: 5, title: 'File:Huge.gif', imageinfo: ii({ url: 'https://upload.wikimedia.org/h.gif', size: 9e6 }) },
+    6: { pageid: 6, index: 6, title: 'File:Insecure.gif', imageinfo: ii({ url: 'http://example.com/p.gif' }) },
+  } } });
+  assert.deepStrictEqual(list.map(g => g.title), ['Party', 'Clap']);
+  assert.strictEqual(list[0].preview, 'https://upload.wikimedia.org/p.gif');
+  assert.strictEqual(list[1].preview, 'https://upload.wikimedia.org/thumb/c.gif');
+  assert.deepStrictEqual(list[0].dims, [300, 200]);
 });
 
 test('gifs: junk upstream shapes give an empty list, not a throw', () => {
   assert.deepStrictEqual(_test.fromGiphy(null), []);
-  assert.deepStrictEqual(_test.fromOpenverse({ results: 'nope' }), []);
+  assert.deepStrictEqual(_test.fromCommons({ query: { pages: 'nope' } }), []);
+  assert.deepStrictEqual(_test.fromCommons(null), []);
 });

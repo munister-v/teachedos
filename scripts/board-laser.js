@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Laser pointer on the board.
 
-   A bright red or green dot follows the cursor; press and drag to draw a
-   glowing trail around whatever needs attention. The trail is not saved on
+   A bright pink or lime dot follows the cursor; hold the button and drag to
+   draw a glowing trail around whatever needs attention. The trail is not saved on
    the board - it fades out over five seconds after the stroke ends, the way
    a real laser mark would vanish.
 
@@ -165,39 +165,61 @@
   const inBoard = e => boardWrap.contains(e.target) &&
     !e.target.closest('input, textarea, [contenteditable="true"], .zoom-controls, #zoom-controls, #minimap');
 
-  /* Указка работает как курсор (2026-10-04): клики, перетаскивание и
-     выделение доходят до доски как обычно, а за курсором тянется светящийся
-     след. Пауза в движении > 250 мс заканчивает штрих, и он гаснет. */
-  let lastMove = 0;
+  /* Точка ходит за курсором всегда, а след рисуется только пока кнопка
+     зажата (15.10.2026). Раньше (с 04.10) след тянулся за каждым движением
+     мыши, и учитель «рисовал», даже ничего не нажимая. Нажатие на пустом
+     месте доски или на карточке уходит в указку, а не в доску (не тащит
+     карточку и не выделяет); кнопки, поля и ссылки внутри карточек
+     по-прежнему нажимаются. */
+  const passThrough = t => !!t.closest('button, a[href], input, textarea, select, label, [contenteditable="true"], [role="button"], .zoom-controls, #zoom-controls, #minimap');
+  let held = false;
   function endStroke() {
+    held = false;
     if (!drawing) return;
     drawing.endedAt = Date.now();
     drawing = null;
     queue({ end: true });
     kick();
   }
-  function onMove(e) {
-    if (!active) return;
-    if (!inBoard(e)) { endStroke(); if (dots.me) { delete dots.me; queue({ off: true }); kick(); } return; }
+  function onDown(e) {
+    if (!active || e.button !== 0 || !inBoard(e) || passThrough(e.target)) return;
+    // не даём доске начать перетаскивание или рамку выделения
+    e.preventDefault(); e.stopPropagation();
+    held = true;
+    try { e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); } catch (_) {}
     const p = screenToBoard(e.clientX, e.clientY);
     dots.me = { x: p.x, y: p.y, color, at: Date.now() };
-    lastMove = Date.now();
-    if (!drawing) {
-      drawing = { pts: [[p.x, p.y]], color, endedAt: null, remote: false, uid: 'me' };
-      strokes.push(drawing);
-      queue({ start: true, pt: [p.x, p.y], dot: [p.x, p.y] });
-    } else {
+    drawing = { pts: [[p.x, p.y]], color, endedAt: null, remote: false, uid: 'me' };
+    strokes.push(drawing);
+    queue({ start: true, pt: [p.x, p.y], dot: [p.x, p.y] });
+    kick();
+  }
+  function onMove(e) {
+    if (!active) return;
+    if (!held && !inBoard(e)) { if (dots.me) { delete dots.me; queue({ off: true }); kick(); } return; }
+    const p = screenToBoard(e.clientX, e.clientY);
+    dots.me = { x: p.x, y: p.y, color, at: Date.now() };
+    if (held && drawing) {
       const last = drawing.pts[drawing.pts.length - 1];
       if (Math.hypot((last[0] - p.x) * state.scale, (last[1] - p.y) * state.scale) >= 1.5) {
         drawing.pts.push([p.x, p.y]);
         queue({ pt: [p.x, p.y], dot: [p.x, p.y] });
       }
+    } else {
+      queue({ dot: [p.x, p.y] });
     }
     kick();
   }
+  // Карточки слушают mousedown, а не pointerdown: гасим и его, пока рисуем.
+  const swallow = e => { if (active && held) { e.preventDefault(); e.stopPropagation(); } };
+  window.addEventListener('pointerdown', onDown, true);
+  window.addEventListener('mousedown', swallow, true);
   window.addEventListener('pointermove', onMove, true);
+  window.addEventListener('pointerup', e => { if (held) { e.stopPropagation(); endStroke(); } }, true);
+  window.addEventListener('pointercancel', endStroke, true);
+  // щелчок, которым закончился штрих, не должен открыть карточку под ним
+  window.addEventListener('click', e => { if (active && e.target && inBoard(e) && !passThrough(e.target)) { e.preventDefault(); e.stopPropagation(); } }, true);
   window.addEventListener('blur', endStroke);
-  setInterval(() => { if (drawing && Date.now() - lastMove > 250) endStroke(); }, 100);
   const onUp = endStroke;
   // Holding still is pointing too: re-send the dot so it does not time out
   // on the students' screens (DOT_IDLE_MS) while the teacher keeps it on a word.

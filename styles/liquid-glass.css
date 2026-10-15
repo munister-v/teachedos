@@ -123,7 +123,7 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
 
 /* ── thick: big panels, modal boxes, sheets ───────────────────────────── */
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(
-  #share-panel, #settings-panel, #shortcuts-panel, #vh-panel, #frame-panel, #gif-panel, #sticker-panel, #ai-assistant-panel, #tool-builder-panel,
+  #share-panel, #settings-panel, #shortcuts-panel .sp-box, #vh-panel, #frame-panel, #gif-panel-inner, #sticker-panel, #ai-assistant-panel,
   .yt-modal-card, #student-quiz-modal, .modal-box, .te-sheet, .sw-sheet, .lp-panel
 ){
   background:var(--lg-sheen),var(--lg-fill-thick) !important;
@@ -157,6 +157,18 @@ html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#
 html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(.modal-overlay, .lc-ov, .te-sheet-ov, .sw-ov, #settings-overlay, #share-overlay, #vh-overlay, #boards-overlay, #games-overlay, #vocab-overlay, #upgrade-overlay, #task-builder-overlay){
   background:rgba(16,18,22,.34) !important;
   -webkit-backdrop-filter:blur(3px) !important;backdrop-filter:blur(3px) !important;
+}
+/* The builder, the GIF search and the shortcuts are full-screen layers with
+   the window inside. They were in the "thick" list above, so the layer
+   itself turned 84% white and blurred 30px: the window hung in an empty
+   white room and the board was gone (15.10.2026). The glass goes on the
+   window; the layer dims lightly so the board stays in view behind it.
+   The builder window keeps its own solid paper (tool-builder-refined.css):
+   through 84% glass the board's cards showed between its long lists. */
+html:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8) body :where(#tool-builder-panel, #gif-panel.open, #shortcuts-panel){
+  background:rgba(16,18,22,.26) !important;
+  -webkit-backdrop-filter:blur(2px) !important;backdrop-filter:blur(2px) !important;
+  border:0 !important;box-shadow:none !important;
 }
 /* graphite board: the islands turn dark glass, otherwise their light text
    (board-harmony.css flips it for the dark canvas) sat on pale glass. The AI
