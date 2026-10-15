@@ -107,9 +107,10 @@ router.get('/student-zones', requireAuth, async (req, res) => {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT s.*, j.name AS student_name
+      `SELECT s.*, j.name AS student_name, j.level AS student_level, u.avatar AS student_avatar
          FROM schedule s
          LEFT JOIN student_journal j ON j.id = s.journal_id AND j.teacher_id = s.user_id
+         LEFT JOIN users u ON u.id = j.student_id
         WHERE s.user_id = $1 ORDER BY s.day, s.start_time`,
       [req.user.id]
     );

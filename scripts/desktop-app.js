@@ -1052,21 +1052,30 @@ function openNotesFromHash() { if (location.hash === '#notes') setTimeout(() => 
 window.addEventListener('hashchange', openNotesFromHash);
 openNotesFromHash();
 /* ══════════════════════ NEXT-CLASS WIDGET ══════════════════════ */
-/* Момент начала ближайшего урока: по нему раз в полминуты пересчитывается
-   строка «Starts in …», поэтому хранится отдельно от разметки. */
-let _nextClassAt = null;
-
-/* Ближайший урок из недельного расписания: сегодняшние слоты, что ещё не
-   начались. Общий помощник для живой загрузки и для офлайн-снимка, чтобы
-   виджет не показывал разное в зависимости от того, откуда пришли данные. */
+/* Ближайший урок (15.10.2026): идущий сейчас урок остаётся в виджете до
+   конца (раньше он пропадал в минуту начала, и войти было неоткуда), потом
+   следующий сегодняшний. Сегодня пусто - первый урок в ближайшие 7 дней,
+   для пустого состояния «No more lessons today». */
+const _ncMin = t => { const [h, m] = String(t || '0:0').split(':'); return +h * 60 + +m; };
 function pickNextClass(schedule) {
-  const toMin = t => { const [h, m] = String(t).split(':'); return +h * 60 + +m; };
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const todays = (schedule || [])
-    .filter(s => slotOnDate(s, now))
-    .sort((a, b) => String(a.start_time).localeCompare(String(b.start_time)));
-  return { next: todays.find(s => toMin(s.start_time) >= nowMin) || null, todaysCount: todays.length };
+  const byStart = (a, b) => _ncMin(a.start_time) - _ncMin(b.start_time);
+  const todays = (schedule || []).filter(s => slotOnDate(s, now)).sort(byStart);
+  const next = todays.find(s => {
+    const st = _ncMin(s.start_time); let en = _ncMin(s.end_time);
+    if (en <= st) en = st + 60;   // урок через полночь или без конца
+    return en > nowMin;
+  }) || null;
+  let later = null;
+  if (!next) {
+    for (let k = 1; k <= 7 && !later; k++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + k);
+      const first = (schedule || []).filter(s => slotOnDate(s, d)).sort(byStart)[0];
+      if (first) later = { slot: first, date: d };
+    }
+  }
+  return { next, todaysCount: todays.length, later };
 }
 
 function nextClassInitials(name) {
@@ -1076,17 +1085,30 @@ function nextClassInitials(name) {
     .join('').toUpperCase() || '?';
 }
 
+/* Кнопка яркая только с 30 минут до начала и пока урок идёт. Раньше она
+   звала «Launch lesson» за шесть часов, и было непонятно, что будет, если
+   нажать. До того - спокойная «Prepare lesson» (открыть доску заранее). */
+const NC_LIVE_MIN = 30;
+let _nc = { schedule: null };
+
+// раз в полминуты: обратный отсчёт, кнопка загорается за 30 минут, урок кончился - следующий
 function nextClassCountdown() {
-  const badge = document.querySelector('#wg-today .wg-today-badge');
-  if (!badge || !_nextClassAt) return;
-  const diff = _nextClassAt - Date.now();
-  if (diff <= 0) { badge.textContent = 'Starting now'; return; }
-  const mins = Math.round(diff / 60000);
-  const h = Math.floor(mins / 60), m = mins % 60;
-  badge.textContent = 'Starts in ' + (h ? `${h}h ${m}m` : `${m}m`);
+  if (_nc.schedule) renderNextClass(_nc.schedule);
 }
 
-function renderNextClass(next, todaysCount) {
+function _ncWho(s) {
+  const g = s.group_name && !/^1\s*:\s*1$/.test(String(s.group_name).trim()) ? s.group_name : '';
+  return s.student_name || g || s.title || 'Class';
+}
+/* Микро-тег урока: тема, если это не дежурное «Class»/«Lesson», и уровень. */
+function _ncTag(s) {
+  const topic = /^(class|lesson|individual lesson|1:1|new class)$/i.test(String(s.title || '').trim()) || s.title === _ncWho(s) ? '' : s.title;
+  return [topic, s.level || s.student_level || ''].filter(Boolean).join(' · ');
+}
+
+function renderNextClass(schedule) {
+  _nc.schedule = schedule || [];
+  const { next, todaysCount, later } = pickNextClass(_nc.schedule);
   const label  = document.querySelector('#wg-today .wg-today-label');
   const title  = document.querySelector('#wg-today .wg-today-title');
   const meta   = document.querySelector('#wg-today .wg-today-meta');
@@ -1094,49 +1116,17 @@ function renderNextClass(next, todaysCount) {
   const time   = document.getElementById('wg-next-time');
   const avatar = document.getElementById('wg-next-avatar');
   const launch = document.getElementById('wg-next-launch');
+  const card   = document.getElementById('wg-today');
   if (!title) return;
+  card?.classList.remove('is-live', 'is-soon', 'is-empty');
 
-  if (!next) {
-    _nextClassAt = null;
-    if (label)  label.textContent = 'Schedule';
-    /* Имя ученика режется многоточием (одна строка - это сознательно), а
-       пустое состояние - предложение, и «Nothing schedul…» в нём выглядело
-       как обрыв связи. Ему разрешаем перенос, часам - уйти совсем. */
-    title.classList.add('is-wrap');
-    title.textContent = todaysCount ? 'All done' : 'Nothing scheduled';
-    if (meta)   meta.textContent = todaysCount ? `${todaysCount} classes today` : 'Add a class to get started';
-    if (time)   { time.textContent = '--:--'; time.style.display = 'none'; }
-    if (badge)  badge.textContent = '';
-    if (avatar) avatar.textContent = '📅';
-    if (launch) {
-      launch.textContent = 'Open schedule';
-      launch.disabled = false;
-      launch.onclick = () => { location.href = 'schedule.html'; };
-    }
-    return;
-  }
-
-  const toMin = t => { const [h, m] = String(t).split(':'); return +h * 60 + +m; };
-  const _g = next.group_name && !/^1\s*:\s*1$/.test(String(next.group_name).trim()) ? next.group_name : '';
-  const who = next.student_name || _g || next.title || 'Class';
-  const dur = toMin(next.end_time) - toMin(next.start_time);
-
-  if (label) label.textContent = 'Next class';
-  title.classList.remove('is-wrap');
-  if (time) time.style.display = '';
-  title.textContent = who;
-  if (meta) {
-    // подпись вида «Individual Lesson · 60 min»: сам урок + длительность
-    const kind = next.group_name ? next.title : (next.level || 'Lesson');
-    meta.textContent = [kind, dur > 0 ? `${dur} min` : ''].filter(Boolean).join(' · ');
-  }
-  if (time) time.textContent = String(next.start_time).slice(0, 5);
-
-  if (avatar) {
-    // аватар ученика, если он есть среди учеников доски; иначе инициалы
-    const match = (typeof STUDENTS !== 'undefined' ? STUDENTS : [])
-      .find(s => (s.name || '').toLowerCase() === who.toLowerCase());
-    const face = match?.avatar || '';
+  const paintAvatar = s => {
+    if (!avatar) return;
+    if (!s) { avatar.style.backgroundImage = ''; avatar.textContent = '📅'; avatar.style.fontSize = '20px'; return; }
+    const who = _ncWho(s);
+    // Аватар ученика из его профиля (эмодзи или фото), иначе - из окна Students, иначе инициалы
+    const match = (typeof STUDENTS !== 'undefined' ? STUDENTS : []).find(x => (x.name || '').toLowerCase() === who.toLowerCase());
+    const face = s.student_avatar || match?.avatar || '';
     if (_isPhotoUrl(face)) {
       avatar.textContent = '';
       avatar.style.backgroundImage = `url('${face}')`;
@@ -1147,21 +1137,72 @@ function renderNextClass(next, todaysCount) {
       avatar.textContent = face || nextClassInitials(who);
       avatar.style.fontSize = face ? '22px' : '16px';
     }
+  };
+
+  if (!next) {
+    card?.classList.add('is-empty');
+    if (label) label.textContent = 'Schedule';
+    title.classList.add('is-wrap');
+    title.textContent = todaysCount ? 'No more lessons today 🎉' : 'No lessons today';
+    if (meta) meta.textContent = todaysCount ? `${todaysCount} classes today` : '';
+    if (time) { time.textContent = '--:--'; time.style.display = 'none'; }
+    if (badge) {
+      if (later) {
+        const now = new Date();
+        const tmr = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toDateString() === later.date.toDateString();
+        badge.textContent = `next: ${tmr ? 'tomorrow' : later.date.toLocaleDateString('en-GB', { weekday: 'short' })} ${String(later.slot.start_time).slice(0, 5)} · ${_ncWho(later.slot)}`;
+      } else badge.textContent = todaysCount ? '' : 'add a class to get started';
+    }
+    paintAvatar(later ? later.slot : null);
+    if (launch) {
+      launch.textContent = 'Open schedule';
+      launch.disabled = false;
+      launch.onclick = () => { location.href = 'schedule.html'; };
+    }
+    return;
   }
 
-  const start = new Date();
-  start.setHours(toMin(next.start_time) / 60 | 0, toMin(next.start_time) % 60, 0, 0);
-  _nextClassAt = start.getTime();
-  nextClassCountdown();
+  const who = _ncWho(next);
+  const st = _ncMin(next.start_time);
+  let en = _ncMin(next.end_time); if (en <= st) en = st + 60;
+  const dur = en - st;
+  if (label) label.textContent = 'Next class';
+  title.classList.remove('is-wrap');
+  if (time) time.style.display = '';
+  title.textContent = who;
+  if (meta) meta.textContent = [_ncTag(next) || 'Lesson', `${dur} min`].join(' · ');
+  if (time) time.textContent = String(next.start_time).slice(0, 5);
+  paintAvatar(next);
 
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const until = st - nowMin;
+  const live = until <= 0;
+  const soon = !live && until <= NC_LIVE_MIN;
+  card?.classList.toggle('is-live', live);
+  card?.classList.toggle('is-soon', soon);
+  if (badge) {
+    const m = Math.max(0, Math.round(until)), h = Math.floor(m / 60);
+    const when = live ? `started ${Math.max(0, Math.round(-until))} min ago` : `in ${h ? `${h}h ${m % 60}m` : `${m}m`}`;
+    // «in 5h 47m · 60 min · B2» - когда, сколько длится и про что
+    badge.textContent = [when, `${dur} min`, _ncTag(next)].filter(Boolean).join(' · ');
+  }
   if (launch) {
     launch.disabled = false;
-    launch.textContent = next.meeting_url ? 'Launch lesson' : (next.board_id ? 'Open board' : 'Open schedule');
-    launch.onclick = () => {
+    const go = () => {
       if (next.meeting_url) window.open(next.meeting_url, '_blank', 'noopener');
       else if (next.board_id) location.href = `board.html?id=${encodeURIComponent(next.board_id)}`;
       else location.href = 'schedule.html';
     };
+    if (live || soon) {
+      launch.textContent = live ? (next.meeting_url ? 'Join lesson' : 'Back to the lesson') : 'Launch lesson';
+      if (!next.meeting_url && !next.board_id) launch.textContent = 'Open schedule';
+      launch.onclick = go;
+    } else {
+      // заранее: открыть доску и подготовиться, но не «запускать» урок
+      launch.textContent = next.board_id ? 'Prepare lesson' : 'Open schedule';
+      launch.onclick = () => { if (next.board_id) location.href = `board.html?id=${encodeURIComponent(next.board_id)}`; else location.href = 'schedule.html'; };
+    }
   }
 }
 
@@ -2630,8 +2671,7 @@ function applyTeacherDashboardCache(cache, options = {}) {
   if (Array.isArray(cache.schedule)) {
     SCHEDULE_RAW = cache.schedule;
     schRender();
-    const { next, todaysCount } = pickNextClass(cache.schedule);
-    renderNextClass(next, todaysCount);
+    renderNextClass(cache.schedule);
   }
   if (Array.isArray(cache.boards)) {
     MY_BOARDS = cache.boards;
@@ -2828,13 +2868,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1177" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1178" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1177" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1178" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
@@ -3458,7 +3498,7 @@ setInterval(loadNotifications, 120000);
     }
 
     // Next-class widget - кто, когда, через сколько и кнопка входа
-    renderNextClass(next, todays.length);
+    renderNextClass(all);
     updateMobileTeacherOverview();
   }).catch(() => {
     if (cachedDash?.schedule) applyTeacherDashboardCache({ schedule: cachedDash.schedule }, { offlineNotice: true });

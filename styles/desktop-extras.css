@@ -342,7 +342,7 @@ body.fx.os-desktop:not(#_) #wg-today .wg-today-title:not(.is-wrap)::before { con
 body.fx.os-desktop:not(#_) #wg-today .wg-today-title.is-wrap { white-space:normal; font-size:15px !important; }
 body.fx.os-desktop:not(#_) #wg-today .wg-today-badge {
   grid-area:badge; margin:2px 0 0 !important; font-size:12px !important; color:var(--fx-mute) !important;
-  text-transform:lowercase;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 body.fx.os-desktop:not(#_) #wg-today .wg-next-launch {
   grid-area:btn; align-self:end; width:100%; margin:0 !important; padding:8px 10px !important; min-height:0 !important;
@@ -604,3 +604,17 @@ body.fx.os-desktop #wg-week { display:flex; }
 .pm-tpl { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
 .pm-chip { height:30px; padding:0 12px; border-radius:999px; border:1px solid rgba(36,40,44,.18); background:#fff; color:#24282C; font:600 12.5px inherit; font-family:inherit; cursor:pointer; }
 .pm-chip:hover { background:#EEF9C9; border-color:#CDF649; }
+
+/* Next class (15.10.2026): the button is lime only from 30 min before the
+   start and while the lesson runs. Hours ahead it is a quiet outline
+   ("Prepare lesson"), so nobody "launches" a lesson that is six hours away. */
+body.fx.os-desktop:not(#_) #wg-today:not(.is-soon):not(.is-live) .wg-next-launch {
+  background:rgba(255,255,255,.55) !important; color:#24282C !important;
+  box-shadow:inset 0 0 0 1.5px rgba(36,40,44,.22) !important;
+}
+body.fx.os-desktop:not(#_) #wg-today:not(.is-soon):not(.is-live) .wg-next-launch:hover { background:#fff !important; }
+body.fx.os-desktop:not(#_) #wg-today.is-soon .wg-next-launch { animation:ncPulse 2s ease-in-out infinite; }
+body.fx.os-desktop:not(#_) #wg-today.is-live .wg-today-badge { color:#8A2E52 !important; font-weight:650; }
+@keyframes ncPulse { 0%,100% { box-shadow:0 0 0 0 rgba(205,246,73,.0); } 50% { box-shadow:0 0 0 5px rgba(205,246,73,.45); } }
+@media (prefers-reduced-motion:reduce) { body.fx.os-desktop:not(#_) #wg-today.is-soon .wg-next-launch { animation:none; } }
+body.fx.os-desktop:not(#_) #wg-today.is-empty .wg-today-title { margin-top:8px !important; }
