@@ -103,7 +103,7 @@
     const st = document.createElement('style');
     st.id = 'ta-css';
     st.textContent = `.ta-seg{display:inline-flex;background:#F2F1EB;border-radius:10px;padding:3px;gap:2px;vertical-align:middle}
-.ta-seg button{border:0;background:transparent;border-radius:8px;padding:6px 9px;font:650 11.5px/1 inherit;font-family:inherit;color:#5D614B;cursor:pointer;white-space:nowrap}
+.ta-seg button{border:0;background:transparent;border-radius:8px;padding:6px 9px;font-weight:650;font-size:11.5px;line-height:1;font-family:inherit;color:#5D614B;cursor:pointer;white-space:nowrap}
 .ta-seg button.on{background:#fff;color:#24282C;box-shadow:0 1px 3px rgba(36,40,44,.12)}`;
     (document.head || document.documentElement).appendChild(st);
   }

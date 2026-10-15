@@ -381,7 +381,7 @@
 .te-zero-card{width:min(400px,100%);padding:26px 24px 20px;border-radius:20px;background:#fff;color:#24282C;text-align:center;box-shadow:0 24px 60px rgba(24,26,28,.3)}
 .te-zero-ic{font-size:34px}.te-zero-card h2{margin:8px 0 6px;font-size:22px}.te-zero-card p{margin:0 0 18px;color:#5C5C66;line-height:1.5}
 .te-zero-btns{display:flex;flex-direction:column;gap:8px}
-.te-zero-btns button{min-height:48px;border:0;border-radius:12px;font:700 15px inherit;font-family:inherit;cursor:pointer}
+.te-zero-btns button{min-height:48px;border:0;border-radius:12px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}
 .te-zero-go{background:#CDF649;color:#24282C}.te-zero-later{background:#F6F6EF;color:#24282C}`;
       document.head.appendChild(st);
     }

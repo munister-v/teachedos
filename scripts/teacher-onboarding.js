@@ -72,17 +72,17 @@
 .tob-dots i{height:4px;flex:1;border-radius:4px;background:#ECEDE6}
 .tob-dots i.on{background:#24282C}
 .tob-dots i.now{background:#CDF649}
-.tob-skip{border:0;background:none;font:600 13px inherit;font-family:inherit;color:#5C5C66;cursor:pointer;padding:6px 4px}
+.tob-skip{border:0;background:none;font-weight:600;font-size:13px;font-family:inherit;color:#5C5C66;cursor:pointer;padding:6px 4px}
 .tob-skip:hover{color:#24282C;text-decoration:underline}
 .tob-body{padding:22px 28px 8px;overflow:auto}
 .tob-k{font:700 11.5px/1 var(--mono,ui-monospace,monospace);letter-spacing:.12em;text-transform:uppercase;color:#5C5C66}
 .tob h2{margin:10px 0 6px;font-size:27px;line-height:1.15;letter-spacing:-.02em;font-weight:700}
 .tob p.tob-lead{margin:0 0 18px;font-size:15px;line-height:1.5;color:#5C5C66;max-width:56ch}
 .tob-lbl{display:block;margin:16px 0 8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5C5C66}
-.tob-in,.tob-sel{width:100%;box-sizing:border-box;height:46px;border:1px solid rgba(36,40,44,.16);border-radius:12px;padding:0 14px;font:500 15px inherit;font-family:inherit;color:#24282C;background:#fff}
+.tob-in,.tob-sel{width:100%;box-sizing:border-box;height:46px;border:1px solid rgba(36,40,44,.16);border-radius:12px;padding:0 14px;font-weight:500;font-size:15px;font-family:inherit;color:#24282C;background:#fff}
 .tob-in:focus,.tob-sel:focus{outline:2px solid #CDF649;outline-offset:1px;border-color:#24282C}
 .tob-chips{display:flex;flex-wrap:wrap;gap:8px}
-.tob-chip{height:38px;padding:0 15px;border-radius:999px;border:1px solid rgba(36,40,44,.16);background:#fff;font:600 14px inherit;font-family:inherit;color:#24282C;cursor:pointer}
+.tob-chip{height:38px;padding:0 15px;border-radius:999px;border:1px solid rgba(36,40,44,.16);background:#fff;font-weight:600;font-size:14px;font-family:inherit;color:#24282C;cursor:pointer}
 .tob-chip:hover{border-color:#24282C}
 .tob-chip.on{background:#24282C;color:#fff;border-color:#24282C}
 .tob-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -115,14 +115,14 @@
 .tob-err{margin-top:12px;font-size:13.5px;color:#B3261E}
 .tob-foot{display:flex;align-items:center;gap:10px;padding:16px 28px 22px}
 .tob-foot .sp{flex:1}
-.tob-btn{height:46px;padding:0 22px;border:0;border-radius:12px;font:700 15px inherit;font-family:inherit;cursor:pointer;background:#CDF649;color:#24282C}
+.tob-btn{height:46px;padding:0 22px;border:0;border-radius:12px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer;background:#CDF649;color:#24282C}
 .tob-btn:hover{background:#D3F36B}
 .tob-btn:disabled{opacity:.55;cursor:default}
 .tob-btn.ghost{background:#F6F6EF}
 .tob-btn.ghost:hover{background:#ECEDE6}
 .tob-btn:focus-visible,.tob-chip:focus-visible,.tob-preset:focus-visible,.tob-tile:focus-visible,.tob-skip:focus-visible{outline:2px solid #24282C;outline-offset:2px}
 .tob-chipbar{position:fixed;left:24px;bottom:96px;z-index:9000;display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-radius:999px;background:#24282C;color:#fff;font:600 14px var(--font,'Manrope',system-ui,sans-serif);box-shadow:0 12px 30px rgba(24,26,28,.28)}
-.tob-chipbar button{height:32px;padding:0 14px;border:0;border-radius:999px;background:#CDF649;color:#24282C;font:700 13px inherit;font-family:inherit;cursor:pointer}
+.tob-chipbar button{height:32px;padding:0 14px;border:0;border-radius:999px;background:#CDF649;color:#24282C;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer}
 .tob-chipbar .x{background:transparent;color:rgba(255,255,255,.7);padding:0 6px;font-size:18px}
 `;
     document.head.appendChild(st);

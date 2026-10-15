@@ -653,9 +653,10 @@ function renderWeekChart(weekly, today) {
   const box = document.getElementById('wk-bars');
   if (!box) return;
   const per = SP_DAYS.map((_, i) => weekly.filter(s => s.day === i).length);
-  const max = Math.max(1, ...per);
+  /* scale to at least 3 a day, so one class a day is not a wall of full bars */
+  const max = Math.max(3, ...per);
   box.innerHTML = per.map((n, i) => `<div class="wk-col${i === today ? ' is-today' : ''}" title="${SP_DAYS[i]}: ${n} ${n === 1 ? 'class' : 'classes'}">
-    <i style="height:${n ? Math.max(10, Math.round(n / max * 100)) : 4}%"></i><span>${SP_DAYS[i][0]}</span></div>`).join('');
+    <i data-n="${n}" style="height:${n ? Math.max(18, Math.round(n / max * 100)) : 4}%"></i><span>${SP_DAYS[i][0]}</span></div>`).join('');
   const t = document.querySelector('#wg-week .wk-total');
   if (t) t.textContent = weekly.length;
   const w = document.getElementById('wg-week');

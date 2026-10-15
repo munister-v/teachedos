@@ -54,7 +54,7 @@
 .th-def .th-ipa{font:600 13px 'SF Mono',var(--te-font-mono,ui-monospace,Menlo,monospace);color:var(--lime)}
 .th-def .th-pos{font:700 10px/1 'SF Mono',var(--te-font-mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border-radius:6px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
 .th-accents{margin-left:auto;display:flex;gap:2px;padding:3px;border-radius:12px;background:rgba(255,255,255,.08);flex-shrink:0;align-self:flex-start}
-.th-accents button{border:0;background:transparent;color:rgba(255,255,255,.7);border-radius:9px;padding:7px 11px;font:650 12px inherit;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s,color .15s}
+.th-accents button{border:0;background:transparent;color:rgba(255,255,255,.7);border-radius:9px;padding:7px 11px;font-weight:650;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s,color .15s}
 .th-accents button:hover{color:#fff}
 .th-accents button.on{background:var(--lime);color:var(--ink)}
 .th-accents .fl{font-size:14px;line-height:1}
@@ -65,7 +65,7 @@
 .th-bar{display:flex;align-items:center;gap:10px;padding:14px 24px 18px}
 .th-count{font:600 12px 'SF Mono',var(--te-font-mono,ui-monospace,Menlo,monospace);color:rgba(255,255,255,.6);padding:7px 10px;border-radius:9px;background:rgba(255,255,255,.07)}
 .th-count b{color:#fff}
-.th-next{border:0;border-radius:11px;padding:9px 14px;background:rgba(255,255,255,.1);color:#fff;font:650 13px inherit;font-family:inherit;cursor:pointer;transition:background .15s}
+.th-next{border:0;border-radius:11px;padding:9px 14px;background:rgba(255,255,255,.1);color:#fff;font-weight:650;font-size:13px;font-family:inherit;cursor:pointer;transition:background .15s}
 .th-next:hover{background:rgba(255,255,255,.18)}
 .th-legal{margin-left:auto;font-size:11px;color:rgba(255,255,255,.4)}
 .th-legal a{color:rgba(255,255,255,.55)}
@@ -78,7 +78,7 @@
 .th-turn .th-task{margin:6px 0 0;font-size:13px;color:var(--muted);line-height:1.5}
 .th-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .th-steps li{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
-.th-steps li span{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px inherit;background:#fff;box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);flex-shrink:0}
+.th-steps li span{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:11px;font-family:inherit;background:#fff;box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);flex-shrink:0}
 .th-steps li.done{color:var(--ink)}
 .th-steps li.done span{background:var(--ink);color:var(--lime);box-shadow:none}
 .th-steps li.now span{background:var(--lime);box-shadow:none}
@@ -87,14 +87,14 @@
 .th-rec:hover{transform:scale(1.04)}
 .th-rec svg{width:28px;height:28px}
 .th-rec.is-on{background:#FF4E00;color:#fff;box-shadow:0 0 0 8px rgba(255,78,0,.15)}
-.th-rec-label{font:700 13px inherit}
+.th-rec-label{font-weight:700;font-size:13px;font-family:inherit}
 .th-time{font:600 12px 'SF Mono',var(--te-font-mono,ui-monospace,Menlo,monospace);color:var(--muted);min-height:15px}
 .th-meter{width:100%;height:44px;display:flex;align-items:center;justify-content:center;gap:3px}
 .th-meter i{width:4px;border-radius:3px;background:#dcdcd2;height:6px;transition:height .08s}
 .th-meter.live i{background:#FF4E00}
 .th-wave{width:100%;height:48px;display:block;cursor:pointer}
 .th-plays{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
-.th-ghost{border:0;background:var(--paper);border-radius:12px;padding:11px 10px;font:650 12.5px inherit;font-family:inherit;cursor:pointer;min-height:44px;color:var(--ink)}
+.th-ghost{border:0;background:var(--paper);border-radius:12px;padding:11px 10px;font-weight:650;font-size:12.5px;font-family:inherit;cursor:pointer;min-height:44px;color:var(--ink)}
 .th-ghost:hover:not(:disabled){background:#ebebe4}
 .th-ghost:disabled{opacity:.4;cursor:default}
 .th-note{font-size:12px;color:var(--muted);line-height:1.45;text-align:center}

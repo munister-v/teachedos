@@ -27,7 +27,7 @@
 .lc-head span{display:block;margin-top:3px;font-size:13px;color:#C9CAD4}
 .lc-x{margin-left:auto;flex:none;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:15px;cursor:pointer}
 .lc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 14px}
-.lc-tabs button{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font:650 13px inherit;font-family:inherit;cursor:pointer}
+.lc-tabs button{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-weight:650;font-size:13px;font-family:inherit;cursor:pointer}
 .lc-tabs button.on{background:#CDF649;border-color:#CDF649;color:#24282C}
 .lc-bal{display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px;padding:14px 16px;border-radius:18px;background:rgba(205,246,73,.1);border:1px solid rgba(205,246,73,.45);margin-bottom:16px}
 .lc-bal small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C9CAD4}
@@ -37,8 +37,8 @@
 .lc-top.ghost{background:transparent;color:#F4F4F8;border:1px solid rgba(255,255,255,.3)}
 .lc-adj{flex-basis:100%;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .lc-adj[hidden]{display:none}
-.lc-adj button{min-width:44px;min-height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font:800 15px inherit;font-family:inherit;cursor:pointer}
-.lc-adj input{flex:1;min-width:120px;min-height:38px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.2);color:#fff;font:500 13px inherit;font-family:inherit}
+.lc-adj button{min-width:44px;min-height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer}
+.lc-adj input{flex:1;min-width:120px;min-height:38px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.2);color:#fff;font-weight:500;font-size:13px;font-family:inherit}
 .lc-note{margin-left:auto;max-width:150px;font-size:12px;line-height:1.35;color:#C9CAD4;text-align:right}
 .lc-cal{padding:16px;border-radius:20px;background:rgba(0,0,0,.22)}
 .lc-nav{display:flex;align-items:center;gap:8px;margin-bottom:12px}

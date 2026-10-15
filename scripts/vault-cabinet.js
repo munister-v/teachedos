@@ -11,8 +11,8 @@
 .vc-tx span{display:block;font-size:12.5px;color:rgba(255,255,255,.62);margin-top:3px}
 .vc-stats{display:flex;gap:14px;margin-left:auto;font-size:11px;color:rgba(255,255,255,.55);text-align:center}
 .vc-stats b{display:block;font-size:18px;color:#fff}
-.vc-btn{border:0;border-radius:12px;padding:11px 16px;background:#CDF649;color:#24282C;font:700 13px inherit;font-family:inherit;cursor:pointer;min-height:44px;white-space:nowrap}
-.vc-rem{border:1px solid rgba(255,255,255,.2);background:transparent;color:#fff;border-radius:12px;padding:10px 12px;font:650 12.5px inherit;font-family:inherit;cursor:pointer;min-height:44px;white-space:nowrap}
+.vc-btn{border:0;border-radius:12px;padding:11px 16px;background:#CDF649;color:#24282C;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;min-height:44px;white-space:nowrap}
+.vc-rem{border:1px solid rgba(255,255,255,.2);background:transparent;color:#fff;border-radius:12px;padding:10px 12px;font-weight:650;font-size:12.5px;font-family:inherit;cursor:pointer;min-height:44px;white-space:nowrap}
 .vc-rem:hover{background:rgba(255,255,255,.08)}
 .vc-pop{position:absolute;right:0;top:calc(100% + 8px);z-index:50;width:320px;background:#fff;color:#24282C;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.25),0 0 0 1px rgba(36,40,44,.1);padding:18px}
 .vc-pop h4{margin:0 0 4px;font-size:16px}
@@ -25,8 +25,8 @@
 .vc-sw i::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.2s}
 .vc-sw input:checked+i{background:#24282C}
 .vc-sw input:checked+i::after{transform:translateX(18px);background:#CDF649}
-.vc-pop select{border:1px solid rgba(36,40,44,.18);border-radius:10px;padding:8px 10px;font:600 13px inherit;font-family:inherit;background:#fff}
-.vc-save{width:100%;margin-top:12px;border:0;border-radius:12px;padding:11px;background:#CDF649;color:#24282C;font:700 13px inherit;font-family:inherit;cursor:pointer}
+.vc-pop select{border:1px solid rgba(36,40,44,.18);border-radius:10px;padding:8px 10px;font-weight:600;font-size:13px;font-family:inherit;background:#fff}
+.vc-save{width:100%;margin-top:12px;border:0;border-radius:12px;padding:11px;background:#CDF649;color:#24282C;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer}
 .vc-note{margin-top:8px;font-size:12px;color:#5D614B;min-height:16px}
 .vc-btn:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.6);cursor:default}
 `;

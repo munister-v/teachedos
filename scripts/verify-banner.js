@@ -19,7 +19,7 @@
 @keyframes vbIn{from{opacity:0;transform:translate(-50%,10px)}}
 .vb-dot{width:8px;height:8px;border-radius:50%;background:#CDF649;flex:none;box-shadow:0 0 0 4px rgba(205,246,73,.18)}
 .vb-t b{font-weight:650}.vb-t span{color:rgba(255,255,255,.66)}
-.vb button{border:0;cursor:pointer;font:650 12.5px inherit;font-family:inherit;border-radius:10px;padding:8px 12px;white-space:nowrap}
+.vb button{border:0;cursor:pointer;font-weight:650;font-size:12.5px;font-family:inherit;border-radius:10px;padding:8px 12px;white-space:nowrap}
 .vb-send{background:#CDF649;color:#24282C}.vb-send:disabled{opacity:.6;cursor:default}
 .vb-x{background:rgba(255,255,255,.1);color:#fff;width:32px;padding:8px 0!important}
 `;

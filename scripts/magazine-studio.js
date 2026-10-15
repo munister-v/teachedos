@@ -69,35 +69,35 @@
 .mg-ex mark{background:rgba(205,246,73,.7);font-style:normal}
 .mg-mini{margin-top:14px;border-radius:12px;overflow:hidden;background:#0d0e0f;min-height:40px}
 .mg-pop-acts{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
-.mg-btn{border:0;border-radius:11px;padding:10px 14px;font:650 13px inherit;font-family:inherit;cursor:pointer;min-height:42px}
+.mg-btn{border:0;border-radius:11px;padding:10px 14px;font-weight:650;font-size:13px;font-family:inherit;cursor:pointer;min-height:42px}
 .mg-btn.lime{background:var(--lime);color:var(--ink)}
 .mg-btn.dark{background:var(--ink);color:#fff}
 .mg-btn.ghost{background:#F2F1EB;color:var(--ink)}
 .mg-btn:disabled{opacity:.5;cursor:default}
 .mg-side{border-left:1px solid var(--line);background:#fff;display:flex;flex-direction:column;min-height:0}
 .mg-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:14px 14px 0}
-.mg-tab{border:0;background:transparent;border-radius:10px;padding:9px 4px;font:650 12px inherit;font-family:inherit;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.mg-tab{border:0;background:transparent;border-radius:10px;padding:9px 4px;font-weight:650;font-size:12px;font-family:inherit;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
 .mg-tab i{font-style:normal;font-size:17px}
 .mg-tab.on{background:#F2F1EB;color:var(--ink)}
 .mg-tab.done i::after{content:' ✓';font-size:11px;color:#5b7a00}
 .mg-panel{flex:1;overflow:auto;padding:18px 20px 24px}
-.mg-panel h3{margin:0;font:700 20px/1.2 inherit;letter-spacing:-.01em}
+.mg-panel h3{margin:0;font-weight:700;font-size:20px;line-height:1.2;font-family:inherit;letter-spacing:-.01em}
 .mg-panel .mg-hint{margin:6px 0 16px;font-size:13px;color:var(--muted);line-height:1.45}
 .mg-score{display:inline-block;margin-left:8px;font:700 12px 'SF Mono',var(--te-font-mono,ui-monospace,monospace);color:#5b7a00}
 .mg-match{display:grid;grid-template-columns:1fr 1.25fr;gap:8px}
 .mg-match-col{display:grid;gap:8px;align-content:start}
-.mg-chip{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;text-align:left;font:600 13px/1.35 inherit;font-family:inherit;cursor:pointer;color:var(--ink);transition:background .15s,border-color .15s}
+.mg-chip{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;text-align:left;font-weight:600;font-size:13px;line-height:1.35;font-family:inherit;cursor:pointer;color:var(--ink);transition:background .15s,border-color .15s}
 .mg-chip.def{font-weight:450;font-size:12.5px}
 .mg-chip.sel{border-color:#CDF649;box-shadow:inset 0 0 0 1px #CDF649}
 .mg-chip.ok{background:#EEF8D2;border-color:#9bc21a;color:#2f4a00;cursor:default}
 .mg-chip.bad{animation:mgshake .3s}
 @keyframes mgshake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .mg-bank{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-.mg-bank button{border:1px dashed rgba(36,40,44,.3);background:#fff;border-radius:999px;padding:6px 10px;font:600 12px inherit;font-family:inherit;cursor:pointer}
+.mg-bank button{border:1px dashed rgba(36,40,44,.3);background:#fff;border-radius:999px;padding:6px 10px;font-weight:600;font-size:12px;font-family:inherit;cursor:pointer}
 .mg-bank button.used{opacity:.35}
 .mg-fill{display:grid;gap:12px;counter-reset:f}
 .mg-fill li{list-style:none;font:16px/1.6 Georgia,serif;color:var(--graphite)}
-.mg-fill input{font:600 14px inherit;font-family:var(--te-font-ui,-apple-system,system-ui,sans-serif);border:0;border-bottom:2px solid rgba(36,40,44,.35);background:#FBFAF6;padding:2px 6px;width:130px;border-radius:4px 4px 0 0;outline:none}
+.mg-fill input{font-weight:600;font-size:14px;font-family:inherit;font-family:var(--te-font-ui,-apple-system,system-ui,sans-serif);border:0;border-bottom:2px solid rgba(36,40,44,.35);background:#FBFAF6;padding:2px 6px;width:130px;border-radius:4px 4px 0 0;outline:none}
 .mg-fill input:focus{border-bottom-color:var(--ink);background:#F2F1EB}
 .mg-fill input.ok{border-bottom-color:#7da312;background:#EEF8D2}
 .mg-fill input.bad{border-bottom-color:#e2542b;background:#FDECE6}

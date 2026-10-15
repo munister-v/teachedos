@@ -496,8 +496,25 @@ const WM = (function () {
      with no saved size now reaches down to the dock, within a cap (the boards
      list stays compact, see COMPACT), and shrinks on a short screen. */
   const FIT_CAP = { plans: 680 };
+  /* The 780-px boards window ran into the widget column on the right: edge to
+     edge at 1280px, over half of it on a narrow desktop (iPad landscape).
+     It now opens 16px short of the column; below 1200px it also moves to the
+     left edge (desktop-harmony.css stacks its header to fit). */
+  function fitWidth(win) {
+    if (idOf(win) !== 'plans') return;
+    const col = document.getElementById('fx-ghost-panel');
+    if (!col || !col.getClientRects().length) return;
+    const pr = win.offsetParent ? win.offsetParent.getBoundingClientRect() : { left: 0 };
+    /* style.left, not the rect: the opening animation scales the window */
+    const left = window.innerWidth < 1200 ? 20 : (parseFloat(win.style.left) || 0) + pr.left;
+    const w = Math.round(col.getBoundingClientRect().left - 16 - left);
+    if (w < MIN_W + 120) return;
+    win.style.left = Math.round(left - pr.left) + 'px';
+    win.style.width = Math.min(win.offsetWidth, w) + 'px';
+  }
   function fitHeight(win) {
     if (!win || win.classList.contains('maximized')) return;
+    fitWidth(win);
     const a = workArea(win);
     const top = parseFloat(win.style.top) || win.getBoundingClientRect().top;
     /* and stops above a widget that sits under it (Student Pulse lives under
@@ -2830,13 +2847,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1173" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1174" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1173" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1174" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
@@ -3573,7 +3590,7 @@ setInterval(loadNotifications, 120000);
     });
   }
   const st = document.createElement('style');
-  st.textContent = '.win .win-main.more-below{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent)}';
+  st.textContent = '.win .win-main.more-below{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent)}';
   document.head.appendChild(st);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   setInterval(wire, 3000);

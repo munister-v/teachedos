@@ -166,7 +166,8 @@ body.fx #wg-pulse .wg-pulse-title {
   display:inline-flex; align-items:center; gap:5px; min-height:28px; padding:0; border:0; background:none; cursor:pointer;
   font:500 13px var(--font-ui, inherit); color:#5D614B; text-decoration:none;
 }
-.wg-pulse-act .ic { width:15px; height:15px; }
+/* text-only: with icons the four actions no longer fit one line of the 320px card */
+.wg-pulse-act .ic { display:none; }
 .wg-pulse-act:hover { color:#24282C; }
 .wg-pulse-act[disabled] { opacity:.55; cursor:default; }
 .wg-pulse-empty { font-size:13px; line-height:1.45; color:#5D614B; }
@@ -302,11 +303,14 @@ body.fx.os-desktop:not(.wall-glass) #fx-ghost-panel { background:#FFFFFF; border
    нижний угол, под окно досок. */
 body.fx.os-desktop:not(#_) #wg-streak { display:none !important; }
 
+/* One column on the right: the two cards together are exactly as wide as
+   the schedule panel under them, so their edges line up (2026-10-15). */
+body.fx { --rcol:clamp(364px, calc(100vw - 710px), 432px); --rcard:calc((var(--rcol) - 16px) / 2); }
 body.fx.os-desktop:not(#_) :is(#wg-today, #wg-vocab) {
-  top:73px; width:174px !important; height:156px !important; min-height:0 !important;
+  top:73px; width:var(--rcard) !important; height:156px !important; min-height:0 !important;
   padding:14px !important; box-sizing:border-box;
 }
-body.fx.os-desktop:not(#_) #wg-today { right:210px; }
+body.fx.os-desktop:not(#_) #wg-today { right:calc(36px + var(--rcard)); }
 body.fx.os-desktop:not(#_) #wg-vocab { right:20px; }
 
 /* Ближайший урок: аватар слева сверху, время крупно справа, под ними
@@ -352,7 +356,7 @@ body.fx.os-desktop:not(#_) #wg-vocab .wg-vocab-next { margin-top:auto !important
 /* Панель расписания и плитка Analytics - вторым рядом под карточками. */
 /* Карточки лежат в #desktop (он начинается на 57px), панель и плитка -
    position:fixed, поэтому их top считается от окна: 57 + 73 + 156 + 16. */
-body.fx #fx-ghost-panel { right:20px; top:302px; width:clamp(300px, calc(100vw - 20px - 690px), 432px);
+body.fx #fx-ghost-panel { right:20px; top:302px; width:var(--rcol);
   max-height:calc(100vh - 302px - 120px); }
 
 /* Student Pulse - левый нижний угол, под окном досок. */
@@ -490,8 +494,8 @@ body.fx.os-desktop:not(#_) #fx-ghost-panel:hover { transform:none !important; }
 body.fx.os-desktop:not(#_) .widget { padding:18px !important; }
 body.fx.os-desktop:not(#_) .widget-close { opacity:0; transition:opacity .15s; left:auto !important; right:10px !important; top:10px !important; }
 body.fx.os-desktop:not(#_) .widget:hover .widget-close { opacity:1; }
-body.fx.os-desktop:not(#_) .widget .ic { top:16px !important; right:16px !important; opacity:.45 !important; }
-body.fx.os-desktop:not(#_) .widget:hover .ic { opacity:0 !important; }
+body.fx.os-desktop:not(#_) .widget > .ic { top:16px !important; right:16px !important; opacity:.45 !important; }
+body.fx.os-desktop:not(#_) .widget:hover > .ic { opacity:0 !important; }
 /* Подписи-заголовки у всех карточек одинаковые */
 body.fx.os-desktop:not(#_) :is(.wg-streak-label, .wg-vocab-label, .wg-today-label, .wg-pulse-title) {
   font:600 11px/1.2 'SF Mono', var(--te-font-mono,ui-monospace, Menlo, monospace) !important;
@@ -540,7 +544,7 @@ body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse.is-clear { backgro
 
 /* ── Неделя столбиками (#wg-week) - на месте убранного виджета досок ── */
 body.fx.os-desktop:not(#_) #wg-week {
-  top:73px; right:20px; width:174px !important; height:156px !important; min-height:0 !important;
+  top:73px; right:20px; width:var(--rcard) !important; height:156px !important; min-height:0 !important;
   padding:14px !important; box-sizing:border-box; display:flex; flex-direction:column; cursor:pointer;
   background:#24282C !important; border:1px solid #24282C !important; border-radius:20px !important;
   box-shadow:0 18px 40px -22px rgba(20,22,24,.45) !important; backdrop-filter:none !important; color:#CACCC6;
@@ -550,6 +554,16 @@ body.fx.os-desktop #wg-week { display:flex; }
 #wg-week .wk-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
 #wg-week .wk-label{font:600 11px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#CACCC6;}
 #wg-week .wk-total{font-size:30px;font-weight:600;letter-spacing:-.04em;color:#CDF649;line-height:1;}
+/* On the frosted paper tile (desktop-harmony) lime text read at 1.2:1: the
+   total and today's letter are ink, today's bar stays lime with an ink edge,
+   busy days are graphite and empty days a faint stub. */
+body.os-desktop #wg-week .wk-label{color:#5D614B;}
+body.os-desktop #wg-week .wk-total{color:#24282C;font-weight:700;}
+body.os-desktop #wg-week .wk-col i{background:rgba(36,40,44,.62);}
+body.os-desktop #wg-week .wk-col i[data-n="0"]{background:rgba(36,40,44,.14);}
+body.os-desktop #wg-week .wk-col.is-today i{background:#CDF649;box-shadow:inset 0 0 0 1.5px rgba(36,40,44,.55);}
+body.os-desktop #wg-week .wk-col span{color:#6B6E60;}
+body.os-desktop #wg-week .wk-col.is-today span{color:#24282C;font-weight:800;}
 #wg-week .wk-bars{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;align-items:end;margin-top:8px;min-height:0;}
 #wg-week .wk-col{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;}
 #wg-week .wk-col i{display:block;width:100%;max-width:14px;border-radius:5px;background:rgba(202,204,198,.35);}
@@ -565,5 +579,5 @@ body.fx.os-desktop #wg-week { display:flex; }
 .pm-sheet textarea{width:100%;box-sizing:border-box;border:1px solid rgba(36,40,44,.18);border-radius:14px;padding:12px 14px;font:15px/1.45 inherit;font-family:inherit;background:#fff;resize:vertical}
 .pm-row{display:flex;align-items:center;gap:8px;margin-top:12px}
 .pm-row span{flex:1;font-size:12.5px;color:#9A2C0C}
-.pm-row button{border:0;border-radius:12px;padding:10px 16px;font:700 13px inherit;font-family:inherit;cursor:pointer}
+.pm-row button{border:0;border-radius:12px;padding:10px 16px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer}
 .pm-cancel{background:#EFEEE7;color:#24282C}.pm-send{background:#CDF649;color:#24282C}.pm-send:disabled{opacity:.5}

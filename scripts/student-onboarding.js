@@ -46,7 +46,7 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-steps{display:flex;gap:6px;margin-bottom:18px}
 .so-steps i{flex:1;height:4px;border-radius:4px;background:rgba(36,40,44,.1)}
 .so-steps i.on{background:#24282C}
-.so-kick{font:700 11px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.12em;text-transform:uppercase;color:#7A7E68;margin-bottom:6px}
+.so-kick{font:700 11px var(--te-font-mono,ui-monospace,Menlo,monospace);letter-spacing:.12em;text-transform:uppercase;color:#5D614B;margin-bottom:6px}
 .so-card h2{font-size:24px;line-height:1.15;letter-spacing:-.025em;margin:0 0 6px}
 .so-sub{font-size:14px;line-height:1.45;color:#5D614B;margin:0 0 18px}
 .so-plates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -59,15 +59,15 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-plate b{display:block;font-size:14.5px;font-weight:650}
 .so-plate small{display:block;font-size:12.5px;color:#5D614B;margin-top:2px;line-height:1.35}
 .so-chips{display:flex;flex-wrap:wrap;gap:8px}
-.so-chip{border:1.5px solid rgba(36,40,44,.14);background:#fff;border-radius:999px;padding:9px 14px;font:600 14px inherit;font-family:inherit;color:#24282C;cursor:pointer}
+.so-chip{border:1.5px solid rgba(36,40,44,.14);background:#fff;border-radius:999px;padding:9px 14px;font-weight:600;font-size:14px;font-family:inherit;color:#24282C;cursor:pointer}
 .so-chip.on{background:#24282C;border-color:#24282C;color:#fff}
 .so-teacher{display:flex;gap:12px;align-items:center;padding:16px;border-radius:18px;background:#F4F9DD;border:1px solid rgba(160,200,40,.4);margin-bottom:12px}
 .so-teacher b{font-size:28px;letter-spacing:-.02em}
 .so-nav{display:flex;align-items:center;gap:10px;margin-top:22px}
-.so-back{border:0;background:transparent;color:#5D614B;font:600 14px inherit;font-family:inherit;cursor:pointer;padding:10px 4px}
-.so-skip{border:0;background:transparent;color:#7A7E68;font:500 13px inherit;font-family:inherit;text-decoration:underline;cursor:pointer;padding:10px 4px}
-.so-next{margin-left:auto;height:48px;padding:0 24px;border:0;border-radius:14px;background:#24282C;color:#fff;font:650 15px inherit;font-family:inherit;cursor:pointer}
-.so-next:disabled{opacity:.35;cursor:default}
+.so-back{border:0;background:transparent;color:#5D614B;font-weight:600;font-size:14px;font-family:inherit;cursor:pointer;padding:10px 4px}
+.so-skip{border:0;background:transparent;color:#5D614B;font-weight:500;font-size:13px;font-family:inherit;text-decoration:underline;cursor:pointer;padding:10px 4px}
+.so-next{margin-left:auto;height:48px;padding:0 24px;border:0;border-radius:14px;background:#24282C;color:#fff;font-weight:650;font-size:15px;font-family:inherit;cursor:pointer}
+.so-next:disabled{background:#E4E5DD;color:#6B6E60;cursor:default} /* was faded to .35: white on grey, 3.1:1 */
 .so-next.lime{background:#CDF649;color:#24282C;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 24px -12px rgba(140,180,20,.8)}
 .so-err{color:#B3261E;font-size:13px;margin-top:10px;min-height:16px}
 /* tour */
@@ -78,7 +78,7 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-tip p{margin:0;font-size:13.5px;line-height:1.45;color:#5D614B}
 .so-tip-nav{display:flex;align-items:center;gap:8px;margin-top:12px}
 .so-tip-nav span{font-size:12px;color:#7A7E68}
-.so-tip-nav button{margin-left:auto;height:38px;padding:0 16px;border:0;border-radius:12px;background:#24282C;color:#fff;font:650 13.5px inherit;font-family:inherit;cursor:pointer}
+.so-tip-nav button{margin-left:auto;height:38px;padding:0 16px;border:0;border-radius:12px;background:#24282C;color:#fff;font-weight:650;font-size:13.5px;font-family:inherit;cursor:pointer}
 /* first win */
 .so-win{text-align:center}
 .so-win .so-flame{font-size:56px;line-height:1;margin:6px 0 10px;filter:drop-shadow(0 8px 24px rgba(205,246,73,.6))}
@@ -93,8 +93,8 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-noteacher b{display:block;font-size:15px}
 .so-noteacher span{font-size:13px;color:#5D614B}
 .so-noteacher form{display:flex;gap:8px;flex:1 1 320px}
-.so-noteacher input{flex:1;min-width:0;height:42px;border:1px solid rgba(36,40,44,.14);border-radius:12px;padding:0 12px;font:500 14px inherit;font-family:inherit;background:#F4F5F0}
-.so-noteacher button{height:42px;padding:0 16px;border:0;border-radius:12px;background:#24282C;color:#fff;font:650 14px inherit;font-family:inherit;cursor:pointer}
+.so-noteacher input{flex:1;min-width:0;height:42px;border:1px solid rgba(36,40,44,.14);border-radius:12px;padding:0 12px;font-weight:500;font-size:14px;font-family:inherit;background:#F4F5F0}
+.so-noteacher button{height:42px;padding:0 16px;border:0;border-radius:12px;background:#24282C;color:#fff;font-weight:650;font-size:14px;font-family:inherit;cursor:pointer}
 @media (max-width:560px){
   .so-card{padding:22px 18px 18px;border-radius:24px}
   .so-plates{grid-template-columns:1fr}

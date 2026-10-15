@@ -79,7 +79,9 @@ body.fx #menubar .mb-item.fx-active {
   background:var(--fx-lime) !important; color:var(--fx-ink) !important; font-weight:650 !important;
 }
 body.fx #menubar .mb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
-body.fx #menubar .mb-icon { color:var(--fx-ink) !important; opacity:.75; }
+/* the fade is on the glyph only: on the button it also faded the unread count (3.3:1) */
+body.fx #menubar .mb-icon { color:var(--fx-ink) !important; }
+body.fx #menubar .mb-icon > .ic { opacity:.75; }
 body.fx #menubar #mb-clock {
   color:var(--fx-ink) !important; font-size:14px !important; font-weight:500 !important;
   font-family:inherit !important; letter-spacing:-.01em;
@@ -268,7 +270,9 @@ body.fx #wg-streak { top:73px; right:236px; width:200px; }
 body.fx #wg-vocab  { top:73px; right:20px;  width:200px; }
 body.fx .widget { padding:14px !important; }
 
-body.fx .widget .ic { position:absolute; top:18px; right:18px; width:20px; height:20px; opacity:.85; }
+/* only the widget's own corner icon: icons inside its rows (Student pulse
+   actions) stay inline instead of piling up in the corner */
+body.fx .widget > .ic { position:absolute; top:18px; right:18px; width:20px; height:20px; opacity:.85; }
 /* Цифра на кадре ~56px при 1920 - в нашем масштабе 42. */
 /* Вилка весов 400-800 сужена до 500-700 - см. комментарий у .studio-title
    выше про то же самое решение для этого экрана в целом. */

@@ -176,6 +176,31 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.studio-title,
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win :is(.studio-copy, .lib-sub) {
   font-size:14px !important; line-height:1.4 !important; color:#636366 !important; text-transform:none !important; margin:0 !important; max-width:none !important;
+  opacity:1 !important; /* figma-concept faded it to .75: grey at .75 was 3.3:1 */
+}
+/* On a laptop-height screen the boards window stops above Student Pulse and
+   had room for the title block and a sliver of the covers: the one-line
+   description goes, so the first row of boards shows whole. */
+@media (max-height:820px) {
+  html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-copy { display:none !important; }
+}
+
+/* ── Narrow desktop, 861-1199px (iPad landscape, small laptops) ──
+   The dock covered Student Pulse and the boards window covered the lesson
+   cards. The two small cards go (the schedule panel shows the same week and
+   the next class), Pulse takes their place on top of the right column, the
+   schedule panel sits under it, and the boards window opens to the left of
+   the column (fitWidth in desktop-app.js) with its button under the title. */
+@media (min-width:861px) and (max-width:1199px) {
+  html body.fx.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) :is(#wg-today, #wg-week) { display:none !important; }
+  html body.fx.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #wg-pulse {
+    top:73px !important; bottom:auto !important; left:auto !important; right:20px !important; width:var(--rcol) !important;
+  }
+  /* 57 menubar + 73 + 236 Pulse ceiling + 16; stops 125px above the bottom, over the dock */
+  html body.fx:not(#d1):not(#d2):not(#d3):not(#d4) #fx-ghost-panel { top:382px !important; max-height:calc(100vh - 382px - 125px) !important; overflow-y:auto; }
+  html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-hero { grid-template-columns:minmax(0,1fr) !important; }
+  html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .studio-actions { grid-column:1 !important; grid-row:auto !important; margin-top:12px !important; }
+  html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans.win .curr-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)) !important; gap:14px !important; }
 }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .lib-sub { margin-bottom:16px !important; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) .win .studio-actions { grid-column:2; grid-row:1 / span 3; align-self:start; margin:0 !important; display:flex; align-items:center; gap:8px; }

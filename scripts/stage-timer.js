@@ -217,7 +217,7 @@
   border-radius:999px;background:#24282C;color:#fff;font:700 15px/1 var(--font,system-ui,sans-serif);font-variant-numeric:tabular-nums;white-space:nowrap;
   box-shadow:0 6px 18px rgba(24,26,28,.22);transform-origin:center bottom;transform:translateX(-50%) scale(var(--st-inv,1))}
 .st-pill .st-time{min-width:52px}
-.st-pill button{height:26px;min-width:30px;padding:0 7px;border:0;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font:700 12px/1 inherit;font-family:inherit;cursor:pointer}
+.st-pill button{height:26px;min-width:30px;padding:0 7px;border:0;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-weight:700;font-size:12px;line-height:1;font-family:inherit;cursor:pointer}
 .st-pill button:hover{background:rgba(255,255,255,.24)}
 .st-pill.st-warn{background:#FF8C3A;color:#24282C}
 .st-pill.st-warn button{background:rgba(36,40,44,.12);color:#24282C}
@@ -231,10 +231,10 @@
   box-shadow:0 14px 36px rgba(24,26,28,.18);font-family:var(--font,system-ui,sans-serif)}
 .st-menu-h{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5C5C66;margin-bottom:8px}
 .st-menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.st-menu-grid button,.st-menu-own button{height:34px;border:1px solid rgba(36,40,44,.14);border-radius:10px;background:#fff;font:600 13px inherit;font-family:inherit;color:#24282C;cursor:pointer}
+.st-menu-grid button,.st-menu-own button{height:34px;border:1px solid rgba(36,40,44,.14);border-radius:10px;background:#fff;font-weight:600;font-size:13px;font-family:inherit;color:#24282C;cursor:pointer}
 .st-menu-grid button:hover,.st-menu-own button:hover{background:#CDF649;border-color:#24282C}
 .st-menu-own{display:flex;gap:6px;margin-top:8px}
-.st-menu-own input{flex:1;min-width:0;height:34px;border:1px solid rgba(36,40,44,.16);border-radius:10px;padding:0 8px;font:500 13px inherit;font-family:inherit}
+.st-menu-own input{flex:1;min-width:0;height:34px;border:1px solid rgba(36,40,44,.16);border-radius:10px;padding:0 8px;font-weight:500;font-size:13px;font-family:inherit}
 `;
   document.head.appendChild(st);
 
