@@ -738,7 +738,7 @@ const TEACH_FOCUS = ['general', 'business', 'exams', 'kids', 'speaking'];
 // PATCH /api/auth/me - update profile fields
 router.patch('/me', requireAuth, async (req, res) => {
   const { name, avatar, meeting_url, zoom_url, timezone, timezone_mode,
-          teach_levels, teach_focus, reschedule_notice_hours, late_cancel_deduct, onboarded } = req.body;
+          teach_levels, teach_focus, reschedule_notice_hours, late_cancel_deduct, buffer_minutes, onboarded } = req.body;
   const updates = [];
   const params  = [];
 
@@ -794,6 +794,11 @@ router.patch('/me', requireAuth, async (req, res) => {
   if (late_cancel_deduct !== undefined) {
     updates.push(`late_cancel_deduct = $${params.length + 1}`); params.push(late_cancel_deduct === true);
   }
+  if (buffer_minutes !== undefined) {
+    const b = Number(buffer_minutes);
+    if (![0, 5, 10, 15].includes(b)) return res.status(400).json({ error: 'buffer_minutes must be 0, 5, 10 or 15' });
+    updates.push(`buffer_minutes = $${params.length + 1}`); params.push(b);
+  }
   if (onboarded !== undefined) {
     updates.push(onboarded === true ? 'onboarded_at = COALESCE(onboarded_at, NOW())' : 'onboarded_at = NULL');
   }
@@ -805,7 +810,7 @@ router.patch('/me', requireAuth, async (req, res) => {
     const { rows } = await pool.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}
        RETURNING id, email, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source, meeting_url, zoom_url, timezone, timezone_mode,
-                 teach_levels, teach_focus, reschedule_notice_hours, late_cancel_deduct, onboarded_at`,
+                 teach_levels, teach_focus, reschedule_notice_hours, late_cancel_deduct, buffer_minutes, onboarded_at`,
       params
     );
     res.json({ user: rows[0] });

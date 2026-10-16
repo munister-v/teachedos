@@ -346,6 +346,38 @@ router.post('/:id/pack', async (req, res) => {
    trial or make-up lesson held for free (present, charge:false), a late
    cancellation that still counts (cancelled, charge:true). Left out, the
    status decides, as before. */
+/* The outcome of one lesson, inside an open transaction: writes attendance and
+   moves the balance by exactly the difference from what was there before.
+   Used by the teacher's calendar (POST /:id/lesson) and by a student who
+   cancels a lesson from the cabinet (routes/student.js). Returns null when the
+   Journal row is not this teacher's. */
+async function markLesson(client, { journalId, teacherId, date, status, charge = null, slotId = null }) {
+  const { rows: own } = await client.query('SELECT id, lessons_left, is_trial FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [journalId, teacherId]);
+  if (!own.length) return null;
+  const { rows: prevRows } = await client.query('SELECT * FROM attendance WHERE journal_id=$1 AND date=$2 FOR UPDATE', [journalId, date]);
+  const prev = prevRows[0] || null;
+  const wasCharged = wasChargedRow(prev);
+  // a trial student's lessons are free unless the teacher says otherwise
+  const wantCharge = status !== 'reset' && (charge != null ? charge : !own[0].is_trial && CHARGING.has(status));
+  let left = own[0].lessons_left, charged = false, delta = 0;
+  if (wasCharged && !wantCharge) { left += 1; delta = 1; }    // возврат
+  if (wantCharge && !wasCharged) { charged = left > 0; if (charged) { left -= 1; delta = -1; } }
+  else if (wantCharge && wasCharged) charged = true;
+  if (status === 'reset') {
+    if (prev) await client.query('DELETE FROM attendance WHERE id=$1', [prev.id]);
+  } else if (prev) {
+    await client.query('UPDATE attendance SET status=$2, charged=$3, slot_id=COALESCE($4, slot_id) WHERE id=$1', [prev.id, status, charged, slotId]);
+  } else {
+    await client.query(
+      `INSERT INTO attendance (teacher_id, journal_id, date, status, charged, slot_id) VALUES ($1,$2,$3,$4,$5,$6)`,
+      [teacherId, journalId, date, status, charged, slotId]);
+  }
+  await client.query('UPDATE student_journal SET lessons_left=$2 WHERE id=$1', [journalId, left]);
+  await ledger(client, { journalId, teacherId, delta, after: left, reason: delta > 0 ? 'refund' : 'lesson', date, note: status === 'reset' ? 'mark cleared' : status });
+  /* uncharged: the lesson should have cost one but the balance was empty. */
+  return { status: status === 'reset' ? null : status, charged, lessons_left: left, uncharged: wantCharge && !charged };
+}
+
 router.post('/:id/lesson', async (req, res) => {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.date || '')) ? req.body.date : null;
   const status = String(req.body?.status || '');
@@ -354,32 +386,11 @@ router.post('/:id/lesson', async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const { rows: own } = await client.query('SELECT id, lessons_left, is_trial FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [req.params.id, req.user.id]);
-    if (!own.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not found' }); }
-    const slot = /^[0-9a-f-]{36}$/i.test(String(req.body?.slot_id || '')) ? req.body.slot_id : null;
-    const { rows: prevRows } = await client.query('SELECT * FROM attendance WHERE journal_id=$1 AND date=$2 FOR UPDATE', [req.params.id, date]);
-    const prev = prevRows[0] || null;
-    const wasCharged = wasChargedRow(prev);
-    // a trial student's lessons are free unless the teacher says otherwise
-    const wantCharge = status !== 'reset' && (charge != null ? charge : !own[0].is_trial && CHARGING.has(status));
-    let left = own[0].lessons_left, charged = false, delta = 0;
-    if (wasCharged && !wantCharge) { left += 1; delta = 1; }    // возврат
-    if (wantCharge && !wasCharged) { charged = left > 0; if (charged) { left -= 1; delta = -1; } }
-    else if (wantCharge && wasCharged) charged = true;
-    if (status === 'reset') {
-      if (prev) await client.query('DELETE FROM attendance WHERE id=$1', [prev.id]);
-    } else if (prev) {
-      await client.query('UPDATE attendance SET status=$2, charged=$3, slot_id=COALESCE($4, slot_id) WHERE id=$1', [prev.id, status, charged, slot]);
-    } else {
-      await client.query(
-        `INSERT INTO attendance (teacher_id, journal_id, date, status, charged, slot_id) VALUES ($1,$2,$3,$4,$5,$6)`,
-        [req.user.id, req.params.id, date, status, charged, slot]);
-    }
-    await client.query('UPDATE student_journal SET lessons_left=$2 WHERE id=$1', [req.params.id, left]);
-    await ledger(client, { journalId: req.params.id, teacherId: req.user.id, delta, after: left, reason: delta > 0 ? 'refund' : 'lesson', date, note: status === 'reset' ? 'mark cleared' : status });
+    const slotId = /^[0-9a-f-]{36}$/i.test(String(req.body?.slot_id || '')) ? req.body.slot_id : null;
+    const out = await markLesson(client, { journalId: req.params.id, teacherId: req.user.id, date, status, charge, slotId });
+    if (!out) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not found' }); }
     await client.query('COMMIT');
-    /* uncharged: the lesson should have cost one but the balance was empty. */
-    res.json({ ok: true, status: status === 'reset' ? null : status, charged, lessons_left: left, uncharged: wantCharge && !charged });
+    res.json({ ok: true, ...out });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     console.error('[journal/lesson]', err.message);
@@ -719,4 +730,5 @@ module.exports = router;
 module.exports._test = { plannedDates, unmarkedDates, wasChargedRow };
 // the group lesson message (routes/schedule.js) goes out the same way
 module.exports.deliverToStudent = deliverToStudent;
+module.exports.markLesson = markLesson;
 module.exports.validEmail = validEmail;

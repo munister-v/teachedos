@@ -1068,3 +1068,9 @@ CREATE TABLE IF NOT EXISTS schedule_members (
   PRIMARY KEY (schedule_id, journal_id)
 );
 CREATE INDEX IF NOT EXISTS idx_schedule_members_journal ON schedule_members(journal_id);
+
+-- ── Breaks between lessons (16.10.2026) ────────────────────────────────────
+-- buffer_minutes: the teacher's rest after every lesson (0, 5, 10 or 15). The
+-- week grid draws it as "10m Rest"; booking never offers a start inside it
+-- (a lesson 11:00-12:00 with 10 min → the next bookable start is 12:10).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS buffer_minutes SMALLINT NOT NULL DEFAULT 0;

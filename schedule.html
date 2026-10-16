@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1180"></script>
-<link rel="manifest" href="manifest.json?v=1180">
+<script src="scripts/phone-gate.js?v=1181"></script>
+<link rel="manifest" href="manifest.json?v=1181">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
-<link rel="icon" href="favicon.ico?v=1180" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1180">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1180">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1180">
+<link rel="icon" href="favicon.ico?v=1181" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1181">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1181">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1181">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1180">
-<link rel="preload" as="style" href="styles/unify.css?v=1180">
+<link rel="preload" as="style" href="styles/harmony.css?v=1181">
+<link rel="preload" as="style" href="styles/unify.css?v=1181">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -471,10 +471,10 @@ a{text-decoration:none;color:inherit;}
 .lesson-done button.main{background:#CDF649;color:#24282C}
 .lesson-done button:hover{filter:brightness(1.12)}
 </style>
-<script src="theme.js?v=1180" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1180">
-<link rel="stylesheet" href="styles/harmony.css?v=1180">
-<link rel="stylesheet" href="styles/unify.css?v=1180">
+<script src="theme.js?v=1181" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1181">
+<link rel="stylesheet" href="styles/harmony.css?v=1181">
+<link rel="stylesheet" href="styles/unify.css?v=1181">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -506,23 +506,23 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1180">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1180">
-<link rel="stylesheet" href="styles/tool-window.css?v=1180">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1181">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1181">
+<link rel="stylesheet" href="styles/tool-window.css?v=1181">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1180">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1180">
-<link rel="stylesheet" href="styles/controls.css?v=1180">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=1180">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1181">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1181">
+<link rel="stylesheet" href="styles/controls.css?v=1181">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=1181">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1180">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1180">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1180">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1180">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1180">
-<link rel="stylesheet" href="styles/toast.css?v=1180">
+<link rel="stylesheet" href="styles/polish.css?v=1181">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1181">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1181">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1181">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1181">
+<link rel="stylesheet" href="styles/toast.css?v=1181">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1180">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1181">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -549,7 +549,7 @@ a{text-decoration:none;color:inherit;}
 
 <!-- Navbar -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1180" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1181" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -621,41 +621,33 @@ a{text-decoration:none;color:inherit;}
       <button class="wn-today" onclick="goToday()">Today</button>
     </div>
 
-    <!-- Up Next focus card -->
-    <div class="up-next-wrap desktop-schedule-only" id="up-next-wrap"></div>
-
-    <div class="week-brief-wrap desktop-schedule-only" id="week-brief-wrap" aria-live="polite"></div>
-
-    <div class="side-section side-section-actions desktop-schedule-only" style="display:flex;flex-direction:column;gap:8px;">
+    <!-- The left panel is two things now (16.10.2026): the main action and
+         finding a free window. Up next, the week's load, balances, the list of
+         all classes and the time-zone card are on the desktop widgets or in
+         the profile; the grid already draws every class. Their containers stay
+         below, hidden: the page's code still writes into them by id. -->
+    <div class="side-section side-section-actions desktop-schedule-only">
       <button class="btn-add" onclick="openModal()">＋ Add Class</button>
-      <div class="schedule-secondary-actions">
-        <button class="btn-add" onclick="exportICS()" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:11px;">Export</button>
-        <button class="btn-add" onclick="location.href='board.html'" style="background:transparent;color:var(--text2);border:1.5px solid var(--border);font-size:11px;">Open board</button>
+    </div>
+    <div class="side-section side-find desktop-schedule-only">
+      <div class="side-label">Find open slot</div>
+      <div class="sf-row">
+        <select id="sf-dur" class="sf-dur" aria-label="Length of the window">
+          <option value="60" selected>60 min</option><option value="45">45 min</option><option value="90">90 min</option>
+        </select>
+        <button type="button" class="sf-go" onclick="findScheduleGap(Number(document.getElementById('sf-dur').value) || 60)">Find</button>
       </div>
+      <p class="sf-hint">Free windows of the week light up. Click the ones to offer - one button sends them to the student.</p>
     </div>
 
-    <div class="side-section desktop-schedule-only" id="bal-section" hidden>
-      <div class="bal-head"><div class="side-label">Lesson balances</div><button type="button" class="bal-link" onclick="editPayDetails()" title="What your students see when it is time to pay">Payment details</button></div>
-      <div id="bal-list"></div>
-      <form class="bal-add" onsubmit="addStudentQuick(event)" title="Not on the platform yet? Add them now - lessons are counted from today">
-        <input id="bal-new-name" placeholder="＋ New student's name" maxlength="80" aria-label="New student's name">
-        <input id="bal-new-n" type="number" min="0" max="200" value="8" aria-label="Lessons already paid for" title="Lessons already paid for">
-        <button type="submit">Add</button>
-      </form>
-    </div>
-
-    <div class="side-section desktop-schedule-only" style="flex:1">
-      <div class="side-label">All Classes</div>
+    <div class="side-retired" hidden aria-hidden="true">
+      <div id="up-next-wrap"></div>
+      <div id="week-brief-wrap"></div>
+      <div id="bal-section" hidden><div id="bal-list"></div>
+        <input id="bal-new-name"><input id="bal-new-n" type="number" value="8"></div>
       <div id="cls-list"></div>
-    </div>
-    <div class="side-section desktop-schedule-only">
-      <div class="side-label">Time Zone</div>
-      <div class="stat-pill" style="text-align:left;padding:12px 14px;">
-        <div style="font-size:12px;font-weight:650;color:var(--text);" id="tz-schedule-zone">-</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="tz-schedule-now">-</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.45;" id="tz-schedule-note">Students in other countries will see lesson times in their local timezone.</div>
-      </div>
-      <div id="tz-student-zones" style="margin-top:8px;display:none;"></div>
+      <div id="tz-schedule-zone"></div><div id="tz-schedule-now"></div><div id="tz-schedule-note"></div>
+      <div id="tz-student-zones"></div>
     </div>
 
   </div>
@@ -673,6 +665,18 @@ a{text-decoration:none;color:inherit;}
       </div>
       <div class="scb-actions">
         <div class="scb-note">Click empty time to add a class or open it for booking</div>
+        <div class="sc-more">
+          <button type="button" class="sc-more-btn" id="sc-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More">⋯</button>
+          <div class="sc-more-menu" id="sc-more-menu" role="menu" hidden>
+            <button type="button" role="menuitem" onclick="exportICS()">Export to calendar (.ics)</button>
+            <button type="button" role="menuitem" onclick="location.href='board.html'">Open board</button>
+            <div class="sc-more-sep"></div>
+            <div class="sc-more-label">Break after each lesson</div>
+            <div class="sc-more-seg" id="sc-buffer" role="radiogroup" aria-label="Break after each lesson">
+              <button type="button" data-b="0">None</button><button type="button" data-b="5">5 min</button><button type="button" data-b="10">10 min</button><button type="button" data-b="15">15 min</button>
+            </div>
+          </div>
+        </div>
         <button type="button" class="bk-share-btn" onclick="bkShare()">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
           Share booking link
@@ -834,7 +838,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=1180"></script>
+<script src="scripts/app-core.js?v=1181"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -1223,6 +1227,7 @@ async function init() {
 // the package. Data lives in the Journal (student_journal / attendance).
 let journalStudents = [];
 let lessonStatus = {};            // `${journalId}|${YYYY-MM-DD}` -> present | cancelled | no_show
+let lessonCharged = {};           // the same key -> true when that lesson took one off the balance (late cancellation)
 const LESSON_LABEL = { present: 'Completed', cancelled: 'Cancelled', no_show: 'No-show' };
 const dismissedLessons = new Set();
 
@@ -1258,7 +1263,8 @@ async function loadLessonStatuses() {
   try {
     const d = await apiFetch(`/api/journal/sessions?from=${days[0]}&to=${days[2]}`);
     lessonStatus = {};
-    (d.sessions || []).forEach(x => { lessonStatus[`${x.journal_id}|${x.date}`] = x.status; });
+    lessonCharged = {};
+    (d.sessions || []).forEach(x => { lessonStatus[`${x.journal_id}|${x.date}`] = x.status; if (x.charged) lessonCharged[`${x.journal_id}|${x.date}`] = true; });
     renderGrid();
     checkFinishedLessons();
   } catch {}
@@ -2533,17 +2539,18 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="scripts/schedule-booking.js?v=1180"></script>
-<script src="scripts/schedule-plus.js?v=1180"></script>
-<script src="pwa.js?v=1180"></script>
-<script src="scripts/nav-boost.js?v=1180" defer></script>
-<script src="scripts/mobile-perf.js?v=1180" defer></script>
-<script src="scripts/mobile-nav.js?v=1180"></script>
-<script src="scripts/autogrow.js?v=1180" defer></script>
-<script src="pwa-boot.js?v=1180" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1180" defer></script>
-  <script src="scripts/signin-entry.js?v=1180" defer></script>
-<script src="scripts/nav-bell.js?v=1180" defer></script>
+<script src="scripts/schedule-booking.js?v=1181"></script>
+<script src="scripts/schedule-plus.js?v=1181"></script>
+<script src="scripts/schedule-calm.js?v=1181"></script>
+<script src="pwa.js?v=1181"></script>
+<script src="scripts/nav-boost.js?v=1181" defer></script>
+<script src="scripts/mobile-perf.js?v=1181" defer></script>
+<script src="scripts/mobile-nav.js?v=1181"></script>
+<script src="scripts/autogrow.js?v=1181" defer></script>
+<script src="pwa-boot.js?v=1181" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1181" defer></script>
+  <script src="scripts/signin-entry.js?v=1181" defer></script>
+<script src="scripts/nav-bell.js?v=1181" defer></script>
 <div class="lesson-done" id="lesson-done" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

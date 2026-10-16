@@ -89,7 +89,51 @@ function buildUpcomingSlot(slot, now = new Date()) {
     teacher_timezone: teacherTimeZone,
     start_at: startAt.toISOString(),
     end_at: endAt.toISOString(),
+    date: localDate,
   };
+}
+
+/* ── The student's own lessons ─────────────────────────────────────────
+   A teacher's schedule holds every student's lessons. A slot is this
+   student's when it is tied to one of their Journal rows (journal_id or the
+   group's schedule_members), was booked with their email, or sits on a board
+   they are on. Until 16.10.2026 the cabinet showed every slot of the teacher,
+   other students' lessons included. A student whose teacher never linked a
+   lesson still sees the unlinked ones (no student, no group, no booking). */
+async function studentLessonContext(user) {
+  const { rows: journals } = await pool.query(
+    `SELECT id, teacher_id FROM student_journal WHERE student_id = $1 OR ($2::text <> '' AND lower(email) = lower($2))`,
+    [user.id, user.email || '']);
+  const { rows: boards } = await pool.query('SELECT board_id::text AS id FROM board_collaborators WHERE user_id = $1', [user.id]);
+  return { journalIds: new Set(journals.map(j => String(j.id))), boardIds: new Set(boards.map(b => b.id)), email: String(user.email || '').toLowerCase() };
+}
+const SLOT_FIELDS = `s.id, s.user_id, s.day, s.start_time, s.end_time, s.title, s.group_name, s.level, s.room,
+       s.color, s.recurring, to_char(s.specific_date, 'YYYY-MM-DD') AS specific_date, COALESCE(s.meeting_url, u.meeting_url) AS meeting_url,
+       s.is_live, s.board_id, s.journal_id, s.booked_by_email,
+       (SELECT array_agg(m.journal_id::text) FROM schedule_members m WHERE m.schedule_id = s.id) AS member_ids,
+       u.name AS teacher_name, u.avatar AS teacher_avatar, u.timezone AS teacher_timezone,
+       u.reschedule_notice_hours, u.late_cancel_deduct`;
+// which of this student's Journal rows the slot belongs to (null: not a Journal lesson)
+function slotJournalFor(slot, ctx) {
+  if (slot.journal_id && ctx.journalIds.has(String(slot.journal_id))) return String(slot.journal_id);
+  const m = (slot.member_ids || []).find(id => ctx.journalIds.has(String(id)));
+  return m || null;
+}
+function isMine(slot, ctx) {
+  return !!slotJournalFor(slot, ctx)
+    || (!!slot.booked_by_email && String(slot.booked_by_email).toLowerCase() === ctx.email)
+    || (!!slot.board_id && ctx.boardIds.has(String(slot.board_id)));
+}
+const isUnlinked = s => !s.journal_id && !(s.member_ids && s.member_ids.length) && !s.booked_by_email && !s.board_id;
+// the next occurrence that this student has not cancelled (a weekly slot moves on a week)
+function nextOpenOccurrence(slot, journalId, cancelled, now = new Date()) {
+  let occ = buildUpcomingSlot(slot, now);
+  for (let k = 0; occ && k < 6; k++) {
+    if (!journalId || !cancelled.has(`${journalId}|${occ.date}`)) return occ;
+    if (slot.specific_date) return null;
+    occ = buildUpcomingSlot(slot, new Date(new Date(occ.end_at).getTime() + 60000));
+  }
+  return null;
 }
 
 // GET /api/student/vapid-public-key
@@ -422,19 +466,33 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     let schedule = [];
     try {
       const { rows: sch } = await pool.query(`
-        SELECT s.id, s.user_id, s.day, s.start_time, s.end_time, s.title, s.group_name, s.level, s.room,
-               s.color, s.recurring, to_char(s.specific_date, 'YYYY-MM-DD') AS specific_date, COALESCE(s.meeting_url, u.meeting_url) AS meeting_url, s.is_live, s.board_id,
-               u.name AS teacher_name, u.avatar AS teacher_avatar, u.timezone AS teacher_timezone
+        SELECT ${SLOT_FIELDS}
         FROM schedule s
         JOIN users u ON u.id = s.user_id
         WHERE s.user_id IN (
           SELECT DISTINCT b.user_id FROM board_collaborators bc
           JOIN boards b ON b.id = bc.board_id
           WHERE bc.user_id = $1
+          UNION SELECT teacher_id FROM student_journal WHERE student_id = $1 OR ($2::text <> '' AND lower(email) = lower($2))
         )
-      `, [req.user.id]);
-      schedule = sch
-        .map(slot => buildUpcomingSlot(slot))
+      `, [req.user.id, req.user.email || '']);
+      const ctx = await studentLessonContext(req.user);
+      const mine = sch.filter(s => isMine(s, ctx));
+      const pool_ = mine.length ? mine : sch.filter(isUnlinked);
+      const { rows: cx } = ctx.journalIds.size ? await pool.query(
+        `SELECT journal_id::text AS j, to_char(date, 'YYYY-MM-DD') AS d FROM attendance
+          WHERE journal_id = ANY($1::uuid[]) AND status = 'cancelled' AND date >= CURRENT_DATE - 1`, [[...ctx.journalIds]]) : { rows: [] };
+      const cancelled = new Set(cx.map(r => `${r.j}|${r.d}`));
+      schedule = pool_
+        .map(slot => {
+          const jid = slotJournalFor(slot, ctx);
+          const occ = nextOpenOccurrence(slot, jid, cancelled);
+          if (!occ) return null;
+          const own = isMine(slot, ctx);
+          const { member_ids, booked_by_email, journal_id, reschedule_notice_hours, late_cancel_deduct, ...pub } = occ;
+          return { ...pub, can_cancel: own && (!!jid || !!booked_by_email && !!slot.specific_date),
+                   policy: { notice_hours: reschedule_notice_hours ?? 24, late_counts: !!late_cancel_deduct } };
+        })
         .filter(Boolean)
         .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
         .slice(0, 5);
@@ -577,6 +635,60 @@ router.get('/progress', requireAuth, async (req, res) => {
     console.error('[student/progress]', err.message);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+/* POST /api/student/lessons/:slotId/cancel {start_at}
+   The student cancels one coming lesson from the cabinet. The teacher's policy
+   decides (users.reschedule_notice_hours, late_cancel_deduct): later than the
+   notice it is a "Late cancellation", charged when the teacher counts late
+   cancellations. The lesson is written to attendance as 'cancelled' (the
+   same as the teacher marking it, routes/journal.js markLesson), so the
+   balance and its history follow, booking offers that time again, and the
+   teacher gets a notification. A lesson booked through the link without a
+   Journal row is a one-off: it is removed. In a group, only this student is
+   marked; the lesson stays for the others. */
+router.post('/lessons/:slotId/cancel', requireAuth, async (req, res) => {
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.slotId)) return res.status(404).json({ error: 'Lesson not found' });
+  const client = await pool.connect();
+  try {
+    const { rows: [slot] } = await client.query(
+      `SELECT ${SLOT_FIELDS} FROM schedule s JOIN users u ON u.id = s.user_id WHERE s.id = $1`, [req.params.slotId]);
+    const ctx = await studentLessonContext(req.user);
+    if (!slot || !isMine(slot, ctx)) return res.status(404).json({ error: 'Lesson not found' });
+    const jid = slotJournalFor(slot, ctx);
+    const booked = !jid && !!slot.booked_by_email && String(slot.booked_by_email).toLowerCase() === ctx.email && !!slot.specific_date;
+    if (!jid && !booked) return res.status(409).json({ error: 'Ask your teacher to cancel this lesson' });
+    // the occurrence the student means: the next ones, matched by start
+    const want = String(req.body?.start_at || '');
+    let occ = buildUpcomingSlot(slot);
+    for (let k = 0; occ && k < 6 && want && occ.start_at !== want; k++) {
+      occ = slot.specific_date ? null : buildUpcomingSlot(slot, new Date(new Date(occ.end_at).getTime() + 60000));
+    }
+    if (!occ) return res.status(404).json({ error: 'This lesson is not coming up' });
+    const hoursLeft = (new Date(occ.start_at).getTime() - Date.now()) / 3600000;
+    if (hoursLeft <= 0) return res.status(409).json({ error: 'The lesson has already started' });
+    const notice = Number(slot.reschedule_notice_hours ?? 24);
+    const late = hoursLeft < notice;
+    const charge = late && !!slot.late_cancel_deduct;
+    await client.query('BEGIN');
+    let out = { charged: false, lessons_left: null };
+    if (jid) {
+      out = await require('./journal').markLesson(client, { journalId: jid, teacherId: slot.user_id, date: occ.date, status: 'cancelled', charge, slotId: slot.id });
+      if (!out) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Lesson not found' }); }
+    } else {
+      await client.query('DELETE FROM schedule WHERE id = $1', [slot.id]);
+    }
+    await client.query('COMMIT');
+    const when = new Date(occ.start_at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: slot.teacher_timezone || 'Europe/Kyiv' });
+    const what = !late ? 'in time - not charged' : out.charged ? 'late - charged as a lesson' : charge ? 'late - the balance was already 0' : 'late - not charged (your policy)';
+    require('./notifications').createNotification(slot.user_id, 'schedule', `${req.user.name || 'A student'} cancelled ${when}`,
+      `${slot.title || 'Lesson'}: cancelled ${what}. The time is open for booking again.`, 'schedule.html').catch(() => {});
+    res.json({ ok: true, late, charged: !!out.charged, lessons_left: out.lessons_left, date: occ.date, notice_hours: notice });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[student] cancel lesson:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  } finally { client.release(); }
 });
 
 module.exports = router;

@@ -49,42 +49,56 @@ function addDays(date, n) {
 const weekdayOf = date => { const [y, m, d] = date.split('-').map(Number); return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; };
 
 /* Free bookable starts per date: open blocks cut into lesson-length pieces,
-   minus classes already on that date and busy blocks, minus the past. */
+   minus classes already on that date and busy blocks, minus the past.
+   The teacher's break (users.buffer_minutes) keeps a rest after and before
+   every class: with 10 min, a class 11:00-12:00 makes 12:10 the next start
+   (and 10:00 is gone: it would end inside the rest before 11:00). A class
+   that was cancelled for that date (attendance 'cancelled', e.g. the student
+   cancelled from the cabinet) no longer takes its time - it is open again. */
 async function freeSlots(teacher) {
-  const [{ rows: blocks }, { rows: lessons }] = await Promise.all([
+  const [{ rows: blocks }, { rows: lessons }, { rows: cancelled }] = await Promise.all([
     pool.query('SELECT day, start_time, end_time, kind FROM schedule_blocks WHERE user_id=$1', [teacher.id]),
-    pool.query(`SELECT day, start_time, end_time, to_char(specific_date,'YYYY-MM-DD') AS specific_date
+    pool.query(`SELECT id, journal_id, day, start_time, end_time, to_char(specific_date,'YYYY-MM-DD') AS specific_date
                   FROM schedule WHERE user_id=$1`, [teacher.id]),
+    pool.query(`SELECT slot_id, journal_id, to_char(date,'YYYY-MM-DD') AS date FROM attendance
+                 WHERE teacher_id=$1 AND status='cancelled' AND date >= CURRENT_DATE - 1 AND date <= CURRENT_DATE + $2::int`, [teacher.id, DAYS_AHEAD + 1]),
   ]);
   const len = Math.min(180, Math.max(30, Number(teacher.booking_minutes) || 60));
+  const buffer = Math.max(0, Math.min(30, Number(teacher.buffer_minutes) || 0));
+  // only a one-student lesson is freed: a group lesson goes on for the others
+  const isCancelled = (l, date) => !!l.journal_id && cancelled.some(c => c.date === date && String(c.journal_id) === String(l.journal_id));
   const now = nowIn(teacher.timezone);
   const days = [];
   for (let i = 0; i < DAYS_AHEAD; i++) {
     const date = addDays(now.date, i);
     const wd = weekdayOf(date);
     const taken = [
-      ...lessons.filter(l => (l.specific_date ? l.specific_date === date : l.day === wd))
-        .map(l => { const s = toMin(l.start_time); let e = toMin(l.end_time); if (e <= s) e += 1440; return [s, e]; }),
+      ...lessons.filter(l => (l.specific_date ? l.specific_date === date : l.day === wd) && !isCancelled(l, date))
+        .map(l => { const s = toMin(l.start_time); let e = toMin(l.end_time); if (e <= s) e += 1440; return [s - buffer, e + buffer]; }),
       ...blocks.filter(b => b.kind === 'busy' && b.day === wd).map(b => [toMin(b.start_time), toMin(b.end_time)]),
     ];
     const slots = [];
     blocks.filter(b => b.kind === 'open' && b.day === wd).forEach(b => {
       const end = toMin(b.end_time);
-      for (let s = toMin(b.start_time); s + len <= end; s += len) {
-        if (i === 0 && s < now.minute + MIN_NOTICE_MIN) continue;
-        if (taken.some(([a, z]) => overlaps(s, s + len, a, z))) continue;
-        slots.push(fmt(s));
+      let s = toMin(b.start_time);
+      while (s + len <= end) {
+        const free = !(i === 0 && s < now.minute + MIN_NOTICE_MIN) && !taken.some(([a, z]) => overlaps(s, s + len, a, z));
+        // offers stay on the lesson grid; the break appears once one of them is booked
+        if (free) { slots.push(fmt(s)); s += len; continue; }
+        // blocked: try the first start after whatever is in the way
+        const block = taken.filter(([a, z]) => overlaps(s, s + len, a, z)).reduce((m, [, z]) => Math.max(m, z), s + 5);
+        s = Math.max(s + 5, Math.ceil(block / 5) * 5);
       }
     });
     if (slots.length) days.push({ date, weekday: wd, slots: [...new Set(slots)].sort() });
   }
-  return { days, minutes: len };
+  return { days, minutes: len, buffer };
 }
 
 async function teacherByToken(token) {
   if (!TOKEN_RE.test(String(token || ''))) return null;
   const { rows } = await pool.query(
-    `SELECT id, name, email, avatar, timezone, booking_minutes, reschedule_notice_hours, late_cancel_deduct FROM users WHERE booking_token=$1`, [token]);
+    `SELECT id, name, email, avatar, timezone, booking_minutes, buffer_minutes, reschedule_notice_hours, late_cancel_deduct FROM users WHERE booking_token=$1`, [token]);
   return rows[0] || null;
 }
 

@@ -135,7 +135,7 @@
       : board ? `<a class="te-join" href="${esc(boardHref)}">Open the board →</a>` : '';
     box.innerHTML = `<div class="te-k">${bal.trial ? 'Your free trial lesson' : 'Next lesson'}</div><div class="te-big">${esc(day)}, ${esc(time)}</div>
       <div class="te-count-big">${esc(count)}</div>
-      <div class="te-sub">${teacher ? `with ${esc(teacher)}${up.s.title ? ' · ' : ''}` : ''}${esc(up.s.title || up.s.topic || (teacher ? '' : 'Lesson'))}</div>${join}`;
+      <div class="te-sub">${teacher ? `with ${esc(teacher)}${up.s.title ? ' · ' : ''}` : ''}${esc(up.s.title || up.s.topic || (teacher ? '' : 'Lesson'))}</div>${join}${cancelBlock(up)}`;
     const both = box.querySelector('.te-join[data-meet]');
     if (both) both.addEventListener('click', e => {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
@@ -144,6 +144,50 @@
       location.href = both.getAttribute('href');
     });
   }
+
+  /* The student can cancel the next lesson themselves (16.10.2026). The
+     teacher's rule is said before they confirm: in time it is free; later than
+     the notice it is a late cancellation, and when the teacher counts those it
+     comes off the package. The teacher gets a notification either way. */
+  let cancelAsk = null;   // start_at of the lesson the student is about to cancel
+  function cancelBlock(up) {
+    if (!up.s.can_cancel || up.t <= Date.now()) return '';
+    const p = up.s.policy || {};
+    const notice = Number(p.notice_hours) || 24;
+    const late = (up.t - Date.now()) / 36e5 < notice;
+    if (cancelAsk !== up.s.start_at) return '<button type="button" class="te-cancel-link" data-cancel-ask>Can\'t make it? Cancel the lesson</button>';
+    const rule = late
+      ? (p.late_counts ? `It is less than ${notice} h before the lesson, so it counts as a late cancellation and <b>1 lesson comes off your package</b>.`
+                       : `It is less than ${notice} h before the lesson - your teacher will see it as a late cancellation, but no lesson comes off your package.`)
+      : `More than ${notice} h ahead - free, nothing comes off your package.`;
+    return `<div class="te-cancel${late && p.late_counts ? ' late' : ''}"><div class="te-cancel-rule">${rule}</div>
+      <div class="te-cancel-btns"><button type="button" class="te-cancel-go" data-cancel-go>Cancel the lesson</button><button type="button" data-cancel-keep>Keep it</button></div></div>`;
+  }
+  document.addEventListener('click', async e => {
+    const t = e.target.closest && e.target.closest('[data-cancel-ask],[data-cancel-keep],[data-cancel-go]');
+    if (!t || !t.closest('#te-next')) return;
+    const up = upcoming();
+    if (!up) return;
+    if (t.hasAttribute('data-cancel-ask')) { cancelAsk = up.s.start_at; return nextLesson(); }
+    if (t.hasAttribute('data-cancel-keep')) { cancelAsk = null; return nextLesson(); }
+    t.disabled = true; t.textContent = 'Cancelling…';
+    try {
+      const r = await window.apiFetch(`/api/student/lessons/${encodeURIComponent(up.s.id)}/cancel`, { method: 'POST', body: { start_at: up.s.start_at } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || 'Could not cancel');
+      cancelAsk = null;
+      scheduleList = scheduleList.filter(x => x !== up.s);
+      if (typeof d.lessons_left === 'number') { bal.jLeft = d.lessons_left; balance(); }
+      nextLesson();
+      const box = $('te-next');
+      if (box) box.insertAdjacentHTML('afterbegin', `<div class="te-cancel-done">${d.charged ? 'Cancelled - it was a late cancellation, 1 lesson came off your package.' : 'Cancelled. Your teacher has been told.'}</div>`);
+      if (typeof window.loadPortalData === 'function') setTimeout(() => window.loadPortalData(), 1500);
+    } catch (err) {
+      t.disabled = false; t.textContent = 'Cancel the lesson';
+      const rule = t.closest('.te-cancel')?.querySelector('.te-cancel-rule');
+      if (rule) rule.textContent = err.message || 'Could not cancel - try again.';
+    }
+  });
 
   /* ── Homework: on top, never hidden under a tab ──────────────────────
      The card follows the homework (scripts/hw-state.js): Start → Continue

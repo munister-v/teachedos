@@ -387,3 +387,13 @@ html body.sw-has:not(#_) .te-card.is-next :is(.te-btn,.te-join){background:#2428
   html body.sw-has:not(#_) :is(.te-card,.te-next-card):not(.is-next){background:rgba(255,255,255,.86) !important}
   html body.sw-has:not(#_) .te-words{background:rgba(27,29,34,.9)}
 }
+/* Cancel the next lesson (16.10.2026): a quiet link, then the teacher's rule and two buttons. */
+.te-cancel-link{margin-top:8px;align-self:center;border:0;background:none;padding:4px 6px;font:inherit;font-size:12.5px;font-weight:600;color:rgba(36,40,44,.58);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.te-cancel-link:hover{color:#24282C}
+.te-cancel{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(36,40,44,.05);font-size:13px;line-height:1.4;color:#24282C}
+.te-cancel.late{background:#FFE9DE}
+.te-cancel-btns{display:flex;gap:6px;margin-top:8px}
+.te-cancel-btns button{flex:1;border:0;border-radius:11px;padding:9px 10px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.85);color:#24282C}
+.te-cancel-btns .te-cancel-go{background:#24282C;color:#fff}
+.te-cancel-btns button:disabled{opacity:.6}
+.te-cancel-done{margin-bottom:8px;padding:8px 10px;border-radius:12px;background:#E3F6C5;color:#3B5A0A;font-size:13px;font-weight:650}
