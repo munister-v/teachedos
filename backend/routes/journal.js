@@ -717,3 +717,6 @@ router.delete('/vocab/:id', async (req, res) => {
 
 module.exports = router;
 module.exports._test = { plannedDates, unmarkedDates, wasChargedRow };
+// the group lesson message (routes/schedule.js) goes out the same way
+module.exports.deliverToStudent = deliverToStudent;
+module.exports.validEmail = validEmail;

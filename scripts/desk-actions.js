@@ -42,12 +42,17 @@
     return s.student_name || g || s.title || 'Class';
   };
   const firstName = n => String(n || '').trim().split(/\s+/)[0] || 'there';
+  /* групповой урок: решает сервер (is_group - есть состав, или название
+     группы, а не имя одного ученика); старый ответ без флага - по названию */
+  const isGroup = s => !!s && (s.is_group != null ? !!s.is_group
+    : Number(s.member_count) > 0 || (!s.journal_id && !!s.group_name && !/^1\s*:\s*1$/.test(String(s.group_name).trim())));
+  const initials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
   const slotDur = s => { const a = toMin(s.start_time); let b = toMin(s.end_time); if (b <= a) b = a + 60; return b - a; };
   const api = (path, opts) => dxJson(path, opts).catch(() => null);
   const refresh = () => { if (typeof loadSchedPreview === 'function') loadSchedPreview(); };
 
   /* ── popover ─────────────────────────────────────────────────────────── */
-  let pop = null;
+  let pop = null, popAnchor = null;
   function close() { if (pop) { pop.remove(); pop = null; } }
   function open(anchor, html, cls) {
     close();
@@ -56,6 +61,16 @@
     pop.setAttribute('role', 'dialog');
     pop.innerHTML = html;
     document.body.appendChild(pop);
+    popAnchor = anchor;
+    place();
+    pop.addEventListener('mousedown', e => e.stopPropagation());
+    pop.addEventListener('click', e => e.stopPropagation());
+    return pop;
+  }
+  // ещё раз после того, как содержимое загрузилось и выросло
+  function place() {
+    if (!pop) return;
+    const anchor = popAnchor && popAnchor.isConnected ? popAnchor : null;
     const r = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
     const w = pop.offsetWidth, h = pop.offsetHeight;
     let x = r ? r.left + r.width / 2 - w / 2 : (innerWidth - w) / 2;
@@ -63,9 +78,6 @@
     if (r && y + h > innerHeight - 12) y = Math.max(12, r.top - h - 8);
     pop.style.left = Math.max(12, Math.min(x, innerWidth - w - 12)) + 'px';
     pop.style.top = Math.max(12, Math.min(y, innerHeight - h - 12)) + 'px';
-    pop.addEventListener('mousedown', e => e.stopPropagation());
-    pop.addEventListener('click', e => e.stopPropagation());
-    return pop;
   }
   document.addEventListener('mousedown', e => { if (pop && !pop.contains(e.target)) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && pop) { e.stopPropagation(); close(); } }, true);
@@ -88,12 +100,21 @@
   }
 
   // null - не просили; false - не дошло (сервер не шлёт два письма одному ученику за 15 с)
-  const toldNote = t => t === true ? ' · student told' : t === false ? ' · the student was NOT told, send a message' : '';
+  const toldNote = t => t === true ? ' · told' : t === false ? ' · NOT told, send a message' : '';
   async function tell(journalId, text) {
     if (!journalId || !text) return true;
     const r = await api(`/api/journal/${encodeURIComponent(journalId)}/message`, { method: 'POST', body: { text } });
     return !!(r && r.ok);
   }
+  // урок группы: одно сообщение всем, кто в составе
+  async function tellSlot(slot, text) {
+    if (slot.journal_id) return tell(slot.journal_id, text);
+    if (!text || !(Number(slot.member_count) > 0)) return true;
+    const r = await api(`/api/schedule/${encodeURIComponent(slot.id)}/message`, { method: 'POST', body: { text } });
+    return !!(r && r.ok);
+  }
+  const canTell = s => !!s.journal_id || Number(s.member_count) > 0;
+  const tellLabel = s => s.journal_id ? 'Tell the student' : 'Tell the group';
   /* PATCH /api/schedule/:id переписывает все поля - шлём слот целиком. */
   const slotBody = (s, patch) => ({
     day: s.day, start_time: String(s.start_time).slice(0, 5), end_time: String(s.end_time).slice(0, 5), title: s.title,
@@ -132,6 +153,177 @@
       text: `Hi ${firstName(whoOf(slot))}! About our lesson ${dayPhrase(ymd)} at ${String(slot.start_time).slice(0, 5)}: ` });
   }
 
+  /* ── group lesson ────────────────────────────────────────────────────── */
+  /* The group's name opens its students (GET /api/schedule/:id/members):
+     package left, payment, homework, and a message to one or to everyone.
+     A group nobody has filled in yet suggests the students already on the
+     lesson's board; "Edit students" ticks anyone from the Journal. */
+  const pkgChip = m => {
+    const left = Number(m.lessons_left) || 0;
+    if (m.is_trial && left <= 0) return '<i class="dk-chip is-info">trial</i>';
+    return `<i class="dk-chip ${left <= 0 ? 'is-bad' : left <= 2 ? 'is-warn' : 'is-ok'}" title="Lessons left in the package">${left} left</i>`;
+  };
+  const payChip = m => m.paid_claim_at ? '<i class="dk-chip is-ok" title="The student says they paid">says paid</i>'
+    : m.payment_due && m.overdue_days > 0 ? `<i class="dk-chip is-bad" title="Payment was due ${esc(m.payment_due)}">pay ${m.overdue_days} d late</i>` : '';
+  const hwChip = m => [
+    m.hw_review ? `<i class="dk-chip is-info" title="Handed in, waiting for your review">${m.hw_review} to review</i>` : '',
+    m.hw_late ? `<i class="dk-chip is-warn" title="Homework past its due date">${m.hw_late} HW late</i>` : '',
+    m.hw_todo - m.hw_late > 0 ? `<i class="dk-chip" title="Homework not handed in yet">${m.hw_todo - m.hw_late} HW to do</i>` : '',
+  ].join('');
+  const avOf = m => m.avatar && !/^https?:/.test(m.avatar) ? esc(m.avatar) : esc(initials(m.name));
+
+  // карточку группы перерисовываем на месте: состав, правка, ошибка
+  function groupHead(slot, ymd, n) {
+    return `<div class="dk-person"><span class="dk-av is-group">${esc(initials(whoOf(slot)))}</span>
+      <div><b>${esc(whoOf(slot))}</b><small>${esc(dayLabel(ymd))} · ${esc(String(slot.start_time).slice(0, 5))} · ${slotDur(slot)} min${slot.level ? ' · ' + esc(slot.level) : ''}${n != null ? ` · ${n} ${n === 1 ? 'student' : 'students'}` : ''}</small></div></div>`;
+  }
+  async function group(slot, ymd, anchor) {
+    const p = open(anchor, `${groupHead(slot, ymd)}<p class="dk-sub">Loading the group…</p>`, 'is-group');
+    const r = await api(`/api/schedule/${encodeURIComponent(slot.id)}/members`);
+    if (!pop || pop !== p) return;
+    if (!r || !r.ok) { p.innerHTML = `${groupHead(slot, ymd)}<p class="dk-warn">The group could not be loaded. Try again.</p>`; place(); return; }
+    groupView(p, slot, ymd, r.data.members || [], r.data.suggested || []);
+  }
+  function groupView(p, slot, ymd, members, suggested) {
+    slot.member_count = members.filter(m => !m.is_slot_student).length;
+    const rows = members.map(m => `<div class="dk-mem" data-j="${esc(m.journal_id)}">
+        <span class="dk-av sm">${avOf(m)}</span>
+        <div class="dk-mem-txt"><b>${esc(m.name)}${m.level ? ` <small>${esc(m.level)}</small>` : ''}</b>
+          <span class="dk-chips-s">${pkgChip(m)}${payChip(m)}${hwChip(m)}${!m.registered && !m.email ? '<i class="dk-chip" title="Not on TeachEd and no email in the Journal">can\'t be messaged</i>' : ''}</span></div>
+        <button type="button" class="sp-act" data-k="one" title="Message ${esc(m.name)}" aria-label="Message ${esc(m.name)}">💬</button>
+      </div>`).join('');
+    const sug = suggested.length ? `<div class="dk-sug"><span>On the lesson board: ${suggested.slice(0, 4).map(x => esc(x.name)).join(', ')}${suggested.length > 4 ? ` +${suggested.length - 4}` : ''}</span>
+        <button type="button" class="dk-link" data-k="addsug">Add ${suggested.length === 1 ? 'them' : 'all'}</button></div>` : '';
+    p.innerHTML = `${groupHead(slot, ymd, members.length)}
+      ${members.length ? `<div class="dk-mems">${rows}</div>` : '<p class="dk-sub dk-empty">No students in this group yet. Choose who comes to it, and you will see their package, payment and homework here.</p>'}
+      ${sug}
+      <div class="dk-list">
+        ${members.length ? `<button type="button" data-k="all">💬 Message the group (${members.length})</button>` : ''}
+        <button type="button" data-k="edit">👥 ${members.length ? 'Edit students' : 'Choose students'}</button>
+        ${slot.board_id ? '<button type="button" data-k="board">▦ Open the lesson board</button>' : ''}
+        <button type="button" data-k="move">✏️ Move this lesson</button>
+        <button type="button" data-k="cancel">✕ Cancel this lesson</button>
+      </div>`;
+    place();
+    p.onclick = async e => {
+      const b = e.target.closest('[data-k]');
+      if (!b) return;
+      const k = b.dataset.k;
+      if (k === 'one') {
+        const m = members.find(x => x.journal_id === b.closest('[data-j]').dataset.j);
+        close();
+        if (m && typeof pulseMessageFor === 'function') pulseMessageFor({ journal_id: m.journal_id, name: m.name, kind: 'lesson',
+          text: `Hi ${firstName(m.name)}! About our group lesson ${dayPhrase(ymd)} at ${String(slot.start_time).slice(0, 5)}: ` });
+        return;
+      }
+      if (k === 'all') return groupMessage(slot, ymd, members);
+      if (k === 'edit') return groupEdit(p, slot, ymd, members, suggested);
+      if (k === 'addsug') {
+        b.disabled = true;
+        const ids = members.filter(m => !m.is_slot_student).map(m => m.journal_id).concat(suggested.map(x => x.journal_id));
+        return saveMembers(p, slot, ymd, ids);
+      }
+      if (k === 'board') { location.href = `board.html?id=${encodeURIComponent(slot.board_id)}`; return; }
+      slotAction(k, slot, ymd, document.querySelector(`#fx-ghost-panel .sp-pill[data-slot="${CSS.escape(slot.id)}"]`) || null);
+    };
+  }
+  async function saveMembers(p, slot, ymd, ids) {
+    const r = await api(`/api/schedule/${encodeURIComponent(slot.id)}/members`, { method: 'PUT', body: { journal_ids: ids } });
+    if (!pop || pop !== p) return;
+    if (!r || !r.ok) { dxToast('The group could not be saved. Try again.'); return group(slot, ymd, null); }
+    const members = r.data.members || [];
+    const sr = await api(`/api/schedule/${encodeURIComponent(slot.id)}/members`);
+    groupView(p, slot, ymd, members, sr && sr.ok ? sr.data.suggested || [] : []);
+    refresh();
+  }
+  async function groupEdit(p, slot, ymd, members, suggested) {
+    const list = await loadStudents();
+    if (!pop || pop !== p) return;
+    const own = slot.journal_id || null;
+    const inIt = new Set(members.map(m => m.journal_id));
+    // пустая группа: заранее отмечены ученики с доски урока
+    if (!inIt.size) suggested.forEach(x => inIt.add(x.journal_id));
+    const onBoard = new Set(suggested.map(x => x.journal_id));
+    // сначала отмеченные, потом группа по формату, потом остальные
+    const rank = s => (inIt.has(s.id) ? 0 : onBoard.has(s.id) ? 1 : s.format === 'group' ? 2 : 3);
+    const sorted = list.slice().sort((a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name)));
+    p.innerHTML = `<form class="dk-form">
+        <div class="dk-h">Students in ${esc(whoOf(slot))}</div>
+        <input type="search" class="dk-find" placeholder="Find a student" aria-label="Find a student">
+        <div class="dk-pick">${sorted.map(s => `<label class="dk-chk" data-n="${esc(String(s.name).toLowerCase())}"><input type="checkbox" name="m" value="${esc(s.id)}"${inIt.has(s.id) ? ' checked' : ''}${s.id === own ? ' checked disabled' : ''}>
+          <span>${esc(s.name)}${s.level ? ` <small>${esc(s.level)}</small>` : ''}${onBoard.has(s.id) ? ' <small class="dk-tag">on the board</small>' : s.format === 'group' ? ' <small class="dk-tag">group</small>' : ''}</span></label>`).join('')
+          || '<p class="dk-sub">No students in the Journal yet.</p>'}</div>
+        <div class="dk-foot"><button type="button" class="dk-ghost" data-x>Back</button><button type="submit" class="dk-go">Save</button></div>
+      </form>`;
+    p.onclick = null;
+    place();
+    const f = p.querySelector('form');
+    f.querySelector('.dk-find').addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      f.querySelectorAll('.dk-pick [data-n]').forEach(l => { l.hidden = !!q && !l.dataset.n.includes(q); });
+    });
+    f.querySelector('[data-x]').addEventListener('click', () => groupView(p, slot, ymd, members, suggested));
+    f.addEventListener('submit', e => {
+      e.preventDefault();
+      const go = f.querySelector('.dk-go'); go.disabled = true; go.textContent = 'Saving…';
+      const ids = [...f.querySelectorAll('input[name=m]:checked:not(:disabled)')].map(i => i.value);
+      saveMembers(p, slot, ymd, ids);
+    });
+    f.querySelector('.dk-find').focus();
+  }
+  /* One message to the whole group: everyone ticked gets it in their cabinet
+     and by email (POST /api/schedule/:id/message). */
+  async function groupMessage(slot, ymd, members) {
+    close();
+    if (!members) {
+      const r = await api(`/api/schedule/${encodeURIComponent(slot.id)}/members`);
+      members = r && r.ok ? r.data.members || [] : [];
+      if (!members.length) { dxToast('No students in this group yet - open the group to choose them'); return; }
+    }
+    document.getElementById('pulse-msg-ov')?.remove();
+    const ov = document.createElement('div');
+    ov.id = 'pulse-msg-ov';
+    ov.className = 'pm-ov';
+    const when = `${dayPhrase(ymd)} at ${String(slot.start_time).slice(0, 5)}`;
+    const TPL = [
+      ['Reminder', `Hi everyone! A reminder about our group lesson ${when}. See you there!`],
+      ['Homework', `Hi everyone! Please finish your homework before our lesson ${when}. Thank you!`],
+      ['Payment', `Hi everyone! A quick reminder: if your lesson package is running out, please renew it before our lesson ${when}. Thank you!`],
+    ];
+    ov.innerHTML = `<div class="pm-sheet" role="dialog" aria-modal="true" aria-labelledby="pm-t">
+      <h3 id="pm-t">Message to ${esc(whoOf(slot))}</h3>
+      <p>Each student gets it in their TeachEd cabinet and by email, from TeachEd. Untick anyone who should not get it.</p>
+      <div class="pm-to">${members.map(m => `<label class="pm-who"><input type="checkbox" value="${esc(m.journal_id)}"${!m.registered && !m.email ? ' disabled title="Not on TeachEd and no email in the Journal"' : ' checked'}> ${esc(m.name)}</label>`).join('')}</div>
+      <div class="pm-tpl">${TPL.map(([l], k) => `<button type="button" class="pm-chip" data-tpl="${k}">${esc(l)}</button>`).join('')}</div>
+      <textarea id="pm-text" maxlength="1000" rows="5" placeholder="Write your message…">${esc(`Hi everyone! About our lesson ${when}: `)}</textarea>
+      <div class="pm-row"><span id="pm-note"></span><button type="button" class="pm-cancel">Cancel</button><button type="button" class="pm-send">Send to all</button></div></div>`;
+    document.body.appendChild(ov);
+    const ta = ov.querySelector('#pm-text'), note = ov.querySelector('#pm-note'), send = ov.querySelector('.pm-send');
+    const picked = () => [...ov.querySelectorAll('.pm-to input:checked')].map(i => i.value);
+    const sync = () => { const n = picked().length; send.textContent = n === members.length ? 'Send to all' : `Send to ${n}`; send.disabled = !n; };
+    ov.querySelector('.pm-to').addEventListener('change', sync); sync();
+    ov.querySelector('.pm-tpl').addEventListener('click', e => { const b = e.target.closest('[data-tpl]'); if (b) { ta.value = TPL[+b.dataset.tpl][1]; ta.focus(); } });
+    const shut = () => ov.remove();
+    ov.addEventListener('mousedown', e => { if (e.target === ov) shut(); });
+    ov.querySelector('.pm-cancel').addEventListener('click', shut);
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') shut(); });
+    send.addEventListener('click', async () => {
+      const text = ta.value.trim();
+      if (!text) { note.textContent = 'Write a message first.'; return; }
+      send.disabled = true; note.textContent = 'Sending…';
+      const r = await api(`/api/schedule/${encodeURIComponent(slot.id)}/message`, { method: 'POST', body: { text, journal_ids: picked() } });
+      if (r && r.ok) {
+        shut();
+        const missed = (r.data.results || []).filter(x => !x.cabinet && !x.email).map(x => firstName(x.name));
+        dxToast(`Sent to ${r.data.sent} of ${r.data.total}${missed.length ? ` · not reached: ${missed.join(', ')}` : ''}`);
+        return;
+      }
+      sync();
+      note.textContent = (r && r.data && r.data.error) || 'It could not be sent. Try again.';
+    });
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 30);
+  }
+
   /* ── move ────────────────────────────────────────────────────────────── */
   function dateOptions(sel) {
     const now = new Date(), out = [];
@@ -150,8 +342,8 @@
         <p class="dk-sub">Now: ${esc(dayLabel(ymd))} at ${esc(String(slot.start_time).slice(0, 5))}</p>
         <div class="dk-row"><label>Day<select name="d">${dateOptions(ymd)}</select></label><label>Time<input type="time" name="t" value="${esc(String(slot.start_time).slice(0, 5))}" required></label></div>
         ${weekly ? `<div class="dk-seg">${canOnce ? '<label><input type="radio" name="scope" value="once" checked> Only this time</label>' : ''}<label><input type="radio" name="scope" value="all"${canOnce ? '' : ' checked'}> Every week</label></div>
-          ${canOnce ? '' : '<p class="dk-note">This weekly lesson has no student from the Journal, so it moves for every week.</p>'}` : ''}
-        ${slot.journal_id ? '<label class="dk-chk"><input type="checkbox" name="tell" checked> Tell the student</label>' : ''}
+          ${canOnce ? '' : `<p class="dk-note">${isGroup(slot) ? 'A weekly group lesson moves for every week (one date cannot be moved yet).' : 'This weekly lesson has no student from the Journal, so it moves for every week.'}</p>`}` : ''}
+        ${canTell(slot) ? `<label class="dk-chk"><input type="checkbox" name="tell" checked> ${tellLabel(slot)}</label>` : ''}
         <p class="dk-warn" hidden></p>
         <div class="dk-foot"><button type="button" class="dk-ghost" data-x>Cancel</button><button type="submit" class="dk-go">Move</button></div>
       </form>`);
@@ -182,7 +374,7 @@
       if (!ok) { go.disabled = false; go.textContent = 'Move'; warn.hidden = false; warn.textContent = 'It could not be moved. Try again.'; return; }
       const when = `${scope === 'all' ? `every ${DAYS[dowOf(nd)]}` : dayLabel(nd)} at ${toTime(a)}`;
       const whenTxt = `${scope === 'all' ? `every ${DAYS[dowOf(nd)]}` : dayPhrase(nd)} at ${toTime(a)}`;
-      const told = f.tell && f.tell.checked ? await tell(slot.journal_id, `Hi ${firstName(whoOf(slot))}! Our lesson ${dayPhrase(ymd)} at ${String(slot.start_time).slice(0, 5)} has moved to ${whenTxt}. See you then!`) : null;
+      const told = f.tell && f.tell.checked ? await tellSlot(slot, `Hi ${slot.journal_id ? firstName(whoOf(slot)) : 'everyone'}! Our lesson ${dayPhrase(ymd)} at ${String(slot.start_time).slice(0, 5)} has moved to ${whenTxt}. See you then!`) : null;
       close(); dxToast(`Moved to ${when}${toldNote(told)}`); refresh();
     });
   }
@@ -193,12 +385,13 @@
     const once = weekly && !!slot.journal_id;
     const what = !weekly ? `Cancel the lesson ${dayLabel(ymd)} at ${String(slot.start_time).slice(0, 5)}?`
       : once ? `Cancel only ${dayLabel(ymd)} at ${String(slot.start_time).slice(0, 5)}? It is not charged; the weekly lesson stays.`
+      : isGroup(slot) ? `One date of a weekly group lesson cannot be cancelled yet. Remove it from every week?`
       : `This weekly lesson has no student from the Journal, so one date cannot be cancelled. Remove it from every week?`;
     const p = open(anchor, `<form class="dk-form">
         <div class="dk-h">${weekly && !once ? 'Remove the weekly lesson' : 'Cancel the lesson'}</div>
         <p class="dk-sub">${esc(whoOf(slot))} · ${esc(what)}</p>
-        ${slot.journal_id ? `<label class="dk-chk"><input type="checkbox" name="tell" checked> Tell the student</label>
-          <textarea name="why" rows="2" maxlength="300" placeholder="A few words for the student (optional)"></textarea>` : ''}
+        ${canTell(slot) ? `<label class="dk-chk"><input type="checkbox" name="tell" checked> ${tellLabel(slot)}</label>
+          <textarea name="why" rows="2" maxlength="300" placeholder="A few words for ${slot.journal_id ? 'the student' : 'the group'} (optional)"></textarea>` : ''}
         <div class="dk-foot"><button type="button" class="dk-ghost" data-x>Keep it</button><button type="submit" class="dk-go is-danger">${weekly && !once ? 'Remove every week' : 'Cancel lesson'}</button></div>
       </form>`);
     const f = p.querySelector('form');
@@ -213,7 +406,7 @@
       let told = null;
       if (f.tell && f.tell.checked) {
         const why = (f.why && f.why.value.trim()) || '';
-        told = await tell(slot.journal_id, `Hi ${firstName(whoOf(slot))}! I have to cancel our lesson ${dayPhrase(ymd)} at ${String(slot.start_time).slice(0, 5)}.${why ? ' ' + why : ''} Sorry about that!`);
+        told = await tellSlot(slot, `Hi ${slot.journal_id ? firstName(whoOf(slot)) : 'everyone'}! I have to cancel our lesson ${dayPhrase(ymd)} at ${String(slot.start_time).slice(0, 5)}.${why ? ' ' + why : ''} Sorry about that!`);
       }
       close(); dxToast(`Lesson cancelled${toldNote(told)}`); refresh();
     });
@@ -251,6 +444,7 @@
         <p class="dk-warn" hidden></p>
         <div class="dk-foot"><button type="button" class="dk-link" data-full>Full schedule</button><button type="button" class="dk-ghost" data-x>Cancel</button><button type="submit" class="dk-go">Create</button></div>
       </form>`;
+    place();
     const f = p.querySelector('form'), warn = p.querySelector('.dk-warn');
     const sync = () => {
       const other = !f.j.value;
@@ -293,11 +487,11 @@
   }
 
   function slotAction(kind, slot, ymd, anchor) {
-    if (kind === 'who') return person(slot, ymd, anchor);
-    if (kind === 'msg') return message(slot, ymd);
+    if (kind === 'who') return isGroup(slot) ? group(slot, ymd, anchor) : person(slot, ymd, anchor);
+    if (kind === 'msg') return slot.journal_id ? message(slot, ymd) : groupMessage(slot, ymd, null);
     if (kind === 'move') return move(slot, ymd, anchor);
     if (kind === 'cancel') return cancel(slot, ymd, anchor);
   }
 
-  window.TeachedDesk = { slotAction, quickAdd, clashes, close };
+  window.TeachedDesk = { slotAction, quickAdd, clashes, close, isGroup };
 })();

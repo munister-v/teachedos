@@ -727,3 +727,36 @@ body.fx.os-desktop:not(#_) #wg-pulse.is-collapsed { max-height:none !important; 
 .dk-go.is-danger { background:#F35695; color:#fff; }
 .dk-go:disabled { opacity:.6; cursor:default; }
 .dk-add .dk-row label:first-child { flex:1.6; }
+
+/* ── Group lessons (15.10.2026): who is in a group, at a glance ─────── */
+.dk-pop.is-group { width:340px; }
+.dk-av.is-group { background:#49F6F0; }
+.dk-av.sm { width:30px; height:30px; font-size:12px; background:#EEF0E8; }
+.dk-mems { display:flex; flex-direction:column; gap:2px; margin:0 -4px 8px; max-height:300px; overflow:auto; }
+.dk-mem { display:flex; align-items:center; gap:8px; padding:6px 4px; border-radius:12px; }
+.dk-mem:hover { background:#F6F6EF; }
+.dk-mem-txt { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.dk-mem-txt b { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dk-mem-txt b small, .dk-pick small { font-weight:600; color:#6B6E60; font-size:11px; }
+.dk-mem .sp-act { flex:none; opacity:.55; }
+.dk-mem:hover .sp-act, .dk-mem .sp-act:focus-visible { opacity:1; }
+.dk-chips-s { display:flex; flex-wrap:wrap; gap:4px; }
+.dk-chip { font-style:normal; font-size:11px; font-weight:650; line-height:18px; padding:0 7px; border-radius:999px; background:#EFEEE7; color:#5D614B; white-space:nowrap; }
+.dk-chip.is-ok { background:#EEF9C9; color:#3F5200; }
+.dk-chip.is-warn { background:#FFF1E4; color:#9A4A00; }
+.dk-chip.is-bad { background:#F8DBDB; color:#8A2E52; }
+.dk-chip.is-info { background:#DDFBFA; color:#0B5E5B; }
+.dk-empty { margin:0 0 8px; }
+.dk-sug { display:flex; align-items:center; gap:8px; margin:0 0 8px; padding:8px 10px; border-radius:12px; background:#DDFBFA; font-size:12.5px; color:#0B5E5B; }
+.dk-sug span { flex:1; min-width:0; }
+.dk-sug .dk-link { border:0; background:none; padding:0; font:700 12.5px inherit; font-family:inherit; color:#0B5E5B; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+.dk-pick { display:flex; flex-direction:column; gap:2px; max-height:280px; overflow:auto; margin:0 -4px; }
+.dk-form .dk-pick label.dk-chk { padding:6px 4px; border-radius:10px; }
+.dk-form .dk-pick label.dk-chk:hover { background:#F6F6EF; }
+.dk-form .dk-pick label[hidden] { display:none; }
+.dk-pick input { width:16px; height:16px; accent-color:#24282C; flex:none; }
+.dk-tag { background:#DDFBFA; color:#0B5E5B !important; border-radius:999px; padding:0 6px; }
+.pm-to { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+.pm-who { display:flex; align-items:center; gap:6px; height:30px; padding:0 10px; border-radius:999px; background:#fff; border:1px solid rgba(36,40,44,.14); font-size:12.5px; font-weight:600; cursor:pointer; }
+.pm-who input { accent-color:#24282C; margin:0; }
+.pm-who:has(input:disabled) { opacity:.5; cursor:default; }

@@ -1054,3 +1054,17 @@ ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pulse_reminded JSONB NOT NU
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS pulse_snooze JSONB NOT NULL DEFAULT '{}';
 -- This week widget: { goal: lessons a day, price: per lesson, currency }
 ALTER TABLE users ADD COLUMN IF NOT EXISTS week_prefs JSONB NOT NULL DEFAULT '{}';
+
+-- ── Group lessons (15.10.2026) ─────────────────────────────────────────────
+-- A schedule slot used to know at most one student (schedule.journal_id); a
+-- group lesson was only a name (group_name), so the desktop could not say who
+-- is in it. schedule_members lists the Journal students of a slot. The
+-- teacher picks them on the desktop (Schedule → the group's name); until then
+-- the students already seated on the lesson's board are suggested.
+CREATE TABLE IF NOT EXISTS schedule_members (
+  schedule_id UUID        NOT NULL REFERENCES schedule(id) ON DELETE CASCADE,
+  journal_id  UUID        NOT NULL REFERENCES student_journal(id) ON DELETE CASCADE,
+  added_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (schedule_id, journal_id)
+);
+CREATE INDEX IF NOT EXISTS idx_schedule_members_journal ON schedule_members(journal_id);

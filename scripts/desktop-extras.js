@@ -727,19 +727,20 @@ function _spWho(s) {
 }
 const _sp = { all: [], sel: null, open: false, marks: {} };
 /* Строка урока (15.10.2026) - маленький интерфейс: имя открывает карточку
-   ученика, при наведении - 💬 написать, ✏️ перенести, ✕ отменить
+   ученика (у группы - её состав со статусами, desk-actions.js), при наведении - 💬 написать, ✏️ перенести, ✕ отменить
    (scripts/desk-actions.js), клик по строке показывает урок в виджете
    Next lesson. Отменённый на эту дату урок зачёркнут и не считается. */
 function _spPill(s, today, withDay, ymd) {
   const who = _spWho(s);
   const when = withDay ? (s.day === today ? 'Today' : s.day === (today + 1) % 7 ? 'Tomorrow' : SP_DAYS[s.day]) + ' · ' : '';
   const off = spCancelled(s, ymd);
-  const grp = s.group_name && !/^1\s*:\s*1$/.test(String(s.group_name).trim());
+  const grp = window.TeachedDesk ? window.TeachedDesk.isGroup(s) : s.group_name && !/^1\s*:\s*1$/.test(String(s.group_name).trim());
+  const n = Number(s.member_count) || 0;
   const act = (k, ic, label) => `<button type="button" class="sp-act" data-spact="${k}" title="${label}" aria-label="${label}">${ic}</button>`;
   return `<div class="sp-pill${off ? ' is-off' : ''}${grp ? ' is-group' : ''}" data-slot="${esc(s.id)}" data-ymd="${esc(ymd || '')}">
     <span class="sp-av">${s.student_avatar && !/^https?:/.test(s.student_avatar) ? esc(s.student_avatar) : esc(_spInitials(who))}</span>
-    <span class="sp-txt"><button type="button" class="sp-who" data-spact="who">${esc(who)}</button><small>${when}${esc(String(s.start_time).slice(0, 5))}${s.level ? ' · ' + esc(s.level) : ''}${off ? ' · cancelled' : ''}${grp ? ' · group' : ''}</small></span>
-    ${off ? '' : `<span class="sp-acts">${s.journal_id ? act('msg', '💬', 'Message the student') : ''}${act('move', '✏️', 'Move this lesson')}${act('cancel', '✕', 'Cancel this lesson')}</span>`}
+    <span class="sp-txt"><button type="button" class="sp-who" data-spact="who">${esc(who)}</button><small>${when}${esc(String(s.start_time).slice(0, 5))}${s.level ? ' · ' + esc(s.level) : ''}${off ? ' · cancelled' : ''}${grp ? ` · group${n ? ' · ' + n : ''}` : ''}</small></span>
+    ${off ? '' : `<span class="sp-acts">${s.journal_id ? act('msg', '💬', 'Message the student') : grp && n ? act('msg', '💬', 'Message the group') : ''}${act('move', '✏️', 'Move this lesson')}${act('cancel', '✕', 'Cancel this lesson')}</span>`}
   </div>`;
 }
 /* Отметки посещаемости недели: «cancelled» на дату убирает урок из счёта,
