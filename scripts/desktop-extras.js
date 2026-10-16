@@ -593,12 +593,19 @@ function renderPulse() {
     return `<div class="wg-pulse-item is-${st}"${drag}>
       ${_pulseAvatar(it)}
       <div class="wg-pulse-body">
-        <div class="wg-pulse-line"><b>${esc(_pulseShortName(it.name))}</b> - ${esc(_pulseText(it))}</div>
+        <div class="wg-pulse-line">${it.journal_id ? `<button type="button" class="wg-pulse-who" onclick="pulseOpenStudent(${i})" title="Open ${esc(it.name)}'s card">${esc(_pulseShortName(it.name))}</button>` : `<b>${esc(_pulseShortName(it.name))}</b>`} - ${esc(_pulseText(it))}</div>
         ${note ? `<div class="wg-pulse-note">${esc(note)}</div>` : ''}
         <div class="wg-pulse-acts">${acts.join('')}</div>
       </div>
     </div>`;
   }).join('') + (more > 0 ? `<a class="wg-pulse-more" href="journal.html">+${more} more in the Journal</a>` : '');
+}
+/* Signal → fix (16.10.2026): the name opens Your students with this student
+   on top and, for a package or a payment, the money block lit up. */
+function pulseOpenStudent(i) {
+  const it = _pulse.items && _pulse.items[i];
+  if (!it || typeof window.openStudentCard !== 'function') return;
+  window.openStudentCard({ journalId: it.journal_id, money: it.kind === 'package' || it.kind === 'payment' });
 }
 function pulseSchedule(i) {
   const it = i != null && _pulse.items ? _pulse.items[i] : null;

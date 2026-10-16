@@ -149,6 +149,42 @@ router.post('/join/:token', requireAuth, async (req, res) => {
    не сущность, а факт: ученик делит доску хотя бы с одним другим учеником.
    Стоит ДО /:boardId, иначе «roster» разбирался бы как id доски.
 ────────────────────────────────────────────────────────────── */
+async function rosterSignals(teacherId) {
+  const q = (sql) => pool.query(sql, [teacherId]).then(r => r.rows).catch(err => { console.error('[members] roster signals:', err.message); return []; });
+  const [hw, writing, msgs, att] = await Promise.all([
+    q(`SELECT ha.student_id::text AS id,
+              COUNT(*) FILTER (WHERE ha.status = 'submitted')::int AS hw_review,
+              COUNT(*) FILTER (WHERE ha.status IN ('assigned','in_progress') AND h.due_at < NOW())::int AS hw_late
+         FROM homework_assignment ha JOIN homework h ON h.id = ha.homework_id AND h.user_id = $1
+        GROUP BY ha.student_id`),
+    q(`SELECT student_id::text AS id, COUNT(*)::int AS writing_review
+         FROM writing_submissions WHERE teacher_id = $1 AND status = 'submitted' GROUP BY student_id`),
+    // a student's comment on the teacher's board that the teacher has not answered on that card
+    q(`SELECT c.user_id::text AS id, COUNT(*)::int AS msg_count, MAX(c.created_at) AS msg_at,
+              (ARRAY_AGG(LEFT(c.body, 400) ORDER BY c.created_at DESC))[1] AS msg_last,
+              (ARRAY_AGG(c.board_id::text ORDER BY c.created_at DESC))[1] AS msg_board_id
+         FROM card_comments c JOIN boards b ON b.id = c.board_id AND b.user_id = $1
+        WHERE c.user_id <> $1 AND c.created_at > NOW() - INTERVAL '21 days'
+          AND NOT EXISTS (SELECT 1 FROM card_comments t WHERE t.board_id = c.board_id AND t.card_id = c.card_id
+                           AND t.user_id = $1 AND t.created_at > c.created_at)
+        GROUP BY c.user_id`),
+    q(`SELECT journal_id::text AS id,
+              MAX(student_cancelled_at) FILTER (WHERE status = 'cancelled' AND student_cancelled_at > NOW() - INTERVAL '7 days') AS cancelled_at,
+              to_char((ARRAY_AGG(date ORDER BY student_cancelled_at DESC NULLS LAST) FILTER (WHERE status = 'cancelled' AND student_cancelled_at > NOW() - INTERVAL '7 days'))[1], 'YYYY-MM-DD') AS cancelled_date,
+              to_char(MAX(date) FILTER (WHERE status = 'present'), 'YYYY-MM-DD') AS last_lesson
+         FROM attendance a WHERE teacher_id = $1
+          -- a lesson booked for them after the cancellation answers it
+          AND NOT (a.student_cancelled_at IS NOT NULL AND EXISTS (SELECT 1 FROM schedule s WHERE s.user_id = $1
+                     AND (s.journal_id = a.journal_id OR EXISTS (SELECT 1 FROM schedule_members m WHERE m.schedule_id = s.id AND m.journal_id = a.journal_id))
+                     AND s.created_at > a.student_cancelled_at))
+        GROUP BY journal_id`),
+  ]);
+  const byUser = new Map();
+  const put = (id, o) => byUser.set(id, { ...(byUser.get(id) || {}), ...o });
+  hw.forEach(r => put(r.id, r)); writing.forEach(r => put(r.id, r)); msgs.forEach(r => put(r.id, r));
+  return { byUser, byJournal: new Map(att.map(r => [r.id, r])) };
+}
+
 router.get('/roster', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -213,19 +249,36 @@ router.get('/roster', requireAuth, async (req, res) => {
       : new Map();
     const boardsOf = r => (r.board_ids || []).map(id => names.get(id)).filter(Boolean)
       .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).map(b => ({ id: b.id, name: b.name || 'Board' }));
+    /* What needs the teacher (16.10.2026): the student list puts these on
+       top - homework to check, a comment on a board nobody answered, a lesson
+       the student cancelled (find a new time). Payments are in the journal
+       fields already. */
+    const sig = await rosterSignals(req.user.id);
+    const withSignals = r => {
+      const u = sig.byUser.get(String(r.id)) || {};
+      const j = (r.journal_id && sig.byJournal.get(String(r.journal_id))) || {};
+      return {
+        ...r,
+        hw_review: (u.hw_review || 0) + (u.writing_review || 0),
+        hw_late: u.hw_late || 0,
+        msg_count: u.msg_count || 0, msg_last: u.msg_last || null, msg_at: u.msg_at || null, msg_board_id: u.msg_board_id || null,
+        cancelled_at: j.cancelled_at || null, cancelled_date: j.cancelled_date || null,
+        last_lesson: j.last_lesson || null,
+      };
+    };
     const withFormat = r => r.format
       ? { ...r, individual: r.format === 'individual', in_group: r.format === 'group' }
       : r;
     res.json({
       students: [
         ...rows.map(r => withFormat({
-          ...r,
+          ...withSignals(r),
           boardCount: (r.board_ids || []).length,
           boards: boardsOf(r),
           online: online.has(String(r.id)),
         })),
         ...pending.map(j => withFormat({
-          ...j, id: `j:${j.journal_id}`, avatar: '', board_ids: [], boardCount: 0,
+          ...withSignals({ ...j, id: null }), id: `j:${j.journal_id}`, avatar: '', board_ids: [], boardCount: 0,
           individual: false, in_group: false, online: false, pending: true,
         })),
       ].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))),

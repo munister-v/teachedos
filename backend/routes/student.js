@@ -673,7 +673,7 @@ router.post('/lessons/:slotId/cancel', requireAuth, async (req, res) => {
     await client.query('BEGIN');
     let out = { charged: false, lessons_left: null };
     if (jid) {
-      out = await require('./journal').markLesson(client, { journalId: jid, teacherId: slot.user_id, date: occ.date, status: 'cancelled', charge, slotId: slot.id });
+      out = await require('./journal').markLesson(client, { journalId: jid, teacherId: slot.user_id, date: occ.date, status: 'cancelled', charge, slotId: slot.id, byStudent: true });
       if (!out) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Lesson not found' }); }
     } else {
       await client.query('DELETE FROM schedule WHERE id = $1', [slot.id]);

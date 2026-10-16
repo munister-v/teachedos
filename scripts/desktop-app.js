@@ -1326,6 +1326,46 @@ function studentAvatarMarkup(s, cls) {
 const ST_ICON_USERS = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg>';
 const ST_ICON_CARD = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.5a3.4 3.4 0 0 1 6.4 0M15 10h3M15 13.5h3"/></svg>';
 
+/* Smart priority (16.10.2026): the list is never "just alphabetical". On top
+   are the students who need something from the teacher - the package is used
+   up or payment is late, homework waits to be checked, a comment on a board
+   nobody answered, a lesson they cancelled. The calm ones follow, by name.
+   Every item knows its one-click fix (studentDetailRender). */
+function studentAttention(s) {
+  const out = [];
+  const journal = _hasJournal(s) && !s.is_trial;
+  const left = Number(s.lessons_left);
+  const due = s.payment_due ? Math.round((Date.parse(s.payment_due + 'T00:00:00') - new Date().setHours(0, 0, 0, 0)) / 86400000) : null;
+  if (s.paid_claim_at && journal) out.push({ k: 'paid', w: 95, t: 'Says they paid', c: 'money' });
+  else if (journal && left <= 0) out.push({ k: 'balance', w: 100, t: 'Package used up', c: 'money' });
+  else if (journal && due !== null && due < 0) out.push({ k: 'due', w: 90, t: `Payment ${-due}d late`, c: 'money' });
+  if (s.msg_count) out.push({ k: 'msg', w: 70, t: 'New message', c: 'msg' });
+  if (s.cancelled_date) out.push({ k: 'cancel', w: 65, t: 'Cancelled a lesson', c: 'time' });
+  if (s.hw_review) out.push({ k: 'hw', w: 60, t: `${s.hw_review} to check`, c: 'hw' });
+  if (s.hw_late) out.push({ k: 'late', w: 25, t: `${s.hw_late} overdue`, c: 'hw' });
+  if (journal && left > 0 && left <= 2 && !out.some(x => x.c === 'money')) out.push({ k: 'low', w: 15, t: `${left} left`, c: 'low' });
+  return out.sort((a, b) => b.w - a.w);
+}
+const _attnScore = s => studentAttention(s).reduce((n, x) => n + x.w, 0);
+let studentsFocusFin = false;   // came from Student pulse: light up the money block
+
+/* Student pulse → the student's card, on top, with the money block ready. */
+function openStudentCard(ref) {
+  const r = ref || {};
+  const s = STUDENTS.find(x => (r.journalId && String(x.journal_id) === String(r.journalId)) || (r.id && String(x.id) === String(r.id)));
+  if (typeof openApp === 'function') openApp('students');
+  if (!s) return;
+  const search = document.getElementById('students-search');
+  if (search) search.value = '';
+  studentsActiveFilter = 'all';
+  document.querySelectorAll('#win-students .sb-item[data-filter]').forEach(i => i.classList.toggle('active', i.dataset.filter === 'all'));
+  studentsSelectedId = s.id;
+  studentsFocusFin = !!r.money;
+  studentsRender();
+  document.querySelector('#students-list .st-row.active')?.scrollIntoView({ block: 'nearest' });
+}
+window.openStudentCard = openStudentCard;
+
 function studentsRender() {
   const list = document.getElementById('students-list');
   if (!list) return;
@@ -1376,17 +1416,24 @@ function studentsRender() {
   }
   // выбранным остаётся тот же ученик, пока он в отфильтрованном списке
   if (!filtered.some(s => String(s.id) === String(studentsSelectedId))) {
-    studentsSelectedId = filtered[0].id;
+    studentsSelectedId = [...filtered].sort((x, y) => (_attnScore(y) - _attnScore(x)) || String(x.name || '').localeCompare(String(y.name || '')))[0].id;
   }
 
-  list.innerHTML = filtered.map(s => `
-    <div class="st-row${String(s.id) === String(studentsSelectedId) ? ' active' : ''}" onclick="studentSelect('${esc(String(s.id))}')">
+  const ranked = filtered.map(s => ({ s, a: studentAttention(s) }));
+  ranked.sort((x, y) => (_attnScore(y.s) - _attnScore(x.s)) || String(x.s.name || '').localeCompare(String(y.s.name || '')));
+  const needs = ranked.filter(x => x.a.length && x.a[0].c !== 'low').length;
+  const row = ({ s, a }) => `
+    <div class="st-row${String(s.id) === String(studentsSelectedId) ? ' active' : ''}${a.length && a[0].c !== 'low' ? ' needs' : ''}" onclick="studentSelect('${esc(String(s.id))}')">
       ${studentAvatarWithDot(s, 'st-row-avatar')}
       <div style="flex:1;min-width:0;">
         <div class="st-row-name">${esc(s.name || 'Student')}</div>
-        <div class="st-row-sub">${esc(studentRowSub(s))}</div>
+        ${a.length ? `<div class="st-row-attn">${a.slice(0, 2).map(x => `<span class="st-attn ${x.c}">${esc(x.t)}</span>`).join('')}</div>`
+          : `<div class="st-row-sub">${esc(studentRowSub(s))}</div>`}
       </div>
-    </div>`).join('');
+    </div>`;
+  list.innerHTML = (needs && !q
+    ? `<div class="st-group-h">Needs you · ${needs}</div>${ranked.slice(0, needs).map(row).join('')}${ranked.length > needs ? `<div class="st-group-h calm">All good</div>${ranked.slice(needs).map(row).join('')}` : ''}`
+    : ranked.map(row).join(''));
 
   studentDetailRender();
 }
@@ -1422,6 +1469,7 @@ function _lastSeenLabel(iso) {
 
 function studentSelect(id) {
   studentsSelectedId = id;
+  studentsFocusFin = false;
   studentsRender();
 }
 
@@ -1507,21 +1555,101 @@ function studentDetailRender() {
     s.email ? `<a class="st-contact" href="mailto:${esc(s.email)}" title="${esc(s.email)}" aria-label="Send an email">${ST_MAIL}</a>` : '',
   ].join('');
 
+  /* Quiet by default (16.10.2026): the face, the level, the balance and
+     + Top up. What needs the teacher is a short list with its one-click fix;
+     interests hide behind 💡, the rest behind "Details". */
+  const jid = s.journal_id != null ? esc(String(s.journal_id)) : '';
+  const left = Number(s.lessons_left);
+  const pack = Number(s.pack_size) || 8;
+  const attn = studentAttention(s);
+  const balPill = !_hasJournal(s) ? `<button type="button" class="st-bal none" onclick="studentsAddFor('${esc(String(s.id))}')">No package · add</button>`
+    : s.is_trial ? '<span class="st-bal trial">✨ Free trial</span>'
+    : `<span class="st-bal ${left <= 0 ? 'zero' : left <= 2 ? 'low' : 'ok'}">${left} lesson${left === 1 ? '' : 's'} left</span>`;
+  const topUp = _hasJournal(s) ? `<button type="button" class="st-topup" onclick="studentsTopUp('${jid}', this)">+ Top up</button>` : '';
+  const goals = { work: 'Career & work', travel: 'Travel & life abroad', fluency: 'Fluency & speaking', exams: 'Exams & education', series: 'Series & films', move: 'Moving abroad', fun: 'Just for fun' };
+  const hasDna = (s.dna_interests && s.dna_interests.length) || s.dna_goal;
+  const dna = hasDna ? `<span class="st-pop-wrap"><button type="button" class="st-hint" onclick="studentsHintToggle(this)" aria-expanded="false" title="Interests and goal">💡</button>
+      <div class="st-pop" hidden><div class="st-pop-h">Before the lesson</div>
+        ${s.dna_goal ? `<div class="st-pop-goal">${esc(goals[s.dna_goal] || s.dna_goal)}</div>` : ''}
+        ${(s.dna_interests || []).length ? `<div class="st-chips">${s.dna_interests.map(k => `<span class="st-chip ghost">${esc(k)}</span>`).join('')}</div>` : ''}
+        ${s.dna_level || s.dna_daily ? `<div class="st-pop-note">${[s.dna_level ? `Thinks they are ${esc(s.dna_level)}` : '', s.dna_daily ? `⚡ ${esc(s.dna_daily)} min a day` : ''].filter(Boolean).join(' · ')}</div>` : ''}
+      </div></span>` : '';
+  const when = d => { const t = Date.parse(d + 'T00:00:00'); return t ? new Date(t).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : d; };
+  const fix = x => {
+    if (x.k === 'balance') return `<div class="st-need money"><span>Package used up · ${left} left</span><button type="button" class="go" onclick="studentsTopUp('${jid}', this)">+ Top up ${pack}</button></div>`;
+    if (x.k === 'due') return `<div class="st-need money"><span>${esc(_paymentLine(s))}</span><button type="button" class="go" onclick="studentsTopUp('${jid}', this)">Paid · +${pack}</button></div>`;
+    if (x.k === 'paid') return `<div class="st-need money"><span>Says they paid - check your account</span><button type="button" class="go" onclick="studentsTopUp('${jid}', this)">✓ Received · +${pack}</button></div>`;
+    if (x.k === 'msg') return `<div class="st-need msg"><button type="button" class="st-msg-plate" onclick="this.parentElement.classList.toggle('open')"><b>New message</b>${s.msg_count > 1 ? ` · ${s.msg_count}` : ''}<i>▾</i></button>
+        <div class="st-msg-body"><p>${esc(s.msg_last || '')}</p>${s.msg_board_id ? `<a class="go" href="board.html?id=${encodeURIComponent(s.msg_board_id)}">Reply on the board →</a>` : ''}</div></div>`;
+    if (x.k === 'cancel') return `<div class="st-need time"><span>Cancelled ${esc(when(s.cancelled_date))} - find a new time</span><button type="button" class="go" onclick="studentsRebook('${jid}')">Book a lesson</button></div>`;
+    if (x.k === 'hw') return `<div class="st-need hw"><span>${s.hw_review} homework to check</span><a class="go" href="homework.html">Review</a></div>`;
+    if (x.k === 'late') return `<div class="st-need hw quiet"><span>${s.hw_late} homework overdue</span><a class="go" href="homework.html">Open</a></div>`;
+    return '';
+  };
+  const needs = attn.filter(x => x.k !== 'low').map(fix).join('');
+
+  studentsHintClose();
   box.innerHTML = `
-    ${studentAvatarWithDot(s, 'st-detail-avatar')}
-    <div class="st-detail-name">${esc(s.name || 'Student')}</div>
-    <div class="st-detail-mail">${esc(s.email || '')}</div>
-    ${badges}
-    ${money}
-    ${home}
-    ${(s.dna_interests && s.dna_interests.length) || s.dna_goal ? `<div class="st-detail-h">Profile</div><div class="st-chips">${s.dna_goal ? `<span class="st-chip format">${esc(({ work: 'Career & work', travel: 'Travel & life abroad', fluency: 'Fluency & speaking', exams: 'Exams & education', series: 'Series & films', move: 'Moving abroad', fun: 'Just for fun' })[s.dna_goal] || s.dna_goal)}</span>` : ''}${(s.dna_interests || []).map(k => `<span class="st-chip ghost">${esc(k)}</span>`).join('')}${s.dna_level ? `<span class="st-chip boards">self: ${esc(s.dna_level)}</span>` : ''}${s.dna_daily ? `<span class="st-chip ghost">⚡ ${esc(s.dna_daily)} min a day</span>` : ''}</div>` : ''}
-    ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
-    <div class="st-detail-actions">
-      <a class="st-detail-btn" href="journal.html">View profile →</a>
-      ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
+    <div class="st-head">
+      ${studentAvatarWithDot(s, 'st-detail-avatar')}
+      <div class="st-detail-name">${esc(s.name || 'Student')}${dna}</div>
+      <div class="st-head-row">${s.level ? `<span class="st-badge level">${esc(s.level)}</span>` : ''}${s.pending ? `<span class="st-badge ${st.c}">${st.t}</span>` : ''}${balPill}${topUp}</div>
     </div>
-    ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}`;
+    <div class="st-fin-anchor${studentsFocusFin ? ' is-focus' : ''}">${needs ? `<div class="st-needs">${needs}</div>` : ''}</div>
+    ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}
+    <div class="st-detail-actions">
+      ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
+      <a class="st-detail-btn" href="journal.html">View profile →</a>
+    </div>
+    <details class="st-more">
+      <summary>Details</summary>
+      ${s.email ? `<div class="st-detail-mail">${esc(s.email)}</div>` : ''}
+      ${badges}
+      ${money}
+      ${home}
+      ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
+      ${s.last_lesson ? `<div class="st-detail-h">Last lesson</div><div class="st-pop-note">${esc(when(s.last_lesson))}</div>` : ''}
+    </details>`;
+  if (studentsFocusFin) box.querySelector('.st-fin-anchor')?.scrollIntoView({ block: 'nearest' });
 }
+
+/* + Top up: one click adds the package (the money went teacher-to-student). */
+async function studentsTopUp(journalId, btn) {
+  if (!journalId) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
+  studentsFocusFin = false;
+  await studentsAddPack(journalId);
+  if (typeof loadPulse === 'function') loadPulse();
+}
+window.studentsTopUp = studentsTopUp;
+function studentsRebook(journalId) {
+  if (window.TeachedDesk && typeof window.TeachedDesk.quickAdd === 'function') window.TeachedDesk.quickAdd({ journalId });
+  else location.href = 'schedule.html';
+}
+window.studentsRebook = studentsRebook;
+function studentsHintToggle(btn) {
+  // the popover lives on <body> while open: the window is transformed and
+  // its card scrolls, either would shift or clip it
+  const pop = btn._pop || (btn._pop = btn.nextElementSibling);
+  const open = pop.hidden;
+  studentsHintClose();
+  if (!open) return;
+  document.body.appendChild(pop);
+  pop.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + 'px';
+  pop.style.top = (r.bottom + 8 + h > innerHeight - 12 ? Math.max(12, r.top - h - 8) : r.bottom + 8) + 'px';
+}
+function studentsHintClose() {
+  document.querySelectorAll('body > .st-pop').forEach(p => p.remove());
+  document.querySelectorAll('.st-hint[aria-expanded="true"]').forEach(b => { b.setAttribute('aria-expanded', 'false'); if (b._pop) b._pop.hidden = true; });
+}
+window.studentsHintToggle = studentsHintToggle;
+document.addEventListener('click', e => {
+  if (e.target.closest && !e.target.closest('.st-pop-wrap, .st-pop')) studentsHintClose();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') studentsHintClose(); });
 
 /* «Оплата пришла»: пакет одним нажатием. Деньги платформа не трогает. */
 /* Which lessons were held and which are planned for this student; a click on
@@ -1913,10 +2041,10 @@ function boardsRender() {
   }
 
   const escB = v => String(v ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
-  /* A new board is one click from the list itself, not only from the header button. */
-  const newTile = boardsFilterMode === 'shared' || q ? '' :
-    `<a class="bd-new" href="board.html" onclick="createBoardFromDesktop(event)"><span class="bd-new-plus" aria-hidden="true">+</span><span class="bd-new-label">New board</span></a>`;
-  grid.innerHTML = newTile + list.map(b => {
+  /* One way to make a board: "+ Create board" at the top, next to the search.
+     The "+ New board" tile in the grid was a second copy of it (16.10.2026);
+     with no boards the empty note above invites to create the first one. */
+  grid.innerHTML = list.map(b => {
     const cards = b.card_count || 0;
     const updated = b.updated_at ? new Date(b.updated_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
     const owner = b.owner_name ? `<div class="lc-desc">Shared by ${escB(b.owner_name)}</div>` : '';
@@ -2946,13 +3074,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1181" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1182" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1181" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1182" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

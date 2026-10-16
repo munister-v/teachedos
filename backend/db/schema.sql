@@ -1074,3 +1074,7 @@ CREATE INDEX IF NOT EXISTS idx_schedule_members_journal ON schedule_members(jour
 -- week grid draws it as "10m Rest"; booking never offers a start inside it
 -- (a lesson 11:00-12:00 with 10 min → the next bookable start is 12:10).
 ALTER TABLE users ADD COLUMN IF NOT EXISTS buffer_minutes SMALLINT NOT NULL DEFAULT 0;
+
+-- Who cancelled (16.10.2026): a lesson the student cancelled from the cabinet
+-- puts them at the top of the teacher's student list ("find a new time")
+ALTER TABLE attendance ADD COLUMN IF NOT EXISTS student_cancelled_at TIMESTAMPTZ;

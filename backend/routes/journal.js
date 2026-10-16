@@ -351,7 +351,7 @@ router.post('/:id/pack', async (req, res) => {
    Used by the teacher's calendar (POST /:id/lesson) and by a student who
    cancels a lesson from the cabinet (routes/student.js). Returns null when the
    Journal row is not this teacher's. */
-async function markLesson(client, { journalId, teacherId, date, status, charge = null, slotId = null }) {
+async function markLesson(client, { journalId, teacherId, date, status, charge = null, slotId = null, byStudent = false }) {
   const { rows: own } = await client.query('SELECT id, lessons_left, is_trial FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [journalId, teacherId]);
   if (!own.length) return null;
   const { rows: prevRows } = await client.query('SELECT * FROM attendance WHERE journal_id=$1 AND date=$2 FOR UPDATE', [journalId, date]);
@@ -366,11 +366,11 @@ async function markLesson(client, { journalId, teacherId, date, status, charge =
   if (status === 'reset') {
     if (prev) await client.query('DELETE FROM attendance WHERE id=$1', [prev.id]);
   } else if (prev) {
-    await client.query('UPDATE attendance SET status=$2, charged=$3, slot_id=COALESCE($4, slot_id) WHERE id=$1', [prev.id, status, charged, slotId]);
+    await client.query('UPDATE attendance SET status=$2, charged=$3, slot_id=COALESCE($4, slot_id), student_cancelled_at=CASE WHEN $5 THEN NOW() END WHERE id=$1', [prev.id, status, charged, slotId, !!byStudent]);
   } else {
     await client.query(
-      `INSERT INTO attendance (teacher_id, journal_id, date, status, charged, slot_id) VALUES ($1,$2,$3,$4,$5,$6)`,
-      [teacherId, journalId, date, status, charged, slotId]);
+      `INSERT INTO attendance (teacher_id, journal_id, date, status, charged, slot_id, student_cancelled_at) VALUES ($1,$2,$3,$4,$5,$6,CASE WHEN $7 THEN NOW() END)`,
+      [teacherId, journalId, date, status, charged, slotId, !!byStudent]);
   }
   await client.query('UPDATE student_journal SET lessons_left=$2 WHERE id=$1', [journalId, left]);
   await ledger(client, { journalId, teacherId, delta, after: left, reason: delta > 0 ? 'refund' : 'lesson', date, note: status === 'reset' ? 'mark cleared' : status });
