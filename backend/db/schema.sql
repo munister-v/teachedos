@@ -1078,3 +1078,45 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS buffer_minutes SMALLINT NOT NULL DEFA
 -- Who cancelled (16.10.2026): a lesson the student cancelled from the cabinet
 -- puts them at the top of the teacher's student list ("find a new time")
 ALTER TABLE attendance ADD COLUMN IF NOT EXISTS student_cancelled_at TIMESTAMPTZ;
+
+-- ── Community: likes, bookmarks, copies, reports, versions (16.10.2026) ─────
+-- A copy is the copier's own: a new board or a frame on a student's board.
+-- The author deleting or changing the original never touches it; when the
+-- author publishes an update (content_updated_at), copies made before it see
+-- "Updated version available".
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS content_updated_at TIMESTAMPTZ;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS hidden_at TIMESTAMPTZ;
+CREATE TABLE IF NOT EXISTS library_likes (
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (assignment_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS library_saves (
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (assignment_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_library_saves_user ON library_saves(user_id, created_at DESC);
+-- the source may be deleted; the copy (board) stays, so no cascade on it
+CREATE TABLE IF NOT EXISTS library_copies (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id UUID REFERENCES assignments(id) ON DELETE SET NULL,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  board_id      UUID REFERENCES boards(id) ON DELETE SET NULL,
+  frame_id      TEXT,
+  target        VARCHAR(12) NOT NULL DEFAULT 'board',   -- board | student
+  title         VARCHAR(255) NOT NULL DEFAULT '',
+  author_name   VARCHAR(255) NOT NULL DEFAULT '',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_library_copies_user ON library_copies(user_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS library_reports (
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reason        VARCHAR(24) NOT NULL DEFAULT 'other',
+  note          VARCHAR(500) NOT NULL DEFAULT '',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (assignment_id, user_id)
+);

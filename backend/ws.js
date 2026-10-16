@@ -356,4 +356,16 @@ function onlineUserIdsAsync(boardIds) {
   });
 }
 
-module.exports = { setup, onlineUserIds, onlineUserIdsAsync, viewFor };
+/* A change made on the server (a Community lesson inserted into this board):
+   everyone who has the board open gets it at once, like a teacher's edit, so
+   an open tab does not save over it with its older state. */
+function pushBoardState(boardId, data) {
+  try {
+    broadcast(String(boardId), { type: 'board_patch', state: sanitizeBoardData({
+      cards: data.cards || [], arrows: data.arrows || [], annotations: data.annotations || [],
+      strokes: data.strokes || [], nextId: Number(data.nextId) || 1,
+    }), userId: null });
+  } catch (_) {}
+}
+
+module.exports = { setup, onlineUserIds, onlineUserIdsAsync, viewFor, pushBoardState };

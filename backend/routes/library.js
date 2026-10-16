@@ -115,7 +115,7 @@ router.get('/community', optionalAuth, async (req, res) => {
   try {
     const { kind, level, skill, q } = req.query;
     const params = [req.user?.id || null];
-    let where = `a.visibility = 'community'`;
+    let where = `a.visibility = 'community' AND a.hidden_at IS NULL`;
     if (kind && KINDS.includes(kind)) { params.push(kind);  where += ` AND a.kind = $${params.length}`; }
     if (level)                        { params.push(level);  where += ` AND a.level = $${params.length}`; }
     if (skill)                        { params.push(skill);  where += ` AND a.skill = $${params.length}`; }
@@ -138,7 +138,12 @@ router.get('/community', optionalAuth, async (req, res) => {
               NULLIF(a.data->>'audience', '') AS audience,
               (a.data->>'allowCopy') IS DISTINCT FROM 'false' AS allow_copy,
               ($1::uuid IS NOT NULL AND a.user_id = $1) AS is_mine,
-              u.name AS author_name, u.avatar AS author_avatar
+              u.name AS author_name, u.avatar AS author_avatar, a.user_id AS author_id, a.content_updated_at,
+              (SELECT COUNT(*) FROM library_likes l WHERE l.assignment_id = a.id)::int AS like_count,
+              ($1::uuid IS NOT NULL AND EXISTS (SELECT 1 FROM library_likes l WHERE l.assignment_id = a.id AND l.user_id = $1)) AS liked,
+              ($1::uuid IS NOT NULL AND EXISTS (SELECT 1 FROM library_saves v WHERE v.assignment_id = a.id AND v.user_id = $1)) AS saved,
+              ($1::uuid IS NOT NULL AND EXISTS (SELECT 1 FROM library_reports r WHERE r.assignment_id = a.id AND r.user_id = $1)) AS reported,
+              (SELECT MAX(c.created_at) FROM library_copies c WHERE c.assignment_id = a.id AND c.user_id = $1) AS my_copy_at
        FROM assignments a JOIN users u ON u.id = a.user_id
        WHERE ${where}
        ORDER BY a.published_at DESC NULLS LAST LIMIT 200`,
@@ -445,16 +450,217 @@ router.post('/:id/clone', async (req, res) => {
       `INSERT INTO assignments (user_id, kind, title, description, level, skill, tags, data, image, cloned_from, visibility)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'private')
        RETURNING ${LIST_COLS}`,
-      [req.user.id, s.kind, clip(s.title, 250) + ' (copy)', s.description, s.level, s.skill,
+      [req.user.id, s.kind, s.user_id === req.user.id ? clip(s.title, 250) + ' (copy)' : copyTitle({ title: s.title, author_name: (await pool.query('SELECT name FROM users WHERE id = $1', [s.user_id])).rows[0]?.name }), s.description, s.level, s.skill,
        JSON.stringify(s.tags || []), s.data || {}, s.image, s.id]
     );
     // Bump the source's clone counter (best-effort)
     pool.query('UPDATE assignments SET clone_count = clone_count + 1 WHERE id = $1', [s.id]).catch(() => {});
+    // and it is one of "My copies" in Saved items (16.10.2026)
+    pool.query(`INSERT INTO library_copies (assignment_id, user_id, target, title, author_name)
+                SELECT $1, $2, 'library', $3, u.name FROM users u WHERE u.id = $4`, [s.id, req.user.id, rows[0].title, s.user_id]).catch(() => {});
     res.status(201).json({ assignment: rows[0] });
   } catch (err) {
     console.error('[library] clone error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+/* ══ Community actions (16.10.2026): like, bookmark, copy, insert, report ══
+   A copy is the copier's own - a new board, or one frame on a student's
+   board. Deleting or changing the original never reaches it. */
+const { placeLesson, lessonBoard } = require('../lib/communityPlace');
+const REPORTS_TO_HIDE = 3;
+const REPORT_REASONS = new Set(['mistakes', 'broken', 'inappropriate', 'copyright', 'spam', 'other']);
+
+async function communityItem(id, viewerId) {
+  if (!UUID_RE.test(String(id || ''))) return null;
+  const { rows } = await pool.query(
+    `SELECT a.*, u.name AS author_name FROM assignments a JOIN users u ON u.id = a.user_id
+      WHERE a.id = $1 AND (a.visibility IN ('community', 'unlisted') OR a.user_id = $2)`, [id, viewerId]);
+  return rows[0] || null;
+}
+const copyTitle = (a) => {
+  const t = clip(a.title, 200) || 'Community lesson';
+  return a.author_name && !t.includes(`(by ${a.author_name})`) ? `${t} (by ${clip(a.author_name, 50)})` : t;
+};
+
+router.post('/:id/like', async (req, res) => {
+  try {
+    const a = await communityItem(req.params.id, req.user.id);
+    if (!a) return res.status(404).json({ error: 'Not found' });
+    const on = req.body?.on !== false;
+    if (on) await pool.query('INSERT INTO library_likes (assignment_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [a.id, req.user.id]);
+    else await pool.query('DELETE FROM library_likes WHERE assignment_id = $1 AND user_id = $2', [a.id, req.user.id]);
+    const { rows } = await pool.query('SELECT COUNT(*)::int AS n FROM library_likes WHERE assignment_id = $1', [a.id]);
+    res.json({ ok: true, liked: on, like_count: rows[0].n });
+  } catch (err) { console.error('[library] like:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+router.post('/:id/bookmark', async (req, res) => {
+  try {
+    const a = await communityItem(req.params.id, req.user.id);
+    if (!a) return res.status(404).json({ error: 'Not found' });
+    const on = req.body?.on !== false;
+    if (on) await pool.query('INSERT INTO library_saves (assignment_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [a.id, req.user.id]);
+    else await pool.query('DELETE FROM library_saves WHERE assignment_id = $1 AND user_id = $2', [a.id, req.user.id]);
+    res.json({ ok: true, saved: on });
+  } catch (err) { console.error('[library] bookmark:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* POST /:id/to-board - Save to My Boards: a new board of the teacher's own. */
+router.post('/:id/to-board', requireTeacher, async (req, res) => {
+  try {
+    const a = await communityItem(req.params.id, req.user.id);
+    if (!a) return res.status(404).json({ error: 'Not found' });
+    if (a.data?.allowCopy === false && a.user_id !== req.user.id) return res.status(403).json({ error: 'The author does not allow copies of this lesson' });
+    const snap = a.data?.snapshot;
+    if (!snap?.cards?.length) return res.status(400).json({ error: 'This item has no board to copy' });
+    const title = copyTitle(a);
+    const { rows: [board] } = await pool.query(
+      'INSERT INTO boards (user_id, name, data) VALUES ($1,$2,$3) RETURNING id, name',
+      [req.user.id, title.slice(0, 255), require('../lib/boardSanitize').sanitizeBoardData(lessonBoard(snap))]);
+    await pool.query(`INSERT INTO library_copies (assignment_id, user_id, board_id, target, title, author_name) VALUES ($1,$2,$3,'board',$4,$5)`,
+      [a.id, req.user.id, board.id, title, clip(a.author_name, 255)]);
+    if (a.user_id !== req.user.id) await pool.query('UPDATE assignments SET clone_count = clone_count + 1 WHERE id = $1', [a.id]);
+    res.status(201).json({ ok: true, board });
+  } catch (err) { console.error('[library] to-board:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* POST /:id/insert {studentId | journalId} - Insert to Student: the lesson
+   becomes one frame on the student's board with this teacher (their own
+   board first), next to where the teacher stopped. */
+router.post('/:id/insert', requireTeacher, async (req, res) => {
+  try {
+    const a = await communityItem(req.params.id, req.user.id);
+    if (!a) return res.status(404).json({ error: 'Not found' });
+    if (a.data?.allowCopy === false && a.user_id !== req.user.id) return res.status(403).json({ error: 'The author does not allow copies of this lesson' });
+    const snap = a.data?.snapshot;
+    if (!snap?.cards?.length) return res.status(400).json({ error: 'This item has no board to insert' });
+    let studentId = String(req.body?.studentId || '');
+    if (!UUID_RE.test(studentId) && req.body?.journalId) {
+      const { rows } = await pool.query('SELECT student_id FROM student_journal WHERE id::text = $1 AND teacher_id = $2', [String(req.body.journalId), req.user.id]);
+      studentId = rows[0]?.student_id || '';
+    }
+    if (!UUID_RE.test(String(studentId))) return res.status(409).json({ error: 'This student is not on any of your boards yet' });
+    const { rows: [target] } = await pool.query(
+      `SELECT b.id, b.name FROM board_collaborators bc JOIN boards b ON b.id = bc.board_id
+        WHERE b.user_id = $1 AND bc.user_id = $2
+        ORDER BY bc.is_home DESC, (SELECT COUNT(*) FROM board_collaborators x WHERE x.board_id = b.id) ASC, b.updated_at DESC
+        LIMIT 1`, [req.user.id, studentId]);
+    if (!target) return res.status(409).json({ error: 'This student is not on any of your boards yet' });
+    const title = copyTitle(a);
+    const client = await pool.connect();
+    let placed;
+    try {
+      await client.query('BEGIN');
+      const { rows: [b] } = await client.query('SELECT data FROM boards WHERE id = $1 FOR UPDATE', [target.id]);
+      placed = placeLesson(b.data || {}, snap, title);
+      placed.data = require('../lib/boardSanitize').sanitizeBoardData(placed.data);
+      await client.query('UPDATE boards SET data = $2, updated_at = NOW() WHERE id = $1', [target.id, placed.data]);
+      await client.query(`INSERT INTO library_copies (assignment_id, user_id, board_id, frame_id, target, title, author_name) VALUES ($1,$2,$3,$4,'student',$5,$6)`,
+        [a.id, req.user.id, target.id, placed.frameId, title, clip(a.author_name, 255)]);
+      if (a.user_id !== req.user.id) await client.query('UPDATE assignments SET clone_count = clone_count + 1 WHERE id = $1', [a.id]);
+      await client.query('COMMIT');
+    } catch (e) { await client.query('ROLLBACK').catch(() => {}); throw e; } finally { client.release(); }
+    require('../ws').pushBoardState(target.id, placed.data);
+    res.status(201).json({ ok: true, board: target, frame_id: placed.frameId });
+  } catch (err) { console.error('[library] insert:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* POST /:id/report {reason, note} - three teachers reporting hides it from
+   the catalog until the author fixes it; the author is told. */
+router.post('/:id/report', requireTeacher, async (req, res) => {
+  try {
+    const a = await communityItem(req.params.id, req.user.id);
+    if (!a || a.visibility !== 'community') return res.status(404).json({ error: 'Not found' });
+    if (a.user_id === req.user.id) return res.status(400).json({ error: 'This is your own lesson' });
+    const reason = REPORT_REASONS.has(req.body?.reason) ? req.body.reason : 'other';
+    const { rowCount } = await pool.query(
+      `INSERT INTO library_reports (assignment_id, user_id, reason, note) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
+      [a.id, req.user.id, reason, clip(req.body?.note, 500)]);
+    const { rows: [{ n }] } = await pool.query('SELECT COUNT(*)::int AS n FROM library_reports WHERE assignment_id = $1', [a.id]);
+    let hidden = !!a.hidden_at;
+    if (rowCount && !hidden && n >= REPORTS_TO_HIDE) {
+      await pool.query('UPDATE assignments SET hidden_at = NOW() WHERE id = $1', [a.id]);
+      hidden = true;
+      require('./notifications').createNotification(a.user_id, 'community', `"${clip(a.title, 80)}" is hidden from Community`,
+        `${n} teachers reported problems with it. Check it, publish an update, and it comes back.`, 'community.html#publications').catch(() => {});
+    }
+    res.json({ ok: true, reported: true, hidden });
+  } catch (err) { console.error('[library] report:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* POST /:id/update {snapshot data} - the author publishes a new version of a
+   board lesson. Copies already made keep theirs; the card says "Updated". */
+router.post('/:id/update', requireTeacher, async (req, res) => {
+  try {
+    const { rows: [a] } = await pool.query('SELECT * FROM assignments WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (!a) return res.status(404).json({ error: 'Not found or not owner' });
+    if (a.kind !== 'board') return res.status(400).json({ error: 'Only board lessons have versions' });
+    const normalized = normalizeCommunityBoardData({ ...(a.data || {}), ...(req.body?.data || {}) }, a.title);
+    if (normalized.error) return res.status(400).json({ error: normalized.error });
+    const ownershipError = await assertSourceBoardOwnership(req.user.id, normalized.value);
+    if (ownershipError) return res.status(ownershipError.status).json({ error: ownershipError.error });
+    const { rows } = await pool.query(
+      `UPDATE assignments SET data = $2, content_updated_at = NOW(), updated_at = NOW(), hidden_at = NULL
+        WHERE id = $1 RETURNING ${LIST_COLS}, content_updated_at`, [a.id, { ...normalized.value, cover: a.data?.cover || normalized.value.cover }]);
+    // reports were about the old version
+    await pool.query('DELETE FROM library_reports WHERE assignment_id = $1', [a.id]);
+    res.json({ assignment: rows[0] });
+  } catch (err) { console.error('[library] update:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* GET /mine/saved - bookmarks and copies, newest first; a copy older than the
+   author's last update says so. A deleted original keeps the copy. */
+router.get('/mine/saved', async (req, res) => {
+  try {
+    const { rows: marks } = await pool.query(
+      `SELECT a.id, a.kind, a.title, a.level, a.skill, a.visibility, a.hidden_at, (a.image IS NOT NULL) AS has_image, a.updated_at,
+              a.data->'cover' AS cover, a.data->'preview' AS preview, a.clone_count, a.content_updated_at,
+              NULLIF(a.data->>'language', '') AS language, u.name AS author_name, u.avatar AS author_avatar, v.created_at AS saved_at,
+              (SELECT COUNT(*) FROM library_likes l WHERE l.assignment_id = a.id)::int AS like_count
+         FROM library_saves v JOIN assignments a ON a.id = v.assignment_id JOIN users u ON u.id = a.user_id
+        WHERE v.user_id = $1 ORDER BY v.created_at DESC LIMIT 200`, [req.user.id]);
+    const { rows: copies } = await pool.query(
+      `SELECT c.id, c.assignment_id, c.board_id, c.frame_id, c.target, c.title, c.author_name, c.created_at,
+              b.name AS board_name, (b.id IS NOT NULL) AS board_exists,
+              (a.id IS NOT NULL AND a.visibility IN ('community','unlisted')) AS source_live,
+              (a.content_updated_at IS NOT NULL AND a.content_updated_at > c.created_at) AS update_available
+         FROM library_copies c LEFT JOIN boards b ON b.id = c.board_id LEFT JOIN assignments a ON a.id = c.assignment_id
+        WHERE c.user_id = $1 ORDER BY c.created_at DESC LIMIT 200`, [req.user.id]);
+    res.json({ bookmarks: marks, copies });
+  } catch (err) { console.error('[library] saved:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* PATCH /mine/copies/:id {title} - rename a saved copy (three "Present
+   Simple Game"s in the list are no use). Renames its board too. */
+router.patch('/mine/copies/:id', async (req, res) => {
+  try {
+    const title = clip(req.body?.title, 255);
+    if (!title) return res.status(400).json({ error: 'Title required' });
+    const { rows: [c] } = await pool.query('UPDATE library_copies SET title = $3 WHERE id = $1 AND user_id = $2 RETURNING board_id, target', [req.params.id, req.user.id, title]);
+    if (!c) return res.status(404).json({ error: 'Not found' });
+    if (c.board_id && c.target === 'board') await pool.query('UPDATE boards SET name = $3 WHERE id = $1 AND user_id = $2', [c.board_id, req.user.id, title]);
+    res.json({ ok: true, title });
+  } catch (err) { console.error('[library] rename copy:', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+
+/* GET /mine/publications - what I shared, with likes, copies and status. */
+router.get('/mine/publications', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT a.id, a.kind, a.title, a.level, a.skill, a.visibility, a.hidden_at, a.published_at, a.updated_at, a.content_updated_at,
+              (a.image IS NOT NULL) AS has_image, a.data->'cover' AS cover, a.data->'preview' AS preview, a.clone_count,
+              NULLIF(a.data->>'language', '') AS language,
+              COALESCE(NULLIF(a.data->>'source_board_id', ''), NULLIF(a.data->>'sourceBoardId', '')) AS source_board_id,
+              COALESCE(NULLIF(a.data->>'source_frame_id', ''), NULLIF(a.data->>'sourceFrameId', '')) AS source_frame_id,
+              (SELECT COUNT(*) FROM library_likes l WHERE l.assignment_id = a.id)::int AS like_count,
+              (SELECT COUNT(*) FROM library_reports r WHERE r.assignment_id = a.id)::int AS report_count
+         FROM assignments a
+        WHERE a.user_id = $1 AND (a.visibility IN ('community','unlisted') OR a.published_at IS NOT NULL)
+        ORDER BY COALESCE(a.published_at, a.updated_at) DESC LIMIT 200`, [req.user.id]);
+    res.json({ publications: rows });
+  } catch (err) { console.error('[library] publications:', err.message); res.status(500).json({ error: 'Server error' }); }
 });
 
 module.exports = router;

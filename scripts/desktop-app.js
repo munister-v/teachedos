@@ -2026,6 +2026,12 @@ function boardsRender() {
     return;
   }
 
+  /* No boards at all: the "+ New board" tile comes back as the welcome -
+     "create your first board" - and is the only thing in the grid. */
+  if (!list.length && boardsFilterMode !== 'shared' && !q) {
+    grid.innerHTML = `<a class="bd-new bd-first" href="board.html" onclick="createBoardFromDesktop(event)"><span class="bd-new-plus" aria-hidden="true">+</span><span class="bd-new-label">Create your first board</span><span class="bd-new-sub">A canvas for one student or a whole class - lessons, homework, games</span></a>`;
+    return;
+  }
   if (!list.length) {
     /* Readable on glass: dark text and a dark pill link. The grid gives its
        children a pale card (figma-concept.css); with grey text and a lime
@@ -3074,13 +3080,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1182" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1183" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1182" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1183" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
