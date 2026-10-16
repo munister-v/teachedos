@@ -1154,3 +1154,237 @@ CREATE TABLE IF NOT EXISTS teacher_onboarding (
 ALTER TABLE teacher_onboarding ALTER COLUMN current_step SET DEFAULT 'welcome';
 -- one-time contextual tips already shown (Phase 3); server-side, so a second device does not repeat them
 ALTER TABLE teacher_onboarding ADD COLUMN IF NOT EXISTS tips_seen TEXT[] NOT NULL DEFAULT '{}';
+
+-- ── Community: trust, honest signals, verified use, remixes, requests (16.10.2026) ──
+-- See "Community: involvement, trust and growth" (ТЗ v1.0). A copy is the copier's
+-- own; counters are unique accounts; "Used in class" is a server-side fact
+-- (a launched lesson), never a click.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS community_team BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS community_bio  VARCHAR(400) NOT NULL DEFAULT '';
+
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS moderation_state VARCHAR(16) NOT NULL DEFAULT 'published';
+  -- published | review_pending (3 reports) | hidden (5 / critical, until a moderator decides)
+  -- | needs_changes | removed
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS allow_remix BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS editorial BOOLEAN NOT NULL DEFAULT FALSE;   -- Editor's pick: a human choice
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS first_public_at TIMESTAMPTZ;                -- "New" counts 14 days from here
+UPDATE assignments SET first_public_at = published_at WHERE first_public_at IS NULL AND published_at IS NOT NULL;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS version_no INTEGER NOT NULL DEFAULT 1;
+-- paid-ready fields (no checkout yet): the preview is configured, not hard-coded
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS access_type  VARCHAR(8)  NOT NULL DEFAULT 'free';    -- free | paid
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS preview_mode VARCHAR(8)  NOT NULL DEFAULT 'full';    -- full | sample | timed
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS preview_item_ids JSONB   NOT NULL DEFAULT '[]';
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS license_type VARCHAR(24) NOT NULL DEFAULT 'free_use';
+-- a remix keeps where it came from: text attribution survives the original
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS remix_of UUID REFERENCES assignments(id) ON DELETE SET NULL;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS remix_of_title  VARCHAR(255);
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS remix_of_author VARCHAR(255);
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS remix_of_author_id UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS remix_of_version_id UUID;
+CREATE INDEX IF NOT EXISTS idx_assignments_remix_of ON assignments(remix_of) WHERE remix_of IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS publication_versions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  version_no    INTEGER NOT NULL,
+  title         VARCHAR(255) NOT NULL DEFAULT '',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (assignment_id, version_no)
+);
+INSERT INTO publication_versions (assignment_id, version_no, title, created_at)
+  SELECT id, 1, title, COALESCE(published_at, created_at) FROM assignments WHERE visibility IN ('community','unlisted')
+  ON CONFLICT DO NOTHING;
+
+-- later: who may open a paid resource in full (purchase and checkout are not built yet)
+CREATE TABLE IF NOT EXISTS entitlements (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  version_scope VARCHAR(12) NOT NULL DEFAULT 'all',
+  license_type  VARCHAR(24) NOT NULL DEFAULT 'single_teacher',
+  status        VARCHAR(12) NOT NULL DEFAULT 'active',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id, assignment_id);
+
+-- copies: where it came from, which version, which cards are the copy's own
+ALTER TABLE library_copies ADD COLUMN IF NOT EXISTS source_version_id UUID;
+ALTER TABLE library_copies ADD COLUMN IF NOT EXISTS card_ids JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE library_copies ADD COLUMN IF NOT EXISTS undone_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_library_copies_board ON library_copies(board_id) WHERE board_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_library_copies_assignment ON library_copies(assignment_id, user_id);
+
+-- reports: category, severity, which case, what came of it
+ALTER TABLE library_reports ADD COLUMN IF NOT EXISTS severity VARCHAR(8) NOT NULL DEFAULT 'normal';  -- normal | critical
+ALTER TABLE library_reports ADD COLUMN IF NOT EXISTS case_id UUID;
+ALTER TABLE library_reports ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE library_reports ADD COLUMN IF NOT EXISTS counts BOOLEAN NOT NULL DEFAULT TRUE;           -- false: a new or low-trust account does not move the thresholds
+ALTER TABLE library_reports ADD COLUMN IF NOT EXISTS outcome VARCHAR(12);                            -- null | upheld | rejected
+ALTER TABLE library_reports ALTER COLUMN reason TYPE VARCHAR(32);
+CREATE INDEX IF NOT EXISTS idx_library_reports_user ON library_reports(user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS moderation_cases (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id UUID REFERENCES assignments(id) ON DELETE SET NULL,
+  author_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+  version_no    INTEGER,
+  status        VARCHAR(12) NOT NULL DEFAULT 'open',      -- open | in_review | resolved
+  risk_level    VARCHAR(8)  NOT NULL DEFAULT 'normal',    -- normal | critical
+  decision      VARCHAR(16),                               -- no_violation | needs_changes | remove
+  decision_note TEXT NOT NULL DEFAULT '',
+  required_changes TEXT NOT NULL DEFAULT '',
+  -- the publication as it was when it was reported: the author editing the
+  -- original must not change what is being reviewed
+  snapshot      JSONB NOT NULL DEFAULT '{}',
+  opened_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  decided_at    TIMESTAMPTZ,
+  decided_by    UUID REFERENCES users(id) ON DELETE SET NULL,
+  appeal_until  TIMESTAMPTZ,
+  resubmitted_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_moderation_cases_open ON moderation_cases(status, opened_at) WHERE status <> 'resolved';
+CREATE INDEX IF NOT EXISTS idx_moderation_cases_assignment ON moderation_cases(assignment_id, opened_at DESC);
+CREATE TABLE IF NOT EXISTS moderation_appeals (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id       UUID NOT NULL UNIQUE REFERENCES moderation_cases(id) ON DELETE CASCADE,   -- one appeal per decision
+  author_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message       TEXT NOT NULL,
+  evidence      TEXT NOT NULL DEFAULT '',
+  status        VARCHAR(12) NOT NULL DEFAULT 'pending',   -- pending | upheld | overturned
+  resolution_note TEXT NOT NULL DEFAULT '',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  resolved_at   TIMESTAMPTZ,
+  resolved_by   UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- lessons that really ran: the teacher and at least one student on the board together
+CREATE TABLE IF NOT EXISTS lesson_sessions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  board_id      UUID REFERENCES boards(id) ON DELETE SET NULL,
+  teacher_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  started_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ended_at      TIMESTAMPTZ,
+  student_count INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_lesson_sessions_teacher ON lesson_sessions(teacher_id, started_at DESC);
+CREATE TABLE IF NOT EXISTS verified_uses (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  source_version_id UUID,
+  teacher_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  lesson_session_id UUID NOT NULL REFERENCES lesson_sessions(id) ON DELETE CASCADE,
+  board_id      UUID,
+  used_on       DATE NOT NULL DEFAULT CURRENT_DATE,
+  evidence_type VARCHAR(16) NOT NULL DEFAULT 'shown',     -- shown (time on screen) | student_action
+  content_type  VARCHAR(16) NOT NULL DEFAULT 'board',
+  student_count INTEGER NOT NULL DEFAULT 0,
+  rating        VARCHAR(16),                               -- worked_well | needs_adjustment; skip stays null
+  feedback_at   TIMESTAMPTZ,
+  feedback_skipped_at TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- one publication counts once per lesson, and a teacher cannot add the same
+  -- material to the same board more than once a day
+  UNIQUE (assignment_id, lesson_session_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_verified_uses_day ON verified_uses(assignment_id, teacher_id, board_id, used_on);
+CREATE INDEX IF NOT EXISTS idx_verified_uses_assignment ON verified_uses(assignment_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_verified_uses_teacher ON verified_uses(teacher_id, created_at DESC);
+
+-- requests born from a weak search
+CREATE TABLE IF NOT EXISTS resource_requests (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requester_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  query         VARCHAR(200) NOT NULL,
+  filters       JSONB NOT NULL DEFAULT '{}',              -- language, level, age, skill
+  format        VARCHAR(8) NOT NULL DEFAULT 'any',        -- space | studio | game | any
+  details       VARCHAR(1000) NOT NULL DEFAULT '',
+  needed_by     DATE,
+  status        VARCHAR(12) NOT NULL DEFAULT 'open',      -- open | fulfilled | closed | expired
+  closed_at     TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_resource_requests_open ON resource_requests(status, created_at DESC);
+CREATE TABLE IF NOT EXISTS request_votes (
+  request_id UUID NOT NULL REFERENCES resource_requests(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (request_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS request_answers (       -- an answer always carries a resource
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id    UUID NOT NULL REFERENCES resource_requests(id) ON DELETE CASCADE,
+  author_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  helpful       BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (request_id, assignment_id)
+);
+
+-- collections and curators
+CREATE TABLE IF NOT EXISTS collections (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title       VARCHAR(120) NOT NULL,
+  description VARCHAR(500) NOT NULL DEFAULT '',
+  is_public   BOOLEAN NOT NULL DEFAULT TRUE,
+  editorial   BOOLEAN NOT NULL DEFAULT FALSE,           -- chosen by the TeachEd Team
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_collections_owner ON collections(owner_id, updated_at DESC);
+CREATE TABLE IF NOT EXISTS collection_items (
+  collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  position      INTEGER NOT NULL DEFAULT 0,
+  added_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (collection_id, assignment_id)
+);
+CREATE TABLE IF NOT EXISTS curator_follows (
+  follower_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  curator_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (follower_id, curator_id),
+  CHECK (follower_id <> curator_id)
+);
+
+-- the teacher's own steering of recommendations: "Not relevant", "Show fewer like this"
+CREATE TABLE IF NOT EXISTS community_signals (
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  kind          VARCHAR(16) NOT NULL,                    -- not_relevant | fewer_like_this
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, assignment_id, kind)
+);
+
+-- the author's notification choices; the digest is in-app, once a week, by default
+CREATE TABLE IF NOT EXISTS community_prefs (
+  user_id       UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  digest        VARCHAR(8) NOT NULL DEFAULT 'weekly',    -- weekly | off
+  email_digest  BOOLEAN NOT NULL DEFAULT FALSE,
+  email_requests BOOLEAN NOT NULL DEFAULT FALSE,
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+-- what was already said, so a milestone or a week's digest is never repeated
+CREATE TABLE IF NOT EXISTS community_notices (
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       VARCHAR(24) NOT NULL,
+  key        VARCHAR(80) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, kind, key)
+);
+
+-- product analytics (an allow-list of names; never student names or board titles)
+CREATE TABLE IF NOT EXISTS community_events (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+  event       VARCHAR(32) NOT NULL,
+  assignment_id UUID,
+  props       JSONB NOT NULL DEFAULT '{}',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_community_events_event ON community_events(event, created_at DESC);
+ALTER TABLE library_copies ADD COLUMN IF NOT EXISTS arrow_ids JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE library_reports ADD COLUMN IF NOT EXISTS version_no INTEGER;
+ALTER TABLE lesson_sessions ADD COLUMN IF NOT EXISTS students UUID[] NOT NULL DEFAULT '{}';          -- who was there (counted, never shown)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS community_publish_blocked BOOLEAN NOT NULL DEFAULT FALSE;  -- after repeated violations

@@ -20,6 +20,7 @@ const pageMeta = {
   audit: ['System Audit', 'Operational signals and hygiene checks'],
   billing: ['Billing', 'Manual payments and tariff approvals'],
   packages: ['Package Control', 'Plans, limits and manual subscription grants'],
+  community: ['Community review', 'Reports, decisions and appeals on shared lessons'],
   settings: ['Settings', 'Production readiness and admin tools'],
   'api-tester': ['API Tester', 'Test and debug API endpoints'],
 };
@@ -171,6 +172,7 @@ function showPage(name) {
   if (name === 'audit')     loadAudit();
   if (name === 'billing')   { loadBillingSummary(); loadBillingPayments(); loadBillingMetrics(); }
   if (name === 'packages')  loadPackageControl();
+  if (name === 'community') loadCommunityQueue();
   if (name === 'settings')  { loadSysInfo(); loadInvites(); loadProductionStatus(); }
   if (name === 'api-tester') initApiTester();
 }

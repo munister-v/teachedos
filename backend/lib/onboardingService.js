@@ -61,11 +61,12 @@ async function facts(db, userId) {
     `SELECT (SELECT COUNT(*) FROM boards WHERE user_id=$1 AND NOT is_practice)::int AS boards,
             (SELECT COUNT(*) FROM student_journal WHERE teacher_id=$1)::int AS students,
             (SELECT COUNT(*) FROM schedule WHERE user_id=$1 AND (specific_date IS NULL OR specific_date >= CURRENT_DATE))::int AS lessons,
+            ((SELECT COUNT(*) FROM library_saves WHERE user_id=$1) + (SELECT COUNT(*) FROM library_copies WHERE user_id=$1 AND undone_at IS NULL))::int AS community,
             (SELECT id FROM boards WHERE user_id=$1 AND NOT is_practice ORDER BY updated_at DESC LIMIT 1) AS latest_board_id`,
     [userId]);
   return {
     boards: r.boards, students: r.students, lessons: r.lessons, latest_board_id: r.latest_board_id || null,
-    derived: { board_created: r.boards > 0, student_added: r.students > 0, lesson_scheduled: r.lessons > 0 },
+    derived: { board_created: r.boards > 0, student_added: r.students > 0, lesson_scheduled: r.lessons > 0, community_resource: r.community > 0 },
   };
 }
 

@@ -6,6 +6,7 @@ const { filterBoardData } = require('./lib/boardVisibility');
 const { sanitizeBoardData } = require('./lib/boardSanitize');
 const { sanitizeLayer } = require('./lib/studentLayer');
 const { authenticateToken } = require('./middleware/auth');
+const lessonRooms = require('./lib/lessonRooms');
 
 const APP_PROTOCOL = 'teached-v1';
 const TOKEN_PROTOCOL_PREFIX = 'teached.jwt.';
@@ -185,6 +186,8 @@ function setup(server) {
 
     // Notify others
     broadcast(boardId, { type: 'peer_joined', userId }, ws);
+    // the teacher and a student together make a lesson (verified use of Community materials)
+    lessonRooms.presence(boardId, rooms.get(boardId), boardOwnerId).catch(() => {});
 
     let messageWindowStartedAt = Date.now();
     let messagesInWindow = 0;
@@ -240,6 +243,7 @@ function setup(server) {
           const room = rooms.get(boardId);
           const ownerId = (roomMeta.get(boardId) || {}).boardOwnerId;
           if (!room) break;
+          lessonRooms.studentAction(boardId);
           const payload = JSON.stringify({ type: 'student_layer', userId, name: authenticated.user.name, avatar: authenticated.user.avatar, layer });
           room.forEach(c => { if (c !== ws && c.readyState === 1 && String(c.userId) === String(ownerId)) c.send(payload); });
           break;
@@ -267,6 +271,7 @@ function setup(server) {
         }
         // Selection awareness (who has what selected)
         case 'selection':
+          if (accessRole !== 'owner' && Array.isArray(msg.cardIds) && msg.cardIds.length) lessonRooms.studentAction(boardId);
           broadcast(boardId, {
             type: 'selection', userId,
             cardIds: Array.isArray(msg.cardIds) ? msg.cardIds.slice(0, 500) : [],
@@ -286,6 +291,7 @@ function setup(server) {
         }
         // Any client broadcasts their viewport position
         case 'viewport':
+          if (accessRole === 'owner') lessonRooms.viewport(boardId, msg);
           broadcast(boardId, {
             type: 'viewport', userId,
             pan: msg.pan, scale: msg.scale,
@@ -304,6 +310,7 @@ function setup(server) {
         roomMeta.delete(boardId);
       }
       broadcast(boardId, { type: 'peer_left', userId });
+      lessonRooms.presence(boardId, rooms.get(boardId), boardOwnerId).catch(() => {});
     });
 
     ws.on('error', (err) => console.error('[ws]', err.message));

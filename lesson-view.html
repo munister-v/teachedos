@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1184" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1184">
+<link rel="icon" href="favicon.ico?v=1185" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1185">
 <title>Lesson · TeachEd</title>
 <style>
   *,*::before,*::after{box-sizing:border-box}
@@ -45,14 +45,14 @@
    сильнее [hidden] - «Learners» стоял с пустым значением. */
 .detail-row[hidden] { display:none !important; }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1184">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1184">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1185">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1185">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1184">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1184">
-<link rel="stylesheet" href="styles/controls.css?v=1184">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1184">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1184">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1185">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1185">
+<link rel="stylesheet" href="styles/controls.css?v=1185">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1185">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1185">
 </head>
 <body class="fx">
 <script>/* Community's quick preview shows only the board (16.10.2026) */
@@ -65,9 +65,27 @@ body.is-embed .lesson-shell { padding:0 !important; max-width:none !important; m
 body.is-embed .lesson-layout { display:block !important; margin:0 !important; }
 body.is-embed .lesson-board-panel { border:0 !important; border-radius:0 !important; box-shadow:none !important; padding:0 !important; background:transparent !important; }
 body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !important; height:100vh !important; }
+  .lesson-remix { margin:10px 0 0; font-size:14px; color:#4B2FA0; font-weight:650; }
+  .lesson-numbers { display:flex; flex-wrap:wrap; gap:6px 8px; margin-top:12px; }
+  .lesson-numbers span { padding:4px 11px; border-radius:999px; background:rgba(36,40,44,.07); font:700 13px system-ui, sans-serif; color:#3A3E36; }
+  .lesson-numbers span.is-used { background:#CDF649; color:#24282C; }
+  .lesson-paid { margin:0 0 14px; padding:14px 16px; border-radius:16px; background:#FFF1E8; border:1px solid rgba(178,58,14,.22); }
+  .lesson-paid b { font-size:15px; }
+  .lesson-paid p { margin:4px 0 8px; font-size:13px; color:#5D614B; line-height:1.45; }
+  .lesson-toc { margin:0 0 12px; padding:0; list-style:none; display:flex; flex-direction:column; gap:4px; font-size:13px; }
+  .lesson-toc li { display:flex; gap:8px; align-items:center; }
+  .lesson-toc li.is-locked { color:#8A8D80; }
+  .lesson-toc li::before { content:"✓"; color:#3B5A0A; font-weight:800; }
+  .lesson-toc li.is-locked::before { content:"🔒"; font-size:11px; }
+  .lesson-frame-card.is-locked { background:repeating-linear-gradient(135deg, #EEF0E8, #EEF0E8 10px, #E4E7DC 10px, #E4E7DC 20px) !important; border:2px dashed #A3A48D; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#5D614B; filter:blur(.4px); }
+  .lesson-frame-card.is-locked .lesson-frame-card-text { font-weight:800; }
+  .lesson-watermark { position:absolute; inset:0; z-index:5; pointer-events:none; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .lesson-watermark span { font:900 120px/1 system-ui, sans-serif; letter-spacing:.08em; color:rgba(36,40,44,.07); transform:rotate(-24deg); text-transform:uppercase; white-space:nowrap; }
+  body.is-paid-preview .lesson-canvas { user-select:none; -webkit-user-select:none; }
+  .lesson-unavailable h1 { font-size:26px; }
 </style>
 <header class="lesson-nav">
-  <a class="lesson-brand" href="community.html"><img src="logo-sm.png?v=1184" alt="TeachEd"><span>TeachEd</span></a>
+  <a class="lesson-brand" href="community.html"><img src="logo-sm.png?v=1185" alt="TeachEd"><span>TeachEd</span></a>
   <span class="lesson-nav-sep" aria-hidden="true"></span>
   <a class="lesson-back" href="community.html">← Community</a>
   <span class="lesson-nav-space"></span>
@@ -89,6 +107,8 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
         <h1 class="lesson-title" id="lesson-title"></h1>
         <p class="lesson-description" id="lesson-description"></p>
         <div class="lesson-byline"><span class="lesson-author-mark" id="lesson-author-mark" aria-hidden="true"></span><span>Shared by <strong id="lesson-author"></strong></span></div>
+        <p class="lesson-remix" id="lesson-remix" hidden></p>
+        <div class="lesson-numbers" id="lesson-numbers" hidden></div>
       </div>
       <aside class="lesson-hero-side">
         <!-- Та же обложка, что у карточки в Community: урок узнаётся по ней. -->
@@ -124,6 +144,12 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
           <div class="detail-row"><dt>Contents</dt><dd id="detail-contents"></dd></div>
         </dl>
         <div class="lesson-tags" id="lesson-tags" aria-label="Lesson tags"></div>
+        <div class="lesson-paid" id="lesson-paid" hidden>
+          <b>Preview of a paid resource</b>
+          <p id="lesson-paid-note"></p>
+          <ol class="lesson-toc" id="lesson-toc"></ol>
+          <button class="copy-board" type="button" disabled title="Purchases are coming soon">Get this resource</button>
+        </div>
         <button class="copy-board" id="copy-board-btn" type="button" onclick="copyToMyBoard()">Copy to my board →</button>
         <p class="copy-explainer" id="copy-explainer">A new editable copy opens in your TeachEd board. The original shared lesson remains unchanged.</p>
         <button class="detail-link" type="button" onclick="copyLessonLink()">Copy lesson link</button>
@@ -133,8 +159,8 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
 </main>
 <div id="lesson-toast" role="status" aria-live="polite"></div>
 
-<script src="scripts/app-core.js?v=1184"></script>
-<script src="scripts/lesson-cover.js?v=1184"></script>
+<script src="scripts/app-core.js?v=1185"></script>
+<script src="scripts/lesson-cover.js?v=1185"></script>
 <script>
   const FALLBACK_COLORS = ['#F3DF6B','#49F6F0','#6BAFF3','#F6F6EF','#9F8CE8','#F3A46B'];
   const lessonToken = localStorage.getItem('teachedos_token') || '';
@@ -178,9 +204,12 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
   }
 
-  function showMissingLesson(message) {
+  function showMissingLesson(message, withheld) {
     const text = message || 'This link does not include a readable lesson snapshot. Return to Community and open the lesson again.';
-    document.getElementById('lesson-loading').innerHTML = `<h1>Lesson unavailable</h1><p>${escapeHtml(text)}</p><a href="community.html">Back to Community</a>`;
+    /* Withdrawn while the team looks at it: nothing about why, and nothing of the content. */
+    document.getElementById('lesson-loading').innerHTML = withheld
+      ? `<div class="lesson-unavailable"><h1>Temporarily unavailable</h1><p>This resource is not available right now. If you copied it before, your copy is unchanged.</p><a href="community.html">Back to Community</a></div>`
+      : `<h1>Lesson unavailable</h1><p>${escapeHtml(text)}</p><a href="community.html">Back to Community</a>`;
     // nothing to pass on: Share and Copy link would hand out the broken link
     ['lesson-share-btn', 'lesson-copy-btn'].forEach(id => { const b = document.getElementById(id); if (b) b.hidden = true; });
   }
@@ -297,6 +326,12 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
       const cardWidth = Math.max(110, Number(card.w) || 220);
       const cardHeight = Math.max(72, Number(card.h) || 120);
       const color = safeColor(card?.data?.color, FALLBACK_COLORS[index % FALLBACK_COLORS.length]);
+      if (card?.data?.locked) {
+        return `<article class="lesson-frame-card is-locked" style="left:${x}px;top:${y}px;width:${cardWidth}px;height:${cardHeight}px" aria-label="Locked in this preview">
+        <p class="lesson-frame-card-type">🔒 Locked</p>
+        <p class="lesson-frame-card-text">${escapeHtml(card.data.title || 'More in the full version')}</p>
+      </article>`;
+      }
       return `<article class="lesson-frame-card" style="left:${x}px;top:${y}px;width:${cardWidth}px;height:${cardHeight}px;background:${color}">
         <p class="lesson-frame-card-type">${escapeHtml(card.type || 'Activity')}</p>
         <p class="lesson-frame-card-text">${escapeHtml(textOfCard(card))}</p>
@@ -347,6 +382,7 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
     optionalRow('detail-row-audience', 'detail-audience', data.audience);
     setText('detail-contents', `${cardCount} activity card${cardCount === 1 ? '' : 's'}`);
     applyCopyPermission(data);
+    renderTrust(data);
     const art = document.getElementById('lesson-cover-art');
     if (art && window.TeachEdCover) {
       art.innerHTML = TeachEdCover.render(data.cover, { title, level: data.level, skill: data.skill, duration: data.duration, imageUrl: data.coverImage || '' });
@@ -357,13 +393,53 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
     document.getElementById('lesson-content').hidden = false;
   }
 
+  /* "Remixed from X by Y" can never be taken off, and the numbers are only the real ones:
+     a lesson used in a class, a rating from five answers - nothing when it is zero. */
+  function renderTrust(data) {
+    const remix = document.getElementById('lesson-remix');
+    if (remix) {
+      if (data.remixOf) {
+        const o = data.remixOf;
+        remix.innerHTML = '↪ Remixed from ' + (o.id ? `<a href="lesson-view.html?id=${encodeURIComponent(o.id)}">${escapeHtml(o.title)}</a>` : escapeHtml(o.title)) + (o.author ? ' by ' + escapeHtml(o.author) : '');
+        remix.hidden = false;
+      } else remix.hidden = true;
+    }
+    const nums = document.getElementById('lesson-numbers');
+    const st = data.stats;
+    if (nums && st) {
+      const pl = (n, a, b) => `${n} ${n === 1 ? a : b}`, parts = [];
+      if (st.used) parts.push(`<span class="is-used">Used in ${pl(st.used, 'class', 'classes')}</span>`);
+      if (st.rating) parts.push(`<span>${st.rating.pct}% worked well (${st.rating.n} ratings)</span>`);
+      if (st.copies) parts.push(`<span>${pl(st.copies, 'copy', 'copies')}</span>`);
+      if (st.saves) parts.push(`<span>${pl(st.saves, 'save', 'saves')}</span>`);
+      if (st.remixes) parts.push(`<span>${pl(st.remixes, 'remix', 'remixes')}</span>`);
+      if (st.isNew) parts.unshift('<span>New</span>');
+      nums.innerHTML = parts.join(''); nums.hidden = !parts.length;
+    }
+    // a paid resource: a budgeted preview - a part of it, the rest as a table of contents
+    const paid = document.getElementById('lesson-paid');
+    document.body.classList.toggle('is-paid-preview', !!data.locked);
+    if (paid) {
+      paid.hidden = !data.locked;
+      if (data.locked && data.budget) {
+        document.getElementById('lesson-paid-note').textContent = `You see ${data.budget.shown} of ${data.budget.total} items${data.budget.seconds ? ` for about ${data.budget.seconds} seconds of demo` : ''}. Copying, inserting and exporting open with the full version.`;
+        document.getElementById('lesson-toc').innerHTML = (data.budget.toc || []).map(t => `<li class="${t.locked ? 'is-locked' : ''}">${escapeHtml(t.title)}${t.items ? ` <small>· ${t.items} items</small>` : ''}</li>`).join('');
+      }
+    }
+    const copyBtn = document.getElementById('copy-board-btn');
+    if (copyBtn && data.locked) copyBtn.hidden = true;
+    const stage = document.getElementById('lesson-stage');
+    stage?.querySelector('.lesson-watermark')?.remove();
+    if (stage && data.locked) { const w = document.createElement('div'); w.className = 'lesson-watermark'; w.setAttribute('aria-hidden', 'true'); w.innerHTML = '<span>Preview</span>'; stage.style.position = 'relative'; stage.appendChild(w); }
+  }
+
   /* Автор мог опубликовать урок «только посмотреть». Кнопку тогда убираем, а не
      прячем снимок: сам снимок всё равно уезжает клиенту, и притворяться, что он
      защищён, было бы враньём. Это просьба автора, которую интерфейс уважает, —
      не замок. Уроки, опубликованные до появления флага, копируются как раньше:
      undefined читается как «можно». */
   function applyCopyPermission(data) {
-    const allowed = data?.allowCopy !== false;
+    const allowed = data?.allowCopy !== false && !data?.locked;
     const button = document.getElementById('copy-board-btn');
     const explainer = document.getElementById('copy-explainer');
     if (!button) return;
@@ -425,6 +501,7 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
     if (!lessonApi) throw new Error('This shared lesson could not be opened.');
     const response = await lessonApi('/api/library/' + encodeURIComponent(id));
     const result = await response.json().catch(() => ({}));
+    if (response.status === 410) { const e = new Error('Temporarily unavailable'); e.withheld = true; throw e; }
     if (!response.ok) throw new Error(result.error || 'This shared lesson is no longer available.');
     const assignment = result.assignment || {};
     const data = assignment.data || {};
@@ -444,6 +521,9 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
       author: assignment.author_name || 'Teacher',
       createdAt: assignment.published_at,
       serverId: assignment.id,
+      stats: assignment.stats || null,
+      remixOf: assignment.remix_of_title ? { id: assignment.remix_of || '', title: assignment.remix_of_title, author: assignment.remix_of_author || '' } : null,
+      locked: !!assignment.locked, budget: assignment.preview_budget || null,
       snapshot: data.snapshot,
       cover: data.cover || null,
       coverImage: assignment.image ? `/api/library/${encodeURIComponent(assignment.id)}/cover?v=${encodeURIComponent(assignment.updated_at || '')}` : '',
@@ -471,7 +551,7 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
       }
       if (normalized?.snapshot) renderLesson(normalized); else showMissingLesson();
     } catch (error) {
-      showMissingLesson(error?.message);
+      showMissingLesson(error?.message, !!error?.withheld);
     }
   }
 
@@ -487,6 +567,6 @@ body.is-embed .lesson-stage { border-radius:0 !important; max-height:none !impor
   window.addEventListener('resize', refitCanvas, { passive:true });
   if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.getElementById('lesson-stage'));
 </script>
-  <script src="scripts/signin-entry.js?v=1184" defer></script>
+  <script src="scripts/signin-entry.js?v=1185" defer></script>
 </body>
 </html>

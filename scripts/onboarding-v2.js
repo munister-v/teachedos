@@ -594,6 +594,7 @@
     board_created: ['Create your first board', 'Create'], preview_opened: ['Preview as a student', 'Preview'],
     student_added: ['Add your first student', 'Add'], lesson_scheduled: ['Schedule a lesson', 'Schedule'],
     tool_used: ['Explore teaching tools', 'Open'], appearance_changed: ['Make the space yours', 'Change'],
+    community_resource: ['Find a ready-to-use resource', 'Explore Community'],
   };
   const clState = { open: null, ready: false };
   function clHost() {
@@ -665,6 +666,7 @@
     else if (key === 'lesson_scheduled') { viewPlan('lesson'); }
     else if (key === 'tool_used') { const id = previewBoardId(); location.href = id ? 'board.html?id=' + encodeURIComponent(id) + '&onb=tools' : 'board.html'; }
     else if (key === 'appearance_changed') { if (typeof openWallpaperPicker === 'function') openWallpaperPicker(); }
+    else if (key === 'community_resource') { location.href = 'community.html'; }   // done only after a save or a copy, not a visit
   }
   function readyNotice() {
     const host = clHost();

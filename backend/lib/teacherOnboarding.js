@@ -54,7 +54,9 @@ const crypto = require('crypto');
 const VERSION = 1;
 const STATUSES = ['not_started', 'in_progress', 'core_completed', 'dismissed'];
 const STEPS = ['welcome', 'practice', 'board', 'preview', 'plan'];
-const ITEMS = ['board_created', 'preview_opened', 'student_added', 'lesson_scheduled', 'tool_used', 'appearance_changed'];
+const ITEMS = ['board_created', 'preview_opened', 'student_added', 'lesson_scheduled', 'tool_used', 'appearance_changed', 'community_resource'];
+/* community_resource - "Find a ready-to-use resource" - is read off real entities like the
+   core four: done once the teacher saved or copied something from Community (never on a mere visit). */
 /* The first four are "core progress"; the rest are optional. */
 const CORE_ITEMS = ['board_created', 'preview_opened', 'student_added', 'lesson_scheduled'];
 /* Flags a browser may report itself. The others are read off real entities. */

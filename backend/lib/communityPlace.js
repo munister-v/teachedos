@@ -4,9 +4,10 @@
  * a whole Space is wrapped in a new frame named after it, so it lands as one
  * block the teacher can move or delete.
  *
- * Where: next to where the teacher stopped. The frame nearest the middle of
- * the last saved view is the anchor; the lesson goes to its right, else below
- * it, else under everything on the board - never on top of other cards.
+ * Where (ТЗ, "Insert to Student"): the way the board reads. Its own flow
+ * direction if it has one; else the direction of its last three frames if one
+ * axis clearly wins; else to the right of the right-most frame - one default for
+ * every board. The gap is kept and nothing is covered.
  *
  * Every card gets a new id (with parentFrame, childIds and arrows remapped):
  * the copy is the teacher's own and shares nothing with the original.
@@ -41,28 +42,49 @@ function asOneFrame(srcCards, title) {
   return { cards: [frame, ...cards], frameId: frame.id };
 }
 
-/* Where the lesson frame goes on this board. */
+/* Which way the board reads. In this order, and never a guess that could put
+   the lesson in the wrong place:
+     1. the board's own flow direction, when it has one;
+     2. the direction of the last three frames - one axis must clearly win;
+     3. otherwise "right", the one default for every board. */
+const DOMINANCE = 1.5;
+function flowDirection(boardData, frames) {
+  const own = String(boardData.flowDirection || boardData.flow || '').toLowerCase();
+  if (own === 'horizontal' || own === 'right') return { dir: 'right', why: 'board' };
+  if (own === 'vertical' || own === 'down') return { dir: 'down', why: 'board' };
+  const last = frames.slice(-3);
+  if (last.length >= 2) {
+    const at = last.map(c => { const b = box(c); return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; });
+    let dx = 0, dy = 0;
+    for (let i = 1; i < at.length; i++) { dx += Math.abs(at[i].x - at[i - 1].x); dy += Math.abs(at[i].y - at[i - 1].y); }
+    if (dx >= dy * DOMINANCE && dx > 0) return { dir: 'right', why: 'recent' };
+    if (dy >= dx * DOMINANCE && dy > 0) return { dir: 'down', why: 'recent' };
+  }
+  return { dir: 'right', why: 'default' };
+}
+
+/* Where the lesson frame goes: after the end of the flow, in its direction,
+   keeping the gap and never on top of anything. Returns {x, y, dir, why}. */
 function findSpot(boardData, size) {
   const existing = (boardData.cards || []).filter(c => c && !c.data?.parentFrame);
-  if (!existing.length) return { x: 0, y: 0 };
+  if (!existing.length) return { x: 0, y: 0, dir: 'right', why: 'empty' };
   const frames = existing.filter(c => c.type === 'frame');
-  const scale = num(boardData.scale, 1) || 1;
-  const pan = boardData.pan || {};
-  // the middle of the last view, in board coordinates (a laptop-sized screen)
-  const view = { x: (720 - num(pan.x, 100)) / scale, y: (420 - num(pan.y, 60)) / scale };
+  const { dir, why } = flowDirection(boardData, frames);
   const pool = frames.length ? frames : existing;
-  const centre = c => { const b = box(c); return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; };
-  const anchor = box(pool.slice().sort((a, b) => {
-    const ca = centre(a), cb = centre(b);
-    return Math.hypot(ca.x - view.x, ca.y - view.y) - Math.hypot(cb.x - view.x, cb.y - view.y);
-  })[0]);
+  // the end of the flow: the right-most frame for "right", the lowest for "down"
+  const end = box(pool.slice().sort((a, b) => dir === 'right'
+    ? (box(b).x + box(b).w) - (box(a).x + box(a).w)
+    : (box(b).y + box(b).h) - (box(a).y + box(a).h))[0]);
   const free = s => !existing.some(c => overlaps({ ...s, ...size }, box(c)));
-  const right = { x: anchor.x + anchor.w + GAP, y: anchor.y };
-  if (free(right)) return right;
-  const below = { x: anchor.x, y: anchor.y + anchor.h + GAP };
-  if (free(below)) return below;
-  const all = bounds(existing);
-  return { x: all.x, y: all.y + all.h + GAP };
+  let spot = dir === 'right' ? { x: end.x + end.w + GAP, y: end.y } : { x: end.x, y: end.y + end.h + GAP };
+  // something sits there: slide along the flow, past it, still with the gap
+  for (let i = 0; i < 40 && !free(spot); i++) {
+    const hit = existing.find(c => overlaps({ ...spot, ...size }, box(c)));
+    const b = box(hit);
+    spot = dir === 'right' ? { x: b.x + b.w + GAP, y: spot.y } : { x: spot.x, y: b.y + b.h + GAP };
+  }
+  if (!free(spot)) { const all = bounds(existing); spot = { x: all.x, y: all.y + all.h + GAP }; }
+  return { ...spot, dir, why };
 }
 
 /* New ids for every card and arrow, moved by (dx, dy), stacked from z. */
@@ -95,7 +117,7 @@ function placeLesson(boardData, snapshot, title) {
   const r = remap(cards, snapshot, spot.x - fb.x, spot.y - fb.y, zTop + 1);
   board.cards.push(...r.cards);
   board.arrows.push(...r.links);
-  return { data: board, frameId: r.map.get(frameId), spot };
+  return { data: board, frameId: r.map.get(frameId), spot, cardIds: r.cards.map(c => c.id), arrowIds: r.links.map(l => l.id), direction: spot.dir, directionWhy: spot.why };
 }
 
 /* A new board that is the lesson, laid out as the author made it. */
@@ -105,4 +127,4 @@ function lessonBoard(snapshot) {
   return { cards: r.cards, arrows: r.links, pan: { x: 100, y: 60 }, scale: 1, nextId: r.cards.length + 10 };
 }
 
-module.exports = { placeLesson, lessonBoard, findSpot, asOneFrame };
+module.exports = { placeLesson, lessonBoard, findSpot, flowDirection, asOneFrame };

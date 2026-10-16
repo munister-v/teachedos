@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1184"></script>
+<script src="scripts/phone-gate.js?v=1185"></script>
 <base href="/">
-<link rel="manifest" href="manifest.json?v=1184">
+<link rel="manifest" href="manifest.json?v=1185">
 <meta name="theme-color" content="#FFFFFF"/>
-<link rel="icon" href="favicon.ico?v=1184" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1184">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1184">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1184">
+<link rel="icon" href="favicon.ico?v=1185" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1185">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1185">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1185">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1184">
-<link rel="preload" as="style" href="styles/unify.css?v=1184">
+<link rel="preload" as="style" href="styles/harmony.css?v=1185">
+<link rel="preload" as="style" href="styles/unify.css?v=1185">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -106,6 +106,32 @@ body{font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text'
 .page{display:none}
 .page.active{display:block}
 .page-title{font-size:26px;font-weight:700;margin-bottom:6px}
+.cr-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.cr-sum div{padding:14px 16px;border-radius:16px;background:#fff;border:1px solid rgba(36,40,44,.09)}
+.cr-sum span{display:block;font-size:12px;color:#5D614B;font-weight:700}
+.cr-sum strong{display:block;font-size:28px;letter-spacing:-.03em}
+.cr-sum .cr-crit strong{color:#B23A0E}
+.cr-work{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.cr-work{grid-template-columns:1fr}}
+.cr-list{display:flex;flex-direction:column;gap:8px}
+.cr-item{all:unset;box-sizing:border-box;cursor:pointer;display:block;padding:12px 14px;border-radius:14px;background:#fff;border:1.5px solid rgba(36,40,44,.09)}
+.cr-item:hover{border-color:rgba(36,40,44,.3)} .cr-item.on{border-color:#24282C;background:#F6F6EF}
+.cr-item b{display:block;font-size:14.5px} .cr-item small{display:block;color:#5D614B;margin-top:3px;font-size:12px}
+.cr-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;margin-right:4px}
+.cr-tag.crit{background:#FFD9D9;color:#9B1C1C} .cr-tag.new{background:#E9E1FF;color:#4B2FA0} .cr-tag.warn{background:#FFF1B8;color:#6B5200}
+.cr-detail{padding:18px;border-radius:18px;background:#fff;border:1px solid rgba(36,40,44,.09);min-height:200px}
+.cr-detail h3{margin:0 0 4px;font-size:19px} .cr-detail h4{margin:16px 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5D614B}
+.cr-rep{padding:8px 10px;border-radius:10px;background:#F6F6EF;margin-bottom:6px;font-size:13px}
+.cr-rep.dim{opacity:.6}
+.cr-snap{max-height:240px;overflow:auto;padding:10px;border-radius:10px;background:#F6F6EF;font-size:12.5px;display:flex;flex-direction:column;gap:5px}
+.cr-snap span{display:block;padding:5px 8px;border-radius:8px;background:#fff}
+.cr-form{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.cr-form textarea,.cr-form input,.cr-row input,.cr-row select{border:1px solid rgba(36,40,44,.16);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;background:#fff}
+.cr-form textarea{min-height:64px}
+.cr-actions{display:flex;gap:8px;flex-wrap:wrap}
+.cr-tools{margin-top:22px;padding:16px 18px;border-radius:16px;background:#fff;border:1px solid rgba(36,40,44,.09)}
+.cr-tools h3{margin:0 0 4px;font-size:15px} .cr-tools p{margin:0 0 10px;color:#5D614B;font-size:13px}
+.cr-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px} .cr-row input{flex:1;min-width:220px}
 .page-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
 
 /* ── Stat cards ──────────────────────────────────────────────────────────── */
@@ -677,18 +703,18 @@ html{scroll-behavior:smooth}
 .empty-state-title{font:800 15px var(--font);color:var(--text);margin-bottom:4px}
 .empty-state-sub{font-size:13px}
 </style>
-<script src="theme.js?v=1184" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1184">
-<link rel="stylesheet" href="styles/harmony.css?v=1184">
-<link rel="stylesheet" href="styles/unify.css?v=1184">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1184">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1184">
-<link rel="stylesheet" href="styles/admin-refresh.css?v=1184">
-<link rel="stylesheet" href="styles/admin-control.css?v=1184">
+<script src="theme.js?v=1185" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1185">
+<link rel="stylesheet" href="styles/harmony.css?v=1185">
+<link rel="stylesheet" href="styles/unify.css?v=1185">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1185">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1185">
+<link rel="stylesheet" href="styles/admin-refresh.css?v=1185">
+<link rel="stylesheet" href="styles/admin-control.css?v=1185">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1184">
-<link rel="stylesheet" href="styles/controls.css?v=1184">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1184">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1185">
+<link rel="stylesheet" href="styles/controls.css?v=1185">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1185">
 </head>
 <body class="admin-page fx">
 
@@ -758,6 +784,9 @@ html{scroll-behavior:smooth}
     </div>
     <div class="sb-item" onclick="showPage('packages')">
       <span class="sb-icon" aria-hidden="true"></span>Packages
+    </div>
+    <div class="sb-item" onclick="showPage('community')">
+      <span class="sb-icon" aria-hidden="true"></span>Community review<span class="sb-notif red" id="sb-community-badge" style="display:none"></span>
     </div>
     <div class="sb-section">Platform</div>
     <div class="sb-item" onclick="showPage('settings')">
@@ -1288,6 +1317,33 @@ html{scroll-behavior:smooth}
       <section class="incident-detail-panel" aria-live="polite" id="incident-detail">
         <div class="incident-detail-empty"><div class="control-kicker">Incident record</div><strong>Select an incident</strong><span>Its status, ownership and response timeline will appear here.</span></div>
       </section>
+    </div>
+  </div>
+
+  <!-- ── Community review: reports, decisions, appeals ───────────────────── -->
+  <div id="page-community" class="page">
+    <div class="page-title">Community review</div>
+    <div class="page-sub">Reports on shared lessons. Moderators see the category, the comment and a snapshot of what was reported - never who reported.</div>
+    <section class="cr-sum" aria-label="Queue summary">
+      <div><span>Open cases</span><strong id="cr-open">-</strong></div>
+      <div class="cr-crit"><span>Critical</span><strong id="cr-crit">-</strong></div>
+      <div><span>Appeals</span><strong id="cr-appeals">-</strong></div>
+      <div><span>Oldest waiting</span><strong id="cr-oldest">-</strong></div>
+    </section>
+    <div class="incident-filter" role="tablist" aria-label="Queue">
+      <button type="button" class="active" data-cr="open" onclick="crFilter('open')">Open</button>
+      <button type="button" data-cr="appeals" onclick="crFilter('appeals')">Appeals</button>
+      <button type="button" data-cr="resolved" onclick="crFilter('resolved')">Decided</button>
+    </div>
+    <div class="cr-work">
+      <div id="cr-list" class="cr-list" aria-live="polite"><div class="monitor-placeholder">Loading…</div></div>
+      <div id="cr-detail" class="cr-detail"><div class="monitor-placeholder">Select a case to see what was reported.</div></div>
+    </div>
+    <div class="cr-tools">
+      <h3>TeachEd Team &amp; Editor's picks</h3>
+      <p>The official profile and the picks are a person's choice, never automatic. Paste a user, lesson or collection id.</p>
+      <div class="cr-row"><input id="cr-team-id" placeholder="User id" aria-label="User id"><button class="btn-sm btn-green" type="button" onclick="crTeam(true)">Make TeachEd Team</button><button class="btn-sm btn-edit" type="button" onclick="crTeam(false)">Remove</button></div>
+      <div class="cr-row"><input id="cr-ed-id" placeholder="Lesson or collection id" aria-label="Lesson or collection id"><select id="cr-ed-kind"><option value="publication">Lesson</option><option value="collection">Collection</option></select><button class="btn-sm btn-green" type="button" onclick="crEditorial(true)">Editor's pick</button><button class="btn-sm btn-edit" type="button" onclick="crEditorial(false)">Remove</button></div>
     </div>
   </div>
 
@@ -2278,15 +2334,16 @@ html{scroll-behavior:smooth}
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="scripts/admin-app.js?v=1184"></script>
-<script src="scripts/admin-refresh.js?v=1184" defer></script>
-<script src="scripts/admin-security.js?v=1184" defer></script>
-  <script src="scripts/admin-control.js?v=1184" defer></script>
-<script src="pwa.js?v=1184"></script>
-<script src="scripts/autogrow.js?v=1184" defer></script>
-<script src="pwa-boot.js?v=1184" defer></script>
-<script src="scripts/nav-boost.js?v=1184" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1184" defer></script>
-<script src="scripts/mobile-perf.js?v=1184" defer></script>
+<script src="scripts/admin-app.js?v=1185"></script>
+<script src="scripts/admin-community.js?v=1185"></script>
+<script src="scripts/admin-refresh.js?v=1185" defer></script>
+<script src="scripts/admin-security.js?v=1185" defer></script>
+  <script src="scripts/admin-control.js?v=1185" defer></script>
+<script src="pwa.js?v=1185"></script>
+<script src="scripts/autogrow.js?v=1185" defer></script>
+<script src="pwa-boot.js?v=1185" defer></script>
+<script src="scripts/nav-boost.js?v=1185" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1185" defer></script>
+<script src="scripts/mobile-perf.js?v=1185" defer></script>
 </body>
 </html>
