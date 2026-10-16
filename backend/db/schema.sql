@@ -1388,3 +1388,18 @@ ALTER TABLE library_copies ADD COLUMN IF NOT EXISTS arrow_ids JSONB NOT NULL DEF
 ALTER TABLE library_reports ADD COLUMN IF NOT EXISTS version_no INTEGER;
 ALTER TABLE lesson_sessions ADD COLUMN IF NOT EXISTS students UUID[] NOT NULL DEFAULT '{}';          -- who was there (counted, never shown)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS community_publish_blocked BOOLEAN NOT NULL DEFAULT FALSE;  -- after repeated violations
+
+-- Guardrails (Lesson Builder 2.0, E1): how often the generate -> check -> draft contour stepped in.
+-- Counts only, per skill and tool, against the descriptor bank version it ran with.
+CREATE TABLE IF NOT EXISTS guardrail_daily (
+  day               DATE         NOT NULL,
+  skill             VARCHAR(24)  NOT NULL,
+  tool_id           VARCHAR(80)  NOT NULL,
+  bank_version      VARCHAR(40)  NOT NULL DEFAULT 'none',
+  generations       INTEGER      NOT NULL DEFAULT 0,
+  first_pass_failed INTEGER      NOT NULL DEFAULT 0,   -- the first draft did not pass its own checks
+  regenerated       INTEGER      NOT NULL DEFAULT 0,   -- and a later one did
+  check_me          INTEGER      NOT NULL DEFAULT 0,   -- none did: the teacher got a "check me"
+  unverified        INTEGER      NOT NULL DEFAULT 0,   -- the second reading could not run
+  PRIMARY KEY (day, skill, tool_id, bank_version)
+);

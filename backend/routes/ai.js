@@ -4,6 +4,7 @@ const dns = require('dns').promises;
 const net = require('net');
 const { requireAuth, requireTeacher, requireAdmin } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
+const guardrails = require('../lib/guardrails');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
@@ -189,6 +190,25 @@ function recordQuality(input, output) {
            source_anchor_notes = ai_quality_daily.source_anchor_notes + EXCLUDED.source_anchor_notes,
            dropped_items = ai_quality_daily.dropped_items + EXCLUDED.dropped_items`,
     [String(input?.toolId || 'unknown').slice(0, 80), engine, level, flagged, sourceAnchors, dropped.length],
+  ).catch(() => {});
+}
+
+/* How often the contour had to step in (E1 US5): per skill and tool, per day, against the
+   descriptor bank it ran with. "Triggers per 100 generations" going DOWN over time is the
+   point; this is the number, with no lesson content in it. */
+function recordGuard(input, g) {
+  const first = g.firstPassFailed ? 1 : 0;
+  pool.query(
+    `INSERT INTO guardrail_daily (day, skill, tool_id, bank_version, generations, first_pass_failed, regenerated, check_me, unverified)
+     VALUES (CURRENT_DATE, $1, $2, $3, 1, $4, $5, $6, $7)
+     ON CONFLICT (day, skill, tool_id, bank_version) DO UPDATE
+       SET generations = guardrail_daily.generations + 1,
+           first_pass_failed = guardrail_daily.first_pass_failed + EXCLUDED.first_pass_failed,
+           regenerated = guardrail_daily.regenerated + EXCLUDED.regenerated,
+           check_me = guardrail_daily.check_me + EXCLUDED.check_me,
+           unverified = guardrail_daily.unverified + EXCLUDED.unverified`,
+    [g.skill, String(input.toolId || 'unknown').slice(0, 80), String(g.bank || 'none').slice(0, 40), first,
+      g.outcome === 'regenerated' ? 1 : 0, g.outcome === 'check_me' ? 1 : 0, g.outcome === 'unverified' ? 1 : 0],
   ).catch(() => {});
 }
 
@@ -1678,25 +1698,50 @@ async function generate(input, quotaUser) {
   if (budget.level === 'amber') input.preferLight = true;
 
   try {
-    input.boardKind = boardKindFor(input.toolId);
-    const out = assembleFromLLM(input, await aiEngine.generate(input));
+    /* Generate -> check yourself -> draft (lib/guardrails). Each call below leaves the engine's
+       "last model / last trace" pointing at itself, so what the GENERATING call looked like is
+       captured right after it - the engine label and the cost are about that, summed over retries
+       and the second reading. */
+    const baseExtra = input.extra || '';
+    const cap = { tier: 'ai', model: null, trace: null, cost: 0 };
+    const produce = async ({ feedback, brief }) => {
+      input.extra = [baseExtra, brief ? `Level target: ${brief}` : '', feedback || ''].filter(Boolean).join(' ');
+      input.boardKind = boardKindFor(input.toolId);
+      const made = assembleFromLLM(input, await aiEngine.generate(input));
+      cap.tier = (aiEngine.getLastTier && aiEngine.getLastTier() === 'backup') ? 'backup' : 'ai';
+      cap.model = aiEngine.getLastModel() || aiEngine.MODEL;
+      cap.trace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
+      METRICS.lastModel = cap.model;
+      cap.cost += recordTokens(cap.trace && cap.trace.usage);
+      return made;
+    };
+    const judge = async prompt => {
+      const verdict = await aiEngine.rawGenerate(prompt);
+      METRICS.lastModel = aiEngine.getLastModel() || aiEngine.MODEL;
+      cap.cost += recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage);
+      return verdict;
+    };
+    const guarded = await guardrails.guard({ input, produce, judge });
+    input.extra = baseExtra;                     // the input is shared with the cache key and the route
+    const out = guarded.out;
     /* 'ai' - основна модель; 'backup' - відповіла страхувальна ланка ланцюга
        (OpenRouter). Різниця не косметична: запасні моделі помітно слабші, і
        вчитель має бачити, що урок зібрано ними, - інакше він читає це просто
        як «інструмент сьогодні дурний». Так само, як ми вже позначаємо роботу
        на локальних шаблонах. */
-    out.engine = (aiEngine.getLastTier && aiEngine.getLastTier() === 'backup') ? 'backup' : 'ai';
+    out.engine = cap.tier;
     if (input.preferLight) out.engineNote = 'daily budget reached - built on the light model';
     METRICS.llmOk++;
-    const m = aiEngine.getLastModel() || aiEngine.MODEL;
+    const m = cap.model;
     METRICS.lastModel = m;
-    METRICS.lastTrace = aiEngine.getLastTrace ? aiEngine.getLastTrace() : null;
-    const costUsd = recordTokens(METRICS.lastTrace && METRICS.lastTrace.usage);
+    METRICS.lastTrace = cap.trace;
+    const costUsd = cap.cost;
     recordActualAiCost(quotaUser, costUsd);
     /* Цену знает только это место, а свести резерв может только тот, кто его
        делал, - маршрут. Едет на самом input: он у них общий по ссылке. */
     input._actualCostUsd = costUsd;
     METRICS.byModel[m] = (METRICS.byModel[m] || 0) + 1;
+    if (guarded.guard) recordGuard(input, guarded.guard);
     recordUsage('llm_ok');
     return out;
   } catch (err) {
@@ -1845,6 +1890,27 @@ router.get('/admin/allowances', requireAuth, requireAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Could not load AI allowance summary' });
   }
+});
+
+// ── GET /api/ai/guardrails - how often the checks stepped in, per 100 generations ─────
+router.get('/guardrails', requireAuth, requireAdmin, async (req, res) => {
+  const days = Math.max(1, Math.min(90, parseInt(req.query.days, 10) || 14));
+  try {
+    const { rows } = await pool.query(
+      `SELECT day::text, skill, tool_id, bank_version, generations, first_pass_failed, regenerated, check_me, unverified,
+              ROUND(100.0 * first_pass_failed / NULLIF(generations, 0), 1)::float AS triggers_per_100
+         FROM guardrail_daily WHERE day >= CURRENT_DATE - ($1::int - 1) ORDER BY day DESC, generations DESC`, [days]);
+    const total = rows.reduce((a, r) => ({ generations: a.generations + r.generations, triggers: a.triggers + r.first_pass_failed, checkMe: a.checkMe + r.check_me }), { generations: 0, triggers: 0, checkMe: 0 });
+    res.json({ days, rows, total: { ...total, triggers_per_100: total.generations ? Math.round(1000 * total.triggers / total.generations) / 10 : null } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/ai/descriptors - what the descriptor bank covers (staff only) ─────
+router.get('/descriptors', requireAuth, requireAdmin, (_req, res) => {
+  try { res.json({ coverage: require('../lib/descriptorBank').coverage() }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ── GET /api/ai/quality - aggregate quality signals, no lesson content ─────

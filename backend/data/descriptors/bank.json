@@ -1,0 +1,255 @@
+{
+  "schema": 1,
+  "version": "0.1.0",
+  "framework": "CEFR Companion Volume (Council of Europe, 2020) - levels A1-C2 and the four modes of communicative activity",
+  "note": "Working bank. Every statement here is TeachEd's own wording of what each level can do with grammar, written as a stand-in so generation and checking have one source of truth. Status 'draft' means a methodologist has not signed it off; only 'approved' counts as calibrated. Replace or confirm each one against the Companion Volume before relying on it.",
+  "changelog": [
+    {
+      "version": "0.1.0",
+      "date": "2026-10-16",
+      "change": "Grammar skill, all levels and modes, as drafts."
+    }
+  ],
+  "levels": [
+    "A1",
+    "A2",
+    "B1",
+    "B2",
+    "C1",
+    "C2"
+  ],
+  "modes": [
+    "reception",
+    "production",
+    "interaction",
+    "mediation"
+  ],
+  "skills": [
+    "vocabulary",
+    "listening",
+    "reading",
+    "speaking",
+    "writing",
+    "grammar",
+    "news",
+    "picture"
+  ],
+  "descriptors": [
+    {
+      "id": "GRM-A1-REC",
+      "level": "A1",
+      "mode": "reception",
+      "skill": "grammar",
+      "text": "Can recognise the most basic forms (am/is/are, the simple present, plural -s) in very short familiar sentences, with a picture or the context to help.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-A1-PRO",
+      "level": "A1",
+      "mode": "production",
+      "skill": "grammar",
+      "text": "Can use a few memorised basic forms in single sentences about themselves; frequent basic mistakes do not stop the message getting through.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-A1-INT",
+      "level": "A1",
+      "mode": "interaction",
+      "skill": "grammar",
+      "text": "Can ask and answer simple questions with memorised patterns, relying on the other person to slow down and help.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-A1-MED",
+      "level": "A1",
+      "mode": "mediation",
+      "skill": "grammar",
+      "text": "Can pass on a single word or a very short phrase from a sign or an announcement in the same simple form.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-A2-REC",
+      "level": "A2",
+      "mode": "reception",
+      "skill": "grammar",
+      "text": "Can tell from the verb form and the time words whether a simple everyday sentence is about now, the past or a plan.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-A2-PRO",
+      "level": "A2",
+      "mode": "production",
+      "skill": "grammar",
+      "text": "Can use the simple past, the present continuous and going to in short linked sentences; basic mistakes still occur but the meaning is clear.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-A2-INT",
+      "level": "A2",
+      "mode": "interaction",
+      "skill": "grammar",
+      "text": "Can manage short everyday exchanges in familiar tenses and correct a slip when someone prompts them.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-A2-MED",
+      "level": "A2",
+      "mode": "mediation",
+      "skill": "grammar",
+      "text": "Can relay simple facts from a short text in simple sentences, keeping the tense of the original.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B1-REC",
+      "level": "B1",
+      "mode": "reception",
+      "skill": "grammar",
+      "text": "Can recognise the main forms in a clear text - perfect forms, the first conditional, common modals - and understand what each one signals.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B1-PRO",
+      "level": "B1",
+      "mode": "production",
+      "skill": "grammar",
+      "text": "Can use a good range of common forms (present perfect, first conditional, used to) with reasonable accuracy; less common forms cause mistakes, but the meaning stays clear.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B1-INT",
+      "level": "B1",
+      "mode": "interaction",
+      "skill": "grammar",
+      "text": "Can keep a conversation going across several tenses and change the form when they are misunderstood.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B1-MED",
+      "level": "B1",
+      "mode": "mediation",
+      "skill": "grammar",
+      "text": "Can summarise a short text for another person, changing tense and person correctly.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B2-REC",
+      "level": "B2",
+      "mode": "reception",
+      "skill": "grammar",
+      "text": "Can follow how complex forms - second and third conditionals, the passive, reported speech - change the meaning in longer texts.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B2-PRO",
+      "level": "B2",
+      "mode": "production",
+      "skill": "grammar",
+      "text": "Can use complex forms (conditionals, the passive, reported speech) with fairly high accuracy; the few errors that remain rarely cause misunderstanding.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B2-INT",
+      "level": "B2",
+      "mode": "interaction",
+      "skill": "grammar",
+      "text": "Can choose between forms to show attitude and certainty in a discussion and repair slips without stopping.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-B2-MED",
+      "level": "B2",
+      "mode": "mediation",
+      "skill": "grammar",
+      "text": "Can restate the ideas of a text for others, choosing forms that keep the original degree of certainty.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C1-REC",
+      "level": "C1",
+      "mode": "reception",
+      "skill": "grammar",
+      "text": "Can notice fine differences of form - inversion, mixed conditionals, subtle choices of aspect - and what they imply.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C1-PRO",
+      "level": "C1",
+      "mode": "production",
+      "skill": "grammar",
+      "text": "Can vary complex grammar for emphasis and style, with only rare slips.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C1-INT",
+      "level": "C1",
+      "mode": "interaction",
+      "skill": "grammar",
+      "text": "Can use grammar flexibly to hedge, soften or emphasise in a discussion.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C1-MED",
+      "level": "C1",
+      "mode": "mediation",
+      "skill": "grammar",
+      "text": "Can paraphrase a demanding text with the forms that suit the new audience and register.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C2-REC",
+      "level": "C2",
+      "mode": "reception",
+      "skill": "grammar",
+      "text": "Can interpret the full range of grammatical choices, including idiomatic and stylistic ones, in any text.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C2-PRO",
+      "level": "C2",
+      "mode": "production",
+      "skill": "grammar",
+      "text": "Can use the whole range of grammatical resources naturally and stay accurate even when their attention is elsewhere.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C2-INT",
+      "level": "C2",
+      "mode": "interaction",
+      "skill": "grammar",
+      "text": "Can adapt grammar at once to the tone and the changing needs of a conversation.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "GRM-C2-MED",
+      "level": "C2",
+      "mode": "mediation",
+      "skill": "grammar",
+      "text": "Can pass on a nuanced text, rebuilding its grammar for the audience while keeping every shade of meaning.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    }
+  ]
+}

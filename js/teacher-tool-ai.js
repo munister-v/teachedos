@@ -101,7 +101,7 @@ const _PROMPTS = {
   'lesson-pack': (i) =>
     `You are an EFL teacher. Create a complete lesson plan at ${i.level} level for "${i.topic}". Include warmer, main tasks, and homework.\nReturn ONLY a JSON array of lesson stages:\n[{"stage":"Warmer (5 min)","task":"..."},{"stage":"Main task (20 min)","task":"..."},{"stage":"Production (10 min)","task":"..."},{"stage":"Homework","task":"..."}]`,
   'rubric-maker': (i) =>
-    `You are an EFL teacher. Create a marking rubric at ${i.level} level for a ${i.topic} task. Include 4-5 criteria with descriptors for excellent/good/needs work.\nReturn ONLY a JSON array:\n[{"criterion":"Vocabulary","excellent":"...","good":"...","needs_work":"..."}]`,
+    `You are an EFL teacher. Create a marking rubric at ${i.level} level for a ${i.topic} task. Include 4-5 criteria with a description for excellent/good/needs work.\nReturn ONLY a JSON array:\n[{"criterion":"Vocabulary","excellent":"...","good":"...","needs_work":"..."}]`,
   'essay-outline': (i) =>
     `You are an EFL teacher. Create an essay outline at ${i.level} level for "${i.topic}" with introduction, 3 body points, conclusion.\nReturn ONLY a JSON array:\n[{"section":"Introduction","text":"hook + thesis"},{"section":"Body 1","text":"..."},{"section":"Body 2","text":"..."},{"section":"Body 3","text":"..."},{"section":"Conclusion","text":"..."}]`,
   'warmup-listening': (i) =>

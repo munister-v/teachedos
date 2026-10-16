@@ -3821,7 +3821,8 @@ function _wsQualityPill(d, cardId = '') {
     ...(q.notes || []),
     note || '',
   ].filter(Boolean).join(' · ');
-  const label = q.level === 'red' ? 'check' : 'note';
+  // "check me": the platform checked its own draft and is not sure - the reason is the tooltip and the review menu
+  const label = q.checkMe ? 'check me' : (q.level === 'red' ? 'check' : 'note');
   return `<button class="ws-pill sem sem-${q.level === 'red' ? 'red' : 'amber'}" style="border:0;cursor:pointer" onclick="openWorksheetQualityReview('${cardId}')" title="${esc(why)}">${label}</button>`;
 }
 
@@ -5814,7 +5815,7 @@ async function _wfShowDrafts(cardId) {
       if (!w) return null;
       return { name: x.student_name || x.student_email || 'Student', at: x.submitted_at, words: w.words || x.score || 0, target: x.max_score || 0, text: w.text || '' };
     }).filter(Boolean);
-    if (!rows.length) { body.innerHTML = '<p class="wf-drafts-empty">No drafts yet. When a student presses <b>Submit Final Draft</b>, their text appears here.</p>'; return; }
+    if (!rows.length) { body.innerHTML = '<p class="wf-drafts-empty">No drafts yet. When a student presses <b>Submit to teacher</b>, their text appears here.</p>'; return; }
     body.innerHTML = rows.map(x => `<article class="wf-draft">
       <header><b>${esc(x.name)}</b><span>${x.words}${x.target ? ' / ' + x.target : ''} words · ${esc(new Date(x.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span></header>
       <div class="wf-draft-text">${esc(x.text).replace(/\n/g, '<br>')}</div>
@@ -16659,7 +16660,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1185';
+const TEACHEDOS_ASSET_VERSION = '1186';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -21256,7 +21257,7 @@ function renderToolsTab(sec) {
     wiz.type = 'button';
     wiz.className = 'lesson-wiz-cta';
     wiz.innerHTML = `<span class="lw-cta-ic"><svg aria-hidden="true"><use href="#bi-spark"/></svg></span>
-      <span class="lw-cta-tx"><b>Build a lesson</b><small>Two questions, and the whole lesson lands on the board</small></span>
+      <span class="lw-cta-tx"><b>Lesson Builder</b><small>Two questions, and the whole lesson lands on the board</small></span>
       <span class="lw-cta-go">→</span>`;
     wiz.onclick = openLessonWizard;
     sec.appendChild(wiz);
@@ -23300,7 +23301,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1185',
+          icon: 'icons/icon-192.png?v=1186',
           tag: 'board-live-' + s.id,
         });
       }
@@ -26543,7 +26544,7 @@ function generateLocalAiLesson(input) {
     assessmentCriteria,
     teacherScript,
     challenge,
-    teacherTip: input.teacherMemory ? 'Keep the saved teacher style visible while correcting: use it as the lesson tone guardrail.' : 'Save teacher memory to make this assistant feel more personal.',
+    teacherTip: input.teacherMemory ? 'Keep the saved teacher style visible while correcting: use it as the lesson tone guide.' : 'Save teacher memory to make this assistant feel more personal.',
     homework: `Write or record a short response using at least 5 target items from "${cleanTopic}".`,
   };
 }

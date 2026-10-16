@@ -1360,7 +1360,7 @@ document.addEventListener('DOMContentLoaded',function(){ setTimeout(iwMcSync,0);
         <div class="iw-ws-editor" id="iw-editor" contenteditable="true" spellcheck="true"
              data-placeholder="Start writing here…"></div>
         <div class="iw-ws-meter"><i id="iw-wcbar"></i></div>
-        <button class="iw-submit iw-ws-submit" id="iw-ws-submit" onclick="iwWsSubmit()">Submit Final Draft</button>
+        <button class="iw-submit iw-ws-submit" id="iw-ws-submit" onclick="iwWsSubmit()">Submit to teacher</button>
         <div class="iw-ws-done" id="iw-ws-done"></div>
       </section>
     </div>`;
@@ -1423,7 +1423,7 @@ function iwWsSubmit(restoring){
   if(document.body.classList.contains('iw-ws-sent')){
     document.body.classList.remove('iw-ws-sent');
     document.getElementById('iw-editor').setAttribute('contenteditable','true');
-    document.getElementById('iw-ws-submit').textContent='Submit Final Draft';
+    document.getElementById('iw-ws-submit').textContent='Submit to teacher';
     document.getElementById('iw-ws-done').textContent='';
   } else {
     document.body.classList.add('iw-ws-sent');

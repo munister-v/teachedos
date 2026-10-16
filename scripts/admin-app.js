@@ -738,6 +738,7 @@ async function loadAIStatus() {
     const errEl = document.getElementById('ai-lasterror');
     errEl.textContent = m.lastError ? `Last unavailable reason: ${m.lastError}` : '';
     loadAIUsage();
+    loadAIGuardrails();
     loadAIAllowances();
   } catch(e) {
     badge.textContent = 'Unavailable';
@@ -759,6 +760,22 @@ async function loadAIAllowances() {
   } catch (_) {
     el.textContent = 'Monthly allowance summary unavailable.';
   }
+}
+
+/* The self-check metric (Lesson Builder 2.0, E1 US5): how often a first draft failed its own checks,
+   per 100 generations - it should fall over time - and how much of the descriptor bank exists. */
+async function loadAIGuardrails() {
+  const sum = document.getElementById('ai-guard-summary'), cov = document.getElementById('ai-guard-coverage');
+  if (!sum) return;
+  try {
+    const [g, d] = await Promise.all([api('GET', '/api/ai/guardrails?days=14'), api('GET', '/api/ai/descriptors')]);
+    const t = g.total;
+    sum.textContent = t.generations
+      ? `${t.generations} checked generations · first draft failed ${t.triggers} (${t.triggers_per_100} per 100) · sent to the teacher as "check me": ${t.checkMe}`
+      : 'No checked generations yet (Grammar is the first studio on the self-check).';
+    const c = d.coverage;
+    cov.textContent = `Descriptor bank v${c.version}: ${c.filled} of ${c.total} level x mode x skill cells filled, ${c.approved} approved by a methodologist. Not yet covered: ${c.gaps.join(', ') || 'none'}.`;
+  } catch (e) { sum.textContent = 'Self-check metrics unavailable'; }
 }
 
 async function loadAIUsage() {

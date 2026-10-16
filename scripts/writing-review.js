@@ -182,7 +182,7 @@
     const rows = state.filter === 'all' ? state.list : state.list.filter(r => r.status === state.filter);
     if (!rows.length) {
       list.innerHTML = `<div class="wr-empty">${state.filter === 'submitted'
-        ? 'Nothing to review. When a student presses “Submit Final Draft” in a Writing Studio, it appears here - already pre-checked.'
+        ? 'Nothing to review. When a student presses “Submit to teacher” in a Writing Studio, it appears here - already pre-checked.'
         : 'Nothing here yet.'}</div>`;
       return;
     }

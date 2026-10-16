@@ -91,7 +91,7 @@
     const root = document.getElementById('wm-root');
     if (!root) return;
     if (!items.length) {
-      root.innerHTML = '<div class="empty-state">When you press “Submit Final Draft” in a Writing Studio, your text appears here - and later your teacher’s feedback and grade.</div>';
+      root.innerHTML = '<div class="empty-state">When you press “Submit to teacher” in a Writing Studio, your text appears here - and later your teacher’s feedback and grade.</div>';
       return;
     }
     root.innerHTML = `<div class="wm-list">${items.map(i => `

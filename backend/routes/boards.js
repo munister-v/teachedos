@@ -627,7 +627,7 @@ router.delete('/:id/cards/:cardId/comments/:commentId', requireAuth, async (req,
 });
 
 /* ── Writing hand-in ────────────────────────────────────────────────────
-   The Writing Studio's "Submit Final Draft". The draft lands in the board
+   The Writing Studio's "Submit to teacher" (once "Submit Final Draft"). The draft lands in the board
    owner's review queue (/api/writing, Homework → Writing to review) and
    the AI pre-check runs in the background, so the student gets an answer
    at once and the teacher finds the review ready when they open it. */

@@ -213,7 +213,7 @@ function welcomeEmail({ name, role, verifyLink = '' }) {
   const lines = teacher
     ? [
         'Your workspace is ready. Three things worth doing first:',
-        '1. Build a lesson - pick a skill (reading, listening, vocabulary…) and the tasks land on a board.',
+        '1. Open Lesson Builder - pick a skill (reading, listening, vocabulary…) and the tasks land on a board.',
         '2. Add your students - by email; anyone without an account gets an invitation.',
         '3. Plan your week in Schedule - with your regular Zoom or Meet link filled in for every class.',
       ]

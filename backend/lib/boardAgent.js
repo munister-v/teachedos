@@ -52,7 +52,7 @@ function normalizeCards(cards) {
 }
 
 const GUIDE = `How this board works (use it to answer "how do I..." questions):
-- Left toolbar, top to bottom: Build a lesson (the star: makes a whole lesson from a topic, text or video), Cursor (click again for the laser pointer, K), Sticky note (S), Text (T), Shapes (Q, also mind map and table), Pen / highlighter / eraser (P, E), Stickers (Y), Comment, Games Hub (G), Frame (Shift+F), Connection line (C), "+" for more tools.
+- Left toolbar, top to bottom: Lesson Builder (the star: makes a whole lesson from a topic, text or video), Cursor (click again for the laser pointer, K), Sticky note (S), Text (T), Shapes (Q, also mind map and table), Pen / highlighter / eraser (P, E), Stickers (Y), Comment, Games Hub (G), Frame (Shift+F), Connection line (C), "+" for more tools.
 - Double-click a sticky or text to edit it. Select a card to get its colour, size and alignment bar.
 - Drag on empty canvas to select several cards. Ctrl/Cmd+A selects all, Ctrl/Cmd+D duplicates, Ctrl/Cmd+G groups, Ctrl/Cmd+Shift+G ungroups, Ctrl/Cmd+Z undoes, Ctrl/Cmd+F searches the board, Ctrl/Cmd+Shift+H zooms to the selection.
 - Ctrl/Cmd+V pastes: an image, a YouTube/Vimeo link becomes a video, and plain text lines (for example sticky notes copied from Miro) become one sticky note per line.
