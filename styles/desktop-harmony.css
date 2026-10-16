@@ -405,3 +405,64 @@ html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #dock { background:var(
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-new.bd-first { grid-column:1 / -1; max-width:420px; aspect-ratio:auto; padding:34px 24px !important; gap:10px; text-align:center; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-first .bd-new-label { font-size:15.5px; font-weight:750; color:#24282C; }
 html body.os-desktop:not(#d1):not(#d2):not(#d3):not(#d4) #win-plans .bd-first .bd-new-sub { font-size:12.5px; font-weight:500; color:#5C5C66; max-width:280px; line-height:1.4; }
+
+/* ── Your students, the reviewed design (17.10.2026) ──────────────────────
+   No rules between rows - air instead; a quiet grey "Needs you"; "Online"
+   in the row with a lime camera to join; the card is a white sheet: a ringed
+   avatar, a dark level pill, a lime balance pill, one Top up, a dark mail
+   circle, two full-width actions and "+ Details". */
+#win-students .st-row + .st-row::after { display:none !important; }
+#win-students .st-row { padding-top:10px !important; padding-bottom:10px !important; border-radius:14px; margin:1px 8px; }
+#win-students .st-row-avatar { width:38px !important; height:38px !important; }
+#win-students .st-row-name { font-size:13.5px; }
+#win-students .st-row-sub { font-size:11.5px; }
+#win-students .st-row-sub .st-on { font-weight:750; color:#24282C; }
+#win-students .st-group-h, #win-students .st-group-h.calm { color: var(--text-3, rgba(36,40,44,.5)); padding:12px 18px 4px; }
+#win-students .st-attn.money { background:#E4F5B4; color:#2F4A06; }
+#win-students .st-row-call {
+  flex:none; width:34px; height:34px; border-radius:50%; border:0; cursor:pointer; margin-left:8px;
+  background:#CDF649; color:#24282C; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px -4px rgba(120,160,20,.55); transition:transform .15s cubic-bezier(.34,1.5,.64,1);
+}
+#win-students .st-row-call:hover { transform:scale(1.08); }
+#win-students .st-row-call svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round; }
+
+#win-students .st-detail { padding:16px 14px; }
+#win-students .st-detail:has(.st-head) {
+  background:rgba(255,255,255,.88); border-radius:24px; margin:10px; padding:22px 16px 16px;
+  box-shadow:0 1px 2px rgba(36,40,44,.05), 0 18px 40px -22px rgba(36,40,44,.35);
+  border:1px solid rgba(255,255,255,.8);
+}
+#win-students .st-detail-avatar { width:84px !important; height:84px !important; box-shadow:0 0 0 3px #fff, 0 0 0 5px #F4D9DC; margin-bottom:14px; }
+#win-students .st-detail .st-ava-wrap { width:84px; }
+#win-students .st-detail-name { font-size:18px; font-weight:750; }
+#win-students .st-head-row { gap:7px; margin-top:12px; }
+#win-students .st-head-row .st-badge.level { min-height:28px; padding:0 12px; border-radius:10px; background:#24282C; color:#fff; font-weight:750; }
+#win-students .st-bal { padding:6px 12px; border-radius:10px; }
+#win-students .st-bal.ok, #win-students .st-bal.zero, #win-students .st-bal.low { background:#E4F5B4; color:#2F4A06; }
+#win-students .st-bal.zero { background:#E4F5B4; }
+#win-students .st-topup { padding:6px 12px; border-radius:10px; }
+#win-students .st-need.money { background:#E4F5B4; border-radius:14px; padding:10px 10px 10px 14px; }
+#win-students .st-need.money .go { border-radius:10px; padding:8px 12px; }
+#win-students .st-contacts { margin-top:16px; }
+#win-students .st-contact svg circle:first-child[fill="#5D614B"] { fill:#24282C; }
+#win-students .st-detail-actions.is-stack { flex-direction:column; align-items:stretch; gap:8px; margin-top:14px; }
+#win-students .st-detail-actions.is-stack .st-detail-btn {
+  display:flex; justify-content:center; width:100%; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:700;
+  background:#fff; border:1px solid rgba(36,40,44,.1); color:#24282C;
+}
+#win-students .st-detail-actions.is-stack .st-detail-btn:hover { background:#F6F6EF; }
+#win-students .st-more { border-top:0; margin-top:8px; padding-top:2px; }
+#win-students .st-more > summary::before { content:'+ '; }
+#win-students .st-more[open] > summary::before { content:'− '; }
+#win-students .st-row-sub.has-on { display:flex; gap:4px; min-width:0; }
+#win-students .st-row-sub.has-on > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#win-students .st-row-sub.has-on > .st-on { flex:none; }
+/* A narrow Students window: the card goes under the list and the whole
+   column scrolls as one, instead of a squeezed 264px side panel. */
+#win-students .win-main { container-type:inline-size; container-name:stmain; }
+@container stmain (max-width: 600px) {
+  #win-students .st-split { flex-direction:column; overflow-y:auto; overscroll-behavior:contain; }
+  #win-students .st-split .st-list-col { flex:none; overflow:visible; border-right:0; }
+  #win-students .st-split .st-detail { width:auto; flex:none; overflow:visible; }
+}

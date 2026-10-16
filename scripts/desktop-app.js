@@ -1428,8 +1428,9 @@ function studentsRender() {
       <div style="flex:1;min-width:0;">
         <div class="st-row-name">${esc(s.name || 'Student')}</div>
         ${a.length ? `<div class="st-row-attn">${a.slice(0, 2).map(x => `<span class="st-attn ${x.c}">${esc(x.t)}</span>`).join('')}</div>`
-          : `<div class="st-row-sub">${esc(studentRowSub(s))}</div>`}
+          : (s.online ? `<div class="st-row-sub has-on"><span>${esc(studentRowSub(s))}</span><b class="st-on">· Online</b></div>` : `<div class="st-row-sub">${esc(studentRowSub(s))}</div>`)}
       </div>
+      ${s.online && studentLiveBoard(s) ? `<button type="button" class="st-row-call" onclick="event.stopPropagation();studentsJoin('${esc(String(s.id))}')" title="${esc(String(s.name || 'The student').split(' ')[0])} is on a board now - join" aria-label="Join ${esc(s.name || 'the student')} now">${ST_ICON_CAM}</button>` : ''}
     </div>`;
   list.innerHTML = (needs && !q
     ? `<div class="st-group-h">Needs you · ${needs}</div>${ranked.slice(0, needs).map(row).join('')}${ranked.length > needs ? `<div class="st-group-h calm">All good</div>${ranked.slice(needs).map(row).join('')}` : ''}`
@@ -1437,6 +1438,21 @@ function studentsRender() {
 
   studentDetailRender();
 }
+
+/* Online now (16.10.2026): one click to the student - the call link, if the
+   teacher has one, opens beside their board. */
+const ST_ICON_CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6.5" width="12.5" height="11" rx="2.6"/><path d="M15.5 10.4l5-2.9v9l-5-2.9z"/></svg>';
+const studentLiveBoard = s => s.home_board_id || (Array.isArray(s.boards) && s.boards[0] && s.boards[0].id) || '';
+async function studentsJoin(id) {
+  const s = STUDENTS.find(x => String(x.id) === String(id));
+  const board = s && studentLiveBoard(s);
+  if (!board) return;
+  // fetchMe() is the boot request, already answered: the click still counts for window.open
+  const me = await fetchMe().then(r => r.user || {}).catch(() => ({}));
+  if (/^https?:\/\//i.test(me.meeting_url || '')) window.open(me.meeting_url, '_blank', 'noopener');
+  location.href = 'board.html?id=' + encodeURIComponent(board);
+}
+window.studentsJoin = studentsJoin;
 
 function studentAvatarWithDot(s, cls) {
   const dot = s.online ? '<span class="st-online" title="On a board now"></span>' : '';
@@ -1471,6 +1487,9 @@ function studentSelect(id) {
   studentsSelectedId = id;
   studentsFocusFin = false;
   studentsRender();
+  // a narrow window puts the card under the list: bring it into view
+  const split = document.querySelector('#win-students .st-split');
+  if (split && getComputedStyle(split).flexDirection === 'column') document.getElementById('students-detail')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
 
 /* Статус ученика одной плашкой: что учителю важно знать первым. */
@@ -1565,7 +1584,8 @@ function studentDetailRender() {
   const balPill = !_hasJournal(s) ? `<button type="button" class="st-bal none" onclick="studentsAddFor('${esc(String(s.id))}')">No package · add</button>`
     : s.is_trial ? '<span class="st-bal trial">✨ Free trial</span>'
     : `<span class="st-bal ${left <= 0 ? 'zero' : left <= 2 ? 'low' : 'ok'}">${left} lesson${left === 1 ? '' : 's'} left</span>`;
-  const topUp = _hasJournal(s) ? `<button type="button" class="st-topup" onclick="studentsTopUp('${jid}', this)">+ Top up</button>` : '';
+  // one Top up on the card: when the money line below has its own, the pill row leaves it out
+  const topUp = _hasJournal(s) && !attn.some(x => x.c === 'money') ? `<button type="button" class="st-topup" onclick="studentsTopUp('${jid}', this)">+ Top up</button>` : '';
   const goals = { work: 'Career & work', travel: 'Travel & life abroad', fluency: 'Fluency & speaking', exams: 'Exams & education', series: 'Series & films', move: 'Moving abroad', fun: 'Just for fun' };
   const hasDna = (s.dna_interests && s.dna_interests.length) || s.dna_goal;
   const dna = hasDna ? `<span class="st-pop-wrap"><button type="button" class="st-hint" onclick="studentsHintToggle(this)" aria-expanded="false" title="Interests and goal">💡</button>
@@ -1576,7 +1596,7 @@ function studentDetailRender() {
       </div></span>` : '';
   const when = d => { const t = Date.parse(d + 'T00:00:00'); return t ? new Date(t).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : d; };
   const fix = x => {
-    if (x.k === 'balance') return `<div class="st-need money"><span>Package used up · ${left} left</span><button type="button" class="go" onclick="studentsTopUp('${jid}', this)">+ Top up ${pack}</button></div>`;
+    if (x.k === 'balance') return `<div class="st-need money"><span>Package used up</span><button type="button" class="go" onclick="studentsTopUp('${jid}', this)">+ Top up ${pack}</button></div>`;
     if (x.k === 'due') return `<div class="st-need money"><span>${esc(_paymentLine(s))}</span><button type="button" class="go" onclick="studentsTopUp('${jid}', this)">Paid · +${pack}</button></div>`;
     if (x.k === 'paid') return `<div class="st-need money"><span>Says they paid - check your account</span><button type="button" class="go" onclick="studentsTopUp('${jid}', this)">✓ Received · +${pack}</button></div>`;
     if (x.k === 'msg') return `<div class="st-need msg"><button type="button" class="st-msg-plate" onclick="this.parentElement.classList.toggle('open')"><b>New message</b>${s.msg_count > 1 ? ` · ${s.msg_count}` : ''}<i>▾</i></button>
@@ -1597,7 +1617,7 @@ function studentDetailRender() {
     </div>
     <div class="st-fin-anchor${studentsFocusFin ? ' is-focus' : ''}">${needs ? `<div class="st-needs">${needs}</div>` : ''}</div>
     ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}
-    <div class="st-detail-actions">
+    <div class="st-detail-actions is-stack">
       ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
       <a class="st-detail-btn" href="journal.html">View profile →</a>
     </div>
@@ -3089,13 +3109,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1186" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1187" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1186" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1187" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
