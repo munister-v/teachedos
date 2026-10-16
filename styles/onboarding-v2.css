@@ -1,0 +1,203 @@
+/* Teacher onboarding v2 (scripts/onboarding-v2.js, scripts/onboarding-board.js).
+   Welcome / board / plan modals, the full-screen frame for the practice board
+   and Student preview, the "Get ready to teach" checklist, the coach layer on
+   the board. Same ink and lime as the rest of the desktop. */
+
+:root{
+  --onb-ink:#24282C;
+  --onb-ink-2:#4A4E57;          /* 8.2:1 on white */
+  --onb-line:rgba(36,40,44,.14);
+  --onb-lime:#CDF649;
+  --onb-lime-soft:#EEF9C4;
+  --onb-paper:#F6F6EF;
+  --onb-err:#A8231B;            /* 6.9:1 on white */
+  --onb-ok:#2F6B1F;
+}
+
+/* ── modal ───────────────────────────────────────────────────────────── */
+.onb-ov{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(24,26,28,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-family:var(--font,'Manrope',system-ui,sans-serif);color:var(--onb-ink)}
+.onb-box{width:min(760px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;background:#fff;border-radius:22px;box-shadow:0 30px 80px rgba(24,26,28,.34);overflow:hidden}
+.onb-box.is-narrow{width:min(520px,100%)}
+.onb-top{display:flex;align-items:center;gap:14px;padding:16px 20px 0 24px}
+.onb-prog{flex:1;min-width:0}
+.onb-prog-t{font:700 12px/1 var(--mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;color:var(--onb-ink-2)}
+.onb-bar{height:5px;border-radius:5px;background:#E4E5DD;margin-top:8px;overflow:hidden}
+.onb-bar i{display:block;height:100%;border-radius:5px;background:var(--onb-ink);transition:width .25s}
+.onb-x{width:36px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--onb-ink-2);font-size:22px;line-height:1;cursor:pointer}
+.onb-x:hover{background:var(--onb-paper);color:var(--onb-ink)}
+.onb-body{padding:20px 28px 8px;overflow:auto}
+.onb-body h2{margin:0 0 8px;font-size:27px;line-height:1.15;letter-spacing:-.02em;font-weight:700;outline:none}
+.onb-body h2:focus-visible{outline:2px solid var(--onb-ink);outline-offset:4px;border-radius:4px}
+.onb-lead{margin:0 0 18px;font-size:15.5px;line-height:1.5;color:var(--onb-ink-2);max-width:60ch}
+.onb-foot{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 28px 24px}
+.onb-foot .sp{flex:1}
+.onb-btn{min-height:46px;padding:0 22px;border:0;border-radius:12px;font:700 15px var(--font,'Manrope',system-ui,sans-serif);cursor:pointer;background:var(--onb-lime);color:var(--onb-ink)}
+.onb-btn:hover{background:#D3F36B}
+.onb-btn:disabled{opacity:.55;cursor:default}
+.onb-btn.ghost{background:var(--onb-paper)}
+.onb-btn.ghost:hover{background:#ECEDE6}
+.onb-btn.link{background:none;padding:0 10px;text-decoration:underline;text-underline-offset:3px;font-weight:600}
+.onb-ov button:focus-visible,.onb-ov input:focus-visible,.onb-ov select:focus-visible,.onb-frame button:focus-visible,.onb-cl button:focus-visible,.onb-cl a:focus-visible,.onb-pill:focus-visible{outline:3px solid var(--onb-ink);outline-offset:2px}
+.onb-err{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:#FDECEA;color:var(--onb-err);font-size:14px;font-weight:600;line-height:1.45}
+.onb-err .onb-btn{margin-top:10px;margin-right:8px;min-height:38px;font-size:14px}
+.onb-note{margin:14px 0 0;font-size:13.5px;line-height:1.5;color:var(--onb-ink-2)}
+.onb-lbl{display:block;margin:16px 0 6px;font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--onb-ink-2)}
+.onb-in,.onb-sel{width:100%;box-sizing:border-box;height:46px;border:1px solid rgba(36,40,44,.28);border-radius:12px;padding:0 14px;font:500 15px var(--font,'Manrope',system-ui,sans-serif);color:var(--onb-ink);background:#fff}
+.onb-in:focus,.onb-sel:focus{border-color:var(--onb-ink)}
+.onb-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.onb-row3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:12px}
+
+/* choice cards (board start, plan) */
+.onb-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.onb-opts.two{grid-template-columns:repeat(2,1fr)}
+.onb-opt{position:relative;text-align:left;padding:16px;border:1.5px solid var(--onb-line);border-radius:16px;background:#fff;cursor:pointer;font:inherit;color:inherit}
+.onb-opt:hover:not(:disabled){border-color:var(--onb-ink)}
+.onb-opt[aria-pressed="true"],.onb-opt[aria-checked="true"]{border-color:var(--onb-ink);background:var(--onb-lime-soft);box-shadow:0 0 0 2px var(--onb-lime)}
+.onb-opt:disabled{opacity:.55;cursor:default}
+.onb-opt b{display:block;font-size:16px;margin-bottom:4px}
+.onb-opt small{display:block;font-size:13px;line-height:1.4;color:var(--onb-ink-2)}
+.onb-opt .tag{display:inline-block;margin-bottom:8px;padding:2px 8px;border-radius:999px;background:var(--onb-ink);color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em}
+
+/* starter templates */
+.onb-tpls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.onb-tpl{text-align:left;padding:12px 14px;border:1.5px solid var(--onb-line);border-radius:14px;background:#fff;cursor:pointer;font:inherit;color:inherit}
+.onb-tpl:hover{border-color:var(--onb-ink)}
+.onb-tpl[aria-pressed="true"]{border-color:var(--onb-ink);background:var(--onb-lime-soft);box-shadow:0 0 0 2px var(--onb-lime)}
+.onb-tpl b{display:block;font-size:14.5px;line-height:1.25}
+.onb-tpl span{display:block;margin-top:4px;font-size:12.5px;color:var(--onb-ink-2)}
+.onb-prev{margin-top:12px;padding:14px 16px;border-radius:14px;background:var(--onb-paper);font-size:13.5px;line-height:1.5}
+.onb-prev h3{margin:0 0 4px;font-size:14.5px}
+.onb-prev ol{margin:8px 0 0;padding-left:20px;columns:2;column-gap:24px}
+.onb-prev li{break-inside:avoid;margin:0 0 2px}
+
+.onb-ok{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;background:var(--onb-lime-soft);font-size:14.5px;line-height:1.5}
+.onb-ok b{display:block;margin-bottom:2px}
+.onb-tog{display:flex;align-items:flex-start;gap:12px;margin-top:14px;font-size:14px;line-height:1.4}
+.onb-tog input{width:20px;height:20px;margin-top:1px;accent-color:var(--onb-ink)}
+.onb-tog.is-off{opacity:.55}
+.onb-warn{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#FFF1DA;color:#7A4300;font-size:14px;font-weight:600;line-height:1.45}
+.onb-warn .onb-btn{margin-top:8px;min-height:36px;font-size:13.5px}
+.onb-desktop-only{display:none}
+
+/* ── full-screen frame: practice board and Student preview ───────────── */
+.onb-frame{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;background:#E4E5DD;font-family:var(--font,'Manrope',system-ui,sans-serif);color:var(--onb-ink)}
+.onb-fbar{flex:0 0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--onb-ink);color:#fff}
+.onb-fbar b{font-size:14px}
+.onb-fbar .sp{flex:1}
+.onb-fbar .onb-btn{min-height:36px;padding:0 14px;font-size:13.5px}
+.onb-fbar .onb-btn.ghost{background:rgba(255,255,255,.14);color:#fff}
+.onb-fbar .onb-btn.ghost:hover{background:rgba(255,255,255,.24)}
+.onb-fbar .onb-badge{padding:3px 10px;border-radius:999px;background:var(--onb-lime);color:var(--onb-ink);font-size:12px;font-weight:700}
+.onb-student-banner{flex:0 0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--onb-lime);color:var(--onb-ink);border-bottom:3px solid var(--onb-ink);font-size:14.5px}
+.onb-student-banner b{font-weight:800}
+.onb-student-banner .sp{flex:1}
+.onb-student-banner .onb-btn{min-height:36px;padding:0 14px;font-size:13.5px;background:#fff}
+.onb-student-banner .onb-btn.primary{background:var(--onb-ink);color:#fff}
+.onb-student-banner .seg{display:inline-flex;border:1.5px solid var(--onb-ink);border-radius:10px;overflow:hidden}
+.onb-student-banner .seg button{min-height:34px;padding:0 12px;border:0;background:transparent;font:600 13px var(--font,'Manrope',system-ui,sans-serif);cursor:pointer;color:var(--onb-ink)}
+.onb-student-banner .seg button[aria-pressed="true"]{background:var(--onb-ink);color:#fff}
+.onb-fwrap{flex:1;min-height:0;display:flex;justify-content:center;background:#E4E5DD;position:relative}
+.onb-fwrap iframe{border:0;background:#fff;width:100%;height:100%;display:block;box-shadow:0 0 0 1px rgba(36,40,44,.12)}
+.onb-fwrap.preview{box-shadow:inset 0 0 0 4px var(--onb-lime)}
+.onb-fmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(228,229,221,.94)}
+.onb-fmsg .card{width:min(460px,100%);padding:24px;border-radius:18px;background:#fff;box-shadow:0 20px 50px rgba(24,26,28,.2)}
+.onb-fmsg h3{margin:0 0 6px;font-size:20px}
+.onb-fmsg p{margin:0 0 14px;color:var(--onb-ink-2);font-size:14.5px;line-height:1.5}
+.onb-done{flex:0 0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-top:1px solid var(--onb-line);font-size:15px}
+.onb-done .sp{flex:1}
+
+/* ── checklist ───────────────────────────────────────────────────────── */
+.onb-cl-host{position:fixed;right:16px;bottom:58px;z-index:9100;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:var(--font,'Manrope',system-ui,sans-serif);color:var(--onb-ink)}
+.onb-pill{display:inline-flex;align-items:center;gap:10px;min-height:42px;padding:0 16px 0 14px;border:0;border-radius:999px;background:var(--onb-ink);color:#fff;font:700 14px var(--font,'Manrope',system-ui,sans-serif);cursor:pointer;box-shadow:0 12px 30px rgba(24,26,28,.28)}
+.onb-pill:hover{background:#000}
+.onb-pill .ring{width:22px;height:22px;border-radius:50%;background:conic-gradient(var(--onb-lime) calc(var(--p,0) * 1%),rgba(255,255,255,.25) 0)}
+.onb-pill .ring::after{content:"";display:block;width:12px;height:12px;margin:5px;border-radius:50%;background:var(--onb-ink)}
+.onb-cl{width:min(340px,calc(100vw - 32px));max-height:min(520px,calc(100vh - 150px));overflow:auto;padding:16px 16px 14px;border-radius:20px;background:#fff;box-shadow:0 18px 50px rgba(24,26,28,.3);border:1px solid var(--onb-line)}
+.onb-cl[hidden]{display:none}
+.onb-cl-h{display:flex;align-items:center;gap:8px}
+.onb-cl-h h2{flex:1;margin:0;font-size:17px;letter-spacing:-.01em}
+.onb-cl-h button{width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--onb-ink-2);font-size:18px;cursor:pointer}
+.onb-cl-h button:hover{background:var(--onb-paper)}
+.onb-cl-sub{margin:2px 0 0;font-size:13px;color:var(--onb-ink-2)}
+.onb-cl .onb-bar{margin:10px 0 8px}
+.onb-cl ul{list-style:none;margin:0;padding:0}
+.onb-cl li{display:flex;align-items:center;gap:10px;min-height:40px;padding:2px 0;font-size:14.5px}
+.onb-cl li .mk{flex:0 0 22px;width:22px;height:22px;border-radius:50%;border:2px solid #8A8E96;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:transparent}
+.onb-cl li.done .mk{background:var(--onb-ok);border-color:var(--onb-ok);color:#fff}
+.onb-cl li.done .tx{color:var(--onb-ink-2);text-decoration:line-through;text-decoration-color:rgba(36,40,44,.35)}
+.onb-cl li .tx{flex:1;min-width:0}
+.onb-cl li button.go{flex:0 0 auto;min-height:32px;padding:0 12px;border:1.5px solid var(--onb-ink);border-radius:9px;background:#fff;color:var(--onb-ink);font:700 13px var(--font,'Manrope',system-ui,sans-serif);cursor:pointer}
+.onb-cl li button.go:hover:not(:disabled){background:var(--onb-lime)}
+.onb-cl li button.go:disabled{border-color:var(--onb-line);color:#6B6F78;cursor:default}
+.onb-cl .opt-h{margin:10px 0 2px;font:700 11.5px var(--mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;color:var(--onb-ink-2)}
+.onb-cl-f{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.onb-cl-f .onb-btn{min-height:40px;font-size:14px;padding:0 16px}
+.onb-cl-desk{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--onb-lime-soft);font-size:13.5px;line-height:1.45;font-weight:600}
+.onb-ready{width:min(340px,calc(100vw - 32px));padding:14px 16px;border-radius:16px;background:var(--onb-lime-soft);border:1px solid rgba(36,40,44,.12);box-shadow:0 14px 40px rgba(24,26,28,.2);font-size:14px;line-height:1.5}
+.onb-ready b{display:block;margin-bottom:2px;font-size:15px}
+.onb-ready button{margin-top:8px;min-height:34px;padding:0 12px;border:0;border-radius:9px;background:var(--onb-ink);color:#fff;font:700 13px var(--font,'Manrope',system-ui,sans-serif);cursor:pointer}
+
+/* ── contextual tips ─────────────────────────────────────────────────── */
+.onb-tip{position:fixed;z-index:9500;box-sizing:border-box;padding:14px 38px 12px 16px;border-radius:14px;background:var(--onb-ink);color:#fff;box-shadow:0 14px 40px rgba(24,26,28,.4);font:500 14px/1.45 var(--font,'Manrope',system-ui,sans-serif)}
+.onb-tip b{color:var(--onb-lime)}
+.onb-tip .act{margin-top:10px}
+.onb-tip button[data-got]{min-height:34px;padding:0 14px;border:0;border-radius:9px;background:var(--onb-lime);color:var(--onb-ink);font:700 13px var(--font,'Manrope',system-ui,sans-serif);cursor:pointer}
+.onb-tip .x{position:absolute;top:6px;right:6px;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:#fff;font-size:20px;cursor:pointer}
+.onb-tip .x:hover{background:rgba(255,255,255,.14)}
+.onb-tip::before{content:"";position:absolute;left:var(--ax,24px);width:12px;height:12px;background:var(--onb-ink);transform:translateX(-50%) rotate(45deg)}
+.onb-tip[data-side="below"]::before{top:-6px}
+.onb-tip[data-side="above"]::before{bottom:-6px}
+.onb-tip button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+
+/* ── coach layer on the practice board (inside the board page) ───────── */
+.onb-coach{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:99999;width:min(640px,calc(100vw - 32px));padding:14px 16px;border-radius:18px;background:#fff;box-shadow:0 18px 50px rgba(24,26,28,.34);border:1px solid var(--onb-line);font-family:var(--font,'Manrope',system-ui,sans-serif);color:var(--onb-ink)}
+.onb-coach-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.onb-coach-h .badge{padding:3px 10px;border-radius:999px;background:var(--onb-ink);color:#fff;font-size:12px;font-weight:700}
+.onb-coach-h .t{flex:1;font-size:14.5px;font-weight:600;min-width:200px}
+.onb-coach-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.onb-coach-step{padding:9px 11px;border-radius:12px;background:var(--onb-paper);border:1.5px solid transparent}
+.onb-coach-step b{display:block;font-size:13.5px}
+.onb-coach-step small{display:block;font-size:12.5px;line-height:1.35;color:var(--onb-ink-2)}
+.onb-coach-step.now{background:var(--onb-lime-soft);border-color:var(--onb-ink)}
+.onb-coach-step.done{background:#E7F3DF}
+.onb-coach-step.done b::before{content:"\2713\00a0";color:var(--onb-ok)}
+.onb-coach-act{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.onb-coach-act .onb-btn{min-height:38px;font-size:14px;padding:0 16px}
+.onb-coach-ok b{display:block;font-size:16px;margin-bottom:2px}
+.onb-target{position:fixed;z-index:99990;pointer-events:none;border-radius:14px;box-shadow:0 0 0 3px var(--onb-ink),0 0 0 7px var(--onb-lime);animation:onb-pulse 1.8s ease-in-out infinite}
+.onb-ghost{position:fixed;z-index:99991;pointer-events:none;width:22px;height:22px;border-radius:50%;background:var(--onb-ink);border:3px solid var(--onb-lime);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+@keyframes onb-pulse{0%,100%{box-shadow:0 0 0 3px var(--onb-ink),0 0 0 6px rgba(205,246,73,.95)}50%{box-shadow:0 0 0 3px var(--onb-ink),0 0 0 12px rgba(205,246,73,.35)}}
+@media (prefers-reduced-motion: reduce){
+  .onb-target{animation:none;box-shadow:0 0 0 3px var(--onb-ink),0 0 0 8px var(--onb-lime)}
+  .onb-ghost{display:none}
+  .onb-bar i{transition:none}
+}
+
+/* Student preview: the editor's own chrome is out of sight, and it reads as a student's screen */
+body.onb-preview #toolbar,body.onb-preview #sidebar,body.onb-preview #miro-toolbar,body.onb-preview #minimap,
+body.onb-preview #ai-assistant-panel,body.onb-preview #card-editor,body.onb-preview #board-agent-pill,body.onb-preview .lp,
+body.onb-preview .vb,body.onb-preview #more-menu,body.onb-preview #user-menu,body.onb-preview #share-panel,
+body.onb-preview .card-close,body.onb-preview .resize-handle,body.onb-preview .anchor-dot,body.onb-preview .sticky-toolbar,
+body.onb-preview .frame-tools,body.onb-preview .game-assign-btn,body.onb-preview .game-theme-btn,body.onb-preview .wp-assign{display:none !important}
+body.onb-preview .board-card{cursor:default}
+html.onb-in-frame .vb,html.onb-in-frame #btn-upgrade{display:none !important}
+
+/* ── narrow screens: no editor, a way to carry on from a laptop ─────── */
+@media (max-width:1023px){
+  .onb-ov,.onb-frame{display:none !important}
+  .onb-desktop-only{display:block}
+}
+@media (max-width:760px){
+  .onb-opts,.onb-tpls,.onb-row,.onb-row3{grid-template-columns:1fr}
+  .onb-prev ol{columns:1}
+  .onb-body{padding:16px 18px 6px}
+  .onb-foot{padding:12px 18px 20px}
+  .onb-body h2{font-size:23px}
+}
+@media (min-width:1024px) and (max-width:1100px){
+  .onb-opts{grid-template-columns:1fr}
+}
+@media (max-height:640px){
+  .onb-ov{padding:10px}
+  .onb-box{max-height:calc(100vh - 20px)}
+}

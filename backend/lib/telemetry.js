@@ -8,6 +8,11 @@ const OUTCOMES = new Set(['ok', 'client_error', 'server_error', 'fallback', 'ski
 const SAFE_META_KEYS = new Set([
   'feature', 'method', 'operation', 'provider', 'reason', 'route', 'source',
   'status', 'surface', 'job', 'mode', 'kind',
+  // teacher onboarding (lib/teacherOnboarding.js filters every value first)
+  'onboarding_version', 'user_id_hash', 'account_type', 'entry_point', 'device_class', 'locale',
+  'session_id', 'has_existing_data', 'experiment_variant', 'occurred_at', 'step', 'step_index',
+  'elapsed_ms', 'progress_count', 'hours_since_close', 'total_elapsed_ms', 'path', 'item',
+  'start_option', 'template_id', 'board_id', 'object_type', 'duration_ms', 'tip_id', 'target_present',
 ]);
 
 let schemaPromise = null;

@@ -1120,3 +1120,37 @@ CREATE TABLE IF NOT EXISTS library_reports (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (assignment_id, user_id)
 );
+
+-- ── Teacher onboarding v2 (16.10.2026) ──────────────────────────────────────
+-- Server-side state of the managed first run (lib/teacherOnboarding.js): one
+-- row per teacher, resumed on any device. Created lazily, only for accounts the
+-- feature flag covers; accounts without a row are never shown a forced modal.
+-- A practice board is a sandbox: it never counts toward the plan's board limit
+-- and the board list does not show it.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS is_practice BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE TABLE IF NOT EXISTS teacher_onboarding (
+  user_id            UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  version            SMALLINT    NOT NULL DEFAULT 1,
+  status             VARCHAR(16) NOT NULL DEFAULT 'not_started'
+                     CHECK (status IN ('not_started','in_progress','core_completed','dismissed')),
+  current_step       VARCHAR(16) CHECK (current_step IN ('welcome','practice','board','preview','plan')),
+  completed_steps    TEXT[]      NOT NULL DEFAULT '{}',
+  checklist          JSONB       NOT NULL DEFAULT '{}',
+  -- no FK: deleting either board must not touch the onboarding row (spec: it
+  -- only clears the link), and the service treats a missing board as "none"
+  practice_board_id  UUID,
+  first_board_id     UUID,
+  entry_point        VARCHAR(16),
+  started_at         TIMESTAMPTZ,
+  core_completed_at  TIMESTAMPTZ,
+  welcome_viewed_at  TIMESTAMPTZ,
+  closed_at          TIMESTAMPTZ,
+  checklist_collapsed BOOLEAN    NOT NULL DEFAULT FALSE,
+  checklist_hidden    BOOLEAN    NOT NULL DEFAULT FALSE,
+  emitted            TEXT[]      NOT NULL DEFAULT '{}',
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE teacher_onboarding ALTER COLUMN current_step SET DEFAULT 'welcome';
+-- one-time contextual tips already shown (Phase 3); server-side, so a second device does not repeat them
+ALTER TABLE teacher_onboarding ADD COLUMN IF NOT EXISTS tips_seen TEXT[] NOT NULL DEFAULT '{}';

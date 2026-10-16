@@ -35,7 +35,7 @@ function planFromStripePrice(priceId) {
 
 async function loadUsageCounts(userId) {
   const [boardRes, studentRes, coursesRes, storageRes] = await Promise.all([
-    pool.query('SELECT COUNT(*)::int AS count FROM boards WHERE user_id=$1', [userId]),
+    pool.query('SELECT COUNT(*)::int AS count FROM boards WHERE user_id=$1 AND NOT is_practice', [userId]),
     pool.query(
       `SELECT COALESCE(MAX(student_count), 0)::int AS max_count,
               COALESCE(SUM(student_count), 0)::int AS total_count

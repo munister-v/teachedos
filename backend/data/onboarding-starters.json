@@ -1,0 +1,2246 @@
+[
+ {
+  "id": "pack:gr-articles",
+  "pack_id": "gr-articles",
+  "title": "Articles: a / an / the / Ø",
+  "skill": "Grammar",
+  "level": "A2",
+  "minutes": 30,
+  "students_do": "Students work out when to use a, an, the or nothing, then practise with targeted exercises.",
+  "outline": [
+   {
+    "name": "A / AN - indefinite (general / first mention)",
+    "min": 5
+   },
+   {
+    "name": "THE - definite (specific, known to both)",
+    "min": 5
+   },
+   {
+    "name": "Ø - ZERO article (no article needed)",
+    "min": 5
+   },
+   {
+    "name": "EXAMPLES - complete the gap",
+    "min": 6
+   },
+   {
+    "name": "QUICK EXERCISES",
+    "min": 6
+   },
+   {
+    "name": "DISCUSSION STARTERS",
+    "min": 3
+   }
+  ],
+  "board": {
+   "pan": {
+    "x": 120,
+    "y": 20
+   },
+   "scale": 0.65,
+   "nextId": 11,
+   "cards": [
+    {
+     "id": "c1",
+     "type": "frame",
+     "x": 140,
+     "y": 10,
+     "w": 1280,
+     "h": 850,
+     "z": 0,
+     "data": {
+      "title": "Articles: a / an / the / Ø",
+      "bg": "#ffffff",
+      "border": "rgba(205,246,73,.42)"
+     },
+     "color": null
+    },
+    {
+     "id": "c2",
+     "type": "text",
+     "x": 180,
+     "y": 60,
+     "w": 360,
+     "h": 210,
+     "z": 1,
+     "data": {
+      "textColor": "#24282C",
+      "bgColor": "#ffffff",
+      "fontFamily": "var(--font)",
+      "fontSize": 16,
+      "align": "left",
+      "text": "Articles: a / an / the / Ø\nA2 / Grammar / 1:1 online / 30 min\n\nArticles - the main trap for Slavic learners. The whole system in one lesson.\n\n▸ Slavic speakers often omit articles completely at A1-A2\n  ▸ Focus on a/the distinction first; zero article last\n  ▸ \"A university\" vs \"an hour\" - test the SOUND rule\n  ▸ Good drilling game: Article Rush (Tools → Grammar)"
+     },
+     "color": null
+    },
+    {
+     "id": "c3",
+     "type": "checklist",
+     "x": 180,
+     "y": 300,
+     "w": 320,
+     "h": 210,
+     "z": 2,
+     "data": {
+      "title": "Lesson goals",
+      "items": [
+       {
+        "text": "Understand when to use a, an, the, or nothing",
+        "done": false
+       },
+       {
+        "text": "Recognise the 3 main article rules",
+        "done": false
+       },
+       {
+        "text": "Practise with 12 targeted exercises",
+        "done": false
+       }
+      ]
+     },
+     "color": null
+    },
+    {
+     "id": "c4",
+     "type": "lesson",
+     "x": 590,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 3,
+     "data": {
+      "title": "1. A / AN - indefinite (general / first mention)",
+      "status": "in-progress",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "5 min",
+      "desc": "A  → before consonant SOUND\n       a book   a user   a university   a one-way street\n\n  AN → before vowel SOUND\n       an apple   an hour   an honest man   an MP\n\n  Use for:\n  • First mention:   I saw a dog.\n  • Jobs/roles:      She's a teacher.\n  • General:         A cat has four legs.",
+      "objectives": [
+       {
+        "text": "Understand when to use a, an, the, or nothing",
+        "done": false
+       },
+       {
+        "text": "Recognise the 3 main article rules",
+        "done": false
+       },
+       {
+        "text": "Practise with 12 targeted exercises",
+        "done": false
+       }
+      ],
+      "notes": "A  → before consonant SOUND\n       a book   a user   a university   a one-way street\n\n  AN → before vowel SOUND\n       an apple   an hour   an honest man   an MP\n\n  Use for:\n  • First mention:   I saw a dog.\n  • Jobs/roles:      She's a teacher.\n  • General:         A cat has four legs.",
+      "module": "Articles: a / an / the / Ø"
+     },
+     "color": null
+    },
+    {
+     "id": "c5",
+     "type": "lesson",
+     "x": 890,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 4,
+     "data": {
+      "title": "2. THE - definite (specific, known to both)",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "5 min",
+      "desc": "Use when:\n  • Mentioned before:  I saw a dog. The dog barked.\n  • Only one exists:   the sun / the president / the Internet\n  • Superlatives:      the best, the most expensive\n  • Geography (rivers, oceans, mountain ranges):\n    the Amazon, the Pacific, the Alps\n  • Plural countries/groups:\n    the USA, the Netherlands, the Beatles",
+      "objectives": [
+       {
+        "text": "Understand when to use a, an, the, or nothing",
+        "done": false
+       },
+       {
+        "text": "Recognise the 3 main article rules",
+        "done": false
+       },
+       {
+        "text": "Practise with 12 targeted exercises",
+        "done": false
+       }
+      ],
+      "notes": "Use when:\n  • Mentioned before:  I saw a dog. The dog barked.\n  • Only one exists:   the sun / the president / the Internet\n  • Superlatives:      the best, the most expensive\n  • Geography (rivers, oceans, mountain ranges):\n    the Amazon, the Pacific, the Alps\n  • Plural countries/groups:\n    the USA, the Netherlands, the Beatles",
+      "module": "Articles: a / an / the / Ø"
+     },
+     "color": null
+    },
+    {
+     "id": "c6",
+     "type": "lesson",
+     "x": 1190,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 5,
+     "data": {
+      "title": "3. Ø - ZERO article (no article needed)",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "5 min",
+      "desc": "• Languages:       I speak English. (NOT the English)\n  • Sports:          play football / tennis / chess\n  • Meals:           have breakfast / lunch / dinner\n  • Abstract nouns:  Love is beautiful. Time flies.\n  • Proper names:    London, Ukraine, John\n  • Plural generics: Dogs are loyal animals.",
+      "objectives": [
+       {
+        "text": "Understand when to use a, an, the, or nothing",
+        "done": false
+       },
+       {
+        "text": "Recognise the 3 main article rules",
+        "done": false
+       },
+       {
+        "text": "Practise with 12 targeted exercises",
+        "done": false
+       }
+      ],
+      "notes": "• Languages:       I speak English. (NOT the English)\n  • Sports:          play football / tennis / chess\n  • Meals:           have breakfast / lunch / dinner\n  • Abstract nouns:  Love is beautiful. Time flies.\n  • Proper names:    London, Ukraine, John\n  • Plural generics: Dogs are loyal animals.",
+      "module": "Articles: a / an / the / Ø"
+     },
+     "color": null
+    },
+    {
+     "id": "c7",
+     "type": "lesson",
+     "x": 590,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 6,
+     "data": {
+      "title": "4. EXAMPLES - complete the gap",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "6 min",
+      "desc": "1. She's ___ teacher at ___ local school.\n     → a teacher / the local school\n\n  2. Can you pass me ___ salt?\n     → the salt (we both know which)\n\n  3. I had ___ egg and ___ toast for breakfast.\n     → an egg / Ø toast (uncountable)\n\n  4. ___ Amazon is ___ longest river in ___ South America.\n     → The Amazon / the longest / Ø South America\n\n  5. He plays ___ guitar in ___ band.\n     → Ø guitar / a band  (first mention)",
+      "objectives": [
+       {
+        "text": "Understand when to use a, an, the, or nothing",
+        "done": false
+       },
+       {
+        "text": "Recognise the 3 main article rules",
+        "done": false
+       },
+       {
+        "text": "Practise with 12 targeted exercises",
+        "done": false
+       }
+      ],
+      "notes": "1. She's ___ teacher at ___ local school.\n     → a teacher / the local school\n\n  2. Can you pass me ___ salt?\n     → the salt (we both know which)\n\n  3. I had ___ egg and ___ toast for breakfast.\n     → an egg / Ø toast (uncountable)\n\n  4. ___ Amazon is ___ longest river in ___ South America.\n     → The Amazon / the longest / Ø South America\n\n  5. He plays ___ guitar in ___ band.\n     → Ø guitar / a band  (first mention)",
+      "module": "Articles: a / an / the / Ø"
+     },
+     "color": null
+    },
+    {
+     "id": "c8",
+     "type": "lesson",
+     "x": 890,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 7,
+     "data": {
+      "title": "5. QUICK EXERCISES",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "6 min",
+      "desc": "Fill in: a / an / the / -\n\n  1. He's ___ honest politician. (rare!)\n  2. I'd love ___ cup of tea.\n  3. ___ life is short. Enjoy it.\n  4. She won ___ Oscar last year.\n  5. Can you close ___ window, please?\n  6. I love ___ music.\n  7. He's ___ MP in the government.\n  8. We stayed at ___ hotel near ___ river.\n\n  KEY: an / a / Ø / an / the / Ø / an / a…the",
+      "objectives": [
+       {
+        "text": "Understand when to use a, an, the, or nothing",
+        "done": false
+       },
+       {
+        "text": "Recognise the 3 main article rules",
+        "done": false
+       },
+       {
+        "text": "Practise with 12 targeted exercises",
+        "done": false
+       }
+      ],
+      "notes": "Fill in: a / an / the / -\n\n  1. He's ___ honest politician. (rare!)\n  2. I'd love ___ cup of tea.\n  3. ___ life is short. Enjoy it.\n  4. She won ___ Oscar last year.\n  5. Can you close ___ window, please?\n  6. I love ___ music.\n  7. He's ___ MP in the government.\n  8. We stayed at ___ hotel near ___ river.\n\n  KEY: an / a / Ø / an / the / Ø / an / a…the",
+      "module": "Articles: a / an / the / Ø"
+     },
+     "color": null
+    },
+    {
+     "id": "c9",
+     "type": "lesson",
+     "x": 1190,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 8,
+     "data": {
+      "title": "6. DISCUSSION STARTERS",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "• Do articles exist in your language? What feels strange?\n  • Make 3 sentences about yourself - use a, an, and the.\n  • Why do you think \"the Internet\" but \"on Facebook\"?",
+      "objectives": [
+       {
+        "text": "Understand when to use a, an, the, or nothing",
+        "done": false
+       },
+       {
+        "text": "Recognise the 3 main article rules",
+        "done": false
+       },
+       {
+        "text": "Practise with 12 targeted exercises",
+        "done": false
+       }
+      ],
+      "notes": "• Do articles exist in your language? What feels strange?\n  • Make 3 sentences about yourself - use a, an, and the.\n  • Why do you think \"the Internet\" but \"on Facebook\"?",
+      "module": "Articles: a / an / the / Ø"
+     },
+     "color": null
+    },
+    {
+     "id": "c10",
+     "type": "assignment",
+     "x": 590,
+     "y": 580,
+     "w": 300,
+     "h": 185,
+     "z": 9,
+     "data": {
+      "title": "Homework: Articles: a / an / the / Ø",
+      "type": "Mixed",
+      "maxScore": 20,
+      "desc": "Add homework instructions.",
+      "total": 0,
+      "submitted": 0,
+      "level": "A2",
+      "timeLimit": 30
+     },
+     "color": null
+    }
+   ],
+   "arrows": [],
+   "groups": [],
+   "strokes": [],
+   "annotations": [],
+   "canvas": {
+    "tone": "light"
+   }
+  }
+ },
+ {
+  "id": "pack:gr-present-perfect",
+  "pack_id": "gr-present-perfect",
+  "title": "Present Perfect vs Past Simple",
+  "skill": "Grammar",
+  "level": "B1",
+  "minutes": 45,
+  "students_do": "Students contrast Present Perfect with Past Simple and practise choosing between them.",
+  "outline": [
+   {
+    "name": "THE RULE IN ONE LINE",
+    "min": 3
+   },
+   {
+    "name": "PRESENT PERFECT (have/has + past participle)",
+    "min": 11
+   },
+   {
+    "name": "PAST SIMPLE (verb + -ed / irregular)",
+    "min": 7
+   },
+   {
+    "name": "COMPARISON TABLE",
+    "min": 8
+   },
+   {
+    "name": "EXERCISES",
+    "min": 9
+   },
+   {
+    "name": "️ COMMON SLAVIC ERRORS",
+    "min": 4
+   },
+   {
+    "name": "DISCUSSION",
+    "min": 3
+   }
+  ],
+  "board": {
+   "pan": {
+    "x": 120,
+    "y": 20
+   },
+   "scale": 0.65,
+   "nextId": 12,
+   "cards": [
+    {
+     "id": "c1",
+     "type": "frame",
+     "x": 140,
+     "y": 10,
+     "w": 1280,
+     "h": 1080,
+     "z": 0,
+     "data": {
+      "title": "Present Perfect vs Past Simple",
+      "bg": "#ffffff",
+      "border": "rgba(205,246,73,.42)"
+     },
+     "color": null
+    },
+    {
+     "id": "c2",
+     "type": "text",
+     "x": 180,
+     "y": 60,
+     "w": 360,
+     "h": 210,
+     "z": 1,
+     "data": {
+      "textColor": "#24282C",
+      "bgColor": "#ffffff",
+      "fontFamily": "var(--font)",
+      "fontSize": 16,
+      "align": "left",
+      "text": "Present Perfect vs Past Simple\nB1 / Grammar / 1:1 online / 45 min\n\nThe biggest confusion for Slavic speakers. A clear algorithm for choosing between tenses.\n\n▸ SINCE vs FOR confusion is common - dedicate 5 min\n  ▸ \"For 3 years\" can go with BOTH tenses - great discussion starter\n  ▸ Game: Tense Picker (Tools → Grammar) works great here"
+     },
+     "color": null
+    },
+    {
+     "id": "c3",
+     "type": "checklist",
+     "x": 180,
+     "y": 300,
+     "w": 320,
+     "h": 210,
+     "z": 2,
+     "data": {
+      "title": "Lesson goals",
+      "items": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ]
+     },
+     "color": null
+    },
+    {
+     "id": "c4",
+     "type": "lesson",
+     "x": 590,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 3,
+     "data": {
+      "title": "1. THE RULE IN ONE LINE",
+      "status": "in-progress",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "Present Perfect = past action with PRESENT relevance\n  Past Simple     = completed action in a FINISHED time",
+      "objectives": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ],
+      "notes": "Present Perfect = past action with PRESENT relevance\n  Past Simple     = completed action in a FINISHED time",
+      "module": "Present Perfect vs Past Simple"
+     },
+     "color": null
+    },
+    {
+     "id": "c5",
+     "type": "lesson",
+     "x": 890,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 4,
+     "data": {
+      "title": "2. PRESENT PERFECT (have/has + past participle)",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "11 min",
+      "desc": "Use for:\n  ✓ Experience (ever/never):    Have you ever been to Japan?\n  ✓ Recent news:                The president has resigned.\n  ✓ Unfinished period (this week/today/this year):\n                                I've sent 10 emails today.\n  ✓ Result matters now:         I've lost my keys! (= I can't find them)\n  ✓ With: already, yet, just, ever, never, so far, recently\n\n  Time signals: today, this week, this year, ever, never,\n                already, yet, just, recently, so far, since, for",
+      "objectives": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ],
+      "notes": "Use for:\n  ✓ Experience (ever/never):    Have you ever been to Japan?\n  ✓ Recent news:                The president has resigned.\n  ✓ Unfinished period (this week/today/this year):\n                                I've sent 10 emails today.\n  ✓ Result matters now:         I've lost my keys! (= I can't find them)\n  ✓ With: already, yet, just, ever, never, so far, recently\n\n  Time signals: today, this week, this year, ever, never,\n                already, yet, just, recently, so far, since, for",
+      "module": "Present Perfect vs Past Simple"
+     },
+     "color": null
+    },
+    {
+     "id": "c6",
+     "type": "lesson",
+     "x": 1190,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 5,
+     "data": {
+      "title": "3. PAST SIMPLE (verb + -ed / irregular)",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "7 min",
+      "desc": "Use for:\n  ✓ Specific finished time:     She left at 9 o'clock.\n  ✓ Sequence of past events:    He arrived, sat down, and opened the file.\n  ✓ Stories and narratives:     I lived in London for 3 years. (no longer)\n\n  Time signals: yesterday, last week/month/year, in 2019,\n                ago, when I was a child, at 5 pm, then",
+      "objectives": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ],
+      "notes": "Use for:\n  ✓ Specific finished time:     She left at 9 o'clock.\n  ✓ Sequence of past events:    He arrived, sat down, and opened the file.\n  ✓ Stories and narratives:     I lived in London for 3 years. (no longer)\n\n  Time signals: yesterday, last week/month/year, in 2019,\n                ago, when I was a child, at 5 pm, then",
+      "module": "Present Perfect vs Past Simple"
+     },
+     "color": null
+    },
+    {
+     "id": "c7",
+     "type": "lesson",
+     "x": 590,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 6,
+     "data": {
+      "title": "4. COMPARISON TABLE",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "8 min",
+      "desc": "PP: I've been to Paris.         → I know it, connection to now\n  PS: I went to Paris in 2019.    → specific finished trip\n\n  PP: She's broken her leg.       → she can't walk NOW\n  PS: She broke her leg in March. → past event, stated when\n\n  PP: Have you eaten yet?         → today, result matters\n  PS: Did you eat this morning?   → asking about specific time",
+      "objectives": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ],
+      "notes": "PP: I've been to Paris.         → I know it, connection to now\n  PS: I went to Paris in 2019.    → specific finished trip\n\n  PP: She's broken her leg.       → she can't walk NOW\n  PS: She broke her leg in March. → past event, stated when\n\n  PP: Have you eaten yet?         → today, result matters\n  PS: Did you eat this morning?   → asking about specific time",
+      "module": "Present Perfect vs Past Simple"
+     },
+     "color": null
+    },
+    {
+     "id": "c8",
+     "type": "lesson",
+     "x": 890,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 7,
+     "data": {
+      "title": "5. EXERCISES",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "9 min",
+      "desc": "Choose PP or PS:\n\n  1. I (lose/never) ___ my passport.           [have never lost]\n  2. He (call) ___ at 3 pm yesterday.           [called]\n  3. We (not finish) ___ the project yet.       [haven't finished]\n  4. When (you/arrive) ___ ?                    [did you arrive]\n  5. The company (launch) ___ a new app today.  [has launched]\n  6. I (study) ___ English for five years.      [have studied / studied - discuss difference!]",
+      "objectives": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ],
+      "notes": "Choose PP or PS:\n\n  1. I (lose/never) ___ my passport.           [have never lost]\n  2. He (call) ___ at 3 pm yesterday.           [called]\n  3. We (not finish) ___ the project yet.       [haven't finished]\n  4. When (you/arrive) ___ ?                    [did you arrive]\n  5. The company (launch) ___ a new app today.  [has launched]\n  6. I (study) ___ English for five years.      [have studied / studied - discuss difference!]",
+      "module": "Present Perfect vs Past Simple"
+     },
+     "color": null
+    },
+    {
+     "id": "c9",
+     "type": "lesson",
+     "x": 1190,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 8,
+     "data": {
+      "title": "6. ️ COMMON SLAVIC ERRORS",
+      "status": "available",
+      "level": "B1",
+      "skill": "Grammar",
+      "duration": "4 min",
+      "desc": "✗ \"I have seen this film yesterday.\"\n  ✓  I saw this film yesterday.  (finished time = PS)\n\n  ✗ \"Did you ever try sushi?\"\n  ✓  Have you ever tried sushi? (experience = PP)",
+      "objectives": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ],
+      "notes": "✗ \"I have seen this film yesterday.\"\n  ✓  I saw this film yesterday.  (finished time = PS)\n\n  ✗ \"Did you ever try sushi?\"\n  ✓  Have you ever tried sushi? (experience = PP)",
+      "module": "Present Perfect vs Past Simple"
+     },
+     "color": null
+    },
+    {
+     "id": "c10",
+     "type": "lesson",
+     "x": 590,
+     "y": 560,
+     "w": 270,
+     "h": 220,
+     "z": 9,
+     "data": {
+      "title": "7. DISCUSSION",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "• Tell me 3 things you've done this week.\n  • What's the most interesting place you've ever visited?\n  • Share a recent news headline using Present Perfect.",
+      "objectives": [
+       {
+        "text": "Know when to use Present Perfect vs Past Simple",
+        "done": false
+       },
+       {
+        "text": "Identify key time signals for each tense",
+        "done": false
+       },
+       {
+        "text": "Avoid the #1 error for Slavic speakers",
+        "done": false
+       }
+      ],
+      "notes": "• Tell me 3 things you've done this week.\n  • What's the most interesting place you've ever visited?\n  • Share a recent news headline using Present Perfect.",
+      "module": "Present Perfect vs Past Simple"
+     },
+     "color": null
+    },
+    {
+     "id": "c11",
+     "type": "assignment",
+     "x": 590,
+     "y": 830,
+     "w": 300,
+     "h": 185,
+     "z": 10,
+     "data": {
+      "title": "Homework: Present Perfect vs Past Simple",
+      "type": "Mixed",
+      "maxScore": 20,
+      "desc": "Add homework instructions.",
+      "total": 0,
+      "submitted": 0,
+      "level": "B1",
+      "timeLimit": 30
+     },
+     "color": null
+    }
+   ],
+   "arrows": [],
+   "groups": [],
+   "strokes": [],
+   "annotations": [],
+   "canvas": {
+    "tone": "light"
+   }
+  }
+ },
+ {
+  "id": "pack:voc-everyday-phrases",
+  "pack_id": "voc-everyday-phrases",
+  "title": "Everyday Phrases & Idioms",
+  "skill": "Vocabulary",
+  "level": "B1",
+  "minutes": 35,
+  "students_do": "Students learn everyday phrases and idioms and use them in short exchanges.",
+  "outline": [
+   {
+    "name": "TIME IDIOMS",
+    "min": 6
+   },
+   {
+    "name": "WORK & EFFORT",
+    "min": 6
+   },
+   {
+    "name": "MONEY & SUCCESS",
+    "min": 4
+   },
+   {
+    "name": "PEOPLE & RELATIONSHIPS",
+    "min": 4
+   },
+   {
+    "name": "GENERAL",
+    "min": 5
+   },
+   {
+    "name": "MATCH THE IDIOM TO THE SITUATION",
+    "min": 6
+   },
+   {
+    "name": "DISCUSSION",
+    "min": 4
+   }
+  ],
+  "board": {
+   "pan": {
+    "x": 120,
+    "y": 20
+   },
+   "scale": 0.65,
+   "nextId": 12,
+   "cards": [
+    {
+     "id": "c1",
+     "type": "frame",
+     "x": 140,
+     "y": 10,
+     "w": 1280,
+     "h": 1080,
+     "z": 0,
+     "data": {
+      "title": "Everyday Phrases & Idioms",
+      "bg": "#ffffff",
+      "border": "rgba(205,246,73,.42)"
+     },
+     "color": null
+    },
+    {
+     "id": "c2",
+     "type": "text",
+     "x": 180,
+     "y": 60,
+     "w": 360,
+     "h": 210,
+     "z": 1,
+     "data": {
+      "textColor": "#24282C",
+      "bgColor": "#ffffff",
+      "fontFamily": "var(--font)",
+      "fontSize": 16,
+      "align": "left",
+      "text": "Everyday Phrases & Idioms\nB1 / Vocabulary / 1:1 online / 35 min\n\nThe top 25 colloquial phrases and idioms for natural English.\n\n▸ Teach idioms in context - never in isolation lists alone\n  ▸ Memory Match game: idiom ↔ meaning works perfectly here\n  ▸ Ask students to find 3 idioms in articles - makes reading active"
+     },
+     "color": null
+    },
+    {
+     "id": "c3",
+     "type": "checklist",
+     "x": 180,
+     "y": 300,
+     "w": 320,
+     "h": 210,
+     "z": 2,
+     "data": {
+      "title": "Lesson goals",
+      "items": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ]
+     },
+     "color": null
+    },
+    {
+     "id": "c4",
+     "type": "lesson",
+     "x": 590,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 3,
+     "data": {
+      "title": "1. TIME IDIOMS",
+      "status": "in-progress",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "6 min",
+      "desc": "in the nick of time     - exactly when needed, almost too late\n  around the clock        - 24 hours a day, non-stop\n  hit the ground running  - start something energetically\n  the eleventh hour       - the last possible moment\n  call it a day           - stop working/doing something for today\n  buy time                - delay to get more time",
+      "objectives": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ],
+      "notes": "in the nick of time     - exactly when needed, almost too late\n  around the clock        - 24 hours a day, non-stop\n  hit the ground running  - start something energetically\n  the eleventh hour       - the last possible moment\n  call it a day           - stop working/doing something for today\n  buy time                - delay to get more time",
+      "module": "Everyday Phrases & Idioms"
+     },
+     "color": null
+    },
+    {
+     "id": "c5",
+     "type": "lesson",
+     "x": 890,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 4,
+     "data": {
+      "title": "2. WORK & EFFORT",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "6 min",
+      "desc": "bite the bullet         - endure a painful situation\n  on the ball             - alert, competent, quick-thinking\n  cut corners             - do something poorly to save time/money\n  go the extra mile       - do more than expected\n  pull one's weight       - do your fair share\n  burn the midnight oil   - work very late",
+      "objectives": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ],
+      "notes": "bite the bullet         - endure a painful situation\n  on the ball             - alert, competent, quick-thinking\n  cut corners             - do something poorly to save time/money\n  go the extra mile       - do more than expected\n  pull one's weight       - do your fair share\n  burn the midnight oil   - work very late",
+      "module": "Everyday Phrases & Idioms"
+     },
+     "color": null
+    },
+    {
+     "id": "c6",
+     "type": "lesson",
+     "x": 1190,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 5,
+     "data": {
+      "title": "3. MONEY & SUCCESS",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "4 min",
+      "desc": "break even              - earn what you spent (no profit/loss)\n  hit the jackpot         - win big, have great success\n  penny-pinching          - being very careful/mean with money\n  cost a fortune          - be very expensive",
+      "objectives": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ],
+      "notes": "break even              - earn what you spent (no profit/loss)\n  hit the jackpot         - win big, have great success\n  penny-pinching          - being very careful/mean with money\n  cost a fortune          - be very expensive",
+      "module": "Everyday Phrases & Idioms"
+     },
+     "color": null
+    },
+    {
+     "id": "c7",
+     "type": "lesson",
+     "x": 590,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 6,
+     "data": {
+      "title": "4. PEOPLE & RELATIONSHIPS",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "4 min",
+      "desc": "get along (with)        - have a good relationship\n  give someone the cold shoulder - ignore someone deliberately\n  see eye to eye          - agree with someone\n  rub someone the wrong way - irritate someone",
+      "objectives": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ],
+      "notes": "get along (with)        - have a good relationship\n  give someone the cold shoulder - ignore someone deliberately\n  see eye to eye          - agree with someone\n  rub someone the wrong way - irritate someone",
+      "module": "Everyday Phrases & Idioms"
+     },
+     "color": null
+    },
+    {
+     "id": "c8",
+     "type": "lesson",
+     "x": 890,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 7,
+     "data": {
+      "title": "5. GENERAL",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "5 min",
+      "desc": "the tip of the iceberg  - only a small visible part of a big problem\n  under the weather       - feeling unwell\n  a blessing in disguise  - something bad that turns out to be good\n  kill two birds with one stone - achieve two things with one action\n  it's not rocket science - it's not complicated",
+      "objectives": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ],
+      "notes": "the tip of the iceberg  - only a small visible part of a big problem\n  under the weather       - feeling unwell\n  a blessing in disguise  - something bad that turns out to be good\n  kill two birds with one stone - achieve two things with one action\n  it's not rocket science - it's not complicated",
+      "module": "Everyday Phrases & Idioms"
+     },
+     "color": null
+    },
+    {
+     "id": "c9",
+     "type": "lesson",
+     "x": 1190,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 8,
+     "data": {
+      "title": "6. MATCH THE IDIOM TO THE SITUATION",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "6 min",
+      "desc": "1. \"I'll stop working now - ___.\"             [call it a day]\n  2. \"She finished just before midnight - ___.\" [in the nick of time]\n  3. \"He ignores me at parties - ___.\"          [gives me the cold shoulder]\n  4. \"The project costs are just the start - _.\"[tip of the iceberg]\n  5. \"Losing that job led to a better one - _.\" [blessing in disguise]",
+      "objectives": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ],
+      "notes": "1. \"I'll stop working now - ___.\"             [call it a day]\n  2. \"She finished just before midnight - ___.\" [in the nick of time]\n  3. \"He ignores me at parties - ___.\"          [gives me the cold shoulder]\n  4. \"The project costs are just the start - _.\"[tip of the iceberg]\n  5. \"Losing that job led to a better one - _.\" [blessing in disguise]",
+      "module": "Everyday Phrases & Idioms"
+     },
+     "color": null
+    },
+    {
+     "id": "c10",
+     "type": "lesson",
+     "x": 590,
+     "y": 560,
+     "w": 270,
+     "h": 220,
+     "z": 9,
+     "data": {
+      "title": "7. DISCUSSION",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "4 min",
+      "desc": "• Have you ever had to bite the bullet? What happened?\n  • Tell me about a time you went the extra mile at work or school.\n  • What's something that looked bad but turned out to be a blessing in disguise?",
+      "objectives": [
+       {
+        "text": "Use 25 high-frequency idioms naturally",
+        "done": false
+       },
+       {
+        "text": "Understand idioms from context",
+        "done": false
+       },
+       {
+        "text": "Recognise informal vs formal usage",
+        "done": false
+       }
+      ],
+      "notes": "• Have you ever had to bite the bullet? What happened?\n  • Tell me about a time you went the extra mile at work or school.\n  • What's something that looked bad but turned out to be a blessing in disguise?",
+      "module": "Everyday Phrases & Idioms"
+     },
+     "color": null
+    },
+    {
+     "id": "c11",
+     "type": "assignment",
+     "x": 590,
+     "y": 830,
+     "w": 300,
+     "h": 185,
+     "z": 10,
+     "data": {
+      "title": "Homework: Everyday Phrases & Idioms",
+      "type": "Mixed",
+      "maxScore": 20,
+      "desc": "Add homework instructions.",
+      "total": 0,
+      "submitted": 0,
+      "level": "B1",
+      "timeLimit": 30
+     },
+     "color": null
+    }
+   ],
+   "arrows": [],
+   "groups": [],
+   "strokes": [],
+   "annotations": [],
+   "canvas": {
+    "tone": "light"
+   }
+  }
+ },
+ {
+  "id": "pack:sp-small-talk",
+  "pack_id": "sp-small-talk",
+  "title": "Small Talk & Social English",
+  "skill": "Speaking",
+  "level": "A2",
+  "minutes": 30,
+  "students_do": "Students practise opening, keeping up and closing a small-talk conversation.",
+  "outline": [
+   {
+    "name": "SAFE SMALL TALK TOPICS (UK/US)",
+    "min": 8
+   },
+   {
+    "name": "STARTING A CONVERSATION",
+    "min": 4
+   },
+   {
+    "name": "KEEPING IT GOING",
+    "min": 3
+   },
+   {
+    "name": "ENDING GRACEFULLY",
+    "min": 3
+   },
+   {
+    "name": "USEFUL RESPONSES",
+    "min": 4
+   },
+   {
+    "name": "CULTURAL NOTES",
+    "min": 5
+   },
+   {
+    "name": "ROLE-PLAY",
+    "min": 3
+   }
+  ],
+  "board": {
+   "pan": {
+    "x": 120,
+    "y": 20
+   },
+   "scale": 0.65,
+   "nextId": 12,
+   "cards": [
+    {
+     "id": "c1",
+     "type": "frame",
+     "x": 140,
+     "y": 10,
+     "w": 1280,
+     "h": 1080,
+     "z": 0,
+     "data": {
+      "title": "Small Talk & Social English",
+      "bg": "#ffffff",
+      "border": "rgba(205,246,73,.42)"
+     },
+     "color": null
+    },
+    {
+     "id": "c2",
+     "type": "text",
+     "x": 180,
+     "y": 60,
+     "w": 360,
+     "h": 210,
+     "z": 1,
+     "data": {
+      "textColor": "#24282C",
+      "bgColor": "#ffffff",
+      "fontFamily": "var(--font)",
+      "fontSize": 16,
+      "align": "left",
+      "text": "Small Talk & Social English\nA2 / Speaking / 1:1 online / 30 min\n\nThe art of small talk: topics, phrases and cultural context.\n\n▸ Hugely practical for professional and travel contexts\n  ▸ Video clip: British vs American small talk on YouTube\n  ▸ Debrief cultural differences - Slavic learners often find British\n    indirectness confusing (\"Not bad\" = British compliment!)"
+     },
+     "color": null
+    },
+    {
+     "id": "c3",
+     "type": "checklist",
+     "x": 180,
+     "y": 300,
+     "w": 320,
+     "h": 210,
+     "z": 2,
+     "data": {
+      "title": "Lesson goals",
+      "items": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ]
+     },
+     "color": null
+    },
+    {
+     "id": "c4",
+     "type": "lesson",
+     "x": 590,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 3,
+     "data": {
+      "title": "1. SAFE SMALL TALK TOPICS (UK/US)",
+      "status": "in-progress",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "8 min",
+      "desc": "✓ Weather (\"Beautiful day, isn't it?\")\n  ✓ Weekend plans (\"Any plans for the weekend?\")\n  ✓ Work/studies (briefly - \"How's work going?\")\n  ✓ Travel (\"Have you been anywhere nice lately?\")\n  ✓ Food/restaurants (\"Have you tried that new place on…?\")\n  ✓ Hobbies (\"I've just got into hiking - do you…?\")\n  ✓ Sport (UK: football; US: baseball/American football)\n\n  AVOID in small talk:\n  ✗ Politics, religion, money, age, weight\n  ✗ Very personal questions (\"How much do you earn?\")\n  ✗ Controversial opinions with strangers",
+      "objectives": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ],
+      "notes": "✓ Weather (\"Beautiful day, isn't it?\")\n  ✓ Weekend plans (\"Any plans for the weekend?\")\n  ✓ Work/studies (briefly - \"How's work going?\")\n  ✓ Travel (\"Have you been anywhere nice lately?\")\n  ✓ Food/restaurants (\"Have you tried that new place on…?\")\n  ✓ Hobbies (\"I've just got into hiking - do you…?\")\n  ✓ Sport (UK: football; US: baseball/American football)\n\n  AVOID in small talk:\n  ✗ Politics, religion, money, age, weight\n  ✗ Very personal questions (\"How much do you earn?\")\n  ✗ Controversial opinions with strangers",
+      "module": "Small Talk & Social English"
+     },
+     "color": null
+    },
+    {
+     "id": "c5",
+     "type": "lesson",
+     "x": 890,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 4,
+     "data": {
+      "title": "2. STARTING A CONVERSATION",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "4 min",
+      "desc": "\"Lovely weather today, isn't it?\"\n  \"Is this your first time at one of these events?\"\n  \"I really like your [jacket/bag] - where's it from?\"\n  \"How do you know [host's name]?\"\n  \"Have you tried the food? It's amazing.\"",
+      "objectives": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ],
+      "notes": "\"Lovely weather today, isn't it?\"\n  \"Is this your first time at one of these events?\"\n  \"I really like your [jacket/bag] - where's it from?\"\n  \"How do you know [host's name]?\"\n  \"Have you tried the food? It's amazing.\"",
+      "module": "Small Talk & Social English"
+     },
+     "color": null
+    },
+    {
+     "id": "c6",
+     "type": "lesson",
+     "x": 1190,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 5,
+     "data": {
+      "title": "3. KEEPING IT GOING",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "\"Oh really? Tell me more about that.\"\n  \"That's interesting - I've always wondered…\"\n  \"What do you think about…?\"\n  \"Same here! Actually, I…\"",
+      "objectives": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ],
+      "notes": "\"Oh really? Tell me more about that.\"\n  \"That's interesting - I've always wondered…\"\n  \"What do you think about…?\"\n  \"Same here! Actually, I…\"",
+      "module": "Small Talk & Social English"
+     },
+     "color": null
+    },
+    {
+     "id": "c7",
+     "type": "lesson",
+     "x": 590,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 6,
+     "data": {
+      "title": "4. ENDING GRACEFULLY",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "\"It was really nice meeting you.\"\n  \"I'll let you mingle - enjoy the evening!\"\n  \"I should go say hi to [name], but great talking to you.\"",
+      "objectives": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ],
+      "notes": "\"It was really nice meeting you.\"\n  \"I'll let you mingle - enjoy the evening!\"\n  \"I should go say hi to [name], but great talking to you.\"",
+      "module": "Small Talk & Social English"
+     },
+     "color": null
+    },
+    {
+     "id": "c8",
+     "type": "lesson",
+     "x": 890,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 7,
+     "data": {
+      "title": "5. USEFUL RESPONSES",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "4 min",
+      "desc": "Showing interest:   \"Oh wow!\" / \"No way!\" / \"Really?\"\n  Sympathising:       \"Oh, that's a shame.\" / \"I'm sorry to hear that.\"\n  Agreeing:           \"Absolutely!\" / \"Couldn't agree more.\"\n  Hedging:            \"I suppose so.\" / \"Maybe, yes.\"",
+      "objectives": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ],
+      "notes": "Showing interest:   \"Oh wow!\" / \"No way!\" / \"Really?\"\n  Sympathising:       \"Oh, that's a shame.\" / \"I'm sorry to hear that.\"\n  Agreeing:           \"Absolutely!\" / \"Couldn't agree more.\"\n  Hedging:            \"I suppose so.\" / \"Maybe, yes.\"",
+      "module": "Small Talk & Social English"
+     },
+     "color": null
+    },
+    {
+     "id": "c9",
+     "type": "lesson",
+     "x": 1190,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 8,
+     "data": {
+      "title": "6. CULTURAL NOTES",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "5 min",
+      "desc": "🇬🇧 British: start with weather; \"sorry\" for everything;\n               very indirect criticism (\"Not bad\" = quite good!)\n  🇺🇸 American: more direct, enthusiastic, ask personal questions\n               earlier (\"What do you do?\" is very common)",
+      "objectives": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ],
+      "notes": "🇬🇧 British: start with weather; \"sorry\" for everything;\n               very indirect criticism (\"Not bad\" = quite good!)\n  🇺🇸 American: more direct, enthusiastic, ask personal questions\n               earlier (\"What do you do?\" is very common)",
+      "module": "Small Talk & Social English"
+     },
+     "color": null
+    },
+    {
+     "id": "c10",
+     "type": "lesson",
+     "x": 590,
+     "y": 560,
+     "w": 270,
+     "h": 220,
+     "z": 9,
+     "data": {
+      "title": "7. ROLE-PLAY",
+      "status": "available",
+      "level": "A2",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "Students are at a work conference / house party.\n  They don't know each other.\n  Task: introduce yourself and find 3 things in common.",
+      "objectives": [
+       {
+        "text": "Start and maintain casual conversations",
+        "done": false
+       },
+       {
+        "text": "Use topic-appropriate language",
+        "done": false
+       },
+       {
+        "text": "Know what to talk about (and what to avoid!)",
+        "done": false
+       }
+      ],
+      "notes": "Students are at a work conference / house party.\n  They don't know each other.\n  Task: introduce yourself and find 3 things in common.",
+      "module": "Small Talk & Social English"
+     },
+     "color": null
+    },
+    {
+     "id": "c11",
+     "type": "assignment",
+     "x": 590,
+     "y": 830,
+     "w": 300,
+     "h": 185,
+     "z": 10,
+     "data": {
+      "title": "Homework: Small Talk & Social English",
+      "type": "Mixed",
+      "maxScore": 20,
+      "desc": "Add homework instructions.",
+      "total": 0,
+      "submitted": 0,
+      "level": "A2",
+      "timeLimit": 30
+     },
+     "color": null
+    }
+   ],
+   "arrows": [],
+   "groups": [],
+   "strokes": [],
+   "annotations": [],
+   "canvas": {
+    "tone": "light"
+   }
+  }
+ },
+ {
+  "id": "pack:sp-discussions",
+  "pack_id": "sp-discussions",
+  "title": "Discussion & Debate Language",
+  "skill": "Speaking",
+  "level": "B2",
+  "minutes": 40,
+  "students_do": "Students learn the language of opinions and disagreement, then hold a discussion.",
+  "outline": [
+   {
+    "name": "STATING YOUR OPINION",
+    "min": 7
+   },
+   {
+    "name": "AGREEING",
+    "min": 5
+   },
+   {
+    "name": "DISAGREEING",
+    "min": 7
+   },
+   {
+    "name": "CONCEDING A POINT",
+    "min": 4
+   },
+   {
+    "name": "GIVING EXAMPLES",
+    "min": 9
+   },
+   {
+    "name": "DEBATE TOPICS (choose one)",
+    "min": 8
+   }
+  ],
+  "board": {
+   "pan": {
+    "x": 120,
+    "y": 20
+   },
+   "scale": 0.65,
+   "nextId": 11,
+   "cards": [
+    {
+     "id": "c1",
+     "type": "frame",
+     "x": 140,
+     "y": 10,
+     "w": 1280,
+     "h": 850,
+     "z": 0,
+     "data": {
+      "title": "Discussion & Debate Language",
+      "bg": "#ffffff",
+      "border": "rgba(205,246,73,.42)"
+     },
+     "color": null
+    },
+    {
+     "id": "c2",
+     "type": "text",
+     "x": 180,
+     "y": 60,
+     "w": 360,
+     "h": 210,
+     "z": 1,
+     "data": {
+      "textColor": "#24282C",
+      "bgColor": "#ffffff",
+      "fontFamily": "var(--font)",
+      "fontSize": 16,
+      "align": "left",
+      "text": "Discussion & Debate Language\nB2 / Speaking / 1:1 online / 40 min\n\nLanguage tools for discussions, debates and exchanging opinions.\n\n▸ Assign positions randomly - great for pushing beyond comfort zone\n  ▸ Give a language feedback sheet: note phrases students missed\n  ▸ Use Four Opinions with a concrete class context to start the warm-up"
+     },
+     "color": null
+    },
+    {
+     "id": "c3",
+     "type": "checklist",
+     "x": 180,
+     "y": 300,
+     "w": 320,
+     "h": 210,
+     "z": 2,
+     "data": {
+      "title": "Lesson goals",
+      "items": [
+       {
+        "text": "Express and defend opinions clearly",
+        "done": false
+       },
+       {
+        "text": "Agree, disagree, and partially agree",
+        "done": false
+       },
+       {
+        "text": "Handle counter-arguments diplomatically",
+        "done": false
+       }
+      ]
+     },
+     "color": null
+    },
+    {
+     "id": "c4",
+     "type": "lesson",
+     "x": 590,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 3,
+     "data": {
+      "title": "1. STATING YOUR OPINION",
+      "status": "in-progress",
+      "level": "B2",
+      "skill": "Speaking",
+      "duration": "7 min",
+      "desc": "Neutral:      \"I think / I believe / I feel that…\"\n  Strong:       \"I'm convinced that… / I strongly believe…\"\n  Tentative:    \"It seems to me that… / I tend to think…\"\n  Impersonal:   \"It could be argued that… / One might say…\"",
+      "objectives": [
+       {
+        "text": "Express and defend opinions clearly",
+        "done": false
+       },
+       {
+        "text": "Agree, disagree, and partially agree",
+        "done": false
+       },
+       {
+        "text": "Handle counter-arguments diplomatically",
+        "done": false
+       }
+      ],
+      "notes": "Neutral:      \"I think / I believe / I feel that…\"\n  Strong:       \"I'm convinced that… / I strongly believe…\"\n  Tentative:    \"It seems to me that… / I tend to think…\"\n  Impersonal:   \"It could be argued that… / One might say…\"",
+      "module": "Discussion & Debate Language"
+     },
+     "color": null
+    },
+    {
+     "id": "c5",
+     "type": "lesson",
+     "x": 890,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 4,
+     "data": {
+      "title": "2. AGREEING",
+      "status": "available",
+      "level": "B2",
+      "skill": "Speaking",
+      "duration": "5 min",
+      "desc": "Full:         \"Absolutely. / Exactly. / Precisely.\"\n  Partial:      \"You make a fair point, and I'd add that…\"\n  Enthusiastic: \"I couldn't agree more. That's exactly right.\"",
+      "objectives": [
+       {
+        "text": "Express and defend opinions clearly",
+        "done": false
+       },
+       {
+        "text": "Agree, disagree, and partially agree",
+        "done": false
+       },
+       {
+        "text": "Handle counter-arguments diplomatically",
+        "done": false
+       }
+      ],
+      "notes": "Full:         \"Absolutely. / Exactly. / Precisely.\"\n  Partial:      \"You make a fair point, and I'd add that…\"\n  Enthusiastic: \"I couldn't agree more. That's exactly right.\"",
+      "module": "Discussion & Debate Language"
+     },
+     "color": null
+    },
+    {
+     "id": "c6",
+     "type": "lesson",
+     "x": 1190,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 5,
+     "data": {
+      "title": "3. DISAGREEING",
+      "status": "available",
+      "level": "B2",
+      "skill": "Speaking",
+      "duration": "7 min",
+      "desc": "Direct:       \"I'm afraid I disagree. In my view…\"\n  Polite:       \"I see your point, but I'm not entirely convinced…\"\n  Diplomatic:   \"That's an interesting perspective, though I'd argue…\"\n  Challenging:  \"But isn't it the case that…?\"",
+      "objectives": [
+       {
+        "text": "Express and defend opinions clearly",
+        "done": false
+       },
+       {
+        "text": "Agree, disagree, and partially agree",
+        "done": false
+       },
+       {
+        "text": "Handle counter-arguments diplomatically",
+        "done": false
+       }
+      ],
+      "notes": "Direct:       \"I'm afraid I disagree. In my view…\"\n  Polite:       \"I see your point, but I'm not entirely convinced…\"\n  Diplomatic:   \"That's an interesting perspective, though I'd argue…\"\n  Challenging:  \"But isn't it the case that…?\"",
+      "module": "Discussion & Debate Language"
+     },
+     "color": null
+    },
+    {
+     "id": "c7",
+     "type": "lesson",
+     "x": 590,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 6,
+     "data": {
+      "title": "4. CONCEDING A POINT",
+      "status": "available",
+      "level": "B2",
+      "skill": "Speaking",
+      "duration": "4 min",
+      "desc": "\"Fair enough. / You have a point there.\"\n  \"I take your point, but I still think…\"\n  \"That's true to some extent, however…\"",
+      "objectives": [
+       {
+        "text": "Express and defend opinions clearly",
+        "done": false
+       },
+       {
+        "text": "Agree, disagree, and partially agree",
+        "done": false
+       },
+       {
+        "text": "Handle counter-arguments diplomatically",
+        "done": false
+       }
+      ],
+      "notes": "\"Fair enough. / You have a point there.\"\n  \"I take your point, but I still think…\"\n  \"That's true to some extent, however…\"",
+      "module": "Discussion & Debate Language"
+     },
+     "color": null
+    },
+    {
+     "id": "c8",
+     "type": "lesson",
+     "x": 890,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 7,
+     "data": {
+      "title": "5. GIVING EXAMPLES",
+      "status": "available",
+      "level": "B2",
+      "skill": "Speaking",
+      "duration": "9 min",
+      "desc": "\"For instance… / For example… / Take… as a case in point.\"\n  \"A good illustration of this is…\"\n  \"This is evident in the case of…\"\n\nHEDGING (softening claims)\n  \"It tends to be the case that…\"\n  \"In most cases… / Generally speaking…\"\n  \"There's a possibility that…\"\n  \"To some degree / extent…\"",
+      "objectives": [
+       {
+        "text": "Express and defend opinions clearly",
+        "done": false
+       },
+       {
+        "text": "Agree, disagree, and partially agree",
+        "done": false
+       },
+       {
+        "text": "Handle counter-arguments diplomatically",
+        "done": false
+       }
+      ],
+      "notes": "\"For instance… / For example… / Take… as a case in point.\"\n  \"A good illustration of this is…\"\n  \"This is evident in the case of…\"\n\nHEDGING (softening claims)\n  \"It tends to be the case that…\"\n  \"In most cases… / Generally speaking…\"\n  \"There's a possibility that…\"\n  \"To some degree / extent…\"",
+      "module": "Discussion & Debate Language"
+     },
+     "color": null
+    },
+    {
+     "id": "c9",
+     "type": "lesson",
+     "x": 1190,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 8,
+     "data": {
+      "title": "6. DEBATE TOPICS (choose one)",
+      "status": "available",
+      "level": "B2",
+      "skill": "Speaking",
+      "duration": "8 min",
+      "desc": "• \"Social media does more harm than good.\"\n  • \"Working from home is better for productivity.\"\n  • \"University education should be free for everyone.\"\n  • \"Artificial intelligence will replace most jobs in 20 years.\"\n  • \"Fast fashion should be banned.\"\n\n  FORMAT: 2 teams → 3 min opening → 5 min rebuttal → 2 min closing",
+      "objectives": [
+       {
+        "text": "Express and defend opinions clearly",
+        "done": false
+       },
+       {
+        "text": "Agree, disagree, and partially agree",
+        "done": false
+       },
+       {
+        "text": "Handle counter-arguments diplomatically",
+        "done": false
+       }
+      ],
+      "notes": "• \"Social media does more harm than good.\"\n  • \"Working from home is better for productivity.\"\n  • \"University education should be free for everyone.\"\n  • \"Artificial intelligence will replace most jobs in 20 years.\"\n  • \"Fast fashion should be banned.\"\n\n  FORMAT: 2 teams → 3 min opening → 5 min rebuttal → 2 min closing",
+      "module": "Discussion & Debate Language"
+     },
+     "color": null
+    },
+    {
+     "id": "c10",
+     "type": "assignment",
+     "x": 590,
+     "y": 580,
+     "w": 300,
+     "h": 185,
+     "z": 9,
+     "data": {
+      "title": "Homework: Discussion & Debate Language",
+      "type": "Mixed",
+      "maxScore": 20,
+      "desc": "Add homework instructions.",
+      "total": 0,
+      "submitted": 0,
+      "level": "B2",
+      "timeLimit": 30
+     },
+     "color": null
+    }
+   ],
+   "arrows": [],
+   "groups": [],
+   "strokes": [],
+   "annotations": [],
+   "canvas": {
+    "tone": "light"
+   }
+  }
+ },
+ {
+  "id": "pack:wr-formal-email",
+  "pack_id": "wr-formal-email",
+  "title": "Formal Email Writing",
+  "skill": "Writing",
+  "level": "B1",
+  "minutes": 40,
+  "students_do": "Students study a model formal email and write their own.",
+  "outline": [
+   {
+    "name": "EMAIL STRUCTURE",
+    "min": 3
+   },
+   {
+    "name": "SUBJECT LINE",
+    "min": 3
+   },
+   {
+    "name": "SALUTATION",
+    "min": 3
+   },
+   {
+    "name": "OPENING SENTENCES",
+    "min": 8
+   },
+   {
+    "name": "CLOSING",
+    "min": 4
+   },
+   {
+    "name": "SIGN-OFF",
+    "min": 3
+   },
+   {
+    "name": "SAMPLE EMAIL",
+    "min": 9
+   },
+   {
+    "name": "COMMON ERRORS",
+    "min": 4
+   },
+   {
+    "name": "WRITING TASK",
+    "min": 3
+   }
+  ],
+  "board": {
+   "pan": {
+    "x": 120,
+    "y": 20
+   },
+   "scale": 0.65,
+   "nextId": 14,
+   "cards": [
+    {
+     "id": "c1",
+     "type": "frame",
+     "x": 140,
+     "y": 10,
+     "w": 1280,
+     "h": 1080,
+     "z": 0,
+     "data": {
+      "title": "Formal Email Writing",
+      "bg": "#ffffff",
+      "border": "rgba(205,246,73,.42)"
+     },
+     "color": null
+    },
+    {
+     "id": "c2",
+     "type": "text",
+     "x": 180,
+     "y": 60,
+     "w": 360,
+     "h": 210,
+     "z": 1,
+     "data": {
+      "textColor": "#24282C",
+      "bgColor": "#ffffff",
+      "fontFamily": "var(--font)",
+      "fontSize": 16,
+      "align": "left",
+      "text": "Formal Email Writing\nB1 / Writing / 1:1 online / 40 min\n\nStructure, phrases and a sample business letter. Ready to practise.\n\n▸ Compare formal vs informal emails side by side\n  ▸ Error correction activity: find 8 mistakes in a flawed email\n  ▸ Link to IELTS General Writing Task 1 if relevant"
+     },
+     "color": null
+    },
+    {
+     "id": "c3",
+     "type": "checklist",
+     "x": 180,
+     "y": 300,
+     "w": 320,
+     "h": 210,
+     "z": 2,
+     "data": {
+      "title": "Lesson goals",
+      "items": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ]
+     },
+     "color": null
+    },
+    {
+     "id": "c4",
+     "type": "lesson",
+     "x": 590,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 3,
+     "data": {
+      "title": "1. EMAIL STRUCTURE",
+      "status": "in-progress",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "Subject line → Salutation → Opening → Body → Closing → Sign-off",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Subject line → Salutation → Opening → Body → Closing → Sign-off",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c5",
+     "type": "lesson",
+     "x": 890,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 4,
+     "data": {
+      "title": "2. SUBJECT LINE",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "Be specific and informative:\n  ✓ \"Request for Meeting: Thursday 20 March\"\n  ✓ \"Follow-up: Interview for Marketing Manager Role\"\n  ✗ \"Hello\" / \"Important!!!\"",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Be specific and informative:\n  ✓ \"Request for Meeting: Thursday 20 March\"\n  ✓ \"Follow-up: Interview for Marketing Manager Role\"\n  ✗ \"Hello\" / \"Important!!!\"",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c6",
+     "type": "lesson",
+     "x": 1190,
+     "y": 60,
+     "w": 270,
+     "h": 220,
+     "z": 5,
+     "data": {
+      "title": "3. SALUTATION",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "Know the name:    Dear Mr Smith, / Dear Dr Kovač,\n  Don't know name:  Dear Sir or Madam,\n  Team:             Dear all, / Dear team,\n  Informal formal:  Hi Sarah, (acceptable in many offices)",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Know the name:    Dear Mr Smith, / Dear Dr Kovač,\n  Don't know name:  Dear Sir or Madam,\n  Team:             Dear all, / Dear team,\n  Informal formal:  Hi Sarah, (acceptable in many offices)",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c7",
+     "type": "lesson",
+     "x": 590,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 6,
+     "data": {
+      "title": "4. OPENING SENTENCES",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "8 min",
+      "desc": "Introducing yourself:  \"My name is [X] and I am writing with regard to…\"\n  Referring to contact:  \"Further to our conversation on Monday…\"\n  Following up:          \"I am writing to follow up on my previous email…\"\n  Requesting:            \"I am writing to enquire about…\"\n\nBODY - keep it clear:\n  One idea per paragraph. Use topic sentences.\n  \"Regarding the first point…\"\n  \"I would like to draw your attention to…\"\n  \"Please find attached…\"\n  \"I would be grateful if you could…\"",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Introducing yourself:  \"My name is [X] and I am writing with regard to…\"\n  Referring to contact:  \"Further to our conversation on Monday…\"\n  Following up:          \"I am writing to follow up on my previous email…\"\n  Requesting:            \"I am writing to enquire about…\"\n\nBODY - keep it clear:\n  One idea per paragraph. Use topic sentences.\n  \"Regarding the first point…\"\n  \"I would like to draw your attention to…\"\n  \"Please find attached…\"\n  \"I would be grateful if you could…\"",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c8",
+     "type": "lesson",
+     "x": 890,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 7,
+     "data": {
+      "title": "5. CLOSING",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "4 min",
+      "desc": "Requesting action:  \"I look forward to hearing from you.\"\n  Offering help:      \"Please do not hesitate to contact me if you need further information.\"\n  Thanking:           \"Thank you for your time and consideration.\"",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Requesting action:  \"I look forward to hearing from you.\"\n  Offering help:      \"Please do not hesitate to contact me if you need further information.\"\n  Thanking:           \"Thank you for your time and consideration.\"",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c9",
+     "type": "lesson",
+     "x": 1190,
+     "y": 310,
+     "w": 270,
+     "h": 220,
+     "z": 8,
+     "data": {
+      "title": "6. SIGN-OFF",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "Formal:   Yours sincerely, (if you know the name)\n            Yours faithfully, (if you don't know the name)\n  Semi-formal: Kind regards, / Best regards,\n  Informal formal: Best, / Many thanks,",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Formal:   Yours sincerely, (if you know the name)\n            Yours faithfully, (if you don't know the name)\n  Semi-formal: Kind regards, / Best regards,\n  Informal formal: Best, / Many thanks,",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c10",
+     "type": "lesson",
+     "x": 590,
+     "y": 560,
+     "w": 270,
+     "h": 220,
+     "z": 9,
+     "data": {
+      "title": "7. SAMPLE EMAIL",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "9 min",
+      "desc": "Subject: Application for English Teacher Position\n\n  Dear Ms Thompson,\n\n  I am writing to apply for the English Teacher position advertised\n  on your school's website on 10 May. I believe my qualifications\n  and experience make me a strong candidate for this role.\n\n  I hold a CELTA qualification and have four years of experience\n  teaching English to adult learners at B1-C1 level. In my current\n  role at Language School Kyiv, I have developed a range of\n  communicative lesson materials and achieved a 95% student\n  satisfaction rate.\n\n  Please find my CV attached. I would welcome the opportunity\n  to discuss my application further at your convenience.\n\n  I look forward to hearing from you.\n\n ",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Subject: Application for English Teacher Position\n\n  Dear Ms Thompson,\n\n  I am writing to apply for the English Teacher position advertised\n  on your school's website on 10 May. I believe my qualifications\n  and experience make me a strong candidate for this role.\n\n  I hold a CELTA qualification and have four years of experience\n  teaching English to adult learners at B1-C1 level. In my current\n  role at Language School Kyiv, I have developed a range of\n  communicative lesson materials and achieved a 95% student\n  satisfaction rate.\n\n  Please find my CV attached. I would welcome the opportunity\n  to discuss my application further at your convenience.\n\n  I look forward to hearing from you.\n\n ",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c11",
+     "type": "lesson",
+     "x": 890,
+     "y": 560,
+     "w": 270,
+     "h": 220,
+     "z": 10,
+     "data": {
+      "title": "8. COMMON ERRORS",
+      "status": "available",
+      "level": "B1",
+      "skill": "Grammar",
+      "duration": "4 min",
+      "desc": "✗ \"I am writing to you because I need to ask you…\"  (too wordy)\n  ✓  \"I am writing to enquire about…\"\n\n  ✗ \"With regards to your email…\"\n  ✓  \"With regard to your email…\" (no -s)\n\n  ✗ \"Waiting for your answer\"\n  ✓  \"I look forward to your reply.\"",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "✗ \"I am writing to you because I need to ask you…\"  (too wordy)\n  ✓  \"I am writing to enquire about…\"\n\n  ✗ \"With regards to your email…\"\n  ✓  \"With regard to your email…\" (no -s)\n\n  ✗ \"Waiting for your answer\"\n  ✓  \"I look forward to your reply.\"",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c12",
+     "type": "lesson",
+     "x": 1190,
+     "y": 560,
+     "w": 270,
+     "h": 220,
+     "z": 11,
+     "data": {
+      "title": "9. WRITING TASK",
+      "status": "available",
+      "level": "B1",
+      "skill": "Speaking",
+      "duration": "3 min",
+      "desc": "Write a formal email (120-150 words):\n  You are applying for a course at a language school abroad.\n  Ask about: start dates, fees, accommodation options.",
+      "objectives": [
+       {
+        "text": "Structure a formal email correctly",
+        "done": false
+       },
+       {
+        "text": "Use appropriate salutations and closings",
+        "done": false
+       },
+       {
+        "text": "Write clearly and concisely in a professional register",
+        "done": false
+       }
+      ],
+      "notes": "Write a formal email (120-150 words):\n  You are applying for a course at a language school abroad.\n  Ask about: start dates, fees, accommodation options.",
+      "module": "Formal Email Writing"
+     },
+     "color": null
+    },
+    {
+     "id": "c13",
+     "type": "assignment",
+     "x": 590,
+     "y": 830,
+     "w": 300,
+     "h": 185,
+     "z": 12,
+     "data": {
+      "title": "Homework: Formal Email Writing",
+      "type": "Mixed",
+      "maxScore": 20,
+      "desc": "Add homework instructions.",
+      "total": 0,
+      "submitted": 0,
+      "level": "B1",
+      "timeLimit": 30
+     },
+     "color": null
+    }
+   ],
+   "arrows": [],
+   "groups": [],
+   "strokes": [],
+   "annotations": [],
+   "canvas": {
+    "tone": "light"
+   }
+  }
+ }
+]

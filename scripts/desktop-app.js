@@ -2962,8 +2962,17 @@ async function checkAuthAndRoute() {
     /* Онбординг учителя (scripts/teacher-onboarding.js). Раньше здесь звалась
        showOnboarding, которой не было нигде: вызов падал в setTimeout, и новый
        учитель попадал на пустой стол без единой подсказки. */
-    if (consumeOnboardingPending(user) && typeof window.showOnboarding === 'function') setTimeout(() => window.showOnboarding(user), 800);
-    else if (window.TeachedOnboarding) setTimeout(() => window.TeachedOnboarding.boot(user), 900);
+    const legacyPending = consumeOnboardingPending(user);
+    const legacyOnboarding = () => {
+      if (legacyPending && typeof window.showOnboarding === 'function') setTimeout(() => window.showOnboarding(user), 800);
+      else if (window.TeachedOnboarding) setTimeout(() => window.TeachedOnboarding.boot(user), 900);
+    };
+    /* Онбординг v2 (scripts/onboarding-v2.js, backend/lib/teacherOnboarding.js)
+       за флагом на сервере. boot() отвечает false, если флаг этого учителя не
+       охватывает или сервер не ответил, - тогда всё как раньше: старый
+       пятишаговый онбординг ниже остаётся запасным путём. */
+    if (window.TeachedOnbV2) window.TeachedOnbV2.boot(user).then(handled => { if (!handled) legacyOnboarding(); }, legacyOnboarding);
+    else legacyOnboarding();
 
   } catch {
     // On the VPS domain the API is same-origin and should be immediate. If auth
@@ -3080,13 +3089,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1183" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1184" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1183" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1184" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

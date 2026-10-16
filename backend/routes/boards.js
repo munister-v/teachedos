@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
        card_count ведёт триггер. */
     `SELECT id, name, updated_at, created_at, card_count, cover,
             (cover_image IS NOT NULL) AS has_cover_image
-     FROM boards WHERE user_id = $1
+     FROM boards WHERE user_id = $1 AND NOT is_practice
      ORDER BY updated_at DESC`,
     [req.user.id]
   );
@@ -88,7 +88,7 @@ router.post('/', requireTeacher, async (req, res) => {
   if (boardLimit !== -1) {
     try {
       const { rows: cnt } = await pool.query(
-        'SELECT COUNT(*) AS count FROM boards WHERE user_id = $1',
+        'SELECT COUNT(*) AS count FROM boards WHERE user_id = $1 AND NOT is_practice',
         [req.user.id]
       );
       if (parseInt(cnt[0].count, 10) >= boardLimit) {
@@ -134,6 +134,18 @@ router.get('/:id', async (req, res) => {
   // arrive as empty placeholders. Filtering here rather than in the client is
   // the point - the payload itself must not carry what the viewer may not read.
   const board = rows[0];
+  /* Teacher onboarding, "Student preview": the owner asks for the board the way
+     a student receives it - private cards gone, held-back cards as placeholders,
+     answer keys stripped - by filtering for somebody who is not the owner.
+     Read-only by construction (can_edit false); the page also refuses writes. */
+  if (req.query.as === 'student' && board.access_role === 'owner') {
+    board.data = filterBoardData(sanitizeBoardData(board.data), '00000000-0000-4000-8000-000000000000', board.user_id);
+    board.can_edit = false;
+    board.access_role = 'viewer';
+    board.user_id = null;            // the page then does not take the viewer for the owner
+    board.preview_as = 'student';
+    return res.json({ board });
+  }
   board.data = filterBoardData(sanitizeBoardData(board.data), req.user.id, board.user_id);
   // Full-board saves cannot safely be merged from a redacted collaborator
   // view. Editors remain view-only until the client uses object-level writes.
