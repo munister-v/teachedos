@@ -5,6 +5,7 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
+const { aiAllowed, CONSENT_MESSAGE } = require('../lib/consent');
 const { preCheck, draftFeedback, gradeFromScores, cleanCorrections, correctionsForStudent, CRITERIA } = require('../lib/writingReview');
 
 router.use(requireAuth);
@@ -83,6 +84,7 @@ router.post('/:id/recheck', requireTeacher, async (req, res) => {
   try {
     const sub = await loadOwn(req.params.id, req.user.id);
     if (!sub) return res.status(404).json({ error: 'Not found' });
+    if (!(await aiAllowed(pool, sub.student_id, req.user.id))) return res.status(409).json({ error: CONSENT_MESSAGE, code: 'consent_required' });
     const check = await preCheck(sub);
     await pool.query(`UPDATE writing_submissions SET ai_check=$2, ai_status='done', scores=$3 WHERE id=$1`,
       [sub.id, JSON.stringify(check), JSON.stringify(check.scores)]);
@@ -98,6 +100,7 @@ router.post('/:id/feedback-draft', requireTeacher, async (req, res) => {
   try {
     const sub = await loadOwn(req.params.id, req.user.id);
     if (!sub) return res.status(404).json({ error: 'Not found' });
+    if (!(await aiAllowed(pool, sub.student_id, req.user.id))) return res.status(409).json({ error: CONSENT_MESSAGE, code: 'consent_required' });
     const feedback = await draftFeedback(sub, {
       scores: Array.isArray(req.body?.scores) ? req.body.scores.slice(0, 8) : null,
       notes: String(req.body?.notes || '').slice(0, 1500),

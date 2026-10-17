@@ -1594,6 +1594,9 @@ function studentDetailRender() {
         ${s.paid_claim_at ? '<div class="st-fin-f" style="color:#2e7d32;font-weight:700">Says they paid - check your account</div>' : ''}
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsOpenCalendar('${esc(String(s.journal_id))}')">Lessons calendar</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsSetTrial('${esc(String(s.journal_id))}', ${s.is_trial ? 'false' : 'true'})">${s.is_trial ? 'End the trial' : '✨ Mark as trial student'}</button>
+        <div class="st-fin-f" style="margin-top:8px">${s.minor ? (s.consent_at ? `Minor - ${esc(s.guardian_name || 'parent')} agreed to the AI check` : 'Minor - no parent consent: the AI check is off') : 'Adult student'}</div>
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsSetConsent('${esc(String(s.journal_id))}')">${s.minor ? 'Parent consent…' : 'Mark as a minor…'}</button>
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsErase('${esc(String(s.journal_id))}', '${esc(String(s.name || '')).replace(/'/g, '')}')">Erase this student\'s data…</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsAddPack('${esc(String(s.journal_id))}')">${s.paid_claim_at ? '✓ Payment received' : 'Payment received'} · +${Number(s.pack_size) || 8} lessons</button>
       </div>`
     : `<div class="st-fin is-empty">
@@ -1791,6 +1794,40 @@ function studentsOpenCalendar(journalId) {
   window.TeachedLessonCal.open({ api, journalId, teacher: true, onChange: () => studentsReloadRoster() });
 }
 window.studentsOpenCalendar = studentsOpenCalendar;
+/* Parental consent and erasure (E5): the teacher records who agreed; a minor without it
+   stays away from the AI check. Erasure removes the journal entry and the written work. */
+async function studentsSetConsent(journalId) {
+  const s = STUDENTS.find(x => String(x.journal_id) === String(journalId));
+  const minor = confirm('Is this student a minor (under 18)?\n\nOK = minor, Cancel = adult');
+  let body = { minor, consented: false };
+  if (minor) {
+    const name = prompt('Name of the parent or guardian who agreed to the AI check (leave empty if nobody has yet):', (s && s.guardian_name) || '');
+    if (name === null) return;
+    if (name.trim()) {
+      const contact = prompt('How to reach them (optional, stays in your journal):', '');
+      body = { minor: true, consented: true, guardian_name: name.trim(), guardian_contact: (contact || '').trim() };
+    }
+  }
+  try {
+    const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(journalId)}/consent`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken }, body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error('failed');
+    await studentsReloadRoster();
+  } catch (_) { alert('Could not save. Try again.'); }
+}
+window.studentsSetConsent = studentsSetConsent;
+async function studentsErase(journalId, name) {
+  if (!confirm(`Erase everything you hold about ${name || 'this student'}: the journal entry, attendance, balance history and their written work? This cannot be undone. Their own account stays.`)) return;
+  try {
+    const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(journalId)}/erase`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken }, body: JSON.stringify({ confirm: true }),
+    });
+    if (!r.ok) throw new Error('failed');
+    await studentsReloadRoster();
+  } catch (_) { alert('Could not erase. Try again.'); }
+}
+window.studentsErase = studentsErase;
 /* Trial student: free first lesson, no "0 left" in the cabinet. The first
    package ends it on the server by itself. */
 async function studentsSetTrial(journalId, on) {
@@ -3231,13 +3268,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1204" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1205" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1204" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1205" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

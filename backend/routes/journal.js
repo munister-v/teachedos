@@ -641,6 +641,48 @@ router.patch('/:id', async (req, res) => {
   res.json({ student: st });
 });
 
+/* ── PARENTAL CONSENT AND ERASURE (E5 T-PR1) ──
+   PUT: the teacher says whether the student is a minor and who agreed. A minor without a
+   recorded consent is kept away from the outside model (lib/consent.js).
+   POST erase: the family asks for the data to go; everything the teacher holds about this
+   student is deleted, the student's own account is not touched. */
+router.put('/:id/consent', async (req, res) => {
+  const minor = req.body?.minor === true;
+  const name = cleanContact(req.body?.guardian_name, 120);
+  const contact = cleanContact(req.body?.guardian_contact, 160);
+  const agreed = req.body?.consented === true;
+  if (minor && agreed && !name) return res.status(400).json({ error: 'Write down who agreed (the parent or guardian\'s name).' });
+  const { rows } = await pool.query(
+    `UPDATE student_journal SET minor=$3, guardian_name=$4, guardian_contact=$5,
+            consent_at = CASE WHEN $3 AND $6 THEN COALESCE(consent_at, NOW()) ELSE NULL END
+      WHERE id=$1 AND teacher_id=$2
+      RETURNING id, minor, guardian_name, guardian_contact, consent_at`,
+    [req.params.id, req.user.id, minor, minor ? name : null, minor ? contact : null, agreed]);
+  if (!rows.length) return res.status(404).json({ error: 'not found' });
+  res.json({ consent: rows[0] });
+});
+
+router.post('/:id/erase', async (req, res) => {
+  if (req.body?.confirm !== true) return res.status(400).json({ error: 'confirm required' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: [st] } = await client.query('SELECT id, student_id FROM student_journal WHERE id=$1 AND teacher_id=$2 FOR UPDATE', [req.params.id, req.user.id]);
+    if (!st) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not found' }); }
+    let writing = 0;
+    if (st.student_id) {
+      writing = (await client.query('DELETE FROM writing_submissions WHERE student_id=$1 AND teacher_id=$2', [st.student_id, req.user.id])).rowCount;
+    }
+    await client.query('DELETE FROM student_journal WHERE id=$1', [st.id]);   // attendance, balance ledger and the rest follow
+    await client.query('COMMIT');
+    res.json({ ok: true, erased: { writing } });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[journal/erase]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  } finally { client.release(); }
+});
+
 router.delete('/:id', async (req, res) => {
   await pool.query('DELETE FROM student_journal WHERE id=$1 AND teacher_id=$2', [req.params.id, req.user.id]);
   res.json({ ok: true });

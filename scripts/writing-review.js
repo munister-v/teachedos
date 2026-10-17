@@ -135,6 +135,7 @@
     if (r.status === 'returned') return `<span class="wr-chip done">✓ Returned ${esc(W.when(r.returned_at))}</span>`;
     if (r.ai_status === 'done') return `<span class="wr-chip ai">✦ AI check ready</span>`;
     if (r.ai_status === 'failed') return `<span class="wr-chip fail">AI check failed</span>`;
+    if (r.ai_status === 'skipped') return `<span class="wr-chip fail">AI off - no parent consent</span>`;
     return `<span class="wr-chip wait">✦ Checking…</span>`;
   }
 
@@ -376,7 +377,9 @@
     const right = modal.querySelector('.wr-right');
     const scores = scoresNow();
     const aiBlock = !check
-      ? (s.ai_status === 'failed'
+      ? (s.ai_status === 'skipped'
+        ? `<div class="wr-card"><h4>AI pre-check</h4><p class="wr-summary">This student is a minor and no parent has agreed yet, so the work was not sent to the AI. Record consent on the student card, or review it by hand.</p></div>`
+        : s.ai_status === 'failed'
         ? `<div class="wr-card"><h4>AI pre-check <button class="wr-link" data-act="recheck">Try again</button></h4><p class="wr-summary">The check did not come back. You can still review and grade by hand.</p></div>`
         : `<div class="wr-card"><h4>AI pre-check</h4><p class="wr-summary">Reading the text against the lesson's criteria…</p><div class="wr-skel"></div><div class="wr-skel" style="width:60%"></div></div>`)
       : `<div class="wr-card"><h4>AI pre-check <button class="wr-link" data-act="recheck">Check again</button></h4><p class="wr-summary">${esc(check.summary || '')}</p></div>`;

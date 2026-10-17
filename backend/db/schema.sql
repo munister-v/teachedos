@@ -1408,3 +1408,11 @@ CREATE TABLE IF NOT EXISTS guardrail_daily (
   unverified        INTEGER      NOT NULL DEFAULT 0,   -- the second reading could not run
   PRIMARY KEY (day, skill, tool_id, bank_version)
 );
+
+-- Parental consent (Lesson Builder 2.0 E5 T-PR1). A student the teacher marks as a minor
+-- is not sent to the outside language model until the teacher records that a parent or
+-- guardian agreed. The record is the teacher's: who agreed and when, nothing more.
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS minor            BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS guardian_name    VARCHAR(120);
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS guardian_contact VARCHAR(160);
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS consent_at       TIMESTAMPTZ;

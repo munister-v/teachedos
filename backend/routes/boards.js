@@ -684,6 +684,10 @@ async function runWritingPreCheck(id) {
   try {
     const { rows } = await pool.query('SELECT * FROM writing_submissions WHERE id=$1', [id]);
     if (!rows[0]) return;
+    if (!(await require('../lib/consent').aiAllowed(pool, rows[0].student_id, rows[0].teacher_id))) {
+      await pool.query(`UPDATE writing_submissions SET ai_status='skipped' WHERE id=$1`, [id]);
+      return;
+    }
     const check = await preCheck(rows[0]);
     await pool.query(`UPDATE writing_submissions SET ai_check=$2, ai_status='done', scores=$3 WHERE id=$1 AND status='submitted'`,
       [id, JSON.stringify(check), JSON.stringify(check.scores)]);
