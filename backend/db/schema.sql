@@ -1559,3 +1559,18 @@ CREATE TABLE IF NOT EXISTS dossier_handover_log (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_handover_from ON dossier_handover_log(from_teacher, created_at DESC);
+
+-- ── TeachEd memory: hand-over cards (ТЗ §8.1, 18.10.2026) ─────────────────────
+-- A summary the teacher writes for a colleague: the level, goals, weak spots and
+-- only the notes they chose. It is not the dossier and opens nothing else; only
+-- the receiver reads it.
+CREATE TABLE IF NOT EXISTS transfer_cards (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_teacher UUID REFERENCES users(id) ON DELETE SET NULL,
+  to_teacher   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  student_name VARCHAR(255) NOT NULL DEFAULT '',
+  payload      JSONB NOT NULL DEFAULT '{}',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  read_at      TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_transfer_cards_to ON transfer_cards(to_teacher, created_at DESC);

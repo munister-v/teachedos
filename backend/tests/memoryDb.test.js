@@ -67,6 +67,8 @@ test.after(async () => {
     await pool.query('DELETE FROM student_dossier WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM memory_revocations WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM dossier_handover_log WHERE from_teacher = ANY($1) OR to_teacher = ANY($1)', [ids]);
+    await pool.query('DELETE FROM transfer_cards WHERE from_teacher = ANY($1) OR to_teacher = ANY($1)', [ids]);
+    await pool.query('DELETE FROM notifications WHERE user_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM student_journal WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM users WHERE id = ANY($1)', [ids]);
   }
@@ -445,4 +447,32 @@ db("the brief: the teacher's style and the board's one student; no contacts; a m
   const prompt = require('../lib/boardAgent').buildPrompt({ command: 'add three warm-up questions', cards: [], memory: text });
   assert.match(prompt, /private TeachEd memory[\s\S]*Loves K-pop/);
   assert.doesNotMatch(require('../lib/boardAgent').buildPrompt({ command: 'x', cards: [] }), /TeachEd memory/);
+});
+
+db('a hand-over card carries only what the sender wrote, only the receiver reads it, and it opens no dossier', async () => {
+  const a = await mk('Card sender T');
+  const b = await mk('Card reader T');
+  const c = await mk('Card stranger T');
+  const s = await mk('Card S', 'student');
+  const j = await journalFor(a, null, 'Olya');
+  await patch(a, j, { notes: { value: 'private: parents divorcing', updated_at: iso(Date.now()) } });
+  const send = (u, id, body) => call(u, 'POST', `/api/memory/students/${id}/transfer-card`, body);
+  assert.equal((await send(a, j, { to_email: b.email, card: {} })).status, 422, 'an empty card');
+  assert.equal((await send(a, j, { to_email: a.email, card: { goals: 'x' } })).status, 422, 'not to yourself');
+  assert.equal((await send(a, j, { to_email: s.email, card: { goals: 'x' } })).status, 404, 'not to a student');
+  assert.equal((await send(b, j, { to_email: c.email, card: { goals: 'x' } })).status, 404, "not about someone else's student");
+  const r = await send(a, j, { to_email: b.email, card: { level: 'B1', goals: 'FCE in June', weak_spots: 'articles', notes: 'Likes drawing', secret: 'dropped' } });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  const got = (await call(b, 'GET', '/api/memory/transfer-cards')).body.cards;
+  assert.equal(got.length, 1);
+  assert.deepEqual([got[0].student_name, got[0].from_name, got[0].payload], ['Olya', 'Card sender T', { level: 'B1', goals: 'FCE in June', weak_spots: 'articles', notes: 'Likes drawing' }]);
+  assert.doesNotMatch(JSON.stringify(got), /divorcing/, 'the dossier itself never travels');
+  assert.deepEqual((await call(c, 'GET', '/api/memory/transfer-cards')).body.cards, [], 'nobody else sees it');
+  assert.deepEqual((await call(a, 'GET', '/api/memory/transfer-cards')).body.cards, [], 'not even the sender, once sent');
+  assert.equal((await call(b, 'GET', `/api/memory/students/${j}/dossier`)).status, 404, 'the card opens no dossier');
+  assert.equal((await call(c, 'POST', `/api/memory/transfer-cards/${got[0].id}/read`)).status, 404);
+  assert.equal((await call(b, 'POST', `/api/memory/transfer-cards/${got[0].id}/read`)).status, 200);
+  assert.equal((await call(c, 'DELETE', `/api/memory/transfer-cards/${got[0].id}`)).status, 404);
+  assert.equal((await call(b, 'DELETE', `/api/memory/transfer-cards/${got[0].id}`)).status, 200);
+  assert.deepEqual((await call(b, 'GET', '/api/memory/transfer-cards')).body.cards, []);
 });

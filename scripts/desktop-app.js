@@ -1401,6 +1401,9 @@ function studentsRender() {
     </div>`;
     const empty = document.getElementById('students-count');
     if (empty) empty.textContent = '';
+    // a new teacher may have nothing but what a colleague handed over
+    studentsArchiveLink(list);
+    studentsCardsLink(list);
     studentDetailRender();
     return;
   }
@@ -1474,6 +1477,7 @@ function studentsRender() {
     ? `<div class="st-group-h">Needs you · ${needs}</div>${ranked.slice(0, needs).map(row).join('')}${ranked.length > needs ? `<div class="st-group-h calm">All good</div>${ranked.slice(needs).map(row).join('')}` : ''}`
     : ranked.map(row).join(''));
   studentsArchiveLink(list);
+  studentsCardsLink(list);
 
   studentDetailRender();
 }
@@ -1542,6 +1546,7 @@ function _lastSeenLabel(iso) {
 
 function studentSelect(id) {
   studentsShowArchive = false;
+  studentsShowCards = false;
   if (String(id) !== String(studentsSelectedId) && document.querySelector('#st-pane .st-notes.is-dirty')
       && !confirm('Leave without saving your notes?')) return;
   studentsSelectedId = id;
@@ -1577,6 +1582,7 @@ function studentDetailRender() {
   const box = document.getElementById('students-detail');
   if (!box) return;
   if (studentsShowArchive) return studentsArchiveRender(box);
+  if (studentsShowCards) return studentsCardsRender(box);
   // an unsaved note survives a re-render of the same student (the roster reloads under it)
   const draftEl = box.querySelector('.st-notes.is-dirty');
   const draft = draftEl ? { id: String(studentsSelectedId), v: draftEl.value } : null;
@@ -1711,6 +1717,7 @@ function studentDetailRender() {
         ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
         <a class="st-detail-btn" href="journal.html">View profile →</a>
         ${jid ? `<button type="button" class="st-detail-btn" onclick="studentsHandoverForm(this, '${jid}', '${esc(firstName).replace(/'/g, '')}')">Hand over memory…</button>` : ''}
+        ${jid ? `<button type="button" class="st-detail-btn" onclick="studentsCardForm(this, '${jid}', '${esc(firstName).replace(/'/g, '')}', '${esc(String(s.level || '')).replace(/'/g, '')}')">Hand-over card…</button>` : ''}
       </div>
       ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}`,
     notes: notes + dnaNote,
@@ -1797,13 +1804,17 @@ window.studentsSaveNotes = studentsSaveNotes;
    year. Their card offers it back once when the same account is added again; the
    list's "Archived memory" shows the rest - restore to a current student, or delete
    for good. Only the teacher sees any of it. */
-let STUDENTS_ARCHIVE = null, studentsArchiveLoading = false, studentsShowArchive = false;
+var STUDENTS_ARCHIVE = null, studentsArchiveLoading = false, studentsShowArchive = false;
+/* studentsRender() first runs at boot (line ~3018), before _authToken is declared further
+   down: reading it then throws and stops the whole script. Ask safely; a later render
+   (when the roster arrives) does the fetch. */
+const _memTok = () => { try { return _authToken; } catch (_) { return null; } };
 const _memApi = (method, path, body) => fetch(API_BASE + '/api/memory' + path, {
   method, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken }, body: body ? JSON.stringify(body) : undefined,
 }).then(async r => ({ ok: r.ok, data: await r.json().catch(() => ({})) }));
 function studentsArchiveLink(list) {
   if (STUDENTS_ARCHIVE === null) {
-    if (!studentsArchiveLoading && _authToken) {
+    if (!studentsArchiveLoading && _memTok()) {
       studentsArchiveLoading = true;
       _memApi('GET', '/archive').then(r => { STUDENTS_ARCHIVE = r.ok ? (r.data.archive || []) : []; })
         .catch(() => { STUDENTS_ARCHIVE = []; })
@@ -1814,7 +1825,7 @@ function studentsArchiveLink(list) {
   if (!STUDENTS_ARCHIVE.length) return;
   list.insertAdjacentHTML('beforeend', `<button type="button" class="st-archive-link${studentsShowArchive ? ' on' : ''}" onclick="studentsArchiveOpen()">Archived memory · ${STUDENTS_ARCHIVE.length}</button>`);
 }
-function studentsArchiveOpen() { studentsShowArchive = true; studentsRender(); }
+function studentsArchiveOpen() { studentsShowArchive = true; studentsShowCards = false; studentsRender(); }
 window.studentsArchiveOpen = studentsArchiveOpen;
 function studentsArchiveClose() { studentsShowArchive = false; studentsRender(); }
 window.studentsArchiveClose = studentsArchiveClose;
@@ -1908,6 +1919,93 @@ function studentsHandoverForm(anchor, id, name) {
   f.querySelector('input').focus();
 }
 window.studentsHandoverForm = studentsHandoverForm;
+
+/* Hand-over cards (§8.1): a summary for a colleague - level, goals, weak spots and
+   only the notes the teacher writes into it. Not the dossier: it opens nothing. */
+async function studentsCardForm(anchor, jid, name, level) {
+  const host = anchor.closest('.st-detail-actions') || anchor.parentElement;
+  const open = host.parentElement.querySelector(':scope > .st-handover');
+  if (open) { open.remove(); return; }
+  const d = await _memApi('GET', `/students/${encodeURIComponent(jid)}/dossier`).then(r => (r.ok ? r.data : {})).catch(() => ({}));
+  const f = document.createElement('form');
+  f.className = 'st-handover st-card-form';
+  const area = (k, label, v, ph) => `<label class="st-detail-h" for="st-card-${k}">${label}</label><textarea id="st-card-${k}" data-k="${k}" rows="2" placeholder="${ph}">${esc(v || '')}</textarea>`;
+  f.innerHTML = `<label class="st-detail-h" for="st-card-mail">A card about ${esc(name)} for</label>
+    <input id="st-card-mail" type="email" required placeholder="colleague@school.com" autocomplete="off">
+    <label class="st-detail-h" for="st-card-level">Level</label><input id="st-card-level" data-k="level" value="${esc(level || '')}" maxlength="20">
+    ${area('goals', 'Goals', d.goals, 'What they are working towards')}
+    ${area('weak_spots', 'Weak spots', d.weak_spots, 'What to keep an eye on')}
+    ${area('notes', 'Notes to share', '', 'Only what you want them to see - your private notes are not copied')}
+    <p>They see only this card - not ${esc(name)}'s TeachEd memory.</p>
+    <div class="st-handover-row"><button type="submit" class="st-cta sm">Send card</button><button type="button" class="st-qbtn">Cancel</button></div>
+    <div class="st-handover-err" role="alert"></div>`;
+  f.querySelector('.st-qbtn').onclick = () => f.remove();
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const card = {};
+    f.querySelectorAll('[data-k]').forEach(el => { card[el.dataset.k] = el.value.trim(); });
+    const btn = f.querySelector('.st-cta'); btn.disabled = true; btn.textContent = 'Sending…';
+    const r = await _memApi('POST', `/students/${encodeURIComponent(jid)}/transfer-card`, { to_email: f.querySelector('#st-card-mail').value.trim(), card }).catch(() => ({ ok: false, data: {} }));
+    if (!r.ok) {
+      btn.disabled = false; btn.textContent = 'Send card';
+      f.querySelector('.st-handover-err').textContent = (r.data.error && r.data.error.message) || 'Could not send the card';
+      return;
+    }
+    f.remove();
+    if (typeof showOsToast === 'function') showOsToast(`Card sent to ${r.data.to && r.data.to.name ? r.data.to.name : 'your colleague'}`);
+  };
+  host.after(f);
+  f.querySelector('input').focus();
+}
+window.studentsCardForm = studentsCardForm;
+
+var STUDENTS_CARDS = null, studentsCardsLoading = false, studentsShowCards = false;
+function studentsCardsLink(list) {
+  if (STUDENTS_CARDS === null) {
+    if (!studentsCardsLoading && _memTok()) {
+      studentsCardsLoading = true;
+      _memApi('GET', '/transfer-cards').then(r => { STUDENTS_CARDS = r.ok ? (r.data.cards || []) : []; })
+        .catch(() => { STUDENTS_CARDS = []; })
+        .finally(() => { studentsCardsLoading = false; if (STUDENTS_CARDS.length) studentsRender(); });
+    }
+    return;
+  }
+  if (!STUDENTS_CARDS.length) return;
+  const unread = STUDENTS_CARDS.filter(c => !c.read_at).length;
+  list.insertAdjacentHTML('beforeend', `<button type="button" class="st-archive-link${studentsShowCards ? ' on' : ''}" onclick="studentsCardsOpen()">Cards from colleagues · ${STUDENTS_CARDS.length}${unread ? ` <b class="st-card-new">${unread} new</b>` : ''}</button>`);
+}
+function studentsCardsOpen() {
+  studentsShowCards = true; studentsShowArchive = false;
+  (STUDENTS_CARDS || []).filter(c => !c.read_at).forEach(c => { c.read_at = new Date().toISOString(); _memApi('POST', `/transfer-cards/${encodeURIComponent(c.id)}/read`).catch(() => {}); });
+  studentsRender();
+}
+window.studentsCardsOpen = studentsCardsOpen;
+function studentsCardsClose() { studentsShowCards = false; studentsRender(); }
+window.studentsCardsClose = studentsCardsClose;
+function studentsCardsRender(box) {
+  const day = d => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const row = (k, v) => (v ? `<div class="st-card-f"><b>${k}</b>${esc(v)}</div>` : '');
+  const items = (STUDENTS_CARDS || []).map(c => `<div class="st-arch-item">
+      <div class="st-arch-name">${esc(c.student_name || 'A student')}</div>
+      <div class="st-arch-when">From ${esc(c.from_name || 'a teacher')} · ${esc(day(c.created_at))}</div>
+      ${row('Level', c.payload.level)}${row('Goals', c.payload.goals)}${row('Weak spots', c.payload.weak_spots)}${row('Notes', c.payload.notes)}
+      <div class="st-arch-row"><button type="button" class="st-qbtn" onclick="studentsCardDelete('${esc(String(c.id))}', this)">Delete card</button></div>
+    </div>`).join('');
+  box.innerHTML = `<div class="st-pin"><div class="st-arch-head"><div class="st-detail-name">Cards from colleagues</div>
+      <button type="button" class="st-qbtn" onclick="studentsCardsClose()">Close</button></div>
+      <p class="st-arch-note">What colleagues chose to tell you about students they hand to you. Only you see these.</p></div>
+    <div class="st-pane">${items || '<div class="st-tab-empty">No cards.</div>'}</div>`;
+}
+async function studentsCardDelete(id, btn) {
+  if (!confirm('Delete this card?')) return;
+  if (btn) btn.disabled = true;
+  const r = await _memApi('DELETE', `/transfer-cards/${encodeURIComponent(id)}`).catch(() => ({ ok: false }));
+  if (!r.ok) { if (btn) btn.disabled = false; return; }
+  STUDENTS_CARDS = (STUDENTS_CARDS || []).filter(c => String(c.id) !== String(id));
+  if (!STUDENTS_CARDS.length) studentsShowCards = false;
+  studentsRender();
+}
+window.studentsCardDelete = studentsCardDelete;
 
 /* Message from the student's card: the cabinet (and email when they are
    not on the platform yet) through the Journal; without a Journal row, email. */
@@ -2139,6 +2237,7 @@ function studentsAddFor(id) {
 /* Перечитать список с сервера и выбрать ученика по почте или имени. */
 async function studentsReloadRoster(pick) {
   STUDENTS_ARCHIVE = null;
+  STUDENTS_CARDS = null;
   try {
     const r = await fetch(API_BASE + '/api/members/roster', { headers: { Authorization: 'Bearer ' + _authToken } });
     if (!r.ok) return;
@@ -3586,13 +3685,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1228" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1229" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1228" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1229" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

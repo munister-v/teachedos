@@ -449,6 +449,64 @@ router.delete('/archive/:id', async (req, res) => {
   } catch (e) { fail(res, e); }
 });
 
+/* ── hand-over cards (§8.1) ──
+   The sender writes the card (prefilled from the dossier on their side, edited by
+   them); the server keeps exactly what they sent. It names the student and carries
+   level, goals, weak spots and the notes they chose - nothing else - and only the
+   receiver can read it. */
+const CARD_FIELDS = { level: 20, goals: 2000, weak_spots: 2000, notes: 4000 };
+router.post('/students/:id/transfer-card', async (req, res) => {
+  const body = req.body || {};
+  try {
+    await ownedJournal(pool, req.user.id, req.params.id);
+    const email = String(body.to_email || '').trim().toLowerCase();
+    if (!email) throw new MemErr(422, 'validation', 'Write the email of the colleague');
+    const { rows: [to] } = await pool.query(`SELECT id, name FROM users WHERE role <> 'student' AND LOWER(email) = $1 LIMIT 1`, [email]);
+    if (!to) throw new MemErr(404, 'not_found', 'No TeachEd teacher has this email');
+    if (to.id === req.user.id) throw new MemErr(422, 'validation', 'This is your own account');
+    const payload = {};
+    for (const [k, max] of Object.entries(CARD_FIELDS)) {
+      const v = String((body.card && body.card[k]) || '').trim();
+      if (v.length > max) throw new MemErr(413, 'payload_too_large', `${k} is too long`);
+      if (v) payload[k] = v;
+    }
+    if (!Object.keys(payload).length) throw new MemErr(422, 'validation', 'The card is empty');
+    const { rows: [j] } = await pool.query('SELECT name FROM student_journal WHERE id = $1', [req.params.id]);
+    const { rows: [card] } = await pool.query(
+      `INSERT INTO transfer_cards (from_teacher, to_teacher, student_name, payload) VALUES ($1, $2, $3, $4) RETURNING id`,
+      [req.user.id, to.id, j.name || '', JSON.stringify(payload)]);
+    require('./notifications').createNotification(to.id, 'memory_card',
+      `${req.user.name || 'A teacher'} sent you a card about ${j.name || 'a student'}`,
+      'Open Students, then Cards from colleagues.', 'index.html#students').catch(() => {});
+    res.json({ ok: true, id: card.id, to: { name: to.name } });
+  } catch (e) { fail(res, e); }
+});
+router.get('/transfer-cards', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT c.id, c.student_name, c.payload, c.created_at, c.read_at, u.name AS from_name, u.email AS from_email
+         FROM transfer_cards c LEFT JOIN users u ON u.id = c.from_teacher
+        WHERE c.to_teacher = $1 ORDER BY c.created_at DESC LIMIT 200`, [req.user.id]);
+    res.json({ cards: rows });
+  } catch (e) { fail(res, e); }
+});
+router.post('/transfer-cards/:id/read', async (req, res) => {
+  try {
+    if (!isUuid(req.params.id)) throw notFound();
+    const { rowCount } = await pool.query('UPDATE transfer_cards SET read_at = COALESCE(read_at, NOW()) WHERE id = $1 AND to_teacher = $2', [req.params.id, req.user.id]);
+    if (!rowCount) throw notFound();
+    res.json({ ok: true });
+  } catch (e) { fail(res, e); }
+});
+router.delete('/transfer-cards/:id', async (req, res) => {
+  try {
+    if (!isUuid(req.params.id)) throw notFound();
+    const { rowCount } = await pool.query('DELETE FROM transfer_cards WHERE id = $1 AND to_teacher = $2', [req.params.id, req.user.id]);
+    if (!rowCount) throw notFound();
+    res.json({ ok: true });
+  } catch (e) { fail(res, e); }
+});
+
 /* the daily pass (jobs/housekeeping): a year in the archive ends in a hard delete */
 const RETENTION_SQL = `WITH gone AS (
     DELETE FROM student_dossier WHERE archived_at < NOW() - INTERVAL '${ARCHIVE_DAYS} days' RETURNING teacher_id, journal_id)
