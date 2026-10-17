@@ -27,3 +27,17 @@ test('balance: a row charged by the teacher\'s choice, or by status when written
   assert.strictEqual(wasChargedRow({ status: 'cancelled', charged: true }), true);    // a late cancellation
   assert.strictEqual(wasChargedRow(null), false);
 });
+
+/* BUG-01 (17.10.2026): the Next lesson card and the calendar read one list of starts. */
+test('upcoming occurrences: the first one is the Next lesson card, weekly, through a DST change', () => {
+  const { buildUpcomingSlot, upcomingOccurrences } = require('../routes/student');
+  const slot = { day: 3, start_time: '18:00:00', end_time: '19:00:00', recurring: true, teacher_timezone: 'Europe/Kyiv' };
+  const now = new Date('2026-10-17T12:00:00Z');   // a Saturday
+  const occ = upcomingOccurrences(slot, 21, now);
+  assert.equal(occ[0].start_at, buildUpcomingSlot(slot, now).start_at);
+  assert.deepEqual(occ.map(o => o.date), ['2026-10-22', '2026-10-29', '2026-11-05']);
+  // 18:00 in Kyiv is 15:00 UTC in summer time and 16:00 UTC after 25 October
+  assert.deepEqual(occ.map(o => o.start_at.slice(11, 16)), ['15:00', '16:00', '16:00']);
+  const once = upcomingOccurrences({ ...slot, specific_date: '2026-10-20', recurring: false }, 21, now);
+  assert.deepEqual(once.map(o => o.date), ['2026-10-20']);
+});

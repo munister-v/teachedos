@@ -397,3 +397,14 @@ html body.sw-has:not(#_) .te-card.is-next :is(.te-btn,.te-join){background:#2428
 .te-cancel-btns .te-cancel-go{background:#24282C;color:#fff}
 .te-cancel-btns button:disabled{opacity:.6}
 .te-cancel-done{margin-bottom:8px;padding:8px 10px;border-radius:12px;background:#E3F6C5;color:#3B5A0A;font-size:13px;font-weight:650}
+
+/* BUG-02: a lesson on a used-up package waits for the teacher */
+.te-gate{display:flex;flex-direction:column;gap:2px;margin:8px 0 6px;padding:9px 11px;border-radius:12px;background:rgba(255,140,58,.14);border:1px solid rgba(255,140,58,.35)}
+.te-gate.ok{background:rgba(205,246,73,.28);border-color:rgba(36,40,44,.12)}
+.te-gate-k{font-size:12.5px;font-weight:800;color:#24282C}
+.te-gate-t{font-size:12px;line-height:1.4;color:#4A4E52}
+html body:not(#_) .te-card .te-join.is-off,html body:not(#_) .te-card.is-next .te-join.is-off{opacity:.45;cursor:not-allowed;background:rgba(36,40,44,.12);color:#24282C;border-color:transparent;box-shadow:none}
+.te-renew{margin-top:6px;min-height:42px;border-radius:14px;border:1.5px solid #24282C;background:#fff;color:#24282C;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer}
+.te-renew:hover:not(:disabled){background:#CDF649}
+.te-renew:disabled{opacity:.7;cursor:default}
+.te-renew:focus-visible{outline:2px solid #24282C;outline-offset:2px}

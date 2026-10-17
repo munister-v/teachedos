@@ -1,18 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1206"></script>
+<script src="scripts/phone-gate.js?v=1207"></script>
 <meta charset="UTF-8">
+<script>
+/* BUG-22: the page is drawn for the role before its first frame. The role
+   the last sign-in left (teachedos_role) decides at once; with none, the
+   navigation waits (role-pending) until profile-app.js knows who this is -
+   a student never sees the teacher's Community / Schedule for a frame. */
+(function () {
+  var r = ''; try { r = localStorage.getItem('teachedos_role') || ''; } catch (e) {}
+  var c = document.documentElement.classList;
+  if (r === 'student') c.add('role-student-pre'); else if (!r) c.add('role-pending');
+})();
+</script>
+<style>
+html.role-student-pre [data-teacher-only]{display:none !important}
+html.role-pending #nav .nav-link,html.role-pending [data-teacher-only],html.role-pending [data-student-only]{visibility:hidden !important}
+html:not(.role-student-pre) body:not(.role-student) [data-student-only]{display:none !important}
+</style>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1206">
-<link rel="preload" as="style" href="styles/unify.css?v=1206">
-<link rel="manifest" href="manifest.json?v=1206">
+<link rel="preload" as="style" href="styles/harmony.css?v=1207">
+<link rel="preload" as="style" href="styles/unify.css?v=1207">
+<link rel="manifest" href="manifest.json?v=1207">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
-<link rel="icon" href="favicon.ico?v=1206" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1206">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1206">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1206">
+<link rel="icon" href="favicon.ico?v=1207" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1207">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1207">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1207">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -497,10 +513,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=1206" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1206">
-<link rel="stylesheet" href="styles/harmony.css?v=1206">
-<link rel="stylesheet" href="styles/unify.css?v=1206">
+<script src="theme.js?v=1207" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1207">
+<link rel="stylesheet" href="styles/harmony.css?v=1207">
+<link rel="stylesheet" href="styles/unify.css?v=1207">
 <style>
 @media (max-width: 860px) {
   body{background:#F6F6EF;}
@@ -809,13 +825,13 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1206">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1206">
-<link rel="stylesheet" href="styles/tool-window.css?v=1206">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1207">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1207">
+<link rel="stylesheet" href="styles/tool-window.css?v=1207">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1206">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1206">
-<link rel="stylesheet" href="styles/controls.css?v=1206">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1207">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1207">
+<link rel="stylesheet" href="styles/controls.css?v=1207">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -826,21 +842,25 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
 body.profile-page .stats-grid .stat-card::before { display: none; }
 </style>
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1206">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1206">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1206">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1206">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1206">
-<link rel="stylesheet" href="styles/toast.css?v=1206">
+<link rel="stylesheet" href="styles/polish.css?v=1207">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1207">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1207">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1207">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1207">
+<link rel="stylesheet" href="styles/toast.css?v=1207">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1206">
-<link rel="stylesheet" href="styles/ds-v1.css?v=1206">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1207">
+<link rel="stylesheet" href="styles/ds-v1.css?v=1207">
 <style>
 /* A student opens this page too (Profile link in the cabinet). What is the
    teacher's - plan and pricing, Community, Schedule, Courses, their own boards
    and the board counters - is marked data-teacher-only and hidden for a
    student; "Shared with me" and Settings stay. profile-app.js sets the class. */
 html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-student #profile-plan-badge{display:none !important}
+.stat-card-link{text-decoration:none;color:inherit;cursor:pointer}
+.stat-card-link:hover{filter:brightness(1.03)}
+.stat-card-link:focus-visible{outline:2px solid #24282C;outline-offset:2px}
+.stat-hint{margin-top:2px;font-size:11px;font-weight:600;color:var(--text-3)}
 </style>
 </head>
 <body class="tw-page profile-page fx">
@@ -872,7 +892,7 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
 
 <!-- NAVBAR -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1206" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1207" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -1016,7 +1036,8 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
           <div class="stat-card" data-teacher-only><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-boards">-</div><div class="stat-label">Total Boards</div></div></div>
           <div class="stat-card" data-teacher-only><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-cards">-</div><div class="stat-label">Total Cards</div></div></div>
           <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-since">-</div><div class="stat-label">Member since</div></div></div>
-          <div class="stat-card"><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-sessions">-</div><div class="stat-label">Active sessions</div></div></div>
+          <!-- BUG-19: the number explains itself and leads to where it can be acted on -->
+          <a class="stat-card stat-card-link" href="#settings/security" onclick="switchTab('settings');showSettingsGroup('security');return false;" title="Browsers and apps where your account is signed in right now - your phone and laptop count separately. Open Security to see them and sign out the others."><div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></div><div class="stat-body"><div class="stat-n" id="stat-sessions">-</div><div class="stat-label">Signed-in devices</div><div class="stat-hint">What is this? See them in Security →</div></div></a>
         </div>
       </div>
 
@@ -1145,8 +1166,14 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
         <button class="setting-btn secondary" id="sessions-others" onclick="signOutOtherSessions()" hidden>Sign out all other devices</button>
       </div>
 
+      <!-- BUG-17: a student has no rooms of their own; this is what they get instead -->
+      <div data-sgroup="rooms" class="card" data-student-only>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Lesson link</div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Your teacher's meeting link appears on the Next lesson card in <a href="student.html" style="color:var(--accent-dark);font-weight:650;">your cabinet</a> before the lesson. Join lesson opens the call and your board together.</p>
+      </div>
+
       <!-- Meeting Rooms -->
-      <div data-sgroup="rooms" class="card">
+      <div data-sgroup="rooms" class="card" data-teacher-only>
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg> Meeting rooms</div>
         <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Save your permanent Google Meet or Zoom room URLs. Students see these links when you go live.</p>
         <div class="setting-group">
@@ -1162,7 +1189,8 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
 
       <div data-sgroup="rooms" class="card">
         <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg> Time zone</div>
-        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Choose whether TeachEd should use your computer time automatically or keep a fixed teaching timezone. We use this to show lesson times correctly for students in other countries.</p>
+        <p data-teacher-only style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Choose whether TeachEd should use your computer time automatically or keep a fixed teaching timezone. We use this to show lesson times correctly for students in other countries.</p>
+        <p data-student-only style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">Lesson times in your cabinet are shown in this time zone. Leave it on Auto unless your computer's clock is set to another country.</p>
         <div class="setting-group" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:rgba(205,246,73,.05);">
           <div>
             <div class="setting-label" style="margin-bottom:4px;">Use computer time automatically</div>
@@ -1297,7 +1325,8 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
       <!-- Danger zone -->
       <div data-sgroup="security" class="card">
         <div class="card-title" style="color:#24282C;"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Danger zone</div>
-        <div class="danger-zone">
+        <!-- BUG-23: the boards a student sees are the teacher's - no bulk delete for them -->
+        <div class="danger-zone" data-teacher-only>
           <div class="danger-zone-title">Delete All Boards</div>
           <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;">This will permanently delete all your boards and their data. This cannot be undone.</p>
           <button class="setting-btn danger" onclick="deleteAllBoards()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Delete all boards</button>
@@ -1313,10 +1342,10 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=1206"></script>
-<script src="scripts/profile-app.js?v=1206"></script>
-<script src="scripts/autogrow.js?v=1206" defer></script>
-<script src="pwa-boot.js?v=1206" defer></script>
+<script src="scripts/app-core.js?v=1207"></script>
+<script src="scripts/profile-app.js?v=1207"></script>
+<script src="scripts/autogrow.js?v=1207" defer></script>
+<script src="pwa-boot.js?v=1207" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1335,15 +1364,15 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=1206"></script>
-<script src="scripts/nav-boost.js?v=1206" defer></script>
-<script src="scripts/mobile-perf.js?v=1206" defer></script>
-<script src="scripts/mobile-nav.js?v=1206"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1206" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=1206" defer></script>
-  <script src="scripts/signin-entry.js?v=1206" defer></script>
-<script src="scripts/verify-banner.js?v=1206" defer></script>
-<script src="scripts/nav-bell.js?v=1206" defer></script>
-<script src="scripts/ds-v1.js?v=1206" defer></script>
+<script src="pwa.js?v=1207"></script>
+<script src="scripts/nav-boost.js?v=1207" defer></script>
+<script src="scripts/mobile-perf.js?v=1207" defer></script>
+<script src="scripts/mobile-nav.js?v=1207"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1207" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=1207" defer></script>
+  <script src="scripts/signin-entry.js?v=1207" defer></script>
+<script src="scripts/verify-banner.js?v=1207" defer></script>
+<script src="scripts/nav-bell.js?v=1207" defer></script>
+<script src="scripts/ds-v1.js?v=1207" defer></script>
 </body>
 </html>

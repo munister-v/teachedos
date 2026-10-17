@@ -269,6 +269,10 @@ async function renderOverview(forceOffline = false) {
   // Students get here from their cabinet: no pricing, no teacher sections, and
   // Homework leads back to their own page (see [data-teacher-only] in profile.html).
   document.body.classList.toggle('role-student', isStudent);
+  // BUG-22: the role is known now - the gate in <head> can open
+  document.documentElement.classList.remove('role-pending');
+  document.documentElement.classList.toggle('role-student-pre', isStudent);
+  try { if (me.role) localStorage.setItem('teachedos_role', me.role); } catch (_) {}
   // Inline, because the sidebar theme forces display on #nav links with its own !important.
   if (isStudent) document.querySelectorAll('[data-teacher-only]').forEach(el => el.style.setProperty('display', 'none', 'important'));
   const hwLink = document.getElementById('nav-homework');

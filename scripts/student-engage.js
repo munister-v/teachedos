@@ -130,12 +130,39 @@
     const boardHref = board ? 'board.html?id=' + encodeURIComponent(board.id) : '';
     /* Join lesson = the video call in a new tab and the board here, both at
        once. Without a call link it is just the board. */
-    const join = url && boardHref ? `<a class="te-join" href="${esc(boardHref)}" data-meet="${esc(url)}" title="Opens the video call in a new tab and your board here">Join lesson →</a>`
+    /* BUG-02: the package is used up. Until the teacher confirms this
+       lesson, Join is closed and the card says why, with a real request to
+       renew. A lesson the teacher confirmed opens as usual. */
+    const unconfirmed = up.s.balance_zero && !up.s.confirmed;
+    const askName = teacher || 'your teacher';
+    const asked = up.s.renew_asked_at && Date.now() - new Date(up.s.renew_asked_at).getTime() < 12 * 3600e3;
+    const gate = unconfirmed
+      ? `<div class="te-gate"><span class="te-gate-k">Lesson not confirmed</span><span class="te-gate-t">Your package is used up. The lesson goes ahead once ${esc(askName)} renews it or confirms this lesson.</span></div>
+         <button type="button" class="te-join is-off" disabled aria-disabled="true">Join lesson</button>
+         <button type="button" class="te-renew" data-renew${asked ? ' disabled' : ''}>${asked ? `✓ Asked ${esc(askName)} to renew` : `Ask ${esc(askName)} to renew`}</button>`
+      : '';
+    const confirmedTag = up.s.balance_zero && up.s.confirmed ? '<div class="te-gate ok"><span class="te-gate-k">✓ Confirmed by teacher</span></div>' : '';
+    const join = unconfirmed ? gate : url && boardHref ? `<a class="te-join" href="${esc(boardHref)}" data-meet="${esc(url)}" title="Opens the video call in a new tab and your board here">Join lesson →</a>`
       : url ? `<a class="te-join" href="${esc(url)}" target="_blank" rel="noopener">Join lesson →</a>`
       : board ? `<a class="te-join" href="${esc(boardHref)}">Open the board →</a>` : '';
     box.innerHTML = `<div class="te-k">${bal.trial ? 'Your free trial lesson' : 'Next lesson'}</div><div class="te-big">${esc(day)}, ${esc(time)}</div>
       <div class="te-count-big">${esc(count)}</div>
-      <div class="te-sub">${teacher ? `with ${esc(teacher)}${up.s.title ? ' · ' : ''}` : ''}${esc(up.s.title || up.s.topic || (teacher ? '' : 'Lesson'))}</div>${join}${cancelBlock(up)}`;
+      <div class="te-sub">${teacher ? `with ${esc(teacher)}${up.s.title ? ' · ' : ''}` : ''}${esc(up.s.title || up.s.topic || (teacher ? '' : 'Lesson'))}</div>${confirmedTag}${join}${cancelBlock(up)}`;
+    const renew = box.querySelector('[data-renew]');
+    if (renew && !renew.disabled) renew.addEventListener('click', async () => {
+      renew.disabled = true; renew.textContent = 'Sending…';
+      try {
+        const r = await window.apiFetch('/api/journal/me/renew-request', { method: 'POST', body: { journal_id: up.s.journal_id || null } });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || 'failed');
+        up.s.renew_asked_at = d.asked_at || new Date().toISOString();
+        renew.textContent = `✓ Asked ${askName} to renew`;
+        if (typeof window.showToast === 'function') window.showToast(d.already ? `${askName} already has your request` : `Sent ✓ ${askName} will see your request`);
+      } catch (_) {
+        renew.disabled = false; renew.textContent = `Ask ${askName} to renew`;
+        if (typeof window.showToast === 'function') window.showToast('Could not send it. Try again');
+      }
+    });
     const both = box.querySelector('.te-join[data-meet]');
     if (both) both.addEventListener('click', e => {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;

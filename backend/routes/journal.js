@@ -2,6 +2,7 @@ const router = require('express').Router();
 const pool   = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
+const { upcomingOccurrences } = require('./student');
 const { sendEmail, sendEmailQuietly, teacherMessageEmail, zeroBalanceEmail, emailConfigured, SITE } = require('../lib/email');
 
 router.use(requireAuth);
@@ -155,23 +156,6 @@ router.get('/me/balance', async (req, res) => {
    GET /api/journal/me/calendar   - the student's own (first teacher's entry)
    GET /api/journal/:id/calendar  - the teacher's view of one student */
 const isoDay = d => d.toISOString().slice(0, 10);
-function plannedDates(slots, taken, from = new Date(), days = 62) {
-  const out = new Set();
-  const start = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
-  for (const sl of slots) {
-    if (sl.specific_date) {
-      const d = String(sl.specific_date).slice(0, 10);
-      if (d >= isoDay(start)) out.add(d);
-      continue;
-    }
-    if (sl.recurring === false) continue;
-    for (let k = 0; k < days; k++) {
-      const d = new Date(start.getTime() + k * 864e5);
-      if ((d.getUTCDay() + 6) % 7 === Number(sl.day)) out.add(isoDay(d));   // schedule.day: 0 = Monday
-    }
-  }
-  return [...out].filter(d => !taken.has(d)).sort();
-}
 /* Lessons that should have happened and nobody marked: slot dates in the
    last `days` days (not before the slot was created) with no attendance row.
    The teacher sees them as "not marked yet"; before, past planned days just
@@ -197,20 +181,31 @@ function unmarkedDates(slots, taken, today = new Date(), days = 62) {
   return [...out].filter(d => !taken.has(d)).sort();
 }
 async function lessonCalendar(j) {
-  const [att, slots, teacher, hist] = await Promise.all([
+  /* The slots of this journal row: tied to it directly or through a group
+     (schedule_members) - the same rule the cabinet's Next lesson card uses. */
+  const [att, slots, teacher, hist, conf] = await Promise.all([
     pool.query(`SELECT to_char(date, 'YYYY-MM-DD') AS date, status, charged FROM attendance WHERE journal_id = $1 AND date > CURRENT_DATE - INTERVAL '400 days' ORDER BY date`, [j.id]),
-    pool.query(`SELECT day, recurring, to_char(specific_date, 'YYYY-MM-DD') AS specific_date, created_at FROM schedule WHERE user_id = $1 AND journal_id = $2`, [j.teacher_id, j.id]),
+    pool.query(`SELECT s.day, s.recurring, s.start_time, s.end_time, to_char(s.specific_date, 'YYYY-MM-DD') AS specific_date, s.created_at, u.timezone AS teacher_timezone
+                  FROM schedule s JOIN users u ON u.id = s.user_id
+                 WHERE s.user_id = $1 AND (s.journal_id = $2 OR s.id IN (SELECT schedule_id FROM schedule_members WHERE journal_id = $2))`, [j.teacher_id, j.id]),
     pool.query('SELECT name, booking_token FROM users WHERE id = $1', [j.teacher_id]),
     pool.query(`SELECT created_at, delta, balance_after, reason, to_char(lesson_date, 'YYYY-MM-DD') AS lesson_date, note
                   FROM balance_ledger WHERE journal_id = $1 ORDER BY created_at DESC LIMIT 30`, [j.id]),
+    pool.query(`SELECT to_char(date, 'YYYY-MM-DD') AS date FROM lesson_confirmations WHERE journal_id = $1 AND date >= CURRENT_DATE - 1`, [j.id]).catch(() => ({ rows: [] })),
   ]);
   const taken = new Set(att.rows.map(r => r.date));
+  // planned lessons: the teacher's date (to match attendance) and the exact start
+  const planned = new Map();
+  for (const sl of slots.rows) for (const o of upcomingOccurrences(sl)) if (!taken.has(o.date) && !planned.has(o.date)) planned.set(o.date, o.start_at);
+  const scheduled = [...planned.keys()].sort();
   return {
     journal_id: j.id, name: j.name, level: j.level || '', teacher_name: (teacher.rows[0] || {}).name || '',
     booking_token: (teacher.rows[0] || {}).booking_token || null,
     lessons_left: Number(j.lessons_left) || 0, pack_size: Number(j.pack_size) || 8, is_trial: !!j.is_trial,
     lessons: att.rows.map(r => ({ date: r.date, status: r.status, charged: wasChargedRow(r) })),
-    scheduled: plannedDates(slots.rows, taken), unmarked: unmarkedDates(slots.rows, taken),
+    scheduled, scheduled_at: scheduled.map(d => planned.get(d)),
+    confirmed: conf.rows.map(r => r.date),
+    unmarked: unmarkedDates(slots.rows, taken),
     history: hist.rows,
   };
 }
@@ -238,6 +233,58 @@ router.get('/:id/calendar', async (req, res) => {
     res.json({ calendar: await lessonCalendar(rows[0]) });
   } catch (err) {
     console.error('[journal/calendar]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* BUG-02: the package is used up and the next lesson is not confirmed. The
+   student asks the teacher to renew from the Next lesson card - a real
+   request: a bell entry for the teacher, at most one every 12 hours. */
+router.post('/me/renew-request', async (req, res) => {
+  try {
+    const jid = /^[0-9a-f-]{36}$/i.test(String(req.body?.journal_id || '')) ? req.body.journal_id : null;
+    const { rows } = await pool.query(
+      `SELECT id, teacher_id, name, renew_asked_at FROM student_journal
+        WHERE (student_id = $1 OR ($2::text <> '' AND lower(email) = lower($2))) AND ($3::uuid IS NULL OR id = $3)
+        ORDER BY (student_id = $1) DESC NULLS LAST, created_at LIMIT 1`,
+      [req.user.id, req.user.email || '', jid]);
+    const st = rows[0];
+    if (!st) return res.status(404).json({ error: 'not found' });
+    if (st.renew_asked_at && Date.now() - new Date(st.renew_asked_at).getTime() < 12 * 3600e3) {
+      return res.json({ ok: true, already: true, asked_at: st.renew_asked_at });
+    }
+    const { rows: up } = await pool.query('UPDATE student_journal SET renew_asked_at = NOW() WHERE id = $1 RETURNING renew_asked_at', [st.id]);
+    await createNotification(st.teacher_id, 'payment', `${st.name} asks to renew their lessons`,
+      'Their package is used up and the next lesson is not confirmed. Add lessons, or confirm the lesson in their calendar.', 'index.html#students').catch(() => {});
+    res.json({ ok: true, asked_at: up[0].renew_asked_at });
+  } catch (err) {
+    console.error('[journal/me/renew-request]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/* The teacher confirms (or un-confirms) one planned lesson of a student
+   whose package is used up: the student's Join button opens for it. */
+router.post('/:id/confirm', async (req, res) => {
+  try {
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.date || '')) ? req.body.date : null;
+    if (!date || !/^[0-9a-f-]{36}$/i.test(req.params.id)) return res.status(400).json({ error: 'date is required' });
+    const { rows } = await pool.query('SELECT id, student_id FROM student_journal WHERE id = $1 AND teacher_id = $2', [req.params.id, req.user.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'not found' });
+    const on = req.body?.on !== false;
+    if (on) {
+      await pool.query('INSERT INTO lesson_confirmations (journal_id, date) VALUES ($1, $2) ON CONFLICT DO NOTHING', [rows[0].id, date]);
+      if (rows[0].student_id) {
+        const day = new Date(date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', timeZone: 'UTC' });
+        await createNotification(rows[0].student_id, 'lesson', 'Your lesson is confirmed',
+          `${req.user.name || 'Your teacher'} confirmed your lesson on ${day}.`, 'student.html').catch(() => {});
+      }
+    } else {
+      await pool.query('DELETE FROM lesson_confirmations WHERE journal_id = $1 AND date = $2', [rows[0].id, date]);
+    }
+    res.json({ ok: true, confirmed: on });
+  } catch (err) {
+    console.error('[journal/confirm]', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -769,7 +816,7 @@ router.delete('/vocab/:id', async (req, res) => {
 });
 
 module.exports = router;
-module.exports._test = { plannedDates, unmarkedDates, wasChargedRow };
+module.exports._test = { unmarkedDates, wasChargedRow };
 // the group lesson message (routes/schedule.js) goes out the same way
 module.exports.deliverToStudent = deliverToStudent;
 module.exports.markLesson = markLesson;

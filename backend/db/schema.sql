@@ -1416,3 +1416,15 @@ ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS minor            BOOLEAN NO
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS guardian_name    VARCHAR(120);
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS guardian_contact VARCHAR(160);
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS consent_at       TIMESTAMPTZ;
+
+-- Student cabinet bugfix (17.10.2026, BUG-02). A lesson with a used-up package is not
+-- "on" until the teacher says so: one row per journal student and lesson date (the
+-- teacher's local date, as in attendance). The student's "Ask to renew" is rate-limited
+-- by renew_asked_at.
+CREATE TABLE IF NOT EXISTS lesson_confirmations (
+  journal_id  UUID        NOT NULL REFERENCES student_journal(id) ON DELETE CASCADE,
+  date        DATE        NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (journal_id, date)
+);
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS renew_asked_at TIMESTAMPTZ;

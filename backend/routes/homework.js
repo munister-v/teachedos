@@ -109,16 +109,29 @@ async function addHomeworkWordsToVault(hw, studentIds) {
   }
 }
 
-/* Личное уведомление ученику: что задали и к какому сроку. Кабинет ученика
-   (Assignments) показывает сам список с кнопкой Start. */
+/* Личное уведомление ученику: что задали и к какому сроку.
+   BUG-09 (17.10.2026): the entry opens the homework itself (its own
+   assignment), the deadline is written in the student's time zone - the one
+   the card in the cabinet uses - and there is no "Assignments" section to
+   send them to. */
 async function notifyAssigned(teacherName, hw, studentIds) {
-  const due = hw.due_at ? new Date(hw.due_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
   const added = await addHomeworkWordsToVault(hw, studentIds);
+  const { rows } = await pool.query(
+    `SELECT a.id, a.student_id, u.timezone FROM homework_assignment a JOIN users u ON u.id = a.student_id
+      WHERE a.homework_id = $1 AND a.student_id = ANY($2::uuid[])`, [hw.id, studentIds]).catch(() => ({ rows: [] }));
+  const byStudent = new Map(rows.map(r => [String(r.student_id), r]));
+  const dueFor = tz => {
+    if (!hw.due_at) return '';
+    try { return new Date(hw.due_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: tz || 'Europe/Kyiv' }); }
+    catch (_) { return new Date(hw.due_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
+  };
   await Promise.all(studentIds.map(id => {
     const n = added.get(id) || 0;
-    const body = `${teacherName || 'Your teacher'} gave you "${hw.title}"${due ? ` - due ${due}` : ''}. Open Assignments and press Start.`
-      + (n ? ` ${n} new word${n === 1 ? '' : 's'} ${n === 1 ? 'is' : 'are'} in your dictionary to practise.` : '');
-    return createNotification(id, 'homework', 'New homework', body, 'student.html').catch(() => {});
+    const a = byStudent.get(String(id));
+    const due = dueFor(a && a.timezone);
+    const body = `${teacherName || 'Your teacher'} gave you "${hw.title}"${due ? ` - due ${due}` : ' - no deadline'}.`
+      + (n ? ` ${n} new word${n === 1 ? '' : 's'} ${n === 1 ? 'is' : 'are'} in your Word Bank to practise.` : '');
+    return createNotification(id, 'homework', 'New homework', body, a ? `homework-do.html?a=${a.id}` : 'student.html#homework').catch(() => {});
   }));
 }
 

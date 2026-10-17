@@ -125,6 +125,22 @@ function isMine(slot, ctx) {
     || (!!slot.board_id && ctx.boardIds.has(String(slot.board_id)));
 }
 const isUnlinked = s => !s.journal_id && !(s.member_ids && s.member_ids.length) && !s.booked_by_email && !s.board_id;
+/* Every start of a slot in the next `days` days, worked out the one way
+   (buildUpcomingSlot, the teacher's time zone). The cabinet's Next lesson
+   card, the Attendance & balance calendar and the "Lesson in an hour"
+   reminder all read lesson dates from here, so they cannot disagree
+   (BUG-01, 17.10.2026: the card said Wednesday, the calendar Thursday). */
+function upcomingOccurrences(slot, days = 62, now = new Date()) {
+  const out = [];
+  const horizon = now.getTime() + days * 864e5;
+  let occ = buildUpcomingSlot(slot, now);
+  for (let k = 0; occ && k < 20 && new Date(occ.start_at).getTime() <= horizon; k++) {
+    out.push({ date: occ.date, start_at: occ.start_at, end_at: occ.end_at });
+    if (slot.specific_date) break;
+    occ = buildUpcomingSlot(slot, new Date(new Date(occ.end_at).getTime() + 60000));
+  }
+  return out;
+}
 // the next occurrence that this student has not cancelled (a weekly slot moves on a week)
 function nextOpenOccurrence(slot, journalId, cancelled, now = new Date()) {
   let occ = buildUpcomingSlot(slot, now);
@@ -483,6 +499,16 @@ router.get('/dashboard', requireAuth, async (req, res) => {
         `SELECT journal_id::text AS j, to_char(date, 'YYYY-MM-DD') AS d FROM attendance
           WHERE journal_id = ANY($1::uuid[]) AND status = 'cancelled' AND date >= CURRENT_DATE - 1`, [[...ctx.journalIds]]) : { rows: [] };
       const cancelled = new Set(cx.map(r => `${r.j}|${r.d}`));
+      /* BUG-02: a lesson on a used-up package is not on until the teacher
+         confirms it. Per journal row: is the package tracked and empty, and
+         which dates the teacher confirmed. */
+      const { rows: jb } = ctx.journalIds.size ? await pool.query(
+        `SELECT j.id::text AS id, j.teacher_id, (NOT j.is_trial AND j.lessons_left <= 0
+                 AND (j.pack_started_at IS NOT NULL OR EXISTS (SELECT 1 FROM balance_ledger l WHERE l.journal_id = j.id))) AS empty,
+                j.renew_asked_at,
+                COALESCE((SELECT array_agg(to_char(c.date, 'YYYY-MM-DD')) FROM lesson_confirmations c WHERE c.journal_id = j.id AND c.date >= CURRENT_DATE - 1), '{}') AS confirmed
+           FROM student_journal j WHERE j.id = ANY($1::uuid[])`, [[...ctx.journalIds]]).catch(() => ({ rows: [] })) : { rows: [] };
+      const jById = new Map(jb.map(r => [r.id, r]));
       schedule = pool_
         .map(slot => {
           const jid = slotJournalFor(slot, ctx);
@@ -490,7 +516,11 @@ router.get('/dashboard', requireAuth, async (req, res) => {
           if (!occ) return null;
           const own = isMine(slot, ctx);
           const { member_ids, booked_by_email, journal_id, reschedule_notice_hours, late_cancel_deduct, ...pub } = occ;
-          return { ...pub, can_cancel: own && (!!jid || !!booked_by_email && !!slot.specific_date),
+          const jr = jid ? jById.get(jid) : jb.find(r => String(r.teacher_id) === String(slot.user_id));
+          const balance_zero = !!(jr && jr.empty);
+          return { ...pub, journal_id: jr ? jr.id : null, balance_zero, confirmed: balance_zero ? (jr.confirmed || []).includes(occ.date) : null,
+                   renew_asked_at: balance_zero ? jr.renew_asked_at : null,
+                   can_cancel: own && (!!jid || !!booked_by_email && !!slot.specific_date),
                    policy: { notice_hours: reschedule_notice_hours ?? 24, late_counts: !!late_cancel_deduct } };
         })
         .filter(Boolean)
@@ -694,3 +724,4 @@ router.post('/lessons/:slotId/cancel', requireAuth, async (req, res) => {
 module.exports = router;
 // the lesson reminder job works out "the next start" the same way the cabinet does
 module.exports.buildUpcomingSlot = buildUpcomingSlot;
+module.exports.upcomingOccurrences = upcomingOccurrences;

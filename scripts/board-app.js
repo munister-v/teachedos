@@ -7472,6 +7472,7 @@ function _buildPresentSlides() {
 }
 
 function startBoardPresent() {
+  if (_teacherOnly('present the board')) return;
   if (isBoardPhone()) {
     toast('Presentation mode is desktop-only');
     return;
@@ -11206,6 +11207,7 @@ document.getElementById('btn-redo').addEventListener('click', redo);
 document.getElementById('btn-clear').addEventListener('click', clearAll);
 
 function clearAll() {
+  if (_teacherOnly('clear the board')) return;
   if (!state.cards.length && !state.annotations.length && !state.arrows.length && !(state.strokes && state.strokes.length)) return;
   if (!confirm('Clear the entire board?')) return;
   snapshot();
@@ -11551,7 +11553,9 @@ document.getElementById('sb-search').addEventListener('input', e => {
 
 function renderSidebar() {
   const sec = document.getElementById('sb-content');
+  if (!sec) return;
   sec.innerHTML = '';
+  if (typeof _boardStudentView === 'function' && _boardStudentView()) return;   // BUG-03: no Teacher Tools for a student
   if (activeTab === 'students') renderStudentsTab(sec);
   if (activeTab === 'notes')    renderNotesTab(sec);
   if (activeTab === 'course')   renderCourseTab(sec);
@@ -16664,7 +16668,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1206';
+const TEACHEDOS_ASSET_VERSION = '1207';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19932,6 +19936,7 @@ function tbuilderBack() {
 }
 
 function openLessonWizard() {
+  if (typeof _teacherOnly === 'function' && _teacherOnly('build lessons')) return;
   boardLessonWizard = { skill: null, source: null, pane: 'lesson', game: null };
   lastLessonStageSet = null;
   document.getElementById('tool-builder-panel')?.classList.add('open');
@@ -23558,7 +23563,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1206',
+          icon: 'icons/icon-192.png?v=1207',
           tag: 'board-live-' + s.id,
         });
       }
@@ -23567,7 +23572,37 @@ async function checkBoardLive() {
 }
 
 // Show/hide editing controls based on ownership
+/* BUG-03 (17.10.2026): a student on the teacher's board. The teacher's
+   controls - Teacher Tools and Lesson Builder (the sidebar and the rail
+   button), Present board, Board settings, Clear board - are not hidden but
+   taken out of the page, and their functions refuse to run. The server
+   refuses the same actions (owner-only saves, 403 for a student). */
+function _boardStudentView() {
+  // renderSidebar runs while the file is still loading, before these lets exist
+  try { return !!currentUser && !!currentBoardId && !isOwner && (currentUser.role === 'student' || !boardCanEdit); }
+  catch (_) { return false; }
+}
+const _TEACHER_CHROME = [
+  '#btn-present', '.mtg-tile[aria-label="Present board"]', '#mt-tools',
+  '#more-settings', '#btn-clear-menu', '.cascade-item[onclick^="openSettings"]',
+  '#sidebar .sb-tabs', '#sb-search-wrap', '#sb-reopen',
+];
+function _stripTeacherChrome() {
+  if (!_boardStudentView()) return;
+  document.body.classList.add('board-student-view');
+  _TEACHER_CHROME.forEach(sel => document.querySelectorAll(sel).forEach(el => el.remove()));
+  const sb = document.getElementById('sidebar');
+  if (sb) { sb.classList.remove('open'); sb.hidden = true; }
+  const sec = document.getElementById('sb-content');
+  if (sec) sec.textContent = '';
+}
+function _teacherOnly(name) {
+  if (!_boardStudentView()) return false;
+  toast('Only your teacher can ' + name);
+  return true;
+}
 function applyRoleUI() {
+  _stripTeacherChrome();
   const editTools = ['btn-clear','btn-snap','btn-undo','btn-redo','btn-export'];
   editTools.forEach(id => {
     const el = document.getElementById(id);
@@ -29187,10 +29222,11 @@ function updateSettingsUI() {
 }
 
 function openSettings() {
+  if (_teacherOnly('change the board settings')) return;
   updateSettingsUI();
   document.getElementById('settings-overlay').classList.add('open');
 }
-function closeSettings() { document.getElementById('settings-overlay').classList.remove('open'); }
+function closeSettings() { document.getElementById('settings-overlay')?.classList.remove('open'); }
 
 function setTheme(name, save=true) {
   if (name === 'dark') name = 'pink'; // dark mode removed - never allow it (incl. old saved settings)

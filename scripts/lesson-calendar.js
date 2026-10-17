@@ -55,6 +55,8 @@
 .lc-d.miss{background:rgba(255,140,58,.28);color:#FFD2B0}
 .lc-d.off{background:rgba(255,255,255,.07);color:#A9ABB8;text-decoration:line-through}
 .lc-d.plan{border:1.5px dashed #CDF649;color:#CDF649}
+.lc-d.plan.ok{border-style:solid}
+.lc-confirm{grid-template-columns:1fr}
 .lc-d.todo{border:1.5px dashed #FF8C3A;color:#FFD2B0}
 .lc-d.picked{outline:2px solid #fff;outline-offset:1px}
 button.lc-d{cursor:pointer}
@@ -158,7 +160,13 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
         return;
       }
       const byDate = new Map(cal.lessons.map(l => [l.date, l]));
-      const plan = new Set(cal.scheduled || []);
+      /* BUG-01: the student sees planned lessons on their own calendar days,
+         from the exact start the server worked out (the same one the Next
+         lesson card shows); the teacher keeps the teacher's dates. */
+      const localKey = t => { const x = new Date(t); return iso(x.getFullYear(), x.getMonth(), x.getDate()); };
+      const plan = new Set(!teacher && Array.isArray(cal.scheduled_at) && cal.scheduled_at.length ? cal.scheduled_at.map(localKey) : cal.scheduled || []);
+      const confirmed = new Set(cal.confirmed || []);
+      const confirmedLocal = new Set(!teacher && Array.isArray(cal.scheduled_at) ? (cal.scheduled || []).map((d, k) => confirmed.has(d) ? localKey(cal.scheduled_at[k]) : null).filter(Boolean) : [...confirmed]);
       const todo = new Set(teacher ? cal.unmarked || [] : []);
       const first = new Date(view.y, view.m, 1), lead = (first.getDay() + 6) % 7, days = new Date(view.y, view.m + 1, 0).getDate();
       const cells = [];
@@ -166,7 +174,7 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
       for (let k = lead - 1; k >= 0; k--) cells.push(`<span class="lc-d out">${prevDays - k}</span>`);
       for (let d = 1; d <= days; d++) {
         const key = iso(view.y, view.m, d), mk = markOf(byDate.get(key));
-        const [cls, label] = mk ? LOOK[mk] : plan.has(key) ? ['plan', 'planned'] : todo.has(key) ? ['todo', 'planned, not marked yet'] : ['', ''];
+        const [cls, label] = mk ? LOOK[mk] : plan.has(key) ? (confirmedLocal.has(key) ? ['plan ok', 'planned, confirmed by the teacher'] : ['plan', 'planned']) : todo.has(key) ? ['todo', 'planned, not marked yet'] : ['', ''];
         const tag = teacher ? 'button' : 'span';
         cells.push(`<${tag}${teacher ? ' type="button"' : ''} class="lc-d ${cls}${key === today ? ' today' : ''}${key === picked ? ' picked' : ''}" data-d="${key}"${label ? ` title="${label}" aria-label="${d} ${MONTHS[view.m]}, ${label}"` : ''}>${d}</${tag}>`);
       }
@@ -179,9 +187,9 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
         : cal.booking_token ? `<a class="lc-top" href="book.html?t=${encodeURIComponent(cal.booking_token)}" style="margin-left:auto">Book a lesson</a>`
         : `<span class="lc-note">Ask ${esc(cal.teacher_name || 'your teacher')} to renew</span>`;
       const marks = cal.lessons.map(markOf);
-      const key = [['#CDF649', 'Completed', true], ['', 'Scheduled', true], ['rgba(255,140,58,.6)', 'Missed', marks.includes('miss')],
+      const key = [['#CDF649', 'Completed', true], ['', 'Scheduled', true], ['', 'Confirmed', confirmed.size > 0], ['rgba(255,140,58,.6)', 'Missed', marks.includes('miss')],
         ['#24282C;box-shadow:0 0 0 2px #CDF649', 'Free', marks.includes('free')], ['#FF8C3A', 'Late cancel', marks.includes('late')], ['', 'Not marked', todo.size > 0]]
-        .filter(x => x[2]).map(([c, l]) => `<span><i style="${l === 'Scheduled' ? 'border:1.5px dashed #CDF649' : l === 'Not marked' ? 'border:1.5px dashed #FF8C3A' : 'background:' + c}"></i>${l}</span>`).join('');
+        .filter(x => x[2]).map(([c, l]) => `<span><i style="${l === 'Scheduled' ? 'border:1.5px dashed #CDF649' : l === 'Confirmed' ? 'border:1.5px solid #CDF649' : l === 'Not marked' ? 'border:1.5px dashed #FF8C3A' : 'background:' + c}"></i>${l}</span>`).join('');
       const pickedMark = picked ? markOf(byDate.get(picked)) : null;
       const unmarkedPast = [...todo].length;
       const foot = !teacher ? ''
@@ -197,6 +205,7 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
           <div class="lc-nav"><b>${MONTHS[view.m]} ${view.y}</b><button type="button" data-nav="-1" aria-label="Previous month">‹</button><button type="button" data-nav="1" aria-label="Next month">›</button></div>
           <div class="lc-grid">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(w => `<span class="lc-wd">${w}</span>`).join('')}${cells.join('')}</div>
           <div class="lc-key">${key}</div>
+          ${picked && plan.has(picked) && left <= 0 && !trial ? `<div class="lc-menu lc-confirm"><button type="button" data-confirm="${confirmed.has(picked) ? 'off' : 'on'}"${confirmed.has(picked) ? ' class="on"' : ''}>${confirmed.has(picked) ? '✓ Confirmed' : 'Confirm lesson'}<small>${confirmed.has(picked) ? 'tap to undo' : 'package is 0'}</small></button></div>` : ''}
           ${picked ? `<div class="lc-menu" data-for="${picked}">${MARKS.filter(m => (m.k !== 'reset' || pickedMark) && !(trial && (m.k === 'free' || m.k === 'late'))).map(m => { const t = trial && m.charge ? { ...m, label: m.k === 'held' ? 'Trial lesson' : m.label, fx: '0' } : m; return `<button type="button" data-mark="${t.k}"${pickedMark === t.k || (trial && t.k === 'held' && pickedMark === 'free') ? ' class="on"' : ''}>${t.label}${t.fx ? `<small>${t.fx}</small>` : ''}</button>`; }).join('')}</div>` : ''}
         </div>
         ${foot}${history(cal)}`;
@@ -220,6 +229,15 @@ button.lc-d:hover{border-color:rgba(255,255,255,.5)}
           if (opts.onChange) opts.onChange(cals[at]);
         } catch (_) { b.disabled = false; }
       }));
+      const conf = box.querySelector('[data-confirm]');
+      if (conf) conf.addEventListener('click', async () => {
+        conf.disabled = true;
+        try {
+          await post(`/api/journal/${encodeURIComponent(opts.journalId)}/confirm`, { date: picked, on: conf.dataset.confirm === 'on' });
+          await load(); paint();
+          if (opts.onChange) opts.onChange(cals[at]);
+        } catch (_) { conf.disabled = false; }
+      });
       const pack = box.querySelector('[data-pack]');
       if (pack) pack.addEventListener('click', async () => {
         const raw = prompt(`How many lessons to add to ${cal.name}'s balance?`, String(cal.pack_size));

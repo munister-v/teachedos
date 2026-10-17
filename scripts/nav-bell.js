@@ -1,4 +1,6 @@
-/* The notifications bell for the top bar of every teacher page (#nav).
+/* The notifications bell for the top bar of every page (#nav), and for any
+   page that marks a place for it with [data-nb-host] (the student cabinet,
+   BUG-04: its bell there was a picture that did nothing).
    Home has its own in the desktop menubar; this is the same list - lessons,
    Vault reminders, writing to review, bookings - for Courses, Homework,
    Schedule, Community, Profile and the Progress pages, so a notification is
@@ -28,6 +30,11 @@
 #nav .nb-bell:hover,#nav .nb-bell[aria-expanded="true"]{background:#fff}
 #nav .nb-bell:focus-visible{outline:3px solid rgba(205,246,73,.72);outline-offset:1px}
 #nav .nb-bell svg{width:17px;height:17px}
+.nb-bell.nb-bell-host{position:relative;width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:999px;border:1px solid rgba(36,40,44,.14);background:rgba(255,255,255,.6);color:#24282C;cursor:pointer;padding:0}
+.nb-bell.nb-bell-host:hover,.nb-bell.nb-bell-host[aria-expanded="true"]{background:#fff}
+.nb-bell.nb-bell-host:focus-visible{outline:3px solid rgba(205,246,73,.72);outline-offset:1px}
+.nb-bell.nb-bell-host svg{width:19px;height:19px}
+.nb-bell.nb-bell-host .nb-badge{position:absolute;top:-4px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#CDF649;color:#24282C;border:2px solid #F4F3EE;font:800 10px/14px var(--te-font-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif);text-align:center;box-sizing:border-box}
 #nav .nb-badge{position:absolute;top:-4px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#CDF649;color:#24282C;border:2px solid #F4F3EE;font:700 9.5px/13px var(--te-font-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif);text-align:center;box-sizing:border-box}
 .nb-panel{position:fixed;z-index:9200;width:min(380px,calc(100vw - 24px));max-height:min(520px,calc(100vh - 90px));display:flex;flex-direction:column;background:#fff;border:1px solid rgba(36,40,44,.1);border-radius:18px;box-shadow:0 24px 60px -18px rgba(20,22,24,.35);font-family:var(--te-font-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif);color:#24282C;overflow:hidden;animation:nbIn .16s ease}
 @keyframes nbIn{from{opacity:0;transform:translateY(-4px)}}
@@ -47,6 +54,10 @@
 .nb-b{font-size:12.5px;color:#6B6E60;line-height:1.4;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .nb-time{font-size:11px;color:#9A9C8C;margin-top:4px}
 .nb-dot{width:8px;height:8px;border-radius:50%;background:#24282C;flex:none;margin-top:6px}
+.nb-item.open .nb-b{display:block;-webkit-line-clamp:unset;overflow:visible;white-space:pre-line}
+.nb-more{font-size:11.5px;font-weight:700;color:#5D614B;margin-top:4px}
+.nb-go{display:inline-flex;align-items:center;margin-top:8px;min-height:30px;padding:0 12px;border-radius:999px;background:#24282C;color:#CDF649;font-size:12px;font-weight:800;text-decoration:none}
+.nb-go:focus-visible{outline:2px solid #24282C;outline-offset:2px}
 .nb-empty{padding:34px 20px 38px;text-align:center;color:#8A8D7A;font-size:13px;line-height:1.5}
 .nb-empty svg{width:28px;height:28px;display:block;margin:0 auto 10px;color:#C9CABD}
 `;
@@ -72,7 +83,8 @@
   function paintBadge() {
     if (!badge) return;
     badge.hidden = !unread;
-    badge.textContent = unread > 9 ? '9+' : String(unread);
+    // the real number up to 99, the same one the panel says (BUG-21: the badge said 9+, the panel 19 new)
+    badge.textContent = unread > 99 ? '99+' : String(unread);
     btn.setAttribute('aria-label', unread ? `Notifications, ${unread} unread` : 'Notifications');
   }
 
@@ -87,14 +99,28 @@
     } catch (_) {}
   }
 
+  /* BUG-10: a tap opens the whole text (nothing is cut for good) and, when
+     the entry belongs to something - a homework, a lesson, a board - an
+     "Open" link to it. A second tap folds it again. */
+  const safeLink = l => (l && /^(\/|[a-z-]+\.html|https:\/\/(www\.)?teached\.tech\/)/i.test(l) ? l : '');
+  const goLabel = l => /homework-do/.test(l) ? 'Open the homework →' : /board\.html/.test(l) ? 'Open the board →'
+    : /schedule|#lesson|book\.html/.test(l) ? 'Open the lesson →' : /student\.html#vault|#words/.test(l) ? 'Open Word Bank →' : 'Open →';
+  let openId = null;
   function paintPanel() {
-    panel.innerHTML = `<div class="nb-head"><b>Notifications</b>${unread ? `<span>${unread} new</span>` : ''}${unread ? '<button type="button" class="nb-all">Mark all read</button>' : ''}</div>
-      <div class="nb-list" role="list">${data.length ? data.map(n => `
-        <button type="button" role="listitem" class="nb-item${n.read ? '' : ' unread'}" data-id="${esc(n.id)}" data-link="${esc(n.link || '')}">
+    panel.innerHTML = `<div class="nb-head"><b>Notifications</b>${unread ? `<span>${unread > 99 ? '99+' : unread} new</span>` : ''}${unread ? '<button type="button" class="nb-all">Mark all read</button>' : ''}</div>
+      <div class="nb-list" role="list">${data.length ? data.map(n => {
+        const isOpen = String(n.id) === openId, link = safeLink(n.link);
+        const long = (n.body || '').length > 90;
+        return `
+        <div role="listitem" class="nb-item${n.read ? '' : ' unread'}${isOpen ? ' open' : ''}" data-id="${esc(n.id)}" tabindex="0" aria-expanded="${isOpen}">
           <span class="nb-ic">${icon(GLYPH[n.type] || BELL)}</span>
-          <span style="flex:1;min-width:0"><div class="nb-t">${esc(n.title)}</div>${n.body ? `<div class="nb-b">${esc(n.body)}</div>` : ''}<div class="nb-time">${esc(when(n.created_at))}</div></span>
+          <span style="flex:1;min-width:0"><div class="nb-t">${esc(n.title)}</div>${n.body ? `<div class="nb-b">${esc(n.body)}</div>` : ''}
+            ${!isOpen && (long || link) ? `<div class="nb-more">${long ? 'Read more' : 'Details'} ▾</div>` : ''}
+            ${isOpen && link && !/^student\.html$/.test(link) ? `<a class="nb-go" href="${esc(link)}">${esc(goLabel(link))}</a>` : ''}
+            <div class="nb-time">${esc(when(n.created_at))}</div></span>
           ${n.read ? '' : '<span class="nb-dot" aria-label="unread"></span>'}
-        </button>`).join('') : `<div class="nb-empty">${icon(BELL)}You're all caught up.<br>Lessons, homework and reviews will show up here.</div>`}</div>`;
+        </div>`;
+      }).join('') : `<div class="nb-empty">${icon(BELL)}You're all caught up.<br>Lessons, homework and reviews will show up here.</div>`}</div>`;
   }
 
   function place() {
@@ -141,23 +167,35 @@
         call('/api/notifications/read-all', 'PATCH').catch(() => {});
         return;
       }
+      if (e.target.closest('.nb-go')) return;   // the link itself navigates
       const item = e.target.closest('.nb-item');
       if (!item) return;
-      const n = data.find(x => String(x.id) === item.dataset.id);
-      if (n && !n.read) {
-        n.read = true; unread = Math.max(0, unread - 1); paintBadge();
-        call(`/api/notifications/${encodeURIComponent(n.id)}/read`, 'PATCH').catch(() => {});
-      }
-      const link = item.dataset.link;
-      if (link && /^(\/|[a-z-]+\.html|https:\/\/(www\.)?teached\.tech\/)/i.test(link)) { location.href = link; return; }
-      paintPanel();
+      toggleItem(item.dataset.id);
+    });
+    panel.addEventListener('keydown', (e) => {
+      const item = e.target.closest && e.target.closest('.nb-item');
+      if (item && (e.key === 'Enter' || e.key === ' ') && e.target === item) { e.preventDefault(); toggleItem(item.dataset.id); }
     });
     load();
   }
 
+  function toggleItem(id) {
+    const n = data.find(x => String(x.id) === id);
+    if (n && !n.read) {
+      n.read = true; unread = Math.max(0, unread - 1); paintBadge();
+      call(`/api/notifications/${encodeURIComponent(n.id)}/read`, 'PATCH').catch(() => {});
+    }
+    openId = openId === id ? null : id;
+    paintPanel();
+    const el = panel.querySelector(`.nb-item[data-id="${CSS.escape(id)}"]`);
+    if (el) el.focus();
+  }
+
   function mount() {
+    const host = document.querySelector('[data-nb-host]');
     const nav = document.getElementById('nav');
     const user = nav && nav.querySelector('.nav-user');
+    if (host && !host.querySelector('.nb-bell') && token()) return mountIn(host);
     if (!nav || !user || nav.querySelector('.nb-bell') || !token()) return;
     const st = document.createElement('style');
     st.textContent = CSS;
@@ -171,8 +209,27 @@
     badge = btn.querySelector('.nb-badge');
     btn.addEventListener('click', () => (panel ? close() : open()));
     user.parentNode.insertBefore(btn, user);
+    start();
+  }
+  function mountIn(host) {
+    const st = document.createElement('style');
+    st.textContent = CSS;
+    document.head.appendChild(st);
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'nb-bell nb-bell-host';
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = `${icon(BELL)}<span class="nb-badge" hidden></span>`;
+    badge = btn.querySelector('.nb-badge');
+    btn.addEventListener('click', () => (panel ? close() : open()));
+    host.replaceChildren(btn);
+    start();
+  }
+  function start() {
     paintBadge();
     load();
+    window.TeachedBell = { refresh: load, open: () => { if (!panel) open(); } };
     // quietly keep the count fresh while the tab is in use
     setInterval(() => { if (!document.hidden) load(); }, 90000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });

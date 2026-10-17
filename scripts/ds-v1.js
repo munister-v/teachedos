@@ -19,7 +19,13 @@
     b.addEventListener('click', ask);
     return b;
   }
+  /* BUG-05 (17.10.2026): there is no assistant for a student - the pill sent
+     them to the teacher's desktop and straight back. No entry point at all. */
+  const isStudent = () => {
+    try { return localStorage.getItem('teachedos_role') === 'student' || document.body.classList.contains('role-student'); } catch (_) { return false; }
+  };
   function mount() {
+    if (isStudent()) { document.querySelectorAll('.ds-ask').forEach(p => p.remove()); return; }
     const mb = document.getElementById('menubar');
     if (mb && !mb.querySelector('.ds-ask')) {
       const bell = document.getElementById('mb-notif-btn');
@@ -44,7 +50,7 @@
   setTimeout(keep, 3000);
   if (!onDesktop()) {
     document.addEventListener('keydown', e => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && document.getElementById('nav')) { e.preventDefault(); ask(); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && document.getElementById('nav') && !isStudent()) { e.preventDefault(); ask(); }
     });
   } else if (location.hash === '#ask') {
     setTimeout(() => { try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {} window.openSpotlight(); }, 400);

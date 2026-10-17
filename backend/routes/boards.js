@@ -154,7 +154,30 @@ router.get('/:id', async (req, res) => {
 });
 
 // PUT /api/boards/:id - save board state (legacy)
+
+/* BUG-03 / BUG-23 (17.10.2026): the teacher's controls - board settings,
+   rename, cover, clear (a save of the whole board), delete - belong to the
+   owner. A student, or anyone the board is only shared with, gets a plain
+   403 instead of a 404 that read as "no such board". */
+async function refuseNonOwner(req, res) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT b.user_id, EXISTS (SELECT 1 FROM board_collaborators bc WHERE bc.board_id = b.id AND bc.user_id = $2) AS shared
+         FROM boards b WHERE b.id::text = $1`, [String(req.params.id), req.user.id]);
+    if (rows[0] && String(rows[0].user_id) !== String(req.user.id) && (rows[0].shared || req.user.role === 'student')) {
+      res.status(403).json({ error: 'Only the board owner can do this' });
+      return true;
+    }
+  } catch (_) { /* fall through to the usual answer */ }
+  return false;
+}
+const studentRefused = (req, res) => {
+  if (req.user && req.user.role === 'student') { res.status(403).json({ error: 'Students cannot change or delete boards' }); return true; }
+  return false;
+};
+
 router.put('/:id', requireAuth, async (req, res) => {
+  if (studentRefused(req, res)) return;
   const { data, state: stateBody, name, thumbnail } = req.body;
   const boardData = sanitizeBoardData(data || stateBody);
   if (!boardData) return res.status(400).json({ error: 'data or state is required' });
@@ -178,7 +201,7 @@ router.put('/:id', requireAuth, async (req, res) => {
      RETURNING id, name, updated_at`,
     params
   );
-  if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+  if (!rows.length) { if (await refuseNonOwner(req, res)) return; return res.status(404).json({ error: 'Board not found' }); }
   recordTelemetry({
     category: 'product',
     eventType: boardData ? 'board.updated' : name !== undefined ? 'board.renamed' : 'board.thumbnail_updated',
@@ -194,6 +217,7 @@ router.put('/:id', requireAuth, async (req, res) => {
    свой снимок. Отдельно от сохранения доски, чтобы не гонять весь холст
    ради смены цвета и не трогать updated_at (порядок в списке досок). */
 router.patch('/:id/cover', requireAuth, async (req, res) => {
+  if (studentRefused(req, res)) return;
   try {
     const sets = ['cover = $3'];
     const params = [req.params.id, req.user.id, req.body?.cover ? JSON.stringify(cleanCover(req.body.cover)) : null];
@@ -203,7 +227,7 @@ router.patch('/:id/cover', requireAuth, async (req, res) => {
        RETURNING id, cover, (cover_image IS NOT NULL) AS has_cover_image`,
       params
     );
-    if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+    if (!rows.length) { if (await refuseNonOwner(req, res)) return; return res.status(404).json({ error: 'Board not found' }); }
     res.json({ board: rows[0] });
   } catch (err) {
     console.error('[boards] cover error:', err.message);
@@ -232,6 +256,7 @@ router.get('/:id/cover-image', requireAuth, async (req, res) => {
 });
 
 router.patch('/:id', requireAuth, async (req, res) => {
+  if (studentRefused(req, res)) return;
   const { data, state: stateBody, name, thumbnail, journal_id } = req.body;
   const rawBoardData = data || stateBody;
   const boardData = rawBoardData === undefined ? undefined : sanitizeBoardData(rawBoardData);
@@ -267,7 +292,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
      RETURNING id, name, updated_at`,
     params
   );
-  if (!rows.length) return res.status(404).json({ error: 'Board not found or not owner' });
+  if (!rows.length) { if (await refuseNonOwner(req, res)) return; return res.status(404).json({ error: 'Board not found or not owner' }); }
   recordTelemetry({
     category: 'product',
     eventType: boardData !== undefined ? 'board.updated' : name !== undefined ? 'board.renamed' : 'board.thumbnail_updated',
@@ -280,24 +305,26 @@ router.patch('/:id', requireAuth, async (req, res) => {
 
 // PATCH /api/boards/:id/name - rename board (legacy)
 router.patch('/:id/name', requireAuth, async (req, res) => {
+  if (studentRefused(req, res)) return;
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'name is required' });
   const { rows } = await pool.query(
     `UPDATE boards SET name = $3, updated_at = NOW() WHERE id = $1 AND user_id = $2 RETURNING id, name`,
     [req.params.id, req.user.id, name.trim().slice(0, 255)]
   );
-  if (!rows.length) return res.status(404).json({ error: 'Board not found' });
+  if (!rows.length) { if (await refuseNonOwner(req, res)) return; return res.status(404).json({ error: 'Board not found' }); }
   recordTelemetry({ category: 'product', eventType: 'board.renamed', actorId: req.user.id, boardId: rows[0].id, metadata: { surface: 'board' } });
   res.json({ board: rows[0] });
 });
 
 // DELETE /api/boards/:id - delete board
 router.delete('/:id', async (req, res) => {
+  if (studentRefused(req, res)) return;
   const { rowCount } = await pool.query(
     'DELETE FROM boards WHERE id = $1 AND user_id = $2',
     [req.params.id, req.user.id]
   );
-  if (!rowCount) return res.status(404).json({ error: 'Board not found' });
+  if (!rowCount) { if (await refuseNonOwner(req, res)) return; return res.status(404).json({ error: 'Board not found' }); }
   recordTelemetry({ category: 'product', eventType: 'board.deleted', actorId: req.user.id, metadata: { surface: 'board' } });
   res.json({ ok: true });
 });

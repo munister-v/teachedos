@@ -13,8 +13,9 @@ router.get('/', async (req, res) => {
        ORDER BY created_at DESC LIMIT 50`,
       [req.user.id]
     );
-    const unread = rows.filter(r => !r.read).length;
-    res.json({ notifications: rows, unread });
+    /* the real number of unread entries, not just among the 50 listed (BUG-21) */
+    const { rows: c } = await pool.query('SELECT COUNT(*)::int AS n FROM notifications WHERE user_id=$1 AND read=FALSE', [req.user.id]);
+    res.json({ notifications: rows, unread: c[0].n });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
