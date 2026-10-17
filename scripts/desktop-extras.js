@@ -33,6 +33,50 @@ function dxAgo(iso) {
   return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
+/* ── Plan in the interface (Tariffs spec) ──────────────────────────────────
+   Free teachers get a quiet lime "Upgrade" pill in the top bar; after an
+   upgrade it goes away and the profile chip wears a PRO badge. The Tariffs
+   window marks the plan you are on and turns its button into "Your plan". */
+function syncPlanUI(plan, role) {
+  const teacher = role !== 'student' && role !== 'admin';
+  const up = document.getElementById('mb-upgrade');
+  if (up) up.hidden = !(teacher && plan === 'free');
+  const pro = document.getElementById('mb-acct-pro');
+  if (pro) { pro.hidden = plan === 'free'; pro.textContent = plan === 'school' ? 'SCHOOL' : 'PRO'; }
+  document.querySelectorAll('#win-pricing .tf-plan').forEach(card => {
+    const on = card.dataset.plan === plan;
+    card.classList.toggle('is-current', on);
+    const cta = card.querySelector('.tf-cta');
+    const label = card.querySelector('.tf-cta-t');
+    if (!cta || !label) return;
+    if (!cta.dataset.label) cta.dataset.label = label.textContent;
+    label.textContent = on ? 'Your plan' : cta.dataset.label;
+    cta.toggleAttribute('aria-disabled', on);
+    cta.tabIndex = on ? -1 : 0;
+  });
+}
+
+/* A small card in the corner where a Free limit bites (the 4th board, the 6th
+   student): what happened, and the way to the plans. */
+function upgradeNudge(text) {
+  let n = document.getElementById('ds-nudge');
+  if (!n) {
+    n = document.createElement('div');
+    n.id = 'ds-nudge';
+    n.className = 'ds-nudge';
+    n.setAttribute('role', 'status');
+    n.innerHTML = '<p></p><div><button type="button" class="ds-nudge-go">See plans</button><button type="button" class="ds-nudge-x">Not now</button></div>';
+    n.querySelector('.ds-nudge-go').onclick = () => { n.classList.remove('is-on'); openApp('pricing'); };
+    n.querySelector('.ds-nudge-x').onclick = () => n.classList.remove('is-on');
+    document.body.appendChild(n);
+  }
+  n.querySelector('p').textContent = text;
+  n.classList.add('is-on');
+  clearTimeout(upgradeNudge._t);
+  upgradeNudge._t = setTimeout(() => n.classList.remove('is-on'), 12000);
+}
+window.upgradeNudge = upgradeNudge;
+
 /* ── Чип аккаунта ──────────────────────────────────────────────────────── */
 function fillAccountChip(user) {
   if (!user) return;
@@ -44,6 +88,7 @@ function fillAccountChip(user) {
   set('mb-acct-email', user.email || '');
   const plan = String(user.plan || 'free');
   set('mb-acct-plan', plan === 'free' ? 'Free' : plan[0].toUpperCase() + plan.slice(1));
+  syncPlanUI(plan, user.role);
   const av = user.avatar || '🧑‍🏫';
   ['mb-acct-av', 'mb-acct-av2'].forEach(id => set(id, av));
 }
@@ -128,8 +173,9 @@ function applyWallpaper(value) {
      переключаются на светлые. Свой снимок считаем светлым - окна и
      виджеты всё равно на белых подложках. */
   document.body.classList.toggle('wall-dark', !!(preset && preset.dark));
-  // a live background (Star luxe) runs its own canvas at the back of the desk
+  // a live background (Star luxe, Pixel diamond) runs its own canvas at the back of the desk
   if (window.TeachedStars) { if (preset && preset.live === 'stars') window.TeachedStars.mount(desk); else window.TeachedStars.unmount(); }
+  if (window.TeachedPixels) { if (preset && preset.live === 'pixels') window.TeachedPixels.mount(desk); else window.TeachedPixels.unmount(); }
   renderWallCredit(preset);
   try { _wallValue ? localStorage.setItem(WALL_CACHE_KEY, _wallValue) : localStorage.removeItem(WALL_CACHE_KEY); } catch (_) {}
   document.querySelectorAll('.wp-tile').forEach(t => t.classList.toggle('is-on', (t.dataset.value || '') === (_wallValue || '')));

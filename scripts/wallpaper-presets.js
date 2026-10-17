@@ -20,6 +20,11 @@
        sharp twinkles and glitter where the cursor is (scripts/star-luxe.js).
        The gradient alone is what shows where the live layer does not run. */
     { key: 'star-luxe', group: 'colour', title: 'Star luxe', live: 'stars', glass: true, css: 'linear-gradient(164deg, #F4F6F9 0%, #D3DAE4 100%)' },
+    /* Pixel diamond (wallpaper spec, 16.10.2026): a pixel carpet of diamonds
+       on silver - a 15px grid of white pixels, rare sharp flashes, a square
+       of light under the cursor (scripts/pixel-diamond.js). The dotted
+       gradient is what shows where the live layer does not run. */
+    { key: 'pixel-diamond', group: 'colour', title: 'Pixel diamond', live: 'pixels', glass: true, css: 'radial-gradient(circle, rgba(255,255,255,.7) 2.4px, transparent 3px) 0 0 / 15px 15px, linear-gradient(162deg, #F5F7FA 0%, #DCE2EB 100%)' },
     /* Узоры - тоже чистый CSS, в цветах TeachEd. */
     { key: 'dots',     group: 'pattern', title: 'Dot grid',   css: 'radial-gradient(circle, rgba(22,22,22,.16) 1.2px, transparent 1.6px) 0 0 / 22px 22px, #F2F2F5' },
     { key: 'paper',    group: 'pattern', title: 'Grid paper', css: 'linear-gradient(rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, linear-gradient(90deg, rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, #F7F7F9' },

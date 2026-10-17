@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1191"></script>
+<script src="scripts/phone-gate.js?v=1192"></script>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block. These six files sit at the bottom of a ~1500-line head, right after a large inline <style>; without preload the browser doesn't even start fetching them until it parses that far. -->
-<link rel="preload" as="style" href="styles/mobile.css?v=1191">
-<link rel="preload" as="style" href="styles/harmony.css?v=1191">
-<link rel="preload" as="style" href="styles/unify.css?v=1191">
-<link rel="preload" as="style" href="styles/teached-brand.css?v=1191">
-<link rel="preload" as="style" href="styles/figma-theme.css?v=1191">
-<link rel="preload" as="style" href="styles/mobile-chrome.css?v=1191">
-<link rel="preload" as="style" href="styles/controls.css?v=1191">
-<link rel="preload" as="style" href="styles/figma-concept.css?v=1191">
+<link rel="preload" as="style" href="styles/mobile.css?v=1192">
+<link rel="preload" as="style" href="styles/harmony.css?v=1192">
+<link rel="preload" as="style" href="styles/unify.css?v=1192">
+<link rel="preload" as="style" href="styles/teached-brand.css?v=1192">
+<link rel="preload" as="style" href="styles/figma-theme.css?v=1192">
+<link rel="preload" as="style" href="styles/mobile-chrome.css?v=1192">
+<link rel="preload" as="style" href="styles/controls.css?v=1192">
+<link rel="preload" as="style" href="styles/figma-concept.css?v=1192">
 <!-- Google Sign-In: preconnect to reduce first-auth latency -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://apis.google.com" crossorigin>
 <!-- Google Sign-In client_id meta tag (required for One Tap) -->
 <meta name="google-signin-client_id" content="588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com">
-<link rel="manifest" href="manifest.json?v=1191">
+<link rel="manifest" href="manifest.json?v=1192">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1191" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1191">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1191">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1191">
+<link rel="icon" href="favicon.ico?v=1192" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1192">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1192">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1192">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -85,8 +85,8 @@
 <meta property="og:image:height" content="630"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://teached.tech/og-cover.png"/>
-<link rel="stylesheet" href="styles/tokens.css?v=1191">
-<link rel="stylesheet" href="styles/main.css?v=1191">
+<link rel="stylesheet" href="styles/tokens.css?v=1192">
+<link rel="stylesheet" href="styles/main.css?v=1192">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
@@ -1391,51 +1391,6 @@ html,body {
 
 
 /* ═══════════════════════════ PRICING WINDOW ═══════════════════════════ */
-.pricing-shell{height:100%;overflow:auto;padding:22px;background:radial-gradient(circle at 14% 0%,rgba(163,164,141,.18),transparent 26%),radial-gradient(circle at 86% 8%,rgba(163,164,141,.12),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(246,246,239,.92));}
-.pricing-hero{position:relative;overflow:hidden;border-radius:26px;background:#24282C;color:#fff;padding:22px 24px;margin-bottom:14px;box-shadow:0 20px 70px rgba(36,40,44,.18);}
-.pricing-hero::after{content:'';position:absolute;right:-80px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(163,164,141,.42),transparent 68%);pointer-events:none;}
-.pricing-eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5D614B;margin-bottom:8px;}
-.pricing-title{font-size:32px;line-height:.96;font-weight:700;letter-spacing:-.055em;max-width:560px;}
-.pricing-title em{font-style:italic;color:#5D614B;}
-.pricing-copy{max-width:640px;margin-top:10px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.6;}
-.pricing-hero-row{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
-.price-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.08);font-size:11px;font-weight:650;color:rgba(255,255,255,.82);}
-.pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;}
-.pricing-card{position:relative;display:flex;flex-direction:column;min-height:360px;border:1px solid rgba(93,97,75,.14);border-radius:24px;background:rgba(255,255,255,.84);box-shadow:0 14px 44px rgba(36,40,44,.08);padding:18px;overflow:hidden;}
-.pricing-card::before{content:'';position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#CACCC6,#A3A48D);}
-.pricing-card.pro{background:#fff;border-color:rgba(93,97,75,.28);box-shadow:0 22px 60px rgba(36,40,44,.12);transform:translateY(-5px);}
-.pricing-card.pro::before{background:linear-gradient(90deg,#5D614B,#A3A48D);}
-.pricing-card.school::before{background:linear-gradient(90deg,#5D614B,#A3A48D,#A3A48D);}
-.plan-tag{align-self:flex-start;border-radius:999px;background:rgba(93,97,75,.08);color:var(--text-2);font-family:var(--font-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:5px 8px;margin-bottom:12px;}
-.pricing-card.pro .plan-tag{background:rgba(93,97,75,.10);color:#5D614B;}
-.price-name{font-size:22px;font-weight:700;letter-spacing:-.045em;color:var(--text);}
-.price-line{display:flex;align-items:flex-end;gap:6px;margin:8px 0 6px;}
-.price-amount{font-size:34px;font-weight:700;letter-spacing:-.07em;color:var(--text);}
-.price-period{font-size:11px;font-weight:650;color:var(--text-3);padding-bottom:6px;}
-.price-desc{font-size:12px;line-height:1.55;color:var(--text-2);min-height:56px;margin-bottom:12px;}
-.price-limits{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
-.price-limit{border:1px solid rgba(93,97,75,.1);border-radius:13px;background:rgba(246,246,239,.58);padding:8px;}
-.price-limit b{display:block;font-size:14px;color:var(--text);line-height:1;}
-.price-limit span{display:block;margin-top:4px;font-size:11px;font-family:var(--font-mono);font-weight:650;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
-.price-features{list-style:none;display:grid;gap:7px;margin:0 0 16px;padding:0;}
-.price-features li{display:flex;gap:8px;font-size:12px;line-height:1.35;color:var(--text-2);}
-.price-features li::before{content:'✓';display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(163,164,141,.35);color:#24282C;font-weight:700;flex:0 0 auto;font-size:11px;}
-.price-actions{margin-top:auto;display:grid;gap:8px;}
-.price-btn{min-height:40px;border-radius:14px;border:1px solid rgba(93,97,75,.16);background:#fff;color:var(--text);font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;}
-.price-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(36,40,44,.1);}
-.price-btn.primary{border-color:#5D614B;background:#5D614B;color:#fff;}
-.price-btn.dark{border-color:#24282C;background:#24282C;color:#fff;}
-.price-actions .price-btn.secondary{display:none;}
-.pricing-compare{margin-top:14px;border:1px solid rgba(93,97,75,.12);border-radius:22px;background:rgba(255,255,255,.72);overflow:hidden;}
-.compare-head,.compare-row{display:grid;grid-template-columns:1.45fr repeat(3,1fr);gap:0;align-items:center;}
-.compare-head{background:rgba(36,40,44,.92);color:#fff;font-size:11px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
-.compare-head div,.compare-row div{padding:10px 12px;border-right:1px solid rgba(93,97,75,.1);}
-.compare-row{font-size:12px;color:var(--text-2);border-top:1px solid rgba(93,97,75,.09);}
-.compare-row div:first-child{font-weight:650;color:var(--text);}
-.compare-yes{color:#5D614B;font-weight:700;}
-.compare-no{color:#5D614B;font-weight:650;}
-.pricing-note{margin-top:12px;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(93,97,75,.18);border-radius:18px;background:rgba(93,97,75,.06);padding:12px 14px;color:var(--text-2);font-size:12px;line-height:1.5;}
-.pricing-note b{display:block;color:var(--text);margin-bottom:2px;}
 
 
 /* ═══════════════════════════ SPOTLIGHT ═══════════════════════════ */
@@ -1860,12 +1815,6 @@ html,body {
   .studio-title{font-size:29px;}
   #win-plans .studio-hero{display:none;}
 
-  .pricing-shell{padding:16px;height:100%;}
-  .pricing-hero{border-radius:24px;padding:20px;}
-  .pricing-title{font-size:30px;}
-  .pricing-grid{grid-template-columns:1fr;}
-  .pricing-card{min-height:auto;}
-  .pricing-card.pro{transform:none;}
   .compare-head,.compare-row{grid-template-columns:1.3fr repeat(3,.7fr);font-size:11px;}
   .compare-head div,.compare-row div{padding:9px 7px;}
 
@@ -1881,10 +1830,10 @@ html,body {
   .stat-n { font-size:22px; }
 }
 </style>
-<script src="theme.js?v=1191" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1191">
-<link rel="stylesheet" href="styles/harmony.css?v=1191">
-<link rel="stylesheet" href="styles/unify.css?v=1191">
+<script src="theme.js?v=1192" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1192">
+<link rel="stylesheet" href="styles/harmony.css?v=1192">
+<link rel="stylesheet" href="styles/unify.css?v=1192">
 <style id="mobile-home-overrides">
 @media (max-width:860px) {
   html, body, body:not(.board-page) { background:#fff!important; }
@@ -1892,24 +1841,24 @@ html,body {
   .mob-home-shell, .mob-home-shell.mp-shell { background:#fff!important; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1191">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1191">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1192">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1192">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1191">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1191">
-<link rel="stylesheet" href="styles/controls.css?v=1191">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1192">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1192">
+<link rel="stylesheet" href="styles/controls.css?v=1192">
 <!-- Концепт из Figma (ТИЧ.ЭД): подключается последним, действует только при body.fx -->
-<link rel="stylesheet" href="styles/figma-concept.css?v=1191">
+<link rel="stylesheet" href="styles/figma-concept.css?v=1192">
 <!-- Фон, чип аккаунта, библиотека заданий, Student Pulse. После концепта: новые узлы. -->
-<link rel="stylesheet" href="styles/desktop-extras.css?v=1191">
-<link rel="stylesheet" href="styles/onboarding-v2.css?v=1191">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1191">
-<link rel="stylesheet" href="styles/board-covers.css?v=1191">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1191">
-<link rel="stylesheet" href="styles/desktop-harmony.css?v=1191">
+<link rel="stylesheet" href="styles/desktop-extras.css?v=1192">
+<link rel="stylesheet" href="styles/onboarding-v2.css?v=1192">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1192">
+<link rel="stylesheet" href="styles/board-covers.css?v=1192">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1192">
+<link rel="stylesheet" href="styles/desktop-harmony.css?v=1192">
 <!-- Liquid Glass (iOS 26): bars, widgets, menus, sheets. Last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1191">
-<link rel="stylesheet" href="styles/ds-v1.css?v=1191">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1192">
+<link rel="stylesheet" href="styles/ds-v1.css?v=1192">
 </head>
 <body class="os-desktop fx">
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -2025,7 +1974,7 @@ html,body {
 
 <!-- MENU BAR -->
 <div id="menubar">
-  <a class="mb-apple" href="index.html" title="Desktop" style="text-decoration:none;color:inherit;"><img src="logo-sm.png?v=1191" alt="TeachEd"></a>
+  <a class="mb-apple" href="index.html" title="Desktop" style="text-decoration:none;color:inherit;"><img src="logo-sm.png?v=1192" alt="TeachEd"></a>
   <span class="mb-app-name" id="mb-app-name">TeachEd</span>
   <nav class="mb-menu">
     <a class="mb-item" href="community.html">Community</a>
@@ -2045,12 +1994,16 @@ html,body {
     <span class="mb-icon" id="mb-notif-btn" onclick="toggleNotifPanel()" style="cursor:pointer;position:relative;" title="Notifications">
       <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="mb-notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#CDF649;color:#24282C;font-size:11px;font-weight:650;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
     </span>
+    <!-- Upgrade: a quiet lime pill for Free teachers only (desktop-extras.js,
+         fillAccountChip); after an upgrade it goes and the profile chip gets a PRO badge. -->
+    <button type="button" class="ds-upgrade" id="mb-upgrade" hidden onclick="openApp('pricing')" title="See plans"><span aria-hidden="true">✦</span>Upgrade</button>
     <!-- Профиль, тарифы, фон и выход - в одном чипе аккаунта: на строке
          меню остаётся то, чем пользуются каждый день. -->
     <div class="mb-acct-wrap">
       <button type="button" class="mb-acct" id="mb-acct" aria-haspopup="menu" aria-expanded="false" onclick="toggleAccountMenu(event)">
         <span class="mb-acct-av user-display-avatar" id="mb-acct-av">🧑‍🏫</span>
         <span class="mb-acct-role" id="mb-acct-role">Teacher</span>
+        <span class="mb-acct-pro" id="mb-acct-pro" hidden>PRO</span>
       </button>
       <div class="mb-acct-menu" id="mb-acct-menu" role="menu" hidden>
         <div class="mb-acct-head">
@@ -2059,6 +2012,7 @@ html,body {
         </div>
         <a role="menuitem" class="mb-acct-item" href="profile.html"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg>Profile</a>
         <button type="button" role="menuitem" class="mb-acct-item" onclick="closeAccountMenu();openApp('pricing')"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Tariffs<span class="mb-acct-plan" id="mb-acct-plan"></span></button>
+        <a role="menuitem" class="mb-acct-item" href="billing.html" onclick="closeAccountMenu()"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Plans &amp; billing</a>
         <button type="button" role="menuitem" class="mb-acct-item" onclick="closeAccountMenu();openWallpaperPicker()"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg>Desktop background</button>
         <div class="mb-acct-sep" role="separator"></div>
         <button type="button" role="menuitem" class="mb-acct-item is-quiet" onclick="desktopSignOut()"><svg class="ic" aria-hidden="true"><use href="#i-exit"/></svg>Sign out</button>
@@ -2544,14 +2498,14 @@ html,body {
 
 
 <!-- PRICING -->
-<div class="win" id="win-pricing" style="top:96px;left:170px;width:960px;height:650px;">
+<div class="win" id="win-pricing" style="top:96px;left:170px;width:1000px;height:690px;">
   <div class="win-titlebar" id="tb-pricing">
     <div class="win-controls">
       <div class="tl close" onclick="closeWin('pricing')"></div>
       <div class="tl min" title="Minimize" onclick="minWin('pricing')"></div>
       <div class="tl max"    onclick="maxWin('pricing')" title="Zoom"></div>
     </div>
-    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Pricing &amp; Plans</div>
+    <div class="win-title"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>Tariffs</div>
   </div>
   <div class="win-body">
     <div class="win-main" style="padding:0;display:block;">
@@ -2559,85 +2513,65 @@ html,body {
         <svg class="ic" aria-hidden="true"><use href="#i-card"/></svg>
         <div class="mob-win-title">Pricing</div>
       </div>
-      <div class="pricing-shell">
-        <section class="pricing-hero">
-          <div class="pricing-eyebrow">Transparent packages</div>
-          <div class="pricing-title">Choose the plan that fits your <em>teaching load</em>.</div>
-          <p class="pricing-copy">Free is enough to test TeachEd. Pro unlocks the real teacher workflow: unlimited boards, cloud sync, live sharing, exports and analytics. School adds team/admin controls.</p>
-          <div class="pricing-hero-row">
-            <span class="price-chip">Manual IBAN confirmation</span>
-            <span class="price-chip">Monthly or yearly billing</span>
-            <span class="price-chip">Admin approval queue</span>
+      <div class="tf-shell">
+        <header class="tf-head">
+          <div class="tf-eyebrow">Transparent packages</div>
+          <h2 class="tf-title">Choose the plan that fits your <span class="tf-mk">teaching load.</span></h2>
+          <p class="tf-sub">Free is enough to test TeachEd. Pro unlocks the real teacher workflow: unlimited boards, cloud sync, live sharing, exports and analytics. School adds team&nbsp;/&nbsp;admin controls.</p>
+          <div class="tf-assure">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Manual IBAN confirmation</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Monthly or yearly billing</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Admin approval queue</span>
           </div>
-        </section>
-        <section class="pricing-grid" aria-label="TeachEd pricing plans">
-          <article class="pricing-card">
-            <div class="plan-tag">Starter</div>
-            <div class="price-name">Free</div>
-            <div class="price-line"><div class="price-amount">$0</div><div class="price-period">forever</div></div>
-            <p class="price-desc">For first setup, testing boards and trying the student flow before paid classes.</p>
-            <div class="price-limits">
-              <div class="price-limit"><b>3</b><span>boards</span></div>
-              <div class="price-limit"><b>5</b><span>students / board</span></div>
-              <div class="price-limit"><b>1</b><span>course</span></div>
-              <div class="price-limit"><b>10 MB</b><span>storage</span></div>
-            </div>
-            <ul class="price-features">
-              <li>Visual board with notes, cards and basic tools</li>
-              <li>Lesson builder and game builder drafts</li>
-              <li>Local-first saves in this browser</li>
-              <li>Basic student invites for testing</li>
+        </header>
+        <section class="tf-plans" aria-label="TeachEd pricing plans">
+          <article class="tf-plan" data-plan="free">
+            <canvas class="tf-dust" aria-hidden="true"></canvas><div class="tf-shade"></div>
+            <span class="tf-tag">Starter</span>
+            <div class="tf-pname">Free</div>
+            <div class="tf-price"><b>$0</b><span>forever</span></div>
+            <p class="tf-pdesc">For first setup, testing boards and trying the student flow before paid classes.</p>
+            <div class="tf-limits"><div class="tf-lim"><b>3</b><span>boards</span></div><div class="tf-lim"><b>5</b><span>students / board</span></div></div>
+            <ul class="tf-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Lesson builder &amp; studios</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Community library</li>
+              <li class="no"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Cloud sync &amp; live sharing</li>
+              <li class="no"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Exports &amp; analytics</li>
             </ul>
-            <div class="price-actions"><a class="price-btn" href="board.html">Start free →</a></div>
+            <a class="tf-cta ghost" href="board.html"><span class="tf-cta-t">Start for free</span></a>
           </article>
-          <article class="pricing-card pro">
-            <div class="plan-tag">Most popular</div>
-            <div class="price-name">Teacher Pro</div>
-            <div class="price-line"><div class="price-amount">$9.90</div><div class="price-period">/ month</div></div>
-            <p class="price-desc">For active teachers who run weekly lessons, share boards and need exports.</p>
-            <div class="price-limits">
-              <div class="price-limit"><b>∞</b><span>boards</span></div>
-              <div class="price-limit"><b>30</b><span>students / board</span></div>
-              <div class="price-limit"><b>20</b><span>courses</span></div>
-              <div class="price-limit"><b>75 MB</b><span>storage</span></div>
-            </div>
-            <ul class="price-features">
-              <li>Cloud sync and shareable board links</li>
-              <li>Live collaboration and Follow Me mode</li>
-              <li>Analytics, exports and version history</li>
-              <li>Ready lesson packs, tools and game workflows</li>
+          <article class="tf-plan pro" data-plan="pro">
+            <canvas class="tf-dust" aria-hidden="true"></canvas><div class="tf-shade"></div>
+            <span class="tf-tag">Most popular</span>
+            <div class="tf-pname">Teacher Pro</div>
+            <div class="tf-price"><b>$9.90</b><span>/ month</span></div>
+            <p class="tf-pdesc">For active teachers who run weekly lessons, share boards and need exports.</p>
+            <div class="tf-limits"><div class="tf-lim"><b>∞</b><span>boards</span></div><div class="tf-lim"><b>30</b><span>students / board</span></div></div>
+            <ul class="tf-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Everything in Free</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Cloud sync &amp; live sharing</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Exports, student memory &amp; analytics</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>AI assistant on the desktop</li>
             </ul>
-            <div class="price-actions"><a class="price-btn primary" href="profile.html#plans">Choose Pro →</a><a class="price-btn secondary" href="profile.html#billing">Send payment for review</a></div>
+            <a class="tf-cta lime specular" id="tf-gopro" href="billing.html?plan=pro"><span class="tf-spec" aria-hidden="true"></span><span class="tf-cta-t">Go Pro</span></a>
           </article>
-          <article class="pricing-card school">
-            <div class="plan-tag">Team</div>
-            <div class="price-name">School</div>
-            <div class="price-line"><div class="price-amount">$29</div><div class="price-period">/ month</div></div>
-            <p class="price-desc">For schools, small teams and admins who manage teachers, students and payments.</p>
-            <div class="price-limits">
-              <div class="price-limit"><b>∞</b><span>teachers</span></div>
-              <div class="price-limit"><b>∞</b><span>students</span></div>
-              <div class="price-limit"><b>∞</b><span>courses</span></div>
-              <div class="price-limit"><b>300 MB</b><span>storage</span></div>
-            </div>
-            <ul class="price-features">
-              <li>Everything in Teacher Pro</li>
-              <li>Admin dashboard and user plan control</li>
-              <li>Bulk invites and team-level reporting</li>
-              <li>Custom branding and priority setup support</li>
+          <article class="tf-plan" data-plan="school">
+            <canvas class="tf-dust" aria-hidden="true"></canvas><div class="tf-shade"></div>
+            <span class="tf-tag">Team</span>
+            <div class="tf-pname">School</div>
+            <div class="tf-price"><b>$29</b><span>/ month</span></div>
+            <p class="tf-pdesc">For schools, small teams and admins who manage teachers, students and payments.</p>
+            <div class="tf-limits"><div class="tf-lim"><b>∞</b><span>teachers</span></div><div class="tf-lim"><b>∞</b><span>students</span></div></div>
+            <ul class="tf-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Everything in Teacher Pro</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Team &amp; admin controls</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Shared school library</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Priority support</li>
             </ul>
-            <div class="price-actions"><a class="price-btn dark" href="profile.html#plans">Choose School →</a><a class="price-btn secondary" href="mailto:munister@outlook.com?subject=TeachEd%20School%20plan">Contact admin</a></div>
+            <a class="tf-cta ink" href="mailto:munister@outlook.com?subject=TeachEd%20School%20plan"><span class="tf-cta-t">Contact us</span></a>
           </article>
         </section>
-        <section class="pricing-compare" aria-label="Plan comparison">
-          <div class="compare-head"><div>Feature</div><div>Free</div><div>Pro</div><div>School</div></div>
-          <div class="compare-row"><div>Cloud sync</div><div class="compare-no">Local</div><div class="compare-yes">Yes</div><div class="compare-yes">Yes</div></div>
-          <div class="compare-row"><div>Live board sharing</div><div class="compare-no">No</div><div class="compare-yes">Yes</div><div class="compare-yes">Yes</div></div>
-          <div class="compare-row"><div>Exports</div><div class="compare-no">Basic</div><div class="compare-yes">Full</div><div class="compare-yes">Full</div></div>
-          <div class="compare-row"><div>Analytics</div><div class="compare-no">No</div><div class="compare-yes">Yes</div><div class="compare-yes">Team</div></div>
-          <div class="compare-row"><div>Admin controls</div><div class="compare-no">No</div><div class="compare-no">No</div><div class="compare-yes">Full</div></div>
-        </section>
-        <div class="pricing-note"><span aria-hidden="true"></span><div><b>How payment works now</b>Teacher chooses Pro/School in Profile, sends IBAN payment details, then admin confirms it manually in the admin panel. Until approval, the request stays visible as pending.</div></div>
+        <p class="tf-fine">Prices in USD, VAT may apply · Cancel anytime · Students always free</p>
       </div>
     </div>
   </div>
@@ -2724,16 +2658,17 @@ html,body {
 
 </div><!-- #desktop -->
 
-<script src="scripts/stock-photos.js?v=1191"></script>
-<script src="scripts/lesson-cover.js?v=1191"></script>
-<script src="scripts/lesson-calendar.js?v=1191"></script>
-<script src="scripts/desktop-app.js?v=1191"></script>
-<script src="scripts/teacher-onboarding.js?v=1191"></script>
-<script src="scripts/onboarding-v2.js?v=1191"></script>
-<script src="scripts/wallpaper-presets.js?v=1191"></script>
-<script src="scripts/star-luxe.js?v=1191"></script>
-<script src="scripts/desktop-extras.js?v=1191"></script>
-<script src="scripts/desk-actions.js?v=1191"></script>
+<script src="scripts/stock-photos.js?v=1192"></script>
+<script src="scripts/lesson-cover.js?v=1192"></script>
+<script src="scripts/lesson-calendar.js?v=1192"></script>
+<script src="scripts/desktop-app.js?v=1192"></script>
+<script src="scripts/teacher-onboarding.js?v=1192"></script>
+<script src="scripts/onboarding-v2.js?v=1192"></script>
+<script src="scripts/wallpaper-presets.js?v=1192"></script>
+<script src="scripts/star-luxe.js?v=1192"></script>
+<script src="scripts/pixel-diamond.js?v=1192"></script>
+<script src="scripts/desktop-extras.js?v=1192"></script>
+<script src="scripts/desk-actions.js?v=1192"></script>
 
 <script>
 
@@ -2753,8 +2688,8 @@ function showOsToast(msg) {
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
 }
 </script>
-<script src="scripts/autogrow.js?v=1191" defer></script>
-<script src="pwa-boot.js?v=1191" defer></script>
+<script src="scripts/autogrow.js?v=1192" defer></script>
+<script src="pwa-boot.js?v=1192" defer></script>
 
 <!-- Onboarding Modal -->
 <style>
@@ -2770,7 +2705,7 @@ function showOsToast(msg) {
     <!-- Steps -->
     <div id="ob-step-1" class="ob-step">
       <div style="background:linear-gradient(135deg,#24282C,#24282C);padding:36px 32px 28px;text-align:center;">
-        <div style="margin-bottom:12px;"><img src="logo-sm.png?v=1191" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;"></div>
+        <div style="margin-bottom:12px;"><img src="logo-sm.png?v=1192" alt="TeachEd" style="width:64px;height:64px;border-radius:14px;"></div>
         <div style="font-size:22px;font-weight:700;color:#CDF649;margin-bottom:8px;">Welcome to TeachEd!</div>
         <div style="font-size:14px;color:rgba(255,255,255,.85);line-height:1.6;">Your teaching OS is ready. Let's set up your workspace in 3 quick steps.</div>
       </div>
@@ -3026,14 +2961,15 @@ document.getElementById('onboarding-overlay').addEventListener('click', function
   if (e.target === this) skipOnboarding();
 });
 </script>
-<script src="pwa.js?v=1191" defer></script>
-<script src="scripts/nav-boost.js?v=1191" defer></script>
-<script src="scripts/mobile-perf.js?v=1191" defer></script>
-<script src="scripts/mobile-nav.js?v=1191" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1191" defer></script>
-  <script src="scripts/signin-entry.js?v=1191" defer></script>
-<script src="scripts/verify-banner.js?v=1191" defer></script>
-<script src="scripts/community-feedback.js?v=1191" defer></script>
-<script src="scripts/ds-v1.js?v=1191" defer></script>
+<script src="pwa.js?v=1192" defer></script>
+<script src="scripts/nav-boost.js?v=1192" defer></script>
+<script src="scripts/mobile-perf.js?v=1192" defer></script>
+<script src="scripts/mobile-nav.js?v=1192" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1192" defer></script>
+  <script src="scripts/signin-entry.js?v=1192" defer></script>
+<script src="scripts/verify-banner.js?v=1192" defer></script>
+<script src="scripts/community-feedback.js?v=1192" defer></script>
+<script src="scripts/ds-v1.js?v=1192" defer></script>
+<script src="scripts/tariffs-dust.js?v=1192" defer></script>
 </body>
 </html>

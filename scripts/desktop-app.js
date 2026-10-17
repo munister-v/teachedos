@@ -1961,7 +1961,12 @@ async function studentsAddSubmit(e) {
         method: 'POST', headers: auth, body: JSON.stringify({ email, role: 'student' }),
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) note += ` Board: ${d.error || 'could not add'}.`;
+      if (!r.ok) {
+        note += ` Board: ${d.error || 'could not add'}.`;
+        if (d.code === 'STUDENT_LIMIT_REACHED' && d.plan === 'free' && typeof upgradeNudge === 'function') {
+          upgradeNudge(`Free includes ${d.limit || 5} students per board. Go Pro for 30 per board.`);
+        }
+      }
       else if (d.invited) {
         if (d.emailSent) note += ` Invitation sent to ${d.email}.`;
         else { note += ` ${d.email} has no account yet - send them the invite link.`; inviteUrl = d.inviteUrl || ''; }
@@ -2124,7 +2129,12 @@ async function createBoardFromDesktop(ev) {
       body: JSON.stringify({ name: 'New board' }),
     });
     const d = await r.json().catch(() => ({}));
-    if (r.status === 402) { fail('You have reached the board limit of your plan. Delete a board or upgrade to make a new one.'); return; }
+    if (r.status === 402) {
+      if (link) link.textContent = label;
+      if (typeof upgradeNudge === 'function') upgradeNudge('Free includes 3 boards. Delete one, or go Pro for unlimited boards.');
+      else alert('You have reached the board limit of your plan. Delete a board or upgrade to make a new one.');
+      return;
+    }
     if (!r.ok || !d.board) { fail(d.error || 'The board could not be created. Try again.'); return; }
     location.href = 'board.html?id=' + encodeURIComponent(d.board.id);
   } catch (_) {
@@ -3221,13 +3231,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1191" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1192" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1191" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1192" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
