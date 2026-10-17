@@ -253,6 +253,7 @@
     try {
       const d = await call('/' + encodeURIComponent(id));
       current = d.submission;
+      current._revision = d.revision || null;
       view = 'current';
       state.gradeTouched = current.status === 'returned';
       renderReview();
@@ -370,6 +371,7 @@
       <div class="wr-left-tools">
         ${corrections.length ? `<label><input type="checkbox" id="wr-show-fixes"> Show corrections in the text</label>` : '<span>&nbsp;</span>'}
         ${versions}
+        ${view === 'current' && s._revision ? `<div class="wr-card" style="margin-top:12px"><h4>After your last feedback</h4><p class="wr-summary">The student fixed ${s._revision.fixed} of ${s._revision.total} corrections.${s._revision.left.length ? ' Still there: ' + s._revision.left.slice(0, 4).map(x => '“' + esc(x.original) + '”').join(', ') + '.' : ''}</p></div>` : ''}
       </div>
       <div class="wr-text" id="wr-text">${W.markedText(shown.text, corrections)}</div>
       ${view !== 'current' && shown.feedback ? `<div class="wr-card" style="margin-top:24px"><h4>Feedback on this draft${shown.grade != null ? ` · ${shown.grade}%` : ''}</h4><div style="white-space:pre-wrap;font-size:14px;line-height:1.55">${esc(shown.feedback)}</div></div>` : ''}`;

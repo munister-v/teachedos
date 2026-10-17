@@ -6,7 +6,7 @@ const pool = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
 const { aiAllowed, CONSENT_MESSAGE } = require('../lib/consent');
-const { preCheck, draftFeedback, gradeFromScores, cleanCorrections, correctionsForStudent, CRITERIA } = require('../lib/writingReview');
+const { revisionReport, preCheck, draftFeedback, gradeFromScores, cleanCorrections, correctionsForStudent, CRITERIA } = require('../lib/writingReview');
 
 router.use(requireAuth);
 
@@ -55,7 +55,7 @@ router.get('/inbox', requireTeacher, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const own = req.user.role !== 'student' ? await loadOwn(req.params.id, req.user.id) : null;
-    if (own) return res.json({ submission: own, criteria: CRITERIA, role: 'teacher' });
+    if (own) return res.json({ submission: own, criteria: CRITERIA, role: 'teacher', revision: revisionReport(own) });
     const { rows } = await pool.query(
       `SELECT w.*, b.name AS board_name, t.name AS teacher_name
          FROM writing_submissions w JOIN boards b ON b.id = w.board_id

@@ -40,3 +40,15 @@ test('a student sees only what the teacher kept, and nothing before the work is 
   assert.deepEqual(correctionsForStudent({ status: 'returned', ai_check: ai, teacher_corrections: [] }), [], 'the teacher dropped them all');
   assert.equal(correctionsForStudent({ status: 'returned', ai_check: ai, teacher_corrections: null }).length, 2, 'work returned before teachers could curate keeps the AI list');
 });
+
+test('a second draft is checked against the corrections the first one got', () => {
+  const { revisionReport } = require('../lib/writingReview');
+  const sub = {
+    text: 'He has a cat. Yesterday I go to the shop.',
+    history: [{ returned_at: '2026-10-01', corrections: [
+      { original: 'He have a cat', suggestion: 'He has a cat', why: 'x', type: 'grammar' },
+      { original: 'yesterday I go', suggestion: 'yesterday I went', why: 'x', type: 'grammar' }] }],
+  };
+  assert.deepEqual(revisionReport(sub), { total: 2, fixed: 1, left: [{ original: 'yesterday I go', suggestion: 'yesterday I went' }] });
+  assert.equal(revisionReport({ text: 'a', history: [] }), null);
+});

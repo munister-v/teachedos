@@ -126,4 +126,19 @@ async function draftFeedback(sub, { scores, notes, tone } = {}) {
   return String((raw && raw.feedback) || '').trim();
 }
 
-module.exports = { CRITERIA, preCheck, draftFeedback, gradeFromScores, normaliseCheck, cleanCorrections, correctionsForStudent };
+
+/* Did the student act on the last round of corrections? Looks at the draft that came back
+   (the newest entry of history) and checks, for each correction the teacher gave, whether the
+   marked fragment is gone from the new text. Null when there is no earlier returned draft. */
+function revisionReport(sub) {
+  const hist = Array.isArray(sub && sub.history) ? sub.history : [];
+  const prev = [...hist].reverse().find(h => h && h.returned_at && Array.isArray(h.corrections) && h.corrections.length);
+  if (!prev) return null;
+  const now = String(sub.text || '').toLowerCase().replace(/\s+/g, ' ');
+  const list = cleanCorrections(prev.corrections);
+  if (!list.length) return null;
+  const left = list.filter(c => now.includes(String(c.original).toLowerCase().replace(/\s+/g, ' ')));
+  return { total: list.length, fixed: list.length - left.length, left: left.map(c => ({ original: c.original, suggestion: c.suggestion })) };
+}
+
+module.exports = { revisionReport, CRITERIA, preCheck, draftFeedback, gradeFromScores, normaliseCheck, cleanCorrections, correctionsForStudent };
