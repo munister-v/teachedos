@@ -50,3 +50,47 @@
     setTimeout(() => { try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {} window.openSpotlight(); }, 400);
   }
 })();
+
+/* №10 Community: one search and one "Filters" button with a count; the
+ * dropdowns open under it; every chosen filter is a dark tag with ×. */
+(function () {
+  const bar = document.getElementById('cm-toolbar');
+  if (!bar || bar.dataset.dsFilters) return;
+  bar.dataset.dsFilters = '1';
+  const filters = bar.querySelector('.cm-filters');
+  const search = bar.querySelector('.cm-search');
+  if (!filters || !search) return;
+  const ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.2 7.6V19l-3.6-1.8v-4.6z"/></svg>';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'ds-filters-btn';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.innerHTML = `${ICON}<span>Filters</span><b class="ds-fcount" hidden></b>`;
+  search.after(btn);
+  filters.classList.add('ds-fpanel');
+  filters.hidden = true;
+  const tags = document.createElement('div');
+  tags.className = 'ds-ftags';
+  bar.after(tags);
+  btn.addEventListener('click', () => {
+    filters.hidden = !filters.hidden;
+    btn.setAttribute('aria-expanded', String(!filters.hidden));
+  });
+  const NAMES = { 'board-language': 'Language', 'board-level': 'Level', 'board-age': 'Age', 'board-skill': 'Skill' };
+  function paint() {
+    const set = Object.keys(NAMES).map(id => document.getElementById(id)).filter(sel => sel && sel.value);
+    const n = btn.querySelector('.ds-fcount');
+    n.hidden = !set.length; n.textContent = set.length;
+    tags.innerHTML = set.map(sel => `<span class="ds-ftag">${NAMES[sel.id]} · ${sel.options[sel.selectedIndex].text}<button type="button" data-clear="${sel.id}" aria-label="Remove ${NAMES[sel.id]} filter">×</button></span>`).join('');
+  }
+  tags.addEventListener('click', e => {
+    const b = e.target.closest('[data-clear]');
+    if (!b) return;
+    const sel = document.getElementById(b.dataset.clear);
+    if (sel) { sel.value = ''; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+    paint();
+  });
+  bar.addEventListener('change', paint);
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#board-clear')) setTimeout(paint, 0); });
+  paint();
+})();
