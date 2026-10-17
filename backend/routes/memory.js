@@ -60,7 +60,11 @@ function cleanMistakes(list) {
     if (!pattern) continue;
     const examples = (Array.isArray(m.examples) ? m.examples : []).map(x => String(x).slice(0, 500)).filter(Boolean);
     const at = v => (Number.isFinite(Date.parse(v)) ? new Date(Date.parse(v)).toISOString() : null);
-    out.push({ pattern, examples, first_seen: at(m.first_seen), last_seen: at(m.last_seen), count: Math.max(1, Math.floor(Number(m.count) || 1)) });
+    const item = { pattern, examples, first_seen: at(m.first_seen), last_seen: at(m.last_seen), count: Math.max(1, Math.floor(Number(m.count) || 1)) };
+    // written by checked work (lib/memoryFromReview.js): the tag and the pieces of work it came from
+    if (m.tag) item.tag = String(m.tag).slice(0, 80);
+    if (Array.isArray(m.source_ids)) item.source_ids = m.source_ids.map(String).slice(-50);
+    out.push(item);
   }
   return out;
 }
@@ -72,9 +76,12 @@ function mergeMistakes(a, b) {
     const k = m.pattern.toLowerCase();
     const was = by.get(k);
     if (!was) { by.set(k, { ...m, examples: [...new Set(m.examples || [])] }); continue; }
+    const sources = [...new Set([...(was.source_ids || []), ...(m.source_ids || [])])].slice(-50);
     by.set(k, {
       pattern: was.pattern,
-      count: Math.max(was.count || 1, m.count || 1),
+      ...(was.tag || m.tag ? { tag: was.tag || m.tag } : {}),
+      ...(sources.length ? { source_ids: sources } : {}),
+      count: Math.max(was.count || 1, m.count || 1, sources.length),
       first_seen: minT(was.first_seen, m.first_seen),
       last_seen: maxT(was.last_seen, m.last_seen),
       // the newest examples win the five places: the later list's go first

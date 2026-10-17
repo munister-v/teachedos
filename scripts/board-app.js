@@ -16791,7 +16791,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1226';
+const TEACHEDOS_ASSET_VERSION = '1227';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23690,7 +23690,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1226',
+          icon: 'icons/icon-192.png?v=1227',
           tag: 'board-live-' + s.id,
         });
       }
@@ -26659,10 +26659,12 @@ async function aiMemoryFillStudents() {
 
 async function loadAiStudentMemory() {
   const mem = _aiMem();
+  renderAiMemoryTags(null);
   if (mem && _aiMemStudent) {
     const d = await mem.getDossier(_aiMemStudent).catch(() => null);
     _aiSet('ai-student-memory', (d && d.notes) || '');
     _aiSet('ai-mistakes', (d && d.weak_spots) || '');
+    renderAiMemoryTags(d);
   } else if (mem) {
     // a whole class: its own key in this browser; before the move the old blocks still show here
     const c = _aiJson(AI_CLASS_KEY, {}), legacy = _aiLocal();
@@ -26674,6 +26676,40 @@ async function loadAiStudentMemory() {
     _aiSet('ai-student-memory', saved.studentMemory || '');
     _aiSet('ai-mistakes', saved.mistakes || '');
   }
+}
+
+/* Tags found in checked work (§8.2): the system keeps them, the teacher only removes
+   a wrong one - and a removed tag never comes back. */
+function renderAiMemoryTags(d) {
+  const box = document.getElementById('ai-memory-tags');
+  if (!box) return;
+  const dead = new Set((d && d.deleted_tag_keys) || []);
+  const live = ((d && d.weak_spot_tags) || []).filter(t => !dead.has(`${t.tag}|${t.source_id == null ? '' : t.source_id}`));
+  const byTag = new Map();
+  for (const t of live) byTag.set(t.tag, (byTag.get(t.tag) || 0) + 1);
+  box.replaceChildren();
+  box.hidden = !byTag.size;
+  if (!byTag.size) return;
+  const label = tag => (((d.common_mistakes || []).find(m => m.tag === tag) || {}).pattern) || tag.split(':').pop().replace(/_/g, ' ');
+  const h = document.createElement('div'); h.className = 'ai-tags-h'; h.textContent = 'Found in checked work';
+  box.append(h);
+  for (const [tag, n] of byTag) {
+    const chip = document.createElement('span'); chip.className = 'ai-tag';
+    chip.append(document.createTextNode(label(tag) + (n > 1 ? ` · ${n}` : '')));
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = '×';
+    x.setAttribute('aria-label', `Remove ${label(tag)} - it will not come back`);
+    x.onclick = () => aiMemoryRemoveTag(tag);
+    chip.append(x); box.append(chip);
+  }
+}
+async function aiMemoryRemoveTag(tag) {
+  const mem = _aiMem();
+  if (!mem || !_aiMemStudent) return;
+  const d = (await mem.getDossier(_aiMemStudent).catch(() => null)) || {};
+  const keys = (d.weak_spot_tags || []).filter(t => t.tag === tag).map(t => `${t.tag}|${t.source_id == null ? '' : t.source_id}`);
+  const dead = [...new Set([...(d.deleted_tag_keys || []), ...keys])];
+  await mem.saveDossierField(_aiMemStudent, 'deleted_tag_keys', dead);
+  renderAiMemoryTags(await mem.getDossier(_aiMemStudent).catch(() => null));
 }
 
 async function aiMemoryStudentChanged(sel) {

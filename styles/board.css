@@ -3460,6 +3460,13 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ai-unmatched-row select{flex:1 1 140px;min-width:0;height:34px}
 .ai-unmatched-row .ai-action{min-height:34px;padding:0 12px}
 .ai-unmatched-row .ai-action:disabled{opacity:.45;cursor:default}
+.ai-tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.ai-tags[hidden]{display:none}
+.ai-tags-h{flex:1 0 100%;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:rgba(36,40,44,.55)}
+.ai-tag{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 4px 0 11px;border-radius:999px;background:#EEF6D2;color:#24282C;font-size:12px;font-weight:700}
+.ai-tag button{width:22px;height:22px;border:0;border-radius:50%;background:transparent;color:inherit;font-size:15px;line-height:1;cursor:pointer}
+.ai-tag button:hover{background:rgba(36,40,44,.1)}
+.ai-tag button:focus-visible{outline:2px solid #24282C;outline-offset:1px}
 .ai-memory-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
 .ai-memory-chip{border:1px solid rgba(36,40,44,.10);background:#fff;border-radius:999px;padding:7px 10px;
   font-size:11px;font-weight:600;color:#24282C;cursor:pointer;}

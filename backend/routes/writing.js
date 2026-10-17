@@ -132,6 +132,9 @@ router.post('/:id/return', requireTeacher, async (req, res) => {
     await pool.query(
       `UPDATE writing_submissions SET status='returned', feedback=$2, grade=$3, scores=$4, teacher_corrections=$5, returned_at=NOW(), seen_at=NULL WHERE id=$1`,
       [sub.id, feedback, grade, JSON.stringify(scores), JSON.stringify(corrections)]);
+    // what the teacher kept becomes the student's mistake patterns and tags in TeachEd memory
+    require('../lib/memoryFromReview').recordReturnedWork(pool, { teacherId: req.user.id, studentUserId: sub.student_id, sourceId: sub.id, corrections })
+      .catch(e => console.error('[writing] memory:', e.message));
     createNotification(sub.student_id, 'writing', 'Your writing is checked',
       `${sub.title || 'Writing'}${grade != null ? ` · ${grade}%` : ''} - feedback from ${req.user.name || 'your teacher'}`,
       `student.html#writing=${sub.id}`);

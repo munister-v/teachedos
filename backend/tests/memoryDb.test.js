@@ -54,6 +54,7 @@ test.before(async () => {
     const app = express();
     app.use(express.json({ limit: '25mb' }));
     app.use('/api/memory', require('../routes/memory'));
+    app.use('/api/writing', require('../routes/writing'));
     server = http.createServer(app);
     await new Promise(r => server.listen(0, '127.0.0.1', r));
     base = `http://127.0.0.1:${server.address().port}`;
@@ -355,4 +356,64 @@ db('hand over: a student the receiver does not have lands in their archive; an a
   assert.equal((await call(a, 'POST', `/api/memory/students/${jy}/handover`, { to_email: b.email })).status, 404, 'only once');
   await pool.query('DELETE FROM notifications WHERE user_id = $1', [b.id]);
   await pool.query('DELETE FROM dossier_handover_log WHERE from_teacher = $1', [a.id]);
+});
+
+/* ── checked work feeds the memory (§8.2, §5) ── */
+const R = require('../lib/memoryFromReview');
+
+test('a correction is read into a topic by plain rules; an unknown grammar point gets no tag', () => {
+  assert.equal(R.classify({ type: 'grammar', why: 'Use the past simple: go becomes went' }).tag, 'grammar:past_simple');
+  assert.equal(R.classify({ type: 'grammar', why: 'The definite article is needed here' }).tag, 'grammar:articles');
+  assert.equal(R.classify({ type: 'grammar', why: 'Third person singular needs -s' }).tag, 'grammar:subject_verb_agreement');
+  assert.equal(R.classify({ type: 'vocabulary', why: 'A more natural collocation' }).tag, 'vocab:collocations');
+  assert.equal(R.classify({ type: 'vocabulary', why: 'Better word here' }).tag, 'vocab:word_choice');
+  assert.equal(R.classify({ type: 'spelling', why: '' }).tag, 'spelling:general');
+  assert.equal(R.classify({ type: 'grammar', why: 'This sounds odd' }), null);
+  const one = R.fromCorrections([{ type: 'grammar', why: 'past simple', original: 'goed', suggestion: 'went' }, { type: 'grammar', why: 'irregular past', original: 'buyed', suggestion: 'bought' }], 'w1');
+  assert.equal(one.patterns.length, 1, 'two corrections, one topic');
+  assert.deepEqual(one.patterns[0].examples, ['goed → went', 'buyed → bought']);
+  let m = R.addPatterns([], one.patterns);
+  m = R.addPatterns(m, R.fromCorrections([{ type: 'grammar', why: 'past simple', original: 'eated', suggestion: 'ate' }], 'w1').patterns);
+  assert.equal(m[0].count, 1, 'the same work returned again counts once');
+  m = R.addPatterns(m, R.fromCorrections([{ type: 'grammar', why: 'past simple', original: 'runned', suggestion: 'ran' }], 'w2').patterns);
+  assert.deepEqual([m[0].count, m[0].source_ids], [2, ['w1', 'w2']]);
+});
+
+db('returning writing writes patterns and tags to the dossier; a removed tag stays removed; no journal row, no dossier', async () => {
+  const t = await mk('Review T');
+  const s = await mk('Writer S', 'student');
+  const j = await journalFor(t, s, 'Lena');
+  const { rows: [b] } = await pool.query(`INSERT INTO boards (user_id, name, data) VALUES ($1, 'Writing', '{}') RETURNING id`, [t.id]);
+  let card = 0;
+  const sub = async () => (await pool.query(
+    `INSERT INTO writing_submissions (board_id, card_id, student_id, teacher_id, title, text, status) VALUES ($1, $4, $2, $3, 'Essay', 'I goed home', 'submitted') RETURNING id`,
+    [b.id, s.id, t.id, 'c' + (++card)])).rows[0].id;
+  const back = (id, corrections) => call(t, 'POST', `/api/writing/${id}/return`, { feedback: 'Good', corrections });
+  const w1 = await sub();
+  assert.equal((await back(w1, [{ original: 'goed', suggestion: 'went', why: 'Past simple of go', type: 'grammar' },
+    { original: 'a apple', suggestion: 'an apple', why: 'Article before a vowel sound', type: 'grammar' }])).status, 200);
+  const wait = () => new Promise(r => setTimeout(r, 150));
+  await wait();
+  let d = (await call(t, 'GET', `/api/memory/students/${j}/dossier`)).body;
+  assert.deepEqual(d.common_mistakes.map(m => m.pattern).sort(), ['Articles', 'Past simple']);
+  assert.deepEqual(d.weak_spot_tags.map(x => x.tag).sort(), ['grammar:articles', 'grammar:past_simple']);
+  assert.equal(d.weak_spots, '', "the teacher's own words are not touched");
+  // the teacher removes a wrong tag; the same work returned again does not bring it back
+  await patch(t, j, { deleted_tag_keys: { value: [`grammar:articles|${w1}`], updated_at: iso(Date.now()) } });
+  await back(w1, [{ original: 'a apple', suggestion: 'an apple', why: 'Article before a vowel sound', type: 'grammar' }]);
+  await wait();
+  d = (await call(t, 'GET', `/api/memory/students/${j}/dossier`)).body;
+  assert.deepEqual(d.weak_spot_tags.map(x => x.tag), ['grammar:past_simple']);
+  assert.equal(d.common_mistakes.find(m => m.pattern === 'Articles').count, 1, 'counted once for that work');
+  const w2 = await sub();
+  await back(w2, [{ original: 'runned', suggestion: 'ran', why: 'Irregular past form', type: 'grammar' }]);
+  await wait();
+  d = (await call(t, 'GET', `/api/memory/students/${j}/dossier`)).body;
+  assert.equal(d.common_mistakes.find(m => m.pattern === 'Past simple').count, 2);
+  // a feedback without corrections, or a student with no journal row, writes nothing
+  const other = await mk('Lone S', 'student');
+  const { rows: [w3] } = await pool.query(
+    `INSERT INTO writing_submissions (board_id, card_id, student_id, teacher_id, title, text, status) VALUES ($1, 'c-lone', $2, $3, 'E', 'x', 'submitted') RETURNING id`, [b.id, other.id, t.id]);
+  assert.equal(await R.recordReturnedWork(pool, { teacherId: t.id, studentUserId: other.id, sourceId: w3.id, corrections: [{ type: 'grammar', why: 'past simple', original: 'a', suggestion: 'b' }] }), 0);
+  await pool.query('DELETE FROM notifications WHERE user_id = ANY($1)', [[s.id, other.id]]);
 });
