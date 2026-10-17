@@ -1035,6 +1035,19 @@ const BOARD_LESSON_STAGES = {
           {key:'wr-topics',  tool:'essay-topics',     title:'A choice of topics',    hint:'Several prompts so they pick their own.', ai:true},
         ],
       },
+      /* A writing arc has revising and editing in it (Lesson Builder 2.0 T-W1, P5): the draft is
+         not the end. Revise the ideas and organisation, then edit the language. */
+      {
+        key: 'revise',
+        label: 'Revising and editing',
+        question: 'How do they improve their draft?',
+        options: [
+          {key:'wr-revise', tool:'open-questions', title:'Revise: check the draft', hint:'Questions to ask of their own draft - is the main point clear, is the order logical, what is missing? - before they fix any grammar.', ai:true, after:'source', on:true,
+           extra:'These are REVISING questions the student asks of THEIR OWN draft of this writing task, about content and organisation only (main point, order of ideas, examples, the opening and closing) - not grammar or spelling. Each starts with "Does my…", "Have I…" or "Is my…" and can be answered by looking at the draft.'},
+          {key:'wr-edit',   tool:'error-correction', title:'Edit: fix the language', hint:'Sentences with the slips this kind of text typically has, to correct before handing in - spelling, tenses, linking words.', ai:true, after:'source', on:true,
+           extra:'These are EDITING exercises for the writing task of this lesson: sentences a learner would plausibly write in this text type, each with one typical language slip (tense, article, preposition, linking word, spelling) for the student to correct.'},
+        ],
+      },
       {
         key: 'feedback',
         label: 'How it is judged',
