@@ -62,6 +62,7 @@ function scanFile(file, target) {
     // phrase rules read everything; text-only rules skip names and identifiers
     const rule = require('./glossary').RULES.find(r => r.id === f.rule);
     if (rule && rule.textOnly && inName(hay, f)) return;
+    if (rule && rule.allowIn && rule.allowIn.includes(path.basename(file))) return;
     // the first place this text appears in the file, for a line number a person can open
     const at = raw.indexOf(f.match);
     const key = f.rule + ':' + f.match + ':' + at + where;

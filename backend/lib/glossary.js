@@ -41,6 +41,8 @@ const TERMS = {
 const RULES = [
   { id: 'tool-name', targets: ['frontend', 'backend'],
     banned: /\bBuild a lesson\b(?!\s+(?:pack|path)\b)/,
+    // the landing's headline types "Build a lesson…" as a sentence, not as the tool's name
+    allowIn: ['landing.html'],
     say: 'Lesson Builder', why: 'The tool is called Lesson Builder.' },
   { id: 'submit-draft', targets: ['frontend', 'backend'],
     banned: /\bSubmit Final Draft\b/i,

@@ -14,6 +14,16 @@ test('the approved renamings are enforced, the allowed phrases are not touched',
   assert.ok(isClean('you can build a lesson in a minute'), 'a verb in a sentence is not a tool name');
 });
 
+test('the landing headline may type "Build a lesson", no other page may', () => {
+  const f = require('fs'); const dir = f.mkdtempSync(path.join(require('os').tmpdir(), 'glossary-'));
+  const html = "<h1>x</h1><script>const BASE='Build a lesson';</script>";
+  f.writeFileSync(path.join(dir, 'landing.html'), html);
+  f.writeFileSync(path.join(dir, 'index.html'), html);
+  assert.deepEqual(scanFile(path.join(dir, 'landing.html'), 'frontend'), []);
+  assert.equal(scanFile(path.join(dir, 'index.html'), 'frontend')[0].rule, 'tool-name');
+  f.rmSync(dir, { recursive: true });
+});
+
 test('Studio is not a Frame, a Task is not a Studio', () => {
   assert.equal(lintText('Open the studio frame')[0].rule, 'studio-is-not-frame');
   assert.equal(lintText('Task Studio')[0].rule, 'studio-is-not-frame');
