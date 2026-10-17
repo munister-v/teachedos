@@ -720,6 +720,8 @@ router.post('/:id/erase', async (req, res) => {
     if (st.student_id) {
       writing = (await client.query('DELETE FROM writing_submissions WHERE student_id=$1 AND teacher_id=$2', [st.student_id, req.user.id])).rowCount;
     }
+    // erasing is not deleting: the TeachEd memory dossier goes too, not to the 12-month archive
+    await client.query(`SET LOCAL teached.dossier_erase = 'on'`);
     await client.query('DELETE FROM student_journal WHERE id=$1', [st.id]);   // attendance, balance ledger and the rest follow
     await client.query('COMMIT');
     res.json({ ok: true, erased: { writing } });

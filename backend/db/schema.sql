@@ -1499,3 +1499,46 @@ CREATE TABLE IF NOT EXISTS student_dossier (
   updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_dossier_teacher_updated ON student_dossier(teacher_id, updated_at);
+
+-- ── TeachEd memory, part 3: the 12-month archive (ТЗ §8.3, 18.10.2026) ───────
+-- Deleting a student archives their dossier: gone from every screen and every
+-- read, kept for 12 months so that re-adding the same student (same account) can
+-- bring it back. Erasing a student's data, or the student deleting their own
+-- account, removes it at once. The snapshot columns name the student in the
+-- archive list, since their journal row is gone.
+ALTER TABLE student_dossier ADD COLUMN IF NOT EXISTS archived_name       VARCHAR(255);
+ALTER TABLE student_dossier ADD COLUMN IF NOT EXISTS archived_email      VARCHAR(255);
+ALTER TABLE student_dossier ADD COLUMN IF NOT EXISTS student_user_id     UUID;
+ALTER TABLE student_dossier ADD COLUMN IF NOT EXISTS restore_declined_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_dossier_archived ON student_dossier(archived_at) WHERE archived_at IS NOT NULL;
+-- dossiers that left the teacher for good (deleted from the archive, erased):
+-- every device of the teacher drops its copy at the next sync
+CREATE TABLE IF NOT EXISTS memory_revocations (
+  teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  journal_id UUID NOT NULL,
+  revoked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (teacher_id, journal_id)
+);
+CREATE OR REPLACE FUNCTION archive_student_dossier() RETURNS TRIGGER AS $$
+BEGIN
+  IF current_setting('teached.dossier_erase', true) = 'on' THEN
+    DELETE FROM student_dossier WHERE journal_id = OLD.id;
+    INSERT INTO memory_revocations (teacher_id, journal_id)
+      SELECT OLD.teacher_id, OLD.id WHERE EXISTS (SELECT 1 FROM users WHERE id = OLD.teacher_id)
+      ON CONFLICT (teacher_id, journal_id) DO UPDATE SET revoked_at = NOW();
+  ELSE
+    UPDATE student_dossier
+       SET archived_at = COALESCE(archived_at, NOW()), archived_name = OLD.name, archived_email = OLD.email,
+           student_user_id = OLD.student_id, version = version + 1, updated_at = NOW()
+     WHERE journal_id = OLD.id AND teacher_id = OLD.teacher_id;
+  END IF;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_journal_dossier_archive ON student_journal;
+CREATE TRIGGER trg_journal_dossier_archive
+  BEFORE DELETE ON student_journal
+  FOR EACH ROW EXECUTE FUNCTION archive_student_dossier();
+-- dossiers whose student was deleted before this trigger existed: archived now
+UPDATE student_dossier d SET archived_at = NOW(), version = version + 1, updated_at = NOW()
+ WHERE d.archived_at IS NULL AND NOT EXISTS (SELECT 1 FROM student_journal j WHERE j.id = d.journal_id);

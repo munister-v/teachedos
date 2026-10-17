@@ -1473,6 +1473,7 @@ function studentsRender() {
   list.innerHTML = (needs && !q
     ? `<div class="st-group-h">Needs you · ${needs}</div>${ranked.slice(0, needs).map(row).join('')}${ranked.length > needs ? `<div class="st-group-h calm">All good</div>${ranked.slice(needs).map(row).join('')}` : ''}`
     : ranked.map(row).join(''));
+  studentsArchiveLink(list);
 
   studentDetailRender();
 }
@@ -1540,6 +1541,7 @@ function _lastSeenLabel(iso) {
 }
 
 function studentSelect(id) {
+  studentsShowArchive = false;
   if (String(id) !== String(studentsSelectedId) && document.querySelector('#st-pane .st-notes.is-dirty')
       && !confirm('Leave without saving your notes?')) return;
   studentsSelectedId = id;
@@ -1574,6 +1576,7 @@ const ST_MAIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy=
 function studentDetailRender() {
   const box = document.getElementById('students-detail');
   if (!box) return;
+  if (studentsShowArchive) return studentsArchiveRender(box);
   // an unsaved note survives a re-render of the same student (the roster reloads under it)
   const draftEl = box.querySelector('.st-notes.is-dirty');
   const draft = draftEl ? { id: String(studentsSelectedId), v: draftEl.value } : null;
@@ -1728,6 +1731,10 @@ function studentDetailRender() {
         <button type="button" class="st-qbtn" onclick="studentsMessage('${esc(String(s.id))}')">Message</button>
         ${board ? `<a class="st-qbtn" href="board.html?id=${encodeURIComponent(board)}">Open board</a>` : `<button type="button" class="st-qbtn" onclick="openApp('plans')">Open board</button>`}
       </div>
+      ${s.memory_restore && s.journal_id != null ? `<div class="st-restore" role="group" aria-label="Restore ${esc(firstName)}'s memory">
+        <span>${esc(firstName)}'s TeachEd memory from before was archived on ${esc(new Date(s.memory_restore.archived_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }))}. Restore it?</span>
+        <div class="st-restore-row"><button type="button" class="st-cta sm" onclick="studentsMemoryRestore('${esc(String(s.memory_restore.id))}', '${jid}', this)">Restore</button><button type="button" class="st-qbtn" onclick="studentsMemoryDecline('${esc(String(s.memory_restore.id))}', this)">No</button></div>
+      </div>` : ''}
       <div class="st-compose" id="st-compose" hidden>
         <textarea maxlength="1000" placeholder="Message to ${esc(firstName)}…"></textarea>
         <div class="st-compose-row"><button type="button" class="st-qbtn" onclick="document.getElementById('st-compose').hidden=true">Cancel</button><button type="button" class="st-cta sm" onclick="studentsSendMessage('${esc(String(s.id))}', this)">Send</button></div>
@@ -1784,6 +1791,86 @@ async function studentsSaveNotes(journalId, btn) {
   }
 }
 window.studentsSaveNotes = studentsSaveNotes;
+
+/* TeachEd memory archive (§8.3, 18.10.2026): a deleted student's memory waits a
+   year. Their card offers it back once when the same account is added again; the
+   list's "Archived memory" shows the rest - restore to a current student, or delete
+   for good. Only the teacher sees any of it. */
+let STUDENTS_ARCHIVE = null, studentsArchiveLoading = false, studentsShowArchive = false;
+const _memApi = (method, path, body) => fetch(API_BASE + '/api/memory' + path, {
+  method, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken }, body: body ? JSON.stringify(body) : undefined,
+}).then(async r => ({ ok: r.ok, data: await r.json().catch(() => ({})) }));
+function studentsArchiveLink(list) {
+  if (STUDENTS_ARCHIVE === null) {
+    if (!studentsArchiveLoading && _authToken) {
+      studentsArchiveLoading = true;
+      _memApi('GET', '/archive').then(r => { STUDENTS_ARCHIVE = r.ok ? (r.data.archive || []) : []; })
+        .catch(() => { STUDENTS_ARCHIVE = []; })
+        .finally(() => { studentsArchiveLoading = false; if (STUDENTS_ARCHIVE.length) studentsRender(); });
+    }
+    return;
+  }
+  if (!STUDENTS_ARCHIVE.length) return;
+  list.insertAdjacentHTML('beforeend', `<button type="button" class="st-archive-link${studentsShowArchive ? ' on' : ''}" onclick="studentsArchiveOpen()">Archived memory · ${STUDENTS_ARCHIVE.length}</button>`);
+}
+function studentsArchiveOpen() { studentsShowArchive = true; studentsRender(); }
+window.studentsArchiveOpen = studentsArchiveOpen;
+function studentsArchiveClose() { studentsShowArchive = false; studentsRender(); }
+window.studentsArchiveClose = studentsArchiveClose;
+function studentsArchiveRender(box) {
+  const day = d => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const targets = STUDENTS.filter(x => x.journal_id != null);
+  const items = (STUDENTS_ARCHIVE || []).map(a => {
+    const preview = [a.notes, a.weak_spots, a.goals, a.interests].map(x => String(x || '').trim()).filter(Boolean).join(' · ');
+    return `<div class="st-arch-item">
+      <div class="st-arch-name">${esc(a.name || 'Deleted student')}</div>
+      <div class="st-arch-when">Archived ${esc(day(a.archived_at))} · deleted for good on ${esc(day(a.delete_at))}</div>
+      ${preview ? `<div class="st-arch-preview">${esc(preview.length > 160 ? preview.slice(0, 160) + '…' : preview)}</div>` : ''}
+      <div class="st-arch-row">
+        <select aria-label="Restore ${esc(a.name || 'this memory')} to a student" onchange="this.nextElementSibling.disabled=!this.value">
+          <option value="">Restore to a student…</option>
+          ${targets.map(x => `<option value="${esc(String(x.journal_id))}">${esc(x.name || 'Student')}</option>`).join('')}
+        </select>
+        <button type="button" class="st-cta sm" disabled onclick="studentsMemoryRestore('${esc(String(a.id))}', this.previousElementSibling.value, this)">Restore</button>
+        <button type="button" class="st-qbtn" onclick="studentsMemoryDeleteForGood('${esc(String(a.id))}', '${esc(String(a.name || 'this student')).replace(/'/g, '')}', this)">Delete now</button>
+      </div>
+    </div>`;
+  }).join('');
+  box.innerHTML = `<div class="st-pin"><div class="st-arch-head"><div class="st-detail-name">Archived memory</div>
+      <button type="button" class="st-qbtn" onclick="studentsArchiveClose()">Close</button></div>
+      <p class="st-arch-note">The TeachEd memory of students you deleted waits here for a year, then is deleted for good. Only you see it.</p></div>
+    <div class="st-pane">${items || '<div class="st-tab-empty">Nothing in the archive.</div>'}</div>`;
+}
+async function studentsMemoryRestore(archivedId, toJournalId, btn) {
+  if (!archivedId || !toJournalId) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Restoring…'; }
+  const r = await _memApi('POST', `/students/${encodeURIComponent(archivedId)}/dossier/restore`, { to: toJournalId }).catch(() => ({ ok: false, data: {} }));
+  if (!r.ok) { if (btn) { btn.disabled = false; btn.textContent = 'Restore'; } alert((r.data.error && r.data.error.message) || 'Could not restore'); return; }
+  STUDENTS_ARCHIVE = null; studentsShowArchive = false;
+  const s = STUDENTS.find(x => String(x.journal_id) === String(toJournalId));
+  if (s) { s.memory_restore = null; studentsSelectedId = s.id; }
+  studentsRender();
+  if (typeof showOsToast === 'function') showOsToast(`Memory restored${s ? ' for ' + String(s.name || '').split(' ')[0] : ''}`);
+}
+window.studentsMemoryRestore = studentsMemoryRestore;
+async function studentsMemoryDecline(archivedId, btn) {
+  if (btn) btn.disabled = true;
+  await _memApi('POST', `/archive/${encodeURIComponent(archivedId)}/decline`).catch(() => {});
+  STUDENTS.forEach(x => { if (x.memory_restore && String(x.memory_restore.id) === String(archivedId)) x.memory_restore = null; });
+  studentsRender();
+}
+window.studentsMemoryDecline = studentsMemoryDecline;
+async function studentsMemoryDeleteForGood(archivedId, name, btn) {
+  if (!confirm(`Delete ${name}'s TeachEd memory for good? It cannot be brought back.`)) return;
+  if (btn) btn.disabled = true;
+  const r = await _memApi('DELETE', `/archive/${encodeURIComponent(archivedId)}`).catch(() => ({ ok: false }));
+  if (!r.ok) { if (btn) btn.disabled = false; alert('Could not delete'); return; }
+  STUDENTS_ARCHIVE = (STUDENTS_ARCHIVE || []).filter(a => String(a.id) !== String(archivedId));
+  STUDENTS.forEach(x => { if (x.memory_restore && String(x.memory_restore.id) === String(archivedId)) x.memory_restore = null; });
+  if (!STUDENTS_ARCHIVE.length) studentsShowArchive = false;
+  studentsRender();
+}
+window.studentsMemoryDeleteForGood = studentsMemoryDeleteForGood;
 
 /* Message from the student's card: the cabinet (and email when they are
    not on the platform yet) through the Journal; without a Journal row, email. */
@@ -2014,6 +2101,7 @@ function studentsAddFor(id) {
 
 /* Перечитать список с сервера и выбрать ученика по почте или имени. */
 async function studentsReloadRoster(pick) {
+  STUDENTS_ARCHIVE = null;
   try {
     const r = await fetch(API_BASE + '/api/members/roster', { headers: { Authorization: 'Bearer ' + _authToken } });
     if (!r.ok) return;
@@ -3461,13 +3549,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1224" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1225" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1224" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1225" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

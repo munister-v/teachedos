@@ -239,11 +239,14 @@ router.get('/sync', async (req, res) => {
         ORDER BY d.updated_at, d.journal_id LIMIT ${PAGE + 1}`, params);
     const hasMore = rows.length > PAGE;
     const page = rows.slice(0, PAGE);
-    // dossiers the teacher no longer holds: the journal row is gone, or archived (part 3)
+    // dossiers the teacher no longer holds: archived (the student was deleted), or gone
+    // for good (deleted from the archive, erased, restored under another student)
     const { rows: gone } = await pool.query(
       `SELECT d.journal_id FROM student_dossier d
          LEFT JOIN student_journal j ON j.id = d.journal_id AND j.teacher_id = d.teacher_id
-        WHERE d.teacher_id = $1 AND (j.id IS NULL OR d.archived_at IS NOT NULL)`, [req.user.id]);
+        WHERE d.teacher_id = $1 AND (j.id IS NULL OR d.archived_at IS NOT NULL)
+       UNION
+       SELECT journal_id FROM memory_revocations WHERE teacher_id = $1`, [req.user.id]);
     let teacher = null;
     const { rows: [m] } = await pool.query('SELECT style, style_updated_at, version, updated_at FROM teacher_memory WHERE teacher_id = $1', [req.user.id]);
     // the teacher's style rides on the first page of a sync only
@@ -260,5 +263,106 @@ router.get('/sync', async (req, res) => {
   } catch (e) { fail(res, e); }
 });
 
+/* ── the archive (§8.3) ──
+   A deleted student's dossier waits 12 months. The teacher can bring it back under
+   a student of theirs (the roster offers it once when the same account is added
+   again), say no to that offer, or delete it for good at any time. */
+const ARCHIVE_DAYS = 365;
+const ARCHIVE_COLS = `journal_id AS id, archived_name AS name, archived_email AS email, archived_at,
+  archived_at + INTERVAL '${ARCHIVE_DAYS} days' AS delete_at, restore_declined_at,
+  interests, weak_spots, goals, notes, common_mistakes, weak_spot_tags`;
+
+router.get('/archive', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT ${ARCHIVE_COLS} FROM student_dossier WHERE teacher_id = $1 AND archived_at IS NOT NULL ORDER BY archived_at DESC`, [req.user.id]);
+    res.json({ archive: rows });
+  } catch (e) { fail(res, e); }
+});
+
+/* Restore = the archived dossier becomes the memory of one of the teacher's current
+   students (body.to, their journal row - the deleted student's own row is gone). When
+   that student already has a dossier, the two merge by the usual rules instead of one
+   replacing the other. */
+router.post('/students/:id/dossier/restore', async (req, res) => {
+  const to = String((req.body && req.body.to) || '');
+  const client = await pool.connect();
+  try {
+    if (!isUuid(req.params.id)) throw notFound();
+    if (!isUuid(to)) throw new MemErr(422, 'validation', 'Choose the student to restore this memory to');
+    await client.query('BEGIN');
+    await ownedJournal(client, req.user.id, to);
+    const { rows: [old] } = await client.query(
+      'SELECT * FROM student_dossier WHERE journal_id = $1 AND teacher_id = $2 AND archived_at IS NOT NULL FOR UPDATE', [req.params.id, req.user.id]);
+    if (!old) throw notFound();
+    const { rows: [cur] } = await client.query('SELECT * FROM student_dossier WHERE journal_id = $1 FOR UPDATE', [to]);
+    let version;
+    if (cur && cur.journal_id !== old.journal_id) {
+      if (cur.teacher_id !== req.user.id) throw notFound();
+      const newer = (k, ts) => (new Date(old[ts]) > new Date(cur[ts]) ? [old[k], old[ts]] : [cur[k], cur[ts]]);
+      const sets = [], vals = [to];
+      const put = (col, v) => { vals.push(v); sets.push(`${col} = $${vals.length}`); };
+      for (const [k, ts] of Object.entries(TEXT_FIELDS)) { const [v, t] = newer(k, ts); put(k, v); put(ts, t); }
+      const dead = [...new Set([...(cur.deleted_tag_keys || []), ...(old.deleted_tag_keys || [])])];
+      put('common_mistakes', JSON.stringify(mergeMistakes(cur.common_mistakes, old.common_mistakes).slice(0, LIMITS.patterns)));
+      put('deleted_tag_keys', JSON.stringify(dead));
+      put('weak_spot_tags', JSON.stringify(mergeTags(cur.weak_spot_tags, old.weak_spot_tags, dead).slice(0, LIMITS.tags)));
+      const { rows: [u] } = await client.query(
+        `UPDATE student_dossier SET ${sets.join(', ')}, archived_at = NULL, version = version + 1, updated_at = NOW() WHERE journal_id = $1 RETURNING version`, vals);
+      version = u.version;
+      await client.query('DELETE FROM student_dossier WHERE journal_id = $1', [old.journal_id]);
+    } else {
+      const { rows: [u] } = await client.query(
+        `UPDATE student_dossier SET journal_id = $2, archived_at = NULL, archived_name = NULL, archived_email = NULL,
+                student_user_id = NULL, restore_declined_at = NULL, version = version + 1, updated_at = NOW()
+          WHERE journal_id = $1 RETURNING version`, [old.journal_id, to]);
+      version = u.version;
+    }
+    if (old.journal_id !== to) {
+      await client.query(`INSERT INTO memory_revocations (teacher_id, journal_id) VALUES ($1, $2)
+        ON CONFLICT (teacher_id, journal_id) DO UPDATE SET revoked_at = NOW()`, [req.user.id, old.journal_id]);
+    }
+    await client.query('DELETE FROM memory_revocations WHERE teacher_id = $1 AND journal_id = $2', [req.user.id, to]);
+    await client.query('COMMIT');
+    res.json({ version: Number(version), student_id: to });
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    fail(res, e);
+  } finally { client.release(); }
+});
+
+/* "No" to the roster's offer: it is asked once, then the dossier just waits out its year */
+router.post('/archive/:id/decline', async (req, res) => {
+  try {
+    if (!isUuid(req.params.id)) throw notFound();
+    const { rowCount } = await pool.query(
+      `UPDATE student_dossier SET restore_declined_at = COALESCE(restore_declined_at, NOW())
+        WHERE journal_id = $1 AND teacher_id = $2 AND archived_at IS NOT NULL`, [req.params.id, req.user.id]);
+    if (!rowCount) throw notFound();
+    res.json({ ok: true });
+  } catch (e) { fail(res, e); }
+});
+
+/* delete for good, from the archive only (an active dossier goes through deleting the student) */
+router.delete('/archive/:id', async (req, res) => {
+  try {
+    if (!isUuid(req.params.id)) throw notFound();
+    const { rowCount } = await pool.query(
+      `WITH gone AS (DELETE FROM student_dossier WHERE journal_id = $1 AND teacher_id = $2 AND archived_at IS NOT NULL RETURNING teacher_id, journal_id)
+       INSERT INTO memory_revocations (teacher_id, journal_id) SELECT teacher_id, journal_id FROM gone
+       ON CONFLICT (teacher_id, journal_id) DO UPDATE SET revoked_at = NOW()`, [req.params.id, req.user.id]);
+    if (!rowCount) throw notFound();
+    res.json({ ok: true });
+  } catch (e) { fail(res, e); }
+});
+
+/* the daily pass (jobs/housekeeping): a year in the archive ends in a hard delete */
+const RETENTION_SQL = `WITH gone AS (
+    DELETE FROM student_dossier WHERE archived_at < NOW() - INTERVAL '${ARCHIVE_DAYS} days' RETURNING teacher_id, journal_id)
+  INSERT INTO memory_revocations (teacher_id, journal_id) SELECT teacher_id, journal_id FROM gone
+  ON CONFLICT (teacher_id, journal_id) DO UPDATE SET revoked_at = NOW()`;
+
 module.exports = router;
+module.exports.RETENTION_SQL = RETENTION_SQL;
+module.exports.ARCHIVE_DAYS = ARCHIVE_DAYS;
 module.exports._test = { clampTime, mergeMistakes, mergeTags, cleanMistakes };

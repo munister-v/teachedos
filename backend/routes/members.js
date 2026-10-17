@@ -254,6 +254,15 @@ router.get('/roster', requireAuth, async (req, res) => {
        the student cancelled (find a new time). Payments are in the journal
        fields already. */
     const sig = await rosterSignals(req.user.id);
+    /* TeachEd memory (§8.3): the same student (same account) added again within the
+       year - their archived dossier is offered back once, on their card */
+    const { rows: archived } = await pool.query(
+      `SELECT journal_id, student_user_id, archived_at FROM student_dossier
+        WHERE teacher_id = $1 AND archived_at > NOW() - INTERVAL '365 days'
+          AND restore_declined_at IS NULL AND student_user_id IS NOT NULL
+        ORDER BY archived_at DESC`, [req.user.id]);
+    const restoreFor = new Map();
+    for (const a of archived) if (!restoreFor.has(String(a.student_user_id))) restoreFor.set(String(a.student_user_id), { id: a.journal_id, archived_at: a.archived_at });
     const withSignals = r => {
       const u = sig.byUser.get(String(r.id)) || {};
       const j = (r.journal_id && sig.byJournal.get(String(r.journal_id))) || {};
@@ -273,6 +282,7 @@ router.get('/roster', requireAuth, async (req, res) => {
       students: [
         ...rows.map(r => withFormat({
           ...withSignals(r),
+          memory_restore: (r.journal_id && restoreFor.get(String(r.id))) || null,
           boardCount: (r.board_ids || []).length,
           boards: boardsOf(r),
           online: online.has(String(r.id)),

@@ -64,6 +64,7 @@ test.after(async () => {
   if (dbUp && users.length) {
     const ids = users.map(u => u.id);
     await pool.query('DELETE FROM student_dossier WHERE teacher_id = ANY($1)', [ids]);
+    await pool.query('DELETE FROM memory_revocations WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM student_journal WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM users WHERE id = ANY($1)', [ids]);
   }
@@ -206,4 +207,90 @@ db('sync: a full first load, then only changes; pages; a deleted student comes b
   assert.ok(![...s.dossiers].some(d => d.student_id === ids[0]));
   assert.equal((await call(t, 'GET', `/api/memory/students/${ids[0]}/dossier`)).status, 404);
   assert.equal((await call(t, 'GET', '/api/memory/sync?since=yesterday')).status, 422);
+});
+
+/* ── part 3: the 12-month archive (§8.3) ── */
+const memRoutes = require('../routes/memory');
+async function journalFor(teacher, student, name = 'Masha') {
+  const { rows: [j] } = await pool.query('INSERT INTO student_journal (teacher_id, name, email, student_id) VALUES ($1,$2,$3,$4) RETURNING id',
+    [teacher.id, name, student ? student.email : '', student ? student.id : null]);
+  return j.id;
+}
+
+db('deleting a student archives the dossier; re-adding the same account restores it under the new row', async () => {
+  const t = await mk('Archive T');
+  const s = await mk('Archived S', 'student');
+  const j1 = await journalFor(t, s, 'Masha K');
+  await patch(t, j1, { notes: { value: 'Loves horses', updated_at: iso(Date.now() - 1000) } });
+  await pool.query('DELETE FROM student_journal WHERE id = $1', [j1]);   // the teacher deletes the student
+  assert.equal((await call(t, 'GET', `/api/memory/students/${j1}/dossier`)).status, 404, 'not served once archived');
+  const sync = (await call(t, 'GET', '/api/memory/sync')).body;
+  assert.ok(sync.revoked.includes(j1) && !sync.dossiers.some(d => d.student_id === j1));
+  const arch = (await call(t, 'GET', '/api/memory/archive')).body.archive;
+  assert.equal(arch.length, 1);
+  assert.deepEqual([arch[0].id, arch[0].name, arch[0].email, arch[0].notes], [j1, 'Masha K', s.email, 'Loves horses']);
+  assert.ok(Math.abs(Date.parse(arch[0].delete_at) - Date.parse(arch[0].archived_at) - 365 * 86400000) < 5000, 'a year to wait');
+  // the same student is added again: a new journal row
+  const j2 = await journalFor(t, s, 'Masha K');
+  assert.equal((await call(t, 'POST', `/api/memory/students/${j1}/dossier/restore`, {})).status, 422, 'restore names the student');
+  const r = await call(t, 'POST', `/api/memory/students/${j1}/dossier/restore`, { to: j2 });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal((await call(t, 'GET', `/api/memory/students/${j2}/dossier`)).body.notes, 'Loves horses', 'everything comes back');
+  assert.deepEqual((await call(t, 'GET', '/api/memory/archive')).body.archive, []);
+  const after = (await call(t, 'GET', '/api/memory/sync')).body;
+  assert.ok(after.dossiers.some(d => d.student_id === j2) && after.revoked.includes(j1), 'devices move it from the old id to the new one');
+});
+
+db('restoring over an existing dossier merges the two; decline and delete-for-good; strangers get 404', async () => {
+  const t = await mk('Merge archive T');
+  const other = await mk('Stranger T');
+  const j3 = await journalFor(t, null, 'Oleg');
+  await patch(t, j3, { notes: { value: 'old notes', updated_at: iso(Date.now() - 60000) }, goals: { value: 'FCE', updated_at: iso(Date.now() - 60000) },
+    common_mistakes: { value: [{ pattern: 'articles', count: 2 }], updated_at: iso(Date.now() - 60000) } });
+  await pool.query('DELETE FROM student_journal WHERE id = $1', [j3]);
+  const j4 = await journalFor(t, null, 'Oleg');
+  await patch(t, j4, { notes: { value: 'new notes', updated_at: iso(Date.now()) }, common_mistakes: { value: [{ pattern: 'word order', count: 1 }], updated_at: iso(Date.now()) } });
+  for (const [m, url, body] of [['POST', `/api/memory/students/${j3}/dossier/restore`, { to: j4 }], ['POST', `/api/memory/archive/${j3}/decline`], ['DELETE', `/api/memory/archive/${j3}`]]) {
+    assert.equal((await call(other, m, url, body)).status, 404, `${m} ${url} by a stranger`);
+  }
+  assert.equal((await call(t, 'POST', `/api/memory/archive/${j3}/decline`)).status, 200);
+  assert.ok((await call(t, 'GET', '/api/memory/archive')).body.archive[0].restore_declined_at, 'asked once');
+  assert.equal((await call(t, 'POST', `/api/memory/students/${j3}/dossier/restore`, { to: j4 })).status, 200);
+  const d = (await call(t, 'GET', `/api/memory/students/${j4}/dossier`)).body;
+  assert.deepEqual([d.notes, d.goals, d.common_mistakes.map(m => m.pattern).sort()], ['new notes', 'FCE', ['articles', 'word order']], 'newer field wins, lists join');
+  // another archived one, deleted for good by the teacher
+  const j5 = await journalFor(t, null, 'Gone');
+  await patch(t, j5, { notes: { value: 'x', updated_at: iso(Date.now()) } });
+  await pool.query('DELETE FROM student_journal WHERE id = $1', [j5]);
+  assert.equal((await call(t, 'DELETE', `/api/memory/archive/${j5}`)).status, 200);
+  assert.equal((await call(t, 'DELETE', `/api/memory/archive/${j5}`)).status, 404);
+  assert.equal((await pool.query('SELECT 1 FROM student_dossier WHERE journal_id = $1', [j5])).rowCount, 0);
+  assert.ok((await call(t, 'GET', '/api/memory/sync')).body.revoked.includes(j5));
+  // an active dossier cannot be deleted through the archive
+  assert.equal((await call(t, 'DELETE', `/api/memory/archive/${j4}`)).status, 404);
+});
+
+db('erasing a student skips the archive; a year in the archive ends in a hard delete', async () => {
+  const t = await mk('Retention T');
+  const je = await journalFor(t, null, 'Erase me');
+  await patch(t, je, { notes: { value: 'private', updated_at: iso(Date.now()) } });
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    await c.query(`SET LOCAL teached.dossier_erase = 'on'`);
+    await c.query('DELETE FROM student_journal WHERE id = $1', [je]);
+    await c.query('COMMIT');
+  } finally { c.release(); }
+  assert.equal((await pool.query('SELECT 1 FROM student_dossier WHERE journal_id = $1', [je])).rowCount, 0, 'erased, not archived');
+  assert.ok((await call(t, 'GET', '/api/memory/sync')).body.revoked.includes(je));
+  // the flag was local to that transaction: a normal delete archives again
+  const [old, young] = [await journalFor(t, null, 'Old'), await journalFor(t, null, 'Young')];
+  for (const j of [old, young]) await patch(t, j, { notes: { value: 'n', updated_at: iso(Date.now()) } });
+  await pool.query('DELETE FROM student_journal WHERE id = ANY($1)', [[old, young]]);
+  await pool.query(`UPDATE student_dossier SET archived_at = NOW() - INTERVAL '366 days' WHERE journal_id = $1`, [old]);
+  await pool.query(`UPDATE student_dossier SET archived_at = NOW() - INTERVAL '300 days' WHERE journal_id = $1`, [young]);
+  await pool.query(memRoutes.RETENTION_SQL);
+  assert.deepEqual((await call(t, 'GET', '/api/memory/archive')).body.archive.map(a => a.id), [young], 'only the year-old one is gone');
+  const s = (await call(t, 'GET', '/api/memory/sync')).body;
+  assert.ok(s.revoked.includes(old) && s.revoked.includes(young));
 });

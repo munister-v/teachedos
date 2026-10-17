@@ -21,6 +21,10 @@ const TASKS = [
   ['hourly telemetry',   `DELETE FROM telemetry_hourly WHERE hour_start < NOW() - INTERVAL '18 months'`],
   ['read notifications', `DELETE FROM notifications WHERE read = TRUE AND created_at < NOW() - INTERVAL '30 days'`],
   ['used email tokens',  `DELETE FROM email_tokens WHERE expires_at <= NOW() - INTERVAL '7 days'`],
+  // TeachEd memory (§8.3): a year in the archive ends in a hard delete; every device of
+  // the teacher learns it from memory_revocations, kept a little longer than the archive
+  ['archived dossiers',  require('../routes/memory').RETENTION_SQL],
+  ['memory revocations', `DELETE FROM memory_revocations WHERE revoked_at < NOW() - INTERVAL '400 days'`],
 ];
 
 async function runHousekeeping() {

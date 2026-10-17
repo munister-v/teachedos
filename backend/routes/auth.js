@@ -1021,6 +1021,8 @@ router.delete('/me', requireAuth, authLimiter, async (req, res) => {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      // a student who deletes their account takes their teachers' dossiers about them along (no archive)
+      await client.query(`SET LOCAL teached.dossier_erase = 'on'`);
       await client.query('DELETE FROM student_journal WHERE student_id = $1', [req.user.id]);
       await client.query('DELETE FROM shared_materials WHERE owner_id = $1', [req.user.id]);
       await client.query('DELETE FROM users WHERE id = $1', [req.user.id]);
