@@ -795,6 +795,14 @@ function shapeSpec(input) {
         schema: '{"questions":[{"type":"gap-fill","text":"Ukrainian sentence with [target word]","answer":"Natural English translation","points":1}]}',
       };
     }
+    /* A listening lesson has two real passes (Lesson Builder 2.0 T-L2): the first listening is
+       for the gist alone, the second for the details - different tasks, not one flat quiz. */
+    if (isGist && input.lesson === 'listening') {
+      return {
+        task: `${head} This is for a LISTENING lesson with TWO passes, written from the source (the transcript). Produce EXACTLY ${count} questions. FIRST PASS - gist only, listened to once without stopping: the first 2 questions are about the main idea and the speaker's purpose or attitude; a student who caught only the general sense can answer them, and neither asks for a name, number or date. SECOND PASS - detail, listened to again with the questions in front of them: every remaining question asks for ONE specific fact the speaker says (a name, number, reason, order of events) and is answered in a few words. Put "pass":"gist" or "pass":"detail" on every question and keep all the gist questions first. Every MCQ has 3-4 plausible options of similar length, one correct; "answer" must equal the correct option text verbatim. Use ONLY what the source says.${context}`,
+        schema: '{"questions":[{"type":"mcq","pass":"gist","text":"What is the speaker mainly talking about?","options":["...","...","..."],"answer":"...","points":1},{"type":"mcq","pass":"detail","text":"How many ... did ...?","options":["...","...","..."],"answer":"...","points":1}]}',
+      };
+    }
     if (isGist) {
       return {
         task: `${head} Produce EXACTLY ${count} reading-comprehension questions based ONLY on the source text, in this order: (1) the FIRST is ONE gist / main-idea MCQ; (2) the MAJORITY of the rest are DETAIL MCQs that check specific facts stated in the text - make these the bulk of the set; (3) end with only 1-2 OPEN inference / opinion questions. So most questions are multiple-choice. Every MCQ has 4 plausible options that are FULL, meaningful answers (complete phrases - NOT single words copied from the text), exactly one correct and three realistic distractors; "answer" must equal the correct option text verbatim. Open questions have no options.${context}`,
