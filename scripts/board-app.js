@@ -16791,7 +16791,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1222';
+const TEACHEDOS_ASSET_VERSION = '1223';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23690,7 +23690,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1222',
+          icon: 'icons/icon-192.png?v=1223',
           tag: 'board-live-' + s.id,
         });
       }
@@ -23872,6 +23872,8 @@ async function logout() {
   const mm = document.getElementById('more-menu'); if (mm) mm.style.display = 'none';
   try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
   setToken(null);
+  // TeachEd memory's offline copy belongs to this account only (a shared computer)
+  try { indexedDB.deleteDatabase('teached-memory'); } catch (_) {}
   currentUser = null;
   currentBoardId = null;
   localStorage.removeItem('teachedos_board_id');
@@ -26590,49 +26592,151 @@ document.addEventListener('mousedown', e => {
 const AI_ASSISTANT_STORAGE = 'teached.aiAssistant.settings.v1';
 let _lastAiAssistantResult = null;
 
-function loadAiAssistantSettings() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}');
-    if (saved.teacherMemory) document.getElementById('ai-teacher-memory').value = saved.teacherMemory;
-    if (saved.studentMemory) document.getElementById('ai-student-memory').value = saved.studentMemory;
-    if (saved.mistakes) document.getElementById('ai-mistakes').value = saved.mistakes;
-    if (saved.mode) document.getElementById('ai-mode').value = saved.mode;
-    if (saved.goal) document.getElementById('ai-goal').value = saved.goal;
-    if (saved.tone) document.getElementById('ai-tone').value = saved.tone;
-  } catch {}
-}
+/* TeachEd memory (17.10.2026, part 1): for a signed-in teacher the studio reads
+   and writes the server memory through its local mirror (scripts/teached-memory.js):
+   - Teacher memory, goal, tone and mode -> the teacher's style, on every device;
+   - Student memory and Common mistakes -> the chosen student's dossier (notes and
+     weak_spots), private to this teacher.
+   With no student chosen (a whole class), and for a guest, the two student blocks
+   stay in this browser as before - their move to the server is part 2. */
+const AI_MEMORY_STUDENT_KEY = 'teached.aiMemory.student.';
+let _aiMemStudent = '';
+let _aiMemRoster = null;
+const _aiMem = () => (window.TeachedMemory && authToken ? window.TeachedMemory : null);
+const _aiLocal = () => { try { return JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}'); } catch { return {}; } };
+const _aiSet = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+const _aiVal = id => document.getElementById(id)?.value || '';
 
-function saveAiAssistantSettings() {
-  const payload = {
-    teacherMemory: document.getElementById('ai-teacher-memory')?.value || '',
-    studentMemory: document.getElementById('ai-student-memory')?.value || '',
-    mistakes: document.getElementById('ai-mistakes')?.value || '',
-    mode: document.getElementById('ai-mode')?.value || 'lesson-board',
-    goal: document.getElementById('ai-goal')?.value || 'confidence',
-    tone: document.getElementById('ai-tone')?.value || 'supportive',
-  };
-  localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify(payload));
+async function loadAiAssistantSettings() {
+  const saved = _aiLocal();
+  _aiSet('ai-teacher-memory', saved.teacherMemory || '');
+  _aiSet('ai-mode', saved.mode || null); _aiSet('ai-goal', saved.goal || null); _aiSet('ai-tone', saved.tone || null);
+  const mem = _aiMem();
+  if (mem) {
+    const style = await mem.getStyle().catch(() => ({}));
+    if (style && Object.keys(style).length) {
+      _aiSet('ai-teacher-memory', style.memory || '');
+      if (style.mode) _aiSet('ai-mode', style.mode);
+      if (style.goal) _aiSet('ai-goal', style.goal);
+      if (style.tone) _aiSet('ai-tone', style.tone);
+    }
+    await aiMemoryFillStudents();
+  }
+  await loadAiStudentMemory();
   updateAiProviderNote();
-  toast('AI memory saved');
 }
 
-function updateAiProviderNote() {
+/* the teacher's students for the picker; the board's own student is picked by default */
+async function aiMemoryFillStudents() {
+  const sel = document.getElementById('ai-memory-student');
+  if (!sel) return;
+  sel.closest('.ai-memory-student-row')?.removeAttribute('hidden');
+  if (!_aiMemRoster) {
+    try {
+      const r = await apiFetch('/api/journal');
+      _aiMemRoster = r.ok ? ((await r.json()).students || []) : [];
+    } catch { _aiMemRoster = []; }
+  }
+  const remembered = (() => { try { return localStorage.getItem(AI_MEMORY_STUDENT_KEY + (currentBoardId || '')); } catch { return null; } })();
+  let pick = remembered != null ? remembered : '';
+  if (remembered == null && currentBoardId) {
+    try {
+      const r = await apiFetch('/api/members/' + encodeURIComponent(currentBoardId));
+      const members = r.ok ? ((await r.json()).members || []).filter(m => m.role !== 'owner') : [];
+      if (members.length === 1) {
+        const m = members[0];
+        const j = _aiMemRoster.find(x => String(x.student_id || '') === String(m.user_id) || (x.email && m.email && x.email.toLowerCase() === m.email.toLowerCase()));
+        if (j) pick = String(j.id);
+      }
+    } catch {}
+  }
+  if (pick && !_aiMemRoster.some(j => String(j.id) === pick)) pick = '';
+  sel.replaceChildren(new Option('Whole class (kept in this browser)', ''), ..._aiMemRoster.map(j => new Option(j.name || 'Student', String(j.id))));
+  sel.value = pick;
+  _aiMemStudent = pick;
+}
+
+async function loadAiStudentMemory() {
+  const mem = _aiMem();
+  if (mem && _aiMemStudent) {
+    const d = await mem.getDossier(_aiMemStudent).catch(() => null);
+    _aiSet('ai-student-memory', (d && d.notes) || '');
+    _aiSet('ai-mistakes', (d && d.weak_spots) || '');
+  } else {
+    const saved = _aiLocal();
+    _aiSet('ai-student-memory', saved.studentMemory || '');
+    _aiSet('ai-mistakes', saved.mistakes || '');
+  }
+}
+
+async function aiMemoryStudentChanged(sel) {
+  await saveAiAssistantSettings({ quiet: true });   // what was typed belongs to the student it was typed for
+  _aiMemStudent = sel.value;
+  try { localStorage.setItem(AI_MEMORY_STUDENT_KEY + (currentBoardId || ''), _aiMemStudent); } catch {}
+  await loadAiStudentMemory();
+  updateAiProviderNote();
+}
+
+async function saveAiAssistantSettings(opts = {}) {
+  const teacherMemory = _aiVal('ai-teacher-memory'), studentMemory = _aiVal('ai-student-memory'), mistakes = _aiVal('ai-mistakes');
+  const mode = _aiVal('ai-mode') || 'lesson-board', goal = _aiVal('ai-goal') || 'confidence', tone = _aiVal('ai-tone') || 'supportive';
+  const mem = _aiMem();
+  const local = _aiLocal();
+  if (!mem) {
+    localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify({ teacherMemory, studentMemory, mistakes, mode, goal, tone }));
+  } else {
+    const style = await mem.getStyle().catch(() => ({}));
+    const next = { ...style, memory: teacherMemory, mode, goal, tone };
+    if (JSON.stringify(next) !== JSON.stringify(style)) await mem.saveStyle(next);
+    if (_aiMemStudent) {
+      const d = (await mem.getDossier(_aiMemStudent).catch(() => null)) || {};
+      if ((d.notes || '') !== studentMemory) await mem.saveDossierField(_aiMemStudent, 'notes', studentMemory);
+      if ((d.weak_spots || '') !== mistakes) await mem.saveDossierField(_aiMemStudent, 'weak_spots', mistakes);
+    } else {
+      // a whole class stays in this browser; the old keys are left for the move to the server (part 2)
+      localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify({ ...local, studentMemory, mistakes }));
+    }
+  }
+  updateAiProviderNote();
+  if (!opts.quiet) toast('AI memory saved');
+}
+
+async function updateAiProviderNote() {
   const note = document.getElementById('ai-memory-note');
   if (!note) return;
-  const saved = JSON.parse(localStorage.getItem(AI_ASSISTANT_STORAGE) || '{}');
-  const count = ['teacherMemory','studentMemory','mistakes'].filter(k => String(saved[k] || '').trim()).length;
-  note.textContent = count
-    ? `Memory active: ${count}/3 blocks saved. Generated boards will adapt to your teaching style.`
-    : 'Memory is saved only on this device. The next generated board will adapt to your notes, mistakes and selected mode.';
+  const count = ['ai-teacher-memory', 'ai-student-memory', 'ai-mistakes'].filter(id => _aiVal(id).trim()).length;
+  const mem = _aiMem();
+  if (!mem) {
+    note.textContent = count
+      ? `Memory active: ${count}/3 blocks saved. Generated boards will adapt to your teaching style.`
+      : 'Memory is saved only on this device. The next generated board will adapt to your notes, mistakes and selected mode.';
+    return;
+  }
+  const waiting = await mem.pending().catch(() => 0);
+  note.textContent = (_aiMemStudent
+    ? 'Saved to your TeachEd memory - private, and with you on every device.'
+    : 'Your style is saved to your TeachEd memory. Pick a student to keep their memory on every device; class memory stays in this browser.')
+    + (waiting ? ' Not synced yet.' : '');
 }
 
-function clearAiAssistantMemory() {
-  localStorage.removeItem(AI_ASSISTANT_STORAGE);
-  ['ai-teacher-memory','ai-student-memory','ai-mistakes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+async function clearAiAssistantMemory() {
+  const mem = _aiMem();
+  if (mem && !confirm(_aiMemStudent ? 'Clear your teaching memory and this student\'s memory on all your devices?' : 'Clear your teaching memory on all your devices?')) return;
+  ['ai-teacher-memory', 'ai-student-memory', 'ai-mistakes'].forEach(id => _aiSet(id, ''));
   document.querySelectorAll('#ai-memory-presets .ai-memory-chip').forEach(btn => btn.classList.remove('active'));
+  if (mem) await saveAiAssistantSettings({ quiet: true });
+  else localStorage.removeItem(AI_ASSISTANT_STORAGE);
   updateAiProviderNote();
   toast('AI memory cleared');
 }
+
+// another device changed the memory: refresh the open studio unless the teacher is typing in it
+window.TeachedMemory?.onChange(e => {
+  if (!e || !document.getElementById('ai-assistant-panel')?.classList.contains('open')) return;
+  if (e.type !== 'synced') { updateAiProviderNote(); return; }
+  if (document.activeElement && document.activeElement.closest?.('#ai-assistant-panel textarea')) return;
+  loadAiAssistantSettings();
+});
 
 function toggleAiMemoryPreset(btn, text) {
   btn?.classList.toggle('active');

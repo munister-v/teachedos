@@ -131,6 +131,8 @@ async function desktopSignOut() {
   closeAccountMenu();
   try { await dxApi('/api/auth/logout', { method: 'POST' }); } catch (_) {}
   if (typeof clearAuthState === 'function') clearAuthState();
+  // TeachEd memory's offline copy belongs to this account only (a shared computer)
+  try { indexedDB.deleteDatabase('teached-memory'); } catch (_) {}
   location.replace('landing.html');
 }
 

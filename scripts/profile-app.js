@@ -1099,6 +1099,8 @@ function clearAuthState() {
     'teachedos_teacher_dashboard_cache_v1',
   ];
   keys.forEach(k => localStorage.removeItem(k));
+  // TeachEd memory's offline copy belongs to this account only (a shared computer)
+  try { indexedDB.deleteDatabase('teached-memory'); } catch (_) {}
   // Revoke Google One Tap auto-select so it doesn't re-sign in immediately
   try { google.accounts.id.disableAutoSelect(); } catch {}
 }

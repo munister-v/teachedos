@@ -212,6 +212,7 @@ app.use('/api/images', require('./routes/images'));
 app.use('/api/gifs', require('./routes/gifs'));
 app.use('/api/dictionary', require('./routes/dictionary'));
 app.use('/api/onboarding', require('./routes/onboarding'));
+app.use('/api/memory', require('./routes/memory'));
 
 // ── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

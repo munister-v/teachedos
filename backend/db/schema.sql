@@ -1460,3 +1460,42 @@ CREATE TABLE IF NOT EXISTS public_reports (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_public_reports_who ON public_reports(who, created_at DESC);
+
+-- ── TeachEd memory (17.10.2026, "Память TeachEd" ТЗ, part 1) ────────────────
+-- The server is the source of truth; the browser keeps a cache and an offline
+-- queue. Every field carries its own time, so edits from two devices merge field
+-- by field instead of "whoever saved last wins".
+CREATE TABLE IF NOT EXISTS teacher_memory (
+  teacher_id       UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  style            JSONB NOT NULL DEFAULT '{}',
+  style_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  version          BIGINT NOT NULL DEFAULT 1,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+-- One dossier per student of the teacher, keyed by the journal row: a student
+-- added by email who has no account yet has a dossier too. No foreign key to the
+-- journal on purpose - deleting a student will archive the dossier (part 3), not
+-- drop it; until then a dossier whose journal row is gone is never served and is
+-- reported as revoked by /api/memory/sync.
+CREATE TABLE IF NOT EXISTS student_dossier (
+  journal_id            UUID PRIMARY KEY,
+  teacher_id            UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  interests             TEXT NOT NULL DEFAULT '',
+  interests_updated_at  TIMESTAMPTZ NOT NULL DEFAULT 'epoch',
+  weak_spots            TEXT NOT NULL DEFAULT '',
+  weak_spots_updated_at TIMESTAMPTZ NOT NULL DEFAULT 'epoch',
+  common_mistakes       JSONB NOT NULL DEFAULT '[]',
+  mistakes_updated_at   TIMESTAMPTZ NOT NULL DEFAULT 'epoch',
+  goals                 TEXT NOT NULL DEFAULT '',
+  goals_updated_at      TIMESTAMPTZ NOT NULL DEFAULT 'epoch',
+  notes                 TEXT NOT NULL DEFAULT '',
+  notes_updated_at      TIMESTAMPTZ NOT NULL DEFAULT 'epoch',
+  weak_spot_tags        JSONB NOT NULL DEFAULT '[]',
+  deleted_tag_keys      JSONB NOT NULL DEFAULT '[]',
+  tags_updated_at       TIMESTAMPTZ NOT NULL DEFAULT 'epoch',
+  archived_at           TIMESTAMPTZ,
+  version               BIGINT NOT NULL DEFAULT 1,
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_dossier_teacher_updated ON student_dossier(teacher_id, updated_at);
