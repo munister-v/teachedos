@@ -92,7 +92,7 @@
   function load(id, out) {
     if (out && out.custom) return Promise.resolve(buildCustom(Object.assign({ id: id || 'custom' }, out.custom)));
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1195`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1196`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -391,7 +391,8 @@
     }).catch(() => { stage.innerHTML = '<div class="sc-loading">The picture could not be loaded. Check your connection and open it again.</div>'; });
 
     /* what is on the picture at this level */
-    const skipped = new Set(Array.isArray(out.skip) ? out.skip : []);      // words the teacher took out before adding it
+    const skipped = new Set(Array.isArray(out.skip) ? out.skip : []);      // words the teacher took out (before or after adding it)
+    let editNote = '';
     const items = () => sc.parts.filter(p => inLevel(p.level, st.level) && !skipped.has(p.id));
     const rooms = () => sc.rooms.filter(r => rank(r.level) <= rank(st.level));
     const all = () => items().concat(rooms());
@@ -637,7 +638,35 @@
         <div class="sc-acts">
           <button type="button" class="sc-btn ${saved ? 'ghost' : 'lime'}" data-act="vault"${saved || !opts.canSave ? ' disabled' : ''}>${saved ? '✓ In your Word Bank' : opts.canSave ? '+ Save to my Word Bank' : 'Sign in to save'}</button>
           <button type="button" class="sc-btn dark" data-act="hear"${window.TeachedHear ? '' : ' disabled'}>▶ Real videos</button>
+          ${opts.canEdit && !isRoom(it) ? '<button type="button" class="sc-btn ghost" data-act="takeout">Take out of this lesson</button>' : ''}
         </div></div>`;
+    }
+    /* Editing after publishing: the teacher can take a word out of the lesson, and put it back.
+       The change is written to the card (opts.setSkip) and the games start over without it. */
+    const MIN_WORDS = out.custom ? 2 : 6;
+    function persistSkip() {
+      const ids = [...skipped];
+      if (ids.length) out.skip = ids; else delete out.skip;
+      try { opts.setSkip && opts.setSkip(ids); } catch (e) {}
+      st.find = st.name = st.label = null;
+      save();
+    }
+    function takeOut(id) {
+      const it = byId(id);
+      if (!it || isRoom(it)) return;
+      if (items().length <= MIN_WORDS) { editNote = `Keep at least ${MIN_WORDS} words - the tasks need them.`; paint(); return; }
+      skipped.add(id); st.sel = null; editNote = `“${it.word}” is out of this lesson.`;
+      persistSkip(); paint(); paintTabs();
+    }
+    function putBack(id) {
+      if (!skipped.delete(id)) return;
+      editNote = ''; persistSkip(); paint(); paintTabs();
+    }
+    function removedBlock() {
+      if (!opts.canEdit || (!skipped.size && !editNote)) return '';
+      const gone = [...skipped].map(id => sc.parts.find(p => p.id === id)).filter(Boolean).filter(p => inLevel(p.level, st.level));
+      return `<div class="sc-group">Taken out of this lesson</div>${editNote ? `<p class="sc-muted" style="margin:0 0 6px">${esc(editNote)}</p>` : ''}
+        <div class="sc-words">${gone.map(p => `<button type="button" class="sc-w" data-restore="${esc(p.id)}" title="Put back">${esc(p.word)} ↺</button>`).join('')}</div>`;
     }
     function paintExplore() {
       const it = st.sel ? byId(st.sel) : null;
@@ -649,6 +678,7 @@
         ${it ? wordCard(it) : `<div class="sc-card"><p class="sc-def" style="margin:0"><b>${items().length + rooms().length} words</b>${sc.image ? '' : ` at ${esc(st.level)} level`}. ${st.saved.length ? `You have saved ${st.saved.length}.` : 'Save the new ones to your Word Bank to practise them later.'}</p></div>`}
         ${rooms().length ? `<div class="sc-group">${esc(sc.roomsTitle || 'Rooms')}</div>` : ''}<div class="sc-words">${rooms().map(r => `<button type="button" class="sc-w${st.sel === r.id ? ' on' : ''}${st.saved.includes(r.word) ? ' saved' : ''}" data-pick="${r.id}">${esc(r.word)}<span class="lv">${r.level}</span></button>`).join('')}</div>
         ${Object.keys(groups).map(g => `<div class="sc-group">${esc(roomName(g))}</div><div class="sc-words">${groups[g].map(p => `<button type="button" class="sc-w${st.sel === p.id ? ' on' : ''}${st.saved.includes(p.word) ? ' saved' : ''}" data-pick="${p.id}">${esc(p.word)}${p.level === '*' ? '' : `<span class="lv">${p.level}</span>`}</button>`).join('')}</div>`).join('')}`;
+      if (opts.canEdit) panel.insertAdjacentHTML('beforeend', removedBlock());
     }
 
     /* ── Find it ── */
@@ -852,6 +882,8 @@
       const t = e.target;
       const s = t.closest('[data-say]');
       if (s) { say(s.dataset.say); return; }
+      const rest = t.closest('[data-restore]');
+      if (rest) { putBack(rest.dataset.restore); return; }
       const pick = t.closest('[data-pick]');
       if (pick) {
         const it = byId(pick.dataset.pick);
@@ -900,6 +932,7 @@
       }
       if (act === 'name-check') nameCheck();
       if (act === 'name-hint') { const n = st.name; const w = byId(n.order[n.round]).word; n.hint = Math.min(w.length - 1, (n.hint || 0) + 1); save(); const inp = panel.querySelector('#sc-name'); inp.placeholder = w.split('').map((c, i) => i < n.hint || c === ' ' ? c : '·').join(''); inp.focus(); }
+      if (act === 'takeout' && st.sel) { takeOut(st.sel); return; }
       if (act === 'name-skip') { const n = st.name; n.round++; n.hint = 0; n.tried = false; save(); paint(); }
       if (act === 'name-again') { newName(); paint(); }
       if (act === 'label-new') { newLabel(); labelPick = null; paint(); }

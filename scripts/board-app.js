@@ -4687,6 +4687,9 @@ function _wpRender(el, card, focus) {
       window.__scActive = window.TeachedScene.mount(box, {
         out: step.out, state: _wpState(card, i), api: apiFetch,
         canSave: !!authToken && !card.__preview, boardId: currentBoardId || null,
+        /* The teacher can take words out of the lesson after it is on the board (P2, T-P3). */
+        canEdit: !!_wpOwnerOf(card) && !card.__preview,
+        setSkip: () => { const c = _wpCard(card.id); if (c) _wpPersist(c); },
         onSaved: item => _vaultRemember(item),
         save: s => { const c = _wpCard(card.id); if (c) _wpSetState(c, i, s); },
       });
@@ -16661,7 +16664,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1195';
+const TEACHEDOS_ASSET_VERSION = '1196';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23454,7 +23457,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1195',
+          icon: 'icons/icon-192.png?v=1196',
           tag: 'board-live-' + s.id,
         });
       }
