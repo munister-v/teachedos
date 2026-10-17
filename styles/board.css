@@ -7779,3 +7779,10 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 .tb-wiz-noaudio span{font-size:12.5px;color:#5D614B;line-height:1.45;}
 .tb-wiz-noaudio div{display:flex;flex-wrap:wrap;gap:8px;}
 .tb-wiz-noaudio .tbuilder-btn{padding:8px 13px;font-size:12.5px;}
+
+.tb-stage-head[role=button]{cursor:pointer;}
+.tb-stage-head[role=button]:focus-visible{outline:2px solid #24282C;outline-offset:2px;border-radius:8px;}
+.tb-stage-count{margin-left:auto;font-family:var(--font);font-size:11.5px;font-weight:600;color:#5D614B;}
+.tb-stage-head[role=button]::after{content:'▾';margin-left:8px;font-size:11px;color:#5D614B;}
+.tb-stage.is-collapsed .tb-stage-head[role=button]::after{content:'▸';}
+.tb-stage.is-collapsed > :not(.tb-stage-head){display:none !important;}

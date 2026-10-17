@@ -16664,7 +16664,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1200';
+const TEACHEDOS_ASSET_VERSION = '1201';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18324,7 +18324,32 @@ function renderBoardLessonStages(toolId) {
       <p class="tb-stage-q">${esc(st.question)}</p>
       ${_stageOptionsHtml(st, picked, si)}
     </div>`).join('') + `<div class="tb-stage-meta" id="tbuilder-stages-meta"></div>`;
+  _stageDisclosure(host);
   onBoardStagePickChange();
+}
+
+/* Progressive disclosure (Lesson Builder 2.0 E19, W2): the first stage is open, the rest are
+   one line each with how many things are chosen; the defaults stay ticked underneath. A teacher
+   who wants to change a stage opens it. */
+function _stageDisclosure(host) {
+  const stages = [...host.querySelectorAll('.tb-stage')];
+  const count = st => st.querySelectorAll('input:checked').length;
+  stages.forEach((st, i) => {
+    const head = st.querySelector('.tb-stage-head');
+    if (!head || head.dataset.disc) return;
+    head.dataset.disc = '1';
+    const tag = document.createElement('span');
+    tag.className = 'tb-stage-count';
+    head.appendChild(tag);
+    const sync = () => { const n = count(st); tag.textContent = n ? `${n} chosen` : 'none chosen'; head.setAttribute('aria-expanded', String(!st.classList.contains('is-collapsed'))); };
+    head.setAttribute('role', 'button'); head.tabIndex = 0;
+    const toggle = () => { st.classList.toggle('is-collapsed'); sync(); };
+    head.addEventListener('click', toggle);
+    head.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    st.addEventListener('change', sync);
+    if (i > 0) st.classList.add('is-collapsed');
+    sync();
+  });
 }
 
 function onBoardStagePickChange() {
@@ -23471,7 +23496,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1200',
+          icon: 'icons/icon-192.png?v=1201',
           tag: 'board-live-' + s.id,
         });
       }
