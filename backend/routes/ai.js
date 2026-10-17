@@ -420,6 +420,7 @@ function normaliseInput(body) {
 function cacheKey(userId, input) {
   return JSON.stringify({
     userId,
+    memory: input.memory || '',
     toolId: input.toolId,
     level: input.level,
     count: input.count,
@@ -1766,6 +1767,8 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
   const started = Date.now();
   try {
     const input = normaliseInput(req.body);
+    // TeachEd memory (§5): the teacher's style, and the board's student when there is one
+    input.memory = await require('../lib/memoryContext').memoryContextSafe(require('../db/pool'), req.user.id, req.body?.boardId || req.body?.input?.boardId);
     METRICS.total++;
     METRICS.lastAt = new Date().toISOString();
     const key = cacheKey(req.user.id, input);
@@ -2415,7 +2418,8 @@ router.post('/board-agent', requireAuth, requireTeacher, boardAgentLimiter, asyn
     if (command.length < 2) return res.status(400).json({ error: 'command required' });
     if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
     await reserveAiQuota(req.user, { mode: 'board-agent', source: command + cards.map(c => c.text).join('\n') });
-    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport }));
+    const memory = await require('../lib/memoryContext').memoryContextSafe(require('../db/pool'), req.user.id, req.body?.boardId);
+    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport, memory }));
     recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
     res.json({ ...boardAgent.sanitizePlan(raw, cards), quota: await readAiQuota(req.user) });
   } catch (err) {

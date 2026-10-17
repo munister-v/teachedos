@@ -428,6 +428,8 @@ function shapeSpec(input) {
   }
   if (input.vocab) ctx.push(`Target vocabulary: ${input.vocab}`);
   if (input.extra) ctx.push(`Teacher direction. Follow it where it applies: ${input.extra}`);
+  // TeachEd memory (lib/memoryContext.js): shapes the material, never appears in it
+  if (input.memory) ctx.push(`What you know about this teacher and student - private: tailor topics, examples and practice to it, but never mention, quote or hint at it in the material: ${input.memory}`);
   /* Транскрипт іде ПЕРШИМ, а не в кінці - заради кешу префікса у провайдера.
 
      Один YouTube-урок - це окремий запит на КОЖНУ вправу, і в кожному лежить

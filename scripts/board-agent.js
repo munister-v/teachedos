@@ -433,6 +433,25 @@
     return true;
   }
 
+  /* ── Remember (TeachEd memory §5) ───────────────────────────────────────
+     The assistant writes to a student's memory only when the teacher asks, shows the
+     exact text and the field, and saves on Apply. */
+  const REMEMBER = /^\s*(?:please\s+)?(?:remember|note down|запомни|запам['’]ятай)\b[\s,:-]*(?:that\s+|что\s+|що\s+)?([\s\S]{3,})$/i;
+  async function rememberPlan(text, command) {
+    const st = window.TeachedMemory && typeof window.aiMemoryBoardStudent === 'function' ? await window.aiMemoryBoardStudent().catch(() => null) : null;
+    if (!st) {
+      show({ reply: 'I remember things for one student. Pick the student of this board in AI Memory Studio first, then ask again.', actions: [] }, command);
+      return;
+    }
+    show({ reply: `I will add this to ${st.name}'s TeachEd memory. Only you see it.`, actions: [{ op: 'remember', id: st.id, name: st.name, field: 'notes', text: text.slice(0, 2000) }] }, command);
+  }
+  async function doRemember(a) {
+    const d = (await window.TeachedMemory.getDossier(a.id).catch(() => null)) || {};
+    const was = String(d[a.field] || '').trim();
+    await window.TeachedMemory.saveDossierField(a.id, a.field, was ? `${was}\n${a.text}` : a.text);
+    toast(`Saved to ${a.name}'s memory`);
+  }
+
   /* ── Ask ────────────────────────────────────────────────────────────── */
   async function ask() {
     const command = input.value.trim();
@@ -444,9 +463,13 @@
     const studio = studioIntent(command);
     if (studio && openStudio(studio.key, null, { useWords: studio.useWords })) return;
     clearPlan();
+    // "Remember that…": never decided by the model - the exact text and where it goes, then Apply
+    const rem = REMEMBER.exec(command);
+    if (rem) { await rememberPlan(rem[1].trim(), command); return; }
     setBusy(true);
     try {
-      const r = await apiFetch('/api/ai/board-agent', { method: 'POST', body: { command, ...collectCards() } });
+      const boardId = typeof currentBoardId !== 'undefined' ? currentBoardId : null;   // TeachEd memory, read on the server
+      const r = await apiFetch('/api/ai/board-agent', { method: 'POST', body: { command, boardId, ...collectCards() } });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(data.error || 'The board assistant is not available right now.');
       show(data, command);
@@ -502,6 +525,7 @@
     if (a.op === 'focus') return `Go to ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'game') return `Add a ${GAME_LABELS[a.game] || 'game'}: “${a.title}”`;
     if (a.op === 'open') return `Open ${STUDIO_LABELS[a.studio] || a.studio} Studio`;
+    if (a.op === 'remember') return `Save to ${a.name}'s memory · Notes: ${quote(a.text, 80)}`;
     return '';
   }
 
@@ -652,7 +676,7 @@
 
   function apply(actions, quiet) {
     if (!actions || !actions.length) return;
-    const changes = actions.some(a => a.op !== 'focus');
+    const changes = actions.some(a => a.op !== 'focus' && a.op !== 'remember');   // memory is not the board
     if (changes && currentUser && currentBoardId && !boardCanEdit) { toast('This board is view only'); return; }
     const made = [];
     let focus = [];
@@ -670,6 +694,7 @@
           else if (a.op === 'group') doGroup(a);
           else if (a.op === 'focus') focus = focus.concat(a.ids);
           else if (a.op === 'game') placeGameOnBoard(a.game, a.title, 'B1', a.content);
+          else if (a.op === 'remember') doRemember(a).catch(() => toast('Could not save to memory'));
         } catch (err) { console.warn('[board-agent]', a.op, err); }
       });
     } finally { _suppressSnapshot--; }

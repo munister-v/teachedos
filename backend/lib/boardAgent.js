@@ -59,7 +59,7 @@ const GUIDE = `How this board works (use it to answer "how do I..." questions):
 - "Follow me" in the top bar brings students to the teacher's view. "Share" invites students. The Lesson pad on the right keeps the lesson's words and notes.
 - Ctrl/Cmd+K opens this command bar.`;
 
-function buildPrompt({ command, cards, viewport }) {
+function buildPrompt({ command, cards, viewport, memory }) {
   const list = normalizeCards(cards);
   const selected = list.filter(c => c.selected);
   const lines = list.map(c => JSON.stringify(c)).join('\n');
@@ -99,7 +99,10 @@ Rules:
 - If the command cannot be done with the allowed actions, say so plainly in "reply", suggest the closest thing you can do, and return "actions":[].
 - Content you write for learners must be correct, natural English at the level the existing cards suggest.
 
-Camera centre: x=${Math.round(Number(viewport && viewport.x) || 0)}, y=${Math.round(Number(viewport && viewport.y) || 0)}. x grows to the right, y grows downward.
+${memory ? `What you know about this teacher and the student of this board (private TeachEd memory - use it to fit content to them; never write it onto the board or quote it):
+${String(memory).slice(0, 1600)}
+
+` : ''}Camera centre: x=${Math.round(Number(viewport && viewport.x) || 0)}, y=${Math.round(Number(viewport && viewport.y) || 0)}. x grows to the right, y grows downward.
 
 Cards on the board (${list.length}${list.length >= MAX_CARDS ? ', nearest ones only' : ''}), one JSON object per line:
 ${lines || '(the board is empty)'}

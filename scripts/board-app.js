@@ -15403,6 +15403,7 @@ async function requestServerTeacherTool(input, timeoutMs = 1200, extraSignal = n
       signal: controller.signal,
       body: {
         toolId: input.tool?.id,
+        boardId: currentBoardId || undefined,   // TeachEd memory: the server reads this board's student
         input: {
           level: input.level,
           count: input.count,
@@ -16791,7 +16792,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1227';
+const TEACHEDOS_ASSET_VERSION = '1228';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23690,7 +23691,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1227',
+          icon: 'icons/icon-192.png?v=1228',
           tag: 'board-live-' + s.id,
         });
       }
@@ -26628,10 +26629,9 @@ async function loadAiAssistantSettings() {
 }
 
 /* the teacher's students for the picker; the board's own student is picked by default */
-async function aiMemoryFillStudents() {
-  const sel = document.getElementById('ai-memory-student');
-  if (!sel) return;
-  sel.closest('.ai-memory-student-row')?.removeAttribute('hidden');
+/* whose memory this board's studio and assistant use: the teacher's last choice on
+   this board, else the board's one student */
+async function _aiMemPickForBoard() {
   if (!_aiMemRoster) {
     try {
       const r = await apiFetch('/api/journal');
@@ -26652,6 +26652,20 @@ async function aiMemoryFillStudents() {
     } catch {}
   }
   if (pick && !_aiMemRoster.some(j => String(j.id) === pick)) pick = '';
+  return pick;
+}
+window.aiMemoryBoardStudent = async () => {
+  if (!_aiMem()) return null;
+  const id = await _aiMemPickForBoard();
+  const j = id && (_aiMemRoster || []).find(x => String(x.id) === id);
+  return j ? { id, name: String(j.name || 'the student').split(' ')[0] } : null;
+};
+
+async function aiMemoryFillStudents() {
+  const sel = document.getElementById('ai-memory-student');
+  if (!sel) return;
+  sel.closest('.ai-memory-student-row')?.removeAttribute('hidden');
+  const pick = await _aiMemPickForBoard();
   sel.replaceChildren(new Option('Whole class (kept in this browser)', ''), ..._aiMemRoster.map(j => new Option(j.name || 'Student', String(j.id))));
   sel.value = pick;
   _aiMemStudent = pick;

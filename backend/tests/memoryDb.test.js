@@ -417,3 +417,32 @@ db('returning writing writes patterns and tags to the dossier; a removed tag sta
   assert.equal(await R.recordReturnedWork(pool, { teacherId: t.id, studentUserId: other.id, sourceId: w3.id, corrections: [{ type: 'grammar', why: 'past simple', original: 'a', suggestion: 'b' }] }), 0);
   await pool.query('DELETE FROM notifications WHERE user_id = ANY($1)', [[s.id, other.id]]);
 });
+
+/* ── the generators and the assistant read the memory (§5) ── */
+const { memoryContext } = require('../lib/memoryContext');
+
+db("the brief: the teacher's style and the board's one student; no contacts; a minor without consent stays out; not someone else's board", async () => {
+  const t = await mk('Brief T');
+  const s = await mk('Brief S', 'student');
+  const j = await journalFor(t, s, 'Ira');
+  await call(t, 'PUT', '/api/memory/teacher', { style: { memory: 'Lots of pair work', tone: 'playful' }, base_version: 0 });
+  await patch(t, j, { notes: { value: 'Loves K-pop. Mum: ira.mum@example.com, +380 67 123 4567', updated_at: iso(Date.now()) },
+    common_mistakes: { value: [{ pattern: 'Past simple', count: 3 }, { pattern: 'Articles', count: 1 }], updated_at: iso(Date.now()) } });
+  const { rows: [b] } = await pool.query(`INSERT INTO boards (user_id, name, data) VALUES ($1, 'Ira 1:1', '{}') RETURNING id`, [t.id]);
+  await pool.query(`INSERT INTO board_collaborators (board_id, user_id, role) VALUES ($1, $2, 'editor')`, [b.id, s.id]);
+  const text = await memoryContext(pool, t.id, b.id);
+  assert.match(text, /Lots of pair work/);
+  assert.match(text, /Loves K-pop/);
+  assert.match(text, /Past simple \(x3\)/);
+  assert.doesNotMatch(text, /ira\.mum@example\.com|123 4567/, 'contacts never reach the model');
+  assert.doesNotMatch(await memoryContext(pool, t.id, null), /K-pop/, 'no board: the style only');
+  const other = await mk('Other brief T');
+  assert.equal(await memoryContext(pool, other.id, b.id), '', "someone else's board gives nothing");
+  await pool.query('UPDATE student_journal SET minor = TRUE, consent_at = NULL WHERE id = $1', [j]);
+  const minor = await memoryContext(pool, t.id, b.id);
+  assert.doesNotMatch(minor, /K-pop/, 'a minor without consent: the dossier stays out');
+  assert.match(minor, /Lots of pair work/, 'the teacher style still goes');
+  const prompt = require('../lib/boardAgent').buildPrompt({ command: 'add three warm-up questions', cards: [], memory: text });
+  assert.match(prompt, /private TeachEd memory[\s\S]*Loves K-pop/);
+  assert.doesNotMatch(require('../lib/boardAgent').buildPrompt({ command: 'x', cards: [] }), /TeachEd memory/);
+});
