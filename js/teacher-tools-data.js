@@ -947,9 +947,13 @@ const BOARD_LESSON_STAGES = {
         label: 'How it is judged',
         question: 'What does a good answer look like - for you, and for them?',
         groups: [
-          {mode: 'many', label: 'Two views of the same goal', keys: ['sp-rubric-t', 'sp-goal']},
+          {mode: 'many', label: 'Two views of the same goal', keys: ['sp-fix', 'sp-rubric-t', 'sp-goal']},
         ],
         options: [
+          /* The arc does not stop at production (Lesson Builder 2.0 T-S1): after the task comes a
+             correction step, built from the slips this topic typically produces. */
+          {key:'sp-fix',      tool:'error-correction', title:'Common mistakes to fix', hint:'After the task: typical slips on this topic, corrected together. Rebuilt from the phrases of the lesson.', ai:true, after:'source', on:true,
+           extra:'These are the COMMON MISTAKES students make when they do the speaking task of this lesson with the target phrases: write sentences a learner would plausibly SAY in this task, each with one typical slip (wrong tense, missing article, wrong preposition, a direct translation), so the class corrects them together after speaking.'},
           {key:'sp-rubric-t', tool:'rubric-maker', title:'Teacher’s rubric · only you see it', hint:'A short list of what to listen for (for example: at least two new phrases, no tense slips). Students never receive it.', ai:true, after:'source', teacher:true,
            extra:'This rubric is for the TEACHER only: a short shortlist of what to watch and listen for during the speaking task - the minimum number of new phrases, the typical errors with the target language, fluency and task achievement. Not written for the student.'},
           {key:'sp-goal',     tool:'rubric-maker', title:'What you will achieve · for the student', hint:'Three or four “I can…” statements the student sees as their goal for this lesson.', ai:true, after:'source',
