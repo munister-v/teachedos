@@ -731,8 +731,8 @@
       when: () => bootStatus === 'core_completed' },
     pulse: { anchor: '#wg-pulse', title: 'See what needs attention.', body: 'Student Pulse surfaces timely actions without cluttering your dashboard.',
       when: () => !!document.querySelector('#wg-pulse-list > :not(.wg-pulse-empty)') },
-    notifications: { anchor: '#mb-notif-btn', title: 'Important updates live here.', body: 'Open the panel when the badge appears.',
-      when: () => { const b = document.getElementById('mb-notif-badge'); return !!b && b.style.display !== 'none' && b.offsetParent !== null; } },
+    notifications: { anchor: '#mb-notif-btn', title: 'Important updates live here.', body: 'Open the panel to see what is new - unread updates are marked inside.',
+      when: () => { const b = document.getElementById('mb-notif-badge'); return !!b && b.style.display !== 'none'; } },
   };
   const TIP_ORDER = ['appearance', 'pulse', 'notifications'];
   let bootStatus = '';

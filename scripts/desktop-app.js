@@ -2237,7 +2237,7 @@ function boardsRender() {
       : '';
     return `<div class="lesson-card bd-card" onclick="location.href='board.html?id=${escB(b.id)}'" style="cursor:pointer;">
       <div class="bd-cover">${cover}${b.owner_name ? '<span class="bd-shared">Shared</span>' : ''}</div>
-      ${own ? `<button class="bd-cover-btn" type="button" title="Customise cover" aria-label="Customise cover" onclick="event.stopPropagation();openBoardCoverEditor('${escB(b.id)}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>` : ''}
+      ${own ? `<button class="bd-menu-btn" type="button" title="Board settings" aria-label="Board settings" aria-haspopup="menu" onclick="event.stopPropagation();openBoardMenu('${escB(b.id)}', this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>` : ''}
       <div class="bd-body">
         <div class="lc-title">${escB(b.name || 'Untitled')}</div>
         ${owner}
@@ -2248,6 +2248,123 @@ function boardsRender() {
     </div>`;
   }).join('');
   loadBoardCoverImages(list);
+}
+
+/* ── Настройки доски: «⋯» на карточке ───────────────────────────────────
+   Открыть, переименовать, обложка, удалить. Только для своих досок. Удаление
+   на сервере безвозвратное (DELETE /api/boards/:id), поэтому сначала
+   подтверждение. */
+function closeBoardMenu() {
+  document.getElementById('bd-menu')?.remove();
+  document.querySelectorAll('#win-plans .bd-card.menu-open').forEach(c => c.classList.remove('menu-open'));
+}
+function openBoardMenu(boardId, btn) {
+  const reopen = document.getElementById('bd-menu')?.dataset.id === String(boardId);
+  closeBoardMenu();
+  if (reopen) return;
+  const card = btn.closest('.bd-card');
+  if (card) card.classList.add('menu-open');
+  const m = document.createElement('div');
+  m.id = 'bd-menu'; m.className = 'bd-menu'; m.dataset.id = String(boardId); m.setAttribute('role', 'menu');
+  const ic = d => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  m.innerHTML = [
+    ['open', 'Open', ic('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>')],
+    ['rename', 'Rename', ic('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>')],
+    ['cover', 'Customise cover', ic('<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 9"/>')],
+    ['delete', 'Delete board', ic('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12M9 7V4h6v3"/>')],
+  ].map(([k, label, svg]) => `<button type="button" role="menuitem" class="bd-mi${k === 'delete' ? ' danger' : ''}" data-act="${k}">${svg}${label}</button>`).join('');
+  document.body.appendChild(m);
+  const r = btn.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+  m.style.left = Math.max(8, Math.min(innerWidth - mw - 8, r.right - mw)) + 'px';
+  m.style.top = (r.bottom + 6 + mh > innerHeight - 8 ? Math.max(8, r.top - mh - 6) : r.bottom + 6) + 'px';
+  m.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    e.stopPropagation();
+    closeBoardMenu();
+    const act = b.dataset.act;
+    if (act === 'open') location.href = 'board.html?id=' + encodeURIComponent(boardId);
+    else if (act === 'rename') renameBoardPrompt(boardId);
+    else if (act === 'cover') openBoardCoverEditor(boardId);
+    else if (act === 'delete') deleteBoardConfirm(boardId);
+  });
+  m.querySelector('.bd-mi')?.focus();
+}
+document.addEventListener('mousedown', e => { if (!e.target.closest('#bd-menu, .bd-menu-btn')) closeBoardMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBoardMenu(); });
+window.addEventListener('resize', closeBoardMenu);
+document.addEventListener('scroll', closeBoardMenu, true);
+window.openBoardMenu = openBoardMenu;
+
+/* A small modal for Rename and Delete (Escape and the backdrop close it). */
+function boardDialog(html, onMount) {
+  document.getElementById('bd-dlg')?.remove();
+  const o = document.createElement('div');
+  o.id = 'bd-dlg'; o.className = 'bd-dlg';
+  o.innerHTML = `<div class="bd-dlg-box" role="dialog" aria-modal="true">${html}</div>`;
+  const close = () => { o.remove(); document.removeEventListener('keydown', onKey, true); };
+  const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+  o.addEventListener('mousedown', e => { if (e.target === o) close(); });
+  document.body.appendChild(o);
+  onMount(o.querySelector('.bd-dlg-box'), close);
+}
+function boardApi(path, method, body) {
+  return fetch(API_BASE + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (_authToken || '') },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+function renameBoardPrompt(boardId) {
+  const b = (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
+  if (!b) return;
+  const esc = v => String(v ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
+  boardDialog(`<h3>Rename board</h3><input type="text" maxlength="255" value="${esc(b.name || '')}" aria-label="Board name"><div class="bd-dlg-err" role="alert"></div>
+    <div class="bd-dlg-row"><button type="button" class="bd-dlg-btn" data-x>Cancel</button><button type="button" class="bd-dlg-btn primary" data-ok>Save</button></div>`, (box, close) => {
+    const inp = box.querySelector('input'), err = box.querySelector('.bd-dlg-err'), ok = box.querySelector('[data-ok]');
+    inp.focus(); inp.select();
+    const save = async () => {
+      const name = inp.value.trim();
+      if (!name) { err.textContent = 'Give the board a name.'; return; }
+      if (name === b.name) { close(); return; }
+      ok.disabled = true; err.textContent = '';
+      try {
+        const r = await boardApi(`/api/boards/${encodeURIComponent(b.id)}`, 'PATCH', { name });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || `Could not rename (HTTP ${r.status})`);
+        b.name = d.board?.name || name;
+        close(); boardsRender();
+        if (typeof showOsToast === 'function') showOsToast('Board renamed');
+      } catch (e) { err.textContent = e.message || 'Could not rename. Try again.'; ok.disabled = false; }
+    };
+    ok.onclick = save;
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+    box.querySelector('[data-x]').onclick = close;
+  });
+}
+function deleteBoardConfirm(boardId) {
+  const b = (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
+  if (!b) return;
+  const esc = v => String(v ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
+  boardDialog(`<h3>Delete “${esc(b.name || 'Untitled')}”?</h3><p>The board and everything on it will be deleted for good. This cannot be undone.</p><div class="bd-dlg-err" role="alert"></div>
+    <div class="bd-dlg-row"><button type="button" class="bd-dlg-btn" data-x>Cancel</button><button type="button" class="bd-dlg-btn danger" data-ok>Delete board</button></div>`, (box, close) => {
+    const err = box.querySelector('.bd-dlg-err'), ok = box.querySelector('[data-ok]');
+    box.querySelector('[data-x]').focus();
+    box.querySelector('[data-x]').onclick = close;
+    ok.onclick = async () => {
+      ok.disabled = true; err.textContent = '';
+      try {
+        const r = await boardApi(`/api/boards/${encodeURIComponent(b.id)}`, 'DELETE');
+        if (!r.ok && r.status !== 404) { const d = await r.json().catch(() => ({})); throw new Error(d.error || `Could not delete (HTTP ${r.status})`); }
+        MY_BOARDS = MY_BOARDS.filter(x => String(x.id) !== String(b.id));
+        if (BOARD_COVER_URLS[b.id]?.startsWith('blob:')) URL.revokeObjectURL(BOARD_COVER_URLS[b.id]);
+        delete BOARD_COVER_URLS[b.id];
+        close(); boardsRender();
+        if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
+        if (typeof showOsToast === 'function') showOsToast('Board deleted');
+      } catch (e) { err.textContent = e.message || 'Could not delete. Try again.'; ok.disabled = false; }
+    };
+  });
 }
 
 /* ── Обложки своих досок ────────────────────────────────────────────────
@@ -3268,13 +3385,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1216" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1217" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1216" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1217" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
@@ -3781,6 +3898,9 @@ async function loadNotifications() {
 function renderNotifList() {
   const list = document.getElementById('notif-list');
   if (!list) return;
+  // the bell carries no unread badge: the count lives here, in the panel head
+  const ttl = document.querySelector('#notif-panel .np-title');
+  if (ttl) { const u = _notifData.filter(n => !n.read).length; ttl.textContent = u ? `Notifications · ${u} new` : 'Notifications'; }
   if (!_notifData.length) {
     list.innerHTML = '<div class="np-empty">No notifications yet</div>';
     return;

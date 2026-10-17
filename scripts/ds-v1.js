@@ -1,10 +1,9 @@
 /* Design spec v1 (16.10.2026), the bits CSS cannot do alone.
- * №7 Topbar: the "Ask TeachEd…" pill with turquoise sparkles and ⌘K, before
+ * №7 Topbar: the "Ask TeachEd…" pill with turquoise sparkles (no key chip), before
  * the bell. On the desktop it opens Spotlight; on the tool pages it goes to
  * the desktop and opens it there (index.html#ask), and ⌘K does the same. */
 (function () {
   const SPARK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4l1.7 4.8 4.8 1.7-4.8 1.7L11 17l-1.7-4.8L4.5 10.5l4.8-1.7z"/><path d="M18 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>';
-  const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   const onDesktop = () => typeof window.openSpotlight === 'function' && !!document.getElementById('spotlight-overlay');
   function ask() {
     if (onDesktop()) window.openSpotlight();
@@ -15,7 +14,7 @@
     b.type = 'button';
     b.className = 'ds-ask';
     b.setAttribute('aria-label', 'Ask TeachEd');
-    b.innerHTML = `${SPARK}<span>Ask TeachEd…</span><kbd>${mac ? '⌘K' : 'Ctrl K'}</kbd>`;
+    b.innerHTML = `${SPARK}<span>Ask TeachEd…</span>`;
     b.addEventListener('click', ask);
     return b;
   }

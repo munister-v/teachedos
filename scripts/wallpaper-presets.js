@@ -74,12 +74,13 @@
     p.css = `url("${at(p.key + '.webp')}") center / cover no-repeat, #6B6F78`;
     p.thumb = `url("${at(p.key + '-thumb.webp')}") center / cover no-repeat, #D5D7DC`;
   });
-  /* Фон по умолчанию (key: null) - снимок Карпат, а не ровный цвет: так
-     попросили, чтобы у всех с первого входа был красивый стол. Кто хочет
-     светлый - выбирает «Plain». */
-  const DEFAULT_PHOTO = WALL_PRESETS.find(p => p.key === 'carpathians');
+  /* Фон по умолчанию (key: null) - Pixel diamond: живой серебристый ковёр
+     из пикселей (scripts/pixel-diamond.js). Так попросили, чтобы у всех с
+     первого входа был один и тот же стол. Кто хочет другой - выбирает в
+     «Desktop background». Снимок Карпат остался обычным пресетом. */
+  const DEFAULT_PIXELS = WALL_PRESETS.find(p => p.key === 'pixel-diamond');
   const DEFAULT = WALL_PRESETS.find(p => p.key === null);
-  if (DEFAULT && DEFAULT_PHOTO) Object.assign(DEFAULT, { title: 'TeachEd default', css: DEFAULT_PHOTO.css, thumb: DEFAULT_PHOTO.thumb, credit: DEFAULT_PHOTO.credit, license: DEFAULT_PHOTO.license, source: DEFAULT_PHOTO.source, glass: true });
+  if (DEFAULT && DEFAULT_PIXELS) Object.assign(DEFAULT, { title: 'TeachEd default', css: DEFAULT_PIXELS.css, live: 'pixels', glass: true });
   const WALL_GROUPS = [
     { key: 'colour', title: 'Colours' },
     { key: 'photo', title: 'Photos' },
