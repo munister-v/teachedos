@@ -1310,10 +1310,16 @@ function bringToFront(id) { WM.focus(id); }
 let STUDENTS = [];
 let studentsActiveFilter = 'all';
 
+function _studentsMarkFilter() {
+  document.querySelectorAll('#win-students [data-filter]').forEach(i => {
+    const on = i.dataset.filter === studentsActiveFilter;
+    i.classList.toggle('on', on);
+    i.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
 function studentsFilter(filter, el) {
-  document.querySelectorAll('#win-students .sb-item').forEach(i => i.classList.remove('active'));
-  if (el) el.classList.add('active');
   studentsActiveFilter = filter;
+  _studentsMarkFilter();
   studentsRender();
 }
 
@@ -1373,7 +1379,7 @@ function openStudentCard(ref) {
   const search = document.getElementById('students-search');
   if (search) search.value = '';
   studentsActiveFilter = 'all';
-  document.querySelectorAll('#win-students .sb-item[data-filter]').forEach(i => i.classList.toggle('active', i.dataset.filter === 'all'));
+  _studentsMarkFilter();
   studentsSelectedId = s.id;
   studentsFocusFin = !!r.money;
   studentsRender();
@@ -1454,7 +1460,7 @@ function studentsRender() {
     const needs = a.length && a[0].c !== 'low';
     return `
     <div class="st-row${String(s.id) === String(studentsSelectedId) ? ' active' : ''}${needs ? ' needs' : ''}" onclick="studentSelect('${esc(String(s.id))}')">
-      ${studentHalo(s, 54, needs)}
+      ${studentHalo(s, 50, needs)}
       <div class="st-row-info">
         <div class="st-row-name">${esc(s.name || 'Student')}</div>
         ${s.online ? `<div class="st-row-sub has-on"><span>${esc(studentRowSub(s))}</span><b class="st-on">· Online</b></div>` : `<div class="st-row-sub">${esc(studentRowSub(s))}</div>`}
@@ -1534,6 +1540,8 @@ function _lastSeenLabel(iso) {
 }
 
 function studentSelect(id) {
+  if (String(id) !== String(studentsSelectedId) && document.querySelector('#st-pane .st-notes.is-dirty')
+      && !confirm('Leave without saving your notes?')) return;
   studentsSelectedId = id;
   studentsFocusFin = false;
   studentsRender();
@@ -1566,6 +1574,9 @@ const ST_MAIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy=
 function studentDetailRender() {
   const box = document.getElementById('students-detail');
   if (!box) return;
+  // an unsaved note survives a re-render of the same student (the roster reloads under it)
+  const draftEl = box.querySelector('.st-notes.is-dirty');
+  const draft = draftEl ? { id: String(studentsSelectedId), v: draftEl.value } : null;
   const s = STUDENTS.find(x => String(x.id) === String(studentsSelectedId));
   if (!s) {
     box.innerHTML = `<div class="st-detail-empty"><div class="st-empty-ic">${ST_ICON_CARD}</div>${STUDENTS.length
@@ -1676,38 +1687,103 @@ function studentDetailRender() {
   const cta = _hasJournal(s)
     ? `<button type="button" class="st-cta" onclick="studentsTopUp('${jid}', this)">${s.paid_claim_at ? '✓ Payment received · +' + pack : '+ Top up'}</button>`
     : `<button type="button" class="st-cta" onclick="studentsAddFor('${esc(String(s.id))}')">+ Add lesson package</button>`;
-  box.innerHTML = `
-    <div class="st-head">
-      ${studentHalo(s, 110, attn.length && attn[0].c !== 'low')}
-      <div class="st-detail-name">${esc(s.name || 'Student')}${dna}</div>
-      <div class="st-status"><i class="${s.online || !(attn.length && attn[0].c !== 'low') ? 'ok' : 'needs'}"></i>${esc(statusTxt)}</div>
-      <div class="st-head-row">${s.level ? `<span class="st-mpill g">${esc(s.level)}</span>` : ''}${_hasJournal(s) ? `<span class="st-mpill l">${s.is_trial ? '✨ Free trial' : `${left} lesson${left === 1 ? '' : 's'} left`}</span>` : '<span class="st-mpill l">No package</span>'}</div>
-    </div>
-    <div class="st-fin-anchor${studentsFocusFin ? ' is-focus' : ''}">${cta}</div>
-    <div class="st-quiet">
-      <button type="button" class="st-qbtn" onclick="studentsMessage('${esc(String(s.id))}')">Message</button>
-      ${board ? `<a class="st-qbtn" href="board.html?id=${encodeURIComponent(board)}">Open board</a>` : `<button type="button" class="st-qbtn" onclick="openApp('plans')">Open board</button>`}
-    </div>
-    <div class="st-compose" id="st-compose" hidden>
-      <textarea maxlength="1000" placeholder="Message to ${esc(firstName)}…"></textarea>
-      <div class="st-compose-row"><button type="button" class="st-qbtn" onclick="document.getElementById('st-compose').hidden=true">Cancel</button><button type="button" class="st-cta sm" onclick="studentsSendMessage('${esc(String(s.id))}', this)">Send</button></div>
-    </div>
-    ${needsList ? `<div class="st-needs">${needsList}</div>` : ''}
-    ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}
-    <details class="st-more">
-      <summary>Details</summary>
-      ${s.email ? `<div class="st-detail-mail">${esc(s.email)}</div>` : ''}
-      ${badges}
-      ${money}
-      ${home}
+  /* Students mockup (17.10.2026): the head and the actions stay pinned -
+     the halo on the left, the name, status and pills beside it, + Top up
+     and the two quiet buttons under them. Below, Progress / Notes / Billing:
+     only the tab's content scrolls, Top up is never scrolled away. */
+  if (studentsFocusFin) studentsTab = 'billing';
+  const notes = _hasJournal(s)
+    ? `<label class="st-detail-h" for="st-notes">Your notes</label>
+       <textarea class="st-notes" id="st-notes" maxlength="4000" placeholder="What to remember about ${esc(firstName)}: topics, mistakes, what they liked…" oninput="studentsNotesDirty(this)">${esc(s.notes || '')}</textarea>
+       <div class="st-notes-row"><span class="st-notes-state" aria-live="polite"></span><button type="button" class="st-cta sm" onclick="studentsSaveNotes('${jid}', this)" disabled>Save notes</button></div>`
+    : `<div class="st-tab-empty">Notes live in your journal. Add a lesson package for ${esc(firstName)} to keep notes here.</div>`;
+  const dnaNote = hasDna ? `<div class="st-detail-h">Before the lesson</div>
+      ${s.dna_goal ? `<div class="st-pop-goal">${esc(goals[s.dna_goal] || s.dna_goal)}</div>` : ''}
+      ${(s.dna_interests || []).length ? `<div class="st-chips">${s.dna_interests.map(k => `<span class="st-chip ghost">${esc(k)}</span>`).join('')}</div>` : ''}` : '';
+  const panes = {
+    progress: `${needsList ? `<div class="st-needs">${needsList}</div>` : ''}
       ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
+      ${home}
       <div class="st-detail-actions is-stack">
         ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
         <a class="st-detail-btn" href="journal.html">View profile →</a>
       </div>
-    </details>`;
-  if (studentsFocusFin) box.querySelector('.st-fin-anchor')?.scrollIntoView({ block: 'nearest' });
+      ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}`,
+    notes: notes + dnaNote,
+    billing: `${s.email ? `<div class="st-detail-mail">${esc(s.email)}</div>` : ''}${badges}${money}`,
+  };
+  const tabs = [['progress', 'Progress'], ['notes', 'Notes'], ['billing', 'Billing']];
+  box.innerHTML = `
+    <div class="st-pin">
+      <div class="st-head">
+        ${studentHalo(s, 76, attn.length && attn[0].c !== 'low')}
+        <div class="st-head-info">
+          <div class="st-detail-name">${esc(s.name || 'Student')}${dna}</div>
+          <div class="st-status"><i class="${s.online || !(attn.length && attn[0].c !== 'low') ? 'ok' : 'needs'}"></i>${esc(statusTxt)}</div>
+          <div class="st-head-row">${s.level ? `<span class="st-mpill g">${esc(s.level)}</span>` : ''}${_hasJournal(s) ? `<span class="st-mpill l">${s.is_trial ? '✨ Free trial' : `${left} lesson${left === 1 ? '' : 's'} left`}</span>` : '<span class="st-mpill l">No package</span>'}</div>
+        </div>
+      </div>
+      <div class="st-fin-anchor${studentsFocusFin ? ' is-focus' : ''}">${cta}</div>
+      <div class="st-quiet">
+        <button type="button" class="st-qbtn" onclick="studentsMessage('${esc(String(s.id))}')">Message</button>
+        ${board ? `<a class="st-qbtn" href="board.html?id=${encodeURIComponent(board)}">Open board</a>` : `<button type="button" class="st-qbtn" onclick="openApp('plans')">Open board</button>`}
+      </div>
+      <div class="st-compose" id="st-compose" hidden>
+        <textarea maxlength="1000" placeholder="Message to ${esc(firstName)}…"></textarea>
+        <div class="st-compose-row"><button type="button" class="st-qbtn" onclick="document.getElementById('st-compose').hidden=true">Cancel</button><button type="button" class="st-cta sm" onclick="studentsSendMessage('${esc(String(s.id))}', this)">Send</button></div>
+      </div>
+      <div class="st-tabs" role="tablist" aria-label="${esc(firstName)}'s card">
+        ${tabs.map(([k, t]) => `<button type="button" role="tab" id="st-tab-${k}" class="st-tab${studentsTab === k ? ' on' : ''}" aria-selected="${studentsTab === k}" aria-controls="st-pane" onclick="studentsTabSet('${k}')">${t}${k === 'progress' && needsList ? '<i class="st-tab-dot" aria-hidden="true"></i>' : ''}</button>`).join('')}
+      </div>
+    </div>
+    <div class="st-pane" id="st-pane" role="tabpanel" aria-labelledby="st-tab-${studentsTab}">${panes[studentsTab] || ''}</div>`;
+  const area = box.querySelector('#st-notes');
+  if (draft && area && draft.id === String(s.id)) { area.value = draft.v; studentsNotesDirty(area); }
+  if (studentsFocusFin) box.querySelector('.st-fin')?.scrollIntoView({ block: 'nearest' });
 }
+
+let studentsTab = 'progress';
+function studentsTabSet(k) {
+  const dirty = document.querySelector('#st-pane .st-notes.is-dirty');
+  if (dirty && !confirm('Leave without saving your notes?')) return;
+  studentsTab = k;
+  studentsFocusFin = false;
+  studentDetailRender();
+  document.getElementById('st-tab-' + k)?.focus();
+}
+window.studentsTabSet = studentsTabSet;
+function studentsNotesDirty(el) {
+  const s = STUDENTS.find(x => String(x.id) === String(studentsSelectedId));
+  const dirty = el.value !== String((s && s.notes) || '');
+  el.classList.toggle('is-dirty', dirty);
+  const btn = el.parentElement.querySelector('.st-notes-row .st-cta');
+  if (btn) btn.disabled = !dirty;
+  const state = el.parentElement.querySelector('.st-notes-state');
+  if (state) state.textContent = dirty ? 'Not saved yet' : '';
+}
+window.studentsNotesDirty = studentsNotesDirty;
+/* The teacher's notes are the journal's own notes field (PATCH /api/journal/:id). */
+async function studentsSaveNotes(journalId, btn) {
+  const area = document.getElementById('st-notes');
+  if (!journalId || !area) return;
+  const notes = area.value;
+  const state = area.parentElement.querySelector('.st-notes-state');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(journalId)}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken }, body: JSON.stringify({ notes }),
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Could not save');
+    STUDENTS.filter(x => String(x.journal_id) === String(journalId)).forEach(x => { x.notes = notes; });
+    area.classList.remove('is-dirty');
+    if (state) state.textContent = 'Saved';
+    btn.textContent = 'Save notes';
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Save notes';
+    if (state) state.textContent = e.message || 'Could not save';
+  }
+}
+window.studentsSaveNotes = studentsSaveNotes;
 
 /* Message from the student's card: the cabinet (and email when they are
    not on the platform yet) through the Journal; without a Journal row, email. */
@@ -3385,13 +3461,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1219" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1220" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1219" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1220" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

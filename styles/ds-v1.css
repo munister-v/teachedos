@@ -447,6 +447,69 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 @container stmain (max-width: 600px) {
   html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail { width:auto !important; flex:none !important; border-left:0 !important; border-top:1px solid var(--ds-line) !important; }
 }
+/* Students mockup (17.10.2026): no sidebar - the search and the filter chips
+   ride over the list; the card's head and actions stay pinned and only the
+   Progress / Notes / Billing tab scrolls. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-sidebar { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-main { padding:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tools { position:sticky; top:-14px; z-index:3; margin:-14px -14px 4px; padding:14px 14px 6px; background:rgba(255,255,255,.92); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tools .st-tsearch { margin:0 0 10px; width:100%; box-sizing:border-box; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fchips { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fchip {
+  display:inline-flex; align-items:center; gap:4px; height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--ds-line-input); background:#fff;
+  font:inherit; font-size:12px; font-weight:700; color:var(--ds-ink); cursor:pointer;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fchip:hover { background:#F8F8F2; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fchip.on { background:var(--ds-sand-2); border-color:var(--ds-line); font-weight:800; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fchip:focus-visible, #win-students .st-tab:focus-visible, #win-students .st-fadd:focus-visible { outline:2px solid var(--ds-ink); outline-offset:2px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fchip .sb-n { margin-left:2px; padding:1px 7px; font-size:10.5px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fadd {
+  margin-left:auto; width:40px; height:40px; flex:none; border-radius:50%; border:0; background:var(--ds-lime); color:var(--ds-ink);
+  font-size:20px; font-weight:700; line-height:1; cursor:pointer; box-shadow:var(--ds-shadow-lime); transition:transform .2s var(--ds-ease);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fadd:hover { transform:translateY(-2px); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail {
+  width:340px !important; flex:0 0 340px !important; padding:20px 22px 0 !important; display:flex !important; flex-direction:column; overflow:hidden !important; text-align:left !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pin { flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-head { display:flex; align-items:center; gap:14px; text-align:left; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail .st-halo { margin:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail .st-halo-dot { width:14px; height:14px; right:3px; bottom:3px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-head-info { min-width:0; flex:1; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail-name { font-size:18px !important; justify-content:flex-start !important; display:flex !important; gap:7px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-status { justify-content:flex-start !important; text-align:left !important; align-items:flex-start !important; font-size:11.5px !important; font-weight:600; color:rgba(5,5,23,.75) !important; margin:4px 0 8px !important; line-height:1.45; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-status i { margin-top:4px; width:8px !important; height:8px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-head-row { justify-content:flex-start !important; margin:0 !important; gap:6px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-mpill { height:30px !important; font-size:11px !important; padding:0 12px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fin-anchor { margin:15px 0 9px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-cta:not(.sm) { height:45px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tabs { display:flex; gap:6px; margin:16px -22px 0; padding:14px 22px 12px; border-top:1px solid var(--ds-line); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tab {
+  position:relative; font:inherit; font-size:12px; font-weight:700; height:32px; padding:0 13px; border-radius:999px; border:1px solid var(--ds-line-input);
+  background:#fff; color:var(--ds-ink); cursor:pointer;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tab:hover { background:#F8F8F2; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tab.on { background:var(--ds-ink); border-color:var(--ds-ink); color:#fff; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tab-dot { position:absolute; top:-2px; right:-2px; width:9px; height:9px; border-radius:50%; background:var(--ds-lime); border:2px solid #fff; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; margin:0 -22px; padding:2px 22px 20px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane .st-needs { margin-top:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane .st-detail-h { display:block; margin:14px 0 8px; font-size:10.5px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase; color:var(--ds-mute-2); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane > .st-detail-h:first-child { margin-top:2px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane .st-chips { justify-content:flex-start; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane .st-badges { justify-content:flex-start; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane .st-fin { text-align:left; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-notes {
+  width:100%; box-sizing:border-box; height:auto !important; min-height:120px !important; border-radius:12px; border:1px solid var(--ds-line-input); background:#fff; padding:10px 12px;
+  font:inherit; font-size:13px; line-height:1.5; color:var(--ds-ink); resize:vertical;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-notes:focus { outline:0; border-color:var(--ds-lime); box-shadow:0 0 0 3px rgba(211,242,106,.35); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-notes-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-notes-state { font-size:12px; color:var(--ds-mute); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tab-empty { font-size:12.5px; line-height:1.55; color:var(--ds-mute); padding:6px 0; }
+@container stmain (max-width: 600px) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail { display:block !important; overflow:visible !important; padding-bottom:20px !important; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-pane { overflow:visible; }
+}
 /* the older layer floats the title bar over the content and hides the title */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-titlebar { position:relative !important; inset:auto !important; flex:none; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-title { display:block !important; opacity:1 !important; }
