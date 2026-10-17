@@ -92,7 +92,7 @@
   function load(id, out) {
     if (out && out.custom) return Promise.resolve(buildCustom(Object.assign({ id: id || 'custom' }, out.custom)));
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1194`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1195`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -138,6 +138,27 @@
     return `${DEFS}<g stroke-linejoin="round" stroke-linecap="round">${body}</g>`;
   }
   /* the still drawing, made once per scene (word-card thumbnails, print) */
+  /* The wording of Find and Name, by kind of word (Lesson Builder 2.0 T-P1, T-P5). A thing is
+     "the fridge"; an action is a phrase ("collect your luggage"), and a phrase cannot be
+     poured into "Where's the …?" - that gave "Where's the collect your luggage?". Every
+     question is checked after it is built: no leftover placeholder, no empty word. */
+  const isAction = p => !!(p && p.act);
+  const askable = q => typeof q === 'string' && q.trim().length > 4 && !/undefined|null|\{|\}|…|\bthe\s*\?|\?\s*in\b|\?[a-z]/i.test(q.replace(/<[^>]+>/g, m => (m === '<b>' || m === '</b>' ? '' : m)).replace(/[?]\s*$/, ''));
+  function findQuestion(it) {
+    const w = String(it && it.word || '').trim();
+    if (!w) return null;
+    const q = isAction(it) ? `Where can you ${w}?` : `Where’s the ${w}?`;
+    return askable(q) ? q : null;
+  }
+  /* html: the "?" sits in a pill that looks like the pin on the picture */
+  function nameQuestion(it) {
+    const w = String(it && it.word || '').trim();
+    if (!w) return null;
+    return isAction(it)
+      ? 'What can you do at the spot marked <b class="sc-qpin">?</b> in the picture? Type the phrase.'
+      : 'What is the thing marked <b class="sc-qpin">?</b> in the picture? Type the word.';
+  }
+
   function stillArt(sc) {
     if (!artCache.has(sc.id)) artCache.set(sc.id, artSvg(sc, false));
     return artCache.get(sc.id);
@@ -205,6 +226,7 @@
 .sc-tab.done i::after{content:' ✓';font-size:10px;color:var(--ok)}
 .sc-panel{flex:1;overflow:auto;padding:16px 20px 24px}
 .sc-panel h3{margin:0;font-weight:700;font-size:20px;line-height:1.2;font-family:inherit;letter-spacing:-.01em}
+.sc-qpin{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#24282C;color:#CDF649;font-size:12px;line-height:1;vertical-align:1px}
 .sc-hint{margin:6px 0 14px;font-size:13px;color:var(--muted);line-height:1.45}
 .sc-score{display:inline-block;margin-left:8px;font:700 12px 'SF Mono',var(--te-font-mono,ui-monospace,monospace);color:var(--ok)}
 .sc-insp{margin-top:-4px;font-size:11.5px;font-style:italic;opacity:.75}
@@ -644,7 +666,7 @@
       const it = byId(f.order[f.round]);
       panel.innerHTML = `<h3>Find it <span class="sc-score">${f.score}/${f.order.length}</span></h3>
         <p class="sc-hint">Listen and click it in the picture. You can zoom and drag the picture.</p>
-        <div class="sc-q">Where’s the ${esc(it.word)}? <button type="button" class="sc-say" data-say="${esc(it.word)}" aria-label="Say it">🔊</button></div>
+        <div class="sc-q">${esc(findQuestion(it) || `Where’s the ${it.word}?`)} <button type="button" class="sc-say" data-say="${esc(it.word)}" aria-label="Say it">🔊</button></div>
         <div class="sc-fb" id="sc-fb"></div>
         <div class="sc-row"><span class="sc-muted">Word ${f.round + 1} of ${f.order.length}</span><span style="flex:1"></span><button type="button" class="sc-btn ghost" data-act="find-skip">Show me</button></div>`;
     }
@@ -695,7 +717,7 @@
       const it = byId(n.order[n.round]);
       const hint = n.hint ? it.word.split('').map((c, i) => i < n.hint || c === ' ' ? c : '·').join('') : '';
       panel.innerHTML = `<h3>Name it <span class="sc-score">${n.score}/${n.order.length}</span></h3>
-        <p class="sc-hint">What is the thing with the <b>?</b> in the picture? Type the word.</p>
+        <p class="sc-hint">${nameQuestion(it)}</p>
         <input class="sc-input" id="sc-name" autocomplete="off" spellcheck="false" placeholder="${hint ? esc(hint) : 'Type the word…'}" aria-label="The word">
         <div class="sc-fb" id="sc-fb"></div>
         <div class="sc-row"><button type="button" class="sc-btn dark" data-act="name-check">Check</button><button type="button" class="sc-btn ghost" data-act="name-hint">Hint</button><span style="flex:1"></span><button type="button" class="sc-btn ghost" data-act="name-skip">Skip</button></div>
@@ -1177,5 +1199,5 @@
     }).catch(() => { el.innerHTML = '<div class="scd"><div class="sc-loading" style="height:120px">The picture could not be loaded.</div><div class="scd-act"><button type="button" onclick="this.closest(\'.scd\').dispatchEvent(new Event(\'back\'))">Back</button></div></div>'; el.querySelector('.scd')?.addEventListener('back', () => h.onBack && h.onBack()); });
   }
 
-  window.TeachedScene = { preview, mount, load, thumb, stats, maker, draft, catalog: CATALOG, worlds: WORLDS, themeFor, levels: LEVELS };
+  window.TeachedScene = { preview, mount, load, thumb, stats, maker, draft, findQuestion, nameQuestion, catalog: CATALOG, worlds: WORLDS, themeFor, levels: LEVELS };
 })();
