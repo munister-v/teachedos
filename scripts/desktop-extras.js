@@ -128,6 +128,8 @@ function applyWallpaper(value) {
      переключаются на светлые. Свой снимок считаем светлым - окна и
      виджеты всё равно на белых подложках. */
   document.body.classList.toggle('wall-dark', !!(preset && preset.dark));
+  // a live background (Star luxe) runs its own canvas at the back of the desk
+  if (window.TeachedStars) { if (preset && preset.live === 'stars') window.TeachedStars.mount(desk); else window.TeachedStars.unmount(); }
   renderWallCredit(preset);
   try { _wallValue ? localStorage.setItem(WALL_CACHE_KEY, _wallValue) : localStorage.removeItem(WALL_CACHE_KEY); } catch (_) {}
   document.querySelectorAll('.wp-tile').forEach(t => t.classList.toggle('is-on', (t.dataset.value || '') === (_wallValue || '')));

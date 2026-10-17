@@ -25,6 +25,7 @@ const WALL_PRESETS = new Set([
   'kyiv', 'new-york', 'chicago', 'london', 'paris', 'rome', 'tokyo',
   'starry-night', 'great-wave', 'wheatfield',
   'pastel-clouds', 'pixel-night', 'neon-city', 'sunset-ridges',
+  'star-luxe',
 ]);
 const WALL_MAX_BYTES = 4 * 1024 * 1024;
 

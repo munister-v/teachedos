@@ -16660,7 +16660,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1190';
+const TEACHEDOS_ASSET_VERSION = '1191';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23301,7 +23301,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1190',
+          icon: 'icons/icon-192.png?v=1191',
           tag: 'board-live-' + s.id,
         });
       }
@@ -24359,7 +24359,7 @@ let _cursorThrottle = 0;
 function wsSendCursor(bx, by) {
   if (!ws || ws.readyState !== 1) return;
   const now = Date.now();
-  if (now - _cursorThrottle < 50) return; // max 20fps
+  if (now - _cursorThrottle < 40) return; // ~25 a second (design spec v1 №13); the other side interpolates
   _cursorThrottle = now;
   ws.send(JSON.stringify({ type:'cursor', x:bx, y:by,
     name: currentUser?.name, avatar: currentUser?.avatar }));
@@ -24398,32 +24398,83 @@ function applyRemoteState(remote) {
   _wpCheckLaunch();
 }
 
-// Remote cursors
+// Remote cursors (design spec v1 №13, 16.10.2026)
+/* A 26px arrow with a white outline, so it reads on any card, and a pill with
+   the first name. The teacher is ink with a lime pill; a student is their own
+   tint - a deep arrow and a pastel pill. Motion: the arrow catches its target
+   fast, the pill lags behind it like a spring, the arrow tilts with sideways
+   speed (±13°). After 5 s without moving it fades to .32. A student sees the
+   teacher only, unless they switch on "group cursors" (pair work); touch
+   screens draw none. */
+const RC_TINTS = [['#F35695', '#F8DBDB'], ['#35A193', '#D5F6F2'], ['#93A81F', '#E9F5C4'], ['#3D7FD9', '#CFEAFB'], ['#7B5BD6', '#E2D7F8'], ['#D9772E', '#F9DCC8']];
+const RC_ARROW = 'M6 2.5 L19.5 11.5 L12.3 13 L9.3 20.5 Z';
+let _rcRaf = 0;
+const rcTouch = () => window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
+function rcGroupOn() { try { return localStorage.getItem('teachedos_group_cursors') === '1'; } catch (_) { return false; } }
+function rcVisible(userId) {
+  if (rcTouch()) return false;
+  if (isOwner) return true;                                  // the teacher sees everyone
+  return String(userId) === String(boardOwnerId) || rcGroupOn();   // a student: the teacher, or the group when asked
+}
+function rcTint(userId) {
+  if (String(userId) === String(boardOwnerId)) return ['#0B1026', '#D3F26A'];
+  const k = String(userId || ''); let h = 0;
+  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) | 0;
+  return RC_TINTS[Math.abs(h) % RC_TINTS.length];
+}
+function rcLoop() {
+  _rcRaf = 0;
+  const now = Date.now();
+  let moving = false;
+  Object.values(remoteCursors).forEach(c => {
+    if (!c.arrow) return;
+    const dx = c.tx - c.x, dy = c.ty - c.y;
+    const vx = dx * .35, vy = dy * .35;
+    c.x += vx; c.y += vy;
+    c.lx += (c.x - c.lx) * .14; c.ly += (c.y - c.ly) * .14;
+    c.tilt += (Math.max(-13, Math.min(13, vx * .5)) - c.tilt) * .2;
+    c.el.style.transform = `translate(${c.x.toFixed(1)}px,${c.y.toFixed(1)}px)`;
+    c.arrow.style.transform = `rotate(${c.tilt.toFixed(1)}deg)`;
+    c.label.style.transform = `translate(${(c.lx - c.x).toFixed(1)}px,${(c.ly - c.y).toFixed(1)}px)`;
+    c.el.classList.toggle('rc-idle', now - c.lastMove > 5000);
+    if (Math.abs(dx) + Math.abs(dy) > .3 || Math.abs(c.lx - c.x) + Math.abs(c.ly - c.y) > .3 || Math.abs(c.tilt) > .2) moving = true;
+  });
+  if (moving) _rcRaf = requestAnimationFrame(rcLoop);
+  else setTimeout(() => { if (!_rcRaf) _rcRaf = requestAnimationFrame(rcLoop); }, 1000);   // keeps the 5 s fade honest
+}
 function updateRemoteCursor(userId, bx, by, name, avatar) {
-  if (!remoteCursors[userId]) {
+  if (!rcVisible(userId)) { if (remoteCursors[userId]?.el) remoteCursors[userId].el.hidden = true; if (!remoteCursors[userId]) remoteCursors[userId] = { el: null, hiddenPeer: true }; return; }
+  let c = remoteCursors[userId];
+  if (!c || !c.el) {
+    const [arrow, pill] = rcTint(userId);
     const el = document.createElement('div');
-    el.style.cssText = `position:absolute;pointer-events:none;z-index:9000;transition:left .08s linear,top .08s linear;display:block;`;
-    const col = peerColor(userId);
-    // Miro-style arrow cursor (SVG) + tiny name pill below-right
-    el.innerHTML = `
-      <svg width="22" height="22" viewBox="0 0 22 22" style="display:block;filter:drop-shadow(0 1px 2px rgba(36,40,44,.25));">
-        <path d="M2 2 L2 16 L6.5 12 L9.5 19 L12 18 L9 11 L15 11 Z" fill="${col}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>
-      <div style="position:absolute;left:16px;top:18px;background:${col};color:#24282C;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:var(--font);letter-spacing:-.005em;box-shadow:0 1px 3px rgba(36,40,44,.20);">${(name||'…').replace(/</g,'&lt;')}</div>`;
+    el.className = 'rc-cursor';
+    const first = String(name || '…').trim().split(/\s+/)[0];
+    el.innerHTML = `<svg class="rc-arrow" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="${RC_ARROW}" fill="${arrow}" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="rc-label" style="background:${pill}">${first.replace(/[<&]/g, ch => ch === '<' ? '&lt;' : '&amp;')}</span>`;
     board.appendChild(el);
-    remoteCursors[userId] = { el };
+    c = remoteCursors[userId] = { el, arrow: el.querySelector('.rc-arrow'), label: el.querySelector('.rc-label'), x: bx, y: by, lx: bx, ly: by, tx: bx, ty: by, tilt: 0, lastMove: Date.now() };
   }
-  const { el } = remoteCursors[userId];
-  el.style.left = bx + 'px';
-  el.style.top  = by + 'px';
+  c.el.hidden = false;
+  if (c.tx !== bx || c.ty !== by) c.lastMove = Date.now();
+  c.tx = bx; c.ty = by;
+  if (!_rcRaf) _rcRaf = requestAnimationFrame(rcLoop);
 }
 
 function removeRemoteCursor(userId) {
   if (remoteCursors[userId]) {
-    remoteCursors[userId].el.remove();
+    remoteCursors[userId].el?.remove();
     delete remoteCursors[userId];
   }
 }
+/* "Group cursors" for a student - pair work on one board. */
+function toggleGroupCursors() {
+  const on = !rcGroupOn();
+  try { localStorage.setItem('teachedos_group_cursors', on ? '1' : '0'); } catch (_) {}
+  Object.keys(remoteCursors).forEach(id => { if (!rcVisible(id)) { remoteCursors[id].el?.remove(); remoteCursors[id] = { el: null, hiddenPeer: true }; } });
+  updatePresenceBar();
+  return on;
+}
+window.toggleGroupCursors = toggleGroupCursors;
 
 function clearRemoteCursors() {
   Object.keys(remoteCursors).forEach(removeRemoteCursor);
@@ -24454,8 +24505,10 @@ function updatePresenceBar() {
       </div>`;
     }).join('') + (peers.length > 5 ? `<div class="peer-chip" style="background:#A3A48D;"><span>+${peers.length-5}</span></div>` : '');
   } else {
-    // Student: simple count
-    bar.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-3);">👥 ${peers.length + 1} online</span>`;
+    // Student: how many are here, and whether the group's cursors show (pair work)
+    const grp = rcGroupOn();
+    bar.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--text-3);">👥 ${peers.length + 1} online</span>`
+      + (peers.length > 1 ? `<button type="button" class="rc-group-btn${grp ? ' on' : ''}" onclick="toggleGroupCursors()" title="Show the other students' cursors - for pair work">${grp ? 'Group cursors: on' : 'Group cursors'}</button>` : '');
   }
 }
 

@@ -16,6 +16,10 @@
     { key: 'lavender', group: 'colour', title: 'Lavender', css: 'radial-gradient(90% 80% at 80% 15%, #F6F2FF 0%, transparent 55%), linear-gradient(165deg, #EEE8FF 0%, #DCD3F5 100%)' },
     { key: 'dusk',     group: 'colour', title: 'Dusk',     css: 'radial-gradient(90% 70% at 20% 0%, rgba(205,242,79,.18) 0%, transparent 55%), linear-gradient(170deg, #2A2A33 0%, #16161B 100%)', dark: true },
     { key: 'graphite', group: 'colour', title: 'Graphite', css: 'linear-gradient(165deg, #B9BBC3 0%, #8E9099 100%)', dark: true },
+    /* Star luxe (design spec v1 №12): silver silk with a live layer - rare
+       sharp twinkles and glitter where the cursor is (scripts/star-luxe.js).
+       The gradient alone is what shows where the live layer does not run. */
+    { key: 'star-luxe', group: 'colour', title: 'Star luxe', live: 'stars', glass: true, css: 'linear-gradient(164deg, #F4F6F9 0%, #D3DAE4 100%)' },
     /* Узоры - тоже чистый CSS, в цветах TeachEd. */
     { key: 'dots',     group: 'pattern', title: 'Dot grid',   css: 'radial-gradient(circle, rgba(22,22,22,.16) 1.2px, transparent 1.6px) 0 0 / 22px 22px, #F2F2F5' },
     { key: 'paper',    group: 'pattern', title: 'Grid paper', css: 'linear-gradient(rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, linear-gradient(90deg, rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, #F7F7F9' },

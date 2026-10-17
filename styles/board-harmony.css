@@ -399,3 +399,23 @@ body.board-page.board-canvas-dark #empty-state{ background:#FFFFFF !important; }
 #tool-builder-panel :is(.el-in,.el-ta){ display:block; width:100%; border-radius:12px; background:#fff; font:500 14px var(--font,system-ui,sans-serif); color:#24282C; }
 #tool-builder-panel .el-in{ height:42px; padding:0 12px; }
 #tool-builder-panel .el-ta{ min-height:110px; padding:10px 12px; line-height:1.45; resize:vertical; }
+
+/* ── Live cursors (design spec v1 №13, 16.10.2026) ──────────────────────
+   Arrow 26px with a white outline, the first name in a pill offset from the
+   tip; over the board's content, under its dialogs; never steals a click.
+   Idle 5 s → .32; the motion itself is in board-app.js (rcLoop). */
+.rc-cursor { position:absolute; left:0; top:0; z-index:9000; pointer-events:none; will-change:transform; transition:opacity .4s ease; }
+.rc-cursor[hidden] { display:none; }
+.rc-cursor.rc-idle { opacity:.32; }
+.rc-arrow { display:block; transform-origin:4px 3px; filter:drop-shadow(0 2px 4px rgba(11,16,38,.22)); }
+.rc-label {
+  position:absolute; left:16px; top:18px; padding:4px 10px; border-radius:999px; white-space:nowrap;
+  font:800 12px/1.2 Manrope, -apple-system, 'Segoe UI', sans-serif; color:#0B1026; box-shadow:0 3px 10px rgba(11,16,38,.18); will-change:transform;
+}
+.rc-group-btn {
+  margin-left:8px; border:1px solid rgba(11,16,38,.14); background:#fff; color:#0B1026; border-radius:999px; padding:4px 10px;
+  font:700 11px Manrope, -apple-system, sans-serif; cursor:pointer;
+}
+.rc-group-btn.on { background:#0B1026; color:#fff; border-color:#0B1026; }
+@media (pointer:coarse) and (not (pointer:fine)) { .rc-cursor { display:none; } }
+@media (prefers-reduced-motion:reduce) { .rc-cursor { transition:none; } }
