@@ -3440,6 +3440,26 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .ai-form input:focus,.ai-form select:focus,.ai-form textarea:focus{border-color:#CDF649;box-shadow:0 0 0 4px rgba(205,246,73,.22);}
 .ai-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .ai-memory-note{margin-top:10px;border-radius:14px;background:#24282C;color:rgba(255,255,255,.78);padding:11px 12px;font-size:12px;line-height:1.45;font-weight:650;}
+/* TeachEd memory, part 2: the move of the old memory and the blocks to match */
+#ai-migrate-card{position:fixed;right:20px;bottom:96px;z-index:10050;width:min(340px,calc(100vw - 32px));background:#24282C;color:#fff;border-radius:18px;padding:16px 16px 14px;box-shadow:0 24px 48px -18px rgba(11,16,38,.55);font-family:inherit}
+#ai-migrate-card .ai-migrate-h{font-size:15px;font-weight:800;margin-bottom:4px}
+#ai-migrate-card p{font-size:13px;line-height:1.45;color:rgba(255,255,255,.75);margin:0 0 12px}
+#ai-migrate-card .ai-migrate-row{display:flex;gap:8px}
+#ai-migrate-card .ai-action{flex:1;min-height:38px}
+#ai-migrate-card .ai-action.ghost{background:rgba(255,255,255,.12);color:#fff}
+#ai-migrate-card .ai-action:focus-visible,.ai-unmatched .ai-action:focus-visible{outline:2px solid #CDF649;outline-offset:2px}
+.ai-unmatched{margin:12px 0 4px;border-radius:14px;background:#F6F6EF;border:1px solid rgba(36,40,44,.1);padding:12px}
+.ai-unmatched[hidden]{display:none}
+.ai-unmatched-h{font-size:13px;font-weight:800;color:#24282C;margin-bottom:6px}
+.ai-unmatched-sub{font-size:12px;color:rgba(36,40,44,.65);margin:0 0 8px;line-height:1.4}
+.ai-unmatched > .ai-action{min-height:36px;padding:0 16px}
+.ai-unmatched-item{background:#fff;border-radius:12px;padding:10px;margin-top:8px}
+.ai-unmatched-kind{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:rgba(36,40,44,.55)}
+.ai-unmatched-text{font-size:12.5px;line-height:1.45;color:#24282C;margin:4px 0 8px;white-space:pre-wrap;word-break:break-word}
+.ai-unmatched-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ai-unmatched-row select{flex:1 1 140px;min-width:0;height:34px}
+.ai-unmatched-row .ai-action{min-height:34px;padding:0 12px}
+.ai-unmatched-row .ai-action:disabled{opacity:.45;cursor:default}
 .ai-memory-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
 .ai-memory-chip{border:1px solid rgba(36,40,44,.10);background:#fff;border-radius:999px;padding:7px 10px;
   font-size:11px;font-weight:600;color:#24282C;cursor:pointer;}

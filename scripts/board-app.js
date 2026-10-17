@@ -16791,7 +16791,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1223';
+const TEACHEDOS_ASSET_VERSION = '1224';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23690,7 +23690,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1223',
+          icon: 'icons/icon-192.png?v=1224',
           tag: 'board-live-' + s.id,
         });
       }
@@ -26608,7 +26608,7 @@ const _aiSet = (id, v) => { const el = document.getElementById(id); if (el && v 
 const _aiVal = id => document.getElementById(id)?.value || '';
 
 async function loadAiAssistantSettings() {
-  const saved = _aiLocal();
+  const saved = _aiMem() && !_aiMineMove() ? {} : _aiLocal();
   _aiSet('ai-teacher-memory', saved.teacherMemory || '');
   _aiSet('ai-mode', saved.mode || null); _aiSet('ai-goal', saved.goal || null); _aiSet('ai-tone', saved.tone || null);
   const mem = _aiMem();
@@ -26624,6 +26624,7 @@ async function loadAiAssistantSettings() {
   }
   await loadAiStudentMemory();
   updateAiProviderNote();
+  renderAiUnmatched();
 }
 
 /* the teacher's students for the picker; the board's own student is picked by default */
@@ -26662,6 +26663,12 @@ async function loadAiStudentMemory() {
     const d = await mem.getDossier(_aiMemStudent).catch(() => null);
     _aiSet('ai-student-memory', (d && d.notes) || '');
     _aiSet('ai-mistakes', (d && d.weak_spots) || '');
+  } else if (mem) {
+    // a whole class: its own key in this browser; before the move the old blocks still show here
+    const c = _aiJson(AI_CLASS_KEY, {}), legacy = _aiLocal();
+    const old = legacy.migrated_at || !_aiMineMove() ? {} : legacy;
+    _aiSet('ai-student-memory', c.studentMemory != null ? c.studentMemory : (old.studentMemory || ''));
+    _aiSet('ai-mistakes', c.mistakes != null ? c.mistakes : (old.mistakes || ''));
   } else {
     const saved = _aiLocal();
     _aiSet('ai-student-memory', saved.studentMemory || '');
@@ -26693,8 +26700,8 @@ async function saveAiAssistantSettings(opts = {}) {
       if ((d.notes || '') !== studentMemory) await mem.saveDossierField(_aiMemStudent, 'notes', studentMemory);
       if ((d.weak_spots || '') !== mistakes) await mem.saveDossierField(_aiMemStudent, 'weak_spots', mistakes);
     } else {
-      // a whole class stays in this browser; the old keys are left for the move to the server (part 2)
-      localStorage.setItem(AI_ASSISTANT_STORAGE, JSON.stringify({ ...local, studentMemory, mistakes }));
+      // a whole class stays in this browser, under its own key: the old object is only read by the move
+      _aiPut(AI_CLASS_KEY, { studentMemory, mistakes });
     }
   }
   updateAiProviderNote();
@@ -26737,6 +26744,184 @@ window.TeachedMemory?.onChange(e => {
   if (document.activeElement && document.activeElement.closest?.('#ai-assistant-panel textarea')) return;
   loadAiAssistantSettings();
 });
+
+/* TeachEd memory, part 2 (ТЗ «Память TeachEd» §4): the move of the old memory.
+
+   Step 0, the inventory of the old storage (all versions since the studio appeared):
+     localStorage 'teached.aiAssistant.settings.v1' = one object per browser
+       teacherMemory  -> teacher_memory.style.memory      (moved as is)
+       mode/goal/tone -> teacher_memory.style.mode/goal/tone
+       studentMemory  -> a student's dossier.notes        (only by the teacher's choice)
+       mistakes       -> a student's dossier.weak_spots   (only by the teacher's choice)
+     It never named a student (the studio had no student picker), so no student
+     block is matched by the machine: they all go to "Couldn't match to a student",
+     where the teacher picks the student for each block or drops it.
+
+   The question is asked online only, at most twice, seven days apart. "Move" that
+   loses the network on the way leaves 'pending_migration' and finishes on the next
+   online visit without asking again. A teaching style already on the server (moved
+   from another device) is not overwritten: this browser's text becomes a block
+   the teacher can add to it. Afterwards the old object carries migrated_at. */
+const AI_MIGRATION_KEY = 'teached.aiMemory.migration.v1';
+const AI_UNMATCHED_KEY = 'teached.aiMemory.unmatched.v1';
+const AI_CLASS_KEY = 'teached.aiMemory.class.v1';
+const _aiJson = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || '') || d; } catch { return d; } };
+const _aiPut = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const _aiLegacyText = l => ['teacherMemory', 'studentMemory', 'mistakes'].some(k => String(l[k] || '').trim());
+
+/* the move belongs to the teacher who started it: on a shared computer another
+   teacher never sees, moves or matches those blocks */
+const _aiMe = () => { try { return JSON.parse(atob(String(authToken).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub || ''; } catch { return ''; } };
+function aiMigrationState() { return _aiJson(AI_MIGRATION_KEY, { status: 'new', asks: 0 }); }
+const _aiMineMove = () => { const t = aiMigrationState().teacher; return !t || t === _aiMe(); };
+function aiMigrationNeeded() {
+  const l = _aiLocal();
+  return !!_aiMem() && _aiMineMove() && !l.migrated_at && _aiLegacyText(l) && aiMigrationState().status !== 'done';
+}
+
+/* on a board page: ask once, or finish a move the network interrupted */
+async function aiMigrationCheck() {
+  if (!aiMigrationNeeded() || !navigator.onLine) return;
+  const st = aiMigrationState();
+  if (st.status === 'pending_migration') return aiMigrate();
+  if (st.status === 'asked' && (st.asks >= 2 || Date.now() < (st.next_ask_at || 0))) return;
+  aiMigrationAsk();
+}
+
+function aiMigrationAsk() {
+  if (document.getElementById('ai-migrate-card')) return;
+  const card = document.createElement('div');
+  card.id = 'ai-migrate-card';
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-labelledby', 'ai-migrate-h');
+  card.innerHTML = `<div class="ai-migrate-h" id="ai-migrate-h">Move your memory to TeachEd?</div>
+    <p>It will be with you on all your devices and stay private.</p>
+    <div class="ai-migrate-row"><button type="button" class="ai-action" data-go="move">Move</button><button type="button" class="ai-action ghost" data-go="later">Not now</button></div>`;
+  card.addEventListener('click', e => {
+    const go = e.target.closest('[data-go]')?.dataset.go;
+    if (!go) return;
+    card.remove();
+    if (go === 'move') aiMigrate();
+    else {
+      const st = aiMigrationState();
+      _aiPut(AI_MIGRATION_KEY, { ...st, teacher: _aiMe(), status: 'asked', asks: (st.asks || 0) + 1, next_ask_at: Date.now() + 7 * 86400000 });
+    }
+  });
+  document.body.appendChild(card);
+  card.querySelector('[data-go="move"]').focus();
+}
+
+let _aiMigrating = null;
+function aiMigrate() {
+  if (_aiMigrating) return _aiMigrating;
+  _aiMigrating = (async () => {
+    const mem = _aiMem();
+    const legacy = _aiLocal();
+    if (!mem || legacy.migrated_at || !_aiMineMove()) return;
+    const st = aiMigrationState();
+    _aiPut(AI_MIGRATION_KEY, { ...st, teacher: _aiMe(), status: 'pending_migration' });
+    if (!navigator.onLine) return;
+    // the server's style first, fresh: another device may have moved one already, and a
+    // stale copy here would let this browser's style overwrite it
+    if (!(await mem.syncNow())) return;
+    if (!st.blocks_made) {
+      const style = await mem.getStyle().catch(() => ({}));
+      const mine = String(legacy.teacherMemory || '').trim();
+      const blocks = _aiJson(AI_UNMATCHED_KEY, []);
+      const add = (kind, text) => { if (String(text || '').trim()) blocks.push({ id: 'm' + Date.now().toString(36) + blocks.length, kind, text: String(text).trim() }); };
+      if (!String(style.memory || '').trim()) {
+        await mem.saveStyle({ ...style, memory: mine,
+          mode: style.mode || legacy.mode || 'lesson-board', goal: style.goal || legacy.goal || 'confidence', tone: style.tone || legacy.tone || 'supportive' });
+      } else if (mine && mine !== String(style.memory).trim()) add('style', mine);
+      // a block the teacher already keeps as class memory here is not asked about twice
+      const cls = _aiJson(AI_CLASS_KEY, {});
+      if (String(legacy.studentMemory || '').trim() !== String(cls.studentMemory || '').trim()) add('student', legacy.studentMemory);
+      if (String(legacy.mistakes || '').trim() !== String(cls.mistakes || '').trim()) add('mistakes', legacy.mistakes);
+      _aiPut(AI_UNMATCHED_KEY, blocks);
+      _aiPut(AI_MIGRATION_KEY, { ...aiMigrationState(), status: 'pending_migration', blocks_made: true });
+    }
+    if (!(await mem.syncNow()) || await mem.pending()) return;   // the network went away: finish on the next online visit
+    _aiPut(AI_ASSISTANT_STORAGE, { ...legacy, migrated_at: new Date().toISOString() });
+    _aiPut(AI_MIGRATION_KEY, { ...aiMigrationState(), status: 'done', migrated_at: new Date().toISOString() });
+    if (document.getElementById('ai-assistant-panel')?.classList.contains('open')) loadAiAssistantSettings();
+    const left = _aiJson(AI_UNMATCHED_KEY, []).length;
+    toast(left ? `Memory moved. ${left} block${left === 1 ? '' : 's'} to match in AI Memory Studio` : 'Memory moved to TeachEd');
+  })().catch(() => {}).finally(() => { _aiMigrating = null; });
+  return _aiMigrating;
+}
+addEventListener('online', () => { if (aiMigrationState().status === 'pending_migration' && _aiMineMove()) aiMigrate(); });
+// a board page: once the memory mirror knows its teacher, ask (or finish a move)
+window.TeachedMemory?.ready().then(() => setTimeout(aiMigrationCheck, 2500));
+
+/* "Couldn't match to a student": the teacher picks where each old block goes */
+const AI_BLOCK_NAMES = { student: 'Student / class memory', mistakes: 'Common mistakes', style: 'Teacher memory from this browser' };
+function renderAiUnmatched() {
+  const box = document.getElementById('ai-unmatched');
+  if (!box) return;
+  const blocks = _aiMem() && _aiMineMove() ? _aiJson(AI_UNMATCHED_KEY, []) : [];
+  const legacyWaiting = aiMigrationNeeded() && aiMigrationState().status !== 'pending_migration';
+  box.hidden = !blocks.length && !legacyWaiting;
+  if (box.hidden) { box.replaceChildren(); return; }
+  box.replaceChildren();
+  const h = document.createElement('div'); h.className = 'ai-unmatched-h';
+  if (legacyWaiting) {
+    h.textContent = 'Memory in this browser is not in TeachEd yet.';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ai-action'; b.textContent = 'Move it';
+    b.onclick = async () => { await aiMigrate(); renderAiUnmatched(); };
+    box.append(h, b);
+    return;
+  }
+  h.textContent = `Couldn't match to a student · ${blocks.length}`;
+  const p = document.createElement('p'); p.className = 'ai-unmatched-sub'; p.textContent = 'Choose where each block from this browser belongs, or drop it.';
+  box.append(h, p);
+  for (const b of blocks) {
+    const row = document.createElement('div'); row.className = 'ai-unmatched-item';
+    const k = document.createElement('div'); k.className = 'ai-unmatched-kind'; k.textContent = AI_BLOCK_NAMES[b.kind] || 'Memory';
+    const t = document.createElement('div'); t.className = 'ai-unmatched-text'; t.textContent = b.text.length > 220 ? b.text.slice(0, 220) + '…' : b.text;
+    const ctl = document.createElement('div'); ctl.className = 'ai-unmatched-row';
+    const go = document.createElement('button'); go.type = 'button'; go.className = 'ai-action'; go.textContent = 'Add';
+    let sel = null;
+    if (b.kind !== 'style') {
+      sel = document.createElement('select');
+      sel.setAttribute('aria-label', 'Where this block goes');
+      sel.append(new Option('Choose a student…', ''), new Option('Whole class (this browser)', '__class'),
+        ...(_aiMemRoster || []).map(j => new Option(j.name || 'Student', String(j.id))));
+      go.disabled = true;
+      sel.onchange = () => { go.disabled = !sel.value; };
+      ctl.append(sel);
+    } else go.textContent = 'Add to my style';
+    go.onclick = () => aiUnmatchedPlace(b.id, sel ? sel.value : '__style');
+    const drop = document.createElement('button'); drop.type = 'button'; drop.className = 'ai-action ghost'; drop.textContent = 'Drop';
+    drop.onclick = () => { if (confirm('Drop this block? It is not saved anywhere else.')) aiUnmatchedRemove(b.id); };
+    ctl.append(go, drop);
+    row.append(k, t, ctl);
+    box.append(row);
+  }
+}
+function aiUnmatchedRemove(id) {
+  _aiPut(AI_UNMATCHED_KEY, _aiJson(AI_UNMATCHED_KEY, []).filter(b => b.id !== id));
+  renderAiUnmatched();
+}
+async function aiUnmatchedPlace(id, where) {
+  const mem = _aiMem();
+  const b = _aiJson(AI_UNMATCHED_KEY, []).find(x => x.id === id);
+  if (!mem || !b || !where) return;
+  const join = (a, c) => (String(a || '').trim() ? `${String(a).trim()}\n\n${c}` : c);
+  if (where === '__style') {
+    const style = await mem.getStyle().catch(() => ({}));
+    await mem.saveStyle({ ...style, memory: join(style.memory, b.text) });
+  } else if (where === '__class') {
+    const c = _aiJson(AI_CLASS_KEY, {});
+    _aiPut(AI_CLASS_KEY, { ...c, [b.kind === 'mistakes' ? 'mistakes' : 'studentMemory']: join(c[b.kind === 'mistakes' ? 'mistakes' : 'studentMemory'], b.text) });
+  } else {
+    const field = b.kind === 'mistakes' ? 'weak_spots' : 'notes';
+    const d = (await mem.getDossier(where).catch(() => null)) || {};
+    await mem.saveDossierField(where, field, join(d[field], b.text));
+  }
+  aiUnmatchedRemove(id);
+  await loadAiAssistantSettings();
+  toast('Added');
+}
 
 function toggleAiMemoryPreset(btn, text) {
   btn?.classList.toggle('active');

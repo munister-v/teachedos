@@ -143,15 +143,16 @@
   let timer = null, lastFocusSync = 0, running = null;
   function schedule(ms = 2000) { clearTimeout(timer); timer = setTimeout(() => syncNow(), ms); }
 
+  /* resolves true when the queue went out and the server's changes came in */
   function syncNow() {
     if (running) return running;
     running = (async () => {
       try {
-        if (!navigator.onLine || !(await ready()) || !token()) return;
+        if (!navigator.onLine || !(await ready()) || !token()) return false;
         const work = () => syncOnce();
-        if (navigator.locks && navigator.locks.request) await navigator.locks.request('teached-memory-sync', work);
-        else await work();
-      } catch (e) { /* offline or the server is restarting: the queue waits for the next try */ }
+        const ok = navigator.locks && navigator.locks.request ? await navigator.locks.request('teached-memory-sync', work) : await work();
+        return ok === true;
+      } catch (e) { return false; /* offline or the server is restarting: the queue waits for the next try */ }
       finally { running = null; }
     })();
     return running;
@@ -241,6 +242,7 @@
       if (!d.has_more) break;
     }
     emit({ type: changed ? 'synced' : 'idle' });   // idle: the queue went out, nothing new came in
+    return true;
   }
 
   async function dropStudent(sid) {
