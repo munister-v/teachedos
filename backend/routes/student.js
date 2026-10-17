@@ -606,11 +606,9 @@ router.get('/progress', requireAuth, async (req, res) => {
     const overdue = hw.filter(a => (a.status === 'assigned' || a.status === 'in_progress') && a.due_at && new Date(a.due_at).getTime() < now).length;
 
     const [qs] = await safe(`SELECT COUNT(*)::int AS n, ROUND(AVG(pct))::int AS avg FROM quiz_results WHERE user_id = $1`, [uid]);
-    const quizRecent = await safe(`
-      SELECT qr.pct, qr.score, qr.max_score, qr.submitted_at, b.name AS board_name
-        FROM quiz_results qr LEFT JOIN boards b ON b.id::text = qr.board_id::text
-       WHERE qr.user_id = $1 ORDER BY qr.submitted_at DESC LIMIT 10`, [uid]);
-    const [vw] = await safe(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE learned)::int AS learned FROM vocabulary WHERE user_id = $1`, [uid]);
+    // the Word Bank card's "mastered" (lib/srs STATUS_SQL), not a second count (BUG-12)
+    const [vw] = await safe(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE st = 'mastered')::int AS learned
+                               FROM (SELECT ${require('../lib/srs').STATUS_SQL} AS st FROM vocabulary WHERE user_id = $1 AND kind = 'word') v`, [uid]);
 
     // Один день - один счётчик, в поясе ученика: «сегодня» у него, а не в UTC.
     const days = await safe(`
@@ -639,10 +637,41 @@ router.get('/progress', requireAuth, async (req, res) => {
     let i = byDay.has(today) ? 0 : 1;          // сегодня ещё не занимался - серия по вчера жива
     while (byDay.has(dayStr(today, i))) { streak++; i++; }
 
-    const recent = [
-      ...finished.map(a => ({ kind: 'homework', title: a.title, pct: a.final_score, at: a.submitted_at || a.graded_at, pass: typeof a.final_score === 'number' ? a.final_score >= (a.pass_threshold || 60) : null, note: a.teacher_note || '', teacher: a.teacher_name })),
-      ...quizRecent.map(q => ({ kind: 'quiz', title: q.board_name ? `Quiz · ${q.board_name}` : 'Quiz', pct: q.pct, at: q.submitted_at, pass: q.pct >= 60, note: '', detail: `${q.score}/${q.max_score}` })),
-    ].filter(r => r.at).sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 12);
+    /* BUG-13 (17.10.2026): Recent results are built from the very events the
+       calendar counts (the same five sources, the same day in the student's
+       zone) - a day with activity on the calendar is never an empty list.
+       One row per day, kind and thing: "Fri 9 Oct · Board Vlad · 6 cards done". */
+    const evRows = await safe(`
+      WITH ev AS (
+        SELECT p.updated_at AS t, 'board' AS kind, COALESCE(b.name, 'Board') AS title, NULL::int AS pct, NULL::text AS ref
+          FROM student_progress p LEFT JOIN boards b ON b.id::text = p.board_id::text WHERE p.user_id = $1 AND p.status = 'done'
+        UNION ALL
+        SELECT t.updated_at, 'practice', h.title, NULL, a.id::text FROM homework_attempt t
+          JOIN homework_assignment a ON a.id = t.assignment_id JOIN homework h ON h.id = a.homework_id WHERE a.student_id = $1
+        UNION ALL
+        SELECT a.submitted_at, 'homework', h.title, a.final_score, a.id::text FROM homework_assignment a
+          JOIN homework h ON h.id = a.homework_id WHERE a.student_id = $1 AND a.submitted_at IS NOT NULL
+        UNION ALL
+        SELECT q.submitted_at, 'quiz', COALESCE(b.name, 'Board'), q.pct, NULL FROM quiz_results q
+          LEFT JOIN boards b ON b.id::text = q.board_id::text WHERE q.user_id = $1
+        UNION ALL
+        SELECT last_reviewed_at, 'words', 'Word Bank', NULL, NULL FROM vocabulary WHERE user_id = $1 AND last_reviewed_at IS NOT NULL
+      )
+      SELECT to_char((t AT TIME ZONE $2)::date, 'YYYY-MM-DD') AS day, kind, title, MAX(ref) AS ref,
+             COUNT(*)::int AS n, MAX(pct)::int AS pct, MAX(t) AS at
+        FROM ev WHERE t > NOW() - INTERVAL '400 days'
+       GROUP BY 1, 2, 3 ORDER BY MAX(t) DESC LIMIT 16`, [uid, tz]);
+    const hwById = new Map(finished.map(a => [String(a.id), a]));
+    const recent = evRows.map(r => {
+      const a = r.ref ? hwById.get(r.ref) : null;
+      const pass = typeof r.pct === 'number' ? r.pct >= ((a && a.pass_threshold) || 60) : null;
+      const detail = r.kind === 'board' ? `${r.n} card${r.n === 1 ? '' : 's'} done`
+        : r.kind === 'practice' ? `${r.n} task${r.n === 1 ? '' : 's'} practised`
+        : r.kind === 'words' ? `${r.n} word${r.n === 1 ? '' : 's'} reviewed`
+        : r.kind === 'quiz' ? (r.n > 1 ? `${r.n} quizzes, best result` : 'Board quiz') : 'Handed in';
+      return { kind: r.kind, day: r.day, title: r.kind === 'quiz' ? `Quiz · ${r.title}` : r.title, n: r.n, pct: r.pct, pass, at: r.at, detail,
+               note: a && a.teacher_note || '', teacher: a && a.teacher_name || '', ref: r.kind === 'homework' || r.kind === 'practice' ? r.ref : null };
+    });
 
     res.json({
       today,

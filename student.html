@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1207">
-<link rel="preload" as="style" href="styles/unify.css?v=1207">
-<link rel="manifest" href="manifest.json?v=1207">
+<link rel="preload" as="style" href="styles/harmony.css?v=1208">
+<link rel="preload" as="style" href="styles/unify.css?v=1208">
+<link rel="manifest" href="manifest.json?v=1208">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1207" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1207">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1207">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1207">
+<link rel="icon" href="favicon.ico?v=1208" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1208">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1208">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1208">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1207">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1207">
+<link rel="stylesheet" href="styles/fonts.css?v=1208">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1208">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -297,7 +297,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   font-size:13px;font-weight:600;
 }
 
-/* Homework in the Assignments tab (loadHomework) */
+/* Homework in the Homework pane (loadHomework) */
 .hw-sec{font:700 11px var(--font);letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:14px 2px 8px;}
 .hw-sec:first-child{margin-top:0}
 .hw-card{
@@ -361,6 +361,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .pg-c.l0{background:#EDEEE6}.pg-c.l1{background:#CACCC6}.pg-c.l2{background:#A3A48D}.pg-c.l3{background:#5D614B}.pg-c.l4{background:#24282C}
 .pg-cal-sum{font-size:12px;color:var(--text-2);margin-top:10px}
 .pg-row{display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid var(--border)}
+a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40,44,.03)}
 .pg-row:last-child{border-bottom:0}
 .pg-row-ic{width:32px;height:32px;border-radius:10px;background:var(--bg-card-2);display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 32px}
 .pg-row-main{flex:1;min-width:0}
@@ -506,6 +507,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   opacity:0;pointer-events:none;transition:.25s;z-index:9999;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.has-undo.show{pointer-events:auto;display:flex;align-items:center;gap:14px}
+.toast-undo{border:0;background:#24282C;color:#CDF649;font:800 12.5px inherit;padding:6px 12px;border-radius:999px;cursor:pointer}
+.toast-undo:focus-visible{outline:2px solid #24282C;outline-offset:2px}
 
 /* Mobile hamburger */
 .mob-toggle{
@@ -593,25 +597,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1207">
-<link rel="stylesheet" href="styles/harmony.css?v=1207">
-<link rel="stylesheet" href="styles/unify.css?v=1207">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1207">
+<link rel="stylesheet" href="styles/mobile.css?v=1208">
+<link rel="stylesheet" href="styles/harmony.css?v=1208">
+<link rel="stylesheet" href="styles/unify.css?v=1208">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1208">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1207">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1207">
-<link rel="stylesheet" href="styles/controls.css?v=1207">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1207">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1207">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1207">
-<link rel="stylesheet" href="styles/student-engage.css?v=1207">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1208">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1208">
+<link rel="stylesheet" href="styles/controls.css?v=1208">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1208">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1208">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1208">
+<link rel="stylesheet" href="styles/student-engage.css?v=1208">
 <!-- Liquid Glass (iOS 26): bars, widgets, menus, sheets. Last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1207">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1208">
 </head>
 <body class="fx lg-cabinet">
 
 <div id="loading-screen">
-  <img class="ls-logo" src="logo-sm.png?v=1207" alt="TeachEd" width="56" height="56">
+  <img class="ls-logo" src="logo-sm.png?v=1208" alt="TeachEd" width="56" height="56">
   <div class="spinner"></div>
   <div style="font-size:13px;font-weight:600;color:var(--text-3);">Loading dashboard…</div>
 </div>
@@ -625,7 +629,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <div class="sb-logo"><img src="logo-sm.png?v=1207" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
+    <div class="sb-logo"><img src="logo-sm.png?v=1208" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
 
     <!-- Name and role are in the greeting and the avatar on the right; here they
          were an empty header. Kept hidden: the page writes them by id. The board
@@ -683,7 +687,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <button class="mob-toggle" id="mob-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
         <span aria-hidden="true">&nbsp;</span><span aria-hidden="true">&nbsp;</span><span aria-hidden="true">&nbsp;</span>
       </button>
-      <a class="tb-guide" href="javascript:void(0)" onclick="showGuide()">💡 How does it work</a>
+      <!-- BUG-14: the static "How does it work" text is gone (decision 17.10.2026): the
+           first visit has the short tour over the real page (student-onboarding.js). -->
       <div class="tb-spacer"></div>
       <!-- Переключатель темы убран: тёмной темы у продукта нет, кнопка
            переводила страницу в полутёмное состояние с нечитаемым текстом. -->
@@ -733,7 +738,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
 
       <!-- Vocabulary section -->
-      <div class="sec-title">My Vocabulary</div>
+      <div class="sec-title">My Word Bank</div>
       <div class="vocab-stats">
         <div class="vs-card">
           <span class="vs-icon">📋</span>
@@ -767,14 +772,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
       <!-- Tabs -->
       <div class="tabs" id="tabs">
-        <button class="tab active" data-tab="assignments">Assignments</button>
-        <button class="tab" data-tab="vocabulary">Vocabulary</button>
+        <button class="tab active" data-tab="assignments">Homework</button>
+        <button class="tab" data-tab="vocabulary">Word Bank</button>
         <button class="tab" data-tab="progress">Progress</button>
         <button class="tab" data-tab="schedule">Schedule</button>
         <button class="tab" data-tab="games">Games</button>
       </div>
 
-      <!-- Tab: Assignments -->
+      <!-- Tab: Homework -->
       <div class="tab-pane active" id="pane-assignments">
         <div id="assignments-notif"></div>
         <div id="assignments-list">
@@ -792,10 +797,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="tab-pane" id="pane-progress">
         <!-- Filled by loadProgress() from /api/student/progress -->
         <div class="pg-tiles" id="pg-tiles">
-          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Tasks done</div></div>
+          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Homework done</div></div>
           <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Average score</div></div>
           <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Day streak</div></div>
-          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Words learned</div></div>
+          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Words mastered</div></div>
         </div>
         <div class="pg-block">
           <div class="pg-head"><span class="sec-title" style="margin:0">Last 4 weeks</span><span class="pg-key" aria-hidden="true">less <i class="pg-c l0"></i><i class="pg-c l1"></i><i class="pg-c l2"></i><i class="pg-c l3"></i><i class="pg-c l4"></i> more</span></div>
@@ -836,14 +841,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
        board "Open my board" opens (student-engage.js sets the link). -->
   <button class="mtab active" type="button" data-tab="assignments"><span class="mtab-ic">🏠</span><span>Home</span></button>
   <a class="mtab mtab-link" id="mtab-board" href="#" hidden><span class="mtab-ic">🧩</span><span>My board</span></a>
-  <button class="mtab" type="button" data-tab="vocabulary"><span class="mtab-ic">📚</span><span>Words</span></button>
+  <button class="mtab" type="button" data-tab="vocabulary"><span class="mtab-ic">📚</span><span>Word Bank</span></button>
   <button class="mtab" type="button" data-tab="progress"><span class="mtab-ic">📈</span><span>Progress</span></button>
 </div>
 
 <!-- Vocab modal -->
 <div class="modal-overlay" id="vocab-modal">
   <div class="modal-box">
-    <div class="modal-title">📖 Add Word</div>
+    <div class="modal-title">📖 Add to Word Bank</div>
     <input class="modal-input" id="vm-word" placeholder="Word or phrase">
     <input class="modal-input" id="vm-trans" placeholder="Translation">
     <input class="modal-input" id="vm-ex" placeholder="Example sentence (optional)">
@@ -854,30 +859,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<!-- Guide modal -->
-<div class="modal-overlay" id="guide-modal">
-  <div class="modal-box" style="max-width:500px;">
-    <div class="modal-title">💡 How does it work</div>
-    <div style="font-size:13px;color:var(--text-2);line-height:1.7;">
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">1. Your teacher creates boards</strong> - structured lesson plans with materials, exercises, and vocabulary.</p>
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">2. You learn and practice</strong> - open boards, study materials, complete assignments, and play vocabulary games.</p>
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">3. Track your progress</strong> - see your streak, lessons done, vocabulary growth, and quiz scores.</p>
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">4. Stay connected</strong> - get notified when your teacher goes live or adds new tasks.</p>
-    </div>
-    <button class="modal-submit" style="width:100%;margin-top:8px;" onclick="closeGuide()">Got it!</button>
-  </div>
-</div>
-
-<script src="scripts/app-core.js?v=1207"></script>
-<script src="scripts/student-onboarding.js?v=1207"></script>
-<script src="scripts/student-feed.js?v=1207"></script>
-<script src="scripts/stock-photos.js?v=1207"></script>
-<script src="scripts/lesson-cover.js?v=1207"></script>
-<script src="scripts/lesson-calendar.js?v=1207"></script>
-<script src="scripts/hw-state.js?v=1207"></script>
-<script src="scripts/student-engage.js?v=1207"></script>
-<script src="scripts/wallpaper-presets.js?v=1207"></script>
-<script src="scripts/student-wallpaper.js?v=1207"></script>
+<script src="scripts/app-core.js?v=1208"></script>
+<script src="scripts/student-onboarding.js?v=1208"></script>
+<script src="scripts/student-feed.js?v=1208"></script>
+<script src="scripts/stock-photos.js?v=1208"></script>
+<script src="scripts/lesson-cover.js?v=1208"></script>
+<script src="scripts/lesson-calendar.js?v=1208"></script>
+<script src="scripts/hw-state.js?v=1208"></script>
+<script src="scripts/student-engage.js?v=1208"></script>
+<script src="scripts/wallpaper-presets.js?v=1208"></script>
+<script src="scripts/student-wallpaper.js?v=1208"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -938,12 +929,24 @@ async function syncAutoTimeZone() {
   } catch {}
 }
 
+/* BUG-25: a change to the student's data is said out loud, and can be taken
+   back: showToast(msg, { undo }) shows an Undo button for 5 seconds. */
 let toastT;
-function showToast(msg) {
+function showToast(msg, opts = {}) {
   const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove('show'), 2500);
+  el.textContent = msg;
+  el.classList.toggle('has-undo', !!opts.undo);
+  if (opts.undo) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'toast-undo'; b.textContent = 'Undo';
+    b.addEventListener('click', () => { clearTimeout(toastT); el.classList.remove('show'); opts.undo(); }, { once: true });
+    el.appendChild(b);
+  }
+  el.setAttribute('role', 'status');
+  el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove('show'), opts.undo ? 5000 : 2500);
 }
+window.showToast = showToast;
 
 function readDashboardCache() {
   try {
@@ -1009,8 +1012,8 @@ function toggleTheme() {
 }
 
 // ── Guide ──
-function showGuide() { document.getElementById('guide-modal').style.display='flex'; }
-function closeGuide() { document.getElementById('guide-modal').style.display='none'; }
+function showGuide() {}
+function closeGuide() {}
 
 // ── Tabs ──
 function activateTab(tabName) {
@@ -1328,7 +1331,7 @@ async function checkLiveSessions() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${session.teacher_name || 'Your teacher'} started: ${session.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1207', tag: 'live-session-' + session.id,
+          icon: 'icons/icon-192.png?v=1208', tag: 'live-session-' + session.id,
         });
       }
     }
@@ -1364,13 +1367,6 @@ function renderPortalData(data) {
         </div>
       </div>`;
   }
-  if (data.boards && data.boards.some(b => b.total_lessons > b.done_lessons)) {
-    document.getElementById('assignments-notif').innerHTML = `
-      <div class="notif-banner">
-        <span class="notif-icon">🔔</span>
-        <span class="notif-text">Your teacher just added some new tasks for you!</span>
-      </div>`;
-  }
   if (data.journalEntry && window.studentEngage) {
     const je = data.journalEntry;
     // A package the teacher actually tracks (lessons, a payment date or lessons held); otherwise stay quiet.
@@ -1401,12 +1397,12 @@ async function loadProgress() {
   const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
   const tile = (num, lbl, sub, bar) => `<div class="pg-tile"><div class="pg-num">${num}</div><div class="pg-lbl">${lbl}</div>${sub ? `<div class="pg-sub">${sub}</div>` : ''}${bar != null ? `<div class="pg-bar"><i style="width:${bar}%"></i></div>` : ''}</div>`;
   document.getElementById('pg-tiles').innerHTML =
-    tile(hw.assigned ? `${hw.done}<small> / ${hw.assigned}</small>` : '0', 'Tasks done',
+    tile(hw.assigned ? `${hw.done}<small> / ${hw.assigned}</small>` : '0', 'Homework done',
       hw.overdue ? `${hw.overdue} overdue` : hw.open ? `${hw.open} to do` : hw.assigned ? 'all done' : 'no tasks yet', hw.assigned ? pct(hw.done, hw.assigned) : null) +
     tile(avg != null ? `${avg}<small>%</small>` : '-', 'Average score',
       hw.onTimePct != null ? `${hw.onTimePct}% handed in on time` : (hw.avg == null && quiz.avg != null ? `from ${quiz.count} quiz${quiz.count === 1 ? '' : 'zes'}` : ''), avg != null ? avg : null) +
     tile(d.streak || 0, 'Day streak', `${d.activeDays28 || 0} active day${d.activeDays28 === 1 ? '' : 's'} in 4 weeks`, null) +
-    tile(words.total ? `${words.learned}<small> / ${words.total}</small>` : '0', 'Words learned', words.total ? `${words.total - words.learned} to learn` : 'add words in Vocabulary', words.total ? pct(words.learned, words.total) : null);
+    tile(words.total ? `${words.learned}<small> / ${words.total}</small>` : '0', 'Words mastered', words.total ? `${words.total - words.learned} still in practice` : 'save words to your Word Bank', words.total ? pct(words.learned, words.total) : null);
 
   const ms = document.getElementById('ms-streak'); if (ms) ms.textContent = d.streak || 0;
   if (window.studentEngage) window.studentEngage.progress(d);
@@ -1441,17 +1437,20 @@ async function loadProgress() {
   const active = d.activeDays28 || 0;
   document.getElementById('pg-cal-sum').textContent = active
     ? `${active} active day${active === 1 ? '' : 's'} out of 28${d.streak ? ` · current streak ${d.streak} day${d.streak === 1 ? '' : 's'}` : ''}.`
-    : 'No activity yet - open a task from Assignments to start.';
+    : 'No activity yet - open your homework to start.';
 
+  /* BUG-13: the same events as the calendar above - date, what it was, result */
   const recent = d.recent || [];
+  const ICON = { quiz: '📋', homework: '📝', practice: '✏️', board: '🧩', words: '📚' };
   document.getElementById('pg-recent').innerHTML = recent.length ? recent.map(x => {
-    const when = new Date(x.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const when = new Date((x.day || String(x.at).slice(0, 10)) + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
     const has = typeof x.pct === 'number';
-    const verdict = !has ? '<span>sent</span>' : x.pass ? '<span class="ok">Passed</span>' : '<span class="low">Keep practising</span>';
-    const meta = [x.kind === 'quiz' ? 'Board quiz' : (x.teacher ? 'From ' + x.teacher : 'Homework'), when, x.detail || '', x.note ? `“${x.note}”` : ''].filter(Boolean).join(' · ');
-    return `<div class="pg-row"><span class="pg-row-ic">${x.kind === 'quiz' ? '📋' : '📝'}</span>
+    const verdict = !has ? `<span>${x.kind === 'homework' ? 'sent' : 'done'}</span>` : x.pass ? '<span class="ok">Passed</span>' : '<span class="low">Keep practising</span>';
+    const meta = [when, x.detail || '', x.teacher && x.kind === 'homework' ? 'From ' + x.teacher : '', x.note ? `“${x.note}”` : ''].filter(Boolean).join(' · ');
+    const tag = x.ref ? 'a' : 'div';
+    return `<${tag} class="pg-row"${x.ref ? ` href="homework-do.html?a=${encodeURIComponent(x.ref)}"` : ''}><span class="pg-row-ic">${ICON[x.kind] || '•'}</span>
       <span class="pg-row-main"><div class="pg-row-t">${esc(x.title)}</div><div class="pg-row-m">${esc(meta)}</div></span>
-      <span class="pg-score">${has ? `<b>${x.pct}%</b>` : ''}${verdict}</span></div>`;
+      <span class="pg-score">${has ? `<b>${x.pct}%</b>` : ''}${verdict}</span></${tag}>`;
   }).join('') : '<div class="empty-state">Your results will appear here after your first homework or quiz.</div>';
 }
 
@@ -1544,17 +1543,24 @@ async function loadHomework() {
     // A review the student has not opened yet goes first.
     const fresh = done.filter(a => a.status === 'graded' && !a.feedback_seen_at);
     const rest = done.filter(a => !fresh.includes(a));
-    list.innerHTML =
-      (fresh.length ? `<div class="hw-sec">New feedback · ${fresh.length}</div>${fresh.map(card).join('')}` : '') +
-      (todo.length ? `<div class="hw-sec">To do · ${todo.length}</div>${todo.map(card).join('')}` : '<div class="empty-state">All done - nothing waiting for you. 🎉</div>') +
-      (rest.length ? `<div class="hw-sec">Handed in</div>${rest.slice(0, 12).map(card).join('')}` : '');
-    if (todo.length) {
-      document.getElementById('assignments-notif').innerHTML = `
-        <div class="notif-banner">
-          <span class="notif-icon">🔔</span>
-          <span class="notif-text">You have ${todo.length} task${todo.length > 1 ? 's' : ''} from your teacher.</span>
-        </div>`;
-    }
+    /* BUG-20: two tabs - To do (and new feedback) / Done, the history of what
+       was handed in. The banner "You have N tasks" said what the bell and the
+       Homework block already say; it is gone. */
+    const toDo = (fresh.length ? `<div class="hw-sec">New feedback · ${fresh.length}</div>${fresh.map(card).join('')}` : '') +
+      (todo.length ? `<div class="hw-sec">To do · ${todo.length}</div>${todo.map(card).join('')}` : '<div class="empty-state">All done - nothing waiting for you. 🎉</div>');
+    const doneHtml = rest.length ? rest.map(card).join('') : '<div class="empty-state">Nothing handed in yet. Finished homework shows up here with your result.</div>';
+    const tab = list.dataset.tab === 'done' ? 'done' : 'todo';
+    list.innerHTML = `<div class="hw-tabs" role="tablist" aria-label="Homework">
+        <button type="button" role="tab" data-hwtab="todo" aria-selected="${tab === 'todo'}">To do · ${todo.length + fresh.length}</button>
+        <button type="button" role="tab" data-hwtab="done" aria-selected="${tab === 'done'}">Done · ${rest.length}</button></div>
+      <div class="hw-pane" data-pane="todo"${tab === 'todo' ? '' : ' hidden'}>${toDo}</div>
+      <div class="hw-pane" data-pane="done"${tab === 'done' ? '' : ' hidden'}>${doneHtml}</div>`;
+    list.querySelectorAll('[data-hwtab]').forEach(b => b.addEventListener('click', () => {
+      list.dataset.tab = b.dataset.hwtab;
+      list.querySelectorAll('[data-hwtab]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+      list.querySelectorAll('.hw-pane').forEach(p => { p.hidden = p.dataset.pane !== b.dataset.hwtab; });
+    }));
+    document.getElementById('assignments-notif').innerHTML = '';
   } catch (_) { hwInboxRequest = null; failed(); /* offline: the tab keeps its empty state */ }
 }
 window.loadHomework = loadHomework;
@@ -1642,12 +1648,17 @@ async function addVocabWord() {
       body: { word, translation: document.getElementById('vm-trans').value.trim(), example: document.getElementById('vm-ex').value.trim() }
     });
     if (r.ok) {
+      const { word: saved } = await r.json().catch(() => ({}));
       closeVocabModal();
       document.getElementById('vm-word').value = '';
       document.getElementById('vm-trans').value = '';
       document.getElementById('vm-ex').value = '';
       await loadVocab();
-      showToast('Word added!');
+      showToast(`Added ✓ “${word}” is in your Word Bank`, saved && saved.id ? { undo: async () => {
+        await apiFetch('/api/journal/vocab/' + encodeURIComponent(saved.id), { method: 'DELETE' }).catch(() => {});
+        await loadVocab();
+        showToast('Removed from your Word Bank');
+      } } : {});
     }
   } catch {}
 }
@@ -1679,20 +1690,21 @@ if (location.hash === '#vocabulary') {
 }
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1207"></script>
-<script src="scripts/vault-review.js?v=1207"></script>
-<script src="scripts/vault-cabinet.js?v=1207"></script>
-<script src="scripts/writing-shared.js?v=1207"></script>
-<script src="scripts/writing-mine.js?v=1207"></script>
-<script src="scripts/autogrow.js?v=1207" defer></script>
-<script src="pwa-boot.js?v=1207" defer></script>
-<script src="pwa.js?v=1207"></script>
-<script src="scripts/nav-boost.js?v=1207" defer></script>
-<script src="scripts/mobile-perf.js?v=1207" defer></script>
-<script src="scripts/mobile-nav.js?v=1207"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1207" defer></script>
-  <script src="scripts/signin-entry.js?v=1207" defer></script>
-<script src="scripts/verify-banner.js?v=1207" defer></script>
-<script src="scripts/nav-bell.js?v=1207" defer></script>
+<script src="scripts/hear-in-context.js?v=1208"></script>
+<script src="scripts/vault-review.js?v=1208"></script>
+<script src="scripts/vault-cabinet.js?v=1208"></script>
+<script src="scripts/writing-shared.js?v=1208"></script>
+<script src="scripts/writing-mine.js?v=1208"></script>
+<script src="scripts/autogrow.js?v=1208" defer></script>
+<script src="pwa-boot.js?v=1208" defer></script>
+<script src="pwa.js?v=1208"></script>
+<script src="scripts/nav-boost.js?v=1208" defer></script>
+<script src="scripts/mobile-perf.js?v=1208" defer></script>
+<script src="scripts/mobile-nav.js?v=1208"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1208" defer></script>
+  <script src="scripts/signin-entry.js?v=1208" defer></script>
+<script src="scripts/verify-banner.js?v=1208" defer></script>
+<script src="scripts/nav-bell.js?v=1208" defer></script>
+<script src="scripts/modal-guard.js?v=1208" defer></script>
 </body>
 </html>

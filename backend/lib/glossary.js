@@ -31,6 +31,8 @@ const TERMS = {
   'lesson path':   'The structure of a lesson: the steps inside a frame.',
   'activity card': 'The card of one separate activity.',
   lesson:          'A session - a class that has been started.',
+  homework:        'What the teacher gives a student to do at home. One word for it everywhere (student cabinet bugfix, BUG-18).',
+  'word bank':     'The student\'s own saved words and phrases. Not "my dictionary", not "Vocabulary".',
 };
 
 /* targets: where the rule applies. 'frontend' = what the browser shows (pages, scripts),
@@ -46,6 +48,15 @@ const RULES = [
   { id: 'studio-is-not-frame', targets: ['frontend', 'backend'],
     banned: /\bstudio\s+frame\b|\bframe\s+studio\b|\btask\s+studio\b/i,
     say: 'frame (one lesson) or studio (the builder) - not both', why: 'Studio is not a Frame, and a Task is not a Studio.' },
+  /* BUG-18 (17.10.2026): one term per thing in the student cabinet. What the teacher
+     gives is Homework (not Assignments / Teacher's tasks / Tasks and results); the
+     student's words are the Word Bank (not my / your dictionary). */
+  { id: 'homework-term', targets: ['frontend', 'backend'], textOnly: true,
+    banned: /\bAssignments\b|\bTeacher's tasks\b|\bTasks and results\b/,
+    say: 'Homework', why: 'The student meets one word for what the teacher gives them.' },
+  { id: 'word-bank-term', targets: ['frontend', 'backend'], textOnly: true,
+    banned: /\b(?:my|your) dictionary\b/i,
+    say: 'Word Bank', why: 'The student\'s saved words are the Word Bank everywhere.' },
   { id: 'invisible-rigour', targets: ['frontend'], textOnly: true,
     banned: /\b(guardrails?|descriptors?|can-do|calibrat\w+|mediation)\b/i,
     say: 'plain teacher language', why: 'Principle 0: the strictness is inside the platform; the teacher sees none of its terms.' },

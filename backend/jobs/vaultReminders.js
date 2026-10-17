@@ -26,6 +26,7 @@ async function sendVaultReminders() {
           FROM users u
          WHERE u.timezone IN (SELECT name FROM pg_timezone_names)
            AND (u.vault_remind_push OR u.vault_remind_email)
+           AND u.vault_remind_chosen_at IS NOT NULL   -- BUG-24: only after an explicit choice
            AND COALESCE(u.last_login_at, u.created_at) > NOW() - INTERVAL '60 days'
       )
       SELECT tz.*, d.due

@@ -60,4 +60,14 @@ function preview(card, now = Date.now()) {
   return out;
 }
 
-module.exports = { schedule, preview, MASTERED_DAYS };
+/* BUG-12 (17.10.2026): one status per saved word, read the same way by the
+   Word Bank counters, the word list and the teacher's pages:
+     new       never reviewed
+     learning  reviewed, not due yet
+     review    reviewed before and due again now
+     mastered  the interval reached MASTERED_DAYS, or marked learned by hand */
+const STATUS_SQL = `CASE WHEN learned OR interval_days >= ${MASTERED_DAYS} THEN 'mastered'
+  WHEN reps = 0 AND last_reviewed_at IS NULL THEN 'new'
+  WHEN due_at <= NOW() THEN 'review' ELSE 'learning' END`;
+
+module.exports = { schedule, preview, MASTERED_DAYS, STATUS_SQL };

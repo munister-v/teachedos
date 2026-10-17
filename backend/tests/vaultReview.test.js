@@ -95,9 +95,12 @@ test('sprint: every word says where it came from', () => {
 });
 
 test('lessons calendar: weekly slots become dates, days already marked are left out', () => {
-  const { plannedDates } = require('../routes/journal')._test;
+  // the calendar reads lesson starts the way the Next lesson card does (upcomingOccurrences, BUG-01)
+  const { upcomingOccurrences } = require('../routes/student');
   const from = new Date('2026-10-09T10:00:00Z');                       // a Friday
-  const got = plannedDates([{ day: 0, recurring: true, specific_date: null }, { day: 3, recurring: true, specific_date: null }, { specific_date: '2026-10-20' }, { specific_date: '2026-10-01' }],
-    new Set(['2026-10-12']), from, 14);
+  const base = { start_time: '10:00:00', end_time: '11:00:00', teacher_timezone: 'Europe/Kyiv' };
+  const slots = [{ ...base, day: 0, recurring: true }, { ...base, day: 3, recurring: true }, { ...base, specific_date: '2026-10-20' }, { ...base, specific_date: '2026-10-01' }];
+  const taken = new Set(['2026-10-12']);
+  const got = [...new Set(slots.flatMap(sl => upcomingOccurrences(sl, 14, from)).map(o => o.date))].filter(d => !taken.has(d)).sort();
   assert.deepStrictEqual(got, ['2026-10-15', '2026-10-19', '2026-10-20', '2026-10-22']);
 });

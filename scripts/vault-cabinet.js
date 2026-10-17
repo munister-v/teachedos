@@ -66,7 +66,9 @@
   }
   /* Reminders: once a day at the chosen hour (their own time zone), only
      when something is due - a push to this device and/or an email. */
-  async function toggleReminders(box) {
+  /* BUG-24 (17.10.2026): both switches start off; nothing is sent until the
+     student turns one on here (the server records that they chose). */
+  async function toggleReminders(box, opts = {}) {
     const old = box.querySelector('.vc-pop');
     if (old) { old.remove(); return; }
     document.querySelectorAll('.vc-pop').forEach(p => p.remove());
@@ -79,11 +81,11 @@
     pop.className = 'vc-pop';
     pop.setAttribute('role', 'dialog');
     pop.innerHTML = `<h4>Review reminders</h4>
-      <p>Once a day, only when words are due. ${r.timezone ? `Your time zone: ${r.timezone}.` : ''}</p>
+      <p>Once a day, only when words are due. ${r.chosen ? '' : '<b>Off until you choose.</b> '}${r.timezone ? `Your time zone: ${r.timezone}.` : ''}</p>
       <div class="vc-row"><span>Push on this device<small>${!pushOk ? 'Not supported in this browser' : denied ? 'Blocked in browser settings' : r.subscribed ? 'This account gets pushes' : 'Asks your browser once'}</small></span>
-        <label class="vc-sw"><input type="checkbox" id="vc-push"${r.push !== false ? ' checked' : ''}${!pushOk || denied ? ' disabled' : ''}><i></i></label></div>
+        <label class="vc-sw"><input type="checkbox" id="vc-push"${r.push === true ? ' checked' : ''}${!pushOk || denied ? ' disabled' : ''}><i></i></label></div>
       <div class="vc-row"><span>Email<small>A short list of the words - one click to review</small></span>
-        <label class="vc-sw"><input type="checkbox" id="vc-email"${r.email !== false ? ' checked' : ''}><i></i></label></div>
+        <label class="vc-sw"><input type="checkbox" id="vc-email"${r.email === true ? ' checked' : ''}><i></i></label></div>
       <div class="vc-row"><span>Time</span><select id="vc-hour">${hours.map(h => `<option value="${h}"${Number(r.hour ?? 18) === h ? ' selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('')}</select></div>
       <button type="button" class="vc-save">Save</button><div class="vc-note" id="vc-note"></div>`;
     box.appendChild(pop);
@@ -96,6 +98,7 @@
         if (push && pushOk && !r.subscribed && typeof subscribePush === 'function') await subscribePush();
         await api('/api/vault/reminders', { method: 'PUT', body: { push, email: pop.querySelector('#vc-email').checked, hour: Number(pop.querySelector('#vc-hour').value) } });
         note.textContent = '✓ Saved';
+        if (typeof opts.onSaved === 'function') opts.onSaved();
         setTimeout(() => pop.remove(), 900);
       } catch (e) { note.textContent = 'Could not save - try again.'; }
     });

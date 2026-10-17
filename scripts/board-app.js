@@ -4619,7 +4619,7 @@ function _wpRender(el, card, focus) {
           ${canRename ? `<button type="button" class="wp-title wp-rename" title="Rename this lesson">${esc(card.data.title || 'Lesson')}<i aria-hidden="true">✎</i></button>` : `<b class="wp-title">${esc(card.data.title || 'Lesson')}</b>`}</div>
         <div class="wp-acts">
           ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
-          ${canAssign ? `<button type="button" class="wp-btn wp-assign" title="Give this lesson to students as homework - they get it under Assignments with a Start button">📚 Assign as homework</button>` : ''}
+          ${canAssign ? `<button type="button" class="wp-btn wp-assign" title="Give this lesson to students as homework - they get it under Homework with a Start button">📚 Assign as homework</button>` : ''}
           ${theme && focus && window.TeachedSounds ? window.TeachedSounds.btnHtml('wp-btn') : ''}
           ${canTheme ? `<button type="button" class="wp-btn wp-theme" title="Theme / Vibe - how the lesson looks for students">🎨${theme ? ' ' + esc((window.TeachedThemes.get(theme) || {}).name || '') : ' Theme'}</button>` : ''}
           ${cloudOwner && !review ? `<button type="button" class="wp-btn wp-students">👥 Students${assigned ? ` · ${assigned}` : ''}</button>` : ''}
@@ -5718,7 +5718,9 @@ async function _vaultBoardInit() {
   chip.type = 'button';
   chip.className = 'vault-warmup';
   const n = Math.min(sum.due, 8);
-  chip.innerHTML = `<span class="vw-ic">🔁</span><span><b>Warm-up: ${n} word${n === 1 ? '' : 's'} from your Word Bank</b><small>About ${Math.max(1, Math.round(n / 4))} min · before the lesson</small></span><span class="vw-x" data-x aria-label="Not now">✕</span>`;
+  /* BUG-20: the chip says what it is and why - not just "6 words · About 2 min" */
+  chip.title = 'Words you saved that are due for review today. A short round before the lesson brings them back to mind.';
+  chip.innerHTML = `<span class="vw-ic">🔁</span><span><b>Before the lesson: review ${n} word${n === 1 ? '' : 's'}</b><small>From your Word Bank, due today · about ${Math.max(1, Math.round(n / 4))} min · tap to start</small></span><span class="vw-x" data-x aria-label="Not now">✕</span>`;
   chip.addEventListener('click', e => {
     try { sessionStorage.setItem(key, '1'); } catch {}
     chip.remove();
@@ -16668,7 +16670,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1207';
+const TEACHEDOS_ASSET_VERSION = '1208';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -21838,7 +21840,7 @@ function renderCourseTab(sec) {
       <div class="pt-row"><div class="pt-dot done"></div><span>Done: <strong>${doneLessons}</strong> of ${lessons.length}</span></div>
       <div class="pt-row"><div class="pt-dot progress"></div><span>In Progress: <strong>${inProgress}</strong></span></div>
       <div class="pt-row"><div class="pt-dot locked"></div><span>Locked: <strong>${locked}</strong></span></div>
-      ${assignments.length ? `<div class="pt-row">📝 <span>Assignments: <strong>${assignments.length}</strong></span></div>` : ''}
+      ${assignments.length ? `<div class="pt-row">📝 <span>Homework: <strong>${assignments.length}</strong></span></div>` : ''}
       ${milestones.length  ? `<div class="pt-row">🏁 <span>Milestones: <strong>${milestones.length}</strong></span></div>` : ''}`;
     sec.appendChild(track);
   }
@@ -23563,7 +23565,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1207',
+          icon: 'icons/icon-192.png?v=1208',
           tag: 'board-live-' + s.id,
         });
       }

@@ -408,3 +408,37 @@ html body:not(#_) .te-card .te-join.is-off,html body:not(#_) .te-card.is-next .t
 .te-renew:hover:not(:disabled){background:#CDF649}
 .te-renew:disabled{opacity:.7;cursor:default}
 .te-renew:focus-visible{outline:2px solid #24282C;outline-offset:2px}
+
+/* BUG-07: one Homework block - a row per homework with one action */
+.te-row2.te-row2-one{grid-template-columns:1fr}
+.te-hw-list{display:flex;flex-direction:column;gap:6px;margin:4px 0 2px}
+.te-card .te-task{min-height:48px}
+.te-task-tx small .st-badge{margin:0;padding:1px 7px;font-size:11px}
+.te-task-tx i.soon{color:#7A4A00;font-weight:650}
+.te-task .st-bar{margin-top:4px}
+.te-card.is-next .te-task{background:rgba(255,255,255,.7)}
+.te-card.is-next .te-task-go{background:#24282C;color:#CDF649;border-color:#24282C}
+/* BUG-20: Homework sheet - To do / Done */
+.hw-tabs{display:flex;gap:6px;margin:0 0 12px}
+.hw-tabs button{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(36,40,44,.2);background:#fff;color:#24282C;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer}
+.hw-tabs button[aria-selected="true"]{background:#24282C;border-color:#24282C;color:#CDF649}
+.hw-tabs button:focus-visible{outline:2px solid #24282C;outline-offset:2px}
+
+/* BUG-08 / 12 / 27: Word Bank - four statuses, Review apart from the chips, a word list */
+.te-wrev{flex:none;min-height:52px;padding:0 18px;border-radius:16px;border:1.5px solid #9F8CE8;background:rgba(159,140,232,.22);color:#fff;font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer}
+.te-wrev:hover{background:rgba(159,140,232,.38)}
+.te-wrev.wide{display:block;width:100%;margin:0 0 12px;color:#24282C;background:#E9E3FF;border-color:#9F8CE8}
+.te-wrev:focus-visible,.te-why:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.te-why{display:inline-grid;place-items:center;width:18px;height:18px;margin-left:6px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:transparent;color:inherit;font:800 11px/1 inherit;cursor:help;vertical-align:1px;padding:0}
+.wb-tabs{flex-wrap:wrap}
+.wb-explain{margin:0 0 12px;font-size:13px;color:#5D614B}
+.wb-list{display:flex;flex-direction:column;gap:8px}
+.wb-st{flex:none;align-self:center;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#F1F0EA;color:#24282C}
+.wb-st.wb-new{background:#E9F5C4}.wb-st.wb-learning{background:#D5FBF9}.wb-st.wb-review{background:#E9E3FF}.wb-st.wb-mastered{background:#24282C;color:#CDF649}
+.te-row2 .te-wstats{flex-wrap:wrap}
+/* BUG-24: the one-time question about review reminders */
+.te-remask{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);font-size:13px;color:#F4F4F8}
+.te-remask span{flex:1 1 220px}
+.te-remask button{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-weight:700;font-size:12.5px;font-family:inherit;cursor:pointer}
+.te-remask button[data-rem="yes"]{background:#CDF649;border-color:#CDF649;color:#24282C}
+.te-remask button:focus-visible{outline:2px solid #CDF649;outline-offset:2px}

@@ -539,7 +539,32 @@ document.addEventListener('click', e => {
   if (b) showSettingsGroup(b.dataset.sg);
 });
 
+/* BUG-27: the weekly goal for new words - a student's own setting */
+async function initWordGoal() {
+  const box = document.getElementById('word-goal');
+  if (!box || !me || me.role !== 'student' || box.dataset.ready) return;
+  box.dataset.ready = '1';
+  const paint = g => box.querySelectorAll('[data-goal]').forEach(b => b.setAttribute('aria-checked', String(Number(b.dataset.goal) === g)));
+  let goal = 20;
+  try { const r = await apiFetch('/api/vault/summary'); if (r.ok) goal = Number((await r.json()).week_goal) || 20; } catch (_) {}
+  paint(goal);
+  box.addEventListener('click', async e => {
+    const b = e.target.closest('[data-goal]');
+    if (!b) return;
+    const g = Number(b.dataset.goal), was = goal;
+    paint(g);
+    try {
+      const r = await apiFetch('/api/vault/goal', { method: 'PUT', body: { goal: g } });
+      if (!r.ok) throw new Error();
+      goal = g;
+      try { const c = JSON.parse(localStorage.getItem('te_vault_summary') || 'null'); if (c) { c.week_goal = g; localStorage.setItem('te_vault_summary', JSON.stringify(c)); } } catch (_) {}
+      toast(`Goal saved ✓ ${g} new words a week`);
+    } catch (_) { paint(was); toast('Could not save the goal. Try again'); }
+  });
+}
+
 function initSettings() {
+  initWordGoal();
   const m = location.hash.match(/^#settings\/(\w+)/);
   showSettingsGroup(m ? m[1] : (document.querySelector('#tab-settings .set-tab.active')?.dataset.sg || 'account'), { updateHash: false });
   document.getElementById('set-name').value = me.name;

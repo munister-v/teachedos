@@ -12,7 +12,12 @@
   if (window.studentWallpaper) return;
   const W = window.TeachedWall;
   if (!W) return;
-  const CACHE_KEY = 'teachedos_wallpaper';   // same key as the teacher's desktop
+  /* BUG-16 (17.10.2026): the background changed by itself between reloads -
+     this cache was shared with the teacher's desktop on the same browser
+     (and with anyone else who signed in there). Now it is this account's own
+     key; the account (server) stays the truth. */
+  const who = () => { try { return JSON.parse(atob(String(localStorage.getItem('teachedos_token') || '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub || ''; } catch (_) { return ''; } };
+  const CACHE_KEY = 'teachedos_student_wall:' + who();
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const base = () => (window.TeachEdApp && window.TeachEdApp.API_BASE)
     || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : location.origin);
@@ -33,7 +38,9 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
 .sw-sheet{width:min(760px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#FBFAF6;color:#24282C;border-radius:24px;padding:22px;box-shadow:0 40px 100px rgba(0,0,0,.35);font-family:var(--font,system-ui)}
 .sw-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
 .sw-head h2{font-size:20px;margin:0}.sw-head p{margin:3px 0 0;font-size:13px;color:#5D614B}
-.sw-x{margin-left:auto;width:36px;height:36px;border:0;border-radius:11px;background:#EFEEE7;cursor:pointer;font-size:15px}
+.sw-x{width:36px;height:36px;border:0;border-radius:11px;background:#EFEEE7;cursor:pointer;font-size:15px}
+.sw-reset{margin-left:auto;height:36px;padding:0 14px;border-radius:11px;border:1px solid rgba(36,40,44,.2);background:#fff;color:#24282C;font:700 12.5px var(--font,system-ui);cursor:pointer}
+.sw-reset:hover{background:#F6F6EF}.sw-reset:focus-visible,.sw-x:focus-visible{outline:2px solid #24282C;outline-offset:2px}
 .sw-group h3{font:700 10px 'SF Mono',var(--te-font-mono,ui-monospace,monospace);letter-spacing:.14em;text-transform:uppercase;color:#6B6E60;margin:16px 0 8px}
 .sw-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
 .sw-tile{display:flex;flex-direction:column;align-items:stretch;width:100%;min-width:0;gap:6px;border:0;background:none;padding:0;cursor:pointer;text-align:left;font:inherit}
@@ -136,10 +143,11 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
     let ov = document.getElementById('sw-ov');
     if (!ov) {
       ov = document.createElement('div'); ov.id = 'sw-ov'; ov.className = 'sw-ov';
-      ov.innerHTML = `<div class="sw-sheet" role="dialog" aria-modal="true" aria-labelledby="sw-title"><div class="sw-head"><div><h2 id="sw-title">Your background</h2><p>Pick one, or use your own photo. It follows you to any device.</p></div><button type="button" class="sw-x" aria-label="Close">✕</button></div><div id="sw-grid"></div><section class="sw-group sw-stock-group"><h3>Free photos</h3><div id="sw-stock"></div></section><input type="file" id="sw-file" accept="image/jpeg,image/png,image/webp" hidden><p class="sw-note" id="sw-note"></p></div>`;
+      ov.innerHTML = `<div class="sw-sheet" role="dialog" aria-modal="true" aria-labelledby="sw-title"><div class="sw-head"><div><h2 id="sw-title">Your background</h2><p>Pick one, or use your own photo. It is saved to your account and stays until you change it.</p></div><button type="button" class="sw-reset" data-reset title="Back to the TeachEd default background">Reset</button><button type="button" class="sw-x" aria-label="Close">✕</button></div><div id="sw-grid"></div><section class="sw-group sw-stock-group"><h3>Free photos</h3><div id="sw-stock"></div></section><input type="file" id="sw-file" accept="image/jpeg,image/png,image/webp" hidden><p class="sw-note" id="sw-note"></p></div>`;
       ov.addEventListener('click', e => {
         if (e.target === ov || e.target.closest('.sw-x')) { ov.classList.remove('open'); return; }
         if (e.target.closest('[data-up]')) { document.getElementById('sw-file').click(); return; }
+        if (e.target.closest('[data-reset]')) { pick(''); say('Back to the default background.'); return; }
         const t = e.target.closest('.sw-tile[data-v]'); if (t) pick(t.dataset.v);
       });
       ov.querySelector('#sw-file').addEventListener('change', e => { upload(e.target.files && e.target.files[0]); e.target.value = ''; });
@@ -168,7 +176,8 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
       bar.insertAdjacentElement('afterend', b);
     }
     if (localStorage.getItem('teachedos_token')) {
-      api('/api/users/me/desktop').then(r => r.ok ? r.json() : null).then(d => { if (d) apply(d.wallpaper || null); }).catch(() => {});
+      // only a real answer replaces what is on screen; a failed request leaves the saved choice alone
+      api('/api/users/me/desktop').then(r => r.ok ? r.json() : null).then(d => { if (d && 'wallpaper' in d) apply(d.wallpaper || null); }).catch(() => {});
     }
   }
   window.studentWallpaper = { open, apply };

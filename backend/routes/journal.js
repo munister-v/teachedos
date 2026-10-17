@@ -114,7 +114,7 @@ async function packSnapshot(j) {
   const n = rows[0];
   const bits = [];
   if (n.lessons) bits.push(`${n.lessons} lesson${n.lessons === 1 ? '' : 's'}`);
-  if (n.phrases) bits.push(`${n.phrases} new word${n.phrases === 1 ? '' : 's'} and phrase${n.phrases === 1 ? '' : 's'} in the dictionary`);
+  if (n.phrases) bits.push(`${n.phrases} new word${n.phrases === 1 ? '' : 's'} and phrase${n.phrases === 1 ? '' : 's'} in the Word Bank`);
   if (n.reviewed) bits.push(`${n.reviewed} reviewed`);
   if (n.homework) bits.push(`${n.homework} homework task${n.homework === 1 ? '' : 's'} done`);
   const since_day = new Date(since).toISOString().slice(0, 10);

@@ -5,7 +5,7 @@
 const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
-const { schedule, preview, MASTERED_DAYS } = require('../lib/srs');
+const { schedule, preview, MASTERED_DAYS, STATUS_SQL } = require('../lib/srs');
 const { pickSprint } = require('../lib/sprint');
 const { phraseFor, localDay } = require('../lib/phrases');
 const { createNotification } = require('./notifications');
@@ -31,7 +31,8 @@ router.use(requireAuth);
 router.get('/reminders', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT vault_remind_push AS push, vault_remind_email AS email, vault_remind_hour AS hour, timezone,
+      `SELECT (vault_remind_push AND vault_remind_chosen_at IS NOT NULL) AS push, (vault_remind_email AND vault_remind_chosen_at IS NOT NULL) AS email,
+              vault_remind_hour AS hour, timezone, (vault_remind_chosen_at IS NOT NULL) AS chosen,
               EXISTS (SELECT 1 FROM push_subscriptions WHERE user_id = $1) AS subscribed
          FROM users WHERE id = $1`, [req.user.id]);
     res.json(rows[0] || {});
@@ -42,7 +43,7 @@ router.put('/reminders', async (req, res) => {
     const b = req.body || {};
     const hour = Math.max(0, Math.min(23, parseInt(b.hour, 10)));
     await pool.query(
-      `UPDATE users SET vault_remind_push = $2, vault_remind_email = $3, vault_remind_hour = $4 WHERE id = $1`,
+      `UPDATE users SET vault_remind_push = $2, vault_remind_email = $3, vault_remind_hour = $4, vault_remind_chosen_at = NOW() WHERE id = $1`,
       [req.user.id, !!b.push, !!b.email, Number.isFinite(hour) ? hour : 18]);
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
@@ -54,18 +55,46 @@ const str = (v, n) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().sli
 // GET /api/vault/summary
 router.get('/summary', async (req, res) => {
   try {
+    /* status counts come from the same STATUS_SQL as the word list (BUG-12) */
     const { rows } = await pool.query(
       `SELECT COUNT(*) FILTER (WHERE due_at <= NOW())::int AS due,
               COUNT(*)::int AS total,
-              COUNT(*) FILTER (WHERE interval_days >= $2)::int AS mastered,
-              COUNT(*) FILTER (WHERE reps = 0 AND last_reviewed_at IS NULL)::int AS fresh,
+              COUNT(*) FILTER (WHERE st = 'mastered')::int AS mastered,
+              COUNT(*) FILTER (WHERE st = 'new')::int AS fresh,
+              COUNT(*) FILTER (WHERE st = 'learning')::int AS learning,
+              COUNT(*) FILTER (WHERE st = 'review')::int AS review,
+              COUNT(*) FILTER (WHERE created_at >= date_trunc('week', NOW() AT TIME ZONE $2) AT TIME ZONE $2)::int AS week,
               MIN(due_at) FILTER (WHERE due_at > NOW()) AS next_due
-         FROM vocabulary WHERE user_id = $1 AND kind = 'word'`, [req.user.id, MASTERED_DAYS]);
-    res.json(rows[0]);
+         FROM (SELECT *, ${STATUS_SQL} AS st FROM vocabulary WHERE user_id = $1 AND kind = 'word') v`, [req.user.id, req.user.timezone || 'Europe/Kyiv']);
+    const { rows: g } = await pool.query('SELECT word_goal FROM users WHERE id = $1', [req.user.id]).catch(() => ({ rows: [] }));
+    res.json({ ...rows[0], new: rows[0].fresh, week_goal: (g[0] && g[0].word_goal) || 20 });
   } catch (err) {
     console.error('[vault] summary', err.message);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+// GET /api/vault/words?status=new|learning|review|mastered - the Word Bank list (BUG-08)
+router.get('/words', async (req, res) => {
+  try {
+    const st = ['new', 'learning', 'review', 'mastered'].includes(req.query.status) ? req.query.status : null;
+    const { rows } = await pool.query(
+      `SELECT id, word, translation, example, source_title, created_at, due_at, interval_days, status FROM (
+         SELECT *, ${STATUS_SQL} AS status FROM vocabulary WHERE user_id = $1 AND kind = 'word') v
+        WHERE ($2::text IS NULL OR status = $2)
+        ORDER BY created_at DESC LIMIT 300`, [req.user.id, st]);
+    res.json({ words: rows });
+  } catch (err) {
+    console.error('[vault] words', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+// PUT /api/vault/goal {goal: 5|10|20|30} - words a week (BUG-27)
+router.put('/goal', async (req, res) => {
+  const goal = [5, 10, 20, 30].includes(Number(req.body && req.body.goal)) ? Number(req.body.goal) : null;
+  if (!goal) return res.status(400).json({ error: 'goal must be 5, 10, 20 or 30' });
+  await pool.query('UPDATE users SET word_goal = $2 WHERE id = $1', [req.user.id, goal]);
+  res.json({ ok: true, goal });
 });
 
 // GET /api/vault/due?limit=20 - the cards to review now, hardest first

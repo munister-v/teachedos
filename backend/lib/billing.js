@@ -52,7 +52,7 @@ const PLAN_CATALOG = {
       '30 students per board',
       'Analytics export & gradebook',
       'Real-time collaboration',
-      'Assignments, games, and live sessions',
+      'Homework, games, and live sessions',
     ],
   },
   school: {

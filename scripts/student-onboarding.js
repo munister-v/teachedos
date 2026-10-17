@@ -64,6 +64,8 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-teacher{display:flex;gap:12px;align-items:center;padding:16px;border-radius:18px;background:#F4F9DD;border:1px solid rgba(160,200,40,.4);margin-bottom:12px}
 .so-teacher b{font-size:28px;letter-spacing:-.02em}
 .so-nav{display:flex;align-items:center;gap:10px;margin-top:22px}
+.so-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border:0;border-radius:50%;background:#F1F0EA;color:#24282C;font-size:14px;cursor:pointer}
+.so-x:hover{background:#E6E5DC}.so-x:focus-visible{outline:2px solid #24282C;outline-offset:2px}
 .so-back{border:0;background:transparent;color:#5D614B;font-weight:600;font-size:14px;font-family:inherit;cursor:pointer;padding:10px 4px}
 .so-skip{border:0;background:transparent;color:#5D614B;font-weight:500;font-size:13px;font-family:inherit;text-decoration:underline;cursor:pointer;padding:10px 4px}
 .so-next{margin-left:auto;height:48px;padding:0 24px;border:0;border-radius:14px;background:#24282C;color:#fff;font-weight:650;font-size:15px;font-family:inherit;cursor:pointer}
@@ -158,11 +160,12 @@ ${REDUCED ? '.so-hole,.so-tip{transition:none}.so-day1{animation:none}' : ''}`;
       const draw = () => {
         const last = i === STEPS.length - 1;
         ov.innerHTML = `<div class="so-card" role="dialog" aria-modal="true" aria-label="Set up your learning">
+          <button type="button" class="so-x" data-close aria-label="Close">✕</button>
           <div class="so-steps">${STEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
           ${body()}
           <div class="so-err" id="so-err"></div>
           <div class="so-nav">
-            ${i ? '<button type="button" class="so-back" data-back>← Back</button>' : '<button type="button" class="so-skip" data-later>Later</button>'}
+            ${i ? '<button type="button" class="so-back" data-back>← Back</button>' : '<button type="button" class="so-skip" data-later>Not today</button>'}
             <button type="button" class="so-next${last ? ' lime' : ''}" data-next${ok() ? '' : ' disabled'}>${last ? 'Done' : 'Next'}</button>
           </div></div>`;
         const first = ov.querySelector('.so-plate.on, .so-chip.on, .so-plate, .so-chip');
@@ -177,7 +180,9 @@ ${REDUCED ? '.so-hole,.so-tip{transition:none}.so-day1{animation:none}' : ''}`;
         if (l) { st.level = l.dataset.lvl; draw(); return; }
         if (t.closest('[data-change-level]')) { st.changeLevel = true; draw(); return; }
         if (t.closest('[data-back]')) { i = Math.max(0, i - 1); draw(); return; }
-        if (t.closest('[data-later]')) { try { sessionStorage.setItem('sf_skip', '1'); } catch {} close(null); return; }
+        /* BUG-06: "Not today" and ✕ both mean the cabinet does not open this by itself again today */
+        if (t.closest('[data-later]') || t.closest('[data-close]')) { try { localStorage.setItem('so_snooze', new Date().toLocaleDateString('en-CA')); } catch {} close(null); return; }
+        if (t === ov) { close(null); return; }
         if (t.closest('[data-next]')) {
           if (i < STEPS.length - 1) { i++; draw(); return; }
           const btn = t.closest('[data-next]'); btn.disabled = true;

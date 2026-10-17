@@ -1428,3 +1428,10 @@ CREATE TABLE IF NOT EXISTS lesson_confirmations (
   PRIMARY KEY (journal_id, date)
 );
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS renew_asked_at TIMESTAMPTZ;
+-- BUG-27: the student's own weekly goal for new words (5 / 10 / 20 / 30), shown on the Word Bank card
+ALTER TABLE users ADD COLUMN IF NOT EXISTS word_goal SMALLINT NOT NULL DEFAULT 20;
+-- BUG-24: review reminders are opt-in. Off by default; they go out only after the
+-- student chose (vault_remind_chosen_at), never because a default said so.
+ALTER TABLE users ALTER COLUMN vault_remind_push SET DEFAULT FALSE;
+ALTER TABLE users ALTER COLUMN vault_remind_email SET DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_chosen_at TIMESTAMPTZ;

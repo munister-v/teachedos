@@ -158,6 +158,7 @@
     scrim.id = 'sf-scrim'; scrim.hidden = true;
     document.body.append(scrim, drawer, fab);
     const open = () => {
+      if (!dna && catalog) { fab.querySelector('.sf-fab-new')?.remove(); onboarding(); return; }   // not set up yet: For you starts with the set-up
       drawer.hidden = false; scrim.hidden = false;
       requestAnimationFrame(() => { drawer.classList.add('open'); scrim.classList.add('open'); });
       fab.classList.add('is-open');
@@ -321,7 +322,7 @@
           : `<div class="sf-big">${esc(c.phrase)}</div><div class="sf-ask-q">What does it mean?</div>`}
         <div class="sf-opts">${c.opts.map((o, i) => `<button type="button" class="sf-opt${done ? (i === c.right ? ' ok' : i === c.answer ? ' bad' : ' dim') : ''}" data-opt="${i}"${done ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>
         ${done ? `<div class="sf-after" aria-live="polite"><b>${c.answer === c.right ? 'Yes! 🎉' : 'Not quite.'}</b> <b>${esc(c.phrase)}</b> = ${esc(c.meaning)}<em>“${esc(c.example)}”</em>
-          <div class="sf-row2"><button type="button" class="sf-mini" data-add${c.added ? ' disabled' : ''}>${c.added ? '✓ In your words' : '+ Add to my words'}</button><button type="button" class="sf-mini ghost" data-say="${esc(c.example)}">🔊 Listen</button></div></div>` : ''}
+          <div class="sf-row2"><button type="button" class="sf-mini" data-add${c.added ? ' disabled' : ''}>${c.added ? '✓ In your Word Bank' : '+ Add to Word Bank'}</button><button type="button" class="sf-mini ghost" data-say="${esc(c.example)}">🔊 Listen</button></div></div>` : ''}
       </div>`;
     }
     if (c.type === 'poll') {
@@ -387,8 +388,20 @@
     try {
       const r = await api('/api/journal/vocab', { method: 'POST', body: { word: c.phrase, translation: c.meaning, example: c.example } });
       if (!r.ok) throw new Error('failed');
-      c.added = true; btn.textContent = '✓ In your words'; saveDeck();
+      const d = await json(r) || {};
+      const id = (d.word && d.word.id) || d.id || null;
+      c.added = true; btn.textContent = '✓ In your Word Bank'; saveDeck();
       if (typeof window.loadVocab === 'function') window.loadVocab();
+      // BUG-25: a toast and Undo for 5 seconds
+      if (typeof window.showToast === 'function') window.showToast(`Added ✓ “${c.phrase}” is in your Word Bank`, id ? { undo: async () => {
+        try {
+          const u = await api('/api/journal/vocab/' + encodeURIComponent(id), { method: 'DELETE' });
+          if (!u.ok) throw new Error();
+          c.added = false; saveDeck(); draw();
+          if (typeof window.loadVocab === 'function') window.loadVocab();
+          window.showToast('Removed from your Word Bank');
+        } catch (_) { window.showToast('Could not undo. Remove it from the Word Bank list'); }
+      } } : {});
     } catch { btn.disabled = false; btn.textContent = 'Could not add. Try again'; }
   }
 
@@ -464,8 +477,12 @@
         dna = d.dna; catalog = { goals: d.goals, interests: d.interests, levels: d.levels, teacherLevel: d.teacher_level };
         if (!d.has_teacher && window.StudentOnboarding) window.StudentOnboarding.noTeacherBanner();
         level = (dna && dna.level) || 'B1';
-        let skipped = false; try { skipped = sessionStorage.getItem('sf_skip') === '1'; } catch {}
-        if (!dna && !skipped) onboarding();
+        /* BUG-06 (17.10.2026): the set-up card used to open on every visit and
+           block the page. Now it opens by itself at most once a day (and not
+           at all on a day it was put off); the ✨ For you button opens it any time. */
+        const day = new Date().toLocaleDateString('en-CA');
+        let shown = false; try { shown = localStorage.getItem('so_snooze') === day || localStorage.getItem('so_auto') === day; } catch {}
+        if (!dna && !shown) { try { localStorage.setItem('so_auto', day); } catch {} onboarding(); }
         if (dna) loadFeed();
       } catch {}
     },
