@@ -16237,6 +16237,7 @@ function _ttPlaceWorksheetOnBoard(output){
       _ttScheduleGeneratedHarmonyAudit?.(frame.id, { minH: 640, shrink: true });
     });
   }
+  if (!placed.length) throw new Error('no-cards');       // never a success toast over zero cards (Lesson Builder 2.0 P4)
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
   closeTeacherToolBuilder();
   toast(placed.length > 1
@@ -16613,7 +16614,7 @@ function buildLessonFromSelected(){
 
   // Create lesson plan worksheet card on the board
   closeLessonCollectorModal();
-  _ttPlaceWorksheetOnBoard({
+  try { _ttPlaceWorksheetOnBoard({
     boardKind: 'worksheet',
     kind: 'Lesson Plan',
     cat: 'utility',
@@ -16623,7 +16624,7 @@ function buildLessonFromSelected(){
     questions,
     items: null,
     cards: null,
-  });
+  }); } catch (err) { console.warn('[lesson plan] placement failed', err); toast('The lesson plan could not be placed on the board. Open the lesson collector and try again.'); }
   toast(`📚 Lesson plan created - ${found.length} activities, ${stageNum} stages`);
 }
 
@@ -16660,7 +16661,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1193';
+const TEACHEDOS_ASSET_VERSION = '1194';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -16999,18 +17000,53 @@ async function runPendingLibraryItemImport() {
   }
 }
 
+/* One visible error for "Add to board" (Lesson Builder 2.0 P4, E4): what happened, why, and a
+   retry. The draft stays where it is - nothing is closed and nothing is lost. */
+function _ttAddFailed(reason, retry) {
+  const actions = document.querySelector('#tool-builder-panel .tbuilder-actions') || document.querySelector('.tbuilder-actions');
+  if (!actions) { toast(`Nothing was added to the board. ${reason}`); return; }
+  let box = document.getElementById('tbuilder-fail');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'tbuilder-fail';
+    box.className = 'tbuilder-fail';
+    box.setAttribute('role', 'alert');
+    actions.before(box);
+  }
+  box.innerHTML = '<b>Nothing was added to the board.</b><span></span><div><button type="button" class="tbuilder-btn lime" data-act="retry">Try again</button><button type="button" class="tbuilder-btn" data-act="dismiss">Dismiss</button></div>';
+  box.querySelector('span').textContent = reason;
+  box.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    box.remove();
+    if (b.dataset.act === 'retry' && retry) retry();
+  };
+  box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
 async function applyTeacherToolBuilderToBoard(mode) {
+  document.getElementById('tbuilder-fail')?.remove();
+  try { await _applyTeacherToolBuilderToBoard(mode); }
+  catch (err) {
+    console.warn('[add to board] failed', err);
+    _ttAddFailed(err && err.message === 'no-cards' ? 'The cards could not be created. Your draft is still here.' : 'Something went wrong while placing it. Your draft is still here.', () => applyTeacherToolBuilderToBoard(mode));
+  }
+}
+
+async function _applyTeacherToolBuilderToBoard(mode) {
   if (!activeTeacherToolBuilder) return;
   closeAddToBoardMenu();
+  const retry = () => applyTeacherToolBuilderToBoard(mode);
   /* У набора этапов на доску едет весь урок, а не только активный
      результат: иначе кнопка положила бы один текст и молча потеряла
      задания, которые учитель уже видел в превью. */
   if (lastLessonStageSet && boardLessonStagesFor(activeTeacherToolBuilder.id)) {
     if (placeBoardLessonStageSet()) return;
+    _ttAddFailed('The lesson could not be placed on the board. Your draft is still here.', retry);
+    return;
   }
   if (!lastTeacherToolBuilderOutput) await generateTeacherToolBuilder('fast');
   const output = lastTeacherToolBuilderOutput;
-  if (!output) return;
+  if (!output) { _ttAddFailed('There is no draft to add - it could not be made just now. Try again in a moment.', retry); return; }
   // Carry the builder's raw inputs with the placed output so EVERY lesson frame
   // keeps full context (source text + word list) for the "+ Add activity"
   // chain - even when the visible result (e.g. a quiz) doesn't include them.
@@ -17101,6 +17137,7 @@ async function applyTeacherToolBuilderToBoard(mode) {
     _suppressSnapshot--;
   }
 
+  if (!frame) throw new Error('no-cards');
   _sendCardToBack(frame);   // substrate frame always behind existing cards
   if (frame?.id) {
     clearSelection?.();
@@ -19733,6 +19770,7 @@ function placeBoardLessonStageSet() {
   const parts = _stageLessonParts(set);
   if (!parts) return false;
   const { results, homework, teacherOnly, label, videoUrl, readingText, writingFlow, speakingFlow, skillPath } = parts;
+  const idsBefore = new Set((state.cards || []).map(c => c.id));
 
   let pathCard = null;
   if (writingFlow || speakingFlow) {
@@ -19755,6 +19793,12 @@ function placeBoardLessonStageSet() {
     });
   } catch (err) {
     console.warn('[stages] lesson placement failed', err);
+    return false;
+  }
+  /* "6 of 6 ready" must be six things on the board: if no card came out of the placement,
+     the teacher is told, not given a success toast. */
+  if (!(state.cards || []).some(c => !idsBefore.has(c.id))) {
+    console.warn('[stages] nothing was placed on the board');
     return false;
   }
 
@@ -19954,6 +19998,17 @@ function _wizRenderScenes(host, skill) {
   if (title)  title.textContent  = 'Which picture?';
   if (sub)    sub.textContent    = 'One big drawing, every thing in it a word - with six tasks and a printable worksheet.';
   const SC = window.TeachedScene;
+  if (SC && SC.draft && boardLessonWizard.sceneDraft) {
+    /* Lesson Builder 2.0 P1 (T-P2): a picture never lands unseen - the words, a sample of the
+       tasks and an explicit "Add to board" come first. */
+    if (title) title.textContent = 'Check the picture';
+    if (sub)   sub.textContent   = 'These are the words and tasks it will have. Take out what you do not want, then add it.';
+    SC.draft(host, boardLessonWizard.sceneDraft, {
+      onAdd: spec => (spec.scene === 'custom' ? placeCustomSceneDirect(spec) : placeSceneCardDirect(spec.scene, spec.level, spec)),
+      onBack: () => { boardLessonWizard.sceneDraft = null; renderLessonWizard(); },
+    });
+    return;
+  }
   const LV = SC ? SC.levels : ['A1', 'A2', 'B1'];
   const lvl = boardLessonWizard.sceneLevel || ((document.getElementById('tbuilder-level') || {}).value) || 'A2';
   const level = LV.includes(lvl) ? lvl : (/^(C1|C2)$/.test(lvl) ? LV[LV.length - 1] : 'A2');
@@ -19980,23 +20035,38 @@ function _wizRenderScenes(host, skill) {
     </button>`).join('')}</div>`;
 }
 
-async function placeSceneCard(sceneId, levelArg) {
+/* From the builder: show the draft first. */
+function placeSceneCard(sceneId, levelArg) {
+  const level = levelArg || (boardLessonWizard && boardLessonWizard.sceneLevel) || 'A2';
+  if (boardLessonWizard && window.TeachedScene && window.TeachedScene.draft) {
+    boardLessonWizard.sceneDraft = { scene: sceneId, level };
+    renderLessonWizard();
+    return;
+  }
+  return placeSceneCardDirect(sceneId, level);
+}
+
+/* The one way a picture reaches the board: from the draft's "Add to board", or from Community,
+   where the teacher has just chosen it with its own preview. */
+async function placeSceneCardDirect(sceneId, levelArg, spec) {
   const SC = window.TeachedScene;
   if (!SC) return;
   const level = levelArg || (boardLessonWizard && boardLessonWizard.sceneLevel) || 'A2';
   let sc;
   try { sc = await SC.load(sceneId); } catch { toast('The picture could not be loaded - try again'); return; }
   const out = { scene: sceneId, level, title: sc.title };
+  if (spec && Array.isArray(spec.skip) && spec.skip.length) out.skip = spec.skip;
   // Картинка из «мира» (Gothic, Magic…) ложится сразу в его тему; учитель может сменить 🎨.
   const theme = SC.themeFor ? SC.themeFor(sceneId) : '';
   const path = { kind: 'scene', steps: [{ role: 'scene-studio', title: 'Picture Studio', out, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [], ...(theme ? { theme } : {}) };
   const card = _wpPlacePathCard({ level, topic: sc.title }, sc.title, path);
   if (!card) return;
-  const n = SC.stats(sc, level).words;
+  const n = SC.stats(sc, level, out.skip).words;
   _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
     title: sc.title, cat: 'vocabulary', level, topic: sc.title,
     kind: `Picture worksheet · ${n} words`, toolId: 'scene',
   });
+  if (boardLessonWizard) boardLessonWizard.sceneDraft = null;
   closeTeacherToolBuilder();
   toast('Picture worksheet added - open it to explore');
 }
@@ -20010,19 +20080,28 @@ function makeOwnSceneCard() {
   SC.maker({ prepareImage: prepareBoardImageFile, onDone: placeCustomScene });
 }
 
-async function placeCustomScene({ title, custom }) {
+function placeCustomScene({ title, custom }) {
   const SC = window.TeachedScene;
   if (!SC) return;
   const level = (boardLessonWizard && boardLessonWizard.sceneLevel) || 'A2';
+  if (boardLessonWizard && SC.draft) { boardLessonWizard.sceneDraft = { scene: 'custom', level, title, custom }; renderLessonWizard(); return; }
+  return placeCustomSceneDirect({ title, custom, level });
+}
+async function placeCustomSceneDirect({ title, custom, level, skip }) {
+  const SC = window.TeachedScene;
+  if (!SC) return;
+  level = level || 'A2';
   const sc = await SC.load('custom', { custom });
   const out = { scene: 'custom', level, title, custom };
+  if (Array.isArray(skip) && skip.length) out.skip = skip;
   const path = { kind: 'scene', steps: [{ role: 'scene-studio', title: 'Picture Studio', out, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [] };
   const card = _wpPlacePathCard({ level, topic: title }, title, path);
   if (!card) return;
   _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
     title, cat: 'vocabulary', level, topic: title,
-    kind: `Picture worksheet · ${SC.stats(sc, level).words} words · own picture`, toolId: 'scene',
+    kind: `Picture worksheet · ${SC.stats(sc, level, out.skip).words} words · own picture`, toolId: 'scene',
   });
+  if (boardLessonWizard) boardLessonWizard.sceneDraft = null;
   closeTeacherToolBuilder();
   toast('Your picture worksheet is on the board - open it to explore');
 }
@@ -22767,7 +22846,7 @@ function runPendingToolOpen() {
    інакше набір довелося б дописувати сімома правками і в одній з них забути. */
 /* ═══ PICTURE WORKSHEET FROM COMMUNITY - ?addScene=<id>&sceneLevel=A2 ═══
    Вкладка Interactive Worksheets в Community отправляет сюда тему и
-   уровень; карточка ложится так же, как из мастера (placeSceneCard). */
+   уровень; карточка ложится так же, как из мастера (placeSceneCardDirect). */
 (function capturePendingScene() {
   const p = new URLSearchParams(location.search);
   const id = p.get('addScene');
@@ -22779,7 +22858,7 @@ function runPendingScene() {
   const sc = window.__pendingScene;
   if (!sc) return false;
   window.__pendingScene = null;
-  setTimeout(() => { try { placeSceneCard(sc.id, sc.level); } catch (e) { console.warn('[scene] import failed', e); } }, 250);
+  setTimeout(() => { try { placeSceneCardDirect(sc.id, sc.level); } catch (e) { console.warn('[scene] import failed', e); } }, 250);
   return true;
 }
 
@@ -23375,7 +23454,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1193',
+          icon: 'icons/icon-192.png?v=1194',
           tag: 'board-live-' + s.id,
         });
       }

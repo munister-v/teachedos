@@ -3904,6 +3904,11 @@ button,a,.mt-btn,.tb-btn,.tb-icon-btn,.zc-btn,.mq-btn,.layer-btn,.bs-tab,.bs-ite
 .tb-news-reader-body{flex:1;min-height:0;overflow:auto;}
 
 .tbuilder-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;}
+.tbuilder-fail{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding:11px 13px;border-radius:12px;background:#FFF1EA;border:1px solid rgba(255,78,0,.35);font-family:var(--font);color:#24282C;}
+.tbuilder-fail b{font-size:13px;font-weight:650;}
+.tbuilder-fail span{font-size:12.5px;color:#5D614B;line-height:1.45;}
+.tbuilder-fail div{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;}
+.tbuilder-fail .tbuilder-btn{padding:8px 13px;font-size:12.5px;}
 .tbuilder-btn{border:0;border-radius:14px;background:#5D614B;color:#fff;font-weight:600;padding:11px 14px;cursor:pointer;}
 .tbuilder-btn.lime{background:#CDF649;color:#24282C;}
 .tbuilder-btn.blue{background:var(--accent);color:var(--on-accent);}

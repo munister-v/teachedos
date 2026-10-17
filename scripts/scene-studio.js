@@ -92,7 +92,7 @@
   function load(id, out) {
     if (out && out.custom) return Promise.resolve(buildCustom(Object.assign({ id: id || 'custom' }, out.custom)));
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1193`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1194`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -308,7 +308,7 @@
     el.innerHTML = `<div class="sc-prev"><div class="sc-loading">Drawing…</div></div>`;
     const box = el.firstElementChild;
     load(out.scene || 'house', out).then(sc => {
-      const n = stats(sc, lvl).words;
+      const n = stats(sc, lvl, out.skip).words;
       box.innerHTML = `<svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${stillArt(sc)}</svg>
         <div class="sc-prev-in"><div><div class="sc-kick"><span>${esc(sc.kicker || 'Picture Studio')}</span><span>${sc.image ? '' : esc(lvl) + ' level · '}${n} words · ${sc.image ? 'tasks and worksheet' : '6 tasks'}</span></div>
           <h2>${esc(out.title || sc.title)}</h2><p>${esc(sc.dek || '')}</p>${sc.inspired ? `<p class="sc-insp">${esc(sc.inspired)}</p>` : ''}</div>
@@ -369,7 +369,8 @@
     }).catch(() => { stage.innerHTML = '<div class="sc-loading">The picture could not be loaded. Check your connection and open it again.</div>'; });
 
     /* what is on the picture at this level */
-    const items = () => sc.parts.filter(p => inLevel(p.level, st.level));
+    const skipped = new Set(Array.isArray(out.skip) ? out.skip : []);      // words the teacher took out before adding it
+    const items = () => sc.parts.filter(p => inLevel(p.level, st.level) && !skipped.has(p.id));
     const rooms = () => sc.rooms.filter(r => rank(r.level) <= rank(st.level));
     const all = () => items().concat(rooms());
     const byId = id => sc.parts.find(p => p.id === id) || sc.rooms.find(r => r.id === id);
@@ -1081,14 +1082,100 @@
     }).catch(() => { el.textContent = ''; });
   }
   /* how many words (things + places) and true/false sentences at a level */
-  function stats(sc, level) {
+  function stats(sc, level, skip) {
     const r = rank(level || 'B1');
+    const out = new Set(Array.isArray(skip) ? skip : []);
+    const live = sc.parts.filter(p => !out.has(p.id));
     return {
-      words: sc.parts.filter(p => inLevel(p.level, level || 'B1')).length + sc.rooms.filter(p => rank(p.level) <= r).length,
-      phrases: sc.parts.filter(p => p.act && inLevel(p.level, level || 'B1')).length,
+      words: live.filter(p => inLevel(p.level, level || 'B1')).length + sc.rooms.filter(p => rank(p.level) <= r).length,
+      phrases: live.filter(p => p.act && inLevel(p.level, level || 'B1')).length,
       tf: (sc.truefalse || []).filter(q => rank(q.level) <= r).length,
     };
   }
 
-  window.TeachedScene = { preview, mount, load, thumb, stats, maker, catalog: CATALOG, worlds: WORLDS, themeFor, levels: LEVELS };
+
+  /* ── the draft: what the teacher is about to put on the board (Lesson Builder 2.0 P1, T-P2) ──
+     The picture, the words for the level (each can be taken out), a sample of what each of
+     the six tasks will ask, and one explicit "Add to board". Nothing is placed before it. */
+  const DRAFT_CSS = `
+.scd{--ink:#24282C;--muted:#6B6E60;--lime:#CDF649;--line:rgba(36,40,44,.14);display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 230px);min-height:0;font-family:var(--te-font-ui,-apple-system,system-ui,sans-serif);color:var(--ink)}
+.scd-head b{display:block;font-size:15px;font-weight:700}.scd-head small{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.scd-body{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;padding-right:2px}
+.scd-art{flex:none;height:130px;border-radius:12px;overflow:hidden;background:linear-gradient(#DCEAF3,#F7F4EC);border:1px solid var(--line)}
+.scd-art svg{width:100%;height:100%;display:block}
+.scd-lv{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:11.5px;font-weight:600;color:var(--muted)}
+.scd-lv button{min-width:38px;min-height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;font:650 12px inherit;font-family:inherit;color:var(--muted);cursor:pointer}
+.scd-lv button.on{background:var(--lime);border-color:#D3F36B;color:var(--ink)}
+.scd h4{margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.scd-words{display:flex;flex-wrap:wrap;gap:5px;max-height:132px;overflow:auto;padding:2px}
+.scd-w{display:inline-flex;align-items:center;gap:5px;padding:4px 4px 4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:600}
+.scd-w i{font-style:normal;font-size:10px;font-weight:700;color:var(--muted);background:#F4F3EC;border-radius:6px;padding:1px 5px}
+.scd-w button{width:20px;height:20px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:14px;line-height:1;cursor:pointer}
+.scd-w button:hover{background:#F4F3EC;color:var(--ink)}
+.scd-w.off{border-style:dashed;color:var(--muted);text-decoration:line-through}
+.scd-w.off button{text-decoration:none;font-size:11px;width:auto;padding:0 6px;border-radius:999px}
+.scd-tasks{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+.scd-tasks li{display:flex;gap:9px;align-items:baseline;font-size:12.5px;line-height:1.4;padding:7px 10px;border-radius:10px;background:#F7F6F1}
+.scd-tasks b{flex:0 0 74px;font-size:12px}
+.scd-note{font-size:12px;color:var(--muted);min-height:16px}
+.scd-act{display:flex;flex-wrap:wrap;gap:8px;flex:none;padding-top:2px}
+.scd-act button{border:0;border-radius:12px;padding:9px 14px;font:650 12.5px inherit;font-family:inherit;cursor:pointer;background:#5D614B;color:#fff}
+.scd-act button.lime{background:var(--lime);color:var(--ink)}
+`;
+  function draft(el, spec, h) {
+    css();
+    if (!document.getElementById('scd-css')) { const st = document.createElement('style'); st.id = 'scd-css'; st.textContent = DRAFT_CSS; document.head.appendChild(st); }
+    h = h || {};
+    const state = { level: LEVELS.includes(spec.level) ? spec.level : 'A2', skip: new Set(Array.isArray(spec.skip) ? spec.skip : []), note: '' };
+    el.innerHTML = '<div class="scd"><div class="sc-loading" style="height:120px">Drawing…</div></div>';
+    load(spec.scene, spec).then(sc => {
+      const MIN = sc.image ? 2 : 6;                                  // a picture needs words to be a lesson
+      const live = () => sc.parts.filter(p => inLevel(p.level, state.level));
+      const kept = () => live().filter(p => !state.skip.has(p.id));
+      const samples = () => {
+        const it = kept(), a = it[0], b = it[Math.min(1, it.length - 1)];
+        const tf = (sc.truefalse || []).filter(q => rank(q.level) <= rank(state.level))[0];
+        const pr = ((sc.prompts || {})[state.level] || [])[0];
+        return [
+          ['🔍 Explore', 'Tap anything on the picture to hear its word and see what it means.'],
+          ['🎯 Find', a ? `“Find the ${a.word}.” Students tap it on the picture.` : 'Students find a named thing on the picture.'],
+          ['✏️ Name', b && b.def ? `“${b.def}” Students type the word.` : 'Students type the word for a thing that is pointed out.'],
+          ['🏷️ Label', `Students drag ${Math.min(6, it.length)} word labels onto the right things.`],
+          ['⚖️ True?', tf ? `“${tf.s}” True or false?` : 'Students judge sentences about the picture.'],
+          ['💬 Talk', pr ? `“${pr}”` : 'Students talk or write about the picture using its words.'],
+        ];
+      };
+      const paint = () => {
+        const n = stats(sc, state.level, [...state.skip]);
+        el.innerHTML = `<div class="scd">
+          <div class="scd-head"><b>Draft - not on the board yet</b>
+            <small>${esc(spec.title || sc.title)} · ${sc.image ? '' : esc(state.level) + ' level · '}${n.words} words · ${sc.image ? 'tasks and worksheet' : '6 tasks'}</small></div>
+          <div class="scd-body"><div class="scd-art"><svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${stillArt(sc)}</svg></div>
+          ${sc.image ? '' : `<div class="scd-lv" role="group" aria-label="Words for"><span>Words for</span>${LEVELS.map(l => `<button type="button" data-level="${l}" class="${state.level === l ? 'on' : ''}">${l}</button>`).join('')}</div>`}
+          <div><h4>Words on the picture · tap × to take one out</h4>
+            <div class="scd-words">${live().map(p => state.skip.has(p.id)
+              ? `<span class="scd-w off">${esc(p.word)}<button type="button" data-back="${esc(p.id)}" aria-label="Put ${esc(p.word)} back">put back</button></span>`
+              : `<span class="scd-w">${esc(p.word)}<i>${esc(p.level === '*' ? '' : p.level)}</i><button type="button" data-out="${esc(p.id)}" aria-label="Take ${esc(p.word)} out">×</button></span>`).join('')}</div></div>
+          <div><h4>A sample of the tasks</h4><ul class="scd-tasks">${samples().map(([k, t]) => `<li><b>${k}</b><span>${esc(t)}</span></li>`).join('')}</ul></div>
+          </div>
+          <span class="scd-note" id="scd-note">${esc(state.note || 'Look it over. Nothing reaches the board until you add it.')}</span>
+          <div class="scd-act"><button type="button" class="lime" data-act="add">Add to board</button><button type="button" data-act="back">Back to pictures</button></div>
+        </div>`;
+      };
+      el.onclick = ev => {
+        const b = ev.target.closest('button');
+        if (!b || !el.contains(b)) return;
+        if (b.dataset.level) { state.level = b.dataset.level; state.note = ''; paint(); }
+        else if (b.dataset.out) {
+          if (kept().length <= MIN) { state.note = `Keep at least ${MIN} words - a picture needs them to make tasks.`; paint(); return; }
+          state.skip.add(b.dataset.out); state.note = ''; paint();
+        } else if (b.dataset.back) { state.skip.delete(b.dataset.back); state.note = ''; paint(); }
+        else if (b.dataset.act === 'back') h.onBack && h.onBack();
+        else if (b.dataset.act === 'add') h.onAdd && h.onAdd({ scene: spec.scene, level: state.level, title: spec.title || sc.title, custom: spec.custom, skip: [...state.skip].filter(id => live().some(p => p.id === id)) });
+      };
+      paint();
+    }).catch(() => { el.innerHTML = '<div class="scd"><div class="sc-loading" style="height:120px">The picture could not be loaded.</div><div class="scd-act"><button type="button" onclick="this.closest(\'.scd\').dispatchEvent(new Event(\'back\'))">Back</button></div></div>'; el.querySelector('.scd')?.addEventListener('back', () => h.onBack && h.onBack()); });
+  }
+
+  window.TeachedScene = { preview, mount, load, thumb, stats, maker, draft, catalog: CATALOG, worlds: WORLDS, themeFor, levels: LEVELS };
 })();
