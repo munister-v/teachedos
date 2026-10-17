@@ -28,6 +28,34 @@ function gradeFromScores(scores) {
   return Math.round((bands.reduce((a, b) => a + b, 0) / bands.length) / 5 * 100);
 }
 
+const CORRECTION_TYPES = ['grammar', 'vocabulary', 'spelling', 'punctuation', 'style'];
+
+/** One correction as the teacher kept it: quoted fragment, replacement, a reason a learner can read. */
+function cleanCorrections(list, max = 30) {
+  const seen = new Set();
+  return (Array.isArray(list) ? list : [])
+    .map(c => {
+      const type = str(c && c.type, 20).toLowerCase();
+      return {
+        original: str(c && c.original, 200),
+        suggestion: str(c && c.suggestion, 200),
+        why: str(c && c.why, 300),
+        type: CORRECTION_TYPES.includes(type) ? type : 'grammar',
+      };
+    })
+    .filter(c => c.original && c.suggestion && c.original !== c.suggestion)
+    .filter(c => (seen.has(c.original) ? false : seen.add(c.original)))
+    .slice(0, max);
+}
+
+/** What a student may see of the corrections: only what the teacher kept. A hand-in
+    returned before teachers could curate (teacher_corrections IS NULL) keeps its AI list. */
+function correctionsForStudent(sub) {
+  if (!sub || sub.status !== 'returned') return [];
+  if (Array.isArray(sub.teacher_corrections)) return cleanCorrections(sub.teacher_corrections);
+  return cleanCorrections(sub.ai_check && sub.ai_check.corrections);
+}
+
 function normaliseCheck(raw, checklist) {
   const byKey = new Map((Array.isArray(raw && raw.scores) ? raw.scores : []).map(s => [String(s.key || s.criterion || '').toLowerCase(), s]));
   const scores = CRITERIA.map(c => {
@@ -98,4 +126,4 @@ async function draftFeedback(sub, { scores, notes, tone } = {}) {
   return String((raw && raw.feedback) || '').trim();
 }
 
-module.exports = { CRITERIA, preCheck, draftFeedback, gradeFromScores, normaliseCheck };
+module.exports = { CRITERIA, preCheck, draftFeedback, gradeFromScores, normaliseCheck, cleanCorrections, correctionsForStudent };

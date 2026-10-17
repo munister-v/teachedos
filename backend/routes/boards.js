@@ -655,10 +655,13 @@ router.post('/:id/writing/:cardId', async (req, res) => {
                     (writing_submissions.history || jsonb_build_array(jsonb_build_object(
                       'text', writing_submissions.text, 'words', writing_submissions.words,
                       'submitted_at', writing_submissions.submitted_at, 'grade', writing_submissions.grade,
-                      'feedback', writing_submissions.feedback, 'returned_at', writing_submissions.returned_at)))
+                      'feedback', writing_submissions.feedback, 'returned_at', writing_submissions.returned_at,
+                      'corrections', CASE WHEN writing_submissions.status = 'returned'
+                        THEN COALESCE(writing_submissions.teacher_corrections, writing_submissions.ai_check->'corrections', '[]'::jsonb)
+                        ELSE '[]'::jsonb END)))
                   ELSE writing_submissions.history END,
         title=$5, prompt=$6, genre=$7, level=$8, criteria=$9, text=$10, html=$11, words=$12, target_words=$13,
-        status='submitted', ai_status='pending', ai_check=NULL, feedback='', grade=NULL, scores='[]',
+        status='submitted', ai_status='pending', ai_check=NULL, teacher_corrections=NULL, feedback='', grade=NULL, scores='[]',
         submitted_at=NOW(), returned_at=NULL, seen_at=NULL
       RETURNING id`,
       [req.params.id, cardId, req.user.id, access.owner_id, str(b.title, 200), str(b.prompt, 3000), str(b.genre, 80), level,

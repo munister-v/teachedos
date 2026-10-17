@@ -864,6 +864,11 @@ CREATE TABLE IF NOT EXISTS writing_submissions (
 CREATE INDEX IF NOT EXISTS idx_writing_sub_teacher ON writing_submissions(teacher_id, status, submitted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_writing_sub_student ON writing_submissions(student_id, submitted_at DESC);
 
+-- The corrections the teacher kept (and edited, and added) when returning a
+-- hand-in. NULL = the teacher has not curated yet: the student never sees the
+-- AI's raw list for a hand-in that is still with the teacher.
+ALTER TABLE writing_submissions ADD COLUMN IF NOT EXISTS teacher_corrections JSONB;
+
 -- ── The Vault: the student's own words and quotes on a spaced-repetition
 -- schedule (backend/lib/srs.js). Existing rows become due at once.
 ALTER TABLE vocabulary ADD COLUMN IF NOT EXISTS kind            VARCHAR(12) NOT NULL DEFAULT 'word';   -- word | quote

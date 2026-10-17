@@ -5,7 +5,7 @@ const router = require('express').Router();
 const pool = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
-const { preCheck, draftFeedback, gradeFromScores, CRITERIA } = require('../lib/writingReview');
+const { preCheck, draftFeedback, gradeFromScores, cleanCorrections, correctionsForStudent, CRITERIA } = require('../lib/writingReview');
 
 router.use(requireAuth);
 
@@ -64,8 +64,13 @@ router.get('/:id', async (req, res) => {
     if (!sub) return res.status(404).json({ error: 'Not found' });
     // Until the teacher returns it, the student sees only their own text:
     // the AI pre-check is a draft for the teacher, not a verdict.
+    // Once returned, the corrections are the ones the teacher kept, not the AI's raw list.
+    const corrections = correctionsForStudent(sub);
     if (sub.status !== 'returned') { sub.ai_check = null; sub.scores = []; sub.feedback = ''; sub.grade = null; }
-    else if (sub.ai_check) sub.ai_check = { corrections: sub.ai_check.corrections || [], checklist: sub.ai_check.checklist || [] };
+    else sub.ai_check = { corrections, checklist: (sub.ai_check && sub.ai_check.checklist) || [] };
+    delete sub.teacher_corrections;
+    // Earlier drafts carry the corrections that went with their feedback.
+    sub.history = (Array.isArray(sub.history) ? sub.history : []).map(h => ({ ...h, corrections: cleanCorrections(h.corrections) }));
     res.json({ submission: sub, criteria: CRITERIA, role: 'student' });
   } catch (err) {
     console.error('[writing] get error:', err.message);
@@ -106,7 +111,8 @@ router.post('/:id/feedback-draft', requireTeacher, async (req, res) => {
   }
 });
 
-// POST /api/writing/:id/return {feedback, grade, scores} — back to the student
+// POST /api/writing/:id/return {feedback, grade, scores, corrections} — back to the student.
+// `corrections` is the list the teacher kept, edited or added; the student sees nothing else.
 router.post('/:id/return', requireTeacher, async (req, res) => {
   try {
     const sub = await loadOwn(req.params.id, req.user.id);
@@ -118,14 +124,15 @@ router.post('/:id/return', requireTeacher, async (req, res) => {
     }));
     let grade = req.body?.grade;
     grade = grade === '' || grade == null ? gradeFromScores(scores) : Math.max(0, Math.min(100, parseInt(grade, 10) || 0));
-    if (!feedback && grade == null) return res.status(400).json({ error: 'Add feedback or a grade first' });
+    const corrections = cleanCorrections(req.body?.corrections);
+    if (!feedback && grade == null && !corrections.length) return res.status(400).json({ error: 'Add feedback, a grade or a correction first' });
     await pool.query(
-      `UPDATE writing_submissions SET status='returned', feedback=$2, grade=$3, scores=$4, returned_at=NOW(), seen_at=NULL WHERE id=$1`,
-      [sub.id, feedback, grade, JSON.stringify(scores)]);
+      `UPDATE writing_submissions SET status='returned', feedback=$2, grade=$3, scores=$4, teacher_corrections=$5, returned_at=NOW(), seen_at=NULL WHERE id=$1`,
+      [sub.id, feedback, grade, JSON.stringify(scores), JSON.stringify(corrections)]);
     createNotification(sub.student_id, 'writing', 'Your writing is checked',
       `${sub.title || 'Writing'}${grade != null ? ` · ${grade}%` : ''} - feedback from ${req.user.name || 'your teacher'}`,
       `student.html#writing=${sub.id}`);
-    res.json({ ok: true, grade });
+    res.json({ ok: true, grade, corrections: corrections.length });
   } catch (err) {
     console.error('[writing] return error:', err.message);
     res.status(500).json({ error: 'Server error' });

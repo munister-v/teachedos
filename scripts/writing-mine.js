@@ -127,7 +127,7 @@
     const history = Array.isArray(s.history) ? s.history : [];
     const shown = view === 'current' ? s : history[view];
     const returned = view === 'current' ? s.status === 'returned' : !!shown.returned_at;
-    const corrections = view === 'current' && returned && s.ai_check ? s.ai_check.corrections || [] : [];
+    const corrections = !returned ? [] : (view === 'current' ? (s.ai_check && s.ai_check.corrections) || [] : shown.corrections || []);
     const drafts = history.length
       ? `<div class="wm-drafts">${history.map((h, i) => `<button type="button" data-v="${i}" class="${view === i ? 'on' : ''}">Draft ${i + 1}</button>`).join('')}<button type="button" data-v="current" class="${view === 'current' ? 'on' : ''}">Draft ${history.length + 1}</button></div>` : '';
     const grade = returned && shown.grade != null ? `${shown.grade}%` : '';
@@ -154,6 +154,7 @@
       </div>
     </div>`;
     W.linkCorrections(root);
+    W.bindExplain(root.querySelector('#wm-text'), () => corrections);
   }
 
   function bind() {

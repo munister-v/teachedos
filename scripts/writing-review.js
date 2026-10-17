@@ -93,6 +93,23 @@
 .wr-foot .btn{white-space:nowrap}
 .wr-foot .wr-send{margin-left:auto}
 .wr-status{font-size:12px;color:var(--text2)}
+.wr-fixes-edit{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.wr-fixes-edit li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding-top:10px;border-top:1px solid var(--border);font-size:13px}
+.wr-fixes-edit li:first-child{border-top:0;padding-top:0}
+.wr-fixes-edit li.off .wr-orig{opacity:.55}
+.wr-fixes-edit li.off .wr-fix-sugg,.wr-fixes-edit li.off .wr-fix-why{opacity:.45}
+.wr-fix-keep input{width:18px;height:18px;margin-top:1px;cursor:pointer;accent-color:#24282C}
+.wr-fix-line{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.wr-fix-line .wr-orig{cursor:pointer}
+.wr-fixes-edit input[type=text]{border:1px solid var(--border);border-radius:8px;padding:6px 9px;font:13px var(--font);background:var(--bg);min-width:0}
+.wr-fix-sugg{font-weight:650;flex:1 1 130px}
+.wr-fix-why{width:100%;margin-top:6px}
+.wr-fix-hint{font-size:12px;color:var(--text2);margin:-4px 0 12px}
+.wr-addfix[hidden]{display:none}
+.wr-addfix{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border2)}
+.wr-addfix input,.wr-addfix select{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font:13px var(--font);background:var(--bg);min-width:0}
+.wr-addfix .wr-af-row{display:flex;gap:8px;flex-wrap:wrap}
+.wr-addfix .wr-af-row input{flex:1 1 140px}
 .wr-skel{height:12px;border-radius:6px;background:linear-gradient(90deg,rgba(0,0,0,.06),rgba(0,0,0,.12),rgba(0,0,0,.06));background-size:200% 100%;animation:wrsk 1.2s infinite;margin:8px 0}
 @keyframes wrsk{to{background-position:-200% 0}}
 `;
@@ -218,6 +235,18 @@
     document.body.style.overflow = 'hidden';
     modal.addEventListener('click', e => { if (e.target === modal || e.target.closest('.wr-x')) closeReview(); });
     modal.querySelector('.wr-right').addEventListener('click', onRightClick);
+    modal.querySelector('.wr-right').addEventListener('change', e => {
+      const box = e.target.closest('input[data-fk]');
+      if (!box) return;
+      fixesNow()[Number(box.closest('li').dataset.fi)].keep = box.checked;
+      remark();
+    });
+    modal.querySelector('.wr-right').addEventListener('input', e => {
+      const f = e.target.closest('input[data-ff]');
+      if (!f) return;
+      fixesNow()[Number(f.closest('li').dataset.fi)][f.dataset.ff] = f.value;
+      if (f.dataset.ff === 'suggestion') remark();
+    });
     document.addEventListener('keydown', escClose);
     try { history.replaceState(null, '', '#writing=' + id); } catch {}
     try {
@@ -263,6 +292,61 @@
       .map(s => ({ ...s }));
   }
 
+  /* The corrections the student will see: the AI's list to start with, each one
+     kept, edited or dropped by the teacher, plus the teacher's own. */
+  function fixesNow() {
+    if (!current) return [];
+    if (!current.fixes) {
+      const base = Array.isArray(current.teacher_corrections) ? current.teacher_corrections
+        : ((current.ai_check && current.ai_check.corrections) || []);
+      current.fixes = base.map(c => ({ original: c.original, suggestion: c.suggestion, why: c.why || '', type: c.type || 'grammar', keep: true }));
+    }
+    return current.fixes;
+  }
+  const keptFixes = () => fixesNow().filter(f => f.keep);
+
+  function fixesCardHtml() {
+    const fixes = fixesNow();
+    if (!fixes.length && !(current.ai_check || current.ai_status === 'failed')) return '';
+    let k = -1;
+    return `<div class="wr-card" id="wr-fixes-card"><h4><span id="wr-fix-count">Corrections the student sees (${keptFixes().length} of ${fixes.length})</span> <button class="wr-link" type="button" data-act="addfix">+ Add your own</button></h4>
+      <p class="wr-fix-hint">The AI proposes; you decide. Untick what the student should not see, reword what is unclear. Nothing here reaches the student until you return the work.</p>
+      <ol class="wr-fixes-edit">${fixes.map((f, i) => `
+        <li data-fi="${i}" data-ci="${f.keep ? ++k : ''}" class="${f.keep ? '' : 'off'}">
+          <label class="wr-fix-keep"><input type="checkbox" data-fk${f.keep ? ' checked' : ''} aria-label="Show this correction to the student"></label>
+          <div>
+            <div class="wr-fix-line"><span class="wr-orig" title="Show in the text">${esc(f.original)}</span><span class="wr-arrow">→</span>
+              <input type="text" class="wr-fix-sugg" data-ff="suggestion" value="${esc(f.suggestion)}" maxlength="200" aria-label="Replacement for ${esc(f.original)}"></div>
+            <input type="text" class="wr-fix-why" data-ff="why" value="${esc(f.why)}" maxlength="300" placeholder="Why - in words the student can read" aria-label="Reason">
+          </div>
+        </li>`).join('') || '<li style="display:block">No corrections. Add one if you want to mark something.</li>'}</ol>
+      <div class="wr-addfix" id="wr-addfix" hidden>
+        <div class="wr-af-row"><input type="text" id="wr-af-orig" placeholder="The words in the text" maxlength="200"><button class="btn btn-ghost" type="button" data-act="usesel">Use selected text</button></div>
+        <div class="wr-af-row"><input type="text" id="wr-af-sugg" placeholder="Write instead" maxlength="200">
+          <select id="wr-af-type" aria-label="Kind of mistake">${['grammar', 'vocabulary', 'spelling', 'punctuation', 'style'].map(t => `<option value="${t}">${esc(W.TYPE_NAMES[t])}</option>`).join('')}</select></div>
+        <input type="text" id="wr-af-why" placeholder="Why (optional)" maxlength="300">
+        <div class="wr-af-row"><button class="btn btn-primary" type="button" data-act="savefix">Add correction</button><span class="wr-status" id="wr-af-msg"></span></div>
+      </div>
+    </div>`;
+  }
+
+  /* Re-mark the text after a correction was kept, dropped or reworded - without
+     redrawing the panel, so what the teacher is typing stays put. */
+  function remark() {
+    const text = document.getElementById('wr-text');
+    if (!text || view !== 'current') return;
+    const kept = keptFixes();
+    text.innerHTML = W.markedText(current.text, kept);
+    let k = -1;
+    document.querySelectorAll('#wr-fixes-card li[data-fi]').forEach(li => {
+      const f = fixesNow()[Number(li.dataset.fi)];
+      li.dataset.ci = f && f.keep ? String(++k) : '';
+      li.classList.toggle('off', !(f && f.keep));
+    });
+    const cnt = document.getElementById('wr-fix-count');
+    if (cnt) cnt.textContent = `Corrections the student sees (${kept.length} of ${fixesNow().length})`;
+  }
+
   function renderReview() {
     const s = current;
     const modal = document.getElementById('wr-modal');
@@ -270,7 +354,7 @@
     const check = s.ai_check || null;
     const history = Array.isArray(s.history) ? s.history : [];
     const shown = view === 'current' ? s : history[view];
-    const corrections = view === 'current' && check ? check.corrections || [] : [];
+    const corrections = view === 'current' ? keptFixes() : (Array.isArray(shown.corrections) ? shown.corrections : []);
 
     modal.querySelector('#wr-m-title').textContent = `${s.student_name || 'Student'} · ${s.title || 'Writing'}`;
     modal.querySelector('.wr-top p').textContent =
@@ -308,7 +392,7 @@
           </div>`).join('') || '<p class="wr-summary">Bands appear when the pre-check is ready.</p>'}
       </div>
       ${check && check.checklist && check.checklist.length ? `<div class="wr-card"><h4>The lesson's checklist</h4>${W.checklistHtml(check.checklist)}</div>` : ''}
-      ${check && check.corrections && check.corrections.length ? `<div class="wr-card"><h4>Corrections (${check.corrections.length})</h4>${W.correctionsHtml(check.corrections)}</div>` : ''}
+      ${view === 'current' ? fixesCardHtml() : ''}
       ${check && (check.strengths?.length || check.improvements?.length) ? `<div class="wr-card wr-two">
         <div><h4>Worked well</h4><ul>${(check.strengths || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
         <div><h4>To improve</h4><ul>${(check.improvements || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>` : ''}
@@ -328,6 +412,7 @@
       </div>`;
 
     W.linkCorrections(modal);
+    W.bindExplain(modal.querySelector('#wr-text'), () => (view === 'current' ? keptFixes() : (shown.corrections || [])));
     modal.querySelector('#wr-show-fixes')?.addEventListener('change', e => document.getElementById('wr-text').classList.toggle('wr-show-fixes', e.target.checked));
     modal.querySelector('.wr-versions')?.addEventListener('click', e => {
       const b = e.target.closest('button[data-v]');
@@ -363,8 +448,42 @@
       if (!state.gradeTouched) { const g = gradeFrom(sc); if (g != null) document.getElementById('wr-grade').value = g; }
       return;
     }
+    const orig = e.target.closest('.wr-fixes-edit .wr-orig');
+    if (orig) {
+      const ci = orig.closest('li').dataset.ci;
+      if (ci !== '') document.querySelector(`#wr-text .wr-mark[data-ci="${ci}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (!act) return;
+    if (act === 'addfix') {
+      const f = document.getElementById('wr-addfix');
+      f.hidden = !f.hidden;
+      if (!f.hidden) document.getElementById('wr-af-orig').focus();
+      return;
+    }
+    if (act === 'usesel') {
+      const sel = window.getSelection();
+      const text = document.getElementById('wr-text');
+      const t = sel && sel.rangeCount && text && text.contains(sel.anchorNode) ? sel.toString().replace(/\s+/g, ' ').trim() : '';
+      document.getElementById('wr-af-msg').textContent = t ? '' : 'Select the words in the text on the left first.';
+      if (t) { document.getElementById('wr-af-orig').value = t.slice(0, 200); document.getElementById('wr-af-sugg').focus(); }
+      return;
+    }
+    if (act === 'savefix') {
+      const o = document.getElementById('wr-af-orig').value.replace(/\s+/g, ' ').trim();
+      const n = document.getElementById('wr-af-sugg').value.replace(/\s+/g, ' ').trim();
+      const msg = document.getElementById('wr-af-msg');
+      if (!o || !n || o === n) { msg.textContent = 'Fill in the words and what to write instead.'; return; }
+      if (!current.text.toLowerCase().includes(o.toLowerCase())) { msg.textContent = 'These words are not in the text - copy them exactly.'; return; }
+      if (fixesNow().some(f => f.original === o)) { msg.textContent = 'That fragment already has a correction.'; return; }
+      fixesNow().push({ original: o, suggestion: n, why: document.getElementById('wr-af-why').value.trim(), type: document.getElementById('wr-af-type').value, keep: true });
+      const fb = document.getElementById('wr-feedback').value, nt = document.getElementById('wr-notes').value;
+      renderReview();
+      document.getElementById('wr-feedback').value = fb;
+      document.getElementById('wr-notes').value = nt;
+      return;
+    }
     const status = document.getElementById('wr-status');
     const btn = e.target.closest('[data-act]');
     if (act === 'recheck') {
@@ -372,7 +491,7 @@
       try {
         const d = await call(`/${current.id}/recheck`, { method: 'POST' });
         const fb = document.getElementById('wr-feedback')?.value || '';
-        current.ai_check = d.ai_check; current.ai_status = 'done'; current.scores = d.ai_check.scores;
+        current.ai_check = d.ai_check; current.ai_status = 'done'; current.scores = d.ai_check.scores; current.fixes = null; current.teacher_corrections = null;
         renderReview();
         document.getElementById('wr-feedback').value = fb;
         loadQueue();
@@ -393,10 +512,11 @@
     if (act === 'return') {
       const feedback = document.getElementById('wr-feedback').value.trim();
       const grade = document.getElementById('wr-grade').value;
-      if (!feedback && grade === '') { if (status) status.textContent = 'Add feedback or a grade first.'; return; }
+      const corrections = keptFixes().map(({ original, suggestion, why, type }) => ({ original, suggestion, why, type }));
+      if (!feedback && grade === '' && !corrections.length) { if (status) status.textContent = 'Add feedback, a grade or a correction first.'; return; }
       btn.disabled = true; btn.textContent = 'Returning…';
       try {
-        const d = await call(`/${current.id}/return`, { method: 'POST', body: { feedback, grade, scores: scoresNow() } });
+        const d = await call(`/${current.id}/return`, { method: 'POST', body: { feedback, grade, scores: scoresNow(), corrections } });
         current.status = 'returned'; current.grade = d.grade; current.feedback = feedback; current.returned_at = new Date().toISOString();
         if (typeof toast === 'function') toast(`Returned to ${current.student_name || 'the student'}`);
         closeReview();

@@ -86,6 +86,12 @@
 .wr-fix{display:none}
 .wr-show-fixes .wr-fix{display:inline;margin-left:4px;padding:0 5px;border-radius:4px;background:#1f7a3a;color:#fff;font:600 12px/1.6 system-ui,sans-serif}
 .wr-mark.is-active{outline:2px solid #161616;outline-offset:2px}
+.wr-text{position:relative}
+.wr-explain{position:absolute;z-index:5;left:0;right:0;max-width:360px;margin-top:6px;padding:12px 14px;border-radius:12px;background:var(--bg-1,#fff);color:var(--text,#161616);border:1px solid var(--border-2,rgba(0,0,0,.14));box-shadow:0 10px 30px rgba(0,0,0,.16);font:14px/1.45 system-ui,sans-serif}
+.wr-explain b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3,#888);margin-bottom:6px}
+.wr-explain .wr-ex-line{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.wr-explain p{margin:8px 0 0;font-size:13px;color:var(--text-2,#555)}
+.wr-explain button{position:absolute;top:6px;right:8px;border:0;background:none;font-size:16px;line-height:1;cursor:pointer;color:var(--text-3,#888);padding:4px}
 .wr-bands{display:grid;gap:12px}
 .wr-band-top{display:flex;justify-content:space-between;font:600 13px/1.3 system-ui,sans-serif}
 .wr-band-bar{height:6px;border-radius:6px;background:rgba(0,0,0,.08);margin:6px 0 4px;overflow:hidden}
@@ -127,5 +133,49 @@
     });
   }
 
-  window.TeachedWriting = { esc, markedText, bandsHtml, checklistHtml, correctionsHtml, when, injectCss, linkCorrections, BAND_WORDS };
+  const TYPE_NAMES = { grammar: 'Grammar', vocabulary: 'Word choice', spelling: 'Spelling', punctuation: 'Punctuation', style: 'Style' };
+
+  /* Tap (or Enter on) a marked fragment: a small card says what was written,
+     what to write instead and why. `getCorrections` is read at tap time, so the
+     teacher's edits show at once. Tap again, Escape or the cross closes it. */
+  function bindExplain(textEl, getCorrections) {
+    if (!textEl || textEl.dataset.explain) return;
+    textEl.dataset.explain = '1';
+    const close = () => {
+      textEl.querySelector('.wr-explain')?.remove();
+      textEl.querySelectorAll('.wr-mark.is-open').forEach(m => m.classList.remove('is-open'));
+    };
+    const open = mark => {
+      const wasOpen = mark.classList.contains('is-open');
+      close();
+      if (wasOpen) return;
+      const c = (getCorrections() || [])[Number(mark.dataset.ci)];
+      if (!c) return;
+      const card = document.createElement('div');
+      card.className = 'wr-explain';
+      card.setAttribute('role', 'note');
+      card.innerHTML = `<button type="button" aria-label="Close">×</button>
+        <b>${esc(TYPE_NAMES[c.type] || 'Correction')}</b>
+        <div class="wr-ex-line"><span class="wr-orig">${esc(c.original)}</span><span class="wr-arrow">→</span><span class="wr-sugg">${esc(c.suggestion)}</span></div>
+        ${c.why ? `<p>${esc(c.why)}</p>` : ''}`;
+      textEl.appendChild(card);
+      const box = textEl.getBoundingClientRect(), m = mark.getBoundingClientRect();
+      card.style.top = Math.round(m.bottom - box.top) + 'px';
+      card.style.left = Math.max(0, Math.min(Math.round(m.left - box.left), box.width - card.offsetWidth)) + 'px';
+      card.style.right = 'auto';
+      mark.classList.add('is-open');
+    };
+    textEl.addEventListener('click', e => {
+      if (e.target.closest('.wr-explain button')) { close(); return; }
+      const mark = e.target.closest('.wr-mark');
+      if (mark && !e.target.closest('.wr-explain')) open(mark); else if (!e.target.closest('.wr-explain')) close();
+    });
+    textEl.addEventListener('keydown', e => {
+      if (e.key === 'Escape') close();
+      const mark = e.target.closest && e.target.closest('.wr-mark');
+      if (mark && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(mark); }
+    });
+  }
+
+  window.TeachedWriting = { bindExplain, TYPE_NAMES, esc, markedText, bandsHtml, checklistHtml, correctionsHtml, when, injectCss, linkCorrections, BAND_WORDS };
 })();
