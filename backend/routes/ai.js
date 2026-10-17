@@ -5,6 +5,7 @@ const net = require('net');
 const { requireAuth, requireTeacher, requireAdmin } = require('../middleware/auth');
 const aiEngine = require('../lib/aiEngine');
 const guardrails = require('../lib/guardrails');
+const { redactPII } = require('../lib/pii');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
@@ -372,8 +373,9 @@ function normaliseInput(body) {
   const genre = ['article', 'story', 'email', 'report', 'blog', 'dialogue', 'review',
     'personal-email', 'casual-message', 'formal-letter', 'complaint', 'opinion-essay', 'business-email'].includes(raw.genre) ? raw.genre : '';
   const length = ['short', 'medium', 'long'].includes(raw.length) ? raw.length : '';
-  const source = limitText(raw.source, 18000);
-  const vocab = limitText(raw.vocab, 8000);
+  /* Contact details never go to the outside model (E5 US4): the language is what it needs. */
+  const source = redactPII(limitText(raw.source, 18000)).text;
+  const vocab = redactPII(limitText(raw.vocab, 8000)).text;
   const topic = clean(raw.topic, '').slice(0, 160);
   if (!topic && !source && !vocab) {
     throw invalidInput('Add a topic, source text, or target vocabulary before creating material.');
@@ -388,7 +390,7 @@ function normaliseInput(body) {
     length,
     source,
     vocab,
-    extra: clean(raw.extra, '').slice(0, 600),
+    extra: redactPII(clean(raw.extra, '').slice(0, 600)).text,
     /* Состав текстового материала: конструктор этапов на доске сам
        собирает задания до и после текста, поэтому просит модель их не
        дублировать. Только известные ключи и только булевы значения -
