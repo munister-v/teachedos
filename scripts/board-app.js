@@ -2128,6 +2128,9 @@ function _shapePoints(shape) {
     case 'arrow-r':      return { tag:'polygon', attrs:{points:`${sw},28 68,28 68,8 ${100-sw},50 68,92 68,72 ${sw},72`} };
     case 'arrow-l':      return { tag:'polygon', attrs:{points:`${100-sw},28 32,28 32,8 ${sw},50 32,92 32,72 ${100-sw},72`} };
     case 'callout':      return { tag:'path', attrs:{d:`M${sw},${sw} H${100-sw} V68 H38 L28,${100-sw} L34,68 H${sw} Z`} };
+    // board chrome v1.0 №10: the shapes grid has a heart and a cloud
+    case 'heart':        return { tag:'path', attrs:{d:`M50,${100-sw*1.5} C22,80 ${sw},58 ${sw},34 C${sw},16 14,${sw*1.5+4} 30,${sw*1.5+4} C40,${sw*1.5+4} 47,12 50,20 C53,12 60,${sw*1.5+4} 70,${sw*1.5+4} C86,${sw*1.5+4} ${100-sw},16 ${100-sw},34 C${100-sw},58 78,80 50,${100-sw*1.5} Z`} };
+    case 'cloud':        return { tag:'path', attrs:{d:`M26,${86-sw} C12,${86-sw} ${sw},76 ${sw},62 C${sw},49 12,40 24,40 C26,24 40,${12+sw} 56,${12+sw} C72,${12+sw} 82,24 84,38 C94,40 ${100-sw},50 ${100-sw},62 C${100-sw},76 90,${86-sw} 76,${86-sw} Z`} };
     case 'cross':        return { tag:'path', attrs:{d:`M34,${sw} H66 V34 H${100-sw} V66 H66 V${100-sw} H34 V66 H${sw} V34 H34 Z`} };
     case 'parallelogram':return { tag:'polygon', attrs:{points:`18,${sw} ${100-sw},${sw} ${82},${100-sw} ${sw},${100-sw}`} };
     case 'trapezoid':    return { tag:'polygon', attrs:{points:`18,${sw} ${82},${sw} ${100-sw},${100-sw} ${sw},${100-sw}`} };
@@ -6479,7 +6482,7 @@ function buildWorksheetHtml(part){
 
 function textFontOptions() {
   return [
-    { label:'System', value:'var(--font)' },
+    { label:'Aa  Manrope', value:'var(--font)' },   // the product font (TeachEd UI = Manrope), the default - board chrome v1.0 №9
     { label:'Georgia', value:'Georgia, serif' },
     { label:'Trebuchet', value:'Trebuchet MS, sans-serif' },
     { label:'Verdana', value:'Verdana, sans-serif' },
@@ -16670,7 +16673,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1209';
+const TEACHEDOS_ASSET_VERSION = '1210';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23565,7 +23568,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1209',
+          icon: 'icons/icon-192.png?v=1210',
           tag: 'board-live-' + s.id,
         });
       }

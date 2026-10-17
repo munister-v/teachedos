@@ -324,9 +324,186 @@
     }
   }
 
+
+  /* ═══ Part 2: the panels ═══════════════════════════════════════════ */
+  const PSVG = (p, w = 24) => `<svg class="bc-ic" viewBox="0 0 ${w} ${w}" aria-hidden="true">${p}</svg>`;
+
+  /* №7 Sticky panel: a mini sticky on the top edge shows the colour under
+     the pointer; 4 columns; the last colour used is marked; Own colour (with
+     the eyedropper), Templates, and Bulk mode - a real mode now: one note
+     per line, added in a row, instead of a browser prompt. */
+  const STICKY_LAST = 'bc_sticky_last';
+  function stickyPanel() {
+    const p = $('sticky-palette');
+    if (!p || p.dataset.bc) return;
+    p.dataset.bc = '1';
+    let last = ''; try { last = localStorage.getItem(STICKY_LAST) || ''; } catch (_) {}
+    const mini = document.createElement('div'); mini.className = 'bc-ministick'; mini.setAttribute('aria-hidden', 'true');
+    if (last) mini.style.background = last;
+    const label = document.createElement('div'); label.className = 'bc-plabel'; label.textContent = 'Sticky colour';
+    const grid = $('sticky-color-grid');
+    p.prepend(mini, label);
+    const div = document.createElement('div'); div.className = 'bc-pdiv';
+    if (grid) grid.after(div);
+    const mark = () => grid && grid.querySelectorAll('.sticky-color-tile').forEach(t => t.classList.toggle('bc-sel', !!last && t.title.toLowerCase() === last.toLowerCase()));
+    if (grid) {
+      new MutationObserver(mark).observe(grid, { childList: true });
+      grid.addEventListener('mouseover', e => { const t = e.target.closest('.sticky-color-tile'); if (t) mini.style.background = t.style.background; });
+      grid.addEventListener('mouseleave', () => { mini.style.background = last || ''; });
+      grid.addEventListener('click', e => {
+        const t = e.target.closest('.sticky-color-tile'); if (!t) return;
+        last = t.title; try { localStorage.setItem(STICKY_LAST, last); } catch (_) {}
+        mark();
+      });
+    }
+    // Own colour: sand pill + an ink square with a lime pencil (opens the picker); the eyedropper stays
+    const own = p.querySelector('.sticky-custom');
+    if (own) {
+      const input = own.querySelector('input');
+      own.innerHTML = '';
+      own.append(input);
+      own.insertAdjacentHTML('beforeend', PSVG('<path d="M12 3v6M12 9l7 7-4 4-7-7z"/><circle cx="12" cy="5" r="2"/>') + '<span>Own colour</span>');
+      const ink = document.createElement('span'); ink.className = 'bc-inkbtn'; ink.setAttribute('aria-hidden', 'true');
+      ink.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17 3l4 4L8 20l-5 1 1-5z"/></svg>';
+      own.parentNode.insertBefore(ink, own.nextSibling);
+      ink.addEventListener('click', () => input && input.click());
+    }
+    const acts = p.querySelectorAll('.sticky-palette-action');
+    acts.forEach(b => {
+      const t = b.textContent.trim();
+      if (/Templates/.test(t)) b.innerHTML = PSVG('<rect x="4" y="7" width="16" height="12" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M8 11h8M8 14h8M8 17h5"/>') + '<span>Templates</span>';
+      if (/Bulk/.test(t)) {
+        b.removeAttribute('onclick');
+        b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', 'false');
+        b.innerHTML = PSVG('<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>') + '<span>Bulk mode</span><span class="bc-tgl" aria-hidden="true"></span>';
+        const box = document.createElement('div'); box.className = 'bc-bulk'; box.hidden = true;
+        box.innerHTML = '<textarea aria-label="Sticky notes, one per line" placeholder="One note per line"></textarea><small>Each line becomes a sticky note, in the palette\'s colours.</small><button type="button">Add notes</button>';
+        b.after(box);
+        b.addEventListener('click', () => {
+          const on = b.getAttribute('aria-checked') !== 'true';
+          b.setAttribute('aria-checked', String(on));
+          box.hidden = !on;
+          if (on) box.querySelector('textarea').focus();
+          if (typeof window.positionStickyPalette === 'function') window.positionStickyPalette();
+        });
+        box.querySelector('button').addEventListener('click', () => {
+          const lines = box.querySelector('textarea').value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 24);
+          if (!lines.length) { box.querySelector('textarea').focus(); return; }
+          const colors = [...(grid ? grid.querySelectorAll('.sticky-color-tile') : [])].map(t => t.title).filter(Boolean);
+          try { if (typeof window.snapshot === 'function') window.snapshot(); } catch (_) {}
+          lines.forEach((line, i) => window.addStickyFromPalette && window.addStickyFromPalette(colors.length ? colors[i % colors.length] : '#F6D90E', line, { skipFocus: true }));
+          box.querySelector('textarea').value = '';
+          if (typeof window.toast === 'function') window.toast(`${lines.length} sticky note${lines.length === 1 ? '' : 's'} added`);
+        });
+      }
+    });
+  }
+
+  /* №10 Shapes panel: Mind map and Table, a 4×3 grid of shapes, All shapes */
+  const SHAPES = [
+    ['rect', 'Rectangle (R)', '<rect x="5" y="7" width="14" height="10" rx="1"/>', () => window.quickAddShape('rect')],
+    ['diamond', 'Rhombus', '<path d="M12 4l8 8-8 8-8-8z"/>', () => window.quickAddShape('diamond')],
+    ['circle', 'Oval (O)', '<circle cx="12" cy="12" r="8"/>', () => window.quickAddShape('circle')],
+    ['rounded', 'Rounded', '<rect x="5" y="7" width="14" height="10" rx="4"/>', () => window.quickAddShape('rounded')],
+    ['triangle', 'Triangle', '<path d="M12 5l8 14H4z"/>', () => window.quickAddShape('triangle')],
+    ['star', 'Star', '<path d="M12 4l2.3 4.9 5.2.6-3.9 3.6 1 5.2-4.6-2.6-4.6 2.6 1-5.2-3.9-3.6 5.2-.6z"/>', () => window.quickAddShape('star')],
+    ['heart', 'Heart', '<path d="M12 20S4 14.5 4 9.5A4.5 4.5 0 0112 6a4.5 4.5 0 018 3.5C20 14.5 12 20 12 20z"/>', () => window.quickAddShape('heart')],
+    ['cloud', 'Cloud', '<path d="M7 18a3 3 0 01-.5-5.9A4.5 4.5 0 0115 8.5 3.5 3.5 0 0117.5 15H17a3 3 0 01-2 3z"/>', () => window.quickAddShape('cloud')],
+    ['line', 'Line (L)', '<path d="M5 19L19 5"/>', () => window._startConnectorFromPanel('straight')],
+    ['arrow', 'Arrow', '<path d="M5 19L17 7M13 5h6v6"/>', () => window._startConnectorFromPanel('curve')],
+    ['elbow', 'Elbow arrow', '<path d="M6 19V9h8M10 5h6v6"/>', () => window._startConnectorFromPanel('elbow')],
+    ['block', 'Block arrow', '<path d="M4 12h11M13 8l4 4-4 4M17 5h3v14h-3"/>', () => window.quickAddShape('arrow-r')],
+  ];
+  function shapesPanel() {
+    const p = $('shape-panel');
+    if (!p || p.dataset.bc) return;
+    p.dataset.bc = '1';
+    let last = 'rect'; try { last = localStorage.getItem('bc_shape_last') || 'rect'; } catch (_) {}
+    p.innerHTML = `<button type="button" class="bc-toolrow" data-tool="mindmap">${PSVG('<circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M7.5 7.5l3 3M16.5 7.5l-3 3M7.5 16.5l3-3M16.5 16.5l-3-3"/>')}Mind map<span class="bc-key">M</span></button>
+      <button type="button" class="bc-toolrow" data-tool="table">${PSVG('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M4 15h16M10 4v16M15 4v16"/>')}Table</button>
+      <div class="bc-pdiv" style="margin:10px 2px 12px"></div>
+      <div class="bc-plabel">Shapes</div>
+      <div class="bc-grid" role="group" aria-label="Shapes">${SHAPES.map(([k, t, d]) => `<button type="button" class="bc-cell${k === last ? ' bc-sel' : ''}" data-shape="${k}" title="${t}" aria-label="${t}">${PSVG(d)}</button>`).join('')}</div>
+      <button type="button" class="bc-all sp-row sp-row-secondary">All shapes</button>
+      <div class="bc-allsub">Flowcharts, UML, diagrams</div>`;
+    p.addEventListener('click', e => {
+      const tool = e.target.closest('[data-tool]');
+      if (tool) { window.closeShapePanel && window.closeShapePanel(); window.toolbarQuickAdd && window.toolbarQuickAdd(tool.dataset.tool); return; }
+      const c = e.target.closest('[data-shape]');
+      if (c) {
+        const sh = SHAPES.find(x => x[0] === c.dataset.shape);
+        try { localStorage.setItem('bc_shape_last', sh[0]); } catch (_) {}
+        p.querySelectorAll('.bc-cell').forEach(x => x.classList.toggle('bc-sel', x === c));
+        sh[3]();
+        return;
+      }
+      if (e.target.closest('.bc-all')) window._showMoreShapes && window._showMoreShapes(e);
+    });
+    // the divider line is in All shapes now
+    const more = document.querySelector('#shape-panel-more .sp-more-grid');
+    if (more && !more.querySelector('[data-bc-divider]')) more.insertAdjacentHTML('beforeend', '<div class="sp-item" data-bc-divider onclick="quickAddShape(\'divider\')" title="Divider"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 13h20"/></svg></div>');
+  }
+
+  /* №11 Pen panel: rows with names and keys, a live preview of the stroke
+     (colour and size, at once), the lime slider; each tool keeps its own size. */
+  function penPanel() {
+    const p = $('draw-palette');
+    if (!p || p.dataset.bc) return;
+    p.dataset.bc = '1';
+    const NAMES = { pen: ['Pen', 'P'], marker: ['Highlighter', 'H'], eraser: ['Eraser', 'E'] };
+    const ICONS = { pen: '<path d="M17 3l4 4L8 20l-5 1 1-5z"/>', marker: '<path d="M9 11l-5 5v3h3l5-5zM14 6l4 4 5-5-4-4z"/>', eraser: '<path d="M7 19l-4-4 10-10 6 6-7 7H7zM5 21h14"/>' };
+    p.querySelectorAll('.dp-tool').forEach(b => {
+      const k = b.dataset.tool, n = NAMES[k];
+      if (!n) return;
+      b.innerHTML = PSVG(ICONS[k]) + `<span>${n[0]}</span><span class="bc-key">${n[1]}</span>`;
+      b.setAttribute('aria-label', `${n[0]} (${n[1]})`);
+    });
+    const size = $('draw-size');
+    const sec = size && size.closest('.dp-section');
+    const pv = document.createElement('div'); pv.className = 'bc-preview'; pv.setAttribute('aria-hidden', 'true');
+    pv.innerHTML = '<svg viewBox="0 0 200 44"><path d="M12 30 C 50 8, 80 40, 110 22 S 170 10, 190 28" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/></svg>';
+    if (sec) sec.appendChild(pv);
+    const line = pv.querySelector('path');
+    const paint = () => {
+      if (!size) return;
+      const v = +size.value, mn = +size.min || 1, mx = +size.max || 40;
+      size.style.setProperty('--p', ((v - mn) / Math.max(1, mx - mn) * 100) + '%');
+      let tool = 'pen', color = '#1A1A1A';
+      try { tool = (typeof _drawTool !== 'undefined' && _drawTool) || 'pen'; color = (_drawState[tool] && _drawState[tool].color) || color; } catch (_) {}
+      line.setAttribute('stroke', tool === 'eraser' ? '#E8E6DA' : color);
+      line.setAttribute('stroke-width', Math.max(1.5, Math.min(30, tool === 'marker' ? v * .9 : v / 1.2)));
+      line.setAttribute('opacity', tool === 'marker' ? '.55' : '1');
+    };
+    if (size) size.addEventListener('input', paint);
+    new MutationObserver(paint).observe(p, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+    paint();
+    // board-app placed it by an estimated height: keep it on screen now that it is taller
+    new MutationObserver(() => {
+      if (!p.classList.contains('open')) return;
+      requestAnimationFrame(() => {
+        const r = p.getBoundingClientRect();
+        if (r.bottom > innerHeight - 12) p.style.top = Math.max(12, innerHeight - 12 - r.height) + 'px';
+      });
+    }).observe(p, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  /* №12 Stickers panel: a plain title, the pop on a pick */
+  function stickersPanel() {
+    const p = $('sticker-panel');
+    if (!p || p.dataset.bc) return;
+    p.dataset.bc = '1';
+    const t = p.querySelector('.sp-head-title'); if (t) t.textContent = 'Stickers';
+    const x = p.querySelector('.sp-close'); if (x) x.textContent = '×';
+    p.addEventListener('click', e => {
+      const it = e.target.closest('.sticker-item'); if (!it) return;
+      it.classList.remove('bc-pop'); void it.offsetWidth; it.classList.add('bc-pop');
+    }, true);
+  }
+
   function init() {
     if (phone()) return;
     toolbar(); topbar(); nav(); boardMenu(); profileMenu();
+    stickyPanel(); shapesPanel(); penPanel(); stickersPanel();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   // board-app wires some of these late

@@ -257,3 +257,162 @@ html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#
 #bc-um-students .umi-ic{width:18px;height:18px;color:currentColor;opacity:.85}
 /* a student / read-only viewer never gets the teacher's toolbar (BUG-03) */
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:is(.board-readonly,.board-student-view) #miro-toolbar{display:none !important}
+
+/* ═══ Part 2: the panels (№7 sticky, №9 text, №10 shapes, №11 pen, №12 stickers) ═══
+   Popovers stay light glass on both canvases (ink text), as in the spec. */
+body.board-page{--bc-panel:linear-gradient(135deg,rgba(255,255,255,.86),rgba(255,255,255,.66));--bc-panel-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(255,255,255,.25),0 18px 44px rgba(11,16,38,.16)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) :is(#sticky-palette,#shape-panel,#draw-palette,#sticker-panel){
+  background:var(--bc-panel) !important;-webkit-backdrop-filter:var(--bc-blur) !important;backdrop-filter:var(--bc-blur) !important;
+  border:1px solid rgba(255,255,255,.9) !important;box-shadow:var(--bc-panel-shadow) !important;border-radius:24px !important;
+  color:#0B1026 !important;font-family:var(--bc-font) !important}
+.bc-plabel{font:800 11px var(--bc-font);letter-spacing:1.8px;text-transform:uppercase;opacity:.5;margin:2px 4px 12px}
+.bc-pdiv{height:1px;background:rgba(11,16,38,.08);margin:14px 2px}
+.bc-key{margin-left:auto;font:800 11px var(--bc-font);background:#EDEBE0;border-radius:8px;padding:4px 9px;color:#6E7482}
+
+/* №7 Sticky panel: 268px, a mini sticky on the top edge shows the hovered colour */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette{
+  width:268px !important;padding:20px 18px 18px !important;gap:0 !important;overflow:visible !important;margin-top:34px}
+#sticky-palette .bc-ministick{position:absolute;top:-34px;left:50%;transform:translateX(-50%) rotate(-5deg);width:66px;height:66px;border-radius:4px 4px 14px 4px;background:#C8F04B;box-shadow:0 10px 22px rgba(11,16,38,.2);transition:transform .25s,background .2s;z-index:2;pointer-events:none}
+#sticky-palette .bc-ministick::after{content:'';position:absolute;bottom:0;right:0;width:20px;height:20px;background:linear-gradient(135deg,transparent 50%,rgba(11,16,38,.14) 50%);border-radius:0 0 14px 0}
+#sticky-palette:hover .bc-ministick{transform:translateX(-50%) rotate(3deg) translateY(-3px)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-color-grid{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:10px !important;margin-bottom:6px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-color-tile{
+  width:auto !important;height:46px !important;border-radius:14px !important;border:1px solid rgba(11,16,38,.08) !important;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:none !important}
+#sticky-palette .sticky-color-tile:hover{transform:scale(1.1)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-color-tile.bc-sel{box-shadow:0 0 0 2px #0B1026,0 0 0 5px rgba(211,242,106,.9) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette :is(.sticky-custom-row,.sticky-palette-action,.bc-row){
+  display:flex !important;align-items:center !important;gap:12px !important;height:50px !important;border-radius:15px !important;padding:0 14px !important;cursor:pointer;
+  font:700 15px var(--bc-font) !important;letter-spacing:-.1px;transition:background .15s,transform .15s;margin:0 0 8px !important;width:100% !important;color:#0B1026 !important;box-shadow:none !important}
+#sticky-palette :is(.sticky-custom-row,.sticky-palette-action,.bc-row):hover{transform:translateX(3px)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-custom-row{background:#F1EFE2 !important;border:0 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-custom-row:hover{background:#E9E6D3 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette :is(.sticky-palette-action,.bc-row){background:rgba(255,255,255,.75) !important;border:1px solid rgba(11,16,38,.07) !important;text-align:left;justify-content:flex-start !important}
+#sticky-palette :is(.sticky-palette-action,.bc-row):hover{background:#fff !important}
+#sticky-palette .sticky-palette-action:last-child{margin-bottom:0 !important}
+#sticky-palette .sticky-custom{display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;font:inherit;color:inherit}
+#sticky-palette .sticky-custom input[type=color]{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+#sticky-palette .bc-inkbtn{margin-left:auto;width:46px;height:46px;border-radius:14px;background:#0B1026;display:grid;place-items:center;flex:none;transition:transform .15s}
+#sticky-palette .bc-inkbtn:hover{transform:scale(1.08) rotate(-6deg)}
+#sticky-palette .bc-inkbtn svg{width:22px;height:22px;stroke:#D3F26A;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-eyedrop{width:38px !important;height:38px !important;border-radius:12px !important;background:rgba(255,255,255,.8) !important;border:1px solid rgba(11,16,38,.08) !important;color:#0B1026 !important;flex:none}
+#sticky-palette svg.bc-ic{width:21px;height:21px;stroke:#0B1026;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#sticky-palette .bc-tgl{margin-left:auto;width:44px;height:26px;border-radius:999px;background:#D8D5C4;position:relative;transition:background .2s;flex:none}
+#sticky-palette .bc-tgl::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+#sticky-palette [aria-checked="true"] .bc-tgl{background:#0B1026}
+#sticky-palette [aria-checked="true"] .bc-tgl::after{left:21px;background:#D3F26A}
+#sticky-palette .bc-bulk{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+#sticky-palette .bc-bulk[hidden]{display:none}
+#sticky-palette .bc-bulk textarea{min-height:96px;border-radius:14px;border:1.5px solid rgba(11,16,38,.12);padding:10px 12px;font:600 14px var(--bc-font);color:#0B1026;resize:vertical;background:#fff}
+#sticky-palette .bc-bulk textarea:focus{outline:none;border-color:#D3F26A;box-shadow:0 0 0 3px rgba(211,242,106,.35)}
+#sticky-palette .bc-bulk button{height:44px;border:0;border-radius:14px;background:#D3F26A;color:#0B1026;font:800 14px var(--bc-font);cursor:pointer}
+#sticky-palette .bc-bulk small{font:600 12px var(--bc-font);opacity:.55}
+
+/* №10 Shapes panel: 304px, Mind map and Table, a 4×3 grid, All shapes */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #shape-panel{width:304px !important;padding:20px 18px !important;animation:bc-pin .2s var(--bc-ease) both}
+@keyframes bc-pin{from{opacity:0;transform:translateX(-6px) scale(.98)}to{opacity:1;transform:none}}
+#shape-panel .bc-toolrow{display:flex;align-items:center;gap:12px;width:100%;height:48px;border:0;background:none;border-radius:14px;padding:0 12px;cursor:pointer;font:700 14.5px var(--bc-font);color:#0B1026;transition:background .15s;margin-bottom:4px}
+#shape-panel .bc-toolrow:hover{background:#F1EFE2}
+#shape-panel .bc-toolrow svg{width:22px;height:22px;stroke:#0B1026;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#shape-panel .bc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#shape-panel .bc-cell{aspect-ratio:1;border:0;background:none;border-radius:16px;display:grid;place-items:center;cursor:pointer;transition:background .15s,transform .15s;padding:0}
+#shape-panel .bc-cell:hover{background:#F1EFE2;transform:scale(1.06)}
+#shape-panel .bc-cell.bc-sel{background:#E9F5C4}
+#shape-panel .bc-cell svg{width:30px;height:30px;stroke:#0B1026;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#shape-panel .bc-cell:focus-visible,#shape-panel .bc-toolrow:focus-visible,#shape-panel .bc-all:focus-visible{outline:2px solid #0B1026;outline-offset:2px}
+#shape-panel .bc-all{margin-top:14px;width:100%;height:52px;border:0;border-radius:15px;background:#D3F26A;color:#0B1026;font:800 15px var(--bc-font);cursor:pointer;transition:transform .15s,box-shadow .15s}
+#shape-panel .bc-all:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(154,168,42,.35)}
+#shape-panel .bc-allsub{margin-top:10px;text-align:center;font:500 12.5px var(--bc-font);opacity:.5}
+
+/* №11 Pen panel: 308px, tool rows, a live stroke preview, the lime slider, 14 colours, Done */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette{width:308px !important;padding:20px 18px !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-tool{
+  display:flex !important;align-items:center !important;gap:12px !important;width:100% !important;height:50px !important;border-radius:15px !important;padding:0 14px !important;margin:0 0 6px !important;
+  border:0 !important;background:none !important;cursor:pointer;font:700 15px var(--bc-font) !important;color:#0B1026 !important;transition:background .15s;box-shadow:none !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-tool:hover{background:#F1EFE2 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-tool.active{background:#E9F5C4 !important;color:#0B1026 !important}
+#draw-palette .dp-tool.active .bc-key{background:#fff}
+#draw-palette .dp-tool svg{width:22px !important;height:22px !important;stroke:#0B1026;stroke-width:1.8}
+#draw-palette .dp-tool[data-tool="marker"] svg{stroke:#6C3FD4}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-sep{display:none !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-label{font:800 11px var(--bc-font) !important;letter-spacing:1.8px !important;text-transform:uppercase !important;opacity:.5;margin:14px 4px 10px !important;color:#0B1026 !important}
+#draw-palette .dp-size{display:flex;align-items:center;gap:12px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette #draw-size{
+  flex:1;-webkit-appearance:none;appearance:none;height:8px;border-radius:99px;background:linear-gradient(90deg,#D3F26A var(--p,40%),#0B1026 var(--p,40%)) !important;outline:none;cursor:pointer;border:0 !important}
+#draw-palette #draw-size::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#D3F26A;border:3px solid #fff;box-shadow:0 3px 10px rgba(11,16,38,.25);cursor:grab}
+#draw-palette #draw-size::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#D3F26A;border:3px solid #fff;box-shadow:0 3px 10px rgba(11,16,38,.25);cursor:grab}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-size-stepper{display:flex;flex-direction:column;align-items:center;background:#fff !important;border:1px solid rgba(11,16,38,.1) !important;border-radius:12px !important;padding:4px 10px !important;flex:none}
+#draw-palette .dp-size-step{border:0 !important;background:none !important;font:800 11px var(--bc-font) !important;color:#6E7482 !important;cursor:pointer;line-height:1.2 !important;padding:0 !important}
+#draw-palette .dp-size-val{font:800 16px var(--bc-font) !important;color:#0B1026}
+#draw-palette .bc-preview{height:64px;border-radius:14px;background:#fff;border:1px solid rgba(11,16,38,.08);display:grid;place-items:center;overflow:hidden;margin-top:10px}
+#draw-palette .bc-preview svg{width:88%;height:44px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-color-grid{display:grid !important;grid-template-columns:repeat(7,1fr) !important;gap:10px !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-color-grid > div{
+  width:auto !important;height:auto !important;aspect-ratio:1;border-radius:50% !important;cursor:pointer;border:1px solid rgba(11,16,38,.1) !important;transition:transform .15s}
+#draw-palette .dp-color-grid > div:hover{transform:scale(1.15)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-color-grid > div.is-active{box-shadow:0 0 0 2px #0B1026,0 0 0 4px rgba(211,242,106,.9) !important;outline:0 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-color-picker{
+  display:flex !important;align-items:center;gap:12px;margin-top:12px;height:52px;border-radius:15px !important;border:1px solid rgba(11,16,38,.1) !important;background:#fff !important;padding:0 14px !important;cursor:pointer;font:600 14.5px var(--bc-font) !important;color:#6E7482 !important;transition:border-color .15s}
+#draw-palette .dp-color-picker:hover{border-color:#0B1026 !important}
+#draw-palette .dp-color-picker-swatch{width:30px !important;height:30px !important;border-radius:50% !important;flex:none;border:1px solid rgba(11,16,38,.1)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-done{
+  margin-top:14px !important;width:100% !important;height:54px !important;border:0 !important;border-radius:16px !important;background:#D3F26A !important;color:#0B1026 !important;font:800 16px var(--bc-font) !important;cursor:pointer;transition:transform .15s,box-shadow .15s}
+#draw-palette .dp-done:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(154,168,42,.35)}
+
+/* №12 Stickers panel: 340px; a search with a lime focus; lime category pills; 6 columns */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel{width:340px !important;padding:0 !important;overflow:hidden}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-head{padding:20px 20px 0 !important;border:0 !important;background:none !important;align-items:flex-start}
+#sticker-panel .sp-head-title{font:800 20px var(--bc-font) !important;letter-spacing:-.3px;color:#0B1026 !important;display:block}
+#sticker-panel .sp-head-sub{font:500 13px var(--bc-font) !important;opacity:.55;margin-top:6px;display:block;color:#0B1026 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-close{width:34px !important;height:34px !important;border-radius:50% !important;border:0 !important;background:#F1EFE2 !important;font:700 15px var(--bc-font) !important;color:#0B1026 !important;transition:transform .2s,background .15s;flex:none}
+#sticker-panel .sp-close:hover{transform:rotate(90deg);background:#E4E1D0 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-gif{border-radius:999px !important;border:1px solid rgba(11,16,38,.12) !important;background:#fff !important;font:800 12px var(--bc-font) !important;color:#0B1026 !important;padding:6px 12px !important;margin-left:auto}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-search{
+  margin:14px 20px 0 !important;width:calc(100% - 40px) !important;height:46px !important;border-radius:14px !important;border:1.5px solid rgba(11,16,38,.09) !important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236E7482' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E") 14px 50%/18px no-repeat !important;
+  padding:0 14px 0 42px !important;font:600 14.5px var(--bc-font) !important;color:#0B1026 !important;box-shadow:none !important;transition:border-color .15s,box-shadow .15s}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-search:focus{outline:none !important;border-color:#D3F26A !important;box-shadow:0 0 0 3px rgba(211,242,106,.35) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-tabs{display:flex !important;gap:8px !important;padding:14px 20px 4px !important;overflow-x:auto;scrollbar-width:none;border:0 !important;background:none !important;flex-wrap:nowrap !important}
+#sticker-panel .sp-tabs::-webkit-scrollbar{display:none}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sticker-tab-btn{flex:none;border:1px solid rgba(11,16,38,.1) !important;background:#fff !important;border-radius:999px !important;padding:8px 16px !important;font:700 13.5px var(--bc-font) !important;color:#0B1026 !important;cursor:pointer;transition:all .15s;box-shadow:none !important}
+#sticker-panel .sticker-tab-btn:hover{border-color:#0B1026 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sticker-tab-btn.active{background:#D3F26A !important;border-color:#D3F26A !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-grid-body{display:grid !important;grid-template-columns:repeat(6,1fr) !important;gap:4px !important;padding:12px 16px !important;max-height:300px;overflow-y:auto}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sticker-item{font-size:32px !important;text-align:center;padding:8px 0 !important;cursor:pointer;border-radius:14px !important;transition:transform .12s,background .12s;line-height:1.2 !important;background:none !important;border:0 !important;width:auto !important;height:auto !important}
+#sticker-panel .sticker-item:hover{background:#E9F5C4 !important;transform:scale(1.18)}
+#sticker-panel .sticker-item.bc-pop{animation:bc-epop .35s}
+@keyframes bc-epop{40%{transform:scale(1.5) rotate(-8deg)}70%{transform:scale(.92)}}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticker-panel .sp-hint{border-top:1px solid rgba(11,16,38,.07) !important;padding:12px 20px !important;font:600 12px var(--bc-font) !important;opacity:.5;text-align:center;color:#0B1026 !important;background:none !important}
+@media (pointer:coarse){#sticker-panel .sticker-item{font-size:42px !important}}
+
+/* №9 Text toolbar: one glass pill, sand size step, lime-tint active, colour wells */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar{
+  background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,255,255,.66)) !important;-webkit-backdrop-filter:var(--bc-blur) !important;backdrop-filter:var(--bc-blur) !important;
+  border:1px solid rgba(255,255,255,.9) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 12px 30px rgba(11,16,38,.13) !important;border-radius:18px !important;padding:7px 10px !important;gap:2px !important;font-family:var(--bc-font) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar :is(.fmt-btn,.text-format-btn){
+  height:38px !important;min-width:38px !important;padding:0 6px !important;border-radius:12px !important;border:0 !important;background:none !important;color:#0B1026 !important;font:800 15px var(--bc-font) !important;transition:background .15s,transform .15s;box-shadow:none !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar :is(.fmt-btn,.text-format-btn):hover{background:#F1EFE2 !important;transform:translateY(-1px)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar :is(.fmt-btn,.text-format-btn).active{background:#E9F5C4 !important}
+.text-format-toolbar :is(.fmt-btn,.text-format-btn) svg{width:19px;height:19px;stroke:#0B1026;stroke-width:1.8}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar .tb-sep{width:1px !important;height:24px !important;background:rgba(11,16,38,.1) !important;margin:0 6px !important;flex:none}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar .text-format-select{height:38px !important;padding:0 12px !important;border-radius:12px !important;font:700 14px var(--bc-font) !important;border:0 !important;background:transparent !important;color:#0B1026 !important;cursor:pointer}
+.text-format-toolbar .text-format-select:hover{background:#F1EFE2 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar .fmt-step{display:flex !important;align-items:center;background:#F1EFE2 !important;border-radius:12px !important;border:0 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar .fmt-step button{width:32px !important;height:38px !important;border:0 !important;background:none !important;font:800 16px var(--bc-font) !important;cursor:pointer;color:#0B1026 !important;border-radius:12px !important}
+.text-format-toolbar .fmt-step button:hover{background:#E4E1D0 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .text-format-toolbar .fmt-step-input{font:800 14px var(--bc-font) !important;width:32px !important;text-align:center;border:0 !important;background:none !important;color:#0B1026 !important}
+/* the text box: a dashed lime selection, lime handle pills, an ink close circle */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-text.selected{outline:2px dashed rgba(154,168,42,.7) !important;outline-offset:2px;border-radius:6px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-text .text-rich-editor ::selection{background:#D3F26A;color:#0B1026}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-text .card-close.text-close{
+  width:28px !important;height:28px !important;border-radius:50% !important;background:#0B1026 !important;color:#fff !important;border:0 !important;font:700 14px var(--bc-font) !important;display:grid !important;place-items:center !important;box-shadow:0 4px 10px rgba(11,16,38,.3) !important;transition:transform .15s}
+.board-card.card-text .card-close.text-close:hover{transform:scale(1.12) rotate(90deg)}
+/* panels anchored to a tool open clear of the (wider) toolbar */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) :is(#sticky-palette,#shape-panel,#draw-palette,#sticker-panel,#mt-more-pop,#laser-pop){margin-left:14px !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-palette-action[hidden]{display:none !important}
+#sticky-palette .sticky-custom span{white-space:nowrap}
+#sticky-palette .sticky-custom-row{gap:8px !important;padding:0 6px 0 14px !important}
+#sticky-palette .bc-inkbtn{width:40px;height:40px;border-radius:12px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #sticky-palette .sticky-eyedrop{width:34px !important;height:34px !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #shape-panel .bc-all{display:flex !important;align-items:center;justify-content:center !important;padding:0 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-tool::after,
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette .dp-tool::before{display:none !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #draw-palette{max-height:calc(100vh - 24px) !important;overflow-y:auto !important}
