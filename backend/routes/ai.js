@@ -6,6 +6,7 @@ const { requireAuth, requireTeacher, requireAdmin } = require('../middleware/aut
 const aiEngine = require('../lib/aiEngine');
 const guardrails = require('../lib/guardrails');
 const { redactPII } = require('../lib/pii');
+const contentSafety = require('../lib/contentSafety');
 const derive = require('../lib/derive');
 const pool = require('../db/pool');
 const vocabLibrary = require('../lib/vocabLibrary');
@@ -1788,6 +1789,8 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
       throw err;
     }
     await settleAiQuota(req.user, reservation, input._actualCostUsd).catch(() => {});
+    /* Sensitive for a class? A calm note for the teacher, never a block (E5 US3, T-PR3). */
+    contentSafety.decorate(output, contentSafety.screen(input.source, input.topic, input.vocab));
     output.cached = false;
     output.processingMs = Date.now() - started;
     cacheSet(key, output);
