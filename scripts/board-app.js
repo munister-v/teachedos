@@ -16664,7 +16664,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1196';
+const TEACHEDOS_ASSET_VERSION = '1197';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20207,6 +20207,20 @@ function pickLessonSource(key) {
   if (sub)    sub.textContent    = src.hint;
 
   _wizRenderSourceTools(src);
+  /* Listening needs something to listen to (Lesson Builder 2.0 T-L1). A text with no
+     recording is honest about it: students will read it, and a recording is one step away. */
+  document.getElementById('tb-wiz-no-audio')?.remove();
+  if (boardLessonWizard.skill === 'listening' && src.key === 'own') {
+    const wrap = document.getElementById('tb-wrap-source');
+    if (wrap) {
+      const note = document.createElement('div');
+      note.id = 'tb-wiz-no-audio';
+      note.className = 'tb-wiz-noaudio';
+      note.setAttribute('role', 'note');
+      note.innerHTML = '<b>A text is not something to listen to.</b><span>Without a recording, students will read this. For a real listening lesson, add a link to a video or an audio file.</span><div><button type="button" class="tbuilder-btn lime" onclick="pickLessonSource(\'link\')">Use a link instead</button><button type="button" class="tbuilder-btn" onclick="pickLessonSource(\'audio\')">Use an audio file</button></div>';
+      wrap.parentNode.insertBefore(note, wrap);
+    }
+  }
   const field = document.getElementById(`tbuilder-${src.field}`);
   if (field) setTimeout(() => { try { field.focus({ preventScroll: false }); } catch (_) { field.focus(); } }, 60);
 }
@@ -23457,7 +23471,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1196',
+          icon: 'icons/icon-192.png?v=1197',
           tag: 'board-live-' + s.id,
         });
       }

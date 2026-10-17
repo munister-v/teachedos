@@ -7773,3 +7773,9 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 .bg-stock{margin-top:12px;}
 .bg-stock .tsp-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));max-height:260px;overflow-y:auto;}
 #bg-overlay .bg-card{max-height:calc(100dvh - 32px);overflow-y:auto;}
+
+.tb-wiz-noaudio{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;padding:11px 13px;border-radius:12px;background:#FFF8E1;border:1px solid rgba(214,160,0,.4);font-family:var(--font);color:#24282C;}
+.tb-wiz-noaudio b{font-size:13px;font-weight:650;}
+.tb-wiz-noaudio span{font-size:12.5px;color:#5D614B;line-height:1.45;}
+.tb-wiz-noaudio div{display:flex;flex-wrap:wrap;gap:8px;}
+.tb-wiz-noaudio .tbuilder-btn{padding:8px 13px;font-size:12.5px;}
