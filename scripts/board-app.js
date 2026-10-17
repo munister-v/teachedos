@@ -16670,7 +16670,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1208';
+const TEACHEDOS_ASSET_VERSION = '1209';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23565,7 +23565,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1208',
+          icon: 'icons/icon-192.png?v=1209',
           tag: 'board-live-' + s.id,
         });
       }
@@ -24870,17 +24870,30 @@ function applyFollowViewport(pan, scale) {
   setTimeout(() => { board.style.transition = ''; }, 260);
 }
 
+/* Board chrome v1.0 №2 / №5: a click on a student's avatar glides the canvas
+   (.9 s) to their LIVE CURSOR, which then pings twice; with no cursor yet,
+   to the part of the board they are looking at. */
 function jumpToStudent(userId) {
+  const c = remoteCursors[userId];
   const vp = peerViewports[userId];
-  if (!vp) { toast('No position yet - student hasn\'t moved'); return; }
-  board.style.transition = 'transform .3s ease';
-  state.pan.x = vp.pan.x; state.pan.y = vp.pan.y; state.scale = vp.scale;
-  board.style.transform = `translate(${vp.pan.x}px,${vp.pan.y}px) scale(${vp.scale})`;
-  zoomDisp.textContent = Math.round(vp.scale * 100) + '%';
+  if (!(c && c.el && !c.el.hidden) && !vp) { toast('No position yet - student hasn\'t moved'); return; }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  board.style.transition = reduce ? 'none' : 'transform .9s cubic-bezier(.2,.7,.2,1)';
+  if (c && c.el && !c.el.hidden) {
+    const wrap = boardWrap.getBoundingClientRect();
+    state.pan.x = wrap.width / 2 - c.tx * state.scale;
+    state.pan.y = wrap.height / 2 - c.ty * state.scale;
+  } else {
+    state.pan.x = vp.pan.x; state.pan.y = vp.pan.y; state.scale = vp.scale;
+  }
+  board.style.transform = `translate(${state.pan.x}px,${state.pan.y}px) scale(${state.scale})`;
+  zoomDisp.textContent = Math.round(state.scale * 100) + '%';
   renderAllArrows();
-  setTimeout(() => { board.style.transition = ''; }, 310);
-  const info = peerInfo[userId] || {};
-  toast(`📍 Jumped to ${info.name || 'student'}`);
+  setTimeout(() => {
+    board.style.transition = '';
+    if (typeof renderMinimap === 'function') renderMinimap();
+    if (c && c.el) { c.el.classList.remove('bc-found'); void c.el.offsetWidth; c.el.classList.add('bc-found'); setTimeout(() => c.el.classList.remove('bc-found'), 2600); }
+  }, reduce ? 0 : 920);
 }
 
 // Broadcast on every local change
