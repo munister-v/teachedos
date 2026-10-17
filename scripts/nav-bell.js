@@ -187,7 +187,7 @@
     }
     openId = openId === id ? null : id;
     paintPanel();
-    const el = panel.querySelector(`.nb-item[data-id="${CSS.escape(id)}"]`);
+    const el = panel.querySelector(`.nb-item[data-id="${window.CSS.escape(id)}"]`);
     if (el) el.focus();
   }
 

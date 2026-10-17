@@ -2442,23 +2442,50 @@ function renderVoting(el, card) {
   const counts = d.options.map((_, i) => Object.values(d.votes).filter(v => v === i).length);
   const total = counts.reduce((a,b) => a+b, 0);
 
+  /* Board chrome v1.0 №14 "Pastel pop": every option has its own tint
+     (pink / lime / turquoise ...); a vote is alive - the bar springs from
+     where it was, "+1" floats up from the option, and the leader gets a
+     burst of confetti. */
+  const TINTS = ['#F8DBDB', '#E9F5C4', '#D5F6F2', '#EFEDE0', '#E9E3FF', '#FCE7C8'];
+  const prev = el._votePct || null, justVoted = el._justVoted;
+  el._justVoted = null;
+  const pcts = counts.map(c => (total ? Math.round(c / total * 100) : 0));
+  const lead = total ? counts.indexOf(Math.max(...counts)) : -1;
+  el._votePct = pcts;
   d.options.forEach((opt, idx) => {
     const row = document.createElement('div');
-    row.className = 'vote-opt' + (myChoice === idx ? ' selected' : '');
-    const pct = total ? Math.round((counts[idx] / total) * 100) : 0;
+    row.className = 'vote-opt' + (myChoice === idx ? ' selected' : '') + (idx === lead && counts.filter(c => c === counts[lead]).length === 1 ? ' lead' : '');
+    row.style.setProperty('--vo-tint', TINTS[idx % TINTS.length]);
+    const pct = pcts[idx];
     const showResults = d.revealed || myChoice !== undefined;
+    const from = prev && justVoted != null ? (prev[idx] || 0) : pct;
     row.innerHTML = `
-      <div class="vo-fill" style="width:${showResults ? pct : 0}%;"></div>
+      <div class="vo-fill" style="width:${showResults ? from : 0}%;"></div>
       <span class="vo-text">${esc(opt)}</span>
       <span class="vo-count">${showResults ? `${counts[idx]} · ${pct}%` : ''}</span>
     `;
+    if (showResults && from !== pct) requestAnimationFrame(() => requestAnimationFrame(() => { const f = row.querySelector('.vo-fill'); if (f) f.style.width = pct + '%'; }));
+    if (justVoted === idx) {
+      const plus = document.createElement('span'); plus.className = 'vo-plus'; plus.textContent = '+1';
+      row.appendChild(plus); setTimeout(() => plus.remove(), 1000);
+      if (row.classList.contains('lead') && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+        for (let k = 0; k < 14; k++) {
+          const c = document.createElement('i'); c.className = 'vo-confetti';
+          c.style.setProperty('--dx', (Math.random() * 160 - 80).toFixed(0) + 'px');
+          c.style.setProperty('--dy', (-30 - Math.random() * 70).toFixed(0) + 'px');
+          c.style.background = ['#D3F26A', '#F8A5C8', '#49F6F0', '#0B1026'][k % 4];
+          c.style.left = (40 + Math.random() * 20) + '%';
+          row.appendChild(c); setTimeout(() => c.remove(), 1150);
+        }
+      }
+    }
     row.addEventListener('mousedown', ev => ev.stopPropagation());
     row.addEventListener('click', ev => {
       ev.stopPropagation();
       snapshot();
       // Toggle/switch vote
       if (d.votes[userId] === idx) delete d.votes[userId];
-      else d.votes[userId] = idx;
+      else { d.votes[userId] = idx; el._justVoted = idx; }
       // Re-render this card
       el.innerHTML = '';
       renderVoting(el, card);
@@ -2473,13 +2500,13 @@ function renderVoting(el, card) {
   const actions = document.createElement('div');
   actions.className = 'vote-actions';
   const addBtn = document.createElement('button');
-  addBtn.textContent = '✎ Edit';
+  addBtn.textContent = 'Edit';
   addBtn.title = 'Change the question and the options';
   addBtn.addEventListener('mousedown', ev => ev.stopPropagation());
   addBtn.addEventListener('click', ev => { ev.stopPropagation(); openPollEditor(card); });
   if (!canEditPoll) addBtn.style.display = 'none';
   const revealBtn = document.createElement('button');
-  revealBtn.textContent = d.revealed ? '🙈 Hide' : '👀 Reveal';
+  revealBtn.textContent = d.revealed ? 'Hide results' : 'Reveal results';
   revealBtn.title = 'Reveal results to non-voters';
   revealBtn.addEventListener('mousedown', ev => ev.stopPropagation());
   revealBtn.addEventListener('click', ev => {
@@ -2491,7 +2518,7 @@ function renderVoting(el, card) {
     scheduleSave && scheduleSave(); saveLocal && saveLocal();
   });
   const resetBtn = document.createElement('button');
-  resetBtn.textContent = '↺';
+  resetBtn.textContent = 'Reset';
   resetBtn.title = 'Reset votes';
   resetBtn.addEventListener('mousedown', ev => ev.stopPropagation());
   resetBtn.addEventListener('click', ev => {
@@ -2524,8 +2551,10 @@ function quickAddVoting() {
 function _placePoll(data) {
   const pos = getBoardViewportCenter() || { x: 200, y: 200 };
   const def = getDefaults('voting');
-  const h = Math.max(def.h, 120 + data.options.length * 44);
-  addCard('voting', pos.x - def.w/2, pos.y - h/2, data, def.w, h);
+  // board chrome v1.0 №14: the Pastel pop card is 380px wide, rows of 58px
+  const w = Math.max(def.w, 380);
+  const h = Math.max(def.h, 170 + data.options.length * 58);
+  addCard('voting', pos.x - w/2, pos.y - h/2, data, w, h);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
@@ -2541,9 +2570,9 @@ function openPollEditor(card) {
   ov.id = 'poll-ed-ov';
   ov.className = 'poll-ed-ov';
   ov.innerHTML = `<form class="poll-ed" role="dialog" aria-modal="true" aria-labelledby="poll-ed-title" novalidate>
-      <div class="poll-ed-head"><span class="poll-ed-ic" aria-hidden="true">🗳</span>
+      <div class="poll-ed-head"><span class="poll-ed-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#0B1026" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/></svg></span>
         <div><div class="poll-ed-title" id="poll-ed-title">${card ? 'Edit poll' : 'New poll'}</div>
-        <div class="poll-ed-sub">Students tap an option to vote. You can change it later with ✎ on the card.</div></div>
+        <div class="poll-ed-sub">Students tap an option to vote. You can change it later with Edit on the card.</div></div>
         <button type="button" class="poll-ed-x" aria-label="Close">×</button></div>
       <label class="poll-ed-lbl" for="poll-ed-q">Question</label>
       <input id="poll-ed-q" class="poll-ed-in" type="text" maxlength="200" autocomplete="off" placeholder="Which topic should we do next?" value="${esc(d ? d.question : '')}">
@@ -10119,10 +10148,49 @@ function renderAllAnnotations() {
     marker.style.left = `${annotation.x}px`;
     marker.style.top = `${annotation.y}px`;
     marker.setAttribute('aria-label', `Comment: ${annotationSnippet(annotation)}`);
-    marker.innerHTML = '<span class="annotation-mark" aria-hidden="true"><i></i><i></i><i></i></span>' +
+    /* Board chrome v1.0 №13: an ink pin with a white bubble; a lime dot while
+       there is something I have not read; resolved ones at 55%; pins can be
+       dragged around the board. */
+    const unread = _annotationUnread(annotation);
+    marker.classList.toggle('is-unread', unread);
+    marker.innerHTML = '<svg class="annotation-bubble" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></svg>' +
+      (unread ? '<span class="annotation-unread" aria-hidden="true"></span>' : '') +
       (annotation.thread.length > 1 ? `<span class="annotation-count">${annotation.thread.length}</span>` : '');
+    if (unread) marker.setAttribute('aria-label', `Unread comment: ${annotationSnippet(annotation)}`);
+    let drag = null;
+    marker.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || (typeof boardCanEdit !== 'undefined' && !boardCanEdit)) return;
+      event.stopPropagation();
+      drag = { x0: event.clientX, y0: event.clientY, ax: annotation.x, ay: annotation.y, moved: false };
+      try { marker.setPointerCapture(event.pointerId); } catch (_) {}
+    });
+    marker.addEventListener('pointermove', event => {
+      if (!drag) return;
+      const dx = event.clientX - drag.x0, dy = event.clientY - drag.y0;
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+      if (!drag.moved) { drag.moved = true; marker.classList.add('is-dragging'); closeAnnotationPopover(); }
+      const sc = state.scale || 1;
+      marker.style.left = `${drag.ax + dx / sc}px`;
+      marker.style.top = `${drag.ay + dy / sc}px`;
+    });
+    const endDrag = event => {
+      if (!drag) return;
+      const d = drag; drag = null;
+      marker.classList.remove('is-dragging');
+      if (!d.moved) return;
+      marker.dataset.justDragged = '1';
+      setTimeout(() => { delete marker.dataset.justDragged; }, 0);
+      const sc = state.scale || 1;
+      snapshot();
+      annotation.x = d.ax + (event.clientX - d.x0) / sc;
+      annotation.y = d.ay + (event.clientY - d.y0) / sc;
+      scheduleSave();
+    };
+    marker.addEventListener('pointerup', endDrag);
+    marker.addEventListener('pointercancel', endDrag);
     marker.addEventListener('click', event => {
       event.stopPropagation();
+      if (marker.dataset.justDragged) return;
       openAnnotationThread(annotation.id);
     });
     marker.addEventListener('mouseenter', () => {
@@ -10135,6 +10203,25 @@ function renderAllAnnotations() {
     layer.appendChild(marker);
   });
 }
+
+/* what this person has read, per comment (the newest message they saw) */
+const _ANN_SEEN_KEY = 'teachedos_comments_seen';
+function _annotationSeen() { try { return JSON.parse(localStorage.getItem(_ANN_SEEN_KEY) || '{}'); } catch (_) { return {}; } }
+function _annotationUnread(a) {
+  const last = a.thread && a.thread[a.thread.length - 1];
+  if (!last || a.resolved) return false;
+  const me = (typeof currentUser !== 'undefined' && currentUser && currentUser.name) || '';
+  if (last.author && last.author === me) return false;
+  return (_annotationSeen()[a.id] || 0) < (a.updatedAt || last.createdAt || 0);
+}
+function _annotationMarkSeen(a) {
+  const seen = _annotationSeen();
+  seen[a.id] = a.updatedAt || Date.now();
+  try { localStorage.setItem(_ANN_SEEN_KEY, JSON.stringify(seen)); } catch (_) {}
+}
+function _annotationInitial(name) { return String(name || '?').trim().charAt(0).toUpperCase() || '?'; }
+const _ANN_TINTS = ['#F6D8D8', '#E9F5C4', '#D5F6F2', '#EFEDE0', '#E9E3FF'];
+function _annotationTint(name) { let h = 0; for (const ch of String(name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return _ANN_TINTS[h % _ANN_TINTS.length]; }
 
 function annotationPopover() {
   return document.getElementById('annotation-popover');
@@ -10203,17 +10290,48 @@ function openAnnotationThread(annotationId) {
   popover.id = 'annotation-popover';
   popover.dataset.mode = 'thread';
   popover.className = 'annotation-popover annotation-thread';
-  const messages = annotation.thread.map(message => `<article class="annotation-message"><div><b>${esc(message.author)}</b><time>${annotationTimeAgo(message.createdAt)}</time></div><p>${esc(message.body)}</p></article>`).join('');
+  const wasUnread = _annotationUnread(annotation);
+  _annotationMarkSeen(annotation);
+  if (wasUnread) renderAllAnnotations();   // the lime dot goes
+  const me = (currentUser && currentUser.name) || 'You';
+  const messages = annotation.thread.map(message => `<article class="annotation-message"><div class="annotation-who"><span class="annotation-av" style="background:${_annotationTint(message.author)}">${esc(_annotationInitial(message.author))}</span><span><b>${esc(message.author)}</b><time>${annotationTimeAgo(message.createdAt)}</time></span></div><p>${esc(message.body)}</p></article>`).join('');
+  const ic = p => `<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+  const canSpeak = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   /* Удалить комментарий было нельзя вообще: в треде жили «Закрыть», «Решить»
      и «Ответить», а функции удаления не существовало ни здесь, ни где-либо
      ещё. Случайно поставленная точка оставалась на доске навсегда - «решить»
      её только помечает, но пятно остаётся. Удаление рядом с «Решить», но
      обычной кнопкой, а не главной, и со своим подтверждением: отменить его
      можно только общим Undo, и это стоит сказать до, а не после. */
-  popover.innerHTML = `<header><span>${annotation.resolved ? 'Resolved comment' : 'Comment'}</span><button type="button" class="annotation-close" aria-label="Close comment">×</button></header><div class="annotation-messages">${messages}</div><form class="annotation-reply"><textarea aria-label="Reply to comment" rows="2" placeholder="Reply…"></textarea><div><button type="button" class="annotation-delete" aria-label="Delete comment">Delete</button><button type="button" class="annotation-resolve">${annotation.resolved ? 'Reopen' : 'Resolve'}</button><button type="submit" class="annotation-send">Reply</button></div></form>`;
+  popover.innerHTML = `<header><span>${annotation.resolved ? 'Resolved comment' : 'Comment'}</span><span class="annotation-head-acts"><button type="button" class="annotation-kebab" aria-label="More" aria-haspopup="menu" aria-expanded="false">···</button><button type="button" class="annotation-close" aria-label="Close comment">×</button></span>
+      <div class="annotation-menu" role="menu" hidden><button type="button" role="menuitem" class="annotation-resolve">${annotation.resolved ? 'Reopen' : 'Resolve'}</button><button type="button" role="menuitem" class="annotation-delete" aria-label="Delete comment">Delete</button></div></header>
+    <div class="annotation-messages">${messages}</div>
+    <form class="annotation-reply"><div class="annotation-rinput"><span class="annotation-av sm" style="background:${_annotationTint(me)}">${esc(_annotationInitial(me))}</span><textarea aria-label="Reply to comment" rows="1" placeholder="Add your comment…"></textarea></div>
+      <div class="annotation-tools">${canSpeak ? `<button type="button" class="annotation-mic" title="Voice input" aria-label="Voice input">${ic('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>')}</button>` : ''}
+        <button type="button" class="annotation-emoji" title="Emoji" aria-label="Add an emoji">${ic('<circle cx="12" cy="12" r="9"/><path d="M8.5 15.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8M9 9.5h.01M15 9.5h.01"/>')}</button>
+        <button type="button" class="annotation-at" title="Mention" aria-label="Mention someone">${ic('<circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/>')}</button>
+        <button type="submit" class="annotation-send">Reply</button></div>
+      <div class="annotation-emojis" hidden>${['👍','👏','🙌','❤️','😊','🤔','✅','⭐'].map(e => `<button type="button" data-emoji="${e}">${e}</button>`).join('')}</div></form>`;
   document.body.appendChild(popover);
   positionAnnotationPopover(annotation, popover);
   popover.querySelector('.annotation-close').addEventListener('click', closeAnnotationPopover);
+  const keb = popover.querySelector('.annotation-kebab'), menu = popover.querySelector('.annotation-menu');
+  keb.addEventListener('click', () => { menu.hidden = !menu.hidden; keb.setAttribute('aria-expanded', String(!menu.hidden)); });
+  const field = popover.querySelector('textarea');
+  const insert = t => { const a = field.selectionStart ?? field.value.length; field.value = field.value.slice(0, a) + t + field.value.slice(field.selectionEnd ?? a); field.focus(); const n = a + t.length; field.setSelectionRange(n, n); };
+  popover.querySelector('.annotation-at').addEventListener('click', () => insert('@'));
+  const emo = popover.querySelector('.annotation-emojis');
+  popover.querySelector('.annotation-emoji').addEventListener('click', () => { emo.hidden = !emo.hidden; });
+  emo.addEventListener('click', e => { const b = e.target.closest('[data-emoji]'); if (b) { insert(b.dataset.emoji); emo.hidden = true; } });
+  const micBtn = popover.querySelector('.annotation-mic');
+  if (micBtn) micBtn.addEventListener('click', () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR(); rec.lang = 'en-GB'; micBtn.classList.add('on');
+    const base = field.value;
+    rec.onresult = ev => { field.value = (base ? base + ' ' : '') + [...ev.results].map(r => r[0].transcript).join(' '); };
+    rec.onend = rec.onerror = () => { micBtn.classList.remove('on'); field.focus(); };
+    try { rec.start(); } catch (_) { micBtn.classList.remove('on'); }
+  });
   popover.querySelector('.annotation-delete').addEventListener('click', () => {
     const count = annotation.thread.length;
     const question = count > 1
@@ -10311,12 +10429,12 @@ function _openCommentComposer(sx, sy, boardPt) {
   const wrap = document.createElement('div');
   wrap.id = '_cm-composer';
   wrap.innerHTML = `
-    <div class="cm-pin">💬</div>
+    <div class="cm-pin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></svg></div>
     <div class="cm-bubble">
-      <textarea class="cm-input" placeholder="Add a comment…" rows="3"></textarea>
+      <textarea class="cm-input" placeholder="Add your comment…" rows="3"></textarea>
       <div class="cm-actions">
         <button class="cm-cancel" type="button">Cancel</button>
-        <button class="cm-post"   type="button">Comment</button>
+        <button class="cm-post"   type="button">Post</button>
       </div>
     </div>`;
   document.body.appendChild(wrap);
@@ -16673,7 +16791,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1214';
+const TEACHEDOS_ASSET_VERSION = '1216';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23572,7 +23690,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1214',
+          icon: 'icons/icon-192.png?v=1216',
           tag: 'board-live-' + s.id,
         });
       }

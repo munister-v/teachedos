@@ -553,3 +553,142 @@ html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .lp .lp-add input:focus{border-bottom-color:#0B1026 !important}
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .lp .lp-row input.lp-mean{border:1px solid transparent !important;background:transparent !important;box-shadow:none !important;border-radius:7px !important;padding:3px 6px !important;height:auto !important}
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .lp .lp-row input.lp-mean:focus{border-color:rgba(11,16,38,.2) !important;background:#FBFDF0 !important}
+
+/* ═══ Part 4 ═══ №13 Comments: ink pins, a 330px glass card, a reply row */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-annotation-marker{
+  width:52px !important;height:52px !important;border-radius:50% !important;background:#0B1026 !important;box-shadow:0 10px 24px rgba(11,16,38,.35) !important;cursor:grab;touch-action:none;transition:transform .18s,opacity .18s}
+.board-annotation-marker:active,.board-annotation-marker.is-dragging{cursor:grabbing}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-annotation-marker:hover{transform:translate(-50%,-50%) scale(1.12) !important}
+.board-annotation-marker.is-dragging{transform:translate(-50%,-50%) scale(1.12) !important;transition:none}
+.board-annotation-marker .annotation-bubble{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.board-annotation-marker .annotation-unread{position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;background:#D3F26A;border:3px solid #26262E}
+body:not(.board-canvas-dark) .board-annotation-marker .annotation-unread{border-color:#F6F6EF}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-annotation-marker.is-resolved{opacity:.55}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-annotation-marker .annotation-count{position:absolute;bottom:-2px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#D3F26A;color:#0B1026;font:800 11px/20px var(--bc-font);text-align:center;padding:0 5px;border:0}
+body.board-canvas-dark .board-annotation-marker{box-shadow:0 0 0 2px rgba(255,255,255,.18),0 10px 24px rgba(0,0,0,.4) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .annotation-popover{
+  width:330px !important;border-radius:22px !important;background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,255,255,.74)) !important;-webkit-backdrop-filter:var(--bc-blur) !important;backdrop-filter:var(--bc-blur) !important;
+  border:1px solid rgba(255,255,255,.9) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 18px 44px rgba(11,16,38,.16) !important;color:#0B1026 !important;font-family:var(--bc-font) !important;overflow:hidden}
+.annotation-popover.annotation-thread header{position:relative;display:flex;align-items:center;padding:14px 16px 0;font:800 11px var(--bc-font);letter-spacing:1.6px;text-transform:uppercase;opacity:1;border:0;background:none}
+.annotation-popover.annotation-thread header > span:first-child{opacity:.5}
+.annotation-popover .annotation-head-acts{margin-left:auto;display:flex;gap:4px}
+.annotation-popover :is(.annotation-kebab,.annotation-close){border:0;background:none;font:800 16px var(--bc-font);letter-spacing:1px;cursor:pointer;color:#0B1026;opacity:.6;width:30px;height:30px;border-radius:50%}
+.annotation-popover :is(.annotation-kebab,.annotation-close):hover{opacity:1;background:#F1EFE2}
+.annotation-popover .annotation-menu{position:absolute;right:14px;top:44px;z-index:2;display:flex;flex-direction:column;min-width:140px;padding:6px;border-radius:14px;background:#fff;box-shadow:0 12px 30px rgba(11,16,38,.18);letter-spacing:0;text-transform:none}
+.annotation-popover .annotation-menu[hidden]{display:none}
+.annotation-popover .annotation-menu button{border:0;background:none;text-align:left;font:700 13.5px var(--bc-font);padding:9px 10px;border-radius:9px;cursor:pointer;color:#0B1026}
+.annotation-popover .annotation-menu button:hover{background:#F6F6EF}
+.annotation-popover .annotation-menu .annotation-delete{color:#C2410C}
+.annotation-popover .annotation-messages{padding:6px 0 0;max-height:280px;overflow:auto}
+.annotation-popover .annotation-message{padding:10px 18px 12px;border:0;background:none}
+.annotation-popover .annotation-who{display:flex;align-items:center;gap:12px}
+.annotation-popover .annotation-av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font:800 15px var(--bc-font);color:#0B1026}
+.annotation-popover .annotation-av.sm{width:28px;height:28px;font-size:11px}
+.annotation-popover .annotation-who b{display:block;font:800 15px var(--bc-font)}
+.annotation-popover .annotation-who time{display:block;font:600 12px var(--bc-font);opacity:.5}
+.annotation-popover .annotation-message p{margin:10px 0 0;font:500 14.5px/1.55 var(--bc-font);color:#0B1026}
+.annotation-popover .annotation-reply{border-top:1px solid rgba(11,16,38,.08);padding:14px 18px;display:block;background:none}
+.annotation-popover .annotation-rinput{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid rgba(11,16,38,.09);border-radius:14px;padding:0 14px;min-height:46px;transition:border-color .15s,box-shadow .15s}
+.annotation-popover .annotation-rinput:focus-within{border-color:#D3F26A;box-shadow:0 0 0 3px rgba(211,242,106,.35)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .annotation-popover .annotation-rinput textarea{border:0 !important;outline:0 !important;box-shadow:none !important;background:none !important;font:600 14px var(--bc-font) !important;width:100%;resize:none;padding:12px 0 !important;color:#0B1026 !important;min-height:0 !important}
+.annotation-popover .annotation-tools{display:flex;align-items:center;gap:4px;margin-top:10px}
+.annotation-popover .annotation-tools > button:not(.annotation-send){width:38px;height:38px;border-radius:50%;border:0;background:none;cursor:pointer;display:grid;place-items:center;transition:background .15s;padding:0}
+.annotation-popover .annotation-tools > button:hover{background:#F1EFE2}
+.annotation-popover .annotation-tools svg{width:21px;height:21px;stroke:#0B1026;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.annotation-popover .annotation-mic.on{background:#F8DBDB !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .annotation-popover .annotation-send{margin-left:auto;border:0 !important;background:#D3F26A !important;color:#0B1026 !important;font:800 13.5px var(--bc-font) !important;padding:10px 22px !important;border-radius:999px !important;cursor:pointer;transition:transform .15s;box-shadow:none !important}
+.annotation-popover .annotation-send:hover{transform:scale(1.05)}
+.annotation-popover .annotation-emojis{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.annotation-popover .annotation-emojis[hidden]{display:none}
+.annotation-popover .annotation-emojis button{border:0;background:#F6F6EF;border-radius:10px;font-size:20px;width:36px;height:36px;cursor:pointer}
+.annotation-popover .annotation-emojis button:hover{background:#E9F5C4}
+.annotation-popover.annotation-preview{padding:14px 18px !important}
+.annotation-popover .annotation-preview-body{font:500 14.5px/1.5 var(--bc-font);margin:0}
+.annotation-popover .annotation-preview-meta{font:600 12px var(--bc-font);opacity:.5;margin:6px 0 0}
+.annotation-popover :is(button,textarea):focus-visible{outline:2px solid #0B1026;outline-offset:2px}
+/* the composer when a comment is placed */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #_cm-composer .cm-pin{width:52px !important;height:52px !important;border-radius:50% !important;background:#0B1026 !important;display:grid !important;place-items:center;box-shadow:0 10px 24px rgba(11,16,38,.35) !important;font-size:0}
+#_cm-composer .cm-pin svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #_cm-composer .cm-bubble{border-radius:22px !important;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,255,255,.78)) !important;-webkit-backdrop-filter:var(--bc-blur) !important;backdrop-filter:var(--bc-blur) !important;border:1px solid rgba(255,255,255,.9) !important;box-shadow:0 18px 44px rgba(11,16,38,.16) !important;padding:14px !important;font-family:var(--bc-font) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #_cm-composer .cm-input{width:100%;border:1.5px solid #D3F26A !important;border-radius:16px !important;padding:14px !important;font:600 14.5px var(--bc-font) !important;resize:none;outline:0;color:#0B1026 !important;background:#fff !important;box-shadow:0 0 0 3px rgba(211,242,106,.25) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #_cm-composer .cm-post{background:#D3F26A !important;color:#0B1026 !important;border:0 !important;border-radius:999px !important;font:800 13.5px var(--bc-font) !important;padding:10px 22px !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #_cm-composer .cm-cancel{border:0 !important;background:none !important;font:700 14.5px var(--bc-font) !important;color:#0B1026 !important;opacity:.7}
+
+/* №14 Voting: the + flyout, the New poll window, the Pastel pop card */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #mt-more-pop{
+  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,255,255,.74)) !important;-webkit-backdrop-filter:var(--bc-blur) !important;backdrop-filter:var(--bc-blur) !important;border:1px solid rgba(255,255,255,.9) !important;border-radius:18px !important;box-shadow:0 14px 34px rgba(11,16,38,.14) !important;padding:8px !important;font-family:var(--bc-font) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #mt-more-pop .mt-more-item{display:flex;align-items:center;gap:12px;padding:10px 18px 10px 12px !important;border-radius:14px !important;color:#0B1026 !important;transition:transform .15s,background .15s}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page #mt-more-pop .mt-more-item:hover{background:#F6F6EF !important;transform:scale(1.02)}
+#mt-more-pop .mtm-lbl{font:800 15px var(--bc-font)}
+#mt-more-pop .mtm-sub{display:block;font:600 12px var(--bc-font);opacity:.5}
+#mt-more-pop .mtm-ic svg{width:24px;height:24px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed{
+  width:560px !important;max-width:calc(100vw - 32px);border-radius:28px !important;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,255,255,.78)) !important;-webkit-backdrop-filter:blur(28px) saturate(1.5) !important;backdrop-filter:blur(28px) saturate(1.5) !important;
+  border:1px solid rgba(255,255,255,.9) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 30px 70px rgba(11,16,38,.2) !important;padding:28px 30px !important;color:#0B1026 !important;font-family:var(--bc-font) !important}
+.poll-ed .poll-ed-head{display:flex;gap:16px;align-items:flex-start}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-ic{width:56px !important;height:56px !important;border-radius:18px !important;background:#D3F26A !important;display:grid !important;place-items:center;flex:none;font-size:0}
+.poll-ed .poll-ed-ic line{transform-box:fill-box;transform-origin:bottom;animation:bc-bar 1.6s ease-in-out infinite}
+.poll-ed .poll-ed-ic line:nth-child(2){animation-delay:.2s}.poll-ed .poll-ed-ic line:nth-child(3){animation-delay:.4s}
+@keyframes bc-bar{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.45)}}
+.poll-ed .poll-ed-title{font:800 24px var(--bc-font);letter-spacing:-.4px}
+.poll-ed .poll-ed-sub{font:500 13.5px/1.5 var(--bc-font);opacity:.6;margin-top:4px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-x{margin-left:auto;width:38px !important;height:38px !important;border-radius:50% !important;border:0 !important;background:#F1EFE2 !important;font:700 17px var(--bc-font) !important;color:#0B1026 !important;flex:none;transition:transform .2s}
+.poll-ed .poll-ed-x:hover{transform:rotate(90deg)}
+.poll-ed .poll-ed-lbl{display:block;font:800 13px var(--bc-font);letter-spacing:.4px;margin:20px 0 8px;opacity:.75}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-in{width:100%;border:1.5px solid rgba(11,16,38,.1) !important;background:#fff !important;border-radius:16px !important;padding:16px !important;font:600 15px var(--bc-font) !important;outline:0;color:#0B1026 !important;height:auto !important;box-shadow:none !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-in:focus{border-color:#D3F26A !important;box-shadow:0 0 0 3px rgba(211,242,106,.35) !important}
+.poll-ed .poll-ed-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-row .poll-ed-in{padding:13px 16px !important;border-radius:14px !important;font-size:14.5px !important}
+.poll-ed .poll-ed-n{width:38px;height:38px;border-radius:12px;background:#F1EFE2;display:grid;place-items:center;font:800 14px var(--bc-font);flex:none}
+.poll-ed .poll-ed-del{border:0;background:none;font:700 16px var(--bc-font);cursor:pointer;opacity:.5;width:32px;color:#0B1026}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-add{width:100%;margin-top:12px;border:1.5px dashed rgba(11,16,38,.25) !important;background:none !important;border-radius:14px !important;padding:14px !important;font:700 14.5px var(--bc-font) !important;cursor:pointer;color:#0B1026 !important}
+.poll-ed .poll-ed-add:hover:not(:disabled){border-color:#0B1026 !important;background:#fff !important}
+.poll-ed .poll-ed-chk{display:flex;align-items:center;gap:10px;margin-top:16px;font:600 14px var(--bc-font);cursor:pointer}
+.poll-ed .poll-ed-chk input{width:20px;height:20px;accent-color:#0B1026;cursor:pointer}
+.poll-ed .poll-ed-foot{display:flex;justify-content:flex-end;gap:12px;margin-top:24px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-cancel{border:0 !important;background:#F1EFE2 !important;font:800 15px var(--bc-font) !important;padding:15px 28px !important;border-radius:16px !important;color:#0B1026 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .poll-ed .poll-ed-ok{border:0 !important;background:#D3F26A !important;font:800 15px var(--bc-font) !important;padding:15px 28px !important;border-radius:16px !important;color:#0B1026 !important;transition:transform .15s}
+.poll-ed .poll-ed-ok:hover{transform:scale(1.04)}
+/* the poll card on the board */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-voting{border-radius:24px !important;background:#fff !important;border:1px solid rgba(11,16,38,.07) !important;box-shadow:0 18px 44px rgba(11,16,38,.12) !important;color:#0B1026 !important;font-family:var(--bc-font) !important}
+.board-card.card-voting .card-header{padding:14px 18px !important;border-bottom:1px solid rgba(11,16,38,.07) !important;background:none !important}
+.board-card.card-voting .card-header :is(.card-title,.card-label,b){font:800 13px var(--bc-font) !important;letter-spacing:1.5px;text-transform:uppercase;color:#0B1026 !important}
+.board-card.card-voting .vote-question{font:800 19px var(--bc-font) !important;margin-bottom:14px;color:#0B1026 !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-voting .vote-opt{
+  position:relative;overflow:visible !important;border:1.5px solid rgba(11,16,38,.12) !important;border-radius:14px !important;padding:14px 18px !important;font:700 15px var(--bc-font) !important;margin-bottom:10px;cursor:pointer;transition:transform .1s,border-color .15s;user-select:none;background:#fff !important}
+.board-card.card-voting .vote-opt:hover{border-color:#0B1026 !important}
+.board-card.card-voting .vote-opt:active{transform:scale(.97)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-voting .vote-opt .vo-fill{background:var(--vo-tint,#E9F5C4) !important;border-radius:12px !important;transition:width .7s cubic-bezier(.3,1.4,.4,1) !important}
+.board-card.card-voting .vote-opt.lead .vo-fill{background:#D3F26A !important}
+.board-card.card-voting .vote-opt.selected{border-color:#0B1026 !important}
+.board-card.card-voting .vote-opt :is(.vo-text,.vo-count){position:relative;z-index:1}
+.board-card.card-voting .vo-plus{position:absolute;right:56px;top:6px;font:800 14px var(--bc-font);color:#0B1026;animation:bc-float1 1s ease-out forwards;pointer-events:none;z-index:5}
+@keyframes bc-float1{to{transform:translateY(-46px);opacity:0}}
+.board-card.card-voting .vo-confetti{position:absolute;top:40%;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:6;animation:bc-conf 1.1s ease-out forwards}
+@keyframes bc-conf{to{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+.board-card.card-voting .vote-meta{display:flex;align-items:center;gap:10px;font:700 14px var(--bc-font)}
+.board-card.card-voting .vote-meta > span{opacity:.55}
+.board-card.card-voting .vote-actions{margin-left:auto;display:flex;gap:8px}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-voting .vote-actions button{border:1.5px solid rgba(11,16,38,.14) !important;background:#fff !important;border-radius:12px !important;padding:8px 14px !important;font:700 13px var(--bc-font) !important;cursor:pointer;color:#0B1026 !important}
+.board-card.card-voting .vote-actions button:hover{border-color:#0B1026 !important}
+@media (prefers-reduced-motion:reduce){.board-card.card-voting .vote-opt .vo-fill{transition:none !important}.poll-ed .poll-ed-ic line{animation:none}}
+
+/* №8 Sticky on the board: paper - a curled corner, a second sheet under it,
+   a slight tilt; the selection is eight lime pills; a new sticky is torn off
+   the pad (550 ms) and settles at its own small tilt. */
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-sticky{
+  border-radius:3px 3px 10px 3px !important;rotate:var(--bc-tilt,-1.5deg);
+  box-shadow:3px 5px 0 -1px color-mix(in srgb,var(--sticky-bg,#F7E9A0) 82%,#5d5a3a),0 14px 30px rgba(11,16,38,.18) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-sticky.selected{box-shadow:3px 5px 0 -1px rgba(0,0,0,.08),0 18px 36px rgba(11,16,38,.22),0 0 0 2px #D3F26A !important}
+.board-card.card-sticky::after{content:'';position:absolute;bottom:0;right:0;width:38px;height:38px;pointer-events:none;z-index:2;
+  background:linear-gradient(315deg,rgba(0,0,0,.14) 0%,rgba(255,255,255,.35) 55%,rgba(255,255,255,.6) 100%);clip-path:polygon(100% 0,0 100%,100% 100%);border-radius:0 0 10px 0}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-sticky .sticky-text:empty::before{content:"Double-click to write";color:rgba(11,16,38,.42);font:500 14px var(--bc-font)}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-sticky .resize-handle{width:13px !important;height:13px !important;border-radius:4px !important;background:#D3F26A !important;border:1.5px solid #fff !important;box-shadow:0 1px 4px rgba(11,16,38,.25) !important}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-sticky.bc-place{animation:bc-tear .55s cubic-bezier(.3,.9,.3,1) both}
+@keyframes bc-tear{0%{scale:1.18;rotate:4deg;box-shadow:0 30px 60px rgba(11,16,38,.35)}55%{scale:.96;rotate:var(--bc-tilt,-1.5deg)}78%{scale:1.02}100%{scale:1;rotate:var(--bc-tilt,-1.5deg)}}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-sticky.dragging{rotate:none}
+@media (prefers-reduced-motion:reduce){html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-sticky.bc-place{animation:none}}
+.board-card.card-voting .vote-meta{flex-wrap:wrap}
+.board-card.card-voting .vote-actions button{white-space:nowrap}
+html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page .board-card.card-voting .vote-opt.lead .vo-fill{background:#D3F26A !important}
+.board-card.card-sticky::after{z-index:5 !important;background:linear-gradient(315deg,color-mix(in srgb,var(--sticky-bg,#F7E9A0) 72%,#3a3520) 0%,color-mix(in srgb,var(--sticky-bg,#F7E9A0) 70%,#fff) 55%,color-mix(in srgb,var(--sticky-bg,#F7E9A0) 35%,#fff) 100%) !important;box-shadow:-2px -2px 4px rgba(11,16,38,.12)}

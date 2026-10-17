@@ -559,10 +559,52 @@
     }
   }
 
+
+  /* №8 Sticky on the board: each sticky its own small tilt (−2.2°…1°, the
+     same every time - from its id), the second sheet in its own colour, and a
+     sticky that has just been added is torn off the pad (550 ms). Cards that
+     arrive together (a board loading) only get the tilt. */
+  function stickies() {
+    const board = $('board');
+    if (!board || board.dataset.bcSticky) return;
+    board.dataset.bcSticky = '1';
+    const seen = new Set();
+    const tilt = id => { let h = 0; for (const ch of String(id || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return (-2.2 + (h % 321) / 100).toFixed(2) + 'deg'; };
+    const dress = el => {
+      el.style.setProperty('--bc-tilt', tilt(el.dataset.id));
+      const bg = el.style.background || el.style.backgroundColor || getComputedStyle(el).backgroundColor;
+      if (bg) el.style.setProperty('--sticky-bg', bg);
+    };
+    let ready = false;
+    board.querySelectorAll('.board-card.card-sticky').forEach(el => { dress(el); seen.add(el.dataset.id); });
+    setTimeout(() => { ready = true; }, 2500);
+    new MutationObserver(muts => {
+      const added = [];
+      muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1 && n.classList.contains('card-sticky')) added.push(n); }));
+      if (!added.length) return;
+      const batch = added.length > 3;
+      added.forEach(el => {
+        dress(el);
+        const fresh = el.dataset.id && !seen.has(el.dataset.id);
+        seen.add(el.dataset.id);
+        if (fresh && ready && !batch && !reduced()) { el.classList.add('bc-place'); setTimeout(() => el.classList.remove('bc-place'), 600); }
+      });
+    }).observe(board, { childList: true });
+    // a colour change on the card repaints the second sheet
+    new MutationObserver(muts => muts.forEach(m => { const el = m.target; if (el.classList && el.classList.contains('card-sticky')) { const bg = el.style.background || el.style.backgroundColor; if (bg && el.style.getPropertyValue('--sticky-bg') !== bg) el.style.setProperty('--sticky-bg', bg); } }))
+      .observe(board, { attributes: true, subtree: true, attributeFilter: ['style'] });
+  }
+
+  /* №14: the + flyout says what Voting is */
+  function moreFlyout() {
+    const v = document.querySelector('#mt-more-pop .mt-more-item[onclick*="voting"] .mtm-lbl');
+    if (v && !v.dataset.bc) { v.dataset.bc = '1'; v.innerHTML = 'Voting<span class="mtm-sub">Ask the class, see the answers live</span>'; }
+  }
+
   function init() {
     if (phone()) return;
     toolbar(); topbar(); nav(); boardMenu(); profileMenu();
-    stickyPanel(); shapesPanel(); penPanel(); stickersPanel(); sharePanel();
+    stickyPanel(); shapesPanel(); penPanel(); stickersPanel(); sharePanel(); stickies(); moreFlyout();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   // board-app wires some of these late
