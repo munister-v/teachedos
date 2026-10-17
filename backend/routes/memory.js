@@ -159,7 +159,9 @@ router.patch('/students/:id/dossier', async (req, res) => {
     }
     await client.query('BEGIN');
     await ownedJournal(client, req.user.id, req.params.id);
-    await client.query(`INSERT INTO student_dossier (journal_id, teacher_id) VALUES ($1, $2) ON CONFLICT (journal_id) DO NOTHING`, [req.params.id, req.user.id]);
+    const made = await client.query(`INSERT INTO student_dossier (journal_id, teacher_id) VALUES ($1, $2) ON CONFLICT (journal_id) DO NOTHING`, [req.params.id, req.user.id]);
+    // a new dossier on a row whose old one was handed over or erased: no longer revoked
+    if (made.rowCount) await client.query('DELETE FROM memory_revocations WHERE teacher_id = $1 AND journal_id = $2', [req.user.id, req.params.id]);
     const { rows: [d] } = await client.query(`SELECT * FROM student_dossier WHERE journal_id = $1 AND teacher_id = $2 FOR UPDATE`, [req.params.id, req.user.id]);
     if (!d || d.archived_at) throw notFound();
 
@@ -275,10 +277,51 @@ const ARCHIVE_COLS = `journal_id AS id, archived_name AS name, archived_email AS
 router.get('/archive', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT ${ARCHIVE_COLS} FROM student_dossier WHERE teacher_id = $1 AND archived_at IS NOT NULL ORDER BY archived_at DESC`, [req.user.id]);
+      `SELECT ${ARCHIVE_COLS.replace(/(^|,\s*)(\w+)/g, '$1d.$2').replace("d.archived_at + INTERVAL", "d.archived_at + INTERVAL")},
+              d.handed_at, u.name AS handed_from_name
+         FROM student_dossier d LEFT JOIN users u ON u.id = d.handed_from
+        WHERE d.teacher_id = $1 AND d.archived_at IS NOT NULL ORDER BY COALESCE(d.handed_at, d.archived_at) DESC`, [req.user.id]);
     res.json({ archive: rows });
   } catch (e) { fail(res, e); }
 });
+
+/* Restore = the archived dossier becomes the memory of one of the teacher's current
+   students (body.to, their journal row - the deleted student's own row is gone). When
+   that student already has a dossier, the two merge by the usual rules instead of one
+   replacing the other. */
+/* Makes the dossier row `old` the active memory of journal row `to` owned by
+   `owner`: moved there, or merged into the dossier already on it (newer field
+   wins, lists join). `extra` columns are set on the result (who handed it over). */
+async function attachDossier(client, old, owner, to, extra = {}) {
+  const { rows: [cur] } = await client.query('SELECT * FROM student_dossier WHERE journal_id = $1 FOR UPDATE', [to]);
+  const sets = [], vals = [to];
+  const put = (col, v) => { vals.push(v); sets.push(`${col} = $${vals.length}`); };
+  for (const [k, v] of Object.entries(extra)) put(k, v);
+  if (cur && cur.journal_id !== old.journal_id) {
+    if (cur.teacher_id !== owner) throw notFound();
+    const newer = (k, ts) => (new Date(old[ts]) > new Date(cur[ts]) ? [old[k], old[ts]] : [cur[k], cur[ts]]);
+    for (const [k, ts] of Object.entries(TEXT_FIELDS)) { const [v, t] = newer(k, ts); put(k, v); put(ts, t); }
+    const dead = [...new Set([...(cur.deleted_tag_keys || []), ...(old.deleted_tag_keys || [])])];
+    put('common_mistakes', JSON.stringify(mergeMistakes(cur.common_mistakes, old.common_mistakes).slice(0, LIMITS.patterns)));
+    put('deleted_tag_keys', JSON.stringify(dead));
+    put('weak_spot_tags', JSON.stringify(mergeTags(cur.weak_spot_tags, old.weak_spot_tags, dead).slice(0, LIMITS.tags)));
+    const { rows: [u] } = await client.query(
+      `UPDATE student_dossier SET ${sets.join(', ')}, archived_at = NULL, version = version + 1, updated_at = NOW() WHERE journal_id = $1 RETURNING version`, vals);
+    await client.query('DELETE FROM student_dossier WHERE journal_id = $1', [old.journal_id]);
+    return Number(u.version);
+  }
+  put('teacher_id', owner);
+  vals.push(old.journal_id);
+  const { rows: [u] } = await client.query(
+    `UPDATE student_dossier SET journal_id = $1, ${sets.join(', ')}, archived_at = NULL, archived_name = NULL, archived_email = NULL,
+            student_user_id = NULL, restore_declined_at = NULL, version = version + 1, updated_at = NOW()
+      WHERE journal_id = $${vals.length} RETURNING version`, vals);
+  return Number(u.version);
+}
+const revoke = (client, teacher, journal) => client.query(
+  `INSERT INTO memory_revocations (teacher_id, journal_id) VALUES ($1, $2)
+   ON CONFLICT (teacher_id, journal_id) DO UPDATE SET revoked_at = NOW()`, [teacher, journal]);
+const unrevoke = (client, teacher, journal) => client.query('DELETE FROM memory_revocations WHERE teacher_id = $1 AND journal_id = $2', [teacher, journal]);
 
 /* Restore = the archived dossier becomes the memory of one of the teacher's current
    students (body.to, their journal row - the deleted student's own row is gone). When
@@ -295,36 +338,79 @@ router.post('/students/:id/dossier/restore', async (req, res) => {
     const { rows: [old] } = await client.query(
       'SELECT * FROM student_dossier WHERE journal_id = $1 AND teacher_id = $2 AND archived_at IS NOT NULL FOR UPDATE', [req.params.id, req.user.id]);
     if (!old) throw notFound();
-    const { rows: [cur] } = await client.query('SELECT * FROM student_dossier WHERE journal_id = $1 FOR UPDATE', [to]);
-    let version;
-    if (cur && cur.journal_id !== old.journal_id) {
-      if (cur.teacher_id !== req.user.id) throw notFound();
-      const newer = (k, ts) => (new Date(old[ts]) > new Date(cur[ts]) ? [old[k], old[ts]] : [cur[k], cur[ts]]);
-      const sets = [], vals = [to];
-      const put = (col, v) => { vals.push(v); sets.push(`${col} = $${vals.length}`); };
-      for (const [k, ts] of Object.entries(TEXT_FIELDS)) { const [v, t] = newer(k, ts); put(k, v); put(ts, t); }
-      const dead = [...new Set([...(cur.deleted_tag_keys || []), ...(old.deleted_tag_keys || [])])];
-      put('common_mistakes', JSON.stringify(mergeMistakes(cur.common_mistakes, old.common_mistakes).slice(0, LIMITS.patterns)));
-      put('deleted_tag_keys', JSON.stringify(dead));
-      put('weak_spot_tags', JSON.stringify(mergeTags(cur.weak_spot_tags, old.weak_spot_tags, dead).slice(0, LIMITS.tags)));
-      const { rows: [u] } = await client.query(
-        `UPDATE student_dossier SET ${sets.join(', ')}, archived_at = NULL, version = version + 1, updated_at = NOW() WHERE journal_id = $1 RETURNING version`, vals);
-      version = u.version;
-      await client.query('DELETE FROM student_dossier WHERE journal_id = $1', [old.journal_id]);
-    } else {
-      const { rows: [u] } = await client.query(
-        `UPDATE student_dossier SET journal_id = $2, archived_at = NULL, archived_name = NULL, archived_email = NULL,
-                student_user_id = NULL, restore_declined_at = NULL, version = version + 1, updated_at = NOW()
-          WHERE journal_id = $1 RETURNING version`, [old.journal_id, to]);
-      version = u.version;
-    }
-    if (old.journal_id !== to) {
-      await client.query(`INSERT INTO memory_revocations (teacher_id, journal_id) VALUES ($1, $2)
-        ON CONFLICT (teacher_id, journal_id) DO UPDATE SET revoked_at = NOW()`, [req.user.id, old.journal_id]);
-    }
-    await client.query('DELETE FROM memory_revocations WHERE teacher_id = $1 AND journal_id = $2', [req.user.id, to]);
+    const version = await attachDossier(client, old, req.user.id, to);
+    if (old.journal_id !== to) await revoke(client, req.user.id, old.journal_id);
+    await unrevoke(client, req.user.id, to);
     await client.query('COMMIT');
-    res.json({ version: Number(version), student_id: to });
+    res.json({ version, student_id: to });
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    fail(res, e);
+  } finally { client.release(); }
+});
+
+/* Hand over (§8.1): the whole dossier, active or archived, moves to another teacher
+   (body.to_email, or to_teacher_id). There is no school model yet, so any teacher
+   account can receive it. The sender loses it at once - every device of theirs drops
+   it at the next sync - and the hand-over is logged. The student is not told.
+   Where it lands with the receiver:
+   - the same student is already theirs (same account, or same email): on that
+     student's card, merged with their own dossier if they have one;
+   - otherwise: in their Archived memory, marked with who sent it, for them to place;
+   - an archived dossier arrives archived and keeps its year. */
+router.post('/students/:id/handover', async (req, res) => {
+  const body = req.body || {};
+  const client = await pool.connect();
+  try {
+    if (!isUuid(req.params.id)) throw notFound();
+    const email = String(body.to_email || '').trim().toLowerCase();
+    if (!email && !isUuid(body.to_teacher_id)) throw new MemErr(422, 'validation', 'Write the email of the teacher who takes this student');
+    await client.query('BEGIN');
+    const { rows: [to] } = await client.query(
+      `SELECT id, name FROM users WHERE role <> 'student' AND ${email ? 'LOWER(email) = $1' : 'id = $1'} LIMIT 1`, [email || body.to_teacher_id]);
+    if (!to) throw new MemErr(404, 'not_found', 'No TeachEd teacher has this email');
+    if (to.id === req.user.id) throw new MemErr(422, 'validation', 'This is your own account');
+    const { rows: [old] } = await client.query(
+      'SELECT * FROM student_dossier WHERE journal_id = $1 AND teacher_id = $2 FOR UPDATE', [req.params.id, req.user.id]);
+    if (!old) throw new MemErr(404, 'not_found', 'There is no TeachEd memory for this student yet');
+    // who the student is: their journal row while active, the archive snapshot after
+    let who = { student_id: old.student_user_id, email: old.archived_email, name: old.archived_name };
+    if (!old.archived_at) {
+      const { rows: [j] } = await client.query('SELECT student_id, email, name FROM student_journal WHERE id = $1 AND teacher_id = $2', [old.journal_id, req.user.id]);
+      if (!j) throw notFound();
+      who = j;
+    }
+    const handed = { handed_from: req.user.id, handed_at: new Date() };
+    let landed, newId;
+    const { rows: [match] } = old.archived_at ? { rows: [] } : await client.query(
+      `SELECT id FROM student_journal WHERE teacher_id = $1
+          AND (($2::uuid IS NOT NULL AND student_id = $2) OR ($3 <> '' AND LOWER(email) = LOWER($3)))
+        ORDER BY (student_id = $2) DESC NULLS LAST, created_at DESC LIMIT 1`, [to.id, who.student_id || null, who.email || '']);
+    if (match) {
+      await attachDossier(client, old, to.id, match.id, handed);
+      newId = match.id; landed = 'student';
+    } else {
+      // a new key: the sender's journal row stays free for a dossier of their own
+      const { rows: [{ id }] } = await client.query('SELECT gen_random_uuid() AS id');
+      await client.query(
+        `UPDATE student_dossier SET journal_id = $2, teacher_id = $3, handed_from = $4, handed_at = NOW(),
+                archived_at = COALESCE(archived_at, NOW()), archived_name = $5, archived_email = $6, student_user_id = $7,
+                restore_declined_at = NULL, version = version + 1, updated_at = NOW()
+          WHERE journal_id = $1`, [old.journal_id, id, to.id, req.user.id, who.name || null, who.email || null, who.student_id || null]);
+      newId = id; landed = 'archive';
+    }
+    await revoke(client, req.user.id, old.journal_id);
+    await unrevoke(client, to.id, newId);
+    await client.query(
+      `INSERT INTO dossier_handover_log (journal_id, student_user_id, from_teacher, to_teacher, initiated_by) VALUES ($1, $2, $3, $4, 'teacher')`,
+      [old.journal_id, who.student_id || null, req.user.id, to.id]);
+    await client.query('COMMIT');
+    const student = String(who.name || 'a student');
+    require('./notifications').createNotification(to.id, 'memory_handover',
+      `${req.user.name || 'A teacher'} handed you the TeachEd memory of ${student}`,
+      landed === 'student' ? `It is on ${student}'s card in Students.` : 'Find it in Students, under Archived memory, and choose the student it belongs to.',
+      'index.html#students').catch(() => {});
+    res.json({ ok: true, landed, to: { name: to.name } });
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});
     fail(res, e);

@@ -65,6 +65,7 @@ test.after(async () => {
     const ids = users.map(u => u.id);
     await pool.query('DELETE FROM student_dossier WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM memory_revocations WHERE teacher_id = ANY($1)', [ids]);
+    await pool.query('DELETE FROM dossier_handover_log WHERE from_teacher = ANY($1) OR to_teacher = ANY($1)', [ids]);
     await pool.query('DELETE FROM student_journal WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM users WHERE id = ANY($1)', [ids]);
   }
@@ -293,4 +294,65 @@ db('erasing a student skips the archive; a year in the archive ends in a hard de
   assert.deepEqual((await call(t, 'GET', '/api/memory/archive')).body.archive.map(a => a.id), [young], 'only the year-old one is gone');
   const s = (await call(t, 'GET', '/api/memory/sync')).body;
   assert.ok(s.revoked.includes(old) && s.revoked.includes(young));
+});
+
+/* ── part 4: handing a dossier over (§8.1) ── */
+db('hand over: to the same student at the receiver, merged; the sender loses it at once; logged; the receiver is told', async () => {
+  const a = await mk('Leaving T');
+  const b = await mk('Taking T');
+  const s = await mk('Moving S', 'student');
+  const ja = await journalFor(a, s, 'Nina');
+  const jb = await journalFor(b, s, 'Nina B');
+  await patch(a, ja, { notes: { value: 'from A', updated_at: iso(Date.now() - 5000) }, common_mistakes: { value: [{ pattern: 'articles' }], updated_at: iso(Date.now() - 5000) } });
+  await patch(b, jb, { goals: { value: 'B goal', updated_at: iso(Date.now()) }, common_mistakes: { value: [{ pattern: 'tenses' }], updated_at: iso(Date.now()) } });
+  assert.equal((await call(a, 'POST', `/api/memory/students/${ja}/handover`, { to_email: a.email })).status, 422, 'not to yourself');
+  assert.equal((await call(a, 'POST', `/api/memory/students/${ja}/handover`, { to_email: s.email })).status, 404, 'a student cannot receive it');
+  assert.equal((await call(a, 'POST', `/api/memory/students/${ja}/handover`, { to_email: 'nobody@teached.test' })).status, 404);
+  assert.equal((await call(b, 'POST', `/api/memory/students/${ja}/handover`, { to_email: a.email })).status, 404, 'only the owner hands it over');
+  const r = await call(a, 'POST', `/api/memory/students/${ja}/handover`, { to_email: b.email.toUpperCase() });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.landed, 'student');
+  const d = (await call(b, 'GET', `/api/memory/students/${jb}/dossier`)).body;
+  assert.deepEqual([d.notes, d.goals, d.common_mistakes.map(m => m.pattern).sort()], ['from A', 'B goal', ['articles', 'tenses']]);
+  assert.equal((await call(a, 'GET', `/api/memory/students/${ja}/dossier`)).status, 404, 'gone for the sender');
+  assert.ok((await call(a, 'GET', '/api/memory/sync')).body.revoked.includes(ja), "the sender's devices drop it");
+  assert.equal((await patch(a, ja, { notes: { value: 'stale offline edit', updated_at: iso(Date.now() - 1000) } })).status, 200, 'the row is free again');
+  const again = (await call(a, 'GET', '/api/memory/sync')).body;
+  assert.ok(again.dossiers.some(x => x.student_id === ja) && !again.revoked.includes(ja), 'a new dossier of their own is not revoked');
+  assert.equal((await call(b, 'GET', `/api/memory/students/${jb}/dossier`)).body.notes, 'from A', 'and it does not touch what was handed over');
+  const log = await pool.query('SELECT from_teacher, to_teacher, student_user_id, initiated_by FROM dossier_handover_log WHERE journal_id = $1', [ja]);
+  assert.deepEqual(log.rows, [{ from_teacher: a.id, to_teacher: b.id, student_user_id: s.id, initiated_by: 'teacher' }]);
+  await new Promise(r2 => setTimeout(r2, 50));
+  const n = await pool.query(`SELECT title FROM notifications WHERE user_id = $1 AND type = 'memory_handover'`, [b.id]);
+  assert.match(n.rows[0].title, /Leaving T handed you the TeachEd memory of Nina/);
+  assert.equal((await pool.query(`SELECT 1 FROM notifications WHERE user_id = $1`, [s.id])).rowCount, 0, 'the student is not told');
+  await pool.query('DELETE FROM notifications WHERE user_id = ANY($1)', [[a.id, b.id]]);
+});
+
+db('hand over: a student the receiver does not have lands in their archive; an archived one arrives archived', async () => {
+  const a = await mk('Sender T');
+  const b = await mk('Receiver T');
+  const jx = await journalFor(a, null, 'Petro');
+  await patch(a, jx, { notes: { value: 'Petro notes', updated_at: iso(Date.now()) } });
+  const r = await call(a, 'POST', `/api/memory/students/${jx}/handover`, { to_teacher_id: b.id });
+  assert.equal(r.body.landed, 'archive');
+  const arch = (await call(b, 'GET', '/api/memory/archive')).body.archive;
+  assert.equal(arch.length, 1);
+  assert.deepEqual([arch[0].name, arch[0].notes, arch[0].handed_from_name], ['Petro', 'Petro notes', 'Sender T']);
+  assert.notEqual(arch[0].id, jx, 'a new key: the sender keeps their row free');
+  const jp = await journalFor(b, null, 'Petro K');
+  assert.equal((await call(b, 'POST', `/api/memory/students/${arch[0].id}/dossier/restore`, { to: jp })).status, 200);
+  assert.equal((await call(b, 'GET', `/api/memory/students/${jp}/dossier`)).body.notes, 'Petro notes');
+  // an archived dossier travels archived
+  const jy = await journalFor(a, null, 'Old one');
+  await patch(a, jy, { goals: { value: 'kept', updated_at: iso(Date.now()) } });
+  await pool.query('DELETE FROM student_journal WHERE id = $1', [jy]);
+  const archivedAt = (await call(a, 'GET', '/api/memory/archive')).body.archive[0].archived_at;
+  assert.equal((await call(a, 'POST', `/api/memory/students/${jy}/handover`, { to_email: b.email })).body.landed, 'archive');
+  assert.deepEqual((await call(a, 'GET', '/api/memory/archive')).body.archive, []);
+  const got = (await call(b, 'GET', '/api/memory/archive')).body.archive.find(x => x.name === 'Old one');
+  assert.equal(got.archived_at, archivedAt, 'its year is not reset');
+  assert.equal((await call(a, 'POST', `/api/memory/students/${jy}/handover`, { to_email: b.email })).status, 404, 'only once');
+  await pool.query('DELETE FROM notifications WHERE user_id = $1', [b.id]);
+  await pool.query('DELETE FROM dossier_handover_log WHERE from_teacher = $1', [a.id]);
 });

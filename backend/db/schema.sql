@@ -1542,3 +1542,20 @@ CREATE TRIGGER trg_journal_dossier_archive
 -- dossiers whose student was deleted before this trigger existed: archived now
 UPDATE student_dossier d SET archived_at = NOW(), version = version + 1, updated_at = NOW()
  WHERE d.archived_at IS NULL AND NOT EXISTS (SELECT 1 FROM student_journal j WHERE j.id = d.journal_id);
+
+-- ── TeachEd memory, part 4: handing a dossier over (ТЗ §8.1, 18.10.2026) ─────
+-- A dossier always has one owner. Handing it over moves it whole to another
+-- teacher (by email for now - there is no school model yet); the previous owner
+-- loses it at once. No shared access, ever. The student is not told.
+ALTER TABLE student_dossier ADD COLUMN IF NOT EXISTS handed_from UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE student_dossier ADD COLUMN IF NOT EXISTS handed_at   TIMESTAMPTZ;
+CREATE TABLE IF NOT EXISTS dossier_handover_log (
+  id              BIGSERIAL PRIMARY KEY,
+  journal_id      UUID NOT NULL,           -- the dossier's key at the sender
+  student_user_id UUID,                    -- the student's account, when they have one
+  from_teacher    UUID NOT NULL,
+  to_teacher      UUID NOT NULL,
+  initiated_by    TEXT NOT NULL DEFAULT 'teacher' CHECK (initiated_by IN ('teacher', 'school_admin')),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_handover_from ON dossier_handover_log(from_teacher, created_at DESC);

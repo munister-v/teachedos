@@ -1710,6 +1710,7 @@ function studentDetailRender() {
       <div class="st-detail-actions is-stack">
         ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
         <a class="st-detail-btn" href="journal.html">View profile →</a>
+        ${jid ? `<button type="button" class="st-detail-btn" onclick="studentsHandoverForm(this, '${jid}', '${esc(firstName).replace(/'/g, '')}')">Hand over memory…</button>` : ''}
       </div>
       ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}`,
     notes: notes + dnaNote,
@@ -1824,7 +1825,7 @@ function studentsArchiveRender(box) {
     const preview = [a.notes, a.weak_spots, a.goals, a.interests].map(x => String(x || '').trim()).filter(Boolean).join(' · ');
     return `<div class="st-arch-item">
       <div class="st-arch-name">${esc(a.name || 'Deleted student')}</div>
-      <div class="st-arch-when">Archived ${esc(day(a.archived_at))} · deleted for good on ${esc(day(a.delete_at))}</div>
+      <div class="st-arch-when">${a.handed_at ? `From ${esc(a.handed_from_name || 'a teacher')} · ${esc(day(a.handed_at))}` : `Archived ${esc(day(a.archived_at))}`} · deleted for good on ${esc(day(a.delete_at))}</div>
       ${preview ? `<div class="st-arch-preview">${esc(preview.length > 160 ? preview.slice(0, 160) + '…' : preview)}</div>` : ''}
       <div class="st-arch-row">
         <select aria-label="Restore ${esc(a.name || 'this memory')} to a student" onchange="this.nextElementSibling.disabled=!this.value">
@@ -1833,6 +1834,7 @@ function studentsArchiveRender(box) {
         </select>
         <button type="button" class="st-cta sm" disabled onclick="studentsMemoryRestore('${esc(String(a.id))}', this.previousElementSibling.value, this)">Restore</button>
         <button type="button" class="st-qbtn" onclick="studentsMemoryDeleteForGood('${esc(String(a.id))}', '${esc(String(a.name || 'this student')).replace(/'/g, '')}', this)">Delete now</button>
+        <button type="button" class="st-qbtn" onclick="studentsHandoverForm(this.parentElement, '${esc(String(a.id))}', '${esc(String(a.name || 'this student')).replace(/'/g, '')}')">Hand over…</button>
       </div>
     </div>`;
   }).join('');
@@ -1871,6 +1873,41 @@ async function studentsMemoryDeleteForGood(archivedId, name, btn) {
   studentsRender();
 }
 window.studentsMemoryDeleteForGood = studentsMemoryDeleteForGood;
+
+/* Hand over (§8.1): the whole TeachEd memory of a student goes to another teacher,
+   by their email (no school model yet). The teacher here loses it at once; the
+   student is not told. */
+function studentsHandoverForm(anchor, id, name) {
+  const host = anchor.closest('.st-arch-item, .st-detail-actions') || anchor.parentElement;
+  const open = host.parentElement.querySelector(':scope > .st-handover');
+  if (open) { open.remove(); return; }
+  const f = document.createElement('form');
+  f.className = 'st-handover';
+  f.innerHTML = `<label class="st-detail-h" for="st-handover-mail">Hand ${esc(name)}'s memory to</label>
+    <input id="st-handover-mail" type="email" required placeholder="colleague@school.com" autocomplete="off">
+    <p>They get all of ${esc(name)}'s TeachEd memory; you no longer see it. ${esc(name)} is not told.</p>
+    <div class="st-handover-row"><button type="submit" class="st-cta sm">Hand over</button><button type="button" class="st-qbtn">Cancel</button></div>
+    <div class="st-handover-err" role="alert"></div>`;
+  f.querySelector('.st-qbtn').onclick = () => f.remove();
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const email = f.querySelector('input').value.trim();
+    if (!email || !confirm(`Hand ${name}'s TeachEd memory to ${email}? You will no longer see it.`)) return;
+    const btn = f.querySelector('.st-cta'); btn.disabled = true; btn.textContent = 'Handing over…';
+    const r = await _memApi('POST', `/students/${encodeURIComponent(id)}/handover`, { to_email: email }).catch(() => ({ ok: false, data: {} }));
+    if (!r.ok) {
+      btn.disabled = false; btn.textContent = 'Hand over';
+      f.querySelector('.st-handover-err').textContent = (r.data.error && r.data.error.message) || 'Could not hand it over';
+      return;
+    }
+    STUDENTS_ARCHIVE = null;
+    studentsRender();
+    if (typeof showOsToast === 'function') showOsToast(`${name}'s memory is with ${r.data.to && r.data.to.name ? r.data.to.name : email} now`);
+  };
+  host.after(f);
+  f.querySelector('input').focus();
+}
+window.studentsHandoverForm = studentsHandoverForm;
 
 /* Message from the student's card: the cabinet (and email when they are
    not on the platform yet) through the Journal; without a Journal row, email. */
@@ -3549,13 +3586,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1225" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1226" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1225" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1226" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

@@ -221,6 +221,12 @@
       await tx(['meta', 'dossiers', 'outbox'], 'readwrite', async s => {
         const waiting = await req(s.outbox.getAll());
         if (d.teacher_memory && !waiting.some(e => e.kind === 'style')) s.meta.put({ ...d.teacher_memory, dirty: false }, 'style');
+        // revoked first: an id revoked once and then given a new dossier arrives in both lists
+        for (const id of d.revoked || []) {
+          if ((d.dossiers || []).some(x => x.student_id === id)) continue;
+          s.dossiers.delete(id);
+          waiting.filter(e => e.kind === 'dossier' && e.studentId === id).forEach(e => s.outbox.delete(e.id));
+        }
         for (const server of d.dossiers || []) {
           const mine = (await req(s.dossiers.get(server.student_id))) || {};
           const out = { ...mine, student_id: server.student_id, version: server.version, weak_spot_tags: server.weak_spot_tags };
@@ -230,10 +236,6 @@
             out[f] = server[f]; out[TS[f]] = server[TS[f]];
           }
           s.dossiers.put(out);
-        }
-        for (const id of d.revoked || []) {
-          s.dossiers.delete(id);
-          waiting.filter(e => e.kind === 'dossier' && e.studentId === id).forEach(e => s.outbox.delete(e.id));
         }
         s.meta.put(d.next_since, 'last_sync_at');
       });
