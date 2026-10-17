@@ -682,7 +682,7 @@ const BOARD_LESSON_STAGES = {
              сборки уже готов (runBoardLessonStages пишет его первым), так
              что подать его - вопрос лишь метки, а не порядка на доске. */
           {key:'pre-lead',    tool:'lead-in',               title:'Short lead-in questions', hint:'Two or three questions that open the topic.', ai:true, after:'source'},
-          {key:'pre-titles',  tool:'three-titles',          title:'Choose the best title',   hint:'One right title and two plausible decoys.', ai:true, after:'source'},
+          {key:'pre-titles',  tool:'three-titles',          title:'Predict: choose the title', hint:'A prediction before reading - which title will the text turn out to have? Students check it afterwards.', ai:true, after:'source'},
           {key:'pre-summary', tool:'choose-summary',        title:'Choose the right summary',hint:'Several summaries, students pick the one that fits.', ai:true, after:'source'},
         ],
       },
@@ -705,6 +705,16 @@ const BOARD_LESSON_STAGES = {
              `_ttLessonWordNotes` по-прежнему подхватит такую карточку,
              если она в кадре есть; без неё карточка слова берёт всё из
              словаря. */
+        ],
+      },
+      /* Reading strategies are taught, not only tested (Lesson Builder 2.0 T-R1): a step while
+         reading - skim for the main idea, then scan for the details. */
+      {
+        key: 'while',
+        label: 'While reading',
+        question: 'What do they do as they read?',
+        options: [
+          {key:'while-skim', tool:'gist-detail', title:'Skim, then scan', hint:'First skim for the main idea, then scan the text for specific details.', ai:true, after:'source', on:true},
         ],
       },
       {
