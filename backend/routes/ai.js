@@ -2365,6 +2365,38 @@ ${text}`;
   }
 });
 
+/* POST /api/ai/book-page - страница учебника (текст уже прочитан в браузере) -> карта
+   частей: чтение, лексика, грамматика, упражнения. Модель только расставляет границы и
+   тип; текст частей остаётся книжным (bookPage.normalizeMap выбрасывает всё, чего нет на
+   странице). Нет модели или она ответила плохо - карта собирается по заголовкам страницы. */
+router.post('/book-page', requireAuth, requireTeacher, lessonBoardLimiter, async (req, res) => {
+  try {
+    const level = String(req.body?.level || 'B1').slice(0, 4);
+    const raw = String(req.body?.text || '').slice(0, 12000);
+    if (raw.trim().length < 40) return res.status(400).json({ error: 'text required' });
+    const bookPage = require('../lib/bookPage');
+    const { text, removed } = redactPII(raw);
+    let map = null, viaModel = false;
+    if (aiEngine.enabled()) {
+      try {
+        await reserveAiQuota(req.user, { mode: 'book-page', source: text.slice(0, 200) });
+        const result = await aiEngine.rawGenerate(bookPage.buildPrompt(text, level));
+        recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
+        map = bookPage.normalizeMap(result, text);
+        viaModel = map.parts.length > 0;
+      } catch (err) {
+        if (err.code || err.quota) throw err;           // квота и прочее - как у соседних маршрутов
+        console.warn('[ai/book-page] model failed, using headings', err.message);
+      }
+    }
+    if (!map || !map.parts.length) map = bookPage.heuristicMap(text);
+    res.json({ map, viaModel, redacted: removed, quota: await readAiQuota(req.user) });
+  } catch (err) {
+    console.error('[ai/book-page]', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+  }
+});
+
 /* POST /api/ai/board-agent - командная строка доски (Ctrl/Cmd+K). Учитель
    пишет, что сделать; сюда приходит команда и краткий список карточек, отсюда
    уходит ответ и план действий. План чистит boardAgent.sanitizePlan: до доски

@@ -16664,7 +16664,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1202';
+const TEACHEDOS_ASSET_VERSION = '1203';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20340,7 +20340,8 @@ function _wizRenderSourceTools(src) {
             <small>You can also click to choose a file</small>
           </span>
         </div>
-        <span class="tb-wiz-tool-note" id="tb-wiz-shot-note">PNG or JPG. Nothing is uploaded: the text is read here, in your browser.</span>
+        <span class="tb-wiz-tool-note" id="tb-wiz-shot-note">PNG or JPG. The picture stays here: the text is read in your browser.</span>
+        <div id="tb-wiz-shot-map" class="tb-wiz-parts" hidden></div>
       </div>`;
   } else {
     host.innerHTML = `
@@ -20953,10 +20954,55 @@ async function readLessonScreenshot(file) {
     if (!text) { say('No text could be read from that image. A sharper, straighter shot usually fixes it.'); return; }
     _wizFillSource(text);
     say(`Read ${text.split(/\s+/).length} words. Check it below and fix anything the reader got wrong.`);
+    _wizBookPageMap(text);
   } catch (err) {
     console.warn('[wizard] ocr failed', err);
     say('The image could not be read. Paste the text by hand instead.');
   }
+}
+
+
+/* ── Страница учебника → карта частей (E18) ───────────────────────────────
+   После распознавания страница делится на части (чтение, лексика, грамматика,
+   упражнения). Каждую можно взять в урок отдельно: текст идёт в исходник, слова
+   из лексического блока - в список слов. Слова остаются книжными. */
+let _bookMap = null;
+const _bookEsc = x => String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const _BOOK_KIND_LABEL = { reading: 'Reading', vocabulary: 'Vocabulary', grammar: 'Grammar', exercise: 'Exercise', listening: 'Listening', speaking: 'Speaking', writing: 'Writing' };
+async function _wizBookPageMap(text) {
+  const host = document.getElementById('tb-wiz-shot-map');
+  if (!host || !authToken || String(text).trim().length < 40) return;
+  host.hidden = false;
+  host.innerHTML = '<span class="tb-wiz-tool-note">Splitting the page into parts…</span>';
+  try {
+    const level = document.getElementById('tbuilder-level')?.value || 'B1';
+    const r = await apiFetch('/api/ai/book-page', { method: 'POST', body: { text: text.slice(0, 12000), level } });
+    const d = r.ok ? await r.json() : null;
+    const parts = (d && d.map && d.map.parts) || [];
+    if (parts.length < 2) { host.hidden = true; host.innerHTML = ''; return; }
+    _bookMap = parts;
+    host.innerHTML = `<div class="tb-wiz-tool-note">${parts.length} parts found${d.redacted ? ` (${d.redacted} contact detail${d.redacted > 1 ? 's' : ''} hidden from the model)` : ''}. Use one part, or leave the whole page as is.</div>`
+      + parts.map((p, i) => `<div class="tb-wiz-part"><b>${_bookEsc(_BOOK_KIND_LABEL[p.kind] || p.kind)}</b> <span>${_bookEsc(p.title)}</span>
+          <small>${_bookEsc(p.text.slice(0, 90))}${p.text.length > 90 ? '…' : ''}</small>
+          <button type="button" class="tb-wiz-part-use" onclick="_wizUseBookPart(${i})">Use this part</button></div>`).join('');
+  } catch (err) {
+    console.warn('[wizard] book page map failed', err);
+    host.hidden = true; host.innerHTML = '';
+  }
+}
+function _wizUseBookPart(i) {
+  const p = _bookMap && _bookMap[i];
+  if (!p) return;
+  if (p.kind === 'vocabulary') {
+    const ta = document.getElementById('tbuilder-vocab');
+    if (ta) {
+      const words = p.text.split(/[\n,;]+/).map(w => w.replace(/^[\s\d.)•-]+/, '').trim()).filter(w => w && w.split(/\s+/).length <= 4);
+      ta.value = words.join('\n');
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+  }
+  _wizFillSource(p.text);
 }
 
 /* ── Ссылка → текст ───────────────────────────────────────────────────── */
@@ -23496,7 +23542,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1202',
+          icon: 'icons/icon-192.png?v=1203',
           tag: 'board-live-' + s.id,
         });
       }
