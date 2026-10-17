@@ -128,11 +128,23 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
     el.classList.toggle('st-late', !!late);
     const tag = late ? 'Late cancellation (Charged)' : out && out.status === 'cancelled' ? 'Cancelled' : out && out.status === 'no_show' ? 'No-show' : '';
     el.title = `${name} · ${time}-${String(slot.end_time).slice(0, 5)}${tag ? ' · ' + tag : ''}`;
+    /* design spec v1 №3: the class in its pastel with a deeper spine, the
+       student's initial on a white disc, the name, "19:00 · B2 · 1:1" under it,
+       a white check once the lesson was held */
+    const pastel = typeof slotColor === 'function' ? slotColor(slot) : '#E9F5C4';
+    el.style.setProperty('--blk', pastel);
+    el.style.background = '';
+    el.classList.add('light');
+    const st = journalStudent && slot.journal_id ? journalStudent(slot.journal_id) : null;
+    const face = st && /^https?:\/\//.test(st.avatar || '') ? `<span class="cc-ph" style="background-image:url('${esc(st.avatar)}')"></span>`
+      : `<span class="cc-ph">${esc((st && st.avatar && st.avatar.length <= 4 ? st.avatar : name.trim().charAt(0)).toUpperCase())}</span>`;
+    const meta = [time, slot.level || (st && st.level) || '', slot.group_name && !/^1\s*:\s*1$/.test(slot.group_name) && slot.group_name !== name ? slot.group_name : (slot.journal_id ? '1:1' : '')].filter(Boolean).join(' · ');
+    const held = out && out.status === 'present';
     el.innerHTML = `
       ${slot.is_live ? '<span class="cc-live"></span>' : ''}
-      <div class="cc-line"><span class="cc-name">${esc(name)}</span><span class="cc-dot">•</span><span class="cc-time">${time}</span></div>
-      ${sub && !tag ? `<div class="cc-sub">${esc(sub)}</div>` : ''}
-      ${tag ? `<span class="cc-tag">${tag}</span>` : ''}
+      ${face}
+      <div class="cc-txt"><b class="cc-name">${esc(name)}</b><span class="cc-meta">${esc(meta)}</span>${tag ? `<span class="cc-tag">${tag}</span>` : ''}</div>
+      ${held ? '<span class="cc-check" title="Held"><svg viewBox="0 0 24 24" fill="none" stroke="#0B1026" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></span>' : ''}
       <div class="cc-quick">
         <button type="button" data-q="msg" title="Message">💬</button>
         ${slot.board_id ? '<button type="button" data-q="board" title="Open board">🔗</button>' : ''}

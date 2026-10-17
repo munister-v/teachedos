@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1188"></script>
-<link rel="manifest" href="manifest.json?v=1188">
+<script src="scripts/phone-gate.js?v=1189"></script>
+<link rel="manifest" href="manifest.json?v=1189">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
-<link rel="icon" href="favicon.ico?v=1188" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1188">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1188">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1188">
+<link rel="icon" href="favicon.ico?v=1189" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1189">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1189">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1189">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1188">
-<link rel="preload" as="style" href="styles/unify.css?v=1188">
+<link rel="preload" as="style" href="styles/harmony.css?v=1189">
+<link rel="preload" as="style" href="styles/unify.css?v=1189">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -471,10 +471,10 @@ a{text-decoration:none;color:inherit;}
 .lesson-done button.main{background:#CDF649;color:#24282C}
 .lesson-done button:hover{filter:brightness(1.12)}
 </style>
-<script src="theme.js?v=1188" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1188">
-<link rel="stylesheet" href="styles/harmony.css?v=1188">
-<link rel="stylesheet" href="styles/unify.css?v=1188">
+<script src="theme.js?v=1189" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1189">
+<link rel="stylesheet" href="styles/harmony.css?v=1189">
+<link rel="stylesheet" href="styles/unify.css?v=1189">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -506,24 +506,24 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1188">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1188">
-<link rel="stylesheet" href="styles/tool-window.css?v=1188">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1189">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1189">
+<link rel="stylesheet" href="styles/tool-window.css?v=1189">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1188">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1188">
-<link rel="stylesheet" href="styles/controls.css?v=1188">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=1188">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1189">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1189">
+<link rel="stylesheet" href="styles/controls.css?v=1189">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=1189">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1188">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1188">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1188">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1188">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1188">
-<link rel="stylesheet" href="styles/toast.css?v=1188">
+<link rel="stylesheet" href="styles/polish.css?v=1189">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1189">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1189">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1189">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1189">
+<link rel="stylesheet" href="styles/toast.css?v=1189">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1188">
-<link rel="stylesheet" href="styles/ds-v1.css?v=1188">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1189">
+<link rel="stylesheet" href="styles/ds-v1.css?v=1189">
 </head>
 <body class="tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -550,7 +550,7 @@ a{text-decoration:none;color:inherit;}
 
 <!-- Navbar -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1188" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1189" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -713,7 +713,8 @@ a{text-decoration:none;color:inherit;}
 <!-- Add/Edit Modal -->
 <div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
   <div class="modal">
-    <div class="modal-title" id="modal-title">➕ Add Class</div>
+    <button type="button" class="m-x" onclick="closeModal()" aria-label="Close">✕</button>
+    <div class="modal-title" id="modal-title">Plan Lesson</div>
 
     <div id="lesson-presets-wrap">
       <div class="form-label" style="margin-bottom:8px">Quick setup</div>
@@ -839,7 +840,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=1188"></script>
+<script src="scripts/app-core.js?v=1189"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -863,21 +864,25 @@ function localYMD(d) {
 let currentUser = null;
 let editingId = null;
 let weekOffset = 0; // weeks from current
-let selectedColor = '#CDF649';
+let selectedColor = '';
 let selectedDays = new Set([0]);
 const apiClient = createApiClient(() => token);
 
 // The TeachEd palette: the two brand colours first, then the secondary
 // set. Text on a block switches between dark and light by contrast
 // (isLightScheduleColor), so the bright ones stay readable.
-const COLORS = [
-  '#CDF649','#24282C','#CACCC6',
-  '#FFE44D','#FF8C3A','#FF4E00',
-  '#3F9FFF','#49F6F0','#6B42FD',
-  '#9F8CE8','#D3F36B','#F3DF6B',
-  '#F3A46B','#6BAFF3','#886BF3',
-  '#5D614B','#A3A48D',
-];
+/* 15 curated pastels - one family, no brights (design spec v1 №9). A class
+   without its own pastel is "Auto": the student's pastel, the same one their
+   halo has on the desktop (students window, Pulse). Legacy bright colours
+   read as Auto. */
+const PASTELS = ['#F8DBDB','#F9DCC8','#F7EBCB','#E9F5C4','#DDF0D2','#D5F6F2','#CFEAFB','#D8DFF9','#E2D7F8','#EDD9F6','#F6DCE6','#FAD2CB','#F3EFC3','#DEE9CB','#CDEEEC'];
+const COLORS = PASTELS;
+const isPastel = c => PASTELS.includes(String(c || '').toUpperCase());
+function pastelFor(key) {
+  const k = String(key || '');
+  let h = 0; for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) | 0;
+  return PASTELS[Math.abs(h) % PASTELS.length];
+}
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
 
@@ -1912,7 +1917,7 @@ function openPlannerAt(day, startMin) {
     end_time: minutesToTime(end),
     specific_date: weekDate ? localYMD(weekDate) : '',
     recurring: true,
-    color: selectedColor || '#CDF649',
+    color: selectedColor || '',
   });
 }
 
@@ -2151,7 +2156,8 @@ function slotMinutes(s) {
    расписания его нет. Такие уроки рисуем как «цвет не выбран» - лайм. */
 function slotColor(slot) {
   const c = slot && slot.color;
-  return !c || /^#ff4b8b$/i.test(c) ? '#CDF649' : c;
+  if (isPastel(c)) return String(c).toUpperCase();
+  return pastelFor(slot && (slot.journal_id || slot.group_name || slot.title || slot.id));
 }
 function renderStats() {
   (document.getElementById('stat-total') || {}).textContent = schedule.length;
@@ -2164,8 +2170,21 @@ function renderStats() {
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────
+function paintColorSel() {
+  document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color === selectedColor));
+  document.querySelector('.c-auto')?.classList.toggle('sel', !isPastel(selectedColor));
+}
 function buildColorGrid() {
   const grid = document.getElementById('color-grid');
+  const auto = document.createElement('button');
+  auto.type = 'button';
+  auto.className = 'c-auto';
+  auto.innerHTML = '<span class="hdot"></span><span class="c-auto-t"><b>Auto — follows the student</b><span>their halo colour · same as the roster and Pulse</span></span><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="#0B1026" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></span>';
+  auto.addEventListener('click', () => { selectedColor = ''; paintColorSel(); });
+  grid.appendChild(auto);
+  const cap = document.createElement('p');
+  cap.className = 'f-cap';
+  cap.textContent = '15 curated pastels — one family, no brights. Auto follows the student; override only if needed.';
   COLORS.forEach(c => {
     const el = document.createElement('div');
     el.className = 'color-opt' + (c===selectedColor?' sel':'');
@@ -2173,10 +2192,11 @@ function buildColorGrid() {
     el.dataset.color = c;
     el.addEventListener('click', () => {
       selectedColor = c;
-      document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===c));
+      paintColorSel();
     });
     grid.appendChild(el);
   });
+  grid.appendChild(cap);
 }
 
 const DAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -2262,7 +2282,7 @@ function openModal(slot = null, preset = null) {
   const isEdit = !!(slot && slot.id);
   const data = isEdit ? slot : (preset || {});
   editingId = isEdit ? slot.id : null;
-  document.getElementById('modal-title').textContent = isEdit ? '✏️ Edit Class' : '➕ Plan Lesson';
+  document.getElementById('modal-title').textContent = isEdit ? 'Edit Class' : 'Plan Lesson';
   document.getElementById('modal-save-btn').textContent = isEdit ? 'Save Changes' : 'Add Class';
   delete document.getElementById('modal-save-btn').dataset.idleLabel;
   document.getElementById('lesson-presets-wrap').hidden = isEdit;
@@ -2294,9 +2314,8 @@ function openModal(slot = null, preset = null) {
   renderDayChips();
   syncMeetingDefault();
 
-  const color = slotColor(data);
-  selectedColor = color;
-  document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color===color));
+  selectedColor = isPastel(data.color) ? String(data.color).toUpperCase() : '';
+  paintColorSel();
   document.getElementById('modal').classList.add('open');
   setTimeout(() => document.getElementById('f-title').focus(), 50);
   // Sync day when date changes
@@ -2305,10 +2324,10 @@ function openModal(slot = null, preset = null) {
 }
 
 const LESSON_PRESETS = {
-  'online-one': { title: '1:1 English lesson', group_name: '1:1', level: 'B1', room: 'Online', duration: 60, color: '#6BAFF3' },
-  'online-group': { title: 'Group English lesson', group_name: 'Group', level: 'B1', room: 'Online', duration: 60, color: '#9F8CE8' },
-  offline: { title: 'Classroom English lesson', group_name: 'Class', level: 'B1', room: 'Classroom', duration: 60, color: '#5D614B' },
-  club: { title: 'Speaking club', group_name: 'Speaking Club', level: 'B1', room: 'Online', duration: 75, color: '#F3A46B' },
+  'online-one': { title: '1:1 English lesson', group_name: '1:1', level: 'B1', room: 'Online', duration: 60, color: '#CFEAFB' },
+  'online-group': { title: 'Group English lesson', group_name: 'Group', level: 'B1', room: 'Online', duration: 60, color: '#E2D7F8' },
+  offline: { title: 'Classroom English lesson', group_name: 'Class', level: 'B1', room: 'Classroom', duration: 60, color: '#DEE9CB' },
+  club: { title: 'Speaking club', group_name: 'Speaking Club', level: 'B1', room: 'Online', duration: 75, color: '#F9DCC8' },
 };
 
 function applyLessonPreset(key) {
@@ -2323,7 +2342,7 @@ function applyLessonPreset(key) {
   document.getElementById('f-room').value = preset.room;
   document.getElementById('f-end').value = minutesToTime(endMin);
   selectedColor = preset.color;
-  document.querySelectorAll('.color-opt').forEach(x => x.classList.toggle('sel', x.dataset.color === preset.color));
+  paintColorSel();
   renderModalTzPreview();
   toast(`${preset.title} preset applied`, 'ok');
 }
@@ -2341,6 +2360,8 @@ function setScheduleSaveBusy(isBusy) {
   }
 }
 
+// Esc closes the class form, like × and a click on the dim background (design spec v1 №9)
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('modal')?.classList.contains('open')) closeModal(); });
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target === e.currentTarget) closeModal(); }
 
@@ -2540,19 +2561,19 @@ function exportICS() {
   a.click();
 }
 </script>
-<script src="scripts/schedule-booking.js?v=1188"></script>
-<script src="scripts/schedule-plus.js?v=1188"></script>
-<script src="scripts/schedule-calm.js?v=1188"></script>
-<script src="pwa.js?v=1188"></script>
-<script src="scripts/nav-boost.js?v=1188" defer></script>
-<script src="scripts/mobile-perf.js?v=1188" defer></script>
-<script src="scripts/mobile-nav.js?v=1188"></script>
-<script src="scripts/autogrow.js?v=1188" defer></script>
-<script src="pwa-boot.js?v=1188" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1188" defer></script>
-  <script src="scripts/signin-entry.js?v=1188" defer></script>
-<script src="scripts/nav-bell.js?v=1188" defer></script>
+<script src="scripts/schedule-booking.js?v=1189"></script>
+<script src="scripts/schedule-plus.js?v=1189"></script>
+<script src="scripts/schedule-calm.js?v=1189"></script>
+<script src="pwa.js?v=1189"></script>
+<script src="scripts/nav-boost.js?v=1189" defer></script>
+<script src="scripts/mobile-perf.js?v=1189" defer></script>
+<script src="scripts/mobile-nav.js?v=1189"></script>
+<script src="scripts/autogrow.js?v=1189" defer></script>
+<script src="pwa-boot.js?v=1189" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1189" defer></script>
+  <script src="scripts/signin-entry.js?v=1189" defer></script>
+<script src="scripts/nav-bell.js?v=1189" defer></script>
 <div class="lesson-done" id="lesson-done" role="status" aria-live="polite" hidden></div>
-<script src="scripts/ds-v1.js?v=1188" defer></script>
+<script src="scripts/ds-v1.js?v=1189" defer></script>
 </body>
 </html>

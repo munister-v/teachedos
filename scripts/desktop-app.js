@@ -1488,9 +1488,10 @@ window.studentsJoin = studentsJoin;
 
 /* The student's pastel: one of the curated family, the same for this student
    everywhere (by id), design spec v1 §0 "halo avatars". */
-const ST_PASTELS = ['#F8DBDB', '#E9F5C4', '#D5F6F2', '#DCE9FB', '#F9E1CF', '#F6E7C1', '#E9E4F5', '#E4E2D4'];
+// the same 15 pastels and the same key as the schedule's "Auto" colour (schedule.html pastelFor)
+const ST_PASTELS = ['#F8DBDB','#F9DCC8','#F7EBCB','#E9F5C4','#DDF0D2','#D5F6F2','#CFEAFB','#D8DFF9','#E2D7F8','#EDD9F6','#F6DCE6','#FAD2CB','#F3EFC3','#DEE9CB','#CDEEEC'];
 function studentPastel(s) {
-  const k = String(s.id || s.journal_id || s.name || '');
+  const k = String(s.journal_id || s.id || s.name || '');
   let h = 0; for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) | 0;
   return ST_PASTELS[Math.abs(h) % ST_PASTELS.length];
 }
@@ -3220,13 +3221,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1188" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1189" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1188" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1189" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
