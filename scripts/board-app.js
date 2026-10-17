@@ -16664,7 +16664,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1203';
+const TEACHEDOS_ASSET_VERSION = '1204';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20984,7 +20984,7 @@ async function _wizBookPageMap(text) {
     host.innerHTML = `<div class="tb-wiz-tool-note">${parts.length} parts found${d.redacted ? ` (${d.redacted} contact detail${d.redacted > 1 ? 's' : ''} hidden from the model)` : ''}. Use one part, or leave the whole page as is.</div>`
       + parts.map((p, i) => `<div class="tb-wiz-part"><b>${_bookEsc(_BOOK_KIND_LABEL[p.kind] || p.kind)}</b> <span>${_bookEsc(p.title)}</span>
           <small>${_bookEsc(p.text.slice(0, 90))}${p.text.length > 90 ? '…' : ''}</small>
-          <button type="button" class="tb-wiz-part-use" onclick="_wizUseBookPart(${i})">Use this part</button></div>`).join('');
+          <button type="button" class="tb-wiz-part-use" onclick="_wizUseBookPart(${i})">${['reading','listening','speaking','writing','grammar'].includes(p.kind) ? 'Open studio' : 'Use this part'}</button></div>`).join('');
   } catch (err) {
     console.warn('[wizard] book page map failed', err);
     host.hidden = true; host.innerHTML = '';
@@ -21001,6 +21001,22 @@ function _wizUseBookPart(i) {
       ta.dispatchEvent(new Event('input', { bubbles: true }));
       return;
     }
+  }
+  /* Часть с понятным навыком ведёт сразу в его студию с книжным текстом как
+     исходником («I already have the text»); упражнение остаётся в текущей форме. */
+  const skill = ({ reading: 'reading', listening: 'listening', speaking: 'speaking', writing: 'writing', grammar: 'grammar' })[p.kind];
+  if (skill && boardLessonWizard) {
+    boardLessonWizard.skill = skill;
+    pickLessonSource('own');
+    setTimeout(() => {
+      _wizFillSource(p.text);
+      const topic = document.getElementById('tbuilder-topic');
+      if (topic && !topic.value.trim() && p.title) {
+        topic.value = String(p.title).slice(0, 120);
+        topic.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }, 80);
+    return;
   }
   _wizFillSource(p.text);
 }
@@ -23542,7 +23558,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1203',
+          icon: 'icons/icon-192.png?v=1204',
           tag: 'board-live-' + s.id,
         });
       }
