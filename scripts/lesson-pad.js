@@ -32,7 +32,7 @@
     try { entries = JSON.parse(localStorage.getItem(KEY(boardId)) || '[]').filter(e => e && e.text); } catch { entries = []; }
   }
   function save() {
-    try { localStorage.setItem(KEY(boardId), JSON.stringify(entries.map(({ id, text, meaning, example, collocations, gap }) => ({ id, text, meaning, example, collocations, gap })))); } catch {}
+    try { localStorage.setItem(KEY(boardId), JSON.stringify(entries.map(({ id, text, meaning, example, collocations, gap, at }) => ({ id, text, meaning, example, collocations, gap, at })))); } catch {}
   }
 
   function css() {
@@ -76,6 +76,53 @@
 .lp-msg a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .lp-clear{border:0;background:transparent;font:600 11.5px var(--font-ui,system-ui,sans-serif);color:#5D614B;text-decoration:underline;cursor:pointer;align-self:flex-start;padding:0}
 @media (max-width:700px){.lp{left:12px;bottom:76px}}
+/* Board chrome v1.0 №17 (17.10.2026). The button: a dark pill with a lime
+   badge; while there are phrases not sent yet, a gradient border (lime /
+   turquoise / pink) turns slowly and glows brighter where the pointer is.
+   The window: editorial - "Words to keep.", a numbered list, an underlined
+   input with an ink Add, student chips (sand → ink), an honest Send. */
+.lp{font-family:Manrope,-apple-system,'Segoe UI',sans-serif;color:#0B1026}
+.lp-fab{position:relative;height:44px;padding:0 16px 0 14px;border:0;border-radius:999px;background:#0B1026;color:#fff;font:700 13.5px Manrope,-apple-system,'Segoe UI',sans-serif;box-shadow:0 10px 26px rgba(11,16,38,.32);isolation:isolate}
+.lp-fab:hover{background:#151a36}
+.lp-fab i{background:#D3F26A;color:#0B1026;font:800 11.5px Manrope,-apple-system,sans-serif}
+.lp-fab svg{width:16px;height:16px;flex:none}
+.lp-fab.glow::before{content:'';position:absolute;inset:-2px;border-radius:inherit;z-index:-1;padding:2px;background:conic-gradient(from var(--lp-a,0deg),#D3F26A,#49F6F0,#F8A5C8,#D3F26A);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:lp-spin 4s linear infinite;opacity:.85}
+.lp-fab.glow::after{content:'';position:absolute;inset:-6px;border-radius:inherit;z-index:-2;background:radial-gradient(120px 60px at var(--lp-x,50%) var(--lp-y,50%),rgba(211,242,106,.55),transparent 70%);opacity:var(--lp-o,.35);transition:opacity .2s;filter:blur(6px)}
+@property --lp-a{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes lp-spin{to{--lp-a:360deg}}
+@media (prefers-reduced-motion:reduce){.lp-fab.glow::before{animation:none}}
+.lp-panel{top:56px;width:min(410px,calc(100vw - 32px));max-height:min(640px,calc(100vh - 120px));background:#FDFDF9;border:1px solid rgba(11,16,38,.08);border-radius:26px;box-shadow:0 26px 60px rgba(11,16,38,.18)}
+.lp-head{padding:28px 28px 0;align-items:flex-start}
+.lp-kick{font-size:11px;font-weight:800;letter-spacing:2.5px;opacity:.4;text-transform:uppercase}
+.lp-head h2{font-size:30px;font-weight:800;letter-spacing:-.8px;margin:6px 0 0;line-height:1.1}
+.lp-head h2 em{font-style:normal;background:#D3F26A;padding:0 8px;border-radius:6px}
+.lp-x{margin-left:auto;width:36px;height:36px;border-radius:50%;border:0;background:#F1EFE2;font:700 16px Manrope,sans-serif;color:#0B1026;flex:none;transition:transform .2s;padding:0;display:grid;place-items:center}
+.lp-x:hover{transform:rotate(90deg)}
+.lp-add{margin:18px 28px 0;gap:10px}
+.lp-add input{height:auto;border:0;border-bottom:2px solid rgba(11,16,38,.15);border-radius:0;background:none;padding:12px 4px;font:600 15.5px Manrope,sans-serif;color:#0B1026}
+.lp-add input:focus{border-color:#0B1026;box-shadow:none}
+.lp-add button{height:auto;padding:0 24px;border-radius:12px;background:#0B1026;color:#fff;font:800 14.5px Manrope,sans-serif}
+.lp-list{padding:16px 28px 0}
+.lp-row{display:flex;gap:14px;align-items:baseline;padding:13px 26px 13px 0;border-top:0;border-bottom:1px solid rgba(11,16,38,.08)}
+.lp-row .lp-n{font-size:12px;font-weight:800;opacity:.35;flex:none;width:24px}
+.lp-row .lp-body{flex:1;min-width:0}
+.lp-row b{font-size:16px;font-weight:800;letter-spacing:-.2px}
+.lp-row input{font:500 13px Manrope,sans-serif;color:#5D614B}
+.lp-row .lp-when{display:block;font-size:11px;font-weight:700;opacity:.4;margin-top:2px;font-style:normal}
+.lp-row .lp-del{top:12px;color:#0B1026;opacity:.3;font:700 15px Manrope,sans-serif}
+.lp-row .lp-del:hover{opacity:1;color:#c0392b}
+.lp-foot{border-top:0;background:none;padding:20px 28px 26px}
+.lp-sl{font-size:11px;font-weight:800;letter-spacing:2px;opacity:.4;text-transform:uppercase}
+.lp-who{gap:8px}
+.lp-who label{border:0;background:#F1EFE2;padding:10px 20px;font:700 13.5px Manrope,sans-serif;color:#0B1026}
+.lp-who label.on{background:#0B1026;color:#fff}
+.lp-send{height:auto;padding:17px;border-radius:14px;background:#D3F26A;font:800 16px Manrope,sans-serif;color:#0B1026}
+.lp-send:disabled{background:#ECECE4;color:#6E7482}
+.lp-hint{font-size:12px;font-weight:600;color:#6E7482;text-align:center;margin-top:-2px}
+.lp-clear{align-self:center;font:700 13px Manrope,sans-serif;opacity:.5;text-decoration:none;color:#0B1026}
+.lp-clear:hover{opacity:1;text-decoration:underline}
+.lp-sent{margin-left:2px;font-size:11px;font-weight:700;color:#5E7A00}
 `;
     document.head.appendChild(st);
   }
@@ -88,6 +135,12 @@
     host.hidden = true;
     document.body.appendChild(host);
     host.addEventListener('click', onClick);
+    host.addEventListener('pointermove', e => {
+      const f = e.target.closest && e.target.closest('.lp-fab.glow'); if (!f) return;
+      const r = f.getBoundingClientRect();
+      f.style.setProperty('--lp-x', (e.clientX - r.left) + 'px'); f.style.setProperty('--lp-y', (e.clientY - r.top) + 'px'); f.style.setProperty('--lp-o', '.9');
+    });
+    host.addEventListener('pointerleave', () => { const f = host.querySelector('.lp-fab'); if (f) f.style.setProperty('--lp-o', '.35'); });
     host.addEventListener('submit', e => { e.preventDefault(); const i = host.querySelector('.lp-add input'); add(i.value); i.value = ''; i.focus(); });
     host.addEventListener('input', e => {
       const row = e.target.closest('[data-id]');
@@ -119,30 +172,41 @@
     if (back) { back.focus(); try { back.setSelectionRange(keep.at, keep.at); } catch {} }
   }
 
+  const PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
+  function fab(title) {
+    // the border glows only while there are phrases not sent yet
+    const unsent = entries.length > 0;
+    return `<button type="button" class="lp-fab${unsent ? ' glow' : ''}" data-act="toggle" title="${esc(title)}">${PEN}Lesson pad${entries.length ? `<i>${entries.length}</i>` : ''}</button>`;
+  }
   function paint(h) {
     if (!open) {
-      h.innerHTML = `<button type="button" class="lp-fab" data-act="toggle" title="Catch phrases during the lesson (Alt+Shift+L adds selected text)">✎ Lesson pad${entries.length ? `<i>${entries.length}</i>` : ''}</button>`;
+      h.innerHTML = fab('Catch phrases during the lesson (Alt+Shift+L adds selected text)');
       return;
     }
     const focusText = h.querySelector('.lp-add input')?.value || '';
-    const rows = entries.map(e => `<div class="lp-row" data-id="${esc(e.id)}">
-        <b>${esc(e.text)}</b>${e.busy ? ' <span class="lp-busy">looking up…</span>' : ''}
-        <input class="lp-mean" value="${esc(e.meaning)}" placeholder="meaning - edit if you like" aria-label="Meaning of ${esc(e.text)}">
-        ${e.example ? `<small>${esc(e.example)}</small>` : ''}
+    const when = t => { if (!t) return ''; const d = new Date(t); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
+    const rows = entries.map((e, i) => `<div class="lp-row" data-id="${esc(e.id)}">
+        <span class="lp-n">${String(entries.length - i).padStart(2, '0')}</span>
+        <span class="lp-body"><b>${esc(e.text)}</b>${e.busy ? ' <span class="lp-busy">looking up…</span>' : ''}
+        <input class="lp-mean" value="${esc(e.meaning)}" placeholder="tap to add the meaning" aria-label="Meaning of ${esc(e.text)}">
+        ${e.example ? `<small>${esc(e.example)}</small>` : ''}${e.at ? `<i class="lp-when">${esc(when(e.at))}</i>` : ''}</span>
         <button type="button" class="lp-del" data-act="del" aria-label="Remove">×</button>
       </div>`).join('');
     const who = students == null ? '<span class="lp-note">Loading students…</span>'
       : students.length ? students.map(s => `<label class="${picked.has(s.id) ? 'on' : ''}"><input type="checkbox" data-act="pick" data-s="${esc(s.id)}"${picked.has(s.id) ? ' checked' : ''}>${esc(s.name)}</label>`).join('')
       : '<span class="lp-note">No students with an account on this board yet. Phrases stay here (saved in this browser) until they join.</span>';
+    const why = !entries.length ? 'Add a phrase first.' : students && !students.length ? 'Nobody to send to yet.' : !picked.size ? 'Pick at least one student.' : '';
     h.innerHTML = `
-      <button type="button" class="lp-fab" data-act="toggle">✎ Lesson pad${entries.length ? `<i>${entries.length}</i>` : ''}</button>
+      ${fab('Lesson pad')}
       <div class="lp-panel" role="dialog" aria-label="Lesson pad">
-        <div class="lp-head"><div><b>Lesson pad</b><br><span>Type a phrase, press Enter. Meanings fill in by themselves.</span></div><button type="button" class="lp-x" data-act="toggle" aria-label="Close">×</button></div>
+        <div class="lp-head"><div><div class="lp-kick">Lesson pad</div><h2>Words <em>to keep.</em></h2></div><button type="button" class="lp-x" data-act="toggle" aria-label="Close">×</button></div>
         <form class="lp-add"><input type="text" maxlength="200" placeholder="a phrase from the lesson…" autocomplete="off" aria-label="Phrase"><button type="submit">Add</button></form>
         <div class="lp-list">${rows || '<div class="lp-empty">Nothing yet. When you say something worth remembering - “it turns out that…”, “make a tough decision” - drop it here.</div>'}</div>
         <div class="lp-foot">
+          <div class="lp-sl">Send to</div>
           <div class="lp-who">${who}</div>
-          <button type="button" class="lp-send" data-act="send"${entries.length && picked.size ? '' : ' disabled'}>Send to their Word Bank${entries.length ? ` · ${entries.length}` : ''}</button>
+          <button type="button" class="lp-send" data-act="send"${entries.length && picked.size ? '' : ' disabled'}${why ? ` aria-describedby="lp-why"` : ''}>Send to their Word Bank${entries.length ? ` · ${entries.length}` : ''}</button>
+          ${why ? `<div class="lp-hint" id="lp-why">${esc(why)}</div>` : ''}
           <div class="lp-msg" id="lp-msg" role="status"></div>
           ${entries.length ? '<button type="button" class="lp-clear" data-act="clear">Clear the pad</button>' : ''}
         </div>
@@ -155,7 +219,7 @@
     const text = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 200);
     if (!text) return;
     if (entries.some(e => e.text.toLowerCase() === text.toLowerCase())) return;
-    const e = { id: 'p' + Date.now().toString(36) + (seq++), text, meaning: '', example: '', busy: true };
+    const e = { id: 'p' + Date.now().toString(36) + (seq++), text, meaning: '', example: '', busy: true, at: Date.now() };
     entries.unshift(e);
     save();
     render();

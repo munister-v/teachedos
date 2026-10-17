@@ -16673,7 +16673,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1210';
+const TEACHEDOS_ASSET_VERSION = '1214';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19970,34 +19970,38 @@ function renderLessonWizard() {
       window.TeachEdElements.mountSetup(host, boardLessonWizard.game, { kicker, title, sub });
       return;
     }
-    const pane = boardLessonWizard.pane === 'elements' && window.TeachEdElements ? 'elements' : 'lesson';
+    /* Board chrome v1.0 №6 (17.10.2026): one screen - an editorial head
+       ("today" under a lime marker), the hero prompt with the turquoise AI
+       spark and a lime Ask, eight studio cards with ink discs that fill with
+       ink on hover. The "Single elements" tab is gone: games and widgets are
+       under + on the toolbar. */
     if (kicker) kicker.textContent = 'Lesson builder & assistant';
-    if (title)  title.textContent  = 'What are we working on today?';
-    if (sub)    sub.textContent    = pane === 'elements'
-      ? 'Pick a game, a widget or a GIF. A game asks what it should practise first.'
-      : 'Say it in your own words, or pick a studio.';
-    /* Помощник доски и студии - один вход. Строка сверху принимает то же, что
-       командная строка внизу доски («сделай чтение по словам этой студии»,
-       «отсортируй стикеры»), а игры, которые стояли отдельной кнопкой на
-       рейке, открываются отсюда же второй вкладкой. */
+    if (title)  title.innerHTML    = 'What are we working on <span class="bc-mk">today?</span>';
+    if (sub)    sub.textContent    = 'Say it in your own words, or pick a studio.';
     const canAsk = !!window.TeachEdBoardAgent && !(currentUser && currentUser.role === 'student');
-    host.innerHTML = `${canAsk ? `<form class="tb-wiz-ask" onsubmit="event.preventDefault();lessonWizardAsk()">
-        <svg width="16" height="16" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M9 1.6l1.95 5.45L16.4 9l-5.45 1.95L9 16.4 7.05 10.95 1.6 9l5.45-1.95z"/></svg>
-        <input id="tb-wiz-ask" type="text" maxlength="1200" autocomplete="off" aria-label="Tell the board what to do or describe a lesson" placeholder="Tell the board what to do or describe a lesson…">
-        <button type="submit" class="tb-wiz-ask-go">Ask <span aria-hidden="true">↵</span></button>
+    const ink = p => `<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+    const STUDIO_ICON = {
+      reading: '<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3V4z"/><path d="M5 17a3 3 0 013-3h11"/>',
+      listening: '<path d="M4 15v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="7" rx="2"/><rect x="17" y="14" width="4" height="7" rx="2"/>',
+      speaking: '<path d="M21 12a8 8 0 01-8 8H4l2-3a8 8 0 1115-5z"/><path d="M8.5 12h7"/>',
+      writing: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>',
+      grammar: '<path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.5"/><circle cx="10" cy="16" r="2.5"/>',
+      vocabulary: '<path d="M3 12V5a2 2 0 012-2h8l9 9-9 9-9-9z"/><circle cx="8.5" cy="9.5" r="1.4"/>',
+      magazine: '<path d="M4 6h13a2 2 0 012 2v11H6a2 2 0 01-2-2V6z"/><path d="M19 19v1a2 2 0 01-2 2H6"/><path d="M8 10h7M8 14h7"/>',
+      scenes: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M3 17l5-4 4 3 4-4 5 5"/>',
+    };
+    host.innerHTML = `${canAsk ? `<form class="tb-wiz-ask bc-hero" onsubmit="event.preventDefault();lessonWizardAsk()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+        <input id="tb-wiz-ask" type="text" maxlength="1200" autocomplete="off" aria-label="Describe your lesson or tell the board what to do" placeholder="Describe your lesson — topic, level, goal…">
+        <button type="submit" class="tb-wiz-ask-go">Ask <span aria-hidden="true">⏎</span></button>
       </form>` : ''}
-      <div class="tb-wiz-tabs" role="tablist">
-        <button type="button" class="tb-wiz-tab${pane === 'lesson' ? ' is-on' : ''}" role="tab" aria-selected="${pane === 'lesson'}" onclick="setWizardPane('lesson')">Full lesson</button>
-        <button type="button" class="tb-wiz-tab${pane === 'elements' ? ' is-on' : ''}" role="tab" aria-selected="${pane === 'elements'}" onclick="setWizardPane('elements')">Single elements</button>
-      </div>
-      ${pane === 'elements' ? '<div id="tb-el-host"></div>' : `<div class="tb-wiz-grid">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
+      <div class="tb-wiz-grid bc-studios">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
       <button type="button" class="tb-wiz-card${ready ? '' : ' is-soon'}"
         ${ready ? `onclick="pickLessonSkill('${esc(s.key)}')"` : 'disabled'}>
-        <span class="tb-wiz-ic">${esc(s.icon)}</span>
+        <span class="tb-wiz-ic bc-disc">${STUDIO_ICON[s.key] ? ink(STUDIO_ICON[s.key]) : esc(s.icon)}</span>
         <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
-        ${ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">next</span>'}
-      </button>`; }).join('')}</div>`}`;
-    if (pane === 'elements') window.TeachEdElements.mount(document.getElementById('tb-el-host'));
+        ${ready ? `<span class="tb-wiz-go bc-arr">${ink('<path d="M5 12h14M13 6l6 6-6 6"/>')}</span>` : '<span class="tb-wiz-soon">next</span>'}
+      </button>`; }).join('')}</div>`;
     return;
   }
 
@@ -23568,7 +23572,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1210',
+          icon: 'icons/icon-192.png?v=1214',
           tag: 'board-live-' + s.id,
         });
       }

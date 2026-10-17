@@ -37,21 +37,42 @@
   bar.hidden = true;
   bar.setAttribute('role', 'dialog');
   bar.setAttribute('aria-label', 'Board assistant');
+  /* Board chrome v1.0 №3: a chat panel (840px) over the pill - a head, the
+     board it works with, the empty state with three starts, the plan when
+     there is one, and the input with voice and a lime send. */
+  const ic = p => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
   bar.innerHTML = `
-    <div class="ba-out" hidden>
-      <div class="ba-reply"></div>
-      <ul class="ba-steps"></ul>
-      <div class="ba-btns">
-        <button type="button" class="ba-apply">Apply <kbd>Enter</kbd></button>
-        <button type="button" class="ba-cancel">Cancel</button>
+    <div class="ba-head">
+      <span class="ba-title">Board assistant</span>
+      <span class="ba-icons">
+        <button type="button" class="ba-new" title="New chat" aria-label="New chat">${ic('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>')}</button>
+        <button type="button" class="ba-close" aria-label="Close" title="Close (Esc)">×</button>
+      </span>
+    </div>
+    <div class="ba-ctx">Working with <b class="ba-board"></b> · <span class="ba-scope"></span></div>
+    <div class="ba-body">
+      <div class="ba-empty">
+        <h3>What’s the task at hand?</h3>
+        <button type="button" class="ba-sug" data-sug="plan">${ic('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>')}Plan a lesson</button>
+        <button type="button" class="ba-sug" data-sug="quiz">${ic('<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>')}Quiz from this frame</button>
+        <button type="button" class="ba-sug" data-sug="game">${ic('<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>')}Find a warmer game</button>
+      </div>
+      <div class="ba-out" hidden>
+        <div class="ba-reply"></div>
+        <ul class="ba-steps"></ul>
+        <div class="ba-btns">
+          <button type="button" class="ba-apply">Apply <kbd>Enter</kbd></button>
+          <button type="button" class="ba-cancel">Cancel</button>
+        </div>
       </div>
     </div>
     <form class="ba-row" autocomplete="off">
-      <svg class="ba-ic" width="16" height="16" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M9 1.6l1.95 5.45L16.4 9l-5.45 1.95L9 16.4 7.05 10.95 1.6 9l5.45-1.95z"/></svg>
-      <input class="ba-input" type="text" maxlength="1200" aria-label="Tell the board what to do" placeholder="Tell the board what to do…">
-      <span class="ba-scope"></span>
-      <button type="submit" class="ba-send" aria-label="Send">↵</button>
-      <button type="button" class="ba-close" aria-label="Close">×</button>
+      <input class="ba-input" type="text" maxlength="1200" aria-label="Tell the board what to do" placeholder="Where shall we start?">
+      <div class="ba-tools">
+        <span class="ba-sp"></span>
+        <button type="button" class="ba-mic" title="Voice input" aria-label="Voice input" hidden>${ic('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>')}</button>
+        <button type="submit" class="ba-send" aria-label="Send">${ic('<path d="M12 19V5M5 12l7-7 7 7"/>')}</button>
+      </div>
     </form>`;
   document.body.appendChild(bar);
 
@@ -68,12 +89,15 @@
 
   function refreshScope() {
     const n = state.selected.size;
-    scopeEl.textContent = n ? `${n} selected` : 'whole board';
+    scopeEl.textContent = n ? `${n} selected` : 'the whole board';
+    const bn = bar.querySelector('.ba-board');
+    if (bn) bn.textContent = '«' + ((document.getElementById('board-name-display') || {}).textContent || 'this board') + '»';
   }
 
   function open() {
     if (!canUse()) return;
     bar.hidden = false;
+    if (parked) { parked = false; try { localStorage.setItem(PARK_KEY, '0'); } catch (_) {} }
     syncPill();
     refreshScope();
     input.focus();
@@ -100,13 +124,19 @@
      пилюлей и раскрывается по нажатию или Ctrl/Cmd+K. Не нужен - его
      смахивают вправо (или тянут мышью): он уезжает за край, и у правого
      края остаётся язычок, который возвращает его обратно. Выбор помнится. */
-  const PARK_KEY = 'teachedos_agent_parked';
+  /* Board chrome v1.0 №3 (17.10.2026): the lime crown on top of the
+     toolbar calls the assistant. A click on the crown shows the pill ("Ask
+     TeachEd… ⌘K") at the bottom; a click on the pill opens the chat panel
+     and puts the cursor in it; ⌘K opens and closes it; Esc closes. The pill
+     starts tucked away (the crown pings twice on load to show where it is);
+     the right-edge tab is gone - the crown is the way back. */
+  const PARK_KEY = 'teachedos_agent_parked_v2';
   const pill = document.createElement('button');
   pill.type = 'button';
   pill.id = 'board-agent-pill';
   pill.hidden = true;
-  pill.setAttribute('aria-label', 'Tell the board what to do (Ctrl+K). Swipe right to hide');
-  pill.innerHTML = `<svg width="15" height="15" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M9 1.6l1.95 5.45L16.4 9l-5.45 1.95L9 16.4 7.05 10.95 1.6 9l5.45-1.95z"/></svg><span>Tell the board what to do…</span><kbd>${/Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘K' : 'Ctrl K'}</kbd>`;
+  pill.setAttribute('aria-label', 'Ask TeachEd (Ctrl+K). Swipe right to hide');
+  pill.innerHTML = `<span class="ba-st" aria-hidden="true">✦</span><span>Ask TeachEd…</span><kbd>${/Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘K' : 'Ctrl K'}</kbd>`;
   const tab = document.createElement('button');
   tab.type = 'button';
   tab.id = 'board-agent-tab';
@@ -117,15 +147,16 @@
   document.body.appendChild(pill);
   document.body.appendChild(tab);
 
-  let parked = false;
-  try { parked = localStorage.getItem(PARK_KEY) === '1'; } catch (_) {}
+  let parked = true;
+  try { parked = localStorage.getItem(PARK_KEY) !== '0'; } catch (_) {}
   const allowed = () => typeof authToken !== 'undefined' && !!authToken
     && !(currentUser && currentUser.role === 'student')
     && !(currentUser && currentBoardId && !boardCanEdit);
   function syncPill() {
     const ok = allowed();
-    pill.hidden = !ok || parked || !bar.hidden;
-    tab.hidden = !ok || !parked || !bar.hidden;
+    pill.hidden = !ok || (parked && bar.hidden);
+    pill.classList.toggle('is-open', !bar.hidden);
+    tab.hidden = true;
   }
   function park(on) {
     parked = !!on;
@@ -160,9 +191,9 @@
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
   }
-  swipeToPark(pill, open);
+  swipeToPark(pill, toggle);
   swipeToPark(bar, null);
-  pill.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  pill.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
   tab.addEventListener('click', () => { park(false); });
   ['mousedown', 'pointerdown', 'wheel'].forEach(ev => [pill, tab].forEach(el => el.addEventListener(ev, e => e.stopPropagation())));
   // Вход, роль и права приходят после загрузки доски - пилюля ждёт их.
@@ -675,6 +706,31 @@
   $('.ba-apply').addEventListener('click', () => apply(plan));
   $('.ba-cancel').addEventListener('click', () => { clearPlan(); input.focus(); });
   $('.ba-close').addEventListener('click', close);
+  $('.ba-new').addEventListener('click', () => { clearPlan(); input.value = ''; input.focus(); });
+  bar.querySelectorAll('.ba-sug').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.sug;
+    if (k === 'plan') { close(); if (typeof openLessonWizard === 'function') openLessonWizard(); return; }
+    input.value = k === 'quiz' ? 'Make a short quiz from the selected frame' : 'Suggest a warm-up game for this lesson and put it on the board';
+    ask();
+  }));
+  // the empty state shows while there is no plan or answer
+  new MutationObserver(() => { const e = $('.ba-empty'); if (e) e.hidden = !out.hidden; }).observe(out, { attributes: true, attributeFilter: ['hidden'] });
+  // voice input where the browser has it
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const mic = $('.ba-mic');
+  if (SR && mic) {
+    mic.hidden = false;
+    let rec = null;
+    mic.addEventListener('click', () => {
+      if (rec) { rec.stop(); return; }
+      rec = new SR(); rec.lang = 'en-GB'; rec.interimResults = true;
+      mic.classList.add('on');
+      rec.onresult = ev => { input.value = [...ev.results].map(r => r[0].transcript).join(' '); };
+      rec.onend = () => { mic.classList.remove('on'); rec = null; input.focus(); };
+      rec.onerror = () => { mic.classList.remove('on'); rec = null; };
+      try { rec.start(); } catch (_) { mic.classList.remove('on'); rec = null; }
+    });
+  }
   bar.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); close(); }
     if (e.key === 'ArrowUp' && !input.value && lastCommand) { e.preventDefault(); input.value = lastCommand; input.select(); }
@@ -694,5 +750,12 @@
     toggle();
   }, true);
 
-  window.TeachEdBoardAgent = { open, close, toggle, run, park, wordSource };
+  /* the crown: shows / tucks away the pill (and the panel with it) */
+  function crown() {
+    if (!allowed()) { canUse(); return; }
+    if (parked || pill.hidden) { park(false); pill.focus(); }
+    else { if (!bar.hidden) close(); park(true); }
+  }
+  const isParked = () => parked;
+  window.TeachEdBoardAgent = { open, close, toggle, run, park, wordSource, crown, isOpen: () => !bar.hidden, isParked };
 })();

@@ -85,7 +85,7 @@
     crown.type = 'button'; crown.className = 'mt-btn sys'; crown.id = 'bc-crown';
     crown.setAttribute('aria-label', 'TeachEd assistant (⌘K)'); crown.dataset.tip = 'TeachEd assistant (⌘K)';
     crown.innerHTML = svg(IC.paw);
-    crown.addEventListener('click', e => { e.stopPropagation(); if (window.TeachEdAssistant) window.TeachEdAssistant.toggle(); else if (window.TeachEdBoardAgent) window.TeachEdBoardAgent.toggle(); });
+    crown.addEventListener('click', e => { e.stopPropagation(); const a = window.TeachEdBoardAgent; if (a && a.crown) a.crown(); else if (a) a.toggle(); });
     bar.prepend(crown);
     const sep0 = document.createElement('div'); sep0.className = 'mt-sep'; crown.after(sep0);
     // one icon set
@@ -500,10 +500,69 @@
     }, true);
   }
 
+
+  /* №16 Share dialog: 400px; "Share this board" with a lime marker, the
+     board's name as the kicker; three numbered rows (pastel chips), the
+     chosen one gets an ink frame and a turned lime arrow; under them the
+     context - the link and Copy (→ ✓), or a lime Invite / Publish. */
+  function sharePanel() {
+    const p = $('share-panel');
+    if (!p || p.dataset.bc) return;
+    p.dataset.bc = '1';
+    p.classList.add('bc-share');
+    const head = $('share-panel-head');
+    if (head) {
+      head.insertAdjacentHTML('afterbegin', '<div class="bc-sh-top"><div class="bc-sh-kick" id="bc-sh-kick">Board</div><h2 class="bc-sh-h">Share <em>this board</em></h2></div>');
+    }
+    const home = $('sp-home-view');
+    const dests = [['sp-dest-link', '01', 'link'], ['sp-dest-invite', '02', 'invite'], ['sp-dest-community', '03', 'community']];
+    dests.forEach(([id, n, view]) => {
+      const b = $(id); if (!b) return;
+      b.removeAttribute('onclick');
+      b.dataset.view = view;
+      const tok = b.querySelector('.sp-destination-token'); if (tok) { tok.className = 'bc-sh-n'; tok.textContent = n; }
+      b.insertAdjacentHTML('beforeend', '<span class="bc-sh-go" aria-hidden="true">→</span>');
+    });
+    const list = home && home.querySelector('.sp-destination-list');
+    if (list) list.insertAdjacentHTML('afterend', `<div class="bc-sh-ctx" data-for="link"><div class="bc-sh-link"><span class="bc-sh-lf" id="bc-sh-lf"></span><button type="button" class="bc-sh-copy">Copy</button></div></div>
+      <div class="bc-sh-ctx" data-for="invite" hidden><button type="button" class="bc-sh-cta" data-go="invite">Invite students →</button></div>
+      <div class="bc-sh-ctx" data-for="community" hidden><button type="button" class="bc-sh-cta" data-go="community">Publish to Community →</button></div>
+      <div class="bc-sh-foot">Link access: <b>Can view</b> · change anytime</div>`);
+    const select = view => {
+      dests.forEach(([id, , v]) => { const b = $(id); if (b) { b.classList.toggle('bc-sel', v === view); b.setAttribute('aria-pressed', String(v === view)); } });
+      p.querySelectorAll('.bc-sh-ctx').forEach(c => { c.hidden = c.dataset.for !== view; });
+    };
+    if (list) list.addEventListener('click', e => {
+      const b = e.target.closest('.sp-destination'); if (!b || b.disabled) return;
+      select(b.dataset.view);
+    });
+    p.addEventListener('click', e => {
+      const go = e.target.closest('[data-go]');
+      if (go && typeof window.spShowView === 'function') window.spShowView(go.dataset.go);
+      const cp = e.target.closest('.bc-sh-copy');
+      if (cp && typeof window.spCopyLink === 'function') { window.spCopyLink(); cp.textContent = '✓'; setTimeout(() => { cp.textContent = 'Copy'; }, 1200); }
+    });
+    // every time it opens: the board's name, the link, the first row chosen
+    if (typeof window.openSharePanel === 'function' && !window.openSharePanel.__bc) {
+      const orig = window.openSharePanel;
+      const wrapped = function () {
+        const r = orig.apply(this, arguments);
+        const name = ($('board-name-display') || {}).textContent || 'This board';
+        const k = $('bc-sh-kick'); if (k) k.textContent = 'Board · ' + name;
+        const lf = $('bc-sh-lf'), inp = $('sp-link-input'); if (lf && inp) lf.textContent = (inp.value || '').replace(/^https?:\/\//, '');
+        select('link');
+        return r;
+      };
+      wrapped.__bc = true;
+      window.openSharePanel = wrapped;
+      const btn = $('btn-share'); if (btn) btn.onclick = () => window.openSharePanel();
+    }
+  }
+
   function init() {
     if (phone()) return;
     toolbar(); topbar(); nav(); boardMenu(); profileMenu();
-    stickyPanel(); shapesPanel(); penPanel(); stickersPanel();
+    stickyPanel(); shapesPanel(); penPanel(); stickersPanel(); sharePanel();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   // board-app wires some of these late
