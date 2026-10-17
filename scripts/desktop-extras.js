@@ -590,7 +590,11 @@ function renderPulse() {
       : (it.kind === 'package' || it.kind === 'payment') && it._next ? `Next lesson ${_pulseWhen(it._next)}` : '';
     // карточку с учеником можно перетащить на день в Schedule - запланировать урок
     const drag = it.journal_id ? ` draggable="true" data-jid="${esc(it.journal_id)}" title="Drag onto a day in Schedule to book a lesson"` : '';
-    return `<div class="wg-pulse-item is-${st}"${drag}>
+    /* Severity by tone weight (design spec v1 №5): info white, warning sand,
+       critical graphite with the action as a lime pill. */
+    const sev = st === 'urgent' || (it.kind === 'payment' && Number(it.overdue_days) >= 7) || (it.kind === 'package' && Number(it.lessons_left) <= 0 && it._next)
+      ? 'crit' : (it.kind === 'package' || it.kind === 'payment') && st !== 'waiting' ? 'warn' : 'info';
+    return `<div class="wg-pulse-item is-${st} sev-${sev}"${drag}>
       ${_pulseAvatar(it)}
       <div class="wg-pulse-body">
         <div class="wg-pulse-line">${it.journal_id ? `<button type="button" class="wg-pulse-who" onclick="pulseOpenStudent(${i})" title="Open ${esc(it.name)}'s card">${esc(_pulseShortName(it.name))}</button>` : `<b>${esc(_pulseShortName(it.name))}</b>`} - ${esc(_pulseText(it))}</div>

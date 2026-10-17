@@ -632,6 +632,8 @@ const WM = (function () {
     if (tb) {
       tb.addEventListener('mousedown', e => {
         if (e.target.classList.contains('tl')) return;
+        // a search box or a button in the title bar (design spec v1 №1) is not a drag handle
+        if (e.target.closest('input, button, a, select, textarea, label')) return;
         if (win.classList.contains('maximized')) return; // can't drag maximized
         const r = win.getBoundingClientRect();
         drag = { win, ox: e.clientX, oy: e.clientY, wx: r.left, wy: r.top, nx: r.left, ny: r.top, snapTo: null, raf: 0 };
@@ -640,7 +642,7 @@ const WM = (function () {
         e.preventDefault();
       });
       tb.addEventListener('dblclick', e => {
-        if (e.target.classList.contains('tl')) return;
+        if (e.target.classList.contains('tl') || e.target.closest('input, button, a, select, textarea, label')) return;
         maximize(idOf(win));
       });
     }
@@ -1227,6 +1229,7 @@ function renderNextClass(schedule) {
     paintAvatar(later ? later.slot : null);
     if (launch) {
       launch.textContent = 'Open schedule';
+      launch.classList.remove('is-dark', 'is-lime'); launch.classList.add('is-quiet');
       launch.disabled = false;
       launch.onclick = () => { location.href = 'schedule.html'; };
     }
@@ -1240,8 +1243,10 @@ function renderNextClass(schedule) {
   if (label) label.textContent = 'Next class';
   title.classList.remove('is-wrap');
   if (time) time.style.display = '';
-  title.textContent = who;
-  if (meta) meta.textContent = [_ncTag(next) || 'Lesson', `${dur} min`].join(' · ');
+  // design spec v1 №4: "lesson with **Name**", then when · how long, then pills
+  title.innerHTML = `<span class="wg-lw">lesson with </span><b>${escHtmlStudents(who)}</b>`;
+  if (meta) meta.innerHTML = [next.title && !/^(class|lesson|individual lesson|1:1|new class)$/i.test(String(next.title).trim()) && next.title !== who ? next.title : '', next.level || next.student_level || '']
+    .filter(Boolean).map(t => `<span class="wg-pill">${escHtmlStudents(t)}</span>`).join('');
   if (time) time.textContent = String(next.start_time).slice(0, 5);
   paintAvatar(next);
 
@@ -1262,24 +1267,34 @@ function renderNextClass(schedule) {
       : live ? `started ${Math.max(0, Math.round(-until))} min ago`
       : d >= 1 ? `${startAt.toLocaleDateString('en-GB', { weekday: 'short' })} · in ${d}d ${h % 24}h`
       : `in ${h ? `${h}h ${m % 60}m` : `${m}m`}`;
-    // «in 5h 47m · 60 min · B2» - когда, сколько длится и про что
-    badge.textContent = [when, `${dur} min`, _ncTag(next)].filter(Boolean).join(' · ');
+    // «in 5h 47m · 60 min» - когда и сколько длится (тема и уровень - пилюлями)
+    badge.textContent = [ended ? `ended ${Math.round(-(until + dur))} min ago` : when, `${dur} min`].filter(Boolean).join(' · ');
   }
+  /* The smart button, by time to the lesson (design spec v1 №4):
+     60+ min - Prepare (quiet, opens the board); 15-60 - Open board (graphite);
+     the lesson's window, 15 min before to its end - Start lesson (lime, the
+     only pulse on the desktop); after - Assign homework (quiet). */
   if (launch) {
     launch.disabled = false;
-    const go = () => {
-      if (next.meeting_url) window.open(next.meeting_url, '_blank', 'noopener');
-      else if (next.board_id) location.href = `board.html?id=${encodeURIComponent(next.board_id)}`;
-      else location.href = 'schedule.html';
-    };
-    if (live || soon) {
-      launch.textContent = live ? (next.meeting_url ? 'Join lesson' : 'Back to the lesson') : 'Launch lesson';
-      if (!next.meeting_url && !next.board_id) launch.textContent = 'Open schedule';
-      launch.onclick = go;
+    launch.classList.remove('is-quiet', 'is-dark', 'is-lime');
+    const board = () => { if (next.board_id) location.href = `board.html?id=${encodeURIComponent(next.board_id)}`; else location.href = 'schedule.html'; };
+    const ended = until + dur <= 0;
+    if (ended) {
+      launch.textContent = 'Assign homework';
+      launch.classList.add('is-quiet');
+      launch.onclick = () => { location.href = 'homework.html'; };
+    } else if (until <= 15) {
+      launch.textContent = live ? (next.meeting_url ? 'Join lesson' : 'Back to the lesson') : 'Start lesson';
+      launch.classList.add('is-lime');
+      launch.onclick = () => { if (next.meeting_url) window.open(next.meeting_url, '_blank', 'noopener'); board(); };
+    } else if (until <= 60) {
+      launch.textContent = next.board_id ? 'Open board' : 'Open schedule';
+      launch.classList.add('is-dark');
+      launch.onclick = board;
     } else {
-      // заранее: открыть доску и подготовиться, но не «запускать» урок
-      launch.textContent = next.board_id ? 'Prepare lesson' : 'Open schedule';
-      launch.onclick = () => { if (next.board_id) location.href = `board.html?id=${encodeURIComponent(next.board_id)}`; else location.href = 'schedule.html'; };
+      launch.textContent = next.board_id ? 'Prepare' : 'Open schedule';
+      launch.classList.add('is-quiet');
+      launch.onclick = board;
     }
   }
 }
@@ -1390,6 +1405,9 @@ function studentsRender() {
   const filtered = STUDENTS.filter(s => {
     if (q && !((s.name || '') + ' ' + (s.email || '')).toLowerCase().includes(q)) return false;
     if (f === 'all') return true;
+    if (f === 'needs') return studentNeedsYou(s);
+    if (f === 'online') return !!s.online;
+    if (f === 'nopkg') return !_hasJournal(s) || (!s.is_trial && Number(s.lessons_left) <= 0);
     if (f === 'individual') return !!s.individual;
     if (f === 'group') return !!s.in_group;
     return s.level === f;
@@ -1403,8 +1421,14 @@ function studentsRender() {
       : `${filtered.length} of ${STUDENTS.length} students`;
   }
 
+  const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n || ''; };
+  setN('st-n-all', STUDENTS.length);
+  setN('st-n-needs', STUDENTS.filter(studentNeedsYou).length);
+  setN('st-n-online', STUDENTS.filter(x => x.online).length);
+  setN('st-n-nopkg', STUDENTS.filter(x => !_hasJournal(x) || (!x.is_trial && Number(x.lessons_left) <= 0)).length);
+
   if (!filtered.length) {
-    list.innerHTML = `<div class="st-empty">Nobody matches “${esc(q)}”.</div>`;
+    list.innerHTML = `<div class="st-empty">${q ? `Nobody matches “${esc(q)}”.` : 'Nobody here right now.'}</div>`;
     studentDetailRender();
     return;
   }
@@ -1422,16 +1446,24 @@ function studentsRender() {
   const ranked = filtered.map(s => ({ s, a: studentAttention(s) }));
   ranked.sort((x, y) => (_attnScore(y.s) - _attnScore(x.s)) || String(x.s.name || '').localeCompare(String(y.s.name || '')));
   const needs = ranked.filter(x => x.a.length && x.a[0].c !== 'low').length;
-  const row = ({ s, a }) => `
-    <div class="st-row${String(s.id) === String(studentsSelectedId) ? ' active' : ''}${a.length && a[0].c !== 'low' ? ' needs' : ''}" onclick="studentSelect('${esc(String(s.id))}')">
-      ${studentAvatarWithDot(s, 'st-row-avatar')}
-      <div style="flex:1;min-width:0;">
+  /* Design spec v1 №1: a halo in the student's own pastel with a status dot
+     (lime online, grey-blue needs you, grey offline); name 14.5/700, level ·
+     lessons under it; on the right "NEEDS YOU" and the reason as a lime-tint
+     pill - billing signals stay graphite, the lime is only in the pill. */
+  const row = ({ s, a }) => {
+    const needs = a.length && a[0].c !== 'low';
+    return `
+    <div class="st-row${String(s.id) === String(studentsSelectedId) ? ' active' : ''}${needs ? ' needs' : ''}" onclick="studentSelect('${esc(String(s.id))}')">
+      ${studentHalo(s, 54, needs)}
+      <div class="st-row-info">
         <div class="st-row-name">${esc(s.name || 'Student')}</div>
-        ${a.length ? `<div class="st-row-attn">${a.slice(0, 2).map(x => `<span class="st-attn ${x.c}">${esc(x.t)}</span>`).join('')}</div>`
-          : (s.online ? `<div class="st-row-sub has-on"><span>${esc(studentRowSub(s))}</span><b class="st-on">· Online</b></div>` : `<div class="st-row-sub">${esc(studentRowSub(s))}</div>`)}
+        ${s.online ? `<div class="st-row-sub has-on"><span>${esc(studentRowSub(s))}</span><b class="st-on">· Online</b></div>` : `<div class="st-row-sub">${esc(studentRowSub(s))}</div>`}
       </div>
+      ${needs ? `<div class="st-row-meta"><div class="st-row-need">Needs you</div><span class="st-bill">${esc(a[0].t)}</span></div>`
+        : a.length ? `<div class="st-row-meta"><span class="st-bill">${esc(a[0].t)}</span></div>` : ''}
       ${s.online && studentLiveBoard(s) ? `<button type="button" class="st-row-call" onclick="event.stopPropagation();studentsJoin('${esc(String(s.id))}')" title="${esc(String(s.name || 'The student').split(' ')[0])} is on a board now - join" aria-label="Join ${esc(s.name || 'the student')} now">${ST_ICON_CAM}</button>` : ''}
     </div>`;
+  };
   list.innerHTML = (needs && !q
     ? `<div class="st-group-h">Needs you · ${needs}</div>${ranked.slice(0, needs).map(row).join('')}${ranked.length > needs ? `<div class="st-group-h calm">All good</div>${ranked.slice(needs).map(row).join('')}` : ''}`
     : ranked.map(row).join(''));
@@ -1453,6 +1485,23 @@ async function studentsJoin(id) {
   location.href = 'board.html?id=' + encodeURIComponent(board);
 }
 window.studentsJoin = studentsJoin;
+
+/* The student's pastel: one of the curated family, the same for this student
+   everywhere (by id), design spec v1 §0 "halo avatars". */
+const ST_PASTELS = ['#F8DBDB', '#E9F5C4', '#D5F6F2', '#DCE9FB', '#F9E1CF', '#F6E7C1', '#E9E4F5', '#E4E2D4'];
+function studentPastel(s) {
+  const k = String(s.id || s.journal_id || s.name || '');
+  let h = 0; for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) | 0;
+  return ST_PASTELS[Math.abs(h) % ST_PASTELS.length];
+}
+const studentNeedsYou = s => { const a = studentAttention(s); return a.length > 0 && a[0].c !== 'low'; };
+function studentHalo(s, size, needs) {
+  const face = _isPhotoUrl(s.avatar)
+    ? `<span class="st-halo-ph" style="background-image:url('${esc(s.avatar)}')"></span>`
+    : `<span class="st-halo-ph">${esc(s.avatar || String(s.name || '?').trim().charAt(0).toUpperCase())}</span>`;
+  const dot = s.online ? 'on' : needs ? 'needs' : 'off';
+  return `<span class="st-halo" style="--halo:${studentPastel(s)};--hs:${size}px">${face}<i class="st-halo-dot ${dot}"></i></span>`;
+}
 
 function studentAvatarWithDot(s, cls) {
   const dot = s.online ? '<span class="st-online" title="On a board now"></span>' : '';
@@ -1609,18 +1658,38 @@ function studentDetailRender() {
   const needs = attn.filter(x => x.k !== 'low').map(fix).join('');
 
   studentsHintClose();
+  /* Design spec v1 №1, panel A: the halo, the name, one status line, the
+     level and the balance as pills, "+ Top up" across the panel (graphite,
+     lime text), Message and Open board as two quiet buttons. What else needs
+     the teacher follows as short lines with their own fix. */
+  const needsList = attn.filter(x => !['low', 'balance', 'due', 'paid'].includes(x.k)).map(fix).join('');
+  const ago = s.last_lesson ? Math.round((new Date().setHours(0, 0, 0, 0) - Date.parse(s.last_lesson + 'T00:00:00')) / 86400000) : null;
+  const lastTxt = ago == null ? '' : ago <= 0 ? 'last lesson today' : ago === 1 ? 'last lesson yesterday' : `last lesson ${ago} days ago`;
+  const statusTxt = s.pending ? st.t
+    : attn.length && attn[0].c !== 'low' ? ['Needs you', attn[0].c === 'money' ? attn[0].t.toLowerCase() : '', lastTxt].filter(Boolean).join(' · ')
+    : s.online ? 'Online now · on a board' : ['All good', lastTxt].filter(Boolean).join(' · ');
+  const board = studentLiveBoard(s);
+  const cta = _hasJournal(s)
+    ? `<button type="button" class="st-cta" onclick="studentsTopUp('${jid}', this)">${s.paid_claim_at ? '✓ Payment received · +' + pack : '+ Top up'}</button>`
+    : `<button type="button" class="st-cta" onclick="studentsAddFor('${esc(String(s.id))}')">+ Add lesson package</button>`;
   box.innerHTML = `
     <div class="st-head">
-      ${studentAvatarWithDot(s, 'st-detail-avatar')}
+      ${studentHalo(s, 110, attn.length && attn[0].c !== 'low')}
       <div class="st-detail-name">${esc(s.name || 'Student')}${dna}</div>
-      <div class="st-head-row">${s.level ? `<span class="st-badge level">${esc(s.level)}</span>` : ''}${s.pending ? `<span class="st-badge ${st.c}">${st.t}</span>` : ''}${balPill}${topUp}</div>
+      <div class="st-status"><i class="${s.online || !(attn.length && attn[0].c !== 'low') ? 'ok' : 'needs'}"></i>${esc(statusTxt)}</div>
+      <div class="st-head-row">${s.level ? `<span class="st-mpill g">${esc(s.level)}</span>` : ''}${_hasJournal(s) ? `<span class="st-mpill l">${s.is_trial ? '✨ Free trial' : `${left} lesson${left === 1 ? '' : 's'} left`}</span>` : '<span class="st-mpill l">No package</span>'}</div>
     </div>
-    <div class="st-fin-anchor${studentsFocusFin ? ' is-focus' : ''}">${needs ? `<div class="st-needs">${needs}</div>` : ''}</div>
+    <div class="st-fin-anchor${studentsFocusFin ? ' is-focus' : ''}">${cta}</div>
+    <div class="st-quiet">
+      <button type="button" class="st-qbtn" onclick="studentsMessage('${esc(String(s.id))}')">Message</button>
+      ${board ? `<a class="st-qbtn" href="board.html?id=${encodeURIComponent(board)}">Open board</a>` : `<button type="button" class="st-qbtn" onclick="openApp('plans')">Open board</button>`}
+    </div>
+    <div class="st-compose" id="st-compose" hidden>
+      <textarea maxlength="1000" placeholder="Message to ${esc(firstName)}…"></textarea>
+      <div class="st-compose-row"><button type="button" class="st-qbtn" onclick="document.getElementById('st-compose').hidden=true">Cancel</button><button type="button" class="st-cta sm" onclick="studentsSendMessage('${esc(String(s.id))}', this)">Send</button></div>
+    </div>
+    ${needsList ? `<div class="st-needs">${needsList}</div>` : ''}
     ${contacts ? `<div class="st-contacts">${contacts}</div>` : ''}
-    <div class="st-detail-actions is-stack">
-      ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
-      <a class="st-detail-btn" href="journal.html">View profile →</a>
-    </div>
     <details class="st-more">
       <summary>Details</summary>
       ${s.email ? `<div class="st-detail-mail">${esc(s.email)}</div>` : ''}
@@ -1628,10 +1697,47 @@ function studentDetailRender() {
       ${money}
       ${home}
       ${chips.length ? `<div class="st-detail-h">Current progress &amp; skills</div><div class="st-chips">${chips.join('')}</div>` : ''}
-      ${s.last_lesson ? `<div class="st-detail-h">Last lesson</div><div class="st-pop-note">${esc(when(s.last_lesson))}</div>` : ''}
+      <div class="st-detail-actions is-stack">
+        ${s.pending ? '' : '<a class="st-detail-btn" href="homework.html">Assign homework</a>'}
+        <a class="st-detail-btn" href="journal.html">View profile →</a>
+      </div>
     </details>`;
   if (studentsFocusFin) box.querySelector('.st-fin-anchor')?.scrollIntoView({ block: 'nearest' });
 }
+
+/* Message from the student's card: the cabinet (and email when they are
+   not on the platform yet) through the Journal; without a Journal row, email. */
+function studentsMessage(id) {
+  const s = STUDENTS.find(x => String(x.id) === String(id));
+  if (!s) return;
+  if (s.journal_id == null) {
+    if (s.email) location.href = 'mailto:' + encodeURIComponent(s.email);
+    else alert('Add this student to your Journal (+ Add lesson package) to message them here.');
+    return;
+  }
+  const box = document.getElementById('st-compose');
+  if (!box) return;
+  box.hidden = !box.hidden;
+  if (!box.hidden) box.querySelector('textarea').focus();
+}
+window.studentsMessage = studentsMessage;
+async function studentsSendMessage(id, btn) {
+  const s = STUDENTS.find(x => String(x.id) === String(id));
+  const box = document.getElementById('st-compose');
+  const text = box?.querySelector('textarea').value.trim();
+  if (!s || !text) return box?.querySelector('textarea').focus();
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const r = await fetch(API_BASE + `/api/journal/${encodeURIComponent(s.journal_id)}/message`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken }, body: JSON.stringify({ text }),
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Could not send');
+    box.hidden = true; box.querySelector('textarea').value = '';
+    btn.textContent = 'Send'; btn.disabled = false;
+    if (typeof showOsToast === 'function') showOsToast(`Sent to ${String(s.name || 'the student').split(' ')[0]}`);
+  } catch (e) { btn.disabled = false; btn.textContent = 'Send'; alert(e.message || 'Could not send'); }
+}
+window.studentsSendMessage = studentsSendMessage;
 
 /* + Top up: one click adds the package (the money went teacher-to-student). */
 async function studentsTopUp(journalId, btn) {
@@ -1972,8 +2078,8 @@ let boardsFilterMode = 'all';
 
 function boardsFilter(mode, el) {
   boardsFilterMode = mode;
-  document.querySelectorAll('#win-plans .sb-item').forEach(i => i.classList.remove('active'));
-  if (el) el.classList.add('active');
+  document.querySelectorAll('#win-plans .sb-item').forEach(i => i.classList.toggle('active', i.id === 'bf-' + mode));
+  document.querySelectorAll('#win-plans .bd-fpill').forEach(i => i.classList.toggle('on', i.dataset.bf === mode));
   boardsRender();
 }
 
@@ -2072,14 +2178,17 @@ function boardsRender() {
      with no boards the empty note above invites to create the first one. */
   grid.innerHTML = list.map(b => {
     const cards = b.card_count || 0;
-    const updated = b.updated_at ? new Date(b.updated_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
+    // "updated 2h ago" (design spec v1 №2), a date once it is older than a week
+    const ut = Date.parse(b.updated_at || ''), mins = ut ? Math.round((Date.now() - ut) / 60000) : null;
+    const updated = mins == null ? '' : mins < 2 ? 'updated just now' : mins < 60 ? `updated ${mins} min ago` : mins < 1440 ? `updated ${Math.round(mins / 60)}h ago`
+      : mins < 2880 ? 'updated yesterday' : mins < 10080 ? `updated ${Math.round(mins / 1440)} days ago` : `updated ${new Date(ut).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`;
     const owner = b.owner_name ? `<div class="lc-desc">Shared by ${escB(b.owner_name)}</div>` : '';
     const own = !b.owner_name && boardsFilterMode !== 'shared';
     const cover = window.TeachEdCover
       ? TeachEdCover.render(b.cover, { title: b.name || 'Untitled', imageUrl: BOARD_COVER_URLS[b.id] || '' })
       : '';
     return `<div class="lesson-card bd-card" onclick="location.href='board.html?id=${escB(b.id)}'" style="cursor:pointer;">
-      <div class="bd-cover">${cover}</div>
+      <div class="bd-cover">${cover}${b.owner_name ? '<span class="bd-shared">Shared</span>' : ''}</div>
       ${own ? `<button class="bd-cover-btn" type="button" title="Customise cover" aria-label="Customise cover" onclick="event.stopPropagation();openBoardCoverEditor('${escB(b.id)}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>` : ''}
       <div class="bd-body">
         <div class="lc-title">${escB(b.name || 'Untitled')}</div>
@@ -2634,6 +2743,8 @@ const SP_ITEMS = [
   { icon:'👥', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Students', sub:'Open students window', kbd:'Students', action:()=>openApp('students') },
   { icon:'📅', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Schedule', sub:'Open schedule calendar', kbd:'Schedule', action:()=>openApp('schedule') },
   { icon:'✍️', iconBg:'linear-gradient(145deg,#5D614B,#5D614B)', title:'Notes', sub:'Open notes editor', kbd:'Notes', action:()=>openApp('notes') },
+  // the dock keeps four tabs (design spec v1, №6): Tools are here, one ⌘K away
+  { icon:'✨', iconBg:'linear-gradient(145deg,#A3A48D,#886BF3)', title:'Teaching Tools', sub:'Exercises, games and worksheets in a click', kbd:'Tools', action:()=>openApp('tools') },
   { icon:'💳', iconBg:'linear-gradient(145deg,#5D614B,#A3A48D)', title:'Pricing & Plans', sub:'Compare Free, Pro and School packages', kbd:'Plans', action:()=>openApp('pricing') },
   // External pages
   { icon:'📌', iconBg:'linear-gradient(145deg,#A3A48D,#5D614B)', title:'Visual Board', sub:'Your whiteboard for the lesson', kbd:'⌘', action:()=>location.href='board.html' },
@@ -3109,13 +3220,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1187" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1188" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1187" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1188" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

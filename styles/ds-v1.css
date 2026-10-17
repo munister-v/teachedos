@@ -1,0 +1,523 @@
+/* TeachEd design spec v1.0 (16.10.2026, "Дизайн-ТЗ по виджетам").
+ *
+ * The last layer on the teacher's pages: it sits on top of figma-concept,
+ * harmony and liquid-glass and wins by a nine-id prefix (liquid-glass uses
+ * eight). Every section names the widget number of the spec.
+ *
+ * §0 tokens: Manrope; ink #0B1026; lime #D3F26A, lime tint #E9F5C4; sand
+ * #F6F6EF / #F5F5EA; olive #CAC9B7 (text on olive is always ink); pink soft
+ * #F8DBDB, pink strong #F35695 (signals); turquoise only for AI; borders
+ * #EDEBE0 / #E4E2D4; muted text #6E7482. Motion cubic-bezier(.2,.7,.3,1),
+ * 0.2–0.45s, still under prefers-reduced-motion.
+ */
+:root {
+  --ds-ink:#0B1026; --ds-lime:#D3F26A; --ds-lime-tint:#E9F5C4;
+  --ds-sand:#F6F6EF; --ds-sand-2:#F5F5EA; --ds-olive:#CAC9B7;
+  --ds-pink:#F8DBDB; --ds-pink-strong:#F35695; --ds-turq:#2DD4BF; --ds-turq-tint:#D5F6F2;
+  --ds-line:#EDEBE0; --ds-line-input:#E4E2D4; --ds-mute:#6E7482; --ds-mute-2:#8A8672;
+  --ds-ease:cubic-bezier(.2,.7,.3,1);
+  --ds-glass:rgba(255,255,255,.84); --ds-glass-blur:blur(20px);
+  --ds-shadow-win:0 30px 80px rgba(11,16,38,.18);
+  --ds-shadow-hover:0 16px 40px rgba(11,16,38,.13);
+  --ds-shadow-lime:0 10px 26px rgba(211,242,106,.55);
+  --ds-font:Manrope,-apple-system,'Segoe UI',sans-serif;
+}
+
+/* ── type: Manrope everywhere on the teacher's chrome and windows ── */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:where(.os-desktop, .tw-page) {
+  font-family:var(--ds-font) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:where(.os-desktop, .tw-page) :where(button, input, select, textarea) { font-family:inherit; }
+
+/* ══ №7 Topbar ═════════════════════════════════════════════════════════
+   68px white panel without glass, border, radius 20, soft shadow. The cat
+   44px turns on hover; nav 14.5/500, olive pill on hover, the active one is
+   700 with a 3px lime line under it. Ask TeachEd pill (turquoise sparkles,
+   ⌘K), a 44px bell circle, the profile in an olive pill. No date. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar, #nav) {
+  height:68px !important; min-height:68px !important;
+  background:#fff !important; border:1px solid rgba(11,16,38,.08) !important;
+  border-radius:20px !important; box-shadow:0 14px 40px rgba(11,16,38,.08) !important;
+  padding:0 20px !important; gap:8px !important;
+  -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  color:var(--ds-ink) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar)::before { display:none !important; }
+/* the desktop's bar floats over the wallpaper */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #menubar {
+  position:fixed !important; top:12px !important; left:16px !important; right:16px !important; width:auto !important;
+}
+/* on the tool pages it is the page's own top: full width, a hairline under it */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.tw-page #nav {
+  border-radius:0 !important; border-width:0 0 1px !important; box-shadow:none !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-apple, #nav .nav-logo) {
+  display:flex !important; align-items:center; gap:10px; flex:none; text-decoration:none;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-apple img, #nav .nav-logo img) {
+  width:44px !important; height:44px !important; object-fit:contain;
+  transition:transform .45s cubic-bezier(.2,.7,.3,1.4);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-apple, #nav .nav-logo):hover img { transform:rotate(-8deg) scale(1.08); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#nav .nav-logo-name, #nav .nav-sep, #menubar .mb-app-name) { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #menubar .mb-menu { margin-left:12px !important; gap:4px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-item, #nav .nav-link) {
+  position:relative; font-size:14.5px !important; font-weight:500 !important; letter-spacing:.1px !important;
+  color:var(--ds-ink) !important; padding:10px 16px !important; border-radius:999px !important;
+  background:transparent !important; box-shadow:none !important; text-decoration:none !important;
+  transition:background .15s !important; line-height:1.2 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-item, #nav .nav-link):hover { background:var(--ds-olive) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-item.fx-active, #menubar .mb-item.active, #nav .nav-link.active) {
+  font-weight:700 !important; background:transparent !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-item.fx-active, #menubar .mb-item.active, #nav .nav-link.active)::after {
+  content:''; position:absolute; left:16px; right:16px; bottom:4px; height:3px; border-radius:2px; background:var(--ds-lime);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-item.fx-active, #menubar .mb-item.active, #nav .nav-link.active):hover { background:var(--ds-olive) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #menubar .mb-right { gap:8px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #menubar #mb-clock { display:none !important; }
+/* the search icon becomes the Ask pill (ds-v1.js puts it in) */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #menubar .mb-icon[onclick^="openSpotlight"] { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ask {
+  display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid #EDEDE6; border-radius:999px;
+  padding:10px 16px; cursor:pointer; transition:border-color .15s; min-width:220px; font:inherit; color:inherit; text-decoration:none;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ask:hover { border-color:var(--ds-olive); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ask svg { flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ask span { font-size:13.5px; font-weight:600; color:rgba(11,16,38,.45); white-space:nowrap; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ask kbd {
+  margin-left:auto; font:inherit; font-size:11.5px; font-weight:700; color:rgba(11,16,38,.4);
+  background:var(--ds-sand); border:1px solid rgba(11,16,38,.08); border-radius:6px; padding:3px 7px;
+}
+@media (max-width:900px) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ask { min-width:0; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ask :is(span, kbd) { display:none; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-item, #nav .nav-link) { padding:10px 12px !important; font-size:13.5px !important; }
+}
+/* bell: a 44px white circle */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#mb-notif-btn, #nav .nb-bell, #nav .nav-bell) {
+  width:44px !important; height:44px !important; flex:none; border-radius:50% !important;
+  border:1px solid rgba(11,16,38,.1) !important; background:#fff !important; color:var(--ds-ink) !important;
+  display:flex !important; align-items:center; justify-content:center; transition:background .15s;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#mb-notif-btn, #nav .nb-bell, #nav .nav-bell):hover { background:var(--ds-sand) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #mb-notif-btn > .ic { width:20px; height:20px; opacity:1 !important; }
+/* profile: olive pill, 36px avatar, name 14/700, chevron */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-acct, #nav .nav-user) {
+  display:flex !important; align-items:center; gap:10px; background:var(--ds-olive) !important; color:var(--ds-ink) !important;
+  border:0 !important; border-radius:999px !important; padding:6px 14px 6px 6px !important; height:auto !important;
+  box-shadow:none !important; cursor:pointer; transition:transform .15s; text-decoration:none !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-acct, #nav .nav-user):hover { transform:translateY(-1px); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-acct > .mb-acct-av, #nav #nav-avatar) {
+  width:36px !important; height:36px !important; border-radius:50% !important; flex:none; overflow:hidden;
+  background:var(--ds-sand) !important; display:flex !important; align-items:center; justify-content:center;
+  font-size:13px !important; font-weight:800 !important; color:var(--ds-ink) !important; background-size:cover !important; background-position:center !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-acct-role, #nav #nav-name) {
+  font-size:14px !important; font-weight:700 !important; color:var(--ds-ink) !important; background:none !important; padding:0 !important; letter-spacing:0 !important; text-transform:none !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar .mb-acct, #nav .nav-user)::after {
+  content:''; width:14px; height:14px; flex:none; opacity:.6;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B1026' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center/14px no-repeat;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar, #nav) :where(a, button, [tabindex]):focus-visible { outline:2px solid var(--ds-lime) !important; outline-offset:2px; }
+
+/* ══ №6 Dock ═══════════════════════════════════════════════════════════
+   Dark glass, four 58px tabs (Boards, Students, Schedule, Notes), no
+   badges; hover lifts the tab and shows a graphite tooltip; the open one is
+   a lime tile with an ink icon and a lime glow. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock {
+  display:flex !important; gap:8px !important; padding:10px !important; height:auto !important;
+  background:rgba(20,20,28,.68) !important; -webkit-backdrop-filter:blur(20px) saturate(1.25) !important; backdrop-filter:blur(20px) saturate(1.25) !important;
+  border:1px solid rgba(255,255,255,.12) !important; border-radius:24px !important; box-shadow:0 20px 60px rgba(11,16,38,.25) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock-wrap { bottom:28px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di {
+  position:relative; width:58px !important; height:58px !important; padding:0 !important; margin:0 !important; border-radius:18px !important;
+  display:flex !important; align-items:center; justify-content:center; background:transparent !important; box-shadow:none !important;
+  color:rgba(255,255,255,.62) !important; transform:none; transition:transform .22s var(--ds-ease), color .2s, background .2s, box-shadow .25s !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-icon {
+  width:auto !important; height:auto !important; background:none !important; box-shadow:none !important; border:0 !important;
+  color:inherit !important; display:flex; transition:transform .22s var(--ds-ease);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-icon .ic { width:25px !important; height:25px !important; color:inherit !important; stroke-width:1.8; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover { color:#fff !important; transform:translateY(-4px) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover .di-icon { transform:scale(1.08); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open {
+  background:var(--ds-lime) !important; color:var(--ds-ink) !important; box-shadow:0 6px 24px rgba(211,242,106,.45) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open:hover { transform:translateY(-2px) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-dot { display:none !important; }
+/* the label is the tooltip: a graphite pill over the tab */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-label {
+  position:absolute !important; bottom:calc(100% + 10px) !important; top:auto !important; left:50% !important;
+  transform:translateX(-50%) translateY(4px) !important; background:var(--ds-ink) !important; color:#fff !important;
+  font-size:12px !important; font-weight:700 !important; padding:6px 12px !important; border-radius:999px !important;
+  opacity:0 !important; pointer-events:none; transition:opacity .18s, transform .18s !important; white-space:nowrap; display:block !important;
+  box-shadow:none !important; text-shadow:none !important; letter-spacing:0 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover .di-label { opacity:1 !important; transform:translateX(-50%) translateY(0) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock :is(#di-tools, #di-board, .di-secondary, .di-sep) { display:none !important; }
+@media (max-width:430px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di { width:50px !important; height:50px !important; } }
+
+/* ══ window dots (§0): 12px, pink soft / olive / lime, glyph on hover ══ */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls { gap:8px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls .tl {
+  width:12px !important; height:12px !important; border:0 !important; box-shadow:inset 0 0 0 .5px rgba(11,16,38,.08) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls .tl.close { background:var(--ds-pink) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls .tl.min { background:var(--ds-olive) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls .tl.max { background:var(--ds-lime) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls .tl::before,
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls .tl::after { background:rgba(11,16,38,.6) !important; }
+
+@media (prefers-reduced-motion:reduce) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#dock .di, #dock .di .di-icon, #dock .di .di-label, #menubar .mb-apple img, #nav .nav-logo img) { transition:none !important; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover { transform:none !important; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-label { display:none !important; }
+}
+
+/* ══ desktop widgets: light glass cards (№4, №5) ═══════════════════════ */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop :where(#wg-today, #wg-week, #wg-pulse, #fx-ghost-panel) {
+  background:rgba(255,255,255,.72) !important; -webkit-backdrop-filter:blur(18px) saturate(1.25) !important; backdrop-filter:blur(18px) saturate(1.25) !important;
+  border:1px solid rgba(255,255,255,.55) !important; border-radius:24px !important; box-shadow:0 18px 50px rgba(11,16,38,.09) !important;
+  color:var(--ds-ink) !important;
+}
+
+/* ── №4 Day card, narrow: halo + time, "lesson with Name", when · length, pills, the smart button ── */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today {
+  display:grid !important; grid-template-columns:54px 1fr; grid-template-areas:"halo time" "who who" "when when" "pills pills" "btn btn";
+  column-gap:12px; row-gap:0; align-items:center; padding:18px !important; height:auto !important; min-height:0 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-label { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-who { display:contents !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-id { display:contents !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-avatar:not([style*="url("]) {
+  background:linear-gradient(var(--ds-sand),var(--ds-sand)) padding-box, conic-gradient(from 40deg,#F8DBDB,#D3F26A,#D5F6F2,#F8DBDB) border-box !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-avatar {
+  grid-area:halo; width:54px !important; height:54px !important; margin:0 !important; border-radius:50% !important;
+  border:3px solid transparent !important; box-shadow:none !important;
+  display:flex !important; align-items:center; justify-content:center;
+  font-size:19px !important; font-weight:800 !important; color:var(--ds-ink) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-avatar[style*="url("] {
+  background-color:var(--ds-sand) !important; background-origin:padding-box !important; background-clip:padding-box !important;
+  background-size:cover !important; background-position:center !important; border-color:#F8DBDB !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-time {
+  grid-area:time; display:block !important; position:static !important; font-size:34px !important; font-weight:800 !important;
+  letter-spacing:-1px !important; line-height:1 !important; color:var(--ds-ink) !important; margin:0 !important; text-align:left !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-title {
+  grid-area:who; margin:12px 0 2px !important; font-size:16px !important; font-weight:600 !important; line-height:1.25 !important;
+  color:var(--ds-ink) !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-title b { font-weight:800; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-title.is-wrap { white-space:normal; font-weight:700 !important; grid-column:1 / -1; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-badge {
+  grid-area:when; display:block !important; font-size:13.5px !important; font-weight:600 !important; color:var(--ds-mute) !important;
+  background:none !important; padding:0 !important; margin:0 0 8px !important; border:0 !important; text-align:left !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-meta {
+  grid-area:pills; display:flex !important; flex-wrap:wrap; gap:6px; margin:0 0 12px !important; font-size:0 !important; color:var(--ds-ink) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-meta:empty { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-pill {
+  font-size:11.5px; font-weight:700; background:var(--ds-sand-2); border:1px solid rgba(11,16,38,.07); padding:5px 11px; border-radius:999px; color:var(--ds-ink);
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-launch {
+  grid-area:btn; width:100% !important; height:52px !important; padding:0 20px !important; border-radius:16px !important;
+  font-size:15.5px !important; font-weight:700 !important; white-space:nowrap; cursor:pointer; position:relative;
+  transition:transform .15s, box-shadow .15s, border-color .15s !important; animation:none !important; margin:0 !important;
+  background:#fff !important; border:1px solid rgba(11,16,38,.14) !important; color:var(--ds-ink) !important; box-shadow:none !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-launch.is-quiet:hover { border-color:rgba(11,16,38,.3) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-launch.is-dark { background:var(--ds-ink) !important; color:#fff !important; border-color:var(--ds-ink) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-launch.is-dark:hover { transform:translateY(-1px); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-launch.is-lime {
+  background:var(--ds-lime) !important; color:var(--ds-ink) !important; border-color:var(--ds-lime) !important;
+  box-shadow:var(--ds-shadow-lime) !important; animation:ds-pulse 1.8s infinite !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-launch.is-lime:hover { transform:translateY(-1px); }
+@keyframes ds-pulse { 0% { box-shadow:0 0 0 0 rgba(211,242,106,.55); } 70% { box-shadow:0 0 0 14px rgba(211,242,106,0); } 100% { box-shadow:0 0 0 0 rgba(211,242,106,0); } }
+
+/* ── №5 Student Pulse: solid alerts, severity by tone weight ── */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse { padding:22px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-head { margin-bottom:14px !important; align-items:center; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-title {
+  font-size:17px !important; font-weight:800 !important; letter-spacing:-.3px !important; text-transform:none !important; color:var(--ds-ink) !important;
+  display:flex; align-items:center; gap:10px;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-title::after {
+  content:'live'; display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; color:#6A771F; letter-spacing:0;
+  padding-left:14px; background:radial-gradient(circle at 4px 50%, #D3F26A 4px, rgba(211,242,106,.3) 4px 8px, transparent 8px) no-repeat;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-all {
+  margin-left:auto; font-size:12.5px !important; font-weight:700 !important; color:var(--ds-ink) !important; background:#fff !important;
+  border:1px solid rgba(11,16,38,.1) !important; border-radius:999px !important; padding:5px 12px !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item {
+  display:flex !important; gap:14px !important; align-items:center !important; border-radius:18px !important; padding:15px 16px !important;
+  margin:0 0 12px !important; background:#fff !important; border:1px solid rgba(11,16,38,.09) !important; box-shadow:none !important;
+  animation:ds-pop .45s var(--ds-ease) backwards;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item:nth-child(2) { animation-delay:.08s; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item:nth-child(3) { animation-delay:.16s; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item:last-child { margin-bottom:0 !important; }
+@keyframes ds-pop { from { opacity:0; transform:translateY(10px) scale(.97); } to { opacity:1; transform:none; } }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-warn { background:var(--ds-sand-2) !important; border-color:rgba(11,16,38,.05) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit { background:var(--ds-ink) !important; border-color:var(--ds-ink) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.is-waiting { opacity:.62; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-av {
+  width:46px !important; height:46px !important; flex:none; border-radius:50% !important; border:3px solid transparent !important;
+  background:linear-gradient(#fff,#fff) padding-box, conic-gradient(from 40deg,#F8DBDB,#D3F26A,#D5F6F2,#F8DBDB) border-box !important;
+  display:flex !important; align-items:center; justify-content:center; font-size:16px !important; font-weight:800 !important; color:var(--ds-ink) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-warn .wg-pulse-av { background:linear-gradient(#fff,#fff) padding-box, conic-gradient(from 120deg,#D3F26A,#F8DBDB,#CAC9B7,#D3F26A) border-box !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit .wg-pulse-av { background:linear-gradient(#fff,#fff) padding-box, conic-gradient(from 200deg,#D5F6F2,#F8DBDB,#E9E4F5,#D5F6F2) border-box !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-dot { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-line { font-size:15px !important; font-weight:700 !important; color:var(--ds-ink) !important; line-height:1.3 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-line :is(b, .wg-pulse-who) { font-weight:800 !important; color:inherit !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-note { font-size:13.5px !important; font-weight:600 !important; color:var(--ds-mute) !important; margin-top:2px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit .wg-pulse-line { color:#fff !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit .wg-pulse-note { color:rgba(255,255,255,.6) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-acts { gap:14px !important; margin-top:6px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-act {
+  background:none !important; border:0 !important; padding:0 !important; height:auto !important; box-shadow:none !important;
+  font-size:13.5px !important; font-weight:800 !important; color:var(--ds-ink) !important; text-decoration:none; cursor:pointer;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-act svg { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-act:first-child::after { content:' →'; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-act:not(:first-child) { color:var(--ds-mute) !important; font-weight:700 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-act:hover { text-decoration:underline; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit .wg-pulse-act { color:rgba(255,255,255,.7) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit .wg-pulse-act:first-child {
+  background:var(--ds-lime) !important; color:var(--ds-ink) !important; padding:8px 14px !important; border-radius:999px !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit .wg-pulse-act:first-child:hover { text-decoration:none; transform:translateY(-1px); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-empty { font-size:13.5px !important; color:var(--ds-mute) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-empty b { display:block; font-size:16px; font-weight:700; color:var(--ds-ink); margin-bottom:2px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-clear { background:rgba(255,255,255,.72) !important; }
+@media (prefers-reduced-motion:reduce) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop :is(#wg-pulse .wg-pulse-item, #wg-today .wg-next-launch.is-lime) { animation:none !important; }
+}
+
+/* Day card fits the right column (two cards over the schedule panel): one
+   height for both cards, the panel under them moves down to match; in the
+   narrow card the pills step aside and the button is 44px. The older layer
+   wrote "lesson with" in CSS; the widget now says it itself. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop :is(#wg-today, #wg-week, #wg-vocab) { height:176px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today { grid-template-columns:44px 1fr; padding:16px !important; align-content:start; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-avatar { width:44px !important; height:44px !important; font-size:16px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-time { font-size:30px !important; justify-self:start; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-title { margin:10px 0 1px !important; font-size:14.5px !important; display:block !important; -webkit-line-clamp:unset; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-title::before { content:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-title .wg-lw { font-weight:600; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-badge { font-size:12.5px !important; margin-bottom:10px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-today-meta { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-today .wg-next-launch { height:44px !important; font-size:14.5px !important; border-radius:14px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel { top:322px !important; max-height:calc(100vh - 322px - 120px) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse { width:400px !important; max-width:calc(100vw - 100px); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-title { white-space:nowrap; }
+
+/* ══ №1 Students ═══════════════════════════════════════════════════════
+   Light glass window, radius 24; the header has the title and the search;
+   filters on the left with lime counters and the lime "+"; roster rows
+   with pastel halos; panel A on the right. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(.win) {
+  background:rgba(255,255,255,.84) !important; -webkit-backdrop-filter:blur(20px) saturate(1.25) !important; backdrop-filter:blur(20px) saturate(1.25) !important;
+  border:1px solid rgba(255,255,255,.65) !important; border-radius:24px !important; box-shadow:0 30px 80px rgba(5,5,23,.18) !important; color:var(--ds-ink);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-titlebar {
+  display:flex !important; align-items:center; gap:14px; padding:16px 22px !important; height:auto !important; min-height:64px;
+  border-bottom:1px solid var(--ds-line) !important; background:transparent !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-title {
+  position:static !important; transform:none !important; font-size:17px !important; font-weight:800 !important; letter-spacing:-.3px !important; color:var(--ds-ink) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-title .ic { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tsearch {
+  margin-left:auto; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--ds-line-input); border-radius:12px;
+  padding:0 14px; min-width:220px; height:38px; cursor:text;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tsearch svg { width:15px; height:15px; flex:none; fill:none; stroke:var(--ds-mute-2); stroke-width:2; stroke-linecap:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tsearch input {
+  border:0 !important; outline:0 !important; background:transparent !important; box-shadow:none !important; height:36px !important; min-height:0 !important;
+  padding:0 !important; font:inherit; font-size:13px !important; color:var(--ds-ink) !important; width:100%; border-radius:0 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tsearch input::placeholder { color:var(--ds-mute-2); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-tsearch:focus-within { border-color:var(--ds-lime); box-shadow:0 0 0 3px rgba(211,242,106,.35); }
+/* sidebar: filters */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-sidebar {
+  width:230px !important; flex:0 0 230px !important; padding:18px 14px !important; display:flex !important; flex-direction:column; gap:6px;
+  border-right:1px solid var(--ds-line) !important; background:transparent !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-sidebar .sb-item {
+  display:flex !important; align-items:center; gap:8px; font-size:13.5px !important; font-weight:600 !important; color:var(--ds-ink) !important;
+  padding:10px 12px !important; border-radius:12px !important; background:transparent !important; box-shadow:none !important; cursor:pointer; margin:0 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-sidebar .sb-item:hover { background:#F8F8F2 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-sidebar .sb-item.active { background:var(--ds-sand-2) !important; font-weight:800 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-sidebar .sb-item.active::before { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .sb-n { margin-left:auto; background:var(--ds-lime); font-size:11px; font-weight:800; border-radius:999px; padding:2px 9px; color:var(--ds-ink); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .sb-n:empty { display:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .sb-add-row { margin-top:auto; display:flex; justify-content:center; padding-top:12px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .sb-add {
+  width:48px; height:48px; border-radius:50%; background:var(--ds-lime); border:0; font-size:22px; font-weight:700; cursor:pointer; color:var(--ds-ink);
+  box-shadow:var(--ds-shadow-lime); transition:transform .2s var(--ds-ease);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .sb-add:hover { transform:translateY(-2px); }
+/* main: no hero, no second search, no old "+" */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students :is(.studio-hero, #students-add-toggle) { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-list-head { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-list-col { padding:14px !important; border-right:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-count { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-group-h { padding:10px 14px 6px !important; font-size:11px !important; letter-spacing:.06em; color:var(--ds-mute-2) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row {
+  display:flex !important; align-items:center; gap:14px !important; padding:12px 14px !important; margin:0 0 2px !important; border-radius:16px !important;
+  background:transparent !important; box-shadow:none !important; cursor:pointer;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row:hover { background:#F8F8F2 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row.active { background:var(--ds-sand-2) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row::before, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row::after { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row-info { flex:1; min-width:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row-name { font-size:14.5px !important; font-weight:700 !important; color:var(--ds-ink) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row-sub { font-size:12.5px !important; color:var(--ds-mute) !important; margin-top:2px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row-meta { margin-left:auto; text-align:right; flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-row-need { font-size:11px; font-weight:800; color:var(--ds-ink); letter-spacing:.6px; text-transform:uppercase; margin-bottom:4px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-bill { display:inline-block; background:var(--ds-lime-tint); color:var(--ds-ink); font-size:11px; font-weight:800; border-radius:999px; padding:4px 11px; white-space:nowrap; }
+/* halo: the student's pastel ring, a white disc with the initial, a status dot */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .st-halo {
+  position:relative; flex:none; width:var(--hs); height:var(--hs); border-radius:50%; background:var(--halo);
+  display:flex; align-items:center; justify-content:center;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .st-halo-ph {
+  width:calc(var(--hs) * .852); height:calc(var(--hs) * .852); border-radius:50%; background:#fff center/cover no-repeat;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:calc(var(--hs) * .28); color:var(--ds-ink); line-height:1;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .st-halo-dot { position:absolute; right:2px; bottom:2px; width:13px; height:13px; border-radius:50%; border:2.5px solid #fff; background:#C9CDD3; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .st-halo-dot.on { background:var(--ds-lime); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .st-halo-dot.needs { background:#A8AEB9; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .st-detail .st-halo { margin:0 auto 14px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .st-detail .st-halo-dot { width:16px; height:16px; right:8px; bottom:8px; }
+/* panel A */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail {
+  width:320px !important; flex:0 0 320px !important; padding:26px 22px !important; margin:0 !important; border-radius:0 !important;
+  background:rgba(255,255,255,.5) !important; border:0 !important; border-left:1px solid var(--ds-line) !important; box-shadow:none !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail-name { font-size:19px !important; font-weight:800 !important; letter-spacing:-.4px !important; color:var(--ds-ink) !important; justify-content:center; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-status { display:flex; align-items:center; justify-content:center; gap:7px; font-size:12.5px; color:var(--ds-ink); margin:6px 0 14px; text-align:center; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-status i { width:9px; height:9px; flex:none; border-radius:50%; background:var(--ds-lime); box-shadow:0 0 0 4px #D3F26A44; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-status i.needs { background:#A8AEB9; box-shadow:0 0 0 4px rgba(168,174,185,.25); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-head-row { gap:8px !important; margin:0 0 16px !important; justify-content:center; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-mpill { font-size:12px; font-weight:700; height:36px; display:inline-flex; align-items:center; padding:0 14px; border-radius:999px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-mpill.g { background:var(--ds-ink); color:#fff; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-mpill.l { background:var(--ds-lime-tint); color:var(--ds-ink); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-fin-anchor { margin:0 0 10px !important; border-radius:14px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-cta {
+  width:100%; height:44px; border:0; border-radius:14px; background:var(--ds-ink); color:var(--ds-lime); font:inherit; font-size:14px; font-weight:800; cursor:pointer;
+  transition:transform .15s;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-cta:hover { transform:translateY(-1px); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-cta:disabled { opacity:.6; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-cta.sm { width:auto; height:38px; padding:0 18px; border-radius:12px; font-size:12.5px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-quiet { display:flex; gap:8px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-qbtn {
+  flex:1; height:38px; border-radius:12px; border:1px solid var(--ds-line-input); background:#fff; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+  color:var(--ds-ink); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-qbtn:hover { background:var(--ds-sand); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-compose { margin-top:10px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-compose textarea {
+  width:100%; box-sizing:border-box; min-height:72px; border-radius:12px; border:1px solid var(--ds-line-input); padding:10px 12px; font:inherit; font-size:13px; resize:vertical; background:#fff;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-compose-row { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-compose-row .st-qbtn { flex:none; padding:0 16px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-needs { margin-top:14px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-need { background:var(--ds-sand-2) !important; border-radius:14px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-need .go { background:var(--ds-ink) !important; color:#fff !important; border-radius:10px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-contacts { margin-top:16px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-more { margin-top:12px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-more > summary { color:var(--ds-mute-2) !important; font-size:12px !important; }
+@container stmain (max-width: 600px) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .st-detail { width:auto !important; flex:none !important; border-left:0 !important; border-top:1px solid var(--ds-line) !important; }
+}
+/* the older layer floats the title bar over the content and hides the title */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-titlebar { position:relative !important; inset:auto !important; flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-title { display:block !important; opacity:1 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .win-body { padding-top:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-students .sb-item-badge { display:none !important; }
+
+/* ══ №2 Boards ═════════════════════════════════════════════════════════
+   Header: dots, "Boards" 15/800, the search pill on the right. Toolbar:
+   filter pills (active olive, text ink) and the lime Create board pill.
+   Grid of white cards, radius 16, lift on hover; no sidebar, no hero. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-titlebar {
+  position:relative !important; inset:auto !important; flex:none; display:flex !important; align-items:center; gap:14px;
+  padding:16px 22px !important; min-height:64px; height:auto !important; border-bottom:1px solid var(--ds-line) !important; background:transparent !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-title {
+  display:block !important; opacity:1 !important; position:static !important; transform:none !important;
+  font-size:15px !important; font-weight:800 !important; letter-spacing:-.2px !important; color:var(--ds-ink) !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-title .ic { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-tsearch {
+  margin-left:auto; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid rgba(11,16,38,.1); border-radius:999px;
+  padding:0 14px; width:260px; max-width:40%; height:38px; cursor:text;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-tsearch svg { width:15px; height:15px; flex:none; fill:none; stroke:var(--ds-mute); stroke-width:2; stroke-linecap:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-tsearch input {
+  border:0 !important; outline:0 !important; background:transparent !important; box-shadow:none !important; height:36px !important; min-height:0 !important;
+  padding:0 !important; font:inherit; font-size:13px !important; color:var(--ds-ink) !important; width:100%; border-radius:0 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-tsearch:focus-within { border-color:var(--ds-lime); box-shadow:0 0 0 3px rgba(211,242,106,.35); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans :is(.win-sidebar, .studio-hero) { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-body { padding-top:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-main { padding:18px 22px 22px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:18px; flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-filters { display:flex; gap:8px; flex-wrap:wrap; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-fpill {
+  font:inherit; font-size:13px; font-weight:700; padding:9px 16px; border-radius:999px; border:1px solid rgba(11,16,38,.12); background:#fff;
+  color:var(--ds-ink); cursor:pointer; transition:background .15s, border-color .15s;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-fpill:hover { border-color:rgba(11,16,38,.25); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-fpill.on { background:var(--ds-olive); border-color:var(--ds-olive); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-create {
+  margin-left:auto; display:inline-flex; align-items:center; gap:8px; background:var(--ds-lime); color:var(--ds-ink); text-decoration:none;
+  font-size:13.5px; font-weight:800; padding:11px 20px; border-radius:999px; transition:transform .2s var(--ds-ease), box-shadow .2s;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-create:hover { transform:translateY(-1px); box-shadow:var(--ds-shadow-lime); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-create svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid {
+  display:grid !important; grid-template-columns:repeat(3, minmax(0, 1fr)) !important; gap:18px !important; padding:0 !important;
+}
+@container (max-width: 760px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; } }
+@container (max-width: 480px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:1fr !important; } }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-main { container-type:inline-size; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card {
+  position:relative; background:#fff !important; border:1px solid rgba(11,16,38,.07) !important; border-radius:16px !important; overflow:hidden;
+  padding:0 !important; box-shadow:none !important; transition:transform .25s var(--ds-ease), box-shadow .25s !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card:hover { transform:translateY(-4px) !important; box-shadow:var(--ds-shadow-hover) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card .bd-cover {
+  position:relative; height:132px !important; aspect-ratio:auto !important; border-radius:0 !important; box-shadow:none !important; transform:none !important; overflow:hidden;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card .bd-cover > * { height:100% !important; border-radius:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-shared {
+  position:absolute; top:10px; left:10px; height:auto !important; background:#3A3F49; color:#fff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:999px;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card .bd-body { padding:14px 16px 16px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card .lc-title { font-size:15.5px !important; font-weight:800 !important; color:var(--ds-ink) !important; text-decoration:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card :is(.lc-meta, .lc-dur, .lc-desc) { font-size:12.5px !important; font-weight:700 !important; color:var(--ds-mute) !important; margin-top:4px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-cover-btn {
+  position:absolute; top:10px; right:10px; width:32px !important; height:32px !important; border-radius:50% !important; background:#fff !important;
+  border:0 !important; box-shadow:0 4px 12px rgba(11,16,38,.15) !important; opacity:0; transition:opacity .15s !important; display:flex; align-items:center; justify-content:center;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card:hover .bd-cover-btn { opacity:1; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-cover-btn svg { width:15px; height:15px; fill:none; stroke:var(--ds-ink); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :is(#win-plans, #win-students) .win-controls { position:static !important; transform:none !important; flex:none; display:flex !important; }
