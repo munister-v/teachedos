@@ -26,3 +26,4 @@ Disallow: /lesson-builder.html
 Disallow: /offline.html
 
 Sitemap: https://teached.tech/sitemap.xml
+Sitemap: https://teached.tech/sitemap-community.xml

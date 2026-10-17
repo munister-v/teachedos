@@ -69,14 +69,16 @@ const RESOURCE_SQL = `
          NULLIF(a.data->>'duration', '') AS duration,
          (a.data->>'allowCopy') IS DISTINCT FROM 'false' AS allow_copy,
          a.data->'preview' AS preview,
+         CASE WHEN jsonb_typeof(a.data #> '{snapshot,cards}') = 'array' THEN jsonb_array_length(a.data #> '{snapshot,cards}') ELSE 0 END AS card_total,
          u.name AS author_name,
          ${STATS_SQL}
     FROM assignments a JOIN users u ON u.id = a.user_id`;
 
 /* The few things a stranger may be told about what is inside: how many cards and
    what kinds - never their text (a card can hold anything, a student's name too). */
-function insideOf(preview) {
-  const n = Number(preview && preview.cardCount) || 0;
+function insideOf(preview, total) {
+  // publications made before the preview existed only have the snapshot: its size, never its text
+  const n = Math.max(Number(preview && preview.cardCount) || 0, Number(total) || 0);
   const types = Array.isArray(preview && preview.types) ? preview.types.slice(0, 3)
     .map(t => ({ type: clip(t && t.type, 32), count: Number(t && t.count) || 0 })).filter(t => t.type && t.count) : [];
   return { cards: n, types };
@@ -91,7 +93,7 @@ function project(r) {
     author: { name: clip(r.author_name, 80) || 'A TeachEd teacher', slug: authorSlug(r.author_name, r.author_id) },
     cefr: CEFR.has(level) ? level : null, skill: clip(r.skill, 40) || null,
     section: sectionOf(r.kind), type: typeOf(r), published: first, updated: upd,
-    hasImage: !!r.has_image, inside: insideOf(r.preview), duration: clip(r.duration, 20) || null,
+    hasImage: !!r.has_image, inside: insideOf(r.preview, r.card_total), duration: clip(r.duration, 20) || null,
     stats: shapeStats(r), paid: r.access_type === 'paid', allowCopy: r.allow_copy !== false,
   };
   const moderated = r.moderation_state === 'published';
