@@ -16660,7 +16660,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1192';
+const TEACHEDOS_ASSET_VERSION = '1193';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20262,6 +20262,7 @@ function _wizRenderNews(host) {
     host.innerHTML = `<div class="tb-wiz-tool"><span class="tb-wiz-tool-note">Sign in to browse today's news.</span></div>`;
     return;
   }
+  if (st.draft) { _wizRenderNewsDraft(host, st); return; }
   const topics = st.topics || [];
   const items = st.items;
   const picked = st.picked != null && items ? items[st.picked] : null;
@@ -20481,18 +20482,11 @@ async function buildMagazineFromStory() {
       const img = await r.json().catch(() => null);
       if (img && img.url) mag.image = img.url;
     } catch {}
-    const base = { level, topic: mag.headline };
-    const path = { kind: 'magazine', steps: [{ role: 'magazine-studio', title: 'Magazine Reading Studio', out: mag, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [] };
-    const card = _wpPlacePathCard(base, mag.headline || story.title, path);
-    if (card) {
-      _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
-        title: card.data.title, cat: 'reading', level, topic: mag.category,
-        kind: `Magazine article · ${mag.vocab.length} phrases`, toolId: 'magazine',
-      });
-      say('Done - the article is on the board.');
-      closeTeacherToolBuilder();
-      toast('Magazine article added - open it to read');
-    }
+    /* Nothing reaches the board unseen (Lesson Builder 2.0 P1, T-N2): the article waits
+       as a draft the teacher can read as a student would, and goes on the board only
+       with the explicit "Add to board". */
+    st.draft = { mag, level, story: { title: story.title, source: story.source } };
+    st.note = '';
   } catch (err) {
     console.warn('[magazine] failed', err);
     say('The magazine article could not be built right now.');
@@ -20500,6 +20494,86 @@ async function buildMagazineFromStory() {
     st.busy = false;
     _wizNewsRerender();
   }
+}
+
+/* The draft: the card exactly as it will sit on the board, a way to read it as a student
+   would, what it is made of, and one explicit button. */
+function _wizRenderNewsDraft(host, st) {
+  const d = st.draft;
+  if (host.querySelector('.tb-news-draft') && st.draftShown === d) return;      // do not rebuild what is already on screen
+  st.draftShown = d;
+  const mag = d.mag;
+  host.innerHTML = `
+    <div class="tb-news tb-news-draft">
+      <div class="tb-news-draft-head"><b>Draft - not on the board yet</b>
+        <small>Retold for ${esc(d.level)} · ${Number(mag.readMinutes) || 3} min read · ${(mag.vocab || []).length} phrases · from ${esc((mag.source && mag.source.name) || d.story.source || 'the news')}</small></div>
+      <div class="tb-news-draft-card" id="tb-news-draft-card"></div>
+      <div class="tb-news-draft-actions">
+        <button type="button" class="tbuilder-btn lime" id="tb-news-add" onclick="addNewsDraftToBoard()">Add to board</button>
+        <button type="button" class="tbuilder-btn" onclick="readNewsDraft()">Read it as a student</button>
+        <button type="button" class="tbuilder-btn" onclick="discardNewsDraft()">Pick another story</button>
+      </div>
+      <span class="tb-wiz-tool-note" id="tb-news-note">${esc(st.note || 'Have a look first. Nothing reaches the board until you add it.')}</span>
+    </div>`;
+  const box = host.querySelector('#tb-news-draft-card');
+  if (window.TeachedMagazine && box) window.TeachedMagazine.preview(box, mag, () => readNewsDraft());
+}
+
+function readNewsDraft() {
+  const st = _wizNewsState;
+  if (!st || !st.draft || !window.TeachedMagazine) return;
+  closeNewsDraftReader();
+  const ov = document.createElement('div');
+  ov.id = 'tb-news-reader';
+  ov.className = 'tb-news-reader';
+  ov.innerHTML = `<div class="tb-news-reader-bar"><span>Student view - a preview, nothing is saved</span>
+    <button type="button" class="tbuilder-btn lime" onclick="addNewsDraftToBoard()">Add to board</button>
+    <button type="button" class="tbuilder-btn" onclick="closeNewsDraftReader()">Close</button></div>
+    <div class="tb-news-reader-body"></div>`;
+  document.body.appendChild(ov);
+  st.draftReader = window.TeachedMagazine.mount(ov.querySelector('.tb-news-reader-body'), {
+    out: st.draft.mag, state: null, api: apiFetch, canSave: false, boardId: null, save: () => {},
+  });
+  ov._esc = e => { if (e.key === 'Escape') closeNewsDraftReader(); };
+  document.addEventListener('keydown', ov._esc);
+}
+function closeNewsDraftReader() {
+  const st = _wizNewsState;
+  try { st && st.draftReader && st.draftReader.destroy && st.draftReader.destroy(); } catch (_) {}
+  if (st) st.draftReader = null;
+  const ov = document.getElementById('tb-news-reader');
+  if (ov) { document.removeEventListener('keydown', ov._esc); ov.remove(); }
+}
+function discardNewsDraft() {
+  const st = _wizNewsState;
+  if (!st || st.busy) return;
+  closeNewsDraftReader();
+  st.draft = null; st.draftShown = null; st.note = '';
+  _wizNewsRerender();
+}
+
+/* The one way an article reaches the board. */
+function addNewsDraftToBoard() {
+  const st = _wizNewsState;
+  const d = st && st.draft;
+  if (!d || st.busy) return;
+  const mag = d.mag, level = d.level;
+  const base = { level, topic: mag.headline };
+  const path = { kind: 'magazine', steps: [{ role: 'magazine-studio', title: 'Magazine Reading Studio', out: mag, state: null }], cur: 0, done: [], guide: null, genre: '', assigned: [] };
+  const card = _wpPlacePathCard(base, mag.headline || d.story.title, path);
+  if (!card) {
+    st.note = 'The article could not be placed on the board. It is still here - try Add to board again.';
+    const n = document.getElementById('tb-news-note'); if (n) n.textContent = st.note;
+    return;
+  }
+  _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
+    title: card.data.title, cat: 'reading', level, topic: mag.category,
+    kind: `Magazine article · ${(mag.vocab || []).length} phrases`, toolId: 'magazine',
+  });
+  closeNewsDraftReader();
+  st.draft = null; st.draftShown = null; st.note = '';
+  closeTeacherToolBuilder();
+  toast('Magazine article added - open it to read');
 }
 
 async function useNewsStory() {
@@ -23301,7 +23375,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1192',
+          icon: 'icons/icon-192.png?v=1193',
           tag: 'board-live-' + s.id,
         });
       }
