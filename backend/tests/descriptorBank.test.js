@@ -16,14 +16,17 @@ test('Grammar is covered at every level in all four modes - and says it is only 
   assert.equal(c.perSkill.grammar.of, 24);
   assert.equal(c.perSkill.grammar.approved, 0, 'nobody has signed it off yet, and the report must not pretend otherwise');
   assert.equal(c.total, 8 * 6 * 4);
-  assert.ok(c.gaps.includes('vocabulary') && !c.gaps.includes('grammar'), 'the other studios are reported as gaps');
+  assert.equal(c.perSkill.vocabulary.filled, 24);
+  assert.equal(c.perSkill.vocabulary.approved, 0, 'Vocabulary is a draft too');
+  assert.ok(c.gaps.includes('listening') && !c.gaps.includes('grammar') && !c.gaps.includes('vocabulary'), 'the other studios are reported as gaps');
 });
 
 test('one statement per level and mode, in a fixed order, and a short brief for a model', () => {
   const rows = bank.forLevel('B1', 'grammar');
   assert.deepEqual(rows.map(r => r.mode), ['reception', 'production', 'interaction', 'mediation']);
   assert.ok(bank.brief('B1', 'grammar').startsWith('At B1, a learner: can recognise'));
-  assert.equal(bank.brief('B1', 'vocabulary'), '', 'nothing invented for a skill that has no statements');
+  assert.ok(bank.brief('B1', 'vocabulary').startsWith('At B1, a learner: can understand'));
+  assert.equal(bank.brief('B1', 'listening'), '', 'nothing invented for a skill that has no statements');
 });
 
 test('statements climb with the level: an A1 sentence never says what a C1 one does', () => {

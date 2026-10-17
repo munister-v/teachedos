@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "framework": "CEFR Companion Volume (Council of Europe, 2020) - levels A1-C2 and the four modes of communicative activity",
   "note": "Working bank. Every statement here is TeachEd's own wording of what each level can do with grammar, written as a stand-in so generation and checking have one source of truth. Status 'draft' means a methodologist has not signed it off; only 'approved' counts as calibrated. Replace or confirm each one against the Companion Volume before relying on it.",
   "changelog": [
@@ -8,6 +8,11 @@
       "version": "0.1.0",
       "date": "2026-10-16",
       "change": "Grammar skill, all levels and modes, as drafts."
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-10-17",
+      "change": "Vocabulary skill, all levels and modes, as drafts."
     }
   ],
   "levels": [
@@ -248,6 +253,222 @@
       "mode": "mediation",
       "skill": "grammar",
       "text": "Can pass on a nuanced text, rebuilding its grammar for the audience while keeping every shade of meaning.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A1-REC",
+      "level": "A1",
+      "mode": "reception",
+      "skill": "vocabulary",
+      "text": "Can recognise familiar everyday words and basic phrases about themselves, family and surroundings, especially with a picture or gesture to help.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A1-PRO",
+      "level": "A1",
+      "mode": "production",
+      "skill": "vocabulary",
+      "text": "Can use a small set of memorised words and phrases to give simple personal details and name common objects.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A1-INT",
+      "level": "A1",
+      "mode": "interaction",
+      "skill": "vocabulary",
+      "text": "Can ask for and give very simple information using single words and set phrases, relying on the other person to repeat and help.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A1-MED",
+      "level": "A1",
+      "mode": "mediation",
+      "skill": "vocabulary",
+      "text": "Can pass on a single familiar word, number or name from a sign or a short notice.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A2-REC",
+      "level": "A2",
+      "mode": "reception",
+      "skill": "vocabulary",
+      "text": "Can understand frequent words and expressions on familiar everyday topics such as shopping, work, the local area and routines.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A2-PRO",
+      "level": "A2",
+      "mode": "production",
+      "skill": "vocabulary",
+      "text": "Can use a repertoire of basic words and expressions to describe people, places and daily routine in short sentences.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A2-INT",
+      "level": "A2",
+      "mode": "interaction",
+      "skill": "vocabulary",
+      "text": "Can handle short everyday exchanges with common vocabulary, asking for a word to be repeated or explained.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-A2-MED",
+      "level": "A2",
+      "mode": "mediation",
+      "skill": "vocabulary",
+      "text": "Can relay the main point of a short simple text in simple words, using words from the original.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B1-REC",
+      "level": "B1",
+      "mode": "reception",
+      "skill": "vocabulary",
+      "text": "Can understand the main points of clear texts on familiar topics and work out the meaning of some unknown words from context.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B1-PRO",
+      "level": "B1",
+      "mode": "production",
+      "skill": "vocabulary",
+      "text": "Can use enough everyday and topic vocabulary to talk about work, travel and current events, going round a missing word when needed.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B1-INT",
+      "level": "B1",
+      "mode": "interaction",
+      "skill": "vocabulary",
+      "text": "Can keep a conversation going on familiar topics, finding another way to say a word they cannot recall.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B1-MED",
+      "level": "B1",
+      "mode": "mediation",
+      "skill": "vocabulary",
+      "text": "Can explain a simple point from a text to a friend in clear everyday words, picking out the key terms.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B2-REC",
+      "level": "B2",
+      "mode": "reception",
+      "skill": "vocabulary",
+      "text": "Can understand a wide range of vocabulary on general and some specialised topics, including common idioms, and guess unfamiliar words from context.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B2-PRO",
+      "level": "B2",
+      "mode": "production",
+      "skill": "vocabulary",
+      "text": "Can use a good range of vocabulary, including collocations and common idioms, with only occasional wrong word choices.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B2-INT",
+      "level": "B2",
+      "mode": "interaction",
+      "skill": "vocabulary",
+      "text": "Can vary their wording to avoid repeating themselves and recover from a missing word without help.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-B2-MED",
+      "level": "B2",
+      "mode": "mediation",
+      "skill": "vocabulary",
+      "text": "Can summarise and explain a text to someone else, choosing precise words to carry its argument.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C1-REC",
+      "level": "C1",
+      "mode": "reception",
+      "skill": "vocabulary",
+      "text": "Can understand a broad lexicon including idioms, colloquialisms and subtle differences of tone and register.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C1-PRO",
+      "level": "C1",
+      "mode": "production",
+      "skill": "vocabulary",
+      "text": "Can use a broad lexicon fluently, choosing words and collocations to fit register, attitude and nuance.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C1-INT",
+      "level": "C1",
+      "mode": "interaction",
+      "skill": "vocabulary",
+      "text": "Can use idiomatic expressions and shift register smoothly to suit the people and the occasion.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C1-MED",
+      "level": "C1",
+      "mode": "mediation",
+      "skill": "vocabulary",
+      "text": "Can explain technical or abstract vocabulary to a non-specialist, rephrasing it accurately and naturally.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C2-REC",
+      "level": "C2",
+      "mode": "reception",
+      "skill": "vocabulary",
+      "text": "Can understand virtually all vocabulary, including rare and highly colloquial expressions and the shades of meaning between close synonyms.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C2-PRO",
+      "level": "C2",
+      "mode": "production",
+      "skill": "vocabulary",
+      "text": "Can choose exactly the right word or expression for a very fine shade of meaning, including humour and irony.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C2-INT",
+      "level": "C2",
+      "mode": "interaction",
+      "skill": "vocabulary",
+      "text": "Can play with wording and use idiom and cultural reference with ease.",
+      "status": "draft",
+      "source": "teached-draft-2026-10"
+    },
+    {
+      "id": "VOC-C2-MED",
+      "level": "C2",
+      "mode": "mediation",
+      "skill": "vocabulary",
+      "text": "Can recast a demanding text in different words for another reader, keeping every shade of its meaning.",
       "status": "draft",
       "source": "teached-draft-2026-10"
     }

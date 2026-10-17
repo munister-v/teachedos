@@ -410,12 +410,12 @@ function shapeSpec(input) {
     const wordsList = String(input.vocab || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
     if (wordsList.length) {
       return {
-        task: `${cefrBrief(level)}\nProduce a vocab entry for EACH of these words/phrases (one entry per word, same order, do not add or skip any): ${wordsList.join(', ')}. For each: "en" = the word/phrase as given; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural example sentence using it, written at the level above.`,
+        task: `${cefrBrief(level)}\nProduce a vocab entry for EACH of these words/phrases (one entry per word, same order, do not add or skip any): ${wordsList.join(', ')}. For each: "en" = the word/phrase as given; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural example sentence using it, written at the level above. One meaning per word: choose ONE sense and ONE kind of word (a thing or an action, never both), and write the example so it uses the word in exactly that sense - for "book" as a thing, "She left her book on the bus", not "to book a table".`,
         schema: '{"words":[{"en":"...","uk":"...","ru":"...","ex":"..."}]}',
       };
     }
     return {
-      task: `${cefrBrief(level)}\nBuild a vocabulary set of exactly ${count} useful words/phrases on the topic "${topic}", choosing words that belong to the vocabulary band above. For each: "en" = the English word/phrase; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural example sentence using it, written at that level.`,
+      task: `${cefrBrief(level)}\nBuild a vocabulary set of exactly ${count} useful words/phrases on the topic "${topic}", choosing words that belong to the vocabulary band above. For each: "en" = the English word/phrase; "uk" = its Ukrainian translation; "ru" = its Russian translation; "ex" = one natural example sentence using it, written at that level. One meaning per word: choose ONE sense and ONE kind of word (a thing or an action, never both), and write the example so it uses the word in exactly that sense - for "book" as a thing, "She left her book on the bus", not "to book a table".`,
       schema: '{"words":[{"en":"...","uk":"...","ru":"...","ex":"..."}]}',
     };
   }
@@ -494,7 +494,7 @@ function shapeSpec(input) {
   if (boardKind === 'vocab') {
     if (toolId === 'flashcards') {
       return {
-        task: `${head} Build a flashcard for EACH target word/phrase the teacher provided: "word" = the target word, "definition" = a short student-friendly definition (max 12 words), "example" = a natural ${level} sentence using it. Make exactly one item per target word - do NOT invent extra words. If no target words are given, choose the ${count} most essential words for the topic.${context}`,
+        task: `${head} Build a flashcard for EACH target word/phrase the teacher provided: "word" = the target word, "definition" = a short student-friendly definition (max 12 words), "example" = a natural ${level} sentence using it. Make exactly one item per target word - do NOT invent extra words. If no target words are given, choose the ${count} most essential words for the topic. One meaning per word: choose ONE sense and ONE kind of word (a thing or an action, never both), and write the example so it uses the word in exactly that sense - for "book" as a thing, "She left her book on the bus", not "to book a table".${context}`,
         schema: '{"items":[{"word":"...","definition":"...","example":"..."}]}',
       };
     }
@@ -535,7 +535,7 @@ function shapeSpec(input) {
          з тексту прив'язує слово до того, що учень щойно подивився, і показує
          справжнє вживання, а не словникове. */
       ? `Extract the ${count} most useful and teachable words/phrases that actually appear in the source text below - collocations and multi-word phrases where the text has them, and skip trivial function words. For each: a short student-friendly definition (max 15 words) of the meaning IT HAS HERE, and as "example" the sentence from the source text where it appears, trimmed to at most 18 words and lightly cleaned up (fix false starts and filler; keep the speaker's own wording). Only write a new sentence if the source one truly cannot stand alone, and keep it at ${level} level.`
-      : `Suggest exactly ${count} essential, high-frequency vocabulary items a student needs to talk about this topic. For each, give a short student-friendly definition (max 15 words) and a natural example sentence at ${level} level.`;
+      : `Suggest exactly ${count} essential, high-frequency vocabulary items a student needs to talk about this topic. For each, give a short student-friendly definition (max 15 words) and a natural example sentence at ${level} level. One meaning per word: choose ONE sense and ONE kind of word (a thing or an action, never both), and write the example so it uses the word in exactly that sense - for "book" as a thing, "She left her book on the bus", not "to book a table".`;
     return {
       task: `${head} ${source}${context}`,
       schema: '{"items":[{"word":"...","definition":"...","example":"..."}]}',
@@ -572,7 +572,7 @@ function shapeSpec(input) {
     }
     if (toolId === 'word-definition-match') {
       return {
-        task: `${head} Use the EXACT target vocabulary the teacher provided below. For each word/phrase: "left" = the word exactly as given; "right" = a clear, short, student-friendly definition at ${level} level (max 12 words; do NOT just repeat or translate the word). Keep the teacher's words and order; only invent extra words if fewer than ${count} were given.${context}`,
+        task: `${head} Use the EXACT target vocabulary the teacher provided below. For each word/phrase: "left" = the word exactly as given; "right" = a clear, short, student-friendly definition at ${level} level (max 12 words; do NOT just repeat or translate the word). Keep the teacher's words and order; only invent extra words if fewer than ${count} were given. Each definition must be of ONE meaning and fit ONLY its own word, never another word in the list.${context}`,
         schema: '{"pairs":[{"left":"word","right":"short definition"}]}',
       };
     }

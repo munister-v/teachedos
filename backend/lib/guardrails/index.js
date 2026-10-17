@@ -9,10 +9,14 @@
    same quality signal the lesson card already shows. The platform's own terms stay inside. */
 const { runContour } = require('./contour');
 const grammar = require('./grammar');
+const vocabulary = require('./vocabulary');
 const descriptors = require('../descriptorBank');
 const { isClean } = require('../glossary');
 
-const CHECKERS = { grammar: { applies: grammar.applies, check: grammar.checkGrammar, skill: 'grammar' } };
+const CHECKERS = {
+  grammar: { applies: grammar.applies, check: grammar.checkGrammar, skill: 'grammar' },
+  vocabulary: { applies: vocabulary.applies, check: vocabulary.checkVocabulary, skill: 'vocabulary' },
+};
 
 const mode = () => String(process.env.GUARDRAILS || 'on').toLowerCase();
 const judgeOn = () => String(process.env.GUARDRAIL_JUDGE || 'on').toLowerCase() !== 'off';
