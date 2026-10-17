@@ -206,6 +206,7 @@ app.use('/api/writing', require('./routes/writing'));
 app.use('/api/vault', require('./routes/vault'));
 app.use('/api/library', require('./routes/library'));
 app.use('/api/community', require('./routes/community'));
+app.use('/', require('./routes/seo'));   // public SEO pages: /community/resources/, /community/authors/, /sitemap-community.xml
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/images', require('./routes/images'));
 app.use('/api/gifs', require('./routes/gifs'));

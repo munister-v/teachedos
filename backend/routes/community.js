@@ -480,10 +480,14 @@ router.get('/admin/queue', ...staff, wrap('queue', async (req, res) => {
             c.snapshot->>'title' AS title, c.snapshot->>'author_name' AS author_name, c.author_id,
             a.version_no AS current_version, a.moderation_state, a.visibility,
             ap.id AS appeal_id, ap.status AS appeal_status, ap.message AS appeal_message, ap.evidence AS appeal_evidence, ap.created_at AS appeal_at,
-            (SELECT COUNT(*) FROM library_reports r WHERE r.case_id = c.id)::int AS reports,
+            ((SELECT COUNT(*) FROM library_reports r WHERE r.case_id = c.id) + (SELECT COUNT(*) FROM public_reports g WHERE g.case_id = c.id))::int AS reports,
             (SELECT COUNT(*) FROM library_reports r WHERE r.case_id = c.id AND r.counts)::int AS counted,
-            (SELECT COALESCE(jsonb_agg(jsonb_build_object('category', r.reason, 'severity', r.severity, 'note', r.note, 'counts', r.counts, 'at', r.created_at) ORDER BY r.created_at), '[]'::jsonb)
-               FROM library_reports r WHERE r.case_id = c.id) AS report_list
+            (SELECT COALESCE(jsonb_agg(x.j ORDER BY x.at), '[]'::jsonb) FROM (
+               SELECT r.created_at AS at, jsonb_build_object('category', r.reason, 'severity', r.severity, 'note', r.note, 'counts', r.counts, 'at', r.created_at) AS j
+                 FROM library_reports r WHERE r.case_id = c.id
+               UNION ALL
+               SELECT g.created_at, jsonb_build_object('category', g.reason, 'severity', 'normal', 'note', g.note, 'counts', FALSE, 'at', g.created_at, 'guest', TRUE)
+                 FROM public_reports g WHERE g.case_id = c.id) x) AS report_list
        FROM moderation_cases c LEFT JOIN assignments a ON a.id = c.assignment_id LEFT JOIN moderation_appeals ap ON ap.case_id = c.id
       WHERE ${where}
       ORDER BY (c.risk_level = 'critical') DESC, (c.resubmitted_at IS NOT NULL) DESC, c.opened_at ASC LIMIT 100`);
@@ -496,7 +500,8 @@ router.get('/admin/cases/:id', ...staff, wrap('case', async (req, res) => {
   const { rows: [c] } = await pool.query('SELECT * FROM moderation_cases WHERE id = $1', [req.params.id]);
   if (!c) return res.status(404).json({ error: 'Not found' });
   const { rows: reports } = await pool.query(
-    `SELECT reason AS category, severity, note, counts, created_at FROM library_reports WHERE case_id = $1 ORDER BY created_at`, [c.id]);
+    `SELECT reason AS category, severity, note, counts, created_at FROM library_reports WHERE case_id = $1
+     UNION ALL SELECT reason, 'normal', note, FALSE, created_at FROM public_reports WHERE case_id = $1 ORDER BY created_at`, [c.id]);
   const { rows: history } = await pool.query(
     `SELECT id, status, decision, decision_note, opened_at, decided_at, version_no FROM moderation_cases WHERE assignment_id = $1 AND id <> $2 ORDER BY opened_at DESC LIMIT 10`, [c.assignment_id, c.id]);
   const { rows: versions } = await pool.query('SELECT version_no, title, created_at FROM publication_versions WHERE assignment_id = $1 ORDER BY version_no DESC', [c.assignment_id]);

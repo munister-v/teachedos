@@ -1435,3 +1435,28 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS word_goal SMALLINT NOT NULL DEFAULT 2
 ALTER TABLE users ALTER COLUMN vault_remind_push SET DEFAULT FALSE;
 ALTER TABLE users ALTER COLUMN vault_remind_email SET DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS vault_remind_chosen_at TIMESTAMPTZ;
+
+-- ── Public SEO pages of Community (17.10.2026) ──────────────────────────────
+-- /community/resources/{slug}/: the slug is made once, at the first public
+-- moment, and never follows a renamed title.
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS slug VARCHAR(90);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_assignments_slug ON assignments(slug) WHERE slug IS NOT NULL;
+-- a deleted resource answers 410 (not 404) at its old address; a successor, when the
+-- author names one, answers 301
+CREATE TABLE IF NOT EXISTS public_tombstones (
+  slug           VARCHAR(90) PRIMARY KEY,
+  successor_slug VARCHAR(90),
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+-- a guest's "Report this resource": into the same moderation queue, but it never
+-- moves the automatic thresholds (those count signed-in teachers only)
+CREATE TABLE IF NOT EXISTS public_reports (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  case_id       UUID REFERENCES moderation_cases(id) ON DELETE SET NULL,
+  reason        VARCHAR(32) NOT NULL DEFAULT 'other',
+  note          VARCHAR(500) NOT NULL DEFAULT '',
+  who           VARCHAR(64) NOT NULL DEFAULT '',     -- a salted hash of the address, for the rate limit only
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_public_reports_who ON public_reports(who, created_at DESC);

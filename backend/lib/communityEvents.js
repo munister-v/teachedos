@@ -9,6 +9,7 @@ const EVENTS = new Set([
   'copy_created', 'insert_started', 'insert_completed', 'insert_failed', 'verified_use_created',
   'post_lesson_feedback', 'report_submitted', 'publication_hidden', 'appeal_submitted',
   'request_created', 'request_answered', 'digest_opened', 'recommendation_hidden', 'collection_created',
+  'public_cta_clicked', 'public_copy_completed',   // the public SEO pages: the guest's click, and the copy after sign-up
 ]);
 const PROPS = ['publication_id', 'version_id', 'content_type', 'source_surface', 'student_id', 'board_id',
   'placement_direction', 'error_code', 'preview_access', 'preview_mode', 'recommendation_reason', 'position',

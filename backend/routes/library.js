@@ -27,6 +27,9 @@ async function onPublished(db, id, { remix, allowRemix } = {}) {
     `UPDATE assignments SET first_public_at = COALESCE(first_public_at, NOW()),
             allow_remix = COALESCE($2, allow_remix)
       WHERE id = $1`, [id, typeof allowRemix === 'boolean' ? allowRemix : null]);
+  // the public address (/community/resources/{slug}/) is made now, once, and kept for good
+  const { rows: [pub] } = await db.query(`SELECT id, title, slug, visibility FROM assignments WHERE id = $1`, [id]);
+  if (pub && pub.visibility === 'community') await require('../lib/seoPages').ensureSlug(db, pub).catch(() => {});
   await db.query(
     `INSERT INTO publication_versions (assignment_id, version_no, title)
      SELECT id, version_no, title FROM assignments WHERE id = $1 ON CONFLICT DO NOTHING`, [id]);
@@ -429,6 +432,10 @@ router.patch('/:id', async (req, res) => {
 // ── DELETE /api/library/:id - delete (owner only) ───────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
+    // a deleted resource keeps answering 410 at its public address, not 404
+    await pool.query(
+      `INSERT INTO public_tombstones (slug) SELECT slug FROM assignments WHERE id = $1 AND user_id = $2 AND slug IS NOT NULL
+       ON CONFLICT (slug) DO NOTHING`, [req.params.id, req.user.id]).catch(() => {});
     const { rowCount } = await pool.query(
       'DELETE FROM assignments WHERE id = $1 AND user_id = $2',
       [req.params.id, req.user.id]
