@@ -1,0 +1,28 @@
+/* Profile → School (18.10.2026) */
+#school-root { display:flex; flex-direction:column; gap:12px; max-width:720px; }
+#school-root h3 { font-size:18px; font-weight:800; letter-spacing:-.3px; margin:0; color:#24282C; }
+#school-root h4 { font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:rgba(36,40,44,.55); margin:14px 0 6px; }
+.sch-card { background:#fff; border:1px solid rgba(36,40,44,.1); border-radius:18px; padding:18px; }
+.sch-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.sch-pill { font-size:11px; font-weight:800; background:#24282C; color:#fff; border-radius:999px; padding:3px 10px; }
+.sch-note { font-size:13px; line-height:1.5; color:rgba(36,40,44,.7); margin:8px 0; }
+.sch-note.bad, .sch-msg.bad { color:#B42318; }
+.sch-msg { font-size:13px; color:#3B6D11; min-height:1em; margin:0; }
+.sch-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.sch-input { flex:1 1 220px; min-width:0; height:40px; border-radius:12px; border:1px solid rgba(36,40,44,.18); background:#fff; padding:0 12px; font:inherit; font-size:14px; }
+.sch-input:focus { outline:0; border-color:#D3F26A; box-shadow:0 0 0 3px rgba(211,242,106,.4); }
+.sch-btn { height:40px; padding:0 16px; border-radius:12px; border:1px solid rgba(36,40,44,.15); background:#fff; font:inherit; font-size:13px; font-weight:700; color:#24282C; cursor:pointer; }
+.sch-btn:hover { background:#F6F6EF; }
+.sch-btn.lime { background:#D3F26A; border-color:#D3F26A; }
+.sch-btn.danger { color:#B42318; border-color:rgba(180,35,24,.3); }
+.sch-btn:disabled { opacity:.5; cursor:default; }
+.sch-btn:focus-visible { outline:2px solid #24282C; outline-offset:2px; }
+.sch-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.sch-member { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-radius:12px; background:#F6F6EF; }
+.sch-member b, .sch-invite b { display:block; font-size:14px; color:#24282C; }
+.sch-sub { display:block; font-size:12px; color:rgba(36,40,44,.6); }
+.sch-checks .sch-sub { display:inline; }
+.sch-invite { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; }
+.sch-ho { padding:4px 12px 10px; }
+.sch-checks { display:flex; flex-direction:column; gap:6px; margin:6px 0 10px; font-size:13.5px; }
+.sch-danger { margin-top:16px; padding-top:12px; border-top:1px solid rgba(36,40,44,.1); }

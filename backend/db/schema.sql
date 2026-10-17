@@ -1574,3 +1574,31 @@ CREATE TABLE IF NOT EXISTS transfer_cards (
   read_at      TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_transfer_cards_to ON transfer_cards(to_teacher, created_at DESC);
+
+-- ── Schools (18.10.2026): the organisation behind hand-over (ТЗ «Память» §8.1) ─
+-- A teacher creates a school and is its admin; other teachers join by the admin's
+-- invitation by email, which they accept. A teacher is in one school at most.
+CREATE TABLE IF NOT EXISTS schools (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       VARCHAR(120) NOT NULL,
+  owner_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS school_members (
+  user_id   UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,   -- one school per teacher
+  school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  role      VARCHAR(10) NOT NULL DEFAULT 'teacher' CHECK (role IN ('admin', 'teacher')),
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_school_members_school ON school_members(school_id);
+CREATE TABLE IF NOT EXISTS school_invites (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  school_id   UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  email       VARCHAR(255) NOT NULL,
+  invited_by  UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  answered_at TIMESTAMPTZ,
+  accepted    BOOLEAN
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_school_invite_open ON school_invites(school_id, LOWER(email)) WHERE answered_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_school_invites_email ON school_invites(LOWER(email)) WHERE answered_at IS NULL;

@@ -365,6 +365,74 @@ router.post('/students/:id/dossier/restore', async (req, res) => {
      student's card, merged with their own dossier if they have one;
    - otherwise: in their Archived memory, marked with who sent it, for them to place;
    - an archived dossier arrives archived and keeps its year. */
+/* §8.1 with schools: a teacher in a school hands over only to a teacher of the same
+   school; a teacher in no school (an independent tutor) to any teacher. */
+async function schoolOf(db, userId) {
+  const { rows: [m] } = await db.query('SELECT school_id, role FROM school_members WHERE user_id = $1', [userId]);
+  return m || null;
+}
+async function checkSameSchool(db, fromId, toId) {
+  const from = await schoolOf(db, fromId);
+  if (!from) return;
+  const to = await schoolOf(db, toId);
+  if (!to || to.school_id !== from.school_id) throw new MemErr(422, 'validation', 'This teacher is not in your school. You can hand a student over only within your school.');
+}
+
+/* Moves one dossier of `fromId` to `to` (a user row with id and name), within a
+   transaction the caller holds. Returns where it landed and the student's name. */
+async function handoverDossier(client, { fromId, fromName, journalId, to, initiatedBy = 'teacher' }) {
+  const { rows: [old] } = await client.query(
+    'SELECT * FROM student_dossier WHERE journal_id = $1 AND teacher_id = $2 FOR UPDATE', [journalId, fromId]);
+  if (!old) throw new MemErr(404, 'not_found', 'There is no TeachEd memory for this student yet');
+  // who the student is: their journal row while active, the archive snapshot after
+  let who = { student_id: old.student_user_id, email: old.archived_email, name: old.archived_name };
+  if (!old.archived_at) {
+    const { rows: [j] } = await client.query('SELECT student_id, email, name FROM student_journal WHERE id = $1 AND teacher_id = $2', [old.journal_id, fromId]);
+    if (!j) throw notFound();
+    who = j;
+  }
+  const handed = { handed_from: fromId, handed_at: new Date() };
+  let landed, newId;
+  const { rows: [match] } = old.archived_at ? { rows: [] } : await client.query(
+    `SELECT id FROM student_journal WHERE teacher_id = $1
+        AND (($2::uuid IS NOT NULL AND student_id = $2) OR ($3 <> '' AND LOWER(email) = LOWER($3)))
+      ORDER BY (student_id = $2) DESC NULLS LAST, created_at DESC LIMIT 1`, [to.id, who.student_id || null, who.email || '']);
+  if (match) {
+    await attachDossier(client, old, to.id, match.id, handed);
+    newId = match.id; landed = 'student';
+  } else {
+    // a new key: the sender's journal row stays free for a dossier of their own
+    const { rows: [{ id }] } = await client.query('SELECT gen_random_uuid() AS id');
+    await client.query(
+      `UPDATE student_dossier SET journal_id = $2, teacher_id = $3, handed_from = $4, handed_at = NOW(),
+              archived_at = COALESCE(archived_at, NOW()), archived_name = $5, archived_email = $6, student_user_id = $7,
+              restore_declined_at = NULL, version = version + 1, updated_at = NOW()
+        WHERE journal_id = $1`, [old.journal_id, id, to.id, fromId, who.name || null, who.email || null, who.student_id || null]);
+    newId = id; landed = 'archive';
+  }
+  await revoke(client, fromId, old.journal_id);
+  await unrevoke(client, to.id, newId);
+  await client.query(
+    `INSERT INTO dossier_handover_log (journal_id, student_user_id, from_teacher, to_teacher, initiated_by) VALUES ($1, $2, $3, $4, $5)`,
+    [old.journal_id, who.student_id || null, fromId, to.id, initiatedBy]);
+  return { landed, student: String(who.name || 'a student'), fromName };
+}
+function notifyHandover(toId, fromName, done) {
+  require('./notifications').createNotification(toId, 'memory_handover',
+    `${fromName || 'A teacher'} handed you the TeachEd memory of ${done.student}`,
+    done.landed === 'student' ? `It is on ${done.student}'s card in Students.` : 'Find it in Students, under Archived memory, and choose the student it belongs to.',
+    'index.html#students').catch(() => {});
+}
+
+/* Hand over (§8.1): the whole dossier, active or archived, moves to another teacher
+   (body.to_email, or to_teacher_id) - within the sender's school when they are in
+   one. The sender loses it at once - every device of theirs drops it at the next
+   sync - and the hand-over is logged. The student is not told.
+   Where it lands with the receiver:
+   - the same student is already theirs (same account, or same email): on that
+     student's card, merged with their own dossier if they have one;
+   - otherwise: in their Archived memory, marked with who sent it, for them to place;
+   - an archived dossier arrives archived and keeps its year. */
 router.post('/students/:id/handover', async (req, res) => {
   const body = req.body || {};
   const client = await pool.connect();
@@ -377,47 +445,11 @@ router.post('/students/:id/handover', async (req, res) => {
       `SELECT id, name FROM users WHERE role <> 'student' AND ${email ? 'LOWER(email) = $1' : 'id = $1'} LIMIT 1`, [email || body.to_teacher_id]);
     if (!to) throw new MemErr(404, 'not_found', 'No TeachEd teacher has this email');
     if (to.id === req.user.id) throw new MemErr(422, 'validation', 'This is your own account');
-    const { rows: [old] } = await client.query(
-      'SELECT * FROM student_dossier WHERE journal_id = $1 AND teacher_id = $2 FOR UPDATE', [req.params.id, req.user.id]);
-    if (!old) throw new MemErr(404, 'not_found', 'There is no TeachEd memory for this student yet');
-    // who the student is: their journal row while active, the archive snapshot after
-    let who = { student_id: old.student_user_id, email: old.archived_email, name: old.archived_name };
-    if (!old.archived_at) {
-      const { rows: [j] } = await client.query('SELECT student_id, email, name FROM student_journal WHERE id = $1 AND teacher_id = $2', [old.journal_id, req.user.id]);
-      if (!j) throw notFound();
-      who = j;
-    }
-    const handed = { handed_from: req.user.id, handed_at: new Date() };
-    let landed, newId;
-    const { rows: [match] } = old.archived_at ? { rows: [] } : await client.query(
-      `SELECT id FROM student_journal WHERE teacher_id = $1
-          AND (($2::uuid IS NOT NULL AND student_id = $2) OR ($3 <> '' AND LOWER(email) = LOWER($3)))
-        ORDER BY (student_id = $2) DESC NULLS LAST, created_at DESC LIMIT 1`, [to.id, who.student_id || null, who.email || '']);
-    if (match) {
-      await attachDossier(client, old, to.id, match.id, handed);
-      newId = match.id; landed = 'student';
-    } else {
-      // a new key: the sender's journal row stays free for a dossier of their own
-      const { rows: [{ id }] } = await client.query('SELECT gen_random_uuid() AS id');
-      await client.query(
-        `UPDATE student_dossier SET journal_id = $2, teacher_id = $3, handed_from = $4, handed_at = NOW(),
-                archived_at = COALESCE(archived_at, NOW()), archived_name = $5, archived_email = $6, student_user_id = $7,
-                restore_declined_at = NULL, version = version + 1, updated_at = NOW()
-          WHERE journal_id = $1`, [old.journal_id, id, to.id, req.user.id, who.name || null, who.email || null, who.student_id || null]);
-      newId = id; landed = 'archive';
-    }
-    await revoke(client, req.user.id, old.journal_id);
-    await unrevoke(client, to.id, newId);
-    await client.query(
-      `INSERT INTO dossier_handover_log (journal_id, student_user_id, from_teacher, to_teacher, initiated_by) VALUES ($1, $2, $3, $4, 'teacher')`,
-      [old.journal_id, who.student_id || null, req.user.id, to.id]);
+    await checkSameSchool(client, req.user.id, to.id);
+    const done = await handoverDossier(client, { fromId: req.user.id, fromName: req.user.name, journalId: req.params.id, to });
     await client.query('COMMIT');
-    const student = String(who.name || 'a student');
-    require('./notifications').createNotification(to.id, 'memory_handover',
-      `${req.user.name || 'A teacher'} handed you the TeachEd memory of ${student}`,
-      landed === 'student' ? `It is on ${student}'s card in Students.` : 'Find it in Students, under Archived memory, and choose the student it belongs to.',
-      'index.html#students').catch(() => {});
-    res.json({ ok: true, landed, to: { name: to.name } });
+    notifyHandover(to.id, req.user.name, done);
+    res.json({ ok: true, landed: done.landed, to: { name: to.name } });
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});
     fail(res, e);
@@ -515,5 +547,9 @@ const RETENTION_SQL = `WITH gone AS (
 
 module.exports = router;
 module.exports.RETENTION_SQL = RETENTION_SQL;
+module.exports.handoverDossier = handoverDossier;
+module.exports.notifyHandover = notifyHandover;
+module.exports.MemErr = MemErr;
+module.exports.fail = fail;
 module.exports.ARCHIVE_DAYS = ARCHIVE_DAYS;
 module.exports._test = { clampTime, mergeMistakes, mergeTags, cleanMistakes };

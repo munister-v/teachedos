@@ -55,6 +55,7 @@ test.before(async () => {
     app.use(express.json({ limit: '25mb' }));
     app.use('/api/memory', require('../routes/memory'));
     app.use('/api/writing', require('../routes/writing'));
+    app.use('/api/schools', require('../routes/schools'));
     server = http.createServer(app);
     await new Promise(r => server.listen(0, '127.0.0.1', r));
     base = `http://127.0.0.1:${server.address().port}`;
@@ -68,6 +69,7 @@ test.after(async () => {
     await pool.query('DELETE FROM memory_revocations WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM dossier_handover_log WHERE from_teacher = ANY($1) OR to_teacher = ANY($1)', [ids]);
     await pool.query('DELETE FROM transfer_cards WHERE from_teacher = ANY($1) OR to_teacher = ANY($1)', [ids]);
+    await pool.query('DELETE FROM schools WHERE owner_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM notifications WHERE user_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM student_journal WHERE teacher_id = ANY($1)', [ids]);
     await pool.query('DELETE FROM users WHERE id = ANY($1)', [ids]);
@@ -475,4 +477,80 @@ db('a hand-over card carries only what the sender wrote, only the receiver reads
   assert.equal((await call(c, 'DELETE', `/api/memory/transfer-cards/${got[0].id}`)).status, 404);
   assert.equal((await call(b, 'DELETE', `/api/memory/transfer-cards/${got[0].id}`)).status, 200);
   assert.deepEqual((await call(b, 'GET', '/api/memory/transfer-cards')).body.cards, []);
+});
+
+/* ── schools (§8.1): invitations, one school per teacher, hand-over only within ── */
+db('a school: the creator is admin, teachers join by an accepted invitation, one school each', async () => {
+  const adm = await mk('School admin T');
+  const t1 = await mk('School T1');
+  const t2 = await mk('School T2');
+  const st = await mk('School S', 'student');
+  assert.equal((await call(st, 'POST', '/api/schools', { name: 'Nope' })).status, 404, 'students have no schools');
+  assert.equal((await call(adm, 'POST', '/api/schools', { name: 'x' })).status, 422);
+  const made = await call(adm, 'POST', '/api/schools', { name: 'Sunny English' });
+  assert.equal(made.status, 201);
+  assert.equal((await call(adm, 'POST', '/api/schools', { name: 'Second' })).status, 422, 'one school each');
+  assert.equal((await call(t1, 'POST', '/api/schools/invites', { email: t2.email })).status, 403, 'only the admin invites');
+  assert.equal((await call(adm, 'POST', '/api/schools/invites', { email: st.email })).status, 422, 'not students');
+  const inv = await call(adm, 'POST', '/api/schools/invites', { email: t1.email.toUpperCase() });
+  assert.equal(inv.status, 201);
+  assert.equal((await call(adm, 'POST', '/api/schools/invites', { email: t1.email })).status, 201, 'inviting again refreshes the same invitation');
+  const mine = (await call(t1, 'GET', '/api/schools/mine')).body;
+  assert.deepEqual([mine.school, mine.invitations.length, mine.invitations[0].school_name], [null, 1, 'Sunny English']);
+  assert.equal((await call(t2, 'POST', `/api/schools/invites/${mine.invitations[0].id}/accept`)).status, 404, 'only the invited email accepts');
+  assert.equal((await call(t1, 'POST', `/api/schools/invites/${mine.invitations[0].id}/accept`)).status, 200);
+  const now = (await call(t1, 'GET', '/api/schools/mine')).body;
+  assert.deepEqual([now.school.name, now.school.role, now.school.members.length, now.school.invites], ['Sunny English', 'teacher', 2, undefined]);
+  // another school cannot take t1
+  const other = await mk('Other admin T');
+  await call(other, 'POST', '/api/schools', { name: 'Other' });
+  assert.equal((await call(other, 'POST', '/api/schools/invites', { email: t1.email })).status, 422, 'already in a school');
+  // t2 declines
+  await call(adm, 'POST', '/api/schools/invites', { email: t2.email });
+  const i2 = (await call(t2, 'GET', '/api/schools/mine')).body.invitations[0];
+  assert.equal((await call(t2, 'POST', `/api/schools/invites/${i2.id}/decline`)).status, 200);
+  assert.equal((await call(t2, 'GET', '/api/schools/mine')).body.school, null);
+  assert.equal((await call(adm, 'POST', '/api/schools/leave')).status, 422, 'the admin deletes, not leaves');
+  assert.equal((await call(t1, 'POST', '/api/schools/leave')).status, 200);
+  assert.equal((await call(t1, 'GET', '/api/schools/mine')).body.school, null);
+});
+
+db('in a school, hand-over goes only to the same school; the admin hands over without reading', async () => {
+  const adm = await mk('HO admin T');
+  const a = await mk('HO leaving T');
+  const b = await mk('HO staying T');
+  const outsider = await mk('HO outsider T');
+  await call(adm, 'POST', '/api/schools', { name: 'HO School' });
+  for (const t of [a, b]) {
+    await call(adm, 'POST', '/api/schools/invites', { email: t.email });
+    const i = (await call(t, 'GET', '/api/schools/mine')).body.invitations[0];
+    await call(t, 'POST', `/api/schools/invites/${i.id}/accept`);
+  }
+  const j1 = await journalFor(a, null, 'Sasha');
+  const j2 = await journalFor(a, null, 'Dina');
+  for (const j of [j1, j2]) await patch(a, j, { notes: { value: 'private about ' + j, updated_at: iso(Date.now()) } });
+  const out = await call(a, 'POST', `/api/memory/students/${j1}/handover`, { to_email: outsider.email });
+  assert.equal(out.status, 422, 'not outside the school');
+  assert.match(out.body.error.message, /not in your school/);
+  // the admin sees names, never fields
+  const list = await call(adm, 'GET', `/api/schools/members/${a.id}/dossiers`);
+  assert.deepEqual(list.body.dossiers.map(d => d.student_name).sort(), ['Dina', 'Sasha']);
+  assert.doesNotMatch(JSON.stringify(list.body), /private about/);
+  assert.equal((await call(b, 'GET', `/api/schools/members/${a.id}/dossiers`)).status, 403, 'only the admin');
+  assert.equal((await call(adm, 'GET', `/api/schools/members/${outsider.id}/dossiers`)).status, 404, 'only teachers of the school');
+  assert.equal((await call(adm, 'POST', `/api/schools/members/${a.id}/handover`, { to_teacher_id: outsider.id, ids: [j1] })).status, 404);
+  const r = await call(adm, 'POST', `/api/schools/members/${a.id}/handover`, { to_teacher_id: b.id, ids: [j1, j2] });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.handed, 2);
+  assert.equal((await call(a, 'GET', `/api/memory/students/${j1}/dossier`)).status, 404, 'the leaving teacher no longer has it');
+  assert.equal((await call(b, 'GET', '/api/memory/archive')).body.archive.length, 2, 'the colleague has both, to place');
+  const log = await pool.query(`SELECT initiated_by FROM dossier_handover_log WHERE from_teacher = $1`, [a.id]);
+  assert.deepEqual(log.rows.map(x => x.initiated_by), ['school_admin', 'school_admin']);
+  // within the school a teacher hands over themselves too
+  const j3 = await journalFor(b, null, 'Max');
+  await patch(b, j3, { notes: { value: 'm', updated_at: iso(Date.now()) } });
+  assert.equal((await call(b, 'POST', `/api/memory/students/${j3}/handover`, { to_email: a.email })).status, 200);
+  // deleting the school frees everyone: then hand-over is open again
+  assert.equal((await call(adm, 'DELETE', '/api/schools')).status, 200);
+  assert.equal((await call(b, 'GET', '/api/schools/mine')).body.school, null);
 });

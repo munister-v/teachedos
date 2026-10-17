@@ -177,6 +177,7 @@ function switchTab(name) {
   if (name === 'boards') loadBoards();
   if (name === 'shared') loadSharedBoards();
   if (name === 'settings') initSettings();
+  if (name === 'school' && typeof window.loadSchoolTab === 'function') window.loadSchoolTab();
 }
 
 function openPlansSection() {
@@ -230,6 +231,7 @@ async function init() {
     updateMobileProfileSummary({ offline: !r.ok });
     if (me.role !== 'student' && (location.hash === '#plans' || location.hash === '#billing')) openPlansSection();
     else if (location.hash.startsWith('#settings')) switchTab('settings');
+    else if (me.role !== 'student' && location.hash === '#school') switchTab('school');
   } catch (e) {
     if (cached?.me) {
       me = cached.me;

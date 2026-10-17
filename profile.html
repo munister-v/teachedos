@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1229"></script>
+<script src="scripts/phone-gate.js?v=1230"></script>
 <meta charset="UTF-8">
 <script>
 /* BUG-22: the page is drawn for the role before its first frame. The role
@@ -20,15 +20,15 @@ html.role-pending #nav .nav-link,html.role-pending [data-teacher-only],html.role
 html:not(.role-student-pre) body:not(.role-student) [data-student-only]{display:none !important}
 </style>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1229">
-<link rel="preload" as="style" href="styles/unify.css?v=1229">
-<link rel="manifest" href="manifest.json?v=1229">
+<link rel="preload" as="style" href="styles/harmony.css?v=1230">
+<link rel="preload" as="style" href="styles/unify.css?v=1230">
+<link rel="manifest" href="manifest.json?v=1230">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
-<link rel="icon" href="favicon.ico?v=1229" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1229">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1229">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1229">
+<link rel="icon" href="favicon.ico?v=1230" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1230">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1230">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1230">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -513,10 +513,10 @@ body { font-family: var(--font); font-weight: 500; letter-spacing: -.011em; line
   .mobile-profile-actions { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js?v=1229" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1229">
-<link rel="stylesheet" href="styles/harmony.css?v=1229">
-<link rel="stylesheet" href="styles/unify.css?v=1229">
+<script src="theme.js?v=1230" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1230">
+<link rel="stylesheet" href="styles/harmony.css?v=1230">
+<link rel="stylesheet" href="styles/unify.css?v=1230">
 <style>
 @media (max-width: 860px) {
   body{background:#F6F6EF;}
@@ -825,13 +825,13 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
   body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn { width: 100%; justify-content: center; }
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1229">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1229">
-<link rel="stylesheet" href="styles/tool-window.css?v=1229">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1230">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1230">
+<link rel="stylesheet" href="styles/tool-window.css?v=1230">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1229">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1229">
-<link rel="stylesheet" href="styles/controls.css?v=1229">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1230">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1230">
+<link rel="stylesheet" href="styles/controls.css?v=1230">
 <style>
 /* teached-brand.css colours a left stripe on every .stat-card by a 3n cycle
    (tuned for admin's 3-card rows); the Overview stats grid has 4 cards and
@@ -842,15 +842,16 @@ body.profile-page #plan-card > div[style*="display:flex;gap:8px"] .setting-btn {
 body.profile-page .stats-grid .stat-card::before { display: none; }
 </style>
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1229">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1229">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1229">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1229">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1229">
-<link rel="stylesheet" href="styles/toast.css?v=1229">
+<link rel="stylesheet" href="styles/polish.css?v=1230">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1230">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1230">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1230">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1230">
+<link rel="stylesheet" href="styles/toast.css?v=1230">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1229">
-<link rel="stylesheet" href="styles/ds-v1.css?v=1229">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1230">
+<link rel="stylesheet" href="styles/ds-v1.css?v=1230">
+<link rel="stylesheet" href="styles/school.css?v=1230">
 <style>
 /* A student opens this page too (Profile link in the cabinet). What is the
    teacher's - plan and pricing, Community, Schedule, Courses, their own boards
@@ -889,7 +890,7 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
 <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 2 4.5 5 4.5 8.5L12 16l-4.5-4.5C7.5 8 9 5 12 3z"/><circle cx="12" cy="10" r="1.6"/><path d="M9 16.5L7 21l4-1.5M15 16.5L17 21l-4-1.5"/></symbol>
 <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M10 7V4.8h4V7M6.5 7l.9 12.2h9.2L17.5 7"/><path d="M10.5 10.5v6M13.5 10.5v6"/></symbol>
 <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="14" rx="2.5"/><path d="M4 10.5h16M9 4v3.5M15 4v3.5"/></symbol>
-<symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.7 6-10a6 6 0 1 0-12 0c0 4.3 6 10 6 10z"/><circle cx="12" cy="11" r="2.2"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.7 6-10a6 6 0 1 0-12 0c0 4.3 6 10 6 10z"/><circle cx="12" cy="11" r="2.2"/></symbol><symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="8.5" r="3"/><path d="M4 19c.6-3 2.8-4.5 5.5-4.5S14.4 16 15 19"/><path d="M16 6.2a3 3 0 0 1 0 5.6M17.5 14.8c1.7.6 2.9 2 3.3 4.2"/></symbol>
 </defs></svg>
 
 <div id="page-loading"><div class="spinner"></div></div>
@@ -897,7 +898,7 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
 
 <!-- NAVBAR -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1229" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1230" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -937,6 +938,9 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
     </div>
     <div class="st-item" data-tab="shared" onclick="switchTab('shared')">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg></span> Shared with me
+    </div>
+    <div class="st-item" data-teacher-only data-tab="school" onclick="switchTab('school')">
+      <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span> School
     </div>
     <div class="st-item" data-tab="settings" onclick="switchTab('settings')">
       <span class="st-icon"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span> Settings
@@ -1092,6 +1096,11 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
       <div id="shared-boards-list" style="display:flex;flex-direction:column;gap:12px;">
         <div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px;">Loading…</div>
       </div>
+    </div>
+
+    <!-- SCHOOL TAB (scripts/school-app.js) -->
+    <div id="tab-school" class="tab-panel">
+      <div id="school-root"><p class="sch-note">Loading…</p></div>
     </div>
 
     <!-- SETTINGS TAB -->
@@ -1357,10 +1366,11 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
   </div><!-- #main-content -->
 </div><!-- #layout -->
 
-<script src="scripts/app-core.js?v=1229"></script>
-<script src="scripts/profile-app.js?v=1229"></script>
-<script src="scripts/autogrow.js?v=1229" defer></script>
-<script src="pwa-boot.js?v=1229" defer></script>
+<script src="scripts/app-core.js?v=1230"></script>
+<script src="scripts/profile-app.js?v=1230"></script>
+<script src="scripts/school-app.js?v=1230"></script>
+<script src="scripts/autogrow.js?v=1230" defer></script>
+<script src="pwa-boot.js?v=1230" defer></script>
 
 <!-- Board Template Modal -->
 <div id="tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(36,40,44,.45);z-index:9000;align-items:center;justify-content:center;">
@@ -1379,16 +1389,16 @@ html body.role-student:not(#_):not(#_):not(#_) [data-teacher-only],body.role-stu
     <button onclick="confirmNewBoard()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;letter-spacing:-.01em;">Create board</button>
   </div>
 </div>
-<script src="pwa.js?v=1229"></script>
-<script src="scripts/nav-boost.js?v=1229" defer></script>
-<script src="scripts/mobile-perf.js?v=1229" defer></script>
-<script src="scripts/mobile-nav.js?v=1229"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1229" defer></script>
-<script src="scripts/whatsapp-feedback.js?v=1229" defer></script>
-  <script src="scripts/signin-entry.js?v=1229" defer></script>
-<script src="scripts/verify-banner.js?v=1229" defer></script>
-<script src="scripts/nav-bell.js?v=1229" defer></script>
-<script src="scripts/ds-v1.js?v=1229" defer></script>
-<script src="scripts/modal-guard.js?v=1229" defer></script>
+<script src="pwa.js?v=1230"></script>
+<script src="scripts/nav-boost.js?v=1230" defer></script>
+<script src="scripts/mobile-perf.js?v=1230" defer></script>
+<script src="scripts/mobile-nav.js?v=1230"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1230" defer></script>
+<script src="scripts/whatsapp-feedback.js?v=1230" defer></script>
+  <script src="scripts/signin-entry.js?v=1230" defer></script>
+<script src="scripts/verify-banner.js?v=1230" defer></script>
+<script src="scripts/nav-bell.js?v=1230" defer></script>
+<script src="scripts/ds-v1.js?v=1230" defer></script>
+<script src="scripts/modal-guard.js?v=1230" defer></script>
 </body>
 </html>
