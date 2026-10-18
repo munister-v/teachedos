@@ -84,6 +84,65 @@
     card.addEventListener('click', () => { location.href = 'homework-do.html?a=' + encodeURIComponent(a.assignment_id); }, true);
   }
 
+  function vocab(d) {
+    if (!d || !Array.isArray(d.words)) return;
+    const words = d.words;
+    const mk = w => ({
+      w: w.word, tr: w.translation || '', ex: w.example || '', id: w.id,
+      st: w.learned ? 'mastered' : (w.last_reviewed_at ? 'learning' : 'new'),
+      src: 'Your notebook', bar: w.learned ? 100 : (w.last_reviewed_at ? 50 : 10)
+    });
+    const list = words.map(mk);
+    const open = list.filter(x => x.st !== 'mastered');
+    // The sprint and the grid read these arrays in place.
+    if (window.__hubWords) { window.__hubWords.length = 0; list.forEach(x => window.__hubWords.push(x)); }
+    if (window.__hubDue) { window.__hubDue.length = 0; open.forEach(x => window.__hubDue.push(x)); }
+    const wb = document.getElementById('pg-wordbank');
+    if (!wb) return;
+    const out = wb.querySelector('h1 .out'); if (out) out.textContent = list.length;
+    const h1 = wb.querySelector('h1'); if (h1 && out) h1.lastChild.textContent = list.length === 1 ? ' word' : ' words';
+    const meta = wb.querySelector('.hdr .meta');
+    if (meta) meta.innerHTML = '<b>' + open.length + ' to learn</b> · ' + (list.length - open.length) + ' mastered<br>every word here is flying to your long-term memory';
+    const due = wb.querySelector('.fchip[data-f="review"]'); if (due) due.textContent = 'To learn · ' + open.length;
+    const ms = wb.querySelectorAll('.scol .ms');
+    if (ms[0]) ms[0].innerHTML = '<b>' + list.length + '</b><span>words in the bank</span>';
+    if (ms[1]) ms[1].innerHTML = '<b style="color:#FF4E00">' + plural(open.length, 'flight') + ' ahead</b><span>the board below is calling</span>';
+    set('.nav .nbadge', e => { if (/Word Bank/.test(e.parentNode.textContent)) { e.textContent = open.length; e.style.display = open.length ? '' : 'none'; } });
+    const spot = open[0] || list[0];
+    if (spot) {
+      const sw = wb.querySelector('.pass16 .sw'); if (sw) sw.textContent = spot.w;
+      const sub = wb.querySelector('.pass16 .pmain > div:nth-of-type(2)'); if (sub) sub.textContent = spot.tr;
+      const ex = wb.querySelector('.pass16 .pmain > div:nth-of-type(3)'); if (ex) ex.textContent = spot.ex ? '\u201C' + spot.ex + '\u201D' : '';
+    }
+    const dep = wb.querySelector('.dep16');
+    if (!dep) return;
+    dep.querySelectorAll('.row').forEach(r => r.remove());
+    const dc = dep.querySelector('.dcount'); if (dc) dc.textContent = plural(open.length, 'flight') + ' · ' + new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    if (!list.length) {
+      const e = document.createElement('div'); e.className = 'row';
+      e.textContent = 'No words yet. Words you save in class and from reading land here.';
+      dep.appendChild(e); return;
+    }
+    list.slice(0, 30).forEach(x => {
+      const row = document.createElement('div'); row.className = 'row';
+      const legs = x.st === 'mastered' ? 9 : x.st === 'learning' ? 4 : 2;
+      let leg = ''; for (let i = 0; i < 9; i++) leg += (i % 2 ? '<u' : '<i') + (i < legs ? ' class="on"' : '') + (i % 2 ? '></u>' : '></i>');
+      const st = x.st === 'mastered' ? ['last', 'ARRIVED'] : x.st === 'learning' ? ['sched', 'SCHEDULED'] : ['board', 'BOARDING'];
+      const w = document.createElement('span'); w.className = 'w'; w.textContent = x.w;
+      const sm = document.createElement('small'); sm.textContent = x.tr; w.appendChild(sm);
+      row.appendChild(w);
+      row.insertAdjacentHTML('beforeend', '<span class="from">Your notebook</span><span class="leg">' + leg + '</span><span class="next">' + (x.st === 'mastered' ? 'Mastered' : 'Today') + '</span><span style="display:flex;gap:9px;align-items:center"><span class="st16 ' + st[0] + '">' + st[1] + '</span></span><span class="acts"><button>Forgot</button><button class="kn">Know it</button></span>');
+      row.querySelector('.kn').addEventListener('click', () => {
+        api('/api/journal/vocab/' + encodeURIComponent(x.id), { method: 'PATCH', body: { learned: true } }).then(r => { if (r.ok) row.classList.add('done'); });
+      });
+      row.querySelector('.acts button').addEventListener('click', () => {
+        api('/api/journal/vocab/' + encodeURIComponent(x.id), { method: 'PATCH', body: { learned: false } }).then(r => { if (r.ok) row.classList.remove('done'); });
+      });
+      dep.appendChild(row);
+    });
+  }
+
+  json('/api/journal/vocab/list').then(vocab);
   json('/api/homework/my/inbox').then(r => homework(r && r.assignments));
 
   Promise.all([json('/api/auth/me'), json('/api/student/progress')]).then(([me, pr]) => {

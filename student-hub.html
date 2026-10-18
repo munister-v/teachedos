@@ -1036,7 +1036,7 @@ zroot.querySelectorAll('[data-dots]').forEach(el=>{
 })();</script>
 <script>(function(){ const root=document.getElementById('pg-wordbank');
 
-const WORDS=[
+const WORDS=window.__hubWords=[
  {w:'majestic',tr:'величественный',st:'review',src:'Watch · Why do we dream?',bar:45,ex:'A majestic waterfall hidden in the fjords.'},
  {w:'cuisine',tr:'кухня (блюда)',st:'new',src:'Read · Tokyo after dark',bar:10,ex:'Japanese cuisine is famous worldwide.'},
  {w:'hesitate',tr:'колебаться; не решаться',st:'learning',src:'Lesson · Small talk',bar:65,ex:"Don't hesitate to ask questions."},
@@ -1077,7 +1077,7 @@ let curFilter='all';
 
 function confetti(n){const C=['#D3F26A','#2DD4BF','#F6D8D8','#1E2231','#F3A46B'];for(let i=0;i<(n||70);i++){const d=document.createElement('div');d.className='confetti';d.style.left=(38+Math.random()*24)+'vw';d.style.background=C[i%C.length];document.body.appendChild(d);const dx=(Math.random()-.5)*260;d.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate('+dx+'px,'+(innerHeight*.75)+'px) rotate('+(Math.random()*720-360)+'deg)',opacity:0}],{duration:1300+Math.random()*700,easing:'cubic-bezier(.2,.8,.4,1)'}).onfinish=()=>d.remove();}}
 const wrap=root.querySelector('#sheetWrap');
-const DUE=WORDS.filter(x=>x.st==='review'||x.st==='learning'||x.st==='new');
+const DUE=window.__hubDue=WORDS.filter(x=>x.st==='review'||x.st==='learning'||x.st==='new');
 let si=0,flipped=false,score=0;
 function showCard(){
   const x=DUE[si];flipped=false;
@@ -1741,6 +1741,6 @@ html[data-hubtheme="dark"] #pg-today,html[data-hubtheme="dark"] #pg-watchread,ht
   });
 })();
 </script>
-<script src="scripts/app-core.js?v=1236"></script>
-<script src="scripts/hub-data.js?v=1236"></script>
+<script src="scripts/app-core.js?v=1237"></script>
+<script src="scripts/hub-data.js?v=1237"></script>
 </body></html>
