@@ -142,6 +142,86 @@
     });
   }
 
+  const ART = {
+    heart: ['0110110', '1111111', '1111111', '0111110', '0011100', '0001000'],
+    spark: ['00100', '00100', '10101', '01110', '10101', '00100', '00100'],
+    bolt: ['01110', '01100', '11111', '00110', '01100', '11000', '10000'],
+    crown: ['1010101', '1111111', '1111111', '0111110']
+  };
+  function paintArt(el) {
+    const rows = ART[el.dataset.art] || ART.spark, px = +el.dataset.px || 3;
+    el.style.width = Math.max(...rows.map(r => r.length)) * px + 'px';
+    el.style.height = rows.length * px + 'px';
+    rows.forEach((row, y) => [...row].forEach((c, x) => {
+      if (c !== '1') return;
+      const i = document.createElement('i');
+      i.style.cssText = 'left:' + x * px + 'px;top:' + y * px + 'px;width:' + px + 'px;height:' + px + 'px;background:' + el.dataset.color;
+      el.appendChild(i);
+    }));
+  }
+
+  function progress(d) {
+    const pg = document.getElementById('pg-progress');
+    if (!pg || !d) return;
+    const hw = d.homework || {}, wd = d.words || {}, st = Number(d.streak) || 0;
+    // The server has no XP, so the XP-driven blocks (level map, week bars, C1 gate) are hidden rather than invented.
+    ['.mapband', '.mapsub', '.maplegend', '.nextstop', '.grid2c'].forEach(q => pg.querySelectorAll(q).forEach(e => { e.style.display = 'none'; }));
+    const sub = pg.querySelector('.edhead .sub'); if (sub) sub.textContent = 'What you actually did \u2014 honestly measured';
+    const meta = pg.querySelector('.edhead .meta');
+    if (meta) meta.innerHTML = '<b>' + (hw.done || 0) + '</b> homework done<br><b>' + (wd.learned || 0) + '</b> words mastered<br><b>' + plural(st, 'day') + '</b> streak';
+    const stats = pg.querySelectorAll('.statrow .stat');
+    const vals = [[wd.learned || 0, 'words mastered'], [wd.total || 0, 'words in bank'], [st, 'day streak'], [hw.done || 0, 'homework done']];
+    stats.forEach((el, i) => { if (vals[i]) el.innerHTML = '<b>' + vals[i][0] + '</b><span>' + vals[i][1] + '</span>'; });
+
+    // Wins: the latest real things the student did.
+    const wins = pg.querySelector('.wins13');
+    if (wins) {
+      wins.querySelectorAll('.wrow').forEach(r => r.remove());
+      const art = { homework: 'crown', quiz: 'bolt', words: 'spark', board: 'heart', practice: 'bolt' };
+      const rec = (d.recent || []).slice(0, 6);
+      const k = wins.querySelector('.kick2'); if (k) k.textContent = 'RECENT WORK';
+      if (!rec.length) wins.insertAdjacentHTML('beforeend', '<div class="wrow"><div><b>Nothing yet</b><div class="wsub">Your first finished task shows up here</div></div></div>');
+      rec.forEach(x => {
+        const row = document.createElement('div'); row.className = 'wrow';
+        row.innerHTML = '<span class="medal"><span class="pxart"></span></span><div><b></b><div class="wsub"></div></div><span class="wxp"></span><span class="wdate"></span>';
+        row.querySelector('b').textContent = x.title || 'Work';
+        row.querySelector('.wsub').textContent = x.detail || '';
+        row.querySelector('.wxp').textContent = typeof x.pct === 'number' ? x.pct + '%' : '';
+        row.querySelector('.wdate').textContent = new Date(x.day + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+        const a = row.querySelector('.pxart'); a.dataset.art = art[x.kind] || 'spark'; a.dataset.color = '#D3F26A'; a.dataset.px = '3';
+        wins.appendChild(row);
+        paintArt(a);
+      });
+    }
+
+    // Calendar of the current month from the last 28 days of activity.
+    const by = new Map((d.activity || []).map(x => [x.day, x.n]));
+    const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+    const first = new Date(y, m, 1), last = new Date(y, m + 1, 0).getDate();
+    const lead = (first.getDay() + 6) % 7;
+    const k2 = pg.querySelector('.cal13')?.parentNode.querySelector('.kick2');
+    if (k2) k2.textContent = 'YOUR MONTH \u00B7 ' + first.toLocaleDateString('en-GB', { month: 'long' }).toUpperCase();
+    const grid = pg.querySelector('.cgrid');
+    if (grid) {
+      let h = '';
+      for (let i = 0; i < lead; i++) h += '<div class="cday empty"></div>';
+      for (let day = 1; day <= last; day++) {
+        const key = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        const n = by.get(key) || 0;
+        const cls = day > now.getDate() ? 'fut' : n >= 3 ? 'strong' : n >= 1 ? 'act' : '';
+        h += '<div class="cday ' + cls + (day === now.getDate() ? ' today' : '') + '">' + day + '</div>';
+      }
+      grid.innerHTML = h;
+      const days = (d.activity || []).filter(x => x.n > 0).length;
+      let best = null; (d.activity || []).forEach(x => { if (!best || x.n > best.n) best = x; });
+      const cs = pg.querySelector('.calsum');
+      if (cs) cs.innerHTML = '<span><b>' + days + '</b> active days in 4 weeks</span><span>Streak <b>' + plural(st, 'day') + '</b></span>' +
+        (best && best.n ? '<span>Best day <b>' + new Date(best.day + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + ' \u00B7 ' + plural(best.n, 'thing') + '</b></span>' : '');
+      const lg = pg.querySelector('.callegend span:nth-child(3)'); if (lg) lg.remove();
+    }
+  }
+
+  json('/api/student/progress').then(progress);
   json('/api/journal/vocab/list').then(vocab);
   json('/api/homework/my/inbox').then(r => homework(r && r.assignments));
 
