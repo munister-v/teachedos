@@ -5067,7 +5067,7 @@ function _wpVocabStudio(stage, card, k) {
     }).join('');
     box.innerHTML = `
       <div class="vs-top">
-        <div class="vs-modes"><button type="button" data-mode="learn" class="${st.mode === 'learn' ? 'on' : ''}">Learn</button><button type="button" data-mode="test" class="${st.mode === 'test' ? 'on' : ''}">Test myself</button></div>
+        <div class="vs-modes"><button type="button" data-mode="learn" class="${st.mode === 'learn' ? 'on' : ''}">Learn</button><button type="button" data-mode="test" class="${st.mode === 'test' ? 'on' : ''}">Test myself</button></div><a href="vocab-skins.html" target="_blank" rel="noopener" class="vs-skins" style="margin-left:10px;font-weight:800;font-size:13px;color:inherit;text-decoration:none;align-self:center">Skins ✨</a>
         <div class="vs-prog"><b>${knownN} / ${words.length}</b> known</div>
         ${_wpOwnerOf(card) ? `<div class="vs-accent" title="Which pronunciation the cards and games show">${['uk', 'us', 'both'].map(a => `<button type="button" data-accent="${a}" class="${(card.data._wfPath.accent || 'both') === a ? 'on' : ''}">${a === 'both' ? 'UK + US' : a.toUpperCase()}</button>`).join('')}</div>` : ''}
         <label class="vs-only"><input type="checkbox"${st.onlyLearning ? ' checked' : ''}> Only words I'm still learning</label>
@@ -16792,7 +16792,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1233';
+const TEACHEDOS_ASSET_VERSION = '1234';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23691,7 +23691,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1233',
+          icon: 'icons/icon-192.png?v=1234',
           tag: 'board-live-' + s.id,
         });
       }
