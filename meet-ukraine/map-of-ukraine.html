@@ -1,0 +1,1431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="An interactive illustrated wallpaper of Ukraine: every region, 28 cities and the country's folk treasures — tap a place to discover what it is famous for." />
+    <link rel="icon" href="data:," />
+    <title>Interactive Wallpaper — Map of Ukraine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@500;700;800&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        color-scheme: light;
+      }
+      *{ box-sizing:border-box; }
+      html,body{ height:100%; }
+      body{
+        margin:0;
+        font-family:"Rubik", system-ui, sans-serif;
+        overflow:hidden;
+        background:#173e7c;
+      }
+
+      /* ---------- stage ---------- */
+      .stage{ position:fixed; inset:0; background:linear-gradient(180deg, var(--sky1), var(--sky2)); }
+      .stage svg{ display:block; width:100%; height:100%; }
+      .vignette{
+        position:absolute; inset:0; pointer-events:none;
+        background:radial-gradient(120% 90% at 50% 42%, transparent 55%, rgba(6,20,48,.28) 100%);
+      }
+
+      /* ---------- poster palette (day / dusk) ---------- */
+      body{
+        --sky1:#2f63b0; --sky2:#1a4486;
+        --land:#b9e2f2; --land-edge:#8ec9e6; --land-shadow:#123a75;
+        --ink:#10355f;
+        --label:#ffffff; --label-stroke:#17457c;
+        --sun-core:#ffd83d; --sun-ray:#ffcf1f;
+        --sea-line:rgba(255,255,255,.35);
+        --cloud:#ffffff;
+        --star-op:0;
+        --moon-op:0; --sun-op:1;
+        --window:#ffe9a3; --window-op:0;
+      }
+      body[data-theme="dusk"]{
+        --sky1:#1d2c57; --sky2:#0d1734;
+        --land:#7ea9cc; --land-edge:#5d8ab2; --land-shadow:#081226;
+        --ink:#0d2142;
+        --label:#eef5ff; --label-stroke:#0d2142;
+        --sea-line:rgba(190,215,255,.30);
+        --cloud:#aebfdd;
+        --star-op:1;
+        --moon-op:1; --sun-op:0;
+        --window-op:1;
+      }
+      .sky{ fill:url(#skyGrad); }
+      #skyGrad stop:first-child{ stop-color:var(--sky1); }
+      #skyGrad stop:last-child{ stop-color:var(--sky2); }
+      .land-shadow{ fill:var(--land-shadow); opacity:.55; }
+      .land{ fill:var(--land); stroke:var(--land-edge); }
+      .cloud{ fill:var(--cloud); opacity:.92; }
+      .star{ fill:#fff; opacity:var(--star-op); transition:opacity 1s ease; }
+      .sun-g{ opacity:var(--sun-op); transition:opacity .8s ease; }
+      .moon-g{ opacity:var(--moon-op); transition:opacity .8s ease; }
+      .win{ fill:var(--window); opacity:var(--window-op); transition:opacity 1s ease; }
+      .sea-line{ stroke:var(--sea-line); }
+      .city-label{
+        fill:var(--label); stroke:var(--label-stroke);
+        font-family:"Shantell Sans","Rubik",sans-serif; font-weight:700;
+        paint-order:stroke; stroke-linejoin:round;
+      }
+      .title-letter{ fill:#ffd83d; stroke:#e8a90c; paint-order:stroke; stroke-linejoin:round;
+        font-family:"Shantell Sans",sans-serif; font-weight:800; }
+      /* ---------- interactive bits ---------- */
+      .city, .landmark{ cursor:pointer; outline:none; }
+      .city .dot{ fill:#10283f; stroke:#fff; stroke-width:2.5; transition:transform .25s ease; transform-box:fill-box; transform-origin:center; }
+      .city:hover .dot, .city:focus .dot{ transform:scale(1.35); }
+      .city .halo{ fill:none; stroke:#ffd83d; stroke-width:3; opacity:0; transform-box:fill-box; transform-origin:center; }
+      .city.active .halo{ opacity:1; animation:haloPulse 1.6s ease-in-out infinite; }
+      .landmark{ transition:filter .35s ease; }
+      .landmark:hover, .landmark:focus{ filter:drop-shadow(0 0 8px rgba(255,216,61,.95)); }
+      @keyframes haloPulse{ 0%,100%{ transform:scale(.8);} 50%{ transform:scale(1.25);} }
+
+      .sway{ transform-box:fill-box; transform-origin:50% 100%; animation:sway 5s ease-in-out infinite; }
+      .sway-slow{ animation-duration:7s; animation-delay:-2s; }
+      @keyframes sway{ 0%,100%{ rotate:-2.4deg;} 50%{ rotate:2.4deg;} }
+      .drift{ animation:drift 26s ease-in-out infinite alternate; }
+      .drift2{ animation:drift 34s ease-in-out infinite alternate-reverse; }
+      @keyframes drift{ from{ translate:-26px 0;} to{ translate:34px 0;} }
+      .rays{ transform-box:fill-box; transform-origin:center; animation:spin 46s linear infinite; }
+      @keyframes spin{ to{ rotate:360deg;} }
+      .wave-move{ animation:waveMove 9s linear infinite; }
+      .wave-move2{ animation:waveMove 14s linear infinite reverse; }
+      @keyframes waveMove{ from{ transform:translateX(0);} to{ transform:translateX(-120px);} }
+      .twinkle{ animation:twinkle 2.8s ease-in-out infinite; }
+      @keyframes twinkle{ 0%,100%{ opacity:calc(var(--star-op) * .35);} 50%{ opacity:var(--star-op);} }
+      .bob{ animation:bob 4.5s ease-in-out infinite; }
+      @keyframes bob{ 0%,100%{ translate:0 0; rotate:-1deg;} 50%{ translate:0 -7px; rotate:1.5deg;} }
+
+      /* ---------- chrome: one compact day/dusk toggle ---------- */
+      .theme-toggle{
+        position:fixed; top:14px; right:14px; z-index:20;
+        width:46px; height:46px; border-radius:50%;
+        appearance:none; border:0; cursor:pointer; padding:0;
+        display:grid; place-items:center;
+        color:#b97f06; background:rgba(255,253,244,.94);
+        box-shadow:0 3px 0 rgba(16,45,90,.30), 0 8px 18px rgba(4,18,44,.32);
+        transition:transform .15s ease, background .3s ease, color .3s ease;
+        -webkit-touch-callout:none; user-select:none; -webkit-user-select:none;
+      }
+      .theme-toggle:hover{ transform:translateY(-1px); }
+      .theme-toggle:active{ transform:translateY(1px); }
+      .theme-toggle svg{ width:23px; height:23px; display:block; }
+      .theme-toggle .ic-moon{ display:none; }
+      body[data-theme="dusk"] .theme-toggle{ color:#ffd83d; background:rgba(16,32,66,.88); }
+      body[data-theme="dusk"] .theme-toggle .ic-sun{ display:none; }
+      body[data-theme="dusk"] .theme-toggle .ic-moon{ display:block; }
+      .theme-toggle .auto-badge{
+        position:absolute; right:-3px; bottom:-3px;
+        min-width:17px; height:17px; padding:0 3px; border-radius:999px;
+        background:#2e7d4f; color:#fff; border:2px solid #fffdf4;
+        font-family:"Rubik",sans-serif; font-size:9.5px; font-weight:600; line-height:13px;
+        display:none; place-items:center;
+      }
+      .theme-toggle.is-auto .auto-badge{ display:grid; }
+
+      /* ---------- info card ---------- */
+      .card{
+        position:fixed; z-index:30; left:50%; bottom:22px; transform:translate(-50%, 24px);
+        width:min(430px, calc(100vw - 28px));
+        background:#fffdf4; color:#173a5e; border-radius:20px;
+        padding:20px 22px 18px;
+        box-shadow:0 24px 50px rgba(3,14,34,.45), 0 4px 0 #ffd83d inset;
+        max-height:calc(100vh - 110px); overflow-y:auto;
+        opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease;
+      }
+      .card.open{ opacity:1; pointer-events:auto; transform:translate(-50%, 0); }
+      .card[hidden]{ display:none; }
+      .card .tag{
+        display:inline-block; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+        color:#8a6100; background:#ffedb3; padding:4px 10px; border-radius:999px; margin-bottom:9px;
+      }
+      .card h2{ margin:0 34px 6px 0; font-family:"Shantell Sans",sans-serif; font-weight:800; font-size:27px; line-height:1.1; }
+      .card p{ margin:0; font-size:15px; line-height:1.55; color:#33536f; }
+      .card .close{
+        position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:50%;
+        border:0; cursor:pointer; background:#eef3f8; color:#173a5e; font-size:17px; line-height:1;
+        display:grid; place-items:center; transition:background .2s ease;
+      }
+      .card .close:hover{ background:#ffe9a3; }
+
+      /* ---------- card art, facts, mark button ---------- */
+      .card-art{
+        margin:-20px -22px 14px; height:118px; border-radius:20px 20px 0 0;
+        display:grid; place-items:center; background:#eaf2fb;
+        transition:background .3s ease;
+      }
+      .card-art svg{ width:98px; height:98px; }
+      .card .flabel{
+        margin:10px 0 3px; font-size:11px; font-weight:600; letter-spacing:.12em;
+        text-transform:uppercase; color:#8a6100;
+      }
+      .card .flabel:first-of-type{ margin-top:2px; }
+      .card .facts{ margin:0; padding-left:19px; }
+      .card .facts li{ font-size:14.5px; line-height:1.5; color:#33536f; margin:3px 0; }
+      .markbtn{
+        margin-top:14px; appearance:none; cursor:pointer;
+        font-family:"Shantell Sans","Rubik",sans-serif; font-weight:700; font-size:14.5px;
+        color:#173a5e; background:transparent; border:2px solid #173a5e; border-radius:999px;
+        padding:8px 18px; transition:background .2s ease, transform .15s ease;
+      }
+      .markbtn:hover{ transform:translateY(-1px); }
+      .markbtn[aria-pressed="true"]{ background:#ffd83d; border-color:#d9a50a; }
+      .markbtn[hidden]{ display:none; }
+      .visits{ margin:8px 0 0; font-size:12.5px; font-weight:500; color:#5d7287; }
+      .visits[hidden]{ display:none; }
+
+      /* ---------- back to the series (TeachEd · Meet Ukraine) ---------- */
+      .series-back{
+        position:fixed; top:14px; left:14px; z-index:20;
+        display:inline-flex; align-items:center; gap:7px; height:46px; padding:0 18px 0 14px; border-radius:999px;
+        font-family:"Shantell Sans","Rubik",sans-serif; font-weight:700; font-size:15px; text-decoration:none;
+        color:#173a5e; background:rgba(255,253,244,.94);
+        box-shadow:0 3px 0 rgba(16,45,90,.30), 0 8px 18px rgba(4,18,44,.32);
+        transition:transform .15s ease, background .3s ease, color .3s ease;
+      }
+      .series-back:hover{ transform:translateY(-1px); }
+      .series-back:focus-visible, .theme-toggle:focus-visible{ outline:3px solid #ffd83d; outline-offset:3px; }
+      body[data-theme="dusk"] .series-back{ color:#eef5ff; background:rgba(16,32,66,.88); }
+
+      /* ---------- map badges & marked state ---------- */
+      .badge{ pointer-events:none; }
+      .badge-shadow{ fill:rgba(6,20,48,.28); }
+      .badge-bg{ fill:#ffffff; stroke-width:2.4; }
+      .seal{ opacity:0; transition:opacity .25s ease; }
+      .seal-bg{ fill:#f2b705; stroke:#ffffff; stroke-width:1.8; }
+      .seal-star{ fill:#ffffff; }
+      .city.marked .seal{ opacity:1; }
+      .city.marked .dot{ fill:#f2b705; }
+
+      @media (max-width:640px){
+        .card{ bottom:12px; padding:17px 18px 15px; }
+        .card h2{ font-size:23px; }
+        .card-art{ margin:-17px -18px 12px; height:104px; }
+        .card-art svg{ width:84px; height:84px; }
+      }
+      @media (prefers-reduced-motion: reduce){
+        .sway,.drift,.drift2,.rays,.wave-move,.wave-move2,.twinkle,.bob,.city.active .halo{ animation:none !important; }
+        .card,.theme-toggle,.series-back,.landmark,.city .dot{ transition:none !important; }
+      }
+    </style>
+  </head>
+  <body data-theme="day">
+    <div class="stage" id="stage">
+      <svg id="poster" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" role="img"
+           aria-label="Illustrated map of Ukraine with cities and landmarks">
+        <defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2f63b0"/>
+            <stop offset="1" stop-color="#1a4486"/>
+          </linearGradient>
+          <g id="sunflowerDef">
+            <g class="petals">
+              <g fill="#FFC61A">
+                <ellipse cx="0" cy="-34" rx="10" ry="22"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(30)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(60)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(90)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(120)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(150)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(180)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(210)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(240)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(270)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(300)"/>
+                <ellipse cx="0" cy="-34" rx="10" ry="22" transform="rotate(330)"/>
+              </g>
+              <circle r="24" fill="#4A2E17"/>
+              <circle r="24" fill="none" stroke="#6B4423" stroke-width="3"/>
+              <g fill="#6B4423">
+                <circle cx="-9" cy="-7" r="2.4"/><circle cx="7" cy="-11" r="2.4"/>
+                <circle cx="11" cy="5" r="2.4"/><circle cx="-11" cy="8" r="2.4"/>
+                <circle cx="0" cy="0" r="2.4"/>
+              </g>
+            </g>
+          </g>
+          <path id="waveDef" d="M0 0 Q 15 -9 30 0 T 60 0 T 90 0 T 120 0" fill="none" stroke-width="3.4" stroke-linecap="round"/>
+
+          <!-- ======== city symbol icons (72x72) ======== -->
+          <g id="icon-lviv">
+            <rect x="12" y="46" width="48" height="14" fill="#F4F1E6"/>
+            <rect x="9" y="59" width="54" height="4" fill="#D9D2BC"/>
+            <polygon points="14,46 36,31 58,46" fill="#E7E0C8"/>
+            <path d="M28 31 A8 9 0 0 1 44 31 Z" fill="#C9B458"/>
+            <circle cx="36" cy="20" r="2.6" fill="#C9B458"/>
+            <g stroke="#B9B096" stroke-width="3"><line x1="20" y1="48" x2="20" y2="58"/><line x1="28" y1="48" x2="28" y2="58"/><line x1="44" y1="48" x2="44" y2="58"/><line x1="52" y1="48" x2="52" y2="58"/></g>
+            <rect x="32" y="49" width="8" height="10" rx="4" fill="#7FA8C9"/>
+          </g>
+          <g id="icon-kyiv">
+            <rect x="24" y="53" width="24" height="7" fill="#DAD4C2"/>
+            <path d="M28 53 L28 45 A8 6 0 0 1 44 45 L44 53 Z" fill="#F4F1E6"/>
+            <rect x="33.5" y="21" width="5" height="26" fill="#F4F1E6"/>
+            <rect x="30" y="43" width="12" height="3.4" fill="#E9C33B"/>
+            <circle cx="36" cy="15" r="4.8" fill="#E9C33B"/>
+            <path d="M41 12 A6.5 6.5 0 0 1 44 19" fill="none" stroke="#43A55C" stroke-width="2.6"/>
+          </g>
+          <g id="icon-kharkiv">
+            <ellipse cx="36" cy="59" rx="23" ry="5" fill="#7FC4E8"/>
+            <path d="M14 42 A22 15 0 0 1 58 42 Z" fill="#F4F1E6"/>
+            <path d="M14 42 A22 15 0 0 1 58 42" fill="none" stroke="#C9B458" stroke-width="2.6"/>
+            <rect x="33.6" y="23" width="4.8" height="7" fill="#C9B458"/>
+            <circle cx="36" cy="21" r="2.8" fill="#C9B458"/>
+            <g stroke="#CFC7AE" stroke-width="3.2"><line x1="21" y1="43" x2="21" y2="56"/><line x1="36" y1="43" x2="36" y2="56"/><line x1="51" y1="43" x2="51" y2="56"/></g>
+            <g stroke="#4FA8DC" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M28 46 Q26 51 28 55"/><path d="M44 46 Q46 51 44 55"/></g>
+          </g>
+          <g id="icon-dnipro">
+            <circle cx="55" cy="15" r="6" fill="#FFC61A"/>
+            <rect x="8" y="35" width="56" height="4.6" fill="#173A5E"/>
+            <path d="M12 40 A24 16 0 0 0 60 40" fill="none" stroke="#173A5E" stroke-width="3.6"/>
+            <g stroke="#173A5E" stroke-width="2.2"><line x1="24" y1="39" x2="24" y2="47"/><line x1="36" y1="39" x2="36" y2="52"/><line x1="48" y1="39" x2="48" y2="47"/></g>
+            <path d="M6 62 Q14 56 22 62 T38 62 T54 62 T70 62" fill="none" stroke="#4FA8DC" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g id="icon-kryvyi">
+            <g stroke="#173A5E" stroke-width="4" stroke-linecap="round"><line x1="21" y1="58" x2="36" y2="13"/><line x1="51" y1="58" x2="36" y2="13"/><line x1="17" y1="58" x2="55" y2="58"/></g>
+            <g stroke="#173A5E" stroke-width="2.8"><line x1="28" y1="38" x2="44" y2="38"/><line x1="31" y1="28" x2="41" y2="28"/></g>
+            <circle cx="36" cy="18" r="5.4" fill="none" stroke="#B3543F" stroke-width="3.2"/>
+            <circle cx="13" cy="60" r="4.2" fill="#B3543F"/><circle cx="21" cy="64" r="3.4" fill="#C96A4A"/>
+            <polygon points="42,56 62,56 58,66 46,66" fill="#8A5A1F"/>
+            <circle cx="48" cy="68" r="2.6" fill="#26221E"/><circle cx="57" cy="68" r="2.6" fill="#26221E"/>
+          </g>
+          <g id="icon-zaporizhzhia">
+            <circle cx="36" cy="39" r="17" fill="#F2C094"/>
+            <path d="M33 22 Q37 12 45 17 Q38 20 36.5 26Z" fill="#3A2A1A"/>
+            <circle cx="30" cy="37" r="2.1" fill="#26221E"/><circle cx="42" cy="37" r="2.1" fill="#26221E"/>
+            <circle cx="26" cy="43" r="2.8" fill="#F09A7A" opacity=".7"/><circle cx="46" cy="43" r="2.8" fill="#F09A7A" opacity=".7"/>
+            <path d="M24 46 Q31 51 36 47 Q41 51 48 46 Q45 55 36 55 Q27 55 24 46Z" fill="#3A2A1A"/>
+          </g>
+          <g id="icon-mykolaiv">
+            <path d="M10 46 H62 L56 60 H18 Z" fill="#173A5E"/>
+            <line x1="36" y1="46" x2="36" y2="16" stroke="#7A4A21" stroke-width="3.4"/>
+            <polygon points="39,19 39,42 56,42" fill="#FFFFFF" stroke="#CFC7AE" stroke-width="1.4"/>
+            <polygon points="33,25 33,42 20,42" fill="#FFD83D"/>
+            <polygon points="36,16 47,19.5 36,23" fill="#D7263D"/>
+            <path d="M6 67 Q14 61 22 67 T38 67 T54 67 T70 67" fill="none" stroke="#4FA8DC" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g id="icon-odesa">
+            <g fill="#F4F1E6" stroke="#CFC7AE" stroke-width="1.4">
+              <rect x="6" y="16" width="14" height="6"/><rect x="12" y="22" width="14" height="6"/>
+              <rect x="18" y="28" width="14" height="6"/><rect x="24" y="34" width="14" height="6"/>
+              <rect x="30" y="40" width="14" height="6"/>
+            </g>
+            <g transform="translate(56,44)" stroke="#E9C33B" stroke-width="3.4" fill="none" stroke-linecap="round">
+              <circle cx="0" cy="-13" r="4"/>
+              <line x1="0" y1="-9" x2="0" y2="13"/>
+              <line x1="-6" y1="-3" x2="6" y2="-3"/>
+              <path d="M-10 6 A11 11 0 0 0 10 6"/>
+            </g>
+            <path d="M6 62 Q14 56 22 62 T38 62" fill="none" stroke="#4FA8DC" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g id="icon-donetsk">
+            <path d="M36 40 Q34 54 37 66" fill="none" stroke="#2E7D4F" stroke-width="3.4" stroke-linecap="round"/>
+            <path d="M36 54 Q24 51 19 40 Q32 40 36 50Z" fill="#43A55C"/>
+            <circle cx="36" cy="27" r="13" fill="#D7263D"/>
+            <circle cx="28" cy="22" r="7" fill="#E8384F"/><circle cx="44" cy="22" r="7" fill="#E8384F"/><circle cx="36" cy="33" r="7" fill="#E8384F"/>
+            <path d="M31 26 A5.5 5.5 0 1 1 37 31 A3.2 3.2 0 1 0 34 26" fill="none" stroke="#8E1420" stroke-width="2.4"/>
+          </g>
+          <g id="icon-luhansk">
+            <path d="M20 50 A16 16 0 0 1 52 50 Z" fill="#FFC61A"/>
+            <g stroke="#FFC61A" stroke-width="3.4" stroke-linecap="round"><line x1="36" y1="27" x2="36" y2="19"/><line x1="17" y1="36" x2="11" y2="30"/><line x1="55" y1="36" x2="61" y2="30"/></g>
+            <line x1="8" y1="50" x2="64" y2="50" stroke="#2E7D4F" stroke-width="4" stroke-linecap="round"/>
+            <g stroke="#43A55C" stroke-width="3" stroke-linecap="round"><line x1="14" y1="59" x2="30" y2="59"/><line x1="40" y1="59" x2="58" y2="59"/><line x1="23" y1="66" x2="46" y2="66"/></g>
+            <path d="M13 17 q3.4 -3.4 6.8 0 q3.4 -3.4 6.8 0" fill="none" stroke="#173A5E" stroke-width="2.2" stroke-linecap="round"/>
+          </g>
+          <g id="icon-mariupol">
+            <g stroke="#FFC61A" stroke-width="2.6" stroke-linecap="round"><line x1="23" y1="21" x2="14" y2="16"/><line x1="49" y1="21" x2="58" y2="16"/></g>
+            <polygon points="26,19 36,10 46,19" fill="#D7263D"/>
+            <rect x="28" y="19" width="16" height="8" fill="#173A5E"/>
+            <circle cx="36" cy="23" r="3.2" fill="#FFD83D"/>
+            <polygon points="30,27 42,27 45,58 27,58" fill="#F4F1E6" stroke="#CFC7AE" stroke-width="1.2"/>
+            <polygon points="31.2,36 40.8,36 41.8,43 30.4,43" fill="#D7263D"/>
+            <polygon points="29.6,47 43,47 44,54 28.6,54" fill="#D7263D"/>
+            <path d="M6 64 Q14 58 22 64 T38 64 T54 64 T70 64" fill="none" stroke="#4FA8DC" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g id="icon-sevastopol">
+            <path d="M36 7 L40.5 13.5 L49 11 L42.5 16.5 L44.5 21 L36 17.5 L27.5 21 L29.5 16.5 L23 11 L31.5 13.5 Z" fill="#173A5E"/>
+            <rect x="30" y="21" width="12" height="4" fill="#DAD4C2"/>
+            <rect x="33" y="25" width="6" height="27" fill="#F4F1E6" stroke="#CFC7AE" stroke-width="1.2"/>
+            <rect x="30" y="52" width="12" height="4" fill="#DAD4C2"/>
+            <polygon points="22,56 50,56 57,65 15,65" fill="#8A97A5"/>
+            <path d="M8 69 Q15 65 22 69 T36 69 T50 69 T64 69" fill="none" stroke="#4FA8DC" stroke-width="2.6" stroke-linecap="round"/>
+          </g>
+          <g id="icon-lutsk">
+            <rect x="28" y="30" width="16" height="33" fill="#B3543F"/>
+            <polygon points="23,30 36,11 49,30" fill="#173A5E"/>
+            <polygon points="36,11 47,14.5 36,18" fill="#D7263D"/>
+            <rect x="24" y="27" width="24" height="4" fill="#8E3B28"/>
+            <rect x="33" y="38" width="6" height="9" rx="3" fill="#FFD83D"/>
+            <path d="M32 63 L32 55 A4 4 0 0 1 40 55 L40 63 Z" fill="#7A2E1F"/>
+          </g>
+          <g id="icon-rivne">
+            <path d="M36 7 C50 23 57 33 57 44 A21 21 0 1 1 15 44 C15 33 22 23 36 7Z" fill="#F2A03D"/>
+            <path d="M36 18 C44 29 48 35 48 43 A12 13 0 1 1 24 43 C24 35 28 29 36 18Z" fill="#FFC61A" opacity=".75"/>
+            <circle cx="36" cy="44" r="3.2" fill="#7A4A21"/>
+            <ellipse cx="29" cy="34" rx="3.4" ry="5.4" fill="#FFE3A3" transform="rotate(-18 29 34)"/>
+          </g>
+          <g id="icon-zhytomyr">
+            <path d="M36 4 C45 14 47 26 45 41 L27 41 C25 26 27 14 36 4Z" fill="#E8EEF6" stroke="#4A6FA5" stroke-width="2.6"/>
+            <path d="M27.4 35 L44.6 35 L45 41 L27 41Z" fill="#FFC61A"/>
+            <circle cx="36" cy="21" r="5.6" fill="#4FA8DC" stroke="#4A6FA5" stroke-width="2.2"/>
+            <path d="M27 33 L16 51 L27 48 Z" fill="#D7263D"/>
+            <path d="M45 33 L56 51 L45 48 Z" fill="#D7263D"/>
+            <path d="M30.5 46 Q36 64 41.5 46 Q36 54 30.5 46Z" fill="#F2A03D"/>
+            <circle cx="12" cy="13" r="2.4" fill="#FFC61A"/><circle cx="61" cy="9" r="2.4" fill="#FFC61A"/><circle cx="59" cy="27" r="2.4" fill="#FFC61A"/>
+            <path d="M8 34 Q5 40 8 46" fill="none" stroke="#7FA8C9" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M64 40 Q67 46 64 52" fill="none" stroke="#7FA8C9" stroke-width="2.2" stroke-linecap="round"/>
+          </g>
+          <g id="icon-chernihiv">
+            <rect x="22" y="41" width="28" height="21" fill="#F4F1E6"/>
+            <rect x="31" y="29" width="10" height="12" fill="#F4F1E6"/>
+            <path d="M27.5 29 A8.5 9.5 0 0 1 44.5 29 Z" fill="#E9C33B"/>
+            <g stroke="#C9930A" stroke-width="2.2" stroke-linecap="round"><line x1="36" y1="19" x2="36" y2="11"/><line x1="32.5" y1="14.5" x2="39.5" y2="14.5"/></g>
+            <rect x="26" y="47" width="5" height="8" rx="2.5" fill="#7FA8C9"/>
+            <rect x="41" y="47" width="5" height="8" rx="2.5" fill="#7FA8C9"/>
+            <path d="M33 62 L33 54 A3 3.4 0 0 1 39 54 L39 62 Z" fill="#7A4A21"/>
+          </g>
+          <g id="icon-sumy">
+            <polygon points="36,6 57,26 15,26" fill="#173A5E"/>
+            <line x1="36" y1="6" x2="36" y2="1.5" stroke="#173A5E" stroke-width="2.6"/>
+            <circle cx="36" cy="2.5" r="1.2" fill="#173A5E"/>
+            <rect x="18" y="26" width="36" height="4.4" fill="#F4F1E6" stroke="#CFC7AE" stroke-width="1.2"/>
+            <g stroke="#B9B096" stroke-width="3.2"><line x1="22" y1="31" x2="22" y2="52"/><line x1="31" y1="31" x2="31" y2="52"/><line x1="41" y1="31" x2="41" y2="52"/><line x1="50" y1="31" x2="50" y2="52"/></g>
+            <rect x="16" y="52" width="40" height="5" fill="#DAD4C2"/>
+            <rect x="20" y="57" width="32" height="4" fill="#CFC7AE"/>
+          </g>
+          <g id="icon-poltava">
+            <path d="M30 4 Q33 9 31 13 M43 3 Q46 8 44 12" stroke="#BFD9EA" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <circle cx="25" cy="31" r="6.4" fill="#F7E8C3" stroke="#E3C98F" stroke-width="1.6"/>
+            <circle cx="36" cy="27.5" r="6.8" fill="#F7E8C3" stroke="#E3C98F" stroke-width="1.6"/>
+            <circle cx="47" cy="31" r="6.4" fill="#F7E8C3" stroke="#E3C98F" stroke-width="1.6"/>
+            <path d="M13 36 A23 17 0 0 0 59 36 Z" fill="#4FA8DC"/>
+            <rect x="24" y="52" width="24" height="4.6" rx="2.3" fill="#2F7FB8"/>
+            <g stroke="#C7CED6" stroke-width="2.6" stroke-linecap="round"><line x1="63" y1="14" x2="60" y2="26"/><line x1="59" y1="15" x2="60.5" y2="21"/><line x1="66" y1="15" x2="64.5" y2="21"/></g>
+          </g>
+          <g id="icon-cherkasy">
+            <path d="M36 14 C41.5 25 41.5 36 36 44 C30.5 36 30.5 25 36 14Z" fill="#F28BB4"/>
+            <path d="M17 27 C26 29 32 35 33.5 45 C25 44 17 37 17 27Z" fill="#F6A8C6"/>
+            <path d="M55 27 C46 29 40 35 38.5 45 C47 44 55 37 55 27Z" fill="#F6A8C6"/>
+            <path d="M14 45 Q36 57 58 45 Q48 55 36 55 Q24 55 14 45Z" fill="#E87FA9"/>
+            <path d="M10 62 Q18 57 26 62 T42 62 T58 62" fill="none" stroke="#4FA8DC" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g id="icon-kropyvnytskyi">
+            <polygon points="10,8 24,8 10,24" fill="#D7263D"/>
+            <polygon points="62,8 48,8 62,24" fill="#D7263D"/>
+            <path d="M36 13 C48 13 54 21 54 31 C54 45 46 55 36 55 C26 55 18 45 18 31 C18 21 24 13 36 13Z" fill="#FFD83D"/>
+            <path d="M26.5 28 q3.2 -3.4 6.4 0 M39.5 28 q3.2 -3.4 6.4 0" fill="none" stroke="#173A5E" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M26 39 Q36 48.5 46 39" fill="none" stroke="#173A5E" stroke-width="2.8" stroke-linecap="round"/>
+            <circle cx="24" cy="36" r="2.7" fill="#F09A7A" opacity=".8"/><circle cx="48" cy="36" r="2.7" fill="#F09A7A" opacity=".8"/>
+          </g>
+          <g id="icon-vinnytsia">
+            <g stroke="#4FA8DC" stroke-width="3.6" fill="none" stroke-linecap="round">
+              <path d="M36 54 C36 36 30 25 19 18"/><path d="M36 54 C36 32 36 18 36 9"/><path d="M36 54 C36 36 42 25 53 18"/>
+            </g>
+            <g fill="#4FA8DC"><circle cx="19" cy="15" r="2.6"/><circle cx="36" cy="6" r="2.6"/><circle cx="53" cy="15" r="2.6"/></g>
+            <ellipse cx="36" cy="56" rx="17" ry="4.4" fill="#7FC4E8"/>
+            <path d="M8 66 Q16 61 24 66 T40 66 T56 66" fill="none" stroke="#4FA8DC" stroke-width="2.8" stroke-linecap="round"/>
+            <circle cx="56" cy="38" r="3.4" fill="#E9C33B"/>
+            <path d="M59.4 38 L59.4 27 L66 29" fill="none" stroke="#E9C33B" stroke-width="2.6"/>
+          </g>
+          <g id="icon-khmelnytskyi">
+            <polygon points="5,68 18,45 54,45 67,68" fill="#A67B4F"/>
+            <polygon points="18,45 54,45 60,57 12,57" fill="#8A6238"/>
+            <rect x="24" y="29" width="24" height="17" fill="#D9C29A" stroke="#B39B6B" stroke-width="1.4"/>
+            <g fill="#D9C29A" stroke="#B39B6B" stroke-width="1.2"><rect x="24" y="24.6" width="5" height="5.4"/><rect x="31" y="24.6" width="5" height="5.4"/><rect x="38" y="24.6" width="5" height="5.4"/><rect x="43.5" y="24.6" width="4.5" height="5.4"/></g>
+            <rect x="14.5" y="20" width="12.5" height="26" fill="#D9C29A" stroke="#B39B6B" stroke-width="1.4"/>
+            <polygon points="11.5,20 20.75,6.5 30,20" fill="#3D5A66"/>
+            <line x1="20.75" y1="6.5" x2="20.75" y2="0.5" stroke="#5E4A2A" stroke-width="1.7"/>
+            <rect x="20.75" y="0.5" width="7.5" height="2.6" fill="#4FA8DC"/>
+            <rect x="20.75" y="3.1" width="7.5" height="2.6" fill="#FFC61A"/>
+            <rect x="45" y="25" width="11.5" height="21" fill="#D9C29A" stroke="#B39B6B" stroke-width="1.4"/>
+            <polygon points="42,25 50.75,13.5 59.5,25" fill="#3D5A66"/>
+            <rect x="18.75" y="27" width="4" height="6.5" rx="2" fill="#5E4A2A"/>
+            <rect x="48.75" y="31.5" width="4" height="6.5" rx="2" fill="#5E4A2A"/>
+            <rect x="27" y="32" width="3.6" height="5" rx="1.8" fill="#5E4A2A"/>
+            <path d="M31.5 46 L31.5 38 A4.5 4.5 0 0 1 40.5 38 L40.5 46 Z" fill="#7A4A21"/>
+            <path d="M2 70.5 Q11 67 20 70.5 T38 70.5 T56 70.5 T70 70.5" fill="none" stroke="#4FA8DC" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+          <g id="icon-ternopil">
+            <circle cx="55" cy="13" r="5.4" fill="#FFC61A"/>
+            <ellipse cx="36" cy="52" rx="27" ry="10" fill="#7FC4E8"/>
+            <ellipse cx="36" cy="46" rx="16" ry="6.4" fill="#43A55C"/>
+            <line x1="30" y1="42" x2="30" y2="32" stroke="#7A4A21" stroke-width="2.8"/>
+            <circle cx="30" cy="28" r="7" fill="#2E7D4F"/>
+            <line x1="43" y1="43" x2="43" y2="35" stroke="#7A4A21" stroke-width="2.8"/>
+            <circle cx="43" cy="31" r="5.8" fill="#2E7D4F"/>
+            <path d="M12 60 Q19 56 26 60 T40 60" fill="none" stroke="#4FA8DC" stroke-width="2.6" stroke-linecap="round"/>
+          </g>
+          <g id="icon-ivano">
+            <rect x="28" y="25" width="16" height="37" fill="#F4F1E6" stroke="#CFC7AE" stroke-width="1.2"/>
+            <path d="M27 25 A9 8.4 0 0 1 45 25 Z" fill="#E9C33B"/>
+            <line x1="36" y1="16" x2="36" y2="10" stroke="#C9930A" stroke-width="2.4"/>
+            <circle cx="36" cy="8.6" r="2" fill="#C9930A"/>
+            <circle cx="36" cy="36" r="6" fill="#FFFFFF" stroke="#173A5E" stroke-width="2.2"/>
+            <path d="M36 36 L36 31.5 M36 36 L39.5 37.5" stroke="#173A5E" stroke-width="1.9" stroke-linecap="round"/>
+            <rect x="24" y="60" width="24" height="4" fill="#DAD4C2"/>
+            <rect x="33" y="48" width="6" height="8" rx="3" fill="#7FA8C9"/>
+          </g>
+          <g id="icon-chernivtsi">
+            <rect x="14" y="37" width="44" height="23" fill="#B3543F"/>
+            <polygon points="10,37 36,21 62,37" fill="#7A2E1F"/>
+            <g fill="#F4F1E6"><polygon points="24,30.5 27,27.5 30,30.5 27,33.5"/><polygon points="42,30.5 45,27.5 48,30.5 45,33.5"/></g>
+            <rect x="31" y="15" width="10" height="22" fill="#B3543F"/>
+            <polygon points="29,15 36,5 43,15" fill="#173A5E"/>
+            <g fill="#FFE9A3"><rect x="20" y="44" width="5" height="7"/><rect x="47" y="44" width="5" height="7"/><rect x="33.5" y="42" width="5" height="7"/></g>
+            <path d="M33 60 L33 52 A3 3.4 0 0 1 39 52 L39 60 Z" fill="#5E2415"/>
+          </g>
+          <g id="icon-uzhhorod">
+            <path d="M8 54 Q28 46 42 22" fill="none" stroke="#7A4A21" stroke-width="3.6" stroke-linecap="round"/>
+            <path d="M24 47 Q34 44 42 34" fill="none" stroke="#7A4A21" stroke-width="2.6"/>
+            <g><circle cx="50" cy="14" r="5.6" fill="#F8BBD0"/><circle cx="42" cy="28" r="5" fill="#F8BBD0"/><circle cx="57" cy="27" r="4.6" fill="#F8BBD0"/><circle cx="31" cy="40" r="4.4" fill="#F8BBD0"/>
+            <circle cx="50" cy="14" r="2.2" fill="#E87FA9"/><circle cx="42" cy="28" r="2" fill="#E87FA9"/><circle cx="57" cy="27" r="1.9" fill="#E87FA9"/><circle cx="31" cy="40" r="1.8" fill="#E87FA9"/></g>
+            <ellipse cx="20" cy="62" rx="4.6" ry="2.6" fill="#F6A8C6" transform="rotate(-24 20 62)"/>
+          </g>
+          <g id="icon-kherson">
+            <path d="M10 21 A26 26 0 0 0 62 21 L57 21 A21 21 0 0 1 15 21 Z" fill="#2E7D4F"/>
+            <path d="M15 21 A21 21 0 0 0 57 21 Z" fill="#E8384F"/>
+            <g fill="#26221E"><ellipse cx="27" cy="30" rx="1.8" ry="2.7"/><ellipse cx="36" cy="34" rx="1.8" ry="2.7"/><ellipse cx="45" cy="30" rx="1.8" ry="2.7"/><ellipse cx="31.5" cy="26.5" rx="1.6" ry="2.3"/><ellipse cx="40.5" cy="26.5" rx="1.6" ry="2.3"/></g>
+            <path d="M14 52 Q24 44 36 50 Q48 56 58 48" fill="none" stroke="#43A55C" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g id="icon-simferopol">
+            <line x1="6" y1="10" x2="66" y2="10" stroke="#173A5E" stroke-width="2.4"/>
+            <g stroke="#173A5E" stroke-width="2.6"><line x1="28" y1="24" x2="22" y2="10"/><line x1="44" y1="24" x2="50" y2="10"/></g>
+            <rect x="12" y="24" width="48" height="24" rx="6" fill="#F2A03D"/>
+            <rect x="16" y="28" width="40" height="9" fill="#BFE3F2"/>
+            <g stroke="#F2A03D" stroke-width="2"><line x1="26" y1="28" x2="26" y2="37"/><line x1="36" y1="28" x2="36" y2="37"/><line x1="46" y1="28" x2="46" y2="37"/></g>
+            <circle cx="18" cy="43" r="2.2" fill="#FFE9A3"/><circle cx="54" cy="43" r="2.2" fill="#FFE9A3"/>
+            <circle cx="24" cy="51" r="5" fill="#26221E"/><circle cx="48" cy="51" r="5" fill="#26221E"/>
+            <circle cx="24" cy="51" r="2" fill="#C7CED6"/><circle cx="48" cy="51" r="2" fill="#C7CED6"/>
+          </g>
+          <g id="icon-mountains">
+            <polygon points="4,58 25,22 44,58" fill="#7FB3D5"/>
+            <polygon points="25,22 31,33 26,36 22,31 18,35" fill="#FFFFFF"/>
+            <polygon points="28,58 47,30 68,58" fill="#6FA8CF"/>
+            <polygon points="47,30 53,39 48,42 45,37 41,41" fill="#FFFFFF"/>
+            <polygon points="8,58 13,44 18,58" fill="#2E7D4F"/>
+            <polygon points="54,58 59,44 64,58" fill="#2E7D4F"/>
+          </g>
+          <g id="icon-borscht">
+            <path d="M28 6 Q31 11 29 15 M44 5 Q47 10 45 14" stroke="#BFD9EA" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <ellipse cx="36" cy="31" rx="23" ry="6" fill="#C1272D"/>
+            <ellipse cx="36" cy="30" rx="17" ry="4" fill="#E23A3A"/>
+            <path d="M31 29 Q36 26 41 29 Q36 31.6 31 29Z" fill="#FFF3E0"/>
+            <path d="M13 33 A23 16 0 0 0 59 33 Z" fill="#F2A03D"/>
+            <rect x="23" y="48" width="26" height="4.4" rx="2.2" fill="#D9822B"/>
+            <g transform="rotate(24 62 24)"><rect x="58" y="21" width="15" height="3.6" rx="1.8" fill="#C7CED6"/><ellipse cx="57" cy="23" rx="4.4" ry="3.4" fill="#DCE3EA"/></g>
+          </g>
+          <g id="icon-tractor">
+            <rect x="32" y="18" width="17" height="19" fill="#F2C230"/>
+            <rect x="35" y="21.5" width="11" height="10" fill="#BFE3F2"/>
+            <path d="M10 37 L32 37 L32 47 L21 47 A11 11 0 0 0 10 42Z" fill="#F2C230"/>
+            <rect x="47" y="27" width="5" height="12" fill="#8A6D1F"/>
+            <circle cx="22" cy="50" r="11" fill="#26221E"/><circle cx="22" cy="50" r="5" fill="#C7CED6"/>
+            <circle cx="50" cy="54" r="7.4" fill="#26221E"/><circle cx="50" cy="54" r="3.4" fill="#C7CED6"/>
+            <path d="M8 64 H64" stroke="#2E7D4F" stroke-width="3.4" stroke-linecap="round"/>
+          </g>
+          <g id="icon-nest">
+            <polygon points="22,66 54,66 47,42 29,38" fill="#8A97A5"/>
+            <polygon points="29,38 47,42 43,31 33,30" fill="#A7B4C0"/>
+            <rect x="32" y="13" width="13" height="19" fill="#F4F1E6"/>
+            <polygon points="30,13 38.5,3 47,13" fill="#D7263D"/>
+            <rect x="45" y="19" width="8" height="13" fill="#EDE8D8"/>
+            <polygon points="43.5,19 49,11 54.5,19" fill="#D7263D"/>
+            <rect x="36" y="19" width="5" height="7" rx="2.5" fill="#7FA8C9"/>
+            <path d="M6 69 Q12 66 18 69 T30 69" fill="none" stroke="#4FA8DC" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+          <!-- ======== folk motif icons (72x72): large map art + card art ======== -->
+          <g id="icon-rushnyk">
+            <rect x="15" y="6" width="42" height="54" rx="3" fill="#FFF9EF" stroke="#D9CDB2" stroke-width="2"/>
+            <rect x="15" y="6" width="42" height="6" fill="#F1E4C8"/>
+            <g fill="#D7263D">
+              <polygon points="36,17 40.5,22.5 36,28 31.5,22.5"/>
+              <polygon points="24,18.5 27,22.5 24,26.5 21,22.5"/>
+              <polygon points="48,18.5 51,22.5 48,26.5 45,22.5"/>
+            </g>
+            <rect x="19" y="33" width="34" height="4" fill="#D7263D"/>
+            <g stroke="#D7263D" stroke-width="2" stroke-linecap="round">
+              <path d="M21 44 h6 M24 41 v6"/><path d="M33 44 h6 M36 41 v6"/><path d="M45 44 h6 M48 41 v6"/>
+            </g>
+            <g stroke="#D9CDB2" stroke-width="2" stroke-linecap="round">
+              <line x1="19" y1="60" x2="19" y2="66"/><line x1="25" y1="60" x2="25" y2="66"/><line x1="31" y1="60" x2="31" y2="66"/>
+              <line x1="37" y1="60" x2="37" y2="66"/><line x1="43" y1="60" x2="43" y2="66"/><line x1="49" y1="60" x2="49" y2="66"/><line x1="53" y1="60" x2="53" y2="66"/>
+            </g>
+          </g>
+          <g id="icon-petrykivka">
+            <path d="M36 64 Q34 50 36 40" stroke="#2E7D4F" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M35 54 Q22 52 17 41 Q30 41 35 49Z" fill="#43A55C"/>
+            <path d="M37 54 Q50 52 55 41 Q42 41 37 49Z" fill="#43A55C"/>
+            <g fill="#E23A3A">
+              <ellipse cx="36" cy="15" rx="5.4" ry="11"/>
+              <ellipse cx="36" cy="15" rx="5.4" ry="11" transform="rotate(45 36 26)"/>
+              <ellipse cx="36" cy="15" rx="5.4" ry="11" transform="rotate(90 36 26)"/>
+              <ellipse cx="36" cy="15" rx="5.4" ry="11" transform="rotate(135 36 26)"/>
+              <ellipse cx="36" cy="15" rx="5.4" ry="11" transform="rotate(180 36 26)"/>
+              <ellipse cx="36" cy="15" rx="5.4" ry="11" transform="rotate(225 36 26)"/>
+              <ellipse cx="36" cy="15" rx="5.4" ry="11" transform="rotate(270 36 26)"/>
+              <ellipse cx="36" cy="15" rx="5.4" ry="11" transform="rotate(315 36 26)"/>
+            </g>
+            <g fill="#F2A03D">
+              <ellipse cx="36" cy="19" rx="3.4" ry="6.4"/>
+              <ellipse cx="36" cy="19" rx="3.4" ry="6.4" transform="rotate(60 36 26)"/>
+              <ellipse cx="36" cy="19" rx="3.4" ry="6.4" transform="rotate(120 36 26)"/>
+              <ellipse cx="36" cy="19" rx="3.4" ry="6.4" transform="rotate(180 36 26)"/>
+              <ellipse cx="36" cy="19" rx="3.4" ry="6.4" transform="rotate(240 36 26)"/>
+              <ellipse cx="36" cy="19" rx="3.4" ry="6.4" transform="rotate(300 36 26)"/>
+            </g>
+            <circle cx="36" cy="26" r="5.6" fill="#FFD83D"/>
+            <g fill="#C1272D"><circle cx="33.5" cy="24" r="1.3"/><circle cx="38.5" cy="24" r="1.3"/><circle cx="36" cy="28.5" r="1.3"/></g>
+            <g fill="#D7263D"><circle cx="13" cy="55" r="3.2"/><circle cx="19" cy="61" r="3.2"/><circle cx="53" cy="61" r="3.2"/><circle cx="59" cy="55" r="3.2"/></g>
+          </g>
+          <g id="icon-pysanka">
+            <ellipse cx="36" cy="64" rx="15" ry="3.2" fill="#8A5A1F"/>
+            <rect x="29" y="57" width="14" height="5" rx="2" fill="#A67B4F"/>
+            <path d="M36 4 C47.5 15.5 50.5 26.5 50.5 36.5 A14.5 15.5 0 1 1 21.5 36.5 C21.5 26.5 24.5 15.5 36 4Z" fill="#B03A2E"/>
+            <g fill="#FFF3E0"><circle cx="28.5" cy="19" r="1.9"/><circle cx="36" cy="16.5" r="1.9"/><circle cx="43.5" cy="19" r="1.9"/></g>
+            <path d="M22.5 33 l4.5 -4.5 4.5 4.5 4.5 -4.5 4.5 4.5 4.5 -4.5 4.5 4.5" fill="none" stroke="#FFD83D" stroke-width="2.6" stroke-linejoin="round"/>
+            <polygon points="36,40 40,45 36,50 32,45" fill="#FFF3E0"/>
+            <path d="M25.5 54.5 Q36 58.5 46.5 54.5" fill="none" stroke="#FFD83D" stroke-width="2.6" stroke-linecap="round"/>
+          </g>
+          <g id="icon-vyshyvanka">
+            <path d="M28 13 L13 20 L17.5 35 L25.5 30.5 L25.5 57 Q36 61.5 46.5 57 L46.5 30.5 L54.5 35 L59 20 L44 13 Q36 19.5 28 13Z" fill="#FDFBF4" stroke="#C3CAD2" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M28 13 Q36 19.5 44 13 Q36 16.5 28 13Z" fill="#EFE9DB"/>
+            <g fill="#A8BFD4">
+              <polygon points="36,24 39.5,28 36,32 32.5,28"/>
+              <polygon points="36,35 39,38.5 36,42 33,38.5"/>
+              <circle cx="29.5" cy="28" r="1.7"/><circle cx="42.5" cy="28" r="1.7"/>
+            </g>
+            <g stroke="#A8BFD4" stroke-width="2" stroke-linecap="round">
+              <path d="M15.5 27.5 L21 25.5"/><path d="M51 25.5 L56.5 27.5"/>
+              <path d="M29 52.5 h14"/>
+            </g>
+          </g>
+          <g id="icon-borshchiv">
+            <path d="M28 13 L13 20 L17.5 35 L25.5 30.5 L25.5 57 Q36 61.5 46.5 57 L46.5 30.5 L54.5 35 L59 20 L44 13 Q36 19.5 28 13Z" fill="#2E2622" stroke="#17120F" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M28 13 Q36 19.5 44 13 Q36 16.5 28 13Z" fill="#453831"/>
+            <circle cx="36" cy="29" r="4.4" fill="#D7263D"/>
+            <g fill="#F2A03D"><circle cx="36" cy="22.5" r="2.1"/><circle cx="36" cy="35.5" r="2.1"/><circle cx="29.5" cy="29" r="2.1"/><circle cx="42.5" cy="29" r="2.1"/></g>
+            <circle cx="36" cy="29" r="1.8" fill="#FFD83D"/>
+            <g fill="#43A55C"><circle cx="30" cy="40" r="2.2"/><circle cx="42" cy="40" r="2.2"/></g>
+            <g stroke="#D7263D" stroke-width="2.4" stroke-linecap="round">
+              <path d="M15.5 27.5 L21 25.5"/><path d="M51 25.5 L56.5 27.5"/><path d="M29 52.5 h14"/>
+            </g>
+          </g>
+          <g id="icon-pottery">
+            <ellipse cx="36" cy="61" rx="21" ry="4.6" fill="#7A4A21"/>
+            <rect x="32.5" y="53" width="7" height="8" fill="#5E3A17"/>
+            <path d="M30.5 9.5 h11 v6 c6.5 3.2 10 8.6 10 15.5 a15.5 14 0 1 1 -31 0 c0 -6.9 3.5 -12.3 10 -15.5 Z" fill="#B5652A"/>
+            <rect x="28" y="6" width="16" height="4.6" rx="2.2" fill="#8A4B1D"/>
+            <path d="M51 20 q7 4.5 0 11" fill="none" stroke="#8A4B1D" stroke-width="3"/>
+            <circle cx="36" cy="32" r="3.6" fill="#FFF3E0"/>
+            <g fill="#BFE3F2"><circle cx="36" cy="25.5" r="1.9"/><circle cx="36" cy="38.5" r="1.9"/><circle cx="29.5" cy="32" r="1.9"/><circle cx="42.5" cy="32" r="1.9"/></g>
+            <g fill="#FFF3E0"><circle cx="28" cy="43" r="1.6"/><circle cx="36" cy="45.5" r="1.6"/><circle cx="44" cy="43" r="1.6"/></g>
+          </g>
+          <g id="icon-locomotive">
+            <g fill="#DCE3EA"><circle cx="17" cy="13" r="4.2"/><circle cx="26" cy="8" r="5.4"/><circle cx="36" cy="12" r="4.2"/></g>
+            <rect x="13" y="18" width="7.5" height="13" fill="#26221E"/>
+            <rect x="10" y="30" width="35" height="14" rx="6" fill="#2E4A3F"/>
+            <path d="M27.5 30 a5.4 5.4 0 0 1 10.8 0Z" fill="#E9C33B"/>
+            <rect x="45" y="20" width="16" height="24" fill="#7A2E1F"/>
+            <rect x="49" y="24" width="8" height="8.6" fill="#BFE3F2"/>
+            <rect x="43" y="15.5" width="20" height="5" rx="2" fill="#26221E"/>
+            <rect x="7" y="44" width="56" height="5" fill="#26221E"/>
+            <polygon points="9,49 1.5,59 11,59" fill="#B03A2E"/>
+            <circle cx="8.5" cy="34" r="3.2" fill="#FFD83D"/>
+            <circle cx="51" cy="55.5" r="7.6" fill="#26221E" stroke="#B03A2E" stroke-width="2.6"/>
+            <circle cx="19" cy="57.5" r="5.6" fill="#26221E" stroke="#B03A2E" stroke-width="2.2"/>
+            <circle cx="33" cy="57.5" r="5.6" fill="#26221E" stroke="#B03A2E" stroke-width="2.2"/>
+            <line x1="19" y1="54" x2="51" y2="52" stroke="#C7CED6" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+        </defs>
+
+        <!-- sky -->
+        <rect class="sky" x="0" y="0" width="1440" height="900"/>
+
+        <!-- stars (dusk) -->
+        <g id="stars"></g>
+
+        <!-- sun / moon -->
+        <g transform="translate(1306,112)">
+          <g class="sun-g">
+            <g class="rays" stroke="#FFCF1F" stroke-width="7" stroke-linecap="round">
+              <line x1="0" y1="-72" x2="0" y2="-56"/><line x1="0" y1="56" x2="0" y2="72"/>
+              <line x1="-72" y1="0" x2="-56" y2="0"/><line x1="56" y1="0" x2="72" y2="0"/>
+              <line x1="-51" y1="-51" x2="-40" y2="-40"/><line x1="40" y1="40" x2="51" y2="51"/>
+              <line x1="51" y1="-51" x2="40" y2="-40"/><line x1="-40" y1="40" x2="-51" y2="51"/>
+            </g>
+            <circle r="42" fill="#FFD83D"/>
+            <circle cx="-13" cy="-6" r="5" fill="#10355F"/>
+            <circle cx="13" cy="-6" r="5" fill="#10355F"/>
+            <path d="M-13 12 Q 0 23 13 12" fill="none" stroke="#10355F" stroke-width="4.4" stroke-linecap="round"/>
+          </g>
+          <g class="moon-g">
+            <path d="M 26 -38 A 46 46 0 1 0 26 38 A 36 36 0 1 1 26 -38 Z" fill="#F4EFD8"/>
+            <circle cx="-16" cy="-8" r="4.4" fill="#10355F"/>
+            <path d="M-24 14 Q -14 20 -4 14" fill="none" stroke="#10355F" stroke-width="4" stroke-linecap="round"/>
+          </g>
+        </g>
+
+        <!-- clouds -->
+        <g class="cloud drift" transform="translate(492,104) scale(.8)">
+          <ellipse cx="0" cy="0" rx="52" ry="24"/><ellipse cx="38" cy="8" rx="40" ry="19"/><ellipse cx="-40" cy="9" rx="36" ry="17"/>
+        </g>
+        <g class="cloud drift2" transform="translate(1010,74) scale(.75)">
+          <ellipse cx="0" cy="0" rx="52" ry="24"/><ellipse cx="38" cy="8" rx="40" ry="19"/><ellipse cx="-40" cy="9" rx="36" ry="17"/>
+        </g>
+        <g class="cloud drift" transform="translate(560,58) scale(.55)" style="animation-delay:-9s">
+          <ellipse cx="0" cy="0" rx="52" ry="24"/><ellipse cx="38" cy="8" rx="40" ry="19"/><ellipse cx="-40" cy="9" rx="36" ry="17"/>
+        </g>
+
+        <!-- parallax layer: land -->
+        <g id="landLayer">
+          <!-- offset shadow for a paper-cut feel -->
+          <g transform="translate(10,14)">
+            <path class="land-shadow" stroke-linejoin="round" stroke-width="12" stroke="#123a75"
+              d="M270 153 L315 157 L385 177 L454 168 L530 155 L606 137 L683 117 L752 134 L803 117 L847 131 L904 120 L949 144 L993 168 L1034 197 L1003 247 L1031 280 L1079 292 L1133 305 L1190 323 L1260 311 L1304 333 L1295 371 L1253 393 L1281 414 L1246 449 L1202 463 L1167 492 L1167 530 L1202 563 L1221 573 L1177 568 L1136 564 L1095 583 L1057 600 L1012 614 L971 648 L930 640 L949 659 L983 676 L1031 695 L1066 691 L1088 706 L1063 734 L1028 740 L1000 742 L974 757 L955 772 L933 787 L914 796 L892 791 L870 777 L838 761 L819 740 L816 710 L826 704 L852 692 L866 664 L862 634 L838 640 L828 616 L812 607 L796 597 L787 581 L777 611 L761 637 L726 631 L705 616 L683 643 L657 663 L643 691 L638 714 L594 717 L565 701 L591 663 L616 633 L632 600 L616 568 L597 525 L588 487 L565 459 L534 448 L499 461 L461 451 L432 470 L407 491 L372 496 L334 489 L299 480 L267 468 L236 454 L207 448 L182 444 L160 431 L166 397 L188 367 L210 328 L236 290 L251 243 L267 200 Z"/>
+            <path class="land-shadow" stroke-linejoin="round" stroke-width="12" stroke="#123a75"
+              d="M968 644 L986 674 L979 679 L961 650 Z"/>
+          </g>
+          <!-- mainland: border traced on the real map — north along Belarus & Russia,
+               down the east to the Sea of Azov, west along the Azov & Black Sea coasts
+               (Danube delta, Dniester & Moldova border, Carpathians, Poland) -->
+          <path class="land" stroke-width="9" stroke-linejoin="round"
+            d="M270 153 L315 157 L385 177 L454 168 L530 155 L606 137 L683 117 L752 134 L803 117 L847 131 L904 120 L949 144 L993 168 L1034 197 L1003 247 L1031 280 L1079 292 L1133 305 L1190 323 L1260 311 L1304 333 L1295 371 L1253 393 L1281 414 L1246 449 L1202 463 L1167 492 L1167 530 L1202 563 L1221 573 L1177 568 L1136 564 L1095 583 L1057 600 L1012 614 L971 648 L930 640 L949 659 L983 676 L1031 695 L1066 691 L1088 706 L1063 734 L1028 740 L1000 742 L974 757 L955 772 L933 787 L914 796 L892 791 L870 777 L838 761 L819 740 L816 710 L826 704 L852 692 L866 664 L862 634 L838 640 L828 616 L812 607 L796 597 L787 581 L777 611 L761 637 L726 631 L705 616 L683 643 L657 663 L643 691 L638 714 L594 717 L565 701 L591 663 L616 633 L632 600 L616 568 L597 525 L588 487 L565 459 L534 448 L499 461 L461 451 L432 470 L407 491 L372 496 L334 489 L299 480 L267 468 L236 454 L207 448 L182 444 L160 431 L166 397 L188 367 L210 328 L236 290 L251 243 L267 200 Z"/>
+          <!-- Crimea is traced as part of the single landmass above: down the Syvash
+               shore, around the peninsula, and back up to the Karkinit shore —
+               joined to the mainland by the wide Perekop isthmus -->
+          <!-- Arabat Spit -->
+          <path class="land" stroke-width="9" stroke-linejoin="round"
+            d="M968 644 L986 674 L979 679 L961 650 Z"/>
+
+          <!-- ======== LANDMARKS ======== -->
+          <!-- Carpathians -->
+          <g class="landmark" data-city="carpathians" tabindex="0" role="button" aria-label="The Carpathians" transform="translate(115,432)">
+            <polygon points="0,88 52,10 104,88" fill="#7FB3D5"/>
+            <polygon points="52,10 70,38 60,44 52,32 44,44 34,38" fill="#FFFFFF"/>
+            <polygon points="66,88 108,26 150,88" fill="#6FA8CF"/>
+            <polygon points="108,26 122,48 113,52 107,42 100,52 94,47" fill="#FFFFFF"/>
+            <polygon points="-38,88 4,34 46,88" fill="#8FC1DE"/>
+            <g fill="#2E7D4F">
+              <polygon points="118,88 128,62 138,88"/><polygon points="128,72 138,50 148,72 146,88 130,88"/>
+              <polygon points="-16,88 -7,64 2,88"/>
+            </g>
+          </g>
+
+          <!-- Lviv Opera -->
+          <g class="landmark" data-city="lviv" tabindex="0" role="button" aria-label="Lviv — the Opera House" transform="translate(185,218)">
+            <rect x="0" y="58" width="150" height="52" fill="#F4F1E6"/>
+            <rect x="-12" y="104" width="174" height="9" fill="#D9D2BC"/>
+            <polygon points="6,58 75,24 144,58" fill="#E7E0C8"/>
+            <path d="M52 58 A23 23 0 0 1 98 58 Z" fill="#C9B458"/>
+            <circle cx="75" cy="30" r="5" fill="#C9B458"/>
+            <g stroke="#B9B096" stroke-width="4">
+              <line x1="18" y1="66" x2="18" y2="104"/><line x1="42" y1="66" x2="42" y2="104"/>
+              <line x1="66" y1="66" x2="66" y2="104"/><line x1="84" y1="66" x2="84" y2="104"/>
+              <line x1="108" y1="66" x2="108" y2="104"/><line x1="132" y1="66" x2="132" y2="104"/>
+            </g>
+            <rect x="60" y="76" width="30" height="28" rx="14" fill="#7FA8C9"/>
+            <rect class="win" x="60" y="76" width="30" height="28" rx="14"/>
+          </g>
+
+          <!-- cherries -->
+          <g transform="translate(505,175)">
+            <path d="M6 6 Q 26 -14 44 -4" fill="none" stroke="#2E7D4F" stroke-width="4" stroke-linecap="round"/>
+            <path d="M44 -4 Q 62 -22 76 -8 Q 60 8 44 -4Z" fill="#43A55C"/>
+            <circle cx="0" cy="30" r="15" fill="#D7263D"/>
+            <circle cx="34" cy="40" r="13" fill="#E8384F"/>
+            <circle cx="-4" cy="25" r="4.4" fill="#FF8FA0"/>
+            <circle cx="30" cy="35" r="3.8" fill="#FF8FA0"/>
+          </g>
+
+          <!-- Kyiv Independence Monument -->
+          <g class="landmark" data-city="kyiv" tabindex="0" role="button" aria-label="Kyiv — the Independence Monument" transform="translate(600,140)">
+            <rect x="6" y="118" width="76" height="10" fill="#DAD4C2"/>
+            <path d="M18 118 L18 88 A26 20 0 0 1 70 88 L70 118 Z" fill="#F4F1E6"/>
+            <rect x="35" y="26" width="18" height="66" fill="#F4F1E6"/>
+            <rect x="30" y="86" width="28" height="7" fill="#E9C33B"/>
+            <rect x="31" y="18" width="26" height="9" fill="#DAD4C2"/>
+            <circle cx="44" cy="6" r="6.5" fill="#E9C33B"/>
+            <path d="M44 12 L44 20 M44 15 L32 8 M44 15 L57 6" stroke="#E9C33B" stroke-width="4" stroke-linecap="round"/>
+            <path d="M57 6 A10 10 0 0 1 63 16" fill="none" stroke="#43A55C" stroke-width="3.4"/>
+          </g>
+
+          <!-- sunflower big, NE of Kyiv -->
+          <g class="sway" transform="translate(850,118)">
+            <path d="M6 118 Q 0 76 4 44" fill="none" stroke="#2E7D4F" stroke-width="6" stroke-linecap="round"/>
+            <path d="M4 92 Q -22 84 -28 64 Q -6 62 4 80Z" fill="#43A55C"/>
+            <g transform="translate(4,26)"><use href="#sunflowerDef"/></g>
+          </g>
+
+          <!-- kozak -->
+          <g class="landmark" data-city="zaporizhzhia" tabindex="0" role="button" aria-label="Zaporizhzhia — a Cossack" transform="translate(935,530)">
+            <circle cx="34" cy="40" r="31" fill="#F2C094"/>
+            <path d="M30 9 Q 40 -12 52 2 Q 40 6 36 16Z" fill="#3A2A1A"/>
+            <circle cx="23" cy="36" r="3.6" fill="#26221E"/>
+            <circle cx="45" cy="36" r="3.6" fill="#26221E"/>
+            <path d="M14 52 Q 26 62 34 54 Q 42 62 54 52 Q 50 70 34 70 Q 18 70 14 52Z" fill="#3A2A1A"/>
+            <path d="M26 76 Q 34 81 42 76" fill="none" stroke="#B3543F" stroke-width="3.4" stroke-linecap="round"/>
+            <circle cx="10" cy="46" r="5" fill="#F09A7A" opacity=".7"/>
+            <circle cx="58" cy="46" r="5" fill="#F09A7A" opacity=".7"/>
+          </g>
+
+          <!-- Kharkiv Mirror Stream fountain -->
+          <g class="landmark" data-city="kharkiv" tabindex="0" role="button" aria-label="Kharkiv — the Mirror Stream fountain" transform="translate(975,190) scale(.85)">
+            <ellipse cx="50" cy="118" rx="58" ry="10" fill="#7FC4E8"/>
+            <ellipse cx="50" cy="115" rx="44" ry="7" fill="#A8DCF5"/>
+            <g stroke="#F4F1E6" stroke-width="6">
+              <line x1="18" y1="112" x2="18" y2="52"/><line x1="38" y1="112" x2="38" y2="46"/>
+              <line x1="62" y1="112" x2="62" y2="46"/><line x1="82" y1="112" x2="82" y2="52"/>
+            </g>
+            <path d="M4 54 A46 34 0 0 1 96 54 Z" fill="#F4F1E6"/>
+            <path d="M4 54 A46 34 0 0 1 96 54" fill="none" stroke="#C9B458" stroke-width="4"/>
+            <rect x="44" y="8" width="12" height="16" fill="#C9B458"/>
+            <circle cx="50" cy="5" r="5" fill="#C9B458"/>
+            <g stroke="#4FA8DC" stroke-width="3" fill="none" stroke-linecap="round">
+              <path d="M28 66 Q 22 88 26 106"/><path d="M50 62 Q 50 86 50 106"/><path d="M72 66 Q 78 88 74 106"/>
+            </g>
+          </g>
+
+          <!-- sunflower east -->
+          <g class="sway sway-slow" transform="translate(1178,298) scale(.8)">
+            <path d="M6 118 Q 0 76 4 44" fill="none" stroke="#2E7D4F" stroke-width="6" stroke-linecap="round"/>
+            <path d="M4 92 Q 30 84 34 64 Q 12 62 4 80Z" fill="#43A55C"/>
+            <g transform="translate(4,26)"><use href="#sunflowerDef"/></g>
+          </g>
+
+          <!-- borscht -->
+          <g class="landmark" data-city="borscht" tabindex="0" role="button" aria-label="Borscht" transform="translate(712,282)">
+            <ellipse cx="46" cy="16" rx="46" ry="13" fill="#C1272D"/>
+            <ellipse cx="46" cy="14" rx="38" ry="9.5" fill="#E23A3A"/>
+            <path d="M34 12 Q 46 5 58 12 Q 46 18 34 12Z" fill="#FFF3E0"/>
+            <path d="M2 18 A44 30 0 0 0 90 18 Z" fill="#F2A03D"/>
+            <rect x="16" y="44" width="60" height="6" rx="3" fill="#D9822B"/>
+            <g transform="rotate(24 96 34)">
+              <rect x="90" y="30" width="34" height="7" rx="3.5" fill="#C7CED6"/>
+              <ellipse cx="88" cy="33" rx="9" ry="7" fill="#DCE3EA"/>
+            </g>
+            <path d="M30 2 Q 34 -8 40 0 M48 -2 Q 52 -12 58 -3" stroke="#BFD9EA" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+          </g>
+
+          <!-- tractor -->
+          <g class="landmark" data-city="fields" tabindex="0" role="button" aria-label="Ukraine's wheat fields" transform="translate(1025,362)">
+            <rect x="52" y="6" width="34" height="34" rx="4" fill="#F2C230"/>
+            <rect x="58" y="12" width="22" height="18" fill="#BFE3F2"/>
+            <path d="M8 40 L52 40 L52 58 L22 58 A14 14 0 0 0 8 46Z" fill="#F2C230"/>
+            <rect x="82" y="26" width="8" height="18" fill="#8A6D1F"/>
+            <circle cx="30" cy="62" r="19" fill="#26221E"/><circle cx="30" cy="62" r="9" fill="#C7CED6"/>
+            <circle cx="84" cy="66" r="13" fill="#26221E"/><circle cx="84" cy="66" r="6" fill="#C7CED6"/>
+            <path d="M14 82 H104" stroke="#2E7D4F" stroke-width="4" stroke-linecap="round"/>
+          </g>
+
+          <!-- wheat -->
+          <g class="sway" transform="translate(915,548)">
+            <path d="M10 84 Q 8 44 12 8" fill="none" stroke="#D9A41C" stroke-width="4" stroke-linecap="round"/>
+            <g fill="#F2C230">
+              <ellipse cx="2" cy="16" rx="5.4" ry="11" transform="rotate(-28 2 16)"/>
+              <ellipse cx="22" cy="16" rx="5.4" ry="11" transform="rotate(28 22 16)"/>
+              <ellipse cx="3" cy="34" rx="5.4" ry="11" transform="rotate(-28 3 34)"/>
+              <ellipse cx="21" cy="34" rx="5.4" ry="11" transform="rotate(28 21 34)"/>
+              <ellipse cx="12" cy="2" rx="5.4" ry="11"/>
+            </g>
+            <path d="M12 8 L4 -14 M12 8 L20 -14 M12 8 L12 -18" stroke="#D9A41C" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+
+          <!-- sunflower south -->
+          <g class="sway" transform="translate(1045,555) scale(.75)">
+            <path d="M6 118 Q 0 76 4 44" fill="none" stroke="#2E7D4F" stroke-width="6" stroke-linecap="round"/>
+            <path d="M4 92 Q -22 84 -28 64 Q -6 62 4 80Z" fill="#43A55C"/>
+            <g transform="translate(4,26)"><use href="#sunflowerDef"/></g>
+          </g>
+
+          <!-- Odesa: Potemkin stairs + anchor -->
+          <g class="landmark" data-city="odesa" tabindex="0" role="button" aria-label="Odesa — the Potemkin Stairs and anchor" transform="translate(598,540)">
+            <g fill="#F4F1E6" stroke="#CFC7AE" stroke-width="1.6">
+              <rect x="0" y="66" width="66" height="8"/>
+              <rect x="8" y="56" width="66" height="8"/>
+              <rect x="16" y="46" width="66" height="8"/>
+              <rect x="24" y="36" width="66" height="8"/>
+            </g>
+            <g transform="translate(118,58)" stroke="#FFD83D" stroke-width="6" fill="none" stroke-linecap="round">
+              <circle cx="0" cy="-24" r="8"/>
+              <line x1="0" y1="-16" x2="0" y2="26"/>
+              <line x1="-13" y1="-4" x2="13" y2="-4"/>
+              <path d="M-24 12 A27 27 0 0 0 24 12"/>
+              <path d="M-24 12 L-30 0 M-24 12 L-13 4 M24 12 L30 0 M24 12 L13 4" stroke-width="5"/>
+            </g>
+          </g>
+
+          <!-- Crimea: Swallow's Nest + palm -->
+          <g class="landmark" data-city="crimea" tabindex="0" role="button" aria-label="Crimea — the Swallow's Nest" transform="translate(985,700)">
+            <polygon points="30,96 96,96 84,58 44,52" fill="#8A97A5"/>
+            <polygon points="44,52 84,58 78,44 52,42" fill="#A7B4C0"/>
+            <rect x="52" y="16" width="24" height="30" fill="#F4F1E6"/>
+            <polygon points="50,16 64,2 78,16" fill="#D7263D"/>
+            <rect x="76" y="26" width="13" height="20" fill="#EDE8D8"/>
+            <polygon points="74,26 82,15 90,26" fill="#D7263D"/>
+            <rect x="60" y="26" width="8" height="11" rx="4" fill="#7FA8C9"/>
+            <rect class="win" x="60" y="26" width="8" height="11" rx="4"/>
+          </g>
+          <g class="sway sway-slow" transform="translate(1066,636) scale(.65)">
+            <path d="M10 92 Q 6 46 18 8" fill="none" stroke="#C97B2D" stroke-width="7" stroke-linecap="round"/>
+            <g stroke="#2E9E5B" stroke-width="6" fill="none" stroke-linecap="round">
+              <path d="M18 8 Q -14 -8 -34 6"/>
+              <path d="M18 8 Q 4 -20 -16 -24"/>
+              <path d="M18 8 Q 26 -18 44 -22"/>
+              <path d="M18 8 Q 44 -6 56 8"/>
+              <path d="M18 8 Q 20 14 18 24"/>
+            </g>
+            <circle cx="12" cy="14" r="5.4" fill="#8A5A1F"/>
+            <circle cx="24" cy="16" r="5.4" fill="#8A5A1F"/>
+          </g>
+
+          <!-- sailboat -->
+          <g class="bob" transform="translate(1150,755)">
+            <polygon points="0,34 58,34 48,50 10,50" fill="#D7263D"/>
+            <line x1="29" y1="34" x2="29" y2="-16" stroke="#7A4A21" stroke-width="4"/>
+            <polygon points="33,-14 33,30 58,30" fill="#FFFFFF"/>
+            <polygon points="25,-8 25,30 6,30" fill="#FFD83D"/>
+          </g>
+
+          <!-- ======== LARGE REGIONAL ART: a big cultural picture for every region ======== -->
+          <!-- Volyn: Lubart's Castle, large -->
+          <g class="landmark" data-city="lutsk" tabindex="0" role="button" aria-label="Lutsk — Lubart's Castle" transform="translate(258,140) scale(0.95)"><use href="#icon-lutsk"/></g>
+          <!-- Rivne: a big amber drop -->
+          <g class="landmark" data-city="rivne" tabindex="0" role="button" aria-label="Rivne — amber, the sun stone" transform="translate(402,144)"><use href="#icon-rivne"/></g>
+          <!-- Carpathians: a Hutsul trembita player -->
+          <g class="landmark" data-city="carpathians" tabindex="0" role="button" aria-label="A Hutsul trembita player" transform="translate(238,412)">
+            <path d="M29 15 L55 -13" stroke="#B07B3F" stroke-width="5" stroke-linecap="round"/>
+            <polygon points="51,-9 67,-15 63,1" fill="#B07B3F"/>
+            <circle cx="24" cy="14" r="6.5" fill="#F2C094"/>
+            <polygon points="16,10 32,10 24,1" fill="#3A2A1A"/>
+            <path d="M17 22 h14 l3 24 h-20Z" fill="#B03A2E"/>
+            <rect x="17" y="22" width="14" height="6" fill="#FFF3E0"/>
+            <path d="M29 24 L31 16" stroke="#F2C094" stroke-width="4" stroke-linecap="round"/>
+            <path d="M20 46 l-2 12 M28 46 l2 12" stroke="#3A2A1A" stroke-width="4" stroke-linecap="round"/>
+          </g>
+          <!-- Ivano-Frankivsk / Bukovina: a big pysanka -->
+          <g class="landmark" data-city="pysanka" tabindex="0" role="button" aria-label="The Pysanka — a wax-written Easter egg" transform="translate(301,427) scale(0.72)"><use href="#icon-pysanka"/></g>
+          <!-- Ternopil: the black Borshchiv shirt -->
+          <g class="landmark" data-city="borshchiv" tabindex="0" role="button" aria-label="The black embroidered shirt of Borshchiv" transform="translate(396,366) scale(0.7)"><use href="#icon-borshchiv"/></g>
+          <!-- Khmelnytskyi: the Kamianets fortress, large -->
+          <g class="landmark" data-city="khmelnytskyi" tabindex="0" role="button" aria-label="Khmelnytskyi region — Kamianets-Podilskyi Fortress" transform="translate(484,408) scale(0.72)"><use href="#icon-khmelnytskyi"/></g>
+          <!-- Vinnytsia: the Roshen fountain, large -->
+          <g class="landmark" data-city="vinnytsia" tabindex="0" role="button" aria-label="Vinnytsia — the Roshen Fountain" transform="translate(532,238) scale(0.85)"><use href="#icon-vinnytsia"/></g>
+          <!-- Zhytomyr: Korolev's rocket, large -->
+          <g class="landmark" data-city="zhytomyr" tabindex="0" role="button" aria-label="Zhytomyr — Korolev's rocket" transform="translate(468,230) scale(1.05)"><use href="#icon-zhytomyr"/></g>
+          <!-- Chernihiv: an ancient cathedral, large -->
+          <g class="landmark" data-city="chernihiv" tabindex="0" role="button" aria-label="Chernihiv — an ancient cathedral" transform="translate(748,212) scale(1.05)"><use href="#icon-chernihiv"/></g>
+          <!-- Sumy: the Altanka gazebo, large -->
+          <g class="landmark" data-city="sumy" tabindex="0" role="button" aria-label="Sumy — the Altanka gazebo" transform="translate(962,130) scale(0.9)"><use href="#icon-sumy"/></g>
+          <!-- Poltava: white-on-white embroidery (Reshetylivka) -->
+          <g class="landmark" data-city="vyshyvanka" tabindex="0" role="button" aria-label="White-on-white embroidery of Reshetylivka" transform="translate(837,224) scale(1.22)"><use href="#icon-vyshyvanka"/></g>
+          <!-- Poltava: Opishnia pottery -->
+          <g class="landmark" data-city="pottery" tabindex="0" role="button" aria-label="Opishnia pottery" transform="translate(885,372) scale(0.7)"><use href="#icon-pottery"/></g>
+          <!-- Cherkasy: the White Lotus flower, large -->
+          <g class="landmark" data-city="cherkasy" tabindex="0" role="button" aria-label="Cherkasy — the White Lotus" transform="translate(638,298) scale(0.95)"><use href="#icon-cherkasy"/></g>
+          <!-- the centre: a big embroidered rushnyk -->
+          <g class="landmark" data-city="rushnyk" tabindex="0" role="button" aria-label="The Rushnyk — an embroidered ritual towel" transform="translate(620,458) scale(1.5)"><use href="#icon-rushnyk"/></g>
+          <!-- Kropyvnytskyi: the theatre mask, large -->
+          <g class="landmark" data-city="kropyvnytskyi" tabindex="0" role="button" aria-label="Kropyvnytskyi — the theatre city" transform="translate(706,478) scale(0.78)"><use href="#icon-kropyvnytskyi"/></g>
+          <!-- Dnipropetrovsk region: a Petrykivka flower -->
+          <g class="landmark" data-city="petrykivka" tabindex="0" role="button" aria-label="Petrykivka painting" transform="translate(1037,441) scale(0.85)"><use href="#icon-petrykivka"/></g>
+          <!-- Donetsk: a spoil tip with roses -->
+          <g class="landmark" data-city="donetsk" tabindex="0" role="button" aria-label="Donetsk — spoil tips and roses" transform="translate(1088,508)">
+            <polygon points="2,50 20,12 36,12 52,50" fill="#6E5B49"/>
+            <polygon points="20,12 36,12 41,24 15,24" fill="#82705A"/>
+            <polygon points="12,36 44,36 48,44 8,44" fill="#5D4C3C" opacity=".55"/>
+            <circle cx="13" cy="42" r="4.6" fill="#D7263D"/><circle cx="19.5" cy="46" r="3.6" fill="#E8384F"/>
+            <path d="M8 47 Q13 42.5 18 47" stroke="#2E7D4F" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- Luhansk: a locomotive -->
+          <g class="landmark" data-city="locomotive" tabindex="0" role="button" aria-label="The Luhansk locomotive" transform="translate(1153,312) scale(1.5)"><use href="#icon-locomotive"/></g>
+          <!-- Kherson: a big watermelon -->
+          <g class="landmark" data-city="kherson" tabindex="0" role="button" aria-label="Kherson — watermelon country" transform="translate(852,636) scale(1.15)"><use href="#icon-kherson"/></g>
+          <!-- Mykolaiv: a shipwright's ship in the estuary -->
+          <g class="landmark" data-city="mykolaiv" tabindex="0" role="button" aria-label="Mykolaiv — city of shipbuilders" transform="translate(652,656) scale(1.35)"><use href="#icon-mykolaiv"/></g>
+
+          <!-- ======== CITIES ======== -->
+          <g id="cities"></g>
+        </g>
+
+        <!-- sea waves -->
+        <g class="sea-line" fill="none">
+          <g class="wave-move">
+            <use href="#waveDef" x="60" y="838"/><use href="#waveDef" x="180" y="838"/><use href="#waveDef" x="300" y="838"/>
+            <use href="#waveDef" x="420" y="838"/><use href="#waveDef" x="540" y="838"/><use href="#waveDef" x="660" y="838"/>
+            <use href="#waveDef" x="780" y="838"/><use href="#waveDef" x="900" y="838"/><use href="#waveDef" x="1020" y="838"/>
+            <use href="#waveDef" x="1140" y="838"/><use href="#waveDef" x="1260" y="838"/><use href="#waveDef" x="1380" y="838"/>
+          </g>
+          <g class="wave-move2" opacity=".7">
+            <use href="#waveDef" x="130" y="862"/><use href="#waveDef" x="370" y="862"/><use href="#waveDef" x="610" y="862"/>
+            <use href="#waveDef" x="850" y="862"/><use href="#waveDef" x="1090" y="862"/><use href="#waveDef" x="1330" y="862"/>
+          </g>
+          <use href="#waveDef" x="150" y="735" opacity=".55"/>
+          <use href="#waveDef" x="1200" y="700" opacity=".55"/>
+          <use href="#waveDef" x="1005" y="655" opacity=".45"/>
+        </g>
+
+        <!-- title -->
+        <g transform="translate(88,806)">
+          <text class="title-letter" font-size="86" letter-spacing="2">
+            <tspan rotate="-3">U</tspan><tspan rotate="2" dy="-4">K</tspan><tspan rotate="-2" dy="5">R</tspan><tspan rotate="3" dy="-5">A</tspan><tspan rotate="-3" dy="4">I</tspan><tspan rotate="2" dy="-3">N</tspan><tspan rotate="-2" dy="3">E</tspan>
+          </text>
+        </g>
+      </svg>
+      <div class="vignette"></div>
+    </div>
+
+    <a class="series-back" href="index.html" title="All Meet Ukraine scenes">← Meet Ukraine</a>
+
+    <button class="theme-toggle is-auto" id="themeToggle" type="button"
+            aria-label="Theme: automatic by your local time. Tap to switch day or dusk manually; long-press to return to automatic."
+            title="Day / dusk — automatic by your local time. Tap to switch, long-press for Auto.">
+      <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.4" fill="currentColor" stroke="none"/>
+        <path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5 5l1.8 1.8M17.2 17.2L19 19M19 5l-1.8 1.8M6.8 17.2L5 19"/>
+      </svg>
+      <svg class="ic-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M20.6 14.2A8.8 8.8 0 1 1 9.8 3.4a7.2 7.2 0 0 0 10.8 10.8Z"/>
+      </svg>
+      <span class="auto-badge" aria-hidden="true">A</span>
+    </button>
+
+    <aside class="card" id="card" aria-live="polite" hidden>
+      <div class="card-art" id="cardArt">
+        <svg viewBox="0 0 72 72" aria-hidden="true"><use id="cardUse" href="#icon-kyiv"/></svg>
+      </div>
+      <span class="tag" id="cardTag"></span>
+      <h2 id="cardTitle"></h2>
+      <p class="flabel">What it's famous for</p>
+      <p id="cardText"></p>
+      <div id="factsWrap">
+        <p class="flabel">Interesting facts</p>
+        <ul class="facts" id="cardFacts"></ul>
+      </div>
+      <button class="markbtn" id="markBtn" type="button" aria-pressed="false">☆ Mark as visited</button>
+      <p class="visits" id="visits" hidden></p>
+      <button class="close" id="cardClose" type="button" aria-label="Close">✕</button>
+    </aside>
+
+    <script>
+      (function(){
+        "use strict";
+
+        var CITIES = [
+          { id:"uzhhorod", name:"Uzhhorod", x:172, y:435, lx:12, ly:5, anchor:"start", bx:170, by:464, accent:"#C94F7C", tint:"#FAE9F0",
+            tag:"Zakarpattia · the far west",
+            famous:"Uzhhorod is Ukraine's sakura city: every spring its streets turn pink with Japanese cherry blossom, and its castle watches over the river Uzh.",
+            facts:["The city's sakura alley is one of the longest in Europe — the trees were planted in the 1920s–30s, when the city was part of Czechoslovakia.","An alley of linden trees along the Uzh River stretches about 2.2 km — often called the longest linden alley in Europe.","Uzhhorod is one of Ukraine's oldest cities, first mentioned in chronicles in the 9th century."] },
+          { id:"lviv", name:"Lviv", x:279, y:329, lx:-12, ly:25, anchor:"end", bx:317, by:351, accent:"#B08A1E", tint:"#FAF1D7",
+            tag:"Lviv region · the west",
+            famous:"The Lviv Opera House, opened in 1900, is one of the most beautiful theatres in Europe — and Lviv is Ukraine's coffee capital, with coffee houses on every old-town corner.",
+            facts:["Lviv's historic centre is a UNESCO World Heritage Site, with more than 2,000 architectural monuments.","The Opera House was built over the underground Poltva River — it still flows beneath the theatre today.","Lviv has over a hundred churches of different eras and styles packed into its old town."] },
+          { id:"ivano", name:"Ivano-Frankivsk", x:322, y:408, lx:-12, ly:5, anchor:"end", bx:296, by:382, accent:"#B8860B", tint:"#F8F0DA",
+            tag:"Prykarpattia · Carpathian gateway",
+            famous:"The city's Ratusha (town hall) with its gilded dome watches over the old town — and Ivano-Frankivsk is the gateway to the Carpathian mountains.",
+            facts:["The city was named after the writer Ivan Franko in 1962; before that it was called Stanislaviv (Stanisławów).","It was founded in 1662 as a fortress town and kept its neat star-shaped street plan.","The Ratusha is one of the few town halls in Ukraine built in the Art Deco style."] },
+          { id:"ternopil", name:"Ternopil", x:378, y:354, lx:-12, ly:5, anchor:"end", bx:404, by:328, accent:"#2E8B74", tint:"#E4F2EE",
+            tag:"Ternopil region · the west",
+            famous:"Ternopil is built around a huge lake right in the city centre — the Ternopil Pond, with a green island in the middle and a castle on its shore.",
+            facts:["The pond is artificial: it was created in the 16th century and covers more than 300 hectares.","The city was founded in 1540 by Jan Tarnowski, who also built the castle above the pond.","The little island in the pond is nicknamed the Island of Lovers."] },
+          { id:"chernivtsi", name:"Chernivtsi", x:400, y:462, lx:12, ly:6, anchor:"start", bx:372, by:434, accent:"#A34A2A", tint:"#F7EAE2",
+            tag:"Bukovina · the south-west",
+            famous:"Chernivtsi University — the former Residence of Bukovinian Metropolitans — is a red-brick palace of patterned roofs and towers, now a UNESCO World Heritage Site.",
+            facts:["In its Austrian era the city was nicknamed “Little Vienna” for its architecture and café culture.","The Residence took 18 years to build (1864–1882) and mixes Byzantine, Gothic and Baroque styles.","The poet Paul Celan, one of the great German-language poets, was born in Chernivtsi in 1920."] },
+          { id:"lutsk", name:"Lutsk", x:361, y:251, lx:12, ly:5, anchor:"start", bx:331, by:221, accent:"#B3543F", tint:"#F9EAE4",
+            tag:"Volyn · the north-west",
+            famous:"Lubart's Castle, a mighty 14th-century brick fortress, is one of the best-preserved castles in Ukraine and the symbol of Lutsk.",
+            facts:["In 1429 Lutsk hosted a congress of European monarchs — kings and princes gathered here to discuss the fate of the continent.","Lubart's Castle is pictured on Ukraine's 200-hryvnia banknote.","The poet Lesya Ukrainka spent part of her childhood in Lutsk, and her family home stood near the castle."] },
+          { id:"rivne", name:"Rivne", x:420, y:263, lx:12, ly:5, anchor:"start", bx:446, by:237, accent:"#D9822B", tint:"#FBEBD9",
+            tag:"Rivne region · the north-west",
+            famous:"Rivne is the heart of Ukraine's amber country — the golden “sun stone” has been mined in this region for centuries.",
+            facts:["The region's amber formed about 40 million years ago; the city even has its own Amber Museum.","Near the village of Klevan in Rivne region grows the famous Tunnel of Love — a green arch of trees over a railway, about 5 km long.","Rivne was first mentioned in 1283."] },
+          { id:"khmelnytskyi", name:"Khmelnytskyi", x:467, y:366, lx:12, ly:-12, anchor:"start", bx:467, by:398, accent:"#B03A2E", tint:"#F9E9E6",
+            tag:"Khmelnytskyi region · Podillia",
+            famous:"The Khmelnytskyi region is crowned by the Kamianets-Podilskyi Fortress, a medieval castle standing on a rocky island in the Smotrych River canyon — and the city itself is famous across Ukraine for its enormous clothing market.",
+            facts:["The Kamianets-Podilskyi Fortress guarded these lands for over 500 years and is counted among the Seven Wonders of Ukraine.","The city's clothing market is one of the largest in Europe, employing tens of thousands of people.","The city was renamed in honour of Hetman Bohdan Khmelnytsky in 1954; before that it was called Proskuriv."] },
+          { id:"zhytomyr", name:"Zhytomyr", x:574, y:294, lx:12, ly:5, anchor:"start", bx:548, by:268, accent:"#4A6FA5", tint:"#E8EEF6",
+            tag:"Zhytomyr region · Polissia",
+            famous:"Zhytomyr is a space city: Serhiy Korolev, the chief designer behind the first satellite and the first human spaceflight, was born here.",
+            facts:["Korolev was born in Zhytomyr in 1907; the city's Museum of Cosmonautics bears his name and holds real spacecraft.","Zhytomyr is one of Ukraine's oldest cities — tradition dates its founding to 884.","The city stands above the Teteriv River, whose granite cliffs are a favourite climbing spot."] },
+          { id:"vinnytsia", name:"Vinnytsia", x:561, y:382, lx:0, ly:30, anchor:"middle", bx:522, by:384, accent:"#35708F", tint:"#E7F1F7",
+            tag:"Vinnytsia region · Podillia",
+            famous:"The Roshen Fountain on the Southern Buh — a floating fountain that dances with light and music — is the pride of Vinnytsia.",
+            facts:["Opened in 2011, it is the largest floating fountain in Europe.","The great surgeon Mykola Pirogov lived at his Vyshnia estate here; his preserved body rests in a church-mausoleum nearby.","The city's 1912 water tower, topped with a clock, is a beloved Vinnytsia symbol."] },
+          { id:"kyiv", name:"Kyiv", x:691, y:277, lx:16, ly:6, anchor:"start", bx:688, by:313, accent:"#C9930A", tint:"#FBF0CE",
+            tag:"The capital",
+            famous:"Kyiv, the capital, rises over the Dnipro River: the Independence Monument towers above Maidan Square, and St Sophia's Cathedral keeps its 11th-century frescoes under golden domes.",
+            facts:["St Sophia's Cathedral and the Kyiv-Pechersk Lavra are UNESCO World Heritage Sites; the Lavra was founded in 1051.","Kyiv Metro's Arsenalna station lies about 105 metres underground — among the deepest metro stations in the world.","Legend says Kyiv was founded by three brothers — Kyi, Shchek and Khoryv — and their sister Lybid."] },
+          { id:"chernihiv", name:"Chernihiv", x:740, y:187, lx:12, ly:26, anchor:"start", bx:712, by:159, accent:"#2E7D4F", tint:"#E6F2E9",
+            tag:"Chernihiv region · the north",
+            famous:"Chernihiv is a treasury of ancient Rus architecture — white-stone cathedrals and churches that have stood for a thousand years.",
+            facts:["The Transfiguration Cathedral, founded around 1030, is considered the oldest surviving cathedral of Kyivan Rus.","Roughly a third of all Ukraine's preserved monuments from the 11th–13th centuries are in Chernihiv.","Anthony's Caves, an underground monastery founded in 1069 by St Anthony of the Caves, burrow beneath the Boldyni Hills."] },
+          { id:"sumy", name:"Sumy", x:962, y:238, lx:-12, ly:5, anchor:"end", bx:926, by:212, accent:"#8A5A1F", tint:"#F7EDDD",
+            tag:"Sumy region · the north-east",
+            famous:"Sumy's symbol is the Altanka — a lacy openwork gazebo in the city centre — and the city grew rich on sugar.",
+            facts:["Legend says the Altanka was built over a well drilled in search of oil; no oil was found, so a gazebo crowned the spot instead.","Sugar magnate Ivan Kharitonenko turned Sumy into a sugar capital and funded much of its grand architecture.","The city was founded by Cossacks in 1652 on the banks of the Psel River."] },
+          { id:"kharkiv", name:"Kharkiv", x:1053, y:317, lx:16, ly:6, anchor:"start", bx:1083, by:343, accent:"#2F7FB8", tint:"#E7F3FC",
+            tag:"Kharkiv region · the north-east",
+            famous:"Kharkiv is known for Derzhprom, the constructivist giant on Freedom Square, and for the Mirror Stream fountain splashing under its openwork gazebo.",
+            facts:["Freedom Square is one of the largest city squares in Europe.","Derzhprom, built in 1925–1928, was the first Soviet skyscraper and an icon of constructivism.","Kharkiv was the capital of Soviet Ukraine from 1919 to 1934."] },
+          { id:"poltava", name:"Poltava", x:946, y:351, lx:12, ly:5, anchor:"start", bx:920, by:325, accent:"#C96A1E", tint:"#F9EDDF",
+            tag:"Poltava region · on the Vorskla",
+            famous:"Poltava is the capital of galushky — soft Ukrainian dumplings — honoured here with a monument and a festival; the city also gave its name to a famous battle.",
+            facts:["The Battle of Poltava in 1709 was the decisive clash of the Great Northern War between Peter I and Charles XII of Sweden.","Ivan Kotlyarevsky, whose “Eneida” (1798) launched modern Ukrainian literature, was born in Poltava.","A giant bowl of galushky with a spoon stands as a monument in the city centre."] },
+          { id:"cherkasy", name:"Cherkasy", x:788, y:364, lx:-12, ly:5, anchor:"end", bx:762, by:392, accent:"#C13B7E", tint:"#FAEAF1",
+            tag:"Cherkasy region · on the Dnipro",
+            famous:"Cherkasy stands on the wide Kremenchuk Reservoir and is home to the White Lotus — the largest Buddhist temple in Europe.",
+            facts:["The White Lotus temple was built in the 1990s, modelled on a temple in Laos.","The Kremenchuk Reservoir, on whose shore the city stands, is the largest reservoir on the Dnipro.","Taras Shevchenko, Ukraine's national poet, was born in the village of Moryntsi in Cherkasy region."] },
+          { id:"kropyvnytskyi", name:"Kropyvnytskyi", x:800, y:443, lx:-14, ly:6, anchor:"end", bx:796, by:403, accent:"#A87C0A", tint:"#F8F0DA",
+            tag:"Kirovohrad region · the steppe centre",
+            famous:"Kropyvnytskyi is Ukraine's theatre city: the first Ukrainian professional theatre troupe was founded here.",
+            facts:["In 1882 actor and playwright Marko Kropyvnytskyi founded the first Ukrainian professional theatre here; the city now bears his name.","Few Ukrainian cities have been renamed so often: Yelysavethrad, Zinovievsk, Kirovo, Kirovohrad — and Kropyvnytskyi since 2016.","The city grew around the fortress of St Elizabeth, founded in 1754."] },
+          { id:"dnipro", name:"Dnipro", x:977, y:447, lx:-14, ly:-6, anchor:"end", bx:1005, by:419, accent:"#2E6DA4", tint:"#E4EFF8",
+            tag:"Dnipropetrovsk region · on the Dnipro",
+            famous:"Dnipro stretches along the great river under one of Europe's longest embankments — and it is Ukraine's rocket city, building spacecraft at the Yuzhmash plant.",
+            facts:["The embankment runs for over 20 kilometres along the Dnipro.","Yuzhmash built Zenit rockets and satellites launched around the world.","The Merefa–Kherson Bridge, opened in 1932, is one of the longest railway arch bridges in Europe."] },
+          { id:"kryvyi", name:"Kryvyi Rih", x:872, y:495, lx:0, ly:30, anchor:"middle", bx:844, by:467, accent:"#B3543F", tint:"#F9EAE4",
+            tag:"Iron & steel country",
+            famous:"Kryvyi Rih is a city of iron: it stretches along one of the world's richest iron-ore basins, its mines and steelworks supplying the whole country.",
+            facts:["It is one of the longest cities in Europe, running for more than 100 kilometres along the ore deposits.","The Kryvbas basin is among the largest iron-ore regions in the world.","The city has a unique “metrotram” — a high-speed tram that runs partly underground like a metro."] },
+          { id:"zaporizhzhia", name:"Zaporizhzhia", x:985, y:501, lx:14, ly:22, anchor:"start", bx:1013, by:473, accent:"#8A5A1F", tint:"#F7EDDD",
+            tag:"Zaporizhzhia region · Cossack heartland",
+            famous:"Below the city lies Khortytsia, the largest island on the Dnipro and the heart of the Zaporozhian Cossack Sich — and the mighty DniproHES dam spans the river here.",
+            facts:["Khortytsia is about 12 kilometres long — the biggest river island in Ukraine.","DniproHES, completed in 1932, was one of the largest hydroelectric stations in Europe at the time.","The Cossacks of the Sich are remembered for their legendary defiant letter to the Ottoman Sultan."] },
+          { id:"mykolaiv", name:"Mykolaiv", x:783, y:575, lx:-12, ly:-14, anchor:"end", bx:811, by:549, accent:"#1F6E8C", tint:"#E2F1F6",
+            tag:"Mykolaiv region · city of shipbuilders",
+            famous:"Mykolaiv is a city of shipbuilders, standing where the Southern Buh meets the Inhul — its shipyards have launched vessels for more than two centuries.",
+            facts:["The city was founded in 1789 as a shipyard settlement by Prince Potemkin.","The Black Sea Shipyard here built the Soviet Union's aircraft carriers.","Mykolaiv Zoo, founded in 1901, is one of the oldest and largest zoos in Ukraine."] },
+          { id:"kherson", name:"Kherson", x:823, y:604, lx:12, ly:6, anchor:"start", bx:851, by:578, accent:"#3E8E4F", tint:"#E9F3EA",
+            tag:"Kherson region · the south",
+            famous:"Kherson is Ukraine's watermelon capital — barges carry the region's famous striped harvest up the Dnipro to Kyiv.",
+            facts:["Kherson region grows a huge share of Ukraine's watermelons; the late-summer watermelon barge to Kyiv is a beloved tradition.","The city was founded in 1778 as a fortress and the first shipyard of the Black Sea fleet.","The Oleshky Sands near Kherson form one of the largest sand expanses in Europe."] },
+          { id:"odesa", name:"Odesa", x:704, y:617, lx:-6, ly:32, anchor:"middle", bx:672, by:595, accent:"#D9822B", tint:"#FBEBD9",
+            tag:"Odesa region · Black Sea port",
+            famous:"The Potemkin Stairs — 192 steps — lead from Odesa down to the Black Sea; from the top you see only the landings, from the bottom only the steps, so the staircase seems endless.",
+            facts:["Beneath the city stretch the Odesa catacombs — a labyrinth of roughly 2,500 kilometres, among the longest in the world.","The Odesa Opera and Ballet Theatre is considered one of the most beautiful opera houses in Europe.","The city was founded in 1794 on the site of the fortress of Khadjibey."] },
+          { id:"donetsk", name:"Donetsk", x:1152, y:487, lx:16, ly:6, anchor:"start", bx:1124, by:459, accent:"#D7263D", tint:"#FBE7EA",
+            tag:"Donetsk region · the east",
+            famous:"Donetsk was called the city of a million roses — roses were planted in its parks, squares and even around the black spoil tips of the mines.",
+            facts:["The city was founded in 1869 by Welsh businessman John Hughes and was first named Yuzovka after him.","The Donbass Arena, opened in 2009, hosted matches of UEFA Euro 2012.","Donetsk grew around coal mines and steelworks in the heart of the Donbas coal basin."] },
+          { id:"luhansk", name:"Luhansk", x:1242, y:438, lx:0, ly:-16, anchor:"middle", bx:1214, by:462, accent:"#E08A00", tint:"#FBF0DA",
+            tag:"Luhansk region · the far east",
+            famous:"Luhansk is Ukraine's easternmost regional capital — the sun rises here earlier than in any other big city in the country — and a famed locomotive-building city.",
+            facts:["The Luhansk locomotive works was one of the largest locomotive builders in Europe.","The city began in 1795 around an iron foundry established by British industrialist Charles Gascoigne.","Because of its position, Luhansk sees the sunrise more than half an hour before Kyiv."] },
+          { id:"mariupol", name:"Mariupol", x:1136, y:564, lx:-6, ly:34, anchor:"middle", bx:1162, by:538, accent:"#C1272D", tint:"#F9E8E8",
+            tag:"Port on the Sea of Azov",
+            famous:"Mariupol is a sea gate and steel city on the warm Sea of Azov, watched over by its old lighthouse.",
+            facts:["The Sea of Azov is the shallowest sea in the world — its average depth is only about seven metres.","Mariupol was founded by Greek settlers who moved here from Crimea in 1778–1780, and a large Greek community still lives in the area.","The city's steelworks made Mariupol one of Ukraine's biggest metal producers and its largest Azov port."] },
+          { id:"simferopol", name:"Simferopol", x:917, y:749, lx:0, ly:-15, anchor:"middle", bx:883, by:749, accent:"#C96A1E", tint:"#F9EDDF",
+            tag:"Crimea · the capital",
+            famous:"Simferopol, the capital of Crimea, is the start of the famous mountain trolleybus road to the sea at Yalta.",
+            facts:["The Simferopol–Yalta trolleybus line, opened in 1959, is the longest trolleybus route in the world — some 86 kilometres over the mountains to the sea.","Within the modern city lie the ruins of Scythian Naples, capital of the late Scythian state.","Simferopol was founded in 1784 near the Crimean Tatar town of Aqmescit."] },
+          { id:"sevastopol", name:"Sevastopol", x:880, y:777, lx:-14, ly:8, anchor:"end", bx:880, by:807, accent:"#5B7C99", tint:"#E8EFF5",
+            tag:"Crimea · Black Sea",
+            famous:"Sevastopol spreads around one of the finest natural harbours on the Black Sea; in the bay stands its symbol — a white column on a rock crowned by an eagle, the Monument to the Sunken Ships.",
+            facts:["The monument was erected in 1905, for the 50th anniversary of the city's defence in the Crimean War.","The ruins of ancient Chersonesus, a Greek city founded over 2,500 years ago, are a UNESCO World Heritage Site.","Sevastopol's shoreline is cut by more than 30 bays and coves."] }
+        ];
+
+        var EXTRA = {
+          carpathians:{ tag:"Mountains of the south-west", title:"The Carpathians", icon:"mountains", tint:"#E4EFF8",
+            famous:"Green mountains in the west of Ukraine. Hoverla, the country's highest peak at 2,061 metres, rises here, and lynxes and brown bears still roam the forests. This is Hutsul country — land of trembita horns and patterned woollen lizhnyk blankets.",
+            facts:["The trembita, the Hutsul alpine horn up to four metres long, once carried messages and music from peak to peak — its voice travels for kilometres.","Hutsul lizhnyky — thick patterned woollen blankets — are still woven on wooden looms in mountain villages."] },
+          borscht:{ tag:"A taste of Ukraine", title:"Borscht", icon:"borscht", tint:"#FBEEDD",
+            famous:"Beetroot, cabbage, a spoon of sour cream and garlic pampushky on the side — borscht is the signature dish of Ukrainian cuisine.", facts:["In 2022 UNESCO listed the culture of Ukrainian borscht as intangible cultural heritage in need of urgent safeguarding."] },
+          fields:{ tag:"The breadbasket", title:"Fields & tractors", icon:"tractor", tint:"#FBF3D3",
+            famous:"Ukraine is a breadbasket of Europe: rich black earth covers much of the country, and its wheat and sunflowers travel the world. The sunflower is the country's unofficial flower.", facts:["Ukraine has long been the world's largest exporter of sunflower oil.","The rich black soil — chernozem — is so fertile that farmers say a stick planted in it would sprout."] },
+          crimea:{ tag:"Crimea · the southern coast", title:"Swallow's Nest", icon:"nest", tint:"#E8EFF5",
+            famous:"A miniature castle on the sheer Aurora Cliff near Yalta, built in 1912 — the Swallow's Nest is the most recognisable postcard view of Crimea.", facts:["The castle is tiny — just 20 metres long and 12 metres tall — balanced on a 40-metre cliff above the sea.","It was built for the oil industrialist Baron von Steingel and modelled on a romantic knight's castle."] },
+          rushnyk:{ tag:"Folk embroidery · all Ukraine", title:"The Rushnyk", icon:"rushnyk", tint:"#FDF3E3",
+            famous:"A rushnyk is a long embroidered ritual towel. It welcomes honoured guests with bread and salt, blesses weddings and icons — and its red ornaments are read like a family's story told in stitches.",
+            facts:["Red is the classic rushnyk colour — a symbol of life, love and the sun; black adds the earth and memory.","At a Ukrainian wedding the couple stands on a rushnyk — whoever steps on it first is jokingly said to lead the family.","Bread and salt are still served on a rushnyk to honoured guests — a ritual of hospitality centuries old."] },
+          petrykivka:{ tag:"Dnipropetrovsk region · Petrykivka village", title:"Petrykivka Painting", icon:"petrykivka", tint:"#FDECEA",
+            famous:"In the village of Petrykivka, artists paint lush flowers and berries with brushes made of cat hair — and even with their fingertips. The style grew out of decorating village house walls and dowry chests.",
+            facts:["In 2013 UNESCO added Petrykivka decorative painting to its Representative List of the Intangible Cultural Heritage of Humanity.","The kalyna — the guelder-rose berry cluster — is its signature motif, a symbol of family and immortality.","Traditional brushes are made from cat fur; drawing a hair-thin line in one stroke is a master's signature skill."] },
+          pysanka:{ tag:"Hutsul country · Kolomyia", title:"The Pysanka", icon:"pysanka", tint:"#F9E9E6",
+            famous:"A pysanka is an Easter egg written in hot wax and dye, line by line, with symbols older than Christianity — suns, stars, wheat and endless lines for eternity. The Hutsul town of Kolomyia is its capital.",
+            facts:["Kolomyia's Pysanka Museum is shaped like a giant Easter egg, about 13.5 metres tall, and holds thousands of pysanky from all over Ukraine.","Artists write pysanky with a kistka — a tiny funnel that pours hot beeswax in fine lines before each dip in dye.","An old legend says that while people keep writing pysanky, good will keep winning over evil in the world."] },
+          vyshyvanka:{ tag:"Poltava region · Reshetylivka", title:"White-on-White Embroidery", icon:"vyshyvanka", tint:"#F1F4F8",
+            famous:"In Reshetylivka, Poltava region, masters embroider white thread on white linen — an ornament you can only see when the light plays across the stitches. It is Ukraine's most refined embroidery technique.",
+            facts:["There is no printed pattern: the embroiderer counts every single thread of the linen as she works.","A single festive shirt can take several months of hand work and combine counted-thread, cutwork and drawn-thread techniques.","White embroidery was celebration dress in Poltava region — worn for weddings and the biggest holidays."] },
+          borshchiv:{ tag:"Ternopil region · the Borshchiv land", title:"The Black Shirt", icon:"borshchiv", tint:"#F3EDE8",
+            famous:"In the Borshchiv land of Ternopil region, women embroidered with black wool — dense, dark patterns with sudden bursts of colour, unlike the shirts of any other Ukrainian region.",
+            facts:["Legend ties the black thread to mourning: after a Tatar raid killed the region's men, its women vowed to embroider in black for generations.","The heavy wool thread gives Borshchiv shirts their raised, almost sculpted ornament.","The town of Borshchiv celebrates its black-embroidered shirt with a festival of the vyshyvanka."] },
+          pottery:{ tag:"Poltava region · Opishnia", title:"Opishnia Pottery", icon:"pottery", tint:"#F9EDDF",
+            famous:"Opishnia in Poltava region has been a pottery capital for centuries. Its clay jugs, bowls and whistles travel to fairs across Ukraine, painted in the flowing floral style of nearby Bubnivka.",
+            facts:["Ukraine's National Museum of Pottery stands in Opishnia.","Bubnivka-style painting covers brown clay with milky-white and blue flowers drawn in one flowing line.","Clay whistles shaped as rams, horses and birds are the region's traditional toys."] },
+          locomotive:{ tag:"Luhansk region · the far east", title:"The Luhansk Locomotive", icon:"locomotive", tint:"#E9F0EA",
+            famous:"For more than a century Luhansk built locomotives. Its great works sent steam and diesel engines far beyond Ukraine — and an old steam locomotive still stands in the city as a monument to its builders.",
+            facts:["The Luhansk locomotive works was founded in 1896 by the German industrialist Gustav Hartmann and grew into one of Europe's largest locomotive builders.","The works grew on the site of the 1795 iron foundry — the very foundry around which the city of Luhansk began."] }
+        };
+
+        var svg = document.getElementById("poster");
+        var NS = "http://www.w3.org/2000/svg";
+
+        /* ---- build city markers ---- */
+        function starPoints(cx, cy, ro, ri){
+          var pts = [];
+          for (var i=0;i<10;i++){
+            var r = (i%2===0) ? ro : ri;
+            var a = -Math.PI/2 + i*Math.PI/5;
+            pts.push((cx + r*Math.cos(a)).toFixed(1) + "," + (cy + r*Math.sin(a)).toFixed(1));
+          }
+          return pts.join(" ");
+        }
+        var citiesG = document.getElementById("cities");
+        CITIES.forEach(function(c){
+          var g = document.createElementNS(NS,"g");
+          g.setAttribute("class","city");
+          g.setAttribute("tabindex","0");
+          g.setAttribute("role","button");
+          g.setAttribute("data-city", c.id);
+          g.setAttribute("aria-label", c.name);
+          var halo = document.createElementNS(NS,"circle");
+          halo.setAttribute("class","halo"); halo.setAttribute("cx",c.x); halo.setAttribute("cy",c.y); halo.setAttribute("r","14.5");
+          var dot = document.createElementNS(NS,"circle");
+          dot.setAttribute("class","dot"); dot.setAttribute("cx",c.x); dot.setAttribute("cy",c.y); dot.setAttribute("r","7");
+          var label = document.createElementNS(NS,"text");
+          label.setAttribute("class","city-label");
+          label.setAttribute("x", c.x + c.lx); label.setAttribute("y", c.y + c.ly);
+          label.setAttribute("text-anchor", c.anchor);
+          label.setAttribute("font-size","17"); label.setAttribute("stroke-width","4");
+          label.textContent = c.name;
+          g.appendChild(halo); g.appendChild(dot); g.appendChild(label);
+          /* symbol badge next to the city */
+          var badge = document.createElementNS(NS,"g");
+          badge.setAttribute("class","badge");
+          badge.setAttribute("transform","translate("+c.bx+","+c.by+")");
+          var bsh = document.createElementNS(NS,"circle");
+          bsh.setAttribute("class","badge-shadow"); bsh.setAttribute("cx","1.5"); bsh.setAttribute("cy","3"); bsh.setAttribute("r","13.5");
+          var bbg = document.createElementNS(NS,"circle");
+          bbg.setAttribute("class","badge-bg"); bbg.setAttribute("r","13.5"); bbg.setAttribute("stroke", c.accent);
+          var buse = document.createElementNS(NS,"use");
+          buse.setAttribute("href","#icon-"+c.id);
+          buse.setAttribute("transform","translate(-11.5,-11.5) scale(0.319)");
+          var seal = document.createElementNS(NS,"g");
+          seal.setAttribute("class","seal"); seal.setAttribute("transform","translate(10,-10)");
+          var sc = document.createElementNS(NS,"circle");
+          sc.setAttribute("class","seal-bg"); sc.setAttribute("r","6.5");
+          var sp = document.createElementNS(NS,"polygon");
+          sp.setAttribute("class","seal-star"); sp.setAttribute("points", starPoints(0,0,3.9,1.7));
+          seal.appendChild(sc); seal.appendChild(sp);
+          badge.appendChild(bsh); badge.appendChild(bbg); badge.appendChild(buse); badge.appendChild(seal);
+          g.appendChild(badge);
+          citiesG.appendChild(g);
+        });
+
+        /* ---- generous invisible hit areas (dot + label / whole icon) ---- */
+        function addHitArea(g){
+          try{
+            var bb = g.getBBox();
+            var r = document.createElementNS(NS,"rect");
+            r.setAttribute("x", (bb.x - 5).toFixed(1)); r.setAttribute("y", (bb.y - 5).toFixed(1));
+            r.setAttribute("width", (bb.width + 10).toFixed(1)); r.setAttribute("height", (bb.height + 10).toFixed(1));
+            r.setAttribute("fill", "#ffffff"); r.setAttribute("opacity", "0");
+            g.insertBefore(r, g.firstChild);
+          }catch(e){ /* element not laid out yet — clicks still land on shapes */ }
+        }
+        svg.querySelectorAll(".city, .landmark").forEach(addHitArea);
+
+        /* ---- stars ---- */
+        var starsG = document.getElementById("stars");
+        var seed = 42;
+        function rnd(){ seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+        for (var i=0;i<70;i++){
+          var s = document.createElementNS(NS,"circle");
+          s.setAttribute("class","star" + (i%3===0 ? " twinkle":""));
+          s.setAttribute("cx", (rnd()*1440).toFixed(0));
+          s.setAttribute("cy", (rnd()*560).toFixed(0));
+          s.setAttribute("r", (1 + rnd()*1.9).toFixed(1));
+          if (i%3===0) s.style.animationDelay = (-rnd()*3).toFixed(1)+"s";
+          starsG.appendChild(s);
+        }
+
+        /* ---- info card ---- */
+        var card = document.getElementById("card"),
+            cardTag = document.getElementById("cardTag"),
+            cardTitle = document.getElementById("cardTitle"),
+            cardText = document.getElementById("cardText"),
+            cardUse = document.getElementById("cardUse"),
+            cardArt = document.getElementById("cardArt"),
+            cardFacts = document.getElementById("cardFacts"),
+            factsWrap = document.getElementById("factsWrap");
+        var activeCity = null;
+
+        var hideTimer = null;
+        function showCard(tag, title, famous, facts, icon, tint){
+          if (hideTimer){ clearTimeout(hideTimer); hideTimer = null; }
+          cardTag.textContent = tag;
+          cardTitle.textContent = title;
+          cardText.textContent = famous;
+          cardUse.setAttribute("href", "#icon-" + icon);
+          cardArt.style.background = tint || "#eaf2fb";
+          cardFacts.innerHTML = "";
+          if (facts && facts.length){
+            factsWrap.style.display = "";
+            facts.forEach(function(f){
+              var li = document.createElement("li");
+              li.textContent = f;
+              cardFacts.appendChild(li);
+            });
+          } else {
+            factsWrap.style.display = "none";
+          }
+          card.hidden = false;
+          requestAnimationFrame(function(){
+            requestAnimationFrame(function(){ card.classList.add("open"); });
+          });
+        }
+        function scheduleHide(){
+          if (hideTimer) clearTimeout(hideTimer);
+          hideTimer = setTimeout(function(){ card.hidden = true; hideTimer = null; }, 330);
+        }
+        function hideCard(){
+          card.classList.remove("open");
+          scheduleHide();
+          if (activeCity){
+            activeCity.classList.remove("active");
+            activeCity = null;
+          }
+        }
+        document.getElementById("cardClose").addEventListener("click", hideCard);
+        document.addEventListener("keydown", function(e){
+          if (e.key === "Escape") hideCard();
+        });
+
+        function cityById(id){
+          for (var j=0;j<CITIES.length;j++) if (CITIES[j].id===id) return CITIES[j];
+          return null;
+        }
+        function openCity(id){
+          var c = cityById(id);
+          if (activeCity) activeCity.classList.remove("active");
+          var el = svg.querySelector('.city[data-city="'+id+'"]');
+          if (el){ el.classList.add("active"); activeCity = el; }
+          currentId = id;
+          markBtn.hidden = false;
+          if (c) showCard(c.tag, c.name, c.famous, c.facts, c.id, c.tint);
+          refreshMarkUI();
+        }
+        function openExtra(key){
+          var x = EXTRA[key];
+          if (!x) return;
+          if (activeCity){ activeCity.classList.remove("active"); activeCity = null; }
+          currentId = null;
+          markBtn.hidden = true;
+          showCard(x.tag, x.title, x.famous, x.facts, x.icon, x.tint);
+        }
+
+        /* ---- mark as visited (from the city card); remembered on this device ---- */
+        var VISITED_KEY = "teached_meet_ukraine_map_visited";
+        var currentId = null;
+        var marked = {};
+        try { (JSON.parse(localStorage.getItem(VISITED_KEY) || "[]") || []).forEach(function(id){ if (cityById(id)) marked[id] = true; }); } catch(e){}
+        Object.keys(marked).forEach(function(id){
+          var el = svg.querySelector('.city[data-city="'+id+'"]');
+          if (el) el.classList.add("marked");
+        });
+        var markBtn = document.getElementById("markBtn");
+        var visitsEl = document.getElementById("visits");
+        function refreshMarkUI(){
+          var isM = !!(currentId && marked[currentId]);
+          markBtn.setAttribute("aria-pressed", isM ? "true" : "false");
+          markBtn.textContent = isM ? "★ Visited" : "☆ Mark as visited";
+          var n = Object.keys(marked).length;
+          visitsEl.hidden = !currentId || !n;
+          visitsEl.textContent = n === CITIES.length ? "You have visited all " + n + " cities!" : "You have visited " + n + " of " + CITIES.length + " cities.";
+        }
+        function toggleMark(id){
+          if (marked[id]) delete marked[id]; else marked[id] = true;
+          try { localStorage.setItem(VISITED_KEY, JSON.stringify(Object.keys(marked))); } catch(e){}
+          var el = svg.querySelector('.city[data-city="'+id+'"]');
+          if (el) el.classList.toggle("marked", !!marked[id]);
+          refreshMarkUI();
+        }
+        markBtn.addEventListener("click", function(){ if (currentId) toggleMark(currentId); });
+        refreshMarkUI();
+
+        svg.addEventListener("click", function(e){
+          var t = e.target.closest ? e.target.closest("[data-city]") : null;
+          if (!t) return;
+          var id = t.getAttribute("data-city");
+          if (EXTRA[id]) openExtra(id); else openCity(id, false);
+        });
+        svg.addEventListener("keydown", function(e){
+          if (e.key !== "Enter" && e.key !== " ") return;
+          var t = e.target.closest ? e.target.closest("[data-city]") : null;
+          if (!t) return;
+          e.preventDefault();
+          var id = t.getAttribute("data-city");
+          if (EXTRA[id]) openExtra(id); else openCity(id, false);
+        });
+
+        /* ---- theme: day/dusk follows the local clock automatically;
+                the one compact toggle overrides it, long-press (or double-tap)
+                returns to automatic ---- */
+        var themeToggle = document.getElementById("themeToggle");
+        var themeMode = "auto"; /* "auto" | "day" | "dusk" */
+        function autoIsDusk(){
+          var h = new Date().getHours();
+          return h >= 19 || h < 7;
+        }
+        function applyTheme(){
+          var dusk = themeMode === "auto" ? autoIsDusk() : themeMode === "dusk";
+          document.body.setAttribute("data-theme", dusk ? "dusk" : "day");
+          themeToggle.classList.toggle("is-auto", themeMode === "auto");
+          themeToggle.setAttribute("aria-label",
+            themeMode === "auto"
+              ? "Theme: automatic — currently " + (dusk ? "dusk" : "day") + " by your local time. Tap to switch manually; long-press to stay automatic."
+              : "Theme: " + (dusk ? "dusk" : "day") + " (manual). Tap to switch; long-press to return to automatic.");
+        }
+        applyTheme();
+        /* re-check the clock so dusk falls by itself at 19:00 and lifts at 07:00 */
+        setInterval(function(){ if (themeMode === "auto") applyTheme(); }, 30000);
+        var pressTimer = null, longPressed = false;
+        themeToggle.addEventListener("pointerdown", function(){
+          longPressed = false;
+          if (pressTimer) clearTimeout(pressTimer);
+          pressTimer = setTimeout(function(){
+            longPressed = true;
+            themeMode = "auto";
+            applyTheme();
+          }, 600);
+        });
+        ["pointerup","pointerleave","pointercancel"].forEach(function(ev){
+          themeToggle.addEventListener(ev, function(){
+            if (pressTimer){ clearTimeout(pressTimer); pressTimer = null; }
+          });
+        });
+        themeToggle.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+        themeToggle.addEventListener("click", function(){
+          if (longPressed){ longPressed = false; return; }
+          var dusk = document.body.getAttribute("data-theme") !== "dusk";
+          themeMode = dusk ? "dusk" : "day";
+          applyTheme();
+        });
+        themeToggle.addEventListener("dblclick", function(){
+          themeMode = "auto";
+          applyTheme();
+        });
+
+        /* ---- no cursor parallax: the whole scene stays perfectly still
+                under the pointer, so nothing slides out from under the mouse
+                and hover states never flicker ---- */
+
+        /* ---- fit: whole poster on portrait screens, fill on landscape ---- */
+        function fitPoster(){
+          var ratio = window.innerWidth / window.innerHeight;
+          svg.setAttribute("preserveAspectRatio", ratio < 1.05 ? "xMidYMid meet" : "xMidYMid slice");
+        }
+        fitPoster();
+        window.addEventListener("resize", fitPoster);
+
+        /* highlight Kyiv by default so the poster feels alive */
+        setTimeout(function(){
+          var el = svg.querySelector('.city[data-city="kyiv"]');
+          if (el){ el.classList.add("active"); activeCity = el; }
+        }, 600);
+      })();
+    </script>
+  </body>
+</html>
