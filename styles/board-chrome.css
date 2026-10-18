@@ -180,7 +180,9 @@ html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#
   position:relative !important;inset:auto !important;right:auto !important;bottom:auto !important;width:100% !important;height:96px !important;max-height:96px;
   margin:0 !important;border:0 !important;border-bottom:1px solid rgba(127,127,127,.14) !important;border-radius:0 !important;box-shadow:none !important;
   background:rgba(127,127,127,.08) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;
-  transition:max-height .38s ease,opacity .3s ease;opacity:1;display:block !important}
+  transition:max-height .38s ease,opacity .3s ease;opacity:1;display:block !important;
+  /* board.css floats #minimap at z-index:900; inside the unit that put it above the fold chevron (z-index:5) and the chevron never got a click */
+  z-index:0 !important}
 #bc-nav #minimap-canvas{width:100% !important;height:100% !important}
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #bc-nav #minimap-label{
   position:absolute !important;top:8px !important;left:12px !important;font:800 10.5px var(--bc-font) !important;letter-spacing:1.2px !important;text-transform:uppercase !important;opacity:.5;color:var(--bc-fg) !important;background:none !important;padding:0 !important}
@@ -197,7 +199,8 @@ html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#
   background:none !important;border:0 !important;box-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;border-radius:0 !important}
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #bc-nav #zoom-controls :is(.zc-sep,#zc-comments){display:none !important}
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #bc-nav .zc-btn{
-  width:28px !important;height:28px !important;border-radius:9px !important;display:grid !important;place-items:center !important;border:0 !important;background:none !important;color:var(--bc-fg) !important;padding:0 !important;box-shadow:none !important}
+  width:28px !important;height:28px !important;/* board.css pads every .zc-btn to 44px; here the 36px hit area comes from ::before, and 44px pushed the fit button out of the folded row */min-width:0 !important;min-height:0 !important;
+  border-radius:9px !important;display:grid !important;place-items:center !important;border:0 !important;background:none !important;color:var(--bc-fg) !important;padding:0 !important;box-shadow:none !important}
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #bc-nav .zc-btn:hover{background:rgba(127,127,127,.14) !important}
 #bc-nav .zc-btn svg{width:15px !important;height:15px !important;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 html:not(#bc1):not(#bc2):not(#bc3):not(#bc4):not(#bc5):not(#bc6):not(#bc7):not(#bc8):not(#bc9) body.board-page:not(.board-phone-shell) #bc-nav .zc-pct{font:800 12px var(--bc-font) !important;cursor:pointer;min-width:38px;text-align:center;color:var(--bc-fg) !important;background:none !important}
