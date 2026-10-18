@@ -140,15 +140,26 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
       : `<span class="cc-ph">${esc((st && st.avatar && st.avatar.length <= 4 ? st.avatar : name.trim().charAt(0)).toUpperCase())}</span>`;
     const meta = [time, slot.level || (st && st.level) || '', slot.group_name && !/^1\s*:\s*1$/.test(slot.group_name) && slot.group_name !== name ? slot.group_name : (slot.journal_id ? '1:1' : '')].filter(Boolean).join(' · ');
     const held = out && out.status === 'present';
+    const cancelled = out && out.status === 'cancelled';
+    /* ТЗ «Навигация и расписание» §3 (variant 1): the block IS the time slot. The colour lives in a
+       4px bar, the fill is a pale tint of the same colour; the name never truncates - the meta line
+       goes first, and a 30-minute block shows the name only. Statuses are a system: a lime check =
+       held, a cancelled class is a white block with a pink outline that stays visible this week. */
+    el.classList.toggle('st-cancelled', !!cancelled);
+    el.classList.toggle('short', timeToMinutes(slot.end_time) - timeToMinutes(slot.start_time) <= 30);
+    const ICON = {
+      msg: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 01-8 8H4l2-3a8 8 0 1115-5z"/></svg>',
+      board: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+      edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>',
+    };
     el.innerHTML = `
       ${slot.is_live ? '<span class="cc-live"></span>' : ''}
-      ${face}
-      <div class="cc-txt"><b class="cc-name">${esc(name)}</b><span class="cc-meta">${esc(meta)}</span>${tag ? `<span class="cc-tag">${tag}</span>` : ''}</div>
-      ${held ? '<span class="cc-check" title="Held"><svg viewBox="0 0 24 24" fill="none" stroke="#0B1026" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></span>' : ''}
+      <div class="cc-nm">${face}<b class="cc-name">${esc(name)}</b>${held ? '<span class="cc-st ok" title="Held">✓</span>' : ''}</div>
+      <div class="cc-meta">${esc([meta, tag].filter(Boolean).join(' · '))}</div>
       <div class="cc-quick">
-        <button type="button" data-q="msg" title="Message">💬</button>
-        ${slot.board_id ? '<button type="button" data-q="board" title="Open board">🔗</button>' : ''}
-        <button type="button" data-q="edit" title="Edit or reschedule">✏️</button>
+        <button type="button" data-q="msg" title="Message">${ICON.msg}</button>
+        ${slot.board_id ? `<button type="button" data-q="board" title="Open board">${ICON.board}</button>` : ''}
+        <button type="button" data-q="edit" title="Edit or reschedule">${ICON.edit}</button>
       </div>`;
     el.addEventListener('mousedown', e => { if (e.target.closest('.cc-quick')) return; startSlotDrag(e, slot, el); });
     el.addEventListener('click', e => {
@@ -166,29 +177,10 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
   };
 
   /* ── rest bands and the empty-cell ghost ────────────────────────────── */
+  /* ТЗ «Навигация и расписание» §3: no 'rest' strips on the grid (the booking link still keeps the
+     teacher's break free); bands painted by an older build are cleared. */
   function paintRest() {
     document.querySelectorAll('.cc-rest').forEach(n => n.remove());
-    const buf = bufferMin();
-    if (!buf) return;
-    document.querySelectorAll('.day-col').forEach(col => {
-      const blocks = [...col.querySelectorAll('.cls-block[data-slot-id]')].map(b => slotById(b.dataset.slotId)).filter(Boolean);
-      const starts = blocks.map(s => timeToMinutes(s.start_time));
-      blocks.forEach(s => {
-        const out = outcome(s);
-        if (out && out.status === 'cancelled') return;
-        const end = timeToMinutes(s.end_time);
-        // a lesson right after this one: the break is shorter or not there
-        const next = Math.min(end + buf, ...starts.filter(t => t >= end));
-        if (next <= end || end <= HOUR_START * 60 || end >= HOUR_END * 60) return;
-        const r = document.createElement('div');
-        r.className = 'cc-rest';
-        r.style.top = ((end - HOUR_START * 60) / 60 * PX_PER_HOUR) + 'px';
-        r.style.height = Math.max(6, (next - end) / 60 * PX_PER_HOUR) + 'px';
-        r.title = `${buf} min break after the lesson - the booking link keeps it free`;
-        if ((next - end) / 60 * PX_PER_HOUR >= 9) r.innerHTML = `<span>${next - end}m rest</span>`;
-        col.appendChild(r);
-      });
-    });
   }
 
   function bindGhost() {

@@ -167,7 +167,7 @@ a{text-decoration:none;color:inherit;}
 .grid-body{display:flex;flex:1;}
 .time-col{width:56px;flex-shrink:0;border-right:1px solid var(--border);}
 .time-label{
-  height:60px;display:flex;align-items:flex-start;justify-content:center;
+  height:56px;display:flex;align-items:flex-start;justify-content:center;
   padding-top:4px;font-size:11px;font-family:var(--mono);color:var(--text3);
 }
 .day-col{flex:1;border-right:1px solid var(--border);position:relative;min-height:900px;background:rgba(255,255,255,.35);}
@@ -175,7 +175,7 @@ a{text-decoration:none;color:inherit;}
 .day-col.weekend{background:rgba(93,97,75,.025);}
 .day-col.drop-target{background:rgba(205,246,73,.07);}
 .day-col:hover{background:rgba(205,246,73,.055);}
-.hour-line{height:60px;border-bottom:1px solid rgba(93,97,75,.07);}
+.hour-line{height:56px;border-bottom:1px solid #E9E7D8;}
 .half-line{height:30px;border-bottom:1px dashed rgba(93,97,75,.04);}
 .now-line{
   position:absolute;left:0;right:0;height:2px;background:var(--accent);z-index:10;
@@ -189,7 +189,7 @@ a{text-decoration:none;color:inherit;}
 
 /* Class blocks */
 .cls-block{
-  position:absolute;left:3px;right:3px;border-radius:10px;
+  position:absolute;left:1px;right:1px;border-radius:8px;
   padding:6px 8px;cursor:grab;overflow:hidden;
   transition:box-shadow .2s ease,transform .2s cubic-bezier(.34,1.3,.64,1);
   border-left:3px solid rgba(255,255,255,.58);
@@ -884,7 +884,7 @@ function pastelFor(key) {
   return PASTELS[Math.abs(h) % PASTELS.length];
 }
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 60;
+const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 56;   // ТЗ «Навигация и расписание» §3: 56px an hour
 
 function effectiveScheduleZone() {
   return safeTimeZone(currentUser?.timezone || browserTimeZone());

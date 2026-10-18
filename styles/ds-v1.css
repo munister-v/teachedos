@@ -1316,3 +1316,50 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 @keyframes bd-toast-in { from { opacity:0; transform:translate(-50%, 16px); } to { opacity:1; transform:translate(-50%, 0); } }
 @keyframes bd-wick { from { transform:scaleX(1); } to { transform:scaleX(0); } }
 @media (prefers-reduced-motion:reduce) { .bd-toast, .bd-toast-wick, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-actions { animation:none !important; transition:none !important; } }
+
+/* ══ ТЗ «Навигация и расписание» html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body3 · Schedule blocks, variant 1 (17.10.2026) ═
+   The block is the time slot: 56px an hour, 1px inset, radius 8, no shadow.
+   The colour code is a 4px bar in the student's colour, the fill a pale tint
+   of the same colour - one code, not two. The name (13.5/800) never
+   truncates: the meta line goes first, a 30-minute block shows the name only.
+   Held = a lime chip with a check; cancelled = a white block with a pink
+   outline, visible to the end of the week. Open for booking and Busy stay
+   quieter than any class; grid lines #E9E7D8 / #EFEDE0; secondary text is
+   never lighter than #76745F. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc {
+  --bar:hsl(from var(--blk) h calc(s * 1.3) calc(l - 25));
+  display:block !important; background:color-mix(in srgb, var(--blk) 42%, #fff) !important; border:0 !important; border-radius:8px !important;
+  padding:7px 9px 6px 13px !important; box-shadow:none !important; color:#24282C !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--bar); border-radius:8px 0 0 8px; display:block !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc:hover { transform:none !important; box-shadow:0 0 0 1.5px var(--bar) inset !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-nm { display:flex; align-items:center; gap:6px; min-width:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-ph {
+  width:19px !important; height:19px !important; flex:0 0 19px !important; border-radius:50%; background:#fff center/cover no-repeat; font-size:10px !important; font-weight:800;
+  box-shadow:none !important; border:1.5px solid var(--bar); display:grid !important; place-items:center; color:#24282C;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-name { font-size:13.5px !important; font-weight:800 !important; white-space:nowrap; overflow:visible !important; text-overflow:clip !important; color:#24282C !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-meta { display:block; font-size:11px !important; font-weight:700 !important; color:rgba(36,40,44,.78) !important; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:clip; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-st { margin-left:auto; flex:0 0 auto; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:800; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-st.ok { background:#CDF649; color:#24282C; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.short { padding-top:5px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.short .cc-meta { display:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.short .cc-name { font-size:12px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.short .cc-ph { width:16px !important; height:16px !important; flex-basis:16px !important; font-size:9px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.tiny .cc-meta, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.compact.short .cc-meta { display:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.st-cancelled { background:#fff !important; box-shadow:inset 0 0 0 1.5px #F35695 !important; opacity:1 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.st-cancelled::before { background:#F35695; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.st-cancelled :is(.cc-name, .cc-meta) { color:#A03D5C !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc.st-cancelled .cc-ph { border-color:#F35695; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-quick button { display:grid; place-items:center; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-quick svg { width:13px; height:13px; fill:none; stroke:#24282C; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+/* quieter than any class: Open for booking (dashed lime) and Busy (flat sand, no stripes) */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .bk-block.open { background:rgba(205,246,73,.06) !important; border:1.5px dashed #B9CC62 !important; border-radius:8px !important; left:1px !important; right:1px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .bk-block.open .bk-tag { color:#63790E !important; font-size:12px !important; font-weight:800 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .bk-block.busy { background:#F1EFE3 !important; border:0 !important; border-radius:8px !important; left:1px !important; right:1px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .bk-block.busy .bk-tag { color:#74725F !important; font-size:12px !important; font-weight:800 !important; }
+/* the grid */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #main .day-col { border-left:1px solid #EFEDE0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #main .day-col .hour-line { border-bottom:1px solid #E9E7D8 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #main .time-label { color:#76745F !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cc-rest { display:none !important; }
