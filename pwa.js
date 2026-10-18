@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '1245';
+  const TEACHEDOS_ASSET_VERSION = '1246';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -827,11 +827,41 @@
   window.addEventListener('load', () => {
     // No auto iOS install hint - it's available via TeachedosPWA.showIosHint() on demand.
     wireServiceWorkerStatus();
-    if (!navigator.onLine) setOfflineState(true);
+    if (!navigator.onLine) confirmOffline();
   });
 
-  window.addEventListener('offline', () => setOfflineState(true));
-  window.addEventListener('online', () => setOfflineState(false));
+  /* navigator.onLine и событие `offline` врут: Chrome выставляет «нет сети»
+     при смене Wi-Fi, VPN, сне ноутбука, хотя запросы идут. Баннер «You are
+     offline» тогда висел у человека с работающим интернетом. Поэтому показываем
+     его только после реального запроса к своему же серверу, который не прошёл. */
+  let offlineShown = false;
+  let probeSeq = 0;
+  async function reachable() {
+    const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), 5000) : null;
+    try {
+      await fetch('manifest.json?_=' + Date.now(), { method: 'HEAD', cache: 'no-store', signal: ctl && ctl.signal });
+      return true;
+    } catch { return false; }
+    finally { if (timer) clearTimeout(timer); }
+  }
+  async function confirmOffline() {
+    const seq = ++probeSeq;
+    if (await reachable()) { if (offlineShown) { offlineShown = false; setOfflineState(false); } return; }
+    if (seq !== probeSeq) return;
+    offlineShown = true;
+    setOfflineState(true);
+  }
+  async function confirmOnline() {
+    const seq = ++probeSeq;
+    if (!offlineShown) { document.body.classList.remove('pwa-offline'); return; }
+    if (!(await reachable()) || seq !== probeSeq) return;
+    offlineShown = false;
+    setOfflineState(false);
+  }
+
+  window.addEventListener('offline', confirmOffline);
+  window.addEventListener('online', confirmOnline);
 
   /* Сервер молчит, а устройство в сети. Баннер выше ловил только
      navigator.onLine, то есть отключённый Wi-Fi. Когда бэкенд недоступен
