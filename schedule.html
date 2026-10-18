@@ -337,6 +337,20 @@ a{text-decoration:none;color:inherit;}
 .btn-save:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(205,246,73,.25);}
 .btn-save:active{transform:scale(.97);}
 .btn-save:disabled{opacity:.58;cursor:wait;transform:none;box-shadow:none;}
+.btn-del{margin-right:auto;padding:9px 14px;background:transparent;color:#B23A0E;border:1px solid rgba(178,58,14,.28);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;transition:background .15s ease,border-color .15s ease;}
+.btn-del:hover{background:#FFE9DF;border-color:rgba(178,58,14,.5);}
+.btn-del[hidden]{display:none;}
+.sdl-ov{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(16,18,22,.4);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+.sdl{width:min(400px,100%);background:#fff;color:#24282C;border-radius:20px;padding:22px;box-shadow:0 30px 80px rgba(16,18,22,.35);font-family:var(--font);}
+.sdl h3{margin:0 0 6px;font-size:17px;line-height:1.25;font-weight:750;}
+.sdl p{margin:0 0 8px;font-size:13px;line-height:1.5;color:#5D614B;}
+.sdl p b{color:#24282C;}
+.sdl-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+.sdl-row button{height:40px;padding:0 18px;border:0;border-radius:12px;font:700 13px var(--font);cursor:pointer;background:rgba(36,40,44,.07);color:#24282C;}
+.sdl-row button:hover{background:rgba(36,40,44,.12);}
+.sdl-row .sdl-go{background:#D6451B;color:#fff;}
+.sdl-row .sdl-go:hover{background:#B93A14;}
+.sdl-row button:disabled{opacity:.55;cursor:wait;}
 
 /* Toast */
 #toast{
@@ -831,6 +845,7 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="modal-footer">
+      <button class="btn-del" id="modal-delete-btn" type="button" hidden onclick="deleteSlotFromModal()">Delete lesson</button>
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
       <button class="btn-save" id="modal-save-btn" onclick="saveClass()">Add Class</button>
     </div>
@@ -2286,6 +2301,7 @@ function openModal(slot = null, preset = null) {
   document.getElementById('modal-save-btn').textContent = isEdit ? 'Save Changes' : 'Add Class';
   delete document.getElementById('modal-save-btn').dataset.idleLabel;
   document.getElementById('lesson-presets-wrap').hidden = isEdit;
+  document.getElementById('modal-delete-btn').hidden = !isEdit;
   setScheduleSaveBusy(false);
   document.getElementById('f-title').value = data.title || '';
   const startDay = Number(data.day ?? ((new Date().getDay() + 6) % 7));
@@ -2450,14 +2466,59 @@ async function saveClass() {
   finally { setScheduleSaveBusy(false); }
 }
 
+/* Deleting a lesson (18.10.2026, the owner: "I can't delete the extra lessons
+   from the schedule"). The grid had no way to do it - the only × lived in the
+   side list, which is hidden - so the lesson card and the editor both end up
+   here. A weekly lesson leaves every week; skipping a single week is
+   "Cancelled" on the card, and lessons already marked in the Journal stay. */
+function confirmDeleteSlot(slot) {
+  return new Promise(resolve => {
+    const weekly = slot.recurring !== false && !slot.specific_date;
+    const who = slot.student_name || slot.group_name || '';
+    const time = `${String(slot.start_time).slice(0, 5)}-${String(slot.end_time).slice(0, 5)}`;
+    const when = weekly
+      ? `every ${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][slot.day] || ''} at ${time}`
+      : `${new Date(slot.specific_date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
+    document.getElementById('sdl-ov')?.remove();
+    const ov = document.createElement('div');
+    ov.id = 'sdl-ov'; ov.className = 'sdl-ov';
+    ov.innerHTML = `<div class="sdl" role="alertdialog" aria-modal="true" aria-labelledby="sdl-h">
+      <h3 id="sdl-h">Delete ${weekly ? 'this weekly lesson' : 'this lesson'}?</h3>
+      <p><b>${esc(slot.title || 'Class')}${who && who !== slot.title ? ' · ' + esc(who) : ''}</b><br>${esc(when)}</p>
+      <p>${weekly ? 'It disappears from every week. To skip just one week, mark that lesson <b>Cancelled</b> instead.' : 'It disappears from the schedule.'} Lessons already marked held or missed stay in the Journal.</p>
+      <div class="sdl-row"><button type="button" data-x>Keep it</button><button type="button" class="sdl-go" data-go>Delete</button></div>
+    </div>`;
+    const done = v => { ov.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } };
+    document.addEventListener('keydown', onKey, true);
+    ov.addEventListener('mousedown', e => { if (e.target === ov) done(false); });
+    ov.addEventListener('click', e => { if (e.target.closest('[data-x]')) done(false); else if (e.target.closest('[data-go]')) done(true); });
+    document.body.appendChild(ov);
+    ov.querySelector('[data-x]').focus();
+  });
+}
+async function deleteSlot(slot) {
+  if (!slot || !slot.id) return false;
+  if (!(await confirmDeleteSlot(slot))) return false;
+  try {
+    await apiFetch(`/api/schedule/${slot.id}`, { method:'DELETE' });
+  } catch (err) { toast(err.message || 'Could not delete the lesson', 'err'); return false; }
+  // the offline copy goes too, or a failed reload would bring the lesson back
+  schedule = schedule.filter(s => String(s.id) !== String(slot.id));
+  writeScheduleCache({ schedule });
+  renderGrid(); renderSideList(); renderStats();
+  toast('Lesson deleted', 'ok');
+  loadSchedule();
+  return true;
+}
+async function deleteSlotFromModal() {
+  const slot = editingId && schedule.find(s => String(s.id) === String(editingId));
+  if (!slot) return;
+  if (await deleteSlot(slot)) closeModal();
+}
 async function deleteClass(e, id) {
   e.stopPropagation();
-  if (!confirm('Delete this class?')) return;
-  try {
-    await apiFetch(`/api/schedule/${id}`, { method:'DELETE' });
-    toast('Deleted','ok');
-    await loadSchedule();
-  } catch (e) { toast(e.message,'err'); }
+  await deleteSlot(schedule.find(s => String(s.id) === String(id)));
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────

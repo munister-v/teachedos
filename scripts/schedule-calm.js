@@ -17,7 +17,7 @@
    startSlotDrag, suppressNextSlotClick, openModal, openClassBoard, setLessonOutcome,
    slotMeetingUrl, joinMeeting, toggleLiveSlot, apiFetch, toast, esc, renderGrid,
    buildBlock, currentUser, HOUR_START, HOUR_END, PX_PER_HOUR, dragState,
-   timeToMinutes, minutesToTime, snapMinutes, clampSlotStart, gridMinutesFromPointer, DAY_NAMES */
+   timeToMinutes, minutesToTime, snapMinutes, clampSlotStart, gridMinutesFromPointer, DAY_NAMES, deleteSlot */
 (function () {
   if (typeof buildBlock !== 'function' || typeof renderGrid !== 'function') return;
 
@@ -64,6 +64,8 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
 .cc-acts button{border:0;border-radius:11px;padding:8px 10px;font:inherit;font-weight:700;font-size:12.5px;cursor:pointer;background:rgba(36,40,44,.06);color:#24282C;text-align:left}
 .cc-acts button:hover{background:rgba(36,40,44,.11)}
 .cc-acts button.main{background:#CDF649}.cc-acts button.main:hover{background:#c2ec3c}
+.cc-del{display:block;margin:10px 0 0;padding:6px 2px 0;border:0;background:none;font:inherit;font-size:12px;font-weight:700;color:#B23A0E;cursor:pointer;opacity:.85}
+.cc-del:hover{opacity:1;text-decoration:underline}
 .cc-out{margin-top:10px;padding-top:10px;border-top:1px solid rgba(36,40,44,.08)}
 .cc-out-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(36,40,44,.5);margin-bottom:6px}
 .cc-seg{display:flex;gap:4px}
@@ -253,6 +255,7 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
           <button type="button" data-o="no_show" class="${out && out.status === 'no_show' ? 'on' : ''}">No-show</button>
           <button type="button" data-o="cancelled" class="${out && out.status === 'cancelled' ? 'on' : ''}">Cancelled</button>
         </div></div>` : ''}
+      <button type="button" class="cc-del" data-a="del">🗑 Delete lesson</button>
       <div class="cc-msg" hidden>
         <textarea placeholder="Message to ${esc(who(slot))}…"></textarea>
         <div class="cc-msg-row"><button type="button" data-m="cancel">Cancel</button><button type="button" class="main" data-m="send">Send</button></div>
@@ -272,6 +275,7 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
       const m = e.target.closest('[data-m]')?.dataset.m;
       if (a === 'board') return openClassBoard(slot.board_id);
       if (a === 'edit') { closeCard(); return openModal(slot); }
+      if (a === 'del') { closeCard(); return deleteSlot(slot); }
       if (a === 'hw') return void (location.href = 'homework.html');
       if (a === 'live') { closeCard(); return meet && !slot.is_live ? joinMeeting(meet) : toggleLiveSlot(slot.id, !slot.is_live); }
       if (a === 'msg') return showMsg();
