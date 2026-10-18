@@ -16866,7 +16866,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1244';
+const TEACHEDOS_ASSET_VERSION = '1245';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20418,7 +20418,7 @@ function renderLessonWizard() {
     };
     host.innerHTML = `${canAsk ? `<form class="tb-wiz-ask bc-hero" onsubmit="event.preventDefault();lessonWizardAsk()">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
-        <input id="tb-wiz-ask" type="text" maxlength="1200" autocomplete="off" aria-label="Describe your lesson or tell the board what to do" placeholder="Describe your lesson — topic, level, goal…">
+        <input id="tb-wiz-ask" type="text" maxlength="1200" autocomplete="off" aria-label="Describe your lesson or tell the board what to do" placeholder="Describe your lesson: topic, level…">
         <button type="submit" class="tb-wiz-ask-go">Ask <span aria-hidden="true">⏎</span></button>
       </form>` : ''}
       <div class="tb-wiz-grid bc-studios">${(BOARD_LESSON_SKILLS || []).map(s => { const ready = !!(s.stages || s.workout || s.magazine || s.scenes); return `
@@ -24086,7 +24086,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1244',
+          icon: 'icons/icon-192.png?v=1245',
           tag: 'board-live-' + s.id,
         });
       }
