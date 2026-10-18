@@ -5607,6 +5607,10 @@ function openCardStudio(cardId) {
   ov.setAttribute('aria-modal', 'true');
   document.body.appendChild(ov);
   document.body.classList.add('studio-open');
+  /* Audit 17.10: a card view got stuck twice - Esc and × did nothing. Every way out works now:
+     the × (the head's Back button), Esc (also from inside an activity, which is an iframe: it
+     forwards the key, see worksheet-play.js) and a click on the dimmed backdrop. */
+  ov.addEventListener('click', e => { if (e.target === ov) (_wpStudentHome() ? _wpGoHome() : closeCardStudio()); });
   _studioRender();
   if (card.data._wfPath) _wpRedraw(card);
   _wpBindSwipe(ov);
@@ -5675,6 +5679,10 @@ function closeCardStudio(silent) {
   if (window.TeachedSounds) window.TeachedSounds.ambient(null);
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('card-studio') && !document.getElementById('wp-students')) closeCardStudio(); });
+window.addEventListener('message', e => {
+  if (!e.data || e.data.type !== 'iw-escape') return;
+  if (document.getElementById('card-studio') && !document.getElementById('wp-students')) closeCardStudio();
+});
 /* Стрелки клавиатуры = та же пара кнопок ← Back / Next →, что жмёт мышь.
    Только внутри открытой Studio (лист или наведение по шагам всё равно
    не пускает стрелки дальше своей карточки), и не тогда, когда стрелка
@@ -11984,6 +11992,16 @@ const TT_BUILDER_DRAFT_LEGACY_KEY = 'teachedos_tt_builder_draft_v1';
    full». */
 const TT_BUILDER_DRAFT_MAX_TOOLS = 12;
 const TT_BUILDER_DRAFT_MAX_CHARS = 180000;
+/* Audit 17.10: the YOUR TEXT field came prefilled with a text about a night train from some
+   earlier session - in every variant of the form, on an account that never wrote it. A draft
+   now belongs to the account that typed it and lives three hours: long enough to survive a
+   reload while the server is away (the form comes back as it was), not long enough to turn up
+   in tomorrow's lesson. */
+const TT_BUILDER_DRAFT_TTL = 3 * 3600 * 1000;
+function _ttDraftOwner() {
+  try { return JSON.parse(atob(String(localStorage.getItem('teachedos_token') || '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub || ''; }
+  catch { return ''; }
+}
 
 function _ttReadDraftStore() {
   try {
@@ -12051,7 +12069,7 @@ function _ttSaveBuilderDraft() {
   if (_ttDraftSaveTimer) { clearTimeout(_ttDraftSaveTimer); _ttDraftSaveTimer = 0; }
   const draft = _ttReadBuilderDraft();
   const tools = _ttReadDraftStore();
-  tools[_ttDraftKeyFor(activeTeacherToolBuilder.id)] = { savedAt: Date.now(), draft };
+  tools[_ttDraftKeyFor(activeTeacherToolBuilder.id)] = { savedAt: Date.now(), who: _ttDraftOwner(), draft };
   // Оставляем только самые свежие, старые вытесняем по времени сохранения.
   const keep = Object.entries(tools)
     .sort((a, b) => (b[1]?.savedAt || 0) - (a[1]?.savedAt || 0))
@@ -12099,7 +12117,8 @@ function _ttRestoreBuilderDraft() {
   const toolId = activeTeacherToolBuilder && activeTeacherToolBuilder.id;
   try {
     const saved = _ttReadDraftStore()[_ttDraftKeyFor(toolId)];
-    if (saved && _ttApplyBuilderDraft(saved.draft)) {
+    const fresh = saved && Date.now() - (saved.savedAt || 0) < TT_BUILDER_DRAFT_TTL && (saved.who || '') === _ttDraftOwner();
+    if (fresh && _ttApplyBuilderDraft(saved.draft)) {
       _ttSetDraftState('Draft restored', 'saved');
       return true;
     }
@@ -15216,11 +15235,63 @@ function toggleWordReviewWide(force) {
 }
 
 document.querySelector('.tbuilder-form')?.addEventListener('input', e => {
-  if (e.target.matches('input, textarea, select')) { _ttClearTidyUndoAfterManualEdit(e.target.id); _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
+  if (e.target.matches('input, textarea, select')) { _ttClearTidyUndoAfterManualEdit(e.target.id); _ttSyncFormReadiness(); _ttQueueBuilderDraft(); _wrGenreAutoNote(); }
 });
 document.querySelector('.tbuilder-form')?.addEventListener('change', e => {
-  if (e.target.matches('input, textarea, select')) { _ttClearTidyUndoAfterManualEdit(e.target.id); _ttSyncFormReadiness(); _ttQueueBuilderDraft(); }
+  if (e.target.matches('input, textarea, select')) { _ttClearTidyUndoAfterManualEdit(e.target.id); _ttSyncFormReadiness(); _ttQueueBuilderDraft(); _wrGenreAutoNote(); }
 });
+
+/* GENRE Auto shows what it decided (audit 17.10, Writing): "Auto" never said which genre the
+   lesson would be in. In a writing lesson the topic, the note and the text are read for the
+   genre; the form says it ("Auto: letter of complaint") with one click to keep it as the
+   choice, and that genre is what the model is asked for. Nothing found - it says so. */
+const WR_GENRE_HINTS = [
+  ['complaint', /\b(complain|complaint|refund|faulty|broken|damaged|disappoint|poor service|late delivery)/i],
+  ['formal-letter', /\b(enquir|inquir|request(ing)? information|ask(ing)? about|booking|course details|apply for a place)/i],
+  ['business-email', /\b(colleague|client|manager|meeting|job application|cover letter|apply for (a|the) job|business|company|office)/i],
+  ['report', /\b(report|survey|findings|recommendation)/i],
+  ['opinion-essay', /\b(opinion|essay|agree|disagree|for and against|advantages|disadvantages|should .* be|argue|discursive)/i],
+  ['review', /\b(review|recommend (a|the) (film|book|restaurant|hotel|game|show))/i],
+  ['article', /\b(article|magazine|school newspaper)/i],
+  ['blog', /\bblog/i],
+  ['story', /\b(story|once upon|adventure|what happened|narrative)/i],
+  ['dialogue', /\b(dialogue|conversation|role ?play)/i],
+  ['casual-message', /\b(text message|chat|whatsapp|quick message|note to)/i],
+  ['personal-email', /\b(friend|pen ?pal|invit|party|holiday|thank(s| you) (letter|email|note)|letter to (my|a) (friend|cousin|grandma))/i],
+];
+function _wrIsWriting() { return !!(boardLessonWizard && boardLessonWizard.skill === 'writing'); }
+function _wrGenreAuto() {
+  const v = id => String(document.getElementById(id)?.value || '');
+  const hay = [v('tbuilder-topic'), v('tbuilder-extra'), v('tbuilder-source').slice(0, 600)].join(' ');
+  if (!hay.trim()) return null;
+  const hit = WR_GENRE_HINTS.find(([, re]) => re.test(hay));
+  if (!hit) return null;
+  const opt = document.querySelector(`#tbuilder-genre option[value="${hit[0]}"]`);
+  return { key: hit[0], label: opt ? opt.textContent.trim() : hit[0] };
+}
+function _wrGenreAutoNote() {
+  const sel = document.getElementById('tbuilder-genre');
+  if (!sel) return;
+  let note = document.getElementById('tbuilder-genre-auto');
+  const show = _wrIsWriting() && !sel.value;
+  if (!show) { note?.remove(); return; }
+  if (!note) {
+    note = document.createElement('div');
+    note.id = 'tbuilder-genre-auto';
+    note.className = 'tb-genre-auto';
+    sel.insertAdjacentElement('afterend', note);
+    note.addEventListener('click', e => {
+      const b = e.target.closest('[data-genre]');
+      if (!b) return;
+      sel.value = b.dataset.genre;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+  const g = _wrGenreAuto();
+  note.innerHTML = g
+    ? `Auto: <b>${esc(g.label)}</b> <button type="button" data-genre="${esc(g.key)}">Keep it</button>`
+    : 'Auto: no genre in the topic yet - pick one, or the model chooses.';
+}
 document.querySelector('.tbuilder-form')?.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
     e.preventDefault();
@@ -15246,7 +15317,8 @@ function readTeacherToolBuilderInput() {
     count: Math.max(3, Math.min(100, parseInt(getVal('tbuilder-count') || '12', 10) || 6)),
     topic: getVal('tbuilder-topic') || ownTextTopic,
     action: document.getElementById('tbuilder-action')?.dataset.action || 'simplify',
-    genre: getVal('tbuilder-genre'),
+    // Auto in a writing lesson writes the genre the form shows it found (_wrGenreAuto)
+    genre: getVal('tbuilder-genre') || (_wrIsWriting() ? (_wrGenreAuto() || {}).key || '' : ''),
     length: getVal('tbuilder-length'),
     source: getVal('tbuilder-source'),
     vocab: getVal('tbuilder-vocab'),
@@ -17173,6 +17245,12 @@ async function _applyTeacherToolBuilderToBoard(mode) {
      результат: иначе кнопка положила бы один текст и молча потеряла
      задания, которые учитель уже видел в превью. */
   if (lastLessonStageSet && boardLessonStagesFor(activeTeacherToolBuilder.id)) {
+    const miss = lastLessonStageSet.missingAck ? [] : (lastLessonStageSet.missingWords || []);
+    if (miss.length) {
+      document.getElementById('tb-stage-warn')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      toast(`${miss.length === 1 ? `“${miss[0]}” is` : `${miss.length} of your words are`} not in the text - write it again or keep it without ${miss.length === 1 ? 'it' : 'them'}.`);
+      return;
+    }
     if (placeBoardLessonStageSet()) return;
     _ttAddFailed('The lesson could not be placed on the board. Your draft is still here.', retry);
     return;
@@ -18313,6 +18391,22 @@ function _stageFailureReason() {
   return '';
 }
 
+/* Match the halves is one to one (audit 17.10, Grammar: six beginnings on five endings, two
+   beginnings that fit one ending). A pair whose beginning or ending repeats another's is left
+   out, so every beginning has its own ending and the counts are equal. */
+function _stageHalvesOneToOne(built) {
+  const norm = x => String(x || '').toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  built.filter(b => b.activity.tool === 'matching-halves' && Array.isArray(b.out.pairs)).forEach(b => {
+    const L = new Set(), R = new Set();
+    b.out.pairs = b.out.pairs.filter(p => {
+      const l = norm(p && p.left), r = norm(p && p.right);
+      if (!l || !r || L.has(l) || R.has(r)) return false;
+      L.add(l); R.add(r);
+      return true;
+    });
+  });
+}
+
 function _stageFailureIsFinal() {
   if (typeof authToken !== 'undefined' && !authToken) return true;
   const e = (typeof _lastAiToolError !== 'undefined' && _lastAiToolError) || null;
@@ -18416,6 +18510,19 @@ function onWfToggle(id, on) {
   onBoardStagePickChange();
 }
 
+/* Audit 17.10 (Listening): "The video itself" could be unticked silently, and the student then
+   had nothing to listen to. With a video in the lesson, unticking it asks first. */
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (!t || t.value !== 'lis-video' || t.checked || !t.closest || !t.closest('#tbuilder-stages')) return;
+  const media = (boardLessonWizard && boardLessonWizard.media) || (typeof _wizLinkMedia === 'function' && _wizLinkMedia());
+  if (!media) return;
+  if (!confirm('Without the video card, students will not see or hear the video - the lesson becomes a reading of the transcript. Leave the video out?')) {
+    t.checked = true;
+    onBoardStagePickChange();
+  }
+}, true);
+
 function boardStagePickedKeys() {
   // Пакет-вариант (data-keys) ставит сразу несколько ключей.
   return [...document.querySelectorAll('#tbuilder-stages .tb-workout-item input:checked')]
@@ -18494,6 +18601,7 @@ function renderBoardLessonStages(toolId) {
   const isWriting = boardLessonWizard && boardLessonWizard.skill === 'writing';
   const genreLabel = document.getElementById('tbuilder-genre-label');
   if (genreLabel) genreLabel.textContent = isWriting ? 'Genre / Register' : 'Genre';
+  _wrGenreAutoNote();
   const wfSetup = isWriting ? `<div class="tb-wf-setup" id="tb-wf-setup">
       <div class="tb-wf-setup-h">Pre-writing steps <small>What the student works through before the Writing Studio</small></div>
       ${WF_TOGGLES.map(t => `<label class="tb-wf-tog">
@@ -19173,6 +19281,8 @@ async function runBoardLessonStages() {
   const readingText = _stageReadingText(textOut);
   const built = [];
   const failed = [];
+  const _stageNoVideo = boardLessonWizard && boardLessonWizard.skill === 'listening'
+    && !((boardLessonWizard && boardLessonWizard.media) || _wizLinkMedia() || _wizRememberedMedia());
 
   for (let i = 0; i < opts.length; i++) {
     const o = opts[i];
@@ -19181,10 +19291,23 @@ async function runBoardLessonStages() {
     const input = { ...base, tool: { id: o.tool } };
     // Формулировка задания под роль на этапе (например, T/F до просмотра).
     if (o.extra) input.extra = [base.extra, o.extra].filter(Boolean).join(' ');
+    /* Audit 17.10: the hook talked about "the first frame" and "pause after a minute" for a text
+       or an audio file. Without a video the tasks are told there is none. */
+    if (_stageNoVideo) input.extra = [input.extra, 'There is no video in this lesson: students listen to an audio recording or read the transcript. Do not mention a video, its title, a frame, the screen or pausing it.'].filter(Boolean).join(' ');
     /* Вот ради чего этапы живут в конструкторе: задание получает тот
        самый текст, который ученик только что прочитал. Собранное
        отдельными инструментами оно спрашивало бы про тему вообще. */
     if (o.after === 'source' && readingText) input.source = readingText;
+    /* Audit 17.10 (Writing): the success criteria judged the model text, so the student was
+       marked against someone else's letter. They are written from the student's own task -
+       the prompt, plan and checklist of "Their own text" built just before - when there is one. */
+    if (o.key === 'wr-rubric') {
+      const task = built.find(b => b.activity.key === 'wr-write' || b.activity.tool === 'creative-writing');
+      if (task) {
+        input.source = _stageReadingText(task.out);
+        input.extra = [input.extra, 'Write the success criteria for the STUDENT\'S writing task given as the source (its situation, reader, genre, length and required points) - not for the model text. Every criterion must be checkable in the student\'s own draft and must not mention any name, place, number or fact that is not in that task.'].filter(Boolean).join(' ');
+      }
+    }
     /* Панель у текстовых инструментов прячет поле Items, и в нём остаётся
        умолчание в 12 - для «True / False по тексту» это не урок, а
        контрольная. Заданиям этапа хватает шести. */
@@ -19220,6 +19343,7 @@ async function runBoardLessonStages() {
 
   _ttSetGenerating(false);
   _stageNoErrorAsModel(built);
+  _stageHalvesOneToOne(built);
   lastLessonStageSet = {
     base, cfg, textOut, built, failed, keys, toolId,
     /* Плеер и решение «класть ли транскрипт» нужны укладчику, а он
@@ -19446,9 +19570,48 @@ function _lbBuildingHtml(titles, i) {
   </div>`;
 }
 
+/* The word list is a contract (audit 17.10, Reading): of six words the teacher gave, five got
+   into the text and four were highlighted - "guardian" was lost without a word. A generated
+   text is checked word by word: a word that is there but not highlighted gets its highlight
+   (when "Bold the target vocabulary" is on), a word that is not there is named in the preview,
+   and Add to board waits until the teacher writes the text again or keeps it without them. */
+function _stageWordContract(set) {
+  const t = set.textOut;
+  if (!t || t.engine === 'teacher-text' || set.missingAck) return [];
+  const words = String((set.base && set.base.vocab) || '').split('\n').map(_wizVocabKey).filter(w => w && w.length > 1).slice(0, 30);
+  if (!words.length) return [];
+  const cards = (t.struct && Array.isArray(t.struct.cards)) ? t.struct.cards : (Array.isArray(t.cards) ? t.cards : []);
+  const card = cards.find(c => /reading text|📖/i.test(c.title || '')) || cards.find(c => !/glossary|🔑/i.test(c.title || '')) || null;
+  const text = String((card && card.text) || t.text || '');
+  const plain = text.replace(/\*\*|__/g, '');
+  const bold = (set.keys || []).includes('bold-vocab');
+  const reOf = w => new RegExp('\\b' + w.split(/\s+/).map(x => {
+    const stem = x.length > 4 ? x.replace(/(e|y)$/, '') : x;
+    return stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "[a-z'’]{0,4}";
+  }).join('\\s+') + '\\b', 'i');
+  const missing = [];
+  let out = text;
+  words.forEach(w => {
+    const re = reOf(w);
+    if (!re.test(plain)) { missing.push(w); return; }
+    if (!bold || !card) return;
+    // highlighted already? a **…** span that holds it
+    if ((out.match(/\*\*[^*]+\*\*/g) || []).some(m => re.test(m))) return;
+    out = out.replace(re, m => `**${m}**`);
+  });
+  if (card && out !== text) card.text = out;
+  return missing;
+}
+function _stageKeepMissing() {
+  if (!lastLessonStageSet) return;
+  lastLessonStageSet.missingAck = true;
+  renderBoardLessonStagePreview(lastLessonStageSet);
+}
+
 function renderBoardLessonStagePreview(set) {
   const body = document.getElementById('tbuilder-output');
   if (!body || !set) return;
+  set.missingWords = _stageWordContract(set);
   const { cfg, textOut, built, failed } = set;
   const byStage = {};
   built.forEach(b => { (byStage[b.activity.stage] = byStage[b.activity.stage] || []).push(b); });
@@ -19525,8 +19688,13 @@ function renderBoardLessonStagePreview(set) {
   }).join('');
 
   const failNote = failed.length ? _stageFailureReason() : '';
-  const failHtml = failed.length
-    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.${failNote ? ` ${esc(failNote)}` : ''}</div>` : '';
+  const miss = set.missingWords || [];
+  const failHtml = (miss.length
+    ? `<div class="tb-stage-warn" id="tb-stage-warn" role="alert">${miss.length === 1 ? `The word <b>${esc(miss[0])}</b> is not in the text.` : `These words are not in the text: <b>${miss.map(esc).join(', ')}</b>.`}
+        <button type="button" class="tb-act-btn" onclick="set_missingRedo()">Write the text again</button>
+        <button type="button" class="tb-act-btn" onclick="_stageKeepMissing()">Keep it without ${miss.length === 1 ? 'it' : 'them'}</button></div>` : '')
+    + (failed.length
+    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.${failNote ? ` ${esc(failNote)}` : ''}</div>` : '');
   /* Урок, который ляжет путём, учитель сначала видит глазами ученика: тот
      же виджет, что будет на доске, шаги и студии живые. Разбор по частям с
      правкой - под «Teacher view». */
@@ -19602,6 +19770,10 @@ function _wfRebuildWithGenre() {
    перестраиваются на новый: иначе они остались бы про уже заменённый
    текст, и «после прочтения» спрашивало бы про то, чего на доске больше
    нет. Задания, не завязанные на текст, не трогаем. */
+function set_missingRedo() {
+  if (lastLessonStageSet) lastLessonStageSet.missingAck = false;
+  redoStageText();
+}
 async function redoStageText() {
   const set = lastLessonStageSet;
   if (!set || set.textOut?.engine === 'teacher-text') return;
@@ -19961,15 +20133,21 @@ function _stageLessonParts(set) {
   if (!results.length && !homework.length) return null;
 
   const readingText = _stageReadingText(set.textOut) || '';
-  const label = set.base.topic
-    ? `${set.cfg.label}: ${set.base.topic}`
-    : (set.cfg.label || 'Lesson');
   /* Плеер отдаёт укладчику, а не кладёт руками: у кадра для видео есть
      своя первая ячейка нужных пропорций, и урок про аудирование должен
      начинаться с неё, а не с карточки, плавающей рядом с кадром. */
   const videoUrl = (set.media && wantsVideo) ? set.media.url : null;
-  const pathKind = writingFlow ? 'writing' : speakingFlow ? 'speaking' : skillPath;
-  return { results, homework, teacherOnly, label, videoUrl, readingText, pathKind, writingFlow, speakingFlow, skillPath };
+  /* Audit 17.10 (Listening): with no player on the board the student had nothing to listen to,
+     yet the card said Listening. A listening lesson without a video goes on the board as what
+     it is - a reading of the text (the "A text is not something to listen to" note says so). */
+  const noListening = skillPath === 'listening' && !videoUrl;
+  const pathSkill = noListening ? 'reading' : skillPath;
+  const cfgLabel = noListening ? 'Reading lesson' : set.cfg.label;
+  const label = set.base.topic
+    ? `${cfgLabel}: ${set.base.topic}`
+    : (cfgLabel || 'Lesson');
+  const pathKind = writingFlow ? 'writing' : speakingFlow ? 'speaking' : pathSkill;
+  return { results, homework, teacherOnly, label, videoUrl, readingText, pathKind, writingFlow, speakingFlow, skillPath: pathSkill };
 }
 
 /* «Дальше в другую студию» из этапа Follow-up. Отмеченные варианты handoff не
@@ -21158,7 +21336,18 @@ async function _audioToWavChunks(file, chunkSec = 300, maxSec = 1800) {
   if (minutes > maxSec / 60) throw new Error(`This audio is ${Math.round(minutes)} minutes long - cut it to 30 minutes or less first.`);
   const out = [];
   for (let i = 0; i < data.length; i += chunkSec * 16000) out.push(_audioWavBlob(data.subarray(i, i + chunkSec * 16000), 16000));
+  out.voiced = _audioVoicedSeconds(data, 16000);
   return out;
+}
+/* How much of the file is speech, not silence: 50 ms frames louder than a quarter of the loud
+   end of the file. Used to tell a full script from a fragment (audit 17.10). */
+function _audioVoicedSeconds(data, rate) {
+  const n = Math.round(rate * .05), rms = [];
+  for (let i = 0; i + n <= data.length; i += n) { let e = 0; for (let j = i; j < i + n; j++) e += data[j] * data[j]; rms.push(Math.sqrt(e / n)); }
+  if (!rms.length) return 0;
+  const p90 = rms.slice().sort((a, b) => a - b)[Math.floor(rms.length * .9)];
+  const gate = Math.max(.005, p90 * .25);
+  return rms.filter(v => v > gate).length * .05;
 }
 function _audioReadable(text) {
   const s = String(text || '').replace(/\s+/g, ' ').trim();
@@ -21191,14 +21380,29 @@ async function transcribeLessonAudio(file) {
     }
     const text = _audioReadable(parts.join(' '));
     if (!text) throw new Error('No speech was found in this file.');
-    _wizFillSource(text);
-    if (boardLessonWizard) boardLessonWizard.media = null;     // плеера нет: файл остаётся у учителя
-    const topic = document.getElementById('tbuilder-topic');
-    if (topic && !topic.value.trim()) { topic.value = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 60); topic.dispatchEvent(new Event('input', { bubbles: true })); }
-    say(`Script ready - ${text.split(/\s+/).length} words. Listen along and fix names or slang in the text below if needed.`);
+    /* Audit 17.10: a 15-20 second file came back as 7 words and the lesson was built on that
+       fragment without a word. Under 60% of the words this much speech should hold (about 2.3 a
+       second) - the teacher is told, and nothing is built from it unless they say so. */
+    const got = text.split(/\s+/).filter(Boolean).length, expect = Math.round((chunks.voiced || 0) * 2.3);
+    if (expect >= 14 && got < expect * .6) {
+      _audioPartial = { text, file };
+      if (note) note.innerHTML = `Only the beginning of the recording could be read: ${got} words, where this much speech should give about ${expect}. The lesson is not built from a fragment - <button type="button" class="tb-wiz-inline" onclick="transcribeLessonAudio(_audioPartial.file)">send it again</button> or <button type="button" class="tb-wiz-inline" onclick="_audioFinish(_audioPartial.text, _audioPartial.file)">use these ${got} words anyway</button>.`;
+      return;
+    }
+    _audioFinish(text, file);
   } catch (e) {
     say(e.message || 'Could not write the script.');
   } finally { zone && zone.classList.remove('is-busy'); }
+}
+let _audioPartial = null;
+function _audioFinish(text, file) {
+  const note = document.getElementById('tb-wiz-audio-note');
+  const say = msg => { if (note) note.textContent = msg; };
+  _wizFillSource(text);
+  if (boardLessonWizard) boardLessonWizard.media = null;     // плеера нет: файл остаётся у учителя
+  const topic = document.getElementById('tbuilder-topic');
+  if (topic && !topic.value.trim()) { topic.value = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 60); topic.dispatchEvent(new Event('input', { bubbles: true })); }
+  say(`Script ready - ${text.split(/\s+/).length} words. Listen along and fix names or slang in the text below if needed.`);
 }
 document.addEventListener('dragover', e => {
   const zone = document.getElementById('tb-wiz-audio-drop');

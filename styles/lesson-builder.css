@@ -340,3 +340,12 @@ html:not(#lb1):not(#lb2):not(#lb3):not(#lb4):not(#lb5):not(#lb6):not(#lb7):not(#
 @media (prefers-reduced-motion:reduce){
   html:not(#lb1):not(#lb2):not(#lb3):not(#lb4):not(#lb5):not(#lb6):not(#lb7):not(#lb8):not(#lb9):not(#lb10) body.board-page:not(.board-phone-shell) #tool-builder-panel *,html:not(#lb1):not(#lb2):not(#lb3):not(#lb4):not(#lb5):not(#lb6):not(#lb7):not(#lb8):not(#lb9):not(#lb10) body.board-page:not(.board-phone-shell) #tool-builder-panel *::before,html:not(#lb1):not(#lb2):not(#lb3):not(#lb4):not(#lb5):not(#lb6):not(#lb7):not(#lb8):not(#lb9):not(#lb10) body.board-page:not(.board-phone-shell) #tool-builder-panel *::after{transition:none !important;animation:none !important}
 }
+/* an inline action inside a status line (the audio script that came back short, audit 17.10) */
+.tb-wiz-inline{background:none;border:0;padding:0;font:inherit;font-weight:800;color:#0B1026;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* a word of the teacher's list is not in the generated text (audit 17.10) */
+.tb-stage-warn{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0;padding:12px 14px;border-radius:14px;background:#FFF4E5;border:1px solid #F3C98B;color:#5A3A0A;font-size:13px;line-height:1.45}
+.tb-stage-warn b{font-weight:800}
+/* GENRE Auto says what it found (audit 17.10) */
+.tb-genre-auto{margin-top:6px;font-size:12px;font-weight:600;color:#5E6473;line-height:1.4}
+.tb-genre-auto b{color:#0B1026;font-weight:800}
+.tb-genre-auto button{margin-left:6px;background:none;border:0;padding:0;font:inherit;font-weight:800;color:#0B1026;text-decoration:underline;text-underline-offset:3px;cursor:pointer}

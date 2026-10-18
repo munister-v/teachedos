@@ -2294,7 +2294,7 @@ ${warm ? `<header class="iw-head">
   <h1 class="iw-h">${/listening/i.test(d.title || '') ? 'Post-listening review' : /^practice/i.test(d.title || '') ? 'Practice review' : 'Post-reading review'}</h1>
 </header>` : `<div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>`}
 ${contentHtml}
-<script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};${wordHelp ? `window.__IW_WORDS__=${JSON.stringify(wordHelp)};` : ''}<\/script>
+<script>document.addEventListener('keydown',function(e){if(e.key==='Escape'){try{parent.postMessage({type:'iw-escape'},'*')}catch(_){}}});window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};${wordHelp ? `window.__IW_WORDS__=${JSON.stringify(wordHelp)};` : ''}<\/script>
 <script>${scriptHtml}<\/script>
 </body></html>`;
 }

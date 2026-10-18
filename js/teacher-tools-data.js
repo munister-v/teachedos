@@ -993,7 +993,7 @@ const BOARD_LESSON_STAGES = {
         question: 'How do they find something to say?',
         options: [
           {key:'wr-lead',  tool:'lead-in',           title:'Questions to open the topic', hint:'Two or three questions before any writing happens.', ai:true, on:true, after:'source'},
-          {key:'wr-four',  tool:'four-opinions',     title:'Four opinions to react to',   hint:'They write their own view in each box, then compare with the model.', ai:true, on:true},
+          {key:'wr-four',  tool:'four-opinions',     title:'Four opinions to react to',   hint:'They write their own view in each box, then compare with the model.', ai:true, on:true, after:'source'},
           {key:'wr-pros',  tool:'pros-cons',         title:'Pros and cons',               hint:'Both sides listed, ready to be used as arguments.', ai:true},
         ],
       },
