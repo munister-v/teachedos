@@ -802,6 +802,9 @@ CREATE TABLE IF NOT EXISTS speaking_recordings (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_speaking_rec_board ON speaking_recordings (board_id, card_id, created_at DESC);
+-- The teacher's "Speaking to review" queue (Homework): a recording waits there until it is marked reviewed.
+ALTER TABLE speaking_recordings ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_speaking_rec_pending ON speaking_recordings (board_id, created_at DESC) WHERE reviewed_at IS NULL;
 
 -- Studio work: each student's own copy of a lesson path (its step, done
 -- marks and every step's answers). The path card on the board holds the

@@ -974,6 +974,17 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .wr-q-tabs { background:var(--ds-sand) !important; border-radius:12px !important; padding:4px !important; border:0 !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .wr-q-tabs button { border:0 !important; background:none !important; font-size:13px !important; font-weight:700 !important; color:var(--ds-ink) !important; opacity:.55; padding:8px 14px !important; border-radius:9px !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .wr-q-tabs button.on { background:var(--ds-ink) !important; color:#F6F6EF !important; opacity:1; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet #sq-queue {
+  background:#fff !important; border:1px solid #EFEDE2 !important; border-radius:20px !important; padding:22px 24px !important; box-shadow:0 6px 18px rgba(36,40,44,.04) !important; margin:0 0 16px !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet #sq-queue .sq-head { padding:0 0 14px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet #sq-queue h2 { font-size:17px !important; font-weight:800 !important; letter-spacing:-.4px; color:var(--ds-ink) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .sq-count { background:#F1EFE3 !important; color:var(--ds-ink) !important; font-weight:800 !important; border-radius:999px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .sq-tabs { background:var(--ds-sand) !important; border-radius:12px !important; padding:4px !important; border:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .sq-tabs button { border:0 !important; background:none !important; font-size:13px !important; font-weight:700 !important; color:var(--ds-ink) !important; opacity:.55; padding:8px 14px !important; border-radius:9px !important; box-shadow:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .sq-tabs button.on { background:var(--ds-ink) !important; color:#F6F6EF !important; opacity:1; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet #sq-queue .sq-row { padding:14px 4px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .sq-empty { font-size:14px !important; color:#6B6F76 !important; line-height:1.6; padding:8px 0 4px !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .wr-empty { font-size:14px !important; color:#6B6F76 !important; line-height:1.6; }
 /* the one dark spot: next best action */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .hw-sheet .hw-focus {
