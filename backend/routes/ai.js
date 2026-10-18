@@ -1188,6 +1188,12 @@ function normStem(text) {
   return String(text || '').toLowerCase().replace(/[^a-zа-яіїєґ0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
 }
 const GAP_MARK = /_{2,}|\[\s*\.{3,}\s*\]|\.{4,}/;
+/* "gap-fill" is also the question type of the tools whose answer is a sentence, not a word in a
+   blank: the slip to correct, the sentence to rewrite, the words to put in order, the paragraph
+   position, the translation. They have no "_____" by design. The audit below used to drop every
+   gap-fill without one, so all of these were thrown away whole and the studio said "Could not
+   build" (Speaking's "Common mistakes to fix", failed three runs in three in the 17.10 audit). */
+const BLANKLESS_GAP_TOOLS = new Set(['error-correction', 'rewrite', 'rewrite-style', 'word-order', 'reading-bits', 'sentence-translation']);
 // Вопросы, на которые отвечают «да» или «нет»: как открытые они бессмысленны.
 const YES_NO_START = /^(is|are|was|were|do|does|did|has|have|had|can|could|will|would|should|may|might)\b/i;
 
@@ -1221,8 +1227,17 @@ function auditQuestions(questions, input) {
     if (key) seen.add(key);
 
     if (q.type === 'gap-fill') {
+      const blankless = BLANKLESS_GAP_TOOLS.has(input && input.toolId);
       const hasGap = GAP_MARK.test(q.text);
       const ans = String(q.answer || '').trim();
+      if (blankless) {
+        if (!ans) { drop(q, 'no answer'); continue; }
+        // a slip to correct that is not a slip: nothing for the student to do (a teacher's own source
+        // sentences may already be correct, and the prompt allows keeping those)
+        if (input.toolId === 'error-correction' && !input.source && normStem(q.text) === normStem(ans)) { drop(q, 'nothing to correct'); continue; }
+        kept.push(q);
+        continue;
+      }
       // Пропуск без пропуска - это просто предложение; ответ, стоящий в самом
       // предложении, - это подсказка вместо задания.
       if (!hasGap) { drop(q, 'no blank in the sentence'); continue; }
@@ -2620,3 +2635,4 @@ module.exports.normaliseInput = normaliseInput;
 // allowance shows next to boards/students/storage instead of living only in
 // a plain status line inside the AI tools themselves.
 module.exports.readAiQuota = readAiQuota;
+module.exports._test = { auditQuestions, sanitizeQuestion };
