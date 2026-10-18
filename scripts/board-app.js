@@ -1720,9 +1720,12 @@ function renderImage(el, card) {
 
 /* ══════════════════════ GIF CARD ══════════════════════
    Animated GIF card - search through our server + direct URL input.
-   Stores: { src, tenorId, query, caption }              */
+   Stores: { src, tenorId, kind: 'gif'|'sticker'|'clip', slug, query, caption }   */
 function renderGif(el, card) {
   const d = card.data;
+  const kind = d.kind === 'clip' || d.kind === 'sticker' ? d.kind : 'gif';
+  // a sticker is a picture on the board, not a framed card: transparent, no dark box
+  if (kind === 'sticker') el.classList.add('card-sticker');
   const body = document.createElement('div');
   body.className = 'card-body gif-body';
 
@@ -1730,28 +1733,39 @@ function renderGif(el, card) {
     const wrap = document.createElement('div');
     wrap.className = 'gif-wrap';
 
-    const img = document.createElement('img');
-    img.draggable = false;
-    img.decoding = 'async';
-    img.alt = d.query || d.caption || 'GIF';
-    img.addEventListener('load', () => wrap.classList.remove('is-loading'));
-    img.addEventListener('error', () => {
-      wrap.innerHTML = `<div class="image-state"><span class="image-state-ic">🎞️</span><span class="image-state-txt">Couldn't load GIF</span><button class="image-state-btn" onclick="openGifPanel('${card.id}')">Change</button></div>`;
+    // A clip is a looping video without sound that starts by itself; a GIF or a sticker is a picture.
+    const media = document.createElement(kind === 'clip' ? 'video' : 'img');
+    media.draggable = false;
+    if (kind === 'clip') {
+      media.muted = true; media.defaultMuted = true; media.loop = true; media.autoplay = true;
+      media.playsInline = true; media.controls = false; media.preload = 'metadata';
+      media.setAttribute('muted', ''); media.setAttribute('playsinline', ''); media.disablePictureInPicture = true;
+      media.setAttribute('aria-label', d.query || d.caption || 'Clip');
+      media.addEventListener('loadeddata', () => { wrap.classList.remove('is-loading'); media.play().catch(() => {}); });
+    } else {
+      media.decoding = 'async';
+      media.alt = d.query || d.caption || (kind === 'sticker' ? 'Sticker' : 'GIF');
+      media.addEventListener('load', () => wrap.classList.remove('is-loading'));
+    }
+    media.addEventListener('error', () => {
+      wrap.innerHTML = `<div class="image-state"><span class="image-state-ic">🎞️</span><span class="image-state-txt">Couldn't load ${kind === 'clip' ? 'clip' : kind === 'sticker' ? 'sticker' : 'GIF'}</span><button class="image-state-btn" onclick="openGifPanel('${card.id}')">Change</button></div>`;
     });
     wrap.classList.add('is-loading');
-    lazyBoardMediaSrc(img, d.src);
-    wrap.appendChild(img);
+    lazyBoardMediaSrc(media, d.src);
+    wrap.appendChild(media);
 
-    const badge = document.createElement('span');
-    badge.className = 'gif-badge';
-    badge.textContent = 'GIF';
-    wrap.appendChild(badge);
+    if (kind !== 'sticker') {
+      const badge = document.createElement('span');
+      badge.className = 'gif-badge';
+      badge.textContent = kind === 'clip' ? 'CLIP' : 'GIF';
+      wrap.appendChild(badge);
+    }
 
     const changeBtn = document.createElement('button');
     changeBtn.className = 'gif-change-btn';
     changeBtn.type = 'button';
     changeBtn.textContent = '🔄';
-    changeBtn.title = 'Find another GIF';
+    changeBtn.title = kind === 'clip' ? 'Find another clip' : kind === 'sticker' ? 'Find another sticker' : 'Find another GIF';
     changeBtn.addEventListener('click', ev => { ev.stopPropagation(); openGifPanel(card.id); });
     wrap.appendChild(changeBtn);
 
@@ -1767,7 +1781,7 @@ function renderGif(el, card) {
     const empty = document.createElement('button');
     empty.type = 'button';
     empty.className = 'gif-empty';
-    empty.innerHTML = `<span class="gif-empty-ic">🎞️</span><span class="gif-empty-title">Add a GIF</span><span class="gif-empty-sub">Search GIFs or paste a URL</span>`;
+    empty.innerHTML = `<span class="gif-empty-ic">🎞️</span><span class="gif-empty-title">Add a GIF</span><span class="gif-empty-sub">Search GIFs, stickers and clips, or paste a URL</span>`;
     empty.addEventListener('click', ev => { ev.stopPropagation(); openGifPanel(card.id); });
     body.appendChild(empty);
   }
@@ -1776,97 +1790,204 @@ function renderGif(el, card) {
 }
 
 /* ══════════════════════ GIF PANEL ═════════════════════════════════════
-   Поиск идёт через наш сервер (/api/gifs/search), а не из браузера в Tenor:
-   Tenor закрыл публичный API (HTTP 403 «Tenor API is discontinued»), и поиск
-   гифок молча возвращал пустоту. Сервер берёт GIPHY, если в .env есть ключ,
-   иначе открытые GIF с Wikimedia Commons (без ключа, но совпадения слабее). */
-let _gifSource = '';
-async function _gifSearch(q, limit = 16) {
-  if (!authToken) return [];
-  try {
-    const res = await apiFetch('/api/gifs/search?limit=' + limit + (q ? '&q=' + encodeURIComponent(q) : ''));
-    if (!res.ok) return [];
-    const data = await res.json();
-    _gifSource = data.source || '';
-    return (Array.isArray(data.results) ? data.results : []).filter(r => r && r.url);
-  } catch { return []; }
-}
-
+   The picker (18.10.2026, "GIF picker: Wikimedia Commons → KLIPY"): three tabs - GIFs, Stickers,
+   Clips. The browser only talks to /api/gifs/* on our server; the server holds the KLIPY key,
+   forces the content filter and cuts the ads, so none of that is decided here.
+   The active tab picks the type for the search and for trending alike; opening the picker shows
+   trending of that tab. A new search cancels the one before it; the grid pages on scroll. */
+const GIF_TYPE_OF = { gif: 'gifs', sticker: 'stickers', clip: 'clips' };
+let _gifTab = 'gifs';
+let _gifQuery = '';
+let _gifPage = 1;
+let _gifNext = false;
+let _gifBusy = false;
+let _gifAbort = null;
 let _gifTargetCardId = null;
 let _gifSearchTimer = null;
 let _gifTicket = 0;
+const _gifLocale = () => ((document.documentElement.lang || '').trim() || navigator.language || 'en').slice(0, 5);
+
+async function _gifFetch(type, q, page, perPage, signal) {
+  if (!authToken) return { results: [], has_next: false, code: 'signed_out', error: 'Sign in to search, or paste a GIF link below.' };
+  try {
+    const qs = new URLSearchParams({ type, page: String(page), per_page: String(perPage), locale: _gifLocale() });
+    if (q) qs.set('q', q);
+    const res = await apiFetch('/api/gifs/search?' + qs, { signal });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { results: [], has_next: false, code: data.code || 'error', error: data.error || 'KLIPY is not answering right now.' };
+    return { results: (Array.isArray(data.results) ? data.results : []).filter(r => r && r.url), has_next: !!data.has_next };
+  } catch (err) {
+    if (err && err.name === 'AbortError') return { aborted: true, results: [], has_next: false };
+    return { results: [], has_next: false, code: 'network', error: 'Could not reach the server.' };
+  }
+}
+
+// GIFs only, first page: the "GIFs" strip of the Teacher tools panel (scripts/board-elements.js)
+async function _gifSearch(q, limit = 16) {
+  const r = await _gifFetch('gifs', q, 1, Math.max(8, limit));
+  return r.results.slice(0, limit);
+}
+
+function _gifPaintTabs() {
+  document.querySelectorAll('#gif-tabs .gif-tab').forEach(b => {
+    const on = b.dataset.type === _gifTab;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+}
+function _gifMarkChip(q) {
+  const key = String(q || '').trim().toLowerCase();
+  document.querySelectorAll('#gif-chips .gif-chip').forEach(b => b.classList.toggle('is-on', !!key && b.dataset.q === key));
+}
 
 function openGifPanel(cardId) {
   _gifTargetCardId = cardId || null;
   const panel = document.getElementById('gif-panel');
   if (!panel) return;
+  // replacing a sticker or a clip opens on its own tab
+  if (cardId) {
+    const c = state.cards.find(x => x.id === cardId);
+    _gifTab = GIF_TYPE_OF[c && c.data && c.data.kind] || 'gifs';
+  }
   panel.classList.add('open');
   const input = document.getElementById('gif-search-input');
   if (input) { input.value = ''; input.focus(); }
-  // «teaching celebration classroom» не находилось нигде, кроме GIPHY:
-  // окно открывалось сразу с «No GIFs found». Первая подборка - первый чип.
-  _gifMarkChip('celebration');
-  _loadGifGrid('celebration');
+  _gifPaintTabs();
+  _gifRun('');      // empty query: trending of the active tab
 }
 
-function _gifMarkChip(q) {
-  document.querySelectorAll('#gif-chips .gif-chip').forEach(b => b.classList.toggle('is-on', b.dataset.q === q));
-}
 document.addEventListener('click', e => {
-  const chip = e.target.closest && e.target.closest('#gif-chips .gif-chip');
-  if (chip) { const input = document.getElementById('gif-search-input'); if (input) input.value = ''; _gifMarkChip(chip.dataset.q); _loadGifGrid(chip.dataset.q); return; }
+  const t = e.target;
+  if (!t || !t.closest) return;
+  const tab = t.closest('#gif-tabs .gif-tab');
+  if (tab) { _gifTab = tab.dataset.type; _gifPaintTabs(); _gifRun(document.getElementById('gif-search-input')?.value || ''); return; }
+  const chip = t.closest('#gif-chips .gif-chip');
+  if (chip) { const input = document.getElementById('gif-search-input'); if (input) input.value = chip.dataset.q; _gifRun(chip.dataset.q); return; }
   // щелчок мимо окна (по затемнению доски) закрывает его
-  if (e.target && e.target.id === 'gif-panel') closeGifPanel();
+  if (t.id === 'gif-panel') closeGifPanel();
 });
 
 function closeGifPanel() {
   const panel = document.getElementById('gif-panel');
   panel?.classList.remove('open');
   _gifTargetCardId = null;
+  clearTimeout(_gifSearchTimer);
+  _gifTicket++;                          // an answer that arrives now is nobody's
+  if (_gifAbort) { _gifAbort.abort(); _gifAbort = null; }
+  _gifBusy = false;
 }
 
-async function _loadGifGrid(q) {
+// The word typed (or tapped) becomes the query of the active tab; an empty one is trending.
+function _gifRun(q) {
+  _gifQuery = String(q || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  _gifMarkChip(_gifQuery);
+  _gifLoad(false);
+}
+
+const _gifSkeleton = () => Array.from({ length: 12 }, () => '<div class="gif-item gif-skel" aria-hidden="true"></div>').join('');
+
+async function _gifLoad(append) {
   const grid = document.getElementById('gif-grid');
   const spinner = document.getElementById('gif-spinner');
   if (!grid) return;
-  grid.innerHTML = '';
-  if (spinner) spinner.style.display = 'flex';
-  const ticket = ++_gifTicket;
-  const results = await _gifSearch(q || 'celebration');
-  if (ticket !== _gifTicket) return;   // a newer search is already on its way
-  if (spinner) spinner.style.display = 'none';
-  const credit = document.getElementById('gif-tenor-credit');
-  if (credit) {
-    credit.innerHTML = _gifSource === 'giphy' ? '<a href="https://giphy.com" target="_blank" rel="noopener">Powered by GIPHY</a>'
-      : _gifSource === 'commons' ? '<a href="https://commons.wikimedia.org" target="_blank" rel="noopener">GIFs from Wikimedia Commons, open licences</a>' : '';
+  if (append) {
+    if (_gifBusy || !_gifNext) return;
+  } else {
+    if (_gifAbort) _gifAbort.abort();    // the previous search is cancelled, not waited for
+    _gifPage = 1; _gifNext = false;
+    grid.scrollTop = 0;
+    grid.innerHTML = _gifSkeleton();
   }
-  if (!results.length) {
-    grid.innerHTML = `<div class="gif-no-results">${authToken ? 'No GIFs found. Try a different search.' : 'Sign in to search GIFs, or paste a GIF link below.'}</div>`;
+  const ctl = new AbortController();
+  _gifAbort = ctl;
+  const ticket = ++_gifTicket;
+  _gifBusy = true;
+  if (append && spinner) spinner.style.display = 'flex';
+  const page = append ? _gifPage + 1 : 1;
+  const r = await _gifFetch(_gifTab, _gifQuery, page, 24, ctl.signal);
+  if (ticket !== _gifTicket || r.aborted) return;   // a newer search is already on its way
+  _gifBusy = false;
+  if (spinner) spinner.style.display = 'none';
+
+  if (r.error) {
+    const retry = !['signed_out', 'not_configured'].includes(r.code);
+    if (append) {
+      grid.querySelector('.gif-more-err')?.remove();
+      grid.insertAdjacentHTML('beforeend', `<div class="gif-more-err">Could not load more. <button type="button" class="gif-retry">Retry</button></div>`);
+      grid.querySelector('.gif-more-err .gif-retry').onclick = () => { grid.querySelector('.gif-more-err')?.remove(); _gifNext = true; _gifLoad(true); };
+      _gifNext = true;
+    } else {
+      grid.innerHTML = `<div class="gif-state"><div class="gif-state-t">${esc(r.error)}</div>${retry ? '<button type="button" class="gif-retry">Retry</button>' : ''}</div>`;
+      const btn = grid.querySelector('.gif-retry');
+      if (btn) btn.onclick = () => _gifLoad(false);
+    }
     return;
   }
-  results.forEach(gif => {
-    const item = document.createElement('div');
-    item.className = 'gif-item';
+  if (!append) grid.innerHTML = '';
+  if (!append && !r.results.length) {
+    grid.innerHTML = '<div class="gif-state"><div class="gif-state-t">Nothing found</div><div class="gif-state-s">Try another word.</div></div>';
+    return;
+  }
+  _gifPage = page;
+  _gifNext = r.has_next;
+  const have = new Set([...grid.querySelectorAll('.gif-item[data-id]')].map(x => x.dataset.id));
+  r.results.forEach(gif => {
+    if (have.has(String(gif.id))) return;
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'gif-item' + (_gifTab === 'stickers' ? ' is-sticker' : '');
+    item.dataset.id = String(gif.id);
     item.title = gif.title;
-    const img = document.createElement('img');
-    img.src = gif.preview;
-    img.alt = gif.title;
-    img.loading = 'lazy';
-    img.decoding = 'async';
-    item.appendChild(img);
+    item.setAttribute('aria-label', gif.title || 'Add');
+    let thumb;
+    if (gif.previewKind === 'video') {
+      thumb = document.createElement('video');
+      thumb.muted = true; thumb.defaultMuted = true; thumb.loop = true; thumb.autoplay = true; thumb.playsInline = true;
+      thumb.setAttribute('muted', ''); thumb.setAttribute('playsinline', ''); thumb.preload = 'metadata';
+      thumb.src = gif.preview;
+    } else {
+      thumb = document.createElement('img');
+      thumb.src = gif.preview;
+      thumb.alt = gif.title;
+      thumb.loading = 'lazy';
+      thumb.decoding = 'async';
+    }
+    item.appendChild(thumb);
     item.addEventListener('click', () => _selectGif(gif));
     grid.appendChild(item);
   });
+  // a short first page that does not fill the window still has to reach the next one
+  if (_gifNext && grid.scrollHeight <= grid.clientHeight + 40) _gifLoad(true);
+}
+
+// the next page when the grid is scrolled near its end
+document.addEventListener('scroll', e => {
+  const g = e.target;
+  if (!g || g.id !== 'gif-grid' || !_gifNext || _gifBusy) return;
+  if (g.scrollTop + g.clientHeight >= g.scrollHeight - 180) _gifLoad(true);
+}, true);
+
+// KLIPY asks to be told when an item is used. Bookkeeping: it never delays or fails the insert.
+function _gifShare(gif, kind) {
+  if (!authToken || !gif || !gif.slug) return;
+  apiFetch('/api/gifs/share', { method: 'POST', body: { type: GIF_TYPE_OF[kind] || 'gifs', slug: gif.slug, q: _gifQuery } }).catch(() => {});
 }
 
 function _selectGif(gif) {
+  // closing the panel forgets which card it was opened for, so take that first
+  // (picking "Find another GIF" used to add a second card instead of changing the first)
+  const target = _gifTargetCardId;
   closeGifPanel();
-  if (_gifTargetCardId) {
-    const card = state.cards.find(c => c.id === _gifTargetCardId);
+  const kind = gif.kind === 'sticker' || gif.kind === 'clip' ? gif.kind : 'gif';
+  _gifShare(gif, kind);
+  if (target) {
+    const card = state.cards.find(c => c.id === target);
     if (card) {
       snapshot();
       card.data.src      = gif.url;
       card.data.tenorId  = gif.id;
+      card.data.kind     = kind;
+      card.data.slug     = gif.slug || '';
       card.data.query    = gif.title;
       card.data.caption  = '';
       reRenderCard(card);
@@ -1875,11 +1996,16 @@ function _selectGif(gif) {
     }
   }
   const vp = getBoardViewportCenter?.() || { x: 400, y: 300 };
-  const w = Math.min(gif.dims[0] || 320, 480);
-  const h = Math.min(gif.dims[1] || 240, 360);
+  // the picture keeps its proportions; a sticker lands smaller than a GIF or a clip
+  const maxW = kind === 'sticker' ? 280 : 480, maxH = kind === 'sticker' ? 280 : 360;
+  const dw = Number(gif.dims && gif.dims[0]) || 320, dh = Number(gif.dims && gif.dims[1]) || 240;
+  const k = Math.min(1, maxW / dw, maxH / dh);
+  const w = Math.max(120, Math.round(dw * k)), h = Math.max(90, Math.round(dh * k));
   addCard('gif', vp.x - w / 2, vp.y - h / 2, {
     src:     gif.url,
     tenorId: gif.id,
+    kind,
+    slug:    gif.slug || '',
     query:   gif.title,
     caption: '',
   }, w, h);
@@ -1888,14 +2014,15 @@ function _selectGif(gif) {
 
 function _gifSearchDebounced(q) {
   clearTimeout(_gifSearchTimer);
-  _gifSearchTimer = setTimeout(() => { if (q.trim().length > 1) { _gifMarkChip(''); _loadGifGrid(q.trim()); } }, 450);
+  _gifSearchTimer = setTimeout(() => _gifRun(q), 300);
 }
 
 function _gifPasteUrl() {
   const input = document.getElementById('gif-url-input');
   const val = (input?.value || '').trim();
   if (!val) return;
-  const gif = { id: null, url: val, preview: val, title: 'Custom GIF', dims: [320, 240] };
+  const clip = /\.(mp4|webm)(\?|#|$)/i.test(val);
+  const gif = { id: null, slug: '', kind: clip ? 'clip' : 'gif', url: val, preview: val, title: clip ? 'Custom clip' : 'Custom GIF', dims: [320, 240] };
   _selectGif(gif);
   if (input) input.value = '';
 }
@@ -16866,7 +16993,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1245';
+const TEACHEDOS_ASSET_VERSION = '1246';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24086,7 +24213,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1245',
+          icon: 'icons/icon-192.png?v=1246',
           tag: 'board-live-' + s.id,
         });
       }

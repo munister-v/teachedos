@@ -1,39 +1,137 @@
-// GET /api/gifs/search?q=term[&limit=N]   → { source, results:[{id,url,preview,title,dims}] }
-// GET /api/gifs/status                    → { source }
+// GET  /api/gifs/search?type=gifs|stickers|clips[&q=term][&page=N][&per_page=N][&locale=xx]
+//        → { source:'klipy', type, page, has_next, results:[{id,slug,kind,url,preview,previewKind,title,dims}] }
+// POST /api/gifs/share   { type, slug[, q] }  → { ok }   (KLIPY share trigger, fire and forget)
+// GET  /api/gifs/status                       → { configured, source }
 //
-// Tenor closed its public API ("Tenor API is discontinued", HTTP 403 on every
-// v1 call), and the board searched Tenor straight from the browser, so GIF
-// search returned nothing at all. The browser now asks us; we ask whoever is
-// connected:
-//   1. GIPHY, when GIPHY_API_KEY is in .env (free key at developers.giphy.com);
-//   2. Wikimedia Commons otherwise: no key, GIF files only, open licences. Fewer
-//      reaction GIFs and looser matches than GIPHY.
-// Until 15.10.2026 step 2 was Openverse. Its GIFs are the same Commons files,
-// but a search it had not cached took 12-19 s, our timeout is 6 s, so nearly
-// every search ended in 502 and the panel said "No GIFs found". Commons
-// answers the same search in about a second.
+// The board's GIF picker (Add a GIF → GIFs / Stickers / Clips) runs on KLIPY (docs.klipy.com).
+// Until 18.10.2026 it ran on Wikimedia Commons, which has few reaction GIFs and loose matches;
+// Commons is gone from this file on purpose (TZ "GIF picker: Wikimedia Commons → KLIPY").
+//
+//   * The API key lives only here (KLIPY_API_KEY in backend/.env). The browser asks us, we ask
+//     KLIPY; the key is never in a bundle or in a response body.
+//   * The content filter is ours: every request carries contentfilter=medium (G and PG only,
+//     KLIPY's own default is off). Whatever the browser sends for it is ignored.
+//   * Ads are off in the Partner Panel, and items KLIPY still marks type:"ad" are cut here, so
+//     the board never sees one.
+//   * customer_id is the teacher's TeachEd id; locale comes from the interface language, English
+//     by default.
+//
+// Without a key the picker says so (503, code not_configured) - it no longer falls back to anything.
 const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
 const { requireAuth } = require('../middleware/auth');
 
-const GIPHY_KEY = process.env.GIPHY_API_KEY || '';
-const TIMEOUT = 6000;
+const KLIPY_BASE = (process.env.KLIPY_API_BASE || 'https://api.klipy.com/api/v1').replace(/\/+$/, '');
+const TIMEOUT = 8000;
+const PER_PAGE = 24;
 const CACHE_MAX = 500;
-const CACHE_MS = 30 * 60 * 1000;
+const CACHE_MS = 10 * 60 * 1000;
+const TYPES = ['gifs', 'stickers', 'clips'];
 const cache = new Map();   // key → { at, value }
+
+// Read on every request, not once at boot: the key is added to .env and the service restarted,
+// and tests set it per case.
+const keyNow = () => String(process.env.KLIPY_API_KEY || '').trim();
 
 router.use(requireAuth);
 router.use(rateLimit({
   windowMs: 60 * 1000,
-  max: Number(process.env.GIF_RATE_PER_MIN || 40),
+  max: Number(process.env.GIF_RATE_PER_MIN || 60),
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.user?.id || req.ip,
   message: { error: 'Too many GIF searches. Wait a moment.' },
 }));
 
-async function getJson(url) {
-  const r = await fetch(url, {
+const num = (v, d) => (Number(v) > 0 ? Number(v) : d);
+const secure = (u) => (typeof u === 'string' && /^https:\/\//i.test(u) ? u : '');
+
+/* ── what KLIPY sends → what the board uses ─────────────────────────────────
+   An item carries its files by size (xs / sm / md / hd) and format (gif, webp, mp4, webm, png,
+   jpg), under `file` (`files` in some clients); the reader accepts size-then-format and
+   format-then-size, so a change of nesting does not empty the picker. */
+function node(files, size, fmt) {
+  if (!files || typeof files !== 'object') return null;
+  const n = (files[size] && files[size][fmt]) || (files[fmt] && files[fmt][size]) || null;
+  const url = n && (typeof n === 'string' ? n : n.url);
+  return secure(url) ? { url, w: n.width, h: n.height } : null;
+}
+function pick(files, sizes, fmts) {
+  for (const size of sizes) for (const fmt of fmts) { const n = node(files, size, fmt); if (n) return n; }
+  for (const fmt of fmts) {            // a flat { gif: { url } } shape
+    const f = files && files[fmt];
+    const url = f && (typeof f === 'string' ? f : f.url);
+    if (secure(url)) return { url, w: f.width, h: f.height };
+  }
+  return null;
+}
+
+const isAd = (it) => !it || typeof it !== 'object' || String(it.type || '').toLowerCase() === 'ad' || it.is_ad === true || it.ad === true;
+// a rating above PG never passes, even if the filter upstream missed it
+const tooStrong = (it) => /^(pg-?13|r|nc-?17|x|mature|adult|explicit)\b/i.test(String(it.rating || it.content_rating || '').trim());
+
+const PREF = {
+  // full: what lands on the board; thumb: the light animated preview in the grid (not the original)
+  gifs:     { full: [['md', 'sm', 'hd', 'xs'], ['gif', 'webp']], thumb: [['sm', 'xs', 'md'], ['webp', 'gif']] },
+  stickers: { full: [['md', 'sm', 'hd', 'xs'], ['webp', 'png', 'gif']], thumb: [['sm', 'xs', 'md'], ['webp', 'png', 'gif']] },
+  clips:    { full: [['md', 'sm', 'xs', 'hd'], ['mp4', 'webm']], thumb: [['sm', 'xs', 'md'], ['webp', 'gif', 'mp4']] },
+};
+
+function normalize(type, body) {
+  const d = body && typeof body === 'object' ? (body.data && typeof body.data === 'object' && !Array.isArray(body.data) ? body.data : body) : {};
+  const rows = Array.isArray(d.data) ? d.data : Array.isArray(body && body.data) ? body.data : [];
+  const pref = PREF[type] || PREF.gifs;
+  const results = rows.filter(it => !isAd(it) && !tooStrong(it)).map(it => {
+    const files = it.file || it.files || {};
+    const full = pick(files, pref.full[0], pref.full[1]);
+    const thumb = pick(files, pref.thumb[0], pref.thumb[1]) || full;
+    if (!full || !thumb) return null;
+    const slug = String(it.slug || '').trim();
+    const id = String(it.id != null && it.id !== '' ? it.id : slug);
+    if (!id) return null;
+    return {
+      id,
+      slug: slug || id,
+      kind: type === 'stickers' ? 'sticker' : type === 'clips' ? 'clip' : 'gif',
+      url: full.url,
+      preview: thumb.url,
+      previewKind: /\.(mp4|webm)(\?|$)/i.test(thumb.url) ? 'video' : 'img',
+      title: String(it.title || it.slug || '').replace(/[-_]+/g, ' ').trim() || (type === 'stickers' ? 'Sticker' : type === 'clips' ? 'Clip' : 'GIF'),
+      dims: [num(full.w || thumb.w, 320), num(full.h || thumb.h, 240)],
+    };
+  }).filter(Boolean);
+  return {
+    results,
+    page: num(d.current_page || d.page, 1),
+    has_next: !!(d.has_next != null ? d.has_next : d.hasNext),
+  };
+}
+
+// "en" → en_US, "uk" → uk_UK (KLIPY's own example), "pt-br" → pt_BR; anything odd → English
+function localeOf(v) {
+  const m = /^([a-z]{2})(?:[_-]([a-z]{2}))?$/i.exec(String(v || '').trim());
+  if (!m) return 'en_US';
+  const lang = m[1].toLowerCase();
+  const region = (m[2] || (lang === 'en' ? 'us' : lang)).toUpperCase();
+  return `${lang}_${region}`;
+}
+
+function listUrl({ key, type, q, page, perPage, locale, customerId }) {
+  const p = new URLSearchParams();
+  if (q) p.set('q', q);
+  p.set('per_page', String(perPage));
+  p.set('page', String(page));
+  p.set('customer_id', String(customerId));
+  p.set('locale', locale);
+  // The filter is not the browser's to choose. medium = G and PG only (KLIPY's default is off);
+  // `rating=pg` is the same ceiling in the other spelling KLIPY clients use.
+  p.set('contentfilter', 'medium');
+  p.set('rating', 'pg');
+  return `${KLIPY_BASE}/${encodeURIComponent(key)}/${type}/${q ? 'search' : 'trending'}?${p}`;
+}
+
+async function getJson(url, fetchImpl = fetch) {
+  const r = await fetchImpl(url, {
     signal: AbortSignal.timeout(TIMEOUT),
     headers: { 'User-Agent': 'TeachEd/1.0 (+https://teached.tech)', Accept: 'application/json' },
   });
@@ -41,92 +139,61 @@ async function getJson(url) {
   return r.json();
 }
 
-const num = (v, d) => (Number(v) > 0 ? Number(v) : d);
-
-function fromGiphy(d) {
-  return (Array.isArray(d && d.data) ? d.data : []).map(g => {
-    const im = g.images || {};
-    const full = im.downsized || im.fixed_height || im.original || {};
-    const small = im.fixed_height_small || im.fixed_width_small || im.preview_gif || full;
-    return {
-      id: String(g.id || ''),
-      url: full.url || '',
-      preview: small.url || full.url || '',
-      title: String(g.title || '').trim() || 'GIF',
-      dims: [num(full.width, 320), num(full.height, 240)],
-    };
-  }).filter(g => g.id && g.url);
-}
-
-// Commons search pages → board GIFs. Icons smaller than a sticker and files
-// heavier than 6 MB (a whole animated slideshow) are left out.
-function fromCommons(d) {
-  const pages = d && d.query && d.query.pages;
-  return (pages && typeof pages === 'object' ? Object.values(pages) : [])
-    .filter(p => p && Array.isArray(p.imageinfo) && p.imageinfo[0])
-    .sort((a, b) => (a.index || 0) - (b.index || 0))
-    .map(p => ({ p, ii: p.imageinfo[0] }))
-    .filter(({ ii }) => ii.mime === 'image/gif' && /^https:\/\//.test(ii.url || '')
-      && num(ii.width, 0) >= 120 && num(ii.height, 0) >= 80 && num(ii.size, 0) <= 6 * 1024 * 1024)
-    .map(({ p, ii }) => ({
-      id: 'wm' + String(p.pageid || ''),
-      url: ii.url,
-      preview: /^https:\/\//.test(ii.thumburl || '') ? ii.thumburl : ii.url,
-      title: String(p.title || '').replace(/^File:/, '').replace(/\.gif$/i, '').trim() || 'GIF',
-      dims: [num(ii.width, 320), num(ii.height, 240)],
-    }))
-    .filter(g => g.id !== 'wm');
-}
-
-function commonsUrl(terms) {
-  return 'https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search'
-    + '&gsrnamespace=6&gsrlimit=40&gsrsearch=' + encodeURIComponent('filemime:image/gif ' + terms)
-    + '&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=240';
-}
-
-async function searchCommons(q, limit) {
-  const words = (q || 'animated smile').split(' ').filter(Boolean).slice(0, 6);
-  let list = fromCommons(await getJson(commonsUrl(words.join(' '))));
-  // every word must match on Commons; with few hits, any of the words will do
-  if (list.length < 6 && words.length > 1) {
-    const seen = new Set(list.map(g => g.id));
-    for (const g of fromCommons(await getJson(commonsUrl(words.join(' OR '))))) if (!seen.has(g.id)) list.push(g);
-  }
-  return { source: 'commons', results: list.slice(0, limit) };
-}
-
-async function search(q, limit) {
-  if (GIPHY_KEY) {
-    const u = `https://api.giphy.com/v1/gifs/${q ? 'search' : 'trending'}?api_key=${encodeURIComponent(GIPHY_KEY)}`
-      + `&limit=${limit}&rating=g&lang=en${q ? '&q=' + encodeURIComponent(q) : ''}`;
-    try { return { source: 'giphy', results: fromGiphy(await getJson(u)) }; }
-    catch (err) { console.warn('[gifs] GIPHY failed, using Commons:', err.message); }
-  }
-  return searchCommons(q, limit);
+// One page of a tab: search when there is a query, trending when there is not.
+async function klipyList(args, fetchImpl) {
+  const body = await getJson(listUrl(args), fetchImpl);
+  return { source: 'klipy', type: args.type, ...normalize(args.type, body) };
 }
 
 router.get('/status', (req, res) => {
-  res.json({ source: GIPHY_KEY ? 'giphy' : 'commons', keyed: !!GIPHY_KEY });
+  res.json({ configured: !!keyNow(), source: 'klipy' });
 });
 
 router.get('/search', async (req, res) => {
+  const type = req.query.type == null ? 'gifs' : TYPES.includes(String(req.query.type)) ? String(req.query.type) : '';
+  if (!type) return res.status(400).json({ error: 'type must be gifs, stickers or clips', results: [] });
+  const key = keyNow();
+  if (!key) return res.status(503).json({ error: 'GIF search is not set up yet. You can still paste a GIF link below.', code: 'not_configured', results: [] });
   const q = String(req.query.q || '').replace(/\s+/g, ' ').trim().slice(0, 80);
-  const limit = Math.min(24, Math.max(1, Number(req.query.limit) || 16));
-  const key = `${GIPHY_KEY ? 'g' : 'c'}|${limit}|${q.toLowerCase()}`;
-  const hit = cache.get(key);
+  const page = Math.min(50, Math.max(1, parseInt(req.query.page, 10) || 1));
+  const perPage = Math.min(50, Math.max(8, parseInt(req.query.per_page, 10) || PER_PAGE));
+  const locale = localeOf(req.query.locale);
+  const ck = `${type}|${page}|${perPage}|${locale}|${q.toLowerCase()}`;
+  const hit = cache.get(ck);
   if (hit && Date.now() - hit.at < CACHE_MS) return res.json(hit.value);
   try {
-    const value = await search(q, limit);
+    const value = await klipyList({ key, type, q, page, perPage, locale, customerId: req.user.id });
     if (value.results.length) {
       if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
-      cache.set(key, { at: Date.now(), value });
+      cache.set(ck, { at: Date.now(), value });
     }
     res.json(value);
   } catch (err) {
-    console.warn('[gifs] search failed:', err.message);
+    // the request address carries the key: log the reason, never the address
+    console.warn('[gifs] KLIPY failed:', err.message);
     res.status(502).json({ error: 'GIF search is unavailable right now.', results: [] });
   }
 });
 
+// KLIPY asks for a share trigger when an item is used; it is bookkeeping, so it never fails the insert.
+router.post('/share', async (req, res) => {
+  const key = keyNow();
+  const type = String(req.body && req.body.type || '');
+  const slug = String(req.body && req.body.slug || '');
+  if (!key || !TYPES.includes(type) || !/^[A-Za-z0-9_-]{1,160}$/.test(slug)) return res.json({ ok: false });
+  try {
+    const r = await fetch(`${KLIPY_BASE}/${encodeURIComponent(key)}/${type}/${encodeURIComponent(slug)}/share`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(TIMEOUT),
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'TeachEd/1.0 (+https://teached.tech)' },
+      body: JSON.stringify({ customer_id: String(req.user.id), q: String(req.body.q || '').slice(0, 80) }),
+    });
+    res.json({ ok: r.ok });
+  } catch (err) {
+    console.warn('[gifs] share trigger failed:', err.message);
+    res.json({ ok: false });
+  }
+});
+
 module.exports = router;
-module.exports._test = { fromGiphy, fromCommons };
+module.exports._test = { normalize, localeOf, listUrl, klipyList, TYPES };

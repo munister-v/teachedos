@@ -2397,20 +2397,25 @@ window.TEACHED_AUTH_CONFIG = {
 
 <!-- WebLLM is imported on demand by scripts/board-app.js when local AI is used. -->
 
-<!-- GIF SEARCH PANEL -->
+<!-- GIF SEARCH PANEL: KLIPY through our server (GIFs / Stickers / Clips) -->
 <div id="gif-panel" role="dialog" aria-label="Add GIF" aria-modal="true">
   <div id="gif-panel-inner">
     <div id="gif-panel-head">
       <span id="gif-panel-title"><svg class="inline-ui-icon" aria-hidden="true"><use href="#bi-video"/></svg>Add a GIF</span>
       <button type="button" id="gif-panel-close" onclick="closeGifPanel()" aria-label="Close">×</button>
     </div>
+    <div id="gif-tabs" role="tablist" aria-label="What to add">
+      <button type="button" role="tab" class="gif-tab is-on" data-type="gifs" aria-selected="true">GIFs</button>
+      <button type="button" role="tab" class="gif-tab" data-type="stickers" aria-selected="false">Stickers</button>
+      <button type="button" role="tab" class="gif-tab" data-type="clips" aria-selected="false">Clips</button>
+    </div>
     <div id="gif-search-row">
-      <input id="gif-search-input" type="search" placeholder="Search GIFs in English… (e.g. cat, fireworks)" autocomplete="off"
+      <input id="gif-search-input" type="search" placeholder="Search KLIPY" autocomplete="off" aria-label="Search KLIPY"
         oninput="_gifSearchDebounced(this.value)"
-        onkeydown="if(event.key==='Enter'){clearTimeout(_gifSearchTimer);_loadGifGrid(this.value.trim());}if(event.key==='Escape')closeGifPanel()">
+        onkeydown="if(event.key==='Enter'){clearTimeout(_gifSearchTimer);_gifRun(this.value);}if(event.key==='Escape')closeGifPanel()">
     </div>
     <div id="gif-chips" role="group" aria-label="Quick searches">
-      <button type="button" class="gif-chip is-on" data-q="celebration">🎉 Celebration</button>
+      <button type="button" class="gif-chip" data-q="celebration">🎉 Celebration</button>
       <button type="button" class="gif-chip" data-q="thumbs up">👍 Thumbs up</button>
       <button type="button" class="gif-chip" data-q="thinking">🤔 Thinking</button>
       <button type="button" class="gif-chip" data-q="fireworks">🎆 Fireworks</button>
@@ -2419,15 +2424,15 @@ window.TEACHED_AUTH_CONFIG = {
       <button type="button" class="gif-chip" data-q="dance">💃 Dance</button>
       <button type="button" class="gif-chip" data-q="clock">⏰ Clock</button>
     </div>
-    <div id="gif-spinner">Loading GIFs…</div>
-    <div id="gif-grid"></div>
+    <div id="gif-grid" role="tabpanel" aria-live="polite"></div>
+    <div id="gif-spinner">Loading more…</div>
     <div id="gif-url-row">
       <span class="gif-url-label">Or paste a GIF URL</span>
       <input id="gif-url-input" type="url" placeholder="https://…/animation.gif"
         onkeydown="if(event.key==='Enter')_gifPasteUrl()">
       <button type="button" class="gif-url-btn" onclick="_gifPasteUrl()">Add</button>
     </div>
-    <div id="gif-tenor-credit"></div>
+    <div id="gif-credit"><a href="https://klipy.com" target="_blank" rel="noopener">Powered by KLIPY</a></div>
   </div>
 </div>
 <div id="gif-backdrop" onclick="closeGifPanel()"></div>
