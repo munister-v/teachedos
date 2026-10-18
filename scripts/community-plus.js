@@ -315,7 +315,7 @@
       const b = c.querySelector('.cm-mark'); if (b) { b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }
     });
     document.querySelectorAll(`[data-pv-mark="${p.serverId}"]`).forEach(b => b.classList.toggle('on', on));
-    toast(on ? '🔖 Saved to My library - find it under Saved items' : 'Removed from Saved items');
+    toast(on ? 'Saved to My library - find it under Saved items' : 'Removed from Saved items');
     savedCache = null; countMine();
     renderTab();
   }
@@ -760,7 +760,7 @@
       return postById(p.id) || p;
     });
     $('saved-grid').innerHTML = marks.length ? marks.map(p => communityCardHtml(p)).join('')
-      : '<div class="cm-empty"><b>No bookmarks yet.</b><span>Tap 🔖 on any card to keep it here for your next lesson.</span></div>';
+      : '<div class="cm-empty"><b>No bookmarks yet.</b><span>Tap the bookmark on any card to keep it here for your next lesson.</span></div>';
     const copies = savedCache.copies || [];
     $('copies-list').innerHTML = (copies.length ? copies.map(c => `<div class="cm-row" data-copy="${esc(c.id)}">
         <div class="cm-row-main">

@@ -395,18 +395,6 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
 </nav>
 
 <div class="shell">
-  <aside class="side" id="side">
-    <!-- 16.10.2026: the left side is the teacher's own - what they saved and
-         what they shared. What there is to find (lessons, studios, words,
-         games) is the row of tabs above the feed. -->
-    <div class="side-title">My space</div>
-    <button class="side-btn comm-tab" type="button" data-tab="saved" onclick="switchCommTab('saved')"><span class="side-count" id="stat-saved"></span><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></span>Saved items</button>
-    <button class="side-btn comm-tab" type="button" data-tab="publications" onclick="switchCommTab('publications')"><span class="side-count" id="stat-publications"></span><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></span>My publications</button>
-    <button class="side-btn comm-tab" type="button" data-tab="collections-mine" onclick="openMyCollections()"><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H10l2 2.5h6.5A1.5 1.5 0 0 1 20 10v7.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/></svg></span>My collections</button>
-    <div class="side-title">Quick actions</div>
-    <button class="side-btn" type="button" onclick="focusCommunityPublisher()"><span class="side-ic">＋</span>Share a lesson</button>
-    <a class="side-btn" href="board.html"><span class="side-ic">↗</span>Open my board</a>
-  </aside>
   <main class="wrap">
   <section class="hero">
     <!-- Шапка - одна строка: раньше заголовок, абзац и три счётчика
@@ -504,6 +492,20 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
   </section>
   <!-- design spec v1 №10: the header on sand, the catalog on a white sheet -->
   <div class="cm-sheet">
+    <aside class="side" id="side">
+      <!-- ТЗ «Навигация и расписание» §1 (17.10.2026): the teacher's own space sits at
+           the left of the catalog sheet - Saved items (a counter only when there is
+           something), My publications, My collections - and one quick action. "Share a
+           lesson" is the hero's ink button and nowhere else. Below 1100px the sidebar
+           folds into the row of tabs (the .cm-type-mine buttons). -->
+      <div class="side-title">My space</div>
+      <button class="side-btn comm-tab" type="button" data-tab="saved" onclick="switchCommTab('saved')"><span class="side-count" id="stat-saved"></span><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></span>Saved items</button>
+      <button class="side-btn comm-tab" type="button" data-tab="publications" onclick="switchCommTab('publications')"><span class="side-count" id="stat-publications"></span><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></span>My publications</button>
+      <button class="side-btn comm-tab" type="button" data-tab="collections-mine" onclick="openMyCollections()"><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H10l2 2.5h6.5A1.5 1.5 0 0 1 20 10v7.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/></svg></span>My collections</button>
+      <div class="side-title">Quick actions</div>
+      <a class="side-btn" href="board.html"><span class="side-ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M8 10h8M8 14h5"/></svg></span>Open my board</a>
+    </aside>
+    <div class="cm-main">
 
   <!-- What to find: one row of tabs; Language, Level, Age and Skill refine it. -->
   <nav class="cm-types" aria-label="Type of material">
@@ -514,9 +516,10 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
     <button type="button" class="cm-type comm-tab" data-tab="games" onclick="switchCommTab('games')">Games <span class="cm-type-n" id="stat-games"></span></button>
     <button type="button" class="cm-type comm-tab" data-tab="collections" onclick="switchCommTab('collections')">Collections</button>
     <button type="button" class="cm-type comm-tab" data-tab="requests" onclick="switchCommTab('requests')">Requests</button>
-    <!-- phones have no sidebar: My space is at the end of the row -->
-    <button type="button" class="cm-type comm-tab cm-type-mine" data-tab="saved" onclick="switchCommTab('saved')">🔖 Saved</button>
+    <!-- below 1100px the sidebar folds in here: My space is at the end of the row -->
+    <button type="button" class="cm-type comm-tab cm-type-mine" data-tab="saved" onclick="switchCommTab('saved')">Saved</button>
     <button type="button" class="cm-type comm-tab cm-type-mine" data-tab="publications" onclick="switchCommTab('publications')">My publications</button>
+    <button type="button" class="cm-type comm-tab cm-type-mine" data-tab="collections-mine" onclick="openMyCollections()">My collections</button>
   </nav>
     <div class="cm-toolbar" id="cm-toolbar">
       <label class="cm-search search-wrap">
@@ -639,6 +642,7 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
     <a href="meet-ukraine/index.html" class="ws-meet-ua" style="display:flex;align-items:center;gap:14px;margin:0 0 14px;padding:14px 18px;border-radius:16px;background:linear-gradient(90deg,#2e6da4,#ffd94d);color:#20303f;text-decoration:none;font-weight:800"><span style="font-size:30px">🇺🇦</span><span>Meet Ukraine<br><span style="font-weight:600;font-size:13px">13 hand-drawn scenes · 87 words · 3 games · by TeachEd Official</span></span><span style="margin-left:auto">Open →</span></a>
     <section class="ws-grid" id="ws-grid"></section>
   </div>
+    </div>
   </div>
   </main>
 </div>

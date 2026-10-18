@@ -1167,3 +1167,79 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-collapsed .wg-pulse-head { margin-bottom:0 !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-collapsed .wg-pulse-list { display:none !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-fold { position:relative; z-index:2; margin-right:16px !important; flex:none; } /* clear of the hover × in the corner */
+
+/* ══ ТЗ «Навигация и расписание» html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body1 · Community (17.10.2026) ═══════════════
+   The catalog is one white sheet with the teacher's own space on its left:
+   My space (Saved items - a counter only when there is something, My
+   publications, My collections) and one quick action, Open my board. The
+   tabs are pills without counters (ink = the open one); the search has its
+   own row and the filters are a row of pills under it, each showing its
+   value. "Share a lesson" is the ink hero button and nowhere else. Below
+   1100px the sidebar folds into the row of tabs. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .hero { padding:46px 48px 30px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head { align-items:flex-end !important; gap:24px !important; max-width:none; margin:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head h1 { font-size:66px !important; letter-spacing:-2px !important; line-height:1.02 !important; padding:0 8px; margin-left:-8px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head p { font-size:15px !important; max-width:520px; margin-top:18px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head-actions .btn, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head-actions .btn.lime { min-height:54px !important; font-size:15px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet {
+  display:grid; grid-template-columns:288px minmax(0,1fr); align-items:start;
+  margin:0 24px 24px; padding:0; border-radius:28px; overflow:hidden; min-height:60vh;
+  box-shadow:0 24px 60px rgba(36,40,44,.08);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet > * { max-width:none; margin-left:0; margin-right:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet > .side {
+  display:block !important; position:static !important; top:auto !important; width:auto !important; flex:none; align-self:stretch;
+  padding:28px 20px !important; margin:0 !important; border:0 !important; border-right:1px solid #F0EEE3 !important; border-radius:0 !important; background:#fff !important; box-shadow:none !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-title { font-family:inherit !important; text-transform:uppercase !important; font-size:11px !important; font-weight:800 !important; letter-spacing:1.8px !important; color:#6F6D5E !important; text-transform:uppercase; margin:0 0 10px !important; padding:0 12px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-title ~ .side-title { margin-top:28px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-btn {
+  display:flex !important; align-items:center; gap:12px !important; width:100%; min-height:0 !important; padding:11px 12px !important; border-radius:14px !important;
+  font-size:14.5px !important; font-weight:600 !important; color:#050517 !important; background:none !important; box-shadow:none !important; text-decoration:none; transition:background .15s;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-btn:hover { background:var(--ds-olive) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-btn.comm-tab.active { background:var(--ds-ink) !important; color:#fff !important; font-weight:700 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-btn.comm-tab.active .side-ic { color:var(--ds-lime) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-ic { width:19px !important; height:19px !important; flex:0 0 19px; display:grid !important; place-items:center; background:none !important; border:0 !important; box-shadow:none !important; color:inherit !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-ic svg { width:19px; height:19px; stroke-width:1.8; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-count { order:3; margin-left:auto !important; background:#F4F3EC !important; color:#6B6F76 !important; font-size:12px !important; font-weight:700 !important; padding:3px 10px !important; border-radius:999px !important; min-width:0 !important; position:static !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .side-btn.active .side-count { background:rgba(246,246,239,.18) !important; color:#F6F6EF !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet #stat-publications { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-main { min-width:0; padding:32px 36px 40px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-main > * { max-width:1340px; }
+/* tabs: pills, no counters */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-types { gap:4px !important; flex-wrap:wrap; margin-bottom:20px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-types .cm-type {
+  padding:10px 18px !important; border-radius:999px !important; font-size:14.5px !important; font-weight:600 !important; color:#050517 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-types .cm-type:hover { background:var(--ds-olive) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-types .cm-type.active { background:var(--ds-ink) !important; color:#F6F6EF !important; font-weight:800 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-types .cm-type.active::after { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-type-mine { display:none !important; }
+/* the search on its own row, the filters a row of pills under it */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet #cm-toolbar { flex-direction:column !important; align-items:stretch !important; gap:14px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet #cm-toolbar .cm-search { flex:none !important; width:100% !important; max-width:660px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-filters-btn, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-ftags { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-filters, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-filters.ds-fpanel { display:flex !important; flex-wrap:wrap; gap:10px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill { flex:0 0 auto !important; width:auto !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill select { width:auto !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill::after { right:18px; width:6px; height:6px; border-color:#050517; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill select {
+  height:48px !important; min-height:48px !important; padding:0 40px 0 18px !important; border-radius:999px !important; border:1.5px solid #E7E5D8 !important;
+  background:#fff !important; color:#050517 !important; font-size:14px !important; font-weight:600 !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill select:hover { border-color:var(--ds-olive) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill.is-sort select { border-color:#E7E5D8 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill.is-set { background:none !important; box-shadow:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-pill.is-set select { border-color:var(--ds-ink) !important; box-shadow:inset 0 0 0 .5px var(--ds-ink) !important; font-weight:800 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-count { margin:24px 0 16px !important; font-size:13.5px !important; }
+@media (max-width:1100px) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet { grid-template-columns:1fr; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet > .side { display:none !important; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-type-mine { display:inline-flex !important; }
+}
+@media (max-width:860px) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet { margin:0; border-radius:24px 24px 0 0; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-main { padding:24px 16px 90px; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head h1 { font-size:44px !important; }
+}
