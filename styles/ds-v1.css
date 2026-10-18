@@ -126,8 +126,10 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 
 /* ══ №6 Dock (slim revision, approved by Kristina 17.10.2026) ═══════════
    Dark glass, 236x56: four 53x44 tabs (Boards, Students, Schedule, Notes),
-   no badges; hover lifts the tab and shows a graphite tooltip; the open one
-   is a lime pill with an ink icon and no glow (the glow added thickness). */
+   no badges; hover lifts the tab, turns it lime and shows a graphite tooltip.
+   18.10.2026 (the owner: "it must not glow statically"): an open window no
+   longer stays lime - it keeps a white icon and a small lime dot, and the
+   lime appears only under the pointer. */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock {
   display:flex !important; gap:4px !important; padding:5px !important; height:auto !important;
   background:rgba(20,20,28,.68) !important; -webkit-backdrop-filter:blur(20px) saturate(1.25) !important; backdrop-filter:blur(20px) saturate(1.25) !important;
@@ -144,12 +146,15 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
   color:inherit !important; display:flex; transition:transform .22s var(--ds-ease);
 }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-icon .ic { width:25px !important; height:25px !important; color:inherit !important; stroke-width:1.8; }
-html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover { color:#fff !important; transform:translateY(-4px) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover { color:var(--ds-ink) !important; background:var(--ds-lime) !important; transform:translateY(-4px) !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover .di-icon { transform:scale(1.08); }
-html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open {
-  background:var(--ds-lime) !important; color:var(--ds-ink) !important; box-shadow:none !important;
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open { background:transparent !important; color:#fff !important; box-shadow:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open::after {
+  content:''; position:absolute; left:50%; bottom:3px; width:4px; height:4px; margin-left:-2px; border-radius:50%;
+  background:var(--ds-lime); pointer-events:none; transition:opacity .15s;
 }
-html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open:hover { transform:translateY(-2px) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open:hover { color:var(--ds-ink) !important; background:var(--ds-lime) !important; transform:translateY(-4px) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open:hover::after { opacity:0; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-dot { display:none !important; }
 /* the label is the tooltip: a graphite pill over the tab */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-label {
