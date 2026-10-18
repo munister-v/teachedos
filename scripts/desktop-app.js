@@ -971,11 +971,15 @@ const WGM = (function () {
   }
   function place(w, x, y) {
     const f = frame(w);
-    w.style.left = Math.max(f.minX, Math.min(x, f.maxX)) + 'px';
-    w.style.top = Math.max(f.minY, Math.min(y, f.maxY)) + 'px';
+    /* С приоритетом important: у панели расписания в CSS top и right заданы
+       через !important (стартовое место), и без этого она ездила только вбок -
+       top из стилей не отпускал её по вертикали. */
+    const set = (k, v) => w.style.setProperty(k, v, 'important');
+    set('left', Math.max(f.minX, Math.min(x, f.maxX)) + 'px');
+    set('top', Math.max(f.minY, Math.min(y, f.maxY)) + 'px');
     // Карточка, привязанная к правому или нижнему краю, иначе растягивалась бы.
-    w.style.right = 'auto';
-    w.style.bottom = 'auto';
+    set('right', 'auto');
+    set('bottom', 'auto');
   }
   /* Сохранённое место держим в пределах экрана; само сохранённое значение
      не трогаем - вернётся широкий экран, встанет где стоял. */
@@ -3834,13 +3838,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1243" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1244" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1243" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1244" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
