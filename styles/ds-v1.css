@@ -1479,3 +1479,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 @media (min-width:861px) and (max-width:1199px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse { width:var(--rcol) !important; } }
 /* a short screen: the boards sidebar scrolls instead of squeezing its items */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-sidebar.bd-side > * { flex-shrink:0; }
+/* A widget hidden with its × or from the widgets menu (WGM.hideWidget sets data-wg-hidden) stays
+   hidden: "body.fx #wg-pulse { display:flex !important }" outranked the inline display:none, and
+   the × on Student pulse did nothing (18.10). */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body [data-wg-hidden="1"] { display:none !important; }
