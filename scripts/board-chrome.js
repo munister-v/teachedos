@@ -182,7 +182,7 @@
   const STAR_KEY = 'teachedos_starred_boards';
   const starred = () => { try { return JSON.parse(localStorage.getItem(STAR_KEY) || '[]'); } catch (_) { return []; } };
   const curId = () => { try { return new URLSearchParams(location.search).get('id') || localStorage.getItem('teachedos_board_id') || ''; } catch (_) { return ''; } };
-  const item = (act, ic, label, extra = '') => `<button type="button" class="bc-mi${act === 'clear' ? ' danger' : ''}" data-bc="${act}">${svg(IC[ic])}${label}${extra}</button>`;
+  const item = (act, ic, label, extra = '') => `<button type="button" class="bc-mi${act === 'clear' || act === 'trash' ? ' danger' : ''}" data-bc="${act}">${svg(IC[ic])}${label}${extra}</button>`;
   function boardMenu() {
     const m = $('board-menu');
     if (!m || m.dataset.bc) return;
@@ -200,7 +200,7 @@
       ${item('background', 'sun', 'Background', '<span class="bc-chev">›</span>')}${item('settings', 'gear', 'Board settings', '<span class="bc-chev">›</span>')}
       <div class="bc-div"></div>
       ${item('tools', 'tools', 'Teacher tools')}${item('search', 'search', 'Search cards', '<span class="bc-kbd">Ctrl F</span>')}
-      ${item('present', 'display', 'Send to interactive display')}${item('clear', 'trash', 'Clear board')}
+      ${item('present', 'display', 'Send to interactive display')}${item('clear', 'trash', 'Clear board')}${item('trash', 'trash', 'Move to Trash')}
       <div class="bc-div"></div><div class="bc-mh">My boards</div>
       <div id="bc-my-boards"></div>
       ${item('all', 'boards', 'All boards')}${item('new', 'plus', 'New board')}`;
@@ -225,6 +225,7 @@
       else if (act === 'search') call('toggleBoardSearch');
       else if (act === 'present') call('startBoardPresent');
       else if (act === 'clear') call('clearAll');
+      else if (act === 'trash') call('trashBoard');
       else if (act === 'all') call('showBoardList');
       else if (act === 'new') call('newBoard');
       else if (act === 'board' && b.dataset.id && b.dataset.id !== curId()) call('switchBoard', b.dataset.id, b.dataset.name);
@@ -247,7 +248,7 @@
   async function onOpen() {
     const m = $('board-menu');
     const st = studentView();
-    m.querySelectorAll('[data-bc="settings"],[data-bc="clear"],[data-bc="tools"],[data-bc="present"],[data-bc="rename"],[data-bc="duplicate"],[data-bc="new"],[data-bc="history"],[data-bc="export"],[data-bc="all"]').forEach(b => { if (st) b.remove(); });
+    m.querySelectorAll('[data-bc="settings"],[data-bc="clear"],[data-bc="trash"],[data-bc="tools"],[data-bc="present"],[data-bc="rename"],[data-bc="duplicate"],[data-bc="new"],[data-bc="history"],[data-bc="export"],[data-bc="all"]').forEach(b => { if (st) b.remove(); });
     const sb = m.querySelector('[data-bc="star"]');
     if (sb) sb.innerHTML = svg(IC.star) + (starred().includes(curId()) ? 'Unstar this board' : 'Star this board');
     if (typeof window.loadMenuStudents === 'function') { try { window.loadMenuStudents(); } catch (_) {} }

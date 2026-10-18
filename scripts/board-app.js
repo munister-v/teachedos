@@ -5009,8 +5009,8 @@ async function _wpEnrichVocab(card) {
   _wpEnrichAsked.add(card.id);
   let d = null;
   try {
-    const r = await apiFetch('/api/ai/vocab-enrich', { method: 'POST', body: {
-      words: words.map(w => w.word), level: card.data.level || '', topic: card.data._titleAuto ? '' : (card.data.topic || '') } });
+    const r = await apiFetchTimeout('/api/ai/vocab-enrich', { method: 'POST', body: {
+      words: words.map(w => w.word), level: card.data.level || '', topic: card.data._titleAuto ? '' : (card.data.topic || '') } }, 45000);
     if (r.ok) d = await r.json().catch(() => null);
   } catch {}
   if (!d) { _wpEnrichAsked.delete(card.id); return; }
@@ -6870,6 +6870,204 @@ function bindTextToolbar(toolbar, editor, card, el) {
 /* ══════════════════════ CARD EDITOR ══════════════════════ */
 let editorCardId = null;
 
+/* ── Editing a lesson after it is on the board ─────────────────────────────
+   Until 18.10.2026 a lesson (a path card) and a worksheet could be renamed and deleted but not
+   changed: "Edit Card" said "No editor for this card type", so a wrong word in a generated text
+   meant building the lesson again (studio recheck, pattern 3). This is the same set of fields the
+   builder's "Teacher view" has - text, questions, options, words - written straight into the card,
+   plus Redo and Remove for a task.
+
+   Students keep their place by step number and task number, so while students are attached to the
+   lesson (or it is open on their screens) the order and the number of steps are locked; every text
+   can still be corrected. */
+const _pe = { snapAt: 0, timer: null };
+const _peLocked = p => !!(p && ((p.assigned && p.assigned.length) || p.launch));
+function _peHolder(card, key) {
+  // key: "s" (the worksheet itself) | "<step>" | "<step>.m" | "<step>.mt" | "<step>.t<j>" | "<step>.o<j>"
+  if (key === 's') return { out: card.data };
+  const p = card.data._wfPath;
+  const m = /^(\d+)(?:\.(m|mt|t|o)(\d+)?)?$/.exec(String(key));
+  if (!p || !m) return null;
+  const step = p.steps[Number(m[1])];
+  if (!step || !step.out) return null;
+  if (!m[2]) return { out: step.out, step };
+  if (m[2] === 'm') return step.out.material && step.out.material.out ? { out: step.out.material.out, step } : null;
+  if (m[2] === 'mt') return step.out.material && step.out.material.transcript ? { out: step.out.material.transcript, step } : null;
+  const list = m[2] === 't' ? step.out.tasks : step.out.outs;
+  const j = Number(m[3]);
+  return Array.isArray(list) && list[j] ? { out: list[j], step, list, j } : null;
+}
+function _peFields(key, out) {
+  // the builder's own field markup, under its own class so its listener does not take these
+  return _ttStageEditableHtml(key, out).replace(/class="tb-ed( |")/g, 'class="pe-ed$1');
+}
+function _peBlock(key, label, out, tools) {
+  const body = _peFields(key, out);
+  return `<div class="pe-block"><div class="pe-bh"><b>${esc(label)}</b><span>${tools || ''}</span></div>${body}</div>`;
+}
+function _pathEditorHtml(card) {
+  const p = card.data._wfPath;
+  if (!p) {
+    return `<p class="pe-note">Click any text to change it. It is saved as you type.</p>
+      <div data-pe-root="${esc(card.id)}">${_peBlock('s', card.data.title || 'Worksheet', card.data)}</div>`;
+  }
+  const locked = _peLocked(p);
+  const btn = (act, key, label, title) => `<button type="button" class="pe-btn" data-pe="${act}" data-key="${esc(key)}" title="${esc(title || label)}">${label}</button>`;
+  // a rebuilt task would sit under the answers students already gave to the old one
+  const redoable = o => !locked && o && o._tool && !/teacher-text/.test(String(o.engine || ''));
+  const steps = p.steps.map((st, si) => {
+    const o = st.out || {};
+    const sk = String(si);
+    const move = locked ? '' : `${si > 0 ? btn('up', sk, '↑', 'Move up') : ''}${si < p.steps.length - 1 ? btn('down', sk, '↓', 'Move down') : ''}${p.steps.length > 1 ? btn('drop', sk, 'Remove', 'Take this step out of the lesson') : ''}`;
+    let inner = '';
+    if (st.role === 'task-studio') {
+      const mat = o.material;
+      if (mat && mat.kind === 'text' && mat.out) inner += _peBlock(sk + '.m', mat.label || 'The text', mat.out);
+      if (mat && mat.transcript) inner += _peBlock(sk + '.mt', 'Transcript', mat.transcript);
+      inner += (o.tasks || []).map((t, j) => _peBlock(`${sk}.t${j}`, t.title || `Task ${j + 1}`, t,
+        `${redoable(t) ? btn('redo', `${sk}.t${j}`, 'Redo', 'Build this task again, differently') : ''}${locked || (o.tasks || []).length < 2 ? '' : btn('dropt', `${sk}.t${j}`, 'Remove', 'Leave this task out')}`)).join('');
+    } else if (st.role === 'speak-studio') {
+      inner += (o.outs || []).map((t, j) => _peBlock(`${sk}.o${j}`, t.title || `Task ${j + 1}`, t,
+        `${redoable(t) ? btn('redo', `${sk}.o${j}`, 'Redo', 'Build this task again, differently') : ''}${locked || (o.outs || []).length < 2 ? '' : btn('dropt', `${sk}.o${j}`, 'Remove', 'Leave this task out')}`)).join('');
+    } else if (st.role === 'vocab-studio') {
+      inner += `<p class="pe-note">Games built from these words keep their own copy: change a word here and rebuild the game if it matters there.</p>` + (o.words || []).map((w, j) => `<div class="pe-block pe-word">
+        <input class="pe-ed pe-word-w" data-k="${sk}" data-p="words.${j}.word" value="${esc(w.word || '')}" aria-label="Word" spellcheck="true">
+        <input class="pe-ed" data-k="${sk}" data-p="words.${j}.meaning" value="${esc(w.meaning || '')}" placeholder="Meaning" aria-label="Meaning" spellcheck="true">
+        <input class="pe-ed" data-k="${sk}" data-p="words.${j}.example" value="${esc(w.example || '')}" placeholder="Example" aria-label="Example" spellcheck="true"></div>`).join('');
+    } else if (['game', 'scene-studio', 'magazine-studio'].includes(st.role)) {
+      inner += `<p class="pe-note">${st.role === 'game' ? 'A game built from the words.' : st.role === 'scene-studio' ? 'A picture worksheet.' : 'A magazine article.'} Rename it or take it out; its content is edited where it was made.</p>`;
+    } else {
+      inner += _peBlock(sk, 'Content', o, redoable(o) ? btn('redo', sk, 'Redo', 'Build this again, differently') : '');
+    }
+    return `<section class="pe-step" data-si="${si}">
+      <div class="pe-sh"><span class="pe-n">${si + 1}</span>
+        <input class="pe-title" data-si="${si}" value="${esc(st.title || '')}" aria-label="Step title" maxlength="60" spellcheck="true">
+        <span class="pe-tools">${move}</span></div>${inner}</section>`;
+  }).join('');
+  return `<div data-pe-root="${esc(card.id)}">
+    <div class="ed-label">Lesson title</div>
+    <input class="ed-input pe-lesson-title" value="${esc(card.data.title || '')}" maxlength="120" spellcheck="true">
+    <p class="pe-note">${locked
+      ? 'Students are attached to this lesson, so the order and the number of steps stay as they are. Texts can still be corrected, but a task cannot be rebuilt.'
+      : 'Click any text to change it. It is saved as you type.'}</p>${steps}</div>`;
+}
+function _peSaved(card, rerender) {
+  scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  clearTimeout(_pe.timer);
+  _pe.timer = setTimeout(() => { const c = state.cards.find(x => x.id === card.id); if (c) reRenderCard(c); }, rerender ? 0 : 800);
+}
+function _peTouch() {                 // one undo step per burst of typing
+  if (Date.now() - _pe.snapAt > 4000) snapshot();
+  _pe.snapAt = Date.now();
+}
+function _peRefresh(card) {
+  const body = document.getElementById('card-editor-body');
+  if (!body || editorCardId !== card.id) return;
+  const root = body.querySelector('[data-pe-root]');
+  if (root) root.outerHTML = _pathEditorHtml(card);
+}
+async function _peRedo(card, key) {
+  const h = _peHolder(card, key);
+  if (!h || !h.out || !h.out._tool) return;
+  const p = card.data._wfPath, si = Number(String(key).split('.')[0]);
+  const step = p.steps[si];
+  const material = step.out && step.out.material && step.out.material.out;
+  const input = { level: card.data.level || 'B1', topic: card.data.topic || '', tool: { id: h.out._tool },
+    count: (h.out.questions && h.out.questions.length) || (h.out.items && h.out.items.length) || 6, variant: Math.min(5, (h.out._variant || 0) + 1) };
+  if (material) input.source = _stageReadingText(material);
+  else {
+    const text = p.steps.find(s => s.role === 'model' && s.out);
+    if (text) input.source = _stageReadingText(text.out);
+  }
+  const root = document.querySelector('#card-editor-body');
+  const btn = root && root.querySelector(`[data-pe="redo"][data-key="${CSS.escape(key)}"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Building…'; }
+  let out = null;
+  try { out = await requestServerTeacherTool(input, 30000); } catch (err) { console.warn('[path] redo failed', err); }
+  if (!out) { if (btn) { btn.disabled = false; btn.textContent = 'Redo'; } toast('That could not be rebuilt - the old version is kept'); return; }
+  const keep = _wpSlim(out);
+  ['title', '_stage', '_ytStage', '_wfRole', '_tool', 'accent'].forEach(k => { if (h.out[k] !== undefined) keep[k] = h.out[k]; });
+  keep._variant = input.variant;
+  snapshot();
+  if (h.list) h.list[h.j] = keep; else step.out = keep;
+  if (step.state && h.list) step.state = null;
+  _peSaved(card, true);
+  _peRefresh(card);
+  toast('Rebuilt');
+}
+function _peStructure(card, act, key) {
+  const p = card.data._wfPath;
+  if (_peLocked(p)) { toast('Students are attached to this lesson - the steps stay as they are'); return; }
+  const si = Number(String(key).split('.')[0]);
+  const fixCur = () => { p.cur = Math.max(0, Math.min(p.cur || 0, p.steps.length - 1)); };
+  if (act === 'up' || act === 'down') {
+    const to = si + (act === 'up' ? -1 : 1);
+    if (to < 0 || to >= p.steps.length) return;
+    snapshot();
+    [p.steps[si], p.steps[to]] = [p.steps[to], p.steps[si]];
+    if (Array.isArray(p.done)) { const a = p.done[si], b = p.done[to]; p.done[si] = b; p.done[to] = a; }
+    if (p.cur === si) p.cur = to; else if (p.cur === to) p.cur = si;
+  } else if (act === 'drop') {
+    if (p.steps.length < 2 || !confirm('Take this step out of the lesson?')) return;
+    snapshot();
+    p.steps.splice(si, 1);
+    if (Array.isArray(p.done)) p.done.splice(si, 1);
+    fixCur();
+  } else if (act === 'dropt') {
+    const h = _peHolder(card, key);
+    if (!h || !h.list || h.list.length < 2 || !confirm('Leave this task out of the lesson?')) return;
+    snapshot();
+    h.list.splice(h.j, 1);
+    h.step.state = null;
+  }
+  _peSaved(card, true);
+  _peRefresh(card);
+}
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (!el || !el.classList || editorCardId == null) return;
+  const card = state.cards.find(c => c.id === editorCardId);
+  if (!card) return;
+  if (el.classList.contains('pe-lesson-title')) { _peTouch(); card.data.title = el.value; return _peSaved(card); }
+  if (el.classList.contains('pe-title')) {
+    const st = card.data._wfPath && card.data._wfPath.steps[Number(el.dataset.si)];
+    if (!st) return;
+    _peTouch(); st.title = el.value; return _peSaved(card);
+  }
+  if (!el.classList.contains('pe-ed')) return;
+  const h = _peHolder(card, el.dataset.k);
+  if (!h) return;
+  const path = el.dataset.p.split('.');
+  // the same cards can sit in struct.cards and in cards: write both
+  const roots = path[0] === 'cards' ? [h.out.struct, h.out].filter(r => r && Array.isArray(r.cards)) : [h.out];
+  _peTouch();
+  roots.forEach(root => {
+    let node = root;
+    for (let i = 0; i < path.length - 1; i++) node = node && node[/^\d+$/.test(path[i]) ? Number(path[i]) : path[i]];
+    if (!node) return;
+    const last = /^\d+$/.test(path[path.length - 1]) ? Number(path[path.length - 1]) : path[path.length - 1];
+    const prev = node[last];
+    node[last] = el.dataset.bool ? el.value === 'true' : el.value;
+    // the right option of a multiple-choice question is stored as a string: it follows the edit
+    if (path[0] === 'questions' && path[2] === 'options') {
+      const q = root.questions[Number(path[1])];
+      if (q && q.answer === prev) q.answer = el.value;
+    }
+    if (path[0] === 'words' && path[2] === 'meaning') node.meaningKept = true;   // the teacher's wording stays theirs
+  });
+  if (path[0] === 'cards' && Array.isArray(h.out.cards) && !h.out.struct && h.out.text !== undefined) h.out.text = h.out.cards.map(c => c.text).join('\n\n');
+  _peSaved(card);
+});
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest && e.target.closest('#card-editor-body [data-pe]');
+  if (!b || editorCardId == null) return;
+  const card = state.cards.find(c => c.id === editorCardId);
+  if (!card || !card.data._wfPath) return;
+  const act = b.dataset.pe;
+  if (act === 'redo') _peRedo(card, b.dataset.key);
+  else _peStructure(card, act, b.dataset.key);
+});
+
 function openCardEditor(cardId) {
   editorCardId = cardId;
   const card = state.cards.find(c => c.id === cardId);
@@ -6884,7 +7082,10 @@ function openCardEditor(cardId) {
     event:'📅 Edit Event', plan:'📋 Edit Plan',
     image:'🖼 Edit Image', video:'🎬 Edit Video',
   };
-  document.getElementById('card-editor-title').textContent = editorTitles[card.type] || '✏️ Edit Card';
+  const isPath = card.type === 'worksheet' && card.data && card.data._wfPath && Array.isArray(card.data._wfPath.steps);
+  const isSheet = card.type === 'worksheet' && !isPath && card.data && (Array.isArray(card.data.questions) || Array.isArray(card.data.items) || Array.isArray(card.data.cards));
+  document.getElementById('card-editor-title').textContent = isPath ? '✏️ Edit lesson' : isSheet ? '✏️ Edit worksheet' : (editorTitles[card.type] || '✏️ Edit Card');
+  editor.classList.toggle('card-editor-wide', isPath || isSheet);
 
   body.innerHTML = '';
 
@@ -7146,6 +7347,8 @@ function openCardEditor(cardId) {
         <input type="color" class="ed-input" id="ed-mm-tc" value="${card.data.textColor&&card.data.textColor.startsWith('#')?card.data.textColor:'#24282C'}" style="height:36px;padding:2px 4px;cursor:pointer;"/></div>
       <button class="ed-save" onclick="saveCardEditor()">Apply Node</button>`;
 
+  } else if (isPath || isSheet) {
+    body.innerHTML = _pathEditorHtml(card);
   } else {
     body.innerHTML = `<div style="font-size:13px;color:var(--text-3);padding:8px;">No editor for this card type.</div>`;
   }
@@ -7374,7 +7577,7 @@ function saveCardEditor() {
 }
 
 function closeCardEditor() {
-  document.getElementById('card-editor').classList.remove('open');
+  document.getElementById('card-editor').classList.remove('open', 'card-editor-wide');
   document.body.classList.remove('editor-open');
   editorCardId = null;
 }
@@ -12479,7 +12682,50 @@ function _ttClearTidyUndoAfterManualEdit(inputId) {
   }
 }
 
+/* Grammar topics by CEFR level (recheck 18.10: "the topic is only free text, there is no list by level").
+   Tapping one fills the topic field; the field stays free for anything else. The lists are the grammar a
+   course at that level usually meets, not an exam syllabus. */
+const GRAMMAR_TOPICS = {
+  A1: ['to be', 'present simple', 'there is / there are', 'can / can\'t', 'a / an / the', 'plural nouns', 'this / that / these / those', 'possessive adjectives', 'imperatives', 'prepositions of place'],
+  A2: ['past simple', 'present continuous', 'comparatives and superlatives', 'going to', 'countable and uncountable nouns', 'some / any / much / many', 'adverbs of frequency', 'have to / must', 'object pronouns', 'prepositions of time'],
+  B1: ['present perfect', 'past continuous', 'first conditional', 'second conditional', 'modal verbs of advice and obligation', 'passive voice (present and past)', 'used to', 'relative clauses', 'reported speech (statements)', 'gerund or infinitive'],
+  B2: ['present perfect continuous', 'past perfect', 'third conditional', 'mixed conditionals', 'passive voice (all tenses)', 'reported speech (questions and commands)', 'wish / if only', 'future perfect and continuous', 'modals of deduction', 'articles and determiners'],
+  C1: ['inversion after negative adverbs', 'cleft sentences', 'subjunctive and formal structures', 'advanced passives (it is said that)', 'participle clauses', 'nominalisation', 'ellipsis and substitution', 'hedging and discourse markers', 'emphasis and fronting', 'wishes and regrets'],
+  C2: ['subtle modality', 'complex noun phrases', 'advanced conditionals and hypotheticals', 'register and style shifts', 'concession structures', 'fixed and semi-fixed expressions', 'stylistic inversion', 'aspect and nuance', 'discourse cohesion'],
+};
+function _ttGrammarChips() {
+  const input = document.getElementById('tbuilder-topic');
+  if (!input) return;
+  let row = document.getElementById('tbuilder-grammar-chips');
+  if (!(boardLessonWizard && boardLessonWizard.skill === 'grammar')) { row && row.remove(); return; }
+  const level = document.getElementById('tbuilder-level')?.value || 'B1';
+  const topics = GRAMMAR_TOPICS[level] || GRAMMAR_TOPICS.B1;
+  if (!row) {
+    row = document.createElement('div');
+    row.id = 'tbuilder-grammar-chips';
+    row.className = 'tb-gram-chips';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', 'Grammar topics for this level');
+    input.insertAdjacentElement('afterend', row);
+  }
+  if (row.dataset.level === level) { row.querySelectorAll('.gif-chip').forEach(b => b.classList.toggle('is-on', b.dataset.topic === input.value.trim())); return; }
+  row.dataset.level = level;
+  row.innerHTML = `<span class="tb-gram-lbl">Common at ${esc(level)}</span>` + topics.map(t => `<button type="button" class="gif-chip" data-topic="${esc(t)}">${esc(t)}</button>`).join('');
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest && e.target.closest('#tbuilder-grammar-chips .gif-chip');
+  if (!b) return;
+  const input = document.getElementById('tbuilder-topic');
+  if (!input) return;
+  input.value = b.dataset.topic;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  _ttGrammarChips();
+});
+document.addEventListener('change', e => { if (e.target && e.target.id === 'tbuilder-level') _ttGrammarChips(); });
+
 function _ttUpdateFieldMeta() {
+  _ttGrammarChips();
   const text = id => String(document.getElementById(id)?.value || '').trim();
   const write = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
   const source = text('tbuilder-source');
@@ -19039,8 +19285,9 @@ async function _ttEnrichEntries(entries, base) {
   if (!authToken || !entries.length) return null;
   let d = null;
   try {
-    const r = await apiFetch('/api/ai/vocab-enrich', { method: 'POST', body: {
-      words: entries.map(e => e.word), level: base.level || '', topic: base.topicAuto ? '' : (base.topic || '') } });
+    // 45 s at most: the lesson is built without the extras rather than not at all
+    const r = await apiFetchTimeout('/api/ai/vocab-enrich', { method: 'POST', body: {
+      words: entries.map(e => e.word), level: base.level || '', topic: base.topicAuto ? '' : (base.topic || '') } }, 45000);
     if (r.ok) d = await r.json().catch(() => null);
   } catch {}
   if (!d || !Array.isArray(d.items)) return null;
@@ -19079,8 +19326,11 @@ async function _ttLookupDefinitions(words, base, opts = {}) {
   for (let i = 0; i < list.length; i += TT_DEFINE_BATCH) {
     const chunk = list.slice(i, i + TT_DEFINE_BATCH);
     try {
-      const r = await apiFetch('/api/dictionary/define?level=' + encodeURIComponent(base.level || '') +
-                               '&words=' + encodeURIComponent(chunk.join(',')));
+      /* Every wait here has an end: a slow dictionary used to hold the whole build (recheck 18.10: eight
+         words took minutes, seventeen never finished). A batch that does not answer in 15 s is skipped -
+         the engine writes the meanings it could not get. */
+      const r = await apiFetchTimeout('/api/dictionary/define?level=' + encodeURIComponent(base.level || '') +
+                               '&words=' + encodeURIComponent(chunk.join(',')), {}, 15000);
       const d = await r.json().catch(() => null);
       (d && d.results || []).forEach((x, xi) => {
         if (!x) return;
@@ -20044,7 +20294,10 @@ function _ttStageEditableHtml(key, out) {
       const stemKey = q.q != null ? 'q' : q.text != null ? 'text' : 'prompt';
       const opts = q.type === 'mcq' && Array.isArray(q.options)
         ? `<div class="tb-ed-opts">${q.options.map((o, j) => `<label class="${o === q.answer ? 'is-answer' : ''}">${o === q.answer ? '✓' : '•'} ${field(`questions.${i}.options.${j}`, o, 0)}</label>`).join('')}</div>`
-        : q.type === 'gap-fill' ? `<label class="tb-ed-ans">Answer ${field(`questions.${i}.answer`, q.answer || '', 0)}</label>` : '';
+        : q.type === 'gap-fill' ? `<label class="tb-ed-ans">Answer ${field(`questions.${i}.answer`, q.answer || '', 0)}</label>`
+        /* The key of a True/False statement was only the lime chip on the finished card; in the teacher's
+           fields there was nothing to see or change (recheck 18.10: "True/False without the key marks"). */
+        : q.type === 'truefalse' ? `<label class="tb-ed-ans">Answer <select class="tb-ed tb-ed-tf" data-k="${k}" data-p="questions.${i}.answer" data-bool="1" aria-label="Is the statement true?"><option value="true"${q.answer === true || q.answer === 'true' ? ' selected' : ''}>True</option><option value="false"${q.answer === true || q.answer === 'true' ? '' : ' selected'}>False</option></select></label>` : '';
       return `<div class="tb-ed-card"><span class="tb-ed-n">${i + 1}</span>${field(`questions.${i}.${stemKey}`, q[stemKey] || '', 2)}${opts}</div>`;
     }).join('');
   }
@@ -20077,7 +20330,7 @@ document.addEventListener('input', e => {
     if (!node) return;
     const last = path[path.length - 1];
     const prev = node[last];
-    node[last] = el.value;
+    node[last] = el.dataset.bool ? el.value === 'true' : el.value;
     // Правильный вариант в mcq хранится строкой - вслед за правкой варианта.
     if (path[0] === 'questions' && path[2] === 'options') {
       const q = root.questions[Number(path[1])];
@@ -25173,6 +25426,22 @@ async function newBoard() {
 }
 
 // Miro-style: duplicate the current board by creating a new one with the same data
+/* The board menu had no way to remove the board (it lived only on the dashboard's cards): "Move to
+   Trash" is the same reversible step the dashboard has - the board waits in the Trash, where it can be
+   restored or deleted for good. */
+async function trashBoard() {
+  if (!currentBoardId || !authToken) { toast('Only a saved board can be moved to the Trash'); return; }
+  if (typeof isOwner !== 'undefined' && !isOwner) { toast('Only the owner can remove this board'); return; }
+  const name = (document.getElementById('board-name-display')?.textContent || 'this board').trim();
+  if (!confirm(`Move “${name}” to the Trash? You can restore it from the dashboard.`)) return;
+  try {
+    const r = await apiFetch(`/api/boards/${encodeURIComponent(currentBoardId)}/state`, { method: 'PATCH', body: { trashed: true } });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); toast(d.error || 'Could not move the board to the Trash'); return; }
+    try { await saveToCloud?.(); } catch (_) {}
+    location.href = 'index.html';
+  } catch (e) { toast('Could not reach the server - the board was not moved'); }
+}
+
 async function duplicateBoard() {
   const baseName = (document.getElementById('board-name-display')?.textContent || 'Board').trim();
   const newName = prompt('Duplicate as:', baseName + ' (copy)');
