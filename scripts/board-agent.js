@@ -386,7 +386,7 @@
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
-    const run = () => { put('tbuilder-level', f.level); put('tbuilder-topic', f.topic); put('tbuilder-vocab', f.vocab); };
+    const run = () => { put('tbuilder-level', f.level); put('tbuilder-count', f.count); put('tbuilder-topic', f.topic); put('tbuilder-vocab', f.vocab); };
     run();
     setTimeout(run, 160);
   }
@@ -400,6 +400,18 @@
     grammar:    'topic',
   };
   const STUDIO_NAME = { vocabulary: 'Vocabulary Studio', reading: 'Reading', speaking: 'Speaking', writing: 'Writing', grammar: 'Grammar' };
+
+  /* "b1 vocabulary lesson about travel, 10 words" → what the studio's form can take. Opening the studio
+     used to drop all three (the form came up empty, the count back at 12) - recheck 18.10. */
+  function askDetails(command) {
+    const c = String(command || '');
+    const level = (c.match(/(?<![\p{L}\d])(A1|A2|B1|B2|C1|C2)(?![\p{L}\d])/iu) || [])[1];
+    const count = (c.match(/(?<!\d)(\d{1,3})\s*(?:words?|items?|слов\w*|слів\w*)/iu) || [])[1];
+    let topic = (c.match(/(?<![\p{L}])(?:about|on|topic(?:\s*[:\-])?|про|об|на\s+тему)\s+([^,.;:\n]+?)(?=\s*(?:,|;|\.|\d+\s*(?:words?|items?|слов\w*|слів\w*)|$))/iu) || [])[1] || '';
+    topic = topic.replace(/\s+(?:with|and|і|и)\s+\d+.*$/i, '').trim();
+    if (/^(?:this|the|my|our|these|selected)\b.*\b(?:board|studio|cards?)\b/i.test(topic)) topic = '';
+    return { level: level ? level.toUpperCase() : '', count: count || '', topic: topic.slice(0, 80) };
+  }
 
   function openStudio(key, given, opts) {
     opts = opts || {};
@@ -427,8 +439,19 @@
         });
       }
       toast(`${STUDIO_NAME[key] || key} · ${words.length} words${src && src.title ? ` from “${src.title.slice(0, 28)}”` : ' from the board'}`);
-    } else if (opts.useWords && WORD_SOURCE[key]) {
-      toast('Select the Vocabulary Studio (or word cards) first, then ask again');
+    } else {
+      // no word list on the board: what the teacher said (topic, level, how many) still goes into the form
+      const d = askDetails(opts.command);
+      const route = WORD_SOURCE[key];
+      if (d.topic && route && typeof pickLessonSource === 'function' && key !== 'reading') {
+        pickLessonSource(key === 'vocabulary' ? 'vocab-topic' : route);
+        fillBuilder({ level: d.level, count: d.count, topic: d.topic });
+      } else if (d.level || d.count) {
+        fillBuilder({ level: d.level, count: d.count });
+      }
+      if (opts.useWords && route && !d.topic) {
+        toast('There is no word list on the board to use. Select the word cards or a Vocabulary Studio, or tell me the topic.');
+      }
     }
     return true;
   }
@@ -461,7 +484,7 @@
     lastCommand = command;
     input.value = '';
     const studio = studioIntent(command);
-    if (studio && openStudio(studio.key, null, { useWords: studio.useWords })) return;
+    if (studio && openStudio(studio.key, null, { useWords: studio.useWords, command })) return;
     clearPlan();
     // "Remember that…": never decided by the model - the exact text and where it goes, then Apply
     const rem = REMEMBER.exec(command);
@@ -549,7 +572,7 @@
 
     // Opening a studio changes nothing on the board - no Apply step.
     const opener = actions.find(a => a.op === 'open');
-    if (opener) { input.value = ''; openStudio(opener.studio, opener.words, { useWords: WORDS_REF.test(command) || SELECTION_REF.test(command) }); return; }
+    if (opener) { input.value = ''; openStudio(opener.studio, opener.words, { useWords: WORDS_REF.test(command) || SELECTION_REF.test(command), command }); return; }
     // Nothing the board can do: show what it CAN do instead of a dead end.
     if (!actions.length) showStudioChips();
     // "Where is…" only moves the camera, so there is nothing to confirm.

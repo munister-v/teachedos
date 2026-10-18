@@ -7763,6 +7763,7 @@ function removeCard(id) {
   if (!_suppressSnapshot) snapshot();
   const idx = state.cards.findIndex(c => c.id === id);
   if (idx === -1) return;
+  if (editorCardId === id) closeCardEditor();
   const removed = state.cards[idx];
   // If this is a frame, detach its children (don't delete them)
   if (removed.type === 'frame' && removed.data && Array.isArray(removed.data.childIds)) {
@@ -7973,6 +7974,8 @@ function deleteSelected() {
   });
   state.selected.clear();
   state.selectedArrows.clear();
+  // the Edit Card panel of a card that is gone would otherwise stay open on nothing (recheck 18.10)
+  if (editorCardId && !state.cards.some(c => c.id === editorCardId)) closeCardEditor();
   // Clean up groups referencing deleted cards
   if (state.groups) {
     const cardIds = new Set(state.cards.map(c => c.id));
@@ -15805,12 +15808,20 @@ function _ttHideRetry(){ const b=document.getElementById('tbuilder-regen-btn'); 
    step, which is precisely how sheets started scrolling before (see the notes
    on WS_H below). Trim here, where output enters the app, and every path - the
    YouTube builder, the tools sidebar, the composer - gets the same guarantee. */
-const TT_CAP = { question: 320, option: 140, item: 200, title: 120 };
+/* `line` is the cap for one line of a card's text - a paragraph of a reading, a grammar text or a
+   dialogue. It stays well above any real paragraph: at 200 it cut the generated texts mid-sentence
+   ("…the r…", recheck 18.10), and a text that ends in an ellipsis is not a text. */
+const TT_CAP = { question: 320, option: 140, item: 200, title: 120, line: 1200 };
 
-function _ttTrim(value, max) {
+function _ttTrim(value, max, prose) {
   const s = String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
   if (s.length <= max) return s;
   const cut = s.slice(0, max);
+  if (prose) {
+    // running prose ends where a sentence ends, not in the middle of a word
+    const m = cut.match(/^[\s\S]*[.!?]["')\]]?(?=\s|$)/);
+    if (m && m[0].length > max * 0.5) return m[0].trim();
+  }
   const sp = cut.lastIndexOf(' ');
   return (sp > max * 0.6 ? cut.slice(0, sp) : cut).trim() + '…';
 }
@@ -15919,7 +15930,7 @@ function _ttSanitizeOutput(out) {
         if (!c) return;
         if (c.title) c.title = _ttTrim(c.title, TT_CAP.title);
         // pack cards are multi-line on purpose - cap each line, keep the shape
-        if (c.text) c.text = String(c.text).split('\n').map(l => _ttTrim(l, TT_CAP.item)).join('\n');
+        if (c.text) c.text = String(c.text).split('\n').map(l => _ttTrim(l, TT_CAP.line, true)).join('\n');
       });
     }
   } catch (e) { /* never let tidying block a result the teacher is waiting on */ }
@@ -17703,6 +17714,11 @@ async function runBoardWorkout() {
   const found = await _ttLookupDefinitions(entries.map(e => e.word), base, { examples, defsFor: missing, info });
   entries.forEach(e => {
     const k = e.word.toLowerCase();
+    /* Whose meaning it is is decided BEFORE the dictionary fills the gaps. It used to be read after
+       (`!found[k]`), so a teacher's own "boarding pass" meaning counted as the dictionary's whenever
+       the dictionary knew the word too - and the enrichment later wrote its own wording over it
+       (recheck 18.10: "the teacher's meaning is silently replaced"). */
+    const teacherOwn = !!e.gloss;
     if (!e.gloss) e.gloss = found[k] || '';
     e.example = _wrUsableExample(examples[k]) || _wrFallbackExample(e.word, e.gloss || found[k] || '');
     // Предложение, собранное из значения, помечается: учитель должен видеть,
@@ -17712,7 +17728,7 @@ async function runBoardWorkout() {
     e.audio = inf.audio || null; e.ipa = inf.ipa || null; e.senses = inf.senses || []; e.matched = inf.matched || '';
     e.posTeacher = !!e.pos;
     e.pos = e.pos || inf.pos || null; // позначка вчителя «(n)» точніша за словник
-    e.fromTeacher = !!e.gloss && !found[k];
+    e.fromTeacher = teacherOwn;
   });
   if (chip) chip.textContent = 'writing context sentences…';
   if (body) body.innerHTML = `<div class="tbuilder-empty">Writing context sentences, chunks and speaking tasks for ${entries.length} words…</div>`;
@@ -18185,7 +18201,7 @@ async function commitWordWorkout() {
 
   if (chip) chip.textContent = `${total} on board`;
   if (body) {
-    body.innerHTML = `<div class="tbuilder-empty">${total} ${total === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc(failed.join(', '))}.</span>` : ''}</div>`;
+    body.innerHTML = `<div class="tbuilder-empty">${total} ${total === 1 ? 'activity is' : 'activities are'} on the board.${failed.length ? `<br><span style="opacity:.7">Could not build: ${esc([...new Set(failed)].join(', '))}.</span>` : ''}</div>`;
   }
   /* Панель закрывается, как и у остальных укладчиков: карточки ложились ПОД
      открытое окно, и выглядело так, будто не создалось ничего. */
@@ -19821,7 +19837,7 @@ function renderBoardLessonStagePreview(set) {
         <button type="button" class="tb-act-btn" onclick="set_missingRedo()">Write the text again</button>
         <button type="button" class="tb-act-btn" onclick="_stageKeepMissing()">Keep it without ${miss.length === 1 ? 'it' : 'them'}</button></div>` : '')
     + (failed.length
-    ? `<div class="tb-stage-meta">Could not build: ${esc(failed.join(', '))}.${failNote ? ` ${esc(failNote)}` : ''}</div>` : '');
+    ? `<div class="tb-stage-meta">Could not build: ${esc([...new Set(failed)].join(', '))}.${failNote ? ` ${esc(failNote)}` : ''}</div>` : '');
   /* Урок, который ляжет путём, учитель сначала видит глазами ученика: тот
      же виджет, что будет на доске, шаги и студии живые. Разбор по частям с
      правкой - под «Teacher view». */
@@ -20421,8 +20437,16 @@ function placeBoardLessonStageSet() {
     _ttCreateHomeworkFromCards(newIds, title, homework.map(h => h.activity.title).join('; '));
   }
 
-  const n = results.length + homework.length;
-  toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
+  /* The toast counts what is on the board. A path is ONE card holding the steps ("6 cards added" for
+     a single card was recheck 18.10); the one-card-per-activity layout is still counted per card. */
+  const nHw = homework.length;
+  if (pathCard) {
+    const steps = results.length;
+    toast(`Lesson added - one card with ${steps} ${steps === 1 ? 'step' : 'steps'}${nHw ? ` and ${nHw} homework ${nHw === 1 ? 'card' : 'cards'}` : ''}`);
+  } else {
+    const n = results.length + nHw;
+    toast(`${n} ${n === 1 ? 'card' : 'cards'} added`);
+  }
   _lessonChainAdvance();
   try { _showLessonHandoff(set, readingText || (set.base && set.base.source) || ''); } catch (err) { console.warn('[stages] handoff', err); }
   _ttSaveToLibrary({
@@ -21051,7 +21075,7 @@ function _wizRenderNews(host) {
           ${boardLessonWizard && boardLessonWizard.skill === 'magazine' ? '' : `<button type="button" role="radio" aria-checked="${st.level === 'original'}" class="tb-news-level${st.level === 'original' ? ' is-on' : ''}" onclick="setNewsLevel('original')" title="Keep the article's own wording">Original</button>`}
         </div>
         ${boardLessonWizard && boardLessonWizard.skill === 'magazine'
-          ? `<button type="button" class="tbuilder-btn lime" onclick="buildMagazineFromStory()" ${st.busy ? 'disabled' : ''}>${st.busy ? 'Working…' : `✦ Generate magazine article &amp; workout · ${esc(st.level === 'original' ? 'B2' : st.level)}`}</button>`
+          ? `<button type="button" class="tbuilder-btn lime" onclick="buildMagazineFromStory()" ${st.busy ? 'disabled' : ''}>${st.busy ? 'Working…' : `✦ Generate magazine article &amp; workout · ${esc(st.level === 'original' ? 'B2' : st.level)}`}</button>${st.busy ? ' <button type="button" class="tbuilder-btn" onclick="cancelMagazineBuild()">Cancel</button>' : ''}`
           : `<button type="button" class="tbuilder-btn lime" onclick="useNewsStory()" ${st.busy ? 'disabled' : ''}>
           ${st.busy ? 'Working…' : st.level === 'original' ? 'Use the original text' : `Retell it at ${esc(st.level)}`}
         </button>`}
@@ -21213,8 +21237,14 @@ async function buildMagazineFromStory() {
   st.busy = true;
   _wizNewsRerender();
   say(`Reading the story and writing ${/^A/.test(level) ? 'an' : 'a'} ${level} magazine version - about half a minute…`);
+  /* "About half a minute" has to be true or end: the request used to wait for as long as the server
+     did (8 minutes in the recheck of 18.10) with a fixed "Working…". Now it stops at 90 s, says so,
+     and the teacher can cancel at any moment. */
+  const ctl = new AbortController();
+  st.abort = ctl; st.timedOut = false; st.cancelled = false;
+  const timer = setTimeout(() => { st.timedOut = true; ctl.abort(); }, 90000);
   try {
-    const res = await apiFetch('/api/ai/magazine', { method: 'POST', body: { url: story.url, level, topicTitle: topic ? topic.title : '' } });
+    const res = await apiFetch('/api/ai/magazine', { method: 'POST', signal: ctl.signal, body: { url: story.url, level, topicTitle: topic ? topic.title : '' } });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.magazine) { say(data?.error || 'The magazine article could not be built. Try another story.'); return; }
     const mag = data.magazine;
@@ -21231,12 +21261,20 @@ async function buildMagazineFromStory() {
     st.draft = { mag, level, story: { title: story.title, source: story.source } };
     st.note = '';
   } catch (err) {
-    console.warn('[magazine] failed', err);
-    say('The magazine article could not be built right now.');
+    if (err && err.name === 'AbortError') say(st.cancelled ? 'Cancelled - nothing was added.' : 'This is taking much longer than usual. Nothing was added - try again, or pick another story.');
+    else { console.warn('[magazine] failed', err); say('The magazine article could not be built right now.'); }
   } finally {
+    clearTimeout(timer);
+    st.abort = null;
     st.busy = false;
     _wizNewsRerender();
   }
+}
+function cancelMagazineBuild() {
+  const st = _wizNewsState;
+  if (!st || !st.abort) return;
+  st.cancelled = true;
+  st.abort.abort();
 }
 
 /* The draft: the card exactly as it will sit on the board, a way to read it as a student

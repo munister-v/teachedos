@@ -323,7 +323,7 @@
       const url = URL.createObjectURL(clip);
       const handed = st.handed[st.i];
       $('.ss-play').innerHTML = `<audio controls src="${url}"></audio>
-        ${o.authed ? `<button type="button" class="ss-go ss-hand" data-act="hand">${handed ? 'Hand in again' : 'Hand in to my teacher'}</button>` : '<span class="ss-hint">Sign in to hand your answer in to your teacher.</span>'}`;
+        ${o.authed ? `<button type="button" class="ss-go ss-hand" data-act="hand">${handed ? 'Submit again' : 'Submit to teacher'}</button>` : '<span class="ss-hint">Sign in to submit your answer to your teacher.</span>'}`;
     }
     async function handIn(btn) {
       if (!clip) return;
@@ -335,10 +335,10 @@
           body: { cardId: o.cardId, promptIdx: st.i, prompt: String(p.text || '').slice(0, 600), mime: clipMime, durationMs: Date.now() - t0, audio: b64 } });
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Could not send');
         st.handed[st.i] = true; save();
-        btn.textContent = '✓ Handed in';
+        btn.textContent = '✓ Submitted';
         msg('Your teacher can listen to it now.');
       } catch (err) {
-        btn.disabled = false; btn.textContent = 'Hand in to my teacher';
+        btn.disabled = false; btn.textContent = 'Submit to teacher';
         msg(err.message || 'Could not send - try again.');
       }
     }
@@ -423,7 +423,7 @@
     try {
       const r = await o.api(`/api/boards/${o.boardId}/recordings?cardId=${encodeURIComponent(o.cardId)}`);
       const { recordings } = await r.json();
-      if (!recordings || !recordings.length) { body.innerHTML = '<p class="wf-drafts-empty">No recordings yet. When a student presses <b>Hand in to my teacher</b>, the answer appears here.</p>'; return; }
+      if (!recordings || !recordings.length) { body.innerHTML = '<p class="wf-drafts-empty">No recordings yet. When a student presses <b>Submit to teacher</b>, the answer appears here.</p>'; return; }
       body.innerHTML = recordings.map(x => `<article class="wf-draft">
         <header><b>${esc(x.student_name || x.student_email || 'Student')}</b><span>${Math.round((x.duration_ms || 0) / 1000)} s · ${esc(new Date(x.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span></header>
         <p class="ss-rec-prompt">${esc(x.prompt || '')}</p>
