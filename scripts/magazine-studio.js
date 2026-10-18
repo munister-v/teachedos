@@ -103,6 +103,8 @@
 .mg-fill input.bad{border-bottom-color:#e2542b;background:#FDECE6}
 .mg-fill .mg-ans{font:600 12px var(--te-font-ui,-apple-system,system-ui,sans-serif);color:#b0461f;margin-left:6px}
 .mg-video{border-radius:14px;overflow:hidden;background:#0d0e0f;min-height:200px}
+.mg-voice{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:22px;text-align:center;color:#E7E8E2}
+.mg-voice p{margin:0;max-width:420px;font-size:14px;line-height:1.5;opacity:.85}.mg-voice .mg-voice-line{opacity:1;font:500 17px/1.5 Georgia,serif}
 .mg-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .mg-round{display:flex;align-items:center;justify-content:space-between;margin:14px 0 0;font-size:13px;color:var(--muted)}
 .mg-stance{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
@@ -425,7 +427,30 @@
         }).join('')}</div>
         <div class="mg-round"><span>Round ${v.round + 1} of ${videoSet.length}</span>
           <span style="display:flex;gap:6px"><button type="button" class="mg-btn ghost" data-act="video-replay">↺ Replay</button><button type="button" class="mg-btn ghost" data-act="video-other">Another clip</button>${answered ? '<button type="button" class="mg-btn dark" data-act="video-next">Next →</button>' : ''}</span></div>`;
-      if (window.TeachedHear && window.TeachedHear.mount) vidPlayer = window.TeachedHear.mount(panel.querySelector('#mg-video'), target.term, { captions: false, width: 380 });
+      const box = panel.querySelector('#mg-video');
+      const voice = () => { if (vidPlayer) vidPlayer.destroy(); vidPlayer = voiceRound(box, target); };
+      if (window.TeachedHear && window.TeachedHear.mount) vidPlayer = window.TeachedHear.mount(box, target.term, { captions: false, width: 380, onFail: voice });
+      else voice();
+    }
+    /* The round without YouGlish (audit 17.10): the article's own sentence with the phrase,
+       read by the browser's voice - the same question, no outside service, no endless Loading. */
+    function voiceRound(box, target) {
+      const line = target.example || target.term;
+      const tts = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
+      const speak = text => {
+        if (!tts) return;
+        try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-GB'; u.rate = .92; speechSynthesis.speak(u); } catch (e) {}
+      };
+      box.innerHTML = tts
+        ? `<div class="mg-voice"><button type="button" class="mg-btn lime" data-voice>▶ Listen</button><p>Video clips are not available right now - listen to the sentence from the article instead.</p></div>`
+        : `<div class="mg-voice"><p>Video clips are not available right now. Read the sentence from the article - which phrase is missing?</p><p class="mg-voice-line">${esc(line.replace(new RegExp(target.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '_____'))}</p></div>`;
+      const b = box.querySelector('[data-voice]');
+      if (b) b.addEventListener('click', () => speak(line));
+      return {
+        replay() { speak(line); },
+        next() { speak(target.term); },
+        destroy() { try { tts && speechSynthesis.cancel(); } catch (e) {} box.innerHTML = ''; },
+      };
     }
     function paintDiscuss() {
       const d = out.discussion || {};

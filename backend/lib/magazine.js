@@ -24,7 +24,20 @@ function findIn(text, term) {
   return re.test(text);
 }
 
-function normalise(raw, { level, source, url, published, topicTitle }) {
+/* The rubric in the article's address where the paper puts one (theguardian.com/environment/…,
+   bbc.co.uk/news/science-environment-…); otherwise none rather than a guess. */
+function sectionOf(url) {
+  const m = /^https?:\/\/(?:www\.)?([^/]+)\/([^?#]+)/i.exec(String(url || ''));
+  if (!m) return '';
+  const parts = m[2].split('/').filter(Boolean);
+  let slug = '';
+  if (/theguardian\.com$/.test(m[1])) slug = parts[0] === 'world' || parts[0] === 'us-news' || parts[0] === 'uk-news' ? 'World' : parts[0];
+  else if (/bbc\.(co\.uk|com)$/.test(m[1]) && parts[0] === 'news' && parts[1]) slug = (parts[1].match(/^([a-z]+(?:-[a-z]+)*?)-\d+$/) || [])[1] || '';
+  const map = { environment: 'Environment', science: 'Science', 'science-environment': 'Science & environment', technology: 'Technology', business: 'Business', society: 'Society', education: 'Education', culture: 'Culture', world: 'World', health: 'Health', lifeandstyle: 'Life & style', sport: 'Sport', travel: 'Travel', food: 'Food' };
+  return map[slug] || map[String(slug).toLowerCase()] || '';
+}
+
+function normalise(raw, { level, source, url, published, topicTitle, title }) {
   const paragraphs = (Array.isArray(raw.paragraphs) ? raw.paragraphs : String(raw.text || '').split(/\n{2,}/))
     .map(p => clean(p, 1400)).filter(p => p.length > 30).slice(0, 9);
   if (paragraphs.length < 2) throw new Error('The article came back empty');
@@ -65,11 +78,22 @@ function normalise(raw, { level, source, url, published, topicTitle }) {
 
   const words = full.split(/\s+/).length;
   const d = raw.discussion || {};
+  /* Audit 17.10: the teaser said "one of 13" where the article and the retelling said "one of
+     10". A headline or standfirst whose numbers are not in the retelling is not used: the
+     standfirst falls back to the retelling's first sentence, the headline to the source title. */
+  const nums = s => (String(s || '').toLowerCase().match(/\d[\d,.]*\d|\d|\b(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|hundred|thousand|million|billion)\b/g) || []).map(n => n.replace(/[,.]$/, ''));
+  const textNums = new Set(nums(full));
+  const honest = s => nums(s).every(n => textNums.has(n));
+  let headline = clean(raw.headline || raw.title, 140);
+  let dek = clean(raw.dek || raw.standfirst, 260);
+  if (!honest(dek)) dek = clean(sentences[0] || '', 260);
+  if (!honest(headline)) headline = clean(title || headline, 140);
   return {
     kind: 'magazine',
-    headline: clean(raw.headline || raw.title, 140),
-    dek: clean(raw.dek || raw.standfirst, 260),
-    category: clean(raw.category || topicTitle || 'News', 30),
+    headline,
+    dek,
+    // the source's own rubric (the topic the teacher browsed), not the model's guess (audit 17.10)
+    category: clean(topicTitle || sectionOf(url) || 'News', 30),
     imageQuery: clean(raw.imageQuery, 60),
     level,
     readMinutes: Math.max(1, Math.round(words / 170)),
@@ -105,7 +129,7 @@ async function buildMagazine({ title, text, source, url, published, level = 'B1'
     `Return JSON only: {"headline":"","dek":"","category":"","imageQuery":"","paragraphs":["",""],"pullQuotes":[""],"vocab":[{"term":"","pos":"","ipa":"","definition":"","kind":""}],"discussion":{"statement":"","questions":[""]}}`,
   ].join('\n');
   const raw = await ai.rawGenerate(prompt);
-  return normalise(raw || {}, { level: L, source, url, published, topicTitle });
+  return normalise(raw || {}, { level: L, source, url, published, topicTitle, title });
 }
 
 module.exports = { buildMagazine, normalise, sentencesOf };

@@ -4829,25 +4829,16 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
     const m = _gameMetaFor(gameType);
     return { role: 'game', title: String(title).slice(0, 28), out: { title, src: m.src, naturalW: m.w, naturalH: m.h, customContent: content, level: level || base.level }, state: null };
   };
-  /* Flash cards повторяют Vocabulary Studio (слово, значение, пример), поэтому
-     в пути их нет; отдельной карточкой на доске они по-прежнему доступны. */
-  tplBuilt.filter(({ t }) => t.key !== 'flashcards').forEach(({ t, content }) => steps.push(gameStep(t.title, t.game, content)));
-  /* Чанки: собрать устойчивый блок и найти пропущенного партнёра слова -
-     вместо ещё одного «слово - перевод». Есть только у слов, по которым
-     движок ответил. */
-  const chunkItems = entries.filter(e => e.chunk && e.chunk.split(/\s+/).length >= 3)
-    .map(e => ({ s: e.chunk, t: e.gloss ? `${e.word} - ${e.gloss}` : e.word }));
-  if (chunkItems.length >= 2) steps.push(gameStep('Chunk puzzle', 'ww/unjumble', { sentences: chunkItems }));
-  const linkItems = entries.filter(e => e.link && e.link.s && e.link.a)
-    .map(e => String(e.link.s).replace(/_{3,}/, `___ (${e.link.a})`));
-  if (linkItems.length >= 2) steps.push(gameStep('Missing link', 'ww/complete', { sentences: linkItems }));
+  /* Audit 17.10: the path is exactly what the teacher ticked. Flash cards were dropped (they
+     repeat the Studio) and Chunk puzzle / Missing link were added unasked - ticked games now all
+     come, and nothing that was not ticked. */
+  tplBuilt.forEach(({ t, content }) => steps.push(gameStep(t.title, t.game, content)));
   const speakOuts = [];
   let writing = null;
   built.forEach(({ activity, out }) => {
     out.title = activity.title;
     if (activity.tool === 'creative-writing') { writing = { role: 'studio', title: 'Writing Studio', out: _wpSlim(out), state: null }; return; }
     if (activity.tool === 'discussion' || activity.tool === 'comm-situations') { speakOuts.push(_wpSlim(out)); return; }
-    if (activity.tool === 'flashcards') return;
     let g = null;
     try { const gs = _ttGamePayloads(out) || []; g = gs.find(x => x.gameType === activity.game) || gs[0] || null; } catch {}
     if (g) steps.push(gameStep(activity.title, g.gameType, g.content, out.level));
@@ -13956,6 +13947,10 @@ function _lessonMergeableMissions(frameId) {
     && titles.has(String(c.data.title || '').trim()));
 }
 
+/* Audit 17.10: a listening lesson's tabs read "Post-reading" - the label follows the skill. */
+function _missionsTitle(skill) {
+  return skill === 'listening' ? 'Post-listening missions' : skill === 'grammar' ? 'Practice missions' : 'Post-reading missions';
+}
 function mergeLessonMissions(frameId) {
   const frame = state.cards.find(c => c.id === frameId);
   const cards = _lessonMergeableMissions(frameId);
@@ -13974,7 +13969,7 @@ function mergeLessonMissions(frameId) {
   try {
     const first = cards[0];
     merged = addCard('worksheet', first.x, first.y, {
-      title: 'Post-reading missions', kind: 'Missions',
+      title: _missionsTitle(first.data.cat), kind: 'Missions',
       cat: first.data.cat || 'reading', level: first.data.level || 'B1',
       topic: first.data.topic, boardKind: 'quiz', questions,
       // Как у сгенерированной карточки: раскладка кадра вправе ужать её по
@@ -13993,7 +13988,7 @@ function mergeLessonMissions(frameId) {
      реагирует, а сливать больше нечего - без перерисовки кнопка осталась бы
      висеть и на второе нажатие не делала бы ничего. */
   reRenderCard(frame);
-  toast?.(`Post-reading merged into one block · ${questions.length} questions`);
+  toast?.(`${_missionsTitle(cards[0].data.cat).replace(/ missions$/, '')} merged into one block · ${questions.length} questions`);
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
 }
 
@@ -14609,6 +14604,13 @@ function _ttSetAddToBoard(enabled) {
 
 /* "Add to board ▾" dropdown - worksheet / interactive quiz / game. */
 function toggleAddToBoardMenu() {
+  /* Audit 17.10: for a staged lesson the menu (worksheet / quiz / game) changed nothing - the
+     whole lesson is placed either way - and closing it read as losing the draft. */
+  if (activeTeacherToolBuilder && lastLessonStageSet && boardLessonStagesFor(activeTeacherToolBuilder.id)) {
+    closeAddToBoardMenu();
+    applyTeacherToolBuilderToBoard('lesson');
+    return;
+  }
   const menu = document.getElementById('tbuilder-add-menu');
   if (!menu) return;
   const open = menu.classList.toggle('open');
@@ -18311,6 +18313,44 @@ function _stageFailureReason() {
   return '';
 }
 
+function _stageFailureIsFinal() {
+  if (typeof authToken !== 'undefined' && !authToken) return true;
+  const e = (typeof _lastAiToolError !== 'undefined' && _lastAiToolError) || null;
+  return !!e && (e.code === 'AI_MONTHLY_BUDGET_REACHED' || e.status === 401 || e.status === 403);
+}
+
+/* A mistake is never a model (audit 17.10, Speaking): "I am agree" was explained as a mistake
+   in one block and drilled as a model sentence in "Say it in a sentence". For every item of an
+   error-correction block the wrong span (what differs between the sentence and its correction,
+   up to four words) is put right wherever it turns up in the other blocks of the same lesson. */
+function _stageNoErrorAsModel(built) {
+  const tok = x => String(x || '').trim().split(/\s+/).filter(Boolean);
+  const clean = w => w.toLowerCase().replace(/[^a-z']/g, '');
+  const fixes = [];
+  built.filter(b => b.activity.tool === 'error-correction').forEach(b => (b.out.questions || []).forEach(q => {
+    const a = tok(q.text), c = tok(Array.isArray(q.answer) ? q.answer[0] : q.answer);
+    if (!a.length || !c.length) return;
+    let i = 0; while (i < a.length && i < c.length && clean(a[i]) === clean(c[i])) i++;
+    let j = 0; while (j < a.length - i && j < c.length - i && clean(a[a.length - 1 - j]) === clean(c[c.length - 1 - j])) j++;
+    const wrong = a.slice(i, a.length - j).map(clean).filter(Boolean), right = c.slice(i, c.length - j);
+    if (!wrong.length || wrong.length > 4 || right.length > 6) return;
+    // the wrong span with a word of context on each side, so "am agree" does not catch "am" alone
+    const ctx = a.slice(Math.max(0, i - 1), a.length - j + (j ? 1 : 0)).map(clean).filter(Boolean);
+    const ctxRight = c.slice(Math.max(0, i - 1), c.length - j + (j ? 1 : 0)).join(' ').replace(/[.,!?;:]+$/, '');
+    if (ctx.length >= 2) fixes.push({ re: new RegExp(`\\b${ctx.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+')}\\b`, 'gi'), to: ctxRight });
+  }));
+  if (!fixes.length) return;
+  const fix = v => typeof v === 'string' ? fixes.reduce((t, f) => t.replace(f.re, f.to), v) : v;
+  const walk = o => {
+    if (Array.isArray(o)) return o.map(walk);
+    if (o && typeof o === 'object') { Object.keys(o).forEach(k => { if (!/^_|^id$|^url$/.test(k)) o[k] = walk(o[k]); }); return o; }
+    return fix(o);
+  };
+  built.filter(b => b.activity.tool !== 'error-correction').forEach(b => {
+    ['questions', 'items', 'cards', 'struct'].forEach(k => { if (b.out[k]) b.out[k] = walk(b.out[k]); });
+  });
+}
+
 /* Короткая метка причины для чипа. Раньше любая причина (лимит в минуту,
    истёкшая сессия, гость) превращалась в «allowance reached» - учитель после
    пары быстрых кликов читал, что месячный лимит AI исчерпан. */
@@ -18331,11 +18371,24 @@ function _stagePicksKey(toolId) {
   return mapped ? `skill:${mapped}` : toolId;
 }
 
+/* Audit 17.10 (Reading, Writing, Listening): "While reading", "Revise / Edit" and "The video
+   itself" are on by default, yet teachers who had saved their picks before those options
+   existed never got them - the old list was replayed as it was. The picks now remember which
+   options there were (known); an option that is on by default and was not there when the
+   teacher chose is added. An old plain list: a stage it had nothing from gets its defaults. */
 function boardStageSavedPicks(toolId) {
   try {
     const all = JSON.parse(localStorage.getItem(STAGE_PICKS_STORE) || '{}');
     const saved = all && all[_stagePicksKey(toolId)];
-    if (Array.isArray(saved)) return saved;
+    const opts = boardStageOptions(toolId);
+    if (saved && Array.isArray(saved.keys) && Array.isArray(saved.known)) {
+      const fresh = opts.filter(o => o.on && !saved.known.includes(o.key)).map(o => o.key);
+      return [...new Set(saved.keys.concat(fresh))];
+    }
+    if (Array.isArray(saved)) {
+      const empty = new Set(opts.map(o => o.stage).filter(stg => !opts.some(o => o.stage === stg && saved.includes(o.key))));
+      return [...new Set(saved.concat(opts.filter(o => o.on && empty.has(o.stage)).map(o => o.key)))];
+    }
   } catch (_) {}
   /* По умолчанию - то, что учитель получал и раньше: текст с выделенной
      лексикой, глоссарий, вводные вопросы до и открытые после. Разница в
@@ -18493,7 +18546,7 @@ function onBoardStagePickChange() {
   const keys = boardStagePickedKeys();
   try {
     const all = JSON.parse(localStorage.getItem(STAGE_PICKS_STORE) || '{}');
-    all[_stagePicksKey(toolId)] = keys;
+    all[_stagePicksKey(toolId)] = { keys, known: boardStageOptions(toolId).map(o => o.key) };
     localStorage.setItem(STAGE_PICKS_STORE, JSON.stringify(all));
   } catch (_) {}
   host.querySelectorAll('.tb-workout-item').forEach(el => {
@@ -18506,9 +18559,16 @@ function onBoardStagePickChange() {
   const meta = document.getElementById('tbuilder-stages-meta');
   if (meta) {
     const tasks = boardStageOptions(toolId).filter(o => o.tool && keys.includes(o.key)).length;
-    meta.textContent = tasks
-      ? `The text plus ${tasks} ${tasks === 1 ? 'activity' : 'activities'} - each lands as its own card.`
-      : 'Only the text will be created. Tick activities to build the lesson around it.';
+    /* Audit 17.10: it said "each lands as its own card" while the board got one path card.
+       Reading, listening and grammar make one card (a path) unless One lesson path is off;
+       writing and speaking always do. */
+    const skill = (boardLessonWizard && boardLessonWizard.skill) || '';
+    const onePath = ['writing', 'speaking'].includes(skill) || (['reading', 'listening', 'grammar'].includes(skill) && boardLessonOnePath());
+    meta.textContent = !tasks
+      ? 'Only the text will be created. Tick activities to build the lesson around it.'
+      : onePath
+        ? `One card on the board: the text and ${tasks} ${tasks === 1 ? 'activity' : 'activities'} as steps of one lesson path.`
+        : `The text plus ${tasks} ${tasks === 1 ? 'activity' : 'activities'} - each lands as its own card.`;
   }
 }
 
@@ -18554,6 +18614,31 @@ function _stageReadingText(out) {
 }
 
 let lastLessonStageSet = null;
+
+/* Predict: choose the title (audit 17.10). The model names a "correct" title of its own, and in
+   most runs the text had no such heading. The card shows the first short line of the text as
+   its heading (worksheet-play.js, the same rule here), so that heading is the answer: put in
+   place of the model's pick if it is not among the options. A text without a heading asks
+   which title fits best - no "correct" one. */
+function _stageTitleChoice(textOut, q) {
+  const cards = (textOut.struct && Array.isArray(textOut.struct.cards)) ? textOut.struct.cards : (Array.isArray(textOut.cards) ? textOut.cards : []);
+  const card = cards.find(c => /reading text|📖/i.test(c.title || '')) || cards.find(c => !/glossary|🔑/i.test(c.title || '')) || null;
+  const lines = String((card && card.text) || '').split(/\n+/).map(x => x.trim()).filter(Boolean);
+  const head = lines.length > 1 && lines[0].length <= 90 ? lines[0].replace(/\*\*|__|^#+\s*/g, '').trim() : '';
+  const norm = x => String(x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  let options = q.options.slice(), answer = q.answer;
+  if (head) {
+    const hit = options.find(o => norm(o) === norm(head));
+    if (hit) answer = hit;
+    else {
+      const at = Math.max(0, options.findIndex(o => o === q.answer));
+      options[at] = head;
+      answer = head;
+    }
+    return { text: q.text, options, answer };
+  }
+  return { text: 'Which title would fit this text best?', options, answer, best: true };
+}
 
 /* «Match words to meanings» без значений.
 
@@ -19081,7 +19166,7 @@ async function runBoardLessonStages() {
     if (chip) chip.textContent = ownText ? 'no text yet' : _stageFailureChip();
     if (body) body.innerHTML = ownText
       ? '<div class="tbuilder-empty">Paste, scan or fetch the text first - the whole lesson is built from it.</div>'
-      : `<div class="tbuilder-empty">${esc(_stageFailureReason() || 'The text could not be created. AI tools need you to be signed in - try again in a moment.')}</div>`;
+      : `<div class="tbuilder-empty">${esc(_stageFailureReason() || 'The text could not be created - the server did not answer in time. Your choices are kept: press Create draft again.')}</div>`;
     return;
   }
 
@@ -19109,6 +19194,15 @@ async function runBoardLessonStages() {
       out = o.ai ? await requestServerTeacherTool(input, 25000)
                  : generateTeacherToolLocal(input);
     } catch (err) { console.warn('[stages] activity failed', o.key, err); }
+    /* Audit 17.10 (Speaking): "Common mistakes to fix" failed three runs in three, silently, as a
+       small "Could not build" line. A block that fails is asked for once more before the review
+       opens - unless the reason is one a retry cannot change (the allowance, the session). */
+    if (!out && o.ai && !_stageFailureIsFinal()) {
+      if (chip) chip.textContent = `retrying ${_lbPlain(o.title)}…`;
+      await new Promise(r => setTimeout(r, 1500));
+      try { out = await requestServerTeacherTool(input, 30000); }
+      catch (err) { console.warn('[stages] activity retry failed', o.key, err); }
+    }
     /* Значения к словам добираются ПОСЛЕ сборки задания, а не внутри
        генератора: генератор синхронный и работает офлайн, а словарь -
        это сеть. */
@@ -19125,6 +19219,7 @@ async function runBoardLessonStages() {
   }
 
   _ttSetGenerating(false);
+  _stageNoErrorAsModel(built);
   lastLessonStageSet = {
     base, cfg, textOut, built, failed, keys, toolId,
     /* Плеер и решение «класть ли транскрипт» нужны укладчику, а он
@@ -19465,7 +19560,7 @@ function _wpPreviewShellHtml(set) {
     ${window.TeachedThemes ? `<div class="tb-wp-theme"><span>Theme / Vibe</span>${window.TeachedThemes.gridHtml(_wpPreview.theme || '')}</div>` : ''}
     ${writing ? '' : _wpPlanRowHtml()}
     <div class="tb-wp-prev" id="tb-wp-prev"></div>
-    <p class="tb-wp-prev-note">Nothing here is saved and there is no answer key - this is exactly what a student gets.</p>
+    <p class="tb-wp-prev-note">${writing ? 'Nothing here is saved yet - this is exactly what a student gets.' : 'Nothing here is saved yet - this is exactly what a student gets. Students don’t see the answer key: it is on your board card.'}</p>
   </div>`;
 }
 function _wpPreviewBindTheme() {
@@ -19779,7 +19874,7 @@ function _stageLessonParts(set) {
     const q = titleEntry && (titleEntry.out.questions || [])
       .find(x => x && x.type === 'mcq' && Array.isArray(x.options) && x.options.length > 1);
     if (q) {
-      set.textOut._titleChoice = { text: q.text, options: q.options, answer: q.answer };
+      set.textOut._titleChoice = _stageTitleChoice(set.textOut, q);
       lesson = lesson.filter(b => b !== titleEntry);
     }
   }
@@ -19805,7 +19900,7 @@ function _stageLessonParts(set) {
     const missions = {
       engine: first.engine, boardKind: 'quiz', cat: first.cat || 'reading',
       kind: 'Missions', level: first.level, topic: first.topic,
-      title: 'Post-reading missions', questions,
+      title: _missionsTitle(set.skill || first.cat), questions,
       generatedAt: new Date().toISOString(),
     };
     lesson = lesson.filter(b => !postWithQs.includes(b));
@@ -20584,10 +20679,22 @@ function _wizNewsAgo(iso) {
   return d === 1 ? 'yesterday' : `${d} days ago`;
 }
 
+/* "Recent" is the last 48 hours (audit 17.10: five-day-old stories under "recent articles").
+   Older stories stay in the list under their own heading. */
+const NEWS_FRESH_MS = 48 * 3600 * 1000;
+const _newsIsFresh = it => { const t = Date.parse(it && it.published || ''); return !t || Date.now() - t <= NEWS_FRESH_MS; };
+function _newsAgeBreak(items, i) {
+  if (_newsIsFresh(items[i]) || (i > 0 && !_newsIsFresh(items[i - 1]))) return '';
+  return `<div class="tb-news-age">${items.slice(0, i).some(_newsIsFresh) ? 'Earlier this week' : 'Nothing from the last two days - earlier stories'}</div>`;
+}
 function _wizRenderNews(host) {
   if (!_wizNewsState) _wizNewsState = { topics: null, topic: 'science', items: null, picked: null, busy: false, level: null };
   const st = _wizNewsState;
-  if (!st.level) st.level = document.getElementById('tbuilder-level')?.value || 'B1';
+  /* Audit 17.10: the form said A1 and "Retell at" stayed on B1. One level: the form's Level
+     field (setNewsLevel writes it too); only Original is the news panel's own. */
+  const formLevel = document.getElementById('tbuilder-level')?.value;
+  if (st.level !== 'original' && NEWS_LEVELS.includes(formLevel)) st.level = formLevel;
+  if (!st.level) st.level = 'B1';
   if (!authToken) {
     host.innerHTML = `<div class="tb-wiz-tool"><span class="tb-wiz-tool-note">Sign in to browse today's news.</span></div>`;
     return;
@@ -20600,7 +20707,7 @@ function _wizRenderNews(host) {
     ? `<div class="tb-news-empty">Loading headlines…</div>`
     : !items.length
     ? `<div class="tb-news-empty">${st.query ? `No fresh articles mention “${esc(st.query)}”. Try a shorter or more general word.` : 'No stories came back for this topic. Try another one.'}</div>`
-    : items.map((it, i) => `
+    : items.map((it, i) => `${_newsAgeBreak(items, i)}
       <button type="button" class="tb-news-item${st.picked === i ? ' is-picked' : ''}" onclick="pickNewsStory(${i})" aria-pressed="${st.picked === i}">
         ${it.image ? `<img class="tb-news-thumb" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '<span class="tb-news-thumb is-blank" aria-hidden="true">📰</span>'}
         <span class="tb-news-tx">
@@ -20734,7 +20841,8 @@ async function searchNews(q) {
   if (ticket !== st.ticket) return;
   st.loading = false;
   st.items = items;
-  st.note = st.note || (items.length ? `${items.length} recent article${items.length === 1 ? '' : 's'} for “${q}” from The Guardian, BBC, ScienceDaily, The Conversation and Al Jazeera.` : '');
+  const fresh = items.filter(_newsIsFresh).length;
+  st.note = st.note || (items.length ? `${fresh ? `${fresh} from the last two days` : 'None from the last two days'}${items.length > fresh ? `, ${items.length - fresh} earlier` : ''} for “${q}” - The Guardian, BBC, ScienceDaily, The Conversation and Al Jazeera.` : '');
   _wizNewsRerender();
 }
 
@@ -20799,7 +20907,7 @@ async function buildMagazineFromStory() {
   const topic = (st.topics || []).find(t => t.key === st.topic);
   st.busy = true;
   _wizNewsRerender();
-  say(`Reading the story and writing a ${level} magazine version - about half a minute…`);
+  say(`Reading the story and writing ${/^A/.test(level) ? 'an' : 'a'} ${level} magazine version - about half a minute…`);
   try {
     const res = await apiFetch('/api/ai/magazine', { method: 'POST', body: { url: story.url, level, topicTitle: topic ? topic.title : '' } });
     const data = await res.json().catch(() => null);
@@ -21312,17 +21420,16 @@ async function extractLessonVocab() {
   if (!words.length) { say('No words came back - sign in, or add a few words by hand below.'); return false; }
 
   /* Слова, которые учитель уже выбрал сам (кликом по тексту), не теряются:
-     добытые ИИ дописываются к ним, повторы отбрасываются. */
+     добытые ИИ дописываются к ним, повторы отбрасываются. A new pick replaces the previous
+     pick, not piles onto it (audit 17.10) - only the teacher's own words stay. */
   const field = document.getElementById('tbuilder-vocab');
+  let kept = 0;
   if (field) {
-    const have = _wizVocabLines();
-    const seen = new Set(have.map(_wizVocabKey));
-    const merged = have.concat(words.filter(w => { const k = _wizVocabKey(w); if (seen.has(k)) return false; seen.add(k); return true; }));
-    field.value = merged.join('\n');
-    field.dispatchEvent(new Event('input', { bubbles: true }));
+    const r = _wizMergePicked(words);
+    kept = r.own;
   }
   _wizPickRender();
-  say(`${words.length} words added below. Remove any you don't need, then tick the activities and create the draft.`);
+  say(`${words.length} words below${kept ? ` (your own ${kept} kept)` : ''}. Remove any you don't need, then tick the activities and create the draft.`);
   return true;
 }
 
@@ -21331,6 +21438,19 @@ async function extractLessonVocab() {
    щелчок кладёт слово в список или убирает его, выделение нескольких слов
    мышью добавляет фразу целиком («to sprain an ankle»). Подсвечено всё, что
    уже есть в списке - и выбранное руками, и добытое ИИ. */
+/* The words the last AI pick put in the list: a new pick takes them out and puts its own in,
+   the words the teacher typed or clicked stay where they are. */
+const _wizAiWords = new Set();
+function _wizMergePicked(words) {
+  const have = _wizVocabLines();
+  const own = have.filter(l => !_wizAiWords.has(_wizVocabKey(l)));
+  const seen = new Set(own.map(_wizVocabKey));
+  const fresh = words.filter(w => { const k = _wizVocabKey(w); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+  _wizAiWords.clear();
+  fresh.forEach(w => _wizAiWords.add(_wizVocabKey(w)));
+  _wizSetVocab(own.concat(fresh));
+  return { own: own.length, added: fresh.length };
+}
 function _wizVocabLines() {
   return String(document.getElementById('tbuilder-vocab')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
 }
@@ -21442,12 +21562,8 @@ async function _srcSuggestVocab(btn) {
     const r = await apiFetch('/api/ai/pick-vocab', { method: 'POST', body: { text: text.slice(0, 12000), level, count: 10 } });
     const d = r.ok ? await r.json() : null;
     const list = (d && d.items) || [];
-    const ta = document.getElementById('tbuilder-vocab');
-    const have = new Set(String(ta.value).split('\n').map(x => x.trim().toLowerCase()).filter(Boolean));
-    const add = list.filter(x => !have.has(x.toLowerCase()));
-    ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + add.join('\n');
-    ta.dispatchEvent(new Event('input', { bubbles: true }));
-    if (note) note.textContent = add.length ? `Added ${add.length} for ${level}. Remove any you don't need.` : 'No new words found.';
+    const r2 = list.length ? _wizMergePicked(list) : { own: 0, added: 0 };
+    if (note) note.textContent = r2.added ? `${r2.added} words for ${level}${r2.own ? ` - your own ${r2.own} kept` : ''}. Remove any you don't need.` : 'No new words found.';
   } catch { if (note) note.textContent = 'Could not pick words - try again.'; }
   btn.disabled = false; btn.innerHTML = was;
 }

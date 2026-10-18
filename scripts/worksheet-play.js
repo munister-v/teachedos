@@ -2291,7 +2291,7 @@ ${warm ? `<header class="iw-head">
   <p class="iw-lede">Pick any starting point to dive into the topic</p>
 </header>` : missionMode ? `<header class="iw-head">
   <p class="iw-kicker">${md(d.title || d.kind || 'Missions')}</p>
-  <h1 class="iw-h">Post-reading review</h1>
+  <h1 class="iw-h">${/listening/i.test(d.title || '') ? 'Post-listening review' : /^practice/i.test(d.title || '') ? 'Practice review' : 'Post-reading review'}</h1>
 </header>` : `<div class="iw-title">${md(d.title || d.kind || 'Interactive Activity')}</div>`}
 ${contentHtml}
 <script>window.__IW_CARD__=${JSON.stringify(cardId || '')};window.__IW_STATE__=${JSON.stringify(savedState)};${wordHelp ? `window.__IW_WORDS__=${JSON.stringify(wordHelp)};` : ''}<\/script>

@@ -479,7 +479,12 @@
     const id = 'th-mini-' + (++miniSeq);
     el.innerHTML = `<div id="${id}"></div><div class="th-mini-msg">Loading examples…</div>`;
     const msg = el.querySelector('.th-mini-msg');
-    let widget = null, dead = false;
+    let widget = null, dead = false, fetched = false;
+    /* Audit 17.10 (News, Video Challenge): a student was left on "Loading…" when YouGlish did
+       not answer. Ten seconds without clips - the component is told (opts.onFail) and swaps in
+       a round that needs no outside service. */
+    const fail = why => { if (dead || fetched) return; fetched = true; if (msg) msg.textContent = why; if (opts.onFail) opts.onFail(); };
+    const guard = setTimeout(() => fail('Video examples did not load.'), opts.timeout || 10000);
     loadYG().then(YG => {
       if (dead || !document.getElementById(id)) return;
       widget = new YG.Widget(id, {
@@ -491,17 +496,22 @@
         backgroundColor: '#0d0e0f', panelsBackgroundColor: '#16181A', textColor: '#E7E8E2',
         captionColor: '#FFFFFF', keywordColor: '#CDF649', queryColor: '#CDF649', markerColor: '#CDF649', linkColor: '#CDF649',
         events: {
-          onFetchDone(ev) { if (msg) msg.textContent = ev && ev.totalResult ? '' : 'No clips for this one.'; if (opts.onReady) opts.onReady(ev && ev.totalResult || 0); },
+          onFetchDone(ev) {
+            if (!(ev && ev.totalResult)) { clearTimeout(guard); fail('No clips for this one.'); return; }
+            fetched = true; clearTimeout(guard);
+            if (msg) msg.textContent = '';
+            if (opts.onReady) opts.onReady(ev.totalResult);
+          },
           onError() { if (msg) msg.textContent = 'This clip is unavailable.'; },
         },
       });
       widget.fetch(term, 'english', opts.accent || undefined);
-    }).catch(() => { if (msg) msg.textContent = 'Video examples could not load.'; });
+    }).catch(() => { clearTimeout(guard); fail('Video examples could not load.'); });
     return {
       next() { try { widget && widget.next(); } catch (e) {} },
       replay() { try { widget && widget.replay(); } catch (e) {} },
       pause() { try { widget && widget.pause(); } catch (e) {} },
-      destroy() { dead = true; try { widget && widget.close && widget.close(); } catch (e) {} el.innerHTML = ''; },
+      destroy() { dead = true; clearTimeout(guard); try { widget && widget.close && widget.close(); } catch (e) {} el.innerHTML = ''; },
     };
   }
 

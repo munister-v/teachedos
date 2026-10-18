@@ -683,7 +683,8 @@
 
     /* ── Find it ── */
     const ROUNDS = 10;
-    function newFind() { st.find = { order: shuffle(all().map(i => i.id), rseed()).slice(0, ROUNDS), round: 0, score: 0, tries: 0 }; save(); }
+    // one round per word: two sinks on the picture are one "sink" (audit 17.10), and either one counts
+    function newFind() { st.find = { order: shuffle(oneOfEach(all()).map(i => i.id), rseed()).slice(0, ROUNDS), round: 0, score: 0, tries: 0 }; save(); }
     function paintFind() {
       if (!st.find) newFind();
       const f = st.find;
@@ -711,11 +712,12 @@
     function findClick(x, y) {
       const f = st.find;
       if (!f || f.round >= f.order.length || f.lock) return;
-      const target = byId(f.order[f.round]);
-      const [bx, by, bw, bh] = target.box;
-      ripple(x, y, !(x >= bx && x <= bx + bw && y >= by && y <= by + bh));
+      const target0 = byId(f.order[f.round]);
+      const inBox = q => q.box && x >= q.box[0] && x <= q.box[0] + q.box[2] && y >= q.box[1] && y <= q.box[1] + q.box[3];
+      const target = inBox(target0) ? target0 : (all().find(q => q.id !== target0.id && wordKey(q) === wordKey(target0) && inBox(q)) || target0);
+      ripple(x, y, !inBox(target));
       const fb = panel.querySelector('#sc-fb');
-      if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) {
+      if (inBox(target)) {
         if (!f.tries) f.score++;
         flashBox(target.box, false);
         fb.className = 'sc-fb ok'; fb.textContent = f.tries ? `Yes - that's the ${target.word}.` : `Yes! The ${target.word}.`;
@@ -779,11 +781,12 @@
     /* ── Label it ── */
     let labelPick = null;
     function newLabel() {
-      const pool = shuffle(items().map(p => p.id), rseed());
+      // one label per word - two "sink" labels could not be told apart
+      const pool = shuffle(oneOfEach(items()).map(p => p.id), rseed());
       // spread the pins out: skip ones that sit too close to a chosen one
       const set = [];
       pool.forEach(id => {
-        if (set.length >= 12) return;
+        if (set.length >= LABEL_N) return;
         const p = byId(id);
         if (set.every(o => { const q = byId(o); return Math.hypot(q.pin[0] - p.pin[0], q.pin[1] - p.pin[1]) > 70; })) set.push(id);
       });
@@ -1137,12 +1140,18 @@
     }).catch(() => { el.textContent = ''; });
   }
   /* how many words (things + places) and true/false sentences at a level */
+  /* Audit 17.10: the draft said "48 words" over 39 chips (the rooms were counted, not shown) and a
+     Label set promised as 6 came out as 12. The count is the chips (rooms included, a word on two
+     things once), the Label set is LABEL_N everywhere. */
+  const LABEL_N = 6;
+  const wordKey = p => String((p && p.word) || '').trim().toLowerCase();
+  const oneOfEach = list => { const seen = new Set(); return list.filter(p => { const k = wordKey(p); if (!k || seen.has(k)) return false; seen.add(k); return true; }); };
   function stats(sc, level, skip) {
     const r = rank(level || 'B1');
     const out = new Set(Array.isArray(skip) ? skip : []);
     const live = sc.parts.filter(p => !out.has(p.id));
     return {
-      words: live.filter(p => inLevel(p.level, level || 'B1')).length + sc.rooms.filter(p => rank(p.level) <= r).length,
+      words: oneOfEach(live.filter(p => inLevel(p.level, level || 'B1')).concat(sc.rooms.filter(p => rank(p.level) <= r))).length,
       phrases: live.filter(p => p.act && inLevel(p.level, level || 'B1')).length,
       tf: (sc.truefalse || []).filter(q => rank(q.level) <= r).length,
     };
@@ -1199,6 +1208,8 @@
       const MIN = sc.image ? 2 : 6;                                  // a picture needs words to be a lesson
       const live = () => sc.parts.filter(p => inLevel(p.level, state.level));
       const kept = () => live().filter(p => !state.skip.has(p.id));
+      // taking a word out takes out every thing it names (both sinks)
+      const sameWord = id => { const q = sc.parts.find(x => x.id === id); return q ? sc.parts.filter(x => wordKey(x) === wordKey(q)).map(x => x.id) : [id]; };
       const samples = () => {
         const it = kept(), a = it[0], b = it[Math.min(1, it.length - 1)];
         const tf = (sc.truefalse || []).filter(q => rank(q.level) <= rank(state.level))[0];
@@ -1207,7 +1218,7 @@
           ['Explore', 'Tap anything on the picture to hear its word and see what it means.'],
           ['Find', a ? `“Find the ${a.word}.” Students tap it on the picture.` : 'Students find a named thing on the picture.'],
           ['Name', b && b.def ? `“${b.def}” Students type the word.` : 'Students type the word for a thing that is pointed out.'],
-          ['Label', `Students drag ${Math.min(6, it.length)} word labels onto the right things.`],
+          ['Label', `Students drag ${Math.min(LABEL_N, oneOfEach(it).length)} word labels onto the right things.`],
           ['True?', tf ? `“${tf.s}” True or false?` : 'Students judge sentences about the picture.'],
           ['Talk', pr ? `“${pr}”` : 'Students talk or write about the picture using its words.'],
         ];
@@ -1215,7 +1226,8 @@
       const SHOW = 12;                                              // chips before "+N more"
       const paint = () => {
         const n = stats(sc, state.level, [...state.skip]);
-        const words = live();
+        const r = rank(state.level);
+        const words = oneOfEach(sc.rooms.filter(x => rank(x.level) <= r).map(x => ({ ...x, isRoom: true })).concat(live()));
         const shown = state.allWords ? words : words.slice(0, SHOW);
         el.innerHTML = `<div class="scd">
           <div class="scd-bar"><span class="scd-pill"><i></i>Draft — not on the board yet</span>
@@ -1225,7 +1237,9 @@
           <div class="scd-body"><div class="scd-art"><svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${stillArt(sc)}</svg></div>
           <div>
             <div class="scd-h">Words on the picture · tap × to take one out</div>
-            <div class="scd-words">${shown.map(p => state.skip.has(p.id)
+            <div class="scd-words">${shown.map(p => p.isRoom
+              ? `<span class="scd-w">${esc(p.word)}${p.level === '*' ? '' : `<i>${esc(p.level)}</i>`}</span>`
+              : state.skip.has(p.id)
               ? `<span class="scd-w off">${esc(p.word)}<button type="button" data-back="${esc(p.id)}" aria-label="Put ${esc(p.word)} back">put back</button></span>`
               : `<span class="scd-w">${esc(p.word)}${p.level === '*' ? '' : `<i>${esc(p.level)}</i>`}<button type="button" data-out="${esc(p.id)}" aria-label="Take ${esc(p.word)} out">×</button></span>`).join('')}${words.length > SHOW
               ? `<button type="button" class="scd-more" data-more="1">${state.allWords ? 'Show fewer' : `+ ${words.length - SHOW} more`}</button>` : ''}</div>
@@ -1244,8 +1258,8 @@
         else if (b.dataset.level) { state.level = b.dataset.level; state.note = ''; paint(); }
         else if (b.dataset.out) {
           if (kept().length <= MIN) { state.note = `Keep at least ${MIN} words - a picture needs them to make tasks.`; paint(); return; }
-          state.skip.add(b.dataset.out); state.note = ''; paint();
-        } else if (b.dataset.back) { state.skip.delete(b.dataset.back); state.note = ''; paint(); }
+          sameWord(b.dataset.out).forEach(id => state.skip.add(id)); state.note = ''; paint();
+        } else if (b.dataset.back) { sameWord(b.dataset.back).forEach(id => state.skip.delete(id)); state.note = ''; paint(); }
         else if (b.dataset.act === 'back') h.onBack && h.onBack();
         else if (b.dataset.act === 'add') h.onAdd && h.onAdd({ scene: spec.scene, level: state.level, title: spec.title || sc.title, custom: spec.custom, skip: [...state.skip].filter(id => live().some(p => p.id === id)) });
       };
