@@ -124,18 +124,18 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body :where(#menubar, #nav) :where(a, button, [tabindex]):focus-visible { outline:2px solid var(--ds-lime) !important; outline-offset:2px; }
 
-/* ══ №6 Dock ═══════════════════════════════════════════════════════════
-   Dark glass, four 58px tabs (Boards, Students, Schedule, Notes), no
-   badges; hover lifts the tab and shows a graphite tooltip; the open one is
-   a lime tile with an ink icon and a lime glow. */
+/* ══ №6 Dock (slim revision, approved by Kristina 17.10.2026) ═══════════
+   Dark glass, 236x56: four 53x44 tabs (Boards, Students, Schedule, Notes),
+   no badges; hover lifts the tab and shows a graphite tooltip; the open one
+   is a lime pill with an ink icon and no glow (the glow added thickness). */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock {
-  display:flex !important; gap:8px !important; padding:10px !important; height:auto !important;
+  display:flex !important; gap:4px !important; padding:5px !important; height:auto !important;
   background:rgba(20,20,28,.68) !important; -webkit-backdrop-filter:blur(20px) saturate(1.25) !important; backdrop-filter:blur(20px) saturate(1.25) !important;
-  border:1px solid rgba(255,255,255,.12) !important; border-radius:24px !important; box-shadow:0 20px 60px rgba(11,16,38,.25) !important;
+  border:1px solid rgba(255,255,255,.12) !important; border-radius:28px !important; box-shadow:0 20px 60px rgba(11,16,38,.25) !important;
 }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock-wrap { bottom:28px !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di {
-  position:relative; width:58px !important; height:58px !important; padding:0 !important; margin:0 !important; border-radius:18px !important;
+  position:relative; width:53px !important; height:44px !important; min-width:0 !important; padding:0 !important; margin:0 !important; border-radius:14px !important;
   display:flex !important; align-items:center; justify-content:center; background:transparent !important; box-shadow:none !important;
   color:rgba(255,255,255,.62) !important; transform:none; transition:transform .22s var(--ds-ease), color .2s, background .2s, box-shadow .25s !important;
 }
@@ -147,7 +147,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover { color:#fff !important; transform:translateY(-4px) !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover .di-icon { transform:scale(1.08); }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open {
-  background:var(--ds-lime) !important; color:var(--ds-ink) !important; box-shadow:0 6px 24px rgba(211,242,106,.45) !important;
+  background:var(--ds-lime) !important; color:var(--ds-ink) !important; box-shadow:none !important;
 }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di.open:hover { transform:translateY(-2px) !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di .di-dot { display:none !important; }
@@ -161,7 +161,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di:hover .di-label { opacity:1 !important; transform:translateX(-50%) translateY(0) !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock :is(#di-tools, #di-board, .di-secondary, .di-sep) { display:none !important; }
-@media (max-width:430px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di { width:50px !important; height:50px !important; } }
+@media (max-width:430px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #dock .di { width:48px !important; height:40px !important; } }
 
 /* ══ window dots (§0): 12px, pink soft / olive / lime, glyph on hover ══ */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .win-controls { gap:8px !important; }
