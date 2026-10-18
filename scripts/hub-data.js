@@ -59,6 +59,33 @@
     set('.spxp', e => { e.remove(); });
   }
 
+
+  function homework(list) {
+    const open = (list || []).filter(a => a.status === 'assigned' || a.status === 'in_progress')
+      .sort((a, b) => (a.due_at ? +new Date(a.due_at) : Infinity) - (b.due_at ? +new Date(b.due_at) : Infinity));
+    const card = $$('.uncard[data-t="assign"]')[0];
+    if (!card) return;
+    const box = card.querySelector('div[style*="flex"]');
+    const eic = card.querySelector('.eic');
+    if (!open.length) {
+      box.innerHTML = '<b>Homework: all clear</b><span>Nothing waiting for you</span>';
+      return;
+    }
+    const a = open[0], due = a.due_at ? new Date(a.due_at) : null;
+    const late = due && due.getTime() < Date.now();
+    const when = due ? (late ? 'was due ' : 'due ') + due.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) : 'no deadline';
+    const more = open.length > 1 ? ' · +' + (open.length - 1) + ' more' : '';
+    box.innerHTML = '';
+    const b = document.createElement('b'); b.textContent = a.title || 'Homework';
+    const sp = document.createElement('span'); sp.textContent = (a.status === 'in_progress' ? 'In progress · ' : 'Assigned · ') + when + more;
+    box.append(b, sp);
+    if (eic) eic.title = 'Open homework';
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => { location.href = 'homework-do.html?a=' + encodeURIComponent(a.assignment_id); }, true);
+  }
+
+  json('/api/homework/my/inbox').then(r => homework(r && r.assignments));
+
   Promise.all([json('/api/auth/me'), json('/api/student/progress')]).then(([me, pr]) => {
     if (me && me.user) who(me.user);
     streak(pr && Number(pr.streak) || 0);
