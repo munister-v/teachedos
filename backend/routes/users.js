@@ -25,6 +25,8 @@ const WALL_PRESETS = new Set([
   'kyiv', 'new-york', 'chicago', 'london', 'paris', 'rome', 'tokyo',
   'starry-night', 'great-wave', 'wheatfield',
   'pastel-clouds', 'pixel-night', 'neon-city', 'sunset-ridges',
+  'ua-kitchen', 'ua-christmas-eve', 'ua-easter', 'ua-wedding', 'ua-bread-and-salt', 'ua-vyshyvanka', 'ua-ivan-kupala',
+  'ua-harvest', 'ua-songs-at-the-table', 'ua-st-nicholas', 'ua-masnytsia', 'ua-petrykivka', 'ua-ukrainian-khata',
   'star-luxe', 'pixel-diamond',
   'world-ink', 'world-sand', 'world-silver',
 ]);

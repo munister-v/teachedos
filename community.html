@@ -90,6 +90,20 @@ h1{font-size:clamp(36px,5vw,60px);line-height:.96;letter-spacing:-.055em;max-wid
 .ws-hint{font-size:13px;line-height:1.45;color:var(--text2);min-height:38px}
 .ws-hit{font-size:12px;color:var(--text2)}
 .ws-hit mark{background:rgba(205,246,73,.6);border-radius:3px;padding:0 2px}
+.ws-ua{margin-left:6px;gap:6px;text-transform:none;letter-spacing:0}
+.ws-ua b{font-weight:800;opacity:.6}
+.ws-ua.active b{opacity:.75}
+.ws-folder-bar{grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:2px 2px 4px}
+.ws-folder-bar .ws-folder-t{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:750;letter-spacing:-.02em}
+.ws-folder-bar .ws-folder-n{font-size:12.5px;color:var(--text2);font-weight:650}
+.ws-folder-bar .sp{flex:1}
+.ws-folder-bar .ws-folder-bar-links{display:flex;gap:6px;flex-wrap:wrap}
+.ws-ua-card .ws-thumb{background:#2b2118}
+.ws-ua-card .ws-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ws-ua-card.is-seen{border-color:rgba(60,170,90,.45)}
+.ws-ua-card .tag.seen{background:rgba(60,170,90,.14);color:#2E7D44;font-weight:700}
+.ws-ua-by{font-size:11.5px;color:var(--text3);font-weight:650}
+.ws-modal-body iframe{display:block;width:100%;height:100%;border:0;background:#2b2118}
 .ws-overlay{position:fixed;inset:0;z-index:9990;background:rgba(36,40,44,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px}
 .ws-modal{width:min(1440px,100%);height:min(900px,100%);background:#fff;border-radius:22px;overflow:hidden;display:grid;grid-template-rows:auto minmax(0,1fr);box-shadow:0 32px 80px rgba(36,40,44,.35)}
 .ws-modal-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
@@ -636,10 +650,10 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
       <button class="level-pill active" data-wslevel="A2" onclick="setWsLevel('A2')">A2</button>
       <button class="level-pill" data-wslevel="B1" onclick="setWsLevel('B1')">B1</button>
       <button class="level-pill" data-wslevel="B2" onclick="setWsLevel('B2')">B2</button>
-      <select id="ws-world" onchange="renderWorksheets()" style="max-width:220px;margin-left:8px" aria-label="Visual world"><option value="">All worlds</option></select>
+      <select id="ws-world" onchange="leaveMeetUkraine();renderWorksheets()" style="max-width:220px;margin-left:8px" aria-label="Visual world"><option value="">All worlds</option></select>
+      <button type="button" class="level-pill ws-ua" id="ws-ua" onclick="toggleMeetUkraine()" aria-pressed="false" title="Thirteen interactive wallpapers about Ukrainian traditions, by TeachEd Official">🇺🇦 Meet Ukraine <b id="ws-ua-n"></b></button>
       <input id="ws-search" type="hidden">
     </div>
-    <a href="meet-ukraine/index.html" class="ws-meet-ua" style="display:flex;align-items:center;gap:14px;margin:0 0 14px;padding:14px 18px;border-radius:16px;background:linear-gradient(90deg,#2e6da4,#ffd94d);color:#20303f;text-decoration:none;font-weight:800"><span style="font-size:30px">🇺🇦</span><span>Meet Ukraine<br><span style="font-weight:600;font-size:13px">13 hand-drawn scenes · 87 words · 3 games · by TeachEd Official</span></span><span style="margin-left:auto">Open →</span></a>
     <section class="ws-grid" id="ws-grid"></section>
   </div>
     </div>
@@ -654,6 +668,7 @@ body:not(#_):not(#__) .hero { margin-bottom:10px !important; background:transpar
 <script src="scripts/vocab-loader.js?v=1246"></script>
 <script src="scripts/accent.js?v=1246"></script>
 <script src="scripts/scene-studio.js?v=1246"></script>
+<script src="scripts/meet-ukraine-series.js?v=1246"></script>
 <script>
 const token = localStorage.getItem('teachedos_token') || '';
 const api = window.TeachEdApp.createApiClient(() => token);
@@ -2291,15 +2306,75 @@ function renderCommunityGames() {
    only picks a level and sends the theme to a board (?addScene=). */
 let _wsLevel = 'A2';
 let _wsStudio = null;
+let _wsFolder = false;   // the Meet Ukraine folder is open
 function setWsLevel(l) {
   _wsLevel = l;
   document.querySelectorAll('[data-wslevel]').forEach(b => b.classList.toggle('active', b.dataset.wslevel === l));
   renderWorksheets();
 }
+/* Meet Ukraine (scripts/meet-ukraine-series.js): thirteen wallpapers, each its own page. They sit in
+   Picture Studio as a folder behind the chip above the grid, and the search finds them by title or by
+   any of their words - a card here opens the wallpaper over the page, not a worksheet. */
+function toggleMeetUkraine() { _wsFolder = !_wsFolder; renderWorksheets(); }
+function leaveMeetUkraine() { _wsFolder = false; }
+function uaCardHtml(scene, hits, inFolder) {
+  const MU = window.MeetUkraine;
+  const seen = MU.seen().has(scene.slug);
+  return `<div class="ws-card ws-ua-card${seen ? ' is-seen' : ''}">
+      <div class="ws-thumb" onclick="openMeetUkraine('${esc(scene.slug)}')" title="Open"><img src="${esc(MU.thumb(scene.slug))}" alt="" loading="lazy" width="360" height="203"></div>
+      <div class="ws-body">
+        <div class="ws-title"><span>${esc(scene.icon)}</span>${esc(scene.title)}</div>
+        <div class="ws-hint">${esc(scene.hint)}</div>
+        ${hits && hits.length ? `<div class="ws-hit">Has: ${hits.slice(0, 4).map(w => `<mark>${esc(w)}</mark>`).join(', ')}</div>` : ''}
+        <div class="tags" style="margin:6px 0 10px">${inFolder ? '' : '<span class="tag" style="background:rgba(46,109,164,.14);color:#2E6DA4;font-weight:700">🇺🇦 Meet Ukraine</span>'}<span class="tag">${scene.words} words</span><span class="tag">3 games</span>${seen ? '<span class="tag seen">✓ visited</span>' : ''}</div>
+        <div class="card-actions"><button class="mini-btn" onclick="openMeetUkraine('${esc(scene.slug)}')">Open →</button><a class="mini-btn alt" href="${esc(MU.href(scene.slug))}" target="_blank" rel="noopener">Full page ↗</a></div>
+      </div>
+    </div>`;
+}
+function openMeetUkraine(slug) {
+  const MU = window.MeetUkraine;
+  const sc = MU && MU.scenes.find(x => x.slug === slug);
+  if (!sc) return;
+  closeWorksheet();
+  MU.markSeen(slug);
+  const ov = document.createElement('div');
+  ov.className = 'ws-overlay';
+  ov.id = 'ws-overlay';
+  ov.innerHTML = `<div class="ws-modal" role="dialog" aria-label="${esc(sc.title)}">
+      <div class="ws-modal-head"><span style="font-size:20px">${esc(sc.icon)}</span><b>${esc(sc.title)}</b><span class="tag">Meet Ukraine · by TeachEd Official</span><span class="sp"></span>
+        <a class="btn lime" href="${esc(MU.href(slug))}" target="_blank" rel="noopener">Full page ↗</a><button class="btn ghost" onclick="closeWorksheet()">✕ Close</button></div>
+      <div class="ws-modal-body"><iframe src="${esc(MU.href(slug))}" title="${esc(sc.title)}" allow="autoplay; fullscreen; clipboard-write"></iframe></div></div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) closeWorksheet(); });
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', _wsKey);
+  _wsUaOpen = true;
+}
+function renderMeetUkraineFolder(grid, q) {
+  const MU = window.MeetUkraine;
+  const rows = q ? MU.find(q) : MU.scenes.map(scene => ({ scene, hits: [] }));
+  const seen = MU.seen();
+  const done = MU.scenes.filter(x => seen.has(x.slug)).length;
+  setText('ws-sub', `${MU.scenes.length} interactive wallpapers · ${MU.total} Ukrainian words · three games and sound on every scene · by TeachEd Official.`);
+  grid.innerHTML = `<div class="ws-folder-bar">
+      <button class="level-pill" onclick="toggleMeetUkraine()">← All pictures</button>
+      <span class="ws-folder-t"><span>🇺🇦</span>Meet Ukraine</span>
+      <span class="ws-folder-n">${done} of ${MU.scenes.length} visited${q ? ` · ${rows.length} match${rows.length === 1 ? '' : 'es'}` : ''}</span>
+      <span class="sp"></span>
+      <span class="ws-folder-bar-links"><a class="level-pill" href="${esc(MU.map)}" target="_blank" rel="noopener">🗺️ Map of Ukraine</a><a class="level-pill" href="${esc(MU.glossary)}" target="_blank" rel="noopener">📚 Glossary</a></span>
+    </div>` + (rows.length ? rows.map(r => uaCardHtml(r.scene, r.hits, true)).join('') : '<div class="empty" style="grid-column:1/-1">No Meet Ukraine wallpaper has that word. Try another one.</div>');
+}
 async function renderWorksheets() {
   const grid = document.getElementById('ws-grid');
   const SC = window.TeachedScene;
   if (!grid || !SC) return;
+  const MU = window.MeetUkraine;
+  const uaBtn = document.getElementById('ws-ua');
+  if (uaBtn) { uaBtn.classList.toggle('active', _wsFolder); uaBtn.setAttribute('aria-pressed', String(_wsFolder)); }
+  if (MU) setText('ws-ua-n', MU.scenes.length);
+  if (MU && _wsFolder) {
+    renderMeetUkraineFolder(grid, (document.getElementById('ws-search')?.value || '').trim());
+    return;
+  }
   const wsel = document.getElementById('ws-world');
   if (wsel && wsel.options.length === 1 && SC.worlds) SC.worlds.forEach(w => wsel.add(new Option(`${w.icon} ${w.title}`, w.id)));
   const world = wsel ? wsel.value : '';
@@ -2312,7 +2387,8 @@ async function renderWorksheets() {
   let total = 0;
   rows.forEach(r => { total += SC.stats(r.sc, _wsLevel).words; });
   setText('ws-sub', `${rows.length} themes · ${total} words at ${_wsLevel} level · six tasks each and a printable worksheet. Try one, then add it to a board.`);
-  if (!shown.length) { grid.innerHTML = '<div class="empty">No theme has that word yet. Try another one.</div>'; return; }
+  const uaRows = MU && q ? MU.find(q) : [];
+  if (!shown.length && !uaRows.length) { grid.innerHTML = '<div class="empty">No theme has that word yet. Try another one.</div>'; return; }
   grid.innerHTML = shown.map(r => {
     const st = SC.stats(r.sc, _wsLevel);
     const h = hits(r).slice(0, 4);
@@ -2326,7 +2402,7 @@ async function renderWorksheets() {
         <div class="card-actions"><button class="mini-btn alt" onclick="tryWorksheet('${esc(r.t.id)}')">Try it</button><button class="mini-btn" onclick="addWorksheetToBoard('${esc(r.t.id)}')">Add to board →</button></div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + uaRows.map(r => uaCardHtml(r.scene, r.hits)).join('');
   grid.querySelectorAll('[data-thumb]').forEach(el => SC.thumb(el, el.dataset.thumb));
 }
 function tryWorksheet(id) {
@@ -2347,11 +2423,13 @@ function tryWorksheet(id) {
   _wsStudio = SC.mount(ov.querySelector('.ws-modal-body'), { out: { scene: id, level: _wsLevel, title: t.title }, state: null, api: () => Promise.reject(), canSave: false, save: () => {} });
 }
 function _wsKey(e) { if (e.key === 'Escape') closeWorksheet(); }
+let _wsUaOpen = false;   // a Meet Ukraine wallpaper is open: its card says "visited" once it closes
 function closeWorksheet() {
   try { _wsStudio && _wsStudio.destroy(); } catch (e) {}
   _wsStudio = null;
   document.getElementById('ws-overlay')?.remove();
   document.removeEventListener('keydown', _wsKey);
+  if (_wsUaOpen) { _wsUaOpen = false; renderWorksheets(); }
 }
 function addWorksheetToBoard(id) {
   const t = window.TeachedScene && TeachedScene.catalog.find(x => x.id === id);

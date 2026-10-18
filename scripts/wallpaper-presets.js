@@ -67,6 +67,22 @@
     { key: 'great-wave', group: 'art', title: 'The Great Wave', credit: 'Katsushika Hokusai', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg' },
     { key: 'wheatfield', group: 'art', title: 'Wheatfield with Crows', credit: 'Vincent van Gogh', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Vincent_van_Gogh_-_Wheatfield_with_crows_-_Google_Art_Project.jpg' },
     /* Свои иллюстрации TeachEd (нарисованы для нас, без чужих прав). */
+    /* Meet Ukraine (TeachEd Official): the thirteen interactive wallpapers of meet-ukraine/ as
+       desktop backgrounds - the scene art alone, without hotspots. Picture Studio lists the same
+       scenes (scripts/meet-ukraine-series.js); night scenes are dark so the labels on the desk turn light. */
+    { key: 'ua-kitchen', group: 'ukraine', title: 'Ukrainian Kitchen' },
+    { key: 'ua-christmas-eve', group: 'ukraine', title: 'Christmas Eve', dark: true },
+    { key: 'ua-easter', group: 'ukraine', title: 'Easter' },
+    { key: 'ua-wedding', group: 'ukraine', title: 'A Ukrainian Wedding' },
+    { key: 'ua-bread-and-salt', group: 'ukraine', title: 'Bread and Salt' },
+    { key: 'ua-vyshyvanka', group: 'ukraine', title: 'Vyshyvanka' },
+    { key: 'ua-ivan-kupala', group: 'ukraine', title: 'Ivan Kupala Night', dark: true },
+    { key: 'ua-harvest', group: 'ukraine', title: 'Harvest' },
+    { key: 'ua-songs-at-the-table', group: 'ukraine', title: 'Songs at the Table', dark: true },
+    { key: 'ua-st-nicholas', group: 'ukraine', title: 'St Nicholas Day', dark: true },
+    { key: 'ua-masnytsia', group: 'ukraine', title: 'Masnytsia' },
+    { key: 'ua-petrykivka', group: 'ukraine', title: 'Petrykivka Painting', dark: true },
+    { key: 'ua-ukrainian-khata', group: 'ukraine', title: 'The Ukrainian Khata' },
     { key: 'pastel-clouds', group: 'illo', title: 'Pink clouds' },
     { key: 'pixel-night', group: 'illo', title: 'Pixel night', dark: true },
     { key: 'neon-city', group: 'illo', title: 'Neon city', dark: true },
@@ -75,7 +91,7 @@
   /* Путь абсолютный: фон ставится через CSS-переменную, а относительный
      url() в ней считается от файла стилей (styles/), а не от страницы. */
   WALL_PRESETS.forEach(p => {
-    if (!['photo', 'city', 'art', 'illo'].includes(p.group)) return;
+    if (!['photo', 'city', 'art', 'illo', 'ukraine'].includes(p.group)) return;
     const at = f => new URL(`img/wallpapers/${f}`, document.baseURI).href;
     p.css = `url("${at(p.key + '.webp')}") center / cover no-repeat, #6B6F78`;
     p.thumb = `url("${at(p.key + '-thumb.webp')}") center / cover no-repeat, #D5D7DC`;
@@ -90,6 +106,7 @@
   const WALL_GROUPS = [
     { key: 'colour', title: 'Colours' },
     { key: 'map', title: 'World map · live' },
+    { key: 'ukraine', title: 'Meet Ukraine' },
     { key: 'photo', title: 'Photos' },
     { key: 'city', title: 'Cities' },
     { key: 'art', title: 'Art' },
