@@ -16792,7 +16792,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1239';
+const TEACHEDOS_ASSET_VERSION = '1240';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17390,13 +17390,13 @@ function renderBoardWorkoutPicks() {
       ${a.ai ? '<span class="tb-workout-ai">AI</span>' : ''}
     </label>`).join('');
   list.innerHTML = `
-    <div class="tb-tpl-head"><span>Games · every word in each</span><button type="button" class="tb-tpl-all" onclick="boardWorkoutPickAll()">Select all</button></div>
+    <div class="tb-tpl-head"><span>Games · every word in each</span><span class="lb-count" id="tb-tpl-count"></span><button type="button" class="tb-tpl-all" onclick="boardWorkoutPickAll()">Select all</button></div>
     <div class="tb-tpl-grid">${tiles}</div>
     <details class="tb-tpl-more"${[...picked].some(k => !String(k).startsWith('tpl:')) ? ' open' : ''}>
       <summary>Worksheets and speaking tasks</summary>
       <div class="tb-workout-list">${tasks}</div>
     </details>
-    ${window.TeachedThemes ? `<div class="tb-tpl-head" style="margin-top:14px"><span>Theme / Vibe · how the games look</span></div><div class="tb-game-theme">${window.TeachedThemes.gridHtml(_wordGameTheme)}</div>` : ''}`;
+    ${window.TeachedThemes ? `<div class="tb-tpl-head" style="margin-top:14px"><span>Theme / Vibe · how the games look</span></div><div class="tb-game-theme">${window.TeachedThemes.gridHtml(_wordGameTheme, 'theme', { cards: true })}</div>` : ''}`;
   const th = list.querySelector('.tb-game-theme');
   if (th) window.TeachedThemes.bindGrid(th, id => { _wordGameTheme = id; });
   onBoardWorkoutPickChange();
@@ -17430,6 +17430,8 @@ function onBoardWorkoutPickChange() {
   const meta = document.getElementById('tbuilder-workout-meta');
   const games = keys.filter(k => k.startsWith('tpl:')).length;
   if (meta) meta.textContent = `${games} game${games === 1 ? '' : 's'}` + (keys.length - games ? ` + ${keys.length - games} task${keys.length - games === 1 ? '' : 's'}` : '');
+  const count = document.getElementById('tb-tpl-count');
+  if (count) { count.textContent = `${games} game${games === 1 ? '' : 's'}`; count.classList.toggle('zero', !games); }
   const all = document.querySelector('#tbuilder-workout-list .tb-tpl-all');
   if (all) all.textContent = [...document.querySelectorAll('#tbuilder-workout-list .tb-tpl input')].every(b => b.checked) ? 'Clear' : 'Select all';
 
@@ -18371,12 +18373,16 @@ function boardStagePickedKeys() {
    («одна основная механика»; повторный клик снимает выбор), mode:'many' -
    обычные галочки «по желанию». Без groups - как раньше, список галочек.
    В группе «одна» из старых сохранённых отметок остаётся первая. */
+/* Lesson Builder v2.0 §0: no emoji in the builder's chrome - an option's leading emoji is left out. */
+function _lbPlain(title) {
+  return String(title || '').replace(/^[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D\u20E3\s]+/u, '');
+}
 function _stageOptionsHtml(st, picked, si) {
   const item = (o, radioName, on) => `
           <label class="tb-workout-item${on ? ' is-on' : ''}${o.handoff ? ' is-handoff' : ''}">
             <input type="${radioName ? 'radio' : 'checkbox'}"${radioName ? ` name="${radioName}" data-was="${on ? 1 : 0}" onclick="_stageRadioClick(this)"` : ' onchange="onBoardStagePickChange()"'} value="${esc(o.key)}" ${on ? 'checked' : ''}>
             <span style="min-width:0">
-              <b>${esc(o.title)}</b>
+              <b>${esc(_lbPlain(o.title))}</b>
               <small>${esc(o.hint)}</small>
             </span>
             ${o.ai ? '<span class="tb-workout-ai">AI</span>' : ''}${o.handoff ? '<span class="tb-workout-ai">→ next</span>' : ''}
@@ -19056,7 +19062,9 @@ async function runBoardLessonStages() {
   lastLessonStageSet = null;
   _ttSetAddToBoard(false);
   if (chip) chip.textContent = ownText ? 'reading your text…' : 'writing the text…';
-  if (body) body.innerHTML = `<div class="tbuilder-empty">${ownText ? 'Working from your text…' : 'Writing the text…'}</div>`;
+  /* The text is step 1 of the stepper, the activities follow it. */
+  const stepTitles = [ownText ? 'Your text' : 'The text', ...opts.map(x => _lbPlain(x.title))];
+  if (body) body.innerHTML = _lbBuildingHtml(stepTitles, 0);
 
   let textOut = null;
   if (ownText) {
@@ -19084,7 +19092,7 @@ async function runBoardLessonStages() {
   for (let i = 0; i < opts.length; i++) {
     const o = opts[i];
     if (chip) chip.textContent = `building ${i + 1} of ${opts.length}…`;
-    if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(o.title)}” — ${i + 1} of ${opts.length}.</div>`;
+    if (body) body.innerHTML = _lbBuildingHtml(stepTitles, i + 1);
     const input = { ...base, tool: { id: o.tool } };
     // Формулировка задания под роль на этапе (например, T/F до просмотра).
     if (o.extra) input.extra = [base.extra, o.extra].filter(Boolean).join(' ');
@@ -19327,6 +19335,22 @@ function _ttStageImageStrip(activity, out) {
    Содержимое показывается настоящее, но только на чтение: правка по
    месту есть у одиночного инструмента, а здесь на экране до шести
    разных материалов сразу. */
+/* Lesson Builder v2.0 №4: the Preview while the lesson is built - a pill "Building · 2 of 9", a lime
+   progress line, a 1…n stepper, the task being built as a card with a skeleton, the queue as ghosts. */
+function _lbBuildingHtml(titles, i) {
+  const n = titles.length;
+  const steps = titles.map((_, k) => `<span class="lb-step${k < i ? ' done' : k === i ? ' now' : ''}">${k < i ? '✓' : k + 1}</span>`).join('<span class="lb-step-line"></span>');
+  const sk = (...w) => w.map(x => `<i class="lb-sk" style="width:${x}%"></i>`).join('');
+  return `<div class="lb-build" aria-live="polite">
+    <div class="lb-build-top"><span class="lb-build-pill"><i></i>Building · ${i + 1} of ${n}</span></div>
+    <div class="lb-build-bar"><i style="width:${Math.round((i / Math.max(1, n)) * 100)}%"></i></div>
+    <div class="lb-steps">${steps}</div>
+    <div class="lb-build-now"><div class="lb-build-ttl"><b>${esc(titles[i] || '')}</b><span>Building now…</span></div>${sk(85, 60, 40)}</div>
+    ${titles.slice(i + 1, i + 3).map((_, k) => `<div class="lb-build-ghost">${k ? sk(40, 60, 85) : sk(60, 85, 40)}</div>`).join('')}
+    <p class="lb-build-note">Tasks appear here <b>as they are built</b>. Swipe a task — <b>regenerate</b> or <b>remove</b>; a full swipe removes it.</p>
+  </div>`;
+}
+
 function renderBoardLessonStagePreview(set) {
   const body = document.getElementById('tbuilder-output');
   if (!body || !set) return;
@@ -19387,8 +19411,8 @@ function renderBoardLessonStagePreview(set) {
           <div class="tb-act-head">
             <h4>${esc(activity.title)}</h4>
             <span class="tb-act-tools">
-              <button type="button" class="tb-act-btn" onclick="redoStageActivity('${esc(activity.key)}')" title="Build this one again, differently">Redo</button>
-              <button type="button" class="tb-act-btn" onclick="dropStageActivity('${esc(activity.key)}')" title="Leave this one out of the lesson">Drop</button>
+              <button type="button" class="tb-act-btn" onclick="redoStageActivity('${esc(activity.key)}')" title="Build this one again, differently">Regenerate</button>
+              <button type="button" class="tb-act-btn" onclick="dropStageActivity('${esc(activity.key)}')" title="Leave this one out of the lesson">Remove</button>
             </span>
           </div>
           ${_ttStageImageStrip(activity, out) || (WP_PATH_SKILLS.includes(set.skill) ? _ttStageEditableHtml(activity.key, out) : `<p>${_ttMdToHtml(_ttStagePlainPreview(out))}</p>`)}
@@ -19920,6 +19944,16 @@ function _lessonHandoffOpen(kind, text, level) {
   }
 }
 
+/* One lesson path: the reading, listening and grammar lessons land as one combined card (a path)
+   or, switched off, as one card per activity. On by default; the choice is remembered. */
+const LB_ONE_PATH_STORE = 'teachedos_lb_one_path';
+function boardLessonOnePath() {
+  try { return localStorage.getItem(LB_ONE_PATH_STORE) !== '0'; } catch (_) { return true; }
+}
+function setBoardLessonOnePath(on) {
+  try { localStorage.setItem(LB_ONE_PATH_STORE, on ? '1' : '0'); } catch (_) {}
+}
+
 function placeBoardLessonStageSet() {
   const set = lastLessonStageSet;
   if (!set) return false;
@@ -19932,7 +19966,7 @@ function placeBoardLessonStageSet() {
   if (writingFlow || speakingFlow) {
     try { pathCard = _wfPlacePath(set, results, label, speakingFlow ? 'speaking' : 'writing'); }
     catch (err) { console.warn('[stages] writing path placement failed', err); return false; }
-  } else if (skillPath && (pathCard = _wfPlacePathSafe(set, results, label, skillPath, videoUrl))) {
+  } else if (skillPath && boardLessonOnePath() && (pathCard = _wfPlacePathSafe(set, results, label, skillPath, videoUrl))) {
     // путь лёг; если нет - ниже обычная раскладка кадром
   } else try {
     _placeLessonOnBoard(results, '', videoUrl, {
@@ -20140,13 +20174,55 @@ function renderLessonWizard() {
   /* У аудирования ссылка идёт первой: готовый транскрипт под рукой - это
      редкость, а ссылка на видео - обычный случай. */
   if (boardLessonWizard.skill === 'listening') { const rank = s => (s.link ? 0 : s.audio ? 1 : 2); sources.sort((a, b) => rank(a) - rank(b)); }
-  host.innerHTML = `<div class="tb-wiz-grid">${sources.map(s => `
-    <button type="button" class="tb-wiz-card" onclick="pickLessonSource('${esc(s.key)}')">
-      <span class="tb-wiz-ic">${esc(s.icon)}</span>
+  /* Lesson Builder v2.0 №2: an ink disc with a white outline icon, the title, the line under it and
+     an arrow; the whole card fills with ink on hover (styles/lesson-builder.css). */
+  host.innerHTML = `<div class="tb-wiz-grid lb-srcgrid">${sources.map(s => `
+    <button type="button" class="tb-wiz-card lb-src" onclick="pickLessonSource('${esc(s.key)}')">
+      <span class="tb-wiz-ic lb-disc">${_lbIcon(LB_SOURCE_ICON[s.key] || LB_SOURCE_ICON.own)}</span>
       <span class="tb-wiz-tx"><b>${esc(s.title)}</b><small>${esc(s.hint)}</small></span>
-      <span class="tb-wiz-go">→</span>
+      <span class="tb-wiz-go lb-arr">${_lbIcon('<path d="M5 12h14M13 6l6 6-6 6"/>')}</span>
     </button>`).join('')}</div>`;
 }
+
+/* Lesson Builder v2.0: outline icons for the source cards (№2) and the picture tiles (№7) -
+   no emoji in the builder's chrome. */
+function _lbIcon(paths) {
+  return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+}
+const LB_SOURCE_ICON = {
+  own: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/>',
+  shot: '<rect x="3" y="6" width="18" height="14" rx="2.5"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6l1.5-2.5h4L15.5 6"/>',
+  link: '<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',
+  audio: '<path d="M4 15v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="7" rx="2"/><rect x="17" y="14" width="4" height="7" rx="2"/>',
+  news: '<path d="M4 6h13a2 2 0 012 2v11H6a2 2 0 01-2-2V6z"/><path d="M8 10h7M8 14h7"/>',
+  words: '<path d="M4 7h16M4 12h10M4 17h13"/>',
+  topic: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>',
+  'vocab-own': '<path d="M4 7h16M4 12h10M4 17h13"/>',
+  'vocab-text': '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/>',
+  'vocab-topic': '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>',
+};
+const LB_SCENE_ICON = {
+  house: '<path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/>',
+  car: '<path d="M4 16l1.5-6A2 2 0 017.4 8.5h9.2a2 2 0 011.9 1.5L20 16"/><path d="M3 16h18v4H3z"/><circle cx="7.5" cy="20" r="1.4"/><circle cx="16.5" cy="20" r="1.4"/>',
+  hospital: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/>',
+  kitchen: '<path d="M5 10h14v4a7 7 0 01-14 0z"/><path d="M3 10h18M12 6c0-1.5 2-1.5 2-3"/>',
+  airport: '<path d="M3 12l18-6-5 12-4-5-3 3v-4z"/>',
+  school: '<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11"/>',
+  supermarket: '<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.4 11h10.4l2-8H7"/>',
+  street: '<path d="M4 9l1-4h14l1 4"/><path d="M4 9h16v11H4z"/><path d="M9 20v-6h6v6"/>',
+  station: '<rect x="5" y="4" width="14" height="12" rx="2"/><path d="M5 11h14"/><circle cx="9" cy="13.5" r=".6"/><circle cx="15" cy="13.5" r=".6"/><path d="M8 20l1.5-4M16 20l-1.5-4"/>',
+  park: '<circle cx="12" cy="8" r="4.5"/><path d="M12 12.5V20M8 20h8"/>',
+  restaurant: '<path d="M4 17a8 8 0 0116 0"/><path d="M2 20h20M12 9V7.5"/>',
+  office: '<rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 20h20l-2-4H4z"/>',
+  gym: '<path d="M7 8v8M17 8v8M4 10v4M20 10v4M7 12h10"/>',
+  gothicdorm: '<path d="M20 14.5A8.5 8.5 0 119.5 4 6.8 6.8 0 0020 14.5z"/>',
+  potions: '<path d="M10 3h4M11 3v6l-5 9a2 2 0 002 3h8a2 2 0 002-3l-5-9V3"/><path d="M8 15h8"/>',
+  herolab: '<rect x="5" y="8" width="14" height="10" rx="2"/><path d="M12 8V4M12 4h.01"/><circle cx="9.5" cy="13" r=".8"/><circle cx="14.5" cy="13" r=".8"/>',
+  starship: '<path d="M12 3c3 2 4.5 6 4.5 10l-4.5 5-4.5-5C7.5 9 9 5 12 3z"/><circle cx="12" cy="10" r="1.8"/><path d="M7.5 13L5 18l3-1M16.5 13L19 18l-3-1"/>',
+  treasure: '<path d="M7 4h10l3 5-8 11L4 9z"/><path d="M4 9h16M12 20L9 9l3-5 3 5z"/>',
+  frontier: '<path d="M12 4l2 4.5 5 .5-3.7 3.3 1 4.9L12 14.7l-4.3 2.5 1-4.9L5 9l5-.5z"/>',
+};
+const LB_SCENE_GENERIC = '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M3 17l5-4 4 3 4-4 5 5"/>';
 
 /* ── Picture worksheets: тема → уровень → одна карточка-путь ──────────────
    Рисунок и слова лежат в data/scenes/<id>.json; на доску идёт только
@@ -20181,16 +20257,15 @@ function _wizRenderScenes(host, skill) {
   const W = worlds.find(w => w.id === world);
   const LVL_NOTE = { A1: 'basic things - window, door, table', A2: 'things and places', B1: 'less common words plus what people do', B2: 'advanced words, collocations and actions' };
   host.innerHTML = `<div class="tb-news-levels" style="margin:0 0 10px"><span class="tb-news-levels-label">Words for</span>${LV.map(l => `<button type="button" class="tb-news-level${l === level ? ' is-on' : ''}" onclick="boardLessonWizard.sceneLevel='${l}';renderLessonWizard()">${l}</button>`).join('')}<span class="tb-sc-lvnote">${esc(LVL_NOTE[level] || '')}</span></div>
-    ${worlds.length ? `<div class="tb-sc-worlds"><button type="button" class="tb-sc-world${world === 'all' ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='all';renderLessonWizard()">All pictures</button>${worlds.map(w => `<button type="button" class="tb-sc-world${world === w.id ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='${w.id}';renderLessonWizard()">${w.icon} ${esc(w.title)}</button>`).join('')}</div>
-    ${W ? `<p class="tb-sc-focus"><b>${W.icon} ${esc(W.title)}</b> · ${esc(W.focus)}${W.theme && window.TeachedThemes ? ` · lands in the <i>${esc((window.TeachedThemes.get(W.theme) || {}).name || '')}</i> theme` : ''}</p>` : ''}` : ''}
-    <div class="tb-wiz-grid">${world === 'all' && SC && SC.maker ? `
-    <button type="button" class="tb-wiz-card" onclick="makeOwnSceneCard()">
-      <span class="tb-wiz-ic">🖼️</span>
+    ${worlds.length ? `<div class="tb-sc-worlds"><button type="button" class="tb-sc-world${world === 'all' ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='all';renderLessonWizard()">All pictures</button>${worlds.map(w => `<button type="button" class="tb-sc-world${world === w.id ? ' is-on' : ''}" onclick="boardLessonWizard.sceneWorld='${w.id}';renderLessonWizard()">${esc(w.title)}</button>`).join('')}</div>
+    ${W ? `<p class="tb-sc-focus"><b>${esc(W.title)}</b> · ${esc(W.focus)}${W.theme && window.TeachedThemes ? ` · lands in the <i>${esc((window.TeachedThemes.get(W.theme) || {}).name || '')}</i> theme` : ''}</p>` : ''}` : ''}
+    <div class="tb-wiz-grid lb-pkgrid">${world === 'all' && SC && SC.maker ? `
+    <button type="button" class="tb-wiz-card lb-pk lb-pk-up" onclick="makeOwnSceneCard()">
+      <span class="tb-wiz-ic lb-plus" aria-hidden="true">+</span>
       <span class="tb-wiz-tx"><b>Your own picture</b><small>Upload any photo or drawing, tap things on it and type the words.</small></span>
-      <span class="tb-wiz-go">+</span>
     </button>` : ''}${cat.map(t => `
-    <button type="button" class="tb-wiz-card${t.ready ? '' : ' is-soon'}" ${t.ready ? `onclick="placeSceneCard('${esc(t.id)}')"` : 'disabled'}>
-      <span class="tb-wiz-ic">${esc(t.icon)}</span>
+    <button type="button" class="tb-wiz-card lb-pk${t.ready ? '' : ' is-soon'}" ${t.ready ? `onclick="placeSceneCard('${esc(t.id)}')"` : 'disabled'}>
+      <span class="tb-wiz-ic lb-glyph">${_lbIcon(LB_SCENE_ICON[t.id] || LB_SCENE_GENERIC)}</span>
       <span class="tb-wiz-tx"><b>${esc(t.title)}</b><small>${esc(t.hint)}</small>${t.inspired ? `<small class="tb-sc-insp">${esc(t.inspired)}</small>` : ''}</span>
       ${t.ready ? '<span class="tb-wiz-go">→</span>' : '<span class="tb-wiz-soon">soon</span>'}
     </button>`).join('')}</div>`;
@@ -21352,7 +21427,7 @@ function _srcPickToggle() {
   if (box.hidden) _pickRenderBox('tbuilder-source', 'tb-src-pick');
   else { box.hidden = true; box.innerHTML = ''; }
   const b = document.getElementById('tb-src-pickme');
-  if (b) { b.classList.toggle('on', !box.hidden); b.textContent = box.hidden ? '🖱 Pick words myself' : '✓ Done picking'; }
+  if (b) { b.classList.toggle('on', !box.hidden); b.textContent = box.hidden ? 'Pick words myself' : '✓ Done picking'; }
   if (!box.hidden) box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 /* Подбор лексики по уровню из скрипта: ИИ берёт слова и фразы ИЗ ТЕКСТА
@@ -21362,7 +21437,7 @@ async function _srcSuggestVocab(btn) {
   const note = document.getElementById('tb-src-vocab-note');
   if (!text || !authToken) { if (note) note.textContent = authToken ? 'Paste a text first.' : 'Sign in to get suggestions.'; return; }
   const level = document.getElementById('tbuilder-level')?.value || 'B1';
-  btn.disabled = true; const was = btn.textContent; btn.textContent = 'Picking words…';
+  btn.disabled = true; const was = btn.innerHTML; btn.textContent = 'Picking words…';
   try {
     const r = await apiFetch('/api/ai/pick-vocab', { method: 'POST', body: { text: text.slice(0, 12000), level, count: 10 } });
     const d = r.ok ? await r.json() : null;
@@ -21374,7 +21449,7 @@ async function _srcSuggestVocab(btn) {
     ta.dispatchEvent(new Event('input', { bubbles: true }));
     if (note) note.textContent = add.length ? `Added ${add.length} for ${level}. Remove any you don't need.` : 'No new words found.';
   } catch { if (note) note.textContent = 'Could not pick words - try again.'; }
-  btn.disabled = false; btn.textContent = was;
+  btn.disabled = false; btn.innerHTML = was;
 }
 function _wizExtractReady() {
   const src = typeof boardWizardSource === 'function' ? boardWizardSource() : null;
@@ -23691,7 +23766,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1239',
+          icon: 'icons/icon-192.png?v=1240',
           tag: 'board-live-' + s.id,
         });
       }

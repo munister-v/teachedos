@@ -373,14 +373,19 @@ ${HI}::before{content:'' !important;display:block !important;position:fixed;left
     });
   }
   // Небольшая сетка выбора прямо в форме (карта урока, мастер Picture Studio).
-  function gridHtml(current, name) {
+  // opts.cards (Lesson Builder v2.0 №5): a card per theme - its name and the line under it, no emoji.
+  function gridHtml(current, name, opts) {
+    if (opts && opts.cards) {
+      return `<div class="lt-grid lt-cards" data-name="${name || 'theme'}">${THEMES.map(t => `<button type="button" class="lt-grid-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}" aria-pressed="${(current || '') === t.id}">
+      <b>${t.name}</b><small>${t.hint}</small></button>`).join('')}</div>`;
+    }
     return `<div class="lt-grid" data-name="${name || 'theme'}">${THEMES.map(t => `<button type="button" class="lt-grid-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}" title="${t.hint}">
       <span class="lt-sw" style="${t.id ? `background:${t.bg};background-size:auto` : 'background:#F6F6EF'}"><i style="background:${t.id ? t.surface : '#fff'}"></i><b style="background:${t.id ? t.accent : '#CDF649'}"></b></span>
       <small>${t.ic} ${t.name}</small></button>`).join('')}</div>`;
   }
   function bindGrid(root, onPick) {
     root.querySelectorAll('.lt-grid-o').forEach(b => b.addEventListener('click', () => {
-      root.querySelectorAll('.lt-grid-o').forEach(x => x.classList.toggle('on', x === b));
+      root.querySelectorAll('.lt-grid-o').forEach(x => { x.classList.toggle('on', x === b); if (x.hasAttribute('aria-pressed')) x.setAttribute('aria-pressed', String(x === b)); });
       onPick(b.dataset.t);
     }));
   }

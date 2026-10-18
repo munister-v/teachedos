@@ -92,7 +92,7 @@
   function load(id, out) {
     if (out && out.custom) return Promise.resolve(buildCustom(Object.assign({ id: id || 'custom' }, out.custom)));
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1239`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1240`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -1152,30 +1152,42 @@
   /* ── the draft: what the teacher is about to put on the board (Lesson Builder 2.0 P1, T-P2) ──
      The picture, the words for the level (each can be taken out), a sample of what each of
      the six tasks will ask, and one explicit "Add to board". Nothing is placed before it. */
+  /* Lesson Builder v2.0 №7, screen 2 "Check the picture": an ink status pill with a lime dot and the
+     meta line, the words-for switch on the right; the drawing on the left, the word chips (level badge,
+     round ×, "+N more") and six task samples on the right; Add to board flat lime, Back to pictures ink. */
   const DRAFT_CSS = `
-.scd{--ink:#24282C;--muted:#6B6E60;--lime:#CDF649;--line:rgba(36,40,44,.14);display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 230px);min-height:0;font-family:var(--te-font-ui,-apple-system,system-ui,sans-serif);color:var(--ink)}
-.scd-head b{display:block;font-size:15px;font-weight:700}.scd-head small{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
-.scd-body{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;padding-right:2px}
-.scd-art{flex:none;height:130px;border-radius:12px;overflow:hidden;background:linear-gradient(#DCEAF3,#F7F4EC);border:1px solid var(--line)}
+.scd{--ink:#0B1026;--muted:#6E7482;--lime:#D3F26A;--line:#E7E5D8;display:flex;flex-direction:column;gap:14px;font-family:'LB Manrope',Manrope,-apple-system,'Segoe UI',sans-serif;color:var(--ink)}
+.scd-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.scd-pill{display:inline-flex;align-items:center;gap:7px;background:var(--ink);color:#fff;font:800 12px 'LB Manrope',Manrope,sans-serif;border-radius:999px;padding:8px 14px}
+.scd-pill i{width:7px;height:7px;border-radius:50%;background:var(--lime)}
+.scd-meta{font:700 12.5px 'LB Manrope',Manrope,sans-serif;color:var(--muted)}
+.scd-lv{margin-left:auto;display:flex;align-items:center;gap:6px}
+.scd-lv span{font:800 10.5px 'LB Manrope',Manrope,sans-serif;letter-spacing:1.6px;color:rgba(11,16,38,.48);text-transform:uppercase}
+.scd-lv button{border:1.5px solid var(--line);background:#fff;font:800 13px 'LB Manrope',Manrope,sans-serif;color:var(--muted);border-radius:999px;padding:6px 13px;cursor:pointer;min-height:32px}
+.scd-lv button.on{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:0 8px 18px rgba(11,16,38,.18)}
+.scd-body{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;min-height:0}
+.scd-art{border-radius:20px;overflow:hidden;background:#EFEDE0;border:1px solid rgba(255,255,255,.9);min-height:300px}
 .scd-art svg{width:100%;height:100%;display:block}
-.scd-lv{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:11.5px;font-weight:600;color:var(--muted)}
-.scd-lv button{min-width:38px;min-height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;font:650 12px inherit;font-family:inherit;color:var(--muted);cursor:pointer}
-.scd-lv button.on{background:var(--lime);border-color:#D3F36B;color:var(--ink)}
-.scd h4{margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
-.scd-words{display:flex;flex-wrap:wrap;gap:5px;max-height:132px;overflow:auto;padding:2px}
-.scd-w{display:inline-flex;align-items:center;gap:5px;padding:4px 4px 4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:600}
-.scd-w i{font-style:normal;font-size:10px;font-weight:700;color:var(--muted);background:#F4F3EC;border-radius:6px;padding:1px 5px}
-.scd-w button{width:20px;height:20px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:14px;line-height:1;cursor:pointer}
-.scd-w button:hover{background:#F4F3EC;color:var(--ink)}
+.scd-h{font:800 10.5px 'LB Manrope',Manrope,sans-serif;letter-spacing:1.8px;color:rgba(11,16,38,.48);margin:2px 0 9px 2px;text-transform:uppercase}
+.scd-h + .scd-h,.scd-words + .scd-h{margin-top:16px}
+.scd-words{display:flex;flex-wrap:wrap;gap:7px}
+.scd-w{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 7px 6px 13px;font:800 13px 'LB Manrope',Manrope,sans-serif}
+.scd-w i{font:800 10px 'LB Manrope',Manrope,sans-serif;font-style:normal;color:var(--muted);background:#EFEDE0;border-radius:6px;padding:2px 5px}
+.scd-w button{width:21px;height:21px;border-radius:50%;border:0;background:rgba(11,16,38,.07);color:var(--ink);font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.scd-w button:hover{background:rgba(11,16,38,.14)}
 .scd-w.off{border-style:dashed;color:var(--muted);text-decoration:line-through}
-.scd-w.off button{text-decoration:none;font-size:11px;width:auto;padding:0 6px;border-radius:999px}
-.scd-tasks{display:grid;gap:5px;margin:0;padding:0;list-style:none}
-.scd-tasks li{display:flex;gap:9px;align-items:baseline;font-size:12.5px;line-height:1.4;padding:7px 10px;border-radius:10px;background:#F7F6F1}
-.scd-tasks b{flex:0 0 74px;font-size:12px}
-.scd-note{font-size:12px;color:var(--muted);min-height:16px}
-.scd-act{display:flex;flex-wrap:wrap;gap:8px;flex:none;padding-top:2px}
-.scd-act button{border:0;border-radius:12px;padding:9px 14px;font:650 12.5px inherit;font-family:inherit;cursor:pointer;background:#5D614B;color:#fff}
-.scd-act button.lime{background:var(--lime);color:var(--ink)}
+.scd-w.off button{width:auto;padding:0 8px;border-radius:999px;text-decoration:none;font:700 11px 'LB Manrope',Manrope,sans-serif}
+.scd-more{border:0;background:var(--ink);color:var(--lime);font:800 13px 'LB Manrope',Manrope,sans-serif;border-radius:999px;padding:7px 13px;cursor:pointer}
+.scd-tasks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0;padding:0;list-style:none}
+.scd-tasks li{background:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.95);border-radius:14px;padding:11px 13px}
+.scd-tasks b{display:block;font-size:13px;font-weight:800;margin-bottom:3px}
+.scd-tasks span{display:block;font-size:11.5px;font-weight:500;color:var(--muted);line-height:1.4}
+.scd-note{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:12px;min-height:16px}
+.scd-act{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.scd-act button{border:0;cursor:pointer;font:800 15px 'LB Manrope',Manrope,sans-serif;border-radius:14px;padding:14px 26px}
+.scd-act button.lime{background:var(--lime);color:var(--ink);box-shadow:0 6px 18px rgba(154,168,42,.35),inset 0 1.5px 0 rgba(255,255,255,.55)}
+.scd-act button.ink{background:var(--ink);color:#fff;border-radius:999px;font-size:13.5px;padding:11px 18px}
+@media (max-width:760px){.scd-body{grid-template-columns:1fr}.scd-tasks{grid-template-columns:1fr 1fr}.scd-art{min-height:200px}.scd-lv{margin-left:0}}
 `;
   function draft(el, spec, h) {
     css();
@@ -1192,35 +1204,44 @@
         const tf = (sc.truefalse || []).filter(q => rank(q.level) <= rank(state.level))[0];
         const pr = ((sc.prompts || {})[state.level] || [])[0];
         return [
-          ['🔍 Explore', 'Tap anything on the picture to hear its word and see what it means.'],
-          ['🎯 Find', a ? `“Find the ${a.word}.” Students tap it on the picture.` : 'Students find a named thing on the picture.'],
-          ['✏️ Name', b && b.def ? `“${b.def}” Students type the word.` : 'Students type the word for a thing that is pointed out.'],
-          ['🏷️ Label', `Students drag ${Math.min(6, it.length)} word labels onto the right things.`],
-          ['⚖️ True?', tf ? `“${tf.s}” True or false?` : 'Students judge sentences about the picture.'],
-          ['💬 Talk', pr ? `“${pr}”` : 'Students talk or write about the picture using its words.'],
+          ['Explore', 'Tap anything on the picture to hear its word and see what it means.'],
+          ['Find', a ? `“Find the ${a.word}.” Students tap it on the picture.` : 'Students find a named thing on the picture.'],
+          ['Name', b && b.def ? `“${b.def}” Students type the word.` : 'Students type the word for a thing that is pointed out.'],
+          ['Label', `Students drag ${Math.min(6, it.length)} word labels onto the right things.`],
+          ['True?', tf ? `“${tf.s}” True or false?` : 'Students judge sentences about the picture.'],
+          ['Talk', pr ? `“${pr}”` : 'Students talk or write about the picture using its words.'],
         ];
       };
+      const SHOW = 12;                                              // chips before "+N more"
       const paint = () => {
         const n = stats(sc, state.level, [...state.skip]);
+        const words = live();
+        const shown = state.allWords ? words : words.slice(0, SHOW);
         el.innerHTML = `<div class="scd">
-          <div class="scd-head"><b>Draft - not on the board yet</b>
-            <small>${esc(spec.title || sc.title)} · ${sc.image ? '' : esc(state.level) + ' level · '}${n.words} words · ${sc.image ? 'tasks and worksheet' : '6 tasks'}</small></div>
-          <div class="scd-body"><div class="scd-art"><svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${stillArt(sc)}</svg></div>
-          ${sc.image ? '' : `<div class="scd-lv" role="group" aria-label="Words for"><span>Words for</span>${LEVELS.map(l => `<button type="button" data-level="${l}" class="${state.level === l ? 'on' : ''}">${l}</button>`).join('')}</div>`}
-          <div><h4>Words on the picture · tap × to take one out</h4>
-            <div class="scd-words">${live().map(p => state.skip.has(p.id)
-              ? `<span class="scd-w off">${esc(p.word)}<button type="button" data-back="${esc(p.id)}" aria-label="Put ${esc(p.word)} back">put back</button></span>`
-              : `<span class="scd-w">${esc(p.word)}<i>${esc(p.level === '*' ? '' : p.level)}</i><button type="button" data-out="${esc(p.id)}" aria-label="Take ${esc(p.word)} out">×</button></span>`).join('')}</div></div>
-          <div><h4>A sample of the tasks</h4><ul class="scd-tasks">${samples().map(([k, t]) => `<li><b>${k}</b><span>${esc(t)}</span></li>`).join('')}</ul></div>
+          <div class="scd-bar"><span class="scd-pill"><i></i>Draft — not on the board yet</span>
+            <span class="scd-meta">${esc(spec.title || sc.title)} · ${sc.image ? '' : esc(state.level) + ' level · '}${n.words} words · ${sc.image ? 'tasks and worksheet' : '6 tasks'}</span>
+            ${sc.image ? '' : `<span class="scd-lv" role="group" aria-label="Words for"><span>Words for</span>${LEVELS.map(l => `<button type="button" data-level="${l}" class="${state.level === l ? 'on' : ''}" aria-pressed="${state.level === l}">${l}</button>`).join('')}</span>`}
           </div>
-          <span class="scd-note" id="scd-note">${esc(state.note || 'Look it over. Nothing reaches the board until you add it.')}</span>
-          <div class="scd-act"><button type="button" class="lime" data-act="add">Add to board</button><button type="button" data-act="back">Back to pictures</button></div>
+          <div class="scd-body"><div class="scd-art"><svg viewBox="${viewBox(sc)}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${stillArt(sc)}</svg></div>
+          <div>
+            <div class="scd-h">Words on the picture · tap × to take one out</div>
+            <div class="scd-words">${shown.map(p => state.skip.has(p.id)
+              ? `<span class="scd-w off">${esc(p.word)}<button type="button" data-back="${esc(p.id)}" aria-label="Put ${esc(p.word)} back">put back</button></span>`
+              : `<span class="scd-w">${esc(p.word)}${p.level === '*' ? '' : `<i>${esc(p.level)}</i>`}<button type="button" data-out="${esc(p.id)}" aria-label="Take ${esc(p.word)} out">×</button></span>`).join('')}${words.length > SHOW
+              ? `<button type="button" class="scd-more" data-more="1">${state.allWords ? 'Show fewer' : `+ ${words.length - SHOW} more`}</button>` : ''}</div>
+            <div class="scd-h">A sample of the tasks</div>
+            <ul class="scd-tasks">${samples().map(([k, t]) => `<li><b>${k}</b><span>${esc(t)}</span></li>`).join('')}</ul>
+            <span class="scd-note" id="scd-note">${esc(state.note || 'Look it over. Nothing reaches the board until you add it.')}</span>
+          </div>
+          </div>
+          <div class="scd-act"><button type="button" class="lime" data-act="add">Add to board</button><button type="button" class="ink" data-act="back">Back to pictures</button></div>
         </div>`;
       };
       el.onclick = ev => {
         const b = ev.target.closest('button');
         if (!b || !el.contains(b)) return;
-        if (b.dataset.level) { state.level = b.dataset.level; state.note = ''; paint(); }
+        if (b.dataset.more) { state.allWords = !state.allWords; paint(); }
+        else if (b.dataset.level) { state.level = b.dataset.level; state.note = ''; paint(); }
         else if (b.dataset.out) {
           if (kept().length <= MIN) { state.note = `Keep at least ${MIN} words - a picture needs them to make tasks.`; paint(); return; }
           state.skip.add(b.dataset.out); state.note = ''; paint();
