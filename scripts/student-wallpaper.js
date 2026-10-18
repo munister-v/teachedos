@@ -84,7 +84,8 @@ body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255
     if (value && value.startsWith('custom:')) own.push(`<button type="button" class="sw-tile on" data-v="${esc(value)}"><span class="sw-swatch" style="background:${css(value).replace(/"/g, '&quot;')}"></span><span class="sw-label">Your photo</span></button>`);
     own.push(`<button type="button" class="sw-tile" data-up="1"><span class="sw-swatch">📷 Drop a photo or click</span><span class="sw-label">${value && value.startsWith('custom:') ? 'Replace your photo' : 'Upload a photo'}</span></button>`);
     g.innerHTML = `<section class="sw-group"><h3>Your own</h3><div class="sw-row">${own.join('')}</div></section>` +
-      W.groups.map(gr => `<section class="sw-group"><h3>${esc(gr.title)}</h3><div class="sw-row">${W.presets.filter(p => p.group === gr.key).map(tile).join('')}</div></section>`).join('');
+      // the World map is the teacher's desktop (their students, their trips): not offered here
+      W.groups.filter(gr => gr.key !== 'map').map(gr => `<section class="sw-group"><h3>${esc(gr.title)}</h3><div class="sw-row">${W.presets.filter(p => p.group === gr.key).map(tile).join('')}</div></section>`).join('');
     const stock = document.querySelector('#sw-ov .sw-stock-group');
     if (stock) g.firstElementChild.after(stock);
   }

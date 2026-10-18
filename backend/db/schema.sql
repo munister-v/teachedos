@@ -1610,3 +1610,9 @@ ALTER TABLE boards ADD COLUMN IF NOT EXISTS starred     BOOLEAN NOT NULL DEFAULT
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS trashed_at  TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS idx_boards_trashed ON boards(trashed_at) WHERE trashed_at IS NOT NULL;
+
+-- Where the student lives (the Journal card): the World map background puts a pin there.
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS country VARCHAR(48);
+ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS city VARCHAR(80);
+-- The World map background: the countries the teacher has marked as visited.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS world_visited JSONB NOT NULL DEFAULT '[]';

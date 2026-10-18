@@ -178,6 +178,7 @@ function applyWallpaper(value) {
   // a live background (Star luxe, Pixel diamond) runs its own canvas at the back of the desk
   if (window.TeachedStars) { if (preset && preset.live === 'stars') window.TeachedStars.mount(desk); else window.TeachedStars.unmount(); }
   if (window.TeachedPixels) { if (preset && preset.live === 'pixels') window.TeachedPixels.mount(desk); else window.TeachedPixels.unmount(); }
+  if (window.TeachedWorld) { if (preset && preset.live === 'world') worldMount(desk, preset.world); else window.TeachedWorld.unmount(); }
   renderWallCredit(preset);
   try { _wallValue ? localStorage.setItem(WALL_CACHE_KEY, _wallValue) : localStorage.removeItem(WALL_CACHE_KEY); } catch (_) {}
   document.querySelectorAll('.wp-tile').forEach(t => t.classList.toggle('is-on', (t.dataset.value || '') === (_wallValue || '')));
@@ -185,9 +186,49 @@ function applyWallpaper(value) {
 // Сразу из кэша - чтобы при загрузке не мигал стандартный фон.
 try { applyWallpaper(localStorage.getItem(WALL_CACHE_KEY)); } catch (_) {}
 
+/* The World map background: the countries you marked follow the account
+   (/api/users/me/world-visited), where your students live comes from the
+   Journal (Country / City on the student's card). */
+const WORLD_CACHE_KEY = 'teachedos_world_visited';
+let _worldVisited = null, _worldFeedAt = 0, _worldSaveT = 0;
+function worldMount(desk, theme) {
+  if (_worldVisited == null) { try { _worldVisited = JSON.parse(localStorage.getItem(WORLD_CACHE_KEY) || '[]'); } catch (_) { _worldVisited = []; } }
+  window.TeachedWorld.mount(desk, { theme, visited: _worldVisited, onVisited: worldSaveVisited });
+  worldLoadFeed();
+}
+function worldSaveVisited(list) {
+  _worldVisited = list;
+  try { localStorage.setItem(WORLD_CACHE_KEY, JSON.stringify(list)); } catch (_) {}
+  clearTimeout(_worldSaveT);
+  _worldSaveT = setTimeout(() => {
+    dxJson('/api/users/me/world-visited', { method: 'PUT', body: { visited: list } })
+      .then(r => { if (!r.ok) dxToast('The map could not save your countries. Try again.'); })
+      .catch(() => dxToast('The map could not save your countries. Try again.'));
+  }, 700);
+}
+async function worldLoadFeed(force) {
+  if (!_authToken || !window.TeachedWorld || (!force && Date.now() - _worldFeedAt < 60000)) return;
+  _worldFeedAt = Date.now();
+  const r = await dxJson('/api/journal').catch(() => null);
+  if (!r || !r.ok) return;
+  window.TeachedWorld.setFeed((r.data?.students || []).filter(s => s.country)
+    .map(s => ({ student: String(s.name || '').trim().split(/\s+/)[0] || 'Student', country: s.country, city: s.city })));
+}
+window.worldLoadFeed = worldLoadFeed;
+// the student card's Country field suggests the names the map knows
+(function fillCountryList() {
+  const dl = document.getElementById('students-country-list');
+  if (dl && window.TeachedWorld && !dl.options.length) dl.innerHTML = window.TeachedWorld.countries.map(c => `<option value="${esc(c)}"></option>`).join('');
+})();
+
 async function loadWallpaper() {
   if (!_authToken) return;
   const r = await dxJson('/api/users/me/desktop').catch(() => null);
+  if (r && r.ok && Array.isArray(r.data?.world)) {
+    _worldVisited = r.data.world;
+    try { localStorage.setItem(WORLD_CACHE_KEY, JSON.stringify(_worldVisited)); } catch (_) {}
+    window.TeachedWorld?.setVisited(_worldVisited);
+  }
   if (r && r.ok) applyWallpaper(r.data?.wallpaper || null);
   if (r && r.ok && r.data?.week) { _weekPrefs = { goal: 4, currency: 'USD', ...r.data.week }; renderWeekChart(); }
 }

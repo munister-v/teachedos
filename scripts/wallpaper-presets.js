@@ -26,6 +26,12 @@
        gradient is what shows where the live layer does not run. */
     { key: 'pixel-diamond', group: 'colour', title: 'Pixel diamond', live: 'pixels', glass: true, css: 'radial-gradient(circle, rgba(255,255,255,.7) 2.4px, transparent 3px) 0 0 / 15px 15px, linear-gradient(162deg, #F5F7FA 0%, #DCE2EB 100%)' },
     /* Узоры - тоже чистый CSS, в цветах TeachEd. */
+    /* World map (world-map-wallpaper3, Kristina 17.10.2026): a live dotted world - your
+       students' countries from the Journal, the countries you have been to. Three palettes;
+       the dotted gradient is what shows where the live layer does not run. */
+    { key: 'world-ink', group: 'map', title: 'World · night', live: 'world', world: 'ink', dark: true, glass: true, css: 'radial-gradient(circle, rgba(232,230,217,.2) 1.3px, transparent 1.7px) 0 0 / 15px 15px, linear-gradient(160deg, #090D18 0%, #131B31 100%)' },
+    { key: 'world-sand', group: 'map', title: 'World · sand', live: 'world', world: 'sand', glass: true, css: 'radial-gradient(circle, rgba(38,42,46,.22) 1.3px, transparent 1.7px) 0 0 / 15px 15px, linear-gradient(160deg, #F4F1E4 0%, #E8E3CF 100%)' },
+    { key: 'world-silver', group: 'map', title: 'World · silver', live: 'world', world: 'silver', glass: true, css: 'radial-gradient(circle, rgba(35,45,64,.22) 1.3px, transparent 1.7px) 0 0 / 15px 15px, linear-gradient(160deg, #EFF2F6 0%, #D7DEE9 100%)' },
     { key: 'dots',     group: 'pattern', title: 'Dot grid',   css: 'radial-gradient(circle, rgba(22,22,22,.16) 1.2px, transparent 1.6px) 0 0 / 22px 22px, #F2F2F5' },
     { key: 'paper',    group: 'pattern', title: 'Grid paper', css: 'linear-gradient(rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, linear-gradient(90deg, rgba(92,92,102,.09) 1px, transparent 1px) 0 0 / 28px 28px, #F7F7F9' },
     { key: 'lime-dots', group: 'pattern', title: 'Lime dots', css: 'radial-gradient(circle, rgba(168,194,31,.55) 2px, transparent 2.6px) 0 0 / 30px 30px, linear-gradient(170deg, #F7F9EF 0%, #ECEFE4 100%)' },
@@ -83,6 +89,7 @@
   if (DEFAULT && DEFAULT_PIXELS) Object.assign(DEFAULT, { title: 'TeachEd default', css: DEFAULT_PIXELS.css, live: 'pixels', glass: true });
   const WALL_GROUPS = [
     { key: 'colour', title: 'Colours' },
+    { key: 'map', title: 'World map · live' },
     { key: 'photo', title: 'Photos' },
     { key: 'city', title: 'Cities' },
     { key: 'art', title: 'Art' },

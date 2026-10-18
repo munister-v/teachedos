@@ -26,6 +26,7 @@ const WALL_PRESETS = new Set([
   'starry-night', 'great-wave', 'wheatfield',
   'pastel-clouds', 'pixel-night', 'neon-city', 'sunset-ridges',
   'star-luxe', 'pixel-diamond',
+  'world-ink', 'world-sand', 'world-silver',
 ]);
 const WALL_MAX_BYTES = 4 * 1024 * 1024;
 
@@ -63,8 +64,8 @@ router.use(requireAuth);
 
 router.get('/me/desktop', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT desktop_wallpaper, week_prefs FROM users WHERE id=$1', [req.user.id]);
-    res.json({ wallpaper: rows[0]?.desktop_wallpaper || null, week: rows[0]?.week_prefs || {} });
+    const { rows } = await pool.query('SELECT desktop_wallpaper, week_prefs, world_visited FROM users WHERE id=$1', [req.user.id]);
+    res.json({ wallpaper: rows[0]?.desktop_wallpaper || null, week: rows[0]?.week_prefs || {}, world: rows[0]?.world_visited || [] });
   } catch (err) {
     console.error('[users/desktop]', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -94,6 +95,29 @@ router.put('/me/week-prefs', async (req, res) => {
 });
 
 // Готовый фон из набора (или null - вернуть стандартный).
+/* The World map background: the countries the teacher has marked as visited
+   ({ n: name, lon, lat } - where the pin stands). It follows the account. */
+router.put('/me/world-visited', async (req, res) => {
+  const list = Array.isArray(req.body?.visited) ? req.body.visited : null;
+  if (!list) return res.status(400).json({ error: 'visited must be a list' });
+  const seen = new Set();
+  const clean = [];
+  for (const v of list.slice(0, 250)) {
+    const n = typeof v?.n === 'string' ? v.n.trim().slice(0, 40) : '';
+    const lon = Number(v?.lon), lat = Number(v?.lat);
+    if (!n || seen.has(n) || !(lon >= -180 && lon <= 180) || !(lat >= -90 && lat <= 90)) continue;
+    seen.add(n);
+    clean.push({ n, lon: Math.round(lon * 10) / 10, lat: Math.round(lat * 10) / 10 });
+  }
+  try {
+    await pool.query('UPDATE users SET world_visited=$2 WHERE id=$1', [req.user.id, JSON.stringify(clean)]);
+    res.json({ world: clean });
+  } catch (err) {
+    console.error('[users/world-visited]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.put('/me/desktop', async (req, res) => {
   const key = req.body?.wallpaper == null ? null : String(req.body.wallpaper);
   const value = key && WALL_PRESETS.has(key.replace(/^preset:/, '')) ? `preset:${key.replace(/^preset:/, '')}` : null;

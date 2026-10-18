@@ -26,15 +26,15 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, email='', level='A2', lessons_left=0, payment_due=null, format=null, telegram=null, phone=null, is_trial=false } = req.body;
+  const { name, email='', level='A2', lessons_left=0, payment_due=null, format=null, telegram=null, phone=null, is_trial=false, country=null, city=null } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
   if (payment_due && !/^\d{4}-\d{2}-\d{2}$/.test(String(payment_due))) return res.status(400).json({ error: 'payment_due must be YYYY-MM-DD' });
   const fmt = ['individual', 'group'].includes(format) ? format : null;
   const { rows } = await pool.query(
-    `INSERT INTO student_journal (teacher_id,name,email,level,lessons_left,payment_due,format,telegram,phone,is_trial)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    `INSERT INTO student_journal (teacher_id,name,email,level,lessons_left,payment_due,format,telegram,phone,is_trial,country,city)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
     [req.user.id, name.trim(), email.trim(), level, Math.max(0, parseInt(lessons_left, 10) || 0), payment_due || null,
-     fmt, cleanContact(telegram, 64), cleanContact(phone, 32), is_trial === true]
+     fmt, cleanContact(telegram, 64), cleanContact(phone, 32), is_trial === true, cleanContact(country, 48), cleanContact(city, 80)]
   );
   const st = rows[0];
   await ledger(pool, { journalId: st.id, teacherId: req.user.id, delta: st.lessons_left, after: st.lessons_left, reason: 'manual', note: 'Starting balance' }).catch(() => {});
@@ -660,8 +660,10 @@ router.post('/:id/message', (req, res) => {
 });
 
 router.patch('/:id', async (req, res) => {
-  const { name, email, level, lessons_left, notes, payment_due, format, telegram, phone, is_trial } = req.body;
+  const { name, email, level, lessons_left, notes, payment_due, format, telegram, phone, is_trial, country, city } = req.body;
   const sets=[]; const p=[req.params.id, req.user.id];
+  if (country!==undefined)      { p.push(cleanContact(country, 48)); sets.push(`country=$${p.length}`); }
+  if (city!==undefined)         { p.push(cleanContact(city, 80));    sets.push(`city=$${p.length}`); }
   if (format!==undefined)       { p.push(['individual','group'].includes(format) ? format : null); sets.push(`format=$${p.length}`); }
   if (telegram!==undefined)     { p.push(cleanContact(telegram, 64)); sets.push(`telegram=$${p.length}`); }
   if (phone!==undefined)        { p.push(cleanContact(phone, 32));    sets.push(`phone=$${p.length}`); }

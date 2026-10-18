@@ -202,13 +202,13 @@ router.get('/roster', requireAuth, async (req, res) => {
              (ARRAY_AGG(s.board_id::text) FILTER (WHERE s.is_home))[1] AS home_board_id,
              BOOL_OR(s.board_size = 1) AS individual,
              BOOL_OR(s.board_size > 1) AS in_group,
-             j.id AS journal_id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at, j.is_trial, j.minor, j.guardian_name, j.consent_at, j.notes,
+             j.id AS journal_id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.country, j.city, j.pack_size, j.paid_claim_at, j.is_trial, j.minor, j.guardian_name, j.consent_at, j.notes,
              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
              q.quiz_avg, q.quiz_count, d.goal AS dna_goal, d.interests AS dna_interests, d.level AS dna_level, d.daily_minutes AS dna_daily
         FROM seats s
         JOIN users u ON u.id = s.user_id
         LEFT JOIN LATERAL (
-          SELECT id, level, lessons_left, format, telegram, phone, payment_due, pack_size, paid_claim_at, is_trial, minor, guardian_name, consent_at, notes FROM student_journal
+          SELECT id, level, lessons_left, format, telegram, phone, country, city, payment_due, pack_size, paid_claim_at, is_trial, minor, guardian_name, consent_at, notes FROM student_journal
            WHERE teacher_id = $1 AND (student_id = u.id OR LOWER(email) = LOWER(u.email))
            ORDER BY (student_id = u.id) DESC NULLS LAST, created_at DESC
            LIMIT 1
@@ -224,7 +224,7 @@ router.get('/roster', requireAuth, async (req, res) => {
         ) q ON TRUE
        -- every d.* column the SELECT reads must be here: d.daily_minutes was
        -- added above without it (v1154) and the whole roster answered 500
-       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.payment_due, j.pack_size, j.paid_claim_at, j.is_trial, j.minor, j.guardian_name, j.consent_at, j.notes, q.quiz_avg, q.quiz_count, d.goal, d.interests, d.level, d.daily_minutes
+       GROUP BY u.id, j.id, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.country, j.city, j.payment_due, j.pack_size, j.paid_claim_at, j.is_trial, j.minor, j.guardian_name, j.consent_at, j.notes, q.quiz_avg, q.quiz_count, d.goal, d.interests, d.level, d.daily_minutes
        ORDER BY u.name
     `, [req.user.id]);
 
@@ -235,7 +235,7 @@ router.get('/roster', requireAuth, async (req, res) => {
        Без них добавленный через «+» ученик пропадал из списка до регистрации. */
     const seen = rows.map(r => r.journal_id).filter(Boolean);
     const { rows: pending } = await pool.query(`
-      SELECT j.id AS journal_id, j.name, j.email, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.pack_size, j.paid_claim_at, j.is_trial, j.notes,
+      SELECT j.id AS journal_id, j.name, j.email, j.level, j.lessons_left, j.format, j.telegram, j.phone, j.country, j.city, j.pack_size, j.paid_claim_at, j.is_trial, j.notes,
              to_char(j.payment_due, 'YYYY-MM-DD') AS payment_due,
              EXISTS (SELECT 1 FROM invites i JOIN boards b ON b.id = i.board_id
                       WHERE b.user_id = $1 AND i.accepted_at IS NULL

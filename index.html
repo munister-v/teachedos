@@ -2327,11 +2327,17 @@ html,body {
             </div>
 
             <details class="st-more">
-              <summary>Contacts (optional)</summary>
+              <summary>Contacts and where they live (optional)</summary>
               <label class="st-add-label" for="students-add-tg">Telegram</label>
               <input class="st-add-input" id="students-add-tg" type="text" placeholder="@username" autocomplete="off" maxlength="64">
               <label class="st-add-label" for="students-add-phone">WhatsApp</label>
               <input class="st-add-input" id="students-add-phone" type="tel" placeholder="+380 67 123 45 67" autocomplete="off" maxlength="32">
+              <label class="st-add-label" for="students-add-country">Country</label>
+              <input class="st-add-input" id="students-add-country" type="text" placeholder="Poland" autocomplete="off" maxlength="48" list="students-country-list">
+              <datalist id="students-country-list"></datalist>
+              <label class="st-add-label" for="students-add-city">City</label>
+              <input class="st-add-input" id="students-add-city" type="text" placeholder="Warsaw" autocomplete="off" maxlength="80">
+              <div class="st-add-hint">With a country the student shows up on the World map background.</div>
             </details>
 
             <label class="st-add-label" for="students-add-board">Board</label>
@@ -2668,6 +2674,7 @@ html,body {
 <script src="scripts/wallpaper-presets.js?v=1241"></script>
 <script src="scripts/star-luxe.js?v=1241"></script>
 <script src="scripts/pixel-diamond.js?v=1241"></script>
+<script src="scripts/world-map.js?v=1241"></script>
 <script src="scripts/desktop-extras.js?v=1241"></script>
 <script src="scripts/desk-actions.js?v=1241"></script>
 

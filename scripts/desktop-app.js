@@ -2250,6 +2250,7 @@ function studentsAddFor(id) {
   const set = (k, v) => { const el = document.getElementById(k); if (el) el.value = v || ''; };
   set('students-add-name', s.name); set('students-add-email', s.email);
   set('students-add-tg', s.telegram); set('students-add-phone', s.phone);
+  set('students-add-country', s.country); set('students-add-city', s.city);
   if (s.level) _segSet('students-add-level', s.level);
   _segSet('students-add-format', s.in_group && !s.individual ? 'group' : 'individual');
   const sel = document.getElementById('students-add-board'); if (sel) sel.value = '';
@@ -2300,6 +2301,7 @@ async function studentsAddSubmit(e) {
     format: _segVal('students-add-format') || 'individual',
     lessons_left: Math.max(0, parseInt(val('students-add-pkg'), 10) || 0),
     telegram: val('students-add-tg'), phone: val('students-add-phone'),
+    country: val('students-add-country'), city: val('students-add-city'),
   };
   const auth = { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken };
   if (btn) btn.disabled = true;
@@ -2311,6 +2313,7 @@ async function studentsAddSubmit(e) {
       method: same ? 'PATCH' : 'POST', headers: auth, body: JSON.stringify(payload),
     });
     if (!jr.ok) { const d = await jr.json().catch(() => ({})); setMsg(d.error || `Could not save (HTTP ${jr.status})`, true); return; }
+    if (typeof worldLoadFeed === 'function') worldLoadFeed(true);   // a country on the card puts a pin on the World map
 
     // 2) Доска: по почте - сразу на доску или приглашение.
     let note = `✓ ${name} added with ${payload.lessons_left} lesson${payload.lessons_left === 1 ? '' : 's'}.`;
