@@ -6,6 +6,9 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="An interactive illustrated wallpaper of Ukraine: every region, 28 cities and the country's folk treasures — tap a place to discover what it is famous for." />
     <link rel="icon" href="data:," />
+    <script>/* opened as a desktop background (?wall=1): no way out to the series, the map is the desk */
+if (/[?&]wall=1\b/.test(location.search)) document.documentElement.classList.add("is-wall");</script>
+    <style>html.is-wall .series-back{display:none !important}</style>
     <title>Interactive Wallpaper — Map of Ukraine</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

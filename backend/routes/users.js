@@ -27,7 +27,7 @@ const WALL_PRESETS = new Set([
   'pastel-clouds', 'pixel-night', 'neon-city', 'sunset-ridges',
   'ua-kitchen', 'ua-christmas-eve', 'ua-easter', 'ua-wedding', 'ua-bread-and-salt', 'ua-vyshyvanka', 'ua-ivan-kupala',
   'ua-harvest', 'ua-songs-at-the-table', 'ua-st-nicholas', 'ua-masnytsia', 'ua-petrykivka', 'ua-ukrainian-khata',
-  'star-luxe', 'pixel-diamond',
+  'star-luxe', 'ua-map', 'pixel-diamond',
   'world-ink', 'world-sand', 'world-silver',
 ]);
 const WALL_MAX_BYTES = 4 * 1024 * 1024;

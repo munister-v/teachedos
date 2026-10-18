@@ -179,6 +179,7 @@ function applyWallpaper(value) {
   if (window.TeachedStars) { if (preset && preset.live === 'stars') window.TeachedStars.mount(desk); else window.TeachedStars.unmount(); }
   if (window.TeachedPixels) { if (preset && preset.live === 'pixels') window.TeachedPixels.mount(desk); else window.TeachedPixels.unmount(); }
   if (window.TeachedWorld) { if (preset && preset.live === 'world') worldMount(desk, preset.world); else window.TeachedWorld.unmount(); }
+  if (window.TeachedUaMap) { if (preset && preset.live === 'uamap') window.TeachedUaMap.mount(desk); else window.TeachedUaMap.unmount(); }
   renderWallCredit(preset);
   try { _wallValue ? localStorage.setItem(WALL_CACHE_KEY, _wallValue) : localStorage.removeItem(WALL_CACHE_KEY); } catch (_) {}
   document.querySelectorAll('.wp-tile').forEach(t => t.classList.toggle('is-on', (t.dataset.value || '') === (_wallValue || '')));
