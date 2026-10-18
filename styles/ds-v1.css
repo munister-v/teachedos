@@ -1147,3 +1147,23 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-nudge-go { background:var(--ds-lime); color:var(--ds-ink); }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-nudge-x { background:rgba(255,255,255,.12); color:#fff; }
 @media (prefers-reduced-motion:reduce) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .ds-nudge { transition:none; transform:none; } }
+
+/* ══ eye-rest surfaces: widget shells #F3F4F7, nested items stay white ═════
+   Boards, Next lesson, This week, Schedule, Student pulse. Topbar untouched.
+   Secondary text #6E6C57 = 4.84:1 on #F3F4F7 (the old #76745F gave 4.31:1). */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop :is(#wg-today, #wg-week, #wg-pulse, #fx-ghost-panel, #win-plans),
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-clear { background:#F3F4F7 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sp-card,
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #win-plans .bd-tsearch,
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop :is(#fx-ghost-panel .sp-pill, #wg-today .wg-next-launch:not(.is-lime)) { background-color:#fff !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop :is(#wg-today, #wg-week, #wg-pulse, #fx-ghost-panel, #win-plans) :is(.sp-month, .sp-day span, .sp-count, .wg-pulse-note, .wg-pulse-empty, .wg-pulse-act:not(:first-child), .wg-today-badge, .wg-week-sub, .wg-week-label, .wg-today-meta) { color:#6E6C57 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-item.sev-crit .wg-pulse-note { color:rgba(255,255,255,.6) !important; }
+
+/* gear: bottom-right corner */
+html body #wg-menu-btn { right:16px !important; bottom:16px !important; }
+
+/* Student pulse fold: a real strip when collapsed, and the arrow always works */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-collapsed { padding:14px 22px !important; height:auto !important; min-height:0 !important; max-height:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-collapsed .wg-pulse-head { margin-bottom:0 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-collapsed .wg-pulse-list { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-fold { position:relative; z-index:2; margin-right:16px !important; flex:none; } /* clear of the hover × in the corner */
