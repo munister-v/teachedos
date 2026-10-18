@@ -127,14 +127,14 @@ test('route: search goes to KLIPY with our filter, our key in the path only, and
   assert.strictEqual(seen.length, 1);
   const u = new URL(seen[0].url, 'http://x');
   assert.strictEqual(u.pathname, `/api/v1/${KEY}/stickers/search`);
-  assert.strictEqual(u.searchParams.get('contentfilter'), 'medium');
+  assert.strictEqual(u.searchParams.get('contentfilter'), 'high');
   assert.strictEqual(u.searchParams.get('rating'), 'pg');
   assert.strictEqual(u.searchParams.get('customer_id'), 'teacher-uuid-1');
   assert.strictEqual(u.searchParams.get('q'), 'thumbs up');
   assert.strictEqual(u.searchParams.get('per_page'), '24');
   assert.strictEqual(u.searchParams.get('page'), '2');
   assert.strictEqual(u.searchParams.get('locale'), 'uk_UK');
-  assert.deepStrictEqual(u.searchParams.getAll('contentfilter'), ['medium']);
+  assert.deepStrictEqual(u.searchParams.getAll('contentfilter'), ['high']);
 });
 
 test('route: no query means trending of the chosen tab, English by default', async () => {
@@ -145,7 +145,7 @@ test('route: no query means trending of the chosen tab, English by default', asy
     assert.strictEqual(r.status, 200);
     const u = new URL(seen[0].url, 'http://x');
     assert.strictEqual(u.pathname, `/api/v1/${KEY}/${type}/trending`);
-    assert.strictEqual(u.searchParams.get('contentfilter'), 'medium');
+    assert.strictEqual(u.searchParams.get('contentfilter'), 'high');
     assert.strictEqual(u.searchParams.get('locale'), 'en_US');
     assert.strictEqual(u.searchParams.get('q'), null);
   }
@@ -192,4 +192,71 @@ test('route: share trigger is posted to KLIPY with the teacher id, and never fai
   reply = () => ({ status: 503, json: {} });
   const down = await fetch(`${base}/api/gifs/share`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'clips', slug: 'c-1' }) });
   assert.strictEqual(down.status, 200);
+});
+
+/* ── the classroom filter (lib/gifGuard.js) ─────────────────────────────────── */
+const guard = require('../lib/gifGuard');
+
+test('guard: sexual, abusive and violent searches are caught - in English, Ukrainian and Russian, spelled plainly or dodged', () => {
+  for (const q of ['sex', 'sexy dance', 'naked girl', 'porn', 'p0rn', 's3x', 'nsfw', 'XXX', 'twerking', 'eat my ass', 'fuck you', 'sh1t', 'b!tch',
+    'порно', 'секс', 'голая девушка', 'хуй', 'сука', 'блядь', 'пізда', 'эротика', 'стриптиз', 'ТИТЬКИ', 'kill yourself', 'hitler', 'гітлер', 'sexy-back']) {
+    assert.ok(guard.isBlockedQuery(q), `should be blocked: ${q}`);
+  }
+});
+
+test('guard: ordinary words that merely contain a bad one are not caught', () => {
+  for (const q of ['class', 'classic', 'assistant', 'Essex', 'Sussex', 'cocktail', 'Dickens', 'bass guitar', 'pass', 'grape', 'therapist', 'analysis', 'button',
+    'thumbs up', 'high five', 'happy birthday', 'good morning', 'cat', 'cock-a-doodle-doo', 'мандарин', 'секстант', 'кошка', 'школа', 'привіт', 'небо', 'сукно', 'хлеб', 'худий', 'Пасха']) {
+    assert.ok(!guard.isBlockedQuery(q), `should pass: ${q}`);
+  }
+});
+
+test('guard: a result is judged by its title, slug and tags, not only the search', () => {
+  assert.ok(guard.isBlockedItem({ title: 'Sexy dance', slug: 'a-1' }));
+  assert.ok(guard.isBlockedItem({ title: 'Cat', slug: 'naked-cat-1' }));
+  assert.ok(guard.isBlockedItem({ title: 'Cat', tags: ['funny', 'nsfw'] }));
+  assert.ok(guard.isBlockedItem({ title: 'Cat', tags: [{ name: 'порно' }] }));
+  assert.ok(!guard.isBlockedItem({ title: 'Cat', slug: 'cat-1', tags: ['funny', 'pet'] }));
+  assert.ok(!guard.isBlockedItem(null));
+});
+
+test('route: a blocked search never reaches KLIPY and the picker is told it was filtered', async () => {
+  const r = await fetch(`${base}/api/gifs/search?type=gifs&q=${encodeURIComponent('sexy girls')}`);
+  assert.strictEqual(r.status, 200);
+  const body = await r.json();
+  assert.deepStrictEqual(body.results, []);
+  assert.strictEqual(body.filtered, true);
+  assert.strictEqual(body.has_next, false);
+  assert.strictEqual(seen.length, 0, 'nothing is sent to KLIPY for a blocked search');
+});
+
+test('route: a harmless search still drops results whose title or tags are not for a class', async () => {
+  reply = () => ({ result: true, data: { data: [item(1), item(2, { title: 'Naughty and sexy' }), item(3, { tags: ['funny', 'porn']}), item(4, { slug: 'nude-beach-4' })], current_page: 1, has_next: false } });
+  const r = await fetch(`${base}/api/gifs/search?type=gifs&q=beach%20day%20unique`);
+  const body = await r.json();
+  assert.deepStrictEqual(body.results.map(g => g.id), ['1']);
+  assert.ok(!body.filtered);
+});
+
+test('route: the filter level is high by default, cannot be switched off, and a refusal of "high" falls back to medium for that request', async () => {
+  const keep = process.env.KLIPY_CONTENT_FILTER;
+  try {
+    delete process.env.KLIPY_CONTENT_FILTER;
+    assert.strictEqual(_test.filterNow(), 'high');
+    process.env.KLIPY_CONTENT_FILTER = 'off';
+    assert.strictEqual(_test.filterNow(), 'high');
+    process.env.KLIPY_CONTENT_FILTER = 'medium';
+    assert.strictEqual(_test.filterNow(), 'medium');
+    delete process.env.KLIPY_CONTENT_FILTER;
+    reply = (req) => (/contentfilter=high/.test(req.url)
+      ? { status: 400, json: { error: 'bad filter' } }
+      : { result: true, data: { data: [item(7)], current_page: 1, has_next: false } });
+    seen.length = 0;
+    const r = await fetch(`${base}/api/gifs/search?type=gifs&q=fallback%20unique`);
+    assert.strictEqual(r.status, 200);
+    assert.deepStrictEqual((await r.json()).results.map(g => g.id), ['7']);
+    assert.deepStrictEqual(seen.map(x => new URL(x.url, 'http://x').searchParams.get('contentfilter')), ['high', 'medium']);
+  } finally {
+    if (keep === undefined) delete process.env.KLIPY_CONTENT_FILTER; else process.env.KLIPY_CONTENT_FILTER = keep;
+  }
 });

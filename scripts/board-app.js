@@ -1815,7 +1815,7 @@ async function _gifFetch(type, q, page, perPage, signal) {
     const res = await apiFetch('/api/gifs/search?' + qs, { signal });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { results: [], has_next: false, code: data.code || 'error', error: data.error || 'KLIPY is not answering right now.' };
-    return { results: (Array.isArray(data.results) ? data.results : []).filter(r => r && r.url), has_next: !!data.has_next };
+    return { results: (Array.isArray(data.results) ? data.results : []).filter(r => r && r.url), has_next: !!data.has_next, filtered: !!data.filtered };
   } catch (err) {
     if (err && err.name === 'AbortError') return { aborted: true, results: [], has_next: false };
     return { results: [], has_next: false, code: 'network', error: 'Could not reach the server.' };
@@ -1925,7 +1925,9 @@ async function _gifLoad(append) {
   }
   if (!append) grid.innerHTML = '';
   if (!append && !r.results.length) {
-    grid.innerHTML = '<div class="gif-state"><div class="gif-state-t">Nothing found</div><div class="gif-state-s">Try another word.</div></div>';
+    grid.innerHTML = r.filtered
+      ? '<div class="gif-state"><div class="gif-state-t">This search is not available here</div><div class="gif-state-s">The GIF library is filtered for the classroom. Try another word.</div></div>'
+      : '<div class="gif-state"><div class="gif-state-t">Nothing found</div><div class="gif-state-s">Try another word.</div></div>';
     return;
   }
   _gifPage = page;

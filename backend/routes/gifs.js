@@ -9,8 +9,11 @@
 //
 //   * The API key lives only here (KLIPY_API_KEY in backend/.env). The browser asks us, we ask
 //     KLIPY; the key is never in a bundle or in a response body.
-//   * The content filter is ours: every request carries contentfilter=medium (G and PG only,
-//     KLIPY's own default is off). Whatever the browser sends for it is ignored.
+//   * The content filter is ours, in two layers. KLIPY's own: every request carries
+//     contentfilter=high (G only; KLIPY's default is off) and rating=pg - the browser cannot lower
+//     it, and KLIPY_CONTENT_FILTER can only make it "low" or "medium", never "off". And
+//     lib/gifGuard.js: a search for sexual, abusive or violent material is not sent at all, and any
+//     result whose title, slug or tags carry such a word is dropped, trending included.
 //   * Ads are off in the Partner Panel, and items KLIPY still marks type:"ad" are cut here, so
 //     the board never sees one.
 //   * customer_id is the teacher's TeachEd id; locale comes from the interface language, English
@@ -20,6 +23,7 @@
 const router = require('express').Router();
 const rateLimit = require('express-rate-limit');
 const { requireAuth } = require('../middleware/auth');
+const { isBlockedQuery, isBlockedItem } = require('../lib/gifGuard');
 
 const KLIPY_BASE = (process.env.KLIPY_API_BASE || 'https://api.klipy.com/api/v1').replace(/\/+$/, '');
 const TIMEOUT = 8000;
@@ -32,6 +36,11 @@ const cache = new Map();   // key → { at, value }
 // Read on every request, not once at boot: the key is added to .env and the service restarted,
 // and tests set it per case.
 const keyNow = () => String(process.env.KLIPY_API_KEY || '').trim();
+// "off" is not an option: anything but low / medium / high is the strictest level
+const filterNow = () => {
+  const v = String(process.env.KLIPY_CONTENT_FILTER || '').trim().toLowerCase();
+  return ['low', 'medium', 'high'].includes(v) ? v : 'high';
+};
 
 router.use(requireAuth);
 router.use(rateLimit({
@@ -81,7 +90,7 @@ function normalize(type, body) {
   const d = body && typeof body === 'object' ? (body.data && typeof body.data === 'object' && !Array.isArray(body.data) ? body.data : body) : {};
   const rows = Array.isArray(d.data) ? d.data : Array.isArray(body && body.data) ? body.data : [];
   const pref = PREF[type] || PREF.gifs;
-  const results = rows.filter(it => !isAd(it) && !tooStrong(it)).map(it => {
+  const results = rows.filter(it => !isAd(it) && !tooStrong(it) && !isBlockedItem(it)).map(it => {
     const files = it.file || it.files || {};
     const full = pick(files, pref.full[0], pref.full[1]);
     const thumb = pick(files, pref.thumb[0], pref.thumb[1]) || full;
@@ -116,16 +125,16 @@ function localeOf(v) {
   return `${lang}_${region}`;
 }
 
-function listUrl({ key, type, q, page, perPage, locale, customerId }) {
+function listUrl({ key, type, q, page, perPage, locale, customerId, filter }) {
   const p = new URLSearchParams();
   if (q) p.set('q', q);
   p.set('per_page', String(perPage));
   p.set('page', String(page));
   p.set('customer_id', String(customerId));
   p.set('locale', locale);
-  // The filter is not the browser's to choose. medium = G and PG only (KLIPY's default is off);
-  // `rating=pg` is the same ceiling in the other spelling KLIPY clients use.
-  p.set('contentfilter', 'medium');
+  // The filter is not the browser's to choose. high = G only, medium = G and PG (KLIPY's default is
+  // off); `rating=pg` is a ceiling in the other spelling KLIPY clients use.
+  p.set('contentfilter', filter || filterNow());
   p.set('rating', 'pg');
   return `${KLIPY_BASE}/${encodeURIComponent(key)}/${type}/${q ? 'search' : 'trending'}?${p}`;
 }
@@ -135,13 +144,24 @@ async function getJson(url, fetchImpl = fetch) {
     signal: AbortSignal.timeout(TIMEOUT),
     headers: { 'User-Agent': 'TeachEd/1.0 (+https://teached.tech)', Accept: 'application/json' },
   });
-  if (!r.ok) throw new Error('upstream ' + r.status);
+  if (!r.ok) { const e = new Error('upstream ' + r.status); e.status = r.status; throw e; }
   return r.json();
 }
 
 // One page of a tab: search when there is a query, trending when there is not.
 async function klipyList(args, fetchImpl) {
-  const body = await getJson(listUrl(args), fetchImpl);
+  const level = filterNow();
+  let body;
+  try {
+    body = await getJson(listUrl({ ...args, filter: level }), fetchImpl);
+  } catch (err) {
+    // "high" is the one level not every KLIPY plan accepts: a refusal of the request itself is
+    // retried once, this request only, one step down - never to "off" (the guard still applies)
+    if (level === 'high' && (err.status === 400 || err.status === 422)) {
+      console.warn('[gifs] KLIPY refused contentfilter=high (' + err.status + '); retrying with medium. Set KLIPY_CONTENT_FILTER=medium to stop this.');
+      body = await getJson(listUrl({ ...args, filter: 'medium' }), fetchImpl);
+    } else throw err;
+  }
   return { source: 'klipy', type: args.type, ...normalize(args.type, body) };
 }
 
@@ -158,6 +178,8 @@ router.get('/search', async (req, res) => {
   const page = Math.min(50, Math.max(1, parseInt(req.query.page, 10) || 1));
   const perPage = Math.min(50, Math.max(8, parseInt(req.query.per_page, 10) || PER_PAGE));
   const locale = localeOf(req.query.locale);
+  // a search for something that does not belong in a class goes nowhere; the picker is told why
+  if (isBlockedQuery(q)) return res.json({ source: 'klipy', type, page: 1, has_next: false, results: [], filtered: true });
   const ck = `${type}|${page}|${perPage}|${locale}|${q.toLowerCase()}`;
   const hit = cache.get(ck);
   if (hit && Date.now() - hit.at < CACHE_MS) return res.json(hit.value);
@@ -196,4 +218,4 @@ router.post('/share', async (req, res) => {
 });
 
 module.exports = router;
-module.exports._test = { normalize, localeOf, listUrl, klipyList, TYPES };
+module.exports._test = { normalize, localeOf, listUrl, klipyList, filterNow, TYPES };
