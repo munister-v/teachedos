@@ -66,17 +66,48 @@ router.use(requireAuth);
 
 // GET /api/boards - list user's boards (name, id, updated_at, thumbnail)
 router.get('/', async (req, res) => {
+  /* ?view=library is the Boards window: every board with its starred / archived / trashed state.
+     Every other caller (the board switcher, spotlight, homework pickers) gets the boards in use -
+     archived and trashed ones stay out of their lists. */
+  const library = req.query.view === 'library';
   const { rows } = await pool.query(
     /* Без thumbnail (у 50 досок это ~800 КБ на каждый заход на рабочий стол,
        а учительские экраны превью не показывают) и без распаковки data:
        card_count ведёт триггер. */
     `SELECT id, name, updated_at, created_at, card_count, cover,
-            (cover_image IS NOT NULL) AS has_cover_image
+            (cover_image IS NOT NULL) AS has_cover_image,
+            starred, archived_at, trashed_at
      FROM boards WHERE user_id = $1 AND NOT is_practice
+       ${library ? '' : 'AND archived_at IS NULL AND trashed_at IS NULL'}
      ORDER BY updated_at DESC`,
     [req.user.id]
   );
   res.json({ boards: rows });
+});
+
+/* PATCH /api/boards/:id/state {starred?, archived?, trashed?} - the Boards window's own actions.
+   Archive keeps the board whole and open to its students, it only leaves the teacher's lists;
+   Trash hides it from students too and keeps it 30 days for a restore. Owner only. */
+router.patch('/:id/state', async (req, res) => {
+  if (studentRefused(req, res)) return;
+  const sets = [], vals = [req.params.id, req.user.id];
+  const flag = (key, sql) => {
+    if (typeof req.body?.[key] !== 'boolean') return;
+    vals.push(req.body[key]);
+    sets.push(sql(`$${vals.length}`));
+  };
+  flag('starred', v => `starred = ${v}`);
+  flag('archived', v => `archived_at = CASE WHEN ${v} THEN COALESCE(archived_at, NOW()) ELSE NULL END`);
+  flag('trashed', v => `trashed_at = CASE WHEN ${v} THEN COALESCE(trashed_at, NOW()) ELSE NULL END`);
+  if (!sets.length) return res.status(400).json({ error: 'Nothing to change' });
+  const { rows } = await pool.query(
+    `UPDATE boards SET ${sets.join(', ')} WHERE id::text = $1 AND user_id = $2
+     RETURNING id, starred, archived_at, trashed_at`,
+    vals
+  );
+  if (!rows.length) { if (await refuseNonOwner(req, res)) return; return res.status(404).json({ error: 'Board not found' }); }
+  recordTelemetry({ category: 'product', eventType: 'board.state', actorId: req.user.id, boardId: rows[0].id, metadata: { surface: 'boards_window' } });
+  res.json({ board: rows[0] });
 });
 
 // POST /api/boards - create new board
@@ -125,7 +156,7 @@ router.get('/:id', async (req, res) => {
      FROM boards b
      JOIN users u ON u.id = b.user_id
      LEFT JOIN board_collaborators bc ON bc.board_id=b.id AND bc.user_id=$2
-     WHERE b.id = $1 AND (b.user_id = $2 OR bc.user_id=$2)`,
+     WHERE b.id = $1 AND (b.user_id = $2 OR (bc.user_id=$2 AND b.trashed_at IS NULL))`,
     [req.params.id, req.user.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Board not found' });

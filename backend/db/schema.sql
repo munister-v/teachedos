@@ -1602,3 +1602,11 @@ CREATE TABLE IF NOT EXISTS school_invites (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uq_school_invite_open ON school_invites(school_id, LOWER(email)) WHERE answered_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_school_invites_email ON school_invites(LOWER(email)) WHERE answered_at IS NULL;
+
+-- Boards window (ТЗ «Навигация и расписание» §2, 17.10.2026): a teacher stars boards, archives them
+-- instead of deleting (students keep their access) and deletes into a Trash that keeps a board for
+-- 30 days (jobs/housekeeping.js) before it is gone for good.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS starred     BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS trashed_at  TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_boards_trashed ON boards(trashed_at) WHERE trashed_at IS NOT NULL;

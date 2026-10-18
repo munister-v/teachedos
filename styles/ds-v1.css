@@ -572,7 +572,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
   padding:0 !important; font:inherit; font-size:13px !important; color:var(--ds-ink) !important; width:100%; border-radius:0 !important;
 }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-tsearch:focus-within { border-color:var(--ds-lime); box-shadow:0 0 0 3px rgba(211,242,106,.35); }
-html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans :is(.win-sidebar, .studio-hero) { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .studio-hero { display:none !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-body { padding-top:0 !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-main { padding:18px 22px 22px !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:18px; flex:none; }
@@ -1243,3 +1243,76 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
   html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cm-sheet .cm-main { padding:24px 16px 90px; }
   html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head h1 { font-size:44px !important; }
 }
+
+/* ══ ТЗ «Навигация и расписание» html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body2 · Boards, variant E (17.10.2026) ══════
+   The window holds two panels: a floating glass sidebar (LIBRARY: All boards,
+   Recent, Starred, Shared with me; MORE: Archived, Trash; counters on the
+   items; the open one an ink pill with a lime icon; the lime New board at
+   the bottom with a soft shadow, no glow) and the content as its own panel -
+   the title, how many, one line, a 3-column grid of cards with actions on
+   hover. No Create board in the content header. */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-body { display:flex !important; gap:14px; padding:14px !important; background:rgba(246,246,239,.4) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-sidebar.bd-side {
+  display:flex !important; flex-direction:column; gap:3px; width:236px !important; min-width:236px; flex:none; position:relative !important; inset:auto !important;
+  background:rgba(255,255,255,.92) !important; -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.7) !important; border-radius:18px !important; box-shadow:0 14px 40px rgba(11,16,38,.1) !important;
+  padding:12px !important; overflow:auto; height:auto !important; max-height:none !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-ssec { font-size:10px; font-weight:800; letter-spacing:2.2px; text-transform:uppercase; color:rgba(11,16,38,.38); padding:12px 12px 6px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-si {
+  display:flex !important; align-items:center; gap:12px !important; width:100%; border:0 !important; background:none !important; text-align:left;
+  font:inherit; font-size:14px !important; font-weight:600 !important; color:var(--ds-ink) !important; padding:8px 10px !important; border-radius:13px !important;
+  cursor:pointer; min-height:0 !important; box-shadow:none !important; transition:background .15s, color .15s;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-si:hover { background:var(--ds-sand) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-si.active { background:var(--ds-ink) !important; color:#fff !important; font-weight:800 !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-si svg { width:19px; height:19px; flex:none; fill:none; stroke:var(--ds-ink); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; transition:stroke .15s; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-si.active svg { stroke:var(--ds-lime); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-cnt { margin-left:auto; font-size:11.5px; font-weight:800; color:rgba(11,16,38,.45); background:rgba(11,16,38,.06); border-radius:999px; padding:3px 10px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-cnt:empty { display:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-si.active .bd-cnt { background:rgba(255,255,255,.16); color:#fff; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-sdiv { height:1px; background:rgba(11,16,38,.07); margin:8px 8px 2px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-newboard {
+  margin-top:auto; display:flex; align-items:center; justify-content:center; gap:9px; background:var(--ds-lime); color:var(--ds-ink); text-decoration:none;
+  font-size:14px; font-weight:800; padding:14px; border-radius:15px; box-shadow:0 10px 24px rgba(211,242,106,.35); transition:transform .15s var(--ds-ease);
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-newboard:hover { transform:translateY(-2px); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-newboard svg { width:17px; height:17px; fill:none; stroke:var(--ds-ink); stroke-width:2.4; stroke-linecap:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-tip { margin-top:12px; font-size:11.5px; font-weight:600; color:rgba(11,16,38,.42); line-height:1.65; padding:0 6px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-main { flex:1; min-width:0; background:rgba(255,255,255,.66) !important; border-radius:18px !important; padding:20px 22px 26px !important; overflow:auto; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-chead { display:flex; align-items:baseline; margin-bottom:4px; flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-chead h2 { margin:0; font-size:21px; font-weight:800; letter-spacing:-.4px; color:var(--ds-ink); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-chead span { font-size:13px; font-weight:700; color:rgba(11,16,38,.4); margin-left:10px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-csub { font-size:13px; font-weight:600; color:rgba(11,16,38,.45); margin-bottom:18px; flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { gap:16px !important; }
+@container (min-width: 600px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:repeat(3, minmax(0, 1fr)) !important; } }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card { transition:transform .22s cubic-bezier(.2,.7,.3,1.2), box-shadow .22s !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card:hover { transform:translateY(-5px) scale(1.01) !important; box-shadow:0 20px 44px rgba(11,16,38,.14) !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card .bd-cover { height:112px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-actions { position:absolute; top:10px; right:10px; display:flex; gap:7px; opacity:0; transform:translateY(-6px); transition:opacity .2s, transform .2s; z-index:3; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card:hover .bd-actions, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card:focus-within .bd-actions { opacity:1; transform:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-abtn { width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.96); border:1px solid rgba(11,16,38,.08); cursor:pointer; display:grid; place-items:center; box-shadow:0 4px 14px rgba(11,16,38,.14); padding:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-abtn svg { width:16px; height:16px; fill:none; stroke:var(--ds-ink); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-abtn.on svg { fill:var(--ds-lime); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-abtn.del:hover { background:var(--ds-pink); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-abtn.del:hover svg { stroke:#C22E2E; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-abtn:focus-visible { outline:2px solid var(--ds-ink); outline-offset:2px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #win-plans .bd-card .bd-cover > :is(.bd-starmark, .bd-actions, .bd-shared) { width:auto !important; height:auto !important; border-radius:999px !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #win-plans .bd-card .bd-cover > .bd-starmark { width:24px !important; height:24px !important; border-radius:50% !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-starmark { position:absolute; left:10px; top:10px; width:24px; height:24px; border-radius:50%; background:var(--ds-ink); color:var(--ds-lime); font-size:12px; display:grid; place-items:center; z-index:2; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card .bd-menu-btn { top:auto !important; bottom:10px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-starmark { transition:opacity .15s; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card:hover .bd-starmark { opacity:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-live { width:7px; height:7px; border-radius:50%; background:var(--ds-lime); display:inline-block; margin-right:7px; vertical-align:1px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card.is-trashed .bd-cover { filter:grayscale(.7); opacity:.75; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-empty { grid-column:1/-1; text-align:center; padding:60px 20px; color:rgba(11,16,38,.45); font-size:14px; font-weight:600; }
+/* the Swipe Toast with Undo */
+.bd-toast { position:fixed; left:50%; bottom:110px; transform:translateX(-50%); z-index:10050; display:flex; align-items:center; gap:14px; overflow:hidden;
+  background:#0B1026; color:#fff; border-radius:16px; padding:13px 14px 15px 18px; font:700 14px Manrope,-apple-system,'Segoe UI',sans-serif;
+  box-shadow:0 18px 44px rgba(11,16,38,.3); touch-action:none; animation:bd-toast-in .3s cubic-bezier(.2,.7,.3,1) both; transition:opacity .24s, transform .24s; }
+.bd-toast.out { opacity:0; transform:translate(-50%, 24px) !important; }
+.bd-toast-undo { border:0; background:#D3F26A; color:#0B1026; font:800 13px inherit; font-family:inherit; border-radius:999px; padding:7px 14px; cursor:pointer; }
+.bd-toast-wick { position:absolute; left:0; bottom:0; height:3px; width:100%; background:#D3F26A; transform-origin:left; animation:bd-wick linear forwards; }
+@keyframes bd-toast-in { from { opacity:0; transform:translate(-50%, 16px); } to { opacity:1; transform:translate(-50%, 0); } }
+@keyframes bd-wick { from { transform:scaleX(1); } to { transform:scaleX(0); } }
+@media (prefers-reduced-motion:reduce) { .bd-toast, .bd-toast-wick, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-actions { animation:none !important; transition:none !important; } }

@@ -2418,12 +2418,117 @@ let BOARDS_LOADED = false;
 let BOARDS_ERROR = false;
 let SHARED_BOARDS = [];
 let boardsFilterMode = 'all';
+/* ТЗ «Навигация и расписание» §2 (variant E): the Boards window has a library of its own -
+   Starred, Archived and the Trash. BOARDS_ALL is every board with its state (/api/boards?view=library);
+   MY_BOARDS stays the boards in use, the list every other widget reads. */
+let BOARDS_ALL = [];
+const _boardActive = b => !b.archived_at && !b.trashed_at;
+function _setBoards(all) {
+  BOARDS_ALL = Array.isArray(all) ? all : [];
+  MY_BOARDS = BOARDS_ALL.filter(_boardActive);
+}
 
+const BOARD_VIEWS = {
+  all:      ['All boards', 'Your teaching spaces — pick one to open.'],
+  recent:   ['Recent', 'The boards you worked on last.'],
+  starred:  ['Starred', 'The boards you keep at hand — star one from its card.'],
+  shared:   ['Shared with me', 'Boards other teachers shared with you.'],
+  archived: ['Archived', 'Out of your lists, still open to their students. Restore one to bring it back.'],
+  trash:    ['Trash', 'Deleted boards wait here 30 days, then they are gone for good.'],
+};
 function boardsFilter(mode, el) {
-  boardsFilterMode = mode;
-  document.querySelectorAll('#win-plans .sb-item').forEach(i => i.classList.toggle('active', i.id === 'bf-' + mode));
-  document.querySelectorAll('#win-plans .bd-fpill').forEach(i => i.classList.toggle('on', i.dataset.bf === mode));
+  boardsFilterMode = BOARD_VIEWS[mode] ? mode : 'all';
+  document.querySelectorAll('#win-plans .sb-item').forEach(i => i.classList.toggle('active', i.id === 'bf-' + boardsFilterMode));
   boardsRender();
+}
+function _boardsInView(mode) {
+  if (mode === 'shared')   return SHARED_BOARDS;
+  if (mode === 'recent')   return MY_BOARDS.slice(0, 6);
+  if (mode === 'starred')  return MY_BOARDS.filter(b => b.starred);
+  if (mode === 'archived') return BOARDS_ALL.filter(b => b.archived_at && !b.trashed_at);
+  if (mode === 'trash')    return BOARDS_ALL.filter(b => b.trashed_at);
+  return MY_BOARDS;
+}
+/* Counters on the sidebar items and the content's title line. */
+function _boardsChrome(shown) {
+  const n = { all: MY_BOARDS.length, starred: MY_BOARDS.filter(b => b.starred).length, shared: SHARED_BOARDS.length,
+              archived: BOARDS_ALL.filter(b => b.archived_at && !b.trashed_at).length };
+  document.querySelectorAll('#win-plans .bd-cnt').forEach(el => { const v = n[el.dataset.bc] || 0; el.textContent = v || ''; });
+  const [title, sub] = BOARD_VIEWS[boardsFilterMode] || BOARD_VIEWS.all;
+  const t = document.getElementById('bd-ch-title'); if (t) t.textContent = title;
+  const c = document.getElementById('bd-ch-n'); if (c) c.textContent = shown == null ? '' : shown ? `${shown} board${shown === 1 ? '' : 's'}` : 'empty';
+  const u = document.getElementById('bd-ch-sub'); if (u) u.textContent = sub;
+}
+
+/* Star, archive, trash: PATCH /api/boards/:id/state, the list follows at once. Archive and Trash
+   leave a toast with Undo (a Swipe Toast: its wick is the time left to undo). */
+async function setBoardState(boardId, patch, undoLabel) {
+  const b = BOARDS_ALL.find(x => String(x.id) === String(boardId));
+  if (!b) return;
+  const before = { starred: b.starred, archived_at: b.archived_at, trashed_at: b.trashed_at };
+  const now = new Date().toISOString();
+  if ('starred' in patch) b.starred = patch.starred;
+  if ('archived' in patch) b.archived_at = patch.archived ? (b.archived_at || now) : null;
+  if ('trashed' in patch) b.trashed_at = patch.trashed ? (b.trashed_at || now) : null;
+  _setBoards(BOARDS_ALL); boardsRender();
+  if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
+  const r = await boardApi(`/api/boards/${encodeURIComponent(boardId)}/state`, 'PATCH', patch).catch(() => null);
+  if (!r || !r.ok) {
+    Object.assign(b, before); _setBoards(BOARDS_ALL); boardsRender();
+    _boardsToast(r && r.status === 404 ? 'That board is gone' : 'Could not change the board - try again');
+    return;
+  }
+  writeTeacherDashboardCache({ boards: BOARDS_ALL });
+  if (undoLabel) {
+    const back = {};
+    if ('archived' in patch) back.archived = !patch.archived;
+    if ('trashed' in patch) back.trashed = !patch.trashed;
+    _boardsToast(undoLabel, () => setBoardState(boardId, back));
+  }
+}
+window.setBoardState = setBoardState;
+
+/* Duplicate: a new board with the same cards (load, create, save). */
+async function duplicateBoard(boardId) {
+  const b = BOARDS_ALL.find(x => String(x.id) === String(boardId));
+  if (!b) return;
+  try {
+    const src = await boardApi(`/api/boards/${encodeURIComponent(boardId)}`, 'GET').then(r => (r.ok ? r.json() : null));
+    if (!src || !src.board) throw new Error('load');
+    const made = await boardApi('/api/boards', 'POST', { name: `${b.name || 'Untitled'} (copy)`.slice(0, 255) });
+    if (made.status === 402) {
+      if (typeof upgradeNudge === 'function') upgradeNudge('Free includes 3 boards. Delete one, or go Pro for unlimited boards.');
+      else _boardsToast('Your plan has no room for another board');
+      return;
+    }
+    const d = await made.json().catch(() => ({}));
+    if (!made.ok || !d.board) throw new Error('create');
+    const put = await boardApi(`/api/boards/${encodeURIComponent(d.board.id)}`, 'PUT', { data: src.board.data || {} });
+    if (!put.ok) throw new Error('save');
+    await reloadBoards();
+    _boardsToast('Board duplicated');
+  } catch (_) { _boardsToast('Could not duplicate the board - try again'); }
+}
+window.duplicateBoard = duplicateBoard;
+
+/* Swipe Toast (Lesson Builder TZ §8): the dashboard's toast with Undo - the wick under it is the
+   time left to undo; a swipe down dismisses it. */
+let _bdToastTimer = null;
+function _boardsToast(msg, undo, ms = 6000) {
+  document.getElementById('bd-toast')?.remove();
+  clearTimeout(_bdToastTimer);
+  const t = document.createElement('div');
+  t.id = 'bd-toast'; t.className = 'bd-toast'; t.setAttribute('role', 'status');
+  t.innerHTML = `<span class="bd-toast-msg"></span>${undo ? '<button type="button" class="bd-toast-undo">Undo</button>' : ''}<i class="bd-toast-wick" style="animation-duration:${ms}ms"></i>`;
+  t.querySelector('.bd-toast-msg').textContent = msg;
+  document.body.appendChild(t);
+  const close = () => { t.classList.add('out'); setTimeout(() => t.remove(), 240); };
+  if (undo) t.querySelector('.bd-toast-undo').onclick = () => { close(); undo(); };
+  let y0 = null;
+  t.addEventListener('pointerdown', e => { if (!e.target.closest('button')) { y0 = e.clientY; t.setPointerCapture(e.pointerId); } });
+  t.addEventListener('pointermove', e => { if (y0 != null) t.style.transform = `translate(-50%, ${Math.max(0, e.clientY - y0)}px)`; });
+  t.addEventListener('pointerup', e => { if (y0 == null) return; const dy = e.clientY - y0; y0 = null; if (dy > 40) close(); else t.style.transform = ''; });
+  _bdToastTimer = setTimeout(close, ms);
 }
 
 /* Повтор загрузки досок после осечки: тот же запрос, что при старте. */
@@ -2431,11 +2536,11 @@ async function reloadBoards() {
   BOARDS_ERROR = false; BOARDS_LOADED = false;
   if (typeof boardsRender === 'function') boardsRender();
   try {
-    const r = await fetch((typeof API !== 'undefined' ? API : '') + '/api/boards',
+    const r = await fetch((typeof API !== 'undefined' ? API : '') + '/api/boards?view=library',
       { headers: { Authorization: 'Bearer ' + (localStorage.getItem('teachedos_token') || '') } });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
-    MY_BOARDS = d.boards || [];
+    _setBoards(d.boards || []);
     BOARDS_LOADED = true;
     if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
   } catch (e) {
@@ -2485,12 +2590,16 @@ function boardsRender() {
   if (!grid) return;
   const q = (document.getElementById('plans-search-input')?.value || '').toLowerCase().trim();
 
-  let list;
-  if (boardsFilterMode === 'shared')      list = SHARED_BOARDS;
-  else if (boardsFilterMode === 'recent') list = MY_BOARDS.slice(0, 6);
-  else                                    list = MY_BOARDS;
-
+  let list = _boardsInView(boardsFilterMode);
   if (q) list = list.filter(b => (b.name || '').toLowerCase().includes(q));
+  _boardsChrome(BOARDS_LOADED || boardsFilterMode === 'shared' ? list.length : null);
+  const library = ['starred', 'archived', 'trash'].includes(boardsFilterMode);
+  if (!list.length && library && !q) {
+    grid.innerHTML = `<div class="bd-empty">${boardsFilterMode === 'starred' ? 'No starred boards yet. Hover a board and tap the star.'
+      : boardsFilterMode === 'archived' ? 'Nothing archived. Archive a board you are done with - its students keep their access.'
+      : 'The Trash is empty.'}</div>`;
+    return;
+  }
 
   if (!list.length && !q && boardsFilterMode !== 'shared' && (BOARDS_ERROR || !BOARDS_LOADED)) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px;">
@@ -2532,17 +2641,32 @@ function boardsRender() {
       : mins < 2880 ? 'updated yesterday' : mins < 10080 ? `updated ${Math.round(mins / 1440)} days ago` : `updated ${new Date(ut).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`;
     const owner = b.owner_name ? `<div class="lc-desc">Shared by ${escB(b.owner_name)}</div>` : '';
     const own = !b.owner_name && boardsFilterMode !== 'shared';
+    const ic = d => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+    const act = (fn, title, svg, cls = '') => `<button type="button" class="bd-abtn${cls}" title="${title}" aria-label="${title}" onclick="event.stopPropagation();${fn}">${svg}</button>`;
+    const id = escB(b.id);
+    const STAR = '<path d="M12 3.8l2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.6-5 2.6.9-5.6-4-3.9 5.6-.8z"/>';
+    const RESTORE = '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/>';
+    const acts = !own ? '' : b.trashed_at
+      ? act(`setBoardState('${id}',{trashed:false},'')`, 'Restore', ic(RESTORE)) + act(`deleteBoardConfirm('${id}')`, 'Delete forever', ic('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>'), ' del')
+      : b.archived_at
+      ? act(`setBoardState('${id}',{archived:false},'')`, 'Restore', ic(RESTORE)) + act(`setBoardState('${id}',{trashed:true},'Board moved to Trash')`, 'Delete', ic('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>'), ' del')
+      : act(`setBoardState('${id}',{starred:${!b.starred}})`, b.starred ? 'Unstar' : 'Star', ic(STAR), b.starred ? ' on' : '')
+        + act(`duplicateBoard('${id}')`, 'Duplicate', ic('<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>'))
+        + act(`setBoardState('${id}',{archived:true},'Board archived - students keep their access')`, 'Archive', ic('<rect x="3.5" y="4" width="17" height="4.5" rx="1.5"/><path d="M5 8.5V19a1.5 1.5 0 001.5 1.5h11A1.5 1.5 0 0019 19V8.5M10 12.5h4"/>'))
+        + act(`setBoardState('${id}',{trashed:true},'Board moved to Trash')`, 'Delete', ic('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>'), ' del');
+    const live = mins != null && mins < 15;
+    const days = b.trashed_at ? Math.max(0, 30 - Math.floor((Date.now() - Date.parse(b.trashed_at)) / 864e5)) : null;
     const cover = window.TeachEdCover
       ? TeachEdCover.render(b.cover, { title: b.name || 'Untitled', imageUrl: BOARD_COVER_URLS[b.id] || '' })
       : '';
-    return `<div class="lesson-card bd-card" onclick="location.href='board.html?id=${escB(b.id)}'" style="cursor:pointer;">
-      <div class="bd-cover">${cover}${b.owner_name ? '<span class="bd-shared">Shared</span>' : ''}</div>
-      ${own ? `<button class="bd-menu-btn" type="button" title="Board settings" aria-label="Board settings" aria-haspopup="menu" onclick="event.stopPropagation();openBoardMenu('${escB(b.id)}', this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>` : ''}
+    return `<div class="lesson-card bd-card${b.trashed_at ? ' is-trashed' : ''}" onclick="location.href='board.html?id=${escB(b.id)}'" style="cursor:pointer;">
+      <div class="bd-cover">${cover}${b.owner_name ? '<span class="bd-shared">Shared</span>' : ''}${b.starred && !b.trashed_at ? '<span class="bd-starmark" aria-label="Starred">★</span>' : ''}${acts ? `<div class="bd-actions">${acts}</div>` : ''}</div>
+      ${own && !b.trashed_at ? `<button class="bd-menu-btn" type="button" title="Board settings" aria-label="Board settings" aria-haspopup="menu" onclick="event.stopPropagation();openBoardMenu('${escB(b.id)}', this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>` : ''}
       <div class="bd-body">
         <div class="lc-title">${escB(b.name || 'Untitled')}</div>
         ${owner}
         <div class="lc-meta">
-          <span class="lc-dur">${cards} card${cards === 1 ? '' : 's'}${updated ? ` · ${updated}` : ''}</span>
+          ${live && !b.trashed_at ? '<span class="bd-live" aria-hidden="true"></span>' : ''}<span class="lc-dur">${days != null ? `${days} day${days === 1 ? '' : 's'} left in Trash` : `${cards} card${cards === 1 ? '' : 's'}${updated ? ` · ${updated}` : ''}`}</span>
         </div>
       </div>
     </div>`;
@@ -2585,7 +2709,7 @@ function openBoardMenu(boardId, btn) {
     if (act === 'open') location.href = 'board.html?id=' + encodeURIComponent(boardId);
     else if (act === 'rename') renameBoardPrompt(boardId);
     else if (act === 'cover') openBoardCoverEditor(boardId);
-    else if (act === 'delete') deleteBoardConfirm(boardId);
+    else if (act === 'delete') setBoardState(boardId, { trashed: true }, 'Board moved to Trash');
   });
   m.querySelector('.bd-mi')?.focus();
 }
@@ -2616,7 +2740,7 @@ function boardApi(path, method, body) {
   });
 }
 function renameBoardPrompt(boardId) {
-  const b = (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
+  const b = (BOARDS_ALL || []).find(x => String(x.id) === String(boardId)) || (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
   if (!b) return;
   const esc = v => String(v ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
   boardDialog(`<h3>Rename board</h3><input type="text" maxlength="255" value="${esc(b.name || '')}" aria-label="Board name"><div class="bd-dlg-err" role="alert"></div>
@@ -2643,7 +2767,7 @@ function renameBoardPrompt(boardId) {
   });
 }
 function deleteBoardConfirm(boardId) {
-  const b = (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
+  const b = (BOARDS_ALL || []).find(x => String(x.id) === String(boardId)) || (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
   if (!b) return;
   const esc = v => String(v ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
   boardDialog(`<h3>Delete “${esc(b.name || 'Untitled')}”?</h3><p>The board and everything on it will be deleted for good. This cannot be undone.</p><div class="bd-dlg-err" role="alert"></div>
@@ -2656,12 +2780,12 @@ function deleteBoardConfirm(boardId) {
       try {
         const r = await boardApi(`/api/boards/${encodeURIComponent(b.id)}`, 'DELETE');
         if (!r.ok && r.status !== 404) { const d = await r.json().catch(() => ({})); throw new Error(d.error || `Could not delete (HTTP ${r.status})`); }
-        MY_BOARDS = MY_BOARDS.filter(x => String(x.id) !== String(b.id));
+        _setBoards(BOARDS_ALL.filter(x => String(x.id) !== String(b.id)));
         if (BOARD_COVER_URLS[b.id]?.startsWith('blob:')) URL.revokeObjectURL(BOARD_COVER_URLS[b.id]);
         delete BOARD_COVER_URLS[b.id];
         close(); boardsRender();
         if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
-        if (typeof showOsToast === 'function') showOsToast('Board deleted');
+        _boardsToast('Board deleted for good');
       } catch (e) { err.textContent = e.message || 'Could not delete. Try again.'; ok.disabled = false; }
     };
   });
@@ -2687,7 +2811,7 @@ function loadBoardCoverImages(list) {
 }
 
 function openBoardCoverEditor(boardId) {
-  const b = (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
+  const b = (BOARDS_ALL || []).find(x => String(x.id) === String(boardId)) || (MY_BOARDS || []).find(x => String(x.id) === String(boardId));
   if (!b || !window.TeachEdCover) return;
   const info = { title: b.name || 'Untitled' };
   TeachEdCover.openModal({
@@ -3482,7 +3606,7 @@ function applyTeacherDashboardCache(cache, options = {}) {
     renderNextClass(cache.schedule);
   }
   if (Array.isArray(cache.boards)) {
-    MY_BOARDS = cache.boards;
+    _setBoards(cache.boards);
     boardsRender();
     rebuildSpotlightBoards();
   }
@@ -4325,14 +4449,15 @@ setInterval(loadNotifications, 120000);
   });
 
   // Boards: vocab widget + Lesson Plans grid + students aggregation
-  fetch(API + '/api/boards', auth).then(r => {
+  fetch(API + '/api/boards?view=library', auth).then(r => {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(d => {
-    const boards = d.boards || [];
+    const allBoards = d.boards || [];
+    const boards = allBoards.filter(b => !b.archived_at && !b.trashed_at);
     BOARDS_LOADED = true; BOARDS_ERROR = false;
     if (typeof MY_BOARDS !== 'undefined') {
-      MY_BOARDS = boards;
+      _setBoards(allBoards);
       if (typeof boardsRender === 'function') boardsRender();
       if (typeof rebuildSpotlightBoards === 'function') rebuildSpotlightBoards();
     }
@@ -4386,7 +4511,7 @@ setInterval(loadNotifications, 120000);
       v.ex.innerHTML = recent;
     }
     if (v.btn) { v.btn.textContent = 'Add board'; v.btn.setAttribute('onclick', "location.href='board.html'"); }
-    writeTeacherDashboardCache({ boards });
+    writeTeacherDashboardCache({ boards: allBoards });
     updateMobileTeacherOverview();
   }).catch(() => {
     if (cachedDash?.boards || cachedDash?.students) {

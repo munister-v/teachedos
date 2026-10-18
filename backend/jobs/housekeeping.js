@@ -25,6 +25,8 @@ const TASKS = [
   // the teacher learns it from memory_revocations, kept a little longer than the archive
   ['archived dossiers',  require('../routes/memory').RETENTION_SQL],
   ['memory revocations', `DELETE FROM memory_revocations WHERE revoked_at < NOW() - INTERVAL '400 days'`],
+  // Boards window (§2): a board in the Trash for 30 days is deleted for good
+  ['trashed boards',     `DELETE FROM boards WHERE trashed_at < NOW() - INTERVAL '30 days'`],
 ];
 
 async function runHousekeeping() {

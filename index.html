@@ -2099,7 +2099,7 @@ html,body {
 <!-- ════ WINDOWS ════ -->
 
 <!-- LESSON PLANS -->
-<div class="win open appear" id="win-plans" style="top:90px;left:50px;width:780px;height:500px;">
+<div class="win open appear" id="win-plans" style="top:90px;left:50px;width:900px;height:540px;">
   <div class="win-titlebar" id="tb-plans">
     <div class="win-controls">
       <div class="tl close" title="Close" onclick="closeWin('plans')"></div>
@@ -2110,16 +2110,21 @@ html,body {
     <label class="bd-tsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="text" placeholder="Search boards…" id="plans-search-input" oninput="boardsRender()" aria-label="Search boards"></label>
   </div>
   <div class="win-body">
-    <div class="win-sidebar" id="sidebar-plans">
-      <div class="sb-section-label">Quick links</div>
-      <a class="sb-item" href="courses.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>All Courses</a>
-      <a class="sb-item" href="board.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-board"/></svg>Open Board</a>
-      <a class="sb-item sb-secondary" href="gradebook.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-gradebook"/></svg>Gradebook</a>
-      <a class="sb-item sb-secondary" href="analytics.html" style="text-decoration:none;"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Analytics</a>
-      <div class="sb-section-label" style="margin-top:8px;">Filter boards</div>
-      <div class="sb-item active" id="bf-all" onclick="boardsFilter('all',this)">All boards</div>
-      <div class="sb-item" id="bf-recent" onclick="boardsFilter('recent',this)">Recent</div>
-      <div class="sb-item" id="bf-shared" onclick="boardsFilter('shared',this)">Shared with me</div>
+    <!-- ТЗ «Навигация и расписание» §2, variant E (17.10.2026): a floating glass sidebar -
+         LIBRARY (All boards, Recent, Starred, Shared with me) and MORE (Archived, Trash), counters
+         on the items, the open one an ink pill with a lime icon; the lime New board at the bottom. -->
+    <div class="win-sidebar bd-side" id="sidebar-plans">
+      <div class="bd-ssec">Library</div>
+      <button type="button" class="sb-item bd-si active" id="bf-all" onclick="boardsFilter('all',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></svg>All boards<span class="bd-cnt" data-bc="all"></span></button>
+      <button type="button" class="sb-item bd-si" id="bf-recent" onclick="boardsFilter('recent',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Recent</button>
+      <button type="button" class="sb-item bd-si" id="bf-starred" onclick="boardsFilter('starred',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.8l2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.6-5 2.6.9-5.6-4-3.9 5.6-.8z"/></svg>Starred<span class="bd-cnt" data-bc="starred"></span></button>
+      <button type="button" class="sb-item bd-si" id="bf-shared" onclick="boardsFilter('shared',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.4 2.8-5.2 5.5-5.2s4.9 1.8 5.5 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.6c2.9.1 4.6 1.9 5.1 4.4"/></svg>Shared with me<span class="bd-cnt" data-bc="shared"></span></button>
+      <div class="bd-sdiv"></div>
+      <div class="bd-ssec">More</div>
+      <button type="button" class="sb-item bd-si" id="bf-archived" onclick="boardsFilter('archived',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="4.5" rx="1.5"/><path d="M5 8.5V19a1.5 1.5 0 001.5 1.5h11A1.5 1.5 0 0019 19V8.5M10 12.5h4"/></svg>Archived<span class="bd-cnt" data-bc="archived"></span></button>
+      <button type="button" class="sb-item bd-si" id="bf-trash" onclick="boardsFilter('trash',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Trash</button>
+      <a class="bd-newboard" href="board.html" onclick="createBoardFromDesktop(event)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New board</a>
+      <div class="bd-tip">Archive instead of delete — students keep their access.</div>
     </div>
     <div class="win-main" style="display:flex;flex-direction:column;">
       <div class="mob-win-header">
@@ -2230,15 +2235,9 @@ html,body {
         <p class="studio-copy">Search saved boards, shared lessons and drafts by class, topic or student.</p>
         <div class="studio-actions"><a class="studio-chip primary" href="board.html" onclick="createBoardFromDesktop(event)">+ Create board</a><a class="studio-chip secondary" href="community.html">Community boards</a></div>
       </section>
-      <!-- Design spec v1 №2: filter pills and the lime Create board in one toolbar -->
-      <div class="bd-toolbar">
-        <div class="bd-filters" role="tablist" aria-label="Which boards">
-          <button type="button" class="bd-fpill on" data-bf="all" onclick="boardsFilter('all',this)">All</button>
-          <button type="button" class="bd-fpill" data-bf="recent" onclick="boardsFilter('recent',this)">Recent</button>
-          <button type="button" class="bd-fpill" data-bf="shared" onclick="boardsFilter('shared',this)">Shared with me</button>
-        </div>
-        <a class="bd-create" href="board.html" onclick="createBoardFromDesktop(event)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Create board</a>
-      </div>
+      <!-- §2 variant E: the content is its own panel - the title, how many, one line; no Create board -->
+      <div class="bd-chead"><h2 id="bd-ch-title">All boards</h2><span id="bd-ch-n"></span></div>
+      <div class="bd-csub" id="bd-ch-sub">Your teaching spaces — pick one to open.</div>
       <div class="curr-grid" id="plans-grid">
         <div class="plans-empty-state" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:12px;">
           <div style="opacity:.45;font-size:0"><svg class="ic" aria-hidden="true"><use href="#i-plans"/></svg></div>

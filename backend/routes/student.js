@@ -447,7 +447,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       FROM board_collaborators bc
       JOIN boards b ON b.id = bc.board_id
       JOIN users  u ON u.id = b.user_id
-      WHERE bc.user_id = $1
+      WHERE bc.user_id = $1 AND b.trashed_at IS NULL
       -- the board the teacher chose as the student's own comes first:
       -- "Open my board" takes the first one
       ORDER BY bc.is_home DESC, b.updated_at DESC
