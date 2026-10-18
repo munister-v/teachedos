@@ -221,12 +221,131 @@
     }
   }
 
-  json('/api/student/progress').then(progress);
-  json('/api/journal/vocab/list').then(vocab);
-  json('/api/homework/my/inbox').then(r => homework(r && r.assignments));
+  /* Today, sidebar and Challenges: the design's sample lesson, balance, plan, duels and
+     classmates are replaced by what the server knows; blocks with no data behind them
+     (lucky task, treat, duels, class sprint, badges) are hidden rather than invented. */
+  const hide = (root, sel) => $$(sel, root).forEach(e => { e.style.display = 'none'; });
+  const goTo = i => { const b = $$('.nav button')[i]; if (b) b.click(); };
+  const dueText = a => a.due_at ? 'due ' + new Date(a.due_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) : 'no deadline';
 
-  Promise.all([json('/api/auth/me'), json('/api/student/progress')]).then(([me, pr]) => {
+  function sidebar(dash, portal) {
+    const teacher = dash && dash.boards && dash.boards[0] && dash.boards[0].teacher_name;
+    set('.sprof .spinfo span', e => { e.textContent = teacher ? 'with ' + teacher : 'Student'; });
+    const je = portal && portal.journalEntry;
+    const tracked = je && (je.is_trial || Number(je.lessons_left) > 0 || je.payment_due || je.pack_started_at || Number(je.total_sessions) > 0);
+    const tok = ((dash && dash.boards) || []).map(b => b.booking_token).find(Boolean);
+    set('.bal', bal => {
+      if (!tracked) { bal.style.display = 'none'; return; }
+      const left = je.lessons_left != null ? Number(je.lessons_left) : null;
+      bal.querySelector('.n').innerHTML = left == null ? 'Trial' : left + ' <small>left</small>';
+      const btn = bal.querySelector('button');
+      if (btn) {
+        btn.textContent = tok ? 'Add lessons' : 'Ask your teacher';
+        btn.onclick = tok ? () => { location.href = 'book.html?t=' + encodeURIComponent(tok); } : null;
+      }
+    });
+  }
+
+  function nextLesson(dash) {
+    const card = $$('.uncard[data-t="lesson"]')[0];
+    if (!card) return;
+    const box = card.querySelector('div[style*="flex"]');
+    const s = dash && dash.schedule && dash.schedule[0];
+    if (!s || !s.start_at) { box.innerHTML = '<b>No lesson booked</b><span>Your next lesson shows up here</span>'; return; }
+    const at = new Date(s.start_at);
+    const days = Math.round((new Date(at).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5);
+    const when = days <= 0 ? 'today' : days === 1 ? 'tomorrow' : 'in ' + days + ' days';
+    const b = document.createElement('b');
+    b.textContent = at.toLocaleDateString('en-GB', { weekday: 'short' }) + ' ' + at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' · ' + (s.title || s.group_name || 'Lesson');
+    const sp = document.createElement('span');
+    sp.textContent = 'Next lesson · ' + when + (s.teacher_name ? ' · with ' + s.teacher_name : '');
+    box.innerHTML = ''; box.append(b, sp);
+  }
+
+  function today(words, inbox) {
+    const pg = document.getElementById('pg-today');
+    if (!pg) return;
+    const open = (words || []).filter(w => !w.learned);
+    const hw = (inbox || []).filter(a => a.status === 'assigned' || a.status === 'in_progress')
+      .sort((a, b) => (a.due_at ? +new Date(a.due_at) : Infinity) - (b.due_at ? +new Date(b.due_at) : Infinity));
+    const rows = [];
+    if (open.length) rows.push({ t: 'Review ' + plural(Math.min(open.length, 6), 'word'), s: '“' + open[0].word + '” is waiting in your notebook', m: 'Word Bank · ≈' + Math.max(2, Math.min(open.length, 6)) + ' min', b: 'Start', go: 2, cls: 'lime', min: 3 });
+    if (hw.length) rows.push({ t: hw[0].title || 'Homework', s: (hw[0].status === 'in_progress' ? 'In progress · ' : 'Assigned · ') + dueText(hw[0]), m: 'Homework', b: hw[0].status === 'in_progress' ? 'Continue' : 'Open', href: 'homework-do.html?a=' + encodeURIComponent(hw[0].assignment_id), cls: 'line', min: 10 });
+    const mins = rows.reduce((n, r) => n + r.min, 0);
+    const plan = pg.querySelector('.plan');
+    if (plan) {
+      plan.innerHTML = '';
+      rows.forEach((r, i) => {
+        const row = document.createElement('div'); row.className = 'planrow';
+        row.innerHTML = '<span class="pnum"></span><div class="pmain"><b></b><span></span></div><span class="pmeta"></span><button></button>';
+        row.querySelector('.pnum').textContent = i + 1;
+        row.querySelector('b').textContent = r.t; row.querySelector('.pmain span').textContent = r.s;
+        row.querySelector('.pmeta').textContent = r.m;
+        const btn = row.querySelector('button'); btn.className = 'pbtn ' + r.cls; btn.textContent = r.b;
+        btn.addEventListener('click', e => { e.stopPropagation(); if (r.href) location.href = r.href; else goTo(r.go); });
+        plan.appendChild(row);
+      });
+    }
+    const kick = pg.querySelector('.kick a'); if (kick) kick.textContent = rows.length ? '≈' + mins + ' min · then you are free' : 'nothing due';
+    const end = pg.querySelector('.planend'); if (end) end.textContent = rows.length ? 'That’s the whole day. Everything else can wait.' : 'All clear — nothing due today.';
+    const deck = pg.querySelector('.cbody');
+    if (deck) deck.innerHTML = '<b>' + (rows.length ? 'Your day, in ' + plural(rows.length, 'move') : 'Nothing due today') + '</b><span>' + (rows.length ? 'About ' + mins + ' minutes — then you are free' : 'Enjoy the quiet') + '</span>';
+    const pill = pg.querySelector('.minpill'); if (pill) pill.textContent = plural(rows.length, 'task') + (rows.length ? ' · ≈' + mins + ' min' : '');
+    hide(pg, '.pixchip, #luckyCard, #wnStrip, .lpop');
+    // Treat of the day: a word from the student's own notebook, not a sample.
+    const treat = pg.querySelector('#treat');
+    if (treat) {
+      if (!open.length) treat.style.display = 'none';
+      else {
+        treat.querySelector('.tk').lastChild.textContent = 'FROM YOUR NOTEBOOK';
+        treat.querySelector('.tw').textContent = open[0].word;
+        treat.querySelector('.tt').textContent = open[0].translation || '';
+        hide(treat, '#tKeep');
+      }
+    }
+    // Challenges: today's mission is the open homework; duels, class sprint and badges need a server we do not have.
+    const ch = document.getElementById('pg-challenges');
+    if (ch) {
+      hide(ch, '.cols, .stitle, .shelf, .sheetwrap, .dpop, .pixchip2, .xpboost');
+      const sub = ch.querySelector('.hdr .sub'); if (sub) sub.textContent = 'What your teacher set for you — finish it and keep the streak warm.';
+      const h2 = ch.querySelector('.hero h2'), p = ch.querySelector('.hero p'), k = ch.querySelector('.hero .kick2'), btn = ch.querySelector('#acceptBtn');
+      if (hw.length) {
+        k.textContent = 'TODAY’S MISSION · FROM YOUR TEACHER';
+        h2.textContent = hw[0].title || 'Homework';
+        p.textContent = dueText(hw[0]).replace(/^./, c => c.toUpperCase()) + '.';
+        btn.textContent = 'Open homework';
+        btn.onclick = () => { location.href = 'homework-do.html?a=' + encodeURIComponent(hw[0].assignment_id); };
+      } else {
+        k.textContent = 'ALL CLEAR';
+        h2.textContent = 'No challenge today';
+        p.textContent = 'When your teacher sets homework, it shows up here.';
+        btn.style.display = 'none';
+      }
+    }
+    set('.nav button', b => {
+      const nb = b.querySelector('.nbadge');
+      if (nb && /Challenges/.test(b.textContent)) { nb.textContent = hw.length; nb.style.display = hw.length ? '' : 'none'; }
+    });
+    set('.ms-sub', e => { e.textContent = open.length ? plural(open.length, 'word') + ' to learn' : 'Notebook is up to date'; });
+  }
+
+  const pProgress = json('/api/student/progress');
+  const pVocab = json('/api/journal/vocab/list');
+  const pInbox = json('/api/homework/my/inbox');
+  const pDash = json('/api/student/dashboard');
+  const pMe = json('/api/auth/me');
+  pProgress.then(progress);
+  pVocab.then(vocab);
+  pInbox.then(r => homework(r && r.assignments));
+
+  Promise.all([pMe, pProgress]).then(([me, pr]) => {
     if (me && me.user) who(me.user);
     streak(pr && Number(pr.streak) || 0);
   });
+  Promise.all([pMe, pDash]).then(([me, dash]) => {
+    nextLesson(dash);
+    const uid = me && me.user && me.user.id;
+    return (uid ? json('/api/student/portal/' + encodeURIComponent(uid)) : Promise.resolve(null)).then(portal => sidebar(dash, portal));
+  });
+  Promise.all([pVocab, pInbox]).then(([v, i]) => today(v && v.words, i && i.assignments));
 })();
