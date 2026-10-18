@@ -601,7 +601,7 @@ a{text-decoration:none;color:inherit;}
           <div class="mp-tl-time">-</div>
           <div class="mp-tl-card">
             <div class="mp-tl-info">
-              <div class="mp-tl-t">No lessons yet</div>
+              <div class="mp-tl-t">No classes yet</div>
               <div class="mp-tl-s">Tap + to add your first class.</div>
             </div>
           </div>
@@ -1140,7 +1140,7 @@ function renderMobileProSchedule(_unused) {
       <div class="mp-tl-time">-</div>
       <div class="mp-tl-card">
         <div class="mp-tl-info">
-          <div class="mp-tl-t">No lessons</div>
+          <div class="mp-tl-t">No classes</div>
           <div class="mp-tl-s">${isToday ? 'A light day. Tap + to add one.' : 'Nothing scheduled for this day.'}</div>
         </div>
       </div>
@@ -1731,7 +1731,7 @@ function renderWeekBrief() {
       <span class="wb-status ${statusClass}">${esc(status)}</span>
     </div>
     <div class="wb-metrics">
-      <div class="wb-metric"><div class="wb-num">${slots.length}</div><div class="wb-lbl">Lessons</div></div>
+      <div class="wb-metric"><div class="wb-num">${slots.length}</div><div class="wb-lbl">Classes</div></div>
       <div class="wb-metric"><div class="wb-num">${(minutes / 60).toFixed(minutes ? 1 : 0)}</div><div class="wb-lbl">Hours</div></div>
       <div class="wb-metric"><div class="wb-num">${linked}</div><div class="wb-lbl">Boards linked</div></div>
     </div>
@@ -1739,7 +1739,7 @@ function renderWeekBrief() {
       ${daySlots.map((items, day) => {
         const dayMinutes = items.reduce((sum, slot) => sum + slotMinutes(slot), 0);
         const height = dayMinutes ? Math.max(10, Math.round(dayMinutes / maxMinutes * 100)) : 0;
-        const label = `${DAY_NAMES[day]}: ${items.length} lesson${items.length === 1 ? '' : 's'}, ${(dayMinutes / 60).toFixed(dayMinutes ? 1 : 0)} hours`;
+        const label = `${DAY_NAMES[day]}: ${items.length} class${items.length === 1 ? '' : 'es'}, ${(dayMinutes / 60).toFixed(dayMinutes ? 1 : 0)} hours`;
         return `<button type="button" class="wb-day ${weekOffset === 0 && day === todayDow ? 'today' : ''}" title="${esc(label)}" aria-label="${esc(label)}" onclick="focusWeekDay(${day})"><span class="wb-day-label">${DAY_NAMES[day][0]}</span><span class="wb-bar"><span class="wb-fill" style="height:${height}%"></span></span></button>`;
       }).join('')}
     </div>

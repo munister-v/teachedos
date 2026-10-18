@@ -433,7 +433,9 @@ const WM = (function () {
         win.classList.remove('open', 'focused');
       }
     }
-    if (di) di.classList.remove('open', 'minimized');
+    // the Schedule tab stays lit while its dashboard widget is out
+    if (di) di.classList.remove('minimized');
+    if (di && !(id === 'schedule' && schedWidgetOut())) di.classList.remove('open');
     if (win) delete win.dataset.minimized;
     if (focusedId === id) focusedId = null;
   }
@@ -864,8 +866,10 @@ const WGM = (function () {
      шестерёнка в углу. За ней меню рабочего стола: какие виджеты показывать,
      какие свернуть в полоску, вернуть их на места, сменить фон. Сюда же
      потом ляжет остальная настройка стола. */
+  /* Next lesson and This week live inside the Schedule widget now (ТЗ «Навигация и расписание» §4);
+     the widget folds into its dock tab, not into a strip. */
   const WG_NAMES = [
-    ['wg-today', 'Next lesson'], ['wg-week', 'This week'], ['wg-pulse', 'Student pulse', true], ['fx-ghost-panel', 'Schedule', true],
+    ['wg-pulse', 'Student pulse', true], ['fx-ghost-panel', 'Schedule'],
   ];
   function ensureRestoreChip() {
     let btn = document.getElementById('wg-menu-btn');
@@ -942,6 +946,7 @@ const WGM = (function () {
     state[w.id].hidden = true;
     persist();
     updateRestoreChip();
+    if (w.id === 'fx-ghost-panel') document.getElementById('di-schedule')?.classList.remove('open');
   }
 
   function showWidget(w) {
@@ -950,6 +955,7 @@ const WGM = (function () {
     if (state[w.id]) state[w.id].hidden = false;
     persist();
     updateRestoreChip();
+    if (w.id === 'fx-ghost-panel' && typeof window.schedWidgetToggle === 'function') window.schedWidgetToggle(true, { instant: true });
   }
 
   /* Координаты - в системе того, внутри чего виджет лежит: карточки живут
@@ -998,7 +1004,10 @@ const WGM = (function () {
     w.classList.add('wg-movable');
 
     const s = state[w.id];
-    if (s && s.hidden) { w.dataset.wgHidden = '1'; w.style.display = 'none'; }
+    if (s && s.hidden) {
+      w.dataset.wgHidden = '1'; w.style.display = 'none';
+      if (w.id === 'fx-ghost-panel') requestAnimationFrame(() => document.getElementById('di-schedule')?.classList.remove('open'));
+    }
     if (s && s.collapsed) w.classList.add('is-collapsed');
     applyPosition(w);
 
@@ -1090,7 +1099,20 @@ function openApp(id) {
    сворачиваем, открыто но под другим → поднимаем, закрыто/свёрнуто → открываем.
    Отдельная функция, а не поведение openApp: спотлайт, хэши и кнопки внутри
    окон зовут openApp и должны именно ОТКРЫВАТЬ, а не закрывать наугад. */
+/* The Schedule tab of the dock is the dashboard's Schedule widget (ТЗ «Навигация и расписание» §4):
+   where the widget can show (the desktop, not hidden from the widgets menu), the tab folds it out
+   and back; the full schedule is its Open full schedule button. */
+function schedWidgetHome() {
+  const box = document.getElementById('fx-ghost-panel');
+  return !!(box && typeof window.schedWidgetToggle === 'function' && document.body.classList.contains('fx')
+    && document.body.classList.contains('os-desktop') && window.innerWidth > 860 && box.dataset.wgHidden !== '1');
+}
+function schedWidgetOut() {
+  const box = document.getElementById('fx-ghost-panel');
+  return schedWidgetHome() && !box.classList.contains('sw-folded');
+}
 function dockApp(id) {
+  if (id === 'schedule' && schedWidgetHome()) { window.schedWidgetToggle(); return; }
   const win = document.getElementById('win-' + id);
   if (win && win.classList.contains('open') && !win.classList.contains('minimizing')) {
     if (win.classList.contains('focused')) WM.minimize(id);

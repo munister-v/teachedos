@@ -812,6 +812,40 @@ function spCancelled(s, ymd) {
   return !!(m && m.status === 'cancelled' && (!m.slot_id || m.slot_id === s.id));
 }
 window.spCancelled = spCancelled;
+/* ТЗ «Навигация и расписание» §4 (17.10.2026): the one Schedule widget. It replaces the month
+   window, the separate This Week card and the duplicate Next class card: a head (Schedule · the month
+   · Open full schedule), the week strip with a class counter under each day (lime marks the focused
+   day only, today keeps a dot), the focused day's classes - the next one carries its countdown and
+   the smart ink button - and This week as bars (ink = done, sand = upcoming). It opens from the
+   Schedule tab of the dock and folds back into it (schedWidgetToggle). */
+const SW_HALO = [['#E3EFB8', '#61791F'], ['#C9E1F7', '#3D6B99'], ['#F7DCC0', '#96662A'], ['#FBF0CB', '#8A6D14'], ['#F9DEDB', '#A03D38'], ['#E6DEFB', '#5B43B5'], ['#D5F6F2', '#1E7A6E']];
+function _swHalo(name) {
+  let h = 0; for (const ch of String(name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return SW_HALO[h % SW_HALO.length];
+}
+const SW_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const SW_ICON = {
+  edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3l4 4L8 20l-5 1 1-5L17 3z"/></svg>',
+  del: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2m-8 0l1 13h8l1-13"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10l6 6 6-6"/></svg>',
+};
+/* The smart button of the next class, by time to it (design spec v1 №4): an hour or more - Prepare;
+   15-60 min - Open board; from 15 min before to its end - Start lesson; after - Assign homework. */
+function _swSmart(s, startAt, dur) {
+  const until = (startAt - new Date()) / 60000;
+  const board = () => { location.href = s.board_id ? `board.html?id=${encodeURIComponent(s.board_id)}` : 'schedule.html'; };
+  if (until + dur <= 0) return { label: 'Assign homework', run: () => { location.href = 'homework.html'; } };
+  if (until <= 15) return { label: 'Start lesson', run: () => { if (s.meeting_url) window.open(s.meeting_url, '_blank', 'noopener'); board(); } };
+  if (until <= 60) return { label: 'Open board', run: board };
+  return { label: 'Prepare', run: board };
+}
+function _swUntil(startAt, dur) {
+  const until = (startAt - new Date()) / 60000;
+  if (until + dur <= 0) return 'finished';
+  if (until <= 0) return `started ${Math.max(0, Math.round(-until))} min ago`;
+  const m = Math.round(until), h = Math.floor(m / 60), d = Math.floor(h / 24);
+  return d >= 1 ? `in ${d}d ${h % 24}h` : `in ${h ? `${h}h ${m % 60}m` : `${m}m`}`;
+}
 function renderSchedPreview(all) {
   const box = document.getElementById('fx-ghost-panel');
   if (!box) return;
@@ -822,43 +856,110 @@ function renderSchedPreview(all) {
   const sel = _sp.sel;
   const toMin = t => { const [h, m] = String(t || '0:0').split(':'); return +h * 60 + +m; };
   const monday = new Date(now); monday.setDate(now.getDate() - today);
-  /* Неделя - это недельные слоты и разовые уроки с датой в этой неделе.
-     Разовые здесь отбрасывались целиком: урок, назначенный на четверг этой
-     недели, в панели не появлялся. */
+  /* Неделя - это недельные слоты и разовые уроки с датой в этой неделе. */
   const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const weekDays = SP_DAYS.map((_, i) => { const dt = new Date(monday); dt.setDate(monday.getDate() + i); return ymd(dt); });
+  const dates = SP_DAYS.map((_, i) => { const dt = new Date(monday); dt.setDate(monday.getDate() + i); return dt; });
+  const weekDays = dates.map(ymd);
   const weekAll = _sp.all.filter(s => s.specific_date ? weekDays.includes(String(s.specific_date).slice(0, 10)) : s.recurring !== false);
   const weekly = weekAll.filter(s => !spCancelled(s, weekDays[s.day]));
   const byTime = (a, b) => toMin(a.start_time) - toMin(b.start_time);
-  const month = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-  const days = SP_DAYS.map((d, i) => {
-    const dt = new Date(monday); dt.setDate(monday.getDate() + i);
-    const has = weekly.some(s => s.day === i);
-    return `<button type="button" class="sp-day${i === sel ? ' is-sel' : ''}${i === today ? ' is-today' : ''}${has ? ' has' : ''}" data-spday="${i}" data-ymd="${ymd(dt)}" aria-pressed="${i === sel}"><span>${d}</span><b>${dt.getDate()}</b></button>`;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const endMin = s => { const st = toMin(s.start_time); let en = toMin(s.end_time); if (en <= st) en = st + 60; return en; };
+  const doneOf = s => s.day < today || (s.day === today && endMin(s) <= nowMin);
+  // the next class of the week: the one going on now, else the first still to start
+  const next = weekly.filter(s => s.day > today || (s.day === today && endMin(s) > nowMin))
+    .sort((a, b) => a.day - b.day || byTime(a, b))[0] || null;
+  const per = SP_DAYS.map((_, i) => weekly.filter(s => s.day === i).length);
+  const month = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase();
+
+  const days = SP_DAYS.map((d, i) => `<button type="button" class="sw-day${i === sel ? ' is-sel' : ''}${i === today ? ' is-today' : ''}" data-spday="${i}" data-ymd="${weekDays[i]}" aria-pressed="${i === sel}">
+      <span class="sw-dn">${d}</span><b class="sw-dd">${dates[i].getDate()}</b>${i === today ? '<i class="sw-tdot" aria-hidden="true"></i>' : ''}
+      <span class="sw-ct">${per[i] ? `<b>${per[i]}</b><span> ${per[i] === 1 ? 'class' : 'classes'}</span>` : '—'}</span></button>`).join('');
+
+  const rows = weekAll.filter(s => s.day === sel).sort(byTime);
+  const shownN = rows.filter(s => !spCancelled(s, weekDays[sel])).length;
+  _sp.smart = null;
+  const list = rows.map(s => {
+    const who = _spWho(s);
+    const off = spCancelled(s, weekDays[sel]);
+    const isNext = next && s.id === next.id && s.day === next.day;
+    const [bg, fg] = _swHalo(who);
+    const st = toMin(s.start_time), dur = endMin(s) - st;
+    const startAt = new Date(dates[sel].getFullYear(), dates[sel].getMonth(), dates[sel].getDate(), st / 60 | 0, st % 60);
+    const meta = [String(s.start_time).slice(0, 5), s.level || '', `${dur} min`, isNext ? _swUntil(startAt, dur) : '', off ? 'cancelled' : ''].filter(Boolean).join(' · ');
+    let smart = '';
+    if (isNext && !off) { _sp.smart = _swSmart(s, startAt, dur); smart = `<button type="button" class="sw-smart" data-spsmart>${esc(_sp.smart.label)}</button>`; }
+    const face = s.student_avatar && !/^https?:/.test(s.student_avatar) ? esc(s.student_avatar) : esc(_spInitials(who));
+    return `<div class="sp-pill sw-lesson${isNext ? ' is-next' : ''}${off ? ' is-off' : ''}" data-slot="${esc(s.id)}" data-ymd="${esc(weekDays[sel])}">
+      <span class="sw-av" style="background:${bg};color:${fg}">${face}</span>
+      <span class="sw-who"><button type="button" class="sp-who" data-spact="who">${esc(who)}</button><small>${esc(meta)}</small></span>
+      <span class="sw-acts">${off ? '' : `<button type="button" class="sw-ic" data-spact="move" title="Move or edit this class" aria-label="Move or edit this class">${SW_ICON.edit}</button><button type="button" class="sw-ic" data-spact="cancel" title="Cancel this class" aria-label="Cancel this class">${SW_ICON.del}</button>`}${smart}</span>
+    </div>`;
+  }).join('') || `<div class="sw-empty">No classes this day. <button type="button" data-spadd>Add a class</button> or open it for booking.</div>`;
+
+  const total = weekly.length, done = weekly.filter(doneOf).length;
+  const maxN = Math.max(1, ...per);
+  const bars = per.map((n, i) => {
+    const dayDone = n && weekly.filter(s => s.day === i).every(doneOf);
+    const h = n ? Math.max(10, Math.round(n / maxN * 38)) : 5;
+    return `<div class="sw-bar${n ? (dayDone ? ' is-done' : ' is-up') : ''}" style="height:${h}px" title="${SP_DAYS[i]} · ${n} ${n === 1 ? 'class' : 'classes'}">${i === today ? '<i class="sw-btd" aria-hidden="true"></i>' : ''}</div>`;
   }).join('');
-  let list;
-  if (_sp.open) {
-    // Развёрнуто: вся неделя по дням.
-    list = SP_DAYS.map((d, i) => {
-      const rows = weekAll.filter(s => s.day === i).sort(byTime);
-      return rows.length ? `<div class="sp-dayhead">${d}${i === today ? ' · today' : ''}</div>` + rows.map(s => _spPill(s, today, false, weekDays[i])).join('') : '';
-    }).join('') || '<div class="sp-empty">No classes this week yet.</div>';
-  } else {
-    const rows = weekAll.filter(s => s.day === sel).sort(byTime);
-    const label = sel === today ? 'today' : sel === (today + 1) % 7 ? 'tomorrow' : 'on ' + SP_DAYS[sel];
-    list = rows.map(s => _spPill(s, today, false, weekDays[sel])).join('') || `<div class="sp-empty">No classes ${label}.</div>`;
-  }
+
   box.innerHTML = `
-    <div class="sp-card">
-      <div class="sp-head"><button type="button" class="sp-title" data-spopen title="Open the full schedule">Schedule</button><span class="sp-month">${esc(month)}</span>
-        <button type="button" class="sp-add" data-spadd title="Add a lesson">Add <i>+</i></button>
-        <button type="button" class="sp-fold" data-spfold aria-label="Collapse the schedule" title="Collapse">⌃</button></div>
-      <div class="sp-week">${days}</div>
-    </div>
-    <button type="button" class="sp-count" data-spexpand aria-expanded="${_sp.open}"><span><b>${weekly.length}</b> ${weekly.length === 1 ? 'class' : 'classes'} this week</span><i class="sp-chev" aria-hidden="true"></i></button>
-    <div class="sp-list${_sp.open ? ' is-open' : ''}">${list}</div>`;
+    <div class="sw-head"><h2>Schedule</h2><span class="sw-mo">${esc(month)}</span>
+      <a class="sw-full" href="schedule.html">Open full schedule →</a></div>
+    <div class="sw-week">${days}</div>
+    <div class="sw-lhead"><b>${SW_FULL[sel]} ${dates[sel].getDate()}${sel === today ? ' · today' : ''}</b><span>${shownN ? `${shownN} ${shownN === 1 ? 'class' : 'classes'}` : 'free day'}</span>
+      <button type="button" class="sw-add" data-spadd title="Add a class">Add <i>+</i></button>
+      <button type="button" class="sw-chev" data-spfold title="Fold into the dock" aria-label="Fold the schedule into the dock">${SW_ICON.chev}</button></div>
+    <div class="sw-list">${list}</div>
+    <div class="sw-tw"><div class="sw-lab">This week<b>${total ? `${done} of ${total} done · ${Math.round(done / total * 100)}%` : 'No classes this week'}</b></div>
+      <div class="sw-chart"><div class="sw-bars">${bars}</div><div class="sw-barl">${SP_DAYS.map(d => `<span>${d[0]}</span>`).join('')}</div></div></div>`;
   renderWeekChart(weekly, today);
 }
+
+/* Open from the Schedule tab of the dock and fold back into it - a genie from / to the tab. */
+const SW_OPEN_KEY = 'teachedos_schedule_widget';
+function _swTabRect() {
+  const tab = document.getElementById('di-schedule');
+  return tab && tab.getClientRects().length ? tab.getBoundingClientRect() : null;
+}
+function schedWidgetToggle(open, opts = {}) {
+  const box = document.getElementById('fx-ghost-panel');
+  if (!box) return false;
+  const shown = !box.classList.contains('sw-folded');
+  const want = typeof open === 'boolean' ? open : !shown;
+  try { localStorage.setItem(SW_OPEN_KEY, want ? '1' : '0'); } catch (_) {}
+  document.getElementById('di-schedule')?.classList.toggle('open', want);
+  if (want === shown && !opts.force) return true;
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const genie = () => {
+    const t = _swTabRect(), r = box.getBoundingClientRect();
+    if (!t || !r.width) return false;
+    box.style.setProperty('--sw-gx', `${Math.round(t.left + t.width / 2 - (r.left + r.width / 2))}px`);
+    box.style.setProperty('--sw-gy', `${Math.round(t.top + t.height / 2 - (r.top + r.height / 2))}px`);
+    return true;
+  };
+  box.classList.remove('sw-genie-in', 'sw-genie-out');
+  if (want) {
+    box.classList.remove('sw-folded');
+    if (!reduced && !opts.instant && genie()) { void box.offsetWidth; box.classList.add('sw-genie-in'); }
+  } else if (reduced || opts.instant || !genie()) {
+    box.classList.add('sw-folded');
+  } else {
+    box.classList.add('sw-genie-out');
+    box.addEventListener('animationend', () => { box.classList.remove('sw-genie-out'); box.classList.add('sw-folded'); }, { once: true });
+  }
+  return true;
+}
+window.schedWidgetToggle = schedWidgetToggle;
+(function restoreSchedWidget() {
+  let v = null;
+  try { v = localStorage.getItem(SW_OPEN_KEY); } catch (_) {}
+  if (v === '0') schedWidgetToggle(false, { instant: true, force: true });
+  else document.getElementById('di-schedule')?.classList.add('open');
+})();
+
 /* Маленький график недели: столбик на день, высота - число уроков. */
 /* ── This week (15.10.2026) ─────────────────────────────────────────────
    Большое число - уроки недели с единицей, под ним заработок (если учитель
@@ -975,14 +1076,11 @@ async function loadSchedPreview() {
       const slot = pill && _sp.all.find(x => x.id === pill.dataset.slot);
       const act = e.target.closest('[data-spact]');
       if (act && slot && D) { D.slotAction(act.dataset.spact, slot, pill.dataset.ymd, act); return; }
-      // строка урока - в виджет Next lesson (повторный клик возвращает ближайший)
-      if (slot && typeof nextClassPin === 'function') { nextClassPin(slot, pill.dataset.ymd); return; }
       const day = e.target.closest('[data-spday]');
       if (day) { _sp.sel = +day.dataset.spday; _sp.open = false; renderSchedPreview(); return; }
-      if (e.target.closest('[data-spexpand]')) { _sp.open = !_sp.open; renderSchedPreview(); return; }
-      if (e.target.closest('[data-spadd]') && D) { D.quickAdd({ anchor: e.target.closest('[data-spadd]'), ymd: box.querySelector('.sp-day.is-sel')?.dataset.ymd }); return; }
-      if (e.target.closest('[data-spfold]') && typeof WGM !== 'undefined' && WGM.toggleCollapse) { WGM.toggleCollapse(box); return; }
-      if (e.target.closest('[data-spopen]') && typeof dockApp === 'function') dockApp('schedule');
+      if (e.target.closest('[data-spadd]') && D) { D.quickAdd({ anchor: e.target.closest('[data-spadd]'), ymd: box.querySelector('.sw-day.is-sel')?.dataset.ymd }); return; }
+      if (e.target.closest('[data-spsmart]') && _sp.smart) { _sp.smart.run(); return; }
+      if (e.target.closest('[data-spfold]')) { schedWidgetToggle(false); return; }
     });
     /* Карточку из Student pulse можно бросить на день недели: откроется
        быстрое создание урока с этим учеником на этот день. */
@@ -990,14 +1088,14 @@ async function loadSchedPreview() {
       const day = e.target.closest('[data-spday]');
       if (!day || !e.dataTransfer.types.includes('text/x-teached-journal')) return;
       e.preventDefault();
-      box.querySelectorAll('.sp-day.is-drop').forEach(d => d !== day && d.classList.remove('is-drop'));
+      box.querySelectorAll('.sw-day.is-drop').forEach(d => d !== day && d.classList.remove('is-drop'));
       day.classList.add('is-drop');
     });
     box.addEventListener('dragleave', e => { const day = e.target.closest('[data-spday]'); if (day && !day.contains(e.relatedTarget)) day.classList.remove('is-drop'); });
     box.addEventListener('drop', e => {
       const day = e.target.closest('[data-spday]');
       const jid = e.dataTransfer.getData('text/x-teached-journal');
-      box.querySelectorAll('.sp-day.is-drop').forEach(d => d.classList.remove('is-drop'));
+      box.querySelectorAll('.sw-day.is-drop').forEach(d => d.classList.remove('is-drop'));
       if (!day || !jid || !window.TeachedDesk) return;
       e.preventDefault();
       window.TeachedDesk.quickAdd({ anchor: day, ymd: day.dataset.ymd, journalId: jid });

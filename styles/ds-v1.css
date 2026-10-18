@@ -593,7 +593,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
   display:grid !important; grid-template-columns:repeat(3, minmax(0, 1fr)) !important; gap:18px !important; padding:0 !important;
 }
 @container (max-width: 760px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; } }
-@container (max-width: 480px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:1fr !important; } }
+@container (max-width: 400px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:1fr !important; } }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-main { container-type:inline-size; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card {
   position:relative; background:#fff !important; border:1px solid rgba(11,16,38,.07) !important; border-radius:16px !important; overflow:hidden;
@@ -1168,7 +1168,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse.is-collapsed .wg-pulse-list { display:none !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse .wg-pulse-fold { position:relative; z-index:2; margin-right:16px !important; flex:none; } /* clear of the hover × in the corner */
 
-/* ══ ТЗ «Навигация и расписание» html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body1 · Community (17.10.2026) ═══════════════
+/* ══ ТЗ «Навигация и расписание» §1 · Community (17.10.2026) ═══════════════
    The catalog is one white sheet with the teacher's own space on its left:
    My space (Saved items - a counter only when there is something, My
    publications, My collections) and one quick action, Open my board. The
@@ -1244,7 +1244,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
   html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body:has(.cm-sheet) .cm-head h1 { font-size:44px !important; }
 }
 
-/* ══ ТЗ «Навигация и расписание» html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body2 · Boards, variant E (17.10.2026) ══════
+/* ══ ТЗ «Навигация и расписание» §2 · Boards, variant E (17.10.2026) ══════
    The window holds two panels: a floating glass sidebar (LIBRARY: All boards,
    Recent, Starred, Shared with me; MORE: Archived, Trash; counters on the
    items; the open one an ink pill with a lime icon; the lime New board at
@@ -1285,7 +1285,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-chead span { font-size:13px; font-weight:700; color:rgba(11,16,38,.4); margin-left:10px; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-csub { font-size:13px; font-weight:600; color:rgba(11,16,38,.45); margin-bottom:18px; flex:none; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { gap:16px !important; }
-@container (min-width: 600px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:repeat(3, minmax(0, 1fr)) !important; } }
+@container (min-width: 520px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .curr-grid { grid-template-columns:repeat(3, minmax(0, 1fr)) !important; } }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card { transition:transform .22s cubic-bezier(.2,.7,.3,1.2), box-shadow .22s !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card:hover { transform:translateY(-5px) scale(1.01) !important; box-shadow:0 20px 44px rgba(11,16,38,.14) !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card .bd-cover { height:112px !important; }
@@ -1317,7 +1317,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 @keyframes bd-wick { from { transform:scaleX(1); } to { transform:scaleX(0); } }
 @media (prefers-reduced-motion:reduce) { .bd-toast, .bd-toast-wick, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-card, html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .bd-actions { animation:none !important; transition:none !important; } }
 
-/* ══ ТЗ «Навигация и расписание» html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body3 · Schedule blocks, variant 1 (17.10.2026) ═
+/* ══ ТЗ «Навигация и расписание» §3 · Schedule blocks, variant 1 (17.10.2026) ═
    The block is the time slot: 56px an hour, 1px inset, radius 8, no shadow.
    The colour code is a 4px bar in the student's colour, the fill a pale tint
    of the same colour - one code, not two. The name (13.5/800) never
@@ -1363,3 +1363,119 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #main .day-col .hour-line { border-bottom:1px solid #E9E7D8 !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #main .time-label { color:#76745F !important; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cc-rest { display:none !important; }
+
+/* ══ ТЗ «Навигация и расписание» §4 · Schedule widget (17.10.2026) ═══════════
+   The one Schedule widget on the right (scripts/desktop-extras.js →
+   renderSchedPreview). It replaces the month window, the This week card and
+   the Next lesson card: a head (Schedule · the month · Open full schedule as
+   an ink-outline pill), the week strip with a class counter under each day
+   (lime marks the focused day only, today keeps a graphite dot), the focused
+   day's classes (halo avatar, outline edit / delete icons, the next class with
+   its countdown and the smart ink button), This week as bars - ink done, sand
+   upcoming, no lime, no gradients. It opens from the Schedule tab of the dock
+   and folds back into it (a genie, schedWidgetToggle). */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop :is(#wg-today, #wg-week) { display:none !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel {
+  background:rgba(255,255,255,.92) !important; border:1px solid rgba(255,255,255,.6) !important; border-radius:26px !important;
+  box-shadow:0 24px 60px rgba(36,40,44,.10) !important; padding:20px 20px 16px !important; cursor:default !important;
+  overflow-y:auto !important; overscroll-behavior:contain; scrollbar-width:thin; color:#24282C !important;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel.sw-folded { display:none !important; }
+@media (min-width:1200px) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel { top:130px !important; right:20px; width:clamp(372px, calc(100vw - 880px), 500px) !important; max-height:calc(100vh - 130px - 110px) !important; }
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-head { display:flex; align-items:center; gap:10px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-head h2 { margin:0 !important; font-size:19px !important; font-weight:800 !important; letter-spacing:-.3px !important; color:#24282C !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-mo { font-size:11.5px; font-weight:800; letter-spacing:1.4px; color:#76745F; white-space:nowrap; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-full {
+  margin-left:auto; flex:none; background:#fff; border:1.5px solid #24282C; border-radius:999px; font:inherit; font-size:12.5px; font-weight:800;
+  color:#24282C; padding:8px 14px; text-decoration:none; white-space:nowrap; transition:background .15s, color .15s;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-full:hover { background:#24282C; color:#fff; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-week { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; margin-top:16px; background:#FBFBF6; border:1px solid #F1F0E4; border-radius:16px; padding:8px 6px 7px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-day { display:flex; flex-direction:column; align-items:center; background:none; border:0; font:inherit; cursor:pointer; border-radius:12px; padding:7px 0 5px; color:#24282C; position:relative; min-width:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-day:hover { background:#F3F2E8; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-day.is-sel { background:#CDF649; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-dn { font-size:11px; font-weight:800; letter-spacing:.8px; color:#76745F; text-transform:uppercase; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-dd { display:block; font-size:17px; font-weight:800; margin-top:1px; line-height:1.3; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ct { font-size:11px; font-weight:800; color:#76745F; margin-top:1px; white-space:nowrap; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ct b { color:#4C4A3E; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-day.is-sel :is(.sw-dn, .sw-ct, .sw-ct b) { color:#4F660A; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-tdot { display:block; width:5px; height:5px; border-radius:50%; background:#24282C; margin:2px auto 0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-day.is-drop { outline:2px dashed #F35695; outline-offset:-2px; background:#F8DBDB; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop.is-booking-drag #fx-ghost-panel .sw-day { outline:1.5px dashed rgba(36,40,44,.25); outline-offset:-1px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-lhead { display:flex; align-items:center; margin:16px 2px 8px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-lhead > b { font-size:13.5px; font-weight:800; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-lhead > span { margin-left:auto; font-size:12px; font-weight:700; color:#76745F; white-space:nowrap; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-add {
+  margin-left:10px; display:flex; align-items:center; gap:7px; background:none; border:1.5px solid #E9E7DC; border-radius:999px; font:inherit;
+  font-size:13px; font-weight:800; color:#24282C; padding:8px 8px 8px 14px; cursor:pointer; min-height:38px;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-add:hover { border-color:#24282C; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-add i { width:20px; height:20px; border-radius:50%; background:#CDF649; display:grid; place-items:center; font-style:normal; font-size:14px; font-weight:800; line-height:1; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-chev { background:none; border:0; cursor:pointer; color:#A3A091; padding:6px; border-radius:8px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-chev:hover { color:#24282C; background:#F3F2E8; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-chev svg { width:16px; height:16px; display:block; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-list { display:block; padding:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sp-pill.sw-lesson {
+  display:flex !important; align-items:center; gap:11px; background:#FBFBF6 !important; border:1px solid #F1F0E4 !important; border-radius:16px !important;
+  padding:10px 12px !important; margin:0 0 7px; cursor:default; opacity:1;
+}
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sp-pill.sw-lesson.is-next { background:#fff !important; border-color:#E9E7DC !important; box-shadow:0 8px 22px rgba(36,40,44,.07); }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sp-pill.sw-lesson.is-off { opacity:.6; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sp-pill.sw-lesson.is-off .sp-who { text-decoration:line-through; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-av { width:36px; height:36px; flex:0 0 36px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:14px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-who { min-width:0; display:flex; flex-direction:column; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-who .sp-who { display:block; max-width:100%; font-size:14.5px; font-weight:800; line-height:1.2; color:#24282C; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-who small { font-size:12px; font-weight:700; color:#76745F; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-acts { margin-left:auto; display:flex; gap:2px; align-items:center; flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ic { width:32px; height:32px; border-radius:50%; border:0; background:none; display:grid; place-items:center; cursor:pointer; color:#8A8672; padding:0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ic:hover { background:#F1F0E4; color:#24282C; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ic[data-spact="cancel"]:hover { background:#F9DEDB; color:#A03D38; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ic svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-smart { background:#24282C; color:#fff; border:0; font:inherit; font-size:13px; font-weight:800; border-radius:999px; padding:9px 16px; cursor:pointer; margin-left:6px; white-space:nowrap; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-smart:hover { background:#0B1026; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-empty { border:1.5px dashed #E3E1CF; border-radius:16px; padding:14px; text-align:center; color:#76745F; font-size:13px; font-weight:700; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-empty button { background:none; border:0; padding:0; font:inherit; font-weight:800; color:#24282C; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-tw { margin-top:12px; border-top:1px solid #F1F0E4; padding-top:12px; display:flex; align-items:flex-end; gap:14px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-lab { font-size:11px; font-weight:800; letter-spacing:1.2px; color:#76745F; text-transform:uppercase; line-height:1.5; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-lab b { display:block; font-size:13px; letter-spacing:0; text-transform:none; color:#24282C; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-chart { margin-left:auto; padding-bottom:1px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-bars { display:flex; align-items:flex-end; gap:7px; height:38px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-bar { width:16px; border-radius:5px 5px 3px 3px; position:relative; background:#EFEDE0; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-bar.is-done { background:#24282C; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-bar.is-up { background:#DDDCCB; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-btd { position:absolute; left:50%; transform:translateX(-50%); bottom:-9px; width:5px; height:5px; border-radius:50%; background:#24282C; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-barl { display:flex; gap:7px; margin-top:8px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-barl span { font-size:10px; font-weight:800; color:#76745F; width:16px; text-align:center; }
+/* the genie: out of the dock tab and back into it. translate / scale, not transform -
+   the older widget rules hold transform with !important (hover, drag). */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel.sw-genie-in { animation:swGenieIn .42s cubic-bezier(.2,.8,.2,1) both; transform-origin:50% 100%; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel.sw-genie-out { animation:swGenieOut .34s cubic-bezier(.55,0,.75,.2) both; transform-origin:50% 100%; pointer-events:none; }
+@keyframes swGenieIn {
+  0%   { opacity:0; translate:var(--sw-gx,0px) var(--sw-gy,300px); scale:.06 .02; }
+  45%  { opacity:1; translate:calc(var(--sw-gx,0px) * .3) calc(var(--sw-gy,300px) * .45); scale:.5 .62; }
+  100% { opacity:1; translate:0 0; scale:1 1; }
+}
+@keyframes swGenieOut {
+  0%   { opacity:1; translate:0 0; scale:1 1; }
+  55%  { opacity:1; translate:calc(var(--sw-gx,0px) * .3) calc(var(--sw-gy,300px) * .45); scale:.5 .62; }
+  100% { opacity:0; translate:var(--sw-gx,0px) var(--sw-gy,300px); scale:.06 .02; }
+}
+@media (prefers-reduced-motion:reduce) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel:is(.sw-genie-in, .sw-genie-out) { animation:none; } }
+/* a narrow column (the 861-1199px desktop, where the widget sits under Student pulse):
+   the month drops under the title, the day counters keep only the number */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel { container:swbox / inline-size; }
+@container swbox (max-width: 400px) {
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-head { flex-wrap:wrap; row-gap:2px; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-mo { order:3; flex-basis:100%; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-full { padding:7px 12px; font-size:12px; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ct > span { display:none; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-who small { white-space:normal; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-smart { padding:8px 13px; margin-left:4px; }
+  html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #fx-ghost-panel .sw-ic { width:28px; height:28px; }
+}
+/* 861-1199px: Student pulse heads the right column - as wide as the widget under it, clear of the boards window */
+@media (min-width:861px) and (max-width:1199px) { html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body.os-desktop #wg-pulse { width:var(--rcol) !important; } }
+/* a short screen: the boards sidebar scrolls instead of squeezing its items */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body #win-plans .win-sidebar.bd-side > * { flex-shrink:0; }
