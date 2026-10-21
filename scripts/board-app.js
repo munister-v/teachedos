@@ -17493,7 +17493,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1326';
+const TEACHEDOS_ASSET_VERSION = '1327';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -22254,17 +22254,50 @@ async function readLessonScreenshot(file) {
     const res = await T.recognize(file, 'eng', {
       logger: m => { if (m && m.status === 'recognizing text') say(`Reading the image… ${Math.round((m.progress || 0) * 100)}%`); },
     });
-    const text = String(res?.data?.text || '').replace(/\n{3,}/g, '\n\n').trim();
-    if (!text) { say('No text could be read from that image. A sharper, straighter shot usually fixes it.'); return; }
-    _wizFillSource(text);
-    say(`Read ${text.split(/\s+/).length} words. Check it below and fix anything the reader got wrong.`);
-    _wizBookPageMap(text);
+    /* The reader's raw output is not the teacher's text: arrows, bullets, page numbers and
+       broken words are cleaned away (scripts/ocr-clean.js), the words it was unsure of are
+       marked, and nothing reaches the lesson until the teacher confirms the text. */
+    const raw = String(res?.data?.text || '');
+    const clean = window.TeachedOcrClean ? window.TeachedOcrClean.cleanOcr(raw, res?.data?.words)
+      : { text: raw.replace(/\n{3,}/g, '\n\n').trim(), words: [], doubtful: [] };
+    if (!clean.text) { say('No text could be read from that image. A sharper, straighter shot usually fixes it.'); return; }
+    _ocrConfirm(clean);
+    say(clean.doubtful.length
+      ? `Read ${clean.words.length} different words. ${clean.doubtful.length} marked ${clean.doubtful.length === 1 ? 'word' : 'words'} the reader was not sure of - fix ${clean.doubtful.length === 1 ? 'it' : 'them'} if needed, then use the text.`
+      : `Read ${clean.words.length} different words. Check the text, then use it.`);
   } catch (err) {
     console.warn('[wizard] ocr failed', err);
     say('The image could not be read. Paste the text by hand instead.');
   }
 }
 
+
+/* The check step after reading a picture: the clean text, editable, with the unsure words
+   marked, and the word list. "Use this text" is the only way it becomes the lesson's source. */
+function _ocrConfirm(clean) {
+  const map = document.getElementById('tb-wiz-shot-map');
+  if (!map) { _wizFillSource(clean.text); return; }
+  let box = document.getElementById('tb-ocr-check');
+  if (!box) { box = document.createElement('div'); box.id = 'tb-ocr-check'; box.className = 'tb-ocr-check'; map.parentNode.insertBefore(box, map); }
+  map.hidden = true; map.innerHTML = '';
+  const re = clean.doubtful.length ? new RegExp(`\\b(${clean.doubtful.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'g') : null;
+  const html = esc(clean.text).replace(re || /$^/, '<mark title="The reader was not sure of this word">$1</mark>');
+  box.innerHTML = `<div class="tb-ocr-head"><b>Check the text before it is used</b><small>${clean.words.length} different words${clean.doubtful.length ? ` · ${clean.doubtful.length} marked` : ''} · click anywhere in it to correct</small></div>
+    <div class="tb-ocr-text" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="The text read from the picture">${html}</div>
+    ${clean.words.length ? `<div class="tb-ocr-words" aria-label="Words of the text">${clean.words.slice(0, 60).map(w => `<span>${esc(w)}</span>`).join('')}${clean.words.length > 60 ? `<em>+${clean.words.length - 60} more</em>` : ''}</div>` : ''}
+    <div class="tb-ocr-acts"><button type="button" class="tbuilder-btn lime" id="tb-ocr-use">Use this text</button>
+      <button type="button" class="tbuilder-btn" id="tb-ocr-again">Read another image</button></div>`;
+  box.querySelector('#tb-ocr-use').addEventListener('click', () => {
+    const text = box.querySelector('.tb-ocr-text').innerText.replace(/\n{3,}/g, '\n\n').trim();
+    if (!text) return;
+    _wizFillSource(text);
+    box.remove();
+    const note = document.getElementById('tb-wiz-shot-note');
+    if (note) note.textContent = 'The text is in the lesson - edit it below at any time.';
+    _wizBookPageMap(text);
+  });
+  box.querySelector('#tb-ocr-again').addEventListener('click', () => { box.remove(); document.getElementById('tb-wiz-shot')?.click(); });
+}
 
 /* ── Страница учебника → карта частей (E18) ───────────────────────────────
    После распознавания страница делится на части (чтение, лексика, грамматика,
@@ -24954,7 +24987,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1326',
+          icon: 'icons/icon-192.png?v=1327',
           tag: 'board-live-' + s.id,
         });
       }
