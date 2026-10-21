@@ -10172,6 +10172,10 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     if (!state.cards.length && !_emptyDismissed) dismissEmptyState();
+    // every panel closes on Esc, the same as with its own button (standard 11/10 §4)
+    document.getElementById('frame-panel')?.classList.remove('open');
+    if (document.getElementById('tool-builder-panel')?.classList.contains('open') && typeof closeTeacherToolBuilder === 'function'
+      && ![...document.querySelectorAll('#tb-news-reader, #card-studio, .modal.open, [aria-modal="true"]:not(#tool-builder-panel)')].some(x => x.offsetParent !== null)) closeTeacherToolBuilder();
     clearSelection();
     cancelConnection();
     setMode('select');
@@ -17514,7 +17518,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1330';
+const TEACHEDOS_ASSET_VERSION = '1332';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -25008,7 +25012,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1330',
+          icon: 'icons/icon-192.png?v=1332',
           tag: 'board-live-' + s.id,
         });
       }
