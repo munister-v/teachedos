@@ -17475,7 +17475,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1319';
+const TEACHEDOS_ASSET_VERSION = '1321';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20010,7 +20010,7 @@ async function runBoardLessonStages() {
       try {
         const retry = { ...input, variant: attempt };
         again = o.ai ? await requestServerTeacherTool(retry, 30000) : generateTeacherToolLocal(retry);
-      } catch (err) { console.warn('[stages] guardrail retry failed', o.key, err); }
+      } catch (err) { console.warn('[stages] check retry failed', o.key, err); }
       if (!again) break;
       out = again;
     }
@@ -20395,7 +20395,7 @@ function renderBoardLessonStagePreview(set) {
   body.innerHTML = _stageGuardrailHtml(set) + html + failHtml;
 }
 
-/* The review's guardrail line: each failed check names its block and row, with the two
+/* The review's checks line: each failed check names its block and row, with the two
    ways out (build that block again, or leave it out). Nothing is published while it shows. */
 function _stageGuardrailHtml(set) {
   const v = set.violations || [];
@@ -24889,7 +24889,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1319',
+          icon: 'icons/icon-192.png?v=1321',
           tag: 'board-live-' + s.id,
         });
       }
