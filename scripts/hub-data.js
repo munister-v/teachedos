@@ -592,6 +592,179 @@
     show();
   }
 
+
+  /* Challenges, from /api/challenges/hub (lib/challenges.js): the teacher's challenge of the day,
+     the class sprint, duels between classmates and badges. The panels are rebuilt from the data,
+     the design's sample duels and listeners are left behind. */
+  const AVA = ['var(--pink)', 'var(--turqs)', 'var(--limet)', 'var(--lime)'];
+  const ini = n => String(n || '?').trim().charAt(0).toUpperCase();
+  const hoursLeft = iso => { const h = Math.max(0, Math.round((new Date(iso) - Date.now()) / 3600000)); return h >= 48 ? Math.floor(h / 24) + 'D' : h + 'H'; };
+  let CH = null, laterIds = new Set();
+  const chApi = (path, method, body) => api('/api/challenges' + path, { method: method || 'GET', body }).then(r => r.json().then(d => ({ ok: r.ok, d }))).catch(() => ({ ok: false, d: { error: 'Network error' } }));
+  const reloadChallenges = () => json('/api/challenges/hub').then(h => { if (h) challenges(h); });
+  function chSheet(html) {
+    const wrap = document.querySelector('#pg-challenges .sheetwrap');
+    if (!wrap) return null;
+    wrap.innerHTML = '<div class="sheet"><button class="x" id="chX">✕</button>' + html + '</div>';
+    wrap.classList.add('open');
+    const close = () => { wrap.classList.remove('open'); };
+    wrap.querySelector('#chX').onclick = close;
+    wrap.onclick = e => { if (e.target === wrap) close(); };
+    wrap.close = close;
+    return wrap;
+  }
+  function challenges(h) {
+    const pg = document.getElementById('pg-challenges');
+    if (!pg || !h) return;
+    CH = h;
+    ['.cols', '.stitle', '.shelf'].forEach(q => pg.querySelectorAll(q).forEach(e => { e.style.display = ''; }));
+    pg.querySelectorAll('.pixchip2').forEach(e => { e.style.display = 'none'; });
+    pg.querySelectorAll('.sheetwrap').forEach(e => { e.style.display = ''; });   // the first loader hid it with the sample blocks
+    const sub = pg.querySelector('.hdr .sub'); if (sub) sub.textContent = 'Small missions between lessons. Finish today’s, keep the streak warm — and yes, you can duel your classmates.';
+
+    // today's challenge from the teacher (otherwise the open homework stays as the mission)
+    const c = h.challenge;
+    if (c) {
+      const hero = pg.querySelector('.hero');
+      hero.querySelector('.kick2').textContent = 'TODAY’S CHALLENGE · FROM ' + c.teacher.toUpperCase();
+      hero.querySelector('h2').innerHTML = esc2(c.title) + (c.words.length ? ' — use ' + c.words.map(w => '<mark>' + esc2(w) + '</mark>').join(', ') : '');
+      const p = hero.querySelector('p'); if (p) p.textContent = c.brief || 'Small one. Do it today and it pays a bonus.';
+      const xb = hero.querySelector('.xpboost'); if (xb) { xb.style.display = ''; xb.textContent = '+' + c.xp + ' XP × ' + c.bonus + ' today'; }
+      const old = hero.querySelector('#acceptBtn'), btn = old.cloneNode(true); old.replaceWith(btn);
+      btn.style.display = ''; btn.disabled = !!c.done; btn.textContent = c.done ? 'Done ✓' : 'Accept challenge';
+      btn.onclick = () => {
+        const w = chSheet('<h3>' + esc2(c.title) + '</h3><p class="ssub">Write it here, a few lines are enough. Your teacher reads it; the XP is yours the moment you send it.</p>' +
+          '<textarea id="chAns" rows="5" style="width:100%;margin-top:16px;border-radius:16px;border:2px solid transparent;padding:14px;font:600 15px Manrope,sans-serif" placeholder="Your answer…"></textarea>' +
+          '<button class="send" id="chSend">Send · +' + c.xp + ' XP</button>');
+        if (!w) return;
+        w.querySelector('#chSend').onclick = e => {
+          e.target.disabled = true;
+          chApi('/' + encodeURIComponent(c.id) + '/complete', 'POST', { answer: w.querySelector('#chAns').value }).then(r => {
+            w.close();
+            if (r.ok) { burstConfetti(60); json('/api/student/xp').then(xpPaint); } else alert(r.d.error || 'Could not send');
+            reloadChallenges();
+          });
+        };
+      };
+    }
+
+    // weekly sprint + duels panels, rebuilt
+    const cols = pg.querySelector('.cols');
+    const S = h.sprint;
+    const rows = S.board.slice(0, 4);
+    const me = S.board.find(b => b.me); if (me && !rows.includes(me)) rows.push(me);
+    const mood = (b, i) => b.me ? (S.behind ? S.behind.xp + ' XP behind ' + S.behind.name : 'leading the class') : (b.xp >= S.goal ? 'goal reached' : b.xp >= S.goal * 0.8 ? 'almost there' : i === 0 ? 'on fire' : 'steady');
+    const sprintHtml = '<section class="panel"><div class="ptitle">WEEKLY · WORD SPRINT</div>' +
+      '<div class="wbar"><i style="width:' + Math.min(100, Math.round(S.xp / S.goal * 100)) + '%"></i></div>' +
+      '<div class="wmeta"><span><b>' + S.xp + '</b> / ' + S.goal + ' XP</span><span>' + (S.ends_in_days ? 'ends in ' + plural(S.ends_in_days, 'day') : 'ends today') + '</span></div>' +
+      (S.class_size < 2 ? '<div class="dnote" style="margin-top:14px">No classmates yet — when your teacher puts more students in your class, the ranking shows up here.</div>'
+        : rows.map((b, i) => '<div class="wrow' + (b.me ? ' me' : '') + '"><span class="ava" style="background:' + AVA[i % 4] + '">' + esc2(b.me ? ini(document.querySelector('.sprof .spinfo b')?.textContent || 'You') + '' : ini(b.name)) + '</span><div class="who"><b>' +
+          esc2(b.me ? 'You · #' + b.rank : b.name + (b.level ? ' · ' + b.level : '')) + '</b><span>' + esc2(mood(b, i)) + '</span></div><span class="xp">' + b.xp + '</span></div>').join('')) + '</section>';
+    const live = h.duels.filter(d => ['incoming', 'your_move', 'waiting'].includes(d.state) && !laterIds.has(d.id) || d.state === 'your_move' || d.state === 'waiting');
+    const block = d => {
+      const av = '<span class="ava" style="background:' + AVA[(d.with.length) % 4] + '">' + esc2(ini(d.with)) + '</span>';
+      if (d.state === 'incoming') return '<div class="duel"><div class="dt">INCOMING · EXPIRES IN ' + hoursLeft(d.expires_at) + '</div><div class="db">' + av + '<div class="who"><b>' + esc2(d.with) + ' challenges you</b><span>' + esc2(d.game_label) + ' · same words for both</span></div></div><div class="db"><button class="dbtn lime" data-play="' + esc2(d.id) + '">Accept duel</button><button class="dbtn ghost" data-later="' + esc2(d.id) + '">Later</button><button class="dbtn ghost" data-decline="' + esc2(d.id) + '">Decline</button></div></div>';
+      if (d.state === 'your_move') return '<div class="duel"><div class="dt">ACTIVE · YOUR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + (d.their_score != null ? 'he played: ' + d.their_score + '/' + d.total + ' · your turn' : 'your turn') + '</span></div><button class="dbtn" data-play="' + esc2(d.id) + '">Play</button></div></div>';
+      if (d.state === 'waiting') return '<div class="duel"><div class="dt">WAITING · THEIR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>you scored ' + d.my_score + '/' + d.total + ' · waiting for ' + esc2(d.with) + '</span></div></div></div>';
+      if (d.state === 'finished') return '<div class="duel"><div class="dt">' + (d.won === true ? 'YOU WON' : d.won === false ? 'LOST THIS ONE' : 'A DRAW') + '</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + d.my_score + ' : ' + d.their_score + (d.won === true ? ' · +60 XP' : d.won === false ? ' · +10 XP' : ' · +30 XP') + '</span></div><button class="dbtn" data-rematch="' + esc2(d.id) + '">Rematch</button></div></div>';
+      return '';
+    };
+    const shown = [...live, ...h.duels.filter(d => d.state === 'finished').slice(0, 2)];
+    const duelHtml = '<section class="panel"><div class="ptitle">DUELS<span class="pxart" data-art="swords" data-color="#1E2231" data-px="2"></span></div>' +
+      (shown.length ? shown.map(block).join('') : '<div class="dnote">No duels yet. Throw one — the winner takes the bank.</div>') +
+      '<button class="throw" id="throwBtn"' + (h.classmates.length ? '' : ' disabled') + '>Throw a duel <span>→</span></button><div class="dnote">' +
+      (h.classmates.length ? 'Seed sets are built from words you both have — nobody brings outside words.' : 'Duels open when your teacher puts classmates in your class.') + '</div></section>';
+    cols.innerHTML = sprintHtml + duelHtml;
+    cols.onclick = e => {
+      const t = e.target.closest('button'); if (!t) return;
+      if (t.dataset.play) return playDuel(t.dataset.play);
+      if (t.dataset.later) { laterIds.add(t.dataset.later); return challenges(CH); }
+      if (t.dataset.decline) return chApi('/duels/' + encodeURIComponent(t.dataset.decline) + '/decline', 'POST').then(reloadChallenges);
+      if (t.dataset.rematch) return chApi('/duels/' + encodeURIComponent(t.dataset.rematch) + '/rematch', 'POST').then(r => { if (!r.ok) alert(r.d.error); reloadChallenges(); });
+      if (t.id === 'throwBtn') return throwSheet();
+    };
+
+    // badges
+    const shelf = pg.querySelector('.shelf');
+    const IMG = { fire7: 'hub-b37a7c10e9', first_blood: 'hub-280f5f6415', storyteller: 'hub-2affc3a2b8', climber: 'hub-00c8da8efb', revenger: 'hub-3c284569a2', secret: 'hub-615c850715' };
+    shelf.innerHTML = h.badges.map(b => '<div class="badge ' + (b.earned ? 'earned' : 'locked') + '">' +
+      (IMG[b.key] ? '<img class="bimg" src="img/hub/' + IMG[b.key] + '.webp" alt="">' : '<span class="bimg" style="display:grid;place-items:center;font:800 28px Manrope,sans-serif;color:#1E2231">' + esc2(ini(b.title)) + '</span>') +
+      '<b>' + esc2(b.title) + '</b><i>' + esc2(b.hint) + '</i></div>').join('');
+
+    // the invite pop-up: the first duel thrown at the student that is still unanswered
+    const pop = document.getElementById('duelPop');
+    const inc = h.duels.find(d => d.state === 'incoming' && !laterIds.has(d.id));
+    if (pop) {
+      if (!inc) { pop.classList.remove('open'); pop.style.display = 'none'; }
+      else {
+        pop.style.display = ''; pop.classList.add('open');
+        pop.querySelector('.dtitle').textContent = inc.with + ' challenges you';
+        pop.querySelector('.dsub').innerHTML = '<b>' + esc2(inc.game_label) + '</b> · built from words you both have<br>Winner takes the bank · <b>+60 XP</b>';
+        const t = pop.querySelector('#dpTimer'); if (t) t.parentNode.innerHTML = 'Expires in ' + hoursLeft(inc.expires_at).toLowerCase();
+        const pls = pop.querySelectorAll('.dvs .p');
+        if (pls[0]) { pls[0].querySelector('.ava2').textContent = ini(inc.with); pls[0].querySelector('.pinfo').firstChild.textContent = inc.with; pls[0].querySelector('.pinfo span').textContent = 'your classmate'; }
+        if (pls[1]) pls[1].querySelector('.pinfo span').textContent = '#' + S.rank + ' in class';
+        const rep = (id, fn) => { const el = pop.querySelector(id); if (!el) return; const n = el.cloneNode(true); el.replaceWith(n); n.onclick = fn; };
+        rep('#dpAccept', () => { pop.classList.remove('open'); pop.style.display = 'none'; playDuel(inc.id); });
+        rep('#dpLater', () => { laterIds.add(inc.id); pop.classList.remove('open'); pop.style.display = 'none'; });
+        rep('#dpX', () => { laterIds.add(inc.id); pop.classList.remove('open'); pop.style.display = 'none'; });
+        rep('#dpOff', () => chApi('/settings', 'PUT', { duel_invites: false }).then(() => { pop.classList.remove('open'); pop.style.display = 'none'; alert('Duel invites are off. You can turn them on again from this screen.'); }));
+      }
+    }
+    set('.nav button', b => {
+      const nb = b.querySelector('.nbadge');
+      if (nb && /Challenges/.test(b.textContent)) {
+        const n = h.duels.filter(d => d.state === 'incoming' || d.state === 'your_move').length + (h.challenge && !h.challenge.done ? 1 : 0);
+        nb.textContent = n; nb.style.display = n ? '' : 'none';
+      }
+    });
+  }
+  function throwSheet() {
+    if (!CH || !CH.classmates.length) return;
+    let opp = CH.classmates[0].id, game = CH.games[0].key;
+    const w = chSheet('<h3>Throw a duel</h3><p class="ssub">Pick a classmate and a game. Same words for both — fair fight.</p>' +
+      '<div class="ptitle" style="margin-top:20px">OPPONENT</div><div class="optrow" id="oppRow">' + CH.classmates.map((m, i) => '<button class="opt' + (i ? '' : ' sel') + '" data-o="' + esc2(m.id) + '"><span class="ava" style="background:' + AVA[i % 4] + '">' + esc2(ini(m.name)) + '</span>' + esc2(m.name) + ' <small>' + esc2(m.level) + '</small></button>').join('') + '</div>' +
+      '<div class="ptitle" style="margin-top:20px">GAME</div><div class="optrow" id="gameRow">' + CH.games.map((g, i) => '<button class="opt' + (i ? '' : ' sel') + '" data-g="' + esc2(g.key) + '" title="' + esc2(g.how) + '">' + esc2(g.label) + '</button>').join('') + '</div>' +
+      '<p class="ssub" id="gameHow">' + esc2(CH.games[0].how) + '</p><button class="send" id="sendDuel">Send challenge</button>');
+    if (!w) return;
+    w.querySelector('#oppRow').onclick = e => { const b = e.target.closest('[data-o]'); if (!b) return; opp = b.dataset.o; w.querySelectorAll('#oppRow .opt').forEach(x => x.classList.toggle('sel', x === b)); };
+    w.querySelector('#gameRow').onclick = e => { const b = e.target.closest('[data-g]'); if (!b) return; game = b.dataset.g; w.querySelectorAll('#gameRow .opt').forEach(x => x.classList.toggle('sel', x === b)); w.querySelector('#gameHow').textContent = (CH.games.find(g => g.key === game) || {}).how || ''; };
+    w.querySelector('#sendDuel').onclick = e => {
+      e.target.disabled = true; e.target.textContent = 'Building the duel…';
+      chApi('/duels', 'POST', { opponent_id: opp, game }).then(r => {
+        if (!r.ok) { e.target.disabled = false; e.target.textContent = 'Send challenge'; alert(r.d.error || 'Could not send'); return; }
+        w.close(); reloadChallenges().then(() => playDuel(r.d.id));
+      });
+    };
+  }
+  function playDuel(id) {
+    chApi('/duels/' + encodeURIComponent(id) + '/play').then(r => {
+      if (!r.ok) { alert(r.d.error || 'This duel is not open'); return reloadChallenges(); }
+      const q = r.d.questions, picks = []; let i = 0; const t0 = Date.now();
+      const w = chSheet('<div id="duelBody"></div>');
+      if (!w) return;
+      const body = w.querySelector('#duelBody');
+      const step = () => {
+        if (i >= q.length) return finish();
+        body.innerHTML = '<div class="ptitle">' + esc2(r.d.label.toUpperCase()) + ' · ' + (i + 1) + ' / ' + q.length + ' · vs ' + esc2(r.d.with) + '</div>' +
+          '<div class="flash" style="cursor:default;min-height:150px"><div class="fw" style="font-size:' + (q[i].prompt.length > 40 ? 20 : 30) + 'px">' + esc2(q[i].prompt) + '</div></div>' +
+          '<div class="optrow" style="flex-direction:column">' + q[i].options.map((o, k) => '<button class="opt" data-k="' + k + '" style="border-radius:16px;justify-content:center">' + esc2(o) + '</button>').join('') + '</div>';
+        body.querySelector('.optrow').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; picks[i] = Number(b.dataset.k); i++; step(); };
+      };
+      const finish = () => {
+        body.innerHTML = '<div class="ptitle">SENDING YOUR ANSWERS…</div>';
+        chApi('/duels/' + encodeURIComponent(id) + '/submit', 'POST', { choices: picks, ms: Date.now() - t0 }).then(s => {
+          if (!s.ok) { body.innerHTML = '<div class="ssub">' + esc2(s.d.error || 'Could not send') + '</div>'; return; }
+          const res = s.d.result;
+          body.innerHTML = '<h3>' + s.d.score + ' of ' + s.d.total + '</h3><p class="ssub">' + (res ? (res.draw ? 'A draw — +30 XP each.' : res.you_won ? 'You won — +60 XP. The bank is yours.' : 'Not this time — +10 XP for playing. Ask for a rematch.') : 'Your score is in. ' + esc2(r.d.with) + ' has 24 hours to answer.') + '</p><button class="send" id="dDone">Back to challenges</button>';
+          if (res && res.you_won) burstConfetti(80);
+          body.querySelector('#dDone').onclick = () => { w.close(); reloadChallenges(); json('/api/student/xp').then(xpPaint); };
+        });
+      };
+      step();
+    });
+  }
+
   const pProgress = json('/api/student/progress');
   const pVocab = json('/api/journal/vocab/list');
   const pInbox = json('/api/homework/my/inbox');
@@ -599,6 +772,7 @@
   const pMe = json('/api/auth/me');
   const pXp = json('/api/student/xp');
   const pBank = json('/api/student/wordbank');
+  const pChall = json('/api/challenges/hub');
   pProgress.then(progress);
   pVocab.then(vocab);
   pInbox.then(r => homework(r && r.assignments));
@@ -615,4 +789,5 @@
   Promise.all([pVocab, pInbox]).then(([v, i]) => today(v && v.words, i && i.assignments));
   Promise.all([pXp, pProgress, pVocab, pInbox, pMe, pDash]).then(([x]) => xpPaint(x));
   Promise.all([pBank, pVocab]).then(([b]) => wordBank(b));
+  Promise.all([pChall, pVocab, pInbox]).then(([h]) => challenges(h));
 })();

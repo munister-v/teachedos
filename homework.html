@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1259"></script>
-<link rel="icon" href="favicon.ico?v=1259" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1259">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1259">
+<script src="scripts/phone-gate.js?v=1261"></script>
+<link rel="icon" href="favicon.ico?v=1261" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1261">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1261">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1259">
-<link rel="preload" as="style" href="styles/unify.css?v=1259">
+<link rel="preload" as="style" href="styles/harmony.css?v=1261">
+<link rel="preload" as="style" href="styles/unify.css?v=1261">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1259">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1259">
+<link rel="stylesheet" href="styles/fonts.css?v=1261">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1261">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -306,27 +306,40 @@ body.tw-page:not(#_) :is(#hw-list, #hw-detail) .pill.submitted{background:#FFE98
   .filter-btn{min-width:44px;}
 }
 
+
+.cd-card{margin:18px 0;padding:18px 20px;border-radius:18px;background:#fff;border:1.5px solid var(--border2,rgba(93,97,75,.22));}
+.cd-card h2{margin:0 0 4px;font-size:16px;font-weight:800;}
+.cd-card .cd-sub{margin:0 0 14px;font-size:13px;color:#5D614B;font-weight:600;}
+.cd-form{display:grid;grid-template-columns:2fr 1fr 110px 150px;gap:10px;align-items:end;}
+.cd-form label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5D614B;}
+.cd-form input,.cd-form select,.cd-form textarea{font:600 14px var(--font);padding:9px 11px;border:1.5px solid rgba(93,97,75,.28);border-radius:10px;background:#fff;color:#24282C;text-transform:none;letter-spacing:0;}
+.cd-form .cd-wide{grid-column:1 / -1;}
+.cd-list{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+.cd-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;background:rgba(205,246,73,.14);font-size:13.5px;font-weight:600;}
+.cd-item b{font-weight:800}.cd-item small{color:#5D614B;font-weight:600}
+.cd-item button{margin-left:auto;border:0;background:none;color:#B23A0E;font:700 12px var(--font);cursor:pointer;}
+@media (max-width:760px){.cd-form{grid-template-columns:1fr 1fr}}
 </style>
-<script src="theme.js?v=1259" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1259">
-<link rel="stylesheet" href="styles/harmony.css?v=1259">
-<link rel="stylesheet" href="styles/unify.css?v=1259">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1259">
-<link rel="stylesheet" href="styles/tool-window.css?v=1259">
+<script src="theme.js?v=1261" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1261">
+<link rel="stylesheet" href="styles/harmony.css?v=1261">
+<link rel="stylesheet" href="styles/unify.css?v=1261">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1261">
+<link rel="stylesheet" href="styles/tool-window.css?v=1261">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1259">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1259">
-<link rel="stylesheet" href="styles/controls.css?v=1259">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1261">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1261">
+<link rel="stylesheet" href="styles/controls.css?v=1261">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1259">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1259">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1259">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1259">
-<link rel="stylesheet" href="styles/toast.css?v=1259">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1259">
+<link rel="stylesheet" href="styles/polish.css?v=1261">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1261">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1261">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1261">
+<link rel="stylesheet" href="styles/toast.css?v=1261">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1261">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1259">
-<link rel="stylesheet" href="styles/ds-v1.css?v=1259">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1261">
+<link rel="stylesheet" href="styles/ds-v1.css?v=1261">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -344,7 +357,7 @@ body.tw-page:not(#_) :is(#hw-list, #hw-detail) .pill.submitted{background:#FFE98
 </div>
 
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1259" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1261" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -402,6 +415,20 @@ body.tw-page:not(#_) :is(#hw-list, #hw-detail) .pill.submitted{background:#FFE98
     <div class="hw-metric"><b id="m-assigned">0</b><span>Assigned</span></div>
     <div class="hw-metric"><b id="m-submitted">0</b><span>Submitted</span></div>
     <div class="hw-metric"><b id="m-overdue">0</b><span>Overdue</span></div>
+  </section>
+
+  <section class="cd-card" id="cd-card" hidden aria-labelledby="cd-title">
+    <h2 id="cd-title">Challenge of the day</h2>
+    <p class="cd-sub">One small mission for all your students on the Challenges screen of their hub. Finishing it pays XP with a x1.5 bonus on the day.</p>
+    <form class="cd-form" id="cd-form" onsubmit="saveChallenge(event)">
+      <label>Title<input id="cd-t" maxlength="160" placeholder="Voice-note story: tell a 40-second story" required></label>
+      <label>Words (comma separated)<input id="cd-w" placeholder="majestic, drift, bargain"></label>
+      <label>XP<select id="cd-xp"><option>25</option><option selected>50</option><option>75</option><option>100</option></select></label>
+      <label>Day<input id="cd-d" type="date"></label>
+      <label class="cd-wide">What to do<textarea id="cd-b" rows="2" maxlength="600" placeholder="Record it right here - only you hear it. Weird stories get bonus points."></textarea></label>
+      <button class="btn btn-ghost" type="submit">Set the challenge</button>
+    </form>
+    <div class="cd-list" id="cd-list"></div>
   </section>
 
   <section class="hw-focus" aria-labelledby="hw-focus-title">
@@ -1195,21 +1222,51 @@ function setText(id, value){ const el = document.getElementById(id); if (el) el.
 function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 let toastT;
 function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'show'; clearTimeout(toastT); toastT = setTimeout(() => t.className = '', 2800); }
+
+/* Challenge of the day: what the students see on the Challenges screen of their hub. */
+async function loadChallenges() {
+  const card = document.getElementById('cd-card');
+  if (!card || !token) return;
+  try {
+    const d = await api('/api/challenges/teacher');
+    card.hidden = false;
+    const day = document.getElementById('cd-d');
+    if (day && !day.value) day.value = new Date().toLocaleDateString('en-CA');
+    document.getElementById('cd-list').innerHTML = (d.challenges || []).map(c =>
+      '<div class="cd-item"><b>' + esc(c.title) + '</b><small>' + esc(c.date) + ' \u00B7 ' + c.xp + ' XP \u00B7 ' + c.done + ' done</small>' +
+      '<button type="button" onclick="deleteChallenge(\'' + esc(c.id) + '\')">Remove</button></div>').join('');
+  } catch (e) { card.hidden = true; }
+}
+async function saveChallenge(e) {
+  e.preventDefault();
+  try {
+    await api('/api/challenges/teacher', { method: 'POST', body: {
+      title: document.getElementById('cd-t').value, brief: document.getElementById('cd-b').value, words: document.getElementById('cd-w').value,
+      xp: document.getElementById('cd-xp').value, date: document.getElementById('cd-d').value } });
+    document.getElementById('cd-form').reset();
+    toast('Challenge set - students see it on their Challenges screen');
+    loadChallenges();
+  } catch (err) { toast(err.message); }
+}
+async function deleteChallenge(id) {
+  try { await api('/api/challenges/teacher/' + encodeURIComponent(id), { method: 'DELETE' }); loadChallenges(); } catch (err) { toast(err.message); }
+}
 init();
+loadChallenges();
 </script>
 
-<script src="scripts/writing-shared.js?v=1259"></script>
-<script src="scripts/writing-review.js?v=1259"></script>
-<script src="scripts/speaking-review.js?v=1259"></script>
-<script src="scripts/nav-boost.js?v=1259" defer></script>
-<script src="scripts/mobile-perf.js?v=1259" defer></script>
-<script src="scripts/mobile-nav.js?v=1259"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1259" defer></script>
-<script src="scripts/autogrow.js?v=1259" defer></script>
-<script src="pwa-boot.js?v=1259" defer></script>
-  <script src="scripts/signin-entry.js?v=1259" defer></script>
-<script src="scripts/nav-bell.js?v=1259" defer></script>
-<script src="scripts/empty-stats.js?v=1259" defer></script>
-<script src="scripts/ds-v1.js?v=1259" defer></script>
+<script src="scripts/writing-shared.js?v=1261"></script>
+<script src="scripts/writing-review.js?v=1261"></script>
+<script src="scripts/speaking-review.js?v=1261"></script>
+<script src="scripts/nav-boost.js?v=1261" defer></script>
+<script src="scripts/mobile-perf.js?v=1261" defer></script>
+<script src="scripts/mobile-nav.js?v=1261"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1261" defer></script>
+<script src="scripts/autogrow.js?v=1261" defer></script>
+<script src="pwa-boot.js?v=1261" defer></script>
+  <script src="scripts/signin-entry.js?v=1261" defer></script>
+<script src="scripts/nav-bell.js?v=1261" defer></script>
+<script src="scripts/empty-stats.js?v=1261" defer></script>
+<script src="scripts/ds-v1.js?v=1261" defer></script>
 </body>
 </html>

@@ -518,6 +518,54 @@ CREATE TABLE IF NOT EXISTS xp_events (
 );
 CREATE INDEX IF NOT EXISTS idx_xp_events_user ON xp_events(user_id, created_at DESC);
 
+-- Student hub, challenges: the teacher's challenge of the day, duels between classmates, badges
+CREATE TABLE IF NOT EXISTS teacher_challenges (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      VARCHAR(160) NOT NULL,
+  brief      TEXT NOT NULL DEFAULT '',
+  words      TEXT[] NOT NULL DEFAULT '{}',
+  xp         INTEGER NOT NULL DEFAULT 50,
+  active_on  DATE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (teacher_id, active_on)
+);
+CREATE TABLE IF NOT EXISTS challenge_done (
+  challenge_id UUID NOT NULL REFERENCES teacher_challenges(id) ON DELETE CASCADE,
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  answer       TEXT NOT NULL DEFAULT '',
+  xp           INTEGER NOT NULL DEFAULT 0,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (challenge_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS duels (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  challenger_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  opponent_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  game             VARCHAR(16) NOT NULL,
+  status           VARCHAR(12) NOT NULL DEFAULT 'pending',   -- pending | active | finished | declined | expired
+  questions        JSONB NOT NULL DEFAULT '[]'::jsonb,        -- with the right answers; the client never gets them
+  shared_words     INTEGER NOT NULL DEFAULT 0,
+  challenger_score INTEGER,
+  challenger_ms    INTEGER,
+  opponent_score   INTEGER,
+  opponent_ms      INTEGER,
+  winner_id        UUID REFERENCES users(id) ON DELETE SET NULL,
+  rematch_of       UUID,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at       TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '24 hours',
+  finished_at      TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_duels_challenger ON duels(challenger_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels(opponent_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS user_badges (
+  user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  badge     VARCHAR(24) NOT NULL,
+  earned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, badge)
+);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS duel_invites BOOLEAN NOT NULL DEFAULT TRUE;
+
 -- Launch in waves: a cap on teacher sign-ups, and who is waiting behind it
 CREATE TABLE IF NOT EXISTS app_flags (
   key   VARCHAR(60) PRIMARY KEY,
