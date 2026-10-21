@@ -7918,3 +7918,6 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 .tb-ocr-words span{font:600 11.5px var(--font,system-ui,sans-serif);padding:2px 7px;border-radius:999px;background:rgba(36,40,44,.06);color:#4a4e3e}
 .tb-ocr-words em{font-size:11.5px;color:#7b7f6a}
 .tb-ocr-acts{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Play shows the board as a student gets it: what is held back is not there */
+.board-card.play-hidden{display:none!important}

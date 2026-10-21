@@ -788,6 +788,7 @@ function renderCard(card) {
   normalizeCardLayer(card, state.cards.indexOf(card) + 1);
   const el = document.createElement('div');
   el.className = 'board-card card-' + card.type;
+  if (_hiddenInPlay(card) && _inPlayFrame(card)) el.classList.add('play-hidden');
   if (card.type === 'frame' && card.data?.mobileFormat) el.classList.add('frame-mobile-format');
   if (card.data && card.data.locked) el.classList.add('card-locked');
   if (card.type === 'text' && card.data?.generatedPanel) el.classList.add('generated-panel-card');
@@ -3757,7 +3758,7 @@ function renderWorksheet(el, card) {
     const wrap = document.createElement('div');
     wrap.className = 'card-body text-interactive-wrap';
     const iframe = document.createElement('iframe');
-    iframe.srcdoc = _buildInteractiveWSHtml(d._wfRole ? { ...d, _wfCtx: _wfCtxFor(card) } : d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner, card.w);
+    iframe.srcdoc = _buildInteractiveWSHtml(d._wfRole ? { ...d, _wfCtx: _wfCtxFor(card) } : d, card.id, _teacherLayer(card), card.w);
     iframe.sandbox = 'allow-scripts';
     iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
     wrap.addEventListener('mousedown', e => e.stopPropagation());
@@ -4536,8 +4537,19 @@ function _wpCard(id) {
   if (_wpPreview.card && _wpPreview.card.id === id) return _wpPreview.card;
   return (typeof state !== 'undefined' && state.cards) ? state.cards.find(c => c.id === id) || null : null;
 }
+/* Play is the student's projection (standard 11/10 §1): a card in a frame switched to Play
+   is drawn for the teacher exactly as a student gets it - no answer key, no teacher controls,
+   and the cards held back from students or private are not there at all. */
+function _inPlayFrame(card) {
+  const fid = card && card.data && card.data.parentFrame;
+  const f = fid && state.cards.find(c => c.id === fid);
+  return !!(f && f.data && f.data._mode === 'play');
+}
+const _teacherLayer = card => ((typeof isOwner === 'undefined') ? true : !!isOwner) && !_inPlayFrame(card);
+const _hiddenInPlay = card => !!(card && card.data && (card.data.studentHidden || card.data.private || card.data.teacherOnly));
 function _wpOwnerOf(card) {
   if (card && card.__preview) return false;
+  if (_inPlayFrame(card)) return false;
   return (typeof isOwner === 'undefined') ? true : !!isOwner;
 }
 function _wpRedraw(card) {
@@ -5948,7 +5960,7 @@ function _studioRender() {
   box.querySelector('.wp-close').addEventListener('click', () => _wpStudentHome() ? _wpGoHome() : closeCardStudio());
   const f = document.createElement('iframe');
   f.sandbox = 'allow-scripts';
-  f.srcdoc = _buildInteractiveWSHtml(d._wfRole ? { ...d, _wfCtx: _wfCtxFor(card) } : d, card.id, (typeof isOwner === 'undefined') ? true : !!isOwner, Math.min(1280, window.innerWidth - 64));
+  f.srcdoc = _buildInteractiveWSHtml(d._wfRole ? { ...d, _wfCtx: _wfCtxFor(card) } : d, card.id, _teacherLayer(card), Math.min(1280, window.innerWidth - 64));
   f.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#F6F6EF';
   box.querySelector('.card-studio-stage').appendChild(f);
   _iwRegisterFrame(card.id, f);
@@ -6074,7 +6086,7 @@ async function _vaultLoadSaved() {
         try {
           f.srcdoc = k >= 0
             ? _wpStepHtml(c, k, f.clientWidth || c.w - 24)
-            : _buildInteractiveWSHtml({ ...c.data, _wfCtx: _wfCtxFor(c) }, c.id, !!isOwner, c.w);
+            : _buildInteractiveWSHtml({ ...c.data, _wfCtx: _wfCtxFor(c) }, c.id, _teacherLayer(c), c.w);
         } catch (err) { console.warn('[vault] studio refresh', err); }
       });
     });
@@ -11680,10 +11692,13 @@ boardWrap.addEventListener('contextmenu', e => {
   if (cardEl) {
     delItem.style.display = '';
     delItem.dataset.cardId = cardEl.dataset.id;
-    ['ctx-duplicate','ctx-front','ctx-back','ctx-lock'].forEach(id => {
-      document.getElementById(id).dataset.cardId = cardEl.dataset.id;
+    ['ctx-duplicate','ctx-front','ctx-back','ctx-lock','ctx-private'].forEach(id => {
+      const it = document.getElementById(id); if (it) it.dataset.cardId = cardEl.dataset.id;
     });
     const cardData = state.cards.find(c => c.id === cardEl.dataset.id);
+    // private in two clicks from any card's menu, whatever header the card has
+    const pl = document.getElementById('ctx-private-label');
+    if (pl) pl.textContent = cardData?.data?.private ? 'Make public' : 'Make private';
     const locked = !!cardData?.data?.locked;
     document.getElementById('ctx-lock-label').textContent = locked ? 'Unlock' : 'Lock';
     document.getElementById('ctx-lock').querySelector('use').setAttribute('href', locked ? '#bi-unlock' : '#bi-lock');
@@ -11847,6 +11862,10 @@ document.addEventListener('click', () => {
   if (typeof _syncMobileSheetBackdrop === 'function') _syncMobileSheetBackdrop();
 });
 
+document.getElementById('ctx-private')?.addEventListener('click', () => {
+  const cardId = document.getElementById('ctx-private').dataset.cardId;
+  if (cardId) toggleCardPrivate(cardId);
+});
 document.getElementById('ctx-duplicate').addEventListener('click', () => {
   const cardId = document.getElementById('ctx-duplicate').dataset.cardId;
   if (!cardId) return;
@@ -14662,12 +14681,14 @@ function setLessonFrameMode(frameId, mode) {
     frame.data._mode = next;
     if (next === 'play') {
       [...grid, ...full].forEach(card => {
-        if (card.type === 'worksheet' && _wsHasInteractive(card.data || {})) activateWorksheet(card.id);
+        // rebuilt even if it was already playing: in Play it is drawn with the student's lens
+        if (card.type === 'worksheet' && _wsHasInteractive(card.data || {})) { if (card.data._interactive) deactivateWorksheet(card.id); activateWorksheet(card.id); }
       });
       playColW = [...grid, ...full].reduce(
         (m, c) => (c.type === 'worksheet' && c.data?._interactive ? Math.max(m, c.w) : m), PLAY_CARD_W);
     }
     [...grid, ...full].forEach(card => {
+      getCardEl(card.id)?.classList.toggle('play-hidden', next === 'play' && _hiddenInPlay(card));
       if (card.type === 'worksheet') {
         if (next !== 'play') deactivateWorksheet(card.id);
         return;
@@ -17493,7 +17514,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1328';
+const TEACHEDOS_ASSET_VERSION = '1330';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24987,7 +25008,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1328',
+          icon: 'icons/icon-192.png?v=1330',
           tag: 'board-live-' + s.id,
         });
       }
