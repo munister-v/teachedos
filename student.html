@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1278">
-<link rel="preload" as="style" href="styles/unify.css?v=1278">
-<link rel="manifest" href="manifest.json?v=1278">
+<link rel="preload" as="style" href="styles/harmony.css?v=1282">
+<link rel="preload" as="style" href="styles/unify.css?v=1282">
+<link rel="manifest" href="manifest.json?v=1282">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1278" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1278">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1278">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1278">
+<link rel="icon" href="favicon.ico?v=1282" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1282">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1282">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1282">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1278">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1278">
+<link rel="stylesheet" href="styles/fonts.css?v=1282">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1282">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -228,33 +228,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 
 /* Vocab stats row */
-.vocab-stats{display:none !important;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-.vs-card{
-  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
-  padding:14px 16px;text-align:center;position:relative;overflow:hidden;
-  transition:.15s;
-}
-.vs-card:hover{border-color:var(--accent-border)}
-.vs-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.4;
-}
-.vs-icon{font-size:20px;margin-bottom:6px;display:block}
-.vs-label{font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:6px}
-.vs-num{font-size:26px;font-weight:700;font-family:var(--mono);color:var(--accent);line-height:1}
-
-/* Action buttons */
-.vocab-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
-.va-btn{
-  display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;
-  font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;
-  transition:.15s;border:1px solid var(--border);background:var(--bg-card);color:var(--text);
-  text-decoration:none;
-}
-.va-btn:hover{border-color:var(--accent-border);background:var(--bg-card-2)}
-.va-btn.primary{background:#CDF649;border-color:#CDF649;color:#24282C}
-.va-btn.primary:hover{opacity:.88}
-.va-lang{color:#24282C;font-weight:700;background:rgba(205,246,73,.55);border-radius:6px;padding:0 5px}
 
 /* Tabs */
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
@@ -340,51 +313,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .game-card-teacher .game-card-cat b{color:var(--text)}
 .game-card-badge{position:absolute;top:8px;right:8px;font:700 11px var(--mono);padding:2px 7px;border-radius:999px;background:#CDF649;color:#24282C}
 .game-card-badge.done{background:var(--bg-card-2)}
-/* Progress tab (loadProgress) */
-.pg-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.pg-tile{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:14px 14px 12px}
-.pg-num{font:700 26px/1 var(--mono);color:var(--text)}
-.pg-num small{font-size:14px;color:var(--text-3);font-weight:600}
-.pg-lbl{font-size:12px;font-weight:650;color:var(--text);margin-top:7px}
-.pg-sub{font-size:11.5px;color:var(--text-3);margin-top:3px}
-.pg-bar{height:5px;border-radius:3px;background:rgba(36,40,44,.08);overflow:hidden;margin-top:9px}
-.pg-bar i{display:block;height:100%;border-radius:3px;background:#24282C}
-.pg-block{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px}
-.pg-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.pg-key{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-3)}
-.pg-cal{display:grid;grid-template-columns:52px repeat(7,26px);gap:5px;align-items:center}
-.pg-cal .wd{font-size:11px;color:var(--text-3);text-align:center}
-.pg-cal .wk{font-size:11px;color:var(--text-3);white-space:nowrap}
-.pg-c{display:inline-block;width:12px;height:12px;border-radius:3px}
-.pg-cal .pg-c{width:26px;height:26px;border-radius:6px;cursor:default}
-.pg-cal .pg-c.today{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #24282C}
-.pg-c.l0{background:#EDEEE6}.pg-c.l1{background:#CACCC6}.pg-c.l2{background:#A3A48D}.pg-c.l3{background:#5D614B}.pg-c.l4{background:#24282C}
-.pg-cal-sum{font-size:12px;color:var(--text-2);margin-top:10px}
-.pg-row{display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid var(--border)}
-a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40,44,.03)}
-.pg-row:last-child{border-bottom:0}
-.pg-row-ic{width:32px;height:32px;border-radius:10px;background:var(--bg-card-2);display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 32px}
-.pg-row-main{flex:1;min-width:0}
-.pg-row-t{font-size:13.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pg-row-m{font-size:11.5px;color:var(--text-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pg-score{text-align:right;flex:0 0 auto}
-.pg-score b{display:block;font:700 15px var(--mono);color:var(--text)}
-.pg-score span{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:650;color:var(--text-2)}
-.pg-score span::before{content:"";width:7px;height:7px;border-radius:50%;background:#A3A48D}
-.pg-score span.ok::before{background:#8DB600}
-.pg-score span.low::before{background:#FF8C3A}
-.pg-tip{position:fixed;z-index:9999;pointer-events:none;background:#24282C;color:#fff;font-size:12px;font-weight:600;padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,calc(-100% - 8px))}
-@media (max-width:860px){.pg-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.prog-card{
-  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
-  padding:16px;text-align:center;
-}
-.prog-card-num{font-size:28px;font-weight:700;font-family:var(--mono);color:var(--accent);line-height:1}
-.prog-card-label{font-size:11px;color:var(--text-3);font-weight:600;margin-top:6px}
-.prog-bar-wrap{margin-top:12px}
-.prog-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px}
-.prog-bar{height:5px;border-radius:3px;background:rgba(36,40,44,.08);overflow:hidden}
-.prog-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--lavender))}
 
 /* Games grid */
 .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:20px}
@@ -544,7 +472,8 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
   content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
   width:28px;height:2px;border-radius:0 0 2px 2px;background:var(--accent);
 }
-.mtab-ic{font-size:20px;line-height:1}
+.mtab-ic{font-size:20px;line-height:1;display:grid;place-items:center}
+.te-flame{color:#F3A46B;display:inline-grid;place-items:center}
 
 /* ── RESPONSIVE ── */
 @media(max-width:860px){
@@ -578,7 +507,6 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
   }
   .tb-guide{padding:8px 12px;font-size:11px}
   .content{padding:20px 16px calc(80px + env(safe-area-inset-bottom,0px))}
-  .vocab-stats{grid-template-columns:repeat(2,1fr)}
   .welcome-text{font-size:22px}
   .progress-grid{grid-template-columns:1fr}
   .mobile-summary{display:block}
@@ -587,35 +515,30 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
 }
 @media(max-width:480px){
   .welcome{margin-bottom:18px}
-  .vocab-stats{grid-template-columns:1fr 1fr}
-  .vs-card{padding:10px 12px}
-  .vs-num{font-size:22px}
-  .vocab-actions{flex-direction:column}
-  .va-btn{justify-content:center}
   .ms-stats{grid-template-columns:1fr 1fr 1fr}
   .sch-item,.quiz-item,.vocab-word-item{padding:12px}
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1278">
-<link rel="stylesheet" href="styles/harmony.css?v=1278">
-<link rel="stylesheet" href="styles/unify.css?v=1278">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1278">
+<link rel="stylesheet" href="styles/mobile.css?v=1282">
+<link rel="stylesheet" href="styles/harmony.css?v=1282">
+<link rel="stylesheet" href="styles/unify.css?v=1282">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1282">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1278">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1278">
-<link rel="stylesheet" href="styles/controls.css?v=1278">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1278">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1278">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1278">
-<link rel="stylesheet" href="styles/student-engage.css?v=1278">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1282">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1282">
+<link rel="stylesheet" href="styles/controls.css?v=1282">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1282">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1282">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1282">
+<link rel="stylesheet" href="styles/student-engage.css?v=1282">
 <!-- Liquid Glass (iOS 26): bars, widgets, menus, sheets. Last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1278">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1282">
 </head>
 <body class="fx lg-cabinet">
 
 <div id="loading-screen">
-  <img class="ls-logo" src="logo-sm.png?v=1278" alt="TeachEd" width="56" height="56">
+  <img class="ls-logo" src="logo-sm.png?v=1282" alt="TeachEd" width="56" height="56">
   <div class="spinner"></div>
   <div style="font-size:13px;font-weight:600;color:var(--text-3);">Loading dashboard…</div>
 </div>
@@ -629,7 +552,7 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <div class="sb-logo"><img src="logo-sm.png?v=1278" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
+    <div class="sb-logo"><img src="logo-sm.png?v=1282" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
 
     <!-- Name and role are in the greeting and the avatar on the right; here they
          were an empty header. Kept hidden: the page writes them by id. The board
@@ -656,7 +579,7 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
     <div class="sb-section">
       <div class="sb-section-title">Streak</div>
       <div class="te-streak" id="te-streak">
-        <div class="te-streak-main"><span class="te-flame" aria-hidden="true">🔥</span><b id="te-streak-n">0</b><span id="te-streak-l">days in a row</span></div>
+        <div class="te-streak-main"><span class="te-flame" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M13.5 2 5 13.5h6L10 22l9-12h-6.3z"/></svg></span><b id="te-streak-n">0</b><span id="te-streak-l">days in a row</span></div>
         <div class="te-week" id="te-week" role="img" aria-label="Activity this week"></div>
         <div class="te-hint" id="te-streak-hint">Do one small thing today to start a streak.</div>
         <div class="te-lvl">
@@ -706,7 +629,7 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
       <div class="live-banner" id="live-banner">
         <div class="live-dot"></div>
         <div class="live-info">
-          <div class="live-title">🔴 Live Now - Your teacher is online!</div>
+          <div class="live-title">Live Now - Your teacher is online!</div>
           <div class="live-sub" id="live-class-name">Class in progress</div>
         </div>
         <a class="live-join" id="live-join-btn" target="_blank" rel="noopener" role="button" aria-disabled="true" tabindex="-1">Join →</a>
@@ -737,39 +660,6 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
         </div>
       </div>
 
-      <!-- Vocabulary section -->
-      <div class="sec-title">My Word Bank</div>
-      <div class="vocab-stats">
-        <div class="vs-card">
-          <span class="vs-icon">📋</span>
-          <div class="vs-label">Learned Words</div>
-          <div class="vs-num" id="v-learned">-</div>
-        </div>
-        <div class="vs-card">
-          <span class="vs-icon">🎯</span>
-          <div class="vs-label">To Learn</div>
-          <div class="vs-num" id="v-tolearn" style="color:#24282C">-</div>
-        </div>
-        <div class="vs-card">
-          <span class="vs-icon">⚡</span>
-          <div class="vs-label">Pace / Day</div>
-          <div class="vs-num" id="v-pace">-</div>
-        </div>
-        <div class="vs-card">
-          <span class="vs-icon">🏆</span>
-          <div class="vs-label">Day Record</div>
-          <div class="vs-num" id="v-record" style="color:#24282C">-</div>
-        </div>
-      </div>
-
-      <!-- Action buttons -->
-      <div class="vocab-actions">
-        <button class="va-btn primary" onclick="learnWords()">→ Learn words</button>
-        <span class="va-btn"><span class="va-lang" id="lang-pair">EN</span>&nbsp;→&nbsp;<span id="lang-to">RU</span></span>
-        <button class="va-btn" onclick="openVocabModal()">+ Add new word</button>
-        <button class="va-btn" onclick="loadVocab()" title="Refresh" aria-label="Refresh words">↻ Refresh</button>
-      </div>
-
       <!-- Tabs -->
       <div class="tabs" id="tabs">
         <button class="tab active" data-tab="assignments">Homework</button>
@@ -786,32 +676,6 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
           <div class="empty-state">No assignments yet</div>
         </div>
         <div id="teacher-feedback"></div>
-      </div>
-
-      <!-- Tab: Vocabulary -->
-      <div class="tab-pane" id="pane-vocabulary">
-        <div id="vocab-list"></div>
-      </div>
-
-      <!-- Tab: Progress -->
-      <div class="tab-pane" id="pane-progress">
-        <!-- Filled by loadProgress() from /api/student/progress -->
-        <div class="pg-tiles" id="pg-tiles">
-          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Homework done</div></div>
-          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Average score</div></div>
-          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Day streak</div></div>
-          <div class="pg-tile"><div class="pg-num">-</div><div class="pg-lbl">Words mastered</div></div>
-        </div>
-        <div class="pg-block">
-          <div class="pg-head"><span class="sec-title" style="margin:0">Last 4 weeks</span><span class="pg-key" aria-hidden="true">less <i class="pg-c l0"></i><i class="pg-c l1"></i><i class="pg-c l2"></i><i class="pg-c l3"></i><i class="pg-c l4"></i> more</span></div>
-          <div class="pg-cal" id="pg-cal" role="img" aria-label="Activity over the last four weeks"></div>
-          <div class="pg-cal-sum" id="pg-cal-sum"></div>
-        </div>
-        <div class="pg-block">
-          <div class="sec-title" style="margin:0 0 8px">Recent results</div>
-          <div id="pg-recent"><div class="empty-state">Your results will appear here after your first homework or quiz.</div></div>
-        </div>
-        <div class="pg-tip" id="pg-tip" hidden></div>
       </div>
 
       <!-- Tab: Schedule -->
@@ -839,10 +703,10 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
   <!-- The student's own tab bar on a phone (scripts/mobile-nav.js skips this
        page). Plan and Games are gone, as from the desktop menu; My board is the
        board "Open my board" opens (student-engage.js sets the link). -->
-  <button class="mtab active" type="button" data-tab="assignments"><span class="mtab-ic">🏠</span><span>Home</span></button>
-  <a class="mtab mtab-link" id="mtab-board" href="#" hidden><span class="mtab-ic">🧩</span><span>My board</span></a>
-  <button class="mtab" type="button" data-tab="vocabulary"><span class="mtab-ic">📚</span><span>Word Bank</span></button>
-  <button class="mtab" type="button" data-tab="progress"><span class="mtab-ic">📈</span><span>Progress</span></button>
+  <button class="mtab active" type="button" data-tab="assignments"><span class="mtab-ic"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg></span><span>Home</span></button>
+  <a class="mtab mtab-link" id="mtab-board" href="#" hidden><span class="mtab-ic"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 10v10"/></svg></span><span>My board</span></a>
+  <button class="mtab" type="button" data-tab="vocabulary"><span class="mtab-ic"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="6" rx="1.5"/><rect x="3.5" y="11" width="14" height="6" rx="1.5"/><path d="M5 20.5h14"/></svg></span><span>Word Bank</span></button>
+  <button class="mtab" type="button" data-tab="progress"><span class="mtab-ic"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span><span>Progress</span></button>
 </div>
 
 <!-- Vocab modal -->
@@ -859,17 +723,17 @@ a.pg-row{color:inherit;text-decoration:none}a.pg-row:hover{background:rgba(36,40
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1278"></script>
-<script src="scripts/student-onboarding.js?v=1278"></script>
-<script src="scripts/student-feed.js?v=1278"></script>
-<script src="scripts/stock-photos.js?v=1278"></script>
-<script src="scripts/lesson-cover.js?v=1278"></script>
-<script src="scripts/lesson-calendar.js?v=1278"></script>
-<script src="scripts/hw-state.js?v=1278"></script>
-<script src="scripts/student-engage.js?v=1278"></script>
-<script src="scripts/cabinet-hub.js?v=1278"></script>
-<script src="scripts/wallpaper-presets.js?v=1278"></script>
-<script src="scripts/student-wallpaper.js?v=1278"></script>
+<script src="scripts/app-core.js?v=1282"></script>
+<script src="scripts/student-onboarding.js?v=1282"></script>
+<script src="scripts/student-feed.js?v=1282"></script>
+<script src="scripts/stock-photos.js?v=1282"></script>
+<script src="scripts/lesson-cover.js?v=1282"></script>
+<script src="scripts/lesson-calendar.js?v=1282"></script>
+<script src="scripts/hw-state.js?v=1282"></script>
+<script src="scripts/student-engage.js?v=1282"></script>
+<script src="scripts/cabinet-hub.js?v=1282"></script>
+<script src="scripts/wallpaper-presets.js?v=1282"></script>
+<script src="scripts/student-wallpaper.js?v=1282"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -976,12 +840,7 @@ function renderDashboardFromCache(cache, options = {}) {
   if (Array.isArray(cache.vocabData)) {
     _vocabData = cache.vocabData;
     if (window.studentEngage) window.studentEngage.vocab(cache.vocabData);
-    renderVocab();
     document.getElementById('ms-words').textContent = cache.vocabData.length;
-  }
-  if (cache.vocabStats) {
-    document.getElementById('v-learned').textContent = cache.vocabStats.learned ?? '-';
-    document.getElementById('v-tolearn').textContent = cache.vocabStats.toLearn ?? '-';
   }
   if (cache.portalData) {
     renderPortalData(cache.portalData);
@@ -1335,7 +1194,7 @@ async function checkLiveSessions() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${session.teacher_name || 'Your teacher'} started: ${session.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1278', tag: 'live-session-' + session.id,
+          icon: 'icons/icon-192.png?v=1282', tag: 'live-session-' + session.id,
         });
       }
     }
@@ -1378,17 +1237,11 @@ function renderPortalData(data) {
       window.studentEngage.balance({ jLeft: je.lessons_left != null ? Number(je.lessons_left) : null, paymentDue: je.payment_due || null, trial: !!je.is_trial });
     }
   }
-  if (data.stats) {
-    document.getElementById('v-pace').textContent = data.stats.vocabPace || '0';
-    document.getElementById('v-record').textContent = data.stats.vocabRecord || '0';
-  }
 }
 
-// ── Progress tab ──
-/* Всё из /api/student/progress: домашка, квизы, слова, активность по дням.
-   Плитки - числа, а не графики; активность - календарь 4 недели, одна шкала
-   от светлого к тёмному (оттенки бренда), подсказка при наведении. Счёт в
-   списке подписан словом, а не только цветом точки. */
+// ── Progress ──
+/* The Progress screen lives in the hub now. This only feeds what the cabinet itself still shows:
+   the streak number on the phone summary and the engagement widgets (student-engage.js). */
 async function loadProgress() {
   let d;
   try {
@@ -1396,66 +1249,8 @@ async function loadProgress() {
     if (!r.ok) return;
     d = await r.json();
   } catch (_) { return; }
-  const hw = d.homework || {}, words = d.words || {}, quiz = d.quizzes || {};
-  const avg = hw.avg != null ? hw.avg : quiz.avg;
-  const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
-  const tile = (num, lbl, sub, bar) => `<div class="pg-tile"><div class="pg-num">${num}</div><div class="pg-lbl">${lbl}</div>${sub ? `<div class="pg-sub">${sub}</div>` : ''}${bar != null ? `<div class="pg-bar"><i style="width:${bar}%"></i></div>` : ''}</div>`;
-  document.getElementById('pg-tiles').innerHTML =
-    tile(hw.assigned ? `${hw.done}<small> / ${hw.assigned}</small>` : '0', 'Homework done',
-      hw.overdue ? `${hw.overdue} overdue` : hw.open ? `${hw.open} to do` : hw.assigned ? 'all done' : 'no tasks yet', hw.assigned ? pct(hw.done, hw.assigned) : null) +
-    tile(avg != null ? `${avg}<small>%</small>` : '-', 'Average score',
-      hw.onTimePct != null ? `${hw.onTimePct}% handed in on time` : (hw.avg == null && quiz.avg != null ? `from ${quiz.count} quiz${quiz.count === 1 ? '' : 'zes'}` : ''), avg != null ? avg : null) +
-    tile(d.streak || 0, 'Day streak', `${d.activeDays28 || 0} active day${d.activeDays28 === 1 ? '' : 's'} in 4 weeks`, null) +
-    tile(words.total ? `${words.learned}<small> / ${words.total}</small>` : '0', 'Words mastered', words.total ? `${words.total - words.learned} still in practice` : 'save words to your Word Bank', words.total ? pct(words.learned, words.total) : null);
-
   const ms = document.getElementById('ms-streak'); if (ms) ms.textContent = d.streak || 0;
   if (window.studentEngage) window.studentEngage.progress(d);
-
-  // Calendar: rows are weeks (Mon-Sun), the last row ends with this week.
-  const act = d.activity || [];
-  const cal = document.getElementById('pg-cal');
-  const lvl = n => (n <= 0 ? 0 : n === 1 ? 1 : n <= 3 ? 2 : n <= 6 ? 3 : 4);
-  const dt = s => new Date(s + 'T12:00:00');
-  const byDay = new Map(act.map(a => [a.day, a.n]));
-  const today = d.today || (act.length ? act[act.length - 1].day : '');
-  const monday = s => { const x = dt(s); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
-  const iso = x => x.toLocaleDateString('en-CA');
-  const start = monday(today); start.setDate(start.getDate() - 21);
-  let html = '<span></span>' + ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(w => `<span class="wd">${w}</span>`).join('');
-  for (let w = 0; w < 4; w++) {
-    const wkStart = new Date(start); wkStart.setDate(start.getDate() + w * 7);
-    html += `<span class="wk">${wkStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).replace(' ', ' ')}</span>`;
-    for (let k = 0; k < 7; k++) {
-      const x = new Date(wkStart); x.setDate(wkStart.getDate() + k);
-      const key = iso(x);
-      if (key > today) { html += '<span></span>'; continue; }
-      const n = byDay.get(key) || 0;
-      const label = `${x.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${n ? n + ' activit' + (n === 1 ? 'y' : 'ies') : 'no activity'}`;
-      html += `<i class="pg-c l${lvl(n)}${key === today ? ' today' : ''}" data-tip="${label}" aria-label="${label}"></i>`;
-    }
-  }
-  cal.innerHTML = html;
-  const tip = document.getElementById('pg-tip');
-  cal.onmouseover = e => { const c = e.target.closest('[data-tip]'); if (!c) { tip.hidden = true; return; } const r = c.getBoundingClientRect(); tip.textContent = c.dataset.tip; tip.style.left = (r.left + r.width / 2) + 'px'; tip.style.top = r.top + 'px'; tip.hidden = false; };
-  cal.onmouseleave = () => { tip.hidden = true; };
-  const active = d.activeDays28 || 0;
-  document.getElementById('pg-cal-sum').textContent = active
-    ? `${active} active day${active === 1 ? '' : 's'} out of 28${d.streak ? ` · current streak ${d.streak} day${d.streak === 1 ? '' : 's'}` : ''}.`
-    : 'No activity yet - open your homework to start.';
-
-  /* BUG-13: the same events as the calendar above - date, what it was, result */
-  const recent = d.recent || [];
-  const ICON = { quiz: '📋', homework: '📝', practice: '✏️', board: '🧩', words: '📚' };
-  document.getElementById('pg-recent').innerHTML = recent.length ? recent.map(x => {
-    const when = new Date((x.day || String(x.at).slice(0, 10)) + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    const has = typeof x.pct === 'number';
-    const verdict = !has ? `<span>${x.kind === 'homework' ? 'sent' : 'done'}</span>` : x.pass ? '<span class="ok">Passed</span>' : '<span class="low">Keep practising</span>';
-    const meta = [when, x.detail || '', x.teacher && x.kind === 'homework' ? 'From ' + x.teacher : '', x.note ? `“${x.note}”` : ''].filter(Boolean).join(' · ');
-    const tag = x.ref ? 'a' : 'div';
-    return `<${tag} class="pg-row"${x.ref ? ` href="homework-do.html?a=${encodeURIComponent(x.ref)}"` : ''}><span class="pg-row-ic">${ICON[x.kind] || '•'}</span>
-      <span class="pg-row-main"><div class="pg-row-t">${esc(x.title)}</div><div class="pg-row-m">${esc(meta)}</div></span>
-      <span class="pg-score">${has ? `<b>${x.pct}%</b>` : ''}${verdict}</span></${tag}>`;
-  }).join('') : '<div class="empty-state">Your results will appear here after your first homework or quiz.</div>';
 }
 
 // ── Games tab ──
@@ -1614,33 +1409,9 @@ async function loadVocab() {
     const { words, learned, toLearn } = await r.json();
     _vocabData = words;
     if (window.studentEngage) window.studentEngage.vocab(words);
-    document.getElementById('v-learned').textContent = learned;
-    document.getElementById('v-tolearn').textContent = toLearn;
     document.getElementById('ms-words').textContent = words.length;
-    renderVocab();
     writeDashboardCache({ vocabData: words, vocabStats: { learned, toLearn } });
   } catch {}
-}
-
-function renderVocab() {
-  const list = document.getElementById('vocab-list');
-  if (!list) return;
-  if (!_vocabData.length) {
-    list.innerHTML = '<div class="empty-state">No words yet - add your first word!</div>';
-    return;
-  }
-  list.innerHTML = _vocabData.slice(0, 30).map(w => `
-    <div class="vocab-word-item">
-      <div style="flex:1;min-width:0;">
-        <div class="vw-word">${esc(w.word)}</div>
-        ${w.translation ? `<div class="vw-trans">${esc(w.translation)}</div>` : ''}
-        ${w.example ? `<div class="vw-example">"${esc(w.example)}"</div>` : ''}
-      </div>
-      <button class="vw-badge ${w.learned ? 'learned' : 'new'}" onclick="toggleVocabLearned('${w.id}',${!w.learned})">
-        ${w.learned ? '✓ Learned' : 'Mark learned'}
-      </button>
-    </div>
-  `).join('');
 }
 
 async function addVocabWord() {
@@ -1667,10 +1438,6 @@ async function addVocabWord() {
   } catch {}
 }
 
-async function toggleVocabLearned(id, learned) {
-  try { await apiFetch('/api/journal/vocab/' + id, { method: 'PATCH', body: { learned } }); await loadVocab(); } catch {}
-}
-
 function learnWords() {
   /* Practise means practising: the Word Bank studio. It used to open the
      first board instead, which has nothing to do with the words. */
@@ -1694,21 +1461,21 @@ if (location.hash === '#vocabulary') {
 }
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1278"></script>
-<script src="scripts/vault-review.js?v=1278"></script>
-<script src="scripts/vault-cabinet.js?v=1278"></script>
-<script src="scripts/writing-shared.js?v=1278"></script>
-<script src="scripts/writing-mine.js?v=1278"></script>
-<script src="scripts/autogrow.js?v=1278" defer></script>
-<script src="pwa-boot.js?v=1278" defer></script>
-<script src="pwa.js?v=1278"></script>
-<script src="scripts/nav-boost.js?v=1278" defer></script>
-<script src="scripts/mobile-perf.js?v=1278" defer></script>
-<script src="scripts/mobile-nav.js?v=1278"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1278" defer></script>
-  <script src="scripts/signin-entry.js?v=1278" defer></script>
-<script src="scripts/verify-banner.js?v=1278" defer></script>
-<script src="scripts/nav-bell.js?v=1278" defer></script>
-<script src="scripts/modal-guard.js?v=1278" defer></script>
+<script src="scripts/hear-in-context.js?v=1282"></script>
+<script src="scripts/vault-review.js?v=1282"></script>
+<script src="scripts/vault-cabinet.js?v=1282"></script>
+<script src="scripts/writing-shared.js?v=1282"></script>
+<script src="scripts/writing-mine.js?v=1282"></script>
+<script src="scripts/autogrow.js?v=1282" defer></script>
+<script src="pwa-boot.js?v=1282" defer></script>
+<script src="pwa.js?v=1282"></script>
+<script src="scripts/nav-boost.js?v=1282" defer></script>
+<script src="scripts/mobile-perf.js?v=1282" defer></script>
+<script src="scripts/mobile-nav.js?v=1282"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1282" defer></script>
+  <script src="scripts/signin-entry.js?v=1282" defer></script>
+<script src="scripts/verify-banner.js?v=1282" defer></script>
+<script src="scripts/nav-bell.js?v=1282" defer></script>
+<script src="scripts/modal-guard.js?v=1282" defer></script>
 </body>
 </html>

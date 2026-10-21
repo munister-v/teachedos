@@ -78,13 +78,6 @@
         '<div class="te-card" id="te-chunk"></div></div>' +
         '<div class="te-row2 te-row2-one"><div class="te-words" id="te-words"></div></div>');
     }
-    /* The old vocabulary block (title, four figures, a row of buttons) is now
-       the rings strip above. It stays in the page, hidden: other code still
-       writes its numbers by id. */
-    const vs = document.querySelector('.vocab-stats');
-    if (vs) {
-      [vs, vs.previousElementSibling, document.querySelector('.vocab-actions')].forEach(el => { if (el) el.classList.add('te-gone'); });
-    }
     const st = $('te-streak');
     if (st && !$('te-streak-go')) {
       const hint = $('te-streak-hint');
@@ -550,8 +543,6 @@
 
   /* ── Zeros that do not feel like failure ──────────────────────────── */
   const SOFT = {
-    'v-pace': ['🔥 Warming up'],
-    'v-record': ['🏆 Set your first one'],
     'ms-words': ['＋ Add one', () => { if (typeof window.openVocabModal === 'function') window.openVocabModal(); }],
     'ms-streak': ['Starts today'],
   };
@@ -568,7 +559,7 @@
       if (!el) return;
       softZero(id);
       new MutationObserver(() => softZero(id)).observe(el, { childList: true, characterData: true, subtree: true });
-      if (SOFT[id][1]) { const card = el.closest('.vs-card, .ms-stat'); if (card) card.addEventListener('click', () => { if (el.dataset.soft) SOFT[id][1](); }); }
+      if (SOFT[id][1]) { const card = el.closest('.ms-stat'); if (card) card.addEventListener('click', () => { if (el.dataset.soft) SOFT[id][1](); }); }
     });
   }
 
@@ -667,7 +658,7 @@
      They used to be tabs. Progress now opens from the streak card in the
      sidebar and the word list from the vocabulary figures. The pane itself is
      moved into the sheet and put back on close, so everything that fills it
-     by id (loadProgress, renderVocab) keeps working unchanged. */
+     by id (loadProgress) keeps working unchanged. */
   let wordsKind = null;   // the status shown while the Word Bank list is open
   function closeSheet() {
     const ov = $('te-sheet');

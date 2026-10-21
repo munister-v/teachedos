@@ -17,7 +17,7 @@
     '.hubstrip .hs-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}' +
     '.hubstrip .hs-links a{display:flex;flex-direction:column;gap:2px;min-width:132px;padding:10px 14px;border-radius:14px;background:rgba(244,243,236,.08);color:#F4F3EC;text-decoration:none;font-weight:800;font-size:14px}' +
     '.hubstrip .hs-links a span{font-size:12px;font-weight:600;opacity:.62}.hubstrip .hs-links a.hot{background:#F6D8D8;color:#1E2231}.hubstrip .hs-links a.hot span{opacity:.7}' +
-    '@media (max-width:600px){.hubstrip .hs-go{margin-left:0;width:100%;text-align:center}.hubstrip .hs-links a{flex:1 1 44%}}';
+    '@media (max-width:600px){.hubstrip{padding:14px}.hubstrip .hs-go{margin-left:0;width:100%;text-align:center;padding:10px 16px}.hubstrip .hs-xp{font-size:22px}.hubstrip .hs-links{gap:6px;margin-top:12px}.hubstrip .hs-links a{flex:1 1 calc(50% - 6px);min-width:0;padding:9px 11px;font-size:13px}.hubstrip .hs-links a span{font-size:11px}}';
 
   function paint(x, t, f) {
     const host = document.querySelector('#main-content .welcome');

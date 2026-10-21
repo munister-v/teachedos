@@ -29,7 +29,7 @@ body.sw-has:not(#_):not(#_){background:var(--sw-wall) fixed !important}
 body.sw-has .sidebar{background:rgba(255,255,255,.66) !important;backdrop-filter:blur(26px) saturate(1.35);-webkit-backdrop-filter:blur(26px) saturate(1.35);border-right-color:rgba(255,255,255,.55)}
 body.sw-has .topbar{background:rgba(255,255,255,.5);backdrop-filter:blur(22px) saturate(1.3);-webkit-backdrop-filter:blur(22px) saturate(1.3);border-bottom-color:rgba(255,255,255,.5)}
 body.sw-has .content{margin:14px 18px 18px;border-radius:26px;background:rgba(255,255,255,.52);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border:1px solid rgba(255,255,255,.6);box-shadow:0 20px 50px -24px rgba(36,40,44,.35)}
-body.sw-has .vs-card,body.sw-has .te-card:not(.dark){background:rgba(255,255,255,.78)}
+body.sw-has .te-card:not(.dark){background:rgba(255,255,255,.78)}
 .sw-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 13px;border-radius:999px;border:1px solid var(--border-2,rgba(36,40,44,.18));background:var(--bg-card,#fff);color:var(--text,#24282C);font:600 12.5px var(--font,system-ui);cursor:pointer}
 .sw-btn:hover{background:var(--bg-card-2,#F6F6EF)}
 .sw-ov{position:fixed;inset:0;z-index:99000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(20,22,24,.5);backdrop-filter:blur(6px)}
