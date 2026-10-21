@@ -1021,14 +1021,22 @@
 
   /* A photo for "image": the same search the word pictures use, through our
      own proxy so the card keeps its picture. */
-  async function findImage(query) {
+  async function imageOptions(query) {
     try {
       const base = (window.TeachEdApp && window.TeachEdApp.API_BASE) || window.TEACHED_API_BASE
         || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : location.origin);
-      const r = await fetch(base + '/api/images/search?q=' + encodeURIComponent(query));
+      const r = await fetch(base + '/api/images/search?limit=4&q=' + encodeURIComponent(query));
       const d = r.ok ? await r.json() : {};
-      return d && d.url ? (/^https?:/.test(d.url) ? d.url : base + d.url) : null;
-    } catch (_) { return null; }
+      const urls = [d && d.url].concat(((d && d.urls) || []).map(u => (u && u.url) || u)).filter(u => typeof u === 'string' && u);
+      return [...new Set(urls)].map(u => (/^https?:/.test(u) ? u : base + u));
+    } catch (_) { return []; }
+  }
+  /* Photos for several queries at once, never the same picture twice in
+     one plan ("travel" and "trip" brought back one photo for two stages). */
+  async function findImages(queries) {
+    const options = await Promise.all(queries.map(imageOptions));
+    const used = new Set();
+    return options.map(list => { const pick = list.find(u => !used.has(u)) || null; if (pick) used.add(pick); return pick; });
   }
 
   function doEdit(a) {
@@ -1110,10 +1118,9 @@
     if (pics.length || stagePics.length) {
       setBusy(true);
       try {
-        [images, stageImages] = await Promise.all([
-          Promise.all(pics.map(a => findImage(a.query))),
-          Promise.all(stagePics.map(a => findImage(a.image))),
-        ]);
+        const all = await findImages(pics.map(a => a.query).concat(stagePics.map(a => a.image)));
+        images = all.slice(0, pics.length);
+        stageImages = all.slice(pics.length);
       } finally { setBusy(false); }
     }
     const before = new Set(state.cards.map(c => c.id));
