@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const xp = require('../lib/xp');
 const pool   = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
@@ -437,6 +438,12 @@ router.post('/:id/lesson', async (req, res) => {
     const out = await markLesson(client, { journalId: req.params.id, teacherId: req.user.id, date, status, charge, slotId });
     if (!out) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not found' }); }
     await client.query('COMMIT');
+    if (status === 'present') {
+      // the student earns XP for a lesson that really happened (their account is linked on the journal card)
+      pool.query('SELECT student_id FROM student_journal WHERE id = $1 AND teacher_id = $2', [req.params.id, req.user.id])
+        .then(r => r.rows[0] && r.rows[0].student_id && xp.award(pool, r.rows[0].student_id, 'lesson', `${req.params.id}:${date}`, xp.RULES.lesson.xp))
+        .catch(() => {});
+    }
     res.json({ ok: true, ...out });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});

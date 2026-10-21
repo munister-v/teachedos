@@ -505,6 +505,19 @@ CREATE TABLE IF NOT EXISTS ai_usage_monthly (
   requests     INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id, month)
 );
+-- Student hub XP: one row per thing done; (user, kind, ref) is unique so nothing pays twice
+CREATE TABLE IF NOT EXISTS xp_events (
+  id         BIGSERIAL PRIMARY KEY,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       VARCHAR(24) NOT NULL,
+  ref        VARCHAR(80) NOT NULL,
+  xp         INTEGER NOT NULL DEFAULT 0,
+  label      VARCHAR(120) NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, kind, ref)
+);
+CREATE INDEX IF NOT EXISTS idx_xp_events_user ON xp_events(user_id, created_at DESC);
+
 -- Launch in waves: a cap on teacher sign-ups, and who is waiting behind it
 CREATE TABLE IF NOT EXISTS app_flags (
   key   VARCHAR(60) PRIMARY KEY,

@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const xp = require('../lib/xp');
 const pool   = require('../db/pool');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const { createNotification } = require('./notifications');
@@ -584,6 +585,7 @@ router.post('/my/:assignmentId/submit', async (req, res) => {
       [final, a.id]
     );
     if (!rows[0]) return res.status(409).json({ error: 'This homework is already handed in', status: a.status });
+    xp.award(pool, req.user.id, 'homework', a.id, xp.RULES.homework.xp);
     const done = attempts.filter(t => t.status === 'done' && required.includes(t.card_id)).length;
     createNotification(a.teacher_id, 'homework', `${req.user.name || 'A student'} handed in homework`,
       `"${a.title}" - ${done}/${required.length} task${required.length === 1 ? '' : 's'} done${final == null ? '' : `, auto score ${final}%`}. Open it to leave a review.`,

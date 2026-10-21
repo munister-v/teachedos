@@ -1,5 +1,6 @@
 const { cleanCover, cleanCoverImage } = require('../lib/cover');
 const router = require('express').Router();
+const xp = require('../lib/xp');
 const { filterBoardData } = require('../lib/boardVisibility');
 const { checkAnswer } = require('../lib/answerKey');
 const { sanitizeBoardData } = require('../lib/boardSanitize');
@@ -376,6 +377,9 @@ router.post('/:id/progress', async (req, res) => {
       DO UPDATE SET score=$4, max_score=$5, pct=$6, answers=$7, submitted_at=NOW()`,
       [req.params.id, cardId, req.user.id, score||0, maxScore||0, pct||0, JSON.stringify(answers||[])]
     );
+    const qref = req.params.id + ':' + cardId;
+    xp.award(pool, req.user.id, 'quiz', qref, xp.RULES.quiz.xp);
+    if ((Number(pct) || 0) >= 80) xp.award(pool, req.user.id, 'quiz_strong', qref, xp.RULES.quiz_strong.xp);
     // also mark lesson progress as done
     await pool.query(`
       INSERT INTO student_progress (board_id, user_id, card_id, status, updated_at)

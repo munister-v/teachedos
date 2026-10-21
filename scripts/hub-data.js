@@ -1,7 +1,8 @@
 /* Student Hub (student-hub.html): puts the student's real data over the design's
    sample content. Each loader fills only what the API actually has; everything else
-   stays as the design shows it. XP does not exist on the server yet, so XP figures
-   are replaced by what we do know (streak, words). */
+   stays as the design shows it. XP comes from /api/student/xp (lib/xp.js): the level map,
+   the week bars and the wins read it; the C1 gate, duels, badges and the lucky task have no
+   server behind them yet and stay hidden. */
 (function () {
   'use strict';
   const token = localStorage.getItem('teachedos_token');
@@ -56,7 +57,7 @@
     set('.uncard[data-t="streak"] div[style*="flex"]', e => {
       e.innerHTML = '<b>' + label + '</b><span>' + (n ? 'Do one thing today to keep it' : 'Do one small thing today') + '</span>';
     });
-    set('.spxp', e => { e.remove(); });
+    set('.spxp', e => { e.textContent = ''; e.style.display = 'none'; });   // xpPaint fills it with the real total
   }
 
 
@@ -329,11 +330,125 @@
     set('.ms-sub', e => { e.textContent = open.length ? plural(open.length, 'word') + ' to learn' : 'Notebook is up to date'; });
   }
 
+
+  /* XP: the total in the sidebar and on Today, the level path with a flag at the real
+     place, the week's bars and the recent wins. Runs after everything else so the
+     sample figures the other loaders leave behind are overwritten, not mixed. */
+  const num = n => Number(n).toLocaleString('en-US');
+  const NODE_AT = [[0, 2, 30], [250, 5, 30], [500, 22, 64], [750, 39, 44], [1000, 54, 72], [1500, 79, 100], [1750, 92, 88], [2000, 97.5, 96]];
+  function atPoint(xpv) {
+    for (let i = 1; i < NODE_AT.length; i++) {
+      if (xpv <= NODE_AT[i][0]) {
+        const a = NODE_AT[i - 1], b = NODE_AT[i], t = (xpv - a[0]) / (b[0] - a[0]);
+        return { left: a[1] + (b[1] - a[1]) * t, bottom: a[2] + (b[2] - a[2]) * t };
+      }
+    }
+    const l = NODE_AT[NODE_AT.length - 1]; return { left: l[1], bottom: l[2] };
+  }
+  function xpPaint(x) {
+    if (!x) return;
+    const L = x.level, inBand = L.in_band;
+    set('.sprof .spxp', e => { e.textContent = num(x.total) + ' XP'; e.style.display = ''; });
+    set('.sprof .spinfo span', e => { if (!/^with /.test(e.textContent)) e.textContent = L.from + ' · Explorer'; });
+    set('.streakpill', e => { e.appendChild(document.createTextNode(' · ' + num(x.total) + ' XP')); });
+    set('.ministreak .ms-sub', e => { e.textContent = num(x.total) + ' XP · ' + L.from + ' → ' + L.to + ' · ' + L.pct + '%'; });
+    set('.ministreak .segbar i', e => { e.style.width = L.pct + '%'; });
+    set('.uncard[data-t="streak"] div[style*="flex"] span', e => { e.textContent = num(inBand) + ' / ' + num(L.band_xp) + ' XP'; });
+    set('.uncard[data-t="streak"] .mini i', e => { e.style.width = L.pct + '%'; });
+
+    const pg = document.getElementById('pg-progress');
+    if (!pg) return;
+    ['.mapband', '.mapsub', '.maplegend', '.nextstop'].forEach(q => pg.querySelectorAll(q).forEach(e => { e.style.display = ''; }));
+    const grid = pg.querySelector('.grid2c');
+    if (grid) { grid.style.display = ''; const panels = grid.querySelectorAll(':scope > .panel'); if (panels[1]) panels[1].style.display = 'none'; if (panels[0]) panels[0].style.gridColumn = '1 / -1'; }
+    const sub = pg.querySelector('.edhead .sub'); if (sub) sub.textContent = 'Your climb from ' + L.from + ' to ' + L.to + ' — honestly measured';
+    const meta = pg.querySelector('.edhead .meta');
+    if (meta && !/XP total/.test(meta.textContent)) meta.insertAdjacentHTML('afterbegin', '<b>' + num(x.total) + '</b> XP total<br>');
+    const kk = pg.querySelector('.mapband .mkick'); if (kk) kk.innerHTML = 'LEVEL PATH · ' + L.from + ' &rarr; ' + L.to;
+
+    // nodes: passed or ahead by the real XP, the flag at its real place
+    pg.querySelectorAll('.mnode').forEach(n => {
+      const first = n.querySelector('span');
+      const at = n.classList.contains('first') ? 0 : /^[\d,]+$/.test((first && first.textContent) || '') ? parseInt(first.textContent.replace(/,/g, ''), 10) : L.band_xp;
+      const done = at <= inBand;
+      n.classList.toggle('done', done);
+      const parts = (n.dataset.t || '').split('|');
+      if (parts.length === 3) {
+        const camp = L.camps.find(c => c.at === at);
+        const name = at === 0 ? L.from + ' · Base Camp' : at === L.band_xp ? L.to + ' · Summit' : camp ? camp.name : 'Checkpoint';
+        parts[0] = at === 0 || camp ? name + (at ? ' · ' + num(at) + ' XP' : '') : 'Checkpoint · ' + num(at) + ' XP';
+        parts[1] = done ? 'done' : 'ahead';
+        parts[2] = done ? 'Passed. Every ' + L.checkpoint + ' XP the trail plants a checkpoint — so you can see the flag actually moved.'
+                        : num(at - inBand) + ' XP to go.' + (camp && camp.bonus ? ' Arriving pays a +' + camp.bonus + ' XP bonus.' : '');
+        n.dataset.t = parts.join('|');
+      }
+      const nm = n.querySelector('.nm');
+      if (nm && at === 0) nm.textContent = L.from + ' · Base Camp';
+      if (nm && at === L.band_xp) nm.textContent = L.to + ' · Summit';
+    });
+    const pos = atPoint(inBand);
+    const you = pg.querySelector('.youmark');
+    if (you) {
+      you.style.left = pos.left + '%'; you.style.bottom = pos.bottom + 'px';
+      you.dataset.t = 'You are here · ' + num(x.total) + ' XP|here|Every word you review and every lesson, quiz and homework moves this flag. It never slides back.';
+      const yl = you.querySelector('.yl'); if (yl) yl.textContent = 'YOU · ' + num(x.total) + ' XP';
+    }
+    const clip = pg.querySelector('#doneClip rect'); if (clip) clip.setAttribute('width', String(Math.round(pos.left * 10)));
+    const camp = L.next_camp;
+    const ms = pg.querySelector('.mapsub');
+    if (ms) ms.innerHTML = '<b>' + num(inBand) + ' of ' + num(L.band_xp) + ' XP earned</b><span>· ' + num(L.to_next_camp) + ' to ' + camp.name + ' · ' + num(L.to_summit) + ' to ' + L.to + ' · the flag moves with every word, quiz and lesson</span>';
+    const lg = pg.querySelector('.maplegend span:nth-child(3)'); if (lg) lg.innerHTML = '<b>XP</b> — from words reviewed and kept, homework, quizzes and lessons';
+    const ns = pg.querySelector('.nextstop > div');
+    if (ns) {
+      const perDay = x.week_xp / Math.max(1, x.week.filter(d => !d.future).length);
+      const days = perDay > 0 ? Math.ceil(L.to_next_camp / perDay) : 0;
+      ns.innerHTML = '<b>Next stop: ' + camp.name + ' · ' + num(camp.at) + ' XP</b><br><span>' + num(L.to_next_camp) + ' XP to go' + (camp.bonus ? ' · arrival bonus +' + camp.bonus + ' XP' : '') + (days ? ' · at this week’s pace, about ' + (days === 1 ? 'a day' : days + ' days') : '') + '</span>';
+    }
+
+    // this week
+    const todayIdx = x.week.findIndex(d => d.day === new Date().toLocaleDateString('en-CA'));
+    const pt = pg.querySelector('.grid2c .panel .ptitle');
+    if (pt) pt.innerHTML = '+' + num(x.week_xp) + ' XP <span class="todaytag">+' + num(x.today) + ' today</span>';
+    const bars = pg.querySelector('#bars');
+    if (bars) {
+      const max = Math.max(20, ...x.week.map(d => d.xp));
+      bars.innerHTML = '';
+      x.week.forEach((d, i) => {
+        const b = document.createElement('div');
+        b.className = 'bar' + (d.xp === 0 ? ' zero' : '') + (d.day === x.week[Math.max(0, todayIdx)].day && todayIdx >= 0 ? ' today' : '');
+        b.style.height = (d.xp === 0 ? 4 : Math.max(10, Math.round(d.xp / max * 100))) + '%';
+        b.title = d.xp + ' XP';
+        bars.appendChild(b);
+      });
+      pg.querySelectorAll('.barlabels span').forEach((e, i) => e.classList.toggle('tb', i === todayIdx));
+    }
+
+    // wins: what paid XP lately
+    const wins = pg.querySelector('.wins13');
+    if (wins) {
+      wins.querySelectorAll('.wrow').forEach(r => r.remove());
+      const art = { homework: 'crown', quiz: 'bolt', quiz_strong: 'bolt', lesson: 'heart', word_kept: 'spark' };
+      const k = wins.querySelector('.kick2'); if (k) k.textContent = 'WINS & XP · RECENT';
+      if (!x.recent.length) wins.insertAdjacentHTML('beforeend', '<div class="wrow"><div><b>Nothing yet</b><div class="wsub">Your first finished task pays your first XP</div></div></div>');
+      x.recent.forEach(w => {
+        const row = document.createElement('div'); row.className = 'wrow';
+        row.innerHTML = '<span class="medal"><span class="pxart"></span></span><div><b></b></div><span class="wxp"></span><span class="wdate"></span>';
+        row.querySelector('b').textContent = w.label;
+        row.querySelector('.wxp').textContent = '+' + w.xp + ' XP';
+        row.querySelector('.wdate').textContent = new Date(w.day + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+        const a = row.querySelector('.pxart'); a.dataset.art = art[w.kind] || 'spark'; a.dataset.color = '#D3F26A'; a.dataset.px = '3';
+        wins.appendChild(row);
+        paintArt(a);
+      });
+    }
+  }
+
   const pProgress = json('/api/student/progress');
   const pVocab = json('/api/journal/vocab/list');
   const pInbox = json('/api/homework/my/inbox');
   const pDash = json('/api/student/dashboard');
   const pMe = json('/api/auth/me');
+  const pXp = json('/api/student/xp');
   pProgress.then(progress);
   pVocab.then(vocab);
   pInbox.then(r => homework(r && r.assignments));
@@ -348,4 +463,5 @@
     return (uid ? json('/api/student/portal/' + encodeURIComponent(uid)) : Promise.resolve(null)).then(portal => sidebar(dash, portal));
   });
   Promise.all([pVocab, pInbox]).then(([v, i]) => today(v && v.words, i && i.assignments));
+  Promise.all([pXp, pProgress, pVocab, pInbox, pMe, pDash]).then(([x]) => xpPaint(x));
 })();

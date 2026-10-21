@@ -1,5 +1,6 @@
 const express  = require('express');
 const router   = express.Router();
+const xp = require('../lib/xp');
 const pool     = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const interests = require('../lib/interests');
@@ -585,6 +586,18 @@ router.get('/dashboard', requireAuth, async (req, res) => {
                  (карточка на доске, попытка в домашке, квиз, сдача);
      streak    - дни подряд с действием, по сегодня или по вчера (вчерашняя
                  серия не сгорает, пока день не кончился). */
+router.get('/xp', requireAuth, async (req, res) => {
+  try {
+    let tz = String(req.user.timezone || 'Europe/Kyiv');
+    try { new Intl.DateTimeFormat('en', { timeZone: tz }); } catch (_) { tz = 'UTC'; }
+    const { rows } = await pool.query(`SELECT level FROM student_journal WHERE student_id = $1 AND level IS NOT NULL ORDER BY created_at DESC LIMIT 1`, [req.user.id]);
+    res.json(await xp.summary(pool, req.user.id, tz, rows[0] && rows[0].level));
+  } catch (err) {
+    console.error('[student/xp]', err.message);
+    res.status(500).json({ error: 'Could not load XP' });
+  }
+});
+
 router.get('/progress', requireAuth, async (req, res) => {
   const uid = req.user.id;
   let tz = String(req.user.timezone || 'Europe/Kyiv');
