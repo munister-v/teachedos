@@ -147,6 +147,11 @@
     pill.classList.toggle('st-warn', left > 0 && left <= WARN_S && !t.paused);
     pill.classList.toggle('st-over', left <= 0);
     pill.classList.toggle('st-paused', !!t.paused);
+    // the "Time's up" pill closes itself 30 s after the signal (the owner's board drops the timer, others just hide it)
+    if (left <= 0 && !t.paused && Date.now() - t.endsAt > 30000) {
+      if (owner()) commit(card, null); else pill.style.display = 'none';
+      return;
+    }
     if (left <= 0 && !t.paused) {
       const key = `${card.id}:${t.endsAt}`;
       if (!fired.has(key)) {
