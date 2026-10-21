@@ -10128,6 +10128,18 @@ document.addEventListener('keydown', e => {
   const _tg = e.target;
   const _typing = _tg.tagName === 'TEXTAREA' || _tg.tagName === 'SELECT' || _tg.isContentEditable ||
     (_tg.tagName === 'INPUT' && !/^(range|checkbox|radio|button|color|submit)$/i.test(_tg.type));
+  /* Editing a card's text with nothing selected in it: Ctrl+C means "copy this card", and the
+     editor lets go of focus so Ctrl+V pastes the card next to it. With text selected it stays
+     the browser's own copy. */
+  if (_typing && (e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'c' || e.code === 'KeyC') && _tg.isContentEditable
+      && _tg.closest && _tg.closest('.board-card') && window.getSelection && window.getSelection().isCollapsed) {
+    const cardEl = _tg.closest('.board-card');
+    if (cardEl && cardEl.dataset.id) {
+      if (!state.selected.has(cardEl.dataset.id)) { clearSelection(); selectCard(cardEl.dataset.id); }
+      e.preventDefault(); copySelectedCards(); try { _tg.blur(); } catch (_) {}
+      return;
+    }
+  }
   if (_typing) return;
   /* Shortcuts follow the physical key when the layout is not Latin (a Russian
      layout sends 'я' for Z), so Cmd+Z / Cmd+C / Cmd+V work in any layout. */
@@ -10345,8 +10357,14 @@ function cloneCardsWithRelationships(sourceCards, offsetX, offsetY) {
   return cloned.map(x => x.card);
 }
 
+let _strokeClipboard = [], _pasteSeq = 0;
 function copySelectedCards() {
-  if (!state.selected.size) { toast && toast('Select cards first'); return; }
+  const strokeIds = state.selectedStrokes ? [...state.selectedStrokes] : [];
+  if (!state.selected.size && !strokeIds.length) { toast && toast('Select cards first'); return; }
+  _pasteSeq = 0;
+  // selected pen strokes travel with the cards (or alone)
+  _strokeClipboard = (state.strokes || []).filter(st => strokeIds.includes(st.id)).map(st => JSON.parse(JSON.stringify(st)));
+  if (!state.selected.size) { _cardClipboard = []; toast && toast('Copied ' + _strokeClipboard.length + ' drawing' + (_strokeClipboard.length > 1 ? 's' : '')); return; }
   const selectedIds = [...state.selected];
   const ids = expandIdsWithFrameChildren(selectedIds);
   _cardClipboard = ids.map(id => {
@@ -10368,28 +10386,47 @@ function copySelectedCards() {
 }
 
 function pasteCards() {
-  if (!_cardClipboard.length) {
+  if (!_cardClipboard.length && !_strokeClipboard.length) {
     // Fall through to default paste (image paste handler will catch it)
     return;
   }
   snapshot();
+  _pasteSeq += 1;
+  const step = 36 * _pasteSeq;                 // next to the original; each further paste a step on
+  if (!_cardClipboard.length) { _pasteStrokes(step); return; }
   // Calculate center of copied cards
   let cx = 0, cy = 0;
   _cardClipboard.forEach(c => { cx += c.x + c.w / 2; cy += c.y + c.h / 2; });
   cx /= _cardClipboard.length;
   cy /= _cardClipboard.length;
-  // Paste at current viewport center with offset
-  const center = getBoardViewportCenter();
-  const dx = center.x - cx + 30;
-  const dy = center.y - cy + 30;
+  const dx = step, dy = step;
   const pasted = cloneCardsWithRelationships(_cardClipboard.map(c => ({ ...c, id: c.origId })), dx, dy);
   const newIds = pasted.map(c => c.id);
   if (pasted.some(c => c.type === 'frame') && typeof renumberFrames === 'function') renumberFrames();
   clearSelection();
   newIds.forEach(id => selectCard(id));
+  if (_strokeClipboard.length) _pasteStrokes(step, true);
   updateEmpty();
   scheduleSave();
   toast && toast('Pasted ' + newIds.length + ' card' + (newIds.length > 1 ? 's' : ''));
+  // the copy may sit outside the view: bring it into it
+  const r = pasted[0] && getCardEl(pasted[0].id)?.getBoundingClientRect(), wr = boardWrap.getBoundingClientRect();
+  if (r && (r.right < wr.left || r.left > wr.right || r.bottom < wr.top || r.top > wr.bottom)) { try { zoomToCard(pasted[0].id, true); } catch (_) {} }
+}
+function _pasteStrokes(step, withCards) {
+  const made = _strokeClipboard.map(st => {
+    const c = JSON.parse(JSON.stringify(st));
+    c.id = 's' + (state.nextId++); delete c.bind;
+    c.points = c.points.map(pt => ({ x: pt.x + step, y: pt.y + step }));
+    return c;
+  });
+  state.strokes = (state.strokes || []).concat(made);
+  if (!withCards) { clearSelection(); }
+  state.selectedStrokes = new Set(made.map(c => c.id));
+  renderAllStrokes();
+  if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
+  scheduleSave();
+  if (!withCards) toast && toast('Pasted ' + made.length + ' drawing' + (made.length > 1 ? 's' : ''));
 }
 
 /* ════════════════════════ GROUPING ════════════════════════ */
@@ -17523,7 +17560,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1336';
+const TEACHEDOS_ASSET_VERSION = '1337';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -25238,7 +25275,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1336',
+          icon: 'icons/icon-192.png?v=1337',
           tag: 'board-live-' + s.id,
         });
       }
@@ -30106,7 +30143,7 @@ document.addEventListener('paste', e => {
     return;
   }
   // 1a. Cards copied on this board
-  if (_cardClipboard.length) { e.preventDefault(); pasteCards(); return; }
+  if (_cardClipboard.length || _strokeClipboard.length) { e.preventDefault(); pasteCards(); return; }
   // 2. Plain-text URL pointing at an image (or a data:image URL)
   const txt = cd.getData?.('text/plain') || '';
   // 1b. Ссылка на YouTube / Vimeo - сразу видео-карточка (кнопки Video в меню больше нет).
