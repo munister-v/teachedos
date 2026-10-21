@@ -2067,20 +2067,48 @@ function renderFrame(el, card) {
     ? card.data.title : '';
   title.innerHTML = `<span class="frame-num">${card.data.num}</span>${esc(niceTitle)}`;
   title.title = 'Click to zoom · Double-click to rename';
+  // A single click zooms to the frame, but only once it is clear no second click
+  // follows: zooming on the first click moved the view, and the second click of
+  // the rename landed on the empty board (Quick Add / a stray text object).
+  let zoomTimer = 0;
   title.addEventListener('click', e => {
     e.stopPropagation();
-    if (typeof zoomToCard === 'function') zoomToCard(card.id);
+    clearTimeout(zoomTimer);
+    zoomTimer = setTimeout(() => { if (typeof zoomToCard === 'function') zoomToCard(card.id); }, 280);
   });
   title.addEventListener('dblclick', e => {
-    e.stopPropagation();
-    const name = prompt('Frame name:', niceTitle || ('Frame ' + card.data.num));
-    if (name !== null) {
-      snapshot();
-      card.data.title = name || ('Frame ' + card.data.num);
-      const cleanTitle = (card.data.title && !/^Frame \d+$/.test(card.data.title)) ? card.data.title : '';
-      title.innerHTML = `<span class="frame-num">${card.data.num}</span>${esc(cleanTitle)}`;
-      scheduleSave && scheduleSave(); saveLocal && saveLocal();
-    }
+    e.stopPropagation(); e.preventDefault();
+    clearTimeout(zoomTimer);
+    if (title.querySelector('input')) return;
+    const paint = () => {
+      const clean = (card.data.title && !/^Frame \d+$/.test(card.data.title)) ? card.data.title : '';
+      title.innerHTML = `<span class="frame-num">${card.data.num}</span>${esc(clean)}`;
+    };
+    const input = document.createElement('input');
+    input.type = 'text'; input.className = 'frame-title-edit'; input.maxLength = 80;
+    input.value = niceTitle && card.data.title === niceTitle ? niceTitle : (card.data.title && !/^Frame \d+$/.test(card.data.title) ? card.data.title : '');
+    input.placeholder = 'Frame ' + card.data.num;
+    title.innerHTML = `<span class="frame-num">${card.data.num}</span>`;
+    title.appendChild(input);
+    let done = false;
+    const finish = save => {
+      if (done) return; done = true;
+      if (save) {
+        const name = input.value.trim();
+        snapshot();
+        card.data.title = name || ('Frame ' + card.data.num);
+        scheduleSave && scheduleSave(); saveLocal && saveLocal();
+      }
+      paint();
+    };
+    ['mousedown', 'click', 'dblclick', 'pointerdown'].forEach(t => input.addEventListener(t, ev => ev.stopPropagation()));
+    input.addEventListener('keydown', ev => {
+      ev.stopPropagation();
+      if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+      else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+    input.focus(); input.select();
   });
   el.appendChild(title);
   /* Инструменты кадра - одной полосой над правым верхним углом. Раньше здесь
@@ -9158,25 +9186,8 @@ document.addEventListener('mousedown', e => {
 }, true);
 
 // Miro-style: double-click empty canvas → spawn a text card at cursor
-boardWrap.addEventListener('dblclick', e => {
-  const onBg = e.target === boardWrap || e.target === board || e.target === emptyState;
-  if (!onBg) return;
-  // Двойной тап на телефоне уже означает «открыть карточку» - создавать по
-  // нему нельзя, иначе каждый промах мимо карточки рождает пустой текст.
-  if (isBoardPhone()) return;
-  if (state.mode !== 'select' && state.mode !== 'text') return;
-  const bp = screenToBoard(e.clientX, e.clientY);
-  const def = (typeof getDefaults === 'function') ? getDefaults('text') : {w:160,h:50};
-  const card = addCard('text', bp.x - def.w/2, bp.y - def.h/2, defaultTextData({ text:'' }));
-  if (!card) return;
-  clearSelection();
-  selectCard(card.id);
-  setTimeout(() => {
-    const el = getCardEl(card.id);
-    const editable = el?.querySelector('[contenteditable="true"],textarea');
-    if (editable) { editable.focus(); if (editable.select) editable.select(); }
-  }, 30);
-});
+/* A double-click on the empty board opens Quick Add (below) and creates nothing
+   until an item is picked there: it used to drop an empty text object as well. */
 
 /* ════════════════════════ MOUSE MOVE ════════════════════════ */
 /* A mouseup that happens outside the window never reaches the document, so a
@@ -17412,7 +17423,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1311';
+const TEACHEDOS_ASSET_VERSION = '1312';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24790,7 +24801,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1311',
+          icon: 'icons/icon-192.png?v=1312',
           tag: 'board-live-' + s.id,
         });
       }
@@ -27003,7 +27014,7 @@ function enterPlaceMode(type, extraData) {
   // Highlight the toolbar button
   document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
   const mtId = { sticky:'mt-sticky', text:'mt-text', shape:'mt-shape',
-                 mindmap:'mt-mindmap', checklist:'mt-checklist' }[type] || ('mt-' + type);
+                 mindmap:'mt-mindmap', checklist:'mt-checklist', frame:'mt-frame' }[type] || ('mt-' + type);
   document.getElementById(mtId)?.classList.add('active');
   // Create floating ghost
   const info = type === 'sticker' && extraData?.glyph
@@ -27013,6 +27024,16 @@ function enterPlaceMode(type, extraData) {
   _placeGhost.id = 'place-ghost';
   _placeGhost.style.opacity = '0';
   _placeGhost.innerHTML = `<span style="font-size:15px;line-height:1;">${info.icon}</span><span>${info.label}</span>`;
+  if (type === 'frame') {
+    // the real size of what will land, so the click is a placement, not a guess
+    const pr = _FRAME_PRESETS[extraData?.key] || _FRAME_PRESETS.custom;
+    _placeGhost.classList.add('place-ghost-frame');
+    _placeGhost.dataset.w = pr.w; _placeGhost.dataset.h = pr.h;
+    _placeGhost.style.left = '-9999px';
+    _placeGhost.style.width = (pr.w * state.scale) + 'px';
+    _placeGhost.style.height = (pr.h * state.scale) + 'px';
+    _placeGhost.innerHTML = `<span>${pr.label} - click to place, Esc to cancel</span>`;
+  }
   document.body.appendChild(_placeGhost);
   requestAnimationFrame(() => { if (_placeGhost) _placeGhost.style.opacity = '1'; });
 }
@@ -27091,6 +27112,16 @@ function _doPlace(clientX, clientY, sized) {
   const { type, extraData } = _pendingPlace;
   cancelPlaceMode();
   setMiroTool('select');
+  if (type === 'frame') {
+    const key = extraData?.key || 'custom';
+    if (bp.draggedRect) {
+      const c = addCard('frame', bp.x, bp.y, { title: 'Frame', bg: 'rgba(255,255,255,1)', border: 'rgba(36,40,44,.18)', mobileFormat: false }, bp.w, bp.h);
+      if (c) { clearSelection?.(); state.selected = new Set([c.id]); getCardEl(c.id)?.classList.add('selected'); showLayerPopover?.(c.id); scheduleSave?.(); saveLocal?.(); }
+    } else {
+      _placeFramePreset(key, bp);
+    }
+    return true;
+  }
   if (type === 'shape') {
     const def = getDefaults('shape');
     const data = extraData || newShapeData('rect');
@@ -27140,7 +27171,10 @@ function _doPlace(clientX, clientY, sized) {
 
 // Move ghost to follow cursor
 document.addEventListener('mousemove', e => {
-  if (_placeGhost) {
+  if (_placeGhost && _placeGhost.classList.contains('place-ghost-frame')) {
+    _placeGhost.style.left = (e.clientX - parseFloat(_placeGhost.style.width) / 2) + 'px';
+    _placeGhost.style.top  = (e.clientY - parseFloat(_placeGhost.style.height) / 2) + 'px';
+  } else if (_placeGhost) {
     _placeGhost.style.left = (e.clientX + 16) + 'px';
     _placeGhost.style.top  = (e.clientY + 16) + 'px';
   }
@@ -27254,9 +27288,13 @@ function _closeFramePanelOnce(e) {
 }
 function _addFramePreset(key) {
   document.getElementById('frame-panel')?.classList.remove('open');
+  try { localStorage.setItem('teached_frame_preset', key); } catch (_) {}
+  enterPlaceMode('frame', { key });
+}
+function _placeFramePreset(key, at) {
   const preset = _FRAME_PRESETS[key] || _FRAME_PRESETS.custom;
-  const center = (typeof getBoardViewportCenter === 'function')
-    ? getBoardViewportCenter() : { x: 200, y: 200 };
+  const center = at || ((typeof getBoardViewportCenter === 'function')
+    ? getBoardViewportCenter() : { x: 200, y: 200 });
   // Add a frame card sized to the preset
   if (typeof addCard !== 'function') return;
   const card = addCard('frame',
@@ -27284,6 +27322,7 @@ function toolbarQuickAdd(type) {
   if (type === 'image' || type === 'video') { toolbarOpenModal(type); return; }
   // Miro behaviour: text and sticky drop straight onto the board at the
   // current viewport centre on a SINGLE click - no second click needed.
+  if (type === 'text' && !isBoardPhone()) { enterPlaceMode('text'); return; }
   if (type === 'text' || type === 'sticky') {
     const pos = (typeof getBoardViewportCenter === 'function')
       ? getBoardViewportCenter()

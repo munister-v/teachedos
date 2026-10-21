@@ -7887,3 +7887,7 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 #laser-chip[hidden]{display:none}
 #laser-chip .lc-dot{width:9px;height:9px;border-radius:50%;background:#FF2E9A;box-shadow:0 0 10px #FF2E9A;flex:none}
 #laser-chip .lc-sel{font:inherit;color:#CDF649;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+
+/* frame ghost: the real size of the frame about to be placed */
+#place-ghost.place-ghost-frame{position:fixed;display:grid;place-items:center;box-sizing:border-box;border:2px dashed var(--accent,#9AB31F);background:rgba(205,246,73,.10);border-radius:10px;color:#5D614B;font:600 13px var(--font,system-ui,sans-serif);pointer-events:none;z-index:9000;padding:0}
+.frame-title .frame-title-edit{font:inherit;color:inherit;background:#fff;border:1px solid rgba(36,40,44,.3);border-radius:6px;padding:1px 6px;min-width:120px;outline:none}
