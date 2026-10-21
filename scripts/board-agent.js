@@ -547,6 +547,7 @@
     if (a.op === 'group') return `Group ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'focus') return `Go to ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'game') return `Add a ${GAME_LABELS[a.game] || 'game'}: “${a.title}”`;
+    if (a.op === 'homework') return `Build a homework card: “${a.title}” - ${a.exercises.length} exercise${a.exercises.length === 1 ? '' : 's'}, ${a.exercises.reduce((n, e) => n + e.questions.length, 0)} questions`;
     if (a.op === 'open') return `Open ${STUDIO_LABELS[a.studio] || a.studio} Studio`;
     if (a.op === 'remember') return `Save to ${a.name}'s memory · Notes: ${quote(a.text, 80)}`;
     return '';
@@ -716,6 +717,7 @@
           else if (a.op === 'sort') doSort(a, made);
           else if (a.op === 'group') doGroup(a);
           else if (a.op === 'focus') focus = focus.concat(a.ids);
+          else if (a.op === 'homework') { if (!placeHomeworkOnBoard(a)) toast('Could not build the homework'); }
           else if (a.op === 'game') placeGameOnBoard(a.game, a.title, 'B1', a.content);
           else if (a.op === 'remember') doRemember(a).catch(() => toast('Could not save to memory'));
         } catch (err) { console.warn('[board-agent]', a.op, err); }

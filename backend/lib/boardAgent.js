@@ -83,6 +83,7 @@ Allowed actions (use only these, with ids taken from the card list below):
   Studios: vocabulary = Vocabulary Studio / word workout (a word set and games around it); listening = a video or audio lesson; reading = a text lesson; speaking; writing; grammar; magazine = News & Articles; scenes = Picture Worksheets.
   "words" only for vocabulary: one line per word, copied from the cards the command means (the selected ones), keeping "word — meaning" when the card has it. Up to 30.
   A card with a "words" list is a lesson studio on the board and those are its words. "Use the words from this studio and create a reading studio" (any language) is ONE "open" action with studio "reading" and no "words": the browser carries the selected studio's words into the new studio itself. The same for speaking, writing and grammar. Never answer that with stickies.
+- {"op":"homework","title":"...","instruction":"what the student does, 1-3 sentences","exercises":[{"title":"...","questions":[...]}],"brief":"optional note for the teacher","criteria":["optional success criteria"]}  build ONE homework card: an instruction plus 2-4 exercises the student works through step by step, with the answer key inside the questions (the student never sees it until they check). Question shapes: {"type":"mcq","text":"...","options":["..","..",".."],"answer":"<one of the options>"} | {"type":"truefalse","text":"...","answer":true} | {"type":"gap-fill","text":"She ___ to school.","answer":"goes"} | {"type":"match","text":"Match","pairs":[{"left":"..","right":".."}]} | {"type":"open","text":"..."}. Each exercise holds 3-8 questions of ONE type; use at least two different types across the exercises. "brief" and "criteria" are notes for the teacher, never exercises.
 - {"op":"game","game":"memory-match"|"flashcards"|"word-categories"|"hangman"|"spin-wheel","title":"...","pairs":[{"a":"word","b":"meaning"}],"words":["..."],"categories":[{"name":"...","words":["..."]}]}
   memory-match and flashcards need "pairs" (3 or more); hangman and spin-wheel need "words" (3 or more); word-categories needs "categories" (2 or more).
 
@@ -95,6 +96,7 @@ Rules:
 - For "add a translation" keep the original and append it, like "to annoy - дратувати".
 - Never invent ids. Never delete unless asked. Keep the plan as small as the command needs.
 - When the teacher wants to create, open, start or make a studio, a lesson or a workout of some skill (any wording, any language, typos included: "create vocabulary studio", "хочу урок по словам из этих карточек", "відкрий аудіювання"), return exactly one "open" action and a one-sentence reply. Do not build that lesson out of stickies yourself.
+- When the teacher asks to build, make, create or set a homework (any wording, any language: "build a homework", "дай домашку на past simple"), answer with ONE "homework" action. Never refuse it and never wrap it in a flip card or sticky notes. If the topic is missing, use the selected cards or the board's words and level.
 - If the command is a question about how to use the board, answer it in "reply" (up to four short sentences) and return "actions":[].
 - If the command cannot be done with the allowed actions, say so plainly in "reply", suggest the closest thing you can do, and return "actions":[].
 - Content you write for learners must be correct, natural English at the level the existing cards suggest.
@@ -119,6 +121,59 @@ function idList(raw, known, max = MAX_CARDS) {
     if (out.length >= max) break;
   }
   return out;
+}
+
+/* One homework card. Each question keeps only the fields its type needs, a
+   multiple-choice answer must be one of its options, and an exercise with
+   fewer than two usable questions is dropped. */
+function sanitizeQuestion(q) {
+  if (!q || typeof q !== 'object') return null;
+  const type = String(q.type || '');
+  const text = oneLine(q.text, 300);
+  if (type === 'mcq') {
+    const options = (Array.isArray(q.options) ? q.options : []).map(o => oneLine(o, 120)).filter(Boolean).slice(0, 5);
+    const answer = oneLine(q.answer, 120);
+    if (!text || options.length < 2 || !options.includes(answer)) return null;
+    return { type, text, options, answer };
+  }
+  if (type === 'truefalse') {
+    if (!text || typeof q.answer !== 'boolean') return null;
+    return { type, text, answer: q.answer };
+  }
+  if (type === 'gap-fill') {
+    const answer = oneLine(q.answer, 80);
+    if (!text || !answer || !/_{2,}/.test(text)) return null;
+    return { type, text, answer };
+  }
+  if (type === 'match') {
+    const pairs = (Array.isArray(q.pairs) ? q.pairs : [])
+      .map(p => ({ left: oneLine(p && p.left, 80), right: oneLine(p && p.right, 120) }))
+      .filter(p => p.left && p.right).slice(0, 8);
+    if (pairs.length < 3) return null;
+    return { type, text: text || 'Match', pairs };
+  }
+  if (type === 'open') return text ? { type, text } : null;
+  return null;
+}
+function sanitizeHomework(a) {
+  const exercises = [];
+  for (const ex of (Array.isArray(a.exercises) ? a.exercises : []).slice(0, 4)) {
+    const questions = (Array.isArray(ex && ex.questions) ? ex.questions : []).map(sanitizeQuestion).filter(Boolean).slice(0, 10);
+    if (questions.length < 2 && !(questions.length === 1 && questions[0].type === 'open')) continue;
+    exercises.push({ title: oneLine(ex.title, 40) || 'Exercise', questions });
+  }
+  if (!exercises.length) return null;
+  const act = {
+    op: 'homework',
+    title: oneLine(a.title, 70) || 'Homework',
+    instruction: clean(a.instruction, 500) || 'Do the exercises one by one, then check your answers.',
+    exercises,
+  };
+  const brief = clean(a.brief, 600);
+  if (brief) act.brief = brief;
+  const criteria = (Array.isArray(a.criteria) ? a.criteria : []).map(c => oneLine(c, 160)).filter(Boolean).slice(0, 6);
+  if (criteria.length) act.criteria = criteria;
+  return act;
 }
 
 /* cards: the same list that went into the prompt (id + type). */
@@ -185,6 +240,10 @@ function sanitizePlan(raw, cards) {
         if (words.length) act.words = words;
       }
       plan.actions.push(act);
+    } else if (op === 'homework') {
+      if (plan.actions.some(x => x.op === 'homework')) continue;
+      const hw = sanitizeHomework(a);
+      if (hw) plan.actions.push(hw);
     } else if (op === 'game') {
       const game = String(a.game || '');
       if (!GAMES.includes(game)) continue;

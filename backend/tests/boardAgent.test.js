@@ -103,3 +103,29 @@ test('board agent: a lesson-studio card brings its words into the prompt, bounde
   // cards without words stay as they were
   assert.strictEqual(agent.normalizeCards([{ id: 'c1', type: 'sticky', text: 'a', words: 'nope' }])[0].words, undefined);
 });
+
+test('homework: one card with exercises, answers checked, brief and criteria kept apart', () => {
+  const { sanitizePlan } = require('../lib/boardAgent');
+  const plan = sanitizePlan({ reply: 'ok', actions: [{
+    op: 'homework', title: 'Past simple', instruction: 'Do both.',
+    exercises: [
+      { title: 'Choose', questions: [
+        { type: 'mcq', text: 'She ___ home.', options: ['go', 'went'], answer: 'went' },
+        { type: 'mcq', text: 'bad', options: ['a', 'b'], answer: 'zzz' },
+        { type: 'mcq', text: 'We ___ pizza.', options: ['eat', 'ate'], answer: 'ate' }] },
+      { title: 'Fill', questions: [
+        { type: 'gap-fill', text: 'He ___ a film.', answer: 'saw' },
+        { type: 'gap-fill', text: 'no blank', answer: 'x' },
+        { type: 'gap-fill', text: 'They ___ tennis.', answer: 'played' }] },
+      { title: 'Empty', questions: [{ type: 'mcq', text: 'x', options: ['a'], answer: 'a' }] },
+    ],
+    brief: 'for the teacher', criteria: ['all done'],
+  }, { op: 'homework', title: 'second', exercises: [] }] }, []);
+  assert.equal(plan.actions.length, 1);
+  const hw = plan.actions[0];
+  assert.equal(hw.exercises.length, 2);
+  assert.equal(hw.exercises[0].questions.length, 2);
+  assert.equal(hw.exercises[1].questions.length, 2);
+  assert.equal(hw.brief, 'for the teacher');
+  assert.deepEqual(hw.criteria, ['all done']);
+});

@@ -4288,6 +4288,7 @@ const WP_KINDS = {
   listening: { kicker: 'Listening path', studio: 'Listening Studio', studioStages: ['while', 'post'],   follow: ['follow'] },
   grammar:   { kicker: 'Grammar path',   studio: 'Grammar Studio',   studioStages: ['notice', 'drill'], follow: ['use'] },
   vocabulary: { kicker: 'Vocabulary path' },
+  homework:   { kicker: 'Homework' },
   magazine:   { kicker: 'News & Articles · Magazine' },
   scene:      { kicker: 'Picture Studio' },
 };
@@ -4394,6 +4395,19 @@ function _wfPlacePath(set, results, label, kind, opts = {}) {
   if (!path) return null;
   return _wpPlacePathCard(set.base, label, path);
 }
+/* Homework built by the assistant: one card, an instruction step, then each
+   exercise as a step the student works through; the brief and the criteria
+   are notes for the teacher and stay on the card as data, not steps. */
+function placeHomeworkOnBoard(a) {
+  if (!a || !Array.isArray(a.exercises) || !a.exercises.length) return null;
+  const steps = [{ role: 'task', title: 'Instructions', out: { title: 'Instructions', cards: [{ title: 'What to do', text: a.instruction || '' }] }, state: null }];
+  a.exercises.forEach(ex => steps.push({ role: 'task', title: String(ex.title || 'Exercise').slice(0, 28), out: { title: ex.title || 'Exercise', questions: ex.questions }, state: null }));
+  const path = { kind: 'homework', steps, cur: 0, done: [], guide: null, genre: '', assigned: [], mode: 'self' };
+  if (a.brief) path.brief = a.brief;
+  if (a.criteria && a.criteria.length) path.criteria = a.criteria;
+  return _wpPlacePathCard({ level: 'B1', topic: a.title || '' }, a.title || 'Homework', path);
+}
+window.placeHomeworkOnBoard = placeHomeworkOnBoard;
 function _wpPlacePathCard(base, label, path) {
   const kind = path.kind;
   // Тема, выбранная в превью конструктора, едет с уроком на доску.
@@ -17423,7 +17437,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1312';
+const TEACHEDOS_ASSET_VERSION = '1313';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24801,7 +24815,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1312',
+          icon: 'icons/icon-192.png?v=1313',
           tag: 'board-live-' + s.id,
         });
       }
