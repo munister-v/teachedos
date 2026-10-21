@@ -17400,7 +17400,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1302';
+const TEACHEDOS_ASSET_VERSION = '1306';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -23149,6 +23149,26 @@ let autoSnapTimer   = null;
 let localSaveQuotaWarned = false;
 let cloudSaveSizeWarned  = false;
 
+/* The local buffer. Every change is written to this device first; the marker says "this board has changes the
+   server has not seen". It survives a reload and a closed tab, so what was drawn during a drop-out is put back
+   and sent on the next visit instead of being thrown away for the server's older copy. */
+const UNSYNCED_KEY = 'teachedos_unsynced';
+let _dirtyEpoch = 0;          // grows with every edit; a cloud save clears the marker only if nothing was edited meanwhile
+let _boardLoadFailed = false; // the board did not load: nothing may be saved over the real one
+let serverDown = false;       // the server did not answer a request although the browser has a network
+function markUnsynced() {
+  _dirtyEpoch++;
+  if (!currentBoardId) return;
+  try { localStorage.setItem(UNSYNCED_KEY, JSON.stringify({ id: currentBoardId, at: Date.now() })); } catch (_) {}
+}
+function clearUnsyncedIf(epoch) {
+  if (epoch !== _dirtyEpoch) return;
+  try { localStorage.removeItem(UNSYNCED_KEY); } catch (_) {}
+}
+function unsyncedFor(id) {
+  try { const m = JSON.parse(localStorage.getItem(UNSYNCED_KEY) || 'null'); return m && m.id === id ? m : null; } catch (_) { return null; }
+}
+
 /* ── Lightweight hash to detect actual changes ── */
 /* Отпечаток доски для ответа на вопрос «что-нибудь изменилось?».
    Раньше он складывался из количества карточек, стрелок, штрихов и суммы
@@ -23201,35 +23221,49 @@ function setSaveUI(state, detail) {
   const mobile = document.getElementById('mobile-save-status');
   if (!dot || !status) return;
   dot.className = '';
+  /* One chip, always on screen, three honest states (Repair of the live lesson, part 1, section 1):
+     Saved - it is on the server (or, on a board that has no account behind it, on this device);
+     Saving... - a change is on its way;
+     Offline - the changes are kept on this device and go to the server by themselves when it answers.
+     The offline state is never hidden behind a toast that fades. */
+  const chip = document.getElementById('save-chip');
+  const note = (title) => { if (chip) chip.dataset.saveNote = title || ''; };
   if (state === 'saving') {
     dot.style.background = '#F3A46B'; dot.classList.add('save-dot-saving');
-    status.textContent = 'saving…';
+    status.textContent = 'Saving\u2026';
+    note('Saving your changes');
     showMobileSaveStatus(mobile, 'warn', 'Saving');
   } else if (state === 'saved') {
     dot.style.background = '#D3F36B';
-    status.textContent = detail || '✓ saved';
+    status.textContent = 'Saved';
+    note(detail && /saved/i.test(detail) ? detail.replace(/^\W+/, '') : 'Saved on this device');
     const md = document.getElementById('board-meta-dot'); if (md) md.style.background = '#D3F36B';
     lastSavedAt = new Date();
     showMobileSaveStatus(mobile, 'good', 'Saved', true);
   } else if (state === 'cloud') {
     dot.style.background = '#886BF3';
     const now = new Date();
-    status.textContent = `☁ synced ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+    status.textContent = 'Saved';
+    note('Saved to your account at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
     lastSavedAt = now;
-    showMobileSaveStatus(mobile, 'good', 'Synced', true);
+    showMobileSaveStatus(mobile, 'good', 'Saved', true);
   } else if (state === 'offline') {
     dot.style.background = '#FF8C3A';
-    status.textContent = '📡 offline';
+    status.textContent = 'Offline \u2014 changes are kept on this device';
+    note('The server cannot be reached. Everything you do is kept on this device and goes to the server by itself when it answers.');
     showMobileSaveStatus(mobile, 'warn', 'Offline');
   } else if (state === 'error') {
     dot.style.background = '#FF4E00';
-    status.textContent = '⚠ error';
-    showMobileSaveStatus(mobile, 'warn', 'Error');
+    status.textContent = 'Not saved yet \u2014 retrying';
+    note('The last save did not go through. Your work is kept on this device and the save is tried again.');
+    showMobileSaveStatus(mobile, 'warn', 'Not saved');
   } else if (state === 'conflict') {
     dot.style.background = '#FF4E00';
-    status.textContent = '⚡ conflict';
+    status.textContent = 'Conflict';
+    note('This board changed somewhere else.');
     showMobileSaveStatus(mobile, 'warn', 'Conflict');
   }
+  if (chip && chip.dataset.saveNote) chip.title = chip.dataset.saveNote;
 }
 
 /* ── "X min ago" ticker - updates every 30s ── */
@@ -23249,14 +23283,14 @@ setInterval(() => {
   // content actually differs from what was last written.
   const dirty = (typeof boardHash === 'function') ? boardHash() !== lastSavedHash : true;
   if (diff >= 5 && dirty && status && !pendingCloudSave) {
-    status.textContent = `⚠ ${diff}m unsaved`;
-    if (mobile) { mobile.className = 'mq-status warn'; mobile.textContent = `${diff}m unsaved`; }
+    status.textContent = `Not saved for ${diff} min`;
+    if (mobile) { mobile.className = 'mq-status warn'; mobile.textContent = `Not saved ${diff}m`; }
   }
 }, 30000);
 
 /* ── Periodic forced cloud save every 30s if there are unsaved changes ── */
 setInterval(() => {
-  if (currentUser && currentBoardId && !isOffline && pendingCloudSave) {
+  if (currentUser && currentBoardId && (!isOffline || serverDown) && pendingCloudSave) {
     saveToCloud();
   } else if (currentUser && currentBoardId && !isOffline && lastSavedAt) {
     const diff = Date.now() - lastSavedAt.getTime();
@@ -23289,6 +23323,7 @@ function serializeBoard() {
 
 /* ════ LOCAL SAVE ════ */
 function saveLocal() {
+  if (_boardLoadFailed) return false;     // the board did not load: do not write an empty canvas over the kept copy
   // Один stringify: из него же считаем отпечаток и его же пишем.
   const payload = JSON.stringify(serializeBoard());
   const h = hashPayload(payload);
@@ -23313,9 +23348,28 @@ function saveLocal() {
   }
 }
 
+/* The session ended while the teacher was working (an expired token, a login on another device): an explicit
+   dialog to sign in again, not a silent empty board. The changes are on this device (the buffer); after the
+   login finishBoardAuth -> initUserBoard puts them back and sends them. */
+let _sessionDialogOpen = false;
+async function _sessionEndedMidWork() {
+  setSaveUI('offline');
+  if (_sessionDialogOpen) return;
+  try {
+    const r = await apiFetchTimeout('/api/auth/me', {}, 8000);
+    if (r.ok) { setSaveUI('error'); return; }          // the session is alive: this was only a refusal for this board
+  } catch (_) { return; }                              // unreachable: the usual offline handling takes over
+  _sessionDialogOpen = true;
+  try { setToken(null); } catch (_) {}
+  toast('Your session has ended. Your work is kept on this device - sign in to send it to your account.');
+  if (typeof openAuthModal === 'function') openAuthModal('login');
+  const t = setInterval(() => { if (!document.getElementById('auth-overlay')?.classList.contains('open')) { clearInterval(t); _sessionDialogOpen = false; } }, 1000);
+}
+
 /* ════ CLOUD SAVE with retry ════ */
 let _lastThumbSent = '';
 async function saveToCloud(retryCount = 0) {
+  if (_boardLoadFailed) return;
   if (!currentUser || !authToken || !currentBoardId || !boardCanEdit) return;
   /* isOffline — подсказка, а не приговор. Флаг взводится от неудачного
      запроса или от рестарта API при деплое (тот занимает секунды и роняет
@@ -23326,11 +23380,12 @@ async function saveToCloud(retryCount = 0) {
      устройстве. Поэтому: если браузер считает, что связь есть, пробуем всё
      равно. Успешный запрос — единственное надёжное доказательство. */
   if (isOffline) {
-    if (!navigator.onLine) { pendingCloudSave = true; return; }
+    if (!navigator.onLine) { pendingCloudSave = true; setSaveUI('offline'); return; }
     isOffline = false;
     hideOfflineBanner && hideOfflineBanner();
   }
   setSaveUI('saving');
+  const epoch = _dirtyEpoch;
   try {
     const data = serializeBoard();
     const thumb = await captureThumb();
@@ -23343,10 +23398,9 @@ async function saveToCloud(retryCount = 0) {
     }, 15000);
     if (r.ok && sendThumb) _lastThumbSent = sendThumb;
     if (r.status === 401 || r.status === 403) {
-      // Token expired mid-session - show reconnect
-      setSaveUI('error');
+      // The session ended in the middle of the work: say so at once, keep everything on this device
       pendingCloudSave = true;
-      startReconnectLoop();
+      _sessionEndedMidWork();
       return;
     }
     if (!r.ok) {
@@ -23366,7 +23420,9 @@ async function saveToCloud(retryCount = 0) {
     }
     saveRetries = 0;
     pendingCloudSave = false;
+    serverDown = false;
     cloudSaveSizeWarned = false;
+    clearUnsyncedIf(epoch);
     setSaveUI('cloud');
     autoSnapshot('auto');
   } catch (err) {
@@ -23382,15 +23438,18 @@ async function saveToCloud(retryCount = 0) {
       cloudSaveSizeWarned = true;
       toast('Images are still too large. Try smaller files or remove a few.');
     }
+    /* The server did not answer (a drop-out, a restart): that is Offline, not a failure of the teacher's work.
+       The buffer is on this device; the 30 s ticker and the browser's online event send it when the server is back. */
+    const unreachable = err && (err.name === 'AbortError' || err.name === 'TypeError' || /failed to fetch|network|aborted|HTTP 5\d\d/i.test(err.message || ''));
+    if (unreachable) serverDown = true;
     saveRetries = retryCount + 1;
+    pendingCloudSave = true;
     if (saveRetries <= 4) {
       const delay = Math.min(Math.pow(2, saveRetries) * 1000, 30000);
       cloudSaveTimer = setTimeout(() => saveToCloud(saveRetries), delay);
-      setSaveUI('saving');
-      pendingCloudSave = true;
+      setSaveUI(unreachable ? 'offline' : 'saving');
     } else {
-      setSaveUI('error');
-      pendingCloudSave = true;
+      setSaveUI(unreachable ? 'offline' : 'error');
       saveRetries = 0;
     }
   }
@@ -23421,8 +23480,10 @@ async function captureThumb() {
 
 /* ════ SCHEDULED SAVE (debounced) ════ */
 function scheduleSave() {
+  if (_boardLoadFailed) return;                       // an empty canvas must never overwrite the real board
   if (currentUser && currentBoardId && !boardCanEdit) return;
   sessionEdits++;
+  markUnsynced();
   setSaveUI('saving');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
@@ -23436,14 +23497,14 @@ function scheduleSave() {
       localSaveQuotaWarned = true;
       toast('Local cache is full; saving this board to cloud.');
     }
-    // Show "Saved" immediately after the local write completes.
-    // The cloud sync continues in the background - when it finishes it
-    // upgrades the status to "☁ synced". Keeping the pill on "saving…"
-    // after the local write was the race the user kept seeing.
-    setSaveUI('saved');
     if (currentUser && currentBoardId) {
+      /* "Saved" means saved: while the change is only on this device the chip says Saving, or Offline when the
+         server cannot be reached. It turns to Saved when the server has it (saveToCloud). */
+      if (isOffline || serverDown) { pendingCloudSave = true; setSaveUI('offline'); }
       clearTimeout(cloudSaveTimer);
       cloudSaveTimer = setTimeout(() => saveToCloud(), 1500);
+    } else {
+      setSaveUI('saved');                             // a board with no account behind it lives on this device
     }
     updateSessionChip();
   }, 600);
@@ -23451,6 +23512,7 @@ function scheduleSave() {
 
 /* ════ FORCE SAVE (Ctrl+S) ════ */
 function forceSave() {
+  if (_boardLoadFailed) return;
   if (currentUser && currentBoardId && !boardCanEdit) {
     toast('This board is view only');
     return;
@@ -23735,6 +23797,14 @@ function handleOffline() {
   setSaveUI('offline');
   pendingCloudSave = true;
 }
+/* the server went silent / came back (pwa.js watches every /api request): the chip says Offline at once, and the
+   buffer is sent when it answers - no Reload, no action by the teacher */
+window.addEventListener('teached:api-down', () => { if (currentUser && currentBoardId) { serverDown = true; pendingCloudSave = true; setSaveUI('offline'); } });
+window.addEventListener('teached:api-up', () => {
+  serverDown = false; isOffline = false;
+  if (pendingCloudSave && currentUser && currentBoardId) { setSaveUI('saving'); saveToCloud(); }
+  else if (currentUser && currentBoardId) setSaveUI('cloud');
+});
 window.addEventListener('online',  handleOnline);
 window.addEventListener('offline', handleOffline);
 if (!navigator.onLine) handleOffline();
@@ -24338,7 +24408,7 @@ async function ensureFreshBoardForLessonFlow(lesson) {
       if (nameEl) nameEl.textContent = name;
       const tbn = document.getElementById('tb-board-name');
       if (tbn) tbn.textContent = '📌 ' + name;
-      saveStatus.textContent = '☁ cloud';
+      setSaveUI('cloud');
       history.replaceState(null, '', 'board.html?id=' + currentBoardId);
       updateFollowUI && updateFollowUI();
       applyRoleUI && applyRoleUI();
@@ -24708,7 +24778,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1302',
+          icon: 'icons/icon-192.png?v=1306',
           tag: 'board-live-' + s.id,
         });
       }
@@ -24902,6 +24972,102 @@ async function logout() {
 }
 
 // ── Board API ────────────────────────────────────────────────
+/* ── The board arrives with its own data, or says honestly that it could not ────────────────────────
+   Before: a board that failed to load on a bad second fell through to "the first board" or to a brand-new
+   empty "My Board" with the onboarding - the real board looked deleted (and an empty canvas could have been
+   saved over it). Now: the copy of THIS board kept on this device is opened (Offline chip), or an error with the
+   board's name and Retry; nothing is saved until the real board is in. */
+function _applyServerBoard(board) {
+  try { localStorage.setItem('teachedos_board_name_' + board.id, board.name || ''); } catch (_) {}
+  const un = unsyncedFor(board.id);
+  if (un && !_communityImportApplied) {
+    let snapAt = 0;
+    try { const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (raw && raw.boardId === board.id) snapAt = raw.savedAt || 0; } catch (_) {}
+    const serverAt = Date.parse(board.updated_at) || 0;
+    if (snapAt && snapAt > serverAt + 500 && loadBoard(board.id)) {
+      pendingCloudSave = true;
+      toast('Restored the changes that had not reached the server - sending them now.');
+      setSaveUI('saving');
+      setTimeout(() => saveToCloud(), 400);
+      return;
+    }
+  }
+  if (!_communityImportApplied) loadBoardData(board.data);
+}
+let _serverWatch = null;
+function _watchServer() {
+  if (_serverWatch) return;
+  _serverWatch = setInterval(async () => {
+    try {
+      const r = await apiFetchTimeout('/api/auth/me', {}, 5000);
+      if (!r.ok) return;
+      clearInterval(_serverWatch); _serverWatch = null;
+      serverDown = false; isOffline = false;
+      if (pendingCloudSave) saveToCloud();
+    } catch (_) {}
+  }, 8000);
+}
+function showBoardLoadError(id) {
+  _boardLoadFailed = true;
+  if (document.getElementById('board-load-error')) return;
+  let name = '';
+  try { name = localStorage.getItem('teachedos_board_name_' + id) || ''; } catch (_) {}
+  const ov = document.createElement('div');
+  ov.id = 'board-load-error';
+  ov.setAttribute('role', 'alertdialog');
+  ov.setAttribute('aria-modal', 'true');
+  ov.setAttribute('aria-labelledby', 'ble-title');
+  ov.innerHTML = '<div class="ble-card"><div class="ble-k">THE BOARD DID NOT LOAD</div><h2 id="ble-title">Could not open ' + (name ? '“' + esc(name) + '”' : 'this board') + '</h2>' +
+    '<p>Your board is safe on the server — only the connection failed. Nothing on this screen will be saved over it. We keep trying on our own.</p>' +
+    '<div class="ble-actions"><button type="button" class="ble-retry" data-retry>Retry</button><a class="ble-back" href="index.html">Back to my boards</a></div><div class="ble-note" aria-live="polite"></div></div>';
+  if (!document.getElementById('ble-css')) {
+    const st = document.createElement('style'); st.id = 'ble-css';
+    st.textContent = '#board-load-error{position:fixed;inset:0;z-index:99000;display:grid;place-items:center;padding:20px;background:rgba(246,246,239,.94);backdrop-filter:blur(6px)}' +
+      '#board-load-error .ble-card{width:min(460px,100%);padding:28px 30px;border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(11,16,38,.18);font-family:Manrope,sans-serif;color:#0B1026}' +
+      '#board-load-error .ble-k{font-size:11px;font-weight:800;letter-spacing:.16em;color:#B23A0E}#board-load-error h2{margin:8px 0 8px;font-size:24px;letter-spacing:-.02em}' +
+      '#board-load-error p{margin:0 0 18px;font-size:14.5px;line-height:1.55;color:#5D614B;font-weight:600}' +
+      '#board-load-error .ble-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}' +
+      '#board-load-error .ble-retry{border:0;border-radius:99px;padding:12px 24px;background:#D3F26A;color:#0B1026;font:800 14px Manrope,sans-serif;cursor:pointer}' +
+      '#board-load-error .ble-back{padding:12px 18px;border-radius:99px;background:#F1F1E8;color:#0B1026;font:800 14px Manrope,sans-serif;text-decoration:none}' +
+      '#board-load-error .ble-note{margin-top:12px;font-size:12.5px;color:#8A8672;font-weight:600;min-height:1em}';
+    document.head.appendChild(st);
+  }
+  document.body.appendChild(ov);
+  const note = ov.querySelector('.ble-note');
+  const retry = async (manual) => {
+    note.textContent = manual ? 'Trying…' : '';
+    try {
+      const r = await apiFetchTimeout('/api/boards/' + encodeURIComponent(id), {}, 8000);
+      if (r.ok || r.status === 404 || r.status === 403) {
+        clearInterval(timer); ov.remove(); _boardLoadFailed = false;
+        await initUserBoard();
+        return;
+      }
+    } catch (_) {}
+    note.textContent = manual ? 'Still no answer from the server. We will keep trying.' : '';
+  };
+  ov.querySelector('[data-retry]').addEventListener('click', () => retry(true));
+  const timer = setInterval(() => { if (!document.body.contains(ov)) clearInterval(timer); else retry(false); }, 10000);
+  document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape' && document.body.contains(ov)) { /* the page has no canvas to fall back to: Escape leaves for the boards list */ location.href = 'index.html'; } }, { once: true });
+}
+function _boardLoadFailure(id, err) {
+  console.warn('[board] board did not load:', err && err.message || err);
+  let local = null;
+  try { const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (raw && id && raw.boardId === id && (raw.cards || []).length) local = raw; } catch (_) {}
+  if (local) {
+    currentBoardId = id;
+    try { localStorage.setItem('teachedos_board_id', id); } catch (_) {}
+    if (loadBoard(id)) {
+      serverDown = true; pendingCloudSave = true;
+      setSaveUI('offline');
+      toast('The server did not answer - opened the copy kept on this device. It goes to the server by itself when the server is back.');
+      _watchServer();
+      return;
+    }
+  }
+  showBoardLoadError(id);
+}
+
 async function initUserBoard() {
   if (!currentUser || !authToken) return;
   // isOwner will be set properly once board loads (compare user_id)
@@ -24911,14 +25077,17 @@ async function initUserBoard() {
     const targetId = URL_BOARD_ID || currentBoardId;
     if (targetId) {
       let r;
-      if (_boardPrefetch && _boardPrefetch.id === targetId) {
-        const settled = await _boardPrefetch.promise;
-        _boardPrefetch = null;
-        if (!settled.ok) throw settled.e;   // same error path as a direct fetch() throw below
-        r = settled.v;
-      } else {
-        r = await apiFetch('/api/boards/' + targetId);
-      }
+      try {
+        if (_boardPrefetch && _boardPrefetch.id === targetId) {
+          const settled = await _boardPrefetch.promise;
+          _boardPrefetch = null;
+          if (!settled.ok) throw settled.e;   // same error path as a direct fetch() throw below
+          r = settled.v;
+        } else {
+          r = await apiFetch('/api/boards/' + targetId);
+        }
+      } catch (e) { return _boardLoadFailure(targetId, e); }
+      if (!r.ok && r.status !== 404 && r.status !== 403 && r.status !== 401) return _boardLoadFailure(targetId, new Error('HTTP ' + r.status));
       if (r.ok) {
         const { board } = await r.json();
         currentBoardId = board.id;
@@ -24931,12 +25100,12 @@ async function initUserBoard() {
         updateFollowUI();
         applyRoleUI();
         localStorage.setItem('teachedos_board_id', currentBoardId);
-        if (!_communityImportApplied) loadBoardData(board.data);
+        _applyServerBoard(board);
         if (!isOwner) { _wpLoadMyWork(); _vaultBoardInit(); }
         document.title = board.name + ' · TeachEd';
         document.getElementById('board-name-display').textContent = board.name;
         const _tbn = document.getElementById('tb-board-name'); if(_tbn) _tbn.textContent = '📌 ' + board.name;
-        saveStatus.textContent = '☁ cloud';
+        setSaveUI('cloud');
         history.replaceState(null, '', `board.html?id=${currentBoardId}`);
         updateBreadcrumb(board);
         if (window.__pendingCommunityImport) runPendingCommunityImport();
@@ -24976,12 +25145,12 @@ async function initUserBoard() {
           boardCanEdit = board.can_edit !== false;
           updateFollowUI();
           applyRoleUI();
-          if (!_communityImportApplied) loadBoardData(board.data);
+          _applyServerBoard(board);
           if (!isOwner) { _wpLoadMyWork(); _vaultBoardInit(); }
           document.title = board.name + ' · TeachEd';
           document.getElementById('board-name-display').textContent = board.name;
           const _tbn2 = document.getElementById('tb-board-name'); if(_tbn2) _tbn2.textContent = '📌 ' + board.name;
-          saveStatus.textContent = '☁ cloud';
+          setSaveUI('cloud');
           history.replaceState(null, '', `board.html?id=${currentBoardId}`);
           _cachedBoardCount = boards.length;
           if (window.__pendingCommunityImport) runPendingCommunityImport();
@@ -24990,6 +25159,10 @@ async function initUserBoard() {
       } else if (currentUser.role === 'student') {
         // Student with no owned boards - redirect to student dashboard
         location.href = 'student.html';
+      } else if (URL_BOARD_ID) {
+        // a board was asked for by its address and is not here: never answer with a brand-new empty "My Board"
+        toast('Board not found');
+        return;
       } else {
         /* Учитель, у которого ещё нет ни одной доски, раньше не получал
            НИЧЕГО: currentBoardId оставался пустым, а облачное сохранение по
@@ -25022,7 +25195,7 @@ async function initUserBoard() {
             _cachedBoardCount = 1;
             localStorage.setItem('teachedos_board_id', currentBoardId);
             applyRoleUI && applyRoleUI();
-            saveStatus.textContent = '☁ cloud';
+            setSaveUI('cloud');
             history.replaceState(null, '', 'board.html?id=' + currentBoardId);
             if (window.__pendingCommunityImport) runPendingCommunityImport();
             else runPendingToolImports();
@@ -25033,10 +25206,11 @@ async function initUserBoard() {
           console.warn('[board] first-board bootstrap failed:', e && e.message);
         }
       }
+    } else {
+      return _boardLoadFailure(URL_BOARD_ID || currentBoardId, new Error('HTTP ' + r2.status));
     }
   } catch (e) {
-    console.warn('[board] cloud load failed, using local:', e.message);
-    loadBoard(URL_BOARD_ID || currentBoardId);
+    _boardLoadFailure(URL_BOARD_ID || currentBoardId, e);
   }
 }
 
@@ -25887,7 +26061,7 @@ function applyRemoteState(remote) {
   renderAllAnnotations();
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
   updateEmpty();
-  saveStatus.textContent = '☁ synced';
+  setSaveUI('cloud');
   // Путь, которого больше нет (учитель открепил ученика), закрывается у него.
   if (_wpFocusId && !_wpCard(_wpFocusId)) closeCardStudio(true);
   _wpCheckLaunch();
@@ -28939,7 +29113,10 @@ function startReconnectLoop() {
            недостающий hideOfflineBanner и обрывал весь путь ниже. */
         try { hideOfflineBanner(); } catch {}
         if (banner) banner.classList.remove('show');
-        if (pendingCloudSave) saveToCloud();
+        serverDown = false;
+        const _ble = document.getElementById('board-load-error');
+        if (_ble) { const b = _ble.querySelector('[data-retry]'); if (b) b.click(); }
+        else if (pendingCloudSave) saveToCloud();
         if (window.__pendingLessonFlowImport) {
           await runPendingLessonFlowImport();
         } else if (!currentBoardId) {
@@ -29004,11 +29181,20 @@ function startReconnectLoop() {
       const cached = localStorage.getItem('teachedos_user');
       if (cached) try { currentUser = JSON.parse(cached); } catch {}
       updateAuthUI();
-      loadBoard(URL_BOARD_ID || currentBoardId);
-      if (window.__pendingLessonFlowImport) await runPendingLessonFlowImport();
-      runPendingToolImports();
-      showOfflineBanner();
-      toast('⚠️ Server starting up - reconnecting…');
+      const _wantId = URL_BOARD_ID || currentBoardId;
+      if (_wantId && !loadBoard(_wantId)) {
+        // nothing of this board is kept on this device: say so, never show an empty board in its place
+        showBoardLoadError(_wantId);
+      } else {
+        if (_wantId) {
+          currentBoardId = _wantId;
+          serverDown = true; pendingCloudSave = true;
+          setSaveUI('offline');
+          toast('The server does not answer - opened the copy kept on this device. It goes to the server by itself when the server is back.');
+        }
+        if (window.__pendingLessonFlowImport) await runPendingLessonFlowImport();
+        runPendingToolImports();
+      }
       startReconnectLoop();
     }
   } else {

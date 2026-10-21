@@ -6,7 +6,7 @@
      СНОСИЛ свежий рантайм-кэш teachedos-v* при каждой загрузке страницы.
      То есть офлайн-кэш не доживал до второго визита, и всё тянулось по
      сети заново. Имя приведено к тому, которое ловит бамп версии. */
-  const TEACHEDOS_ASSET_VERSION = '1302';
+  const TEACHEDOS_ASSET_VERSION = '1306';
   try {
     const key = 'teachedos_asset_version';
     const previous = localStorage.getItem(key);
@@ -884,6 +884,9 @@
       if (shown || !navigator.onLine) return;
       shown = true;
       document.body.classList.add('pwa-offline');
+      try { window.dispatchEvent(new CustomEvent('teached:api-down')); } catch (_) {}
+      /* the board has its own always-visible save chip and a buffer on the device: no banner on top of the work */
+      if (window.TEACHED_BOARD_PAGE) return;
       showStatus(
         'offline',
         'Cannot reach the server',
@@ -898,6 +901,9 @@
       shown = false;
       failures = 0;
       document.body.classList.remove('pwa-offline');
+      try { window.dispatchEvent(new CustomEvent('teached:api-up')); } catch (_) {}
+      /* the board sends its buffer by itself and never needs a Reload to see current data */
+      if (window.TEACHED_BOARD_PAGE) return;
       showStatus('online', 'Server is back', 'Reload the page to see the current data.',
         [{ label: 'Reload', primary: true, onClick: () => location.reload() }], { autoHideMs: 6000 });
     };
