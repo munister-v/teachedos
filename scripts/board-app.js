@@ -17293,7 +17293,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1253';
+const TEACHEDOS_ASSET_VERSION = '1254';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24547,7 +24547,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1253',
+          icon: 'icons/icon-192.png?v=1254',
           tag: 'board-live-' + s.id,
         });
       }
@@ -25117,7 +25117,7 @@ function spShowView(view) {
   });
   const title = document.getElementById('share-panel-title');
   if (title) title.textContent = titles[view] || titles.home;
-  if (view === 'invite' && _shareCanInvite) spLoadMembers();
+  if (view === 'invite' && _shareCanInvite) { spLoadMembers().then(spLoadMine); }
   requestAnimationFrame(() => document.querySelector(`#sp-${view}-view button, #sp-${view}-view input`)?.focus());
 }
 
@@ -25315,6 +25315,46 @@ async function spLoadMembers() {
     list.innerHTML = '<div class="sp-empty">Failed to load</div>';
   }
 }
+
+/* "Your students": people already in the teacher's journal, one tap to put
+   them on this board (those already on it are left out). */
+async function spLoadMine() {
+  const card = document.getElementById('sp-mine-card');
+  const box = document.getElementById('sp-mine-list');
+  if (!card || !box) return;
+  try {
+    const [jr, mr] = await Promise.all([apiFetch('/api/journal'), apiFetch(`/api/members/${currentBoardId}`)]);
+    if (!jr.ok) { card.hidden = true; return; }
+    const students = (await jr.json()).students || [];
+    const onBoard = mr.ok ? ((await mr.json()).members || []) : [];
+    const have = new Set(onBoard.map(m => String(m.user_id)));
+    const haveMail = new Set(onBoard.map(m => String(m.email || '').toLowerCase()));
+    const rest = students.filter(s => !(s.student_id && have.has(String(s.student_id))) && !(s.email && haveMail.has(String(s.email).toLowerCase())));
+    card.hidden = !students.length;
+    if (!rest.length) { box.innerHTML = '<div class="sp-inv-hint">Everyone from your Journal is already on this board.</div>'; return; }
+    box.innerHTML = rest.map(s => `
+      <div class="sp-member-row">
+        <div class="sp-member-avatar">${esc((s.name || '?').trim().charAt(0).toUpperCase())}</div>
+        <div class="sp-member-info">
+          <div class="sp-member-name">${esc(s.name)}</div>
+          <div class="sp-member-email">${s.student_id ? 'Has an account' : s.email ? esc(s.email) : 'No email yet'}</div>
+        </div>
+        <button class="sp-inv-go" type="button" data-share-journal="${esc(s.id)}" ${s.student_id || s.email ? '' : 'disabled'}>Add</button>
+      </div>`).join('');
+  } catch { card.hidden = true; }
+}
+document.addEventListener('click', async event => {
+  const btn = event.target.closest?.('[data-share-journal]');
+  if (!btn) return;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const r = await apiFetch(`/api/members/${currentBoardId}/invite`, { method: 'POST', body: { journal_id: btn.getAttribute('data-share-journal'), role: 'student' } });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { toast(d.error || 'Could not add'); btn.disabled = false; btn.textContent = 'Add'; return; }
+    toast(d.invited ? `✓ Invitation sent to ${d.email}` : `✓ ${d.member?.name || 'Student'} added to the board`);
+    await spLoadMembers(); await spLoadMine();
+  } catch { toast('Network error'); btn.disabled = false; btn.textContent = 'Add'; }
+});
 
 /* Слушатель на документе, а не на #sp-members-list: этот скрипт подключён
    выше самой панели в board.html, так что на момент разбора файла её узла

@@ -386,8 +386,19 @@ router.get('/:boardId', requireAuth, async (req, res) => {
 ────────────────────────────────────────────────────────────── */
 router.post('/:boardId/invite', requireAuth, async (req, res) => {
   const { boardId } = req.params;
-  const { email, role = 'student' } = req.body;
+  let { email } = req.body;
+  const { role = 'student', journal_id: journalId } = req.body;
   const safeRole = normalizeBoardRole(role);
+  /* A student from the teacher's own journal can be picked in the Share window:
+     the address comes from the registered account, or from the journal card. */
+  if (!email && journalId) {
+    const { rows: j } = await pool.query(
+      `SELECT COALESCE(u.email, NULLIF(j.email, '')) AS email
+       FROM student_journal j LEFT JOIN users u ON u.id = j.student_id
+       WHERE j.id::text = $1 AND j.teacher_id = $2`, [String(journalId), req.user.id]);
+    email = j[0] && j[0].email;
+    if (!email) return res.status(400).json({ error: 'This student has no email yet - add it in the Journal.' });
+  }
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   // The plan's student-limit check and the insert used to be two separate
