@@ -912,8 +912,9 @@
       // photo | task
       const src = images[st._img];
       const photoW = src ? 400 : 0, photoH = 270;
-      const photo = src ? addCard('image', x, y, { src, caption: st.image, fit: 'cover' }, photoW, photoH) : null;
-      if (photo) kids.push(photo);
+      const photo = src ? addCard('image', x, y, { src, fit: 'cover' }, photoW, photoH) : null;
+      // the layout sets its size: the photo is cropped to it, not resized to its own proportions on load
+      if (photo) { delete photo.data._autoSize; kids.push(photo); }
       const taskX = src ? x + photoW + 24 : x, taskW = inner - (src ? photoW + 24 : 0);
       let taskCard = null;
       if (st.task || st.steps) {
@@ -1013,6 +1014,7 @@
       const w = 320, h = 240;
       const at = spot(w, h);
       card = addCard('image', at.x, at.y, { src: image, caption: a.caption || a.query, fit: 'cover' }, w, h);
+      if (card) delete card.data._autoSize;   // stays in the spot it was given
     }
     if (card) made.push(card);
   }
