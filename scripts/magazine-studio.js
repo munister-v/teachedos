@@ -135,12 +135,17 @@
   const heroStyle = out => out.image ? `style="background-image:url('${esc(out.image)}')"` : '';
   const metaLine = out => `<div class="mg-meta"><span class="mg-cat">${esc(out.category || 'News')}</span><span>${esc(out.level || '')} level</span><span>· ${Number(out.readMinutes) || 3} min read</span></div>`;
 
+  /* The tasks of an article are the teacher's choice (out.tasks); an article without the
+     list has all four. Everything that counts or lists tasks reads it from here. */
+  const TASKS = [['match', '🔗', 'Match'], ['fill', '✍️', 'Fill in'], ['video', '🎬', 'Video'], ['discuss', '💬', 'Discuss']];
+  const taskKeys = out => TASKS.map(t => t[0]).filter(k => !Array.isArray(out.tasks) || out.tasks.includes(k));
+
   function preview(el, out, onOpen) {
     css();
     el.innerHTML = `<div class="mg-prev" ${heroStyle(out)}>
       <div class="mg-prev-in">${metaLine(out)}<h2 class="mg-h1">${esc(out.headline)}</h2><p class="mg-dek">${esc(out.dek)}</p></div>
       <div class="mg-prev-foot"><button type="button" class="mg-btn lime mg-open">Open the Reading Studio →</button>
-        <span class="mg-stat">${(out.vocab || []).length} phrases · 4 tasks · retold from ${esc(out.source && out.source.name || 'the news')}</span></div>
+        <span class="mg-stat">${(out.vocab || []).length} phrases · ${taskKeys(out).length} ${taskKeys(out).length === 1 ? 'task' : 'tasks'} · retold from ${esc(out.source && out.source.name || 'the news')}</span></div>
     </div>`;
     el.querySelector('.mg-open').addEventListener('click', ev => { ev.stopPropagation(); onOpen && onOpen(); });
   }
@@ -173,6 +178,7 @@
     const out = opts.out || {};
     const vocab = Array.isArray(out.vocab) ? out.vocab : [];
     const st = Object.assign({ tab: 'match', saved: [], match: [], fill: {}, fillChecked: false, video: { round: 0, score: 0, answered: [] }, stance: '', note: '' }, opts.state || {});
+    if (!taskKeys(out).includes(st.tab)) st.tab = taskKeys(out)[0] || 'match';
     const save = () => { try { opts.save && opts.save(JSON.parse(JSON.stringify(st))); } catch (e) {} };
     let pop = null, popPlayer = null, vidPlayer = null;
 
@@ -193,7 +199,7 @@
       </article>
       <aside class="mg-side">
         <div class="mg-tabs" role="tablist">
-          ${[['match', '🔗', 'Match'], ['fill', '✍️', 'Fill in'], ['video', '🎬', 'Video'], ['discuss', '💬', 'Discuss']].map(([k, i, l]) => `<button type="button" role="tab" class="mg-tab" data-tab="${k}"><i>${i}</i>${l}</button>`).join('')}
+          ${TASKS.filter(t => taskKeys(out).includes(t[0])).map(([k, i, l]) => `<button type="button" role="tab" class="mg-tab" data-tab="${k}"><i>${i}</i>${l}</button>`).join('')}
         </div>
         <div class="mg-panel" id="mg-panel"></div>
       </aside>
@@ -554,5 +560,5 @@
     };
   }
 
-  window.TeachedMagazine = { preview, mount };
+  window.TeachedMagazine = { preview, mount, taskKeys, TASKS };
 })();

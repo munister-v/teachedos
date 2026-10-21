@@ -7900,3 +7900,10 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 
 .tb-ed-pair{display:flex;align-items:center;gap:8px}
 .tb-ed-pair .tb-ed,.tb-ed-pair .pe-ed{flex:1;min-width:0}
+
+/* News draft: editable headline / teaser and task checkboxes */
+.tb-news-edit{display:grid;gap:8px;margin:10px 0}
+.tb-news-edit label{display:grid;gap:3px;font:600 11.5px var(--font,system-ui,sans-serif);color:#5D614B}
+.tb-news-edit input,.tb-news-edit textarea{font:500 13.5px var(--font,system-ui,sans-serif);padding:7px 10px;border:1px solid rgba(36,40,44,.18);border-radius:9px;background:#fff;color:#24282C;resize:vertical}
+.tb-news-tasks{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:0 0 10px}
+.tb-news-task{display:inline-flex;gap:6px;align-items:center;font:600 13px var(--font,system-ui,sans-serif)}

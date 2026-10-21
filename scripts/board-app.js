@@ -17493,7 +17493,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1322';
+const TEACHEDOS_ASSET_VERSION = '1324';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20384,7 +20384,7 @@ function renderBoardLessonStagePreview(set) {
           <div class="tb-act-head">
             <h4>${esc(activity.title)}</h4>
             <span class="tb-act-tools">
-              <button type="button" class="tb-act-btn" onclick="redoStageActivity('${esc(activity.key)}')" title="Build this one again, differently">Regenerate</button>
+              <button type="button" class="tb-act-btn" onclick="redoStageActivity('${esc(activity.key)}')" title="Build this one again, differently">Redo</button>
               <button type="button" class="tb-act-btn" onclick="dropStageActivity('${esc(activity.key)}')" title="Leave this one out of the lesson">Remove</button>
             </span>
           </div>
@@ -21857,6 +21857,7 @@ async function buildMagazineFromStory() {
     /* Nothing reaches the board unseen (Lesson Builder 2.0 P1, T-N2): the article waits
        as a draft the teacher can read as a student would, and goes on the board only
        with the explicit "Add to board". */
+    mag.tasks = (window.TeachedMagazine ? window.TeachedMagazine.TASKS : []).map(t => t[0]);   // all on; the teacher unticks what the lesson does not need
     st.draft = { mag, level, story: { title: story.title, source: story.source } };
     st.note = '';
   } catch (err) {
@@ -21888,6 +21889,14 @@ function _wizRenderNewsDraft(host, st) {
       <div class="tb-news-draft-head"><b>Draft - not on the board yet</b>
         <small>Retold for ${esc(d.level)} · ${Number(mag.readMinutes) || 3} min read · ${(mag.vocab || []).length} phrases · from ${esc((mag.source && mag.source.name) || d.story.source || 'the news')}</small></div>
       <div class="tb-news-draft-card" id="tb-news-draft-card"></div>
+      <div class="tb-news-edit">
+        <label>Headline<input id="tb-news-h" value="${esc(mag.headline || '')}" maxlength="140" spellcheck="true"></label>
+        <label>Teaser<textarea id="tb-news-d" rows="2" maxlength="320" spellcheck="true">${esc(mag.dek || '')}</textarea></label>
+      </div>
+      <div class="tb-news-tasks" role="group" aria-label="Tasks in the article">
+        <span class="tb-news-levels-label">Tasks</span>
+        ${(window.TeachedMagazine ? window.TeachedMagazine.TASKS : []).map(([k, , l]) => `<label class="tb-news-task"><input type="checkbox" data-news-task="${k}"${(mag.tasks || []).includes(k) ? ' checked' : ''}> ${esc(l)}</label>`).join('')}
+      </div>
       <div class="tb-news-draft-actions">
         <button type="button" class="tbuilder-btn lime" id="tb-news-add" onclick="addNewsDraftToBoard()">Add to board</button>
         <button type="button" class="tbuilder-btn" onclick="readNewsDraft()">Read it as a student</button>
@@ -21896,7 +21905,17 @@ function _wizRenderNewsDraft(host, st) {
       <span class="tb-wiz-tool-note" id="tb-news-note">${esc(st.note || 'Have a look first. Nothing reaches the board until you add it.')}</span>
     </div>`;
   const box = host.querySelector('#tb-news-draft-card');
-  if (window.TeachedMagazine && box) window.TeachedMagazine.preview(box, mag, () => readNewsDraft());
+  const repaint = () => { if (window.TeachedMagazine && box) window.TeachedMagazine.preview(box, mag, () => readNewsDraft()); };
+  repaint();
+  /* The review is editable: headline and teaser are fields, and the tasks are checkboxes,
+     so the card on the board is what is shown here. */
+  host.querySelector('#tb-news-h').addEventListener('input', e => { mag.headline = e.target.value; repaint(); });
+  host.querySelector('#tb-news-d').addEventListener('input', e => { mag.dek = e.target.value; repaint(); });
+  host.querySelectorAll('[data-news-task]').forEach(cb => cb.addEventListener('change', () => {
+    const keys = [...host.querySelectorAll('[data-news-task]:checked')].map(x => x.dataset.newsTask);
+    if (!keys.length) { cb.checked = true; const n = document.getElementById('tb-news-note'); if (n) n.textContent = 'Keep at least one task.'; return; }
+    mag.tasks = keys; repaint();
+  }));
 }
 
 function readNewsDraft() {
@@ -24935,7 +24954,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1322',
+          icon: 'icons/icon-192.png?v=1324',
           tag: 'board-live-' + s.id,
         });
       }
