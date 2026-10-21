@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool = require('../db/pool');
-const { requireAuth, requireTeacher } = require('../middleware/auth');
+const { requireAuth, requireTeacher, requireAdmin } = require('../middleware/auth');
+const islandStats = require('../lib/islandStats');
 const hub = require('../lib/hubcontent');
 const gate = require('../lib/gate');
 
@@ -59,6 +60,8 @@ router.delete('/teacher/materials/:id', requireAuth, requireTeacher, wrap(async 
   await pool.query('DELETE FROM hub_materials WHERE id = $1 AND teacher_id = $2', [req.params.id, req.user.id]);
   res.json({ ok: true });
 }));
+router.get('/teacher/class-activity', requireAuth, requireTeacher, wrap(async (req, res) => res.json(await islandStats.classActivity(pool, req.user.id))));
+router.get('/island-stats', requireAuth, requireAdmin, wrap(async (req, res) => res.json(await islandStats.growth(pool, req.query.days))));
 router.get('/teacher/gates', requireAuth, requireTeacher, wrap(async (req, res) => res.json({ gates: await gate.pending(pool, req.user.id) })));
 router.post('/teacher/gates/:id/decide', requireAuth, requireTeacher, wrap(async (req, res) => {
   if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Not found' });

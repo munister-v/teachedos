@@ -86,3 +86,20 @@ test('sharing: a set and a progress card are real links with the owner\'s invita
   assert.deepEqual(Object.keys(pc.payload).sort(), ['badges', 'level', 'streak', 'words', 'xp']);
   assert.equal(await friends.readShare(pool, 'missing'), null);
 });
+
+test('island stats: the class on its own, and the growth numbers', async t => {
+  if (!dbUp) return t.skip('no database');
+  const stats = require('../lib/islandStats');
+  const { rows: [teacher] } = await pool.query(`INSERT INTO users (email, password_hash, name, role, plan, plan_status) VALUES ($1,'x','Tea Cher','teacher','free','free') RETURNING id`, [`fr-t-${tag}@teached.test`]);
+  made.push(teacher.id);
+  await pool.query(`INSERT INTO student_journal (teacher_id, student_id, name, level) VALUES ($1,$2,'x','B1'), ($1,$3,'y','B1')`, [teacher.id, anna.id, ben.id]);
+  await pool.query(`INSERT INTO xp_events (user_id, kind, ref, xp) VALUES ($1,'treat','a',5), ($2,'treat','b',5)`, [anna.id, ben.id]);
+  const a = await stats.classActivity(pool, teacher.id);
+  assert.equal(a.students.length, 2);
+  assert.ok(a.students.every(s => s.streak === 1 && s.active_today));
+  assert.ok(a.students.find(s => s.name === 'Anna').friends >= 1 && a.students.find(s => s.name === 'Anna').sets_shared >= 1);
+  const g = await stats.growth(pool, 30);
+  assert.ok(g.invitations.links >= 1 && g.invitations.accepted_in_window >= 1);
+  assert.ok(g.off_lesson.students_active_7d >= 2 && g.off_lesson.share > 0);
+  assert.equal(typeof g.teachers_met_via_students, 'number');
+});
