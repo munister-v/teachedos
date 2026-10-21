@@ -544,7 +544,7 @@
       '<span style="display:flex;gap:9px;align-items:center"><span class="st16 ' + ST[w.status] + '">' + w.status + '</span><span class="xp" style="color:' + XPC(w) + '">+' + w.xp + ' XP</span></span>' +
       '<span class="acts"><button data-g="again">Forgot</button><button class="kn" data-g="good">Know it</button></span>' +
       '<span class="rdet"><span class="rex">' + (w.example ? '“' + esc2(w.example) + '”' : 'No example saved yet') + '</span>' +
-      '<button class="rspk" data-say="' + esc2(w.word) + '">' + SPK + 'Listen</button><span class="rhint">tap the row to close</span></span></div>';
+      '<button class="rspk" data-say="' + esc2(w.word) + '">' + SPK + 'Listen</button><button class="rspk" data-del="' + esc2(w.id) + '" style="margin-left:8px">Remove word</button><span class="rhint">tap the row to close</span></span></div>';
   }
   function drawBoard() {
     const dep = document.querySelector('#pg-wordbank .dep16');
@@ -572,6 +572,13 @@
     dep.querySelectorAll('.xrow').forEach(r => r.addEventListener('click', e => {
       const say = e.target.closest('[data-say]');
       if (say) { try { const u = new SpeechSynthesisUtterance(say.dataset.say); u.lang = 'en-US'; speechSynthesis.speak(u); } catch (_) {} return; }
+      const del = e.target.closest('[data-del]');
+      if (del) {
+        const nm = r.querySelector('.w').childNodes[0].textContent;
+        if (!confirm('Remove \u201C' + nm + '\u201D from your Word Bank? Its schedule goes with it.')) return;
+        api('/api/journal/vocab/' + encodeURIComponent(del.dataset.del), { method: 'DELETE' }).then(x => { if (x.ok) json('/api/student/wordbank').then(b => b && wordBank(b)); });
+        return;
+      }
       const g = e.target.closest('[data-g]');
       if (!g) { r.classList.toggle('open'); return; }
       g.disabled = true;
