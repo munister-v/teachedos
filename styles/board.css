@@ -7921,3 +7921,21 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 
 /* Play shows the board as a student gets it: what is held back is not there */
 .board-card.play-hidden{display:none!important}
+
+/* One builder for the whole lesson: the plan map */
+.tb-lesson-map{display:grid;gap:8px;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:#F4F7E6;border:1px solid rgba(154,179,31,.35)}
+.tb-lm-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.tb-lm-head small{color:#6b6f5a;font-size:12px}
+.tb-lm-stages{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tb-lm-stage{display:inline-flex;align-items:center;border-radius:999px;font:600 12.5px var(--font,system-ui,sans-serif);border:1px solid rgba(36,40,44,.15);background:#fff;color:#24282C;padding:0 4px 0 0}
+.tb-lm-stage button{font:inherit;color:inherit;background:none;border:0;padding:5px 6px 5px 11px;cursor:pointer}
+.tb-lm-stage small{font-weight:500;color:#7b7f6a;margin-left:4px}
+.tb-lm-stage.is-done{background:#fff}
+.tb-lm-stage.is-now{background:#24282C;color:#fff;padding:5px 11px}.tb-lm-stage.is-now small{color:#CDF649}
+.tb-lm-stage.is-next{border-style:dashed;color:#6b6f5a;padding:5px 11px;background:transparent}
+.tb-lm-stage .tb-lm-x{padding:2px 6px;color:#9a9c8c;font-size:15px}
+.tb-lm-arrow{color:#9AB31F;font-weight:700}
+.tb-lm-acts{display:flex;gap:8px;flex-wrap:wrap}
+.tb-lm-note{font-size:12.5px;color:#a8431b;min-height:0}
+
+/* a lesson built in stages: each stage names its group of steps */
+.wp-stage-label{align-self:center;font:700 10.5px var(--font,system-ui,sans-serif);letter-spacing:.06em;text-transform:uppercase;color:#7A9A12;padding:0 4px 0 8px}

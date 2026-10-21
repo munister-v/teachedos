@@ -746,6 +746,7 @@ const BOARD_LESSON_STAGES = {
           {key:'follow-colloc', tool:'collocations',          title:'More work on the words',hint:'Collocations from the text plus short practice.', ai:true, after:'source'},
           {key:'follow-go-vocab', handoff:'vocab', title:'Continue in Vocabulary Studio', hint:'Words from the text, then the games - the builder opens with the list already filled in.'},
           {key:'follow-go-speak', handoff:'speak', title:'Continue in Speaking Studio',   hint:'Speaking tasks built on the same text - the builder opens next.'},
+          {key:'follow-go-write', handoff:'write', title:'Continue in Writing Studio',    hint:'Their own text on the same topic - the next stage of this lesson, nothing asked twice.'},
         ],
       },
       /* Домашка отдельным этапом, а не галочкой у заданий: она уезжает не
@@ -844,6 +845,7 @@ const BOARD_LESSON_STAGES = {
           /* Не задания, а ПЕРЕХОД в другую студию с тем же текстом. */
           {key:'lis-go-vocab', handoff:'vocab', title:'Continue in Vocabulary Studio', hint:'Words from the video, then the games - the builder opens with the list already filled in.'},
           {key:'lis-go-speak', handoff:'speak', title:'Continue in Speaking Studio',   hint:'Speaking tasks built on the same text - the builder opens next.'},
+          {key:'lis-go-write', handoff:'write', title:'Continue in Writing Studio',    hint:'Their own text on the same topic - the next stage of this lesson, nothing asked twice.'},
         ],
       },
       {
@@ -966,13 +968,14 @@ const BOARD_LESSON_STAGES = {
         question: 'What should they do at home to keep it going?',
         groups: [
           {mode: 'one',  label: 'Homework format · pick one', keys: ['sp-hw-voice', 'sp-hw-game', 'sp-hw-write']},
-          {mode: 'many', label: 'Plus · optional',            keys: ['sp-hw']},
+          {mode: 'many', label: 'Plus · optional',            keys: ['sp-hw', 'sp-go-write']},
         ],
         options: [
           {key:'sp-hw-voice', tool:'cliffhanger-challenge', hwTask:'voice', title:'🎙 Voice or video cliffhanger', hint:'A short teaser that stops at the best moment - record 30-45 seconds on what happened next, using two new phrases.', ai:true, after:'source', homework:true},
           {key:'sp-hw-game',  tool:'extract-vocab', game:'flashcards', title:'🎮 Interactive game & vocab box', hint:'The lesson’s phrases as a game with instant feedback - play, do not memorise.', ai:true, after:'source', homework:true},
           {key:'sp-hw-write', tool:'creative-writing', hwTask:'write', title:'📝 Creative writing', hint:'A mini post or mini dialogue in the voice of a character, built on the lesson’s phrases.', ai:true, after:'source', homework:true,
            extra:'Homework: ask for a short creative mini-post or mini-dialogue (60-90 words) from the point of view of a character or on the lesson topic, and require at least three phrases from the lesson.'},
+          {key:'sp-go-write', handoff:'write', title:'Continue in Writing Studio', hint:'Their own text on the same topic - the next stage of this lesson, nothing asked twice.'},
           {key:'sp-hw', tool:'homework-set', title:'Full homework set', hint:'A task to do at home, with success criteria and a self-check.', ai:true, after:'source', homework:true},
         ],
       },

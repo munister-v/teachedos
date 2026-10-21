@@ -4290,6 +4290,7 @@ const WP_KINDS = {
   grammar:   { kicker: 'Grammar path',   studio: 'Grammar Studio',   studioStages: ['notice', 'drill'], follow: ['use'] },
   vocabulary: { kicker: 'Vocabulary path' },
   homework:   { kicker: 'Homework' },
+  lesson:     { kicker: 'Lesson' },
   magazine:   { kicker: 'News & Articles · Magazine' },
   scene:      { kicker: 'Picture Studio' },
 };
@@ -4417,6 +4418,9 @@ function placeHomeworkOnBoard(a) {
 }
 window.placeHomeworkOnBoard = placeHomeworkOnBoard;
 function _wpPlacePathCard(base, label, path) {
+  // inside a lesson session a stage joins the plan instead of the board
+  if (_lessonSession && _lessonSession.collecting && boardLessonWizard && !['homework', 'magazine', 'scene', 'lesson'].includes(path.kind)
+    && document.getElementById('tool-builder-panel')?.classList.contains('open')) return _sessionAddStage(base, label, path);
   const kind = path.kind;
   // Тема, выбранная в превью конструктора, едет с уроком на доску.
   if (!path.theme && _wpPreview.theme) { path.theme = _wpPreview.theme; _wpPreview.theme = ''; }
@@ -4887,7 +4891,7 @@ function _wpRender(el, card, focus) {
           ${focus ? `<button type="button" class="wp-btn wp-close">${card.__preview ? '✕ Close' : lf ? '← Lesson map' : goHome ? '⌂ Home' : '✕ Back to the board'}</button>` : '<button type="button" class="wp-btn wp-open">⤢ Open Studio</button>'}
         </div>
       </div>
-      <div class="wp-steps">${p.steps.map((s, k) => k < lo || k > hi ? '' : `<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${WP_STUDIO_ROLES.includes(s.role) ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k - lo + 1}</i><span>${esc(s.title)}</span></button>`).filter(Boolean).join('<span class="wp-line"></span>')}</div>
+      <div class="wp-steps">${p.steps.map((s, k) => k < lo || k > hi ? '' : `${s.stage && (k === lo || p.steps[k - 1].stage !== s.stage) ? `<span class="wp-stage-label">${esc(s.stage)}</span>` : ''}<button type="button" class="wp-step${k === i ? ' on' : ''}${done[k] ? ' done' : ''}${WP_STUDIO_ROLES.includes(s.role) ? ' studio' : ''}" data-k="${k}"><i>${done[k] && k !== i ? '✓' : k - lo + 1}</i><span>${esc(s.title)}</span></button>`).filter(Boolean).join('<span class="wp-line"></span>')}</div>
     </div>
     <div class="wp-stage"></div>
     <div class="wp-nav">
@@ -5091,6 +5095,7 @@ function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
      _wpEnrichVocab. Переименовать можно в шапке студии. */
   const label = base.topicAuto ? (base.theme || `New vocabulary · ${words.length} words`) : (base.topic || 'Vocabulary');
   const card = _wpPlacePathCard(base, label, path);
+  if (card && card.__staged) { setTimeout(_sessionNext, 400); return card; }
   if (card) {
     if (base.topicAuto && !base.theme) card.data._titleAuto = true;
     _wpFillVocabPron(card);
@@ -17518,7 +17523,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1332';
+const TEACHEDOS_ASSET_VERSION = '1335';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -18758,8 +18763,11 @@ async function commitWordWorkout() {
   /* Одним путём (по умолчанию) или, как раньше, отдельными карточками. */
   let asPath = r.asPath !== false;
   if (asPath) {
-    try { asPath = !!_wpPlaceVocabPath(base, entries, tplBuilt, built); }
+    let placed = null;
+    try { placed = _wpPlaceVocabPath(base, entries, tplBuilt, built); asPath = !!placed; }
     catch (err) { console.warn('[workout] vocabulary path failed', err); asPath = false; }
+    // a vocabulary stage of a lesson session joined the plan: the session opens what is next
+    if (placed && placed.__staged) { _wordReview = null; toast(`Vocabulary stage is in the lesson plan - ${(placed.data._wfPath.steps || []).length} steps`); return; }
   }
   if (!asPath) {
     if (tplBuilt.length) _placeWordTemplateGames(tplBuilt, base);
@@ -20920,7 +20928,7 @@ function _stageLessonParts(set) {
    создавать. Когда он положил урок на доску, открывается следующий. Полоса
    внизу показывает, что дальше, и даёт Open / Skip / Stop. */
 const _lessonChain = { queue: [], active: null, text: '', level: 'B1' };
-const _CHAIN_LABEL = { vocab: '📚 Vocabulary Studio', speak: '🗣 Speaking Studio' };
+const _CHAIN_LABEL = { vocab: '📚 Vocabulary Studio', speak: '🗣 Speaking Studio', write: '✍️ Writing Studio' };
 function _chainBar() {
   let bar = document.getElementById('lesson-handoff');
   if (!_lessonChain.queue.length && !_lessonChain.active) { bar?.remove(); return; }
@@ -20955,6 +20963,7 @@ function _lessonChainAdvance() {
   setTimeout(_lessonChainNext, 900);
 }
 function _showLessonHandoff(set, text) {
+  if (_lessonSession) return;          // a lesson session carries its own next stages
   const keys = set.keys || [];
   const opts = (set.cfg.stages || []).reduce((a, s) => a.concat(s.options || []), []).filter(o => o.handoff && keys.includes(o.key));
   const clean = String(text || '').trim();
@@ -20973,7 +20982,213 @@ function _lessonHandoffOpen(kind, text, level) {
   } else if (kind === 'speak') {
     openLessonWizard(); pickLessonSkill('speaking'); pickLessonSource('own');
     setTimeout(() => { setLevel(); _wizFillSource(text.slice(0, 12000)); }, 250);
+  } else if (kind === 'write') {
+    openLessonWizard(); pickLessonSkill('writing'); pickLessonSource('own');
+    setTimeout(() => { setLevel(); _wizFillSource(text.slice(0, 12000)); }, 250);
   }
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   ONE BUILDER FOR THE WHOLE LESSON (OCR addendum §1, 21.10.2026)
+
+   "Continue in Speaking / Writing / Vocabulary Studio" used to put each studio on the board
+   as its own card and open the next studio as a new start. Now the studios are stages of one
+   lesson session:
+   - the session holds the lesson passport (topic, level, the material, the words, the names
+     and facts of the first stage); every next stage opens in the same builder with all of it
+     filled in, nothing is asked twice, and its tasks are told to keep the same people and facts;
+   - a built stage is not placed on the board: it joins the plan; the map at the top of the
+     builder shows the stages, opens any of them again as it was, and publishes the plan as ONE
+     path card, checked as a whole (composition = selection over the sum of the stages);
+   - the session is kept per board in localStorage, so closing the builder loses nothing. */
+const LESSON_SESSION_KEY = 'teachedos_lesson_session';
+let _lessonSession = null;
+const _SESSION_SKILL = { vocab: 'vocabulary', speak: 'speaking', write: 'writing' };
+const _SKILL_LABEL = { reading: 'Reading', listening: 'Listening', speaking: 'Speaking', writing: 'Writing', grammar: 'Grammar', vocabulary: 'Vocabulary', magazine: 'News', scene: 'Picture', scenes: 'Picture' };
+
+function _sessionSave() {
+  try {
+    const all = JSON.parse(localStorage.getItem(LESSON_SESSION_KEY) || '{}');
+    const key = String(currentBoardId || 'local');
+    if (_lessonSession) all[key] = { ..._lessonSession, stages: _lessonSession.stages.map(st => ({ ...st, set: st.set ? { ...st.set, cfg: undefined } : null })) };
+    else delete all[key];
+    localStorage.setItem(LESSON_SESSION_KEY, JSON.stringify(all));
+  } catch (_) { /* a full store keeps the session for this visit only */ }
+}
+function _sessionLoad() {
+  if (_lessonSession) return _lessonSession;
+  try {
+    const all = JSON.parse(localStorage.getItem(LESSON_SESSION_KEY) || '{}');
+    const s = all[String(currentBoardId || 'local')];
+    if (s && Array.isArray(s.stages)) {
+      s.stages.forEach(st => { if (st.set && st.set.toolId) st.set.cfg = boardLessonStagesFor(st.set.toolId); });
+      _lessonSession = s;
+    }
+  } catch (_) {}
+  return _lessonSession;
+}
+// The people, places and other names of the material: what every next stage must keep.
+function _passportNames(text) {
+  const out = new Set();
+  String(text || '').split(/(?<=[.!?])\s+/).forEach(sent => {
+    const w = sent.split(/\s+/);
+    w.forEach((t, i) => {
+      const bare = t.replace(/^[^A-Za-z]+|[^A-Za-z'-]+$/g, '');
+      if (i > 0 && /^[A-Z][a-z]{2,}/.test(bare) && !/^(I|I'm|I've|I'll|English|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$/.test(bare)) out.add(bare);
+    });
+  });
+  return [...out].slice(0, 12);
+}
+function _sessionStart(set, text, handoffs) {
+  const words = String(set.base.vocab || '').split('\n').map(x => x.trim()).filter(Boolean);
+  _lessonSession = {
+    id: Date.now(), collecting: true, editing: null,
+    passport: { topic: set.base.topic || '', level: set.base.level || 'B1', text: String(text || '').slice(0, 12000), words, names: _passportNames(text), genre: set.base.genre || '' },
+    stages: [], queue: handoffs.slice(),
+  };
+  _sessionSave();
+}
+// A stage's own "continue in …" ticks join the queue (a speaking stage may lead on to writing).
+function _sessionHandoffs(set) {
+  const keys = (set && set.keys) || [];
+  return ((set && set.cfg && set.cfg.stages) || []).reduce((a, s) => a.concat(s.options || []), [])
+    .filter(o => o.handoff && keys.includes(o.key)).map(o => o.handoff);
+}
+function _sessionAddStage(base, label, path) {
+  const S = _lessonSession;
+  const skill = (boardLessonWizard && boardLessonWizard.skill) || path.kind;
+  const stage = {
+    skill, kind: path.kind, label: _SKILL_LABEL[skill] || label, title: label,
+    source: boardLessonWizard && boardLessonWizard.source, base: { level: base.level, topic: base.topic },
+    path: JSON.parse(JSON.stringify(path)), draft: _ttReadBuilderDraft(),
+    set: lastLessonStageSet ? JSON.parse(JSON.stringify({ ...lastLessonStageSet, cfg: undefined })) : null,
+  };
+  if (stage.set && lastLessonStageSet) stage.set.cfg = lastLessonStageSet.cfg;
+  if (S.editing != null && S.stages[S.editing]) S.stages[S.editing] = stage;
+  else {
+    S.stages.push(stage);
+    // the stage that was waiting in the queue is built now
+    const qi = S.queue.findIndex(k => _SESSION_SKILL[k] === skill);
+    if (qi >= 0) S.queue.splice(qi, 1);
+    const done = new Set(S.stages.map(st => st.skill));
+    _sessionHandoffs(lastLessonStageSet).forEach(k => { if (!S.queue.includes(k) && !done.has(_SESSION_SKILL[k])) S.queue.push(k); });
+  }
+  _sessionSave();
+  return { id: null, __staged: true, x: 0, y: 0, w: 0, h: 0, data: { title: label, level: base.level, topic: base.topic, _wfPath: path } };
+}
+// After a stage joins the plan: the next stage opens in the same builder, or the map waits for Publish.
+function _sessionNext() {
+  const S = _lessonSession;
+  if (!S) return;
+  if (S.editing != null) { S.editing = null; _sessionSave(); _sessionMap(); toast('Stage updated in the lesson plan'); return; }
+  const kind = S.queue[0];
+  if (!kind) { _sessionMap(); toast(`All stages are in the plan - publish the lesson when it is ready`); return; }
+  _sessionOpenStage(kind);
+}
+function _sessionOpenStage(kind) {
+  const P = _lessonSession.passport;
+  const keep = P.names.length ? `Keep the same people, places and facts as the lesson so far (${P.names.join(', ')}); do not invent new names for them.` : '';
+  _lessonHandoffOpen(kind, P.text, P.level);
+  setTimeout(() => {
+    const topic = document.getElementById('tbuilder-topic');
+    if (topic && !topic.value.trim() && P.topic) { topic.value = P.topic; topic.dispatchEvent(new Event('input', { bubbles: true })); }
+    const extra = document.getElementById('tbuilder-extra');
+    if (extra && keep && !extra.value.includes(keep)) { extra.value = [extra.value.trim(), keep].filter(Boolean).join('\n'); extra.dispatchEvent(new Event('input', { bubbles: true })); }
+    _sessionMap();
+  }, 320);
+}
+// Open a built stage again exactly as it was: its studio, its fields and its reviewed blocks.
+function _sessionEditStage(i) {
+  const S = _lessonSession, st = S && S.stages[i];
+  if (!st) return;
+  S.editing = i; _sessionSave();
+  openLessonWizard(); pickLessonSkill(st.skill === 'vocabulary' ? 'vocabulary' : st.skill);
+  if (st.source) pickLessonSource(st.source);
+  setTimeout(() => {
+    _ttApplyBuilderDraft(st.draft);
+    if (st.set) {
+      lastLessonStageSet = st.set;
+      if (!lastLessonStageSet.cfg && lastLessonStageSet.toolId) lastLessonStageSet.cfg = boardLessonStagesFor(lastLessonStageSet.toolId);
+      try { renderBoardLessonStagePreview(lastLessonStageSet); _ttSetAddToBoard(true); } catch (err) { console.warn('[session] stage preview', err); }
+    }
+    _sessionMap();
+  }, 320);
+}
+function _sessionDropStage(i) {
+  const S = _lessonSession;
+  if (!S || !S.stages[i]) return;
+  S.stages.splice(i, 1);
+  if (!S.stages.length && !S.queue.length) { _sessionEnd(); return; }
+  _sessionSave(); _sessionMap();
+}
+function _sessionEnd() {
+  _lessonSession = null; _sessionSave();
+  document.getElementById('tb-lesson-map')?.remove();
+}
+/* The map: where the lesson stands, one click to any stage, and the one way to publish. */
+function _sessionMap() {
+  const S = _sessionLoad();
+  const panel = document.querySelector('#tool-builder-panel .tbuilder-box');
+  let map = document.getElementById('tb-lesson-map');
+  if (!S || !panel) { map?.remove(); return; }
+  if (!map) { map = document.createElement('div'); map.id = 'tb-lesson-map'; map.className = 'tb-lesson-map'; panel.insertBefore(map, panel.firstChild); }
+  const nowSkill = boardLessonWizard && boardLessonWizard.skill;
+  const steps = S.stages.reduce((n, st) => n + ((st.path && st.path.steps) || []).length, 0);
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  const nextSkill = S.queue[0] && _SESSION_SKILL[S.queue[0]];
+  const building = S.editing == null && nextSkill && nowSkill === nextSkill;
+  const chips = S.stages.map((st, i) => `<span class="tb-lm-stage${S.editing === i ? ' is-now' : ' is-done'}"><button type="button" data-lm-open="${i}" title="Open this stage again as it was">${i + 1} · ${esc(st.label)} <small>${plural((st.path.steps || []).length, 'step')}</small></button><button type="button" class="tb-lm-x" data-lm-drop="${i}" aria-label="Remove the ${esc(st.label)} stage" title="Remove this stage">×</button></span>`)
+    .concat(S.queue.map((k, j) => j === 0 && building
+      ? `<span class="tb-lm-stage is-now"><b>${S.stages.length + 1} · ${esc(_SKILL_LABEL[_SESSION_SKILL[k]] || k)}</b> <small>building</small></span>`
+      : `<span class="tb-lm-stage is-next"><button type="button" data-lm-go="${j}" title="Build this stage now">${S.stages.length + 1 + j} · ${esc(_SKILL_LABEL[_SESSION_SKILL[k]] || k)}</button></span>`));
+  map.innerHTML = `<div class="tb-lm-head"><b>Lesson plan</b><small>${esc(S.passport.topic || 'This lesson')} · ${esc(S.passport.level)} · ${plural(S.stages.length, 'stage')}, ${plural(steps, 'step')}</small></div>
+    <div class="tb-lm-stages">${chips.join('<span class="tb-lm-arrow" aria-hidden="true">→</span>')}</div>
+    <div class="tb-lm-acts"><button type="button" class="tbuilder-btn lime" data-lm-publish ${S.stages.length ? '' : 'disabled'}>Publish the lesson as one card</button>
+      ${S.queue.length && S.editing == null ? `<button type="button" class="tbuilder-btn" data-lm-skip>Skip ${esc(_SKILL_LABEL[_SESSION_SKILL[S.queue[0]]] || '')}</button>` : ''}
+      <button type="button" class="tbuilder-btn" data-lm-end>Discard the plan</button></div>
+    <div class="tb-lm-note" id="tb-lm-note" role="status"></div>`;
+  map.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.lmOpen != null) _sessionEditStage(Number(b.dataset.lmOpen));
+    else if (b.dataset.lmDrop != null) _sessionDropStage(Number(b.dataset.lmDrop));
+    else if (b.hasAttribute('data-lm-publish')) _sessionPublish();
+    else if (b.hasAttribute('data-lm-skip')) { _lessonSession.queue.shift(); _sessionSave(); _sessionNext(); }
+    else if (b.dataset.lmGo != null) { const k = _lessonSession.queue.splice(Number(b.dataset.lmGo), 1)[0]; _lessonSession.queue.unshift(k); _lessonSession.editing = null; _sessionSave(); _sessionOpenStage(k); }
+    else if (b.hasAttribute('data-lm-end')) { if (b.dataset.armed) _sessionEnd(); else { b.dataset.armed = '1'; b.textContent = 'Click again to discard'; } }
+  };
+}
+/* Publishing: the stages' steps become one path, checked as one lesson. */
+function _sessionPublish() {
+  const S = _lessonSession;
+  if (!S || !S.stages.length) return;
+  const note = document.getElementById('tb-lm-note');
+  if (window.LessonGuardrails) {
+    const v = S.stages.flatMap(st => st.set ? window.LessonGuardrails.checkSet(st.set).map(x => ({ ...x, stage: st.label })) : []);
+    if (v.length) { if (note) note.textContent = `Not ready: ${v[0].stage} - ${v[0].msg}${v.length > 1 ? ` (+${v.length - 1} more)` : ''}. Open that stage to fix it.`; return; }
+  }
+  const steps = S.stages.flatMap(st => (st.path.steps || []).map(x => ({ ...x, stage: st.label })));
+  const first = S.stages[0].path;
+  const writing = S.stages.find(st => st.path.kind === 'writing');
+  const path = {
+    kind: 'lesson', steps, cur: 0, done: [], assigned: [],
+    guide: (writing && writing.path.guide) || first.guide || null, genre: (writing && writing.path.genre) || first.genre || '',
+    mode: first.mode, speakFull: first.speakFull, writeFull: first.writeFull,
+    ...(S.stages.find(st => st.path.hear != null) ? { hear: S.stages.find(st => st.path.hear != null).path.hear } : {}),
+    ...(first.theme ? { theme: first.theme } : {}),
+  };
+  const P = S.passport;
+  const title = `${P.topic || S.stages[0].title || 'Lesson'} · ${S.stages.map(st => st.label).join(' → ')}`;
+  _lessonSession = null;                       // the real placement below must not be staged again
+  const card = _wpPlacePathCard({ level: P.level, topic: P.topic }, title, path);
+  if (!card) { _lessonSession = S; if (note) note.textContent = 'The lesson could not be placed - the plan is kept, try again.'; return; }
+  if (steps.some(x => x.role === 'vocab-studio')) { try { _wpFillVocabPron(card); _wpEnrichVocab(card); } catch (_) {} }
+  _ttSaveToLibrary({ type: 'lesson', results: [], path: _wpLibraryPath(card) }, {
+    title: card.data.title, cat: S.stages[0].skill, level: P.level, topic: P.topic,
+    kind: `Lesson · ${S.stages.length} stages · ${steps.length} steps`, toolId: 'lesson-session',
+  });
+  _lessonSession = S; _sessionEnd();
+  closeTeacherToolBuilder();
+  toast(`Lesson added - one card, ${S.stages.length} ${S.stages.length === 1 ? 'stage' : 'stages'}, ${steps.length} steps`);
 }
 
 /* One lesson path: the reading, listening and grammar lessons land as one combined card (a path)
@@ -21001,6 +21216,9 @@ function placeBoardLessonStageSet() {
   if (!parts) return false;
   const { results, homework, teacherOnly, label, videoUrl, readingText, writingFlow, speakingFlow, skillPath } = parts;
   const idsBefore = new Set((state.cards || []).map(c => c.id));
+  // "Continue in … Studio" ticked: this lesson becomes a session of stages in one builder
+  const handoffs = _sessionHandoffs(set);
+  if (!_lessonSession && handoffs.length && (writingFlow || speakingFlow || (skillPath && boardLessonOnePath()))) _sessionStart(set, readingText || (set.base && set.base.source) || '', handoffs);
 
   let pathCard = null;
   if (writingFlow || speakingFlow) {
@@ -21027,7 +21245,8 @@ function placeBoardLessonStageSet() {
   }
   /* "6 of 6 ready" must be six things on the board: if no card came out of the placement,
      the teacher is told, not given a success toast. */
-  if (!(state.cards || []).some(c => !idsBefore.has(c.id))) {
+  const staged = !!(pathCard && pathCard.__staged);
+  if (!staged && !(state.cards || []).some(c => !idsBefore.has(c.id))) {
     console.warn('[stages] nothing was placed on the board');
     return false;
   }
@@ -21064,6 +21283,12 @@ function placeBoardLessonStageSet() {
   /* The toast counts what is on the board. A path is ONE card holding the steps ("6 cards added" for
      a single card was recheck 18.10); the one-card-per-activity layout is still counted per card. */
   const nHw = homework.length;
+  if (staged) {
+    // the stage is in the plan, not on the board (its homework card, if any, is)
+    toast(`${_SKILL_LABEL[set.skill] || 'This'} stage is in the lesson plan - ${(pathCard.data._wfPath.steps || []).length} steps${nHw ? ` · ${nHw} homework ${nHw === 1 ? 'card' : 'cards'} on the board` : ''}`);
+    setTimeout(_sessionNext, 400);
+    return true;
+  }
   if (pathCard) {
     const steps = results.length;
     toast(`Lesson added - one card with ${steps} ${steps === 1 ? 'step' : 'steps'}${nHw ? ` and ${nHw} homework ${nHw === 1 ? 'card' : 'cards'}` : ''}`);
@@ -21147,6 +21372,7 @@ function openLessonWizard() {
   lastLessonStageSet = null;
   document.getElementById('tool-builder-panel')?.classList.add('open');
   renderLessonWizard();
+  setTimeout(_sessionMap, 0);
   prewarmTeacherAiEngine();
 }
 
@@ -25012,7 +25238,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1332',
+          icon: 'icons/icon-192.png?v=1335',
           tag: 'board-live-' + s.id,
         });
       }
