@@ -301,17 +301,6 @@
     return `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-opacity=".2" stroke-width="8.5"/>` +
       (on > 0.5 ? `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="8.5" stroke-linecap="round" stroke-dasharray="${on.toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)"/>` : '');
   }
-  function practise() {
-    /* One timed minute in three rounds, not five games behind tabs (vault-review.js sprint). */
-    if (window.TeachedVault && typeof window.apiFetch === 'function') {
-      window.TeachedVault.sprint({ api: window.apiFetch, onDone: () => { loadVault(); if (typeof window.loadProgress === 'function') window.loadProgress(); } });
-    }
-  }
-  function review(onDone) {
-    if (window.TeachedVault && typeof window.apiFetch === 'function') {
-      window.TeachedVault.open({ api: window.apiFetch, limit: 20, onDone: () => { loadVault(); if (typeof window.loadVocab === 'function') window.loadVocab(); if (typeof window.loadProgress === 'function') window.loadProgress(); if (onDone) onDone(); } });
-    }
-  }
   /* BUG-08 / BUG-12 / BUG-27 (17.10.2026). Every number on the card comes
      from one place, GET /api/vault/summary (each saved word has one status:
      New -> Learning -> Review -> Mastered). The last summary is kept on this
@@ -335,7 +324,7 @@
     const total = v ? v.total : 0, due = v ? v.due : 0, mastered = v ? v.mastered : 0;
     const n = k => (v ? Number(v[k === 'new' ? 'fresh' : k]) || 0 : '–');
     const C = ['#CDF649', '#49F6F0', '#9F8CE8'];
-    const stat = k => `<button type="button" class="te-ws" data-status="${k}" title="${esc(STATUS[k][0])}: ${esc(STATUS[k][1])}" aria-label="${n(k)} ${esc(STATUS[k][0])} - ${esc(STATUS[k][1])}. Open the list"><i style="background:${STATUS[k][2]}"></i><b>${n(k)}</b><span>${STATUS[k][0].toLowerCase()}</span></button>`;
+    const stat = k => `<a class="te-ws" href="student-hub.html#wordbank" title="${esc(STATUS[k][0])}: ${esc(STATUS[k][1])}" aria-label="${n(k)} ${esc(STATUS[k][0])} - ${esc(STATUS[k][1])}. Open the Word Bank"><i style="background:${STATUS[k][2]}"></i><b>${n(k)}</b><span>${STATUS[k][0].toLowerCase()}</span></a>`;
     const pct = Math.min(100, Math.round(week / goal * 100));
     box.innerHTML = `<div class="te-whead">
         <div class="te-rings" role="img" aria-label="${week} of ${goal} new words this week, ${mastered} of ${total} mastered, ${due} due for review">
@@ -344,15 +333,11 @@
         <div class="te-wstats">${['new', 'learning', 'review', 'mastered'].map(stat).join('')}</div>
       </div>
       <div class="te-wact">
-        <button type="button" class="te-wmain" id="te-main">⚡ Start Daily Sprint${total ? ` · ${Math.min(total, 10)} words, 60 s` : ''}</button>
-        ${v && v.review ? `<button type="button" class="te-wrev" id="te-rev" title="Review the words that are due again">Review ${v.review}</button>` : ''}
+        <a class="te-wmain" id="te-main" href="student-hub.html#wordbank">Open Word Bank${due ? ` \u00B7 ${due} to review` : total ? ' \u00B7 all caught up' : ''}</a>
         <button type="button" class="te-wbell" id="te-bell" aria-label="Review reminders" title="Review reminders" aria-haspopup="dialog">🔔</button>
       </div>`;
-    box.querySelector('#te-main').addEventListener('click', practise);
-    box.querySelector('#te-rev')?.addEventListener('click', () => review());
     box.querySelector('#te-bell').addEventListener('click', e => { e.stopPropagation(); if (window.TeachedVaultCabinet) window.TeachedVaultCabinet.reminders(box); });
     box.querySelector('.te-why').addEventListener('click', e => { e.stopPropagation(); if (typeof window.showToast === 'function') window.showToast(e.currentTarget.title); });
-    box.querySelectorAll('.te-ws').forEach(b => b.addEventListener('click', () => openWords(b.dataset.status, b)));
     remindAsk(box);
     focus();
   }
@@ -606,8 +591,7 @@
       a.href = 'homework-do.html?a=' + encodeURIComponent(todo.assignment_id);
     } else if (vault && vault.due) {
       a.textContent = `Review ${vault.due} word${vault.due === 1 ? '' : 's'} →`;
-      a.href = '#';
-      a.onclick = e => { e.preventDefault(); if (typeof window.closeSidebar === 'function') window.closeSidebar(); review(); };
+      a.href = 'student-hub.html#wordbank';
     } else if (boardList[0]) {
       a.textContent = 'Open my board →';
       a.href = 'board.html?id=' + encodeURIComponent(boardList[0].id);
@@ -654,16 +638,11 @@
     sync();
   }
 
-  /* ── Sheets: Progress and My words open over the page ────────────────
-     They used to be tabs. Progress now opens from the streak card in the
-     sidebar and the word list from the vocabulary figures. The pane itself is
-     moved into the sheet and put back on close, so everything that fills it
-     by id (loadProgress) keeps working unchanged. */
-  let wordsKind = null;   // the status shown while the Word Bank list is open
+  /* ── Sheets: Homework opens over the page ──────────────────────────
+     The pane is moved into the sheet and put back on close, so everything that fills it by id keeps working. */
   function closeSheet() {
     const ov = $('te-sheet');
     if (!ov) return;
-    wordsKind = null;
     ov._restore();
     ov.remove();
     if (ov._from && document.contains(ov._from)) ov._from.focus();
@@ -691,49 +670,6 @@
     pane.classList.add('in-sheet');
   }
 
-  /* The Word Bank list (BUG-08): every word with its translation, example
-     and status, filtered by the chip that was pressed; the tabs switch
-     status. Review starts the quiz - a separate button, not the chip. */
-  let wordsRows = null;
-  async function fetchWords() {
-    try { const r = await window.apiFetch('/api/vault/words'); if (r.ok) wordsRows = (await r.json()).words || []; }
-    catch (_) { wordsRows = wordsRows || []; }
-  }
-  function drawWords() {
-    const ov = $('te-sheet');
-    if (!ov || !wordsKind) return;
-    const body = ov.querySelector('.te-sheet-body');
-    const cnt = k => (wordsRows || []).filter(w => w.status === k).length;
-    ov.querySelector('.te-sheet-head b').textContent = 'Word Bank';
-    if (wordsRows == null) { body.innerHTML = '<div class="te-sheet-empty">Opening your words…</div>'; return; }
-    const rows = wordsRows.filter(w => w.status === wordsKind);
-    body.innerHTML = `<div class="hw-tabs wb-tabs" role="tablist" aria-label="Word status">${Object.keys(STATUS).map(k =>
-        `<button type="button" role="tab" data-wb="${k}" aria-selected="${k === wordsKind}" title="${esc(STATUS[k][1])}">${STATUS[k][0]} · ${cnt(k)}</button>`).join('')}</div>
-      <p class="wb-explain">${esc(STATUS[wordsKind][1])}.</p>
-      ${wordsKind === 'review' && rows.length ? `<button type="button" class="te-wrev wide" data-wb-review>Review ${rows.length} now</button>` : ''}
-      ${rows.length ? `<div class="wb-list">${rows.map(w => `<div class="vocab-word-item">
-          <div style="flex:1;min-width:0;">
-            <div class="vw-word">${esc(w.word)}</div>
-            ${w.translation ? `<div class="vw-trans">${esc(w.translation)}</div>` : ''}
-            ${w.example ? `<div class="vw-example">“${esc(w.example)}”</div>` : ''}
-          </div>
-          <span class="wb-st wb-${w.status}">${STATUS[w.status][0]}</span>
-        </div>`).join('')}</div>`
-      : `<div class="te-sheet-empty">${wordsKind === 'new' ? 'No new words. Save a word from a lesson, the phrase of the day or add one yourself.<br><button type="button" class="te-outline" data-add-word>+ Add word</button>' : 'Nothing here yet.'}</div>`}`;
-  }
-  async function openWords(kind, from) {
-    const ov = sheetShell('Word Bank', from);
-    wordsKind = STATUS[kind] ? kind : 'new';
-    ov.querySelector('.te-sheet-body').addEventListener('click', e => {
-      const t = e.target.closest('[data-wb]');
-      if (t) { wordsKind = t.dataset.wb; drawWords(); return; }
-      if (e.target.closest('[data-wb-review]')) { closeSheet(); review(); return; }
-      if (e.target.closest('[data-add-word]')) { closeSheet(); if (typeof window.openVocabModal === 'function') window.openVocabModal(); }
-    });
-    drawWords();
-    await fetchWords();
-    drawWords();
-  }
   function asButton(el, label, go) {
     if (!el || el.dataset.teGo) return;
     el.dataset.teGo = '1';
@@ -742,12 +678,10 @@
     el.addEventListener('keydown', e => { if (e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); go(el); } });
   }
   function sheets() {
+    // the streak card in the sidebar opens the hub's Progress (it used to open a sheet over the page)
     const st = $('te-streak');
-    if (st && !st.querySelector('.te-more')) st.insertAdjacentHTML('beforeend', '<div class="te-more">See your progress →</div>');
-    asButton(st, 'Open your progress', el => {
-      if (typeof window.closeSidebar === 'function') window.closeSidebar();
-      openSheet('progress', 'Your progress', el);
-    });
+    if (st && !st.querySelector('.te-more')) st.insertAdjacentHTML('beforeend', '<div class="te-more">See your progress \u2192</div>');
+    asButton(st, 'Open your progress', () => { location.href = 'student-hub.html#progress'; });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
     // the phone's bottom tabs show the same panes in place: hand the pane back first
     document.querySelectorAll('.mtab').forEach(t => t.addEventListener('click', closeSheet, true));
@@ -791,7 +725,7 @@
       if (boardList[0]) bal.teacher = boardList[0].teacher_name || '';
     },
     schedule(list) { scheduleList = Array.isArray(list) ? list : []; nextLesson(); },
-    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); loadVault(); if (wordsKind) fetchWords().then(drawWords); },
+    vocab(list) { vocabList = Array.isArray(list) ? list : []; chunk(); loadVault(); },
     vault: loadVault,
     progress(d) { try { store.set('te_progress', JSON.stringify({ streak: d.streak, activity: d.activity, today: d.today })); } catch {} streak(d || {}); },
     streakOnly(n) { streak({ streak: n || 0, activity: [], today: today() }); },

@@ -442,3 +442,7 @@ html body:not(#_) .te-card .te-join.is-off,html body:not(#_) .te-card.is-next .t
 .te-remask button{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-weight:700;font-size:12.5px;font-family:inherit;cursor:pointer}
 .te-remask button[data-rem="yes"]{background:#CDF649;border-color:#CDF649;color:#24282C}
 .te-remask button:focus-visible{outline:2px solid #CDF649;outline-offset:2px}
+
+/* the Word Bank card links into the hub: chips and the main action are anchors now */
+a.te-ws,a.te-wmain{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+a.te-ws{display:grid}
