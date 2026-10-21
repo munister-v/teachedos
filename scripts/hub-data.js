@@ -495,6 +495,32 @@
       const ex = wb.querySelector('.pass16 .pmain > div:nth-of-type(3)'); if (ex) ex.textContent = spot.example ? '“' + spot.example + '”' : '';
       const fr = wb.querySelector('.pass16 .pf b'); if (fr) fr.textContent = spot.from;
     }
+    // adding a word by hand (the old cabinet's Word Bank tab had it; the hub is the one place now)
+    if (!wb.querySelector('#wbAdd')) {
+      const help = wb.querySelector('#obHelp');
+      const add = document.createElement('button'); add.type = 'button'; add.className = 'fchip'; add.id = 'wbAdd'; add.textContent = '+ Add a word';
+      (help ? help.parentNode : wb.querySelector('.controls')).insertBefore(add, help || null);
+      add.addEventListener('click', () => {
+        ensureWrStyle();
+        const ov = document.createElement('div'); ov.className = 'wr-ov';
+        ov.innerHTML = '<div class="wr-pn"><button class="wr-x" aria-label="Close">\u2715</button><div class="wr-k">WORD BANK</div><div class="wr-t">Add a word</div><div class="wr-m">It joins the Departures like any other word. New words board five a day.</div>' +
+          '<div style="display:grid;gap:10px;margin-top:16px"><input id="awW" maxlength="120" placeholder="Word or phrase" style="font:700 16px Manrope,sans-serif;padding:12px 14px;border-radius:14px;border:2px solid rgba(30,34,49,.14)">' +
+          '<input id="awT" maxlength="255" placeholder="Meaning or translation" style="font:600 15px Manrope,sans-serif;padding:12px 14px;border-radius:14px;border:2px solid rgba(30,34,49,.14)">' +
+          '<input id="awE" maxlength="600" placeholder="An example sentence (optional)" style="font:600 15px Manrope,sans-serif;padding:12px 14px;border-radius:14px;border:2px solid rgba(30,34,49,.14)"></div>' +
+          '<div style="margin-top:14px"><button class="wr-btn" id="awGo">Add to my bank</button></div></div>';
+        document.body.appendChild(ov);
+        const close = () => ov.remove();
+        ov.querySelector('.wr-x').onclick = close; ov.onclick = e => { if (e.target === ov) close(); };
+        ov.querySelector('#awW').focus();
+        ov.querySelector('#awGo').onclick = e => {
+          const w = ov.querySelector('#awW').value.trim(); if (!w) return ov.querySelector('#awW').focus();
+          e.target.disabled = true;
+          api('/api/vault/save', { method: 'POST', body: { text: w, meaning: ov.querySelector('#awT').value, example: ov.querySelector('#awE').value, sourceTitle: 'Added by me' } })
+            .then(r => { if (!r.ok) throw new Error(); close(); json('/api/student/wordbank').then(b => { if (!b) return; wordBank(b); if (!b.queue.some(x => x.word.toLowerCase() === w.toLowerCase())) alert('Added. Today\u2019s board already has five new words, so \u201C' + w + '\u201D boards tomorrow.'); }); })
+            .catch(() => { e.target.disabled = false; alert('Could not add the word'); });
+        };
+      });
+    }
     const btn = wb.querySelector('#reviewBtn');
     if (btn) {
       const nb = btn.cloneNode(true); btn.replaceWith(nb);       // drop the design's sample sprint
@@ -502,7 +528,7 @@
       nb.disabled = !fl;
       nb.addEventListener('click', () => sprint());
     }
-    wb.querySelectorAll('.fchip').forEach(c => {
+    wb.querySelectorAll('.fchip[data-f]').forEach(c => {
       const nc = c.cloneNode(true); c.replaceWith(nc);
       nc.addEventListener('click', () => { wbFilter = nc.dataset.f; wb.querySelectorAll('.fchip').forEach(x => x.classList.toggle('on', x === nc)); drawBoard(); });
     });
