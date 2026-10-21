@@ -64,9 +64,10 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .ww-shake{animation:ww-shake .3s ease}
 @keyframes ww-pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 
-/* Экран старта и итогов - поверх сцены, тёмная подложка. */
+/* Экран старта и итогов - поверх сцены. Светлый, как сама игра и её полноэкранный режим:
+   тёмная подложка делала оверлей и fullscreen двумя разными темами (recheck 18.10). */
 .ww-over{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  padding:18px;text-align:center;background:rgba(36,40,44,.9);color:#fff}
+  padding:18px;text-align:center;background:rgba(246,246,239,.97);color:var(--ink)}
 .ww-over[hidden]{display:none}
 .ww-over-kicker{font-weight:700;font-size:20px}
 .ww-over-title{font-weight:800;font-size:clamp(24px,6vw,36px);line-height:1.1;max-width:90%}
@@ -76,8 +77,8 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .ww-over-note{font-weight:600;font-size:17px;line-height:1.35;max-width:420px;opacity:.95}
 .ww-over-score{font-weight:800;font-size:clamp(34px,9vw,54px);line-height:1}
 .ww-over-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
-.ww-over-row button{padding:8px 18px;border:0;border-radius:8px;background:#fff;color:var(--ink);font-weight:800;font-size:16px}
-.ww-over-row button.primary{background:var(--lime)}
+.ww-over-row button{padding:8px 18px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-weight:800;font-size:16px}
+.ww-over-row button.primary{background:var(--lime);border-color:transparent}
 
 .ww-menu{position:absolute;left:12px;bottom:56px;z-index:70;display:flex;flex-direction:column;min-width:170px;padding:6px;border:1px solid rgba(36,40,44,.16);border-radius:10px;background:#fff;box-shadow:0 8px 20px rgba(36,40,44,.2)}
 .ww-menu[hidden]{display:none}

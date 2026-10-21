@@ -349,3 +349,6 @@ html:not(#lb1):not(#lb2):not(#lb3):not(#lb4):not(#lb5):not(#lb6):not(#lb7):not(#
 .tb-genre-auto{margin-top:6px;font-size:12px;font-weight:600;color:#5E6473;line-height:1.4}
 .tb-genre-auto b{color:#0B1026;font-weight:800}
 .tb-genre-auto button{margin-left:6px;background:none;border:0;padding:0;font:inherit;font-weight:800;color:#0B1026;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+#tool-builder-panel .lb-build-cancel{margin-left:10px;border:1.5px solid rgba(11,16,38,.16);border-radius:999px;background:#fff;color:#0B1026;font:700 12px 'LB Manrope',Manrope,sans-serif;padding:4px 14px;cursor:pointer}
+#tool-builder-panel .lb-build-cancel:hover{background:#F2F3F6}

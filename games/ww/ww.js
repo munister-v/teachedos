@@ -194,6 +194,12 @@
     mRestart.onclick = function () { menu.hidden = true; api.showStart(); };
     function fs() { var d = document.documentElement; try { if (document.fullscreenElement) document.exitFullscreen(); else if (d.requestFullscreen) d.requestFullscreen(); } catch (e) {} }
     fullBtn.onclick = fs; mFull.onclick = function () { menu.hidden = true; fs(); };
+    /* Esc: in full screen the browser leaves it by itself; otherwise the game sits in an iframe inside
+       the board's card view, which never hears the key - tell it, so Esc closes the view (see iw-escape). */
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || document.fullscreenElement) return;
+      try { window.parent.postMessage({ type: 'iw-escape' }, '*'); } catch (err) {}
+    });
     if (mBack) mBack.onclick = function () {
       /* Идём по точному адресу доски из referrer - он несёт её id. history.back
          сюда не годится: доска сама пишет записи истории, и шаг назад уводил

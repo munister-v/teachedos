@@ -17293,7 +17293,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1254';
+const TEACHEDOS_ASSET_VERSION = '1256';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -17956,6 +17956,53 @@ function onBoardWorkoutPickChange() {
   }
 }
 
+/* A long build says where it is, for how long, and can be stopped or tried again
+   (recheck 18.10: one static line for 15 minutes, no way out). Stages are named,
+   the bar moves with them, the clock runs, Cancel stops the wait at once. */
+let _wwRun = null;
+function _wwStart(chipId) {
+  _wwStop();
+  _wwRun = { ctl: new AbortController(), t0: Date.now(), timer: null, cancelled: false };
+  _wwRun.timer = setInterval(() => {
+    const el = document.getElementById('ww-elapsed');
+    if (el) el.textContent = Math.round((Date.now() - _wwRun.t0) / 1000) + ' s';
+  }, 1000);
+  return _wwRun;
+}
+function _wwStop() { if (_wwRun && _wwRun.timer) clearInterval(_wwRun.timer); }
+function _wwCancel() { if (_wwRun) { _wwRun.cancelled = true; _wwRun.ctl.abort(); } }
+/* The wait ends when the user cancels, whatever the request is doing. */
+function _wwRace(run, promise) {
+  return Promise.race([promise, new Promise((_, reject) => {
+    if (run.ctl.signal.aborted) reject(new Error('cancelled'));
+    run.ctl.signal.addEventListener('abort', () => reject(new Error('cancelled')), { once: true });
+  })]);
+}
+function _wwPaint(titles, i, detail) {
+  const body = document.getElementById('tbuilder-output');
+  const chip = document.getElementById('tbuilder-chip');
+  if (chip) chip.textContent = `step ${i + 1} of ${titles.length}`;
+  if (!body) return;
+  const steps = titles.map((_, k) => `<span class="lb-step${k < i ? ' done' : k === i ? ' now' : ''}">${k < i ? '✓' : k + 1}</span>`).join('<span class="lb-step-line"></span>');
+  const secs = _wwRun ? Math.round((Date.now() - _wwRun.t0) / 1000) : 0;
+  body.innerHTML = `<div class="lb-build" aria-live="polite">
+    <div class="lb-build-top"><span class="lb-build-pill"><i></i>${esc(titles[i])} · ${i + 1} of ${titles.length}</span></div>
+    <div class="lb-build-bar"><i style="width:${Math.round((i / titles.length) * 100)}%"></i></div>
+    <div class="lb-steps">${steps}</div>
+    <div class="lb-build-now"><div class="lb-build-ttl"><b>${esc(detail)}</b><span>Working…</span></div></div>
+    <p class="lb-build-note"><span id="ww-elapsed">${secs} s</span> · A slow step is skipped on its own after a while.
+      <button type="button" class="lb-build-cancel" onclick="_wwCancel()">Cancel</button></p>
+  </div>`;
+}
+function _wwStopped(why, retryFn) {
+  _wwStop();
+  if (typeof _ttSetGenerating === 'function') _ttSetGenerating(false);
+  const body = document.getElementById('tbuilder-output');
+  const chip = document.getElementById('tbuilder-chip');
+  if (chip) chip.textContent = 'stopped';
+  if (body) body.innerHTML = `<div class="tbuilder-empty">${esc(why)}<br><button type="button" class="lb-build-cancel" onclick="${retryFn}()">Try again</button></div>`;
+}
+
 /* Прогон набора. Активности идут последовательно, а не Promise.all: серверные
    вызовы делят одну квоту, и веер из пяти запросов упирался бы в неё разом. */
 async function runBoardWorkout() {
@@ -17991,8 +18038,9 @@ async function runBoardWorkout() {
      пояснения давало пустую пару: «Match» с пустой правой колонкой, а
      флешкарты без значений превращались в Hangman. Пояснение учителя
      остаётся главным, словарь и движок добирают только недостающее. */
-  if (chip) chip.textContent = 'looking up meanings…';
-  if (body) body.innerHTML = `<div class="tbuilder-empty">Looking up meanings for ${entries.length} words…</div>`;
+  const run = _wwStart();
+  const STAGES = ['Meanings', 'Context sentences'];
+  _wwPaint(STAGES, 0, `Looking up meanings for ${entries.length} words`);
   /* Словарь спрашиваем обо ВСЁМ списке: кроме значения он отдаёт пример,
      и из примера получается настоящее предложение с пропуском для «Example
      sentences». Движок же добирает значения только тем словам, у которых
@@ -18000,7 +18048,9 @@ async function runBoardWorkout() {
   const missing = entries.filter(e => !e.gloss).map(e => e.word);
   const examples = Object.create(null);
   const info = Object.create(null);
-  const found = await _ttLookupDefinitions(entries.map(e => e.word), base, { examples, defsFor: missing, info });
+  let found;
+  try { found = await _wwRace(run, _ttLookupDefinitions(entries.map(e => e.word), base, { examples, defsFor: missing, info })); }
+  catch (err) { return _wwStopped('Stopped. Nothing was added to the board.', 'runBoardWorkout'); }
   entries.forEach(e => {
     const k = e.word.toLowerCase();
     /* Whose meaning it is is decided BEFORE the dictionary fills the gaps. It used to be read after
@@ -18019,9 +18069,11 @@ async function runBoardWorkout() {
     e.pos = e.pos || inf.pos || null; // позначка вчителя «(n)» точніша за словник
     e.fromTeacher = teacherOwn;
   });
-  if (chip) chip.textContent = 'writing context sentences…';
-  if (body) body.innerHTML = `<div class="tbuilder-empty">Writing context sentences, chunks and speaking tasks for ${entries.length} words…</div>`;
-  const rich = await _ttEnrichEntries(entries, base);
+  _wwPaint(STAGES, 1, `Writing context sentences, chunks and speaking tasks for ${entries.length} words`);
+  let rich;
+  try { rich = await _wwRace(run, _ttEnrichEntries(entries, base)); }
+  catch (err) { return _wwStopped('Stopped. Nothing was added to the board.', 'runBoardWorkout'); }
+  _wwStop();
   if (rich && rich.theme) base.theme = rich.theme;
   base.rawVocab = base.rawVocab || base.vocab;
   base.count = entries.length;
@@ -18420,13 +18472,16 @@ async function commitWordWorkout() {
   /* Шаблоны-игры собираются прямо из списка, без генератора задания:
      значения и примеры уже есть, ни одно слово не теряется по дороге. */
   const tpls = boardWordTemplates().filter(t => r.tplKeys.includes(t.key));
+  const acts = boardWorkoutActivities().filter(a => keys.includes(a.key));
+  const run = _wwStart();
+  const titles = [...tpls.map(t => t.title), ...acts.map(a => a.title)];
   const tplBuilt = [];
   const tplNotes = [];
   const ctx = { base, entries, examples };
   for (let i = 0; i < tpls.length; i++) {
     const t = tpls[i];
-    if (chip) chip.textContent = `game ${i + 1} of ${tpls.length}…`;
-    if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(t.title)}” — ${i + 1} of ${tpls.length}.</div>`;
+    if (run.cancelled) return _wwStopped('Stopped. Nothing was added to the board.', 'commitWordWorkout');
+    _wwPaint(titles, i, `Building the game “${t.title}”`);
     let res = null;
     try { res = await _wordTemplateContent(t, ctx); }
     catch (err) { console.warn('[workout] template failed', t.key, err); }
@@ -18438,16 +18493,13 @@ async function commitWordWorkout() {
     }
   }
 
-  const acts = boardWorkoutActivities().filter(a => keys.includes(a.key));
   const built = [];
   const failed = [];
 
   for (let i = 0; i < acts.length; i++) {
     const a = acts[i];
-    if (chip) chip.textContent = `building ${i + 1} of ${acts.length}…`;
-    /* Без <strong>: в .tbuilder-empty этот тег занят под слот иконки и скрыт
-       правилом display:none - название активности внутри него пропадало. */
-    if (body) body.innerHTML = `<div class="tbuilder-empty">Building “${esc(a.title)}” — ${i + 1} of ${acts.length}.</div>`;
+    if (run.cancelled) return _wwStopped('Stopped. Nothing was added to the board.', 'commitWordWorkout');
+    _wwPaint(titles, tpls.length + i, `Building the task “${a.title}”`);
     /* Язык перевода едет как «teacher note» - тот же канал input.extra, который
        читает промт на бекенде. Без него модель по умолчанию уходит в
        украинский, и выбор в поле ни на что бы не влиял. */
@@ -18458,7 +18510,7 @@ async function commitWordWorkout() {
     }
     let out = null;
     try {
-      out = a.ai ? await requestServerTeacherTool(input, 25000)
+      out = a.ai ? await requestServerTeacherTool(input, 25000, run.ctl.signal)
                  : generateTeacherToolLocal(input);
     } catch (err) {
       console.warn('[workout] activity failed', a.key, err);
@@ -18467,12 +18519,14 @@ async function commitWordWorkout() {
     else failed.push(a.title);
   }
 
+  _wwStop();
+  if (run.cancelled) return _wwStopped('Stopped. Nothing was added to the board.', 'commitWordWorkout');
   _ttSetGenerating(false);
 
   const total = built.length + tplBuilt.length;
   if (!total) {
     if (chip) chip.textContent = 'nothing built';
-    if (body) body.innerHTML = `<div class="tbuilder-empty">Nothing could be built from this list.${tplNotes.length ? `<br><span style="opacity:.7">${esc(tplNotes.join(' · '))}</span>` : ''}<br>AI tasks need you to be signed in.</div>`;
+    if (body) body.innerHTML = `<div class="tbuilder-empty">Nothing could be built from this list.${tplNotes.length ? `<br><span style="opacity:.7">${esc(tplNotes.join(' · '))}</span>` : ''}<br>AI tasks need you to be signed in.<br><button type="button" class="lb-build-cancel" onclick="commitWordWorkout()">Try again</button></div>`;
     return;
   }
 
@@ -24547,7 +24601,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1254',
+          icon: 'icons/icon-192.png?v=1256',
           tag: 'board-live-' + s.id,
         });
       }
