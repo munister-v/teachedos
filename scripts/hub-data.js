@@ -713,10 +713,15 @@
     const duelHtml = '<section class="panel"><div class="ptitle">DUELS<span class="pxart" data-art="swords" data-color="#1E2231" data-px="2"></span></div>' +
       (shown.length ? shown.map(block).join('') : '<div class="dnote">No duels yet. Throw one — the winner takes the bank.</div>') +
       '<button class="throw" id="throwBtn"' + (h.classmates.length ? '' : ' disabled') + '>Throw a duel <span>→</span></button><div class="dnote">' +
-      (h.classmates.length ? 'Seed sets are built from words you both have — nobody brings outside words.' : 'Duels open when your teacher puts classmates in your class.') + '</div></section>';
-    cols.innerHTML = sprintHtml + duelHtml;
+      (h.classmates.length ? 'Seed sets are built from words you both have — nobody brings outside words.' : 'Invite a friend below, and the first duel is one tap away.') + '</div></section>';
+    cols.innerHTML = sprintHtml + duelHtml + '<section class="panel" id="frPanel"><div class="ptitle">FRIENDS</div><div class="dnote">Loading…</div></section>';
+    friendsPanel(cols.querySelector('#frPanel'));
     cols.onclick = e => {
       const t = e.target.closest('button'); if (!t) return;
+      if (t.dataset.frDuel) return throwSheet(t.dataset.frDuel);
+      if (t.dataset.frCopy) return shareLink(location.origin + '/' + t.dataset.frCopy.replace(/^\//, ''), 'Learn English with me on TeachEd');
+      if (t.dataset.frSet) return shareSet();
+      if (t.dataset.frOff) return frApi('/' + encodeURIComponent(t.dataset.frOff), 'DELETE').then(() => reloadChallenges());
       if (t.dataset.play) return playDuel(t.dataset.play);
       if (t.dataset.later) { laterIds.add(t.dataset.later); return challenges(CH); }
       if (t.dataset.decline) return chApi('/duels/' + encodeURIComponent(t.dataset.decline) + '/decline', 'POST').then(reloadChallenges);
@@ -747,7 +752,8 @@
         const rep = (id, fn) => { const el = pop.querySelector(id); if (!el) return; const n = el.cloneNode(true); el.replaceWith(n); n.onclick = fn; };
         rep('#dpAccept', () => { pop.classList.remove('open'); pop.style.display = 'none'; playDuel(inc.id); });
         rep('#dpLater', () => { laterIds.add(inc.id); pop.classList.remove('open'); pop.style.display = 'none'; });
-        rep('#dpX', () => { laterIds.add(inc.id); pop.classList.remove('open'); pop.style.display = 'none'; });
+        // X closes this invitation for good (it used to come back on every visit)
+        rep('#dpX', () => { laterIds.add(inc.id); pop.classList.remove('open'); pop.style.display = 'none'; chApi('/duels/' + encodeURIComponent(inc.id) + '/close', 'POST').then(reloadChallenges); });
         rep('#dpOff', () => chApi('/settings', 'PUT', { duel_invites: false }).then(() => { pop.classList.remove('open'); pop.style.display = 'none'; alert('Duel invites are off. You can turn them on again from this screen.'); }));
       }
     }
@@ -759,11 +765,58 @@
       }
     });
   }
-  function throwSheet() {
+  /* Friends (island §3): a personal link, the friends with the streak they keep together, a duel in one tap. */
+  const frApi = (path, method, body) => api('/api/friends' + path, { method: method || 'GET', body }).then(r => r.json().then(d => ({ ok: r.ok, d }))).catch(() => ({ ok: false, d: { error: 'Network error' } }));
+  function shareLink(url, text) {
+    if (navigator.share) return navigator.share({ title: 'TeachEd', text, url }).catch(() => {});
+    const done = () => alert('Link copied - send it to a friend:\n' + url);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => prompt('Copy this link:', url)); else prompt('Copy this link:', url);
+  }
+  function friendsPanel(el) {
+    if (!el) return;
+    if (!document.getElementById('frStyle')) { const st = document.createElement('style'); st.id = 'frStyle'; st.textContent = '.ghostbtn{margin-left:8px;border:1.5px solid rgba(30,34,49,.16);background:transparent;color:inherit;border-radius:99px;padding:7px 13px;font:800 12.5px Manrope,sans-serif;cursor:pointer}.ghostbtn:hover{background:rgba(30,34,49,.06)}#frPanel .db{display:flex;align-items:center;gap:10px}#frPanel .who{flex:1;min-width:0}'; document.head.appendChild(st); }
+    frApi('/').then(r => {
+      if (!r.ok) { el.querySelector('.dnote').textContent = 'Friends could not load. Try again in a moment.'; return; }
+      const { invite, friends } = r.d;
+      const row = f => {
+        const sh = f.shared, both = sh.today_me && sh.today_them;
+        const line = sh.streak ? '🔥 ' + sh.streak + ' day' + (sh.streak === 1 ? '' : 's') + ' together' + (both ? ' · today is done' : sh.today_me ? ' · waiting for ' + f.name : ' · you both need today')
+          : 'No shared streak yet — a day counts when you both do something';
+        return '<div class="duel"><div class="db"><span class="ava" style="background:' + AVA[f.name.length % 4] + '">' + esc2(ini(f.name)) + '</span><div class="who"><b>' + esc2(f.name) + (f.level ? ' · ' + esc2(f.level) : '') + '</b><span>' + esc2(f.xp + ' points · ' + line) + '</span></div>' +
+          '<button class="ghostbtn" data-fr-duel="' + esc2(f.id) + '">Duel</button><button class="ghostbtn" data-fr-off="' + esc2(f.id) + '" title="Remove from friends" aria-label="Remove ' + esc2(f.name) + ' from friends">✕</button></div></div>';
+      };
+      el.innerHTML = '<div class="ptitle">FRIENDS</div>' + (friends.length ? friends.map(row).join('') : '<div class="dnote">Learn with someone: a shared streak, duels with your own words, sets you swap. Friends only ever see points, streak and what you share.</div>') +
+        '<button class="throw" data-fr-copy="' + esc2(invite.path) + '">Invite a friend <span>→</span></button><button class="throw" data-fr-set="1" style="margin-top:8px">Share a word set <span>→</span></button>' +
+        '<div class="dnote">Your link works for anyone — they get a free account and land in your friends.' + (invite.uses ? ' ' + plural(invite.uses, 'friend') + ' joined with it.' : '') + '</div>';
+    });
+  }
+  function shareSet() {
+    const title = (prompt('Name this word set:', 'My new words') || '').trim();
+    if (!title) return;
+    frApi('/share', 'POST', { kind: 'set', title }).then(r => {
+      if (!r.ok) return alert(r.d.error || 'Could not make the link');
+      shareLink(location.origin + r.d.path, 'A word set: ' + title);
+    });
+  }
+  function shareProgress(btn) {
+    btn.disabled = true;
+    frApi('/share', 'POST', { kind: 'progress' }).then(r => {
+      btn.disabled = false;
+      if (!r.ok) return alert(r.d.error || 'Could not make the link');
+      shareLink(location.origin + r.d.path, 'My English progress on TeachEd');
+    });
+  }
+  (function wireShare() {
+    const b = document.getElementById('shareBtn'); if (!b) return;
+    const n = b.cloneNode(true); b.replaceWith(n);
+    n.addEventListener('click', () => shareProgress(n));
+  })();
+  function throwSheet(pre) {
     if (!CH || !CH.classmates.length) return;
-    let opp = CH.classmates[0].id, game = CH.games[0].key;
+    if (pre && !CH.classmates.some(m => String(m.id) === String(pre))) pre = null;
+    let opp = pre || CH.classmates[0].id, game = CH.games[0].key;
     const w = chSheet('<h3>Throw a duel</h3><p class="ssub">Pick a classmate and a game. Same words for both — fair fight.</p>' +
-      '<div class="ptitle" style="margin-top:20px">OPPONENT</div><div class="optrow" id="oppRow">' + CH.classmates.map((m, i) => '<button class="opt' + (i ? '' : ' sel') + '" data-o="' + esc2(m.id) + '"><span class="ava" style="background:' + AVA[i % 4] + '">' + esc2(ini(m.name)) + '</span>' + esc2(m.name) + ' <small>' + esc2(m.level) + '</small></button>').join('') + '</div>' +
+      '<div class="ptitle" style="margin-top:20px">OPPONENT</div><div class="optrow" id="oppRow">' + CH.classmates.map((m, i) => '<button class="opt' + ((pre ? String(m.id) === String(pre) : !i) ? ' sel' : '') + '" data-o="' + esc2(m.id) + '"><span class="ava" style="background:' + AVA[i % 4] + '">' + esc2(ini(m.name)) + '</span>' + esc2(m.name) + ' <small>' + esc2(m.level) + '</small></button>').join('') + '</div>' +
       '<div class="ptitle" style="margin-top:20px">GAME</div><div class="optrow" id="gameRow">' + CH.games.map((g, i) => '<button class="opt' + (i ? '' : ' sel') + '" data-g="' + esc2(g.key) + '" title="' + esc2(g.how) + '">' + esc2(g.label) + '</button>').join('') + '</div>' +
       '<p class="ssub" id="gameHow">' + esc2(CH.games[0].how) + '</p><button class="send" id="sendDuel">Send challenge</button>');
     if (!w) return;
@@ -1219,7 +1272,7 @@
 
   /* #today, #watch, #wordbank, #challenges, #progress open that screen (the cabinet links here) */
   (function () {
-    const at = { today: 0, watch: 1, watchread: 1, wordbank: 2, challenges: 3, progress: 4 }[String(location.hash || '').slice(1).toLowerCase()];
+    const at = { today: 0, watch: 1, watchread: 1, wordbank: 2, challenges: 3, friends: 3, progress: 4 }[String(location.hash || '').slice(1).toLowerCase()];
     if (at != null && at > 0) setTimeout(() => goTo(at), 150);
   })();
   const pProgress = json('/api/student/progress');

@@ -1791,3 +1791,31 @@ CREATE TABLE IF NOT EXISTS hub_feed_scores (
   score    INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id, interest)
 );
+
+-- Student hub island §3: friends by invitation only (no open catalogue), shared links for sets and progress.
+CREATE TABLE IF NOT EXISTS friend_invites (
+  code       VARCHAR(12) PRIMARY KEY,
+  inviter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  uses       INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_friend_invites_inviter ON friend_invites(inviter_id);
+CREATE TABLE IF NOT EXISTS friendships (
+  a_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  b_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,   -- a_id < b_id, always
+  via_code   VARCHAR(12),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (a_id, b_id),
+  CHECK (a_id < b_id)
+);
+CREATE INDEX IF NOT EXISTS idx_friendships_b ON friendships(b_id);
+CREATE TABLE IF NOT EXISTS hub_shares (
+  token      VARCHAR(16) PRIMARY KEY,
+  owner_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       VARCHAR(10) NOT NULL,                     -- set | progress
+  payload    JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_hub_shares_owner ON hub_shares(owner_id, created_at DESC);
+-- A duel invite closed with one tap is closed for good.
+ALTER TABLE duels ADD COLUMN IF NOT EXISTS hidden_for UUID[] NOT NULL DEFAULT '{}';

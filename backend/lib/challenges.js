@@ -5,6 +5,7 @@
 const xp = require('./xp');
 const duel = require('./duel');
 const { computeStreak } = require('./streak');
+const friends = require('./friends');
 
 const SPRINT_GOAL = 500;
 const TODAY_BONUS = 1.5;
@@ -31,14 +32,21 @@ async function classmates(db, userId) {
        JOIN student_journal j2 ON j2.teacher_id = j.teacher_id AND j2.student_id IS NOT NULL AND j2.student_id <> j.student_id
        JOIN users u ON u.id = j2.student_id
       WHERE j.student_id = $1 GROUP BY u.id, u.name`, [userId]);
-  return rows.map(r => ({ id: r.id, name: firstName(r.name), level: r.level || '' }));
+  const mates = rows.map(r => ({ id: r.id, name: firstName(r.name), level: r.level || '' }));
+  // friends by invitation are opponents too, in class or not
+  const { rows: fr } = await db.query(
+    `SELECT u.id, u.name, (SELECT level FROM student_dna d WHERE d.user_id = u.id) AS level
+       FROM friendships f JOIN users u ON u.id = CASE WHEN f.a_id = $1 THEN f.b_id ELSE f.a_id END WHERE f.a_id = $1 OR f.b_id = $1`, [userId]);
+  const seen = new Set(mates.map(m => String(m.id)));
+  fr.forEach(r => { if (!seen.has(String(r.id))) mates.push({ id: r.id, name: firstName(r.name), level: r.level || '', friend: true }); });
+  return mates;
 }
 
 async function isClassmate(db, a, b) {
   const { rows } = await db.query(
     `SELECT 1 FROM student_journal j JOIN student_journal j2 ON j2.teacher_id = j.teacher_id
       WHERE j.student_id = $1 AND j2.student_id = $2 LIMIT 1`, [a, b]);
-  return rows.length > 0;
+  return rows.length > 0 || await friends.areFriends(db, a, b);
 }
 
 /* The challenge a teacher set for today, for the first of the student's teachers who set one. */
@@ -111,7 +119,7 @@ async function poolFor(db, a, b) {
 async function createDuel(db, user, opponentId, game, rematchOf = null) {
   if (!duel.GAMES[game]) return { error: 'Unknown game', status: 400 };
   if (String(opponentId) === String(user.id)) return { error: 'Pick a classmate', status: 400 };
-  if (!(await isClassmate(db, user.id, opponentId))) return { error: 'You can only duel classmates from your teacher', status: 403 };
+  if (!(await isClassmate(db, user.id, opponentId))) return { error: 'You can only duel your classmates and friends', status: 403 };
   const { rows: [opp] } = await db.query('SELECT duel_invites FROM users WHERE id = $1', [opponentId]);
   if (!opp) return { error: 'Not found', status: 404 };
   if (opp.duel_invites === false) return { error: 'This classmate has turned duel invites off', status: 403 };
@@ -176,7 +184,8 @@ async function listDuels(db, userId) {
             d.winner_id, d.shared_words, d.expires_at, d.finished_at, d.created_at, jsonb_array_length(d.questions) AS total,
             cu.name AS cname, ou.name AS oname
        FROM duels d JOIN users cu ON cu.id = d.challenger_id JOIN users ou ON ou.id = d.opponent_id
-      WHERE (d.challenger_id = $1 OR d.opponent_id = $1) AND (d.status IN ('pending','active') OR d.finished_at > NOW() - INTERVAL '3 days')
+      WHERE (d.challenger_id = $1 OR d.opponent_id = $1) AND d.status <> 'declined' AND NOT ($1 = ANY(d.hidden_for))
+        AND (d.status IN ('pending','active') OR d.finished_at > NOW() - INTERVAL '3 days')
       ORDER BY d.created_at DESC LIMIT 12`, [userId]);
   return rows.map(r => {
     const mine = r.challenger_id === userId ? 'challenger' : 'opponent', theirs = mine === 'challenger' ? 'opponent' : 'challenger';
@@ -230,4 +239,13 @@ async function badges(db, userId) {
   return BADGES.map(b => ({ key: b.key, title: got.has(b.key) || !b.secret ? b.title : 'Secret', hint: got.has(b.key) || !b.secret ? b.hint : '???', earned: got.has(b.key), at: got.get(b.key) || null }));
 }
 
-module.exports = { classmates, isClassmate, todaysChallenge, completeChallenge, sprint, createDuel, submitDuel, listDuels, settleExpired, finishDuel, evaluateBadges, badges, BADGES, SPRINT_GOAL, TODAY_BONUS, tzOf, dayIn, firstName };
+/* "Close" on a duel invite: it is declined and gone from this student's list for good, with one tap */
+async function closeDuel(db, user, id) {
+  const { rows: [d] } = await db.query('SELECT * FROM duels WHERE id::text = $1 AND (challenger_id = $2 OR opponent_id = $2)', [String(id), user.id]);
+  if (!d) return { error: 'Not found', status: 404 };
+  if (d.status === 'pending' && d.opponent_id === user.id && d.challenger_score == null) await db.query("UPDATE duels SET status = 'declined', finished_at = NOW() WHERE id = $1", [d.id]);
+  await db.query('UPDATE duels SET hidden_for = array_append(hidden_for, $2::uuid) WHERE id = $1 AND NOT ($2::uuid = ANY(hidden_for))', [d.id, user.id]);
+  return { ok: true };
+}
+
+module.exports = { closeDuel, classmates, isClassmate, todaysChallenge, completeChallenge, sprint, createDuel, submitDuel, listDuels, settleExpired, finishDuel, evaluateBadges, badges, BADGES, SPRINT_GOAL, TODAY_BONUS, tzOf, dayIn, firstName };

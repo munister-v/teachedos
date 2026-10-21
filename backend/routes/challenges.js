@@ -99,6 +99,13 @@ router.post('/duels/:id/decline', requireAuth, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
+router.post('/duels/:id/close', requireAuth, wrap(async (req, res) => {
+  if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Not found' });
+  const out = await ch.closeDuel(pool, req.user, req.params.id);
+  if (out.error) return fail(res, out);
+  res.json(out);
+}));
+
 router.post('/duels/:id/rematch', requireAuth, wrap(async (req, res) => {
   if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Not found' });
   const { rows: [d] } = await pool.query(`SELECT * FROM duels WHERE id = $1 AND status = 'finished' AND (challenger_id = $2 OR opponent_id = $2)`, [req.params.id, req.user.id]);
