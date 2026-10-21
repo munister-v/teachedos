@@ -24,14 +24,14 @@
   const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const LEVEL_SITUATIONS = [
-    { level: 'A2', dot: '🟢', title: 'A1–A2', text: 'I can explain simple things, but speaking is hard.' },
-    { level: 'B1', dot: '🟡', title: 'B1–B2', text: 'I get the main idea, but mix up words and grammar when I speak.' },
-    { level: 'C1', dot: '🔵', title: 'C1–C2', text: 'I speak freely and want to polish small mistakes and grow my vocabulary.' },
+    { level: 'A2', dot: '<i class="so-dot" style="background:#D3F26A"></i>', title: 'A1–A2', text: 'I can explain simple things, but speaking is hard.' },
+    { level: 'B1', dot: '<i class="so-dot" style="background:#2DD4BF"></i>', title: 'B1–B2', text: 'I get the main idea, but mix up words and grammar when I speak.' },
+    { level: 'C1', dot: '<i class="so-dot" style="background:#8B7CFF"></i>', title: 'C1–C2', text: 'I speak freely and want to polish small mistakes and grow my vocabulary.' },
   ];
   const DAILY = [
-    { m: 1, emoji: '⚡', title: '1 minute a day', text: 'One Smart Sprint' },
-    { m: 5, emoji: '☕', title: '5 minutes a day', text: 'A sprint and a few new words' },
-    { m: 15, emoji: '🎯', title: '15 minutes a day', text: 'Sprint, reading and practice' },
+    { m: 1, emoji: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 2 5 13.5h6L10 22l9-12h-6.3z"/></svg>', title: '1 minute a day', text: 'One Smart Sprint' },
+    { m: 5, emoji: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>', title: '5 minutes a day', text: 'A sprint and a few new words' },
+    { m: 15, emoji: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>', title: '15 minutes a day', text: 'Sprint, reading and practice' },
   ];
 
   function css() {
@@ -55,7 +55,8 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-plate:hover{border-color:rgba(36,40,44,.4)}
 .so-plate:active{transform:scale(.98)}
 .so-plate.on{border-color:#24282C;background:#F4F9DD;box-shadow:inset 0 0 0 1px #24282C}
-.so-plate .e{font-size:24px;flex:none;width:30px;text-align:center}
+.so-plate .e{font-size:24px;flex:none;width:30px;display:grid;place-items:center;color:#24282C}
+.so-dot{display:block;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(30,34,49,.25)}
 .so-plate b{display:block;font-size:14.5px;font-weight:650}
 .so-plate small{display:block;font-size:12.5px;color:#5D614B;margin-top:2px;line-height:1.35}
 .so-chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -83,7 +84,7 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-tip-nav button{margin-left:auto;height:38px;padding:0 16px;border:0;border-radius:12px;background:#24282C;color:#fff;font-weight:650;font-size:13.5px;font-family:inherit;cursor:pointer}
 /* first win */
 .so-win{text-align:center}
-.so-win .so-flame{font-size:56px;line-height:1;margin:6px 0 10px;filter:drop-shadow(0 8px 24px rgba(205,246,73,.6))}
+.so-win .so-flame{font-size:56px;line-height:1;margin:6px 0 10px;color:#D3F26A;display:grid;place-items:center;filter:drop-shadow(0 8px 24px rgba(205,246,73,.6))}
 .so-win .so-next{margin:0 auto;display:inline-flex;align-items:center;gap:8px}
 .so-win .so-skip{display:block;margin:8px auto 0}
 /* the Day 1 flash on the streak */
@@ -155,7 +156,7 @@ ${REDUCED ? '.so-hole,.so-tip{transition:none}.so-day1{animation:none}' : ''}`;
           <h2>Which sounds like you?</h2>
           <p class="so-sub">No test - just pick the situation that fits best.</p>
           <div class="so-plates one">${LEVEL_SITUATIONS.map(l => `<button type="button" class="so-plate${st.level === l.level ? ' on' : ''}" data-lvl="${l.level}"><span class="e">${l.dot}</span><span><b>${l.title}</b><small>${esc(l.text)}</small></span></button>`).join('')}
-          <button type="button" class="so-plate${st.level === '' ? ' on' : ''}" data-lvl=""><span class="e">🤔</span><span><b>Not sure</b><small>My teacher will decide after the first lesson.</small></span></button></div>`;
+          <button type="button" class="so-plate${st.level === '' ? ' on' : ''}" data-lvl=""><span class="e"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 17h.01"/></svg></span><span><b>Not sure</b><small>My teacher will decide after the first lesson.</small></span></button></div>`;
       };
       const draw = () => {
         const last = i === STEPS.length - 1;
@@ -248,10 +249,10 @@ ${REDUCED ? '.so-hole,.so-tip{transition:none}.so-day1{animation:none}' : ''}`;
     const ov = document.createElement('div');
     ov.className = 'so-ov';
     ov.innerHTML = `<div class="so-card so-win" role="dialog" aria-modal="true" aria-label="Your first day">
-      <div class="so-flame" aria-hidden="true">🔥</div>
+      <div class="so-flame" aria-hidden="true"><svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 2 5 13.5h6L10 22l9-12h-6.3z" fill="currentColor"/></svg></div>
       <h2>Let's light up your first day!</h2>
       <p class="so-sub">We picked five easy phrases from your interests. One timed minute - and your streak starts today.</p>
-      <button type="button" class="so-next lime" data-go>⚡ Start my first 1-min Sprint</button>
+      <button type="button" class="so-next lime" data-go>Start my first 1-min Sprint</button>
       <div class="so-err" id="so-err"></div>
       <button type="button" class="so-skip" data-later>Maybe later</button></div>`;
     const close = () => ov.remove();
