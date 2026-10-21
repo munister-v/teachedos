@@ -84,47 +84,64 @@
       <rect x='26' y='16' width='8' height='38' fill='#F4C542'/><path d='M30 16Q18 2 14 12Q12 18 30 16Q42 18 46 12Q42 2 30 16Z' fill='#F4C542' stroke='#C9981C'/></svg>`),
   };
 
+  // The eight Vocabulary Studio skins (skins-cards-v46): each is a painting (img/themes/skins/<id>.webp) with the same
+  // token set as every theme; panels stay light/readable, the painting only shows around them.
+  const skin = (id, name, hint, t) => ({ id, name, ic: t.icon, hint, photo: true, fontCase: 'none',
+    font: "'Manrope',system-ui,sans-serif", ifFont: "'Manrope',system-ui,sans-serif",
+    glow: `0 0 0 1px ${t.line}66, 0 16px 36px -16px rgba(0,0,0,.65)`,
+    ...t,
+    bg: `linear-gradient(rgba(8,10,16,.22), rgba(8,10,16,.22)), url('/img/themes/skins/${id}.webp') center / cover no-repeat, ${t.bg}`,
+    boardExtra: T => `
+${T} .wp-stage,${T} .wp-game,.lf${T} .lf-bg{background-size:cover;background-position:center}`,
+    gameExtra: HI => `
+${HI}{background-size:cover !important;background-position:center !important}` });
+
   const THEMES = [
     { id: '', name: 'Standard', ic: '◻️', hint: 'The clean TeachEd look' },
-    { id: 'space', name: 'Space Mission', ic: '🚀', hint: 'Deep space, glowing capsules',
-      bg: `${PAT.stars}, radial-gradient(ellipse at 15% 0%, rgba(92,98,255,.45), transparent 55%), radial-gradient(ellipse at 95% 100%, rgba(150,70,255,.35), transparent 50%), #0B1030`,
-      head: '#0E1440', headInk: '#EAF0FF', headMuted: '#A7B2E0', surface: '#F2F6FF', paper: '#E8EFFF',
-      line: 'rgba(124,247,255,.55)', glow: '0 0 0 1px rgba(124,247,255,.28), 0 0 26px rgba(124,247,255,.2)',
-      accent: '#7CF7FF', accentInk: '#06121F', ink: '#101838', muted: '#46527F',
-      font: "'Oswald','Arial Narrow',sans-serif", fontCase: 'uppercase', icon: '★', ifFont: "'Arial Narrow',Arial,sans-serif" },
-    { id: 'gothic', name: 'Gothic Academy', ic: '🦇', hint: 'Dark mystery, parchment and stone',
+    skin('space', 'Space Mission', 'Deep space, glowing capsules', {
+      bg: '#0B1F33', head: '#0B1F33', headInk: '#EAF6FF', headMuted: '#9CC4DE', surface: '#EAF6FF', paper: '#DCEEFA',
+      line: '#7ED3FF', accent: '#7ED3FF', accentInk: '#06121F', ink: '#0B2236', muted: '#3F6179', icon: '★' }),
+    skin('winter', 'Winter Village', 'Frost, snow and warm windows', {
+      bg: '#243756', head: '#243756', headInk: '#FFFDF6', headMuted: '#B7C8E0', surface: '#FFFDF6', paper: '#F1EAD8',
+      line: '#9DB8D6', accent: '#FFB042', accentInk: '#2A1A02', ink: '#26314D', muted: '#5B6B85', icon: '❄' }),
+    skin('kpop', 'K-Pop Stage', 'Neon posters and hearts', {
+      bg: '#2A1B4E', head: '#2A1B4E', headInk: '#FFF5FB', headMuted: '#D8B6E8', surface: '#FFF5FB', paper: '#F8E6F3',
+      line: '#FF8FD6', accent: '#FF6EC7', accentInk: '#2A0B22', ink: '#2A1B4E', muted: '#6D4A86', icon: '♥' }),
+    skin('upside', 'Upside-Down Town', 'Ash, fog and a red glow', {
+      bg: '#13151B', head: '#13151B', headInk: '#F5EDE6', headMuted: '#B7A89E', surface: '#F5EDE6', paper: '#EADFD6',
+      line: '#FF6A4D', accent: '#FF6A4D', accentInk: '#1A0A06', ink: '#262B33', muted: '#6B605A', icon: '◆' }),
+    skin('sherlock', 'Baker Street', 'Telegrams, a lens and a fireplace', {
+      bg: '#1F1A14', head: '#1F1A14', headInk: '#F2E6C8', headMuted: '#C4B48E', surface: '#F4EAD3', paper: '#E8D9B6',
+      line: '#8A6D3B', accent: '#FFC45C', accentInk: '#2A1C06', ink: '#37312A', muted: '#6B5D45', icon: '✦' }),
+    skin('skyline', 'Skyline Dusk', 'A glass tower at evening', {
+      bg: '#1B2742', head: '#1B2742', headInk: '#F5ECD2', headMuted: '#A9BBD9', surface: '#EEF3FA', paper: '#DFE8F4',
+      line: '#7FB2D9', accent: '#7FB2D9', accentInk: '#0B1830', ink: '#1B2742', muted: '#46597E', icon: '◇' }),
+    skin('wizard', 'Wizard School', 'Scrolls, candles and gold dust', {
+      bg: '#1A102C', head: '#1A102C', headInk: '#EBD9A0', headMuted: '#BBA66F', surface: '#F3E5BC', paper: '#E8D5A0',
+      line: '#8A6A2F', accent: '#B284FF', accentInk: '#1A0F2C', ink: '#3A2A12', muted: '#6B5630', icon: '✧' }),
+    skin('cyber', 'Cyber City', 'Neon, scanlines and rain', {
+      bg: '#0A0F16', head: '#0A0F16', headInk: '#DFF4FF', headMuted: '#8FB6C8', surface: '#EAF7FC', paper: '#DCEFF7',
+      line: '#57C8E8', accent: '#57C8E8', accentInk: '#031018', ink: '#0E1B27', muted: '#3F6073', icon: '⚙' }),
+    { id: 'gothic', hidden: true, name: 'Gothic Academy', ic: '🦇', hint: 'Dark mystery, parchment and stone',
       bg: `${PAT.web}, ${PAT.brick}, linear-gradient(180deg, #241B2E, #120E17)`,
       head: '#120E17', headInk: '#EDE6F5', headMuted: '#B3A6C2', surface: '#F4EFE6', paper: '#EFE9E1',
       line: '#6B5A7B', glow: '0 0 0 1px rgba(107,90,123,.4), 0 18px 40px -18px rgba(0,0,0,.75)',
       accent: '#C8B6FF', accentInk: '#1A1422', ink: '#1E1829', muted: '#5A4E6B',
       font: "'Playfair Display',Georgia,serif", fontCase: 'none', icon: '✦', ifFont: "Georgia,'Times New Roman',serif" },
-    { id: 'magic', name: 'Magic School', ic: '🪄', hint: 'Candlelight, gold and spell books',
+    { id: 'magic', hidden: true, name: 'Magic School', ic: '🪄', hint: 'Candlelight, gold and spell books',
       bg: `${PAT.sparkle}, radial-gradient(ellipse at 50% -10%, rgba(232,193,90,.28), transparent 60%), linear-gradient(180deg, #221838, #120C22)`,
       head: '#1A1230', headInk: '#F7EBD0', headMuted: '#CDBB93', surface: '#F7EFDC', paper: '#F3E9D2',
       line: '#C9A24B', glow: '0 0 0 1px rgba(201,162,75,.4), 0 16px 36px -16px rgba(0,0,0,.65)',
       accent: '#E8C15A', accentInk: '#2A1C08', ink: '#2A1C12', muted: '#6A563A',
       font: "'Fraunces',Georgia,serif", fontCase: 'none', icon: '✧', ifFont: "Georgia,serif" },
-    { id: 'cyber', name: 'Neon City', ic: '🌆', hint: 'Neon glow and techno grids',
-      bg: `${PAT.grid}, radial-gradient(ellipse at 0% 100%, rgba(255,62,165,.35), transparent 55%), radial-gradient(ellipse at 100% 0%, rgba(0,229,255,.3), transparent 50%), #07070F`,
-      head: '#0B0B18', headInk: '#F2F0FF', headMuted: '#A7A2D6', surface: '#F4F2FF', paper: '#EEEBFF',
-      line: '#FF3EA5', glow: '0 0 0 1px rgba(255,62,165,.4), 0 0 24px rgba(0,229,255,.28)',
-      accent: '#FF3EA5', accentInk: '#16000C', ink: '#14122A', muted: '#4F4A82',
-      font: "'JetBrains Mono',var(--te-font-mono,ui-monospace,monospace)", fontCase: 'uppercase', icon: '⚙', ifFont: "'Courier New',var(--te-font-mono,ui-monospace,monospace)" },
-    { id: 'halloween', name: 'Pumpkin Night', ic: '🎃', hint: 'Pumpkins, bats and an orange moon',
+    { id: 'halloween', hidden: true, name: 'Pumpkin Night', ic: '🎃', hint: 'Pumpkins, bats and an orange moon',
       bg: `${PAT.bats}, ${PAT.pumpkins}, radial-gradient(circle at 85% 12%, rgba(255,176,80,.45), transparent 16%), linear-gradient(180deg, #2A1438, #140A1C)`,
       head: '#160C1F', headInk: '#FFE9CF', headMuted: '#D9AE88', surface: '#FFF4E6', paper: '#FFEBD6',
       line: '#FF8A1F', glow: '0 0 0 1px rgba(255,138,31,.4), 0 16px 36px -14px rgba(0,0,0,.7)',
       accent: '#FF8A1F', accentInk: '#1A0F24', ink: '#2A1628', muted: '#6E4436',
       font: "'Caveat','Comic Sans MS',cursive", fontCase: 'none', fontScale: 1.25, icon: '🎃', ifFont: "'Comic Sans MS','Chalkboard SE',cursive",
       iconImg: '/img/themes/pumpkins/p14.png', decor: '/img/themes/pumpkins/p01.png', navPic: '/img/themes/pumpkins/p16.png' },
-    { id: 'winter', name: 'New Year', ic: '🎄', hint: 'Snowflakes, fairy lights and presents',
-      bg: `${PAT.snow}, radial-gradient(ellipse at 50% -20%, rgba(244,197,66,.28), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(226,59,78,.22), transparent 50%), linear-gradient(180deg, #123055, #0A1B33)`,
-      head: '#0B1E36', headInk: '#F2F7FF', headMuted: '#A9C0DD', surface: '#F7FBFF', paper: '#EAF3FF',
-      line: '#D4AF37', glow: '0 0 0 1px rgba(212,175,55,.45), 0 0 22px rgba(244,197,66,.18)',
-      accent: '#F4C542', accentInk: '#1B1A10', ink: '#12223A', muted: '#4A5E7A',
-      font: "'Fraunces',Georgia,serif", fontCase: 'none', icon: '❄', ifFont: "Georgia,serif",
-      decor: PIC.tree, navPic: PIC.gift, headLights: PAT.lights },
-    { id: 'pixel', name: 'Pixel Party', ic: '👾', hint: 'Neon pixels, arcade energy',
+    { id: 'pixel', hidden: true, name: 'Pixel Party', ic: '👾', hint: 'Neon pixels, arcade energy',
       bg: `${PAT.pixels}, radial-gradient(ellipse at 0% 0%, rgba(240,98,200,.28), transparent 50%), radial-gradient(ellipse at 100% 100%, rgba(127,216,247,.24), transparent 50%), #0A1220`,
       head: '#0B1424', headInk: '#F2F6FF', headMuted: '#A9B4CC', surface: '#FFFFFF', paper: '#F2F4FA',
       line: '#F062C8', glow: '0 0 0 2px rgba(230,250,80,.55), 6px 6px 0 rgba(140,116,246,.55)',
@@ -142,13 +159,14 @@ ${T} .wp-title{letter-spacing:.06em}`,
 ${HI} button:not(:disabled),${HI} .btn{border-radius:8px !important;box-shadow:0 4px 0 rgba(140,116,246,.6) !important;transition:transform .08s,box-shadow .08s}
 ${HI} button:not(:disabled):active,${HI} .btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(140,116,246,.6) !important}
 ${HI} .card,${HI} .word-card,${HI} .final,${HI} .win-msg{border-radius:10px !important}` },
-    { id: 'adventure', name: 'Treasure Hunt', ic: '🗺️', hint: 'Old maps, jungle and treasure',
+    { id: 'adventure', hidden: true, name: 'Treasure Hunt', ic: '🗺️', hint: 'Old maps, jungle and treasure',
       bg: `${PAT.map}, radial-gradient(ellipse at 20% 0%, rgba(242,184,75,.22), transparent 55%), linear-gradient(180deg, #25331F, #141C11)`,
       head: '#1A2417', headInk: '#F3EBD3', headMuted: '#C2B993', surface: '#F6EEDA', paper: '#F1E6C8',
       line: '#A8823E', glow: '0 0 0 1px rgba(168,130,62,.4), 0 16px 36px -16px rgba(0,0,0,.65)',
       accent: '#F2B84B', accentInk: '#22190A', ink: '#2B2215', muted: '#665737',
       font: "'Oswald','Arial Narrow',sans-serif", fontCase: 'uppercase', icon: '◆', ifFont: "'Arial Narrow',Arial,sans-serif" },
   ];
+  const VISIBLE = THEMES.filter(t => !t.hidden);
   const byId = id => THEMES.find(t => t.id === id && t.id) || null;
 
   /* ── доска: студии и карта урока ── */
@@ -352,8 +370,8 @@ ${HI}::before{content:'' !important;display:block !important;position:fixed;left
     pop.id = 'lt-pick';
     pop.className = 'lt-pick';
     pop.innerHTML = `<div class="lt-pick-h">Theme / Vibe <small>how the lesson looks for students</small></div>
-      ${THEMES.map(t => `<button type="button" class="lt-pick-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}">
-        <span class="lt-sw" style="${t.id ? `background:${t.bg};background-size:auto` : 'background:#F6F6EF'}"><i style="background:${t.id ? t.surface : '#fff'};box-shadow:${t.id ? `0 0 0 1px ${t.line}` : '0 0 0 1px rgba(36,40,44,.12)'}"></i><b style="background:${t.id ? t.accent : '#CDF649'}"></b></span>
+      ${VISIBLE.map(t => `<button type="button" class="lt-pick-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}">
+        <span class="lt-sw" style="${t.id ? `background:${t.bg};${t.photo ? 'background-size:cover;background-position:center' : 'background-size:auto'}` : 'background:#F6F6EF'}"><i style="background:${t.id ? t.surface : '#fff'};box-shadow:${t.id ? `0 0 0 1px ${t.line}` : '0 0 0 1px rgba(36,40,44,.12)'}"></i><b style="background:${t.id ? t.accent : '#CDF649'}"></b></span>
         <span class="lt-pick-t"><b>${t.ic} ${t.name}</b><small>${t.hint}</small></span></button>`).join('')}`;
     document.body.appendChild(pop);
     const r = anchor.getBoundingClientRect();
@@ -376,11 +394,11 @@ ${HI}::before{content:'' !important;display:block !important;position:fixed;left
   // opts.cards (Lesson Builder v2.0 №5): a card per theme - its name and the line under it, no emoji.
   function gridHtml(current, name, opts) {
     if (opts && opts.cards) {
-      return `<div class="lt-grid lt-cards" data-name="${name || 'theme'}">${THEMES.map(t => `<button type="button" class="lt-grid-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}" aria-pressed="${(current || '') === t.id}">
+      return `<div class="lt-grid lt-cards" data-name="${name || 'theme'}">${VISIBLE.map(t => `<button type="button" class="lt-grid-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}" aria-pressed="${(current || '') === t.id}">
       <b>${t.name}</b><small>${t.hint}</small></button>`).join('')}</div>`;
     }
-    return `<div class="lt-grid" data-name="${name || 'theme'}">${THEMES.map(t => `<button type="button" class="lt-grid-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}" title="${t.hint}">
-      <span class="lt-sw" style="${t.id ? `background:${t.bg};background-size:auto` : 'background:#F6F6EF'}"><i style="background:${t.id ? t.surface : '#fff'}"></i><b style="background:${t.id ? t.accent : '#CDF649'}"></b></span>
+    return `<div class="lt-grid" data-name="${name || 'theme'}">${VISIBLE.map(t => `<button type="button" class="lt-grid-o${(current || '') === t.id ? ' on' : ''}" data-t="${t.id}" title="${t.hint}">
+      <span class="lt-sw" style="${t.id ? `background:${t.bg};${t.photo ? 'background-size:cover;background-position:center' : 'background-size:auto'}` : 'background:#F6F6EF'}"><i style="background:${t.id ? t.surface : '#fff'}"></i><b style="background:${t.id ? t.accent : '#CDF649'}"></b></span>
       <small>${t.ic} ${t.name}</small></button>`).join('')}</div>`;
   }
   function bindGrid(root, onPick) {
@@ -390,5 +408,5 @@ ${HI}::before{content:'' !important;display:block !important;position:fixed;left
     }));
   }
 
-  window.TeachedThemes = { list: THEMES, get: byId, apply, iframeCss, gameCss, skinGame, picker, gridHtml, bindGrid, ensureBoardCss };
+  window.TeachedThemes = { list: VISIBLE, get: byId, apply, iframeCss, gameCss, skinGame, picker, gridHtml, bindGrid, ensureBoardCss };
 })();

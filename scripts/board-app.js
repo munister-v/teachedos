@@ -5128,7 +5128,9 @@ function _wpVocabStudio(stage, card, k) {
   const own = (card.data._wfPath.steps[k].out.words || []).filter(w => w && w.word);
   // Станция карты урока: слова из видео и нажатые учеником - в тот же список.
   const words = own.concat(window.TeachedFlow ? window.TeachedFlow.extraWords(card.id, own) : []);
-  const st = Object.assign({ i: 0, mode: 'learn', known: [], learning: [], onlyLearning: false }, _wpState(card, k) || {});
+  const st = Object.assign({ i: 0, mode: 'match', known: [], learning: [], onlyLearning: false }, _wpState(card, k) || {});
+  // The match board in the theme's skin is the Studio's first page; sets saved before it existed open on it once.
+  if (st.v !== 2) { st.v = 2; st.mode = 'match'; }
   // Старые наборы - без шаблона с предлогом и с заглушками вместо примеров: дообогатить.
   if (own.some(w => !w._v2) && !_wpReenrichTried.has(card.id)) { _wpReenrichTried.add(card.id); _wpEnrichVocab(card); }
   const box = document.createElement('div');
@@ -5137,7 +5139,7 @@ function _wpVocabStudio(stage, card, k) {
   let shown = false;
   let audio = null;
   let quiz = null; // { word, picked } - мини-проверка на текущей карточке
-  const save = () => _wpSetState(card, k, { i: st.i, mode: st.mode, known: st.known, learning: st.learning, onlyLearning: st.onlyLearning });
+  const save = () => _wpSetState(card, k, { v: 2, i: st.i, mode: st.mode, known: st.known, learning: st.learning, onlyLearning: st.onlyLearning });
   const list = () => st.onlyLearning ? words.filter(w => !st.known.includes(w.word)) : words;
   const rx = w => String(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
   const hl = (ex, w, phrase) => {
@@ -5206,7 +5208,28 @@ function _wpVocabStudio(stage, card, k) {
   };
   // «Add video examples» в конструкторе: у каждого слова - живые клипы.
   const hearOn = !!(card.data._wfPath.hear && window.TeachedHear);
+  const SKINS = ['space', 'winter', 'kpop', 'upside', 'sherlock', 'skyline', 'wizard', 'cyber'];
+  const skinOf = () => { const t = _ltThemeFor(card); return SKINS.includes(t) ? t : 'space'; };
+  const modesHtml = () => `<div class="vs-modes">${[['match', 'Match up'], ['learn', 'Learn'], ['test', 'Test myself']].map(([m, n]) => `<button type="button" data-mode="${m}" class="${st.mode === m ? 'on' : ''}">${n}</button>`).join('')}</div>`;
+  // First page: the skin's match board (vocab-skins.html in a frame), words and answers are the lesson's own.
+  function paintMatch() {
+    const pool = words.filter(w => w.meaning);
+    if (pool.length < 3) { box.innerHTML = `<div class="vs-top">${modesHtml()}</div><div class="vs-done"><b>Add a few words with meanings to play Match up.</b><span>Learn and Test myself work with any words.</span></div>`; return; }
+    box.innerHTML = `<div class="vs-top">${modesHtml()}</div><div class="vs-match"><iframe class="vs-match-f" title="Match up" allow="autoplay" src="${versionedLocalAsset('vocab-skins.html?embed=1&skin=' + skinOf())}"></iframe></div>`;
+    const f = box.querySelector('iframe'), wrap = box.querySelector('.vs-match');
+    const fit = () => { const W = wrap.clientWidth, H = wrap.clientHeight, w = Math.max(280, Math.min(W, H * 1095 / 600)); f.style.width = w + 'px'; f.style.height = (w * 600 / 1095) + 'px'; };
+    fit();
+    const ro = window.ResizeObserver ? new ResizeObserver(fit) : null;
+    if (ro) ro.observe(wrap);
+    const onMsg = e => {
+      if (!box.isConnected) { window.removeEventListener('message', onMsg); if (ro) ro.disconnect(); return; }
+      if (e.source !== f.contentWindow || !e.data || e.data.source !== 'vocab-skins') return;
+      if (e.data.type === 'ready') f.contentWindow.postMessage({ source: 'teached-studio', type: 'init', skin: skinOf(), words: pool.map(w => ({ word: w.word, meaning: w.meaning })) }, '*');
+    };
+    window.addEventListener('message', onMsg);
+  }
   function paint() {
+    if (st.mode === 'match') { paintMatch(); return; }
     const L = list();
     if (st.i >= L.length) st.i = Math.max(0, L.length - 1);
     const w = L[st.i];
@@ -5223,7 +5246,7 @@ function _wpVocabStudio(stage, card, k) {
     }).join('');
     box.innerHTML = `
       <div class="vs-top">
-        <div class="vs-modes"><button type="button" data-mode="learn" class="${st.mode === 'learn' ? 'on' : ''}">Learn</button><button type="button" data-mode="test" class="${st.mode === 'test' ? 'on' : ''}">Test myself</button></div><a href="vocab-skins.html" target="_blank" rel="noopener" class="vs-skins" style="margin-left:10px;font-weight:800;font-size:13px;color:inherit;text-decoration:none;align-self:center">Skins ✨</a>
+        ${modesHtml()}
         <div class="vs-prog"><b>${knownN} / ${words.length}</b> known</div>
         ${_wpOwnerOf(card) ? `<div class="vs-accent" title="Which pronunciation the cards and games show">${['uk', 'us', 'both'].map(a => `<button type="button" data-accent="${a}" class="${(card.data._wfPath.accent || 'both') === a ? 'on' : ''}">${a === 'both' ? 'UK + US' : a.toUpperCase()}</button>`).join('')}</div>` : ''}
         <label class="vs-only"><input type="checkbox"${st.onlyLearning ? ' checked' : ''}> Only words I'm still learning</label>
@@ -17377,7 +17400,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1295';
+const TEACHEDOS_ASSET_VERSION = '1297';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24685,7 +24708,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1295',
+          icon: 'icons/icon-192.png?v=1297',
           tag: 'board-live-' + s.id,
         });
       }

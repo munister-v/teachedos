@@ -40,6 +40,17 @@
   .tile.bad{animation:shake .4s ease}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}55%{transform:translateX(5px)}80%{transform:translateX(-3px)}}
   .slot{border-radius:14px;border:2px dashed color-mix(in srgb, var(--rim) 55%, transparent);background:var(--slot);min-height:54px}
+  /* embed: the page lives inside the Studio as its first page - only the stage, scaled to the frame */
+  html.embed body{padding:0;background:transparent;overflow:hidden}
+  html.embed .kicker,html.embed h1,html.embed .sub,html.embed .picker,html.embed .toolbar{display:none}
+  html.embed,html.embed body{overflow:hidden}
+  html.embed .wrap{max-width:none;margin:0}
+  html.embed .wrap>*:not(.stage){display:none !important}
+  html.embed .stage{width:1095px;border-radius:0;box-shadow:none;transform-origin:0 0}
+  html.embed .slot{cursor:pointer;transition:opacity .2s}
+  html.embed .slot.done{opacity:.5;border-style:solid;cursor:default}
+  html.embed .tile.ok{cursor:default}
+  html.embed .slotword.def{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .burst{position:absolute;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:6}
 
   /* Space: «обсидиановое стекло» — глубокая теаль, циановый звёздный свет, пыль внутри */
@@ -1019,5 +1030,48 @@
     if(!ambOn){ ambPlay(a, skin); ambOn=true; musicBtn.classList.add('on'); musicBtn.textContent='❚❚'; }
     else { ambAudio.pause(); ambOn=false; musicBtn.classList.remove('on'); musicBtn.textContent='♪'; } };
 
+
+  // ===== EMBED: the Studio's first page (words come from the lesson, answers are real) =====
+  (function(){
+    const q=new URLSearchParams(location.search); if(q.get('embed')!=='1') return;
+    document.documentElement.classList.add('embed');
+    let words=[], round=0, mistakes=0, ready=false;
+    const post=m=>{ try{ parent.postMessage(Object.assign({source:'vocab-skins'},m),'*'); }catch(e){} };
+    function fitStage(){ const k=innerWidth/1095; stage.style.transform='scale('+k+')'; document.body.style.height=(600*k)+'px'; }
+    fitStage(); addEventListener('resize',fitStage);
+    const clip=t=>{ t=String(t||''); if(t.length<=64) return t; const c=t.slice(0,64); return c.slice(0,c.lastIndexOf(' ')>30?c.lastIndexOf(' '):64)+'…'; };
+    function chunk(){ return words.slice(round*8, round*8+8); }
+    function build(){
+      const skin=stage.dataset.skin, ch=chunk(); if(!ch.length) return;
+      WORDS[skin]=ch.map(w=>w.word); DEFS[skin]=ch.map(w=>clip(w.meaning)); PAIRS[skin]=ch.map(w=>clip(w.meaning));
+      cmode='def'; stage.dataset.cmode='def'; renderBoard(skin); mistakes=0;
+      const slots=[...board.querySelectorAll('.slot')], tiles=[...board.querySelectorAll('.tile')];
+      // shuffle the answers among the slots (a fixed rotation keeps no pair side by side)
+      const n=slots.length, shift=Math.max(1,Math.floor(n/2)+1);
+      const texts=slots.map(sl=>sl.firstChild?sl.firstChild.textContent:'');
+      slots.forEach((sl,i)=>{ const pair=(i+shift)%n; sl.dataset.pair=pair; if(sl.firstChild) sl.firstChild.textContent=texts[pair]; });
+      tiles.forEach((t,i)=>{ t.dataset.pair=i; });
+      tiles.forEach(t=>{ const c=t.onclick; t.onclick=()=>{ if(t.classList.contains('ok')) return; c(); }; });
+      slots.forEach(sl=>{ sl.onclick=()=>{
+        if(sl.classList.contains('done')||!selected) return;
+        const t=selected; t.classList.remove('ok','bad','sel'); void t.offsetWidth; selected=null;
+        if(t.dataset.pair===sl.dataset.pair){
+          t.classList.add('ok'); sl.classList.add('done'); burst(t); sfx.good();
+          const left=board.querySelectorAll('.tile:not(.ok)').length;
+          post({type:'progress',round,matched:tiles.length-left,total:tiles.length,mistakes});
+          if(!left){ setTimeout(()=>sfx.win(),260); post({type:'round-done',round,total:tiles.length,mistakes,last:(round+1)*8>=words.length});
+            if((round+1)*8<words.length) setTimeout(()=>{ round++; build(); },2600); }
+        } else { mistakes++; t.classList.add('bad'); sfx.bad(); }
+      }; });
+    }
+    function setSkin(k){ const i=imgs.findIndex(x=>x.dataset.skin===k); if(i<0||stage.dataset.skin===k&&ready) return; picker.children[i].click(); }
+    addEventListener('message',e=>{ const d=e.data; if(!d||d.source!=='teached-studio') return;
+      if(d.type==='init'){ words=(d.words||[]).filter(w=>w&&w.word&&w.meaning); round=0; if(d.skin) setSkin(d.skin); ready=true; build(); }
+      if(d.type==='skin'){ setSkin(d.skin); if(words.length) build(); }
+      if(d.type==='mute'){ soundOn=!d.on; }
+    });
+    if(q.get('skin')) setSkin(q.get('skin'));
+    post({type:'ready'});
+  })();
 </script>
 </body></html>
