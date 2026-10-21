@@ -220,3 +220,9 @@ test('board agent: the quiz games carry their own content shapes', () => {
   assert.deepStrictEqual(plan.actions[2].content.sentences, ['She ___ (goes) to school.', 'He ___ (drinks) tea.', 'I ___ (get) up early.']);
   assert.deepStrictEqual(plan.actions[3].content.pairs[0], { left: 'cat', right: 'cat' });
 });
+
+test('board agent: the reply follows the teacher\'s language and is plain text', () => {
+  const p = agent.buildPrompt({ command: 'В чём разница между travel и trip?', cards: [] });
+  assert.ok(p.includes('a Russian command gets a Russian reply'));
+  assert.ok(p.includes('no markdown'));
+});

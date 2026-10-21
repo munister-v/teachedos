@@ -233,6 +233,13 @@
     if (body) body.scrollTop = body.scrollHeight;
     return el;
   }
+  // the newest message is the one in view
+  function toEnd() {
+    const body = $('.ba-body');
+    if (body) requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+  }
+  // the panel shows plain text: **bold** from the model loses its stars
+  const plain = t => String(t || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/__([^_]+)__/g, '$1');
   function remember(role, text) {
     turns.push({ role, text: String(text || '').slice(0, 700) });
     if (turns.length > MAX_TURNS) turns = turns.slice(-MAX_TURNS);
@@ -585,6 +592,7 @@
     btns.hidden = true;
     replyEl.textContent = 'Thinking…';
     replyEl.classList.add('ba-thinking');
+    toEnd();
     try {
       const boardId = typeof currentBoardId !== 'undefined' ? currentBoardId : null;   // TeachEd memory, read on the server
       const board = { name: ((document.getElementById('board-name-display') || {}).textContent || '').trim().slice(0, 80) };
@@ -637,6 +645,7 @@
     replyEl.classList.toggle('err', !!isError);
     stepsEl.textContent = '';
     btns.hidden = true;
+    toEnd();
   }
 
   /* Next steps the assistant offers after its answer: a click sends them. */
@@ -684,7 +693,7 @@
     if (a.op === 'group') return `Group ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'focus') return `Go to ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'game') return `Add a ${GAME_LABELS[a.game] || 'game'}: “${a.title}”`;
-    if (a.op === 'homework') return `Build a homework card: “${a.title}” - ${a.exercises.length} exercise${a.exercises.length === 1 ? '' : 's'}, ${a.exercises.reduce((n, e) => n + e.questions.length, 0)} questions`;
+    if (a.op === 'homework') return `Build an exercise card: “${a.title}” - ${a.exercises.length} exercise${a.exercises.length === 1 ? '' : 's'}, ${a.exercises.reduce((n, e) => n + e.questions.length, 0)} questions`;
     if (a.op === 'open') return `Open ${STUDIO_LABELS[a.studio] || a.studio} Studio`;
     if (a.op === 'remember') return `Save to ${a.name}'s memory · Notes: ${quote(a.text, 80)}`;
     return '';
@@ -705,7 +714,7 @@
 
     out.hidden = false;
     replyEl.classList.remove('err');
-    replyEl.textContent = data.reply || '';
+    replyEl.textContent = plain(data.reply);
     stepsEl.textContent = '';
     out.dataset.note = '';
     remember('assistant', (data.reply || '') + (actions.length ? '\nPlan: ' + actions.map(describe).filter(Boolean).join('; ') : ''));
@@ -736,6 +745,7 @@
     plan = actions.length ? actions : null;
     planFor = command;
     pendingSuggest = actions.length ? (data.suggest || []) : [];
+    toEnd();
   }
   let pendingSuggest = [];   // offered once the plan is applied
 
@@ -812,7 +822,12 @@
   }
 
   function doAdd(a, made, spot) {
-    const def = getDefaults(a.kind === 'text' ? 'text' : 'sticky');
+    const base = getDefaults(a.kind === 'text' ? 'text' : 'sticky');
+    /* A long instruction does not fit a 220x180 sticky and was cut off: the
+       row is as tall as its longest text needs (about 24 letters a line). */
+    const longest = Math.max(...a.items.map(i => String(i.text || '').length));
+    const lineH = a.kind === 'text' ? 22 : 21;
+    const def = { w: base.w, h: Math.min(a.kind === 'text' ? 400 : 380, Math.max(base.h, 48 + Math.ceil(longest / (a.kind === 'text' ? 20 : 24)) * lineH)) };
     const n = a.items.length;
     const cols = Math.min(5, Math.ceil(Math.sqrt(n)));
     const rows = Math.ceil(n / cols);
@@ -832,8 +847,8 @@
     a.items.forEach((item, i) => {
       const x = x0 + (i % cols) * (def.w + GAP), y = y0 + headH + Math.floor(i / cols) * (def.h + GAP);
       const card = a.kind === 'text'
-        ? addCard('text', x, y, { text: item.text })
-        : addCard('sticky', x, y, { text: item.text, color: colorHex(item.color) });
+        ? addCard('text', x, y, { text: item.text }, def.w, def.h)
+        : addCard('sticky', x, y, { text: item.text, color: colorHex(item.color) }, def.w, def.h);
       if (card) mine.push(card);
     });
     if (into) layIntoFrame(into, mine);
@@ -1027,6 +1042,7 @@
       clearPlan();
       const next = pendingSuggest; pendingSuggest = [];
       if (next.length) { const holder = document.createElement('ul'); holder.className = 'ba-steps'; logEl.appendChild(holder); showSuggestions(next, holder); }
+      toEnd();
       input.value = '';
       toast('Done · Ctrl+Z to undo');
     }

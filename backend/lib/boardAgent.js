@@ -122,7 +122,7 @@ Allowed actions (use only these, with ids taken from the card list below):
 Colours: ${COLORS.join(', ')}.
 
 Rules:
-- Reply in the language the teacher wrote the command in. Content for learners is in English unless the teacher asks otherwise; card content stays in the language it is in unless asked.
+- Write "reply" in the language of the teacher's command - a Russian command gets a Russian reply, a Ukrainian one a Ukrainian reply - also when you explain English; English words and examples inside it stay in English. "reply" is plain text: no markdown, no ** or #. "suggest" is in the same language. Content for learners on the board is in English unless the teacher asks otherwise; card content stays in the language it is in unless asked.
 - ${selected.length ? `The teacher has ${selected.length} card(s) selected ("selected":true). "These", "them", "this", "the selected" mean exactly those cards; a selected frame means the cards inside it too ("frame" field). Do not touch other cards unless the command says so.` : (recent.length ? `Nothing is selected. Cards marked "recent":true are the ones you made in your last answer: "them", "these", "make it…" most likely mean those.` : 'Nothing is selected. "These" or "the stickies" means the cards the command describes; if it is truly unclear which, ask in "reply" and return no actions.')}
 - "frame":"<id>" on a card means it lies inside that frame. "This frame", "the warm-up", "stage 2" refer to frames by their title or order (left to right, top to bottom).
 - To change a card's text (translate, correct, add a translation, shorten, simplify) use "edit" with the complete new text. Do not delete and re-add.
