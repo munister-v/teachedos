@@ -2492,9 +2492,9 @@ router.post('/board-agent', requireAuth, requireTeacher, boardAgentLimiter, asyn
     const cards = boardAgent.normalizeCards(req.body?.cards);
     if (command.length < 2) return res.status(400).json({ error: 'command required' });
     if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
-    await reserveAiQuota(req.user, { mode: 'board-agent', source: command + cards.map(c => c.text).join('\n') });
+    await reserveAiQuota(req.user, { mode: 'board-agent', source: command + cards.map(c => c.text).join('\n') + boardAgent.normalizeHistory(req.body?.history).map(t => t.text).join('\n') });
     const memory = await require('../lib/memoryContext').memoryContextSafe(require('../db/pool'), req.user.id, req.body?.boardId);
-    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport, memory }));
+    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport, memory, history: req.body?.history, board: req.body?.board }));
     recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
     res.json({ ...boardAgent.sanitizePlan(raw, cards), quota: await readAiQuota(req.user) });
   } catch (err) {

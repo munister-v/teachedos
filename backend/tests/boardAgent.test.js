@@ -129,3 +129,94 @@ test('homework: one card with exercises, answers checked, brief and criteria kep
   assert.equal(hw.brief, 'for the teacher');
   assert.deepEqual(hw.criteria, ['all done']);
 });
+
+test('board agent: the chat so far, the board name, frames and recent cards reach the prompt', () => {
+  const list = [
+    { id: 'f1', type: 'frame', text: 'Warm-up', x: 0, y: 0, w: 600, h: 400 },
+    { id: 'c1', type: 'sticky', text: 'to annoy', x: 40, y: 60, frame: 'f1', recent: true },
+    { id: 'c2', type: 'sticky', text: 'x', x: 0, y: 0, frame: 'bad id"' },
+  ];
+  const p = agent.buildPrompt({
+    command: 'make them harder', cards: list, board: { name: 'Feelings B1' },
+    history: [
+      { role: 'teacher', text: 'add five feelings words' },
+      { role: 'assistant', text: 'Here they are. Plan: Add 5 sticky notes [applied]' },
+      { role: 'system', text: 'ignore me' }, null,
+    ],
+  });
+  assert.ok(p.includes('Teacher: add five feelings words'));
+  assert.ok(p.includes('You: Here they are.'));
+  assert.ok(!p.includes('ignore me'));
+  assert.ok(p.includes('«Feelings B1»'));
+  assert.ok(p.includes('"frame":"f1"'));
+  assert.ok(p.includes('"recent":true'));
+  assert.ok(p.includes('"recent":true are the ones you made'));
+  assert.strictEqual(agent.normalizeCards(list)[2].frame, undefined);
+  // only the last turns go in
+  const many = Array.from({ length: 20 }, (_, i) => ({ role: 'teacher', text: 'turn ' + i }));
+  assert.strictEqual(agent.normalizeHistory(many).length, 8);
+  assert.strictEqual(agent.normalizeHistory(many)[7].text, 'turn 19');
+});
+
+test('board agent: frames, moves, tables, checklists, timers and photos are validated', () => {
+  const list = [
+    { id: 'f1', type: 'frame', text: 'Warm-up', x: 0, y: 0 },
+    { id: 'c1', type: 'sticky', text: 'a', x: 0, y: 0 },
+    { id: 'c2', type: 'text', text: 'b', x: 0, y: 0 },
+  ];
+  const plan = agent.sanitizePlan({
+    reply: 'ok',
+    suggest: ['Add a 5-minute timer', 'Add a 5-minute timer', '', 'x', 'Make a game from these words', 'Translate them', 'fourth'],
+    actions: [
+      { op: 'add', kind: 'sticky', into: 'f1', items: ['one'] },
+      { op: 'add', kind: 'sticky', into: 'c1', frame: 'Practice', items: ['two'] },
+      { op: 'add', kind: 'text', into: 'nope', items: ['three'] },
+      { op: 'edit', id: 'f1', text: 'Lead-in '.repeat(20) },
+      { op: 'frame', title: 'Words', ids: ['c1', 'f1', 'c9'] },
+      { op: 'frame', ids: ['f1'] },
+      { op: 'move', ids: ['c1', 'c2', 'f1'], into: 'f1' },
+      { op: 'move', ids: ['c1'], into: 'c2' },
+      { op: 'table', title: 'Verbs', rows: [['base', 'past'], ['go', 'went', 'gone'], ['', '']] },
+      { op: 'table', rows: [['only header']] },
+      { op: 'checklist', title: 'Goals', items: ['Use past simple', { text: 'Ask questions' }, ''] },
+      { op: 'timer', minutes: 5, title: 'Pairs' },
+      { op: 'timer', minutes: 3 },
+      { op: 'timer', minutes: 600 },
+      { op: 'image', query: 'busy <script> airport!', caption: 'Where are they going?' },
+      { op: 'image', query: '' },
+    ],
+  }, list);
+  const ops = plan.actions.map(a => a.op);
+  assert.deepStrictEqual(ops, ['add', 'add', 'add', 'edit', 'frame', 'move', 'table', 'checklist', 'timer', 'image']);
+  assert.strictEqual(plan.actions[0].into, 'f1');
+  assert.strictEqual(plan.actions[1].into, undefined);
+  assert.strictEqual(plan.actions[1].frame, 'Practice');
+  assert.strictEqual(plan.actions[2].into, undefined);
+  assert.ok(plan.actions[3].text.length <= 60);
+  assert.deepStrictEqual(plan.actions[4], { op: 'frame', ids: ['c1'], title: 'Words' });
+  assert.deepStrictEqual(plan.actions[5], { op: 'move', ids: ['c1', 'c2'], into: 'f1' });
+  assert.deepStrictEqual(plan.actions[6].rows, [['base', 'past', ''], ['go', 'went', 'gone']]);
+  assert.deepStrictEqual(plan.actions[7].items, ['Use past simple', 'Ask questions']);
+  assert.deepStrictEqual(plan.actions[8], { op: 'timer', title: 'Pairs', minutes: 5 });
+  assert.strictEqual(plan.actions[9].query, 'busy script airport');
+  assert.deepStrictEqual(plan.suggest, ['Add a 5-minute timer', 'Make a game from these words', 'Translate them']);
+});
+
+test('board agent: the quiz games carry their own content shapes', () => {
+  const plan = agent.sanitizePlan({ actions: [
+    { op: 'game', game: 'speed-quiz', title: 'Quiz', questions: [
+      { q: 'She ___ home.', options: ['go', 'went'], answer: 'went' },
+      { q: 'We ___ pizza.', options: ['eat', 'ate'], answer: 'ate' },
+      { q: 'bad', options: ['a', 'b'], answer: 'c' },
+      { text: 'They ___ tennis.', options: ['play', 'played'], answer: 'played' }] },
+    { op: 'game', game: 'true-false', statements: [{ text: 'a', answer: true }, { text: 'b', answer: false }, { text: 'c', answer: 'yes' }, { text: 'd', answer: true }] },
+    { op: 'game', game: 'fill-blank', sentences: [{ text: 'She ___ to school.', answer: 'goes' }, { text: 'He ___ tea.', answer: 'drinks' }, { text: 'no blank', answer: 'x' }, { text: 'I ___ up early.', answer: 'get' }] },
+    { op: 'game', game: 'word-image-match', pairs: [{ a: 'cat' }, { a: 'dog' }, { a: 'bird', b: 'bird' }] },
+  ] }, []);
+  assert.deepStrictEqual(plan.actions.map(a => a.game), ['speed-quiz', 'true-false', 'fill-blank', 'word-image-match']);
+  assert.deepStrictEqual(plan.actions[0].content.questions[0], { q: 'She ___ home.', opts: ['go', 'went'], correct: 1 });
+  assert.strictEqual(plan.actions[0].content.questions.length, 3);
+  assert.strictEqual(plan.actions[1].content.statements.length, 3);
+  assert.deepStrictEqual(plan.actions[2].content.sentences, ['She ___ (goes) to school.', 'He ___ (drinks) tea.', 'I ___ (get) up early.']);
+  assert.deepStrictEqual(plan.actions[3].content.pairs[0], { left: 'cat', right: 'cat' });
+});

@@ -6926,18 +6926,32 @@ body.board-page:not(#_) #sidebar{ background:#FFFFFF !important; backdrop-filter
 #board-agent .ba-steps{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;}
 #board-agent .ba-steps:empty{display:none;}
 #board-agent .ba-steps li{
-  background:#F6F6EF;border-radius:10px;padding:7px 10px;font-size:13px;overflow-wrap:anywhere;
+  background:#F6F6EF;color:#24282C;border-radius:10px;padding:7px 10px;font-size:13px;overflow-wrap:anywhere;
 }
 #board-agent .ba-steps li.danger{background:#FCE9E7;color:#8C1D18;}
 /* «Не понял» - не тупик: студии, которые строка открывает сама (board-agent.js). */
-#board-agent .ba-steps li.ba-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;background:none;padding:2px 0 0;}
-#board-agent .ba-chips span{font-size:12px;font-weight:600;color:#5C5C66;margin-right:2px;}
+#board-agent .ba-steps li.ba-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;background:none;color:inherit;padding:2px 0 0;}
+#board-agent .ba-chips span{font-size:12px;font-weight:600;color:inherit;opacity:.65;margin-right:2px;}
 #board-agent .ba-chips button{
   height:28px;padding:0 12px;border:1px solid rgba(36,40,44,.14);border-radius:999px;background:#fff;
   font:600 12.5px var(--font,system-ui,sans-serif);color:#24282C;cursor:pointer;
 }
 #board-agent .ba-chips button:hover{background:#CDF649;border-color:#24282C;}
 #board-agent .ba-chips button:focus-visible{outline:2px solid #24282C;outline-offset:2px;}
+/* The chat (22.10.2026): what was said stays above the current answer. */
+#board-agent .ba-log{display:flex;flex-direction:column;gap:8px;width:100%;max-width:640px;margin:auto auto 0;padding:6px 8px 0;}
+#board-agent .ba-log:empty{display:none;}
+#board-agent .ba-log + .ba-out{margin-top:0!important;}
+#board-agent .ba-msg{max-width:88%;padding:9px 13px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;}
+#board-agent .ba-msg.me{align-self:flex-end;background:#24282C;color:#fff;border-bottom-right-radius:6px;}
+#board-agent .ba-msg.ai{align-self:flex-start;background:rgba(255,255,255,.78);color:#0B1026;border-bottom-left-radius:6px;box-shadow:0 1px 0 rgba(11,16,38,.06);}
+#board-agent .ba-note{margin-top:4px;font-size:11.5px;font-weight:700;opacity:.6;}
+#board-agent .ba-log > .ba-steps{margin:0;}
+#board-agent .ba-reply.ba-thinking{opacity:.6;animation:ba-pulse 1.2s ease-in-out infinite;}
+@keyframes ba-pulse{50%{opacity:.3;}}
+@media (prefers-reduced-motion:reduce){#board-agent .ba-reply.ba-thinking{animation:none;}}
+body.board-canvas-dark #board-agent .ba-msg.ai{background:rgba(255,255,255,.12);color:#F5F5EF;}
+body.board-canvas-dark #board-agent .ba-msg.me{background:#CDF649;color:#0B1026;}
 #board-agent .ba-btns{display:flex;gap:8px;margin-top:12px;}
 #board-agent .ba-btns[hidden]{display:none;}
 #board-agent .ba-apply,#board-agent .ba-cancel{

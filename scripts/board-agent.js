@@ -11,6 +11,12 @@
    on card ids this page sent, so applying a plan is a matter of calling the
    same functions the toolbar calls.
 
+   It is a chat, not a one-shot box (22.10.2026): the last turns go with each
+   command, so "make it harder" or "now in Ukrainian" continue the work, and
+   the cards made by the last plan are marked "recent" - "make them blue" means
+   those. When the model is not there (no key, a timeout, offline) the local
+   rules below still tidy, find, frame, colour, time and clean the board.
+
    Loaded after board-app.js and uses its globals: state, addCard, removeCard,
    setCardData, reRenderCard, updateCardPos, snapshot, apiFetch and friends.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -23,13 +29,17 @@
   const GAP = 16;
   const GAME_LABELS = {
     'memory-match': 'Memory Match', 'flashcards': 'Flashcards', 'word-categories': 'Sort into Categories',
-    'hangman': 'Hangman', 'spin-wheel': 'Spin the Wheel',
+    'hangman': 'Hangman', 'spin-wheel': 'Spin the Wheel', 'speed-quiz': 'Speed Quiz', 'true-false': 'True or False',
+    'fill-blank': 'Fill the Blank', 'word-image-match': 'Photo Match',
   };
+  const MAX_TURNS = 8;
 
   let plan = null;        // last answer waiting for Apply
   let planFor = '';       // the command that produced it
   let busy = false;
   let lastCommand = '';   // what was sent last; ArrowUp in an empty field brings it back
+  let turns = [];         // the chat so far: { role: 'teacher' | 'assistant', text }
+  let recentIds = new Set();   // cards the last applied plan made or changed
 
   /* ── Bar ────────────────────────────────────────────────────────────── */
   const bar = document.createElement('div');
@@ -57,6 +67,7 @@
         <button type="button" class="ba-sug" data-sug="quiz">${ic('<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>')}Quiz from this frame</button>
         <button type="button" class="ba-sug" data-sug="game">${ic('<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>')}Find a warmer game</button>
       </div>
+      <div class="ba-log" aria-live="polite"></div>
       <div class="ba-out" hidden>
         <div class="ba-reply"></div>
         <ul class="ba-steps"></ul>
@@ -78,7 +89,7 @@
 
   const $ = sel => bar.querySelector(sel);
   const input = $('.ba-input'), out = $('.ba-out'), replyEl = $('.ba-reply'), stepsEl = $('.ba-steps');
-  const btns = $('.ba-btns'), scopeEl = $('.ba-scope');
+  const btns = $('.ba-btns'), scopeEl = $('.ba-scope'), logEl = $('.ba-log');
 
   function canUse() {
     if (typeof authToken === 'undefined' || !authToken) { toast('Sign in to use the board assistant'); return false; }
@@ -105,6 +116,7 @@
   }
   function close() {
     bar.hidden = true;
+    archiveAnswer('Not applied');
     clearPlan();
     input.blur();
     syncPill();
@@ -204,7 +216,47 @@
     plan = null; planFor = '';
     out.hidden = true;
     replyEl.textContent = '';
+    replyEl.classList.remove('ba-thinking', 'err');
     stepsEl.textContent = '';
+  }
+
+  /* ── The chat ───────────────────────────────────────────────────────────
+     What was said stays in the panel while the board is open, and the last
+     turns go to the model with every command. */
+  function bubble(role, text, note) {
+    const el = document.createElement('div');
+    el.className = 'ba-msg ' + (role === 'teacher' ? 'me' : 'ai');
+    el.textContent = text;
+    if (note) { const n = document.createElement('div'); n.className = 'ba-note'; n.textContent = note; el.appendChild(n); }
+    logEl.appendChild(el);
+    const body = $('.ba-body');
+    if (body) body.scrollTop = body.scrollHeight;
+    return el;
+  }
+  function remember(role, text) {
+    turns.push({ role, text: String(text || '').slice(0, 700) });
+    if (turns.length > MAX_TURNS) turns = turns.slice(-MAX_TURNS);
+  }
+  function noteLastTurn(note) {
+    const t = turns[turns.length - 1];
+    if (t && t.role === 'assistant' && !/\[(applied|not applied)\]$/.test(t.text)) t.text += ` [${note}]`;
+  }
+  /* The answer on screen moves up into the chat before the next one comes,
+     or when the panel closes; an unapplied plan says so. */
+  function archiveAnswer(note) {
+    if (out.hidden || !replyEl.textContent || replyEl.classList.contains('ba-thinking')) return;
+    const left = plan ? (note || 'Not applied') : (out.dataset.note || '');
+    if (plan) noteLastTurn('not applied');
+    bubble('assistant', replyEl.textContent, left);
+    out.dataset.note = '';
+  }
+  function newChat() {
+    clearPlan();
+    logEl.textContent = '';
+    turns = [];
+    recentIds = new Set();
+    input.value = '';
+    input.focus();
   }
 
   function setBusy(on) {
@@ -228,6 +280,38 @@
     return extractCardPlainText(c);
   }
 
+  /* What a card says, for cards that are more than a line of text: the steps
+     and questions of an exercise card, a game's words, a table's rows. */
+  function cardDigest(c) {
+    const d = c.data || {};
+    const flat = v => String(v == null ? '' : v).replace(/<[^>]+>/g, ' ');
+    if (c.type === 'frame') return flat(d.title || d.name);
+    if (c.type === 'table' && Array.isArray(d.rows)) return [d.title, ...d.rows.slice(0, 8).map(r => (r || []).join(' | '))].filter(Boolean).map(flat).join(' / ');
+    if (c.type === 'checklist' && Array.isArray(d.items)) return [d.title, ...d.items.map(i => (i && i.text) || i)].filter(Boolean).map(flat).join('; ');
+    if (c.type === 'image' || c.type === 'gif') return flat(d.caption || d.title || d.alt || (c.type === 'gif' ? 'GIF' : 'picture'));
+    if (c.type === 'video') return flat(d.title || d.url || 'video');
+    if (c.type === 'timer') return `${flat(d.title || 'Timer')} ${d.minutes || 0} min`;
+    if (c.type === 'game') {
+      const g = d.customContent || {};
+      const bits = [].concat(
+        (g.pairs || []).map(p => `${p.a || p.left || ''}${(p.b || p.right) ? ' - ' + (p.b || p.right) : ''}`),
+        g.words || [], (g.categories || []).map(k => `${k.name}: ${(k.words || []).join(', ')}`),
+        (g.questions || []).map(q => q.q || q.text || ''), (g.statements || []).map(t => t.text || ''), g.sentences || []);
+      return [d.title || 'Game', bits.slice(0, 12).join('; ')].filter(Boolean).map(flat).join(': ');
+    }
+    const p = d._wfPath;
+    if (p && Array.isArray(p.steps)) {
+      const steps = p.steps.slice(0, 8).map(st => {
+        const o = st.out || {};
+        const qs = (o.questions || []).slice(0, 4).map(q => q.text || q.prompt || '').filter(Boolean);
+        const cs = (o.cards || []).slice(0, 2).map(k => k.text || k.title || '').filter(Boolean);
+        return `[${st.title || st.role || 'step'}] ${qs.concat(cs).join(' / ')}`;
+      });
+      return [d.title, d.level, ...steps].filter(Boolean).map(flat).join(' · ');
+    }
+    return extractCardPlainText(c);
+  }
+
   function collectCards() {
     const mine = typeof _currentUserId === 'function' ? _currentUserId() : null;
     const centre = getBoardViewportCenter() || { x: 0, y: 0 };
@@ -239,9 +323,12 @@
       .slice(0, MAX_CARDS)
       .map(({ c, sel }) => ({
         id: c.id, type: c.type, x: Math.round(c.x), y: Math.round(c.y),
-        text: cardText(c).replace(/\s+/g, ' ').trim().slice(0, 220),
+        w: Math.round(c.w), h: Math.round(c.h),
+        text: cardDigest(c).replace(/\s+/g, ' ').trim().slice(0, sel ? 600 : 300),
         color: c.type === 'sticky' ? colorName(c.color) : undefined,
         selected: sel || undefined,
+        frame: (c.data && c.data.parentFrame) || undefined,
+        recent: recentIds.has(c.id) || undefined,
         // Карточка-студия лексики: её слова, чтобы «сделай игру из слов этой
         // студии» не упиралось в один заголовок.
         words: (() => { const w = studioWords(c); return w.length ? w.map(x => x.gloss && x.kept ? `${x.word} - ${x.gloss}` : x.word) : undefined; })(),
@@ -485,20 +572,46 @@
     input.value = '';
     const studio = studioIntent(command);
     if (studio && openStudio(studio.key, null, { useWords: studio.useWords, command })) return;
+    archiveAnswer('Not applied');
     clearPlan();
+    bubble('teacher', command);
+    const history = turns.slice();
+    remember('teacher', command);
     // "Remember that…": never decided by the model - the exact text and where it goes, then Apply
     const rem = REMEMBER.exec(command);
     if (rem) { await rememberPlan(rem[1].trim(), command); return; }
     setBusy(true);
+    out.hidden = false;
+    btns.hidden = true;
+    replyEl.textContent = 'Thinking…';
+    replyEl.classList.add('ba-thinking');
     try {
       const boardId = typeof currentBoardId !== 'undefined' ? currentBoardId : null;   // TeachEd memory, read on the server
-      const r = await apiFetch('/api/ai/board-agent', { method: 'POST', body: { command, boardId, ...collectCards() } });
+      const board = { name: ((document.getElementById('board-name-display') || {}).textContent || '').trim().slice(0, 80) };
+      const r = await apiFetch('/api/ai/board-agent', { method: 'POST', body: { command, boardId, board, history, ...collectCards() } });
       const data = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(data.error || 'The board assistant is not available right now.');
+      if (!r.ok) {
+        // provider noise ("fetch failed", "timeout after…") means one thing to a teacher
+        const said = r.status === 503 ? 'The AI model is switched off on this server.'
+          : r.status >= 500 ? 'The AI model did not answer this time.'
+          : data.error;
+        const e = new Error(said || 'The board assistant is not available right now.');
+        e.status = r.status;
+        throw e;
+      }
+      replyEl.classList.remove('ba-thinking');
       show(data, command);
     } catch (err) {
-      showMessage(err && err.message ? err.message : 'Something went wrong. Try again.', true);
-      showStudioChips();
+      replyEl.classList.remove('ba-thinking');
+      // No model (no key, quota, timeout, offline): the local rules still do the everyday jobs.
+      const local = err && err.status !== 401 && err.status !== 403 ? localPlan(command) : null;
+      if (local) show(local, command);
+      else {
+        const msg = err && err.message ? err.message : 'Something went wrong. Try again.';
+        showMessage(msg + (err && err.status !== 401 ? ' I can still tidy, find, frame, colour, time and clean up the board - try “tidy the selected into a grid” or “add a 5-minute timer”.' : ''), true);
+        remember('assistant', msg);
+        showStudioChips();
+      }
     } finally {
       setBusy(false);
       if (!bar.hidden) input.focus();
@@ -526,6 +639,22 @@
     btns.hidden = true;
   }
 
+  /* Next steps the assistant offers after its answer: a click sends them. */
+  function showSuggestions(list, target) {
+    const items = (Array.isArray(list) ? list : []).filter(t => typeof t === 'string' && t.trim()).slice(0, 3);
+    if (!items.length) return;
+    const li = document.createElement('li');
+    li.className = 'ba-chips ba-next';
+    items.forEach(t => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = t;
+      b.addEventListener('click', () => { if (busy) return; input.value = t; ask(); });
+      li.appendChild(b);
+    });
+    (target || stepsEl).appendChild(li);
+  }
+
   const quote = (t, n = 28) => { t = String(t || '').replace(/\s+/g, ' ').trim(); return '“' + (t.length > n ? t.slice(0, n - 1) + '…' : t) + '”'; };
   const names = (ids, n = 3) => {
     const texts = ids.map(id => byId(id)).filter(Boolean).map(c => cardText(c)).filter(Boolean);
@@ -537,9 +666,17 @@
   function describe(a) {
     if (a.op === 'add') {
       const what = a.kind === 'text' ? plural(a.items.length, 'text card') : plural(a.items.length, 'sticky note');
-      return `Add ${what}${a.title ? ` under “${a.title}”` : ''}: ${a.items.slice(0, 3).map(i => quote(i.text, 22)).join(', ')}${a.items.length > 3 ? ` +${a.items.length - 3}` : ''}`;
+      const where = a.frame ? ` in a new frame “${a.frame}”` : a.into ? ` inside ${quote(cardText(byId(a.into) || {}), 24)}` : '';
+      return `Add ${what}${where}${a.title ? ` under “${a.title}”` : ''}: ${a.items.slice(0, 3).map(i => quote(i.text, 22)).join(', ')}${a.items.length > 3 ? ` +${a.items.length - 3}` : ''}`;
     }
-    if (a.op === 'edit') return `Change ${quote(cardText(byId(a.id) || {}), 24)} → ${quote(a.text, 40)}`;
+    if (a.op === 'edit') return `${(byId(a.id) || {}).type === 'frame' ? 'Rename frame' : 'Change'} ${quote(cardText(byId(a.id) || {}), 24)} → ${quote(a.text, 40)}`;
+    if (a.op === 'frame') return `Frame “${a.title}” around ${plural(a.ids.length, 'card')}${names(a.ids)}`;
+    if (a.op === 'move') return `Move ${plural(a.ids.length, 'card')} into ${quote(cardText(byId(a.into) || {}), 24)}${names(a.ids)}`;
+    if (a.op === 'table') return `Add a table “${a.title}”: ${a.rows.length} rows × ${a.rows[0].length} columns`;
+    if (a.op === 'checklist') return `Add a checklist “${a.title}”: ${a.items.slice(0, 3).map(t => quote(t, 22)).join(', ')}${a.items.length > 3 ? ` +${a.items.length - 3}` : ''}`;
+    if (a.op === 'timer') return `Add a ${a.minutes}-minute timer “${a.title}”`;
+    if (a.op === 'image') return `Add a photo: ${quote(a.query, 40)}${a.caption ? ` - ${quote(a.caption, 30)}` : ''}`;
+    if (a.op === 'tidy') return `Tidy ${plural(a.ids.length, 'card')} into a ${a.layout}`;
     if (a.op === 'color') return `Colour ${plural(a.ids.length, 'sticky', 'stickies')} ${a.color}${names(a.ids)}`;
     if (a.op === 'delete') return `Delete ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'arrange') return `Arrange ${plural(a.ids.length, 'card')} in a ${a.layout}`;
@@ -570,16 +707,23 @@
     replyEl.classList.remove('err');
     replyEl.textContent = data.reply || '';
     stepsEl.textContent = '';
+    out.dataset.note = '';
+    remember('assistant', (data.reply || '') + (actions.length ? '\nPlan: ' + actions.map(describe).filter(Boolean).join('; ') : ''));
 
     // Opening a studio changes nothing on the board - no Apply step.
     const opener = actions.find(a => a.op === 'open');
     if (opener) { input.value = ''; openStudio(opener.studio, opener.words, { useWords: WORDS_REF.test(command) || SELECTION_REF.test(command), command }); return; }
-    // Nothing the board can do: show what it CAN do instead of a dead end.
-    if (!actions.length) showStudioChips();
+    // An answer without actions (a question, a clarification) is a full answer:
+    // the next steps it offers, or - when there are none - the studios.
+    if (!actions.length) {
+      if (Array.isArray(data.suggest) && data.suggest.length) showSuggestions(data.suggest);
+      else showStudioChips();
+    }
     // "Where is…" only moves the camera, so there is nothing to confirm.
     if (actions.length && actions.every(a => a.op === 'focus')) {
       apply(actions, true);
       btns.hidden = true;
+      showSuggestions(data.suggest);
       return;
     }
     actions.forEach(a => {
@@ -591,7 +735,9 @@
     btns.hidden = !actions.length;
     plan = actions.length ? actions : null;
     planFor = command;
+    pendingSuggest = actions.length ? (data.suggest || []) : [];
   }
+  let pendingSuggest = [];   // offered once the plan is applied
 
   /* ── Apply ──────────────────────────────────────────────────────────── */
   function bbox(cards) {
@@ -618,31 +764,138 @@
     updateCardPos(card);
   }
 
-  function doAdd(a, made) {
+  /* Where the next new block goes: blocks of one plan stand in a row, top
+     aligned, starting at the camera, each on free canvas. */
+  function placer() {
+    let right = null, top = null;
+    return (w, h) => {
+      const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
+      const want = right == null ? c0 : { x: right + w / 2, y: top + h / 2 };
+      const at = findFreePlacement(want.x, want.y, w, h);
+      const x = Math.round(at.x - w / 2), y = Math.round(at.y - h / 2);
+      right = x + w + 64; top = y;
+      return { x, y };
+    };
+  }
+
+  function resizeCard(card, w, h) {
+    card.w = Math.round(w); card.h = Math.round(h);
+    const el = getCardEl(card.id);
+    if (el) { el.style.width = card.w + 'px'; el.style.height = card.h + 'px'; }
+  }
+
+  const FRAME_PAD = 32, FRAME_HEAD = 48;
+  function makeFrame(x, y, w, h, title) {
+    const frame = addCard('frame', x, y, { title: String(title || 'Frame').slice(0, 60), bg: 'rgba(255,255,255,1)', border: 'rgba(36,40,44,.18)', childIds: [] }, w, h);
+    if (frame && typeof _sendCardToBack === 'function') _sendCardToBack(frame);
+    return frame;
+  }
+
+  /* Cards laid into a frame in a grid under what it already holds; the
+     frame grows to take them. */
+  function layIntoFrame(frame, cards) {
+    if (!frame || !cards.length) return;
+    const ids = new Set(cards.map(c => c.id));
+    const kids = state.cards.filter(c => c.data && c.data.parentFrame === frame.id && !ids.has(c.id));
+    const top = kids.length ? Math.max(...kids.map(c => c.y + c.h)) + GAP : frame.y + FRAME_HEAD;
+    const cw = Math.max(...cards.map(c => c.w)), ch = Math.max(...cards.map(c => c.h));
+    const fit = Math.max(1, Math.floor((frame.w - FRAME_PAD * 2 + GAP) / (cw + GAP)));
+    const cols = Math.min(cards.length, Math.max(fit, Math.min(5, Math.ceil(Math.sqrt(cards.length)))));
+    cards.forEach((c, i) => {
+      moveTo(c, frame.x + FRAME_PAD + (i % cols) * (cw + GAP), top + Math.floor(i / cols) * (ch + GAP));
+      setCardParentFrame(c, frame);
+    });
+    const all = kids.concat(cards);
+    const needW = Math.max(...all.map(c => c.x + c.w)) + FRAME_PAD - frame.x;
+    const needH = Math.max(...all.map(c => c.y + c.h)) + FRAME_PAD - frame.y;
+    if (needW > frame.w || needH > frame.h) resizeCard(frame, Math.max(frame.w, needW), Math.max(frame.h, needH));
+  }
+
+  function doAdd(a, made, spot) {
     const def = getDefaults(a.kind === 'text' ? 'text' : 'sticky');
     const n = a.items.length;
     const cols = Math.min(5, Math.ceil(Math.sqrt(n)));
     const rows = Math.ceil(n / cols);
     const headH = a.title ? 56 : 0;
     const W = cols * def.w + (cols - 1) * GAP, H = headH + rows * def.h + (rows - 1) * GAP;
-    const c0 = getBoardViewportCenter() || { x: 320, y: 260 };
-    const at = findFreePlacement(c0.x, c0.y, W, H);
-    const x0 = Math.round(at.x - W / 2), y0 = Math.round(at.y - H / 2);
+    const into = a.into ? byId(a.into) : null;
+    const framed = !into && a.frame;
+    const box = framed ? spot(W + FRAME_PAD * 2, H + FRAME_PAD + FRAME_HEAD) : spot(W, H);
+    const x0 = framed ? box.x + FRAME_PAD : box.x, y0 = framed ? box.y + FRAME_HEAD : box.y;
+    const frame = framed ? makeFrame(box.x, box.y, W + FRAME_PAD * 2, H + FRAME_PAD + FRAME_HEAD, a.frame) : into;
+    if (framed && frame) made.push(frame);
+    const mine = [];
     if (a.title) {
       const head = addCard('text', x0, y0, { text: a.title, fontSize: 22 }, Math.max(def.w, Math.min(W, 420)), 44);
-      if (head) made.push(head);
+      if (head) mine.push(head);
     }
     a.items.forEach((item, i) => {
       const x = x0 + (i % cols) * (def.w + GAP), y = y0 + headH + Math.floor(i / cols) * (def.h + GAP);
       const card = a.kind === 'text'
         ? addCard('text', x, y, { text: item.text })
         : addCard('sticky', x, y, { text: item.text, color: colorHex(item.color) });
-      if (card) made.push(card);
+      if (card) mine.push(card);
     });
+    if (into) layIntoFrame(into, mine);
+    else if (frame) mine.forEach(c => setCardParentFrame(c, frame));
+    made.push(...mine);
+  }
+
+  function doFrame(a, made) {
+    const cards = a.ids.map(byId).filter(c => c && c.type !== 'frame');
+    if (!cards.length) return;
+    const box = bbox(cards);
+    const frame = makeFrame(box.x - FRAME_PAD, box.y - FRAME_HEAD, box.w + FRAME_PAD * 2, box.h + FRAME_PAD + FRAME_HEAD, a.title);
+    if (!frame) return;
+    cards.forEach(c => setCardParentFrame(c, frame));
+    made.push(frame);
+  }
+
+  function doMove(a) {
+    const frame = byId(a.into);
+    if (!frame || frame.type !== 'frame') return;
+    layIntoFrame(frame, a.ids.map(byId).filter(c => c && c.type !== 'frame'));
+  }
+
+  function doSingle(a, made, spot, image) {
+    let card = null;
+    if (a.op === 'table') {
+      const cols = a.rows[0].length;
+      const w = Math.max(320, Math.min(860, cols * 150)), h = 60 + a.rows.length * 38;
+      const at = spot(w, h);
+      card = addCard('table', at.x, at.y, { title: a.title, rows: a.rows.map(r => r.slice()) }, w, h);
+    } else if (a.op === 'checklist') {
+      const w = 280, h = Math.max(200, 70 + a.items.length * 34);
+      const at = spot(w, h);
+      card = addCard('checklist', at.x, at.y, { title: a.title, items: a.items.map(text => ({ text, done: false })) }, w, h);
+    } else if (a.op === 'timer') {
+      const def = getDefaults('timer');
+      const at = spot(def.w, def.h);
+      card = addCard('timer', at.x, at.y, { title: a.title, minutes: a.minutes, seconds: 0 });
+    } else if (a.op === 'image') {
+      if (!image) return;
+      const w = 320, h = 240;
+      const at = spot(w, h);
+      card = addCard('image', at.x, at.y, { src: image, caption: a.caption || a.query, fit: 'cover' }, w, h);
+    }
+    if (card) made.push(card);
+  }
+
+  /* A photo for "image": the same search the word pictures use, through our
+     own proxy so the card keeps its picture. */
+  async function findImage(query) {
+    try {
+      const base = (window.TeachEdApp && window.TeachEdApp.API_BASE) || window.TEACHED_API_BASE
+        || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : location.origin);
+      const r = await fetch(base + '/api/images/search?q=' + encodeURIComponent(query));
+      const d = r.ok ? await r.json() : {};
+      return d && d.url ? (/^https?:/.test(d.url) ? d.url : base + d.url) : null;
+    } catch (_) { return null; }
   }
 
   function doEdit(a) {
     const card = byId(a.id);
+    if (card && card.type === 'frame') { card.data.title = a.text; reRenderCard(card); return; }
     if (!card || (card.type !== 'sticky' && card.type !== 'text')) return;
     if (card.data) delete card.data.html;   // a text card renders html first; the new text must win
     setCardData(card, { text: a.text });
@@ -665,8 +918,17 @@
     const cw = Math.max(...cards.map(c => c.w)), ch = Math.max(...cards.map(c => c.h));
     const cols = a.layout === 'row' ? cards.length : a.layout === 'column' ? 1 : Math.min(6, Math.ceil(Math.sqrt(cards.length)));
     const rows = Math.ceil(cards.length / cols);
-    const o = blockOrigin(cards, cols * cw + (cols - 1) * GAP, rows * ch + (rows - 1) * GAP);
+    // cards of one frame are tidied inside it (the frame grows), not carried off to free canvas
+    const home = byId((cards[0].data || {}).parentFrame);
+    const inFrame = home && home.type === 'frame' && cards.every(c => c.data && c.data.parentFrame === home.id);
+    const o = inFrame ? { x: home.x + FRAME_PAD, y: home.y + FRAME_HEAD } : blockOrigin(cards, cols * cw + (cols - 1) * GAP, rows * ch + (rows - 1) * GAP);
     cards.forEach((c, i) => moveTo(c, o.x + (i % cols) * (cw + GAP), o.y + Math.floor(i / cols) * (ch + GAP)));
+    if (inFrame) {
+      const kids = state.cards.filter(c => c.data && c.data.parentFrame === home.id);
+      const needW = Math.max(...kids.map(c => c.x + c.w)) + FRAME_PAD - home.x;
+      const needH = Math.max(...kids.map(c => c.y + c.h)) + FRAME_PAD - home.y;
+      if (needW > home.w || needH > home.h) resizeCard(home, Math.max(home.w, needW), Math.max(home.h, needH));
+    }
   }
 
   function doSort(a, made) {
@@ -698,24 +960,37 @@
     state.groups.push({ id: 'g' + (_groupNextId++), cardIds: ids });
   }
 
-  function apply(actions, quiet) {
+  async function apply(actions, quiet) {
     if (!actions || !actions.length) return;
     const changes = actions.some(a => a.op !== 'focus' && a.op !== 'remember');   // memory is not the board
     if (changes && currentUser && currentBoardId && !boardCanEdit) { toast('This board is view only'); return; }
-    const made = [];
+    // photos are looked up first, so the whole plan still lands as one undo step
+    const pics = actions.filter(a => a.op === 'image');
+    let images = [];
+    if (pics.length) {
+      setBusy(true);
+      try { images = await Promise.all(pics.map(a => findImage(a.query))); } finally { setBusy(false); }
+    }
+    const before = new Set(state.cards.map(c => c.id));
+    const made = [], touched = [];
     let focus = [];
+    const spot = placer();
     if (changes) snapshot();
     _suppressSnapshot++;
     try {
       actions.forEach(a => {
         try {
-          if (a.op === 'add') doAdd(a, made);
-          else if (a.op === 'edit') doEdit(a);
-          else if (a.op === 'color') doColor(a);
+          if (a.op === 'add') doAdd(a, made, spot);
+          else if (a.op === 'edit') { doEdit(a); touched.push(a.id); }
+          else if (a.op === 'color') { doColor(a); touched.push(...a.ids); }
           else if (a.op === 'delete') a.ids.forEach(id => removeCard(id));
-          else if (a.op === 'arrange') doArrange(a);
-          else if (a.op === 'sort') doSort(a, made);
-          else if (a.op === 'group') doGroup(a);
+          else if (a.op === 'arrange' || a.op === 'tidy') { doArrange(a); touched.push(...a.ids); }
+          else if (a.op === 'sort') { doSort(a, made); a.columns.forEach(c => touched.push(...c.ids)); }
+          else if (a.op === 'group') { doGroup(a); touched.push(...a.ids); }
+          else if (a.op === 'frame') doFrame(a, made);
+          else if (a.op === 'move') { doMove(a); touched.push(...a.ids); }
+          else if (a.op === 'table' || a.op === 'checklist' || a.op === 'timer') doSingle(a, made, spot);
+          else if (a.op === 'image') doSingle(a, made, spot, images[pics.indexOf(a)]);
           else if (a.op === 'focus') focus = focus.concat(a.ids);
           else if (a.op === 'homework') { if (!placeHomeworkOnBoard(a)) toast('Could not build the homework'); }
           else if (a.op === 'game') placeGameOnBoard(a.game, a.title, 'B1', a.content);
@@ -729,8 +1004,14 @@
       updateGroupOutlines();
       scheduleSave(); saveLocal();
     }
+    // games and exercise cards place themselves; they count as made too
+    const fresh = state.cards.filter(c => !before.has(c.id)).map(c => c.id);
+    const madeIds = [...new Set(made.map(c => c.id).concat(fresh))];
+    if (changes) recentIds = new Set(madeIds.concat(touched).filter(id => byId(id)));
+    const missed = pics.length - images.filter(Boolean).length;
+    if (missed) toast(missed === pics.length ? 'No photo found for that - try other words' : `${missed} photo(s) not found`);
     const show = focus.filter(id => byId(id));
-    const pick = show.length ? show : made.map(c => c.id);
+    const pick = show.length ? show : madeIds.filter(id => (byId(id) || {}).type !== 'frame' || madeIds.length === 1);
     if (pick.length) {
       clearSelection();
       pick.forEach(id => selectCard(id, true));
@@ -739,10 +1020,76 @@
     if (typeof updateMultiSelBox === 'function') updateMultiSelBox();
     refreshScope();
     if (!quiet) {
+      noteLastTurn('applied');
+      out.dataset.note = '✓ Done · Ctrl+Z to undo';
+      plan = null;
+      archiveAnswer();
       clearPlan();
+      const next = pendingSuggest; pendingSuggest = [];
+      if (next.length) { const holder = document.createElement('ul'); holder.className = 'ba-steps'; logEl.appendChild(holder); showSuggestions(next, holder); }
       input.value = '';
       toast('Done · Ctrl+Z to undo');
     }
+  }
+
+  /* ── Local rules: the assistant without a model ────────────────────────
+     Everyday board jobs the browser can do on its own, in English, Russian
+     and Ukrainian. Used when the server cannot answer, so the panel never
+     leaves the teacher with nothing. */
+  const LOCAL_COLORS = [
+    ['yellow', /yellow|жёлт|желт|жовт/i], ['green', /green|зелен|зелён/i], ['blue', /\bblue\b|син|блакит/i],
+    ['purple', /purple|violet|фиолет|фіолет|бузк/i], ['orange', /orange|оранж|помаранч/i], ['grey', /gr[ae]y|сер(ый|ые|ым)|сір/i],
+    ['white', /white|бел(ый|ые|ым)|біл/i], ['lime', /lime|лайм/i], ['cyan', /cyan|голуб|бирюз|бірюз/i], ['peach', /peach|персик/i],
+  ];
+  function localPlan(command) {
+    const c = String(command || '').toLowerCase();
+    const sel = state.cards.filter(x => state.selected.has(x.id));
+    const scope = sel.length ? sel : state.cards.filter(x => !(x.data && x.data.parentFrame));
+    const offline = ' (I am working without the AI model right now, so I can only do simple board jobs.)';
+    const mins = c.match(/(\d{1,2})\s*(?:-?\s*)?(?:min|мин|хв)/);
+    if (/timer|таймер/.test(c) || (mins && /(set|put|add|постав|добав|додай|запуст)/.test(c))) {
+      const m = Math.min(60, Math.max(1, Number(mins && mins[1]) || 5));
+      return { reply: `A ${m}-minute timer.`, actions: [{ op: 'timer', title: 'Timer', minutes: m }] };
+    }
+    const find = c.match(/(?:where(?:'s| is)?|find|show me|search|где|найди|покажи|де|знайди)\s+(?:the\s+)?(.{2,60})$/);
+    if (find) {
+      const q = find[1].replace(/[?.!]+$/, '').trim();
+      const hits = state.cards.filter(x => cardText(x).toLowerCase().includes(q)).map(x => x.id).slice(0, 20);
+      return hits.length
+        ? { reply: `Found ${plural(hits.length, 'card')} with “${q}”.`, actions: [{ op: 'focus', ids: hits }] }
+        : { reply: `Nothing on the board says “${q}”.`, actions: [] };
+    }
+    if (/(empty|blank|пуст|порожн)/.test(c) && /(delete|remove|clear|clean|удал|убер|почист|видал|прибер|очист)/.test(c)) {
+      const ids = state.cards.filter(x => (x.type === 'sticky' || x.type === 'text') && !cardText(x).trim()).map(x => x.id);
+      return ids.length ? { reply: `${plural(ids.length, 'empty card')} to delete.` + offline, actions: [{ op: 'delete', ids }] } : { reply: 'There are no empty cards on this board.', actions: [] };
+    }
+    if (/(frame|фрейм|рамк)/.test(c) && sel.length) {
+      const named = command.match(/(?:called|named|title[d]?|назов\w*|назв\w*|под названием|з назвою)\s+[«"“]?([^»"”]{1,50})/i);
+      return { reply: `A frame around ${plural(sel.length, 'card')}.` + offline, actions: [{ op: 'frame', ids: sel.map(x => x.id), title: named ? named[1].trim() : 'Frame' }] };
+    }
+    const colour = LOCAL_COLORS.find(([, re]) => re.test(c));
+    if (/(sort|рассорт|розсорт|по цвет|за кольор)/.test(c) && /(colou?r|цвет|кольор|колір)/.test(c)) {
+      const stickies = scope.filter(x => x.type === 'sticky');
+      const by = {};
+      stickies.forEach(x => { const n = colorName(x.color) || 'other'; (by[n] = by[n] || []).push(x.id); });
+      const columns = Object.entries(by).map(([title, ids]) => ({ title: title[0].toUpperCase() + title.slice(1), ids }));
+      if (columns.length) return { reply: `Stickies sorted into ${plural(columns.length, 'column')} by colour.` + offline, actions: [{ op: 'sort', columns }] };
+    }
+    if (colour && sel.some(x => x.type === 'sticky') && /(colou?r|paint|make|цвет|покрас|сдела|колір|кольор|пофарб|зроби)/.test(c)) {
+      return { reply: `Selected stickies in ${colour[0]}.`, actions: [{ op: 'color', ids: sel.filter(x => x.type === 'sticky').map(x => x.id), color: colour[0] }] };
+    }
+    if (/(group|сгруппир|згрупу|группу)/.test(c) && !/ungroup|разгруп|розгруп/.test(c) && sel.length >= 2) {
+      return { reply: `${plural(sel.length, 'card')} grouped.`, actions: [{ op: 'group', ids: sel.map(x => x.id) }] };
+    }
+    if (/(tidy|arrange|align|line up|grid|in a row|column|выровн|упоряд|разлож|сетк|в ряд|столб|вирівн|впоряд|розклад|у ряд|стовп|прибери)/.test(c)) {
+      const cards = scope.filter(x => x.type !== 'frame');
+      if (cards.length >= 2) {
+        const layout = /(row|в ряд|у ряд|рядок|строк)/.test(c) ? 'row' : /(column|столб|стовп)/.test(c) ? 'column' : 'grid';
+        const ids = cards.sort((a, b) => (a.y - b.y) || (a.x - b.x)).map(x => x.id).slice(0, MAX_CARDS);
+        return { reply: `${plural(ids.length, 'card')} tidied into a ${layout}.` + (sel.length ? '' : ' (Nothing was selected, so the whole board.)'), actions: [{ op: 'tidy', ids, layout }] };
+      }
+    }
+    return null;
   }
 
   /* ── Wiring ─────────────────────────────────────────────────────────── */
@@ -754,17 +1101,19 @@
     else ask();
   });
   $('.ba-apply').addEventListener('click', () => apply(plan));
-  $('.ba-cancel').addEventListener('click', () => { clearPlan(); input.focus(); });
+  $('.ba-cancel').addEventListener('click', () => { archiveAnswer('Cancelled'); clearPlan(); input.focus(); });
   $('.ba-close').addEventListener('click', close);
-  $('.ba-new').addEventListener('click', () => { clearPlan(); input.value = ''; input.focus(); });
+  $('.ba-new').addEventListener('click', newChat);
   bar.querySelectorAll('.ba-sug').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.sug;
     if (k === 'plan') { close(); if (typeof openLessonWizard === 'function') openLessonWizard(); return; }
     input.value = k === 'quiz' ? 'Make a short quiz from the selected frame' : 'Suggest a warm-up game for this lesson and put it on the board';
     ask();
   }));
-  // the empty state shows while there is no plan or answer
-  new MutationObserver(() => { const e = $('.ba-empty'); if (e) e.hidden = !out.hidden; }).observe(out, { attributes: true, attributeFilter: ['hidden'] });
+  // the empty state shows while there is no plan, answer or chat
+  const syncEmpty = () => { const e = $('.ba-empty'); if (e) e.hidden = !out.hidden || !!logEl.childElementCount; };
+  new MutationObserver(syncEmpty).observe(out, { attributes: true, attributeFilter: ['hidden'] });
+  new MutationObserver(syncEmpty).observe(logEl, { childList: true });
   // voice input where the browser has it
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const mic = $('.ba-mic');

@@ -9,8 +9,8 @@
 
 const COLORS = ['yellow', 'sand', 'lime', 'green', 'cyan', 'blue', 'purple', 'peach', 'orange', 'grey', 'olive', 'white'];
 const LAYOUTS = ['grid', 'row', 'column'];
-const GAMES = ['memory-match', 'flashcards', 'word-categories', 'hangman', 'spin-wheel'];
-const EDITABLE = new Set(['sticky', 'text']);
+const GAMES = ['memory-match', 'flashcards', 'word-categories', 'hangman', 'spin-wheel', 'speed-quiz', 'true-false', 'fill-blank', 'word-image-match'];
+const EDITABLE = new Set(['sticky', 'text', 'frame']);
 /* Lesson studios the board can open (the lesson builder's skills, see
    BOARD_LESSON_SKILLS in js/teacher-tools-data.js). */
 const STUDIOS = ['vocabulary', 'listening', 'reading', 'speaking', 'writing', 'grammar', 'magazine', 'scenes'];
@@ -18,6 +18,7 @@ const STUDIOS = ['vocabulary', 'listening', 'reading', 'speaking', 'writing', 'g
 const MAX_CARDS = 150;
 const MAX_ACTIONS = 40;
 const MAX_ADD = 60;
+const MAX_TURNS = 8;      // earlier exchanges of this chat the model gets to see
 
 const clean = (v, max) => String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, max);
 const oneLine = (v, max) => clean(v, max * 2).replace(/\s+/g, ' ').slice(0, max);
@@ -33,12 +34,19 @@ function normalizeCards(cards) {
     const card = {
       id,
       type: oneLine(c.type, 20).replace(/[^a-z-]/gi, '') || 'card',
-      text: oneLine(c.text, 220),
+      text: oneLine(c.text, c.selected ? 600 : 300),
       x: Math.round(Number(c.x) || 0),
       y: Math.round(Number(c.y) || 0),
     };
+    if (Number(c.w) > 0) card.w = Math.round(Number(c.w));
+    if (Number(c.h) > 0) card.h = Math.round(Number(c.h));
     if (COLORS.includes(c.color)) card.color = c.color;
     if (c.selected) card.selected = true;
+    /* Где лежит карточка (фрейм-этап урока) и что ассистент сделал прошлым
+       ходом: «сделай их синими» после «добавь пять стикеров» - это они. */
+    const frame = oneLine(c.frame, 24);
+    if (frame && /^[A-Za-z0-9_-]+$/.test(frame)) card.frame = frame;
+    if (c.recent) card.recent = true;
     /* Карточка-студия лексики несёт свои слова: заголовок о них ничего не
        говорит, а команда «слова из этой студии» ссылается именно на них. */
     if (Array.isArray(c.words)) {
@@ -51,6 +59,16 @@ function normalizeCards(cards) {
   return out;
 }
 
+/* The chat so far: what the teacher said and what the assistant answered
+   (with what it did). Only text, bounded, newest last. */
+function normalizeHistory(history) {
+  return (Array.isArray(history) ? history : [])
+    .filter(t => t && (t.role === 'teacher' || t.role === 'assistant'))
+    .map(t => ({ role: t.role, text: clean(t.text, 700) }))
+    .filter(t => t.text)
+    .slice(-MAX_TURNS);
+}
+
 const GUIDE = `How this board works (use it to answer "how do I..." questions):
 - Left toolbar, top to bottom: Lesson Builder (the star: makes a whole lesson from a topic, text or video), Cursor (click again for the laser pointer, K), Sticky note (S), Text (T), Shapes (Q, also mind map and table), Pen / highlighter / eraser (P, E), Stickers (Y), Comment, Games Hub (G), Frame (Shift+F), Connection line (C), "+" for more tools.
 - Double-click a sticky or text to edit it. Select a card to get its colour, size and alignment bar.
@@ -59,57 +77,78 @@ const GUIDE = `How this board works (use it to answer "how do I..." questions):
 - "Follow me" in the top bar brings students to the teacher's view. "Share" invites students. The Lesson pad on the right keeps the lesson's words and notes.
 - Ctrl/Cmd+K opens this command bar.`;
 
-function buildPrompt({ command, cards, viewport, memory }) {
+function buildPrompt({ command, cards, viewport, memory, history, board }) {
   const list = normalizeCards(cards);
   const selected = list.filter(c => c.selected);
+  const recent = list.filter(c => c.recent);
   const lines = list.map(c => JSON.stringify(c)).join('\n');
-  return `You are the board assistant inside TeachEd, an online whiteboard for English (EFL/ESL) teachers. The teacher types a command. You know the board better than they do: decide which cards are meant and what should happen, then return a plan the board will carry out.
+  const turns = normalizeHistory(history);
+  const boardName = oneLine(board && board.name, 80);
+  return `You are the board assistant inside TeachEd, an online whiteboard for English (EFL/ESL) teachers. You are the teacher's capable colleague: you read the board, understand what they mean even when the command is short, vague or has typos, and you DO the work - the board carries out the plan you return. Prefer doing a sensible thing over asking a question. Ask only when two readings would change the board in very different ways.
 
 ${GUIDE}
 
 Return ONLY a JSON object:
-{"reply":"one or two short sentences for the teacher","actions":[ ... ]}
+{"reply":"one to three short sentences for the teacher","actions":[ ... ],"suggest":["up to 3 short next commands the teacher may want, in their language"]}
 
 Allowed actions (use only these, with ids taken from the card list below):
-- {"op":"add","kind":"sticky"|"text","title":"optional heading","items":[{"text":"...","color":"<colour>"}]}  new cards, laid out in a grid for you
-- {"op":"edit","id":"c1","text":"new full text"}  only for cards of type sticky or text
+- {"op":"add","kind":"sticky"|"text","title":"optional heading","frame":"optional new frame title","into":"optional existing frame id","items":[{"text":"...","color":"<colour>"}]}  new cards laid out in a grid for you. "frame" puts them in a NEW frame with that title (a lesson stage, a station); "into" puts them inside an EXISTING frame. Use one "add" per stage to build a lesson of several frames; they are placed side by side in order.
+- {"op":"edit","id":"c1","text":"new full text"}  sticky or text cards; for a frame the text is its new title
 - {"op":"color","ids":["c1"],"color":"<colour>"}  only sticky cards
 - {"op":"delete","ids":["c1"]}  only when the teacher clearly asks to remove something
 - {"op":"arrange","ids":["c1","c2"],"layout":"grid"|"row"|"column"}  tidy cards in place, in the order given
 - {"op":"sort","columns":[{"title":"Verbs","ids":["c1"]},{"title":"Nouns","ids":["c2"]}]}  move cards into titled columns
 - {"op":"group","ids":["c1","c2"]}
+- {"op":"frame","title":"...","ids":["c1","c2"]}  put a frame around existing cards (they move with it from then on)
+- {"op":"move","ids":["c1"],"into":"<frame id>"}  move cards inside an existing frame
 - {"op":"focus","ids":["c1"]}  select the cards and move the camera to them (for "where is...", "show me...")
+- {"op":"table","title":"...","rows":[["Base form","Past simple"],["go","went"]]}  a table card; first row is the header; up to 14 rows x 6 columns
+- {"op":"checklist","title":"...","items":["..."]}  a checklist card (lesson goals, success criteria, a to-do), up to 12 items
+- {"op":"timer","title":"Pair work","minutes":5}  a countdown timer card, 1-60 minutes
+- {"op":"image","query":"two or three English words to search a photo","caption":"optional"}  a photo from the stock library, for a warm-up, a discussion picture or a word
 - {"op":"open","studio":"vocabulary"|"listening"|"reading"|"speaking"|"writing"|"grammar"|"magazine"|"scenes","words":["word — meaning"]}  open a lesson studio (the lesson builder) for the teacher
   Studios: vocabulary = Vocabulary Studio / word workout (a word set and games around it); listening = a video or audio lesson; reading = a text lesson; speaking; writing; grammar; magazine = News & Articles; scenes = Picture Worksheets.
   "words" only for vocabulary: one line per word, copied from the cards the command means (the selected ones), keeping "word — meaning" when the card has it. Up to 30.
   A card with a "words" list is a lesson studio on the board and those are its words. "Use the words from this studio and create a reading studio" (any language) is ONE "open" action with studio "reading" and no "words": the browser carries the selected studio's words into the new studio itself. The same for speaking, writing and grammar. Never answer that with stickies.
-- {"op":"homework","title":"...","instruction":"what the student does, 1-3 sentences","exercises":[{"title":"...","questions":[...]}],"brief":"optional note for the teacher","criteria":["optional success criteria"]}  build ONE homework card: an instruction plus 2-4 exercises the student works through step by step, with the answer key inside the questions (the student never sees it until they check). Question shapes: {"type":"mcq","text":"...","options":["..","..",".."],"answer":"<one of the options>"} | {"type":"truefalse","text":"...","answer":true} | {"type":"gap-fill","text":"She ___ to school.","answer":"goes"} | {"type":"match","text":"Match","pairs":[{"left":"..","right":".."}]} | {"type":"open","text":"..."}. Each exercise holds 3-8 questions of ONE type; use at least two different types across the exercises. "brief" and "criteria" are notes for the teacher, never exercises.
-- {"op":"game","game":"memory-match"|"flashcards"|"word-categories"|"hangman"|"spin-wheel","title":"...","pairs":[{"a":"word","b":"meaning"}],"words":["..."],"categories":[{"name":"...","words":["..."]}]}
-  memory-match and flashcards need "pairs" (3 or more); hangman and spin-wheel need "words" (3 or more); word-categories needs "categories" (2 or more).
+- {"op":"homework","title":"...","instruction":"what the student does, 1-3 sentences","exercises":[{"title":"...","questions":[...]}],"brief":"optional note for the teacher","criteria":["optional success criteria"]}  build ONE interactive exercise card (homework, a quiz, a practice set the students do on the board): an instruction plus 2-4 exercises the student works through step by step, with the answer key inside the questions (the student never sees it until they check). Question shapes: {"type":"mcq","text":"...","options":["..","..",".."],"answer":"<one of the options>"} | {"type":"truefalse","text":"...","answer":true} | {"type":"gap-fill","text":"She ___ to school.","answer":"goes"} | {"type":"match","text":"Match","pairs":[{"left":"..","right":".."}]} | {"type":"open","text":"..."}. Each exercise holds 3-8 questions of ONE type; use at least two different types across the exercises. "brief" and "criteria" are notes for the teacher, never exercises.
+- {"op":"game","game":"<game>","title":"...", ...content}  a playable game card:
+  memory-match, flashcards, word-image-match: "pairs":[{"a":"word","b":"meaning"}] (3+; for word-image-match "b" may repeat the word)
+  hangman, spin-wheel: "words":["..."] (3+; spin-wheel takes questions or prompts too)
+  word-categories: "categories":[{"name":"...","words":["..."]}] (2+)
+  speed-quiz: "questions":[{"q":"...","options":["..",".."],"answer":"<one of the options>"}] (3+)
+  true-false: "statements":[{"text":"...","answer":true}] (3+)
+  fill-blank: "sentences":[{"text":"She ___ to school.","answer":"goes"}] (3+)
 
 Colours: ${COLORS.join(', ')}.
 
 Rules:
-- Reply in the language the teacher wrote the command in. Card content stays in the language it is in unless asked otherwise.
-- ${selected.length ? `The teacher has ${selected.length} card(s) selected ("selected":true). "These", "them", "the selected" mean exactly those cards; do not touch other cards unless the command says so.` : 'Nothing is selected. "These" or "the stickies" means the cards the command describes; if it is unclear which, ask in "reply" and return no actions.'}
-- To change a card's text (translate, correct, add a translation, shorten) use "edit" with the complete new text. Do not delete and re-add.
+- Reply in the language the teacher wrote the command in. Content for learners is in English unless the teacher asks otherwise; card content stays in the language it is in unless asked.
+- ${selected.length ? `The teacher has ${selected.length} card(s) selected ("selected":true). "These", "them", "this", "the selected" mean exactly those cards; a selected frame means the cards inside it too ("frame" field). Do not touch other cards unless the command says so.` : (recent.length ? `Nothing is selected. Cards marked "recent":true are the ones you made in your last answer: "them", "these", "make it…" most likely mean those.` : 'Nothing is selected. "These" or "the stickies" means the cards the command describes; if it is truly unclear which, ask in "reply" and return no actions.')}
+- "frame":"<id>" on a card means it lies inside that frame. "This frame", "the warm-up", "stage 2" refer to frames by their title or order (left to right, top to bottom).
+- To change a card's text (translate, correct, add a translation, shorten, simplify) use "edit" with the complete new text. Do not delete and re-add.
 - For "add a translation" keep the original and append it, like "to annoy - дратувати".
-- Never invent ids. Never delete unless asked. Keep the plan as small as the command needs.
-- When the teacher wants to create, open, start or make a studio, a lesson or a workout of some skill (any wording, any language, typos included: "create vocabulary studio", "хочу урок по словам из этих карточек", "відкрий аудіювання"), return exactly one "open" action and a one-sentence reply. Do not build that lesson out of stickies yourself.
-- When the teacher asks to build, make, create or set a homework (any wording, any language: "build a homework", "дай домашку на past simple"), answer with ONE "homework" action. Never refuse it and never wrap it in a flip card or sticky notes. If the topic is missing, use the selected cards or the board's words and level.
-- If the command is a question about how to use the board, answer it in "reply" (up to four short sentences) and return "actions":[].
-- If the command cannot be done with the allowed actions, say so plainly in "reply", suggest the closest thing you can do, and return "actions":[].
-- Content you write for learners must be correct, natural English at the level the existing cards suggest.
+- Never invent ids. Never delete unless asked. Keep the plan as small as the command needs, but finish the whole job: "make 10 questions" means 10.
+- A follow-up ("make it harder", "now in Ukrainian", "more", "no, in two columns", "again") continues the conversation below: apply it to what you made or discussed last.
+- When the teacher wants to create, open, start or make a studio, a lesson or a workout of some skill in the Lesson Builder (any wording, any language, typos included: "create vocabulary studio", "хочу урок по словам из этих карточек", "відкрий аудіювання"), return exactly one "open" action and a one-sentence reply. Do not build that lesson out of stickies yourself.
+- "Plan a lesson" / "lesson plan" / "stages" / "make a board for a lesson about…" without a studio named: build it on the board - one "add" with "frame" per stage (warm-up, presentation, practice, production, wrap-up), short teacher-ready stickies or text inside, plus a game, a timer or exercises where they help.
+- When the teacher asks to build, make, create or set a homework, a quiz to do, a test or exercises (any wording, any language: "build a homework", "дай домашку на past simple", "сделай тест по этим словам"), answer with ONE "homework" action. Never refuse it and never wrap it in a flip card or sticky notes. If the topic is missing, use the selected cards or the board's words and level.
+- If the command is a question (about the board, about English, about the cards - "what does this word mean", "is this sentence correct", "explain the rule", "how do I...") answer it well in "reply" (up to six short sentences) and add actions only if the teacher asked for something on the board. If the answer is content the teacher may want on the board, say so and put that command into "suggest".
+- If the command cannot be done with the allowed actions, say so plainly in "reply", do the closest useful thing or suggest it, never leave the teacher with nothing.
+- "suggest": natural next steps for THIS board after your answer (e.g. "Make a game from these words", "Add a 5-minute timer", "Translate them into Ukrainian"). Each under 60 characters. Leave it out when nothing fits.
+- Content you write for learners must be correct, natural English at the level the existing cards suggest (or the level the teacher names).
 
 ${memory ? `What you know about this teacher and the student of this board (private TeachEd memory - use it to fit content to them; never write it onto the board or quote it):
 ${String(memory).slice(0, 1600)}
 
-` : ''}Camera centre: x=${Math.round(Number(viewport && viewport.x) || 0)}, y=${Math.round(Number(viewport && viewport.y) || 0)}. x grows to the right, y grows downward.
+` : ''}${boardName ? `Board: «${boardName}».\n` : ''}Camera centre: x=${Math.round(Number(viewport && viewport.x) || 0)}, y=${Math.round(Number(viewport && viewport.y) || 0)}. x grows to the right, y grows downward.
 
 Cards on the board (${list.length}${list.length >= MAX_CARDS ? ', nearest ones only' : ''}), one JSON object per line:
 ${lines || '(the board is empty)'}
 
-Teacher's command:
+${turns.length ? `Conversation so far (oldest first):
+${turns.map(t => `${t.role === 'teacher' ? 'Teacher' : 'You'}: ${t.text}`).join('\n')}
+
+` : ''}Teacher's command:
 ${clean(command, 1200)}`;
 }
 
@@ -203,11 +242,43 @@ function sanitizePlan(raw, cards) {
       const act = { op, kind: a.kind === 'text' ? 'text' : 'sticky', items };
       const title = oneLine(a.title, 80);
       if (title) act.title = title;
+      const into = String(a.into || '');
+      const frame = oneLine(a.frame, 60);
+      if (known.has(into) && types.get(into) === 'frame') act.into = into;
+      else if (frame) act.frame = frame;
       plan.actions.push(act);
     } else if (op === 'edit') {
       const id = String(a.id || '');
-      const text = clean(a.text, 2000);
-      if (known.has(id) && EDITABLE.has(types.get(id)) && text) plan.actions.push({ op, id, text });
+      const type = types.get(id);
+      const text = type === 'frame' ? oneLine(a.text, 60) : clean(a.text, 2000);
+      if (known.has(id) && EDITABLE.has(type) && text) plan.actions.push({ op, id, text });
+    } else if (op === 'frame') {
+      const ids = idList(a.ids, known).filter(id => types.get(id) !== 'frame');
+      if (ids.length) plan.actions.push({ op, ids, title: oneLine(a.title, 60) || 'Frame' });
+    } else if (op === 'move') {
+      const into = String(a.into || '');
+      const ids = idList(a.ids, known).filter(id => id !== into && types.get(id) !== 'frame');
+      if (ids.length && known.has(into) && types.get(into) === 'frame') plan.actions.push({ op, ids, into });
+    } else if (op === 'table') {
+      const rows = (Array.isArray(a.rows) ? a.rows : []).slice(0, 14)
+        .map(r => (Array.isArray(r) ? r : [r]).slice(0, 6).map(v => oneLine(v, 120)));
+      const cols = Math.max(0, ...rows.map(r => r.length));
+      const full = rows.map(r => r.concat(Array(cols - r.length).fill(''))).filter(r => r.some(Boolean));
+      if (full.length >= 2 && cols >= 1) plan.actions.push({ op, title: oneLine(a.title, 60) || 'Table', rows: full });
+    } else if (op === 'checklist') {
+      const items = (Array.isArray(a.items) ? a.items : []).map(i => oneLine(typeof i === 'string' ? i : i && i.text, 160)).filter(Boolean).slice(0, 12);
+      if (items.length) plan.actions.push({ op, title: oneLine(a.title, 60) || 'Checklist', items });
+    } else if (op === 'timer') {
+      const minutes = Math.round(Number(a.minutes));
+      if (minutes >= 1 && minutes <= 60 && !plan.actions.some(x => x.op === 'timer')) plan.actions.push({ op, title: oneLine(a.title, 40) || 'Timer', minutes });
+    } else if (op === 'image') {
+      const query = oneLine(a.query, 60).replace(/[^\p{L}\p{N} '-]/gu, '').trim();
+      if (query && plan.actions.filter(x => x.op === 'image').length < 4) {
+        const act = { op, query };
+        const caption = oneLine(a.caption, 120);
+        if (caption) act.caption = caption;
+        plan.actions.push(act);
+      }
     } else if (op === 'color') {
       const ids = idList(a.ids, known).filter(id => types.get(id) === 'sticky');
       if (ids.length && COLORS.includes(a.color)) plan.actions.push({ op, ids, color: a.color });
@@ -254,6 +325,31 @@ function sanitizePlan(raw, cards) {
           .map(p => ({ a: oneLine(p && p.a, 80), b: oneLine(p && p.b, 160) }))
           .filter(p => p.a && p.b).slice(0, 24);
         if (pairs.length >= 3) content = { pairs };
+      } else if (game === 'word-image-match') {
+        const pairs = (Array.isArray(a.pairs) ? a.pairs : [])
+          .map(p => ({ left: oneLine(p && (p.a || p.left), 60), right: oneLine(p && (p.b || p.right || p.a || p.left), 60) }))
+          .filter(p => p.left).slice(0, 16);
+        if (pairs.length >= 3) content = { pairs };
+      } else if (game === 'speed-quiz') {
+        const questions = (Array.isArray(a.questions) ? a.questions : []).map(q => {
+          const opts = (Array.isArray(q && (q.options || q.opts)) ? (q.options || q.opts) : []).map(o => oneLine(o, 100)).filter(Boolean).slice(0, 4);
+          const answer = oneLine(q && q.answer, 100);
+          const correct = opts.indexOf(answer);
+          return { q: oneLine(q && (q.q || q.text), 200), opts, correct };
+        }).filter(q => q.q && q.opts.length >= 2 && q.correct >= 0).slice(0, 20);
+        if (questions.length >= 3) content = { questions };
+      } else if (game === 'true-false') {
+        const statements = (Array.isArray(a.statements) ? a.statements : [])
+          .map(t => ({ text: oneLine(t && t.text, 200), answer: t && t.answer }))
+          .filter(t => t.text && typeof t.answer === 'boolean').slice(0, 20);
+        if (statements.length >= 3) content = { statements };
+      } else if (game === 'fill-blank') {
+        // the game reads "She ___ (goes) to school."
+        const sentences = (Array.isArray(a.sentences) ? a.sentences : []).map(t => {
+          const text = oneLine(t && t.text, 200), answer = oneLine(t && t.answer, 60);
+          return text && answer && /_{2,}/.test(text) ? text.replace(/_{2,}/, `___ (${answer})`) : '';
+        }).filter(Boolean).slice(0, 20);
+        if (sentences.length >= 3) content = { sentences };
       } else if (game === 'word-categories') {
         const categories = (Array.isArray(a.categories) ? a.categories : [])
           .map(c => ({
@@ -271,7 +367,9 @@ function sanitizePlan(raw, cards) {
   }
 
   if (!plan.reply) plan.reply = plan.actions.length ? 'Here is the plan.' : 'I could not turn that into board actions. Try describing it another way.';
+  const suggest = (Array.isArray(raw && raw.suggest) ? raw.suggest : []).map(t => oneLine(t, 70)).filter(t => t.length >= 3);
+  if (suggest.length) plan.suggest = [...new Set(suggest)].slice(0, 3);
   return plan;
 }
 
-module.exports = { buildPrompt, sanitizePlan, normalizeCards, COLORS, GAMES, STUDIOS, MAX_CARDS };
+module.exports = { buildPrompt, sanitizePlan, normalizeCards, normalizeHistory, COLORS, GAMES, STUDIOS, MAX_CARDS };
