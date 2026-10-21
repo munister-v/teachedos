@@ -92,7 +92,7 @@
   function load(id, out) {
     if (out && out.custom) return Promise.resolve(buildCustom(Object.assign({ id: id || 'custom' }, out.custom)));
     if (!cache.has(id)) {
-      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1321`).then(r => {
+      cache.set(id, fetch(`/data/scenes/${encodeURIComponent(id)}.json?v=1322`).then(r => {
         if (!r.ok) throw new Error('scene ' + r.status);
         return r.json();
       }).catch(err => { cache.delete(id); throw err; }));
@@ -104,7 +104,8 @@
      rooms (which are words too) and zones (zoom only, e.g. "Inside the car") */
   const home = sc => { const v = sc.view || [0, 0, sc.w, sc.h]; return { x: v[0], y: v[1], w: v[2], h: v[3] }; };
   const viewBox = sc => { const h = home(sc); return `${h.x} ${h.y} ${h.w} ${h.h}`; };
-  const areas = sc => sc.rooms.concat(sc.zones || []);
+  // one filter per place: a zone that carries the name of a room is the room, not a second button
+  const areas = sc => { const seen = new Set(); return sc.rooms.concat(sc.zones || []).filter(a => { const k = String(a.chip || a.word || '').trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); };
   const inside = (b, a) => b[0] >= a[0] - 1 && b[1] >= a[1] - 1 && b[0] + b[2] <= a[0] + a[2] + 1 && b[1] + b[3] <= a[1] + a[3] + 1;
 
   // Keep in step with PALETTE in ops/scenes/scene.py.
@@ -367,7 +368,7 @@
     function variant(data) {
       if (accent() !== 'us') return data;
       return Object.assign({}, data, { parts: data.parts.map(p => Object.assign({}, p, p.us && p.us !== p.word ? { word: p.us, ukWord: p.word, ex: swapWord(p.ex, p.word, p.us) } : {}, { ukIpa: p.ipa, ipa: null })),
-        rooms: data.rooms.map(r => Object.assign({}, r, { ukIpa: r.ipa, ipa: null })) });
+        rooms: data.rooms.map(r => Object.assign({}, r, r.us && r.us !== r.word ? { word: r.us, ukWord: r.word } : {}, { ukIpa: r.ipa, ipa: null })) });
     }
     const usIpa = {};
     function fetchIpa(it) {
@@ -1145,7 +1146,15 @@
      things once), the Label set is LABEL_N everywhere. */
   const LABEL_N = 6;
   const wordKey = p => String((p && p.word) || '').trim().toLowerCase();
-  const oneOfEach = list => { const seen = new Set(); return list.filter(p => { const k = wordKey(p); if (!k || seen.has(k)) return false; seen.add(k); return true; }); };
+  /* One object, one chip: the same word twice, and a word that is only the head of a longer
+     one in the same list (check-in / check-in desk, baggage / baggage cart) count once, the
+     more specific one is kept. */
+  const oneOfEach = list => {
+    const seen = new Set();
+    const uniq = list.filter(p => { const k = wordKey(p); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+    const keys = uniq.map(wordKey);
+    return uniq.filter((p, i) => !keys.some((k, j) => j !== i && k.length > keys[i].length && k.startsWith(keys[i] + ' ')));
+  };
   function stats(sc, level, skip) {
     const r = rank(level || 'B1');
     const out = new Set(Array.isArray(skip) ? skip : []);

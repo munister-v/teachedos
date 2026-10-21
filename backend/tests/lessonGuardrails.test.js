@@ -61,3 +61,19 @@ test('guardrails: composition equals selection', () => {
   assert.equal(run([blk('a')], { dropped: ['b'] }).length, 0, 'removed on purpose');
   assert.equal(run([blk('a')], { failed: ['B'] }).length, 0, 'failed generation is reported elsewhere');
 });
+
+test('guardrails: a word set is published without wrong-sense material', () => {
+  const r = G.repairVocabEntry({ word: 'book', pos: 'verb', example: 'Have you read any good books recently?', collocations: ['book a hotel', 'a good book'] });
+  assert.equal(r.entry.example, '');
+  assert.deepEqual(r.entry.collocations, ['book a hotel']);
+  assert.equal(r.dropped.length, 2);
+  const ok = G.repairVocabEntry({ word: 'book', pos: 'verb', example: 'We need to book a hotel.', collocations: ['book a flight'] });
+  assert.equal(ok.dropped.length, 0);
+});
+
+test('guardrails: grammar halves - the target form belongs to the ending only', () => {
+  const pairs = [{ left: 'Yesterday we', right: 'went to the park.' }, { left: 'She packed her bag and', right: 'left early.' }, { left: 'After lunch they', right: 'played tennis.' }];
+  const v = G.checkBlock(act('h', 'matching-halves'), { pairs }, { topic: 'Past Simple' });
+  assert.equal(v.filter(x => /target form/.test(x.msg)).length, 1);
+  assert.equal(G.checkBlock(act('h', 'matching-halves'), { pairs }, { topic: 'food' }).length, 0, 'unknown topic is not guessed at');
+});

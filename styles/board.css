@@ -7897,3 +7897,6 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 .tb-guard{display:grid;gap:6px}
 .tb-guard-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-weight:500}
 .tb-guard-check{font:700 10.5px var(--font,system-ui,sans-serif);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:rgba(36,40,44,.08)}
+
+.tb-ed-pair{display:flex;align-items:center;gap:8px}
+.tb-ed-pair .tb-ed,.tb-ed-pair .pe-ed{flex:1;min-width:0}

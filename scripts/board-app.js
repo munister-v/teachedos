@@ -4301,6 +4301,13 @@ let _wpFocusId = null;
 
 /* Сам путь (шаги, памятка жанра) - без карточки: его же рисует превью. */
 function _wpBuildPath(set, results, kind, opts = {}) {
+  /* One block, one step: two blocks of the same task and title in one lesson (a tick that
+     produced a second copy) become the later one, not two steps. */
+  if (Array.isArray(results)) {
+    const seen = new Map();
+    results.forEach((o, i) => { if (o && o._tool) seen.set(`${o._tool}|${o._wfRole || ''}|${o.title || ''}`, i); });
+    results = results.filter((o, i) => !(o && o._tool) || seen.get(`${o._tool}|${o._wfRole || ''}|${o.title || ''}`) === i);
+  }
   const speaking = kind === 'speaking';
   let steps;
   let guide = null;
@@ -5033,6 +5040,12 @@ function _wpRender(el, card, focus) {
    Vocabulary Studio → игры и упражнения по этим словам → «используй сам»
    (обсуждение и ситуации - в Speaking Studio, письмо - в Writing Studio). */
 function _wpPlaceVocabPath(base, entries, tplBuilt, built) {
+  // Sense check before publishing: wrong-sense examples / collocations never reach the card.
+  if (window.LessonGuardrails) {
+    const notes = [];
+    entries = entries.map(e => { const r = window.LessonGuardrails.repairVocabEntry(e); notes.push(...r.dropped); return Object.assign(e, r.entry); });
+    if (notes.length) toast(`Left out ${notes.length} ${notes.length === 1 ? 'item' : 'items'} in the wrong sense: ${notes[0]}${notes.length > 1 ? ` (+${notes.length - 1} more)` : ''}`);
+  }
   const words = entries.map(e => ({ word: e.word, pos: e.pos || '', meaning: e.gloss || '', example: e.example || '',
     ipaUK: e.ipa || '', audioUK: e.audio || '', meaningKept: !!e.fromTeacher,
     ...(e.enriched ? { collocations: e.collocations, gap: e.gap, chunk: e.chunk, speak: e.speak, pattern: e.pattern, phrase: e.phrase, _v2: 1 } : {}) }));
@@ -7073,7 +7086,7 @@ function _pathEditorHtml(card) {
     if (st.role === 'task-studio') {
       const mat = o.material;
       if (mat && mat.kind === 'text' && mat.out) inner += _peBlock(sk + '.m', mat.label || 'The text', mat.out);
-      if (mat && mat.transcript) inner += _peBlock(sk + '.mt', 'Transcript', mat.transcript);
+      if (mat && mat.transcript) inner += _peBlock(sk + '.mt', 'Transcript', mat.transcript, locked ? '' : btn('dropm', sk + '.mt', 'Remove', 'Leave the transcript out of the lesson'));
       inner += (o.tasks || []).map((t, j) => _peBlock(`${sk}.t${j}`, t.title || `Task ${j + 1}`, t,
         `${redoable(t) ? btn('redo', `${sk}.t${j}`, 'Redo', 'Build this task again, differently') : ''}${locked || (o.tasks || []).length < 2 ? '' : btn('dropt', `${sk}.t${j}`, 'Remove', 'Leave this task out')}`)).join('');
     } else if (st.role === 'speak-studio') {
@@ -7163,6 +7176,11 @@ function _peStructure(card, act, key) {
     p.steps.splice(si, 1);
     if (Array.isArray(p.done)) p.done.splice(si, 1);
     fixCur();
+  } else if (act === 'dropm') {
+    const st = p.steps[si];
+    if (!st || !st.out || !st.out.material || !st.out.material.transcript) return;
+    snapshot();
+    delete st.out.material.transcript;
   } else if (act === 'dropt') {
     const h = _peHolder(card, key);
     if (!h || !h.list || h.list.length < 2 || !confirm('Leave this task out of the lesson?')) return;
@@ -17475,7 +17493,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1321';
+const TEACHEDOS_ASSET_VERSION = '1322';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20003,12 +20021,20 @@ async function runBoardLessonStages() {
     /* Guardrails (systemic §2): a block that fails its own checks (an empty pair, a
        gap without an answer, an example in the other sense of the word) is built again,
        twice at most. If it still fails it is kept, marked, and the review names the row. */
+    const _blockChecks = o2 => {
+      const GR = window.LessonGuardrails;
+      return GR.checkBlock(o, o2, { topic: base.topic }).concat(GR.checkCriteria({ built: built.concat([{ activity: o, out: o2 }]), textOut, base })
+        .filter(x => x.key === o.key));
+    };
     for (let attempt = 1; out && attempt <= 2 && window.LessonGuardrails; attempt++) {
-      if (!window.LessonGuardrails.checkBlock(o, out).length) break;
+      const found = _blockChecks(out);
+      if (!found.length) break;
       if (chip) chip.textContent = `checking ${_lbPlain(o.title)}…`;
       let again = null;
       try {
         const retry = { ...input, variant: attempt };
+        // the criteria / phrases must be about the student's own task, never about the model text
+        if (found.some(x => x.check === 'Criteria from Task')) retry.extra = [retry.extra, 'Do not quote or refer to the model text: write only from the student\'s own task.'].filter(Boolean).join(' ');
         again = o.ai ? await requestServerTeacherTool(retry, 30000) : generateTeacherToolLocal(retry);
       } catch (err) { console.warn('[stages] check retry failed', o.key, err); }
       if (!again) break;
@@ -20606,6 +20632,12 @@ function _ttStageEditableHtml(key, out) {
         : q.type === 'truefalse' ? `<label class="tb-ed-ans">Answer <select class="tb-ed tb-ed-tf" data-k="${k}" data-p="questions.${i}.answer" data-bool="1" aria-label="Is the statement true?"><option value="true"${q.answer === true || q.answer === 'true' ? ' selected' : ''}>True</option><option value="false"${q.answer === true || q.answer === 'true' ? '' : ' selected'}>False</option></select></label>` : '';
       return `<div class="tb-ed-card"><span class="tb-ed-n">${i + 1}</span>${field(`questions.${i}.${stemKey}`, q[stemKey] || '', 2)}${opts}</div>`;
     }).join('');
+  }
+  // Match-the-halves: the pairs themselves are visible and editable, not only the instruction.
+  if (Array.isArray(out.pairs) && out.pairs.length) {
+    return (out.text || out.instruction ? `<p>${_ttMdToHtml(String(out.text || out.instruction))}</p>` : '') + out.pairs.map((p, i) => `<div class="tb-ed-card tb-ed-pair"><span class="tb-ed-n">${i + 1}</span>
+      ${field(`pairs.${i}.left`, p.left || '', 0)}<span class="tb-ed-arrow" aria-hidden="true">→</span>${field(`pairs.${i}.right`, p.right || '', 0)}
+    </div>`).join('');
   }
   if (Array.isArray(out.items) && out.items.length) {
     return out.items.map((it, i) => `<div class="tb-ed-card tb-ed-item">
@@ -21561,7 +21593,7 @@ function _wizRenderSourceTools(src) {
    Результат ложится в поле источника как обычный учительский текст
    (add-text): правится руками, и остальной урок строится вокруг него.
    «Original» - без пересказа, для сильных групп. */
-const NEWS_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+const NEWS_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];   // the same range as the form's Level field
 let _wizNewsState = null; // { topics, topic, items, picked, busy, token }
 
 function _wizNewsAgo(iso) {
@@ -22366,7 +22398,7 @@ async function extractLessonVocab() {
     kept = r.own;
   }
   _wizPickRender();
-  say(`${words.length} words below${kept ? ` (your own ${kept} kept)` : ''}. Remove any you don't need, then tick the activities and create the draft.`);
+  _wizPickChoice(note, `${words.length} words below${kept ? ` (your own ${kept} kept)` : ''}. Remove any you don't need, then tick the activities and create the draft.`);
   return true;
 }
 
@@ -22386,7 +22418,21 @@ function _wizMergePicked(words) {
   _wizAiWords.clear();
   fresh.forEach(w => _wizAiWords.add(_wizVocabKey(w)));
   _wizSetVocab(own.concat(fresh));
+  _wizLastPick = { own: own.slice(), fresh: fresh.slice() };
   return { own: own.length, added: fresh.length };
+}
+/* A new pick replaces the previous pick. When the teacher has words of their own in the
+   list, the note says they were kept and offers the other answer to "replace or add?". */
+let _wizLastPick = null;
+function _wizPickChoice(note, text) {
+  if (!note) return;
+  note.textContent = text;
+  const pick = _wizLastPick;
+  if (!pick || !pick.own.length || !pick.fresh.length) return;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'tb-act-btn'; b.textContent = 'Use only the new words';
+  b.addEventListener('click', () => { _wizSetVocab(pick.fresh); _wizPickRender(); note.textContent = `${pick.fresh.length} new words - your own ${pick.own.length} were replaced.`; });
+  note.appendChild(document.createTextNode(' ')); note.appendChild(b);
 }
 function _wizVocabLines() {
   return String(document.getElementById('tbuilder-vocab')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
@@ -22500,7 +22546,7 @@ async function _srcSuggestVocab(btn) {
     const d = r.ok ? await r.json() : null;
     const list = (d && d.items) || [];
     const r2 = list.length ? _wizMergePicked(list) : { own: 0, added: 0 };
-    if (note) note.textContent = r2.added ? `${r2.added} words for ${level}${r2.own ? ` - your own ${r2.own} kept` : ''}. Remove any you don't need.` : 'No new words found.';
+    if (note) _wizPickChoice(note, r2.added ? `${r2.added} words for ${level}${r2.own ? ` - your own ${r2.own} kept` : ''}. Remove any you don't need.` : 'No new words found.');
   } catch { if (note) note.textContent = 'Could not pick words - try again.'; }
   btn.disabled = false; btn.innerHTML = was;
 }
@@ -24889,7 +24935,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1321',
+          icon: 'icons/icon-192.png?v=1322',
           tag: 'board-live-' + s.id,
         });
       }

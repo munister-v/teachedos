@@ -52,6 +52,24 @@
     return v.map(x => Object.assign({ check: 'Pairing & form' }, x));
   }
 
+  /* ── Form: in a "match the halves" task the start of a pair must break off before
+        the target form, which lives only in the ending. Known forms only; an unknown
+        topic is not guessed at. */
+  const IRREG = 'was|were|did|went|saw|had|took|made|came|got|said|bought|ate|ran|wrote|gave|found|told|left|met|paid|sat|stood|spoke|knew|thought|brought|flew|drove|swam|began|woke|lost|won|felt|heard|kept|slept|sold|sent|built|wore|drank|sang|read';
+  const FORMS = [
+    { topic: /past simple/, re: new RegExp(`\\b(?:\\w+ed|${IRREG})\\b`, 'i') },
+    { topic: /present perfect/, re: /\b(?:have|has|haven't|hasn't)\s+(?:\w+ed|been|gone|done|seen|had|made|taken|eaten|written|given|known|lost|met|never|ever|already|just|yet)\b/i },
+    { topic: /future|will\b/, re: /\bwill\b|\bgoing to\b|\bwon't\b/i },
+  ];
+  function checkForm(activity, out, ctx) {
+    const topic = norm(ctx && ctx.topic);
+    const f = FORMS.find(x => x.topic.test(topic));
+    if (!f || activity.tool !== 'matching-halves' || !Array.isArray(out.pairs)) return [];
+    const v = [];
+    out.pairs.forEach((p, i) => { if (f.re.test(String(p && p.left || ''))) v.push({ check: 'Pairing & form', msg: `Pair ${i + 1} already contains the target form in its beginning: “${String(p.left).trim()}” - only the ending may` }); });
+    return v;
+  }
+
   /* ── Composition inside a block: every question is complete. */
   function checkQuestions(activity, out) {
     const v = [];
@@ -114,17 +132,36 @@
     });
     return v.map(x => Object.assign({ check: 'Sense consistency' }, x));
   }
+  /* A word set is published with only the material that belongs to the chosen sense:
+     an example in the other part of speech, or without the word, and collocations of the
+     other part of speech are taken out, and the result says what was taken out. */
+  function repairVocabEntry(e) {
+    const dropped = [];
+    const out = Object.assign({}, e);
+    const word = String(e && e.word || '').trim();
+    if (!word) return { entry: out, dropped };
+    const bad = checkVocabEntry(Object.assign({}, e, { collocations: [] }));
+    if (bad.length && e.example) { out.example = ''; dropped.push(bad[0].msg); }
+    if (Array.isArray(e.collocations)) {
+      out.collocations = e.collocations.filter(c => {
+        const r = checkVocabEntry({ word: e.word, pos: e.pos, collocations: [c] });
+        if (r.length) dropped.push(r[0].msg);
+        return !r.length;
+      });
+    }
+    return { entry: out, dropped };
+  }
   function checkVocab(out) {
     const entries = [].concat(Array.isArray(out.vocab) ? out.vocab : [], Array.isArray(out.words) ? out.words : [])
       .filter(e => e && typeof e === 'object' && e.word);
     return entries.flatMap(checkVocabEntry);
   }
 
-  function checkBlock(activity, out) {
+  function checkBlock(activity, out, ctx) {
     activity = activity || {};
     if (!out) return [];
     if (!hasContent(out)) return [{ check: 'Composition = Selection', msg: 'The block came out empty' }];
-    return [].concat(checkPairs(activity, out), checkQuestions(activity, out), checkVocab(out));
+    return [].concat(checkPairs(activity, out), checkForm(activity, out, ctx), checkQuestions(activity, out), checkVocab(out));
   }
 
   /* ── Error ≠ Model: the wrong span of every error-correction item may not appear,
@@ -208,11 +245,11 @@
     if (!set) return [];
     const built = set.built || [];
     const v = [];
-    built.forEach(b => checkBlock(b.activity, b.out).forEach(x => v.push(Object.assign({ key: b.activity.key, block: b.activity.title }, x))));
+    built.forEach(b => checkBlock(b.activity, b.out, { topic: set.base && set.base.topic }).forEach(x => v.push(Object.assign({ key: b.activity.key, block: b.activity.title }, x))));
     return v.concat(checkComposition(set), checkErrorModel(built), checkCriteria(set));
   }
 
-  const api = { checkBlock, checkSet, checkVocabEntry, blockText, hasContent };
+  const api = { checkCriteria, checkBlock, checkSet, checkVocabEntry, repairVocabEntry, blockText, hasContent };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.LessonGuardrails = api;
 })(typeof window !== 'undefined' ? window : globalThis);
