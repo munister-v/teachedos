@@ -5128,9 +5128,9 @@ function _wpVocabStudio(stage, card, k) {
   const own = (card.data._wfPath.steps[k].out.words || []).filter(w => w && w.word);
   // Станция карты урока: слова из видео и нажатые учеником - в тот же список.
   const words = own.concat(window.TeachedFlow ? window.TeachedFlow.extraWords(card.id, own) : []);
-  const st = Object.assign({ i: 0, mode: 'match', known: [], learning: [], onlyLearning: false }, _wpState(card, k) || {});
+  const st = Object.assign({ i: 0, mode: 'learn', known: [], learning: [], onlyLearning: false }, _wpState(card, k) || {});
   // The match board in the theme's skin is the Studio's first page; sets saved before it existed open on it once.
-  if (st.v !== 2) { st.v = 2; st.mode = 'match'; }
+  if (st.v !== 2) { st.v = 2; st.mode = ['space', 'winter', 'kpop', 'upside', 'sherlock', 'skyline', 'wizard', 'cyber'].includes(_ltThemeFor(card)) ? 'match' : 'learn'; }
   // Старые наборы - без шаблона с предлогом и с заглушками вместо примеров: дообогатить.
   if (own.some(w => !w._v2) && !_wpReenrichTried.has(card.id)) { _wpReenrichTried.add(card.id); _wpEnrichVocab(card); }
   const box = document.createElement('div');
@@ -17400,7 +17400,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1297';
+const TEACHEDOS_ASSET_VERSION = '1298';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24708,7 +24708,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1297',
+          icon: 'icons/icon-192.png?v=1298',
           tag: 'board-live-' + s.id,
         });
       }
