@@ -4420,6 +4420,11 @@ function _wpPlacePathCard(base, label, path) {
     title: label, level: base.level || 'B1', topic: base.topic || '', cat: kind, _ttSrc: 1, _interactive: true,
     _wfPath: path,
   }, W, H);
+  if (card && kind === 'listening' && window._lessonAudioFile) {
+    // the student's source is part of the lesson: the uploaded audio goes on the board beside it
+    const f = window._lessonAudioFile; window._lessonAudioFile = null;
+    _addBoardMediaFiles([f], { x: card.x, y: card.y - 130 }).catch(() => toast('The lesson is on the board, but its audio could not be added'));
+  }
   if (card) setTimeout(() => zoomToCard(card.id, true), 80);
   if (card && _lessonChain.active) _lessonChainAdvance();
   return card;
@@ -10060,6 +10065,14 @@ document.addEventListener('click', e => {
   if (b.id === 'mt-pen' && typeof _drawTool !== 'undefined' && _drawTool) b.classList.add('active');
 }, true);
 
+/* Keys go to whatever has focus. After a click on a card's own chrome a studio
+   iframe could still hold it, and Delete / Cmd+Z / Cmd+D then went into the
+   iframe instead of the board. */
+document.addEventListener('mousedown', e => {
+  const a = document.activeElement;
+  if (a && a.tagName === 'IFRAME' && !a.contains(e.target) && e.target !== a) { try { a.blur(); window.focus(); } catch (_) {} }
+}, true);
+
 /* ════════════════════════ KEYBOARD ════════════════════════ */
 document.addEventListener('keydown', e => {
   // Space = pan - but never while typing in a sticky / text card (contenteditable)
@@ -10419,6 +10432,9 @@ function duplicateSelected() {
   newIds.forEach(id => selectCard(id));
   updateEmpty();
   scheduleSave();
+  const first = cloned[0];
+  const nm = first && first.data && (first.data.title || first.data.label);
+  toast(cloned.length === 1 && nm ? `Created “${nm} (copy)”` : `Duplicated ${cloned.length} ${cloned.length === 1 ? 'card' : 'cards'}`);
 }
 
 /* ════════════════════════ CONNECT MODE ════════════════════════ */
@@ -10868,12 +10884,17 @@ function openAnnotationThread(annotationId) {
     rec.onend = rec.onerror = () => { micBtn.classList.remove('on'); field.focus(); };
     try { rec.start(); } catch (_) { micBtn.classList.remove('on'); }
   });
-  popover.querySelector('.annotation-delete').addEventListener('click', () => {
-    const count = annotation.thread.length;
-    const question = count > 1
-      ? `Delete this comment and its ${count - 1} ${count === 2 ? 'reply' : 'replies'}?`
-      : 'Delete this comment?';
-    if (!confirm(question)) return;
+  popover.querySelector('.annotation-delete').addEventListener('click', e => {
+    // two clicks instead of a browser confirm(): a blocked or auto-dismissed
+    // dialog made Delete look dead
+    const btn = e.currentTarget;
+    if (!btn.dataset.armed) {
+      const count = annotation.thread.length;
+      btn.dataset.armed = '1'; btn.dataset.label = btn.textContent;
+      btn.textContent = count > 1 ? `Click again: delete with ${count - 1} ${count === 2 ? 'reply' : 'replies'}` : 'Click again to delete';
+      setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.textContent = btn.dataset.label; } }, 4000);
+      return;
+    }
     snapshot();
     const at = state.annotations.indexOf(annotation);
     if (at !== -1) state.annotations.splice(at, 1);
@@ -17454,7 +17475,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1314';
+const TEACHEDOS_ASSET_VERSION = '1318';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -19301,7 +19322,9 @@ function onBoardStagePickChange() {
   const keys = boardStagePickedKeys();
   try {
     const all = JSON.parse(localStorage.getItem(STAGE_PICKS_STORE) || '{}');
-    all[_stagePicksKey(toolId)] = { keys, known: boardStageOptions(toolId).map(o => o.key) };
+    // The video card is a property of this lesson's source, not a habit: an
+    // audio-file lesson unticks it, and that must not switch it off for the next video.
+    all[_stagePicksKey(toolId)] = { keys: keys.filter(k => k !== 'lis-video'), known: boardStageOptions(toolId).map(o => o.key).filter(k => k !== 'lis-video') };
     localStorage.setItem(STAGE_PICKS_STORE, JSON.stringify(all));
   } catch (_) {}
   host.querySelectorAll('.tb-workout-item').forEach(el => {
@@ -21455,7 +21478,7 @@ function _wizRenderSourceTools(src) {
             <small>mp3, m4a, wav … up to 30 minutes. Click to choose a file from your computer.</small>
           </span>
         </div>
-        <span class="tb-wiz-tool-note" id="tb-wiz-audio-note">The script is written for you and lands in the text box below. The audio itself stays on your computer - play it in class.</span>
+        <span class="tb-wiz-tool-note" id="tb-wiz-audio-note">The script is written for you and lands in the text box below. The audio file is put on the board next to the lesson, so students can play it themselves (up to 50 MB).</span>
       </div>`;
     // Плеера на доске у файла нет: снимаем галочку «видео», остальное как у аудирования.
     setTimeout(() => {
@@ -22075,7 +22098,8 @@ function _audioFinish(text, file) {
   const note = document.getElementById('tb-wiz-audio-note');
   const say = msg => { if (note) note.textContent = msg; };
   _wizFillSource(text);
-  if (boardLessonWizard) boardLessonWizard.media = null;     // плеера нет: файл остаётся у учителя
+  if (boardLessonWizard) boardLessonWizard.media = null;     // плеера в уроке нет: файл ляжет на доску аудио-карточкой
+  window._lessonAudioFile = file && file.size <= BOARD_AUDIO_MAX_BYTES ? file : null;
   const topic = document.getElementById('tbuilder-topic');
   if (topic && !topic.value.trim()) { topic.value = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 60); topic.dispatchEvent(new Event('input', { bubbles: true })); }
   say(`Script ready - ${text.split(/\s+/).length} words. Listen along and fix names or slang in the text below if needed.`);
@@ -24832,7 +24856,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1314',
+          icon: 'icons/icon-192.png?v=1318',
           tag: 'board-live-' + s.id,
         });
       }
