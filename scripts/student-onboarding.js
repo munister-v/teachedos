@@ -23,6 +23,10 @@
   const json = async r => { try { return await r.json(); } catch { return null; } };
   const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* the goal and interest pictures: drawn here from the key, so the server's emoji are not shown */
+  const PICS = {"work": "<rect x=\"3.5\" y=\"7.5\" width=\"17\" height=\"12\" rx=\"2\"/><path d=\"M9 7.5v-2h6v2M3.5 13h17\"/>", "travel": "<path d=\"M3 13l18-8-6 15-3-6z\"/><path d=\"M12 14l9-9\"/>", "fluency": "<path d=\"M4 5h16v11H9l-5 4z\"/>", "exams": "<path d=\"M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z\"/><path d=\"M5 17a3 3 0 0 1 3-3h10\"/>", "tech": "<rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3\"/>", "business": "<path d=\"M4 19V10M10 19V5M16 19v-7M21 19H3\"/>", "marketing": "<path d=\"M4 10v4l12 5V5z\"/><path d=\"M7 14.5l1 4h3\"/><path d=\"M19 9a4 4 0 0 1 0 6\"/>", "pop": "<rect x=\"9\" y=\"3\" width=\"6\" height=\"11\" rx=\"3\"/><path d=\"M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21\"/>", "series": "<rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M8 21h8\"/>", "gaming": "<rect x=\"3\" y=\"7\" width=\"18\" height=\"11\" rx=\"4\"/><path d=\"M8 10.5v4M6 12.5h4\"/><circle cx=\"15.5\" cy=\"11.5\" r=\".6\" fill=\"currentColor\"/><circle cx=\"17.5\" cy=\"13.5\" r=\".6\" fill=\"currentColor\"/>", "sport": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 3.5v17M3.5 12h17\"/>", "crime": "<circle cx=\"10.5\" cy=\"10.5\" r=\"6\"/><path d=\"M15 15l5.5 5.5\"/>", "science": "<path d=\"M9.5 3.5h5M10.5 3.5v6L5 19a1.5 1.5 0 0 0 1.3 2h11.4A1.5 1.5 0 0 0 19 19l-5.5-9.5v-6\"/><path d=\"M8 15h8\"/>", "health": "<path d=\"M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z\"/>", "food": "<path d=\"M3.5 11h17a8.5 8.5 0 0 1-17 0z\"/><path d=\"M8 6c0 1.5 1 1.5 1 3M12 5c0 1.5 1 1.5 1 3\"/>", "environment": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M3.5 12h17M12 3.5c3 3.2 3 13.8 0 17M12 3.5c-3 3.2-3 13.8 0 17\"/>", "fashion": "<path d=\"M8 4l-5 3.5 2.5 3L8 9v11h8V9l2.5 1.5 2.5-3L16 4a4 4 0 0 1-8 0z\"/>", "psychology": "<path d=\"M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z\"/>", "lifestyle": "<path d=\"M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z\"/><path d=\"M16 9h2a2.5 2.5 0 0 1 0 5h-2M7 4v2M11 4v2\"/>"};
+  const pic = (key, size) => '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (PICS[key] || '<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>') + '</svg>';
+
   const LEVEL_SITUATIONS = [
     { level: 'A2', dot: '<i class="so-dot" style="background:#D3F26A"></i>', title: 'A1–A2', text: 'I can explain simple things, but speaking is hard.' },
     { level: 'B1', dot: '<i class="so-dot" style="background:#2DD4BF"></i>', title: 'B1–B2', text: 'I get the main idea, but mix up words and grammar when I speak.' },
@@ -61,6 +65,7 @@ html.te-mobile-lite .so-ov{background:rgba(24,26,30,.66)}
 .so-plate small{display:block;font-size:12.5px;color:#5D614B;margin-top:2px;line-height:1.35}
 .so-chips{display:flex;flex-wrap:wrap;gap:8px}
 .so-chip{border:1.5px solid rgba(36,40,44,.14);background:#fff;border-radius:999px;padding:9px 14px;font-weight:600;font-size:14px;font-family:inherit;color:#24282C;cursor:pointer}
+.so-chip .ic{display:inline-grid;place-items:center;margin-right:6px;vertical-align:-3px}
 .so-chip.on{background:#24282C;border-color:#24282C;color:#fff}
 .so-teacher{display:flex;gap:12px;align-items:center;padding:16px;border-radius:18px;background:#F4F9DD;border:1px solid rgba(160,200,40,.4);margin-bottom:12px}
 .so-teacher b{font-size:28px;letter-spacing:-.02em}
@@ -134,12 +139,12 @@ ${REDUCED ? '.so-hole,.so-tip{transition:none}.so-day1{animation:none}' : ''}`;
           <div class="so-kick">Step 1 of 4 · about you</div>
           <h2>Why do you want English?</h2>
           <p class="so-sub">Pick one. Your teacher sees it, and your daily phrases follow it.</p>
-          <div class="so-plates">${(cat.goals || []).map(g => `<button type="button" class="so-plate${st.goal === g.key ? ' on' : ''}" data-goal="${esc(g.key)}"><span class="e">${esc(g.emoji || '')}</span><span><b>${esc(g.label)}</b></span></button>`).join('')}</div>`;
+          <div class="so-plates">${(cat.goals || []).map(g => `<button type="button" class="so-plate${st.goal === g.key ? ' on' : ''}" data-goal="${esc(g.key)}"><span class="e">${pic(g.key, 26)}</span><span><b>${esc(g.label)}</b></span></button>`).join('')}</div>`;
         if (k === 'interests') return `
           <div class="so-kick">Step 2 of 4 · interests</div>
           <h2>What are you into?</h2>
           <p class="so-sub">Pick a few. Your Phrase of the Day and cards come from these.</p>
-          <div class="so-chips">${(cat.interests || []).map(t => `<button type="button" class="so-chip${st.interests.has(t.key) ? ' on' : ''}" data-int="${esc(t.key)}">${esc(t.emoji)} ${esc(t.label)}</button>`).join('')}</div>`;
+          <div class="so-chips">${(cat.interests || []).map(t => `<button type="button" class="so-chip${st.interests.has(t.key) ? ' on' : ''}" data-int="${esc(t.key)}"><span class="ic">${pic(t.key, 16)}</span>${esc(t.label)}</button>`).join('')}</div>`;
         if (k === 'daily') return `
           <div class="so-kick">Step 3 of 4 · your pace</div>
           <h2>How much time between lessons?</h2>
