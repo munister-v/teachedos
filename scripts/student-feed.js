@@ -147,13 +147,13 @@
     const fab = document.createElement('button');
     fab.type = 'button'; fab.id = 'sf-fab';
     fab.setAttribute('aria-haspopup', 'dialog');
-    fab.innerHTML = '<span class="sf-fab-ic">✨</span><span class="sf-fab-t">For you</span>';
+    fab.innerHTML = '<span class="sf-fab-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/></svg></span><span class="sf-fab-t">For you</span>';
     let seen = false;
     try { seen = localStorage.getItem('te_feed_seen') === new Date().toLocaleDateString('en-CA'); } catch (_) {}
     if (!seen) fab.insertAdjacentHTML('beforeend', '<i class="sf-fab-new" aria-hidden="true"></i>');
     const drawer = document.createElement('aside');
     drawer.id = 'sf-drawer'; drawer.setAttribute('role', 'dialog'); drawer.setAttribute('aria-label', 'For you'); drawer.hidden = true;
-    drawer.innerHTML = '<div class="sf-d-head"><b>✨ For you today</b><button type="button" class="sf-d-x" aria-label="Close">✕</button></div><div class="sf-pane" id="pane-feed"><div id="sf-body"><div class="sf-empty">Getting today’s cards…</div></div></div>';
+    drawer.innerHTML = '<div class="sf-d-head"><b>For you today</b><button type="button" class="sf-d-x" aria-label="Close">✕</button></div><div class="sf-pane" id="pane-feed"><div id="sf-body"><div class="sf-empty">Getting today’s cards…</div></div></div>';
     const scrim = document.createElement('div');
     scrim.id = 'sf-scrim'; scrim.hidden = true;
     document.body.append(scrim, drawer, fab);
@@ -332,7 +332,7 @@
         <h4>${esc(c.q)}</h4>
         <div class="sf-opts">${c.opts.map((o, i) => `<button type="button" class="sf-opt${done ? (i === c.answer ? ' ok' : ' dim') : ''}" data-opt="${i}"${done ? ' disabled' : ''}>${esc(o[0])}</button>`).join('')}</div>
         ${done ? `<div class="sf-after" aria-live="polite">Say it like this:<br><b>“${esc(c.opts[c.answer][1])}”</b>
-          <div class="sf-row2"><button type="button" class="sf-mini" data-say="${esc(c.opts[c.answer][1])}">🔊 Listen</button></div></div>` : ''}
+          <div class="sf-row2"><button type="button" class="sf-mini" data-say="${esc(c.opts[c.answer][1])}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a3.6 3.6 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></svg> Listen</button></div></div>` : ''}
       </div>`;
     }
     if (c.type === 'news') {
@@ -446,7 +446,7 @@
     pop.querySelector('.sf-ipa').textContent = ipa ? ' /' + ipa.replace(/^\/|\/$/g, '') + '/' : '';
     pop.querySelector('.sf-mean').innerHTML = multi ? '<input type="text" maxlength="200" placeholder="what it means (optional)" aria-label="Meaning">'
       : meaning ? esc(meaning) + (example ? `<em>“${esc(example)}”</em>` : '') : 'No entry found - you can still save it.';
-    pop.insertAdjacentHTML('beforeend', `<div class="sf-row">${snd || !multi ? '<button type="button" data-say>🔊 Listen</button>' : ''}<button type="button" class="main" data-save>+ Word Bank</button></div>`);
+    pop.insertAdjacentHTML('beforeend', `<div class="sf-row">${snd || !multi ? '<button type="button" data-say><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a3.6 3.6 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></svg> Listen</button>' : ''}<button type="button" class="main" data-save>+ Word Bank</button></div>`);
     pop.querySelector('[data-say]')?.addEventListener('click', () => {
       try { audio && audio.pause(); } catch {}
       if (snd) { audio = new Audio(snd); audio.play().catch(() => speak(t)); } else speak(t);

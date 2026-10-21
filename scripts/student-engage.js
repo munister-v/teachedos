@@ -334,7 +334,7 @@
       </div>
       <div class="te-wact">
         <a class="te-wmain" id="te-main" href="student-hub.html#wordbank">Open Word Bank${due ? ` \u00B7 ${due} to review` : total ? ' \u00B7 all caught up' : ''}</a>
-        <button type="button" class="te-wbell" id="te-bell" aria-label="Review reminders" title="Review reminders" aria-haspopup="dialog">🔔</button>
+        <button type="button" class="te-wbell" id="te-bell" aria-label="Review reminders" title="Review reminders" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg></button>
       </div>`;
     box.querySelector('#te-bell').addEventListener('click', e => { e.stopPropagation(); if (window.TeachedVaultCabinet) window.TeachedVaultCabinet.reminders(box); });
     box.querySelector('.te-why').addEventListener('click', e => { e.stopPropagation(); if (typeof window.showToast === 'function') window.showToast(e.currentTarget.title); });
@@ -353,7 +353,7 @@
       return;
     }
     if (remindChosen !== false || box.querySelector('.te-remask')) return;
-    box.insertAdjacentHTML('beforeend', `<div class="te-remask"><span>🔔 Want a reminder when words are due? It is off until you say so.</span>
+    box.insertAdjacentHTML('beforeend', `<div class="te-remask"><span>Want a reminder when words are due? It is off until you say so.</span>
       <button type="button" data-rem="yes">Choose reminders</button><button type="button" data-rem="no">No thanks</button></div>`);
     box.querySelector('[data-rem="yes"]').addEventListener('click', e => {
       e.stopPropagation();
@@ -363,7 +363,7 @@
       e.stopPropagation();
       try { await window.apiFetch('/api/vault/reminders', { method: 'PUT', body: { push: false, email: false, hour: 18 } }); } catch (_) {}
       remindChosen = true; box.querySelector('.te-remask')?.remove();
-      if (typeof window.showToast === 'function') window.showToast('OK - no reminders. Turn them on any time with 🔔');
+      if (typeof window.showToast === 'function') window.showToast('OK - no reminders. Turn them on any time with the bell');
     });
   }
   async function loadVault() {
@@ -386,13 +386,13 @@
     if (bal.trial) {
       box.hidden = false;
       box.className = 'te-balcard trial';
-      box.innerHTML = `<button type="button" class="te-balrow" id="te-balrow" aria-haspopup="dialog"><span>✨ Free trial session<small>Your first lesson is on us</small></span><b>Trial</b></button>`;
+      box.innerHTML = `<button type="button" class="te-balrow" id="te-balrow" aria-haspopup="dialog"><span>Free trial session<small>Your first lesson is on us</small></span><b>Trial</b></button>`;
       box.querySelector('#te-balrow').addEventListener('click', () => {
         if (typeof window.closeSidebar === 'function') window.closeSidebar();
         if (window.TeachedLessonCal && typeof window.apiFetch === 'function') window.TeachedLessonCal.open({ api: window.apiFetch });
       });
       const ms = $('ms-lessons');
-      if (ms) { ms.textContent = '✨'; ms.classList.add('is-soft'); }
+      if (ms) { ms.textContent = 'Trial'; ms.classList.add('is-soft'); }
       return;
     }
     if (left == null) { box.hidden = true; return; }
@@ -406,7 +406,7 @@
     box.className = 'te-balcard' + (left === 0 ? ' zero' : low ? ' low' : '');
     /* One row: the number and, behind it, the calendar of lessons held and
        planned (scripts/lesson-calendar.js). Renewing lives inside. */
-    box.innerHTML = `<button type="button" class="te-balrow" id="te-balrow" aria-haspopup="dialog"><span>🎟 Lesson balance${pay ? `<small>${esc(pay)}</small>` : ''}</span><b>${left} left</b></button>`;
+    box.innerHTML = `<button type="button" class="te-balrow" id="te-balrow" aria-haspopup="dialog"><span>Lesson balance${pay ? `<small>${esc(pay)}</small>` : ''}</span><b>${left} left</b></button>`;
     box.querySelector('#te-balrow').addEventListener('click', () => {
       if (typeof window.closeSidebar === 'function') window.closeSidebar();
       if (window.TeachedLessonCal && typeof window.apiFetch === 'function') window.TeachedLessonCal.open({ api: window.apiFetch });
@@ -426,7 +426,7 @@
     const ov = document.createElement('div');
     ov.className = 'te-zero';
     ov.innerHTML = `<div class="te-zero-card" role="dialog" aria-modal="true" aria-labelledby="te-zero-t">
-      <div class="te-zero-ic" aria-hidden="true">🎟</div>
+      <div class="te-zero-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a2 2 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/><path d="M14 5v14" stroke-dasharray="2 2.4"/></svg></div>
       <h2 id="te-zero-t">No lessons left</h2>
       <p>Your lesson package${bal.teacher ? ` with ${esc(bal.teacher)}` : ''} is used up. Renew it to keep your place in the schedule.</p>
       <div class="te-zero-btns"><button type="button" class="te-zero-go">Renew my lessons</button><button type="button" class="te-zero-later">Later</button></div></div>`;

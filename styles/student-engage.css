@@ -475,3 +475,10 @@ a.te-ws{display:grid}
 .te-sheet .hw-card.done .hw-card-go{background:#EFEEE7;color:#1E2231}
 .te-sheet .empty-state{background:#fff;border:0;border-radius:20px;color:#5D614B;font-weight:600;padding:28px 18px}
 @media (max-width:700px){.te-sheet{border-radius:28px 28px 0 0}.te-sheet-head{padding:20px 20px 4px}.te-sheet-body{padding:8px 20px 24px}.te-sheet .hw-card-go{padding:9px 14px}}
+
+/* icons that used to be emoji are SVG now: they take their colour from the text and sit in the middle */
+.te-wbell{display:inline-grid;place-items:center;color:#fff}
+.te-zero-ic{display:grid;place-items:center}
+.sf-fab-ic{display:inline-grid;place-items:center}
+.sf-mini svg,[data-say] svg{vertical-align:-2px;margin-right:2px}
+.sch-board-link{display:inline-grid;place-items:center}
