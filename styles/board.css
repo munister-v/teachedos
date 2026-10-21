@@ -7891,3 +7891,9 @@ html body:not(#_):not(#_):not(#_) .board-card.card-sticker{
 /* frame ghost: the real size of the frame about to be placed */
 #place-ghost.place-ghost-frame{position:fixed;display:grid;place-items:center;box-sizing:border-box;border:2px dashed var(--accent,#9AB31F);background:rgba(205,246,73,.10);border-radius:10px;color:#5D614B;font:600 13px var(--font,system-ui,sans-serif);pointer-events:none;z-index:9000;padding:0}
 .frame-title .frame-title-edit{font:inherit;color:inherit;background:#fff;border:1px solid rgba(36,40,44,.3);border-radius:6px;padding:1px 6px;min-width:120px;outline:none}
+
+/* guardrail line in the lesson review */
+.tb-stage-ok{margin:0 0 10px;padding:8px 12px;border-radius:10px;background:#EEF7D2;color:#4A5A12;font:600 12.5px var(--font,system-ui,sans-serif)}
+.tb-guard{display:grid;gap:6px}
+.tb-guard-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-weight:500}
+.tb-guard-check{font:700 10.5px var(--font,system-ui,sans-serif);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:rgba(36,40,44,.08)}

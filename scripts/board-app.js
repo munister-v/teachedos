@@ -17475,7 +17475,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1318';
+const TEACHEDOS_ASSET_VERSION = '1319';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -20000,6 +20000,20 @@ async function runBoardLessonStages() {
       try { out = await requestServerTeacherTool(input, 30000); }
       catch (err) { console.warn('[stages] activity retry failed', o.key, err); }
     }
+    /* Guardrails (systemic §2): a block that fails its own checks (an empty pair, a
+       gap without an answer, an example in the other sense of the word) is built again,
+       twice at most. If it still fails it is kept, marked, and the review names the row. */
+    for (let attempt = 1; out && attempt <= 2 && window.LessonGuardrails; attempt++) {
+      if (!window.LessonGuardrails.checkBlock(o, out).length) break;
+      if (chip) chip.textContent = `checking ${_lbPlain(o.title)}…`;
+      let again = null;
+      try {
+        const retry = { ...input, variant: attempt };
+        again = o.ai ? await requestServerTeacherTool(retry, 30000) : generateTeacherToolLocal(retry);
+      } catch (err) { console.warn('[stages] guardrail retry failed', o.key, err); }
+      if (!again) break;
+      out = again;
+    }
     /* Значения к словам добираются ПОСЛЕ сборки задания, а не внутри
        генератора: генератор синхронный и работает офлайн, а словарь -
        это сеть. */
@@ -20286,6 +20300,7 @@ function renderBoardLessonStagePreview(set) {
   const body = document.getElementById('tbuilder-output');
   if (!body || !set) return;
   set.missingWords = _stageWordContract(set);
+  set.violations = window.LessonGuardrails ? window.LessonGuardrails.checkSet(set) : [];
   const { cfg, textOut, built, failed } = set;
   const byStage = {};
   built.forEach(b => { (byStage[b.activity.stage] = byStage[b.activity.stage] || []).push(b); });
@@ -20373,11 +20388,20 @@ function renderBoardLessonStagePreview(set) {
      же виджет, что будет на доске, шаги и студии живые. Разбор по частям с
      правкой - под «Teacher view». */
   if (WP_PATH_SKILLS.includes(set.skill)) {
-    body.innerHTML = _wpPreviewShellHtml(set) + `<section class="tb-wf-teacher${_ttTeacherViewOpen ? ' open' : ''}"><button type="button" class="tb-wf-teacher-btn" onclick="_ttTeacherViewToggle(this)" aria-expanded="${_ttTeacherViewOpen}"><i>${_ttTeacherViewOpen ? '▾' : '▸'}</i> Teacher view - edit any part</button><div class="tb-wf-teacher-body"><p class="tb-stage-meta tb-ed-hint">Click any text below to change it. The student preview above and the board get your version.</p>${html}</div></section>` + failHtml;
+    body.innerHTML = _stageGuardrailHtml(set) + _wpPreviewShellHtml(set) + `<section class="tb-wf-teacher${_ttTeacherViewOpen ? ' open' : ''}"><button type="button" class="tb-wf-teacher-btn" onclick="_ttTeacherViewToggle(this)" aria-expanded="${_ttTeacherViewOpen}"><i>${_ttTeacherViewOpen ? '▾' : '▸'}</i> Teacher view - edit any part</button><div class="tb-wf-teacher-body"><p class="tb-stage-meta tb-ed-hint">Click any text below to change it. The student preview above and the board get your version.</p>${html}</div></section>` + failHtml;
     _wpPreviewMount(set);
     return;
   }
-  body.innerHTML = html + failHtml;
+  body.innerHTML = _stageGuardrailHtml(set) + html + failHtml;
+}
+
+/* The review's guardrail line: each failed check names its block and row, with the two
+   ways out (build that block again, or leave it out). Nothing is published while it shows. */
+function _stageGuardrailHtml(set) {
+  const v = set.violations || [];
+  if (!v.length) return '<div class="tb-stage-ok" role="status">Checked: every block matches what you ticked.</div>';
+  return `<div class="tb-stage-warn tb-guard" id="tb-guard" role="alert"><b>Not ready to publish - ${v.length} ${v.length === 1 ? 'problem' : 'problems'}</b>
+    ${v.map(x => `<div class="tb-guard-row"><span class="tb-guard-check">${esc(x.check)}</span> ${esc(x.msg)}${x.key ? ` <button type="button" class="tb-act-btn" onclick="redoStageActivity('${esc(x.key)}')">Redo block</button><button type="button" class="tb-act-btn" onclick="dropStageActivity('${esc(x.key)}')">Remove block</button>` : ''}</div>`).join('')}</div>`;
 }
 
 /* ── Урок письма глазами ученика ─────────────────────────────────────────
@@ -20492,6 +20516,7 @@ function dropStageActivity(key) {
   const i = set.built.findIndex(b => b.activity.key === key);
   if (i < 0) return;
   const [gone] = set.built.splice(i, 1);
+  (set.dropped = set.dropped || []).push(key);   // a block the teacher removed is not a missing block
   renderBoardLessonStagePreview(set);
   const chip = document.getElementById('tbuilder-chip');
   if (chip) chip.textContent = set.built.length ? `text + ${set.built.length}` : 'text ready';
@@ -20907,6 +20932,14 @@ function setBoardLessonOnePath(on) {
 function placeBoardLessonStageSet() {
   const set = lastLessonStageSet;
   if (!set) return false;
+  if (window.LessonGuardrails) {
+    set.violations = window.LessonGuardrails.checkSet(set);
+    if (set.violations.length) {
+      renderBoardLessonStagePreview(set);
+      toast(`Not added: ${set.violations[0].msg}${set.violations.length > 1 ? ` (+${set.violations.length - 1} more)` : ''}`);
+      return false;
+    }
+  }
   const parts = _stageLessonParts(set);
   if (!parts) return false;
   const { results, homework, teacherOnly, label, videoUrl, readingText, writingFlow, speakingFlow, skillPath } = parts;
@@ -24856,7 +24889,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1318',
+          icon: 'icons/icon-192.png?v=1319',
           tag: 'board-live-' + s.id,
         });
       }
