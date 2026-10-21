@@ -1,6 +1,8 @@
 const express  = require('express');
 const router   = express.Router();
 const xp = require('../lib/xp');
+const wordbank = require('../lib/wordbank');
+const { computeStreak } = require('../lib/streak');
 const pool     = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const interests = require('../lib/interests');
@@ -598,6 +600,21 @@ router.get('/xp', requireAuth, async (req, res) => {
   }
 });
 
+/* The Word Bank as the Departures board (lib/wordbank.js): today's flights, those in the air, the arrived. */
+router.get('/wordbank', requireAuth, async (req, res) => {
+  try {
+    let tz = String(req.user.timezone || 'Europe/Kyiv');
+    try { new Intl.DateTimeFormat('en', { timeZone: tz }); } catch (_) { tz = 'UTC'; }
+    const { rows } = await pool.query(
+      `SELECT id, word, translation, example, source_title, source_type, created_at, reps, ease, interval_days, lapses, due_at, learned, last_reviewed_at
+         FROM vocabulary WHERE user_id = $1 AND kind = 'word' ORDER BY created_at DESC LIMIT 600`, [req.user.id]);
+    res.json(wordbank.board(rows, tz));
+  } catch (err) {
+    console.error('[student/wordbank]', err.message);
+    res.status(500).json({ error: 'Could not load the Word Bank' });
+  }
+});
+
 router.get('/progress', requireAuth, async (req, res) => {
   const uid = req.user.id;
   let tz = String(req.user.timezone || 'Europe/Kyiv');
@@ -646,9 +663,8 @@ router.get('/progress', requireAuth, async (req, res) => {
     const dayStr = (base, back) => { const d = new Date(base + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - back); return d.toISOString().slice(0, 10); };
     const activity = [];
     for (let i = 27; i >= 0; i--) { const d = dayStr(today, i); activity.push({ day: d, n: byDay.get(d) || 0 }); }
-    let streak = 0;
-    let i = byDay.has(today) ? 0 : 1;          // сегодня ещё не занимался - серия по вчера жива
-    while (byDay.has(dayStr(today, i))) { streak++; i++; }
+    // The run, with one forgiven missed day a month (lib/streak.js): frozen days are drawn on the calendar.
+    const { streak, frozen, freeze_left } = computeStreak(new Set(byDay.keys()), today);
 
     /* BUG-13 (17.10.2026): Recent results are built from the very events the
        calendar counts (the same five sources, the same day in the student's
@@ -700,7 +716,7 @@ router.get('/progress', requireAuth, async (req, res) => {
       words: { total: vw ? vw.total : 0, learned: vw ? vw.learned : 0 },
       activity,
       activeDays28: activity.filter(d => d.n > 0).length,
-      streak,
+      streak, frozen, freeze_left,
       recent,
     });
   } catch (err) {

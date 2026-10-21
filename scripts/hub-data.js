@@ -197,6 +197,7 @@
 
     // Calendar of the current month from the last 28 days of activity.
     const by = new Map((d.activity || []).map(x => [x.day, x.n]));
+    const frz = new Set(d.frozen || []);
     const now = new Date(), y = now.getFullYear(), m = now.getMonth();
     const first = new Date(y, m, 1), last = new Date(y, m + 1, 0).getDate();
     const lead = (first.getDay() + 6) % 7;
@@ -209,7 +210,7 @@
       for (let day = 1; day <= last; day++) {
         const key = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
         const n = by.get(key) || 0;
-        const cls = day > now.getDate() ? 'fut' : n >= 3 ? 'strong' : n >= 1 ? 'act' : '';
+        const cls = day > now.getDate() ? 'fut' : frz.has(key) ? 'frz' : n >= 3 ? 'strong' : n >= 1 ? 'act' : '';
         h += '<div class="cday ' + cls + (day === now.getDate() ? ' today' : '') + '">' + day + '</div>';
       }
       grid.innerHTML = h;
@@ -217,6 +218,7 @@
       let best = null; (d.activity || []).forEach(x => { if (!best || x.n > best.n) best = x; });
       const cs = pg.querySelector('.calsum');
       if (cs) cs.innerHTML = '<span><b>' + days + '</b> active days in 4 weeks</span><span>Streak <b>' + plural(st, 'day') + '</b></span>' +
+        ((d.frozen || []).length ? '<span>Freeze saved <b>' + new Date(d.frozen[0] + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + '</b></span>' : (d.freeze_left ? '<span>Freeze <b>ready</b> this month</span>' : '')) +
         (best && best.n ? '<span>Best day <b>' + new Date(best.day + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + ' \u00B7 ' + plural(best.n, 'thing') + '</b></span>' : '');
       const lg = pg.querySelector('.callegend span:nth-child(3)'); if (lg) lg.remove();
     }
@@ -443,12 +445,160 @@
     }
   }
 
+
+  /* Word Bank as the Departures board, from /api/student/wordbank (lib/wordbank.js): today's
+     flights (the due queue), the ones in the air, the arrived. Forgot / Know it and the sprint
+     post real repetitions to the vault, which schedules the word again and pays its XP. */
+  const esc2 = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ST = { 'LAST CALL': 'last', DELAYED: 'delay', BOARDING: 'board', SCHEDULED: 'sched', QUEUED: 'sched' };
+  const XPC = w => w.xp >= 8 ? '#8B7CFF' : w.xp >= 5 ? '#F3A46B' : w.status === 'SCHEDULED' ? '#8FAE2E' : '#2DD4BF';
+  const SPK = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>';
+  function burstConfetti(n) {
+    const C = ['#D3F26A', '#2DD4BF', '#F6D8D8', '#1E2231', '#F3A46B'];
+    for (let i = 0; i < (n || 70); i++) {
+      const d = document.createElement('div'); d.className = 'confetti';
+      d.style.left = (38 + Math.random() * 24) + 'vw'; d.style.background = C[i % C.length];
+      d.style.animationDelay = (Math.random() * 0.3) + 's'; document.body.appendChild(d); setTimeout(() => d.remove(), 2200);
+    }
+  }
+  function review(id, grade, correct) {
+    return api('/api/vault/' + encodeURIComponent(id) + '/review', { method: 'POST', body: { grade, correct } })
+      .then(r => (r.ok ? r.json() : null)).catch(() => null);
+  }
+  let WB = null, wbFilter = 'all', wbQuery = '';
+  function wordBank(b) {
+    const wb = document.getElementById('pg-wordbank');
+    if (!wb || !b) return;
+    WB = b;
+    const fl = b.flights_today;
+    const h1 = wb.querySelector('h1'), out = h1 && h1.querySelector('.out');
+    if (out) { out.textContent = b.total; h1.lastChild.textContent = b.total === 1 ? ' word' : ' words'; }
+    const meta = wb.querySelector('.hdr .meta');
+    if (meta) meta.innerHTML = '<b>' + plural(fl, 'flight') + ' today</b> · ' + b.arrived.length + ' mastered<br>every word here is flying to your long-term memory';
+    const chip = wb.querySelector('.fchip[data-f="review"]'); if (chip) chip.textContent = 'Due · ' + fl;
+    const ms = wb.querySelectorAll('.scol .ms');
+    if (ms[0]) ms[0].innerHTML = '<b>' + b.total + '</b><span>words in the bank</span>';
+    if (ms[1]) ms[1].innerHTML = '<b style="color:#FF4E00">' + plural(fl, 'flight') + ' today</b><span>the board below is calling</span>';
+    set('.nav .nbadge', e => { if (/Word Bank/.test(e.parentNode.textContent)) { e.textContent = fl; e.style.display = fl ? '' : 'none'; } });
+    // the boarding pass: the first flight of the day
+    const spot = b.queue[0] || b.air[0] || b.arrived[0];
+    if (spot) {
+      const sw = wb.querySelector('.pass16 .sw'); if (sw) sw.textContent = spot.word;
+      const sub = wb.querySelector('.pass16 .pmain > div:nth-of-type(2)'); if (sub) sub.textContent = spot.translation;
+      const ex = wb.querySelector('.pass16 .pmain > div:nth-of-type(3)'); if (ex) ex.textContent = spot.example ? '“' + spot.example + '”' : '';
+      const fr = wb.querySelector('.pass16 .pf b'); if (fr) fr.textContent = spot.from;
+    }
+    const btn = wb.querySelector('#reviewBtn');
+    if (btn) {
+      const nb = btn.cloneNode(true); btn.replaceWith(nb);       // drop the design's sample sprint
+      nb.textContent = fl ? 'Board now · start sprint' : 'Nothing to board';
+      nb.disabled = !fl;
+      nb.addEventListener('click', () => sprint());
+    }
+    wb.querySelectorAll('.fchip').forEach(c => {
+      const nc = c.cloneNode(true); c.replaceWith(nc);
+      nc.addEventListener('click', () => { wbFilter = nc.dataset.f; wb.querySelectorAll('.fchip').forEach(x => x.classList.toggle('on', x === nc)); drawBoard(); });
+    });
+    const si = wb.querySelector('#searchInput');
+    if (si) { const ns = si.cloneNode(true); si.replaceWith(ns); ns.addEventListener('input', () => { wbQuery = ns.value.trim().toLowerCase(); drawBoard(); }); }
+    drawBoard();
+  }
+  function rowHtml(w) {
+    const on = Math.max(1, 2 * w.legs - 1);
+    let leg = ''; for (let i = 0; i < 9; i++) leg += (i % 2 ? '<u' : '<i') + (i < on ? ' class="on"' : '') + (i % 2 ? '></u>' : '></i>');
+    return '<div class="row xrow" data-id="' + esc2(w.id) + '"><span class="w">' + esc2(w.word) + '<small>' + esc2(w.translation) + '</small></span>' +
+      '<span class="from">' + esc2(w.from) + '</span><span class="leg">' + leg + '</span><span class="next">' + esc2(w.next) + '</span>' +
+      '<span style="display:flex;gap:9px;align-items:center"><span class="st16 ' + ST[w.status] + '">' + w.status + '</span><span class="xp" style="color:' + XPC(w) + '">+' + w.xp + ' XP</span></span>' +
+      '<span class="acts"><button data-g="again">Forgot</button><button class="kn" data-g="good">Know it</button></span>' +
+      '<span class="rdet"><span class="rex">' + (w.example ? '“' + esc2(w.example) + '”' : 'No example saved yet') + '</span>' +
+      '<button class="rspk" data-say="' + esc2(w.word) + '">' + SPK + 'Listen</button><span class="rhint">tap the row to close</span></span></div>';
+  }
+  function drawBoard() {
+    const dep = document.querySelector('#pg-wordbank .dep16');
+    if (!dep || !WB) return;
+    const b = WB, q = wbQuery;
+    const hit = w => !q || (w.word + ' ' + w.translation).toLowerCase().includes(q);
+    const showQ = wbFilter === 'all' || wbFilter === 'review', showAir = wbFilter === 'all' || wbFilter === 'learning', showArr = wbFilter === 'all' || wbFilter === 'mastered';
+    const queue = showQ ? b.queue.filter(hit) : [], air = showAir ? b.air.filter(hit) : [], arr = showArr ? b.arrived.filter(hit) : [];
+    const dc = dep.querySelector('.dcount');
+    if (dc) dc.textContent = plural(b.flights_today, 'flight') + ' today · ' + new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const cols = dep.querySelector('.cols');
+    while (cols && cols.nextSibling) cols.nextSibling.remove();
+    let h = '';
+    if (!b.total) h = '<div class="bnote">No words yet. Words you save in class and from reading land here.</div>';
+    else {
+      h += queue.map(rowHtml).join('');
+      if (showQ && !queue.length && !q) h += '<div class="bnote">The board is clear — no flights today. Nice.</div>';
+      if (air.length) h += '<div class="bsec"><span>IN THE AIR · ' + air.length + '</span><span class="bsec-n">on schedule — tap a flight for its example</span></div>' + air.slice(0, 20).map(rowHtml).join('');
+      if (showAir && b.tomorrow && !q) h += '<div class="bnote">' + (b.queued ? '+' + plural(b.queued, 'new word') + ' wait for a free seat — ' + b.queued + ' board tomorrow. ' : '') + 'The bank keeps everything safe until check-in.</div>';
+      if (arr.length) h += '<div class="arr20"><span class="arr-t">ARRIVED · LONG-TERM MEMORY</span>' + arr.slice(0, 24).map(w => '<span class="achip">' + esc2(w.word) + ' ✓</span>').join('') +
+        '<span class="arr-n">' + plural(b.arrived.length, 'word') + ' home' + (b.next_recheck_days ? ' · next re-check in ' + plural(b.next_recheck_days, 'day') : '') + '</span></div>';
+    }
+    h += '<div class="dfoot">One flight = one repetition. Miss it — tomorrow the word rebooks one stage lower.</div>';
+    dep.insertAdjacentHTML('beforeend', h);
+    dep.querySelectorAll('.xrow').forEach(r => r.addEventListener('click', e => {
+      const say = e.target.closest('[data-say]');
+      if (say) { try { const u = new SpeechSynthesisUtterance(say.dataset.say); u.lang = 'en-US'; speechSynthesis.speak(u); } catch (_) {} return; }
+      const g = e.target.closest('[data-g]');
+      if (!g) { r.classList.toggle('open'); return; }
+      g.disabled = true;
+      review(r.dataset.id, g.dataset.g, g.dataset.g === 'again' ? false : undefined).then(res => {
+        if (!res) { g.disabled = false; return; }
+        r.classList.add('done');
+        r.querySelectorAll('button').forEach(x => { x.disabled = true; });
+        if (res.xp) { const x = r.querySelector('.xp'); if (x) x.textContent = '+' + res.xp + ' XP ✓'; }
+        refreshAfterReview();
+      });
+    }));
+  }
+  /* after any repetition the numbers that depend on it are asked for again */
+  function refreshAfterReview() {
+    json('/api/student/xp').then(xpPaint);
+    setTimeout(() => json('/api/student/wordbank').then(nb => { if (nb && !document.querySelector('#sheetWrap.open')) wordBank(nb); }), 900);
+  }
+  /* the sprint: flip cards from today's queue; every answer is a real repetition */
+  function sprint() {
+    const wrap = document.getElementById('sheetWrap'), pb = document.getElementById('sProg'), body = document.getElementById('sBody');
+    if (!wrap || !WB || !WB.queue.length) return;
+    const deck = WB.queue.slice(0, 20);
+    let i = 0, got = 0, xpSum = 0, flipped = false;
+    wrap.classList.add('open');
+    const finish = () => {
+      pb.textContent = 'SESSION COMPLETE';
+      body.innerHTML = '<div class="done"><div class="dn">Done</div><p>' + got + ' of ' + deck.length + ' solid · <b>+' + xpSum + ' XP</b> banked.<br>The rest come back right on schedule.</p></div><div class="srow"><button class="gotit" id="bClose">Back to my words</button></div>';
+      body.querySelector('#bClose').onclick = () => { wrap.classList.remove('open'); refreshAfterReview(); };
+      burstConfetti(80);
+    };
+    const show = () => {
+      if (i >= deck.length) return finish();
+      const w = deck[i]; flipped = false;
+      pb.textContent = 'REVIEW · ' + (i + 1) + ' / ' + deck.length;
+      body.innerHTML = '<div class="flash" id="flash"><div class="fw">' + esc2(w.word) + '</div><div class="fhint">tap to flip</div></div>' +
+        '<div class="srow"><button class="again" id="bAgain">Still learning</button><button class="gotit" id="bGot">Got it +' + w.xp + ' XP</button></div>';
+      body.querySelector('#flash').onclick = () => {
+        if (flipped) return; flipped = true;
+        body.querySelector('#flash').innerHTML = '<div class="fw">' + esc2(w.word) + '</div><div class="ftr">' + esc2(w.translation) + '</div>' + (w.example ? '<div class="fex">“' + esc2(w.example) + '”</div>' : '');
+      };
+      const answer = ok => {
+        body.querySelectorAll('button').forEach(x => { x.disabled = true; });
+        review(w.id, ok ? 'good' : 'again', ok ? undefined : false).then(res => {
+          if (ok) { got++; xpSum += (res && res.xp) || 0; }
+          i++; show();
+        });
+      };
+      body.querySelector('#bAgain').onclick = () => answer(false);
+      body.querySelector('#bGot').onclick = () => answer(true);
+    };
+    show();
+  }
+
   const pProgress = json('/api/student/progress');
   const pVocab = json('/api/journal/vocab/list');
   const pInbox = json('/api/homework/my/inbox');
   const pDash = json('/api/student/dashboard');
   const pMe = json('/api/auth/me');
   const pXp = json('/api/student/xp');
+  const pBank = json('/api/student/wordbank');
   pProgress.then(progress);
   pVocab.then(vocab);
   pInbox.then(r => homework(r && r.assignments));
@@ -464,4 +614,5 @@
   });
   Promise.all([pVocab, pInbox]).then(([v, i]) => today(v && v.words, i && i.assignments));
   Promise.all([pXp, pProgress, pVocab, pInbox, pMe, pDash]).then(([x]) => xpPaint(x));
+  Promise.all([pBank, pVocab]).then(([b]) => wordBank(b));
 })();

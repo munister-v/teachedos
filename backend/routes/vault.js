@@ -10,6 +10,7 @@ const { pickSprint } = require('../lib/sprint');
 const { phraseFor, localDay } = require('../lib/phrases');
 const { createNotification } = require('./notifications');
 const xp = require('../lib/xp');
+const { rarityFor } = require('../lib/wordbank');
 
 /* One-click "stop these emails" from the reminder itself (no sign-in: the
    link carries an HMAC of the user id). Pushes stay as they were. */
@@ -123,8 +124,9 @@ router.post('/:id/review', async (req, res) => {
     if (!grade) return res.status(400).json({ error: 'grade required' });
     const { rows } = await pool.query('SELECT * FROM vocabulary WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    const rarity = rarityFor(rows[0], req.user.timezone || 'Europe/Kyiv');   // what this flight promised, read before it is rescheduled
     const s = schedule(rows[0], grade);
-    xp.awardWord(pool, req.user.id, req.params.id, req.body.correct === false ? 'again' : grade);
+    xp.awardWord(pool, req.user.id, req.params.id, req.body.correct === false ? 'again' : grade, undefined, rarity);
     /* The student types the word before seeing it. A wrong answer is kept
        (the last one and how many) for the teacher's Homework page. */
     const wrong = req.body.correct === false;
@@ -134,7 +136,7 @@ router.post('/:id/review', async (req, res) => {
               wrong_count = wrong_count + $9, last_wrong = CASE WHEN $9 = 1 THEN $10 ELSE last_wrong END
         WHERE id=$1 AND user_id=$2`,
       [req.params.id, req.user.id, s.reps, s.ease, s.interval_days, s.lapses, s.due_at, s.learned, wrong ? 1 : 0, typed || null]);
-    res.json({ ok: true, due_at: s.due_at, interval_days: s.interval_days });
+    res.json({ ok: true, due_at: s.due_at, interval_days: s.interval_days, xp: xp.wordXp(req.body.correct === false ? 'again' : grade, rarity), mastered: !!s.learned });
   } catch (err) {
     console.error('[vault] review', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -295,7 +297,7 @@ router.post('/sprint', async (req, res) => {
                 wrong_count = wrong_count + $9, last_wrong = CASE WHEN $9 = 1 AND $10::text IS NOT NULL THEN $10 ELSE last_wrong END
           WHERE id=$1 AND user_id=$2`,
         [card.id, req.user.id, s.reps, s.ease, s.interval_days, s.lapses, s.due_at, s.learned, wrong ? 1 : 0, wrong ? (str(r.typed, 200) || null) : null]);
-      xp.awardWord(pool, req.user.id, card.id, wrong ? 'again' : overall);
+      xp.awardWord(pool, req.user.id, card.id, wrong ? 'again' : overall, undefined, rarityFor(card, req.user.timezone || 'Europe/Kyiv'));
       done++;
     }
     res.json({ ok: true, words: done });

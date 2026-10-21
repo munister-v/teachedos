@@ -29,8 +29,14 @@ async function award(db, userId, kind, ref, xp, label) {
 }
 
 /* A word reviewed: pays by how well it went, once per word per day. */
-const awardWord = (db, userId, wordId, grade, day) =>
-  award(db, userId, 'word', `${wordId}:${day || new Date().toISOString().slice(0, 10)}`, WORD_XP[grade] || 0, 'Word reviewed');
+/* `rarity` is what the flight on the board promised (+8 last call ... +2): Know it pays all of it,
+   a hard one half, a forgotten word nothing. Without a rarity the plain table applies. */
+function wordXp(grade, rarity) {
+  if (!(rarity > 0)) return WORD_XP[grade] || 0;
+  return grade === 'again' ? 0 : grade === 'hard' ? Math.max(1, Math.ceil(rarity / 2)) : rarity;
+}
+const awardWord = (db, userId, wordId, grade, day, rarity) =>
+  award(db, userId, 'word', `${wordId}:${day || new Date().toISOString().slice(0, 10)}`, wordXp(grade, rarity), 'Word reviewed');
 
 /* History that happened before the ledger existed counts too - once, the first time the hub asks. */
 async function backfill(db, userId) {
@@ -72,7 +78,7 @@ async function summary(db, userId, tz, level) {
   const week = Array.from({ length: 7 }, (_, i) => { const day = addDays(today, i - dow); return { day, xp: byDay.get(day) || 0, future: day > today }; });
   const { rows: recent } = await db.query(
     `SELECT kind, label, xp, to_char((created_at AT TIME ZONE $2)::date, 'YYYY-MM-DD') AS day
-       FROM xp_events WHERE user_id = $1 AND kind <> 'backfill' AND kind <> 'word'
+       FROM xp_events WHERE user_id = $1 AND kind NOT IN ('backfill', 'word', 'word_kept')
        ORDER BY created_at DESC LIMIT 6`, [userId, zone]);
   const total = t.total;
   const from = String(level || 'B1').toUpperCase(), to = nextLevel(from);
@@ -87,4 +93,4 @@ async function summary(db, userId, tz, level) {
   };
 }
 
-module.exports = { award, awardWord, backfill, summary, nextLevel, RULES, BAND_XP, CHECKPOINT, CAMPS };
+module.exports = { award, awardWord, wordXp, backfill, summary, nextLevel, RULES, BAND_XP, CHECKPOINT, CAMPS };
