@@ -5,6 +5,7 @@
 const xp = require('./xp');
 const duel = require('./duel');
 const challenges = require('./challenges');
+const interestsLib = require('./interests');
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const QUIZ_XP = 20, WORD_XP = 5, WORD_XP_CAP = 10, UNLOCK_PCT = 90, QUIZ_QUESTIONS = 3;
@@ -50,27 +51,79 @@ const levelOf = async (db, userId) => {
 
 const teachersOf = async (db, userId) => (await db.query('SELECT DISTINCT teacher_id FROM student_journal WHERE student_id = $1', [userId])).rows.map(r => r.teacher_id);
 
-/* the feed: this student's teachers' pieces, the student's own level first, one step either side after it */
+/* The feed. It never depends on a teacher (island TZ §1): pieces the platform built for the student's
+   level and interests come first-hand, the teacher's picks stand on top with a mark, and the
+   student's own signals (an interest scored down by "not interested", pieces dismissed) shape it. */
+const HIDE_AT = -3;
+
+async function profileOf(db, userId) {
+  const { rows: [dna] } = await db.query('SELECT interests FROM student_dna WHERE user_id = $1', [userId]);
+  const { rows } = await db.query('SELECT interest, score FROM hub_feed_scores WHERE user_id = $1', [userId]);
+  const scores = Object.fromEntries(rows.map(r => [r.interest, r.score]));
+  const chosen = (dna && dna.interests) || [];
+  return { chosen, scores, liked: chosen.filter(k => (scores[k] || 0) > HIDE_AT) };
+}
+
 async function feed(db, user, { range = false } = {}) {
   const level = await levelOf(db, user.id);
   const teachers = await teachersOf(db, user.id);
-  if (!teachers.length) return { level, items: [], topics: [] };
-  const { rows } = await db.query(
-    `SELECT m.id, m.kind, m.title, m.topic, m.kicker, m.level, m.minutes, jsonb_array_length(m.words) AS words,
-            COALESCE(p.pct, 0) AS pct, p.finished_at IS NOT NULL AS finished, p.quiz_score
-       FROM hub_materials m LEFT JOIN hub_progress p ON p.material_id = m.id AND p.user_id = $1
-      WHERE m.teacher_id = ANY($2::uuid[]) ORDER BY m.created_at DESC LIMIT 60`, [user.id, teachers]);
+  const prof = await profileOf(db, user.id);
   const li = LEVELS.indexOf(level);
   const near = r => Math.abs(LEVELS.indexOf(r.level) - li);
-  const items = rows.filter(r => range ? near(r) <= 1 : near(r) === 0 || near(r) === 1).map(r => ({ ...r, near: near(r), words: Number(r.words) }))
-    .sort((a, b) => a.near - b.near || (a.finished - b.finished));
-  return { level, items, topics: [...new Set(items.map(i => i.topic).filter(Boolean))].slice(0, 6) };
+  const cols = `m.id, m.kind, m.title, m.topic, m.kicker, m.level, m.minutes, m.source, m.interest, jsonb_array_length(m.words) AS words,
+            COALESCE(p.pct, 0) AS pct, p.finished_at IS NOT NULL AS finished, p.quiz_score`;
+  const join = 'LEFT JOIN hub_progress p ON p.material_id = m.id AND p.user_id = $1';
+  const taught = teachers.length ? (await db.query(
+    `SELECT ${cols} FROM hub_materials m ${join} WHERE m.teacher_id = ANY($2::uuid[]) ORDER BY m.created_at DESC LIMIT 60`, [user.id, teachers])).rows : [];
+  const auto = (await db.query(
+    `SELECT ${cols} FROM hub_materials m ${join}
+      WHERE m.source = 'auto' AND m.level = ANY($2::text[])
+        AND NOT EXISTS (SELECT 1 FROM hub_dismissed d WHERE d.user_id = $1 AND d.material_id = m.id)
+      ORDER BY m.created_at DESC LIMIT 80`,
+    [user.id, LEVELS.filter((l, i) => Math.abs(i - li) <= 1)])).rows;
+
+  const rank = r => {
+    const interested = r.interest ? (prof.liked.includes(r.interest) ? 2 : prof.chosen.length ? 0 : 1) : 0;
+    return (r.source === 'teacher' ? 100 : 0) + interested * 10 + (r.interest ? Math.max(-5, Math.min(5, prof.scores[r.interest] || 0)) : 0) + (near(r) === 0 ? 4 : 0) - (r.finished ? 50 : 0);
+  };
+  const keep = r => (range ? near(r) <= 1 : near(r) <= 1) && !(r.interest && (prof.scores[r.interest] || 0) <= HIDE_AT);
+  const items = taught.concat(auto).filter(keep)
+    .map(r => ({ ...r, near: near(r), words: Number(r.words), from_teacher: r.source === 'teacher' }))
+    .sort((a, b) => rank(b) - rank(a)).slice(0, 60);
+
+  // top the stock up in the background for the interests this student follows (or two broad ones)
+  const want = (prof.liked.length ? prof.liked : ['science', 'travel']).slice().sort(() => Math.random() - .5).slice(0, 2);
+  const stocked = new Set(items.filter(i => !i.finished && i.near === 0 && i.interest).map(i => i.interest));
+  want.filter(k => !stocked.has(k) || items.length < 6).forEach(k => require('./hubauto').ensure(db, { level, interest: k }).catch(() => {}));
+
+  const topics = [...new Set(items.map(i => i.topic).filter(Boolean))].slice(0, 6);
+  return { level, items, topics, interests: prof.chosen, need_interests: !prof.chosen.length, building: items.filter(i => !i.finished).length < 4 };
 }
+
+/* the first visit's chips (skippable), and later changes: the student's own list of interests */
+async function setInterests(db, user, list) {
+  const clean = interestsLib.clean({ interests: list }).interests;
+  await db.query(
+    `INSERT INTO student_dna (user_id, interests) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET interests = EXCLUDED.interests, updated_at = NOW()`, [user.id, clean]);
+  if (clean.length) await db.query('DELETE FROM hub_feed_scores WHERE user_id = $1 AND interest = ANY($2::text[])', [user.id, clean]);
+  return { interests: clean };
+}
+
+/* "not interested": the piece goes away and its interest scores down; three in a row hide the interest */
+async function dismiss(db, user, id) {
+  const m = await accessible(db, user, id);
+  if (!m) return { error: 'Not found', status: 404 };
+  await db.query('INSERT INTO hub_dismissed (user_id, material_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [user.id, m.id]);
+  if (m.interest) await bump(db, user.id, m.interest, -1);
+  return { ok: true };
+}
+const bump = (db, userId, interest, d) => db.query(
+  `INSERT INTO hub_feed_scores (user_id, interest, score) VALUES ($1,$2,$3) ON CONFLICT (user_id, interest) DO UPDATE SET score = GREATEST(-6, LEAST(6, hub_feed_scores.score + EXCLUDED.score))`, [userId, interest, d]);
 
 async function accessible(db, user, id) {
   const teachers = await teachersOf(db, user.id);
-  if (!teachers.length) return null;
-  const { rows: [m] } = await db.query('SELECT * FROM hub_materials WHERE id::text = $1 AND teacher_id = ANY($2::uuid[])', [String(id), teachers]);
+  const { rows: [m] } = await db.query(
+    `SELECT * FROM hub_materials WHERE id::text = $1 AND (source = 'auto' OR teacher_id = ANY($2::uuid[]))`, [String(id), teachers]);
   return m || null;
 }
 
@@ -145,6 +198,7 @@ async function quizSubmit(db, user, id, choices) {
   if (!quiz || !p || p.pct < UNLOCK_PCT) return { error: 'The quiz is not open', status: 403 };
   const score = duel.scoreAnswers(quiz, choices);
   await db.query(`UPDATE hub_progress SET quiz_score = GREATEST(COALESCE(quiz_score, 0), $3), finished_at = COALESCE(finished_at, NOW()), updated_at = NOW() WHERE user_id = $1 AND material_id = $2`, [user.id, m.id, score]);
+  if (m.interest) await bump(db, user.id, m.interest, 1);
   let paid = 0;
   if (score >= 2 && await xp.award(db, user.id, 'hubquiz', m.id, QUIZ_XP, 'Quiz passed · ' + m.title.slice(0, 40))) paid = QUIZ_XP;
   return { score, total: quiz.length, passed: score >= 2, xp: paid };
@@ -169,4 +223,4 @@ async function create(db, teacher, b) {
   return { id: m.id, words: words.length };
 }
 
-module.exports = { feed, detail, setProgress, keepWords, quizPlay, quizSubmit, create, parseWords, youtubeId, quizFor, levelOf, LEVELS, UNLOCK_PCT, QUIZ_XP, WORD_XP, WORD_XP_CAP };
+module.exports = { feed, setInterests, dismiss, detail, setProgress, keepWords, quizPlay, quizSubmit, create, parseWords, youtubeId, quizFor, levelOf, LEVELS, UNLOCK_PCT, QUIZ_XP, WORD_XP, WORD_XP_CAP };

@@ -927,24 +927,48 @@
      three-question quiz that opens at 90%. */
   const PAL = [['#1E2231', '#F4F3EC'], ['#8B7CFF', '#fff'], ['#FF4FA3', '#fff'], ['#F6D8D8', '#1E2231'], ['#E9F5C4', '#1E2231'], ['#D5F6F2', '#1E2231']];
   const palOf = id => PAL[parseInt(String(id).replace(/[^0-9a-f]/gi, '').slice(0, 4) || '0', 16) % PAL.length];
-  let WR = null, wrRange = false, wrTopic = '';
+  let WR = null, wrRange = false, wrTopic = '', wrPoll = 0, wrPolls = 0, wrCatalog = null;
   const hubApi = (path, method, body) => api('/api/hub' + path, { method: method || 'GET', body }).then(r => r.json().then(d => ({ ok: r.ok, d }))).catch(() => ({ ok: false, d: { error: 'Network error' } }));
   const loadFeed = () => hubApi('/feed' + (wrRange ? '?range=1' : '')).then(r => { if (r.ok) watchPaint(r.d); });
   function coverHtml(m, i) {
     const [bg, fg] = palOf(m.id), kick = (m.kicker || m.topic || (m.kind === 'watch' ? 'WATCH' : 'READ')).toUpperCase();
     const words = m.title.split(' '), half = Math.ceil(words.length / 2);
     const left = m.pct > 0 && !m.finished ? '<div class="covprog"><i style="width:' + m.pct + '%"></i></div>' : '';
-    return '<div class="mcard" data-open="' + esc2(m.id) + '"><div class="cardbox"><div class="cov"><div class="cov-field" style="background:' + bg + ';color:' + fg + '"><span class="cov-kick">' + esc2(kick) + '</span><span class="cov-t">' +
+    const mark = m.from_teacher ? '<span class="wr-from" title="Picked by your teacher">FROM YOUR TEACHER</span>' : '';
+    return '<div class="mcard" data-open="' + esc2(m.id) + '"><div class="cardbox">' + mark + '<button type="button" class="wr-no" data-dismiss="' + esc2(m.id) + '" title="Not interested - show me less like this" aria-label="Not interested">✕</button><div class="cov"><div class="cov-field" style="background:' + bg + ';color:' + fg + '"><span class="cov-kick">' + esc2(kick) + '</span><span class="cov-t">' +
       esc2(words.slice(0, half).join(' ')) + '<br>' + esc2(words.slice(half).join(' ')) + '</span></div></div>' +
       '<div class="cbody cov-body"><div class="cbrow"><div><b>' + esc2(m.title) + '</b><span>' + esc2([m.kicker || m.topic, m.level, plural(m.words, 'word'), m.minutes + ' min'].filter(Boolean).join(' · ')) + '</span></div><div class="cbact"><button class="covbtn">' + (m.finished ? 'Again' : m.kind === 'watch' ? 'Watch' : 'Read') + '</button></div></div>' + left + '</div>' +
       '<div class="decklayers"><i style="background:' + bg + '"></i><i style="background:#F6F6EF"></i></div></div></div>';
   }
+  /* The first visit asks for interests with chips (one minute, skippable); afterwards they stay one click away. */
+  function wrInterests(pg, f) {
+    let box = pg.querySelector('.wr-int');
+    let skipped = false; try { skipped = localStorage.getItem('teached_hub_int_skip') === '1'; } catch (_) {}
+    const open = f.need_interests && !skipped || pg.dataset.wrEdit === '1';
+    if (!open) { if (box) box.remove(); return; }
+    const draw = () => {
+      if (!box) { box = document.createElement('div'); box.className = 'wr-int'; const anchor = pg.querySelector('.chips') || pg.firstElementChild; anchor.parentNode.insertBefore(box, anchor); }
+      const have = new Set(box.dataset.sel ? box.dataset.sel.split(',') : f.interests);
+      box.dataset.sel = [...have].join(',');
+      box.innerHTML = '<div class="wr-int-h"><b>What do you like?</b><span>Pick a few — your feed is built from them. You can change this any time.</span></div><div class="wr-int-c">' +
+        wrCatalog.map(i => '<button type="button" class="chip' + (have.has(i.key) ? ' on' : '') + '" data-int="' + esc2(i.key) + '">' + esc2(i.label) + '</button>').join('') + '</div>' +
+        '<div class="wr-int-a"><button type="button" class="chip on" data-int-save>' + (have.size ? 'Show me ' + plural(have.size, 'topic') : 'Pick at least one') + '</button><button type="button" class="chip" data-int-skip>Skip</button></div>';
+      box.onclick = e => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.int) { have.has(b.dataset.int) ? have.delete(b.dataset.int) : have.add(b.dataset.int); box.dataset.sel = [...have].join(','); draw(); }
+        else if (b.hasAttribute('data-int-skip')) { try { localStorage.setItem('teached_hub_int_skip', '1'); } catch (_) {} pg.dataset.wrEdit = ''; box.remove(); }
+        else if (b.hasAttribute('data-int-save') && have.size) { hubApi('/interests', 'POST', { interests: [...have] }).then(() => { pg.dataset.wrEdit = ''; try { localStorage.removeItem('teached_hub_int_skip'); } catch (_) {} box.remove(); loadFeed(); }); }
+      };
+    };
+    if (wrCatalog) draw(); else json('/api/student/dna').then(d => { wrCatalog = (d && d.interests) || []; if (wrCatalog.length) draw(); });
+  }
   function watchPaint(f) {
     const pg = document.getElementById('pg-watchread');
     if (!pg || !f) return;
-    WR = f;
-    const top = pg.querySelector('.topline .day'); if (top) top.textContent = 'WATCH & READ · PICKED FOR ' + f.level;
-    const sub = pg.querySelector('.zsub2'); if (sub) sub.textContent = 'Picked for your level. The game after each piece is built from its words — that is the point.';
+    WR = f; ensureWrStyle();
+    const top = pg.querySelector('.topline .day'); if (top) top.textContent = 'WATCH & READ · FOR YOUR LEVEL ' + f.level;
+    const sub = pg.querySelector('.zsub2'); if (sub) sub.textContent = 'New every day, for your level and what you like. The game after each piece is built from its words — that is the point.';
+    wrInterests(pg, f);
     const items = f.items.filter(m => !wrTopic || m.topic === wrTopic);
     const watch = items.filter(m => m.kind === 'watch'), read = items.filter(m => m.kind === 'read');
     // featured: the first piece at the student's level that is not finished
@@ -962,7 +986,7 @@
         feat.querySelector('.gobtn').textContent = pick.kind === 'watch' ? '▶' : 'Read';
         feat.querySelector('.cbody .kick2').textContent = 'FEATURED · ' + (pick.topic || pick.kicker || (pick.kind === 'watch' ? 'WATCH' : 'READ')).toUpperCase();
         feat.querySelector('.cbody b').textContent = pick.title;
-        feat.querySelector('.cbody span').textContent = (pick.kind === 'watch' ? 'A video' : 'A short read') + ' picked by your teacher · ' + plural(pick.words, 'key word');
+        feat.querySelector('.cbody span').textContent = (pick.kind === 'watch' ? 'A video' : 'A short read') + (pick.from_teacher ? ' picked by your teacher' : ' for you') + ' · ' + plural(pick.words, 'key word');
       }
     }
     // filters: the level, a wider range, and the topics the teachers used
@@ -970,24 +994,36 @@
     if (chips) {
       chips.innerHTML = '<span class="chlab">LEVEL</span><button class="chip lvl' + (wrRange ? '' : ' on') + '" data-lv="0">' + esc2(f.level) + '</button><button class="chip lvl' + (wrRange ? ' on' : '') + '" data-lv="1">± one level</button>' +
         (f.topics.length ? '<span class="chlab">TOPICS</span>' + f.topics.map(t => '<button class="chip' + (wrTopic === t ? ' on' : '') + '" data-tp="' + esc2(t) + '">' + esc2(t) + '</button>').join('') : '');
+      chips.insertAdjacentHTML('beforeend', '<button class="chip" data-edit="1" title="Change what your feed is built from">My interests</button>');
       chips.onclick = e => {
         const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.edit) { pg.dataset.wrEdit = pg.dataset.wrEdit === '1' ? '' : '1'; return watchPaint(WR); }
         if (b.dataset.lv != null) { wrRange = b.dataset.lv === '1'; return loadFeed(); }
         if (b.dataset.tp != null) { wrTopic = wrTopic === b.dataset.tp ? '' : b.dataset.tp; return watchPaint(WR); }
       };
     }
     const grids = pg.querySelectorAll('.grid2');
-    if (grids[0]) grids[0].innerHTML = watch.length ? watch.map(coverHtml).join('') : '<div class="zsub">No videos yet — when your teacher picks one, it shows up here.</div>';
-    if (grids[1]) grids[1].innerHTML = read.length ? read.map(coverHtml).join('') : '<div class="zsub">No reads yet — stories your teacher picks land here.</div>';
-    const zd = pg.querySelector('.zdiv .zsub'); if (zd) zd.textContent = 'Stories your teacher picked. The game after each one is built from the words inside it.';
-    pg.onclick = e => { const c = e.target.closest('[data-open]'); if (c) openPiece(c.dataset.open); };
-    if (!f.items.length) { const k = pg.querySelector('.kick'); if (k) k.textContent = 'NOTHING PICKED YET'; }
+    if (grids[0]) grids[0].innerHTML = watch.length ? watch.map(coverHtml).join('') : '<div class="zsub">Videos from your teacher show up here. Reads for you are below.</div>';
+    if (grids[1]) grids[1].innerHTML = read.length ? read.map(coverHtml).join('') : '<div class="zsub">' + (f.building ? 'Putting your first reads together — a few seconds…' : 'Nothing new right now — check back tomorrow.') + '</div>';
+    const zd = pg.querySelector('.zdiv .zsub'); if (zd) zd.textContent = 'Stories for your level and interests. The game after each one is built from the words inside it.';
+    pg.onclick = e => {
+      const no = e.target.closest('[data-dismiss]');
+      if (no) { e.stopPropagation(); hubApi('/material/' + encodeURIComponent(no.dataset.dismiss) + '/dismiss', 'POST', {}).then(() => loadFeed()); return; }
+      const c = e.target.closest('[data-open]'); if (c) openPiece(c.dataset.open);
+    };
+    if (!f.items.length) { const k = pg.querySelector('.kick'); if (k) k.textContent = 'PUTTING YOUR FEED TOGETHER'; }
+    // the platform builds pieces in the background: look again a few times while the feed is thin
+    clearTimeout(wrPoll);
+    if (f.building && wrPolls++ < 6) wrPoll = setTimeout(loadFeed, 7000); else if (!f.building) wrPolls = 0;
   }
 
   function ensureWrStyle() {
     if (document.getElementById('wrStyle')) return;
     const st = document.createElement('style'); st.id = 'wrStyle';
-    st.textContent = '.wr-ov{position:fixed;inset:0;z-index:90;background:rgba(30,34,49,.55);backdrop-filter:blur(4px);display:grid;place-items:end center}' +
+    st.textContent = '.mcard .cardbox{position:relative}.wr-from{position:absolute;z-index:3;left:12px;top:12px;background:#D3F26A;color:#1E2231;font:800 9.5px Manrope,sans-serif;letter-spacing:1.4px;padding:5px 9px;border-radius:99px}' +
+      '.wr-no{position:absolute;z-index:3;right:10px;top:10px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:#1E2231;font-size:12px;cursor:pointer;opacity:0;transition:opacity .15s}.mcard:hover .wr-no,.wr-no:focus-visible{opacity:1}' +
+      '.wr-int{margin:14px 0 18px;padding:18px 20px;border-radius:22px;background:#F6F6EF;color:#1E2231;font-family:Manrope,sans-serif}.wr-int-h b{display:block;font-size:18px;font-weight:800}.wr-int-h span{display:block;font-size:13px;opacity:.65;margin-top:3px}.wr-int-c,.wr-int-a{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}' +
+      '.wr-ov{position:fixed;inset:0;z-index:90;background:rgba(30,34,49,.55);backdrop-filter:blur(4px);display:grid;place-items:end center}' +
       '.wr-pn{background:#fff;color:#1E2231;width:min(780px,96vw);max-height:92vh;overflow:auto;border-radius:28px 28px 0 0;padding:26px 30px 34px;font-family:Manrope,sans-serif;position:relative}' +
       '.wr-x{position:absolute;top:16px;right:18px;width:34px;height:34px;border-radius:50%;border:0;background:#F1F1E8;cursor:pointer;font-size:15px}' +
       '.wr-k{font-size:11px;font-weight:800;letter-spacing:2px;color:#5D614B}.wr-t{font-size:30px;font-weight:800;letter-spacing:-.6px;margin:6px 40px 4px 0;line-height:1.1}.wr-m{font-size:13.5px;font-weight:600;color:rgba(30,34,49,.55)}' +

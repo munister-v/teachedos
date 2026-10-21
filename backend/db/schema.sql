@@ -1770,3 +1770,24 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS world_visited JSONB NOT NULL DEFAULT 
 -- ("5 of 9 steps done"), kept beside the board so the list never unpacks the canvas.
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS last_opened_at TIMESTAMPTZ;
 ALTER TABLE boards ADD COLUMN IF NOT EXISTS progress JSONB;
+
+-- Watch & Read fills itself (island TZ §1): pieces the platform builds for a level and an interest
+-- (source = 'auto', no teacher), what a student dismissed, and how each interest is scoring for them.
+ALTER TABLE hub_materials ALTER COLUMN teacher_id DROP NOT NULL;
+ALTER TABLE hub_materials ADD COLUMN IF NOT EXISTS source VARCHAR(8) NOT NULL DEFAULT 'teacher';
+ALTER TABLE hub_materials ADD COLUMN IF NOT EXISTS interest VARCHAR(20);
+ALTER TABLE hub_materials ADD COLUMN IF NOT EXISTS origin_url TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hub_materials_origin ON hub_materials(origin_url) WHERE origin_url IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_hub_materials_auto ON hub_materials(level, interest, created_at DESC) WHERE source = 'auto';
+CREATE TABLE IF NOT EXISTS hub_dismissed (
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  material_id UUID NOT NULL REFERENCES hub_materials(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, material_id)
+);
+CREATE TABLE IF NOT EXISTS hub_feed_scores (
+  user_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  interest VARCHAR(20) NOT NULL,
+  score    INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, interest)
+);

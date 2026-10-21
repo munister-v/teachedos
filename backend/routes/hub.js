@@ -14,6 +14,11 @@ const UUID = /^[0-9a-f-]{36}$/i;
 /* ── the student: Watch & Read ─────────────────────────────────────────── */
 router.get('/feed', requireAuth, wrap(async (req, res) => res.json(await hub.feed(pool, req.user, { range: req.query.range === '1' }))));
 
+router.post('/interests', requireAuth, wrap(async (req, res) => reply(res, await hub.setInterests(pool, req.user, req.body && req.body.interests))));
+router.post('/material/:id/dismiss', requireAuth, wrap(async (req, res) => {
+  if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Not found' });
+  reply(res, await hub.dismiss(pool, req.user, req.params.id));
+}));
 router.get('/material/:id', requireAuth, wrap(async (req, res) => {
   if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'Not found' });
   const d = await hub.detail(pool, req.user, req.params.id);
