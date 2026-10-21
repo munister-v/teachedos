@@ -2668,13 +2668,10 @@ function boardsRender() {
     const ut = Date.parse(b.updated_at || ''), mins = ut ? Math.round((Date.now() - ut) / 60000) : null;
     const updated = mins == null ? '' : mins < 2 ? 'updated just now' : mins < 60 ? `updated ${mins} min ago` : mins < 1440 ? `updated ${Math.round(mins / 60)}h ago`
       : mins < 2880 ? 'updated yesterday' : mins < 10080 ? `updated ${Math.round(mins / 1440)} days ago` : `updated ${new Date(ut).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`;
-    // "opened yesterday" and "3 of 9 steps done": where the lesson on this board stands, without opening it
-    const ot = Date.parse(b.last_opened_at || ''), omin = ot ? Math.round((Date.now() - ot) / 60000) : null;
-    const opened = omin == null ? 'not opened yet' : omin < 2 ? 'opened just now' : omin < 60 ? `opened ${omin} min ago` : omin < 1440 ? `opened ${Math.round(omin / 60)}h ago`
-      : omin < 2880 ? 'opened yesterday' : omin < 10080 ? `opened ${Math.round(omin / 1440)} days ago` : `opened ${new Date(ot).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`;
-    const pg = b.progress && b.progress.steps ? b.progress : null;
+    // progress is shown only once there is some ("3 of 9 steps done"): "none done yet" said nothing
+    const pg = b.progress && b.progress.steps && b.progress.done ? b.progress : null;
     const progressLine = pg
-      ? `${pg.done ? `${pg.done} of ${pg.steps} ${pg.steps === 1 ? 'step' : 'steps'} done` : `${pg.steps} ${pg.steps === 1 ? 'step' : 'steps'}, none done yet`}${pg.done && pg.title ? ` · ${pg.title.length > 28 ? pg.title.slice(0, 27) + '…' : pg.title}, step ${pg.step} of ${pg.of}` : ''}`
+      ? `${pg.done} of ${pg.steps} ${pg.steps === 1 ? 'step' : 'steps'} done${pg.title ? ` · ${pg.title.length > 28 ? pg.title.slice(0, 27) + '…' : pg.title}, step ${pg.step} of ${pg.of}` : ''}`
       : '';
     const owner = b.owner_name ? `<div class="lc-desc">Shared by ${escB(b.owner_name)}</div>` : '';
     const own = !b.owner_name && boardsFilterMode !== 'shared';
@@ -2705,7 +2702,7 @@ function boardsRender() {
         <div class="lc-meta">
           ${live && !b.trashed_at ? '<span class="bd-live" aria-hidden="true"></span>' : ''}<span class="lc-dur">${days != null ? `${days} day${days === 1 ? '' : 's'} left in Trash` : `${cards} card${cards === 1 ? '' : 's'}${updated ? ` · ${updated}` : ''}`}</span>
         </div>
-        ${!b.trashed_at && own ? `<div class="lc-meta bd-where">${progressLine ? `<span class="bd-progress">${escB(progressLine)}</span> · ` : ''}<span>${opened}</span></div>` : ''}
+        ${!b.trashed_at && own && progressLine ? `<div class="lc-meta bd-where"><span class="bd-progress">${escB(progressLine)}</span></div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -3847,13 +3844,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1335" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1336" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1335" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1336" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

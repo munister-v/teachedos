@@ -1,6 +1,6 @@
 /* The audio track on the board: ink on a glass panel, olive for the quiet text, lime only on Play. */
 .board-card.card-audio{
-  min-width:320px;min-height:140px;border-radius:20px;overflow:visible;
+  min-width:52px;min-height:52px;border-radius:20px;overflow:visible;
   background:rgba(255,255,255,.86);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
   border:1px solid rgba(11,16,38,.08);box-shadow:0 12px 32px rgba(11,16,38,.14);
 }
@@ -54,3 +54,49 @@
 .card-audio .ba-title.is-editable{cursor:text;border-radius:6px}
 .card-audio .ba-title.is-editable:hover{background:rgba(36,40,44,.07)}
 .card-audio .ba-title-in{width:100%;box-sizing:border-box;font:inherit;letter-spacing:inherit;color:inherit;border:0;outline:2px solid #24282C;border-radius:6px;padding:0 4px;background:#fff}
+
+/* View states: pill 320x52, dot 52x52, full 440x148 (spec "Audio collapse" v1.0) */
+.card-audio[data-view="full"]{min-width:320px;min-height:140px}
+.card-audio .ba .ba-pill,.card-audio .ba .ba-dot{display:none}
+.card-audio .ba[data-view="full"] > .ba-top,.card-audio .ba[data-view="full"] > .ba-seek,.card-audio .ba[data-view="full"] > .ba-bottom{display:flex}
+.card-audio .ba[data-view="pill"] > .ba-top,.card-audio .ba[data-view="pill"] > .ba-seek,.card-audio .ba[data-view="pill"] > .ba-bottom,
+.card-audio .ba[data-view="dot"] > .ba-top,.card-audio .ba[data-view="dot"] > .ba-seek,.card-audio .ba[data-view="dot"] > .ba-bottom{display:none}
+.card-audio .ba[data-view="pill"] .ba-pill{display:flex}
+.card-audio .ba[data-view="dot"] .ba-dot{display:block}
+.card-audio[data-view="pill"]{border-radius:999px}
+.card-audio[data-view="dot"]{border-radius:50%;overflow:visible}
+.card-audio .ba[data-view="pill"]{padding:8px 10px;justify-content:center}
+.card-audio .ba[data-view="dot"]{padding:0}
+.card-audio .ba-pill{position:relative;align-items:center;gap:9px;height:36px;width:100%;animation:ba-view-in .22s ease-out}
+.card-audio .ba-dot{position:relative;width:100%;aspect-ratio:1;animation:ba-view-in .22s ease-out}
+@keyframes ba-view-in{from{opacity:.35}to{opacity:1}}
+.card-audio .ba-play--sm{width:36px;height:36px;box-shadow:0 3px 10px rgba(147,168,31,.3)}
+.card-audio .ba-pill-main{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0}
+.card-audio .ba-pill-title{overflow:hidden;font-size:13.5px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.card-audio .ba-pill-chip{flex:none;padding:2px 6px;border-radius:999px;background:var(--ink);color:#fff;font-size:10px;font-weight:800}
+.card-audio .ba-pill-err{font-size:12px;font-weight:700;color:#c2432b}
+.card-audio .ba-wave{display:flex;align-items:center;gap:2.5px;height:18px;flex:none}
+.card-audio .ba-wave i{display:block;width:3px;border-radius:2px;background:var(--ink)}
+.card-audio .ba.is-playing .ba-wave i{animation:ba-eq .9s ease-in-out infinite}
+.card-audio .ba-wave i:nth-child(2){animation-delay:.12s}.card-audio .ba-wave i:nth-child(3){animation-delay:.24s}.card-audio .ba-wave i:nth-child(4){animation-delay:.06s}.card-audio .ba-wave i:nth-child(5){animation-delay:.18s}.card-audio .ba-wave i:nth-child(6){animation-delay:.3s}
+@keyframes ba-eq{0%,100%{transform:scaleY(.45)}50%{transform:scaleY(1)}}
+.card-audio .ba-pill-time{flex:none;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--olive);white-space:nowrap}
+.card-audio .ba-pill-time b{font-weight:700}
+.card-audio .ba-mini{display:grid;place-items:center;flex:none;border-radius:999px;border:0;background:transparent}
+.card-audio .ba button.ba-mini--solid{width:28px;height:28px;background:#fff;border:1px solid rgba(11,16,38,.14)}
+.card-audio .ba button.ba-mini--solid:hover{background:#f6f6ef}
+.card-audio .ba-mini--ghost{width:24px;height:24px;opacity:.65}.card-audio .ba-mini--ghost:hover{background:rgba(11,16,38,.06);opacity:1}
+.card-audio .ba-pill-progress{position:absolute;left:2px;right:2px;bottom:-4px;height:2.5px;border-radius:999px;background:rgba(11,16,38,.1);overflow:hidden}
+.card-audio .ba-pill-progress span{display:block;height:100%;width:0;border-radius:999px;background:var(--ink);transition:width .2s linear}
+.card-audio .ba[data-view="pill"] .ba-pill,.card-audio .ba[data-view="pill"] .ba-pill .ba-pill-main{cursor:pointer}
+.card-audio .ba-dot-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.card-audio .ba-dot-ring circle{fill:none;stroke-width:2.5}
+.card-audio .ba-dot-ring-bg{stroke:rgba(11,16,38,.12)}
+.card-audio .ba-dot-ring-fg{stroke:var(--ink);stroke-linecap:round;transition:stroke-dashoffset .2s linear}
+.card-audio .ba-dot-center{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;border:0;background:transparent}
+.card-audio .ba-eq{display:flex;align-items:center;gap:2.5px;height:16px}
+.card-audio .ba-eq i{display:block;width:3px;height:16px;border-radius:2px;background:var(--ink);animation:ba-eq .9s ease-in-out infinite}
+.card-audio .ba-eq i:nth-child(2){animation-delay:.15s}.card-audio .ba-eq i:nth-child(3){animation-delay:.3s}
+.card-audio .ba button.ba-dot-badge{position:absolute;right:-4px;bottom:-4px;z-index:2;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#26262e;border:1.5px solid rgba(255,255,255,.35);color:#fff;padding:0}
+.card-audio .ba button.ba-tool--fold{background:#fff;border:1px solid rgba(11,16,38,.14)}
+@media (prefers-reduced-motion:reduce){.card-audio .ba-pill,.card-audio .ba-dot,.card-audio .ba.is-playing .ba-wave i,.card-audio .ba-eq i{animation:none}}

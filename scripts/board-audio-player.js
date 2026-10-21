@@ -20,6 +20,15 @@
     replace: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10m0 0 3.5-3.5M12 13 8.5 9.5"/><path d="M4 17v1.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V17"/></svg>',
     remove: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>',
   };
+  /* View states (spec "Audio collapse" v1.0): a track is born a pill, folds into a dot, and unfolds
+     into the full player. The board only changes w/h; the top-left corner stays. The <audio>
+     element lives in every state, so folding never interrupts playing, position, speed or A-B. */
+  const VIEW_SIZES = { pill: { w: 320, h: 52 }, dot: { w: 52, h: 52 }, full: { w: 440, h: 148 } };
+  const IC2 = {
+    down: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+    up: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>',
+    upSm: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>',
+  };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const fmt = t => { t = Math.max(0, Math.floor(Number(t) || 0)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
   const stop = e => e.stopPropagation();
@@ -95,7 +104,10 @@
   function render(el, card, ctx) {
     const d = card.data || (card.data = {});
     const teacher = !!(ctx && ctx.canEdit) && !(ctx && ctx.student);
-    if (card.w < 320) { card.w = 440; card.h = 148; el.style.width = '440px'; el.style.height = '148px'; }
+    // a card that has no view state yet was made before the states existed: it stays the full player
+    let view = VIEW_SIZES[d.viewState] ? d.viewState : 'full';
+    const fit = v => { const z = VIEW_SIZES[v]; if (card.w !== z.w || card.h !== z.h) { card.w = z.w; card.h = z.h; } el.style.width = z.w + 'px'; el.style.height = z.h + 'px'; el.dataset.view = v; };
+    fit(view);
     const origin = { recording: 'Recording', library: 'From library', link: 'Link' }[d.origin] || 'Audio';
     const wrap = document.createElement('div');
     wrap.className = 'ba';
@@ -115,11 +127,27 @@
         '<div class="ba-ab" role="group" aria-label="Repeat a fragment (A to B)"><button type="button" class="ba-abbtn" data-a="a" title="Set loop start (A) at the playhead">A</button><button type="button" class="ba-abbtn" data-a="b" title="Set loop end (B) at the playhead" disabled>B</button><button type="button" class="ba-abbtn ba-abbtn--loop" data-a="clear" hidden title="Clear the A-B loop"></button></div>' +
         '<div class="ba-speeds" role="group" aria-label="Playback speed">' + SPEEDS.map(s => '<button type="button" class="ba-speed' + (s === 1 ? ' is-active' : '') + '" data-s="' + s + '">' + s + '×</button>').join('') + '</div>' +
       '</div>' +
+      '<div class="ba-pill" data-view-part="pill"' + (teacher ? ' title="Expand"' : '') + '>' +
+        '<button type="button" class="ba-play ba-play--sm" data-a="play" aria-label="Play">' + IC.play + '</button>' +
+        '<div class="ba-pill-main"><span class="ba-pill-title" title="' + esc(d.title || 'Audio') + '">' + esc(d.title || 'Audio') + '</span><span class="ba-pill-chip" hidden title="A-B repeat is on">A-B</span></div>' +
+        '<div class="ba-wave" aria-hidden="true"><i style="height:8px"></i><i style="height:14px"></i><i style="height:18px"></i><i style="height:10px"></i><i style="height:15px"></i><i style="height:7px"></i></div>' +
+        '<span class="ba-pill-time"><b data-t="ppos">0:00</b> / <b data-t="pdur">0:00</b></span>' +
+        '<span class="ba-pill-err" hidden>Could not load</span>' +
+        (teacher ? '<button type="button" class="ba-mini ba-mini--ghost" data-view-to="dot" aria-label="Minimize" title="Minimize">' + IC2.down + '</button><button type="button" class="ba-mini ba-mini--solid" data-view-to="full" aria-label="Expand" title="Expand">' + IC2.up + '</button>' : '') +
+        '<div class="ba-pill-progress" aria-hidden="true"><span></span></div>' +
+      '</div>' +
+      '<div class="ba-dot" data-view-part="dot">' +
+        '<svg class="ba-dot-ring" viewBox="0 0 52 52" aria-hidden="true"><circle class="ba-dot-ring-bg" cx="26" cy="26" r="24"/><circle class="ba-dot-ring-fg" cx="26" cy="26" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8"/></svg>' +
+        '<button type="button" class="ba-dot-center" data-a="play" aria-label="Play" title="' + esc(d.title || 'Audio') + '">' + IC.volume + '</button>' +
+        (teacher ? '<button type="button" class="ba-dot-badge" data-view-to="pill" aria-label="Expand" title="Expand">' + IC2.upSm + '</button>' : '') +
+      '</div>' +
       '<input type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm" hidden>';
+    wrap.dataset.view = view;
+    // the full player's header gets the fold button, between Replace and Remove
     el.appendChild(wrap);
 
     const audio = wrap.querySelector('audio'), $ = s => wrap.querySelector(s);
-    const playBtn = $('[data-a="play"]'), muteBtn = $('[data-a="mute"]'), posEl = $('[data-t="pos"]'), durEl = $('[data-t="dur"]');
+    const playBtns = wrap.querySelectorAll('[data-a="play"]'), playBtn = playBtns[0], muteBtn = $('[data-a="mute"]'), posEl = $('[data-t="pos"]'), durEl = $('[data-t="dur"]');
     let duration = 0, volume = 80, muted = false, loopA = null, loopB = null, failed = false;
     audio.src = d.src || '';
     audio.volume = volume / 100;
@@ -131,6 +159,18 @@
     const vol = elastic({ max: 100, value: volume, small: true, label: 'Volume', step: 5,
       onChange: v => { volume = v; muted = v === 0; audio.volume = v / 100; audio.muted = muted; paintMute(); } });
     $('.ba-volslot').replaceWith(vol.el);
+    const ppos = $('[data-t="ppos"]'), pdur = $('[data-t="pdur"]'), pfill = $('.ba-pill-progress span'), ring = $('.ba-dot-ring-fg'), chip = $('.ba-pill-chip');
+    const RING = 2 * Math.PI * 24;
+    const paintProgress = () => {
+      const r = duration ? Math.max(0, Math.min(1, audio.currentTime / duration)) : 0;
+      pfill.style.width = (r * 100) + '%'; ring.style.strokeDashoffset = String(RING * (1 - r));
+      ppos.textContent = fmt(audio.currentTime); pdur.textContent = fmt(duration);
+    };
+    const setPlayIcon = playing => playBtns.forEach(b => {
+      const dotC = b.classList.contains('ba-dot-center');
+      b.innerHTML = dotC ? (playing ? '<span class="ba-eq" aria-hidden="true"><i></i><i></i><i></i></span>' : IC.volume) : (playing ? IC.pause : IC.play);
+      b.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    });
     const paintMute = () => { muteBtn.innerHTML = muted || volume === 0 ? IC.muted : IC.volume; muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute'); };
     const paintAB = () => {
       const aB = $('[data-a="a"]'), bB = $('[data-a="b"]'), cl = $('[data-a="clear"]'), on = loopA != null && loopB != null && loopB > loopA;
@@ -138,24 +178,27 @@
       bB.classList.toggle('is-set', loopB != null); bB.textContent = 'B' + (loopB != null ? ' ' + fmt(loopB) : ''); bB.disabled = failed || loopA == null;
       aB.hidden = on; bB.hidden = on;   // a running loop is one chip (a tap clears it), not three buttons
       cl.hidden = !on; if (on) cl.innerHTML = IC.loop + ' ' + fmt(loopA) + '–' + fmt(loopB);
+      chip.hidden = !on;
     };
     const fail = () => {
       failed = true; wrap.classList.add('is-error');
       $('.ba-meta').textContent = 'Could not load this audio';
-      wrap.querySelectorAll('button').forEach(b => { if (!b.dataset.a || !['replace', 'remove'].includes(b.dataset.a)) b.disabled = true; });
+      wrap.querySelectorAll('button').forEach(b => { if (!b.dataset.viewTo && (!b.dataset.a || !['replace', 'remove'].includes(b.dataset.a))) b.disabled = true; });
+      $('.ba-pill-err').hidden = false; $('.ba-wave').hidden = true; $('.ba-pill-time').hidden = true;
       seek.disable(true); vol.disable(true);
     };
     audio.addEventListener('loadedmetadata', () => {
       duration = Number.isFinite(audio.duration) ? audio.duration : 0;
-      seek.setMax(Math.max(duration, 0.1)); durEl.textContent = fmt(duration);
+      seek.setMax(Math.max(duration, 0.1)); durEl.textContent = fmt(duration); paintProgress();
       $('.ba-meta').textContent = origin + (duration ? ' · ' + fmt(duration) : '');
     });
     audio.addEventListener('timeupdate', () => {
       if (loopA != null && loopB != null && loopB > loopA && audio.currentTime >= loopB) { audio.currentTime = loopA; return; }
       if (!seek.dragging) { seek.set(audio.currentTime); posEl.textContent = fmt(audio.currentTime); }
+      paintProgress();
     });
-    audio.addEventListener('play', () => { playBtn.innerHTML = IC.pause; playBtn.setAttribute('aria-label', 'Pause'); wrap.classList.add('is-playing'); });
-    const stopped = () => { playBtn.innerHTML = IC.play; playBtn.setAttribute('aria-label', 'Play'); wrap.classList.remove('is-playing'); };
+    audio.addEventListener('play', () => { setPlayIcon(true); wrap.classList.add('is-playing'); });
+    const stopped = () => { setPlayIcon(false); wrap.classList.remove('is-playing'); };
     audio.addEventListener('pause', stopped); audio.addEventListener('ended', stopped);
     audio.addEventListener('error', fail);
     if (!d.src) fail();
@@ -167,9 +210,23 @@
     gone.observe(document.body, { childList: true, subtree: true });
 
     wrap.addEventListener('mousedown', e => { if (e.target.closest('button,.ba-es')) e.stopPropagation(); });
+    // changing the view changes only the size of the object (top-left corner stays) and is saved with the board
+    const setView = v => {
+      if (!VIEW_SIZES[v] || v === view) return;
+      view = v; d.viewState = v; wrap.dataset.view = v; fit(v);
+      typeof scheduleSave === 'function' && scheduleSave(); typeof saveLocal === 'function' && saveLocal();
+      if (typeof updateCardPos === 'function') try { updateCardPos(card); } catch (_) {}
+    };
+    if (teacher) {
+      const fold = document.createElement('button');
+      fold.type = 'button'; fold.className = 'ba-tool ba-tool--fold'; fold.dataset.viewTo = 'pill'; fold.setAttribute('aria-label', 'Fold into a pill'); fold.title = 'Fold into a pill'; fold.innerHTML = IC2.down;
+      const tb = $('.ba-teacher'); if (tb) tb.insertBefore(fold, tb.lastElementChild);
+      $('.ba-pill').addEventListener('click', e => { if (!e.target.closest('button')) { e.stopPropagation(); setView('full'); } });
+    }
     wrap.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       e.stopPropagation();
+      if (b.dataset.viewTo) { setView(b.dataset.viewTo); return; }
       if (b.dataset.s) { const s = Number(b.dataset.s); audio.playbackRate = s; wrap.querySelectorAll('.ba-speed').forEach(x => x.classList.toggle('is-active', x === b)); return; }
       const a = b.dataset.a;
       if (a === 'play') {
@@ -227,5 +284,5 @@
     paintAB();
   }
 
-  window.BoardAudioPlayer = { render, elastic };
+  window.BoardAudioPlayer = { render, elastic, VIEW_SIZES };
 })();
