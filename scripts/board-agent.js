@@ -679,6 +679,8 @@
       return `Add ${what}${where}${a.title ? ` under “${a.title}”` : ''}: ${a.items.slice(0, 3).map(i => quote(i.text, 22)).join(', ')}${a.items.length > 3 ? ` +${a.items.length - 3}` : ''}`;
     }
     if (a.op === 'edit') return `${(byId(a.id) || {}).type === 'frame' ? 'Rename frame' : 'Change'} ${quote(cardText(byId(a.id) || {}), 24)} → ${quote(a.text, 40)}`;
+    if (a.op === 'banner') return `Lesson title: “${a.title}”${a.subtitle ? ` - ${a.subtitle}` : ''}`;
+    if (a.op === 'stage') return `Stage “${a.title}”${a.minutes ? ` · ${a.minutes} min` : ''}${a.mode ? ` · ${a.mode}` : ''}: ${[a.image ? 'photo' : '', a.task || a.steps ? 'task' : '', a.prompts ? plural(a.prompts.length, 'cue card') : '', a.words ? plural(a.words.length, 'word') : ''].filter(Boolean).join(', ')}`;
     if (a.op === 'frame') return `Frame “${a.title}” around ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'move') return `Move ${plural(a.ids.length, 'card')} into ${quote(cardText(byId(a.into) || {}), 24)}${names(a.ids)}`;
     if (a.op === 'table') return `Add a table “${a.title}”: ${a.rows.length} rows × ${a.rows[0].length} columns`;
@@ -846,14 +848,133 @@
     }
     a.items.forEach((item, i) => {
       const x = x0 + (i % cols) * (def.w + GAP), y = y0 + headH + Math.floor(i / cols) * (def.h + GAP);
-      const card = a.kind === 'text'
-        ? addCard('text', x, y, { text: item.text }, def.w, def.h)
+      // a long "sticky" is unreadable at 220px: it becomes a text card in the sticky's colour
+      const long = a.kind !== 'text' && String(item.text).length > 110;
+      const card = a.kind === 'text' || long
+        ? addCard('text', x, y, Object.assign({ text: item.text }, long ? { bgColor: colorHex(item.color), textColor: INK, fontSize: 16 } : {}), def.w, def.h)
         : addCard('sticky', x, y, { text: item.text, color: colorHex(item.color) }, def.w, def.h);
       if (card) mine.push(card);
     });
     if (into) layIntoFrame(into, mine);
     else if (frame) mine.forEach(c => setCardParentFrame(c, frame));
     made.push(...mine);
+  }
+
+  /* ── A designed lesson (22.10.2026) ────────────────────────────────────
+     "Plan a lesson" used to come out as a wall of small stickies with long
+     text and nothing to look at. A lesson is now a title plate and one
+     composed block per stage: a framed card with the stage heading and its
+     timing, a photo, a readable task card, short cue cards and a strip of
+     words - each stage in its own accent colour. */
+  const ACCENTS = [
+    { hex: '#D3F26A', sticky: 'lime' }, { hex: '#BDEBE6', sticky: 'cyan' }, { hex: '#F8DBDB', sticky: 'peach' },
+    { hex: '#FFE9A8', sticky: 'yellow' }, { hex: '#DCD6F7', sticky: 'purple' },
+  ];
+  const INK = '#0B1026';
+  const STAGE_W = 940, STAGE_PAD = 32, STAGE_GAP = 48;
+  const escH = t => String(t == null ? '' : t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  const textCard = (x, y, w, html, style) => addCard('text', x, y, Object.assign({ text: html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(), html, textColor: INK, fontSize: 17 }, style || {}), w, 60);
+
+  function doLesson(actions, made, spot, images) {
+    const banner = actions.find(a => a.op === 'banner');
+    const stages = actions.filter(a => a.op === 'stage');
+    if (!banner && !stages.length) return;
+    const n = Math.max(1, stages.length);
+    const W = n * STAGE_W + (n - 1) * STAGE_GAP, bannerH = banner ? 150 : 0;
+    const at = spot(W, bannerH + 900);
+    let y0 = at.y;
+    if (banner) {
+      const total = stages.reduce((m, s) => m + (s.minutes || 0), 0);
+      const sub = banner.subtitle || (total ? `${total} min · ${stages.length} stages` : '');
+      const card = textCard(at.x, y0, Math.max(STAGE_W, W),
+        `<div class="tea-banner"><p class="tea-kicker">Lesson plan</p><h1>${escH(banner.title)}</h1>${sub ? `<p>${escH(sub)}</p>` : ''}</div>`,
+        { bgColor: INK, textColor: '#F5F5EF', fontSize: 22 });
+      if (card) { fitText(card); made.push(card); y0 += Math.max(bannerH, card.h + 32); }
+    }
+    const blocks = [];
+    stages.forEach((st, i) => {
+      const acc = ACCENTS[i % ACCENTS.length];
+      const fx = at.x + i * (STAGE_W + STAGE_GAP), fy = y0;
+      const frame = addCard('frame', fx, fy, { title: `${st.title}`, bg: 'rgba(255,255,255,1)', border: acc.hex, childIds: [] }, STAGE_W, 600);
+      if (!frame) return;
+      if (typeof _sendCardToBack === 'function') _sendCardToBack(frame);
+      made.push(frame);
+      const kids = [];
+      const inner = STAGE_W - STAGE_PAD * 2, x = fx + STAGE_PAD;
+      let y = fy + 40;
+      // heading + timing chip
+      const meta = [st.minutes ? `${st.minutes} min` : '', st.mode || ''].filter(Boolean).join(' · ');
+      const head = textCard(x, y, inner - (meta ? 270 : 0), `<h2>${i + 1}. ${escH(st.title)}</h2>`, { fontSize: 28 });
+      if (head) kids.push(head);
+      const chip = meta ? textCard(x + inner - 250, y + 8, 250, `<div class="tea-chip"><b>${escH(meta)}</b></div>`, { bgColor: acc.hex, fontSize: 16, align: 'center' }) : null;
+      if (chip) kids.push(chip);
+      y += 76;
+      // photo | task
+      const src = images[st._img];
+      const photoW = src ? 400 : 0, photoH = 270;
+      const photo = src ? addCard('image', x, y, { src, caption: st.image, fit: 'cover' }, photoW, photoH) : null;
+      if (photo) kids.push(photo);
+      const taskX = src ? x + photoW + 24 : x, taskW = inner - (src ? photoW + 24 : 0);
+      let taskCard = null;
+      if (st.task || st.steps) {
+        // numbered by hand: the text card's list styles drop the numbers
+        const html = (st.task ? `<p><b>Task.</b> ${escH(st.task)}</p>` : '') + (st.steps ? st.steps.map((t, k) => `<p><b>${k + 1}.</b> ${escH(t)}</p>`).join('') : '');
+        taskCard = textCard(taskX, y, taskW, `<div class="tea-box">${html}</div>`, { bgColor: '#F6F6EF', fontSize: 18 });
+        if (taskCard) kids.push(taskCard);
+      }
+      const block = { frame, kids, head: [head, chip].filter(Boolean), body: [photo, taskCard].filter(Boolean), rows: [] };
+      // cue cards
+      if (st.prompts) {
+        const cw = Math.floor((inner - GAP * 3) / 4);
+        const row = st.prompts.map((t, k) => addCard('sticky', x + k * (cw + GAP), 0, { text: t, color: colorHex(acc.sticky) }, cw, 150)).filter(Boolean);
+        kids.push(...row); block.rows.push(row);
+      }
+      // word strip
+      if (st.words) {
+        const html = `<p><b>Words</b></p><p>${st.words.map(w => { const m = String(w).split(/\s+[-–—:]\s+/); return `<b>${escH(m[0])}</b>${m[1] ? ' – ' + escH(m.slice(1).join(' - ')) : ''}`; }).join('<br>')}</p>`;
+        const strip = textCard(x, 0, inner, `<div class="tea-box">${html}</div>`, { bgColor: acc.hex, fontSize: 16 });
+        if (strip) { kids.push(strip); block.rows.push([strip]); }
+      }
+      kids.forEach(k => setCardParentFrame(k, frame));
+      made.push(...kids);
+      blocks.push(block);
+    });
+    stackStages(blocks);
+    // the text cards hug their real height once drawn: stack the rows again then
+    setTimeout(() => { stackStages(blocks); scheduleSave(); saveLocal(); }, 220);
+  }
+
+  /* Rows of a stage go under the photo and the task, the frame closes
+     around them; every stage frame of the lesson gets the same height. */
+  /* The height a text card needs, measured now: the board's own fit runs in
+     the next animation frame, which a background tab may never get. */
+  function fitText(card) {
+    const el = card && getCardEl(card.id);
+    if (!el || card.type !== 'text') return;
+    const prev = el.style.height;
+    el.style.height = 'auto';
+    const need = Math.ceil(el.offsetHeight);
+    el.style.height = prev;
+    if (need > 20) resizeCard(card, card.w, need);
+  }
+
+  function stackStages(blocks) {
+    blocks.forEach(b => {
+      if (!byId(b.frame.id)) return;
+      b.kids.forEach(fitText);
+      // heading row, then the photo and the task under its real height, then the rows
+      let y = Math.max(b.frame.y + 40, ...b.head.map(c => c.y + c.h)) + 16;
+      b.body.forEach(c => moveTo(c, c.x, y));
+      y = Math.max(y, ...b.body.map(c => c.y + c.h)) + 24;
+      b.rows.forEach(row => {
+        row.forEach(c => moveTo(c, c.x, y));
+        y += Math.max(...row.map(c => c.h)) + 20;
+      });
+      b.bottom = y - 20 + STAGE_PAD;
+    });
+    const live = blocks.filter(b => byId(b.frame.id));
+    const H = Math.max(0, ...live.map(b => b.bottom - b.frame.y));
+    live.forEach(b => resizeCard(b.frame, b.frame.w, H));
   }
 
   function doFrame(a, made) {
@@ -981,10 +1102,17 @@
     if (changes && currentUser && currentBoardId && !boardCanEdit) { toast('This board is view only'); return; }
     // photos are looked up first, so the whole plan still lands as one undo step
     const pics = actions.filter(a => a.op === 'image');
-    let images = [];
-    if (pics.length) {
+    const stagePics = actions.filter(a => a.op === 'stage' && a.image);
+    stagePics.forEach((a, i) => { a._img = i; });
+    let images = [], stageImages = [];
+    if (pics.length || stagePics.length) {
       setBusy(true);
-      try { images = await Promise.all(pics.map(a => findImage(a.query))); } finally { setBusy(false); }
+      try {
+        [images, stageImages] = await Promise.all([
+          Promise.all(pics.map(a => findImage(a.query))),
+          Promise.all(stagePics.map(a => findImage(a.image))),
+        ]);
+      } finally { setBusy(false); }
     }
     const before = new Set(state.cards.map(c => c.id));
     const made = [], touched = [];
@@ -993,8 +1121,10 @@
     if (changes) snapshot();
     _suppressSnapshot++;
     try {
+      try { doLesson(actions, made, spot, stageImages); } catch (err) { console.warn('[board-agent] lesson', err); }
       actions.forEach(a => {
         try {
+          if (a.op === 'banner' || a.op === 'stage') return;   // laid out together above
           if (a.op === 'add') doAdd(a, made, spot);
           else if (a.op === 'edit') { doEdit(a); touched.push(a.id); }
           else if (a.op === 'color') { doColor(a); touched.push(...a.ids); }

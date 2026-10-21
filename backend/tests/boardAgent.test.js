@@ -226,3 +226,21 @@ test('board agent: the reply follows the teacher\'s language and is plain text',
   assert.ok(p.includes('a Russian command gets a Russian reply'));
   assert.ok(p.includes('no markdown'));
 });
+
+test('board agent: a lesson is a banner and designed stages; long cues become steps', () => {
+  const plan = agent.sanitizePlan({ actions: [
+    { op: 'banner', title: 'Travel Talk', subtitle: 'B1 · 45 min' },
+    { op: 'banner', title: 'second' },
+    { op: 'stage', title: 'Warm-up', minutes: 5, mode: 'Pairs', image: 'airport <b>queue</b>', task: 'Talk about trips.',
+      prompts: ['Where did you go last summer?', 'x'.repeat(140)], words: ['departure - leaving'] },
+    { op: 'stage', title: 'Empty' },
+    { op: 'stage', minutes: 5, task: 'no title' },
+  ] }, []);
+  assert.deepStrictEqual(plan.actions.map(a => a.op), ['banner', 'stage']);
+  const st = plan.actions[1];
+  assert.strictEqual(st.mode, 'pairs');
+  assert.strictEqual(st.image, 'airport bqueueb');
+  assert.deepStrictEqual(st.prompts, ['Where did you go last summer?']);
+  assert.strictEqual(st.steps.length, 1);
+  assert.ok(agent.buildPrompt({ command: 'plan a lesson', cards: [] }).includes('Never build a lesson out of plain "add" stickies'));
+});

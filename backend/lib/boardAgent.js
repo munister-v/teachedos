@@ -92,6 +92,8 @@ Return ONLY a JSON object:
 {"reply":"one to three short sentences for the teacher","actions":[ ... ],"suggest":["up to 3 short next commands the teacher may want, in their language"]}
 
 Allowed actions (use only these, with ids taken from the card list below):
+- {"op":"banner","title":"Travel Talk","subtitle":"B1 · 45 min · speaking and vocabulary"}  the lesson's title plate, once, first in a lesson plan
+- {"op":"stage","title":"Warm-up","minutes":5,"mode":"pairs"|"groups"|"whole class"|"individual","image":"2-4 English words for a photo that fits the stage","task":"what students do, 1-2 sentences","steps":["up to 4 short steps"],"prompts":["up to 4 short questions or cue cards, each under 90 characters"],"words":["word - meaning", up to 10]}  ONE designed lesson stage: a frame with a heading, the timing, a photo, a readable task card, cue cards and a word strip. Use it for every stage of a lesson plan.
 - {"op":"add","kind":"sticky"|"text","title":"optional heading","frame":"optional new frame title","into":"optional existing frame id","items":[{"text":"...","color":"<colour>"}]}  new cards laid out in a grid for you. "frame" puts them in a NEW frame with that title (a lesson stage, a station); "into" puts them inside an EXISTING frame. Use one "add" per stage to build a lesson of several frames; they are placed side by side in order.
 - {"op":"edit","id":"c1","text":"new full text"}  sticky or text cards; for a frame the text is its new title
 - {"op":"color","ids":["c1"],"color":"<colour>"}  only sticky cards
@@ -130,7 +132,8 @@ Rules:
 - Never invent ids. Never delete unless asked. Keep the plan as small as the command needs, but finish the whole job: "make 10 questions" means 10.
 - A follow-up ("make it harder", "now in Ukrainian", "more", "no, in two columns", "again") continues the conversation below: apply it to what you made or discussed last.
 - When the teacher wants to create, open, start or make a studio, a lesson or a workout of some skill in the Lesson Builder (any wording, any language, typos included: "create vocabulary studio", "хочу урок по словам из этих карточек", "відкрий аудіювання"), return exactly one "open" action and a one-sentence reply. Do not build that lesson out of stickies yourself.
-- "Plan a lesson" / "lesson plan" / "stages" / "make a board for a lesson about…" without a studio named: build it on the board - one "add" with "frame" per stage (warm-up, presentation, practice, production, wrap-up), short teacher-ready stickies or text inside, plus a game, a timer or exercises where they help.
+- "Plan a lesson" / "lesson plan" / "stages" / "make a board for a lesson about…" without a studio named: build it on the board as a designed lesson - one "banner", then one "stage" per stage (usually 4-5: warm-up, presentation or vocabulary, practice, production, wrap-up) with minutes that add up to the lesson length, a fitting photo for each, real content (the actual questions, words and tasks, not "discuss the topic"), plus a game or exercises where they help. Never build a lesson out of plain "add" stickies.
+- Stickies are for short things: a word, a question, a cue - under 90 characters. Longer instructions go into a "stage" task or an "add" of kind "text".
 - When the teacher asks to build, make, create or set a homework, a quiz to do, a test or exercises (any wording, any language: "build a homework", "дай домашку на past simple", "сделай тест по этим словам"), answer with ONE "homework" action. Never refuse it and never wrap it in a flip card or sticky notes. If the topic is missing, use the selected cards or the board's words and level.
 - If the command is a question (about the board, about English, about the cards - "what does this word mean", "is this sentence correct", "explain the rule", "how do I...") answer it well in "reply" (up to six short sentences) and add actions only if the teacher asked for something on the board. If the answer is content the teacher may want on the board, say so and put that command into "suggest".
 - If the command cannot be done with the allowed actions, say so plainly in "reply", do the closest useful thing or suggest it, never leave the teacher with nothing.
@@ -252,6 +255,36 @@ function sanitizePlan(raw, cards) {
       const type = types.get(id);
       const text = type === 'frame' ? oneLine(a.text, 60) : clean(a.text, 2000);
       if (known.has(id) && EDITABLE.has(type) && text) plan.actions.push({ op, id, text });
+    } else if (op === 'banner') {
+      const title = oneLine(a.title, 70);
+      if (title && !plan.actions.some(x => x.op === 'banner')) {
+        const act = { op, title };
+        const subtitle = oneLine(a.subtitle, 120);
+        if (subtitle) act.subtitle = subtitle;
+        plan.actions.push(act);
+      }
+    } else if (op === 'stage') {
+      const title = oneLine(a.title, 50);
+      if (!title || plan.actions.filter(x => x.op === 'stage').length >= 8) continue;
+      const list = (v, n, max) => (Array.isArray(v) ? v : []).map(t => oneLine(typeof t === 'string' ? t : t && t.text, max)).filter(Boolean).slice(0, n);
+      const act = { op, title };
+      const minutes = Math.round(Number(a.minutes));
+      if (minutes >= 1 && minutes <= 120) act.minutes = minutes;
+      const mode = oneLine(a.mode, 20).toLowerCase();
+      if (['pairs', 'groups', 'whole class', 'individual'].includes(mode)) act.mode = mode;
+      const image = oneLine(a.image, 60).replace(/[^\p{L}\p{N} '-]/gu, '').trim();
+      if (image) act.image = image;
+      const task = clean(a.task, 500);
+      if (task) act.task = task;
+      // a cue card is short; a long "prompt" is a step of the task
+      const prompts = list(a.prompts, 8, 300);
+      const steps = list(a.steps, 6, 200).concat(prompts.filter(t => t.length > 100)).slice(0, 6);
+      if (steps.length) act.steps = steps;
+      const cues = prompts.filter(t => t.length <= 100).slice(0, 4);
+      if (cues.length) act.prompts = cues;
+      const words = list(a.words, 12, 90);
+      if (words.length) act.words = words;
+      if (act.task || act.steps || act.prompts || act.words) plan.actions.push(act);
     } else if (op === 'frame') {
       const ids = idList(a.ids, known).filter(id => types.get(id) !== 'frame');
       if (ids.length) plan.actions.push({ op, ids, title: oneLine(a.title, 60) || 'Frame' });
