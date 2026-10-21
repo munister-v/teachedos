@@ -760,3 +760,7 @@ body.fx.os-desktop:not(#_) #wg-pulse.is-collapsed { max-height:none !important; 
 .pm-who { display:flex; align-items:center; gap:6px; height:30px; padding:0 10px; border-radius:999px; background:#fff; border:1px solid rgba(36,40,44,.14); font-size:12.5px; font-weight:600; cursor:pointer; }
 .pm-who input { accent-color:#24282C; margin:0; }
 .pm-who:has(input:disabled) { opacity:.5; cursor:default; }
+
+/* Boards list: where the lesson on a board stands */
+.bd-where{margin-top:2px;font-size:12px;color:var(--text-3,#7b7f6a)}
+.bd-where .bd-progress{font-weight:650;color:var(--text-2,#4a4e3e)}

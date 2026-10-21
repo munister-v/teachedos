@@ -1765,3 +1765,8 @@ ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS country VARCHAR(48);
 ALTER TABLE student_journal ADD COLUMN IF NOT EXISTS city VARCHAR(80);
 -- The World map background: the countries the teacher has marked as visited.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS world_visited JSONB NOT NULL DEFAULT '[]';
+
+-- Boards list: when the teacher last opened a board and where its lesson stands
+-- ("5 of 9 steps done"), kept beside the board so the list never unpacks the canvas.
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS last_opened_at TIMESTAMPTZ;
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS progress JSONB;

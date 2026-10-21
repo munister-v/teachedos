@@ -1,5 +1,6 @@
 const { cleanCover, cleanCoverImage } = require('../lib/cover');
 const router = require('express').Router();
+const boardProgress = require('../lib/boardProgress');
 const xp = require('../lib/xp');
 const { filterBoardData } = require('../lib/boardVisibility');
 const { checkAnswer } = require('../lib/answerKey');
@@ -77,7 +78,7 @@ router.get('/', async (req, res) => {
        card_count ведёт триггер. */
     `SELECT id, name, updated_at, created_at, card_count, cover,
             (cover_image IS NOT NULL) AS has_cover_image,
-            starred, archived_at, trashed_at
+            starred, archived_at, trashed_at, last_opened_at, progress
      FROM boards WHERE user_id = $1 AND NOT is_practice
        ${library ? '' : 'AND archived_at IS NULL AND trashed_at IS NULL'}
      ORDER BY updated_at DESC`,
@@ -166,6 +167,12 @@ router.get('/:id', async (req, res) => {
   // arrive as empty placeholders. Filtering here rather than in the client is
   // the point - the payload itself must not carry what the viewer may not read.
   const board = rows[0];
+  // The owner opening the board is "last opened"; the progress summary is filled in for
+  // boards saved before it existed. A student preview and a collaborator do not count.
+  if (board.access_role === 'owner' && req.query.as !== 'student') {
+    pool.query('UPDATE boards SET last_opened_at = NOW(), progress = COALESCE(progress, $2) WHERE id = $1',
+      [board.id, boardProgress.summarize(board.data)]).catch(() => {});
+  }
   /* Teacher onboarding, "Student preview": the owner asks for the board the way
      a student receives it - private cards gone, held-back cards as placeholders,
      answer keys stripped - by filtering for somebody who is not the owner.
@@ -222,8 +229,8 @@ router.put('/:id', requireAuth, async (req, res) => {
   });
   if (storageError) return res.status(402).json(storageError);
 
-  const sets    = ['data = $3'];
-  const params  = [req.params.id, req.user.id, boardData];
+  const sets    = ['data = $3', 'progress = $4'];
+  const params  = [req.params.id, req.user.id, boardData, boardProgress.summarize(boardData)];
   if (name !== undefined)      { sets.push(`name = $${params.length + 1}`);      params.push(name.trim().slice(0, 255)); }
   if (thumbnail !== undefined) { sets.push(`thumbnail = $${params.length + 1}`); params.push(thumbnail); }
 
@@ -306,7 +313,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
     if (storageError) return res.status(402).json(storageError);
   }
 
-  if (boardData !== undefined)  { params.push(boardData);                      sets.push(`data = $${params.length}`); }
+  if (boardData !== undefined)  { params.push(boardData);                      sets.push(`data = $${params.length}`);
+                                  params.push(boardProgress.summarize(boardData)); sets.push(`progress = $${params.length}`); }
   if (name !== undefined)       { params.push(name.trim().slice(0, 255));      sets.push(`name = $${params.length}`); }
   if (thumbnail !== undefined)  { params.push(thumbnail);                      sets.push(`thumbnail = $${params.length}`); }
   /* Доска одного ученика из журнала (онбординг: урок из шага 2 становится
