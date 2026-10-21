@@ -566,6 +566,20 @@ CREATE TABLE IF NOT EXISTS user_badges (
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS duel_invites BOOLEAN NOT NULL DEFAULT TRUE;
 
+-- Student hub, Today: the Lucky Task (one pull a day) and when the student last caught up
+CREATE TABLE IF NOT EXISTS lucky_pulls (
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day          DATE NOT NULL,
+  kind         VARCHAR(16) NOT NULL,
+  need         INTEGER NOT NULL DEFAULT 1,
+  label        VARCHAR(160) NOT NULL,
+  ref          TEXT,
+  pulled_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  PRIMARY KEY (user_id, day)
+);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS hub_seen_at TIMESTAMPTZ;
+
 -- Launch in waves: a cap on teacher sign-ups, and who is waiting behind it
 CREATE TABLE IF NOT EXISTS app_flags (
   key   VARCHAR(60) PRIMARY KEY,

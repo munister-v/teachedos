@@ -2,6 +2,7 @@ const express  = require('express');
 const router   = express.Router();
 const xp = require('../lib/xp');
 const wordbank = require('../lib/wordbank');
+const today = require('../lib/today');
 const { computeStreak } = require('../lib/streak');
 const pool     = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
@@ -613,6 +614,27 @@ router.get('/wordbank', requireAuth, async (req, res) => {
     console.error('[student/wordbank]', err.message);
     res.status(500).json({ error: 'Could not load the Word Bank' });
   }
+});
+
+/* Today: the plan of the day, the Lucky Task, the Treat of the day, what is new (lib/today.js). */
+router.get('/today', requireAuth, async (req, res) => {
+  try { res.json(await today.buildToday(pool, req.user)); }
+  catch (err) { console.error('[student/today]', err.message); res.status(500).json({ error: 'Could not load Today' }); }
+});
+router.post('/today/lucky/pull', requireAuth, async (req, res) => {
+  try {
+    const out = await today.pullLucky(pool, req.user);
+    if (out.error) return res.status(out.status || 400).json({ error: out.error });
+    res.json(out);
+  } catch (err) { console.error('[student/lucky]', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+router.post('/today/treat/keep', requireAuth, async (req, res) => {
+  try { res.json(await today.keepTreat(pool, req.user)); }
+  catch (err) { console.error('[student/treat]', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+router.put('/today/seen', requireAuth, async (req, res) => {
+  try { await pool.query('UPDATE users SET hub_seen_at = NOW() WHERE id = $1', [req.user.id]); res.json({ ok: true }); }
+  catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
 router.get('/progress', requireAuth, async (req, res) => {

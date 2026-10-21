@@ -173,7 +173,7 @@ async function listDuels(db, userId) {
   await settleExpired(db, userId);
   const { rows } = await db.query(
     `SELECT d.id, d.game, d.status, d.challenger_id, d.opponent_id, d.challenger_score, d.opponent_score, d.challenger_ms, d.opponent_ms,
-            d.winner_id, d.shared_words, d.expires_at, d.finished_at, jsonb_array_length(d.questions) AS total,
+            d.winner_id, d.shared_words, d.expires_at, d.finished_at, d.created_at, jsonb_array_length(d.questions) AS total,
             cu.name AS cname, ou.name AS oname
        FROM duels d JOIN users cu ON cu.id = d.challenger_id JOIN users ou ON ou.id = d.opponent_id
       WHERE (d.challenger_id = $1 OR d.opponent_id = $1) AND (d.status IN ('pending','active') OR d.finished_at > NOW() - INTERVAL '3 days')
@@ -187,7 +187,7 @@ async function listDuels(db, userId) {
       id: r.id, game: r.game, game_label: duel.GAMES[r.game].label, state, total: r.total, shared: r.shared_words,
       with: firstName(mine === 'challenger' ? r.oname : r.cname), with_id: mine === 'challenger' ? r.opponent_id : r.challenger_id,
       my_score: r[mine + '_score'], their_score: r[theirs + '_score'], their_ms: theyPlayed ? r[theirs + '_ms'] : null,
-      won: r.winner_id ? r.winner_id === userId : null, expires_at: r.expires_at,
+      won: r.winner_id ? r.winner_id === userId : null, expires_at: r.expires_at, created_at: r.created_at,
     };
   });
 }

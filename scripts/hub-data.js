@@ -765,6 +765,122 @@
     });
   }
 
+
+  /* Today, from /api/student/today (lib/today.js): the plan of the day as one list, the Lucky Task
+     (a pull per day, paid when the platform has seen it done), the Treat of the day and the
+     "while you were away" line. Painted last, over what the earlier loaders left. */
+  const fresh = el => { if (!el) return el; const n = el.cloneNode(true); el.replaceWith(n); return n; };
+  const GO = { wordbank: 2, watchread: 1, challenges: 3 };
+  const navTo = k => { if (k === 'homework') { location.href = 'homework-do.html'; return; } goTo(GO[k] != null ? GO[k] : 0); };
+  function todayPaint(t) {
+    const pg = document.getElementById('pg-today');
+    if (!pg || !t) return;
+    const rows = t.plan;
+    const plan = pg.querySelector('.plan');
+    if (plan) {
+      plan.innerHTML = '';
+      rows.forEach((r, i) => {
+        const row = document.createElement('div');
+        if (r.kind === 'lucky' && r.state === 'sealed') {
+          row.className = 'planrow luckyrow'; row.id = 'luckyCard';
+          row.innerHTML = '<span class="pnum">' + (i + 1) + '</span><div class="luckythumb"><span class="cov-kick">LUCKY TASK · TODAY</span><span class="cov-t">Sealed<br>until pulled</span></div><div class="pmain cbrow"><div><b>' + esc2(r.title) + '</b><span>' + esc2(r.why) + '</span></div></div><span class="pmeta">' + esc2(r.meta) + '</span><button class="pbtn lime" id="luckyPull">Pull</button>';
+        } else {
+          row.className = 'planrow' + (r.state === 'done' ? ' done' : '');
+          row.innerHTML = '<span class="pnum">' + (i + 1) + '</span><div class="pmain"><b>' + esc2(r.title) + '</b><span>' + esc2(r.why) + '</span></div><span class="pmeta">' + esc2(r.meta) + '</span><button class="pbtn ' + (i === 0 ? 'lime' : 'line') + '"' + (r.state === 'done' ? ' disabled' : '') + '>' + esc2(r.state === 'done' ? '✓ Done' : r.label) + '</button>';
+          const b = row.querySelector('button');
+          b.addEventListener('click', e => { e.stopPropagation(); if (r.href) location.href = r.href; else navTo(r.go); });
+        }
+        plan.appendChild(row);
+      });
+      const pullBtn = plan.querySelector('#luckyPull'); if (pullBtn) pullBtn.addEventListener('click', openLucky);
+    }
+    const mins = t.minutes;
+    const kick = pg.querySelector('.kick a'); if (kick) kick.textContent = rows.length ? '≈' + mins + ' min · then you are free' : 'nothing due';
+    const end = pg.querySelector('.planend'); if (end) end.textContent = rows.length ? 'That’s the whole day. Everything else can wait — and it will, happily.' : 'All clear — nothing due today.';
+    const deck = pg.querySelector('.cbody');
+    if (deck) deck.innerHTML = '<b>' + (rows.length ? 'Your day, in ' + plural(rows.length, 'move') : 'Nothing due today') + '</b><span>' + (rows.length ? 'About ' + mins + ' minutes — then you are free' : 'Enjoy the quiet') + '</span>';
+    const pill = pg.querySelector('.minpill'); if (pill) pill.textContent = plural(rows.length, 'task') + (rows.length ? ' · ≈' + mins + ' min' : '');
+
+    // what is new
+    const wn = pg.querySelector('#wnStrip');
+    if (wn) {
+      if (!t.whats_new) wn.style.display = 'none';
+      else {
+        wn.style.display = '';
+        wn.querySelector('p').innerHTML = '<b>While you were away:</b> ' + esc2(t.whats_new.text.replace(/^While you were away:\s*/, ''));
+        fresh(wn.querySelector('#wnOk')).addEventListener('click', () => { wn.style.display = 'none'; api('/api/student/today/seen', { method: 'PUT' }); });
+      }
+    }
+
+    // the treat of the day: the phrase of the day, kept into the Word Bank for +5 XP
+    const tr = pg.querySelector('#treat'), T = t.treat;
+    if (tr && T) {
+      tr.style.display = '';
+      tr.querySelector('.tk').lastChild.textContent = 'TREAT OF THE DAY';
+      tr.querySelector('.tw').textContent = T.word;
+      tr.querySelector('.tt').textContent = T.meaning + (T.example ? ' · “' + T.example + '”' : '');
+      const hear = fresh(tr.querySelector('#tHear'));
+      hear.addEventListener('click', e => { e.stopPropagation(); try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(T.word); u.lang = 'en-US'; speechSynthesis.speak(u); } catch (_) {} });
+      const keep = fresh(tr.querySelector('#tKeep')); keep.style.display = '';
+      if (T.saved) { keep.textContent = '✓ Kept'; keep.disabled = true; }
+      else {
+        keep.textContent = '+ Keep';
+        keep.addEventListener('click', e => {
+          e.stopPropagation(); keep.disabled = true;
+          api('/api/student/today/treat/keep', { method: 'POST' }).then(r => r.json()).then(d => {
+            keep.textContent = '✓ Kept'; burstConfetti(50);
+            if (d && d.xp) json('/api/student/xp').then(xpPaint);
+            json('/api/student/wordbank').then(b => b && wordBank(b));
+          }).catch(() => { keep.disabled = false; });
+        });
+      }
+    }
+    set('.sfoot b', e => { const m = T ? T.next_in_min : 0; e.textContent = Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm'; });
+    TODAY = t;
+    if (t.lucky && t.lucky.just_done) { burstConfetti(80); json('/api/student/xp').then(xpPaint); }
+  }
+  let TODAY = null;
+  const reloadToday = () => json('/api/student/today').then(todayPaint);
+  function openLucky() {
+    const pop0 = document.getElementById('luckyPop');
+    if (!pop0 || !TODAY || !TODAY.lucky) return;
+    const pop = fresh(pop0), L = TODAY.lucky;
+    const A = pop.querySelector('#lpA'), B = pop.querySelector('#lpB'), C = pop.querySelector('#lpC'), badge = pop.querySelector('#lpBadge'), slot = pop.querySelector('#lpSlot');
+    const showStep = x => { [A, B, C].forEach(e => { e.style.display = 'none'; }); x.style.display = 'block'; };
+    const close = () => { pop.classList.remove('open'); reloadToday(); };
+    pop.querySelector('#lpX').onclick = close; pop.querySelector('#lpLater').onclick = close;
+    pop.onclick = e => { if (e.target === pop) close(); };
+    pop.querySelectorAll('.pxart').forEach(el => { if (!el.children.length) paintArt(el); });
+    const reveal = task => {
+      badge.classList.remove('shake'); showStep(C);
+      C.querySelector('.ltitle').textContent = task.label;
+      C.querySelector('.lsub').textContent = task.hint || 'Finish it today and the bonus is yours.';
+      C.querySelector('.lchips').innerHTML = '<span class="lchip lime">+' + L.xp + ' XP</span><span class="lchip pink">LUCKY BONUS ×' + L.bonus + ' TODAY</span>';
+      burstConfetti(90);
+      pop.querySelector('#lpStart').onclick = () => { pop.classList.remove('open'); reloadToday(); navTo(task.go); };
+    };
+    const start = () => {
+      if (L.state !== 'sealed') { showStep(C); return reveal(L.task); }
+      showStep(A); pop.classList.add('open');
+    };
+    pop.querySelector('#lpPull').onclick = () => {
+      showStep(B); badge.classList.add('shake');
+      api('/api/student/today/lucky/pull', { method: 'POST' }).then(r => r.json().then(d => ({ ok: r.ok, d }))).then(res => {
+        if (!res.ok) { close(); alert(res.d.error || 'Could not pull'); return; }
+        const task = res.d.lucky.task, names = L.pool.length ? L.pool : [task.label];
+        let i = 0, d = 70;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        (function tick() {
+          slot.textContent = names[i % names.length]; i++;
+          d = Math.min(d * 1.22, 300);
+          if (!reduce && d < 290) setTimeout(tick, d);
+          else setTimeout(() => { slot.textContent = task.label; reveal(task); TODAY.lucky = res.d.lucky; }, reduce ? 0 : 320);
+        })();
+      });
+    };
+    pop.classList.add('open'); start();
+  }
+
   const pProgress = json('/api/student/progress');
   const pVocab = json('/api/journal/vocab/list');
   const pInbox = json('/api/homework/my/inbox');
@@ -773,6 +889,7 @@
   const pXp = json('/api/student/xp');
   const pBank = json('/api/student/wordbank');
   const pChall = json('/api/challenges/hub');
+  const pToday = json('/api/student/today');
   pProgress.then(progress);
   pVocab.then(vocab);
   pInbox.then(r => homework(r && r.assignments));
@@ -790,4 +907,5 @@
   Promise.all([pXp, pProgress, pVocab, pInbox, pMe, pDash]).then(([x]) => xpPaint(x));
   Promise.all([pBank, pVocab]).then(([b]) => wordBank(b));
   Promise.all([pChall, pVocab, pInbox]).then(([h]) => challenges(h));
+  Promise.all([pToday, pVocab, pInbox, pMe, pDash]).then(([t]) => todayPaint(t));
 })();
