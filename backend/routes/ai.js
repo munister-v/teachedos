@@ -13,6 +13,7 @@ const vocabLibrary = require('../lib/vocabLibrary');
 const newsFeeds = require('../lib/newsFeeds');
 const boardAgent = require('../lib/boardAgent');
 const { effectivePlanKey } = require('../lib/billing');
+const freePool = require('../lib/freePool');
 
 /* Потолки платных планов подняты вслед за сведением резерва с фактом: пока
    резерв не сводился, 90 запросов и $1.40 упирались друг в друга примерно на
@@ -21,7 +22,9 @@ const { effectivePlanKey } = require('../lib/billing');
    поэтому долларовый потолок поднят вместе с числом запросов: иначе он стал
    бы новым ограничителем и решение «1000 запросов» ничего бы не изменило. */
 const AI_MONTHLY_LIMITS = {
-  free: { usd: 0.10, requests: 10 },
+  // Free is limited by the credit pool and the shared fuse (lib/freePool.js),
+  // not by these numbers; they are only the bookkeeping row's ceiling.
+  free: { usd: 1e6, requests: 1e9 },
   pro: { usd: 3.00, requests: 1000 },
   school: { usd: 3.00, requests: 1000 },
 };
@@ -30,14 +33,13 @@ function monthlyQuota(user) {
   return AI_MONTHLY_LIMITS[effectivePlanKey(user)] || AI_MONTHLY_LIMITS.free;
 }
 
-// Free accounts reset weekly rather than monthly - the same $0.10/10-request
-// cap, refilled four times as often, instead of once. Paid plans keep the
-// calendar month. The 'month' column just holds whatever period-start date
-// is written into it; nothing about the schema assumes a calendar month, so
-// this needed no migration, only a different date_trunc unit per plan.
-function quotaUnit(user) {
-  return effectivePlanKey(user) === 'free' ? 'week' : 'month';
+// Every plan books usage by calendar month. Free accounts additionally draw
+// from a credit pool and a shared monthly budget (lib/freePool.js).
+function quotaUnit() {
+  return 'month';
 }
+
+const isFree = user => effectivePlanKey(user) === 'free';
 
 function periodLabel(unit) {
   return unit === 'week' ? 'week' : 'month';
@@ -56,25 +58,57 @@ async function reserveAiQuota(user, input) {
   const quota = monthlyQuota(user);
   const unit = quotaUnit(user);
   const reserved = estimateAiCost(input);
-  const { rows } = await pool.query(
-    `INSERT INTO ai_usage_monthly (user_id, month, reserved_usd, requests)
-     VALUES ($1, date_trunc($5, CURRENT_DATE)::date, $2, 1)
-     ON CONFLICT (user_id, month) DO UPDATE
-       SET reserved_usd = ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd,
-           requests = ai_usage_monthly.requests + 1
-       WHERE ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd <= $3
-         AND ai_usage_monthly.requests < $4
-     RETURNING reserved_usd, actual_usd, requests`,
-    [user.id, reserved, quota.usd, quota.requests, unit],
-  );
-  if (!rows.length) {
-    const error = new Error(`${periodLabel(unit) === 'week' ? 'Weekly' : 'Monthly'} AI allowance reached. Your local tools and saved materials remain available.`);
-    error.status = 429;
-    error.code = 'AI_MONTHLY_BUDGET_REACHED';
-    error.quota = quota;
-    throw error;
+  const free = isFree(user);
+  if (free) {
+    /* 1. a credit from the pool, 2. room in the shared free budget. If the
+       second fails the credit goes back: the teacher lost nothing. */
+    const credit = await freePool.takeCredit(pool, user.id);
+    if (!credit) {
+      const error = new Error('Your free AI credits are used up. They refill with 10 more each month you teach a lesson - or go Pro for more. Your local tools and saved materials remain available.');
+      error.status = 429;
+      error.code = 'AI_MONTHLY_BUDGET_REACHED';
+      error.reason = 'free_pool_empty';
+      throw error;
+    }
+    let held = false;
+    try { held = await freePool.reserveBudget(pool, reserved); }
+    catch (e) { await freePool.refundCredit(pool, user.id).catch(() => {}); throw e; }
+    if (!held) {
+      await freePool.refundCredit(pool, user.id).catch(() => {});
+      const error = new Error('AI on the Free plan is resting until next month - the shared free allowance is used up. Your local tools and saved materials remain available; Pro is not affected.');
+      error.status = 429;
+      error.code = 'AI_MONTHLY_BUDGET_REACHED';
+      error.reason = 'free_budget_reached';
+      throw error;
+    }
   }
-  return { quota, reserved, ...rows[0] };
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO ai_usage_monthly (user_id, month, reserved_usd, requests)
+       VALUES ($1, date_trunc($5, CURRENT_DATE)::date, $2, 1)
+       ON CONFLICT (user_id, month) DO UPDATE
+         SET reserved_usd = ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd,
+             requests = ai_usage_monthly.requests + 1
+         WHERE ai_usage_monthly.reserved_usd + EXCLUDED.reserved_usd <= $3
+           AND ai_usage_monthly.requests < $4
+       RETURNING reserved_usd, actual_usd, requests`,
+      [user.id, reserved, quota.usd, quota.requests, unit],
+    );
+    if (!rows.length) {
+      const error = new Error('Monthly AI allowance reached. Your local tools and saved materials remain available.');
+      error.status = 429;
+      error.code = 'AI_MONTHLY_BUDGET_REACHED';
+      error.quota = quota;
+      throw error;
+    }
+    return { quota, reserved, free, ...rows[0] };
+  } catch (err) {
+    if (free) {
+      await freePool.refundCredit(pool, user.id).catch(() => {});
+      await freePool.adjustBudget(pool, -reserved).catch(() => {});
+    }
+    throw err;
+  }
 }
 
 // Резерв - потолок на время полёта запроса, а не счёт. Он намеренно в
@@ -92,6 +126,7 @@ async function settleAiQuota(user, reservation, actualUsd) {
      WHERE user_id=$1 AND month=date_trunc($4, CURRENT_DATE)::date`,
     [user.id, Number(reservation.reserved), actual, quotaUnit(user)],
   );
+  if (reservation.free) await freePool.adjustBudget(pool, actual - Number(reservation.reserved));
 }
 
 // A provider failure must never consume a teacher's personal allowance. The
@@ -106,6 +141,10 @@ async function releaseAiQuota(user, reservation) {
      WHERE user_id=$1 AND month=date_trunc($3, CURRENT_DATE)::date`,
     [user.id, Number(reservation.reserved), quotaUnit(user)]
   );
+  if (reservation.free) {
+    await freePool.refundCredit(pool, user.id);
+    await freePool.adjustBudget(pool, -Number(reservation.reserved));
+  }
 }
 
 // period_ends_at lets the client show "resets in N days" instead of a bare
@@ -137,6 +176,27 @@ async function readAiQuota(user) {
   const reserved = Number(usage.reserved_usd || 0);
   const actual = Number(usage.actual_usd || 0);
   const requests = Number(usage.requests || 0);
+  if (isFree(user)) {
+    /* Free: the figures are the credit pool. used/limit = credits spent of
+       everything granted so far; the bar on the account page reads the same. */
+    const credits = await freePool.readPool(pool, user.id);
+    const fuse = await freePool.budgetState(pool);
+    return {
+      period: 'month',
+      period_start: periodStart,
+      period_ends_at: periodEnd,
+      month: new Date().toISOString().slice(0, 7),
+      limit_usd: null,
+      reserved_usd: reserved,
+      actual_usd: actual,
+      remaining_usd: null,
+      request_limit: credits.granted,
+      requests: credits.used,
+      requests_remaining: fuse.exhausted ? 0 : credits.balance,
+      credits,
+      free_budget_exhausted: fuse.exhausted,
+    };
+  }
   return {
     period: periodLabel(unit),
     period_start: periodStart,
@@ -1816,7 +1876,7 @@ router.post('/teacher-tool', requireAuth, requireTeacher, aiLimiter, async (req,
     res.json({ output, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/teacher-tool]', err.message);
-    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
   }
 });
 
@@ -2318,7 +2378,7 @@ Rules: 5 stages that sum to ${duration}. All activities must be practical and re
     res.json({ result, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/lesson-board]', err.message);
-    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
   }
 });
 
@@ -2355,7 +2415,7 @@ Rules:
     });
   } catch (err) {
     console.error('[ai/writing-prep]', err.message);
-    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
   }
 });
 
@@ -2379,7 +2439,7 @@ ${text}`;
     res.json({ items, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/pick-vocab]', err.message);
-    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
   }
 });
 
@@ -2411,7 +2471,7 @@ router.post('/book-page', requireAuth, requireTeacher, lessonBoardLimiter, async
     res.json({ map, viaModel, redacted: removed, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/book-page]', err.message);
-    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
   }
 });
 
@@ -2439,7 +2499,7 @@ router.post('/board-agent', requireAuth, requireTeacher, boardAgentLimiter, asyn
     res.json({ ...boardAgent.sanitizePlan(raw, cards), quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/board-agent]', err.message);
-    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
   }
 });
 
@@ -2501,7 +2561,7 @@ Rules:
     res.json({ theme: String(result?.theme || '').trim().slice(0, 60), items, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/vocab-enrich]', err.message);
-    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, quota: err.quota });
+    res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
   }
 });
 

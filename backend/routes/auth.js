@@ -9,6 +9,7 @@ const { attachBoardInvites } = require('../lib/boardInvites');
 const { requireAuth, signToken, hashSessionToken } = require('../middleware/auth');
 const { sendEmail, sendEmailQuietly, resetPasswordEmail, passwordChangedEmail, welcomeEmail, verifyEmail, accountDeletedEmail, verifyLink, VERIFY_PURPOSE, newSignInEmail } = require('../lib/email');
 const { recordTelemetry } = require('../lib/telemetry');
+const signupWave = require('../lib/signupWave');
 const { deviceLabel } = require('../lib/device');
 const totp = require('../lib/totp');
 const stripe = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
@@ -425,6 +426,13 @@ router.post('/register', authLimiter, async (req, res) => {
   const passwordError = passwordProblem(password);
   if (passwordError) return res.status(400).json({ error: passwordError });
   try {
+    if (safeRole === 'teacher' && !(await signupWave.signupState(pool)).open) {
+      const taken = await pool.query('SELECT 1 FROM users WHERE email = $1', [normalizedEmail]);
+      if (!taken.rows.length) {
+        await signupWave.joinWaitlist(pool, normalizedEmail).catch(() => {});
+        return res.status(403).json({ code: 'WAITLIST', error: signupWave.WAITLIST_MESSAGE });
+      }
+    }
     const hash = await bcrypt.hash(password, 12);
     const { rows } = await pool.query(
       `INSERT INTO users (email, password_hash, name, role, avatar, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source)
@@ -688,6 +696,10 @@ router.post('/google', authLimiter, async (req, res) => {
         );
       }
     } else {
+      if (safeRole === 'teacher' && !(await signupWave.signupState(pool)).open) {
+        await signupWave.joinWaitlist(pool, email).catch(() => {});
+        return res.status(403).json({ code: 'WAITLIST', error: signupWave.WAITLIST_MESSAGE });
+      }
       const inserted = await pool.query(
         `INSERT INTO users (email_verified_at, email, name, role, avatar, google_id, oauth_provider, plan, plan_status, billing_cycle, plan_started_at, plan_expires_at, plan_source)
          VALUES (NOW(), $1, $2, $3, $4, $5, 'google', $6, $7, $8, NOW(), NOW() + INTERVAL '1 year', $9)

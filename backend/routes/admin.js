@@ -7,6 +7,8 @@ const pool   = require('../db/pool');
 const bcrypt = require('bcryptjs');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { ensureTelemetrySchema } = require('../lib/telemetry');
+const signupWave = require('../lib/signupWave');
+const freePool = require('../lib/freePool');
 const {
   cleanLongText,
   cleanText,
@@ -95,6 +97,33 @@ router.get('/stats', async (req, res) => {
 });
 
 // ── GET /api/admin/billing/payments ───────────────────────────────────────
+/* Launch in waves (lib/signupWave.js): see the cap, who waits, open the next wave. */
+router.get('/signup-wave', async (_req, res) => {
+  try {
+    const state = await signupWave.signupState(pool);
+    const { rows } = await pool.query('SELECT COUNT(*)::int AS n FROM signup_waitlist');
+    const free = await freePool.budgetState(pool);
+    res.json({ ...state, waiting: rows[0].n, free_ai_budget: free });
+  } catch (err) { res.status(500).json({ error: 'Could not load the signup wave' }); }
+});
+router.put('/signup-wave', async (req, res) => {
+  try {
+    const { cap, open_next } = req.body || {};
+    if (open_next != null) {
+      const add = Math.min(2000, Math.max(1, parseInt(open_next, 10) || 0));
+      const st = await signupWave.signupState(pool);
+      await signupWave.setCap(pool, Math.max(st.cap || 0, st.teachers) + add);
+    } else if (cap === null) {
+      await signupWave.setCap(pool, null);
+    } else {
+      const n = parseInt(cap, 10);
+      if (!Number.isFinite(n) || n < 1) return res.status(400).json({ error: 'cap must be a positive number, or null for open sign-up' });
+      await signupWave.setCap(pool, n);
+    }
+    res.json(await signupWave.signupState(pool));
+  } catch (err) { res.status(500).json({ error: 'Could not change the signup wave' }); }
+});
+
 router.get('/billing/payments', async (req, res) => {
   const status = ['pending', 'approved', 'rejected'].includes(req.query.status) ? req.query.status : '';
   try {

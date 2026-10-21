@@ -9869,6 +9869,41 @@ window.addEventListener('blur', () => {
   }
 });
 
+/* ═══════════ Toolbar icon = panel switch ═══════════
+   A second click on a rail icon closes the panel it opened. The panels close
+   themselves on an outside press (mousedown) and the icon's own click then
+   opened them again, so the state is read on mousedown, before any closer
+   runs, and the click that follows only closes. */
+const _MT_PANELS = {
+  'mt-sticky':  { open: () => document.getElementById('sticky-palette')?.classList.contains('open'), close: () => closeStickyPalette() },
+  'mt-shape':   { open: () => document.getElementById('shape-panel')?.classList.contains('open'), close: () => { closeShapePanel(); typeof _closeMoreShapes === 'function' && _closeMoreShapes(); } },
+  'mt-pen':     { open: () => { const p = document.getElementById('draw-palette'); return !!(p && p.classList.contains('open') && p.style.display !== 'none'); }, close: () => closeDrawPalette() },
+  'mt-frame':   { open: () => document.getElementById('frame-panel')?.classList.contains('open'), close: () => { document.getElementById('frame-panel')?.classList.remove('open'); document.removeEventListener('mousedown', _closeFramePanelOnce, true); } },
+  'mt-sticker': { open: () => document.getElementById('sticker-panel')?.classList.contains('open'), close: () => closeStickerModal() },
+  'mt-add':     { open: () => document.getElementById('mt-more-pop')?.classList.contains('open'), close: () => toggleMtMore() },
+  'mt-tools':   { open: () => document.getElementById('tool-builder-panel')?.classList.contains('open'), close: () => closeTeacherToolBuilder() },
+  'mt-ai':      { open: () => document.getElementById('ai-assistant-panel')?.classList.contains('open'), close: () => closeAiAssistantPanel() },
+};
+const _mtWasOpen = {};
+document.addEventListener('mousedown', e => {
+  const b = e.target.closest && e.target.closest('.mt-btn');
+  if (!b) return;
+  const spec = _MT_PANELS[b.id];
+  _mtWasOpen[b.id] = !!(spec && spec.open());
+}, true);
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.mt-btn');
+  if (!b) return;
+  const spec = _MT_PANELS[b.id];
+  const was = _mtWasOpen[b.id];
+  _mtWasOpen[b.id] = false;
+  if (!spec || !was) return;
+  e.stopPropagation(); e.preventDefault();
+  spec.close();
+  b.classList.remove('active');
+  if (b.id === 'mt-pen' && typeof _drawTool !== 'undefined' && _drawTool) b.classList.add('active');
+}, true);
+
 /* ════════════════════════ KEYBOARD ════════════════════════ */
 document.addEventListener('keydown', e => {
   // Space = pan - but never while typing in a sticky / text card (contenteditable)
@@ -9880,12 +9915,21 @@ document.addEventListener('keydown', e => {
     }
     e.preventDefault(); return;
   }
-  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
+  /* A slider / checkbox / button that kept focus (the pen panel's size slider,
+     its Done button) is not text entry: Cmd+Z must still undo the board. */
+  const _tg = e.target;
+  const _typing = _tg.tagName === 'TEXTAREA' || _tg.tagName === 'SELECT' || _tg.isContentEditable ||
+    (_tg.tagName === 'INPUT' && !/^(range|checkbox|radio|button|color|submit)$/i.test(_tg.type));
+  if (_typing) return;
+  /* Shortcuts follow the physical key when the layout is not Latin (a Russian
+     layout sends 'я' for Z), so Cmd+Z / Cmd+C / Cmd+V work in any layout. */
+  const mk = /^[a-z]$/i.test(e.key) ? e.key.toLowerCase()
+    : (/^Key[A-Z]$/.test(e.code || '') ? e.code.slice(3).toLowerCase() : e.key);
 
-  if ((e.ctrlKey||e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
-  if ((e.ctrlKey||e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
-  if ((e.ctrlKey||e.metaKey) && e.key === 's') { e.preventDefault(); forceSave(); return; }
-  if ((e.ctrlKey||e.metaKey) && e.key === 'a') {
+  if ((e.ctrlKey||e.metaKey) && mk === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+  if ((e.ctrlKey||e.metaKey) && (mk === 'y' || (mk === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
+  if ((e.ctrlKey||e.metaKey) && mk === 's') { e.preventDefault(); forceSave(); return; }
+  if ((e.ctrlKey||e.metaKey) && mk === 'a') {
     e.preventDefault();
     clearSelection();
     // Bulk select without per-card layer popover thrash; show once at the end.
@@ -9895,16 +9939,13 @@ document.addEventListener('keydown', e => {
     else hideLayerPopover?.();
     return;
   }
-  if ((e.ctrlKey||e.metaKey) && e.key === 'd') { e.preventDefault(); duplicateSelected(); return; }
-  if ((e.ctrlKey||e.metaKey) && e.key === 'c' && !e.shiftKey) { e.preventDefault(); copySelectedCards(); return; }
-  if ((e.ctrlKey||e.metaKey) && e.key === 'v' && !e.shiftKey) {
-    e.preventDefault();
-    // Board cards on the internal clipboard take priority; otherwise try to
-    // paste an image/URL from the system clipboard at the viewport center.
-    if (_cardClipboard.length) { pasteCards(); }
-    else { const c = getBoardViewportCenter(); if (c) _pasteImageAt(c.x, c.y); }
-    return;
-  }
+  if ((e.ctrlKey||e.metaKey) && mk === 'd') { e.preventDefault(); duplicateSelected(); return; }
+  if ((e.ctrlKey||e.metaKey) && mk === 'c' && !e.shiftKey) { e.preventDefault(); copySelectedCards(); return; }
+  /* Cmd+V is NOT cancelled here: cancelling the keydown kills the browser's
+     paste event, and that event is the only way to read pictures and audio
+     files from the clipboard without a permission prompt. The document paste
+     handler decides (files, links, copied cards, text). */
+  if ((e.ctrlKey||e.metaKey) && mk === 'v' && !e.shiftKey) return;
   if ((e.ctrlKey||e.metaKey) && e.key === '0') { state.scale=1; state.pan={x:100,y:60}; applyTransform(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'f') { e.preventDefault(); toggleBoardSearch(); return; }
   if ((e.ctrlKey||e.metaKey) && e.key === 'h' && !e.shiftKey) { e.preventDefault(); openVersionHistory(); return; }
@@ -29059,41 +29100,97 @@ function handleImageFileSelect(input) {
   placeImageFile(file, pos);
 }
 
-/* Global paste handler - add image directly to the board on Ctrl/⌘+V.
-   Accepts: raw image data, image URL pasted as text (data:/http:/https:). */
+/* Pictures and audio files land on the board the same way from a drop, from
+   Cmd+V and from a file copied in Finder: one place decides what a file is,
+   places it (a row, so several files do not stack) and says what it did. */
+const BOARD_AUDIO_MAX_BYTES = 20 * 1024 * 1024;
+function _isBoardAudioFile(f) {
+  return !!f && (/^audio\//i.test(f.type || '') || /\.(mp3|m4a|wav|ogg|oga|aac|flac|opus|weba)$/i.test(f.name || ''));
+}
+function _isBoardImageFile(f) {
+  return !!f && (/^image\//i.test(f.type || '') || (!f.type && /\.(png|jpe?g|gif|webp|svg|heic|avif)$/i.test(f.name || '')));
+}
+function _readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('Could not read ' + (file.name || 'the file')));
+    r.readAsDataURL(file);
+  });
+}
+async function _addBoardMediaFiles(files, at) {
+  const list = Array.from(files || []).filter(f => _isBoardImageFile(f) || _isBoardAudioFile(f));
+  if (!list.length) return 0;
+  if (typeof boardCanEdit !== 'undefined' && currentUser && currentBoardId && !boardCanEdit) { toast && toast('This board is view only'); return 0; }
+  const base = at || resolveBoardPlacement(pendingImagePos);
+  let n = 0, firstErr = '';
+  for (let i = 0; i < list.length; i++) {
+    const f = list[i];
+    const x = base.x + i * 40, y = base.y + i * 40;
+    try {
+      if (_isBoardAudioFile(f)) {
+        if (f.size > BOARD_AUDIO_MAX_BYTES) throw new Error('Audio file is too large. Max 20 MB.');
+        const src = await _readFileAsDataUrl(f);
+        const title = (f.name || 'Audio').replace(/\.[^.]+$/, '') || 'Audio';
+        const card = addCard('audio', x, y, { title, src });
+        if (card) { n++; clearSelection && clearSelection(); state.selected = new Set([card.id]); getCardEl(card.id)?.classList.add('selected'); }
+      } else {
+        const prepared = await prepareBoardImageFile(f);
+        const card = _placeNewImageCard(x + 160, y + 120, {
+          title: f.name || 'Image',
+          src: prepared.dataUrl,
+          imageSize: prepared.bytes,
+          imageOptimized: prepared.optimized,
+        });
+        if (card) n++;
+      }
+    } catch (err) { firstErr = firstErr || (err && err.message) || String(err); }
+  }
+  pendingImagePos = null;
+  if (n) { scheduleSave && scheduleSave(); saveLocal && saveLocal(); }
+  if (n) _toastClipboard((list.some(_isBoardAudioFile) ? '🎵 ' : '🖼 ') + (n === 1 ? 'Added to the board' : n + ' files added to the board'));
+  if (firstErr) { toast && toast(firstErr); }
+  return n;
+}
+/* Files on the clipboard: a screenshot or copied picture comes as an item,
+   a file copied in Finder comes in clipboardData.files. */
+function _clipboardMediaFiles(cd) {
+  const out = [];
+  for (const item of (cd.items || [])) {
+    if (item.kind !== 'file') continue;
+    if (!/^(image|audio)\//i.test(item.type || '')) continue;
+    const f = item.getAsFile();
+    if (f) out.push(f);
+  }
+  if (!out.length) for (const f of (cd.files || [])) if (_isBoardImageFile(f) || _isBoardAudioFile(f)) out.push(f);
+  return out;
+}
+
+/* Global paste handler - Ctrl/⌘+V puts a picture, an audio file, a video link,
+   copied cards or a list of lines (stickies) on the board.
+   Accepts: raw image/audio data, image URL pasted as text (data:/http:/https:). */
 document.addEventListener('paste', e => {
   // Don't hijack pasting inside inputs / editable fields
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (document.querySelector('.modal-overlay.open, #audio-url-overlay[style*="flex"], #image-url-overlay[style*="flex"]')) return;
   const cd = e.clipboardData;
   if (!cd) return;
-  const items = cd.items || [];
-  // 1. Raw image file/blob in clipboard
-  for (const item of items) {
-    if (item.type && item.type.startsWith('image/')) {
-      const file = item.getAsFile();
-      if (!file) continue;
-      e.preventDefault();
-      (async () => {
-        try {
-          const prepared = await prepareBoardImageFile(file);
-          const pos = resolveBoardPlacement(pendingImagePos);
-          // pos.x / pos.y is the TOP-LEFT in resolveBoardPlacement; center it.
-          _placeNewImageCard(pos.x + 160, pos.y + 120, {
-            title: 'Pasted image',
-            src: prepared.dataUrl,
-            imageSize: prepared.bytes,
-            imageOptimized: prepared.optimized,
-          });
-          pendingImagePos = null;
-          _toastClipboard('🖼 Image pasted');
-        } catch (err) {
-          _toastClipboard('Paste failed: ' + (err.message || err));
-        }
-      })();
-      return;
+  // 1. Files in the clipboard (picture, audio)
+  const files = _clipboardMediaFiles(cd);
+  if (files.length) {
+    /* A single image card copied on this board also sits in the system
+       clipboard as a picture: paste the card itself (keeps its settings). */
+    if (_cardClipboard.length === 1 && _cardClipboard[0].type === 'image' && files.length === 1 && _isBoardImageFile(files[0])) {
+      e.preventDefault(); pasteCards(); return;
     }
+    e.preventDefault();
+    const c = getBoardViewportCenter();
+    _addBoardMediaFiles(files, pendingImagePos ? resolveBoardPlacement(pendingImagePos) : (c ? { x: c.x - 160, y: c.y - 120 } : null));
+    return;
   }
+  // 1a. Cards copied on this board
+  if (_cardClipboard.length) { e.preventDefault(); pasteCards(); return; }
   // 2. Plain-text URL pointing at an image (or a data:image URL)
   const txt = cd.getData?.('text/plain') || '';
   // 1b. Ссылка на YouTube / Vimeo - сразу видео-карточка (кнопки Video в меню больше нет).
@@ -29157,46 +29254,38 @@ function _pasteStickiesFromText(text) {
   return true;
 }
 
-/* Global drag-drop onto the board itself */
-['dragover','drop'].forEach(ev => {
+/* Global drag-drop onto the board itself: pictures and audio files.
+   The drop is matched by where the pointer is (the board's rectangle), not by
+   the element under it, because the drawing layer, frames and the on-board
+   chrome sit above the canvas and used to swallow the drop. Dialogs and panels
+   with their own drop zones keep their drops. */
+function _dropOverBoard(e) {
+  if (!boardWrap) return false;
+  const t = e.target;
+  if (t && t.closest && t.closest('.modal, .modal-overlay, [id$="-overlay"], [id$="-panel"], #draw-palette, dialog, [role="dialog"], [data-drop-zone]')) return false;
+  if (boardWrap.contains(t)) return true;
+  const r = boardWrap.getBoundingClientRect();
+  return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+}
+['dragenter', 'dragover'].forEach(ev => {
   document.addEventListener(ev, e => {
-    if (!boardWrap) return;
-    // Only react if the drop landed inside the board area and clipboard has files
-    if (!boardWrap.contains(e.target)) return;
-    if (ev === 'dragover') {
-      const types = Array.from(e.dataTransfer?.types || []);
-      if (types.includes('Files') || types.includes('text/sticker-glyph')) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-      }
-      return;
-    }
-    if (ev === 'drop') {
-      const files = e.dataTransfer && e.dataTransfer.files;
-      if (!files || !files.length) return;
+    if (!_dropOverBoard(e)) return;
+    const types = Array.from(e.dataTransfer?.types || []);
+    if (types.includes('Files') || types.includes('text/sticker-glyph')) {
       e.preventDefault();
-      const file = files[0];
-      if (!file.type.startsWith('image/')) { toast && toast('Only image files are supported'); return; }
-      (async () => {
-        try {
-          const prepared = await prepareBoardImageFile(file);
-          const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 100 };
-          addCard('image', pos.x, pos.y, {
-            title: file.name || 'Image',
-            src: prepared.dataUrl,
-            imageSize: prepared.bytes,
-            imageOptimized: prepared.optimized,
-          }, 320, 240);
-          scheduleSave && scheduleSave();
-          saveLocal && saveLocal();
-          toast && toast('🖼 Image added');
-        } catch (err) {
-          toast && toast(err.message);
-          alert(err.message);
-        }
-      })();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
     }
   });
+});
+document.addEventListener('drop', e => {
+  if (!_dropOverBoard(e)) return;
+  const files = e.dataTransfer && e.dataTransfer.files;
+  if (!files || !files.length) return;
+  e.preventDefault();
+  const list = Array.from(files);
+  if (!list.some(f => _isBoardImageFile(f) || _isBoardAudioFile(f))) { toast && toast('Only pictures and audio files can be dropped on the board'); return; }
+  const pos = screenToBoard(e.clientX, e.clientY) || { x: 200, y: 100 };
+  _addBoardMediaFiles(list, { x: pos.x - 160, y: pos.y - 120 });
 });
 
 function _addVideoFromLink(text, pos) {

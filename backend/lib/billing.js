@@ -23,6 +23,7 @@ const PLAN_CATALOG = {
       '3 lesson boards',
       '5 students per board',
       '1 course workspace',
+      '30 AI credits to start, +10 each month you teach a lesson',
       'Local autosave',
       'Basic board toolkit',
     ],

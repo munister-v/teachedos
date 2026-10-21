@@ -505,6 +505,27 @@ CREATE TABLE IF NOT EXISTS ai_usage_monthly (
   requests     INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id, month)
 );
+-- Launch in waves: a cap on teacher sign-ups, and who is waiting behind it
+CREATE TABLE IF NOT EXISTS app_flags (
+  key   VARCHAR(60) PRIMARY KEY,
+  value TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS signup_waitlist (
+  email      VARCHAR(254) PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+-- Free plan: a pool of credits (30 once + 10 per month a lesson was taught), not a daily limit
+CREATE TABLE IF NOT EXISTS ai_credit_pool (
+  user_id          UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  balance          INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),
+  granted          INTEGER NOT NULL DEFAULT 0,
+  last_topup_month DATE NOT NULL DEFAULT date_trunc('month', CURRENT_DATE)::date
+);
+-- The fuse: what every free account together has spent on AI this month
+CREATE TABLE IF NOT EXISTS ai_free_budget (
+  month     DATE PRIMARY KEY,
+  spent_usd NUMERIC(12,6) NOT NULL DEFAULT 0
+);
 CREATE TABLE IF NOT EXISTS ai_usage_daily (
   day DATE PRIMARY KEY,
   total INTEGER NOT NULL DEFAULT 0,
