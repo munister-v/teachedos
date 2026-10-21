@@ -17493,7 +17493,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1327';
+const TEACHEDOS_ASSET_VERSION = '1328';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24987,7 +24987,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1327',
+          icon: 'icons/icon-192.png?v=1328',
           tag: 'board-live-' + s.id,
         });
       }
@@ -26243,34 +26243,73 @@ function wsSendCursor(bx, by) {
     name: currentUser?.name, avatar: currentUser?.avatar }));
 }
 
+/* A remote update changes only what changed (standard 11/10 §2). It used to remove every
+   card and build the board again, about once a minute on a live lesson: a click on an answer
+   landed on a card that no longer existed, a drag fell off, typing stopped mid-word. Now a card
+   whose content is the same keeps its element (only its place is moved), a changed card is
+   rebuilt alone, and a card the user is working in right now - focus inside, being dragged or
+   resized - waits until they are done; the update is applied to it then. */
+let _remotePending = null, _remoteRetry = 0;
+const _cardKey = c => { try { return JSON.stringify(c); } catch (_) { return String(Math.random()); } };
+function _cardBusy(id) {
+  const el = getCardEl(id);
+  if (!el) return false;
+  if (el.contains(document.activeElement) && document.activeElement !== document.body) return true;
+  return (isDraggingCard || isResizing) && state.selected.has(id);
+}
 function applyRemoteState(remote) {
-  // Full replace - server is source of truth for collab.
   remote = migrateLegacyCommentStickies(remote);
   /* Путь урока, у которого поменялось только место на доске или работа
      учителя в его экземпляре, не перерисовываем: у ученика в нём набранный
      текст, запись в Speaking Studio. Двигаем готовый элемент. */
-  const livePath = new Map();
-  if (!isOwner) state.cards.forEach(c => { if (c.data && c.data._wfPath) livePath.set(c.id, _wpContentKey(c)); });
-  const keep = new Set((remote.cards || []).filter(c => c && c.data && c.data._wfPath && livePath.has(c.id)
-    && livePath.get(c.id) === _wpContentKey(c) && getCardEl(c.id)).map(c => c.id));
-  state.cards.forEach(c => { if (!keep.has(c.id)) getCardEl(c.id)?.remove(); });
-  arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove());
-  state.cards  = remote.cards || [];
-  state.annotations = normalizeAnnotations(remote.annotations);
-  state.arrows = remote.arrows || [];
-  state.strokes = Array.isArray(remote.strokes) ? remote.strokes : (state.strokes || []);
-  state.nextId = Math.max(state.nextId, remote.nextId || 0);
-  clearSelection();
-  state.cards.forEach(c => {
-    if (!keep.has(c.id)) { board.appendChild(renderCard(c)); return; }
-    const el = getCardEl(c.id);
-    Object.assign(el.style, { left: c.x + 'px', top: c.y + 'px', width: c.w + 'px', height: c.h + 'px', zIndex: String(getCardZ(c)) });
+  const pathKey = c => (!isOwner && c.data && c.data._wfPath) ? _wpContentKey(c) : null;
+  const before = new Map(state.cards.map(c => [c.id, { key: _cardKey(c), path: pathKey(c) }]));
+  const incoming = remote.cards || [];
+  const busy = new Set();
+  const nextCards = incoming.map(rc => {
+    if (before.has(rc.id) && _cardBusy(rc.id)) { busy.add(rc.id); return state.cards.find(c => c.id === rc.id) || rc; }
+    return rc;
   });
-  renderAllArrows();
+  const ids = new Set(nextCards.map(c => c.id));
+  // gone on the other side - unless the user is in it right now
+  state.cards.forEach(c => { if (!ids.has(c.id)) { if (_cardBusy(c.id)) { busy.add(c.id); nextCards.push(c); } else getCardEl(c.id)?.remove(); } });
+
+  const arrowsChanged = _cardKey(state.arrows) !== _cardKey(remote.arrows || []);
+  const strokesChanged = Array.isArray(remote.strokes) && _cardKey(state.strokes) !== _cardKey(remote.strokes);
+  state.cards = nextCards;
+  state.annotations = normalizeAnnotations(remote.annotations);
+  if (arrowsChanged) state.arrows = remote.arrows || [];
+  if (Array.isArray(remote.strokes)) state.strokes = remote.strokes;
+  state.nextId = Math.max(state.nextId, remote.nextId || 0);
+
+  let touched = false;
+  state.cards.forEach(c => {
+    if (busy.has(c.id)) return;
+    const el = getCardEl(c.id);
+    const was = before.get(c.id);
+    const samePath = was && was.path && was.path === pathKey(c);
+    if (!was || was.key !== _cardKey(c)) touched = true;
+    if (el && was && (was.key === _cardKey(c) || samePath)) {
+      Object.assign(el.style, { left: c.x + 'px', top: c.y + 'px', width: c.w + 'px', height: c.h + 'px', zIndex: String(getCardZ(c)) });
+      return;
+    }
+    const fresh = renderCard(c);
+    if (el) el.replaceWith(fresh); else board.appendChild(fresh);
+    if (state.selected.has(c.id)) fresh.classList.add('selected');
+  });
+  // the selection keeps what still exists
+  [...state.selected].forEach(id => { if (!ids.has(id) && !busy.has(id)) state.selected.delete(id); });
+  if (arrowsChanged || touched || state.cards.length !== before.size) { arrowsSvg.querySelectorAll('.arrow-group').forEach(g => g.remove()); renderAllArrows(); }
   renderAllAnnotations();
-  if (typeof renderAllStrokes === 'function') renderAllStrokes();
+  if (strokesChanged && typeof renderAllStrokes === 'function') renderAllStrokes();
   updateEmpty();
   setSaveUI('cloud');
+  // a card that was busy gets the update once the user is done with it
+  if (busy.size) {
+    _remotePending = remote;
+    clearTimeout(_remoteRetry);
+    _remoteRetry = setTimeout(() => { const r = _remotePending; _remotePending = null; if (r) applyRemoteState(r); }, 1500);
+  } else _remotePending = null;
   // Путь, которого больше нет (учитель открепил ученика), закрывается у него.
   if (_wpFocusId && !_wpCard(_wpFocusId)) closeCardStudio(true);
   _wpCheckLaunch();
