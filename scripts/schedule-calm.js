@@ -68,6 +68,7 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
 .cc-del:hover{opacity:1;text-decoration:underline}
 .cc-out{margin-top:10px;padding-top:10px;border-top:1px solid rgba(36,40,44,.08)}
 .cc-out-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(36,40,44,.5);margin-bottom:6px}
+.cc-pick{width:100%;margin-bottom:6px;padding:6px 8px;border:0;border-radius:9px;background:rgba(36,40,44,.06);font:inherit;font-size:12.5px;font-weight:700;color:#24282C}
 .cc-seg{display:flex;gap:4px}
 .cc-seg button{flex:1;border:0;border-radius:9px;padding:6px 4px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;background:rgba(36,40,44,.06);color:#24282C}
 .cc-seg button.on{background:#24282C;color:#fff}
@@ -233,6 +234,28 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
     const out = outcome(slot);
     const meet = typeof slotMeetingUrl === 'function' ? slotMeetingUrl(slot) : '';
     const past = new Date(`${date}T${String(slot.start_time).slice(0, 5)}:00`) <= new Date();
+    /* A lesson can be counted only against a student's balance. A lesson that
+       was planned without a student link used to get no buttons at all: it now
+       asks "which student?" once (the name is guessed), links the lesson, and
+       counts it. */
+    const norm = t => String(t || '').trim().toLowerCase();
+    const linked = !!(slot.journal_id && journalStudent(slot.journal_id));
+    const guess = linked ? null : (journalStudents || []).find(x => norm(x.name) === norm(who(slot)) || norm(x.name) === norm(slot.title));
+    const seg = cls => `<div class="cc-seg">
+          <button type="button" data-o="present" class="${cls('present')}">Held</button>
+          <button type="button" data-o="no_show" class="${cls('no_show')}">No-show</button>
+          <button type="button" data-o="cancelled" class="${cls('cancelled')}">Cancelled</button>
+        </div>`;
+    const outcomeHtml = linked ? `<div class="cc-out">
+        <div class="cc-out-label">${past ? 'How did it go' : 'Mark this lesson'}</div>
+        ${seg(k => out && out.status === k ? 'on' : '')}</div>`
+      : (journalStudents || []).length ? `<div class="cc-out">
+        <div class="cc-out-label">${past ? 'Count this lesson' : 'Mark this lesson'}</div>
+        <select class="cc-pick" aria-label="Student">
+          <option value="">Whose lesson is it?</option>
+          ${journalStudents.map(x => `<option value="${esc(x.id)}"${guess && guess.id === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}
+        </select>
+        ${seg(() => '')}</div>` : '';
     card = document.createElement('div');
     card.className = 'cc-card';
     card.setAttribute('role', 'dialog');
@@ -248,13 +271,7 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
         <button type="button" data-a="edit">↻ Reschedule</button>
         <button type="button" data-a="hw">📝 Homework</button>
       </div>
-      ${slot.journal_id ? `<div class="cc-out">
-        <div class="cc-out-label">${past ? 'How did it go' : 'Mark this lesson'}</div>
-        <div class="cc-seg">
-          <button type="button" data-o="present" class="${out && out.status === 'present' ? 'on' : ''}">Held</button>
-          <button type="button" data-o="no_show" class="${out && out.status === 'no_show' ? 'on' : ''}">No-show</button>
-          <button type="button" data-o="cancelled" class="${out && out.status === 'cancelled' ? 'on' : ''}">Cancelled</button>
-        </div></div>` : ''}
+      ${outcomeHtml}
       <button type="button" class="cc-del" data-a="del">🗑 Delete lesson</button>
       <div class="cc-msg" hidden>
         <textarea placeholder="Message to ${esc(who(slot))}…"></textarea>
@@ -294,7 +311,21 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
       }
       if (o) {
         const next = out && out.status === o ? 'reset' : o;
-        try { await setLessonOutcome(slot, date, next); closeCard(); }
+        try {
+          if (!linked) {
+            const jid = self.querySelector('.cc-pick')?.value;
+            if (!jid) { toast('Choose the student first', 'err'); return; }
+            const body = {
+              day: slot.day, start_time: slot.start_time, end_time: slot.end_time, title: slot.title,
+              group_name: slot.group_name, level: slot.level, room: slot.room, color: slot.color,
+              recurring: slot.recurring, meeting_url: slot.meeting_url, is_live: slot.is_live,
+              specific_date: slot.specific_date, board_id: slot.board_id, journal_id: jid,
+            };
+            await apiFetch(`/api/schedule/${slot.id}`, { method: 'PATCH', body: JSON.stringify(body) });
+            slot.journal_id = jid;
+          }
+          await setLessonOutcome(slot, date, next); closeCard();
+        }
         catch (err) { toast(err.message || 'Could not save', 'err'); }
       }
     });
