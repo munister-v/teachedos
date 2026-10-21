@@ -56,11 +56,14 @@ function logAuthEvent(userId, email, event, req, detail) {
 const DEFAULT_GOOGLE_CLIENT_ID = '588434820929-ml1lshdikjohskc0kjuhiu43vgcvqk56.apps.googleusercontent.com';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+/* New accounts start on Free: the AI credit pool (lib/freePool.js) is their
+   allowance. The year of Pro every signup used to get ('signup_bonus') is gone;
+   accounts that already got it keep it. */
 const SIGNUP_BONUS_PLAN = {
-  plan: 'pro',
-  status: 'active',
-  cycle: 'yearly',
-  source: 'signup_bonus',
+  plan: 'free',
+  status: 'free',
+  cycle: 'monthly',
+  source: 'free',
 };
 const PASSWORD_MIN_LENGTH = 10;
 const PASSWORD_MAX_BYTES = 72;
