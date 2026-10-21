@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1286">
-<link rel="preload" as="style" href="styles/unify.css?v=1286">
-<link rel="manifest" href="manifest.json?v=1286">
+<link rel="preload" as="style" href="styles/harmony.css?v=1288">
+<link rel="preload" as="style" href="styles/unify.css?v=1288">
+<link rel="manifest" href="manifest.json?v=1288">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF">
-<link rel="icon" href="favicon.ico?v=1286" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1286">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1286">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1286">
+<link rel="icon" href="favicon.ico?v=1288" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1288">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1288">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1288">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="styles/fonts.css?v=1286">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1286">
+<link rel="stylesheet" href="styles/fonts.css?v=1288">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1288">
 <title>TeachEd - Student Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -520,25 +520,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .tb-guide span{display:none}
 }
 </style>
-<link rel="stylesheet" href="styles/mobile.css?v=1286">
-<link rel="stylesheet" href="styles/harmony.css?v=1286">
-<link rel="stylesheet" href="styles/unify.css?v=1286">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1286">
+<link rel="stylesheet" href="styles/mobile.css?v=1288">
+<link rel="stylesheet" href="styles/harmony.css?v=1288">
+<link rel="stylesheet" href="styles/unify.css?v=1288">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1288">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1286">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1286">
-<link rel="stylesheet" href="styles/controls.css?v=1286">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1286">
-<link rel="stylesheet" href="styles/lesson-cover.css?v=1286">
-<link rel="stylesheet" href="styles/student-harmony.css?v=1286">
-<link rel="stylesheet" href="styles/student-engage.css?v=1286">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1288">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1288">
+<link rel="stylesheet" href="styles/controls.css?v=1288">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1288">
+<link rel="stylesheet" href="styles/lesson-cover.css?v=1288">
+<link rel="stylesheet" href="styles/student-harmony.css?v=1288">
+<link rel="stylesheet" href="styles/student-engage.css?v=1288">
 <!-- Liquid Glass (iOS 26): bars, widgets, menus, sheets. Last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1286">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1288">
 </head>
 <body class="fx lg-cabinet">
 
 <div id="loading-screen">
-  <img class="ls-logo" src="logo-sm.png?v=1286" alt="TeachEd" width="56" height="56">
+  <img class="ls-logo" src="logo-sm.png?v=1288" alt="TeachEd" width="56" height="56">
   <div class="spinner"></div>
   <div style="font-size:13px;font-weight:600;color:var(--text-3);">Loading dashboard…</div>
 </div>
@@ -552,7 +552,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <div class="sb-logo"><img src="logo-sm.png?v=1286" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
+    <div class="sb-logo"><img src="logo-sm.png?v=1288" alt=""> <span class="logo-word">Teach<em>Ed</em></span></div>
 
     <!-- Name and role are in the greeting and the avatar on the right; here they
          were an empty header. Kept hidden: the page writes them by id. The board
@@ -723,17 +723,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<script src="scripts/app-core.js?v=1286"></script>
-<script src="scripts/student-onboarding.js?v=1286"></script>
-<script src="scripts/student-feed.js?v=1286"></script>
-<script src="scripts/stock-photos.js?v=1286"></script>
-<script src="scripts/lesson-cover.js?v=1286"></script>
-<script src="scripts/lesson-calendar.js?v=1286"></script>
-<script src="scripts/hw-state.js?v=1286"></script>
-<script src="scripts/student-engage.js?v=1286"></script>
-<script src="scripts/cabinet-hub.js?v=1286"></script>
-<script src="scripts/wallpaper-presets.js?v=1286"></script>
-<script src="scripts/student-wallpaper.js?v=1286"></script>
+<script src="scripts/app-core.js?v=1288"></script>
+<script src="scripts/student-onboarding.js?v=1288"></script>
+<script src="scripts/student-feed.js?v=1288"></script>
+<script src="scripts/stock-photos.js?v=1288"></script>
+<script src="scripts/lesson-cover.js?v=1288"></script>
+<script src="scripts/lesson-calendar.js?v=1288"></script>
+<script src="scripts/hw-state.js?v=1288"></script>
+<script src="scripts/student-engage.js?v=1288"></script>
+<script src="scripts/cabinet-hub.js?v=1288"></script>
+<script src="scripts/wallpaper-presets.js?v=1288"></script>
+<script src="scripts/student-wallpaper.js?v=1288"></script>
 <script>
 const STUDENT_DASHBOARD_CACHE_KEY = 'teachedos_student_dashboard_cache_v1';
 const {
@@ -1194,7 +1194,7 @@ async function checkLiveSessions() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${session.teacher_name || 'Your teacher'} started: ${session.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1286', tag: 'live-session-' + session.id,
+          icon: 'icons/icon-192.png?v=1288', tag: 'live-session-' + session.id,
         });
       }
     }
@@ -1328,7 +1328,7 @@ async function loadHomework() {
         ? `<span class="hw-card-score${a.final_score >= (a.pass_threshold || 60) ? ' pass' : ''}">${a.final_score}%</span>` : '';
       const n = Array.isArray(a.required_cards) ? a.required_cards.length : 0;
       return `<a class="hw-card${finished ? ' done' : ''}${s.fresh ? ' fresh' : ''}" href="homework-do.html?a=${encodeURIComponent(a.assignment_id)}">
-        <span class="hw-card-ic">${a.first_card_type === 'game' && n === 1 ? '🎮' : '📝'}</span>
+        <span class="hw-card-ic">${a.first_card_type === 'game' && n === 1 ? '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="15.5" cy="11.5" r=".6" fill="currentColor"/><circle cx="17.5" cy="13.5" r=".6" fill="currentColor"/></svg>' : '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20V3.5z"/><path d="M14 3.5V8h4M9 12.5h6M9 16h6"/></svg>'}</span>
         <span class="hw-card-main">
           <span class="hw-card-title" style="display:block">${esc(a.title)}</span>
           <span class="hw-card-meta" style="display:block">${esc(a.teacher_name || 'Teacher')}${dueTxt && !finished ? ` · <span class="${late ? 'late' : ''}">${late ? 'Was due' : 'Due'} ${esc(dueTxt)}</span>` : ''}${s.key === 'IN_PROGRESS' ? ` · ${esc(s.line)}` : ''}</span>
@@ -1461,21 +1461,21 @@ if (location.hash === '#vocabulary') {
 }
 setTimeout(loadVocab, 1000);
 </script>
-<script src="scripts/hear-in-context.js?v=1286"></script>
-<script src="scripts/vault-review.js?v=1286"></script>
-<script src="scripts/vault-cabinet.js?v=1286"></script>
-<script src="scripts/writing-shared.js?v=1286"></script>
-<script src="scripts/writing-mine.js?v=1286"></script>
-<script src="scripts/autogrow.js?v=1286" defer></script>
-<script src="pwa-boot.js?v=1286" defer></script>
-<script src="pwa.js?v=1286"></script>
-<script src="scripts/nav-boost.js?v=1286" defer></script>
-<script src="scripts/mobile-perf.js?v=1286" defer></script>
-<script src="scripts/mobile-nav.js?v=1286"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1286" defer></script>
-  <script src="scripts/signin-entry.js?v=1286" defer></script>
-<script src="scripts/verify-banner.js?v=1286" defer></script>
-<script src="scripts/nav-bell.js?v=1286" defer></script>
-<script src="scripts/modal-guard.js?v=1286" defer></script>
+<script src="scripts/hear-in-context.js?v=1288"></script>
+<script src="scripts/vault-review.js?v=1288"></script>
+<script src="scripts/vault-cabinet.js?v=1288"></script>
+<script src="scripts/writing-shared.js?v=1288"></script>
+<script src="scripts/writing-mine.js?v=1288"></script>
+<script src="scripts/autogrow.js?v=1288" defer></script>
+<script src="pwa-boot.js?v=1288" defer></script>
+<script src="pwa.js?v=1288"></script>
+<script src="scripts/nav-boost.js?v=1288" defer></script>
+<script src="scripts/mobile-perf.js?v=1288" defer></script>
+<script src="scripts/mobile-nav.js?v=1288"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1288" defer></script>
+  <script src="scripts/signin-entry.js?v=1288" defer></script>
+<script src="scripts/verify-banner.js?v=1288" defer></script>
+<script src="scripts/nav-bell.js?v=1288" defer></script>
+<script src="scripts/modal-guard.js?v=1288" defer></script>
 </body>
 </html>

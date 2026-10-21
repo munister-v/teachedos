@@ -446,3 +446,32 @@ html body:not(#_) .te-card .te-join.is-off,html body:not(#_) .te-card.is-next .t
 /* the Word Bank card links into the hub: chips and the main action are anchors now */
 a.te-ws,a.te-wmain{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 a.te-ws{display:grid}
+
+/* ══ The Homework sheet in the hub's language ═════════════════════════
+   Manrope, Midnight Graphite and lime, sand under white cards, caps kickers, pill buttons, no emoji. */
+.te-sheet-ov{background:rgba(30,34,49,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.te-sheet{width:min(640px,100%);background:#F6F6EF;border-radius:28px;box-shadow:0 30px 80px rgba(30,34,49,.35);font-family:Manrope,'TeachEd UI',-apple-system,BlinkMacSystemFont,sans-serif;color:#1E2231}
+.te-sheet-head{padding:24px 28px 6px}
+.te-sheet-head b{font-size:28px;font-weight:800;letter-spacing:-.03em}
+.te-sheet-x{width:36px;height:36px;border-radius:50%;background:#E9E8DD;color:#1E2231}
+.te-sheet-x:hover{background:#DFDDCF}
+.te-sheet-body{padding:8px 28px 28px}
+.te-sheet .hw-tabs{gap:8px;margin:0 0 16px}
+.te-sheet .hw-tabs button{min-height:38px;padding:0 18px;border:1.5px solid rgba(30,34,49,.14);background:#fff;color:#1E2231;font-weight:800}
+.te-sheet .hw-tabs button[aria-selected="true"]{background:#1E2231;border-color:#1E2231;color:#D3F26A}
+.te-sheet .hw-sec{font:800 11px 'SF Mono',ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#5D614B;margin:18px 2px 10px}
+.te-sheet .hw-card{gap:14px;padding:14px 16px;margin-bottom:10px;background:#fff;border:0;border-radius:20px;box-shadow:0 6px 18px rgba(30,34,49,.06);transition:transform .15s,box-shadow .15s}
+.te-sheet .hw-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(30,34,49,.12)}
+.te-sheet .hw-card.fresh{box-shadow:0 0 0 2px #D3F26A inset,0 6px 18px rgba(30,34,49,.06)}
+.te-sheet .hw-card-ic{width:46px;height:46px;flex:0 0 46px;border-radius:14px;background:#E9F5C4;color:#1E2231}
+.te-sheet .hw-card.done .hw-card-ic{background:#EFEEE7;color:#5D614B}
+.te-sheet .hw-card-title{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.te-sheet .hw-card-meta{font-size:12.5px;font-weight:600;color:#5D614B}
+.te-sheet .hw-card-meta .late{color:#FF4E00;font-weight:800}
+.te-sheet .hw-card-note{color:#5D614B}
+.te-sheet .hw-card-score{font:800 13px 'SF Mono',ui-monospace,Menlo,monospace;background:#EFEEE7;color:#1E2231}
+.te-sheet .hw-card-score.pass{background:#E9F5C4}
+.te-sheet .hw-card-go{padding:10px 18px;border-radius:99px;background:#D3F26A;color:#1E2231;font-weight:800;font-size:13px}
+.te-sheet .hw-card.done .hw-card-go{background:#EFEEE7;color:#1E2231}
+.te-sheet .empty-state{background:#fff;border:0;border-radius:20px;color:#5D614B;font-weight:600;padding:28px 18px}
+@media (max-width:700px){.te-sheet{border-radius:28px 28px 0 0}.te-sheet-head{padding:20px 20px 4px}.te-sheet-body{padding:8px 20px 24px}.te-sheet .hw-card-go{padding:9px 14px}}
