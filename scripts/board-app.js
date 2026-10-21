@@ -9960,7 +9960,11 @@ document.getElementById('btn-fit').addEventListener('click', fitAll);
 /* Sync zoom % to bottom-right control - handled in applyTransform above */
 
 /* ════════════════════════ SPACE PAN ════════════════════════ */
+let _penPausedTool = null;
+function _resumePen() { const t = _penPausedTool; _penPausedTool = null; if (t && !_drawTool) toggleDrawTool(t); }
+window.addEventListener('blur', _resumePen);
 document.addEventListener('keyup', e => {
+  if (e.code === 'Space' && _penPausedTool) { _resumePen(); return; }
   if (e.code === 'Space') {
     if (_handMode) return; // hand tool keeps pan on
     spaceDown = false;
@@ -10018,6 +10022,10 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   // Space = pan - but never while typing in a sticky / text card (contenteditable)
   if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT' && !e.target.isContentEditable) {
+    // With a pen / marker / eraser in hand, holding Space is a temporary Select:
+    // the tool and its settings come back when Space is let go.
+    if (_drawTool && !_penPausedTool) { _penPausedTool = _drawTool; disableDrawTool(); }
+    if (_penPausedTool) { e.preventDefault(); return; }
     if (!spaceDown) {
       spaceDown = true;
       boardWrap.style.cursor = 'grab';
@@ -17404,7 +17412,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1308';
+const TEACHEDOS_ASSET_VERSION = '1311';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24782,7 +24790,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1308',
+          icon: 'icons/icon-192.png?v=1311',
           tag: 'board-live-' + s.id,
         });
       }
@@ -30785,6 +30793,8 @@ function _beginDraw(e) {
     size: conf.size,
     points: [p0],
   };
+  const _host = _strokeHostCard(e);
+  if (_host) _currentStroke.bind = _host;
   state.strokes = state.strokes || [];
   state.strokes.push(_currentStroke);
 
@@ -30795,6 +30805,68 @@ function _beginDraw(e) {
   _drawSvg.appendChild(_drawPath);
   if (typeof e.preventDefault === 'function') e.preventDefault();
 }
+
+/* A stroke that starts on an object belongs to it: it moves, scales and is
+   deleted with that object. The object's geometry at bind time is kept in
+   stroke.bind; _boundTick carries the points along whenever it changes. */
+function _cardBox(card) {
+  const el = getCardEl(card.id);
+  return { x: card.x, y: card.y, w: card.w || el?.offsetWidth || 1, h: card.h || el?.offsetHeight || 1 };
+}
+function _strokeHostCard(e) {
+  // while a pen is in hand the cards do not take pointer events, so hit-test by geometry
+  let best = null, bestZ = -Infinity;
+  state.cards.forEach((c, i) => {
+    if (c.type === 'frame' || (c.data && c.data.private)) return;
+    const el = getCardEl(c.id);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+    const z = (parseInt(getComputedStyle(el).zIndex, 10) || 0) * 10000 + i;
+    if (z > bestZ) { bestZ = z; best = c; }
+  });
+  return best ? { id: best.id, ..._cardBox(best) } : null;
+}
+let _boundRaf = 0, _boundSyncAt = 0;
+const _boundMissing = {};
+function _boundTick() {
+  _boundRaf = 0;
+  const bound = (state.strokes || []).filter(s => s.bind);
+  if (!bound.length) return;
+  let moved = false, gone = [];
+  const now = Date.now();
+  for (const s of bound) {
+    const card = state.cards.find(c => c.id === s.bind.id);
+    if (!card) {
+      _boundMissing[s.id] = _boundMissing[s.id] || now;
+      if (now - _boundMissing[s.id] > 600 && state.cards.length) gone.push(s.id);
+      continue;
+    }
+    delete _boundMissing[s.id];
+    const b = s.bind, n = _cardBox(card);
+    if (b.x === n.x && b.y === n.y && b.w === n.w && b.h === n.h) continue;
+    const k = b.w ? n.w / b.w : 1;
+    s.points = s.points.map(p => ({ x: n.x + (p.x - b.x) * k, y: n.y + (p.y - b.y) * k }));
+    s.bind = { id: b.id, ...n };
+    const path = _drawSvg && _drawSvg.querySelector(`[data-stroke-id="${s.id}"]`);
+    if (path) path.setAttribute('d', _strokePath(s.points));
+    moved = true;
+  }
+  if (gone.length) {
+    state.strokes = state.strokes.filter(s => !gone.includes(s.id));
+    gone.forEach(id => delete _boundMissing[id]);
+    renderAllStrokes(); moved = true;
+  }
+  if (moved) _boundSyncAt = now + 400;
+  else if (_boundSyncAt && now > _boundSyncAt) {
+    _boundSyncAt = 0;
+    if (typeof _broadcastStrokesSoon === 'function') _broadcastStrokesSoon();
+    if (typeof scheduleSave === 'function') scheduleSave();
+  }
+  _boundRaf = setTimeout(_boundTick, 40);
+}
+function _startBoundWatch() { if (!_boundRaf) _boundRaf = setTimeout(_boundTick, 40); }
+setInterval(() => { if (!_boundRaf && (state.strokes || []).some(s => s.bind)) _startBoundWatch(); }, 1000);
 
 function _moveDraw(e) {
   if (_drawTool && boardWrap.contains(e.target)) _updateDrawCursor(e);
