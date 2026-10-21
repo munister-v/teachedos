@@ -1382,10 +1382,12 @@ body.alt-duplicating *{cursor:copy!important;}
 }
 .group-outline .group-badge:hover{opacity:1;}
 
-/* Drawing layer (pencil / highlighter) - sits above cards when active */
+/* Drawing layer (pencil / highlighter) - above every card. A card's z-index is its place in the stack and
+   grows with each card added or brought to the front; the layer used to sit at 6, so a screenshot pasted
+   after the sixth card covered what was drawn on it ("the pen does not work on screenshots"). */
 #draw-svg{
   position:absolute;inset:0;width:100%;height:100%;
-  pointer-events:none;z-index:6;overflow:visible;
+  pointer-events:none;z-index:100000;overflow:visible;
 }
 #board-wrap.drawing #draw-svg{pointer-events:auto;cursor:crosshair;touch-action:none;}
 #board-wrap.drawing.draw-eraser #draw-svg{cursor:none;}
