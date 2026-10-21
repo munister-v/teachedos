@@ -1,0 +1,53 @@
+/* The audio track on the board: ink on a glass panel, olive for the quiet text, lime only on Play. */
+.board-card.card-audio{
+  min-width:320px;min-height:140px;border-radius:20px;overflow:visible;
+  background:rgba(255,255,255,.86);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border:1px solid rgba(11,16,38,.08);box-shadow:0 12px 32px rgba(11,16,38,.14);
+}
+.card-audio .ba{--ink:#0B1026;--olive:#8A8672;--lime:#D3F26A;--line:rgba(11,16,38,.14);
+  height:100%;box-sizing:border-box;padding:14px 16px 12px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;
+  font-family:Manrope,'TeachEd UI',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink);user-select:none}
+.card-audio .ba button{font-family:inherit;cursor:pointer;color:var(--ink)}
+.card-audio .ba button:disabled{opacity:.4;cursor:default}
+.card-audio .ba-top{display:flex;align-items:center;gap:8px;min-width:0}
+.card-audio .ba-skip{width:32px;height:32px;border-radius:50%;border:0;background:rgba(11,16,38,.06);display:grid;place-items:center;flex:none;transition:background .15s}
+.card-audio .ba-skip:hover:not(:disabled){background:rgba(11,16,38,.12)}
+.card-audio .ba-play{width:46px;height:46px;border-radius:50%;border:0;background:var(--lime);color:var(--ink);display:grid;place-items:center;flex:none;box-shadow:0 4px 12px rgba(160,200,30,.45);transition:transform .15s}
+.card-audio .ba-play:hover:not(:disabled){transform:scale(1.06)}
+.card-audio .ba-play:active:not(:disabled){transform:scale(.96)}
+.card-audio .ba-titles{min-width:0;flex:1;margin-left:4px}
+.card-audio .ba-title{font-size:15px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-audio .ba-meta{font-size:12px;font-weight:600;color:var(--olive);margin-top:1px}
+.card-audio .ba.is-error .ba-meta{color:#B23A0E}
+.card-audio .ba-teacher{display:flex;gap:4px;flex:none}
+.card-audio .ba-tool{width:28px;height:28px;border-radius:9px;border:0;background:transparent;display:grid;place-items:center;color:var(--olive)}
+.card-audio .ba-tool:hover{background:rgba(11,16,38,.07);color:var(--ink)}
+.card-audio .ba-tool--danger:hover{background:rgba(178,58,14,.1);color:#B23A0E}
+.card-audio .ba-seek{display:flex;align-items:center;gap:10px}
+.card-audio .ba-time{font:700 11.5px 'SF Mono',ui-monospace,Menlo,monospace;color:var(--olive);width:34px;flex:none;text-align:center}
+.card-audio .ba-bottom{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}
+.card-audio .ba-mute{width:28px;height:28px;border:0;background:transparent;border-radius:9px;display:grid;place-items:center;flex:none}
+.card-audio .ba-ab{display:flex;gap:4px;align-items:center}
+.card-audio .ba-abbtn{white-space:nowrap;border:1.5px solid var(--line);background:transparent;border-radius:99px;padding:3px 9px;font-size:11px;font-weight:800}
+.card-audio .ba-abbtn.is-set{background:var(--ink);color:#fff;border-color:var(--ink)}
+.card-audio .ba-abbtn--loop{display:inline-flex;align-items:center;gap:4px}
+.card-audio .ba-speeds{display:flex;gap:2px;margin-left:auto;background:rgba(11,16,38,.06);border-radius:99px;padding:2px}
+.card-audio .ba-speed{border:0;background:transparent;border-radius:99px;padding:3px 7px;font-size:11px;font-weight:800;color:var(--olive)}
+.card-audio .ba-speed.is-active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(11,16,38,.16)}
+
+/* the elastic slider */
+.ba-es{position:relative;flex:1;min-width:60px;height:26px;display:flex;align-items:center;cursor:pointer;touch-action:none;outline:none}
+.ba-es--small{flex:none;width:92px}
+.ba-es .ba-es-track{position:relative;width:100%;height:8px;border-radius:99px;background:rgba(11,16,38,.14);transition:height .18s ease;will-change:transform}
+.ba-es--small .ba-es-track{height:5px}
+.ba-es:hover .ba-es-track,.ba-es.is-drag .ba-es-track,.ba-es:focus-visible .ba-es-track{height:16px}
+.ba-es--small:hover .ba-es-track,.ba-es--small.is-drag .ba-es-track,.ba-es--small:focus-visible .ba-es-track{height:11px}
+.ba-es .ba-es-track.ba-spring{transition:height .18s ease,transform .5s cubic-bezier(.34,1.8,.5,1)}
+.ba-es .ba-es-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#0B1026;width:0}
+.ba-es .ba-es-thumb{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #0B1026,0 2px 6px rgba(11,16,38,.3);opacity:0;transition:opacity .15s}
+.ba-es:hover .ba-es-thumb,.ba-es.is-drag .ba-es-thumb,.ba-es:focus-visible .ba-es-thumb{opacity:1}
+.ba-es:focus-visible{box-shadow:0 0 0 2px rgba(11,16,38,.35);border-radius:99px}
+.ba-es .ba-es-bubble{position:absolute;bottom:calc(50% + 14px);transform:translateX(-50%) scale(.8);padding:2px 8px;border-radius:99px;background:#0B1026;color:#fff;font:700 11px 'SF Mono',ui-monospace,Menlo,monospace;opacity:0;pointer-events:none;transition:opacity .12s,transform .12s;white-space:nowrap}
+.ba-es.is-drag .ba-es-bubble{opacity:1;transform:translateX(-50%) scale(1)}
+.ba-es.is-off{opacity:.4;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.ba-es .ba-es-track,.ba-es .ba-es-track.ba-spring{transition:none}}

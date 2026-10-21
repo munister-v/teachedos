@@ -684,7 +684,7 @@ function getDefaults(type) {
             frame:{w:500,h:340},  sticker:{w:96,h:96},
             voting:{w:300,h:260},
             shape:{w:200,h:160},  mindmap:{w:180,h:64},  table:{w:320,h:200},
-            worksheet:{w:420,h:360},
+            worksheet:{w:420,h:360}, audio:{w:440,h:148},
           })[type] || { w:220,h:160 };
 }
 
@@ -840,6 +840,7 @@ function renderCard(card) {
   else if (card.type === 'mindmap')    renderMindmap(el, card);
   else if (card.type === 'table')      renderTable(el, card);
   else if (card.type === 'gif')        renderGif(el, card);
+  else if (card.type === 'audio' && window.BoardAudioPlayer) window.BoardAudioPlayer.render(el, card, { canEdit: typeof boardCanEdit === 'undefined' ? true : !!boardCanEdit, student: !!(currentUser && currentUser.role === 'student') });
 
   // Apply stored accent color
   if (card.data._accent) el.classList.add(card.data._accent);
@@ -2457,6 +2458,38 @@ function quickAddFrame() {
   if (newCard) { newCard.z = 0; applyCardLayer && applyCardLayer(newCard); }
   setMiroTool('select');
   scheduleSave && scheduleSave(); saveLocal && saveLocal();
+}
+
+/* A frame under the selected cards: the "backing" of a lesson. It is made a little larger than what it holds,
+   named after it, sent behind everything, and the cards become its children, so the frame and the
+   lesson move, copy and scale together. One undo step. */
+function frameAroundCards(ids) {
+  const cards = (ids || []).map(id => state.cards.find(c => c.id === id)).filter(c => c && c.type !== 'frame');
+  if (!cards.length) { toast && toast('Select a card first'); return null; }
+  const pad = 36, head = 44;
+  const x0 = Math.min(...cards.map(c => c.x)), y0 = Math.min(...cards.map(c => c.y));
+  const x1 = Math.max(...cards.map(c => c.x + c.w)), y1 = Math.max(...cards.map(c => c.y + c.h));
+  const first = cards[0];
+  const name = (first.data && (first.data.title || first.data.label)) || (first.type === 'worksheet' ? 'Lesson' : 'Frame');
+  const n = (state.cards.filter(c => c.type === 'frame').length) + 1;
+  snapshot();
+  _suppressSnapshot++;
+  let frame = null;
+  try {
+    frame = addCard('frame', x0 - pad, y0 - pad - head, { title: String(name).slice(0, 60), num: n, bg: 'rgba(36,40,44,.05)', border: 'rgba(36,40,44,.30)', childIds: [] }, (x1 - x0) + pad * 2, (y1 - y0) + pad * 2 + head);
+    if (frame) {
+      frame.z = 0; applyCardLayer && applyCardLayer(frame);
+      cards.forEach(c => setCardParentFrame(c, frame));
+    }
+  } finally { _suppressSnapshot--; }
+  if (frame) {
+    clearSelection && clearSelection();
+    state.selected = new Set([frame.id]);
+    getCardEl(frame.id)?.classList.add('selected');
+    toast && toast('Frame added · Cmd+Z to undo');
+    scheduleSave && scheduleSave(); saveLocal && saveLocal();
+  }
+  return frame;
 }
 
 /* ─── Miro-style frame containment ─── */
@@ -4780,6 +4813,7 @@ function _wpRender(el, card, focus) {
           ${canRename ? `<button type="button" class="wp-title wp-rename" title="Rename this lesson">${esc(card.data.title || 'Lesson')}<i aria-hidden="true">✎</i></button>` : `<b class="wp-title">${esc(card.data.title || 'Lesson')}</b>`}</div>
         <div class="wp-acts">
           ${review ? `<button type="button" class="wp-btn wp-rv" data-rv="-1"${review.i === 0 ? ' disabled' : ''} aria-label="Previous student">‹</button><span class="wp-rv-n">${review.i + 1} / ${review.list.length}</span><button type="button" class="wp-btn wp-rv" data-rv="1"${review.i >= review.list.length - 1 ? ' disabled' : ''} aria-label="Next student">›</button><button type="button" class="wp-btn wp-rv-refresh" title="Load what they did since">↻</button>` : ''}
+          ${canRename && focus ? `<button type="button" class="wp-btn wp-edit" title="Change the texts, questions and words of this lesson">\u270F Edit lesson</button><button type="button" class="wp-btn wp-frame" title="Put a frame under this lesson on the board">\u25AD Add frame</button>` : ''}
           ${canAssign ? `<button type="button" class="wp-btn wp-assign" title="Give this lesson to students as homework - they get it under Homework with a Start button">📚 Assign as homework</button>` : ''}
           ${theme && focus && window.TeachedSounds ? window.TeachedSounds.btnHtml('wp-btn') : ''}
           ${canTheme ? `<button type="button" class="wp-btn wp-theme" title="Theme / Vibe - how the lesson looks for students">🎨${theme ? ' ' + esc((window.TeachedThemes.get(theme) || {}).name || '') : ' Theme'}</button>` : ''}
@@ -4894,6 +4928,8 @@ function _wpRender(el, card, focus) {
   root.querySelector('.lf-finish')?.addEventListener('click', () => window.TeachedFlow.finish(card.id));
   root.querySelector('.wp-open')?.addEventListener('click', () => openCardStudio(card.id));
   root.querySelector('.wp-assign')?.addEventListener('click', () => TeachEdAssign.forBoardCard(card));
+  root.querySelector('.wp-edit')?.addEventListener('click', () => { closeCardStudio(); setTimeout(() => openCardEditor(card.id), 60); });
+  root.querySelector('.wp-frame')?.addEventListener('click', () => { closeCardStudio(); setTimeout(() => { frameAroundCards([card.id]); }, 60); });
   root.querySelector('.wp-rename')?.addEventListener('click', e => {
     const btn = e.currentTarget;
     const inp = document.createElement('input');
@@ -5390,6 +5426,48 @@ function _wpGo(cardId, k) {
   if (_wpFocusId === cardId) _studioRender();
   else _wpRedraw(card);
 }
+/* A game in a lesson path that finishes moves the lesson on by itself: a short "Next up" bar with a
+   countdown (Stay here cancels it) instead of leaving the student at the end screen to find the
+   Next button. Only the game that is on screen counts, and only once per step. */
+let _wpAutoTimer = null, _wpAutoFor = '';
+function _wpAutoCancel() { clearInterval(_wpAutoTimer); _wpAutoTimer = null; document.querySelectorAll('.wp-auto').forEach(n => n.remove()); }
+window.addEventListener('message', e => {
+  const d = e.data;
+  if (!d || !(d.type === 'game-finished' && d.status === 'done' || d.type === 'game-result' || d.type === 'gameScore')) return;
+  const ov = document.getElementById('card-studio');
+  if (!ov || !_wpFocusId) return;
+  const fr = [...ov.querySelectorAll('iframe')].find(f => f.contentWindow === e.source);
+  if (!fr) return;
+  const card = _wpCard(_wpFocusId), p = card && card.data && card.data._wfPath;
+  if (!p) return;
+  const cur = _wpCur(card), nxt = p.steps[cur + 1];
+  if (!nxt || card.__preview) return;
+  const key = card.id + ':' + cur;
+  if (_wpAutoFor === key) return;
+  _wpAutoFor = key;
+  _wpAutoCancel();
+  const lf = window.TeachedFlow ? window.TeachedFlow.ctxFor(card.id) : null;
+  if (lf && cur + 1 > lf.to) return;
+  const bar = document.createElement('div');
+  bar.className = 'wp-auto';
+  bar.setAttribute('role', 'status');
+  let left = 4;
+  const paint = () => { bar.innerHTML = '<span>Done. Next up: <b>' + esc(nxt.title || 'the next step') + '</b> in ' + left + '</span><button type="button" class="go">Go now</button><button type="button" class="stay">Stay here</button>'; };
+  paint();
+  const root = ov.querySelector('.wp-nav') || ov;
+  root.appendChild(bar);
+  if (!document.getElementById('wp-auto-css')) {
+    const st = document.createElement('style'); st.id = 'wp-auto-css';
+    st.textContent = '.wp-nav{position:relative}.wp-auto{position:absolute;left:50%;bottom:calc(100% + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:10px 12px 10px 18px;border-radius:99px;background:#0B1026;color:#fff;font:700 14px Manrope,sans-serif;box-shadow:0 12px 30px rgba(11,16,38,.35);z-index:5;white-space:nowrap}.wp-auto b{color:#D3F26A}.wp-auto button{border:0;border-radius:99px;padding:8px 14px;font:800 13px Manrope,sans-serif;cursor:pointer}.wp-auto .go{background:#D3F26A;color:#0B1026}.wp-auto .stay{background:rgba(255,255,255,.14);color:#fff}';
+    document.head.appendChild(st);
+  }
+  const go = () => { _wpAutoCancel(); if (_wpFocusId === card.id && _wpCur(card) === cur) _wpGo(card.id, cur + 1); };
+  bar.querySelector('.go').onclick = go;
+  bar.querySelector('.stay').onclick = _wpAutoCancel;
+  _wpAutoTimer = setInterval(() => { left--; if (left <= 0) go(); else paint2(); }, 1000);
+  function paint2() { const b = bar.querySelector('span b'); if (!b) return paint(); bar.querySelector('span').lastChild.textContent = ' in ' + left; }
+});
+
 function _wpHandleMessage(m, e) {
   const [baseId, kStr, sub] = m.cardId.split('::');
   const k = Number(kStr);
@@ -8205,6 +8283,9 @@ function ensureLayerPopover() {
     <button class="layer-btn" data-action="edit" title="Edit">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11.5 1.5l3 3L5 14H2v-3l9.5-9.5z"/></svg>
     </button>
+    <button class="layer-btn" data-action="frame" title="Add a frame under it (the backing of a lesson)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1.5v13M11 1.5v13M1.5 5h13M1.5 11h13"/></svg>
+    </button>
     <button class="layer-btn" data-action="duplicate" title="Duplicate (Ctrl+D)">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M2 11V3a1 1 0 0 1 1-1h8"/></svg>
     </button>
@@ -8230,6 +8311,9 @@ function ensureLayerPopover() {
     const cardId = pop.dataset.cardId;
     if (btn.dataset.action === 'edit') {
       typeof openCardEditor === 'function' && openCardEditor(cardId);
+    } else if (btn.dataset.action === 'frame') {
+      frameAroundCards([...(state.selected.has(cardId) ? state.selected : [cardId])]);
+      hideLayerPopover && hideLayerPopover();
     } else if (btn.dataset.action === 'duplicate') {
       // Make sure the popover's card is part of the selection so duplicate
       // copies the right thing even if selection state got out of sync.
@@ -17293,7 +17377,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1275';
+const TEACHEDOS_ASSET_VERSION = '1278';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24601,7 +24685,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1275',
+          icon: 'icons/icon-192.png?v=1278',
           tag: 'board-live-' + s.id,
         });
       }
@@ -28975,7 +29059,7 @@ function handleAudioFileSelect(input) {
 }
 function loadAudioFile(file) {
   const MAX = 20 * 1024 * 1024; // 20 MB
-  if (file.size > MAX) { alert('Audio file is too large. Max 20 MB.'); return; }
+  if (file.size > MAX) { alert('Audio file is too large. Max 50 MB.'); return; }
   const info = document.getElementById('audio-file-info');
   info.textContent = `🎵 ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
   info.style.display = 'block';
@@ -29197,7 +29281,7 @@ function handleImageFileSelect(input) {
 /* Pictures and audio files land on the board the same way from a drop, from
    Cmd+V and from a file copied in Finder: one place decides what a file is,
    places it (a row, so several files do not stack) and says what it did. */
-const BOARD_AUDIO_MAX_BYTES = 20 * 1024 * 1024;
+const BOARD_AUDIO_MAX_BYTES = 50 * 1024 * 1024;
 function _isBoardAudioFile(f) {
   return !!f && (/^audio\//i.test(f.type || '') || /\.(mp3|m4a|wav|ogg|oga|aac|flac|opus|weba)$/i.test(f.name || ''));
 }
@@ -29223,7 +29307,7 @@ async function _addBoardMediaFiles(files, at) {
     const x = base.x + i * 40, y = base.y + i * 40;
     try {
       if (_isBoardAudioFile(f)) {
-        if (f.size > BOARD_AUDIO_MAX_BYTES) throw new Error('Audio file is too large. Max 20 MB.');
+        if (f.size > BOARD_AUDIO_MAX_BYTES) throw new Error('Audio file is too large. Max 50 MB.');
         const src = await _readFileAsDataUrl(f);
         const title = (f.name || 'Audio').replace(/\.[^.]+$/, '') || 'Audio';
         const card = addCard('audio', x, y, { title, src });
