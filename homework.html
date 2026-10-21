@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1263"></script>
-<link rel="icon" href="favicon.ico?v=1263" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1263">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1263">
+<script src="scripts/phone-gate.js?v=1265"></script>
+<link rel="icon" href="favicon.ico?v=1265" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1265">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1265">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1263">
-<link rel="preload" as="style" href="styles/unify.css?v=1263">
+<link rel="preload" as="style" href="styles/harmony.css?v=1265">
+<link rel="preload" as="style" href="styles/unify.css?v=1265">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <title>Homework · TeachEd</title>
-<link rel="stylesheet" href="styles/fonts.css?v=1263">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1263">
+<link rel="stylesheet" href="styles/fonts.css?v=1265">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1265">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -319,27 +319,38 @@ body.tw-page:not(#_) :is(#hw-list, #hw-detail) .pill.submitted{background:#FFE98
 .cd-item b{font-weight:800}.cd-item small{color:#5D614B;font-weight:600}
 .cd-item button{margin-left:auto;border:0;background:none;color:#B23A0E;font:700 12px var(--font);cursor:pointer;}
 @media (max-width:760px){.cd-form{grid-template-columns:1fr 1fr}}
+
+.wr-card{margin:18px 0;padding:18px 20px;border-radius:18px;background:#fff;border:1.5px solid var(--border2,rgba(93,97,75,.22));}
+.wr-card h2{margin:0 0 4px;font-size:16px;font-weight:800;}
+.wr-card .wr-sub{margin:0 0 14px;font-size:13px;color:#5D614B;font-weight:600;}
+.wr-form{display:grid;grid-template-columns:110px 2fr 1fr 90px;gap:10px;align-items:end;}
+.wr-form label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5D614B;}
+.wr-form input,.wr-form select,.wr-form textarea{font:600 14px var(--font);padding:9px 11px;border:1.5px solid rgba(93,97,75,.28);border-radius:10px;background:#fff;color:#24282C;text-transform:none;letter-spacing:0;}
+.wr-form .wr-wide{grid-column:1 / -1;}
+.wr-gate{padding:12px 14px;border-radius:14px;background:rgba(205,246,73,.14);margin-top:10px;font-size:13.5px;font-weight:600;}
+.wr-gate b{font-weight:800}.wr-gate p{margin:6px 0;font-style:italic}.wr-gate .wr-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.wr-gate input{flex:1;min-width:200px;font:600 13px var(--font);padding:8px 10px;border:1.5px solid rgba(93,97,75,.28);border-radius:10px}
+@media (max-width:760px){.wr-form{grid-template-columns:1fr 1fr}}
 </style>
-<script src="theme.js?v=1263" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1263">
-<link rel="stylesheet" href="styles/harmony.css?v=1263">
-<link rel="stylesheet" href="styles/unify.css?v=1263">
-<link rel="stylesheet" href="styles/teached-brand.css?v=1263">
-<link rel="stylesheet" href="styles/tool-window.css?v=1263">
+<script src="theme.js?v=1265" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1265">
+<link rel="stylesheet" href="styles/harmony.css?v=1265">
+<link rel="stylesheet" href="styles/unify.css?v=1265">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1265">
+<link rel="stylesheet" href="styles/tool-window.css?v=1265">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1263">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1263">
-<link rel="stylesheet" href="styles/controls.css?v=1263">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1265">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1265">
+<link rel="stylesheet" href="styles/controls.css?v=1265">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1263">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1263">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1263">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1263">
-<link rel="stylesheet" href="styles/toast.css?v=1263">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1263">
+<link rel="stylesheet" href="styles/polish.css?v=1265">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1265">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1265">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1265">
+<link rel="stylesheet" href="styles/toast.css?v=1265">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1265">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1263">
-<link rel="stylesheet" href="styles/ds-v1.css?v=1263">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1265">
+<link rel="stylesheet" href="styles/ds-v1.css?v=1265">
 </head>
 <body class="mp-shell tw-page fx">
 
@@ -357,7 +368,7 @@ body.tw-page:not(#_) :is(#hw-list, #hw-detail) .pill.submitted{background:#FFE98
 </div>
 
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1263" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1265" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -429,6 +440,28 @@ body.tw-page:not(#_) :is(#hw-list, #hw-detail) .pill.submitted{background:#FFE98
       <button class="btn btn-ghost" type="submit">Set the challenge</button>
     </form>
     <div class="cd-list" id="cd-list"></div>
+  </section>
+
+  <section class="wr-card" id="wr-card" hidden aria-labelledby="wr-title">
+    <h2 id="wr-title">Watch &amp; Read for your class</h2>
+    <p class="wr-sub">A video or an article for the Watch &amp; Read screen of your students' hub, shown to each at their own level. Their words go to the Word Bank in one tap and the quiz is made from them.</p>
+    <form class="wr-form" id="wr-form" onsubmit="saveMaterial(event)">
+      <label>Kind<select id="wr-kind" onchange="wrKindChange()"><option value="read">Article</option><option value="watch">Video</option></select></label>
+      <label>Title<input id="wr-t" maxlength="160" required placeholder="The harbour at dawn"></label>
+      <label>Topic<input id="wr-topic" maxlength="40" placeholder="Travel"></label>
+      <label>Level<select id="wr-lv"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option></select></label>
+      <label class="wr-wide" id="wr-url-wrap" hidden>YouTube link<input id="wr-url" placeholder="https://youtu.be/..."></label>
+      <label class="wr-wide" id="wr-body-wrap">Text (at least a few paragraphs)<textarea id="wr-body" rows="6" placeholder="Paste the article here"></textarea></label>
+      <label class="wr-wide">Words - one per line: word - translation (add | an example if you like). At least four.<textarea id="wr-words" rows="5" placeholder="bargain - сделка&#10;hesitate - колебаться&#10;lantern - фонарь&#10;glacier - ледник"></textarea></label>
+      <button class="btn btn-ghost" type="submit">Add to the feed</button>
+    </form>
+    <div class="cd-list" id="wr-list"></div>
+  </section>
+
+  <section class="wr-card" id="gate-card" hidden aria-labelledby="gate-title">
+    <h2 id="gate-title">Level gate requests</h2>
+    <p class="wr-sub">A student whose readiness reached 90% sent you a three-sentence pitch. Confirm the level, or say "not yet" with a plan - never just no.</p>
+    <div id="gate-list"></div>
   </section>
 
   <section class="hw-focus" aria-labelledby="hw-focus-title">
@@ -1251,22 +1284,64 @@ async function saveChallenge(e) {
 async function deleteChallenge(id) {
   try { await api('/api/challenges/teacher/' + encodeURIComponent(id), { method: 'DELETE' }); loadChallenges(); } catch (err) { toast(err.message); }
 }
+
+/* Watch & Read for the class, and the level gate requests. */
+function wrKindChange() {
+  const watch = document.getElementById('wr-kind').value === 'watch';
+  document.getElementById('wr-url-wrap').hidden = !watch;
+  document.getElementById('wr-body-wrap').hidden = watch;
+}
+async function loadHub() {
+  if (!token) return;
+  try {
+    const d = await api('/api/hub/teacher/materials');
+    document.getElementById('wr-card').hidden = false;
+    document.getElementById('wr-list').innerHTML = (d.materials || []).map(m =>
+      '<div class="cd-item"><b>' + esc(m.title) + '</b><small>' + (m.kind === 'watch' ? 'Video' : 'Article') + ' \u00B7 ' + esc(m.level) + ' \u00B7 ' + m.words + ' words \u00B7 ' + m.finished + ' finished</small>' +
+      '<button type="button" onclick="deleteMaterial(\'' + esc(m.id) + '\')">Remove</button></div>').join('');
+    const g = await api('/api/hub/teacher/gates');
+    const card = document.getElementById('gate-card');
+    card.hidden = !(g.gates || []).length;
+    document.getElementById('gate-list').innerHTML = (g.gates || []).map(x =>
+      '<div class="wr-gate"><b>' + esc(x.name) + '</b> \u00B7 ' + esc(x.level_from) + ' \u2192 ' + esc(x.level_to) + ' \u00B7 readiness ' + x.readiness + '%<p>\u201C' + esc(x.pitch) + '\u201D</p>' +
+      '<div class="wr-act"><button class="btn btn-ghost" type="button" onclick="decideGate(\'' + esc(x.id) + '\',\'confirm\')">Confirm ' + esc(x.level_to) + '</button>' +
+      '<input id="plan-' + esc(x.id) + '" placeholder="Not yet - the plan: what to do next"><button class="btn btn-ghost" type="button" onclick="decideGate(\'' + esc(x.id) + '\',\'not_yet\')">Not yet</button></div></div>').join('');
+  } catch (e) { document.getElementById('wr-card').hidden = true; }
+}
+async function saveMaterial(e) {
+  e.preventDefault();
+  try {
+    await api('/api/hub/teacher/materials', { method: 'POST', body: {
+      kind: document.getElementById('wr-kind').value, title: document.getElementById('wr-t').value, topic: document.getElementById('wr-topic').value,
+      level: document.getElementById('wr-lv').value, url: document.getElementById('wr-url').value, body: document.getElementById('wr-body').value, words: document.getElementById('wr-words').value } });
+    document.getElementById('wr-form').reset(); wrKindChange();
+    toast('Added - your students see it on Watch & Read at their level');
+    loadHub();
+  } catch (err) { toast(err.message); }
+}
+async function deleteMaterial(id) { try { await api('/api/hub/teacher/materials/' + encodeURIComponent(id), { method: 'DELETE' }); loadHub(); } catch (err) { toast(err.message); } }
+async function decideGate(id, decision) {
+  const plan = (document.getElementById('plan-' + id) || {}).value || '';
+  try { await api('/api/hub/teacher/gates/' + encodeURIComponent(id) + '/decide', { method: 'POST', body: { decision, plan } }); toast(decision === 'confirm' ? 'Level confirmed' : 'Plan sent'); loadHub(); }
+  catch (err) { toast(err.message); }
+}
 init();
 loadChallenges();
+loadHub();
 </script>
 
-<script src="scripts/writing-shared.js?v=1263"></script>
-<script src="scripts/writing-review.js?v=1263"></script>
-<script src="scripts/speaking-review.js?v=1263"></script>
-<script src="scripts/nav-boost.js?v=1263" defer></script>
-<script src="scripts/mobile-perf.js?v=1263" defer></script>
-<script src="scripts/mobile-nav.js?v=1263"></script>
-<script src="scripts/mobile-zoom-guard.js?v=1263" defer></script>
-<script src="scripts/autogrow.js?v=1263" defer></script>
-<script src="pwa-boot.js?v=1263" defer></script>
-  <script src="scripts/signin-entry.js?v=1263" defer></script>
-<script src="scripts/nav-bell.js?v=1263" defer></script>
-<script src="scripts/empty-stats.js?v=1263" defer></script>
-<script src="scripts/ds-v1.js?v=1263" defer></script>
+<script src="scripts/writing-shared.js?v=1265"></script>
+<script src="scripts/writing-review.js?v=1265"></script>
+<script src="scripts/speaking-review.js?v=1265"></script>
+<script src="scripts/nav-boost.js?v=1265" defer></script>
+<script src="scripts/mobile-perf.js?v=1265" defer></script>
+<script src="scripts/mobile-nav.js?v=1265"></script>
+<script src="scripts/mobile-zoom-guard.js?v=1265" defer></script>
+<script src="scripts/autogrow.js?v=1265" defer></script>
+<script src="pwa-boot.js?v=1265" defer></script>
+  <script src="scripts/signin-entry.js?v=1265" defer></script>
+<script src="scripts/nav-bell.js?v=1265" defer></script>
+<script src="scripts/empty-stats.js?v=1265" defer></script>
+<script src="scripts/ds-v1.js?v=1265" defer></script>
 </body>
 </html>

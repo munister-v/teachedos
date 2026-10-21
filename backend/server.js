@@ -206,6 +206,7 @@ app.use('/api/writing', require('./routes/writing'));
 app.use('/api/speaking', require('./routes/speaking'));
 app.use('/api/vault', require('./routes/vault'));
 app.use('/api/challenges', require('./routes/challenges'));
+app.use('/api/hub', require('./routes/hub'));
 app.use('/api/library', require('./routes/library'));
 app.use('/api/community', require('./routes/community'));
 app.use('/', require('./routes/seo'));   // public SEO pages: /community/resources/, /community/authors/, /sitemap-community.xml

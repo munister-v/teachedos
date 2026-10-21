@@ -362,7 +362,7 @@
     if (!pg) return;
     ['.mapband', '.mapsub', '.maplegend', '.nextstop'].forEach(q => pg.querySelectorAll(q).forEach(e => { e.style.display = ''; }));
     const grid = pg.querySelector('.grid2c');
-    if (grid) { grid.style.display = ''; const panels = grid.querySelectorAll(':scope > .panel'); if (panels[1]) panels[1].style.display = 'none'; if (panels[0]) panels[0].style.gridColumn = '1 / -1'; }
+    if (grid) { grid.style.display = ''; grid.querySelectorAll(':scope > .panel').forEach(pn => { pn.style.display = ''; pn.style.gridColumn = ''; }); }
     const sub = pg.querySelector('.edhead .sub'); if (sub) sub.textContent = 'Your climb from ' + L.from + ' to ' + L.to + ' — honestly measured';
     const meta = pg.querySelector('.edhead .meta');
     if (meta && !/XP total/.test(meta.textContent)) meta.insertAdjacentHTML('afterbegin', '<b>' + num(x.total) + '</b> XP total<br>');
@@ -881,6 +881,240 @@
     pop.classList.add('open'); start();
   }
 
+
+  /* Watch & Read, from /api/hub/feed: the pieces the student's teachers picked, at the student's level.
+     A piece opens in a sheet: the video or the article, its words one tap from the Word Bank, and a
+     three-question quiz that opens at 90%. */
+  const PAL = [['#1E2231', '#F4F3EC'], ['#8B7CFF', '#fff'], ['#FF4FA3', '#fff'], ['#F6D8D8', '#1E2231'], ['#E9F5C4', '#1E2231'], ['#D5F6F2', '#1E2231']];
+  const palOf = id => PAL[parseInt(String(id).replace(/[^0-9a-f]/gi, '').slice(0, 4) || '0', 16) % PAL.length];
+  let WR = null, wrRange = false, wrTopic = '';
+  const hubApi = (path, method, body) => api('/api/hub' + path, { method: method || 'GET', body }).then(r => r.json().then(d => ({ ok: r.ok, d }))).catch(() => ({ ok: false, d: { error: 'Network error' } }));
+  const loadFeed = () => hubApi('/feed' + (wrRange ? '?range=1' : '')).then(r => { if (r.ok) watchPaint(r.d); });
+  function coverHtml(m, i) {
+    const [bg, fg] = palOf(m.id), kick = (m.kicker || m.topic || (m.kind === 'watch' ? 'WATCH' : 'READ')).toUpperCase();
+    const words = m.title.split(' '), half = Math.ceil(words.length / 2);
+    const left = m.pct > 0 && !m.finished ? '<div class="covprog"><i style="width:' + m.pct + '%"></i></div>' : '';
+    return '<div class="mcard" data-open="' + esc2(m.id) + '"><div class="cardbox"><div class="cov"><div class="cov-field" style="background:' + bg + ';color:' + fg + '"><span class="cov-kick">' + esc2(kick) + '</span><span class="cov-t">' +
+      esc2(words.slice(0, half).join(' ')) + '<br>' + esc2(words.slice(half).join(' ')) + '</span></div></div>' +
+      '<div class="cbody cov-body"><div class="cbrow"><div><b>' + esc2(m.title) + '</b><span>' + esc2([m.kicker || m.topic, m.level, plural(m.words, 'word'), m.minutes + ' min'].filter(Boolean).join(' · ')) + '</span></div><div class="cbact"><button class="covbtn">' + (m.finished ? 'Again' : m.kind === 'watch' ? 'Watch' : 'Read') + '</button></div></div>' + left + '</div>' +
+      '<div class="decklayers"><i style="background:' + bg + '"></i><i style="background:#F6F6EF"></i></div></div></div>';
+  }
+  function watchPaint(f) {
+    const pg = document.getElementById('pg-watchread');
+    if (!pg || !f) return;
+    WR = f;
+    const top = pg.querySelector('.topline .day'); if (top) top.textContent = 'WATCH & READ · PICKED FOR ' + f.level;
+    const sub = pg.querySelector('.zsub2'); if (sub) sub.textContent = 'Picked for your level. The game after each piece is built from its words — that is the point.';
+    const items = f.items.filter(m => !wrTopic || m.topic === wrTopic);
+    const watch = items.filter(m => m.kind === 'watch'), read = items.filter(m => m.kind === 'read');
+    // featured: the first piece at the student's level that is not finished
+    const feat = pg.querySelector('.mcard.feat');
+    const pick = f.items.find(m => !m.finished && m.near === 0) || f.items.find(m => !m.finished) || f.items[0];
+    if (feat) {
+      feat.style.display = pick ? '' : 'none';
+      if (pick) {
+        const [bg, fg] = palOf(pick.id);
+        feat.dataset.open = pick.id;
+        const art = feat.querySelector('.art .im'); if (art) art.innerHTML = '<div style="width:100%;height:100%;min-height:200px;background:' + bg + ';color:' + fg + ';display:flex;flex-direction:column;justify-content:flex-end;padding:28px 34px;font-weight:800;font-size:44px;letter-spacing:-1px;line-height:1">' + esc2(pick.title) + '</div>';
+        feat.querySelector('.minpill').textContent = pick.minutes + ' min';
+        feat.querySelector('.wpill').textContent = plural(pick.words, 'word') + ' inside';
+        feat.querySelector('.lvpill').textContent = pick.level;
+        feat.querySelector('.gobtn').textContent = pick.kind === 'watch' ? '▶' : 'Read';
+        feat.querySelector('.cbody .kick2').textContent = 'FEATURED · ' + (pick.topic || pick.kicker || (pick.kind === 'watch' ? 'WATCH' : 'READ')).toUpperCase();
+        feat.querySelector('.cbody b').textContent = pick.title;
+        feat.querySelector('.cbody span').textContent = (pick.kind === 'watch' ? 'A video' : 'A short read') + ' picked by your teacher · ' + plural(pick.words, 'key word');
+      }
+    }
+    // filters: the level, a wider range, and the topics the teachers used
+    const chips = pg.querySelector('.chips');
+    if (chips) {
+      chips.innerHTML = '<span class="chlab">LEVEL</span><button class="chip lvl' + (wrRange ? '' : ' on') + '" data-lv="0">' + esc2(f.level) + '</button><button class="chip lvl' + (wrRange ? ' on' : '') + '" data-lv="1">± one level</button>' +
+        (f.topics.length ? '<span class="chlab">TOPICS</span>' + f.topics.map(t => '<button class="chip' + (wrTopic === t ? ' on' : '') + '" data-tp="' + esc2(t) + '">' + esc2(t) + '</button>').join('') : '');
+      chips.onclick = e => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.lv != null) { wrRange = b.dataset.lv === '1'; return loadFeed(); }
+        if (b.dataset.tp != null) { wrTopic = wrTopic === b.dataset.tp ? '' : b.dataset.tp; return watchPaint(WR); }
+      };
+    }
+    const grids = pg.querySelectorAll('.grid2');
+    if (grids[0]) grids[0].innerHTML = watch.length ? watch.map(coverHtml).join('') : '<div class="zsub">No videos yet — when your teacher picks one, it shows up here.</div>';
+    if (grids[1]) grids[1].innerHTML = read.length ? read.map(coverHtml).join('') : '<div class="zsub">No reads yet — stories your teacher picks land here.</div>';
+    const zd = pg.querySelector('.zdiv .zsub'); if (zd) zd.textContent = 'Stories your teacher picked. The game after each one is built from the words inside it.';
+    pg.onclick = e => { const c = e.target.closest('[data-open]'); if (c) openPiece(c.dataset.open); };
+    if (!f.items.length) { const k = pg.querySelector('.kick'); if (k) k.textContent = 'NOTHING PICKED YET'; }
+  }
+
+  function ensureWrStyle() {
+    if (document.getElementById('wrStyle')) return;
+    const st = document.createElement('style'); st.id = 'wrStyle';
+    st.textContent = '.wr-ov{position:fixed;inset:0;z-index:90;background:rgba(30,34,49,.55);backdrop-filter:blur(4px);display:grid;place-items:end center}' +
+      '.wr-pn{background:#fff;color:#1E2231;width:min(780px,96vw);max-height:92vh;overflow:auto;border-radius:28px 28px 0 0;padding:26px 30px 34px;font-family:Manrope,sans-serif;position:relative}' +
+      '.wr-x{position:absolute;top:16px;right:18px;width:34px;height:34px;border-radius:50%;border:0;background:#F1F1E8;cursor:pointer;font-size:15px}' +
+      '.wr-k{font-size:11px;font-weight:800;letter-spacing:2px;color:#5D614B}.wr-t{font-size:30px;font-weight:800;letter-spacing:-.6px;margin:6px 40px 4px 0;line-height:1.1}.wr-m{font-size:13.5px;font-weight:600;color:rgba(30,34,49,.55)}' +
+      '.wr-vid{margin-top:18px;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#1E2231}.wr-vid iframe{width:100%;height:100%;border:0}' +
+      '.wr-bar{height:8px;border-radius:99px;background:#F1F1E8;margin-top:12px;overflow:hidden}.wr-bar i{display:block;height:100%;background:#D3F26A;width:0;transition:width .4s}' +
+      '.wr-txt{margin-top:18px;font-size:17px;line-height:1.75;font-weight:500}.wr-txt p{margin:0 0 14px}.wr-w{background:#E9F5C4;border-radius:6px;padding:0 3px;font-weight:700;cursor:pointer}' +
+      '.wr-pop{margin-top:10px;padding:14px 16px;border-radius:16px;background:#1E2231;color:#F4F3EC;display:none}.wr-pop b{font-size:20px}.wr-pop span{display:block;opacity:.7;margin-top:3px}.wr-pop i{display:block;opacity:.85;margin-top:6px;font-style:normal}' +
+      '.wr-cs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.wr-c{border:1.5px solid rgba(30,34,49,.14);background:#fff;border-radius:99px;padding:8px 15px;font:700 14px Manrope,sans-serif;cursor:pointer}.wr-c.kept{background:#E9F5C4;border-color:#E9F5C4}' +
+      '.wr-all{margin-top:12px;display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 16px;border-radius:16px;background:#F6F6EF;font-weight:700;font-size:14px}.wr-btn{border:0;border-radius:99px;background:#D3F26A;color:#1E2231;font:800 14px Manrope,sans-serif;padding:11px 20px;cursor:pointer}.wr-btn:disabled{opacity:.45;cursor:default}' +
+      '.wr-quiz{margin-top:22px;padding:18px 20px;border-radius:20px;background:#1E2231;color:#F4F3EC;display:flex;align-items:center;justify-content:space-between;gap:14px}.wr-quiz b{display:block;font-size:16px}.wr-quiz span{font-size:13px;opacity:.65}' +
+      '.wr-q{margin-top:18px}.wr-qp{font-size:22px;font-weight:800;line-height:1.3;margin:6px 0 14px}.wr-qo{display:block;width:100%;text-align:center;margin-top:9px;padding:14px;border-radius:16px;border:2px solid transparent;background:#F6F6EF;font:700 16px Manrope,sans-serif;cursor:pointer}';
+    document.head.appendChild(st);
+  }
+  let ytReady = null;
+  function loadYT() {
+    if (window.YT && window.YT.Player) return Promise.resolve(true);
+    if (ytReady) return ytReady;
+    ytReady = new Promise(res => {
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { if (prev) prev(); res(true); };
+      const sc = document.createElement('script'); sc.src = 'https://www.youtube.com/iframe_api'; sc.onerror = () => res(false); document.head.appendChild(sc);
+      setTimeout(() => res(!!(window.YT && window.YT.Player)), 7000);
+    });
+    return ytReady;
+  }
+  function openPiece(id) {
+    hubApi('/material/' + encodeURIComponent(id)).then(r => {
+      if (!r.ok) return alert(r.d.error || 'Could not open this');
+      const m = r.d; ensureWrStyle();
+      const ov = document.createElement('div'); ov.className = 'wr-ov';
+      const [bg] = palOf(m.id);
+      ov.innerHTML = '<div class="wr-pn"><button class="wr-x" aria-label="Close">✕</button><div class="wr-k">' + esc2((m.kicker || m.topic || (m.kind === 'watch' ? 'WATCH' : 'READ')).toUpperCase()) + ' · ' + esc2(m.level) + '</div><div class="wr-t">' + esc2(m.title) + '</div><div class="wr-m">' + m.minutes + ' min · ' + plural(m.words.length, 'word') + '</div>' +
+        (m.kind === 'watch' ? '<div class="wr-vid"><div id="wrYt"></div></div>' : '') +
+        '<div class="wr-bar"><i id="wrBar"></i></div>' +
+        (m.kind === 'read' ? '<div class="wr-txt" id="wrTxt"></div><div class="wr-pop" id="wrPop"></div>' : (m.body ? '<div class="wr-txt" style="font-size:15px">' + esc2(m.body).replace(/\n/g, '<br>') + '</div>' : '')) +
+        '<div class="wr-k" style="margin-top:22px">WORDS IN THIS ' + (m.kind === 'watch' ? 'VIDEO' : 'PIECE') + ' · TAP TO KEEP</div><div class="wr-cs" id="wrCs"></div><div class="wr-all" id="wrAll" style="display:none"></div>' +
+        '<div class="wr-quiz" id="wrQuiz"></div><div id="wrQ"></div>' +
+        (m.kind === 'watch' ? '<div style="margin-top:14px"><button class="wr-c" id="wrDone">I’ve watched it</button></div>' : '') + '</div>';
+      document.body.appendChild(ov);
+      const pn = ov.querySelector('.wr-pn'), $ = s2 => ov.querySelector(s2);
+      let pct = m.pct, sent = m.pct, timer = null, player = null;
+      const close = () => { clearInterval(timer); try { player && player.destroy(); } catch (_) {} ov.remove(); loadFeed(); json('/api/student/xp').then(xpPaint); json('/api/student/wordbank').then(b => b && wordBank(b)); };
+      ov.querySelector('.wr-x').onclick = close; ov.onclick = e => { if (e.target === ov) close(); };
+      document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape' && document.body.contains(ov)) { close(); document.removeEventListener('keydown', esc); } });
+      const paintBar = () => { $('#wrBar').style.width = pct + '%'; paintQuiz(); };
+      const push = force => { if (force || pct - sent >= 5) { sent = pct; hubApi('/material/' + encodeURIComponent(m.id) + '/progress', 'POST', { pct }).then(() => {}); } };
+      const setPct = v => { if (v > pct) { pct = Math.min(100, Math.round(v)); paintBar(); push(pct >= 90 && sent < 90); } };
+      // words
+      const words = m.words;
+      const drawWords = () => {
+        $('#wrCs').innerHTML = words.map((w, i) => '<button class="wr-c' + (w.kept ? ' kept' : '') + '" data-i="' + i + '" title="' + esc2(w.translation) + '">' + (w.kept ? '✓ ' : '') + esc2(w.word) + '</button>').join('');
+        const left = words.filter(w => !w.kept).length;
+        const all = $('#wrAll'); all.style.display = left > 1 ? '' : 'none';
+        all.innerHTML = '<div>' + left + ' words are waiting<br><span style="font-weight:600;opacity:.6">One tap — all in your bank</span></div><button class="wr-btn" id="wrBank">Bank them all</button>';
+        const t = $('#wrTxt'); if (t) t.querySelectorAll('.wr-w').forEach(el => { el.style.opacity = words[+el.dataset.i].kept ? .6 : 1; });
+      };
+      const keep = (w, btn) => {
+        if (btn) btn.disabled = true;
+        hubApi('/material/' + encodeURIComponent(m.id) + '/keep', 'POST', w ? { word: w.word } : {}).then(k => {
+          if (!k.ok) { if (btn) btn.disabled = false; return alert(k.d.error || 'Could not keep'); }
+          (w ? [w] : words).forEach(x => { x.kept = true; });
+          drawWords(); if (k.d.xp) { burstConfetti(40); json('/api/student/xp').then(xpPaint); }
+        });
+      };
+      $('#wrCs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; const w = words[+b.dataset.i]; if (!w.kept) keep(w, b); };
+      ov.addEventListener('click', e => { if (e.target.id === 'wrBank') keep(null, e.target); });
+      drawWords();
+      // the piece: a video with progress, or an article read to the end
+      if (m.kind === 'watch') {
+        $('#wrDone').onclick = () => { setPct(100); push(true); };
+        loadYT().then(ok => {
+          if (!ok || !document.body.contains(ov)) { $('#wrYt').outerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + esc2(m.video_id) + '?rel=0&modestbranding=1" allowfullscreen></iframe>'; return; }
+          player = new window.YT.Player('wrYt', { videoId: m.video_id, width: '100%', height: '100%', playerVars: { rel: 0, modestbranding: 1 }, events: { onStateChange: ev => { if (ev.data === 0) { setPct(100); push(true); } } } });
+          timer = setInterval(() => { try { const d = player.getDuration(), c = player.getCurrentTime(); if (d > 0) setPct(c / d * 100); } catch (_) {} }, 3000);
+        });
+      } else {
+        const t = $('#wrTxt');
+        const wi = words.map((w, i) => ({ w, i })).sort((a, b) => b.w.word.length - a.w.word.length);
+        t.innerHTML = m.body.split(/\n+/).map(par => '<p>' + wi.reduce((h, { w, i }) => h.replace(new RegExp('\\b(' + w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\b', 'i'), '<span class="wr-w" data-i="' + i + '">$1</span>'), esc2(par)) + '</p>').join('');
+        drawWords();
+        t.onclick = e => {
+          const el = e.target.closest('.wr-w'); if (!el) return; const w = words[+el.dataset.i], pop = $('#wrPop');
+          pop.style.display = 'block'; pop.innerHTML = '<b>' + esc2(w.word) + '</b><span>' + esc2(w.translation) + '</span>' + (w.example ? '<i>“' + esc2(w.example) + '”</i>' : '') + '<div style="margin-top:10px"><button class="wr-btn" id="wrKeep1"' + (w.kept ? ' disabled' : '') + '>' + (w.kept ? '✓ Kept' : '+ Keep') + '</button></div>';
+          pop.querySelector('#wrKeep1').onclick = ev => keep(w, ev.target);
+        };
+        const onScroll = () => { const r = pn.scrollHeight - pn.clientHeight; setPct(r <= 0 ? 100 : (pn.scrollTop + 0) / r * 100 * 1.05); };
+        pn.addEventListener('scroll', onScroll); setTimeout(onScroll, 400);
+      }
+      // the quiz
+      function paintQuiz() {
+        const q = m.quiz, box = $('#wrQuiz'); if (!q) { box.style.display = 'none'; return; }
+        const open = pct >= q.unlock_pct;
+        box.innerHTML = '<div><b>Quick quiz · ' + q.n + ' questions</b><span>' + (open ? (q.score != null ? 'Best so far: ' + q.score + '/' + q.n : 'Open · +' + q.xp + ' XP') : 'Unlocks at ' + q.unlock_pct + '% ' + (m.kind === 'watch' ? 'watched' : 'read') + ' · +' + q.xp + ' XP') + '</span></div><button class="wr-btn" id="wrQBtn"' + (open ? '' : ' disabled') + '>' + (open ? 'Start' : pct + '%') + '</button>';
+        const b = box.querySelector('#wrQBtn'); if (open) b.onclick = startQuiz;
+      }
+      function startQuiz() {
+        hubApi('/material/' + encodeURIComponent(m.id) + '/quiz').then(r2 => {
+          if (!r2.ok) return alert(r2.d.error || 'The quiz is not open');
+          const qs = r2.d.questions, picks = []; let i = 0; const host = $('#wrQ');
+          $('#wrQuiz').style.display = 'none';
+          const step = () => {
+            if (i >= qs.length) {
+              host.innerHTML = '<div class="wr-q">Checking…</div>';
+              return hubApi('/material/' + encodeURIComponent(m.id) + '/quiz', 'POST', { choices: picks }).then(s2 => {
+                if (!s2.ok) { host.innerHTML = '<div class="wr-q">' + esc2(s2.d.error) + '</div>'; return; }
+                host.innerHTML = '<div class="wr-q"><div class="wr-t">' + s2.d.score + ' of ' + s2.d.total + '</div><div class="wr-m">' + (s2.d.passed ? (s2.d.xp ? 'Passed — +' + s2.d.xp + ' XP.' : 'Passed — the XP was already yours.') : 'Not quite. Read it once more, then try again.') + '</div><div style="margin-top:14px"><button class="wr-btn" id="wrQAgain">' + (s2.d.passed ? 'Done' : 'Try again') + '</button></div></div>';
+                if (s2.d.xp) { burstConfetti(70); json('/api/student/xp').then(xpPaint); }
+                m.quiz.score = Math.max(m.quiz.score || 0, s2.d.score);
+                host.querySelector('#wrQAgain').onclick = () => { host.innerHTML = ''; $('#wrQuiz').style.display = ''; paintQuiz(); };
+              });
+            }
+            host.innerHTML = '<div class="wr-q"><div class="wr-k">QUESTION ' + (i + 1) + ' / ' + qs.length + '</div><div class="wr-qp">' + esc2(qs[i].prompt) + '</div>' + qs[i].options.map((o, k) => '<button class="wr-qo" data-k="' + k + '">' + esc2(o) + '</button>').join('') + '</div>';
+            host.querySelector('.wr-q').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; picks[i] = +b.dataset.k; i++; step(); };
+          };
+          step();
+        });
+      }
+      paintBar();
+    });
+  }
+
+
+  /* The level gate, from /api/hub/gate: readiness is measured from what the student really did; at 90%
+     it opens - three sentences of pitch, the teacher decides, and a "not yet" comes with a plan. */
+  function gatePaint(g) {
+    const pg = document.getElementById('pg-progress');
+    const box = pg && pg.querySelector('.gate13');
+    if (!box || !g) return;
+    const on = Math.round(g.pct / 10);
+    const req = g.request;
+    box.querySelector('.gpct').textContent = g.pct + '%';
+    const head = box.querySelector('.ghead > div');
+    head.querySelector('.kick2').textContent = 'READY FOR ' + g.to + '? · THE GATE';
+    head.querySelector('div').textContent = 'At ' + g.open_at + '% the gate opens: a tap, a 3-sentence pitch, your teacher confirms.';
+    box.querySelectorAll('.gseg i').forEach((i, k) => i.classList.toggle('on', k < on));
+    box.querySelectorAll('.grow2').forEach(r => r.remove());
+    const anchor = box.querySelector('#c1Btn');
+    g.rows.forEach(r => {
+      const row = document.createElement('div'); row.className = 'grow2';
+      row.innerHTML = (r.ok ? '<span class="pxbox">&#10003;</span>' : '<span class="pxlock"><svg width="9" height="10" viewBox="0 0 9 10"><rect x="1" y="4" width="7" height="6" rx="1" fill="#F4F3EC"/><path d="M2.5 4V3a2 2 0 0 1 4 0v1" stroke="#F4F3EC" stroke-width="1.4" fill="none"/></svg></span>') +
+        esc2(r.label) + '<span class="pct">' + r.pct + '%</span>';
+      row.title = r.detail; anchor.before(row);
+    });
+    const btn = fresh(anchor), note = box.querySelector('.dnote');
+    if (req && req.status === 'pending') { btn.textContent = 'Waiting for your teacher'; btn.disabled = true; note.textContent = 'Your pitch is with your teacher. A no always comes with a plan.'; }
+    else if (g.open) { btn.textContent = 'Write your pitch'; btn.disabled = false; note.textContent = req && req.status === 'not_yet' && req.plan ? 'Your teacher’s plan: ' + req.plan : 'Rejection always comes with a plan, never just “no”';
+      btn.onclick = () => {
+        ensureWrStyle();
+        const ov = document.createElement('div'); ov.className = 'wr-ov';
+        ov.innerHTML = '<div class="wr-pn"><button class="wr-x" aria-label="Close">\u2715</button><div class="wr-k">THE GATE \u00B7 ' + esc2(g.from) + ' \u2192 ' + esc2(g.to) + '</div><div class="wr-t">Ready for ' + esc2(g.to) + '?</div>' +
+          '<div class="wr-m">Three sentences: what you can do now that you could not before, and why you are ready. Your teacher reads it and decides.</div>' +
+          '<textarea id="gatePitch" rows="5" style="width:100%;margin-top:16px;border-radius:16px;border:2px solid rgba(30,34,49,.14);padding:14px;font:600 15px Manrope,sans-serif" placeholder="I can\u2026 I used to\u2026 I am ready because\u2026"></textarea>' +
+          '<div style="margin-top:14px"><button class="wr-btn" id="gateSend">Send to my teacher</button></div></div>';
+        document.body.appendChild(ov);
+        const close = () => ov.remove();
+        ov.querySelector('.wr-x').onclick = close; ov.onclick = e => { if (e.target === ov) close(); };
+        ov.querySelector('#gateSend').onclick = e => {
+          e.target.disabled = true;
+          hubApi('/gate/pitch', 'POST', { pitch: ov.querySelector('#gatePitch').value }).then(r => {
+            if (!r.ok) { e.target.disabled = false; return alert(r.d.error || 'Could not send'); }
+            close(); json('/api/hub/gate').then(gatePaint);
+          });
+        };
+      };
+    } else { btn.textContent = 'Locked · opens at ' + g.open_at + '%'; btn.disabled = true; note.textContent = req && req.status === 'not_yet' && req.plan ? 'Your teacher’s plan: ' + req.plan : 'Rejection always comes with a plan, never just “no”'; }
+  }
+
   const pProgress = json('/api/student/progress');
   const pVocab = json('/api/journal/vocab/list');
   const pInbox = json('/api/homework/my/inbox');
@@ -890,6 +1124,8 @@
   const pBank = json('/api/student/wordbank');
   const pChall = json('/api/challenges/hub');
   const pToday = json('/api/student/today');
+  const pFeed = json('/api/hub/feed');
+  const pGate = json('/api/hub/gate');
   pProgress.then(progress);
   pVocab.then(vocab);
   pInbox.then(r => homework(r && r.assignments));
@@ -908,4 +1144,6 @@
   Promise.all([pBank, pVocab]).then(([b]) => wordBank(b));
   Promise.all([pChall, pVocab, pInbox]).then(([h]) => challenges(h));
   Promise.all([pToday, pVocab, pInbox, pMe, pDash]).then(([t]) => todayPaint(t));
+  Promise.all([pFeed, pVocab]).then(([f]) => watchPaint(f));
+  Promise.all([pGate, pXp, pProgress]).then(([g]) => gatePaint(g));
 })();

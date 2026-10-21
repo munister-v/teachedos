@@ -580,6 +580,56 @@ CREATE TABLE IF NOT EXISTS lucky_pulls (
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS hub_seen_at TIMESTAMPTZ;
 
+-- Student hub, Watch & Read: what a teacher picked for the class, how far each student got, and the level gate
+CREATE TABLE IF NOT EXISTS hub_materials (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       VARCHAR(8) NOT NULL,                      -- watch | read
+  title      VARCHAR(160) NOT NULL,
+  topic      VARCHAR(40) NOT NULL DEFAULT '',
+  kicker     VARCHAR(60) NOT NULL DEFAULT '',
+  level      VARCHAR(2) NOT NULL DEFAULT 'B1',
+  minutes    INTEGER NOT NULL DEFAULT 5,
+  body       TEXT NOT NULL DEFAULT '',                  -- the article, or a note under the video
+  video_id   VARCHAR(20),
+  words      JSONB NOT NULL DEFAULT '[]'::jsonb,        -- [{ word, translation, example }]
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_hub_materials_teacher ON hub_materials(teacher_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS hub_progress (
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  material_id UUID NOT NULL REFERENCES hub_materials(id) ON DELETE CASCADE,
+  pct         INTEGER NOT NULL DEFAULT 0,
+  quiz_score  INTEGER,
+  finished_at TIMESTAMPTZ,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, material_id)
+);
+CREATE TABLE IF NOT EXISTS level_gates (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  teacher_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  level_from  VARCHAR(2) NOT NULL,
+  level_to    VARCHAR(2) NOT NULL,
+  pitch       TEXT NOT NULL,
+  readiness   INTEGER NOT NULL DEFAULT 0,
+  status      VARCHAR(10) NOT NULL DEFAULT 'pending',   -- pending | confirmed | not_yet
+  plan        TEXT NOT NULL DEFAULT '',                  -- a "not yet" always comes with a plan
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  decided_at  TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_level_gates_teacher ON level_gates(teacher_id, status);
+CREATE INDEX IF NOT EXISTS idx_level_gates_user ON level_gates(user_id, created_at DESC);
+-- Where the climb to the next level began, so the level path starts again from its Base Camp
+CREATE TABLE IF NOT EXISTS level_moments (
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  level_to     VARCHAR(2) NOT NULL,
+  xp_at        INTEGER NOT NULL DEFAULT 0,
+  confirmed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_level_moments_user ON level_moments(user_id, confirmed_at DESC);
+
 -- Launch in waves: a cap on teacher sign-ups, and who is waiting behind it
 CREATE TABLE IF NOT EXISTS app_flags (
   key   VARCHAR(60) PRIMARY KEY,

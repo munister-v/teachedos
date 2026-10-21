@@ -82,7 +82,10 @@ async function summary(db, userId, tz, level) {
        ORDER BY created_at DESC LIMIT 6`, [userId, zone]);
   const total = t.total;
   const from = String(level || 'B1').toUpperCase(), to = nextLevel(from);
-  const inBand = Math.min(total, BAND_XP);
+  // after a confirmed level the path starts again from its Base Camp
+  const { rows: [lm] } = await db.query('SELECT xp_at FROM level_moments WHERE user_id = $1 ORDER BY confirmed_at DESC LIMIT 1', [userId]);
+  const bandStart = lm ? Math.min(lm.xp_at, total) : 0;
+  const inBand = Math.min(total - bandStart, BAND_XP);
   const nextCamp = CAMPS.find(c => c.at > inBand) || CAMPS[CAMPS.length - 1];
   const weekXp = week.reduce((n, d) => n + d.xp, 0);
   return {
