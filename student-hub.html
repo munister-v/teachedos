@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex"><link rel="stylesheet" href="styles/fonts.css?v=1266"><title>TeachEd · Student Hub</title>
+<meta name="robots" content="noindex"><link rel="stylesheet" href="styles/fonts.css?v=1270"><title>TeachEd · Student Hub</title>
 <style>*{margin:0;box-sizing:border-box}
 body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F6F6EF}
 .pg{display:none;height:100vh}
@@ -116,6 +116,20 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
  radial-gradient(700px 500px at 120% 115%, rgba(45,212,191,.12), transparent 60%),
  radial-gradient(rgba(244,243,236,.055) 1.3px, transparent 1.4px),
  var(--ink);background-size:auto,auto,auto,22px 22px,auto}#pg-progress .navlbl{font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(244,243,236,.38);margin:2px 4px 8px}#pg-progress .nav button.on{border-radius:6px;box-shadow:5px 5px 0 rgba(255,79,163,.8)}#pg-progress .ms-days i.today{border-color:var(--pink)}#pg-progress .segbar{height:9px;border-radius:99px;background:rgba(244,243,236,.14);overflow:hidden;margin-top:11px}#pg-progress .segbar i{display:block;height:100%;width:62%;background:repeating-linear-gradient(90deg,#FF4FA3 0 10px, rgba(30,34,49,.45) 10px 13px)}#pg-progress .bal{background:linear-gradient(var(--ink),var(--ink)) padding-box, linear-gradient(120deg, rgba(211,242,106,.65), rgba(211,242,106,.06) 55%) border-box;border:1px solid transparent}#pg-progress .controls{display:flex;gap:8px;align-items:center;margin-top:14px}#pg-progress .tgl{display:flex;background:rgba(244,243,236,.1);border-radius:999px;padding:3px;flex:1}#pg-progress .tgl span{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11.5px;font-weight:800;padding:7px 0;border-radius:999px;color:rgba(244,243,236,.6);cursor:pointer}#pg-progress .tgl span.on{background:#F4F3EC;color:#1E2231}#pg-progress .collapse{width:36px;height:36px;border-radius:50%;border:0;background:rgba(244,243,236,.09);display:grid;place-items:center;cursor:pointer;flex:none}#pg-progress .sfoot{text-align:left}
+
+/* Phones: the sidebar is gone below 900px, so the five screens get a bottom bar of their own, and nothing may push the page sideways */
+#hubTabs{display:none}
+@media(max-width:900px){
+  html,body{overflow-x:hidden;max-width:100%}
+  .pxwave,[data-wave],[data-dots]{max-width:100%;overflow:hidden}
+  .main{padding-bottom:96px}
+  #hubTabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;background:#1E2231;padding:8px 6px calc(8px + env(safe-area-inset-bottom));gap:2px;box-shadow:0 -10px 30px rgba(30,34,49,.25)}
+  #hubTabs button{flex:1;min-width:0;min-height:48px;border:0;background:none;color:rgba(244,243,236,.62);font:800 11px Manrope,sans-serif;letter-spacing:.02em;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;cursor:pointer}
+  #hubTabs button i{width:18px;height:6px;border-radius:2px;background:currentColor;opacity:.5}
+  #hubTabs button.on{color:#1E2231;background:#D3F26A}
+  #hubTabs button.on i{opacity:1}
+  #hubTabs .tb-n{position:absolute;top:3px;right:8px;min-width:16px;height:16px;border-radius:99px;background:#FF4FA3;color:#fff;font-size:10px;line-height:16px;text-align:center;padding:0 4px}
+}
 </style></head><body>
 <section class="pg on" id="pg-today">
 <canvas id="fx"></canvas>
@@ -1741,6 +1755,6 @@ html[data-hubtheme="dark"] #pg-today,html[data-hubtheme="dark"] #pg-watchread,ht
   });
 })();
 </script>
-<script src="scripts/app-core.js?v=1266"></script>
-<script src="scripts/hub-data.js?v=1266"></script>
+<script src="scripts/app-core.js?v=1270"></script>
+<script src="scripts/hub-data.js?v=1270"></script>
 </body></html>

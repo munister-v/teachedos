@@ -466,6 +466,13 @@
       .then(r => (r.ok ? r.json() : null)).catch(() => null);
   }
   let WB = null, wbFilter = 'all', wbQuery = '';
+  /* The Word Airport welcome is for the first visit only; the ? button by the filters replays it. */
+  (function () {
+    const ob = document.getElementById('obWrap'); if (!ob) return;
+    let seen = false; try { seen = localStorage.getItem('hub_wb_onboarded') === '1'; } catch (_) {}
+    if (seen) ob.classList.remove('open');
+    const go = ob.querySelector('#obGo'); if (go) go.addEventListener('click', () => { try { localStorage.setItem('hub_wb_onboarded', '1'); } catch (_) {} });
+  })();
   function wordBank(b) {
     const wb = document.getElementById('pg-wordbank');
     if (!wb || !b) return;
@@ -1115,6 +1122,37 @@
     } else { btn.textContent = 'Locked · opens at ' + g.open_at + '%'; btn.disabled = true; note.textContent = req && req.status === 'not_yet' && req.plan ? 'Your teacher’s plan: ' + req.plan : 'Rejection always comes with a plan, never just “no”'; }
   }
 
+
+  /* Phones: a bottom bar with the five screens, built from the sidebar's own buttons and kept in step with them */
+  (function () {
+    const nav = document.querySelector('.pg .nav'); if (!nav || document.getElementById('hubTabs')) return;
+    const SHORT = ['Today', 'Watch', 'Words', 'Duels', 'Progress'];
+    const bar = document.createElement('nav'); bar.id = 'hubTabs'; bar.setAttribute('aria-label', 'Hub screens');
+    nav.querySelectorAll('button').forEach((b, i) => {
+      const t = document.createElement('button'); t.type = 'button'; t.innerHTML = '<i></i>' + SHORT[i] + '<span class="tb-n" hidden></span>';
+      t.addEventListener('click', () => { goTo(i); window.scrollTo(0, 0); });
+      bar.appendChild(t);
+    });
+    document.body.appendChild(bar);
+    const sync = () => {
+      const on = Array.from(document.querySelectorAll('.pg')).findIndex(p => p.classList.contains('on'));
+      bar.querySelectorAll('button').forEach((t, i) => t.classList.toggle('on', i === on));
+      const first = document.querySelector('.pg.on .nav'); if (!first) return;
+      first.querySelectorAll('button').forEach((b, i) => {
+        const n = b.querySelector('.nbadge'), tb = bar.children[i] && bar.children[i].querySelector('.tb-n');
+        if (!tb) return; const v = n && n.style.display !== 'none' ? n.textContent.trim() : '';
+        tb.textContent = v; tb.hidden = !v || v === '0';
+      });
+    };
+    new MutationObserver(sync).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+    sync();
+  })();
+
+  /* #today, #watch, #wordbank, #challenges, #progress open that screen (the cabinet links here) */
+  (function () {
+    const at = { today: 0, watch: 1, watchread: 1, wordbank: 2, challenges: 3, progress: 4 }[String(location.hash || '').slice(1).toLowerCase()];
+    if (at != null && at > 0) setTimeout(() => goTo(at), 150);
+  })();
   const pProgress = json('/api/student/progress');
   const pVocab = json('/api/journal/vocab/list');
   const pInbox = json('/api/homework/my/inbox');
