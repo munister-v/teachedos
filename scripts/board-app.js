@@ -1816,7 +1816,7 @@ async function _gifFetch(type, q, page, perPage, signal) {
     if (q) qs.set('q', q);
     const res = await apiFetch('/api/gifs/search?' + qs, { signal });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return { results: [], has_next: false, code: data.code || 'error', error: data.error || 'KLIPY is not answering right now.' };
+    if (!res.ok) return { results: [], has_next: false, code: data.code || 'error', error: data.error || 'The GIF search is not answering right now.' };
     return { results: (Array.isArray(data.results) ? data.results : []).filter(r => r && r.url), has_next: !!data.has_next, filtered: !!data.filtered };
   } catch (err) {
     if (err && err.name === 'AbortError') return { aborted: true, results: [], has_next: false };
@@ -9181,7 +9181,15 @@ function finishBoxSelectionAt(clientX, clientY) {
    take it for themselves, so on a dense board "click to place" did nothing). */
 let _swallowPlaceClick = false;
 boardWrap.addEventListener('mousedown', e => {
-  if (e.button !== 0 || !_pendingPlace || spaceDown) return;
+  if (e.button !== 0 || spaceDown) return;
+  if (_miroTool === 'comment' && !_pendingPlace && !e.target.closest('.board-annotation-marker, .annotation-popover, #_cm-composer')) {
+    // a comment goes wherever the teacher clicks - on a frame or a card too, not only on the empty board
+    e.preventDefault(); e.stopPropagation();
+    _swallowPlaceClick = true;
+    _handleCommentClick(e);
+    return;
+  }
+  if (!_pendingPlace) return;
   e.preventDefault(); e.stopPropagation();
   _swallowPlaceClick = true;
   _beginPlaceDrag(e.clientX, e.clientY);
@@ -17570,7 +17578,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1338';
+const TEACHEDOS_ASSET_VERSION = '1339';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -25285,7 +25293,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1338',
+          icon: 'icons/icon-192.png?v=1339',
           tag: 'board-live-' + s.id,
         });
       }

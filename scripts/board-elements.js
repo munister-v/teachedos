@@ -164,7 +164,7 @@
     clearTimeout(gifTimer);
     if (!want) { box.hidden = true; box.innerHTML = ''; gifToken++; return; }
     box.hidden = false;
-    box.innerHTML = `<div class="el-gifs-h">GIFs${q ? ` for “${esc(q)}”` : ''} · Powered by KLIPY</div><div class="el-gifs-g"><span class="el-gifs-wait">Searching…</span></div>`;
+    box.innerHTML = `<div class="el-gifs-h">GIFs${q ? ` for “${esc(q)}”` : ''}</div><div class="el-gifs-g"><span class="el-gifs-wait">Searching…</span></div>`;
     const my = ++gifToken;
     gifTimer = setTimeout(async () => {
       const gifs = await _gifSearch(q || 'teaching classroom', 12);
