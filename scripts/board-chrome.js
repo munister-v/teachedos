@@ -612,3 +612,34 @@
   setTimeout(() => { if (!phone()) { topbar(); boardMenu(); profileMenu(); } }, 1500);
   window.TeachEdBoardChrome = { icons: IC, svg };
 })();
+
+/* Tool flyouts (pen, shapes, stickers, sticky colours, more tools) close by themselves 30 s after they open;
+   touching one restarts the count, so a panel in use is never pulled away. */
+(function () {
+  'use strict';
+  const AUTO_CLOSE_MS = 30000;
+  const CLOSE = {
+    'draw-palette': () => typeof closeDrawPalette === 'function' && closeDrawPalette(),
+    'shape-panel': () => typeof closeShapePanel === 'function' && closeShapePanel(),
+    'sticky-palette': () => typeof closeStickyPalette === 'function' && closeStickyPalette(),
+    'sticker-panel': el => el.classList.remove('open'),
+    'mt-more-pop': el => el.classList.remove('open'),
+  };
+  const timers = {};
+  function watch(id) {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.autoClose) return;
+    el.dataset.autoClose = '1';
+    const arm = () => {
+      clearTimeout(timers[id]);
+      if (!el.classList.contains('open')) return;
+      timers[id] = setTimeout(() => { if (el.classList.contains('open')) CLOSE[id](el); }, AUTO_CLOSE_MS);
+    };
+    new MutationObserver(arm).observe(el, { attributes: true, attributeFilter: ['class'] });
+    ['pointerdown', 'keydown', 'input'].forEach(t => el.addEventListener(t, arm, true));
+    arm();
+  }
+  const init = () => Object.keys(CLOSE).forEach(watch);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  setTimeout(init, 1500);
+})();
