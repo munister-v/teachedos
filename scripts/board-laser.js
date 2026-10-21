@@ -178,6 +178,7 @@
     if (!drawing) return;
     drawing.endedAt = Date.now();
     drawing = null;
+    armIdle();
     queue({ end: true });
     kick();
   }
@@ -185,7 +186,7 @@
     if (!active || e.button !== 0 || !inBoard(e) || passThrough(e.target)) return;
     // не даём доске начать перетаскивание или рамку выделения
     e.preventDefault(); e.stopPropagation();
-    held = true;
+    held = true; armIdle();
     try { e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); } catch (_) {}
     const p = screenToBoard(e.clientX, e.clientY);
     dots.me = { x: p.x, y: p.y, color, at: Date.now() };
@@ -232,10 +233,30 @@
   const $pop = () => document.getElementById('laser-pop');
   let menuOpen = false;
 
+  /* A visible mode: while the laser is on nothing moves, and the chip says
+     so and offers the way out. It also lets go by itself after 15 s without
+     a stroke - the laser is a moment, not a place to get stuck in. */
+  const IDLE_OFF_MS = 15000;
+  let idleTimer = 0;
+  const armIdle = () => { clearTimeout(idleTimer); if (active) idleTimer = setTimeout(() => { if (!held) off(); else armIdle(); }, IDLE_OFF_MS); };
+  let _chip = null;
+  function chip() {
+    if (_chip) return _chip;
+    _chip = document.createElement('div');
+    _chip.id = 'laser-chip'; _chip.hidden = true; _chip.setAttribute('role', 'status');
+    _chip.innerHTML = '<span class="lc-dot"></span><span>Laser pointer - Esc or click <button type="button" class="lc-sel">Select</button> to move objects</span>';
+    _chip.querySelector('.lc-sel').addEventListener('click', e => { e.stopPropagation(); off(); });
+    document.body.appendChild(_chip);
+    return _chip;
+  }
+
   function paintUi() {
     const btn = $btn(), pop = $pop();
     document.body.classList.toggle('laser-on', active);
-    if (btn) { btn.classList.toggle('laser', active); btn.style.setProperty('--laser', COLORS[color]); }
+    chip().hidden = !active;
+    if (btn) {
+      btn.dataset.tip = active ? 'Laser is on - click to go back to Select' : 'Cursor / laser pointer';
+      btn.setAttribute('aria-label', active ? 'Laser is on - click to go back to Select' : 'Select (V) - click again for the laser pointer'); btn.classList.toggle('laser', active); btn.style.setProperty('--laser', COLORS[color]); }
     if (pop) {
       pop.hidden = !menuOpen;
       pop.querySelectorAll('[data-laser-mode]').forEach(b => b.classList.toggle('on', (b.dataset.laserMode === 'laser') === active));
@@ -247,7 +268,12 @@
       }
     }
   }
-  function menu(e) { if (e) e.stopPropagation(); menuOpen = !menuOpen; paintUi(); }
+  // While the laser is on, a click on Select is the way back, not a menu.
+  function menu(e) {
+    if (e) e.stopPropagation();
+    if (active) { off(); menuOpen = false; paintUi(); return; }
+    menuOpen = !menuOpen; paintUi();
+  }
   document.addEventListener('pointerdown', e => {
     if (menuOpen && !e.target.closest('#laser-pop, #mt-select')) { menuOpen = false; paintUi(); }
   }, true);
@@ -256,11 +282,13 @@
     if (active) return;
     if (typeof setMiroTool === 'function') setMiroTool('select');   // указка - это курсор
     active = true;
+    armIdle();
     paintUi();
   }
   function off() {
     if (!active) return;
     active = false;
+    clearTimeout(idleTimer);
     onUp();
     if (dots.me) { delete dots.me; queue({ off: true }); }
     paintUi(); kick();
