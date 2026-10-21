@@ -183,6 +183,33 @@
       else if (a === 'remove') { if (typeof removeCard === 'function') removeCard(card.id); }
       else if (a === 'replace') $('input[type=file]').click();
     });
+    // The teacher renames the track in place: click the title, Enter or leaving the field saves, Esc cancels.
+    const titleEl = $('.ba-title');
+    if (teacher && titleEl) {
+      titleEl.classList.add('is-editable'); titleEl.title = 'Click to rename';
+      titleEl.addEventListener('click', e => {
+        e.stopPropagation();
+        if (titleEl.querySelector('input')) return;
+        const cur = d.title || 'Audio';
+        const inp = document.createElement('input');
+        inp.type = 'text'; inp.className = 'ba-title-in'; inp.value = cur; inp.maxLength = 120; inp.setAttribute('aria-label', 'Audio name');
+        titleEl.textContent = ''; titleEl.appendChild(inp); inp.focus(); inp.select();
+        let done = false;
+        const finish = ok => {
+          if (done) return; done = true;
+          const v = inp.value.trim().slice(0, 120);
+          if (ok && v && v !== cur) {
+            if (typeof snapshot === 'function') snapshot();
+            d.title = v;
+            typeof scheduleSave === 'function' && scheduleSave(); typeof saveLocal === 'function' && saveLocal();
+          }
+          titleEl.textContent = d.title || 'Audio'; titleEl.title = 'Click to rename';
+        };
+        inp.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Enter') finish(true); else if (ev.key === 'Escape') finish(false); });
+        inp.addEventListener('mousedown', ev => ev.stopPropagation());
+        inp.addEventListener('blur', () => finish(true));
+      });
+    }
     const pick = $('input[type=file]');
     pick.addEventListener('click', stop);
     pick.addEventListener('change', () => {

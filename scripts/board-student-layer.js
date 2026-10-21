@@ -303,7 +303,7 @@
 #sl-chip.off{opacity:.65}
 body.board-presenting #student-dock{display:none}
 body.sl-student :is(#mt-tools,#mt-agent){display:none !important}
-@media (min-width:821px){body.sl-dock:not(.board-readonly) #student-dock{left:84px}}
+@media (min-width:821px){body.sl-dock:not(.board-readonly) #student-dock{display:none !important}}
 @media (max-width:820px){#student-dock{left:50%;top:auto;bottom:12px;transform:translateX(-50%);flex-direction:row}#student-dock .sl-sep{width:1px;height:26px;margin:0 2px}#student-dock .sl-fly,#student-dock .sl-fly[data-fly]{left:0;top:auto;bottom:calc(100% + 10px)}}`;
     document.head.appendChild(s);
   }
