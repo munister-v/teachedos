@@ -9953,8 +9953,25 @@ boardWrap.addEventListener('wheel', e => {
   const dy = e.shiftKey ? 0   : wdy;
   state.pan.x -= dx;
   state.pan.y -= dy;
+  _capWheelPan();
   applyTransform();
 }, { passive: false });
+/* Scrolling with the wheel can run off into empty space with no way to tell
+   where the lesson went. Keep the view within half a screen of the content;
+   the minimap and "fit" are still the quick way back. */
+function _capWheelPan() {
+  if (!state.cards.length) return;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  state.cards.forEach(c => { x0 = Math.min(x0, c.x); y0 = Math.min(y0, c.y); x1 = Math.max(x1, c.x + (c.w || 0)); y1 = Math.max(y1, c.y + (c.h || 0)); });
+  const W = boardWrap.clientWidth, H = boardWrap.clientHeight, sc = state.scale;
+  const fit = (pan, a0, a1, size) => {
+    const hi = size * 0.5 - a0 * sc;          // content's start may not go further than half a screen in
+    const lo = size - a1 * sc - size * 0.5;    // and its end likewise
+    return lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, pan));
+  };
+  state.pan.x = fit(state.pan.x, x0, x1, W);
+  state.pan.y = fit(state.pan.y, y0, y1, H);
+}
 
 // Трекпад-pinch над панелями (Share board и т.п.) не долетает до слушателя
 // выше: панели - это z-index:3000 сиблинги boardWrap, а не его дети, так что
@@ -17437,7 +17454,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1313';
+const TEACHEDOS_ASSET_VERSION = '1314';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -24815,7 +24832,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1313',
+          icon: 'icons/icon-192.png?v=1314',
           tag: 'board-live-' + s.id,
         });
       }
@@ -27154,6 +27171,8 @@ function _doPlace(clientX, clientY, sized) {
       selectCard(placed.id);
       showLayerPopover?.(placed.id);
     }
+    // several in a row: the same sticker stays in hand until Esc
+    setTimeout(() => { if (!_pendingPlace && _miroTool === 'select') { enterPlaceMode('sticker', { glyph }); toast('Click to add another ' + glyph + ' - Esc to stop'); } }, 0);
   } else {
     // Drag-to-size for sticky/text: use the dragged rect; click = default size.
     let placed;
@@ -30605,6 +30624,9 @@ function disableDrawTool() {
 
 function openUnifiedDrawMenu(ev) {
   const btn = ev?.currentTarget || document.getElementById('mt-pen');
+  // The panel opens when asked for and closes when asked again; the pen stays in hand.
+  const pal = document.getElementById('draw-palette');
+  if (_drawTool && pal && pal.style.display && pal.style.display !== 'none') { closeDrawPalette(); return; }
   if (!_drawTool) {
     _drawTool = 'pen';
     _miroTool = 'pen';
