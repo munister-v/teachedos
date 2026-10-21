@@ -9177,6 +9177,16 @@ function finishBoxSelectionAt(clientX, clientY) {
   if (typeof renderAllStrokes === 'function') renderAllStrokes();
 }
 
+/* Placing something: the click goes to the placement even over a card or a frame (they used to
+   take it for themselves, so on a dense board "click to place" did nothing). */
+let _swallowPlaceClick = false;
+boardWrap.addEventListener('mousedown', e => {
+  if (e.button !== 0 || !_pendingPlace || spaceDown) return;
+  e.preventDefault(); e.stopPropagation();
+  _swallowPlaceClick = true;
+  _beginPlaceDrag(e.clientX, e.clientY);
+}, true);
+boardWrap.addEventListener('click', e => { if (_swallowPlaceClick) { _swallowPlaceClick = false; e.preventDefault(); e.stopPropagation(); } }, true);
 boardWrap.addEventListener('mousedown', e => {
   if (e.button === 1 || e.button === 2) { // middle or right mouse = pan
     isPanning = true;
@@ -17560,7 +17570,7 @@ const TT_LOCAL_QUALITY_SET = new Set([
 // Lazy-load the heavy local generation engine (board-gen.js) only when a teacher
 // first generates - keeps the initial board parse lean. Cached promise so it
 // loads at most once; resolves even on error (the AI path still works without it).
-const TEACHEDOS_ASSET_VERSION = '1337';
+const TEACHEDOS_ASSET_VERSION = '1338';
 const versionedLocalAsset = src => `${src}${src.includes('?') ? '&' : '?'}v=${TEACHEDOS_ASSET_VERSION}`;
 let _genLoadPromise = null;
 function _ensureGenLoaded() {
@@ -25275,7 +25285,7 @@ async function checkBoardLive() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🔴 Class is Live!', {
           body: `${s.teacher_name || 'Your teacher'} started: ${s.title || 'Class'}`,
-          icon: 'icons/icon-192.png?v=1337',
+          icon: 'icons/icon-192.png?v=1338',
           tag: 'board-live-' + s.id,
         });
       }
@@ -27539,7 +27549,7 @@ function enterPlaceMode(type, extraData) {
   _placeGhost.innerHTML = `<span style="font-size:15px;line-height:1;">${info.icon}</span><span>${info.label}</span>`;
   if (type === 'frame') {
     // the real size of what will land, so the click is a placement, not a guess
-    const pr = _FRAME_PRESETS[extraData?.key] || _FRAME_PRESETS.custom;
+    const pr = _frameSizeFor(extraData?.key);
     _placeGhost.classList.add('place-ghost-frame');
     _placeGhost.dataset.w = pr.w; _placeGhost.dataset.h = pr.h;
     _placeGhost.style.left = '-9999px';
@@ -27629,7 +27639,9 @@ function _doPlace(clientX, clientY, sized) {
     const key = extraData?.key || 'custom';
     if (bp.draggedRect) {
       const c = addCard('frame', bp.x, bp.y, { title: 'Frame', bg: 'rgba(255,255,255,1)', border: 'rgba(36,40,44,.18)', mobileFormat: false }, bp.w, bp.h);
-      if (c) { clearSelection?.(); state.selected = new Set([c.id]); getCardEl(c.id)?.classList.add('selected'); showLayerPopover?.(c.id); scheduleSave?.(); saveLocal?.(); }
+      if (c) { clearSelection?.(); state.selected = new Set([c.id]); getCardEl(c.id)?.classList.add('selected'); showLayerPopover?.(c.id); scheduleSave?.(); saveLocal?.();
+        // the size the teacher drew is the size "Custom" gives next time
+        try { localStorage.setItem('teached_frame_custom', JSON.stringify({ w: Math.round(bp.w), h: Math.round(bp.h) })); } catch (_) {} }
     } else {
       _placeFramePreset(key, bp);
     }
@@ -27801,13 +27813,42 @@ function _closeFramePanelOnce(e) {
   pop?.classList.remove('open');
   document.removeEventListener('mousedown', _closeFramePanelOnce, true);
 }
+/* The size a frame of this kind gets: a preset's own, or, for Custom, the size the teacher
+   drew last (remembered). A new frame of a size that is already on the board is not asked for
+   a place: it goes next to the last one of that size - to its right, or under it when the
+   teacher stacked the previous ones - on the first free spot along that line. */
+function _frameSizeFor(key) {
+  const base = _FRAME_PRESETS[key] || _FRAME_PRESETS.custom;
+  if (key === 'custom') {
+    try { const c = JSON.parse(localStorage.getItem('teached_frame_custom') || 'null'); if (c && c.w > 40 && c.h > 40) return { ...base, w: Math.round(c.w), h: Math.round(c.h) }; } catch (_) {}
+  }
+  return base;
+}
+function _frameSlotNextTo(w, h) {
+  const same = state.cards.filter(c => c.type === 'frame' && Math.abs(c.w - w) < 2 && Math.abs(c.h - h) < 2);
+  if (!same.length) return null;
+  const GAP = 40, prev = same[same.length - 1];
+  let dir = 'right';
+  if (same.length >= 2) { const a = same[same.length - 2]; if (Math.abs(prev.x - a.x) < Math.abs(prev.y - a.y)) dir = 'down'; }
+  const free = (x, y) => !state.cards.some(c => c.type === 'frame' && x < c.x + c.w && x + w > c.x && y < c.y + c.h && y + h > c.y);
+  let x = dir === 'right' ? prev.x + w + GAP : prev.x, y = dir === 'right' ? prev.y : prev.y + h + GAP;
+  for (let i = 0; i < 40 && !free(x, y); i++) { if (dir === 'right') x += w + GAP; else y += h + GAP; }
+  return { x, y };
+}
 function _addFramePreset(key) {
   document.getElementById('frame-panel')?.classList.remove('open');
   try { localStorage.setItem('teached_frame_preset', key); } catch (_) {}
+  const size = _frameSizeFor(key);
+  const slot = _frameSlotNextTo(size.w, size.h);
+  if (slot) { const c = _placeFramePreset(key, { x: slot.x + size.w / 2, y: slot.y + size.h / 2 }); if (c) _showCard(c); return; }
   enterPlaceMode('frame', { key });
 }
+function _showCard(card) {
+  const r = getCardEl(card.id)?.getBoundingClientRect(), wr = boardWrap.getBoundingClientRect();
+  if (r && (r.right < wr.left + 20 || r.left > wr.right - 20 || r.bottom < wr.top + 20 || r.top > wr.bottom - 20)) { try { zoomToCard(card.id, true); } catch (_) {} }
+}
 function _placeFramePreset(key, at) {
-  const preset = _FRAME_PRESETS[key] || _FRAME_PRESETS.custom;
+  const preset = _frameSizeFor(key);
   const center = at || ((typeof getBoardViewportCenter === 'function')
     ? getBoardViewportCenter() : { x: 200, y: 200 });
   // Add a frame card sized to the preset
@@ -27830,6 +27871,7 @@ function _placeFramePreset(key, at) {
     if (key === 'mobile') setTimeout(() => { try { zoomToCard(card.id, true); } catch {} }, 60);
     scheduleSave && scheduleSave(); saveLocal && saveLocal();
   }
+  return card;
 }
 
 function toolbarQuickAdd(type) {
