@@ -536,22 +536,9 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     const totalLessons = progressRows.length;
     const doneLessons  = progressRows.filter(r => r.status === 'done').length;
 
+    // the same streak as everywhere else (lib/streakDays.js)
     let streak = 0;
-    try {
-      const { rows: streakRows } = await pool.query(
-        `SELECT DISTINCT DATE(updated_at AT TIME ZONE 'UTC') AS day
-         FROM student_progress WHERE user_id=$1 AND status='done'
-         ORDER BY day DESC`, [req.user.id]
-      );
-      const today = new Date(); today.setUTCHours(0,0,0,0);
-      let expected = today.getTime();
-      for (const row of streakRows) {
-        const d = new Date(row.day); d.setUTCHours(0,0,0,0);
-        if (d.getTime() === expected) { streak++; expected -= 86400000; }
-        else if (d.getTime() === expected + 86400000) { streak = 1; expected = d.getTime() - 86400000; }
-        else break;
-      }
-    } catch {}
+    try { streak = (await require('../lib/streakDays').streakOf(pool, req.user)).streak; } catch {}
 
     // Quiz summary
     let quizStats = { submitted: 0, avgPct: 0 };
@@ -662,25 +649,8 @@ router.get('/progress', requireAuth, async (req, res) => {
     const [vw] = await safe(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE st = 'mastered')::int AS learned
                                FROM (SELECT ${require('../lib/srs').STATUS_SQL} AS st FROM vocabulary WHERE user_id = $1 AND kind = 'word') v`, [uid]);
 
-    // Один день - один счётчик, в поясе ученика: «сегодня» у него, а не в UTC.
-    const days = await safe(`
-      WITH ev AS (
-        SELECT updated_at AS t FROM student_progress WHERE user_id = $1 AND status = 'done'
-        UNION ALL
-        SELECT t.updated_at FROM homework_attempt t JOIN homework_assignment a ON a.id = t.assignment_id WHERE a.student_id = $1
-        UNION ALL
-        SELECT submitted_at FROM homework_assignment WHERE student_id = $1 AND submitted_at IS NOT NULL
-        UNION ALL
-        SELECT submitted_at FROM quiz_results WHERE user_id = $1
-        UNION ALL
-        /* Повторение слов из Word Bank - тоже «сделал что-то сегодня»:
-           кабинет зовёт к нему кнопкой в карточке серии. */
-        SELECT last_reviewed_at FROM vocabulary WHERE user_id = $1 AND last_reviewed_at IS NOT NULL
-      )
-      SELECT to_char((t AT TIME ZONE $2)::date, 'YYYY-MM-DD') AS day, COUNT(*)::int AS n
-        FROM ev WHERE t > NOW() - INTERVAL '400 days'
-       GROUP BY 1 ORDER BY 1 DESC`, [uid, tz]);
-    const byDay = new Map(days.map(d => [d.day, d.n]));
+    // One day - one counter, in the student's time zone, from the one place every streak reads (lib/streakDays.js).
+    const byDay = await require('../lib/streakDays').dayCounts(pool, uid, tz);
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());   // YYYY-MM-DD
     const dayStr = (base, back) => { const d = new Date(base + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - back); return d.toISOString().slice(0, 10); };
     const activity = [];

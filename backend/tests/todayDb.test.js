@@ -96,3 +96,22 @@ test('what is new: words from the teacher and a duel are told in one sentence', 
   await pool.query('UPDATE users SET hub_seen_at = NOW() WHERE id = $1', [s.id]);
   assert.equal((await today.buildToday(pool, s)).whats_new, null, 'after "Caught up" there is nothing new');
 });
+
+test('island §2: a brand-new student still has a lucky task, a plan with something new, and one streak number', async t => {
+  if (!dbUp) return t.skip('no database');
+  const { rows: [u] } = await pool.query(`INSERT INTO users (email, password_hash, name, role, plan, plan_status) VALUES ($1,'x','Fresh Student','student','free','free') RETURNING id, name, email, timezone`, [`td-fresh-${tag}@teached.test`]);
+  try {
+    const t1 = await today.buildToday(pool, u);
+    assert.ok(t1.plan.length >= 1, 'the plan is never blank');
+    assert.ok(t1.lucky && t1.lucky.state === 'sealed', 'the lucky task can be pulled');
+    const pulled = await today.pullLucky(pool, u);
+    assert.ok(['read', 'treat'].includes(pulled.lucky.task.kind));
+    const sd = require('../lib/streakDays');
+    assert.equal((await sd.streakOf(pool, u)).streak, 0);
+    await today.keepTreat(pool, u);                    // the smallest step is a day done
+    assert.equal((await sd.streakOf(pool, u)).streak, 1);
+    const friends = require('../lib/friends');
+    const card = await friends.createShare(pool, u, 'progress', {});
+    assert.equal((await friends.readShare(pool, card.token)).payload.streak, 1, 'a shared card shows the same number');
+  } finally { await pool.query('DELETE FROM users WHERE id = $1', [u.id]); }
+});

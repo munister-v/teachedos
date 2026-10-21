@@ -6,6 +6,7 @@ const xp = require('./xp');
 const wordbank = require('./wordbank');
 const challenges = require('./challenges');
 const { phraseFor, localDay } = require('./phrases');
+const hub = require('./hubcontent');
 
 const LUCKY_BASE_XP = 50, LUCKY_BONUS = 1.5, TREAT_XP = 5;
 const DECOYS = ['Voice-note story', 'Speed round', 'Five words, one story'];
@@ -26,8 +27,11 @@ async function openHomework(db, userId) {
 }
 
 /* What a Lucky Task can be: only things the platform can see being done. */
-function luckyCandidates({ wb, homework, challenge }) {
+function luckyCandidates({ wb, homework, challenge, treatOpen }) {
   const out = [];
+  // always possible, so a new student with an empty Word Bank still has a lucky task (island §2)
+  out.push({ kind: 'read', need: 1, label: 'Finish a short read', hint: 'Open Watch & Read, read a piece to the end and pass its quiz.', go: 'watchread' });
+  if (treatOpen) out.push({ kind: 'treat', need: 1, label: 'Keep today’s phrase', hint: 'Save the phrase of the day to your Word Bank.', go: 'today' });
   if (wb.total >= 5) out.push({ kind: 'words', need: 5, label: 'Review 5 words', hint: 'Five repetitions in your Word Bank today.', go: 'wordbank' });
   if (homework[0]) out.push({ kind: 'homework', need: 1, label: 'Hand in “' + String(homework[0].title).slice(0, 60) + '”', hint: 'Finish your open homework.', go: 'homework', ref: homework[0].id });
   if (challenge && !challenge.done) out.push({ kind: 'challenge', need: 1, label: 'Do today’s challenge', hint: 'The one your teacher set for today.', go: 'challenges' });
@@ -43,11 +47,11 @@ async function luckyState(db, user, ctx) {
   const base = { xp: Math.round(LUCKY_BASE_XP * LUCKY_BONUS), base_xp: LUCKY_BASE_XP, bonus: LUCKY_BONUS, pool };
   if (!pull) return { state: 'sealed', ...base };
   const meta = { kind: pull.kind, need: pull.need, label: pull.label };
-  const go = ({ words: 'wordbank', homework: 'homework', challenge: 'challenges' })[pull.kind];
+  const go = ({ words: 'wordbank', homework: 'homework', challenge: 'challenges', read: 'watchread', treat: 'today' })[pull.kind];
   if (!pull.completed_at) {
     const { rows: [c] } = await db.query(
       `SELECT COUNT(*)::int AS n FROM xp_events WHERE user_id = $1 AND kind = $2 AND created_at >= $3`,
-      [user.id, ({ words: 'word', homework: 'homework', challenge: 'challenge' })[pull.kind], pull.pulled_at]);
+      [user.id, ({ words: 'word', homework: 'homework', challenge: 'challenge', read: 'hubquiz', treat: 'treat' })[pull.kind], pull.pulled_at]);
     if (c.n >= pull.need) {
       const done = await db.query('UPDATE lucky_pulls SET completed_at = NOW() WHERE user_id = $1 AND day = $2::date AND completed_at IS NULL', [user.id, day]);
       if (done.rowCount) {
@@ -66,7 +70,10 @@ async function pullLucky(db, user) {
   if (have.rows.length) return { error: 'One pull a day - today’s task is already yours', status: 409 };
   const cands = luckyCandidates(ctx);
   if (!cands.length) return { error: 'Nothing to pull from today yet', status: 409 };
-  const pick = cands[hash(user.id + day) % cands.length];
+  // the platform's own tasks (read, phrase) fill in only when nothing from the student's own work is there to pull
+  const own = cands.filter(c => c.kind !== 'read' && c.kind !== 'treat');
+  const from = own.length ? own : cands;
+  const pick = from[hash(user.id + day) % from.length];
   await db.query('INSERT INTO lucky_pulls (user_id, day, kind, need, label, ref) VALUES ($1,$2::date,$3,$4,$5,$6) ON CONFLICT DO NOTHING',
     [user.id, day, pick.kind, pick.need, pick.label, pick.ref || null]);
   return { lucky: await luckyState(db, user, ctx) };
@@ -79,7 +86,8 @@ async function context(db, user) {
        FROM vocabulary WHERE user_id = $1 AND kind = 'word' ORDER BY created_at DESC LIMIT 600`, [user.id]);
   const [wb, homework, challenge, duels] = await Promise.all([
     Promise.resolve(wordbank.board(rows, tz)), openHomework(db, user.id), challenges.todaysChallenge(db, user), challenges.listDuels(db, user.id)]);
-  return { tz, wb, homework, challenge, duels };
+  const { rows: [tp] } = await db.query(`SELECT 1 FROM xp_events WHERE user_id = $1 AND kind = 'treat' AND ref = $2`, [user.id, String(localDay(tz))]);
+  return { tz, wb, homework, challenge, duels, treatOpen: !tp };
 }
 
 async function treat(db, user) {
@@ -148,6 +156,13 @@ async function plan(db, user, ctx, lucky) {
   }
   const d = duels.find(x => x.state === 'incoming' || x.state === 'your_move');
   if (d) rows.push({ id: 'duel', kind: 'duel', title: d.with + '’s duel · ' + d.game_label, why: d.state === 'incoming' ? 'Expires in ' + hoursLeft(d.expires_at) + ' — same words for both of you' : (d.their_score != null ? d.with + ' already played — your turn' : 'Your turn'), meta: 'Challenges · +60 XP', min: 3, label: 'View', go: 'challenges' });
+  /* Something new every day (island §2): the freshest piece of the student's own feed, and, when the day
+     would otherwise be empty, the phrase of the day - a plan is never blank, and the smallest step
+     (keeping a phrase) is already a day done for the streak. */
+  let piece = null;
+  try { piece = (await hub.feed(db, user)).items.find(i => !i.finished && i.near === 0) || null; } catch (_) {}
+  if (piece) rows.push({ id: 'read', kind: 'read', title: 'New for you: ' + String(piece.title).slice(0, 70), why: (piece.from_teacher ? 'Picked by your teacher' : 'Fresh for your level') + ' · ' + piece.words + ' words inside', meta: 'Watch & Read · ' + piece.minutes + ' min', min: piece.minutes, go: 'watchread' });
+  if (!rows.length) rows.push({ id: 'treat', kind: 'treat', title: 'Keep today’s phrase', why: 'A small one: save the phrase of the day and the day counts', meta: 'Today · 1 min · +' + TREAT_XP + ' XP', min: 1, go: 'today' });
   return rows.slice(0, 5);
 }
 

@@ -208,10 +208,7 @@ async function evaluateBadges(db, userId) {
   const owned = new Set(have.map(h => h.badge));
   const one = async (q, p = [userId]) => (await db.query(q, p)).rows[0] || {};
   const checks = {
-    async fire7() {
-      const { rows } = await db.query(`SELECT DISTINCT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS d FROM xp_events WHERE user_id = $1 AND kind <> 'backfill' AND created_at > NOW() - INTERVAL '60 days'`, [userId]);
-      return computeStreak(new Set(rows.map(r => r.d)), dayIn('UTC')).streak >= 7;
-    },
+    async fire7() { return (await require('./streakDays').streakOf(db, { id: userId, timezone: (await db.query('SELECT timezone FROM users WHERE id = $1', [userId])).rows[0]?.timezone })).streak >= 7; },
     async first_blood() { return (await one(`SELECT COUNT(*)::int AS n FROM duels WHERE winner_id = $1 AND status = 'finished'`)).n > 0; },
     async storyteller() { return (await one(`SELECT COUNT(*)::int AS n FROM challenge_done WHERE user_id = $1`)).n >= 10; },
     async climber() { return (await one(`SELECT COALESCE(SUM(xp),0)::int AS n FROM xp_events WHERE user_id = $1`)).n >= 1500; },

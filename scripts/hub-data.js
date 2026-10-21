@@ -558,7 +558,7 @@
     const cols = dep.querySelector('.cols');
     while (cols && cols.nextSibling) cols.nextSibling.remove();
     let h = '';
-    if (!b.total) h = '<div class="bnote">No words yet. Words you save in class and from reading land here.</div>';
+    if (!b.total) h = '<div class="bnote">No words yet. Words you save in class and from reading land here.<br><button type="button" class="chip on" id="wbToRead" style="margin-top:10px">Read something and keep a few words →</button></div>';
     else {
       h += queue.map(rowHtml).join('');
       if (showQ && !queue.length && !q) h += '<div class="bnote">The board is clear — no flights today. Nice.</div>';
@@ -569,6 +569,7 @@
     }
     h += '<div class="dfoot">One flight = one repetition. Miss it — tomorrow the word rebooks one stage lower.</div>';
     dep.insertAdjacentHTML('beforeend', h);
+    const toRead = dep.querySelector('#wbToRead'); if (toRead) toRead.onclick = () => goTo(1);
     dep.querySelectorAll('.xrow').forEach(r => r.addEventListener('click', e => {
       const say = e.target.closest('[data-say]');
       if (say) { try { const u = new SpeechSynthesisUtterance(say.dataset.say); u.lang = 'en-US'; speechSynthesis.speak(u); } catch (_) {} return; }

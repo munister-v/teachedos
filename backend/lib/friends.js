@@ -6,6 +6,7 @@
 
 const crypto = require('crypto');
 const { computeStreak } = require('./streak');
+const sd = require('./streakDays');
 
 const ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';      // no look-alikes
 const rnd = n => Array.from(crypto.randomBytes(n), b => ALPHABET[b % ALPHABET.length]).join('');
@@ -49,9 +50,8 @@ const areFriends = async (db, x, y) => {
   return (await db.query('SELECT 1 FROM friendships WHERE a_id = $1 AND b_id = $2', [a, b])).rows.length > 0;
 };
 
-/* days a student did something (xp events), as a Set of 'YYYY-MM-DD' (UTC) */
-const activeDays = async (db, uid) => new Set((await db.query(
-  `SELECT DISTINCT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS d FROM xp_events WHERE user_id = $1 AND kind <> 'backfill' AND created_at > NOW() - INTERVAL '400 days'`, [uid])).rows.map(r => r.d));
+/* days a student did something, as a Set of 'YYYY-MM-DD' (their own time zone): the one definition, lib/streakDays.js */
+const activeDays = async (db, uid, tz = 'UTC') => new Set((await sd.dayCounts(db, uid, tz)).keys());
 
 const todayUtc = () => new Date().toISOString().slice(0, 10);
 
@@ -68,12 +68,13 @@ async function list(db, user) {
             (SELECT level FROM student_dna d WHERE d.user_id = u.id) AS level
        FROM friendships f JOIN users u ON u.id = CASE WHEN f.a_id = $1 THEN f.b_id ELSE f.a_id END
       WHERE f.a_id = $1 OR f.b_id = $1 ORDER BY f.created_at DESC LIMIT 50`, [user.id]);
-  const mine = await activeDays(db, user.id);
+  const tz = sd.tzOf(user), today = sd.todayIn(tz);
+  const mine = await activeDays(db, user.id, tz);
   const out = [];
   for (const r of rows) {
-    const theirs = await activeDays(db, r.id);
+    const theirs = await activeDays(db, r.id, tz);
     out.push({ id: r.id, name: firstName(r.name), xp: r.xp, level: r.level || '',
-      own_streak: computeStreak(theirs, todayUtc()).streak, shared: sharedStreak(mine, theirs) });
+      own_streak: computeStreak(theirs, today).streak, shared: sharedStreak(mine, theirs, today) });
   }
   return out;
 }
@@ -98,12 +99,12 @@ async function createShare(db, user, kind, body) {
   } else if (kind === 'progress') {
     const [{ rows: [x] }, mine, { rows: [d] }, { rows: [bd] }] = await Promise.all([
       db.query('SELECT COALESCE(SUM(xp),0)::int AS xp FROM xp_events WHERE user_id = $1', [user.id]),
-      activeDays(db, user.id),
+      sd.streakOf(db, user),
       db.query('SELECT level FROM student_dna WHERE user_id = $1', [user.id]),
       db.query('SELECT COUNT(*)::int AS n FROM user_badges WHERE user_id = $1', [user.id]),
     ]);
     const { rows: [w] } = await db.query(`SELECT COUNT(*)::int AS n FROM vocabulary WHERE user_id = $1 AND kind = 'word'`, [user.id]);
-    payload = { xp: x.xp, streak: computeStreak(mine, todayUtc()).streak, level: (d && d.level) || '', badges: bd.n, words: w.n };
+    payload = { xp: x.xp, streak: mine.streak, level: (d && d.level) || '', badges: bd.n, words: w.n };
   } else return { error: 'Unknown share', status: 400 };
   const token = rnd(10);
   await db.query('INSERT INTO hub_shares (token, owner_id, kind, payload) VALUES ($1,$2,$3,$4)', [token, user.id, kind, JSON.stringify(payload)]);
