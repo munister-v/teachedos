@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shared on TeachEd</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="styles/fonts.css">
+<style>
+:root{--ink:#1E2231;--lime:#D3F26A;--olive:#5D614B;--bg:#F6F6EF;--card:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#F4F3EC;--olive:#b6b9a2;--bg:#14161f;--card:#1f2230}}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:24px 16px;display:flex;justify-content:center}
+main{width:min(460px,100%)}
+.cardimg{border-radius:24px;overflow:hidden;box-shadow:0 24px 60px -28px rgba(30,34,49,.45);background:#E9E7DC;min-height:200px}.cardimg svg{width:100%;height:auto;display:block}
+.panel{margin-top:16px;background:var(--card);border-radius:24px;padding:22px 22px 18px}
+h1{font-size:22px;line-height:1.2;letter-spacing:-.4px;margin:0 0 6px}p{margin:0 0 14px;color:var(--olive)}
+button,.btn{display:block;width:100%;text-align:center;font:800 15px Manrope,sans-serif;padding:14px 18px;border-radius:999px;border:0;background:var(--lime);color:#1E2231;cursor:pointer;text-decoration:none}
+.ghost{background:transparent;color:var(--ink);border:1.5px solid rgba(128,128,128,.35);margin-top:10px}
+.err{color:#b23a0e;font-size:14px;min-height:20px;margin:8px 0 0}
+.fine{font-size:12.5px;color:var(--olive);margin-top:14px;text-align:center}
+</style></head><body><main><div class="cardimg" id="img"></div><div class="panel" id="body"><p>One moment…</p></div></main>
+<script src="scripts/app-core.js"></script>
+<script src="scripts/share-cards.js"></script>
+<script>
+/* The recipient's page of a share card: the card itself (the snapshot it was shared with) and one
+   action for its type - a word set goes into your Word Bank, a lesson onto your board; a brag card
+   says a line about TeachEd and offers a soft way in. */
+const A = window.TeachEdApp, BASE = A.API_BASE, S = window.TeachEdShare;
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const tok = () => { try { return localStorage.getItem('teachedos_token'); } catch (_) { return null; } };
+const call = (path, opt) => fetch(BASE + path, Object.assign({ headers: { 'Content-Type': 'application/json', ...(tok() ? { Authorization: 'Bearer ' + tok() } : {}) } }, opt, opt && opt.body ? { body: JSON.stringify(opt.body) } : {})).then(r => r.json().catch(() => ({})).then(d => ({ ok: r.ok, d })));
+async function me() { if (!tok()) return null; const r = await call('/api/auth/me'); return r.ok ? (r.d.user || r.d) : null; }
+const code = (new URLSearchParams(location.search).get('c') || '').toLowerCase();
+
+(async () => {
+  const r = await call('/api/cards/' + encodeURIComponent(code));
+  if (!r.ok) { $('#img').style.display = 'none'; $('#body').innerHTML = '<h1>This card is gone</h1><p>Its owner removed it, or the link is mistyped.</p><a class="btn" href="index.html">Go to TeachEd</a>'; return; }
+  const card = r.d, s = card.snapshot;
+  S.event('page_opened', { kind: card.kind });
+  $('#img').innerHTML = S.render(card, await S.photoFor(card.kind));
+  document.title = (S.KICKER[card.kind] || 'Shared') + ' · TeachEd';
+  const body = $('#body'), u = await me();
+  const join = role => 'landing.html?auth=register&role=' + role + '&from=card';
+  const act = () => S.event('recipient_action', { kind: card.kind });
+  if (card.kind === 'wordset') {
+    body.innerHTML = '<h1>' + esc(s.setTitle) + '</h1><p>' + s.totalWords + ' words from ' + esc(s.studentName) + '’s Word Bank, with meanings and examples.</p>' +
+      (u && u.role === 'student' ? '<button id="add">Add to my Word Bank</button>' : '<a class="btn" href="' + join('student') + '" id="go">Add to my Word Bank — free</a>') + '<div class="err" id="er"></div>';
+    const add = $('#add');
+    if (add) add.onclick = async () => { add.disabled = true; const a = await call('/api/cards/' + encodeURIComponent(code) + '/add', { method: 'POST' }); if (a.ok) { act(); location.href = 'student-hub.html#wordbank'; } else { add.disabled = false; $('#er').textContent = a.d.error || 'Could not add'; } };
+    const go = $('#go'); if (go) go.onclick = act;
+  } else if (card.kind === 'lesson') {
+    const teacher = u && (u.role === 'teacher' || u.role === 'admin');
+    body.innerHTML = '<h1>' + esc(s.title) + '</h1><p>A lesson ' + esc(s.teacherName) + ' shared on TeachEd' + (s.usedByCount ? ' · taken by ' + s.usedByCount + ' colleague' + (s.usedByCount === 1 ? '' : 's') : '') + '.</p>' +
+      (teacher ? '<button id="take">Take it to my board</button>' : '<a class="btn" href="' + join('teacher') + '" id="go">I’m a teacher too — take it</a>') + '<div class="err" id="er"></div>';
+    const take = $('#take');
+    if (take) take.onclick = async () => { take.disabled = true; const a = await call('/api/library/' + encodeURIComponent(card.lesson_id) + '/clone', { method: 'POST' }); if (a.ok) { act(); location.href = 'community.html?tab=library'; } else { take.disabled = false; $('#er').textContent = a.d.error || 'Could not take it'; } };
+    const go = $('#go'); if (go) go.onclick = act;
+  } else {
+    // brag: the card, a line about TeachEd, a soft way in
+    body.innerHTML = '<h1>' + esc(s.studentName || s.teacherName) + ' learns English on TeachEd</h1><p>Lessons on a live board, words that come back right before you forget them, duels with friends.</p>' +
+      '<a class="btn" href="' + join('student') + '" id="go">I want this too</a><a class="btn ghost" href="' + join('teacher') + '" id="go2">I’m a teacher</a>';
+    $('#go').onclick = act; $('#go2').onclick = act;
+  }
+  body.insertAdjacentHTML('beforeend', '<div class="fine">Shared with TeachEd · teached.tech</div>');
+})();
+</script></body></html>

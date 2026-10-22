@@ -1830,3 +1830,19 @@ CREATE TABLE IF NOT EXISTS board_agent_gaps (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_board_agent_gaps_tool ON board_agent_gaps(tool, created_at DESC);
+
+-- Share cards (ТЗ «Шеринг-карточки» FINAL 1.0): one row per card someone shared. The snapshot is what the
+-- recipient's page shows - built on the server from the type's white list only, frozen at creation.
+CREATE TABLE IF NOT EXISTS share_cards (
+  code        VARCHAR(16) PRIMARY KEY,
+  owner_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind        VARCHAR(20) NOT NULL,
+  mode        VARCHAR(8)  NOT NULL DEFAULT 'brag',      -- invite | brag
+  ref         TEXT,                                      -- the duel, the lesson ... the card is about
+  snapshot    JSONB NOT NULL DEFAULT '{}'::jsonb,
+  frame       VARCHAR(24),                               -- seasonalFrame (decor), null = none
+  views       INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  revoked_at  TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_share_cards_owner ON share_cards(owner_id, created_at DESC);

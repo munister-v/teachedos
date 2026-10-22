@@ -346,6 +346,7 @@
     set('.ministreak .ms-sub', e => { e.textContent = num(x.total) + ' XP · ' + L.from + ' → ' + L.to + ' · ' + L.pct + '%'; });
     set('.ministreak .segbar i', e => { e.style.width = L.pct + '%'; });
     XPLAST = x;
+    weekCardToday(x);
 
     const pg = document.getElementById('pg-progress');
     if (!pg) return;
@@ -472,6 +473,12 @@
       const fr = wb.querySelector('.pass16 .pf b'); if (fr) fr.textContent = spot.from;
     }
     // adding a word by hand (the old cabinet's Word Bank tab had it; the hub is the one place now)
+    if (!wb.querySelector('#wbShare') && b.total >= 3) {
+      const sh = document.createElement('button'); sh.type = 'button'; sh.className = 'fchip'; sh.id = 'wbShare'; sh.textContent = 'Share a set';
+      const help = wb.querySelector('#obHelp');
+      (help ? help.parentNode : wb.querySelector('.controls')).insertBefore(sh, help || null);
+      sh.addEventListener('click', shareSet);
+    }
     if (!wb.querySelector('#wbAdd')) {
       const help = wb.querySelector('#obHelp');
       const add = document.createElement('button'); add.type = 'button'; add.className = 'fchip'; add.id = 'wbAdd'; add.textContent = '+ Add a word';
@@ -688,7 +695,7 @@
       if (d.state === 'incoming') return '<div class="duel"><div class="dt">INVITE · EXPIRES IN ' + hoursLeft(d.expires_at) + '</div><div class="db">' + av + '<div class="who"><b>' + esc2(d.with) + ' challenges you</b><span>' + esc2(d.game_label) + ' · same words for both</span></div></div><div class="db"><button class="dbtn lime" data-play="' + esc2(d.id) + '">Accept duel</button><button class="dbtn ghost" data-decline="' + esc2(d.id) + '" title="Gone for good">Decline</button></div></div>';
       if (d.state === 'your_move') return '<div class="duel"><div class="dt">ACTIVE · YOUR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + (d.their_score != null ? 'he played: ' + d.their_score + '/' + d.total + ' · your turn' : 'your turn') + '</span></div><button class="dbtn" data-play="' + esc2(d.id) + '">Play</button></div></div>';
       if (d.state === 'waiting') return '<div class="duel"><div class="dt">WAITING · THEIR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>you scored ' + d.my_score + '/' + d.total + ' · waiting for ' + esc2(d.with) + '</span></div></div></div>';
-      if (d.state === 'finished') return '<div class="duel"><div class="dt">' + (d.won === true ? 'YOU WON' : d.won === false ? 'LOST THIS ONE' : 'A DRAW') + '</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + d.my_score + ' : ' + d.their_score + (d.won === true ? ' · +60 XP' : d.won === false ? ' · +10 XP' : ' · +30 XP') + '</span></div><button class="dbtn" data-rematch="' + esc2(d.id) + '">Rematch</button></div></div>';
+      if (d.state === 'finished') return '<div class="duel"><div class="dt">' + (d.won === true ? 'YOU WON' : d.won === false ? 'LOST THIS ONE' : 'A DRAW') + '</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + d.my_score + ' : ' + d.their_score + (d.won === true ? ' · +60 XP' : d.won === false ? ' · +10 XP' : ' · +30 XP') + '</span></div>' + (d.won === true ? '<button class="dbtn" data-share="' + esc2(d.id) + '">Share</button>' : '') + '<button class="dbtn" data-rematch="' + esc2(d.id) + '">Rematch</button></div></div>';
       return '';
     };
     const shown = [...live, ...h.duels.filter(d => d.state === 'finished').slice(0, 2)];
@@ -708,6 +715,7 @@
       if (t.dataset.frSet) return shareSet();
       if (t.dataset.frOff) return frApi('/' + encodeURIComponent(t.dataset.frOff), 'DELETE').then(() => reloadChallenges());
       if (t.dataset.play) return playDuel(t.dataset.play);
+      if (t.dataset.share) return shareCard('duel', 'duel-result', { ref: t.dataset.share });
       if (t.dataset.decline) return chApi('/duels/' + encodeURIComponent(t.dataset.decline) + '/decline', 'POST').then(reloadChallenges);
       if (t.dataset.rematch) return chApi('/duels/' + encodeURIComponent(t.dataset.rematch) + '/rematch', 'POST').then(r => { if (!r.ok) alert(r.d.error); reloadChallenges(); });
       if (t.id === 'throwBtn') return throwSheet();
@@ -758,6 +766,7 @@
   function shareSet() {
     const title = (prompt('Name this word set:', 'My new words') || '').trim();
     if (!title) return;
+    if (window.TeachEdShare) return shareCard('wordset', 'wordbank', { title });
     frApi('/share', 'POST', { kind: 'set', title }).then(r => {
       if (!r.ok) return alert(r.d.error || 'Could not make the link');
       shareLink(location.origin + r.d.path, 'A word set: ' + title);
@@ -766,7 +775,7 @@
   (function wireShare() {
     const b = document.getElementById('shareBtn'); if (!b) return;
     const n = b.cloneNode(true); b.replaceWith(n);
-    n.addEventListener('click', () => shareProgressSheet(n));
+    n.addEventListener('click', () => (XPLAST && XPLAST.week_xp >= 50 && window.TeachEdShare ? shareCard('week', 'progress') : shareProgressSheet(n)));
   })();
   function throwSheet(pre) {
     if (!CH || !CH.classmates.length) return;
@@ -807,7 +816,11 @@
           if (!s.ok) { body.innerHTML = '<div class="ssub">' + esc2(s.d.error || 'Could not send') + '</div>'; return; }
           const res = s.d.result;
           body.innerHTML = '<h3>' + s.d.score + ' of ' + s.d.total + '</h3><p class="ssub">' + (res ? (res.draw ? 'A draw — +30 XP each.' : res.you_won ? 'You won — +60 XP. The bank is yours.' : 'Not this time — +10 XP for playing. Ask for a rematch.') : 'Your score is in. ' + esc2(r.d.with) + ' has 24 hours to answer.') + '</p><button class="send" id="dDone">Back to challenges</button>';
-          if (res && res.you_won) burstConfetti(80);
+          if (res && res.you_won) {
+            burstConfetti(80);
+            body.querySelector('#dDone').insertAdjacentHTML('beforebegin', '<button class="send" id="dShare" style="margin-bottom:10px">Share the win</button>');
+            body.querySelector('#dShare').onclick = () => shareCard('duel', 'duel-result', { ref: id });
+          }
           body.querySelector('#dDone').onclick = () => { w.close(); reloadChallenges(); json('/api/student/xp').then(xpPaint); };
         });
       };
@@ -1499,6 +1512,25 @@
       });
     });
     if (x.earlier_xp) wins.insertAdjacentHTML('beforeend', '<div class="jr-day"><span>EARLIER</span><span>+' + num(x.earlier_xp) + ' XP</span></div>');
+    myCards(wins);
+  }
+
+  /* the cards the student shared, each one can be taken down (the picture stays with whoever got it - said honestly) */
+  function myCards(after) {
+    json('/api/cards/mine').then(d => {
+      let box = document.getElementById('myCards');
+      const live = ((d && d.cards) || []).filter(c => !c.revoked_at);
+      if (!live.length) { if (box) box.remove(); return; }
+      if (!box) { box = document.createElement('div'); box.id = 'myCards'; box.className = 'wins13'; after.after(box); }
+      const name = c => c.headline || c.set_title || c.title || c.kind;
+      box.innerHTML = '<div class="kick2">MY SHARED CARDS</div>' + live.slice(0, 12).map(c => '<div class="wrow"><div><b>' + esc2(name(c)) + '</b><div class="wsub">' +
+        new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' · opened ' + c.views + (c.views === 1 ? ' time' : ' times') + '</div></div><button type="button" class="dbtn" data-rm="' + esc2(c.code) + '" style="margin-left:auto">Remove</button></div>').join('');
+      box.onclick = e => {
+        const b = e.target.closest('[data-rm]'); if (!b) return;
+        if (!confirm('Remove this card’s page? The link stops working. A picture someone already saved stays with them.')) return;
+        api('/api/cards/' + encodeURIComponent(b.dataset.rm), { method: 'DELETE' }).then(() => myCards(after));
+      };
+    });
   }
 
   /* ── 10. The streak card: a start that leads to the smallest real step, then a live "day N" ── */
@@ -1594,6 +1626,19 @@
   }
 
   window.__hubSay = say;
+
+  /* share cards (scripts/share-cards.js): the server builds the card from its white list */
+  const shareCard = (kind, surface, extra) => window.TeachEdShare && window.TeachEdShare.open({ kind, surface, api, ...(extra || {}) });
+  /* Today: the week card shows up in the feed once the week reaches 50 XP */
+  function weekCardToday(x) {
+    const pg = document.getElementById('pg-today'); if (!pg || !x) return;
+    let el = pg.querySelector('#weekShare');
+    if (!(x.week_xp >= 50) || !window.TeachEdShare) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'weekShare'; el.className = 'twbar'; const end = pg.querySelector('.planend'); (end || pg.querySelector('.plan')).after(el); }
+    el.innerHTML = '<span class="pxart" data-art="crown" data-color="#7A9A1E" data-px="3"></span><p><b>Your week: ' + num(x.week_xp) + ' XP.</b> That is worth a card — share it with friends or family.</p><button type="button">Share my week</button>';
+    paintArt(el.querySelector('.pxart'));
+    el.querySelector('button').onclick = () => shareCard('week', 'hub-today');
+  }
 
   /* ── 2 / 11. On top of the Word Bank: the new words from the teacher; under the board: my finds, with dates ── */
   function wbBlocks(wb, b) {
