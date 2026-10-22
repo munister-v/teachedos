@@ -30,6 +30,7 @@ router.get('/sound', wrap(async (req, res) => {
   const { rows: [u] } = await pool.query('SELECT speaking_accent FROM users WHERE id = $1', [req.user.id]);
   res.json(tutor.soundCard(req.query.word, req.query.phoneme, u.speaking_accent));
 }));
+router.delete('/recordings', wrap(async (req, res) => res.json(await tutor.deleteRecordings(pool, req.user))));
 router.get('/phrases', wrap(async (req, res) => res.json(await tutor.listPhrases(pool, req.user))));
 router.post('/phrase/:id/repeat', wrap(async (req, res) => res.json(await tutor.repeatPhrase(pool, req.user, req.params.id, req.body || {}))));
 router.post('/pair', wrap(async (req, res) => res.json(await tutor.markPair(pool, req.user, req.body || {}))));

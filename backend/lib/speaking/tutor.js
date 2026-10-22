@@ -79,9 +79,22 @@ async function audioSecondsToday(db, userId) {
 const assertCap = async (db, userId) => {
   if (await audioSecondsToday(db, userId) >= C.DAILY_AUDIO_CAP_MIN * 60) throw fail(429, 'DAILY_CAP', 'That is enough talking for today - your voice needs a rest. Tich will be here tomorrow.');
 };
+/* §28: a child's voice practice starts only with the parent's consent on the teacher's side (the journal's consent flag);
+   the teacher's own switch (speaking_voice_ok) wins either way */
 async function voiceAllowed(db, userId) {
   const { rows: [u] } = await db.query('SELECT speaking_voice_ok FROM users WHERE id = $1', [userId]);
-  return !(u && u.speaking_voice_ok === false);
+  if (u && u.speaking_voice_ok === true) return true;
+  if (u && u.speaking_voice_ok === false) return false;
+  const { rows: [j] } = await db.query(`SELECT 1 FROM student_journal WHERE student_id = $1 AND minor IS TRUE AND consent_at IS NULL LIMIT 1`, [userId]);
+  return !j;
+}
+
+async function openHomework(db, user) {
+  const { rows: [a] } = await db.query(
+    `SELECT a.id, a.sessions, a.theme, a.mode, a.due_at, t.name AS teacher,
+            (SELECT COUNT(*)::int FROM speaking_sessions s WHERE s.assignment_id = a.id AND s.finished_at IS NOT NULL AND EXISTS (SELECT 1 FROM speaking_rounds r WHERE r.session_id = s.id AND r.state = 'done')) AS done
+       FROM speaking_assignments a JOIN users t ON t.id = a.teacher_id WHERE a.user_id = $1 AND a.status = 'open' ORDER BY a.created_at LIMIT 1`, [user.id]);
+  return a ? { id: a.id, sessions: a.sessions, done: a.done, theme: a.theme, mode: a.mode, due_at: a.due_at, teacher: String(a.teacher || '').split(/\s+/)[0] } : null;
 }
 
 async function getState(db, user) {
@@ -103,7 +116,7 @@ async function getState(db, user) {
   }
   return { accent: acc.rows[0].speaking_accent, tts: deps.azure.enabled(), stt: sttEnabled(), voice_allowed: voiceOk, ...lim,
     open_session: open.rows[0] ? { id: open.rows[0].id, done: open.rows[0].done, total: open.rows[0].total_rounds, kind: open.rows[0].kind, round: active } : null,
-    unread: unread.rows[0].n, last_tich: unread.rows[0].last || null,
+    unread: unread.rows[0].n, last_tich: unread.rows[0].last || null, homework: await openHomework(db, user),
     sessions_today: done.rows[0].n, daily_cap_min: C.DAILY_AUDIO_CAP_MIN, max_answer_sec: C.MAX_ANSWER_SEC, rounds: C.SESSION_ROUNDS };
 }
 
@@ -117,8 +130,9 @@ async function askNext(db, user, session, ctx) {
   const q = await deps.llm.makeQuestion(plan, ctx, rec.map(r => r.question));
   const voice = await voiceFor(db, user, q.question, ctx.accent);
   const { rows: [round] } = await db.query(
-    `INSERT INTO speaking_rounds (session_id, user_id, idx, source, question, question_audio, construct, target_words) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-    [session.id, user.id, n, plan.source, q.question, voice && voice.id, plan.construct || null, plan.targetWords || []]);
+    `INSERT INTO speaking_rounds (session_id, user_id, idx, source, question, question_audio, construct, target_words, task_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+    [session.id, user.id, n, plan.source, q.question, voice && voice.id, plan.construct || null, plan.targetWords || [], plan.taskId || null]);
+  if (plan.taskId) await db.query(`UPDATE speaking_tasks SET status = 'inProgress' WHERE id = $1 AND status = 'queued'`, [plan.taskId]);
   const m = await say(db, user.id, { author: 'tich', kind: 'text', text: q.question, audio_id: voice && voice.id, audio_sec: voice && voice.sec, round_id: round.id, session_id: session.id });
   return { round, message: m };
 }
@@ -129,18 +143,30 @@ async function startSession(db, user, opts = {}) {
     const { rows: [round] } = await db.query(`SELECT id FROM speaking_rounds WHERE session_id = $1 ORDER BY idx DESC LIMIT 1`, [open.rows[0].id]);
     return { resumed: true, session_id: open.rows[0].id, round_id: round && round.id, messages: [] };
   }
-  const kind = opts.kind === 'ritual' ? 'ritual' : 'free';
+  let assignment = null;
+  if (opts.homeworkId || opts.kind === 'homework') {
+    const { rows: [a] } = await db.query(`SELECT * FROM speaking_assignments WHERE user_id = $1 AND status = 'open' AND ($2::text IS NULL OR id::text = $2) ORDER BY created_at LIMIT 1`, [user.id, opts.homeworkId || null]);
+    if (!a) throw fail(404, 'NO_HOMEWORK', 'There is no speaking homework to do right now.');
+    assignment = a;
+  }
+  const kind = assignment ? 'homework' : opts.kind === 'ritual' ? 'ritual' : 'free';
   if (kind === 'free') {
     const lim = await freeLeft(db, user);
     if (!lim.pro && lim.free_left <= 0) throw fail(403, 'FREE_LIMIT', 'This week\'s free Talk Time sessions are used. They come back on Monday.');
   }
   const ctx = await buildContext(db, user);
   const total = kind === 'ritual' ? 2 : C.SESSION_ROUNDS;
-  const plan = engine.buildSessionPlan(ctx, total);
+  let plan = engine.buildSessionPlan(ctx, total);
+  if (assignment && assignment.mode === 'drill') {            // a drill: only the recurring constructions, the bank fills the rest
+    const hot = (ctx.recurring || []).filter(e => e.status === 'recurring').slice(0, total).map(e => ({ source: 'recurring', construct: e.construct, targetWords: [], brief: `Ask a question that forces ${e.construct} in the answer.` }));
+    plan = hot.concat(plan.filter(p => !hot.some(h => h.construct === p.construct))).slice(0, total);
+  } else if (assignment && assignment.theme) {                 // the teacher's theme leads, the student's own mistakes follow
+    plan = [{ source: 'lesson', construct: null, targetWords: [], brief: `Ask about the theme "${assignment.theme}" so the student speaks about it in their own words.` }, ...plan].slice(0, total);
+  }
   const voiceOk = await voiceAllowed(db, user.id);
   const { rows: [session] } = await db.query(
-    `INSERT INTO speaking_sessions (user_id, kind, mode, input_mode, plan, total_rounds) VALUES ($1,$2,'errors',$3,$4,$5) RETURNING *`,
-    [user.id, kind, opts.inputMode === 'text' || !voiceOk ? 'text' : 'voice', JSON.stringify(plan), total]);
+    `INSERT INTO speaking_sessions (user_id, kind, mode, input_mode, plan, total_rounds, assignment_id) VALUES ($1,$2,'errors',$3,$4,$5,$6) RETURNING *`,
+    [user.id, kind, opts.inputMode === 'text' || !voiceOk ? 'text' : 'voice', JSON.stringify(plan), total, assignment ? assignment.id : null]);
   const msgs = [];
   const dd = await ensureDayDivider(db, user); if (dd) msgs.push(dd);
   if (kind === 'free') { const w = await warmupMessage(db, user, session, ctx); if (w) msgs.push(w); }
@@ -248,7 +274,7 @@ async function answer(db, user, roundId, input = {}) {
             better = COALESCE($7, better), changed = $8, hint = $9, self_fixed = $10, used_words = (SELECT ARRAY(SELECT DISTINCT unnest(used_words || $11::text[]))), answered_at = COALESCE(answered_at, NOW()), done_at = $12
       WHERE id = $1`,
     [round.id, nextState, attempts, audioId, sec, transcript, better, JSON.stringify(selfFixed ? round.changed : a.changed), a.hint || null, selfFixed, used, finishedRound ? new Date() : null]);
-  if (finishedRound) out.push(...await advance(db, user, round.session_id, ctx));
+  if (finishedRound) { await taskDone(db, round); out.push(...await advance(db, user, round.session_id, ctx)); }
   return { messages: out, state: finishedRound ? 'done' : nextState, round_id: round.id };
 }
 
@@ -275,9 +301,12 @@ async function repeat(db, user, roundId, input = {}) {
   await db.query(`UPDATE speaking_rounds SET repeat_audio = $2, repeats = $3, weakest = $4, scores = $5, state = $6, done_at = $7 WHERE id = $1`,
     [round.id, aud.id, repeats, weakest ? JSON.stringify({ word: weakest.word, phoneme: weakest.phoneme }) : null,
      result ? JSON.stringify({ accuracy: result.accuracy, fluency: result.fluency, prosody: result.prosody }) : null, again ? 'better' : 'done', again ? null : new Date()]);
-  if (!again) out.push(...await advance(db, user, round.session_id, ctx));
+  if (!again) { await taskDone(db, round); out.push(...await advance(db, user, round.session_id, ctx)); }
   return { messages: out, state: again ? 'better' : 'done', weakest: weakest ? { word: weakest.word, phoneme: weakest.phoneme } : null, round_id: round.id };
 }
+
+/* the teacher's errand is done when its round is */
+const taskDone = (db, round) => round.task_id ? db.query(`UPDATE speaking_tasks SET status = 'done', done_at = NOW() WHERE id = $1 AND status <> 'done'`, [round.task_id]) : null;
 
 /* a round is done: the next question, or the end of the session */
 async function advance(db, user, sessionId, ctx) {
@@ -315,9 +344,22 @@ async function finishSession(db, user, sessionId) {
   await db.query(`UPDATE speaking_sessions SET finished_at = NOW(), xp = $2, summary = $3, input_mode = $4 WHERE id = $1`, [s.id, pay, JSON.stringify(summary), inputMode]);
   const text = done.length ? (goal ? `Today we worked on: ${goal[0]}. Your phrases are in the Phrase Bank.` : 'Clean session - nothing to fix today. Nice.') : 'See you next time.';
   const m = await say(db, user.id, { author: 'tich', kind: 'sessionSummary', text, session_id: s.id, meta: summary });
+  if (s.assignment_id && done.length) await assignmentProgress(db, user, s.assignment_id);
   // what Tich learned about the student's life: shown to them, deletable in one tap (§20)
   if (done.length) setImmediate(() => rememberFacts(db, user, rounds).catch(() => {}));
   return m;
+}
+
+/* a finished homework session counts; when the last one is in, the assignment is done and the teacher hears about it once */
+async function assignmentProgress(db, user, assignmentId) {
+  const { rows: [a] } = await db.query('SELECT * FROM speaking_assignments WHERE id = $1', [assignmentId]);
+  if (!a || a.status === 'done') return;
+  const { rows: [c] } = await db.query(`SELECT COUNT(*)::int AS n FROM speaking_sessions s WHERE s.assignment_id = $1 AND s.finished_at IS NOT NULL AND EXISTS (SELECT 1 FROM speaking_rounds r WHERE r.session_id = s.id AND r.state = 'done')`, [assignmentId]);
+  if (c.n >= a.sessions) {
+    const r = await db.query(`UPDATE speaking_assignments SET status = 'done', done_at = NOW() WHERE id = $1 AND status = 'open'`, [assignmentId]);
+    if (r.rowCount) require('../../routes/notifications').createNotification(a.teacher_id, 'homework', `${String(user.name || 'A student').split(/\s+/)[0]} finished the speaking practice`,
+      `${a.sessions} ${a.sessions === 1 ? 'session' : 'sessions'} done - the report is in the student's card.`, 'index.html#students').catch(() => {});
+  }
 }
 
 async function rememberFacts(db, user, rounds) {
@@ -397,6 +439,13 @@ async function sayAudio(db, user, text) {
   const v = await voiceFor(db, user, t, acc);
   return v ? getAudio(db, user, v.id) : null;
 }
+/* §28: the student can have all their recordings deleted at any time (the transcripts and the log stay with their teacher) */
+async function deleteRecordings(db, user) {
+  const r = await db.query(`DELETE FROM speaking_audio WHERE user_id = $1 AND kind IN ('student','repeat')`, [user.id]);
+  await db.query(`UPDATE speaking_rounds SET student_audio = NULL, repeat_audio = NULL WHERE user_id = $1`, [user.id]);
+  await db.query(`UPDATE speaking_messages SET audio_id = NULL WHERE user_id = $1 AND author = 'student'`, [user.id]);
+  return { deleted: r.rowCount };
+}
 const markSeen = (db, user) => db.query('UPDATE users SET talk_seen_at = NOW() WHERE id = $1', [user.id]);
 
 /* leaving after any round keeps the progress: the log is already written, the finished rounds count */
@@ -409,4 +458,4 @@ async function getAudio(db, user, id) {
   return a || null;
 }
 
-module.exports = { listPhrases, repeatPhrase, listFacts, deleteFact, markPair, sayAudio, skipRound, markSeen, setDeps, getState, listMessages, startSession, answer, repeat, finishSession, leave, getAudio, soundCard, freeLeft, voiceFor, say, ensureDayDivider, askNext, logMistakes };
+module.exports = { deleteRecordings, voiceAllowed, listPhrases, repeatPhrase, listFacts, deleteFact, markPair, sayAudio, skipRound, markSeen, setDeps, getState, listMessages, startSession, answer, repeat, finishSession, leave, getAudio, soundCard, freeLeft, voiceFor, say, ensureDayDivider, askNext, logMistakes };

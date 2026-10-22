@@ -733,6 +733,7 @@
     if (a.op === 'cover') return `Hide from students until you uncover: ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'uncover') return `Show to students again: ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'launch') return `Open the lesson on the students’ screens${names(a.ids)}`;
+    if (a.op === 'speaking') return a.drill ? 'Give the student one short drill from their recurring mistakes (Talk Time)' : `Give the student ${plural(a.sessions, 'Talk Time session')} with Tich${a.theme ? ' about ' + quote(a.theme, 30) : ''}`;
     if (a.op === 'wordbank') return `Send ${plural(a.words.length, 'word')} to the student’s Word Bank: ${a.words.slice(0, 3).map(w => quote(w, 22)).join(', ')}${a.words.length > 3 ? ` +${a.words.length - 3}` : ''}`;
     if (a.op === 'assign') return `Give the cards of ${quote(cardText(byId(a.frame) || {}), 24)} to the student as homework${a.title ? ` “${a.title}”` : ''}${a.due ? `, due ${a.due}` : ''}`;
     if (a.op === 'remember') return `Save to ${a.name}'s memory · Notes: ${quote(a.text, 80)}`;
@@ -1275,11 +1276,19 @@
     return d && d.ok ? { ok: true, note: `${d.added} new, ${d.skipped} already there` } : { ok: false, why: (d && d.why) || 'the server refused it' };
   }
 
+  /* Talk Time (speaking practice with Tich) for the board's student: the server checks the board, the one student and the Pro plan. */
+  async function doSpeaking(a) {
+    if (typeof currentBoardId === 'undefined' || !currentBoardId) return { ok: false, why: 'save this board to your account first' };
+    const r = await apiFetch('/api/ai/board-agent/speaking', { method: 'POST', body: { boardId: currentBoardId, sessions: a.sessions, theme: a.theme, drill: !!a.drill } });
+    const d = await r.json().catch(() => ({}));
+    return d && d.ok ? { ok: true, note: 'assigned' } : { ok: false, why: (d && d.why) || 'the server refused it' };
+  }
+
   /* ── Levels (§7) ────────────────────────────────────────────────────────
      A0 reads, A1 changes the teacher's own board reversibly (one Undo takes
      the task back), A2 is what students see, anything outside this chat's own
      cards that gets deleted, and a mass change (more than ten existing cards). */
-  const STUDENT_OPS = new Set(['cover', 'uncover', 'assign', 'wordbank', 'launch', 'remember']);
+  const STUDENT_OPS = new Set(['cover', 'uncover', 'assign', 'wordbank', 'speaking', 'launch', 'remember']);
   const MASS = 10;
   function levelOf(a) {
     if (a.op === 'focus' || a.op === 'open') return 'A0';
@@ -1375,7 +1384,7 @@
           const bad = cards.filter(c => a.op === 'cover' ? !held(c) : held(c));
           return bad.length ? miss(`${bad.length} cards did not change`) : { ok: true };
         }
-        case 'assign': case 'wordbank': { const r = v.asyncRes.get(a); return r ? (r.ok ? { ok: true } : miss(r.why)) : miss('it was not sent'); }
+        case 'assign': case 'wordbank': case 'speaking': { const r = v.asyncRes.get(a); return r ? (r.ok ? { ok: true } : miss(r.why)) : miss('it was not sent'); }
         default: return { ok: true };
       }
     } catch (err) { return miss('could not be checked'); }
@@ -1405,7 +1414,7 @@
       });
       box.appendChild(ul);
     }
-    const changed = results.some((r, i) => levelOf(actions[i]) !== 'A0' && r.ok && actions[i].op !== 'assign' && actions[i].op !== 'wordbank');
+    const changed = results.some((r, i) => levelOf(actions[i]) !== 'A0' && r.ok && actions[i].op !== 'assign' && actions[i].op !== 'wordbank' && actions[i].op !== 'speaking');
     if (changed && typeof undo === 'function') {
       const b = document.createElement('button');
       b.type = 'button';
@@ -1499,9 +1508,9 @@
       scheduleSave(); saveLocal();
     }
     // the steps that talk to the server run after the board is in place
-    for (const a of actions.filter(x => x.op === 'assign' || x.op === 'wordbank')) {
+    for (const a of actions.filter(x => x.op === 'assign' || x.op === 'wordbank' || x.op === 'speaking')) {
       setBusy(true);
-      try { asyncRes.set(a, await (a.op === 'assign' ? doAssign(a) : doWordbank(a))); } catch (err) { asyncRes.set(a, { ok: false, why: 'the server did not answer' }); } finally { setBusy(false); }
+      try { asyncRes.set(a, await (a.op === 'assign' ? doAssign(a) : a.op === 'speaking' ? doSpeaking(a) : doWordbank(a))); } catch (err) { asyncRes.set(a, { ok: false, why: 'the server did not answer' }); } finally { setBusy(false); }
     }
     // games and exercise cards place themselves; they count as made too
     const fresh = state.cards.filter(c => !before.has(c.id)).map(c => c.id);

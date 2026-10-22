@@ -344,3 +344,10 @@ test('board agent: launch needs known non-frame cards, card reads need a safe id
   assert.deepStrictEqual(agent.sanitizePlan({ actions: [{ op: 'launch', ids: ['f1', 'c1', 'zz'] }, { op: 'launch', ids: ['c2'] }] }, framed).actions, [{ op: 'launch', ids: ['c1'] }]);
   assert.deepStrictEqual(agent.readRequest({ read: [{ tool: 'card', id: 'c7' }, { tool: 'card', id: 'x"; drop' }] }), [{ tool: 'card', id: 'c7' }]);
 });
+
+test('board agent: the speaking step is bounded (1-5 sessions, one per plan), and the speaking read is allowed', () => {
+  const plan = agent.sanitizePlan({ actions: [{ op: 'speaking', sessions: 99, theme: 'My job', drill: false }, { op: 'speaking', sessions: 2 }] }, framed);
+  assert.deepStrictEqual(plan.actions, [{ op: 'speaking', sessions: 5, theme: 'My job', drill: false }]);
+  assert.deepStrictEqual(agent.sanitizePlan({ actions: [{ op: 'speaking', sessions: 'x', drill: true }] }, framed).actions, [{ op: 'speaking', sessions: 3, theme: '', drill: true }]);
+  assert.deepStrictEqual(agent.readRequest({ read: [{ tool: 'speaking' }, { tool: 'nonsense' }] }), [{ tool: 'speaking' }]);
+});

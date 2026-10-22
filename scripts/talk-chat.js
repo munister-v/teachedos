@@ -16,15 +16,16 @@
 
   /* ── the card on Today ─────────────────────────────────────────────── */
   function cardHtml(t) {
-    const hello = t.last_tich || (t.open_session ? 'We were in the middle of something - shall we finish it?' : 'Hi! Ready for five minutes of talking? I will ask you one question.');
-    const limit = !t.pro && t.free_left === 0 && !t.open_session;
+    const hw = t.homework;
+    const hello = hw ? hw.teacher + ' set you ' + hw.sessions + (hw.sessions === 1 ? ' session' : ' sessions') + ' of Talk Time' + (hw.theme ? ' about “' + hw.theme + '”' : '') + '. ' + (hw.done ? hw.done + ' done.' : 'Shall we start?') : t.last_tich || (t.open_session ? 'We were in the middle of something - shall we finish it?' : 'Hi! Ready for five minutes of talking? I will ask you one question.');
+    const limit = !t.pro && t.free_left === 0 && !t.open_session && !t.homework;
     return (t.unread > 0 ? '<span class="tk-new">' + t.unread + (t.unread === 1 ? ' NEW MESSAGE' : ' NEW MESSAGES') + '</span>' : '') +
       '<div class="tk-chead"><div class="tk-ava-wrap"><img class="tk-ava" src="' + PHOTO + '" alt=""><span class="tk-online"></span></div>' +
-      '<div><div class="tk-who">TICH · TALK TIME</div><div class="tk-title">Talk to Tich</div><div class="tk-sub">' + (t.open_session ? 'A session is waiting for you' : t.last_tich ? 'He is awake and has a question for you' : 'Five minutes, one question at a time') + '</div></div>' +
+      '<div><div class="tk-who">TICH · TALK TIME</div><div class="tk-title">Talk to Tich</div><div class="tk-sub">' + (hw ? 'Speaking homework from ' + hw.teacher : t.open_session ? 'A session is waiting for you' : t.last_tich ? 'He is awake and has a question for you' : 'Five minutes, one question at a time') + '</div></div>' +
       '<button type="button" class="tk-go">' + (t.open_session ? 'Continue →' : 'Open chat →') + '</button></div>' +
       '<div class="tk-msgrow"><img class="tk-av-sm" src="' + PHOTO + '" alt=""><div class="tk-bub">' + esc(hello) + '</div></div>' +
       '<div class="tk-meta"><span><b>5 min</b> · talk, don’t type</span><span>Counts as <b>today’s task</b></span><span>+' + 20 + ' XP</span>' +
-      (limit ? '<span>This week’s free sessions are used</span>' : (!t.pro && t.free_left != null ? '<span>' + t.free_left + ' free ' + (t.free_left === 1 ? 'session' : 'sessions') + ' left this week</span>' : '')) + '</div>';
+      (hw ? '<span>Homework: ' + Math.min(hw.sessions, hw.done + 1) + ' of ' + hw.sessions + '</span>' : limit ? '<span>This week’s free sessions are used</span>' : (!t.pro && t.free_left != null ? '<span>' + t.free_left + ' free ' + (t.free_left === 1 ? 'session' : 'sessions') + ' left this week</span>' : '')) + '</div>';
   }
   function renderCard(talk) {
     const pg = document.getElementById('pg-today'); if (!pg) return;
@@ -173,6 +174,10 @@
   /* the bottom bar follows the state: start / listening / listen-redo-send / the repeat / the end of a session */
   function bar(html) { const b = ov.querySelector('#tkBar'); b.innerHTML = html || ''; return b; }
   function idleBar(extra) {
+    if (S.homework) {
+      const b = bar('<button type="button" class="tk-big" data-start="1">Start homework · session ' + Math.min(S.homework.sessions, S.homework.done + 1) + ' of ' + S.homework.sessions + '</button><div class="tk-note">From ' + esc(S.homework.teacher) + (S.homework.theme ? ' · ' + esc(S.homework.theme) : '') + '</div>');
+      b.querySelector('[data-start]').onclick = startSession; return;
+    }
     if (S.limit) { bar('<div class="tk-note">' + esc(S.limit) + '</div>'); return; }
     const free = !S.pro && S.free_left != null ? ' · ' + S.free_left + ' free ' + (S.free_left === 1 ? 'session' : 'sessions') + ' left this week' : '';
     const b = bar('<button type="button" class="tk-big" data-start="1">' + (extra || 'Start Talk Time · 5 min') + '</button><div class="tk-note">One question at a time' + esc(free) + '</div>');
@@ -195,7 +200,7 @@
 
   async function startSession() {
     S.busy = true; syncInput(); bar('<div class="tk-note">Tich is thinking of a question…</div>'); typing(true);
-    const r = await call('/api/talk/session', { method: 'POST', body: {} });
+    const r = await call('/api/talk/session', { method: 'POST', body: S.homework ? { kind: 'homework' } : {} });
     S.busy = false; typing(false);
     if (!r.ok) { if (r.d.code === 'FREE_LIMIT') { S.limit = r.d.error; idleBar(); } else { idleBar(); showError(r.d.error || 'Could not start - try again', startSession); } return; }
     S.sessionId = r.d.session_id; S.roundId = r.d.round_id; S.state = 'asked'; S.limit = null;
@@ -214,6 +219,7 @@
     refreshCard();
   }
   function endBar() {
+    call('/api/talk/state').then(st => { if (st.ok && S) S.homework = st.d.homework; });
     const b = bar('<button type="button" class="tk-big" data-more="1">5 more</button><button type="button" class="tk-ghost" data-done="1">Done</button>');
     b.querySelector('[data-more]').onclick = startSession; b.querySelector('[data-done]').onclick = close; syncInput();
   }
@@ -432,8 +438,9 @@
     thread().innerHTML = '<div class="tk-day">Loading…</div>';
     const st = await call('/api/talk/state');
     if (!st.ok) { thread().innerHTML = ''; showError('Talk Time did not load - please try again.', () => { close(); open(); }); return; }
-    S.canVoice = st.d.voice_allowed && st.d.stt && !!(navigator.mediaDevices && window.MediaRecorder); S.tts = st.d.tts; S.pro = st.d.pro; S.free_left = st.d.free_left;
-    if (!st.d.pro && st.d.free_left === 0 && !st.d.open_session) S.limit = 'This week’s free Talk Time sessions are used. They come back on Monday — your thread stays here.';
+    S.canVoice = st.d.voice_allowed && st.d.stt && !!(navigator.mediaDevices && window.MediaRecorder); S.tts = st.d.tts; S.pro = st.d.pro; S.free_left = st.d.free_left; S.homework = st.d.homework;
+    if (!st.d.voice_allowed) S.voiceNote = 'Voice practice is off for now — you can write, and your teacher can switch voice on.';
+    if (!st.d.pro && st.d.free_left === 0 && !st.d.open_session && !st.d.homework) S.limit = 'This week’s free Talk Time sessions are used. They come back on Monday — your thread stays here.';
     await loadMessages();
     call('/api/talk/seen', { method: 'PUT' }).then(refreshCard);
     if (st.d.open_session && st.d.open_session.round) { S.sessionId = st.d.open_session.id; S.roundId = st.d.open_session.round.id; S.state = st.d.open_session.round.state; awaitingBar(); }

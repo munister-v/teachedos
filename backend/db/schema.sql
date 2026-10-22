@@ -1977,3 +1977,39 @@ CREATE TABLE IF NOT EXISTS speaking_tasks (                -- the teacher's erra
 CREATE INDEX IF NOT EXISTS idx_speaking_tasks_user ON speaking_tasks(user_id, status);
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS talk_seen_at TIMESTAMPTZ;              -- when the student last opened the chat: Tich's newer messages are "new"
+
+-- Speaking Tutor, the teacher's side (ТЗ §§5, 11, 27, 28): speaking homework, the topics taught (program checks come from them),
+ALTER TABLE speaking_rounds ADD COLUMN IF NOT EXISTS task_id UUID;
+CREATE TABLE IF NOT EXISTS speaking_assignments (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,     -- the student
+  sessions    INTEGER NOT NULL DEFAULT 3,
+  theme       VARCHAR(80),                                              -- null = "by my mistakes"
+  mode        VARCHAR(8) NOT NULL DEFAULT 'errors',                     -- errors | drill
+  due_at      TIMESTAMPTZ,
+  status      VARCHAR(8) NOT NULL DEFAULT 'open',                       -- open | done
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  done_at     TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_assign_user ON speaking_assignments(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_speaking_assign_teacher ON speaking_assignments(teacher_id, status, created_at DESC);
+CREATE TABLE IF NOT EXISTS speaking_topics (                -- what the teacher is teaching now: the source of the program checks (+1 and +4 days)
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  teacher_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  topic       VARCHAR(80) NOT NULL,
+  construct   VARCHAR(80) NOT NULL,
+  lesson_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_topics_user ON speaking_topics(user_id, lesson_date DESC);
+ALTER TABLE speaking_sessions ADD COLUMN IF NOT EXISTS assignment_id UUID;
+CREATE TABLE IF NOT EXISTS speaking_flags (                  -- the teacher's "not that correction": the weekly calibration list (§23)
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  round_id   UUID NOT NULL REFERENCES speaking_rounds(id) ON DELETE CASCADE,
+  kind       VARCHAR(10) NOT NULL DEFAULT 'better',                   -- better | sound
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (teacher_id, round_id, kind)
+);

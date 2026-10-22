@@ -2539,6 +2539,16 @@ router.post('/board-agent/wordbank', requireAuth, requireTeacher, async (req, re
   }
 });
 
+/* POST /api/ai/board-agent/speaking - the assistant's "speaking" step after the teacher confirms: Talk Time for the board's one student. */
+router.post('/board-agent/speaking', requireAuth, requireTeacher, async (req, res) => {
+  try {
+    res.json(await require('../lib/boardAgentTools').assignSpeaking(require('../db/pool'), req.user, req.body?.boardId, req.body || {}));
+  } catch (err) {
+    console.error('[ai/board-agent/speaking]', err.message);
+    res.status(500).json({ ok: false, why: 'the server could not assign it' });
+  }
+});
+
 /* POST /api/ai/vocab-enrich - карточки Vocabulary Studio одним запросом:
    общая тема набора, значение В КОНТЕКСТЕ (для фраз и метафор - переносное,
    а не статья первого слова), коллокации и предложение с пропуском.

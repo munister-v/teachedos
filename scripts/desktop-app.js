@@ -1639,6 +1639,7 @@ function studentDetailRender() {
         <div class="st-fin-f"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>${esc(_paymentLine(s))}</div>
         ${s.paid_claim_at ? '<div class="st-fin-f" style="color:#2e7d32;font-weight:700">Says they paid - check your account</div>' : ''}
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsOpenCalendar('${esc(String(s.journal_id))}')">Lessons calendar</button>
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="window.TalkTeacher && TalkTeacher.open('${esc(String(s.id))}', '${esc(String(s.name || '')).replace(/'/g, '')}')">Talk Time · speaking practice</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsShareCard('welcome', '${esc(String(s.journal_id))}')">Welcome card for ${esc(String(s.name || 'this student').split(' ')[0])}</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsShareCard('parentreport', '${esc(String(s.journal_id))}')">Report card for the parent</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsSetTrial('${esc(String(s.journal_id))}', ${s.is_trial ? 'false' : 'true'})">${s.is_trial ? 'End the trial' : '✨ Mark as trial student'}</button>
@@ -3903,13 +3904,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1360" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1362" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1360" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1362" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

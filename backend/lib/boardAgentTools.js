@@ -82,6 +82,7 @@ async function runReads(db, teacherId, boardId, reads) {
     if (tool === 'results') out.push(await readResults(db, teacherId, boardId).catch(() => 'Results: could not be read.'));
     else if (tool === 'card') out.push(await readCard(db, teacherId, boardId, r.id).catch(() => 'Card results: could not be read.'));
     else if (tool === 'web') out.push(await webSearch(r.q, r.lang));
+    else if (tool === 'speaking') out.push(await readSpeaking(db, teacherId, boardId).catch(() => 'Talk Time: could not be read.'));
   }
   return out.join('\n');
 }
@@ -114,4 +115,27 @@ async function addWords(db, teacherId, boardId, words) {
   return { ok: true, added, skipped: list.length - added };
 }
 
-module.exports = { boardStudents, readResults, readCard, webSearch, runReads, addWords };
+/* Talk Time of the board's one student, as the report line and the top slips (speaking.report). */
+async function readSpeaking(db, teacherId, boardId) {
+  const students = await boardStudents(db, teacherId, boardId);
+  if (students.length !== 1) return 'Talk Time: it reads one student at a time - this board has ' + (students.length ? 'several' : 'none') + '.';
+  const t = require('./speaking/teacher');
+  const r = await t.report(db, { id: teacherId }, students[0].user_id);
+  const top = r.top_mistakes.map(m => `${m.construct} (${m.occurrences}x${m.weight === 'blocking' ? ', breaks the meaning' : ''})`).join('; ');
+  return `Talk Time of ${r.student.name}: ${r.line}, ${r.speech_minutes} min of speech. ` + (top ? 'Recurring slips: ' + top + '. ' : 'No recurring slips yet. ') +
+    (r.assignments.length ? 'Assignments: ' + r.assignments.slice(0, 3).map(a => `${a.done}/${a.sessions} ${a.status}`).join(', ') + '.' : '');
+}
+
+/* speaking.assign / speaking.make_drill after the teacher confirms: Talk Time for the board's one student. */
+async function assignSpeaking(db, teacher, boardId, a = {}) {
+  const students = await boardStudents(db, teacher.id, boardId);
+  if (students.length !== 1) return { ok: false, why: students.length ? 'this board has several students' : 'this board has no student yet' };
+  const t = require('./speaking/teacher');
+  try {
+    if (a.drill) await t.makeDrill(db, teacher, { student_id: students[0].user_id });
+    else await t.assign(db, teacher, { student_id: students[0].user_id, sessions: a.sessions, theme: a.theme });
+    return { ok: true };
+  } catch (e) { return { ok: false, why: e.status ? e.message : 'the server could not assign it' }; }
+}
+
+module.exports = { readSpeaking, assignSpeaking, boardStudents, readResults, readCard, webSearch, runReads, addWords };
